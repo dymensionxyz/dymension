@@ -21,7 +21,7 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 
 	require.Error(
 		t,
-		dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, "0x", "1"),
+		dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, "0x", "101"),
 		"should not allow invalid buyer address",
 	)
 
@@ -39,7 +39,7 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 	)
 
 	offer1 := dymnstypes.BuyOffer{
-		Id:                     "1",
+		Id:                     "101",
 		Name:                   "a",
 		Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:                  buyer1a,
@@ -51,7 +51,7 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 	require.NoError(t, err)
 
 	offer2 := dymnstypes.BuyOffer{
-		Id:                     "2",
+		Id:                     "102",
 		Name:                   "b",
 		Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:                  buyer2a,
@@ -63,7 +63,7 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 	require.NoError(t, err)
 
 	offer3 := dymnstypes.BuyOffer{
-		Id:                     "3",
+		Id:                     "103",
 		Name:                   "c",
 		Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:                  buyer2a,
@@ -76,7 +76,7 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, buyer2a, "3721461"),
+		dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, buyer2a, "103721461"),
 		"no check non-existing offer record",
 	)
 
@@ -121,7 +121,7 @@ func TestKeeper_RemoveReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 
 	require.Error(
 		t,
-		dk.RemoveReverseMappingBuyerToBuyOffer(ctx, "0x", "1"),
+		dk.RemoveReverseMappingBuyerToBuyOffer(ctx, "0x", "101"),
 		"should not allow invalid buyer address",
 	)
 
@@ -132,7 +132,7 @@ func TestKeeper_RemoveReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 	)
 
 	offer1 := dymnstypes.BuyOffer{
-		Id:                     "1",
+		Id:                     "101",
 		Name:                   "a",
 		Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:                  buyerA,
@@ -143,7 +143,7 @@ func TestKeeper_RemoveReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 	require.NoError(t, dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, buyerA, offer1.Id))
 
 	offer2 := dymnstypes.BuyOffer{
-		Id:                     "2",
+		Id:                     "102",
 		Name:                   "b",
 		Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:                  buyerA,
@@ -165,7 +165,7 @@ func TestKeeper_RemoveReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 
 	require.NoError(
 		t,
-		dk.RemoveReverseMappingBuyerToBuyOffer(ctx, buyerA, "138132187"),
+		dk.RemoveReverseMappingBuyerToBuyOffer(ctx, buyerA, "10138132187"),
 		"no error if not placed order",
 	)
 
@@ -198,7 +198,7 @@ func TestKeeper_GetAddReverseMappingDymNameToBuyOffer(t *testing.T) {
 
 	require.Error(
 		t,
-		dk.AddReverseMappingDymNameToBuyOffer(ctx, "@", "1"),
+		dk.AddReverseMappingDymNameToBuyOffer(ctx, "@", "101"),
 		"fail - should reject invalid Dym-Name",
 	)
 	require.Error(
@@ -226,7 +226,7 @@ func TestKeeper_GetAddReverseMappingDymNameToBuyOffer(t *testing.T) {
 	require.NoError(t, dk.SetDymName(ctx, dymName1))
 
 	offer11 := dymnstypes.BuyOffer{
-		Id:         "11",
+		Id:         "1011",
 		Name:       dymName1.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
@@ -235,7 +235,7 @@ func TestKeeper_GetAddReverseMappingDymNameToBuyOffer(t *testing.T) {
 	require.NoError(t, dk.SetBuyOffer(ctx, offer11))
 
 	offer12 := dymnstypes.BuyOffer{
-		Id:         "12",
+		Id:         "1012",
 		Name:       dymName1.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
@@ -262,7 +262,7 @@ func TestKeeper_GetAddReverseMappingDymNameToBuyOffer(t *testing.T) {
 	require.NoError(t, dk.SetDymName(ctx, dymName2))
 
 	offer2 := dymnstypes.BuyOffer{
-		Id:         "2",
+		Id:         "102",
 		Name:       dymName2.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
@@ -277,7 +277,7 @@ func TestKeeper_GetAddReverseMappingDymNameToBuyOffer(t *testing.T) {
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingDymNameToBuyOffer(ctx, dymName1.Name, "12356215631"),
+		dk.AddReverseMappingDymNameToBuyOffer(ctx, dymName1.Name, "1012356215631"),
 		"no check non-existing offer id",
 	)
 
@@ -324,7 +324,7 @@ func TestKeeper_RemoveReverseMappingDymNameToBuyOffer(t *testing.T) {
 
 	require.Error(
 		t,
-		dk.RemoveReverseMappingDymNameToBuyOffer(ctx, "@", "1"),
+		dk.RemoveReverseMappingDymNameToBuyOffer(ctx, "@", "101"),
 		"fail - should reject invalid Dym-Name",
 	)
 	require.Error(
@@ -345,7 +345,7 @@ func TestKeeper_RemoveReverseMappingDymNameToBuyOffer(t *testing.T) {
 	require.NoError(t, dk.SetDymName(ctx, dymName1))
 
 	offer11 := dymnstypes.BuyOffer{
-		Id:         "11",
+		Id:         "1011",
 		Name:       dymName1.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
@@ -354,7 +354,7 @@ func TestKeeper_RemoveReverseMappingDymNameToBuyOffer(t *testing.T) {
 	require.NoError(t, dk.SetBuyOffer(ctx, offer11))
 
 	offer12 := dymnstypes.BuyOffer{
-		Id:         "12",
+		Id:         "1012",
 		Name:       dymName1.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
@@ -381,7 +381,7 @@ func TestKeeper_RemoveReverseMappingDymNameToBuyOffer(t *testing.T) {
 	require.NoError(t, dk.SetDymName(ctx, dymName2))
 
 	offer2 := dymnstypes.BuyOffer{
-		Id:         "2",
+		Id:         "102",
 		Name:       dymName2.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
@@ -411,7 +411,7 @@ func TestKeeper_RemoveReverseMappingDymNameToBuyOffer(t *testing.T) {
 	t.Run("no error if element is not in the list", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingDymNameToBuyOffer(ctx, dymName1.Name, "218362184621"),
+			dk.RemoveReverseMappingDymNameToBuyOffer(ctx, dymName1.Name, "10218362184621"),
 		)
 
 		linked, err := dk.GetBuyOffersOfDymName(ctx, dymName1.Name)

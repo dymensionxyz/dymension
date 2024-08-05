@@ -17,7 +17,7 @@ func (k Keeper) AddReverseMappingBuyerToBuyOfferRecord(ctx sdk.Context, buyer, o
 	}
 
 	if !dymnstypes.IsValidBuyOfferId(offerId) {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid buy offer ID: %s", offerId)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Offer ID: %s", offerId)
 	}
 
 	key := dymnstypes.BuyerToOfferIdsRvlKey(bzAccAddr)

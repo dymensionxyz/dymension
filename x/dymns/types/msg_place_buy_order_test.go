@@ -32,7 +32,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			name:            "pass - valid, continue offer",
 			dymName:         "a",
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			continueOfferId: "1",
+			continueOfferId: "101",
 			offer:           dymnsutils.TestCoin(1),
 			wantErr:         false,
 		},

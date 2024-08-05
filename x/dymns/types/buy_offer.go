@@ -2,10 +2,13 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"strconv"
+	"strings"
 )
 
 // HasCounterpartyOfferPrice returns true if the offer has a raise-offer request from the Dym-Name owner.
@@ -25,6 +28,23 @@ func (m *BuyOffer) Validate() error {
 
 	if !IsValidBuyOfferId(m.Id) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "ID of offer is not a valid offer id")
+	}
+
+	switch m.Type {
+	case MarketOrderType_MOT_DYM_NAME:
+		if !strings.HasPrefix(m.Id, BuyOfferIdTypeDymNamePrefix) {
+			return errorsmod.Wrap(
+				gerrc.ErrInvalidArgument,
+				"mismatch type of Buy-Order ID prefix and type",
+			)
+		}
+	case MarketOrderType_MOT_ALIAS:
+		if !strings.HasPrefix(m.Id, BuyOfferIdTypeAliasPrefix) {
+			return errorsmod.Wrap(
+				gerrc.ErrInvalidArgument,
+				"mismatch type of Buy-Order ID prefix and type",
+			)
+		}
 	}
 
 	if m.Name == "" {
@@ -96,6 +116,37 @@ func (m BuyOffer) GetSdkEvent(actionName string) sdk.Event {
 
 // IsValidBuyOfferId returns true if the given string is a valid offer-id for buy offer.
 func IsValidBuyOfferId(id string) bool {
-	ui, err := strconv.ParseUint(id, 10, 64)
+	if len(id) < 3 {
+		return false
+	}
+	switch id[:2] {
+	case BuyOfferIdTypeDymNamePrefix:
+	case BuyOfferIdTypeAliasPrefix:
+	default:
+		return false
+	}
+
+	ui, err := strconv.ParseUint(id[2:], 10, 64)
 	return err == nil && ui > 0
+}
+
+// CreateBuyOfferId creates a new BuyOffer ID from the given parameters.
+func CreateBuyOfferId(_type MarketOrderType, i uint64) string {
+	var prefix string
+	switch _type {
+	case MarketOrderType_MOT_DYM_NAME:
+		prefix = BuyOfferIdTypeDymNamePrefix
+	case MarketOrderType_MOT_ALIAS:
+		prefix = BuyOfferIdTypeAliasPrefix
+	default:
+		panic(fmt.Sprintf("unknown buy offer type: %d", _type))
+	}
+
+	offerId := prefix + sdkmath.NewIntFromUint64(i).String()
+
+	if !IsValidBuyOfferId(offerId) {
+		panic("bad input parameters for creating buy offer id")
+	}
+
+	return offerId
 }

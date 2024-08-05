@@ -49,3 +49,8 @@ const (
 	// DoNotModifyDesc is a constant used in flags to indicate that description field should not be updated
 	DoNotModifyDesc = "[do-not-modify]"
 )
+
+const (
+	BuyOfferIdTypeDymNamePrefix = "10"
+	BuyOfferIdTypeAliasPrefix   = "20"
+)

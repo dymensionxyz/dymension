@@ -1573,17 +1573,17 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 			name: "pass - can return",
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
-			offerId: "1",
+			offerId: "101",
 			wantErr: false,
 			wantOffer: dymnstypes.BuyOffer{
-				Id:         "1",
+				Id:         "101",
 				Name:       "a",
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
@@ -1594,31 +1594,31 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 			name: "pass - can return among multiple records",
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
-					Id:         "2",
+					Id:         "102",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
-					Id:         "3",
+					Id:         "103",
 					Name:       "b",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 			},
-			offerId: "2",
+			offerId: "102",
 			wantErr: false,
 			wantOffer: dymnstypes.BuyOffer{
-				Id:         "2",
+				Id:         "102",
 				Name:       "a",
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
@@ -1629,28 +1629,28 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 			name: "fail - return error if not found",
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
-					Id:         "2",
+					Id:         "102",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 			},
-			offerId: "3",
+			offerId: "103",
 			wantErr: true,
 		},
 		{
 			name: "fail - reject empty offer-id",
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
@@ -1664,7 +1664,7 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 			name: "fail - reject bad offer-id",
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
@@ -1738,7 +1738,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			name: "pass - can return",
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
@@ -1749,7 +1749,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			wantErr: false,
 			wantOffers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
@@ -1761,28 +1761,28 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			name: "pass - returns all records made by account",
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
-					Id:         "2",
+					Id:         "102",
 					Name:       "b",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
-					Id:         "3",
+					Id:         "103",
 					Name:       "c",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA, // should exclude this
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 				{
-					Id:         "4",
+					Id:         "104",
 					Name:       "d",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
@@ -1793,21 +1793,21 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			wantErr: false,
 			wantOffers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
-					Id:         "2",
+					Id:         "102",
 					Name:       "b",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
-					Id:         "4",
+					Id:         "104",
 					Name:       "d",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
@@ -1819,14 +1819,14 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			name: "pass - return empty if no match",
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
-					Id:         "2",
+					Id:         "102",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
@@ -1841,7 +1841,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			name: "fail - reject empty account",
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
@@ -1855,7 +1855,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			name: "fail - reject bad account",
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
@@ -1956,7 +1956,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			},
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
@@ -1967,7 +1967,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			wantErr: false,
 			wantOffers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
@@ -1993,21 +1993,21 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			},
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
-					Id:         "2",
+					Id:         "102",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
-					Id:         "3",
+					Id:         "103",
 					Name:       "b",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
@@ -2018,14 +2018,14 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			wantErr: false,
 			wantOffers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
-					Id:         "2",
+					Id:         "102",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
@@ -2051,21 +2051,21 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			},
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
-					Id:         "2",
+					Id:         "102",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
-					Id:         "3",
+					Id:         "103",
 					Name:       "b",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
@@ -2088,7 +2088,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			},
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
@@ -2110,7 +2110,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			},
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
@@ -2211,7 +2211,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			},
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
@@ -2222,7 +2222,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			wantErr: false,
 			wantOffers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
@@ -2254,28 +2254,28 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			},
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
-					Id:         "2",
+					Id:         "102",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
-					Id:         "3",
+					Id:         "103",
 					Name:       "b",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 				{
-					Id:         "4",
+					Id:         "104",
 					Name:       "c",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      ownerA,
@@ -2286,21 +2286,21 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			wantErr: false,
 			wantOffers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
-					Id:         "2",
+					Id:         "102",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
-					Id:         "3",
+					Id:         "103",
 					Name:       "b",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
@@ -2326,21 +2326,21 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			},
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
-					Id:         "2",
+					Id:         "102",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
-					Id:         "3",
+					Id:         "103",
 					Name:       "b",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
@@ -2363,7 +2363,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			},
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
@@ -2385,7 +2385,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			},
 			offers: []dymnstypes.BuyOffer{
 				{
-					Id:         "1",
+					Id:         "101",
 					Name:       "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,

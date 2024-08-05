@@ -21,7 +21,7 @@ func TestMsgAcceptBuyOrder_ValidateBasic(t *testing.T) {
 	}{
 		{
 			name:      "pass - valid",
-			offerId:   "1",
+			offerId:   "101",
 			owner:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			minAccept: dymnsutils.TestCoin(1),
 			wantErr:   false,
@@ -36,7 +36,7 @@ func TestMsgAcceptBuyOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - reject bad owner",
-			offerId:         "1",
+			offerId:         "101",
 			owner:           "x",
 			minAccept:       dymnsutils.TestCoin(1),
 			wantErr:         true,
@@ -44,7 +44,7 @@ func TestMsgAcceptBuyOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - reject empty coin",
-			offerId:         "1",
+			offerId:         "101",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			minAccept:       sdk.Coin{},
 			wantErr:         true,
@@ -52,7 +52,7 @@ func TestMsgAcceptBuyOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - reject zero coin",
-			offerId:         "1",
+			offerId:         "101",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			minAccept:       dymnsutils.TestCoin(0),
 			wantErr:         true,
@@ -60,7 +60,7 @@ func TestMsgAcceptBuyOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:    "fail - reject negative coin",
-			offerId: "1",
+			offerId: "101",
 			owner:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			minAccept: sdk.Coin{
 				Denom:  params.BaseDenom,

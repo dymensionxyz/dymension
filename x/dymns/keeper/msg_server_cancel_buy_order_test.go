@@ -56,7 +56,7 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 	}
 
 	offer := &dymnstypes.BuyOffer{
-		Id:         "1",
+		Id:         "101",
 		Name:       dymName.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
@@ -64,7 +64,7 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 	}
 
 	offerByAnother := &dymnstypes.BuyOffer{
-		Id:         "999",
+		Id:         "10999",
 		Name:       dymName.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      anotherBuyerA,
@@ -172,12 +172,12 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 			name:                   "fail - cannot cancel non-existing offer",
 			existingDymName:        dymName,
 			existingOffer:          nil,
-			offerId:                "2142142",
+			offerId:                "102142142",
 			buyer:                  buyerA,
 			originalModuleBalance:  1,
 			originalBuyerBalance:   2,
 			wantErr:                true,
-			wantErrContains:        "Buy-Order ID: 2142142: not found",
+			wantErrContains:        "Buy-Order ID: 102142142: not found",
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  2,
@@ -187,12 +187,12 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 			name:                   "fail - cannot cancel non-existing offer",
 			existingDymName:        dymName,
 			existingOffer:          offer,
-			offerId:                "2142142",
+			offerId:                "102142142",
 			buyer:                  offer.Buyer,
 			originalModuleBalance:  1,
 			originalBuyerBalance:   2,
 			wantErr:                true,
-			wantErrContains:        "Buy-Order ID: 2142142: not found",
+			wantErrContains:        "Buy-Order ID: 102142142: not found",
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  2,
@@ -202,7 +202,7 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 			name:                   "fail - cannot cancel offer with different buyer",
 			existingDymName:        dymName,
 			existingOffer:          offerByAnother,
-			offerId:                "999",
+			offerId:                "10999",
 			buyer:                  buyerA,
 			originalModuleBalance:  1,
 			originalBuyerBalance:   2,

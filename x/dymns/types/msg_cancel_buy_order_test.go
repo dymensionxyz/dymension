@@ -17,7 +17,7 @@ func TestMsgCancelBuyOrder_ValidateBasic(t *testing.T) {
 	}{
 		{
 			name:    "pass - valid",
-			offerId: "1",
+			offerId: "101",
 			buyer:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr: false,
 		},
@@ -30,7 +30,7 @@ func TestMsgCancelBuyOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - bad buyer",
-			offerId:         "1",
+			offerId:         "101",
 			buyer:           "dym1fl48vsnmsdzcv85",
 			wantErr:         true,
 			wantErrContains: "buyer is not a valid bech32 account address",

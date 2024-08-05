@@ -101,7 +101,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so3))
 
 	offer1 := dymnstypes.BuyOffer{
-		Id:         "1",
+		Id:         "101",
 		Name:       dymName1.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyer1,
@@ -110,7 +110,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	require.NoError(t, oldKeeper.SetBuyOffer(oldCtx, offer1))
 
 	offer2 := dymnstypes.BuyOffer{
-		Id:         "2",
+		Id:         "102",
 		Name:       dymName2.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyer2,
@@ -119,7 +119,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	require.NoError(t, oldKeeper.SetBuyOffer(oldCtx, offer2))
 
 	offer3OfExpired := dymnstypes.BuyOffer{
-		Id:         "3",
+		Id:         "103",
 		Name:       dymName3Expired.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyer3,

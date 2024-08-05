@@ -2,7 +2,6 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -62,6 +61,10 @@ func (k Keeper) GetAllBuyOffers(ctx sdk.Context) (list []dymnstypes.BuyOffer) {
 
 // GetBuyOffer retrieves the Buy-Order from the KVStore.
 func (k Keeper) GetBuyOffer(ctx sdk.Context, offerId string) *dymnstypes.BuyOffer {
+	if !dymnstypes.IsValidBuyOfferId(offerId) { // TODO DymNS: remove this check or remove this comment
+		panic("invalid Buy-Offer ID")
+	}
+
 	store := ctx.KVStore(k.storeKey)
 	offerKey := dymnstypes.BuyOfferKey(offerId)
 
@@ -83,7 +86,7 @@ func (k Keeper) InsertNewBuyOffer(ctx sdk.Context, offer dymnstypes.BuyOffer) (d
 	}
 
 	count := k.IncreaseBuyOfferCountAndGet(ctx)
-	newOfferId := sdkmath.NewIntFromUint64(count).String()
+	newOfferId := dymnstypes.CreateBuyOfferId(offer.Type, count)
 
 	existingRecord := k.GetBuyOffer(ctx, newOfferId)
 	if existingRecord != nil {
