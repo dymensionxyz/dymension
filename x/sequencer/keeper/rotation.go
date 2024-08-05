@@ -43,7 +43,7 @@ func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.
 // IsRotating returns true if the rollapp is currently in the process of rotation.
 // A process of rotation is defined by the time between when the proposer notice period is over till the proposer sends his last batch.
 func (k Keeper) IsRotating(ctx sdk.Context, rollappId string) bool {
-	return k.hasNextProposer(ctx, rollappId)
+	return k.isNextProposerSet(ctx, rollappId)
 }
 
 // isNoticePeriodRequired returns true if the sequencer requires a notice period before unbonding
@@ -104,17 +104,22 @@ func (k Keeper) startRotation(ctx sdk.Context, rollappId string) {
 // It's called when a last state update is received from the active, rotating sequencer.
 // it will start unbonding the current proposer, and set new proposer from the bonded sequencers
 func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
+	nextProposer, ok := k.GetNextProposer(ctx, rollappId)
+	if !ok { // nextProposer is guaranteed to exist by caller
+		k.Logger(ctx).Error("next proposer not set. rotation didn't completed", "rollappId", rollappId)
+		return
+	}
+
 	// start unbonding the current proposer
 	proposer, ok := k.GetProposer(ctx, rollappId)
 	if ok {
 		k.startUnbondingPeriodForSequencer(ctx, &proposer)
 	}
 
-	nextProposer, _ := k.GetNextProposer(ctx, rollappId) // nextProposer is guaranteed to exist by caller
 	k.removeNextProposer(ctx, rollappId)
 	k.SetProposer(ctx, rollappId, nextProposer.SequencerAddress)
 
-	if nextProposer.SequencerAddress == "" {
+	if nextProposer.SequencerAddress == NO_SEQUENCER_AVAILABLE {
 		k.Logger(ctx).Info("Rollapp left with no proposer.", "RollappID", rollappId)
 	}
 

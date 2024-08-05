@@ -8,6 +8,9 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
+// used to indicate that no sequencer is available for a proposer / next proposer role
+const NO_SEQUENCER_AVAILABLE = ""
+
 // SetSequencer set a specific sequencer in the store from its index
 func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
@@ -218,7 +221,7 @@ func (k Keeper) GetProposer(ctx sdk.Context, rollappId string) (val types.Sequen
 }
 
 func (k Keeper) removeProposer(ctx sdk.Context, rollappId string) {
-	k.SetProposer(ctx, rollappId, "")
+	k.SetProposer(ctx, rollappId, NO_SEQUENCER_AVAILABLE)
 }
 
 func (k Keeper) isProposer(ctx sdk.Context, rollappId, seqAddr string) bool {
@@ -226,6 +229,8 @@ func (k Keeper) isProposer(ctx sdk.Context, rollappId, seqAddr string) bool {
 	return ok && proposer.SequencerAddress == seqAddr
 }
 
+// SetNextProposer sets the next proposer for a rollapp
+// called when the proposer has finished its notice period and rotation flow has started
 func (k Keeper) setNextProposer(ctx sdk.Context, rollappId, seqAddr string) {
 	store := ctx.KVStore(k.storeKey)
 	addressBytes := []byte(seqAddr)
@@ -244,13 +249,13 @@ func (k Keeper) GetNextProposer(ctx sdk.Context, rollappId string) (val types.Se
 	}
 
 	address := string(b)
-	if address == "" {
+	if address == NO_SEQUENCER_AVAILABLE {
 		return val, true
 	}
 	return k.GetSequencer(ctx, address)
 }
 
-func (k Keeper) hasNextProposer(ctx sdk.Context, rollappId string) bool {
+func (k Keeper) isNextProposerSet(ctx sdk.Context, rollappId string) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.NextProposerByRollappKey(rollappId))
 }
@@ -260,6 +265,8 @@ func (k Keeper) isNextProposer(ctx sdk.Context, rollappId, seqAddr string) bool 
 	return ok && nextProposer.SequencerAddress == seqAddr
 }
 
+// removeNextProposer removes the next proposer for a rollapp
+// called when the proposer has finished its rotation flow
 func (k Keeper) removeNextProposer(ctx sdk.Context, rollappId string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.NextProposerByRollappKey(rollappId))

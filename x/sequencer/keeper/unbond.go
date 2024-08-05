@@ -112,10 +112,9 @@ func (k Keeper) unbondSequencerBurnOrRefund(ctx sdk.Context, seqAddr string, bur
 	}
 
 	// if we slash the next proposer, we're in the middle of rotation
-	// instead of removing the next proposer, we set it to empty
+	// instead of removing the next proposer, we set it to empty, and the chain will halt
 	if k.isNextProposer(ctx, seq.RollappId, seqAddr) {
-		//FIXME:refactor
-		k.setNextProposer(ctx, seq.RollappId, "")
+		k.setNextProposer(ctx, seq.RollappId, NO_SEQUENCER_AVAILABLE)
 	}
 
 	// update the sequencer in store

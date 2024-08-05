@@ -22,6 +22,10 @@ func (seq Sequencer) ValidateBasic() error {
 	return nil
 }
 
+func (seq Sequencer) IsEmpty() bool {
+	return seq.SequencerAddress == ""
+}
+
 func (seq Sequencer) IsBonded() bool {
 	return seq.Status == Bonded
 }

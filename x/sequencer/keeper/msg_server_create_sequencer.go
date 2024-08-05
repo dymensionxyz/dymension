@@ -96,7 +96,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	// Registering new sequencer can lead to a case where No `Proposer` defined but there’s a `bonded` sequencer in line.
 	// To avoid doing O(n) computation on BeginBlock for the naive approach,
 	// we’ll mitigate this scenario by dissallowing new sequencer to register during the rotation (between nextProposer set and `lastStateUpdate` received) in case the nextProposer is empty
-	nextProposer := k.IsRotating(ctx, sequencer.RollappId) && k.ExpectedNextProposer(ctx, sequencer.RollappId).SequencerAddress == ""
+	nextProposer := k.IsRotating(ctx, sequencer.RollappId) && k.ExpectedNextProposer(ctx, sequencer.RollappId).IsEmpty()
 	if nextProposer {
 		k.Logger(ctx).Info("rotation in progress. sequencer registration disabled", "rollappId", sequencer.RollappId)
 		return nil, types.ErrRotationInProgress
