@@ -68,7 +68,7 @@ func (k Keeper) DeleteSellOrder(ctx sdk.Context, dymName string) {
 func (k Keeper) GetAllSellOrders(ctx sdk.Context) (list []dymnstypes.SellOrder) {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixSellOrder)
+	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixDymNameSellOrder)
 	defer func() {
 		_ = iterator.Close() // nolint: errcheck
 	}()
@@ -339,13 +339,13 @@ func (k Keeper) GetMinExpiryOfAllHistoricalSellOrders(ctx sdk.Context) (minExpir
 		})
 	}()
 
-	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixMinExpiryHistoricalSellOrders)
+	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixMinExpiryDymNameHistoricalSellOrders)
 	defer func() {
 		_ = iterator.Close() // nolint: errcheck
 	}()
 
 	for ; iterator.Valid(); iterator.Next() {
-		dymName := string(iterator.Key()[len(dymnstypes.KeyPrefixMinExpiryHistoricalSellOrders):])
+		dymName := string(iterator.Key()[len(dymnstypes.KeyPrefixMinExpiryDymNameHistoricalSellOrders):])
 		minExpiry := int64(sdk.BigEndianToUint64(iterator.Value()))
 
 		nameToMinExpiry[dymName] = minExpiry
