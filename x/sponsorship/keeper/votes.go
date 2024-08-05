@@ -11,17 +11,24 @@ import (
 )
 
 func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.GaugeWeight) (types.Vote, types.Distribution, error) {
-	// If the user has already voted, then revoke their vote first
-	if k.Voted(ctx, voter) {
+	voted, err := k.Voted(ctx, voter)
+	if err != nil {
+		return types.Vote{}, types.Distribution{}, fmt.Errorf("cannot verify if the voter has already voted: %w", err)
+	}
+
+	if voted {
 		_, err := k.RevokeVote(ctx, voter)
 		if err != nil {
 			return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to revoke previous vote: %w", err)
 		}
 	}
 
-	params := k.GetParams(ctx)
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		return types.Vote{}, types.Distribution{}, fmt.Errorf("cannot get module params: %w", err)
+	}
 
-	err := k.validateWeights(ctx, weights, params.MinAllocationWeight)
+	err = k.validateWeights(ctx, weights, params.MinAllocationWeight)
 	if err != nil {
 		return types.Vote{}, types.Distribution{}, fmt.Errorf("error validating weights: %w", err)
 	}
@@ -88,8 +95,14 @@ func (k Keeper) revokeVote(ctx sdk.Context, voter sdk.AccAddress, vote types.Vot
 	}
 
 	// Prune the user’s vote and voting power
-	k.DeleteVote(ctx, voter)
-	k.DeleteDelegatorPower(ctx, voter)
+	err = k.DeleteVote(ctx, voter)
+	if err != nil {
+		return types.Distribution{}, fmt.Errorf("failed to delete vote: %w", err)
+	}
+	err = k.DeleteDelegatorPower(ctx, voter)
+	if err != nil {
+		return types.Distribution{}, fmt.Errorf("failed to delete delegator's vote breakdown: %w", err)
+	}
 
 	return d, nil
 }

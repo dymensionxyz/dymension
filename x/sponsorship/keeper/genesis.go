@@ -9,13 +9,16 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
-// InitGenesis initializes the sponsorship module's state from a provided genesis state.
-func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) error {
-	k.SetParams(ctx, genState.Params)
+// ImportGenesis imports the sponsorship module's state from a provided genesis state.
+func (k Keeper) ImportGenesis(ctx sdk.Context, genState types.GenesisState) error {
+	err := k.SetParams(ctx, genState.Params)
+	if err != nil {
+		return fmt.Errorf("can't set module params: %w", err)
+	}
 
 	distr := types.NewDistribution()
 	for _, i := range genState.VoterInfos {
-		delAddr, errX := sdk.AccAddressFromBech32(i.Voter)
+		voterAddr, errX := sdk.AccAddressFromBech32(i.Voter)
 		if errX != nil {
 			return fmt.Errorf("can't get delegator address from bech32 '%s': %w", i.Voter, errX)
 		}
@@ -26,16 +29,21 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) error 
 				return fmt.Errorf("can't get validator address from bech32 '%s': %w", v.Validator, err)
 			}
 
-			err = k.SaveDelegatorValidatorPower(ctx, delAddr, valAddr, v.Power)
+			err = k.SaveDelegatorValidatorPower(ctx, voterAddr, valAddr, v.Power)
 			if err != nil {
 				return fmt.Errorf("failed to save voting power: %w", err)
 			}
 		}
 
+		err := k.SaveVote(ctx, voterAddr, i.Vote)
+		if err != nil {
+			return fmt.Errorf("failed to save vote for voter '%s': %w", voterAddr, err)
+		}
+
 		distr = distr.Merge(i.Vote.ToDistribution())
 	}
 
-	err := k.SaveDistribution(ctx, distr)
+	err = k.SaveDistribution(ctx, distr)
 	if err != nil {
 		return fmt.Errorf("failed to save distribution: %w", err)
 	}
@@ -44,7 +52,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) error 
 }
 
 // ExportGenesis returns the sponsorship module's exported genesis.
-func (k Keeper) ExportGenesis(ctx sdk.Context) (*types.GenesisState, error) {
+func (k Keeper) ExportGenesis(ctx sdk.Context) (types.GenesisState, error) {
 	var infos []types.VoterInfo
 
 	const Break = true
@@ -72,11 +80,16 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) (*types.GenesisState, error) {
 		return Continue, nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to iterate votes and voting powers: %w", err)
+		return types.GenesisState{}, fmt.Errorf("failed to iterate votes and voting powers: %w", err)
 	}
 
-	return &types.GenesisState{
-		Params:     k.GetParams(ctx),
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		return types.GenesisState{}, fmt.Errorf("failed to get module params: %w", err)
+	}
+
+	return types.GenesisState{
+		Params:     params,
 		VoterInfos: infos,
 	}, nil
 }

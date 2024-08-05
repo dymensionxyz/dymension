@@ -21,7 +21,10 @@ func NewQueryServer(k Keeper) QueryServer {
 
 func (q QueryServer) Params(goCtx context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	params := q.k.GetParams(ctx)
+	params, err := q.k.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
 	return &types.QueryParamsResponse{Params: params}, nil
 }
 

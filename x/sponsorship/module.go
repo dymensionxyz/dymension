@@ -134,7 +134,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.Ra
 	var genState types.GenesisState
 	cdc.MustUnmarshalJSON(gs, &genState)
 
-	err := am.keeper.InitGenesis(ctx, genState)
+	err := am.keeper.ImportGenesis(ctx, genState)
 	if err != nil {
 		panic(err)
 	}
@@ -148,7 +148,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 	if err != nil {
 		panic(err)
 	}
-	return cdc.MustMarshalJSON(gs)
+	return cdc.MustMarshalJSON(&gs)
 }
 
 // BeginBlock executes all ABCI BeginBlock logic respective to the module.

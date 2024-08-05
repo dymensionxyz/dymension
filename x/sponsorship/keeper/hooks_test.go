@@ -101,7 +101,8 @@ func (s *KeeperTestSuite) TestHooks() {
 				finalDel := s.Undelegate(del.GetDelegatorAddr(), val.GetOperator(), update)
 				s.Require().Nil(finalDel)
 
-				hasRecord := s.App.SponsorshipKeeper.HasDelegatorValidatorPower(s.Ctx, del.GetDelegatorAddr(), val.GetOperator())
+				hasRecord, err := s.App.SponsorshipKeeper.HasDelegatorValidatorPower(s.Ctx, del.GetDelegatorAddr(), val.GetOperator())
+				s.Require().NoError(err)
 				s.Require().False(hasRecord)
 			},
 			initialDistr:  types.NewDistribution(),
@@ -167,11 +168,13 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.BeginRedelegate(del.GetDelegatorAddr(), val1.GetOperator(), val2.GetOperator(), update)
 
 				// Check the corresponding power
-				hasVP1Record := s.App.SponsorshipKeeper.HasDelegatorValidatorPower(s.Ctx, del.GetDelegatorAddr(), val1.GetOperator())
+				hasVP1Record, err := s.App.SponsorshipKeeper.HasDelegatorValidatorPower(s.Ctx, del.GetDelegatorAddr(), val1.GetOperator())
+				s.Require().NoError(err)
 				s.Require().False(hasVP1Record)
 
 				// Check the corresponding power
-				hasVP2Record := s.App.SponsorshipKeeper.HasDelegatorValidatorPower(s.Ctx, del.GetDelegatorAddr(), val2.GetOperator())
+				hasVP2Record, err := s.App.SponsorshipKeeper.HasDelegatorValidatorPower(s.Ctx, del.GetDelegatorAddr(), val2.GetOperator())
+				s.Require().NoError(err)
 				s.Require().False(hasVP2Record)
 			},
 			initialDistr:  types.NewDistribution(),

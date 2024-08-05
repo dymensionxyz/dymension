@@ -242,3 +242,11 @@ func (s *KeeperTestSuite) CancelUnbondingDelegation(
 
 	return src
 }
+
+func accAddrsToString(a []sdk.AccAddress) []string {
+	res := make([]string, 0, len(a))
+	for _, addr := range a {
+		res = append(res, addr.String())
+	}
+	return res
+}

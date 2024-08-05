@@ -1,6 +1,9 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	"cosmossdk.io/collections"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 // Module name and store keys.
 const (
@@ -12,12 +15,27 @@ const (
 )
 
 const (
-	ParamsByte                  uint8 = iota // Module params: Params
-	DistributionByte                         // Current distribution: Distribution
-	DelegatorValidatorPowerByte              // Delegator voting power by the validator: math.Int
-	VoteByte                                 // User's vote: Vote
-	InactiveVoterByte                        // Votes having less than the min voting power to be removed at the end of the block
+	ParamsByte                  = iota // Module params: Params
+	DistributionByte                   // Current distribution: Distribution
+	DelegatorValidatorPowerByte        // Delegator voting power by the validator: math.Int
+	VoteByte                           // User's vote: Vote
 )
+
+func ParamsPrefix() collections.Prefix {
+	return collections.NewPrefix(ParamsByte)
+}
+
+func DistributionPrefix() collections.Prefix {
+	return collections.NewPrefix(DistributionByte)
+}
+
+func DelegatorValidatorPrefix() collections.Prefix {
+	return collections.NewPrefix(DelegatorValidatorPowerByte)
+}
+
+func VotePrefix() collections.Prefix {
+	return collections.NewPrefix(VoteByte)
+}
 
 func ParamsKey() []byte {
 	return []byte{ParamsByte}
@@ -44,8 +62,4 @@ func AllDelegatorValidatorPowersKey(voterAddr sdk.AccAddress) []byte {
 
 func VoteKey(voterAddr sdk.AccAddress) []byte {
 	return append([]byte{VoteByte}, voterAddr.Bytes()...)
-}
-
-func InactiveVoterKey() []byte {
-	return []byte{InactiveVoterByte}
 }

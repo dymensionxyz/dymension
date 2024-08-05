@@ -345,7 +345,8 @@ func (s *KeeperTestSuite) TestMsgVote() {
 			s.Require().NoError(err)
 
 			// Set module params
-			s.App.SponsorshipKeeper.SetParams(s.Ctx, tc.params)
+			err = s.App.SponsorshipKeeper.SetParams(s.Ctx, tc.params)
+			s.Require().NoError(err)
 
 			// Cast the votes
 			for _, v := range tc.votes {
@@ -359,7 +360,8 @@ func (s *KeeperTestSuite) TestMsgVote() {
 					s.Require().ErrorContains(err, tc.errorContains)
 
 					// Check the vote is not in the state
-					voted := s.App.SponsorshipKeeper.Voted(s.Ctx, voter)
+					voted, err := s.App.SponsorshipKeeper.Voted(s.Ctx, voter)
+					s.Require().NoError(err)
 					s.Require().False(voted)
 				} else {
 					s.Require().NoError(err)

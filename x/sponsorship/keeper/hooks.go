@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -30,17 +30,24 @@ type processHookResult struct {
 }
 
 func (h Hooks) AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
-	if !h.k.Voted(ctx, delAddr) {
-		return nil
-	}
 	err := h.afterDelegationModified(ctx, delAddr, valAddr)
 	if err != nil {
-		return fmt.Errorf("sponsorship: delegator '%s', validator '%s': %w", delAddr, valAddr, err)
+		return fmt.Errorf("sponsorship: AfterDelegationModified: delegator '%s', validator '%s': %w", delAddr, valAddr, err)
 	}
 	return nil
 }
 
 func (h Hooks) afterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+	voted, err := h.k.Voted(ctx, delAddr)
+	if err != nil {
+		return fmt.Errorf("cannot verify if the delegator voted: %w", err)
+	}
+
+	// Skip the vote if the delegator doesn't have a vote
+	if !voted {
+		return nil
+	}
+
 	v, found := h.k.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
 		return fmt.Errorf("validator not found")
@@ -56,8 +63,11 @@ func (h Hooks) afterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, 
 
 	// Get the current voting power saved in x/sponsorship. If the VP is not found, then we yet don't
 	// have a relevant record. This is a valid case when the VP is zero.
-	sponsorshipVP, err := h.k.GetDelegatorValidatorPower(ctx, delAddr, valAddr)
-	if err != nil && !errors.Is(err, sdkerrors.ErrNotFound) {
+	var sponsorshipVP math.Int
+	sponsorshipVP, err = h.k.GetDelegatorValidatorPower(ctx, delAddr, valAddr)
+	if err != nil && errors.Is(err, collections.ErrNotFound) {
+		sponsorshipVP = math.ZeroInt()
+	} else if err != nil {
 		return fmt.Errorf("cannot get current voting power: %w", err)
 	}
 
@@ -82,17 +92,24 @@ func (h Hooks) afterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, 
 }
 
 func (h Hooks) BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
-	if !h.k.Voted(ctx, delAddr) {
-		return nil
-	}
 	err := h.beforeDelegationRemoved(ctx, delAddr, valAddr)
 	if err != nil {
-		return fmt.Errorf("sponsorship: delegator '%s', validator '%s': %w", delAddr, valAddr, err)
+		return fmt.Errorf("sponsorship: BeforeDelegationRemoved: delegator '%s', validator '%s': %w", delAddr, valAddr, err)
 	}
 	return nil
 }
 
 func (h Hooks) beforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+	voted, err := h.k.Voted(ctx, delAddr)
+	if err != nil {
+		return fmt.Errorf("cannot verify if the delegator voted: %w", err)
+	}
+
+	// Skip the vote if the delegator doesn't have a vote
+	if !voted {
+		return nil
+	}
+
 	// Get the current voting power saved in x/sponsorship
 	// StakingVP is zero in that case, so Diff == (-1) * SponsorshipVP.
 	sponsorshipVP, err := h.k.GetDelegatorValidatorPower(ctx, delAddr, valAddr)
@@ -131,12 +148,17 @@ func (h Hooks) processHook(
 		return nil, fmt.Errorf("could not get vote for delegator '%s': %w", delAddr, err)
 	}
 
+	params, err := h.k.GetParams(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get module params: %w", err)
+	}
+
 	// Calculate the diff: if it's > 0, then the user has bonded. Otherwise, unbonded.
 	powerDiff := newVP.Sub(oldVP)
 	newTotalVP := vote.VotingPower.Add(powerDiff)
 
 	// Validate that the user has min voting power. Revoke the vote if not.
-	minVP := h.k.GetParams(ctx).MinVotingPower
+	minVP := params.MinVotingPower
 	if newTotalVP.LT(minVP) {
 		distr, errX := h.k.revokeVote(ctx, delAddr, vote)
 		if errX != nil {
@@ -173,7 +195,10 @@ func (h Hooks) processHook(
 	// Delete the record if the new VP is zero. Otherwise, update the existing.
 	if newVP.IsZero() {
 		// Delete the voting power cast for this validator
-		h.k.DeleteDelegatorValidatorPower(ctx, delAddr, valAddr)
+		err = h.k.DeleteDelegatorValidatorPower(ctx, delAddr, valAddr)
+		if err != nil {
+			return nil, fmt.Errorf("cannot delete delegator validator power: %w", err)
+		}
 	} else {
 		// Update the voting power cast for this validator
 		err = h.k.SaveDelegatorValidatorPower(ctx, delAddr, valAddr, newVP)
