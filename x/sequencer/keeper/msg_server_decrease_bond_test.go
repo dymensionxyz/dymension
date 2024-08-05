@@ -90,3 +90,24 @@ func (suite *SequencerTestSuite) TestDecreaseBond() {
 		})
 	}
 }
+
+func (suite *SequencerTestSuite) TestDecreaseBond_BondDecreaseInProgress() {
+	suite.SetupTest()
+	bondDenom := types.DefaultParams().MinBond.Denom
+	rollappId, pk := suite.CreateDefaultRollapp()
+	// setup a default sequencer with has minBond + 20token
+	defaultSequencerAddress := suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)), pk)
+	// decrease the bond of the sequencer
+	_, err := suite.msgServer.DecreaseBond(suite.Ctx, &types.MsgDecreaseBond{
+		Creator:        defaultSequencerAddress,
+		DecreaseAmount: sdk.NewInt64Coin(bondDenom, 10),
+	})
+	suite.Require().NoError(err)
+	// try to decrease the bond again
+	resp, err := suite.msgServer.DecreaseBond(suite.Ctx, &types.MsgDecreaseBond{
+		Creator:        defaultSequencerAddress,
+		DecreaseAmount: sdk.NewInt64Coin(bondDenom, 10),
+	})
+	suite.Require().ErrorIs(err, types.ErrBondDecreaseInProgress)
+	suite.Require().Nil(resp)
+}

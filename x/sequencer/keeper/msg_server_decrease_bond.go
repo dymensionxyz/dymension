@@ -16,6 +16,10 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 		return nil, err
 	}
 
+	if _, found := k.getSequencerDecreasingBond(ctx, msg.Creator); found {
+		return nil, types.ErrBondDecreaseInProgress
+	}
+
 	// Check if the bond reduction will make the sequencer's bond less than the minimum bond value
 	minBondValue := k.GetParams(ctx).MinBond
 	if !minBondValue.IsNil() && !minBondValue.IsZero() {
