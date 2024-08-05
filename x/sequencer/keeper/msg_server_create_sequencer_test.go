@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -227,65 +228,72 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	suite.EqualError(err, types.ErrSequencerExists.Error())
 }
 
-func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsFirstProposer() {
-	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
+func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer() {
+	const alex = "dym1te3lcav5c2jn8tdcrhnyl8aden6lglw266kcdd"
 
-	// 1. create rollapp with immutable fields set
-	rollappId, initSeqPubkey := suite.CreateDefaultRollapp()
-	initSeqAddr := sdk.AccAddress(initSeqPubkey.Address())
+	type sequencer struct {
+		creatorName string
+		expProposer bool
+	}
+	testCases := []struct {
+		name,
+		rollappInitialSeq string
+		sequencers []sequencer
+		expErr     error
+	}{
+		{
+			name:              "Single initial sequencer is the first proposer",
+			sequencers:        []sequencer{{creatorName: "alex", expProposer: true}},
+			rollappInitialSeq: alex,
+		}, {
+			name:              "Two sequencers - one is the proposer",
+			sequencers:        []sequencer{{creatorName: "alex", expProposer: true}, {creatorName: "bob", expProposer: false}},
+			rollappInitialSeq: fmt.Sprintf("%s,%s", alice, alex),
+		}, {
+			name:              "One sequencer - failed because no initial sequencer",
+			sequencers:        []sequencer{{creatorName: "bob", expProposer: false}},
+			rollappInitialSeq: alice,
+			expErr:            types.ErrNotInitialSequencer,
+		}, {
+			name:              "Any sequencer can be the first proposer",
+			sequencers:        []sequencer{{creatorName: "bob", expProposer: true}, {creatorName: "steve", expProposer: false}},
+			rollappInitialSeq: "*",
+		},
+	}
 
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, initSeqAddr, sdk.NewCoins(bond))
-	suite.Require().NoError(err)
+	for _, tc := range testCases {
+		suite.SetupTest()
 
-	// 2. try to create sequencer - not initial rollapp's sequencer; fails as rollapp is not sealed
-	pubkey := ed25519.GenPrivKey().PubKey()
-	addr := sdk.AccAddress(pubkey.Address())
-	err = bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
-	suite.Require().NoError(err)
-	pkAny, err := codectypes.NewAnyWithValue(pubkey)
-	suite.Require().NoError(err)
+		goCtx := sdk.WrapSDKContext(suite.Ctx)
+		rollappId := suite.CreateRollappWithInitialSequencer(tc.rollappInitialSeq)
 
-	_, err = suite.msgServer.CreateSequencer(goCtx, &types.MsgCreateSequencer{
-		Creator:      addr.String(),
-		DymintPubKey: pkAny,
-		Bond:         bond,
-		RollappId:    rollappId,
-		Metadata:     types.SequencerMetadata{},
-	})
-	suite.Require().ErrorIs(err, types.ErrNotInitialSequencer)
+		for _, seq := range tc.sequencers {
+			addr, pk := sample.AccFromSecret(seq.creatorName)
+			pkAny, _ := codectypes.NewAnyWithValue(pk)
 
-	// 3. create initial sequencer
-	initSeqPKAny, err := codectypes.NewAnyWithValue(initSeqPubkey)
-	suite.Require().NoError(err)
-	_, err = suite.msgServer.CreateSequencer(goCtx, &types.MsgCreateSequencer{
-		Creator:      initSeqAddr.String(),
-		DymintPubKey: initSeqPKAny,
-		Bond:         bond,
-		RollappId:    rollappId,
-		Metadata:     types.SequencerMetadata{},
-	})
-	suite.Require().NoError(err)
+			err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+			suite.Require().NoError(err)
 
-	// 4. create sequencer - not initial rollapp's sequencer; passes as rollapp is sealed
-	_, err = suite.msgServer.CreateSequencer(goCtx, &types.MsgCreateSequencer{
-		Creator:      addr.String(),
-		DymintPubKey: pkAny,
-		Bond:         bond,
-		RollappId:    rollappId,
-		Metadata:     types.SequencerMetadata{},
-	})
-	suite.Require().NoError(err)
+			sequencerMsg := types.MsgCreateSequencer{
+				Creator:      addr.String(),
+				DymintPubKey: pkAny,
+				Bond:         bond,
+				RollappId:    rollappId,
+				Metadata:     types.SequencerMetadata{},
+			}
+			_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+			suite.Require().ErrorIs(err, tc.expErr)
 
-	// check that the initial sequencer is the proposer
-	initSequencer, ok := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, initSeqAddr.String())
-	suite.Require().True(ok)
-	suite.Require().True(initSequencer.Proposer)
+			if tc.expErr != nil {
+				return
+			}
 
-	// check that the second sequencer is not the proposer
-	sequencer, ok := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr.String())
-	suite.Require().True(ok)
-	suite.Require().False(sequencer.Proposer)
+			// check that the sequencer is the proposer
+			initSequencer, ok := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr.String())
+			suite.Require().True(ok)
+			suite.Require().Equal(seq.expProposer, initSequencer.Proposer)
+		}
+	}
 }
 
 func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
