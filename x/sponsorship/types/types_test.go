@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -644,4 +645,12 @@ func TestDistribution(t *testing.T) {
 			require.True(t, a.Equal(c.Merge(b.Negate())))
 		})
 	}
+}
+
+func accAddrsToString(a []sdk.AccAddress) []string {
+	res := make([]string, 0, len(a))
+	for _, addr := range a {
+		res = append(res, addr.String())
+	}
+	return res
 }

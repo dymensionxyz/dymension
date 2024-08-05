@@ -4,15 +4,15 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	"github.com/osmosis-labs/osmosis/v15/testutils/apptesting"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
 func TestValidateGenesis(t *testing.T) {
-	addrs := sample.GenerateAddresses(3)
-	valAddrs := sample.GenerateAddresses(3)
+	addrs := accAddrsToString(apptesting.CreateRandomAccounts(3))
+	valAddrs := accAddrsToString(apptesting.CreateRandomAccounts(3))
 
 	tests := []struct {
 		name          string
@@ -157,8 +157,8 @@ func TestValidateGenesis(t *testing.T) {
 }
 
 func TestValidateVoterInfo(t *testing.T) {
-	addrs := sample.GenerateAddresses(3)
-	valAddrs := sample.GenerateAddresses(3)
+	addrs := accAddrsToString(apptesting.CreateRandomAccounts(3))
+	valAddrs := accAddrsToString(apptesting.CreateRandomAccounts(3))
 
 	tests := []struct {
 		name          string

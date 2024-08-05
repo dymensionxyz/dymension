@@ -7,12 +7,12 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
 func TestMsgVote(t *testing.T) {
-	addrs := sample.GenerateAddresses(1)
+	addrs := accAddrsToString(apptesting.CreateRandomAccounts(1))
 
 	tests := []struct {
 		name          string
@@ -79,7 +79,7 @@ func TestMsgVote(t *testing.T) {
 }
 
 func TestMsgRevokeVote(t *testing.T) {
-	addrs := sample.GenerateAddresses(1)
+	addrs := accAddrsToString(apptesting.CreateRandomAccounts(1))
 
 	tests := []struct {
 		name          string
