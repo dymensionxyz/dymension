@@ -3,6 +3,8 @@ package types
 import (
 	"sort"
 	"strings"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // ReverseResolvedDymNameAddress is a struct that contains the reverse-resolved Dym-Name-Address components.
@@ -71,4 +73,27 @@ func (m ReverseResolvedDymNameAddresses) Distinct() (distinct ReverseResolvedDym
 	}
 
 	return
+}
+
+func (m ReverseResolvedDymNameAddresses) AppendConfigs(ctx sdk.Context, dymName DymName, configs []DymNameConfig, filter func(ReverseResolvedDymNameAddress) bool) ReverseResolvedDymNameAddresses {
+	result := m[:]
+
+	for _, config := range configs {
+		record := ReverseResolvedDymNameAddress{
+			SubName:        config.Path,
+			Name:           dymName.Name,
+			ChainIdOrAlias: config.ChainId,
+		}
+		if config.ChainId == "" {
+			record.ChainIdOrAlias = ctx.ChainID()
+		}
+
+		if filter != nil && !filter(record) {
+			continue
+		}
+
+		result = append(result, record)
+	}
+
+	return result
 }

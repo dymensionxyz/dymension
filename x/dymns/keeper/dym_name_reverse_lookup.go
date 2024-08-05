@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"strings"
 
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
@@ -95,8 +94,6 @@ func (k Keeper) GetDymNamesContainsConfiguredAddress(
 	if err := validateConfiguredAddressForReverseMapping(configuredAddress); err != nil {
 		return nil, err
 	}
-
-	fmt.Println("configuredAddress: ", configuredAddress)
 
 	key := dymnstypes.ConfiguredAddressToDymNamesIncludeRvlKey(configuredAddress)
 

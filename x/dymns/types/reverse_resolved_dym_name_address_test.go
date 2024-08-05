@@ -3,6 +3,7 @@ package types
 import (
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -199,4 +200,269 @@ func TestReverseResolvedDymNameAddresses_Distinct(t *testing.T) {
 			},
 		}, afterDistinct, "must be sorted after distinct")
 	})
+}
+
+func TestReverseResolvedDymNameAddresses_AppendConfigs(t *testing.T) {
+	tests := []struct {
+		name    string
+		ctx     sdk.Context
+		input   ReverseResolvedDymNameAddresses
+		dymName DymName
+		configs []DymNameConfig
+		filter  func(ReverseResolvedDymNameAddress) bool
+		want    ReverseResolvedDymNameAddresses
+	}{
+		{
+			name: "can append without filter",
+			ctx:  sdk.Context{}.WithChainID("dymension_1100-1"),
+			input: ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "c",
+				},
+			},
+			dymName: DymName{
+				Name: "my-name",
+			},
+			configs: []DymNameConfig{
+				{
+					Type:    DymNameConfigType_DCT_NAME,
+					ChainId: "c1",
+					Path:    "sub1",
+					Value:   "v1",
+				},
+				{
+					Type:    DymNameConfigType_DCT_NAME,
+					ChainId: "c2",
+					Path:    "sub2",
+					Value:   "v2",
+				},
+			},
+			filter: func(address ReverseResolvedDymNameAddress) bool {
+				return true
+			},
+			want: ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "c",
+				},
+				{
+					SubName:        "sub1",
+					Name:           "my-name",
+					ChainIdOrAlias: "c1",
+				},
+				{
+					SubName:        "sub2",
+					Name:           "my-name",
+					ChainIdOrAlias: "c2",
+				},
+			},
+		},
+		{
+			name:  "accept nil input list",
+			ctx:   sdk.Context{}.WithChainID("dymension_1100-1"),
+			input: nil,
+			dymName: DymName{
+				Name: "my-name",
+			},
+			configs: []DymNameConfig{
+				{
+					Type:    DymNameConfigType_DCT_NAME,
+					ChainId: "c1",
+					Path:    "sub1",
+					Value:   "v1",
+				},
+			},
+			filter: func(address ReverseResolvedDymNameAddress) bool {
+				return true
+			},
+			want: ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "sub1",
+					Name:           "my-name",
+					ChainIdOrAlias: "c1",
+				},
+			},
+		},
+		{
+			name:  "accept nil input list and nil config list",
+			ctx:   sdk.Context{}.WithChainID("dymension_1100-1"),
+			input: nil,
+			dymName: DymName{
+				Name: "my-name",
+			},
+			configs: nil,
+			filter: func(address ReverseResolvedDymNameAddress) bool {
+				return true
+			},
+			want: nil,
+		},
+		{
+			name: "when filter is nil, take all",
+			ctx:  sdk.Context{},
+			input: ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "c",
+				},
+			},
+			dymName: DymName{
+				Name: "my-name",
+			},
+			configs: []DymNameConfig{
+				{
+					Type:    DymNameConfigType_DCT_NAME,
+					ChainId: "c1",
+					Path:    "sub1",
+					Value:   "v1",
+				},
+				{
+					Type:    DymNameConfigType_DCT_NAME,
+					ChainId: "c2",
+					Path:    "sub2",
+					Value:   "v2",
+				},
+			},
+			filter: nil,
+			want: ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "c",
+				},
+				{
+					SubName:        "sub1",
+					Name:           "my-name",
+					ChainIdOrAlias: "c1",
+				},
+				{
+					SubName:        "sub2",
+					Name:           "my-name",
+					ChainIdOrAlias: "c2",
+				},
+			},
+		},
+		{
+			name: "use chain-id from context for configs that has empty chain-id",
+			ctx:  sdk.Context{}.WithChainID("dymension_1100-1"),
+			input: ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "c",
+				},
+			},
+			dymName: DymName{
+				Name: "my-name",
+			},
+			configs: []DymNameConfig{
+				{
+					Type:    DymNameConfigType_DCT_NAME,
+					ChainId: "",
+					Path:    "sub1",
+					Value:   "v1",
+				},
+				{
+					Type:    DymNameConfigType_DCT_NAME,
+					ChainId: "c2",
+					Path:    "sub2",
+					Value:   "v2",
+				},
+				{
+					Type:    DymNameConfigType_DCT_NAME,
+					ChainId: "",
+					Path:    "sub3",
+					Value:   "v3",
+				},
+			},
+			filter: func(address ReverseResolvedDymNameAddress) bool {
+				return true
+			},
+			want: ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "c",
+				},
+				{
+					SubName:        "sub1",
+					Name:           "my-name",
+					ChainIdOrAlias: "dymension_1100-1",
+				},
+				{
+					SubName:        "sub2",
+					Name:           "my-name",
+					ChainIdOrAlias: "c2",
+				},
+				{
+					SubName:        "sub3",
+					Name:           "my-name",
+					ChainIdOrAlias: "dymension_1100-1",
+				},
+			},
+		},
+		{
+			name: "filter should work",
+			ctx:  sdk.Context{}.WithChainID("dymension_1100-1"),
+			input: ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "dymension_1100-1",
+				},
+			},
+			dymName: DymName{
+				Name: "my-name",
+			},
+			configs: []DymNameConfig{
+				{
+					Type:    DymNameConfigType_DCT_NAME,
+					ChainId: "",
+					Path:    "sub1",
+					Value:   "v1",
+				},
+				{
+					Type:    DymNameConfigType_DCT_NAME,
+					ChainId: "c2",
+					Path:    "sub2",
+					Value:   "v2",
+				},
+				{
+					Type:    DymNameConfigType_DCT_NAME,
+					ChainId: "",
+					Path:    "sub3",
+					Value:   "v3",
+				},
+			},
+			filter: func(address ReverseResolvedDymNameAddress) bool {
+				return address.ChainIdOrAlias == "dymension_1100-1"
+			},
+			want: ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "dymension_1100-1",
+				},
+				{
+					SubName:        "sub1",
+					Name:           "my-name",
+					ChainIdOrAlias: "dymension_1100-1",
+				},
+				{
+					SubName:        "sub3",
+					Name:           "my-name",
+					ChainIdOrAlias: "dymension_1100-1",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.input.AppendConfigs(tt.ctx, tt.dymName, tt.configs, tt.filter)
+			require.Equal(t, tt.want, got)
+		})
+	}
 }

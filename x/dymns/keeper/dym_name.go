@@ -579,24 +579,8 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 		outputDymNameAddresses.Sort()
 	}()
 
-	addConfigsToResult := func(dymName dymnstypes.DymName, configs []dymnstypes.DymNameConfig) {
-		for _, config := range configs {
-			record := dymnstypes.ReverseResolvedDymNameAddress{
-				SubName:        config.Path,
-				Name:           dymName.Name,
-				ChainIdOrAlias: config.ChainId,
-			}
-			if config.ChainId == "" {
-				record.ChainIdOrAlias = ctx.ChainID()
-			}
-
-			if record.ChainIdOrAlias != workingChainId {
-				// skip this config record
-				continue
-			}
-
-			outputDymNameAddresses = append(outputDymNameAddresses, record)
-		}
+	filterOnlyWorkingChainIdForResult := func(a dymnstypes.ReverseResolvedDymNameAddress) bool {
+		return a.ChainIdOrAlias == workingChainId
 	}
 
 	addFallback := func(dymName dymnstypes.DymName, configs []dymnstypes.DymNameConfig) {
@@ -649,7 +633,9 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 			for _, dymName := range dymNames {
 				configuredAddresses, _ := dymName.GetAddressesForReverseMapping()
 				configs := configuredAddresses[lookupKey]
-				addConfigsToResult(dymName, configs)
+				outputDymNameAddresses = outputDymNameAddresses.AppendConfigs(ctx, dymName,
+					configs, filterOnlyWorkingChainIdForResult,
+				)
 			}
 
 			if len(outputDymNameAddresses) > 0 {
@@ -690,7 +676,9 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 	for _, dymName := range dymNames {
 		configuredAddresses, _ := dymName.GetAddressesForReverseMapping()
 		configs := configuredAddresses[inputAddress]
-		addConfigsToResult(dymName, configs)
+		outputDymNameAddresses = outputDymNameAddresses.AppendConfigs(ctx, dymName,
+			configs, filterOnlyWorkingChainIdForResult,
+		)
 	}
 
 	if len(outputDymNameAddresses) > 0 {
@@ -698,16 +686,14 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 		return
 	}
 
-	// There is no matching result from lookup by fallback-address,
-	// we are going to give it one more try lookup by hex address
-	// to see if any fallback is available.
+	// There is no matching result from lookup by configured-address,
+	// we are going to give it one more try using fallback-lookup.
 	// If the working chain-id is a coin-type-60 chain-id.
 	// If the working chain-id is NOT a coin-type-60 chain-id, does not satisfy the condition.
-	// Only host-chain and RollApp are coin-type-60 chains and support reverse lookup,
-	// while other chains are ignored.
+	// Only host-chain and RollApp are coin-type-60 chains and support reverse-resolve using fallback lookup,
+	// while other chains are ignored for safety purpose, as we don't if they are coin-type-60 chains or not.
 
-	if !workingChainIdIsHostChain && !workingChainIdIsRollApp {
-		// we don't do fallback lookup for this case, just for safety purpose
+	if (!workingChainIdIsHostChain && !workingChainIdIsRollApp) || !isBech32Addr {
 		return
 	}
 
@@ -716,7 +702,7 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 
 	_, bz, err2 := bech32.DecodeAndConvert(bech32Addr)
 	if err2 != nil {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to decode bech32 address %s", bech32Addr)
+		panic(errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to decode bech32 address %s", bech32Addr))
 	}
 
 	fallbackAddr := dymnstypes.FallbackAddress(bz)
