@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
@@ -17,19 +18,29 @@ func (suite *RollappTestSuite) TestFirstUpdateStateV2() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:     "rollapp1",
-		Creator:       alice,
-		Version:       3,
-		MaxSequencers: 1,
+		RollappId:               "rollapp1",
+		Creator:                 alice,
+		InitialSequencerAddress: sample.AccAddress(),
+		GenesisChecksum:         "checksum",
+		Bech32Prefix:            "rol",
+		Alias:                   "Rollapp",
+		Metadata: &types.RollappMetadata{
+			Website:          "https://dymension.xyz",
+			Description:      "Sample description",
+			LogoDataUri:      "data:image/png;base64,c2lzZQ==",
+			TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
+			Telegram:         "rolly",
+			X:                "rolly",
+		},
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: bob,
-		RollappId:        rollapp.GetRollappId(),
-		Status:           sequencertypes.Bonded,
-		Proposer:         true,
+		Address:   bob,
+		RollappId: rollapp.GetRollappId(),
+		Status:    sequencertypes.Bonded,
+		Proposer:  true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
@@ -44,7 +55,6 @@ func (suite *RollappTestSuite) TestFirstUpdateStateV2() {
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      &types.DAPath{DaType: "interchain"},
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 1}, {Height: 2}}},
 	}
 
@@ -66,19 +76,20 @@ func (suite *RollappTestSuite) TestUpdateStateV2() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:     "rollapp1",
-		Creator:       alice,
-		Version:       3,
-		MaxSequencers: 1,
+		RollappId:               "rollapp1",
+		Creator:                 alice,
+		InitialSequencerAddress: sample.AccAddress(),
+		Bech32Prefix:            "rol",
+		GenesisChecksum:         "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: bob,
-		RollappId:        rollapp.GetRollappId(),
-		Status:           sequencertypes.Bonded,
-		Proposer:         true,
+		Address:   bob,
+		RollappId: rollapp.GetRollappId(),
+		Status:    sequencertypes.Bonded,
+		Proposer:  true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
@@ -89,7 +100,6 @@ func (suite *RollappTestSuite) TestUpdateStateV2() {
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      &types.DAPath{DaType: "interchain"},
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
 
@@ -135,7 +145,6 @@ func (suite *RollappTestSuite) TestUpdateStateV2() {
 			StartHeight: expectedStateInfo.StartHeight + expectedStateInfo.NumBlocks,
 			NumBlocks:   2,
 			DAPath:      &types.DAPath{DaType: "interchain"},
-			Version:     3,
 			BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: expectedStateInfo.StartHeight}, {Height: expectedStateInfo.StartHeight + 1}}},
 		}
 
@@ -182,41 +191,11 @@ func (suite *RollappTestSuite) TestUpdateStateV2_UnknownRollappId() {
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      &types.DAPath{DaType: "interchain"},
-		Version:     0,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
 
 	_, err := suite.msgServerV2.UpdateState(goCtx, &updateState)
 	suite.EqualError(err, types.ErrUnknownRollappID.Error())
-}
-
-// FIXME: need to add sequncer to rollapp to test this scenario
-func (suite *RollappTestSuite) TestUpdateStateV2_VersionMismatch() {
-	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
-
-	// set rollapp
-	rollapp := types.Rollapp{
-		RollappId:     "rollapp1",
-		Creator:       alice,
-		Version:       3,
-		MaxSequencers: 1,
-	}
-	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
-
-	// update state of version different than the rollapp
-	updateState := v2types.MsgUpdateState{
-		Creator:     bob,
-		RollappId:   rollapp.GetRollappId(),
-		StartHeight: 1,
-		NumBlocks:   3,
-		DAPath:      &types.DAPath{DaType: "interchain"},
-		Version:     0,
-		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
-	}
-
-	_, err := suite.msgServerV2.UpdateState(goCtx, &updateState)
-	suite.ErrorIs(err, types.ErrVersionMismatch)
 }
 
 // FIXME: need to add sequncer to rollapp to test this scenario
@@ -226,10 +205,12 @@ func (suite *RollappTestSuite) TestUpdateStateV2_UnknownSequencer() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:     "rollapp1",
-		Creator:       alice,
-		Version:       3,
-		MaxSequencers: 1,
+		RollappId:               "rollapp1",
+		Creator:                 alice,
+		InitialSequencerAddress: sample.AccAddress(),
+		Bech32Prefix:            "rol",
+		GenesisChecksum:         "checksum",
+		Alias:                   "Rollapp",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -240,7 +221,6 @@ func (suite *RollappTestSuite) TestUpdateStateV2_UnknownSequencer() {
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      &types.DAPath{DaType: "interchain"},
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
 
@@ -254,19 +234,20 @@ func (suite *RollappTestSuite) TestUpdateStateV2_SequencerRollappMismatch() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:     "rollapp1",
-		Creator:       alice,
-		Version:       3,
-		MaxSequencers: 1,
+		RollappId:               "rollapp1",
+		Creator:                 alice,
+		InitialSequencerAddress: sample.AccAddress(),
+		Bech32Prefix:            "rol",
+		GenesisChecksum:         "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: bob,
-		RollappId:        "rollapp2",
-		Status:           sequencertypes.Bonded,
-		Proposer:         true,
+		Address:   bob,
+		RollappId: "rollapp2",
+		Status:    sequencertypes.Bonded,
+		Proposer:  true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
@@ -277,50 +258,11 @@ func (suite *RollappTestSuite) TestUpdateStateV2_SequencerRollappMismatch() {
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      &types.DAPath{DaType: "interchain"},
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
 
 	_, err := suite.msgServerV2.UpdateState(goCtx, &updateState)
 	suite.ErrorIs(err, sequencertypes.ErrSequencerRollappMismatch)
-}
-
-func (suite *RollappTestSuite) TestUpdateStateV2_ErrLogicUnpermissioned() {
-	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
-
-	// set rollapp
-	rollapp := types.Rollapp{
-		RollappId:             "rollapp1",
-		Creator:               alice,
-		Version:               3,
-		MaxSequencers:         1,
-		PermissionedAddresses: []string{carol},
-	}
-	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
-
-	// set unpermissioned sequencer
-	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: bob,
-		RollappId:        "rollapp1",
-		Status:           sequencertypes.Bonded,
-		Proposer:         true,
-	}
-	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
-
-	// update state
-	updateState := v2types.MsgUpdateState{
-		Creator:     bob,
-		RollappId:   rollapp.GetRollappId(),
-		StartHeight: 1,
-		NumBlocks:   3,
-		DAPath:      &types.DAPath{DaType: "interchain"},
-		Version:     3,
-		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
-	}
-
-	_, err := suite.msgServerV2.UpdateState(goCtx, &updateState)
-	suite.ErrorIs(err, types.ErrLogic)
 }
 
 func (suite *RollappTestSuite) TestFirstUpdateStateV2_GensisHightGreaterThanZero() {
@@ -329,20 +271,20 @@ func (suite *RollappTestSuite) TestFirstUpdateStateV2_GensisHightGreaterThanZero
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:             "rollapp1",
-		Creator:               alice,
-		Version:               3,
-		MaxSequencers:         1,
-		PermissionedAddresses: []string{},
+		RollappId:               "rollapp1",
+		Creator:                 alice,
+		InitialSequencerAddress: sample.AccAddress(),
+		Bech32Prefix:            "rol",
+		GenesisChecksum:         "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: bob,
-		RollappId:        "rollapp1",
-		Status:           sequencertypes.Bonded,
-		Proposer:         true,
+		Address:   bob,
+		RollappId: "rollapp1",
+		Status:    sequencertypes.Bonded,
+		Proposer:  true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
@@ -353,7 +295,6 @@ func (suite *RollappTestSuite) TestFirstUpdateStateV2_GensisHightGreaterThanZero
 		StartHeight: 2,
 		NumBlocks:   3,
 		DAPath:      &types.DAPath{DaType: "interchain"},
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 2}, {Height: 3}}},
 	}
 
@@ -367,20 +308,20 @@ func (suite *RollappTestSuite) TestUpdateStateV2_ErrWrongBlockHeight() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:             "rollapp1",
-		Creator:               alice,
-		Version:               3,
-		MaxSequencers:         1,
-		PermissionedAddresses: []string{},
+		RollappId:               "rollapp1",
+		Creator:                 alice,
+		InitialSequencerAddress: sample.AccAddress(),
+		Bech32Prefix:            "rol",
+		GenesisChecksum:         "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: bob,
-		RollappId:        "rollapp1",
-		Status:           sequencertypes.Bonded,
-		Proposer:         true,
+		Address:   bob,
+		RollappId: "rollapp1",
+		Status:    sequencertypes.Bonded,
+		Proposer:  true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
@@ -391,11 +332,10 @@ func (suite *RollappTestSuite) TestUpdateStateV2_ErrWrongBlockHeight() {
 	}
 	stateInfo := types.StateInfo{
 		StateInfoIndex: types.StateInfoIndex{RollappId: "rollapp1", Index: 1},
-		Sequencer:      sequencer.SequencerAddress,
+		Sequencer:      sequencer.Address,
 		StartHeight:    1,
 		NumBlocks:      3,
 		DAPath:         "",
-		Version:        0,
 		CreationHeight: 0,
 		Status:         common.Status_PENDING,
 		BDs:            types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
@@ -414,7 +354,6 @@ func (suite *RollappTestSuite) TestUpdateStateV2_ErrWrongBlockHeight() {
 		StartHeight: 2,
 		NumBlocks:   3,
 		DAPath:      &types.DAPath{DaType: "interchain"},
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 2}, {Height: 3}, {Height: 4}}},
 	}
 
@@ -428,20 +367,20 @@ func (suite *RollappTestSuite) TestUpdateStateV2_ErrLogicMissingStateInfo() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:             "rollapp1",
-		Creator:               alice,
-		Version:               3,
-		MaxSequencers:         1,
-		PermissionedAddresses: []string{},
+		RollappId:               "rollapp1",
+		Creator:                 alice,
+		InitialSequencerAddress: sample.AccAddress(),
+		Bech32Prefix:            "rol",
+		GenesisChecksum:         "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: bob,
-		RollappId:        "rollapp1",
-		Status:           sequencertypes.Bonded,
-		Proposer:         true,
+		Address:   bob,
+		RollappId: "rollapp1",
+		Status:    sequencertypes.Bonded,
+		Proposer:  true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
@@ -459,7 +398,6 @@ func (suite *RollappTestSuite) TestUpdateStateV2_ErrLogicMissingStateInfo() {
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      &types.DAPath{DaType: "interchain"},
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
 
@@ -474,19 +412,19 @@ func (suite *RollappTestSuite) TestUpdateStateV2_ErrNotActiveSequencer() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:             "rollapp1",
-		Creator:               alice,
-		Version:               3,
-		MaxSequencers:         1,
-		PermissionedAddresses: []string{},
+		RollappId:               "rollapp1",
+		Creator:                 alice,
+		InitialSequencerAddress: sample.AccAddress(),
+		Bech32Prefix:            "rol",
+		GenesisChecksum:         "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: bob,
-		RollappId:        "rollapp1",
-		Status:           sequencertypes.Bonded,
+		Address:   bob,
+		RollappId: "rollapp1",
+		Status:    sequencertypes.Bonded,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
@@ -497,7 +435,6 @@ func (suite *RollappTestSuite) TestUpdateStateV2_ErrNotActiveSequencer() {
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      &types.DAPath{DaType: "interchain"},
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
 

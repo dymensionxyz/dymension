@@ -74,8 +74,7 @@ func SimulateMsgUpdateStateV2(
 			DAPath: &types.DAPath{
 				DaType: types.InterchainDALayerName,
 			},
-			Version: 0,
-			BDs:     bds,
+			BDs: bds,
 		}
 
 		bExpectedError := bNotActive || bWrongRollapp || bNoBds || bWrongStartHeight || bStateWasUpdatedInThisHeight
