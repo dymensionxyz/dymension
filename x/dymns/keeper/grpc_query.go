@@ -102,8 +102,8 @@ func (q queryServer) DymNamesOwnedByAccount(goCtx context.Context, req *dymnstyp
 	}, nil
 }
 
-// SellOrder queries the active SO of a Dym-Name.
-func (q queryServer) SellOrder(goCtx context.Context, req *dymnstypes.QuerySellOrderRequest) (*dymnstypes.QuerySellOrderResponse, error) {
+// SellOrderOfDymName queries the active SO of a Dym-Name.
+func (q queryServer) SellOrderOfDymName(goCtx context.Context, req *dymnstypes.QuerySellOrderOfDymNameRequest) (*dymnstypes.QuerySellOrderOfDymNameResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -118,13 +118,13 @@ func (q queryServer) SellOrder(goCtx context.Context, req *dymnstypes.QuerySellO
 		return nil, status.Errorf(codes.NotFound, "no active Sell Order for '%s' at this moment", req.DymName)
 	}
 
-	return &dymnstypes.QuerySellOrderResponse{
+	return &dymnstypes.QuerySellOrderOfDymNameResponse{
 		Result: *so,
 	}, nil
 }
 
-// HistoricalSellOrder queries the historical SOs of a Dym-Name.
-func (q queryServer) HistoricalSellOrder(goCtx context.Context, req *dymnstypes.QueryHistoricalSellOrderRequest) (*dymnstypes.QueryHistoricalSellOrderResponse, error) {
+// HistoricalSellOrderOfDymName queries the historical SOs of a Dym-Name.
+func (q queryServer) HistoricalSellOrderOfDymName(goCtx context.Context, req *dymnstypes.QueryHistoricalSellOrderOfDymNameRequest) (*dymnstypes.QueryHistoricalSellOrderOfDymNameResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -136,7 +136,7 @@ func (q queryServer) HistoricalSellOrder(goCtx context.Context, req *dymnstypes.
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	hso := q.GetHistoricalSellOrders(ctx, req.DymName)
 
-	return &dymnstypes.QueryHistoricalSellOrderResponse{
+	return &dymnstypes.QueryHistoricalSellOrderOfDymNameResponse{
 		Result: hso,
 	}, nil
 }

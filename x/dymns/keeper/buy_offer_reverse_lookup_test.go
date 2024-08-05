@@ -40,7 +40,7 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 
 	offer1 := dymnstypes.BuyOffer{
 		Id:                     "101",
-		Name:                   "a",
+		GoodsId:                "a",
 		Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:                  buyer1a,
 		OfferPrice:             dymnsutils.TestCoin(1),
@@ -52,7 +52,7 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 
 	offer2 := dymnstypes.BuyOffer{
 		Id:                     "102",
-		Name:                   "b",
+		GoodsId:                "b",
 		Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:                  buyer2a,
 		OfferPrice:             dymnsutils.TestCoin(1),
@@ -64,7 +64,7 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 
 	offer3 := dymnstypes.BuyOffer{
 		Id:                     "103",
-		Name:                   "c",
+		GoodsId:                "c",
 		Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:                  buyer2a,
 		OfferPrice:             dymnsutils.TestCoin(1),
@@ -133,7 +133,7 @@ func TestKeeper_RemoveReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 
 	offer1 := dymnstypes.BuyOffer{
 		Id:                     "101",
-		Name:                   "a",
+		GoodsId:                "a",
 		Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:                  buyerA,
 		OfferPrice:             dymnsutils.TestCoin(1),
@@ -144,7 +144,7 @@ func TestKeeper_RemoveReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 
 	offer2 := dymnstypes.BuyOffer{
 		Id:                     "102",
-		Name:                   "b",
+		GoodsId:                "b",
 		Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:                  buyerA,
 		OfferPrice:             dymnsutils.TestCoin(1),
@@ -227,7 +227,7 @@ func TestKeeper_GetAddReverseMappingDymNameToBuyOffer(t *testing.T) {
 
 	offer11 := dymnstypes.BuyOffer{
 		Id:         "1011",
-		Name:       dymName1.Name,
+		GoodsId:    dymName1.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
@@ -236,7 +236,7 @@ func TestKeeper_GetAddReverseMappingDymNameToBuyOffer(t *testing.T) {
 
 	offer12 := dymnstypes.BuyOffer{
 		Id:         "1012",
-		Name:       dymName1.Name,
+		GoodsId:    dymName1.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
@@ -263,7 +263,7 @@ func TestKeeper_GetAddReverseMappingDymNameToBuyOffer(t *testing.T) {
 
 	offer2 := dymnstypes.BuyOffer{
 		Id:         "102",
-		Name:       dymName2.Name,
+		GoodsId:    dymName2.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
@@ -346,7 +346,7 @@ func TestKeeper_RemoveReverseMappingDymNameToBuyOffer(t *testing.T) {
 
 	offer11 := dymnstypes.BuyOffer{
 		Id:         "1011",
-		Name:       dymName1.Name,
+		GoodsId:    dymName1.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
@@ -355,7 +355,7 @@ func TestKeeper_RemoveReverseMappingDymNameToBuyOffer(t *testing.T) {
 
 	offer12 := dymnstypes.BuyOffer{
 		Id:         "1012",
-		Name:       dymName1.Name,
+		GoodsId:    dymName1.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
@@ -382,7 +382,7 @@ func TestKeeper_RemoveReverseMappingDymNameToBuyOffer(t *testing.T) {
 
 	offer2 := dymnstypes.BuyOffer{
 		Id:         "102",
-		Name:       dymName2.Name,
+		GoodsId:    dymName2.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),

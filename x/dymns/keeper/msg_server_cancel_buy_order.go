@@ -61,7 +61,7 @@ func (k msgServer) removeBuyOffer(ctx sdk.Context, offer dymnstypes.BuyOffer) er
 		return err
 	}
 
-	err = k.RemoveReverseMappingDymNameToBuyOffer(ctx, offer.Name, offer.Id)
+	err = k.RemoveReverseMappingDymNameToBuyOffer(ctx, offer.GoodsId, offer.Id)
 	if err != nil {
 		return err
 	}

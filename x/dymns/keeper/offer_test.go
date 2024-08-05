@@ -80,7 +80,7 @@ func TestKeeper_RefundOffer(t *testing.T) {
 
 			offer := dymnstypes.BuyOffer{
 				Id:         "101",
-				Name:       "a",
+				GoodsId:    "a",
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      tt.refundToAccount,
 				OfferPrice: tt.refundAmount,

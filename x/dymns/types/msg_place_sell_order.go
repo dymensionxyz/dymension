@@ -11,8 +11,16 @@ var _ sdk.Msg = &MsgPlaceSellOrder{}
 
 // ValidateBasic performs basic validation for the MsgPlaceSellOrder.
 func (m *MsgPlaceSellOrder) ValidateBasic() error {
-	if !dymnsutils.IsValidDymName(m.Name) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "name is not a valid dym name")
+	if m.OrderType == MarketOrderType_MOT_DYM_NAME {
+		if !dymnsutils.IsValidDymName(m.GoodsId) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "name is not a valid dym name: %s", m.GoodsId)
+		}
+	} else if m.OrderType == MarketOrderType_MOT_ALIAS {
+		if !dymnsutils.IsValidAlias(m.GoodsId) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "alias is not a valid alias: %s", m.GoodsId)
+		}
+	} else {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", m.OrderType)
 	}
 
 	so := m.ToSellOrder()
@@ -35,9 +43,8 @@ func (m *MsgPlaceSellOrder) ValidateBasic() error {
 // ToSellOrder converts the MsgPlaceSellOrder to a SellOrder.
 func (m *MsgPlaceSellOrder) ToSellOrder() SellOrder {
 	so := SellOrder{
-		Name: m.Name,
-		// TODO DymNS: support alias
-		Type:      MarketOrderType_MOT_DYM_NAME,
+		GoodsId:   m.GoodsId,
+		Type:      m.OrderType,
 		MinPrice:  m.MinPrice,
 		SellPrice: m.SellPrice,
 	}

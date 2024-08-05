@@ -7,26 +7,26 @@ import "dymensionxyz/dymension/dymns/market.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 
-// SellOrder defines a sell order, placed by owner, to sell a Dym-Name.
+// SellOrder defines a sell order, placed by owner, to sell a Dym-Name/Alias.
 // Sell-Order has an expiry date.
 // After expiry date, if no one has placed a bid, this Sell-Order will be closed, no change.
-// If there is a bid, the highest bid will win, and the Dym-Name ownership will be transferred to the winner.
-// If the bid matches the sell price, the Dym-Name ownership will be transferred to the bidder immediately.
+// If there is a bid, the highest bid will win, and the Dym-Name/Alias ownership will be transferred to the winner.
+// If the bid matches the sell price, the Dym-Name/Alias ownership will be transferred to the bidder immediately.
 // SO will be moved to historical records after completion/expiry.
 message SellOrder {
-  // name of the Dym-Name being opened to be sold.
-  string name = 1;
+  // goods_id is the Dym-Name/Alias being opened to be sold.
+  string goods_id = 1;
 
-  // type is the type of the order, is Dym-Name for current version.
+  // type of the order, is Dym-Name or Alias.
   MarketOrderType type = 2;
 
   // expire_at is the last effective date of this SO
   int64 expire_at = 3;
 
-  // min_price is the minimum price that the owner is willing to accept for the Dym-Name.
+  // min_price is the minimum price that the owner is willing to accept for the goods.
   cosmos.base.v1beta1.Coin min_price = 4 [(gogoproto.nullable) = false];
 
-  // sell_price is the price that the owner is willing to sell the Dym-Name for,
+  // sell_price is the price that the owner is willing to sell the Dym-Name/Alias for,
   // the SO will be closed when the price is met.
   // If the sell price is zero, the SO will be closed when the expire_at is reached and the highest bidder wins.
   cosmos.base.v1beta1.Coin sell_price = 5;
@@ -35,7 +35,7 @@ message SellOrder {
   SellOrderBid highest_bid = 6;
 }
 
-// ActiveSellOrdersExpiration contains list of active SOs, store expiration date mapped by Dym-Name.
+// ActiveSellOrdersExpiration contains list of active SOs, store expiration date mapped by goods identity.
 // Used by hook to find out expired SO instead of iterating through all records.
 message ActiveSellOrdersExpiration {
   repeated ActiveSellOrdersExpirationRecord records = 1 [(gogoproto.nullable) = false];
@@ -43,8 +43,8 @@ message ActiveSellOrdersExpiration {
 
 // ActiveSellOrdersExpirationRecord contains the expiration date of an active Sell-Order.
 message ActiveSellOrdersExpirationRecord {
-  // name of the Dym-Name being opened to be sold.
-  string name = 1;
+  // goods_id is the Dym-Name/Alias being opened to be sold.
+  string goods_id = 1;
 
   // expire_at is the last effective date of this Sell-Order.
   int64 expire_at = 2;
@@ -59,8 +59,8 @@ message SellOrderBid {
   cosmos.base.v1beta1.Coin price = 2 [(gogoproto.nullable) = false];
 }
 
-// HistoricalSellOrders contains list of closed Sell-Orders of the same Dym-Name.
+// HistoricalSellOrders contains list of closed Sell-Orders of the same goods.
 message HistoricalSellOrders {
-  // sell_orders is list of closed Sell-Orders of the same Dym-Name.
+  // sell_orders is list of closed Sell-Orders of the same goods.
   repeated SellOrder sell_orders = 1 [(gogoproto.nullable) = false];
 }

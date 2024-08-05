@@ -23,7 +23,7 @@ func (k Keeper) SetSellOrder(ctx sdk.Context, so dymnstypes.SellOrder) error {
 
 	// persist record
 	store := ctx.KVStore(k.storeKey)
-	soKey := dymnstypes.SellOrderKey(so.Name)
+	soKey := dymnstypes.SellOrderKey(so.GoodsId)
 	bz := k.cdc.MustMarshal(&so)
 	store.Set(soKey, bz)
 
@@ -101,7 +101,7 @@ func (k Keeper) MoveSellOrderToHistorical(ctx sdk.Context, dymName string) error
 	}
 
 	// remove the active record
-	k.DeleteSellOrder(ctx, so.Name)
+	k.DeleteSellOrder(ctx, so.GoodsId)
 
 	// set historical records
 	store := ctx.KVStore(k.storeKey)

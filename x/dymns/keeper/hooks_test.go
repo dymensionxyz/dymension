@@ -84,7 +84,7 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 		dymName dymnstypes.DymName, offsetExpiry int64,
 	) dymnstypes.SellOrder {
 		return dymnstypes.SellOrder{
-			Name:     dymName.Name,
+			GoodsId:  dymName.Name,
 			Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: getEpochWithOffset(offsetExpiry),
 			MinPrice: dymnsutils.TestCoin(100),
@@ -585,7 +585,7 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 			for _, so := range tt.historicalSOs {
 				err := dk.SetSellOrder(ctx, so)
 				require.NoError(t, err)
-				err = dk.MoveSellOrderToHistorical(ctx, so.Name)
+				err = dk.MoveSellOrderToHistorical(ctx, so.GoodsId)
 				require.NoError(t, err)
 			}
 
@@ -773,8 +773,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 		expired bool, sellPrice *sdk.Coin, highestBid *dymnstypes.SellOrderBid,
 	) dymnstypes.SellOrder {
 		return dymnstypes.SellOrder{
-			Name: dymName.Name,
-			Type: dymnstypes.MarketOrderType_MOT_DYM_NAME,
+			GoodsId: dymName.Name,
+			Type:    dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: func() int64 {
 				if expired {
 					return soExpiredEpoch
@@ -901,7 +901,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			sellOrders: []dymnstypes.SellOrder{genSo(dymNameA, soExpired, &coin200, nil)},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					Name:     dymNameA.Name,
+					GoodsId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -941,7 +941,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			})},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					Name:     dymNameA.Name,
+					GoodsId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -981,7 +981,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			})},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					Name:     dymNameA.Name,
+					GoodsId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1034,19 +1034,19 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					Name:     dymNameA.Name,
+					GoodsId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					Name:     dymNameB.Name,
+					GoodsId:  dymNameB.Name,
 					ExpireAt: soNotExpiredEpoch,
 				},
 				{
-					Name:     dymNameC.Name,
+					GoodsId:  dymNameC.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					Name:     dymNameD.Name,
+					GoodsId:  dymNameD.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1061,7 +1061,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					Name:     dymNameB.Name,
+					GoodsId:  dymNameB.Name,
 					ExpireAt: soNotExpiredEpoch,
 				},
 			},
@@ -1121,19 +1121,19 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					Name:     dymNameA.Name,
+					GoodsId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					Name:     dymNameB.Name,
+					GoodsId:  dymNameB.Name,
 					ExpireAt: soNotExpiredEpoch,
 				},
 				{
-					Name:     dymNameC.Name,
+					GoodsId:  dymNameC.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					Name:     dymNameD.Name,
+					GoodsId:  dymNameD.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1149,19 +1149,19 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					Name:     dymNameA.Name,
+					GoodsId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					Name:     dymNameB.Name,
+					GoodsId:  dymNameB.Name,
 					ExpireAt: soNotExpiredEpoch,
 				},
 				{
-					Name:     dymNameC.Name,
+					GoodsId:  dymNameC.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					Name:     dymNameD.Name,
+					GoodsId:  dymNameD.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1192,12 +1192,12 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					Name:     dymNameA.Name,
+					GoodsId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
 					// no SO for Dym-Name B but still have reference
-					Name:     dymNameB.Name,
+					GoodsId:  dymNameB.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1230,12 +1230,12 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					Name:     dymNameA.Name,
+					GoodsId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
 					// incorrect, SO not expired
-					Name:     dymNameB.Name,
+					GoodsId:  dymNameB.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1249,7 +1249,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					Name:     dymNameB.Name,
+					GoodsId:  dymNameB.Name,
 					ExpireAt: soNotExpiredEpoch,
 				},
 			},

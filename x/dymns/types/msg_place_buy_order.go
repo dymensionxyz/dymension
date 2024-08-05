@@ -11,8 +11,16 @@ var _ sdk.Msg = &MsgPlaceBuyOrder{}
 
 // ValidateBasic performs basic validation for the MsgPlaceBuyOrder.
 func (m *MsgPlaceBuyOrder) ValidateBasic() error {
-	if !dymnsutils.IsValidDymName(m.Name) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "name is not a valid dym name")
+	if m.OrderType == MarketOrderType_MOT_DYM_NAME {
+		if !dymnsutils.IsValidDymName(m.GoodsId) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "name is not a valid dym name: %s", m.GoodsId)
+		}
+	} else if m.OrderType == MarketOrderType_MOT_ALIAS {
+		if !dymnsutils.IsValidAlias(m.GoodsId) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "alias is not a valid alias: %s", m.GoodsId)
+		}
+	} else {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", m.OrderType)
 	}
 
 	if _, err := sdk.AccAddressFromBech32(m.Buyer); err != nil {
@@ -20,7 +28,9 @@ func (m *MsgPlaceBuyOrder) ValidateBasic() error {
 	}
 
 	if m.ContinueOfferId != "" && !IsValidBuyOfferId(m.ContinueOfferId) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "continue offer id is not a valid buy name offer id")
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument,
+			"continue offer id is not a valid offer id: %s", m.ContinueOfferId,
+		)
 	}
 
 	if !m.Offer.IsValid() {

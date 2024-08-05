@@ -51,8 +51,8 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 	t.Run("do not process message that not pass basic validation", func(t *testing.T) {
 		requireErrorFContains(t, func() error {
 			resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
-				Name:  "abc",
-				Owner: "0x1", // invalid owner
+				GoodsId: "abc",
+				Owner:   "0x1", // invalid owner
 			})
 
 			require.Nil(t, resp)
@@ -63,17 +63,40 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 
 	t.Run("do not process message that refer to non-existing Dym-Name", func(t *testing.T) {
 		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
-			Name:  "not-exists",
-			Owner: ownerA,
+			GoodsId:   "not-exists",
+			OrderType: dymnstypes.MarketOrderType_MOT_DYM_NAME,
+			Owner:     ownerA,
 		})
 		require.Error(t, err)
 		require.Nil(t, resp)
 		require.Contains(t, err.Error(), "Dym-Name: not-exists: not found")
 	})
 
+	t.Run("do not process message that type is Alias", func(t *testing.T) {
+		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
+			GoodsId:   "alias",
+			OrderType: dymnstypes.MarketOrderType_MOT_ALIAS,
+			Owner:     ownerA,
+		})
+		require.Error(t, err)
+		require.Nil(t, resp)
+		require.Contains(t, err.Error(), "invalid order type")
+	})
+
+	t.Run("do not process message that type is Unknown", func(t *testing.T) {
+		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
+			GoodsId:   "goods",
+			OrderType: dymnstypes.MarketOrderType_MOT_UNKNOWN,
+			Owner:     ownerA,
+		})
+		require.Error(t, err)
+		require.Nil(t, resp)
+		require.Contains(t, err.Error(), "invalid order type")
+	})
+
 	t.Run("do not process that owner does not match", func(t *testing.T) {
 		so11 := dymnstypes.SellOrder{
-			Name:      dymName1.Name,
+			GoodsId:   dymName1.Name,
 			Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  now.Unix() + 1,
 			MinPrice:  dymnsutils.TestCoin(100),
@@ -83,12 +106,13 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		defer func() {
-			dk.DeleteSellOrder(ctx, so11.Name)
+			dk.DeleteSellOrder(ctx, so11.GoodsId)
 		}()
 
 		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
-			Name:  so11.Name,
-			Owner: notOwnerA,
+			GoodsId:   so11.GoodsId,
+			OrderType: dymnstypes.MarketOrderType_MOT_DYM_NAME,
+			Owner:     notOwnerA,
 		})
 		require.Error(t, err)
 		require.Nil(t, resp)
@@ -97,8 +121,9 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 
 	t.Run("do not process for Dym-Name that does not have any SO", func(t *testing.T) {
 		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
-			Name:  dymName1.Name,
-			Owner: ownerA,
+			GoodsId:   dymName1.Name,
+			OrderType: dymnstypes.MarketOrderType_MOT_DYM_NAME,
+			Owner:     ownerA,
 		})
 		require.Error(t, err)
 		require.Nil(t, resp)
@@ -107,7 +132,7 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 
 	t.Run("can not cancel expired", func(t *testing.T) {
 		so11 := dymnstypes.SellOrder{
-			Name:      dymName1.Name,
+			GoodsId:   dymName1.Name,
 			Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  1,
 			MinPrice:  dymnsutils.TestCoin(100),
@@ -117,12 +142,13 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		defer func() {
-			dk.DeleteSellOrder(ctx, so11.Name)
+			dk.DeleteSellOrder(ctx, so11.GoodsId)
 		}()
 
 		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
-			Name:  so11.Name,
-			Owner: ownerA,
+			GoodsId:   so11.GoodsId,
+			OrderType: dymnstypes.MarketOrderType_MOT_DYM_NAME,
+			Owner:     ownerA,
 		})
 		require.Error(t, err)
 		require.Nil(t, resp)
@@ -131,7 +157,7 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 
 	t.Run("can not cancel once bid placed", func(t *testing.T) {
 		so11 := dymnstypes.SellOrder{
-			Name:     dymName1.Name,
+			GoodsId:  dymName1.Name,
 			Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
@@ -144,12 +170,13 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		defer func() {
-			dk.DeleteSellOrder(ctx, so11.Name)
+			dk.DeleteSellOrder(ctx, so11.GoodsId)
 		}()
 
 		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
-			Name:  so11.Name,
-			Owner: ownerA,
+			GoodsId:   so11.GoodsId,
+			OrderType: dymnstypes.MarketOrderType_MOT_DYM_NAME,
+			Owner:     ownerA,
 		})
 		require.Error(t, err)
 		require.Nil(t, resp)
@@ -160,55 +187,56 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 		aSoe := dk.GetActiveSellOrdersExpiration(ctx)
 
 		so11 := dymnstypes.SellOrder{
-			Name:     dymName1.Name,
+			GoodsId:  dymName1.Name,
 			Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
 		}
 		err = dk.SetSellOrder(ctx, so11)
 		require.NoError(t, err)
-		aSoe.Add(so11.Name, so11.ExpireAt)
+		aSoe.Add(so11.GoodsId, so11.ExpireAt)
 
 		so12 := dymnstypes.SellOrder{
-			Name:     dymName2.Name,
+			GoodsId:  dymName2.Name,
 			Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
 		}
 		err = dk.SetSellOrder(ctx, so12)
 		require.NoError(t, err)
-		aSoe.Add(so12.Name, so12.ExpireAt)
+		aSoe.Add(so12.GoodsId, so12.ExpireAt)
 
 		err = dk.SetActiveSellOrdersExpiration(ctx, aSoe)
 		require.NoError(t, err)
 
 		defer func() {
-			dk.DeleteSellOrder(ctx, so11.Name)
-			dk.DeleteSellOrder(ctx, so12.Name)
+			dk.DeleteSellOrder(ctx, so11.GoodsId)
+			dk.DeleteSellOrder(ctx, so12.GoodsId)
 		}()
 
 		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
-			Name:  so11.Name,
-			Owner: ownerA,
+			GoodsId:   so11.GoodsId,
+			OrderType: dymnstypes.MarketOrderType_MOT_DYM_NAME,
+			Owner:     ownerA,
 		})
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 
-		require.Nil(t, dk.GetSellOrder(ctx, so11.Name), "SO should be removed from active")
+		require.Nil(t, dk.GetSellOrder(ctx, so11.GoodsId), "SO should be removed from active")
 
 		aSoe = dk.GetActiveSellOrdersExpiration(ctx)
 
 		allNames := make(map[string]bool)
 		for _, record := range aSoe.Records {
-			allNames[record.Name] = true
+			allNames[record.GoodsId] = true
 		}
-		require.NotContains(t, allNames, so11.Name)
-		require.Contains(t, allNames, so12.Name)
+		require.NotContains(t, allNames, so11.GoodsId)
+		require.Contains(t, allNames, so12.GoodsId)
 	})
 
 	t.Run("can cancel if satisfied conditions", func(t *testing.T) {
 		so11 := dymnstypes.SellOrder{
-			Name:     dymName1.Name,
+			GoodsId:  dymName1.Name,
 			Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
@@ -217,7 +245,7 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		so12 := dymnstypes.SellOrder{
-			Name:     dymName2.Name,
+			GoodsId:  dymName2.Name,
 			Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
@@ -226,21 +254,22 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		defer func() {
-			dk.DeleteSellOrder(ctx, so11.Name)
-			dk.DeleteSellOrder(ctx, so12.Name)
+			dk.DeleteSellOrder(ctx, so11.GoodsId)
+			dk.DeleteSellOrder(ctx, so12.GoodsId)
 		}()
 
 		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
-			Name:  so11.Name,
-			Owner: ownerA,
+			GoodsId:   so11.GoodsId,
+			OrderType: dymnstypes.MarketOrderType_MOT_DYM_NAME,
+			Owner:     ownerA,
 		})
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 
-		require.Nil(t, dk.GetSellOrder(ctx, so11.Name), "SO should be removed from active")
+		require.Nil(t, dk.GetSellOrder(ctx, so11.GoodsId), "SO should be removed from active")
 		require.NotNil(t, dk.GetSellOrder(ctx, dymName2.Name), "other records remaining as-is")
 
-		list := dk.GetHistoricalSellOrders(ctx, so11.Name)
+		list := dk.GetHistoricalSellOrders(ctx, so11.GoodsId)
 		require.Empty(t, list, "no historical record should be added")
 
 		require.GreaterOrEqual(t,

@@ -33,7 +33,7 @@ type GenesisState struct {
 	// of the Sell-Orders which was not finished during genesis export
 	SellOrderBids []SellOrderBid `protobuf:"bytes,3,rep,name=sell_order_bids,json=sellOrderBids,proto3" json:"sell_order_bids"`
 	// buy_offers are records which used to refund the bid amount to the bidder
-	// of the Buy-Order which was not finished during genesis export
+	// of the Buy-Offer which was not finished during genesis export
 	BuyOffers []BuyOffer `protobuf:"bytes,4,rep,name=buy_offers,json=buyOffers,proto3" json:"buy_offers"`
 }
 

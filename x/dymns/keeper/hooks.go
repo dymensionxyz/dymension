@@ -181,11 +181,11 @@ func (e epochHooks) processActiveSellOrders(ctx sdk.Context, epochIdentifier str
 				continue
 			}
 
-			so := dk.GetSellOrder(ctx, record.Name)
+			so := dk.GetSellOrder(ctx, record.GoodsId)
 
 			if so == nil {
 				// remove the invalid entry
-				invalidRecordsToRemove = append(invalidRecordsToRemove, record.Name)
+				invalidRecordsToRemove = append(invalidRecordsToRemove, record.GoodsId)
 				continue
 			}
 
@@ -193,7 +193,7 @@ func (e epochHooks) processActiveSellOrders(ctx sdk.Context, epochIdentifier str
 				// invalid entry
 				dk.Logger(ctx).Error(
 					"DymNS hook After-Epoch-End: sell order has not finished",
-					"name", record.Name, "expiry", record.ExpireAt, "now", nowEpochUTC,
+					"name", record.GoodsId, "expiry", record.ExpireAt, "now", nowEpochUTC,
 					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 				)
 
@@ -215,7 +215,7 @@ func (e epochHooks) processActiveSellOrders(ctx sdk.Context, epochIdentifier str
 	}
 
 	sort.Slice(finishedSOs, func(i, j int) bool {
-		return finishedSOs[i].Name < finishedSOs[j].Name
+		return finishedSOs[i].GoodsId < finishedSOs[j].GoodsId
 	})
 
 	dk.Logger(ctx).Info(
@@ -224,13 +224,13 @@ func (e epochHooks) processActiveSellOrders(ctx sdk.Context, epochIdentifier str
 	)
 
 	for _, so := range finishedSOs {
-		aSoe.Remove(so.Name)
+		aSoe.Remove(so.GoodsId)
 
 		if so.HighestBid != nil {
-			if err := dk.CompleteSellOrder(ctx, so.Name); err != nil {
+			if err := dk.CompleteSellOrder(ctx, so.GoodsId); err != nil {
 				dk.Logger(ctx).Error(
 					"DymNS hook After-Epoch-End: failed to complete sell order",
-					"name", so.Name, "expiry", so.ExpireAt, "now", nowEpochUTC,
+					"name", so.GoodsId, "expiry", so.ExpireAt, "now", nowEpochUTC,
 					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 					"error", err,
 				)
@@ -241,10 +241,10 @@ func (e epochHooks) processActiveSellOrders(ctx sdk.Context, epochIdentifier str
 
 		// no bid placed, it just a normal expiry without winner,
 		// in this case, just move to history
-		if err := dk.MoveSellOrderToHistorical(ctx, so.Name); err != nil {
+		if err := dk.MoveSellOrderToHistorical(ctx, so.GoodsId); err != nil {
 			dk.Logger(ctx).Error(
 				"DymNS hook After-Epoch-End: failed to move expired sell order to historical",
-				"name", so.Name, "expiry", so.ExpireAt, "now", nowEpochUTC,
+				"name", so.GoodsId, "expiry", so.ExpireAt, "now", nowEpochUTC,
 				"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 				"error", err,
 			)
@@ -287,6 +287,8 @@ type rollappHooks struct {
 var _ RollAppHooks = rollappHooks{}
 
 func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, creatorAddr sdk.AccAddress) error {
+	// TODO DymNS: if alias is empty, do nothing
+
 	if !h.Keeper.IsRollAppId(ctx, rollappID) {
 		// ensure RollApp record is set
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not a RollApp chain-id: %s", rollappID)

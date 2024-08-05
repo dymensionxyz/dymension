@@ -502,7 +502,7 @@ func TestKeeper_PruneDymName(t *testing.T) {
 
 	// setup historical SO
 	expiredSo := dymnstypes.SellOrder{
-		Name:      dymName1.Name,
+		GoodsId:   dymName1.Name,
 		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
@@ -510,7 +510,7 @@ func TestKeeper_PruneDymName(t *testing.T) {
 	}
 	err = dk.SetSellOrder(ctx, expiredSo)
 	require.NoError(t, err)
-	err = dk.MoveSellOrderToHistorical(ctx, expiredSo.Name)
+	err = dk.MoveSellOrderToHistorical(ctx, expiredSo.GoodsId)
 	require.NoError(t, err)
 	require.Len(t, dk.GetHistoricalSellOrders(ctx, dymName1.Name), 1)
 	minExpiry, found := dk.GetMinExpiryHistoricalSellOrder(ctx, dymName1.Name)
@@ -519,7 +519,7 @@ func TestKeeper_PruneDymName(t *testing.T) {
 
 	// setup active SO
 	so := dymnstypes.SellOrder{
-		Name:     dymName1.Name,
+		GoodsId:  dymName1.Name,
 		Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt: now.Add(time.Hour).Unix(),
 		MinPrice: dymnsutils.TestCoin(100),

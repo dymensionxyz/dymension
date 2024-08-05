@@ -44,7 +44,7 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 	require.NoError(t, err)
 
 	so1 := dymnstypes.SellOrder{
-		Name:      dymName1.Name,
+		GoodsId:   dymName1.Name,
 		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
@@ -57,7 +57,7 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 	err = dk.SetSellOrder(ctx, so1)
 	require.NoError(t, err)
 	t.Run("so1 should be equals to original", func(t *testing.T) {
-		require.Equal(t, so1, *dk.GetSellOrder(ctx, so1.Name))
+		require.Equal(t, so1, *dk.GetSellOrder(ctx, so1.GoodsId))
 	})
 	t.Run("SO list should have length 1", func(t *testing.T) {
 		require.Len(t, dk.GetAllSellOrders(ctx), 1)
@@ -89,7 +89,7 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 	})
 
 	so2 := dymnstypes.SellOrder{
-		Name:     dymName2.Name,
+		GoodsId:  dymName2.Name,
 		Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt: 1,
 		MinPrice: dymnsutils.TestCoin(100),
@@ -97,13 +97,13 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 	err = dk.SetSellOrder(ctx, so2)
 	require.NoError(t, err)
 	t.Run("so2 should be equals to original", func(t *testing.T) {
-		require.Equal(t, so2, *dk.GetSellOrder(ctx, so2.Name))
+		require.Equal(t, so2, *dk.GetSellOrder(ctx, so2.GoodsId))
 	})
 	t.Run("SO list should have length 2", func(t *testing.T) {
 		require.Len(t, dk.GetAllSellOrders(ctx), 2)
 	})
 
-	dk.DeleteSellOrder(ctx, so1.Name)
+	dk.DeleteSellOrder(ctx, so1.GoodsId)
 	t.Run("event should be fired on delete sell order", func(t *testing.T) {
 		events := ctx.EventManager().Events()
 		require.NotEmpty(t, events)
@@ -131,12 +131,12 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 	})
 
 	t.Run("so1 should be nil", func(t *testing.T) {
-		require.Nil(t, dk.GetSellOrder(ctx, so1.Name))
+		require.Nil(t, dk.GetSellOrder(ctx, so1.GoodsId))
 	})
 	t.Run("SO list should have length 1", func(t *testing.T) {
 		list := dk.GetAllSellOrders(ctx)
 		require.Len(t, list, 1)
-		require.Equal(t, so2.Name, list[0].Name)
+		require.Equal(t, so2.GoodsId, list[0].GoodsId)
 	})
 
 	t.Run("non-exists returns nil", func(t *testing.T) {
@@ -145,7 +145,7 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 
 	t.Run("omit Sell Price if not nil but zero", func(t *testing.T) {
 		so3 := dymnstypes.SellOrder{
-			Name:      "hello",
+			GoodsId:   "hello",
 			Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  1,
 			MinPrice:  dymnsutils.TestCoin(100),
@@ -154,7 +154,7 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 		err = dk.SetSellOrder(ctx, so3)
 		require.NoError(t, err)
 
-		require.Nil(t, dk.GetSellOrder(ctx, so3.Name).SellPrice)
+		require.Nil(t, dk.GetSellOrder(ctx, so3.GoodsId).SellPrice)
 	})
 }
 
@@ -189,7 +189,7 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	require.Len(t, dymNames, 2)
 
 	so11 := dymnstypes.SellOrder{
-		Name:      dymName1.Name,
+		GoodsId:   dymName1.Name,
 		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
@@ -199,16 +199,16 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("should able to move", func(t *testing.T) {
-		err := dk.MoveSellOrderToHistorical(ctx, so11.Name)
+		err := dk.MoveSellOrderToHistorical(ctx, so11.GoodsId)
 		require.NoError(t, err)
 	})
 
 	t.Run("moved SO should be removed from active", func(t *testing.T) {
-		require.Nil(t, dk.GetSellOrder(ctx, so11.Name))
+		require.Nil(t, dk.GetSellOrder(ctx, so11.GoodsId))
 	})
 
 	t.Run("has min expiry mapping", func(t *testing.T) {
-		minExpiry, found := dk.GetMinExpiryHistoricalSellOrder(ctx, so11.Name)
+		minExpiry, found := dk.GetMinExpiryHistoricalSellOrder(ctx, so11.GoodsId)
 		require.True(t, found)
 		require.Equal(t, so11.ExpireAt, minExpiry)
 	})
@@ -224,13 +224,13 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 		require.NoError(t, err)
 
 		defer func() {
-			dk.DeleteSellOrder(ctx, so11.Name)
+			dk.DeleteSellOrder(ctx, so11.GoodsId)
 		}()
 
-		err = dk.MoveSellOrderToHistorical(ctx, so11.Name)
+		err = dk.MoveSellOrderToHistorical(ctx, so11.GoodsId)
 		require.NoError(t, err)
 
-		list := dk.GetHistoricalSellOrders(ctx, so11.Name)
+		list := dk.GetHistoricalSellOrders(ctx, so11.GoodsId)
 		require.Len(t, list, 1, "do not persist duplicated historical SO")
 	})
 
@@ -239,7 +239,7 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	})
 
 	so2 := dymnstypes.SellOrder{
-		Name:     dymName2.Name,
+		GoodsId:  dymName2.Name,
 		Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt: 1,
 		MinPrice: dymnsutils.TestCoin(100),
@@ -248,7 +248,7 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("should able to move", func(t *testing.T) {
-		err := dk.MoveSellOrderToHistorical(ctx, so2.Name)
+		err := dk.MoveSellOrderToHistorical(ctx, so2.GoodsId)
 		require.NoError(t, err)
 	})
 
@@ -258,7 +258,7 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	})
 
 	so12 := dymnstypes.SellOrder{
-		Name:      dymName1.Name,
+		GoodsId:   dymName1.Name,
 		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt:  now.Unix() + 1,
 		MinPrice:  dymnsutils.TestCoin(100),
@@ -267,7 +267,7 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	err = dk.SetSellOrder(ctx, so12)
 	require.NoError(t, err)
 	t.Run("should not move yet finished SO", func(t *testing.T) {
-		err := dk.MoveSellOrderToHistorical(ctx, so12.Name)
+		err := dk.MoveSellOrderToHistorical(ctx, so12.GoodsId)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "Sell-Order not yet expired")
 	})
@@ -280,13 +280,13 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("should able to move finished SO", func(t *testing.T) {
-		err := dk.MoveSellOrderToHistorical(ctx, so12.Name)
+		err := dk.MoveSellOrderToHistorical(ctx, so12.GoodsId)
 		require.NoError(t, err)
 
-		list := dk.GetHistoricalSellOrders(ctx, so12.Name)
+		list := dk.GetHistoricalSellOrders(ctx, so12.GoodsId)
 		require.Len(t, list, 2, "should appended to historical")
 
-		minExpiry, found := dk.GetMinExpiryHistoricalSellOrder(ctx, so12.Name)
+		minExpiry, found := dk.GetMinExpiryHistoricalSellOrder(ctx, so12.GoodsId)
 		require.True(t, found)
 		require.Equal(t, so11.ExpireAt, minExpiry, "should keep the minimum")
 		require.NotEqual(t, so12.ExpireAt, minExpiry, "should keep the minimum")
@@ -329,7 +329,7 @@ func TestKeeper_GetAndDeleteHistoricalSellOrders(t *testing.T) {
 	})
 
 	so11 := dymnstypes.SellOrder{
-		Name:      dymName1.Name,
+		GoodsId:   dymName1.Name,
 		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
@@ -337,24 +337,24 @@ func TestKeeper_GetAndDeleteHistoricalSellOrders(t *testing.T) {
 	}
 	err = dk.SetSellOrder(ctx, so11)
 	require.NoError(t, err)
-	err = dk.MoveSellOrderToHistorical(ctx, so11.Name)
+	err = dk.MoveSellOrderToHistorical(ctx, so11.GoodsId)
 	require.NoError(t, err)
 
 	so2 := dymnstypes.SellOrder{
-		Name:     dymName2.Name,
+		GoodsId:  dymName2.Name,
 		Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt: 1,
 		MinPrice: dymnsutils.TestCoin(100),
 	}
 	err = dk.SetSellOrder(ctx, so2)
 	require.NoError(t, err)
-	err = dk.MoveSellOrderToHistorical(ctx, so2.Name)
+	err = dk.MoveSellOrderToHistorical(ctx, so2.GoodsId)
 	require.NoError(t, err)
 
 	so2.ExpireAt++
 	err = dk.SetSellOrder(ctx, so2)
 	require.NoError(t, err)
-	err = dk.MoveSellOrderToHistorical(ctx, so2.Name)
+	err = dk.MoveSellOrderToHistorical(ctx, so2.GoodsId)
 	require.NoError(t, err)
 
 	t.Run("fetch correctly", func(t *testing.T) {
@@ -362,8 +362,8 @@ func TestKeeper_GetAndDeleteHistoricalSellOrders(t *testing.T) {
 		require.Len(t, list1, 1)
 		list2 := dk.GetHistoricalSellOrders(ctx, dymName2.Name)
 		require.Len(t, list2, 2)
-		require.Equal(t, so2.Name, list2[0].Name)
-		require.Equal(t, so2.Name, list2[1].Name)
+		require.Equal(t, so2.GoodsId, list2[0].GoodsId)
+		require.Equal(t, so2.GoodsId, list2[1].GoodsId)
 		require.Equal(t, int64(1), list2[0].ExpireAt)
 		require.Equal(t, int64(2), list2[1].ExpireAt)
 	})
@@ -449,7 +449,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		so := dymnstypes.SellOrder{
-			Name:     dymName.Name,
+			GoodsId:  dymName.Name,
 			Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
@@ -467,7 +467,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		so := dymnstypes.SellOrder{
-			Name:      dymName.Name,
+			GoodsId:   dymName.Name,
 			Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  now.Unix() + 1,
 			MinPrice:  dymnsutils.TestCoin(100),
@@ -490,7 +490,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		so := dymnstypes.SellOrder{
-			Name:      dymName.Name,
+			GoodsId:   dymName.Name,
 			Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  now.Unix() - 1,
 			MinPrice:  dymnsutils.TestCoin(100),
@@ -509,7 +509,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		so := dymnstypes.SellOrder{
-			Name:     dymName.Name,
+			GoodsId:  dymName.Name,
 			Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
@@ -634,7 +634,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			setDymNameWithFunctionsAfter(ctx, dymName, t, dk)
 
 			so := dymnstypes.SellOrder{
-				Name:     dymName.Name,
+				GoodsId:  dymName.Name,
 				Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				MinPrice: dymnsutils.TestCoin(100),
 			}
@@ -748,11 +748,11 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 		aSoe := &dymnstypes.ActiveSellOrdersExpiration{
 			Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					Name:     "hello",
+					GoodsId:  "hello",
 					ExpireAt: 123,
 				},
 				{
-					Name:     "world",
+					GoodsId:  "world",
 					ExpireAt: 456,
 				},
 			},
@@ -762,9 +762,9 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 
 		aSoe = dk.GetActiveSellOrdersExpiration(ctx)
 		require.Len(t, aSoe.Records, 2)
-		require.Equal(t, "hello", aSoe.Records[0].Name)
+		require.Equal(t, "hello", aSoe.Records[0].GoodsId)
 		require.Equal(t, int64(123), aSoe.Records[0].ExpireAt)
-		require.Equal(t, "world", aSoe.Records[1].Name)
+		require.Equal(t, "world", aSoe.Records[1].GoodsId)
 		require.Equal(t, int64(456), aSoe.Records[1].ExpireAt)
 	})
 
@@ -772,11 +772,11 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 		err := dk.SetActiveSellOrdersExpiration(ctx, &dymnstypes.ActiveSellOrdersExpiration{
 			Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					Name:     "b",
+					GoodsId:  "b",
 					ExpireAt: 456,
 				},
 				{
-					Name:     "a",
+					GoodsId:  "a",
 					ExpireAt: 123,
 				},
 			},
@@ -786,9 +786,9 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 		aSoe := dk.GetActiveSellOrdersExpiration(ctx)
 		require.Len(t, aSoe.Records, 2)
 
-		require.Equal(t, "a", aSoe.Records[0].Name)
+		require.Equal(t, "a", aSoe.Records[0].GoodsId)
 		require.Equal(t, int64(123), aSoe.Records[0].ExpireAt)
-		require.Equal(t, "b", aSoe.Records[1].Name)
+		require.Equal(t, "b", aSoe.Records[1].GoodsId)
 		require.Equal(t, int64(456), aSoe.Records[1].ExpireAt)
 	})
 
@@ -797,11 +797,11 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 		err := dk.SetActiveSellOrdersExpiration(ctx, &dymnstypes.ActiveSellOrdersExpiration{
 			Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					Name:     "a",
+					GoodsId:  "a",
 					ExpireAt: 456,
 				},
 				{
-					Name:     "a",
+					GoodsId:  "a",
 					ExpireAt: 123,
 				},
 			},
@@ -812,11 +812,11 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 		err = dk.SetActiveSellOrdersExpiration(ctx, &dymnstypes.ActiveSellOrdersExpiration{
 			Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					Name:     "a",
+					GoodsId:  "a",
 					ExpireAt: -1,
 				},
 				{
-					Name:     "b",
+					GoodsId:  "b",
 					ExpireAt: 0,
 				},
 			},

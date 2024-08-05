@@ -68,7 +68,7 @@ func Test_msgServer_AcceptBuyOrder(t *testing.T) {
 
 	offer := &dymnstypes.BuyOffer{
 		Id:         "101",
-		Name:       dymName.Name,
+		GoodsId:    dymName.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -242,7 +242,7 @@ func Test_msgServer_AcceptBuyOrder(t *testing.T) {
 			wantErr:               false,
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         offer.Id,
-				Name:       offer.Name,
+				GoodsId:    offer.GoodsId,
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      offer.Buyer,
 				OfferPrice: offer.OfferPrice,
@@ -277,7 +277,7 @@ func Test_msgServer_AcceptBuyOrder(t *testing.T) {
 			wantErr: false,
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         offer.Id,
-				Name:       offer.Name,
+				GoodsId:    offer.GoodsId,
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      offer.Buyer,
 				OfferPrice: offer.OfferPrice,
@@ -336,7 +336,7 @@ func Test_msgServer_AcceptBuyOrder(t *testing.T) {
 			wantErr: false,
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         offer.Id,
-				Name:       offer.Name,
+				GoodsId:    offer.GoodsId,
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      offer.Buyer,
 				OfferPrice: offer.OfferPrice,
@@ -418,7 +418,7 @@ func Test_msgServer_AcceptBuyOrder(t *testing.T) {
 			originalModuleBalance:  1,
 			originalOwnerBalance:   2,
 			wantErr:                true,
-			wantErrContains:        fmt.Sprintf("Dym-Name: %s: not found", offer.Name),
+			wantErrContains:        fmt.Sprintf("Dym-Name: %s: not found", offer.GoodsId),
 			wantLaterOffer:         offer,
 			wantLaterDymName:       nil,
 			wantLaterModuleBalance: 1,
@@ -442,7 +442,7 @@ func Test_msgServer_AcceptBuyOrder(t *testing.T) {
 			originalModuleBalance:  1,
 			originalOwnerBalance:   2,
 			wantErr:                true,
-			wantErrContains:        fmt.Sprintf("Dym-Name: %s: not found", offer.Name),
+			wantErrContains:        fmt.Sprintf("Dym-Name: %s: not found", offer.GoodsId),
 			wantLaterOffer:         offer,
 			wantLaterModuleBalance: 1,
 			wantLaterOwnerBalance:  2,
@@ -502,7 +502,7 @@ func Test_msgServer_AcceptBuyOrder(t *testing.T) {
 			existingOffer: func() *dymnstypes.BuyOffer {
 				return &dymnstypes.BuyOffer{
 					Id:         "101",
-					Name:       dymName.Name,
+					GoodsId:    dymName.Name,
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      ownerA,
 					OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -519,7 +519,7 @@ func Test_msgServer_AcceptBuyOrder(t *testing.T) {
 			wantLaterOffer: func() *dymnstypes.BuyOffer {
 				return &dymnstypes.BuyOffer{
 					Id:         "101",
-					Name:       dymName.Name,
+					GoodsId:    dymName.Name,
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      ownerA,
 					OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -534,10 +534,10 @@ func Test_msgServer_AcceptBuyOrder(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: func() *dymnstypes.BuyOffer {
 				return &dymnstypes.BuyOffer{
-					Id:    "101",
-					Name:  dymName.Name,
-					Type:  dymnstypes.MarketOrderType_MOT_DYM_NAME,
-					Buyer: buyerA,
+					Id:      "101",
+					GoodsId: dymName.Name,
+					Type:    dymnstypes.MarketOrderType_MOT_DYM_NAME,
+					Buyer:   buyerA,
 					OfferPrice: sdk.Coin{
 						Denom:  denom,
 						Amount: sdk.NewInt(minOfferPrice),
@@ -557,10 +557,10 @@ func Test_msgServer_AcceptBuyOrder(t *testing.T) {
 			wantLaterDymName:      dymName,
 			wantLaterOffer: func() *dymnstypes.BuyOffer {
 				return &dymnstypes.BuyOffer{
-					Id:    "101",
-					Name:  dymName.Name,
-					Type:  dymnstypes.MarketOrderType_MOT_DYM_NAME,
-					Buyer: buyerA,
+					Id:      "101",
+					GoodsId: dymName.Name,
+					Type:    dymnstypes.MarketOrderType_MOT_DYM_NAME,
+					Buyer:   buyerA,
 					OfferPrice: sdk.Coin{
 						Denom:  denom,
 						Amount: sdk.NewInt(minOfferPrice),
@@ -577,7 +577,7 @@ func Test_msgServer_AcceptBuyOrder(t *testing.T) {
 			existingOffer: func() *dymnstypes.BuyOffer {
 				return &dymnstypes.BuyOffer{
 					Id:         "101",
-					Name:       dymName.Name,
+					GoodsId:    dymName.Name,
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2),
@@ -594,7 +594,7 @@ func Test_msgServer_AcceptBuyOrder(t *testing.T) {
 			wantLaterOffer: func() *dymnstypes.BuyOffer {
 				return &dymnstypes.BuyOffer{
 					Id:         "101",
-					Name:       dymName.Name,
+					GoodsId:    dymName.Name,
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2),
@@ -645,7 +645,7 @@ func Test_msgServer_AcceptBuyOrder(t *testing.T) {
 				err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, tt.existingOffer.Buyer, tt.existingOffer.Id)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, tt.existingOffer.Name, tt.existingOffer.Id)
+				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, tt.existingOffer.GoodsId, tt.existingOffer.Id)
 				require.NoError(t, err)
 			}
 

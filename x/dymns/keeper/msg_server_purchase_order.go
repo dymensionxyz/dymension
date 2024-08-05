@@ -11,9 +11,13 @@ import (
 )
 
 // PurchaseOrder is message handler,
-// handles purchasing a Dym-Name from a Sell-Order, performed by the buyer.
+// handles purchasing a Dym-Name/Alias from a Sell-Order, performed by the buyer.
 func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurchaseOrder) (*dymnstypes.MsgPurchaseOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if msg.OrderType != dymnstypes.MarketOrderType_MOT_DYM_NAME {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
+	}
 
 	dymName, so, err := k.validatePurchase(ctx, msg)
 	if err != nil {
@@ -67,22 +71,18 @@ func (k msgServer) validatePurchase(ctx sdk.Context, msg *dymnstypes.MsgPurchase
 		return nil, nil, err
 	}
 
-	dymName := k.GetDymName(ctx, msg.Name)
+	dymName := k.GetDymName(ctx, msg.GoodsId)
 	if dymName == nil {
-		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.Name)
+		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.GoodsId)
 	}
 
 	if dymName.Owner == msg.Buyer {
 		return nil, nil, errorsmod.Wrap(gerrc.ErrPermissionDenied, "cannot purchase your own dym name")
 	}
 
-	so := k.GetSellOrder(ctx, msg.Name)
+	so := k.GetSellOrder(ctx, msg.GoodsId)
 	if so == nil {
-		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.Name)
-	}
-
-	if so.Type != dymnstypes.MarketOrderType_MOT_DYM_NAME {
-		panic(errorsmod.Wrapf(gerrc.ErrInternal, "not yet supported Sell-Offer type: %s", so.Type))
+		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.GoodsId)
 	}
 
 	if so.HasExpiredAtCtx(ctx) {

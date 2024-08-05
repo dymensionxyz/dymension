@@ -344,7 +344,7 @@ func Test_queryServer_DymNamesOwnedByAccount(t *testing.T) {
 	})
 }
 
-func Test_queryServer_SellOrder(t *testing.T) {
+func Test_queryServer_SellOrderOfDymName(t *testing.T) {
 	now := time.Now().UTC()
 
 	const chainId = "dymension_1100-1"
@@ -363,7 +363,7 @@ func Test_queryServer_SellOrder(t *testing.T) {
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymNameA))
 	err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{
-		Name:     dymNameA.Name,
+		GoodsId:  dymNameA.Name,
 		Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt: now.Unix() + 1,
 		MinPrice: dymnsutils.TestCoin(100),
@@ -379,15 +379,15 @@ func Test_queryServer_SellOrder(t *testing.T) {
 	require.NoError(t, dk.SetDymName(ctx, dymNameB))
 
 	queryServer := dymnskeeper.NewQueryServerImpl(dk)
-	resp, err := queryServer.SellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.QuerySellOrderRequest{
+	resp, err := queryServer.SellOrderOfDymName(sdk.WrapSDKContext(ctx), &dymnstypes.QuerySellOrderOfDymNameRequest{
 		DymName: dymNameA.Name,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
-	require.True(t, resp.Result.Name == dymNameA.Name)
+	require.True(t, resp.Result.GoodsId == dymNameA.Name)
 
 	t.Run("returns error code not found", func(t *testing.T) {
-		resp, err := queryServer.SellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.QuerySellOrderRequest{
+		resp, err := queryServer.SellOrderOfDymName(sdk.WrapSDKContext(ctx), &dymnstypes.QuerySellOrderOfDymNameRequest{
 			DymName: dymNameB.Name,
 		})
 		require.Error(t, err)
@@ -396,13 +396,13 @@ func Test_queryServer_SellOrder(t *testing.T) {
 	})
 
 	t.Run("reject nil request", func(t *testing.T) {
-		resp, err := queryServer.SellOrder(sdk.WrapSDKContext(ctx), nil)
+		resp, err := queryServer.SellOrderOfDymName(sdk.WrapSDKContext(ctx), nil)
 		require.Error(t, err)
 		require.Nil(t, resp)
 	})
 
 	t.Run("reject invalid request", func(t *testing.T) {
-		resp, err := queryServer.SellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.QuerySellOrderRequest{
+		resp, err := queryServer.SellOrderOfDymName(sdk.WrapSDKContext(ctx), &dymnstypes.QuerySellOrderOfDymNameRequest{
 			DymName: "$$$",
 		})
 		require.Error(t, err)
@@ -410,7 +410,7 @@ func Test_queryServer_SellOrder(t *testing.T) {
 	})
 }
 
-func Test_queryServer_HistoricalSellOrder(t *testing.T) {
+func Test_queryServer_HistoricalSellOrderOfDymName(t *testing.T) {
 	now := time.Now().UTC()
 
 	const chainId = "dymension_1100-1"
@@ -431,7 +431,7 @@ func Test_queryServer_HistoricalSellOrder(t *testing.T) {
 	require.NoError(t, dk.SetDymName(ctx, dymNameA))
 	for r := int64(1); r <= 5; r++ {
 		err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{
-			Name:      dymNameA.Name,
+			GoodsId:   dymNameA.Name,
 			Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  now.Unix() + r,
 			MinPrice:  dymnsutils.TestCoin(100),
@@ -455,7 +455,7 @@ func Test_queryServer_HistoricalSellOrder(t *testing.T) {
 	require.NoError(t, dk.SetDymName(ctx, dymNameB))
 	for r := int64(1); r <= 3; r++ {
 		err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{
-			Name:      dymNameB.Name,
+			GoodsId:   dymNameB.Name,
 			Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  now.Unix() + r,
 			MinPrice:  dymnsutils.TestCoin(100),
@@ -471,14 +471,14 @@ func Test_queryServer_HistoricalSellOrder(t *testing.T) {
 	}
 
 	queryServer := dymnskeeper.NewQueryServerImpl(dk)
-	resp, err := queryServer.HistoricalSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.QueryHistoricalSellOrderRequest{
+	resp, err := queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(ctx), &dymnstypes.QueryHistoricalSellOrderOfDymNameRequest{
 		DymName: dymNameA.Name,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.Len(t, resp.Result, 5)
 
-	resp, err = queryServer.HistoricalSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.QueryHistoricalSellOrderRequest{
+	resp, err = queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(ctx), &dymnstypes.QueryHistoricalSellOrderOfDymNameRequest{
 		DymName: dymNameB.Name,
 	})
 	require.NoError(t, err)
@@ -486,7 +486,7 @@ func Test_queryServer_HistoricalSellOrder(t *testing.T) {
 	require.Len(t, resp.Result, 3)
 
 	t.Run("returns empty for non-exists Dym-Name", func(t *testing.T) {
-		resp, err := queryServer.HistoricalSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.QueryHistoricalSellOrderRequest{
+		resp, err := queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(ctx), &dymnstypes.QueryHistoricalSellOrderOfDymNameRequest{
 			DymName: "not-exists",
 		})
 		require.NoError(t, err)
@@ -495,13 +495,13 @@ func Test_queryServer_HistoricalSellOrder(t *testing.T) {
 	})
 
 	t.Run("reject nil request", func(t *testing.T) {
-		resp, err := queryServer.HistoricalSellOrder(sdk.WrapSDKContext(ctx), nil)
+		resp, err := queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(ctx), nil)
 		require.Error(t, err)
 		require.Nil(t, resp)
 	})
 
 	t.Run("reject invalid request", func(t *testing.T) {
-		resp, err := queryServer.HistoricalSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.QueryHistoricalSellOrderRequest{
+		resp, err := queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(ctx), &dymnstypes.QueryHistoricalSellOrderOfDymNameRequest{
 			DymName: "$$$",
 		})
 		require.Error(t, err)
@@ -1574,7 +1574,7 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
@@ -1584,7 +1584,7 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 			wantErr: false,
 			wantOffer: dymnstypes.BuyOffer{
 				Id:         "101",
-				Name:       "a",
+				GoodsId:    "a",
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(1),
@@ -1595,21 +1595,21 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "103",
-					Name:       "b",
+					GoodsId:    "b",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(3),
@@ -1619,7 +1619,7 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 			wantErr: false,
 			wantOffer: dymnstypes.BuyOffer{
 				Id:         "102",
-				Name:       "a",
+				GoodsId:    "a",
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(2),
@@ -1630,14 +1630,14 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
@@ -1651,7 +1651,7 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
@@ -1665,7 +1665,7 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
@@ -1739,7 +1739,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
@@ -1750,7 +1750,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			wantOffers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
@@ -1762,28 +1762,28 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					Name:       "b",
+					GoodsId:    "b",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "103",
-					Name:       "c",
+					GoodsId:    "c",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA, // should exclude this
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 				{
 					Id:         "104",
-					Name:       "d",
+					GoodsId:    "d",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(4),
@@ -1794,21 +1794,21 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			wantOffers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					Name:       "b",
+					GoodsId:    "b",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "104",
-					Name:       "d",
+					GoodsId:    "d",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(4),
@@ -1820,14 +1820,14 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(1),
@@ -1842,7 +1842,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
@@ -1856,7 +1856,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
@@ -1879,7 +1879,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 				err := dk.SetBuyOffer(ctx, offer)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, offer.Name, offer.Id)
+				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, offer.GoodsId, offer.Id)
 				require.NoError(t, err)
 
 				err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, offer.Buyer, offer.Id)
@@ -1957,7 +1957,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
@@ -1968,7 +1968,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			wantOffers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
@@ -1994,21 +1994,21 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "103",
-					Name:       "b",
+					GoodsId:    "b",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
@@ -2019,14 +2019,14 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			wantOffers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
@@ -2052,21 +2052,21 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "103",
-					Name:       "b",
+					GoodsId:    "b",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
@@ -2089,7 +2089,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
@@ -2111,7 +2111,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
@@ -2134,7 +2134,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 				err := dk.SetBuyOffer(ctx, offer)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, offer.Name, offer.Id)
+				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, offer.GoodsId, offer.Id)
 				require.NoError(t, err)
 
 				err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, offer.Buyer, offer.Id)
@@ -2212,7 +2212,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
@@ -2223,7 +2223,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			wantOffers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
@@ -2255,28 +2255,28 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "103",
-					Name:       "b",
+					GoodsId:    "b",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 				{
 					Id:         "104",
-					Name:       "c",
+					GoodsId:    "c",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      ownerA,
 					OfferPrice: dymnsutils.TestCoin(3),
@@ -2287,21 +2287,21 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			wantOffers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "103",
-					Name:       "b",
+					GoodsId:    "b",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
@@ -2327,21 +2327,21 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "103",
-					Name:       "b",
+					GoodsId:    "b",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
@@ -2364,7 +2364,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
@@ -2386,7 +2386,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "101",
-					Name:       "a",
+					GoodsId:    "a",
 					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
@@ -2408,7 +2408,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 				err := dk.SetBuyOffer(ctx, offer)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, offer.Name, offer.Id)
+				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, offer.GoodsId, offer.Id)
 				require.NoError(t, err)
 
 				err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, offer.Buyer, offer.Id)

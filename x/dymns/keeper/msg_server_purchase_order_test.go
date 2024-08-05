@@ -31,9 +31,39 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 		dk, _, ctx := setupTest()
 
 		requireErrorFContains(t, func() error {
-			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{})
+			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
+				OrderType: dymnstypes.MarketOrderType_MOT_DYM_NAME,
+			})
 			return err
 		}, gerrc.ErrInvalidArgument.Error())
+	})
+
+	t.Run("reject if message order type is Alias", func(t *testing.T) {
+		dk, _, ctx := setupTest()
+
+		requireErrorFContains(t, func() error {
+			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
+				GoodsId:   "alias",
+				OrderType: dymnstypes.MarketOrderType_MOT_ALIAS,
+				Buyer:     testAddr(0).bech32(),
+				Offer:     dymnsutils.TestCoin(1),
+			})
+			return err
+		}, "invalid order type")
+	})
+
+	t.Run("reject if message order type is Unknown", func(t *testing.T) {
+		dk, _, ctx := setupTest()
+
+		requireErrorFContains(t, func() error {
+			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
+				GoodsId:   "goods",
+				OrderType: dymnstypes.MarketOrderType_MOT_UNKNOWN,
+				Buyer:     testAddr(0).bech32(),
+				Offer:     dymnsutils.TestCoin(1),
+			})
+			return err
+		}, "invalid order type")
 	})
 
 	ownerA := testAddr(1).bech32()
@@ -422,7 +452,7 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 			}
 
 			so := dymnstypes.SellOrder{
-				Name:     dymName.Name,
+				GoodsId:  dymName.Name,
 				Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				MinPrice: dymnsutils.TestCoin(minPrice),
 			}
@@ -469,9 +499,10 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 				useDenom = tt.customBidDenom
 			}
 			resp, errPurchaseName := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
-				Name:  dymName.Name,
-				Offer: sdk.NewInt64Coin(useDenom, tt.newBid),
-				Buyer: useBuyer,
+				GoodsId:   dymName.Name,
+				OrderType: dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				Offer:     sdk.NewInt64Coin(useDenom, tt.newBid),
+				Buyer:     useBuyer,
 			})
 			laterDymName := dk.GetDymName(ctx, dymName.Name)
 			if !tt.withoutDymName {

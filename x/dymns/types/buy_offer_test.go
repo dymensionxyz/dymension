@@ -35,7 +35,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 	tests := []struct {
 		name                   string
 		offerId                string
-		dymName                string
+		goodsId                string
 		_type                  MarketOrderType
 		buyer                  string
 		offerPrice             sdk.Coin
@@ -44,9 +44,18 @@ func TestBuyOffer_Validate(t *testing.T) {
 		wantErrContains        string
 	}{
 		{
-			name:                   "pass - valid offer",
+			name:                   "pass - (Name) valid offer",
 			offerId:                "101",
-			dymName:                "a",
+			goodsId:                "my-name",
+			_type:                  MarketOrderType_MOT_DYM_NAME,
+			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			offerPrice:             dymnsutils.TestCoin(1),
+			counterpartyOfferPrice: nil,
+		},
+		{
+			name:                   "pass - (Alias) valid offer",
+			offerId:                "101",
+			goodsId:                "alias",
 			_type:                  MarketOrderType_MOT_DYM_NAME,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(1),
@@ -55,7 +64,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:                   "pass - valid offer with counterparty offer price",
 			offerId:                "101",
-			dymName:                "a",
+			goodsId:                "my-name",
 			_type:                  MarketOrderType_MOT_DYM_NAME,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(1),
@@ -64,7 +73,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:                   "pass - valid offer without counterparty offer price",
 			offerId:                "101",
-			dymName:                "a",
+			goodsId:                "my-name",
 			_type:                  MarketOrderType_MOT_DYM_NAME,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(1),
@@ -73,7 +82,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:            "fail - empty offer ID",
 			offerId:         "",
-			dymName:         "a",
+			goodsId:         "my-name",
 			_type:           MarketOrderType_MOT_DYM_NAME,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -83,7 +92,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:            "fail - offer ID prefix not match type, case Dym-Name",
 			offerId:         CreateBuyOfferId(MarketOrderType_MOT_ALIAS, 1),
-			dymName:         "a",
+			goodsId:         "my-name",
 			_type:           MarketOrderType_MOT_DYM_NAME,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -93,7 +102,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:            "fail - offer ID prefix not match type, case Alias",
 			offerId:         CreateBuyOfferId(MarketOrderType_MOT_DYM_NAME, 1),
-			dymName:         "a",
+			goodsId:         "my-name",
 			_type:           MarketOrderType_MOT_ALIAS,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -101,29 +110,9 @@ func TestBuyOffer_Validate(t *testing.T) {
 			wantErrContains: "mismatch type of Buy-Order ID prefix and type",
 		},
 		{
-			name:            "fail - type is Unknown",
-			offerId:         "101",
-			dymName:         "a",
-			_type:           MarketOrderType_MOT_UNKNOWN,
-			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:      dymnsutils.TestCoin(1),
-			wantErr:         true,
-			wantErrContains: "Buy-Order type must be",
-		},
-		{
-			name:            "fail - type is Alias (not yet supported)",
-			offerId:         "201",
-			dymName:         "a",
-			_type:           MarketOrderType_MOT_ALIAS,
-			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:      dymnsutils.TestCoin(1),
-			wantErr:         true,
-			wantErrContains: "Buy-Order type must be",
-		},
-		{
 			name:            "fail - bad offer ID",
 			offerId:         "@",
-			dymName:         "a",
+			goodsId:         "my-name",
 			_type:           MarketOrderType_MOT_DYM_NAME,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -131,9 +120,9 @@ func TestBuyOffer_Validate(t *testing.T) {
 			wantErrContains: "ID of offer is not a valid offer id",
 		},
 		{
-			name:            "fail - empty name",
+			name:            "fail - (Name) empty name",
 			offerId:         "101",
-			dymName:         "",
+			goodsId:         "",
 			_type:           MarketOrderType_MOT_DYM_NAME,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -141,9 +130,19 @@ func TestBuyOffer_Validate(t *testing.T) {
 			wantErrContains: "Dym-Name of offer is empty",
 		},
 		{
-			name:            "fail - bad name",
+			name:            "fail - (Alias) empty alias",
+			offerId:         "201",
+			goodsId:         "",
+			_type:           MarketOrderType_MOT_ALIAS,
+			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			offerPrice:      dymnsutils.TestCoin(1),
+			wantErr:         true,
+			wantErrContains: "alias of offer is empty",
+		},
+		{
+			name:            "fail - (Name) bad name",
 			offerId:         "101",
-			dymName:         "@",
+			goodsId:         "@",
 			_type:           MarketOrderType_MOT_DYM_NAME,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -151,9 +150,19 @@ func TestBuyOffer_Validate(t *testing.T) {
 			wantErrContains: "Dym-Name of offer is not a valid dym name",
 		},
 		{
+			name:            "fail - (Alias) bad name",
+			offerId:         "201",
+			goodsId:         "bad-alias",
+			_type:           MarketOrderType_MOT_ALIAS,
+			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			offerPrice:      dymnsutils.TestCoin(1),
+			wantErr:         true,
+			wantErrContains: "alias of offer is not a valid alias",
+		},
+		{
 			name:            "fail - bad buyer",
 			offerId:         "101",
-			dymName:         "a",
+			goodsId:         "my-name",
 			_type:           MarketOrderType_MOT_DYM_NAME,
 			buyer:           "0x1",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -163,7 +172,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:            "fail - offer price is zero",
 			offerId:         "101",
-			dymName:         "a",
+			goodsId:         "my-name",
 			_type:           MarketOrderType_MOT_DYM_NAME,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(0),
@@ -173,7 +182,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:            "fail - offer price is empty",
 			offerId:         "101",
-			dymName:         "a",
+			goodsId:         "my-name",
 			_type:           MarketOrderType_MOT_DYM_NAME,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      sdk.Coin{},
@@ -183,7 +192,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:            "fail - offer price is negative",
 			offerId:         "101",
-			dymName:         "a",
+			goodsId:         "my-name",
 			_type:           MarketOrderType_MOT_DYM_NAME,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(-1),
@@ -193,7 +202,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:    "fail - offer price is invalid",
 			offerId: "101",
-			dymName: "a",
+			goodsId: "my-name",
 			_type:   MarketOrderType_MOT_DYM_NAME,
 			buyer:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice: sdk.Coin{
@@ -206,7 +215,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:                   "pass - counter-party offer price is zero",
 			offerId:                "101",
-			dymName:                "a",
+			goodsId:                "my-name",
 			_type:                  MarketOrderType_MOT_DYM_NAME,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(1),
@@ -215,7 +224,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:                   "pass - counter-party offer price is empty",
 			offerId:                "101",
-			dymName:                "a",
+			goodsId:                "my-name",
 			_type:                  MarketOrderType_MOT_DYM_NAME,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(1),
@@ -224,7 +233,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:                   "fail - counter-party offer price is negative",
 			offerId:                "101",
-			dymName:                "a",
+			goodsId:                "my-name",
 			_type:                  MarketOrderType_MOT_DYM_NAME,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(1),
@@ -235,7 +244,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:       "fail - counter-party offer price is invalid",
 			offerId:    "101",
-			dymName:    "a",
+			goodsId:    "my-name",
 			_type:      MarketOrderType_MOT_DYM_NAME,
 			buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice: dymnsutils.TestCoin(1),
@@ -249,7 +258,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:                   "pass - counterparty offer price can be less than offer price",
 			offerId:                "101",
-			dymName:                "a",
+			goodsId:                "my-name",
 			_type:                  MarketOrderType_MOT_DYM_NAME,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(2),
@@ -259,7 +268,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:                   "pass - counterparty offer price can be equals to offer price",
 			offerId:                "101",
-			dymName:                "a",
+			goodsId:                "my-name",
 			_type:                  MarketOrderType_MOT_DYM_NAME,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(2),
@@ -269,7 +278,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:                   "pass - counterparty offer price can be greater than offer price",
 			offerId:                "101",
-			dymName:                "a",
+			goodsId:                "my-name",
 			_type:                  MarketOrderType_MOT_DYM_NAME,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(2),
@@ -279,7 +288,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		{
 			name:                   "fail - counterparty offer price denom must match offer price denom",
 			offerId:                "101",
-			dymName:                "a",
+			goodsId:                "my-name",
 			_type:                  MarketOrderType_MOT_DYM_NAME,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(1),
@@ -287,12 +296,22 @@ func TestBuyOffer_Validate(t *testing.T) {
 			wantErr:                true,
 			wantErrContains:        "counterparty offer price denom is different from offer price denom",
 		},
+		{
+			name:            "fail - reject unknown order type",
+			offerId:         "101",
+			goodsId:         "goods",
+			_type:           MarketOrderType_MOT_UNKNOWN,
+			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			offerPrice:      dymnsutils.TestCoin(1),
+			wantErr:         true,
+			wantErrContains: "invalid order type",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &BuyOffer{
 				Id:                     tt.offerId,
-				Name:                   tt.dymName,
+				GoodsId:                tt.goodsId,
 				Type:                   tt._type,
 				Buyer:                  tt.buyer,
 				OfferPrice:             tt.offerPrice,
@@ -317,7 +336,7 @@ func TestBuyOffer_GetSdkEvent(t *testing.T) {
 	t.Run("all fields", func(t *testing.T) {
 		event := BuyOffer{
 			Id:                     "1",
-			Name:                   "a",
+			GoodsId:                "a",
 			Type:                   MarketOrderType_MOT_DYM_NAME,
 			Buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			OfferPrice:             dymnsutils.TestCoin(1),
@@ -326,7 +345,7 @@ func TestBuyOffer_GetSdkEvent(t *testing.T) {
 		requireEventEquals(t, event,
 			EventTypeBuyOffer,
 			AttributeKeyBoId, "1",
-			AttributeKeyBoName, "a",
+			AttributeKeyBoGoodsId, "a",
 			AttributeKeyBoType, MarketOrderType_MOT_DYM_NAME.String(),
 			AttributeKeyBoBuyer, "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			AttributeKeyBoOfferPrice, "1"+params.BaseDenom,
@@ -338,7 +357,7 @@ func TestBuyOffer_GetSdkEvent(t *testing.T) {
 	t.Run("BO type Alias", func(t *testing.T) {
 		event := BuyOffer{
 			Id:                     "1",
-			Name:                   "a",
+			GoodsId:                "a",
 			Type:                   MarketOrderType_MOT_ALIAS,
 			Buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			OfferPrice:             dymnsutils.TestCoin(1),
@@ -354,7 +373,7 @@ func TestBuyOffer_GetSdkEvent(t *testing.T) {
 	t.Run("no counterparty offer price", func(t *testing.T) {
 		event := BuyOffer{
 			Id:                     "1",
-			Name:                   "a",
+			GoodsId:                "a",
 			Type:                   MarketOrderType_MOT_DYM_NAME,
 			Buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			OfferPrice:             dymnsutils.TestCoin(1),
@@ -363,7 +382,7 @@ func TestBuyOffer_GetSdkEvent(t *testing.T) {
 		requireEventEquals(t, event,
 			EventTypeBuyOffer,
 			AttributeKeyBoId, "1",
-			AttributeKeyBoName, "a",
+			AttributeKeyBoGoodsId, "a",
 			AttributeKeyBoType, MarketOrderType_MOT_DYM_NAME.String(),
 			AttributeKeyBoBuyer, "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			AttributeKeyBoOfferPrice, "1"+params.BaseDenom,

@@ -35,7 +35,7 @@ func NewPlaceBidOnOrderTxCmd() *cobra.Command {
 
 			dymName := args[0]
 			if !dymnsutils.IsValidDymName(dymName) {
-				return fmt.Errorf("input Dym-Name '%s' is not a valid Dym-Name", dymName)
+				return fmt.Errorf("invalid Dym-Name: %s", dymName)
 			}
 			amount, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil || amount < 1 {
@@ -43,17 +43,18 @@ func NewPlaceBidOnOrderTxCmd() *cobra.Command {
 			}
 			const maximumBidValue = 10_000
 			if amount > maximumBidValue {
-				return fmt.Errorf("maximum bid value allowed via CLI is %d %s", maximumBidValue, params.DisplayDenom)
+				return fmt.Errorf("maximum bid value allowed via CLI is: %d %s", maximumBidValue, params.DisplayDenom)
 			}
 			denom := args[2]
 			if !strings.EqualFold(denom, params.DisplayDenom) {
-				return fmt.Errorf("denom must be %s", strings.ToUpper(params.DisplayDenom))
+				return fmt.Errorf("denom must be: %s", strings.ToUpper(params.DisplayDenom))
 			}
 
 			msg := &dymnstypes.MsgPurchaseOrder{
-				Name:  dymName,
-				Offer: sdk.NewCoin(params.BaseDenom, sdk.NewInt(int64(amount)).MulRaw(1e18)),
-				Buyer: clientCtx.GetFromAddress().String(),
+				GoodsId:   dymName,
+				OrderType: dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				Offer:     sdk.NewCoin(params.BaseDenom, sdk.NewInt(int64(amount)).MulRaw(1e18)),
+				Buyer:     clientCtx.GetFromAddress().String(),
 			}
 
 			if err := msg.ValidateBasic(); err != nil {

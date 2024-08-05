@@ -49,7 +49,7 @@ const (
 	EventTypeBuyOffer                    = ModuleName + "_bo"
 	AttributeKeyBoActionName             = "action"
 	AttributeKeyBoId                     = "id"
-	AttributeKeyBoName                   = "name"
+	AttributeKeyBoGoodsId                = "goods_id"
 	AttributeKeyBoType                   = "type"
 	AttributeKeyBoBuyer                  = "buyer"
 	AttributeKeyBoOfferPrice             = "offer_price"

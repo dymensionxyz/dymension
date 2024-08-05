@@ -19,7 +19,7 @@ func CmdQuerySellOrder() *cobra.Command {
 		Aliases: []string{"so", "sellorder"},
 		Short:   "Get current active Sell Order of a Dym-Name.",
 		Example: fmt.Sprintf(
-			"%s q %s sell-order myname",
+			"%s q %s sell-order my-name",
 			version.AppName, dymnstypes.ModuleName,
 		),
 		Args: cobra.ExactArgs(1),
@@ -33,7 +33,7 @@ func CmdQuerySellOrder() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := dymnstypes.NewQueryClient(clientCtx)
 
-			res, err := queryClient.SellOrder(cmd.Context(), &dymnstypes.QuerySellOrderRequest{
+			res, err := queryClient.SellOrderOfDymName(cmd.Context(), &dymnstypes.QuerySellOrderOfDymNameRequest{
 				DymName: dymName,
 			})
 			if err != nil {

@@ -10,10 +10,16 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
+// TODO DymNS: buyer should be Roll-App owner
+
 // PlaceBuyOrder is message handler,
-// handles creating an offer to buy a Dym-Name, performed by the buyer.
+// handles creating an offer to buy a Dym-Name/Alias, performed by the buyer.
 func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlaceBuyOrder) (*dymnstypes.MsgPlaceBuyOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if msg.OrderType != dymnstypes.MarketOrderType_MOT_DYM_NAME {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
+	}
 
 	existingOffer, err := k.validateOffer(ctx, msg)
 	if err != nil {
@@ -42,7 +48,7 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 
 		offer = dymnstypes.BuyOffer{
 			Id:         "", // will be auto-generated
-			Name:       msg.Name,
+			GoodsId:    msg.GoodsId,
 			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			Buyer:      msg.Buyer,
 			OfferPrice: msg.Offer,
@@ -58,7 +64,7 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 			return nil, err
 		}
 
-		err = k.AddReverseMappingDymNameToBuyOffer(ctx, msg.Name, offer.Id)
+		err = k.AddReverseMappingDymNameToBuyOffer(ctx, msg.GoodsId, offer.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -86,9 +92,9 @@ func (k msgServer) validateOffer(ctx sdk.Context, msg *dymnstypes.MsgPlaceBuyOrd
 		return
 	}
 
-	dymName := k.GetDymNameWithExpirationCheck(ctx, msg.Name)
+	dymName := k.GetDymNameWithExpirationCheck(ctx, msg.GoodsId)
 	if dymName == nil {
-		err = errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.Name)
+		err = errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.GoodsId)
 		return
 	}
 	if dymName.Owner == msg.Buyer {
@@ -128,7 +134,7 @@ func (k msgServer) validateOffer(ctx sdk.Context, msg *dymnstypes.MsgPlaceBuyOrd
 			err = errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the offer")
 			return
 		}
-		if existingOffer.Name != msg.Name {
+		if existingOffer.GoodsId != msg.GoodsId {
 			err = errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name mismatch with existing offer")
 			return
 		}

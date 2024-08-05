@@ -14,7 +14,7 @@ import (
 
 // GetIdentity returns the unique identity of the SO
 func (m *SellOrder) GetIdentity() string {
-	return fmt.Sprintf("%s|%d", m.Name, m.ExpireAt)
+	return fmt.Sprintf("%s|%d", m.GoodsId, m.ExpireAt)
 }
 
 // HasSetSellPrice returns true if the sell price is set
@@ -63,19 +63,24 @@ func (m *SellOrder) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO is nil")
 	}
 
-	if m.Name == "" {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of SO is empty")
-	}
+	if m.Type == MarketOrderType_MOT_DYM_NAME {
+		if m.GoodsId == "" {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of SO is empty")
+		}
 
-	if !dymnsutils.IsValidDymName(m.Name) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of SO is not a valid dym name")
-	}
+		if !dymnsutils.IsValidDymName(m.GoodsId) {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of SO is not a valid dym name")
+		}
+	} else if m.Type == MarketOrderType_MOT_ALIAS {
+		if m.GoodsId == "" {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "alias of SO is empty")
+		}
 
-	if m.Type != MarketOrderType_MOT_DYM_NAME {
-		return errorsmod.Wrapf(
-			gerrc.ErrInvalidArgument,
-			"Sell-Order type must be: %s", MarketOrderType_MOT_DYM_NAME.String(),
-		)
+		if !dymnsutils.IsValidAlias(m.GoodsId) {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "alias of SO is not a valid alias")
+		}
+	} else {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid SO type: %s", m.Type)
 	}
 
 	if m.ExpireAt == 0 {
@@ -151,7 +156,7 @@ func (m *HistoricalSellOrders) Validate() error {
 	}
 
 	if len(m.SellOrders) > 0 {
-		name := m.SellOrders[0].Name
+		name := m.SellOrders[0].GoodsId
 		uniqueIdentity := make(map[string]bool)
 		// Describe usage of Go Map: only used for validation
 		for _, so := range m.SellOrders {
@@ -159,8 +164,8 @@ func (m *HistoricalSellOrders) Validate() error {
 				return err
 			}
 
-			if so.Name != name {
-				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "historical SOs have different Dym-Names: %s != %s", name, so.Name)
+			if so.GoodsId != name {
+				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "historical SOs have different Dym-Names: %s != %s", name, so.GoodsId)
 			}
 
 			if _, duplicated := uniqueIdentity[so.GetIdentity()]; duplicated {
@@ -194,7 +199,7 @@ func (m SellOrder) GetSdkEvent(actionName string) sdk.Event {
 
 	return sdk.NewEvent(
 		EventTypeSellOrder,
-		sdk.NewAttribute(AttributeKeySoName, m.Name),
+		sdk.NewAttribute(AttributeKeySoName, m.GoodsId),
 		sdk.NewAttribute(AttributeKeySoType, m.Type.String()),
 		sdk.NewAttribute(AttributeKeySoExpiryEpoch, fmt.Sprintf("%d", m.ExpireAt)),
 		sdk.NewAttribute(AttributeKeySoMinPrice, m.MinPrice.String()),
@@ -216,12 +221,12 @@ func (m ActiveSellOrdersExpiration) Validate() error {
 				return errorsmod.Wrap(gerrc.ErrInvalidArgument, "active SO expiry is empty")
 			}
 
-			if _, duplicated := uniqueName[record.Name]; duplicated {
-				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "active SO is not unique: %s", record.Name)
+			if _, duplicated := uniqueName[record.GoodsId]; duplicated {
+				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "active SO is not unique: %s", record.GoodsId)
 			}
 
-			uniqueName[record.Name] = true
-			allNames[i] = record.Name
+			uniqueName[record.GoodsId] = true
+			allNames[i] = record.GoodsId
 		}
 
 		if !sort.StringsAreSorted(allNames) {
@@ -237,13 +242,15 @@ func (m *ActiveSellOrdersExpiration) Sort() {
 		return
 	}
 
+	// TODO DymNS: add sort by other fields if any added
+
 	sort.Slice(m.Records, func(i, j int) bool {
-		return m.Records[i].Name < m.Records[j].Name
+		return m.Records[i].GoodsId < m.Records[j].GoodsId
 	})
 }
 
-func (m *ActiveSellOrdersExpiration) Add(name string, expiry int64) {
-	newRecord := ActiveSellOrdersExpirationRecord{Name: name, ExpireAt: expiry}
+func (m *ActiveSellOrdersExpiration) Add(goodsId string, expiry int64) {
+	newRecord := ActiveSellOrdersExpirationRecord{GoodsId: goodsId, ExpireAt: expiry}
 
 	if len(m.Records) < 1 {
 		m.Records = []ActiveSellOrdersExpirationRecord{newRecord}
@@ -253,7 +260,7 @@ func (m *ActiveSellOrdersExpiration) Add(name string, expiry int64) {
 	foundAtIdx := -1
 
 	for i, record := range m.Records {
-		if record.Name == name {
+		if record.GoodsId == goodsId {
 			foundAtIdx = i
 			break
 		}
@@ -268,14 +275,14 @@ func (m *ActiveSellOrdersExpiration) Add(name string, expiry int64) {
 	m.Sort()
 }
 
-func (m *ActiveSellOrdersExpiration) Remove(name string) {
+func (m *ActiveSellOrdersExpiration) Remove(goodsId string) {
 	if len(m.Records) < 1 {
 		return
 	}
 
 	modified := make([]ActiveSellOrdersExpirationRecord, 0, len(m.Records))
 	for _, record := range m.Records {
-		if record.Name != name {
+		if record.GoodsId != goodsId {
 			modified = append(modified, record)
 		}
 	}

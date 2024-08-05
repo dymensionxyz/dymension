@@ -674,7 +674,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 
 				if tt.setupHistoricalData {
 					so1 := dymnstypes.SellOrder{
-						Name:     useRecordName,
+						GoodsId:  useRecordName,
 						Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 						ExpireAt: now.Unix() - 1,
 						MinPrice: dymnsutils.TestCoin(1),
@@ -686,7 +686,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 					require.NoError(t, err)
 
 					so2 := dymnstypes.SellOrder{
-						Name:      useRecordName,
+						GoodsId:   useRecordName,
 						Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 						ExpireAt:  tt.existingDymName.ExpireAt - 1,
 						MinPrice:  dymnsutils.TestCoin(1),

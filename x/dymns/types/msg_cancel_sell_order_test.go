@@ -10,57 +10,95 @@ func TestMsgCancelSellOrder_ValidateBasic(t *testing.T) {
 	//goland:noinspection SpellCheckingInspection
 	tests := []struct {
 		name            string
-		dymName         string
+		goodsId         string
+		orderType       MarketOrderType
 		owner           string
 		wantErr         bool
 		wantErrContains string
 	}{
 		{
-			name:    "pass - valid",
-			dymName: "abc",
-			owner:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			name:      "pass - (Name) valid",
+			goodsId:   "my-name",
+			orderType: MarketOrderType_MOT_DYM_NAME,
+			owner:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:            "fail - not allow empty name",
-			dymName:         "",
+			name:      "pass - (Alias) valid",
+			goodsId:   "alias",
+			orderType: MarketOrderType_MOT_ALIAS,
+			owner:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+		},
+		{
+			name:            "fail - (Name) not allow empty name",
+			goodsId:         "",
+			orderType:       MarketOrderType_MOT_DYM_NAME,
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
-			name:            "fail - not allow invalid name",
-			dymName:         "-a",
+			name:            "fail - (Alias) not allow empty alias",
+			goodsId:         "",
+			orderType:       MarketOrderType_MOT_ALIAS,
+			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			wantErr:         true,
+			wantErrContains: "alias is not a valid alias",
+		},
+		{
+			name:            "fail - (Name) not allow invalid name",
+			goodsId:         "-my-name",
+			orderType:       MarketOrderType_MOT_DYM_NAME,
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "name is not a valid dym name",
+		},
+		{
+			name:            "fail - (Alias) not allow invalid alias",
+			goodsId:         "bad-alias",
+			orderType:       MarketOrderType_MOT_ALIAS,
+			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			wantErr:         true,
+			wantErrContains: "alias is not a valid alias",
 		},
 		{
 			name:            "fail - invalid owner",
-			dymName:         "a",
+			goodsId:         "my-name",
+			orderType:       MarketOrderType_MOT_DYM_NAME,
 			owner:           "dym1fl48vsnmsdzcv85q5",
 			wantErr:         true,
 			wantErrContains: "owner is not a valid bech32 account address",
 		},
 		{
 			name:            "fail - missing owner",
-			dymName:         "a",
+			goodsId:         "my-name",
+			orderType:       MarketOrderType_MOT_DYM_NAME,
 			owner:           "",
 			wantErr:         true,
 			wantErrContains: "owner is not a valid bech32 account address",
 		},
 		{
 			name:            "fail - owner must be dym1",
-			dymName:         "a",
+			goodsId:         "my-name",
+			orderType:       MarketOrderType_MOT_DYM_NAME,
 			owner:           "nim1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3pklgjx",
 			wantErr:         true,
 			wantErrContains: "owner is not a valid bech32 account address",
+		},
+		{
+			name:            "fail - not supported order type",
+			goodsId:         "goods",
+			orderType:       MarketOrderType_MOT_UNKNOWN,
+			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			wantErr:         true,
+			wantErrContains: "invalid order type",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &MsgCancelSellOrder{
-				Name:  tt.dymName,
-				Owner: tt.owner,
+				GoodsId:   tt.goodsId,
+				OrderType: tt.orderType,
+				Owner:     tt.owner,
 			}
 
 			err := m.ValidateBasic()

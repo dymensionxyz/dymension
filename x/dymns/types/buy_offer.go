@@ -1,14 +1,16 @@
 package types
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"strconv"
-	"strings"
 )
 
 // HasCounterpartyOfferPrice returns true if the offer has a raise-offer request from the Dym-Name owner.
@@ -38,6 +40,14 @@ func (m *BuyOffer) Validate() error {
 				"mismatch type of Buy-Order ID prefix and type",
 			)
 		}
+
+		if m.GoodsId == "" {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of offer is empty")
+		}
+
+		if !dymnsutils.IsValidDymName(m.GoodsId) {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of offer is not a valid dym name")
+		}
 	case MarketOrderType_MOT_ALIAS:
 		if !strings.HasPrefix(m.Id, BuyOfferIdTypeAliasPrefix) {
 			return errorsmod.Wrap(
@@ -45,21 +55,16 @@ func (m *BuyOffer) Validate() error {
 				"mismatch type of Buy-Order ID prefix and type",
 			)
 		}
-	}
 
-	if m.Name == "" {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of offer is empty")
-	}
+		if m.GoodsId == "" {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "alias of offer is empty")
+		}
 
-	if !dymnsutils.IsValidDymName(m.Name) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of offer is not a valid dym name")
-	}
-
-	if m.Type != MarketOrderType_MOT_DYM_NAME {
-		return errorsmod.Wrapf(
-			gerrc.ErrInvalidArgument,
-			"Buy-Order type must be: %s", MarketOrderType_MOT_DYM_NAME.String(),
-		)
+		if !dymnsutils.IsValidAlias(m.GoodsId) {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "alias of offer is not a valid alias")
+		}
+	default:
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", m.Type)
 	}
 
 	if !dymnsutils.IsValidBech32AccountAddress(m.Buyer, true) {
@@ -105,7 +110,7 @@ func (m BuyOffer) GetSdkEvent(actionName string) sdk.Event {
 	return sdk.NewEvent(
 		EventTypeBuyOffer,
 		sdk.NewAttribute(AttributeKeyBoId, m.Id),
-		sdk.NewAttribute(AttributeKeyBoName, m.Name),
+		sdk.NewAttribute(AttributeKeyBoGoodsId, m.GoodsId),
 		sdk.NewAttribute(AttributeKeyBoType, m.Type.String()),
 		sdk.NewAttribute(AttributeKeyBoBuyer, m.Buyer),
 		sdk.NewAttribute(AttributeKeyBoOfferPrice, m.OfferPrice.String()),

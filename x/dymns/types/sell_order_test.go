@@ -12,7 +12,7 @@ import (
 
 func TestSellOrder_GetIdentity(t *testing.T) {
 	m := &SellOrder{
-		Name:     "aabb",
+		GoodsId:  "aabb",
 		ExpireAt: 1234,
 	}
 	require.Equal(t, "aabb|1234", m.GetIdentity())
@@ -160,17 +160,20 @@ func TestSellOrder_HasFinished(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &SellOrder{
-				Name:       "a",
+				GoodsId:    "a",
 				ExpireAt:   tt.expireAt,
 				MinPrice:   oneCoin,
 				SellPrice:  tt.sellPrice,
 				HighestBid: tt.highestBid,
 			}
 
-			require.Equal(t, tt.wantFinished, m.HasFinishedAtCtx(
-				sdk.Context{}.WithBlockTime(now),
-			))
-			require.Equal(t, tt.wantFinished, m.HasFinished(now.Unix()))
+			for _, orderType := range []MarketOrderType{MarketOrderType_MOT_DYM_NAME, MarketOrderType_MOT_ALIAS} {
+				m.Type = orderType
+				require.Equal(t, tt.wantFinished, m.HasFinishedAtCtx(
+					sdk.Context{}.WithBlockTime(now),
+				))
+				require.Equal(t, tt.wantFinished, m.HasFinished(now.Unix()))
+			}
 		})
 	}
 }
@@ -194,7 +197,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:      "pass - valid sell order",
+			name:      "pass - (Name) valid sell order",
 			dymName:   "my-name",
 			_type:     MarketOrderType_MOT_DYM_NAME,
 			expireAt:  time.Now().Unix(),
@@ -206,7 +209,19 @@ func TestSellOrder_Validate(t *testing.T) {
 			},
 		},
 		{
-			name:      "pass - valid sell order without bid",
+			name:      "pass - (Alias) valid sell order",
+			dymName:   "alias",
+			_type:     MarketOrderType_MOT_ALIAS,
+			expireAt:  time.Now().Unix(),
+			minPrice:  dymnsutils.TestCoin(1),
+			sellPrice: dymnsutils.TestCoinP(1),
+			highestBid: &SellOrderBid{
+				Bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+				Price:  dymnsutils.TestCoin(1),
+			},
+		},
+		{
+			name:      "pass - (Name) valid sell order without bid",
 			dymName:   "my-name",
 			_type:     MarketOrderType_MOT_DYM_NAME,
 			expireAt:  time.Now().Unix(),
@@ -214,14 +229,31 @@ func TestSellOrder_Validate(t *testing.T) {
 			sellPrice: dymnsutils.TestCoinP(1),
 		},
 		{
-			name:     "pass - valid sell order without setting sell price",
-			dymName:  "my-name",
-			_type:    MarketOrderType_MOT_DYM_NAME,
-			expireAt: time.Now().Unix(),
-			minPrice: dymnsutils.TestCoin(1),
+			name:      "pass - (Alias) valid sell order without bid",
+			dymName:   "alias",
+			_type:     MarketOrderType_MOT_ALIAS,
+			expireAt:  time.Now().Unix(),
+			minPrice:  dymnsutils.TestCoin(1),
+			sellPrice: dymnsutils.TestCoinP(1),
 		},
 		{
-			name:            "fail - empty name",
+			name:      "pass - (Name) valid sell order without setting sell price",
+			dymName:   "my-name",
+			_type:     MarketOrderType_MOT_DYM_NAME,
+			expireAt:  time.Now().Unix(),
+			minPrice:  dymnsutils.TestCoin(1),
+			sellPrice: nil,
+		},
+		{
+			name:      "pass - (Alias) valid sell order without setting sell price",
+			dymName:   "alias",
+			_type:     MarketOrderType_MOT_ALIAS,
+			expireAt:  time.Now().Unix(),
+			minPrice:  dymnsutils.TestCoin(1),
+			sellPrice: nil,
+		},
+		{
+			name:            "fail - (Name) reject empty name",
 			dymName:         "",
 			_type:           MarketOrderType_MOT_DYM_NAME,
 			expireAt:        time.Now().Unix(),
@@ -230,31 +262,40 @@ func TestSellOrder_Validate(t *testing.T) {
 			wantErrContains: "Dym-Name of SO is empty",
 		},
 		{
-			name:            "fail - type is unknown",
-			dymName:         "my-name",
-			_type:           MarketOrderType_MOT_UNKNOWN,
-			expireAt:        time.Now().Unix(),
-			minPrice:        dymnsutils.TestCoin(1),
-			wantErr:         true,
-			wantErrContains: "Sell-Order type must be",
-		},
-		{
-			name:            "fail - type is alias (not yet supported)",
-			dymName:         "my-name",
+			name:            "fail - (Alias) reject empty alias",
+			dymName:         "",
 			_type:           MarketOrderType_MOT_ALIAS,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(1),
 			wantErr:         true,
-			wantErrContains: "Sell-Order type must be",
+			wantErrContains: "alias of SO is empty",
 		},
 		{
-			name:            "fail - bad name",
+			name:            "fail - reject unknown type",
+			dymName:         "goods",
+			_type:           MarketOrderType_MOT_UNKNOWN,
+			expireAt:        time.Now().Unix(),
+			minPrice:        dymnsutils.TestCoin(1),
+			wantErr:         true,
+			wantErrContains: "invalid SO type",
+		},
+		{
+			name:            "fail - (Name) reject bad name",
 			dymName:         "-my-name",
 			_type:           MarketOrderType_MOT_DYM_NAME,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(1),
 			wantErr:         true,
 			wantErrContains: "Dym-Name of SO is not a valid dym name",
+		},
+		{
+			name:            "fail - (Alias) reject bad alias",
+			dymName:         "bad-alias",
+			_type:           MarketOrderType_MOT_ALIAS,
+			expireAt:        time.Now().Unix(),
+			minPrice:        dymnsutils.TestCoin(1),
+			wantErr:         true,
+			wantErrContains: "alias of SO is not a valid alias",
 		},
 		{
 			name:            "fail - empty time",
@@ -393,7 +434,7 @@ func TestSellOrder_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &SellOrder{
-				Name:       tt.dymName,
+				GoodsId:    tt.dymName,
 				Type:       tt._type,
 				ExpireAt:   tt.expireAt,
 				MinPrice:   tt.minPrice,
@@ -406,9 +447,10 @@ func TestSellOrder_Validate(t *testing.T) {
 				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
 				require.Error(t, err)
 				require.Contains(t, err.Error(), tt.wantErrContains)
-			} else {
-				require.NoError(t, err)
+				return
 			}
+
+			require.NoError(t, err)
 		})
 	}
 }
@@ -516,14 +558,14 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 			name: "pass - valid",
 			sellOrders: []SellOrder{
 				{
-					Name:      "a",
+					GoodsId:   "a",
 					Type:      MarketOrderType_MOT_DYM_NAME,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
 					SellPrice: dymnsutils.TestCoinP(1),
 				},
 				{
-					Name:     "a",
+					GoodsId:  "a",
 					Type:     MarketOrderType_MOT_DYM_NAME,
 					ExpireAt: 2,
 					MinPrice: dymnsutils.TestCoin(1),
@@ -538,13 +580,13 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 			name: "fail - reject if SO element is invalid",
 			sellOrders: []SellOrder{
 				{
-					Name:     "a",
+					GoodsId:  "a",
 					Type:     MarketOrderType_MOT_DYM_NAME,
 					ExpireAt: 1,
 					MinPrice: dymnsutils.TestCoin(0), // invalid
 				},
 				{
-					Name:     "a",
+					GoodsId:  "a",
 					Type:     MarketOrderType_MOT_DYM_NAME,
 					ExpireAt: 2,
 					MinPrice: dymnsutils.TestCoin(1),
@@ -557,14 +599,14 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 			name: "fail - reject if duplicated SO",
 			sellOrders: []SellOrder{
 				{
-					Name:      "a",
+					GoodsId:   "a",
 					Type:      MarketOrderType_MOT_DYM_NAME,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
 					SellPrice: dymnsutils.TestCoinP(1),
 				},
 				{
-					Name:      "a",
+					GoodsId:   "a",
 					Type:      MarketOrderType_MOT_DYM_NAME,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
@@ -578,14 +620,14 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 			name: "fail - reject if SO element has different Dym-Name",
 			sellOrders: []SellOrder{
 				{
-					Name:      "aaa",
+					GoodsId:   "aaa",
 					Type:      MarketOrderType_MOT_DYM_NAME,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
 					SellPrice: dymnsutils.TestCoinP(1),
 				},
 				{
-					Name:     "bbb",
+					GoodsId:  "bbb",
 					Type:     MarketOrderType_MOT_DYM_NAME,
 					ExpireAt: 2,
 					MinPrice: dymnsutils.TestCoin(1),
@@ -617,7 +659,7 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 func TestSellOrder_GetSdkEvent(t *testing.T) {
 	t.Run("all fields", func(t *testing.T) {
 		event := SellOrder{
-			Name:      "a",
+			GoodsId:   "a",
 			Type:      MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  123456,
 			MinPrice:  dymnsutils.TestCoin(1),
@@ -642,7 +684,7 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 
 	t.Run("SO type alias", func(t *testing.T) {
 		event := SellOrder{
-			Name:      "a",
+			GoodsId:   "a",
 			Type:      MarketOrderType_MOT_ALIAS,
 			ExpireAt:  123456,
 			MinPrice:  dymnsutils.TestCoin(1),
@@ -661,7 +703,7 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 
 	t.Run("no sell-price", func(t *testing.T) {
 		event := SellOrder{
-			Name:     "a",
+			GoodsId:  "a",
 			Type:     MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: 123456,
 			MinPrice: dymnsutils.TestCoin(1),
@@ -685,7 +727,7 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 
 	t.Run("no highest bid", func(t *testing.T) {
 		event := SellOrder{
-			Name:      "a",
+			GoodsId:   "a",
 			Type:      MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  123456,
 			MinPrice:  dymnsutils.TestCoin(1),
@@ -715,14 +757,14 @@ func TestActiveSellOrdersExpiration_Validate(t *testing.T) {
 		{
 			name: "pass",
 			records: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 2}, {Name: "b", ExpireAt: 1},
+				{GoodsId: "a", ExpireAt: 2}, {GoodsId: "b", ExpireAt: 1},
 			},
 			wantErr: false,
 		},
 		{
 			name: "fail - name must be unique",
 			records: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 2}, {Name: "a", ExpireAt: 1},
+				{GoodsId: "a", ExpireAt: 2}, {GoodsId: "a", ExpireAt: 1},
 			},
 			wantErr:         true,
 			wantErrContains: "active SO is not unique",
@@ -730,14 +772,14 @@ func TestActiveSellOrdersExpiration_Validate(t *testing.T) {
 		{
 			name: "pass - expire at can be duplicated",
 			records: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 2}, {Name: "b", ExpireAt: 2},
+				{GoodsId: "a", ExpireAt: 2}, {GoodsId: "b", ExpireAt: 2},
 			},
 			wantErr: false,
 		},
 		{
 			name: "fail - expire at must be > 0",
 			records: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 0}, {Name: "b", ExpireAt: -1},
+				{GoodsId: "a", ExpireAt: 0}, {GoodsId: "b", ExpireAt: -1},
 			},
 			wantErr:         true,
 			wantErrContains: "active SO expiry is empty",
@@ -745,7 +787,7 @@ func TestActiveSellOrdersExpiration_Validate(t *testing.T) {
 		{
 			name: "fail - must be sorted",
 			records: []ActiveSellOrdersExpirationRecord{
-				{Name: "b", ExpireAt: 1}, {Name: "a", ExpireAt: 1},
+				{GoodsId: "b", ExpireAt: 1}, {GoodsId: "a", ExpireAt: 1},
 			},
 			wantErr:         true,
 			wantErrContains: "active SO names are not sorted",
@@ -790,28 +832,28 @@ func TestActiveSellOrdersExpiration_Sort(t *testing.T) {
 		{
 			name: "can sort",
 			records: []ActiveSellOrdersExpirationRecord{
-				{Name: "b", ExpireAt: 2}, {Name: "a", ExpireAt: 2},
+				{GoodsId: "b", ExpireAt: 2}, {GoodsId: "a", ExpireAt: 2},
 			},
 			want: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 2}, {Name: "b", ExpireAt: 2},
+				{GoodsId: "a", ExpireAt: 2}, {GoodsId: "b", ExpireAt: 2},
 			},
 		},
 		{
 			name: "sort by name asc",
 			records: []ActiveSellOrdersExpirationRecord{
-				{Name: "b", ExpireAt: 1}, {Name: "a", ExpireAt: 2}, {Name: "c", ExpireAt: 3},
+				{GoodsId: "b", ExpireAt: 1}, {GoodsId: "a", ExpireAt: 2}, {GoodsId: "c", ExpireAt: 3},
 			},
 			want: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 2}, {Name: "b", ExpireAt: 1}, {Name: "c", ExpireAt: 3},
+				{GoodsId: "a", ExpireAt: 2}, {GoodsId: "b", ExpireAt: 1}, {GoodsId: "c", ExpireAt: 3},
 			},
 		},
 		{
 			name: "can sort one",
 			records: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 2},
+				{GoodsId: "a", ExpireAt: 2},
 			},
 			want: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 2},
+				{GoodsId: "a", ExpireAt: 2},
 			},
 		},
 		{
@@ -848,40 +890,40 @@ func TestActiveSellOrdersExpiration_Add(t *testing.T) {
 	}{
 		{
 			name:      "can add",
-			existing:  []ActiveSellOrdersExpirationRecord{{Name: "a", ExpireAt: 1}},
+			existing:  []ActiveSellOrdersExpirationRecord{{GoodsId: "a", ExpireAt: 1}},
 			addName:   "b",
 			addExpiry: 2,
 			want: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 1}, {Name: "b", ExpireAt: 2},
+				{GoodsId: "a", ExpireAt: 1}, {GoodsId: "b", ExpireAt: 2},
 			},
 		},
 		{
 			name:      "add will perform sort",
-			existing:  []ActiveSellOrdersExpirationRecord{{Name: "b", ExpireAt: 1}},
+			existing:  []ActiveSellOrdersExpirationRecord{{GoodsId: "b", ExpireAt: 1}},
 			addName:   "a",
 			addExpiry: 2,
 			want: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 2}, {Name: "b", ExpireAt: 1},
+				{GoodsId: "a", ExpireAt: 2}, {GoodsId: "b", ExpireAt: 1},
 			},
 		},
 		{
 			name:      "add can override existing",
-			existing:  []ActiveSellOrdersExpirationRecord{{Name: "b", ExpireAt: 1}},
+			existing:  []ActiveSellOrdersExpirationRecord{{GoodsId: "b", ExpireAt: 1}},
 			addName:   "b",
 			addExpiry: 2,
 			want: []ActiveSellOrdersExpirationRecord{
-				{Name: "b", ExpireAt: 2},
+				{GoodsId: "b", ExpireAt: 2},
 			},
 		},
 		{
 			name: "add can override existing",
 			existing: []ActiveSellOrdersExpirationRecord{
-				{Name: "b", ExpireAt: 1}, {Name: "c", ExpireAt: 1}, {Name: "d", ExpireAt: 1},
+				{GoodsId: "b", ExpireAt: 1}, {GoodsId: "c", ExpireAt: 1}, {GoodsId: "d", ExpireAt: 1},
 			},
 			addName:   "c",
 			addExpiry: 2,
 			want: []ActiveSellOrdersExpirationRecord{
-				{Name: "b", ExpireAt: 1}, {Name: "c", ExpireAt: 2}, {Name: "d", ExpireAt: 1},
+				{GoodsId: "b", ExpireAt: 1}, {GoodsId: "c", ExpireAt: 2}, {GoodsId: "d", ExpireAt: 1},
 			},
 		},
 		{
@@ -890,7 +932,7 @@ func TestActiveSellOrdersExpiration_Add(t *testing.T) {
 			addName:   "a",
 			addExpiry: 1,
 			want: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 1},
+				{GoodsId: "a", ExpireAt: 1},
 			},
 		},
 		{
@@ -899,7 +941,7 @@ func TestActiveSellOrdersExpiration_Add(t *testing.T) {
 			addName:   "a",
 			addExpiry: 1,
 			want: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 1},
+				{GoodsId: "a", ExpireAt: 1},
 			},
 		},
 	}
@@ -925,17 +967,17 @@ func TestActiveSellOrdersExpiration_Remove(t *testing.T) {
 		{
 			name: "can remove",
 			existing: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 1}, {Name: "b", ExpireAt: 1},
+				{GoodsId: "a", ExpireAt: 1}, {GoodsId: "b", ExpireAt: 1},
 			},
 			removeName: "a",
 			want: []ActiveSellOrdersExpirationRecord{
-				{Name: "b", ExpireAt: 1},
+				{GoodsId: "b", ExpireAt: 1},
 			},
 		},
 		{
 			name: "remove the last one",
 			existing: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 1},
+				{GoodsId: "a", ExpireAt: 1},
 			},
 			removeName: "a",
 			want:       []ActiveSellOrdersExpirationRecord{},
@@ -943,41 +985,41 @@ func TestActiveSellOrdersExpiration_Remove(t *testing.T) {
 		{
 			name: "remove in head",
 			existing: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 1}, {Name: "b", ExpireAt: 1}, {Name: "c", ExpireAt: 1},
+				{GoodsId: "a", ExpireAt: 1}, {GoodsId: "b", ExpireAt: 1}, {GoodsId: "c", ExpireAt: 1},
 			},
 			removeName: "a",
 			want: []ActiveSellOrdersExpirationRecord{
-				{Name: "b", ExpireAt: 1}, {Name: "c", ExpireAt: 1},
+				{GoodsId: "b", ExpireAt: 1}, {GoodsId: "c", ExpireAt: 1},
 			},
 		},
 		{
 			name: "remove in middle",
 			existing: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 1}, {Name: "b", ExpireAt: 1}, {Name: "c", ExpireAt: 1},
+				{GoodsId: "a", ExpireAt: 1}, {GoodsId: "b", ExpireAt: 1}, {GoodsId: "c", ExpireAt: 1},
 			},
 			removeName: "b",
 			want: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 1}, {Name: "c", ExpireAt: 1},
+				{GoodsId: "a", ExpireAt: 1}, {GoodsId: "c", ExpireAt: 1},
 			},
 		},
 		{
 			name: "remove in tails",
 			existing: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 1}, {Name: "b", ExpireAt: 1}, {Name: "c", ExpireAt: 1},
+				{GoodsId: "a", ExpireAt: 1}, {GoodsId: "b", ExpireAt: 1}, {GoodsId: "c", ExpireAt: 1},
 			},
 			removeName: "c",
 			want: []ActiveSellOrdersExpirationRecord{
-				{Name: "a", ExpireAt: 1}, {Name: "b", ExpireAt: 1},
+				{GoodsId: "a", ExpireAt: 1}, {GoodsId: "b", ExpireAt: 1},
 			},
 		},
 		{
 			name: "remove keep order",
 			existing: []ActiveSellOrdersExpirationRecord{
-				{Name: "c", ExpireAt: 1}, {Name: "b", ExpireAt: 1}, {Name: "a", ExpireAt: 1},
+				{GoodsId: "c", ExpireAt: 1}, {GoodsId: "b", ExpireAt: 1}, {GoodsId: "a", ExpireAt: 1},
 			},
 			removeName: "b",
 			want: []ActiveSellOrdersExpirationRecord{
-				{Name: "c", ExpireAt: 1}, {Name: "a", ExpireAt: 1},
+				{GoodsId: "c", ExpireAt: 1}, {GoodsId: "a", ExpireAt: 1},
 			},
 		},
 		{

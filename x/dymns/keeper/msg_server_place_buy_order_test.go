@@ -90,7 +90,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			wantOfferId:           "101",
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "101",
-				Name:       dymName.Name,
+				GoodsId:    dymName.Name,
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -104,7 +104,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "102",
-				Name:                   dymName.Name,
+				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -120,7 +120,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			wantOfferId:           "102",
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "102",
-				Name:       dymName.Name,
+				GoodsId:    dymName.Name,
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 1),
@@ -134,7 +134,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "102",
-				Name:                   dymName.Name,
+				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -150,7 +150,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			wantOfferId:           "102",
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:                     "102",
-				Name:                   dymName.Name,
+				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 1),
@@ -165,7 +165,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "102",
-				Name:                   dymName.Name,
+				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -181,7 +181,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			wantOfferId:           "102",
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:                     "102",
-				Name:                   dymName.Name,
+				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 3),
@@ -196,7 +196,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "102",
-				Name:                   dymName.Name,
+				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -212,7 +212,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			wantOfferId:           "102",
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:                     "102",
-				Name:                   dymName.Name,
+				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 4),
@@ -227,7 +227,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "101",
-				Name:                   dymName.Name,
+				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -243,7 +243,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			wantOfferId:           "101",
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "101",
-				Name:       dymName.Name,
+				GoodsId:    dymName.Name,
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2),
@@ -372,7 +372,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "101",
-				Name:                   dymName.Name,
+				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -391,7 +391,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			wantOfferId: "102",
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "102",
-				Name:       dymName.Name,
+				GoodsId:    dymName.Name,
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 1),
@@ -405,7 +405,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "101",
-				Name:                   dymName.Name,
+				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -424,7 +424,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			wantErrContains: "Buy-Order ID: 102: not found",
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "101",
-				Name:       dymName.Name,
+				GoodsId:    dymName.Name,
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -442,7 +442,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "101",
-				Name:                   dymName.Name,
+				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:                  anotherBuyerA, // not the buyer
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -461,7 +461,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			wantErrContains: "not the owner of the offer",
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "101",
-				Name:       dymName.Name,
+				GoodsId:    dymName.Name,
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      anotherBuyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -479,7 +479,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "101",
-				Name:                   "another-name",
+				GoodsId:                "another-name",
 				Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -498,7 +498,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			wantErrContains: "Dym-Name mismatch with existing offer",
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "101",
-				Name:       "another-name",
+				GoodsId:    "another-name",
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -515,10 +515,10 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			name:            "fail - continue an existing offer but mis-match offer denom",
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOffer{
-				Id:    "101",
-				Name:  dymName.Name,
-				Type:  dymnstypes.MarketOrderType_MOT_DYM_NAME,
-				Buyer: buyerA,
+				Id:      "101",
+				GoodsId: dymName.Name,
+				Type:    dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				Buyer:   buyerA,
 				OfferPrice: sdk.Coin{
 					Denom:  "u" + denom,
 					Amount: sdk.NewInt(minOfferPrice),
@@ -537,10 +537,10 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			wantErr:         true,
 			wantErrContains: "offer denomination mismatch with existing offer",
 			wantLaterOffer: &dymnstypes.BuyOffer{
-				Id:    "101",
-				Name:  dymName.Name,
-				Type:  dymnstypes.MarketOrderType_MOT_DYM_NAME,
-				Buyer: buyerA,
+				Id:      "101",
+				GoodsId: dymName.Name,
+				Type:    dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				Buyer:   buyerA,
 				OfferPrice: sdk.Coin{
 					Denom:  "u" + denom,
 					Amount: sdk.NewInt(minOfferPrice),
@@ -559,7 +559,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "101",
-				Name:                   dymName.Name,
+				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 2),
@@ -578,7 +578,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			wantErrContains: "offer price must be greater than existing offer price",
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "101",
-				Name:       dymName.Name,
+				GoodsId:    dymName.Name,
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2), // keep
@@ -596,7 +596,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "101",
-				Name:                   dymName.Name,
+				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 2),
@@ -615,7 +615,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			wantErrContains: "offer price must be greater than existing offer price",
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "101",
-				Name:       dymName.Name,
+				GoodsId:    dymName.Name,
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2),
@@ -643,7 +643,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			wantOfferId:                 "101",
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "101",
-				Name:       dymName.Name,
+				GoodsId:    dymName.Name,
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -669,9 +669,10 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 				require.Equal(t, "101", offers[0].Id)
 
 				resp, err := dymnskeeper.NewMsgServerImpl(dk).PlaceBuyOrder(ctx, &dymnstypes.MsgPlaceBuyOrder{
-					Name:  dymName.Name,
-					Buyer: anotherBuyerA,
-					Offer: dymnsutils.TestCoin(minOfferPrice),
+					GoodsId:   dymName.Name,
+					OrderType: dymnstypes.MarketOrderType_MOT_DYM_NAME,
+					Buyer:     anotherBuyerA,
+					Offer:     dymnsutils.TestCoin(minOfferPrice),
 				})
 				require.NoError(t, err)
 				require.NotNil(t, resp)
@@ -695,7 +696,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "102",
-				Name:                   dymName.Name,
+				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -721,7 +722,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			wantOfferId: "102",
 			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "102",
-				Name:       dymName.Name,
+				GoodsId:    dymName.Name,
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 1),
@@ -747,9 +748,10 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 				require.Equal(t, "102", offers[0].Id)
 
 				resp, err := dymnskeeper.NewMsgServerImpl(dk).PlaceBuyOrder(ctx, &dymnstypes.MsgPlaceBuyOrder{
-					Name:  dymName.Name,
-					Buyer: anotherBuyerA,
-					Offer: dymnsutils.TestCoin(minOfferPrice),
+					GoodsId:   dymName.Name,
+					OrderType: dymnstypes.MarketOrderType_MOT_DYM_NAME,
+					Buyer:     anotherBuyerA,
+					Offer:     dymnsutils.TestCoin(minOfferPrice),
 				})
 				require.NoError(t, err)
 				require.NotNil(t, resp)
@@ -829,7 +831,8 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			}
 
 			resp, err := dymnskeeper.NewMsgServerImpl(dk).PlaceBuyOrder(ctx, &dymnstypes.MsgPlaceBuyOrder{
-				Name:            tt.dymName,
+				GoodsId:         tt.dymName,
+				OrderType:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:           tt.buyer,
 				ContinueOfferId: tt.existingOfferId,
 				Offer:           tt.offer,

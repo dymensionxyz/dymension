@@ -12,19 +12,23 @@ import (
 
 // CancelSellOrder is message handler,
 // handles canceling Sell-Order, performed by the owner.
-// This will stop the advertisement and remove the Dym-Name from the market.
-// Can only be performed if the Dym-Name is not in any offer.
+// This will stop the advertisement and remove the Dym-Name/Alias sale from the market.
+// Can only be performed if no one has placed a bid on the goods.
 func (k msgServer) CancelSellOrder(goCtx context.Context, msg *dymnstypes.MsgCancelSellOrder) (*dymnstypes.MsgCancelSellOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if msg.OrderType != dymnstypes.MarketOrderType_MOT_DYM_NAME {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
+	}
 
 	if err := k.validateCancelSellOrder(ctx, msg); err != nil {
 		return nil, err
 	}
 
-	k.DeleteSellOrder(ctx, msg.Name)
+	k.DeleteSellOrder(ctx, msg.GoodsId)
 
 	aSoe := k.GetActiveSellOrdersExpiration(ctx)
-	aSoe.Remove(msg.Name)
+	aSoe.Remove(msg.GoodsId)
 	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe); err != nil {
 		return nil, err
 	}
@@ -40,18 +44,18 @@ func (k msgServer) validateCancelSellOrder(ctx sdk.Context, msg *dymnstypes.MsgC
 		return err
 	}
 
-	dymName := k.GetDymName(ctx, msg.Name)
+	dymName := k.GetDymName(ctx, msg.GoodsId)
 	if dymName == nil {
-		return errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.Name)
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.GoodsId)
 	}
 
 	if dymName.Owner != msg.Owner {
 		return errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the Dym-Name")
 	}
 
-	so := k.GetSellOrder(ctx, msg.Name)
+	so := k.GetSellOrder(ctx, msg.GoodsId)
 	if so == nil {
-		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.Name)
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.GoodsId)
 	}
 
 	if so.HasExpiredAtCtx(ctx) {

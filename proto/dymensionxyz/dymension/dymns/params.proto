@@ -219,6 +219,10 @@ message MiscParams {
     (gogoproto.stdduration) = true,
     (gogoproto.moretags) = "yaml:\"prohibit_sell_duration\""
   ];
+
+  // enable_trading_alias is the flag to enable trading of Alias.
+  // To be used in the future when Alias trading implementation is ready.
+  bool enable_trading_alias = 7;
 }
 
 // PreservedRegistrationParams contains setting for preserved registration Dym-Names,

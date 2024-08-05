@@ -11,10 +11,16 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
+// TODO DymNS: bidder should be Roll-App owner
+
 // PlaceSellOrder is message handler,
-// handles creating a Sell-Order that advertise a Dym-Name for sale, performed by the owner.
+// handles creating a Sell-Order that advertise a Dym-Name/Alias is for sale, performed by the owner.
 func (k msgServer) PlaceSellOrder(goCtx context.Context, msg *dymnstypes.MsgPlaceSellOrder) (*dymnstypes.MsgPlaceSellOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if msg.OrderType != dymnstypes.MarketOrderType_MOT_DYM_NAME {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
+	}
 
 	dymName, params, err := k.validatePlaceSellOrder(ctx, msg)
 	if err != nil {
@@ -40,7 +46,7 @@ func (k msgServer) PlaceSellOrder(goCtx context.Context, msg *dymnstypes.MsgPlac
 	}
 
 	aSoe := k.GetActiveSellOrdersExpiration(ctx)
-	aSoe.Add(so.Name, so.ExpireAt)
+	aSoe.Add(so.GoodsId, so.ExpireAt)
 	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe); err != nil {
 		return nil, err
 	}
@@ -56,9 +62,9 @@ func (k msgServer) validatePlaceSellOrder(ctx sdk.Context, msg *dymnstypes.MsgPl
 		return nil, nil, err
 	}
 
-	dymName := k.GetDymName(ctx, msg.Name)
+	dymName := k.GetDymName(ctx, msg.GoodsId)
 	if dymName == nil {
-		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.Name)
+		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.GoodsId)
 	}
 
 	if dymName.Owner != msg.Owner {

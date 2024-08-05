@@ -209,7 +209,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 			}
 
 			if tt.existingSo != nil {
-				tt.existingSo.Name = name
+				tt.existingSo.GoodsId = name
 				err := dk.SetSellOrder(ctx, *tt.existingSo)
 				require.NoError(t, err)
 			}
@@ -219,7 +219,8 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 				useOwner = tt.customOwner
 			}
 			msg := &dymnstypes.MsgPlaceSellOrder{
-				Name:      name,
+				GoodsId:   name,
+				OrderType: dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				MinPrice:  tt.minPrice,
 				SellPrice: tt.sellPrice,
 				Owner:     useOwner,
@@ -272,7 +273,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 			require.NotNil(t, so)
 
 			expectedSo := dymnstypes.SellOrder{
-				Name:       name,
+				GoodsId:    name,
 				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				ExpireAt:   ctx.BlockTime().Add(moduleParams.Misc.SellOrderDuration).Unix(),
 				MinPrice:   msg.MinPrice,
@@ -296,7 +297,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 
 			var found bool
 			for _, record := range aSoe.Records {
-				if record.Name == name {
+				if record.GoodsId == name {
 					found = true
 					require.Equal(t, expectedSo.ExpireAt, record.ExpireAt)
 					break

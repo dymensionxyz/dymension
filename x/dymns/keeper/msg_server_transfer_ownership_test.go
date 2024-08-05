@@ -193,7 +193,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				// setup historical SO
 
 				so := &dymnstypes.SellOrder{
-					Name:     recordName,
+					GoodsId:  recordName,
 					Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					MinPrice: dymnsutils.TestCoin(100),
 					ExpireAt: 1,
@@ -208,7 +208,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 
 			if tt.sellOrder != nil {
 				require.NotNil(t, tt.dymName, "bad test setup")
-				tt.sellOrder.Name = recordName
+				tt.sellOrder.GoodsId = recordName
 				require.NoError(t, dk.SetSellOrder(ctx, *tt.sellOrder))
 			}
 

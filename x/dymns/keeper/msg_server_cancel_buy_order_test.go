@@ -57,7 +57,7 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 
 	offer := &dymnstypes.BuyOffer{
 		Id:         "101",
-		Name:       dymName.Name,
+		GoodsId:    dymName.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -65,7 +65,7 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 
 	offerByAnother := &dymnstypes.BuyOffer{
 		Id:         "10999",
-		Name:       dymName.Name,
+		GoodsId:    dymName.Name,
 		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      anotherBuyerA,
 		OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -149,7 +149,7 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 				require.NoError(t, err)
 				require.Len(t, offerIds, 1)
 
-				offerIds, err = dk.GetBuyOffersOfDymName(ctx, offer.Name)
+				offerIds, err = dk.GetBuyOffersOfDymName(ctx, offer.GoodsId)
 				require.NoError(t, err)
 				require.Len(t, offerIds, 1)
 			},
@@ -163,7 +163,7 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 				require.NoError(t, err)
 				require.Empty(t, offerIds)
 
-				offerIds, err = dk.GetBuyOffersOfDymName(ctx, offer.Name)
+				offerIds, err = dk.GetBuyOffersOfDymName(ctx, offer.GoodsId)
 				require.NoError(t, err)
 				require.Empty(t, offerIds)
 			},
@@ -270,7 +270,7 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 				err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, tt.existingOffer.Buyer, tt.existingOffer.Id)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, tt.existingOffer.Name, tt.existingOffer.Id)
+				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, tt.existingOffer.GoodsId, tt.existingOffer.Id)
 				require.NoError(t, err)
 			}
 

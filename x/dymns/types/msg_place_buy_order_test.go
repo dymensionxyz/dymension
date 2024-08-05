@@ -13,7 +13,8 @@ import (
 func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name            string
-		dymName         string
+		goodsId         string
+		orderType       MarketOrderType
 		buyer           string
 		continueOfferId string
 		offer           sdk.Coin
@@ -21,16 +22,36 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:            "pass - valid",
-			dymName:         "a",
+			name:            "pass - (Name) valid",
+			goodsId:         "my-name",
+			orderType:       MarketOrderType_MOT_DYM_NAME,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			continueOfferId: "",
 			offer:           dymnsutils.TestCoin(1),
 			wantErr:         false,
 		},
 		{
-			name:            "pass - valid, continue offer",
-			dymName:         "a",
+			name:            "pass - (Alias) valid",
+			goodsId:         "alias",
+			orderType:       MarketOrderType_MOT_ALIAS,
+			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			continueOfferId: "",
+			offer:           dymnsutils.TestCoin(1),
+			wantErr:         false,
+		},
+		{
+			name:            "pass - (Name) valid, continue offer",
+			goodsId:         "my-name",
+			orderType:       MarketOrderType_MOT_DYM_NAME,
+			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			continueOfferId: "101",
+			offer:           dymnsutils.TestCoin(1),
+			wantErr:         false,
+		},
+		{
+			name:            "pass - (Alias) valid, continue offer",
+			goodsId:         "alias",
+			orderType:       MarketOrderType_MOT_ALIAS,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			continueOfferId: "101",
 			offer:           dymnsutils.TestCoin(1),
@@ -38,15 +59,26 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - bad Dym-Name",
-			dymName:         "@",
+			goodsId:         "@",
+			orderType:       MarketOrderType_MOT_DYM_NAME,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offer:           dymnsutils.TestCoin(1),
 			wantErr:         true,
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
+			name:            "fail - bad Alias",
+			goodsId:         "bad-alias",
+			orderType:       MarketOrderType_MOT_ALIAS,
+			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			offer:           dymnsutils.TestCoin(1),
+			wantErr:         true,
+			wantErrContains: "alias is not a valid alias",
+		},
+		{
 			name:            "fail - bad buyer",
-			dymName:         "a",
+			goodsId:         "my-name",
+			orderType:       MarketOrderType_MOT_DYM_NAME,
 			buyer:           "dym1fl48vsnmsdzcv85",
 			offer:           dymnsutils.TestCoin(1),
 			wantErr:         true,
@@ -54,16 +86,18 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - offer ID",
-			dymName:         "a",
+			goodsId:         "my-name",
+			orderType:       MarketOrderType_MOT_DYM_NAME,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			continueOfferId: "@",
 			offer:           dymnsutils.TestCoin(1),
 			wantErr:         true,
-			wantErrContains: "continue offer id is not a valid buy name offer id",
+			wantErrContains: "continue offer id is not a valid offer id",
 		},
 		{
 			name:            "fail - empty offer",
-			dymName:         "a",
+			goodsId:         "my-name",
+			orderType:       MarketOrderType_MOT_DYM_NAME,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offer:           sdk.Coin{},
 			wantErr:         true,
@@ -71,16 +105,18 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - zero offer",
-			dymName:         "a",
+			goodsId:         "my-name",
+			orderType:       MarketOrderType_MOT_DYM_NAME,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offer:           dymnsutils.TestCoin(0),
 			wantErr:         true,
 			wantErrContains: "offer amount must be positive",
 		},
 		{
-			name:    "fail - negative offer",
-			dymName: "a",
-			buyer:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			name:      "fail - negative offer",
+			goodsId:   "my-name",
+			orderType: MarketOrderType_MOT_DYM_NAME,
+			buyer:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offer: sdk.Coin{
 				Denom:  params.BaseDenom,
 				Amount: sdk.NewInt(-1),
@@ -88,11 +124,21 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			wantErr:         true,
 			wantErrContains: "invalid offer amount",
 		},
+		{
+			name:            "fail - reject unknown order type",
+			goodsId:         "goods",
+			orderType:       MarketOrderType_MOT_UNKNOWN,
+			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			offer:           dymnsutils.TestCoin(1),
+			wantErr:         true,
+			wantErrContains: "invalid order type",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &MsgPlaceBuyOrder{
-				Name:            tt.dymName,
+				GoodsId:         tt.goodsId,
+				OrderType:       tt.orderType,
 				Buyer:           tt.buyer,
 				ContinueOfferId: tt.continueOfferId,
 				Offer:           tt.offer,

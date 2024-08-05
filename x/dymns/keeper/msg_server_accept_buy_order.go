@@ -11,7 +11,8 @@ import (
 )
 
 // AcceptBuyOrder is message handler,
-// handles accepting a Buy-Order or raising the amount for negotiation, performed by the owner of the Dym-Name.
+// handles accepting a Buy-Offer or raising the amount for negotiation,
+// performed by the owner of the goods.
 func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcceptBuyOrder) (*dymnstypes.MsgAcceptBuyOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -76,9 +77,9 @@ func (k msgServer) validateAcceptOffer(ctx sdk.Context, msg *dymnstypes.MsgAccep
 		panic(errorsmod.Wrapf(gerrc.ErrInternal, "not yet supported Buy-Order type: %s", bo.Type))
 	}
 
-	dymName := k.GetDymNameWithExpirationCheck(ctx, bo.Name)
+	dymName := k.GetDymNameWithExpirationCheck(ctx, bo.GoodsId)
 	if dymName == nil {
-		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", bo.Name)
+		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", bo.GoodsId)
 	}
 
 	if dymName.Owner != msg.Owner {
