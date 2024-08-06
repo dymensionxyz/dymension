@@ -23,10 +23,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					RegistrationFee:       sdk.NewCoin("adym", sdk.NewInt(1000)),
-				},
+				Params: types.DefaultParams().WithRegFee(sdk.NewCoin("adym", sdk.NewInt(1000))),
 				RollappList: []types.Rollapp{
 					{
 						RollappId: "0",
@@ -71,10 +68,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated rollapp",
 			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					RegistrationFee:       sdk.NewCoin("adym", sdk.NewInt(1000)),
-				},
+				Params:                             types.DefaultParams().WithRegFee(sdk.NewCoin("adym", sdk.NewInt(1000))),
 				RollappList:                        []types.Rollapp{{RollappId: "0"}, {RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
@@ -85,10 +79,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "invalid DisputePeriodInBlocks",
 			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.MinDisputePeriodInBlocks - 1,
-					RegistrationFee:       sdk.NewCoin("adym", sdk.NewInt(1000)),
-				},
+				Params:                             types.DefaultParams().WithDisputePeriodInBlocks(types.MinDisputePeriodInBlocks - 1).WithRegFee(sdk.NewCoin("adym", sdk.NewInt(1000))),
 				RollappList:                        []types.Rollapp{{RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
