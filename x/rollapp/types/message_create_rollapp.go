@@ -11,7 +11,7 @@ var _ sdk.Msg = &MsgCreateRollapp{}
 func NewMsgCreateRollapp(
 	creator,
 	rollappId,
-	initSequencerAddress,
+	initSequencer,
 	bech32Prefix,
 	genesisChecksum,
 	alias string,
@@ -19,14 +19,14 @@ func NewMsgCreateRollapp(
 	metadata *RollappMetadata,
 ) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
-		Creator:                 creator,
-		RollappId:               rollappId,
-		InitialSequencerAddress: initSequencerAddress,
-		Bech32Prefix:            bech32Prefix,
-		GenesisChecksum:         genesisChecksum,
-		Alias:                   alias,
-		VmType:                  vmType,
-		Metadata:                metadata,
+		Creator:          creator,
+		RollappId:        rollappId,
+		InitialSequencer: initSequencer,
+		Bech32Prefix:     bech32Prefix,
+		GenesisChecksum:  genesisChecksum,
+		Alias:            alias,
+		VmType:           vmType,
+		Metadata:         metadata,
 	}
 }
 
@@ -55,7 +55,7 @@ func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
 	return NewRollapp(
 		msg.Creator,
 		msg.RollappId,
-		msg.InitialSequencerAddress,
+		msg.InitialSequencer,
 		msg.Bech32Prefix,
 		msg.GenesisChecksum,
 		msg.Alias,

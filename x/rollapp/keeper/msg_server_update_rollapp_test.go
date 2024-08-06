@@ -28,55 +28,55 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 		{
 			name: "Update rollapp: success",
 			update: &types.MsgUpdateRollappInformation{
-				Creator:                 alice,
-				RollappId:               rollappId,
-				InitialSequencerAddress: initialSequencerAddress,
-				Alias:                   "rolly",
-				GenesisChecksum:         "new_checksum",
-				Metadata:                &mockRollappMetadata,
+				Creator:          alice,
+				RollappId:        rollappId,
+				InitialSequencer: initialSequencerAddress,
+				Alias:            "rolly",
+				GenesisChecksum:  "new_checksum",
+				Metadata:         &mockRollappMetadata,
 			},
 			expError: nil,
 			expRollapp: types.Rollapp{
-				Creator:                 alice,
-				RollappId:               rollappId,
-				InitialSequencerAddress: initialSequencerAddress,
-				Bech32Prefix:            "rol",
-				GenesisChecksum:         "new_checksum",
-				Alias:                   "rolly",
-				VmType:                  types.Rollapp_EVM,
-				Metadata:                &mockRollappMetadata,
+				Creator:          alice,
+				RollappId:        rollappId,
+				InitialSequencer: initialSequencerAddress,
+				Bech32Prefix:     "rol",
+				GenesisChecksum:  "new_checksum",
+				Alias:            "rolly",
+				VmType:           types.Rollapp_EVM,
+				Metadata:         &mockRollappMetadata,
 			},
 		}, {
 			name: "Update rollapp: fail - try to update a non-existing rollapp",
 			update: &types.MsgUpdateRollappInformation{
-				Creator:                 alice,
-				RollappId:               "somerollapp_1235-1",
-				InitialSequencerAddress: initialSequencerAddress,
+				Creator:          alice,
+				RollappId:        "somerollapp_1235-1",
+				InitialSequencer: initialSequencerAddress,
 			},
 			expError: gerrc.ErrNotFound,
 		}, {
 			name: "Update rollapp: fail - try to update from non-creator address",
 			update: &types.MsgUpdateRollappInformation{
-				Creator:                 bob,
-				RollappId:               rollappId,
-				InitialSequencerAddress: initialSequencerAddress,
+				Creator:          bob,
+				RollappId:        rollappId,
+				InitialSequencer: initialSequencerAddress,
 			},
 			expError: sdkerrors.ErrUnauthorized,
 		}, {
 			name: "Update rollapp: fail - try to update a frozen rollapp",
 			update: &types.MsgUpdateRollappInformation{
-				Creator:                 alice,
-				RollappId:               rollappId,
-				InitialSequencerAddress: initialSequencerAddress,
+				Creator:          alice,
+				RollappId:        rollappId,
+				InitialSequencer: initialSequencerAddress,
 			},
 			frozen:   true,
 			expError: types.ErrRollappFrozen,
 		}, {
-			name: "Update rollapp: fail - try to update InitialSequencerAddress when sealed",
+			name: "Update rollapp: fail - try to update InitialSequencer when sealed",
 			update: &types.MsgUpdateRollappInformation{
-				Creator:                 alice,
-				RollappId:               rollappId,
-				InitialSequencerAddress: initialSequencerAddress,
+				Creator:          alice,
+				RollappId:        rollappId,
+				InitialSequencer: initialSequencerAddress,
 			},
 			sealed:   true,
 			expError: types.ErrImmutableFieldUpdateAfterSealed,
@@ -108,18 +108,18 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 			sealed:   true,
 			expError: nil,
 			expRollapp: types.Rollapp{
-				RollappId:               rollappId,
-				Creator:                 alice,
-				InitialSequencerAddress: "",
-				GenesisChecksum:         "checksum1",
-				ChannelId:               "",
-				Frozen:                  false,
-				Bech32Prefix:            "rol",
-				Alias:                   "Rollapp2",
-				VmType:                  types.Rollapp_EVM,
-				RegisteredDenoms:        nil,
-				Sealed:                  true,
-				Metadata:                &mockRollappMetadata,
+				RollappId:        rollappId,
+				Creator:          alice,
+				InitialSequencer: "",
+				GenesisChecksum:  "checksum1",
+				ChannelId:        "",
+				Frozen:           false,
+				Bech32Prefix:     "rol",
+				Alias:            "Rollapp2",
+				RegisteredDenoms: nil,
+				Sealed:           true,
+				VmType:           types.Rollapp_EVM,
+				Metadata:         &mockRollappMetadata,
 			},
 		},
 	}
@@ -130,17 +130,17 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 
 			goCtx := sdk.WrapSDKContext(suite.Ctx)
 			rollapp := types.Rollapp{
-				RollappId:               rollappId,
-				Creator:                 alice,
-				InitialSequencerAddress: "",
-				GenesisChecksum:         "checksum1",
-				ChannelId:               "",
-				Frozen:                  tc.frozen,
-				Sealed:                  tc.sealed,
-				Bech32Prefix:            "rol",
-				Alias:                   "Rollapp2",
-				RegisteredDenoms:        nil,
-				VmType:                  types.Rollapp_EVM,
+				RollappId:        rollappId,
+				Creator:          alice,
+				InitialSequencer: "",
+				GenesisChecksum:  "checksum1",
+				ChannelId:        "",
+				Frozen:           tc.frozen,
+				Sealed:           tc.sealed,
+				Bech32Prefix:     "rol",
+				Alias:            "Rollapp2",
+				RegisteredDenoms: nil,
+				VmType:           types.Rollapp_EVM,
 				Metadata: &types.RollappMetadata{
 					Website:          "",
 					Description:      "",
@@ -173,13 +173,13 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 
 	// 1. register rollapp
 	err := suite.App.RollappKeeper.RegisterRollapp(suite.Ctx, types.Rollapp{
-		RollappId:               rollappId,
-		Creator:                 alice,
-		GenesisChecksum:         "",
-		InitialSequencerAddress: "",
-		Alias:                   "default",
-		VmType:                  types.Rollapp_EVM,
-		Bech32Prefix:            "rol",
+		RollappId:        rollappId,
+		Creator:          alice,
+		GenesisChecksum:  "",
+		InitialSequencer: "",
+		Alias:            "default",
+		VmType:           types.Rollapp_EVM,
+		Bech32Prefix:     "rol",
 	})
 	suite.Require().NoError(err)
 
@@ -187,16 +187,16 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	_, err = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 	suite.Require().ErrorIs(err, sequencertypes.ErrNotInitialSequencer)
 
-	// 3. update rollapp immutable fields, set InitialSequencerAddress, Alias and GenesisChecksum
+	// 3. update rollapp immutable fields, set InitialSequencer, Alias and GenesisChecksum
 	initSeqPubKey := ed25519.GenPrivKey().PubKey()
 	addrInit := sdk.AccAddress(initSeqPubKey.Address()).String()
 
 	err = suite.App.RollappKeeper.UpdateRollapp(suite.Ctx, &types.MsgUpdateRollappInformation{
-		Creator:                 alice,
-		RollappId:               rollappId,
-		InitialSequencerAddress: addrInit,
-		GenesisChecksum:         "checksum1",
-		Alias:                   "alias",
+		Creator:          alice,
+		RollappId:        rollappId,
+		InitialSequencer: addrInit,
+		GenesisChecksum:  "checksum1",
+		Alias:            "alias",
 	})
 	suite.Require().NoError(err)
 

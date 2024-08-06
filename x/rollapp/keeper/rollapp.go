@@ -86,8 +86,8 @@ func (k Keeper) canUpdateRollapp(ctx sdk.Context, update *types.MsgUpdateRollapp
 		return current, err
 	}
 
-	if update.InitialSequencerAddress != "" {
-		current.InitialSequencerAddress = update.InitialSequencerAddress
+	if update.InitialSequencer != "" {
+		current.InitialSequencer = update.InitialSequencer
 	}
 
 	if update.GenesisChecksum != "" {
@@ -210,7 +210,7 @@ func (k Keeper) SealRollapp(ctx sdk.Context, rollappId string) error {
 		return gerrc.ErrNotFound
 	}
 
-	if rollapp.GenesisChecksum == "" || rollapp.Alias == "" || rollapp.InitialSequencerAddress == "" {
+	if rollapp.GenesisChecksum == "" || rollapp.Alias == "" || rollapp.InitialSequencer == "" {
 		return types.ErrSealWithImmutableFieldsNotSet
 	}
 
