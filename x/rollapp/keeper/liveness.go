@@ -8,7 +8,7 @@ import (
 )
 
 /*
-This file has the logic for slashing rollapps based on liveness requirements (time since last update).
+This file has the logic for slashing rollapps based on liveness requirements (time since last update (actually number of hub blocks)).
 It will trigger slash/jail operations through the x/sequencers module, at intervals decided by parameters.
 See ADR for more info https://www.notion.so/dymension/ADR-x-Sequencer-Liveness-Slash-Phase-1-5131b4d557e34f4498855831f439d218
 */

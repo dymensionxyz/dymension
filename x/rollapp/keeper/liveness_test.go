@@ -65,7 +65,10 @@ func TestLivenessEventsStorage(t *testing.T) {
 				for _, modelE := range model {
 					require.Contains(r, events, modelE, "event in model but not store")
 				}
-				for _, e := range events {
+				for i, e := range events {
+					if 0 < i {
+						require.GreaterOrEqual(t, e.HubHeight, events[i-1].HubHeight, "not height non-decreasing")
+					}
 					require.Contains(r, model, modelKey(e), "event in store but not model")
 				}
 			},
