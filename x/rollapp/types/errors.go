@@ -41,7 +41,6 @@ var (
 	ErrSealWithImmutableFieldsNotSet   = errorsmod.Wrap(gerrc.ErrInvalidArgument, "seal with immutable fields not set")
 	ErrInvalidHandle                   = errorsmod.Wrap(gerrc.ErrInvalidArgument, "handle")
 	ErrInvalidRequest                  = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid request")
-	ErrVMTypeSame                      = errorsmod.Wrap(gerrc.ErrInvalidArgument, "vm type same as current")
 	ErrRollappAliasExists              = errorsmod.Wrap(gerrc.ErrInvalidArgument, "rollapp already exists for this alias; must use new alias")
 	ErrInvalidVMType                   = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid vm type")
 
