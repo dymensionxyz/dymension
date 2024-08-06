@@ -19,12 +19,12 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:               "rollapp1",
-		Creator:                 alice,
-		InitialSequencerAddress: sample.AccAddress(),
-		GenesisChecksum:         "checksum",
-		Bech32Prefix:            "rol",
-		Alias:                   "Rollapp",
+		RollappId:        "rollapp1",
+		Creator:          alice,
+		InitialSequencer: sample.AccAddress(),
+		GenesisChecksum:  "checksum",
+		Bech32Prefix:     "rol",
+		Alias:            "Rollapp",
 		Metadata: &types.RollappMetadata{
 			Website:          "https://dymension.xyz",
 			Description:      "Sample description",
@@ -77,11 +77,11 @@ func (suite *RollappTestSuite) TestUpdateState() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:               "rollapp1",
-		Creator:                 alice,
-		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            "rol",
-		GenesisChecksum:         "checksum",
+		RollappId:        "rollapp1",
+		Creator:          alice,
+		InitialSequencer: sample.AccAddress(),
+		Bech32Prefix:     "rol",
+		GenesisChecksum:  "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -204,12 +204,12 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:               "rollapp1",
-		Creator:                 alice,
-		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            "rol",
-		GenesisChecksum:         "checksum",
-		Alias:                   "Rollapp",
+		RollappId:        "rollapp1",
+		Creator:          alice,
+		InitialSequencer: sample.AccAddress(),
+		Bech32Prefix:     "rol",
+		GenesisChecksum:  "checksum",
+		Alias:            "Rollapp",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -233,11 +233,11 @@ func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:               "rollapp1",
-		Creator:                 alice,
-		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            "rol",
-		GenesisChecksum:         "checksum",
+		RollappId:        "rollapp1",
+		Creator:          alice,
+		InitialSequencer: sample.AccAddress(),
+		Bech32Prefix:     "rol",
+		GenesisChecksum:  "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -270,17 +270,17 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:               "rollapp1",
-		Creator:                 alice,
-		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            "rol",
-		GenesisChecksum:         "checksum",
+		RollappId:        "rollapp1",
+		Creator:          alice,
+		InitialSequencer: sample.AccAddress(),
+		Bech32Prefix:     "rol",
+		GenesisChecksum:  "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
 	// set unpermissioned sequencer
 	sequencer := sequencertypes.Sequencer{
-		Address:   rollapp.InitialSequencerAddress,
+		Address:   rollapp.InitialSequencer,
 		RollappId: "rollapp1",
 		Status:    sequencertypes.Bonded,
 		Proposer:  true,
@@ -307,11 +307,11 @@ func (suite *RollappTestSuite) TestFirstUpdateStateGensisHightGreaterThanZero() 
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:               "rollapp1",
-		Creator:                 alice,
-		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            "rol",
-		GenesisChecksum:         "checksum",
+		RollappId:        "rollapp1",
+		Creator:          alice,
+		InitialSequencer: sample.AccAddress(),
+		Bech32Prefix:     "rol",
+		GenesisChecksum:  "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -344,11 +344,11 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:               "rollapp1",
-		Creator:                 alice,
-		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            "rol",
-		GenesisChecksum:         "checksum",
+		RollappId:        "rollapp1",
+		Creator:          alice,
+		InitialSequencer: sample.AccAddress(),
+		Bech32Prefix:     "rol",
+		GenesisChecksum:  "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -403,11 +403,11 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:               "rollapp1",
-		Creator:                 alice,
-		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            "rol",
-		GenesisChecksum:         "checksum",
+		RollappId:        "rollapp1",
+		Creator:          alice,
+		InitialSequencer: sample.AccAddress(),
+		Bech32Prefix:     "rol",
+		GenesisChecksum:  "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -448,11 +448,11 @@ func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:               "rollapp1",
-		Creator:                 alice,
-		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            "rol",
-		GenesisChecksum:         "checksum",
+		RollappId:        "rollapp1",
+		Creator:          alice,
+		InitialSequencer: sample.AccAddress(),
+		Bech32Prefix:     "rol",
+		GenesisChecksum:  "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
