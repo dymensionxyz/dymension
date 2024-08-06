@@ -14,12 +14,12 @@ func CmdUpdateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update-rollapp [rollapp-id] [init-sequencer] [genesis_checksum] [alias] [metadata]",
 		Short:   "Update a new rollapp",
-		Example: "dymd tx rollapp update-rollapp ROLLAPP_CHAIN_ID --init-sequencer <seq_address> --genesis-checksum <genesis_checksum> --alias Rollapp --metadata metadata.json",
+		Example: "dymd tx rollapp update-rollapp ROLLAPP_CHAIN_ID --init-sequencer '<seq_address1>,<seq_address2>' --genesis-checksum <genesis_checksum> --alias Rollapp --metadata metadata.json",
 		Args:    cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappId := args[0]
 
-			initSequencerAddress, err := cmd.Flags().GetString(FlagInitSequencer)
+			initSequencer, err := cmd.Flags().GetString(FlagInitSequencer)
 			if err != nil {
 				return
 			}
@@ -54,7 +54,7 @@ func CmdUpdateRollapp() *cobra.Command {
 			msg := types.NewMsgUpdateRollappInformation(
 				clientCtx.GetFromAddress().String(),
 				argRollappId,
-				initSequencerAddress,
+				initSequencer,
 				genesisChecksum,
 				alias,
 				metadata,

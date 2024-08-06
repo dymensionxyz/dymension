@@ -17,7 +17,7 @@ import (
 func NewRollapp(
 	creator,
 	rollappId,
-	initSequencerAddress,
+	initSequencer,
 	bech32Prefix,
 	genesisChecksum,
 	alias string,
@@ -25,13 +25,13 @@ func NewRollapp(
 	transfersEnabled bool,
 ) Rollapp {
 	return Rollapp{
-		RollappId:               rollappId,
-		Creator:                 creator,
-		InitialSequencerAddress: initSequencerAddress,
-		GenesisChecksum:         genesisChecksum,
-		Bech32Prefix:            bech32Prefix,
-		Alias:                   alias,
-		Metadata:                metadata,
+		RollappId:        rollappId,
+		Creator:          creator,
+		InitialSequencer: initSequencer,
+		GenesisChecksum:  genesisChecksum,
+		Bech32Prefix:     bech32Prefix,
+		Alias:            alias,
+		Metadata:         metadata,
 		GenesisState: RollappGenesisState{
 			TransfersEnabled: transfersEnabled,
 		},
@@ -61,11 +61,8 @@ func (r Rollapp) ValidateBasic() error {
 		return err
 	}
 
-	if r.InitialSequencerAddress != "" {
-		_, err = sdk.AccAddressFromBech32(r.InitialSequencerAddress)
-		if err != nil {
-			return errorsmod.Wrap(ErrInvalidInitialSequencerAddress, err.Error())
-		}
+	if err = validateInitialSequencer(r.InitialSequencer); err != nil {
+		return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
 	}
 
 	if err = validateBech32Prefix(r.Bech32Prefix); err != nil {
@@ -86,6 +83,28 @@ func (r Rollapp) ValidateBasic() error {
 
 	if err = validateMetadata(r.Metadata); err != nil {
 		return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
+	}
+
+	return nil
+}
+
+func validateInitialSequencer(initialSequencer string) error {
+	if initialSequencer == "" || initialSequencer == "*" {
+		return nil
+	}
+
+	seen := make(map[string]struct{})
+	addrs := strings.Split(initialSequencer, ",")
+
+	for _, addr := range addrs {
+		if _, ok := seen[addr]; ok {
+			return ErrInvalidInitialSequencer
+		}
+		seen[addr] = struct{}{}
+		_, err := sdk.AccAddressFromBech32(addr)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

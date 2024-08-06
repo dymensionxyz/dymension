@@ -86,8 +86,9 @@ func (m *EventUpdateParams) GetOldParams() Params {
 }
 
 type EventVote struct {
-	Voter string `protobuf:"bytes,1,opt,name=voter,proto3" json:"voter,omitempty"`
-	Vote  Vote   `protobuf:"bytes,2,opt,name=vote,proto3" json:"vote"`
+	Voter        string       `protobuf:"bytes,1,opt,name=voter,proto3" json:"voter,omitempty"`
+	Vote         Vote         `protobuf:"bytes,2,opt,name=vote,proto3" json:"vote"`
+	Distribution Distribution `protobuf:"bytes,3,opt,name=distribution,proto3" json:"distribution"`
 }
 
 func (m *EventVote) Reset()         { *m = EventVote{} }
@@ -137,8 +138,16 @@ func (m *EventVote) GetVote() Vote {
 	return Vote{}
 }
 
+func (m *EventVote) GetDistribution() Distribution {
+	if m != nil {
+		return m.Distribution
+	}
+	return Distribution{}
+}
+
 type EventRevokeVote struct {
-	Voter string `protobuf:"bytes,1,opt,name=voter,proto3" json:"voter,omitempty"`
+	Voter        string       `protobuf:"bytes,1,opt,name=voter,proto3" json:"voter,omitempty"`
+	Distribution Distribution `protobuf:"bytes,2,opt,name=distribution,proto3" json:"distribution"`
 }
 
 func (m *EventRevokeVote) Reset()         { *m = EventRevokeVote{} }
@@ -181,24 +190,34 @@ func (m *EventRevokeVote) GetVoter() string {
 	return ""
 }
 
-type EventUpdateVotingPower struct {
-	Voter          string                                 `protobuf:"bytes,1,opt,name=voter,proto3" json:"voter,omitempty"`
-	NewVotingPower github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=new_voting_power,json=newVotingPower,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"new_voting_power"`
-	OldVotingPower github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=old_voting_power,json=oldVotingPower,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"old_voting_power"`
+func (m *EventRevokeVote) GetDistribution() Distribution {
+	if m != nil {
+		return m.Distribution
+	}
+	return Distribution{}
 }
 
-func (m *EventUpdateVotingPower) Reset()         { *m = EventUpdateVotingPower{} }
-func (m *EventUpdateVotingPower) String() string { return proto.CompactTextString(m) }
-func (*EventUpdateVotingPower) ProtoMessage()    {}
-func (*EventUpdateVotingPower) Descriptor() ([]byte, []int) {
+type EventVotingPowerUpdate struct {
+	Voter           string                                 `protobuf:"bytes,1,opt,name=voter,proto3" json:"voter,omitempty"`
+	Validator       string                                 `protobuf:"bytes,2,opt,name=validator,proto3" json:"validator,omitempty"`
+	Distribution    Distribution                           `protobuf:"bytes,3,opt,name=distribution,proto3" json:"distribution"`
+	VotePruned      bool                                   `protobuf:"varint,4,opt,name=vote_pruned,json=votePruned,proto3" json:"vote_pruned,omitempty"`
+	NewVotingPower  github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=new_voting_power,json=newVotingPower,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"new_voting_power"`
+	VotingPowerDiff github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,6,opt,name=voting_power_diff,json=votingPowerDiff,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"voting_power_diff"`
+}
+
+func (m *EventVotingPowerUpdate) Reset()         { *m = EventVotingPowerUpdate{} }
+func (m *EventVotingPowerUpdate) String() string { return proto.CompactTextString(m) }
+func (*EventVotingPowerUpdate) ProtoMessage()    {}
+func (*EventVotingPowerUpdate) Descriptor() ([]byte, []int) {
 	return fileDescriptor_b80e9ef6d6e7fb59, []int{3}
 }
-func (m *EventUpdateVotingPower) XXX_Unmarshal(b []byte) error {
+func (m *EventVotingPowerUpdate) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *EventUpdateVotingPower) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *EventVotingPowerUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_EventUpdateVotingPower.Marshal(b, m, deterministic)
+		return xxx_messageInfo_EventVotingPowerUpdate.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -208,30 +227,51 @@ func (m *EventUpdateVotingPower) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (m *EventUpdateVotingPower) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EventUpdateVotingPower.Merge(m, src)
+func (m *EventVotingPowerUpdate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventVotingPowerUpdate.Merge(m, src)
 }
-func (m *EventUpdateVotingPower) XXX_Size() int {
+func (m *EventVotingPowerUpdate) XXX_Size() int {
 	return m.Size()
 }
-func (m *EventUpdateVotingPower) XXX_DiscardUnknown() {
-	xxx_messageInfo_EventUpdateVotingPower.DiscardUnknown(m)
+func (m *EventVotingPowerUpdate) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventVotingPowerUpdate.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_EventUpdateVotingPower proto.InternalMessageInfo
+var xxx_messageInfo_EventVotingPowerUpdate proto.InternalMessageInfo
 
-func (m *EventUpdateVotingPower) GetVoter() string {
+func (m *EventVotingPowerUpdate) GetVoter() string {
 	if m != nil {
 		return m.Voter
 	}
 	return ""
 }
 
+func (m *EventVotingPowerUpdate) GetValidator() string {
+	if m != nil {
+		return m.Validator
+	}
+	return ""
+}
+
+func (m *EventVotingPowerUpdate) GetDistribution() Distribution {
+	if m != nil {
+		return m.Distribution
+	}
+	return Distribution{}
+}
+
+func (m *EventVotingPowerUpdate) GetVotePruned() bool {
+	if m != nil {
+		return m.VotePruned
+	}
+	return false
+}
+
 func init() {
 	proto.RegisterType((*EventUpdateParams)(nil), "dymensionxyz.dymension.sponsorship.EventUpdateParams")
 	proto.RegisterType((*EventVote)(nil), "dymensionxyz.dymension.sponsorship.EventVote")
 	proto.RegisterType((*EventRevokeVote)(nil), "dymensionxyz.dymension.sponsorship.EventRevokeVote")
-	proto.RegisterType((*EventUpdateVotingPower)(nil), "dymensionxyz.dymension.sponsorship.EventUpdateVotingPower")
+	proto.RegisterType((*EventVotingPowerUpdate)(nil), "dymensionxyz.dymension.sponsorship.EventVotingPowerUpdate")
 }
 
 func init() {
@@ -239,34 +279,39 @@ func init() {
 }
 
 var fileDescriptor_b80e9ef6d6e7fb59 = []byte{
-	// 426 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x53, 0x41, 0x8b, 0xd3, 0x40,
-	0x14, 0xce, 0xb8, 0xab, 0x90, 0x11, 0x74, 0x0d, 0x8b, 0xd4, 0x3d, 0x64, 0x97, 0x1c, 0xa4, 0x08,
-	0x3b, 0x01, 0x57, 0xc4, 0xeb, 0x06, 0x3c, 0x78, 0x6a, 0x89, 0x58, 0x8a, 0x97, 0x92, 0x76, 0x86,
-	0x34, 0xb4, 0x99, 0x17, 0x66, 0xa6, 0x49, 0xe3, 0xc5, 0xbf, 0xe0, 0x8f, 0xf1, 0x47, 0xf4, 0x58,
-	0x3c, 0x89, 0x87, 0x22, 0xed, 0xd9, 0x7f, 0xe0, 0x41, 0x66, 0x12, 0x6d, 0x7a, 0x90, 0x76, 0x7b,
-	0xca, 0x7b, 0x79, 0xef, 0xfb, 0xde, 0xf7, 0xf1, 0xe6, 0x61, 0x9f, 0x96, 0x29, 0xe3, 0x32, 0x01,
-	0x3e, 0x2f, 0x3f, 0x6d, 0x13, 0x5f, 0x66, 0xc0, 0x25, 0x08, 0x39, 0x4e, 0x32, 0x9f, 0xe5, 0x8c,
-	0x2b, 0x49, 0x32, 0x01, 0x0a, 0x1c, 0xaf, 0x09, 0x20, 0xff, 0x12, 0xd2, 0x00, 0x5c, 0x9c, 0xc7,
-	0x10, 0x83, 0x69, 0xf7, 0x75, 0x54, 0x21, 0x2f, 0x9e, 0x8d, 0x40, 0xa6, 0x20, 0x07, 0x55, 0xa1,
-	0x4a, 0xea, 0xd2, 0xab, 0x03, 0x54, 0x34, 0xe2, 0x0a, 0xe5, 0xfd, 0x42, 0xf8, 0xc9, 0x5b, 0xad,
-	0xed, 0x43, 0x46, 0x23, 0xc5, 0xba, 0x91, 0x88, 0x52, 0xe9, 0xbc, 0xc6, 0x76, 0x34, 0x53, 0x63,
-	0x10, 0x89, 0x2a, 0x5b, 0xe8, 0x0a, 0xb5, 0xed, 0xa0, 0xf5, 0xed, 0xeb, 0xf5, 0x79, 0x3d, 0xf0,
-	0x96, 0x52, 0xc1, 0xa4, 0x7c, 0xaf, 0x44, 0xc2, 0xe3, 0x70, 0xdb, 0xea, 0x74, 0x30, 0xe6, 0xac,
-	0x18, 0x64, 0x86, 0xa5, 0x75, 0xef, 0x0a, 0xb5, 0x1f, 0xbe, 0x7c, 0x41, 0xf6, 0xbb, 0x25, 0xd5,
-	0xdc, 0xe0, 0x74, 0xb1, 0xba, 0xb4, 0x42, 0x9b, 0xb3, 0xa2, 0x16, 0xd2, 0xc1, 0x18, 0xa6, 0xf4,
-	0x2f, 0xe1, 0xc9, 0xb1, 0x84, 0x30, 0xa5, 0xd5, 0x0f, 0xef, 0x33, 0xb6, 0x8d, 0xdd, 0x1e, 0x28,
-	0xe6, 0x10, 0x7c, 0x3f, 0x07, 0xc5, 0xc4, 0x5e, 0x8b, 0x55, 0x9b, 0x13, 0xe0, 0x53, 0x1d, 0xd4,
-	0xc6, 0xda, 0x87, 0xe8, 0xd0, 0x73, 0x6a, 0x15, 0x06, 0xeb, 0xdd, 0xe2, 0xc7, 0x46, 0x40, 0xc8,
-	0x72, 0x98, 0xb0, 0x63, 0x64, 0x78, 0xbf, 0x11, 0x7e, 0xda, 0xd8, 0x59, 0x0f, 0x54, 0xc2, 0xe3,
-	0x2e, 0x14, 0x4c, 0xdc, 0xd9, 0x51, 0x1f, 0x9f, 0xe9, 0x85, 0xe5, 0x86, 0x62, 0x90, 0x69, 0x0e,
-	0xe3, 0xce, 0x0e, 0x88, 0xd6, 0xfc, 0x63, 0x75, 0xf9, 0x3c, 0x4e, 0xd4, 0x78, 0x36, 0x24, 0x23,
-	0x48, 0xeb, 0xf7, 0x56, 0x7f, 0xae, 0x25, 0x9d, 0xf8, 0xaa, 0xcc, 0x98, 0x24, 0xef, 0xb8, 0x0a,
-	0x1f, 0x71, 0x56, 0x34, 0x95, 0xf4, 0xf1, 0x99, 0xde, 0xdc, 0x0e, 0xf3, 0xc9, 0x71, 0xcc, 0x30,
-	0xa5, 0x0d, 0xe6, 0x20, 0x5c, 0xac, 0x5d, 0xb4, 0x5c, 0xbb, 0xe8, 0xe7, 0xda, 0x45, 0x5f, 0x36,
-	0xae, 0xb5, 0xdc, 0xb8, 0xd6, 0xf7, 0x8d, 0x6b, 0x7d, 0x7c, 0xd3, 0x60, 0xfc, 0xcf, 0x35, 0xe4,
-	0x37, 0xfe, 0x7c, 0xe7, 0x24, 0xcc, 0x9c, 0xe1, 0x03, 0x73, 0x0d, 0x37, 0x7f, 0x02, 0x00, 0x00,
-	0xff, 0xff, 0xa8, 0x9f, 0x3f, 0x36, 0xcb, 0x03, 0x00, 0x00,
+	// 508 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x54, 0xc1, 0x6e, 0xd3, 0x40,
+	0x10, 0xcd, 0xb6, 0x69, 0x85, 0xa7, 0x88, 0x52, 0xab, 0x42, 0xa6, 0x07, 0x27, 0xca, 0x01, 0x45,
+	0x48, 0xb5, 0x11, 0x45, 0x15, 0x57, 0xa2, 0x72, 0xe0, 0xd4, 0xc8, 0x08, 0x84, 0x72, 0xb1, 0x9c,
+	0xee, 0xc6, 0x59, 0x35, 0xd9, 0xb1, 0x76, 0x37, 0x4e, 0xc3, 0x57, 0xf0, 0x03, 0x7c, 0x05, 0x7c,
+	0x44, 0x8f, 0x15, 0x27, 0x04, 0x52, 0x85, 0x92, 0x33, 0xff, 0x80, 0xbc, 0x76, 0x1b, 0x17, 0x09,
+	0x12, 0x22, 0x7a, 0xf2, 0xce, 0x78, 0xde, 0x9b, 0xf7, 0x46, 0xbb, 0x03, 0x3e, 0x9d, 0x0c, 0x99,
+	0x50, 0x1c, 0xc5, 0xd9, 0xe4, 0xfd, 0x3c, 0xf0, 0x55, 0x82, 0x42, 0xa1, 0x54, 0x7d, 0x9e, 0xf8,
+	0x2c, 0x65, 0x42, 0x2b, 0x2f, 0x91, 0xa8, 0xd1, 0x6e, 0x94, 0x01, 0xde, 0x75, 0xe0, 0x95, 0x00,
+	0x7b, 0xbb, 0x31, 0xc6, 0x68, 0xca, 0xfd, 0xec, 0x94, 0x23, 0xf7, 0x1e, 0x9e, 0xa0, 0x1a, 0xa2,
+	0x0a, 0xf3, 0x1f, 0x79, 0x50, 0xfc, 0x7a, 0xb6, 0x84, 0x8a, 0xd2, 0x39, 0x47, 0x35, 0x7e, 0x12,
+	0xd8, 0x79, 0x99, 0x69, 0x7b, 0x93, 0xd0, 0x48, 0xb3, 0x76, 0x24, 0xa3, 0xa1, 0xb2, 0x0f, 0xc1,
+	0x8a, 0x46, 0xba, 0x8f, 0x92, 0xeb, 0x89, 0x43, 0xea, 0xa4, 0x69, 0xb5, 0x9c, 0x2f, 0x9f, 0xf7,
+	0x77, 0x8b, 0x86, 0x2f, 0x28, 0x95, 0x4c, 0xa9, 0xd7, 0x5a, 0x72, 0x11, 0x07, 0xf3, 0x52, 0xfb,
+	0x18, 0x40, 0xb0, 0x71, 0x98, 0x18, 0x16, 0x67, 0xad, 0x4e, 0x9a, 0x5b, 0x4f, 0x1f, 0x7b, 0x8b,
+	0xdd, 0x7a, 0x79, 0xdf, 0x56, 0xf5, 0xfc, 0xb2, 0x56, 0x09, 0x2c, 0xc1, 0xc6, 0x85, 0x90, 0x63,
+	0x00, 0x1c, 0xd0, 0x2b, 0xc2, 0xf5, 0x55, 0x09, 0x71, 0x40, 0xf3, 0x44, 0xe3, 0x3b, 0x01, 0xcb,
+	0xf8, 0x7d, 0x8b, 0x9a, 0xd9, 0x1e, 0x6c, 0xa4, 0xa8, 0x99, 0x5c, 0xe8, 0x31, 0x2f, 0xb3, 0x5b,
+	0x50, 0xcd, 0x0e, 0x85, 0xb3, 0xe6, 0x32, 0x42, 0xb2, 0x3e, 0x85, 0x0c, 0x83, 0xb5, 0x3b, 0x70,
+	0x97, 0x72, 0xa5, 0x25, 0xef, 0x8e, 0x34, 0x47, 0x51, 0x98, 0x7a, 0xb2, 0x0c, 0xd7, 0x51, 0x09,
+	0x57, 0x70, 0xde, 0xe0, 0x6a, 0x7c, 0x24, 0xb0, 0x6d, 0xdc, 0x05, 0x2c, 0xc5, 0x53, 0xb6, 0x92,
+	0xc7, 0xdf, 0xf5, 0xad, 0xfd, 0x47, 0x7d, 0x9f, 0xd6, 0xe1, 0xc1, 0xd5, 0xf4, 0xb9, 0x88, 0xdb,
+	0x38, 0x66, 0x32, 0xbf, 0x78, 0xff, 0x2c, 0xf3, 0x10, 0xac, 0x34, 0x1a, 0x70, 0x1a, 0x69, 0x94,
+	0x46, 0xe3, 0x5f, 0xaf, 0xe8, 0x75, 0xe9, 0x6d, 0x8e, 0xdf, 0xae, 0xc1, 0x56, 0x26, 0x2e, 0x4c,
+	0xe4, 0x48, 0x30, 0xea, 0x54, 0xeb, 0xa4, 0x79, 0x27, 0x80, 0x2c, 0xd5, 0x36, 0x19, 0xfb, 0x1d,
+	0xdc, 0xcf, 0xde, 0x47, 0x6a, 0xdc, 0x87, 0x49, 0x66, 0xdf, 0xd9, 0x30, 0xda, 0xbd, 0x8c, 0xee,
+	0xdb, 0x65, 0xed, 0x51, 0xcc, 0x75, 0x7f, 0xd4, 0xf5, 0x4e, 0x70, 0x58, 0x3c, 0xef, 0xe2, 0xb3,
+	0xaf, 0xe8, 0xa9, 0xaf, 0x27, 0x09, 0x53, 0xde, 0x2b, 0xa1, 0x83, 0x7b, 0x82, 0x8d, 0x4b, 0x43,
+	0xb4, 0x3b, 0xb0, 0x53, 0x66, 0x0d, 0x29, 0xef, 0xf5, 0x9c, 0xcd, 0x95, 0xa8, 0xb7, 0xd3, 0x39,
+	0xef, 0x11, 0xef, 0xf5, 0x5a, 0xc1, 0xf9, 0xd4, 0x25, 0x17, 0x53, 0x97, 0xfc, 0x98, 0xba, 0xe4,
+	0xc3, 0xcc, 0xad, 0x5c, 0xcc, 0xdc, 0xca, 0xd7, 0x99, 0x5b, 0xe9, 0x3c, 0x2f, 0x51, 0xfe, 0x61,
+	0xfd, 0xa4, 0x07, 0xfe, 0xd9, 0x8d, 0x1d, 0x64, 0x1a, 0x75, 0x37, 0xcd, 0xfa, 0x39, 0xf8, 0x15,
+	0x00, 0x00, 0xff, 0xff, 0x76, 0xae, 0x55, 0x78, 0x3c, 0x05, 0x00, 0x00,
 }
 
 func (m *EventUpdateParams) Marshal() (dAtA []byte, err error) {
@@ -340,6 +385,16 @@ func (m *EventVote) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	var l int
 	_ = l
 	{
+		size, err := m.Distribution.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	{
 		size, err := m.Vote.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
@@ -379,6 +434,16 @@ func (m *EventRevokeVote) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	{
+		size, err := m.Distribution.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
 	if len(m.Voter) > 0 {
 		i -= len(m.Voter)
 		copy(dAtA[i:], m.Voter)
@@ -389,7 +454,7 @@ func (m *EventRevokeVote) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *EventUpdateVotingPower) Marshal() (dAtA []byte, err error) {
+func (m *EventVotingPowerUpdate) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -399,26 +464,26 @@ func (m *EventUpdateVotingPower) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *EventUpdateVotingPower) MarshalTo(dAtA []byte) (int, error) {
+func (m *EventVotingPowerUpdate) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *EventUpdateVotingPower) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *EventVotingPowerUpdate) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
 	{
-		size := m.OldVotingPower.Size()
+		size := m.VotingPowerDiff.Size()
 		i -= size
-		if _, err := m.OldVotingPower.MarshalTo(dAtA[i:]); err != nil {
+		if _, err := m.VotingPowerDiff.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
 		}
 		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x1a
+	dAtA[i] = 0x32
 	{
 		size := m.NewVotingPower.Size()
 		i -= size
@@ -428,7 +493,34 @@ func (m *EventUpdateVotingPower) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x12
+	dAtA[i] = 0x2a
+	if m.VotePruned {
+		i--
+		if m.VotePruned {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x20
+	}
+	{
+		size, err := m.Distribution.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if len(m.Validator) > 0 {
+		i -= len(m.Validator)
+		copy(dAtA[i:], m.Validator)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Validator)))
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.Voter) > 0 {
 		i -= len(m.Voter)
 		copy(dAtA[i:], m.Voter)
@@ -479,6 +571,8 @@ func (m *EventVote) Size() (n int) {
 	}
 	l = m.Vote.Size()
 	n += 1 + l + sovEvents(uint64(l))
+	l = m.Distribution.Size()
+	n += 1 + l + sovEvents(uint64(l))
 	return n
 }
 
@@ -492,10 +586,12 @@ func (m *EventRevokeVote) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
+	l = m.Distribution.Size()
+	n += 1 + l + sovEvents(uint64(l))
 	return n
 }
 
-func (m *EventUpdateVotingPower) Size() (n int) {
+func (m *EventVotingPowerUpdate) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -505,9 +601,18 @@ func (m *EventUpdateVotingPower) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
+	l = len(m.Validator)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = m.Distribution.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	if m.VotePruned {
+		n += 2
+	}
 	l = m.NewVotingPower.Size()
 	n += 1 + l + sovEvents(uint64(l))
-	l = m.OldVotingPower.Size()
+	l = m.VotingPowerDiff.Size()
 	n += 1 + l + sovEvents(uint64(l))
 	return n
 }
@@ -760,6 +865,39 @@ func (m *EventVote) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Distribution", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Distribution.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])
@@ -842,6 +980,39 @@ func (m *EventRevokeVote) Unmarshal(dAtA []byte) error {
 			}
 			m.Voter = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Distribution", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Distribution.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])
@@ -863,7 +1034,7 @@ func (m *EventRevokeVote) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *EventUpdateVotingPower) Unmarshal(dAtA []byte) error {
+func (m *EventVotingPowerUpdate) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -886,10 +1057,10 @@ func (m *EventUpdateVotingPower) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: EventUpdateVotingPower: wiretype end group for non-group")
+			return fmt.Errorf("proto: EventVotingPowerUpdate: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: EventUpdateVotingPower: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: EventVotingPowerUpdate: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -926,6 +1097,91 @@ func (m *EventUpdateVotingPower) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Validator", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Validator = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Distribution", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Distribution.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VotePruned", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.VotePruned = bool(v != 0)
+		case 5:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field NewVotingPower", wireType)
 			}
 			var stringLen uint64
@@ -958,9 +1214,9 @@ func (m *EventUpdateVotingPower) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 3:
+		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OldVotingPower", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field VotingPowerDiff", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -988,7 +1244,7 @@ func (m *EventUpdateVotingPower) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.OldVotingPower.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.VotingPowerDiff.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
