@@ -18,6 +18,10 @@ func (k Keeper) SetSellOrder(ctx sdk.Context, so dymnstypes.SellOrder) error {
 		so.SellPrice = nil
 	}
 
+	if so.HighestBid != nil && len(so.HighestBid.Params) == 0 {
+		so.HighestBid.Params = nil
+	}
+
 	// persist record
 	store := ctx.KVStore(k.storeKey)
 	soKey := dymnstypes.SellOrderKey(so.GoodsId, so.Type)

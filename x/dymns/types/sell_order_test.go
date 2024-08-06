@@ -225,7 +225,23 @@ func TestSellOrder_Validate(t *testing.T) {
 			highestBid: &SellOrderBid{
 				Bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				Price:  dymnsutils.TestCoin(1),
+				Params: []string{"rollapp_1-1"},
 			},
+		},
+		{
+			name:      "fail - (Alias) reject invalid bid",
+			dymName:   "alias",
+			_type:     AliasOrder,
+			expireAt:  time.Now().Unix(),
+			minPrice:  dymnsutils.TestCoin(1),
+			sellPrice: dymnsutils.TestCoinP(1),
+			highestBid: &SellOrderBid{
+				Bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+				Price:  dymnsutils.TestCoin(1),
+				Params: nil, // empty
+			},
+			wantErr:         true,
+			wantErrContains: "SO highest bid is invalid",
 		},
 		{
 			name:      "pass - (Name) valid sell order without bid",
@@ -465,7 +481,8 @@ func TestSellOrder_Validate(t *testing.T) {
 func TestSellOrderBid_Validate(t *testing.T) {
 	t.Run("nil obj", func(t *testing.T) {
 		m := (*SellOrderBid)(nil)
-		require.Error(t, m.Validate())
+		require.Error(t, m.Validate(NameOrder))
+		require.Error(t, m.Validate(AliasOrder))
 	})
 
 	//goland:noinspection SpellCheckingInspection
@@ -473,18 +490,31 @@ func TestSellOrderBid_Validate(t *testing.T) {
 		name            string
 		bidder          string
 		price           sdk.Coin
+		params          []string
+		orderType       OrderType
 		wantErr         bool
 		wantErrContains string
 	}{
 		{
-			name:   "pass - valid sell order bid",
-			bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			price:  dymnsutils.TestCoin(1),
+			name:      "pass - (Name) valid sell order bid",
+			bidder:    "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			params:    nil,
+			orderType: NameOrder,
+			price:     dymnsutils.TestCoin(1),
+		},
+		{
+			name:      "pass - (Alias) valid sell order bid",
+			bidder:    "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			params:    []string{"rollapp_1-1"},
+			orderType: AliasOrder,
+			price:     dymnsutils.TestCoin(1),
 		},
 		{
 			name:            "fail - empty bidder",
 			bidder:          "",
 			price:           dymnsutils.TestCoin(1),
+			params:          nil,
+			orderType:       NameOrder,
 			wantErr:         true,
 			wantErrContains: "SO bidder is empty",
 		},
@@ -492,6 +522,8 @@ func TestSellOrderBid_Validate(t *testing.T) {
 			name:            "fail - bad bidder",
 			bidder:          "0x1",
 			price:           dymnsutils.TestCoin(1),
+			params:          nil,
+			orderType:       NameOrder,
 			wantErr:         true,
 			wantErrContains: "SO bidder is not a valid bech32 account address",
 		},
@@ -499,6 +531,8 @@ func TestSellOrderBid_Validate(t *testing.T) {
 			name:            "fail - zero price",
 			bidder:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			price:           dymnsutils.TestCoin(0),
+			params:          nil,
+			orderType:       NameOrder,
 			wantErr:         true,
 			wantErrContains: "SO bid price is zero",
 		},
@@ -506,6 +540,8 @@ func TestSellOrderBid_Validate(t *testing.T) {
 			name:            "fail - zero price",
 			bidder:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			price:           sdk.Coin{},
+			params:          nil,
+			orderType:       NameOrder,
 			wantErr:         true,
 			wantErrContains: "SO bid price is zero",
 		},
@@ -516,6 +552,8 @@ func TestSellOrderBid_Validate(t *testing.T) {
 				Denom:  params.BaseDenom,
 				Amount: sdk.NewInt(-1),
 			},
+			params:          nil,
+			orderType:       NameOrder,
 			wantErr:         true,
 			wantErrContains: "SO bid price is negative",
 		},
@@ -526,8 +564,28 @@ func TestSellOrderBid_Validate(t *testing.T) {
 				Denom:  "-",
 				Amount: sdk.OneInt(),
 			},
+			params:          nil,
+			orderType:       NameOrder,
 			wantErr:         true,
 			wantErrContains: "SO bid price is invalid",
+		},
+		{
+			name:            "fail - (Name) bad params",
+			bidder:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			price:           dymnsutils.TestCoin(1),
+			params:          []string{"non-empty"},
+			orderType:       NameOrder,
+			wantErr:         true,
+			wantErrContains: "not accept order params for order type",
+		},
+		{
+			name:            "fail - (Alias) bad params",
+			bidder:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			price:           dymnsutils.TestCoin(1),
+			params:          nil,
+			orderType:       AliasOrder,
+			wantErr:         true,
+			wantErrContains: "expect 1 order param of RollApp ID",
 		},
 	}
 	for _, tt := range tests {
@@ -535,8 +593,9 @@ func TestSellOrderBid_Validate(t *testing.T) {
 			m := &SellOrderBid{
 				Bidder: tt.bidder,
 				Price:  tt.price,
+				Params: tt.params,
 			}
-			err := m.Validate()
+			err := m.Validate(tt.orderType)
 			if tt.wantErr {
 				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
 				require.Error(t, err)

@@ -23,6 +23,10 @@ func (m *MsgPlaceBuyOrder) ValidateBasic() error {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", m.OrderType)
 	}
 
+	if err := ValidateOrderParams(m.Params, m.OrderType); err != nil {
+		return err
+	}
+
 	if _, err := sdk.AccAddressFromBech32(m.Buyer); err != nil {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "buyer is not a valid bech32 account address")
 	}

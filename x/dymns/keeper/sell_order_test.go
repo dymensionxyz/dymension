@@ -122,6 +122,25 @@ func TestKeeper_GetSetSellOrder(t *testing.T) {
 		}
 	})
 
+	t.Run("omit Bid params if empty", func(t *testing.T) {
+		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+
+		err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{
+			GoodsId:  "goods",
+			Type:     dymnstypes.NameOrder,
+			ExpireAt: 1,
+			MinPrice: dymnsutils.TestCoin(100),
+			HighestBid: &dymnstypes.SellOrderBid{
+				Bidder: testAddr(1).bech32(),
+				Price:  dymnsutils.TestCoin(200),
+				Params: []string{},
+			},
+		})
+		require.NoError(t, err)
+
+		require.Nil(t, dk.GetSellOrder(ctx, "goods", dymnstypes.NameOrder).HighestBid.Params)
+	})
+
 	t.Run("get returns correct inserted record, regardless type", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
@@ -448,6 +467,10 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 			Bidder: bidderA,
 			Price:  dymnsutils.TestCoin(300),
 		}
+		if so.Type == dymnstypes.AliasOrder {
+			so.HighestBid.Params = []string{"rollapp_1-1"}
+		}
+
 		err = dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 

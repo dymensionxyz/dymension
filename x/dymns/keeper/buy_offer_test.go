@@ -84,7 +84,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		err := dk.SetBuyOffer(ctx, offer1)
 		require.NoError(t, err)
 
-		offerGot1 := dk.GetBuyOffer(ctx, "101")
+		offerGot1 := dk.GetBuyOffer(ctx, offer1.Id)
 		require.NotNil(t, offerGot1)
 
 		require.Equal(t, offer1, *offerGot1)
@@ -93,6 +93,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 			Id:         "202",
 			GoodsId:    "alias",
 			Type:       dymnstypes.AliasOrder,
+			Params:     []string{"rollapp_1-1"},
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
@@ -100,18 +101,39 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		err = dk.SetBuyOffer(ctx, offer2)
 		require.NoError(t, err)
 
-		offerGot2 := dk.GetBuyOffer(ctx, "202")
+		offerGot2 := dk.GetBuyOffer(ctx, offer2.Id)
 		require.NotNil(t, offerGot2)
 
 		require.Equal(t, offer2, *offerGot2)
 
 		// previous record should not be effected
 
-		offerGot1 = dk.GetBuyOffer(ctx, "101")
+		offerGot1 = dk.GetBuyOffer(ctx, offer1.Id)
 		require.NotNil(t, offerGot1)
 
 		require.NotEqual(t, *offerGot1, *offerGot2)
 		require.Equal(t, offer1, *offerGot1)
+	})
+
+	t.Run("set omits params if empty", func(t *testing.T) {
+		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+
+		offer1 := dymnstypes.BuyOffer{
+			Id:         "101",
+			GoodsId:    "my-name",
+			Type:       dymnstypes.NameOrder,
+			Params:     []string{},
+			Buyer:      buyerA,
+			OfferPrice: dymnsutils.TestCoin(1),
+		}
+
+		err := dk.SetBuyOffer(ctx, offer1)
+		require.NoError(t, err)
+
+		offerGot1 := dk.GetBuyOffer(ctx, offer1.Id)
+		require.NotNil(t, offerGot1)
+
+		require.Nil(t, offerGot1.Params)
 	})
 
 	t.Run("should panic when insert non-empty ID offer", func(t *testing.T) {
@@ -155,6 +177,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 			Id:         "",
 			GoodsId:    "alias",
 			Type:       dymnstypes.AliasOrder,
+			Params:     []string{"rollapp_1-1"},
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
@@ -185,10 +208,16 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 			dk.SetCountBuyOffer(ctx, 1)
 			const nextId uint64 = 2
 
+			var params []string
+			if orderType == dymnstypes.AliasOrder {
+				params = []string{"rollapp_1-1"}
+			}
+
 			existing := dymnstypes.BuyOffer{
 				Id:         dymnstypes.CreateBuyOfferId(orderType, nextId),
 				GoodsId:    "goods",
 				Type:       orderType,
+				Params:     params,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(1),
 			}
@@ -200,6 +229,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 				Id:         "",
 				GoodsId:    "goods",
 				Type:       orderType,
+				Params:     params,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(1),
 			}
@@ -214,10 +244,16 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		for _, orderType := range supportedOrderTypes {
 			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
+			var params []string
+			if orderType == dymnstypes.AliasOrder {
+				params = []string{"rollapp_1-1"}
+			}
+
 			offer1 := dymnstypes.BuyOffer{
 				Id:         "",
 				GoodsId:    "one",
 				Type:       orderType,
+				Params:     params,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(1),
 			}
@@ -240,6 +276,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 				Id:         "",
 				GoodsId:    "two",
 				Type:       orderType,
+				Params:     params,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(1),
 			}
@@ -276,6 +313,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 			Id:         "202",
 			GoodsId:    "b",
 			Type:       dymnstypes.AliasOrder,
+			Params:     []string{"rollapp_1-1"},
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(2),
 		}
@@ -296,6 +334,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 			Id:         "204",
 			GoodsId:    "d",
 			Type:       dymnstypes.AliasOrder,
+			Params:     []string{"rollapp_2-2"},
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(4),
 		}
@@ -359,6 +398,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 					Id:         "201",
 					GoodsId:    "alias",
 					Type:       dymnstypes.AliasOrder,
+					Params:     []string{"rollapp_1-1"},
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -470,6 +510,7 @@ func TestKeeper_GetAllBuyOffers(t *testing.T) {
 		Id:         "202",
 		GoodsId:    "b",
 		Type:       dymnstypes.AliasOrder,
+		Params:     []string{"rollapp_1-1"},
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
@@ -502,6 +543,7 @@ func TestKeeper_GetAllBuyOffers(t *testing.T) {
 		Id:         "204",
 		GoodsId:    "b",
 		Type:       dymnstypes.AliasOrder,
+		Params:     []string{"rollapp_2-2"},
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}

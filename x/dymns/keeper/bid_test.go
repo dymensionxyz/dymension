@@ -85,7 +85,7 @@ func TestKeeper_RefundBid(t *testing.T) {
 			if tt.genesis {
 				err = dk.GenesisRefundBid(ctx, soBid)
 			} else {
-				err = dk.RefundBid(ctx, soBid)
+				err = dk.RefundBid(ctx, soBid, dymnstypes.NameOrder)
 			}
 
 			if tt.wantErr {

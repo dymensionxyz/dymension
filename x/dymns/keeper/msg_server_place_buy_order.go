@@ -11,6 +11,7 @@ import (
 )
 
 // TODO DymNS: buyer should be Roll-App owner
+// TODO DymNS: should not have multiple Alias offers for the same RollApp ID
 
 // PlaceBuyOrder is message handler,
 // handles creating an offer to buy a Dym-Name/Alias, performed by the buyer.
@@ -50,6 +51,7 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 			Id:         "", // will be auto-generated
 			GoodsId:    msg.GoodsId,
 			Type:       dymnstypes.NameOrder,
+			Params:     msg.Params,
 			Buyer:      msg.Buyer,
 			OfferPrice: msg.Offer,
 		}

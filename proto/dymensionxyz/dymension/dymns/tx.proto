@@ -202,11 +202,16 @@ message MsgPurchaseOrder {
     // order_type is the goods type of the order, is Dym-Name for current version.
     OrderType order_type = 2;
 
+    // params is the list of parameters of the bid.
+    // It is empty for order type Dym-Name.
+    // It has one element for order type Alias, which is the rollapp_id to assigned for.
+    repeated string params = 3;
+
     // buyer is the account address of the account which is purchasing the Dym-Name.
-    string buyer = 3;
+    string buyer = 4;
 
     // offer is the price that buyer is willing to pay for the Dym-Name.
-    cosmos.base.v1beta1.Coin offer = 4 [(gogoproto.nullable) = false];
+    cosmos.base.v1beta1.Coin offer = 5 [(gogoproto.nullable) = false];
 }
 
 // MsgPurchaseOrderResponse defines the response for the purchase order.
@@ -221,14 +226,19 @@ message MsgPlaceBuyOrder {
     // order_type is the goods type of the order, is Dym-Name for current version.
     OrderType order_type = 2;
 
+    // params is the list of parameters of the offer.
+    // It is empty for order type Dym-Name.
+    // It has one element for order type Alias, which is the rollapp_id to assigned for.
+    repeated string params = 3;
+
     // buyer is the account address of the account which is purchasing the Dym-Name.
-    string buyer = 3;
+    string buyer = 4;
 
     // continue_offer_id is the optional field, if the buyer wants to extends an existing offer.
-    string continue_offer_id = 4;
+    string continue_offer_id = 5;
 
     // offer is the price that buyer is willing to pay for the Dym-Name.
-    cosmos.base.v1beta1.Coin offer = 5 [(gogoproto.nullable) = false];
+    cosmos.base.v1beta1.Coin offer = 6 [(gogoproto.nullable) = false];
 }
 
 // MsgPlaceBuyOrderResponse defines the response after placed the Buy-Offer.

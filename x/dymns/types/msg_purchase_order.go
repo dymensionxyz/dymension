@@ -23,6 +23,10 @@ func (m *MsgPurchaseOrder) ValidateBasic() error {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", m.OrderType)
 	}
 
+	if err := ValidateOrderParams(m.Params, m.OrderType); err != nil {
+		return err
+	}
+
 	if !m.Offer.IsValid() {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid offer")
 	} else if !m.Offer.IsPositive() {

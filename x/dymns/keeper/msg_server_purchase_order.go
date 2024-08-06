@@ -26,7 +26,7 @@ func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurch
 
 	if so.HighestBid != nil {
 		// refund previous bidder
-		if err := k.RefundBid(ctx, *so.HighestBid); err != nil {
+		if err := k.RefundBid(ctx, *so.HighestBid, so.Type); err != nil {
 			return nil, err
 		}
 	}
@@ -45,6 +45,7 @@ func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurch
 	so.HighestBid = &dymnstypes.SellOrderBid{
 		Bidder: msg.Buyer,
 		Price:  msg.Offer,
+		Params: msg.Params,
 	}
 
 	// after highest bid updated, update SO to store to reflect the new state

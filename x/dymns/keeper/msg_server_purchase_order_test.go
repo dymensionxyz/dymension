@@ -45,6 +45,7 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
 				GoodsId:   "alias",
 				OrderType: dymnstypes.AliasOrder,
+				Params:    []string{"rollapp_1-1"},
 				Buyer:     testAddr(0).bech32(),
 				Offer:     dymnsutils.TestCoin(1),
 			})

@@ -110,6 +110,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		HighestBid: &dymnstypes.SellOrderBid{
 			Bidder: bidder3,
 			Price:  dymnsutils.TestCoin(777),
+			Params: []string{"rollapp_1-1"},
 		},
 	}
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so4))
@@ -153,6 +154,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		Id:         "204",
 		GoodsId:    "cosmos",
 		Type:       dymnstypes.AliasOrder,
+		Params:     []string{"rollapp_2-2"},
 		Buyer:      buyer4,
 		OfferPrice: dymnsutils.TestCoin(333),
 	}
@@ -162,6 +164,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		Id:         "205",
 		GoodsId:    "alias",
 		Type:       dymnstypes.AliasOrder,
+		Params:     []string{"rollapp_3-3"},
 		Buyer:      buyer5,
 		OfferPrice: dymnsutils.TestCoin(555),
 	}

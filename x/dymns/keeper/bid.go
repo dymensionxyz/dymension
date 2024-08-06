@@ -9,19 +9,20 @@ import (
 // This action will mint coins to the module account and send coins to the bidder.
 // The reason for minting is that the module account has no balance during genesis initialization.
 func (k Keeper) GenesisRefundBid(ctx sdk.Context, soBid dymnstypes.SellOrderBid) error {
-	return k.refundBid(ctx, soBid, true)
+	soBid.Params = nil // treat it as refund name orders
+	return k.refundBid(ctx, soBid, dymnstypes.NameOrder, true)
 }
 
 // RefundBid refunds the bid.
 // This action will send coins from module account to the bidder.
-func (k Keeper) RefundBid(ctx sdk.Context, soBid dymnstypes.SellOrderBid) error {
-	return k.refundBid(ctx, soBid, false)
+func (k Keeper) RefundBid(ctx sdk.Context, soBid dymnstypes.SellOrderBid, orderType dymnstypes.OrderType) error {
+	return k.refundBid(ctx, soBid, orderType, false)
 }
 
 // refundBid refunds the bid.
 // Depends on the genesis flag, this action will mint coins to the module account and send coins to the bidder.
-func (k Keeper) refundBid(ctx sdk.Context, soBid dymnstypes.SellOrderBid, genesis bool) error {
-	if err := soBid.Validate(); err != nil {
+func (k Keeper) refundBid(ctx sdk.Context, soBid dymnstypes.SellOrderBid, orderType dymnstypes.OrderType, genesis bool) error {
+	if err := soBid.Validate(orderType); err != nil {
 		return err
 	}
 

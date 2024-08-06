@@ -57,6 +57,11 @@ message SellOrderBid {
 
   // price is the amount of coin offered by the bidder.
   cosmos.base.v1beta1.Coin price = 2 [(gogoproto.nullable) = false];
+
+  // params is the list of parameters of the bid.
+  // It is empty for order type Dym-Name.
+  // It has one element for order type Alias, which is the rollapp_id to assigned for.
+  repeated string params = 3;
 }
 
 // HistoricalSellOrders contains list of closed Sell-Orders of the same goods.

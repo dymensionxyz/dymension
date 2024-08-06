@@ -110,6 +110,10 @@ func (k Keeper) SetBuyOffer(ctx sdk.Context, offer dymnstypes.BuyOffer) error {
 		return err
 	}
 
+	if len(offer.Params) == 0 {
+		offer.Params = nil
+	}
+
 	store := ctx.KVStore(k.storeKey)
 	offerKey := dymnstypes.BuyOfferKey(offer.Id)
 	bz := k.cdc.MustMarshal(&offer)

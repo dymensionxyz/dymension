@@ -67,6 +67,10 @@ func (m *BuyOffer) Validate() error {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", m.Type)
 	}
 
+	if err := ValidateOrderParams(m.Params, m.Type); err != nil {
+		return err
+	}
+
 	if !dymnsutils.IsValidBech32AccountAddress(m.Buyer, true) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "buyer is not a valid bech32 account address")
 	}

@@ -113,7 +113,7 @@ func (m *SellOrder) Validate() error {
 
 	if m.HighestBid == nil {
 		// valid, means no bid yet
-	} else if err := m.HighestBid.Validate(); err != nil {
+	} else if err := m.HighestBid.Validate(m.Type); err != nil {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "SO highest bid is invalid: %v", err)
 	} else if m.HighestBid.Price.IsLT(m.MinPrice) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO highest bid price is less than min price")
@@ -125,7 +125,7 @@ func (m *SellOrder) Validate() error {
 }
 
 // Validate performs basic validation for the SellOrderBid.
-func (m *SellOrderBid) Validate() error {
+func (m *SellOrderBid) Validate(orderType OrderType) error {
 	if m == nil {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO bid is nil")
 	}
@@ -144,6 +144,10 @@ func (m *SellOrderBid) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO bid price is negative")
 	} else if err := m.Price.Validate(); err != nil {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "SO bid price is invalid: %v", err)
+	}
+
+	if err := ValidateOrderParams(m.Params, orderType); err != nil {
+		return err
 	}
 
 	return nil
@@ -245,8 +249,6 @@ func (m *ActiveSellOrdersExpiration) Sort() {
 	if len(m.Records) < 2 {
 		return
 	}
-
-	// TODO DymNS: add sort by other fields if any added
 
 	sort.Slice(m.Records, func(i, j int) bool {
 		return m.Records[i].GoodsId < m.Records[j].GoodsId
