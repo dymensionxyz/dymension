@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uparam"
 	"gopkg.in/yaml.v2"
 
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
@@ -119,36 +120,15 @@ func (p Params) String() string {
 }
 
 func validateLivenessSlashBlocks(i interface{}) error {
-	v, ok := i.(uint64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if v <= 0 {
-		return fmt.Errorf("must be positive: %d", v)
-	}
-	return nil
+	return uparam.ValidatePositiveUint64(i)
 }
 
 func validateLivenessSlashInterval(i interface{}) error {
-	v, ok := i.(uint64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if v <= 0 {
-		return fmt.Errorf("must be positive: %d", v)
-	}
-	return nil
+	return uparam.ValidatePositiveUint64(i)
 }
 
 func validateLivenessJailBlocks(i interface{}) error {
-	v, ok := i.(uint64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if v <= 0 {
-		return fmt.Errorf("must be positive: %d", v)
-	}
-	return nil
+	return uparam.ValidatePositiveUint64(i)
 }
 
 // validateDisputePeriodInBlocks validates the DisputePeriodInBlocks param
