@@ -1,6 +1,10 @@
 package keeper_test
 
 import (
+	cryptorand "crypto/rand"
+	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"math/big"
 	"testing"
 	"time"
 
@@ -10,158 +14,78 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
-	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-
-	ownerA := testAddr(1).bech32()
-	bidderA := testAddr(2).bech32()
+func TestKeeper_GetSetSellOrder(t *testing.T) {
+	supportedOrderTypes := []dymnstypes.OrderType{
+		dymnstypes.NameOrder, dymnstypes.AliasOrder,
+	}
 
 	t.Run("reject invalid SO", func(t *testing.T) {
+		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+
 		err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{})
 		require.Error(t, err)
 	})
 
-	dymName1 := dymnstypes.DymName{
-		Name:       "a",
-		Owner:      ownerA,
-		Controller: ownerA,
-		ExpireAt:   1,
-	}
-	err := dk.SetDymName(ctx, dymName1)
-	require.NoError(t, err)
+	t.Run("can set", func(t *testing.T) {
+		for _, orderType := range supportedOrderTypes {
+			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-	dymName2 := dymnstypes.DymName{
-		Name:       "b",
-		Owner:      ownerA,
-		Controller: ownerA,
-		ExpireAt:   1,
-	}
-	err = dk.SetDymName(ctx, dymName2)
-	require.NoError(t, err)
-
-	so1 := dymnstypes.SellOrder{
-		GoodsId:   dymName1.Name,
-		Type:      dymnstypes.NameOrder,
-		ExpireAt:  1,
-		MinPrice:  dymnsutils.TestCoin(100),
-		SellPrice: dymnsutils.TestCoinP(300),
-		HighestBid: &dymnstypes.SellOrderBid{
-			Bidder: bidderA,
-			Price:  dymnsutils.TestCoin(200),
-		},
-	}
-	err = dk.SetSellOrder(ctx, so1)
-	require.NoError(t, err)
-
-	t.Run("so1 should be equals to original", func(t *testing.T) {
-		require.Equal(t, so1, *dk.GetSellOrder(ctx, so1.GoodsId, so1.Type))
-	})
-
-	t.Run("SO list should have length 1", func(t *testing.T) {
-		require.Len(t, dk.GetAllSellOrders(ctx), 1)
-	})
-
-	t.Run("event should be fired on set sell order", func(t *testing.T) {
-		events := ctx.EventManager().Events()
-		require.NotEmpty(t, events)
-
-		for _, event := range events {
-			if event.Type != dymnstypes.EventTypeSellOrder {
-				continue
+			so := dymnstypes.SellOrder{
+				GoodsId:  "goods",
+				Type:     orderType,
+				ExpireAt: 1,
+				MinPrice: dymnsutils.TestCoin(100),
 			}
-
-			var actionName string
-			for _, attr := range event.Attributes {
-				if attr.Key == dymnstypes.AttributeKeySoActionName {
-					actionName = attr.Value
-				}
-			}
-			require.NotEmpty(t, actionName, "event attr action name could not be found")
-			require.Equalf(t,
-				actionName, dymnstypes.AttributeValueSoActionNameSet,
-				"event attr action name should be `%s`", dymnstypes.AttributeValueSoActionNameSet,
-			)
-			return
+			err := dk.SetSellOrder(ctx, so)
+			require.NoError(t, err)
 		}
-
-		t.Errorf("event %s not found", dymnstypes.EventTypeSellOrder)
 	})
 
-	so2 := dymnstypes.SellOrder{
-		GoodsId:  dymName2.Name,
-		Type:     dymnstypes.NameOrder,
-		ExpireAt: 1,
-		MinPrice: dymnsutils.TestCoin(100),
-	}
-	err = dk.SetSellOrder(ctx, so2)
-	require.NoError(t, err)
-	t.Run("so2 should be equals to original", func(t *testing.T) {
-		require.Equal(t, so2, *dk.GetSellOrder(ctx, so2.GoodsId, so2.Type))
-	})
-	t.Run("SO list should have length 2", func(t *testing.T) {
-		require.Len(t, dk.GetAllSellOrders(ctx), 2)
-	})
+	t.Run("event should be fired on set", func(t *testing.T) {
+		for _, orderType := range supportedOrderTypes {
+			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-	dk.DeleteSellOrder(ctx, so1.GoodsId, so1.Type)
-	t.Run("event should be fired on delete sell order", func(t *testing.T) {
-		events := ctx.EventManager().Events()
-		require.NotEmpty(t, events)
-
-		for _, event := range events {
-			if event.Type != dymnstypes.EventTypeSellOrder {
-				continue
+			so := dymnstypes.SellOrder{
+				GoodsId:  "goods",
+				Type:     orderType,
+				ExpireAt: 1,
+				MinPrice: dymnsutils.TestCoin(100),
 			}
+			err := dk.SetSellOrder(ctx, so)
+			require.NoError(t, err)
 
-			var actionName string
-			for _, attr := range event.Attributes {
-				if attr.Key == dymnstypes.AttributeKeySoActionName {
-					actionName = attr.Value
+			events := ctx.EventManager().Events()
+			require.NotEmpty(t, events)
+
+			func(events sdk.Events) {
+				for _, event := range events {
+					if event.Type != dymnstypes.EventTypeSellOrder {
+						continue
+					}
+
+					var actionName string
+					for _, attr := range event.Attributes {
+						if attr.Key == dymnstypes.AttributeKeySoActionName {
+							actionName = attr.Value
+						}
+					}
+					require.NotEmpty(t, actionName, "event attr action name could not be found")
+					require.Equalf(t,
+						actionName, dymnstypes.AttributeValueSoActionNameSet,
+						"event attr action name should be `%s`", dymnstypes.AttributeValueSoActionNameSet,
+					)
+					return
 				}
-			}
-			require.NotEmpty(t, actionName, "event attr action name could not be found")
-			require.Equalf(t,
-				actionName, dymnstypes.AttributeValueSoActionNameSet,
-				"event attr action name should be `%s`", dymnstypes.AttributeValueSoActionNameDelete,
-			)
-			return
+
+				t.Errorf("event %s not found", dymnstypes.EventTypeSellOrder)
+			}(events)
 		}
-
-		t.Errorf("event %s not found", dymnstypes.EventTypeSellOrder)
-	})
-
-	t.Run("so1 should be nil after the deletion", func(t *testing.T) {
-		require.Nil(t, dk.GetSellOrder(ctx, so1.GoodsId, so1.Type))
-	})
-
-	t.Run("SO list should have length 1", func(t *testing.T) {
-		list := dk.GetAllSellOrders(ctx)
-		require.Len(t, list, 1)
-		require.Equal(t, so2.GoodsId, list[0].GoodsId)
-	})
-
-	so3Alias := dymnstypes.SellOrder{
-		GoodsId:  "alias",
-		Type:     dymnstypes.AliasOrder,
-		ExpireAt: 1,
-		MinPrice: dymnsutils.TestCoin(100),
-	}
-
-	so4DymName := dymnstypes.SellOrder{
-		GoodsId:  "hello",
-		Type:     dymnstypes.NameOrder,
-		ExpireAt: 1,
-		MinPrice: dymnsutils.TestCoin(100),
-	}
-
-	t.Run("can set Sell-Order with type Alias", func(t *testing.T) {
-		err = dk.SetSellOrder(ctx, so3Alias)
-		require.NoError(t, err)
-
-		require.Equal(t, so3Alias, *dk.GetSellOrder(ctx, so3Alias.GoodsId, so3Alias.Type))
 	})
 
 	t.Run("can not set Sell-Order with unknown type", func(t *testing.T) {
-		err = dk.SetSellOrder(ctx, dymnstypes.SellOrder{
+		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+
+		err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{
 			GoodsId:  "goods",
 			Type:     dymnstypes.OrderType_OT_UNKNOWN,
 			ExpireAt: 1,
@@ -172,56 +96,183 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 	})
 
 	t.Run("non-exists returns nil", func(t *testing.T) {
-		require.Nil(t, dk.GetSellOrder(ctx, "non-exists", dymnstypes.NameOrder))
-		require.Nil(t, dk.GetSellOrder(ctx, "non-exists", dymnstypes.AliasOrder))
+		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+
+		for _, orderType := range supportedOrderTypes {
+			require.Nil(t, dk.GetSellOrder(ctx, "goods", orderType))
+		}
 	})
 
-	t.Run("omit Sell Price if not nil but zero", func(t *testing.T) {
-		err = dk.SetSellOrder(ctx, so4DymName)
-		require.NoError(t, err)
+	t.Run("omit Sell Price if zero", func(t *testing.T) {
+		for _, sellPrice := range []*sdk.Coin{nil, dymnsutils.TestCoinP(0), {}} {
+			for _, orderType := range supportedOrderTypes {
+				dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		require.Nil(t, dk.GetSellOrder(ctx, so4DymName.GoodsId, so4DymName.Type).SellPrice)
+				err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{
+					GoodsId:   "goods",
+					Type:      orderType,
+					ExpireAt:  1,
+					MinPrice:  dymnsutils.TestCoin(100),
+					SellPrice: sellPrice,
+				})
+				require.NoError(t, err)
+
+				require.Nil(t, dk.GetSellOrder(ctx, "goods", orderType).SellPrice)
+			}
+		}
 	})
 
-	t.Run("get returns correct record of different types", func(t *testing.T) {
-		gotSo3 := dk.GetSellOrder(ctx, so3Alias.GoodsId, so3Alias.Type)
-		gotSo4 := dk.GetSellOrder(ctx, so4DymName.GoodsId, so4DymName.Type)
+	t.Run("get returns correct inserted record, regardless type", func(t *testing.T) {
+		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		require.Equal(t, so3Alias, *gotSo3)
-		require.Equal(t, so4DymName, *gotSo4)
+		var sellOrders []dymnstypes.SellOrder
 
-		require.Equal(t, dymnstypes.AliasOrder, gotSo3.Type)
-		require.Equal(t, dymnstypes.NameOrder, gotSo4.Type)
+		const seed int = 100
+
+		for i := 0; i < seed; i++ {
+			for _, orderType := range supportedOrderTypes {
+
+				so := dymnstypes.SellOrder{
+					GoodsId:  fmt.Sprintf("dog%d", i), // same goods id for all types
+					Type:     orderType,
+					ExpireAt: 1 + int64(i),
+					MinPrice: dymnsutils.TestCoin(int64(seed + i)),
+				}
+				err := dk.SetSellOrder(ctx, so)
+				require.NoError(t, err)
+
+				sellOrders = append(sellOrders, so)
+			}
+		}
+
+		for _, so := range sellOrders {
+			got := dk.GetSellOrder(ctx, so.GoodsId, so.Type)
+			require.NotNil(t, got)
+			require.Equal(t, so, *got)
+		}
+	})
+}
+
+func TestKeeper_DeleteSellOrder(t *testing.T) {
+	supportedOrderTypes := []dymnstypes.OrderType{
+		dymnstypes.NameOrder, dymnstypes.AliasOrder,
+	}
+
+	t.Run("can delete", func(t *testing.T) {
+		for _, orderType := range supportedOrderTypes {
+			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+
+			so := dymnstypes.SellOrder{
+				GoodsId:  "goods",
+				Type:     orderType,
+				ExpireAt: 1,
+				MinPrice: dymnsutils.TestCoin(1),
+			}
+
+			err := dk.SetSellOrder(ctx, so)
+			require.NoError(t, err)
+
+			require.NotNil(t, dk.GetSellOrder(ctx, so.GoodsId, so.Type))
+
+			dk.DeleteSellOrder(ctx, so.GoodsId, so.Type)
+
+			require.Nil(t, dk.GetSellOrder(ctx, so.GoodsId, so.Type))
+		}
 	})
 
-	t.Run("get all returns all records of different types", func(t *testing.T) {
-		list := dk.GetAllSellOrders(ctx)
-		require.Len(t, list, 3)
+	t.Run("event should be fired upon deletion", func(t *testing.T) {
+		for _, orderType := range supportedOrderTypes {
+			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		require.Contains(t, list, so3Alias)
-		require.Contains(t, list, so4DymName)
+			so := dymnstypes.SellOrder{
+				GoodsId:  "goods",
+				Type:     orderType,
+				ExpireAt: 1,
+				MinPrice: dymnsutils.TestCoin(1),
+			}
+
+			err := dk.SetSellOrder(ctx, so)
+			require.NoError(t, err)
+
+			dk.DeleteSellOrder(ctx, so.GoodsId, so.Type)
+
+			events := ctx.EventManager().Events()
+			require.NotEmpty(t, events)
+
+			func(events sdk.Events) {
+				for _, event := range events {
+					if event.Type != dymnstypes.EventTypeSellOrder {
+						continue
+					}
+
+					var actionName string
+					for _, attr := range event.Attributes {
+						if attr.Key == dymnstypes.AttributeKeySoActionName {
+							actionName = attr.Value
+						}
+					}
+					require.NotEmpty(t, actionName, "event attr action name could not be found")
+					require.Equalf(t,
+						actionName, dymnstypes.AttributeValueSoActionNameSet,
+						"event attr action name should be `%s`", dymnstypes.AttributeValueSoActionNameDelete,
+					)
+					return
+				}
+
+				t.Errorf("event %s not found", dymnstypes.EventTypeSellOrder)
+			}(events)
+		}
 	})
 
 	t.Run("delete remove the correct record regardless type", func(t *testing.T) {
-		dk.DeleteSellOrder(ctx, so3Alias.GoodsId, so3Alias.Type)
-		require.Nil(t, dk.GetSellOrder(ctx, so3Alias.GoodsId, so3Alias.Type))
-		require.NotNil(t, dk.GetSellOrder(ctx, so4DymName.GoodsId, so4DymName.Type))
+		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		dk.DeleteSellOrder(ctx, so4DymName.GoodsId, so4DymName.Type)
-		require.Nil(t, dk.GetSellOrder(ctx, so4DymName.GoodsId, so4DymName.Type))
+		type testCase struct {
+			so      dymnstypes.SellOrder
+			deleted bool
+		}
 
-		require.NoError(t, dk.SetSellOrder(ctx, so3Alias))
-		require.NoError(t, dk.SetSellOrder(ctx, so4DymName))
+		var testCases []*testCase
 
-		list := dk.GetAllSellOrders(ctx)
-		require.Len(t, list, 3)
+		// build testcases
+		const seed int = 100
+		for i := 0; i < seed; i++ {
+			for j, orderType := range supportedOrderTypes {
+				so := dymnstypes.SellOrder{
+					GoodsId:  fmt.Sprintf("dog%03d%d", i, j),
+					Type:     orderType,
+					ExpireAt: 1,
+					MinPrice: dymnsutils.TestCoin(1),
+				}
 
-		dk.DeleteSellOrder(ctx, so4DymName.GoodsId, so4DymName.Type)
-		require.Nil(t, dk.GetSellOrder(ctx, so4DymName.GoodsId, so4DymName.Type))
-		require.NotNil(t, dk.GetSellOrder(ctx, so3Alias.GoodsId, so3Alias.Type))
+				err := dk.SetSellOrder(ctx, so)
+				require.NoError(t, err)
 
-		dk.DeleteSellOrder(ctx, so3Alias.GoodsId, so3Alias.Type)
-		require.Nil(t, dk.GetSellOrder(ctx, so3Alias.GoodsId, so3Alias.Type))
+				require.NotNil(t, dk.GetSellOrder(ctx, so.GoodsId, so.Type))
+
+				testCases = append(testCases, &testCase{so: so, deleted: false})
+			}
+		}
+
+		require.Len(t, testCases, seed*len(supportedOrderTypes))
+		require.Len(t, dk.GetAllSellOrders(ctx), len(testCases))
+
+		// test delete
+		for i, tc := range testCases {
+			dk.DeleteSellOrder(ctx, tc.so.GoodsId, tc.so.Type)
+			tc.deleted = true
+			require.Nil(t, dk.GetSellOrder(ctx, tc.so.GoodsId, tc.so.Type))
+
+			require.Len(t, dk.GetAllSellOrders(ctx), len(testCases)-(i+1))
+
+			for _, tc2 := range testCases {
+				if tc2.deleted {
+					require.Nil(t, dk.GetSellOrder(ctx, tc2.so.GoodsId, tc2.so.Type))
+				} else {
+					require.NotNil(t, dk.GetSellOrder(ctx, tc2.so.GoodsId, tc2.so.Type))
+				}
+			}
+		}
 	})
 }
 
@@ -747,26 +798,35 @@ func TestKeeper_GetAllSellOrders(t *testing.T) {
 
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-	generateSellOrderOfType := func(orderType dymnstypes.OrderType) dymnstypes.SellOrder {
-		return dymnstypes.SellOrder{
-			GoodsId:  "goods",
-			Type:     orderType,
-			ExpireAt: 1,
-			MinPrice: dymnsutils.TestCoin(1),
+	var sellOrders []dymnstypes.SellOrder
+
+	n, err := cryptorand.Int(cryptorand.Reader, big.NewInt(1000))
+	require.NoError(t, err)
+
+	seed := 200 + int(n.Int64())
+
+	for i := 0; i < seed; i++ {
+		for j, orderType := range supportedOrderTypes {
+			so := dymnstypes.SellOrder{
+				GoodsId:  fmt.Sprintf("dog%03d%d", i, j),
+				Type:     orderType,
+				ExpireAt: 1,
+				MinPrice: dymnsutils.TestCoin(1),
+			}
+			err := dk.SetSellOrder(ctx, so)
+			require.NoError(t, err)
+
+			sellOrders = append(sellOrders, so)
 		}
 	}
 
-	for _, orderType := range supportedOrderTypes {
-		so := generateSellOrderOfType(orderType)
-		err := dk.SetSellOrder(ctx, so)
-		require.NoError(t, err)
-	}
+	require.Len(t, sellOrders, seed*len(supportedOrderTypes))
 
 	allSellOrders := dk.GetAllSellOrders(ctx)
 
-	require.Len(t, allSellOrders, 2, "should returns all inserted records")
+	require.Len(t, allSellOrders, len(sellOrders), "should returns all inserted records")
 
-	for _, orderType := range supportedOrderTypes {
-		require.Contains(t, allSellOrders, generateSellOrderOfType(orderType))
+	for _, so := range sellOrders {
+		require.Contains(t, allSellOrders, so)
 	}
 }

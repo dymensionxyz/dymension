@@ -148,7 +148,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offerGot1 := dk.GetBuyOffer(ctx, "101")
 		require.NotNil(t, offerGot1)
 
-		offer1a.Id = "101"
+		offer1a.Id = offer1b.Id
 		require.Equal(t, offer1a, *offerGot1)
 
 		offer2a := dymnstypes.BuyOffer{
@@ -166,7 +166,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offerGot2 := dk.GetBuyOffer(ctx, "202")
 		require.NotNil(t, offerGot2)
 
-		offer2a.Id = "202"
+		offer2a.Id = offer2b.Id
 		require.Equal(t, offer2a, *offerGot2)
 
 		// previous record should not be effected
@@ -175,7 +175,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		require.NotNil(t, offerGot1)
 
 		require.NotEqual(t, *offerGot1, *offerGot2)
-		require.Equal(t, offer1b, *offerGot1)
+		require.Equal(t, offer1a, *offerGot1)
 	})
 
 	t.Run("can not insert duplicated", func(t *testing.T) {
