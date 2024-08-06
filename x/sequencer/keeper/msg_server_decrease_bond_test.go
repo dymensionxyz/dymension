@@ -111,11 +111,18 @@ func (suite *SequencerTestSuite) TestDecreaseBond_BondDecreaseInProgress() {
 		DecreaseAmount: sdk.NewInt64Coin(bondDenom, 10),
 	})
 	suite.Require().NoError(err)
-	// try to decrease the bond again
-	resp, err := suite.msgServer.DecreaseBond(suite.Ctx, &types.MsgDecreaseBond{
+	// try to decrease the bond again - should be fine as still not below minbond
+	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1).WithBlockTime(suite.Ctx.BlockTime().Add(10))
+	_, err = suite.msgServer.DecreaseBond(suite.Ctx, &types.MsgDecreaseBond{
 		Creator:        defaultSequencerAddress,
 		DecreaseAmount: sdk.NewInt64Coin(bondDenom, 10),
 	})
-	suite.Require().ErrorIs(err, types.ErrBondDecreaseInProgress)
-	suite.Require().Nil(resp)
+	suite.Require().NoError(err)
+	// try to decrease the bond again - should err as below minbond
+	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1).WithBlockTime(suite.Ctx.BlockTime().Add(10))
+	_, err = suite.msgServer.DecreaseBond(suite.Ctx, &types.MsgDecreaseBond{
+		Creator:        defaultSequencerAddress,
+		DecreaseAmount: sdk.NewInt64Coin(bondDenom, 10),
+	})
+	suite.Require().ErrorIs(err, types.ErrInsufficientBond)
 }

@@ -21,14 +21,17 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 		return nil, types.ErrInsufficientBond
 	}
 
-	if _, found := k.getSequencerDecreasingBond(ctx, msg.Creator); found {
-		return nil, types.ErrBondDecreaseInProgress
+	effectiveBond := sequencer.Tokens
+	if bds := k.getSequencerDecreasingBonds(ctx, msg.Creator); len(bds) > 0 {
+		for _, bd := range bds {
+			effectiveBond = effectiveBond.Sub(bd.UnbondAmount)
+		}
 	}
 
 	// Check if the bond reduction will make the sequencer's bond less than the minimum bond value
 	minBondValue := k.GetParams(ctx).MinBond
 	if !minBondValue.IsNil() && !minBondValue.IsZero() {
-		decreasedBondValue := sequencer.Tokens.Sub(msg.DecreaseAmount)
+		decreasedBondValue := effectiveBond.Sub(msg.DecreaseAmount)
 		if decreasedBondValue.IsAllLT(sdk.NewCoins(minBondValue)) {
 			return nil, types.ErrInsufficientBond
 		}

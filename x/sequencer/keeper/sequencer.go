@@ -206,8 +206,8 @@ func (k Keeper) removeDecreasingBondQueue(ctx sdk.Context, bondReduction types.B
 	store.Delete(unbondingQueueKey)
 }
 
-// getSequencerDecreasingBond returns the bond reduction item given sequencer address
-func (k Keeper) getSequencerDecreasingBond(ctx sdk.Context, sequencerAddr string) (bd types.BondReduction, found bool) {
+// getSequencerDecreasingBonds returns the bond reduction item given sequencer address
+func (k Keeper) getSequencerDecreasingBonds(ctx sdk.Context, sequencerAddr string) (bds []types.BondReduction) {
 	prefixKey := types.DecreasingBondQueueKey
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), prefixKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
@@ -218,7 +218,7 @@ func (k Keeper) getSequencerDecreasingBond(ctx sdk.Context, sequencerAddr string
 		var bd types.BondReduction
 		k.cdc.MustUnmarshal(iterator.Value(), &bd)
 		if bd.SequencerAddress == sequencerAddr {
-			return bd, true
+			bds = append(bds, bd)
 		}
 	}
 
