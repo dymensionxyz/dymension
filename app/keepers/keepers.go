@@ -386,6 +386,7 @@ func (a *AppKeepers) InitKeepers(
 		a.EpochsKeeper,
 		a.AccountKeeper,
 		a.IncentivesKeeper,
+		a.SponsorshipKeeper,
 	)
 
 	a.EIBCKeeper = *eibckeeper.NewKeeper(

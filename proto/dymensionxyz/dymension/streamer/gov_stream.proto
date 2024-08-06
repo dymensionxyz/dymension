@@ -38,7 +38,10 @@ message CreateStreamProposal {
   // num_epochs_paid_over is the number of epochs distribution will be completed
   // over
   uint64 num_epochs_paid_over = 7;
-  }
+
+  // Sponsored indicates if the stream is based on the sponsorship distribution.
+  bool sponsored = 8;
+}
 
   message TerminateStreamProposal {
     option (gogoproto.equal) = true;

@@ -3,8 +3,11 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -83,6 +86,213 @@ func (suite *KeeperTestSuite) TestDistribute() {
 		for _, gauge := range gauges {
 			suite.Require().Equal(gaugesExpectedRewards[gauge.Id], gauge.Coins, tc.name)
 		}
+	}
+}
+
+func (suite *KeeperTestSuite) TestSponsoredDistribute() {
+	addrs := apptesting.CreateRandomAccounts(3)
+
+	type stream struct {
+		coins       sdk.Coins
+		numOfEpochs uint64
+		distrInfo   []types.DistrRecord
+	}
+
+	tests := []struct {
+		name   string
+		stream stream
+		// true if x/sponsorship has the initial distr. otherwise, the distr if empty
+		hasInitialDistr bool
+		// the vote that forms the initial distribution
+		initialVote sponsorshiptypes.MsgVote
+		// true if the x/sponsorship distr has changed between the stream creation and distribution.
+		// simulation of the distribution update at the middle of the epoch.
+		hasIntermediateDistr bool
+		// the vote that forms the intermediate distribution
+		intermediateVote sponsorshiptypes.MsgVote
+		// number of epochs filled after the Distribute call
+		filledEpochs uint64
+	}{
+		{
+			name: "single-coin stream, no initial nor intermediate distributions",
+			stream: stream{
+				coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
+				numOfEpochs: 30,
+				distrInfo:   defaultDistrInfo,
+			},
+			hasInitialDistr:      false,
+			initialVote:          sponsorshiptypes.MsgVote{},
+			hasIntermediateDistr: false,
+			intermediateVote:     sponsorshiptypes.MsgVote{},
+			filledEpochs:         0,
+		},
+		{
+			name: "single-coin stream, initial distribution",
+			stream: stream{
+				coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
+				numOfEpochs: 30,
+				distrInfo:   defaultDistrInfo,
+			},
+			hasInitialDistr: true,
+			initialVote: sponsorshiptypes.MsgVote{
+				Voter: addrs[0].String(),
+				Weights: []sponsorshiptypes.GaugeWeight{
+					{GaugeId: 1, Weight: math.NewInt(50)},
+					{GaugeId: 2, Weight: math.NewInt(30)},
+				},
+			},
+			hasIntermediateDistr: false,
+			intermediateVote:     sponsorshiptypes.MsgVote{},
+			filledEpochs:         1,
+		},
+		{
+			name: "single-coin stream, intermediate distribution",
+			stream: stream{
+				coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
+				numOfEpochs: 30,
+				distrInfo:   defaultDistrInfo,
+			},
+			hasInitialDistr:      false,
+			initialVote:          sponsorshiptypes.MsgVote{},
+			hasIntermediateDistr: true,
+			intermediateVote: sponsorshiptypes.MsgVote{
+				Voter: addrs[1].String(),
+				Weights: []sponsorshiptypes.GaugeWeight{
+					{GaugeId: 1, Weight: math.NewInt(10)},
+					{GaugeId: 2, Weight: math.NewInt(90)},
+				},
+			},
+			filledEpochs: 1,
+		},
+		{
+			name: "single-coin stream, initial and intermediate distributions",
+			stream: stream{
+				coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
+				numOfEpochs: 30,
+				distrInfo:   defaultDistrInfo,
+			},
+			hasInitialDistr: true,
+			initialVote: sponsorshiptypes.MsgVote{
+				Voter: addrs[0].String(),
+				Weights: []sponsorshiptypes.GaugeWeight{
+					{GaugeId: 1, Weight: math.NewInt(70)},
+					{GaugeId: 2, Weight: math.NewInt(30)},
+				},
+			},
+			hasIntermediateDistr: true,
+			intermediateVote: sponsorshiptypes.MsgVote{
+				Voter: addrs[1].String(),
+				Weights: []sponsorshiptypes.GaugeWeight{
+					{GaugeId: 1, Weight: math.NewInt(10)},
+					{GaugeId: 2, Weight: math.NewInt(90)},
+				},
+			},
+			filledEpochs: 1,
+		},
+		{
+			name: "stream distr info doesn't play any role",
+			stream: stream{
+				coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
+				numOfEpochs: 30,
+				// Random unrealistic values
+				distrInfo: []types.DistrRecord{
+					{
+						GaugeId: 121424,
+						Weight:  math.NewInt(502351235),
+					},
+					{
+						GaugeId: 223525,
+						Weight:  math.NewInt(53454350),
+					},
+				},
+			},
+			hasInitialDistr: true,
+			initialVote: sponsorshiptypes.MsgVote{
+				Voter: addrs[0].String(),
+				Weights: []sponsorshiptypes.GaugeWeight{
+					{GaugeId: 1, Weight: math.NewInt(70)},
+					{GaugeId: 2, Weight: math.NewInt(30)},
+				},
+			},
+			hasIntermediateDistr: true,
+			intermediateVote: sponsorshiptypes.MsgVote{
+				Voter: addrs[1].String(),
+				Weights: []sponsorshiptypes.GaugeWeight{
+					{GaugeId: 1, Weight: math.NewInt(10)},
+					{GaugeId: 2, Weight: math.NewInt(90)},
+				},
+			},
+			filledEpochs: 1,
+		},
+	}
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			// Cast an initial vote
+			if tc.hasInitialDistr {
+				suite.Vote(tc.initialVote, math.NewInt(1_000_000))
+			}
+
+			// Create a stream
+			sID, s := suite.CreateSponsoredStream(tc.stream.distrInfo, tc.stream.coins, time.Now(), "day", tc.stream.numOfEpochs)
+
+			// Check that the stream distr matches the current sponsorship distr
+			actualDistr, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, sID)
+			suite.Require().NoError(err)
+			suite.Require().Equal(s, actualDistr)
+			initialDistr := suite.Distribution()
+			initialDistrInfo, err := types.DistrInfoFromDistribution(initialDistr)
+			suite.Require().NoError(err)
+			suite.Require().Equal(initialDistrInfo.TotalWeight, actualDistr.DistributeTo.TotalWeight)
+			suite.Require().ElementsMatch(initialDistrInfo.Records, actualDistr.DistributeTo.Records)
+
+			// Cast an intermediate vote
+			if tc.hasIntermediateDistr {
+				suite.Vote(tc.intermediateVote, math.NewInt(1_000_000))
+			}
+
+			// Distribute
+			_, err = suite.App.StreamerKeeper.Distribute(suite.Ctx, []types.Stream{*actualDistr})
+			suite.Require().NoError(err)
+
+			// Check that the stream distr matches the current sponsorship distr
+			actualDistr, err = suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, sID)
+			suite.Require().NoError(err)
+			intermediateDistr := suite.Distribution()
+			intermediateDistrInfo, err := types.DistrInfoFromDistribution(intermediateDistr)
+			suite.Require().NoError(err)
+			suite.Require().Equal(intermediateDistrInfo.TotalWeight, actualDistr.DistributeTo.TotalWeight)
+			suite.Require().ElementsMatch(intermediateDistrInfo.Records, actualDistr.DistributeTo.Records)
+
+			// Check the state
+			actual, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, sID)
+			suite.Require().NoError(err)
+			suite.Require().Equal(tc.filledEpochs, actual.FilledEpochs)
+
+			// Calculate expected rewards. The result is based on the merged initial and intermediate distributions.
+			expectedDistr, err := types.DistrInfoFromDistribution(initialDistr.Merge(intermediateDistr))
+			suite.Require().NoError(err)
+			gaugesExpectedRewards := make(map[uint64]sdk.Coins)
+			for _, coin := range tc.stream.coins {
+				epochAmt := coin.Amount.Quo(math.NewIntFromUint64(tc.stream.numOfEpochs))
+				if !epochAmt.IsPositive() {
+					continue
+				}
+
+				for _, record := range expectedDistr.Records {
+					expectedAmtFromStream := epochAmt.Mul(record.Weight).Quo(expectedDistr.TotalWeight)
+					expectedCoins := sdk.NewCoin(coin.Denom, expectedAmtFromStream)
+					gaugesExpectedRewards[record.GaugeId] = gaugesExpectedRewards[record.GaugeId].Add(expectedCoins)
+				}
+			}
+
+			// Check expected rewards against actual rewards received
+			gauges := suite.App.IncentivesKeeper.GetGauges(suite.Ctx)
+			for _, gauge := range gauges {
+				suite.Require().ElementsMatch(gaugesExpectedRewards[gauge.Id], gauge.Coins)
+			}
+		})
 	}
 }
 

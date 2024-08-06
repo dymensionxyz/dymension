@@ -50,4 +50,7 @@ message Stream {
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
+
+  // Sponsored indicates if the stream is based on the sponsorship distribution.
+  bool sponsored = 9;
 }
