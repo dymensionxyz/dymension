@@ -2,39 +2,30 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 import "gogoproto/gogo.proto";
-
+import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
-
-message DeployerParams {
-  // address is a bech32-encoded address of the 
-  // accounts that are allowed to create a rollapp.  
-  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
-}
 
 // Params defines the parameters for the module.
 message Params {
   option (gogoproto.goproto_stringer) = false;
-
+  
   // dispute_period_in_blocks the number of blocks it takes
   // to change a status of a state from received to finalized.
   // during that period, any user could submit fraud proof
   uint64 dispute_period_in_blocks = 1
-  [(gogoproto.moretags) = "yaml:\"dispute_period_in_blocks\""];
+      [ (gogoproto.moretags) = "yaml:\"dispute_period_in_blocks\"" ];
 
-  // deployer_whitelist is a list of the
-  // accounts that are allowed to create a rollapp and maximum number of rollapps.
-  // In the case of an empty list, there are no restrictions
-  repeated DeployerParams deployer_whitelist = 2
-  [(gogoproto.moretags) = "yaml:\"deployer_whitelist\"", (gogoproto.nullable) = false];
+  reserved 2,3;
+  // registration_fee is the fee that is required to register a rollapp
+  cosmos.base.v1beta1.Coin registration_fee = 4
+      [ (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"registration_fee\"" ];
 
-  bool rollapps_enabled = 3
-  [(gogoproto.moretags) = "yaml:\"rollapps_enabled\""];
 
   // The time (num hub blocks) a sequencer has to post a block, before he will be slashed
-  uint64 liveness_slash_blocks = 4 [(gogoproto.moretags) = "yaml:\"liveness_slash_blocks\""];
+  uint64 liveness_slash_blocks = 5 [(gogoproto.moretags) = "yaml:\"liveness_slash_blocks\""];
   // The min gap (num hub blocks) between a sequence of slashes if the sequencer continues to be down
-  uint64 liveness_slash_interval = 5 [(gogoproto.moretags) = "yaml:\"liveness_slash_interval\""];
+  uint64 liveness_slash_interval = 6  [(gogoproto.moretags) = "yaml:\"liveness_slash_interval\""];
   // The time (num hub blocks) a sequencer can be down after which he will be jailed rather than slashed
-  uint64 liveness_jail_blocks = 6 [(gogoproto.moretags) = "yaml:\"liveness_jail_blocks\""];
+  uint64 liveness_jail_blocks = 7 [(gogoproto.moretags) = "yaml:\"liveness_jail_blocks\""];
 }

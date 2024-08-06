@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -58,7 +59,7 @@ func (hook rollappHook) FraudSubmitted(ctx sdk.Context, rollappID string, height
 	// unbond all other bonded sequencers
 	sequencers := hook.k.GetSequencersByRollappByStatus(ctx, rollappID, types.Bonded)
 	for _, sequencer := range sequencers {
-		err := hook.k.forceUnbondSequencer(ctx, sequencer.SequencerAddress)
+		err := hook.k.forceUnbondSequencer(ctx, sequencer.Address)
 		if err != nil {
 			return err
 		}

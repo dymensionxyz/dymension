@@ -3,7 +3,9 @@ package keeper_test
 import (
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -16,14 +18,14 @@ func (suite *SequencerTestSuite) assertSlashed(seqAddr string) {
 
 	sequencers := suite.App.SequencerKeeper.GetMatureUnbondingSequencers(suite.Ctx, suite.Ctx.BlockTime())
 	for _, s := range sequencers {
-		suite.NotEqual(s.SequencerAddress, seqAddr)
+		suite.NotEqual(s.Address, seqAddr)
 	}
 }
 
 func (suite *SequencerTestSuite) TestSlashingUnknownSequencer() {
 	suite.SetupTest()
 
-	_ = suite.CreateDefaultRollapp()
+	suite.CreateDefaultRollapp()
 	keeper := suite.App.SequencerKeeper
 
 	err := keeper.SlashAndJailFraud(suite.Ctx, "unknown_sequencer")
@@ -34,8 +36,8 @@ func (suite *SequencerTestSuite) TestSlashingUnbondedSequencer() {
 	suite.SetupTest()
 	keeper := suite.App.SequencerKeeper
 
-	rollappId := suite.CreateDefaultRollapp()
-	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	rollappId, pk := suite.CreateDefaultRollapp()
+	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(20)
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
@@ -50,7 +52,7 @@ func (suite *SequencerTestSuite) TestSlashingUnbondedSequencer() {
 	seq, found := keeper.GetSequencer(suite.Ctx, seqAddr)
 	suite.Require().True(found)
 
-	suite.Equal(seq.SequencerAddress, seqAddr)
+	suite.Equal(seq.Address, seqAddr)
 	suite.Equal(seq.Status, types.Unbonded)
 	err = keeper.SlashAndJailFraud(suite.Ctx, seqAddr)
 	suite.ErrorIs(err, types.ErrInvalidSequencerStatus)
@@ -60,8 +62,8 @@ func (suite *SequencerTestSuite) TestSlashingUnbondingSequencer() {
 	suite.SetupTest()
 	keeper := suite.App.SequencerKeeper
 
-	rollappId := suite.CreateDefaultRollapp()
-	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	rollappId, pk := suite.CreateDefaultRollapp()
+	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(20)
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
@@ -83,9 +85,10 @@ func (suite *SequencerTestSuite) TestSlashingProposerSequencer() {
 	suite.SetupTest()
 	keeper := suite.App.SequencerKeeper
 
-	rollappId := suite.CreateDefaultRollapp()
-	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	seqAddr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	rollappId, pk1 := suite.CreateDefaultRollapp()
+	pk2 := ed25519.GenPrivKey().PubKey()
+	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
+	seqAddr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk2)
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(20)
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())

@@ -28,7 +28,7 @@ func TestSequencerQuerySingle(t *testing.T) {
 		{
 			desc: "First",
 			request: &types.QueryGetSequencerRequest{
-				SequencerAddress: sequencers[0].SequencerAddress,
+				SequencerAddress: sequencers[0].Address,
 			},
 			response: &types.QueryGetSequencerResponse{
 				Sequencer: sequencers[0],
@@ -37,7 +37,7 @@ func TestSequencerQuerySingle(t *testing.T) {
 		{
 			desc: "Second",
 			request: &types.QueryGetSequencerRequest{
-				SequencerAddress: sequencers[1].SequencerAddress,
+				SequencerAddress: sequencers[1].Address,
 			},
 			response: &types.QueryGetSequencerResponse{
 				Sequencer: sequencers[1],

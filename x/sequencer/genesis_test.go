@@ -4,11 +4,12 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestInitGenesis(t *testing.T) {
@@ -17,13 +18,13 @@ func TestInitGenesis(t *testing.T) {
 
 		SequencerList: []types.Sequencer{
 			{
-				SequencerAddress: "0",
-				Status:           types.Bonded,
-				Proposer:         true,
+				Address:  "0",
+				Status:   types.Bonded,
+				Proposer: true,
 			},
 			{
-				SequencerAddress: "1",
-				Status:           types.Bonded,
+				Address: "1",
+				Status:  types.Bonded,
 			},
 		},
 		// this line is used by starport scaffolding # genesis/test/state
@@ -49,13 +50,13 @@ func TestExportGenesis(t *testing.T) {
 	}
 	sequencerList := []types.Sequencer{
 		{
-			SequencerAddress: "0",
-			Status:           types.Bonded,
-			Proposer:         true,
+			Address:  "0",
+			Status:   types.Bonded,
+			Proposer: true,
 		},
 		{
-			SequencerAddress: "1",
-			Status:           types.Bonded,
+			Address: "1",
+			Status:  types.Bonded,
 		},
 	}
 	k, ctx := keepertest.SequencerKeeper(t)

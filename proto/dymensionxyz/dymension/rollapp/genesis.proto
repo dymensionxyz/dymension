@@ -7,7 +7,6 @@ import "dymensionxyz/dymension/rollapp/rollapp.proto";
 import "dymensionxyz/dymension/rollapp/state_info.proto";
 import "dymensionxyz/dymension/rollapp/genesis_transfer.proto";
 import "dymensionxyz/dymension/rollapp/liveness.proto";
-// this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
@@ -21,5 +20,4 @@ message GenesisState {
   repeated BlockHeightToFinalizationQueue blockHeightToFinalizationQueueList = 6 [(gogoproto.nullable) = false];
   // LivenessEvents are scheduled upcoming liveness events
   repeated LivenessEvent livenessEvents = 7 [(gogoproto.nullable) = false];
-  // this line is used by starport scaffolding # genesis/proto/state
 }

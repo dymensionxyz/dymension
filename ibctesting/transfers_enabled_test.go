@@ -5,16 +5,15 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/stretchr/testify/suite"
+
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 )
 
 type transfersEnabledSuite struct {
@@ -31,6 +30,7 @@ func (s *transfersEnabledSuite) SetupTest() {
 	s.utilSuite.SetupTest()
 	path := s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.Setup(path)
+	s.fundSenderAccount()
 	s.createRollapp(false, nil)
 	s.registerSequencer()
 	s.path = path

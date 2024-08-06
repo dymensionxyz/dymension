@@ -3,9 +3,9 @@ package cli
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -20,6 +20,7 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdCreateRollapp())
+	cmd.AddCommand(CmdUpdateRollapp())
 	cmd.AddCommand(CmdUpdateState())
 
 	return cmd

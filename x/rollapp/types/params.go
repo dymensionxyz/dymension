@@ -3,20 +3,26 @@ package types
 import (
 	"errors"
 	"fmt"
+	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"gopkg.in/yaml.v2"
+
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
-	// KeyRollappsEnabled is store's key for RollappsEnabled Params
-	KeyRollappsEnabled = []byte("RollappsEnabled")
-	// KeyDeployerWhitelist is store's key for DeployerWhitelist Params
-	KeyDeployerWhitelist = []byte("DeployerWhitelist")
+	// KeyRegistrationFee is store's key for RegistrationFee Params
+	KeyRegistrationFee = []byte("RegistrationFee")
+	// DYM is the integer representation of 1 DYM
+	DYM = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
+	// DefaultRegistrationFee is the default registration fee
+	DefaultRegistrationFee = sdk.NewCoin(appparams.BaseDenom, DYM.Mul(sdk.NewInt(10))) // 10DYM
 	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
 	KeyDisputePeriodInBlocks = []byte("DisputePeriodInBlocks")
 
@@ -42,17 +48,15 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // NewParams creates a new Params instance
 func NewParams(
-	enabled bool,
 	disputePeriodInBlocks uint64,
-	deployerWhitelist []DeployerParams,
+	registrationFee sdk.Coin,
 	livenessSlashBlocks uint64,
 	livenessSlashInterval uint64,
 	livenessJailBlocks uint64,
 ) Params {
 	return Params{
 		DisputePeriodInBlocks: disputePeriodInBlocks,
-		DeployerWhitelist:     deployerWhitelist,
-		RollappsEnabled:       enabled,
+		RegistrationFee:       registrationFee,
 		LivenessSlashBlocks:   livenessSlashBlocks,
 		LivenessSlashInterval: livenessSlashInterval,
 		LivenessJailBlocks:    livenessJailBlocks,
@@ -61,10 +65,7 @@ func NewParams(
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(
-		true,
-		DefaultDisputePeriodInBlocks,
-		[]DeployerParams{},
+	return NewParams(DefaultDisputePeriodInBlocks, DefaultRegistrationFee,
 		DefaultLivenessSlashBlocks,
 		DefaultLivenessSlashInterval,
 		DefaultLivenessJailBlocks,
@@ -75,17 +76,11 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyDisputePeriodInBlocks, &p.DisputePeriodInBlocks, validateDisputePeriodInBlocks),
-		paramtypes.NewParamSetPair(KeyDeployerWhitelist, &p.DeployerWhitelist, validateDeployerWhitelist),
-		paramtypes.NewParamSetPair(KeyRollappsEnabled, &p.RollappsEnabled, func(_ interface{}) error { return nil }),
+		paramtypes.NewParamSetPair(KeyRegistrationFee, &p.RegistrationFee, validateRegistrationFee),
 		paramtypes.NewParamSetPair(KeyLivenessSlashBlocks, &p.LivenessSlashBlocks, validateLivenessSlashBlocks),
 		paramtypes.NewParamSetPair(KeyLivenessSlashInterval, &p.LivenessSlashInterval, validateLivenessSlashInterval),
 		paramtypes.NewParamSetPair(KeyLivenessJailBlocks, &p.LivenessJailBlocks, validateLivenessJailBlocks),
 	}
-}
-
-func (p Params) WithDeployerWhitelist(l []DeployerParams) Params {
-	p.DeployerWhitelist = l
-	return p
 }
 
 func (p Params) WithDisputePeriodInBlocks(x uint64) Params {
@@ -109,7 +104,7 @@ func (p Params) Validate() error {
 		return errorsmod.Wrap(err, "liveness jail blocks")
 	}
 
-	return validateDeployerWhitelist(p.DeployerWhitelist)
+	return validateRegistrationFee(p.RegistrationFee)
 }
 
 // String implements the Stringer interface.
@@ -165,27 +160,19 @@ func validateDisputePeriodInBlocks(v interface{}) error {
 	return nil
 }
 
-// validateDeployerWhitelist validates the DeployerWhitelist param
-func validateDeployerWhitelist(v interface{}) error {
-	deployerWhitelist, ok := v.([]DeployerParams)
+// validateRegistrationFee validates the RegistrationFee param
+func validateRegistrationFee(v interface{}) error {
+	registrationFee, ok := v.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	// Check for duplicated index in deployer address
-	rollappDeployerIndexMap := make(map[string]struct{})
+	if !registrationFee.IsValid() {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "registration fee: %s", registrationFee)
+	}
 
-	for i, item := range deployerWhitelist {
-		// check Bech32 format
-		if _, err := sdk.AccAddressFromBech32(item.Address); err != nil {
-			return fmt.Errorf("deployerWhitelist[%d] format error: %s", i, err.Error())
-		}
-
-		// check duplicate
-		if _, ok := rollappDeployerIndexMap[item.Address]; ok {
-			return errors.New("duplicated deployer address in deployerWhitelist")
-		}
-		rollappDeployerIndexMap[item.Address] = struct{}{}
+	if registrationFee.Denom != appparams.BaseDenom {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "registration fee denom: %s", registrationFee)
 	}
 
 	return nil

@@ -27,5 +27,4 @@ message Params {
     (gogoproto.moretags) = "yaml:\"liveness_slash_multiplier\"",
     (gogoproto.nullable) = false
   ];
-
 }
