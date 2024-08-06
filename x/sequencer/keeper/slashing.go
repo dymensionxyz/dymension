@@ -73,7 +73,7 @@ func (k Keeper) Slash(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coins) erro
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSlashed,
-			sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
+			sdk.NewAttribute(types.AttributeKeySequencer, seq.Address),
 			sdk.NewAttribute(types.AttributeKeyBond, amt.String()),
 		),
 	)
@@ -103,7 +103,7 @@ func (k Keeper) Jail(ctx sdk.Context, seq types.Sequencer) error {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeJailed,
-			sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
+			sdk.NewAttribute(types.AttributeKeySequencer, seq.Address),
 		),
 	)
 
