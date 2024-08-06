@@ -88,6 +88,11 @@ func (p Params) WithDisputePeriodInBlocks(x uint64) Params {
 	return p
 }
 
+func (p Params) WithRegFee(x sdk.Coin) Params {
+	p.RegistrationFee = x
+	return p
+}
+
 // Validate validates the set of params
 func (p Params) Validate() error {
 	if err := validateDisputePeriodInBlocks(p.DisputePeriodInBlocks); err != nil {

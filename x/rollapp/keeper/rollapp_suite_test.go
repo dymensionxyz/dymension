@@ -43,7 +43,7 @@ func (suite *RollappTestSuite) SetupTest() {
 	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
 	suite.Require().NoError(err)
 	regFee, _ := sdk.ParseCoinNormalized(registrationFee)
-	app.RollappKeeper.SetParams(ctx, types.NewParams(2, regFee))
+	app.RollappKeeper.SetParams(ctx, types.DefaultParams().WithDisputePeriodInBlocks(2).WithRegFee(regFee))
 
 	aliceBal := sdk.NewCoins(regFee.AddAmount(regFee.Amount.Mul(sdk.NewInt(10))))
 	apptesting.FundAccount(app, ctx, sdk.MustAccAddressFromBech32(alice), aliceBal)
