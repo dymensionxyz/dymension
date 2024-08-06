@@ -173,8 +173,9 @@ type MsgUpdateRollappInformation struct {
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
 	// rollapp_id is the unique identifier of the rollapp chain.
 	RollappId string `protobuf:"bytes,2,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
-	// initial_sequencer is a bech32-encoded address of the
-	// sequencer that is allowed to initially serve this rollappId.
+	// initial_sequencer is one or more bech32-encoded address of the
+	// sequencer that are allowed to initially serve this rollappId.
+	// wildcard '*' means any sequencer is allowed to be the first proposer.
 	InitialSequencer string `protobuf:"bytes,3,opt,name=initial_sequencer,json=initialSequencer,proto3" json:"initial_sequencer,omitempty"`
 	// alias is the chain alias used for display and namespace system
 	Alias string `protobuf:"bytes,4,opt,name=alias,proto3" json:"alias,omitempty"`
