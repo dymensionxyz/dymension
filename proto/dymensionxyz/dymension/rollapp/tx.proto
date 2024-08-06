@@ -52,9 +52,10 @@ message MsgUpdateRollappInformation {
   string creator = 1;
   // rollapp_id is the unique identifier of the rollapp chain.
   string rollapp_id = 2;
-  // initial_sequencer_address is a bech32-encoded address of the
-  // sequencer that is allowed to initially serve this rollappId.
-  string initial_sequencer_address = 3;
+  // initial_sequencer is one or more bech32-encoded address of the
+  // sequencer that are allowed to initially serve this rollappId.
+  // wildcard '*' means any sequencer is allowed to be the first proposer.
+  string initial_sequencer = 3;
   // alias is the chain alias used for display and namespace system
   string alias = 4;
   // checksum used to verify integrity
