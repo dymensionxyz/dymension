@@ -64,7 +64,7 @@ func TestLivenessEventsStorage(t *testing.T) {
 				for _, modelE := range model {
 					require.Contains(r, events, modelE, "event in model but not store")
 				}
-				for i, e := range events {
+				for _, e := range events {
 					require.Contains(r, model, modelKey(e), "event in store but not model")
 				}
 			},
@@ -87,7 +87,7 @@ func TestLivenessFlow(t *testing.T) {
 		tracker := newLivenessMockSequencerKeeper()
 		s.keeper().SetSequencerKeeper(tracker)
 		for _, ra := range rollapps {
-			s.keeper().SetRollapp(s.Ctx, types.NewRollapp("", ra, 0, nil, false))
+			s.keeper().SetRollapp(s.Ctx, types.NewRollapp("", ra, "", "", "", "", nil, false))
 		}
 
 		hLastUpdate := map[string]int64{}

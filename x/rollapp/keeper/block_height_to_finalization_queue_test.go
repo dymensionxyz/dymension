@@ -32,7 +32,7 @@ func (suite *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
 	// Create 2 state updates
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
-	suite.nextBlock(0)
+	suite.nextBlock()
 	_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
 	suite.Require().Nil(err)
 
@@ -138,7 +138,8 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 					}, {
 						rollappId: "rollapp2",
 						stateUpdates: []stateUpdate{{
-							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10}},
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10,
+						}},
 					},
 				},
 				finalizations: []blockEnd{
@@ -155,7 +156,8 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 					{
 						rollappId: "rollapp1",
 						stateUpdates: []stateUpdate{{
-							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10}},
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10,
+						}},
 					}, {
 						rollappId: "rollapp2",
 						stateUpdates: []stateUpdate{{
@@ -170,7 +172,8 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 							rollappsLeft: []rollappQueue{{
 								rollappId: "rollapp2",
 								index:     1,
-							}}}},
+							}},
+						}},
 					},
 				},
 			},
@@ -216,21 +219,25 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 					{
 						// first finalization: 4 states finalized, 3 states left
 						wantNumFinalized: 4,
-						wantQueue: []queue{{
-							rollappsLeft: []rollappQueue{
-								{
-									rollappId: "rollapp4",
-									index:     1,
-								}, {
-									rollappId: "rollapp5",
-									index:     1,
-								}}}, {
-							rollappsLeft: []rollappQueue{
-								{
-									rollappId: "rollapp4",
-									index:     2,
+						wantQueue: []queue{
+							{
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollapp4",
+										index:     1,
+									}, {
+										rollappId: "rollapp5",
+										index:     1,
+									},
 								},
-							}},
+							}, {
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollapp4",
+										index:     2,
+									},
+								},
+							},
 						},
 					}, {
 						// second finalization: 1 state finalized from first finalization, 2 states left
@@ -238,18 +245,22 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 						recovers: map[types.StateInfoIndex]struct{}{
 							{RollappId: "rollapp4", Index: 1}: {},
 						},
-						wantQueue: []queue{{
-							rollappsLeft: []rollappQueue{
-								{
-									rollappId: "rollapp5",
-									index:     1,
-								}}}, {
-							rollappsLeft: []rollappQueue{
-								{
-									rollappId: "rollapp4",
-									index:     2,
+						wantQueue: []queue{
+							{
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollapp5",
+										index:     1,
+									},
 								},
-							}},
+							}, {
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollapp4",
+										index:     2,
+									},
+								},
+							},
 						},
 					}, {
 						// third finalization: 1 state finalized from first finalization, 1 state left
@@ -257,13 +268,15 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 						recovers: map[types.StateInfoIndex]struct{}{
 							{RollappId: "rollapp5", Index: 1}: {},
 						},
-						wantQueue: []queue{{
-							rollappsLeft: []rollappQueue{
-								{
-									rollappId: "rollapp4",
-									index:     2,
+						wantQueue: []queue{
+							{
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollapp4",
+										index:     2,
+									},
 								},
-							}},
+							},
 						},
 					}, {
 						// fourth finalization: 1 state finalized from first finalization, 0 states left
