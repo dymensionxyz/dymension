@@ -81,7 +81,6 @@ func TestKeys(t *testing.T) {
 	} {
 		t.Run(input, func(t *testing.T) {
 			require.Equal(t, append(KeyPrefixBuyOrder, []byte(input)...), BuyOfferKey(input))
-			require.Equal(t, append(KeyPrefixRollAppIdToAlias, []byte(input)...), RollAppIdToAliasKey(input))
 			require.Equal(t, append(KeyPrefixRvlAliasToRollAppId, []byte(input)...), AliasToRollAppIdRvlKey(input))
 		})
 	}

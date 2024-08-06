@@ -64,6 +64,7 @@ func (k Keeper) GetRollAppIdByAlias(ctx sdk.Context, alias string) (rollAppId st
 
 // GetAliasByRollAppId returns the alias by the RollApp-Id.
 func (k Keeper) GetAliasByRollAppId(ctx sdk.Context, chainId string) (alias string, found bool) {
+	// TODO DymNS: support returns multiple aliases
 	if !k.IsRollAppId(ctx, chainId) {
 		return
 	}
@@ -73,11 +74,15 @@ func (k Keeper) GetAliasByRollAppId(ctx sdk.Context, chainId string) (alias stri
 	}()
 
 	store := ctx.KVStore(k.storeKey)
-	key := dymnstypes.RollAppIdToAliasKey(chainId)
+	key := dymnstypes.RollAppIdToAliasesKey(chainId)
 	bz := store.Get(key)
 	if bz != nil {
-		alias = string(bz)
-		return
+		var multipleAliases dymnstypes.MultipleAliases
+		k.cdc.MustUnmarshal(bz, &multipleAliases)
+		if len(multipleAliases.Aliases) > 0 {
+			alias = multipleAliases.Aliases[0]
+			return
+		}
 	}
 
 	if data, ok := mockRollAppsData[chainId]; ok {
@@ -102,10 +107,20 @@ func (k Keeper) SetAliasForRollAppId(ctx sdk.Context, rollAppId, alias string) e
 	}
 
 	store := ctx.KVStore(k.storeKey)
-	keyR2A := dymnstypes.RollAppIdToAliasKey(rollAppId)
+	keyR2A := dymnstypes.RollAppIdToAliasesKey(rollAppId)
 	keyA2R := dymnstypes.AliasToRollAppIdRvlKey(alias)
 
-	store.Set(keyR2A, []byte(alias))
+	if bz := store.Get(keyA2R); bz != nil {
+		return errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias currently being in used by: %s", string(bz))
+	}
+
+	var multipleAliases dymnstypes.MultipleAliases
+	if bz := store.Get(keyR2A); bz != nil {
+		k.cdc.MustUnmarshal(bz, &multipleAliases)
+	}
+	multipleAliases.Aliases = append(multipleAliases.Aliases, alias)
+
+	store.Set(keyR2A, k.cdc.MustMarshal(&multipleAliases))
 	store.Set(keyA2R, []byte(rollAppId))
 
 	return nil

@@ -111,6 +111,16 @@ func TestKeeper_GetSetAliasForRollAppId(t *testing.T) {
 		require.True(t, found)
 	})
 
+	t.Run("set - can NOT set if alias is being in-used by another RollApp", func(t *testing.T) {
+		rollAppId, found := dk.GetRollAppIdByAlias(ctx, rollApp1.alias)
+		require.Equal(t, rollApp1.id, rollAppId)
+		require.True(t, found)
+
+		err := dk.SetAliasForRollAppId(ctx, rollApp2.id, rollApp1.alias)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "alias currently being in used by:")
+	})
+
 	t.Run("set - reject chain-id", func(t *testing.T) {
 		err := dk.SetAliasForRollAppId(ctx, "bad@", "alias")
 		require.Error(t, err)
@@ -158,5 +168,52 @@ func TestKeeper_GetSetAliasForRollAppId(t *testing.T) {
 		rollAppId, found := dk.GetRollAppIdByAlias(ctx, rollApp3NotExists.alias)
 		require.Empty(t, rollAppId)
 		require.False(t, found)
+	})
+
+	t.Run("set/get - can set multiple alias to a single Roll-App", func(t *testing.T) {
+		dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
+
+		type testCase struct {
+			rollAppId string
+			aliases   []string
+		}
+
+		testcases := []testCase{
+			{
+				rollAppId: "rollapp_1-1",
+				aliases:   []string{"one", "two", "three"},
+			},
+			{
+				rollAppId: "rollapp_2-2",
+				aliases:   []string{"four", "five"},
+			},
+		}
+
+		for _, tc := range testcases {
+			rk.SetRollapp(ctx, rollapptypes.Rollapp{
+				RollappId: tc.rollAppId,
+				Creator:   testAddr(0).bech32(),
+			})
+		}
+
+		for _, tc := range testcases {
+			for _, alias := range tc.aliases {
+				err := dk.SetAliasForRollAppId(ctx, tc.rollAppId, alias)
+				require.NoError(t, err)
+			}
+		}
+
+		for _, tc := range testcases {
+			for _, alias := range tc.aliases {
+				rollAppId, found := dk.GetRollAppIdByAlias(ctx, alias)
+				require.Equal(t, tc.rollAppId, rollAppId)
+				require.True(t, found)
+			}
+
+			alias, found := dk.GetAliasByRollAppId(ctx, tc.rollAppId)
+			require.True(t, found)
+			require.Contains(t, tc.aliases, alias)
+			require.Equal(t, alias, tc.aliases[0], "should returns the first one added")
+		}
 	})
 }

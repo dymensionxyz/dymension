@@ -172,6 +172,24 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 			want:    false,
 		},
 		{
+			name:  "pass - returns as NOT free if reserved in RollApp, which owned multiple aliases",
+			alias: "two",
+			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				rk.SetRollapp(ctx, rollapptypes.Rollapp{
+					RollappId: "rollapp_1-1",
+					Creator:   testAddr(1).bech32(),
+				})
+				err := dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "one")
+				require.NoError(t, err)
+				err = dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "two")
+				require.NoError(t, err)
+				err = dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "three")
+				require.NoError(t, err)
+			},
+			wantErr: false,
+			want:    false,
+		},
+		{
 			name:  "pass - returns as NOT free if reserved in both Params and RollApp",
 			alias: "dym",
 			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {

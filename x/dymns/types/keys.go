@@ -178,8 +178,8 @@ func DymNameToOfferIdsRvlKey(dymName string) []byte {
 	return append(KeyPrefixRvlDymNameToOfferIds, []byte(dymName)...)
 }
 
-// RollAppIdToAliasKey returns a key for the Roll-App ID to Alias records
-func RollAppIdToAliasKey(rollAppId string) []byte {
+// RollAppIdToAliasesKey returns a key for the Roll-App ID to list of alias records
+func RollAppIdToAliasesKey(rollAppId string) []byte {
 	return append(KeyPrefixRollAppIdToAlias, []byte(rollAppId)...)
 }
 

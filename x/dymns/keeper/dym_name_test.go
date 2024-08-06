@@ -929,6 +929,48 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			},
 		},
 		{
+			name: "success, alias of RollApp",
+			dymName: &dymnstypes.DymName{
+				Name:       "a",
+				Owner:      addr1a,
+				Controller: addr2a,
+				ExpireAt:   now.Unix() + 1,
+				Configs: []dymnstypes.DymNameConfig{{
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
+					ChainId: "nim_1122-1",
+					Value:   addr2Acc.bech32C("nim"),
+				}, {
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
+					ChainId: "nim_1122-1",
+					Path:    "b",
+					Value:   addr2Acc.bech32C("nim"),
+				}},
+			},
+			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				registerRollApp(t, ctx, rk, dk, "nim_1122-1", "nim", "nim")
+			},
+			dymNameAddress:    "a@nim",
+			wantOutputAddress: addr2Acc.bech32C("nim"),
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
+				// should be able to resolve if multiple aliases attached to the same RollApp
+
+				aliases := []string{"nim1", "nim2", "nim3"}
+				for _, alias := range aliases {
+					require.NoError(t, dk.SetAliasForRollAppId(ctx, "nim_1122-1", alias))
+				}
+
+				for _, alias := range aliases {
+					outputAddr, err := dk.ResolveByDymNameAddress(ctx, "a@"+alias)
+					require.NoError(t, err)
+					require.Equal(t, addr2Acc.bech32C("nim"), outputAddr)
+
+					outputAddr, err = dk.ResolveByDymNameAddress(ctx, "b.a@"+alias)
+					require.NoError(t, err)
+					require.Equal(t, addr2Acc.bech32C("nim"), outputAddr)
+				}
+			},
+		},
+		{
 			name: "lookup through multiple sub-domains",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
@@ -1462,12 +1504,46 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			},
 		},
 		{
+			name:    "resolve extra format 0x1234...6789@nim1 (RollApp), alternative alias among multiple aliases for RollApp",
+			dymName: nil,
+			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				registerRollApp(t, ctx, rk, dk, "nim_1122-1", "nim", "nim")
+				require.NoError(t, dk.SetAliasForRollAppId(ctx, "nim_1122-1", "nim1"))
+				require.NoError(t, dk.SetAliasForRollAppId(ctx, "nim_1122-1", "nim2"))
+			},
+			dymNameAddress:    "0x1234567890123456789012345678901234567890@nim1",
+			wantError:         false,
+			wantOutputAddress: "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9",
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
+				outputAddr, err := dk.ResolveByDymNameAddress(ctx, "0x1234567890123456789012345678901234567890.nim")
+				require.NoError(t, err)
+				require.Equal(t, "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9", outputAddr)
+			},
+		},
+		{
 			name:    "resolve extra format dym1...@nim (RollApp), cross bech32 format",
 			dymName: nil,
 			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
 				registerRollApp(t, ctx, rk, dk, "nim_1122-1", "nim", "nim")
 			},
 			dymNameAddress:    "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96@nim_1122-1",
+			wantError:         false,
+			wantOutputAddress: "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9",
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
+				outputAddr, err := dk.ResolveByDymNameAddress(ctx, "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96.nim")
+				require.NoError(t, err)
+				require.Equal(t, "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9", outputAddr)
+			},
+		},
+		{
+			name:    "resolve extra format dym1...@nim1 (RollApp), cross bech32 format, alternative alias among multiple aliases for RollApp",
+			dymName: nil,
+			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				registerRollApp(t, ctx, rk, dk, "nim_1122-1", "nim", "nim")
+				require.NoError(t, dk.SetAliasForRollAppId(ctx, "nim_1122-1", "nim1"))
+				require.NoError(t, dk.SetAliasForRollAppId(ctx, "nim_1122-1", "nim2"))
+			},
+			dymNameAddress:    "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96@nim1",
 			wantError:         false,
 			wantOutputAddress: "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9",
 			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
@@ -2271,6 +2347,9 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 	const chainId = "dymension_1100-1"
 	const rollAppId1 = "rollapp_1-1"
 	const rollApp1Bech32 = "nim"
+	const rollAppId2 = "rollapp_2-2"
+	const rollApp2Bech32 = "man"
+	const rollApp2Alias = "ral"
 
 	ownerAcc := testAddr(1)
 	anotherAcc := testAddr(2)
@@ -2281,6 +2360,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		ctx = ctx.WithBlockTime(now).WithChainID(chainId)
 
 		registerRollApp(t, ctx, rk, dk, rollAppId1, rollApp1Bech32, "")
+		registerRollApp(t, ctx, rk, dk, rollAppId2, rollApp2Bech32, rollApp2Alias)
 
 		return dk, rk, ctx
 	}
@@ -3082,7 +3162,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			},
 		},
 		{
-			name: "pass - alias is used if available, by bech32",
+			name: "pass - alias is used if available, by bech32, alias from params",
 			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
 				cfgN("", "b", ownerAcc.bech32()).
@@ -3115,11 +3195,39 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			},
 		},
 		{
-			name: "pass - alias is used if available, by hex",
+			name: "pass - alias is used if available, by bech32, alias from RollApp",
 			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
 				cfgN("", "b", ownerAcc.bech32()).
 				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
+				cfgN(rollAppId2, "", ownerAcc.bech32C(rollApp2Bech32)).
+				cfgN(rollAppId2, "b", ownerAcc.bech32C(rollApp2Bech32)).
+				buildSlice(),
+			additionalSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			},
+			inputAddress:   ownerAcc.bech32C(rollApp2Bech32),
+			workingChainId: rollAppId2,
+			wantErr:        false,
+			want: dymnstypes.ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "",
+					Name:           "a",
+					ChainIdOrAlias: rollApp2Alias, // alias is used instead of chain-id
+				},
+				{
+					SubName:        "b",
+					Name:           "a",
+					ChainIdOrAlias: rollApp2Alias,
+				},
+			},
+		},
+		{
+			name: "pass - alias is used if available, by hex, alias from params",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(now, +1).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
+				cfgN(rollAppId2, "", ownerAcc.bech32C(rollApp2Bech32)).
 				buildSlice(),
 			additionalSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				moduleParams := dk.GetParams(ctx)
@@ -3144,6 +3252,33 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 					SubName:        "b",
 					Name:           "a",
 					ChainIdOrAlias: "dym",
+				},
+			},
+		},
+		{
+			name: "pass - alias is used if available, by hex, alias from RollApp",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(now, +1).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
+				cfgN(rollAppId2, "", ownerAcc.bech32C(rollApp2Bech32)).
+				cfgN(rollAppId2, "b", ownerAcc.bech32C(rollApp2Bech32)).
+				buildSlice(),
+			additionalSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			},
+			inputAddress:   ownerAcc.hexStr(),
+			workingChainId: rollAppId2,
+			wantErr:        false,
+			want: dymnstypes.ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "",
+					Name:           "a",
+					ChainIdOrAlias: rollApp2Alias, // alias is used instead of chain-id
+				},
+				{
+					SubName:        "b",
+					Name:           "a",
+					ChainIdOrAlias: rollApp2Alias,
 				},
 			},
 		},
@@ -3340,6 +3475,30 @@ func TestKeeper_ReplaceChainIdWithAliasIfPossible(t *testing.T) {
 				{
 					Name:           "b",
 					ChainIdOrAlias: "rollapp_3-3",
+				},
+			},
+			dk.ReplaceChainIdWithAliasIfPossible(ctx, input),
+		)
+	})
+
+	t.Run("mapping correct alias for RollApp by ID, when RollApp has multiple alias", func(t *testing.T) {
+		require.NoError(t, dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "ral12"))
+		require.NoError(t, dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "ral13"))
+		require.NoError(t, dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "ral14"))
+
+		input := []dymnstypes.ReverseResolvedDymNameAddress{
+			{
+				SubName:        "a",
+				Name:           "b",
+				ChainIdOrAlias: "rollapp_1-1",
+			},
+		}
+		require.Equal(t,
+			[]dymnstypes.ReverseResolvedDymNameAddress{
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "ra1",
 				},
 			},
 			dk.ReplaceChainIdWithAliasIfPossible(ctx, input),
