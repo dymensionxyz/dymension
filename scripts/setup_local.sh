@@ -8,7 +8,7 @@ if [ "$EXECUTABLE" = "" ]; then
     exit 1
   fi
   echo "EXECUTABLE is not set, using '${DEFAULT_EXECUTABLE}'"
-  EXECUTABLE=$DEFAULT_SEQUENCER_KEY_PATH
+  EXECUTABLE=$DEFAULT_EXECUTABLE
 fi
 
 # Validate dymension binary exists
@@ -17,7 +17,7 @@ if ! command -v "$EXECUTABLE" > /dev/null; then
   make install
 
   if ! command -v "$EXECUTABLE"; then
-    echo "dymension binary not found in $PATH"
+    echo "dymension binary $EXECUTABLE not found in $PATH"
     exit 1
   fi
 fi
@@ -114,7 +114,7 @@ if [ ! "$answer" != "${answer#[Nn]}" ] ;then
   # Add genesis accounts and provide coins to the accounts
   "$EXECUTABLE" add-genesis-account "$(dymd keys show pools --keyring-backend test -a)" 1000000000000000000000000adym,10000000000uatom,500000000000uusd
   # Give some uatom to the local-user as well
-  "$EXECUTABLE" add-genesis-account "$(dymd keys show user --keyring-backend test -a)" 1000000000000000000000adym,10000000000uatom
+  "$EXECUTABLE" add-genesis-account $(dymd keys show user --keyring-backend test -a) 1000000000000000000000000adym,10000000000uatom
 fi
 
 echo "$MNEMONIC" | "$EXECUTABLE" keys add "$KEY_NAME" --recover --keyring-backend test
