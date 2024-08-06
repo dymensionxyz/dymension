@@ -34,7 +34,7 @@ func CmdQueryResolveDymNameAddress() *cobra.Command {
 			}
 
 			if res == nil || len(res.ResolvedAddresses) == 0 {
-				return fmt.Errorf("no result, maybe not configured or expired")
+				return fmt.Errorf("no result found for the provided Dym-Name addresses. They might not be configured or might have expired")
 			}
 
 			for i, resolvedAddress := range res.ResolvedAddresses {

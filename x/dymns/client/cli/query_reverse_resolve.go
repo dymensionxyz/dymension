@@ -42,7 +42,7 @@ func CmdQueryReverseResolveDymNameAddress() *cobra.Command {
 			}
 
 			if res == nil || len(res.Result) == 0 {
-				return fmt.Errorf("no result, maybe not configured or expired")
+				return fmt.Errorf("no result found for the provided Dym-Name addresses. They might not be configured or might have expired")
 			}
 
 			fmt.Println("Working chain-id:", res.WorkingChainId)

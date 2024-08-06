@@ -81,7 +81,9 @@ func CmdQueryBuyOrder() *cobra.Command {
 			}
 
 			for _, offer := range offers {
-				return clientCtx.PrintProto(&offer)
+				if err := clientCtx.PrintProto(&offer); err != nil {
+					return err
+				}
 			}
 
 			return nil

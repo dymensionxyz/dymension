@@ -61,7 +61,7 @@ func (k Keeper) GetAllBuyOffers(ctx sdk.Context) (list []dymnstypes.BuyOffer) {
 
 // GetBuyOffer retrieves the Buy-Order from the KVStore.
 func (k Keeper) GetBuyOffer(ctx sdk.Context, offerId string) *dymnstypes.BuyOffer {
-	if !dymnstypes.IsValidBuyOfferId(offerId) { // TODO DymNS: remove this check or remove this comment
+	if !dymnstypes.IsValidBuyOfferId(offerId) {
 		panic("invalid Buy-Offer ID")
 	}
 

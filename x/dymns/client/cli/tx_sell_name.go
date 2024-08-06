@@ -45,8 +45,14 @@ func NewPlaceDymNameSellOrderTxCmd() *cobra.Command {
 				return fmt.Errorf("input Dym-Name '%s' is not a valid Dym-Name", dymName)
 			}
 
-			minPriceDym, _ := cmd.Flags().GetUint64(flagMinPrice)
-			sellPriceDym, _ := cmd.Flags().GetUint64(flagImmediatelySellPrice)
+			minPriceDym, err := cmd.Flags().GetUint64(flagMinPrice)
+			if err != nil {
+				return fmt.Errorf("error reading flag --%s: %v", flagMinPrice, err)
+			}
+			sellPriceDym, err := cmd.Flags().GetUint64(flagImmediatelySellPrice)
+			if err != nil {
+				return fmt.Errorf("error reading flag --%s: %v", flagImmediatelySellPrice, err)
+			}
 
 			if minPriceDym < 1 {
 				return fmt.Errorf("--%s must be a positive number", flagMinPrice)
