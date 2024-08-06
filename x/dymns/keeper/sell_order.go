@@ -148,8 +148,8 @@ func (k Keeper) MoveSellOrderToHistorical(ctx sdk.Context,
 
 // SetHistoricalSellOrders store the Historical Sell-Orders of the corresponding Dym-Name/Alias into the KVStore.
 func (k Keeper) SetHistoricalSellOrders(ctx sdk.Context,
-	goodsId string, orderType dymnstypes.OrderType, hSo dymnstypes.HistoricalSellOrders) {
-
+	goodsId string, orderType dymnstypes.OrderType, hSo dymnstypes.HistoricalSellOrders,
+) {
 	store := ctx.KVStore(k.storeKey)
 	hSoKey := dymnstypes.HistoricalSellOrdersKey(goodsId, orderType)
 	bz := k.cdc.MustMarshal(&hSo)

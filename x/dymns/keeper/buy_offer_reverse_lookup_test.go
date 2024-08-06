@@ -11,13 +11,12 @@ import (
 )
 
 func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
-	// TODO DymNS: add test for Sell/Buy Alias
-
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 	buyer1a := testAddr(1).bech32()
 	buyer2a := testAddr(2).bech32()
-	someoneA := testAddr(3).bech32()
+	buyer3a := testAddr(3).bech32()
+	someoneA := testAddr(4).bech32()
 
 	require.Error(
 		t,
@@ -51,9 +50,10 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 	require.NoError(t, err)
 
 	offer2 := dymnstypes.BuyOffer{
-		Id:                     "102",
-		GoodsId:                "b",
-		Type:                   dymnstypes.NameOrder,
+		Id:                     "202",
+		GoodsId:                "alias",
+		Type:                   dymnstypes.AliasOrder,
+		Params:                 []string{"rollapp_1-1"},
 		Buyer:                  buyer2a,
 		OfferPrice:             dymnsutils.TestCoin(1),
 		CounterpartyOfferPrice: nil,
@@ -72,6 +72,19 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 	}
 	require.NoError(t, dk.SetBuyOffer(ctx, offer3))
 	err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, buyer2a, offer3.Id)
+	require.NoError(t, err)
+
+	offer4 := dymnstypes.BuyOffer{
+		Id:                     "204",
+		GoodsId:                "salas",
+		Type:                   dymnstypes.AliasOrder,
+		Params:                 []string{"rollapp_2-2"},
+		Buyer:                  buyer3a,
+		OfferPrice:             dymnsutils.TestCoin(1),
+		CounterpartyOfferPrice: nil,
+	}
+	require.NoError(t, dk.SetBuyOffer(ctx, offer4))
+	err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, buyer3a, offer4.Id)
 	require.NoError(t, err)
 
 	require.NoError(
@@ -97,6 +110,10 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 	require.NotEqual(t, 3, len(placedBy2), "should not include non-existing offers")
 	require.Len(t, placedBy2, 2)
 
+	placedBy3, err3 := dk.GetBuyOffersByBuyer(ctx, buyer3a)
+	require.NoError(t, err3)
+	require.Len(t, placedBy3, 1)
+
 	placedByNonExists, err3 := dk.GetDymNamesOwnedBy(ctx, someoneA)
 	require.NoError(t, err3)
 	require.Len(t, placedByNonExists, 0)
@@ -106,14 +123,17 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 		dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, buyer2a, offer1.Id),
 		"no error if offer placed by another buyer",
 	)
+	require.NoError(
+		t,
+		dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, buyer2a, offer4.Id),
+		"no error if offer placed by another buyer",
+	)
 	placedBy2, err2 = dk.GetBuyOffersByBuyer(ctx, buyer2a)
 	require.NoError(t, err2)
 	require.Len(t, placedBy2, 2, "should not include offers placed by another buyer")
 }
 
 func TestKeeper_RemoveReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
-	// TODO DymNS: add test for Sell/Buy Alias
-
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 	buyerA := testAddr(1).bech32()
@@ -133,7 +153,7 @@ func TestKeeper_RemoveReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 
 	offer1 := dymnstypes.BuyOffer{
 		Id:                     "101",
-		GoodsId:                "a",
+		GoodsId:                "my-name",
 		Type:                   dymnstypes.NameOrder,
 		Buyer:                  buyerA,
 		OfferPrice:             dymnsutils.TestCoin(1),
@@ -143,9 +163,10 @@ func TestKeeper_RemoveReverseMappingBuyerToPlacedBuyOffer(t *testing.T) {
 	require.NoError(t, dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, buyerA, offer1.Id))
 
 	offer2 := dymnstypes.BuyOffer{
-		Id:                     "102",
-		GoodsId:                "b",
-		Type:                   dymnstypes.NameOrder,
+		Id:                     "202",
+		GoodsId:                "alias",
+		Type:                   dymnstypes.AliasOrder,
+		Params:                 []string{"rollapp_1-1"},
 		Buyer:                  buyerA,
 		OfferPrice:             dymnsutils.TestCoin(1),
 		CounterpartyOfferPrice: nil,

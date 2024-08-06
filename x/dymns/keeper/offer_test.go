@@ -1,10 +1,12 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
@@ -13,6 +15,10 @@ import (
 
 func TestKeeper_RefundOffer(t *testing.T) {
 	buyerA := testAddr(1).bech32()
+
+	supportedOrderTypes := []dymnstypes.OrderType{
+		dymnstypes.NameOrder, dymnstypes.AliasOrder,
+	}
 
 	tests := []struct {
 		name                     string
@@ -66,67 +72,73 @@ func TestKeeper_RefundOffer(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
+		for _, orderType := range supportedOrderTypes {
+			t.Run(fmt.Sprintf("%s (%s)", tt.name, orderType.FriendlyString()), func(t *testing.T) {
+				dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
 
-			if !tt.fundModuleAccountBalance.IsNil() {
-				if !tt.fundModuleAccountBalance.IsZero() {
-					err := bk.MintCoins(ctx, dymnstypes.ModuleName, sdk.Coins{tt.fundModuleAccountBalance})
-					require.NoError(t, err)
+				if !tt.fundModuleAccountBalance.IsNil() {
+					if !tt.fundModuleAccountBalance.IsZero() {
+						err := bk.MintCoins(ctx, dymnstypes.ModuleName, sdk.Coins{tt.fundModuleAccountBalance})
+						require.NoError(t, err)
+					}
 				}
-			}
 
-			// TODO DymNS: add test for alias
-
-			offer := dymnstypes.BuyOffer{
-				Id:         "101",
-				GoodsId:    "a",
-				Type:       dymnstypes.NameOrder,
-				Buyer:      tt.refundToAccount,
-				OfferPrice: tt.refundAmount,
-			}
-
-			var err error
-			if tt.genesis {
-				err = dk.GenesisRefundOffer(ctx, offer)
-			} else {
-				err = dk.RefundOffer(ctx, offer)
-			}
-
-			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
-				return
-			}
-
-			require.NoError(t, err)
-
-			laterBidderBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(tt.refundToAccount), params.BaseDenom)
-			require.Equal(t, tt.refundAmount.Amount.BigInt(), laterBidderBalance.Amount.BigInt())
-
-			laterDymNsModuleBalance := bk.GetBalance(ctx, dymNsModuleAccAddr, params.BaseDenom)
-			if tt.genesis {
-				require.True(t, laterDymNsModuleBalance.IsZero())
-			} else {
-				require.Equal(t, tt.fundModuleAccountBalance.Sub(tt.refundAmount).Amount.BigInt(), laterDymNsModuleBalance.Amount.BigInt())
-			}
-
-			// event should be fired
-			events := ctx.EventManager().Events()
-			require.NotEmpty(t, events)
-
-			var found bool
-			for _, event := range events {
-				if event.Type == dymnstypes.EventTypeBoRefundOffer {
-					found = true
-					break
+				var orderParams []string
+				if orderType == dymnstypes.AliasOrder {
+					orderParams = []string{"rollapp_1-1"}
 				}
-			}
 
-			if !found {
-				t.Errorf("event %s not found", dymnstypes.EventTypeBoRefundOffer)
-			}
-		})
+				offer := dymnstypes.BuyOffer{
+					Id:         dymnstypes.CreateBuyOfferId(orderType, 1),
+					GoodsId:    "goods",
+					Type:       orderType,
+					Params:     orderParams,
+					Buyer:      tt.refundToAccount,
+					OfferPrice: tt.refundAmount,
+				}
+
+				var err error
+				if tt.genesis {
+					err = dk.GenesisRefundOffer(ctx, offer)
+				} else {
+					err = dk.RefundOffer(ctx, offer)
+				}
+
+				if tt.wantErr {
+					require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
+					require.Error(t, err)
+					require.Contains(t, err.Error(), tt.wantErrContains)
+					return
+				}
+
+				require.NoError(t, err)
+
+				laterBidderBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(tt.refundToAccount), params.BaseDenom)
+				require.Equal(t, tt.refundAmount.Amount.BigInt(), laterBidderBalance.Amount.BigInt())
+
+				laterDymNsModuleBalance := bk.GetBalance(ctx, dymNsModuleAccAddr, params.BaseDenom)
+				if tt.genesis {
+					require.True(t, laterDymNsModuleBalance.IsZero())
+				} else {
+					require.Equal(t, tt.fundModuleAccountBalance.Sub(tt.refundAmount).Amount.BigInt(), laterDymNsModuleBalance.Amount.BigInt())
+				}
+
+				// event should be fired
+				events := ctx.EventManager().Events()
+				require.NotEmpty(t, events)
+
+				var found bool
+				for _, event := range events {
+					if event.Type == dymnstypes.EventTypeBoRefundOffer {
+						found = true
+						break
+					}
+				}
+
+				if !found {
+					t.Errorf("event %s not found", dymnstypes.EventTypeBoRefundOffer)
+				}
+			})
+		}
 	}
 }

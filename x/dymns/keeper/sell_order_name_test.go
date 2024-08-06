@@ -2,6 +2,9 @@ package keeper_test
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
@@ -9,8 +12,6 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
@@ -344,6 +345,88 @@ func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 			require.Equal(t, buyerOriginalBalance, laterBuyerBalance.Amount.Int64(), "buyer balance should not be changed")
 		})
 	}
+
+	t.Run("if buyer is owner, can still process", func(t *testing.T) {
+		dk, bk, ctx := setupTest()
+
+		const ownerOriginalBalance = 100
+		const moduleAccountOriginalBalance = 1000
+		const offerValue = 300
+
+		err := bk.MintCoins(ctx,
+			dymnstypes.ModuleName,
+			dymnsutils.TestCoins(ownerOriginalBalance+moduleAccountOriginalBalance),
+		)
+		require.NoError(t, err)
+		err = bk.SendCoinsFromModuleToAccount(ctx,
+			dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(ownerA),
+			dymnsutils.TestCoins(ownerOriginalBalance),
+		)
+		require.NoError(t, err)
+
+		dymName := dymnstypes.DymName{
+			Name:       "a",
+			Owner:      ownerA,
+			Controller: testAddr(3).bech32(),
+			ExpireAt:   now.Unix() + 1,
+			Contact:    contactEmail,
+		}
+		require.NotEqual(t, ownerA, dymName.Controller, "bad setup")
+		setDymNameWithFunctionsAfter(ctx, dymName, t, dk)
+
+		so := dymnstypes.SellOrder{
+			GoodsId:   dymName.Name,
+			Type:      dymnstypes.NameOrder,
+			ExpireAt:  now.Unix() + 1,
+			MinPrice:  dymnsutils.TestCoin(100),
+			SellPrice: dymnsutils.TestCoinP(offerValue),
+			HighestBid: &dymnstypes.SellOrderBid{
+				Bidder: ownerA,
+				Price:  dymnsutils.TestCoin(offerValue),
+			},
+		}
+
+		err = dk.SetSellOrder(ctx, so)
+		require.NoError(t, err)
+
+		err = dk.CompleteDymNameSellOrder(ctx, dymName.Name)
+		require.NoError(t, err)
+
+		// Dym-Name should be updated as normal
+		laterDymName := dk.GetDymName(ctx, dymName.Name)
+		require.NotNil(t, laterDymName)
+		require.Equal(t, ownerA, laterDymName.Owner, "ownership should be kept because buyer and owner is the same")
+		require.Equal(t, ownerA, laterDymName.Controller, "controller should be changed to owner as standard")
+		require.Empty(t, laterDymName.Configs, "configs should be cleared")
+		require.Empty(t, laterDymName.Contact, "contact should be cleared")
+
+		// owner receives the offer amount because owner also the buyer
+		laterOwnerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(ownerA), params.BaseDenom)
+		require.Equal(t, int64(offerValue+ownerOriginalBalance), laterOwnerBalance.Amount.Int64())
+
+		// reverse records should be kept
+		laterDymNamesOwnedByOwner, err := dk.GetDymNamesOwnedBy(ctx, ownerA)
+		require.NoError(t, err)
+		require.Len(t, laterDymNamesOwnedByOwner, 1)
+		require.Equal(t, dymName.Name, laterDymNamesOwnedByOwner[0].Name)
+
+		laterConfiguredAddressOwnerDymNames, err := dk.GetDymNamesContainsConfiguredAddress(ctx, ownerA)
+		require.NoError(t, err)
+		require.Len(t, laterConfiguredAddressOwnerDymNames, 1)
+		require.Equal(t, dymName.Name, laterConfiguredAddressOwnerDymNames[0].Name)
+
+		laterFallbackAddressOwnerDymNames, err := dk.GetDymNamesContainsFallbackAddress(ctx, sdk.MustAccAddressFromBech32(ownerA).Bytes())
+		require.NoError(t, err)
+		require.Len(t, laterFallbackAddressOwnerDymNames, 1)
+		require.Equal(t, dymName.Name, laterFallbackAddressOwnerDymNames[0].Name)
+
+		// SO records should be processed as normal
+		laterSo := dk.GetSellOrder(ctx, dymName.Name, dymnstypes.NameOrder)
+		require.Nil(t, laterSo, "SO should be deleted")
+
+		historicalSo := dk.GetHistoricalSellOrders(ctx, dymName.Name, dymnstypes.NameOrder)
+		require.Len(t, historicalSo, 1, "SO should be moved to historical")
+	})
 }
 
 func TestKeeper_GetMinExpiryOfAllHistoricalDymNameSellOrders(t *testing.T) {

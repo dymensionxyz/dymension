@@ -34,18 +34,39 @@ func TestGenesisState_Validate(t *testing.T) {
 			},
 			SellOrderBids: []SellOrderBid{
 				{
+					// this bid from a SO of type Dym-Name
 					Bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 					Price: sdk.Coin{
 						Denom:  params.BaseDenom,
 						Amount: sdk.OneInt(),
 					},
 				},
+				{
+					// this bid from a SO of type Alias
+					Bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+					Price: sdk.Coin{
+						Denom:  params.BaseDenom,
+						Amount: sdk.OneInt(),
+					},
+					Params: []string{"rollapp_1-1"},
+				},
 			},
 			BuyOffers: []BuyOffer{
 				{
 					Id:      "101",
-					GoodsId: "a",
-					Type:    NameOrder, // TODO DymNS: add test case for Alias
+					GoodsId: "my-name",
+					Type:    NameOrder,
+					Buyer:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+					OfferPrice: sdk.Coin{
+						Denom:  params.BaseDenom,
+						Amount: sdk.OneInt(),
+					},
+				},
+				{
+					Id:      "202",
+					GoodsId: "alias",
+					Type:    AliasOrder,
+					Params:  []string{"rollapp_1-1"},
 					Buyer:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 					OfferPrice: sdk.Coin{
 						Denom:  params.BaseDenom,
