@@ -2,7 +2,9 @@ package keeper
 
 import (
 	"context"
+	"slices"
 	"strconv"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -33,21 +35,26 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, types.ErrRollappJailed
 	}
 
-	// Only the initial sequencer can be the first to register, and is automatically selected as the first proposer,
-	// allowing the Rollapp to be sealed (provided that all the immutable fields are set in the Rollapp).
+	// In case InitialSequencer is set to one or more bech32 addresses, only one of them can be the first to register,
+	// and is automatically selected as the first proposer, allowing the Rollapp to be sealed
+	// (provided that all the immutable fields are set in the Rollapp).
 	// This limitation prevents scenarios such as:
-	// a) any non-initial sequencer getting registered before the immutable fields are set in the Rollapp.
+	// a) any unintended initial sequencer getting registered before the immutable fields are set in the Rollapp.
 	// b) situation when sequencer "X" is registered prior to the initial sequencer,
 	// after which the initial sequencer's address is set to sequencer X's address, effectively preventing:
 	// 	1. the initial sequencer from getting selected as the first proposer,
 	// 	2. the rollapp from getting sealed
-	isInitial := msg.Creator == rollapp.InitialSequencerAddress
-	if isInitial {
-		if err := k.rollappKeeper.SealRollapp(ctx, msg.RollappId); err != nil {
-			return nil, err
+	// In case the InitialSequencer is set to the "*" wildcard, any sequencer can be the first to register.
+	isInitialOrAllAllowed := slices.Contains(strings.Split(rollapp.InitialSequencer, ","), msg.Creator) || rollapp.InitialSequencer == "*"
+
+	if !rollapp.Sealed {
+		if isInitialOrAllAllowed {
+			if err := k.rollappKeeper.SealRollapp(ctx, msg.RollappId); err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, types.ErrNotInitialSequencer
 		}
-	} else if !rollapp.Sealed {
-		return nil, types.ErrNotInitialSequencer
 	}
 
 	bond := sdk.Coins{}
@@ -78,7 +85,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		RollappId:    msg.RollappId,
 		Metadata:     msg.Metadata,
 		Status:       types.Bonded,
-		Proposer:     isInitial,
+		Proposer:     !rollapp.Sealed,
 		Tokens:       bond,
 	}
 

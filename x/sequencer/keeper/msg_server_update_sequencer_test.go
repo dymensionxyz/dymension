@@ -132,9 +132,9 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 
 			goCtx := sdk.WrapSDKContext(suite.Ctx)
 			rollapp := rollapptypes.Rollapp{
-				RollappId:               "rollapp_1234-1",
-				Creator:                 addr.String(),
-				InitialSequencerAddress: addr.String(),
+				RollappId:        "rollapp_1234-1",
+				Creator:          addr.String(),
+				InitialSequencer: addr.String(),
 			}
 
 			suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
