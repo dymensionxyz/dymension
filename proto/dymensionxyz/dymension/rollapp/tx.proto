@@ -50,9 +50,9 @@ message MsgUpdateRollappInformation {
   string creator = 1;
   // rollapp_id is the unique identifier of the rollapp chain.
   string rollapp_id = 2;
-  // initial_sequencer_address is a bech32-encoded address of the
+  // initial_sequencer is a bech32-encoded address of the
   // sequencer that is allowed to initially serve this rollappId.
-  string initial_sequencer_address = 3;
+  string initial_sequencer = 3;
   // alias is the chain alias used for display and namespace system
   string alias = 4;
   // checksum used to verify integrity
