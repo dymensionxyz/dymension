@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -79,10 +78,9 @@ func (s *RollappTestSuite) keeper() *keeper.Keeper {
 	return s.App.RollappKeeper
 }
 
-func (s *RollappTestSuite) nextBlock(dt time.Duration) {
+func (s *RollappTestSuite) nextBlock() {
 	h := s.Ctx.BlockHeight()
-	t := s.Ctx.BlockTime()
-	s.Ctx = s.Ctx.WithBlockHeight(h + 1).WithBlockTime(t.Add(dt))
+	s.Ctx = s.Ctx.WithBlockHeight(h + 1)
 }
 
 func TestRollappKeeperTestSuite(t *testing.T) {

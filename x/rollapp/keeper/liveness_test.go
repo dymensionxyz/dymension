@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"slices"
 	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
@@ -137,8 +136,7 @@ func TestLivenessFlow(t *testing.T) {
 			},
 			"hub end blocks": func(r *rapid.T) {
 				for range rapid.IntRange(0, 100).Draw(r, "num blocks") {
-					dt := rapid.IntRange(6, 60*60*24*7).Draw(r, "dt seconds")
-					s.nextBlock(time.Duration(dt))
+					s.nextBlock()
 				}
 			},
 		})
