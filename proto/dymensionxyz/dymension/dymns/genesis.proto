@@ -4,8 +4,7 @@ package dymensionxyz.dymension.dymns;
 import "gogoproto/gogo.proto";
 import "dymensionxyz/dymension/dymns/params.proto";
 import "dymensionxyz/dymension/dymns/dym_name.proto";
-import "dymensionxyz/dymension/dymns/sell_order.proto";
-import "dymensionxyz/dymension/dymns/buy_offer.proto";
+import "dymensionxyz/dymension/dymns/market.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 

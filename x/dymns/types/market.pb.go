@@ -5,9 +5,12 @@ package types
 
 import (
 	fmt "fmt"
+	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
+	io "io"
 	math "math"
+	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -50,8 +53,480 @@ func (OrderType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_ddf761d4919b968f, []int{0}
 }
 
+// SellOrder defines a sell order, placed by owner, to sell a Dym-Name/Alias.
+// Sell-Order has an expiry date.
+// After expiry date, if no one has placed a bid, this Sell-Order will be closed, no change.
+// If there is a bid, the highest bid will win, and the Dym-Name/Alias ownership will be transferred to the winner.
+// If the bid matches the sell price, the Dym-Name/Alias ownership will be transferred to the bidder immediately.
+// SO will be moved to historical records after completion/expiry.
+type SellOrder struct {
+	// goods_id is the Dym-Name/Alias being opened to be sold.
+	GoodsId string `protobuf:"bytes,1,opt,name=goods_id,json=goodsId,proto3" json:"goods_id,omitempty"`
+	// type of the order, is Dym-Name or Alias.
+	Type OrderType `protobuf:"varint,2,opt,name=type,proto3,enum=dymensionxyz.dymension.dymns.OrderType" json:"type,omitempty"`
+	// expire_at is the last effective date of this SO
+	ExpireAt int64 `protobuf:"varint,3,opt,name=expire_at,json=expireAt,proto3" json:"expire_at,omitempty"`
+	// min_price is the minimum price that the owner is willing to accept for the goods.
+	MinPrice types.Coin `protobuf:"bytes,4,opt,name=min_price,json=minPrice,proto3" json:"min_price"`
+	// sell_price is the price that the owner is willing to sell the Dym-Name/Alias for,
+	// the SO will be closed when the price is met.
+	// If the sell price is zero, the SO will be closed when the expire_at is reached and the highest bidder wins.
+	SellPrice *types.Coin `protobuf:"bytes,5,opt,name=sell_price,json=sellPrice,proto3" json:"sell_price,omitempty"`
+	// highest_bid is the highest bid on the SO, if any. Price must be greater than or equal to the min_price.
+	HighestBid *SellOrderBid `protobuf:"bytes,6,opt,name=highest_bid,json=highestBid,proto3" json:"highest_bid,omitempty"`
+}
+
+func (m *SellOrder) Reset()         { *m = SellOrder{} }
+func (m *SellOrder) String() string { return proto.CompactTextString(m) }
+func (*SellOrder) ProtoMessage()    {}
+func (*SellOrder) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ddf761d4919b968f, []int{0}
+}
+func (m *SellOrder) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SellOrder) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SellOrder.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SellOrder) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SellOrder.Merge(m, src)
+}
+func (m *SellOrder) XXX_Size() int {
+	return m.Size()
+}
+func (m *SellOrder) XXX_DiscardUnknown() {
+	xxx_messageInfo_SellOrder.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SellOrder proto.InternalMessageInfo
+
+func (m *SellOrder) GetGoodsId() string {
+	if m != nil {
+		return m.GoodsId
+	}
+	return ""
+}
+
+func (m *SellOrder) GetType() OrderType {
+	if m != nil {
+		return m.Type
+	}
+	return OrderType_OT_UNKNOWN
+}
+
+func (m *SellOrder) GetExpireAt() int64 {
+	if m != nil {
+		return m.ExpireAt
+	}
+	return 0
+}
+
+func (m *SellOrder) GetMinPrice() types.Coin {
+	if m != nil {
+		return m.MinPrice
+	}
+	return types.Coin{}
+}
+
+func (m *SellOrder) GetSellPrice() *types.Coin {
+	if m != nil {
+		return m.SellPrice
+	}
+	return nil
+}
+
+func (m *SellOrder) GetHighestBid() *SellOrderBid {
+	if m != nil {
+		return m.HighestBid
+	}
+	return nil
+}
+
+// ActiveSellOrdersExpiration contains list of active SOs, store expiration date mapped by goods identity.
+// Used by hook to find out expired SO instead of iterating through all records.
+type ActiveSellOrdersExpiration struct {
+	Records []ActiveSellOrdersExpirationRecord `protobuf:"bytes,1,rep,name=records,proto3" json:"records"`
+}
+
+func (m *ActiveSellOrdersExpiration) Reset()         { *m = ActiveSellOrdersExpiration{} }
+func (m *ActiveSellOrdersExpiration) String() string { return proto.CompactTextString(m) }
+func (*ActiveSellOrdersExpiration) ProtoMessage()    {}
+func (*ActiveSellOrdersExpiration) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ddf761d4919b968f, []int{1}
+}
+func (m *ActiveSellOrdersExpiration) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ActiveSellOrdersExpiration) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ActiveSellOrdersExpiration.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ActiveSellOrdersExpiration) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ActiveSellOrdersExpiration.Merge(m, src)
+}
+func (m *ActiveSellOrdersExpiration) XXX_Size() int {
+	return m.Size()
+}
+func (m *ActiveSellOrdersExpiration) XXX_DiscardUnknown() {
+	xxx_messageInfo_ActiveSellOrdersExpiration.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ActiveSellOrdersExpiration proto.InternalMessageInfo
+
+func (m *ActiveSellOrdersExpiration) GetRecords() []ActiveSellOrdersExpirationRecord {
+	if m != nil {
+		return m.Records
+	}
+	return nil
+}
+
+// ActiveSellOrdersExpirationRecord contains the expiration date of an active Sell-Order.
+type ActiveSellOrdersExpirationRecord struct {
+	// goods_id is the Dym-Name/Alias being opened to be sold.
+	GoodsId string `protobuf:"bytes,1,opt,name=goods_id,json=goodsId,proto3" json:"goods_id,omitempty"`
+	// expire_at is the last effective date of this Sell-Order.
+	ExpireAt int64 `protobuf:"varint,2,opt,name=expire_at,json=expireAt,proto3" json:"expire_at,omitempty"`
+}
+
+func (m *ActiveSellOrdersExpirationRecord) Reset()         { *m = ActiveSellOrdersExpirationRecord{} }
+func (m *ActiveSellOrdersExpirationRecord) String() string { return proto.CompactTextString(m) }
+func (*ActiveSellOrdersExpirationRecord) ProtoMessage()    {}
+func (*ActiveSellOrdersExpirationRecord) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ddf761d4919b968f, []int{2}
+}
+func (m *ActiveSellOrdersExpirationRecord) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ActiveSellOrdersExpirationRecord) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ActiveSellOrdersExpirationRecord.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ActiveSellOrdersExpirationRecord) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ActiveSellOrdersExpirationRecord.Merge(m, src)
+}
+func (m *ActiveSellOrdersExpirationRecord) XXX_Size() int {
+	return m.Size()
+}
+func (m *ActiveSellOrdersExpirationRecord) XXX_DiscardUnknown() {
+	xxx_messageInfo_ActiveSellOrdersExpirationRecord.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ActiveSellOrdersExpirationRecord proto.InternalMessageInfo
+
+func (m *ActiveSellOrdersExpirationRecord) GetGoodsId() string {
+	if m != nil {
+		return m.GoodsId
+	}
+	return ""
+}
+
+func (m *ActiveSellOrdersExpirationRecord) GetExpireAt() int64 {
+	if m != nil {
+		return m.ExpireAt
+	}
+	return 0
+}
+
+// SellOrderBid defines a bid placed by an account on a Sell-Order.
+type SellOrderBid struct {
+	// bidder is the account address of the account which placed the bid.
+	Bidder string `protobuf:"bytes,1,opt,name=bidder,proto3" json:"bidder,omitempty"`
+	// price is the amount of coin offered by the bidder.
+	Price types.Coin `protobuf:"bytes,2,opt,name=price,proto3" json:"price"`
+	// params is the list of parameters of the bid.
+	// It is empty for order type Dym-Name.
+	// It has one element for order type Alias, which is the rollapp_id to assigned for.
+	Params []string `protobuf:"bytes,3,rep,name=params,proto3" json:"params,omitempty"`
+}
+
+func (m *SellOrderBid) Reset()         { *m = SellOrderBid{} }
+func (m *SellOrderBid) String() string { return proto.CompactTextString(m) }
+func (*SellOrderBid) ProtoMessage()    {}
+func (*SellOrderBid) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ddf761d4919b968f, []int{3}
+}
+func (m *SellOrderBid) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SellOrderBid) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SellOrderBid.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SellOrderBid) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SellOrderBid.Merge(m, src)
+}
+func (m *SellOrderBid) XXX_Size() int {
+	return m.Size()
+}
+func (m *SellOrderBid) XXX_DiscardUnknown() {
+	xxx_messageInfo_SellOrderBid.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SellOrderBid proto.InternalMessageInfo
+
+func (m *SellOrderBid) GetBidder() string {
+	if m != nil {
+		return m.Bidder
+	}
+	return ""
+}
+
+func (m *SellOrderBid) GetPrice() types.Coin {
+	if m != nil {
+		return m.Price
+	}
+	return types.Coin{}
+}
+
+func (m *SellOrderBid) GetParams() []string {
+	if m != nil {
+		return m.Params
+	}
+	return nil
+}
+
+// HistoricalSellOrders contains list of closed Sell-Orders of the same goods.
+type HistoricalSellOrders struct {
+	// sell_orders is list of closed Sell-Orders of the same goods.
+	SellOrders []SellOrder `protobuf:"bytes,1,rep,name=sell_orders,json=sellOrders,proto3" json:"sell_orders"`
+}
+
+func (m *HistoricalSellOrders) Reset()         { *m = HistoricalSellOrders{} }
+func (m *HistoricalSellOrders) String() string { return proto.CompactTextString(m) }
+func (*HistoricalSellOrders) ProtoMessage()    {}
+func (*HistoricalSellOrders) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ddf761d4919b968f, []int{4}
+}
+func (m *HistoricalSellOrders) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *HistoricalSellOrders) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_HistoricalSellOrders.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *HistoricalSellOrders) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HistoricalSellOrders.Merge(m, src)
+}
+func (m *HistoricalSellOrders) XXX_Size() int {
+	return m.Size()
+}
+func (m *HistoricalSellOrders) XXX_DiscardUnknown() {
+	xxx_messageInfo_HistoricalSellOrders.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_HistoricalSellOrders proto.InternalMessageInfo
+
+func (m *HistoricalSellOrders) GetSellOrders() []SellOrder {
+	if m != nil {
+		return m.SellOrders
+	}
+	return nil
+}
+
+// BuyOffer defines an offer to buy a Dym-Name/Alias, placed by buyer.
+// Buyer will need to deposit the offer amount to the module account.
+// When the owner of the Dym-Name/Alias accepts the offer, deposited amount will be transferred to the owner.
+// When the buyer cancels the offer, deposited amount will be refunded to the buyer.
+type BuyOffer struct {
+	// id is the unique identifier of the offer. Generated by the module.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// goods_id of the Dym-Name/Alias willing to buy.
+	GoodsId string `protobuf:"bytes,2,opt,name=goods_id,json=goodsId,proto3" json:"goods_id,omitempty"`
+	// type of the order, is Dym-Name or Alias
+	Type OrderType `protobuf:"varint,3,opt,name=type,proto3,enum=dymensionxyz.dymension.dymns.OrderType" json:"type,omitempty"`
+	// params is the list of parameters of the offer.
+	// It is empty for order type Dym-Name.
+	// It has one element for order type Alias, which is the rollapp_id to assigned for.
+	Params []string `protobuf:"bytes,4,rep,name=params,proto3" json:"params,omitempty"`
+	// buyer is bech32 address of the account which placed the offer.
+	Buyer string `protobuf:"bytes,5,opt,name=buyer,proto3" json:"buyer,omitempty"`
+	// offer_price is the amount of coins that buyer willing to pay for the goods.
+	// This amount is deposited to the module account upon placing the offer.
+	OfferPrice types.Coin `protobuf:"bytes,6,opt,name=offer_price,json=offerPrice,proto3" json:"offer_price"`
+	// counterparty_offer_price is the price that the Dym-Name/Alias owner is willing to sell for.
+	// This is used for counterparty price negotiation and for information only.
+	// The transaction can only be executed when the owner accepts the offer with exact offer_price.
+	CounterpartyOfferPrice *types.Coin `protobuf:"bytes,7,opt,name=counterparty_offer_price,json=counterpartyOfferPrice,proto3" json:"counterparty_offer_price,omitempty"`
+}
+
+func (m *BuyOffer) Reset()         { *m = BuyOffer{} }
+func (m *BuyOffer) String() string { return proto.CompactTextString(m) }
+func (*BuyOffer) ProtoMessage()    {}
+func (*BuyOffer) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ddf761d4919b968f, []int{5}
+}
+func (m *BuyOffer) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *BuyOffer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_BuyOffer.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *BuyOffer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_BuyOffer.Merge(m, src)
+}
+func (m *BuyOffer) XXX_Size() int {
+	return m.Size()
+}
+func (m *BuyOffer) XXX_DiscardUnknown() {
+	xxx_messageInfo_BuyOffer.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_BuyOffer proto.InternalMessageInfo
+
+func (m *BuyOffer) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *BuyOffer) GetGoodsId() string {
+	if m != nil {
+		return m.GoodsId
+	}
+	return ""
+}
+
+func (m *BuyOffer) GetType() OrderType {
+	if m != nil {
+		return m.Type
+	}
+	return OrderType_OT_UNKNOWN
+}
+
+func (m *BuyOffer) GetParams() []string {
+	if m != nil {
+		return m.Params
+	}
+	return nil
+}
+
+func (m *BuyOffer) GetBuyer() string {
+	if m != nil {
+		return m.Buyer
+	}
+	return ""
+}
+
+func (m *BuyOffer) GetOfferPrice() types.Coin {
+	if m != nil {
+		return m.OfferPrice
+	}
+	return types.Coin{}
+}
+
+func (m *BuyOffer) GetCounterpartyOfferPrice() *types.Coin {
+	if m != nil {
+		return m.CounterpartyOfferPrice
+	}
+	return nil
+}
+
+// ReverseLookupOfferIds contains a list of offer-ids for reverse lookup.
+type ReverseLookupOfferIds struct {
+	// offer_ids is a list of offer-ids of the Buy-Offers linked to the reverse-lookup record.
+	OfferIds []string `protobuf:"bytes,1,rep,name=offer_ids,json=offerIds,proto3" json:"offer_ids,omitempty"`
+}
+
+func (m *ReverseLookupOfferIds) Reset()         { *m = ReverseLookupOfferIds{} }
+func (m *ReverseLookupOfferIds) String() string { return proto.CompactTextString(m) }
+func (*ReverseLookupOfferIds) ProtoMessage()    {}
+func (*ReverseLookupOfferIds) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ddf761d4919b968f, []int{6}
+}
+func (m *ReverseLookupOfferIds) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ReverseLookupOfferIds) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ReverseLookupOfferIds.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ReverseLookupOfferIds) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReverseLookupOfferIds.Merge(m, src)
+}
+func (m *ReverseLookupOfferIds) XXX_Size() int {
+	return m.Size()
+}
+func (m *ReverseLookupOfferIds) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReverseLookupOfferIds.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReverseLookupOfferIds proto.InternalMessageInfo
+
+func (m *ReverseLookupOfferIds) GetOfferIds() []string {
+	if m != nil {
+		return m.OfferIds
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterEnum("dymensionxyz.dymension.dymns.OrderType", OrderType_name, OrderType_value)
+	proto.RegisterType((*SellOrder)(nil), "dymensionxyz.dymension.dymns.SellOrder")
+	proto.RegisterType((*ActiveSellOrdersExpiration)(nil), "dymensionxyz.dymension.dymns.ActiveSellOrdersExpiration")
+	proto.RegisterType((*ActiveSellOrdersExpirationRecord)(nil), "dymensionxyz.dymension.dymns.ActiveSellOrdersExpirationRecord")
+	proto.RegisterType((*SellOrderBid)(nil), "dymensionxyz.dymension.dymns.SellOrderBid")
+	proto.RegisterType((*HistoricalSellOrders)(nil), "dymensionxyz.dymension.dymns.HistoricalSellOrders")
+	proto.RegisterType((*BuyOffer)(nil), "dymensionxyz.dymension.dymns.BuyOffer")
+	proto.RegisterType((*ReverseLookupOfferIds)(nil), "dymensionxyz.dymension.dymns.ReverseLookupOfferIds")
 }
 
 func init() {
@@ -59,18 +534,1629 @@ func init() {
 }
 
 var fileDescriptor_ddf761d4919b968f = []byte{
-	// 200 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xd2, 0x4c, 0xa9, 0xcc, 0x4d,
-	0xcd, 0x2b, 0xce, 0xcc, 0xcf, 0xab, 0xa8, 0xac, 0xd2, 0x87, 0x73, 0x40, 0xac, 0xbc, 0x62, 0xfd,
-	0xdc, 0xc4, 0xa2, 0xec, 0xd4, 0x12, 0xbd, 0x82, 0xa2, 0xfc, 0x92, 0x7c, 0x21, 0x19, 0x64, 0xa5,
-	0x7a, 0x70, 0x8e, 0x1e, 0x58, 0xa9, 0x94, 0x48, 0x7a, 0x7e, 0x7a, 0x3e, 0x58, 0xa1, 0x3e, 0x88,
-	0x05, 0xd1, 0xa3, 0x65, 0xc5, 0xc5, 0xe9, 0x5f, 0x94, 0x92, 0x5a, 0x14, 0x52, 0x59, 0x90, 0x2a,
-	0xc4, 0xc7, 0xc5, 0xe5, 0x1f, 0x12, 0x1f, 0xea, 0xe7, 0xed, 0xe7, 0x1f, 0xee, 0x27, 0xc0, 0x20,
-	0xc4, 0xcf, 0xc5, 0xed, 0x1f, 0x12, 0xef, 0x12, 0xe9, 0x1b, 0xef, 0xe7, 0xe8, 0xeb, 0x2a, 0xc0,
-	0x28, 0xc4, 0xc3, 0xc5, 0xe1, 0x1f, 0x12, 0xef, 0xe8, 0xe3, 0xe9, 0x18, 0x2c, 0xc0, 0xe4, 0xe4,
-	0x73, 0xe2, 0x91, 0x1c, 0xe3, 0x85, 0x47, 0x72, 0x8c, 0x0f, 0x1e, 0xc9, 0x31, 0x4e, 0x78, 0x2c,
-	0xc7, 0x70, 0xe1, 0xb1, 0x1c, 0xc3, 0x8d, 0xc7, 0x72, 0x0c, 0x51, 0x46, 0xe9, 0x99, 0x25, 0x19,
-	0xa5, 0x49, 0x7a, 0xc9, 0xf9, 0xb9, 0xfa, 0x38, 0xdc, 0x5f, 0x66, 0xac, 0x5f, 0x01, 0xf5, 0x44,
-	0x49, 0x65, 0x41, 0x6a, 0x71, 0x12, 0x1b, 0xd8, 0x41, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff,
-	0x26, 0xcf, 0x4f, 0x82, 0xf1, 0x00, 0x00, 0x00,
+	// 658 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x54, 0x5f, 0x4f, 0xd3, 0x50,
+	0x14, 0x5f, 0xbb, 0x31, 0xd6, 0x33, 0x82, 0xe4, 0x06, 0x49, 0x41, 0x33, 0x9b, 0xbe, 0x30, 0x79,
+	0x68, 0xc3, 0xd0, 0xc4, 0xa8, 0x31, 0x6e, 0x4a, 0x22, 0x01, 0x56, 0x53, 0x66, 0x8c, 0x3c, 0xd8,
+	0xf4, 0xcf, 0x65, 0xdc, 0xb0, 0xf6, 0x36, 0xf7, 0x76, 0x0b, 0x35, 0x7e, 0x08, 0xbf, 0x8d, 0x9f,
+	0xc0, 0x84, 0x47, 0x1e, 0x7d, 0x32, 0x06, 0xbe, 0x88, 0xe9, 0x6d, 0x2d, 0x23, 0x91, 0x41, 0x7c,
+	0xeb, 0xe9, 0x3d, 0xbf, 0xdf, 0x3d, 0xe7, 0xf7, 0x3b, 0xf7, 0xc0, 0xe3, 0x20, 0x0d, 0x71, 0xc4,
+	0x09, 0x8d, 0x4e, 0xd3, 0x2f, 0x66, 0x19, 0x64, 0x5f, 0x11, 0x37, 0x43, 0x97, 0x9d, 0xe0, 0xc4,
+	0x88, 0x19, 0x4d, 0x28, 0x7a, 0x38, 0x9d, 0x6a, 0x94, 0x81, 0x21, 0x52, 0xd7, 0x96, 0x87, 0x74,
+	0x48, 0x45, 0xa2, 0x99, 0x7d, 0xe5, 0x98, 0xb5, 0x96, 0x4f, 0x79, 0x48, 0xb9, 0xe9, 0xb9, 0x1c,
+	0x9b, 0x93, 0x4d, 0x0f, 0x27, 0xee, 0xa6, 0xe9, 0x53, 0x12, 0xe5, 0xe7, 0xfa, 0x0f, 0x19, 0x94,
+	0x03, 0x3c, 0x1a, 0x59, 0x2c, 0xc0, 0x0c, 0xad, 0x42, 0x63, 0x48, 0x69, 0xc0, 0x1d, 0x12, 0xa8,
+	0x92, 0x26, 0xb5, 0x15, 0x7b, 0x5e, 0xc4, 0x3b, 0x01, 0x7a, 0x01, 0xb5, 0x24, 0x8d, 0xb1, 0x2a,
+	0x6b, 0x52, 0x7b, 0xb1, 0xb3, 0x6e, 0xcc, 0xaa, 0xc5, 0x10, 0x6c, 0x83, 0x34, 0xc6, 0xb6, 0x00,
+	0xa1, 0x07, 0xa0, 0xe0, 0xd3, 0x98, 0x30, 0xec, 0xb8, 0x89, 0x5a, 0xd5, 0xa4, 0x76, 0xd5, 0x6e,
+	0xe4, 0x3f, 0xba, 0x09, 0x7a, 0x09, 0x4a, 0x48, 0x22, 0x27, 0x66, 0xc4, 0xc7, 0x6a, 0x4d, 0x93,
+	0xda, 0xcd, 0xce, 0xaa, 0x91, 0x97, 0x6d, 0x64, 0x65, 0x1b, 0x45, 0xd9, 0xc6, 0x1b, 0x4a, 0xa2,
+	0x5e, 0xed, 0xec, 0xd7, 0xa3, 0x8a, 0xdd, 0x08, 0x49, 0xf4, 0x3e, 0x03, 0xa0, 0x67, 0x00, 0x1c,
+	0x8f, 0x46, 0x05, 0x7c, 0xee, 0x16, 0xb8, 0xad, 0x64, 0xc9, 0x39, 0x72, 0x17, 0x9a, 0xc7, 0x64,
+	0x78, 0x8c, 0x79, 0xe2, 0x78, 0x24, 0x50, 0xeb, 0x02, 0xba, 0x31, 0xbb, 0xb1, 0x52, 0xaa, 0x1e,
+	0x09, 0x6c, 0x28, 0xe0, 0x3d, 0x12, 0xe8, 0x5f, 0x61, 0xad, 0xeb, 0x27, 0x64, 0x82, 0xcb, 0x0c,
+	0xbe, 0x9d, 0x35, 0xe8, 0x26, 0x84, 0x46, 0xe8, 0x33, 0xcc, 0x33, 0xec, 0x53, 0x16, 0x70, 0x55,
+	0xd2, 0xaa, 0xed, 0x66, 0xe7, 0xd5, 0xec, 0x6b, 0x6e, 0xa6, 0xb2, 0x05, 0x4d, 0xa1, 0xc2, 0x5f,
+	0x52, 0xfd, 0x10, 0xb4, 0xdb, 0x20, 0xb3, 0xbc, 0xbd, 0x66, 0x8f, 0x7c, 0xdd, 0x1e, 0x7d, 0x0c,
+	0x0b, 0xd3, 0x5d, 0xa3, 0x15, 0xa8, 0x7b, 0x24, 0x08, 0x30, 0x2b, 0x58, 0x8a, 0x08, 0x3d, 0x85,
+	0xb9, 0xdc, 0x03, 0xf9, 0x6e, 0x16, 0xe6, 0xd9, 0x19, 0x5d, 0xec, 0x32, 0x37, 0xe4, 0x6a, 0x55,
+	0xab, 0x66, 0x74, 0x79, 0xa4, 0x1f, 0xc1, 0xf2, 0x3b, 0xc2, 0x13, 0xca, 0x88, 0xef, 0x8e, 0xae,
+	0xda, 0x42, 0x7d, 0x68, 0x0a, 0xbf, 0xa9, 0x08, 0x0b, 0x39, 0xd7, 0xef, 0xea, 0x5a, 0x7e, 0xb5,
+	0x98, 0x98, 0x9c, 0x4f, 0xff, 0x2e, 0x43, 0xa3, 0x37, 0x4e, 0xad, 0xa3, 0x23, 0xcc, 0xd0, 0x22,
+	0xc8, 0xa5, 0x3a, 0x32, 0xb9, 0xae, 0x99, 0xfc, 0xef, 0xf7, 0x50, 0xfd, 0x9f, 0xf7, 0x70, 0xd5,
+	0x74, 0x6d, 0xba, 0x69, 0xb4, 0x0c, 0x73, 0xde, 0x38, 0xc5, 0x4c, 0xcc, 0xb1, 0x62, 0xe7, 0x01,
+	0x7a, 0x0d, 0x4d, 0x9a, 0x95, 0x57, 0xcc, 0x78, 0xfd, 0x6e, 0xfa, 0x82, 0xc0, 0xe4, 0xa3, 0x7e,
+	0x00, 0xaa, 0x4f, 0xc7, 0x51, 0x82, 0x59, 0xec, 0xb2, 0x24, 0x75, 0xa6, 0xe9, 0xe6, 0x6f, 0x7b,
+	0x32, 0x2b, 0xd3, 0x50, 0xab, 0x24, 0xd5, 0x9f, 0xc0, 0x7d, 0x1b, 0x4f, 0x30, 0xe3, 0x78, 0x8f,
+	0xd2, 0x93, 0x71, 0x2c, 0x8e, 0x76, 0x02, 0x9e, 0x8d, 0x53, 0x7e, 0x01, 0x29, 0xe6, 0x5d, 0xb1,
+	0x1b, 0xb4, 0x38, 0xdc, 0x78, 0x0e, 0x4a, 0xa9, 0x06, 0x5a, 0x04, 0xb0, 0x06, 0xce, 0x87, 0xfe,
+	0x6e, 0xdf, 0xfa, 0xd8, 0x5f, 0xaa, 0xa0, 0x7b, 0xd0, 0xb4, 0x06, 0xce, 0xdb, 0x4f, 0xfb, 0x4e,
+	0xbf, 0xbb, 0xbf, 0xbd, 0x24, 0xa1, 0x05, 0x68, 0x58, 0x03, 0xa7, 0xbb, 0xb7, 0xd3, 0x3d, 0x58,
+	0x92, 0x7b, 0x7b, 0x67, 0x17, 0x2d, 0xe9, 0xfc, 0xa2, 0x25, 0xfd, 0xbe, 0x68, 0x49, 0xdf, 0x2e,
+	0x5b, 0x95, 0xf3, 0xcb, 0x56, 0xe5, 0xe7, 0x65, 0xab, 0x72, 0xd8, 0x19, 0x92, 0xe4, 0x78, 0xec,
+	0x19, 0x3e, 0x0d, 0xcd, 0x1b, 0x16, 0xea, 0x64, 0xcb, 0x3c, 0x2d, 0xb6, 0x6a, 0xe6, 0x01, 0xf7,
+	0xea, 0x62, 0x03, 0x6e, 0xfd, 0x09, 0x00, 0x00, 0xff, 0xff, 0xdf, 0x9f, 0x19, 0x98, 0x82, 0x05,
+	0x00, 0x00,
 }
+
+func (m *SellOrder) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SellOrder) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SellOrder) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.HighestBid != nil {
+		{
+			size, err := m.HighestBid.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintMarket(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x32
+	}
+	if m.SellPrice != nil {
+		{
+			size, err := m.SellPrice.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintMarket(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x2a
+	}
+	{
+		size, err := m.MinPrice.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintMarket(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	if m.ExpireAt != 0 {
+		i = encodeVarintMarket(dAtA, i, uint64(m.ExpireAt))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Type != 0 {
+		i = encodeVarintMarket(dAtA, i, uint64(m.Type))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.GoodsId) > 0 {
+		i -= len(m.GoodsId)
+		copy(dAtA[i:], m.GoodsId)
+		i = encodeVarintMarket(dAtA, i, uint64(len(m.GoodsId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ActiveSellOrdersExpiration) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ActiveSellOrdersExpiration) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ActiveSellOrdersExpiration) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Records) > 0 {
+		for iNdEx := len(m.Records) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Records[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintMarket(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ActiveSellOrdersExpirationRecord) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ActiveSellOrdersExpirationRecord) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ActiveSellOrdersExpirationRecord) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.ExpireAt != 0 {
+		i = encodeVarintMarket(dAtA, i, uint64(m.ExpireAt))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.GoodsId) > 0 {
+		i -= len(m.GoodsId)
+		copy(dAtA[i:], m.GoodsId)
+		i = encodeVarintMarket(dAtA, i, uint64(len(m.GoodsId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SellOrderBid) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SellOrderBid) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SellOrderBid) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Params) > 0 {
+		for iNdEx := len(m.Params) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Params[iNdEx])
+			copy(dAtA[i:], m.Params[iNdEx])
+			i = encodeVarintMarket(dAtA, i, uint64(len(m.Params[iNdEx])))
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	{
+		size, err := m.Price.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintMarket(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if len(m.Bidder) > 0 {
+		i -= len(m.Bidder)
+		copy(dAtA[i:], m.Bidder)
+		i = encodeVarintMarket(dAtA, i, uint64(len(m.Bidder)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *HistoricalSellOrders) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *HistoricalSellOrders) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *HistoricalSellOrders) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.SellOrders) > 0 {
+		for iNdEx := len(m.SellOrders) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.SellOrders[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintMarket(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *BuyOffer) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *BuyOffer) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *BuyOffer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.CounterpartyOfferPrice != nil {
+		{
+			size, err := m.CounterpartyOfferPrice.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintMarket(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x3a
+	}
+	{
+		size, err := m.OfferPrice.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintMarket(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x32
+	if len(m.Buyer) > 0 {
+		i -= len(m.Buyer)
+		copy(dAtA[i:], m.Buyer)
+		i = encodeVarintMarket(dAtA, i, uint64(len(m.Buyer)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.Params) > 0 {
+		for iNdEx := len(m.Params) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Params[iNdEx])
+			copy(dAtA[i:], m.Params[iNdEx])
+			i = encodeVarintMarket(dAtA, i, uint64(len(m.Params[iNdEx])))
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if m.Type != 0 {
+		i = encodeVarintMarket(dAtA, i, uint64(m.Type))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.GoodsId) > 0 {
+		i -= len(m.GoodsId)
+		copy(dAtA[i:], m.GoodsId)
+		i = encodeVarintMarket(dAtA, i, uint64(len(m.GoodsId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Id) > 0 {
+		i -= len(m.Id)
+		copy(dAtA[i:], m.Id)
+		i = encodeVarintMarket(dAtA, i, uint64(len(m.Id)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ReverseLookupOfferIds) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ReverseLookupOfferIds) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ReverseLookupOfferIds) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.OfferIds) > 0 {
+		for iNdEx := len(m.OfferIds) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.OfferIds[iNdEx])
+			copy(dAtA[i:], m.OfferIds[iNdEx])
+			i = encodeVarintMarket(dAtA, i, uint64(len(m.OfferIds[iNdEx])))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func encodeVarintMarket(dAtA []byte, offset int, v uint64) int {
+	offset -= sovMarket(v)
+	base := offset
+	for v >= 1<<7 {
+		dAtA[offset] = uint8(v&0x7f | 0x80)
+		v >>= 7
+		offset++
+	}
+	dAtA[offset] = uint8(v)
+	return base
+}
+func (m *SellOrder) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.GoodsId)
+	if l > 0 {
+		n += 1 + l + sovMarket(uint64(l))
+	}
+	if m.Type != 0 {
+		n += 1 + sovMarket(uint64(m.Type))
+	}
+	if m.ExpireAt != 0 {
+		n += 1 + sovMarket(uint64(m.ExpireAt))
+	}
+	l = m.MinPrice.Size()
+	n += 1 + l + sovMarket(uint64(l))
+	if m.SellPrice != nil {
+		l = m.SellPrice.Size()
+		n += 1 + l + sovMarket(uint64(l))
+	}
+	if m.HighestBid != nil {
+		l = m.HighestBid.Size()
+		n += 1 + l + sovMarket(uint64(l))
+	}
+	return n
+}
+
+func (m *ActiveSellOrdersExpiration) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Records) > 0 {
+		for _, e := range m.Records {
+			l = e.Size()
+			n += 1 + l + sovMarket(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *ActiveSellOrdersExpirationRecord) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.GoodsId)
+	if l > 0 {
+		n += 1 + l + sovMarket(uint64(l))
+	}
+	if m.ExpireAt != 0 {
+		n += 1 + sovMarket(uint64(m.ExpireAt))
+	}
+	return n
+}
+
+func (m *SellOrderBid) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Bidder)
+	if l > 0 {
+		n += 1 + l + sovMarket(uint64(l))
+	}
+	l = m.Price.Size()
+	n += 1 + l + sovMarket(uint64(l))
+	if len(m.Params) > 0 {
+		for _, s := range m.Params {
+			l = len(s)
+			n += 1 + l + sovMarket(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *HistoricalSellOrders) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.SellOrders) > 0 {
+		for _, e := range m.SellOrders {
+			l = e.Size()
+			n += 1 + l + sovMarket(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *BuyOffer) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Id)
+	if l > 0 {
+		n += 1 + l + sovMarket(uint64(l))
+	}
+	l = len(m.GoodsId)
+	if l > 0 {
+		n += 1 + l + sovMarket(uint64(l))
+	}
+	if m.Type != 0 {
+		n += 1 + sovMarket(uint64(m.Type))
+	}
+	if len(m.Params) > 0 {
+		for _, s := range m.Params {
+			l = len(s)
+			n += 1 + l + sovMarket(uint64(l))
+		}
+	}
+	l = len(m.Buyer)
+	if l > 0 {
+		n += 1 + l + sovMarket(uint64(l))
+	}
+	l = m.OfferPrice.Size()
+	n += 1 + l + sovMarket(uint64(l))
+	if m.CounterpartyOfferPrice != nil {
+		l = m.CounterpartyOfferPrice.Size()
+		n += 1 + l + sovMarket(uint64(l))
+	}
+	return n
+}
+
+func (m *ReverseLookupOfferIds) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.OfferIds) > 0 {
+		for _, s := range m.OfferIds {
+			l = len(s)
+			n += 1 + l + sovMarket(uint64(l))
+		}
+	}
+	return n
+}
+
+func sovMarket(x uint64) (n int) {
+	return (math_bits.Len64(x|1) + 6) / 7
+}
+func sozMarket(x uint64) (n int) {
+	return sovMarket(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+}
+func (m *SellOrder) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMarket
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SellOrder: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SellOrder: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GoodsId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.GoodsId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
+			}
+			m.Type = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Type |= OrderType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExpireAt", wireType)
+			}
+			m.ExpireAt = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ExpireAt |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MinPrice", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MinPrice.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SellPrice", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.SellPrice == nil {
+				m.SellPrice = &types.Coin{}
+			}
+			if err := m.SellPrice.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field HighestBid", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.HighestBid == nil {
+				m.HighestBid = &SellOrderBid{}
+			}
+			if err := m.HighestBid.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMarket(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ActiveSellOrdersExpiration) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMarket
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ActiveSellOrdersExpiration: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ActiveSellOrdersExpiration: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Records", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Records = append(m.Records, ActiveSellOrdersExpirationRecord{})
+			if err := m.Records[len(m.Records)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMarket(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ActiveSellOrdersExpirationRecord) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMarket
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ActiveSellOrdersExpirationRecord: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ActiveSellOrdersExpirationRecord: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GoodsId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.GoodsId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExpireAt", wireType)
+			}
+			m.ExpireAt = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ExpireAt |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMarket(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SellOrderBid) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMarket
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SellOrderBid: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SellOrderBid: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Bidder", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Bidder = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Price", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Price.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Params", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Params = append(m.Params, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMarket(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *HistoricalSellOrders) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMarket
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: HistoricalSellOrders: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: HistoricalSellOrders: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SellOrders", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SellOrders = append(m.SellOrders, SellOrder{})
+			if err := m.SellOrders[len(m.SellOrders)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMarket(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *BuyOffer) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMarket
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: BuyOffer: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: BuyOffer: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Id = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GoodsId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.GoodsId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
+			}
+			m.Type = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Type |= OrderType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Params", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Params = append(m.Params, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Buyer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Buyer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OfferPrice", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.OfferPrice.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CounterpartyOfferPrice", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.CounterpartyOfferPrice == nil {
+				m.CounterpartyOfferPrice = &types.Coin{}
+			}
+			if err := m.CounterpartyOfferPrice.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMarket(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ReverseLookupOfferIds) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMarket
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ReverseLookupOfferIds: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ReverseLookupOfferIds: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OfferIds", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMarket
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OfferIds = append(m.OfferIds, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMarket(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMarket
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func skipMarket(dAtA []byte) (n int, err error) {
+	l := len(dAtA)
+	iNdEx := 0
+	depth := 0
+	for iNdEx < l {
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return 0, ErrIntOverflowMarket
+			}
+			if iNdEx >= l {
+				return 0, io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		wireType := int(wire & 0x7)
+		switch wireType {
+		case 0:
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return 0, ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return 0, io.ErrUnexpectedEOF
+				}
+				iNdEx++
+				if dAtA[iNdEx-1] < 0x80 {
+					break
+				}
+			}
+		case 1:
+			iNdEx += 8
+		case 2:
+			var length int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return 0, ErrIntOverflowMarket
+				}
+				if iNdEx >= l {
+					return 0, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				length |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if length < 0 {
+				return 0, ErrInvalidLengthMarket
+			}
+			iNdEx += length
+		case 3:
+			depth++
+		case 4:
+			if depth == 0 {
+				return 0, ErrUnexpectedEndOfGroupMarket
+			}
+			depth--
+		case 5:
+			iNdEx += 4
+		default:
+			return 0, fmt.Errorf("proto: illegal wireType %d", wireType)
+		}
+		if iNdEx < 0 {
+			return 0, ErrInvalidLengthMarket
+		}
+		if depth == 0 {
+			return iNdEx, nil
+		}
+	}
+	return 0, io.ErrUnexpectedEOF
+}
+
+var (
+	ErrInvalidLengthMarket        = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowMarket          = fmt.Errorf("proto: integer overflow")
+	ErrUnexpectedEndOfGroupMarket = fmt.Errorf("proto: unexpected end of group")
+)
