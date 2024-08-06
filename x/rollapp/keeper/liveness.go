@@ -118,6 +118,7 @@ func (k Keeper) GetLivenessEvents(ctx sdk.Context, height *int64) []types.Livene
 
 	ret := []types.LivenessEvent{}
 	for ; iterator.Valid(); iterator.Next() {
+		// events are stored in height non-decreasing order
 		e := types.LivenessEventQueueKeyToEvent(iterator.Key())
 		if height != nil && *height < e.HubHeight {
 			break
