@@ -10,10 +10,10 @@ import (
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return types.NewParams(
 		k.DisputePeriodInBlocks(ctx),
+		k.RegistrationFee(ctx),
 		k.LivenessSlashBlocks(ctx),
 		k.LivenessSlashInterval(ctx),
 		k.LivenessJailBlocks(ctx),
-		k.RegistrationFee(ctx),
 	)
 }
 
