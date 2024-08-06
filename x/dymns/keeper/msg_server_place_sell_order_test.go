@@ -94,7 +94,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 		{
 			name: "fail - existing active SO, not finished",
 			existingSo: &dymnstypes.SellOrder{
-				Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				Type:      dymnstypes.NameOrder,
 				ExpireAt:  now.Add(time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
@@ -106,7 +106,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 		{
 			name: "fail - existing active SO, expired",
 			existingSo: &dymnstypes.SellOrder{
-				Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				Type:      dymnstypes.NameOrder,
 				ExpireAt:  now.Add(-1 * time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
@@ -118,7 +118,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 		{
 			name: "fail - existing active SO, not expired, completed",
 			existingSo: &dymnstypes.SellOrder{
-				Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				Type:      dymnstypes.NameOrder,
 				ExpireAt:  now.Add(time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
@@ -134,7 +134,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 		{
 			name: "fail - existing active SO, expired, completed",
 			existingSo: &dymnstypes.SellOrder{
-				Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				Type:      dymnstypes.NameOrder,
 				ExpireAt:  now.Add(-1 * time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
@@ -220,7 +220,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 			}
 			msg := &dymnstypes.MsgPlaceSellOrder{
 				GoodsId:   name,
-				OrderType: dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				OrderType: dymnstypes.NameOrder,
 				MinPrice:  tt.minPrice,
 				SellPrice: tt.sellPrice,
 				Owner:     useOwner,
@@ -251,7 +251,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 
 				require.Nil(t, resp)
 
-				so := dk.GetSellOrder(ctx, name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
+				so := dk.GetSellOrder(ctx, name, dymnstypes.NameOrder)
 				if tt.existingSo != nil {
 					require.NotNil(t, so)
 					require.Equal(t, *tt.existingSo, *so)
@@ -269,12 +269,12 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 
-			so := dk.GetSellOrder(ctx, name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
+			so := dk.GetSellOrder(ctx, name, dymnstypes.NameOrder)
 			require.NotNil(t, so)
 
 			expectedSo := dymnstypes.SellOrder{
 				GoodsId:    name,
-				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				Type:       dymnstypes.NameOrder,
 				ExpireAt:   ctx.BlockTime().Add(moduleParams.Misc.SellOrderDuration).Unix(),
 				MinPrice:   msg.MinPrice,
 				SellPrice:  msg.SellPrice,
@@ -293,7 +293,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 				"should consume params gas",
 			)
 
-			aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.MarketOrderType_MOT_DYM_NAME)
+			aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.NameOrder)
 
 			var found bool
 			for _, record := range aSoe.Records {

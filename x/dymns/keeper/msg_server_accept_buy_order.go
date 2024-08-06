@@ -73,7 +73,7 @@ func (k msgServer) validateAcceptOffer(ctx sdk.Context, msg *dymnstypes.MsgAccep
 		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Order: %s", msg.OfferId)
 	}
 
-	if bo.Type != dymnstypes.MarketOrderType_MOT_DYM_NAME {
+	if bo.Type != dymnstypes.NameOrder {
 		panic(errorsmod.Wrapf(gerrc.ErrInternal, "not yet supported Buy-Order type: %s", bo.Type))
 	}
 

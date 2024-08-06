@@ -128,38 +128,38 @@ func FallbackAddressToDymNamesIncludeRvlKey(fallbackAddr FallbackAddress) []byte
 }
 
 // SellOrderKey returns a key for the active Sell-Order of the Dym-Name/Alias
-func SellOrderKey(goodsId string, orderType MarketOrderType) []byte {
+func SellOrderKey(goodsId string, orderType OrderType) []byte {
 	switch orderType {
-	case MarketOrderType_MOT_DYM_NAME:
+	case NameOrder:
 		return append(KeyPrefixDymNameSellOrder, []byte(goodsId)...)
-	case MarketOrderType_MOT_ALIAS:
+	case AliasOrder:
 		return append(KeyPrefixAliasSellOrder, []byte(goodsId)...)
 	default:
-		panic("invalid order type: " + orderType.String())
+		panic("invalid order type: " + orderType.FriendlyString())
 	}
 }
 
 // HistoricalSellOrdersKey returns a key for the historical Sell-Orders of the Dym-Name/Alias
-func HistoricalSellOrdersKey(goodsId string, orderType MarketOrderType) []byte {
+func HistoricalSellOrdersKey(goodsId string, orderType OrderType) []byte {
 	switch orderType {
-	case MarketOrderType_MOT_DYM_NAME:
+	case NameOrder:
 		return append(KeyPrefixDymNameHistoricalSellOrders, []byte(goodsId)...)
-	case MarketOrderType_MOT_ALIAS:
+	case AliasOrder:
 		return append(KeyPrefixAliasHistoricalSellOrders, []byte(goodsId)...)
 	default:
-		panic("invalid order type: " + orderType.String())
+		panic("invalid order type: " + orderType.FriendlyString())
 	}
 }
 
 // MinExpiryHistoricalSellOrdersKey returns a key for lowest expiry among the historical Sell-Orders of the Dym-Name/Alias
-func MinExpiryHistoricalSellOrdersKey(goodsId string, orderType MarketOrderType) []byte {
+func MinExpiryHistoricalSellOrdersKey(goodsId string, orderType OrderType) []byte {
 	switch orderType {
-	case MarketOrderType_MOT_DYM_NAME:
+	case NameOrder:
 		return append(KeyPrefixMinExpiryDymNameHistoricalSellOrders, []byte(goodsId)...)
-	case MarketOrderType_MOT_ALIAS:
+	case AliasOrder:
 		return append(KeyPrefixMinExpiryAliasHistoricalSellOrders, []byte(goodsId)...)
 	default:
-		panic("invalid order type: " + orderType.String())
+		panic("invalid order type: " + orderType.FriendlyString())
 	}
 }
 

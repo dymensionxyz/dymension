@@ -68,7 +68,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	so1 := dymnstypes.SellOrder{
 		GoodsId:   dymName1.Name,
-		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:      dymnstypes.NameOrder,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(300),
@@ -81,7 +81,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	so2 := dymnstypes.SellOrder{
 		GoodsId:   dymName2.Name,
-		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:      dymnstypes.NameOrder,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(900),
@@ -94,7 +94,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	so3 := dymnstypes.SellOrder{
 		GoodsId:   dymName3Expired.Name,
-		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:      dymnstypes.NameOrder,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(200),
@@ -103,7 +103,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	so4 := dymnstypes.SellOrder{
 		GoodsId:   "alias",
-		Type:      dymnstypes.MarketOrderType_MOT_ALIAS,
+		Type:      dymnstypes.AliasOrder,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(900),
@@ -116,7 +116,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	so5 := dymnstypes.SellOrder{
 		GoodsId:  "cosmos",
-		Type:     dymnstypes.MarketOrderType_MOT_ALIAS,
+		Type:     dymnstypes.AliasOrder,
 		ExpireAt: 1,
 		MinPrice: dymnsutils.TestCoin(100),
 	}
@@ -125,7 +125,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	offer1 := dymnstypes.BuyOffer{
 		Id:         "101",
 		GoodsId:    dymName1.Name,
-		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:       dymnstypes.NameOrder,
 		Buyer:      buyer1,
 		OfferPrice: dymnsutils.TestCoin(100),
 	}
@@ -134,7 +134,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	offer2 := dymnstypes.BuyOffer{
 		Id:         "102",
 		GoodsId:    dymName2.Name,
-		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:       dymnstypes.NameOrder,
 		Buyer:      buyer2,
 		OfferPrice: dymnsutils.TestCoin(200),
 	}
@@ -143,7 +143,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	offer3OfExpired := dymnstypes.BuyOffer{
 		Id:         "103",
 		GoodsId:    dymName3Expired.Name,
-		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:       dymnstypes.NameOrder,
 		Buyer:      buyer3,
 		OfferPrice: dymnsutils.TestCoin(300),
 	}
@@ -152,7 +152,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	offer4 := dymnstypes.BuyOffer{
 		Id:         "204",
 		GoodsId:    "cosmos",
-		Type:       dymnstypes.MarketOrderType_MOT_ALIAS,
+		Type:       dymnstypes.AliasOrder,
 		Buyer:      buyer4,
 		OfferPrice: dymnsutils.TestCoin(333),
 	}
@@ -161,7 +161,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	offer5 := dymnstypes.BuyOffer{
 		Id:         "205",
 		GoodsId:    "alias",
-		Type:       dymnstypes.MarketOrderType_MOT_ALIAS,
+		Type:       dymnstypes.AliasOrder,
 		Buyer:      buyer5,
 		OfferPrice: dymnsutils.TestCoin(555),
 	}

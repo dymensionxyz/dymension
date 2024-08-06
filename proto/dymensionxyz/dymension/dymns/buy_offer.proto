@@ -19,7 +19,7 @@ message BuyOffer {
   string goods_id = 2;
 
   // type of the order, is Dym-Name or Alias
-  MarketOrderType type = 3;
+  OrderType type = 3;
 
   // buyer is bech32 address of the account which placed the offer.
   string buyer = 4;

@@ -33,7 +33,7 @@ func (m *BuyOffer) Validate() error {
 	}
 
 	switch m.Type {
-	case MarketOrderType_MOT_DYM_NAME:
+	case NameOrder:
 		if !strings.HasPrefix(m.Id, BuyOfferIdTypeDymNamePrefix) {
 			return errorsmod.Wrap(
 				gerrc.ErrInvalidArgument,
@@ -48,7 +48,7 @@ func (m *BuyOffer) Validate() error {
 		if !dymnsutils.IsValidDymName(m.GoodsId) {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of offer is not a valid dym name")
 		}
-	case MarketOrderType_MOT_ALIAS:
+	case AliasOrder:
 		if !strings.HasPrefix(m.Id, BuyOfferIdTypeAliasPrefix) {
 			return errorsmod.Wrap(
 				gerrc.ErrInvalidArgument,
@@ -111,7 +111,7 @@ func (m BuyOffer) GetSdkEvent(actionName string) sdk.Event {
 		EventTypeBuyOffer,
 		sdk.NewAttribute(AttributeKeyBoId, m.Id),
 		sdk.NewAttribute(AttributeKeyBoGoodsId, m.GoodsId),
-		sdk.NewAttribute(AttributeKeyBoType, m.Type.String()),
+		sdk.NewAttribute(AttributeKeyBoType, m.Type.FriendlyString()),
 		sdk.NewAttribute(AttributeKeyBoBuyer, m.Buyer),
 		sdk.NewAttribute(AttributeKeyBoOfferPrice, m.OfferPrice.String()),
 		attrCounterpartyOfferPrice,
@@ -136,12 +136,12 @@ func IsValidBuyOfferId(id string) bool {
 }
 
 // CreateBuyOfferId creates a new BuyOffer ID from the given parameters.
-func CreateBuyOfferId(_type MarketOrderType, i uint64) string {
+func CreateBuyOfferId(_type OrderType, i uint64) string {
 	var prefix string
 	switch _type {
-	case MarketOrderType_MOT_DYM_NAME:
+	case NameOrder:
 		prefix = BuyOfferIdTypeDymNamePrefix
-	case MarketOrderType_MOT_ALIAS:
+	case AliasOrder:
 		prefix = BuyOfferIdTypeAliasPrefix
 	default:
 		panic(fmt.Sprintf("unknown buy offer type: %d", _type))

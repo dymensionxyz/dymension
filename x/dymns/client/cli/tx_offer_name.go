@@ -78,7 +78,7 @@ func NewOfferBuyDymNameTxCmd() *cobra.Command {
 
 			msg := &dymnstypes.MsgPlaceBuyOrder{
 				GoodsId:         dymName,
-				OrderType:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				OrderType:       dymnstypes.NameOrder,
 				Buyer:           buyer,
 				ContinueOfferId: continueOfferId,
 				Offer: sdk.Coin{

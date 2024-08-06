@@ -95,9 +95,9 @@ func (e epochHooks) processCleanupHistoricalDymNameSellOrders(
 	sort.Strings(cleanupHistoricalForDymNames)
 
 	for _, dymName := range cleanupHistoricalForDymNames {
-		list := dk.GetHistoricalSellOrders(ctx, dymName, dymnstypes.MarketOrderType_MOT_DYM_NAME)
+		list := dk.GetHistoricalSellOrders(ctx, dymName, dymnstypes.NameOrder)
 		if len(list) < 1 {
-			dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.MarketOrderType_MOT_DYM_NAME, 0)
+			dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.NameOrder, 0)
 			continue
 		}
 
@@ -109,8 +109,8 @@ func (e epochHooks) processCleanupHistoricalDymNameSellOrders(
 		}
 
 		if len(keepList) == 0 {
-			dk.DeleteHistoricalSellOrders(ctx, dymName, dymnstypes.MarketOrderType_MOT_DYM_NAME)
-			dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.MarketOrderType_MOT_DYM_NAME, 0)
+			dk.DeleteHistoricalSellOrders(ctx, dymName, dymnstypes.NameOrder)
+			dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.NameOrder, 0)
 			continue
 		}
 
@@ -120,13 +120,13 @@ func (e epochHooks) processCleanupHistoricalDymNameSellOrders(
 				newMinExpiry = hso.ExpireAt
 			}
 		}
-		dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.MarketOrderType_MOT_DYM_NAME, newMinExpiry)
+		dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.NameOrder, newMinExpiry)
 
 		if len(keepList) != len(list) {
 			hso := dymnstypes.HistoricalSellOrders{
 				SellOrders: keepList,
 			}
-			dk.SetHistoricalSellOrders(ctx, dymName, dymnstypes.MarketOrderType_MOT_DYM_NAME, hso)
+			dk.SetHistoricalSellOrders(ctx, dymName, dymnstypes.NameOrder, hso)
 		}
 	}
 
@@ -173,7 +173,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	dk := e.Keeper
 
-	aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.MarketOrderType_MOT_DYM_NAME)
+	aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.NameOrder)
 	nowEpochUTC := ctx.BlockTime().Unix()
 	var finishedSOs []dymnstypes.SellOrder
 	if len(aSoe.Records) > 0 {
@@ -185,7 +185,7 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 				continue
 			}
 
-			so := dk.GetSellOrder(ctx, record.GoodsId, dymnstypes.MarketOrderType_MOT_DYM_NAME)
+			so := dk.GetSellOrder(ctx, record.GoodsId, dymnstypes.NameOrder)
 
 			if so == nil {
 				// remove the invalid entry
@@ -197,7 +197,7 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 				// invalid entry
 				dk.Logger(ctx).Error(
 					"DymNS hook After-Epoch-End: sell order has not finished",
-					"name", record.GoodsId, "order-type", dymnstypes.MarketOrderType_MOT_DYM_NAME.String(),
+					"name", record.GoodsId, "order-type", dymnstypes.NameOrder.FriendlyString(),
 					"expiry", record.ExpireAt, "now", nowEpochUTC,
 					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 				)
@@ -225,7 +225,7 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 
 	dk.Logger(ctx).Info(
 		"DymNS hook After-Epoch-End: processing finished SOs",
-		"order-type", dymnstypes.MarketOrderType_MOT_DYM_NAME.String(),
+		"order-type", dymnstypes.NameOrder.FriendlyString(),
 		"count", len(finishedSOs),
 		"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 	)
@@ -237,7 +237,7 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 			if err := dk.CompleteDymNameSellOrder(ctx, so.GoodsId); err != nil {
 				dk.Logger(ctx).Error(
 					"DymNS hook After-Epoch-End: failed to complete sell order",
-					"name", so.GoodsId, "order-type", dymnstypes.MarketOrderType_MOT_DYM_NAME.String(),
+					"name", so.GoodsId, "order-type", dymnstypes.NameOrder.FriendlyString(),
 					"expiry", so.ExpireAt, "now", nowEpochUTC,
 					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 					"error", err,
@@ -249,10 +249,10 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 
 		// no bid placed, it just a normal expiry without winner,
 		// in this case, just move to history
-		if err := dk.MoveSellOrderToHistorical(ctx, so.GoodsId, dymnstypes.MarketOrderType_MOT_DYM_NAME); err != nil {
+		if err := dk.MoveSellOrderToHistorical(ctx, so.GoodsId, dymnstypes.NameOrder); err != nil {
 			dk.Logger(ctx).Error(
 				"DymNS hook After-Epoch-End: failed to move expired sell order to historical",
-				"name", so.GoodsId, "order-type", dymnstypes.MarketOrderType_MOT_DYM_NAME.String(),
+				"name", so.GoodsId, "order-type", dymnstypes.NameOrder.FriendlyString(),
 				"expiry", so.ExpireAt, "now", nowEpochUTC,
 				"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 				"error", err,
@@ -261,10 +261,10 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 		}
 	}
 
-	if err := dk.SetActiveSellOrdersExpiration(ctx, aSoe, dymnstypes.MarketOrderType_MOT_DYM_NAME); err != nil {
+	if err := dk.SetActiveSellOrdersExpiration(ctx, aSoe, dymnstypes.NameOrder); err != nil {
 		dk.Logger(ctx).Error(
 			"DymNS hook After-Epoch-End: failed to update active SO expiry",
-			"order-type", dymnstypes.MarketOrderType_MOT_DYM_NAME.String(),
+			"order-type", dymnstypes.NameOrder.FriendlyString(),
 			"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 			"error", err,
 		)

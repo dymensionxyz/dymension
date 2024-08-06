@@ -20,13 +20,13 @@ func (k Keeper) CompleteDymNameSellOrder(ctx sdk.Context, name string) error {
 	// here we don't check Dym-Name expiration, because it can not happen,
 	// and there is a grace period for the owner to renew the Dym-Name in case bad things happen
 
-	so := k.GetSellOrder(ctx, name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
+	so := k.GetSellOrder(ctx, name, dymnstypes.NameOrder)
 	if so == nil {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", name)
 	}
 
-	if so.Type != dymnstypes.MarketOrderType_MOT_DYM_NAME {
-		panic(fmt.Sprintf("invalid call, only support type: %s", dymnstypes.MarketOrderType_MOT_DYM_NAME))
+	if so.Type != dymnstypes.NameOrder {
+		panic(fmt.Sprintf("invalid call, only support type: %s", dymnstypes.NameOrder))
 	}
 
 	if !so.HasFinishedAtCtx(ctx) {

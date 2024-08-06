@@ -32,7 +32,7 @@ func (k Keeper) SetSellOrder(ctx sdk.Context, so dymnstypes.SellOrder) error {
 // GetSellOrder retrieves active Sell-Order of the corresponding Dym-Name/Alias from the KVStore.
 // If the Sell-Order does not exist, nil is returned.
 func (k Keeper) GetSellOrder(ctx sdk.Context,
-	goodsId string, orderType dymnstypes.MarketOrderType,
+	goodsId string, orderType dymnstypes.OrderType,
 ) *dymnstypes.SellOrder {
 	store := ctx.KVStore(k.storeKey)
 	soKey := dymnstypes.SellOrderKey(goodsId, orderType)
@@ -49,7 +49,7 @@ func (k Keeper) GetSellOrder(ctx sdk.Context,
 }
 
 // DeleteSellOrder deletes the Sell-Order from the KVStore.
-func (k Keeper) DeleteSellOrder(ctx sdk.Context, goodsId string, orderType dymnstypes.MarketOrderType) {
+func (k Keeper) DeleteSellOrder(ctx sdk.Context, goodsId string, orderType dymnstypes.OrderType) {
 	so := k.GetSellOrder(ctx, goodsId, orderType)
 	if so == nil {
 		return
@@ -84,12 +84,12 @@ func (k Keeper) GetAllSellOrders(ctx sdk.Context) (list []dymnstypes.SellOrder) 
 // MoveSellOrderToHistorical moves the active Sell-Order record of the Dym-Name/Alias
 // into historical, and deletes the original record from KVStore.
 func (k Keeper) MoveSellOrderToHistorical(ctx sdk.Context,
-	goodsId string, orderType dymnstypes.MarketOrderType,
+	goodsId string, orderType dymnstypes.OrderType,
 ) error {
 	// find active record
 	so := k.GetSellOrder(ctx, goodsId, orderType)
 	if so == nil {
-		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s: %s", orderType, goodsId)
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s: %s", orderType.FriendlyString(), goodsId)
 	}
 
 	if so.HighestBid == nil {
@@ -144,7 +144,7 @@ func (k Keeper) MoveSellOrderToHistorical(ctx sdk.Context,
 
 // SetHistoricalSellOrders store the Historical Sell-Orders of the corresponding Dym-Name/Alias into the KVStore.
 func (k Keeper) SetHistoricalSellOrders(ctx sdk.Context,
-	goodsId string, orderType dymnstypes.MarketOrderType, hSo dymnstypes.HistoricalSellOrders) {
+	goodsId string, orderType dymnstypes.OrderType, hSo dymnstypes.HistoricalSellOrders) {
 
 	store := ctx.KVStore(k.storeKey)
 	hSoKey := dymnstypes.HistoricalSellOrdersKey(goodsId, orderType)
@@ -154,7 +154,7 @@ func (k Keeper) SetHistoricalSellOrders(ctx sdk.Context,
 
 // GetHistoricalSellOrders retrieves Historical Sell-Orders of the corresponding Dym-Name/Alias from the KVStore.
 func (k Keeper) GetHistoricalSellOrders(ctx sdk.Context,
-	goodsId string, orderType dymnstypes.MarketOrderType,
+	goodsId string, orderType dymnstypes.OrderType,
 ) []dymnstypes.SellOrder {
 	store := ctx.KVStore(k.storeKey)
 	hSoKey := dymnstypes.HistoricalSellOrdersKey(goodsId, orderType)
@@ -171,7 +171,7 @@ func (k Keeper) GetHistoricalSellOrders(ctx sdk.Context,
 }
 
 // DeleteHistoricalSellOrders deletes the Historical Sell-Orders of specific Dym-Name/Alias from the KVStore.
-func (k Keeper) DeleteHistoricalSellOrders(ctx sdk.Context, goodsId string, orderType dymnstypes.MarketOrderType) {
+func (k Keeper) DeleteHistoricalSellOrders(ctx sdk.Context, goodsId string, orderType dymnstypes.OrderType) {
 	store := ctx.KVStore(k.storeKey)
 	hSoKey := dymnstypes.HistoricalSellOrdersKey(goodsId, orderType)
 	store.Delete(hSoKey)
@@ -179,7 +179,7 @@ func (k Keeper) DeleteHistoricalSellOrders(ctx sdk.Context, goodsId string, orde
 
 // SetActiveSellOrdersExpiration stores the expiration of the active Sell-Orders records into the KVStore.
 func (k Keeper) SetActiveSellOrdersExpiration(ctx sdk.Context,
-	so *dymnstypes.ActiveSellOrdersExpiration, orderType dymnstypes.MarketOrderType,
+	so *dymnstypes.ActiveSellOrdersExpiration, orderType dymnstypes.OrderType,
 ) error {
 	so.Sort()
 
@@ -189,12 +189,12 @@ func (k Keeper) SetActiveSellOrdersExpiration(ctx sdk.Context,
 
 	var key []byte
 	switch orderType {
-	case dymnstypes.MarketOrderType_MOT_DYM_NAME:
+	case dymnstypes.NameOrder:
 		key = dymnstypes.KeyActiveSellOrdersExpirationOfDymName
-	case dymnstypes.MarketOrderType_MOT_ALIAS:
+	case dymnstypes.AliasOrder:
 		key = dymnstypes.KeyActiveSellOrdersExpirationOfAlias
 	default:
-		panic("invalid order type: " + orderType.String())
+		panic("invalid order type: " + orderType.FriendlyString())
 	}
 
 	// persist record
@@ -206,18 +206,18 @@ func (k Keeper) SetActiveSellOrdersExpiration(ctx sdk.Context,
 
 // GetActiveSellOrdersExpiration retrieves the expiration of the active Sell-Orders records from the KVStore.
 func (k Keeper) GetActiveSellOrdersExpiration(ctx sdk.Context,
-	orderType dymnstypes.MarketOrderType,
+	orderType dymnstypes.OrderType,
 ) *dymnstypes.ActiveSellOrdersExpiration {
 	store := ctx.KVStore(k.storeKey)
 
 	var key []byte
 	switch orderType {
-	case dymnstypes.MarketOrderType_MOT_DYM_NAME:
+	case dymnstypes.NameOrder:
 		key = dymnstypes.KeyActiveSellOrdersExpirationOfDymName
-	case dymnstypes.MarketOrderType_MOT_ALIAS:
+	case dymnstypes.AliasOrder:
 		key = dymnstypes.KeyActiveSellOrdersExpirationOfAlias
 	default:
-		panic("invalid order type: " + orderType.String())
+		panic("invalid order type: " + orderType.FriendlyString())
 	}
 
 	var record dymnstypes.ActiveSellOrdersExpiration
@@ -237,7 +237,7 @@ func (k Keeper) GetActiveSellOrdersExpiration(ctx sdk.Context,
 // SetMinExpiryHistoricalSellOrder stores the minimum expiry
 // of all historical Sell-Orders by each Dym-Name into the KVStore.
 func (k Keeper) SetMinExpiryHistoricalSellOrder(ctx sdk.Context,
-	goodsId string, orderType dymnstypes.MarketOrderType, minExpiry int64,
+	goodsId string, orderType dymnstypes.OrderType, minExpiry int64,
 ) {
 	store := ctx.KVStore(k.storeKey)
 	key := dymnstypes.MinExpiryHistoricalSellOrdersKey(goodsId, orderType)
@@ -251,7 +251,7 @@ func (k Keeper) SetMinExpiryHistoricalSellOrder(ctx sdk.Context,
 // GetMinExpiryHistoricalSellOrder retrieves the minimum expiry
 // of all historical Sell-Orders by the Dym-Name/Alias from the KVStore.
 func (k Keeper) GetMinExpiryHistoricalSellOrder(ctx sdk.Context,
-	goodsId string, orderType dymnstypes.MarketOrderType,
+	goodsId string, orderType dymnstypes.OrderType,
 ) (minExpiry int64, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := dymnstypes.MinExpiryHistoricalSellOrdersKey(goodsId, orderType)

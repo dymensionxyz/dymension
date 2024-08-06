@@ -17,7 +17,7 @@ import (
 func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlaceBuyOrder) (*dymnstypes.MsgPlaceBuyOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if msg.OrderType != dymnstypes.MarketOrderType_MOT_DYM_NAME {
+	if msg.OrderType != dymnstypes.NameOrder {
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
 	}
 
@@ -49,7 +49,7 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 		offer = dymnstypes.BuyOffer{
 			Id:         "", // will be auto-generated
 			GoodsId:    msg.GoodsId,
-			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
+			Type:       dymnstypes.NameOrder,
 			Buyer:      msg.Buyer,
 			OfferPrice: msg.Offer,
 		}

@@ -5,9 +5,9 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 
-// MarketOrderType present type of the Buy/Sell order.
-enum MarketOrderType {
-  MOT_UNKNOWN = 0;
-  MOT_DYM_NAME = 1;
-  MOT_ALIAS = 2;
+// OrderType present type of the Buy/Sell order.
+enum OrderType {
+  OT_UNKNOWN = 0;
+  OT_DYM_NAME = 1;
+  OT_ALIAS = 2;
 }

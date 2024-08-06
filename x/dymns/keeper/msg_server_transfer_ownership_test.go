@@ -94,7 +94,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 			},
 			sellOrder: &dymnstypes.SellOrder{
-				Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				Type:     dymnstypes.NameOrder,
 				ExpireAt: 1,
 				MinPrice: dymnsutils.TestCoin(100),
 			},
@@ -109,7 +109,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 			},
 			sellOrder: &dymnstypes.SellOrder{
-				Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				Type:     dymnstypes.NameOrder,
 				ExpireAt: now.Unix() + 1,
 				MinPrice: dymnsutils.TestCoin(100),
 			},
@@ -124,7 +124,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 			},
 			sellOrder: &dymnstypes.SellOrder{
-				Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				Type:     dymnstypes.NameOrder,
 				ExpireAt: now.Unix() + 1,
 				MinPrice: dymnsutils.TestCoin(100),
 				HighestBid: &dymnstypes.SellOrderBid{
@@ -143,7 +143,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 			},
 			sellOrder: &dymnstypes.SellOrder{
-				Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				Type:      dymnstypes.NameOrder,
 				ExpireAt:  now.Unix() + 1,
 				MinPrice:  dymnsutils.TestCoin(100),
 				SellPrice: dymnsutils.TestCoinP(200),
@@ -194,7 +194,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 
 				so := &dymnstypes.SellOrder{
 					GoodsId:  recordName,
-					Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
+					Type:     dymnstypes.NameOrder,
 					MinPrice: dymnsutils.TestCoin(100),
 					ExpireAt: 1,
 				}
@@ -258,7 +258,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 						require.Len(t, names, 1, "reverse mapping should be kept")
 					}
 
-					require.NotEmpty(t, dk.GetHistoricalSellOrders(ctx, recordName, dymnstypes.MarketOrderType_MOT_DYM_NAME), "historical SO should be kept")
+					require.NotEmpty(t, dk.GetHistoricalSellOrders(ctx, recordName, dymnstypes.NameOrder), "historical SO should be kept")
 				}
 				return
 			}
@@ -315,7 +315,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 			require.NoError(t, err)
 			require.Len(t, names, 1, "reverse mapping of new owner should be added")
 
-			require.Empty(t, dk.GetHistoricalSellOrders(ctx, recordName, dymnstypes.MarketOrderType_MOT_DYM_NAME), "historical SO should be removed")
+			require.Empty(t, dk.GetHistoricalSellOrders(ctx, recordName, dymnstypes.NameOrder), "historical SO should be removed")
 		})
 	}
 }

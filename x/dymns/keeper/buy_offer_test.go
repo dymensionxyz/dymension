@@ -44,8 +44,8 @@ func TestKeeper_IncreaseBuyOfferCountAndGet(t *testing.T) {
 func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 	buyerA := testAddr(1).bech32()
 
-	supportedOrderTypes := []dymnstypes.MarketOrderType{
-		dymnstypes.MarketOrderType_MOT_DYM_NAME, dymnstypes.MarketOrderType_MOT_ALIAS,
+	supportedOrderTypes := []dymnstypes.OrderType{
+		dymnstypes.NameOrder, dymnstypes.AliasOrder,
 	}
 
 	t.Run("get non-exists offer should returns nil", func(t *testing.T) {
@@ -76,7 +76,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer1 := dymnstypes.BuyOffer{
 			Id:         "101",
 			GoodsId:    "my-name",
-			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
+			Type:       dymnstypes.NameOrder,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
@@ -92,7 +92,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer2 := dymnstypes.BuyOffer{
 			Id:         "202",
 			GoodsId:    "alias",
-			Type:       dymnstypes.MarketOrderType_MOT_ALIAS,
+			Type:       dymnstypes.AliasOrder,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
@@ -136,7 +136,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer1a := dymnstypes.BuyOffer{
 			Id:         "",
 			GoodsId:    "my-name",
-			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
+			Type:       dymnstypes.NameOrder,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
@@ -154,7 +154,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer2a := dymnstypes.BuyOffer{
 			Id:         "",
 			GoodsId:    "alias",
-			Type:       dymnstypes.MarketOrderType_MOT_ALIAS,
+			Type:       dymnstypes.AliasOrder,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
@@ -265,7 +265,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer1 := dymnstypes.BuyOffer{
 			Id:         "101",
 			GoodsId:    "a",
-			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
+			Type:       dymnstypes.NameOrder,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
@@ -275,7 +275,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer2 := dymnstypes.BuyOffer{
 			Id:         "202",
 			GoodsId:    "b",
-			Type:       dymnstypes.MarketOrderType_MOT_ALIAS,
+			Type:       dymnstypes.AliasOrder,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(2),
 		}
@@ -285,7 +285,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer3 := dymnstypes.BuyOffer{
 			Id:         "103",
 			GoodsId:    "c",
-			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
+			Type:       dymnstypes.NameOrder,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(3),
 		}
@@ -295,7 +295,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer4 := dymnstypes.BuyOffer{
 			Id:         "204",
 			GoodsId:    "d",
-			Type:       dymnstypes.MarketOrderType_MOT_ALIAS,
+			Type:       dymnstypes.AliasOrder,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(4),
 		}
@@ -344,7 +344,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 				offer: dymnstypes.BuyOffer{
 					Id:         "101",
 					GoodsId:    "my-name",
-					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
+					Type:       dymnstypes.NameOrder,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -358,7 +358,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 				offer: dymnstypes.BuyOffer{
 					Id:         "201",
 					GoodsId:    "alias",
-					Type:       dymnstypes.MarketOrderType_MOT_ALIAS,
+					Type:       dymnstypes.AliasOrder,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -455,7 +455,7 @@ func TestKeeper_GetAllBuyOffers(t *testing.T) {
 	offer1 := dymnstypes.BuyOffer{
 		Id:         "101",
 		GoodsId:    "a",
-		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:       dymnstypes.NameOrder,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
@@ -469,7 +469,7 @@ func TestKeeper_GetAllBuyOffers(t *testing.T) {
 	offer2 := dymnstypes.BuyOffer{
 		Id:         "202",
 		GoodsId:    "b",
-		Type:       dymnstypes.MarketOrderType_MOT_ALIAS,
+		Type:       dymnstypes.AliasOrder,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
@@ -483,7 +483,7 @@ func TestKeeper_GetAllBuyOffers(t *testing.T) {
 	offer3 := dymnstypes.BuyOffer{
 		Id:         "103",
 		GoodsId:    "a",
-		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:       dymnstypes.NameOrder,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
@@ -501,7 +501,7 @@ func TestKeeper_GetAllBuyOffers(t *testing.T) {
 	offer4 := dymnstypes.BuyOffer{
 		Id:         "204",
 		GoodsId:    "b",
-		Type:       dymnstypes.MarketOrderType_MOT_ALIAS,
+		Type:       dymnstypes.AliasOrder,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
@@ -515,7 +515,7 @@ func TestKeeper_GetAllBuyOffers(t *testing.T) {
 	offer5 := dymnstypes.BuyOffer{
 		Id:         "105",
 		GoodsId:    "b",
-		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:       dymnstypes.NameOrder,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(3),
 	}

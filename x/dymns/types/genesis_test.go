@@ -45,7 +45,7 @@ func TestGenesisState_Validate(t *testing.T) {
 				{
 					Id:      "101",
 					GoodsId: "a",
-					Type:    MarketOrderType_MOT_DYM_NAME, // TODO DymNS: add test case for Alias
+					Type:    NameOrder, // TODO DymNS: add test case for Alias
 					Buyer:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 					OfferPrice: sdk.Coin{
 						Denom:  params.BaseDenom,

@@ -32,7 +32,7 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 
 		requireErrorFContains(t, func() error {
 			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
-				OrderType: dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				OrderType: dymnstypes.NameOrder,
 			})
 			return err
 		}, gerrc.ErrInvalidArgument.Error())
@@ -44,7 +44,7 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 		requireErrorFContains(t, func() error {
 			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
 				GoodsId:   "alias",
-				OrderType: dymnstypes.MarketOrderType_MOT_ALIAS,
+				OrderType: dymnstypes.AliasOrder,
 				Buyer:     testAddr(0).bech32(),
 				Offer:     dymnsutils.TestCoin(1),
 			})
@@ -58,7 +58,7 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 		requireErrorFContains(t, func() error {
 			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
 				GoodsId:   "goods",
-				OrderType: dymnstypes.MarketOrderType_MOT_UNKNOWN,
+				OrderType: dymnstypes.OrderType_OT_UNKNOWN,
 				Buyer:     testAddr(0).bech32(),
 				Offer:     dymnsutils.TestCoin(1),
 			})
@@ -453,7 +453,7 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 
 			so := dymnstypes.SellOrder{
 				GoodsId:  dymName.Name,
-				Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				Type:     dymnstypes.NameOrder,
 				MinPrice: dymnsutils.TestCoin(minPrice),
 			}
 
@@ -500,7 +500,7 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 			}
 			resp, errPurchaseName := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
 				GoodsId:   dymName.Name,
-				OrderType: dymnstypes.MarketOrderType_MOT_DYM_NAME,
+				OrderType: dymnstypes.NameOrder,
 				Offer:     sdk.NewInt64Coin(useDenom, tt.newBid),
 				Buyer:     useBuyer,
 			})
@@ -511,8 +511,8 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 				require.Equal(t, originalDymNameExpiry, laterDymName.ExpireAt, "expiry should not be changed")
 			}
 
-			laterSo := dk.GetSellOrder(ctx, dymName.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
-			historicalSo := dk.GetHistoricalSellOrders(ctx, dymName.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
+			laterSo := dk.GetSellOrder(ctx, dymName.Name, dymnstypes.NameOrder)
+			historicalSo := dk.GetHistoricalSellOrders(ctx, dymName.Name, dymnstypes.NameOrder)
 			laterOwnerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(ownerA), params.BaseDenom)
 			laterBuyerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(buyerA), params.BaseDenom)
 			laterPreviousBidderBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(previousBidderA), params.BaseDenom)

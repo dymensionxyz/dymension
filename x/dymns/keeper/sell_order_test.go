@@ -41,7 +41,7 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 
 	so1 := dymnstypes.SellOrder{
 		GoodsId:   dymName1.Name,
-		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:      dymnstypes.NameOrder,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(300),
@@ -89,7 +89,7 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 
 	so2 := dymnstypes.SellOrder{
 		GoodsId:  dymName2.Name,
-		Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:     dymnstypes.NameOrder,
 		ExpireAt: 1,
 		MinPrice: dymnsutils.TestCoin(100),
 	}
@@ -141,14 +141,14 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 
 	so3Alias := dymnstypes.SellOrder{
 		GoodsId:  "alias",
-		Type:     dymnstypes.MarketOrderType_MOT_ALIAS,
+		Type:     dymnstypes.AliasOrder,
 		ExpireAt: 1,
 		MinPrice: dymnsutils.TestCoin(100),
 	}
 
 	so4DymName := dymnstypes.SellOrder{
 		GoodsId:  "hello",
-		Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:     dymnstypes.NameOrder,
 		ExpireAt: 1,
 		MinPrice: dymnsutils.TestCoin(100),
 	}
@@ -163,7 +163,7 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 	t.Run("can not set Sell-Order with unknown type", func(t *testing.T) {
 		err = dk.SetSellOrder(ctx, dymnstypes.SellOrder{
 			GoodsId:  "goods",
-			Type:     dymnstypes.MarketOrderType_MOT_UNKNOWN,
+			Type:     dymnstypes.OrderType_OT_UNKNOWN,
 			ExpireAt: 1,
 			MinPrice: dymnsutils.TestCoin(100),
 		})
@@ -172,8 +172,8 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 	})
 
 	t.Run("non-exists returns nil", func(t *testing.T) {
-		require.Nil(t, dk.GetSellOrder(ctx, "non-exists", dymnstypes.MarketOrderType_MOT_DYM_NAME))
-		require.Nil(t, dk.GetSellOrder(ctx, "non-exists", dymnstypes.MarketOrderType_MOT_ALIAS))
+		require.Nil(t, dk.GetSellOrder(ctx, "non-exists", dymnstypes.NameOrder))
+		require.Nil(t, dk.GetSellOrder(ctx, "non-exists", dymnstypes.AliasOrder))
 	})
 
 	t.Run("omit Sell Price if not nil but zero", func(t *testing.T) {
@@ -190,8 +190,8 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 		require.Equal(t, so3Alias, *gotSo3)
 		require.Equal(t, so4DymName, *gotSo4)
 
-		require.Equal(t, dymnstypes.MarketOrderType_MOT_ALIAS, gotSo3.Type)
-		require.Equal(t, dymnstypes.MarketOrderType_MOT_DYM_NAME, gotSo4.Type)
+		require.Equal(t, dymnstypes.AliasOrder, gotSo3.Type)
+		require.Equal(t, dymnstypes.NameOrder, gotSo4.Type)
 	})
 
 	t.Run("get all returns all records of different types", func(t *testing.T) {
@@ -257,7 +257,7 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 
 	so11 := dymnstypes.SellOrder{
 		GoodsId:   dymName1.Name,
-		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:      dymnstypes.NameOrder,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(300),
@@ -268,7 +268,7 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	alias2 := "alias"
 	so21 := dymnstypes.SellOrder{
 		GoodsId:  alias2,
-		Type:     dymnstypes.MarketOrderType_MOT_ALIAS,
+		Type:     dymnstypes.AliasOrder,
 		ExpireAt: 2,
 		MinPrice: dymnsutils.TestCoin(100),
 	}
@@ -278,7 +278,7 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	alias3 := "salas"
 	so3 := dymnstypes.SellOrder{
 		GoodsId:  alias3,
-		Type:     dymnstypes.MarketOrderType_MOT_ALIAS,
+		Type:     dymnstypes.AliasOrder,
 		ExpireAt: 3,
 		MinPrice: dymnsutils.TestCoin(222),
 	}
@@ -309,13 +309,13 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	})
 
 	t.Run("should not move non-exists", func(t *testing.T) {
-		err := dk.MoveSellOrderToHistorical(ctx, "non-exists", dymnstypes.MarketOrderType_MOT_DYM_NAME)
+		err := dk.MoveSellOrderToHistorical(ctx, "non-exists", dymnstypes.NameOrder)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "Sell-Order: MOT_DYM_NAME: non-exists")
+		require.Contains(t, err.Error(), "Sell-Order: Dym-Name: non-exists")
 
-		err = dk.MoveSellOrderToHistorical(ctx, "non-exists", dymnstypes.MarketOrderType_MOT_ALIAS)
+		err = dk.MoveSellOrderToHistorical(ctx, "non-exists", dymnstypes.AliasOrder)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "Sell-Order: MOT_ALIAS: non-exists")
+		require.Contains(t, err.Error(), "Sell-Order: Alias: non-exists")
 	})
 
 	t.Run("should able to move a duplicated without error", func(t *testing.T) {
@@ -337,13 +337,13 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	})
 
 	t.Run("other records remaining as-is", func(t *testing.T) {
-		require.Empty(t, dk.GetSellOrder(ctx, dymName2.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME))
-		require.NotNil(t, dk.GetSellOrder(ctx, alias3, dymnstypes.MarketOrderType_MOT_ALIAS))
+		require.Empty(t, dk.GetSellOrder(ctx, dymName2.Name, dymnstypes.NameOrder))
+		require.NotNil(t, dk.GetSellOrder(ctx, alias3, dymnstypes.AliasOrder))
 	})
 
 	so4 := dymnstypes.SellOrder{
 		GoodsId:  dymName2.Name,
-		Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:     dymnstypes.NameOrder,
 		ExpireAt: 1,
 		MinPrice: dymnsutils.TestCoin(100),
 	}
@@ -356,15 +356,15 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	})
 
 	t.Run("other records remaining as-is", func(t *testing.T) {
-		require.Len(t, dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME), 1)
-		require.Len(t, dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME), 1)
-		require.Len(t, dk.GetHistoricalSellOrders(ctx, alias2, dymnstypes.MarketOrderType_MOT_ALIAS), 1)
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.MarketOrderType_MOT_ALIAS))
+		require.Len(t, dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.NameOrder), 1)
+		require.Len(t, dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.NameOrder), 1)
+		require.Len(t, dk.GetHistoricalSellOrders(ctx, alias2, dymnstypes.AliasOrder), 1)
+		require.Empty(t, dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.AliasOrder))
 	})
 
 	so12 := dymnstypes.SellOrder{
 		GoodsId:   dymName1.Name,
-		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:      dymnstypes.NameOrder,
 		ExpireAt:  now.Unix() + 1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(300),
@@ -374,7 +374,7 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 
 	so22 := dymnstypes.SellOrder{
 		GoodsId:   alias2,
-		Type:      dymnstypes.MarketOrderType_MOT_ALIAS,
+		Type:      dymnstypes.AliasOrder,
 		ExpireAt:  now.Unix() + 1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(300),
@@ -420,8 +420,8 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	require.NotEqual(t, so22.ExpireAt, minExpiry, "should keep the minimum")
 
 	t.Run("other records remaining as-is", func(t *testing.T) {
-		require.Len(t, dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME), 1)
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.MarketOrderType_MOT_ALIAS))
+		require.Len(t, dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.NameOrder), 1)
+		require.Empty(t, dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.AliasOrder))
 	})
 }
 
@@ -455,15 +455,15 @@ func TestKeeper_GetAndDeleteHistoricalSellOrders(t *testing.T) {
 	alias4 := "salas"
 
 	t.Run("getting non-exists should returns empty", func(t *testing.T) {
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME))
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME))
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.MarketOrderType_MOT_ALIAS))
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, alias4, dymnstypes.MarketOrderType_MOT_ALIAS))
+		require.Empty(t, dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.NameOrder))
+		require.Empty(t, dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.NameOrder))
+		require.Empty(t, dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.AliasOrder))
+		require.Empty(t, dk.GetHistoricalSellOrders(ctx, alias4, dymnstypes.AliasOrder))
 	})
 
 	so11 := dymnstypes.SellOrder{
 		GoodsId:   dymName1.Name,
-		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:      dymnstypes.NameOrder,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(300),
@@ -475,7 +475,7 @@ func TestKeeper_GetAndDeleteHistoricalSellOrders(t *testing.T) {
 
 	so2 := dymnstypes.SellOrder{
 		GoodsId:  alias3,
-		Type:     dymnstypes.MarketOrderType_MOT_ALIAS,
+		Type:     dymnstypes.AliasOrder,
 		ExpireAt: 7,
 		MinPrice: dymnsutils.TestCoin(200),
 	}
@@ -486,7 +486,7 @@ func TestKeeper_GetAndDeleteHistoricalSellOrders(t *testing.T) {
 
 	so3 := dymnstypes.SellOrder{
 		GoodsId:  dymName2.Name,
-		Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:     dymnstypes.NameOrder,
 		ExpireAt: 1,
 		MinPrice: dymnsutils.TestCoin(100),
 	}
@@ -503,7 +503,7 @@ func TestKeeper_GetAndDeleteHistoricalSellOrders(t *testing.T) {
 
 	so4 := dymnstypes.SellOrder{
 		GoodsId:  alias4,
-		Type:     dymnstypes.MarketOrderType_MOT_ALIAS,
+		Type:     dymnstypes.AliasOrder,
 		ExpireAt: 5,
 		MinPrice: dymnsutils.TestCoin(500),
 	}
@@ -513,13 +513,13 @@ func TestKeeper_GetAndDeleteHistoricalSellOrders(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("fetch correctly", func(t *testing.T) {
-		list1 := dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
+		list1 := dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.NameOrder)
 		require.Len(t, list1, 1)
-		list2 := dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
+		list2 := dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.NameOrder)
 		require.Len(t, list2, 2)
-		list3 := dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.MarketOrderType_MOT_ALIAS)
+		list3 := dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.AliasOrder)
 		require.Len(t, list3, 1)
-		list4 := dk.GetHistoricalSellOrders(ctx, alias4, dymnstypes.MarketOrderType_MOT_ALIAS)
+		list4 := dk.GetHistoricalSellOrders(ctx, alias4, dymnstypes.AliasOrder)
 		require.Len(t, list4, 1)
 
 		require.Equal(t, so3.GoodsId, list2[0].GoodsId)
@@ -533,22 +533,22 @@ func TestKeeper_GetAndDeleteHistoricalSellOrders(t *testing.T) {
 	})
 
 	t.Run("delete", func(t *testing.T) {
-		dk.DeleteHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME))
+		dk.DeleteHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.NameOrder)
+		require.Empty(t, dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.NameOrder))
 
-		list2 := dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
+		list2 := dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.NameOrder)
 		require.Len(t, list2, 2)
 
-		dk.DeleteHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME))
+		dk.DeleteHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.NameOrder)
+		require.Empty(t, dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.NameOrder))
 
-		list3 := dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.MarketOrderType_MOT_ALIAS)
+		list3 := dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.AliasOrder)
 		require.Len(t, list3, 1)
 
-		dk.DeleteHistoricalSellOrders(ctx, alias3, dymnstypes.MarketOrderType_MOT_ALIAS)
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.MarketOrderType_MOT_ALIAS))
+		dk.DeleteHistoricalSellOrders(ctx, alias3, dymnstypes.AliasOrder)
+		require.Empty(t, dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.AliasOrder))
 
-		list4 := dk.GetHistoricalSellOrders(ctx, alias4, dymnstypes.MarketOrderType_MOT_ALIAS)
+		list4 := dk.GetHistoricalSellOrders(ctx, alias4, dymnstypes.AliasOrder)
 		require.Len(t, list4, 1)
 	})
 }
@@ -556,8 +556,8 @@ func TestKeeper_GetAndDeleteHistoricalSellOrders(t *testing.T) {
 func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-	supportedOrderTypes := []dymnstypes.MarketOrderType{
-		dymnstypes.MarketOrderType_MOT_DYM_NAME, dymnstypes.MarketOrderType_MOT_ALIAS,
+	supportedOrderTypes := []dymnstypes.OrderType{
+		dymnstypes.NameOrder, dymnstypes.AliasOrder,
 	}
 
 	t.Run("get", func(t *testing.T) {
@@ -662,7 +662,7 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 					ExpireAt: 1,
 				},
 			},
-		}, dymnstypes.MarketOrderType_MOT_DYM_NAME)
+		}, dymnstypes.NameOrder)
 		require.NoError(t, err)
 
 		err = dk.SetActiveSellOrdersExpiration(ctx, &dymnstypes.ActiveSellOrdersExpiration{
@@ -672,15 +672,15 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 					ExpireAt: 2,
 				},
 			},
-		}, dymnstypes.MarketOrderType_MOT_ALIAS)
+		}, dymnstypes.AliasOrder)
 		require.NoError(t, err)
 
-		listName := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.MarketOrderType_MOT_DYM_NAME)
+		listName := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.NameOrder)
 		require.Len(t, listName.Records, 1)
 		require.Equal(t, "goods", listName.Records[0].GoodsId)
 		require.Equal(t, int64(1), listName.Records[0].ExpireAt)
 
-		listAlias := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.MarketOrderType_MOT_ALIAS)
+		listAlias := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.AliasOrder)
 		require.Len(t, listAlias.Records, 1)
 		require.Equal(t, "goods", listAlias.Records[0].GoodsId)
 		require.Equal(t, int64(2), listAlias.Records[0].ExpireAt)
@@ -688,8 +688,8 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 }
 
 func TestKeeper_GetSetMinExpiryHistoricalSellOrder(t *testing.T) {
-	supportedOrderTypes := []dymnstypes.MarketOrderType{
-		dymnstypes.MarketOrderType_MOT_DYM_NAME, dymnstypes.MarketOrderType_MOT_ALIAS,
+	supportedOrderTypes := []dymnstypes.OrderType{
+		dymnstypes.NameOrder, dymnstypes.AliasOrder,
 	}
 
 	for _, orderType := range supportedOrderTypes {
@@ -722,32 +722,32 @@ func TestKeeper_GetSetMinExpiryHistoricalSellOrder(t *testing.T) {
 	t.Run("each order type persists separately", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		dk.SetMinExpiryHistoricalSellOrder(ctx, "goods", dymnstypes.MarketOrderType_MOT_DYM_NAME, 1)
-		dk.SetMinExpiryHistoricalSellOrder(ctx, "goods", dymnstypes.MarketOrderType_MOT_ALIAS, 2)
-		dk.SetMinExpiryHistoricalSellOrder(ctx, "pool", dymnstypes.MarketOrderType_MOT_ALIAS, 2)
+		dk.SetMinExpiryHistoricalSellOrder(ctx, "goods", dymnstypes.NameOrder, 1)
+		dk.SetMinExpiryHistoricalSellOrder(ctx, "goods", dymnstypes.AliasOrder, 2)
+		dk.SetMinExpiryHistoricalSellOrder(ctx, "pool", dymnstypes.AliasOrder, 2)
 
-		minExpiry, found := dk.GetMinExpiryHistoricalSellOrder(ctx, "goods", dymnstypes.MarketOrderType_MOT_DYM_NAME)
+		minExpiry, found := dk.GetMinExpiryHistoricalSellOrder(ctx, "goods", dymnstypes.NameOrder)
 		require.True(t, found)
 		require.Equal(t, int64(1), minExpiry)
 
-		minExpiry, found = dk.GetMinExpiryHistoricalSellOrder(ctx, "goods", dymnstypes.MarketOrderType_MOT_ALIAS)
+		minExpiry, found = dk.GetMinExpiryHistoricalSellOrder(ctx, "goods", dymnstypes.AliasOrder)
 		require.True(t, found)
 		require.Equal(t, int64(2), minExpiry)
 
-		minExpiry, found = dk.GetMinExpiryHistoricalSellOrder(ctx, "pool", dymnstypes.MarketOrderType_MOT_DYM_NAME)
+		minExpiry, found = dk.GetMinExpiryHistoricalSellOrder(ctx, "pool", dymnstypes.NameOrder)
 		require.False(t, found)
 		require.Zero(t, minExpiry)
 	})
 }
 
 func TestKeeper_GetAllSellOrders(t *testing.T) {
-	supportedOrderTypes := []dymnstypes.MarketOrderType{
-		dymnstypes.MarketOrderType_MOT_DYM_NAME, dymnstypes.MarketOrderType_MOT_ALIAS,
+	supportedOrderTypes := []dymnstypes.OrderType{
+		dymnstypes.NameOrder, dymnstypes.AliasOrder,
 	}
 
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-	generateSellOrderOfType := func(orderType dymnstypes.MarketOrderType) dymnstypes.SellOrder {
+	generateSellOrderOfType := func(orderType dymnstypes.OrderType) dymnstypes.SellOrder {
 		return dymnstypes.SellOrder{
 			GoodsId:  "goods",
 			Type:     orderType,

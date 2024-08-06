@@ -63,7 +63,7 @@ func (m *SellOrder) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO is nil")
 	}
 
-	if m.Type == MarketOrderType_MOT_DYM_NAME {
+	if m.Type == NameOrder {
 		if m.GoodsId == "" {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of SO is empty")
 		}
@@ -71,7 +71,7 @@ func (m *SellOrder) Validate() error {
 		if !dymnsutils.IsValidDymName(m.GoodsId) {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of SO is not a valid dym name")
 		}
-	} else if m.Type == MarketOrderType_MOT_ALIAS {
+	} else if m.Type == AliasOrder {
 		if m.GoodsId == "" {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "alias of SO is empty")
 		}
@@ -204,7 +204,7 @@ func (m SellOrder) GetSdkEvent(actionName string) sdk.Event {
 	return sdk.NewEvent(
 		EventTypeSellOrder,
 		sdk.NewAttribute(AttributeKeySoGoodsId, m.GoodsId),
-		sdk.NewAttribute(AttributeKeySoType, m.Type.String()),
+		sdk.NewAttribute(AttributeKeySoType, m.Type.FriendlyString()),
 		sdk.NewAttribute(AttributeKeySoExpiryEpoch, fmt.Sprintf("%d", m.ExpireAt)),
 		sdk.NewAttribute(AttributeKeySoMinPrice, m.MinPrice.String()),
 		sdk.NewAttribute(AttributeKeySoSellPrice, sellPrice.String()),

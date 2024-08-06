@@ -11,11 +11,11 @@ var _ sdk.Msg = &MsgPlaceSellOrder{}
 
 // ValidateBasic performs basic validation for the MsgPlaceSellOrder.
 func (m *MsgPlaceSellOrder) ValidateBasic() error {
-	if m.OrderType == MarketOrderType_MOT_DYM_NAME {
+	if m.OrderType == NameOrder {
 		if !dymnsutils.IsValidDymName(m.GoodsId) {
 			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "name is not a valid dym name: %s", m.GoodsId)
 		}
-	} else if m.OrderType == MarketOrderType_MOT_ALIAS {
+	} else if m.OrderType == AliasOrder {
 		if !dymnsutils.IsValidAlias(m.GoodsId) {
 			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "alias is not a valid alias: %s", m.GoodsId)
 		}

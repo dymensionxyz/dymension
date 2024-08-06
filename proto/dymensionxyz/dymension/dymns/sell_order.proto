@@ -18,7 +18,7 @@ message SellOrder {
   string goods_id = 1;
 
   // type of the order, is Dym-Name or Alias.
-  MarketOrderType type = 2;
+  OrderType type = 2;
 
   // expire_at is the last effective date of this SO
   int64 expire_at = 3;

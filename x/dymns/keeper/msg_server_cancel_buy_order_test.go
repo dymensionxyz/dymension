@@ -58,7 +58,7 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 	offer := &dymnstypes.BuyOffer{
 		Id:         "101",
 		GoodsId:    dymName.Name,
-		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:       dymnstypes.NameOrder,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 	}
@@ -66,7 +66,7 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 	offerByAnother := &dymnstypes.BuyOffer{
 		Id:         "10999",
 		GoodsId:    dymName.Name,
-		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
+		Type:       dymnstypes.NameOrder,
 		Buyer:      anotherBuyerA,
 		OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 	}
