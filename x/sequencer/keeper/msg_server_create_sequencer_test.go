@@ -239,6 +239,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 		name,
 		rollappInitialSeq string
 		sequencers []sequencer
+		malleate   func(rollappID string)
 		expErr     error
 	}{
 		{
@@ -258,6 +259,26 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 			name:              "Any sequencer can be the first proposer",
 			sequencers:        []sequencer{{creatorName: "bob", expProposer: true}, {creatorName: "steve", expProposer: false}},
 			rollappInitialSeq: "*",
+		}, {
+			name:              "success - any sequencer can be the first proposer, rollapp sealed",
+			sequencers:        []sequencer{{creatorName: "bob", expProposer: false}},
+			rollappInitialSeq: alice,
+			malleate: func(rollappID string) {
+				r, _ := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
+				r.Sealed = true
+				suite.App.RollappKeeper.SetRollapp(suite.Ctx, r)
+			},
+			expErr: nil,
+		}, {
+			name:              "success - no initial sequencer, rollapp sealed",
+			sequencers:        []sequencer{{creatorName: "bob", expProposer: false}},
+			rollappInitialSeq: "*",
+			malleate: func(rollappID string) {
+				r, _ := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
+				r.Sealed = true
+				suite.App.RollappKeeper.SetRollapp(suite.Ctx, r)
+			},
+			expErr: nil,
 		},
 	}
 
@@ -266,6 +287,10 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 
 		goCtx := sdk.WrapSDKContext(suite.Ctx)
 		rollappId := suite.CreateRollappWithInitialSequencer(tc.rollappInitialSeq)
+
+		if tc.malleate != nil {
+			tc.malleate(rollappId)
+		}
 
 		for _, seq := range tc.sequencers {
 			addr, pk := sample.AccFromSecret(seq.creatorName)
