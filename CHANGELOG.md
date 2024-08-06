@@ -47,6 +47,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (rollapp) [#1036](https://github.com/dymensionxyz/dymension/issues/1036) Add VMType field to Rollapp
 - (swagger) [#856](https://github.com/dymensionxyz/dymension/issues/856) Add make command `proto-swagger-gen`
 - (delayedack) [#825](https://github.com/dymensionxyz/dymension/issues/825) Add query for rollapp packets using CLI
+- (sponsorship) [#983](https://github.com/dymensionxyz/dymension/issues/983) Add the sponsorship module to support community-driven distributions
+- (streamer) [#983](https://github.com/dymensionxyz/dymension/issues/983) Add x/sponsorship distribution support
 
 ### Bug Fixes
 
