@@ -371,10 +371,10 @@ func (a *AppKeepers) InitKeepers(
 	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
 		appCodec,
 		a.keys[sponsorshiptypes.StoreKey],
-		a.GetSubspace(sponsorshiptypes.ModuleName),
 		a.AccountKeeper,
 		a.StakingKeeper,
 		a.IncentivesKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(

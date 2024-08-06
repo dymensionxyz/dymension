@@ -8,7 +8,7 @@ if [ "$EXECUTABLE" = "" ]; then
     exit 1
   fi
   echo "EXECUTABLE is not set, using '${DEFAULT_EXECUTABLE}'"
-  EXECUTABLE=$DEFAULT_SEQUENCER_KEY_PATH
+  EXECUTABLE=$DEFAULT_EXECUTABLE
 fi
 
 # Validate dymension binary exists
@@ -17,7 +17,7 @@ if ! command -v "$EXECUTABLE" > /dev/null; then
   make install
 
   if ! command -v "$EXECUTABLE"; then
-    echo "dymension binary not found in $PATH"
+    echo "dymension binary $EXECUTABLE not found in $PATH"
     exit 1
   fi
 fi

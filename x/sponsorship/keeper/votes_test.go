@@ -20,7 +20,7 @@ func (s *KeeperTestSuite) TestMsgVote() {
 	testCases := []struct {
 		name          string
 		params        types.Params       // module params
-		numGauges     uint64             // number of initial gauges, IDs fall between [1; numGauges]
+		numGauges     int                // number of initial gauges, IDs fall between [1; numGauges]
 		delegations   []delegation       // initial delegations
 		votes         []types.MsgVote    // all votes, votes are applied one by one; only one element is expected in case of the error
 		initialDistr  types.Distribution // initial test distr
@@ -319,17 +319,10 @@ func (s *KeeperTestSuite) TestMsgVote() {
 			s.SetupTest()
 
 			// Create expected num of gauges
-			for i := uint64(1); i <= tc.numGauges; i++ {
-				id := s.CreateGauge()
-				s.Require().Equal(i, id)
-			}
+			s.CreateGauges(tc.numGauges)
 
-			// Get current validator
-			bondedValidators := s.App.StakingKeeper.GetBondedValidatorsByPower(s.Ctx)
-			s.Require().NotEmpty(bondedValidators)
-			validator := bondedValidators[0]
-			valAddr, err := sdk.ValAddressFromBech32(validator.OperatorAddress)
-			s.Require().NoError(err)
+			// Create a validator
+			val := s.CreateValidator()
 
 			// Fund voter addresses and delegate to the validator
 			for _, d := range tc.delegations {
@@ -337,11 +330,11 @@ func (s *KeeperTestSuite) TestMsgVote() {
 				apptesting.FundAccount(s.App, s.Ctx, d.delegator, sdk.Coins{d.delegation})
 
 				// Delegate to the validator
-				_ = s.Delegate(d.delegator, valAddr, d.delegation)
+				_ = s.Delegate(d.delegator, val.GetOperator(), d.delegation)
 			}
 
-			// Set initial distribution
-			err = s.App.SponsorshipKeeper.SaveDistribution(s.Ctx, tc.initialDistr)
+			// Set the initial distribution
+			err := s.App.SponsorshipKeeper.SaveDistribution(s.Ctx, tc.initialDistr)
 			s.Require().NoError(err)
 
 			// Set module params
@@ -390,6 +383,71 @@ func (s *KeeperTestSuite) TestMsgVote() {
 			err = distr.Validate()
 			s.Require().NoError(err)
 			s.Require().True(tc.expectedDistr.Equal(distr), "expect: %v\nactual: %v", tc.expectedDistr, distr)
+		})
+	}
+}
+
+func (s *KeeperTestSuite) TestMsgRevokeVote() {
+	addr := apptesting.CreateRandomAccounts(3)
+
+	testCases := []struct {
+		name          string
+		numGauges     int // number of initial gauges, IDs fall between [1; numGauges]
+		vote          types.MsgVote
+		expectErr     bool
+		errorContains string
+	}{
+		{
+			name:      "Valid",
+			numGauges: 2,
+			vote: types.MsgVote{
+				Voter: addr[0].String(),
+				Weights: []types.GaugeWeight{
+					{GaugeId: 1, Weight: math.NewInt(20)},
+					{GaugeId: 2, Weight: math.NewInt(30)},
+				},
+			},
+			expectErr:     false,
+			errorContains: "",
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			// Create expected num of gauges
+			s.CreateGauges(tc.numGauges)
+
+			// Delegate to the validator
+			val := s.CreateValidator()
+			delAddr, err := sdk.AccAddressFromBech32(tc.vote.Voter)
+			initial := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000))
+			apptesting.FundAccount(s.App, s.Ctx, delAddr, sdk.NewCoins(initial))
+			_ = s.Delegate(delAddr, val.GetOperator(), initial)
+
+			// Set tne initial distribution
+			err = s.App.SponsorshipKeeper.SaveDistribution(s.Ctx, types.NewDistribution())
+			s.Require().NoError(err)
+
+			// Cast the vote
+			voteResp, err := s.msgServer.Vote(s.Ctx, &tc.vote)
+			s.Require().NoError(err)
+			s.Require().NotNil(voteResp)
+
+			// Revoke the vote
+			revokeResp, err := s.msgServer.RevokeVote(s.Ctx, &types.MsgRevokeVote{Voter: tc.vote.Voter})
+			s.Require().NoError(err)
+			s.Require().NotNil(revokeResp)
+
+			// Check events emitted
+			s.AssertEventEmitted(s.Ctx, proto.MessageName(new(types.EventRevokeVote)), 1)
+
+			// Check the distribution is correct (empty as the initial)
+			distr := s.GetDistribution()
+			err = distr.Validate()
+			s.Require().NoError(err)
+			s.Require().True(distr.Equal(types.NewDistribution()))
 		})
 	}
 }

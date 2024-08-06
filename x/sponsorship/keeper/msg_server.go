@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
@@ -69,4 +70,37 @@ func (m MsgServer) RevokeVote(goCtx context.Context, msg *types.MsgRevokeVote) (
 	}
 
 	return &types.MsgRevokeVoteResponse{}, nil
+}
+
+func (m MsgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, err
+	}
+
+	if msg.Authority != m.k.authority {
+		return nil, sdkerrors.ErrorInvalidSigner.Wrapf("Only the gov module can update params")
+	}
+
+	oldParams, err := m.k.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = m.k.SetParams(ctx, msg.NewParams)
+	if err != nil {
+		return nil, err
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	err = sdkCtx.EventManager().EmitTypedEvent(&types.EventUpdateParams{
+		Authority: msg.Authority,
+		NewParams: msg.NewParams,
+		OldParams: oldParams,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgUpdateParamsResponse{}, nil
 }

@@ -1,24 +1,21 @@
 package keeper
 
 import (
+	"fmt"
+
 	"cosmossdk.io/collections"
-	corestoretypes "cosmossdk.io/core/store"
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
 type Keeper struct {
-	cdc        codec.BinaryCodec
-	storeKey   storetypes.StoreKey
-	paramSpace paramtypes.Subspace
+	authority string // authority is the x/gov module account
 
-	storeService            corestoretypes.KVStoreService
 	params                  collections.Item[types.Params]
 	delegatorValidatorPower collections.Map[collections.Pair[sdk.AccAddress, sdk.ValAddress], math.Int]
 	distribution            collections.Item[types.Distribution]
@@ -32,28 +29,24 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
-	paramSpace paramtypes.Subspace,
 	ak types.AccountKeeper,
 	sk types.StakingKeeper,
 	ik types.IncentivesKeeper,
+	authority string,
 ) Keeper {
 	// ensure the module account is set
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
 		panic("the x/sponsorship module account has not been set")
 	}
 
-	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
+		panic(fmt.Errorf("invalid x/sponsorship authority address: %w", err))
 	}
 
 	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
 
 	return Keeper{
-		cdc:          cdc,
-		storeKey:     storeKey,
-		paramSpace:   paramSpace,
-		storeService: nil,
+		authority: authority,
 		params: collections.NewItem(
 			sb,
 			types.ParamsPrefix(),
