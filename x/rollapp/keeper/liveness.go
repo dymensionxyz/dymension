@@ -76,8 +76,8 @@ func (k Keeper) HandleLivenessEvent(ctx sdk.Context, e types.LivenessEvent) erro
 	return nil
 }
 
-// IndicateLiveness will reschedule pending liveness events to a later date.
-// Modifies the passed in rollapp object.
+// IndicateLiveness will reschedule pending liveness events to a later block height.
+// Modifies the passed-in rollapp object.
 func (k Keeper) IndicateLiveness(ctx sdk.Context, ra *types.Rollapp) {
 	ra.LastStateUpdateHeight = ctx.BlockHeight()
 	k.RescheduleLivenessEvent(ctx, ra)
