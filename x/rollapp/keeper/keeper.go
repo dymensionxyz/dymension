@@ -23,6 +23,8 @@ type Keeper struct {
 	channelKeeper   types.ChannelKeeper
 	bankKeeper      types.BankKeeper
 
+	daLayers map[string]types.DALayer
+
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 }
 
@@ -39,6 +41,9 @@ func NewKeeper(
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
+	daLayers := make(map[string]types.DALayer)
+	daLayers[types.InterchainDALayerName] = types.NewInterchainDALayer()
+
 	k := &Keeper{
 		cdc:             cdc,
 		storeKey:        storeKey,
@@ -47,6 +52,7 @@ func NewKeeper(
 		channelKeeper:   channelKeeper,
 		ibcClientKeeper: ibcclientKeeper,
 		bankKeeper:      bankKeeper,
+		daLayers:        daLayers,
 	}
 	k.SetFinalizePendingFn(k.finalizePendingState)
 	return k

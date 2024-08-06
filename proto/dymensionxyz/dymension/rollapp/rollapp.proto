@@ -2,6 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+import "google/protobuf/any.proto";
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
@@ -67,3 +68,10 @@ message RollappSummary {
   StateInfoIndex latestFinalizedStateIndex = 3;
 }
 
+// DAPath defines the location on the DA layer where the blob is posted.
+message DAPath {
+  // daType identifies the DA type being used by the sequencer to post the blob.
+  string daType = 1;
+  // commitment defines a generic commitment interpreted by the DA Layer.
+  google.protobuf.Any commitment = 2;
+}

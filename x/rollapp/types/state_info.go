@@ -46,3 +46,27 @@ func (s *StateInfo) GetEvents() []sdk.Attribute {
 	}
 	return eventAttributes
 }
+
+func (s *StateInfo) GetDAPathAsString() string {
+	return s.DAPath
+}
+
+// GetDAPathAsDAPath returns the structured DAPath from the DAPath string
+// This is used for v2.UpdateState to determine the type of the DA client
+func (s *StateInfo) GetDAPathAsDAPath() (DAPath, error) {
+	if s.DAPath == "" {
+		return DAPath{}, nil
+	}
+	var dapath DAPath
+	err := dapath.Unmarshal([]byte(s.DAPath))
+	return dapath, err
+}
+
+// GetDAType returns the DA type from the DAPath string
+func (s *StateInfo) GetDAType() string {
+	daPath, err := s.GetDAPathAsDAPath()
+	if err != nil {
+		return "" // In case of older DAPath
+	}
+	return daPath.DaType
+}
