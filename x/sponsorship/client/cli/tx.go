@@ -61,6 +61,31 @@ func CmdVote() *cobra.Command {
 	return cmd
 }
 
+func CmdRevokeVote() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "revoke-vote --from <voter>",
+		Short:   "Submit a vote for gauges",
+		Example: "dymd tx sponsorship revoke-vote --from my_validator",
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.MsgRevokeVote{
+				Voter: clientCtx.GetFromAddress().String(),
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
 func ParseGaugeWeights(inputWeights string) ([]types.GaugeWeight, error) {
 	if inputWeights == "" {
 		return nil, fmt.Errorf("input weights must not be empty")

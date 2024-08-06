@@ -121,3 +121,60 @@ func TestMsgRevokeVote(t *testing.T) {
 		})
 	}
 }
+
+func TestMsgUpdateParams(t *testing.T) {
+	addrs := accAddrsToString(apptesting.CreateRandomAccounts(1))
+
+	tests := []struct {
+		name          string
+		input         types.MsgUpdateParams
+		errorIs       error
+		errorContains string
+	}{
+		{
+			name: "Valid input",
+			input: types.MsgUpdateParams{
+				Authority: addrs[0],
+				NewParams: types.DefaultParams(),
+			},
+			errorIs:       nil,
+			errorContains: "",
+		},
+		{
+			name: "Invalid signer",
+			input: types.MsgUpdateParams{
+				Authority: "123123",
+				NewParams: types.DefaultParams(),
+			},
+			errorIs:       sdkerrors.ErrInvalidAddress,
+			errorContains: "authority '123123' must be a valid bech32 address",
+		},
+		{
+			name: "Invalid params, MinAllocationWeight < 0",
+			input: types.MsgUpdateParams{
+				Authority: addrs[0],
+				NewParams: types.Params{
+					MinAllocationWeight: math.NewInt(-20),
+					MinVotingPower:      math.NewInt(20),
+				},
+			},
+			errorIs:       types.ErrInvalidParams,
+			errorContains: "MinAllocationWeight must be >= 0",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.input.ValidateBasic()
+			expectError := tt.errorIs != nil
+			switch expectError {
+			case true:
+				require.Error(t, err)
+				require.ErrorIs(t, err, tt.errorIs)
+				require.Contains(t, err.Error(), tt.errorContains)
+			case false:
+				require.NoError(t, err)
+			}
+		})
+	}
+}

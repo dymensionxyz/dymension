@@ -1,6 +1,9 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	"cosmossdk.io/collections"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 // Module name and store keys.
 const (
@@ -12,11 +15,27 @@ const (
 )
 
 const (
-	ParamsByte                  uint8 = iota // Module params: Params
-	DistributionByte                         // Current distribution: Distribution
-	DelegatorValidatorPowerByte              // Delegator voting power by the validator: math.Int
-	VoteByte                                 // User's vote: Vote
+	ParamsByte                  = iota // Module params: Params
+	DistributionByte                   // Current distribution: Distribution
+	DelegatorValidatorPowerByte        // Delegator voting power by the validator: math.Int
+	VoteByte                           // User's vote: Vote
 )
+
+func ParamsPrefix() collections.Prefix {
+	return collections.NewPrefix(ParamsByte)
+}
+
+func DistributionPrefix() collections.Prefix {
+	return collections.NewPrefix(DistributionByte)
+}
+
+func DelegatorValidatorPrefix() collections.Prefix {
+	return collections.NewPrefix(DelegatorValidatorPowerByte)
+}
+
+func VotePrefix() collections.Prefix {
+	return collections.NewPrefix(VoteByte)
+}
 
 func ParamsKey() []byte {
 	return []byte{ParamsByte}
@@ -35,13 +54,6 @@ func DelegatorValidatorPowerKey(voterAddr sdk.AccAddress, valAddr sdk.ValAddress
 }
 
 func AllDelegatorValidatorPowersKey(voterAddr sdk.AccAddress) []byte {
-	key := make([]byte, 0, 1+len(voterAddr))
-	key = append(key, DelegatorValidatorPowerByte)
-	key = append(key, voterAddr.Bytes()...)
-	return key
-}
-
-func DelegatorPowerKey(voterAddr sdk.AccAddress) []byte {
 	key := make([]byte, 0, 1+len(voterAddr))
 	key = append(key, DelegatorValidatorPowerByte)
 	key = append(key, voterAddr.Bytes()...)
