@@ -30,11 +30,11 @@ func SimulateMsgCreateRollapp(ak simulationtypes.AccountKeeper, bk simulationtyp
 		}
 
 		msg := &types.MsgCreateRollapp{
-			Creator:                 simAccount.Address.String(),
-			RollappId:               rollappId,
-			InitialSequencerAddress: sample.AccAddress(),
-			Bech32Prefix:            "rol",
-			Alias:                   "Rollapp",
+			Creator:          simAccount.Address.String(),
+			RollappId:        rollappId,
+			InitialSequencer: sample.AccAddress(),
+			Bech32Prefix:     "rol",
+			Alias:            "Rollapp",
 			Metadata: &types.RollappMetadata{
 				Website:          "https://dymension.xyz",
 				Description:      "Sample description",
