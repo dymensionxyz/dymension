@@ -43,6 +43,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Bech32Prefix:            "rol",
 				GenesisChecksum:         "new_checksum",
 				Alias:                   "rolly",
+				VmType:                  types.Rollapp_EVM,
 				Metadata:                &mockRollappMetadata,
 			},
 		}, {
@@ -115,6 +116,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Frozen:                  false,
 				Bech32Prefix:            "rol",
 				Alias:                   "Rollapp2",
+				VmType:                  types.Rollapp_EVM,
 				RegisteredDenoms:        nil,
 				Sealed:                  true,
 				Metadata:                &mockRollappMetadata,
@@ -138,6 +140,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Bech32Prefix:            "rol",
 				Alias:                   "Rollapp2",
 				RegisteredDenoms:        nil,
+				VmType:                  types.Rollapp_EVM,
 				Metadata: &types.RollappMetadata{
 					Website:          "",
 					Description:      "",
@@ -175,6 +178,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		GenesisChecksum:         "",
 		InitialSequencerAddress: "",
 		Alias:                   "default",
+		VmType:                  types.Rollapp_EVM,
 		Bech32Prefix:            "rol",
 	})
 	suite.Require().NoError(err)

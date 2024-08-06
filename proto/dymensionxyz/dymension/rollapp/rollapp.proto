@@ -50,8 +50,16 @@ message Rollapp {
   // initial_sequencer_address is a bech32-encoded address of the
   // sequencer that is allowed to initially register and serve for this rollapp.
   string initial_sequencer_address = 15;
+
+  enum VMType {
+    Unspecified = 0;
+    EVM = 1;
+    WASM = 2;
+  }
+  // vm_type is the type of rollapp machine: EVM or WASM
+  VMType vm_type = 16;
   // sealed is a boolean that indicates if the immutable fields are no longer updatable.
-  bool sealed = 16;
+  bool sealed = 17;
 }
 
 // Rollapp summary is a compact representation of Rollapp

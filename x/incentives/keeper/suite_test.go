@@ -216,6 +216,7 @@ func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
 		GenesisChecksum:         "checksum",
 		InitialSequencerAddress: addr.String(),
 		Alias:                   "alias",
+		VmType:                  rollapptypes.Rollapp_EVM,
 	}
 
 	msgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)

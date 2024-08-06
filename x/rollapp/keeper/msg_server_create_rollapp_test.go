@@ -32,6 +32,7 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            "rol",
 		GenesisChecksum:         "checksum",
+		VmType:                  types.Rollapp_EVM,
 		Alias:                   "Rollapp",
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -53,6 +54,7 @@ func (suite *RollappTestSuite) TestCreateRollappAliasAlreadyExists() {
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            "rol",
 		GenesisChecksum:         "checksum",
+		VmType:                  types.Rollapp_EVM,
 		Alias:                   alias,
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -64,6 +66,7 @@ func (suite *RollappTestSuite) TestCreateRollappAliasAlreadyExists() {
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            "rol",
 		GenesisChecksum:         "checksum",
+		VmType:                  types.Rollapp_EVM,
 		Alias:                   alias,
 	}
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -127,6 +130,7 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 				Bech32Prefix:            "rol",
 				GenesisChecksum:         "checksum",
 				Alias:                   alias,
+				VmType:                  types.Rollapp_EVM,
 				Metadata:                &mockRollappMetadata,
 			}
 
@@ -192,6 +196,7 @@ func (suite *RollappTestSuite) TestCreateRollappIdRevisionNumber() {
 				Bech32Prefix:            "rol",
 				GenesisChecksum:         "checksum",
 				Alias:                   alias,
+				VmType:                  types.Rollapp_EVM,
 			}
 
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -252,6 +257,7 @@ func (suite *RollappTestSuite) TestForkChainId() {
 				Bech32Prefix:            "rol",
 				GenesisChecksum:         "checksum",
 				Alias:                   "Rollapp1",
+				VmType:                  types.Rollapp_EVM,
 				Metadata:                &mockRollappMetadata,
 			}
 
@@ -269,6 +275,7 @@ func (suite *RollappTestSuite) TestForkChainId() {
 				Bech32Prefix:            "rol",
 				GenesisChecksum:         "checksum1",
 				Alias:                   "Rollapp2",
+				VmType:                  types.Rollapp_WASM,
 				Metadata:                &mockRollappMetadata,
 			}
 			_, err = suite.msgServer.CreateRollapp(goCtx, &rollappMsg2)
@@ -312,6 +319,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 				Bech32Prefix:            "rol",
 				GenesisChecksum:         "checksum",
 				Alias:                   alias,
+				VmType:                  types.Rollapp_EVM,
 			}
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 			suite.Require().NoError(err)
@@ -338,6 +346,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 				InitialSequencerAddress: sample.AccAddress(),
 				Bech32Prefix:            "rol",
 				GenesisChecksum:         "checksum",
+				VmType:                  types.Rollapp_EVM,
 				Alias:                   "alias",
 			}
 			_, err = suite.msgServer.CreateRollapp(goCtx, &badRollapp)
@@ -387,6 +396,7 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 		Bech32Prefix:            "rol",
 		GenesisChecksum:         "checksum",
 		Alias:                   alias,
+		VmType:                  types.Rollapp_EVM,
 		Metadata:                &mockRollappMetadata,
 	}
 	// rollappExpect is the expected result of creating rollapp
@@ -397,6 +407,7 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 		GenesisChecksum:         rollapp.GetGenesisChecksum(),
 		Bech32Prefix:            rollapp.GetBech32Prefix(),
 		Alias:                   rollapp.GetAlias(),
+		VmType:                  types.Rollapp_EVM,
 		Metadata:                rollapp.GetMetadata(),
 	}
 	// create rollapp

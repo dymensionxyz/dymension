@@ -26,6 +26,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				Bech32Prefix:            bech32Prefix,
 				GenesisChecksum:         "checksum",
 				Alias:                   "Rollapp",
+				VmType:                  Rollapp_EVM,
 				Metadata: &RollappMetadata{
 					Website:          "https://dymension.xyz",
 					Description:      "Sample description",
@@ -69,6 +70,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId:               "dym_100-1",
 				GenesisChecksum:         "checksum",
 				Alias:                   "Rollapp",
+				VmType:                  Rollapp_EVM,
 			},
 		},
 		{
@@ -116,6 +118,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId:               "dym_100-1",
 				GenesisChecksum:         "checksum",
 				Alias:                   "alias",
+				VmType:                  Rollapp_EVM,
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
 					Description: "Sample description",

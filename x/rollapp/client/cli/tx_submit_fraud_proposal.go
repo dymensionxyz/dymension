@@ -16,7 +16,7 @@ import (
 // NewCmdSubmitFraudProposal submits a fraud proposal
 func NewCmdSubmitFraudProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "submit-fraud-proposal <rollappID> <height> <propser_addr> <client_id>",
+		Use:   "submit-fraud-proposal <rollappID> <height> <proposer_addr> <client_id>",
 		Short: "submit a fraud proposal",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
