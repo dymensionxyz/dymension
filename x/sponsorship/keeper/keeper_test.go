@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 	"github.com/stretchr/testify/suite"
@@ -160,8 +161,40 @@ func (s *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 	s.Require().NoError(err)
 
 	// Create a validator
-	handler := s.App.MsgServiceRouter().Handler(new(stakingtypes.MsgCreateValidator))
-	resp, err := handler(s.Ctx, msgCreate)
+	stakingMsgSrv := stakingkeeper.NewMsgServerImpl(s.App.StakingKeeper)
+	resp, err := stakingMsgSrv.CreateValidator(s.Ctx, msgCreate)
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+
+	val, found := s.App.StakingKeeper.GetValidator(s.Ctx, valAddr)
+	s.Require().True(found)
+
+	return val
+}
+
+func (s *KeeperTestSuite) CreateValidatorWithAddress(acc sdk.AccAddress, balance math.Int) stakingtypes.ValidatorI {
+	s.T().Helper()
+
+	initCoin := sdk.NewCoin(s.App.StakingKeeper.BondDenom(s.Ctx), balance)
+	initCoins := sdk.NewCoins(initCoin)
+	apptesting.FundAccount(s.App, s.Ctx, acc, initCoins)
+
+	// Build MsgCreateValidator
+	valAddr := sdk.ValAddress(acc)
+	privEd := ed25519.GenPrivKey()
+	msgCreate, err := stakingtypes.NewMsgCreateValidator(
+		valAddr,
+		privEd.PubKey(),
+		initCoin,
+		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
+		stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
+		sdk.OneInt(),
+	)
+	s.Require().NoError(err)
+
+	// Create a validator
+	stakingMsgSrv := stakingkeeper.NewMsgServerImpl(s.App.StakingKeeper)
+	resp, err := stakingMsgSrv.CreateValidator(s.Ctx, msgCreate)
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)
 
@@ -182,8 +215,8 @@ func (s *KeeperTestSuite) CreateDelegator(valAddr sdk.ValAddress, coin sdk.Coin)
 func (s *KeeperTestSuite) Delegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, coin sdk.Coin) stakingtypes.DelegationI {
 	s.T().Helper()
 
-	handler := s.App.MsgServiceRouter().Handler(new(stakingtypes.MsgDelegate))
-	resp, err := handler(s.Ctx, stakingtypes.NewMsgDelegate(delAddr, valAddr, coin))
+	stakingMsgSrv := stakingkeeper.NewMsgServerImpl(s.App.StakingKeeper)
+	resp, err := stakingMsgSrv.Delegate(s.Ctx, stakingtypes.NewMsgDelegate(delAddr, valAddr, coin))
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)
 
@@ -198,8 +231,8 @@ func (s *KeeperTestSuite) Delegate(delAddr sdk.AccAddress, valAddr sdk.ValAddres
 func (s *KeeperTestSuite) Undelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, coin sdk.Coin) stakingtypes.DelegationI {
 	s.T().Helper()
 
-	handler := s.App.MsgServiceRouter().Handler(new(stakingtypes.MsgUndelegate))
-	resp, err := handler(s.Ctx, stakingtypes.NewMsgUndelegate(delAddr, valAddr, coin))
+	stakingMsgSrv := stakingkeeper.NewMsgServerImpl(s.App.StakingKeeper)
+	resp, err := stakingMsgSrv.Undelegate(s.Ctx, stakingtypes.NewMsgUndelegate(delAddr, valAddr, coin))
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)
 
@@ -215,8 +248,8 @@ func (s *KeeperTestSuite) BeginRedelegate(
 ) (src, dst stakingtypes.DelegationI) {
 	s.T().Helper()
 
-	handler := s.App.MsgServiceRouter().Handler(new(stakingtypes.MsgBeginRedelegate))
-	resp, err := handler(s.Ctx, stakingtypes.NewMsgBeginRedelegate(delAddr, valSrcAddr, valDstAddr, coin))
+	stakingMsgSrv := stakingkeeper.NewMsgServerImpl(s.App.StakingKeeper)
+	resp, err := stakingMsgSrv.BeginRedelegate(s.Ctx, stakingtypes.NewMsgBeginRedelegate(delAddr, valSrcAddr, valDstAddr, coin))
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)
 
@@ -232,8 +265,8 @@ func (s *KeeperTestSuite) CancelUnbondingDelegation(
 ) stakingtypes.DelegationI {
 	s.T().Helper()
 
-	handler := s.App.MsgServiceRouter().Handler(new(stakingtypes.MsgCancelUnbondingDelegation))
-	resp, err := handler(s.Ctx, stakingtypes.NewMsgCancelUnbondingDelegation(delAddr, valAddr, creationHeight, coin))
+	stakingMsgSrv := stakingkeeper.NewMsgServerImpl(s.App.StakingKeeper)
+	resp, err := stakingMsgSrv.CancelUnbondingDelegation(s.Ctx, stakingtypes.NewMsgCancelUnbondingDelegation(delAddr, valAddr, creationHeight, coin))
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)
 
@@ -243,10 +276,46 @@ func (s *KeeperTestSuite) CancelUnbondingDelegation(
 	return src
 }
 
-func accAddrsToString(a []sdk.AccAddress) []string {
-	res := make([]string, 0, len(a))
-	for _, addr := range a {
-		res = append(res, addr.String())
-	}
-	return res
+func (s *KeeperTestSuite) AssertHaveDelegatorValidator(voterAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+	s.T().Helper()
+
+	have := s.haveDelegatorValidator(voterAddr, valAddr)
+	s.Require().True(have)
+}
+
+func (s *KeeperTestSuite) AssertNotHaveDelegatorValidator(voterAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+	s.T().Helper()
+
+	have := s.haveDelegatorValidator(voterAddr, valAddr)
+	s.Require().False(have)
+}
+
+func (s *KeeperTestSuite) haveDelegatorValidator(voterAddr sdk.AccAddress, valAddr sdk.ValAddress) bool {
+	have, err := s.App.SponsorshipKeeper.HasDelegatorValidatorPower(s.Ctx, voterAddr, valAddr)
+	s.Require().NoError(err)
+	return have
+}
+
+func (s *KeeperTestSuite) AssertVoted(voterAddr sdk.AccAddress) {
+	s.T().Helper()
+
+	voted, err := s.App.SponsorshipKeeper.Voted(s.Ctx, voterAddr)
+	s.Require().NoError(err)
+	s.Require().True(voted)
+}
+
+func (s *KeeperTestSuite) AssertNotVoted(voterAddr sdk.AccAddress) {
+	s.T().Helper()
+
+	voted, err := s.App.SponsorshipKeeper.Voted(s.Ctx, voterAddr)
+	s.Require().NoError(err)
+	s.Require().False(voted)
+}
+
+func (s *KeeperTestSuite) AssertDelegatorValidator(delAddr sdk.AccAddress, valAddr sdk.ValAddress, expectedPower math.Int) {
+	s.T().Helper()
+
+	vp, err := s.App.SponsorshipKeeper.GetDelegatorValidatorPower(s.Ctx, delAddr, valAddr)
+	s.Require().NoError(err)
+	s.Require().Equal(expectedPower, vp)
 }
