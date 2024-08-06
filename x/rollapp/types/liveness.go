@@ -49,15 +49,15 @@ func createLivenessEventQueueKey(height *int64, kind []byte, rollappID *string) 
 	return key
 }
 
-// LivenessEventQueueKeyToEvent converts store key
+// LivenessEventQueueKeyToEvent converts store key to LivenessEvent
 // Assumes the key is well-formed (contains both height and rollapp id)
 func LivenessEventQueueKeyToEvent(k []byte) LivenessEvent {
 	ret := LivenessEvent{}
 	// key is like 'prefix/height/kind/rollapp'
 	//                     i      j    l
 	i := len(LivenessEventQueueKeyPrefix) + 1
-	j := i + 8 + 1
-	l := j + 1 + 1
+	j := i + 8 + 1 // 8 is from big endian, 1 is from '/'
+	l := j + 1 + 1 // kind is 1 character and the other 1 is from '/'
 	ret.HubHeight = int64(binary.BigEndian.Uint64(k[i : i+8]))
 	if bytes.Equal(k[j:j+1], LivenessEventQueueJail) {
 		ret.IsJail = true
