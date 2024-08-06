@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uparam"
 	"gopkg.in/yaml.v2"
 )
 
@@ -91,17 +92,7 @@ func validateMinBond(i interface{}) error {
 }
 
 func validateLivenessSlashMultiplier(i interface{}) error {
-	v, ok := i.(sdk.Dec)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if v.IsNil() || v.IsNegative() {
-		return fmt.Errorf("must be positive: %s", v)
-	}
-	if v.GT(sdk.OneDec()) {
-		return fmt.Errorf("cannot exceed 1: %s", v)
-	}
-	return nil
+	return uparam.ValidateZeroToOneDec(i)
 }
 
 // Validate validates the set of params
