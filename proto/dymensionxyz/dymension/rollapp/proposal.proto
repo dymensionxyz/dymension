@@ -24,3 +24,17 @@ message SubmitFraudProposal {
   // The address of the fraudelent sequencer
   string fraudelent_sequencer_address = 6;
 }
+
+message ChangeVMTypeProposal {
+  option (gogoproto.equal) = true;
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  string title = 1;
+  string description = 2;
+
+  // The rollapp id
+  string rollapp_id = 3;
+  // vm type
+  string vm_type = 4;
+}

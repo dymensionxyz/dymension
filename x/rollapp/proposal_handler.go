@@ -1,13 +1,12 @@
 package rollapp
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func NewRollappProposalHandler(k *keeper.Keeper) govtypes.Handler {
@@ -15,6 +14,8 @@ func NewRollappProposalHandler(k *keeper.Keeper) govtypes.Handler {
 		switch c := content.(type) {
 		case *types.SubmitFraudProposal:
 			return HandleSubmitFraudProposal(ctx, k, c)
+		case *types.ChangeVMTypeProposal:
+			return HandleChangeVMTypeProposal(ctx, k, c)
 		default:
 			return errorsmod.Wrapf(types.ErrUnknownRequest, "unrecognized rollapp proposal content type: %T", c)
 		}
@@ -22,9 +23,9 @@ func NewRollappProposalHandler(k *keeper.Keeper) govtypes.Handler {
 }
 
 func HandleSubmitFraudProposal(ctx sdk.Context, k *keeper.Keeper, p *types.SubmitFraudProposal) error {
-	err := k.HandleFraud(ctx, p.RollappId, p.IbcClientId, p.FraudelentHeight, p.FraudelentSequencerAddress)
-	if err != nil {
-		return err
-	}
-	return nil
+	return k.HandleFraud(ctx, p.RollappId, p.IbcClientId, p.FraudelentHeight, p.FraudelentSequencerAddress)
+}
+
+func HandleChangeVMTypeProposal(ctx sdk.Context, k *keeper.Keeper, p *types.ChangeVMTypeProposal) error {
+	return k.ChangeVMType(ctx, p.RollappId, p.VmType)
 }

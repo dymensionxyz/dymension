@@ -3,6 +3,7 @@ package keeper
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -180,6 +181,27 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 	store.Set(types.RollappByEIP155Key(
 		rollappID.GetEIP155ID(),
 	), []byte(rollapp.RollappId))
+}
+
+func (k Keeper) ChangeVMType(ctx sdk.Context, rollappId, vmTypeStr string) error {
+	vmType, ok := types.Rollapp_VMType_value[strings.ToUpper(vmTypeStr)]
+	if !ok || vmType == 0 {
+		return types.ErrInvalidVMType
+	}
+
+	rollapp, found := k.GetRollapp(ctx, rollappId)
+	if !found {
+		return gerrc.ErrNotFound
+	}
+
+	if rollapp.VmType == types.Rollapp_VMType(vmType) {
+		return types.ErrVMTypeSame
+	}
+
+	rollapp.VmType = types.Rollapp_VMType(vmType)
+	k.SetRollapp(ctx, rollapp)
+
+	return nil
 }
 
 func (k Keeper) SealRollapp(ctx sdk.Context, rollappId string) error {
