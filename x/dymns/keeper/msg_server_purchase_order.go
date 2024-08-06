@@ -15,11 +15,29 @@ import (
 func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurchaseOrder) (*dymnstypes.MsgPurchaseOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if msg.OrderType != dymnstypes.NameOrder {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
 	}
 
-	dymName, so, err := k.validatePurchase(ctx, msg)
+	var resp *dymnstypes.MsgPurchaseOrderResponse
+	var err error
+	if msg.OrderType == dymnstypes.NameOrder {
+		resp, err = k.processPurchaseOrderTypeDymName(ctx, msg)
+	} else {
+		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	consumeMinimumGas(ctx, dymnstypes.OpGasPlaceBidOnSellOrder, "PurchaseOrder")
+
+	return resp, nil
+}
+
+// processPurchaseOrderTypeDymName handles the message handled by PurchaseOrder, type Dym-Name.
+func (k msgServer) processPurchaseOrderTypeDymName(ctx sdk.Context, msg *dymnstypes.MsgPurchaseOrder) (*dymnstypes.MsgPurchaseOrderResponse, error) {
+	dymName, so, err := k.validatePurchaseOrderTypeDymName(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
@@ -61,17 +79,11 @@ func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurch
 		}
 	}
 
-	consumeMinimumGas(ctx, dymnstypes.OpGasPlaceBidOnSellOrder, "PurchaseOrder")
-
 	return &dymnstypes.MsgPurchaseOrderResponse{}, nil
 }
 
-// validatePurchase handles validation for the message handled by PurchaseOrder.
-func (k msgServer) validatePurchase(ctx sdk.Context, msg *dymnstypes.MsgPurchaseOrder) (*dymnstypes.DymName, *dymnstypes.SellOrder, error) {
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, nil, err
-	}
-
+// validatePurchaseOrderTypeDymName handles validation for the message handled by PurchaseOrder, type Dym-Name.
+func (k msgServer) validatePurchaseOrderTypeDymName(ctx sdk.Context, msg *dymnstypes.MsgPurchaseOrder) (*dymnstypes.DymName, *dymnstypes.SellOrder, error) {
 	dymName := k.GetDymName(ctx, msg.GoodsId)
 	if dymName == nil {
 		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.GoodsId)

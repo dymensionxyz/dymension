@@ -18,22 +18,50 @@ import (
 func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlaceBuyOrder) (*dymnstypes.MsgPlaceBuyOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if msg.OrderType != dymnstypes.NameOrder {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
 	}
 
-	existingOffer, err := k.validateOffer(ctx, msg)
+	params := k.GetParams(ctx)
+
+	var resp *dymnstypes.MsgPlaceBuyOrderResponse
+	var err error
+
+	if msg.OrderType == dymnstypes.NameOrder {
+		resp, err = k.placeBuyOrderTypeDymName(ctx, msg, params)
+	} else {
+		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var minimumTxGasRequired sdk.Gas
+	if msg.ContinueOfferId != "" {
+		minimumTxGasRequired = dymnstypes.OpGasUpdateBuyOffer
+	} else {
+		minimumTxGasRequired = dymnstypes.OpGasPutBuyOffer
+	}
+
+	consumeMinimumGas(ctx, minimumTxGasRequired, "PlaceBuyOrder")
+
+	return resp, nil
+}
+
+// placeBuyOrderTypeDymName handles the message handled by PlaceBuyOrder, type Dym-Name.
+func (k msgServer) placeBuyOrderTypeDymName(
+	ctx sdk.Context,
+	msg *dymnstypes.MsgPlaceBuyOrder, params dymnstypes.Params,
+) (*dymnstypes.MsgPlaceBuyOrderResponse, error) {
+	existingOffer, err := k.validatePlaceBuyOrderTypeDymName(ctx, msg, params)
 	if err != nil {
 		return nil, err
 	}
 
 	var offer dymnstypes.BuyOffer
 	var deposit sdk.Coin
-	var minimumTxGasRequired sdk.Gas
 
 	if existingOffer != nil {
-		minimumTxGasRequired = dymnstypes.OpGasUpdateBuyOffer
-
 		deposit = msg.Offer.Sub(existingOffer.OfferPrice)
 
 		offer = *existingOffer
@@ -43,8 +71,6 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 			return nil, err
 		}
 	} else {
-		minimumTxGasRequired = dymnstypes.OpGasPutBuyOffer
-
 		deposit = msg.Offer
 
 		offer = dymnstypes.BuyOffer{
@@ -80,20 +106,16 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 		return nil, err
 	}
 
-	consumeMinimumGas(ctx, minimumTxGasRequired, "PlaceBuyOrder")
-
 	return &dymnstypes.MsgPlaceBuyOrderResponse{
 		OfferId: offer.Id,
 	}, nil
 }
 
-// validateOffer handles validation for the message handled by PlaceBuyOrder.
-func (k msgServer) validateOffer(ctx sdk.Context, msg *dymnstypes.MsgPlaceBuyOrder) (existingOffer *dymnstypes.BuyOffer, err error) {
-	err = msg.ValidateBasic()
-	if err != nil {
-		return
-	}
-
+// validatePlaceBuyOrderTypeDymName handles validation for the message handled by PlaceBuyOrder, type Dym-Name.
+func (k msgServer) validatePlaceBuyOrderTypeDymName(
+	ctx sdk.Context,
+	msg *dymnstypes.MsgPlaceBuyOrder, params dymnstypes.Params,
+) (existingOffer *dymnstypes.BuyOffer, err error) {
 	dymName := k.GetDymNameWithExpirationCheck(ctx, msg.GoodsId)
 	if dymName == nil {
 		err = errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.GoodsId)
@@ -104,7 +126,6 @@ func (k msgServer) validateOffer(ctx sdk.Context, msg *dymnstypes.MsgPlaceBuyOrd
 		return
 	}
 
-	params := k.GetParams(ctx)
 	if dymName.IsProhibitedTradingAt(ctx.BlockTime(), k.GetParams(ctx).Misc.ProhibitSellDuration) {
 		err = errorsmod.Wrapf(gerrc.ErrFailedPrecondition,
 			"duration before Dym-Name expiry, prohibited to trade: %s",

@@ -18,11 +18,35 @@ import (
 func (k msgServer) PlaceSellOrder(goCtx context.Context, msg *dymnstypes.MsgPlaceSellOrder) (*dymnstypes.MsgPlaceSellOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if msg.OrderType != dymnstypes.NameOrder {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
 	}
 
-	dymName, params, err := k.validatePlaceSellOrder(ctx, msg)
+	params := k.GetParams(ctx)
+
+	var resp *dymnstypes.MsgPlaceSellOrderResponse
+	var err error
+
+	if msg.OrderType == dymnstypes.NameOrder {
+		resp, err = k.processPlaceSellOrderTypeDymName(ctx, msg, params)
+	} else {
+		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	consumeMinimumGas(ctx, dymnstypes.OpGasPlaceSellOrder, "PlaceSellOrder")
+
+	return resp, nil
+}
+
+// processPlaceSellOrderTypeDymName handles the message handled by PlaceSellOrder, type Dym-Name.
+func (k msgServer) processPlaceSellOrderTypeDymName(
+	ctx sdk.Context,
+	msg *dymnstypes.MsgPlaceSellOrder, params dymnstypes.Params,
+) (*dymnstypes.MsgPlaceSellOrderResponse, error) {
+	dymName, err := k.validatePlaceSellOrderTypeDymName(ctx, msg, params)
 	if err != nil {
 		return nil, err
 	}
@@ -51,49 +75,44 @@ func (k msgServer) PlaceSellOrder(goCtx context.Context, msg *dymnstypes.MsgPlac
 		return nil, err
 	}
 
-	consumeMinimumGas(ctx, dymnstypes.OpGasPlaceSellOrder, "PlaceSellOrder")
-
 	return &dymnstypes.MsgPlaceSellOrderResponse{}, nil
 }
 
-// validatePlaceSellOrder handles validation for message handled by PlaceSellOrder
-func (k msgServer) validatePlaceSellOrder(ctx sdk.Context, msg *dymnstypes.MsgPlaceSellOrder) (*dymnstypes.DymName, *dymnstypes.Params, error) {
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, nil, err
-	}
-
+// validatePlaceSellOrderTypeDymName handles validation for message handled by PlaceSellOrder, type Dym-Name.
+func (k msgServer) validatePlaceSellOrderTypeDymName(
+	ctx sdk.Context,
+	msg *dymnstypes.MsgPlaceSellOrder, params dymnstypes.Params,
+) (*dymnstypes.DymName, error) {
 	dymName := k.GetDymName(ctx, msg.GoodsId)
 	if dymName == nil {
-		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.GoodsId)
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.GoodsId)
 	}
 
 	if dymName.Owner != msg.Owner {
-		return nil, nil, errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the Dym-Name")
+		return nil, errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the Dym-Name")
 	}
 
 	if dymName.IsExpiredAtCtx(ctx) {
-		return nil, nil, errorsmod.Wrap(gerrc.ErrUnauthenticated, "Dym-Name is already expired")
+		return nil, errorsmod.Wrap(gerrc.ErrUnauthenticated, "Dym-Name is already expired")
 	}
 
 	existingActiveSo := k.GetSellOrder(ctx, dymName.Name, msg.OrderType)
 	if existingActiveSo != nil {
 		if existingActiveSo.HasFinishedAtCtx(ctx) {
-			return nil, nil, errorsmod.Wrap(
+			return nil, errorsmod.Wrap(
 				gerrc.ErrAlreadyExists,
 				"an active expired/completed Sell-Order already exists for the Dym-Name, must wait until processed",
 			)
 		}
-		return nil, nil, errorsmod.Wrap(gerrc.ErrAlreadyExists, "an active Sell-Order already exists for the Dym-Name")
+		return nil, errorsmod.Wrap(gerrc.ErrAlreadyExists, "an active Sell-Order already exists for the Dym-Name")
 	}
 
-	params := k.GetParams(ctx)
-
 	if msg.MinPrice.Denom != params.Price.PriceDenom {
-		return nil, nil, errorsmod.Wrapf(
+		return nil, errorsmod.Wrapf(
 			gerrc.ErrInvalidArgument,
 			"the only denom allowed as price: %s", params.Price.PriceDenom,
 		)
 	}
 
-	return dymName, &params, nil
+	return dymName, nil
 }

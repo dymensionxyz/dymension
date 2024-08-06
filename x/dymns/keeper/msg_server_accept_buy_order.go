@@ -16,7 +16,40 @@ import (
 func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcceptBuyOrder) (*dymnstypes.MsgAcceptBuyOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	offer, dymName, err := k.validateAcceptOffer(ctx, msg)
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+
+	bo := k.GetBuyOffer(ctx, msg.OfferId)
+	if bo == nil {
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Order: %s", msg.OfferId)
+	}
+
+	params := k.GetParams(ctx)
+
+	var resp *dymnstypes.MsgAcceptBuyOrderResponse
+	var err error
+
+	if bo.Type == dymnstypes.NameOrder {
+		resp, err = k.processAcceptBuyOrderTypeDymName(ctx, msg, *bo, params)
+	} else {
+		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", bo.Type)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	consumeMinimumGas(ctx, dymnstypes.OpGasUpdateBuyOffer, "AcceptBuyOrder")
+
+	return resp, nil
+}
+
+// processAcceptBuyOrderTypeDymName handles the message handled by AcceptBuyOrder, type Dym-Name.
+func (k msgServer) processAcceptBuyOrderTypeDymName(
+	ctx sdk.Context,
+	msg *dymnstypes.MsgAcceptBuyOrder, offer dymnstypes.BuyOffer, params dymnstypes.Params,
+) (*dymnstypes.MsgAcceptBuyOrderResponse, error) {
+	dymName, err := k.validateAcceptBuyOrderTypeDymName(ctx, msg, offer, params)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +71,7 @@ func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcce
 			return nil, err
 		}
 
-		if err := k.removeBuyOffer(ctx, *offer); err != nil {
+		if err := k.removeBuyOfferTypeDymName(ctx, offer); err != nil {
 			return nil, err
 		}
 
@@ -49,69 +82,54 @@ func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcce
 		accepted = false
 
 		offer.CounterpartyOfferPrice = &msg.MinAccept
-		if err := k.SetBuyOffer(ctx, *offer); err != nil {
+		if err := k.SetBuyOffer(ctx, offer); err != nil {
 			return nil, err
 		}
 	}
-
-	consumeMinimumGas(ctx, dymnstypes.OpGasUpdateBuyOffer, "AcceptBuyOrder")
 
 	return &dymnstypes.MsgAcceptBuyOrderResponse{
 		Accepted: accepted,
 	}, nil
 }
 
-// validateAcceptOffer handles validation for the message handled by AcceptBuyOrder
-func (k msgServer) validateAcceptOffer(ctx sdk.Context, msg *dymnstypes.MsgAcceptBuyOrder) (*dymnstypes.BuyOffer, *dymnstypes.DymName, error) {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	bo := k.GetBuyOffer(ctx, msg.OfferId)
-	if bo == nil {
-		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Order: %s", msg.OfferId)
-	}
-
-	if bo.Type != dymnstypes.NameOrder {
-		panic(errorsmod.Wrapf(gerrc.ErrInternal, "not yet supported Buy-Order type: %s", bo.Type))
-	}
-
+// validateAcceptBuyOrderTypeDymName handles validation for the message handled by AcceptBuyOrder, type Dym-Name.
+func (k msgServer) validateAcceptBuyOrderTypeDymName(
+	ctx sdk.Context,
+	msg *dymnstypes.MsgAcceptBuyOrder, bo dymnstypes.BuyOffer, params dymnstypes.Params,
+) (*dymnstypes.DymName, error) {
 	dymName := k.GetDymNameWithExpirationCheck(ctx, bo.GoodsId)
 	if dymName == nil {
-		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", bo.GoodsId)
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", bo.GoodsId)
 	}
 
 	if dymName.Owner != msg.Owner {
-		return nil, nil, errorsmod.Wrapf(gerrc.ErrPermissionDenied, "not the owner of the Dym-Name")
+		return nil, errorsmod.Wrapf(gerrc.ErrPermissionDenied, "not the owner of the Dym-Name")
 	}
 
-	params := k.GetParams(ctx)
-
 	if dymName.IsProhibitedTradingAt(ctx.BlockTime(), params.Misc.ProhibitSellDuration) {
-		return nil, nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition,
+		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition,
 			"duration before Dym-Name expiry, prohibited to sell: %s",
 			params.Misc.ProhibitSellDuration,
 		)
 	}
 
 	if bo.Buyer == msg.Owner {
-		return nil, nil, errorsmod.Wrapf(gerrc.ErrPermissionDenied, "cannot accept own offer")
+		return nil, errorsmod.Wrapf(gerrc.ErrPermissionDenied, "cannot accept own offer")
 	}
 
 	if msg.MinAccept.Denom != bo.OfferPrice.Denom {
-		return nil, nil, errorsmod.Wrapf(
+		return nil, errorsmod.Wrapf(
 			gerrc.ErrInvalidArgument,
 			"denom must be the same as the offer price: %s", bo.OfferPrice.Denom,
 		)
 	}
 
 	if msg.MinAccept.IsLT(bo.OfferPrice) {
-		return nil, nil, errorsmod.Wrapf(
+		return nil, errorsmod.Wrapf(
 			gerrc.ErrInvalidArgument,
 			"amount must be greater than or equals to the offer price: %s", bo.OfferPrice.Denom,
 		)
 	}
 
-	return bo, dymName, nil
+	return dymName, nil
 }

@@ -17,11 +17,31 @@ import (
 func (k msgServer) CancelSellOrder(goCtx context.Context, msg *dymnstypes.MsgCancelSellOrder) (*dymnstypes.MsgCancelSellOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if msg.OrderType != dymnstypes.NameOrder {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
 	}
 
-	if err := k.validateCancelSellOrder(ctx, msg); err != nil {
+	var resp *dymnstypes.MsgCancelSellOrderResponse
+	var err error
+	if msg.OrderType == dymnstypes.NameOrder {
+		resp, err = k.processCancelSellOrderTypeDymName(ctx, msg)
+	} else {
+		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	consumeMinimumGas(ctx, dymnstypes.OpGasCloseSellOrder, "CancelSellOrder")
+
+	return resp, nil
+}
+
+// processCancelSellOrderTypeDymName handles the message handled by CancelSellOrder, type Dym-Name.
+func (k msgServer) processCancelSellOrderTypeDymName(
+	ctx sdk.Context, msg *dymnstypes.MsgCancelSellOrder,
+) (*dymnstypes.MsgCancelSellOrderResponse, error) {
+	if err := k.validateCancelSellOrderTypeDymName(ctx, msg); err != nil {
 		return nil, err
 	}
 
@@ -33,17 +53,13 @@ func (k msgServer) CancelSellOrder(goCtx context.Context, msg *dymnstypes.MsgCan
 		return nil, err
 	}
 
-	consumeMinimumGas(ctx, dymnstypes.OpGasCloseSellOrder, "CancelSellOrder")
-
 	return &dymnstypes.MsgCancelSellOrderResponse{}, nil
 }
 
-// validateCancelSellOrder handles validation for the message handled by CancelSellOrder.
-func (k msgServer) validateCancelSellOrder(ctx sdk.Context, msg *dymnstypes.MsgCancelSellOrder) error {
-	if err := msg.ValidateBasic(); err != nil {
-		return err
-	}
-
+// validateCancelSellOrderTypeDymName handles validation for the message handled by CancelSellOrder, type Dym-Name.
+func (k msgServer) validateCancelSellOrderTypeDymName(
+	ctx sdk.Context, msg *dymnstypes.MsgCancelSellOrder,
+) error {
 	dymName := k.GetDymName(ctx, msg.GoodsId)
 	if dymName == nil {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.GoodsId)
