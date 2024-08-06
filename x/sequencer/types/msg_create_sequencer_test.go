@@ -53,6 +53,10 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         bond,
+				Metadata: SequencerMetadata{
+					Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs: []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+				},
 			},
 		}, {
 			name: "valid metadata",
@@ -64,15 +68,15 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 					Moniker:     strings.Repeat("a", MaxMonikerLength),
 					Details:     strings.Repeat("a", MaxDetailsLength),
 					P2PSeeds:    []string{"seed1", "seed2"},
-					Rpcs:        []string{"rpc1", "rpc2"},
-					EvmRpcs:     []string{"evm1", "evm2"},
+					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs:     []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
 					RestApiUrls: []string{"rest_api_url"},
 					ExplorerUrl: "explorer_url",
 					GenesisUrls: []string{"genesis1", "genesis2"},
 					ContactDetails: &ContactDetails{
-						Website:  strings.Repeat("a", MaxContactFieldLength),
-						Telegram: strings.Repeat("a", MaxContactFieldLength),
-						X:        strings.Repeat("a", MaxContactFieldLength),
+						Website:  "https://website.com",
+						Telegram: "https://t.me/telegram",
+						X:        "https://x.com",
 					},
 					ExtraData: []byte(strings.Repeat("a", MaxExtraDataLength)),
 					Snapshots: []*SnapshotInfo{
@@ -93,6 +97,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Bond:         bond,
 				Metadata: SequencerMetadata{
 					Moniker: strings.Repeat("a", MaxMonikerLength+1),
+					Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs: []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
 				},
 			},
 			err: ErrInvalidRequest,
@@ -106,6 +112,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 					ContactDetails: &ContactDetails{
 						Website: strings.Repeat("a", MaxContactFieldLength+1),
 					},
+					Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs: []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
 				},
 			},
 			err: ErrInvalidRequest,
@@ -117,6 +125,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Bond:         bond,
 				Metadata: SequencerMetadata{
 					Details: strings.Repeat("a", MaxDetailsLength+1),
+					Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs: []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
 				},
 			},
 			err: ErrInvalidRequest,
@@ -128,6 +138,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Bond:         bond,
 				Metadata: SequencerMetadata{
 					ExtraData: []byte(strings.Repeat("a", MaxExtraDataLength+1)),
+					Rpcs:      []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs:   []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
 				},
 			},
 			err: ErrInvalidRequest,
@@ -137,6 +149,10 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         sdk.Coin{Denom: "k", Amount: sdk.NewInt(0)},
+				Metadata: SequencerMetadata{
+					Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs: []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+				},
 			},
 			err: ErrInvalidCoins,
 		}, {

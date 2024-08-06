@@ -32,7 +32,7 @@ func NewRollapp(
 		GenesisChecksum:  genesisChecksum,
 		Bech32Prefix:     bech32Prefix,
 		Alias:            alias,
-		VmType:           types.Rollapp_EVM,
+		VmType:           vmType,
 		Metadata:         metadata,
 		GenesisState: RollappGenesisState{
 			TransfersEnabled: transfersEnabled,

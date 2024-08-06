@@ -52,8 +52,8 @@ func (s *KeeperTestHelper) CreateRollappWithNameWithProposer(name string) (strin
 			Description:      "Sample description",
 			LogoDataUri:      "data:image/png;base64,c2lzZQ==",
 			TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
-			Telegram:         "rolly",
-			X:                "rolly",
+			Telegram:         "https://t.me/rolly",
+			X:                "https://x.dymension.xyz",
 		},
 	}
 
@@ -88,7 +88,10 @@ func (s *KeeperTestHelper) CreateSequencer(ctx sdk.Context, rollappId string, pu
 		DymintPubKey: pkAny,
 		Bond:         bond,
 		RollappId:    rollappId,
-		Metadata:     sequencertypes.SequencerMetadata{},
+		Metadata: sequencertypes.SequencerMetadata{
+			Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+			EvmRpcs: []string{"https://rpc.evm.rollapp.noisnemyd.xyz:443"},
+		},
 	}
 
 	msgServer := sequencerkeeper.NewMsgServerImpl(s.App.SequencerKeeper)

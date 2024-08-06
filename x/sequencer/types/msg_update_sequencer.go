@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -48,9 +49,17 @@ func (msg *MsgUpdateSequencerInformation) GetSignBytes() []byte {
 }
 
 func (msg *MsgUpdateSequencerInformation) ValidateBasic() error {
+	return msg.Validate(false)
+}
+
+func (msg *MsgUpdateSequencerInformation) Validate(isEVM bool) error {
 	// validation if the sequencer metadata can be updated
 	if _, err := msg.Metadata.UpdateSequencerMetadata(msg.Metadata); err != nil {
 		return err
+	}
+
+	if err := msg.Metadata.Validate(isEVM); err != nil {
+		return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
 	}
 
 	return nil

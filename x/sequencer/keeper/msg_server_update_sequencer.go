@@ -7,6 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -14,7 +15,16 @@ import (
 func (k msgServer) UpdateSequencerInformation(goCtx context.Context, msg *types.MsgUpdateSequencerInformation) (*types.MsgUpdateSequencerInformationResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := msg.ValidateBasic(); err != nil {
+	rollapp, found := k.rollappKeeper.GetRollapp(ctx, msg.RollappId)
+	if !found {
+		return nil, types.ErrUnknownRollappID
+	}
+
+	if rollapp.Frozen {
+		return nil, types.ErrRollappJailed
+	}
+
+	if err := msg.Validate(rollapp.VmType == rollapptypes.Rollapp_EVM); err != nil {
 		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, "validate basic: %v", err)
 	}
 
@@ -25,15 +35,6 @@ func (k msgServer) UpdateSequencerInformation(goCtx context.Context, msg *types.
 
 	if sequencer.Jailed {
 		return nil, types.ErrSequencerJailed
-	}
-
-	rollapp, found := k.rollappKeeper.GetRollapp(ctx, msg.RollappId)
-	if !found {
-		return nil, types.ErrUnknownRollappID
-	}
-
-	if rollapp.Frozen {
-		return nil, types.ErrRollappJailed
 	}
 
 	sequencer.Metadata = msg.Metadata

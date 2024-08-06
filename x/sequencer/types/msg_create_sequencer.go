@@ -71,6 +71,10 @@ func (msg *MsgCreateSequencer) GetSignBytes() []byte {
 }
 
 func (msg *MsgCreateSequencer) ValidateBasic() error {
+	return msg.Validate(false)
+}
+
+func (msg *MsgCreateSequencer) Validate(isEVM bool) error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
@@ -100,6 +104,10 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 
 	if _, err = msg.Metadata.UpdateSequencerMetadata(msg.Metadata); err != nil {
 		return err
+	}
+
+	if err = msg.Metadata.Validate(isEVM); err != nil {
+		return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
 	}
 
 	if !msg.Bond.IsValid() {
