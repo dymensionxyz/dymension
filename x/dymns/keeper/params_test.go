@@ -92,7 +92,7 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 
 				rk.SetRollapp(ctx, rollapptypes.Rollapp{
 					RollappId: "rollapp_1-1",
-					Creator:   testAddr(1).bech32(),
+					Owner:     testAddr(1).bech32(),
 				})
 				err = dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "ra")
 				require.NoError(t, err)
@@ -122,7 +122,7 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 
 				rk.SetRollapp(ctx, rollapptypes.Rollapp{
 					RollappId: "rollapp_1-1",
-					Creator:   testAddr(1).bech32(),
+					Owner:     testAddr(1).bech32(),
 				})
 				err = dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "ra")
 				require.NoError(t, err)
@@ -163,7 +163,7 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 
 				rk.SetRollapp(ctx, rollapptypes.Rollapp{
 					RollappId: "rollapp_1-1",
-					Creator:   testAddr(1).bech32(),
+					Owner:     testAddr(1).bech32(),
 				})
 				err = dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "ra")
 				require.NoError(t, err)
@@ -177,7 +177,7 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
 				rk.SetRollapp(ctx, rollapptypes.Rollapp{
 					RollappId: "rollapp_1-1",
-					Creator:   testAddr(1).bech32(),
+					Owner:     testAddr(1).bech32(),
 				})
 				err := dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "one")
 				require.NoError(t, err)
@@ -205,7 +205,7 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 
 				rk.SetRollapp(ctx, rollapptypes.Rollapp{
 					RollappId: "dymension_1-1",
-					Creator:   testAddr(1).bech32(),
+					Owner:     testAddr(1).bech32(),
 				})
 				err = dk.SetAliasForRollAppId(ctx, "dymension_1-1", "dym")
 				require.NoError(t, err)
@@ -236,7 +236,7 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
 				rk.SetRollapp(ctx, rollapptypes.Rollapp{
 					RollappId: "bridge",
-					Creator:   testAddr(1).bech32(),
+					Owner:     testAddr(1).bech32(),
 				})
 				err := dk.SetAliasForRollAppId(ctx, "bridge", "b")
 				require.NoError(t, err)

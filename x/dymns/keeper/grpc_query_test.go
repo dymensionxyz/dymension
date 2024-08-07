@@ -977,7 +977,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 		// add rollapp to enable hex address reverse mapping for this chain
 		rk.SetRollapp(ctx, rollapptypes.Rollapp{
 			RollappId: nimChainId,
-			Creator:   testAddr(0).bech32(),
+			Owner:     testAddr(0).bech32(),
 		})
 
 		return dk, ctx

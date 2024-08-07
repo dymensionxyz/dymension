@@ -13,12 +13,12 @@ func TestKeeper_IsRollAppId(t *testing.T) {
 
 	rk.SetRollapp(ctx, rollapptypes.Rollapp{
 		RollappId: "rollapp_1-1",
-		Creator:   testAddr(1).bech32(),
+		Owner:     testAddr(1).bech32(),
 	})
 
 	rk.SetRollapp(ctx, rollapptypes.Rollapp{
 		RollappId: "rolling_2-2",
-		Creator:   testAddr(2).bech32(),
+		Owner:     testAddr(2).bech32(),
 	})
 
 	tests := []struct {
@@ -92,7 +92,7 @@ func TestKeeper_GetSetAliasForRollAppId(t *testing.T) {
 	for i, ra := range []rollApp{rollApp1, rollApp2} {
 		rk.SetRollapp(ctx, rollapptypes.Rollapp{
 			RollappId: ra.id,
-			Creator:   testAddr(uint64(i)).bech32(),
+			Owner:     testAddr(uint64(i)).bech32(),
 		})
 	}
 
@@ -192,7 +192,7 @@ func TestKeeper_GetSetAliasForRollAppId(t *testing.T) {
 		for _, tc := range testcases {
 			rk.SetRollapp(ctx, rollapptypes.Rollapp{
 				RollappId: tc.rollAppId,
-				Creator:   testAddr(0).bech32(),
+				Owner:     testAddr(0).bech32(),
 			})
 		}
 

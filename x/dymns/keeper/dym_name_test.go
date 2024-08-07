@@ -1827,7 +1827,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 
 		rollAppNim := rollapptypes.Rollapp{
 			RollappId: "nim_1122-1",
-			Creator:   bech32Addr(1122),
+			Owner:     bech32Addr(1122),
 		}
 		registerRollApp(t, ctx, rk, dk, rollAppNim.RollappId, "nim", "nim")
 		rollAppNim, found := rk.GetRollapp(ctx, rollAppNim.RollappId)
@@ -3340,26 +3340,26 @@ func TestKeeper_ReplaceChainIdWithAliasIfPossible(t *testing.T) {
 
 	rk.SetRollapp(ctx, rollapptypes.Rollapp{
 		RollappId: "rollapp_1-1",
-		Creator:   testAddr(1).bech32(),
+		Owner:     testAddr(1).bech32(),
 	})
 	require.True(t, dk.IsRollAppId(ctx, "rollapp_1-1"))
 	require.NoError(t, dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "ra1"))
 
 	rk.SetRollapp(ctx, rollapptypes.Rollapp{
 		RollappId: "rollapp_2-2",
-		Creator:   testAddr(2).bech32(),
+		Owner:     testAddr(2).bech32(),
 	})
 	require.True(t, dk.IsRollAppId(ctx, "rollapp_2-2"))
 
 	rk.SetRollapp(ctx, rollapptypes.Rollapp{
 		RollappId: "rollapp_3-3",
-		Creator:   testAddr(3).bech32(),
+		Owner:     testAddr(3).bech32(),
 	})
 	require.True(t, dk.IsRollAppId(ctx, "rollapp_3-3"))
 
 	rk.SetRollapp(ctx, rollapptypes.Rollapp{
 		RollappId: "rollapp_4-4",
-		Creator:   testAddr(4).bech32(),
+		Owner:     testAddr(4).bech32(),
 	})
 	require.True(t, dk.IsRollAppId(ctx, "rollapp_4-4"))
 	require.NoError(t, dk.SetAliasForRollAppId(ctx, "rollapp_4-4", "another"))

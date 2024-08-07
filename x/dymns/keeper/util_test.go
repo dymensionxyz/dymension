@@ -60,7 +60,7 @@ func registerRollApp(
 ) {
 	rk.SetRollapp(ctx, rollapptypes.Rollapp{
 		RollappId:    rollAppID,
-		Creator:      testAddr(0).bech32(),
+		Owner:        testAddr(0).bech32(),
 		Bech32Prefix: bech32,
 	})
 	if alias != "" {

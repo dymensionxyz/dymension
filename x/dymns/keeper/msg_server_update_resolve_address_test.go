@@ -443,7 +443,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 
 				ts.rk.SetRollapp(ts.ctx, rollapptypes.Rollapp{
 					RollappId: rollAppId,
-					Creator:   anotherAcc.bech32(),
+					Owner:     anotherAcc.bech32(),
 				})
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
@@ -1420,7 +1420,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				ts.rk.SetRollapp(ts.ctx, rollapptypes.Rollapp{
 					RollappId: rollAppId,
-					Creator:   anotherAcc.bech32(),
+					Owner:     anotherAcc.bech32(),
 				})
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
@@ -1475,7 +1475,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				ts.rk.SetRollapp(ts.ctx, rollapptypes.Rollapp{
 					RollappId: "nim_1122-1",
-					Creator:   anotherAcc.bech32(),
+					Owner:     anotherAcc.bech32(),
 				})
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{

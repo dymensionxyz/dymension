@@ -1828,7 +1828,7 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 			for _, rollAppId := range tt.addRollApps {
 				rk.SetRollapp(ctx, rollapptypes.Rollapp{
 					RollappId: rollAppId,
-					Creator:   creatorAccAddr.String(),
+					Owner:     creatorAccAddr.String(),
 				})
 			}
 

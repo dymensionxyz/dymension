@@ -28,7 +28,7 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 		moduleParams := dk.GetParams(ctx)
 		moduleParams.Misc.EnableTradingName = true
 		moduleParams.Misc.EnableTradingAlias = true
-		dk.SetParams(ctx, moduleParams)
+		require.NoError(t, dk.SetParams(ctx, moduleParams))
 
 		return dk, bk, ctx
 	}
