@@ -16,37 +16,28 @@ func LivenessEventQueueKey(e LivenessEvent) []byte {
 	if e.IsJail {
 		v = LivenessEventQueueJail
 	}
-	return createLivenessEventQueueKey(&e.HubHeight, v, &e.RollappId)
+
+	ret := LivenessEventQueueIterKey(&e.HubHeight)
+	ret = append(ret, []byte("/")...)
+	ret = append(ret, v...)
+	ret = append(ret, []byte("/")...)
+	ret = append(ret, e.RollappId...)
+	return ret
 }
 
+// LivenessEventQueueIterKey returns a key to iterate items
+// If height is nil then all items
+// Otherwise, only for heights greater than or equal to the passed height
 func LivenessEventQueueIterKey(height *int64) []byte {
-	return createLivenessEventQueueKey(height, nil, nil)
-}
-
-// can be called with no arguments to retrieve all items
-// can be called with only a height, to iterate all events for a height
-// otherwise must have all three arguments, for put/del ops
-func createLivenessEventQueueKey(height *int64, kind []byte, rollappID *string) []byte {
-	if height == nil && (0 < len(kind) || rollappID != nil) {
-		panic("must provide a height")
-	}
-	var key []byte
-	key = append(key, LivenessEventQueueKeyPrefix...)
+	var ret []byte
+	ret = append(ret, LivenessEventQueueKeyPrefix...)
 	if height != nil {
-		key = append(key, []byte("/")...)
+		ret = append(ret, []byte("/")...)
 		hBz := make([]byte, 8)
 		binary.BigEndian.PutUint64(hBz, uint64(*height))
-		key = append(key, hBz...)
+		ret = append(ret, hBz...)
 	}
-	if len(kind) != 0 {
-		key = append(key, []byte("/")...)
-		key = append(key, kind...)
-	}
-	if rollappID != nil {
-		key = append(key, []byte("/")...)
-		key = append(key, []byte(*rollappID)...)
-	}
-	return key
+	return ret
 }
 
 // LivenessEventQueueKeyToEvent converts store key to LivenessEvent
