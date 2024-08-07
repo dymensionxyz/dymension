@@ -53,7 +53,7 @@ func (suite *SequencerTestSuite) CreateDefaultRollapp() (string, cryptotypes.Pub
 func (suite *SequencerTestSuite) CreateRollappWithInitialSequencer(initSeq string) string {
 	rollapp := rollapptypes.Rollapp{
 		RollappId:        rand.Str(8),
-		Owner:			  sample.AccAddress(),
+		Owner:            sample.AccAddress(),
 		GenesisChecksum:  "checksum",
 		InitialSequencer: initSeq,
 		Alias:            "alias",

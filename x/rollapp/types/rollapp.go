@@ -27,7 +27,7 @@ func NewRollapp(
 ) Rollapp {
 	return Rollapp{
 		RollappId:        rollappId,
-		Owner:			  creator,
+		Owner:            creator,
 		InitialSequencer: initSequencer,
 		GenesisChecksum:  genesisChecksum,
 		Bech32Prefix:     bech32Prefix,

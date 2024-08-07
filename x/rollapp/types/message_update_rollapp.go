@@ -18,7 +18,7 @@ func NewMsgUpdateRollappInformation(
 	metadata *RollappMetadata,
 ) *MsgUpdateRollappInformation {
 	return &MsgUpdateRollappInformation{
-		Owner:			  creator,
+		Owner:            creator,
 		RollappId:        rollappId,
 		InitialSequencer: initSequencer,
 		GenesisChecksum:  genesisChecksum,

@@ -28,7 +28,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 		{
 			name: "Update rollapp: success",
 			update: &types.MsgUpdateRollappInformation{
-				Owner:			  alice,
+				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
 				Alias:            "rolly",
@@ -37,7 +37,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 			},
 			expError: nil,
 			expRollapp: types.Rollapp{
-				Owner:			  alice,
+				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
 				Bech32Prefix:     "rol",
@@ -49,7 +49,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 		}, {
 			name: "Update rollapp: fail - try to update a non-existing rollapp",
 			update: &types.MsgUpdateRollappInformation{
-				Owner:			  alice,
+				Owner:            alice,
 				RollappId:        "somerollapp_1235-1",
 				InitialSequencer: initialSequencerAddress,
 			},
@@ -57,7 +57,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 		}, {
 			name: "Update rollapp: fail - try to update from non-creator address",
 			update: &types.MsgUpdateRollappInformation{
-				Owner:			  bob,
+				Owner:            bob,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
 			},
@@ -65,7 +65,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 		}, {
 			name: "Update rollapp: fail - try to update a frozen rollapp",
 			update: &types.MsgUpdateRollappInformation{
-				Owner:			  alice,
+				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
 			},
@@ -74,7 +74,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 		}, {
 			name: "Update rollapp: fail - try to update InitialSequencer when sealed",
 			update: &types.MsgUpdateRollappInformation{
-				Owner:			  alice,
+				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
 			},
@@ -109,7 +109,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 			expError: nil,
 			expRollapp: types.Rollapp{
 				RollappId:        rollappId,
-				Owner:			  alice,
+				Owner:            alice,
 				InitialSequencer: "",
 				GenesisChecksum:  "checksum1",
 				ChannelId:        "",
@@ -131,7 +131,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 			goCtx := sdk.WrapSDKContext(suite.Ctx)
 			rollapp := types.Rollapp{
 				RollappId:        rollappId,
-				Owner:			  alice,
+				Owner:            alice,
 				InitialSequencer: "",
 				GenesisChecksum:  "checksum1",
 				ChannelId:        "",
@@ -174,7 +174,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	// 1. register rollapp
 	err := suite.App.RollappKeeper.RegisterRollapp(suite.Ctx, types.Rollapp{
 		RollappId:        rollappId,
-		Owner:			  alice,
+		Owner:            alice,
 		GenesisChecksum:  "",
 		InitialSequencer: "",
 		Alias:            "default",
@@ -192,7 +192,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	addrInit := sdk.AccAddress(initSeqPubKey.Address()).String()
 
 	err = suite.App.RollappKeeper.UpdateRollapp(suite.Ctx, &types.MsgUpdateRollappInformation{
-		Owner:			  alice,
+		Owner:            alice,
 		RollappId:        rollappId,
 		InitialSequencer: addrInit,
 		GenesisChecksum:  "checksum1",

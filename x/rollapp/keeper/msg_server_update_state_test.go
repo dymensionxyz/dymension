@@ -20,7 +20,7 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 	// set rollapp
 	rollapp := types.Rollapp{
 		RollappId:        "rollapp1",
-		Owner:			  alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		GenesisChecksum:  "checksum",
 		Bech32Prefix:     "rol",
@@ -78,7 +78,7 @@ func (suite *RollappTestSuite) TestUpdateState() {
 	// set rollapp
 	rollapp := types.Rollapp{
 		RollappId:        "rollapp1",
-		Owner:			  alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
@@ -205,7 +205,7 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
 	// set rollapp
 	rollapp := types.Rollapp{
 		RollappId:        "rollapp1",
-		Owner:			  alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
@@ -234,7 +234,7 @@ func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
 	// set rollapp
 	rollapp := types.Rollapp{
 		RollappId:        "rollapp1",
-		Owner:			  alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
@@ -271,7 +271,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 	// set rollapp
 	rollapp := types.Rollapp{
 		RollappId:        "rollapp1",
-		Owner:			  alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
@@ -308,7 +308,7 @@ func (suite *RollappTestSuite) TestFirstUpdateStateGensisHightGreaterThanZero() 
 	// set rollapp
 	rollapp := types.Rollapp{
 		RollappId:        "rollapp1",
-		Owner:			  alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
@@ -345,7 +345,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 	// set rollapp
 	rollapp := types.Rollapp{
 		RollappId:        "rollapp1",
-		Owner:			  alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
@@ -404,7 +404,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 	// set rollapp
 	rollapp := types.Rollapp{
 		RollappId:        "rollapp1",
-		Owner:			  alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
@@ -449,7 +449,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 	// set rollapp
 	rollapp := types.Rollapp{
 		RollappId:        "rollapp1",
-		Owner:			  alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",

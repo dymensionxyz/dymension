@@ -133,7 +133,7 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 			goCtx := sdk.WrapSDKContext(suite.Ctx)
 			rollapp := rollapptypes.Rollapp{
 				RollappId:        "rollapp_1234-1",
-				Owner:			  addr.String(),
+				Owner:            addr.String(),
 				InitialSequencer: addr.String(),
 			}
 
