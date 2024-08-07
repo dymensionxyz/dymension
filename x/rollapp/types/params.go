@@ -94,6 +94,21 @@ func (p Params) WithRegFee(x sdk.Coin) Params {
 	return p
 }
 
+func (p Params) WithLivenessSlashBlocks(x uint64) Params {
+	p.LivenessSlashBlocks = x
+	return p
+}
+
+func (p Params) WithLivenessSlashInterval(x uint64) Params {
+	p.LivenessSlashInterval = x
+	return p
+}
+
+func (p Params) WithLivenessJailBlocks(x uint64) Params {
+	p.LivenessJailBlocks = x
+	return p
+}
+
 // Validate validates the set of params
 func (p Params) Validate() error {
 	if err := validateDisputePeriodInBlocks(p.DisputePeriodInBlocks); err != nil {
