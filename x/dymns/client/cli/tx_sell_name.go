@@ -47,11 +47,11 @@ func NewPlaceDymNameSellOrderTxCmd() *cobra.Command {
 
 			minPriceDym, err := cmd.Flags().GetUint64(flagMinPrice)
 			if err != nil {
-				return fmt.Errorf("error reading flag --%s: %v", flagMinPrice, err)
+				return fmt.Errorf("error reading flag --%s: %w", flagMinPrice, err)
 			}
 			sellPriceDym, err := cmd.Flags().GetUint64(flagImmediatelySellPrice)
 			if err != nil {
-				return fmt.Errorf("error reading flag --%s: %v", flagImmediatelySellPrice, err)
+				return fmt.Errorf("error reading flag --%s: %w", flagImmediatelySellPrice, err)
 			}
 
 			if minPriceDym < 1 {
