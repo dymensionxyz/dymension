@@ -118,7 +118,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 	for j := 0; j < numRollapps; j++ {
 		rollapp := rollapptypes.Rollapp{
 			RollappId:       urand.RollappID(),
-			Creator:         alice,
+			Owner:           alice,
 			Bech32Prefix:    bech32Prefix,
 			GenesisChecksum: "1234567890abcdefg",
 			Sealed:          true,

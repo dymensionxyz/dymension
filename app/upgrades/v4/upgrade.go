@@ -136,7 +136,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 	bech32Prefix := oldRollapp.RollappId[:5]
 	return rollapptypes.Rollapp{
 		RollappId:        oldRollapp.RollappId,
-		Creator:          oldRollapp.Creator,
+		Owner:            oldRollapp.Owner,
 		GenesisState:     oldRollapp.GenesisState,
 		ChannelId:        oldRollapp.ChannelId,
 		Frozen:           oldRollapp.Frozen,

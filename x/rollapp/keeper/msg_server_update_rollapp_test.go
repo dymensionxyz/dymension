@@ -28,7 +28,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 		{
 			name: "Update rollapp: success",
 			update: &types.MsgUpdateRollappInformation{
-				Creator:          alice,
+				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
 				GenesisChecksum:  "new_checksum",
@@ -36,7 +36,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 			},
 			expError: nil,
 			expRollapp: types.Rollapp{
-				Creator:          alice,
+				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
 				Bech32Prefix:     "rol",
@@ -47,7 +47,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 		}, {
 			name: "Update rollapp: fail - try to update a non-existing rollapp",
 			update: &types.MsgUpdateRollappInformation{
-				Creator:          alice,
+				Owner:            alice,
 				RollappId:        "somerollapp_1235-1",
 				InitialSequencer: initialSequencerAddress,
 			},
@@ -55,7 +55,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 		}, {
 			name: "Update rollapp: fail - try to update from non-creator address",
 			update: &types.MsgUpdateRollappInformation{
-				Creator:          bob,
+				Owner:            bob,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
 			},
@@ -63,7 +63,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 		}, {
 			name: "Update rollapp: fail - try to update a frozen rollapp",
 			update: &types.MsgUpdateRollappInformation{
-				Creator:          alice,
+				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
 			},
@@ -72,7 +72,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 		}, {
 			name: "Update rollapp: fail - try to update InitialSequencer when sealed",
 			update: &types.MsgUpdateRollappInformation{
-				Creator:          alice,
+				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
 			},
@@ -81,7 +81,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 		}, {
 			name: "Update rollapp: fail - try to update genesis checksum when sealed",
 			update: &types.MsgUpdateRollappInformation{
-				Creator:         alice,
+				Owner:           alice,
 				RollappId:       rollappId,
 				GenesisChecksum: "new_checksum",
 			},
@@ -90,7 +90,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 		}, {
 			name: "Update rollapp: success - update metadata when sealed",
 			update: &types.MsgUpdateRollappInformation{
-				Creator:   alice,
+				Owner:     alice,
 				RollappId: rollappId,
 				Metadata:  &mockRollappMetadata,
 			},
@@ -98,7 +98,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 			expError: nil,
 			expRollapp: types.Rollapp{
 				RollappId:        rollappId,
-				Creator:          alice,
+				Owner:            alice,
 				InitialSequencer: "",
 				GenesisChecksum:  "checksum1",
 				ChannelId:        "",
@@ -119,7 +119,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 			goCtx := sdk.WrapSDKContext(suite.Ctx)
 			rollapp := types.Rollapp{
 				RollappId:        rollappId,
-				Creator:          alice,
+				Owner:            alice,
 				InitialSequencer: "",
 				GenesisChecksum:  "checksum1",
 				ChannelId:        "",
@@ -179,7 +179,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	addrInit := sdk.AccAddress(initSeqPubKey.Address()).String()
 
 	_, err = suite.msgServer.UpdateRollappInformation(suite.Ctx, &types.MsgUpdateRollappInformation{
-		Creator:          alice,
+		Owner:            alice,
 		RollappId:        rollappId,
 		InitialSequencer: addrInit,
 		GenesisChecksum:  "checksum1",
@@ -199,7 +199,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 
 	// 5. try to update rollapp immutable fields - should fail because rollapp is sealed
 	_, err = suite.msgServer.UpdateRollappInformation(suite.Ctx, &types.MsgUpdateRollappInformation{
-		Creator:         alice,
+		Owner:           alice,
 		RollappId:       rollappId,
 		GenesisChecksum: "checksum2",
 	})

@@ -21,7 +21,7 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 	// set rollapp
 	rollapp := types.Rollapp{
 		RollappId:        urand.RollappID(),
-		Creator:          alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		GenesisChecksum:  "checksum",
 		Bech32Prefix:     "rol",
@@ -78,7 +78,7 @@ func (suite *RollappTestSuite) TestUpdateState() {
 	// set rollapp
 	rollapp := types.Rollapp{
 		RollappId:        urand.RollappID(),
-		Creator:          alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
@@ -205,7 +205,7 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
 	// set rollapp
 	rollapp := types.Rollapp{
 		RollappId:        urand.RollappID(),
-		Creator:          alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
@@ -233,7 +233,7 @@ func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
 	// set rollapp
 	rollapp := types.Rollapp{
 		RollappId:        urand.RollappID(),
-		Creator:          alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
@@ -272,7 +272,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 	// set rollapp
 	rollapp := types.Rollapp{
 		RollappId:        rollappID,
-		Creator:          alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
@@ -310,7 +310,7 @@ func (suite *RollappTestSuite) TestFirstUpdateStateGensisHeightGreaterThanZero()
 	rollappID := urand.RollappID()
 	rollapp := types.Rollapp{
 		RollappId:        rollappID,
-		Creator:          alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
@@ -348,7 +348,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 	rollappID := urand.RollappID()
 	rollapp := types.Rollapp{
 		RollappId:        rollappID,
-		Creator:          alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
@@ -408,7 +408,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 	rollappID := urand.RollappID()
 	rollapp := types.Rollapp{
 		RollappId:        rollappID,
-		Creator:          alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
@@ -454,7 +454,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 	rollappID := urand.RollappID()
 	rollapp := types.Rollapp{
 		RollappId:        rollappID,
-		Creator:          alice,
+		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",

@@ -25,7 +25,7 @@ func NewRollapp(
 ) Rollapp {
 	return Rollapp{
 		RollappId:        rollappId,
-		Creator:          creator,
+		Owner:            creator,
 		InitialSequencer: initSequencer,
 		GenesisChecksum:  genesisChecksum,
 		Bech32Prefix:     bech32Prefix,
@@ -48,7 +48,7 @@ const (
 var dataUriPattern = regexp.MustCompile(dataURIPattern)
 
 func (r Rollapp) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(r.Creator)
+	_, err := sdk.AccAddressFromBech32(r.Owner)
 	if err != nil {
 		return errorsmod.Wrap(ErrInvalidCreatorAddress, err.Error())
 	}

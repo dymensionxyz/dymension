@@ -18,7 +18,7 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		return current, errRollappNotFound
 	}
 
-	if update.Creator != current.Creator {
+	if update.Owner != current.Owner {
 		return current, sdkerrors.ErrUnauthorized
 	}
 

@@ -18,7 +18,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 		{
 			name: "valid - full features",
 			msg: MsgUpdateRollappInformation{
-				Creator:          sample.AccAddress(),
+				Owner:            sample.AccAddress(),
 				RollappId:        "dym_100-1",
 				InitialSequencer: sample.AccAddress(),
 				GenesisChecksum:  "checksum",
@@ -35,7 +35,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid initial sequencer address",
 			msg: MsgUpdateRollappInformation{
-				Creator:          sample.AccAddress(),
+				Owner:            sample.AccAddress(),
 				InitialSequencer: "invalid_address",
 				RollappId:        "dym_100-1",
 				GenesisChecksum:  "checksum",
@@ -45,7 +45,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid metadata: invalid logo data uri",
 			msg: MsgUpdateRollappInformation{
-				Creator:          sample.AccAddress(),
+				Owner:            sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
 				RollappId:        "dym_100-1",
 				GenesisChecksum:  "checksum",
@@ -60,7 +60,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid genesis checksum: too long",
 			msg: MsgUpdateRollappInformation{
-				Creator:          sample.AccAddress(),
+				Owner:            sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
 				RollappId:        "dym_100-1",
 				GenesisChecksum:  strings.Repeat("a", maxGenesisChecksumLength+1),
