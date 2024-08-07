@@ -43,7 +43,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
-- (rollapp) [#1012](https://github.com/dymensionxyz/dymension/issues/1012) Add option to transfer rollapp ownership.
 - (swagger) [#856](https://github.com/dymensionxyz/dymension/issues/856) Add make command `proto-swagger-gen`
 - (delayedack) [#825](https://github.com/dymensionxyz/dymension/issues/825) Add query for rollapp packets using CLI
 
