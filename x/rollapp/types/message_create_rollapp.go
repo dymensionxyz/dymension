@@ -15,6 +15,7 @@ func NewMsgCreateRollapp(
 	bech32Prefix,
 	genesisChecksum,
 	alias string,
+	vmType Rollapp_VMType,
 	metadata *RollappMetadata,
 ) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
@@ -24,6 +25,7 @@ func NewMsgCreateRollapp(
 		Bech32Prefix:     bech32Prefix,
 		GenesisChecksum:  genesisChecksum,
 		Alias:            alias,
+		VmType:           vmType,
 		Metadata:         metadata,
 	}
 }
@@ -57,6 +59,7 @@ func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
 		msg.Bech32Prefix,
 		msg.GenesisChecksum,
 		msg.Alias,
+		msg.VmType,
 		msg.Metadata,
 		false,
 	)
