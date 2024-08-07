@@ -165,6 +165,10 @@ func (k msgServer) validatePlaceBuyOrderTypeDymName(
 			err = errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name mismatch with existing offer")
 			return
 		}
+		if existingOffer.Type != msg.OrderType {
+			err = errorsmod.Wrap(gerrc.ErrInvalidArgument, "order type mismatch with existing offer")
+			return
+		}
 		if existingOffer.OfferPrice.Denom != msg.Offer.Denom {
 			err = errorsmod.Wrapf(
 				gerrc.ErrInvalidArgument,
