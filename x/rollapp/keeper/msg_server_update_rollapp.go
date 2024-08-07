@@ -16,7 +16,7 @@ func (k msgServer) UpdateRollappInformation(goCtx context.Context, msg *types.Ms
 		return nil, fmt.Errorf("validate update: %w", err)
 	}
 
-	updated, err := k.CanUpdateRollapp(ctx, msg)
+	updated, err := k.CheckAndUpdateRollappFields(ctx, msg)
 	if err != nil {
 		return nil, err
 	}

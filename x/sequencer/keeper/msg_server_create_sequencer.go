@@ -71,7 +71,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			)
 		}
 
-		seqAcc, _ := sdk.AccAddressFromBech32(msg.Creator)
+		seqAcc := sdk.MustAccAddressFromBech32(msg.Creator)
 		err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.Bond))
 		if err != nil {
 			return nil, err
