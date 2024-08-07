@@ -21,7 +21,7 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 	}
 
 	// Already validated chain id in ValidateBasic, so we assume it's valid
-	creator := sdk.MustAccAddressFromBech32(rollapp.Creator)
+	creator := sdk.MustAccAddressFromBech32(rollapp.Owner)
 	registrationFee := sdk.NewCoins(k.RegistrationFee(ctx))
 
 	if !registrationFee.IsZero() {
@@ -64,7 +64,7 @@ func (k Keeper) canUpdateRollapp(ctx sdk.Context, update *types.MsgUpdateRollapp
 		return current, errRollappNotFound
 	}
 
-	if update.Creator != current.Creator {
+	if update.Owner != current.Owner {
 		return current, sdkerrors.ErrUnauthorized
 	}
 
