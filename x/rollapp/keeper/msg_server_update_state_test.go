@@ -30,8 +30,8 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 			Description:      "Sample description",
 			LogoDataUri:      "data:image/png;base64,c2lzZQ==",
 			TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
-			Telegram:         "rolly",
-			X:                "rolly",
+			Telegram:         "https://t.me/rolly",
+			X:                "https://x.dymension.xyz",
 		},
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)

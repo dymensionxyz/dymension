@@ -25,15 +25,15 @@ func TestMsgUpdateSequencerInformation_ValidateBasic(t *testing.T) {
 					Moniker:     strings.Repeat("a", MaxMonikerLength),
 					Details:     strings.Repeat("a", MaxDetailsLength),
 					P2PSeeds:    []string{"seed1", "seed2"},
-					Rpcs:        []string{"rpc1", "rpc2"},
-					EvmRpcs:     []string{"evm1", "evm2"},
+					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs:     []string{"https://rpc.evm.rollapp.noisnemyd.xyz:443"},
 					RestApiUrls: []string{"http://localhost:1317"},
 					GenesisUrls: []string{"genesis1", "genesis2"},
 					ExplorerUrl: "explorer",
 					ContactDetails: &ContactDetails{
-						Website:  strings.Repeat("a", MaxContactFieldLength),
-						Telegram: strings.Repeat("a", MaxContactFieldLength),
-						X:        strings.Repeat("a", MaxContactFieldLength),
+						Website:  "https://website.com",
+						Telegram: "https://t.me/rolly",
+						X:        "https://x.dymension.xyz",
 					},
 					ExtraData: []byte(strings.Repeat("a", MaxExtraDataLength)),
 					Snapshots: []*SnapshotInfo{
@@ -54,7 +54,7 @@ func TestMsgUpdateSequencerInformation_ValidateBasic(t *testing.T) {
 					Moniker: strings.Repeat("a", MaxMonikerLength+1),
 				},
 			},
-			err: ErrInvalidRequest,
+			err: ErrInvalidMetadata,
 		}, {
 			name: "invalid website length",
 			msg: MsgUpdateSequencerInformation{
@@ -65,7 +65,7 @@ func TestMsgUpdateSequencerInformation_ValidateBasic(t *testing.T) {
 					},
 				},
 			},
-			err: ErrInvalidRequest,
+			err: ErrInvalidMetadata,
 		}, {
 			name: "invalid details length",
 			msg: MsgUpdateSequencerInformation{
@@ -74,7 +74,7 @@ func TestMsgUpdateSequencerInformation_ValidateBasic(t *testing.T) {
 					Details: strings.Repeat("a", MaxDetailsLength+1),
 				},
 			},
-			err: ErrInvalidRequest,
+			err: ErrInvalidMetadata,
 		}, {
 			name: "invalid extra data length",
 			msg: MsgUpdateSequencerInformation{
@@ -83,7 +83,7 @@ func TestMsgUpdateSequencerInformation_ValidateBasic(t *testing.T) {
 					ExtraData: []byte(strings.Repeat("a", MaxExtraDataLength+1)),
 				},
 			},
-			err: ErrInvalidRequest,
+			err: ErrInvalidMetadata,
 		},
 	}
 	for _, tt := range tests {

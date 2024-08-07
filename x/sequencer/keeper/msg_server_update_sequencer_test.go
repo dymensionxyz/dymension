@@ -34,15 +34,15 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 					Moniker:     "Sequencer",
 					Details:     "Details and such",
 					P2PSeeds:    []string{"seed1", "seed2"},
-					Rpcs:        []string{"rpc1", "rpc2"},
-					EvmRpcs:     []string{"evm1", "evm2"},
+					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs:     []string{"https://rpc.evm.rollapp.noisnemyd.xyz:443"},
 					RestApiUrls: []string{"http://localhost:1317"},
 					GenesisUrls: []string{"genesis1", "genesis2"},
 					ExplorerUrl: "explorer",
 					ContactDetails: &types.ContactDetails{
 						Website:  "https://dymension.xyz",
-						Telegram: "rolly",
-						X:        "rolly",
+						Telegram: "https://t.me/rolly",
+						X:        "https://x.dymension.xyz",
 					},
 					ExtraData: []byte("extra"),
 					Snapshots: []*types.SnapshotInfo{
@@ -64,15 +64,15 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 					Moniker:     "Sequencer",
 					Details:     "Details and such",
 					P2PSeeds:    []string{"seed1", "seed2"},
-					Rpcs:        []string{"rpc1", "rpc2"},
-					EvmRpcs:     []string{"evm1", "evm2"},
+					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs:     []string{"https://rpc.evm.rollapp.noisnemyd.xyz:443"},
 					RestApiUrls: []string{"http://localhost:1317"},
 					GenesisUrls: []string{"genesis1", "genesis2"},
 					ExplorerUrl: "explorer",
 					ContactDetails: &types.ContactDetails{
 						Website:  "https://dymension.xyz",
-						Telegram: "rolly",
-						X:        "rolly",
+						Telegram: "https://t.me/rolly",
+						X:        "https://x.dymension.xyz",
 					},
 					ExtraData: []byte("extra"),
 					Snapshots: []*types.SnapshotInfo{
@@ -117,6 +117,10 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 			update: &types.MsgUpdateSequencerInformation{
 				Creator:   addr.String(),
 				RollappId: "rollapp_1234-1",
+				Metadata: types.SequencerMetadata{
+					Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs: []string{"https://rpc.evm.rollapp.noisnemyd.xyz:443"},
+				},
 			},
 			malleate: func(r types.Sequencer) types.Sequencer {
 				r.Jailed = true
