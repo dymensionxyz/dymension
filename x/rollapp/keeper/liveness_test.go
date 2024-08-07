@@ -10,6 +10,7 @@ import (
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	"github.com/stretchr/testify/require"
 	"pgregory.net/rapid"
 )
@@ -82,7 +83,7 @@ func TestLivenessFlow(t *testing.T) {
 		s.SetS(s)
 		s.SetupTest()
 
-		rollapps := []string{"a", "b"}
+		rollapps := []string{urand.RollappID(), urand.RollappID()}
 
 		tracker := newLivenessMockSequencerKeeper()
 		s.keeper().SetSequencerKeeper(tracker)
