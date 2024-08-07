@@ -26,8 +26,8 @@ func (k msgServer) CancelBuyOrder(goCtx context.Context, msg *dymnstypes.MsgCanc
 
 	var resp *dymnstypes.MsgCancelBuyOrderResponse
 	var err error
-	if offer.Type == dymnstypes.NameOrder {
-		resp, err = k.processCancelBuyOrderTypeDymName(ctx, msg, *offer)
+	if offer.Type == dymnstypes.NameOrder || offer.Type == dymnstypes.AliasOrder {
+		resp, err = k.processCancelBuyOrder(ctx, msg, *offer)
 	} else {
 		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", offer.Type)
 	}
@@ -40,12 +40,12 @@ func (k msgServer) CancelBuyOrder(goCtx context.Context, msg *dymnstypes.MsgCanc
 	return resp, nil
 }
 
-// processCancelBuyOrderTypeDymName handles the message handled by CancelBuyOrder, type Dym-Name.
-func (k msgServer) processCancelBuyOrderTypeDymName(
+// processCancelBuyOrder handles the message handled by CancelBuyOrder, type Dym-Name/Alias.
+func (k msgServer) processCancelBuyOrder(
 	ctx sdk.Context,
 	msg *dymnstypes.MsgCancelBuyOrder, offer dymnstypes.BuyOffer,
 ) (*dymnstypes.MsgCancelBuyOrderResponse, error) {
-	if err := k.validateCancelOfferTypeDymName(ctx, msg, offer); err != nil {
+	if err := k.validateCancelOffer(ctx, msg, offer); err != nil {
 		return nil, err
 	}
 
@@ -60,8 +60,8 @@ func (k msgServer) processCancelBuyOrderTypeDymName(
 	return &dymnstypes.MsgCancelBuyOrderResponse{}, nil
 }
 
-// validateCancelOfferTypeDymName handles validation for the message handled by CancelBuyOrder, type Dym-Name.
-func (k msgServer) validateCancelOfferTypeDymName(_ sdk.Context, msg *dymnstypes.MsgCancelBuyOrder, offer dymnstypes.BuyOffer) error {
+// validateCancelOffer handles validation for the message handled by CancelBuyOrder, type Dym-Name/Alias.
+func (k msgServer) validateCancelOffer(_ sdk.Context, msg *dymnstypes.MsgCancelBuyOrder, offer dymnstypes.BuyOffer) error {
 	if offer.Buyer != msg.Buyer {
 		return errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the offer")
 	}
