@@ -27,12 +27,12 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 
 	// rollapp is the rollapp to create
 	rollapp := types.MsgCreateRollapp{
-		Creator:                 alice,
-		RollappId:               "rollapp1",
-		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            "rol",
-		GenesisChecksum:         "checksum",
-		Alias:                   "Rollapp",
+		Creator:          alice,
+		RollappId:        "rollapp1",
+		InitialSequencer: sample.AccAddress(),
+		Bech32Prefix:     "rol",
+		GenesisChecksum:  "checksum",
+		Alias:            "Rollapp",
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.Require().Nil(err)
@@ -48,23 +48,23 @@ func (suite *RollappTestSuite) TestCreateRollappAliasAlreadyExists() {
 	alias := "rollapp"
 
 	rollapp := types.MsgCreateRollapp{
-		Creator:                 alice,
-		RollappId:               "rollapp1",
-		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            "rol",
-		GenesisChecksum:         "checksum",
-		Alias:                   alias,
+		Creator:          alice,
+		RollappId:        "rollapp1",
+		InitialSequencer: sample.AccAddress(),
+		Bech32Prefix:     "rol",
+		GenesisChecksum:  "checksum",
+		Alias:            alias,
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.Require().Nil(err)
 
 	rollapp = types.MsgCreateRollapp{
-		Creator:                 alice,
-		RollappId:               "rollapp2",
-		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            "rol",
-		GenesisChecksum:         "checksum",
-		Alias:                   alias,
+		Creator:          alice,
+		RollappId:        "rollapp2",
+		InitialSequencer: sample.AccAddress(),
+		Bech32Prefix:     "rol",
+		GenesisChecksum:  "checksum",
+		Alias:            alias,
 	}
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.ErrorIs(err, types.ErrRollappAliasExists)
@@ -121,13 +121,13 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 		suite.Run(test.name, func() {
 			alias := strings.NewReplacer("_", "", "-", "").Replace(test.rollappId) // reuse rollapp ID to avoid alias conflicts
 			rollapp := types.MsgCreateRollapp{
-				Creator:                 alice,
-				RollappId:               test.rollappId,
-				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            "rol",
-				GenesisChecksum:         "checksum",
-				Alias:                   alias,
-				Metadata:                &mockRollappMetadata,
+				Creator:          alice,
+				RollappId:        test.rollappId,
+				InitialSequencer: sample.AccAddress(),
+				Bech32Prefix:     "rol",
+				GenesisChecksum:  "checksum",
+				Alias:            alias,
+				Metadata:         &mockRollappMetadata,
 			}
 
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -186,12 +186,12 @@ func (suite *RollappTestSuite) TestCreateRollappIdRevisionNumber() {
 		suite.Run(test.name, func() {
 			alias := strings.NewReplacer("_", "", "-", "").Replace(test.rollappId) // reuse rollapp ID to avoid alias conflicts
 			rollapp := types.MsgCreateRollapp{
-				Creator:                 alice,
-				RollappId:               test.rollappId,
-				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            "rol",
-				GenesisChecksum:         "checksum",
-				Alias:                   alias,
+				Creator:          alice,
+				RollappId:        test.rollappId,
+				InitialSequencer: sample.AccAddress(),
+				Bech32Prefix:     "rol",
+				GenesisChecksum:  "checksum",
+				Alias:            alias,
 			}
 
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -246,13 +246,13 @@ func (suite *RollappTestSuite) TestForkChainId() {
 			suite.SetupTest()
 			goCtx := sdk.WrapSDKContext(suite.Ctx)
 			rollappMsg := types.MsgCreateRollapp{
-				Creator:                 alice,
-				RollappId:               test.rollappId,
-				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            "rol",
-				GenesisChecksum:         "checksum",
-				Alias:                   "Rollapp1",
-				Metadata:                &mockRollappMetadata,
+				Creator:          alice,
+				RollappId:        test.rollappId,
+				InitialSequencer: sample.AccAddress(),
+				Bech32Prefix:     "rol",
+				GenesisChecksum:  "checksum",
+				Alias:            "Rollapp1",
+				Metadata:         &mockRollappMetadata,
 			}
 
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollappMsg)
@@ -263,13 +263,13 @@ func (suite *RollappTestSuite) TestForkChainId() {
 			suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
 			rollappMsg2 := types.MsgCreateRollapp{
-				Creator:                 alice,
-				RollappId:               test.newRollappId,
-				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            "rol",
-				GenesisChecksum:         "checksum1",
-				Alias:                   "Rollapp2",
-				Metadata:                &mockRollappMetadata,
+				Creator:          alice,
+				RollappId:        test.newRollappId,
+				InitialSequencer: sample.AccAddress(),
+				Bech32Prefix:     "rol",
+				GenesisChecksum:  "checksum1",
+				Alias:            "Rollapp2",
+				Metadata:         &mockRollappMetadata,
 			}
 			_, err = suite.msgServer.CreateRollapp(goCtx, &rollappMsg2)
 			if test.valid {
@@ -306,12 +306,12 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 			goCtx := sdk.WrapSDKContext(suite.Ctx)
 			alias := strings.NewReplacer("_", "", "-", "").Replace(test.rollappId) // reuse rollapp ID to avoid alias conflicts
 			rollapp := types.MsgCreateRollapp{
-				Creator:                 alice,
-				RollappId:               test.rollappId,
-				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            "rol",
-				GenesisChecksum:         "checksum",
-				Alias:                   alias,
+				Creator:          alice,
+				RollappId:        test.rollappId,
+				InitialSequencer: sample.AccAddress(),
+				Bech32Prefix:     "rol",
+				GenesisChecksum:  "checksum",
+				Alias:            alias,
 			}
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 			suite.Require().NoError(err)
@@ -333,12 +333,12 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 
 			// create bad rollapp
 			badRollapp := types.MsgCreateRollapp{
-				Creator:                 alice,
-				RollappId:               test.badRollappId,
-				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            "rol",
-				GenesisChecksum:         "checksum",
-				Alias:                   "alias",
+				Creator:          alice,
+				RollappId:        test.badRollappId,
+				InitialSequencer: sample.AccAddress(),
+				Bech32Prefix:     "rol",
+				GenesisChecksum:  "checksum",
+				Alias:            "alias",
 			}
 			_, err = suite.msgServer.CreateRollapp(goCtx, &badRollapp)
 			// it should not be possible to register rollapp name with extra space
@@ -381,23 +381,23 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 	alias := strings.NewReplacer("_", "", "-", "").Replace(rollappID) // reuse rollapp ID to avoid alias conflicts
 
 	rollapp := types.MsgCreateRollapp{
-		Creator:                 creator,
-		RollappId:               rollappID,
-		InitialSequencerAddress: address,
-		Bech32Prefix:            "rol",
-		GenesisChecksum:         "checksum",
-		Alias:                   alias,
-		Metadata:                &mockRollappMetadata,
+		Creator:          creator,
+		RollappId:        rollappID,
+		InitialSequencer: address,
+		Bech32Prefix:     "rol",
+		GenesisChecksum:  "checksum",
+		Alias:            alias,
+		Metadata:         &mockRollappMetadata,
 	}
 	// rollappExpect is the expected result of creating rollapp
 	rollappExpect := types.Rollapp{
-		RollappId:               rollapp.GetRollappId(),
-		Owner:                   rollapp.GetCreator(),
-		InitialSequencerAddress: rollapp.GetInitialSequencerAddress(),
-		GenesisChecksum:         rollapp.GetGenesisChecksum(),
-		Bech32Prefix:            rollapp.GetBech32Prefix(),
-		Alias:                   rollapp.GetAlias(),
-		Metadata:                rollapp.GetMetadata(),
+		RollappId:        rollapp.GetRollappId(),
+		Owner:			  rollapp.GetCreator(),
+		InitialSequencer: rollapp.GetInitialSequencer(),
+		GenesisChecksum:  rollapp.GetGenesisChecksum(),
+		Bech32Prefix:     rollapp.GetBech32Prefix(),
+		Alias:            rollapp.GetAlias(),
+		Metadata:         rollapp.GetMetadata(),
 	}
 	// create rollapp
 	createResponse, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)

@@ -47,9 +47,11 @@ message Rollapp {
   string genesis_checksum = 13;
   // metadata is the rollapp metadata
   RollappMetadata metadata = 14;
-  // initial_sequencer_address is a bech32-encoded address of the
-  // sequencer that is allowed to initially register and serve for this rollapp.
-  string initial_sequencer_address = 15;
+  // initial_sequencer is an option to preset one or more coma-separated bech32-encoded addresses of the
+  // sequencer(s) that are allowed to initially register and serve for this rollapp.
+  // if left empty, no sequencer is allowed to register.
+  // if set to "*" any sequencer can register.
+  string initial_sequencer = 15;
   // sealed is a boolean that indicates if the immutable fields are no longer updatable.
   bool sealed = 16;
 }

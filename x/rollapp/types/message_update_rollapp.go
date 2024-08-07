@@ -12,18 +12,18 @@ var _ sdk.Msg = &MsgUpdateRollappInformation{}
 func NewMsgUpdateRollappInformation(
 	creator,
 	rollappId,
-	initSequencerAddress,
+	initSequencer,
 	genesisChecksum,
 	alias string,
 	metadata *RollappMetadata,
 ) *MsgUpdateRollappInformation {
 	return &MsgUpdateRollappInformation{
-		Owner:                   creator,
-		RollappId:               rollappId,
-		InitialSequencerAddress: initSequencerAddress,
-		GenesisChecksum:         genesisChecksum,
-		Alias:                   alias,
-		Metadata:                metadata,
+		Owner:			  creator,
+		RollappId:        rollappId,
+		InitialSequencer: initSequencer,
+		GenesisChecksum:  genesisChecksum,
+		Alias:            alias,
+		Metadata:         metadata,
 	}
 }
 
@@ -49,10 +49,10 @@ func (msg *MsgUpdateRollappInformation) GetSignBytes() []byte {
 }
 
 func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
-	if msg.InitialSequencerAddress != "" {
-		_, err := sdk.AccAddressFromBech32(msg.InitialSequencerAddress)
+	if msg.InitialSequencer != "" {
+		_, err := sdk.AccAddressFromBech32(msg.InitialSequencer)
 		if err != nil {
-			return errorsmod.Wrap(ErrInvalidInitialSequencerAddress, err.Error())
+			return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
 		}
 	}
 
@@ -72,5 +72,5 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 }
 
 func (msg *MsgUpdateRollappInformation) UpdatingImmutableValues() bool {
-	return msg.InitialSequencerAddress != "" || msg.GenesisChecksum != "" || msg.Alias != ""
+	return msg.InitialSequencer != "" || msg.GenesisChecksum != "" || msg.Alias != ""
 }
