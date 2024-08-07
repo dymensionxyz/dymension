@@ -21,6 +21,7 @@ func GetTxCmd() *cobra.Command {
 
 	cmd.AddCommand(CmdCreateRollapp())
 	cmd.AddCommand(CmdUpdateRollapp())
+	cmd.AddCommand(CmdTransferOwnership())
 	cmd.AddCommand(CmdUpdateState())
 
 	return cmd

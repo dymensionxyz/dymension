@@ -16,6 +16,7 @@ service Msg {
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
   rpc UpdateRollappInformation(MsgUpdateRollappInformation) returns (MsgUpdateRollappInformationResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
+  rpc TransferOwnership(MsgTransferOwnership) returns (MsgTransferOwnershipResponse);
 }
 
 // MsgCreateRollapp creates a new rollapp chain on the hub.
@@ -47,9 +48,9 @@ message MsgCreateRollappResponse {
 
 // MsgUpdateRollappInformation updates the rollapp information.
 message MsgUpdateRollappInformation {
-  option (cosmos.msg.v1.signer) = "creator";
-  // creator is the bech32-encoded address of the rollapp creator
-  string creator = 1;
+  option (cosmos.msg.v1.signer) = "owner";
+  // owner is the bech32-encoded address of the rollapp owner
+  string owner = 1;
   // rollapp_id is the unique identifier of the rollapp chain.
   string rollapp_id = 2;
   // initial_sequencer is one or more bech32-encoded address of the
@@ -90,4 +91,18 @@ message MsgUpdateState {
 }
 
 message MsgUpdateStateResponse {
+}
+
+// MsgTransferOwnership transfers the ownership of a rollapp chain to a new owner.
+message MsgTransferOwnership {
+  option (cosmos.msg.v1.signer) = "current_owner";
+  // current_owner is the bech32-encoded address of the current owner
+  string current_owner = 1;
+  // new_owner is the bech32-encoded address of the new owner
+  string new_owner = 2;
+  // rollapp_id is the unique identifier of the rollapp chain.
+  string rollapp_id = 3;
+}
+
+message MsgTransferOwnershipResponse {
 }
