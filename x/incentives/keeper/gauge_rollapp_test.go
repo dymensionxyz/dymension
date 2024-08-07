@@ -5,28 +5,23 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // TestDistributeToRollappGauges tests distributing rewards to rollapp gauges.
 func (suite *KeeperTestSuite) TestDistributeToRollappGauges() {
 	oneKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 1000)}
 	testCases := []struct {
-		name        string
-		rewards     sdk.Coins
-		noSequencer bool
+		name    string
+		rewards sdk.Coins
 	}{
 		{
-			name:    "rollapp gauge with sequencer",
+			name:    "rollapp gauge",
 			rewards: oneKRewardCoins,
 		},
 		{
 			name:    "rollapp gauge with no rewards",
 			rewards: sdk.Coins{},
-		},
-		{
-			name:        "rollapp gauge with no sequencer",
-			rewards:     oneKRewardCoins,
-			noSequencer: true,
 		},
 	}
 
@@ -34,37 +29,40 @@ func (suite *KeeperTestSuite) TestDistributeToRollappGauges() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			pubkey := ed25519.GenPrivKey().PubKey()
-			addr := sdk.AccAddress(pubkey.Address())
+			creatorPK := ed25519.GenPrivKey().PubKey()
+			creatorAddr := sdk.AccAddress(creatorPK.Address())
 
-			// create rollapp and check rollapp gauge created
-			rollapp := suite.CreateDefaultRollapp(addr)
-			res, err := suite.querier.RollappGauges(sdk.WrapSDKContext(suite.Ctx), &types.GaugesRequest{})
+			// Create rollapp and check rollapp gauge created
+			_ = suite.CreateDefaultRollapp(creatorAddr)
+			res, err := suite.querier.RollappGauges(sdk.WrapSDKContext(suite.Ctx), new(types.GaugesRequest))
 			suite.Require().NoError(err)
+			suite.Require().NotNil(res)
 			suite.Require().Len(res.Data, 1)
 
 			gaugeId := res.Data[0].Id
-
-			var proposerAddr sdk.AccAddress
-			if !tc.noSequencer {
-				err = suite.CreateSequencer(suite.Ctx, rollapp, pubkey)
-				suite.Require().NoError(err)
-				proposerAddr = addr
-			}
 
 			if tc.rewards.Len() > 0 {
 				suite.AddToGauge(tc.rewards, gaugeId)
 			}
 
+			suite.App.RollappKeeper.UpdateRollapp(suite.Ctx, &rollapptypes.MsgUpdateRollappInformation{
+				Creator:          "",
+				RollappId:        "",
+				InitialSequencer: "",
+				Alias:            "",
+				GenesisChecksum:  "",
+				Metadata:         nil,
+			})
+
 			gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeId)
 			suite.Require().NoError(err)
+
 			_, err = suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
 			suite.Require().NoError(err)
-			// check expected rewards against actual rewards received
-			if !proposerAddr.Empty() {
-				bal := suite.App.BankKeeper.GetAllBalances(suite.Ctx, proposerAddr)
-				suite.Require().Equal(tc.rewards.String(), bal.String())
-			}
+
+			// Check expected rewards against actual rewards received
+			creatorBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, creatorAddr)
+			suite.Require().ElementsMatch(tc.rewards, creatorBalances)
 		})
 	}
 }
