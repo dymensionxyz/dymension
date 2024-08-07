@@ -18,7 +18,7 @@ require (
 	github.com/decred/dcrd/dcrec/edwards v1.0.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/dymensionxyz/gerr-cosmos v1.0.0
-	github.com/dymensionxyz/sdk-utils v0.2.6
+	github.com/dymensionxyz/sdk-utils v0.2.7
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/evmos/ethermint v0.22.0
 	github.com/gogo/protobuf v1.3.3

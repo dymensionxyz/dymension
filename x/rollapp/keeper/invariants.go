@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -64,11 +65,6 @@ func RollappByEIP155KeyInvariant(k Keeper) sdk.Invariant {
 			if err != nil {
 				msg += fmt.Sprintf("rollapp (%s) have invalid rollappId\n", rollapp.RollappId)
 				broken = true
-				continue
-			}
-
-			// not breaking invariant, as eip155 format is not required
-			if !rollappID.IsEIP155() {
 				continue
 			}
 

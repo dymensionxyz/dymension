@@ -172,7 +172,7 @@ func (s *UpgradeTestSuite) validateRollappsMigration(numRoll int) error {
 	s.Require().Len(rollapps, len(expectRollapps))
 
 	for _, rollapp := range rollapps {
-		rollappID, _ := rollapptypes.NewChainID(rollapp.RollappId)
+		rollappID := rollapptypes.MustNewChainID(rollapp.RollappId)
 		// check that the rollapp can be retrieved by EIP155 key
 		if _, ok := s.App.RollappKeeper.GetRollappByEIP155(s.Ctx, rollappID.GetEIP155ID()); !ok {
 			return fmt.Errorf("rollapp by EIP155 not found")

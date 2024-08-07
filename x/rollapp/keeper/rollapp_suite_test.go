@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -76,7 +77,7 @@ func createNRollapp(keeper *keeper.Keeper, ctx sdk.Context, n int) (items []type
 	items, rollappSummaries = make([]types.Rollapp, n), make([]types.RollappSummary, n)
 
 	for i := range items {
-		items[i].RollappId = strconv.Itoa(i)
+		items[i].RollappId = urand.RollappID()
 		keeper.SetRollapp(ctx, items[i])
 
 		rollappSummaries[i] = types.RollappSummary{
