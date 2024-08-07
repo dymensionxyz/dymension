@@ -95,7 +95,7 @@ func (suite *RollappTestSuite) TestCreateRollappAliasAlreadyExists() {
 
 	rollapp := types.MsgCreateRollapp{
 		Creator:          alice,
-		RollappId:        "rollapp1",
+		RollappId:        urand.RollappID(),
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
@@ -106,7 +106,7 @@ func (suite *RollappTestSuite) TestCreateRollappAliasAlreadyExists() {
 
 	rollapp = types.MsgCreateRollapp{
 		Creator:          alice,
-		RollappId:        "rollapp2",
+		RollappId:        urand.RollappID(),
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",

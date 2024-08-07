@@ -54,7 +54,7 @@ func TestRollappGetAll(t *testing.T) {
 }
 
 func TestKeeper_FindRollappByName(t *testing.T) {
-	const rollappID = "rollapp1_1234-1"
+	const rollappID = "rollapp_1234-1"
 
 	k, ctx := keepertest.RollappKeeper(t)
 	k.SetRollapp(ctx, types.Rollapp{
@@ -68,19 +68,15 @@ func TestKeeper_FindRollappByName(t *testing.T) {
 	}{
 		{
 			name:             "rollapp found: same name",
-			queryRollappName: "rollapp1",
+			queryRollappName: "rollapp",
 			wantFound:        true,
 		}, {
 			name:             "rollapp not found: different name",
-			queryRollappName: "rollapp2",
+			queryRollappName: "rollupp",
 			wantFound:        false,
 		}, {
 			name:             "rollapp not found: partial name match 1",
-			queryRollappName: "rollapp",
-			wantFound:        false,
-		}, {
-			name:             "rollapp not found: partial name match 2",
-			queryRollappName: "rollapp12",
+			queryRollappName: "rollap",
 			wantFound:        false,
 		},
 	}

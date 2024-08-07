@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -109,10 +110,12 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 	}
 	rollappSequencersExpect := make(map[rollappSequencersExpectKey]string)
 
+	const numRollapps = 3
+	rollappIDs := make([]string, numRollapps)
 	// for 3 rollapps, test 10 sequencers creations
-	for j := 0; j < 3; j++ {
+	for j := 0; j < numRollapps; j++ {
 		rollapp := rollapptypes.Rollapp{
-			RollappId:       fmt.Sprintf("%s%d", "rollapp", j),
+			RollappId:       urand.RollappID(),
 			Creator:         alice,
 			Bech32Prefix:    bech32Prefix,
 			GenesisChecksum: "1234567890abcdefg",
@@ -130,6 +133,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
 		rollappId := rollapp.GetRollappId()
+		rollappIDs[j] = rollappId
 
 		for i := 0; i < 10; i++ {
 			pubkey := ed25519.GenPrivKey().PubKey()
@@ -187,8 +191,8 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 
 	totalFound := 0
 	// check query by rollapp
-	for j := 0; j < 3; j++ {
-		rollappId := fmt.Sprintf("%s%d", "rollapp", j)
+	for i := 0; i < numRollapps; i++ {
+		rollappId := rollappIDs[i]
 		queryAllResponse, err := suite.queryClient.SequencersByRollapp(goCtx,
 			&types.QueryGetSequencersByRollappRequest{RollappId: rollappId})
 		suite.Require().Nil(err)
