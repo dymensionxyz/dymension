@@ -66,154 +66,138 @@ func TestKeeper_IsRollAppId(t *testing.T) {
 	}
 }
 
-func TestKeeper_GetSetAliasForRollAppId(t *testing.T) {
-	type rollApp struct {
-		id    string
-		alias string
+func TestKeeper_IsRollAppCreator(t *testing.T) {
+	acc1 := testAddr(1)
+	acc2 := testAddr(2)
+
+	tests := []struct {
+		name      string
+		rollApp   *rollapptypes.Rollapp
+		rollAppId string
+		account   string
+		want      bool
+	}{
+		{
+			name: "pass - is creator",
+			rollApp: &rollapptypes.Rollapp{
+				RollappId: "rollapp_1-1",
+				Owner:     acc1.bech32(),
+			},
+			rollAppId: "rollapp_1-1",
+			account:   acc1.bech32(),
+			want:      true,
+		},
+		{
+			name: "fail - rollapp does not exists",
+			rollApp: &rollapptypes.Rollapp{
+				RollappId: "rollapp_1-1",
+				Owner:     acc1.bech32(),
+			},
+			rollAppId: "nah_2-2",
+			account:   acc1.bech32(),
+			want:      false,
+		},
+		{
+			name: "fail - is NOT creator",
+			rollApp: &rollapptypes.Rollapp{
+				RollappId: "rollapp_1-1",
+				Owner:     acc1.bech32(),
+			},
+			rollAppId: "rollapp_1-1",
+			account:   acc2.bech32(),
+			want:      false,
+		},
+		{
+			name: "fail - creator but in different bech32 format is not accepted",
+			rollApp: &rollapptypes.Rollapp{
+				RollappId: "rollapp_1-1",
+				Owner:     acc1.bech32(),
+			},
+			rollAppId: "rollapp_1-1",
+			account:   acc1.bech32C("nim"),
+			want:      false,
+		},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
 
-	rollApp1 := rollApp{
-		id:    "rollapp_1-1",
-		alias: "al1",
-	}
+			if tt.rollApp != nil {
+				rk.SetRollapp(ctx, *tt.rollApp)
+			}
 
-	rollApp2 := rollApp{
-		id:    "rolling_2-2",
-		alias: "al2",
-	}
-
-	rollApp3NotExists := rollApp{
-		id:    "nah_2-2",
-		alias: "al3",
-	}
-
-	dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
-
-	for i, ra := range []rollApp{rollApp1, rollApp2} {
-		rk.SetRollapp(ctx, rollapptypes.Rollapp{
-			RollappId: ra.id,
-			Owner:     testAddr(uint64(i)).bech32(),
+			got := dk.IsRollAppCreator(ctx, tt.rollAppId, tt.account)
+			require.Equal(t, tt.want, got)
 		})
 	}
 
-	t.Run("set - can set", func(t *testing.T) {
-		require.True(t, dk.IsRollAppId(ctx, rollApp1.id), "must be a RollApp, just not set alias")
-
-		err := dk.SetAliasForRollAppId(ctx, rollApp1.id, rollApp1.alias)
-		require.NoError(t, err)
-
-		alias, found := dk.GetAliasByRollAppId(ctx, rollApp1.id)
-		require.Equal(t, rollApp1.alias, alias)
-		require.True(t, found)
-
-		rollAppId, found := dk.GetRollAppIdByAlias(ctx, rollApp1.alias)
-		require.Equal(t, rollApp1.id, rollAppId)
-		require.True(t, found)
-	})
-
-	t.Run("set - can NOT set if alias is being in-used by another RollApp", func(t *testing.T) {
-		rollAppId, found := dk.GetRollAppIdByAlias(ctx, rollApp1.alias)
-		require.Equal(t, rollApp1.id, rollAppId)
-		require.True(t, found)
-
-		err := dk.SetAliasForRollAppId(ctx, rollApp2.id, rollApp1.alias)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "alias currently being in used by:")
-	})
-
-	t.Run("set - reject chain-id", func(t *testing.T) {
-		err := dk.SetAliasForRollAppId(ctx, "bad@", "alias")
-		require.Error(t, err)
-	})
-
-	t.Run("set - reject bad alias", func(t *testing.T) {
-		require.True(t, dk.IsRollAppId(ctx, rollApp2.id), "must be a RollApp")
-
-		err := dk.SetAliasForRollAppId(ctx, rollApp2.id, "")
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "alias can not be empty")
-
-		err = dk.SetAliasForRollAppId(ctx, rollApp2.id, "@")
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "invalid alias")
-	})
-
-	t.Run("get - of existing RollApp but no alias set", func(t *testing.T) {
-		require.True(t, dk.IsRollAppId(ctx, rollApp2.id), "must be a RollApp, just not set alias")
-
-		alias, found := dk.GetAliasByRollAppId(ctx, rollApp2.id)
-		require.Empty(t, alias)
-		require.False(t, found)
-
-		rollAppId, found := dk.GetRollAppIdByAlias(ctx, rollApp2.alias)
-		require.Empty(t, rollAppId)
-		require.False(t, found)
-	})
-
-	t.Run("set - non-exists RollApp returns error", func(t *testing.T) {
-		require.False(t, dk.IsRollAppId(ctx, rollApp3NotExists.id))
-
-		err := dk.SetAliasForRollAppId(ctx, rollApp3NotExists.id, rollApp3NotExists.alias)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "not a RollApp")
-	})
-
-	t.Run("get - non-exists RollApp returns empty", func(t *testing.T) {
-		require.False(t, dk.IsRollAppId(ctx, rollApp3NotExists.id))
-
-		alias, found := dk.GetAliasByRollAppId(ctx, rollApp3NotExists.id)
-		require.Empty(t, alias)
-		require.False(t, found)
-
-		rollAppId, found := dk.GetRollAppIdByAlias(ctx, rollApp3NotExists.alias)
-		require.Empty(t, rollAppId)
-		require.False(t, found)
-	})
-
-	t.Run("set/get - can set multiple alias to a single Roll-App", func(t *testing.T) {
+	t.Run("pass - can detect among multiple RollApps of same owned", func(t *testing.T) {
 		dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
 
-		type testCase struct {
-			rollAppId string
-			aliases   []string
+		rollAppABy1 := rollapptypes.Rollapp{
+			RollappId: "rollapp_1-1",
+			Owner:     acc1.bech32(),
+		}
+		rollAppBBy1 := rollapptypes.Rollapp{
+			RollappId: "rollapp_2-2",
+			Owner:     acc1.bech32(),
+		}
+		rollAppCBy2 := rollapptypes.Rollapp{
+			RollappId: "rollapp_3-3",
+			Owner:     acc2.bech32(),
+		}
+		rollAppDBy2 := rollapptypes.Rollapp{
+			RollappId: "rollapp_4-4",
+			Owner:     acc2.bech32(),
 		}
 
-		testcases := []testCase{
-			{
-				rollAppId: "rollapp_1-1",
-				aliases:   []string{"one", "two", "three"},
-			},
-			{
-				rollAppId: "rollapp_2-2",
-				aliases:   []string{"four", "five"},
-			},
-		}
+		rk.SetRollapp(ctx, rollAppABy1)
+		rk.SetRollapp(ctx, rollAppBBy1)
+		rk.SetRollapp(ctx, rollAppCBy2)
+		rk.SetRollapp(ctx, rollAppDBy2)
 
-		for _, tc := range testcases {
-			rk.SetRollapp(ctx, rollapptypes.Rollapp{
-				RollappId: tc.rollAppId,
-				Owner:     testAddr(0).bech32(),
-			})
-		}
+		require.True(t, dk.IsRollAppCreator(ctx, rollAppABy1.RollappId, acc1.bech32()))
+		require.True(t, dk.IsRollAppCreator(ctx, rollAppBBy1.RollappId, acc1.bech32()))
+		require.True(t, dk.IsRollAppCreator(ctx, rollAppCBy2.RollappId, acc2.bech32()))
+		require.True(t, dk.IsRollAppCreator(ctx, rollAppDBy2.RollappId, acc2.bech32()))
 
-		for _, tc := range testcases {
-			for _, alias := range tc.aliases {
-				err := dk.SetAliasForRollAppId(ctx, tc.rollAppId, alias)
-				require.NoError(t, err)
-			}
-		}
-
-		for _, tc := range testcases {
-			for _, alias := range tc.aliases {
-				rollAppId, found := dk.GetRollAppIdByAlias(ctx, alias)
-				require.Equal(t, tc.rollAppId, rollAppId)
-				require.True(t, found)
-			}
-
-			alias, found := dk.GetAliasByRollAppId(ctx, tc.rollAppId)
-			require.True(t, found)
-			require.Contains(t, tc.aliases, alias)
-			require.Equal(t, alias, tc.aliases[0], "should returns the first one added")
-		}
+		require.False(t, dk.IsRollAppCreator(ctx, rollAppABy1.RollappId, acc2.bech32()))
+		require.False(t, dk.IsRollAppCreator(ctx, rollAppBBy1.RollappId, acc2.bech32()))
+		require.False(t, dk.IsRollAppCreator(ctx, rollAppCBy2.RollappId, acc1.bech32()))
+		require.False(t, dk.IsRollAppCreator(ctx, rollAppDBy2.RollappId, acc1.bech32()))
 	})
+}
+
+func TestKeeper_GetRollAppBech32Prefix(t *testing.T) {
+	rollApp1 := rollapptypes.Rollapp{
+		RollappId:    "rollapp_1-1",
+		Owner:        testAddr(0).bech32(),
+		Bech32Prefix: "one",
+	}
+	rollApp2 := rollapptypes.Rollapp{
+		RollappId:    "rolling_2-2",
+		Owner:        testAddr(0).bech32(),
+		Bech32Prefix: "two",
+	}
+	rollApp3NonExists := rollapptypes.Rollapp{
+		RollappId:    "nah_3-3",
+		Owner:        testAddr(0).bech32(),
+		Bech32Prefix: "nah",
+	}
+
+	dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
+	rk.SetRollapp(ctx, rollApp1)
+	rk.SetRollapp(ctx, rollApp2)
+
+	bech32, found := dk.GetRollAppBech32Prefix(ctx, rollApp1.RollappId)
+	require.True(t, found)
+	require.Equal(t, "one", bech32)
+
+	bech32, found = dk.GetRollAppBech32Prefix(ctx, rollApp2.RollappId)
+	require.True(t, found)
+	require.Equal(t, "two", bech32)
+
+	bech32, found = dk.GetRollAppBech32Prefix(ctx, rollApp3NonExists.RollappId)
+	require.False(t, found)
+	require.Empty(t, bech32)
 }

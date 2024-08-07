@@ -1,11 +1,7 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // TODO DymNS: remove this mock
@@ -38,92 +34,15 @@ func (k Keeper) IsRollAppId(ctx sdk.Context, chainId string) bool {
 	return found
 }
 
-// GetRollAppIdByAlias returns the RollApp-Id by the alias.
-func (k Keeper) GetRollAppIdByAlias(ctx sdk.Context, alias string) (rollAppId string, found bool) {
-	defer func() {
-		found = rollAppId != ""
-	}()
+// IsRollAppCreator returns true if the input bech32 address is the creator of the RollApp.
+func (k Keeper) IsRollAppCreator(ctx sdk.Context, rollAppId, account string) bool {
+	rollApp, found := k.rollappKeeper.GetRollapp(ctx, rollAppId)
 
-	store := ctx.KVStore(k.storeKey)
-	key := dymnstypes.AliasToRollAppIdRvlKey(alias)
-	bz := store.Get(key)
-	if bz != nil {
-		rollAppId = string(bz)
-		return
+	if !found {
+		return false
 	}
 
-	for rid, data := range mockRollAppsData {
-		if data.alias == alias {
-			rollAppId = rid
-			return
-		}
-	}
-
-	return
-}
-
-// GetAliasByRollAppId returns the alias by the RollApp-Id.
-func (k Keeper) GetAliasByRollAppId(ctx sdk.Context, chainId string) (alias string, found bool) {
-	// TODO DymNS: support returns multiple aliases
-	if !k.IsRollAppId(ctx, chainId) {
-		return
-	}
-
-	defer func() {
-		found = alias != ""
-	}()
-
-	store := ctx.KVStore(k.storeKey)
-	key := dymnstypes.RollAppIdToAliasesKey(chainId)
-	bz := store.Get(key)
-	if bz != nil {
-		var multipleAliases dymnstypes.MultipleAliases
-		k.cdc.MustUnmarshal(bz, &multipleAliases)
-		if len(multipleAliases.Aliases) > 0 {
-			alias = multipleAliases.Aliases[0]
-			return
-		}
-	}
-
-	if data, ok := mockRollAppsData[chainId]; ok {
-		alias = data.alias
-		return
-	}
-
-	return
-}
-
-func (k Keeper) SetAliasForRollAppId(ctx sdk.Context, rollAppId, alias string) error {
-	if !k.IsRollAppId(ctx, rollAppId) {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not a RollApp chain-id: %s", rollAppId)
-	}
-
-	if alias == "" {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "alias can not be empty")
-	}
-
-	if !dymnsutils.IsValidAlias(alias) {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid alias: %s", alias)
-	}
-
-	store := ctx.KVStore(k.storeKey)
-	keyR2A := dymnstypes.RollAppIdToAliasesKey(rollAppId)
-	keyA2R := dymnstypes.AliasToRollAppIdRvlKey(alias)
-
-	if bz := store.Get(keyA2R); bz != nil {
-		return errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias currently being in used by: %s", string(bz))
-	}
-
-	var multipleAliases dymnstypes.MultipleAliases
-	if bz := store.Get(keyR2A); bz != nil {
-		k.cdc.MustUnmarshal(bz, &multipleAliases)
-	}
-	multipleAliases.Aliases = append(multipleAliases.Aliases, alias)
-
-	store.Set(keyR2A, k.cdc.MustMarshal(&multipleAliases))
-	store.Set(keyA2R, []byte(rollAppId))
-
-	return nil
+	return rollApp.Owner == account
 }
 
 // GetRollAppBech32Prefix returns the Bech32 prefix of the RollApp by the chain-id.
