@@ -210,12 +210,12 @@ func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
 	suite.FundAcc(addr, sdk.NewCoins(rollapptypes.DefaultRegistrationFee))
 
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
-		Creator:                 addr.String(),
-		RollappId:               apptesting.GenerateRollappID(),
-		Bech32Prefix:            strings.ToLower(tmrand.Str(3)),
-		GenesisChecksum:         "checksum",
-		InitialSequencerAddress: addr.String(),
-		Alias:                   "alias",
+		Creator:          addr.String(),
+		RollappId:        apptesting.GenerateRollappID(),
+		Bech32Prefix:     strings.ToLower(tmrand.Str(3)),
+		GenesisChecksum:  "checksum",
+		InitialSequencer: addr.String(),
+		Alias:            "alias",
 	}
 
 	msgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)

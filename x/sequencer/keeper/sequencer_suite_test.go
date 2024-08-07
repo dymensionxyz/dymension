@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -46,16 +47,19 @@ func (suite *SequencerTestSuite) SetupTest() {
 func (suite *SequencerTestSuite) CreateDefaultRollapp() (string, cryptotypes.PubKey) {
 	pubkey := ed25519.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
+	return suite.CreateRollappWithInitialSequencer(addr.String()), pubkey
+}
 
+func (suite *SequencerTestSuite) CreateRollappWithInitialSequencer(initSeq string) string {
 	rollapp := rollapptypes.Rollapp{
-		RollappId:               rand.Str(8),
-		Creator:                 addr.String(),
-		GenesisChecksum:         "checksum",
-		InitialSequencerAddress: addr.String(),
-		Alias:                   "alias",
+		RollappId:        rand.Str(8),
+		Creator:          sample.AccAddress(),
+		GenesisChecksum:  "checksum",
+		InitialSequencer: initSeq,
+		Alias:            "alias",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
-	return rollapp.GetRollappId(), pubkey
+	return rollapp.GetRollappId()
 }
 
 func (suite *SequencerTestSuite) CreateDefaultSequencer(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey) string {

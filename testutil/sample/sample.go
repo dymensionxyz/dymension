@@ -2,6 +2,7 @@ package sample
 
 import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -17,11 +18,12 @@ func Acc() sdk.AccAddress {
 }
 
 func AccAddressFromSecret(secret string) string {
-	return AccFromSecret(secret).String()
+	acc, _ := AccFromSecret(secret)
+	return acc.String()
 }
 
-func AccFromSecret(secret string) sdk.AccAddress {
+func AccFromSecret(secret string) (sdk.AccAddress, types.PubKey) {
 	pk := ed25519.GenPrivKeyFromSecret([]byte(secret)).PubKey()
 	addr := pk.Address()
-	return sdk.AccAddress(addr)
+	return sdk.AccAddress(addr), pk
 }
