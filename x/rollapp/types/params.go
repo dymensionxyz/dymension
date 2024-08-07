@@ -37,9 +37,9 @@ const (
 	// MinDisputePeriodInBlocks is the minimum number of blocks for dispute period
 	MinDisputePeriodInBlocks uint64 = 1
 
-	DefaultLivenessSlashBlocks   = uint64(7200)  // 12 hours at 6 blocks per second
-	DefaultLivenessSlashInterval = uint64(3600)  // 1 hour at 6 blocks per second
-	DefaultLivenessJailBlocks    = uint64(28800) // 48 hours at 6 blocks per second
+	DefaultLivenessSlashBlocks   = uint64(7200)  // 12 hours at 1 block per 6 seconds
+	DefaultLivenessSlashInterval = uint64(3600)  // 1 hour at 1 block per 6 seconds
+	DefaultLivenessJailBlocks    = uint64(28800) // 48 hours at 1 block per 6 seconds
 )
 
 // ParamKeyTable the param key table for launch module
