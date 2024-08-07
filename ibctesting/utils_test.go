@@ -164,8 +164,9 @@ func (s *utilSuite) registerSequencer() {
 		pk,
 		rollappChainID(),
 		&sequencertypes.SequencerMetadata{
-			Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
-			EvmRpcs: []string{"https://rpc.evm.rollapp.noisnemyd.xyz:443"},
+			Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+			EvmRpcs:     []string{"https://rpc.evm.rollapp.noisnemyd.xyz:443"},
+			RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
 		},
 		bond,
 	)

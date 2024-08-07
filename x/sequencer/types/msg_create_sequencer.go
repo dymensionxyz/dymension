@@ -6,6 +6,8 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/decred/dcrd/dcrec/edwards"
+
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 const (
@@ -71,10 +73,6 @@ func (msg *MsgCreateSequencer) GetSignBytes() []byte {
 }
 
 func (msg *MsgCreateSequencer) ValidateBasic() error {
-	return msg.Validate(false)
-}
-
-func (msg *MsgCreateSequencer) Validate(isEVM bool) error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
@@ -102,11 +100,7 @@ func (msg *MsgCreateSequencer) Validate(isEVM bool) error {
 		return errorsmod.Wrapf(ErrInvalidPubKey, "%s", err)
 	}
 
-	if _, err = msg.Metadata.UpdateSequencerMetadata(msg.Metadata); err != nil {
-		return err
-	}
-
-	if err = msg.Metadata.Validate(isEVM); err != nil {
+	if err = msg.Metadata.Validate(); err != nil {
 		return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
 	}
 
@@ -114,6 +108,15 @@ func (msg *MsgCreateSequencer) Validate(isEVM bool) error {
 		return errorsmod.Wrapf(ErrInvalidCoins, "invalid bond amount: %s", msg.Bond.String())
 	}
 
+	return nil
+}
+
+func (msg *MsgCreateSequencer) VMSpecificValidate(vmType types.Rollapp_VMType) error {
+	if vmType == types.Rollapp_EVM {
+		if err := validateURLs(msg.Metadata.EvmRpcs); err != nil {
+			return errorsmod.Wrap(err, "invalid evm rpcs URLs")
+		}
+	}
 	return nil
 }
 

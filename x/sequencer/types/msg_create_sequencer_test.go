@@ -54,8 +54,9 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				DymintPubKey: pkAny,
 				Bond:         bond,
 				Metadata: SequencerMetadata{
-					Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
-					EvmRpcs: []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs:     []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
 				},
 			},
 		}, {
@@ -70,7 +71,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 					P2PSeeds:    []string{"seed1", "seed2"},
 					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
 					EvmRpcs:     []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
-					RestApiUrls: []string{"rest_api_url"},
+					RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
 					ExplorerUrl: "explorer_url",
 					GenesisUrls: []string{"genesis1", "genesis2"},
 					ContactDetails: &ContactDetails{
@@ -96,12 +97,13 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				DymintPubKey: pkAny,
 				Bond:         bond,
 				Metadata: SequencerMetadata{
-					Moniker: strings.Repeat("a", MaxMonikerLength+1),
-					Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
-					EvmRpcs: []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					Moniker:     strings.Repeat("a", MaxMonikerLength+1),
+					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs:     []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
 				},
 			},
-			err: ErrInvalidRequest,
+			err: ErrInvalidMetadata,
 		}, {
 			name: "invalid website length",
 			msg: MsgCreateSequencer{
@@ -112,11 +114,12 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 					ContactDetails: &ContactDetails{
 						Website: strings.Repeat("a", MaxContactFieldLength+1),
 					},
-					Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
-					EvmRpcs: []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs:     []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
 				},
 			},
-			err: ErrInvalidRequest,
+			err: ErrInvalidMetadata,
 		}, {
 			name: "invalid details length",
 			msg: MsgCreateSequencer{
@@ -124,12 +127,13 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				DymintPubKey: pkAny,
 				Bond:         bond,
 				Metadata: SequencerMetadata{
-					Details: strings.Repeat("a", MaxDetailsLength+1),
-					Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
-					EvmRpcs: []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					Details:     strings.Repeat("a", MaxDetailsLength+1),
+					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs:     []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
 				},
 			},
-			err: ErrInvalidRequest,
+			err: ErrInvalidMetadata,
 		}, {
 			name: "invalid extra data length",
 			msg: MsgCreateSequencer{
@@ -137,12 +141,13 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				DymintPubKey: pkAny,
 				Bond:         bond,
 				Metadata: SequencerMetadata{
-					ExtraData: []byte(strings.Repeat("a", MaxExtraDataLength+1)),
-					Rpcs:      []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
-					EvmRpcs:   []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					ExtraData:   []byte(strings.Repeat("a", MaxExtraDataLength+1)),
+					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs:     []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
 				},
 			},
-			err: ErrInvalidRequest,
+			err: ErrInvalidMetadata,
 		}, {
 			name: "invalid bond",
 			msg: MsgCreateSequencer{
@@ -150,8 +155,9 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				DymintPubKey: pkAny,
 				Bond:         sdk.Coin{Denom: "k", Amount: sdk.NewInt(0)},
 				Metadata: SequencerMetadata{
-					Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
-					EvmRpcs: []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs:     []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
 				},
 			},
 			err: ErrInvalidCoins,

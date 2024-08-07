@@ -9,7 +9,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -27,8 +26,8 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, types.ErrRollappJailed
 	}
 
-	if err := msg.Validate(rollapp.VmType == rollapptypes.Rollapp_EVM); err != nil {
-		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, "validate basic: %v", err)
+	if err := msg.VMSpecificValidate(rollapp.VmType); err != nil {
+		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, err.Error())
 	}
 
 	// check to see if the sequencer has been registered before

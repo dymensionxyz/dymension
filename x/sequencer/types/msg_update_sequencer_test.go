@@ -54,7 +54,7 @@ func TestMsgUpdateSequencerInformation_ValidateBasic(t *testing.T) {
 					Moniker: strings.Repeat("a", MaxMonikerLength+1),
 				},
 			},
-			err: ErrInvalidRequest,
+			err: ErrInvalidMetadata,
 		}, {
 			name: "invalid website length",
 			msg: MsgUpdateSequencerInformation{
@@ -65,7 +65,7 @@ func TestMsgUpdateSequencerInformation_ValidateBasic(t *testing.T) {
 					},
 				},
 			},
-			err: ErrInvalidRequest,
+			err: ErrInvalidMetadata,
 		}, {
 			name: "invalid details length",
 			msg: MsgUpdateSequencerInformation{
@@ -74,7 +74,7 @@ func TestMsgUpdateSequencerInformation_ValidateBasic(t *testing.T) {
 					Details: strings.Repeat("a", MaxDetailsLength+1),
 				},
 			},
-			err: ErrInvalidRequest,
+			err: ErrInvalidMetadata,
 		}, {
 			name: "invalid extra data length",
 			msg: MsgUpdateSequencerInformation{
@@ -83,7 +83,7 @@ func TestMsgUpdateSequencerInformation_ValidateBasic(t *testing.T) {
 					ExtraData: []byte(strings.Repeat("a", MaxExtraDataLength+1)),
 				},
 			},
-			err: ErrInvalidRequest,
+			err: ErrInvalidMetadata,
 		},
 	}
 	for _, tt := range tests {

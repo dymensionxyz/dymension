@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	errorsmod "cosmossdk.io/errors"
+	"github.com/cockroachdb/errors"
 )
 
 // constant for maximum string length of the SequencerMetadata fields
@@ -16,42 +17,18 @@ const (
 	maxURLLength          = 256
 )
 
-// UpdateSequencerMetadata updates the fields of a given metadata. An error is
-// returned if the resulting metadata contains an invalid length.
-// TODO: add more length checks
-func (d SequencerMetadata) UpdateSequencerMetadata(d2 SequencerMetadata) (SequencerMetadata, error) {
-	metadata := SequencerMetadata{
-		Moniker:        d2.Moniker,
-		Details:        d2.Details,
-		P2PSeeds:       d2.P2PSeeds,
-		Rpcs:           d2.Rpcs,
-		EvmRpcs:        d2.EvmRpcs,
-		RestApiUrls:    d2.RestApiUrls,
-		ExplorerUrl:    d2.ExplorerUrl,
-		GenesisUrls:    d2.GenesisUrls,
-		ContactDetails: d2.ContactDetails,
-		ExtraData:      d2.ExtraData,
-		Snapshots:      d2.Snapshots,
-		GasPrice:       d2.GasPrice,
-	}
-
-	return metadata.EnsureLength()
-}
-
-func (d SequencerMetadata) Validate(isEVM bool) error {
+func (d SequencerMetadata) Validate() error {
 	_, err := d.EnsureLength()
 	if err != nil {
 		return err
 	}
 
-	if err = d.validateRPCs(); err != nil {
-		return err
+	if err = validateURLs(d.Rpcs); err != nil {
+		return errorsmod.Wrap(err, "invalid rpcs URLs")
 	}
 
-	if isEVM {
-		if err = d.ValidateEVMRPCs(); err != nil {
-			return err
-		}
+	if err = validateURLs(d.RestApiUrls); err != nil {
+		return errorsmod.Wrap(err, "invalid rest api URLs")
 	}
 
 	if d.ContactDetails == nil {
@@ -62,53 +39,36 @@ func (d SequencerMetadata) Validate(isEVM bool) error {
 }
 
 func (cd ContactDetails) Validate() error {
-	if err := validateURL(cd.Website); err != nil {
-		return errorsmod.Wrap(ErrInvalidURL, "invalid website URL")
-	}
-
-	if err := validateURL(cd.Telegram); err != nil {
-		return errorsmod.Wrap(ErrInvalidURL, "invalid telegram URL")
-	}
-
-	if err := validateURL(cd.X); err != nil {
-		return errorsmod.Wrap(ErrInvalidURL, "invalid x URL")
-	}
-
-	return nil
-}
-
-// ValidateRPCs validates the RPCs of a sequencer's metadata.
-func (d SequencerMetadata) validateRPCs() error {
-	if len(d.Rpcs) == 0 {
-		return errorsmod.Wrap(ErrInvalidRequest, "rpcs cannot be empty")
-	}
-
-	for _, rpc := range d.Rpcs {
-		if rpc == "" {
-			return errorsmod.Wrap(ErrInvalidRequest, "rpc cannot be empty")
+	if cd.Website != "" {
+		if err := validateURL(cd.Website); err != nil {
+			return errorsmod.Wrap(ErrInvalidURL, "invalid website URL")
 		}
-		if err := validateURL(rpc); err != nil {
-			return errorsmod.Wrap(ErrInvalidRequest, err.Error())
+	}
+
+	if cd.Telegram != "" {
+		if err := validateURL(cd.Telegram); err != nil {
+			return errorsmod.Wrap(ErrInvalidURL, "invalid telegram URL")
+		}
+	}
+
+	if cd.X != "" {
+		if err := validateURL(cd.X); err != nil {
+			return errorsmod.Wrap(ErrInvalidURL, "invalid x URL")
 		}
 	}
 
 	return nil
 }
 
-// ValidateEVMRPCs validates the EVM RPCs of a sequencer's metadata.
-// The EVM RPCs are not validated during ValidateBasic, as they are Rollapp-evm specific,
-// so they will be validated in the handler.
-func (d SequencerMetadata) ValidateEVMRPCs() error {
-	if len(d.EvmRpcs) == 0 {
-		return errorsmod.Wrap(ErrInvalidRequest, "evm rpcs cannot be empty")
+// ValidateURLs validates the URLs of a sequencer's metadata.
+func validateURLs(urls []string) error {
+	if len(urls) == 0 {
+		return errorsmod.Wrap(ErrInvalidRequest, "urls cannot be empty")
 	}
 
-	for _, rpc := range d.Rpcs {
-		if rpc == "" {
-			return errorsmod.Wrap(ErrInvalidRequest, "evm rpc cannot be empty")
-		}
-		if err := validateURL(rpc); err != nil {
-			return errorsmod.Wrap(ErrInvalidRequest, err.Error())
+	for _, u := range urls {
+		if err := validateURL(u); err != nil {
+			return errorsmod.Wrap(ErrInvalidURL, err.Error())
 		}
 	}
 
@@ -117,7 +77,7 @@ func (d SequencerMetadata) ValidateEVMRPCs() error {
 
 func validateURL(urlStr string) error {
 	if urlStr == "" {
-		return nil
+		return errorsmod.Wrap(ErrInvalidRequest, "url cannot be empty")
 	}
 
 	if len(urlStr) > maxURLLength {
@@ -134,26 +94,26 @@ func validateURL(urlStr string) error {
 // EnsureLength ensures the length of a sequencer's metadata.
 func (d SequencerMetadata) EnsureLength() (SequencerMetadata, error) {
 	if len(d.Moniker) > MaxMonikerLength {
-		return d, errorsmod.Wrapf(ErrInvalidRequest, "invalid moniker length; got: %d, max: %d", len(d.Moniker), MaxMonikerLength)
+		return d, errors.Newf("invalid moniker length; got: %d, max: %d", len(d.Moniker), MaxMonikerLength)
 	}
 
 	if len(d.Details) > MaxDetailsLength {
-		return d, errorsmod.Wrapf(ErrInvalidRequest, "invalid details length; got: %d, max: %d", len(d.Details), MaxDetailsLength)
+		return d, errors.Newf("invalid details length; got: %d, max: %d", len(d.Details), MaxDetailsLength)
 	}
 
 	if len(d.ExtraData) > MaxExtraDataLength {
-		return d, errorsmod.Wrapf(ErrInvalidRequest, "invalid extra data length; got: %d, max: %d", len(d.ExtraData), MaxExtraDataLength)
+		return d, errors.Newf("invalid extra data length; got: %d, max: %d", len(d.ExtraData), MaxExtraDataLength)
 	}
 
 	if cd := d.ContactDetails; cd != nil {
 		if len(cd.Website) > MaxContactFieldLength {
-			return d, errorsmod.Wrapf(ErrInvalidRequest, "invalid website length; got: %d, max: %d", len(cd.Website), MaxContactFieldLength)
+			return d, errors.Newf("invalid website length; got: %d, max: %d", len(cd.Website), MaxContactFieldLength)
 		}
 		if len(cd.Telegram) > MaxContactFieldLength {
-			return d, errorsmod.Wrapf(ErrInvalidRequest, "invalid telegram length; got: %d, max: %d", len(cd.Telegram), MaxContactFieldLength)
+			return d, errors.Newf("invalid telegram length; got: %d, max: %d", len(cd.Telegram), MaxContactFieldLength)
 		}
 		if len(cd.X) > MaxContactFieldLength {
-			return d, errorsmod.Wrapf(ErrInvalidRequest, "invalid x length; got: %d, max: %d", len(cd.X), MaxContactFieldLength)
+			return d, errors.Newf("invalid x length; got: %d, max: %d", len(cd.X), MaxContactFieldLength)
 		}
 	}
 
