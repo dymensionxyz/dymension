@@ -74,6 +74,7 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 				Creator:      alice,
 				RollappId:    test.rollappId,
 				Bech32Prefix: "rol",
+				VmType:       types.Rollapp_EVM,
 				Alias:        strings.ToLower(rand.Str(3)),
 			}
 
