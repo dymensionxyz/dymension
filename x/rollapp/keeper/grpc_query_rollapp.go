@@ -46,10 +46,6 @@ func (k Keeper) RollappByEIP155(c context.Context, req *types.QueryGetRollappByE
 	return queryRollapp[types.QueryGetRollappByEIP155Request](c, k, req, k.GetRollappByEIP155, req.GetEip155)
 }
 
-func (k Keeper) RollappByAlias(c context.Context, req *types.QueryGetRollappByAliasRequest) (*types.QueryGetRollappResponse, error) {
-	return queryRollapp[types.QueryGetRollappByAliasRequest](c, k, req, k.GetRollappByAlias, req.GetAlias)
-}
-
 type (
 	queryRollappFn[T any]       func(ctx sdk.Context, q T) (val types.Rollapp, found bool)
 	queryRollappGetArgFn[T any] func() T

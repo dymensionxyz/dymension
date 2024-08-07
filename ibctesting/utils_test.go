@@ -106,11 +106,11 @@ func (s *utilSuite) rollappMsgServer() rollapptypes.MsgServer {
 func (s *utilSuite) SetupTest() {
 	s.coordinator = ibctesting.NewCoordinator(s.T(), 2) // initializes test chains
 	s.coordinator.Chains[rollappChainID()] = s.newTestChainWithSingleValidator(s.T(), s.coordinator, rollappChainID())
-	s.fundSenderAccount()
+	// s.fundSenderAccount() // TODO: enable after x/dymns hooks are wired
 }
 
 func (s *utilSuite) fundSenderAccount() {
-	apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(rollapptypes.DefaultRegistrationFee))
+	//	apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(rollapptypes.DefaultRegistrationFee))
 }
 
 // CreateRollappWithFinishedGenesis creates a rollapp whose 'genesis' protocol is complete:

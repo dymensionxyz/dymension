@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
-	"unicode"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,8 +18,7 @@ func NewRollapp(
 	rollappId,
 	initSequencer,
 	bech32Prefix,
-	genesisChecksum,
-	alias string,
+	genesisChecksum string,
 	vmType Rollapp_VMType,
 	metadata *RollappMetadata,
 	transfersEnabled bool,
@@ -31,7 +29,6 @@ func NewRollapp(
 		InitialSequencer: initSequencer,
 		GenesisChecksum:  genesisChecksum,
 		Bech32Prefix:     bech32Prefix,
-		Alias:            alias,
 		VmType:           vmType,
 		Metadata:         metadata,
 		GenesisState: RollappGenesisState{
@@ -41,7 +38,6 @@ func NewRollapp(
 }
 
 const (
-	maxAliasLength           = 64
 	maxDescriptionLength     = 512
 	maxURLLength             = 256
 	maxGenesisChecksumLength = 64
@@ -75,14 +71,6 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidGenesisChecksum, "GenesisChecksum")
 	}
 
-	if len(r.Alias) == 0 {
-		return ErrInvalidAlias
-	}
-
-	if err = validateAlias(r.Alias); err != nil {
-		return ErrInvalidAlias
-	}
-
 	if r.VmType == 0 {
 		return ErrInvalidVMType
 	}
@@ -110,20 +98,6 @@ func validateInitialSequencer(initialSequencer string) error {
 		_, err := sdk.AccAddressFromBech32(addr)
 		if err != nil {
 			return err
-		}
-	}
-
-	return nil
-}
-
-func validateAlias(alias string) error {
-	if len(alias) > maxAliasLength {
-		return ErrInvalidAlias
-	}
-	// only allow alphanumeric characters and underscores
-	for _, c := range alias {
-		if !unicode.IsLetter(c) && !unicode.IsNumber(c) && c != '_' {
-			return ErrInvalidAlias
 		}
 	}
 
