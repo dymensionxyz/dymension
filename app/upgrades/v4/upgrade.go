@@ -144,6 +144,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		// TODO: regarding missing data - https://github.com/dymensionxyz/dymension/issues/986
 		Bech32Prefix:    bech32Prefix,                                        // placeholder data
 		GenesisChecksum: string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
+		VmType:          rollapptypes.Rollapp_EVM,                            // placeholder data
 		Metadata: &rollapptypes.RollappMetadata{
 			Website:          "",
 			Description:      "",

@@ -40,12 +40,13 @@ func (s *KeeperTestHelper) CreateRollappWithNameWithProposer(name string) (strin
 
 	alias := strings.NewReplacer("_", "", "-", "").Replace(name) // base it on rollappID to avoid alias conflicts
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
-		Creator:                 alice,
-		RollappId:               name,
-		InitialSequencerAddress: addr.String(),
-		Bech32Prefix:            strings.ToLower(rand.Str(3)),
-		GenesisChecksum:         "1234567890abcdefg",
-		Alias:                   alias,
+		Creator:          alice,
+		RollappId:        name,
+		InitialSequencer: addr.String(),
+		Bech32Prefix:     strings.ToLower(rand.Str(3)),
+		GenesisChecksum:  "1234567890abcdefg",
+		Alias:            alias,
+		VmType:           rollapptypes.Rollapp_EVM,
 		Metadata: &rollapptypes.RollappMetadata{
 			Website:          "https://dymension.xyz",
 			Description:      "Sample description",

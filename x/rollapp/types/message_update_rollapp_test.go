@@ -18,10 +18,10 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 		{
 			name: "valid - full features",
 			msg: MsgUpdateRollappInformation{
-				Creator:                 sample.AccAddress(),
-				RollappId:               "dym_100-1",
-				InitialSequencerAddress: sample.AccAddress(),
-				GenesisChecksum:         "checksum",
+				Creator:          sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				InitialSequencer: sample.AccAddress(),
+				GenesisChecksum:  "checksum",
 				Metadata: &RollappMetadata{
 					Website:          "https://dymension.xyz",
 					Description:      "Sample description",
@@ -35,20 +35,20 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid initial sequencer address",
 			msg: MsgUpdateRollappInformation{
-				Creator:                 sample.AccAddress(),
-				InitialSequencerAddress: "invalid_address",
-				RollappId:               "dym_100-1",
-				GenesisChecksum:         "checksum",
+				Creator:          sample.AccAddress(),
+				InitialSequencer: "invalid_address",
+				RollappId:        "dym_100-1",
+				GenesisChecksum:  "checksum",
 			},
-			err: ErrInvalidInitialSequencerAddress,
+			err: ErrInvalidInitialSequencer,
 		},
 		{
 			name: "invalid metadata: invalid logo data uri",
 			msg: MsgUpdateRollappInformation{
-				Creator:                 sample.AccAddress(),
-				InitialSequencerAddress: sample.AccAddress(),
-				RollappId:               "dym_100-1",
-				GenesisChecksum:         "checksum",
+				Creator:          sample.AccAddress(),
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				GenesisChecksum:  "checksum",
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
 					Description: "Sample description",
@@ -60,10 +60,10 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid genesis checksum: too long",
 			msg: MsgUpdateRollappInformation{
-				Creator:                 sample.AccAddress(),
-				InitialSequencerAddress: sample.AccAddress(),
-				RollappId:               "dym_100-1",
-				GenesisChecksum:         strings.Repeat("a", maxGenesisChecksumLength+1),
+				Creator:          sample.AccAddress(),
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				GenesisChecksum:  strings.Repeat("a", maxGenesisChecksumLength+1),
 			},
 			err: ErrInvalidGenesisChecksum,
 		},

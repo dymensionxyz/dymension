@@ -210,12 +210,13 @@ func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
 	// suite.FundAcc(addr, sdk.NewCoins(rollapptypes.DefaultRegistrationFee)) TODO: enable after x/dymns hooks are wired
 
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
-		Creator:                 addr.String(),
-		RollappId:               tmrand.Str(8),
-		Bech32Prefix:            strings.ToLower(tmrand.Str(3)),
-		GenesisChecksum:         "checksum",
-		InitialSequencerAddress: addr.String(),
-		Alias:                   "alias",
+		Creator:          addr.String(),
+		RollappId:        tmrand.Str(8),
+		Bech32Prefix:     strings.ToLower(tmrand.Str(3)),
+		GenesisChecksum:  "checksum",
+		InitialSequencer: addr.String(),
+		Alias:            "alias",
+		VmType:           rollapptypes.Rollapp_EVM,
 	}
 
 	msgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)

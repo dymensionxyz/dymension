@@ -44,12 +44,22 @@ message Rollapp {
   // checksum used to verify integrity of the genesis file
   string genesis_checksum = 12;
   // metadata is the rollapp metadata
-  RollappMetadata metadata = 13;
-  // initial_sequencer_address is a bech32-encoded address of the
-  // sequencer that is allowed to initially register and serve for this rollapp.
-  string initial_sequencer_address = 14;
+  RollappMetadata metadata = 14;
+  // initial_sequencer is an option to preset one or more coma-separated bech32-encoded addresses of the
+  // sequencer(s) that are allowed to initially register and serve for this rollapp.
+  // if left empty, no sequencer is allowed to register.
+  // if set to "*" any sequencer can register.
+  string initial_sequencer = 15;
+
+  enum VMType {
+    Unspecified = 0;
+    EVM = 1;
+    WASM = 2;
+  }
+  // vm_type is the type of rollapp machine: EVM or WASM
+  VMType vm_type = 16;
   // sealed is a boolean that indicates if the immutable fields are no longer updatable.
-  bool sealed = 15;
+  bool sealed = 17;
 }
 
 // Rollapp summary is a compact representation of Rollapp

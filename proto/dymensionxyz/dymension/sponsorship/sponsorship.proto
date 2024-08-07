@@ -24,15 +24,60 @@ message Params {
   ];
 }
 
-// Distribution holds the distribution plan among gauges.
+// Distribution holds the distribution plan among gauges. Distribution with the
+// Merge operation forms an Abelian group:
+// https://en.wikipedia.org/wiki/Abelian_group. Which helps to safely operate
+// with it. That is, Distribution:
+//   1. Is commutative:           a + b = b + a
+//   2. Is associative:           a + (b + c) = (a + b) + c
+//   3. Has the identity element: e + a = a + e = a
+//   4. Has inverse elements:     i + a = a + i = e
+// where
+// a, b, c, i, e : Distribution type,
+// + : Merge operation (Merge method)
+// i : inverse of a (Negate method),
+// e : identity element (zero, NewDistribution method).
+//
+// Example 1:
+//   a     : [100, 1] [50, 2] [0, 3] power 100
+//   b     : [160, 1] [40, 2] [5, 3] power 200
+//   a + b : [260, 1] [90, 2] [5, 3] power 300
+//
+// Example 2:
+//   a     : [100, 1] [50, 2] [0, 3] power 100
+//   b     : [160, 1]                power 200
+//   a + b : [260, 1] [50, 2] [0, 3] power 300
+//
+// Example 3:
+//   a     : [100, 1] [50, 2] [0, 3]          power 100
+//   b     :                         [160, 4] power 200
+//   a + b : [100, 1] [50, 2] [0, 3] [160, 4] power 300
+//
+// Example 4:
+//   a     : [210, 1] [180, 2] [210, 3] power 600
+//   -b    : [-40, 1] [-10, 2]          power -50
+//   a - b : [170, 1] [180, 2] [210, 3] power 550
+//
+// Example 5:
+//   a         : [210, 1] [180, 2] [210, 3] power 600
+//   e         :                            power 0
+//   a + e = a : [210, 1] [180, 2] [210, 3] power 600
+//
+// Example 6:
+//   a         : [ 210, 1] [ 180, 2] [ 210, 3] power  600
+//   i = -a    : [-210, 1] [-180, 2] [-210, 3] power -600
+//   a + i = e :                               power 0
+//
+// CONTRACT: Gauges are sorted by the gauge ID.
+// CONTRACT: Gauges hold gauges only with non-zero power.
 message Distribution {
-  // TotalVotingPower is the total voting power that the plan holds.
-  string total_voting_power = 1 [
+  // VotingPower is the total voting power that the distribution holds.
+  string voting_power = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
-  // Gauges is a breakdown of the users' votes for different gauges.
-  repeated Gauge gauges = 2;
+  // Gauges is a breakdown of the voting power for different gauges.
+  repeated Gauge gauges = 2 [ (gogoproto.nullable) = false ];
 }
 
 // Gauge represents a single gauge with its absolute power.
@@ -53,17 +98,17 @@ message Vote {
     (gogoproto.nullable) = false,
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
-  // Weights is a breakdown of the user's vote for different gauges.
+  // Weights is a breakdown of the vote for different gauges.
   repeated GaugeWeight weights = 2 [ (gogoproto.nullable) = false ];
 }
 
-// Weight is a weight distributed to the specified gauge.
+// GaugeWeight is a weight distributed to the specified gauge.
 message GaugeWeight {
   // GaugeID is the ID of the gauge.
   uint64 gauge_id = 1;
-  // Weight is a portion of the voting power that the user wants to allocate for
-  // the given gauge. The value must fall between Params.MinAllocationWeight and
-  // 100, inclusive.
+  // Weight is a portion of the voting power that is allocated for the given
+  // gauge. The value must fall between Params.MinAllocationWeight and 100,
+  // inclusive.
   string weight = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
