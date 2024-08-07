@@ -7,14 +7,13 @@ import (
 	"time"
 
 	tmrand "github.com/cometbft/cometbft/libs/rand"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var (
@@ -211,7 +210,7 @@ func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
 
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:          addr.String(),
-		RollappId:        apptesting.GenerateRollappID(),
+		RollappId:        urand.RollappID(),
 		Bech32Prefix:     strings.ToLower(tmrand.Str(3)),
 		GenesisChecksum:  "checksum",
 		InitialSequencer: addr.String(),

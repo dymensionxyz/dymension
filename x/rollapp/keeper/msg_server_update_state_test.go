@@ -4,10 +4,9 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
-
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -79,7 +78,7 @@ func (suite *RollappTestSuite) TestUpdateState() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:        apptesting.GenerateRollappID(),
+		RollappId:        urand.RollappID(),
 		Creator:          alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",

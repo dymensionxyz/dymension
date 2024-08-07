@@ -6,8 +6,8 @@ import (
 
 	"github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -399,7 +399,7 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 
 	rollapp := types.MsgCreateRollapp{
 		Creator:          creator,
-		RollappId:        apptesting.GenerateRollappID(),
+		RollappId:        urand.RollappID(),
 		InitialSequencer: address,
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",

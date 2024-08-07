@@ -130,7 +130,6 @@ func (k Keeper) checkIfRollappExists(ctx sdk.Context, rollappId types.ChainID, a
 		return types.ErrRollappAliasExists
 	}
 
-	// check to see if the RollappId has been registered before with same EIP155 ID
 	existingRollapp, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID())
 	// allow replacing EIP155 only when forking (previous rollapp is frozen)
 	if !isFound {
