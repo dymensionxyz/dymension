@@ -289,6 +289,16 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 			wantPreviousBidderBalanceLater: previousBidderOriginalBalance,
 		},
 		{
+			name:                           "fail - zero bid amount",
+			expiredSellOrder:               false,
+			newBid:                         0,
+			wantErr:                        true,
+			wantErrContains:                "offer must be positive",
+			wantOwnerBalanceLater:          ownerOriginalBalance,
+			wantBuyerBalanceLater:          buyerOriginalBalance,
+			wantPreviousBidderBalanceLater: previousBidderOriginalBalance,
+		},
+		{
 			name:                           "fail - offer higher than sell-price",
 			expiredSellOrder:               false,
 			sellPrice:                      300,
@@ -506,7 +516,7 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 
 			// test
 
-			require.Greater(t, tt.newBid, int64(0), "mis-configured test case")
+			require.GreaterOrEqual(t, tt.newBid, int64(0), "mis-configured test case")
 			useBuyer := buyerA
 			if tt.customBuyer != "" {
 				useBuyer = tt.customBuyer
