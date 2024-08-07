@@ -30,6 +30,9 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 		moduleParams.Price.PriceDenom = denom
 		moduleParams.Misc.ProhibitSellDuration = daysProhibitSell * 24 * time.Hour
 		moduleParams.Misc.SellOrderDuration = daysSellOrderDuration * 24 * time.Hour
+		// force enable trading
+		moduleParams.Misc.EnableTradingName = true
+		moduleParams.Misc.EnableTradingAlias = true
 		err := dk.SetParams(ctx, moduleParams)
 		require.NoError(t, err)
 
@@ -64,6 +67,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 		customDymNameOwner      string
 		minPrice                sdk.Coin
 		sellPrice               *sdk.Coin
+		preRunSetup             func(sdk.Context, dymnskeeper.Keeper)
 		wantErr                 bool
 		wantErrContains         string
 	}{
@@ -184,6 +188,20 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 			minPrice:                coin100,
 			sellPrice:               &coin100,
 		},
+		{
+			name:                    "fail - can NOT place Dym-Name Sell-Order, when Dym-Name trading is disabled",
+			dymNameExpiryOffsetDays: 9999,
+			minPrice:                coin100,
+			sellPrice:               nil,
+			preRunSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+				moduleParams := dk.GetParams(ctx)
+				moduleParams.Misc.EnableTradingName = false
+				err := dk.SetParams(ctx, moduleParams)
+				require.NoError(t, err)
+			},
+			wantErr:         true,
+			wantErrContains: "trading of Dym-Name is disabled",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -225,6 +243,11 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 				SellPrice: tt.sellPrice,
 				Owner:     useOwner,
 			}
+
+			if tt.preRunSetup != nil {
+				tt.preRunSetup(ctx, dk)
+			}
+
 			resp, err := dymnskeeper.NewMsgServerImpl(dk).PlaceSellOrder(ctx, msg)
 			moduleParams := dk.GetParams(ctx)
 

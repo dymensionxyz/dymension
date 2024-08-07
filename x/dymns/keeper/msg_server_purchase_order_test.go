@@ -24,6 +24,12 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
 		ctx = ctx.WithBlockTime(now)
 
+		// force enable trading
+		moduleParams := dk.GetParams(ctx)
+		moduleParams.Misc.EnableTradingName = true
+		moduleParams.Misc.EnableTradingAlias = true
+		dk.SetParams(ctx, moduleParams)
+
 		return dk, bk, ctx
 	}
 

@@ -32,6 +32,9 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 		// price
 		moduleParams.Price.PriceDenom = denom
 		moduleParams.Price.MinOfferPrice = sdk.NewInt(minOfferPrice)
+		// force enable trading
+		moduleParams.Misc.EnableTradingName = true
+		moduleParams.Misc.EnableTradingAlias = true
 		// submit
 		err := dk.SetParams(ctx, moduleParams)
 		require.NoError(t, err)
@@ -251,6 +254,30 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 			wantLaterModuleBalance: 5 + 2,
 			wantLaterBuyerBalance:  3 - 2,
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
+		},
+		{
+			name:                  "fail - can NOT place offer if trading Dym-Name is disabled",
+			existingDymName:       dymName,
+			existingOffer:         nil,
+			dymName:               dymName.Name,
+			buyer:                 buyerA,
+			offer:                 dymnsutils.TestCoin(minOfferPrice),
+			existingOfferId:       "",
+			originalModuleBalance: 5,
+			originalBuyerBalance:  minOfferPrice + 2,
+			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+				moduleParams := dk.GetParams(ctx)
+				moduleParams.Misc.EnableTradingName = false
+				err := dk.SetParams(ctx, moduleParams)
+				require.NoError(t, err)
+			},
+			wantErr:                true,
+			wantErrContains:        "trading of Dym-Name is disabled",
+			wantOfferId:            "",
+			wantLaterOffer:         nil,
+			wantLaterModuleBalance: 5,
+			wantLaterBuyerBalance:  minOfferPrice + 2,
+			wantMinConsumeGas:      1,
 		},
 		{
 			name:                   "fail - reject offer for non-existing Dym-Name",

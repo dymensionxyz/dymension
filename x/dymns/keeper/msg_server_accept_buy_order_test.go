@@ -36,6 +36,8 @@ func Test_msgServer_AcceptBuyOrder(t *testing.T) {
 		moduleParams.Price.MinOfferPrice = sdk.NewInt(minOfferPrice)
 		// misc
 		moduleParams.Misc.ProhibitSellDuration = daysProhibitSell * 24 * time.Hour
+		moduleParams.Misc.EnableTradingName = true
+		moduleParams.Misc.EnableTradingAlias = true
 		// submit
 		err := dk.SetParams(ctx, moduleParams)
 		require.NoError(t, err)
@@ -373,6 +375,29 @@ func Test_msgServer_AcceptBuyOrder(t *testing.T) {
 				dymNames = dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Empty(t, dymNames.DymNames)
 			},
+		},
+		{
+			name:                  "fail - can NOT accept offer when trading Dym-Name is disabled",
+			existingDymName:       dymName,
+			existingOffer:         offer,
+			offerId:               offer.Id,
+			owner:                 dymName.Owner,
+			minAccept:             offer.OfferPrice,
+			originalModuleBalance: offer.OfferPrice.Amount.Int64(),
+			originalOwnerBalance:  0,
+			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+				moduleParams := dk.GetParams(ctx)
+				moduleParams.Misc.EnableTradingName = false
+				err := dk.SetParams(ctx, moduleParams)
+				require.NoError(t, err)
+			},
+			wantErr:                true,
+			wantErrContains:        "trading of Dym-Name is disabled",
+			wantLaterOffer:         offer,
+			wantLaterDymName:       dymName,
+			wantLaterModuleBalance: offer.OfferPrice.Amount.Int64(),
+			wantLaterOwnerBalance:  0,
+			wantMinConsumeGas:      1,
 		},
 		{
 			name:                   "fail - offer not found",

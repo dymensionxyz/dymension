@@ -49,6 +49,10 @@ func (k msgServer) processAcceptBuyOrderTypeDymName(
 	ctx sdk.Context,
 	msg *dymnstypes.MsgAcceptBuyOrder, offer dymnstypes.BuyOffer, params dymnstypes.Params,
 ) (*dymnstypes.MsgAcceptBuyOrderResponse, error) {
+	if !params.Misc.EnableTradingName {
+		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading of Dym-Name is disabled")
+	}
+
 	dymName, err := k.validateAcceptBuyOrderTypeDymName(ctx, msg, offer, params)
 	if err != nil {
 		return nil, err

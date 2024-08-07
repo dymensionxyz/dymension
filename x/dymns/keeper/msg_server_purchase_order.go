@@ -19,10 +19,12 @@ func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurch
 		return nil, err
 	}
 
+	params := k.GetParams(ctx)
+
 	var resp *dymnstypes.MsgPurchaseOrderResponse
 	var err error
 	if msg.OrderType == dymnstypes.NameOrder {
-		resp, err = k.processPurchaseOrderTypeDymName(ctx, msg)
+		resp, err = k.processPurchaseOrderTypeDymName(ctx, msg, params)
 	} else {
 		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
 	}
@@ -36,7 +38,14 @@ func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurch
 }
 
 // processPurchaseOrderTypeDymName handles the message handled by PurchaseOrder, type Dym-Name.
-func (k msgServer) processPurchaseOrderTypeDymName(ctx sdk.Context, msg *dymnstypes.MsgPurchaseOrder) (*dymnstypes.MsgPurchaseOrderResponse, error) {
+func (k msgServer) processPurchaseOrderTypeDymName(
+	ctx sdk.Context,
+	msg *dymnstypes.MsgPurchaseOrder, params dymnstypes.Params,
+) (*dymnstypes.MsgPurchaseOrderResponse, error) {
+	if !params.Misc.EnableTradingName {
+		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading of Dym-Name is disabled")
+	}
+
 	dymName, so, err := k.validatePurchaseOrderTypeDymName(ctx, msg)
 	if err != nil {
 		return nil, err

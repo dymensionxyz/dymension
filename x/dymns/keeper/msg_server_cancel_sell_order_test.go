@@ -21,6 +21,12 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 	ctx = ctx.WithBlockTime(now)
 
+	// force enable trading
+	moduleParams := dk.GetParams(ctx)
+	moduleParams.Misc.EnableTradingName = true
+	moduleParams.Misc.EnableTradingAlias = true
+	dk.SetParams(ctx, moduleParams)
+
 	msgServer := dymnskeeper.NewMsgServerImpl(dk)
 
 	ownerA := testAddr(1).bech32()
@@ -235,6 +241,10 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 	})
 
 	t.Run("can cancel if satisfied conditions", func(t *testing.T) {
+		moduleParams := dk.GetParams(ctx)
+		moduleParams.Misc.EnableTradingName = false // allowed to cancel even if trading is disabled
+		dk.SetParams(ctx, moduleParams)
+
 		so11 := dymnstypes.SellOrder{
 			GoodsId:  dymName1.Name,
 			Type:     dymnstypes.NameOrder,

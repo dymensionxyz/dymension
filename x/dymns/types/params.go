@@ -160,6 +160,8 @@ func DefaultMiscParams() MiscParams {
 		SellOrderDuration:                3 * 24 * time.Hour,
 		PreservedClosedSellOrderDuration: 7 * 24 * time.Hour,
 		ProhibitSellDuration:             30 * 24 * time.Hour,
+		EnableTradingName:                true,
+		EnableTradingAlias:               true,
 	}
 }
 

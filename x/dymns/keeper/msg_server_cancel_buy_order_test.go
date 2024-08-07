@@ -32,6 +32,9 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 		// price
 		moduleParams.Price.PriceDenom = denom
 		moduleParams.Price.MinOfferPrice = sdk.NewInt(minOfferPrice)
+		// force enable trading
+		moduleParams.Misc.EnableTradingName = true
+		moduleParams.Misc.EnableTradingAlias = true
 		// submit
 		err := dk.SetParams(ctx, moduleParams)
 		require.NoError(t, err)
@@ -167,6 +170,26 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 				require.NoError(t, err)
 				require.Empty(t, offerIds)
 			},
+		},
+		{
+			name:                  "pass - can cancel offer when trading Dym-Name is disabled",
+			existingDymName:       dymName,
+			existingOffer:         offer,
+			offerId:               offer.Id,
+			buyer:                 offer.Buyer,
+			originalModuleBalance: offer.OfferPrice.Amount.Int64(),
+			originalBuyerBalance:  0,
+			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+				moduleParams := dk.GetParams(ctx)
+				moduleParams.Misc.EnableTradingName = false
+				err := dk.SetParams(ctx, moduleParams)
+				require.NoError(t, err)
+			},
+			wantErr:                false,
+			wantLaterOffer:         nil,
+			wantLaterModuleBalance: 0,
+			wantLaterBuyerBalance:  offer.OfferPrice.Amount.Int64(),
+			wantMinConsumeGas:      dymnstypes.OpGasCloseBuyOffer,
 		},
 		{
 			name:                   "fail - cannot cancel non-existing offer",
