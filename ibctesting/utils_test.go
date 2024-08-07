@@ -134,8 +134,8 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 			Description:      "Some description",
 			LogoDataUri:      "data:image/png;base64,c2lzZQ==",
 			TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
-			Telegram:         "rolly",
-			X:                "rolly",
+			Telegram:         "https://t.me/rolly",
+			X:                "https://x.dymension.xyz",
 		},
 	)
 	_, err := s.hubChain().SendMsgs(msgCreateRollapp)
@@ -163,7 +163,11 @@ func (s *utilSuite) registerSequencer() {
 		s.hubChain().SenderAccount.GetAddress().String(),
 		pk,
 		rollappChainID(),
-		&sequencertypes.SequencerMetadata{},
+		&sequencertypes.SequencerMetadata{
+			Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+			EvmRpcs:     []string{"https://rpc.evm.rollapp.noisnemyd.xyz:443"},
+			RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
+		},
 		bond,
 	)
 	s.Require().NoError(err) // message committed

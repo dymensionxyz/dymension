@@ -14,8 +14,17 @@ import (
 func (k msgServer) UpdateSequencerInformation(goCtx context.Context, msg *types.MsgUpdateSequencerInformation) (*types.MsgUpdateSequencerInformationResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, "validate basic: %v", err)
+	rollapp, found := k.rollappKeeper.GetRollapp(ctx, msg.RollappId)
+	if !found {
+		return nil, types.ErrUnknownRollappID
+	}
+
+	if rollapp.Frozen {
+		return nil, types.ErrRollappJailed
+	}
+
+	if err := msg.VMSpecificValidate(rollapp.VmType); err != nil {
+		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, err.Error())
 	}
 
 	sequencer, found := k.GetSequencer(ctx, msg.Creator)
@@ -25,15 +34,6 @@ func (k msgServer) UpdateSequencerInformation(goCtx context.Context, msg *types.
 
 	if sequencer.Jailed {
 		return nil, types.ErrSequencerJailed
-	}
-
-	rollapp, found := k.rollappKeeper.GetRollapp(ctx, msg.RollappId)
-	if !found {
-		return nil, types.ErrUnknownRollappID
-	}
-
-	if rollapp.Frozen {
-		return nil, types.ErrRollappJailed
 	}
 
 	sequencer.Metadata = msg.Metadata
