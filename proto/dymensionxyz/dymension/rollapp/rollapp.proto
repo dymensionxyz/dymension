@@ -41,10 +41,8 @@ message Rollapp {
   repeated string registeredDenoms = 10;
   // unique bech32 prefix
   string bech32_prefix = 11;
-  // alias is the chain alias used for display and namespace system
-  string alias = 12;
   // checksum used to verify integrity of the genesis file
-  string genesis_checksum = 13;
+  string genesis_checksum = 12;
   // metadata is the rollapp metadata
   RollappMetadata metadata = 14;
   // initial_sequencer is an option to preset one or more coma-separated bech32-encoded addresses of the

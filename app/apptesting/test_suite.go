@@ -57,8 +57,8 @@ func (s *KeeperTestHelper) CreateRollappWithNameWithProposer(name string) (strin
 		},
 	}
 
-	aliceBal := sdk.NewCoins(s.App.RollappKeeper.GetParams(s.Ctx).RegistrationFee)
-	FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(alice), aliceBal)
+	// aliceBal := sdk.NewCoins(s.App.RollappKeeper.GetParams(s.Ctx).RegistrationFee) TODO: enable after x/dymns hooks are wired
+	// FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(alice), aliceBal)
 
 	msgServer := rollappkeeper.NewMsgServerImpl(*s.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(s.Ctx, &msgCreateRollapp)

@@ -15,7 +15,4 @@ type EncodingConfig struct {
 	Amino             *codec.LegacyAmino
 }
 
-const (
-	StakePerAccount           = "stake_per_account"
-	InitiallyBondedValidators = "initially_bonded_validators"
-)
+const StakePerAccount = "stake_per_account"

@@ -25,7 +25,6 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 		InitialSequencer: sample.AccAddress(),
 		GenesisChecksum:  "checksum",
 		Bech32Prefix:     "rol",
-		Alias:            "Rollapp",
 		Metadata: &types.RollappMetadata{
 			Website:          "https://dymension.xyz",
 			Description:      "Sample description",
@@ -210,7 +209,6 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
-		Alias:            "Rollapp",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 

@@ -1,16 +1,20 @@
 package keeper
 
 import (
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
+
+	ctypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Hooks is the wrapper struct for the streamer keeper.
 type Hooks struct {
+	ctypes.StubGammHooks
+	rollapptypes.StubRollappCreatedHooks
 	k Keeper
 }
 
@@ -22,7 +26,7 @@ var (
 
 // Hooks returns the hook wrapper struct.
 func (k Keeper) Hooks() Hooks {
-	return Hooks{k}
+	return Hooks{k: k}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -92,38 +96,13 @@ func (h Hooks) AfterPoolCreated(ctx sdk.Context, sender sdk.AccAddress, poolId u
 	}
 }
 
-// AfterJoinPool hook is a noop.
-func (h Hooks) AfterJoinPool(ctx sdk.Context, sender sdk.AccAddress, poolId uint64, enterCoins sdk.Coins, shareOutAmount sdk.Int) {
-}
-
-// AfterExitPool hook is a noop.
-func (h Hooks) AfterExitPool(ctx sdk.Context, sender sdk.AccAddress, poolId uint64, shareInAmount sdk.Int, exitCoins sdk.Coins) {
-}
-
-// AfterSwap hook is a noop.
-func (h Hooks) AfterSwap(ctx sdk.Context, sender sdk.AccAddress, poolId uint64, input sdk.Coins, output sdk.Coins) {
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                rollapp hooks                               */
 /* -------------------------------------------------------------------------- */
 // AfterStateFinalized implements types.RollappHooks.
-func (h Hooks) AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
-	return nil
-}
-
-// BeforeUpdateState implements types.RollappHooks.
-func (h Hooks) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
-	return nil
-}
-
-// FraudSubmitted implements types.RollappHooks.
-func (h Hooks) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
-	return nil
-}
 
 // RollappCreated implements types.RollappHooks.
-func (h Hooks) RollappCreated(ctx sdk.Context, rollappID string) error {
+func (h Hooks) RollappCreated(ctx sdk.Context, rollappID, _ string, _ sdk.AccAddress) error {
 	err := h.k.CreateRollappGauge(ctx, rollappID)
 	if err != nil {
 		ctx.Logger().Error("Failed to create rollapp gauge", "error", err)

@@ -58,7 +58,6 @@ func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
 		msg.InitialSequencer,
 		msg.Bech32Prefix,
 		msg.GenesisChecksum,
-		msg.Alias,
 		msg.VmType,
 		msg.Metadata,
 		false,
@@ -66,6 +65,10 @@ func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
 }
 
 func (msg *MsgCreateRollapp) ValidateBasic() error {
+	if len(msg.Alias) == 0 {
+		return ErrInvalidAlias
+	}
+
 	rollapp := msg.GetRollapp()
 	if err := rollapp.ValidateBasic(); err != nil {
 		return err
