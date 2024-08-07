@@ -122,21 +122,22 @@ func (suite *RollappTestSuite) TestCreateRollappAliasAlreadyExists() {
 
 func (suite *RollappTestSuite) TestCreateRollappId() {
 	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	tests := []struct {
 		name      string
 		rollappId string
+		revision  uint64
 		expErr    error
 	}{
 		{
 			name:      "default is valid",
 			rollappId: "rollapp_1234-1",
+			revision:  1,
 			expErr:    nil,
 		},
 		{
 			name:      "too long id",
-			rollappId: "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz",
+			rollappId: "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz_1234-1",
 			expErr:    types.ErrInvalidRollappID,
 		},
 		{
@@ -154,92 +155,27 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 			rollappId: "-1234",
 			expErr:    types.ErrInvalidRollappID,
 		},
-	}
-	for _, test := range tests {
-		suite.Run(test.name, func() {
-			alias := strings.NewReplacer("_", "", "-", "").Replace(test.rollappId) // reuse rollapp ID to avoid alias conflicts
-			rollapp := types.MsgCreateRollapp{
-				Creator:          alice,
-				RollappId:        test.rollappId,
-				InitialSequencer: sample.AccAddress(),
-				Bech32Prefix:     "rol",
-				GenesisChecksum:  "checksum",
-				Alias:            alias,
-				VmType:           types.Rollapp_EVM,
-				Metadata:         &mockRollappMetadata,
-			}
-
-			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
-			if test.expErr == nil {
-				suite.Require().NoError(err)
-				_, err = types.NewChainID(test.rollappId)
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().ErrorIs(err, test.expErr)
-			}
-		})
-	}
-}
-
-func (suite *RollappTestSuite) TestCreateRollappIdRevisionNumber() {
-	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
-
-	tests := []struct {
-		name      string
-		rollappId string
-		revision  uint64
-		valid     bool
-	}{
-		{
-			name:      "revision set with eip155",
-			rollappId: "rollapp_1234-1",
-			revision:  1,
-			valid:     true,
-		},
 		{
 			name:      "revision set without eip155",
 			rollappId: "rollapp-3",
-			revision:  3,
-			valid:     false,
+			expErr:    types.ErrInvalidRollappID,
 		},
 		{
 			name:      "revision not set",
 			rollappId: "rollapp",
-			revision:  0,
-			valid:     false,
+			expErr:    types.ErrInvalidRollappID,
 		},
 		{
 			name:      "invalid revision",
 			rollappId: "rollapp-1-1",
-			revision:  0,
-			valid:     false,
+			expErr:    types.ErrInvalidRollappID,
 		},
 	}
 	for _, test := range tests {
 		suite.Run(test.name, func() {
-			alias := strings.NewReplacer("_", "", "-", "").Replace(test.rollappId) // reuse rollapp ID to avoid alias conflicts
-			rollapp := types.MsgCreateRollapp{
-				Creator:          alice,
-				RollappId:        test.rollappId,
-				InitialSequencer: sample.AccAddress(),
-				Bech32Prefix:     "rol",
-				GenesisChecksum:  "checksum",
-				Alias:            alias,
-				VmType:           types.Rollapp_EVM,
-			}
-
-			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
-
-			if test.valid {
-				suite.Require().NoError(err)
-				id, err := types.NewChainID(test.rollappId)
-				suite.Require().NoError(err)
-				suite.Require().Equal(test.revision, id.GetRevisionNumber())
-
-			} else {
-				suite.Require().ErrorIs(err, types.ErrInvalidRollappID)
-			}
+			id, err := types.NewChainID(test.rollappId)
+			suite.Require().ErrorIs(err, test.expErr)
+			suite.Require().Equal(test.revision, id.GetRevisionNumber())
 		})
 	}
 }
@@ -352,7 +288,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 			suite.Require().NoError(err)
 			suite.Require().NotEqual(0, id.GetEIP155ID())
 
-			// eip155 key registers to correct roll app
+			// eip155 key registers to correct rollapp
 			rollappFromEip1155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, id.GetEIP155ID())
 			suite.Require().True(found)
 			suite.Require().Equal(rollappFromEip1155.RollappId, rollapp.RollappId)
