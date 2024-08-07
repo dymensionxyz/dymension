@@ -1,8 +1,11 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 const (
@@ -48,14 +51,20 @@ func (msg *MsgUpdateSequencerInformation) GetSignBytes() []byte {
 }
 
 func (msg *MsgUpdateSequencerInformation) ValidateBasic() error {
-	// validation if the sequencer metadata can be updated
-	if _, err := msg.Metadata.UpdateSequencerMetadata(msg.Metadata); err != nil {
-		return err
+	if err := msg.Metadata.Validate(); err != nil {
+		return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
 	}
 
 	return nil
 }
 
-func (msg *MsgUpdateSequencerInformation) UnpackInterfaces(codectypes.AnyUnpacker) error {
+func (msg *MsgUpdateSequencerInformation) VMSpecificValidate(vmType types.Rollapp_VMType) error {
+	if vmType == types.Rollapp_EVM {
+		if err := validateURLs(msg.Metadata.EvmRpcs); err != nil {
+			return errorsmod.Wrap(err, "invalid evm rpcs URLs")
+		}
+	}
 	return nil
 }
+
+func (msg *MsgUpdateSequencerInformation) UnpackInterfaces(codectypes.AnyUnpacker) error { return nil }

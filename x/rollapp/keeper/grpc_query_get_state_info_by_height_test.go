@@ -7,11 +7,13 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/stretchr/testify/require"
 )
 
 // Prevent strconv unused error
@@ -57,7 +59,7 @@ func createNStateInfoAndIndex(keeper *keeper.Keeper, ctx sdk.Context, n int, rol
 func TestStateInfoByHeightLatestStateInfoIndex(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	rollappId := "rollappId"
+	rollappId := "rollappid_1234-1"
 	keeper.SetRollapp(ctx, types.Rollapp{
 		RollappId: rollappId,
 	})
@@ -73,7 +75,7 @@ func TestStateInfoByHeightMissingStateInfo(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
 
-	rollappId := "rollappId"
+	rollappId := urand.RollappID()
 	keeper.SetRollapp(ctx, types.Rollapp{
 		RollappId: rollappId,
 	})
@@ -92,14 +94,14 @@ func TestStateInfoByHeightMissingStateInfo(t *testing.T) {
 }
 
 func TestStateInfoByHeightMissingStateInfo1(t *testing.T) {
-	keeper, ctx := keepertest.RollappKeeper(t)
+	k, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
 
-	rollappId := "rollappId"
-	keeper.SetRollapp(ctx, types.Rollapp{
+	rollappId := urand.RollappID()
+	k.SetRollapp(ctx, types.Rollapp{
 		RollappId: rollappId,
 	})
-	keeper.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
+	k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
 		RollappId: rollappId,
 		Index:     uint64(60),
 	})
@@ -107,12 +109,12 @@ func TestStateInfoByHeightMissingStateInfo1(t *testing.T) {
 		RollappId: rollappId,
 		Height:    70,
 	}
-	keeper.SetStateInfo(ctx, types.StateInfo{
+	k.SetStateInfo(ctx, types.StateInfo{
 		StateInfoIndex: types.StateInfoIndex{RollappId: rollappId, Index: 60},
 		StartHeight:    71,
 		NumBlocks:      1,
 	})
-	_, err := keeper.StateInfo(wctx, request)
+	_, err := k.StateInfo(wctx, request)
 	require.EqualError(t, err, errorsmod.Wrapf(types.ErrNotFound,
 		"StateInfo wasn't found for rollappId=%s, index=%d",
 		rollappId, 1).Error())
@@ -121,7 +123,8 @@ func TestStateInfoByHeightMissingStateInfo1(t *testing.T) {
 func TestStateInfoByHeightErr(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNStateInfoAndIndex(keeper, ctx, 4, "rollappId")
+	rollappID := urand.RollappID()
+	msgs := createNStateInfoAndIndex(keeper, ctx, 4, rollappID)
 	for _, tc := range []struct {
 		desc     string
 		request  *types.QueryGetStateInfoRequest
@@ -131,11 +134,11 @@ func TestStateInfoByHeightErr(t *testing.T) {
 		{
 			desc: "StateInfoByHeight",
 			request: &types.QueryGetStateInfoRequest{
-				RollappId: "rollappId",
+				RollappId: rollappID,
 				Height:    msgs[3].StartHeight + 1,
 			},
 			response: &types.QueryGetStateInfoResponse{StateInfo: types.StateInfo{
-				StateInfoIndex: types.StateInfoIndex{RollappId: "rollappId", Index: 4},
+				StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 4},
 				StartHeight:    msgs[3].StartHeight,
 				NumBlocks:      msgs[3].NumBlocks,
 			}},
@@ -143,11 +146,11 @@ func TestStateInfoByHeightErr(t *testing.T) {
 		{
 			desc: "StateInfoByHeight_firstBlockInBatch",
 			request: &types.QueryGetStateInfoRequest{
-				RollappId: "rollappId",
+				RollappId: rollappID,
 				Height:    msgs[2].StartHeight,
 			},
 			response: &types.QueryGetStateInfoResponse{StateInfo: types.StateInfo{
-				StateInfoIndex: types.StateInfoIndex{RollappId: "rollappId", Index: 3},
+				StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 3},
 				StartHeight:    msgs[2].StartHeight,
 				NumBlocks:      msgs[2].NumBlocks,
 			}},
@@ -155,11 +158,11 @@ func TestStateInfoByHeightErr(t *testing.T) {
 		{
 			desc: "StateInfoByHeight_lastBlockInBatch",
 			request: &types.QueryGetStateInfoRequest{
-				RollappId: "rollappId",
+				RollappId: rollappID,
 				Height:    msgs[2].StartHeight + msgs[2].NumBlocks - 1,
 			},
 			response: &types.QueryGetStateInfoResponse{StateInfo: types.StateInfo{
-				StateInfoIndex: types.StateInfoIndex{RollappId: "rollappId", Index: 3},
+				StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 3},
 				StartHeight:    msgs[2].StartHeight,
 				NumBlocks:      msgs[2].NumBlocks,
 			}},
@@ -175,7 +178,7 @@ func TestStateInfoByHeightErr(t *testing.T) {
 		{
 			desc: "StateInfoByHeight_invalidHeight",
 			request: &types.QueryGetStateInfoRequest{
-				RollappId: "rollappId",
+				RollappId: rollappID,
 				Height:    10000000,
 			},
 			err: types.ErrStateNotExists,
@@ -200,12 +203,13 @@ func TestStateInfoByHeightValidIncreasingBlockBatches(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
 	numOfMsg := 20
-	msgs := createNStateInfoAndIndex(keeper, ctx, numOfMsg, "rollappId")
+	rollappID := urand.RollappID()
+	msgs := createNStateInfoAndIndex(keeper, ctx, numOfMsg, rollappID)
 
 	for i := 0; i < numOfMsg; i += 1 {
 		for height := msgs[i].StartHeight; height < msgs[i].StartHeight+msgs[i].NumBlocks; height += 1 {
 			request := &types.QueryGetStateInfoRequest{
-				RollappId: "rollappId",
+				RollappId: rollappID,
 				Height:    height,
 			}
 			response, err := keeper.StateInfo(wctx, request)
@@ -222,12 +226,13 @@ func TestStateInfoByHeightValidDecreasingBlockBatches(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
 	numOfMsg := 20
-	msgs := createNStateInfoAndIndex(keeper, ctx, numOfMsg, "rollappId")
+	rollappID := urand.RollappID()
+	msgs := createNStateInfoAndIndex(keeper, ctx, numOfMsg, rollappID)
 
 	for i := 0; i < numOfMsg; i += 1 {
 		for height := msgs[i].StartHeight; height < msgs[i].StartHeight+msgs[i].NumBlocks; height += 1 {
 			request := &types.QueryGetStateInfoRequest{
-				RollappId: "rollappId",
+				RollappId: rollappID,
 				Height:    height,
 			}
 			response, err := keeper.StateInfo(wctx, request)

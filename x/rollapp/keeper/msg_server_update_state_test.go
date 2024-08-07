@@ -4,6 +4,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -19,7 +20,7 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:        "rollapp1",
+		RollappId:        urand.RollappID(),
 		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		GenesisChecksum:  "checksum",
@@ -30,8 +31,8 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 			Description:      "Sample description",
 			LogoDataUri:      "data:image/png;base64,c2lzZQ==",
 			TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
-			Telegram:         "rolly",
-			X:                "rolly",
+			Telegram:         "https://t.me/rolly",
+			X:                "https://x.dymension.xyz",
 		},
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
@@ -77,7 +78,7 @@ func (suite *RollappTestSuite) TestUpdateState() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:        "rollapp1",
+		RollappId:        urand.RollappID(),
 		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
@@ -186,7 +187,7 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownRollappId() {
 	// update state of unknown rollapp
 	updateState := types.MsgUpdateState{
 		Creator:     bob,
-		RollappId:   "rollapp1",
+		RollappId:   urand.RollappID(),
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      "",
@@ -204,7 +205,7 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:        "rollapp1",
+		RollappId:        urand.RollappID(),
 		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
@@ -233,7 +234,7 @@ func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:        "rollapp1",
+		RollappId:        urand.RollappID(),
 		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
@@ -244,7 +245,7 @@ func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
 		Address:   bob,
-		RollappId: "rollapp2",
+		RollappId: urand.RollappID(),
 		Status:    sequencertypes.Bonded,
 		Proposer:  true,
 	}
@@ -268,9 +269,11 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
+	rollappID := urand.RollappID()
+
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:        "rollapp1",
+		RollappId:        rollappID,
 		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
@@ -281,7 +284,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 	// set unpermissioned sequencer
 	sequencer := sequencertypes.Sequencer{
 		Address:   rollapp.InitialSequencer,
-		RollappId: "rollapp1",
+		RollappId: rollappID,
 		Status:    sequencertypes.Bonded,
 		Proposer:  true,
 	}
@@ -301,13 +304,14 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 	suite.ErrorIs(err, sequencertypes.ErrUnknownSequencer)
 }
 
-func (suite *RollappTestSuite) TestFirstUpdateStateGensisHightGreaterThanZero() {
+func (suite *RollappTestSuite) TestFirstUpdateStateGensisHeightGreaterThanZero() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	// set rollapp
+	rollappID := urand.RollappID()
 	rollapp := types.Rollapp{
-		RollappId:        "rollapp1",
+		RollappId:        rollappID,
 		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
@@ -318,7 +322,7 @@ func (suite *RollappTestSuite) TestFirstUpdateStateGensisHightGreaterThanZero() 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
 		Address:   bob,
-		RollappId: "rollapp1",
+		RollappId: rollappID,
 		Status:    sequencertypes.Bonded,
 		Proposer:  true,
 	}
@@ -343,8 +347,9 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 	_ = sdk.WrapSDKContext(suite.Ctx)
 
 	// set rollapp
+	rollappID := urand.RollappID()
 	rollapp := types.Rollapp{
-		RollappId:        "rollapp1",
+		RollappId:        rollappID,
 		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
@@ -355,7 +360,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
 		Address:   bob,
-		RollappId: "rollapp1",
+		RollappId: rollappID,
 		Status:    sequencertypes.Bonded,
 		Proposer:  true,
 	}
@@ -363,11 +368,11 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 
 	// set initial latestStateInfoIndex & StateInfo
 	latestStateInfoIndex := types.StateInfoIndex{
-		RollappId: "rollapp1",
+		RollappId: rollappID,
 		Index:     1,
 	}
 	stateInfo := types.StateInfo{
-		StateInfoIndex: types.StateInfoIndex{RollappId: "rollapp1", Index: 1},
+		StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 1},
 		Sequencer:      sequencer.Address,
 		StartHeight:    1,
 		NumBlocks:      3,
@@ -402,8 +407,9 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	// set rollapp
+	rollappID := urand.RollappID()
 	rollapp := types.Rollapp{
-		RollappId:        "rollapp1",
+		RollappId:        rollappID,
 		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
@@ -414,7 +420,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
 		Address:   bob,
-		RollappId: "rollapp1",
+		RollappId: rollappID,
 		Status:    sequencertypes.Bonded,
 		Proposer:  true,
 	}
@@ -422,7 +428,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 
 	// set initial latestStateInfoIndex
 	latestStateInfoIndex := types.StateInfoIndex{
-		RollappId: "rollapp1",
+		RollappId: rollappID,
 		Index:     1,
 	}
 	suite.App.RollappKeeper.SetLatestStateInfoIndex(suite.Ctx, latestStateInfoIndex)
@@ -447,8 +453,9 @@ func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	// set rollapp
+	rollappID := urand.RollappID()
 	rollapp := types.Rollapp{
-		RollappId:        "rollapp1",
+		RollappId:        rollappID,
 		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
 		Bech32Prefix:     "rol",
@@ -459,7 +466,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
 		Address:   bob,
-		RollappId: "rollapp1",
+		RollappId: rollappID,
 		Status:    sequencertypes.Bonded,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)

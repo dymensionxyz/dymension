@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/cometbft/cometbft/libs/rand"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -11,6 +10,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -52,7 +52,7 @@ func (suite *SequencerTestSuite) CreateDefaultRollapp() (string, cryptotypes.Pub
 
 func (suite *SequencerTestSuite) CreateRollappWithInitialSequencer(initSeq string) string {
 	rollapp := rollapptypes.Rollapp{
-		RollappId:        rand.Str(8),
+		RollappId:        urand.RollappID(),
 		Owner:            sample.AccAddress(),
 		GenesisChecksum:  "checksum",
 		InitialSequencer: initSeq,
@@ -80,7 +80,9 @@ func (suite *SequencerTestSuite) CreateSequencerWithBond(ctx sdk.Context, rollap
 		DymintPubKey: pkAny,
 		Bond:         bond,
 		RollappId:    rollappId,
-		Metadata:     types.SequencerMetadata{},
+		Metadata: types.SequencerMetadata{
+			Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+		},
 	}
 	_, err = suite.msgServer.CreateSequencer(ctx, &sequencerMsg1)
 	suite.Require().NoError(err)

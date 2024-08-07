@@ -9,7 +9,7 @@ import (
 
 // x/rollapp module sentinel errors
 var (
-	ErrRollappIDExists                 = errorsmod.Register(ModuleName, 1000, "rollapp already exists for this rollapp-id; must use new rollapp-id")
+	ErrRollappExists                   = errorsmod.Register(ModuleName, 1000, "rollapp already exists")
 	ErrInvalidInitialSequencer         = errorsmod.Register(ModuleName, 1001, "empty initial sequencer")
 	ErrInvalidCreatorAddress           = errorsmod.Register(ModuleName, 1002, "invalid creator address")
 	ErrInvalidBech32Prefix             = errorsmod.Register(ModuleName, 1003, "invalid Bech32 prefix")
