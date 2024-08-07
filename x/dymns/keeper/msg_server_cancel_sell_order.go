@@ -25,6 +25,8 @@ func (k msgServer) CancelSellOrder(goCtx context.Context, msg *dymnstypes.MsgCan
 	var err error
 	if msg.OrderType == dymnstypes.NameOrder {
 		resp, err = k.processCancelSellOrderTypeDymName(ctx, msg)
+	} else if msg.OrderType == dymnstypes.AliasOrder {
+		resp, err = k.processCancelSellOrderTypeAlias(ctx, msg)
 	} else {
 		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
 	}
@@ -67,6 +69,54 @@ func (k msgServer) validateCancelSellOrderTypeDymName(
 
 	if dymName.Owner != msg.Owner {
 		return errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the Dym-Name")
+	}
+
+	so := k.GetSellOrder(ctx, msg.GoodsId, msg.OrderType)
+	if so == nil {
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.GoodsId)
+	}
+
+	if so.HasExpiredAtCtx(ctx) {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "cannot cancel an expired order")
+	}
+
+	if so.HighestBid != nil {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "cannot cancel once bid placed")
+	}
+
+	return nil
+}
+
+// processCancelSellOrderTypeAlias handles the message handled by CancelSellOrder, type Alias.
+func (k msgServer) processCancelSellOrderTypeAlias(
+	ctx sdk.Context, msg *dymnstypes.MsgCancelSellOrder,
+) (*dymnstypes.MsgCancelSellOrderResponse, error) {
+	if err := k.validateCancelSellOrderTypeAlias(ctx, msg); err != nil {
+		return nil, err
+	}
+
+	k.DeleteSellOrder(ctx, msg.GoodsId, msg.OrderType)
+
+	aSoe := k.GetActiveSellOrdersExpiration(ctx, msg.OrderType)
+	aSoe.Remove(msg.GoodsId)
+	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, msg.OrderType); err != nil {
+		return nil, err
+	}
+
+	return &dymnstypes.MsgCancelSellOrderResponse{}, nil
+}
+
+// validateCancelSellOrderTypeAlias handles validation for the message handled by CancelSellOrder, type Alias.
+func (k msgServer) validateCancelSellOrderTypeAlias(
+	ctx sdk.Context, msg *dymnstypes.MsgCancelSellOrder,
+) error {
+	existingRollAppIdUsingAlias, found := k.GetRollAppIdByAlias(ctx, msg.GoodsId)
+	if !found {
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "alias is not in-used: %s", msg.GoodsId)
+	}
+
+	if !k.IsRollAppCreator(ctx, existingRollAppIdUsingAlias, msg.Owner) {
+		return errorsmod.Wrapf(gerrc.ErrPermissionDenied, "not the owner of the RollApp")
 	}
 
 	so := k.GetSellOrder(ctx, msg.GoodsId, msg.OrderType)
