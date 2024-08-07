@@ -47,7 +47,7 @@ func (k Keeper) distributeToRollappGauge(ctx sdk.Context, gauge types.Gauge) (to
 		return sdk.Coins{}, fmt.Errorf("gauge %d: rollapp %s not found", gauge.Id, gauge.GetRollapp().RollappId)
 	}
 	// Ignore the error since the owner must always be valid in x/rollapp
-	addr, _ := sdk.AccAddressFromBech32(rollapp.Owner)
+	addr := sdk.MustAccAddressFromBech32(rollapp.Owner)
 
 	totalDistrCoins = gauge.Coins.Sub(gauge.DistributedCoins...)
 	if totalDistrCoins.Empty() {
