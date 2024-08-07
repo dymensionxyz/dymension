@@ -6,6 +6,8 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/decred/dcrd/dcrec/edwards"
+
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 const (
@@ -98,14 +100,23 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidPubKey, "%s", err)
 	}
 
-	if _, err = msg.Metadata.UpdateSequencerMetadata(msg.Metadata); err != nil {
-		return err
+	if err = msg.Metadata.Validate(); err != nil {
+		return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
 	}
 
 	if !msg.Bond.IsValid() {
 		return errorsmod.Wrapf(ErrInvalidCoins, "invalid bond amount: %s", msg.Bond.String())
 	}
 
+	return nil
+}
+
+func (msg *MsgCreateSequencer) VMSpecificValidate(vmType types.Rollapp_VMType) error {
+	if vmType == types.Rollapp_EVM {
+		if err := validateURLs(msg.Metadata.EvmRpcs); err != nil {
+			return errorsmod.Wrap(err, "invalid evm rpcs URLs")
+		}
+	}
 	return nil
 }
 

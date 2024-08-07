@@ -4,12 +4,12 @@ import (
 	"strings"
 
 	"github.com/cometbft/cometbft/libs/rand"
-	"github.com/cosmos/cosmos-sdk/crypto/types"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app"
@@ -31,7 +31,7 @@ type KeeperTestHelper struct {
 }
 
 func (s *KeeperTestHelper) CreateDefaultRollappWithProposer() (string, string) {
-	return s.CreateRollappWithNameWithProposer(rand.Str(8))
+	return s.CreateRollappWithNameWithProposer(urand.RollappID())
 }
 
 func (s *KeeperTestHelper) CreateRollappWithNameWithProposer(name string) (string, string) {
@@ -52,8 +52,8 @@ func (s *KeeperTestHelper) CreateRollappWithNameWithProposer(name string) (strin
 			Description:      "Sample description",
 			LogoDataUri:      "data:image/png;base64,c2lzZQ==",
 			TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
-			Telegram:         "rolly",
-			X:                "rolly",
+			Telegram:         "https://t.me/rolly",
+			X:                "https://x.dymension.xyz",
 		},
 	}
 
@@ -88,7 +88,10 @@ func (s *KeeperTestHelper) CreateSequencer(ctx sdk.Context, rollappId string, pu
 		DymintPubKey: pkAny,
 		Bond:         bond,
 		RollappId:    rollappId,
-		Metadata:     sequencertypes.SequencerMetadata{},
+		Metadata: sequencertypes.SequencerMetadata{
+			Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+			EvmRpcs: []string{"https://rpc.evm.rollapp.noisnemyd.xyz:443"},
+		},
 	}
 
 	msgServer := sequencerkeeper.NewMsgServerImpl(s.App.SequencerKeeper)

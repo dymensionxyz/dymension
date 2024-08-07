@@ -16,15 +16,6 @@ import (
 func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSequencer) (*types.MsgCreateSequencerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, "validate basic: %v", err)
-	}
-
-	// check to see if the sequencer has been registered before
-	if _, found := k.GetSequencer(ctx, msg.Creator); found {
-		return nil, types.ErrSequencerExists
-	}
-
 	// check to see if the rollapp has been registered before
 	rollapp, found := k.rollappKeeper.GetRollapp(ctx, msg.RollappId)
 	if !found {
@@ -33,6 +24,15 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 
 	if rollapp.Frozen {
 		return nil, types.ErrRollappJailed
+	}
+
+	if err := msg.VMSpecificValidate(rollapp.VmType); err != nil {
+		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, err.Error())
+	}
+
+	// check to see if the sequencer has been registered before
+	if _, found = k.GetSequencer(ctx, msg.Creator); found {
+		return nil, types.ErrSequencerExists
 	}
 
 	// In case InitialSequencer is set to one or more bech32 addresses, only one of them can be the first to register,

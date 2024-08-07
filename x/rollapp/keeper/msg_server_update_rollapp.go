@@ -12,10 +12,6 @@ import (
 func (k msgServer) UpdateRollappInformation(goCtx context.Context, msg *types.MsgUpdateRollappInformation) (*types.MsgUpdateRollappInformationResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, fmt.Errorf("validate update: %w", err)
-	}
-
 	updated, err := k.CheckAndUpdateRollappFields(ctx, msg)
 	if err != nil {
 		return nil, err

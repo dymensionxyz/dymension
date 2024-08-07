@@ -10,13 +10,11 @@ import (
 )
 
 func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRollapp) (*types.MsgCreateRollappResponse, error) {
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, fmt.Errorf("validate rollapp: %w", err)
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	rollappId, _ := types.NewChainID(msg.RollappId)
+	// Already validated chain id in ValidateBasic, so we assume it's valid
+	rollappId := types.MustNewChainID(msg.RollappId)
+
 	if err := k.CheckIfRollappExists(ctx, rollappId); err != nil {
 		return nil, err
 	}

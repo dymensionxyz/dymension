@@ -50,27 +50,27 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 	return current, nil
 }
 
-// CheckIfRollappExists checks if a rollapp with the same ID, EIP155ID (if supported) already exists in the store.
-// An exception is made for EIP155ID when the rollapp is frozen, in which case it is allowed to replace the existing rollapp.
+// CheckIfRollappExists checks if a rollapp with the same ID or alias already exists in the store.
+// An exception is made for when the rollapp is frozen, in which case it is allowed to replace the existing rollapp (forking).
 func (k Keeper) CheckIfRollappExists(ctx sdk.Context, rollappId types.ChainID) error {
 	// check to see if the RollappId has been registered before
 	if _, isFound := k.GetRollapp(ctx, rollappId.GetChainID()); isFound {
-		return types.ErrRollappIDExists
+		return types.ErrRollappExists
 	}
 
-	if !rollappId.IsEIP155() {
-		return nil
-	}
-	// check to see if the RollappId has been registered before with same key
 	existingRollapp, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID())
 	// allow replacing EIP155 only when forking (previous rollapp is frozen)
 	if !isFound {
+		// if not forking, check to see if the Rollapp has been registered before with same name
+		if _, isFound = k.GetRollappByName(ctx, rollappId.GetName()); isFound {
+			return types.ErrRollappExists
+		}
 		return nil
 	}
 	if !existingRollapp.Frozen {
-		return types.ErrRollappIDExists
+		return types.ErrRollappExists
 	}
-	existingRollappChainId, _ := types.NewChainID(existingRollapp.RollappId)
+	existingRollappChainId := types.MustNewChainID(existingRollapp.RollappId)
 
 	if rollappId.GetName() != existingRollappChainId.GetName() {
 		return errorsmod.Wrapf(types.ErrInvalidRollappID, "rollapp name should be %s", existingRollappChainId.GetName())
@@ -91,13 +91,9 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 		rollapp.RollappId,
 	), b)
 
-	// check if chain-id is EVM compatible. no err check as rollapp is already validated
-	rollappID, _ := types.NewChainID(rollapp.RollappId)
-	if !rollappID.IsEIP155() {
-		return
-	}
+	// no err check as rollapp is already validated
+	rollappID := types.MustNewChainID(rollapp.RollappId)
 
-	// In case the chain id is EVM compatible, we store it by EIP155 id, to be retrievable by EIP155 id key
 	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
 	store.Set(types.RollappByEIP155Key(
 		rollappID.GetEIP155ID(),
@@ -120,7 +116,7 @@ func (k Keeper) SealRollapp(ctx sdk.Context, rollappId string) error {
 	return nil
 }
 
-// GetRollappByEIP155 returns a rollapp from its EIP155 id (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)  for EVM compatible rollapps
+// GetRollappByEIP155 returns a rollapp from its EIP155 id (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)
 func (k Keeper) GetRollappByEIP155(ctx sdk.Context, eip155 uint64) (val types.Rollapp, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
 	id := store.Get(types.RollappByEIP155Key(
@@ -148,6 +144,24 @@ func (k Keeper) GetRollapp(
 	}
 
 	k.cdc.MustUnmarshal(b, &val)
+	return val, true
+}
+
+func (k Keeper) GetRollappByName(
+	ctx sdk.Context,
+	name string,
+) (val types.Rollapp, found bool) {
+	name = name + "_"
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte(name))
+
+	defer iterator.Close() // nolint: errcheck
+
+	if !iterator.Valid() {
+		return val, false
+	}
+
+	k.cdc.MustUnmarshal(iterator.Value(), &val)
 	return val, true
 }
 
