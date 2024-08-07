@@ -127,6 +127,7 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		"eth",
 		"somechecksum",
 		"Rollapp",
+		rollapptypes.Rollapp_EVM,
 
 		&rollapptypes.RollappMetadata{
 			Website:          "http://example.com",

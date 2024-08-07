@@ -39,6 +39,8 @@ message MsgCreateRollapp {
   string genesis_checksum = 14;
   // metadata is the rollapp metadata
   RollappMetadata metadata = 15;
+  // vm_type is the type of rollapp machine: EVM or WASM
+  Rollapp.VMType vm_type = 16;
 }
 
 message MsgCreateRollappResponse {

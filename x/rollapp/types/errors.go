@@ -43,6 +43,7 @@ var (
 	ErrSameOwner                       = errorsmod.Wrap(gerrc.ErrInvalidArgument, "same owner")
 	ErrInvalidRequest                  = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid request")
 	ErrRollappAliasExists              = errorsmod.Wrap(gerrc.ErrInvalidArgument, "rollapp already exists for this alias; must use new alias")
+	ErrInvalidVMType                   = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid vm type")
 
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")

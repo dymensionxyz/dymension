@@ -30,7 +30,7 @@ var (
 // Same rollapp id, same status, same proof height same sequence (as it refers to the source chain) and same channel.
 // Example would be, both rollapp and hub have channel-0 and we have at the same proof height of the rollapp
 // AckPacket with sequence 1 (originated on the hub) and OnRecvPacket with sequence 1 (originated on the rollapp).
-// Adding the packet type guarantees uniqueness as the type differentiate the source.
+// Adding the packet type guarantees uniqueness as the type differentiates the source.
 func RollappPacketKey(rollappPacket *RollappPacket) []byte {
 	// Get the bytes rep
 	srppPrefix := RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappPacket.RollappId, rollappPacket.Status, rollappPacket.ProofHeight)
