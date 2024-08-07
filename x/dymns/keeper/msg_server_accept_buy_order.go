@@ -8,6 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // AcceptBuyOrder is message handler,
@@ -32,6 +33,8 @@ func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcce
 
 	if bo.Type == dymnstypes.NameOrder {
 		resp, err = k.processAcceptBuyOrderTypeDymName(ctx, msg, *bo, params)
+	} else if bo.Type == dymnstypes.AliasOrder {
+		resp, err = k.processAcceptBuyOrderTypeAlias(ctx, msg, *bo, params)
 	} else {
 		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", bo.Type)
 	}
@@ -138,4 +141,106 @@ func (k msgServer) validateAcceptBuyOrderTypeDymName(
 	}
 
 	return dymName, nil
+}
+
+// processAcceptBuyOrderTypeAlias handles the message handled by AcceptBuyOrder, type Alias.
+func (k msgServer) processAcceptBuyOrderTypeAlias(
+	ctx sdk.Context,
+	msg *dymnstypes.MsgAcceptBuyOrder, offer dymnstypes.BuyOffer, params dymnstypes.Params,
+) (*dymnstypes.MsgAcceptBuyOrderResponse, error) {
+	if !params.Misc.EnableTradingAlias {
+		return nil, errorsmod.Wrap(gerrc.ErrPermissionDenied, "trading of Alias is disabled")
+	}
+
+	existingRollAppUsingAlias, err := k.validateAcceptBuyOrderTypeAlias(ctx, msg, offer)
+	if err != nil {
+		return nil, err
+	}
+
+	destinationRollAppId := offer.Params[0]
+	if !k.IsRollAppId(ctx, destinationRollAppId) {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid destination Roll-App ID: %s", destinationRollAppId)
+	}
+
+	var accepted bool
+
+	if msg.MinAccept.IsLT(offer.OfferPrice) {
+		panic("min-accept is less than offer price")
+	} else if msg.MinAccept.IsEqual(offer.OfferPrice) {
+		accepted = true
+
+		// take the offer
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(
+			ctx,
+			dymnstypes.ModuleName,
+			sdk.MustAccAddressFromBech32(existingRollAppUsingAlias.Owner),
+			sdk.Coins{offer.OfferPrice},
+		); err != nil {
+			return nil, err
+		}
+
+		if err := k.removeBuyOffer(ctx, offer); err != nil {
+			return nil, err
+		}
+
+		if err := k.MoveAliasToRollAppId(ctx,
+			existingRollAppUsingAlias.RollappId, // source Roll-App ID
+			offer.GoodsId,                       // alias
+			destinationRollAppId,                // destination Roll-App ID
+		); err != nil {
+			return nil, err
+		}
+	} else {
+		accepted = false
+
+		offer.CounterpartyOfferPrice = &msg.MinAccept
+		if err := k.SetBuyOffer(ctx, offer); err != nil {
+			return nil, err
+		}
+	}
+
+	return &dymnstypes.MsgAcceptBuyOrderResponse{
+		Accepted: accepted,
+	}, nil
+}
+
+// validateAcceptBuyOrderTypeAlias handles validation for the message handled by AcceptBuyOrder, type Alias.
+func (k msgServer) validateAcceptBuyOrderTypeAlias(
+	ctx sdk.Context,
+	msg *dymnstypes.MsgAcceptBuyOrder, bo dymnstypes.BuyOffer,
+) (*rollapptypes.Rollapp, error) {
+	existingRollAppIdUsingAlias, found := k.GetRollAppIdByAlias(ctx, bo.GoodsId)
+	if !found {
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "alias is not in-used: %s", bo.GoodsId)
+	}
+
+	if !k.IsRollAppCreator(ctx, existingRollAppIdUsingAlias, msg.Owner) {
+		return nil, errorsmod.Wrapf(gerrc.ErrPermissionDenied, "not the owner of the RollApp")
+	}
+
+	existingRollAppUsingAlias, found := k.rollappKeeper.GetRollapp(ctx, existingRollAppIdUsingAlias)
+	if !found {
+		// this can not happen as the previous check already ensures the Roll-App exists
+		panic("roll-app not found")
+	}
+
+	if bo.Buyer == msg.Owner {
+		return nil, errorsmod.Wrapf(gerrc.ErrPermissionDenied, "cannot accept own offer")
+	}
+
+	if msg.MinAccept.Denom != bo.OfferPrice.Denom {
+		return nil, errorsmod.Wrapf(
+			gerrc.ErrInvalidArgument,
+			"denom must be the same as the offer price: %s", bo.OfferPrice.Denom,
+		)
+	}
+
+	if msg.MinAccept.IsLT(bo.OfferPrice) {
+		return nil, errorsmod.Wrapf(
+			gerrc.ErrInvalidArgument,
+			"amount must be greater than or equals to the offer price: %s", bo.OfferPrice.Denom,
+		)
+	}
+
+	return &existingRollAppUsingAlias, nil
 }
