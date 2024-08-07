@@ -61,6 +61,8 @@ func (k msgServer) processAcceptBuyOrderTypeDymName(
 	var accepted bool
 
 	if msg.MinAccept.IsLT(offer.OfferPrice) {
+		// this was checked earlier so this won't happen,
+		// but I keep this here to easier to understand of all-cases of comparison
 		panic("min-accept is less than offer price")
 	} else if msg.MinAccept.IsEqual(offer.OfferPrice) {
 		accepted = true

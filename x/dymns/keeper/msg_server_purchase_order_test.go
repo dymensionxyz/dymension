@@ -152,6 +152,16 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 			wantPreviousBidderBalanceLater: previousBidderOriginalBalance,
 		},
 		{
+			name:                           "fail - invalid buyer address",
+			customBuyer:                    "invalidAddress",
+			newBid:                         100,
+			wantErr:                        true,
+			wantErrContains:                "buyer is not a valid bech32 account address",
+			wantOwnerBalanceLater:          ownerOriginalBalance,
+			wantBuyerBalanceLater:          buyerOriginalBalance,
+			wantPreviousBidderBalanceLater: previousBidderOriginalBalance,
+		},
+		{
 			name:                           "fail - purchase an expired order, no bid",
 			expiredSellOrder:               true,
 			newBid:                         100,
