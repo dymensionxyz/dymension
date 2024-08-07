@@ -16,10 +16,10 @@ import (
 const (
 	flagTargetType = "target-type"
 
-	targetTypeById    = "offer-id"
-	targetTypeBuyer   = "buyer"
-	targetTypeOwner   = "owner"
-	targetTypeDymName = "dym-name"
+	targetTypeById  = "offer-id"
+	targetTypeBuyer = "buyer"
+	targetTypeOwner = "owner"
+	targetTypeName  = "name"
 )
 
 // CmdQueryBuyOrder is the CLI command for querying Buy-Orders a Dym-Name
@@ -37,7 +37,7 @@ func CmdQueryBuyOrder() *cobra.Command {
 			version.AppName, dymnstypes.ModuleName, flagTargetType, targetTypeById,
 			version.AppName, dymnstypes.ModuleName, flagTargetType, targetTypeBuyer,
 			version.AppName, dymnstypes.ModuleName, flagTargetType, targetTypeOwner,
-			version.AppName, dymnstypes.ModuleName, flagTargetType, targetTypeDymName,
+			version.AppName, dymnstypes.ModuleName, flagTargetType, targetTypeName,
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -65,7 +65,7 @@ func CmdQueryBuyOrder() *cobra.Command {
 				offers, err = queryOffersPlacedByBuyer(queryClient, queryCtx, args[0])
 			case targetTypeOwner:
 				offers, err = queryOffersOfDymNamesOwnedByOwner(queryClient, queryCtx, args[0])
-			case targetTypeDymName:
+			case targetTypeName:
 				offers, err = queryOffersByDymName(queryClient, queryCtx, args[0])
 			default:
 				return fmt.Errorf("invalid target type: %s", targetType)
@@ -80,9 +80,13 @@ func CmdQueryBuyOrder() *cobra.Command {
 				return nil
 			}
 
-			for _, offer := range offers {
-				if err := clientCtx.PrintProto(&offer); err != nil {
-					return err
+			for i, offer := range offers {
+				if i > 0 {
+					fmt.Println("___")
+				}
+				if err := printBuyOrder(offer); err != nil {
+					fmt.Printf("Bad offer: %s\n", err.Error())
+					fmt.Println("Raw: ", offer)
 				}
 			}
 
@@ -92,9 +96,38 @@ func CmdQueryBuyOrder() *cobra.Command {
 
 	flags.AddQueryFlagsToCmd(cmd)
 
-	cmd.Flags().String(flagTargetType, "", fmt.Sprintf("Target type to query for, one of: %s/%s/%s/%s", targetTypeById, targetTypeBuyer, targetTypeOwner, targetTypeDymName))
+	cmd.Flags().String(flagTargetType, "", fmt.Sprintf("Target type to query for, one of: %s/%s/%s/%s", targetTypeById, targetTypeBuyer, targetTypeOwner, targetTypeName))
 
 	return cmd
+}
+
+func printBuyOrder(offer dymnstypes.BuyOffer) error {
+	if err := offer.Validate(); err != nil {
+		return err
+	}
+	fmt.Printf("ID: %s\n", offer.Id)
+	fmt.Printf(" Buyer: %s\n", offer.Buyer)
+	fmt.Printf(" Type: %s\n", offer.Type.FriendlyString())
+	if offer.Type == dymnstypes.NameOrder {
+		fmt.Printf(" Dym-Name: %s\n", offer.GoodsId)
+	} else if offer.Type == dymnstypes.AliasOrder {
+		fmt.Printf(" Alias: %s\n", offer.GoodsId)
+		fmt.Printf(" For RollApp: %s\n", offer.Params[0])
+	}
+	fmt.Printf(" Offer Price: %s\n", offer.OfferPrice)
+	if estAmt, ok := toEstimatedCoinAmount(offer.OfferPrice); ok {
+		fmt.Printf("   (~ %s)\n", estAmt)
+	}
+	fmt.Printf(" Counterparty Offer Price: ")
+	if offer.CounterpartyOfferPrice != nil {
+		fmt.Printf("%s\n", *offer.CounterpartyOfferPrice)
+		if estAmt, ok := toEstimatedCoinAmount(*offer.CounterpartyOfferPrice); ok {
+			fmt.Printf("   (~ %s)\n", estAmt)
+		}
+	} else {
+		fmt.Println("None")
+	}
+	return nil
 }
 
 // queryOfferById fetches a Buy-Order by its ID

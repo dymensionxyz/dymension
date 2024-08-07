@@ -71,26 +71,28 @@ func NewRegisterDymNameTxCmd() *cobra.Command {
 					return fmt.Errorf("failed to estimate registration/renew fee for '%s': %w", dymName, err)
 				}
 
-				toEstimatedAmount := func(amount sdkmath.Int) string {
-					return fmt.Sprintf("%s %s", amount.QuoRaw(1e18), strings.ToUpper(params.DisplayDenom))
-				}
-
 				fmt.Println("Estimated payment amount:")
 				if resEst.FirstYearPrice.IsNil() || resEst.FirstYearPrice.IsZero() {
 					fmt.Println("- Registration fee: None")
 				} else {
 					fmt.Println("- Registration fee + first year fee: ", resEst.FirstYearPrice)
-					fmt.Printf("  (~ %s)\n", toEstimatedAmount(resEst.FirstYearPrice.Amount))
+					if estAmt, ok := toEstimatedCoinAmount(resEst.FirstYearPrice); ok {
+						fmt.Printf("  (~ %s)\n", estAmt)
+					}
 				}
 				fmt.Print("- Extends duration fee: ")
 				if resEst.ExtendPrice.IsNil() || resEst.ExtendPrice.IsZero() {
 					fmt.Println("None")
 				} else {
 					fmt.Println(resEst.ExtendPrice)
-					fmt.Printf("  (~ %s)\n", toEstimatedAmount(resEst.ExtendPrice.Amount))
+					if estAmt, ok := toEstimatedCoinAmount(resEst.ExtendPrice); ok {
+						fmt.Printf("  (~ %s)\n", estAmt)
+					}
 				}
 				fmt.Println("- Total fee: ", resEst.TotalPrice)
-				fmt.Printf("  (~ %s)\n", toEstimatedAmount(resEst.TotalPrice.Amount))
+				if estAmt, ok := toEstimatedCoinAmount(resEst.TotalPrice); ok {
+					fmt.Printf("  (~ %s)\n", estAmt)
+				}
 
 				fmt.Printf("Supplying flag '--%s=%s' to submit the registration\n", flagConfirmPayment, resEst.TotalPrice.String())
 
@@ -129,4 +131,16 @@ func submitRegistration(clientCtx client.Context, msg *dymnstypes.MsgRegisterNam
 	}
 
 	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+}
+
+func toEstimatedAmount(amount sdkmath.Int) string {
+	return fmt.Sprintf("%s %s", amount.QuoRaw(1e18), strings.ToUpper(params.DisplayDenom))
+}
+
+func toEstimatedCoinAmount(amount sdk.Coin) (estimatedAmount string, success bool) {
+	if amount.Denom == params.BaseDenom {
+		return toEstimatedAmount(amount.Amount), true
+	} else {
+		return amount.String(), false
+	}
 }
