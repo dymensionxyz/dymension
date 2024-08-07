@@ -53,7 +53,7 @@ func (k msgServer) processCancelBuyOrderTypeDymName(
 		return nil, err
 	}
 
-	if err := k.removeBuyOfferTypeDymName(ctx, offer); err != nil {
+	if err := k.removeBuyOffer(ctx, offer); err != nil {
 		return nil, err
 	}
 
@@ -69,8 +69,8 @@ func (k msgServer) validateCancelOfferTypeDymName(_ sdk.Context, msg *dymnstypes
 	return nil
 }
 
-// removeBuyOfferTypeDymName removes the Buy-Order from the store and the reverse mappings, type Dym-Name.
-func (k msgServer) removeBuyOfferTypeDymName(ctx sdk.Context, offer dymnstypes.BuyOffer) error {
+// removeBuyOffer removes the Buy-Order from the store and the reverse mappings.
+func (k msgServer) removeBuyOffer(ctx sdk.Context, offer dymnstypes.BuyOffer) error {
 	k.DeleteBuyOffer(ctx, offer.Id)
 
 	err := k.RemoveReverseMappingBuyerToBuyOffer(ctx, offer.Buyer, offer.Id)
@@ -78,7 +78,7 @@ func (k msgServer) removeBuyOfferTypeDymName(ctx sdk.Context, offer dymnstypes.B
 		return err
 	}
 
-	err = k.RemoveReverseMappingDymNameToBuyOffer(ctx, offer.GoodsId, offer.Id)
+	err = k.RemoveReverseMappingGoodsIdToBuyOffer(ctx, offer.GoodsId, offer.Type, offer.Id)
 	if err != nil {
 		return err
 	}

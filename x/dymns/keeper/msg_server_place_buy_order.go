@@ -92,7 +92,7 @@ func (k msgServer) placeBuyOrderTypeDymName(
 			return nil, err
 		}
 
-		err = k.AddReverseMappingDymNameToBuyOffer(ctx, msg.GoodsId, offer.Id)
+		err = k.AddReverseMappingGoodsIdToBuyOffer(ctx, msg.GoodsId, offer.Type, offer.Id)
 		if err != nil {
 			return nil, err
 		}

@@ -22,10 +22,10 @@ func TestStorePrefixes(t *testing.T) {
 		require.Equal(t, []byte{0x08, partialStoreOrderTypeAlias}, KeyPrefixMinExpiryAliasHistoricalSellOrders, "do not change it, will break the app")
 		require.Equal(t, []byte{0x0A}, KeyPrefixBuyOrder, "do not change it, will break the app")
 		require.Equal(t, []byte{0x0B}, KeyPrefixRvlBuyerToOfferIds, "do not change it, will break the app")
-		require.Equal(t, []byte{0x0C}, KeyPrefixRvlDymNameToOfferIds, "do not change it, will break the app")
-		require.Equal(t, []byte{0x0D}, KeyPrefixRvlAliasToOfferIds, "do not change it, will break the app")
-		require.Equal(t, []byte{0x0E}, KeyPrefixRollAppIdToAlias, "do not change it, will break the app")
-		require.Equal(t, []byte{0x0F}, KeyPrefixRvlAliasToRollAppId, "do not change it, will break the app")
+		require.Equal(t, []byte{0x0C, partialStoreOrderTypeDymName}, KeyPrefixRvlDymNameToOfferIds, "do not change it, will break the app")
+		require.Equal(t, []byte{0x0C, partialStoreOrderTypeAlias}, KeyPrefixRvlAliasToOfferIds, "do not change it, will break the app")
+		require.Equal(t, []byte{0x0D}, KeyPrefixRollAppIdToAliases, "do not change it, will break the app")
+		require.Equal(t, []byte{0x0E}, KeyPrefixRvlAliasToRollAppId, "do not change it, will break the app")
 	})
 
 	t.Run("ensure keys are not mistakenly modified", func(t *testing.T) {
@@ -57,6 +57,7 @@ func TestKeys(t *testing.T) {
 			require.Equal(t, append(KeyPrefixAliasSellOrder, []byte(alias)...), SellOrderKey(alias, AliasOrder))
 			require.Equal(t, append(KeyPrefixAliasHistoricalSellOrders, []byte(alias)...), HistoricalSellOrdersKey(alias, AliasOrder))
 			require.Equal(t, append(KeyPrefixMinExpiryAliasHistoricalSellOrders, []byte(alias)...), MinExpiryHistoricalSellOrdersKey(alias, AliasOrder))
+			require.Equal(t, append(KeyPrefixRvlAliasToOfferIds, []byte(alias)...), AliasToOfferIdsRvlKey(alias))
 		})
 	}
 

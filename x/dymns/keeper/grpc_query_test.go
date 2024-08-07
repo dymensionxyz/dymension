@@ -1879,7 +1879,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 				err := dk.SetBuyOffer(ctx, offer)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, offer.GoodsId, offer.Id)
+				err = dk.AddReverseMappingGoodsIdToBuyOffer(ctx, offer.GoodsId, offer.Type, offer.Id)
 				require.NoError(t, err)
 
 				err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, offer.Buyer, offer.Id)
@@ -2134,7 +2134,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 				err := dk.SetBuyOffer(ctx, offer)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, offer.GoodsId, offer.Id)
+				err = dk.AddReverseMappingGoodsIdToBuyOffer(ctx, offer.GoodsId, offer.Type, offer.Id)
 				require.NoError(t, err)
 
 				err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, offer.Buyer, offer.Id)
@@ -2408,7 +2408,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 				err := dk.SetBuyOffer(ctx, offer)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, offer.GoodsId, offer.Id)
+				err = dk.AddReverseMappingGoodsIdToBuyOffer(ctx, offer.GoodsId, offer.Type, offer.Id)
 				require.NoError(t, err)
 
 				err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, offer.Buyer, offer.Id)

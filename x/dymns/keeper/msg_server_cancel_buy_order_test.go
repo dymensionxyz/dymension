@@ -270,7 +270,7 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 				err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, tt.existingOffer.Buyer, tt.existingOffer.Id)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, tt.existingOffer.GoodsId, tt.existingOffer.Id)
+				err = dk.AddReverseMappingGoodsIdToBuyOffer(ctx, tt.existingOffer.GoodsId, tt.existingOffer.Type, tt.existingOffer.Id)
 				require.NoError(t, err)
 			}
 

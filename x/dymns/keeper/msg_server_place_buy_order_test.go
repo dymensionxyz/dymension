@@ -715,7 +715,7 @@ func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 				err := dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, buyerA, "102")
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, dymName.Name, "102")
+				err = dk.AddReverseMappingGoodsIdToBuyOffer(ctx, dymName.Name, dymnstypes.NameOrder, "102")
 				require.NoError(t, err)
 			},
 			wantErr:     false,

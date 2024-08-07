@@ -71,7 +71,7 @@ func (k msgServer) processAcceptBuyOrderTypeDymName(
 			return nil, err
 		}
 
-		if err := k.removeBuyOfferTypeDymName(ctx, offer); err != nil {
+		if err := k.removeBuyOffer(ctx, offer); err != nil {
 			return nil, err
 		}
 

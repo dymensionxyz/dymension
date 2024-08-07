@@ -31,9 +31,8 @@ const (
 	prefixCountBuyOffers
 	prefixBuyOffer
 	prefixRvlBuyerToOfferIds   // reverse lookup store
-	prefixRvlDymNameToOfferIds // reverse lookup store
-	prefixRvlAliasToOfferIds   // reverse lookup store
-	prefixRollAppIdToAlias
+	prefixRvlGoodsIdToOfferIds // reverse lookup store
+	prefixRollAppIdToAliases
 	prefixRvlAliasToRollAppId // reverse lookup store
 )
 
@@ -86,13 +85,13 @@ var (
 	KeyPrefixRvlBuyerToOfferIds = []byte{prefixRvlBuyerToOfferIds}
 
 	// KeyPrefixRvlDymNameToOfferIds is the key prefix for the reverse lookup for BuyOffer IDs by the DymName
-	KeyPrefixRvlDymNameToOfferIds = []byte{prefixRvlDymNameToOfferIds}
+	KeyPrefixRvlDymNameToOfferIds = []byte{prefixRvlGoodsIdToOfferIds, partialStoreOrderTypeDymName}
 
 	// KeyPrefixRvlAliasToOfferIds is the key prefix for the reverse lookup for BuyOffer IDs by the Alias
-	KeyPrefixRvlAliasToOfferIds = []byte{prefixRvlAliasToOfferIds}
+	KeyPrefixRvlAliasToOfferIds = []byte{prefixRvlGoodsIdToOfferIds, partialStoreOrderTypeAlias}
 
-	// KeyPrefixRollAppIdToAlias is the key prefix for the Roll-App ID to Alias records
-	KeyPrefixRollAppIdToAlias = []byte{prefixRollAppIdToAlias}
+	// KeyPrefixRollAppIdToAliases is the key prefix for the Roll-App ID to Alias records
+	KeyPrefixRollAppIdToAliases = []byte{prefixRollAppIdToAliases}
 
 	// KeyPrefixRvlAliasToRollAppId is the key prefix for the reverse lookup for Alias to Roll-App ID records
 	KeyPrefixRvlAliasToRollAppId = []byte{prefixRvlAliasToRollAppId}
@@ -178,9 +177,14 @@ func DymNameToOfferIdsRvlKey(dymName string) []byte {
 	return append(KeyPrefixRvlDymNameToOfferIds, []byte(dymName)...)
 }
 
+// AliasToOfferIdsRvlKey returns a key for reverse lookup for Buy-Order IDs by the Alias
+func AliasToOfferIdsRvlKey(alias string) []byte {
+	return append(KeyPrefixRvlAliasToOfferIds, []byte(alias)...)
+}
+
 // RollAppIdToAliasesKey returns a key for the Roll-App ID to list of alias records
 func RollAppIdToAliasesKey(rollAppId string) []byte {
-	return append(KeyPrefixRollAppIdToAlias, []byte(rollAppId)...)
+	return append(KeyPrefixRollAppIdToAliases, []byte(rollAppId)...)
 }
 
 // AliasToRollAppIdRvlKey returns a key for reverse lookup for Alias to Roll-App ID records

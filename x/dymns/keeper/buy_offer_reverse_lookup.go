@@ -71,21 +71,30 @@ func (k Keeper) RemoveReverseMappingBuyerToBuyOffer(ctx sdk.Context, buyer, offe
 	return k.GenericRemoveReverseLookupBuyOfferIdRecord(ctx, key, offerId)
 }
 
-// AddReverseMappingDymNameToBuyOffer add a reverse mapping from configured address to Dym-Name which contains the configuration, into the KVStore.
-func (k Keeper) AddReverseMappingDymNameToBuyOffer(ctx sdk.Context, name, offerId string) error {
-	if !dymnsutils.IsValidDymName(name) {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name: %s", name)
+// AddReverseMappingGoodsIdToBuyOffer add a reverse mapping from Dym-Name/Alias to the Buy-Order ID which placed for it, into the KVStore.
+func (k Keeper) AddReverseMappingGoodsIdToBuyOffer(ctx sdk.Context, goodsId string, orderType dymnstypes.OrderType, offerId string) error {
+	var key []byte
+
+	switch orderType {
+	case dymnstypes.NameOrder:
+		if !dymnsutils.IsValidDymName(goodsId) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name: %s", goodsId)
+		}
+		key = dymnstypes.DymNameToOfferIdsRvlKey(goodsId)
+	case dymnstypes.AliasOrder:
+		if !dymnsutils.IsValidAlias(goodsId) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Alias: %s", goodsId)
+		}
+		key = dymnstypes.AliasToOfferIdsRvlKey(goodsId)
+	default:
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", orderType)
 	}
 
 	if !dymnstypes.IsValidBuyOfferId(offerId) {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Offer ID: %s", offerId)
 	}
 
-	return k.GenericAddReverseLookupBuyOfferIdsRecord(
-		ctx,
-		dymnstypes.DymNameToOfferIdsRvlKey(name),
-		offerId,
-	)
+	return k.GenericAddReverseLookupBuyOfferIdsRecord(ctx, key, offerId)
 }
 
 // GetBuyOffersOfDymName returns all Buy-Orders that placed for the Dym-Name.
@@ -113,21 +122,30 @@ func (k Keeper) GetBuyOffersOfDymName(
 	return offers, nil
 }
 
-// RemoveReverseMappingDymNameToBuyOffer removes reverse mapping from Dym-Name to Buy-Order which placed for it, from the KVStore.
-func (k Keeper) RemoveReverseMappingDymNameToBuyOffer(ctx sdk.Context, name, offerId string) error {
-	if !dymnsutils.IsValidDymName(name) {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name: %s", name)
+// RemoveReverseMappingGoodsIdToBuyOffer removes reverse mapping from Dym-Name/Alias to Buy-Order which placed for it, from the KVStore.
+func (k Keeper) RemoveReverseMappingGoodsIdToBuyOffer(ctx sdk.Context, goodsId string, orderType dymnstypes.OrderType, offerId string) error {
+	var key []byte
+
+	switch orderType {
+	case dymnstypes.NameOrder:
+		if !dymnsutils.IsValidDymName(goodsId) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name: %s", goodsId)
+		}
+		key = dymnstypes.DymNameToOfferIdsRvlKey(goodsId)
+	case dymnstypes.AliasOrder:
+		if !dymnsutils.IsValidAlias(goodsId) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Alias: %s", goodsId)
+		}
+		key = dymnstypes.AliasToOfferIdsRvlKey(goodsId)
+	default:
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", orderType)
 	}
 
 	if !dymnstypes.IsValidBuyOfferId(offerId) {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Offer ID: %s", offerId)
 	}
 
-	return k.GenericRemoveReverseLookupBuyOfferIdRecord(
-		ctx,
-		dymnstypes.DymNameToOfferIdsRvlKey(name),
-		offerId,
-	)
+	return k.GenericRemoveReverseLookupBuyOfferIdRecord(ctx, key, offerId)
 }
 
 // GenericAddReverseLookupBuyOfferIdsRecord is a utility method that help to add a reverse lookup record for Buy-Order ID.
