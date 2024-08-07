@@ -63,7 +63,7 @@ export PATH=$PATH:$(go env GOPATH)/bin
 
 - Using the setup script:
 
-  This method is preferred as it preconfigured to support [running rollapps locally](https://github.com/dymensionxyz/roller)
+  This method is preferred as it is preconfigured to support [running rollapps locally](https://github.com/dymensionxyz/roller)
 
   ```sh
   bash scripts/setup_local.sh
@@ -188,7 +188,7 @@ Then you can run the debugger with the following config for `launch.json` in VSC
             "mode": "remote",
             "port": 4000,
             "host": "127.0.0.1",
-            "debugAdapter": "legacy" // To be remove in the future after https://github.com/golang/vscode-go/issues/3096 is fixed
+            "debugAdapter": "legacy" // To be removed in the future after https://github.com/golang/vscode-go/issues/3096 is fixed
         }
     ]
 }

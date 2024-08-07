@@ -46,6 +46,7 @@ func (s *KeeperTestHelper) CreateRollappWithNameWithProposer(name string) (strin
 		Bech32Prefix:     strings.ToLower(rand.Str(3)),
 		GenesisChecksum:  "1234567890abcdefg",
 		Alias:            alias,
+		VmType:           rollapptypes.Rollapp_EVM,
 		Metadata: &rollapptypes.RollappMetadata{
 			Website:          "https://dymension.xyz",
 			Description:      "Sample description",
