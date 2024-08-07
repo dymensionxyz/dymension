@@ -139,7 +139,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 	alias := strings.Split(oldRollapp.RollappId, "_")[0]
 	return rollapptypes.Rollapp{
 		RollappId:        oldRollapp.RollappId,
-		Creator:          oldRollapp.Creator,
+		Owner:            oldRollapp.Owner,
 		GenesisState:     oldRollapp.GenesisState,
 		ChannelId:        oldRollapp.ChannelId,
 		Frozen:           oldRollapp.Frozen,
