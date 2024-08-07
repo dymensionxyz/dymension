@@ -32,7 +32,7 @@ func (suite *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
 	// Create 2 state updates
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
-	suite.nextBlock()
+	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialHeight + 1))
 	_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
 	suite.Require().Nil(err)
 
@@ -138,8 +138,7 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 					}, {
 						rollappId: "rollappa_2345-1",
 						stateUpdates: []stateUpdate{{
-							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10,
-						}},
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10}},
 					},
 				},
 				finalizations: []blockEnd{
@@ -156,8 +155,7 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 					{
 						rollappId: "rollapp_1234-1",
 						stateUpdates: []stateUpdate{{
-							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10,
-						}},
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10}},
 					}, {
 						rollappId: "rollappa_2345-1",
 						stateUpdates: []stateUpdate{{
@@ -172,8 +170,7 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 							rollappsLeft: []rollappQueue{{
 								rollappId: "rollappa_2345-1",
 								index:     1,
-							}},
-						}},
+							}}}},
 					},
 				},
 			},
@@ -233,7 +230,7 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 									rollappId: "rollappi_4567-1",
 									index:     2,
 								},
-							},
+							}},
 						},
 					}, {
 						// second finalization: 1 state finalized from first finalization, 2 states left
@@ -252,7 +249,7 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 									rollappId: "rollappi_4567-1",
 									index:     2,
 								},
-							},
+							}},
 						},
 					}, {
 						// third finalization: 1 state finalized from first finalization, 1 state left
@@ -266,7 +263,7 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 									rollappId: "rollappi_4567-1",
 									index:     2,
 								},
-							},
+							}},
 						},
 					}, {
 						// fourth finalization: 1 state finalized from first finalization, 0 states left
