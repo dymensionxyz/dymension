@@ -21,6 +21,7 @@ func NewRollapp(
 	bech32Prefix,
 	genesisChecksum,
 	alias string,
+	vmType Rollapp_VMType,
 	metadata *RollappMetadata,
 	transfersEnabled bool,
 ) Rollapp {
@@ -31,6 +32,7 @@ func NewRollapp(
 		GenesisChecksum:  genesisChecksum,
 		Bech32Prefix:     bech32Prefix,
 		Alias:            alias,
+		VmType:           vmType,
 		Metadata:         metadata,
 		GenesisState: RollappGenesisState{
 			TransfersEnabled: transfersEnabled,
@@ -83,6 +85,10 @@ func (r Rollapp) ValidateBasic() error {
 
 	if err = validateAlias(r.Alias); err != nil {
 		return ErrInvalidAlias
+	}
+
+	if r.VmType == 0 {
+		return ErrInvalidVMType
 	}
 
 	if err = validateMetadata(r.Metadata); err != nil {

@@ -33,6 +33,7 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
 		Alias:            "Rollapp",
+		VmType:           types.Rollapp_EVM,
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.Require().Nil(err)
@@ -54,6 +55,7 @@ func (suite *RollappTestSuite) TestCreateRollappAliasAlreadyExists() {
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
 		Alias:            alias,
+		VmType:           types.Rollapp_EVM,
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.Require().Nil(err)
@@ -65,6 +67,7 @@ func (suite *RollappTestSuite) TestCreateRollappAliasAlreadyExists() {
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
 		Alias:            alias,
+		VmType:           types.Rollapp_EVM,
 	}
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.ErrorIs(err, types.ErrRollappAliasExists)
@@ -127,6 +130,7 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 				Bech32Prefix:     "rol",
 				GenesisChecksum:  "checksum",
 				Alias:            alias,
+				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
 			}
 
@@ -192,6 +196,7 @@ func (suite *RollappTestSuite) TestCreateRollappIdRevisionNumber() {
 				Bech32Prefix:     "rol",
 				GenesisChecksum:  "checksum",
 				Alias:            alias,
+				VmType:           types.Rollapp_EVM,
 			}
 
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -252,6 +257,7 @@ func (suite *RollappTestSuite) TestForkChainId() {
 				Bech32Prefix:     "rol",
 				GenesisChecksum:  "checksum",
 				Alias:            "Rollapp1",
+				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
 			}
 
@@ -269,6 +275,7 @@ func (suite *RollappTestSuite) TestForkChainId() {
 				Bech32Prefix:     "rol",
 				GenesisChecksum:  "checksum1",
 				Alias:            "Rollapp2",
+				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
 			}
 			_, err = suite.msgServer.CreateRollapp(goCtx, &rollappMsg2)
@@ -312,6 +319,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 				Bech32Prefix:     "rol",
 				GenesisChecksum:  "checksum",
 				Alias:            alias,
+				VmType:           types.Rollapp_EVM,
 			}
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 			suite.Require().NoError(err)
@@ -339,6 +347,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 				Bech32Prefix:     "rol",
 				GenesisChecksum:  "checksum",
 				Alias:            "alias",
+				VmType:           types.Rollapp_EVM,
 			}
 			_, err = suite.msgServer.CreateRollapp(goCtx, &badRollapp)
 			// it should not be possible to register rollapp name with extra space
@@ -387,6 +396,7 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
 		Alias:            alias,
+		VmType:           types.Rollapp_EVM,
 		Metadata:         &mockRollappMetadata,
 	}
 	// rollappExpect is the expected result of creating rollapp
@@ -397,6 +407,7 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 		GenesisChecksum:  rollapp.GetGenesisChecksum(),
 		Bech32Prefix:     rollapp.GetBech32Prefix(),
 		Alias:            rollapp.GetAlias(),
+		VmType:           types.Rollapp_EVM,
 		Metadata:         rollapp.GetMetadata(),
 	}
 	// create rollapp
@@ -433,6 +444,6 @@ var mockRollappMetadata = types.RollappMetadata{
 	Description:      "Sample description",
 	LogoDataUri:      "data:image/png;base64,c2lzZQ==",
 	TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
-	Telegram:         "rolly",
-	X:                "rolly",
+	Telegram:         "https://t.me/rolly",
+	X:                "https://x.dymension.xyz",
 }

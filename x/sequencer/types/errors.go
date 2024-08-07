@@ -27,4 +27,5 @@ var (
 	ErrSequencerJailed          = errorsmod.Register(ModuleName, 1019, "sequencer is jailed")
 	ErrNotInitialSequencer      = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "not the initial sequencer")
 	ErrInvalidURL               = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid url")
+	ErrInvalidMetadata          = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid metadata")
 )

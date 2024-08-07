@@ -43,6 +43,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Bech32Prefix:     "rol",
 				GenesisChecksum:  "new_checksum",
 				Alias:            "rolly",
+				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
 			},
 		}, {
@@ -117,6 +118,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Alias:            "Rollapp2",
 				RegisteredDenoms: nil,
 				Sealed:           true,
+				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
 			},
 		},
@@ -138,6 +140,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Bech32Prefix:     "rol",
 				Alias:            "Rollapp2",
 				RegisteredDenoms: nil,
+				VmType:           types.Rollapp_EVM,
 				Metadata: &types.RollappMetadata{
 					Website:          "",
 					Description:      "",
@@ -175,6 +178,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		GenesisChecksum:  "",
 		InitialSequencer: "",
 		Alias:            "default",
+		VmType:           types.Rollapp_EVM,
 		Bech32Prefix:     "rol",
 	})
 	suite.Require().NoError(err)
@@ -233,15 +237,15 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		Moniker:     "new_moniker",
 		Details:     "something",
 		P2PSeeds:    []string{"seed1", "seed2"},
-		Rpcs:        []string{"rpc1", "rpc2"},
-		EvmRpcs:     []string{"evm1", "evm2"},
+		Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+		EvmRpcs:     []string{"https://rpc.evm.rollapp.noisnemyd.xyz:443"},
 		RestApiUrls: []string{"http://localhost:1317"},
 		ExplorerUrl: "http://localhost:8000",
 		GenesisUrls: []string{"http://localhost:26657"},
 		ContactDetails: &sequencertypes.ContactDetails{
 			Website:  "https://dymension.xyz",
-			Telegram: "sequencer",
-			X:        "sequencer",
+			Telegram: "https://t.me/rolly",
+			X:        "https://x.dymension.xyz",
 		},
 		ExtraData: []byte("extra"),
 		Snapshots: []*sequencertypes.SnapshotInfo{

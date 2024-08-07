@@ -76,7 +76,9 @@ func (suite *SequencerTestSuite) TestMinBond() {
 			DymintPubKey: pkAny,
 			Bond:         bond,
 			RollappId:    rollappId,
-			Metadata:     types.SequencerMetadata{},
+			Metadata: types.SequencerMetadata{
+				Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+			},
 		}
 		_, err = suite.msgServer.CreateSequencer(suite.Ctx, &sequencerMsg1)
 		if tc.expectedError != nil {
@@ -122,8 +124,8 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				Description:      "Sample description",
 				LogoDataUri:      "data:image/png;base64,c2lzZQ==",
 				TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
-				Telegram:         "rolly",
-				X:                "rolly",
+				Telegram:         "https://t.me/rolly",
+				X:                "https://x.dymension.xyz",
 			},
 		}
 		suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
@@ -144,7 +146,9 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				DymintPubKey: pkAny,
 				Bond:         bond,
 				RollappId:    rollappId,
-				Metadata:     types.SequencerMetadata{},
+				Metadata: types.SequencerMetadata{
+					Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+				},
 			}
 			// sequencerExpect is the expected result of creating a sequencer
 			sequencerExpect := types.Sequencer{
@@ -218,7 +222,9 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 		DymintPubKey: pkAny,
 		Bond:         bond,
 		RollappId:    rollappId,
-		Metadata:     types.SequencerMetadata{},
+		Metadata: types.SequencerMetadata{
+			Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+		},
 	}
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.Require().Nil(err)
@@ -303,7 +309,9 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 				DymintPubKey: pkAny,
 				Bond:         bond,
 				RollappId:    rollappId,
-				Metadata:     types.SequencerMetadata{},
+				Metadata: types.SequencerMetadata{
+					Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+				},
 			}
 			_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 			suite.Require().ErrorIs(err, tc.expErr)

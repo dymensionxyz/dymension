@@ -80,7 +80,9 @@ func (suite *SequencerTestSuite) CreateSequencerWithBond(ctx sdk.Context, rollap
 		DymintPubKey: pkAny,
 		Bond:         bond,
 		RollappId:    rollappId,
-		Metadata:     types.SequencerMetadata{},
+		Metadata: types.SequencerMetadata{
+			Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+		},
 	}
 	_, err = suite.msgServer.CreateSequencer(ctx, &sequencerMsg1)
 	suite.Require().NoError(err)

@@ -15,6 +15,7 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "block-height-to-finalization-queue", BlockHeightToFinalizationQueueInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "rollapp-by-eip155-key", RollappByEIP155KeyInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "rollapp-finalized-state", RollappFinalizedStateInvariant(k))
+	ir.RegisterRoute(types.ModuleName, "liveness-event", LivenessEventInvariant(k))
 }
 
 // AllInvariants runs all invariants of the module.
