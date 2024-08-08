@@ -78,7 +78,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "invalid DisputePeriodInBlocks",
 			genState: &types.GenesisState{
-				Params:                             types.DefaultParams().WithDisputePeriodInBlocks(types.MinDisputePeriodInBlocks - 1).WithRegFee(sdk.NewCoin("adym", sdk.NewInt(1000))),
+				Params:                             types.DefaultParams().WithDisputePeriodInBlocks(types.MinDisputePeriodInBlocks - 1),
 				RollappList:                        []types.Rollapp{{RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
