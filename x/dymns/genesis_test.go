@@ -19,6 +19,9 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	oldKeeper, _, _, oldCtx := testkeeper.DymNSKeeper(t)
 	oldCtx = oldCtx.WithBlockTime(now)
+	moduleParams := oldKeeper.GetParams(oldCtx)
+	moduleParams.Misc.GracePeriodDuration = 30 * 24 * time.Hour
+	require.NoError(t, oldKeeper.SetParams(oldCtx, moduleParams))
 
 	// Setup genesis state
 	owner1 := "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
@@ -58,13 +61,21 @@ func TestExportThenInitGenesis(t *testing.T) {
 	}
 	require.NoError(t, oldKeeper.SetDymName(oldCtx, dymName2))
 
-	dymName3Expired := dymnstypes.DymName{
-		Name:       "expired",
+	dymName3JustExpired := dymnstypes.DymName{
+		Name:       "just-expired",
 		Owner:      owner2,
 		Controller: owner2,
-		ExpireAt:   now.Add(-time.Hour).Unix(),
+		ExpireAt:   now.Add(-time.Second).Unix(),
 	}
-	require.NoError(t, oldKeeper.SetDymName(oldCtx, dymName3Expired))
+	require.NoError(t, oldKeeper.SetDymName(oldCtx, dymName3JustExpired))
+
+	dymName4LongExpired := dymnstypes.DymName{
+		Name:       "long-expired",
+		Owner:      owner1,
+		Controller: owner1,
+		ExpireAt:   now.Add(-moduleParams.Misc.GracePeriodDuration - time.Second).Unix(),
+	}
+	require.NoError(t, oldKeeper.SetDymName(oldCtx, dymName4LongExpired))
 
 	so1 := dymnstypes.SellOrder{
 		GoodsId:   dymName1.Name,
@@ -93,7 +104,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so2))
 
 	so3 := dymnstypes.SellOrder{
-		GoodsId:   dymName3Expired.Name,
+		GoodsId:   dymName3JustExpired.Name,
 		Type:      dymnstypes.NameOrder,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
@@ -143,7 +154,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	offer3OfExpired := dymnstypes.BuyOffer{
 		Id:         "103",
-		GoodsId:    dymName3Expired.Name,
+		GoodsId:    dymName3JustExpired.Name,
 		Type:       dymnstypes.NameOrder,
 		Buyer:      buyer3,
 		OfferPrice: dymnsutils.TestCoin(300),
@@ -178,10 +189,15 @@ func TestExportThenInitGenesis(t *testing.T) {
 	})
 
 	t.Run("dym-names should be exported correctly", func(t *testing.T) {
-		require.Len(t, genState.DymNames, 2)
+		require.Len(t, genState.DymNames, 3)
 		require.Contains(t, genState.DymNames, dymName1)
 		require.Contains(t, genState.DymNames, dymName2)
-		// Expired dym-name should not be exported
+
+		// Expired Dym-Names
+		// which less than grace period should be included
+		require.Contains(t, genState.DymNames, dymName3JustExpired)
+		// which passed grace period should not be included
+		require.NotContains(t, genState.DymNames, dymName4LongExpired)
 	})
 
 	t.Run("sell orders's non-refunded bids should be exported correctly", func(t *testing.T) {
@@ -224,18 +240,13 @@ func TestExportThenInitGenesis(t *testing.T) {
 	})
 
 	t.Run("Dym-Names should be imported correctly", func(t *testing.T) {
-		require.Len(t,
-			newDymNsKeeper.GetAllNonExpiredDymNames(newCtx),
-			2,
-			"expired dym-name should not be imported",
-		)
+		require.Len(t, newDymNsKeeper.GetAllNonExpiredDymNames(newCtx), 2)
+		require.Len(t, newDymNsKeeper.GetAllDymNames(newCtx), 3)
 
 		require.Equal(t, &dymName1, newDymNsKeeper.GetDymName(newCtx, dymName1.Name))
 		require.Equal(t, &dymName2, newDymNsKeeper.GetDymName(newCtx, dymName2.Name))
-		require.Nil(t,
-			newDymNsKeeper.GetDymName(newCtx, dymName3Expired.Name),
-			"expired dym-name should not be imported",
-		)
+		require.Equal(t, &dymName3JustExpired, newDymNsKeeper.GetDymName(newCtx, dymName3JustExpired.Name))
+		require.Nil(t, newDymNsKeeper.GetDymName(newCtx, dymName4LongExpired.Name))
 	})
 
 	t.Run("reverse lookup should be created correctly", func(t *testing.T) {

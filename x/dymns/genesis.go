@@ -38,8 +38,27 @@ func InitGenesis(ctx sdk.Context, k dymnskeeper.Keeper, genState dymnstypes.Gene
 
 // ExportGenesis returns the module's exported genesis
 func ExportGenesis(ctx sdk.Context, k dymnskeeper.Keeper) *dymnstypes.GenesisState {
-	if ctx.BlockTime().Unix() == 0 {
+	// Note: during genesis export, the context does not contain chain-id and time.
+	if ctx.BlockTime().Unix() <= 0 {
+		// Since the implementation relies on context time, we need to set it to an actual value.
+		// The Export-Genesis action supposed to be called by a specific person,
+		// on local machine so using time.Now() is fine.
 		ctx = ctx.WithBlockTime(time.Now().UTC())
+	}
+
+	// Collect Dym-Names records so that we can add back later.
+	// We supposed to collect only Non-Expired Dym-Names to save the genesis & store size,
+	// but we also need to support those Dym-Names owners which their Dym-Name are expired but within grace period.
+	params := k.GetParams(ctx)
+	collectExpiredDymNamesExpiredFromEpoch := ctx.BlockTime().Add(-1 * params.Misc.GracePeriodDuration).Unix()
+
+	dymNames := k.GetAllDymNames(ctx)
+	var nonExpiredDymNameAndWithinGracePeriod []dymnstypes.DymName
+	for _, dymName := range dymNames {
+		if dymName.ExpireAt < collectExpiredDymNamesExpiredFromEpoch {
+			continue
+		}
+		nonExpiredDymNameAndWithinGracePeriod = append(nonExpiredDymNameAndWithinGracePeriod, dymName)
 	}
 
 	// Collect bidders of active Sell-Orders so that we can refund them later.
@@ -61,8 +80,8 @@ func ExportGenesis(ctx sdk.Context, k dymnskeeper.Keeper) *dymnstypes.GenesisSta
 	}
 
 	return &dymnstypes.GenesisState{
-		Params:        k.GetParams(ctx),
-		DymNames:      k.GetAllNonExpiredDymNames(ctx),
+		Params:        params,
+		DymNames:      nonExpiredDymNameAndWithinGracePeriod,
 		SellOrderBids: nonRefundedBids,
 		BuyOffers:     nonRefundedBuyOffers,
 	}

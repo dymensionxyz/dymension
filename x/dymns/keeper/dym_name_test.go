@@ -361,7 +361,7 @@ func TestKeeper_GetDymNameWithExpirationCheck(t *testing.T) {
 	})
 }
 
-func TestKeeper_GetAllNonExpiredDymNames(t *testing.T) {
+func TestKeeper_GetAllDymNamesAndNonExpiredDymNames(t *testing.T) {
 	now := time.Now().UTC()
 
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
@@ -410,11 +410,17 @@ func TestKeeper_GetAllNonExpiredDymNames(t *testing.T) {
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymName3))
 
-	list := dk.GetAllNonExpiredDymNames(ctx)
-	require.Len(t, list, 2)
-	require.Contains(t, list, dymName1)
-	require.Contains(t, list, dymName2)
-	require.NotContains(t, list, dymName3, "should not include expired Dym-Name")
+	listNonExpired := dk.GetAllNonExpiredDymNames(ctx)
+	require.Len(t, listNonExpired, 2)
+	require.Contains(t, listNonExpired, dymName1)
+	require.Contains(t, listNonExpired, dymName2)
+	require.NotContains(t, listNonExpired, dymName3, "should not include expired Dym-Name")
+
+	listAll := dk.GetAllDymNames(ctx)
+	require.Len(t, listAll, 3)
+	require.Contains(t, listAll, dymName1)
+	require.Contains(t, listAll, dymName2)
+	require.Contains(t, listAll, dymName3, "should include expired Dym-Name")
 }
 
 func TestKeeper_GetDymNamesOwnedBy(t *testing.T) {

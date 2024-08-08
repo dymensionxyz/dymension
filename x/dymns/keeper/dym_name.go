@@ -184,6 +184,25 @@ func (k Keeper) GetAllNonExpiredDymNames(ctx sdk.Context) (list []dymnstypes.Dym
 	return list
 }
 
+// GetAllDymNames returns all Dym-Names from the KVStore.
+// No filter applied, to be used in genesis export.
+func (k Keeper) GetAllDymNames(ctx sdk.Context) (list []dymnstypes.DymName) {
+	store := ctx.KVStore(k.storeKey)
+
+	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixDymName)
+	defer func() {
+		_ = iterator.Close()
+	}()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var dymName dymnstypes.DymName
+		k.cdc.MustUnmarshal(iterator.Value(), &dymName)
+		list = append(list, dymName)
+	}
+
+	return list
+}
+
 // PruneDymName removes a Dym-Name from the KVStore, as well as all related records.
 func (k Keeper) PruneDymName(ctx sdk.Context, name string) error {
 	// remove SO (force, ignore active SO)
