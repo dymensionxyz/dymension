@@ -58,12 +58,10 @@ func (k msgServer) UpdateResolveAddress(goCtx context.Context, msg *dymnstypes.M
 
 			// do nothing
 		} else {
-			if existingConfigCount <= 1 {
-				dymName.Configs = nil
-			} else {
-				dymName.Configs[foundSameConfigIdAtIdx] = dymName.Configs[existingConfigCount-1]
-				dymName.Configs = dymName.Configs[:existingConfigCount-1]
-			}
+			dymName.Configs = append(
+				dymName.Configs[:foundSameConfigIdAtIdx],
+				dymName.Configs[foundSameConfigIdAtIdx+1:]...,
+			)
 		}
 	} else {
 		minimumTxGasRequired = dymnstypes.OpGasConfig
