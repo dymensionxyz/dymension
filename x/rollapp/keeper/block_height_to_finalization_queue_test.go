@@ -641,4 +641,6 @@ func (m mockRollappHooks) AfterStateFinalized(_ sdk.Context, _ string, stateInfo
 }
 func (m mockRollappHooks) BeforeUpdateState(sdk.Context, string, string) error      { return nil }
 func (m mockRollappHooks) FraudSubmitted(sdk.Context, string, uint64, string) error { return nil }
-func (m mockRollappHooks) RollappCreated(sdk.Context, string) error                 { return nil }
+func (m mockRollappHooks) RollappCreated(sdk.Context, string, string, sdk.AccAddress) error {
+	return nil
+}

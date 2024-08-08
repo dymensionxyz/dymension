@@ -12,9 +12,9 @@ import (
 
 func CmdUpdateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "update-rollapp [rollapp-id] [init-sequencer] [genesis_checksum] [alias] [metadata]",
+		Use:     "update-rollapp [rollapp-id] [init-sequencer] [genesis_checksum] [metadata]",
 		Short:   "Update a new rollapp",
-		Example: "dymd tx rollapp update-rollapp ROLLAPP_CHAIN_ID --init-sequencer '<seq_address1>,<seq_address2>' --genesis-checksum <genesis_checksum> --alias Rollapp --metadata metadata.json",
+		Example: "dymd tx rollapp update-rollapp ROLLAPP_CHAIN_ID --init-sequencer '<seq_address1>,<seq_address2>' --genesis-checksum <genesis_checksum> --metadata metadata.json",
 		Args:    cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappId := args[0]
@@ -25,11 +25,6 @@ func CmdUpdateRollapp() *cobra.Command {
 			}
 
 			genesisChecksum, err := cmd.Flags().GetString(FlagGenesisChecksum)
-			if err != nil {
-				return
-			}
-
-			alias, err := cmd.Flags().GetString(FlagAlias)
 			if err != nil {
 				return
 			}
@@ -56,7 +51,6 @@ func CmdUpdateRollapp() *cobra.Command {
 				argRollappId,
 				initSequencer,
 				genesisChecksum,
-				alias,
 				metadata,
 			)
 

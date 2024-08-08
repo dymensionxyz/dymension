@@ -3,27 +3,16 @@ package types
 import (
 	"errors"
 	"fmt"
-	"math/big"
 
-	errorsmod "cosmossdk.io/errors"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
 	"gopkg.in/yaml.v2"
-
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
-	// KeyRegistrationFee is store's key for RegistrationFee Params
-	KeyRegistrationFee = []byte("RegistrationFee")
-	// DYM is the integer representation of 1 DYM
-	DYM = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-	// DefaultRegistrationFee is the default registration fee
-	DefaultRegistrationFee = sdk.NewCoin(appparams.BaseDenom, DYM.Mul(sdk.NewInt(10))) // 10DYM
 	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
 	KeyDisputePeriodInBlocks = []byte("DisputePeriodInBlocks")
 
@@ -50,14 +39,12 @@ func ParamKeyTable() paramtypes.KeyTable {
 // NewParams creates a new Params instance
 func NewParams(
 	disputePeriodInBlocks uint64,
-	registrationFee sdk.Coin,
 	livenessSlashBlocks uint64,
 	livenessSlashInterval uint64,
 	livenessJailBlocks uint64,
 ) Params {
 	return Params{
 		DisputePeriodInBlocks: disputePeriodInBlocks,
-		RegistrationFee:       registrationFee,
 		LivenessSlashBlocks:   livenessSlashBlocks,
 		LivenessSlashInterval: livenessSlashInterval,
 		LivenessJailBlocks:    livenessJailBlocks,
@@ -66,7 +53,7 @@ func NewParams(
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(DefaultDisputePeriodInBlocks, DefaultRegistrationFee,
+	return NewParams(DefaultDisputePeriodInBlocks,
 		DefaultLivenessSlashBlocks,
 		DefaultLivenessSlashInterval,
 		DefaultLivenessJailBlocks,
@@ -77,7 +64,6 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyDisputePeriodInBlocks, &p.DisputePeriodInBlocks, validateDisputePeriodInBlocks),
-		paramtypes.NewParamSetPair(KeyRegistrationFee, &p.RegistrationFee, validateRegistrationFee),
 		paramtypes.NewParamSetPair(KeyLivenessSlashBlocks, &p.LivenessSlashBlocks, validateLivenessSlashBlocks),
 		paramtypes.NewParamSetPair(KeyLivenessSlashInterval, &p.LivenessSlashInterval, validateLivenessSlashInterval),
 		paramtypes.NewParamSetPair(KeyLivenessJailBlocks, &p.LivenessJailBlocks, validateLivenessJailBlocks),
@@ -86,11 +72,6 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 func (p Params) WithDisputePeriodInBlocks(x uint64) Params {
 	p.DisputePeriodInBlocks = x
-	return p
-}
-
-func (p Params) WithRegFee(x sdk.Coin) Params {
-	p.RegistrationFee = x
 	return p
 }
 
@@ -125,7 +106,7 @@ func (p Params) Validate() error {
 		return errorsmod.Wrap(err, "liveness jail blocks")
 	}
 
-	return validateRegistrationFee(p.RegistrationFee)
+	return nil
 }
 
 // String implements the Stringer interface.
@@ -155,24 +136,6 @@ func validateDisputePeriodInBlocks(v interface{}) error {
 
 	if disputePeriodInBlocks < MinDisputePeriodInBlocks {
 		return errors.New("dispute period cannot be lower than 1 block")
-	}
-
-	return nil
-}
-
-// validateRegistrationFee validates the RegistrationFee param
-func validateRegistrationFee(v interface{}) error {
-	registrationFee, ok := v.(sdk.Coin)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", v)
-	}
-
-	if !registrationFee.IsValid() {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "registration fee: %s", registrationFee)
-	}
-
-	if registrationFee.Denom != appparams.BaseDenom {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "registration fee denom: %s", registrationFee)
 	}
 
 	return nil

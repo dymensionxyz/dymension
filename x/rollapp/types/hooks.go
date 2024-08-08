@@ -14,7 +14,7 @@ type RollappHooks interface {
 	BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error         // Must be called when a rollapp's state changes
 	AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *StateInfo) error // Must be called when a rollapp's state changes
 	FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error
-	RollappCreated(ctx sdk.Context, rollappID string) error
+	RollappCreated(ctx sdk.Context, rollappID, alias string, creator sdk.AccAddress) error
 }
 
 var _ RollappHooks = MultiRollappHooks{}
@@ -58,12 +58,23 @@ func (h MultiRollappHooks) FraudSubmitted(ctx sdk.Context, rollappID string, hei
 }
 
 // RollappCreated implements RollappHooks.
-func (h MultiRollappHooks) RollappCreated(ctx sdk.Context, rollappID string) error {
+func (h MultiRollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, creatorAddr sdk.AccAddress) error {
 	for i := range h {
-		err := h[i].RollappCreated(ctx, rollappID)
+		err := h[i].RollappCreated(ctx, rollappID, alias, creatorAddr)
 		if err != nil {
 			return err
 		}
 	}
+	return nil
+}
+
+type StubRollappCreatedHooks struct{}
+
+func (StubRollappCreatedHooks) RollappCreated(sdk.Context, string, string, sdk.AccAddress) error {
+	return nil
+}
+func (StubRollappCreatedHooks) BeforeUpdateState(sdk.Context, string, string) error      { return nil }
+func (StubRollappCreatedHooks) FraudSubmitted(sdk.Context, string, uint64, string) error { return nil }
+func (StubRollappCreatedHooks) AfterStateFinalized(sdk.Context, string, *StateInfo) error {
 	return nil
 }

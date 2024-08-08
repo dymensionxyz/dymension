@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -13,52 +12,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
-	// Already validated chain id in ValidateBasic, so we assume it's valid
-	rollappId := types.MustNewChainID(rollapp.RollappId)
-	if err := k.checkIfRollappExists(ctx, rollappId, rollapp.Alias); err != nil {
-		return err
-	}
-
-	// Already validated chain id in ValidateBasic, so we assume it's valid
-	creator := sdk.MustAccAddressFromBech32(rollapp.Owner)
-	registrationFee := sdk.NewCoins(k.RegistrationFee(ctx))
-
-	if !registrationFee.IsZero() {
-		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, registrationFee); err != nil {
-			return errors.Join(types.ErrFeePayment, err)
-		}
-
-		if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, registrationFee); err != nil {
-			return fmt.Errorf("burn coins: %w", err)
-		}
-	}
-
-	k.SetRollapp(ctx, rollapp)
-
-	if err := k.hooks.RollappCreated(ctx, rollapp.RollappId); err != nil {
-		return fmt.Errorf("rollapp created hook: %w", err)
-	}
-
-	return nil
-}
-
-func (k Keeper) UpdateRollapp(ctx sdk.Context, msg *types.MsgUpdateRollappInformation) error {
-	if err := msg.ValidateBasic(); err != nil {
-		return fmt.Errorf("validate update: %w", err)
-	}
-
-	updated, err := k.canUpdateRollapp(ctx, msg)
-	if err != nil {
-		return err
-	}
-
-	k.SetRollapp(ctx, updated)
-
-	return nil
-}
-
-func (k Keeper) canUpdateRollapp(ctx sdk.Context, update *types.MsgUpdateRollappInformation) (types.Rollapp, error) {
+func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUpdateRollappInformation) (types.Rollapp, error) {
 	current, found := k.GetRollapp(ctx, update.RollappId)
 	if !found {
 		return current, errRollappNotFound
@@ -77,12 +31,6 @@ func (k Keeper) canUpdateRollapp(ctx sdk.Context, update *types.MsgUpdateRollapp
 		return current, types.ErrImmutableFieldUpdateAfterSealed
 	}
 
-	var err error
-	current.Alias, err = k.canUpdateAlias(ctx, current.Alias, update.Alias)
-	if err != nil {
-		return current, err
-	}
-
 	if update.InitialSequencer != "" {
 		current.InitialSequencer = update.InitialSequencer
 	}
@@ -95,37 +43,19 @@ func (k Keeper) canUpdateRollapp(ctx sdk.Context, update *types.MsgUpdateRollapp
 		current.Metadata = update.Metadata
 	}
 
-	if err = current.ValidateBasic(); err != nil {
+	if err := current.ValidateBasic(); err != nil {
 		return current, fmt.Errorf("validate rollapp: %w", err)
 	}
 
 	return current, nil
 }
 
-func (k Keeper) canUpdateAlias(
-	ctx sdk.Context,
-	currentAlias, updateAlias string,
-) (string, error) {
-	if updateAlias == "" || currentAlias == updateAlias {
-		return currentAlias, nil
-	}
-
-	if _, isFound := k.GetRollappByAlias(ctx, updateAlias); isFound {
-		return "", gerrc.ErrAlreadyExists
-	}
-	return updateAlias, nil
-}
-
-// checkIfRollappExists checks if a rollapp with the same ID or alias already exists in the store.
+// CheckIfRollappExists checks if a rollapp with the same ID or alias already exists in the store.
 // An exception is made for when the rollapp is frozen, in which case it is allowed to replace the existing rollapp (forking).
-func (k Keeper) checkIfRollappExists(ctx sdk.Context, rollappId types.ChainID, alias string) error {
+func (k Keeper) CheckIfRollappExists(ctx sdk.Context, rollappId types.ChainID) error {
 	// check to see if the RollappId has been registered before
 	if _, isFound := k.GetRollapp(ctx, rollappId.GetChainID()); isFound {
 		return types.ErrRollappExists
-	}
-
-	if _, isFound := k.GetRollappByAlias(ctx, alias); isFound {
-		return types.ErrRollappAliasExists
 	}
 
 	existingRollapp, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID())
@@ -161,12 +91,6 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 		rollapp.RollappId,
 	), b)
 
-	// save mapping for rollapp-by-alias
-	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByAliasPrefix))
-	store.Set(types.RollappByAliasKey(
-		rollapp.GetAlias(),
-	), []byte(rollapp.RollappId))
-
 	// no err check as rollapp is already validated
 	rollappID := types.MustNewChainID(rollapp.RollappId)
 
@@ -182,7 +106,7 @@ func (k Keeper) SealRollapp(ctx sdk.Context, rollappId string) error {
 		return gerrc.ErrNotFound
 	}
 
-	if rollapp.GenesisChecksum == "" || rollapp.Alias == "" || rollapp.InitialSequencer == "" {
+	if rollapp.GenesisChecksum == "" || rollapp.InitialSequencer == "" {
 		return types.ErrSealWithImmutableFieldsNotSet
 	}
 
@@ -197,18 +121,6 @@ func (k Keeper) GetRollappByEIP155(ctx sdk.Context, eip155 uint64) (val types.Ro
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
 	id := store.Get(types.RollappByEIP155Key(
 		eip155,
-	))
-	if id == nil {
-		return val, false
-	}
-
-	return k.GetRollapp(ctx, string(id))
-}
-
-func (k Keeper) GetRollappByAlias(ctx sdk.Context, alias string) (val types.Rollapp, ok bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByAliasPrefix))
-	id := store.Get(types.RollappByAliasKey(
-		alias,
 	))
 	if id == nil {
 		return val, false

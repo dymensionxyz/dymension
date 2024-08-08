@@ -18,8 +18,3 @@ type SequencerKeeper interface {
 	SlashLiveness(ctx sdk.Context, rollappID string) error
 	JailLiveness(ctx sdk.Context, rollappID string) error
 }
-
-type BankKeeper interface {
-	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
-	BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
-}

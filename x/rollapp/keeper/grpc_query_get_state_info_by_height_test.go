@@ -57,29 +57,29 @@ func createNStateInfoAndIndex(keeper *keeper.Keeper, ctx sdk.Context, n int, rol
 }
 
 func TestStateInfoByHeightLatestStateInfoIndex(t *testing.T) {
-	keeper, ctx := keepertest.RollappKeeper(t)
+	k, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
 	rollappId := "rollappid_1234-1"
-	keeper.SetRollapp(ctx, types.Rollapp{
+	k.SetRollapp(ctx, types.Rollapp{
 		RollappId: rollappId,
 	})
 	request := &types.QueryGetStateInfoRequest{
 		RollappId: rollappId,
 		Height:    100,
 	}
-	_, err := keeper.StateInfo(wctx, request)
+	_, err := k.StateInfo(wctx, request)
 	require.EqualError(t, err, errorsmod.Wrapf(types.ErrNotFound, "LatestStateInfoIndex wasn't found for rollappId=%s", rollappId).Error())
 }
 
 func TestStateInfoByHeightMissingStateInfo(t *testing.T) {
-	keeper, ctx := keepertest.RollappKeeper(t)
+	k, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
 
 	rollappId := urand.RollappID()
-	keeper.SetRollapp(ctx, types.Rollapp{
+	k.SetRollapp(ctx, types.Rollapp{
 		RollappId: rollappId,
 	})
-	keeper.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
+	k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
 		RollappId: rollappId,
 		Index:     uint64(85),
 	})
@@ -87,7 +87,7 @@ func TestStateInfoByHeightMissingStateInfo(t *testing.T) {
 		RollappId: rollappId,
 		Height:    100,
 	}
-	_, err := keeper.StateInfo(wctx, request)
+	_, err := k.StateInfo(wctx, request)
 	require.EqualError(t, err, errorsmod.Wrapf(types.ErrNotFound,
 		"StateInfo wasn't found for rollappId=%s, index=%d",
 		rollappId, 85).Error())
@@ -121,10 +121,10 @@ func TestStateInfoByHeightMissingStateInfo1(t *testing.T) {
 }
 
 func TestStateInfoByHeightErr(t *testing.T) {
-	keeper, ctx := keepertest.RollappKeeper(t)
+	k, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
 	rollappID := urand.RollappID()
-	msgs := createNStateInfoAndIndex(keeper, ctx, 4, rollappID)
+	msgs := createNStateInfoAndIndex(k, ctx, 4, rollappID)
 	for _, tc := range []struct {
 		desc     string
 		request  *types.QueryGetStateInfoRequest
@@ -185,7 +185,7 @@ func TestStateInfoByHeightErr(t *testing.T) {
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			response, err := keeper.StateInfo(wctx, tc.request)
+			response, err := k.StateInfo(wctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {
@@ -200,11 +200,11 @@ func TestStateInfoByHeightErr(t *testing.T) {
 }
 
 func TestStateInfoByHeightValidIncreasingBlockBatches(t *testing.T) {
-	keeper, ctx := keepertest.RollappKeeper(t)
+	k, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
 	numOfMsg := 20
 	rollappID := urand.RollappID()
-	msgs := createNStateInfoAndIndex(keeper, ctx, numOfMsg, rollappID)
+	msgs := createNStateInfoAndIndex(k, ctx, numOfMsg, rollappID)
 
 	for i := 0; i < numOfMsg; i += 1 {
 		for height := msgs[i].StartHeight; height < msgs[i].StartHeight+msgs[i].NumBlocks; height += 1 {
@@ -212,7 +212,7 @@ func TestStateInfoByHeightValidIncreasingBlockBatches(t *testing.T) {
 				RollappId: rollappID,
 				Height:    height,
 			}
-			response, err := keeper.StateInfo(wctx, request)
+			response, err := k.StateInfo(wctx, request)
 			require.NoError(t, err)
 			require.Equal(t,
 				nullify.Fill(&types.QueryGetStateInfoResponse{StateInfo: msgs[i]}),
@@ -223,11 +223,11 @@ func TestStateInfoByHeightValidIncreasingBlockBatches(t *testing.T) {
 }
 
 func TestStateInfoByHeightValidDecreasingBlockBatches(t *testing.T) {
-	keeper, ctx := keepertest.RollappKeeper(t)
+	k, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
 	numOfMsg := 20
 	rollappID := urand.RollappID()
-	msgs := createNStateInfoAndIndex(keeper, ctx, numOfMsg, rollappID)
+	msgs := createNStateInfoAndIndex(k, ctx, numOfMsg, rollappID)
 
 	for i := 0; i < numOfMsg; i += 1 {
 		for height := msgs[i].StartHeight; height < msgs[i].StartHeight+msgs[i].NumBlocks; height += 1 {
@@ -235,7 +235,7 @@ func TestStateInfoByHeightValidDecreasingBlockBatches(t *testing.T) {
 				RollappId: rollappID,
 				Height:    height,
 			}
-			response, err := keeper.StateInfo(wctx, request)
+			response, err := k.StateInfo(wctx, request)
 			require.NoError(t, err)
 			require.Equal(t,
 				nullify.Fill(&types.QueryGetStateInfoResponse{StateInfo: msgs[i]}),

@@ -12,6 +12,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}
@@ -19,7 +20,8 @@ var _ porttypes.Middleware = &IBCMiddleware{}
 type IBCMiddleware struct {
 	porttypes.IBCModule
 	keeper.Keeper // keeper is an ics4 wrapper
-	raKeeper      rollappkeeper.Keeper
+	rollapptypes.StubRollappCreatedHooks
+	raKeeper rollappkeeper.Keeper
 }
 
 type option func(*IBCMiddleware)

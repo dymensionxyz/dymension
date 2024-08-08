@@ -17,15 +17,11 @@ message Params {
       [ (gogoproto.moretags) = "yaml:\"dispute_period_in_blocks\"" ];
 
   reserved 2,3;
-  // registration_fee is the fee that is required to register a rollapp
-  cosmos.base.v1beta1.Coin registration_fee = 4
-      [ (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"registration_fee\"" ];
-
 
   // The time (num hub blocks) a sequencer has to post a block, before he will be slashed
-  uint64 liveness_slash_blocks = 5 [(gogoproto.moretags) = "yaml:\"liveness_slash_blocks\""];
+  uint64 liveness_slash_blocks = 4 [(gogoproto.moretags) = "yaml:\"liveness_slash_blocks\""];
   // The min gap (num hub blocks) between a sequence of slashes if the sequencer continues to be down
-  uint64 liveness_slash_interval = 6  [(gogoproto.moretags) = "yaml:\"liveness_slash_interval\""];
+  uint64 liveness_slash_interval = 5  [(gogoproto.moretags) = "yaml:\"liveness_slash_interval\""];
   // The time (num hub blocks) a sequencer can be down after which he will be jailed rather than slashed
-  uint64 liveness_jail_blocks = 7 [(gogoproto.moretags) = "yaml:\"liveness_jail_blocks\""];
+  uint64 liveness_jail_blocks = 6 [(gogoproto.moretags) = "yaml:\"liveness_jail_blocks\""];
 }
