@@ -13,6 +13,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return types.NewParams(
 		k.MinBond(ctx),
 		k.UnbondingTime(ctx),
+		k.LivenessSlashMultiplier(ctx),
 	)
 }
 
@@ -23,6 +24,11 @@ func (k Keeper) MinBond(ctx sdk.Context) (res sdk.Coin) {
 
 func (k Keeper) UnbondingTime(ctx sdk.Context) (res time.Duration) {
 	k.paramstore.Get(ctx, types.KeyUnbondingTime, &res)
+	return
+}
+
+func (k Keeper) LivenessSlashMultiplier(ctx sdk.Context) (res sdk.Dec) {
+	k.paramstore.Get(ctx, types.KeyLivenessSlashMultiplier, &res)
 	return
 }
 

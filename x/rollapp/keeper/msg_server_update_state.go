@@ -13,7 +13,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// load rollapp object for stateful validations
-	_, isFound := k.GetRollapp(ctx, msg.RollappId)
+	rollapp, isFound := k.GetRollapp(ctx, msg.RollappId)
 	if !isFound {
 		return nil, types.ErrUnknownRollappID
 	}
@@ -82,6 +82,8 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		CreationHeight:    creationHeight,
 		FinalizationQueue: newFinalizationQueue,
 	})
+
+	k.IndicateLiveness(ctx, &rollapp)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeStateUpdate,

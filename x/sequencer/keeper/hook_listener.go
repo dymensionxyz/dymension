@@ -45,8 +45,8 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rolla
 
 // FraudSubmitted implements the RollappHooks interface
 // It slashes the sequencer and unbonds all other bonded sequencers
-func (hook rollappHook) FraudSubmitted(ctx sdk.Context, rollappID string, _ uint64, seqAddr string) error {
-	err := hook.k.Slashing(ctx, seqAddr)
+func (hook rollappHook) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
+	err := hook.k.SlashAndJailFraud(ctx, seqAddr)
 	if err != nil {
 		return err
 	}

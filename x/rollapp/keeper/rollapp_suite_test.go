@@ -44,7 +44,7 @@ func (suite *RollappTestSuite) SetupTest() {
 	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
 	suite.Require().NoError(err)
 	regFee, _ := sdk.ParseCoinNormalized(registrationFee)
-	app.RollappKeeper.SetParams(ctx, types.NewParams(2))
+	app.RollappKeeper.SetParams(ctx, types.DefaultParams().WithDisputePeriodInBlocks(2))
 
 	aliceBal := sdk.NewCoins(regFee.AddAmount(regFee.Amount.Mul(sdk.NewInt(10))))
 	apptesting.FundAccount(app, ctx, sdk.MustAccAddressFromBech32(alice), aliceBal)
@@ -58,6 +58,15 @@ func (suite *RollappTestSuite) SetupTest() {
 	suite.seqMsgServer = sequencerkeeper.NewMsgServerImpl(app.SequencerKeeper)
 	suite.Ctx = ctx
 	suite.queryClient = queryClient
+}
+
+func (s *RollappTestSuite) keeper() *keeper.Keeper {
+	return s.App.RollappKeeper
+}
+
+func (s *RollappTestSuite) nextBlock() {
+	h := s.Ctx.BlockHeight()
+	s.Ctx = s.Ctx.WithBlockHeight(h + 1)
 }
 
 func TestRollappKeeperTestSuite(t *testing.T) {

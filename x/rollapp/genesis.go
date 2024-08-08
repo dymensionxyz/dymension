@@ -29,6 +29,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.BlockHeightToFinalizationQueueList {
 		k.SetBlockHeightToFinalizationQueue(ctx, elem)
 	}
+	for _, elem := range genState.LivenessEvents {
+		k.PutLivenessEvent(ctx, elem)
+	}
 	k.SetParams(ctx, genState.Params)
 	// this line is used by starport scaffolding # genesis/module/init
 }
@@ -43,6 +46,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.LatestStateInfoIndexList = k.GetAllLatestStateInfoIndex(ctx)
 	genesis.LatestFinalizedStateIndexList = k.GetAllLatestFinalizedStateIndex(ctx)
 	genesis.BlockHeightToFinalizationQueueList = k.GetAllBlockHeightToFinalizationQueue(ctx)
+	genesis.LivenessEvents = k.GetLivenessEvents(ctx, nil)
 
 	return genesis
 }

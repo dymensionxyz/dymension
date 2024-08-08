@@ -58,10 +58,9 @@ func (suite *SequencerTestSuite) TestMinBond() {
 
 	for _, tc := range testCases {
 		suite.SetupTest()
-		seqParams := types.Params{
-			MinBond:       tc.requiredBond,
-			UnbondingTime: 100,
-		}
+		seqParams := types.DefaultParams()
+		seqParams.MinBond = tc.requiredBond
+		seqParams.UnbondingTime = 100
 		suite.App.SequencerKeeper.SetParams(suite.Ctx, seqParams)
 
 		rollappId, pk := suite.CreateDefaultRollapp()

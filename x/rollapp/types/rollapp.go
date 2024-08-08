@@ -47,6 +47,10 @@ const (
 
 var dataUriPattern = regexp.MustCompile(dataURIPattern)
 
+func (r Rollapp) LastStateUpdateHeightIsSet() bool {
+	return r.LastStateUpdateHeight != 0
+}
+
 func (r Rollapp) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(r.Owner)
 	if err != nil {

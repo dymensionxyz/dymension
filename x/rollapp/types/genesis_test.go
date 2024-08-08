@@ -22,9 +22,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-				},
+				Params: types.DefaultParams(),
 				RollappList: []types.Rollapp{
 					{
 						RollappId: "0",
@@ -69,9 +67,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated rollapp",
 			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-				},
+				Params:                             types.DefaultParams(),
 				RollappList:                        []types.Rollapp{{RollappId: "0"}, {RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
@@ -82,9 +78,40 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "invalid DisputePeriodInBlocks",
 			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.MinDisputePeriodInBlocks - 1,
-				},
+				Params:                             types.DefaultParams().WithDisputePeriodInBlocks(types.MinDisputePeriodInBlocks - 1),
+				RollappList:                        []types.Rollapp{{RollappId: "0"}},
+				StateInfoList:                      []types.StateInfo{},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+			},
+			valid: false,
+		},
+		{
+			desc: "invalid LivenessSlashBlocks",
+			genState: &types.GenesisState{
+				Params:                             types.DefaultParams().WithLivenessSlashBlocks(0),
+				RollappList:                        []types.Rollapp{{RollappId: "0"}},
+				StateInfoList:                      []types.StateInfo{},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+			},
+			valid: false,
+		},
+		{
+			desc: "invalid LivenessSlashInterval",
+			genState: &types.GenesisState{
+				Params:                             types.DefaultParams().WithLivenessSlashInterval(0),
+				RollappList:                        []types.Rollapp{{RollappId: "0"}},
+				StateInfoList:                      []types.StateInfo{},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+			},
+			valid: false,
+		},
+		{
+			desc: "invalid LivenessJailBlocks",
+			genState: &types.GenesisState{
+				Params:                             types.DefaultParams().WithLivenessJailBlocks(0),
 				RollappList:                        []types.Rollapp{{RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
@@ -95,7 +122,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated stateInfo",
 			genState: &types.GenesisState{
-				Params:                             types.Params{},
+				Params:                             types.DefaultParams(),
 				RollappList:                        []types.Rollapp{},
 				StateInfoList:                      []types.StateInfo{{StateInfoIndex: types.StateInfoIndex{RollappId: "0", Index: 0}}, {StateInfoIndex: types.StateInfoIndex{RollappId: "0", Index: 0}}},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
@@ -106,7 +133,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated latestStateInfoIndex",
 			genState: &types.GenesisState{
-				Params:                             types.Params{},
+				Params:                             types.DefaultParams(),
 				RollappList:                        []types.Rollapp{},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{{RollappId: "0"}, {RollappId: "0"}},
@@ -117,7 +144,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated blockHeightToFinalizationQueue",
 			genState: &types.GenesisState{
-				Params:                             types.Params{},
+				Params:                             types.DefaultParams(),
 				RollappList:                        []types.Rollapp{},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
