@@ -21,6 +21,7 @@ type Keeper struct {
 
 	ibcClientKeeper types.IBCClientKeeper
 	channelKeeper   types.ChannelKeeper
+	sequencerKeeper types.SequencerKeeper
 
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 }
@@ -31,6 +32,7 @@ func NewKeeper(
 	ps paramtypes.Subspace,
 	channelKeeper types.ChannelKeeper,
 	ibcclientKeeper types.IBCClientKeeper,
+	sequencerKeeper types.SequencerKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -44,6 +46,7 @@ func NewKeeper(
 		hooks:           nil,
 		channelKeeper:   channelKeeper,
 		ibcClientKeeper: ibcclientKeeper,
+		sequencerKeeper: sequencerKeeper,
 	}
 	k.SetFinalizePendingFn(k.finalizePendingState)
 	return k
@@ -55,6 +58,10 @@ func (k *Keeper) SetFinalizePendingFn(fn func(ctx sdk.Context, stateInfoIndex ty
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+func (k *Keeper) SetSequencerKeeper(sk types.SequencerKeeper) {
+	k.sequencerKeeper = sk
 }
 
 /* -------------------------------------------------------------------------- */

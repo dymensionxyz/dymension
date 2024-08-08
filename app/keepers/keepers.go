@@ -341,6 +341,7 @@ func (a *AppKeepers) InitKeepers(
 		a.GetSubspace(rollappmoduletypes.ModuleName),
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ClientKeeper,
+		nil,
 	)
 
 	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
@@ -351,6 +352,8 @@ func (a *AppKeepers) InitKeepers(
 		a.BankKeeper,
 		a.RollappKeeper,
 	)
+
+	a.RollappKeeper.SetSequencerKeeper(a.SequencerKeeper)
 
 	a.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		a.keys[incentivestypes.StoreKey],

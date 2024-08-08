@@ -13,3 +13,8 @@ type IBCClientKeeper interface {
 type ChannelKeeper interface {
 	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
 }
+
+type SequencerKeeper interface {
+	SlashLiveness(ctx sdk.Context, rollappID string) error
+	JailLiveness(ctx sdk.Context, rollappID string) error
+}
