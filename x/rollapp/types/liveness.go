@@ -16,8 +16,7 @@ func LivenessEventQueueKey(e LivenessEvent) []byte {
 	if e.IsJail {
 		v = LivenessEventQueueJail
 	}
-
-	ret := LivenessEventQueueIterKey(&e.HubHeight)
+	ret := LivenessEventQueueIterHeightKey(e.HubHeight)
 	ret = append(ret, []byte("/")...)
 	ret = append(ret, v...)
 	ret = append(ret, []byte("/")...)
@@ -25,18 +24,15 @@ func LivenessEventQueueKey(e LivenessEvent) []byte {
 	return ret
 }
 
-// LivenessEventQueueIterKey returns a key to iterate items
+// LivenessEventQueueIterHeightKey returns a key to iterate items
 // If height is nil then all items
 // Otherwise, only for heights greater than or equal to the passed height
-func LivenessEventQueueIterKey(height *int64) []byte {
-	var ret []byte
-	ret = append(ret, LivenessEventQueueKeyPrefix...)
-	if height != nil {
-		ret = append(ret, []byte("/")...)
-		hBz := make([]byte, 8)
-		binary.BigEndian.PutUint64(hBz, uint64(*height))
-		ret = append(ret, hBz...)
-	}
+func LivenessEventQueueIterHeightKey(height int64) []byte {
+	ret := LivenessEventQueueKeyPrefix
+	ret = append(ret, []byte("/")...)
+	hBz := make([]byte, 8)
+	binary.BigEndian.PutUint64(hBz, uint64(height))
+	ret = append(ret, hBz...)
 	return ret
 }
 
