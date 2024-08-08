@@ -1,9 +1,11 @@
 package types
 
 import (
+	"errors"
 	"slices"
 	"sort"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 )
 
@@ -12,13 +14,13 @@ func (d Distribution) Validate() error {
 	gaugeIDs := make(map[uint64]struct{}, len(d.Gauges)) // this map helps check for duplicates
 	for _, g := range d.Gauges {
 		if _, ok := gaugeIDs[g.GaugeId]; ok {
-			return ErrInvalidDistribution.Wrapf("duplicated gauge id: %d", g.GaugeId)
+			return errorsmod.Wrapf(ErrInvalidDistribution, "duplicated gauge id: %d", g.GaugeId)
 		}
 		gaugeIDs[g.GaugeId] = struct{}{}
 		total = total.Add(g.Power)
 	}
 	if !total.Equal(d.VotingPower) {
-		return ErrInvalidDistribution.Wrapf("voting power mismatch: voting power %s, total gauges power %s", d.VotingPower, total)
+		return errorsmod.Wrapf(ErrInvalidDistribution, "voting power mismatch: voting power %s, total gauges power %s", d.VotingPower, total)
 	}
 	return nil
 }
@@ -26,7 +28,7 @@ func (d Distribution) Validate() error {
 func (v Vote) Validate() error {
 	err := ValidateGaugeWeights(v.Weights)
 	if err != nil {
-		return ErrInvalidVote.Wrap(err.Error())
+		return errors.Join(ErrInvalidVote, err)
 	}
 	return nil
 }
@@ -37,26 +39,26 @@ func ValidateGaugeWeights(w []GaugeWeight) error {
 	for _, g := range w {
 		err := g.Validate()
 		if err != nil {
-			return ErrInvalidGaugeWeight.Wrap(err.Error())
+			return errors.Join(ErrInvalidGaugeWeight, err)
 		}
 		if _, ok := gaugeIDs[g.GaugeId]; ok {
-			return ErrInvalidGaugeWeight.Wrapf("duplicated gauge id: %d", g.GaugeId)
+			return errorsmod.Wrapf(ErrInvalidDistribution, "duplicated gauge id: %d", g.GaugeId)
 		}
 		gaugeIDs[g.GaugeId] = struct{}{}
 		total = total.Add(g.Weight)
 	}
 	if !total.Equal(hundred) {
-		return ErrInvalidGaugeWeight.Wrapf("total weight must equal 100, got %s", total)
+		return errorsmod.Wrapf(ErrInvalidDistribution, "total weight must equal 100, got %s", total)
 	}
 	return nil
 }
 
 func (g GaugeWeight) Validate() error {
 	if !g.Weight.IsPositive() {
-		return ErrInvalidGaugeWeight.Wrapf("weight must be > 0, got %s", g.Weight)
+		return errorsmod.Wrapf(ErrInvalidDistribution, "weight must be > 0, got %s", g.Weight)
 	}
 	if g.Weight.GT(hundred) {
-		return ErrInvalidGaugeWeight.Wrapf("weight must be <= 100, got %s", g.Weight)
+		return errorsmod.Wrapf(ErrInvalidDistribution, "weight must be <= 100, got %s", g.Weight)
 	}
 	return nil
 }

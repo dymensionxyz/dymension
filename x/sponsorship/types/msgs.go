@@ -1,6 +1,8 @@
 package types
 
 import (
+	"errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -16,7 +18,7 @@ func (m MsgVote) ValidateBasic() error {
 
 	err = ValidateGaugeWeights(m.Weights)
 	if err != nil {
-		return ErrInvalidDistribution.Wrap(err.Error())
+		return errors.Join(ErrInvalidDistribution, err)
 	}
 
 	return nil
