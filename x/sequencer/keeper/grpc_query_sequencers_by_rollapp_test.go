@@ -15,8 +15,6 @@ import (
 )
 
 func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
-	suite.SetupTest()
-
 	rollappId, pk11 := suite.CreateDefaultRollapp()
 	pk12 := ed25519.GenPrivKey().PubKey()
 	rollappId2, pk21 := suite.CreateDefaultRollapp()
@@ -91,8 +89,6 @@ func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
 }
 
 func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
-	suite.SetupTest()
-
 	msgserver := keeper.NewMsgServerImpl(suite.App.SequencerKeeper)
 
 	rollappId, pk11 := suite.CreateDefaultRollapp()

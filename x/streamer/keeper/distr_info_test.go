@@ -52,7 +52,6 @@ func (suite *KeeperTestSuite) TestAllocateToGauges() {
 	for name, test := range tests {
 		suite.Run(test.name, func() {
 			var streams []types.Stream
-			suite.SetupTest()
 
 			err := suite.CreateGauge()
 			suite.Require().NoError(err)

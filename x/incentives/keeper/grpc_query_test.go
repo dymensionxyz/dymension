@@ -16,8 +16,6 @@ var _ = suite.TestingSuite(nil)
 
 // TestGRPCGaugeByID tests querying gauges via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCGaugeByID() {
-	suite.SetupTest()
-
 	// create a gauge
 	gaugeID, _, coins, startTime := suite.SetupNewGauge(false, sdk.Coins{sdk.NewInt64Coin("stake", 10)})
 
@@ -49,8 +47,6 @@ func (suite *KeeperTestSuite) TestGRPCGaugeByID() {
 
 // TestGRPCGauges tests querying upcoming and active gauges via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCGauges() {
-	suite.SetupTest()
-
 	// ensure initially querying gauges returns no gauges
 	res, err := suite.querier.Gauges(sdk.WrapSDKContext(suite.Ctx), &types.GaugesRequest{})
 	suite.Require().NoError(err)
@@ -94,8 +90,6 @@ func (suite *KeeperTestSuite) TestGRPCGauges() {
 
 // TestGRPCActiveGauges tests querying active gauges via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCActiveGauges() {
-	suite.SetupTest()
-
 	// ensure initially querying active gauges returns no gauges
 	res, err := suite.querier.ActiveGauges(sdk.WrapSDKContext(suite.Ctx), &types.ActiveGaugesRequest{})
 	suite.Require().NoError(err)
@@ -152,8 +146,6 @@ func (suite *KeeperTestSuite) TestGRPCActiveGauges() {
 
 // TestGRPCActiveGaugesPerDenom tests querying active gauges by denom via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCActiveGaugesPerDenom() {
-	suite.SetupTest()
-
 	// ensure initially querying gauges by denom returns no gauges
 	res, err := suite.querier.ActiveGaugesPerDenom(sdk.WrapSDKContext(suite.Ctx), &types.ActiveGaugesPerDenomRequest{})
 	suite.Require().NoError(err)
@@ -215,8 +207,6 @@ func (suite *KeeperTestSuite) TestGRPCActiveGaugesPerDenom() {
 
 // TestGRPCUpcomingGauges tests querying upcoming gauges via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCUpcomingGauges() {
-	suite.SetupTest()
-
 	// ensure initially querying upcoming gauges returns no gauges
 	res, err := suite.querier.UpcomingGauges(sdk.WrapSDKContext(suite.Ctx), &types.UpcomingGaugesRequest{})
 	suite.Require().NoError(err)
@@ -271,8 +261,6 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingGauges() {
 
 // TestGRPCUpcomingGaugesPerDenom tests querying upcoming gauges by denom via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCUpcomingGaugesPerDenom() {
-	suite.SetupTest()
-
 	// ensure initially querying upcoming gauges by denom returns no gauges
 	upcomingGaugeRequest := types.UpcomingGaugesPerDenomRequest{Denom: "lptoken", Pagination: nil}
 	res, err := suite.querier.UpcomingGaugesPerDenom(sdk.WrapSDKContext(suite.Ctx), &upcomingGaugeRequest)
@@ -342,8 +330,6 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingGaugesPerDenom() {
 
 // TestGRPCToDistributeCoins tests querying coins that are going to be distributed via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
-	suite.SetupTest()
-
 	// ensure initially querying to distribute coins returns no coins
 	res, err := suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
@@ -407,8 +393,6 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 
 // TestGRPCDistributedCoins tests querying coins that have been distributed via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCDistributedCoins() {
-	suite.SetupTest()
-
 	// create two locks with different durations
 	addr1 := sdk.AccAddress([]byte("addr1---------------"))
 	addr2 := sdk.AccAddress([]byte("addr2---------------"))
