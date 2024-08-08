@@ -62,6 +62,11 @@ func (s *KeeperTestSuite) TestGenesis() {
 				},
 			},
 		},
+		{
+			name:          "Default is valid",
+			genesis:       *types.DefaultGenesis(),
+			expectedDistr: types.NewDistribution(),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -104,7 +109,8 @@ func (s *KeeperTestSuite) TestGenesis() {
 
 			sortGenState(tc.genesis)
 			sortGenState(actual)
-			s.Require().Equal(tc.genesis, actual, "expect: %v\nactual: %v", tc.genesis, actual)
+			s.Require().Equal(tc.genesis.Params, actual.Params, "expect: %v\nactual: %v", tc.genesis, actual)
+			s.Require().ElementsMatch(tc.genesis.VoterInfos, actual.VoterInfos, "expect: %v\nactual: %v", tc.genesis, actual)
 		})
 	}
 }
