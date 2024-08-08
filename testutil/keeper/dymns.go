@@ -92,7 +92,7 @@ func DymNSKeeper(t testing.TB) (dymnskeeper.Keeper, dymnskeeper.BankKeeper, roll
 		cdc,
 		rollappStoreKey,
 		rollappParamsSubspace,
-		nil, nil,
+		nil, nil, nil,
 	)
 
 	k := dymnskeeper.NewKeeper(cdc,
