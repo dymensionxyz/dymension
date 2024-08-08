@@ -45,7 +45,7 @@ func TestAnteTestSuite(t *testing.T) {
 }
 
 // SetupTest setups a new test, with new app, context, and anteHandler.
-func (s *AnteTestSuite) SetupTest(isCheckTx bool) {
+func (s *AnteTestSuite) SetupTestCheckTx(isCheckTx bool) {
 	s.app = apptesting.Setup(s.T(), isCheckTx)
 	s.ctx = s.app.BaseApp.NewContext(isCheckTx, cometbftproto.Header{}).WithBlockHeight(1).WithChainID(apptesting.TestChainID)
 
@@ -72,7 +72,7 @@ func (s *AnteTestSuite) SetupTest(isCheckTx bool) {
 }
 
 func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
-	suite.SetupTest(false)
+	suite.SetupTestCheckTx(false)
 	privkey, _ := ethsecp256k1.GenerateKey()
 	key, err := privkey.ToECDSA()
 	suite.Require().NoError(err)
