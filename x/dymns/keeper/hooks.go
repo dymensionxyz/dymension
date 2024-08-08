@@ -8,6 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 )
 
@@ -278,13 +279,8 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 /*                             x/rollapp hooks                                */
 /* -------------------------------------------------------------------------- */
 
-type RollAppHooks interface {
-	// TODO DymNS: connect hooks and remove this interface
-
-	RollappCreated(ctx sdk.Context, rollappID, alias string, creatorAddr sdk.AccAddress) error
-}
-
-func (k Keeper) GetRollAppHooks() RollAppHooks {
+// GetRollAppHooks returns the RollApp hooks struct.
+func (k Keeper) GetRollAppHooks() rollapptypes.RollappHooks {
 	return rollappHooks{
 		Keeper: k,
 	}
@@ -294,7 +290,7 @@ type rollappHooks struct {
 	Keeper
 }
 
-var _ RollAppHooks = rollappHooks{}
+var _ rollapptypes.RollappHooks = rollappHooks{}
 
 func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, creatorAddr sdk.AccAddress) error {
 	if alias == "" {
@@ -338,5 +334,17 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 		return err
 	}
 
+	return nil
+}
+
+func (h rollappHooks) BeforeUpdateState(_ sdk.Context, _ string, _ string) error {
+	return nil
+}
+
+func (h rollappHooks) AfterStateFinalized(_ sdk.Context, _ string, _ *rollapptypes.StateInfo) error {
+	return nil
+}
+
+func (h rollappHooks) FraudSubmitted(_ sdk.Context, _ string, _ uint64, _ string) error {
 	return nil
 }
