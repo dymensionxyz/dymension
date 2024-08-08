@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"sort"
 
 	errorsmod "cosmossdk.io/errors"
@@ -25,10 +24,6 @@ func (k Keeper) CompleteDymNameSellOrder(ctx sdk.Context, name string) error {
 	so := k.GetSellOrder(ctx, name, dymnstypes.NameOrder)
 	if so == nil {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", name)
-	}
-
-	if so.Type != dymnstypes.NameOrder {
-		panic(fmt.Sprintf("invalid call, only support type: %s", dymnstypes.NameOrder))
 	}
 
 	if !so.HasFinishedAtCtx(ctx) {

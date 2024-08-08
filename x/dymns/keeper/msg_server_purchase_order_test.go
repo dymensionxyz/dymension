@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_msgServer_PurchaseOrder(t *testing.T) {
+func Test_msgServer_PurchaseOrder_DymName(t *testing.T) {
 	now := time.Now().UTC()
 	futureEpoch := now.Unix() + 1
 
@@ -42,21 +42,6 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 			})
 			return err
 		}, gerrc.ErrInvalidArgument.Error())
-	})
-
-	t.Run("reject if message order type is Alias", func(t *testing.T) {
-		dk, _, ctx := setupTest()
-
-		requireErrorFContains(t, func() error {
-			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
-				GoodsId:   "alias",
-				OrderType: dymnstypes.AliasOrder,
-				Params:    []string{"rollapp_1-1"},
-				Buyer:     testAddr(0).bech32(),
-				Offer:     dymnsutils.TestCoin(1),
-			})
-			return err
-		}, "invalid order type")
 	})
 
 	t.Run("reject if message order type is Unknown", func(t *testing.T) {
@@ -620,4 +605,679 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("reject purchase order when trading is disabled", func(t *testing.T) {
+		// setup execution context
+		dk, _, ctx := setupTest()
+
+		moduleParams := dk.GetParams(ctx)
+		moduleParams.Misc.EnableTradingName = false
+		err := dk.SetParams(ctx, moduleParams)
+		require.NoError(t, err)
+
+		requireErrorFContains(t, func() error {
+			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
+				GoodsId:   "my-name",
+				OrderType: dymnstypes.NameOrder,
+				Offer:     dymnsutils.TestCoin(100),
+				Buyer:     buyerA,
+			})
+			return err
+		}, "trading of Dym-Name is disabled")
+	})
+}
+
+//goland:noinspection GoSnakeCaseUsage
+func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
+	s.Run("reject if message not pass validate basic", func() {
+		s.SetupTest()
+
+		s.requireErrorFContains(func() error {
+			_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &dymnstypes.MsgPurchaseOrder{
+				OrderType: dymnstypes.AliasOrder,
+			})
+			return err
+		}, gerrc.ErrInvalidArgument.Error())
+	})
+
+	creator_1_asOwner := testAddr(1).bech32()
+	creator_2_asBuyer := testAddr(2).bech32()
+	creator_3_asAnotherBuyer := testAddr(3).bech32()
+
+	rollApp_1_byOwner_asSrc := *newRollApp("rollapp_1-1").WithAlias("alias").WithOwner(creator_1_asOwner)
+	rollApp_2_byBuyer_asDst := *newRollApp("rollapp_2-2").WithOwner(creator_2_asBuyer)
+	rollApp_3_byAnotherBuyer_asDst := *newRollApp("rollapp_3-2").WithOwner(creator_3_asAnotherBuyer)
+	rollApp_4_byOwner_asDst := *newRollApp("rollapp_4-2").WithOwner(creator_1_asOwner)
+
+	const originalBalanceCreator1 int64 = 1000
+	const originalBalanceCreator2 int64 = 500
+	const originalBalanceCreator3 int64 = 400
+	const minPrice int64 = 100
+
+	msg := func(buyer string, offer int64, goodsId, dstRollAppId string) dymnstypes.MsgPurchaseOrder {
+		return dymnstypes.MsgPurchaseOrder{
+			GoodsId:   goodsId,
+			OrderType: dymnstypes.AliasOrder,
+			Params:    []string{dstRollAppId},
+			Offer:     dymnsutils.TestCoin(offer),
+			Buyer:     buyer,
+		}
+	}
+
+	tests := []struct {
+		name                            string
+		rollApps                        []rollapp
+		sellOrder                       *dymnstypes.SellOrder
+		sourceRollAppId                 string
+		skipPreMintModuleAccount        bool
+		overrideOriginalBalanceCreator2 int64
+		msg                             dymnstypes.MsgPurchaseOrder
+		wantCompleted                   bool
+		wantErr                         bool
+		wantErrContains                 string
+		wantLaterBalanceCreator1        int64
+		wantLaterBalanceCreator2        int64
+		wantLaterBalanceCreator3        int64
+	}{
+		{
+			name:      "fail - source Alias/RollApp does not exists, SO does not exists",
+			rollApps:  []rollapp{rollApp_2_byBuyer_asDst},
+			sellOrder: nil,
+			msg: msg(
+				creator_2_asBuyer, 100,
+				"void", rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantCompleted:   false,
+			wantErr:         true,
+			wantErrContains: "alias not owned by any RollApp",
+		},
+		{
+			name:      "fail - destination RollApp does not exists, SO does not exists",
+			rollApps:  nil,
+			sellOrder: nil,
+			msg: msg(
+				creator_2_asBuyer, 100,
+				"void", rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantCompleted:   false,
+			wantErr:         true,
+			wantErrContains: "destination Roll-App does not exists",
+		},
+		{
+			name:     "fail - source Alias/RollApp does not exists, SO exists",
+			rollApps: []rollapp{rollApp_2_byBuyer_asDst},
+			sellOrder: s.newAliasSellOrder("void").
+				WithMinPrice(minPrice).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, minPrice,
+				"void", rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "alias not owned by any RollApp",
+		},
+		{
+			name:     "fail - destination Alias/RollApp does not exists, SO exists",
+			rollApps: nil,
+			sellOrder: s.newAliasSellOrder("void").
+				WithMinPrice(minPrice).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, minPrice,
+				"void", rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "destination Roll-App does not exists",
+		},
+		{
+			name:      "fail - Alias/RollApp exists, SO does not exists",
+			rollApps:  []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrder: nil,
+			msg: msg(
+				creator_2_asBuyer, 100,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: fmt.Sprintf("Sell-Order: %s: not found", rollApp_1_byOwner_asSrc.alias),
+		},
+		{
+			name:     "pass - self-purchase is allowed",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_4_byOwner_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				BuildP(),
+			msg: msg(
+				creator_1_asOwner, minPrice,
+				rollApp_1_byOwner_asSrc.alias, rollApp_4_byOwner_asDst.rollAppId,
+			),
+			wantErr:                  false,
+			wantCompleted:            false,
+			wantLaterBalanceCreator1: originalBalanceCreator1 - minPrice,
+			wantLaterBalanceCreator2: originalBalanceCreator2,
+			wantLaterBalanceCreator3: originalBalanceCreator3,
+		},
+		{
+			name:     "pass - self-purchase is allowed, complete order",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_4_byOwner_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithSellPrice(200).
+				BuildP(),
+			sourceRollAppId: rollApp_1_byOwner_asSrc.rollAppId,
+			msg: msg(
+				creator_1_asOwner, 200,
+				rollApp_1_byOwner_asSrc.alias, rollApp_4_byOwner_asDst.rollAppId,
+			),
+			wantErr:                  false,
+			wantCompleted:            true,
+			wantLaterBalanceCreator1: originalBalanceCreator1, // unchanged
+			wantLaterBalanceCreator2: originalBalanceCreator2,
+			wantLaterBalanceCreator3: originalBalanceCreator3,
+		},
+		{
+			name:      "fail - invalid buyer address",
+			rollApps:  []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).WithMinPrice(minPrice).BuildP(),
+			msg: msg(
+				"invalidAddress", minPrice,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "buyer is not a valid bech32 account address",
+		},
+		{
+			name:     "fail - buyer is not the owner of the destination RollApp",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_3_byAnotherBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).WithMinPrice(minPrice).
+				Expired().
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 200,
+				rollApp_1_byOwner_asSrc.alias, rollApp_3_byAnotherBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "not the owner of the RollApp",
+		},
+		{
+			name:     "fail - destination RollApp is the same as source",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).WithMinPrice(minPrice).
+				Expired().
+				BuildP(),
+			msg: msg(
+				creator_1_asOwner, 200,
+				rollApp_1_byOwner_asSrc.alias, rollApp_1_byOwner_asSrc.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "destination Roll-App ID is the same as the source",
+		},
+		{
+			name:     "fail - purchase an expired order, no bid",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).WithMinPrice(minPrice).
+				Expired().
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 200,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "cannot purchase an expired order",
+		},
+		{
+			name:     "fail - purchase a completed order, expired, with bid, without sell price",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byAnotherBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				Expired().
+				WithAliasBid(creator_3_asAnotherBuyer, 150, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 200,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "cannot purchase an expired order",
+		},
+		{
+			name:     "fail - purchase a completed order, expired, with sell price, with bid under sell price",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byAnotherBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithSellPrice(300).
+				Expired().
+				WithAliasBid(creator_3_asAnotherBuyer, 150, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 200,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "cannot purchase an expired order",
+		},
+		{
+			name:     "fail - purchase a completed order, expired, with sell price, with bid = sell price",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byAnotherBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithSellPrice(300).
+				Expired().
+				WithAliasBid(creator_3_asAnotherBuyer, 300 /*equals sell price*/, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 300, /*equals sell price*/
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "cannot purchase an expired order",
+		},
+		{
+			name:     "fail - purchase a completed order, not expired, fail because previous bid matches sell price",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byAnotherBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithSellPrice(300).
+				WithAliasBid(creator_3_asAnotherBuyer, 300 /*equals sell price*/, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 300, /*equals sell price*/
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "cannot purchase a completed order",
+		},
+		{
+			name:     "fail - purchase order, not expired, fail because lower than previous bid, with sell-price",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byAnotherBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithSellPrice(300).
+				WithAliasBid(creator_3_asAnotherBuyer, 250, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 200,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "new offer must be higher than current highest bid",
+		},
+		{
+			name:     "fail - purchase order, not expired, fail because lower than previous bid, without sell-price",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byAnotherBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				// without sell-price
+				WithAliasBid(creator_3_asAnotherBuyer, 200, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 150,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "new offer must be higher than current highest bid",
+		},
+		{
+			name:     "fail - purchase order, expired, fail because lower than previous bid, with sell-price",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byAnotherBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithSellPrice(300).
+				Expired().
+				WithAliasBid(creator_3_asAnotherBuyer, 300, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 200,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "cannot purchase an expired order",
+		},
+		{
+			name:     "fail - purchase order, expired, fail because lower than previous bid, without sell-price",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byAnotherBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				// without sell-price
+				Expired().
+				WithAliasBid(creator_3_asAnotherBuyer, 200, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 150,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "cannot purchase an expired order",
+		},
+		{
+			name:     "fail - purchase order, not expired, fail because equals to previous bid",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byAnotherBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithSellPrice(300).
+				WithAliasBid(creator_3_asAnotherBuyer, 200, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 200,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "new offer must be higher than current highest bid",
+		},
+		{
+			name:     "fail - purchase a completed order, expired, bid equals to previous bid",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byAnotherBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithSellPrice(300).
+				Expired().
+				WithAliasBid(creator_3_asAnotherBuyer, 200, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 200,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "cannot purchase an expired order",
+		},
+		{
+			name:     "fail - mis-match denom",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).WithSellPrice(300).
+				BuildP(),
+			msg: func() dymnstypes.MsgPurchaseOrder {
+				msg := msg(
+					creator_2_asBuyer, 200,
+					rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+				)
+				msg.Offer = sdk.Coin{
+					Denom:  "u" + params.BaseDenom,
+					Amount: msg.Offer.Amount,
+				}
+				return msg
+			}(),
+			wantErr:         true,
+			wantErrContains: "offer denom does not match the order denom",
+		},
+		{
+			name:     "fail - offer lower than min-price",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 1, // very low
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "offer is lower than minimum price",
+		},
+		{
+			name:     "fail - zero bid amount",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 0,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "offer must be positive",
+		},
+		{
+			name:     "fail - offer higher than sell-price",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithSellPrice(300).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 300+1,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:         true,
+			wantErrContains: "offer is higher than sell price",
+		},
+		{
+			name:     "pass - place bid, = min price, no previous bid, no sell price",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				BuildP(),
+			sourceRollAppId: rollApp_1_byOwner_asSrc.rollAppId,
+			msg: msg(
+				creator_2_asBuyer, minPrice,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:                  false,
+			wantCompleted:            false,
+			wantLaterBalanceCreator1: originalBalanceCreator1,
+			wantLaterBalanceCreator2: originalBalanceCreator2 - minPrice,
+			wantLaterBalanceCreator3: originalBalanceCreator3,
+		},
+		{
+			name:     "pass - place bid, greater than previous bid, no sell price",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithAliasBid(creator_3_asAnotherBuyer, 200, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			sourceRollAppId: rollApp_1_byOwner_asSrc.rollAppId,
+			msg: msg(
+				creator_2_asBuyer, 250,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:                  false,
+			wantCompleted:            false,
+			wantLaterBalanceCreator1: originalBalanceCreator1,
+			wantLaterBalanceCreator2: originalBalanceCreator2 - 250,
+			wantLaterBalanceCreator3: originalBalanceCreator3 + 200, // refund
+		},
+		{
+			name:     "fail - failed to refund previous bid",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithAliasBid(creator_3_asAnotherBuyer, 200, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 250,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			skipPreMintModuleAccount: true,
+			wantErr:                  true,
+			wantErrContains:          "insufficient funds",
+		},
+		{
+			name:     "fail - insufficient buyer funds",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithAliasBid(creator_3_asAnotherBuyer, 200, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 250,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			overrideOriginalBalanceCreator2: 1,
+			wantErr:                         true,
+			wantErrContains:                 "insufficient funds",
+		},
+		{
+			name:     "pass - place bid, greater than previous bid, under sell price",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithSellPrice(300).
+				WithAliasBid(creator_3_asAnotherBuyer, minPrice, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 250,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:                  false,
+			wantCompleted:            false,
+			wantLaterBalanceCreator1: originalBalanceCreator1,
+			wantLaterBalanceCreator2: originalBalanceCreator2 - 250,      // charge bid
+			wantLaterBalanceCreator3: originalBalanceCreator3 + minPrice, // refund
+		},
+		{
+			name:     "pass - place bid, greater than previous bid, equals sell price, transfer ownership",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithSellPrice(300).
+				WithAliasBid(creator_3_asAnotherBuyer, minPrice, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			sourceRollAppId: rollApp_1_byOwner_asSrc.rollAppId,
+			msg: msg(
+				creator_2_asBuyer, 300,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:                  false,
+			wantCompleted:            true,
+			wantLaterBalanceCreator1: originalBalanceCreator1 + 300,      // transfer sale
+			wantLaterBalanceCreator2: originalBalanceCreator2 - 300,      // charge bid
+			wantLaterBalanceCreator3: originalBalanceCreator3 + minPrice, // refund
+		},
+		{
+			name:     "pass - if any bid before, later bid higher, refund previous bidder",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithSellPrice(300).
+				WithAliasBid(creator_3_asAnotherBuyer, minPrice, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 200,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			wantErr:                  false,
+			wantCompleted:            false,
+			wantLaterBalanceCreator1: originalBalanceCreator1,
+			wantLaterBalanceCreator2: originalBalanceCreator2 - 200,      // charge bid
+			wantLaterBalanceCreator3: originalBalanceCreator3 + minPrice, // refund
+		},
+	}
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			// setup execution context
+			s.SetupTest()
+
+			useOriginalBalanceCreator1 := originalBalanceCreator1
+			useOriginalBalanceCreator2 := originalBalanceCreator2
+			if tt.overrideOriginalBalanceCreator2 > 0 {
+				useOriginalBalanceCreator2 = tt.overrideOriginalBalanceCreator2
+			}
+			useOriginalBalanceCreator3 := originalBalanceCreator3
+
+			s.mintToAccount(creator_1_asOwner, useOriginalBalanceCreator1)
+			s.mintToAccount(creator_2_asBuyer, useOriginalBalanceCreator2)
+			s.mintToAccount(creator_3_asAnotherBuyer, useOriginalBalanceCreator3)
+
+			for _, rollApp := range tt.rollApps {
+				s.persistRollApp(rollApp)
+			}
+
+			if tt.sellOrder != nil {
+				s.Require().Equal(tt.sellOrder.GoodsId, tt.msg.GoodsId, "bad setup")
+
+				err := s.dymNsKeeper.SetSellOrder(s.ctx, *tt.sellOrder)
+				s.Require().NoError(err)
+
+				if tt.sellOrder.HighestBid != nil {
+					if !tt.skipPreMintModuleAccount {
+						s.mintToModuleAccount(tt.sellOrder.HighestBid.Price.Amount.Int64())
+					}
+				}
+			}
+
+			// test
+
+			resp, errPurchaseName := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &tt.msg)
+
+			for _, ra := range tt.rollApps {
+				s.True(s.dymNsKeeper.IsRollAppId(s.ctx, ra.rollAppId))
+			}
+
+			historicalSo := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, tt.msg.GoodsId, dymnstypes.AliasOrder)
+			s.Empty(historicalSo, "no historical SO should be made for alias order regardless state of tx")
+
+			laterSo := s.dymNsKeeper.GetSellOrder(s.ctx, tt.msg.GoodsId, dymnstypes.AliasOrder)
+
+			if tt.wantErr {
+				s.requireErrorContains(errPurchaseName, tt.wantErrContains)
+				s.Nil(resp)
+				s.Require().False(tt.wantCompleted, "mis-configured test case")
+				s.Less(
+					s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceBidOnSellOrder,
+					"should not consume params gas on failed operation",
+				)
+
+				s.Zero(tt.wantLaterBalanceCreator1, "bad setup, no check on error")
+				s.Zero(tt.wantLaterBalanceCreator2, "bad setup, no check on error")
+				s.Zero(tt.wantLaterBalanceCreator3, "bad setup, no check on error")
+			} else {
+				s.NotNil(resp)
+				s.GreaterOrEqual(
+					s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceBidOnSellOrder,
+					"should consume params gas",
+				)
+
+				s.Equal(tt.wantLaterBalanceCreator1, s.balance(creator_1_asOwner), "owner balance mis-match")
+				s.Equal(tt.wantLaterBalanceCreator2, s.balance(creator_2_asBuyer), "buyer balance mis-match")
+				s.Equal(tt.wantLaterBalanceCreator3, s.balance(creator_3_asAnotherBuyer), "previous bidder balance mis-match")
+			}
+
+			destinationRollAppId := tt.msg.Params[0]
+			if tt.wantCompleted {
+				s.Require().NotEmpty(tt.sourceRollAppId, "mis-configured test case")
+
+				s.Require().NotEmpty(tt.rollApps, "mis-configured test case")
+				s.Require().NotNil(tt.sellOrder, "mis-configured test case")
+
+				s.Nil(laterSo, "SO should be deleted")
+
+				s.requireRollApp(tt.sourceRollAppId).HasNoAlias()
+				s.requireRollApp(destinationRollAppId).HasAlias(tt.msg.GoodsId)
+			} else {
+				if len(tt.rollApps) > 0 {
+					for _, ra := range tt.rollApps {
+						if ra.alias != "" {
+							s.requireRollApp(ra.rollAppId).HasAlias(ra.alias)
+						} else {
+							s.requireRollApp(ra.rollAppId).HasNoAlias()
+						}
+					}
+				}
+
+				if tt.sellOrder != nil {
+					s.NotNil(laterSo, "SO should not be deleted")
+				} else {
+					s.Nil(laterSo, "SO should not exists")
+				}
+			}
+		})
+	}
+
+	s.Run("reject purchase order when trading is disabled", func() {
+		s.SetupTest()
+
+		moduleParams := s.dymNsKeeper.GetParams(s.ctx)
+		moduleParams.Misc.EnableTradingAlias = false
+		err := s.dymNsKeeper.SetParams(s.ctx, moduleParams)
+		s.Require().NoError(err)
+
+		s.requireErrorFContains(func() error {
+			_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &dymnstypes.MsgPurchaseOrder{
+				GoodsId:   "alias",
+				OrderType: dymnstypes.AliasOrder,
+				Params:    []string{rollApp_2_byBuyer_asDst.rollAppId},
+				Offer:     dymnsutils.TestCoin(100),
+				Buyer:     creator_2_asBuyer,
+			})
+			return err
+		}, "trading of Alias is disabled")
+	})
 }
