@@ -19,7 +19,7 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 	effectiveBond := sequencer.Tokens
 	if bds := k.getSequencerDecreasingBonds(ctx, msg.Creator); len(bds) > 0 {
 		for _, bd := range bds {
-			effectiveBond = effectiveBond.Sub(bd.UnbondAmount)
+			effectiveBond = effectiveBond.Sub(bd.DecreaseBondAmount)
 		}
 	}
 
@@ -38,9 +38,9 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 	}
 	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
 	k.setDecreasingBondQueue(ctx, types.BondReduction{
-		SequencerAddress: msg.Creator,
-		UnbondAmount:     msg.DecreaseAmount,
-		UnbondTime:       completionTime,
+		SequencerAddress:   msg.Creator,
+		DecreaseBondAmount: msg.DecreaseAmount,
+		DecreateBondTime:   completionTime,
 	})
 
 	return &types.MsgDecreaseBondResponse{
