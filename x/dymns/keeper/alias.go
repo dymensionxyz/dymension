@@ -97,6 +97,19 @@ func (k Keeper) SetAliasForRollAppId(ctx sdk.Context, rollAppId, alias string) e
 	return nil
 }
 
+// GetAliasesOfRollAppId returns all aliases linked to a RollApp.
+func (k Keeper) GetAliasesOfRollAppId(ctx sdk.Context, rollAppId string) []string {
+	store := ctx.KVStore(k.storeKey)
+	keyR2A := dymnstypes.RollAppIdToAliasesKey(rollAppId)
+
+	var multipleAliases dymnstypes.MultipleAliases
+	if bz := store.Get(keyR2A); bz != nil {
+		k.cdc.MustUnmarshal(bz, &multipleAliases)
+	}
+
+	return multipleAliases.Aliases
+}
+
 // RemoveAliasFromRollAppId removes the linking of an existing alias from a RollApp.
 func (k Keeper) RemoveAliasFromRollAppId(ctx sdk.Context, rollAppId, alias string) error {
 	if !k.IsRollAppId(ctx, rollAppId) {
@@ -175,4 +188,24 @@ func (k Keeper) MoveAliasToRollAppId(ctx sdk.Context, srcRollAppId, alias, dstRo
 	}
 
 	return k.SetAliasForRollAppId(ctx, dstRollAppId, alias)
+}
+
+// IsAliasPresentsInParamsAsAliasOrChainId returns true if the alias presents in the params.
+// Extra check if it collision with chain-ids there.
+func (k Keeper) IsAliasPresentsInParamsAsAliasOrChainId(ctx sdk.Context, alias string) bool {
+	params := k.GetParams(ctx)
+
+	for _, aliasesOfChainId := range params.Chains.AliasesOfChainIds {
+		if alias == aliasesOfChainId.ChainId {
+			return true
+		}
+
+		for _, a := range aliasesOfChainId.Aliases {
+			if alias == a {
+				return true
+			}
+		}
+	}
+
+	return false
 }

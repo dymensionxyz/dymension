@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"testing"
 
+	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
@@ -161,6 +163,31 @@ func TestKeeper_GetSetAliasForRollAppId(t *testing.T) {
 			require.Equal(t, alias, tc.aliases[0], "should returns the first one added")
 		}
 	})
+}
+
+func (s *KeeperTestSuite) TestKeeper_GetAliasesOfRollAppId() {
+	rollApp1 := *newRollApp("rollapp_1-1").WithAlias("one")
+	rollApp2 := *newRollApp("rollapp_2-2").WithAlias("two")
+	rollApp3NoAlias := *newRollApp("rollapp_3-3")
+
+	s.persistRollApp(rollApp1)
+	s.persistRollApp(rollApp2)
+	s.persistRollApp(rollApp3NoAlias)
+
+	err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp1.rollAppId, "more")
+	s.Require().NoError(err)
+
+	err = s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp1.rollAppId, "alias")
+	s.Require().NoError(err)
+
+	aliases := s.dymNsKeeper.GetAliasesOfRollAppId(s.ctx, rollApp1.rollAppId)
+	s.Require().Equal([]string{rollApp1.alias, "more", "alias"}, aliases)
+
+	aliases = s.dymNsKeeper.GetAliasesOfRollAppId(s.ctx, rollApp2.rollAppId)
+	s.Require().Equal([]string{rollApp2.alias}, aliases)
+
+	aliases = s.dymNsKeeper.GetAliasesOfRollAppId(s.ctx, rollApp3NoAlias.rollAppId)
+	s.Require().Empty(aliases)
 }
 
 func TestKeeper_RemoveAliasFromRollAppId(t *testing.T) {
@@ -685,4 +712,83 @@ func requireAliasNotInUse(alias string, t *testing.T, ctx sdk.Context, dk dymnsk
 	gotRollAppId, found := dk.GetRollAppIdByAlias(ctx, alias)
 	require.False(t, found)
 	require.Empty(t, gotRollAppId)
+}
+
+func (s *KeeperTestSuite) TestKeeper_IsAliasPresentsInParamsAsAliasOrChainId() {
+	tests := []struct {
+		name       string
+		preRunFunc func(s *KeeperTestSuite)
+		alias      string
+		want       bool
+	}{
+		{
+			name: "alias mapped in params",
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
+					params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: "dymension_100-1",
+							Aliases: []string{"dym"},
+						},
+					}
+					return params
+				})
+			},
+			alias: "dym",
+			want:  true,
+		},
+		{
+			name: "alias as chain-id in params",
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
+					params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: "dymension",
+							Aliases: []string{"dym"},
+						},
+					}
+					return params
+				})
+			},
+			alias: "dymension",
+			want:  true,
+		},
+		{
+			name: "alias not in params",
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
+					params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: "dymension",
+							Aliases: []string{"dym"},
+						},
+					}
+					return params
+				})
+			},
+			alias: "alias",
+			want:  false,
+		},
+		{
+			name: "alias is used by RollApp",
+			preRunFunc: func(s *KeeperTestSuite) {
+				rollApp := newRollApp("rollapp_1-1").WithAlias("alias")
+				s.persistRollApp(*rollApp)
+
+				s.requireRollApp(rollApp.rollAppId).HasAlias("alias")
+			},
+			alias: "alias",
+			want:  false,
+		},
+	}
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			if tt.preRunFunc != nil {
+				tt.preRunFunc(s)
+			}
+
+			got := s.dymNsKeeper.IsAliasPresentsInParamsAsAliasOrChainId(s.ctx, tt.alias)
+			s.Require().Equal(tt.want, got)
+		})
+	}
 }
