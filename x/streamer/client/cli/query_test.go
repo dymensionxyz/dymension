@@ -8,11 +8,11 @@ import (
 	"cosmossdk.io/math"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -33,9 +33,9 @@ type QueryTestSuite struct {
 	queryClient types.QueryClient
 }
 
-// CreateStream creates a stream struct given the required params.
+// CreateStream creates a non-sponsored stream struct given the required params.
 func (suite *QueryTestSuite) CreateStream(distrTo []types.DistrRecord, coins sdk.Coins, startTime time.Time, epochIdetifier string, numEpoch uint64) (uint64, *types.Stream) {
-	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch)
+	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch, false)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)

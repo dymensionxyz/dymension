@@ -3,10 +3,10 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 // DistributeByWeights allocates and distributes coin according a gauge’s proportional weight that is recorded in the record.
@@ -90,6 +90,19 @@ func (k Keeper) distributeStream(ctx sdk.Context, stream types.Stream) (sdk.Coin
 		if epochAmt.IsPositive() {
 			totalDistrCoins = totalDistrCoins.Add(sdk.Coin{Denom: coin.Denom, Amount: epochAmt})
 		}
+	}
+
+	// If the stream uses a sponsorship plan, query it and update stream distr info. The distribution
+	// might be empty and this is a valid scenario. In that case, we'll just skip at without
+	// filling the epoch.
+	if stream.Sponsored {
+		distr, err := k.sk.GetDistribution(ctx)
+		if err != nil {
+			return sdk.Coins{}, fmt.Errorf("failed to get sponsorship distribution: %w", err)
+		}
+		info := types.DistrInfoFromDistribution(distr)
+		// Update stream distr info
+		stream.DistributeTo = info
 	}
 
 	totalDistrCoins, err := k.DistributeByWeights(ctx, totalDistrCoins, stream.DistributeTo)

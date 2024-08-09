@@ -1,7 +1,10 @@
 package types
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
 func NewDistrInfo(records []DistrRecord) (*DistrInfo, error) {
@@ -31,4 +34,31 @@ func (r DistrRecord) ValidateBasic() error {
 		return ErrDistrRecordNotPositiveWeight
 	}
 	return nil
+}
+
+var hundred = math.NewInt(100)
+
+// DistrInfoFromDistribution converts sponsorship distribution to the DistrInfo type and performs a
+// basic validation for DistrInfo.Records. Returning an empty DistrInfo (with zero DistrInfo.TotalWeight)
+// is a valid scenario.
+func DistrInfoFromDistribution(d sponsorshiptypes.Distribution) *DistrInfo {
+	totalWeight := math.ZeroInt()
+	records := make([]DistrRecord, 0, len(d.Gauges))
+	for _, g := range d.Gauges {
+		// d.VotingPower is always > 0 to the Distribution type contract
+		weight := g.Power.Mul(hundred).Quo(d.VotingPower)
+
+		record := DistrRecord{
+			GaugeId: g.GaugeId,
+			Weight:  weight,
+		}
+
+		totalWeight = totalWeight.Add(weight)
+		records = append(records, record)
+	}
+
+	return &DistrInfo{
+		TotalWeight: totalWeight,
+		Records:     records,
+	}
 }
