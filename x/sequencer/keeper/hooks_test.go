@@ -10,7 +10,6 @@ import (
 )
 
 func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
-	suite.SetupTest()
 	suite.Ctx = suite.Ctx.WithBlockHeight(10)
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
 

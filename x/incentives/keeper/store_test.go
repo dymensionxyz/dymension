@@ -6,8 +6,6 @@ func (suite *KeeperTestSuite) TestGaugeReferencesManagement() {
 	key1 := []byte{0x11}
 	key2 := []byte{0x12}
 
-	suite.SetupTest()
-
 	// set two gauge references to key 1 and three gauge references to key 2
 	_ = suite.App.IncentivesKeeper.AddGaugeRefByKey(suite.Ctx, key1, 1)
 	_ = suite.App.IncentivesKeeper.AddGaugeRefByKey(suite.Ctx, key2, 1)

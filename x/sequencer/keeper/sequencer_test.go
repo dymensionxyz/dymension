@@ -71,7 +71,6 @@ func TestSequencersByRollappGet(t *testing.T) {
 }
 
 func (suite *SequencerTestSuite) TestRotatingSequencerByBond() {
-	suite.SetupTest()
 	rollappId, pk := suite.CreateDefaultRollapp()
 
 	numOfSequencers := 5

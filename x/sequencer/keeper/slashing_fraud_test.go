@@ -23,8 +23,6 @@ func (suite *SequencerTestSuite) assertSlashed(seqAddr string) {
 }
 
 func (suite *SequencerTestSuite) TestSlashingUnknownSequencer() {
-	suite.SetupTest()
-
 	suite.CreateDefaultRollapp()
 	keeper := suite.App.SequencerKeeper
 
@@ -33,7 +31,6 @@ func (suite *SequencerTestSuite) TestSlashingUnknownSequencer() {
 }
 
 func (suite *SequencerTestSuite) TestSlashingUnbondedSequencer() {
-	suite.SetupTest()
 	keeper := suite.App.SequencerKeeper
 
 	rollappId, pk := suite.CreateDefaultRollapp()
@@ -59,7 +56,6 @@ func (suite *SequencerTestSuite) TestSlashingUnbondedSequencer() {
 }
 
 func (suite *SequencerTestSuite) TestSlashingUnbondingSequencer() {
-	suite.SetupTest()
 	keeper := suite.App.SequencerKeeper
 
 	rollappId, pk := suite.CreateDefaultRollapp()
@@ -82,7 +78,6 @@ func (suite *SequencerTestSuite) TestSlashingUnbondingSequencer() {
 }
 
 func (suite *SequencerTestSuite) TestSlashingProposerSequencer() {
-	suite.SetupTest()
 	keeper := suite.App.SequencerKeeper
 
 	rollappId, pk1 := suite.CreateDefaultRollapp()

@@ -10,7 +10,6 @@ import (
 )
 
 func (suite *SequencerTestSuite) TestUnbondingMultiple() {
-	suite.SetupTest()
 	suite.Ctx = suite.Ctx.WithBlockHeight(10)
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
 
@@ -66,7 +65,6 @@ func (suite *SequencerTestSuite) TestUnbondingMultiple() {
 }
 
 func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
-	suite.SetupTest()
 	denom := bond.Denom
 	blockheight := 20
 	var err error

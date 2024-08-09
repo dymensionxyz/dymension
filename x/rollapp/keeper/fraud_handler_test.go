@@ -13,7 +13,7 @@ import (
 
 func (suite *RollappTestSuite) TestHandleFraud() {
 	var err error
-	suite.SetupTest()
+
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 	initialheight := uint64(10)
@@ -61,7 +61,6 @@ func (suite *RollappTestSuite) TestHandleFraud() {
 
 // Fail - Invalid rollapp
 func (suite *RollappTestSuite) TestHandleFraud_InvalidRollapp() {
-	suite.SetupTest()
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
@@ -75,7 +74,6 @@ func (suite *RollappTestSuite) TestHandleFraud_InvalidRollapp() {
 
 // Fail - Wrong height
 func (suite *RollappTestSuite) TestHandleFraud_WrongHeight() {
-	suite.SetupTest()
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
@@ -89,7 +87,6 @@ func (suite *RollappTestSuite) TestHandleFraud_WrongHeight() {
 
 // Fail - Wrong sequencer address
 func (suite *RollappTestSuite) TestHandleFraud_WrongSequencer() {
-	suite.SetupTest()
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
@@ -103,7 +100,6 @@ func (suite *RollappTestSuite) TestHandleFraud_WrongSequencer() {
 
 // Fail - Wrong channel-ID
 func (suite *RollappTestSuite) TestHandleFraud_WrongChannelID() {
-	suite.SetupTest()
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
@@ -117,7 +113,6 @@ func (suite *RollappTestSuite) TestHandleFraud_WrongChannelID() {
 
 // Fail - Disputing already reverted state
 func (suite *RollappTestSuite) TestHandleFraud_AlreadyReverted() {
-	suite.SetupTest()
 	var err error
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
@@ -148,7 +143,6 @@ func (suite *RollappTestSuite) TestHandleFraud_AlreadyReverted() {
 
 // Fail - Disputing already finalized state
 func (suite *RollappTestSuite) TestHandleFraud_AlreadyFinalized() {
-	suite.SetupTest()
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 

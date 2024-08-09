@@ -11,7 +11,6 @@ import (
 )
 
 func (suite *SequencerTestSuite) TestIncreaseBond() {
-	suite.SetupTest()
 	rollappId, pk := suite.CreateDefaultRollapp()
 	// setup a default sequencer
 	defaultSequencerAddress := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)

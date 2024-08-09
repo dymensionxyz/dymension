@@ -9,7 +9,6 @@ import (
 )
 
 func (suite *RollappTestSuite) TestInvariants() {
-	suite.SetupTest()
 	initialheight := int64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(initialheight)
 
@@ -57,7 +56,6 @@ func (suite *RollappTestSuite) TestInvariants() {
 }
 
 func (suite *RollappTestSuite) TestRollappFinalizedStateInvariant() {
-	suite.SetupTest()
 	ctx := suite.Ctx
 	rollapp1, rollapp2, rollapp3 := "rollapp_1234-1", "unrollapp_2345-1", "trollapp_3456-1"
 	cases := []struct {

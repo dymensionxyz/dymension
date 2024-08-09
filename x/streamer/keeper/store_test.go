@@ -6,8 +6,6 @@ func (suite *KeeperTestSuite) TestStreamReferencesManagement() {
 	key1 := []byte{0x11}
 	key2 := []byte{0x12}
 
-	suite.SetupTest()
-
 	// set two stream references to key 1 and three stream references to key 2
 	_ = suite.App.StreamerKeeper.AddStreamRefByKey(suite.Ctx, key1, 1)
 	_ = suite.App.StreamerKeeper.AddStreamRefByKey(suite.Ctx, key2, 1)
