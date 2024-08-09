@@ -37,6 +37,9 @@ func (h Hooks) AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, 
 	return nil
 }
 
+// afterDelegationModified handles the AfterDelegationModified staking hook. It checks if the delegator has a vote,
+// gets the current delegator's voting power gained from the specified validator, gets the x/staking voting power for
+// this validator and calls a generic processHook method.
 func (h Hooks) afterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
 	voted, err := h.k.Voted(ctx, delAddr)
 	if err != nil {
@@ -99,6 +102,9 @@ func (h Hooks) BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, 
 	return nil
 }
 
+// beforeDelegationRemoved handles the BeforeDelegationRemoved staking hook. It checks if the delegator has a vote,
+// gets the current delegator's voting power gained from the specified validator, and calls a generic processHook
+// method assuming that the x/staking voting power for this validator is zero.
 func (h Hooks) beforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
 	voted, err := h.k.Voted(ctx, delAddr)
 	if err != nil {
@@ -137,6 +143,20 @@ func (h Hooks) beforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, 
 	return nil
 }
 
+// processHook is a genetic method to handle changes in delegations. The method:
+//  1. Retrieving the vote cast by the delegator
+//  2. Calculates the difference between the new (updated) and old (stored in the state) voting power gained from
+//     the validator passed as a parameter
+//  3. Applies the diff to the total user's voting power
+//  4. If the new voting power falls under the minimum required, revoke the vote
+//  5. Otherwise, the update the vote, distribution, and voting power records accordingly
+//  6. The new voting power might be zero if the user completely undelegated. If it is, the record associated with
+//     this validator is deleted.
+//
+// The method finally returns a struct containing the new distribution, a flag indicating if the vote
+// was pruned (revoked), the difference in voting power and the new total voting power.
+//
+// This function is expected to be used internally by the Hooks type methods.
 func (h Hooks) processHook(
 	ctx sdk.Context,
 	delAddr sdk.AccAddress,
@@ -153,7 +173,7 @@ func (h Hooks) processHook(
 		return nil, fmt.Errorf("cannot get module params: %w", err)
 	}
 
-	// Calculate the diff: if it's > 0, then the user has bonded. Otherwise, unbonded.
+	// Calculate the diff: if it's > 0, then the user has increase it's bond. Otherwise, decreased it's bond.
 	powerDiff := newVP.Sub(oldVP)
 	newTotalVP := vote.VotingPower.Add(powerDiff)
 
