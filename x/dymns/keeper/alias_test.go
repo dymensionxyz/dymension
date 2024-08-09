@@ -13,112 +13,90 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestKeeper_GetSetAliasForRollAppId(t *testing.T) {
-	type rollApp struct {
-		id    string
-		alias string
-	}
+func (s *KeeperTestSuite) TestKeeper_GetSetAliasForRollAppId() {
+	rollApp1 := *newRollApp("rollapp_1-1").WithAlias("al1")
+	rollApp2 := *newRollApp("rolling_2-2").WithAlias("al2")
+	rollApp3NotExists := *newRollApp("nah_0-0").WithAlias("al3")
 
-	rollApp1 := rollApp{
-		id:    "rollapp_1-1",
-		alias: "al1",
-	}
-
-	rollApp2 := rollApp{
-		id:    "rolling_2-2",
-		alias: "al2",
-	}
-
-	rollApp3NotExists := rollApp{
-		id:    "nah_0-0",
-		alias: "al3",
-	}
-
-	dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
-
-	for i, ra := range []rollApp{rollApp1, rollApp2} {
-		rk.SetRollapp(ctx, rollapptypes.Rollapp{
-			RollappId: ra.id,
+	for i, ra := range []rollapp{rollApp1, rollApp2} {
+		s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
+			RollappId: ra.rollAppId,
 			Owner:     testAddr(uint64(i)).bech32(),
 		})
 	}
 
-	t.Run("set - can set", func(t *testing.T) {
-		require.True(t, dk.IsRollAppId(ctx, rollApp1.id), "must be a RollApp, just not set alias")
+	s.Run("set - can set", func() {
+		s.Require().True(s.dymNsKeeper.IsRollAppId(s.ctx, rollApp1.rollAppId), "must be a RollApp, just not set alias")
 
-		err := dk.SetAliasForRollAppId(ctx, rollApp1.id, rollApp1.alias)
-		require.NoError(t, err)
+		err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp1.rollAppId, rollApp1.alias)
+		s.Require().NoError(err)
 
-		alias, found := dk.GetAliasByRollAppId(ctx, rollApp1.id)
-		require.Equal(t, rollApp1.alias, alias)
-		require.True(t, found)
+		alias, found := s.dymNsKeeper.GetAliasByRollAppId(s.ctx, rollApp1.rollAppId)
+		s.Equal(rollApp1.alias, alias)
+		s.True(found)
 
-		rollAppId, found := dk.GetRollAppIdByAlias(ctx, rollApp1.alias)
-		require.Equal(t, rollApp1.id, rollAppId)
-		require.True(t, found)
+		rollAppId, found := s.dymNsKeeper.GetRollAppIdByAlias(s.ctx, rollApp1.alias)
+		s.Equal(rollApp1.rollAppId, rollAppId)
+		s.True(found)
 	})
 
-	t.Run("set - can NOT set if alias is being in-used by another RollApp", func(t *testing.T) {
-		rollAppId, found := dk.GetRollAppIdByAlias(ctx, rollApp1.alias)
-		require.Equal(t, rollApp1.id, rollAppId)
-		require.True(t, found)
+	s.Run("set - can NOT set if alias is being in-used by another RollApp", func() {
+		rollAppId, found := s.dymNsKeeper.GetRollAppIdByAlias(s.ctx, rollApp1.alias)
+		s.Equal(rollApp1.rollAppId, rollAppId)
+		s.True(found)
 
-		err := dk.SetAliasForRollAppId(ctx, rollApp2.id, rollApp1.alias)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "alias currently being in used by:")
+		err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp2.rollAppId, rollApp1.alias)
+		s.requireErrorContains(err, "alias currently being in used by:")
 	})
 
-	t.Run("set - reject chain-id", func(t *testing.T) {
-		err := dk.SetAliasForRollAppId(ctx, "bad@", "alias")
-		require.Error(t, err)
+	s.Run("set - reject bad chain-id", func() {
+		err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, "bad@", "alias")
+		s.Error(err)
 	})
 
-	t.Run("set - reject bad alias", func(t *testing.T) {
-		require.True(t, dk.IsRollAppId(ctx, rollApp2.id), "must be a RollApp")
+	s.Run("set - reject bad alias", func() {
+		s.Require().True(s.dymNsKeeper.IsRollAppId(s.ctx, rollApp2.rollAppId), "must be a RollApp")
 
-		err := dk.SetAliasForRollAppId(ctx, rollApp2.id, "")
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "invalid alias")
+		err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp2.rollAppId, "")
+		s.requireErrorContains(err, "invalid alias")
 
-		err = dk.SetAliasForRollAppId(ctx, rollApp2.id, "@")
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "invalid alias")
+		err = s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp2.rollAppId, "@")
+		s.requireErrorContains(err, "invalid alias")
 	})
 
-	t.Run("get - of existing RollApp but no alias set", func(t *testing.T) {
-		require.True(t, dk.IsRollAppId(ctx, rollApp2.id), "must be a RollApp, just not set alias")
+	s.Run("get - of existing RollApp but no alias set", func() {
+		s.Require().True(s.dymNsKeeper.IsRollAppId(s.ctx, rollApp2.rollAppId), "must be a RollApp, just not set alias")
 
-		alias, found := dk.GetAliasByRollAppId(ctx, rollApp2.id)
-		require.Empty(t, alias)
-		require.False(t, found)
+		alias, found := s.dymNsKeeper.GetAliasByRollAppId(s.ctx, rollApp2.rollAppId)
+		s.Empty(alias)
+		s.False(found)
 
-		rollAppId, found := dk.GetRollAppIdByAlias(ctx, rollApp2.alias)
-		require.Empty(t, rollAppId)
-		require.False(t, found)
+		rollAppId, found := s.dymNsKeeper.GetRollAppIdByAlias(s.ctx, rollApp2.alias)
+		s.Empty(rollAppId)
+		s.False(found)
 	})
 
-	t.Run("set - non-exists RollApp returns error", func(t *testing.T) {
-		require.False(t, dk.IsRollAppId(ctx, rollApp3NotExists.id))
+	s.Run("set - non-exists RollApp returns error", func() {
+		s.Require().False(s.dymNsKeeper.IsRollAppId(s.ctx, rollApp3NotExists.rollAppId))
 
-		err := dk.SetAliasForRollAppId(ctx, rollApp3NotExists.id, rollApp3NotExists.alias)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "not a RollApp")
+		err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp3NotExists.rollAppId, rollApp3NotExists.alias)
+		s.requireErrorContains(err, "not a RollApp")
 	})
 
-	t.Run("get - non-exists RollApp returns empty", func(t *testing.T) {
-		require.False(t, dk.IsRollAppId(ctx, rollApp3NotExists.id))
+	s.Run("get - non-exists RollApp returns empty", func() {
+		s.Require().False(s.dymNsKeeper.IsRollAppId(s.ctx, rollApp3NotExists.rollAppId))
 
-		alias, found := dk.GetAliasByRollAppId(ctx, rollApp3NotExists.id)
-		require.Empty(t, alias)
-		require.False(t, found)
+		alias, found := s.dymNsKeeper.GetAliasByRollAppId(s.ctx, rollApp3NotExists.rollAppId)
+		s.Empty(alias)
+		s.False(found)
 
-		rollAppId, found := dk.GetRollAppIdByAlias(ctx, rollApp3NotExists.alias)
-		require.Empty(t, rollAppId)
-		require.False(t, found)
+		rollAppId, found := s.dymNsKeeper.GetRollAppIdByAlias(s.ctx, rollApp3NotExists.alias)
+		s.Empty(rollAppId)
+		s.False(found)
 	})
 
-	t.Run("set/get - can set multiple alias to a single Roll-App", func(t *testing.T) {
-		dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
+	s.Run("set/get - can set multiple alias to a single Roll-App", func() {
+		s.SetupTest()
 
 		type testCase struct {
 			rollAppId string
@@ -137,7 +115,7 @@ func TestKeeper_GetSetAliasForRollAppId(t *testing.T) {
 		}
 
 		for _, tc := range testcases {
-			rk.SetRollapp(ctx, rollapptypes.Rollapp{
+			s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
 				RollappId: tc.rollAppId,
 				Owner:     testAddr(0).bech32(),
 			})
@@ -145,22 +123,22 @@ func TestKeeper_GetSetAliasForRollAppId(t *testing.T) {
 
 		for _, tc := range testcases {
 			for _, alias := range tc.aliases {
-				err := dk.SetAliasForRollAppId(ctx, tc.rollAppId, alias)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, tc.rollAppId, alias)
+				s.Require().NoError(err)
 			}
 		}
 
 		for _, tc := range testcases {
 			for _, alias := range tc.aliases {
-				rollAppId, found := dk.GetRollAppIdByAlias(ctx, alias)
-				require.Equal(t, tc.rollAppId, rollAppId)
-				require.True(t, found)
+				rollAppId, found := s.dymNsKeeper.GetRollAppIdByAlias(s.ctx, alias)
+				s.Equal(tc.rollAppId, rollAppId)
+				s.True(found)
 			}
 
-			alias, found := dk.GetAliasByRollAppId(ctx, tc.rollAppId)
-			require.True(t, found)
-			require.Contains(t, tc.aliases, alias)
-			require.Equal(t, alias, tc.aliases[0], "should returns the first one added")
+			alias, found := s.dymNsKeeper.GetAliasByRollAppId(s.ctx, tc.rollAppId)
+			s.True(found)
+			s.Contains(tc.aliases, alias)
+			s.Equal(alias, tc.aliases[0], "should returns the first one added")
 		}
 	})
 }
@@ -190,31 +168,13 @@ func (s *KeeperTestSuite) TestKeeper_GetAliasesOfRollAppId() {
 	s.Require().Empty(aliases)
 }
 
-func TestKeeper_RemoveAliasFromRollAppId(t *testing.T) {
-	type rollapp struct {
-		rollAppId string
-		alias     string
-	}
-	rollApp1 := rollapp{
-		rollAppId: "rollapp_1-1",
-		alias:     "al1",
-	}
-	rollApp2 := rollapp{
-		rollAppId: "rolling_2-2",
-		alias:     "al2",
-	}
-	rollApp3 := rollapp{
-		rollAppId: "rollapp_3-3",
-		alias:     "al3",
-	}
-	rollApp4NoAlias := rollapp{
-		rollAppId: "noa_4-4",
-		alias:     "",
-	}
-	rollApp5NotExists := rollapp{
-		rollAppId: "nah_5-5",
-		alias:     "al5",
-	}
+func (s *KeeperTestSuite) TestKeeper_RemoveAliasFromRollAppId() {
+	rollApp1 := *newRollApp("rollapp_1-1").WithAlias("al1")
+	rollApp2 := *newRollApp("rolling_2-2").WithAlias("al2")
+	rollApp3 := *newRollApp("rollapp_3-3").WithAlias("al3")
+	rollApp4NoAlias := *newRollApp("noa_4-4")
+	rollApp5NotExists := *newRollApp("nah_5-5").WithAlias("al5")
+
 	const aliasOne = "one"
 	const aliasTwo = "two"
 	const unusedAlias = "unused"
@@ -222,225 +182,220 @@ func TestKeeper_RemoveAliasFromRollAppId(t *testing.T) {
 	tests := []struct {
 		name            string
 		addRollApps     []rollapp
-		preRunFunc      func(*testing.T, sdk.Context, dymnskeeper.Keeper, rollappkeeper.Keeper)
+		preRunFunc      func(*KeeperTestSuite)
 		inputRollAppId  string
 		inputAlias      string
 		wantErr         bool
 		wantErrContains string
-		afterTestFunc   func(*testing.T, sdk.Context, dymnskeeper.Keeper, rollappkeeper.Keeper)
+		afterTestFunc   func(*KeeperTestSuite)
 	}{
 		{
 			name:        "pass - can remove",
 			addRollApps: []rollapp{rollApp1},
-			preRunFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
 			},
 			inputRollAppId: rollApp1.rollAppId,
 			inputAlias:     rollApp1.alias,
 			wantErr:        false,
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireRollAppHasNoAlias(rollApp1.rollAppId, t, ctx, dk)
-				requireAliasNotInUse(rollApp1.alias, t, ctx, dk)
+			afterTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasNoAlias()
+				s.requireAlias(rollApp1.alias).NotInUse()
 			},
 		},
 		{
 			name:        "pass - can remove among multiple records",
 			addRollApps: []rollapp{rollApp1, rollApp2, rollApp3},
-			preRunFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
-				requireAssignedAliasPairs(rollApp2.rollAppId, rollApp2.alias, t, ctx, dk)
-				requireAssignedAliasPairs(rollApp3.rollAppId, rollApp3.alias, t, ctx, dk)
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
+				s.requireRollApp(rollApp2.rollAppId).HasAlias(rollApp2.alias)
+				s.requireRollApp(rollApp3.rollAppId).HasAlias(rollApp3.alias)
 			},
 			inputRollAppId: rollApp2.rollAppId,
 			inputAlias:     rollApp2.alias,
 			wantErr:        false,
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireRollAppHasNoAlias(rollApp2.rollAppId, t, ctx, dk)
-				requireAliasNotInUse(rollApp2.alias, t, ctx, dk)
+			afterTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp2.rollAppId).HasNoAlias()
+				s.requireAlias(rollApp2.alias).NotInUse()
 
 				// other records remain unchanged
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
-				requireAssignedAliasPairs(rollApp3.rollAppId, rollApp3.alias, t, ctx, dk)
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
+				s.requireRollApp(rollApp3.rollAppId).HasAlias(rollApp3.alias)
 			},
 		},
 		{
 			name:        "fail - reject if input RollApp ID is empty",
 			addRollApps: []rollapp{rollApp1},
-			preRunFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
 			},
 			inputRollAppId:  "",
 			inputAlias:      rollApp1.alias,
 			wantErr:         true,
 			wantErrContains: "not a RollApp",
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+			afterTestFunc: func(s *KeeperTestSuite) {
 				// record remains unchanged
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
 			},
 		},
 		{
 			name:        "fail - reject if input RollApp ID is not exists",
 			addRollApps: []rollapp{rollApp1},
-			preRunFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				require.False(t, dk.IsRollAppId(ctx, rollApp5NotExists.rollAppId))
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.Require().False(s.dymNsKeeper.IsRollAppId(s.ctx, rollApp5NotExists.rollAppId))
 
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
 			},
 			inputRollAppId:  rollApp5NotExists.rollAppId,
 			inputAlias:      rollApp5NotExists.alias,
 			wantErr:         true,
 			wantErrContains: "not a RollApp",
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+			afterTestFunc: func(s *KeeperTestSuite) {
 				// other records remain unchanged
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
 			},
 		},
 		{
 			name:        "fail - reject if input Alias is empty",
 			addRollApps: []rollapp{rollApp1},
-			preRunFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
 			},
 			inputRollAppId:  rollApp1.rollAppId,
 			inputAlias:      "",
 			wantErr:         true,
 			wantErrContains: "invalid alias",
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+			afterTestFunc: func(s *KeeperTestSuite) {
 				// record remains unchanged
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
 			},
 		},
 		{
 			name:        "fail - reject if input Alias is malformed",
 			addRollApps: []rollapp{rollApp1},
-			preRunFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
 			},
 			inputRollAppId:  rollApp1.rollAppId,
 			inputAlias:      "@",
 			wantErr:         true,
 			wantErrContains: "invalid alias",
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+			afterTestFunc: func(s *KeeperTestSuite) {
 				// record remains unchanged
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
 			},
 		},
 		{
 			name:        "fail - reject if Roll App has no alias linked",
 			addRollApps: []rollapp{rollApp4NoAlias},
-			preRunFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireRollAppHasNoAlias(rollApp4NoAlias.rollAppId, t, ctx, dk)
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp4NoAlias.rollAppId).HasNoAlias()
 			},
 			inputRollAppId:  rollApp4NoAlias.rollAppId,
 			inputAlias:      aliasOne,
 			wantErr:         true,
 			wantErrContains: "alias not found",
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+			afterTestFunc: func(s *KeeperTestSuite) {
 				// record remains unchanged
-				requireRollAppHasNoAlias(rollApp4NoAlias.rollAppId, t, ctx, dk)
+				s.requireRollApp(rollApp4NoAlias.rollAppId).HasNoAlias()
 			},
 		},
 		{
 			name:        "fail - reject if Roll App has no alias linked and input alias linked to another Roll App",
 			addRollApps: []rollapp{rollApp1, rollApp4NoAlias},
-			preRunFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
-				requireRollAppHasNoAlias(rollApp4NoAlias.rollAppId, t, ctx, dk)
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
+				s.requireRollApp(rollApp4NoAlias.rollAppId).HasNoAlias()
 			},
 			inputRollAppId:  rollApp4NoAlias.rollAppId,
 			inputAlias:      rollApp1.alias,
 			wantErr:         true,
 			wantErrContains: "alias currently being in used by:",
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+			afterTestFunc: func(s *KeeperTestSuite) {
 				// records remain unchanged
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
-				requireRollAppHasNoAlias(rollApp4NoAlias.rollAppId, t, ctx, dk)
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
+				s.requireRollApp(rollApp4NoAlias.rollAppId).HasNoAlias()
 			},
 		},
 		{
 			name:        "fail - reject if remove alias linked to another Roll App",
 			addRollApps: []rollapp{rollApp1, rollApp2},
-			preRunFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
-				requireAssignedAliasPairs(rollApp2.rollAppId, rollApp2.alias, t, ctx, dk)
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
+				s.requireRollApp(rollApp2.rollAppId).HasAlias(rollApp2.alias)
 			},
 			inputRollAppId:  rollApp1.rollAppId,
 			inputAlias:      rollApp2.alias,
 			wantErr:         true,
 			wantErrContains: "alias currently being in used by",
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+			afterTestFunc: func(s *KeeperTestSuite) {
 				// records remain unchanged
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
-				requireAssignedAliasPairs(rollApp2.rollAppId, rollApp2.alias, t, ctx, dk)
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
+				s.requireRollApp(rollApp2.rollAppId).HasAlias(rollApp2.alias)
 			},
 		},
 		{
 			name:        "fail - reject if input alias does not link to any Roll App",
 			addRollApps: []rollapp{rollApp1},
-			preRunFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
 			},
 			inputRollAppId:  rollApp1.rollAppId,
 			inputAlias:      unusedAlias,
 			wantErr:         true,
 			wantErrContains: "alias not found",
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+			afterTestFunc: func(s *KeeperTestSuite) {
 				// records remain unchanged
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias)
 			},
 		},
 		{
 			name:        "pass - remove alias correctly among multiple aliases linked to a Roll App",
 			addRollApps: []rollapp{rollApp1},
-			preRunFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				require.NoError(t, dk.SetAliasForRollAppId(ctx, rollApp1.rollAppId, aliasOne))
-				require.NoError(t, dk.SetAliasForRollAppId(ctx, rollApp1.rollAppId, aliasTwo))
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.Require().NoError(s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp1.rollAppId, aliasOne))
+				s.Require().NoError(s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp1.rollAppId, aliasTwo))
 
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
-				requireAliasLinkedToRollApp(aliasOne, rollApp1.rollAppId, t, ctx, dk)
-				requireAliasLinkedToRollApp(aliasTwo, rollApp1.rollAppId, t, ctx, dk)
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias, aliasOne, aliasTwo)
 			},
 			inputRollAppId: rollApp1.rollAppId,
 			inputAlias:     aliasOne,
 			wantErr:        false,
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
-				requireAliasNotInUse(aliasOne, t, ctx, dk)
-				requireAliasLinkedToRollApp(aliasTwo, rollApp1.rollAppId, t, ctx, dk)
+			afterTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasAlias(rollApp1.alias, aliasTwo)
+				s.requireAlias(aliasOne).NotInUse()
 			},
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
+		s.Run(tt.name, func() {
+			s.SetupTest()
 
 			for _, ra := range tt.addRollApps {
-				registerRollApp(t, ctx, rk, dk, ra.rollAppId, "", ra.alias)
+				s.persistRollApp(ra)
 			}
 
 			if tt.preRunFunc != nil {
-				tt.preRunFunc(t, ctx, dk, rk)
+				tt.preRunFunc(s)
 			}
 
-			err := dk.RemoveAliasFromRollAppId(ctx, tt.inputRollAppId, tt.inputAlias)
+			err := s.dymNsKeeper.RemoveAliasFromRollAppId(s.ctx, tt.inputRollAppId, tt.inputAlias)
 
 			defer func() {
-				if t.Failed() {
+				if s.T().Failed() {
 					return
 				}
 				if tt.afterTestFunc != nil {
-					tt.afterTestFunc(t, ctx, dk, rk)
+					tt.afterTestFunc(s)
 				}
 			}()
 
 			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				s.requireErrorContains(err, tt.wantErrContains)
 				return
 			}
 
-			require.NoError(t, err)
+			s.Require().NoError(err)
 		})
 	}
 }

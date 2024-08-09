@@ -190,6 +190,26 @@ func (m reqRollApp) HasNoAlias() {
 
 //
 
+type reqAlias struct {
+	s     *KeeperTestSuite
+	alias string
+}
+
+func (s *KeeperTestSuite) requireAlias(alias string) *reqAlias {
+	return &reqAlias{
+		s:     s,
+		alias: alias,
+	}
+}
+
+func (m reqAlias) NotInUse() {
+	rollAppId, found := m.s.dymNsKeeper.GetRollAppIdByAlias(m.s.ctx, m.alias)
+	m.s.Require().False(found)
+	m.s.Require().Empty(rollAppId)
+}
+
+//
+
 type sellOrderBuilder struct {
 	s *KeeperTestSuite
 	//
