@@ -14,3 +14,27 @@ func (s *SequencerTestSuite) TestSlashBasic() {
 		s.Require().NoError(err)
 	})
 }
+
+func (suite *SequencerTestSuite) TestSlashingBondReducingSequencer() {
+	suite.SetupTest()
+	keeper := suite.App.SequencerKeeper
+
+	rollappId, pk := suite.CreateDefaultRollapp()
+	seqAddr := suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)), pk)
+
+	suite.Ctx = suite.Ctx.WithBlockHeight(20)
+	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
+
+	reduceBondMsg := types.MsgDecreaseBond{Creator: seqAddr, DecreaseAmount: sdk.NewInt64Coin(bond.Denom, 10)}
+	resp, err := suite.msgServer.DecreaseBond(suite.Ctx, &reduceBondMsg)
+	suite.Require().NoError(err)
+	bondReductions := keeper.GetMatureDecreasingBondSequencers(suite.Ctx, resp.GetCompletionTime())
+	suite.Require().Len(bondReductions, 1)
+
+	err = keeper.Slashing(suite.Ctx, seqAddr)
+	suite.NoError(err)
+
+	bondReductions = keeper.GetMatureDecreasingBondSequencers(suite.Ctx, resp.GetCompletionTime())
+	suite.Require().Len(bondReductions, 0)
+	suite.assertSlashed(seqAddr)
+}
