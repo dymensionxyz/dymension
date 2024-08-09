@@ -2,6 +2,7 @@ package sequencer_test
 
 import (
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -27,6 +28,13 @@ func TestInitGenesis(t *testing.T) {
 				Status:  types.Bonded,
 			},
 		},
+		BondReductions: []types.BondReduction{
+			{
+				SequencerAddress: "0",
+				UnbondAmount:     sdk.NewCoin("dym", sdk.NewInt(100)),
+				UnbondTime:       time.Now().UTC(),
+			},
+		},
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -39,6 +47,7 @@ func TestInitGenesis(t *testing.T) {
 	nullify.Fill(got)
 
 	require.ElementsMatch(t, genesisState.SequencerList, got.SequencerList)
+	require.ElementsMatch(t, genesisState.BondReductions, got.BondReductions)
 	// this line is used by starport scaffolding # genesis/test/assert
 }
 
@@ -59,13 +68,25 @@ func TestExportGenesis(t *testing.T) {
 			Status:  types.Bonded,
 		},
 	}
+	bondReductions := []types.BondReduction{
+		{
+			SequencerAddress: "0",
+			UnbondAmount:     sdk.NewCoin("dym", sdk.NewInt(100)),
+			UnbondTime:       time.Now().UTC(),
+		},
+	}
 	k, ctx := keepertest.SequencerKeeper(t)
 	k.SetParams(ctx, params)
 	for _, sequencer := range sequencerList {
 		k.SetSequencer(ctx, sequencer)
 	}
+	for _, bondReduction := range bondReductions {
+		k.SetDecreasingBondQueue(ctx, bondReduction)
+	}
+
 	got := sequencer.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
 	require.Equal(t, params, got.Params)
 	require.ElementsMatch(t, sequencerList, got.SequencerList)
+	require.ElementsMatch(t, bondReductions, got.BondReductions)
 }
