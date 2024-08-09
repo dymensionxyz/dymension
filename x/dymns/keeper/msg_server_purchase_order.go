@@ -220,6 +220,12 @@ func (k msgServer) validatePurchaseOrderTypeAlias(ctx sdk.Context, msg *dymnstyp
 		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "destination Roll-App ID is the same as the source")
 	}
 
+	if k.IsAliasPresentsInParamsAsAliasOrChainId(ctx, msg.GoodsId) {
+		return nil, errorsmod.Wrapf(gerrc.ErrPermissionDenied,
+			"prohibited to trade aliases which is reserved for chain-id or alias in module params: %s", msg.GoodsId,
+		)
+	}
+
 	so := k.GetSellOrder(ctx, msg.GoodsId, msg.OrderType)
 	if so == nil {
 		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.GoodsId)

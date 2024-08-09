@@ -1050,6 +1050,35 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOffer,
 		},
 		{
+			name:                  "fail - can not place offer of alias which presents in params",
+			existingRollApps:      []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
+			existingOffer:         nil,
+			alias:                 rollApp_1_by1_asSrc.alias,
+			buyer:                 rollApp_2_by2_asDest.creator,
+			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
+			offer:                 dymnsutils.TestCoin(minOfferPrice),
+			existingOfferId:       "",
+			originalModuleBalance: 5,
+			originalBuyerBalance:  minOfferPrice + 2,
+			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+				moduleParams := dk.GetParams(ctx)
+				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "some-chain",
+						Aliases: []string{rollApp_1_by1_asSrc.alias},
+					},
+				}
+				err := dk.SetParams(ctx, moduleParams)
+				require.NoError(t, err)
+			},
+			wantErr:                true,
+			wantErrContains:        "prohibited to trade aliases which is reserved for chain-id or alias in module params",
+			wantLaterOffer:         nil,
+			wantLaterModuleBalance: 5,
+			wantLaterBuyerBalance:  minOfferPrice + 2,
+			wantMinConsumeGas:      1,
+		},
+		{
 			name:             "pass - can extends offer",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
 			existingOffer: &dymnstypes.BuyOffer{
@@ -1081,6 +1110,51 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  0,
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
+		},
+		{
+			name:             "fail - can NOT extend offer of alias which presents in params",
+			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
+			existingOffer: &dymnstypes.BuyOffer{
+				Id:                     "202",
+				GoodsId:                rollApp_1_by1_asSrc.alias,
+				Type:                   dymnstypes.AliasOrder,
+				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
+				Buyer:                  rollApp_2_by2_asDest.creator,
+				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
+				CounterpartyOfferPrice: nil,
+			},
+			alias:                 rollApp_1_by1_asSrc.alias,
+			buyer:                 rollApp_2_by2_asDest.creator,
+			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
+			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
+			existingOfferId:       "202",
+			originalModuleBalance: 0,
+			originalBuyerBalance:  1,
+			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+				moduleParams := dk.GetParams(ctx)
+				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "some-chain",
+						Aliases: []string{rollApp_1_by1_asSrc.alias},
+					},
+				}
+				err := dk.SetParams(ctx, moduleParams)
+				require.NoError(t, err)
+			},
+			wantErr:         true,
+			wantErrContains: "prohibited to trade aliases which is reserved for chain-id or alias in module params",
+			wantOfferId:     "202",
+			wantLaterOffer: &dymnstypes.BuyOffer{
+				Id:         "202",
+				GoodsId:    rollApp_1_by1_asSrc.alias,
+				Type:       dymnstypes.AliasOrder,
+				Params:     []string{rollApp_2_by2_asDest.rollAppID},
+				Buyer:      rollApp_2_by2_asDest.creator,
+				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
+			},
+			wantLaterModuleBalance: 0,
+			wantLaterBuyerBalance:  1,
+			wantMinConsumeGas:      1,
 		},
 		{
 			name:             "fail - can NOT extends offer of type mis-match",

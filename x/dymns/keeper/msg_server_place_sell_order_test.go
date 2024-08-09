@@ -466,6 +466,24 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 			sellPrice: nil,
 		},
 		{
+			name:      "fail - can NOT place sell order if alias which present in params",
+			minPrice:  coin100,
+			sellPrice: nil,
+			preRunSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+				moduleParams := dk.GetParams(ctx)
+				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "some-chain",
+						Aliases: []string{alias},
+					},
+				}
+				err := dk.SetParams(ctx, moduleParams)
+				require.NoError(t, err)
+			},
+			wantErr:         true,
+			wantErrContains: "prohibited to trade aliases which is reserved for chain-id or alias in module params",
+		},
+		{
 			name:      "pass - successfully place Alias Sell-Order, without sell price",
 			minPrice:  coin100,
 			sellPrice: dymnsutils.TestCoinP(0),
