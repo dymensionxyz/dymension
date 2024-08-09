@@ -31,7 +31,7 @@ func (m GenesisState) Validate() error {
 		}
 	}
 
-	for _, bo := range m.BuyOffers {
+	for _, bo := range m.BuyOrders {
 		if err := bo.Validate(); err != nil {
 			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Buy-Order by '%s': %v", bo.Buyer, err)
 		}

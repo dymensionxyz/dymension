@@ -211,7 +211,7 @@ message MiscParams {
 
   // prohibit_sell_duration is the amount of time,
   // if the Sell-Order expiration date enters the range before expiry of Dym-Name, the Sell-Order can not be placed.
-  // The logic also applies when the owner accepts a Buy-Offer, the Dym-Name can not be sold.
+  // The logic also applies when the owner accepts a Buy-Order, the Dym-Name can not be sold.
   // This is to prevent the new owner of Dym-Name to sell it before the Dym-Name expires,
   // therefore help reduce the risk of new owner of Dym-Name not able to renew it on time.
   google.protobuf.Duration prohibit_sell_duration = 6 [

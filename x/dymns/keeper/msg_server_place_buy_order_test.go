@@ -64,19 +64,19 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 	tests := []struct {
 		name                        string
 		existingDymName             *dymnstypes.DymName
-		existingOffer               *dymnstypes.BuyOffer
+		existingOffer               *dymnstypes.BuyOrder
 		dymName                     string
 		buyer                       string
 		offer                       sdk.Coin
-		existingOfferId             string
+		existingBuyOrderId          string
 		originalModuleBalance       int64
 		originalBuyerBalance        int64
 		originalAnotherBuyerBalance int64
 		preRunSetupFunc             func(ctx sdk.Context, dk dymnskeeper.Keeper)
 		wantErr                     bool
 		wantErrContains             string
-		wantOfferId                 string
-		wantLaterOffer              *dymnstypes.BuyOffer
+		wantBuyOrderId              string
+		wantLaterOffer              *dymnstypes.BuyOrder
 		wantLaterModuleBalance      int64
 		wantLaterBuyerBalance       int64
 		wantMinConsumeGas           sdk.Gas
@@ -89,12 +89,12 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:               dymName.Name,
 			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice),
-			existingOfferId:       "",
+			existingBuyOrderId:    "",
 			originalModuleBalance: 5,
 			originalBuyerBalance:  minOfferPrice + 2,
 			wantErr:               false,
-			wantOfferId:           "101",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:        "101",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "101",
 				GoodsId:    dymName.Name,
 				Type:       dymnstypes.NameOrder,
@@ -103,12 +103,12 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			},
 			wantLaterModuleBalance: 5 + minOfferPrice,
 			wantLaterBuyerBalance:  (minOfferPrice + 2) - minOfferPrice,
-			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOrder,
 		},
 		{
 			name:            "pass - can extends offer",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "102",
 				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.NameOrder,
@@ -119,12 +119,12 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:               dymName.Name,
 			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "102",
+			existingBuyOrderId:    "102",
 			originalModuleBalance: 0,
 			originalBuyerBalance:  1,
 			wantErr:               false,
-			wantOfferId:           "102",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:        "102",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "102",
 				GoodsId:    dymName.Name,
 				Type:       dymnstypes.NameOrder,
@@ -133,12 +133,12 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			},
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  0,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
 		{
 			name:            "fail - can NOT extends offer of type mis-match",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:         "202",
 				GoodsId:    dymName.Name,
 				Type:       dymnstypes.AliasOrder,
@@ -149,13 +149,13 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:               dymName.Name,
 			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "202",
+			existingBuyOrderId:    "202",
 			originalModuleBalance: 0,
 			originalBuyerBalance:  1,
 			wantErr:               true,
 			wantErrContains:       "order type mismatch with existing offer",
-			wantOfferId:           "102",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:        "102",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "202",
 				GoodsId:    dymName.Name,
 				Type:       dymnstypes.AliasOrder,
@@ -170,7 +170,7 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 		{
 			name:            "pass - can extends offer with counterparty offer",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "102",
 				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.NameOrder,
@@ -181,12 +181,12 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:               dymName.Name,
 			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "102",
+			existingBuyOrderId:    "102",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  2,
 			wantErr:               false,
-			wantOfferId:           "102",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:        "102",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:                     "102",
 				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.NameOrder,
@@ -196,12 +196,12 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			},
 			wantLaterModuleBalance: 1 + 1,
 			wantLaterBuyerBalance:  2 - 1,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
 		{
 			name:            "pass - can extends offer with offer equals to counterparty offer",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "102",
 				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.NameOrder,
@@ -212,12 +212,12 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:               dymName.Name,
 			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 3),
-			existingOfferId:       "102",
+			existingBuyOrderId:    "102",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  5,
 			wantErr:               false,
-			wantOfferId:           "102",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:        "102",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:                     "102",
 				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.NameOrder,
@@ -227,12 +227,12 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			},
 			wantLaterModuleBalance: 1 + 3,
 			wantLaterBuyerBalance:  5 - 3,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
 		{
 			name:            "pass - can extends offer with offer greater than counterparty offer",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "102",
 				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.NameOrder,
@@ -243,12 +243,12 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:               dymName.Name,
 			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 4),
-			existingOfferId:       "102",
+			existingBuyOrderId:    "102",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  5,
 			wantErr:               false,
-			wantOfferId:           "102",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:        "102",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:                     "102",
 				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.NameOrder,
@@ -258,12 +258,12 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			},
 			wantLaterModuleBalance: 1 + 4,
 			wantLaterBuyerBalance:  5 - 4,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
 		{
 			name:            "pass - extends an existing offer only take the extra amount instead of all",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "101",
 				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.NameOrder,
@@ -274,12 +274,12 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:               dymName.Name,
 			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 2),
-			existingOfferId:       "101",
+			existingBuyOrderId:    "101",
 			originalModuleBalance: 5,
 			originalBuyerBalance:  3,
 			wantErr:               false,
-			wantOfferId:           "101",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:        "101",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "101",
 				GoodsId:    dymName.Name,
 				Type:       dymnstypes.NameOrder,
@@ -288,7 +288,7 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			},
 			wantLaterModuleBalance: 5 + 2,
 			wantLaterBuyerBalance:  3 - 2,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
 		{
 			name:                  "fail - can NOT place offer if trading Dym-Name is disabled",
@@ -297,7 +297,7 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:               dymName.Name,
 			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice),
-			existingOfferId:       "",
+			existingBuyOrderId:    "",
 			originalModuleBalance: 5,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
@@ -308,7 +308,7 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			},
 			wantErr:                true,
 			wantErrContains:        "trading of Dym-Name is disabled",
-			wantOfferId:            "",
+			wantBuyOrderId:         "",
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 5,
 			wantLaterBuyerBalance:  minOfferPrice + 2,
@@ -328,7 +328,7 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllBuyOffers(ctx))
+				require.Empty(t, dk.GetAllBuyOrders(ctx))
 			},
 		},
 		{
@@ -350,7 +350,7 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllBuyOffers(ctx))
+				require.Empty(t, dk.GetAllBuyOrders(ctx))
 			},
 		},
 		{
@@ -367,7 +367,7 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllBuyOffers(ctx))
+				require.Empty(t, dk.GetAllBuyOrders(ctx))
 			},
 		},
 		{
@@ -389,7 +389,7 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllBuyOffers(ctx))
+				require.Empty(t, dk.GetAllBuyOrders(ctx))
 			},
 		},
 		{
@@ -409,7 +409,7 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllBuyOffers(ctx))
+				require.Empty(t, dk.GetAllBuyOrders(ctx))
 			},
 		},
 		{
@@ -426,13 +426,13 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllBuyOffers(ctx))
+				require.Empty(t, dk.GetAllBuyOrders(ctx))
 			},
 		},
 		{
 			name:            "pass - if NOT continue offer, create another and charges full offer price",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "101",
 				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.NameOrder,
@@ -443,15 +443,15 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:               dymName.Name,
 			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "",
+			existingBuyOrderId:    "",
 			originalModuleBalance: minOfferPrice,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountBuyOffer(ctx, 1)
+				dk.SetCountBuyOrders(ctx, 1)
 			},
-			wantErr:     false,
-			wantOfferId: "102",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantErr:        false,
+			wantBuyOrderId: "102",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "102",
 				GoodsId:    dymName.Name,
 				Type:       dymnstypes.NameOrder,
@@ -460,12 +460,12 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			},
 			wantLaterModuleBalance: minOfferPrice + (minOfferPrice + 1),
 			wantLaterBuyerBalance:  (minOfferPrice + 2) - (minOfferPrice + 1),
-			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOrder,
 		},
 		{
 			name:            "fail - continue a non-existing offer",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "101",
 				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.NameOrder,
@@ -476,15 +476,15 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:               dymName.Name,
 			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "102",
+			existingBuyOrderId:    "102",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountBuyOffer(ctx, 1)
+				dk.SetCountBuyOrders(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "Buy-Order ID: 102: not found",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "101",
 				GoodsId:    dymName.Name,
 				Type:       dymnstypes.NameOrder,
@@ -495,14 +495,14 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
-				require.Nil(t, dk.GetBuyOffer(ctx, "102"))
+				require.Len(t, dk.GetAllBuyOrders(ctx), 1)
+				require.Nil(t, dk.GetBuyOrder(ctx, "102"))
 			},
 		},
 		{
 			name:            "fail - continue an existing offer but not yours",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "101",
 				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.NameOrder,
@@ -513,15 +513,15 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:               dymName.Name,
 			buyer:                 buyerA, // not the existing offer's buyer
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "101",
+			existingBuyOrderId:    "101",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountBuyOffer(ctx, 1)
+				dk.SetCountBuyOrders(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "not the owner of the offer",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "101",
 				GoodsId:    dymName.Name,
 				Type:       dymnstypes.NameOrder,
@@ -532,14 +532,14 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
-				require.Nil(t, dk.GetBuyOffer(ctx, "102"))
+				require.Len(t, dk.GetAllBuyOrders(ctx), 1)
+				require.Nil(t, dk.GetBuyOrder(ctx, "102"))
 			},
 		},
 		{
 			name:            "fail - continue an existing offer but the Dym-Name mismatch",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "101",
 				GoodsId:                "another-name",
 				Type:                   dymnstypes.NameOrder,
@@ -550,15 +550,15 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:               dymName.Name,
 			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "101",
+			existingBuyOrderId:    "101",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountBuyOffer(ctx, 1)
+				dk.SetCountBuyOrders(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "Dym-Name mismatch with existing offer",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "101",
 				GoodsId:    "another-name",
 				Type:       dymnstypes.NameOrder,
@@ -569,14 +569,14 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
-				require.Nil(t, dk.GetBuyOffer(ctx, "102"))
+				require.Len(t, dk.GetAllBuyOrders(ctx), 1)
+				require.Nil(t, dk.GetBuyOrder(ctx, "102"))
 			},
 		},
 		{
 			name:            "fail - continue an existing offer but mis-match offer denom",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:      "101",
 				GoodsId: dymName.Name,
 				Type:    dymnstypes.NameOrder,
@@ -590,15 +590,15 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:               dymName.Name,
 			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "101",
+			existingBuyOrderId:    "101",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountBuyOffer(ctx, 1)
+				dk.SetCountBuyOrders(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "offer denomination mismatch with existing offer",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:      "101",
 				GoodsId: dymName.Name,
 				Type:    dymnstypes.NameOrder,
@@ -612,14 +612,14 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
-				require.Nil(t, dk.GetBuyOffer(ctx, "102"))
+				require.Len(t, dk.GetAllBuyOrders(ctx), 1)
+				require.Nil(t, dk.GetBuyOrder(ctx, "102"))
 			},
 		},
 		{
 			name:            "fail - continue an existing offer but new offer less than previous",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "101",
 				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.NameOrder,
@@ -630,15 +630,15 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:               dymName.Name,
 			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1), // less
-			existingOfferId:       "101",
+			existingBuyOrderId:    "101",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountBuyOffer(ctx, 1)
+				dk.SetCountBuyOrders(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "offer price must be greater than existing offer price",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "101",
 				GoodsId:    dymName.Name,
 				Type:       dymnstypes.NameOrder,
@@ -649,14 +649,14 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
-				require.Nil(t, dk.GetBuyOffer(ctx, "102"))
+				require.Len(t, dk.GetAllBuyOrders(ctx), 1)
+				require.Nil(t, dk.GetBuyOrder(ctx, "102"))
 			},
 		},
 		{
 			name:            "fail - continue an existing offer but new offer equals to previous",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "101",
 				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.NameOrder,
@@ -667,15 +667,15 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:               dymName.Name,
 			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 2), // same
-			existingOfferId:       "101",
+			existingBuyOrderId:    "101",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountBuyOffer(ctx, 1)
+				dk.SetCountBuyOrders(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "offer price must be greater than existing offer price",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "101",
 				GoodsId:    dymName.Name,
 				Type:       dymnstypes.NameOrder,
@@ -686,8 +686,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
-				require.Nil(t, dk.GetBuyOffer(ctx, "102"))
+				require.Len(t, dk.GetAllBuyOrders(ctx), 1)
+				require.Nil(t, dk.GetBuyOrder(ctx, "102"))
 			},
 		},
 		{
@@ -697,13 +697,13 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:                     dymName.Name,
 			buyer:                       buyerA,
 			offer:                       dymnsutils.TestCoin(minOfferPrice),
-			existingOfferId:             "",
+			existingBuyOrderId:          "",
 			originalModuleBalance:       5,
 			originalBuyerBalance:        minOfferPrice + 2,
 			originalAnotherBuyerBalance: minOfferPrice,
 			wantErr:                     false,
-			wantOfferId:                 "101",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:              "101",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "101",
 				GoodsId:    dymName.Name,
 				Type:       dymnstypes.NameOrder,
@@ -712,21 +712,21 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			},
 			wantLaterModuleBalance: 5 + minOfferPrice,
 			wantLaterBuyerBalance:  (minOfferPrice + 2) - minOfferPrice,
-			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOrder,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				key := dymnstypes.DymNameToOfferIdsRvlKey(dymName.Name)
-				offerIds := dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"101"}, offerIds.OfferIds)
+				key := dymnstypes.DymNameToBuyOrderIdsRvlKey(dymName.Name)
+				orderIds := dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"101"}, orderIds.OrderIds)
 
-				offers, err := dk.GetBuyOffersOfDymName(ctx, dymName.Name)
+				offers, err := dk.GetBuyOrdersOfDymName(ctx, dymName.Name)
 				require.NoError(t, err)
 				require.Equal(t, "101", offers[0].Id)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(buyerA))
-				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"101"}, offerIds.OfferIds)
+				key = dymnstypes.BuyerToOrderIdsRvlKey(sdk.MustAccAddressFromBech32(buyerA))
+				orderIds = dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"101"}, orderIds.OrderIds)
 
-				offers, err = dk.GetBuyOffersByBuyer(ctx, buyerA)
+				offers, err = dk.GetBuyOrdersByBuyer(ctx, buyerA)
 				require.NoError(t, err)
 				require.Equal(t, "101", offers[0].Id)
 
@@ -738,25 +738,25 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 				})
 				require.NoError(t, err)
 				require.NotNil(t, resp)
-				require.Equal(t, "102", resp.OfferId)
+				require.Equal(t, "102", resp.OrderId)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(anotherBuyerA))
-				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"102"}, offerIds.OfferIds)
+				key = dymnstypes.BuyerToOrderIdsRvlKey(sdk.MustAccAddressFromBech32(anotherBuyerA))
+				orderIds = dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"102"}, orderIds.OrderIds)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(buyerA))
-				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"101"}, offerIds.OfferIds)
+				key = dymnstypes.BuyerToOrderIdsRvlKey(sdk.MustAccAddressFromBech32(buyerA))
+				orderIds = dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"101"}, orderIds.OrderIds)
 
-				key = dymnstypes.DymNameToOfferIdsRvlKey(dymName.Name)
-				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"101", "102"}, offerIds.OfferIds)
+				key = dymnstypes.DymNameToBuyOrderIdsRvlKey(dymName.Name)
+				orderIds = dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"101", "102"}, orderIds.OrderIds)
 			},
 		},
 		{
 			name:            "pass - reverse record added after successful offer extends",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "102",
 				GoodsId:                dymName.Name,
 				Type:                   dymnstypes.NameOrder,
@@ -767,22 +767,22 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			dymName:                     dymName.Name,
 			buyer:                       buyerA,
 			offer:                       dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:             "102",
+			existingBuyOrderId:          "102",
 			originalModuleBalance:       0,
 			originalBuyerBalance:        1,
 			originalAnotherBuyerBalance: minOfferPrice,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountBuyOffer(ctx, 2)
+				dk.SetCountBuyOrders(ctx, 2)
 
-				err := dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, buyerA, "102")
+				err := dk.AddReverseMappingBuyerToBuyOrderRecord(ctx, buyerA, "102")
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingGoodsIdToBuyOffer(ctx, dymName.Name, dymnstypes.NameOrder, "102")
+				err = dk.AddReverseMappingGoodsIdToBuyOrder(ctx, dymName.Name, dymnstypes.NameOrder, "102")
 				require.NoError(t, err)
 			},
-			wantErr:     false,
-			wantOfferId: "102",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantErr:        false,
+			wantBuyOrderId: "102",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "102",
 				GoodsId:    dymName.Name,
 				Type:       dymnstypes.NameOrder,
@@ -791,21 +791,21 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			},
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  0,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				key := dymnstypes.DymNameToOfferIdsRvlKey(dymName.Name)
-				offerIds := dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"102"}, offerIds.OfferIds)
+				key := dymnstypes.DymNameToBuyOrderIdsRvlKey(dymName.Name)
+				orderIds := dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"102"}, orderIds.OrderIds)
 
-				offers, err := dk.GetBuyOffersOfDymName(ctx, dymName.Name)
+				offers, err := dk.GetBuyOrdersOfDymName(ctx, dymName.Name)
 				require.NoError(t, err)
 				require.Equal(t, "102", offers[0].Id)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(buyerA))
-				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"102"}, offerIds.OfferIds)
+				key = dymnstypes.BuyerToOrderIdsRvlKey(sdk.MustAccAddressFromBech32(buyerA))
+				orderIds = dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"102"}, orderIds.OrderIds)
 
-				offers, err = dk.GetBuyOffersByBuyer(ctx, buyerA)
+				offers, err = dk.GetBuyOrdersByBuyer(ctx, buyerA)
 				require.NoError(t, err)
 				require.Equal(t, "102", offers[0].Id)
 
@@ -817,19 +817,19 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 				})
 				require.NoError(t, err)
 				require.NotNil(t, resp)
-				require.Equal(t, "103", resp.OfferId)
+				require.Equal(t, "103", resp.OrderId)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(anotherBuyerA))
-				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"103"}, offerIds.OfferIds)
+				key = dymnstypes.BuyerToOrderIdsRvlKey(sdk.MustAccAddressFromBech32(anotherBuyerA))
+				orderIds = dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"103"}, orderIds.OrderIds)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(buyerA))
-				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"102"}, offerIds.OfferIds)
+				key = dymnstypes.BuyerToOrderIdsRvlKey(sdk.MustAccAddressFromBech32(buyerA))
+				orderIds = dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"102"}, orderIds.OrderIds)
 
-				key = dymnstypes.DymNameToOfferIdsRvlKey(dymName.Name)
-				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"102", "103"}, offerIds.OfferIds)
+				key = dymnstypes.DymNameToBuyOrderIdsRvlKey(dymName.Name)
+				orderIds = dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"102", "103"}, orderIds.OrderIds)
 			},
 		},
 	}
@@ -884,7 +884,7 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			}
 
 			if tt.existingOffer != nil {
-				err := dk.SetBuyOffer(ctx, *tt.existingOffer)
+				err := dk.SetBuyOrder(ctx, *tt.existingOffer)
 				require.NoError(t, err)
 			}
 
@@ -896,7 +896,7 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 				GoodsId:         tt.dymName,
 				OrderType:       dymnstypes.NameOrder,
 				Buyer:           tt.buyer,
-				ContinueOfferId: tt.existingOfferId,
+				ContinueOrderId: tt.existingBuyOrderId,
 				Offer:           tt.offer,
 			})
 
@@ -906,7 +906,7 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 				}
 
 				if tt.wantLaterOffer != nil {
-					laterOffer := dk.GetBuyOffer(ctx, tt.wantLaterOffer.Id)
+					laterOffer := dk.GetBuyOrder(ctx, tt.wantLaterOffer.Id)
 					require.NotNil(t, laterOffer)
 					require.Equal(t, *tt.wantLaterOffer, *laterOffer)
 				}
@@ -941,7 +941,7 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 
 			require.NoError(t, err)
 			require.NotNil(t, resp)
-			require.Equal(t, tt.wantOfferId, resp.OfferId)
+			require.Equal(t, tt.wantBuyOrderId, resp.OrderId)
 		})
 	}
 }
@@ -1005,20 +1005,20 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 	tests := []struct {
 		name                        string
 		existingRollApps            []rollapp
-		existingOffer               *dymnstypes.BuyOffer
+		existingOffer               *dymnstypes.BuyOrder
 		alias                       string
 		buyer                       string
 		dstRollAppId                string // destination RollApp ID
 		offer                       sdk.Coin
-		existingOfferId             string
+		existingBuyOrderId          string
 		originalModuleBalance       int64
 		originalBuyerBalance        int64
 		originalAnotherBuyerBalance int64
 		preRunSetupFunc             func(ctx sdk.Context, dk dymnskeeper.Keeper)
 		wantErr                     bool
 		wantErrContains             string
-		wantOfferId                 string
-		wantLaterOffer              *dymnstypes.BuyOffer
+		wantBuyOrderId              string
+		wantLaterOffer              *dymnstypes.BuyOrder
 		wantLaterModuleBalance      int64
 		wantLaterBuyerBalance       int64
 		wantMinConsumeGas           sdk.Gas
@@ -1032,12 +1032,12 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator,
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice),
-			existingOfferId:       "",
+			existingBuyOrderId:    "",
 			originalModuleBalance: 5,
 			originalBuyerBalance:  minOfferPrice + 2,
 			wantErr:               false,
-			wantOfferId:           "201",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:        "201",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
 				GoodsId:    rollApp_1_by1_asSrc.alias,
 				Type:       dymnstypes.AliasOrder,
@@ -1047,7 +1047,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			},
 			wantLaterModuleBalance: 5 + minOfferPrice,
 			wantLaterBuyerBalance:  (minOfferPrice + 2) - minOfferPrice,
-			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOrder,
 		},
 		{
 			name:                  "fail - can not place offer of alias which presents in params",
@@ -1057,7 +1057,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator,
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice),
-			existingOfferId:       "",
+			existingBuyOrderId:    "",
 			originalModuleBalance: 5,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
@@ -1081,7 +1081,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 		{
 			name:             "pass - can extends offer",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
 				GoodsId:                rollApp_1_by1_asSrc.alias,
 				Type:                   dymnstypes.AliasOrder,
@@ -1094,12 +1094,12 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator,
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "202",
+			existingBuyOrderId:    "202",
 			originalModuleBalance: 0,
 			originalBuyerBalance:  1,
 			wantErr:               false,
-			wantOfferId:           "202",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:        "202",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "202",
 				GoodsId:    rollApp_1_by1_asSrc.alias,
 				Type:       dymnstypes.AliasOrder,
@@ -1109,12 +1109,12 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			},
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  0,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
 		{
 			name:             "fail - can NOT extend offer of alias which presents in params",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
 				GoodsId:                rollApp_1_by1_asSrc.alias,
 				Type:                   dymnstypes.AliasOrder,
@@ -1127,7 +1127,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator,
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "202",
+			existingBuyOrderId:    "202",
 			originalModuleBalance: 0,
 			originalBuyerBalance:  1,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
@@ -1143,8 +1143,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			},
 			wantErr:         true,
 			wantErrContains: "prohibited to trade aliases which is reserved for chain-id or alias in module params",
-			wantOfferId:     "202",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:  "202",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "202",
 				GoodsId:    rollApp_1_by1_asSrc.alias,
 				Type:       dymnstypes.AliasOrder,
@@ -1159,7 +1159,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 		{
 			name:             "fail - can NOT extends offer of type mis-match",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:         "102",
 				GoodsId:    rollApp_1_by1_asSrc.alias,
 				Type:       dymnstypes.NameOrder,
@@ -1170,13 +1170,13 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator,
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "102",
+			existingBuyOrderId:    "102",
 			originalModuleBalance: 0,
 			originalBuyerBalance:  1,
 			wantErr:               true,
 			wantErrContains:       "order type mismatch with existing offer",
-			wantOfferId:           "102",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:        "102",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "102",
 				GoodsId:    rollApp_1_by1_asSrc.alias,
 				Type:       dymnstypes.NameOrder,
@@ -1190,7 +1190,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 		{
 			name:             "pass - can extends offer with counterparty offer",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
 				GoodsId:                rollApp_1_by1_asSrc.alias,
 				Type:                   dymnstypes.AliasOrder,
@@ -1203,12 +1203,12 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator,
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "202",
+			existingBuyOrderId:    "202",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  2,
 			wantErr:               false,
-			wantOfferId:           "202",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:        "202",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
 				GoodsId:                rollApp_1_by1_asSrc.alias,
 				Type:                   dymnstypes.AliasOrder,
@@ -1219,12 +1219,12 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			},
 			wantLaterModuleBalance: 1 + 1,
 			wantLaterBuyerBalance:  2 - 1,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
 		{
 			name:             "pass - can extends offer with offer equals to counterparty offer",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
 				GoodsId:                rollApp_1_by1_asSrc.alias,
 				Type:                   dymnstypes.AliasOrder,
@@ -1237,12 +1237,12 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator,
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 3),
-			existingOfferId:       "202",
+			existingBuyOrderId:    "202",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  5,
 			wantErr:               false,
-			wantOfferId:           "202",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:        "202",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
 				GoodsId:                rollApp_1_by1_asSrc.alias,
 				Type:                   dymnstypes.AliasOrder,
@@ -1253,12 +1253,12 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			},
 			wantLaterModuleBalance: 1 + 3,
 			wantLaterBuyerBalance:  5 - 3,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
 		{
 			name:             "pass - can extends offer with offer greater than counterparty offer",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
 				GoodsId:                rollApp_1_by1_asSrc.alias,
 				Type:                   dymnstypes.AliasOrder,
@@ -1271,12 +1271,12 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator,
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 4),
-			existingOfferId:       "202",
+			existingBuyOrderId:    "202",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  5,
 			wantErr:               false,
-			wantOfferId:           "202",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:        "202",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
 				GoodsId:                rollApp_1_by1_asSrc.alias,
 				Type:                   dymnstypes.AliasOrder,
@@ -1287,12 +1287,12 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			},
 			wantLaterModuleBalance: 1 + 4,
 			wantLaterBuyerBalance:  5 - 4,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
 		{
 			name:             "pass - extends an existing offer only take the extra amount instead of all",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "201",
 				GoodsId:                rollApp_1_by1_asSrc.alias,
 				Type:                   dymnstypes.AliasOrder,
@@ -1305,12 +1305,12 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator,
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 2),
-			existingOfferId:       "201",
+			existingBuyOrderId:    "201",
 			originalModuleBalance: 5,
 			originalBuyerBalance:  3,
 			wantErr:               false,
-			wantOfferId:           "201",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:        "201",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
 				GoodsId:    rollApp_1_by1_asSrc.alias,
 				Type:       dymnstypes.AliasOrder,
@@ -1320,7 +1320,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			},
 			wantLaterModuleBalance: 5 + 2,
 			wantLaterBuyerBalance:  3 - 2,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
 		{
 			name:                  "fail - can NOT place offer if trading Alias is disabled",
@@ -1330,7 +1330,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator,
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice),
-			existingOfferId:       "",
+			existingBuyOrderId:    "",
 			originalModuleBalance: 5,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
@@ -1341,7 +1341,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			},
 			wantErr:                true,
 			wantErrContains:        "trading of Alias is disabled",
-			wantOfferId:            "",
+			wantBuyOrderId:         "",
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 5,
 			wantLaterBuyerBalance:  minOfferPrice + 2,
@@ -1362,7 +1362,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllBuyOffers(ctx))
+				require.Empty(t, dk.GetAllBuyOrders(ctx))
 			},
 		},
 		{
@@ -1373,12 +1373,12 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_1_by1_asSrc.creator,
 			dstRollAppId:          rollApp_4_by1_asDest_noAlias.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice),
-			existingOfferId:       "",
+			existingBuyOrderId:    "",
 			originalModuleBalance: 5,
 			originalBuyerBalance:  minOfferPrice + 2,
 			wantErr:               false,
-			wantOfferId:           "201",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:        "201",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
 				GoodsId:    rollApp_1_by1_asSrc.alias,
 				Type:       dymnstypes.AliasOrder,
@@ -1388,7 +1388,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			},
 			wantLaterModuleBalance: 5 + minOfferPrice,
 			wantLaterBuyerBalance:  (minOfferPrice + 2) - minOfferPrice,
-			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOrder,
 		},
 		{
 			name:             "fail - offer denom must match params",
@@ -1408,7 +1408,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllBuyOffers(ctx))
+				require.Empty(t, dk.GetAllBuyOrders(ctx))
 			},
 		},
 		{
@@ -1426,13 +1426,13 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllBuyOffers(ctx))
+				require.Empty(t, dk.GetAllBuyOrders(ctx))
 			},
 		},
 		{
 			name:             "pass - if NOT continue offer, create another and charges full offer price",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "201",
 				GoodsId:                rollApp_1_by1_asSrc.alias,
 				Type:                   dymnstypes.AliasOrder,
@@ -1445,15 +1445,15 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator,
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "",
+			existingBuyOrderId:    "",
 			originalModuleBalance: minOfferPrice,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountBuyOffer(ctx, 1)
+				dk.SetCountBuyOrders(ctx, 1)
 			},
-			wantErr:     false,
-			wantOfferId: "202",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantErr:        false,
+			wantBuyOrderId: "202",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "202",
 				GoodsId:    rollApp_1_by1_asSrc.alias,
 				Type:       dymnstypes.AliasOrder,
@@ -1463,12 +1463,12 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			},
 			wantLaterModuleBalance: minOfferPrice + (minOfferPrice + 1),
 			wantLaterBuyerBalance:  (minOfferPrice + 2) - (minOfferPrice + 1),
-			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOrder,
 		},
 		{
 			name:             "fail - continue a non-existing offer",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "201",
 				GoodsId:                rollApp_1_by1_asSrc.alias,
 				Type:                   dymnstypes.AliasOrder,
@@ -1481,15 +1481,15 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator,
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "202",
+			existingBuyOrderId:    "202",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountBuyOffer(ctx, 1)
+				dk.SetCountBuyOrders(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "Buy-Order ID: 202: not found",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
 				GoodsId:    rollApp_1_by1_asSrc.alias,
 				Type:       dymnstypes.AliasOrder,
@@ -1501,14 +1501,14 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
-				require.Nil(t, dk.GetBuyOffer(ctx, "202"))
+				require.Len(t, dk.GetAllBuyOrders(ctx), 1)
+				require.Nil(t, dk.GetBuyOrder(ctx, "202"))
 			},
 		},
 		{
 			name:             "fail - continue an existing offer but not yours",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "201",
 				GoodsId:                rollApp_1_by1_asSrc.alias,
 				Type:                   dymnstypes.AliasOrder,
@@ -1521,15 +1521,15 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator, // not the existing offer's buyer
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "201",
+			existingBuyOrderId:    "201",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountBuyOffer(ctx, 1)
+				dk.SetCountBuyOrders(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "not the owner of the offer",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
 				GoodsId:    rollApp_1_by1_asSrc.alias,
 				Type:       dymnstypes.AliasOrder,
@@ -1541,14 +1541,14 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
-				require.Nil(t, dk.GetBuyOffer(ctx, "202"))
+				require.Len(t, dk.GetAllBuyOrders(ctx), 1)
+				require.Nil(t, dk.GetBuyOrder(ctx, "202"))
 			},
 		},
 		{
 			name:             "fail - continue an existing offer but the Alias mismatch",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "201",
 				GoodsId:                "another",
 				Type:                   dymnstypes.AliasOrder,
@@ -1561,15 +1561,15 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator,
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "201",
+			existingBuyOrderId:    "201",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountBuyOffer(ctx, 1)
+				dk.SetCountBuyOrders(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "alias mismatch with existing offer",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
 				GoodsId:    "another",
 				Type:       dymnstypes.AliasOrder,
@@ -1581,14 +1581,14 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
-				require.Nil(t, dk.GetBuyOffer(ctx, "202"))
+				require.Len(t, dk.GetAllBuyOrders(ctx), 1)
+				require.Nil(t, dk.GetBuyOrder(ctx, "202"))
 			},
 		},
 		{
 			name:             "fail - continue an existing offer but mis-match offer denom",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:      "201",
 				GoodsId: rollApp_1_by1_asSrc.alias,
 				Type:    dymnstypes.AliasOrder,
@@ -1604,15 +1604,15 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator,
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:       "201",
+			existingBuyOrderId:    "201",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountBuyOffer(ctx, 1)
+				dk.SetCountBuyOrders(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "offer denomination mismatch with existing offer",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:      "201",
 				GoodsId: rollApp_1_by1_asSrc.alias,
 				Type:    dymnstypes.AliasOrder,
@@ -1627,14 +1627,14 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
-				require.Nil(t, dk.GetBuyOffer(ctx, "202"))
+				require.Len(t, dk.GetAllBuyOrders(ctx), 1)
+				require.Nil(t, dk.GetBuyOrder(ctx, "202"))
 			},
 		},
 		{
 			name:             "fail - continue an existing offer but new offer less than previous",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "201",
 				GoodsId:                rollApp_1_by1_asSrc.alias,
 				Type:                   dymnstypes.AliasOrder,
@@ -1647,15 +1647,15 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator,
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1), // less
-			existingOfferId:       "201",
+			existingBuyOrderId:    "201",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountBuyOffer(ctx, 1)
+				dk.SetCountBuyOrders(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "offer price must be greater than existing offer price",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
 				GoodsId:    rollApp_1_by1_asSrc.alias,
 				Type:       dymnstypes.AliasOrder,
@@ -1667,14 +1667,14 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
-				require.Nil(t, dk.GetBuyOffer(ctx, "202"))
+				require.Len(t, dk.GetAllBuyOrders(ctx), 1)
+				require.Nil(t, dk.GetBuyOrder(ctx, "202"))
 			},
 		},
 		{
 			name:             "fail - continue an existing offer but new offer equals to previous",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "201",
 				GoodsId:                rollApp_1_by1_asSrc.alias,
 				Type:                   dymnstypes.AliasOrder,
@@ -1687,15 +1687,15 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                 rollApp_2_by2_asDest.creator,
 			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 2), // same
-			existingOfferId:       "201",
+			existingBuyOrderId:    "201",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountBuyOffer(ctx, 1)
+				dk.SetCountBuyOrders(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "offer price must be greater than existing offer price",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
 				GoodsId:    rollApp_1_by1_asSrc.alias,
 				Type:       dymnstypes.AliasOrder,
@@ -1707,8 +1707,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
-				require.Nil(t, dk.GetBuyOffer(ctx, "202"))
+				require.Len(t, dk.GetAllBuyOrders(ctx), 1)
+				require.Nil(t, dk.GetBuyOrder(ctx, "202"))
 			},
 		},
 		{
@@ -1724,14 +1724,14 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			},
 			wantErr:                true,
 			wantErrContains:        "destination Roll-App does not exists",
-			wantOfferId:            "201",
+			wantBuyOrderId:         "201",
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllBuyOffers(ctx))
-				require.Nil(t, dk.GetBuyOffer(ctx, "201"))
+				require.Empty(t, dk.GetAllBuyOrders(ctx))
+				require.Nil(t, dk.GetBuyOrder(ctx, "201"))
 			},
 		},
 		{
@@ -1747,14 +1747,14 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			},
 			wantErr:                true,
 			wantErrContains:        "not the owner of the RollApp",
-			wantOfferId:            "201",
+			wantBuyOrderId:         "201",
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllBuyOffers(ctx))
-				require.Nil(t, dk.GetBuyOffer(ctx, "201"))
+				require.Empty(t, dk.GetAllBuyOrders(ctx))
+				require.Nil(t, dk.GetBuyOrder(ctx, "201"))
 			},
 		},
 		{
@@ -1770,14 +1770,14 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			},
 			wantErr:                true,
 			wantErrContains:        "destination Roll-App ID is the same as the source",
-			wantOfferId:            "201",
+			wantBuyOrderId:         "201",
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllBuyOffers(ctx))
-				require.Nil(t, dk.GetBuyOffer(ctx, "201"))
+				require.Empty(t, dk.GetAllBuyOrders(ctx))
+				require.Nil(t, dk.GetBuyOrder(ctx, "201"))
 			},
 		},
 		{
@@ -1788,13 +1788,13 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                       rollApp_2_by2_asDest.creator,
 			dstRollAppId:                rollApp_2_by2_asDest.rollAppID,
 			offer:                       dymnsutils.TestCoin(minOfferPrice),
-			existingOfferId:             "",
+			existingBuyOrderId:          "",
 			originalModuleBalance:       5,
 			originalBuyerBalance:        minOfferPrice + 2,
 			originalAnotherBuyerBalance: minOfferPrice,
 			wantErr:                     false,
-			wantOfferId:                 "201",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantBuyOrderId:              "201",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
 				GoodsId:    rollApp_1_by1_asSrc.alias,
 				Type:       dymnstypes.AliasOrder,
@@ -1804,21 +1804,21 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			},
 			wantLaterModuleBalance: 5 + minOfferPrice,
 			wantLaterBuyerBalance:  (minOfferPrice + 2) - minOfferPrice,
-			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOrder,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				key := dymnstypes.AliasToOfferIdsRvlKey(rollApp_1_by1_asSrc.alias)
-				offerIds := dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"201"}, offerIds.OfferIds)
+				key := dymnstypes.AliasToBuyOrderIdsRvlKey(rollApp_1_by1_asSrc.alias)
+				orderIds := dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"201"}, orderIds.OrderIds)
 
-				offers, err := dk.GetBuyOffersOfAlias(ctx, rollApp_1_by1_asSrc.alias)
+				offers, err := dk.GetBuyOrdersOfAlias(ctx, rollApp_1_by1_asSrc.alias)
 				require.NoError(t, err)
 				require.Equal(t, "201", offers[0].Id)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(rollApp_2_by2_asDest.creator))
-				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"201"}, offerIds.OfferIds)
+				key = dymnstypes.BuyerToOrderIdsRvlKey(sdk.MustAccAddressFromBech32(rollApp_2_by2_asDest.creator))
+				orderIds = dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"201"}, orderIds.OrderIds)
 
-				offers, err = dk.GetBuyOffersByBuyer(ctx, rollApp_2_by2_asDest.creator)
+				offers, err = dk.GetBuyOrdersByBuyer(ctx, rollApp_2_by2_asDest.creator)
 				require.NoError(t, err)
 				require.Equal(t, "201", offers[0].Id)
 
@@ -1831,25 +1831,25 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 				})
 				require.NoError(t, err)
 				require.NotNil(t, resp)
-				require.Equal(t, "202", resp.OfferId)
+				require.Equal(t, "202", resp.OrderId)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(rollApp_3_by3_asDest_noAlias.creator))
-				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"202"}, offerIds.OfferIds)
+				key = dymnstypes.BuyerToOrderIdsRvlKey(sdk.MustAccAddressFromBech32(rollApp_3_by3_asDest_noAlias.creator))
+				orderIds = dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"202"}, orderIds.OrderIds)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(rollApp_2_by2_asDest.creator))
-				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"201"}, offerIds.OfferIds)
+				key = dymnstypes.BuyerToOrderIdsRvlKey(sdk.MustAccAddressFromBech32(rollApp_2_by2_asDest.creator))
+				orderIds = dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"201"}, orderIds.OrderIds)
 
-				key = dymnstypes.AliasToOfferIdsRvlKey(rollApp_1_by1_asSrc.alias)
-				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"201", "202"}, offerIds.OfferIds)
+				key = dymnstypes.AliasToBuyOrderIdsRvlKey(rollApp_1_by1_asSrc.alias)
+				orderIds = dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"201", "202"}, orderIds.OrderIds)
 			},
 		},
 		{
 			name:             "pass - reverse record added after successful offer extends",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest, rollApp_3_by3_asDest_noAlias},
-			existingOffer: &dymnstypes.BuyOffer{
+			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
 				GoodsId:                rollApp_1_by1_asSrc.alias,
 				Type:                   dymnstypes.AliasOrder,
@@ -1862,22 +1862,22 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			buyer:                       rollApp_2_by2_asDest.creator,
 			dstRollAppId:                rollApp_2_by2_asDest.rollAppID,
 			offer:                       dymnsutils.TestCoin(minOfferPrice + 1),
-			existingOfferId:             "202",
+			existingBuyOrderId:          "202",
 			originalModuleBalance:       0,
 			originalBuyerBalance:        1,
 			originalAnotherBuyerBalance: minOfferPrice,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountBuyOffer(ctx, 2)
+				dk.SetCountBuyOrders(ctx, 2)
 
-				err := dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, rollApp_2_by2_asDest.creator, "202")
+				err := dk.AddReverseMappingBuyerToBuyOrderRecord(ctx, rollApp_2_by2_asDest.creator, "202")
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingGoodsIdToBuyOffer(ctx, rollApp_1_by1_asSrc.alias, dymnstypes.AliasOrder, "202")
+				err = dk.AddReverseMappingGoodsIdToBuyOrder(ctx, rollApp_1_by1_asSrc.alias, dymnstypes.AliasOrder, "202")
 				require.NoError(t, err)
 			},
-			wantErr:     false,
-			wantOfferId: "202",
-			wantLaterOffer: &dymnstypes.BuyOffer{
+			wantErr:        false,
+			wantBuyOrderId: "202",
+			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "202",
 				GoodsId:    rollApp_1_by1_asSrc.alias,
 				Type:       dymnstypes.AliasOrder,
@@ -1887,21 +1887,21 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			},
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  0,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				key := dymnstypes.AliasToOfferIdsRvlKey(rollApp_1_by1_asSrc.alias)
-				offerIds := dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"202"}, offerIds.OfferIds)
+				key := dymnstypes.AliasToBuyOrderIdsRvlKey(rollApp_1_by1_asSrc.alias)
+				orderIds := dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"202"}, orderIds.OrderIds)
 
-				offers, err := dk.GetBuyOffersOfAlias(ctx, rollApp_1_by1_asSrc.alias)
+				offers, err := dk.GetBuyOrdersOfAlias(ctx, rollApp_1_by1_asSrc.alias)
 				require.NoError(t, err)
 				require.Equal(t, "202", offers[0].Id)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(rollApp_2_by2_asDest.creator))
-				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"202"}, offerIds.OfferIds)
+				key = dymnstypes.BuyerToOrderIdsRvlKey(sdk.MustAccAddressFromBech32(rollApp_2_by2_asDest.creator))
+				orderIds = dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"202"}, orderIds.OrderIds)
 
-				offers, err = dk.GetBuyOffersByBuyer(ctx, rollApp_2_by2_asDest.creator)
+				offers, err = dk.GetBuyOrdersByBuyer(ctx, rollApp_2_by2_asDest.creator)
 				require.NoError(t, err)
 				require.Equal(t, "202", offers[0].Id)
 
@@ -1914,19 +1914,19 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 				})
 				require.NoError(t, err)
 				require.NotNil(t, resp)
-				require.Equal(t, "203", resp.OfferId)
+				require.Equal(t, "203", resp.OrderId)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(rollApp_3_by3_asDest_noAlias.creator))
-				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"203"}, offerIds.OfferIds)
+				key = dymnstypes.BuyerToOrderIdsRvlKey(sdk.MustAccAddressFromBech32(rollApp_3_by3_asDest_noAlias.creator))
+				orderIds = dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"203"}, orderIds.OrderIds)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(rollApp_2_by2_asDest.creator))
-				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"202"}, offerIds.OfferIds)
+				key = dymnstypes.BuyerToOrderIdsRvlKey(sdk.MustAccAddressFromBech32(rollApp_2_by2_asDest.creator))
+				orderIds = dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"202"}, orderIds.OrderIds)
 
-				key = dymnstypes.AliasToOfferIdsRvlKey(rollApp_1_by1_asSrc.alias)
-				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
-				require.Equal(t, []string{"202", "203"}, offerIds.OfferIds)
+				key = dymnstypes.AliasToBuyOrderIdsRvlKey(rollApp_1_by1_asSrc.alias)
+				orderIds = dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key)
+				require.Equal(t, []string{"202", "203"}, orderIds.OrderIds)
 			},
 		},
 	}
@@ -1987,7 +1987,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			}
 
 			if tt.existingOffer != nil {
-				err := dk.SetBuyOffer(ctx, *tt.existingOffer)
+				err := dk.SetBuyOrder(ctx, *tt.existingOffer)
 				require.NoError(t, err)
 			}
 
@@ -2000,7 +2000,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 				OrderType:       dymnstypes.AliasOrder,
 				Buyer:           tt.buyer,
 				Params:          []string{tt.dstRollAppId},
-				ContinueOfferId: tt.existingOfferId,
+				ContinueOrderId: tt.existingBuyOrderId,
 				Offer:           tt.offer,
 			})
 
@@ -2010,7 +2010,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 				}
 
 				if tt.wantLaterOffer != nil {
-					laterOffer := dk.GetBuyOffer(ctx, tt.wantLaterOffer.Id)
+					laterOffer := dk.GetBuyOrder(ctx, tt.wantLaterOffer.Id)
 					require.NotNil(t, laterOffer)
 					require.Equal(t, *tt.wantLaterOffer, *laterOffer)
 				}
@@ -2049,7 +2049,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 
 			require.NoError(t, err)
 			require.NotNil(t, resp)
-			require.Equal(t, tt.wantOfferId, resp.OfferId)
+			require.Equal(t, tt.wantBuyOrderId, resp.OrderId)
 		})
 	}
 }

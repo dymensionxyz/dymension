@@ -17,7 +17,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 		orderType       OrderType
 		params          []string
 		buyer           string
-		continueOfferId string
+		continueOrderId string
 		offer           sdk.Coin
 		wantErr         bool
 		wantErrContains string
@@ -28,7 +28,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			orderType:       NameOrder,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			continueOfferId: "",
+			continueOrderId: "",
 			offer:           dymnsutils.TestCoin(1),
 			wantErr:         false,
 		},
@@ -38,7 +38,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			orderType:       AliasOrder,
 			params:          []string{"rollapp_1-1"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			continueOfferId: "",
+			continueOrderId: "",
 			offer:           dymnsutils.TestCoin(1),
 			wantErr:         false,
 		},
@@ -47,7 +47,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			goodsId:         "my-name",
 			orderType:       NameOrder,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			continueOfferId: "101",
+			continueOrderId: "101",
 			offer:           dymnsutils.TestCoin(1),
 			wantErr:         false,
 		},
@@ -57,7 +57,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			orderType:       AliasOrder,
 			params:          []string{"rollapp_1-1"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			continueOfferId: "101",
+			continueOrderId: "101",
 			offer:           dymnsutils.TestCoin(1),
 			wantErr:         false,
 		},
@@ -124,7 +124,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			goodsId:         "my-name",
 			orderType:       NameOrder,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			continueOfferId: "@",
+			continueOrderId: "@",
 			offer:           dymnsutils.TestCoin(1),
 			wantErr:         true,
 			wantErrContains: "continue offer id is not a valid offer id",
@@ -176,7 +176,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 				OrderType:       tt.orderType,
 				Params:          tt.params,
 				Buyer:           tt.buyer,
-				ContinueOfferId: tt.continueOfferId,
+				ContinueOrderId: tt.continueOrderId,
 				Offer:           tt.offer,
 			}
 

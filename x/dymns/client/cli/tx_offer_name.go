@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	flagContinueOfferId = "continue-offer-id"
+	flagContinueOrderId = "continue-order-id"
 )
 
 // NewOfferBuyDymNameTxCmd is the CLI command for creating an offer to buy a Dym-Name.
@@ -65,9 +65,9 @@ func NewOfferBuyDymNameTxCmd() *cobra.Command {
 				return fmt.Errorf("flag --%s is required", flags.FlagFrom)
 			}
 
-			continueOfferId, _ := cmd.Flags().GetString(flagContinueOfferId)
-			if continueOfferId != "" && !dymnstypes.IsValidBuyOfferId(continueOfferId) {
-				return fmt.Errorf("invalid continue offer id")
+			continueOrderId, _ := cmd.Flags().GetString(flagContinueOrderId)
+			if continueOrderId != "" && !dymnstypes.IsValidBuyOrderId(continueOrderId) {
+				return fmt.Errorf("invalid continue buy-order id: %s", continueOrderId)
 			}
 
 			queryClient := dymnstypes.NewQueryClient(clientCtx)
@@ -81,7 +81,7 @@ func NewOfferBuyDymNameTxCmd() *cobra.Command {
 				GoodsId:         dymName,
 				OrderType:       dymnstypes.NameOrder,
 				Buyer:           buyer,
-				ContinueOfferId: continueOfferId,
+				ContinueOrderId: continueOrderId,
 				Offer: sdk.Coin{
 					Denom:  resParams.Params.Price.PriceDenom,
 					Amount: sdk.NewInt(int64(amount)).MulRaw(adymToDymMultiplier),
@@ -94,7 +94,7 @@ func NewOfferBuyDymNameTxCmd() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 
-	cmd.Flags().String(flagContinueOfferId, "", "if provided, will raise offer value of an existing offer")
+	cmd.Flags().String(flagContinueOrderId, "", "if provided, will raise offer value of an existing offer")
 
 	return cmd
 }

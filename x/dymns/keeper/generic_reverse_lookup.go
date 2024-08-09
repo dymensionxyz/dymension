@@ -8,12 +8,12 @@ import (
 // GenericAddReverseLookupRecord is a utility method that help to add a reverse lookup record.
 func (k Keeper) GenericAddReverseLookupRecord(
 	ctx sdk.Context,
-	key []byte, offerId string,
+	key []byte, newElement string,
 	marshaller func([]string) []byte,
 	unMarshaller func([]byte) []string,
 ) error {
 	modifiedRecord := dymnstypes.StringList{
-		offerId,
+		newElement,
 	}
 
 	store := ctx.KVStore(k.storeKey)
@@ -57,7 +57,7 @@ func (k Keeper) GenericGetReverseLookupRecord(
 // GenericRemoveReverseLookupRecord is a utility method that help to remove a reverse lookup record.
 func (k Keeper) GenericRemoveReverseLookupRecord(
 	ctx sdk.Context,
-	key []byte, offerId string,
+	key []byte, elementToRemove string,
 	marshaller func([]string) []byte,
 	unMarshaller func([]byte) []string,
 ) error {
@@ -70,7 +70,7 @@ func (k Keeper) GenericRemoveReverseLookupRecord(
 
 	existingRecord := unMarshaller(bz)
 
-	modifiedRecord := dymnstypes.StringList(existingRecord).Exclude([]string{offerId})
+	modifiedRecord := dymnstypes.StringList(existingRecord).Exclude([]string{elementToRemove})
 
 	if len(modifiedRecord) == 0 {
 		// no more, remove record

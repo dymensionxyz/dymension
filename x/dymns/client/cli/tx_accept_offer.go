@@ -15,9 +15,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewAcceptBuyOfferTxCmd is the CLI command for accepting a Buy-Order of a Dym-Name/Alias/Handle.
+// NewAcceptBuyOrderTxCmd is the CLI command for accepting a Buy-Order of a Dym-Name/Alias/Handle.
 // or offer-back to raise the price.
-func NewAcceptBuyOfferTxCmd() *cobra.Command {
+func NewAcceptBuyOrderTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   fmt.Sprintf("accept-offer [offer-id] [amount] %s", params.DisplayDenom),
 		Short: "Accept a Buy-Order for your Dym-Name/Alias/Handle",
@@ -34,9 +34,9 @@ func NewAcceptBuyOfferTxCmd() *cobra.Command {
 				return err
 			}
 
-			offerId := args[0]
-			if !dymnstypes.IsValidBuyOfferId(offerId) {
-				return fmt.Errorf("input Offer-ID '%s' is not a valid Offer-ID", offerId)
+			orderId := args[0]
+			if !dymnstypes.IsValidBuyOrderId(orderId) {
+				return fmt.Errorf("input is not a valid Buy-Order ID: %s", orderId)
 			}
 
 			amount, err := strconv.ParseInt(args[1], 10, 64)
@@ -62,7 +62,7 @@ func NewAcceptBuyOfferTxCmd() *cobra.Command {
 			}
 
 			msg := &dymnstypes.MsgAcceptBuyOrder{
-				OfferId: offerId,
+				OrderId: orderId,
 				Owner:   owner,
 				MinAccept: sdk.Coin{
 					Denom:  resParams.Params.Price.PriceDenom,

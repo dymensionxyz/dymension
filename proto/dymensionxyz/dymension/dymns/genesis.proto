@@ -20,7 +20,7 @@ message GenesisState {
   // of the Sell-Orders which was not finished during genesis export
   repeated SellOrderBid sell_order_bids = 3 [(gogoproto.nullable) = false];
 
-  // buy_offers are records which used to refund the bid amount to the bidder
-  // of the Buy-Offer which was not finished during genesis export
-  repeated BuyOffer buy_offers = 4 [(gogoproto.nullable) = false];
+  // buy_orders are records which used to refund the bid amount to the bidder
+  // of the Buy-Order which was not finished during genesis export
+  repeated BuyOrder buy_orders = 4 [(gogoproto.nullable) = false];
 }

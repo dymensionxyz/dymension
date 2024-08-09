@@ -559,8 +559,8 @@ func local_request_Query_TranslateAliasOrChainIdToChainId_0(ctx context.Context,
 
 }
 
-func request_Query_BuyOfferById_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryBuyOfferByIdRequest
+func request_Query_BuyOrderById_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryBuyOrderByIdRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -581,13 +581,13 @@ func request_Query_BuyOfferById_0(ctx context.Context, marshaler runtime.Marshal
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := client.BuyOfferById(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.BuyOrderById(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Query_BuyOfferById_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryBuyOfferByIdRequest
+func local_request_Query_BuyOrderById_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryBuyOrderByIdRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -608,13 +608,13 @@ func local_request_Query_BuyOfferById_0(ctx context.Context, marshaler runtime.M
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := server.BuyOfferById(ctx, &protoReq)
+	msg, err := server.BuyOrderById(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_Query_BuyOffersPlacedByAccount_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryBuyOffersPlacedByAccountRequest
+func request_Query_BuyOrdersPlacedByAccount_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryBuyOrdersPlacedByAccountRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -635,13 +635,13 @@ func request_Query_BuyOffersPlacedByAccount_0(ctx context.Context, marshaler run
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "account", err)
 	}
 
-	msg, err := client.BuyOffersPlacedByAccount(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.BuyOrdersPlacedByAccount(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Query_BuyOffersPlacedByAccount_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryBuyOffersPlacedByAccountRequest
+func local_request_Query_BuyOrdersPlacedByAccount_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryBuyOrdersPlacedByAccountRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -662,13 +662,13 @@ func local_request_Query_BuyOffersPlacedByAccount_0(ctx context.Context, marshal
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "account", err)
 	}
 
-	msg, err := server.BuyOffersPlacedByAccount(ctx, &protoReq)
+	msg, err := server.BuyOrdersPlacedByAccount(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_Query_BuyOffersByDymName_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryBuyOffersByDymNameRequest
+func request_Query_BuyOrdersByDymName_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryBuyOrdersByDymNameRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -689,13 +689,13 @@ func request_Query_BuyOffersByDymName_0(ctx context.Context, marshaler runtime.M
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
-	msg, err := client.BuyOffersByDymName(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.BuyOrdersByDymName(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Query_BuyOffersByDymName_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryBuyOffersByDymNameRequest
+func local_request_Query_BuyOrdersByDymName_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryBuyOrdersByDymNameRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -716,13 +716,13 @@ func local_request_Query_BuyOffersByDymName_0(ctx context.Context, marshaler run
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
-	msg, err := server.BuyOffersByDymName(ctx, &protoReq)
+	msg, err := server.BuyOrdersByDymName(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_Query_BuyOffersOfDymNamesOwnedByAccount_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryBuyOffersOfDymNamesOwnedByAccountRequest
+func request_Query_BuyOrdersOfDymNamesOwnedByAccount_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryBuyOrdersOfDymNamesOwnedByAccountRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -743,13 +743,13 @@ func request_Query_BuyOffersOfDymNamesOwnedByAccount_0(ctx context.Context, mars
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "account", err)
 	}
 
-	msg, err := client.BuyOffersOfDymNamesOwnedByAccount(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.BuyOrdersOfDymNamesOwnedByAccount(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Query_BuyOffersOfDymNamesOwnedByAccount_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryBuyOffersOfDymNamesOwnedByAccountRequest
+func local_request_Query_BuyOrdersOfDymNamesOwnedByAccount_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryBuyOrdersOfDymNamesOwnedByAccountRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -770,13 +770,13 @@ func local_request_Query_BuyOffersOfDymNamesOwnedByAccount_0(ctx context.Context
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "account", err)
 	}
 
-	msg, err := server.BuyOffersOfDymNamesOwnedByAccount(ctx, &protoReq)
+	msg, err := server.BuyOrdersOfDymNamesOwnedByAccount(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_Query_BuyOffersByAlias_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryBuyOffersByAliasRequest
+func request_Query_BuyOrdersByAlias_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryBuyOrdersByAliasRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -797,13 +797,13 @@ func request_Query_BuyOffersByAlias_0(ctx context.Context, marshaler runtime.Mar
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "alias", err)
 	}
 
-	msg, err := client.BuyOffersByAlias(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.BuyOrdersByAlias(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Query_BuyOffersByAlias_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryBuyOffersByAliasRequest
+func local_request_Query_BuyOrdersByAlias_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryBuyOrdersByAliasRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -824,13 +824,13 @@ func local_request_Query_BuyOffersByAlias_0(ctx context.Context, marshaler runti
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "alias", err)
 	}
 
-	msg, err := server.BuyOffersByAlias(ctx, &protoReq)
+	msg, err := server.BuyOrdersByAlias(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_Query_BuyOffersOfAliasesLinkedToRollApp_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryBuyOffersOfAliasesLinkedToRollAppRequest
+func request_Query_BuyOrdersOfAliasesLinkedToRollApp_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryBuyOrdersOfAliasesLinkedToRollAppRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -851,13 +851,13 @@ func request_Query_BuyOffersOfAliasesLinkedToRollApp_0(ctx context.Context, mars
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "rollapp_id", err)
 	}
 
-	msg, err := client.BuyOffersOfAliasesLinkedToRollApp(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.BuyOrdersOfAliasesLinkedToRollApp(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Query_BuyOffersOfAliasesLinkedToRollApp_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryBuyOffersOfAliasesLinkedToRollAppRequest
+func local_request_Query_BuyOrdersOfAliasesLinkedToRollApp_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryBuyOrdersOfAliasesLinkedToRollAppRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -878,7 +878,7 @@ func local_request_Query_BuyOffersOfAliasesLinkedToRollApp_0(ctx context.Context
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "rollapp_id", err)
 	}
 
-	msg, err := server.BuyOffersOfAliasesLinkedToRollApp(ctx, &protoReq)
+	msg, err := server.BuyOrdersOfAliasesLinkedToRollApp(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -1119,7 +1119,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 
 	})
 
-	mux.Handle("GET", pattern_Query_BuyOfferById_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_BuyOrderById_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -1130,7 +1130,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Query_BuyOfferById_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Query_BuyOrderById_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -1138,11 +1138,11 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 
-		forward_Query_BuyOfferById_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_BuyOrderById_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Query_BuyOffersPlacedByAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_BuyOrdersPlacedByAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -1153,7 +1153,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Query_BuyOffersPlacedByAccount_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Query_BuyOrdersPlacedByAccount_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -1161,11 +1161,11 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 
-		forward_Query_BuyOffersPlacedByAccount_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_BuyOrdersPlacedByAccount_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Query_BuyOffersByDymName_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_BuyOrdersByDymName_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -1176,7 +1176,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Query_BuyOffersByDymName_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Query_BuyOrdersByDymName_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -1184,11 +1184,11 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 
-		forward_Query_BuyOffersByDymName_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_BuyOrdersByDymName_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Query_BuyOffersOfDymNamesOwnedByAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_BuyOrdersOfDymNamesOwnedByAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -1199,7 +1199,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Query_BuyOffersOfDymNamesOwnedByAccount_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Query_BuyOrdersOfDymNamesOwnedByAccount_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -1207,11 +1207,11 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 
-		forward_Query_BuyOffersOfDymNamesOwnedByAccount_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_BuyOrdersOfDymNamesOwnedByAccount_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Query_BuyOffersByAlias_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_BuyOrdersByAlias_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -1222,7 +1222,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Query_BuyOffersByAlias_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Query_BuyOrdersByAlias_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -1230,11 +1230,11 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 
-		forward_Query_BuyOffersByAlias_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_BuyOrdersByAlias_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Query_BuyOffersOfAliasesLinkedToRollApp_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_BuyOrdersOfAliasesLinkedToRollApp_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -1245,7 +1245,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Query_BuyOffersOfAliasesLinkedToRollApp_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Query_BuyOrdersOfAliasesLinkedToRollApp_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -1253,7 +1253,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 
-		forward_Query_BuyOffersOfAliasesLinkedToRollApp_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_BuyOrdersOfAliasesLinkedToRollApp_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1498,7 +1498,7 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 
 	})
 
-	mux.Handle("GET", pattern_Query_BuyOfferById_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_BuyOrderById_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1507,18 +1507,18 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Query_BuyOfferById_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Query_BuyOrderById_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Query_BuyOfferById_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_BuyOrderById_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Query_BuyOffersPlacedByAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_BuyOrdersPlacedByAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1527,18 +1527,18 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Query_BuyOffersPlacedByAccount_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Query_BuyOrdersPlacedByAccount_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Query_BuyOffersPlacedByAccount_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_BuyOrdersPlacedByAccount_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Query_BuyOffersByDymName_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_BuyOrdersByDymName_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1547,18 +1547,18 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Query_BuyOffersByDymName_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Query_BuyOrdersByDymName_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Query_BuyOffersByDymName_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_BuyOrdersByDymName_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Query_BuyOffersOfDymNamesOwnedByAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_BuyOrdersOfDymNamesOwnedByAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1567,18 +1567,18 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Query_BuyOffersOfDymNamesOwnedByAccount_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Query_BuyOrdersOfDymNamesOwnedByAccount_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Query_BuyOffersOfDymNamesOwnedByAccount_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_BuyOrdersOfDymNamesOwnedByAccount_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Query_BuyOffersByAlias_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_BuyOrdersByAlias_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1587,18 +1587,18 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Query_BuyOffersByAlias_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Query_BuyOrdersByAlias_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Query_BuyOffersByAlias_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_BuyOrdersByAlias_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Query_BuyOffersOfAliasesLinkedToRollApp_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_BuyOrdersOfAliasesLinkedToRollApp_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1607,14 +1607,14 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Query_BuyOffersOfAliasesLinkedToRollApp_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Query_BuyOrdersOfAliasesLinkedToRollApp_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Query_BuyOffersOfAliasesLinkedToRollApp_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_BuyOrdersOfAliasesLinkedToRollApp_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1642,17 +1642,17 @@ var (
 
 	pattern_Query_TranslateAliasOrChainIdToChainId_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "translate_alias", "alias_or_chain_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BuyOfferById_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "buy_offer", "id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_BuyOrderById_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "buy_order", "id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BuyOffersPlacedByAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "offers_to_buy_placed_by_account", "account"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_BuyOrdersPlacedByAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "buy_orders_placed_by_account", "account"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BuyOffersByDymName_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "offers_to_buy_by_dym_name", "name"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_BuyOrdersByDymName_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "buy_orders_by_dym_name", "name"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BuyOffersOfDymNamesOwnedByAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "offers_to_buy_of_dym_names_owned_by_account", "account"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_BuyOrdersOfDymNamesOwnedByAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "buy_orders_of_dym_names_owned_by_account", "account"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BuyOffersByAlias_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "offers_to_buy_by_alias", "alias"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_BuyOrdersByAlias_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "buy_orders_by_alias", "alias"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BuyOffersOfAliasesLinkedToRollApp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "offers_to_buy_of_aliases_linked_to_rollapp", "rollapp_id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_BuyOrdersOfAliasesLinkedToRollApp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "buy_orders_of_aliases_linked_to_rollapp", "rollapp_id"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (
@@ -1676,15 +1676,15 @@ var (
 
 	forward_Query_TranslateAliasOrChainIdToChainId_0 = runtime.ForwardResponseMessage
 
-	forward_Query_BuyOfferById_0 = runtime.ForwardResponseMessage
+	forward_Query_BuyOrderById_0 = runtime.ForwardResponseMessage
 
-	forward_Query_BuyOffersPlacedByAccount_0 = runtime.ForwardResponseMessage
+	forward_Query_BuyOrdersPlacedByAccount_0 = runtime.ForwardResponseMessage
 
-	forward_Query_BuyOffersByDymName_0 = runtime.ForwardResponseMessage
+	forward_Query_BuyOrdersByDymName_0 = runtime.ForwardResponseMessage
 
-	forward_Query_BuyOffersOfDymNamesOwnedByAccount_0 = runtime.ForwardResponseMessage
+	forward_Query_BuyOrdersOfDymNamesOwnedByAccount_0 = runtime.ForwardResponseMessage
 
-	forward_Query_BuyOffersByAlias_0 = runtime.ForwardResponseMessage
+	forward_Query_BuyOrdersByAlias_0 = runtime.ForwardResponseMessage
 
-	forward_Query_BuyOffersOfAliasesLinkedToRollApp_0 = runtime.ForwardResponseMessage
+	forward_Query_BuyOrdersOfAliasesLinkedToRollApp_0 = runtime.ForwardResponseMessage
 )

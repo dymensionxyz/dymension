@@ -1645,7 +1645,7 @@ func Test_queryServer_TranslateAliasOrChainIdToChainId(t *testing.T) {
 	})
 }
 
-func Test_queryServer_BuyOfferById(t *testing.T) {
+func Test_queryServer_BuyOrderById(t *testing.T) {
 	now := time.Now().UTC()
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
@@ -1659,7 +1659,7 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 		dk, ctx := setupTest()
 		queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-		resp, err := queryServer.BuyOfferById(sdk.WrapSDKContext(ctx), nil)
+		resp, err := queryServer.BuyOrderById(sdk.WrapSDKContext(ctx), nil)
 		require.Error(t, err)
 		require.Nil(t, resp)
 	})
@@ -1667,15 +1667,16 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 	buyerA := testAddr(1).bech32()
 
 	tests := []struct {
-		name      string
-		offers    []dymnstypes.BuyOffer
-		offerId   string
-		wantErr   bool
-		wantOffer dymnstypes.BuyOffer
+		name            string
+		buyOrders       []dymnstypes.BuyOrder
+		buyOrderId      string
+		wantErr         bool
+		wantErrContains string
+		wantOffer       dymnstypes.BuyOrder
 	}{
 		{
 			name: "pass - can return",
-			offers: []dymnstypes.BuyOffer{
+			buyOrders: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -1684,9 +1685,9 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
-			offerId: "101",
-			wantErr: false,
-			wantOffer: dymnstypes.BuyOffer{
+			buyOrderId: "101",
+			wantErr:    false,
+			wantOffer: dymnstypes.BuyOrder{
 				Id:         "101",
 				GoodsId:    "a",
 				Type:       dymnstypes.NameOrder,
@@ -1696,7 +1697,7 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 		},
 		{
 			name: "pass - can return among multiple records",
-			offers: []dymnstypes.BuyOffer{
+			buyOrders: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -1719,9 +1720,9 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 			},
-			offerId: "102",
-			wantErr: false,
-			wantOffer: dymnstypes.BuyOffer{
+			buyOrderId: "102",
+			wantErr:    false,
+			wantOffer: dymnstypes.BuyOrder{
 				Id:         "102",
 				GoodsId:    "a",
 				Type:       dymnstypes.NameOrder,
@@ -1731,7 +1732,7 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 		},
 		{
 			name: "fail - return error if not found",
-			offers: []dymnstypes.BuyOffer{
+			buyOrders: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -1747,12 +1748,13 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 			},
-			offerId: "103",
-			wantErr: true,
+			buyOrderId:      "103",
+			wantErr:         true,
+			wantErrContains: "buy order not found",
 		},
 		{
 			name: "fail - reject empty offer-id",
-			offers: []dymnstypes.BuyOffer{
+			buyOrders: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -1761,12 +1763,13 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
-			offerId: "",
-			wantErr: true,
+			buyOrderId:      "",
+			wantErr:         true,
+			wantErrContains: "invalid Buy-Order ID",
 		},
 		{
 			name: "fail - reject bad offer-id",
-			offers: []dymnstypes.BuyOffer{
+			buyOrders: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -1775,27 +1778,28 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
-			offerId: "@",
-			wantErr: true,
+			buyOrderId:      "@",
+			wantErr:         true,
+			wantErrContains: "invalid Buy-Order ID",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			dk, ctx := setupTest()
 
-			for _, offer := range tt.offers {
-				err := dk.SetBuyOffer(ctx, offer)
+			for _, offer := range tt.buyOrders {
+				err := dk.SetBuyOrder(ctx, offer)
 				require.NoError(t, err)
 			}
 
 			queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-			resp, err := queryServer.BuyOfferById(sdk.WrapSDKContext(ctx), &dymnstypes.QueryBuyOfferByIdRequest{
-				Id: tt.offerId,
+			resp, err := queryServer.BuyOrderById(sdk.WrapSDKContext(ctx), &dymnstypes.QueryBuyOrderByIdRequest{
+				Id: tt.buyOrderId,
 			})
 
 			if tt.wantErr {
-				require.Error(t, err)
+				requireErrorContains(t, err, tt.wantErrContains)
 				require.Nil(t, resp)
 				return
 			}
@@ -1803,12 +1807,12 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 
-			require.Equal(t, tt.wantOffer, resp.Offer)
+			require.Equal(t, tt.wantOffer, resp.BuyOrder)
 		})
 	}
 }
 
-func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
+func Test_queryServer_BuyOrdersPlacedByAccount(t *testing.T) {
 	now := time.Now().UTC()
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
@@ -1822,7 +1826,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 		dk, ctx := setupTest()
 		queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-		resp, err := queryServer.BuyOffersPlacedByAccount(sdk.WrapSDKContext(ctx), nil)
+		resp, err := queryServer.BuyOrdersPlacedByAccount(sdk.WrapSDKContext(ctx), nil)
 		require.Error(t, err)
 		require.Nil(t, resp)
 	})
@@ -1833,14 +1837,14 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 	tests := []struct {
 		name       string
 		dymNames   []dymnstypes.DymName
-		offers     []dymnstypes.BuyOffer
+		offers     []dymnstypes.BuyOrder
 		account    string
 		wantErr    bool
-		wantOffers []dymnstypes.BuyOffer
+		wantOffers []dymnstypes.BuyOrder
 	}{
 		{
 			name: "pass - can return",
-			offers: []dymnstypes.BuyOffer{
+			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -1851,7 +1855,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			},
 			account: buyerA,
 			wantErr: false,
-			wantOffers: []dymnstypes.BuyOffer{
+			wantOffers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -1863,7 +1867,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 		},
 		{
 			name: "pass - returns all records made by account",
-			offers: []dymnstypes.BuyOffer{
+			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -1895,7 +1899,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			},
 			account: buyerA,
 			wantErr: false,
-			wantOffers: []dymnstypes.BuyOffer{
+			wantOffers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -1921,7 +1925,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 		},
 		{
 			name: "pass - return empty if no match",
-			offers: []dymnstypes.BuyOffer{
+			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -1943,7 +1947,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 		},
 		{
 			name: "fail - reject empty account",
-			offers: []dymnstypes.BuyOffer{
+			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -1957,7 +1961,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 		},
 		{
 			name: "fail - reject bad account",
-			offers: []dymnstypes.BuyOffer{
+			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -1980,19 +1984,19 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			}
 
 			for _, offer := range tt.offers {
-				err := dk.SetBuyOffer(ctx, offer)
+				err := dk.SetBuyOrder(ctx, offer)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingGoodsIdToBuyOffer(ctx, offer.GoodsId, offer.Type, offer.Id)
+				err = dk.AddReverseMappingGoodsIdToBuyOrder(ctx, offer.GoodsId, offer.Type, offer.Id)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, offer.Buyer, offer.Id)
+				err = dk.AddReverseMappingBuyerToBuyOrderRecord(ctx, offer.Buyer, offer.Id)
 				require.NoError(t, err)
 			}
 
 			queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-			resp, err := queryServer.BuyOffersPlacedByAccount(sdk.WrapSDKContext(ctx), &dymnstypes.QueryBuyOffersPlacedByAccountRequest{
+			resp, err := queryServer.BuyOrdersPlacedByAccount(sdk.WrapSDKContext(ctx), &dymnstypes.QueryBuyOrdersPlacedByAccountRequest{
 				Account: tt.account,
 			})
 
@@ -2008,16 +2012,16 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 			sort.Slice(tt.wantOffers, func(i, j int) bool {
 				return tt.wantOffers[i].Id < tt.wantOffers[j].Id
 			})
-			sort.Slice(resp.Offers, func(i, j int) bool {
-				return resp.Offers[i].Id < resp.Offers[j].Id
+			sort.Slice(resp.BuyOrders, func(i, j int) bool {
+				return resp.BuyOrders[i].Id < resp.BuyOrders[j].Id
 			})
 
-			require.Equal(t, tt.wantOffers, resp.Offers)
+			require.Equal(t, tt.wantOffers, resp.BuyOrders)
 		})
 	}
 }
 
-func Test_queryServer_BuyOffersByDymName(t *testing.T) {
+func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
 	now := time.Now().UTC()
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
@@ -2031,7 +2035,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 		dk, ctx := setupTest()
 		queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-		resp, err := queryServer.BuyOffersByDymName(sdk.WrapSDKContext(ctx), nil)
+		resp, err := queryServer.BuyOrdersByDymName(sdk.WrapSDKContext(ctx), nil)
 		require.Error(t, err)
 		require.Nil(t, resp)
 	})
@@ -2043,10 +2047,10 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 	tests := []struct {
 		name       string
 		dymNames   []dymnstypes.DymName
-		offers     []dymnstypes.BuyOffer
+		offers     []dymnstypes.BuyOrder
 		dymName    string
 		wantErr    bool
-		wantOffers []dymnstypes.BuyOffer
+		wantOffers []dymnstypes.BuyOrder
 	}{
 		{
 			name: "pass - can return",
@@ -2058,7 +2062,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.BuyOffer{
+			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -2069,7 +2073,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			},
 			dymName: "a",
 			wantErr: false,
-			wantOffers: []dymnstypes.BuyOffer{
+			wantOffers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -2095,7 +2099,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.BuyOffer{
+			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -2120,7 +2124,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			},
 			dymName: "a",
 			wantErr: false,
-			wantOffers: []dymnstypes.BuyOffer{
+			wantOffers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -2153,7 +2157,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.BuyOffer{
+			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -2190,7 +2194,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.BuyOffer{
+			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -2212,7 +2216,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.BuyOffer{
+			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -2235,19 +2239,19 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			}
 
 			for _, offer := range tt.offers {
-				err := dk.SetBuyOffer(ctx, offer)
+				err := dk.SetBuyOrder(ctx, offer)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingGoodsIdToBuyOffer(ctx, offer.GoodsId, offer.Type, offer.Id)
+				err = dk.AddReverseMappingGoodsIdToBuyOrder(ctx, offer.GoodsId, offer.Type, offer.Id)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, offer.Buyer, offer.Id)
+				err = dk.AddReverseMappingBuyerToBuyOrderRecord(ctx, offer.Buyer, offer.Id)
 				require.NoError(t, err)
 			}
 
 			queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-			resp, err := queryServer.BuyOffersByDymName(sdk.WrapSDKContext(ctx), &dymnstypes.QueryBuyOffersByDymNameRequest{
+			resp, err := queryServer.BuyOrdersByDymName(sdk.WrapSDKContext(ctx), &dymnstypes.QueryBuyOrdersByDymNameRequest{
 				Name: tt.dymName,
 			})
 
@@ -2263,16 +2267,16 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 			sort.Slice(tt.wantOffers, func(i, j int) bool {
 				return tt.wantOffers[i].Id < tt.wantOffers[j].Id
 			})
-			sort.Slice(resp.Offers, func(i, j int) bool {
-				return resp.Offers[i].Id < resp.Offers[j].Id
+			sort.Slice(resp.BuyOrders, func(i, j int) bool {
+				return resp.BuyOrders[i].Id < resp.BuyOrders[j].Id
 			})
 
-			require.Equal(t, tt.wantOffers, resp.Offers)
+			require.Equal(t, tt.wantOffers, resp.BuyOrders)
 		})
 	}
 }
 
-func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
+func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
 	now := time.Now().UTC()
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
@@ -2286,7 +2290,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 		dk, ctx := setupTest()
 		queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-		resp, err := queryServer.BuyOffersOfDymNamesOwnedByAccount(sdk.WrapSDKContext(ctx), nil)
+		resp, err := queryServer.BuyOrdersOfDymNamesOwnedByAccount(sdk.WrapSDKContext(ctx), nil)
 		require.Error(t, err)
 		require.Nil(t, resp)
 	})
@@ -2298,10 +2302,10 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 	tests := []struct {
 		name       string
 		dymNames   []dymnstypes.DymName
-		offers     []dymnstypes.BuyOffer
+		offers     []dymnstypes.BuyOrder
 		owner      string
 		wantErr    bool
-		wantOffers []dymnstypes.BuyOffer
+		wantOffers []dymnstypes.BuyOrder
 	}{
 		{
 			name: "pass - can return",
@@ -2313,7 +2317,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.BuyOffer{
+			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -2324,7 +2328,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			},
 			owner:   ownerA,
 			wantErr: false,
-			wantOffers: []dymnstypes.BuyOffer{
+			wantOffers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -2356,7 +2360,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.BuyOffer{
+			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -2388,7 +2392,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			},
 			owner:   ownerA,
 			wantErr: false,
-			wantOffers: []dymnstypes.BuyOffer{
+			wantOffers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -2428,7 +2432,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.BuyOffer{
+			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -2453,7 +2457,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			},
 			owner:      anotherA,
 			wantErr:    false,
-			wantOffers: []dymnstypes.BuyOffer{},
+			wantOffers: []dymnstypes.BuyOrder{},
 		},
 		{
 			name: "fail - reject empty account",
@@ -2465,7 +2469,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.BuyOffer{
+			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -2487,7 +2491,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.BuyOffer{
+			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
 					GoodsId:    "a",
@@ -2509,19 +2513,19 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			}
 
 			for _, offer := range tt.offers {
-				err := dk.SetBuyOffer(ctx, offer)
+				err := dk.SetBuyOrder(ctx, offer)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingGoodsIdToBuyOffer(ctx, offer.GoodsId, offer.Type, offer.Id)
+				err = dk.AddReverseMappingGoodsIdToBuyOrder(ctx, offer.GoodsId, offer.Type, offer.Id)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, offer.Buyer, offer.Id)
+				err = dk.AddReverseMappingBuyerToBuyOrderRecord(ctx, offer.Buyer, offer.Id)
 				require.NoError(t, err)
 			}
 
 			queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-			resp, err := queryServer.BuyOffersOfDymNamesOwnedByAccount(sdk.WrapSDKContext(ctx), &dymnstypes.QueryBuyOffersOfDymNamesOwnedByAccountRequest{
+			resp, err := queryServer.BuyOrdersOfDymNamesOwnedByAccount(sdk.WrapSDKContext(ctx), &dymnstypes.QueryBuyOrdersOfDymNamesOwnedByAccountRequest{
 				Account: tt.owner,
 			})
 
@@ -2537,11 +2541,11 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 			sort.Slice(tt.wantOffers, func(i, j int) bool {
 				return tt.wantOffers[i].Id < tt.wantOffers[j].Id
 			})
-			sort.Slice(resp.Offers, func(i, j int) bool {
-				return resp.Offers[i].Id < resp.Offers[j].Id
+			sort.Slice(resp.BuyOrders, func(i, j int) bool {
+				return resp.BuyOrders[i].Id < resp.BuyOrders[j].Id
 			})
 
-			require.Equal(t, tt.wantOffers, resp.Offers)
+			require.Equal(t, tt.wantOffers, resp.BuyOrders)
 		})
 	}
 }
@@ -2559,7 +2563,7 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 		wantErrContains    string
 		wantChainId        string
 		wantFoundSellOrder bool
-		wantOfferIds       []string
+		wantBuyOrderIds    []string
 	}{
 		{
 			name:     "pass - can return alias of mapping in params",
@@ -2579,7 +2583,7 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 			wantErr:            false,
 			wantChainId:        "dymension_1100-1",
 			wantFoundSellOrder: false,
-			wantOfferIds:       nil,
+			wantBuyOrderIds:    nil,
 		},
 		{
 			name:     "pass - can return alias of mapping in params, even if there are multiple mappings",
@@ -2603,7 +2607,7 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 			wantErr:            false,
 			wantChainId:        "dymension_1100-1",
 			wantFoundSellOrder: false,
-			wantOfferIds:       nil,
+			wantBuyOrderIds:    nil,
 		},
 		{
 			name:     "pass - if alias is mapped both in params and RollApp alias, priority params",
@@ -2629,7 +2633,7 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 			wantErr:            false,
 			wantChainId:        "dymension_1100-1",
 			wantFoundSellOrder: false,
-			wantOfferIds:       nil,
+			wantBuyOrderIds:    nil,
 		},
 		{
 			name:     "pass - returns Sell/Buy orders info if alias is mapped in RollApp alias",
@@ -2643,23 +2647,23 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 				err := s.dymNsKeeper.SetSellOrder(s.ctx, aliasSellOrder)
 				s.Require().NoError(err)
 
-				aliasBuyOffer1 := s.newAliasBuyOffer(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
-					WithID(dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 1)).
+				aliasBuyOrder1 := s.newAliasBuyOrder(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
+					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 1)).
 					Build()
-				s.setBuyOfferWithFunctionsAfter(aliasBuyOffer1)
+				s.setBuyOrderWithFunctionsAfter(aliasBuyOrder1)
 
-				aliasBuyOffer2 := s.newAliasBuyOffer(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
-					WithID(dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 2)).
+				aliasBuyOrder2 := s.newAliasBuyOrder(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
+					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 2)).
 					Build()
-				s.setBuyOfferWithFunctionsAfter(aliasBuyOffer2)
+				s.setBuyOrderWithFunctionsAfter(aliasBuyOrder2)
 			},
 			req:                &dymnstypes.QueryAliasRequest{Alias: rollApp1.alias},
 			wantErr:            false,
 			wantChainId:        rollApp1.rollAppId,
 			wantFoundSellOrder: true,
-			wantOfferIds: []string{
-				dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 1),
-				dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 2),
+			wantBuyOrderIds: []string{
+				dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 1),
+				dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 2),
 			},
 		},
 		{
@@ -2670,11 +2674,11 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 				s.persistRollApp(*rollApp)
 
 				aliasSellOrder := s.newAliasSellOrder("dym").WithMinPrice(100).Build()
-				aliasBuyOffer := s.newAliasBuyOffer(rollApp1.owner, "dym", rollApp1.rollAppId).Build()
+				aliasBuyOrder := s.newAliasBuyOrder(rollApp1.owner, "dym", rollApp1.rollAppId).Build()
 
 				err := s.dymNsKeeper.SetSellOrder(s.ctx, aliasSellOrder)
 				s.Require().NoError(err)
-				_, err = s.dymNsKeeper.InsertNewBuyOffer(s.ctx, aliasBuyOffer)
+				_, err = s.dymNsKeeper.InsertNewBuyOrder(s.ctx, aliasBuyOrder)
 				s.Require().NoError(err)
 
 				s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
@@ -2691,7 +2695,7 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 			wantErr:            false,
 			wantChainId:        "dymension_1100-1",
 			wantFoundSellOrder: false,
-			wantOfferIds:       nil,
+			wantBuyOrderIds:    nil,
 		},
 		{
 			name:            "fail - reject nil request",
@@ -2748,52 +2752,52 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 			s.Equal(tt.wantChainId, resp.ChainId)
 			s.Equal(tt.wantFoundSellOrder, resp.FoundSellOrder)
 
-			if len(tt.wantOfferIds) == 0 {
-				s.Empty(resp.BuyOfferIds)
+			if len(tt.wantBuyOrderIds) == 0 {
+				s.Empty(resp.BuyOrderIds)
 			} else {
-				sort.Strings(tt.wantOfferIds)
-				sort.Strings(resp.BuyOfferIds)
-				s.Equal(tt.wantOfferIds, resp.BuyOfferIds)
+				sort.Strings(tt.wantBuyOrderIds)
+				sort.Strings(resp.BuyOrderIds)
+				s.Equal(tt.wantBuyOrderIds, resp.BuyOrderIds)
 			}
 		})
 	}
 }
 
-func (s *KeeperTestSuite) Test_queryServer_BuyOffersByAlias() {
+func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByAlias() {
 	rollApp1 := *newRollApp("rollapp_1-1").WithOwner(testAddr(1).bech32()).WithAlias("one")
 	rollApp2 := *newRollApp("rollapp_2-2").WithAlias("two")
 
-	aliasBuyOffer1 := s.newAliasBuyOffer(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
-		WithID(dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 1)).
+	aliasBuyOrder1 := s.newAliasBuyOrder(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
+		WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 1)).
 		Build()
-	aliasBuyOffer2 := s.newAliasBuyOffer(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
-		WithID(dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 2)).
+	aliasBuyOrder2 := s.newAliasBuyOrder(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
+		WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 2)).
 		Build()
 
 	tests := []struct {
 		name            string
 		rollapp         []rollapp
-		buyOffers       []dymnstypes.BuyOffer
+		buyOrders       []dymnstypes.BuyOrder
 		preRunFunc      func(s *KeeperTestSuite)
-		req             *dymnstypes.QueryBuyOffersByAliasRequest
+		req             *dymnstypes.QueryBuyOrdersByAliasRequest
 		wantErr         bool
 		wantErrContains string
-		wantOfferIds    []string
+		wantBuyOrderIds []string
 	}{
 		{
-			name:      "pass - can buy offers of the alias",
+			name:      "pass - can buy buy orders of the alias",
 			rollapp:   []rollapp{rollApp1, rollApp2},
-			buyOffers: []dymnstypes.BuyOffer{aliasBuyOffer1, aliasBuyOffer2},
-			req:       &dymnstypes.QueryBuyOffersByAliasRequest{Alias: rollApp1.alias},
+			buyOrders: []dymnstypes.BuyOrder{aliasBuyOrder1, aliasBuyOrder2},
+			req:       &dymnstypes.QueryBuyOrdersByAliasRequest{Alias: rollApp1.alias},
 			wantErr:   false,
-			wantOfferIds: []string{
-				aliasBuyOffer1.Id, aliasBuyOffer2.Id,
+			wantBuyOrderIds: []string{
+				aliasBuyOrder1.Id, aliasBuyOrder2.Id,
 			},
 		},
 		{
 			name:      "pass - returns empty if alias present in params as alias of a chain",
 			rollapp:   []rollapp{rollApp1, rollApp2},
-			buyOffers: []dymnstypes.BuyOffer{aliasBuyOffer1, aliasBuyOffer2},
+			buyOrders: []dymnstypes.BuyOrder{aliasBuyOrder1, aliasBuyOrder2},
 			preRunFunc: func(s *KeeperTestSuite) {
 				s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
 					params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
@@ -2805,14 +2809,14 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersByAlias() {
 					return params
 				})
 			},
-			req:          &dymnstypes.QueryBuyOffersByAliasRequest{Alias: rollApp1.alias},
-			wantErr:      false,
-			wantOfferIds: nil,
+			req:             &dymnstypes.QueryBuyOrdersByAliasRequest{Alias: rollApp1.alias},
+			wantErr:         false,
+			wantBuyOrderIds: nil,
 		},
 		{
 			name:      "pass - returns empty if alias present in params as a chain-id",
 			rollapp:   []rollapp{rollApp1, rollApp2},
-			buyOffers: []dymnstypes.BuyOffer{aliasBuyOffer1, aliasBuyOffer2},
+			buyOrders: []dymnstypes.BuyOrder{aliasBuyOrder1, aliasBuyOrder2},
 			preRunFunc: func(s *KeeperTestSuite) {
 				s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
 					params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
@@ -2824,23 +2828,23 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersByAlias() {
 					return params
 				})
 			},
-			req:          &dymnstypes.QueryBuyOffersByAliasRequest{Alias: rollApp1.alias},
-			wantErr:      false,
-			wantOfferIds: nil,
+			req:             &dymnstypes.QueryBuyOrdersByAliasRequest{Alias: rollApp1.alias},
+			wantErr:         false,
+			wantBuyOrderIds: nil,
 		},
 		{
 			name:            "fail - reject nil request",
 			req:             nil,
 			wantErr:         true,
 			wantErrContains: "invalid request",
-			wantOfferIds:    nil,
+			wantBuyOrderIds: nil,
 		},
 		{
 			name:            "fail - reject bad alias",
-			req:             &dymnstypes.QueryBuyOffersByAliasRequest{Alias: "@@@"},
+			req:             &dymnstypes.QueryBuyOrdersByAliasRequest{Alias: "@@@"},
 			wantErr:         true,
 			wantErrContains: "invalid alias",
-			wantOfferIds:    nil,
+			wantBuyOrderIds: nil,
 		},
 	}
 	for _, tt := range tests {
@@ -2850,15 +2854,15 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersByAlias() {
 			for _, rollapp := range tt.rollapp {
 				s.persistRollApp(rollapp)
 			}
-			for _, offer := range tt.buyOffers {
-				s.setBuyOfferWithFunctionsAfter(offer)
+			for _, offer := range tt.buyOrders {
+				s.setBuyOrderWithFunctionsAfter(offer)
 			}
 
 			if tt.preRunFunc != nil {
 				tt.preRunFunc(s)
 			}
 
-			resp, err := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper).BuyOffersByAlias(sdk.WrapSDKContext(s.ctx), tt.req)
+			resp, err := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper).BuyOrdersByAlias(sdk.WrapSDKContext(s.ctx), tt.req)
 
 			if tt.wantErr {
 				s.Require().Error(err)
@@ -2870,18 +2874,18 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersByAlias() {
 			s.Require().NoError(err)
 			s.Require().NotNil(resp)
 
-			if len(tt.wantOfferIds) == 0 {
-				s.Empty(resp.Offers)
+			if len(tt.wantBuyOrderIds) == 0 {
+				s.Empty(resp.BuyOrders)
 			} else {
-				var responseOfferIds []string
-				for _, offer := range resp.Offers {
-					responseOfferIds = append(responseOfferIds, offer.Id)
+				var responseBuyOrderIds []string
+				for _, offer := range resp.BuyOrders {
+					responseBuyOrderIds = append(responseBuyOrderIds, offer.Id)
 				}
 
-				sort.Strings(tt.wantOfferIds)
-				sort.Strings(responseOfferIds)
+				sort.Strings(tt.wantBuyOrderIds)
+				sort.Strings(responseBuyOrderIds)
 
-				s.Equal(tt.wantOfferIds, responseOfferIds)
+				s.Equal(tt.wantBuyOrderIds, responseBuyOrderIds)
 			}
 		})
 	}
@@ -2892,62 +2896,62 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersOfAliasesLinkedToRollApp() {
 	rollApp1 := *newRollApp("rollapp_1-1").WithAlias("one")
 	rollApp2 := *newRollApp("rollapp_2-2").WithAlias("another")
 
-	aliasBuyOffer1_ra1_alias1 := s.newAliasBuyOffer(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
-		WithID(dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 1)).
+	aliasBuyOffer1_ra1_alias1 := s.newAliasBuyOrder(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
+		WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 1)).
 		Build()
-	aliasBuyOffer2_ra1_alias1 := s.newAliasBuyOffer(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
-		WithID(dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 2)).
+	aliasBuyOffer2_ra1_alias1 := s.newAliasBuyOrder(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
+		WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 2)).
 		Build()
 
 	tests := []struct {
 		name            string
 		rollapp         []rollapp
-		buyOffers       []dymnstypes.BuyOffer
+		buyOffers       []dymnstypes.BuyOrder
 		preRunFunc      func(s *KeeperTestSuite)
-		req             *dymnstypes.QueryBuyOffersOfAliasesLinkedToRollAppRequest
+		req             *dymnstypes.QueryBuyOrdersOfAliasesLinkedToRollAppRequest
 		wantErr         bool
 		wantErrContains string
-		wantOfferIds    []string
+		wantBuyOrderIds []string
 	}{
 		{
 			name:       "pass - can returns if there is Buy Order",
 			rollapp:    []rollapp{rollApp1, rollApp2},
-			buyOffers:  []dymnstypes.BuyOffer{aliasBuyOffer1_ra1_alias1},
+			buyOffers:  []dymnstypes.BuyOrder{aliasBuyOffer1_ra1_alias1},
 			preRunFunc: nil,
-			req: &dymnstypes.QueryBuyOffersOfAliasesLinkedToRollAppRequest{
+			req: &dymnstypes.QueryBuyOrdersOfAliasesLinkedToRollAppRequest{
 				RollappId: rollApp1.rollAppId,
 			},
-			wantErr:      false,
-			wantOfferIds: []string{aliasBuyOffer1_ra1_alias1.Id},
+			wantErr:         false,
+			wantBuyOrderIds: []string{aliasBuyOffer1_ra1_alias1.Id},
 		},
 		{
 			name:       "pass - can empty if there is No buy order",
 			rollapp:    []rollapp{rollApp1, rollApp2},
 			buyOffers:  nil,
 			preRunFunc: nil,
-			req: &dymnstypes.QueryBuyOffersOfAliasesLinkedToRollAppRequest{
+			req: &dymnstypes.QueryBuyOrdersOfAliasesLinkedToRollAppRequest{
 				RollappId: rollApp2.rollAppId,
 			},
-			wantErr:      false,
-			wantOfferIds: []string{},
+			wantErr:         false,
+			wantBuyOrderIds: []string{},
 		},
 		{
 			name:       "pass - return multiple if there are many buy orders",
 			rollapp:    []rollapp{rollApp1, rollApp2},
-			buyOffers:  []dymnstypes.BuyOffer{aliasBuyOffer1_ra1_alias1, aliasBuyOffer2_ra1_alias1},
+			buyOffers:  []dymnstypes.BuyOrder{aliasBuyOffer1_ra1_alias1, aliasBuyOffer2_ra1_alias1},
 			preRunFunc: nil,
-			req: &dymnstypes.QueryBuyOffersOfAliasesLinkedToRollAppRequest{
+			req: &dymnstypes.QueryBuyOrdersOfAliasesLinkedToRollAppRequest{
 				RollappId: rollApp1.rollAppId,
 			},
 			wantErr: false,
-			wantOfferIds: []string{
+			wantBuyOrderIds: []string{
 				aliasBuyOffer1_ra1_alias1.Id, aliasBuyOffer2_ra1_alias1.Id,
 			},
 		},
 		{
 			name:      "pass - return multiple if there are buy orders associated with different aliases of the same RollApp",
 			rollapp:   []rollapp{rollApp1, rollApp2},
-			buyOffers: []dymnstypes.BuyOffer{aliasBuyOffer1_ra1_alias1, aliasBuyOffer2_ra1_alias1},
+			buyOffers: []dymnstypes.BuyOrder{aliasBuyOffer1_ra1_alias1, aliasBuyOffer2_ra1_alias1},
 			preRunFunc: func(s *KeeperTestSuite) {
 				const alias2 = "more"
 				const alias3 = "alias"
@@ -2962,31 +2966,31 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersOfAliasesLinkedToRollApp() {
 					rollApp1.alias, alias2, alias3,
 				)
 
-				aliasBuyOffer3_ra1_alias2 := s.newAliasBuyOffer(rollApp2.owner, alias2, rollApp2.rollAppId).
-					WithID(dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 3)).
+				aliasBuyOffer3_ra1_alias2 := s.newAliasBuyOrder(rollApp2.owner, alias2, rollApp2.rollAppId).
+					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 3)).
 					Build()
-				s.setBuyOfferWithFunctionsAfter(aliasBuyOffer3_ra1_alias2)
+				s.setBuyOrderWithFunctionsAfter(aliasBuyOffer3_ra1_alias2)
 
-				aliasBuyOffer4_ra1_alias3 := s.newAliasBuyOffer(rollApp2.owner, alias3, rollApp2.rollAppId).
-					WithID(dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 4)).
+				aliasBuyOffer4_ra1_alias3 := s.newAliasBuyOrder(rollApp2.owner, alias3, rollApp2.rollAppId).
+					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 4)).
 					Build()
-				s.setBuyOfferWithFunctionsAfter(aliasBuyOffer4_ra1_alias3)
+				s.setBuyOrderWithFunctionsAfter(aliasBuyOffer4_ra1_alias3)
 			},
-			req: &dymnstypes.QueryBuyOffersOfAliasesLinkedToRollAppRequest{
+			req: &dymnstypes.QueryBuyOrdersOfAliasesLinkedToRollAppRequest{
 				RollappId: rollApp1.rollAppId,
 			},
 			wantErr: false,
-			wantOfferIds: []string{
+			wantBuyOrderIds: []string{
 				aliasBuyOffer1_ra1_alias1.Id,
 				aliasBuyOffer2_ra1_alias1.Id,
-				dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 3),
-				dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 4),
+				dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 3),
+				dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 4),
 			},
 		},
 		{
 			name:      "pass - exclude buy orders of aliases which presents in params as chain-alias",
 			rollapp:   []rollapp{rollApp1, rollApp2},
-			buyOffers: []dymnstypes.BuyOffer{aliasBuyOffer1_ra1_alias1, aliasBuyOffer2_ra1_alias1},
+			buyOffers: []dymnstypes.BuyOrder{aliasBuyOffer1_ra1_alias1, aliasBuyOffer2_ra1_alias1},
 			preRunFunc: func(s *KeeperTestSuite) {
 				const alias2 = "more"
 				const alias3 = "alias"
@@ -3001,15 +3005,15 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersOfAliasesLinkedToRollApp() {
 					rollApp1.alias, alias2, alias3,
 				)
 
-				aliasBuyOffer3_ra1_alias2 := s.newAliasBuyOffer(rollApp2.owner, alias2, rollApp2.rollAppId).
-					WithID(dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 3)).
+				aliasBuyOffer3_ra1_alias2 := s.newAliasBuyOrder(rollApp2.owner, alias2, rollApp2.rollAppId).
+					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 3)).
 					Build()
-				s.setBuyOfferWithFunctionsAfter(aliasBuyOffer3_ra1_alias2)
+				s.setBuyOrderWithFunctionsAfter(aliasBuyOffer3_ra1_alias2)
 
-				aliasBuyOffer4_ra1_alias3 := s.newAliasBuyOffer(rollApp2.owner, alias3, rollApp2.rollAppId).
-					WithID(dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 4)).
+				aliasBuyOffer4_ra1_alias3 := s.newAliasBuyOrder(rollApp2.owner, alias3, rollApp2.rollAppId).
+					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 4)).
 					Build()
-				s.setBuyOfferWithFunctionsAfter(aliasBuyOffer4_ra1_alias3)
+				s.setBuyOrderWithFunctionsAfter(aliasBuyOffer4_ra1_alias3)
 
 				s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
 					params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
@@ -3021,14 +3025,14 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersOfAliasesLinkedToRollApp() {
 					return params
 				})
 			},
-			req: &dymnstypes.QueryBuyOffersOfAliasesLinkedToRollAppRequest{
+			req: &dymnstypes.QueryBuyOrdersOfAliasesLinkedToRollAppRequest{
 				RollappId: rollApp1.rollAppId,
 			},
 			wantErr: false,
-			wantOfferIds: []string{
+			wantBuyOrderIds: []string{
 				aliasBuyOffer1_ra1_alias1.Id,
 				aliasBuyOffer2_ra1_alias1.Id,
-				dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 4),
+				dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 4),
 			},
 		},
 		{
@@ -3036,26 +3040,26 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersOfAliasesLinkedToRollApp() {
 			req:             nil,
 			wantErr:         true,
 			wantErrContains: "invalid request",
-			wantOfferIds:    nil,
+			wantBuyOrderIds: nil,
 		},
 		{
 			name: "fail - reject bad RollApp ID",
-			req: &dymnstypes.QueryBuyOffersOfAliasesLinkedToRollAppRequest{
+			req: &dymnstypes.QueryBuyOrdersOfAliasesLinkedToRollAppRequest{
 				RollappId: "@@@",
 			},
 			wantErr:         true,
 			wantErrContains: "invalid RollApp ID",
-			wantOfferIds:    nil,
+			wantBuyOrderIds: nil,
 		},
 		{
 			name:    "fail - reject if RollApp does not exists",
 			rollapp: []rollapp{rollApp1},
-			req: &dymnstypes.QueryBuyOffersOfAliasesLinkedToRollAppRequest{
+			req: &dymnstypes.QueryBuyOrdersOfAliasesLinkedToRollAppRequest{
 				RollappId: "nah_0-0",
 			},
 			wantErr:         true,
 			wantErrContains: "RollApp not found",
-			wantOfferIds:    nil,
+			wantBuyOrderIds: nil,
 		},
 	}
 	for _, tt := range tests {
@@ -3066,14 +3070,14 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersOfAliasesLinkedToRollApp() {
 				s.persistRollApp(rollapp)
 			}
 			for _, offer := range tt.buyOffers {
-				s.setBuyOfferWithFunctionsAfter(offer)
+				s.setBuyOrderWithFunctionsAfter(offer)
 			}
 
 			if tt.preRunFunc != nil {
 				tt.preRunFunc(s)
 			}
 
-			resp, err := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper).BuyOffersOfAliasesLinkedToRollApp(sdk.WrapSDKContext(s.ctx), tt.req)
+			resp, err := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper).BuyOrdersOfAliasesLinkedToRollApp(sdk.WrapSDKContext(s.ctx), tt.req)
 
 			if tt.wantErr {
 				s.Require().Error(err)
@@ -3085,18 +3089,18 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersOfAliasesLinkedToRollApp() {
 			s.Require().NoError(err)
 			s.Require().NotNil(resp)
 
-			if len(tt.wantOfferIds) == 0 {
-				s.Empty(resp.Offers)
+			if len(tt.wantBuyOrderIds) == 0 {
+				s.Empty(resp.BuyOrders)
 			} else {
-				var responseOfferIds []string
-				for _, offer := range resp.Offers {
-					responseOfferIds = append(responseOfferIds, offer.Id)
+				var responseBuyOrderIds []string
+				for _, offer := range resp.BuyOrders {
+					responseBuyOrderIds = append(responseBuyOrderIds, offer.Id)
 				}
 
-				sort.Strings(tt.wantOfferIds)
-				sort.Strings(responseOfferIds)
+				sort.Strings(tt.wantBuyOrderIds)
+				sort.Strings(responseBuyOrderIds)
 
-				s.Equal(tt.wantOfferIds, responseOfferIds)
+				s.Equal(tt.wantBuyOrderIds, responseBuyOrderIds)
 			}
 		})
 	}

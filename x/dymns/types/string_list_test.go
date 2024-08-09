@@ -64,10 +64,10 @@ func Test_stringList_Distinct(t *testing.T) {
 		})
 
 		t.Run(tt.name, func(t *testing.T) {
-			m := ReverseLookupOfferIds{
-				OfferIds: tt.provided,
+			m := ReverseLookupBuyOrderIds{
+				OrderIds: tt.provided,
 			}
-			distinct := m.Distinct().OfferIds
+			distinct := m.Distinct().OrderIds
 			want := []string(tt.wantDistinct)
 
 			sort.Strings(distinct)
@@ -180,13 +180,13 @@ func Test_stringList_Combine(t *testing.T) {
 		})
 
 		t.Run(tt.name, func(t *testing.T) {
-			m := ReverseLookupOfferIds{
-				OfferIds: tt.provided,
+			m := ReverseLookupBuyOrderIds{
+				OrderIds: tt.provided,
 			}
-			other := ReverseLookupOfferIds{
-				OfferIds: tt.others,
+			other := ReverseLookupBuyOrderIds{
+				OrderIds: tt.others,
 			}
-			combined := m.Combine(other).OfferIds
+			combined := m.Combine(other).OrderIds
 			want := []string(tt.wantCombined)
 
 			sort.Strings(combined)
@@ -287,13 +287,13 @@ func Test_stringList_Exclude(t *testing.T) {
 		})
 
 		t.Run(tt.name, func(t *testing.T) {
-			m := ReverseLookupOfferIds{
-				OfferIds: tt.provided,
+			m := ReverseLookupBuyOrderIds{
+				OrderIds: tt.provided,
 			}
-			other := ReverseLookupOfferIds{
-				OfferIds: tt.toBeExcluded,
+			other := ReverseLookupBuyOrderIds{
+				OrderIds: tt.toBeExcluded,
 			}
-			combined := m.Exclude(other).OfferIds
+			combined := m.Exclude(other).OrderIds
 			want := []string(tt.want)
 
 			sort.Strings(combined)
@@ -349,10 +349,10 @@ func Test_stringList_Sort(t *testing.T) {
 		})
 
 		t.Run(tt.name, func(t *testing.T) {
-			m := ReverseLookupOfferIds{
-				OfferIds: tt.provided,
+			m := ReverseLookupBuyOrderIds{
+				OrderIds: tt.provided,
 			}
-			require.Equal(t, []string(tt.want), m.Sort().OfferIds)
+			require.Equal(t, []string(tt.want), m.Sort().OrderIds)
 		})
 	}
 }

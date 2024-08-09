@@ -61,8 +61,8 @@ func NewOfferBuyAliasTxCmd() *cobra.Command {
 				return fmt.Errorf("flag --%s is required", flags.FlagFrom)
 			}
 
-			continueOfferId, _ := cmd.Flags().GetString(flagContinueOfferId)
-			if continueOfferId != "" && !dymnstypes.IsValidBuyOfferId(continueOfferId) {
+			continueOrderId, _ := cmd.Flags().GetString(flagContinueOrderId)
+			if continueOrderId != "" && !dymnstypes.IsValidBuyOrderId(continueOrderId) {
 				return fmt.Errorf("invalid continue offer id")
 			}
 
@@ -77,7 +77,7 @@ func NewOfferBuyAliasTxCmd() *cobra.Command {
 				GoodsId:         alias,
 				OrderType:       dymnstypes.AliasOrder,
 				Buyer:           buyer,
-				ContinueOfferId: continueOfferId,
+				ContinueOrderId: continueOrderId,
 				Offer: sdk.Coin{
 					Denom:  resParams.Params.Price.PriceDenom,
 					Amount: sdk.NewInt(int64(amount)).MulRaw(adymToDymMultiplier),
@@ -90,7 +90,7 @@ func NewOfferBuyAliasTxCmd() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 
-	cmd.Flags().String(flagContinueOfferId, "", "if provided, will raise offer value of an existing offer")
+	cmd.Flags().String(flagContinueOrderId, "", "if provided, will raise offer value of an existing offer")
 
 	return cmd
 }

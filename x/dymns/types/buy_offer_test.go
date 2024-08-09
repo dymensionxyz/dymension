@@ -10,31 +10,31 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBuyOffer_HasCounterpartyOfferPrice(t *testing.T) {
-	require.False(t, (&BuyOffer{
+func TestBuyOrder_HasCounterpartyOfferPrice(t *testing.T) {
+	require.False(t, (&BuyOrder{
 		CounterpartyOfferPrice: nil,
 	}).HasCounterpartyOfferPrice())
-	require.False(t, (&BuyOffer{
+	require.False(t, (&BuyOrder{
 		CounterpartyOfferPrice: &sdk.Coin{},
 	}).HasCounterpartyOfferPrice())
-	require.False(t, (&BuyOffer{
+	require.False(t, (&BuyOrder{
 		CounterpartyOfferPrice: dymnsutils.TestCoinP(0),
 	}).HasCounterpartyOfferPrice())
-	require.True(t, (&BuyOffer{
+	require.True(t, (&BuyOrder{
 		CounterpartyOfferPrice: dymnsutils.TestCoinP(1),
 	}).HasCounterpartyOfferPrice())
 }
 
-func TestBuyOffer_Validate(t *testing.T) {
+func TestBuyOrder_Validate(t *testing.T) {
 	t.Run("nil obj", func(t *testing.T) {
-		m := (*BuyOffer)(nil)
+		m := (*BuyOrder)(nil)
 		require.Error(t, m.Validate())
 	})
 
 	//goland:noinspection SpellCheckingInspection
 	tests := []struct {
 		name                   string
-		offerId                string
+		orderId                string
 		goodsId                string
 		_type                  OrderType
 		params                 []string
@@ -46,7 +46,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 	}{
 		{
 			name:                   "pass - (Name) valid offer",
-			offerId:                "101",
+			orderId:                "101",
 			goodsId:                "my-name",
 			_type:                  NameOrder,
 			params:                 nil,
@@ -56,7 +56,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:                   "pass - (Alias) valid offer",
-			offerId:                "201",
+			orderId:                "201",
 			goodsId:                "alias",
 			_type:                  AliasOrder,
 			params:                 []string{"rollapp_1-1"},
@@ -66,7 +66,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:                   "pass - valid offer with counterparty offer price",
-			offerId:                "101",
+			orderId:                "101",
 			goodsId:                "my-name",
 			_type:                  NameOrder,
 			params:                 nil,
@@ -76,7 +76,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:                   "pass - valid offer without counterparty offer price",
-			offerId:                "101",
+			orderId:                "101",
 			goodsId:                "my-name",
 			_type:                  NameOrder,
 			params:                 nil,
@@ -86,7 +86,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - empty offer ID",
-			offerId:         "",
+			orderId:         "",
 			goodsId:         "my-name",
 			_type:           NameOrder,
 			params:          nil,
@@ -97,7 +97,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - offer ID prefix not match type, case Dym-Name",
-			offerId:         CreateBuyOfferId(AliasOrder, 1),
+			orderId:         CreateBuyOrderId(AliasOrder, 1),
 			goodsId:         "my-name",
 			_type:           NameOrder,
 			params:          nil,
@@ -108,7 +108,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - offer ID prefix not match type, case Alias",
-			offerId:         CreateBuyOfferId(NameOrder, 1),
+			orderId:         CreateBuyOrderId(NameOrder, 1),
 			goodsId:         "my-name",
 			_type:           AliasOrder,
 			params:          []string{"rollapp_1-1"},
@@ -119,7 +119,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - bad offer ID",
-			offerId:         "@",
+			orderId:         "@",
 			goodsId:         "my-name",
 			_type:           NameOrder,
 			params:          nil,
@@ -130,7 +130,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - (Name) empty name",
-			offerId:         "101",
+			orderId:         "101",
 			goodsId:         "",
 			_type:           NameOrder,
 			params:          nil,
@@ -141,7 +141,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - (Alias) empty alias",
-			offerId:         "201",
+			orderId:         "201",
 			goodsId:         "",
 			_type:           AliasOrder,
 			params:          []string{"rollapp_1-1"},
@@ -152,7 +152,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - (Name) bad name",
-			offerId:         "101",
+			orderId:         "101",
 			goodsId:         "@",
 			_type:           NameOrder,
 			params:          nil,
@@ -163,7 +163,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - (Alias) bad name",
-			offerId:         "201",
+			orderId:         "201",
 			goodsId:         "bad-alias",
 			_type:           AliasOrder,
 			params:          []string{"rollapp_1-1"},
@@ -174,7 +174,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - (Name) reject non-empty params",
-			offerId:         "101",
+			orderId:         "101",
 			goodsId:         "my-name",
 			_type:           NameOrder,
 			params:          []string{"non-empty"},
@@ -185,7 +185,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - (Alias) reject empty params",
-			offerId:         "201",
+			orderId:         "201",
 			goodsId:         "alias",
 			_type:           AliasOrder,
 			params:          nil,
@@ -196,7 +196,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - (Alias) reject bad params",
-			offerId:         "201",
+			orderId:         "201",
 			goodsId:         "alias",
 			_type:           AliasOrder,
 			params:          []string{"@chain"},
@@ -207,7 +207,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - bad buyer",
-			offerId:         "101",
+			orderId:         "101",
 			goodsId:         "my-name",
 			_type:           NameOrder,
 			params:          nil,
@@ -218,7 +218,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - offer price is zero",
-			offerId:         "101",
+			orderId:         "101",
 			goodsId:         "my-name",
 			_type:           NameOrder,
 			params:          nil,
@@ -229,7 +229,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - offer price is empty",
-			offerId:         "101",
+			orderId:         "101",
 			goodsId:         "my-name",
 			_type:           NameOrder,
 			params:          nil,
@@ -240,7 +240,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - offer price is negative",
-			offerId:         "101",
+			orderId:         "101",
 			goodsId:         "my-name",
 			_type:           NameOrder,
 			params:          nil,
@@ -251,7 +251,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:    "fail - offer price is invalid",
-			offerId: "101",
+			orderId: "101",
 			goodsId: "my-name",
 			_type:   NameOrder,
 			params:  nil,
@@ -265,7 +265,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:                   "pass - counter-party offer price is zero",
-			offerId:                "101",
+			orderId:                "101",
 			goodsId:                "my-name",
 			_type:                  NameOrder,
 			params:                 nil,
@@ -275,7 +275,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:                   "pass - counter-party offer price is empty",
-			offerId:                "101",
+			orderId:                "101",
 			goodsId:                "my-name",
 			_type:                  NameOrder,
 			params:                 nil,
@@ -285,7 +285,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:                   "fail - counter-party offer price is negative",
-			offerId:                "101",
+			orderId:                "101",
 			goodsId:                "my-name",
 			_type:                  NameOrder,
 			params:                 nil,
@@ -297,7 +297,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:       "fail - counter-party offer price is invalid",
-			offerId:    "101",
+			orderId:    "101",
 			goodsId:    "my-name",
 			_type:      NameOrder,
 			params:     nil,
@@ -312,7 +312,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:                   "pass - counterparty offer price can be less than offer price",
-			offerId:                "101",
+			orderId:                "101",
 			goodsId:                "my-name",
 			_type:                  NameOrder,
 			params:                 nil,
@@ -323,7 +323,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:                   "pass - counterparty offer price can be equals to offer price",
-			offerId:                "101",
+			orderId:                "101",
 			goodsId:                "my-name",
 			_type:                  NameOrder,
 			params:                 nil,
@@ -334,7 +334,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:                   "pass - counterparty offer price can be greater than offer price",
-			offerId:                "101",
+			orderId:                "101",
 			goodsId:                "my-name",
 			_type:                  NameOrder,
 			params:                 nil,
@@ -345,7 +345,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:                   "fail - counterparty offer price denom must match offer price denom",
-			offerId:                "101",
+			orderId:                "101",
 			goodsId:                "my-name",
 			_type:                  NameOrder,
 			params:                 nil,
@@ -357,7 +357,7 @@ func TestBuyOffer_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - reject unknown order type",
-			offerId:         "101",
+			orderId:         "101",
 			goodsId:         "goods",
 			_type:           OrderType_OT_UNKNOWN,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -368,8 +368,8 @@ func TestBuyOffer_Validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &BuyOffer{
-				Id:                     tt.offerId,
+			m := &BuyOrder{
+				Id:                     tt.orderId,
 				GoodsId:                tt.goodsId,
 				Type:                   tt._type,
 				Params:                 tt.params,
@@ -392,9 +392,9 @@ func TestBuyOffer_Validate(t *testing.T) {
 }
 
 //goland:noinspection SpellCheckingInspection
-func TestBuyOffer_GetSdkEvent(t *testing.T) {
+func TestBuyOrder_GetSdkEvent(t *testing.T) {
 	t.Run("all fields", func(t *testing.T) {
-		event := BuyOffer{
+		event := BuyOrder{
 			Id:                     "1",
 			GoodsId:                "a",
 			Type:                   NameOrder,
@@ -403,7 +403,7 @@ func TestBuyOffer_GetSdkEvent(t *testing.T) {
 			CounterpartyOfferPrice: dymnsutils.TestCoinP(2),
 		}.GetSdkEvent("action-name")
 		requireEventEquals(t, event,
-			EventTypeBuyOffer,
+			EventTypeBuyOrder,
 			AttributeKeyBoId, "1",
 			AttributeKeyBoGoodsId, "a",
 			AttributeKeyBoType, NameOrder.FriendlyString(),
@@ -415,7 +415,7 @@ func TestBuyOffer_GetSdkEvent(t *testing.T) {
 	})
 
 	t.Run("BO type Alias", func(t *testing.T) {
-		event := BuyOffer{
+		event := BuyOrder{
 			Id:                     "1",
 			GoodsId:                "a",
 			Type:                   AliasOrder,
@@ -424,14 +424,14 @@ func TestBuyOffer_GetSdkEvent(t *testing.T) {
 			CounterpartyOfferPrice: dymnsutils.TestCoinP(2),
 		}.GetSdkEvent("action-name")
 		require.NotNil(t, event)
-		require.Equal(t, EventTypeBuyOffer, event.Type)
+		require.Equal(t, EventTypeBuyOrder, event.Type)
 		require.Len(t, event.Attributes, 7)
 		require.Equal(t, AttributeKeyBoType, event.Attributes[2].Key)
 		require.Equal(t, AliasOrder.FriendlyString(), event.Attributes[2].Value)
 	})
 
 	t.Run("no counterparty offer price", func(t *testing.T) {
-		event := BuyOffer{
+		event := BuyOrder{
 			Id:                     "1",
 			GoodsId:                "a",
 			Type:                   NameOrder,
@@ -440,7 +440,7 @@ func TestBuyOffer_GetSdkEvent(t *testing.T) {
 			CounterpartyOfferPrice: nil,
 		}.GetSdkEvent("action-name")
 		requireEventEquals(t, event,
-			EventTypeBuyOffer,
+			EventTypeBuyOrder,
 			AttributeKeyBoId, "1",
 			AttributeKeyBoGoodsId, "a",
 			AttributeKeyBoType, NameOrder.FriendlyString(),
@@ -452,7 +452,7 @@ func TestBuyOffer_GetSdkEvent(t *testing.T) {
 	})
 }
 
-func TestIsValidBuyOfferId(t *testing.T) {
+func TestIsValidBuyOrderId(t *testing.T) {
 	tests := []struct {
 		name      string
 		id        string
@@ -541,12 +541,12 @@ func TestIsValidBuyOfferId(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.wantValid, IsValidBuyOfferId(tt.id))
+			require.Equal(t, tt.wantValid, IsValidBuyOrderId(tt.id))
 		})
 	}
 }
 
-func TestCreateBuyOfferId(t *testing.T) {
+func TestCreateBuyOrderId(t *testing.T) {
 	tests := []struct {
 		name      string
 		_type     OrderType
@@ -601,13 +601,13 @@ func TestCreateBuyOfferId(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.wantPanic {
 				require.Panics(t, func() {
-					_ = CreateBuyOfferId(tt._type, tt.i)
+					_ = CreateBuyOrderId(tt._type, tt.i)
 				})
 				return
 			}
-			got := CreateBuyOfferId(tt._type, tt.i)
+			got := CreateBuyOrderId(tt._type, tt.i)
 			require.Equal(t, tt.want, got)
-			require.True(t, IsValidBuyOfferId(got))
+			require.True(t, IsValidBuyOrderId(got))
 		})
 	}
 }

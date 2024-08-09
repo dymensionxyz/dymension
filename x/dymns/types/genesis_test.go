@@ -51,7 +51,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					Params: []string{"rollapp_1-1"},
 				},
 			},
-			BuyOffers: []BuyOffer{
+			BuyOrders: []BuyOrder{
 				{
 					Id:      "101",
 					GoodsId: "my-name",
@@ -122,7 +122,7 @@ func TestGenesisState_Validate(t *testing.T) {
 	t.Run("fail - invalid buy offer", func(t *testing.T) {
 		require.Error(t, (GenesisState{
 			Params: DefaultParams(),
-			BuyOffers: []BuyOffer{
+			BuyOrders: []BuyOrder{
 				{
 					Buyer: "",
 				},

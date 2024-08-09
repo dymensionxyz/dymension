@@ -30,7 +30,7 @@ func TestKeeper_GetSetAliasForRollAppId(t *testing.T) {
 	}
 
 	rollApp3NotExists := rollApp{
-		id:    "nah_2-2",
+		id:    "nah_0-0",
 		alias: "al3",
 	}
 

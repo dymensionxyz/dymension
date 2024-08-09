@@ -105,12 +105,12 @@ func (s *KeeperTestSuite) updateModuleParams(f func(dymnstypes.Params) dymnstype
 	s.Require().NoError(err)
 }
 
-func (s *KeeperTestSuite) setBuyOfferWithFunctionsAfter(buyOffer dymnstypes.BuyOffer) {
-	err := s.dymNsKeeper.SetBuyOffer(s.ctx, buyOffer)
+func (s *KeeperTestSuite) setBuyOrderWithFunctionsAfter(buyOrder dymnstypes.BuyOrder) {
+	err := s.dymNsKeeper.SetBuyOrder(s.ctx, buyOrder)
 	s.Require().NoError(err)
 
-	err = s.dymNsKeeper.AddReverseMappingGoodsIdToBuyOffer(s.ctx,
-		buyOffer.GoodsId, buyOffer.Type, buyOffer.Id,
+	err = s.dymNsKeeper.AddReverseMappingGoodsIdToBuyOrder(s.ctx,
+		buyOrder.GoodsId, buyOrder.Type, buyOrder.Id,
 	)
 	s.Require().NoError(err)
 }
@@ -286,7 +286,7 @@ func (b *sellOrderBuilder) Build() dymnstypes.SellOrder {
 
 //
 
-type buyOfferBuilder struct {
+type buyOrderBuilder struct {
 	s *KeeperTestSuite
 	//
 	id         string
@@ -297,18 +297,18 @@ type buyOfferBuilder struct {
 	params     []string
 }
 
-func (s *KeeperTestSuite) newDymNameBuyOffer(buyer, dymName string) *buyOfferBuilder {
-	return s.newBuyOffer(buyer, dymName, dymnstypes.NameOrder)
+func (s *KeeperTestSuite) newDymNameBuyOrder(buyer, dymName string) *buyOrderBuilder {
+	return s.newBuyOrder(buyer, dymName, dymnstypes.NameOrder)
 }
 
-func (s *KeeperTestSuite) newAliasBuyOffer(buyer, alias, rollAppId string) *buyOfferBuilder {
-	ob := s.newBuyOffer(buyer, alias, dymnstypes.AliasOrder)
+func (s *KeeperTestSuite) newAliasBuyOrder(buyer, alias, rollAppId string) *buyOrderBuilder {
+	ob := s.newBuyOrder(buyer, alias, dymnstypes.AliasOrder)
 	ob.params = []string{rollAppId}
 	return ob
 }
 
-func (s *KeeperTestSuite) newBuyOffer(buyer, goodsId string, orderType dymnstypes.OrderType) *buyOfferBuilder {
-	return &buyOfferBuilder{
+func (s *KeeperTestSuite) newBuyOrder(buyer, goodsId string, orderType dymnstypes.OrderType) *buyOrderBuilder {
+	return &buyOrderBuilder{
 		s:          s,
 		goodsId:    goodsId,
 		orderType:  orderType,
@@ -318,23 +318,23 @@ func (s *KeeperTestSuite) newBuyOffer(buyer, goodsId string, orderType dymnstype
 	}
 }
 
-func (b *buyOfferBuilder) WithID(id string) *buyOfferBuilder {
+func (b *buyOrderBuilder) WithID(id string) *buyOrderBuilder {
 	b.id = id
 	return b
 }
 
-func (b *buyOfferBuilder) WithOfferPrice(p int64) *buyOfferBuilder {
+func (b *buyOrderBuilder) WithOfferPrice(p int64) *buyOrderBuilder {
 	b.offerPrice = p
 	return b
 }
 
-func (b *buyOfferBuilder) BuildP() *dymnstypes.BuyOffer {
+func (b *buyOrderBuilder) BuildP() *dymnstypes.BuyOrder {
 	bo := b.Build()
 	return &bo
 }
 
-func (b *buyOfferBuilder) Build() dymnstypes.BuyOffer {
-	bo := dymnstypes.BuyOffer{
+func (b *buyOrderBuilder) Build() dymnstypes.BuyOrder {
+	bo := dymnstypes.BuyOrder{
 		Id:         b.id,
 		GoodsId:    b.goodsId,
 		Type:       b.orderType,

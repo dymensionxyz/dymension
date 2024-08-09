@@ -14,12 +14,12 @@ import (
 )
 
 // HasCounterpartyOfferPrice returns true if the offer has a raise-offer request from the Dym-Name owner.
-func (m *BuyOffer) HasCounterpartyOfferPrice() bool {
+func (m *BuyOrder) HasCounterpartyOfferPrice() bool {
 	return m.CounterpartyOfferPrice != nil && !m.CounterpartyOfferPrice.Amount.IsNil() && !m.CounterpartyOfferPrice.IsZero()
 }
 
-// Validate performs basic validation for the BuyOffer.
-func (m *BuyOffer) Validate() error {
+// Validate performs basic validation for the BuyOrder.
+func (m *BuyOrder) Validate() error {
 	if m == nil {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "offer is nil")
 	}
@@ -28,13 +28,13 @@ func (m *BuyOffer) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "ID of offer is empty")
 	}
 
-	if !IsValidBuyOfferId(m.Id) {
+	if !IsValidBuyOrderId(m.Id) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "ID of offer is not a valid offer id")
 	}
 
 	switch m.Type {
 	case NameOrder:
-		if !strings.HasPrefix(m.Id, BuyOfferIdTypeDymNamePrefix) {
+		if !strings.HasPrefix(m.Id, BuyOrderIdTypeDymNamePrefix) {
 			return errorsmod.Wrap(
 				gerrc.ErrInvalidArgument,
 				"mismatch type of Buy-Order ID prefix and type",
@@ -49,7 +49,7 @@ func (m *BuyOffer) Validate() error {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of offer is not a valid dym name")
 		}
 	case AliasOrder:
-		if !strings.HasPrefix(m.Id, BuyOfferIdTypeAliasPrefix) {
+		if !strings.HasPrefix(m.Id, BuyOrderIdTypeAliasPrefix) {
 			return errorsmod.Wrap(
 				gerrc.ErrInvalidArgument,
 				"mismatch type of Buy-Order ID prefix and type",
@@ -101,9 +101,9 @@ func (m *BuyOffer) Validate() error {
 	return nil
 }
 
-// GetSdkEvent returns the sdk event contains information of BuyOffer record.
-// Fired when BuyOffer record is set into store.
-func (m BuyOffer) GetSdkEvent(actionName string) sdk.Event {
+// GetSdkEvent returns the sdk event contains information of BuyOrder record.
+// Fired when BuyOrder record is set into store.
+func (m BuyOrder) GetSdkEvent(actionName string) sdk.Event {
 	var attrCounterpartyOfferPrice sdk.Attribute
 	if m.CounterpartyOfferPrice != nil {
 		attrCounterpartyOfferPrice = sdk.NewAttribute(AttributeKeyBoCounterpartyOfferPrice, m.CounterpartyOfferPrice.String())
@@ -112,7 +112,7 @@ func (m BuyOffer) GetSdkEvent(actionName string) sdk.Event {
 	}
 
 	return sdk.NewEvent(
-		EventTypeBuyOffer,
+		EventTypeBuyOrder,
 		sdk.NewAttribute(AttributeKeyBoId, m.Id),
 		sdk.NewAttribute(AttributeKeyBoGoodsId, m.GoodsId),
 		sdk.NewAttribute(AttributeKeyBoType, m.Type.FriendlyString()),
@@ -123,14 +123,14 @@ func (m BuyOffer) GetSdkEvent(actionName string) sdk.Event {
 	)
 }
 
-// IsValidBuyOfferId returns true if the given string is a valid offer-id for buy offer.
-func IsValidBuyOfferId(id string) bool {
+// IsValidBuyOrderId returns true if the given string is a valid ID for a Buy-Order record.
+func IsValidBuyOrderId(id string) bool {
 	if len(id) < 3 {
 		return false
 	}
 	switch id[:2] {
-	case BuyOfferIdTypeDymNamePrefix:
-	case BuyOfferIdTypeAliasPrefix:
+	case BuyOrderIdTypeDymNamePrefix:
+	case BuyOrderIdTypeAliasPrefix:
 	default:
 		return false
 	}
@@ -139,23 +139,23 @@ func IsValidBuyOfferId(id string) bool {
 	return err == nil && ui > 0
 }
 
-// CreateBuyOfferId creates a new BuyOffer ID from the given parameters.
-func CreateBuyOfferId(_type OrderType, i uint64) string {
+// CreateBuyOrderId creates a new BuyOrder ID from the given parameters.
+func CreateBuyOrderId(_type OrderType, i uint64) string {
 	var prefix string
 	switch _type {
 	case NameOrder:
-		prefix = BuyOfferIdTypeDymNamePrefix
+		prefix = BuyOrderIdTypeDymNamePrefix
 	case AliasOrder:
-		prefix = BuyOfferIdTypeAliasPrefix
+		prefix = BuyOrderIdTypeAliasPrefix
 	default:
 		panic(fmt.Sprintf("unknown buy offer type: %d", _type))
 	}
 
-	offerId := prefix + sdkmath.NewIntFromUint64(i).String()
+	buyOrderId := prefix + sdkmath.NewIntFromUint64(i).String()
 
-	if !IsValidBuyOfferId(offerId) {
-		panic("bad input parameters for creating buy offer id")
+	if !IsValidBuyOrderId(buyOrderId) {
+		panic("bad input parameters for creating buy order id")
 	}
 
-	return offerId
+	return buyOrderId
 }

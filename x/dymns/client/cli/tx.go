@@ -29,7 +29,7 @@ func GetTxCmd() *cobra.Command {
 		NewPlaceBidOnAliasOrderTxCmd(),
 		NewOfferBuyDymNameTxCmd(),
 		NewOfferBuyAliasTxCmd(),
-		NewAcceptBuyOfferTxCmd(),
+		NewAcceptBuyOrderTxCmd(),
 	)
 
 	return cmd

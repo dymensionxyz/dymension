@@ -36,10 +36,10 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 	}
 
 	var minimumTxGasRequired sdk.Gas
-	if msg.ContinueOfferId != "" {
-		minimumTxGasRequired = dymnstypes.OpGasUpdateBuyOffer
+	if msg.ContinueOrderId != "" {
+		minimumTxGasRequired = dymnstypes.OpGasUpdateBuyOrder
 	} else {
-		minimumTxGasRequired = dymnstypes.OpGasPutBuyOffer
+		minimumTxGasRequired = dymnstypes.OpGasPutBuyOrder
 	}
 
 	consumeMinimumGas(ctx, minimumTxGasRequired, "PlaceBuyOrder")
@@ -61,7 +61,7 @@ func (k msgServer) placeBuyOrderTypeDymName(
 		return nil, err
 	}
 
-	var offer dymnstypes.BuyOffer
+	var offer dymnstypes.BuyOrder
 	var deposit sdk.Coin
 
 	if existingOffer != nil {
@@ -70,13 +70,13 @@ func (k msgServer) placeBuyOrderTypeDymName(
 		offer = *existingOffer
 		offer.OfferPrice = msg.Offer
 
-		if err := k.SetBuyOffer(ctx, offer); err != nil {
+		if err := k.SetBuyOrder(ctx, offer); err != nil {
 			return nil, err
 		}
 	} else {
 		deposit = msg.Offer
 
-		offer = dymnstypes.BuyOffer{
+		offer = dymnstypes.BuyOrder{
 			Id:         "", // will be auto-generated
 			GoodsId:    msg.GoodsId,
 			Type:       dymnstypes.NameOrder,
@@ -85,17 +85,17 @@ func (k msgServer) placeBuyOrderTypeDymName(
 			OfferPrice: msg.Offer,
 		}
 
-		offer, err = k.InsertNewBuyOffer(ctx, offer)
+		offer, err = k.InsertNewBuyOrder(ctx, offer)
 		if err != nil {
 			return nil, err
 		}
 
-		err = k.AddReverseMappingBuyerToBuyOfferRecord(ctx, msg.Buyer, offer.Id)
+		err = k.AddReverseMappingBuyerToBuyOrderRecord(ctx, msg.Buyer, offer.Id)
 		if err != nil {
 			return nil, err
 		}
 
-		err = k.AddReverseMappingGoodsIdToBuyOffer(ctx, msg.GoodsId, offer.Type, offer.Id)
+		err = k.AddReverseMappingGoodsIdToBuyOrder(ctx, msg.GoodsId, offer.Type, offer.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -110,7 +110,7 @@ func (k msgServer) placeBuyOrderTypeDymName(
 	}
 
 	return &dymnstypes.MsgPlaceBuyOrderResponse{
-		OfferId: offer.Id,
+		OrderId: offer.Id,
 	}, nil
 }
 
@@ -118,7 +118,7 @@ func (k msgServer) placeBuyOrderTypeDymName(
 func (k msgServer) validatePlaceBuyOrderTypeDymName(
 	ctx sdk.Context,
 	msg *dymnstypes.MsgPlaceBuyOrder, params dymnstypes.Params,
-) (existingOffer *dymnstypes.BuyOffer, err error) {
+) (existingOffer *dymnstypes.BuyOrder, err error) {
 	dymName := k.GetDymNameWithExpirationCheck(ctx, msg.GoodsId)
 	if dymName == nil {
 		err = errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.GoodsId)
@@ -150,10 +150,10 @@ func (k msgServer) validatePlaceBuyOrderTypeDymName(
 		return
 	}
 
-	if msg.ContinueOfferId != "" {
-		existingOffer = k.GetBuyOffer(ctx, msg.ContinueOfferId)
+	if msg.ContinueOrderId != "" {
+		existingOffer = k.GetBuyOrder(ctx, msg.ContinueOrderId)
 		if existingOffer == nil {
-			err = errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Order ID: %s", msg.ContinueOfferId)
+			err = errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Order ID: %s", msg.ContinueOrderId)
 			return
 		}
 		if existingOffer.Buyer != msg.Buyer {
@@ -201,7 +201,7 @@ func (k msgServer) placeBuyOrderTypeAlias(
 		return nil, err
 	}
 
-	var offer dymnstypes.BuyOffer
+	var offer dymnstypes.BuyOrder
 	var deposit sdk.Coin
 
 	if existingOffer != nil {
@@ -210,13 +210,13 @@ func (k msgServer) placeBuyOrderTypeAlias(
 		offer = *existingOffer
 		offer.OfferPrice = msg.Offer
 
-		if err := k.SetBuyOffer(ctx, offer); err != nil {
+		if err := k.SetBuyOrder(ctx, offer); err != nil {
 			return nil, err
 		}
 	} else {
 		deposit = msg.Offer
 
-		offer = dymnstypes.BuyOffer{
+		offer = dymnstypes.BuyOrder{
 			Id:         "", // will be auto-generated
 			GoodsId:    msg.GoodsId,
 			Type:       dymnstypes.AliasOrder,
@@ -225,17 +225,17 @@ func (k msgServer) placeBuyOrderTypeAlias(
 			OfferPrice: msg.Offer,
 		}
 
-		offer, err = k.InsertNewBuyOffer(ctx, offer)
+		offer, err = k.InsertNewBuyOrder(ctx, offer)
 		if err != nil {
 			return nil, err
 		}
 
-		err = k.AddReverseMappingBuyerToBuyOfferRecord(ctx, msg.Buyer, offer.Id)
+		err = k.AddReverseMappingBuyerToBuyOrderRecord(ctx, msg.Buyer, offer.Id)
 		if err != nil {
 			return nil, err
 		}
 
-		err = k.AddReverseMappingGoodsIdToBuyOffer(ctx, msg.GoodsId, offer.Type, offer.Id)
+		err = k.AddReverseMappingGoodsIdToBuyOrder(ctx, msg.GoodsId, offer.Type, offer.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -250,7 +250,7 @@ func (k msgServer) placeBuyOrderTypeAlias(
 	}
 
 	return &dymnstypes.MsgPlaceBuyOrderResponse{
-		OfferId: offer.Id,
+		OrderId: offer.Id,
 	}, nil
 }
 
@@ -258,7 +258,7 @@ func (k msgServer) placeBuyOrderTypeAlias(
 func (k msgServer) validatePlaceBuyOrderTypeAlias(
 	ctx sdk.Context,
 	msg *dymnstypes.MsgPlaceBuyOrder, params dymnstypes.Params,
-) (existingOffer *dymnstypes.BuyOffer, err error) {
+) (existingOffer *dymnstypes.BuyOrder, err error) {
 	destinationRollAppId := msg.Params[0]
 
 	if !k.IsRollAppId(ctx, destinationRollAppId) {
@@ -302,10 +302,10 @@ func (k msgServer) validatePlaceBuyOrderTypeAlias(
 		return
 	}
 
-	if msg.ContinueOfferId != "" {
-		existingOffer = k.GetBuyOffer(ctx, msg.ContinueOfferId)
+	if msg.ContinueOrderId != "" {
+		existingOffer = k.GetBuyOrder(ctx, msg.ContinueOrderId)
 		if existingOffer == nil {
-			err = errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Order ID: %s", msg.ContinueOfferId)
+			err = errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Order ID: %s", msg.ContinueOrderId)
 			return
 		}
 		if existingOffer.Buyer != msg.Buyer {

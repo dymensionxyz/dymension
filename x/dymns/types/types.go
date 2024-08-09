@@ -44,9 +44,9 @@ const (
 	AttributeValueSoActionNameDelete = "delete"
 )
 
-// Event to fire when a BuyOffer is set into store.
+// Event to fire when a BuyOrder is set into store.
 const (
-	EventTypeBuyOffer                    = ModuleName + "_bo"
+	EventTypeBuyOrder                    = ModuleName + "_bo"
 	AttributeKeyBoActionName             = "action"
 	AttributeKeyBoId                     = "id"
 	AttributeKeyBoGoodsId                = "goods_id"
@@ -56,7 +56,7 @@ const (
 	AttributeKeyBoCounterpartyOfferPrice = "counterparty_offer_price"
 )
 
-// Event to fire corresponding to the action of CRUD a BuyOffer.
+// Event to fire corresponding to the action of CRUD a BuyOrder.
 const (
 	AttributeValueBoActionNameSet    = "set"
 	AttributeValueBoActionNameDelete = "delete"
@@ -71,6 +71,8 @@ const (
 )
 
 const (
-	AttributeValueSellTypeName  = "name"
+	AttributeValueSellTypeName = "name"
+
+	// TODO DymNS: fires this in hook
 	AttributeValueSellTypeAlias = "alias"
 )

@@ -28,10 +28,10 @@ const (
 	prefixActiveSellOrdersExpiration
 	prefixHistoricalSellOrders
 	prefixMinExpiryHistoricalSellOrders
-	prefixCountBuyOffers
-	prefixBuyOffer
-	prefixRvlBuyerToOfferIds   // reverse lookup store
-	prefixRvlGoodsIdToOfferIds // reverse lookup store
+	prefixCountBuyOrders
+	prefixBuyOrder
+	prefixRvlBuyerToBuyOrderIds   // reverse lookup store
+	prefixRvlGoodsIdToBuyOrderIds // reverse lookup store
 	prefixRollAppIdToAliases
 	prefixRvlAliasToRollAppId // reverse lookup store
 )
@@ -78,17 +78,17 @@ var (
 	// KeyPrefixMinExpiryAliasHistoricalSellOrders is the key prefix for the lowest expiry among the historical SellOrder records of each specific Alias
 	KeyPrefixMinExpiryAliasHistoricalSellOrders = []byte{prefixMinExpiryHistoricalSellOrders, partialStoreOrderTypeAlias}
 
-	// KeyPrefixBuyOrder is the key prefix for the active BuyOffer records regardless order type DymName/Alias
-	KeyPrefixBuyOrder = []byte{prefixBuyOffer}
+	// KeyPrefixBuyOrder is the key prefix for the active BuyOrder records regardless order type DymName/Alias
+	KeyPrefixBuyOrder = []byte{prefixBuyOrder}
 
-	// KeyPrefixRvlBuyerToOfferIds is the key prefix for the reverse lookup for BuyOffer IDs by the buyer
-	KeyPrefixRvlBuyerToOfferIds = []byte{prefixRvlBuyerToOfferIds}
+	// KeyPrefixRvlBuyerToBuyOrderIds is the key prefix for the reverse lookup for BuyOrder IDs by the buyer
+	KeyPrefixRvlBuyerToBuyOrderIds = []byte{prefixRvlBuyerToBuyOrderIds}
 
-	// KeyPrefixRvlDymNameToOfferIds is the key prefix for the reverse lookup for BuyOffer IDs by the DymName
-	KeyPrefixRvlDymNameToOfferIds = []byte{prefixRvlGoodsIdToOfferIds, partialStoreOrderTypeDymName}
+	// KeyPrefixRvlDymNameToBuyOrderIds is the key prefix for the reverse lookup for BuyOrder IDs by the DymName
+	KeyPrefixRvlDymNameToBuyOrderIds = []byte{prefixRvlGoodsIdToBuyOrderIds, partialStoreOrderTypeDymName}
 
-	// KeyPrefixRvlAliasToOfferIds is the key prefix for the reverse lookup for BuyOffer IDs by the Alias
-	KeyPrefixRvlAliasToOfferIds = []byte{prefixRvlGoodsIdToOfferIds, partialStoreOrderTypeAlias}
+	// KeyPrefixRvlAliasToBuyOrderIds is the key prefix for the reverse lookup for BuyOrder IDs by the Alias
+	KeyPrefixRvlAliasToBuyOrderIds = []byte{prefixRvlGoodsIdToBuyOrderIds, partialStoreOrderTypeAlias}
 
 	// KeyPrefixRollAppIdToAliases is the key prefix for the Roll-App ID to Alias records
 	KeyPrefixRollAppIdToAliases = []byte{prefixRollAppIdToAliases}
@@ -102,8 +102,8 @@ var (
 
 	KeyActiveSellOrdersExpirationOfAlias = []byte{prefixActiveSellOrdersExpiration, partialStoreOrderTypeAlias}
 
-	// KeyCountBuyOffers is the key for the count of all-time buy offer orders
-	KeyCountBuyOffers = []byte{prefixCountBuyOffers}
+	// KeyCountBuyOrders is the key for the count of all-time buy orders
+	KeyCountBuyOrders = []byte{prefixCountBuyOrders}
 )
 
 // DymNameKey returns a key for specific Dym-Name
@@ -162,24 +162,24 @@ func MinExpiryHistoricalSellOrdersKey(goodsId string, orderType OrderType) []byt
 	}
 }
 
-// BuyOfferKey returns a key for the active Buy-Order of the Dym-Name
-func BuyOfferKey(offerId string) []byte {
-	return append(KeyPrefixBuyOrder, []byte(offerId)...)
+// BuyOrderKey returns a key for the active Buy-Order of the Dym-Name/Alias
+func BuyOrderKey(orderId string) []byte {
+	return append(KeyPrefixBuyOrder, []byte(orderId)...)
 }
 
-// BuyerToOfferIdsRvlKey returns a key for reverse lookup for Buy-Order IDs by the buyer
-func BuyerToOfferIdsRvlKey(bzHexAddr []byte) []byte {
-	return append(KeyPrefixRvlBuyerToOfferIds, bzHexAddr...)
+// BuyerToOrderIdsRvlKey returns a key for reverse lookup for Buy-Order IDs by the buyer
+func BuyerToOrderIdsRvlKey(bzHexAddr []byte) []byte {
+	return append(KeyPrefixRvlBuyerToBuyOrderIds, bzHexAddr...)
 }
 
-// DymNameToOfferIdsRvlKey returns a key for reverse lookup for Buy-Order IDs by the Dym-Name
-func DymNameToOfferIdsRvlKey(dymName string) []byte {
-	return append(KeyPrefixRvlDymNameToOfferIds, []byte(dymName)...)
+// DymNameToBuyOrderIdsRvlKey returns a key for reverse lookup for Buy-Order IDs by the Dym-Name
+func DymNameToBuyOrderIdsRvlKey(dymName string) []byte {
+	return append(KeyPrefixRvlDymNameToBuyOrderIds, []byte(dymName)...)
 }
 
-// AliasToOfferIdsRvlKey returns a key for reverse lookup for Buy-Order IDs by the Alias
-func AliasToOfferIdsRvlKey(alias string) []byte {
-	return append(KeyPrefixRvlAliasToOfferIds, []byte(alias)...)
+// AliasToBuyOrderIdsRvlKey returns a key for reverse lookup for Buy-Order IDs by the Alias
+func AliasToBuyOrderIdsRvlKey(alias string) []byte {
+	return append(KeyPrefixRvlAliasToBuyOrderIds, []byte(alias)...)
 }
 
 // RollAppIdToAliasesKey returns a key for the Roll-App ID to list of alias records

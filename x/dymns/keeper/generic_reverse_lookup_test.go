@@ -72,14 +72,14 @@ func TestKeeper_GenericAddGetRemoveReverseLookupRecord(t *testing.T) {
 
 	boIdsTE := testEntity{
 		getter: func(ctx sdk.Context, key []byte) []string {
-			return dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key).OfferIds
+			return dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, key).OrderIds
 		},
 		adder: func(ctx sdk.Context, key []byte, value string) {
-			err := dk.GenericAddReverseLookupBuyOfferIdsRecord(ctx, key, value)
+			err := dk.GenericAddReverseLookupBuyOrderIdsRecord(ctx, key, value)
 			require.NoError(t, err)
 		},
 		remover: func(ctx sdk.Context, key []byte, value string) {
-			err := dk.GenericRemoveReverseLookupBuyOfferIdRecord(ctx, key, value)
+			err := dk.GenericRemoveReverseLookupBuyOrderIdRecord(ctx, key, value)
 			require.NoError(t, err)
 		},
 	}

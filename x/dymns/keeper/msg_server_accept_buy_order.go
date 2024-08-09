@@ -12,7 +12,7 @@ import (
 )
 
 // AcceptBuyOrder is message handler,
-// handles accepting a Buy-Offer or raising the amount for negotiation,
+// handles accepting a Buy-Order or raising the amount for negotiation,
 // performed by the owner of the goods.
 func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcceptBuyOrder) (*dymnstypes.MsgAcceptBuyOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -21,9 +21,9 @@ func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcce
 		return nil, err
 	}
 
-	bo := k.GetBuyOffer(ctx, msg.OfferId)
+	bo := k.GetBuyOrder(ctx, msg.OrderId)
 	if bo == nil {
-		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Order: %s", msg.OfferId)
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Order: %s", msg.OrderId)
 	}
 
 	params := k.GetParams(ctx)
@@ -42,7 +42,7 @@ func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcce
 		return nil, err
 	}
 
-	consumeMinimumGas(ctx, dymnstypes.OpGasUpdateBuyOffer, "AcceptBuyOrder")
+	consumeMinimumGas(ctx, dymnstypes.OpGasUpdateBuyOrder, "AcceptBuyOrder")
 
 	return resp, nil
 }
@@ -50,7 +50,7 @@ func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcce
 // processAcceptBuyOrderTypeDymName handles the message handled by AcceptBuyOrder, type Dym-Name.
 func (k msgServer) processAcceptBuyOrderTypeDymName(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgAcceptBuyOrder, offer dymnstypes.BuyOffer, params dymnstypes.Params,
+	msg *dymnstypes.MsgAcceptBuyOrder, offer dymnstypes.BuyOrder, params dymnstypes.Params,
 ) (*dymnstypes.MsgAcceptBuyOrderResponse, error) {
 	if !params.Misc.EnableTradingName {
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading of Dym-Name is disabled")
@@ -80,7 +80,7 @@ func (k msgServer) processAcceptBuyOrderTypeDymName(
 			return nil, err
 		}
 
-		if err := k.removeBuyOffer(ctx, offer); err != nil {
+		if err := k.removeBuyOrder(ctx, offer); err != nil {
 			return nil, err
 		}
 
@@ -91,7 +91,7 @@ func (k msgServer) processAcceptBuyOrderTypeDymName(
 		accepted = false
 
 		offer.CounterpartyOfferPrice = &msg.MinAccept
-		if err := k.SetBuyOffer(ctx, offer); err != nil {
+		if err := k.SetBuyOrder(ctx, offer); err != nil {
 			return nil, err
 		}
 	}
@@ -104,7 +104,7 @@ func (k msgServer) processAcceptBuyOrderTypeDymName(
 // validateAcceptBuyOrderTypeDymName handles validation for the message handled by AcceptBuyOrder, type Dym-Name.
 func (k msgServer) validateAcceptBuyOrderTypeDymName(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgAcceptBuyOrder, bo dymnstypes.BuyOffer, params dymnstypes.Params,
+	msg *dymnstypes.MsgAcceptBuyOrder, bo dymnstypes.BuyOrder, params dymnstypes.Params,
 ) (*dymnstypes.DymName, error) {
 	dymName := k.GetDymNameWithExpirationCheck(ctx, bo.GoodsId)
 	if dymName == nil {
@@ -146,7 +146,7 @@ func (k msgServer) validateAcceptBuyOrderTypeDymName(
 // processAcceptBuyOrderTypeAlias handles the message handled by AcceptBuyOrder, type Alias.
 func (k msgServer) processAcceptBuyOrderTypeAlias(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgAcceptBuyOrder, offer dymnstypes.BuyOffer, params dymnstypes.Params,
+	msg *dymnstypes.MsgAcceptBuyOrder, offer dymnstypes.BuyOrder, params dymnstypes.Params,
 ) (*dymnstypes.MsgAcceptBuyOrderResponse, error) {
 	if !params.Misc.EnableTradingAlias {
 		return nil, errorsmod.Wrap(gerrc.ErrPermissionDenied, "trading of Alias is disabled")
@@ -185,7 +185,7 @@ func (k msgServer) processAcceptBuyOrderTypeAlias(
 			return nil, err
 		}
 
-		if err := k.removeBuyOffer(ctx, offer); err != nil {
+		if err := k.removeBuyOrder(ctx, offer); err != nil {
 			return nil, err
 		}
 
@@ -200,7 +200,7 @@ func (k msgServer) processAcceptBuyOrderTypeAlias(
 		accepted = false
 
 		offer.CounterpartyOfferPrice = &msg.MinAccept
-		if err := k.SetBuyOffer(ctx, offer); err != nil {
+		if err := k.SetBuyOrder(ctx, offer); err != nil {
 			return nil, err
 		}
 	}
@@ -213,7 +213,7 @@ func (k msgServer) processAcceptBuyOrderTypeAlias(
 // validateAcceptBuyOrderTypeAlias handles validation for the message handled by AcceptBuyOrder, type Alias.
 func (k msgServer) validateAcceptBuyOrderTypeAlias(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgAcceptBuyOrder, bo dymnstypes.BuyOffer,
+	msg *dymnstypes.MsgAcceptBuyOrder, bo dymnstypes.BuyOrder,
 ) (*rollapptypes.Rollapp, error) {
 	existingRollAppIdUsingAlias, found := k.GetRollAppIdByAlias(ctx, bo.GoodsId)
 	if !found {

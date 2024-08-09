@@ -21,9 +21,9 @@ func TestStorePrefixes(t *testing.T) {
 		require.Equal(t, []byte{0x07, partialStoreOrderTypeAlias}, KeyPrefixAliasHistoricalSellOrders, "do not change it, will break the app")
 		require.Equal(t, []byte{0x08, partialStoreOrderTypeAlias}, KeyPrefixMinExpiryAliasHistoricalSellOrders, "do not change it, will break the app")
 		require.Equal(t, []byte{0x0A}, KeyPrefixBuyOrder, "do not change it, will break the app")
-		require.Equal(t, []byte{0x0B}, KeyPrefixRvlBuyerToOfferIds, "do not change it, will break the app")
-		require.Equal(t, []byte{0x0C, partialStoreOrderTypeDymName}, KeyPrefixRvlDymNameToOfferIds, "do not change it, will break the app")
-		require.Equal(t, []byte{0x0C, partialStoreOrderTypeAlias}, KeyPrefixRvlAliasToOfferIds, "do not change it, will break the app")
+		require.Equal(t, []byte{0x0B}, KeyPrefixRvlBuyerToBuyOrderIds, "do not change it, will break the app")
+		require.Equal(t, []byte{0x0C, partialStoreOrderTypeDymName}, KeyPrefixRvlDymNameToBuyOrderIds, "do not change it, will break the app")
+		require.Equal(t, []byte{0x0C, partialStoreOrderTypeAlias}, KeyPrefixRvlAliasToBuyOrderIds, "do not change it, will break the app")
 		require.Equal(t, []byte{0x0D}, KeyPrefixRollAppIdToAliases, "do not change it, will break the app")
 		require.Equal(t, []byte{0x0E}, KeyPrefixRvlAliasToRollAppId, "do not change it, will break the app")
 	})
@@ -31,7 +31,7 @@ func TestStorePrefixes(t *testing.T) {
 	t.Run("ensure keys are not mistakenly modified", func(t *testing.T) {
 		require.Equal(t, []byte{0x06, partialStoreOrderTypeDymName}, KeyActiveSellOrdersExpirationOfDymName, "do not change it, will break the app")
 		require.Equal(t, []byte{0x06, partialStoreOrderTypeAlias}, KeyActiveSellOrdersExpirationOfAlias, "do not change it, will break the app")
-		require.Equal(t, []byte{0x09}, KeyCountBuyOffers, "do not change it, will break the app")
+		require.Equal(t, []byte{0x09}, KeyCountBuyOrders, "do not change it, will break the app")
 	})
 
 	t.Run("ensure partitioned keys are not mistakenly modified", func(t *testing.T) {
@@ -48,7 +48,7 @@ func TestKeys(t *testing.T) {
 			require.Equal(t, append(KeyPrefixDymNameSellOrder, []byte(dymName)...), SellOrderKey(dymName, NameOrder))
 			require.Equal(t, append(KeyPrefixDymNameHistoricalSellOrders, []byte(dymName)...), HistoricalSellOrdersKey(dymName, NameOrder))
 			require.Equal(t, append(KeyPrefixMinExpiryDymNameHistoricalSellOrders, []byte(dymName)...), MinExpiryHistoricalSellOrdersKey(dymName, NameOrder))
-			require.Equal(t, append(KeyPrefixRvlDymNameToOfferIds, []byte(dymName)...), DymNameToOfferIdsRvlKey(dymName))
+			require.Equal(t, append(KeyPrefixRvlDymNameToBuyOrderIds, []byte(dymName)...), DymNameToBuyOrderIdsRvlKey(dymName))
 		})
 	}
 
@@ -57,7 +57,7 @@ func TestKeys(t *testing.T) {
 			require.Equal(t, append(KeyPrefixAliasSellOrder, []byte(alias)...), SellOrderKey(alias, AliasOrder))
 			require.Equal(t, append(KeyPrefixAliasHistoricalSellOrders, []byte(alias)...), HistoricalSellOrdersKey(alias, AliasOrder))
 			require.Equal(t, append(KeyPrefixMinExpiryAliasHistoricalSellOrders, []byte(alias)...), MinExpiryHistoricalSellOrdersKey(alias, AliasOrder))
-			require.Equal(t, append(KeyPrefixRvlAliasToOfferIds, []byte(alias)...), AliasToOfferIdsRvlKey(alias))
+			require.Equal(t, append(KeyPrefixRvlAliasToBuyOrderIds, []byte(alias)...), AliasToBuyOrderIdsRvlKey(alias))
 		})
 	}
 
@@ -71,7 +71,7 @@ func TestKeys(t *testing.T) {
 			require.Equal(t, append(KeyPrefixRvlDymNamesOwnedByAccount, accAddr.Bytes()...), DymNamesOwnedByAccountRvlKey(accAddr))
 			require.Equal(t, append(KeyPrefixRvlConfiguredAddressToDymNamesInclude, []byte(bech32Address)...), ConfiguredAddressToDymNamesIncludeRvlKey(bech32Address))
 			require.Equal(t, append(KeyPrefixRvlFallbackAddressToDymNamesInclude, accAddr.Bytes()...), FallbackAddressToDymNamesIncludeRvlKey(FallbackAddress(accAddr)))
-			require.Equal(t, append(KeyPrefixRvlBuyerToOfferIds, accAddr.Bytes()...), BuyerToOfferIdsRvlKey(accAddr.Bytes()))
+			require.Equal(t, append(KeyPrefixRvlBuyerToBuyOrderIds, accAddr.Bytes()...), BuyerToOrderIdsRvlKey(accAddr.Bytes()))
 		})
 	}
 
@@ -81,7 +81,7 @@ func TestKeys(t *testing.T) {
 		"@@@",
 	} {
 		t.Run(input, func(t *testing.T) {
-			require.Equal(t, append(KeyPrefixBuyOrder, []byte(input)...), BuyOfferKey(input))
+			require.Equal(t, append(KeyPrefixBuyOrder, []byte(input)...), BuyOrderKey(input))
 			require.Equal(t, append(KeyPrefixRvlAliasToRollAppId, []byte(input)...), AliasToRollAppIdRvlKey(input))
 		})
 	}

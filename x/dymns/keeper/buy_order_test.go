@@ -13,35 +13,35 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestKeeper_IncreaseBuyOfferCountAndGet(t *testing.T) {
+func TestKeeper_IncreaseBuyOrdersCountAndGet(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-	require.Zero(t, dk.GetCountBuyOffer(ctx))
+	require.Zero(t, dk.GetCountBuyOrders(ctx))
 
-	count := dk.IncreaseBuyOfferCountAndGet(ctx)
+	count := dk.IncreaseBuyOrdersCountAndGet(ctx)
 	require.Equal(t, uint64(1), count)
-	require.Equal(t, uint64(1), dk.GetCountBuyOffer(ctx))
+	require.Equal(t, uint64(1), dk.GetCountBuyOrders(ctx))
 
-	count = dk.IncreaseBuyOfferCountAndGet(ctx)
+	count = dk.IncreaseBuyOrdersCountAndGet(ctx)
 	require.Equal(t, uint64(2), count)
-	require.Equal(t, uint64(2), dk.GetCountBuyOffer(ctx))
+	require.Equal(t, uint64(2), dk.GetCountBuyOrders(ctx))
 
-	count = dk.IncreaseBuyOfferCountAndGet(ctx)
+	count = dk.IncreaseBuyOrdersCountAndGet(ctx)
 	require.Equal(t, uint64(3), count)
-	require.Equal(t, uint64(3), dk.GetCountBuyOffer(ctx))
+	require.Equal(t, uint64(3), dk.GetCountBuyOrders(ctx))
 
-	dk.SetCountBuyOffer(ctx, math.MaxUint64-1)
+	dk.SetCountBuyOrders(ctx, math.MaxUint64-1)
 
-	count = dk.IncreaseBuyOfferCountAndGet(ctx)
+	count = dk.IncreaseBuyOrdersCountAndGet(ctx)
 	require.Equal(t, uint64(math.MaxUint64), count)
-	require.Equal(t, uint64(math.MaxUint64), dk.GetCountBuyOffer(ctx))
+	require.Equal(t, uint64(math.MaxUint64), dk.GetCountBuyOrders(ctx))
 
 	require.Panics(t, func() {
-		dk.IncreaseBuyOfferCountAndGet(ctx)
+		dk.IncreaseBuyOrdersCountAndGet(ctx)
 	}, "expect panic on overflow when increasing count of all-time buy offer records greater than uint64")
 }
 
-func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
+func TestKeeper_GetSetInsertNewBuyOrder(t *testing.T) {
 	buyerA := testAddr(1).bech32()
 
 	supportedOrderTypes := []dymnstypes.OrderType{
@@ -50,7 +50,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 
 	t.Run("get non-exists offer should returns nil", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		offer := dk.GetBuyOffer(ctx, "10183418")
+		offer := dk.GetBuyOrder(ctx, "10183418")
 		require.Nil(t, offer)
 	})
 
@@ -58,7 +58,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 		for _, orderType := range supportedOrderTypes {
-			err := dk.SetBuyOffer(ctx, dymnstypes.BuyOffer{
+			err := dk.SetBuyOrder(ctx, dymnstypes.BuyOrder{
 				Id:         "",
 				GoodsId:    "goods",
 				Type:       orderType,
@@ -73,7 +73,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 	t.Run("can set and can get", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		offer1 := dymnstypes.BuyOffer{
+		offer1 := dymnstypes.BuyOrder{
 			Id:         "101",
 			GoodsId:    "my-name",
 			Type:       dymnstypes.NameOrder,
@@ -81,15 +81,15 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
 
-		err := dk.SetBuyOffer(ctx, offer1)
+		err := dk.SetBuyOrder(ctx, offer1)
 		require.NoError(t, err)
 
-		offerGot1 := dk.GetBuyOffer(ctx, offer1.Id)
+		offerGot1 := dk.GetBuyOrder(ctx, offer1.Id)
 		require.NotNil(t, offerGot1)
 
 		require.Equal(t, offer1, *offerGot1)
 
-		offer2 := dymnstypes.BuyOffer{
+		offer2 := dymnstypes.BuyOrder{
 			Id:         "202",
 			GoodsId:    "alias",
 			Type:       dymnstypes.AliasOrder,
@@ -98,17 +98,17 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
 
-		err = dk.SetBuyOffer(ctx, offer2)
+		err = dk.SetBuyOrder(ctx, offer2)
 		require.NoError(t, err)
 
-		offerGot2 := dk.GetBuyOffer(ctx, offer2.Id)
+		offerGot2 := dk.GetBuyOrder(ctx, offer2.Id)
 		require.NotNil(t, offerGot2)
 
 		require.Equal(t, offer2, *offerGot2)
 
 		// previous record should not be effected
 
-		offerGot1 = dk.GetBuyOffer(ctx, offer1.Id)
+		offerGot1 = dk.GetBuyOrder(ctx, offer1.Id)
 		require.NotNil(t, offerGot1)
 
 		require.NotEqual(t, *offerGot1, *offerGot2)
@@ -118,7 +118,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 	t.Run("set omits params if empty", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		offer1 := dymnstypes.BuyOffer{
+		offer1 := dymnstypes.BuyOrder{
 			Id:         "101",
 			GoodsId:    "my-name",
 			Type:       dymnstypes.NameOrder,
@@ -127,10 +127,10 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
 
-		err := dk.SetBuyOffer(ctx, offer1)
+		err := dk.SetBuyOrder(ctx, offer1)
 		require.NoError(t, err)
 
-		offerGot1 := dk.GetBuyOffer(ctx, offer1.Id)
+		offerGot1 := dk.GetBuyOrder(ctx, offer1.Id)
 		require.NotNil(t, offerGot1)
 
 		require.Nil(t, offerGot1.Params)
@@ -141,8 +141,8 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 
 		for _, orderType := range supportedOrderTypes {
 			require.Panics(t, func() {
-				_, _ = dk.InsertNewBuyOffer(ctx, dymnstypes.BuyOffer{
-					Id:         dymnstypes.CreateBuyOfferId(orderType, 1),
+				_, _ = dk.InsertNewBuyOrder(ctx, dymnstypes.BuyOrder{
+					Id:         dymnstypes.CreateBuyOrderId(orderType, 1),
 					GoodsId:    "goods",
 					Type:       orderType,
 					Buyer:      buyerA,
@@ -155,7 +155,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 	t.Run("can insert", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		offer1a := dymnstypes.BuyOffer{
+		offer1a := dymnstypes.BuyOrder{
 			Id:         "",
 			GoodsId:    "my-name",
 			Type:       dymnstypes.NameOrder,
@@ -163,17 +163,17 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
 
-		offer1b, err := dk.InsertNewBuyOffer(ctx, offer1a)
+		offer1b, err := dk.InsertNewBuyOrder(ctx, offer1a)
 		require.NoError(t, err)
 		require.Equal(t, "101", offer1b.Id)
 
-		offerGot1 := dk.GetBuyOffer(ctx, "101")
+		offerGot1 := dk.GetBuyOrder(ctx, "101")
 		require.NotNil(t, offerGot1)
 
 		offer1a.Id = offer1b.Id
 		require.Equal(t, offer1a, *offerGot1)
 
-		offer2a := dymnstypes.BuyOffer{
+		offer2a := dymnstypes.BuyOrder{
 			Id:         "",
 			GoodsId:    "alias",
 			Type:       dymnstypes.AliasOrder,
@@ -182,11 +182,11 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
 
-		offer2b, err := dk.InsertNewBuyOffer(ctx, offer2a)
+		offer2b, err := dk.InsertNewBuyOrder(ctx, offer2a)
 		require.NoError(t, err)
 		require.Equal(t, "202", offer2b.Id)
 
-		offerGot2 := dk.GetBuyOffer(ctx, "202")
+		offerGot2 := dk.GetBuyOrder(ctx, "202")
 		require.NotNil(t, offerGot2)
 
 		offer2a.Id = offer2b.Id
@@ -194,7 +194,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 
 		// previous record should not be effected
 
-		offerGot1 = dk.GetBuyOffer(ctx, "101")
+		offerGot1 = dk.GetBuyOrder(ctx, "101")
 		require.NotNil(t, offerGot1)
 
 		require.NotEqual(t, *offerGot1, *offerGot2)
@@ -205,7 +205,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		for _, orderType := range supportedOrderTypes {
 			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-			dk.SetCountBuyOffer(ctx, 1)
+			dk.SetCountBuyOrders(ctx, 1)
 			const nextId uint64 = 2
 
 			var params []string
@@ -213,8 +213,8 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 				params = []string{"rollapp_1-1"}
 			}
 
-			existing := dymnstypes.BuyOffer{
-				Id:         dymnstypes.CreateBuyOfferId(orderType, nextId),
+			existing := dymnstypes.BuyOrder{
+				Id:         dymnstypes.CreateBuyOrderId(orderType, nextId),
 				GoodsId:    "goods",
 				Type:       orderType,
 				Params:     params,
@@ -222,10 +222,10 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 				OfferPrice: dymnsutils.TestCoin(1),
 			}
 
-			err := dk.SetBuyOffer(ctx, existing)
+			err := dk.SetBuyOrder(ctx, existing)
 			require.NoError(t, err)
 
-			offer := dymnstypes.BuyOffer{
+			offer := dymnstypes.BuyOrder{
 				Id:         "",
 				GoodsId:    "goods",
 				Type:       orderType,
@@ -234,9 +234,9 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 				OfferPrice: dymnsutils.TestCoin(1),
 			}
 
-			_, err = dk.InsertNewBuyOffer(ctx, offer)
+			_, err = dk.InsertNewBuyOrder(ctx, offer)
 			require.Error(t, err)
-			require.Contains(t, err.Error(), "Buy-Order-ID already exists")
+			require.Contains(t, err.Error(), "Buy-Order ID already exists")
 		}
 	})
 
@@ -249,7 +249,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 				params = []string{"rollapp_1-1"}
 			}
 
-			offer1 := dymnstypes.BuyOffer{
+			offer1 := dymnstypes.BuyOrder{
 				Id:         "",
 				GoodsId:    "one",
 				Type:       orderType,
@@ -258,21 +258,21 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 				OfferPrice: dymnsutils.TestCoin(1),
 			}
 
-			offer, err := dk.InsertNewBuyOffer(ctx, offer1)
+			offer, err := dk.InsertNewBuyOrder(ctx, offer1)
 			require.NoError(t, err)
 
-			wantId1 := dymnstypes.CreateBuyOfferId(orderType, 1)
+			wantId1 := dymnstypes.CreateBuyOrderId(orderType, 1)
 			require.Equal(t, wantId1, offer.Id)
 
-			offerGot := dk.GetBuyOffer(ctx, wantId1)
+			offerGot := dk.GetBuyOrder(ctx, wantId1)
 			require.NotNil(t, offerGot)
 
 			offer1.Id = wantId1
 			require.Equal(t, offer1, *offerGot)
 
-			dk.SetCountBuyOffer(ctx, 99)
+			dk.SetCountBuyOrders(ctx, 99)
 
-			offer2 := dymnstypes.BuyOffer{
+			offer2 := dymnstypes.BuyOrder{
 				Id:         "",
 				GoodsId:    "two",
 				Type:       orderType,
@@ -280,13 +280,13 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(1),
 			}
-			offer, err = dk.InsertNewBuyOffer(ctx, offer2)
+			offer, err = dk.InsertNewBuyOrder(ctx, offer2)
 			require.NoError(t, err)
 
-			wantId2 := dymnstypes.CreateBuyOfferId(orderType, 100)
+			wantId2 := dymnstypes.CreateBuyOrderId(orderType, 100)
 			require.Equal(t, wantId2, offer.Id)
 
-			offerGot = dk.GetBuyOffer(ctx, wantId2)
+			offerGot = dk.GetBuyOrder(ctx, wantId2)
 			require.NotNil(t, offerGot)
 
 			offer2.Id = wantId2
@@ -299,17 +299,17 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 
 		var err error
 
-		offer1 := dymnstypes.BuyOffer{
+		offer1 := dymnstypes.BuyOrder{
 			Id:         "101",
 			GoodsId:    "a",
 			Type:       dymnstypes.NameOrder,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
-		err = dk.SetBuyOffer(ctx, offer1)
+		err = dk.SetBuyOrder(ctx, offer1)
 		require.NoError(t, err)
 
-		offer2 := dymnstypes.BuyOffer{
+		offer2 := dymnstypes.BuyOrder{
 			Id:         "202",
 			GoodsId:    "b",
 			Type:       dymnstypes.AliasOrder,
@@ -317,20 +317,20 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(2),
 		}
-		err = dk.SetBuyOffer(ctx, offer2)
+		err = dk.SetBuyOrder(ctx, offer2)
 		require.NoError(t, err)
 
-		offer3 := dymnstypes.BuyOffer{
+		offer3 := dymnstypes.BuyOrder{
 			Id:         "103",
 			GoodsId:    "c",
 			Type:       dymnstypes.NameOrder,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(3),
 		}
-		err = dk.SetBuyOffer(ctx, offer3)
+		err = dk.SetBuyOrder(ctx, offer3)
 		require.NoError(t, err)
 
-		offer4 := dymnstypes.BuyOffer{
+		offer4 := dymnstypes.BuyOrder{
 			Id:         "204",
 			GoodsId:    "d",
 			Type:       dymnstypes.AliasOrder,
@@ -338,63 +338,63 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(4),
 		}
-		err = dk.SetBuyOffer(ctx, offer4)
+		err = dk.SetBuyOrder(ctx, offer4)
 		require.NoError(t, err)
 
-		require.NotNil(t, dk.GetBuyOffer(ctx, offer1.Id))
-		require.NotNil(t, dk.GetBuyOffer(ctx, offer2.Id))
-		require.NotNil(t, dk.GetBuyOffer(ctx, offer3.Id))
-		require.NotNil(t, dk.GetBuyOffer(ctx, offer4.Id))
+		require.NotNil(t, dk.GetBuyOrder(ctx, offer1.Id))
+		require.NotNil(t, dk.GetBuyOrder(ctx, offer2.Id))
+		require.NotNil(t, dk.GetBuyOrder(ctx, offer3.Id))
+		require.NotNil(t, dk.GetBuyOrder(ctx, offer4.Id))
 
-		dk.DeleteBuyOffer(ctx, offer2.Id)
-		require.NotNil(t, dk.GetBuyOffer(ctx, offer1.Id))
-		require.Nil(t, dk.GetBuyOffer(ctx, offer2.Id))
-		require.NotNil(t, dk.GetBuyOffer(ctx, offer3.Id))
-		require.NotNil(t, dk.GetBuyOffer(ctx, offer4.Id))
+		dk.DeleteBuyOrder(ctx, offer2.Id)
+		require.NotNil(t, dk.GetBuyOrder(ctx, offer1.Id))
+		require.Nil(t, dk.GetBuyOrder(ctx, offer2.Id))
+		require.NotNil(t, dk.GetBuyOrder(ctx, offer3.Id))
+		require.NotNil(t, dk.GetBuyOrder(ctx, offer4.Id))
 
-		dk.DeleteBuyOffer(ctx, offer4.Id)
-		require.NotNil(t, dk.GetBuyOffer(ctx, offer1.Id))
-		require.Nil(t, dk.GetBuyOffer(ctx, offer2.Id))
-		require.NotNil(t, dk.GetBuyOffer(ctx, offer3.Id))
-		require.Nil(t, dk.GetBuyOffer(ctx, offer4.Id))
+		dk.DeleteBuyOrder(ctx, offer4.Id)
+		require.NotNil(t, dk.GetBuyOrder(ctx, offer1.Id))
+		require.Nil(t, dk.GetBuyOrder(ctx, offer2.Id))
+		require.NotNil(t, dk.GetBuyOrder(ctx, offer3.Id))
+		require.Nil(t, dk.GetBuyOrder(ctx, offer4.Id))
 
-		dk.DeleteBuyOffer(ctx, offer3.Id)
-		require.NotNil(t, dk.GetBuyOffer(ctx, offer1.Id))
-		require.Nil(t, dk.GetBuyOffer(ctx, offer2.Id))
-		require.Nil(t, dk.GetBuyOffer(ctx, offer3.Id))
-		require.Nil(t, dk.GetBuyOffer(ctx, offer4.Id))
+		dk.DeleteBuyOrder(ctx, offer3.Id)
+		require.NotNil(t, dk.GetBuyOrder(ctx, offer1.Id))
+		require.Nil(t, dk.GetBuyOrder(ctx, offer2.Id))
+		require.Nil(t, dk.GetBuyOrder(ctx, offer3.Id))
+		require.Nil(t, dk.GetBuyOrder(ctx, offer4.Id))
 	})
 
 	t.Run("delete non-existing will not panics", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		dk.DeleteBuyOffer(ctx, "1099999")
-		dk.DeleteBuyOffer(ctx, "2099999")
+		dk.DeleteBuyOrder(ctx, "1099999")
+		dk.DeleteBuyOrder(ctx, "2099999")
 	})
 
 	t.Run("event should be fired on set/insert offer", func(t *testing.T) {
 		tests := []struct {
 			name    string
-			offer   dymnstypes.BuyOffer
-			setFunc func(ctx sdk.Context, dk dymnskeeper.Keeper, offer dymnstypes.BuyOffer)
+			offer   dymnstypes.BuyOrder
+			setFunc func(ctx sdk.Context, dk dymnskeeper.Keeper, offer dymnstypes.BuyOrder)
 		}{
 			{
 				name: "set offer type Dym-Name",
-				offer: dymnstypes.BuyOffer{
+				offer: dymnstypes.BuyOrder{
 					Id:         "101",
 					GoodsId:    "my-name",
 					Type:       dymnstypes.NameOrder,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
-				setFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper, offer dymnstypes.BuyOffer) {
-					err := dk.SetBuyOffer(ctx, offer)
+				setFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper, offer dymnstypes.BuyOrder) {
+					err := dk.SetBuyOrder(ctx, offer)
 					require.NoError(t, err)
 				},
 			},
 			{
 				name: "set offer type Alias",
-				offer: dymnstypes.BuyOffer{
+				offer: dymnstypes.BuyOrder{
 					Id:         "201",
 					GoodsId:    "alias",
 					Type:       dymnstypes.AliasOrder,
@@ -402,8 +402,8 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
-				setFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper, offer dymnstypes.BuyOffer) {
-					err := dk.SetBuyOffer(ctx, offer)
+				setFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper, offer dymnstypes.BuyOrder) {
+					err := dk.SetBuyOrder(ctx, offer)
 					require.NoError(t, err)
 				},
 			},
@@ -418,7 +418,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 				require.NotEmpty(t, events)
 
 				for _, event := range events {
-					if event.Type != dymnstypes.EventTypeBuyOffer {
+					if event.Type != dymnstypes.EventTypeBuyOrder {
 						continue
 					}
 
@@ -436,7 +436,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 					return
 				}
 
-				t.Errorf("event %s not found", dymnstypes.EventTypeBuyOffer)
+				t.Errorf("event %s not found", dymnstypes.EventTypeBuyOrder)
 			})
 		}
 	})
@@ -445,26 +445,26 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		for _, orderType := range supportedOrderTypes {
 			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-			offer := dymnstypes.BuyOffer{
-				Id:         dymnstypes.CreateBuyOfferId(orderType, 1),
+			offer := dymnstypes.BuyOrder{
+				Id:         dymnstypes.CreateBuyOrderId(orderType, 1),
 				GoodsId:    "goods",
 				Type:       orderType,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(1),
 			}
 
-			err := dk.SetBuyOffer(ctx, offer)
+			err := dk.SetBuyOrder(ctx, offer)
 			require.NoError(t, err)
 
 			ctx = ctx.WithEventManager(sdk.NewEventManager())
 
-			dk.DeleteBuyOffer(ctx, offer.Id)
+			dk.DeleteBuyOrder(ctx, offer.Id)
 
 			events := ctx.EventManager().Events()
 			require.NotEmpty(t, events)
 
 			for _, event := range events {
-				if event.Type != dymnstypes.EventTypeBuyOffer {
+				if event.Type != dymnstypes.EventTypeBuyOrder {
 					continue
 				}
 
@@ -482,31 +482,31 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 				return
 			}
 
-			t.Errorf("event %s not found", dymnstypes.EventTypeBuyOffer)
+			t.Errorf("event %s not found", dymnstypes.EventTypeBuyOrder)
 		}
 	})
 }
 
-func TestKeeper_GetAllBuyOffers(t *testing.T) {
+func TestKeeper_GetAllBuyOrders(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 	buyerA := testAddr(1).bech32()
 
-	offer1 := dymnstypes.BuyOffer{
+	offer1 := dymnstypes.BuyOrder{
 		Id:         "101",
 		GoodsId:    "a",
 		Type:       dymnstypes.NameOrder,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
-	err := dk.SetBuyOffer(ctx, offer1)
+	err := dk.SetBuyOrder(ctx, offer1)
 	require.NoError(t, err)
 
-	offers := dk.GetAllBuyOffers(ctx)
+	offers := dk.GetAllBuyOrders(ctx)
 	require.Len(t, offers, 1)
 	require.Equal(t, offer1, offers[0])
 
-	offer2 := dymnstypes.BuyOffer{
+	offer2 := dymnstypes.BuyOrder{
 		Id:         "202",
 		GoodsId:    "b",
 		Type:       dymnstypes.AliasOrder,
@@ -514,32 +514,32 @@ func TestKeeper_GetAllBuyOffers(t *testing.T) {
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
-	err = dk.SetBuyOffer(ctx, offer2)
+	err = dk.SetBuyOrder(ctx, offer2)
 	require.NoError(t, err)
 
-	offers = dk.GetAllBuyOffers(ctx)
+	offers = dk.GetAllBuyOrders(ctx)
 	require.Len(t, offers, 2)
-	require.Equal(t, []dymnstypes.BuyOffer{offer1, offer2}, offers)
+	require.Equal(t, []dymnstypes.BuyOrder{offer1, offer2}, offers)
 
-	offer3 := dymnstypes.BuyOffer{
+	offer3 := dymnstypes.BuyOrder{
 		Id:         "103",
 		GoodsId:    "a",
 		Type:       dymnstypes.NameOrder,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
-	err = dk.SetBuyOffer(ctx, offer3)
+	err = dk.SetBuyOrder(ctx, offer3)
 	require.NoError(t, err)
 
-	offers = dk.GetAllBuyOffers(ctx)
+	offers = dk.GetAllBuyOrders(ctx)
 	require.Len(t, offers, 3)
-	require.Equal(t, []dymnstypes.BuyOffer{
+	require.Equal(t, []dymnstypes.BuyOrder{
 		offer1, offer3, // <= Dym-Name Buy-Order should be sorted first
 		offer2, // <= Alias Buy-Order should be sorted second
 		// because of store branched by order type
 	}, offers)
 
-	offer4 := dymnstypes.BuyOffer{
+	offer4 := dymnstypes.BuyOrder{
 		Id:         "204",
 		GoodsId:    "b",
 		Type:       dymnstypes.AliasOrder,
@@ -547,24 +547,24 @@ func TestKeeper_GetAllBuyOffers(t *testing.T) {
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
-	err = dk.SetBuyOffer(ctx, offer4)
+	err = dk.SetBuyOrder(ctx, offer4)
 	require.NoError(t, err)
 
-	offers = dk.GetAllBuyOffers(ctx)
+	offers = dk.GetAllBuyOrders(ctx)
 	require.Len(t, offers, 4)
-	require.Equal(t, []dymnstypes.BuyOffer{offer1, offer3, offer2, offer4}, offers)
+	require.Equal(t, []dymnstypes.BuyOrder{offer1, offer3, offer2, offer4}, offers)
 
-	offer5 := dymnstypes.BuyOffer{
+	offer5 := dymnstypes.BuyOrder{
 		Id:         "105",
 		GoodsId:    "b",
 		Type:       dymnstypes.NameOrder,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(3),
 	}
-	err = dk.SetBuyOffer(ctx, offer5)
+	err = dk.SetBuyOrder(ctx, offer5)
 	require.NoError(t, err)
 
-	offers = dk.GetAllBuyOffers(ctx)
+	offers = dk.GetAllBuyOrders(ctx)
 	require.Len(t, offers, 5)
-	require.Equal(t, []dymnstypes.BuyOffer{offer1, offer3, offer5, offer2, offer4}, offers)
+	require.Equal(t, []dymnstypes.BuyOrder{offer1, offer3, offer5, offer2, offer4}, offers)
 }

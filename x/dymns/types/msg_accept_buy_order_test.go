@@ -13,22 +13,22 @@ import (
 func TestMsgAcceptBuyOrder_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name            string
-		offerId         string
+		buyOrderId      string
 		owner           string
 		minAccept       sdk.Coin
 		wantErr         bool
 		wantErrContains string
 	}{
 		{
-			name:      "pass - valid",
-			offerId:   "101",
-			owner:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			minAccept: dymnsutils.TestCoin(1),
-			wantErr:   false,
+			name:       "pass - valid",
+			buyOrderId: "101",
+			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			minAccept:  dymnsutils.TestCoin(1),
+			wantErr:    false,
 		},
 		{
 			name:            "fail - reject bad offer id",
-			offerId:         "@",
+			buyOrderId:      "@",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			minAccept:       dymnsutils.TestCoin(1),
 			wantErr:         true,
@@ -36,7 +36,7 @@ func TestMsgAcceptBuyOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - reject bad owner",
-			offerId:         "101",
+			buyOrderId:      "101",
 			owner:           "x",
 			minAccept:       dymnsutils.TestCoin(1),
 			wantErr:         true,
@@ -44,7 +44,7 @@ func TestMsgAcceptBuyOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - reject empty coin",
-			offerId:         "101",
+			buyOrderId:      "101",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			minAccept:       sdk.Coin{},
 			wantErr:         true,
@@ -52,16 +52,16 @@ func TestMsgAcceptBuyOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - reject zero coin",
-			offerId:         "101",
+			buyOrderId:      "101",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			minAccept:       dymnsutils.TestCoin(0),
 			wantErr:         true,
 			wantErrContains: "min-accept amount must be positive",
 		},
 		{
-			name:    "fail - reject negative coin",
-			offerId: "101",
-			owner:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			name:       "fail - reject negative coin",
+			buyOrderId: "101",
+			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			minAccept: sdk.Coin{
 				Denom:  params.BaseDenom,
 				Amount: sdk.NewInt(-1),
@@ -73,7 +73,7 @@ func TestMsgAcceptBuyOrder_ValidateBasic(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &MsgAcceptBuyOrder{
-				OfferId:   tt.offerId,
+				OrderId:   tt.buyOrderId,
 				Owner:     tt.owner,
 				MinAccept: tt.minAccept,
 			}

@@ -282,66 +282,66 @@ func (q queryServer) TranslateAliasOrChainIdToChainId(goCtx context.Context, req
 	}, nil
 }
 
-// BuyOfferById queries a buy offer by its id.
-func (q queryServer) BuyOfferById(goCtx context.Context, req *dymnstypes.QueryBuyOfferByIdRequest) (*dymnstypes.QueryBuyOfferByIdResponse, error) {
+// BuyOrderById queries a Buy-Order by its id.
+func (q queryServer) BuyOrderById(goCtx context.Context, req *dymnstypes.QueryBuyOrderByIdRequest) (*dymnstypes.QueryBuyOrderByIdResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	if !dymnstypes.IsValidBuyOfferId(req.Id) {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid offer id: %s", req.Id)
+	if !dymnstypes.IsValidBuyOrderId(req.Id) {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid Buy-Order ID: %s", req.Id)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	offer := q.GetBuyOffer(ctx, req.Id)
-	if offer == nil {
-		return nil, status.Error(codes.NotFound, "offer not found")
+	buyOrder := q.GetBuyOrder(ctx, req.Id)
+	if buyOrder == nil {
+		return nil, status.Error(codes.NotFound, "buy order not found")
 	}
 
-	return &dymnstypes.QueryBuyOfferByIdResponse{
-		Offer: *offer,
+	return &dymnstypes.QueryBuyOrderByIdResponse{
+		BuyOrder: *buyOrder,
 	}, nil
 }
 
-// BuyOffersPlacedByAccount queries the all the buy offers placed by an account.
-func (q queryServer) BuyOffersPlacedByAccount(goCtx context.Context, req *dymnstypes.QueryBuyOffersPlacedByAccountRequest) (*dymnstypes.QueryBuyOffersPlacedByAccountResponse, error) {
+// BuyOrdersPlacedByAccount queries the all the buy orders placed by an account.
+func (q queryServer) BuyOrdersPlacedByAccount(goCtx context.Context, req *dymnstypes.QueryBuyOrdersPlacedByAccountRequest) (*dymnstypes.QueryBuyOrdersPlacedByAccountResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	offers, err := q.GetBuyOffersByBuyer(ctx, req.Account)
+	buyOrders, err := q.GetBuyOrdersByBuyer(ctx, req.Account)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &dymnstypes.QueryBuyOffersPlacedByAccountResponse{
-		Offers: offers,
+	return &dymnstypes.QueryBuyOrdersPlacedByAccountResponse{
+		BuyOrders: buyOrders,
 	}, nil
 }
 
-// BuyOffersByDymName queries all the buy offers of a Dym-Name.
-func (q queryServer) BuyOffersByDymName(goCtx context.Context, req *dymnstypes.QueryBuyOffersByDymNameRequest) (*dymnstypes.QueryBuyOffersByDymNameResponse, error) {
+// BuyOrdersByDymName queries all the buy orders of a Dym-Name.
+func (q queryServer) BuyOrdersByDymName(goCtx context.Context, req *dymnstypes.QueryBuyOrdersByDymNameRequest) (*dymnstypes.QueryBuyOrdersByDymNameResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	offers, err := q.GetBuyOffersOfDymName(ctx, req.Name)
+	buyOrders, err := q.GetBuyOrdersOfDymName(ctx, req.Name)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &dymnstypes.QueryBuyOffersByDymNameResponse{
-		Offers: offers,
+	return &dymnstypes.QueryBuyOrdersByDymNameResponse{
+		BuyOrders: buyOrders,
 	}, nil
 }
 
-// BuyOffersOfDymNamesOwnedByAccount queries all the buy offers of all Dym-Names owned by an account.
-func (q queryServer) BuyOffersOfDymNamesOwnedByAccount(goCtx context.Context, req *dymnstypes.QueryBuyOffersOfDymNamesOwnedByAccountRequest) (*dymnstypes.QueryBuyOffersOfDymNamesOwnedByAccountResponse, error) {
+// BuyOrdersOfDymNamesOwnedByAccount queries all the buy orders of all Dym-Names owned by an account.
+func (q queryServer) BuyOrdersOfDymNamesOwnedByAccount(goCtx context.Context, req *dymnstypes.QueryBuyOrdersOfDymNamesOwnedByAccountRequest) (*dymnstypes.QueryBuyOrdersOfDymNamesOwnedByAccountResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -353,22 +353,22 @@ func (q queryServer) BuyOffersOfDymNamesOwnedByAccount(goCtx context.Context, re
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	offers := make([]dymnstypes.BuyOffer, 0)
+	buyOrders := make([]dymnstypes.BuyOrder, 0)
 	for _, dymName := range ownedDymNames {
-		offersOfDymName, err := q.GetBuyOffersOfDymName(ctx, dymName.Name)
+		buyOrdersOfDymName, err := q.GetBuyOrdersOfDymName(ctx, dymName.Name)
 		if err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 
-		offers = append(offers, offersOfDymName...)
+		buyOrders = append(buyOrders, buyOrdersOfDymName...)
 	}
 
-	return &dymnstypes.QueryBuyOffersOfDymNamesOwnedByAccountResponse{
-		Offers: offers,
+	return &dymnstypes.QueryBuyOrdersOfDymNamesOwnedByAccountResponse{
+		BuyOrders: buyOrders,
 	}, nil
 }
 
-// Alias queries the chain_id associated as well as the sell order and buy offer ids relates to the alias.
+// Alias queries the chain_id associated as well as the Sell-Order and Buy-Order IDs relates to the alias.
 func (q queryServer) Alias(goCtx context.Context, req *dymnstypes.QueryAliasRequest) (*dymnstypes.QueryAliasResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -386,24 +386,24 @@ func (q queryServer) Alias(goCtx context.Context, req *dymnstypes.QueryAliasRequ
 	}
 
 	var foundSellOrder bool
-	var offerIds []string
+	var buyOrderIds []string
 
 	if !q.IsAliasPresentsInParamsAsAliasOrChainId(ctx, req.Alias) {
 		foundSellOrder = q.GetSellOrder(ctx, req.Alias, dymnstypes.AliasOrder) != nil
 
-		aliasToOfferIdsRvlKey := dymnstypes.AliasToOfferIdsRvlKey(req.Alias)
-		offerIds = q.GenericGetReverseLookupBuyOfferIdsRecord(ctx, aliasToOfferIdsRvlKey).OfferIds
+		aliasToBuyOrderIdsRvlKey := dymnstypes.AliasToBuyOrderIdsRvlKey(req.Alias)
+		buyOrderIds = q.GenericGetReverseLookupBuyOrderIdsRecord(ctx, aliasToBuyOrderIdsRvlKey).OrderIds
 	}
 
 	return &dymnstypes.QueryAliasResponse{
 		ChainId:        chainId,
 		FoundSellOrder: foundSellOrder,
-		BuyOfferIds:    offerIds,
+		BuyOrderIds:    buyOrderIds,
 	}, nil
 }
 
-// BuyOffersByAlias queries all the buy offers of an Alias.
-func (q queryServer) BuyOffersByAlias(goCtx context.Context, req *dymnstypes.QueryBuyOffersByAliasRequest) (*dymnstypes.QueryBuyOffersByAliasResponse, error) {
+// BuyOrdersByAlias queries all the buy orders of an Alias.
+func (q queryServer) BuyOrdersByAlias(goCtx context.Context, req *dymnstypes.QueryBuyOrdersByAliasRequest) (*dymnstypes.QueryBuyOrdersByAliasResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -414,22 +414,22 @@ func (q queryServer) BuyOffersByAlias(goCtx context.Context, req *dymnstypes.Que
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	var buyOffers []dymnstypes.BuyOffer
+	var buyOrders []dymnstypes.BuyOrder
 	if !q.IsAliasPresentsInParamsAsAliasOrChainId(ctx, req.Alias) {
 		var err error
-		buyOffers, err = q.GetBuyOffersOfAlias(ctx, req.Alias)
+		buyOrders, err = q.GetBuyOrdersOfAlias(ctx, req.Alias)
 		if err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
 
-	return &dymnstypes.QueryBuyOffersByAliasResponse{
-		Offers: buyOffers,
+	return &dymnstypes.QueryBuyOrdersByAliasResponse{
+		BuyOrders: buyOrders,
 	}, nil
 }
 
-// BuyOffersOfAliasesLinkedToRollApp queries all the buy offers of all Aliases linked to a RollApp.
-func (q queryServer) BuyOffersOfAliasesLinkedToRollApp(goCtx context.Context, req *dymnstypes.QueryBuyOffersOfAliasesLinkedToRollAppRequest) (*dymnstypes.QueryBuyOffersOfAliasesLinkedToRollAppResponse, error) {
+// BuyOrdersOfAliasesLinkedToRollApp queries all the buy orders of all Aliases linked to a RollApp.
+func (q queryServer) BuyOrdersOfAliasesLinkedToRollApp(goCtx context.Context, req *dymnstypes.QueryBuyOrdersOfAliasesLinkedToRollAppRequest) (*dymnstypes.QueryBuyOrdersOfAliasesLinkedToRollAppResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -444,7 +444,7 @@ func (q queryServer) BuyOffersOfAliasesLinkedToRollApp(goCtx context.Context, re
 		return nil, status.Errorf(codes.NotFound, "RollApp not found: %s", req.RollappId)
 	}
 
-	var allBuyOffers []dymnstypes.BuyOffer
+	var allBuyOrders []dymnstypes.BuyOrder
 
 	aliases := q.GetAliasesOfRollAppId(ctx, req.RollappId)
 	for _, alias := range aliases {
@@ -453,15 +453,15 @@ func (q queryServer) BuyOffersOfAliasesLinkedToRollApp(goCtx context.Context, re
 			continue
 		}
 
-		buyOffers, err := q.GetBuyOffersOfAlias(ctx, alias)
+		buyOrders, err := q.GetBuyOrdersOfAlias(ctx, alias)
 		if err != nil {
 			return nil, status.Error(codes.Internal, errorsmod.Wrapf(err, "alias: %s", alias).Error())
 		}
 
-		allBuyOffers = append(allBuyOffers, buyOffers...)
+		allBuyOrders = append(allBuyOrders, buyOrders...)
 	}
 
-	return &dymnstypes.QueryBuyOffersOfAliasesLinkedToRollAppResponse{
-		Offers: allBuyOffers,
+	return &dymnstypes.QueryBuyOrdersOfAliasesLinkedToRollAppResponse{
+		BuyOrders: allBuyOrders,
 	}, nil
 }

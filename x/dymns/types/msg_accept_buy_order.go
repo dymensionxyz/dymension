@@ -10,7 +10,7 @@ var _ sdk.Msg = &MsgAcceptBuyOrder{}
 
 // ValidateBasic performs basic validation for the MsgAcceptBuyOrder.
 func (m *MsgAcceptBuyOrder) ValidateBasic() error {
-	if !IsValidBuyOfferId(m.OfferId) {
+	if !IsValidBuyOrderId(m.OrderId) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "offer id is not a valid buy name offer id")
 	}
 

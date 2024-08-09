@@ -136,34 +136,34 @@ func TestExportThenInitGenesis(t *testing.T) {
 	}
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so5))
 
-	offer1 := dymnstypes.BuyOffer{
+	offer1 := dymnstypes.BuyOrder{
 		Id:         "101",
 		GoodsId:    dymName1.Name,
 		Type:       dymnstypes.NameOrder,
 		Buyer:      buyer1,
 		OfferPrice: dymnsutils.TestCoin(100),
 	}
-	require.NoError(t, oldKeeper.SetBuyOffer(oldCtx, offer1))
+	require.NoError(t, oldKeeper.SetBuyOrder(oldCtx, offer1))
 
-	offer2 := dymnstypes.BuyOffer{
+	offer2 := dymnstypes.BuyOrder{
 		Id:         "102",
 		GoodsId:    dymName2.Name,
 		Type:       dymnstypes.NameOrder,
 		Buyer:      buyer2,
 		OfferPrice: dymnsutils.TestCoin(200),
 	}
-	require.NoError(t, oldKeeper.SetBuyOffer(oldCtx, offer2))
+	require.NoError(t, oldKeeper.SetBuyOrder(oldCtx, offer2))
 
-	offer3OfExpired := dymnstypes.BuyOffer{
+	offer3OfExpired := dymnstypes.BuyOrder{
 		Id:         "103",
 		GoodsId:    dymName3JustExpired.Name,
 		Type:       dymnstypes.NameOrder,
 		Buyer:      buyer3,
 		OfferPrice: dymnsutils.TestCoin(300),
 	}
-	require.NoError(t, oldKeeper.SetBuyOffer(oldCtx, offer3OfExpired))
+	require.NoError(t, oldKeeper.SetBuyOrder(oldCtx, offer3OfExpired))
 
-	offer4 := dymnstypes.BuyOffer{
+	offer4 := dymnstypes.BuyOrder{
 		Id:         "204",
 		GoodsId:    "cosmos",
 		Type:       dymnstypes.AliasOrder,
@@ -171,9 +171,9 @@ func TestExportThenInitGenesis(t *testing.T) {
 		Buyer:      buyer4,
 		OfferPrice: dymnsutils.TestCoin(333),
 	}
-	require.NoError(t, oldKeeper.SetBuyOffer(oldCtx, offer4))
+	require.NoError(t, oldKeeper.SetBuyOrder(oldCtx, offer4))
 
-	offer5 := dymnstypes.BuyOffer{
+	offer5 := dymnstypes.BuyOrder{
 		Id:         "205",
 		GoodsId:    "alias",
 		Type:       dymnstypes.AliasOrder,
@@ -181,7 +181,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		Buyer:      buyer5,
 		OfferPrice: dymnsutils.TestCoin(555),
 	}
-	require.NoError(t, oldKeeper.SetBuyOffer(oldCtx, offer5))
+	require.NoError(t, oldKeeper.SetBuyOrder(oldCtx, offer5))
 
 	// Export genesis state
 	genState := dymns.ExportGenesis(oldCtx, oldKeeper)
@@ -211,15 +211,15 @@ func TestExportThenInitGenesis(t *testing.T) {
 	})
 
 	t.Run("buy offers should be exported correctly", func(t *testing.T) {
-		require.Len(t, genState.BuyOffers, 5)
-		require.Contains(t, genState.BuyOffers, offer1)
-		require.Contains(t, genState.BuyOffers, offer2)
+		require.Len(t, genState.BuyOrders, 5)
+		require.Contains(t, genState.BuyOrders, offer1)
+		require.Contains(t, genState.BuyOrders, offer2)
 		require.Contains(
-			t, genState.BuyOffers, offer3OfExpired,
+			t, genState.BuyOrders, offer3OfExpired,
 			"offer should be exported even if the dym-name is expired",
 		)
-		require.Contains(t, genState.BuyOffers, offer4)
-		require.Contains(t, genState.BuyOffers, offer5)
+		require.Contains(t, genState.BuyOrders, offer4)
+		require.Contains(t, genState.BuyOrders, offer5)
 	})
 
 	// Init genesis state
@@ -363,7 +363,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		require.Panics(t, func() {
 			dymns.InitGenesis(newCtx, newDymNsKeeper, dymnstypes.GenesisState{
 				Params: dymnstypes.DefaultParams(),
-				BuyOffers: []dymnstypes.BuyOffer{
+				BuyOrders: []dymnstypes.BuyOrder{
 					{}, // empty content
 				},
 			})

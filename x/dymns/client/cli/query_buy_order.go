@@ -53,7 +53,7 @@ func CmdQueryBuyOrder() *cobra.Command {
 				return fmt.Errorf("flag --%s is required", flagTargetType)
 			}
 
-			var offers []dymnstypes.BuyOffer
+			var offers []dymnstypes.BuyOrder
 			var err error
 
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -62,7 +62,7 @@ func CmdQueryBuyOrder() *cobra.Command {
 
 			switch targetType {
 			case targetTypeById:
-				var offer *dymnstypes.BuyOffer
+				var offer *dymnstypes.BuyOrder
 				offer, err = queryOfferById(queryClient, queryCtx, args[0])
 				if err == nil && offer != nil {
 					offers = append(offers, *offer)
@@ -111,7 +111,7 @@ func CmdQueryBuyOrder() *cobra.Command {
 	return cmd
 }
 
-func printBuyOrder(offer dymnstypes.BuyOffer) error {
+func printBuyOrder(offer dymnstypes.BuyOrder) error {
 	if err := offer.Validate(); err != nil {
 		return err
 	}
@@ -141,96 +141,96 @@ func printBuyOrder(offer dymnstypes.BuyOffer) error {
 }
 
 // queryOfferById fetches a Buy-Order by its ID
-func queryOfferById(queryClient dymnstypes.QueryClient, ctx context.Context, offerId string) (*dymnstypes.BuyOffer, error) {
-	if !dymnstypes.IsValidBuyOfferId(offerId) {
-		return nil, fmt.Errorf("input Offer-ID '%s' is not a valid Offer-ID", offerId)
+func queryOfferById(queryClient dymnstypes.QueryClient, ctx context.Context, orderId string) (*dymnstypes.BuyOrder, error) {
+	if !dymnstypes.IsValidBuyOrderId(orderId) {
+		return nil, fmt.Errorf("input is not a valid Buy-Order ID: %s", orderId)
 	}
 
-	res, err := queryClient.BuyOfferById(ctx, &dymnstypes.QueryBuyOfferByIdRequest{
-		Id: offerId,
+	res, err := queryClient.BuyOrderById(ctx, &dymnstypes.QueryBuyOrderByIdRequest{
+		Id: orderId,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch buy offer by ID '%s': %w", offerId, err)
+		return nil, fmt.Errorf("failed to fetch buy offer by ID '%s': %w", orderId, err)
 	}
 
-	return &res.Offer, nil
+	return &res.BuyOrder, nil
 }
 
 // queryOffersPlacedByBuyer fetches Buy-Orders placed by a buyer
-func queryOffersPlacedByBuyer(queryClient dymnstypes.QueryClient, ctx context.Context, buyer string) ([]dymnstypes.BuyOffer, error) {
+func queryOffersPlacedByBuyer(queryClient dymnstypes.QueryClient, ctx context.Context, buyer string) ([]dymnstypes.BuyOrder, error) {
 	if !dymnsutils.IsValidBech32AccountAddress(buyer, true) {
 		return nil, fmt.Errorf("input buyer address '%s' is not a valid bech32 account address", buyer)
 	}
 
-	res, err := queryClient.BuyOffersPlacedByAccount(ctx, &dymnstypes.QueryBuyOffersPlacedByAccountRequest{
+	res, err := queryClient.BuyOrdersPlacedByAccount(ctx, &dymnstypes.QueryBuyOrdersPlacedByAccountRequest{
 		Account: buyer,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Buy-Orders placed by buyer '%s': %w", buyer, err)
 	}
 
-	return res.Offers, nil
+	return res.BuyOrders, nil
 }
 
 // queryOffersOfDymNamesOwnedByOwner fetches all Buy-Orders of all Dym-Names owned by an owner
-func queryOffersOfDymNamesOwnedByOwner(queryClient dymnstypes.QueryClient, ctx context.Context, owner string) ([]dymnstypes.BuyOffer, error) {
+func queryOffersOfDymNamesOwnedByOwner(queryClient dymnstypes.QueryClient, ctx context.Context, owner string) ([]dymnstypes.BuyOrder, error) {
 	if !dymnsutils.IsValidBech32AccountAddress(owner, true) {
 		return nil, fmt.Errorf("input owner address is not a valid bech32 account address: %s", owner)
 	}
 
-	res, err := queryClient.BuyOffersOfDymNamesOwnedByAccount(ctx, &dymnstypes.QueryBuyOffersOfDymNamesOwnedByAccountRequest{
+	res, err := queryClient.BuyOrdersOfDymNamesOwnedByAccount(ctx, &dymnstypes.QueryBuyOrdersOfDymNamesOwnedByAccountRequest{
 		Account: owner,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Buy-Orders of Dym-Names owned by '%s': %w", owner, err)
 	}
 
-	return res.Offers, nil
+	return res.BuyOrders, nil
 }
 
 // queryOffersOfAliasesLinkedToRollApp fetches all Buy-Orders of all Aliases linked to a RollApp
-func queryOffersOfAliasesLinkedToRollApp(queryClient dymnstypes.QueryClient, ctx context.Context, rollAppId string) ([]dymnstypes.BuyOffer, error) {
+func queryOffersOfAliasesLinkedToRollApp(queryClient dymnstypes.QueryClient, ctx context.Context, rollAppId string) ([]dymnstypes.BuyOrder, error) {
 	if !dymnsutils.IsValidChainIdFormat(rollAppId) {
 		return nil, fmt.Errorf("input RollApp ID is invalid: %s", rollAppId)
 	}
 
-	res, err := queryClient.BuyOffersOfAliasesLinkedToRollApp(ctx, &dymnstypes.QueryBuyOffersOfAliasesLinkedToRollAppRequest{
+	res, err := queryClient.BuyOrdersOfAliasesLinkedToRollApp(ctx, &dymnstypes.QueryBuyOrdersOfAliasesLinkedToRollAppRequest{
 		RollappId: rollAppId,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Buy-Orders of aliases linked to '%s': %w", rollAppId, err)
 	}
 
-	return res.Offers, nil
+	return res.BuyOrders, nil
 }
 
 // queryOffersByDymName fetches all Buy-Orders of a Dym-Name
-func queryOffersByDymName(queryClient dymnstypes.QueryClient, ctx context.Context, dymName string) ([]dymnstypes.BuyOffer, error) {
+func queryOffersByDymName(queryClient dymnstypes.QueryClient, ctx context.Context, dymName string) ([]dymnstypes.BuyOrder, error) {
 	if !dymnsutils.IsValidDymName(dymName) {
 		return nil, fmt.Errorf("input is not a valid Dym-Name: %s", dymName)
 	}
 
-	res, err := queryClient.BuyOffersByDymName(ctx, &dymnstypes.QueryBuyOffersByDymNameRequest{
+	res, err := queryClient.BuyOrdersByDymName(ctx, &dymnstypes.QueryBuyOrdersByDymNameRequest{
 		Name: dymName,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Buy-Orders of Dym-Name '%s': %w", dymName, err)
 	}
 
-	return res.Offers, nil
+	return res.BuyOrders, nil
 }
 
-func queryOffersByAlias(queryClient dymnstypes.QueryClient, ctx context.Context, alias string) ([]dymnstypes.BuyOffer, error) {
+func queryOffersByAlias(queryClient dymnstypes.QueryClient, ctx context.Context, alias string) ([]dymnstypes.BuyOrder, error) {
 	if !dymnsutils.IsValidAlias(alias) {
 		return nil, fmt.Errorf("input is not a valid alias: %s", alias)
 	}
 
-	res, err := queryClient.BuyOffersByAlias(ctx, &dymnstypes.QueryBuyOffersByAliasRequest{
+	res, err := queryClient.BuyOrdersByAlias(ctx, &dymnstypes.QueryBuyOrdersByAliasRequest{
 		Alias: alias,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Buy-Orders of Alias '%s': %w", alias, err)
 	}
 
-	return res.Offers, nil
+	return res.BuyOrders, nil
 }

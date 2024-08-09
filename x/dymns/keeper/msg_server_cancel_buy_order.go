@@ -19,9 +19,9 @@ func (k msgServer) CancelBuyOrder(goCtx context.Context, msg *dymnstypes.MsgCanc
 		return nil, err
 	}
 
-	offer := k.GetBuyOffer(ctx, msg.OfferId)
+	offer := k.GetBuyOrder(ctx, msg.OrderId)
 	if offer == nil {
-		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Order ID: %s", msg.OfferId)
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Order ID: %s", msg.OrderId)
 	}
 
 	var resp *dymnstypes.MsgCancelBuyOrderResponse
@@ -35,7 +35,7 @@ func (k msgServer) CancelBuyOrder(goCtx context.Context, msg *dymnstypes.MsgCanc
 		return nil, err
 	}
 
-	consumeMinimumGas(ctx, dymnstypes.OpGasCloseBuyOffer, "CancelBuyOrder")
+	consumeMinimumGas(ctx, dymnstypes.OpGasCloseBuyOrder, "CancelBuyOrder")
 
 	return resp, nil
 }
@@ -43,25 +43,25 @@ func (k msgServer) CancelBuyOrder(goCtx context.Context, msg *dymnstypes.MsgCanc
 // processCancelBuyOrder handles the message handled by CancelBuyOrder, type Dym-Name/Alias.
 func (k msgServer) processCancelBuyOrder(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgCancelBuyOrder, offer dymnstypes.BuyOffer,
+	msg *dymnstypes.MsgCancelBuyOrder, offer dymnstypes.BuyOrder,
 ) (*dymnstypes.MsgCancelBuyOrderResponse, error) {
-	if err := k.validateCancelOffer(ctx, msg, offer); err != nil {
+	if err := k.validateCancelBuyOrder(ctx, msg, offer); err != nil {
 		return nil, err
 	}
 
-	if err := k.RefundOffer(ctx, offer); err != nil {
+	if err := k.RefundBuyOrder(ctx, offer); err != nil {
 		return nil, err
 	}
 
-	if err := k.removeBuyOffer(ctx, offer); err != nil {
+	if err := k.removeBuyOrder(ctx, offer); err != nil {
 		return nil, err
 	}
 
 	return &dymnstypes.MsgCancelBuyOrderResponse{}, nil
 }
 
-// validateCancelOffer handles validation for the message handled by CancelBuyOrder, type Dym-Name/Alias.
-func (k msgServer) validateCancelOffer(_ sdk.Context, msg *dymnstypes.MsgCancelBuyOrder, offer dymnstypes.BuyOffer) error {
+// validateCancelBuyOrder handles validation for the message handled by CancelBuyOrder, type Dym-Name/Alias.
+func (k msgServer) validateCancelBuyOrder(_ sdk.Context, msg *dymnstypes.MsgCancelBuyOrder, offer dymnstypes.BuyOrder) error {
 	if offer.Buyer != msg.Buyer {
 		return errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the offer")
 	}
@@ -69,16 +69,16 @@ func (k msgServer) validateCancelOffer(_ sdk.Context, msg *dymnstypes.MsgCancelB
 	return nil
 }
 
-// removeBuyOffer removes the Buy-Order from the store and the reverse mappings.
-func (k msgServer) removeBuyOffer(ctx sdk.Context, offer dymnstypes.BuyOffer) error {
-	k.DeleteBuyOffer(ctx, offer.Id)
+// removeBuyOrder removes the Buy-Order from the store and the reverse mappings.
+func (k msgServer) removeBuyOrder(ctx sdk.Context, offer dymnstypes.BuyOrder) error {
+	k.DeleteBuyOrder(ctx, offer.Id)
 
-	err := k.RemoveReverseMappingBuyerToBuyOffer(ctx, offer.Buyer, offer.Id)
+	err := k.RemoveReverseMappingBuyerToBuyOrder(ctx, offer.Buyer, offer.Id)
 	if err != nil {
 		return err
 	}
 
-	err = k.RemoveReverseMappingGoodsIdToBuyOffer(ctx, offer.GoodsId, offer.Type, offer.Id)
+	err = k.RemoveReverseMappingGoodsIdToBuyOrder(ctx, offer.GoodsId, offer.Type, offer.Id)
 	if err != nil {
 		return err
 	}
