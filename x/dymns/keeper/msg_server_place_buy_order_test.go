@@ -27,7 +27,7 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 	buyerA := testAddr(2).bech32()
 	anotherBuyerA := testAddr(3).bech32()
 
-	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context) {
+	setupTest := func() (dymnskeeper.Keeper, dymnstypes.BankKeeper, sdk.Context) {
 		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
 		ctx = ctx.WithBlockTime(now)
 
@@ -984,7 +984,7 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 		alias:     "",
 	}
 
-	setupTest := func() (sdk.Context, dymnskeeper.Keeper, rollappkeeper.Keeper, dymnskeeper.BankKeeper) {
+	setupTest := func() (sdk.Context, dymnskeeper.Keeper, rollappkeeper.Keeper, dymnstypes.BankKeeper) {
 		dk, bk, rk, ctx := testkeeper.DymNSKeeper(t)
 		ctx = ctx.WithBlockTime(now)
 

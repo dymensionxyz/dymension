@@ -806,7 +806,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd() {
 func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) {
 	now := time.Now().UTC()
 
-	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context) {
+	setupTest := func() (dymnskeeper.Keeper, dymnstypes.BankKeeper, sdk.Context) {
 		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
 		ctx = ctx.WithBlockTime(now)
 
@@ -878,11 +878,11 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 	type testSuite struct {
 		t   *testing.T
 		dk  dymnskeeper.Keeper
-		bk  dymnskeeper.BankKeeper
+		bk  dymnstypes.BankKeeper
 		ctx sdk.Context
 	}
 
-	nts := func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) testSuite {
+	nts := func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) testSuite {
 		return testSuite{
 			t:   t,
 			dk:  dk,
@@ -975,11 +975,11 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 		expiryByDymName       []dymnstypes.ActiveSellOrdersExpirationRecord
 		preMintModuleBalance  int64
 		customEpochIdentifier string
-		beforeHookTestFunc    func(*testing.T, dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context)
+		beforeHookTestFunc    func(*testing.T, dymnskeeper.Keeper, dymnstypes.BankKeeper, sdk.Context)
 		wantErr               bool
 		wantErrContains       string
 		wantExpiryByDymName   []dymnstypes.ActiveSellOrdersExpirationRecord
-		afterHookTestFunc     func(*testing.T, dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context)
+		afterHookTestFunc     func(*testing.T, dymnskeeper.Keeper, dymnstypes.BankKeeper, sdk.Context)
 	}{
 		{
 			name:       "pass - simple process expired SO",
@@ -992,7 +992,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 				},
 			},
 			preMintModuleBalance: 200,
-			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
@@ -1001,7 +1001,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			},
 			wantErr:             false,
 			wantExpiryByDymName: nil,
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 
 				requireDymNameNotChanged(dymNameA, ts)
@@ -1032,7 +1032,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 				},
 			},
 			preMintModuleBalance: 200,
-			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
@@ -1041,7 +1041,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			},
 			wantErr:             false,
 			wantExpiryByDymName: nil,
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 
 				requireOwnerChanged(dymNameA, bidderA, ts)
@@ -1072,7 +1072,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 				},
 			},
 			preMintModuleBalance: 250,
-			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
@@ -1081,7 +1081,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			},
 			wantErr:             false,
 			wantExpiryByDymName: nil,
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 
 				requireOwnerChanged(dymNameA, bidderA, ts)
@@ -1137,7 +1137,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 				},
 			},
 			preMintModuleBalance: 450,
-			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
@@ -1151,7 +1151,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 					ExpireAt: soNotExpiredEpoch,
 				},
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 
 				// SO for Dym-Name A is expired without any bid/winner
@@ -1225,7 +1225,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			},
 			preMintModuleBalance:  450,
 			customEpochIdentifier: "another",
-			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
@@ -1251,7 +1251,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 					ExpireAt: soExpiredEpoch,
 				},
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 
 				requireDymNameNotChanged(dymNameA, ts)
@@ -1287,7 +1287,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 					ExpireAt: soExpiredEpoch,
 				},
 			},
-			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
@@ -1299,7 +1299,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 				// removed reference to Dym-Name A because of processed
 				// removed reference to Dym-Name B because SO not exists
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
@@ -1325,7 +1325,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 					ExpireAt: soExpiredEpoch,
 				},
 			},
-			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
@@ -1339,7 +1339,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 					ExpireAt: soNotExpiredEpoch,
 				},
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
@@ -1361,7 +1361,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 				},
 			},
 			preMintModuleBalance: 1, // not enough balance
-			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
@@ -1376,7 +1376,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 					ExpireAt: soExpiredEpoch,
 				},
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
 				// unchanged
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name)
@@ -2039,7 +2039,7 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 	const price6L = 4
 	const price7PL = 3
 
-	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, rollappkeeper.Keeper, sdk.Context) {
+	setupTest := func() (dymnskeeper.Keeper, dymnstypes.BankKeeper, rollappkeeper.Keeper, sdk.Context) {
 		dk, bk, rk, ctx := testkeeper.DymNSKeeper(t)
 		ctx = ctx.WithBlockTime(now)
 

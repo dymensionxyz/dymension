@@ -21,7 +21,7 @@ type KeeperTestSuite struct {
 	now           time.Time
 	dymNsKeeper   dymnskeeper.Keeper
 	rollAppKeeper rollappkeeper.Keeper
-	bankKeeper    dymnskeeper.BankKeeper
+	bankKeeper    dymnstypes.BankKeeper
 }
 
 func TestKeeperTestSuite(t *testing.T) {

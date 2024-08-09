@@ -17,7 +17,7 @@ import (
 func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 	now := time.Now().UTC()
 
-	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context) {
+	setupTest := func() (dymnskeeper.Keeper, dymnstypes.BankKeeper, sdk.Context) {
 		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
 		ctx = ctx.WithBlockTime(now)
 

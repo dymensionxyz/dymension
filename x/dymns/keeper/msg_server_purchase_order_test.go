@@ -20,7 +20,7 @@ func Test_msgServer_PurchaseOrder_DymName(t *testing.T) {
 	now := time.Now().UTC()
 	futureEpoch := now.Unix() + 1
 
-	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context) {
+	setupTest := func() (dymnskeeper.Keeper, dymnstypes.BankKeeper, sdk.Context) {
 		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
 		ctx = ctx.WithBlockTime(now)
 

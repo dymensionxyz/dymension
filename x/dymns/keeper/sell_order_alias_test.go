@@ -21,7 +21,7 @@ import (
 func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 	now := time.Now().UTC()
 
-	setupTest := func() (sdk.Context, dymnskeeper.Keeper, rollappkeeper.Keeper, dymnskeeper.BankKeeper) {
+	setupTest := func() (sdk.Context, dymnskeeper.Keeper, rollappkeeper.Keeper, dymnstypes.BankKeeper) {
 		dk, bk, rk, ctx := testkeeper.DymNSKeeper(t)
 		ctx = ctx.WithBlockTime(now)
 

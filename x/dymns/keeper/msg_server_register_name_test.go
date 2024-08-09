@@ -35,7 +35,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 	preservedAddr1a := testAddr(4).bech32()
 	preservedAddr2a := testAddr(5).bech32()
 
-	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context) {
+	setupTest := func() (dymnskeeper.Keeper, dymnstypes.BankKeeper, sdk.Context) {
 		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
 		ctx = ctx.WithBlockTime(now)
 

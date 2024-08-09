@@ -17,8 +17,8 @@ type Keeper struct {
 	cdc           codec.BinaryCodec
 	storeKey      storetypes.StoreKey
 	paramStore    paramtypes.Subspace
-	bankKeeper    BankKeeper
-	rollappKeeper RollAppKeeper
+	bankKeeper    dymnstypes.BankKeeper
+	rollappKeeper dymnstypes.RollAppKeeper
 }
 
 // NewKeeper returns a new instance of the DymNS keeper
@@ -26,8 +26,8 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	key storetypes.StoreKey,
 	ps paramtypes.Subspace,
-	bk BankKeeper,
-	rk RollAppKeeper,
+	bk dymnstypes.BankKeeper,
+	rk dymnstypes.RollAppKeeper,
 ) Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {

@@ -28,7 +28,7 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func DymNSKeeper(t testing.TB) (dymnskeeper.Keeper, dymnskeeper.BankKeeper, rollappkeeper.Keeper, sdk.Context) {
+func DymNSKeeper(t testing.TB) (dymnskeeper.Keeper, dymnstypes.BankKeeper, rollappkeeper.Keeper, sdk.Context) {
 	dymnskeeper.ClearCaches()
 
 	dymNsStoreKey := sdk.NewKVStoreKey(dymnstypes.StoreKey)
