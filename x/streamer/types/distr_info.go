@@ -41,7 +41,7 @@ var hundred = math.NewInt(100)
 // DistrInfoFromDistribution converts sponsorship distribution to the DistrInfo type and performs a
 // basic validation for DistrInfo.Records. Returning an empty DistrInfo (with zero DistrInfo.TotalWeight)
 // is a valid scenario.
-func DistrInfoFromDistribution(d sponsorshiptypes.Distribution) (*DistrInfo, error) {
+func DistrInfoFromDistribution(d sponsorshiptypes.Distribution) *DistrInfo {
 	totalWeight := math.ZeroInt()
 	records := make([]DistrRecord, 0, len(d.Gauges))
 	for _, g := range d.Gauges {
@@ -52,9 +52,6 @@ func DistrInfoFromDistribution(d sponsorshiptypes.Distribution) (*DistrInfo, err
 			GaugeId: g.GaugeId,
 			Weight:  weight,
 		}
-		if err := record.ValidateBasic(); err != nil {
-			return nil, err
-		}
 
 		totalWeight = totalWeight.Add(weight)
 		records = append(records, record)
@@ -63,5 +60,5 @@ func DistrInfoFromDistribution(d sponsorshiptypes.Distribution) (*DistrInfo, err
 	return &DistrInfo{
 		TotalWeight: totalWeight,
 		Records:     records,
-	}, nil
+	}
 }

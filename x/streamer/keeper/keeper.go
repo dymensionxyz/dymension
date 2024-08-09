@@ -61,10 +61,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.D
 		if err != nil {
 			return 0, fmt.Errorf("failed to get sponsorship distribution: %w", err)
 		}
-		distrInfo, err = types.DistrInfoFromDistribution(distr)
-		if err != nil {
-			return 0, fmt.Errorf("failed to compute distr info from sponsorship distribution: %w", err)
-		}
+		distrInfo = types.DistrInfoFromDistribution(distr)
 	} else {
 		distr, err := k.NewDistrInfo(ctx, records)
 		if err != nil {

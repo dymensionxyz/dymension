@@ -278,8 +278,7 @@ func (suite *KeeperTestSuite) TestCreateSponsoredStream() {
 		actualDistr, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, sID)
 		suite.Require().NoError(err)
 		initialDistr := suite.Distribution()
-		initialDistrInfo, err := types.DistrInfoFromDistribution(initialDistr)
-		suite.Require().NoError(err)
+		initialDistrInfo := types.DistrInfoFromDistribution(initialDistr)
 		suite.Require().Equal(initialDistrInfo.TotalWeight, actualDistr.DistributeTo.TotalWeight)
 		suite.Require().ElementsMatch(initialDistrInfo.Records, actualDistr.DistributeTo.Records)
 	}

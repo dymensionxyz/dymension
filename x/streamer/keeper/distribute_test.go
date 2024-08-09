@@ -242,8 +242,7 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 			suite.Require().NoError(err)
 			suite.Require().Equal(s, actualDistr)
 			initialDistr := suite.Distribution()
-			initialDistrInfo, err := types.DistrInfoFromDistribution(initialDistr)
-			suite.Require().NoError(err)
+			initialDistrInfo := types.DistrInfoFromDistribution(initialDistr)
 			suite.Require().Equal(initialDistrInfo.TotalWeight, actualDistr.DistributeTo.TotalWeight)
 			suite.Require().ElementsMatch(initialDistrInfo.Records, actualDistr.DistributeTo.Records)
 
@@ -260,8 +259,7 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 			actualDistr, err = suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, sID)
 			suite.Require().NoError(err)
 			intermediateDistr := suite.Distribution()
-			intermediateDistrInfo, err := types.DistrInfoFromDistribution(intermediateDistr)
-			suite.Require().NoError(err)
+			intermediateDistrInfo := types.DistrInfoFromDistribution(intermediateDistr)
 			suite.Require().Equal(intermediateDistrInfo.TotalWeight, actualDistr.DistributeTo.TotalWeight)
 			suite.Require().ElementsMatch(intermediateDistrInfo.Records, actualDistr.DistributeTo.Records)
 
@@ -271,8 +269,7 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 			suite.Require().Equal(tc.filledEpochs, actual.FilledEpochs)
 
 			// Calculate expected rewards. The result is based on the merged initial and intermediate distributions.
-			expectedDistr, err := types.DistrInfoFromDistribution(initialDistr.Merge(intermediateDistr))
-			suite.Require().NoError(err)
+			expectedDistr := types.DistrInfoFromDistribution(initialDistr.Merge(intermediateDistr))
 			gaugesExpectedRewards := make(map[uint64]sdk.Coins)
 			for _, coin := range tc.stream.coins {
 				epochAmt := coin.Amount.Quo(math.NewIntFromUint64(tc.stream.numOfEpochs))
