@@ -127,8 +127,6 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 		require.Lenf(t, historicalSOs, wantCount, "should have %d historical SOs", wantCount)
 	}
 
-	// TODO DymNS: add test cleanup Alias SO
-
 	testsCleanupHistoricalSellOrders := []struct {
 		name                           string
 		dymNames                       []dymnstypes.DymName
@@ -701,6 +699,7 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 	}
 }
 
+//goland:noinspection GoSnakeCaseUsage
 func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd() {
 	s.Run("should do something even nothing to do", func() {
 		s.SetupTest()
@@ -719,7 +718,89 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd() {
 		s.Require().Less(originalGas, s.ctx.GasMeter().GasConsumed(), "should do something")
 	})
 
-	// TODO DymNS: add test complete multiple types of tasks
+	s.Run("process active mixed Dym-Name and alias Sell-Orders", func() {
+		s.SetupTest()
+
+		dymNameOwner := testAddr(1).bech32()
+		dymNameBuyer := testAddr(2).bech32()
+
+		creator1_asOwner := testAddr(3).bech32()
+		creator2_asBuyer := testAddr(4).bech32()
+
+		dymName1 := dymnstypes.DymName{
+			Name:       "my-name",
+			Owner:      dymNameOwner,
+			Controller: dymNameOwner,
+			ExpireAt:   s.now.Add(2 * 365 * 24 * time.Hour).Unix(),
+		}
+		err := s.dymNsKeeper.SetDymName(s.ctx, dymName1)
+		s.Require().NoError(err)
+
+		rollApp1_asSrc := *newRollApp("rollapp_1-1").WithOwner(creator1_asOwner).WithAlias("one")
+		s.persistRollApp(rollApp1_asSrc)
+		s.requireRollApp(rollApp1_asSrc.rollAppId).HasAlias("one")
+		rollApp2_asDst := *newRollApp("rollapp_2-2").WithOwner(creator2_asBuyer)
+		s.persistRollApp(rollApp2_asDst)
+		s.requireRollApp(rollApp2_asDst.rollAppId).HasNoAlias()
+
+		const dymNameOrderPrice = 100
+		const aliasOrderPrice = 200
+
+		s.mintToModuleAccount(dymNameOrderPrice + aliasOrderPrice + 1)
+
+		dymNameSO := s.newDymNameSellOrder(dymName1.Name).
+			WithMinPrice(dymNameOrderPrice).
+			WithDymNameBid(dymNameBuyer, dymNameOrderPrice).
+			Expired().Build()
+		err = s.dymNsKeeper.SetSellOrder(s.ctx, dymNameSO)
+		s.Require().NoError(err)
+		err = s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, &dymnstypes.ActiveSellOrdersExpiration{
+			Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					GoodsId:  dymNameSO.GoodsId,
+					ExpireAt: dymNameSO.ExpireAt,
+				},
+			},
+		}, dymnstypes.NameOrder)
+		s.Require().NoError(err)
+
+		aliasSO := s.newAliasSellOrder(rollApp1_asSrc.alias).
+			WithMinPrice(aliasOrderPrice).
+			WithAliasBid(rollApp2_asDst.owner, aliasOrderPrice, rollApp2_asDst.rollAppId).
+			Expired().Build()
+		err = s.dymNsKeeper.SetSellOrder(s.ctx, aliasSO)
+		s.Require().NoError(err)
+		err = s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, &dymnstypes.ActiveSellOrdersExpiration{
+			Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					GoodsId:  aliasSO.GoodsId,
+					ExpireAt: aliasSO.ExpireAt,
+				},
+			},
+		}, dymnstypes.AliasOrder)
+		s.Require().NoError(err)
+
+		moduleParams := s.moduleParams()
+
+		err = s.dymNsKeeper.GetEpochHooks().AfterEpochEnd(s.ctx, moduleParams.Misc.EndEpochHookIdentifier, 1)
+		s.Require().NoError(err)
+
+		s.Nil(s.dymNsKeeper.GetSellOrder(s.ctx, dymName1.Name, dymnstypes.NameOrder))
+		s.Nil(s.dymNsKeeper.GetSellOrder(s.ctx, rollApp1_asSrc.alias, dymnstypes.AliasOrder))
+
+		s.Equal(int64(1), s.moduleBalance())
+		s.Equal(int64(dymNameOrderPrice), s.balance(dymNameOwner))
+		s.Equal(int64(aliasOrderPrice), s.balance(rollApp1_asSrc.owner))
+
+		laterDymName := s.dymNsKeeper.GetDymName(s.ctx, dymName1.Name)
+		if s.NotNil(laterDymName) {
+			s.Equal(dymNameBuyer, laterDymName.Owner)
+			s.Equal(dymNameBuyer, laterDymName.Controller)
+		}
+
+		s.requireRollApp(rollApp1_asSrc.rollAppId).HasNoAlias()
+		s.requireRollApp(rollApp2_asDst.rollAppId).HasAlias("one")
+	})
 }
 
 func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) {
