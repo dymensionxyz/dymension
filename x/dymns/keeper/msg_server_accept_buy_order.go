@@ -152,6 +152,12 @@ func (k msgServer) processAcceptBuyOrderTypeAlias(
 		return nil, errorsmod.Wrap(gerrc.ErrPermissionDenied, "trading of Alias is disabled")
 	}
 
+	if k.IsAliasPresentsInParamsAsAliasOrChainId(ctx, offer.GoodsId) {
+		return nil, errorsmod.Wrapf(gerrc.ErrPermissionDenied,
+			"prohibited to trade aliases which is reserved for chain-id or alias in module params: %s", offer.GoodsId,
+		)
+	}
+
 	existingRollAppUsingAlias, err := k.validateAcceptBuyOrderTypeAlias(ctx, msg, offer)
 	if err != nil {
 		return nil, err

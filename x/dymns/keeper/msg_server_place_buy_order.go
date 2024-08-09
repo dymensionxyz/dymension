@@ -266,7 +266,6 @@ func (k msgServer) validatePlaceBuyOrderTypeAlias(
 		return
 	}
 
-	// TODO DymNS: rename to IsRollAppOwner and the other places using term `creator`
 	if !k.IsRollAppCreator(ctx, destinationRollAppId, msg.Buyer) {
 		err = errorsmod.Wrapf(gerrc.ErrPermissionDenied, "not the owner of the RollApp: %s", destinationRollAppId)
 		return
@@ -280,6 +279,13 @@ func (k msgServer) validatePlaceBuyOrderTypeAlias(
 
 	if destinationRollAppId == existingRollAppIdUsingAlias {
 		err = errorsmod.Wrap(gerrc.ErrInvalidArgument, "destination Roll-App ID is the same as the source")
+		return
+	}
+
+	if k.IsAliasPresentsInParamsAsAliasOrChainId(ctx, msg.GoodsId) {
+		err = errorsmod.Wrapf(gerrc.ErrPermissionDenied,
+			"prohibited to trade aliases which is reserved for chain-id or alias in module params: %s", msg.GoodsId,
+		)
 		return
 	}
 

@@ -162,12 +162,17 @@ func (k msgServer) validatePlaceSellOrderTypeAlias(
 ) error {
 	alias := msg.GoodsId
 
+	if k.IsAliasPresentsInParamsAsAliasOrChainId(ctx, msg.GoodsId) {
+		return errorsmod.Wrapf(gerrc.ErrPermissionDenied,
+			"prohibited to trade aliases which is reserved for chain-id or alias in module params: %s", msg.GoodsId,
+		)
+	}
+
 	sourceRollAppId, found := k.GetRollAppIdByAlias(ctx, alias)
 	if !found {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "alias: %s", alias)
 	}
 
-	// TODO DymNS: rename to IsRollAppOwner and the other places using term `creator`
 	if !k.IsRollAppCreator(ctx, sourceRollAppId, msg.Owner) {
 		return errorsmod.Wrapf(gerrc.ErrPermissionDenied,
 			"not the owner of the RollApp using the alias: %s", sourceRollAppId,

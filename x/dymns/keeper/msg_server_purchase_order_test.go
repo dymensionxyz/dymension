@@ -672,6 +672,7 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 		skipPreMintModuleAccount        bool
 		overrideOriginalBalanceCreator2 int64
 		msg                             dymnstypes.MsgPurchaseOrder
+		preRunFunc                      func(s *KeeperTestSuite)
 		wantCompleted                   bool
 		wantErr                         bool
 		wantErrContains                 string
@@ -1057,6 +1058,32 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 			wantLaterBalanceCreator3: originalBalanceCreator3,
 		},
 		{
+			name:     "fail - can not purchase if alias is presents in params",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				BuildP(),
+			sourceRollAppId: rollApp_1_byOwner_asSrc.rollAppId,
+			msg: msg(
+				creator_2_asBuyer, minPrice,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(p dymnstypes.Params) dymnstypes.Params {
+					p.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: "some-chain",
+							Aliases: []string{rollApp_1_byOwner_asSrc.alias},
+						},
+					}
+					return p
+				})
+			},
+			wantErr:         true,
+			wantErrContains: "prohibited to trade aliases which is reserved for chain-id or alias in module params",
+			wantCompleted:   false,
+		},
+		{
 			name:     "pass - place bid, greater than previous bid, no sell price",
 			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
 			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
@@ -1193,6 +1220,10 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 				}
 			}
 
+			if tt.preRunFunc != nil {
+				tt.preRunFunc(s)
+			}
+
 			// test
 
 			resp, errPurchaseName := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &tt.msg)
@@ -1215,9 +1246,9 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 					"should not consume params gas on failed operation",
 				)
 
-				s.Zero(tt.wantLaterBalanceCreator1, "bad setup, no check on error")
-				s.Zero(tt.wantLaterBalanceCreator2, "bad setup, no check on error")
-				s.Zero(tt.wantLaterBalanceCreator3, "bad setup, no check on error")
+				s.Zero(tt.wantLaterBalanceCreator1, "bad setup, won't check balance on error")
+				s.Zero(tt.wantLaterBalanceCreator2, "bad setup, won't check balance on error")
+				s.Zero(tt.wantLaterBalanceCreator3, "bad setup, won't check balance on error")
 			} else {
 				s.NotNil(resp)
 				s.GreaterOrEqual(

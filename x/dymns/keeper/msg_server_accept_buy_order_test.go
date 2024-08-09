@@ -1060,6 +1060,40 @@ func Test_msgServer_AcceptBuyOrder_Type_Alias(t *testing.T) {
 			},
 		},
 		{
+			name: "fail - not accept offer if alias presents in params",
+			existingRollApps: []rollapp{
+				rollApp_One_By1_SingleAlias,
+				rollApp_Two_By2_SingleAlias,
+			},
+			existingOffer:         offerAliasOfRollAppOne,
+			offerId:               offerAliasOfRollAppOne.Id,
+			owner:                 rollApp_One_By1_SingleAlias.creator,
+			minAccept:             offerAliasOfRollAppOne.OfferPrice,
+			originalModuleBalance: offerAliasOfRollAppOne.OfferPrice.Amount.Int64(),
+			originalOwnerBalance:  0,
+			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+				moduleParams := dk.GetParams(ctx)
+				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "some-chain",
+						Aliases: []string{offerAliasOfRollAppOne.GoodsId},
+					},
+				}
+				err := dk.SetParams(ctx, moduleParams)
+				require.NoError(t, err)
+			},
+			wantErr:         true,
+			wantErrContains: "prohibited to trade aliases which is reserved for chain-id or alias in module params",
+			wantLaterOffer:  offerAliasOfRollAppOne,
+			wantLaterRollApps: []rollapp{
+				rollApp_One_By1_SingleAlias,
+				rollApp_Two_By2_SingleAlias,
+			},
+			wantLaterModuleBalance: offerAliasOfRollAppOne.OfferPrice.Amount.Int64(),
+			wantLaterOwnerBalance:  0,
+			wantMinConsumeGas:      1,
+		},
+		{
 			name:                  "fail - can NOT accept offer when trading Alias is disabled",
 			existingRollApps:      []rollapp{rollApp_One_By1_SingleAlias, rollApp_Two_By2_SingleAlias},
 			existingOffer:         offerAliasOfRollAppOne,
