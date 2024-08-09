@@ -39,16 +39,26 @@ func (k Keeper) GetBuyOrdersByBuyer(
 
 	var buyOrders []dymnstypes.BuyOrder
 	for _, orderId := range existingOrderIds.OrderIds {
-		offer := k.GetBuyOrder(ctx, orderId)
-		if offer == nil {
-			// offer not found, skip
+		buyOrder := k.GetBuyOrder(ctx, orderId)
+		if buyOrder == nil {
+			// buy order not found, skip
+			k.Logger(ctx).Error(
+				"buy-order in the reverse-lookup could not be found",
+				"buyer", buyer, "order-id", orderId,
+				"method", "GetBuyOrdersByBuyer",
+			)
 			continue
 		}
-		if offer.Buyer != buyer {
-			// offer buyer mismatch, skip
+		if buyOrder.Buyer != buyer {
+			// buyer of buy order mismatch, skip
+			k.Logger(ctx).Error(
+				"buy-order in the reverse-lookup has different buyer",
+				"input-buyer", buyer, "buy-order-buyer", buyOrder.Buyer, "order-id", orderId,
+				"method", "GetBuyOrdersByBuyer",
+			)
 			continue
 		}
-		buyOrders = append(buyOrders, *offer)
+		buyOrders = append(buyOrders, *buyOrder)
 	}
 
 	return buyOrders, nil
