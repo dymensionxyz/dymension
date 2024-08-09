@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -173,7 +174,7 @@ func (k Keeper) GetAllNonExpiredDymNames(ctx sdk.Context) (list []dymnstypes.Dym
 		list = append(list, dymName)
 	}
 
-	return list
+	return
 }
 
 // GetAllDymNames returns all Dym-Names from the KVStore.
@@ -250,52 +251,12 @@ func (k Keeper) ResolveByDymNameAddress(ctx sdk.Context, dymNameAddress string) 
 			return
 		}
 
-		var accAddr sdk.AccAddress
-		if dymnsutils.IsValidHexAddress(name) {
-			accAddr = dymnsutils.GetBytesFromHexAddress(name)
-		} else if dymnsutils.IsValidBech32AccountAddress(name, false) {
-			_, bz, errDecode := bech32.DecodeAndConvert(name)
-			if errDecode != nil {
-				return
-			}
-
-			accAddr = bz
-		} else {
-			// neither hex address nor bech32 account address
-			return
-		}
-
-		chainId, success := k.tryResolveChainIdOrAliasToChainId(ctx, chainIdOrAlias)
+		outputAddressFromExtraFormat, success := k.resolveByDymNameAddressInExtraFormat(ctx, name, chainIdOrAlias)
 		if !success {
-			// not a known chain-id or alias
 			return
 		}
 
-		// only accept resolve for host chain or RollApp
-
-		if chainId == ctx.ChainID() {
-			// is host chain
-			outputAddress = accAddr.String()
-			err = nil
-			return
-		}
-
-		if !k.IsRollAppId(ctx, chainId) {
-			// don't do bech32 conversion for non-RollApp because we don't know bech32 prefix
-			return
-		}
-
-		bech32Prefix, found := k.GetRollAppBech32Prefix(ctx, chainId)
-		if !found {
-			// no bech32 prefix configured for this RollApp
-			return
-		}
-		rollAppBasedBech32Addr, convertErr := bech32.ConvertAndEncode(bech32Prefix, accAddr)
-		if convertErr != nil {
-			return
-		}
-
-		outputAddress = rollAppBasedBech32Addr
+		outputAddress = outputAddressFromExtraFormat
 		err = nil
 		return
 	}
@@ -401,6 +362,59 @@ func (k Keeper) ResolveByDymNameAddress(ctx sdk.Context, dymNameAddress string) 
 	}
 
 	outputAddress = rollAppBasedBech32Addr
+	return
+}
+
+func (k Keeper) resolveByDymNameAddressInExtraFormat(ctx sdk.Context, anyAddress, chainIdOrAlias string) (outputAddress string, success bool) {
+	var accAddr sdk.AccAddress
+	if dymnsutils.IsValidHexAddress(anyAddress) {
+		accAddr = dymnsutils.GetBytesFromHexAddress(anyAddress)
+	} else if dymnsutils.IsValidBech32AccountAddress(anyAddress, false) {
+		_, bz, errDecode := bech32.DecodeAndConvert(anyAddress)
+		if errDecode != nil {
+			// silent error on purpose, just skip it
+			return
+		}
+
+		accAddr = bz
+	} else {
+		// neither hex address nor bech32 account address
+		return
+	}
+
+	chainId, resolveSuccess := k.tryResolveChainIdOrAliasToChainId(ctx, chainIdOrAlias)
+	if !resolveSuccess {
+		// not a known chain-id or alias
+		return
+	}
+
+	// only accept resolve for host chain or RollApp
+
+	if chainId == ctx.ChainID() {
+		// is host chain
+		outputAddress = accAddr.String()
+		success = true
+		return
+	}
+
+	if !k.IsRollAppId(ctx, chainId) {
+		// don't do bech32 conversion for non-RollApp because we don't know bech32 prefix
+		return
+	}
+
+	bech32Prefix, found := k.GetRollAppBech32Prefix(ctx, chainId)
+	if !found {
+		// no bech32 prefix configured for this RollApp
+		return
+	}
+	rollAppBasedBech32Addr, convertErr := bech32.ConvertAndEncode(bech32Prefix, accAddr)
+	if convertErr != nil {
+		return
+	}
+	fmt.Println(rollAppBasedBech32Addr)
+
+	outputAddress = rollAppBasedBech32Addr
+	success = true
 	return
 }
 
