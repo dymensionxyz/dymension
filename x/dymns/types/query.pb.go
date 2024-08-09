@@ -205,6 +205,116 @@ func (m *QueryDymNameResponse) GetDymName() *DymName {
 	return nil
 }
 
+// QueryAliasRequest is the request type for the Query/QueryAlias RPC method.
+type QueryAliasRequest struct {
+	// alias to query
+	Alias string `protobuf:"bytes,1,opt,name=alias,proto3" json:"alias,omitempty"`
+}
+
+func (m *QueryAliasRequest) Reset()         { *m = QueryAliasRequest{} }
+func (m *QueryAliasRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryAliasRequest) ProtoMessage()    {}
+func (*QueryAliasRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c9fbab881fb7aa6c, []int{4}
+}
+func (m *QueryAliasRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryAliasRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryAliasRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryAliasRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryAliasRequest.Merge(m, src)
+}
+func (m *QueryAliasRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryAliasRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryAliasRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryAliasRequest proto.InternalMessageInfo
+
+func (m *QueryAliasRequest) GetAlias() string {
+	if m != nil {
+		return m.Alias
+	}
+	return ""
+}
+
+// QueryAliasResponse
+type QueryAliasResponse struct {
+	// chain_id associated with the alias
+	ChainId string `protobuf:"bytes,1,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
+	// found_sell_order is true if any sell-order is found for the alias.
+	FoundSellOrder bool `protobuf:"varint,2,opt,name=found_sell_order,json=foundSellOrder,proto3" json:"found_sell_order,omitempty"`
+	// buy_offer_ids is the list of buy offer ids for the alias.
+	BuyOfferIds []string `protobuf:"bytes,3,rep,name=buy_offer_ids,json=buyOfferIds,proto3" json:"buy_offer_ids,omitempty"`
+}
+
+func (m *QueryAliasResponse) Reset()         { *m = QueryAliasResponse{} }
+func (m *QueryAliasResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryAliasResponse) ProtoMessage()    {}
+func (*QueryAliasResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c9fbab881fb7aa6c, []int{5}
+}
+func (m *QueryAliasResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryAliasResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryAliasResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryAliasResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryAliasResponse.Merge(m, src)
+}
+func (m *QueryAliasResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryAliasResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryAliasResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryAliasResponse proto.InternalMessageInfo
+
+func (m *QueryAliasResponse) GetChainId() string {
+	if m != nil {
+		return m.ChainId
+	}
+	return ""
+}
+
+func (m *QueryAliasResponse) GetFoundSellOrder() bool {
+	if m != nil {
+		return m.FoundSellOrder
+	}
+	return false
+}
+
+func (m *QueryAliasResponse) GetBuyOfferIds() []string {
+	if m != nil {
+		return m.BuyOfferIds
+	}
+	return nil
+}
+
 // QueryResolveDymNameAddressesRequest is the request type for the Query/ResolveDymNameAddresses RPC method.
 type QueryResolveDymNameAddressesRequest struct {
 	// addresses defines the Dym-Name addresses to resolve.
@@ -215,7 +325,7 @@ func (m *QueryResolveDymNameAddressesRequest) Reset()         { *m = QueryResolv
 func (m *QueryResolveDymNameAddressesRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryResolveDymNameAddressesRequest) ProtoMessage()    {}
 func (*QueryResolveDymNameAddressesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{4}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{6}
 }
 func (m *QueryResolveDymNameAddressesRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -265,7 +375,7 @@ func (m *ResultDymNameAddress) Reset()         { *m = ResultDymNameAddress{} }
 func (m *ResultDymNameAddress) String() string { return proto.CompactTextString(m) }
 func (*ResultDymNameAddress) ProtoMessage()    {}
 func (*ResultDymNameAddress) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{5}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{7}
 }
 func (m *ResultDymNameAddress) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -325,7 +435,7 @@ func (m *QueryResolveDymNameAddressesResponse) Reset()         { *m = QueryResol
 func (m *QueryResolveDymNameAddressesResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryResolveDymNameAddressesResponse) ProtoMessage()    {}
 func (*QueryResolveDymNameAddressesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{6}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{8}
 }
 func (m *QueryResolveDymNameAddressesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -371,7 +481,7 @@ func (m *QueryDymNamesOwnedByAccountRequest) Reset()         { *m = QueryDymName
 func (m *QueryDymNamesOwnedByAccountRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryDymNamesOwnedByAccountRequest) ProtoMessage()    {}
 func (*QueryDymNamesOwnedByAccountRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{7}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{9}
 }
 func (m *QueryDymNamesOwnedByAccountRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -417,7 +527,7 @@ func (m *QueryDymNamesOwnedByAccountResponse) Reset()         { *m = QueryDymNam
 func (m *QueryDymNamesOwnedByAccountResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryDymNamesOwnedByAccountResponse) ProtoMessage()    {}
 func (*QueryDymNamesOwnedByAccountResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{8}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{10}
 }
 func (m *QueryDymNamesOwnedByAccountResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -453,24 +563,26 @@ func (m *QueryDymNamesOwnedByAccountResponse) GetDymNames() []DymName {
 	return nil
 }
 
-// QuerySellOrderOfDymNameRequest is the request type for the Query/SellOrder RPC method.
-type QuerySellOrderOfDymNameRequest struct {
-	// dym_name is the Dym-Name to query the active Sell-Order for.
-	DymName string `protobuf:"bytes,1,opt,name=dym_name,json=dymName,proto3" json:"dym_name,omitempty"`
+// QuerySellOrderRequest is the request type for the Query/SellOrder RPC method.
+type QuerySellOrderRequest struct {
+	// goods_id is the Dym-Name/Alias to query the active Sell-Order for.
+	GoodsId string `protobuf:"bytes,1,opt,name=goods_id,json=goodsId,proto3" json:"goods_id,omitempty"`
+	// order_type can be either "Dym-Name" or "Alias".
+	OrderType string `protobuf:"bytes,2,opt,name=order_type,json=orderType,proto3" json:"order_type,omitempty"`
 }
 
-func (m *QuerySellOrderOfDymNameRequest) Reset()         { *m = QuerySellOrderOfDymNameRequest{} }
-func (m *QuerySellOrderOfDymNameRequest) String() string { return proto.CompactTextString(m) }
-func (*QuerySellOrderOfDymNameRequest) ProtoMessage()    {}
-func (*QuerySellOrderOfDymNameRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{9}
+func (m *QuerySellOrderRequest) Reset()         { *m = QuerySellOrderRequest{} }
+func (m *QuerySellOrderRequest) String() string { return proto.CompactTextString(m) }
+func (*QuerySellOrderRequest) ProtoMessage()    {}
+func (*QuerySellOrderRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c9fbab881fb7aa6c, []int{11}
 }
-func (m *QuerySellOrderOfDymNameRequest) XXX_Unmarshal(b []byte) error {
+func (m *QuerySellOrderRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QuerySellOrderOfDymNameRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QuerySellOrderRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QuerySellOrderOfDymNameRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QuerySellOrderRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -480,43 +592,50 @@ func (m *QuerySellOrderOfDymNameRequest) XXX_Marshal(b []byte, deterministic boo
 		return b[:n], nil
 	}
 }
-func (m *QuerySellOrderOfDymNameRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QuerySellOrderOfDymNameRequest.Merge(m, src)
+func (m *QuerySellOrderRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QuerySellOrderRequest.Merge(m, src)
 }
-func (m *QuerySellOrderOfDymNameRequest) XXX_Size() int {
+func (m *QuerySellOrderRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QuerySellOrderOfDymNameRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QuerySellOrderOfDymNameRequest.DiscardUnknown(m)
+func (m *QuerySellOrderRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QuerySellOrderRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QuerySellOrderOfDymNameRequest proto.InternalMessageInfo
+var xxx_messageInfo_QuerySellOrderRequest proto.InternalMessageInfo
 
-func (m *QuerySellOrderOfDymNameRequest) GetDymName() string {
+func (m *QuerySellOrderRequest) GetGoodsId() string {
 	if m != nil {
-		return m.DymName
+		return m.GoodsId
 	}
 	return ""
 }
 
-// QuerySellOrderOfDymNameResponse is the response type for the Query/SellOrder RPC method.
-type QuerySellOrderOfDymNameResponse struct {
-	// result is the active Sell-Order for the Dym-Name.
+func (m *QuerySellOrderRequest) GetOrderType() string {
+	if m != nil {
+		return m.OrderType
+	}
+	return ""
+}
+
+// QuerySellOrderResponse is the response type for the Query/SellOrder RPC method.
+type QuerySellOrderResponse struct {
+	// result is the active Sell-Order for the Dym-Name/Alias.
 	Result SellOrder `protobuf:"bytes,1,opt,name=result,proto3" json:"result"`
 }
 
-func (m *QuerySellOrderOfDymNameResponse) Reset()         { *m = QuerySellOrderOfDymNameResponse{} }
-func (m *QuerySellOrderOfDymNameResponse) String() string { return proto.CompactTextString(m) }
-func (*QuerySellOrderOfDymNameResponse) ProtoMessage()    {}
-func (*QuerySellOrderOfDymNameResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{10}
+func (m *QuerySellOrderResponse) Reset()         { *m = QuerySellOrderResponse{} }
+func (m *QuerySellOrderResponse) String() string { return proto.CompactTextString(m) }
+func (*QuerySellOrderResponse) ProtoMessage()    {}
+func (*QuerySellOrderResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c9fbab881fb7aa6c, []int{12}
 }
-func (m *QuerySellOrderOfDymNameResponse) XXX_Unmarshal(b []byte) error {
+func (m *QuerySellOrderResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QuerySellOrderOfDymNameResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QuerySellOrderResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QuerySellOrderOfDymNameResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QuerySellOrderResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -526,19 +645,19 @@ func (m *QuerySellOrderOfDymNameResponse) XXX_Marshal(b []byte, deterministic bo
 		return b[:n], nil
 	}
 }
-func (m *QuerySellOrderOfDymNameResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QuerySellOrderOfDymNameResponse.Merge(m, src)
+func (m *QuerySellOrderResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QuerySellOrderResponse.Merge(m, src)
 }
-func (m *QuerySellOrderOfDymNameResponse) XXX_Size() int {
+func (m *QuerySellOrderResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QuerySellOrderOfDymNameResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QuerySellOrderOfDymNameResponse.DiscardUnknown(m)
+func (m *QuerySellOrderResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QuerySellOrderResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QuerySellOrderOfDymNameResponse proto.InternalMessageInfo
+var xxx_messageInfo_QuerySellOrderResponse proto.InternalMessageInfo
 
-func (m *QuerySellOrderOfDymNameResponse) GetResult() SellOrder {
+func (m *QuerySellOrderResponse) GetResult() SellOrder {
 	if m != nil {
 		return m.Result
 	}
@@ -557,7 +676,7 @@ func (m *QueryHistoricalSellOrderOfDymNameRequest) Reset() {
 func (m *QueryHistoricalSellOrderOfDymNameRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryHistoricalSellOrderOfDymNameRequest) ProtoMessage()    {}
 func (*QueryHistoricalSellOrderOfDymNameRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{11}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{13}
 }
 func (m *QueryHistoricalSellOrderOfDymNameRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -607,7 +726,7 @@ func (m *QueryHistoricalSellOrderOfDymNameResponse) String() string {
 }
 func (*QueryHistoricalSellOrderOfDymNameResponse) ProtoMessage() {}
 func (*QueryHistoricalSellOrderOfDymNameResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{12}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{14}
 }
 func (m *QueryHistoricalSellOrderOfDymNameResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -657,7 +776,7 @@ func (m *QueryEstimateRegisterNameRequest) Reset()         { *m = QueryEstimateR
 func (m *QueryEstimateRegisterNameRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryEstimateRegisterNameRequest) ProtoMessage()    {}
 func (*QueryEstimateRegisterNameRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{13}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{15}
 }
 func (m *QueryEstimateRegisterNameRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -721,7 +840,7 @@ func (m *QueryEstimateRegisterNameResponse) Reset()         { *m = QueryEstimate
 func (m *QueryEstimateRegisterNameResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryEstimateRegisterNameResponse) ProtoMessage()    {}
 func (*QueryEstimateRegisterNameResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{14}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{16}
 }
 func (m *QueryEstimateRegisterNameResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -784,7 +903,7 @@ func (m *QueryReverseResolveAddressRequest) Reset()         { *m = QueryReverseR
 func (m *QueryReverseResolveAddressRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryReverseResolveAddressRequest) ProtoMessage()    {}
 func (*QueryReverseResolveAddressRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{15}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{17}
 }
 func (m *QueryReverseResolveAddressRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -839,7 +958,7 @@ func (m *QueryReverseResolveAddressResponse) Reset()         { *m = QueryReverse
 func (m *QueryReverseResolveAddressResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryReverseResolveAddressResponse) ProtoMessage()    {}
 func (*QueryReverseResolveAddressResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{16}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{18}
 }
 func (m *QueryReverseResolveAddressResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -893,7 +1012,7 @@ func (m *ReverseResolveAddressResult) Reset()         { *m = ReverseResolveAddre
 func (m *ReverseResolveAddressResult) String() string { return proto.CompactTextString(m) }
 func (*ReverseResolveAddressResult) ProtoMessage()    {}
 func (*ReverseResolveAddressResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{17}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{19}
 }
 func (m *ReverseResolveAddressResult) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -950,7 +1069,7 @@ func (m *QueryTranslateAliasOrChainIdToChainIdRequest) String() string {
 }
 func (*QueryTranslateAliasOrChainIdToChainIdRequest) ProtoMessage() {}
 func (*QueryTranslateAliasOrChainIdToChainIdRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{18}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{20}
 }
 func (m *QueryTranslateAliasOrChainIdToChainIdRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1000,7 +1119,7 @@ func (m *QueryTranslateAliasOrChainIdToChainIdResponse) String() string {
 }
 func (*QueryTranslateAliasOrChainIdToChainIdResponse) ProtoMessage() {}
 func (*QueryTranslateAliasOrChainIdToChainIdResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{19}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{21}
 }
 func (m *QueryTranslateAliasOrChainIdToChainIdResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1046,7 +1165,7 @@ func (m *QueryBuyOfferByIdRequest) Reset()         { *m = QueryBuyOfferByIdReque
 func (m *QueryBuyOfferByIdRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryBuyOfferByIdRequest) ProtoMessage()    {}
 func (*QueryBuyOfferByIdRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{20}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{22}
 }
 func (m *QueryBuyOfferByIdRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1092,7 +1211,7 @@ func (m *QueryBuyOfferByIdResponse) Reset()         { *m = QueryBuyOfferByIdResp
 func (m *QueryBuyOfferByIdResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryBuyOfferByIdResponse) ProtoMessage()    {}
 func (*QueryBuyOfferByIdResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{21}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{23}
 }
 func (m *QueryBuyOfferByIdResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1138,7 +1257,7 @@ func (m *QueryBuyOffersPlacedByAccountRequest) Reset()         { *m = QueryBuyOf
 func (m *QueryBuyOffersPlacedByAccountRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryBuyOffersPlacedByAccountRequest) ProtoMessage()    {}
 func (*QueryBuyOffersPlacedByAccountRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{22}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{24}
 }
 func (m *QueryBuyOffersPlacedByAccountRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1184,7 +1303,7 @@ func (m *QueryBuyOffersPlacedByAccountResponse) Reset()         { *m = QueryBuyO
 func (m *QueryBuyOffersPlacedByAccountResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryBuyOffersPlacedByAccountResponse) ProtoMessage()    {}
 func (*QueryBuyOffersPlacedByAccountResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{23}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{25}
 }
 func (m *QueryBuyOffersPlacedByAccountResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1230,7 +1349,7 @@ func (m *QueryBuyOffersByDymNameRequest) Reset()         { *m = QueryBuyOffersBy
 func (m *QueryBuyOffersByDymNameRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryBuyOffersByDymNameRequest) ProtoMessage()    {}
 func (*QueryBuyOffersByDymNameRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{24}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{26}
 }
 func (m *QueryBuyOffersByDymNameRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1276,7 +1395,7 @@ func (m *QueryBuyOffersByDymNameResponse) Reset()         { *m = QueryBuyOffersB
 func (m *QueryBuyOffersByDymNameResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryBuyOffersByDymNameResponse) ProtoMessage()    {}
 func (*QueryBuyOffersByDymNameResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{25}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{27}
 }
 func (m *QueryBuyOffersByDymNameResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1326,7 +1445,7 @@ func (m *QueryBuyOffersOfDymNamesOwnedByAccountRequest) String() string {
 }
 func (*QueryBuyOffersOfDymNamesOwnedByAccountRequest) ProtoMessage() {}
 func (*QueryBuyOffersOfDymNamesOwnedByAccountRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{26}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{28}
 }
 func (m *QueryBuyOffersOfDymNamesOwnedByAccountRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1376,7 +1495,7 @@ func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) String() string {
 }
 func (*QueryBuyOffersOfDymNamesOwnedByAccountResponse) ProtoMessage() {}
 func (*QueryBuyOffersOfDymNamesOwnedByAccountResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9fbab881fb7aa6c, []int{27}
+	return fileDescriptor_c9fbab881fb7aa6c, []int{29}
 }
 func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1412,18 +1531,212 @@ func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) GetOffers() []BuyOffer 
 	return nil
 }
 
+// QueryBuyOffersByAliasRequest is the request type for the Query/BuyOffersByAlias RPC method.
+type QueryBuyOffersByAliasRequest struct {
+	// alias is the alias to query the buy offers placed for it.
+	Alias string `protobuf:"bytes,1,opt,name=alias,proto3" json:"alias,omitempty"`
+}
+
+func (m *QueryBuyOffersByAliasRequest) Reset()         { *m = QueryBuyOffersByAliasRequest{} }
+func (m *QueryBuyOffersByAliasRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryBuyOffersByAliasRequest) ProtoMessage()    {}
+func (*QueryBuyOffersByAliasRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c9fbab881fb7aa6c, []int{30}
+}
+func (m *QueryBuyOffersByAliasRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryBuyOffersByAliasRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryBuyOffersByAliasRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryBuyOffersByAliasRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryBuyOffersByAliasRequest.Merge(m, src)
+}
+func (m *QueryBuyOffersByAliasRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryBuyOffersByAliasRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryBuyOffersByAliasRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryBuyOffersByAliasRequest proto.InternalMessageInfo
+
+func (m *QueryBuyOffersByAliasRequest) GetAlias() string {
+	if m != nil {
+		return m.Alias
+	}
+	return ""
+}
+
+// QueryBuyOffersByAliasResponse is the response type for the Query/BuyOffersByAlias RPC method.
+type QueryBuyOffersByAliasResponse struct {
+	// offers are the buy offers of the Dym-Name.
+	Offers []BuyOffer `protobuf:"bytes,1,rep,name=offers,proto3" json:"offers"`
+}
+
+func (m *QueryBuyOffersByAliasResponse) Reset()         { *m = QueryBuyOffersByAliasResponse{} }
+func (m *QueryBuyOffersByAliasResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryBuyOffersByAliasResponse) ProtoMessage()    {}
+func (*QueryBuyOffersByAliasResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c9fbab881fb7aa6c, []int{31}
+}
+func (m *QueryBuyOffersByAliasResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryBuyOffersByAliasResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryBuyOffersByAliasResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryBuyOffersByAliasResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryBuyOffersByAliasResponse.Merge(m, src)
+}
+func (m *QueryBuyOffersByAliasResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryBuyOffersByAliasResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryBuyOffersByAliasResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryBuyOffersByAliasResponse proto.InternalMessageInfo
+
+func (m *QueryBuyOffersByAliasResponse) GetOffers() []BuyOffer {
+	if m != nil {
+		return m.Offers
+	}
+	return nil
+}
+
+// QueryBuyOffersOfAliasesLinkedToRollAppRequest is the request type for the Query/BuyOffersOfAliasesLinkedToRollApp RPC method.
+type QueryBuyOffersOfAliasesLinkedToRollAppRequest struct {
+	// rollapp_id is the rollapp to query all the buy offers of the aliases linked to it
+	RollappId string `protobuf:"bytes,1,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
+}
+
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppRequest) Reset() {
+	*m = QueryBuyOffersOfAliasesLinkedToRollAppRequest{}
+}
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppRequest) String() string {
+	return proto.CompactTextString(m)
+}
+func (*QueryBuyOffersOfAliasesLinkedToRollAppRequest) ProtoMessage() {}
+func (*QueryBuyOffersOfAliasesLinkedToRollAppRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c9fbab881fb7aa6c, []int{32}
+}
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryBuyOffersOfAliasesLinkedToRollAppRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryBuyOffersOfAliasesLinkedToRollAppRequest.Merge(m, src)
+}
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryBuyOffersOfAliasesLinkedToRollAppRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryBuyOffersOfAliasesLinkedToRollAppRequest proto.InternalMessageInfo
+
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppRequest) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+// QueryBuyOffersOfAliasesLinkedToRollAppResponse is the response type for the Query/BuyOffersOfAliasesLinkedToRollApp RPC method.
+type QueryBuyOffersOfAliasesLinkedToRollAppResponse struct {
+	// offers are all the buy offers of the aliases linked to the input rollapp.
+	Offers []BuyOffer `protobuf:"bytes,1,rep,name=offers,proto3" json:"offers"`
+}
+
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppResponse) Reset() {
+	*m = QueryBuyOffersOfAliasesLinkedToRollAppResponse{}
+}
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppResponse) String() string {
+	return proto.CompactTextString(m)
+}
+func (*QueryBuyOffersOfAliasesLinkedToRollAppResponse) ProtoMessage() {}
+func (*QueryBuyOffersOfAliasesLinkedToRollAppResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c9fbab881fb7aa6c, []int{33}
+}
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryBuyOffersOfAliasesLinkedToRollAppResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryBuyOffersOfAliasesLinkedToRollAppResponse.Merge(m, src)
+}
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryBuyOffersOfAliasesLinkedToRollAppResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryBuyOffersOfAliasesLinkedToRollAppResponse proto.InternalMessageInfo
+
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppResponse) GetOffers() []BuyOffer {
+	if m != nil {
+		return m.Offers
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "dymensionxyz.dymension.dymns.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "dymensionxyz.dymension.dymns.QueryParamsResponse")
 	proto.RegisterType((*QueryDymNameRequest)(nil), "dymensionxyz.dymension.dymns.QueryDymNameRequest")
 	proto.RegisterType((*QueryDymNameResponse)(nil), "dymensionxyz.dymension.dymns.QueryDymNameResponse")
+	proto.RegisterType((*QueryAliasRequest)(nil), "dymensionxyz.dymension.dymns.QueryAliasRequest")
+	proto.RegisterType((*QueryAliasResponse)(nil), "dymensionxyz.dymension.dymns.QueryAliasResponse")
 	proto.RegisterType((*QueryResolveDymNameAddressesRequest)(nil), "dymensionxyz.dymension.dymns.QueryResolveDymNameAddressesRequest")
 	proto.RegisterType((*ResultDymNameAddress)(nil), "dymensionxyz.dymension.dymns.ResultDymNameAddress")
 	proto.RegisterType((*QueryResolveDymNameAddressesResponse)(nil), "dymensionxyz.dymension.dymns.QueryResolveDymNameAddressesResponse")
 	proto.RegisterType((*QueryDymNamesOwnedByAccountRequest)(nil), "dymensionxyz.dymension.dymns.QueryDymNamesOwnedByAccountRequest")
 	proto.RegisterType((*QueryDymNamesOwnedByAccountResponse)(nil), "dymensionxyz.dymension.dymns.QueryDymNamesOwnedByAccountResponse")
-	proto.RegisterType((*QuerySellOrderOfDymNameRequest)(nil), "dymensionxyz.dymension.dymns.QuerySellOrderOfDymNameRequest")
-	proto.RegisterType((*QuerySellOrderOfDymNameResponse)(nil), "dymensionxyz.dymension.dymns.QuerySellOrderOfDymNameResponse")
+	proto.RegisterType((*QuerySellOrderRequest)(nil), "dymensionxyz.dymension.dymns.QuerySellOrderRequest")
+	proto.RegisterType((*QuerySellOrderResponse)(nil), "dymensionxyz.dymension.dymns.QuerySellOrderResponse")
 	proto.RegisterType((*QueryHistoricalSellOrderOfDymNameRequest)(nil), "dymensionxyz.dymension.dymns.QueryHistoricalSellOrderOfDymNameRequest")
 	proto.RegisterType((*QueryHistoricalSellOrderOfDymNameResponse)(nil), "dymensionxyz.dymension.dymns.QueryHistoricalSellOrderOfDymNameResponse")
 	proto.RegisterType((*QueryEstimateRegisterNameRequest)(nil), "dymensionxyz.dymension.dymns.QueryEstimateRegisterNameRequest")
@@ -1442,6 +1755,10 @@ func init() {
 	proto.RegisterType((*QueryBuyOffersByDymNameResponse)(nil), "dymensionxyz.dymension.dymns.QueryBuyOffersByDymNameResponse")
 	proto.RegisterType((*QueryBuyOffersOfDymNamesOwnedByAccountRequest)(nil), "dymensionxyz.dymension.dymns.QueryBuyOffersOfDymNamesOwnedByAccountRequest")
 	proto.RegisterType((*QueryBuyOffersOfDymNamesOwnedByAccountResponse)(nil), "dymensionxyz.dymension.dymns.QueryBuyOffersOfDymNamesOwnedByAccountResponse")
+	proto.RegisterType((*QueryBuyOffersByAliasRequest)(nil), "dymensionxyz.dymension.dymns.QueryBuyOffersByAliasRequest")
+	proto.RegisterType((*QueryBuyOffersByAliasResponse)(nil), "dymensionxyz.dymension.dymns.QueryBuyOffersByAliasResponse")
+	proto.RegisterType((*QueryBuyOffersOfAliasesLinkedToRollAppRequest)(nil), "dymensionxyz.dymension.dymns.QueryBuyOffersOfAliasesLinkedToRollAppRequest")
+	proto.RegisterType((*QueryBuyOffersOfAliasesLinkedToRollAppResponse)(nil), "dymensionxyz.dymension.dymns.QueryBuyOffersOfAliasesLinkedToRollAppResponse")
 }
 
 func init() {
@@ -1449,102 +1766,119 @@ func init() {
 }
 
 var fileDescriptor_c9fbab881fb7aa6c = []byte{
-	// 1519 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x58, 0x5f, 0x6f, 0xdb, 0xd4,
-	0x1b, 0xae, 0x93, 0xf5, 0xdf, 0xdb, 0xa9, 0xbf, 0xee, 0xfc, 0xc2, 0x68, 0x4d, 0x95, 0x75, 0x66,
-	0x7f, 0x5a, 0xd8, 0xe2, 0x35, 0x1b, 0x83, 0x4d, 0x63, 0x4b, 0xd2, 0xfd, 0xeb, 0x36, 0x2d, 0x23,
-	0x1b, 0x12, 0x83, 0x0b, 0xcb, 0x89, 0x4f, 0x53, 0x53, 0xc7, 0x27, 0x3b, 0x76, 0xba, 0x99, 0xaa,
-	0x12, 0xe2, 0x82, 0x5b, 0x90, 0xb8, 0xdc, 0x0d, 0xf7, 0xdc, 0x70, 0xc3, 0x77, 0x98, 0xb8, 0x61,
-	0x08, 0x21, 0xe0, 0x06, 0xa1, 0x0d, 0x09, 0x3e, 0xc0, 0x3e, 0x00, 0xf2, 0xf1, 0x6b, 0x37, 0x69,
-	0x13, 0xc7, 0x69, 0x7b, 0xe7, 0x73, 0x7c, 0xde, 0xe7, 0x7d, 0x9e, 0xf7, 0x1c, 0xbf, 0xe7, 0x49,
-	0x60, 0xde, 0xf0, 0x1a, 0xd4, 0x76, 0x4c, 0x66, 0x3f, 0xf1, 0x3e, 0x53, 0xa3, 0x81, 0xff, 0x64,
-	0x3b, 0xea, 0xa3, 0x16, 0xe5, 0x5e, 0xae, 0xc9, 0x99, 0xcb, 0xc8, 0x6c, 0xfb, 0xca, 0x5c, 0x34,
-	0xc8, 0x89, 0x95, 0x72, 0xa6, 0xce, 0xea, 0x4c, 0x2c, 0x54, 0xfd, 0xa7, 0x20, 0x46, 0x9e, 0xad,
-	0x33, 0x56, 0xb7, 0xa8, 0xaa, 0x37, 0x4d, 0x55, 0xb7, 0x6d, 0xe6, 0xea, 0xae, 0xc9, 0x6c, 0x07,
-	0xdf, 0x66, 0x6b, 0xcc, 0x69, 0x30, 0x47, 0xad, 0xea, 0x0e, 0x55, 0xd7, 0x17, 0xab, 0xd4, 0xd5,
-	0x17, 0xd5, 0x1a, 0x33, 0x6d, 0x7c, 0xbf, 0x10, 0xcb, 0xad, 0xa9, 0x73, 0xbd, 0x11, 0x42, 0xbd,
-	0x1d, 0xbb, 0xd4, 0xf0, 0x1a, 0x9a, 0xad, 0x37, 0x68, 0x22, 0xdc, 0x86, 0xce, 0xd7, 0xa8, 0x1b,
-	0x2c, 0x55, 0x32, 0x40, 0x3e, 0xf0, 0x6b, 0x70, 0x4f, 0x24, 0xab, 0xd0, 0x47, 0x2d, 0xea, 0xb8,
-	0xca, 0x43, 0xf8, 0x7f, 0xc7, 0xac, 0xd3, 0x64, 0xb6, 0x43, 0x49, 0x09, 0x46, 0x02, 0x52, 0xd3,
-	0xd2, 0x9c, 0x34, 0x3f, 0x91, 0x3f, 0x96, 0x8b, 0x2b, 0x59, 0x2e, 0x88, 0x2e, 0x1d, 0x78, 0xf6,
-	0xe7, 0x91, 0xa1, 0x0a, 0x46, 0x2a, 0xe7, 0x11, 0xfa, 0xaa, 0xd7, 0xb8, 0xab, 0x37, 0x28, 0x66,
-	0x24, 0x33, 0x30, 0x16, 0x8a, 0x10, 0xe0, 0xe3, 0x95, 0x51, 0x23, 0x58, 0x71, 0xf1, 0xc0, 0xbf,
-	0xdf, 0x1e, 0x19, 0x52, 0x3e, 0x82, 0x4c, 0x67, 0x1c, 0x72, 0x2a, 0x6c, 0x0b, 0x9c, 0xc8, 0x1f,
-	0x8f, 0x67, 0x15, 0x02, 0x84, 0xf8, 0xca, 0x32, 0xbc, 0x29, 0x90, 0x2b, 0xd4, 0x61, 0xd6, 0x3a,
-	0xc5, 0xf7, 0x45, 0xc3, 0xe0, 0xd4, 0x71, 0x68, 0x58, 0x13, 0x32, 0x0b, 0xe3, 0x7a, 0x38, 0x37,
-	0x2d, 0xcd, 0xa5, 0xe7, 0xc7, 0x2b, 0x5b, 0x13, 0x48, 0xf2, 0x11, 0x64, 0x2a, 0xd4, 0x69, 0x59,
-	0x6e, 0x27, 0x08, 0x99, 0x86, 0x51, 0x5c, 0x1a, 0x8a, 0xc3, 0x21, 0x59, 0x80, 0x29, 0x1e, 0xe4,
-	0x35, 0xb4, 0x70, 0x49, 0x4a, 0x2c, 0xf9, 0x5f, 0x38, 0x1f, 0x82, 0x64, 0x60, 0x98, 0x72, 0xce,
-	0xf8, 0x74, 0x5a, 0xbc, 0x0f, 0x06, 0xca, 0x57, 0x12, 0x1c, 0x8b, 0xa7, 0x8f, 0x85, 0xaa, 0x03,
-	0xd9, 0x9e, 0x09, 0x85, 0x4c, 0xe4, 0xf3, 0xf1, 0x25, 0xeb, 0xa6, 0x09, 0xb7, 0xf5, 0xd0, 0x36,
-	0x96, 0xd4, 0x51, 0x0a, 0xa0, 0xb4, 0xef, 0x94, 0x53, 0x7e, 0x6c, 0x53, 0xa3, 0xe4, 0x15, 0x6b,
-	0x35, 0xd6, 0xb2, 0xdd, 0xb0, 0x9c, 0x19, 0x18, 0x66, 0x8f, 0x6d, 0xca, 0xb1, 0x20, 0xc1, 0x00,
-	0xcb, 0xc8, 0x70, 0x47, 0x7a, 0x21, 0xa0, 0xa2, 0x9b, 0x30, 0x1e, 0x6e, 0x7d, 0x28, 0x24, 0xd9,
-	0xde, 0x23, 0xf7, 0x31, 0x3c, 0x01, 0x8e, 0x52, 0x84, 0xac, 0x48, 0x78, 0x9f, 0x5a, 0x56, 0x99,
-	0x1b, 0x94, 0x97, 0x57, 0x06, 0x3d, 0x9f, 0xab, 0x70, 0xa4, 0x27, 0x04, 0xf2, 0xbd, 0x06, 0x23,
-	0x5c, 0x54, 0x12, 0x0f, 0xea, 0xc9, 0x78, 0xb2, 0x11, 0x52, 0xf8, 0x05, 0x05, 0xc1, 0xca, 0x6d,
-	0x98, 0x17, 0x99, 0x6e, 0x9a, 0x8e, 0xcb, 0xb8, 0x59, 0xd3, 0xad, 0x3d, 0xd0, 0xe6, 0xb0, 0x90,
-	0x00, 0xac, 0x8b, 0x80, 0xf4, 0xee, 0x05, 0xd8, 0x30, 0x27, 0x72, 0x5e, 0x73, 0x5c, 0xb3, 0xa1,
-	0xbb, 0xb4, 0x42, 0xeb, 0xa6, 0xe3, 0x52, 0xde, 0x4e, 0x9c, 0xc0, 0x81, 0x36, 0xd2, 0xe2, 0x99,
-	0xc8, 0x30, 0x66, 0xb4, 0xb8, 0xe8, 0xb0, 0xe2, 0x1b, 0x49, 0x57, 0xa2, 0xf1, 0xd6, 0x71, 0x4a,
-	0xef, 0x3c, 0x4e, 0xaf, 0x24, 0x38, 0x1a, 0x93, 0x10, 0xc5, 0x2d, 0xc3, 0xd4, 0x8a, 0xc9, 0x1d,
-	0x57, 0xf3, 0xa8, 0xce, 0xb5, 0x26, 0x37, 0x6b, 0x61, 0x43, 0x99, 0xc9, 0x05, 0x7d, 0x3c, 0xe7,
-	0xf7, 0xf1, 0x1c, 0xf6, 0xf1, 0xdc, 0x12, 0x33, 0x6d, 0x14, 0x36, 0x29, 0x02, 0x1f, 0x52, 0x9d,
-	0xdf, 0xf3, 0xc3, 0x48, 0x09, 0x0e, 0xd2, 0x27, 0x2e, 0xb5, 0x0d, 0x84, 0x49, 0x25, 0x83, 0x99,
-	0x08, 0x82, 0x02, 0x8c, 0x02, 0x4c, 0xb8, 0xcc, 0xd5, 0x2d, 0x84, 0x48, 0x27, 0x83, 0x00, 0x11,
-	0x23, 0x10, 0x94, 0x35, 0x54, 0x5d, 0xa1, 0xeb, 0x94, 0x3b, 0x14, 0xfb, 0x03, 0x7e, 0xa7, 0x89,
-	0xba, 0x1a, 0x99, 0x87, 0xa9, 0xc7, 0x8c, 0xaf, 0x99, 0x76, 0x5d, 0xab, 0xad, 0xea, 0xa6, 0xad,
-	0x99, 0x06, 0x76, 0xa7, 0x49, 0x9c, 0x5f, 0xf2, 0xa7, 0x97, 0x0d, 0xe5, 0xfb, 0x14, 0x7e, 0xf5,
-	0x3d, 0xb2, 0x61, 0x91, 0x3f, 0xdd, 0x76, 0x82, 0xee, 0xc4, 0x9f, 0xa0, 0xfe, 0x88, 0xd8, 0x9b,
-	0xae, 0xd9, 0x2e, 0xf7, 0x3a, 0x8f, 0x59, 0x72, 0xf2, 0xb2, 0x0b, 0x13, 0x6d, 0x30, 0x64, 0x0a,
-	0xd2, 0x6b, 0xd4, 0xc3, 0xa3, 0xe7, 0x3f, 0x92, 0x32, 0x0c, 0xaf, 0xeb, 0x56, 0x2b, 0xdc, 0xc9,
-	0x0b, 0xfd, 0xda, 0x65, 0x77, 0xc2, 0x2d, 0xcb, 0xad, 0x04, 0x38, 0x17, 0x53, 0xef, 0x49, 0xca,
-	0x7d, 0x78, 0x23, 0x66, 0x25, 0xc9, 0x02, 0xd4, 0x74, 0xdb, 0x30, 0x0d, 0xdd, 0x8d, 0xb6, 0xa6,
-	0x6d, 0x66, 0xeb, 0x3a, 0x48, 0xb5, 0x5f, 0x07, 0x0f, 0xe1, 0x94, 0x28, 0xda, 0x03, 0xae, 0xdb,
-	0x8e, 0xa5, 0xbb, 0xb4, 0x68, 0x99, 0xba, 0x53, 0xe6, 0x28, 0xf5, 0x01, 0xc3, 0x87, 0x70, 0xff,
-	0x17, 0xe0, 0x90, 0xee, 0xaf, 0xd0, 0x18, 0xdf, 0xaa, 0x52, 0xa0, 0x7c, 0x52, 0xef, 0x08, 0x55,
-	0x6e, 0xc1, 0xe9, 0x84, 0xd0, 0xb8, 0xd9, 0x33, 0x30, 0xb6, 0x0d, 0x72, 0xb4, 0x86, 0x58, 0x6f,
-	0xc1, 0xb4, 0xc0, 0x2a, 0xb5, 0xbc, 0xf2, 0xca, 0x0a, 0xe5, 0x25, 0x6f, 0x8b, 0xd2, 0x24, 0xa4,
-	0xa2, 0x80, 0x94, 0x69, 0x28, 0x1a, 0xcc, 0x74, 0x59, 0x1b, 0x59, 0x92, 0x61, 0xe6, 0x4f, 0xe2,
-	0xa7, 0x7a, 0x22, 0x7e, 0x67, 0x22, 0x88, 0xe0, 0xa4, 0x04, 0xa1, 0x4a, 0x01, 0x6f, 0xd0, 0xf0,
-	0xad, 0x73, 0xcf, 0xd2, 0x6b, 0x5d, 0xae, 0x2c, 0xff, 0x16, 0x0f, 0x66, 0xa2, 0x5b, 0x3c, 0x18,
-	0x2a, 0x0d, 0x38, 0xde, 0x07, 0x01, 0xe9, 0x5e, 0x85, 0x11, 0x91, 0x33, 0xbc, 0xaf, 0x06, 0xe3,
-	0x8b, 0xb1, 0xca, 0x39, 0xbc, 0xae, 0xa2, 0x74, 0xa5, 0xed, 0x76, 0xaa, 0x4b, 0xfb, 0x54, 0xea,
-	0x78, 0x43, 0x75, 0x8b, 0xda, 0x57, 0x7a, 0xcb, 0x78, 0x50, 0xa2, 0x44, 0xd1, 0x4d, 0xd2, 0xc3,
-	0x0b, 0xf4, 0x2e, 0xec, 0x3a, 0xe4, 0x92, 0x42, 0xed, 0xa7, 0x84, 0xfc, 0x8f, 0x87, 0x61, 0x58,
-	0x24, 0x26, 0x4f, 0x25, 0x18, 0x09, 0x8c, 0x2c, 0x39, 0x93, 0xa0, 0x59, 0x75, 0xf8, 0x68, 0x79,
-	0x71, 0x80, 0x88, 0x80, 0xbf, 0x72, 0xea, 0x8b, 0x5f, 0xfe, 0xfe, 0x26, 0x75, 0x82, 0x1c, 0x53,
-	0x13, 0xfc, 0x38, 0x20, 0xdf, 0x49, 0x30, 0x8a, 0x05, 0x21, 0x49, 0x92, 0x75, 0x1e, 0x13, 0x39,
-	0x3f, 0x48, 0x08, 0x12, 0xbc, 0x20, 0x08, 0x9e, 0x25, 0x8b, 0x6a, 0xa2, 0x9f, 0x24, 0xea, 0x46,
-	0xf8, 0xb4, 0x49, 0x7e, 0x92, 0xe0, 0xf5, 0x1e, 0x36, 0x95, 0x14, 0x13, 0xdd, 0x04, 0x71, 0x0e,
-	0x5d, 0x2e, 0xed, 0x05, 0x02, 0xd5, 0x9d, 0x16, 0xea, 0x4e, 0x92, 0xe3, 0xf1, 0xea, 0xd0, 0xf5,
-	0x92, 0x5f, 0x25, 0x38, 0xdc, 0xfd, 0x40, 0x92, 0x42, 0xf2, 0xda, 0x76, 0xff, 0x2c, 0xe4, 0xe2,
-	0x1e, 0x10, 0x50, 0xce, 0x79, 0x21, 0xe7, 0x0c, 0xc9, 0xc5, 0xcb, 0xf1, 0xdd, 0x92, 0xa1, 0x55,
-	0x3d, 0x75, 0x43, 0xf8, 0xa6, 0x4d, 0xf2, 0x9b, 0x04, 0x64, 0xa7, 0x11, 0x24, 0x97, 0x12, 0x30,
-	0xea, 0x69, 0x46, 0xe5, 0xf7, 0x77, 0x19, 0x8d, 0x5a, 0xae, 0x0a, 0x2d, 0x97, 0xc9, 0xa5, 0x78,
-	0x2d, 0x0e, 0xb5, 0x2c, 0x8d, 0xf9, 0x10, 0x5d, 0xcf, 0xe0, 0xe7, 0x29, 0x98, 0x8d, 0x33, 0xbb,
-	0xe4, 0x7a, 0x02, 0x96, 0x09, 0xac, 0xb7, 0x7c, 0x63, 0xcf, 0x38, 0xa8, 0xbb, 0x2c, 0x74, 0x2f,
-	0x93, 0x1b, 0xf1, 0xba, 0x57, 0x23, 0x2c, 0xad, 0x4f, 0x09, 0xfe, 0x91, 0x20, 0xd3, 0xcd, 0x0a,
-	0x93, 0xcb, 0x09, 0x28, 0xc7, 0x98, 0x76, 0xf9, 0xca, 0xae, 0xe3, 0x51, 0xea, 0x5d, 0x21, 0xf5,
-	0x26, 0xb9, 0x1e, 0x2f, 0x95, 0x22, 0x86, 0xc6, 0x11, 0x04, 0x25, 0x0a, 0x79, 0xea, 0x46, 0xf8,
-	0xa3, 0x60, 0x93, 0xfc, 0x2c, 0xc1, 0x6b, 0x5d, 0x3d, 0x16, 0xb9, 0xb2, 0x7b, 0xe3, 0x19, 0x68,
-	0x2d, 0xec, 0xd5, 0xb9, 0x2a, 0xef, 0x08, 0xb1, 0x2a, 0x39, 0xdd, 0xaf, 0xd5, 0x08, 0x10, 0x2d,
-	0x6c, 0x39, 0x5f, 0xa6, 0x60, 0xae, 0x9f, 0x05, 0x23, 0xb7, 0x12, 0xb0, 0x4b, 0x68, 0x11, 0xe5,
-	0xdb, 0xfb, 0x82, 0x85, 0xa2, 0x97, 0x85, 0xe8, 0x25, 0x52, 0x8c, 0x17, 0xed, 0x86, 0x78, 0x9a,
-	0x30, 0xa1, 0xea, 0xc6, 0x0e, 0x93, 0xba, 0x49, 0x7e, 0x90, 0xe0, 0x60, 0xbb, 0x27, 0x24, 0xe7,
-	0x13, 0x10, 0xed, 0x62, 0x38, 0xe5, 0x77, 0x07, 0x8e, 0x43, 0x31, 0xe7, 0x84, 0x98, 0x1c, 0x39,
-	0x15, 0x2f, 0xa6, 0xda, 0xf2, 0x34, 0xe1, 0x2b, 0xd4, 0x0d, 0x9f, 0xf7, 0x2b, 0x09, 0xa6, 0x7b,
-	0x19, 0x45, 0x52, 0x1a, 0x80, 0x4b, 0x0f, 0x9f, 0x2a, 0x2f, 0xed, 0x09, 0x63, 0xb0, 0xae, 0x13,
-	0xf8, 0x25, 0xcd, 0x65, 0x9a, 0xaf, 0xb2, 0x29, 0xc0, 0xb4, 0xaa, 0xa7, 0xa1, 0x81, 0x53, 0x37,
-	0xf0, 0x61, 0x93, 0xfc, 0x21, 0x01, 0xd9, 0x69, 0x3d, 0x13, 0x5d, 0x29, 0x3d, 0x7d, 0x6e, 0xa2,
-	0x2b, 0xa5, 0xb7, 0xdf, 0x55, 0xae, 0x0b, 0x91, 0x05, 0x72, 0x79, 0x10, 0x91, 0x55, 0x4f, 0xdb,
-	0xea, 0xaa, 0x41, 0x47, 0x7d, 0x9a, 0x82, 0xa3, 0x7d, 0x2d, 0x2a, 0xb9, 0x3d, 0x08, 0xd9, 0x3e,
-	0x9e, 0x59, 0xbe, 0xb3, 0x3f, 0x60, 0x58, 0x88, 0x4f, 0x44, 0x21, 0x3e, 0x24, 0xf7, 0x07, 0x29,
-	0x04, 0x5b, 0x89, 0x0a, 0xe1, 0x68, 0xa1, 0x85, 0xd8, 0xb9, 0xf3, 0xa5, 0x3b, 0xcf, 0x5e, 0x64,
-	0xa5, 0xe7, 0x2f, 0xb2, 0xd2, 0x5f, 0x2f, 0xb2, 0xd2, 0xd7, 0x2f, 0xb3, 0x43, 0xcf, 0x5f, 0x66,
-	0x87, 0x7e, 0x7f, 0x99, 0x1d, 0xfa, 0x38, 0x5f, 0x37, 0xdd, 0xd5, 0x56, 0x35, 0x57, 0x63, 0x8d,
-	0x5e, 0x89, 0xd7, 0xcf, 0xaa, 0x4f, 0xc2, 0xa6, 0xe0, 0x35, 0xa9, 0x53, 0x1d, 0x11, 0x7f, 0x5c,
-	0x9f, 0xfd, 0x2f, 0x00, 0x00, 0xff, 0xff, 0x24, 0x01, 0x9d, 0x80, 0xd9, 0x17, 0x00, 0x00,
+	// 1791 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x59, 0xdd, 0x6f, 0x13, 0x57,
+	0x16, 0xcf, 0xd8, 0x24, 0x24, 0x27, 0x6c, 0x36, 0xdc, 0x0d, 0xac, 0x33, 0x04, 0x13, 0x66, 0xf9,
+	0x48, 0x16, 0xe2, 0x21, 0x09, 0xb0, 0xcb, 0xc7, 0x42, 0xe2, 0xf0, 0x65, 0x88, 0x08, 0x6b, 0x82,
+	0x58, 0x76, 0xb5, 0x1a, 0x8d, 0x3d, 0x37, 0x66, 0x9a, 0xf1, 0x5c, 0x33, 0x33, 0x0e, 0x4c, 0x2d,
+	0x4b, 0x55, 0x1f, 0xfa, 0xda, 0x4a, 0x7d, 0x44, 0x55, 0xfb, 0xde, 0x97, 0x4a, 0x55, 0xdf, 0xfa,
+	0x07, 0xf0, 0x56, 0x50, 0x55, 0xa9, 0x7d, 0xa9, 0x2a, 0xa8, 0xd4, 0xfe, 0x01, 0xfc, 0x01, 0x95,
+	0xef, 0x9c, 0x19, 0x7f, 0x60, 0x8f, 0x67, 0x92, 0x3c, 0x31, 0xf7, 0xfa, 0x9e, 0xdf, 0xfd, 0xfd,
+	0xce, 0x3d, 0xf7, 0x9c, 0x7b, 0x02, 0xcc, 0x68, 0x6e, 0x99, 0x9a, 0xb6, 0xce, 0xcc, 0x67, 0xee,
+	0xfb, 0x72, 0x30, 0x68, 0x7c, 0x99, 0xb6, 0xfc, 0xa4, 0x4a, 0x2d, 0x37, 0x53, 0xb1, 0x98, 0xc3,
+	0xc8, 0x54, 0xeb, 0xca, 0x4c, 0x30, 0xc8, 0xf0, 0x95, 0xe2, 0x44, 0x89, 0x95, 0x18, 0x5f, 0x28,
+	0x37, 0xbe, 0x3c, 0x1b, 0x71, 0xaa, 0xc4, 0x58, 0xc9, 0xa0, 0xb2, 0x5a, 0xd1, 0x65, 0xd5, 0x34,
+	0x99, 0xa3, 0x3a, 0x3a, 0x33, 0x6d, 0xfc, 0x35, 0x5d, 0x64, 0x76, 0x99, 0xd9, 0x72, 0x41, 0xb5,
+	0xa9, 0xbc, 0x35, 0x5f, 0xa0, 0x8e, 0x3a, 0x2f, 0x17, 0x99, 0x6e, 0xe2, 0xef, 0xb3, 0xa1, 0xdc,
+	0x2a, 0xaa, 0xa5, 0x96, 0x7d, 0xa8, 0x53, 0xa1, 0x4b, 0x35, 0xb7, 0xac, 0x98, 0x6a, 0x99, 0x46,
+	0xc2, 0x2d, 0xab, 0xd6, 0x26, 0x75, 0xbc, 0xa5, 0xd2, 0x04, 0x90, 0x7f, 0x37, 0x7c, 0x70, 0x8f,
+	0x6f, 0x96, 0xa7, 0x4f, 0xaa, 0xd4, 0x76, 0xa4, 0x47, 0xf0, 0x97, 0xb6, 0x59, 0xbb, 0xc2, 0x4c,
+	0x9b, 0x92, 0x2c, 0x0c, 0x79, 0xa4, 0x52, 0xc2, 0xb4, 0x30, 0x33, 0xba, 0x70, 0x2c, 0x13, 0xe6,
+	0xb2, 0x8c, 0x67, 0x9d, 0xdd, 0xf3, 0xe2, 0xe7, 0x23, 0x03, 0x79, 0xb4, 0x94, 0xce, 0x23, 0xf4,
+	0x35, 0xb7, 0x7c, 0x57, 0x2d, 0x53, 0xdc, 0x91, 0x4c, 0xc2, 0xb0, 0x2f, 0x82, 0x83, 0x8f, 0xe4,
+	0xf7, 0x6a, 0xde, 0x8a, 0x8b, 0x7b, 0x7e, 0xff, 0xe2, 0xc8, 0x80, 0xf4, 0x1f, 0x98, 0x68, 0xb7,
+	0x43, 0x4e, 0x4b, 0x1d, 0x86, 0xa3, 0x0b, 0xc7, 0xc3, 0x59, 0xf9, 0x00, 0x3e, 0xbe, 0x24, 0xc3,
+	0x7e, 0x8e, 0xbc, 0x6c, 0xe8, 0xaa, 0xef, 0x01, 0x32, 0x01, 0x83, 0x6a, 0x63, 0x8c, 0x64, 0xbc,
+	0x01, 0x52, 0xa9, 0xa3, 0xcf, 0xd0, 0x00, 0x89, 0x4c, 0xc2, 0x70, 0xf1, 0xb1, 0xaa, 0x9b, 0x8a,
+	0xae, 0xf9, 0x0a, 0xf8, 0x38, 0xa7, 0x91, 0x19, 0x18, 0xdf, 0x60, 0x55, 0x53, 0x53, 0x6c, 0x6a,
+	0x18, 0x0a, 0xb3, 0x34, 0x6a, 0xa5, 0x12, 0xd3, 0xc2, 0xcc, 0x70, 0x7e, 0x8c, 0xcf, 0xdf, 0xa7,
+	0x86, 0xb1, 0xd6, 0x98, 0x25, 0x12, 0xfc, 0xa9, 0x50, 0x75, 0x15, 0xb6, 0xb1, 0x41, 0x2d, 0x45,
+	0xd7, 0xec, 0x54, 0x72, 0x3a, 0x39, 0x33, 0x92, 0x1f, 0x2d, 0x54, 0xdd, 0xb5, 0xc6, 0x5c, 0x4e,
+	0xb3, 0xa5, 0x1c, 0xfc, 0x8d, 0x6f, 0x9f, 0xa7, 0x36, 0x33, 0xb6, 0x28, 0xea, 0x59, 0xd6, 0x34,
+	0x8b, 0xda, 0x36, 0x0d, 0x14, 0x4c, 0xc1, 0x88, 0xea, 0xcf, 0xa5, 0x04, 0x0e, 0xd3, 0x9c, 0x40,
+	0x25, 0x4f, 0x60, 0x22, 0x4f, 0xed, 0xaa, 0xe1, 0xb4, 0x83, 0x90, 0x14, 0xec, 0xc5, 0xa5, 0xbe,
+	0x14, 0x1c, 0x92, 0x59, 0x18, 0xb7, 0xbc, 0x7d, 0x35, 0xc5, 0x5f, 0x92, 0xe0, 0x4b, 0xfe, 0xec,
+	0xcf, 0xfb, 0x20, 0x13, 0x30, 0x48, 0x2d, 0x8b, 0x59, 0xa9, 0xa4, 0xe7, 0x42, 0x3e, 0x90, 0x3e,
+	0x16, 0xe0, 0x58, 0x38, 0x7d, 0xf4, 0x67, 0x09, 0x48, 0xe7, 0x4e, 0x28, 0x64, 0x74, 0x61, 0x21,
+	0xfc, 0x88, 0xbb, 0x69, 0xc2, 0x30, 0xdc, 0xdf, 0xc1, 0x92, 0xda, 0xd2, 0x12, 0x48, 0xad, 0x91,
+	0x65, 0xaf, 0x3d, 0x35, 0xa9, 0x96, 0x75, 0x97, 0x8b, 0x45, 0x56, 0x35, 0x9d, 0x96, 0x80, 0x60,
+	0x4f, 0x4d, 0x6a, 0xf9, 0x01, 0xc1, 0x07, 0xe8, 0x46, 0x86, 0x27, 0xd2, 0x0b, 0x01, 0x15, 0xdd,
+	0x82, 0x11, 0x3f, 0x54, 0x7d, 0x21, 0xd1, 0x62, 0x15, 0xb9, 0x0f, 0x63, 0xc4, 0xda, 0xd2, 0x43,
+	0x38, 0xc0, 0x37, 0x0c, 0x02, 0xa7, 0xe5, 0x1a, 0x95, 0x18, 0xd3, 0xec, 0x96, 0x20, 0xe4, 0xe3,
+	0x9c, 0x46, 0x0e, 0x03, 0xf0, 0xc8, 0x53, 0x1c, 0xb7, 0x42, 0xf1, 0xcc, 0x46, 0xf8, 0xcc, 0xba,
+	0x5b, 0xf1, 0x6f, 0x99, 0x02, 0x07, 0x3b, 0x81, 0x91, 0xfc, 0x75, 0x18, 0xb2, 0xb8, 0x5b, 0xf1,
+	0x96, 0x9d, 0x0c, 0x67, 0x1e, 0x00, 0xf8, 0xd7, 0xdf, 0x33, 0x96, 0xee, 0xc0, 0x0c, 0xdf, 0xe0,
+	0x96, 0x6e, 0x3b, 0xcc, 0xd2, 0x8b, 0xaa, 0x11, 0xac, 0x5c, 0xdb, 0x88, 0x9b, 0x13, 0x2c, 0x98,
+	0x8d, 0x00, 0xd6, 0x45, 0x40, 0x72, 0xfb, 0x02, 0x4c, 0x98, 0xe6, 0x7b, 0x5e, 0xb7, 0x1d, 0xbd,
+	0xac, 0x3a, 0x34, 0x4f, 0x4b, 0xba, 0xed, 0x50, 0xab, 0x95, 0x38, 0x81, 0x3d, 0x2d, 0xa4, 0xf9,
+	0x37, 0x11, 0x61, 0x58, 0xab, 0x5a, 0xbc, 0x3c, 0x70, 0xe7, 0x27, 0xf3, 0xc1, 0xb8, 0x19, 0x5b,
+	0xc9, 0x77, 0x63, 0xeb, 0xad, 0x00, 0x47, 0x43, 0x36, 0x44, 0x71, 0x39, 0x18, 0xdf, 0xd0, 0x2d,
+	0xdb, 0x51, 0x5c, 0xaa, 0x5a, 0x4a, 0xc5, 0xd2, 0x8b, 0x7e, 0x36, 0x9c, 0xcc, 0x78, 0x45, 0x28,
+	0xd3, 0x28, 0x42, 0x19, 0x2c, 0x42, 0x99, 0x15, 0xa6, 0x9b, 0x28, 0x6c, 0x8c, 0x1b, 0x3e, 0xa2,
+	0xaa, 0x75, 0xaf, 0x61, 0x46, 0xb2, 0xb0, 0x8f, 0x3e, 0x73, 0xa8, 0xa9, 0x21, 0x4c, 0x22, 0x1a,
+	0xcc, 0xa8, 0x67, 0xe4, 0x61, 0x2c, 0xc1, 0xa8, 0xc3, 0x1c, 0xd5, 0x40, 0x88, 0x64, 0x34, 0x08,
+	0xe0, 0x36, 0x1c, 0x41, 0xda, 0x44, 0xd5, 0x79, 0xba, 0x45, 0x2d, 0x9b, 0x62, 0xb2, 0xc0, 0x4b,
+	0x1b, 0x29, 0xc5, 0x35, 0xb2, 0xee, 0x53, 0x66, 0x6d, 0xea, 0x66, 0x49, 0x09, 0x12, 0xb3, 0x17,
+	0xf6, 0x63, 0x38, 0xbf, 0xe2, 0xe5, 0x67, 0xe9, 0xab, 0x04, 0xa6, 0x80, 0x1e, 0xbb, 0xa1, 0x93,
+	0xdf, 0xeb, 0x88, 0xa0, 0xd5, 0xf0, 0x08, 0xea, 0x8f, 0x88, 0x89, 0xea, 0xba, 0xe9, 0x58, 0x6e,
+	0x7b, 0x98, 0x45, 0x27, 0x2f, 0x3a, 0x30, 0xda, 0x02, 0x43, 0xc6, 0x21, 0xb9, 0x49, 0x5d, 0x0c,
+	0xbd, 0xc6, 0x27, 0x59, 0x83, 0xc1, 0x2d, 0xd5, 0xa8, 0xfa, 0x27, 0x79, 0xa1, 0x5f, 0xee, 0xec,
+	0x4e, 0xb8, 0x6a, 0x38, 0x79, 0x0f, 0xe7, 0x62, 0xe2, 0x9f, 0x82, 0x74, 0x1f, 0x0e, 0x85, 0xac,
+	0x24, 0x69, 0x80, 0xa2, 0x6a, 0x6a, 0xba, 0xa6, 0x3a, 0xc1, 0xd1, 0xb4, 0xcc, 0x34, 0x6b, 0x43,
+	0xa2, 0xb5, 0x36, 0x3c, 0x82, 0xd3, 0xdc, 0x69, 0xeb, 0x96, 0x6a, 0xda, 0x86, 0xea, 0x50, 0x5e,
+	0x61, 0xd7, 0x2c, 0x94, 0xba, 0xce, 0xf0, 0xc3, 0x3f, 0xff, 0x59, 0xd8, 0xcf, 0xeb, 0xb2, 0xc2,
+	0x2c, 0xa5, 0xa3, 0xf6, 0x8e, 0xa9, 0x6d, 0xa6, 0xd2, 0x6d, 0x98, 0x8b, 0x08, 0xdd, 0xb7, 0x9c,
+	0x4b, 0x7f, 0x87, 0x14, 0xc7, 0xca, 0x62, 0x51, 0xce, 0xba, 0x4d, 0x4a, 0x63, 0x90, 0x08, 0x0c,
+	0x12, 0xba, 0x26, 0x29, 0x30, 0xd9, 0x65, 0x6d, 0xf0, 0x9e, 0x1a, 0xe4, 0x95, 0x1e, 0xaf, 0xea,
+	0x89, 0xf0, 0x93, 0x09, 0x20, 0xbc, 0x48, 0xf1, 0x4c, 0xa5, 0x25, 0x2c, 0xa7, 0xfe, 0xaf, 0xf6,
+	0x3d, 0x43, 0x2d, 0x76, 0xa9, 0x5f, 0x8d, 0x92, 0xee, 0xcd, 0x04, 0x25, 0xdd, 0x1b, 0x4a, 0x65,
+	0x38, 0xde, 0x07, 0x01, 0xe9, 0x5e, 0x83, 0x21, 0xbe, 0xa7, 0x5f, 0xbc, 0xe2, 0xf1, 0x45, 0x5b,
+	0xe9, 0x2c, 0xa4, 0xdb, 0xb7, 0xcb, 0x76, 0xbe, 0x05, 0xbb, 0xa4, 0x4f, 0xa9, 0x04, 0x47, 0x7a,
+	0x5a, 0xed, 0x2a, 0xbd, 0x1c, 0x06, 0x4a, 0xb0, 0x51, 0x50, 0x49, 0x7a, 0x3c, 0x0c, 0x7a, 0x3b,
+	0x76, 0x0b, 0x32, 0x51, 0xa1, 0x76, 0xd9, 0xc3, 0x53, 0x9d, 0xbe, 0xea, 0xff, 0xb6, 0x95, 0x28,
+	0x1c, 0xee, 0x61, 0xb5, 0xab, 0xe4, 0xee, 0xbe, 0xeb, 0x5f, 0xbe, 0x0d, 0xb5, 0x57, 0x75, 0x73,
+	0x93, 0x6a, 0xeb, 0x2c, 0xcf, 0x0c, 0x63, 0xb9, 0x52, 0xf1, 0xd9, 0x1e, 0x06, 0xb0, 0x98, 0x61,
+	0xa8, 0x95, 0x4a, 0xf3, 0x2a, 0x8e, 0xe0, 0x4c, 0x4e, 0xeb, 0xe6, 0xe4, 0x5e, 0x78, 0xbb, 0xa9,
+	0x63, 0xe1, 0xdb, 0x43, 0x30, 0xc8, 0x37, 0x26, 0xcf, 0x05, 0x18, 0xf2, 0x5a, 0x1d, 0x72, 0x26,
+	0x42, 0x45, 0x68, 0xeb, 0xb4, 0xc4, 0xf9, 0x18, 0x16, 0x1e, 0x7f, 0xe9, 0xf4, 0x87, 0xdf, 0xff,
+	0xfa, 0x69, 0xe2, 0x04, 0x39, 0x26, 0x47, 0x68, 0x1f, 0xc9, 0x97, 0x02, 0xec, 0xc5, 0xa8, 0x23,
+	0x51, 0x36, 0x6b, 0xbf, 0x8b, 0xe2, 0x42, 0x1c, 0x13, 0x24, 0x78, 0x81, 0x13, 0x5c, 0x24, 0xf3,
+	0x72, 0xa4, 0xa6, 0x55, 0xae, 0xf9, 0x5f, 0x75, 0xf2, 0xb9, 0x00, 0x83, 0xfc, 0xf8, 0x88, 0x1c,
+	0x61, 0xe3, 0xd6, 0xa8, 0x16, 0xcf, 0x44, 0x37, 0x40, 0x9e, 0x8b, 0x9c, 0xe7, 0x1c, 0x39, 0x15,
+	0xce, 0x93, 0x5f, 0x0f, 0xb9, 0xc6, 0xff, 0xa9, 0x93, 0xef, 0x04, 0xf8, 0x6b, 0x8f, 0xd6, 0x85,
+	0x2c, 0x47, 0x7a, 0x10, 0x84, 0x75, 0x6d, 0x62, 0x76, 0x27, 0x10, 0xa8, 0x6b, 0x8e, 0xeb, 0x3a,
+	0x49, 0x8e, 0x87, 0xeb, 0xc2, 0x4e, 0x88, 0xfc, 0x20, 0xc0, 0xc1, 0xee, 0x79, 0x89, 0x2c, 0x45,
+	0x3f, 0xfd, 0xee, 0xd9, 0x51, 0x5c, 0xde, 0x01, 0x02, 0xca, 0x39, 0xcf, 0xe5, 0x9c, 0x21, 0x99,
+	0x70, 0x39, 0x8d, 0x47, 0xb3, 0xa6, 0x14, 0x5c, 0xb9, 0xc6, 0x9f, 0xcf, 0x75, 0xf2, 0xb5, 0x00,
+	0x23, 0xcd, 0xce, 0x7a, 0x31, 0x02, 0x91, 0xce, 0x76, 0x4a, 0x3c, 0x1b, 0xcf, 0x08, 0x09, 0x5f,
+	0xe2, 0x84, 0xcf, 0x91, 0xc5, 0x70, 0xc2, 0xcd, 0x3f, 0x06, 0xc8, 0x35, 0xbf, 0x69, 0xab, 0x93,
+	0x0f, 0x12, 0x30, 0x15, 0xd6, 0xcf, 0x90, 0x1b, 0x11, 0x38, 0x45, 0xe8, 0xae, 0xc4, 0x9b, 0x3b,
+	0xc6, 0x41, 0xb9, 0x6b, 0x5c, 0x6e, 0x8e, 0xdc, 0x0c, 0x97, 0xfb, 0x38, 0xc0, 0x6a, 0xf9, 0x33,
+	0x48, 0xd7, 0x24, 0xf0, 0x9b, 0x00, 0x13, 0xdd, 0xba, 0x1d, 0x72, 0x25, 0x02, 0xe5, 0x90, 0xbe,
+	0x4c, 0xbc, 0xba, 0x6d, 0x7b, 0x94, 0x7a, 0x97, 0x4b, 0xbd, 0x45, 0x6e, 0x84, 0x4b, 0xa5, 0x88,
+	0xa1, 0x58, 0x08, 0x82, 0x12, 0xb9, 0x3c, 0xb9, 0xe6, 0xf7, 0x7d, 0x75, 0xf2, 0x4a, 0x80, 0x03,
+	0x5d, 0x9f, 0xd1, 0xe4, 0xea, 0xf6, 0x7b, 0x0b, 0x4f, 0xeb, 0xd2, 0x4e, 0x9b, 0x13, 0xe9, 0x1c,
+	0x17, 0x2b, 0x93, 0xb9, 0x7e, 0x69, 0x84, 0x83, 0x28, 0x7e, 0x3a, 0xf9, 0x28, 0x01, 0xd3, 0xfd,
+	0x5e, 0xd9, 0xe4, 0x76, 0x04, 0x76, 0x11, 0xbb, 0x00, 0xf1, 0xce, 0xae, 0x60, 0xa1, 0xe8, 0x1c,
+	0x17, 0xbd, 0x42, 0x96, 0xc3, 0x45, 0x3b, 0x3e, 0x9e, 0xd2, 0x5a, 0x1d, 0x5a, 0xfb, 0x90, 0x3a,
+	0xf9, 0x46, 0x80, 0x7d, 0xad, 0xcf, 0x7e, 0x72, 0x3e, 0x02, 0xd1, 0x2e, 0x3d, 0x85, 0xf8, 0x8f,
+	0xd8, 0x76, 0x28, 0xe6, 0x2c, 0x17, 0x93, 0x21, 0xa7, 0xc3, 0xc5, 0x04, 0x7f, 0x71, 0x94, 0x6b,
+	0x0d, 0xde, 0x6f, 0x05, 0x48, 0xf5, 0xea, 0x05, 0x48, 0x36, 0x06, 0x97, 0x1e, 0xad, 0x88, 0xb8,
+	0xb2, 0x23, 0x8c, 0x78, 0x59, 0xc7, 0x7b, 0xad, 0x29, 0x0e, 0x53, 0x1a, 0x2a, 0x2b, 0x1c, 0x4c,
+	0x29, 0xb8, 0x0a, 0xbe, 0xd1, 0xe5, 0x1a, 0x7e, 0xd4, 0xc9, 0x4f, 0x02, 0x90, 0x77, 0xbb, 0x0b,
+	0x72, 0x39, 0x0e, 0xd9, 0xce, 0x56, 0x46, 0xfc, 0xd7, 0x36, 0xad, 0x51, 0xe4, 0x0d, 0x2e, 0x72,
+	0x89, 0x5c, 0x89, 0x23, 0xb2, 0xe0, 0x2a, 0xcd, 0xac, 0xea, 0x65, 0xd4, 0xe7, 0x09, 0x38, 0xda,
+	0xb7, 0x0b, 0x21, 0x77, 0xe2, 0x90, 0xed, 0xd3, 0x16, 0x89, 0xab, 0xbb, 0x03, 0x86, 0x8e, 0xf8,
+	0x1f, 0x77, 0xc4, 0x03, 0x72, 0x3f, 0x8e, 0x23, 0xd8, 0x46, 0xe0, 0x08, 0x5b, 0xf1, 0x9f, 0x07,
+	0x5d, 0x4e, 0xfe, 0x95, 0x00, 0xe3, 0x9d, 0x5d, 0x0f, 0xb9, 0x18, 0xef, 0xe4, 0xda, 0x9e, 0xa2,
+	0x97, 0xb6, 0x65, 0x8b, 0x52, 0xaf, 0x71, 0xa9, 0x57, 0xc8, 0xe5, 0x98, 0x67, 0xde, 0xfe, 0x4c,
+	0xfd, 0xac, 0xfd, 0xc4, 0xbb, 0xb7, 0x44, 0x71, 0x4f, 0x3c, 0xb4, 0x51, 0x8b, 0x7b, 0xe2, 0xe1,
+	0x5d, 0x9a, 0xf4, 0x7f, 0xee, 0x86, 0x87, 0xe4, 0x41, 0xcc, 0x13, 0x57, 0x3d, 0x58, 0xc5, 0xe0,
+	0xb8, 0x8d, 0x1f, 0xb0, 0x57, 0x94, 0x6b, 0xcd, 0x36, 0xb2, 0x9e, 0x5d, 0x7d, 0xf1, 0x3a, 0x2d,
+	0xbc, 0x7c, 0x9d, 0x16, 0x7e, 0x79, 0x9d, 0x16, 0x3e, 0x79, 0x93, 0x1e, 0x78, 0xf9, 0x26, 0x3d,
+	0xf0, 0xe3, 0x9b, 0xf4, 0xc0, 0x7f, 0x17, 0x4a, 0xba, 0xf3, 0xb8, 0x5a, 0xc8, 0x14, 0x59, 0xb9,
+	0xd7, 0xd6, 0x5b, 0x8b, 0xf2, 0x33, 0xbf, 0x10, 0xb8, 0x15, 0x6a, 0x17, 0x86, 0xf8, 0x7f, 0xa6,
+	0x2d, 0xfe, 0x11, 0x00, 0x00, 0xff, 0xff, 0x22, 0xd1, 0xcd, 0x24, 0x6d, 0x1c, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1563,6 +1897,8 @@ type QueryClient interface {
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 	// DymName queries a Dym-Name by its name.
 	DymName(ctx context.Context, in *QueryDymNameRequest, opts ...grpc.CallOption) (*QueryDymNameResponse, error)
+	// Alias queries the chain_id associated as well as the sell order and buy offer ids relates to the alias.
+	Alias(ctx context.Context, in *QueryAliasRequest, opts ...grpc.CallOption) (*QueryAliasResponse, error)
 	// ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account address of each pointing to.
 	//
 	// For example:
@@ -1574,8 +1910,8 @@ type QueryClient interface {
 	ResolveDymNameAddresses(ctx context.Context, in *QueryResolveDymNameAddressesRequest, opts ...grpc.CallOption) (*QueryResolveDymNameAddressesResponse, error)
 	// DymNamesOwnedByAccount queries the Dym-Names owned by an account.
 	DymNamesOwnedByAccount(ctx context.Context, in *QueryDymNamesOwnedByAccountRequest, opts ...grpc.CallOption) (*QueryDymNamesOwnedByAccountResponse, error)
-	// SellOrderOfDymName queries the active SO of a Dym-Name.
-	SellOrderOfDymName(ctx context.Context, in *QuerySellOrderOfDymNameRequest, opts ...grpc.CallOption) (*QuerySellOrderOfDymNameResponse, error)
+	// SellOrder queries the active SO of a Dym-Name/Alias.
+	SellOrder(ctx context.Context, in *QuerySellOrderRequest, opts ...grpc.CallOption) (*QuerySellOrderResponse, error)
 	// HistoricalSellOrderOfDymName queries the historical SOs of a Dym-Name.
 	HistoricalSellOrderOfDymName(ctx context.Context, in *QueryHistoricalSellOrderOfDymNameRequest, opts ...grpc.CallOption) (*QueryHistoricalSellOrderOfDymNameResponse, error)
 	// EstimateRegisterName estimates the cost to register a Dym-Name.
@@ -1597,6 +1933,10 @@ type QueryClient interface {
 	BuyOffersByDymName(ctx context.Context, in *QueryBuyOffersByDymNameRequest, opts ...grpc.CallOption) (*QueryBuyOffersByDymNameResponse, error)
 	// BuyOffersOfDymNamesOwnedByAccount queries all the buy offers of all Dym-Names owned by an account.
 	BuyOffersOfDymNamesOwnedByAccount(ctx context.Context, in *QueryBuyOffersOfDymNamesOwnedByAccountRequest, opts ...grpc.CallOption) (*QueryBuyOffersOfDymNamesOwnedByAccountResponse, error)
+	// BuyOffersByAlias queries all the buy offers of an Alias.
+	BuyOffersByAlias(ctx context.Context, in *QueryBuyOffersByAliasRequest, opts ...grpc.CallOption) (*QueryBuyOffersByAliasResponse, error)
+	// BuyOffersOfAliasesLinkedToRollApp queries all the buy offers of all Aliases linked to a RollApp.
+	BuyOffersOfAliasesLinkedToRollApp(ctx context.Context, in *QueryBuyOffersOfAliasesLinkedToRollAppRequest, opts ...grpc.CallOption) (*QueryBuyOffersOfAliasesLinkedToRollAppResponse, error)
 }
 
 type queryClient struct {
@@ -1625,6 +1965,15 @@ func (c *queryClient) DymName(ctx context.Context, in *QueryDymNameRequest, opts
 	return out, nil
 }
 
+func (c *queryClient) Alias(ctx context.Context, in *QueryAliasRequest, opts ...grpc.CallOption) (*QueryAliasResponse, error) {
+	out := new(QueryAliasResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Query/Alias", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *queryClient) ResolveDymNameAddresses(ctx context.Context, in *QueryResolveDymNameAddressesRequest, opts ...grpc.CallOption) (*QueryResolveDymNameAddressesResponse, error) {
 	out := new(QueryResolveDymNameAddressesResponse)
 	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Query/ResolveDymNameAddresses", in, out, opts...)
@@ -1643,9 +1992,9 @@ func (c *queryClient) DymNamesOwnedByAccount(ctx context.Context, in *QueryDymNa
 	return out, nil
 }
 
-func (c *queryClient) SellOrderOfDymName(ctx context.Context, in *QuerySellOrderOfDymNameRequest, opts ...grpc.CallOption) (*QuerySellOrderOfDymNameResponse, error) {
-	out := new(QuerySellOrderOfDymNameResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Query/SellOrderOfDymName", in, out, opts...)
+func (c *queryClient) SellOrder(ctx context.Context, in *QuerySellOrderRequest, opts ...grpc.CallOption) (*QuerySellOrderResponse, error) {
+	out := new(QuerySellOrderResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Query/SellOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1724,12 +2073,32 @@ func (c *queryClient) BuyOffersOfDymNamesOwnedByAccount(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *queryClient) BuyOffersByAlias(ctx context.Context, in *QueryBuyOffersByAliasRequest, opts ...grpc.CallOption) (*QueryBuyOffersByAliasResponse, error) {
+	out := new(QueryBuyOffersByAliasResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Query/BuyOffersByAlias", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) BuyOffersOfAliasesLinkedToRollApp(ctx context.Context, in *QueryBuyOffersOfAliasesLinkedToRollAppRequest, opts ...grpc.CallOption) (*QueryBuyOffersOfAliasesLinkedToRollAppResponse, error) {
+	out := new(QueryBuyOffersOfAliasesLinkedToRollAppResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Query/BuyOffersOfAliasesLinkedToRollApp", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Params queries the parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 	// DymName queries a Dym-Name by its name.
 	DymName(context.Context, *QueryDymNameRequest) (*QueryDymNameResponse, error)
+	// Alias queries the chain_id associated as well as the sell order and buy offer ids relates to the alias.
+	Alias(context.Context, *QueryAliasRequest) (*QueryAliasResponse, error)
 	// ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account address of each pointing to.
 	//
 	// For example:
@@ -1741,8 +2110,8 @@ type QueryServer interface {
 	ResolveDymNameAddresses(context.Context, *QueryResolveDymNameAddressesRequest) (*QueryResolveDymNameAddressesResponse, error)
 	// DymNamesOwnedByAccount queries the Dym-Names owned by an account.
 	DymNamesOwnedByAccount(context.Context, *QueryDymNamesOwnedByAccountRequest) (*QueryDymNamesOwnedByAccountResponse, error)
-	// SellOrderOfDymName queries the active SO of a Dym-Name.
-	SellOrderOfDymName(context.Context, *QuerySellOrderOfDymNameRequest) (*QuerySellOrderOfDymNameResponse, error)
+	// SellOrder queries the active SO of a Dym-Name/Alias.
+	SellOrder(context.Context, *QuerySellOrderRequest) (*QuerySellOrderResponse, error)
 	// HistoricalSellOrderOfDymName queries the historical SOs of a Dym-Name.
 	HistoricalSellOrderOfDymName(context.Context, *QueryHistoricalSellOrderOfDymNameRequest) (*QueryHistoricalSellOrderOfDymNameResponse, error)
 	// EstimateRegisterName estimates the cost to register a Dym-Name.
@@ -1764,6 +2133,10 @@ type QueryServer interface {
 	BuyOffersByDymName(context.Context, *QueryBuyOffersByDymNameRequest) (*QueryBuyOffersByDymNameResponse, error)
 	// BuyOffersOfDymNamesOwnedByAccount queries all the buy offers of all Dym-Names owned by an account.
 	BuyOffersOfDymNamesOwnedByAccount(context.Context, *QueryBuyOffersOfDymNamesOwnedByAccountRequest) (*QueryBuyOffersOfDymNamesOwnedByAccountResponse, error)
+	// BuyOffersByAlias queries all the buy offers of an Alias.
+	BuyOffersByAlias(context.Context, *QueryBuyOffersByAliasRequest) (*QueryBuyOffersByAliasResponse, error)
+	// BuyOffersOfAliasesLinkedToRollApp queries all the buy offers of all Aliases linked to a RollApp.
+	BuyOffersOfAliasesLinkedToRollApp(context.Context, *QueryBuyOffersOfAliasesLinkedToRollAppRequest) (*QueryBuyOffersOfAliasesLinkedToRollAppResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -1776,14 +2149,17 @@ func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsReq
 func (*UnimplementedQueryServer) DymName(ctx context.Context, req *QueryDymNameRequest) (*QueryDymNameResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DymName not implemented")
 }
+func (*UnimplementedQueryServer) Alias(ctx context.Context, req *QueryAliasRequest) (*QueryAliasResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Alias not implemented")
+}
 func (*UnimplementedQueryServer) ResolveDymNameAddresses(ctx context.Context, req *QueryResolveDymNameAddressesRequest) (*QueryResolveDymNameAddressesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResolveDymNameAddresses not implemented")
 }
 func (*UnimplementedQueryServer) DymNamesOwnedByAccount(ctx context.Context, req *QueryDymNamesOwnedByAccountRequest) (*QueryDymNamesOwnedByAccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DymNamesOwnedByAccount not implemented")
 }
-func (*UnimplementedQueryServer) SellOrderOfDymName(ctx context.Context, req *QuerySellOrderOfDymNameRequest) (*QuerySellOrderOfDymNameResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SellOrderOfDymName not implemented")
+func (*UnimplementedQueryServer) SellOrder(ctx context.Context, req *QuerySellOrderRequest) (*QuerySellOrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SellOrder not implemented")
 }
 func (*UnimplementedQueryServer) HistoricalSellOrderOfDymName(ctx context.Context, req *QueryHistoricalSellOrderOfDymNameRequest) (*QueryHistoricalSellOrderOfDymNameResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HistoricalSellOrderOfDymName not implemented")
@@ -1808,6 +2184,12 @@ func (*UnimplementedQueryServer) BuyOffersByDymName(ctx context.Context, req *Qu
 }
 func (*UnimplementedQueryServer) BuyOffersOfDymNamesOwnedByAccount(ctx context.Context, req *QueryBuyOffersOfDymNamesOwnedByAccountRequest) (*QueryBuyOffersOfDymNamesOwnedByAccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BuyOffersOfDymNamesOwnedByAccount not implemented")
+}
+func (*UnimplementedQueryServer) BuyOffersByAlias(ctx context.Context, req *QueryBuyOffersByAliasRequest) (*QueryBuyOffersByAliasResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BuyOffersByAlias not implemented")
+}
+func (*UnimplementedQueryServer) BuyOffersOfAliasesLinkedToRollApp(ctx context.Context, req *QueryBuyOffersOfAliasesLinkedToRollAppRequest) (*QueryBuyOffersOfAliasesLinkedToRollAppResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BuyOffersOfAliasesLinkedToRollApp not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -1850,6 +2232,24 @@ func _Query_DymName_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_Alias_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryAliasRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).Alias(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.dymns.Query/Alias",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).Alias(ctx, req.(*QueryAliasRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Query_ResolveDymNameAddresses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryResolveDymNameAddressesRequest)
 	if err := dec(in); err != nil {
@@ -1886,20 +2286,20 @@ func _Query_DymNamesOwnedByAccount_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_SellOrderOfDymName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QuerySellOrderOfDymNameRequest)
+func _Query_SellOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QuerySellOrderRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).SellOrderOfDymName(ctx, in)
+		return srv.(QueryServer).SellOrder(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.dymns.Query/SellOrderOfDymName",
+		FullMethod: "/dymensionxyz.dymension.dymns.Query/SellOrder",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).SellOrderOfDymName(ctx, req.(*QuerySellOrderOfDymNameRequest))
+		return srv.(QueryServer).SellOrder(ctx, req.(*QuerySellOrderRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2048,6 +2448,42 @@ func _Query_BuyOffersOfDymNamesOwnedByAccount_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_BuyOffersByAlias_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryBuyOffersByAliasRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).BuyOffersByAlias(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.dymns.Query/BuyOffersByAlias",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).BuyOffersByAlias(ctx, req.(*QueryBuyOffersByAliasRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_BuyOffersOfAliasesLinkedToRollApp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryBuyOffersOfAliasesLinkedToRollAppRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).BuyOffersOfAliasesLinkedToRollApp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.dymns.Query/BuyOffersOfAliasesLinkedToRollApp",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).BuyOffersOfAliasesLinkedToRollApp(ctx, req.(*QueryBuyOffersOfAliasesLinkedToRollAppRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "dymensionxyz.dymension.dymns.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -2061,6 +2497,10 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_DymName_Handler,
 		},
 		{
+			MethodName: "Alias",
+			Handler:    _Query_Alias_Handler,
+		},
+		{
 			MethodName: "ResolveDymNameAddresses",
 			Handler:    _Query_ResolveDymNameAddresses_Handler,
 		},
@@ -2069,8 +2509,8 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_DymNamesOwnedByAccount_Handler,
 		},
 		{
-			MethodName: "SellOrderOfDymName",
-			Handler:    _Query_SellOrderOfDymName_Handler,
+			MethodName: "SellOrder",
+			Handler:    _Query_SellOrder_Handler,
 		},
 		{
 			MethodName: "HistoricalSellOrderOfDymName",
@@ -2103,6 +2543,14 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BuyOffersOfDymNamesOwnedByAccount",
 			Handler:    _Query_BuyOffersOfDymNamesOwnedByAccount_Handler,
+		},
+		{
+			MethodName: "BuyOffersByAlias",
+			Handler:    _Query_BuyOffersByAlias_Handler,
+		},
+		{
+			MethodName: "BuyOffersOfAliasesLinkedToRollApp",
+			Handler:    _Query_BuyOffersOfAliasesLinkedToRollApp_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -2224,6 +2672,85 @@ func (m *QueryDymNameResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			i -= size
 			i = encodeVarintQuery(dAtA, i, uint64(size))
 		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryAliasRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryAliasRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryAliasRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Alias) > 0 {
+		i -= len(m.Alias)
+		copy(dAtA[i:], m.Alias)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Alias)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryAliasResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryAliasResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryAliasResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.BuyOfferIds) > 0 {
+		for iNdEx := len(m.BuyOfferIds) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.BuyOfferIds[iNdEx])
+			copy(dAtA[i:], m.BuyOfferIds[iNdEx])
+			i = encodeVarintQuery(dAtA, i, uint64(len(m.BuyOfferIds[iNdEx])))
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if m.FoundSellOrder {
+		i--
+		if m.FoundSellOrder {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.ChainId) > 0 {
+		i -= len(m.ChainId)
+		copy(dAtA[i:], m.ChainId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ChainId)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2410,7 +2937,7 @@ func (m *QueryDymNamesOwnedByAccountResponse) MarshalToSizedBuffer(dAtA []byte) 
 	return len(dAtA) - i, nil
 }
 
-func (m *QuerySellOrderOfDymNameRequest) Marshal() (dAtA []byte, err error) {
+func (m *QuerySellOrderRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2420,27 +2947,34 @@ func (m *QuerySellOrderOfDymNameRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QuerySellOrderOfDymNameRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QuerySellOrderRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QuerySellOrderOfDymNameRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QuerySellOrderRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.DymName) > 0 {
-		i -= len(m.DymName)
-		copy(dAtA[i:], m.DymName)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.DymName)))
+	if len(m.OrderType) > 0 {
+		i -= len(m.OrderType)
+		copy(dAtA[i:], m.OrderType)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.OrderType)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.GoodsId) > 0 {
+		i -= len(m.GoodsId)
+		copy(dAtA[i:], m.GoodsId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.GoodsId)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *QuerySellOrderOfDymNameResponse) Marshal() (dAtA []byte, err error) {
+func (m *QuerySellOrderResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2450,12 +2984,12 @@ func (m *QuerySellOrderOfDymNameResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QuerySellOrderOfDymNameResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QuerySellOrderResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QuerySellOrderOfDymNameResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QuerySellOrderResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -3091,6 +3625,140 @@ func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) MarshalToSizedBuffer(dA
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryBuyOffersByAliasRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryBuyOffersByAliasRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryBuyOffersByAliasRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Alias) > 0 {
+		i -= len(m.Alias)
+		copy(dAtA[i:], m.Alias)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Alias)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryBuyOffersByAliasResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryBuyOffersByAliasResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryBuyOffersByAliasResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Offers) > 0 {
+		for iNdEx := len(m.Offers) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Offers[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Offers) > 0 {
+		for iNdEx := len(m.Offers) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Offers[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -3144,6 +3812,41 @@ func (m *QueryDymNameResponse) Size() (n int) {
 	if m.DymName != nil {
 		l = m.DymName.Size()
 		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryAliasRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Alias)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryAliasResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ChainId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.FoundSellOrder {
+		n += 2
+	}
+	if len(m.BuyOfferIds) > 0 {
+		for _, s := range m.BuyOfferIds {
+			l = len(s)
+			n += 1 + l + sovQuery(uint64(l))
+		}
 	}
 	return n
 }
@@ -3227,20 +3930,24 @@ func (m *QueryDymNamesOwnedByAccountResponse) Size() (n int) {
 	return n
 }
 
-func (m *QuerySellOrderOfDymNameRequest) Size() (n int) {
+func (m *QuerySellOrderRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.DymName)
+	l = len(m.GoodsId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.OrderType)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
 }
 
-func (m *QuerySellOrderOfDymNameResponse) Size() (n int) {
+func (m *QuerySellOrderResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3494,6 +4201,62 @@ func (m *QueryBuyOffersOfDymNamesOwnedByAccountRequest) Size() (n int) {
 }
 
 func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Offers) > 0 {
+		for _, e := range m.Offers {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *QueryBuyOffersByAliasRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Alias)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryBuyOffersByAliasResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Offers) > 0 {
+		for _, e := range m.Offers {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3793,6 +4556,222 @@ func (m *QueryDymNameResponse) Unmarshal(dAtA []byte) error {
 			if err := m.DymName.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryAliasRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryAliasRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryAliasRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Alias", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Alias = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryAliasResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryAliasResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryAliasResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChainId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChainId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FoundSellOrder", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.FoundSellOrder = bool(v != 0)
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BuyOfferIds", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BuyOfferIds = append(m.BuyOfferIds, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -4293,7 +5272,7 @@ func (m *QueryDymNamesOwnedByAccountResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QuerySellOrderOfDymNameRequest) Unmarshal(dAtA []byte) error {
+func (m *QuerySellOrderRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4316,15 +5295,15 @@ func (m *QuerySellOrderOfDymNameRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QuerySellOrderOfDymNameRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QuerySellOrderRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QuerySellOrderOfDymNameRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QuerySellOrderRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DymName", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GoodsId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -4352,7 +5331,39 @@ func (m *QuerySellOrderOfDymNameRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.DymName = string(dAtA[iNdEx:postIndex])
+			m.GoodsId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OrderType", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OrderType = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -4375,7 +5386,7 @@ func (m *QuerySellOrderOfDymNameRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QuerySellOrderOfDymNameResponse) Unmarshal(dAtA []byte) error {
+func (m *QuerySellOrderResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4398,10 +5409,10 @@ func (m *QuerySellOrderOfDymNameResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QuerySellOrderOfDymNameResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QuerySellOrderResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QuerySellOrderOfDymNameResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QuerySellOrderResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -6115,6 +7126,338 @@ func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) Unmarshal(dAtA []byte) 
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: QueryBuyOffersOfDymNamesOwnedByAccountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Offers", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Offers = append(m.Offers, BuyOffer{})
+			if err := m.Offers[len(m.Offers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryBuyOffersByAliasRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryBuyOffersByAliasRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryBuyOffersByAliasRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Alias", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Alias = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryBuyOffersByAliasResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryBuyOffersByAliasResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryBuyOffersByAliasResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Offers", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Offers = append(m.Offers, BuyOffer{})
+			if err := m.Offers[len(m.Offers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryBuyOffersOfAliasesLinkedToRollAppRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryBuyOffersOfAliasesLinkedToRollAppRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryBuyOffersOfAliasesLinkedToRollAppResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryBuyOffersOfAliasesLinkedToRollAppResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryBuyOffersOfAliasesLinkedToRollAppResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

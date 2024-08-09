@@ -22,6 +22,11 @@ service Query {
     option (google.api.http).get = "/dymensionxyz/dymension/dymns/dym_name/{dym_name}";
   }
 
+  // Alias queries the chain_id associated as well as the sell order and buy offer ids relates to the alias.
+  rpc Alias(QueryAliasRequest) returns (QueryAliasResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/alias/{alias}";
+  }
+
   // ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account address of each pointing to.
   //
   // For example:
@@ -39,9 +44,9 @@ service Query {
     option (google.api.http).get = "/dymensionxyz/dymension/dymns/owned_by/{owner}";
   }
 
-  // SellOrderOfDymName queries the active SO of a Dym-Name.
-  rpc SellOrderOfDymName(QuerySellOrderOfDymNameRequest) returns (QuerySellOrderOfDymNameResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/dymns/sell_order/dym_name/{dym_name}";
+  // SellOrder queries the active SO of a Dym-Name/Alias.
+  rpc SellOrder(QuerySellOrderRequest) returns (QuerySellOrderResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/sell_order/{goods_id}";
   }
 
   // HistoricalSellOrderOfDymName queries the historical SOs of a Dym-Name.
@@ -88,6 +93,16 @@ service Query {
   rpc BuyOffersOfDymNamesOwnedByAccount(QueryBuyOffersOfDymNamesOwnedByAccountRequest) returns (QueryBuyOffersOfDymNamesOwnedByAccountResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/dymns/offers_to_buy_of_dym_names_owned_by_account/{account}";
   }
+
+  // BuyOffersByAlias queries all the buy offers of an Alias.
+  rpc BuyOffersByAlias(QueryBuyOffersByAliasRequest) returns (QueryBuyOffersByAliasResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/offers_to_buy_by_alias/{alias}";
+  }
+
+  // BuyOffersOfAliasesLinkedToRollApp queries all the buy offers of all Aliases linked to a RollApp.
+  rpc BuyOffersOfAliasesLinkedToRollApp(QueryBuyOffersOfAliasesLinkedToRollAppRequest) returns (QueryBuyOffersOfAliasesLinkedToRollAppResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/offers_to_buy_of_aliases_linked_to_rollapp/{rollapp_id}";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -111,6 +126,26 @@ message QueryDymNameRequest {
 message QueryDymNameResponse {
   // dym_name is the Dym-Name queried for.
   DymName dym_name = 1;
+}
+
+// QueryAliasRequest is the request type for the Query/QueryAlias RPC method.
+message QueryAliasRequest {
+  option (gogoproto.equal)           = false;
+
+  // alias to query
+  string alias = 1;
+}
+
+// QueryAliasResponse
+message QueryAliasResponse {
+  // chain_id associated with the alias
+  string chain_id = 1;
+
+  // found_sell_order is true if any sell-order is found for the alias.
+  bool found_sell_order = 2;
+
+  // buy_offer_ids is the list of buy offer ids for the alias.
+  repeated string buy_offer_ids = 3;
 }
 
 // QueryResolveDymNameAddressesRequest is the request type for the Query/ResolveDymNameAddresses RPC method.
@@ -153,17 +188,20 @@ message QueryDymNamesOwnedByAccountResponse {
   repeated DymName dym_names = 1 [(gogoproto.nullable) = false];
 }
 
-// QuerySellOrderOfDymNameRequest is the request type for the Query/SellOrder RPC method.
-message QuerySellOrderOfDymNameRequest {
+// QuerySellOrderRequest is the request type for the Query/SellOrder RPC method.
+message QuerySellOrderRequest {
   option (gogoproto.equal)           = false;
 
-  // dym_name is the Dym-Name to query the active Sell-Order for.
-  string dym_name = 1;
+  // goods_id is the Dym-Name/Alias to query the active Sell-Order for.
+  string goods_id = 1;
+
+  // order_type can be either "Dym-Name" or "Alias".
+  string order_type = 2;
 }
 
-// QuerySellOrderOfDymNameResponse is the response type for the Query/SellOrder RPC method.
-message QuerySellOrderOfDymNameResponse {
-  // result is the active Sell-Order for the Dym-Name.
+// QuerySellOrderResponse is the response type for the Query/SellOrder RPC method.
+message QuerySellOrderResponse {
+  // result is the active Sell-Order for the Dym-Name/Alias.
   SellOrder result = 1 [(gogoproto.nullable) = false];
 }
 
@@ -291,5 +329,29 @@ message QueryBuyOffersOfDymNamesOwnedByAccountRequest {
 // QueryBuyOffersOfDymNamesOwnedByAccountResponse is the response type for the Query/BuyOffersOfDymNamesOwnedByAccount RPC method.
 message QueryBuyOffersOfDymNamesOwnedByAccountResponse {
   // offers are all the buy offers of the Dym-Names owned by the input account.
+  repeated BuyOffer offers = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryBuyOffersByAliasRequest is the request type for the Query/BuyOffersByAlias RPC method.
+message QueryBuyOffersByAliasRequest {
+  // alias is the alias to query the buy offers placed for it.
+  string alias = 1;
+}
+
+// QueryBuyOffersByAliasResponse is the response type for the Query/BuyOffersByAlias RPC method.
+message QueryBuyOffersByAliasResponse {
+  // offers are the buy offers of the Dym-Name.
+  repeated BuyOffer offers = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryBuyOffersOfAliasesLinkedToRollAppRequest is the request type for the Query/BuyOffersOfAliasesLinkedToRollApp RPC method.
+message QueryBuyOffersOfAliasesLinkedToRollAppRequest {
+  // rollapp_id is the rollapp to query all the buy offers of the aliases linked to it
+  string rollapp_id = 1;
+}
+
+// QueryBuyOffersOfAliasesLinkedToRollAppResponse is the response type for the Query/BuyOffersOfAliasesLinkedToRollApp RPC method.
+message QueryBuyOffersOfAliasesLinkedToRollAppResponse {
+  // offers are all the buy offers of the aliases linked to the input rollapp.
   repeated BuyOffer offers = 1 [(gogoproto.nullable) = false];
 }

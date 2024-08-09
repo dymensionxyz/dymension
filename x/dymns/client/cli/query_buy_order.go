@@ -16,10 +16,12 @@ import (
 const (
 	flagTargetType = "target-type"
 
-	targetTypeById  = "offer-id"
-	targetTypeBuyer = "buyer"
-	targetTypeOwner = "owner"
-	targetTypeName  = "name"
+	targetTypeById    = "offer-id"
+	targetTypeBuyer   = "buyer"
+	targetTypeOwner   = "owner"
+	targetTypeDymName = "name"
+	targetTypeAlias   = "alias"
+	targetTypeRollApp = "rollapp"
 )
 
 // CmdQueryBuyOrder is the CLI command for querying Buy-Orders a Dym-Name
@@ -32,12 +34,16 @@ func CmdQueryBuyOrder() *cobra.Command {
 			`%s q %s offer 1 --%s=%s
 %s q %s offer dym1buyer --%s=%s
 %s q %s offer dym1owner --%s=%s
-%s q %s offer myname --%s=%s
+%s q %s offer my-name --%s=%s
+%s q %s offer dym --%s=%s
+%s q %s offer rollapp_1-1 --%s=%s
 `,
 			version.AppName, dymnstypes.ModuleName, flagTargetType, targetTypeById,
 			version.AppName, dymnstypes.ModuleName, flagTargetType, targetTypeBuyer,
 			version.AppName, dymnstypes.ModuleName, flagTargetType, targetTypeOwner,
-			version.AppName, dymnstypes.ModuleName, flagTargetType, targetTypeName,
+			version.AppName, dymnstypes.ModuleName, flagTargetType, targetTypeDymName,
+			version.AppName, dymnstypes.ModuleName, flagTargetType, targetTypeAlias,
+			version.AppName, dymnstypes.ModuleName, flagTargetType, targetTypeRollApp,
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -65,8 +71,12 @@ func CmdQueryBuyOrder() *cobra.Command {
 				offers, err = queryOffersPlacedByBuyer(queryClient, queryCtx, args[0])
 			case targetTypeOwner:
 				offers, err = queryOffersOfDymNamesOwnedByOwner(queryClient, queryCtx, args[0])
-			case targetTypeName:
+			case targetTypeDymName:
 				offers, err = queryOffersByDymName(queryClient, queryCtx, args[0])
+			case targetTypeAlias:
+				offers, err = queryOffersByAlias(queryClient, queryCtx, args[0])
+			case targetTypeRollApp:
+				offers, err = queryOffersOfAliasesLinkedToRollApp(queryClient, queryCtx, args[0])
 			default:
 				return fmt.Errorf("invalid target type: %s", targetType)
 			}
@@ -96,7 +106,7 @@ func CmdQueryBuyOrder() *cobra.Command {
 
 	flags.AddQueryFlagsToCmd(cmd)
 
-	cmd.Flags().String(flagTargetType, "", fmt.Sprintf("Target type to query for, one of: %s/%s/%s/%s", targetTypeById, targetTypeBuyer, targetTypeOwner, targetTypeName))
+	cmd.Flags().String(flagTargetType, "", fmt.Sprintf("Target type to query for, one of: %s/%s/%s/%s/%s/%s", targetTypeById, targetTypeBuyer, targetTypeOwner, targetTypeDymName, targetTypeAlias, targetTypeRollApp))
 
 	return cmd
 }
@@ -165,7 +175,7 @@ func queryOffersPlacedByBuyer(queryClient dymnstypes.QueryClient, ctx context.Co
 // queryOffersOfDymNamesOwnedByOwner fetches all Buy-Orders of all Dym-Names owned by an owner
 func queryOffersOfDymNamesOwnedByOwner(queryClient dymnstypes.QueryClient, ctx context.Context, owner string) ([]dymnstypes.BuyOffer, error) {
 	if !dymnsutils.IsValidBech32AccountAddress(owner, true) {
-		return nil, fmt.Errorf("input owner address '%s' is not a valid bech32 account address", owner)
+		return nil, fmt.Errorf("input owner address is not a valid bech32 account address: %s", owner)
 	}
 
 	res, err := queryClient.BuyOffersOfDymNamesOwnedByAccount(ctx, &dymnstypes.QueryBuyOffersOfDymNamesOwnedByAccountRequest{
@@ -178,10 +188,26 @@ func queryOffersOfDymNamesOwnedByOwner(queryClient dymnstypes.QueryClient, ctx c
 	return res.Offers, nil
 }
 
+// queryOffersOfAliasesLinkedToRollApp fetches all Buy-Orders of all Aliases linked to a RollApp
+func queryOffersOfAliasesLinkedToRollApp(queryClient dymnstypes.QueryClient, ctx context.Context, rollAppId string) ([]dymnstypes.BuyOffer, error) {
+	if !dymnsutils.IsValidChainIdFormat(rollAppId) {
+		return nil, fmt.Errorf("input RollApp ID is invalid: %s", rollAppId)
+	}
+
+	res, err := queryClient.BuyOffersOfAliasesLinkedToRollApp(ctx, &dymnstypes.QueryBuyOffersOfAliasesLinkedToRollAppRequest{
+		RollappId: rollAppId,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch Buy-Orders of aliases linked to '%s': %w", rollAppId, err)
+	}
+
+	return res.Offers, nil
+}
+
 // queryOffersByDymName fetches all Buy-Orders of a Dym-Name
 func queryOffersByDymName(queryClient dymnstypes.QueryClient, ctx context.Context, dymName string) ([]dymnstypes.BuyOffer, error) {
 	if !dymnsutils.IsValidDymName(dymName) {
-		return nil, fmt.Errorf("input Dym-Name '%s' is not a valid Dym-Name", dymName)
+		return nil, fmt.Errorf("input is not a valid Dym-Name: %s", dymName)
 	}
 
 	res, err := queryClient.BuyOffersByDymName(ctx, &dymnstypes.QueryBuyOffersByDymNameRequest{
@@ -189,6 +215,21 @@ func queryOffersByDymName(queryClient dymnstypes.QueryClient, ctx context.Contex
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Buy-Orders of Dym-Name '%s': %w", dymName, err)
+	}
+
+	return res.Offers, nil
+}
+
+func queryOffersByAlias(queryClient dymnstypes.QueryClient, ctx context.Context, alias string) ([]dymnstypes.BuyOffer, error) {
+	if !dymnsutils.IsValidAlias(alias) {
+		return nil, fmt.Errorf("input is not a valid alias: %s", alias)
+	}
+
+	res, err := queryClient.BuyOffersByAlias(ctx, &dymnstypes.QueryBuyOffersByAliasRequest{
+		Alias: alias,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch Buy-Orders of Alias '%s': %w", alias, err)
 	}
 
 	return res.Offers, nil

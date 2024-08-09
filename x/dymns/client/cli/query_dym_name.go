@@ -24,7 +24,7 @@ func CmdQueryDymName() *cobra.Command {
 			dymName := args[0]
 
 			if !dymnsutils.IsValidDymName(dymName) {
-				return fmt.Errorf("input Dym-Name '%s' is not a valid Dym-Name", dymName)
+				return fmt.Errorf("input is not a valid Dym-Name: %s", dymName)
 			}
 
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -38,7 +38,7 @@ func CmdQueryDymName() *cobra.Command {
 			}
 
 			if res == nil || res.DymName == nil {
-				return fmt.Errorf("Dym-Name '%s' is not registered or expired", dymName)
+				return fmt.Errorf("Dym-Name is not registered or expired: %s", dymName)
 			}
 
 			return clientCtx.PrintProto(res.DymName)

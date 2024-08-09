@@ -14,15 +14,25 @@ const (
 	AliasOrder = OrderType_OT_ALIAS
 )
 
+var orderTypeFriendlyStrings = map[OrderType]string{
+	OrderType_OT_DYM_NAME: "Dym-Name",
+	OrderType_OT_ALIAS:    "Alias",
+}
+
 func (x OrderType) FriendlyString() string {
-	switch x {
-	case OrderType_OT_DYM_NAME:
-		return "Dym-Name"
-	case OrderType_OT_ALIAS:
-		return "Alias"
-	default:
-		return "Unknown"
+	if s, ok := orderTypeFriendlyStrings[x]; ok {
+		return s
 	}
+	return "Unknown"
+}
+
+func OrderTypeFromFriendlyString(s string) OrderType {
+	for k, v := range orderTypeFriendlyStrings {
+		if v == s {
+			return k
+		}
+	}
+	return OrderType_OT_UNKNOWN
 }
 
 func ValidateOrderParams(params []string, orderType OrderType) error {
