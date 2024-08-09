@@ -290,11 +290,11 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 
 // processActiveAliasSellOrders moves expired Alias Sell-Orders to historical and completes Alias Sell-Orders with winners.
 func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64, params dymnstypes.Params) error {
-	chainIdsAndAliasesInParams := make(map[string]bool)
+	prohibitedToTradeAliases := make(map[string]bool)
 	for _, aliasesOfChainId := range params.Chains.AliasesOfChainIds {
-		chainIdsAndAliasesInParams[aliasesOfChainId.ChainId] = true
+		prohibitedToTradeAliases[aliasesOfChainId.ChainId] = true
 		for _, alias := range aliasesOfChainId.Aliases {
-			chainIdsAndAliasesInParams[alias] = true
+			prohibitedToTradeAliases[alias] = true
 		}
 	}
 
@@ -309,12 +309,6 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 		for i, record := range aSoe.Records {
 			if record.ExpireAt > nowEpochUTC {
 				// skip not expired ones
-				continue
-			}
-
-			if _, found := chainIdsAndAliasesInParams[record.GoodsId]; found {
-				// skip aliases that are presents in module params,
-				// because it is prohibited to trade those
 				continue
 			}
 
@@ -366,10 +360,21 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 	for _, so := range finishedSOs {
 		aSoe.Remove(so.GoodsId)
 
-		if so.HighestBid != nil {
-			if err := dk.CompleteAliasSellOrder(ctx, so.GoodsId); err != nil {
+		if so.HighestBid == nil {
+			// no bid placed, it just a normal expiry without winner,
+			// in this case, just delete it, because Alias SO does not support historical SO
+			dk.DeleteSellOrder(ctx, so.GoodsId, dymnstypes.AliasOrder)
+			continue
+		}
+
+		// Sell-Order will be force cancelled and refund bids if any,
+		// when the alias is prohibited to trade
+		forceCancel := prohibitedToTradeAliases[so.GoodsId]
+
+		if forceCancel {
+			if err := dk.RefundBid(ctx, *so.HighestBid, dymnstypes.AliasOrder); err != nil {
 				dk.Logger(ctx).Error(
-					"DymNS hook After-Epoch-End: failed to complete sell order",
+					"DymNS hook After-Epoch-End: failed to refund bid for a force-to-cancel sell order",
 					"alias", so.GoodsId, "order-type", dymnstypes.AliasOrder.FriendlyString(),
 					"expiry", so.ExpireAt, "now", nowEpochUTC,
 					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
@@ -377,12 +382,21 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 				)
 				return err
 			}
+
+			dk.DeleteSellOrder(ctx, so.GoodsId, dymnstypes.AliasOrder)
 			continue
 		}
 
-		// no bid placed, it just a normal expiry without winner,
-		// in this case, just delete it, because Alias SO does not support historical SO
-		dk.DeleteSellOrder(ctx, so.GoodsId, dymnstypes.AliasOrder)
+		if err := dk.CompleteAliasSellOrder(ctx, so.GoodsId); err != nil {
+			dk.Logger(ctx).Error(
+				"DymNS hook After-Epoch-End: failed to complete sell order",
+				"alias", so.GoodsId, "order-type", dymnstypes.AliasOrder.FriendlyString(),
+				"expiry", so.ExpireAt, "now", nowEpochUTC,
+				"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
+				"error", err,
+			)
+			return err
+		}
 	}
 
 	if err := dk.SetActiveSellOrdersExpiration(ctx, aSoe, dymnstypes.AliasOrder); err != nil {

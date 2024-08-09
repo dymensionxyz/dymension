@@ -1596,7 +1596,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			},
 		},
 		{
-			name: "pass - ignore processing records that alias presents in params",
+			name: "pass - refunds records that alias presents in params",
 			rollApps: []rollapp{
 				rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst,
 			},
@@ -1632,18 +1632,14 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 					return p
 				})
 			},
-			wantErr: false,
-			wantExpiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
-				{
-					GoodsId:  aliasProhibitedTrading,
-					ExpireAt: soExpiredEpoch,
-				},
-			},
+			wantErr:           false,
+			wantExpiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{},
 			afterHookTestFunc: func(s *KeeperTestSuite) {
-				// SO of the prohibited alias still exists
-				s.NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, aliasProhibitedTrading, dymnstypes.AliasOrder))
+				s.Nil(s.dymNsKeeper.GetSellOrder(s.ctx, aliasProhibitedTrading, dymnstypes.AliasOrder))
 
-				s.Equal(int64(500), s.moduleBalance())
+				// refunded
+				s.Equal(int64(500-minPrice), s.moduleBalance())
+				s.Equal(int64(minPrice), s.balance(rollApp_2_byBuyer_asDst.owner))
 			},
 		},
 		{
@@ -1732,10 +1728,6 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			wantErr: false,
 			wantExpiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  aliasProhibitedTrading,
-					ExpireAt: soExpiredEpoch,
-				},
-				{
 					GoodsId:  rollApp_3_byOwner_asSrc.alias,
 					ExpireAt: soNotExpiredEpoch,
 				},
@@ -1746,8 +1738,8 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 				requireNoActiveSO(rollApp_1_byOwner_asSrc.alias)
 				requireNoHistoricalSO(rollApp_1_byOwner_asSrc.alias)
 
-				// SO of the prohibited alias still exists
-				s.NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, aliasProhibitedTrading, dymnstypes.AliasOrder))
+				// SO of the prohibited alias should be removed
+				s.Nil(s.dymNsKeeper.GetSellOrder(s.ctx, aliasProhibitedTrading, dymnstypes.AliasOrder))
 
 				// SO for alias 3 not yet finished
 				s.requireRollApp(rollApp_3_byOwner_asSrc.rollAppId).HasAlias(rollApp_3_byOwner_asSrc.alias)
@@ -1768,8 +1760,9 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).
 					HasAlias(rollApp_4_byOwner_asSrc.alias, rollApp_5_byOwner_asSrc.alias)
 
-				s.Equal(int64(150), s.moduleBalance())
-				s.Equal(int64(300), s.balance(creator_1_asOwner)) // price from 2 completed SO
+				s.Equal(int64(50), s.moduleBalance())
+				s.Equal(int64(300), s.balance(creator_1_asOwner))  // price from 2 completed SO
+				s.Equal(int64(100), s.balance(creator_2_asBidder)) // refunded from prohibited trading SO
 			},
 		},
 		{
