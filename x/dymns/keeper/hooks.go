@@ -167,7 +167,6 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 
 	e.Keeper.Logger(ctx).Info("DymNS hook After-Epoch-End: triggered", "epoch-number", epochNumber, "epoch-identifier", epochIdentifier)
 
-	// TODO DymNS: add test with trading disabled
 	if params.Misc.EnableTradingName {
 		if err := e.processActiveDymNameSellOrders(ctx, epochIdentifier, epochNumber); err != nil {
 			return err

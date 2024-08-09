@@ -801,6 +801,124 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd() {
 		s.requireRollApp(rollApp1_asSrc.rollAppId).HasNoAlias()
 		s.requireRollApp(rollApp2_asDst.rollAppId).HasAlias("one")
 	})
+
+	s.Run("should not process Dym-Name SO if trading is disabled", func() {
+		s.SetupTest()
+
+		dymNameOwner := testAddr(1).bech32()
+		dymNameBuyer := testAddr(2).bech32()
+
+		dymName1 := dymnstypes.DymName{
+			Name:       "my-name",
+			Owner:      dymNameOwner,
+			Controller: dymNameOwner,
+			ExpireAt:   s.now.Add(2 * 365 * 24 * time.Hour).Unix(),
+		}
+		err := s.dymNsKeeper.SetDymName(s.ctx, dymName1)
+		s.Require().NoError(err)
+
+		const dymNameOrderPrice = 100
+
+		s.mintToModuleAccount(dymNameOrderPrice + 1)
+
+		dymNameSO := s.newDymNameSellOrder(dymName1.Name).
+			WithMinPrice(dymNameOrderPrice).
+			WithDymNameBid(dymNameBuyer, dymNameOrderPrice).
+			Expired().Build()
+		err = s.dymNsKeeper.SetSellOrder(s.ctx, dymNameSO)
+		s.Require().NoError(err)
+		err = s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, &dymnstypes.ActiveSellOrdersExpiration{
+			Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					AssetId:  dymNameSO.AssetId,
+					ExpireAt: dymNameSO.ExpireAt,
+				},
+			},
+		}, dymnstypes.TypeName)
+		s.Require().NoError(err)
+
+		s.updateModuleParams(func(p dymnstypes.Params) dymnstypes.Params {
+			p.Misc.EnableTradingName = false
+			return p
+		})
+
+		moduleParams := s.moduleParams()
+
+		err = s.dymNsKeeper.GetEpochHooks().AfterEpochEnd(s.ctx, moduleParams.Misc.EndEpochHookIdentifier, 1)
+		s.Require().NoError(err)
+
+		// the SellOrder should still be there
+		s.NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, dymName1.Name, dymnstypes.TypeName))
+
+		// re-enable and test again to make sure it not processes just because trading was disabled
+		s.updateModuleParams(func(p dymnstypes.Params) dymnstypes.Params {
+			p.Misc.EnableTradingName = true
+			return p
+		})
+
+		err = s.dymNsKeeper.GetEpochHooks().AfterEpochEnd(s.ctx, moduleParams.Misc.EndEpochHookIdentifier, 1)
+		s.Require().NoError(err)
+
+		s.Nil(s.dymNsKeeper.GetSellOrder(s.ctx, dymName1.Name, dymnstypes.TypeName))
+	})
+
+	s.Run("should not process Alias SO if trading is disabled", func() {
+		s.SetupTest()
+
+		creator1_asOwner := testAddr(3).bech32()
+		creator2_asBuyer := testAddr(4).bech32()
+
+		rollApp1_asSrc := *newRollApp("rollapp_1-1").WithOwner(creator1_asOwner).WithAlias("one")
+		s.persistRollApp(rollApp1_asSrc)
+		s.requireRollApp(rollApp1_asSrc.rollAppId).HasAlias("one")
+		rollApp2_asDst := *newRollApp("rollapp_2-2").WithOwner(creator2_asBuyer)
+		s.persistRollApp(rollApp2_asDst)
+		s.requireRollApp(rollApp2_asDst.rollAppId).HasNoAlias()
+
+		const aliasOrderPrice = 200
+
+		s.mintToModuleAccount(aliasOrderPrice + 1)
+
+		aliasSO := s.newAliasSellOrder(rollApp1_asSrc.alias).
+			WithMinPrice(aliasOrderPrice).
+			WithAliasBid(rollApp2_asDst.owner, aliasOrderPrice, rollApp2_asDst.rollAppId).
+			Expired().Build()
+		err := s.dymNsKeeper.SetSellOrder(s.ctx, aliasSO)
+		s.Require().NoError(err)
+		err = s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, &dymnstypes.ActiveSellOrdersExpiration{
+			Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					AssetId:  aliasSO.AssetId,
+					ExpireAt: aliasSO.ExpireAt,
+				},
+			},
+		}, dymnstypes.TypeAlias)
+		s.Require().NoError(err)
+
+		s.updateModuleParams(func(p dymnstypes.Params) dymnstypes.Params {
+			p.Misc.EnableTradingAlias = false
+			return p
+		})
+
+		moduleParams := s.moduleParams()
+
+		err = s.dymNsKeeper.GetEpochHooks().AfterEpochEnd(s.ctx, moduleParams.Misc.EndEpochHookIdentifier, 1)
+		s.Require().NoError(err)
+
+		// the SellOrder should still be there
+		s.NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, rollApp1_asSrc.alias, dymnstypes.TypeAlias))
+
+		// re-enable and test again to make sure it not processes just because trading was disabled
+		s.updateModuleParams(func(p dymnstypes.Params) dymnstypes.Params {
+			p.Misc.EnableTradingAlias = true
+			return p
+		})
+
+		err = s.dymNsKeeper.GetEpochHooks().AfterEpochEnd(s.ctx, moduleParams.Misc.EndEpochHookIdentifier, 1)
+		s.Require().NoError(err)
+
+		s.Nil(s.dymNsKeeper.GetSellOrder(s.ctx, rollApp1_asSrc.alias, dymnstypes.TypeAlias))
+	})
 }
 
 func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) {
