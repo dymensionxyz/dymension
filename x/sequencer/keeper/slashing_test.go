@@ -1,5 +1,13 @@
 package keeper_test
 
+import (
+	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+)
+
 func (s *SequencerTestSuite) TestSlashBasic() {
 	s.Run("slash at zero does not error", func() {
 		// There shouldn't be an error if the sequencer has no tokens
@@ -15,7 +23,7 @@ func (s *SequencerTestSuite) TestSlashBasic() {
 	})
 }
 
-func (suite *SequencerTestSuite) TestSlashingBondReducingSequencer() {
+func (suite *SequencerTestSuite) TestSlashAndJailBondReducingSequencer() {
 	suite.SetupTest()
 	keeper := suite.App.SequencerKeeper
 
@@ -31,7 +39,7 @@ func (suite *SequencerTestSuite) TestSlashingBondReducingSequencer() {
 	bondReductions := keeper.GetMatureDecreasingBondSequencers(suite.Ctx, resp.GetCompletionTime())
 	suite.Require().Len(bondReductions, 1)
 
-	err = keeper.Slashing(suite.Ctx, seqAddr)
+	err = keeper.SlashAndJailFraud(suite.Ctx, seqAddr)
 	suite.NoError(err)
 
 	bondReductions = keeper.GetMatureDecreasingBondSequencers(suite.Ctx, resp.GetCompletionTime())
