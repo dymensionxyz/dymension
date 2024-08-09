@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMsgTransferOwnership_ValidateBasic(t *testing.T) {
+func TestMsgTransferDymNameOwnership_ValidateBasic(t *testing.T) {
 	//goland:noinspection SpellCheckingInspection
 	tests := []struct {
 		name            string
@@ -89,7 +89,7 @@ func TestMsgTransferOwnership_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &MsgTransferOwnership{
+			m := &MsgTransferDymNameOwnership{
 				Name:     tt.dymName,
 				NewOwner: tt.newOwner,
 				Owner:    tt.owner,

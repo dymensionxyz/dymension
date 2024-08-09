@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"slices"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -68,10 +70,6 @@ func (k Keeper) SetAliasForRollAppId(ctx sdk.Context, rollAppId, alias string) e
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not a RollApp chain-id: %s", rollAppId)
 	}
 
-	if alias == "" {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "alias can not be empty")
-	}
-
 	if !dymnsutils.IsValidAlias(alias) {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid alias: %s", alias)
 	}
@@ -115,10 +113,6 @@ func (k Keeper) RemoveAliasFromRollAppId(ctx sdk.Context, rollAppId, alias strin
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not a RollApp chain-id: %s", rollAppId)
 	}
 
-	if alias == "" {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "alias can not be empty")
-	}
-
 	if !dymnsutils.IsValidAlias(alias) {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid alias: %s", alias)
 	}
@@ -139,12 +133,12 @@ func (k Keeper) RemoveAliasFromRollAppId(ctx sdk.Context, rollAppId, alias strin
 		k.cdc.MustUnmarshal(bz, &multipleAliases)
 	}
 
-	var newMultipleAliases dymnstypes.MultipleAliases
-	for _, a := range multipleAliases.Aliases {
-		if a != alias {
-			newMultipleAliases.Aliases = append(newMultipleAliases.Aliases, a)
-		}
+	newMultipleAliases := dymnstypes.MultipleAliases{
+		Aliases: multipleAliases.Aliases[:], // copy
 	}
+	newMultipleAliases.Aliases = slices.DeleteFunc(newMultipleAliases.Aliases, func(a string) bool {
+		return a == alias
+	})
 	if len(newMultipleAliases.Aliases) == len(multipleAliases.Aliases) {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "alias not found: %s", alias)
 	}

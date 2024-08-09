@@ -26,7 +26,7 @@ func CmdQueryResolveDymNameAddress() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := dymnstypes.NewQueryClient(clientCtx)
 
-			res, err := queryClient.ResolveDymNameAddresses(cmd.Context(), &dymnstypes.QueryResolveDymNameAddressesRequest{
+			res, err := queryClient.ResolveDymNameAddresses(cmd.Context(), &dymnstypes.ResolveDymNameAddressesRequest{
 				Addresses: args,
 			})
 			if err != nil {

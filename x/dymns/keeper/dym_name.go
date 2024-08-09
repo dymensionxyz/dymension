@@ -40,11 +40,7 @@ func (k Keeper) BeforeDymNameOwnerChanged(ctx sdk.Context, name string) error {
 		return nil
 	}
 
-	if err := k.RemoveReverseMappingOwnerToOwnedDymName(ctx, dymName.Owner, dymName.Name); err != nil {
-		return err
-	}
-
-	return nil
+	return k.RemoveReverseMappingOwnerToOwnedDymName(ctx, dymName.Owner, dymName.Name)
 }
 
 // AfterDymNameOwnerChanged must be called after the owner of a Dym-Name is changed.
@@ -55,11 +51,7 @@ func (k Keeper) AfterDymNameOwnerChanged(ctx sdk.Context, name string) error {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", name)
 	}
 
-	if err := k.AddReverseMappingOwnerToOwnedDymName(ctx, dymName.Owner, name); err != nil {
-		return err
-	}
-
-	return nil
+	return k.AddReverseMappingOwnerToOwnedDymName(ctx, dymName.Owner, name)
 }
 
 // BeforeDymNameConfigChanged must be called before updating the configuration of a Dym-Name.

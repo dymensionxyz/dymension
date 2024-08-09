@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -46,10 +45,10 @@ func NewOfferBuyAliasTxCmd() *cobra.Command {
 				return fmt.Errorf("amount must be a positive number")
 			}
 
-			if amount > MaxDymBuyValueInteractingCLI {
+			if amount > maxDymBuyValueInteractingCLI {
 				return fmt.Errorf(
 					"excess maximum offer value, you should go to dApp. To prevent mistakenly in input, the maximum amount allowed via CLI is: %d %s",
-					MaxDymBuyValueInteractingCLI, params.DisplayDenom,
+					maxDymBuyValueInteractingCLI, params.DisplayDenom,
 				)
 			}
 			denom := args[2]
@@ -69,7 +68,7 @@ func NewOfferBuyAliasTxCmd() *cobra.Command {
 
 			queryClient := dymnstypes.NewQueryClient(clientCtx)
 
-			resParams, err := queryClient.Params(context.Background(), &dymnstypes.QueryParamsRequest{})
+			resParams, err := queryClient.Params(cmd.Context(), &dymnstypes.QueryParamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -81,12 +80,8 @@ func NewOfferBuyAliasTxCmd() *cobra.Command {
 				ContinueOfferId: continueOfferId,
 				Offer: sdk.Coin{
 					Denom:  resParams.Params.Price.PriceDenom,
-					Amount: sdk.NewInt(int64(amount)).MulRaw(1e18),
+					Amount: sdk.NewInt(int64(amount)).MulRaw(adymToDymMultiplier),
 				},
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
-				return err
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

@@ -10,10 +10,10 @@ import (
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
-var _ sdk.Msg = &MsgTransferOwnership{}
+var _ sdk.Msg = &MsgTransferDymNameOwnership{}
 
-// ValidateBasic performs basic validation for the MsgTransferOwnership.
-func (m *MsgTransferOwnership) ValidateBasic() error {
+// ValidateBasic performs basic validation for the MsgTransferDymNameOwnership.
+func (m *MsgTransferDymNameOwnership) ValidateBasic() error {
 	if !dymnsutils.IsValidDymName(m.Name) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "name is not a valid dym name")
 	}
@@ -33,8 +33,8 @@ func (m *MsgTransferOwnership) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners returns the required signers for the MsgTransferOwnership.
-func (m *MsgTransferOwnership) GetSigners() []sdk.AccAddress {
+// GetSigners returns the required signers for the MsgTransferDymNameOwnership.
+func (m *MsgTransferDymNameOwnership) GetSigners() []sdk.AccAddress {
 	owner, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {
 		panic(err)
@@ -42,18 +42,18 @@ func (m *MsgTransferOwnership) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{owner}
 }
 
-// Route returns the message router key for the MsgTransferOwnership.
-func (m *MsgTransferOwnership) Route() string {
+// Route returns the message router key for the MsgTransferDymNameOwnership.
+func (m *MsgTransferDymNameOwnership) Route() string {
 	return RouterKey
 }
 
-// Type returns the message type for the MsgTransferOwnership.
-func (m *MsgTransferOwnership) Type() string {
-	return TypeMsgTransferOwnership
+// Type returns the message type for the MsgTransferDymNameOwnership.
+func (m *MsgTransferDymNameOwnership) Type() string {
+	return TypeMsgTransferDymNameOwnership
 }
 
-// GetSignBytes returns the raw bytes for the MsgTransferOwnership.
-func (m *MsgTransferOwnership) GetSignBytes() []byte {
+// GetSignBytes returns the raw bytes for the MsgTransferDymNameOwnership.
+func (m *MsgTransferDymNameOwnership) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)
 }

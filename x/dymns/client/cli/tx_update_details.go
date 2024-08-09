@@ -17,7 +17,6 @@ const (
 
 // NewUpdateDetailsTxCmd is the CLI command for updating the details of a Dym-Name.
 func NewUpdateDetailsTxCmd() *cobra.Command {
-	//goland:noinspection SpellCheckingInspection
 	cmd := &cobra.Command{
 		Use:   fmt.Sprintf("update-details [Dym-Name] --%s <new_contacts> [--%s]", flagContact, flagClearConfigs),
 		Short: "Configure resolve Dym-Name address. 2nd arg if empty means to remove the configuration.",
@@ -48,10 +47,6 @@ func NewUpdateDetailsTxCmd() *cobra.Command {
 				Controller:   controller,
 				Contact:      contact,
 				ClearConfigs: clearConfigs,
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
-				return err
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

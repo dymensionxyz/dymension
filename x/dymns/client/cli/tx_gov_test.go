@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	"github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -55,7 +54,7 @@ func Test_parseMigrateChainIdsProposal(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			proposal, err := parseMigrateChainIdsProposal(types.AminoCdc, tc.metadataFile)
+			proposal, err := parseMigrateChainIdsProposal(tc.metadataFile)
 			if tc.wantErr {
 				require.Error(t, err)
 				return
@@ -125,7 +124,7 @@ func Test_parseUpdateAliasesProposal(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			proposal, err := parseUpdateAliasesProposal(types.AminoCdc, tc.metadataFile)
+			proposal, err := parseUpdateAliasesProposal(tc.metadataFile)
 			if tc.wantErr {
 				require.Error(t, err)
 				return

@@ -84,7 +84,7 @@ func (k msgServer) processAcceptBuyOrderTypeDymName(
 			return nil, err
 		}
 
-		if err := k.transferOwnership(ctx, *dymName, offer.Buyer); err != nil {
+		if err := k.transferDymNameOwnership(ctx, *dymName, offer.Buyer); err != nil {
 			return nil, err
 		}
 	} else {

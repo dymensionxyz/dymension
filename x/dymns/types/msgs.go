@@ -4,8 +4,8 @@ package types
 const (
 	// TypeMsgRegisterName is type for MsgRegisterName.
 	TypeMsgRegisterName = "register_name"
-	// TypeMsgTransferOwnership is type for MsgTransferOwnership.
-	TypeMsgTransferOwnership = "transfer_ownership"
+	// TypeMsgTransferDymNameOwnership is type for MsgTransferDymNameOwnership.
+	TypeMsgTransferDymNameOwnership = "transfer_dym_name_ownership"
 	// TypeMsgSetController is type for MsgSetController.
 	TypeMsgSetController = "set_controller"
 	// TypeMsgUpdateResolveAddress is type for MsgUpdateResolveAddress.

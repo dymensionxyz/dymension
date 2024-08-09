@@ -62,7 +62,7 @@ func NewRegisterDymNameTxCmd() *cobra.Command {
 				// mode query to get the estimated payment amount
 				queryClient := dymnstypes.NewQueryClient(clientCtx)
 
-				resEst, err := queryClient.EstimateRegisterName(cmd.Context(), &dymnstypes.QueryEstimateRegisterNameRequest{
+				resEst, err := queryClient.EstimateRegisterName(cmd.Context(), &dymnstypes.EstimateRegisterNameRequest{
 					Name:     dymName,
 					Duration: years,
 					Owner:    buyer,
@@ -106,13 +106,13 @@ func NewRegisterDymNameTxCmd() *cobra.Command {
 
 			contact, _ := cmd.Flags().GetString(flagContact)
 
-			return submitRegistration(clientCtx, &dymnstypes.MsgRegisterName{
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &dymnstypes.MsgRegisterName{
 				Name:           dymName,
 				Duration:       years,
 				Owner:          buyer,
 				ConfirmPayment: confirmPayment,
 				Contact:        contact,
-			}, cmd)
+			})
 		},
 	}
 
@@ -125,16 +125,8 @@ func NewRegisterDymNameTxCmd() *cobra.Command {
 	return cmd
 }
 
-func submitRegistration(clientCtx client.Context, msg *dymnstypes.MsgRegisterName, cmd *cobra.Command) error {
-	if err := msg.ValidateBasic(); err != nil {
-		return err
-	}
-
-	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-}
-
 func toEstimatedAmount(amount sdkmath.Int) string {
-	return fmt.Sprintf("%s %s", amount.QuoRaw(1e18), strings.ToUpper(params.DisplayDenom))
+	return fmt.Sprintf("%s %s", amount.QuoRaw(adymToDymMultiplier), strings.ToUpper(params.DisplayDenom))
 }
 
 func toEstimatedCoinAmount(amount sdk.Coin) (estimatedAmount string, success bool) {

@@ -6,10 +6,10 @@ import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 
-// DymName defines a Dym-Name, the mainly purpose is to stores ownership and resolution information.
+// DymName defines a Dym-Name, the mainly purpose is to store ownership and resolution information.
 // Dym-Name is similar to DNS. It is a human-readable name that maps to a chain address.
 // One Dym-Name can have multiple configurations, each configuration is a resolution record.
-// Dym-Name is owned by an account, able to grant permission to another account to control the Dym-Name.
+// Dym-Name is owned by an account, and is able to grant permission to another account to control the Dym-Name.
 message DymName {
   // name is the human-readable name of the Dym-Name.
   string name = 1;
@@ -17,7 +17,7 @@ message DymName {
   // owner is the account address that owns the Dym-Name. Owner has permission to transfer ownership.
   string owner = 2;
 
-  // controller is the account address that have permission update configuration for the Dym-Name.
+  // controller is the account address that has permission update configuration for the Dym-Name.
   // Default is the owner. Able to transfer control to another account by the owner.
   // Users can set Dym-Name owned by Cold-Wallet and controlled by Hot-Wallet.
   string controller = 3;

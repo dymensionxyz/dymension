@@ -166,7 +166,7 @@ message AliasesOfChainId {
     (gogoproto.moretags) = "yaml:\"chain_id\""
   ];
 
-  // aliases is set of aliases of the chain id for UX improvement,
+  // aliases is a set of aliases of the chain id for UX improvement,
   // like we can do my-name@cosmos instead of my-name@cosmoshub-4
   repeated string aliases = 2 [
     (gogoproto.moretags) = "yaml:\"aliases\""
@@ -233,7 +233,7 @@ message MiscParams {
 // PreservedRegistrationParams contains setting for preserved registration Dym-Names,
 // allow to be registered by specific account within a short period of time.
 // This list will be cleared after the expiration epoch to save space.
-// This is useful as when go-live, the team can reserve some Dym-Names for specific purpose
+// This is useful as when go-live, the team can preserved some Dym-Names for specific purpose
 // and for well-known entities, not to be registered/stolen by others.
 message PreservedRegistrationParams {
   // expiration_epoch is the epoch that the preserved registration period will be expired.
@@ -241,8 +241,8 @@ message PreservedRegistrationParams {
     (gogoproto.moretags) = "yaml:\"expiration_epoch\""
   ];
 
-  // preserved_dym_names is the list of preserved dym-names.
-  // It defines the Dym-Name and the whitelisted address that can register the preserved Dym-Name.
+  // preserved_dym_names is the list of preserved Dym-Names.
+  // Each record defines the Dym-Name and the whitelisted address that can register the preserved Dym-Name.
   // It is allowed for one Dym-Name to have multiple whitelisted addresses and vice versa.
   // This list will be cleared after the expiration epoch to save space.
   repeated PreservedDymName preserved_dym_names = 2 [

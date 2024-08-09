@@ -10,25 +10,25 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
-// TransferOwnership is message handler,
+// TransferDymNameOwnership is message handler,
 // handles transfer of ownership of a Dym-Name, performed by the owner.
-func (k msgServer) TransferOwnership(goCtx context.Context, msg *dymnstypes.MsgTransferOwnership) (*dymnstypes.MsgTransferOwnershipResponse, error) {
+func (k msgServer) TransferDymNameOwnership(goCtx context.Context, msg *dymnstypes.MsgTransferDymNameOwnership) (*dymnstypes.MsgTransferDymNameOwnershipResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	dymName, err := k.validateTransferOwnership(ctx, msg)
+	dymName, err := k.validateTransferDymNameOwnership(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := k.transferOwnership(ctx, *dymName, msg.NewOwner); err != nil {
+	if err := k.transferDymNameOwnership(ctx, *dymName, msg.NewOwner); err != nil {
 		return nil, err
 	}
 
-	return &dymnstypes.MsgTransferOwnershipResponse{}, nil
+	return &dymnstypes.MsgTransferDymNameOwnershipResponse{}, nil
 }
 
-// validateTransferOwnership handles validation for message handled by TransferOwnership
-func (k msgServer) validateTransferOwnership(ctx sdk.Context, msg *dymnstypes.MsgTransferOwnership) (*dymnstypes.DymName, error) {
+// validateTransferDymNameOwnership handles validation for message handled by TransferDymNameOwnership
+func (k msgServer) validateTransferDymNameOwnership(ctx sdk.Context, msg *dymnstypes.MsgTransferDymNameOwnership) (*dymnstypes.DymName, error) {
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
 	}
@@ -59,8 +59,8 @@ func (k msgServer) validateTransferOwnership(ctx sdk.Context, msg *dymnstypes.Ms
 	return dymName, nil
 }
 
-// transferOwnership transfers ownership of a Dym-Name to a new owner.
-func (k msgServer) transferOwnership(ctx sdk.Context, dymName dymnstypes.DymName, newOwner string) error {
+// transferDymNameOwnership transfers ownership of a Dym-Name to a new owner.
+func (k msgServer) transferDymNameOwnership(ctx sdk.Context, dymName dymnstypes.DymName, newOwner string) error {
 	if err := k.PruneDymName(ctx, dymName.Name); err != nil {
 		return err
 	}

@@ -41,10 +41,10 @@ func NewPlaceBidOnAliasOrderTxCmd() *cobra.Command {
 			if err != nil || amount < 1 {
 				return fmt.Errorf("amount must be a positive number")
 			}
-			if amount > MaxDymBuyValueInteractingCLI {
+			if amount > maxDymBuyValueInteractingCLI {
 				return fmt.Errorf(
 					"excess maximum bid value, you should go to dApp. To prevent mistakenly in input, the maximum amount allowed via CLI is: %d %s",
-					MaxDymBuyValueInteractingCLI, params.DisplayDenom,
+					maxDymBuyValueInteractingCLI, params.DisplayDenom,
 				)
 			}
 			denom := args[2]
@@ -60,12 +60,8 @@ func NewPlaceBidOnAliasOrderTxCmd() *cobra.Command {
 			msg := &dymnstypes.MsgPurchaseOrder{
 				GoodsId:   alias,
 				OrderType: dymnstypes.AliasOrder,
-				Offer:     sdk.NewCoin(params.BaseDenom, sdk.NewInt(int64(amount)).MulRaw(1e18)),
+				Offer:     sdk.NewCoin(params.BaseDenom, sdk.NewInt(int64(amount)).MulRaw(adymToDymMultiplier)),
 				Buyer:     buyer,
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
-				return err
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

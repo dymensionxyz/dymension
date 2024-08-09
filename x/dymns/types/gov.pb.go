@@ -23,7 +23,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MigrateChainIdsProposal defines a proposal to migrate chain-ids in module params and configurations.
+// MigrateChainIdsProposal defines a proposal to replace chain-id in module params and configurations.
 // This proposal is used when the chain-id of a connected network changes.
 // It will look up and replace the chain-id in module params and all configurations of all non-expired Dym-Names.
 type MigrateChainIdsProposal struct {

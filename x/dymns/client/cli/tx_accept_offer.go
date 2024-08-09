@@ -1,9 +1,7 @@
 package cli
 
 import (
-	"context"
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 
@@ -41,12 +39,9 @@ func NewAcceptBuyOfferTxCmd() *cobra.Command {
 				return fmt.Errorf("input Offer-ID '%s' is not a valid Offer-ID", offerId)
 			}
 
-			amount, err := strconv.ParseUint(args[1], 10, 64)
+			amount, err := strconv.ParseInt(args[1], 10, 64)
 			if err != nil || amount < 1 {
 				return fmt.Errorf("amount must be a positive number")
-			}
-			if amount > math.MaxInt64 {
-				return fmt.Errorf("invalid amount")
 			}
 
 			denom := args[2]
@@ -61,7 +56,7 @@ func NewAcceptBuyOfferTxCmd() *cobra.Command {
 
 			queryClient := dymnstypes.NewQueryClient(clientCtx)
 
-			resParams, err := queryClient.Params(context.Background(), &dymnstypes.QueryParamsRequest{})
+			resParams, err := queryClient.Params(cmd.Context(), &dymnstypes.QueryParamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -71,12 +66,8 @@ func NewAcceptBuyOfferTxCmd() *cobra.Command {
 				Owner:   owner,
 				MinAccept: sdk.Coin{
 					Denom:  resParams.Params.Price.PriceDenom,
-					Amount: sdk.NewInt(int64(amount)).MulRaw(1e18),
+					Amount: sdk.NewInt(amount).MulRaw(adymToDymMultiplier),
 				},
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
-				return err
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

@@ -35,7 +35,7 @@ service Query {
   //   - "my-name@nim" => "nim1..."
   //   - (extra format) "0x1234...6789@nim" => "nim1..."
   //   - (extra format) "dym1a...@nim" => "nim1..."
-  rpc ResolveDymNameAddresses(QueryResolveDymNameAddressesRequest) returns (QueryResolveDymNameAddressesResponse) {
+  rpc ResolveDymNameAddresses(ResolveDymNameAddressesRequest) returns (ResolveDymNameAddressesResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/dymns/resolve";
   }
 
@@ -55,7 +55,7 @@ service Query {
   }
 
   // EstimateRegisterName estimates the cost to register a Dym-Name.
-  rpc EstimateRegisterName(QueryEstimateRegisterNameRequest) returns (QueryEstimateRegisterNameResponse) {
+  rpc EstimateRegisterName(EstimateRegisterNameRequest) returns (EstimateRegisterNameResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/dymns/estimate_register_name/{name}/{duration}";
   }
 
@@ -64,7 +64,7 @@ service Query {
   //
   // For example: when we have "my-name@dym" resolves to "dym1a..."
   // so reverse resolve will return "my-name@dym" when input is "dym1a..."
-  rpc ReverseResolveAddress(QueryReverseResolveAddressRequest) returns (QueryReverseResolveAddressResponse) {
+  rpc ReverseResolveAddress(ReverseResolveAddressRequest) returns (ReverseResolveAddressResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/dymns/reverse_resolve";
   }
 
@@ -148,8 +148,8 @@ message QueryAliasResponse {
   repeated string buy_offer_ids = 3;
 }
 
-// QueryResolveDymNameAddressesRequest is the request type for the Query/ResolveDymNameAddresses RPC method.
-message QueryResolveDymNameAddressesRequest {
+// ResolveDymNameAddressesRequest is the request type for the Query/ResolveDymNameAddresses RPC method.
+message ResolveDymNameAddressesRequest {
   option (gogoproto.equal)           = false;
 
   // addresses defines the Dym-Name addresses to resolve.
@@ -168,8 +168,8 @@ message ResultDymNameAddress {
   string error = 3;
 }
 
-// QueryResolveDymNameAddressesResponse is the response type for the Query/ResolveDymNameAddresses RPC method.
-message QueryResolveDymNameAddressesResponse {
+// ResolveDymNameAddressesResponse is the response type for the Query/ResolveDymNameAddresses RPC method.
+message ResolveDymNameAddressesResponse {
   // resolved_addresses defines the resolved addresses for each input Dym-Name address.
   repeated ResultDymNameAddress resolved_addresses = 1 [(gogoproto.nullable) = false];
 }
@@ -219,8 +219,8 @@ message QueryHistoricalSellOrderOfDymNameResponse {
   repeated SellOrder result = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryEstimateRegisterNameRequest is the request type for the Query/EstimateRegisterName RPC method.
-message QueryEstimateRegisterNameRequest {
+// EstimateRegisterNameRequest is the request type for the Query/EstimateRegisterName RPC method.
+message EstimateRegisterNameRequest {
   option (gogoproto.equal)           = false;
 
   // name is the Dym-Name to be registered.
@@ -233,8 +233,8 @@ message QueryEstimateRegisterNameRequest {
   string owner = 3;
 }
 
-// QueryEstimateRegisterNameResponse is the response type for the Query/EstimateRegisterName RPC method.
-message QueryEstimateRegisterNameResponse {
+// EstimateRegisterNameResponse is the response type for the Query/EstimateRegisterName RPC method.
+message EstimateRegisterNameResponse {
   // first_year_price is the price to register the Dym-Name for the first year.
   cosmos.base.v1beta1.Coin first_year_price = 1 [(gogoproto.nullable) = false];
 
@@ -245,8 +245,8 @@ message QueryEstimateRegisterNameResponse {
   cosmos.base.v1beta1.Coin total_price = 3 [(gogoproto.nullable) = false];
 }
 
-// QueryReverseResolveAddressRequest is the request type for the Query/ReverseResolveAddress RPC method.
-message QueryReverseResolveAddressRequest {
+// ReverseResolveAddressRequest is the request type for the Query/ReverseResolveAddress RPC method.
+message ReverseResolveAddressRequest {
   // addresses defines the addresses to reverse resolve. Can be both bech32 and hex addresses.
   repeated string addresses = 1;
 
@@ -255,8 +255,8 @@ message QueryReverseResolveAddressRequest {
   string working_chain_id = 2;
 }
 
-// QueryReverseResolveAddressResponse is the response type for the Query/ReverseResolveAddress RPC method.
-message QueryReverseResolveAddressResponse {
+// ReverseResolveAddressResponse is the response type for the Query/ReverseResolveAddress RPC method.
+message ReverseResolveAddressResponse {
   // result defines the reverse resolution result for each input address.
   map<string, ReverseResolveAddressResult> result = 1 [(gogoproto.nullable) = false];
 

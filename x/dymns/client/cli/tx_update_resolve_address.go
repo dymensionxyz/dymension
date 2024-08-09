@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -20,7 +19,6 @@ import (
 // NewUpdateResolveDymNameAddressTxCmd returns the CLI command for
 // updating the address resolution configuration for a Dym-Name.
 func NewUpdateResolveDymNameAddressTxCmd() *cobra.Command {
-	//goland:noinspection SpellCheckingInspection
 	cmd := &cobra.Command{
 		Use:   "resolve [Dym-Name address] [?resolve to]",
 		Short: "Configure resolve Dym-Name address. 2nd arg if empty means to remove the configuration.",
@@ -48,7 +46,7 @@ func NewUpdateResolveDymNameAddressTxCmd() *cobra.Command {
 				return errors.Wrap(err, "failed to parse input Dym-Name-Address")
 			}
 
-			respTranslateChainId, err := queryClient.TranslateAliasOrChainIdToChainId(context.Background(), &dymnstypes.QueryTranslateAliasOrChainIdToChainIdRequest{
+			respTranslateChainId, err := queryClient.TranslateAliasOrChainIdToChainId(cmd.Context(), &dymnstypes.QueryTranslateAliasOrChainIdToChainIdRequest{
 				AliasOrChainId: chainIdOrAlias,
 			})
 			if err != nil || respTranslateChainId.ChainId == "" {
@@ -75,10 +73,6 @@ func NewUpdateResolveDymNameAddressTxCmd() *cobra.Command {
 				SubName:    subName,
 				ResolveTo:  resolveTo,
 				Controller: controller,
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
-				return err
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

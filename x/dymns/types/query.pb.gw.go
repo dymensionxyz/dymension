@@ -164,7 +164,7 @@ var (
 )
 
 func request_Query_ResolveDymNameAddresses_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryResolveDymNameAddressesRequest
+	var protoReq ResolveDymNameAddressesRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
@@ -180,7 +180,7 @@ func request_Query_ResolveDymNameAddresses_0(ctx context.Context, marshaler runt
 }
 
 func local_request_Query_ResolveDymNameAddresses_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryResolveDymNameAddressesRequest
+	var protoReq ResolveDymNameAddressesRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
@@ -380,7 +380,7 @@ var (
 )
 
 func request_Query_EstimateRegisterName_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryEstimateRegisterNameRequest
+	var protoReq EstimateRegisterNameRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -425,7 +425,7 @@ func request_Query_EstimateRegisterName_0(ctx context.Context, marshaler runtime
 }
 
 func local_request_Query_EstimateRegisterName_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryEstimateRegisterNameRequest
+	var protoReq EstimateRegisterNameRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -474,7 +474,7 @@ var (
 )
 
 func request_Query_ReverseResolveAddress_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryReverseResolveAddressRequest
+	var protoReq ReverseResolveAddressRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
@@ -490,7 +490,7 @@ func request_Query_ReverseResolveAddress_0(ctx context.Context, marshaler runtim
 }
 
 func local_request_Query_ReverseResolveAddress_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryReverseResolveAddressRequest
+	var protoReq ReverseResolveAddressRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {

@@ -10,29 +10,25 @@ import (
 
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k dymnskeeper.Keeper, genState dymnstypes.GenesisState) {
-	if err := k.SetParams(ctx, genState.Params); err != nil {
-		panic(err)
-	}
+	mustNoError(k.SetParams(ctx, genState.Params))
 	for _, dymName := range genState.DymNames {
-		if err := k.SetDymName(ctx, dymName); err != nil {
-			panic(err)
-		}
-		if err := k.AfterDymNameOwnerChanged(ctx, dymName.Name); err != nil {
-			panic(err)
-		}
-		if err := k.AfterDymNameConfigChanged(ctx, dymName.Name); err != nil {
-			panic(err)
-		}
+		mustNoError(k.SetDymName(ctx, dymName))
+		mustNoError(k.AfterDymNameOwnerChanged(ctx, dymName.Name))
+		mustNoError(k.AfterDymNameConfigChanged(ctx, dymName.Name))
 	}
 	for _, bid := range genState.SellOrderBids {
-		if err := k.GenesisRefundBid(ctx, bid); err != nil {
-			panic(err)
-		}
+		mustNoError(k.GenesisRefundBid(ctx, bid))
 	}
 	for _, offer := range genState.BuyOffers {
-		if err := k.GenesisRefundOffer(ctx, offer); err != nil {
-			panic(err)
-		}
+		mustNoError(k.GenesisRefundOffer(ctx, offer))
+	}
+}
+
+// mustNoError is used when an action, which returns an error, must be run successfully without error.
+// During genesis initialization, we must ensure that all actions are run successfully.
+func mustNoError(err error) {
+	if err != nil {
+		panic(err)
 	}
 }
 

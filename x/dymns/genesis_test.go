@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
@@ -24,19 +26,19 @@ func TestExportThenInitGenesis(t *testing.T) {
 	require.NoError(t, oldKeeper.SetParams(oldCtx, moduleParams))
 
 	// Setup genesis state
-	owner1 := "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	owner2 := "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
-	anotherAccount := "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96"
+	owner1 := sample.AccAddress()
+	owner2 := sample.AccAddress()
+	anotherAccount := sample.AccAddress()
 
-	bidder1 := "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	bidder2 := "dym1wl60kvsq5c4wa600h7rnez8dguk5lpnqp4u0y2"
-	bidder3 := "dym1tzqn7ssw9jeh057vc5gu38eedk5jzwclqd4sk8"
+	bidder1 := sample.AccAddress()
+	bidder2 := sample.AccAddress()
+	bidder3 := sample.AccAddress()
 
-	buyer1 := "dym1nxswr2xhky3k0rt65paatpzjw8mg5d5rmylu3z"
-	buyer2 := "dym16vz9q7m9cxfjgf3v4tm4aqf50vde84hr39kqgd"
-	buyer3 := "dym1s62euc7nqg029m9v2rl77hf66u69pkuv2sg3uv"
-	buyer4 := "dym1t6k468snr89940cmxlu737m9al6k3y65hmx4ra"
-	buyer5 := "dym1zesdrnvdml3dvnj8clh4u3902mfl4pta783l0j"
+	buyer1 := sample.AccAddress()
+	buyer2 := sample.AccAddress()
+	buyer3 := sample.AccAddress()
+	buyer4 := sample.AccAddress()
+	buyer5 := sample.AccAddress()
 
 	dymName1 := dymnstypes.DymName{
 		Name:       "my-name",

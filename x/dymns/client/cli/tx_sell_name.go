@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -62,8 +61,8 @@ func NewPlaceDymNameSellOrderTxCmd() *cobra.Command {
 				return fmt.Errorf("--%s must be greater than or equal to --%s", flagImmediatelySellPrice, flagMinPrice)
 			}
 
-			if minPriceDym > MaxDymSellValueInteractingCLI || sellPriceDym > MaxDymSellValueInteractingCLI {
-				return fmt.Errorf("price is too high, over %d %s", MaxDymSellValueInteractingCLI, params.DisplayDenom)
+			if minPriceDym > maxDymSellValueInteractingCLI || sellPriceDym > maxDymSellValueInteractingCLI {
+				return fmt.Errorf("price is too high, over %d %s", maxDymSellValueInteractingCLI, params.DisplayDenom)
 			}
 
 			seller := clientCtx.GetFromAddress().String()
@@ -73,7 +72,7 @@ func NewPlaceDymNameSellOrderTxCmd() *cobra.Command {
 
 			queryClient := dymnstypes.NewQueryClient(clientCtx)
 
-			resParams, err := queryClient.Params(context.Background(), &dymnstypes.QueryParamsRequest{})
+			resParams, err := queryClient.Params(cmd.Context(), &dymnstypes.QueryParamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -82,20 +81,16 @@ func NewPlaceDymNameSellOrderTxCmd() *cobra.Command {
 			if sellPriceDym > 0 {
 				sellPrice = &sdk.Coin{
 					Denom:  resParams.Params.Price.PriceDenom,
-					Amount: sdk.NewInt(int64(sellPriceDym)).MulRaw(1e18),
+					Amount: sdk.NewInt(int64(sellPriceDym)).MulRaw(adymToDymMultiplier),
 				}
 			}
 
 			msg := &dymnstypes.MsgPlaceSellOrder{
 				GoodsId:   dymName,
 				OrderType: dymnstypes.NameOrder,
-				MinPrice:  sdk.NewCoin(resParams.Params.Price.PriceDenom, sdk.NewInt(int64(minPriceDym)).MulRaw(1e18)),
+				MinPrice:  sdk.NewCoin(resParams.Params.Price.PriceDenom, sdk.NewInt(int64(minPriceDym)).MulRaw(adymToDymMultiplier)),
 				SellPrice: sellPrice,
 				Owner:     seller,
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
-				return err
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

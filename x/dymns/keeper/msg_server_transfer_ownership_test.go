@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_msgServer_TransferOwnership(t *testing.T) {
+func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 	now := time.Now().UTC()
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
@@ -29,7 +29,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 		dk, ctx := setupTest()
 
 		requireErrorFContains(t, func() error {
-			_, err := dymnskeeper.NewMsgServerImpl(dk).TransferOwnership(ctx, &dymnstypes.MsgTransferOwnership{})
+			_, err := dymnskeeper.NewMsgServerImpl(dk).TransferDymNameOwnership(ctx, &dymnstypes.MsgTransferDymNameOwnership{})
 			return err
 		}, gerrc.ErrInvalidArgument.Error())
 	})
@@ -217,12 +217,12 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				useNewOwner = tt.customNewOwner
 			}
 
-			msg := &dymnstypes.MsgTransferOwnership{
+			msg := &dymnstypes.MsgTransferDymNameOwnership{
 				Name:     recordName,
 				Owner:    ownerA,
 				NewOwner: useNewOwner,
 			}
-			resp, err := dymnskeeper.NewMsgServerImpl(dk).TransferOwnership(ctx, msg)
+			resp, err := dymnskeeper.NewMsgServerImpl(dk).TransferDymNameOwnership(ctx, msg)
 			laterDymName := dk.GetDymName(ctx, recordName)
 
 			if tt.dymName != nil {

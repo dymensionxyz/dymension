@@ -219,7 +219,7 @@ func Test_queryServer_ResolveDymNameAddresses(t *testing.T) {
 
 	queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-	resp, err := queryServer.ResolveDymNameAddresses(sdk.WrapSDKContext(ctx), &dymnstypes.QueryResolveDymNameAddressesRequest{
+	resp, err := queryServer.ResolveDymNameAddresses(sdk.WrapSDKContext(ctx), &dymnstypes.ResolveDymNameAddressesRequest{
 		Addresses: []string{
 			"a.dymension_1100-1",
 			"b.dymension_1100-1",
@@ -246,7 +246,7 @@ func Test_queryServer_ResolveDymNameAddresses(t *testing.T) {
 	t.Run("reject empty request", func(t *testing.T) {
 		resp, err := queryServer.ResolveDymNameAddresses(
 			sdk.WrapSDKContext(ctx),
-			&dymnstypes.QueryResolveDymNameAddressesRequest{},
+			&dymnstypes.ResolveDymNameAddressesRequest{},
 		)
 		require.Error(t, err)
 		require.Nil(t, resp)
@@ -255,7 +255,7 @@ func Test_queryServer_ResolveDymNameAddresses(t *testing.T) {
 	t.Run("resolves default to owner if no config of default (without sub-name)", func(t *testing.T) {
 		resp, err := queryServer.ResolveDymNameAddresses(
 			sdk.WrapSDKContext(ctx),
-			&dymnstypes.QueryResolveDymNameAddressesRequest{
+			&dymnstypes.ResolveDymNameAddressesRequest{
 				Addresses: []string{"d.dymension_1100-1", "d.blumbus_111-1"},
 			},
 		)
@@ -1014,7 +1014,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 
 			queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-			resp, err := queryServer.EstimateRegisterName(sdk.WrapSDKContext(ctx), &dymnstypes.QueryEstimateRegisterNameRequest{
+			resp, err := queryServer.EstimateRegisterName(sdk.WrapSDKContext(ctx), &dymnstypes.EstimateRegisterNameRequest{
 				Name:     tt.dymName,
 				Duration: tt.duration,
 				Owner:    tt.newOwner,
@@ -1100,7 +1100,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 		dk, ctx := setupTest()
 		queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-		resp, err := queryServer.ReverseResolveAddress(sdk.WrapSDKContext(ctx), &dymnstypes.QueryReverseResolveAddressRequest{
+		resp, err := queryServer.ReverseResolveAddress(sdk.WrapSDKContext(ctx), &dymnstypes.ReverseResolveAddressRequest{
 			Addresses: []string{},
 		})
 		require.Error(t, err)
@@ -1530,7 +1530,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 
 			queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-			resp, err := queryServer.ReverseResolveAddress(sdk.WrapSDKContext(ctx), &dymnstypes.QueryReverseResolveAddressRequest{
+			resp, err := queryServer.ReverseResolveAddress(sdk.WrapSDKContext(ctx), &dymnstypes.ReverseResolveAddressRequest{
 				Addresses:      tt.addresses,
 				WorkingChainId: tt.workingChainId,
 			})

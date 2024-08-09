@@ -53,7 +53,7 @@ func (q queryServer) DymName(goCtx context.Context, req *dymnstypes.QueryDymName
 //   - "my-name@nim" => "nim1..."
 //   - (extra format) "0x1234...6789@nim" => "nim1..."
 //   - (extra format) "dym1a...@nim" => "nim1..."
-func (q queryServer) ResolveDymNameAddresses(goCtx context.Context, req *dymnstypes.QueryResolveDymNameAddressesRequest) (*dymnstypes.QueryResolveDymNameAddressesResponse, error) {
+func (q queryServer) ResolveDymNameAddresses(goCtx context.Context, req *dymnstypes.ResolveDymNameAddressesRequest) (*dymnstypes.ResolveDymNameAddressesResponse, error) {
 	if req == nil || len(req.Addresses) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -81,7 +81,7 @@ func (q queryServer) ResolveDymNameAddresses(goCtx context.Context, req *dymnsty
 		result = append(result, r)
 	}
 
-	return &dymnstypes.QueryResolveDymNameAddressesResponse{
+	return &dymnstypes.ResolveDymNameAddressesResponse{
 		ResolvedAddresses: result,
 	}, nil
 }
@@ -156,7 +156,7 @@ func (q queryServer) HistoricalSellOrderOfDymName(goCtx context.Context, req *dy
 }
 
 // EstimateRegisterName estimates the cost to register a Dym-Name.
-func (q queryServer) EstimateRegisterName(goCtx context.Context, req *dymnstypes.QueryEstimateRegisterNameRequest) (*dymnstypes.QueryEstimateRegisterNameResponse, error) {
+func (q queryServer) EstimateRegisterName(goCtx context.Context, req *dymnstypes.EstimateRegisterNameRequest) (*dymnstypes.EstimateRegisterNameResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -201,7 +201,7 @@ func (q queryServer) EstimateRegisterName(goCtx context.Context, req *dymnstypes
 //
 // For example: when we have "my-name@dym" resolves to "dym1a..."
 // so reverse resolve will return "my-name@dym" when input is "dym1a..."
-func (q queryServer) ReverseResolveAddress(goCtx context.Context, req *dymnstypes.QueryReverseResolveAddressRequest) (*dymnstypes.QueryReverseResolveAddressResponse, error) {
+func (q queryServer) ReverseResolveAddress(goCtx context.Context, req *dymnstypes.ReverseResolveAddressRequest) (*dymnstypes.ReverseResolveAddressResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -253,7 +253,7 @@ func (q queryServer) ReverseResolveAddress(goCtx context.Context, req *dymnstype
 		addResult(address, candidates)
 	}
 
-	return &dymnstypes.QueryReverseResolveAddressResponse{
+	return &dymnstypes.ReverseResolveAddressResponse{
 		Result:         result,
 		WorkingChainId: workingChainId,
 	}, nil

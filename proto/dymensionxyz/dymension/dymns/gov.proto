@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 
-// MigrateChainIdsProposal defines a proposal to migrate chain-ids in module params and configurations.
+// MigrateChainIdsProposal defines a proposal to replace chain-id in module params and configurations.
 // This proposal is used when the chain-id of a connected network changes.
 // It will look up and replace the chain-id in module params and all configurations of all non-expired Dym-Names.
 message MigrateChainIdsProposal {

@@ -246,7 +246,7 @@ func EstimateRegisterName(
 	existingDymName *dymnstypes.DymName,
 	newOwner string,
 	duration int64,
-) dymnstypes.QueryEstimateRegisterNameResponse {
+) dymnstypes.EstimateRegisterNameResponse {
 	var newFirstYearPrice, extendsPrice sdkmath.Int
 
 	if existingDymName != nil && existingDymName.Owner == newOwner {
@@ -268,7 +268,7 @@ func EstimateRegisterName(
 		}
 	}
 
-	return dymnstypes.QueryEstimateRegisterNameResponse{
+	return dymnstypes.EstimateRegisterNameResponse{
 		FirstYearPrice: sdk.NewCoin(params.Price.PriceDenom, newFirstYearPrice),
 		ExtendPrice:    sdk.NewCoin(params.Price.PriceDenom, extendsPrice),
 		TotalPrice:     sdk.NewCoin(params.Price.PriceDenom, newFirstYearPrice.Add(extendsPrice)),

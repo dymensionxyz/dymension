@@ -33,7 +33,7 @@ func CmdQueryReverseResolveDymNameAddress() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := dymnstypes.NewQueryClient(clientCtx)
 
-			res, err := queryClient.ReverseResolveAddress(cmd.Context(), &dymnstypes.QueryReverseResolveAddressRequest{
+			res, err := queryClient.ReverseResolveAddress(cmd.Context(), &dymnstypes.ReverseResolveAddressRequest{
 				Addresses:      args,
 				WorkingChainId: workingChainId,
 			})

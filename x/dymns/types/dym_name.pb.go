@@ -51,17 +51,17 @@ func (DymNameConfigType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_463436600bef60e6, []int{0}
 }
 
-// DymName defines a Dym-Name, the mainly purpose is to stores ownership and resolution information.
+// DymName defines a Dym-Name, the mainly purpose is to store ownership and resolution information.
 // Dym-Name is similar to DNS. It is a human-readable name that maps to a chain address.
 // One Dym-Name can have multiple configurations, each configuration is a resolution record.
-// Dym-Name is owned by an account, able to grant permission to another account to control the Dym-Name.
+// Dym-Name is owned by an account, and is able to grant permission to another account to control the Dym-Name.
 type DymName struct {
 	// name is the human-readable name of the Dym-Name.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// owner is the account address that owns the Dym-Name. Owner has permission to transfer ownership.
 	Owner string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
-	// controller is the account address that have permission update configuration for the Dym-Name.
-	// Default is the owner. Able to transfer control to another account.
+	// controller is the account address that has permission update configuration for the Dym-Name.
+	// Default is the owner. Able to transfer control to another account by the owner.
 	// Users can set Dym-Name owned by Cold-Wallet and controlled by Hot-Wallet.
 	Controller string `protobuf:"bytes,3,opt,name=controller,proto3" json:"controller,omitempty"`
 	// expire_at is the UTC epoch represent the last effective date of the Dym-Name,

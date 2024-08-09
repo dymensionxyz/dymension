@@ -78,7 +78,7 @@ func TestKeeper_GetSetAliasForRollAppId(t *testing.T) {
 
 		err := dk.SetAliasForRollAppId(ctx, rollApp2.id, "")
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "alias can not be empty")
+		require.Contains(t, err.Error(), "invalid alias")
 
 		err = dk.SetAliasForRollAppId(ctx, rollApp2.id, "@")
 		require.Error(t, err)
@@ -304,7 +304,7 @@ func TestKeeper_RemoveAliasFromRollAppId(t *testing.T) {
 			inputRollAppId:  rollApp1.rollAppId,
 			inputAlias:      "",
 			wantErr:         true,
-			wantErrContains: "alias can not be empty",
+			wantErrContains: "invalid alias",
 			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
 				// record remains unchanged
 				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)

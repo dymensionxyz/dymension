@@ -3,7 +3,6 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -11,7 +10,7 @@ import (
 
 // AddReverseMappingBuyerToBuyOfferRecord stores a reverse mapping from buyer to IDs of Buy-Order into the KVStore.
 func (k Keeper) AddReverseMappingBuyerToBuyOfferRecord(ctx sdk.Context, buyer, offerId string) error {
-	_, bzAccAddr, err := bech32.DecodeAndConvert(buyer)
+	accAddr, err := sdk.AccAddressFromBech32(buyer)
 	if err != nil {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid buyer address: %s", buyer)
 	}
@@ -20,7 +19,7 @@ func (k Keeper) AddReverseMappingBuyerToBuyOfferRecord(ctx sdk.Context, buyer, o
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Offer ID: %s", offerId)
 	}
 
-	key := dymnstypes.BuyerToOfferIdsRvlKey(bzAccAddr)
+	key := dymnstypes.BuyerToOfferIdsRvlKey(accAddr)
 
 	return k.GenericAddReverseLookupBuyOfferIdsRecord(ctx, key, offerId)
 }
@@ -29,12 +28,12 @@ func (k Keeper) AddReverseMappingBuyerToBuyOfferRecord(ctx sdk.Context, buyer, o
 func (k Keeper) GetBuyOffersByBuyer(
 	ctx sdk.Context, buyer string,
 ) ([]dymnstypes.BuyOffer, error) {
-	_, bzAccAddr, err := bech32.DecodeAndConvert(buyer)
+	accAddr, err := sdk.AccAddressFromBech32(buyer)
 	if err != nil {
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid buyer address: %s", buyer)
 	}
 
-	key := dymnstypes.BuyerToOfferIdsRvlKey(bzAccAddr)
+	key := dymnstypes.BuyerToOfferIdsRvlKey(accAddr)
 
 	existingOfferIds := k.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
 
@@ -57,7 +56,7 @@ func (k Keeper) GetBuyOffersByBuyer(
 
 // RemoveReverseMappingBuyerToBuyOffer removes a reverse mapping from buyer to a Buy-Order ID from the KVStore.
 func (k Keeper) RemoveReverseMappingBuyerToBuyOffer(ctx sdk.Context, buyer, offerId string) error {
-	_, bzAccAddr, err := bech32.DecodeAndConvert(buyer)
+	accAddr, err := sdk.AccAddressFromBech32(buyer)
 	if err != nil {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid buyer address: %s", buyer)
 	}
@@ -66,7 +65,7 @@ func (k Keeper) RemoveReverseMappingBuyerToBuyOffer(ctx sdk.Context, buyer, offe
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Offer ID: %s", offerId)
 	}
 
-	key := dymnstypes.BuyerToOfferIdsRvlKey(bzAccAddr)
+	key := dymnstypes.BuyerToOfferIdsRvlKey(accAddr)
 
 	return k.GenericRemoveReverseLookupBuyOfferIdRecord(ctx, key, offerId)
 }

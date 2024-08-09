@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"context"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -20,7 +18,7 @@ func CmdQueryParams() *cobra.Command {
 
 			queryClient := dymnstypes.NewQueryClient(clientCtx)
 
-			res, err := queryClient.Params(context.Background(), &dymnstypes.QueryParamsRequest{})
+			res, err := queryClient.Params(cmd.Context(), &dymnstypes.QueryParamsRequest{})
 			if err != nil {
 				return err
 			}

@@ -2,17 +2,15 @@ package cli
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/dymensionxyz/dymension/v3/app/params"
+	"github.com/dymensionxyz/dymension/v3/utils"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	"github.com/spf13/cobra"
 )
@@ -68,7 +66,7 @@ Sample proposal file content:
 				return err
 			}
 
-			proposal, err := parseMigrateChainIdsProposal(clientCtx.Codec, args[0])
+			proposal, err := parseMigrateChainIdsProposal(args[0])
 			if err != nil {
 				return err
 			}
@@ -79,10 +77,6 @@ Sample proposal file content:
 
 			msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
-				return err
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
@@ -162,7 +156,7 @@ Sample proposal file content:
 				return err
 			}
 
-			proposal, err := parseUpdateAliasesProposal(clientCtx.Codec, args[0])
+			proposal, err := parseUpdateAliasesProposal(args[0])
 			if err != nil {
 				return err
 			}
@@ -173,10 +167,6 @@ Sample proposal file content:
 
 			msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
-				return err
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
@@ -203,32 +193,24 @@ Sample proposal file content:
 }
 
 // parseMigrateChainIdsProposal reads and parses proposal for NewMigrateChainIdsCmd from a JSON file.
-func parseMigrateChainIdsProposal(cdc codec.JSONCodec, metadataFile string) (*dymnstypes.MigrateChainIdsProposal, error) {
-	proposal := dymnstypes.MigrateChainIdsProposal{}
+func parseMigrateChainIdsProposal(metadataFile string) (*dymnstypes.MigrateChainIdsProposal, error) {
+	var proposal dymnstypes.MigrateChainIdsProposal
 
-	contents, err := os.ReadFile(filepath.Clean(metadataFile))
+	err := utils.ParseJsonFromFile(metadataFile, &proposal)
 	if err != nil {
 		return nil, err
-	}
-
-	if err = cdc.UnmarshalJSON(contents, &proposal); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal proposal: %w", err)
 	}
 
 	return &proposal, nil
 }
 
 // parseUpdateAliasesProposal reads and parses proposal for NewUpdateAliasesCmd from a JSON file.
-func parseUpdateAliasesProposal(cdc codec.JSONCodec, metadataFile string) (*dymnstypes.UpdateAliasesProposal, error) {
-	proposal := dymnstypes.UpdateAliasesProposal{}
+func parseUpdateAliasesProposal(metadataFile string) (*dymnstypes.UpdateAliasesProposal, error) {
+	var proposal dymnstypes.UpdateAliasesProposal
 
-	contents, err := os.ReadFile(filepath.Clean(metadataFile))
+	err := utils.ParseJsonFromFile(metadataFile, &proposal)
 	if err != nil {
 		return nil, err
-	}
-
-	if err = cdc.UnmarshalJSON(contents, &proposal); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal proposal: %w", err)
 	}
 
 	return &proposal, nil

@@ -78,7 +78,6 @@ func DefaultPriceParams() PriceParams {
 
 // DefaultChainsParams returns a default set of chains configuration
 func DefaultChainsParams() ChainsParams {
-	//goland:noinspection SpellCheckingInspection
 	return ChainsParams{
 		AliasesOfChainIds: []AliasesOfChainId{
 			{

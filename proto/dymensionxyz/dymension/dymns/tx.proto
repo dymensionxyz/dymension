@@ -13,9 +13,9 @@ service Msg {
     // RegisterName is message handler, handles registration of a new Dym-Name
     // or extends the ownership duration of an existing Dym-Name.
     rpc RegisterName(MsgRegisterName) returns (MsgRegisterNameResponse) {}
-    // TransferOwnership is message handler,
+    // TransferDymNameOwnership is message handler,
     // handles transfer of ownership of a Dym-Name, performed by the owner.
-    rpc TransferOwnership(MsgTransferOwnership) returns (MsgTransferOwnershipResponse) {}
+    rpc TransferDymNameOwnership(MsgTransferDymNameOwnership) returns (MsgTransferDymNameOwnershipResponse) {}
     // SetController is message handler,
     // handles setting a controller for a Dym-Name, performed by the owner.
     rpc SetController(MsgSetController) returns (MsgSetControllerResponse) {}
@@ -73,8 +73,8 @@ message MsgRegisterName {
 // MsgRegisterNameResponse defines the response for the name registration.
 message MsgRegisterNameResponse {}
 
-// MsgTransferOwnership defines the message used for user to transfer ownership of a Dym-Name.
-message MsgTransferOwnership {
+// MsgTransferDymNameOwnership defines the message used for user to transfer ownership of a Dym-Name.
+message MsgTransferDymNameOwnership {
     option (cosmos.msg.v1.signer) = "owner";
 
     // name is the Dym-Name to be transferred ownership.
@@ -87,14 +87,14 @@ message MsgTransferOwnership {
     string new_owner = 3;
 }
 
-// MsgTransferOwnershipResponse defines the response for the name transfer.
-message MsgTransferOwnershipResponse {}
+// MsgTransferDymNameOwnershipResponse defines the response for the name transfer.
+message MsgTransferDymNameOwnershipResponse {}
 
 // MsgSetController defines the message used for user to set a controller for a Dym-Name.
 message MsgSetController {
     option (cosmos.msg.v1.signer) = "owner";
 
-    // name is the Dym-Name to be updated controller.
+    // name is the Dym-Name to change controller.
     string name = 1;
 
     // owner is the account address of the account which is currently owner of the Dym-Name.
@@ -110,10 +110,10 @@ message MsgSetControllerResponse {}
 // MsgUpdateResolveAddress defines the message used for user to update the resolve address of a Dym-Name.
 message MsgUpdateResolveAddress {
     option (cosmos.msg.v1.signer) = "controller";
-    // name is the Dym-Name to be updated controller.
+    // name is the Dym-Name to be updated by controller.
     string name = 1;
 
-    // controller is the account address of the account which has permission to update configure of the Dym-Name.
+    // controller is the account address of the account which has permission to update the Dym-Name.
     string controller = 2;
 
     // chain_id is an optional field, chain-based mapping

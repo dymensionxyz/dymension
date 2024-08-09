@@ -11,7 +11,7 @@ import (
 // RegisterCodec registers the necessary types and interfaces for the module
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgRegisterName{}, "dymns/RegisterName", nil)
-	cdc.RegisterConcrete(&MsgTransferOwnership{}, "dymns/TransferOwnership", nil)
+	cdc.RegisterConcrete(&MsgTransferDymNameOwnership{}, "dymns/TransferDymNameOwnership", nil)
 	cdc.RegisterConcrete(&MsgSetController{}, "dymns/SetController", nil)
 	cdc.RegisterConcrete(&MsgUpdateResolveAddress{}, "dymns/UpdateResolveAddress", nil)
 	cdc.RegisterConcrete(&MsgUpdateDetails{}, "dymns/UpdateDetails", nil)
@@ -25,7 +25,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgRegisterName{},
-		&MsgTransferOwnership{},
+		&MsgTransferDymNameOwnership{},
 		&MsgSetController{},
 		&MsgUpdateResolveAddress{},
 		&MsgUpdateDetails{},

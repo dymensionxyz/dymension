@@ -9,18 +9,17 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
 // AddReverseMappingOwnerToOwnedDymName add a reverse mapping from owner to owned Dym-Name into the KVStore.
 func (k Keeper) AddReverseMappingOwnerToOwnedDymName(ctx sdk.Context, owner, name string) error {
-	_, bzAccAddr, err := bech32.DecodeAndConvert(owner)
+	accAddr, err := sdk.AccAddressFromBech32(owner)
 	if err != nil {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, owner)
 	}
 
-	dymNamesOwnedByAccountKey := dymnstypes.DymNamesOwnedByAccountRvlKey(bzAccAddr)
+	dymNamesOwnedByAccountKey := dymnstypes.DymNamesOwnedByAccountRvlKey(accAddr)
 
 	return k.GenericAddReverseLookupDymNamesRecord(ctx, dymNamesOwnedByAccountKey, name)
 }
@@ -31,12 +30,12 @@ func (k Keeper) AddReverseMappingOwnerToOwnedDymName(ctx sdk.Context, owner, nam
 func (k Keeper) GetDymNamesOwnedBy(
 	ctx sdk.Context, owner string,
 ) ([]dymnstypes.DymName, error) {
-	_, bzAccAddr, err := bech32.DecodeAndConvert(owner)
+	accAddr, err := sdk.AccAddressFromBech32(owner)
 	if err != nil {
 		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, owner)
 	}
 
-	dymNamesOwnedByAccountKey := dymnstypes.DymNamesOwnedByAccountRvlKey(bzAccAddr)
+	dymNamesOwnedByAccountKey := dymnstypes.DymNamesOwnedByAccountRvlKey(accAddr)
 
 	existingOwnedDymNames := k.GenericGetReverseLookupDymNamesRecord(ctx, dymNamesOwnedByAccountKey)
 

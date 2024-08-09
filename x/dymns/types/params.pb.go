@@ -236,7 +236,7 @@ func (m *ChainsParams) GetAliasesOfChainIds() []AliasesOfChainId {
 type AliasesOfChainId struct {
 	// chain_id which owned the aliases.
 	ChainId string `protobuf:"bytes,1,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty" yaml:"chain_id"`
-	// aliases is set of aliases of the chain id for UX improvement,
+	// aliases is a set of aliases of the chain id for UX improvement,
 	// like we can do my-name@cosmos instead of my-name@cosmoshub-4
 	Aliases []string `protobuf:"bytes,2,rep,name=aliases,proto3" json:"aliases,omitempty" yaml:"aliases"`
 }
@@ -410,13 +410,13 @@ func (m *MiscParams) GetEnableTradingAlias() bool {
 // PreservedRegistrationParams contains setting for preserved registration Dym-Names,
 // allow to be registered by specific account within a short period of time.
 // This list will be cleared after the expiration epoch to save space.
-// This is useful as when go-live, the team can reserve some Dym-Names for specific purpose
+// This is useful as when go-live, the team can preserved some Dym-Names for specific purpose
 // and for well-known entities, not to be registered/stolen by others.
 type PreservedRegistrationParams struct {
 	// expiration_epoch is the epoch that the preserved registration period will be expired.
 	ExpirationEpoch int64 `protobuf:"varint,1,opt,name=expiration_epoch,json=expirationEpoch,proto3" json:"expiration_epoch,omitempty" yaml:"expiration_epoch"`
-	// preserved_dym_names is the list of preserved dym-names.
-	// It defines the Dym-Name and the whitelisted address that can register the preserved Dym-Name.
+	// preserved_dym_names is the list of preserved Dym-Names.
+	// Each record defines the Dym-Name and the whitelisted address that can register the preserved Dym-Name.
 	// It is allowed for one Dym-Name to have multiple whitelisted addresses and vice versa.
 	// This list will be cleared after the expiration epoch to save space.
 	PreservedDymNames []PreservedDymName `protobuf:"bytes,2,rep,name=preserved_dym_names,json=preservedDymNames,proto3" json:"preserved_dym_names" yaml:"preserved_dym_names"`
