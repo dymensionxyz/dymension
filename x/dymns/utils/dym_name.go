@@ -11,7 +11,7 @@ var patternValidateDymNameStep1 = regexp.MustCompile(`^[a-z\d]+([a-z\d_-]*[a-z\d
 // IsValidDymName returns true if the given string is a valid Dym-Name.
 // Read code and the comments for more details.
 func IsValidDymName(dymName string) bool {
-	if len(dymName) > 20 {
+	if len(dymName) > MaxDymNameLength {
 		return false
 	}
 
@@ -45,7 +45,7 @@ func IsValidSubDymName(subDymName string) bool {
 		return true
 	}
 
-	if len(subDymName) > 66 {
+	if len(subDymName) > MaxSubNameLength {
 		return false
 	}
 
@@ -76,7 +76,7 @@ func IsValidAlias(alias string) bool {
 		return false
 	}
 
-	if len(alias) > 10 {
+	if len(alias) > MaxAliasLength {
 		return false
 	}
 

@@ -15,7 +15,7 @@ func (m *MsgUpdateResolveAddress) ValidateBasic() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "name is not a valid dym name")
 	}
 
-	if len(m.SubName) > MaxDymNameLength {
+	if len(m.SubName) > dymnsutils.MaxDymNameLength {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "sub name is too long")
 	}
 

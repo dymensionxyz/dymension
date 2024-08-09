@@ -52,12 +52,7 @@ func (k Keeper) IsRollAppId(ctx sdk.Context, chainId string) bool {
 // IsRollAppCreator returns true if the input bech32 address is the creator of the RollApp.
 func (k Keeper) IsRollAppCreator(ctx sdk.Context, rollAppId, account string) bool {
 	rollApp, found := k.rollappKeeper.GetRollapp(ctx, rollAppId)
-
-	if !found {
-		return false
-	}
-
-	return rollApp.Owner == account
+	return found && rollApp.Owner == account
 }
 
 // GetRollAppBech32Prefix returns the Bech32 prefix of the RollApp by the chain-id.

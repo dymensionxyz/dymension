@@ -1,11 +1,10 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 const (
-	// MaxDymNameLength is the maximum length allowed for Dym-Name.
-	MaxDymNameLength = 20
-
 	// MaxDymNameContactLength is the maximum length allowed for Dym-Name contact.
 	MaxDymNameContactLength = 140
 

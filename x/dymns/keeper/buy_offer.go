@@ -56,7 +56,7 @@ func (k Keeper) GetAllBuyOffers(ctx sdk.Context) (list []dymnstypes.BuyOffer) {
 		list = append(list, offer)
 	}
 
-	return list
+	return
 }
 
 // GetBuyOffer retrieves the Buy-Order from the KVStore.

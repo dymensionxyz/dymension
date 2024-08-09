@@ -11,10 +11,10 @@ var _ sdk.Msg = &MsgRegisterName{}
 
 // ValidateBasic performs basic validation for the MsgRegisterName.
 func (m *MsgRegisterName) ValidateBasic() error {
-	if len(m.Name) > MaxDymNameLength {
+	if len(m.Name) > dymnsutils.MaxDymNameLength {
 		return errorsmod.Wrapf(
 			gerrc.ErrInvalidArgument,
-			"name is too long, maximum %d characters", MaxDymNameLength,
+			"name is too long, maximum %d characters", dymnsutils.MaxDymNameLength,
 		)
 	}
 

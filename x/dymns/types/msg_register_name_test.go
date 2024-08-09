@@ -54,7 +54,7 @@ func TestMsgRegisterName_ValidateBasic(t *testing.T) {
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			confirmPayment:  dymnsutils.TestCoin(1),
 			wantErr:         true,
-			wantErrContains: fmt.Sprintf("name is too long, maximum %d characters", MaxDymNameLength),
+			wantErrContains: fmt.Sprintf("name is too long, maximum %d characters", dymnsutils.MaxDymNameLength),
 		},
 		{
 			name:            "fail - invalid name",
