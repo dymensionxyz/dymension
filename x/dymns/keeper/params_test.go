@@ -4,12 +4,6 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
-	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-
 	"github.com/stretchr/testify/require"
 
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
@@ -55,11 +49,11 @@ func TestGetSetParams(t *testing.T) {
 	})
 }
 
-func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_CanUseAliasForNewRegistration() {
 	tests := []struct {
 		name            string
 		alias           string
-		preSetup        func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper)
+		preSetup        func(s *KeeperTestSuite)
 		wantErr         bool
 		wantErrContains string
 		want            bool
@@ -79,23 +73,22 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 		{
 			name:  "pass - returns as free if neither in Params or Roll-App",
 			alias: "free",
-			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				params := dk.GetParams(ctx)
-				params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
-					{
-						ChainId: "dymension_1100-1",
-						Aliases: []string{"dym"},
-					},
-				}
-				err := dk.SetParams(ctx, params)
-				require.NoError(t, err)
-
-				rk.SetRollapp(ctx, rollapptypes.Rollapp{
-					RollappId: "rollapp_1-1",
-					Owner:     testAddr(1).bech32(),
+			preSetup: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
+					params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: "dymension_1100-1",
+							Aliases: []string{"dym"},
+						},
+					}
+					return params
 				})
-				err = dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "ra")
-				require.NoError(t, err)
+
+				s.persistRollApp(
+					*newRollApp("rollapp_1-1").WithAlias("ra"),
+				)
+
+				s.requireRollApp("rollapp_1-1").HasAlias("ra")
 			},
 			wantErr: false,
 			want:    true,
@@ -109,23 +102,22 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 		{
 			name:  "pass - returns as NOT free if reserved in Params",
 			alias: "dymension",
-			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				params := dk.GetParams(ctx)
-				params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
-					{
-						ChainId: "dymension_1100-1",
-						Aliases: []string{"dym", "dymension"},
-					},
-				}
-				err := dk.SetParams(ctx, params)
-				require.NoError(t, err)
-
-				rk.SetRollapp(ctx, rollapptypes.Rollapp{
-					RollappId: "rollapp_1-1",
-					Owner:     testAddr(1).bech32(),
+			preSetup: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
+					params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: "dymension_1100-1",
+							Aliases: []string{"dym", "dymension"},
+						},
+					}
+					return params
 				})
-				err = dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "ra")
-				require.NoError(t, err)
+
+				s.persistRollApp(
+					*newRollApp("rollapp_1-1").WithAlias("ra"),
+				)
+
+				s.requireRollApp("rollapp_1-1").HasAlias("ra")
 			},
 			wantErr: false,
 			want:    false,
@@ -133,16 +125,16 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 		{
 			name:  "pass - returns as NOT free if reserved in Params as chain-id, without alias",
 			alias: "zeta",
-			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				params := dk.GetParams(ctx)
-				params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
-					{
-						ChainId: "zeta",
-						Aliases: nil,
-					},
-				}
-				err := dk.SetParams(ctx, params)
-				require.NoError(t, err)
+			preSetup: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
+					params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: "zeta",
+							Aliases: nil,
+						},
+					}
+					return params
+				})
 			},
 			wantErr: false,
 			want:    false,
@@ -150,23 +142,22 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 		{
 			name:  "pass - returns as NOT free if reserved in RollApp",
 			alias: "ra",
-			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				params := dk.GetParams(ctx)
-				params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
-					{
-						ChainId: "dymension_1100-1",
-						Aliases: []string{"dym", "dymension"},
-					},
-				}
-				err := dk.SetParams(ctx, params)
-				require.NoError(t, err)
-
-				rk.SetRollapp(ctx, rollapptypes.Rollapp{
-					RollappId: "rollapp_1-1",
-					Owner:     testAddr(1).bech32(),
+			preSetup: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
+					params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: "dymension_1100-1",
+							Aliases: []string{"dym", "dymension"},
+						},
+					}
+					return params
 				})
-				err = dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "ra")
-				require.NoError(t, err)
+
+				s.persistRollApp(
+					*newRollApp("rollapp_1-1").WithAlias("ra"),
+				)
+
+				s.requireRollApp("rollapp_1-1").HasAlias("ra")
 			},
 			wantErr: false,
 			want:    false,
@@ -174,17 +165,18 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 		{
 			name:  "pass - returns as NOT free if reserved in RollApp, which owned multiple aliases",
 			alias: "two",
-			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				rk.SetRollapp(ctx, rollapptypes.Rollapp{
-					RollappId: "rollapp_1-1",
-					Owner:     testAddr(1).bech32(),
-				})
-				err := dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "one")
-				require.NoError(t, err)
-				err = dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "two")
-				require.NoError(t, err)
-				err = dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "three")
-				require.NoError(t, err)
+			preSetup: func(s *KeeperTestSuite) {
+				s.persistRollApp(
+					*newRollApp("rollapp_1-1").WithAlias("one"),
+				)
+
+				err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, "rollapp_1-1", "two")
+				s.Require().NoError(err)
+
+				err = s.dymNsKeeper.SetAliasForRollAppId(s.ctx, "rollapp_1-1", "three")
+				s.Require().NoError(err)
+
+				s.requireRollApp("rollapp_1-1").HasAlias("one", "two", "three")
 			},
 			wantErr: false,
 			want:    false,
@@ -192,23 +184,22 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 		{
 			name:  "pass - returns as NOT free if reserved in both Params and RollApp",
 			alias: "dym",
-			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				params := dk.GetParams(ctx)
-				params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
-					{
-						ChainId: "dymension_1100-1",
-						Aliases: []string{"dym", "dymension"},
-					},
-				}
-				err := dk.SetParams(ctx, params)
-				require.NoError(t, err)
-
-				rk.SetRollapp(ctx, rollapptypes.Rollapp{
-					RollappId: "dymension_1-1",
-					Owner:     testAddr(1).bech32(),
+			preSetup: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
+					params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: "dymension_1100-1",
+							Aliases: []string{"dym", "dymension"},
+						},
+					}
+					return params
 				})
-				err = dk.SetAliasForRollAppId(ctx, "dymension_1-1", "dym")
-				require.NoError(t, err)
+
+				s.persistRollApp(
+					*newRollApp("dymension_1-1").WithAlias("dym"),
+				)
+
+				s.requireRollApp("dymension_1-1").HasAlias("dym")
 			},
 			wantErr: false,
 			want:    false,
@@ -216,16 +207,16 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 		{
 			name:  "pass - returns as NOT free if it is a Chain-ID in params mapping",
 			alias: "bridge",
-			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				params := dk.GetParams(ctx)
-				params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
-					{
-						ChainId: "bridge",
-						Aliases: []string{"b"},
-					},
-				}
-				err := dk.SetParams(ctx, params)
-				require.NoError(t, err)
+			preSetup: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
+					params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: "bridge",
+							Aliases: []string{"b"},
+						},
+					}
+					return params
+				})
 			},
 			wantErr: false,
 			want:    false,
@@ -252,25 +243,23 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 		*/
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
+		s.Run(tt.name, func() {
+			s.SetupTest()
 
 			if tt.preSetup != nil {
-				tt.preSetup(ctx, dk, rk)
+				tt.preSetup(s)
 			}
 
-			can, err := dk.CanUseAliasForNewRegistration(ctx, tt.alias)
+			can, err := s.dymNsKeeper.CanUseAliasForNewRegistration(s.ctx, tt.alias)
 			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				s.requireErrorContains(err, tt.wantErrContains)
 
-				require.False(t, can)
+				s.Require().False(can)
 				return
 			}
 
-			require.NoError(t, err)
-			require.Equal(t, tt.want, can)
+			s.Require().NoError(err)
+			s.Require().Equal(tt.want, can)
 		})
 	}
 }

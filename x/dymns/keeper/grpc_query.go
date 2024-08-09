@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
@@ -102,23 +104,35 @@ func (q queryServer) DymNamesOwnedByAccount(goCtx context.Context, req *dymnstyp
 	}, nil
 }
 
-// SellOrderOfDymName queries the active SO of a Dym-Name.
-func (q queryServer) SellOrderOfDymName(goCtx context.Context, req *dymnstypes.QuerySellOrderOfDymNameRequest) (*dymnstypes.QuerySellOrderOfDymNameResponse, error) {
+// SellOrder queries the active SO of a Dym-Name/Alias.
+func (q queryServer) SellOrder(goCtx context.Context, req *dymnstypes.QuerySellOrderRequest) (*dymnstypes.QuerySellOrderResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	if !dymnsutils.IsValidDymName(req.DymName) {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid dym name: %s", req.DymName)
+	var orderType dymnstypes.OrderType
+	switch req.OrderType {
+	case dymnstypes.NameOrder.FriendlyString():
+		if !dymnsutils.IsValidDymName(req.GoodsId) {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid Dym-Name: %s", req.GoodsId)
+		}
+		orderType = dymnstypes.NameOrder
+	case dymnstypes.AliasOrder.FriendlyString():
+		if !dymnsutils.IsValidAlias(req.GoodsId) {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid alias: %s", req.GoodsId)
+		}
+		orderType = dymnstypes.AliasOrder
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid order type: %s", req.OrderType)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	so := q.GetSellOrder(ctx, req.DymName, dymnstypes.NameOrder)
+	so := q.GetSellOrder(ctx, req.GoodsId, orderType)
 	if so == nil {
-		return nil, status.Errorf(codes.NotFound, "no active Sell Order for '%s' at this moment", req.DymName)
+		return nil, status.Errorf(codes.NotFound, "no active Sell Order for %s '%s' at this moment", orderType.FriendlyString(), req.GoodsId)
 	}
 
-	return &dymnstypes.QuerySellOrderOfDymNameResponse{
+	return &dymnstypes.QuerySellOrderResponse{
 		Result: *so,
 	}, nil
 }
@@ -351,5 +365,103 @@ func (q queryServer) BuyOffersOfDymNamesOwnedByAccount(goCtx context.Context, re
 
 	return &dymnstypes.QueryBuyOffersOfDymNamesOwnedByAccountResponse{
 		Offers: offers,
+	}, nil
+}
+
+// Alias queries the chain_id associated as well as the sell order and buy offer ids relates to the alias.
+func (q queryServer) Alias(goCtx context.Context, req *dymnstypes.QueryAliasRequest) (*dymnstypes.QueryAliasResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	chainId, success := q.tryResolveChainIdOrAliasToChainId(ctx, req.Alias)
+	if !success {
+		return nil, status.Errorf(codes.NotFound, "alias not found: %s", req.Alias)
+	}
+
+	if chainId == req.Alias {
+		return nil, status.Errorf(codes.NotFound, "alias not found: %s", req.Alias)
+	}
+
+	var foundSellOrder bool
+	var offerIds []string
+
+	if !q.IsAliasPresentsInParamsAsAliasOrChainId(ctx, req.Alias) {
+		foundSellOrder = q.GetSellOrder(ctx, req.Alias, dymnstypes.AliasOrder) != nil
+
+		aliasToOfferIdsRvlKey := dymnstypes.AliasToOfferIdsRvlKey(req.Alias)
+		offerIds = q.GenericGetReverseLookupBuyOfferIdsRecord(ctx, aliasToOfferIdsRvlKey).OfferIds
+	}
+
+	return &dymnstypes.QueryAliasResponse{
+		ChainId:        chainId,
+		FoundSellOrder: foundSellOrder,
+		BuyOfferIds:    offerIds,
+	}, nil
+}
+
+// BuyOffersByAlias queries all the buy offers of an Alias.
+func (q queryServer) BuyOffersByAlias(goCtx context.Context, req *dymnstypes.QueryBuyOffersByAliasRequest) (*dymnstypes.QueryBuyOffersByAliasResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	if !dymnsutils.IsValidAlias(req.Alias) {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid alias: %s", req.Alias)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	var buyOffers []dymnstypes.BuyOffer
+	if !q.IsAliasPresentsInParamsAsAliasOrChainId(ctx, req.Alias) {
+		var err error
+		buyOffers, err = q.GetBuyOffersOfAlias(ctx, req.Alias)
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &dymnstypes.QueryBuyOffersByAliasResponse{
+		Offers: buyOffers,
+	}, nil
+}
+
+// BuyOffersOfAliasesLinkedToRollApp queries all the buy offers of all Aliases linked to a RollApp.
+func (q queryServer) BuyOffersOfAliasesLinkedToRollApp(goCtx context.Context, req *dymnstypes.QueryBuyOffersOfAliasesLinkedToRollAppRequest) (*dymnstypes.QueryBuyOffersOfAliasesLinkedToRollAppResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	if !dymnsutils.IsValidChainIdFormat(req.RollappId) {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid RollApp ID: %s", req.RollappId)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if !q.IsRollAppId(ctx, req.RollappId) {
+		return nil, status.Errorf(codes.NotFound, "RollApp not found: %s", req.RollappId)
+	}
+
+	var allBuyOffers []dymnstypes.BuyOffer
+
+	aliases := q.GetAliasesOfRollAppId(ctx, req.RollappId)
+	for _, alias := range aliases {
+		if q.IsAliasPresentsInParamsAsAliasOrChainId(ctx, alias) {
+			// ignore
+			continue
+		}
+
+		buyOffers, err := q.GetBuyOffersOfAlias(ctx, alias)
+		if err != nil {
+			return nil, status.Error(codes.Internal, errorsmod.Wrapf(err, "alias: %s", alias).Error())
+		}
+
+		allBuyOffers = append(allBuyOffers, buyOffers...)
+	}
+
+	return &dymnstypes.QueryBuyOffersOfAliasesLinkedToRollAppResponse{
+		Offers: allBuyOffers,
 	}, nil
 }

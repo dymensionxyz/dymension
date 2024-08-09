@@ -62,20 +62,9 @@ func (k Keeper) CanUseAliasForNewRegistration(ctx sdk.Context, aliasCandidate st
 		return
 	}
 
-	params := k.GetParams(ctx)
-
-	for _, aliasesOfChainId := range params.Chains.AliasesOfChainIds {
-		if aliasCandidate == aliasesOfChainId.ChainId {
-			can = false
-			return
-		}
-
-		for _, alias := range aliasesOfChainId.Aliases {
-			if aliasCandidate == alias {
-				can = false
-				return
-			}
-		}
+	if k.IsAliasPresentsInParamsAsAliasOrChainId(ctx, aliasCandidate) {
+		can = false
+		return
 	}
 
 	if isRollAppId := k.IsRollAppId(ctx, aliasCandidate); isRollAppId {

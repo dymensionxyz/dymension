@@ -102,14 +102,17 @@ func (s *KeeperTestSuite) updateModuleParams(f func(dymnstypes.Params) dymnstype
 	s.Require().NoError(err)
 }
 
-//
+func (s *KeeperTestSuite) setBuyOfferWithFunctionsAfter(buyOffer dymnstypes.BuyOffer) {
+	err := s.dymNsKeeper.SetBuyOffer(s.ctx, buyOffer)
+	s.Require().NoError(err)
 
-func (s *KeeperTestSuite) requireRollApp(rollAppId string) *reqRollApp {
-	return &reqRollApp{
-		s:         s,
-		rollAppId: rollAppId,
-	}
+	err = s.dymNsKeeper.AddReverseMappingGoodsIdToBuyOffer(s.ctx,
+		buyOffer.GoodsId, buyOffer.Type, buyOffer.Id,
+	)
+	s.Require().NoError(err)
 }
+
+//
 
 func (s *KeeperTestSuite) requireErrorContains(err error, errMsgContains string) {
 	s.Require().NotEmpty(errMsgContains, "mis-configured test")
@@ -159,6 +162,13 @@ func (r *rollapp) WithAlias(alias string) *rollapp {
 type reqRollApp struct {
 	s         *KeeperTestSuite
 	rollAppId string
+}
+
+func (s *KeeperTestSuite) requireRollApp(rollAppId string) *reqRollApp {
+	return &reqRollApp{
+		s:         s,
+		rollAppId: rollAppId,
+	}
 }
 
 func (m reqRollApp) HasAlias(aliases ...string) {
@@ -269,4 +279,66 @@ func (b *sellOrderBuilder) Build() dymnstypes.SellOrder {
 	}
 
 	return so
+}
+
+//
+
+type buyOfferBuilder struct {
+	s *KeeperTestSuite
+	//
+	id         string
+	goodsId    string
+	orderType  dymnstypes.OrderType
+	buyer      string
+	offerPrice int64
+	params     []string
+}
+
+func (s *KeeperTestSuite) newDymNameBuyOffer(buyer, dymName string) *buyOfferBuilder {
+	return s.newBuyOffer(buyer, dymName, dymnstypes.NameOrder)
+}
+
+func (s *KeeperTestSuite) newAliasBuyOffer(buyer, alias, rollAppId string) *buyOfferBuilder {
+	ob := s.newBuyOffer(buyer, alias, dymnstypes.AliasOrder)
+	ob.params = []string{rollAppId}
+	return ob
+}
+
+func (s *KeeperTestSuite) newBuyOffer(buyer, goodsId string, orderType dymnstypes.OrderType) *buyOfferBuilder {
+	return &buyOfferBuilder{
+		s:          s,
+		goodsId:    goodsId,
+		orderType:  orderType,
+		buyer:      buyer,
+		offerPrice: 1,
+		params:     nil,
+	}
+}
+
+func (b *buyOfferBuilder) WithID(id string) *buyOfferBuilder {
+	b.id = id
+	return b
+}
+
+func (b *buyOfferBuilder) WithOfferPrice(p int64) *buyOfferBuilder {
+	b.offerPrice = p
+	return b
+}
+
+func (b *buyOfferBuilder) BuildP() *dymnstypes.BuyOffer {
+	bo := b.Build()
+	return &bo
+}
+
+func (b *buyOfferBuilder) Build() dymnstypes.BuyOffer {
+	bo := dymnstypes.BuyOffer{
+		Id:         b.id,
+		GoodsId:    b.goodsId,
+		Type:       b.orderType,
+		Params:     b.params,
+		Buyer:      b.buyer,
+		OfferPrice: dymnsutils.TestCoin(b.offerPrice),
+	}
+
+	return bo
 }
