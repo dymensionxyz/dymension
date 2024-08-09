@@ -175,7 +175,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 	}
 
 	if params.Misc.EnableTradingAlias {
-		if err := e.processActiveAliasSellOrders(ctx, epochIdentifier, epochNumber); err != nil {
+		if err := e.processActiveAliasSellOrders(ctx, epochIdentifier, epochNumber, params); err != nil {
 			return err
 		}
 	}
@@ -289,7 +289,15 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 }
 
 // processActiveAliasSellOrders moves expired Alias Sell-Orders to historical and completes Alias Sell-Orders with winners.
-func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
+func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64, params dymnstypes.Params) error {
+	chainIdsAndAliasesInParams := make(map[string]bool)
+	for _, aliasesOfChainId := range params.Chains.AliasesOfChainIds {
+		chainIdsAndAliasesInParams[aliasesOfChainId.ChainId] = true
+		for _, alias := range aliasesOfChainId.Aliases {
+			chainIdsAndAliasesInParams[alias] = true
+		}
+	}
+
 	dk := e.Keeper
 
 	aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.AliasOrder)
@@ -301,6 +309,12 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 		for i, record := range aSoe.Records {
 			if record.ExpireAt > nowEpochUTC {
 				// skip not expired ones
+				continue
+			}
+
+			if _, found := chainIdsAndAliasesInParams[record.GoodsId]; found {
+				// skip aliases that are presents in module params,
+				// because it is prohibited to trade those
 				continue
 			}
 
