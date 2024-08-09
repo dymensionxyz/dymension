@@ -701,7 +701,28 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 	}
 }
 
-func Test_epochHooks_AfterEpochEnd(t *testing.T) {
+func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd() {
+	s.Run("should do something even nothing to do", func() {
+		s.SetupTest()
+
+		moduleParams := s.moduleParams()
+
+		originalGas := s.ctx.GasMeter().GasConsumed()
+
+		err := s.dymNsKeeper.GetEpochHooks().AfterEpochEnd(
+			s.ctx,
+			moduleParams.Misc.EndEpochHookIdentifier, 1,
+		)
+		s.Require().NoError(err)
+
+		// gas should be changed because it should at least reading the params to check epoch identifier
+		s.Require().Less(originalGas, s.ctx.GasMeter().GasConsumed(), "should do something")
+	})
+
+	// TODO DymNS: add test complete multiple types of tasks
+}
+
+func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) {
 	now := time.Now().UTC()
 
 	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context) {
@@ -710,20 +731,6 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 
 		return dk, bk, ctx
 	}
-
-	t.Run("should do something even nothing to do", func(t *testing.T) {
-		dk, _, ctx := setupTest()
-
-		params := dk.GetParams(ctx)
-
-		originalGas := ctx.GasMeter().GasConsumed()
-
-		err := dk.GetEpochHooks().AfterEpochEnd(ctx, params.Misc.EndEpochHookIdentifier, 1)
-		require.NoError(t, err)
-
-		// gas should be changed because it should at least reading the params to check epoch identifier
-		require.Less(t, originalGas, ctx.GasMeter().GasConsumed(), "should do something")
-	})
 
 	ownerAcc := testAddr(1)
 	ownerA := ownerAcc.bech32()
@@ -880,8 +887,6 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 		requireFallbackAddrMappedDymNames(ts, fallbackAddr)
 	}
 
-	// TODO DymNS: add test for Alias SOs
-
 	tests := []struct {
 		name                  string
 		dymNames              []dymnstypes.DymName
@@ -896,7 +901,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 		afterHookTestFunc     func(*testing.T, dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context)
 	}{
 		{
-			name:       "simple process expired SO",
+			name:       "pass - simple process expired SO",
 			dymNames:   []dymnstypes.DymName{dymNameA, dymNameB, dymNameC, dymNameD},
 			sellOrders: []dymnstypes.SellOrder{genSo(dymNameA, soExpired, &coin200, nil)},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
@@ -933,7 +938,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			},
 		},
 		{
-			name:     "simple process expired & completed SO",
+			name:     "pass - simple process expired & completed SO",
 			dymNames: []dymnstypes.DymName{dymNameA},
 			sellOrders: []dymnstypes.SellOrder{genSo(dymNameA, soExpired, &coin200, &dymnstypes.SellOrderBid{
 				Bidder: bidderA,
@@ -973,7 +978,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			},
 		},
 		{
-			name:     "simple process expired & completed SO, match by min price",
+			name:     "pass - simple process expired & completed SO, match by min price",
 			dymNames: []dymnstypes.DymName{dymNameA},
 			sellOrders: []dymnstypes.SellOrder{genSo(dymNameA, soExpired, &coin200, &dymnstypes.SellOrderBid{
 				Bidder: bidderA,
@@ -1013,7 +1018,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			},
 		},
 		{
-			name:     "process multiple - mixed SOs",
+			name:     "pass - process multiple - mixed SOs",
 			dymNames: []dymnstypes.DymName{dymNameA, dymNameB, dymNameC, dymNameD},
 			sellOrders: []dymnstypes.SellOrder{
 				genSo(dymNameA, soExpired, nil, nil),
@@ -1100,7 +1105,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			},
 		},
 		{
-			name:     "should do nothing if invalid epoch identifier",
+			name:     "pass - should do nothing if invalid epoch identifier",
 			dymNames: []dymnstypes.DymName{dymNameA, dymNameB, dymNameC, dymNameD},
 			sellOrders: []dymnstypes.SellOrder{
 				genSo(dymNameA, soExpired, nil, nil),
@@ -1184,7 +1189,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			},
 		},
 		{
-			name:     "should remove expiry reference to non-exists SO",
+			name:     "pass - should remove expiry reference to non-exists SO",
 			dymNames: []dymnstypes.DymName{dymNameA, dymNameB},
 			sellOrders: []dymnstypes.SellOrder{
 				genSo(dymNameA, soExpired, nil, nil),
@@ -1222,7 +1227,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			},
 		},
 		{
-			name:     "update expiry if in-correct",
+			name:     "pass - update expiry if in-correct",
 			dymNames: []dymnstypes.DymName{dymNameA, dymNameB},
 			sellOrders: []dymnstypes.SellOrder{
 				genSo(dymNameA, soExpired, nil, nil),
@@ -1258,6 +1263,44 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
 				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name)
+				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
+			},
+		},
+		{
+			name:     "fail - returns error when can not process complete order",
+			dymNames: []dymnstypes.DymName{dymNameA},
+			sellOrders: []dymnstypes.SellOrder{genSo(dymNameA, soExpired, nil, &dymnstypes.SellOrderBid{
+				Bidder: bidderA,
+				Price:  coin100,
+			})},
+			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					GoodsId:  dymNameA.Name,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			preMintModuleBalance: 1, // not enough balance
+			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+				ts := nts(t, dk, bk, ctx)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name)
+				requireConfiguredAddressMappedNoDymName(ts, bidderA)
+				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name)
+				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
+			},
+			wantErr:         true,
+			wantErrContains: "insufficient funds",
+			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					GoodsId:  dymNameA.Name,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
+				// unchanged
+				ts := nts(t, dk, bk, ctx)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name)
+				requireConfiguredAddressMappedNoDymName(ts, bidderA)
+				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name)
 				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
 			},
 		},
@@ -1323,6 +1366,499 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			}
 
 			require.NoError(t, err)
+		})
+	}
+}
+
+//goland:noinspection GoSnakeCaseUsage
+func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOrders() {
+	creator_1_asOwner := testAddr(1).bech32()
+	creator_2_asBidder := testAddr(2).bech32()
+
+	rollApp_1_byOwner_asSrc := *newRollApp("rollapp_1-1").WithAlias("one").WithOwner(creator_1_asOwner)
+	rollApp_2_byBuyer_asDst := *newRollApp("rollapp_2-2").WithOwner(creator_2_asBidder)
+	rollApp_3_byOwner_asSrc := *newRollApp("rollapp_3-1").WithAlias("three").WithOwner(creator_1_asOwner)
+	rollApp_4_byOwner_asSrc := *newRollApp("rollapp_4-1").WithAlias("four").WithOwner(creator_1_asOwner)
+	rollApp_5_byOwner_asSrc := *newRollApp("rollapp_5-1").WithAlias("five").WithOwner(creator_1_asOwner)
+
+	const minPrice = 100
+	const soExpiredEpoch = 1
+	soNotExpiredEpoch := s.now.Add(time.Hour).Unix()
+
+	requireNoActiveSO := func(alias string) {
+		so := s.dymNsKeeper.GetSellOrder(s.ctx, alias, dymnstypes.AliasOrder)
+		s.Nil(so)
+	}
+
+	requireNoHistoricalSO := func(alias string) {
+		historicalSOs := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, alias, dymnstypes.AliasOrder)
+		s.Empty(historicalSOs, "should have no historical SOs since Alias SOs are not supported")
+	}
+
+	tests := []struct {
+		name                  string
+		rollApps              []rollapp
+		sellOrders            []dymnstypes.SellOrder
+		expiryByAlias         []dymnstypes.ActiveSellOrdersExpirationRecord
+		preMintModuleBalance  int64
+		customEpochIdentifier string
+		beforeHookTestFunc    func(s *KeeperTestSuite)
+		wantErr               bool
+		wantErrContains       string
+		wantExpiryByAlias     []dymnstypes.ActiveSellOrdersExpirationRecord
+		afterHookTestFunc     func(s *KeeperTestSuite)
+	}{
+		{
+			name:     "pass - simple process expired SO without bid",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc},
+			sellOrders: []dymnstypes.SellOrder{
+				s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).WithSellPrice(200).
+					WithExpiry(soExpiredEpoch).
+					Build(),
+			},
+			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			preMintModuleBalance: 200,
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
+			},
+			wantErr:           false,
+			wantExpiryByAlias: nil,
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireNoActiveSO(rollApp_1_byOwner_asSrc.alias)
+				requireNoHistoricalSO(rollApp_1_byOwner_asSrc.alias)
+
+				// unchanged
+
+				s.Equal(int64(200), s.moduleBalance())
+				s.Zero(s.balance(rollApp_1_byOwner_asSrc.owner))
+
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasNoAlias()
+			},
+		},
+		{
+			name:     "pass - simple process expired & completed SO",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrders: []dymnstypes.SellOrder{
+				s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).
+					WithSellPrice(200).
+					WithExpiry(soExpiredEpoch).
+					WithAliasBid(rollApp_2_byBuyer_asDst.owner, 200, rollApp_2_byBuyer_asDst.rollAppId).
+					Build(),
+			},
+			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			preMintModuleBalance: 200,
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasNoAlias()
+			},
+			wantErr:           false,
+			wantExpiryByAlias: nil,
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasNoAlias()
+				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
+
+				requireNoActiveSO(rollApp_1_byOwner_asSrc.alias)
+				requireNoHistoricalSO(rollApp_1_byOwner_asSrc.alias)
+
+				s.Zero(s.moduleBalance())                                     // should be transferred to previous owner
+				s.Equal(int64(200), s.balance(rollApp_1_byOwner_asSrc.owner)) // previous owner should earn from bid
+			},
+		},
+		{
+			name:     "pass - simple process expired & completed SO, match by min price",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrders: []dymnstypes.SellOrder{
+				s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).
+					WithSellPrice(200).
+					WithExpiry(soExpiredEpoch).
+					WithAliasBid(rollApp_2_byBuyer_asDst.owner, minPrice, rollApp_2_byBuyer_asDst.rollAppId).
+					Build(),
+			},
+			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			preMintModuleBalance: 250,
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasNoAlias()
+			},
+			wantErr:           false,
+			wantExpiryByAlias: nil,
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasNoAlias()
+				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
+
+				requireNoActiveSO(rollApp_1_byOwner_asSrc.alias)
+				requireNoHistoricalSO(rollApp_1_byOwner_asSrc.alias)
+
+				s.Equal(int64(250-minPrice), s.moduleBalance())                    // should be transferred to previous owner
+				s.Equal(int64(minPrice), s.balance(rollApp_1_byOwner_asSrc.owner)) // previous owner should earn from bid
+			},
+		},
+		{
+			name: "pass - process multiple - mixed SOs",
+			rollApps: []rollapp{
+				rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byOwner_asSrc, rollApp_4_byOwner_asSrc, rollApp_5_byOwner_asSrc,
+			},
+			sellOrders: []dymnstypes.SellOrder{
+				// expired SO without bid
+				s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).WithSellPrice(200).
+					WithExpiry(soExpiredEpoch).
+					Build(),
+				// not yet finished
+				s.newAliasSellOrder(rollApp_3_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).
+					WithSellPrice(200).
+					WithExpiry(soNotExpiredEpoch).
+					WithAliasBid(rollApp_2_byBuyer_asDst.owner, minPrice, rollApp_2_byBuyer_asDst.rollAppId).
+					Build(),
+				// completed by matching sell-price
+				s.newAliasSellOrder(rollApp_4_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).
+					WithSellPrice(200).
+					WithExpiry(soExpiredEpoch).
+					WithAliasBid(rollApp_2_byBuyer_asDst.owner, 200, rollApp_2_byBuyer_asDst.rollAppId).
+					Build(),
+				// completed by min price
+				s.newAliasSellOrder(rollApp_5_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).
+					WithSellPrice(200).
+					WithExpiry(soExpiredEpoch).
+					WithAliasBid(rollApp_2_byBuyer_asDst.owner, minPrice, rollApp_2_byBuyer_asDst.rollAppId).
+					Build(),
+			},
+			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+				{
+					GoodsId:  rollApp_3_byOwner_asSrc.alias,
+					ExpireAt: soNotExpiredEpoch,
+				},
+				{
+					GoodsId:  rollApp_4_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+				{
+					GoodsId:  rollApp_5_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			preMintModuleBalance: 450,
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasNoAlias()
+				s.requireRollApp(rollApp_3_byOwner_asSrc.rollAppId).HasAlias(rollApp_3_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_4_byOwner_asSrc.rollAppId).HasAlias(rollApp_4_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_5_byOwner_asSrc.rollAppId).HasAlias(rollApp_5_byOwner_asSrc.alias)
+			},
+			wantErr: false,
+			wantExpiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					GoodsId:  rollApp_3_byOwner_asSrc.alias,
+					ExpireAt: soNotExpiredEpoch,
+				},
+			},
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				// SO for alias 1 is expired without any bid/winner
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
+				requireNoActiveSO(rollApp_1_byOwner_asSrc.alias)
+				requireNoHistoricalSO(rollApp_1_byOwner_asSrc.alias)
+
+				// SO for alias 3 not yet finished
+				s.requireRollApp(rollApp_3_byOwner_asSrc.rollAppId).HasAlias(rollApp_3_byOwner_asSrc.alias)
+				s.NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, rollApp_3_byOwner_asSrc.alias, dymnstypes.AliasOrder))
+				requireNoHistoricalSO(rollApp_3_byOwner_asSrc.alias)
+
+				// SO for alias 4 is completed with winner
+				s.requireRollApp(rollApp_4_byOwner_asSrc.rollAppId).HasNoAlias()
+				requireNoActiveSO(rollApp_4_byOwner_asSrc.alias)
+				requireNoHistoricalSO(rollApp_4_byOwner_asSrc.alias)
+
+				// SO for alias 5 is completed with winner
+				s.requireRollApp(rollApp_5_byOwner_asSrc.rollAppId).HasNoAlias()
+				requireNoActiveSO(rollApp_5_byOwner_asSrc.alias)
+				requireNoHistoricalSO(rollApp_5_byOwner_asSrc.alias)
+
+				// aliases moved to RollApps of the winner
+				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).
+					HasAlias(rollApp_4_byOwner_asSrc.alias, rollApp_5_byOwner_asSrc.alias)
+
+				s.Equal(int64(150), s.moduleBalance())
+				s.Equal(int64(300), s.balance(creator_1_asOwner)) // price from 2 completed SO
+			},
+		},
+		{
+			name: "pass - should do nothing if invalid epoch identifier",
+			rollApps: []rollapp{
+				rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byOwner_asSrc, rollApp_4_byOwner_asSrc, rollApp_5_byOwner_asSrc,
+			},
+			sellOrders: []dymnstypes.SellOrder{
+				// expired SO without bid
+				s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).WithSellPrice(200).
+					WithExpiry(soExpiredEpoch).
+					Build(),
+				// not yet finished
+				s.newAliasSellOrder(rollApp_3_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).
+					WithSellPrice(200).
+					WithExpiry(soNotExpiredEpoch).
+					WithAliasBid(rollApp_2_byBuyer_asDst.owner, minPrice, rollApp_2_byBuyer_asDst.rollAppId).
+					Build(),
+				// completed by matching sell-price
+				s.newAliasSellOrder(rollApp_4_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).
+					WithSellPrice(200).
+					WithExpiry(soExpiredEpoch).
+					WithAliasBid(rollApp_2_byBuyer_asDst.owner, 200, rollApp_2_byBuyer_asDst.rollAppId).
+					Build(),
+				// completed by min price
+				s.newAliasSellOrder(rollApp_5_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).
+					WithSellPrice(200).
+					WithExpiry(soExpiredEpoch).
+					WithAliasBid(rollApp_2_byBuyer_asDst.owner, minPrice, rollApp_2_byBuyer_asDst.rollAppId).
+					Build(),
+			},
+			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+				{
+					GoodsId:  rollApp_3_byOwner_asSrc.alias,
+					ExpireAt: soNotExpiredEpoch,
+				},
+				{
+					GoodsId:  rollApp_4_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+				{
+					GoodsId:  rollApp_5_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			customEpochIdentifier: "another",
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasNoAlias()
+				s.requireRollApp(rollApp_3_byOwner_asSrc.rollAppId).HasAlias(rollApp_3_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_4_byOwner_asSrc.rollAppId).HasAlias(rollApp_4_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_5_byOwner_asSrc.rollAppId).HasAlias(rollApp_5_byOwner_asSrc.alias)
+			},
+			wantErr: false,
+			wantExpiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				// deep unchanged but order changed due to sorting
+				{
+					GoodsId:  rollApp_5_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+				{
+					GoodsId:  rollApp_4_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+				{
+					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+				{
+					GoodsId:  rollApp_3_byOwner_asSrc.alias,
+					ExpireAt: soNotExpiredEpoch,
+				},
+			},
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				// unchanged
+
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasNoAlias()
+				s.requireRollApp(rollApp_3_byOwner_asSrc.rollAppId).HasAlias(rollApp_3_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_4_byOwner_asSrc.rollAppId).HasAlias(rollApp_4_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_5_byOwner_asSrc.rollAppId).HasAlias(rollApp_5_byOwner_asSrc.alias)
+			},
+		},
+		{
+			name:     "pass - should remove expiry reference to non-exists SO",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_3_byOwner_asSrc},
+			sellOrders: []dymnstypes.SellOrder{
+				s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).
+					WithSellPrice(300).
+					WithExpiry(soExpiredEpoch).
+					Build(),
+				// no SO for alias of rollapp 3
+			},
+			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+				{
+					// no SO for alias of RollApp 3 but still have reference
+					GoodsId:  rollApp_3_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_3_byOwner_asSrc.rollAppId).HasAlias(rollApp_3_byOwner_asSrc.alias)
+			},
+			wantErr:           false,
+			wantExpiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				// removed reference to alias of RollApp 1 because of processed
+				// removed reference to alias of RollApp 2 because SO not exists
+			},
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				// unchanged
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_3_byOwner_asSrc.rollAppId).HasAlias(rollApp_3_byOwner_asSrc.alias)
+			},
+		},
+		{
+			name:     "pass - update expiry if in-correct",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byOwner_asSrc},
+			sellOrders: []dymnstypes.SellOrder{
+				s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).
+					WithExpiry(soExpiredEpoch).
+					Build(),
+				s.newAliasSellOrder(rollApp_3_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).
+					WithExpiry(soNotExpiredEpoch). // SO not expired
+					Build(),
+			},
+			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+				{
+					// incorrect, SO not expired
+					GoodsId:  rollApp_3_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+			},
+			wantErr: false,
+			wantExpiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				// removed reference to alias of RollApp 1 because of processed
+				// reference to alias of RollApp 3 was kept because not expired
+				{
+					GoodsId:  rollApp_3_byOwner_asSrc.alias,
+					ExpireAt: soNotExpiredEpoch,
+				},
+			},
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+			},
+		},
+		{
+			name:     "fail - returns error when can not process complete order",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrders: []dymnstypes.SellOrder{
+				s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).
+					WithExpiry(soExpiredEpoch).
+					WithAliasBid(creator_2_asBidder, minPrice, rollApp_2_byBuyer_asDst.rollAppId).
+					Build(),
+			},
+			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			preMintModuleBalance: 1, // not enough balance
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasNoAlias()
+			},
+			wantErr:         true,
+			wantErrContains: "insufficient funds",
+			wantExpiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				// unchanged
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasNoAlias()
+			},
+		},
+	}
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			s.SetupTest()
+
+			s.Require().NotNil(tt.beforeHookTestFunc, "mis-configured test case")
+			s.Require().NotNil(tt.afterHookTestFunc, "mis-configured test case")
+
+			if tt.preMintModuleBalance > 0 {
+				s.mintToModuleAccount(tt.preMintModuleBalance)
+			}
+
+			err := s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, &dymnstypes.ActiveSellOrdersExpiration{
+				Records: tt.expiryByAlias,
+			}, dymnstypes.AliasOrder)
+			s.Require().NoError(err)
+
+			for _, rollApp := range tt.rollApps {
+				s.persistRollApp(rollApp)
+			}
+
+			for _, so := range tt.sellOrders {
+				err = s.dymNsKeeper.SetSellOrder(s.ctx, so)
+				s.Require().NoError(err)
+			}
+
+			useEpochIdentifier := s.moduleParams().Misc.EndEpochHookIdentifier
+			if tt.customEpochIdentifier != "" {
+				useEpochIdentifier = tt.customEpochIdentifier
+			}
+
+			tt.beforeHookTestFunc(s)
+
+			err = s.dymNsKeeper.GetEpochHooks().AfterEpochEnd(s.ctx, useEpochIdentifier, 1)
+
+			defer func() {
+				tt.afterHookTestFunc(s)
+
+				aSoe := s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, dymnstypes.AliasOrder)
+				if len(tt.wantExpiryByAlias) == 0 {
+					s.Empty(aSoe.Records)
+				} else {
+					s.Equal(tt.wantExpiryByAlias, aSoe.Records)
+				}
+			}()
+
+			if tt.wantErr {
+				s.requireErrorContains(err, tt.wantErrContains)
+
+				return
+			}
+
+			s.Require().NoError(err)
 		})
 	}
 }

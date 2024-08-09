@@ -167,7 +167,20 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 
 	e.Keeper.Logger(ctx).Info("DymNS hook After-Epoch-End: triggered", "epoch-number", epochNumber, "epoch-identifier", epochIdentifier)
 
-	return e.processActiveDymNameSellOrders(ctx, epochIdentifier, epochNumber)
+	// TODO DymNS: add test with trading disabled
+	if params.Misc.EnableTradingName {
+		if err := e.processActiveDymNameSellOrders(ctx, epochIdentifier, epochNumber); err != nil {
+			return err
+		}
+	}
+
+	if params.Misc.EnableTradingAlias {
+		if err := e.processActiveAliasSellOrders(ctx, epochIdentifier, epochNumber); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // processActiveDymNameSellOrders moves expired Dym-Name Sell-Orders to historical and completes Dym-Name Sell-Orders with winners.
@@ -266,6 +279,102 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 		dk.Logger(ctx).Error(
 			"DymNS hook After-Epoch-End: failed to update active SO expiry",
 			"order-type", dymnstypes.NameOrder.FriendlyString(),
+			"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
+			"error", err,
+		)
+		return err
+	}
+
+	return nil
+}
+
+// processActiveAliasSellOrders moves expired Alias Sell-Orders to historical and completes Alias Sell-Orders with winners.
+func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
+	dk := e.Keeper
+
+	aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.AliasOrder)
+	nowEpochUTC := ctx.BlockTime().Unix()
+	var finishedSOs []dymnstypes.SellOrder
+	if len(aSoe.Records) > 0 {
+		invalidRecordsToRemove := make([]string, 0)
+
+		for i, record := range aSoe.Records {
+			if record.ExpireAt > nowEpochUTC {
+				// skip not expired ones
+				continue
+			}
+
+			so := dk.GetSellOrder(ctx, record.GoodsId, dymnstypes.AliasOrder)
+
+			if so == nil {
+				// remove the invalid entry
+				invalidRecordsToRemove = append(invalidRecordsToRemove, record.GoodsId)
+				continue
+			}
+
+			if !so.HasFinished(nowEpochUTC) {
+				// invalid entry
+				dk.Logger(ctx).Error(
+					"DymNS hook After-Epoch-End: sell order has not finished",
+					"alias", record.GoodsId, "order-type", dymnstypes.AliasOrder.FriendlyString(),
+					"expiry", record.ExpireAt, "now", nowEpochUTC,
+					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
+				)
+
+				aSoe.Records[i].ExpireAt = so.ExpireAt // correct it
+				continue
+			}
+
+			finishedSOs = append(finishedSOs, *so)
+		}
+
+		for _, name := range invalidRecordsToRemove {
+			aSoe.Remove(name)
+		}
+	}
+
+	if len(finishedSOs) < 1 {
+		// skip updating store
+		return nil
+	}
+
+	sort.Slice(finishedSOs, func(i, j int) bool {
+		return finishedSOs[i].GoodsId < finishedSOs[j].GoodsId
+	})
+
+	dk.Logger(ctx).Info(
+		"DymNS hook After-Epoch-End: processing finished SOs",
+		"order-type", dymnstypes.AliasOrder.FriendlyString(),
+		"count", len(finishedSOs),
+		"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
+	)
+
+	for _, so := range finishedSOs {
+		aSoe.Remove(so.GoodsId)
+
+		if so.HighestBid != nil {
+			if err := dk.CompleteAliasSellOrder(ctx, so.GoodsId); err != nil {
+				dk.Logger(ctx).Error(
+					"DymNS hook After-Epoch-End: failed to complete sell order",
+					"alias", so.GoodsId, "order-type", dymnstypes.AliasOrder.FriendlyString(),
+					"expiry", so.ExpireAt, "now", nowEpochUTC,
+					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
+					"error", err,
+				)
+				return err
+			}
+			continue
+		}
+
+		// no bid placed, it just a normal expiry without winner,
+		// in this case, just delete it, because Alias SO does not support historical SO
+		dk.DeleteSellOrder(ctx, so.GoodsId, dymnstypes.AliasOrder)
+	}
+
+	if err := dk.SetActiveSellOrdersExpiration(ctx, aSoe, dymnstypes.AliasOrder); err != nil {
+		dk.Logger(ctx).Error(
+			"DymNS hook After-Epoch-End: failed to update active SO expiry",
+			"order-type", dymnstypes.AliasOrder.FriendlyString(),
 			"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 			"error", err,
 		)

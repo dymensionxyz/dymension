@@ -1,6 +1,9 @@
 package keeper_test
 
 import (
+	"testing"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
@@ -9,8 +12,6 @@ import (
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/suite"
-	"testing"
-	"time"
 )
 
 type KeeperTestSuite struct {
@@ -73,6 +74,10 @@ func (s *KeeperTestSuite) balance(bech32Account string) int64 {
 	return s.bankKeeper.GetBalance(s.ctx, sdk.MustAccAddressFromBech32(bech32Account), s.dymNsKeeper.GetParams(s.ctx).Price.PriceDenom).Amount.Int64()
 }
 
+func (s *KeeperTestSuite) moduleBalance() int64 {
+	return s.balance(dymNsModuleAccAddr.String())
+}
+
 func (s *KeeperTestSuite) persistRollApp(ra rollapp) {
 	s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
 		RollappId:    ra.rollAppId,
@@ -86,10 +91,23 @@ func (s *KeeperTestSuite) persistRollApp(ra rollapp) {
 	}
 }
 
+func (s *KeeperTestSuite) moduleParams() dymnstypes.Params {
+	return s.dymNsKeeper.GetParams(s.ctx)
+}
+
+func (s *KeeperTestSuite) updateModuleParams(f func(dymnstypes.Params) dymnstypes.Params) {
+	params := s.moduleParams()
+	params = f(params)
+	err := s.dymNsKeeper.SetParams(s.ctx, params)
+	s.Require().NoError(err)
+}
+
+//
+
 func (s *KeeperTestSuite) requireRollApp(rollAppId string) *reqRollApp {
 	return &reqRollApp{
-		KeeperTestSuite: s,
-		rollAppId:       rollAppId,
+		s:         s,
+		rollAppId: rollAppId,
 	}
 }
 
@@ -139,27 +157,28 @@ func (r *rollapp) WithAlias(alias string) *rollapp {
 //
 
 type reqRollApp struct {
-	*KeeperTestSuite
+	s         *KeeperTestSuite
 	rollAppId string
 }
 
 func (m reqRollApp) HasAlias(aliases ...string) {
 	for _, alias := range aliases {
-		rollAppId, found := m.dymNsKeeper.GetRollAppIdByAlias(m.ctx, alias)
-		m.Require().True(found)
-		m.Require().Equal(m.rollAppId, rollAppId)
+		rollAppId, found := m.s.dymNsKeeper.GetRollAppIdByAlias(m.s.ctx, alias)
+		m.s.Require().True(found)
+		m.s.Require().Equal(m.rollAppId, rollAppId)
 	}
 }
+
 func (m reqRollApp) HasNoAlias() {
-	alias, found := m.dymNsKeeper.GetAliasByRollAppId(m.ctx, m.rollAppId)
-	m.Require().False(found)
-	m.Require().Empty(alias)
+	alias, found := m.s.dymNsKeeper.GetAliasByRollAppId(m.s.ctx, m.rollAppId)
+	m.s.Require().False(found)
+	m.s.Require().Empty(alias)
 }
 
 //
 
 type sellOrderBuilder struct {
-	*KeeperTestSuite
+	s *KeeperTestSuite
 	//
 	goodsId   string
 	orderType dymnstypes.OrderType
@@ -182,11 +201,11 @@ func (s *KeeperTestSuite) newAliasSellOrder(alias string) *sellOrderBuilder {
 
 func (s *KeeperTestSuite) newSellOrder(goodsId string, orderType dymnstypes.OrderType) *sellOrderBuilder {
 	return &sellOrderBuilder{
-		KeeperTestSuite: s,
-		goodsId:         goodsId,
-		orderType:       orderType,
-		expiry:          s.now.Add(time.Second).Unix(),
-		minPrice:        0,
+		s:         s,
+		goodsId:   goodsId,
+		orderType: orderType,
+		expiry:    s.now.Add(time.Second).Unix(),
+		minPrice:  0,
 	}
 }
 
@@ -196,7 +215,11 @@ func (b *sellOrderBuilder) WithMinPrice(minPrice int64) *sellOrderBuilder {
 }
 
 func (b *sellOrderBuilder) Expired() *sellOrderBuilder {
-	b.expiry = b.now.Add(-time.Second).Unix()
+	return b.WithExpiry(b.s.now.Add(-time.Second).Unix())
+}
+
+func (b *sellOrderBuilder) WithExpiry(epoch int64) *sellOrderBuilder {
+	b.expiry = epoch
 	return b
 }
 
