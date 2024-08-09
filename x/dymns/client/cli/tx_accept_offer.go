@@ -17,14 +17,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewAcceptDymNameBuyOfferTxCmd is the CLI command for accepting a Buy-Order of a Dym-Name
+// NewAcceptBuyOfferTxCmd is the CLI command for accepting a Buy-Order of a Dym-Name/Alias/Handle.
 // or offer-back to raise the price.
-func NewAcceptDymNameBuyOfferTxCmd() *cobra.Command {
+func NewAcceptBuyOfferTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   fmt.Sprintf("accept-offer [offer-id] [amount] %s", params.DisplayDenom),
-		Short: "Accept a Buy-Order for your Dym-Name",
+		Short: "Accept a Buy-Order for your Dym-Name/Alias/Handle",
 		Example: fmt.Sprintf(
-			"$ %s tx %s accept-offer 1 50 %s --%s hub-user",
+			"$ %s tx %s accept-offer 1 50 %s --%s hub-user/sequencer",
 			version.AppName, dymnstypes.ModuleName,
 			params.DisplayDenom,
 			flags.FlagFrom,
