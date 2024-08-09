@@ -66,5 +66,4 @@ func (k Keeper) GetAllBondReductions(ctx sdk.Context) (bds []types.BondReduction
 		bds = append(bds, bd)
 	}
 	return
-
 }
