@@ -5,14 +5,13 @@ import (
 	"time"
 
 	"github.com/cometbft/cometbft/libs/log"
-
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
-	epochtypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
-
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	epochtypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
+
+	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 )
 
 // Keeper provides a way to manage incentives module storage.
@@ -26,11 +25,10 @@ type Keeper struct {
 	ck         types.CommunityPoolKeeper
 	tk         types.TxFeesKeeper
 	rk         types.RollappKeeper
-	sq         types.SequencerKeeper
 }
 
 // NewKeeper returns a new instance of the incentive module keeper struct.
-func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk types.BankKeeper, lk types.LockupKeeper, ek types.EpochKeeper, ck types.CommunityPoolKeeper, txfk types.TxFeesKeeper, rk types.RollappKeeper, sq types.SequencerKeeper) *Keeper {
+func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk types.BankKeeper, lk types.LockupKeeper, ek types.EpochKeeper, ck types.CommunityPoolKeeper, txfk types.TxFeesKeeper, rk types.RollappKeeper) *Keeper {
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
@@ -44,7 +42,6 @@ func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk 
 		ck:         ck,
 		tk:         txfk,
 		rk:         rk,
-		sq:         sq,
 	}
 }
 
