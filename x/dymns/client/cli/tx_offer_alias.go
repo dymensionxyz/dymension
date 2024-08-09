@@ -17,18 +17,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	flagContinueOfferId = "continue-offer-id"
-)
-
-// NewOfferBuyDymNameTxCmd is the CLI command for creating an offer to buy a Dym-Name.
-func NewOfferBuyDymNameTxCmd() *cobra.Command {
+// NewOfferBuyAliasTxCmd is the CLI command for creating an offer to buy an Alias/Handle.
+func NewOfferBuyAliasTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     fmt.Sprintf("offer-name [Dym-Name] [amount] %s", params.DisplayDenom),
-		Aliases: []string{"offer"},
-		Short:   "Create an offer to buy a Dym-Name",
+		Use:     fmt.Sprintf("offer-alias [Alias/Handle] [amount] %s", params.DisplayDenom),
+		Aliases: []string{"offer-handle"},
+		Short:   "Create an offer to buy an Alias/Handle",
 		Example: fmt.Sprintf(
-			"$ %s tx %s offer myname 50 %s --%s hub-user",
+			"$ %s tx %s offer dym 50 %s --%s sequencer",
 			version.AppName, dymnstypes.ModuleName,
 			params.DisplayDenom,
 			flags.FlagFrom,
@@ -40,9 +36,9 @@ func NewOfferBuyDymNameTxCmd() *cobra.Command {
 				return err
 			}
 
-			dymName := args[0]
-			if !dymnsutils.IsValidDymName(dymName) {
-				return fmt.Errorf("input is not a valid Dym-Name: %s", dymName)
+			alias := args[0]
+			if !dymnsutils.IsValidAlias(alias) {
+				return fmt.Errorf("input is not a valid alias: %s", alias)
 			}
 
 			amount, err := strconv.ParseUint(args[1], 10, 64)
@@ -79,8 +75,8 @@ func NewOfferBuyDymNameTxCmd() *cobra.Command {
 			}
 
 			msg := &dymnstypes.MsgPlaceBuyOrder{
-				GoodsId:         dymName,
-				OrderType:       dymnstypes.NameOrder,
+				GoodsId:         alias,
+				OrderType:       dymnstypes.AliasOrder,
 				Buyer:           buyer,
 				ContinueOfferId: continueOfferId,
 				Offer: sdk.Coin{

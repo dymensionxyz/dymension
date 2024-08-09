@@ -15,20 +15,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	flagMinPrice             = "min-price"
-	flagImmediatelySellPrice = "immediately-sell-price"
-)
-
-// NewPlaceDymNameSellOrderTxCmd is the CLI command for creating a Sell-Order to sell a Dym-Name.
-func NewPlaceDymNameSellOrderTxCmd() *cobra.Command {
+// NewPlaceAliasSellOrderTxCmd is the CLI command for creating a Sell-Order to sell an Alias/Handle.
+func NewPlaceAliasSellOrderTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "sell-name [Dym-Name]",
-		Aliases: []string{"sell"},
-		Short:   "Create a sell-order to sell your Dym-Name",
-		Long:    fmt.Sprintf(`Create a sell-order to sell your Dym-Name. Flag --%s indicate the starting price of the Dym-Name, and flag --%s indicate the immediately sell price of the Dym-Name. If immediately sell price is not supplied or the highest bid does not reaching this amount, auction can only be ended when the sell-order expired.`, flagMinPrice, flagImmediatelySellPrice),
+		Use:     "sell-alias [Alias/Handle]",
+		Aliases: []string{"sell-handle"},
+		Short:   "Create a sell-order to sell Alias/Handle of a RollApp you owned",
+		Long:    fmt.Sprintf(`Create a sell-order to sell Alias/Handle of a RollApp you owned. Flag --%s indicate the starting price of the Alias/Handle, and flag --%s indicate the immediately sell price of the Alias/Handle. If immediately sell price is not supplied or the highest bid does not reaching this amount, auction can only be ended when the sell-order expired.`, flagMinPrice, flagImmediatelySellPrice),
 		Example: fmt.Sprintf(
-			"$ %s tx %s sell-name myname --%s 50 [--%s 100] --%s hub-user",
+			"$ %s tx %s sell-alias dym --%s 50 [--%s 100] --%s sequencer",
 			version.AppName, dymnstypes.ModuleName,
 			flagMinPrice, flagImmediatelySellPrice,
 			flags.FlagFrom,
@@ -40,9 +35,9 @@ func NewPlaceDymNameSellOrderTxCmd() *cobra.Command {
 				return err
 			}
 
-			dymName := args[0]
-			if !dymnsutils.IsValidDymName(dymName) {
-				return fmt.Errorf("input is not a valid Dym-Name: %s", dymName)
+			alias := args[0]
+			if !dymnsutils.IsValidAlias(alias) {
+				return fmt.Errorf("input is not a valid Dym-Name: %s", alias)
 			}
 
 			minPriceDym, err := cmd.Flags().GetUint64(flagMinPrice)
@@ -87,8 +82,8 @@ func NewPlaceDymNameSellOrderTxCmd() *cobra.Command {
 			}
 
 			msg := &dymnstypes.MsgPlaceSellOrder{
-				GoodsId:   dymName,
-				OrderType: dymnstypes.NameOrder,
+				GoodsId:   alias,
+				OrderType: dymnstypes.AliasOrder,
 				MinPrice:  sdk.NewCoin(resParams.Params.Price.PriceDenom, sdk.NewInt(int64(minPriceDym)).MulRaw(1e18)),
 				SellPrice: sellPrice,
 				Owner:     seller,
@@ -104,8 +99,8 @@ func NewPlaceDymNameSellOrderTxCmd() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 
-	cmd.Flags().Uint64(flagMinPrice, 0, "minimum price to sell the Dym-Name")
-	cmd.Flags().Uint64(flagImmediatelySellPrice, 0, "immediately sell price of the Dym-Name, when someone placed a bid on it that matching the immediately sell price, auction stopped and the Dym-Name will be sold immediately, otherwise the Dym-Name will be sold to the highest bidder when the sell-order expired")
+	cmd.Flags().Uint64(flagMinPrice, 0, "minimum price to sell the Alias/Handle")
+	cmd.Flags().Uint64(flagImmediatelySellPrice, 0, "immediately sell price of the Alias/Handle, when someone placed a bid on it that matching the immediately sell price, auction stopped and the Alias/Handle will be sold immediately, otherwise the Alias/Handle will be sold to the highest bidder when the sell-order expired")
 
 	return cmd
 }

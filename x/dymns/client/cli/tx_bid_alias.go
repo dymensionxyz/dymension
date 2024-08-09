@@ -16,14 +16,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewPlaceBidOnDymNameOrderTxCmd is the CLI command for placing a bid on a Dym-Name Sell-Order.
-func NewPlaceBidOnDymNameOrderTxCmd() *cobra.Command {
+// NewPlaceBidOnAliasOrderTxCmd is the CLI command for placing a bid on a Alias/Handle Sell-Order.
+func NewPlaceBidOnAliasOrderTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     fmt.Sprintf("bid-name [Dym-Name] [amount] %s", params.DisplayDenom),
-		Aliases: []string{"bid"},
-		Short:   "place a bid on a Dym-Name Sell-Order",
+		Use:     fmt.Sprintf("bid-alias [Alias] [amount] %s", params.DisplayDenom),
+		Aliases: []string{"bid-handle"},
+		Short:   "place a bid on a Alias/Handle Sell-Order",
 		Example: fmt.Sprintf(
-			"$ %s tx %s bid-name myname 100 %s --%s hub-user",
+			"$ %s tx %s bid-alias dym 100 %s --%s sequencer",
 			version.AppName, dymnstypes.ModuleName, params.DisplayDenom, flags.FlagFrom,
 		),
 		Args: cobra.ExactArgs(3),
@@ -33,9 +33,9 @@ func NewPlaceBidOnDymNameOrderTxCmd() *cobra.Command {
 				return err
 			}
 
-			dymName := args[0]
-			if !dymnsutils.IsValidDymName(dymName) {
-				return fmt.Errorf("invalid Dym-Name: %s", dymName)
+			alias := args[0]
+			if !dymnsutils.IsValidAlias(alias) {
+				return fmt.Errorf("invalid alias: %s", alias)
 			}
 			amount, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil || amount < 1 {
@@ -58,8 +58,8 @@ func NewPlaceBidOnDymNameOrderTxCmd() *cobra.Command {
 			}
 
 			msg := &dymnstypes.MsgPurchaseOrder{
-				GoodsId:   dymName,
-				OrderType: dymnstypes.NameOrder,
+				GoodsId:   alias,
+				OrderType: dymnstypes.AliasOrder,
 				Offer:     sdk.NewCoin(params.BaseDenom, sdk.NewInt(int64(amount)).MulRaw(1e18)),
 				Buyer:     buyer,
 			}
