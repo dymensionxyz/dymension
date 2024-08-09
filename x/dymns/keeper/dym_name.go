@@ -604,106 +604,41 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 		outputDymNameAddresses.Sort()
 	}()
 
-	filterOnlyWorkingChainIdForResult := func(a dymnstypes.ReverseResolvedDymNameAddress) bool {
-		return a.ChainIdOrAlias == workingChainId
-	}
-
-	addFallback := func(dymName dymnstypes.DymName, configs []dymnstypes.DymNameConfig) {
-		// only accept fallback for the case of default config
-		for range dymnstypes.DymNameConfigs(configs).DefaultNameConfigs(true) {
-			outputDymNameAddresses = append(outputDymNameAddresses, dymnstypes.ReverseResolvedDymNameAddress{
-				SubName:        "",
-				Name:           dymName.Name,
-				ChainIdOrAlias: workingChainId, // fallback
-			})
-
-			break
-		}
-	}
-
 	if is0xAddr {
 		hexAddr := inputAddress
-		bzAddr := dymnsutils.GetBytesFromHexAddress(hexAddr)
 
-		// When the input address is a hex address,
-		// we can assume the query comes from a coin-type-60 chain.
-		// Only host-chain and RollApp are coin-type-60 chains and support reverse lookup,
-		// while other chains are ignored.
-		//
-		// Should do a fallback lookup?
-		// Depend on the working chain-id is recognized or not.
-		// - If the working chain-id is recognized then DO a fallback lookup.
-		// - If the working chain-id is NOT recognized, DO NOT do a fallback lookup.
-
-		// But first, let try to convert it into a bech32 address to see if any result is available.
-		var bech32Hrp string
-		if workingChainIdIsHostChain {
-			bech32Hrp = sdk.GetConfig().GetBech32AccountAddrPrefix()
-		} else if rollappBech32Hrp, found := k.GetRollAppBech32Prefix(ctx, workingChainId); found {
-			bech32Hrp = rollappBech32Hrp
+		outputDymNameAddresses, err = k.reverseResolveDymNameAddressUsingHexAddress(
+			ctx,
+			hexAddr,
+			workingChainId,
+			workingChainIdIsHostChain, workingChainIdIsRollApp,
+		)
+		if err != nil {
+			return nil, err
 		}
 
-		{
-			lookupKey := inputAddress
-			if bech32Hrp != "" {
-				// found bech32 prefix configured for this chain-id
-				lookupKey = sdk.MustBech32ifyAddressBytes(bech32Hrp, bzAddr)
-			}
-
-			dymNames, err1 := k.GetDymNamesContainsConfiguredAddress(ctx, lookupKey)
-			if err1 != nil {
-				return nil, err1
-			}
-
-			for _, dymName := range dymNames {
-				configuredAddresses, _ := dymName.GetAddressesForReverseMapping()
-				configs := configuredAddresses[lookupKey]
-				outputDymNameAddresses = outputDymNameAddresses.AppendConfigs(ctx, dymName,
-					configs, filterOnlyWorkingChainIdForResult,
-				)
-			}
-
-			if len(outputDymNameAddresses) > 0 {
-				// there is at least one result, can stop here
-				return
-			}
-		}
-
-		// check if we should do a fallback lookup
-
-		if !workingChainIdIsHostChain && !workingChainIdIsRollApp {
-			// we don't do fallback lookup for this case, just for safety purpose
+		if len(outputDymNameAddresses) > 0 {
+			// there is at least one result, can stop here
 			return
 		}
 
-		// we are going to do a fallback lookup
-		dymNames, err2 := k.GetDymNamesContainsFallbackAddress(ctx, bzAddr)
-		if err2 != nil {
-			return nil, err2
-		}
-
-		for _, dymName := range dymNames {
-			_, fallbackAddresses := dymName.GetAddressesForReverseMapping()
-			configs := fallbackAddresses[hexAddr]
-			addFallback(dymName, configs)
-		}
-
-		return
+		return k.fallbackReverseResolveDymNameAddress(
+			ctx,
+			dymnsutils.GetBytesFromHexAddress(hexAddr),
+			workingChainId,
+			workingChainIdIsHostChain, workingChainIdIsRollApp,
+		)
 	}
 
 	// try lookup using configured address
 
-	dymNames, err1 := k.GetDymNamesContainsConfiguredAddress(ctx, inputAddress)
-	if err1 != nil {
-		return nil, err1
-	}
-
-	for _, dymName := range dymNames {
-		configuredAddresses, _ := dymName.GetAddressesForReverseMapping()
-		configs := configuredAddresses[inputAddress]
-		outputDymNameAddresses = outputDymNameAddresses.AppendConfigs(ctx, dymName,
-			configs, filterOnlyWorkingChainIdForResult,
-		)
+	outputDymNameAddresses, err = k.reverseResolveDymNameAddressUsingConfiguredAddress(
+		ctx,
+		inputAddress,
+		workingChainId,
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	if len(outputDymNameAddresses) > 0 {
@@ -718,11 +653,15 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 	// Only host-chain and RollApp are coin-type-60 chains and support reverse-resolve using fallback lookup,
 	// while other chains are ignored for safety purpose, as we don't if they are coin-type-60 chains or not.
 
-	if (!workingChainIdIsHostChain && !workingChainIdIsRollApp) || !isBech32Addr {
+	if !workingChainIdIsHostChain && !workingChainIdIsRollApp {
 		return
 	}
 
-	// assume bech32 address
+	if !isBech32Addr {
+		// not a bech32 address, we can't do fallback lookup
+		return
+	}
+
 	bech32Addr := inputAddress
 
 	_, bz, err2 := bech32.DecodeAndConvert(bech32Addr)
@@ -730,17 +669,142 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 		panic(errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to decode bech32 address %s", bech32Addr))
 	}
 
-	fallbackAddr := dymnstypes.FallbackAddress(bz)
+	return k.fallbackReverseResolveDymNameAddress(
+		ctx,
+		bz,
+		workingChainId,
+		workingChainIdIsHostChain, workingChainIdIsRollApp,
+	)
+}
 
-	dymNames, err3 := k.GetDymNamesContainsFallbackAddress(ctx, fallbackAddr)
-	if err3 != nil {
-		return nil, err3
+// reverseResolveDymNameAddressUsingConfiguredAddress resolves an address into a Dym-Name-Address
+// which points to its address.
+func (k Keeper) reverseResolveDymNameAddressUsingConfiguredAddress(
+	ctx sdk.Context,
+	inputAddress,
+	workingChainId string,
+) (outputDymNameAddresses dymnstypes.ReverseResolvedDymNameAddresses, err error) {
+	dymNames, err1 := k.GetDymNamesContainsConfiguredAddress(ctx, inputAddress)
+	if err1 != nil {
+		return nil, err1
 	}
+
+	for _, dymName := range dymNames {
+		configuredAddresses, _ := dymName.GetAddressesForReverseMapping()
+		configs := configuredAddresses[inputAddress]
+		outputDymNameAddresses = outputDymNameAddresses.AppendConfigs(ctx, dymName,
+			configs, func(address dymnstypes.ReverseResolvedDymNameAddress) bool {
+				return address.ChainIdOrAlias == workingChainId
+			},
+		)
+	}
+
+	return
+}
+
+// reverseResolveDymNameAddressUsingHexAddress resolves a hex address into a Dym-Name-Address
+// which points to its corresponding bech32 address.
+func (k Keeper) reverseResolveDymNameAddressUsingHexAddress(
+	ctx sdk.Context,
+	hexAddr,
+	workingChainId string,
+	workingChainIdIsHostChain, workingChainIdIsRollApp bool,
+) (outputDymNameAddresses dymnstypes.ReverseResolvedDymNameAddresses, err error) {
+	if !dymnsutils.IsValidHexAddress(hexAddr) {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid hex address: %s", hexAddr)
+	}
+
+	bzAddr := dymnsutils.GetBytesFromHexAddress(hexAddr)
+
+	// When the input address is a hex address,
+	// we can assume the query comes from a coin-type-60 chain.
+	// Only host-chain and RollApp are coin-type-60 chains and support reverse lookup,
+	// while other chains are ignored.
+	//
+	// Should do a fallback lookup?
+	// Depend on the working chain-id is recognized or not.
+	// - If the working chain-id is recognized then DO a fallback lookup.
+	// - If the working chain-id is NOT recognized, DO NOT do a fallback lookup.
+
+	// But first, let try to convert it into a bech32 address to see if any result is available.
+	var bech32Hrp string
+	if workingChainIdIsHostChain {
+		bech32Hrp = sdk.GetConfig().GetBech32AccountAddrPrefix()
+	} else if rollappBech32Hrp, found := k.GetRollAppBech32Prefix(ctx, workingChainId); found {
+		bech32Hrp = rollappBech32Hrp
+	}
+
+	{
+		lookupKey := hexAddr
+		if bech32Hrp != "" {
+			// found bech32 prefix configured for this chain-id
+			lookupKey = sdk.MustBech32ifyAddressBytes(bech32Hrp, bzAddr)
+		}
+
+		dymNames, err1 := k.GetDymNamesContainsConfiguredAddress(ctx, lookupKey)
+		if err1 != nil {
+			return nil, err1
+		}
+
+		for _, dymName := range dymNames {
+			configuredAddresses, _ := dymName.GetAddressesForReverseMapping()
+			configs := configuredAddresses[lookupKey]
+			outputDymNameAddresses = outputDymNameAddresses.AppendConfigs(ctx, dymName,
+				configs, func(address dymnstypes.ReverseResolvedDymNameAddress) bool {
+					return address.ChainIdOrAlias == workingChainId
+				},
+			)
+		}
+
+		if len(outputDymNameAddresses) > 0 {
+			// there is at least one result, can stop here
+			return
+		}
+	}
+
+	return k.fallbackReverseResolveDymNameAddress(
+		ctx,
+		bzAddr,
+		workingChainId,
+		workingChainIdIsHostChain, workingChainIdIsRollApp,
+	)
+}
+
+// fallbackReverseResolveDymNameAddress performs a fallback lookup for reverse resolve Dym-Name-Address.
+func (k Keeper) fallbackReverseResolveDymNameAddress(
+	ctx sdk.Context,
+	bzAddr []byte,
+	workingChainId string,
+	workingChainIdIsHostChain, workingChainIdIsRollApp bool,
+) (outputDymNameAddresses dymnstypes.ReverseResolvedDymNameAddresses, err error) {
+	// check if we should do a fallback lookup
+
+	if !workingChainIdIsHostChain && !workingChainIdIsRollApp {
+		// we don't do fallback lookup for this case, just for safety purpose
+		return
+	}
+
+	dymNames, err2 := k.GetDymNamesContainsFallbackAddress(ctx, bzAddr)
+	if err2 != nil {
+		return nil, err2
+	}
+
+	fallbackAddr := dymnstypes.FallbackAddress(bzAddr)
 
 	for _, dymName := range dymNames {
 		_, fallbackAddresses := dymName.GetAddressesForReverseMapping()
 		configs := fallbackAddresses[fallbackAddr.String()]
-		addFallback(dymName, configs)
+
+		// only accept fallback for the case of default config
+		for range dymnstypes.DymNameConfigs(configs).DefaultNameConfigs(true) {
+			outputDymNameAddresses = append(outputDymNameAddresses, dymnstypes.ReverseResolvedDymNameAddress{
+				SubName:        "",
+				Name:           dymName.Name,
+				ChainIdOrAlias: workingChainId, // fallback
+			})
+
+			break // just take the first one
+		}
 	}
 
 	return
