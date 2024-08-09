@@ -18,7 +18,7 @@ message DymName {
   string owner = 2;
 
   // controller is the account address that have permission update configuration for the Dym-Name.
-  // Default is the owner. Able to transfer control to another account.
+  // Default is the owner. Able to transfer control to another account by the owner.
   // Users can set Dym-Name owned by Cold-Wallet and controlled by Hot-Wallet.
   string controller = 3;
 

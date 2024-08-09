@@ -32,9 +32,8 @@ func (k Keeper) GetRollAppIdByAlias(ctx sdk.Context, alias string) (rollAppId st
 	return
 }
 
-// GetAliasByRollAppId returns the alias by the RollApp-Id.
+// GetAliasByRollAppId returns the first alias (in case RollApp has multiple aliases) by the RollApp-Id.
 func (k Keeper) GetAliasByRollAppId(ctx sdk.Context, chainId string) (alias string, found bool) {
-	// TODO DymNS: support returns multiple aliases
 	if !k.IsRollAppId(ctx, chainId) {
 		return
 	}
