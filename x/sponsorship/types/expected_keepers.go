@@ -3,7 +3,8 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	incentivestypes "github.com/osmosis-labs/osmosis/v15/x/incentives/types"
+
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 )
 
 // AccountKeeper defines the contract required for account APIs.

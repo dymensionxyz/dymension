@@ -7,8 +7,9 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 var _ = suite.TestingSuite(nil)
@@ -71,17 +72,17 @@ func (suite *KeeperTestSuite) TestCreateStream_CoinsSpendable() {
 	coins1 := sdk.NewCoins(currModuleBalance[0])
 	coins2 := sdk.NewCoins(currModuleBalance[1])
 
-	_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins1, defaultDistrInfo, time.Time{}, "day", 30)
+	_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins1, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
 	suite.Require().NoError(err)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins2, defaultDistrInfo, time.Now().Add(10*time.Minute), "day", 30)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins2, defaultDistrInfo, time.Now().Add(10*time.Minute), "day", 30, NonSponsored)
 	suite.Require().NoError(err)
 
 	// Check that all tokens are alloceted for distribution
 	toDistribute := suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
 	suite.Require().Equal(currModuleBalance, toDistribute)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{sdk.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{sdk.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
 	suite.Require().Error(err)
 
 	// mint more tokens to the streamer account
@@ -91,10 +92,10 @@ func (suite *KeeperTestSuite) TestCreateStream_CoinsSpendable() {
 	newToDistribute := suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
 	suite.Require().Equal(toDistribute, newToDistribute)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, mintCoins.Add(mintCoins...), defaultDistrInfo, time.Time{}, "day", 30)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, mintCoins.Add(mintCoins...), defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
 	suite.Require().Error(err)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{sdk.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{sdk.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
 	suite.Require().NoError(err)
 }
 
@@ -198,7 +199,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 
 	for _, tc := range tests {
 		suite.SetupTest()
-		_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, tc.coins, tc.distrTo, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver)
+		_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, tc.coins, tc.distrTo, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver, NonSponsored)
 		if tc.expectErr {
 			suite.Require().Error(err, tc.name)
 		} else {

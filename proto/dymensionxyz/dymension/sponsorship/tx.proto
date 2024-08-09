@@ -12,6 +12,9 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/sponsorship/types";
 service Msg {
   option (cosmos.msg.v1.service) = true;
 
+  // UpdateParams is used for updating module params.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
   // Vote allows a user to cast their vote. The user specifies a desired weight
   // breakdown among existing gauges.
   rpc Vote(MsgVote) returns (MsgVoteResponse);
@@ -19,6 +22,18 @@ service Msg {
   // RevokeVote allows a user to revoke their vote.
   rpc RevokeVote(MsgRevokeVote) returns (MsgRevokeVoteResponse);
 }
+
+// MsgUpdateParams allows to update module params.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the address that controls the module.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // NewParams should be fully populated.
+  Params new_params = 2 [ (gogoproto.nullable) = false ];
+}
+
+message MsgUpdateParamsResponse {}
 
 // MsgVote defines a message to cast a vote.
 message MsgVote {

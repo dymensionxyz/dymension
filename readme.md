@@ -122,7 +122,7 @@ sh scripts/pools/pools_bootstrap.sh
 
 ### Creating incentives streams
 
-After creating the pools above, we create 2 incentive streams through gov:
+After creating the pools above, we create 3 incentive streams through gov:
 
 ```sh
 sh scripts/incentives/fund_incentives.sh
@@ -133,6 +133,8 @@ Wait for the gov proposal to pass, and validate with:
 ```sh
 dymd q streamer streams
 ```
+
+The last stream is community-driven and governed by `x/sponsorship`.
 
 ### Locking tokens
 
@@ -148,7 +150,7 @@ validate with:
 dymd q lockup module-balance
 ```
 
-### check rewards
+### Checking rewards
 
 Every minute a share of the rewards will be distributed!
 
@@ -159,6 +161,23 @@ dymd q incentives active-gauges
 
 # alternatively, watch the outpup - you will see the "amount" change every minute
 #  watch -n1 -d "dymd q incentives active-gauges --output json | jq '.data[] | { "id": .id, "coins": .coins } '"
+```
+
+### Updating a community-driven distribution
+
+The following script casts two votes for a community-driven distribution.
+```sh
+sh scripts/incentives/sponsorship_vote.sh
+```
+
+This will change the corresponding stream distribution at the end of the current epoch.
+```sh
+dymd q streamer streams
+```
+
+The community-driven distribution may be queried with:
+```sh
+dymd q sponsorship distribution
 ```
 
 ## Debugging Container

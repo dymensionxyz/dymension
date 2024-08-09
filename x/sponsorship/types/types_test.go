@@ -66,23 +66,23 @@ func TestValidateGaugeWeights(t *testing.T) {
 				{GaugeId: 12, Weight: math.NewInt(20)},
 			},
 			errorIs:       types.ErrInvalidGaugeWeight,
-			errorContains: "total weight must equal 100",
+			errorContains: "total weight must be less than 100, got 110",
 		},
 		{
-			name: "Sum of weighs < 100",
+			name: "Valid, sum of weighs < 100",
 			input: []types.GaugeWeight{
 				{GaugeId: 15, Weight: math.NewInt(60)},
 				{GaugeId: 10, Weight: math.NewInt(20)},
 				{GaugeId: 12, Weight: math.NewInt(10)},
 			},
-			errorIs:       types.ErrInvalidGaugeWeight,
-			errorContains: "total weight must equal 100",
+			errorIs:       nil,
+			errorContains: "",
 		},
 		{
-			name:          "Empty input",
+			name:          "Empty is valid",
 			input:         []types.GaugeWeight{},
-			errorIs:       types.ErrInvalidGaugeWeight,
-			errorContains: "total weight must equal 100",
+			errorIs:       nil,
+			errorContains: "",
 		},
 		{
 			name: "Duplicated gauges",
@@ -134,6 +134,19 @@ func TestValidateDistribution(t *testing.T) {
 			errorContains: "",
 		},
 		{
+			name: "Valid, 400 abstained",
+			input: types.Distribution{
+				VotingPower: math.NewInt(1000),
+				Gauges: []types.Gauge{
+					{GaugeId: 15, Power: math.NewInt(200)},
+					{GaugeId: 10, Power: math.NewInt(300)},
+					{GaugeId: 12, Power: math.NewInt(100)},
+				},
+			},
+			errorIs:       nil,
+			errorContains: "",
+		},
+		{
 			name: "Duplicated gauges",
 			input: types.Distribution{
 				VotingPower: math.NewInt(1000),
@@ -153,11 +166,11 @@ func TestValidateDistribution(t *testing.T) {
 				Gauges: []types.Gauge{
 					{GaugeId: 15, Power: math.NewInt(500)},
 					{GaugeId: 10, Power: math.NewInt(300)},
-					{GaugeId: 12, Power: math.NewInt(100)},
+					{GaugeId: 12, Power: math.NewInt(400)},
 				},
 			},
 			errorIs:       types.ErrInvalidDistribution,
-			errorContains: "voting power mismatch: voting power 1000, total gauges power 900",
+			errorContains: "voting power mismatch: sum of gauge powers 1200 is greater than the total voting power 1000",
 		},
 	}
 
