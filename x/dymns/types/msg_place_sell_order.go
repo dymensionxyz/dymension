@@ -11,16 +11,16 @@ var _ sdk.Msg = &MsgPlaceSellOrder{}
 
 // ValidateBasic performs basic validation for the MsgPlaceSellOrder.
 func (m *MsgPlaceSellOrder) ValidateBasic() error {
-	if m.OrderType == NameOrder {
-		if !dymnsutils.IsValidDymName(m.GoodsId) {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "name is not a valid dym name: %s", m.GoodsId)
+	if m.AssetType == TypeName {
+		if !dymnsutils.IsValidDymName(m.AssetId) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "name is not a valid dym name: %s", m.AssetId)
 		}
-	} else if m.OrderType == AliasOrder {
-		if !dymnsutils.IsValidAlias(m.GoodsId) {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "alias is not a valid alias: %s", m.GoodsId)
+	} else if m.AssetType == TypeAlias {
+		if !dymnsutils.IsValidAlias(m.AssetId) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "alias is not a valid alias: %s", m.AssetId)
 		}
 	} else {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", m.OrderType)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", m.AssetType)
 	}
 
 	so := m.ToSellOrder()
@@ -43,8 +43,8 @@ func (m *MsgPlaceSellOrder) ValidateBasic() error {
 // ToSellOrder converts the MsgPlaceSellOrder to a SellOrder.
 func (m *MsgPlaceSellOrder) ToSellOrder() SellOrder {
 	so := SellOrder{
-		GoodsId:   m.GoodsId,
-		Type:      m.OrderType,
+		AssetId:   m.AssetId,
+		AssetType: m.AssetType,
 		MinPrice:  m.MinPrice,
 		SellPrice: m.SellPrice,
 	}

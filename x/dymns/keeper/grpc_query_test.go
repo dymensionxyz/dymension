@@ -351,7 +351,7 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 	addr2a := testAddr(2).bech32()
 
 	dymNameA := dymnstypes.DymName{
-		Name:       "goods",
+		Name:       "asset",
 		Owner:      addr1a,
 		Controller: addr2a,
 		ExpireAt:   now.Add(time.Hour).Unix(),
@@ -363,7 +363,7 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 		ExpireAt:   now.Add(time.Hour).Unix(),
 	}
 
-	rollAppC := newRollApp("central_1-1").WithAlias("goods")
+	rollAppC := newRollApp("central_1-1").WithAlias("asset")
 	rollAppD := newRollApp("donut_2-1").WithAlias("donut")
 
 	soDymNameA := s.newDymNameSellOrder(dymNameA.Name).WithMinPrice(100).Build()
@@ -384,8 +384,8 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 				s.Require().NoError(err)
 			},
 			req: &dymnstypes.QuerySellOrderRequest{
-				GoodsId:   dymNameA.Name,
-				OrderType: dymnstypes.NameOrder.FriendlyString(),
+				AssetId:   dymNameA.Name,
+				AssetType: dymnstypes.TypeName.FriendlyString(),
 			},
 			wantErr:       false,
 			wantSellOrder: &soDymNameA,
@@ -397,16 +397,16 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 				s.Require().NoError(err)
 			},
 			req: &dymnstypes.QuerySellOrderRequest{
-				GoodsId:   rollAppC.alias,
-				OrderType: dymnstypes.AliasOrder.FriendlyString(),
+				AssetId:   rollAppC.alias,
+				AssetType: dymnstypes.TypeAlias.FriendlyString(),
 			},
 			wantErr:       false,
 			wantSellOrder: &soAliasRollAppC,
 		},
 		{
-			name: "pass - returns correct order of same goods-id with multiple order types",
+			name: "pass - returns correct order of same asset-id with multiple asset types",
 			preRunFunc: func(s *KeeperTestSuite) {
-				s.Require().Equal(soDymNameA.GoodsId, soAliasRollAppC.GoodsId, "Dym-Name and Alias must be the same for this test")
+				s.Require().Equal(soDymNameA.AssetId, soAliasRollAppC.AssetId, "Dym-Name and Alias must be the same for this test")
 
 				err := s.dymNsKeeper.SetSellOrder(s.ctx, soDymNameA)
 				s.Require().NoError(err)
@@ -415,16 +415,16 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 				s.Require().NoError(err)
 			},
 			req: &dymnstypes.QuerySellOrderRequest{
-				GoodsId:   dymNameA.Name,
-				OrderType: dymnstypes.NameOrder.FriendlyString(),
+				AssetId:   dymNameA.Name,
+				AssetType: dymnstypes.TypeName.FriendlyString(),
 			},
 			wantErr:       false,
 			wantSellOrder: &soDymNameA,
 		},
 		{
-			name: "pass - returns correct order of same goods-id with multiple order types",
+			name: "pass - returns correct order of same asset-id with multiple asset types",
 			preRunFunc: func(s *KeeperTestSuite) {
-				s.Require().Equal(soDymNameA.GoodsId, soAliasRollAppC.GoodsId, "Dym-Name and Alias must be the same for this test")
+				s.Require().Equal(soDymNameA.AssetId, soAliasRollAppC.AssetId, "Dym-Name and Alias must be the same for this test")
 
 				err := s.dymNsKeeper.SetSellOrder(s.ctx, soDymNameA)
 				s.Require().NoError(err)
@@ -433,8 +433,8 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 				s.Require().NoError(err)
 			},
 			req: &dymnstypes.QuerySellOrderRequest{
-				GoodsId:   rollAppC.alias,
-				OrderType: dymnstypes.AliasOrder.FriendlyString(),
+				AssetId:   rollAppC.alias,
+				AssetType: dymnstypes.TypeAlias.FriendlyString(),
 			},
 			wantErr:       false,
 			wantSellOrder: &soAliasRollAppC,
@@ -448,8 +448,8 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 		{
 			name: "fail - reject bad Dym-Name request",
 			req: &dymnstypes.QuerySellOrderRequest{
-				GoodsId:   "$$$",
-				OrderType: dymnstypes.NameOrder.FriendlyString(),
+				AssetId:   "$$$",
+				AssetType: dymnstypes.TypeName.FriendlyString(),
 			},
 			wantErr:         true,
 			wantErrContains: "invalid Dym-Name",
@@ -457,27 +457,27 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 		{
 			name: "fail - reject bad Alias request",
 			req: &dymnstypes.QuerySellOrderRequest{
-				GoodsId:   "$$$",
-				OrderType: dymnstypes.AliasOrder.FriendlyString(),
+				AssetId:   "$$$",
+				AssetType: dymnstypes.TypeAlias.FriendlyString(),
 			},
 			wantErr:         true,
 			wantErrContains: "invalid alias",
 		},
 		{
-			name: "fail - reject unknown order type",
+			name: "fail - reject unknown asset type",
 			req: &dymnstypes.QuerySellOrderRequest{
-				GoodsId:   "goods",
-				OrderType: "pseudo",
+				AssetId:   "asset",
+				AssetType: "pseudo",
 			},
 			wantErr:         true,
-			wantErrContains: "invalid order type",
+			wantErrContains: "invalid asset type",
 		},
 		{
 			name:       "fail - reject if not found, type Dym Name",
 			preRunFunc: nil,
 			req: &dymnstypes.QuerySellOrderRequest{
-				GoodsId:   dymNameB.Name,
-				OrderType: dymnstypes.NameOrder.FriendlyString(),
+				AssetId:   dymNameB.Name,
+				AssetType: dymnstypes.TypeName.FriendlyString(),
 			},
 			wantErr:         true,
 			wantErrContains: "no active Sell Order for Dym-Name",
@@ -486,8 +486,8 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 			name:       "fail - reject if not found, type Alias",
 			preRunFunc: nil,
 			req: &dymnstypes.QuerySellOrderRequest{
-				GoodsId:   rollAppD.alias,
-				OrderType: dymnstypes.AliasOrder.FriendlyString(),
+				AssetId:   rollAppD.alias,
+				AssetType: dymnstypes.TypeAlias.FriendlyString(),
 			},
 			wantErr:         true,
 			wantErrContains: "no active Sell Order for Alias",
@@ -535,8 +535,8 @@ func Test_queryServer_HistoricalSellOrderOfDymName(t *testing.T) {
 	require.NoError(t, dk.SetDymName(ctx, dymNameA))
 	for r := int64(1); r <= 5; r++ {
 		err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{
-			GoodsId:   dymNameA.Name,
-			Type:      dymnstypes.NameOrder,
+			AssetId:   dymNameA.Name,
+			AssetType: dymnstypes.TypeName,
 			ExpireAt:  now.Unix() + r,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(200),
@@ -546,7 +546,7 @@ func Test_queryServer_HistoricalSellOrderOfDymName(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		err = dk.MoveSellOrderToHistorical(ctx, dymNameA.Name, dymnstypes.NameOrder)
+		err = dk.MoveSellOrderToHistorical(ctx, dymNameA.Name, dymnstypes.TypeName)
 		require.NoError(t, err)
 	}
 
@@ -559,8 +559,8 @@ func Test_queryServer_HistoricalSellOrderOfDymName(t *testing.T) {
 	require.NoError(t, dk.SetDymName(ctx, dymNameB))
 	for r := int64(1); r <= 3; r++ {
 		err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{
-			GoodsId:   dymNameB.Name,
-			Type:      dymnstypes.NameOrder,
+			AssetId:   dymNameB.Name,
+			AssetType: dymnstypes.TypeName,
 			ExpireAt:  now.Unix() + r,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(300),
@@ -570,7 +570,7 @@ func Test_queryServer_HistoricalSellOrderOfDymName(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		err = dk.MoveSellOrderToHistorical(ctx, dymNameB.Name, dymnstypes.NameOrder)
+		err = dk.MoveSellOrderToHistorical(ctx, dymNameB.Name, dymnstypes.TypeName)
 		require.NoError(t, err)
 	}
 
@@ -1679,8 +1679,8 @@ func Test_queryServer_BuyOrderById(t *testing.T) {
 			buyOrders: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1689,8 +1689,8 @@ func Test_queryServer_BuyOrderById(t *testing.T) {
 			wantErr:    false,
 			wantOffer: dymnstypes.BuyOrder{
 				Id:         "101",
-				GoodsId:    "a",
-				Type:       dymnstypes.NameOrder,
+				AssetId:    "a",
+				AssetType:  dymnstypes.TypeName,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(1),
 			},
@@ -1700,22 +1700,22 @@ func Test_queryServer_BuyOrderById(t *testing.T) {
 			buyOrders: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "103",
-					GoodsId:    "b",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "b",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
@@ -1724,8 +1724,8 @@ func Test_queryServer_BuyOrderById(t *testing.T) {
 			wantErr:    false,
 			wantOffer: dymnstypes.BuyOrder{
 				Id:         "102",
-				GoodsId:    "a",
-				Type:       dymnstypes.NameOrder,
+				AssetId:    "a",
+				AssetType:  dymnstypes.TypeName,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(2),
 			},
@@ -1735,15 +1735,15 @@ func Test_queryServer_BuyOrderById(t *testing.T) {
 			buyOrders: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
@@ -1757,8 +1757,8 @@ func Test_queryServer_BuyOrderById(t *testing.T) {
 			buyOrders: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1772,8 +1772,8 @@ func Test_queryServer_BuyOrderById(t *testing.T) {
 			buyOrders: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1847,8 +1847,8 @@ func Test_queryServer_BuyOrdersPlacedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1858,8 +1858,8 @@ func Test_queryServer_BuyOrdersPlacedByAccount(t *testing.T) {
 			wantOffers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1870,29 +1870,29 @@ func Test_queryServer_BuyOrdersPlacedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					GoodsId:    "b",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "b",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "103",
-					GoodsId:    "c",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "c",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA, // should exclude this
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 				{
 					Id:         "104",
-					GoodsId:    "d",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "d",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(4),
 				},
@@ -1902,22 +1902,22 @@ func Test_queryServer_BuyOrdersPlacedByAccount(t *testing.T) {
 			wantOffers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					GoodsId:    "b",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "b",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "104",
-					GoodsId:    "d",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "d",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(4),
 				},
@@ -1928,15 +1928,15 @@ func Test_queryServer_BuyOrdersPlacedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1950,8 +1950,8 @@ func Test_queryServer_BuyOrdersPlacedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1964,8 +1964,8 @@ func Test_queryServer_BuyOrdersPlacedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1987,7 +1987,7 @@ func Test_queryServer_BuyOrdersPlacedByAccount(t *testing.T) {
 				err := dk.SetBuyOrder(ctx, offer)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingGoodsIdToBuyOrder(ctx, offer.GoodsId, offer.Type, offer.Id)
+				err = dk.AddReverseMappingAssetIdToBuyOrder(ctx, offer.AssetId, offer.AssetType, offer.Id)
 				require.NoError(t, err)
 
 				err = dk.AddReverseMappingBuyerToBuyOrderRecord(ctx, offer.Buyer, offer.Id)
@@ -2065,8 +2065,8 @@ func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
 			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -2076,8 +2076,8 @@ func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
 			wantOffers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -2102,22 +2102,22 @@ func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
 			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "103",
-					GoodsId:    "b",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "b",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
@@ -2127,15 +2127,15 @@ func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
 			wantOffers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
@@ -2160,22 +2160,22 @@ func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
 			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "103",
-					GoodsId:    "b",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "b",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
@@ -2197,8 +2197,8 @@ func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
 			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -2219,8 +2219,8 @@ func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
 			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -2242,7 +2242,7 @@ func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
 				err := dk.SetBuyOrder(ctx, offer)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingGoodsIdToBuyOrder(ctx, offer.GoodsId, offer.Type, offer.Id)
+				err = dk.AddReverseMappingAssetIdToBuyOrder(ctx, offer.AssetId, offer.AssetType, offer.Id)
 				require.NoError(t, err)
 
 				err = dk.AddReverseMappingBuyerToBuyOrderRecord(ctx, offer.Buyer, offer.Id)
@@ -2320,8 +2320,8 @@ func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -2331,8 +2331,8 @@ func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
 			wantOffers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -2363,29 +2363,29 @@ func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "103",
-					GoodsId:    "b",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "b",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 				{
 					Id:         "104",
-					GoodsId:    "c",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "c",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      ownerA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
@@ -2395,22 +2395,22 @@ func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
 			wantOffers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "103",
-					GoodsId:    "b",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "b",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
@@ -2435,22 +2435,22 @@ func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "102",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "103",
-					GoodsId:    "b",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "b",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
@@ -2472,8 +2472,8 @@ func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -2494,8 +2494,8 @@ func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
 			offers: []dymnstypes.BuyOrder{
 				{
 					Id:         "101",
-					GoodsId:    "a",
-					Type:       dymnstypes.NameOrder,
+					AssetId:    "a",
+					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -2516,7 +2516,7 @@ func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
 				err := dk.SetBuyOrder(ctx, offer)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingGoodsIdToBuyOrder(ctx, offer.GoodsId, offer.Type, offer.Id)
+				err = dk.AddReverseMappingAssetIdToBuyOrder(ctx, offer.AssetId, offer.AssetType, offer.Id)
 				require.NoError(t, err)
 
 				err = dk.AddReverseMappingBuyerToBuyOrderRecord(ctx, offer.Buyer, offer.Id)
@@ -2648,12 +2648,12 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 				s.Require().NoError(err)
 
 				aliasBuyOrder1 := s.newAliasBuyOrder(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
-					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 1)).
+					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 1)).
 					Build()
 				s.setBuyOrderWithFunctionsAfter(aliasBuyOrder1)
 
 				aliasBuyOrder2 := s.newAliasBuyOrder(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
-					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 2)).
+					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 2)).
 					Build()
 				s.setBuyOrderWithFunctionsAfter(aliasBuyOrder2)
 			},
@@ -2662,8 +2662,8 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 			wantChainId:        rollApp1.rollAppId,
 			wantFoundSellOrder: true,
 			wantBuyOrderIds: []string{
-				dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 1),
-				dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 2),
+				dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 1),
+				dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 2),
 			},
 		},
 		{
@@ -2768,10 +2768,10 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByAlias() {
 	rollApp2 := *newRollApp("rollapp_2-2").WithAlias("two")
 
 	aliasBuyOrder1 := s.newAliasBuyOrder(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
-		WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 1)).
+		WithID(dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 1)).
 		Build()
 	aliasBuyOrder2 := s.newAliasBuyOrder(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
-		WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 2)).
+		WithID(dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 2)).
 		Build()
 
 	tests := []struct {
@@ -2897,10 +2897,10 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersOfAliasesLinkedToRollApp() {
 	rollApp2 := *newRollApp("rollapp_2-2").WithAlias("another")
 
 	aliasBuyOffer1_ra1_alias1 := s.newAliasBuyOrder(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
-		WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 1)).
+		WithID(dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 1)).
 		Build()
 	aliasBuyOffer2_ra1_alias1 := s.newAliasBuyOrder(rollApp2.owner, rollApp1.alias, rollApp2.rollAppId).
-		WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 2)).
+		WithID(dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 2)).
 		Build()
 
 	tests := []struct {
@@ -2967,12 +2967,12 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersOfAliasesLinkedToRollApp() {
 				)
 
 				aliasBuyOffer3_ra1_alias2 := s.newAliasBuyOrder(rollApp2.owner, alias2, rollApp2.rollAppId).
-					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 3)).
+					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 3)).
 					Build()
 				s.setBuyOrderWithFunctionsAfter(aliasBuyOffer3_ra1_alias2)
 
 				aliasBuyOffer4_ra1_alias3 := s.newAliasBuyOrder(rollApp2.owner, alias3, rollApp2.rollAppId).
-					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 4)).
+					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 4)).
 					Build()
 				s.setBuyOrderWithFunctionsAfter(aliasBuyOffer4_ra1_alias3)
 			},
@@ -2983,8 +2983,8 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersOfAliasesLinkedToRollApp() {
 			wantBuyOrderIds: []string{
 				aliasBuyOffer1_ra1_alias1.Id,
 				aliasBuyOffer2_ra1_alias1.Id,
-				dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 3),
-				dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 4),
+				dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 3),
+				dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 4),
 			},
 		},
 		{
@@ -3006,12 +3006,12 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersOfAliasesLinkedToRollApp() {
 				)
 
 				aliasBuyOffer3_ra1_alias2 := s.newAliasBuyOrder(rollApp2.owner, alias2, rollApp2.rollAppId).
-					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 3)).
+					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 3)).
 					Build()
 				s.setBuyOrderWithFunctionsAfter(aliasBuyOffer3_ra1_alias2)
 
 				aliasBuyOffer4_ra1_alias3 := s.newAliasBuyOrder(rollApp2.owner, alias3, rollApp2.rollAppId).
-					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 4)).
+					WithID(dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 4)).
 					Build()
 				s.setBuyOrderWithFunctionsAfter(aliasBuyOffer4_ra1_alias3)
 
@@ -3032,7 +3032,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersOfAliasesLinkedToRollApp() {
 			wantBuyOrderIds: []string{
 				aliasBuyOffer1_ra1_alias1.Id,
 				aliasBuyOffer2_ra1_alias1.Id,
-				dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 4),
+				dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 4),
 			},
 		},
 		{

@@ -80,8 +80,8 @@ func TestExportThenInitGenesis(t *testing.T) {
 	require.NoError(t, oldKeeper.SetDymName(oldCtx, dymName4LongExpired))
 
 	so1 := dymnstypes.SellOrder{
-		GoodsId:   dymName1.Name,
-		Type:      dymnstypes.NameOrder,
+		AssetId:   dymName1.Name,
+		AssetType: dymnstypes.TypeName,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(300),
@@ -93,8 +93,8 @@ func TestExportThenInitGenesis(t *testing.T) {
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so1))
 
 	so2 := dymnstypes.SellOrder{
-		GoodsId:   dymName2.Name,
-		Type:      dymnstypes.NameOrder,
+		AssetId:   dymName2.Name,
+		AssetType: dymnstypes.TypeName,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(900),
@@ -106,8 +106,8 @@ func TestExportThenInitGenesis(t *testing.T) {
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so2))
 
 	so3 := dymnstypes.SellOrder{
-		GoodsId:   dymName3JustExpired.Name,
-		Type:      dymnstypes.NameOrder,
+		AssetId:   dymName3JustExpired.Name,
+		AssetType: dymnstypes.TypeName,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(200),
@@ -115,8 +115,8 @@ func TestExportThenInitGenesis(t *testing.T) {
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so3))
 
 	so4 := dymnstypes.SellOrder{
-		GoodsId:   "alias",
-		Type:      dymnstypes.AliasOrder,
+		AssetId:   "alias",
+		AssetType: dymnstypes.TypeAlias,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(900),
@@ -129,17 +129,17 @@ func TestExportThenInitGenesis(t *testing.T) {
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so4))
 
 	so5 := dymnstypes.SellOrder{
-		GoodsId:  "cosmos",
-		Type:     dymnstypes.AliasOrder,
-		ExpireAt: 1,
-		MinPrice: dymnsutils.TestCoin(100),
+		AssetId:   "cosmos",
+		AssetType: dymnstypes.TypeAlias,
+		ExpireAt:  1,
+		MinPrice:  dymnsutils.TestCoin(100),
 	}
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so5))
 
 	offer1 := dymnstypes.BuyOrder{
 		Id:         "101",
-		GoodsId:    dymName1.Name,
-		Type:       dymnstypes.NameOrder,
+		AssetId:    dymName1.Name,
+		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyer1,
 		OfferPrice: dymnsutils.TestCoin(100),
 	}
@@ -147,8 +147,8 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	offer2 := dymnstypes.BuyOrder{
 		Id:         "102",
-		GoodsId:    dymName2.Name,
-		Type:       dymnstypes.NameOrder,
+		AssetId:    dymName2.Name,
+		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyer2,
 		OfferPrice: dymnsutils.TestCoin(200),
 	}
@@ -156,8 +156,8 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	offer3OfExpired := dymnstypes.BuyOrder{
 		Id:         "103",
-		GoodsId:    dymName3JustExpired.Name,
-		Type:       dymnstypes.NameOrder,
+		AssetId:    dymName3JustExpired.Name,
+		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyer3,
 		OfferPrice: dymnsutils.TestCoin(300),
 	}
@@ -165,8 +165,8 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	offer4 := dymnstypes.BuyOrder{
 		Id:         "204",
-		GoodsId:    "cosmos",
-		Type:       dymnstypes.AliasOrder,
+		AssetId:    "cosmos",
+		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{"rollapp_2-2"},
 		Buyer:      buyer4,
 		OfferPrice: dymnsutils.TestCoin(333),
@@ -175,8 +175,8 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	offer5 := dymnstypes.BuyOrder{
 		Id:         "205",
-		GoodsId:    "alias",
-		Type:       dymnstypes.AliasOrder,
+		AssetId:    "alias",
+		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{"rollapp_3-3"},
 		Buyer:      buyer5,
 		OfferPrice: dymnsutils.TestCoin(555),

@@ -84,10 +84,10 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 		dymName dymnstypes.DymName, offsetExpiry int64,
 	) dymnstypes.SellOrder {
 		return dymnstypes.SellOrder{
-			GoodsId:  dymName.Name,
-			Type:     dymnstypes.NameOrder,
-			ExpireAt: getEpochWithOffset(offsetExpiry),
-			MinPrice: dymnsutils.TestCoin(100),
+			AssetId:   dymName.Name,
+			AssetType: dymnstypes.TypeName,
+			ExpireAt:  getEpochWithOffset(offsetExpiry),
+			MinPrice:  dymnsutils.TestCoin(100),
 		}
 	}
 
@@ -113,17 +113,17 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 	}
 
 	requireNoActiveSO := func(dymName dymnstypes.DymName, ts testSuite) {
-		so := ts.dk.GetSellOrder(ts.ctx, dymName.Name, dymnstypes.NameOrder)
+		so := ts.dk.GetSellOrder(ts.ctx, dymName.Name, dymnstypes.TypeName)
 		require.Nil(t, so)
 	}
 
 	requireActiveSO := func(dymName dymnstypes.DymName, ts testSuite) {
-		so := ts.dk.GetSellOrder(ts.ctx, dymName.Name, dymnstypes.NameOrder)
+		so := ts.dk.GetSellOrder(ts.ctx, dymName.Name, dymnstypes.TypeName)
 		require.NotNil(t, so)
 	}
 
 	requireHistoricalSOs := func(dymName dymnstypes.DymName, wantCount int, ts testSuite) {
-		historicalSOs := ts.dk.GetHistoricalSellOrders(ts.ctx, dymName.Name, dymnstypes.NameOrder)
+		historicalSOs := ts.dk.GetHistoricalSellOrders(ts.ctx, dymName.Name, dymnstypes.TypeName)
 		require.Lenf(t, historicalSOs, wantCount, "should have %d historical SOs", wantCount)
 	}
 
@@ -583,7 +583,7 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 			for _, so := range tt.historicalSOs {
 				err := dk.SetSellOrder(ctx, so)
 				require.NoError(t, err)
-				err = dk.MoveSellOrderToHistorical(ctx, so.GoodsId, so.Type)
+				err = dk.MoveSellOrderToHistorical(ctx, so.AssetId, so.AssetType)
 				require.NoError(t, err)
 			}
 
@@ -596,12 +596,12 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 			if len(meh) > 0 {
 				// clear existing records to simulate cases of malformed state
 				for _, record := range meh {
-					dk.SetMinExpiryHistoricalSellOrder(ctx, record.DymName, dymnstypes.NameOrder, 0)
+					dk.SetMinExpiryHistoricalSellOrder(ctx, record.DymName, dymnstypes.TypeName, 0)
 				}
 			}
 			if len(tt.minExpiryByDymName) > 0 {
 				for dymName, minExpiry := range tt.minExpiryByDymName {
-					dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.NameOrder, minExpiry)
+					dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.TypeName, minExpiry)
 				}
 			}
 
@@ -757,11 +757,11 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd() {
 		err = s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, &dymnstypes.ActiveSellOrdersExpiration{
 			Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  dymNameSO.GoodsId,
+					AssetId:  dymNameSO.AssetId,
 					ExpireAt: dymNameSO.ExpireAt,
 				},
 			},
-		}, dymnstypes.NameOrder)
+		}, dymnstypes.TypeName)
 		s.Require().NoError(err)
 
 		aliasSO := s.newAliasSellOrder(rollApp1_asSrc.alias).
@@ -773,11 +773,11 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd() {
 		err = s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, &dymnstypes.ActiveSellOrdersExpiration{
 			Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  aliasSO.GoodsId,
+					AssetId:  aliasSO.AssetId,
 					ExpireAt: aliasSO.ExpireAt,
 				},
 			},
-		}, dymnstypes.AliasOrder)
+		}, dymnstypes.TypeAlias)
 		s.Require().NoError(err)
 
 		moduleParams := s.moduleParams()
@@ -785,8 +785,8 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd() {
 		err = s.dymNsKeeper.GetEpochHooks().AfterEpochEnd(s.ctx, moduleParams.Misc.EndEpochHookIdentifier, 1)
 		s.Require().NoError(err)
 
-		s.Nil(s.dymNsKeeper.GetSellOrder(s.ctx, dymName1.Name, dymnstypes.NameOrder))
-		s.Nil(s.dymNsKeeper.GetSellOrder(s.ctx, rollApp1_asSrc.alias, dymnstypes.AliasOrder))
+		s.Nil(s.dymNsKeeper.GetSellOrder(s.ctx, dymName1.Name, dymnstypes.TypeName))
+		s.Nil(s.dymNsKeeper.GetSellOrder(s.ctx, rollApp1_asSrc.alias, dymnstypes.TypeAlias))
 
 		s.Equal(int64(1), s.moduleBalance())
 		s.Equal(int64(dymNameOrderPrice), s.balance(dymNameOwner))
@@ -861,8 +861,8 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 		expired bool, sellPrice *sdk.Coin, highestBid *dymnstypes.SellOrderBid,
 	) dymnstypes.SellOrder {
 		return dymnstypes.SellOrder{
-			GoodsId: dymName.Name,
-			Type:    dymnstypes.NameOrder,
+			AssetId:   dymName.Name,
+			AssetType: dymnstypes.TypeName,
 			ExpireAt: func() int64 {
 				if expired {
 					return soExpiredEpoch
@@ -911,12 +911,12 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 	}
 
 	requireNoActiveSO := func(dymName dymnstypes.DymName, ts testSuite) {
-		so := ts.dk.GetSellOrder(ts.ctx, dymName.Name, dymnstypes.NameOrder)
+		so := ts.dk.GetSellOrder(ts.ctx, dymName.Name, dymnstypes.TypeName)
 		require.Nil(t, so)
 	}
 
 	requireHistoricalSOs := func(dymName dymnstypes.DymName, wantCount int, ts testSuite) {
-		historicalSOs := ts.dk.GetHistoricalSellOrders(ts.ctx, dymName.Name, dymnstypes.NameOrder)
+		historicalSOs := ts.dk.GetHistoricalSellOrders(ts.ctx, dymName.Name, dymnstypes.TypeName)
 		require.Lenf(t, historicalSOs, wantCount, "should have %d historical SOs", wantCount)
 	}
 
@@ -987,7 +987,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			sellOrders: []dymnstypes.SellOrder{genSo(dymNameA, soExpired, &coin200, nil)},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  dymNameA.Name,
+					AssetId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1027,7 +1027,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			})},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  dymNameA.Name,
+					AssetId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1067,7 +1067,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			})},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  dymNameA.Name,
+					AssetId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1120,19 +1120,19 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  dymNameA.Name,
+					AssetId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					GoodsId:  dymNameB.Name,
+					AssetId:  dymNameB.Name,
 					ExpireAt: soNotExpiredEpoch,
 				},
 				{
-					GoodsId:  dymNameC.Name,
+					AssetId:  dymNameC.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					GoodsId:  dymNameD.Name,
+					AssetId:  dymNameD.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1147,7 +1147,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  dymNameB.Name,
+					AssetId:  dymNameB.Name,
 					ExpireAt: soNotExpiredEpoch,
 				},
 			},
@@ -1161,7 +1161,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 
 				// SO for Dym-Name B not yet finished
 				requireDymNameNotChanged(dymNameB, ts)
-				soB := ts.dk.GetSellOrder(ts.ctx, dymNameB.Name, dymnstypes.NameOrder)
+				soB := ts.dk.GetSellOrder(ts.ctx, dymNameB.Name, dymnstypes.TypeName)
 				require.NotNil(t, soB)
 				requireHistoricalSOs(dymNameB, 0, ts)
 
@@ -1207,19 +1207,19 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  dymNameA.Name,
+					AssetId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					GoodsId:  dymNameB.Name,
+					AssetId:  dymNameB.Name,
 					ExpireAt: soNotExpiredEpoch,
 				},
 				{
-					GoodsId:  dymNameC.Name,
+					AssetId:  dymNameC.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					GoodsId:  dymNameD.Name,
+					AssetId:  dymNameD.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1235,19 +1235,19 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  dymNameA.Name,
+					AssetId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					GoodsId:  dymNameB.Name,
+					AssetId:  dymNameB.Name,
 					ExpireAt: soNotExpiredEpoch,
 				},
 				{
-					GoodsId:  dymNameC.Name,
+					AssetId:  dymNameC.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					GoodsId:  dymNameD.Name,
+					AssetId:  dymNameD.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1278,12 +1278,12 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  dymNameA.Name,
+					AssetId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
 					// no SO for Dym-Name B but still have reference
-					GoodsId:  dymNameB.Name,
+					AssetId:  dymNameB.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1316,12 +1316,12 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  dymNameA.Name,
+					AssetId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
 					// incorrect, SO not expired
-					GoodsId:  dymNameB.Name,
+					AssetId:  dymNameB.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1335,7 +1335,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  dymNameB.Name,
+					AssetId:  dymNameB.Name,
 					ExpireAt: soNotExpiredEpoch,
 				},
 			},
@@ -1356,7 +1356,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			})},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  dymNameA.Name,
+					AssetId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1372,7 +1372,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			wantErrContains: "insufficient funds",
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  dymNameA.Name,
+					AssetId:  dymNameA.Name,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1400,7 +1400,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 
 			err := dk.SetActiveSellOrdersExpiration(ctx, &dymnstypes.ActiveSellOrdersExpiration{
 				Records: tt.expiryByDymName,
-			}, dymnstypes.NameOrder)
+			}, dymnstypes.TypeName)
 			require.NoError(t, err)
 
 			for _, dymName := range tt.dymNames {
@@ -1430,7 +1430,7 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 
 				tt.afterHookTestFunc(t, dk, bk, ctx)
 
-				aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.NameOrder)
+				aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
 				if len(tt.wantExpiryByDymName) == 0 {
 					require.Empty(t, aSoe.Records)
 				} else {
@@ -1469,12 +1469,12 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 	soNotExpiredEpoch := s.now.Add(time.Hour).Unix()
 
 	requireNoActiveSO := func(alias string) {
-		so := s.dymNsKeeper.GetSellOrder(s.ctx, alias, dymnstypes.AliasOrder)
+		so := s.dymNsKeeper.GetSellOrder(s.ctx, alias, dymnstypes.TypeAlias)
 		s.Nil(so)
 	}
 
 	requireNoHistoricalSO := func(alias string) {
-		historicalSOs := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, alias, dymnstypes.AliasOrder)
+		historicalSOs := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, alias, dymnstypes.TypeAlias)
 		s.Empty(historicalSOs, "should have no historical SOs since Alias SOs are not supported")
 	}
 
@@ -1502,7 +1502,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			},
 			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					AssetId:  rollApp_1_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1538,7 +1538,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			},
 			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					AssetId:  rollApp_1_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1573,7 +1573,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			},
 			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					AssetId:  rollApp_1_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1610,7 +1610,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			},
 			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  aliasProhibitedTrading,
+					AssetId:  aliasProhibitedTrading,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1635,7 +1635,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			wantErr:           false,
 			wantExpiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{},
 			afterHookTestFunc: func(s *KeeperTestSuite) {
-				s.Nil(s.dymNsKeeper.GetSellOrder(s.ctx, aliasProhibitedTrading, dymnstypes.AliasOrder))
+				s.Nil(s.dymNsKeeper.GetSellOrder(s.ctx, aliasProhibitedTrading, dymnstypes.TypeAlias))
 
 				// refunded
 				s.Equal(int64(500-minPrice), s.moduleBalance())
@@ -1684,23 +1684,23 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			},
 			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					AssetId:  rollApp_1_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					GoodsId:  rollApp_3_byOwner_asSrc.alias,
+					AssetId:  rollApp_3_byOwner_asSrc.alias,
 					ExpireAt: soNotExpiredEpoch,
 				},
 				{
-					GoodsId:  rollApp_4_byOwner_asSrc.alias,
+					AssetId:  rollApp_4_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					GoodsId:  rollApp_5_byOwner_asSrc.alias,
+					AssetId:  rollApp_5_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					GoodsId:  aliasProhibitedTrading,
+					AssetId:  aliasProhibitedTrading,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1728,7 +1728,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			wantErr: false,
 			wantExpiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  rollApp_3_byOwner_asSrc.alias,
+					AssetId:  rollApp_3_byOwner_asSrc.alias,
 					ExpireAt: soNotExpiredEpoch,
 				},
 			},
@@ -1739,11 +1739,11 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 				requireNoHistoricalSO(rollApp_1_byOwner_asSrc.alias)
 
 				// SO of the prohibited alias should be removed
-				s.Nil(s.dymNsKeeper.GetSellOrder(s.ctx, aliasProhibitedTrading, dymnstypes.AliasOrder))
+				s.Nil(s.dymNsKeeper.GetSellOrder(s.ctx, aliasProhibitedTrading, dymnstypes.TypeAlias))
 
 				// SO for alias 3 not yet finished
 				s.requireRollApp(rollApp_3_byOwner_asSrc.rollAppId).HasAlias(rollApp_3_byOwner_asSrc.alias)
-				s.NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, rollApp_3_byOwner_asSrc.alias, dymnstypes.AliasOrder))
+				s.NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, rollApp_3_byOwner_asSrc.alias, dymnstypes.TypeAlias))
 				requireNoHistoricalSO(rollApp_3_byOwner_asSrc.alias)
 
 				// SO for alias 4 is completed with winner
@@ -1800,19 +1800,19 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			},
 			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					AssetId:  rollApp_1_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					GoodsId:  rollApp_3_byOwner_asSrc.alias,
+					AssetId:  rollApp_3_byOwner_asSrc.alias,
 					ExpireAt: soNotExpiredEpoch,
 				},
 				{
-					GoodsId:  rollApp_4_byOwner_asSrc.alias,
+					AssetId:  rollApp_4_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					GoodsId:  rollApp_5_byOwner_asSrc.alias,
+					AssetId:  rollApp_5_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1828,19 +1828,19 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			wantExpiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				// deep unchanged but order changed due to sorting
 				{
-					GoodsId:  rollApp_5_byOwner_asSrc.alias,
+					AssetId:  rollApp_5_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					GoodsId:  rollApp_4_byOwner_asSrc.alias,
+					AssetId:  rollApp_4_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					AssetId:  rollApp_1_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
-					GoodsId:  rollApp_3_byOwner_asSrc.alias,
+					AssetId:  rollApp_3_byOwner_asSrc.alias,
 					ExpireAt: soNotExpiredEpoch,
 				},
 			},
@@ -1867,12 +1867,12 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			},
 			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					AssetId:  rollApp_1_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
 					// no SO for alias of RollApp 3 but still have reference
-					GoodsId:  rollApp_3_byOwner_asSrc.alias,
+					AssetId:  rollApp_3_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1906,12 +1906,12 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			},
 			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					AssetId:  rollApp_1_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 				{
 					// incorrect, SO not expired
-					GoodsId:  rollApp_3_byOwner_asSrc.alias,
+					AssetId:  rollApp_3_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1922,7 +1922,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 				// removed reference to alias of RollApp 1 because of processed
 				// reference to alias of RollApp 3 was kept because not expired
 				{
-					GoodsId:  rollApp_3_byOwner_asSrc.alias,
+					AssetId:  rollApp_3_byOwner_asSrc.alias,
 					ExpireAt: soNotExpiredEpoch,
 				},
 			},
@@ -1941,7 +1941,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			},
 			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					AssetId:  rollApp_1_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1954,7 +1954,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			wantErrContains: "insufficient funds",
 			wantExpiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
-					GoodsId:  rollApp_1_byOwner_asSrc.alias,
+					AssetId:  rollApp_1_byOwner_asSrc.alias,
 					ExpireAt: soExpiredEpoch,
 				},
 			},
@@ -1978,7 +1978,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 
 			err := s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, &dymnstypes.ActiveSellOrdersExpiration{
 				Records: tt.expiryByAlias,
-			}, dymnstypes.AliasOrder)
+			}, dymnstypes.TypeAlias)
 			s.Require().NoError(err)
 
 			for _, rollApp := range tt.rollApps {
@@ -2002,7 +2002,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			defer func() {
 				tt.afterHookTestFunc(s)
 
-				aSoe := s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, dymnstypes.AliasOrder)
+				aSoe := s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, dymnstypes.TypeAlias)
 				if len(tt.wantExpiryByAlias) == 0 {
 					s.Empty(aSoe.Records)
 				} else {

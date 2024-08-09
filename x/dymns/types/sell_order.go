@@ -14,7 +14,7 @@ import (
 
 // GetIdentity returns the unique identity of the SO
 func (m *SellOrder) GetIdentity() string {
-	return fmt.Sprintf("%s|%d|%d", m.GoodsId, m.Type, m.ExpireAt)
+	return fmt.Sprintf("%s|%d|%d", m.AssetId, m.AssetType, m.ExpireAt)
 }
 
 // HasSetSellPrice returns true if the sell price is set
@@ -63,24 +63,24 @@ func (m *SellOrder) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO is nil")
 	}
 
-	if m.Type == NameOrder {
-		if m.GoodsId == "" {
+	if m.AssetType == TypeName {
+		if m.AssetId == "" {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of SO is empty")
 		}
 
-		if !dymnsutils.IsValidDymName(m.GoodsId) {
+		if !dymnsutils.IsValidDymName(m.AssetId) {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of SO is not a valid dym name")
 		}
-	} else if m.Type == AliasOrder {
-		if m.GoodsId == "" {
+	} else if m.AssetType == TypeAlias {
+		if m.AssetId == "" {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "alias of SO is empty")
 		}
 
-		if !dymnsutils.IsValidAlias(m.GoodsId) {
+		if !dymnsutils.IsValidAlias(m.AssetId) {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "alias of SO is not a valid alias")
 		}
 	} else {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid SO type: %s", m.Type)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid SO type: %s", m.AssetType)
 	}
 
 	if m.ExpireAt == 0 {
@@ -113,7 +113,7 @@ func (m *SellOrder) Validate() error {
 
 	if m.HighestBid == nil {
 		// valid, means no bid yet
-	} else if err := m.HighestBid.Validate(m.Type); err != nil {
+	} else if err := m.HighestBid.Validate(m.AssetType); err != nil {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "SO highest bid is invalid: %v", err)
 	} else if m.HighestBid.Price.IsLT(m.MinPrice) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO highest bid price is less than min price")
@@ -125,7 +125,7 @@ func (m *SellOrder) Validate() error {
 }
 
 // Validate performs basic validation for the SellOrderBid.
-func (m *SellOrderBid) Validate(orderType OrderType) error {
+func (m *SellOrderBid) Validate(assetType AssetType) error {
 	if m == nil {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO bid is nil")
 	}
@@ -146,7 +146,7 @@ func (m *SellOrderBid) Validate(orderType OrderType) error {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "SO bid price is invalid: %v", err)
 	}
 
-	if err := ValidateOrderParams(m.Params, orderType); err != nil {
+	if err := ValidateOrderParams(m.Params, assetType); err != nil {
 		return err
 	}
 
@@ -160,8 +160,8 @@ func (m *HistoricalSellOrders) Validate() error {
 	}
 
 	if len(m.SellOrders) > 0 {
-		goodsId := m.SellOrders[0].GoodsId
-		orderType := m.SellOrders[0].Type
+		assetId := m.SellOrders[0].AssetId
+		assetType := m.SellOrders[0].AssetType
 		uniqueIdentity := make(map[string]bool)
 		// Describe usage of Go Map: only used for validation
 		for _, so := range m.SellOrders {
@@ -169,11 +169,11 @@ func (m *HistoricalSellOrders) Validate() error {
 				return err
 			}
 
-			if so.GoodsId != goodsId {
-				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "historical SOs have different goods ID: %s != %s", goodsId, so.GoodsId)
+			if so.AssetId != assetId {
+				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "historical SOs have different asset ID: %s != %s", assetId, so.AssetId)
 			}
-			if so.Type != orderType {
-				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "historical SOs have different order type: %s != %s", orderType, so.Type)
+			if so.AssetType != assetType {
+				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "historical SOs have different asset type: %s != %s", assetType, so.AssetType)
 			}
 
 			if _, duplicated := uniqueIdentity[so.GetIdentity()]; duplicated {
@@ -207,8 +207,8 @@ func (m SellOrder) GetSdkEvent(actionName string) sdk.Event {
 
 	return sdk.NewEvent(
 		EventTypeSellOrder,
-		sdk.NewAttribute(AttributeKeySoGoodsId, m.GoodsId),
-		sdk.NewAttribute(AttributeKeySoType, m.Type.FriendlyString()),
+		sdk.NewAttribute(AttributeKeySoAssetId, m.AssetId),
+		sdk.NewAttribute(AttributeKeySoAssetType, m.AssetType.FriendlyString()),
 		sdk.NewAttribute(AttributeKeySoExpiryEpoch, fmt.Sprintf("%d", m.ExpireAt)),
 		sdk.NewAttribute(AttributeKeySoMinPrice, m.MinPrice.String()),
 		sdk.NewAttribute(AttributeKeySoSellPrice, sellPrice.String()),
@@ -229,12 +229,12 @@ func (m ActiveSellOrdersExpiration) Validate() error {
 				return errorsmod.Wrap(gerrc.ErrInvalidArgument, "active SO expiry is empty")
 			}
 
-			if _, duplicated := uniqueName[record.GoodsId]; duplicated {
-				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "active SO is not unique: %s", record.GoodsId)
+			if _, duplicated := uniqueName[record.AssetId]; duplicated {
+				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "active SO is not unique: %s", record.AssetId)
 			}
 
-			uniqueName[record.GoodsId] = true
-			allNames[i] = record.GoodsId
+			uniqueName[record.AssetId] = true
+			allNames[i] = record.AssetId
 		}
 
 		if !sort.StringsAreSorted(allNames) {
@@ -251,12 +251,12 @@ func (m *ActiveSellOrdersExpiration) Sort() {
 	}
 
 	sort.Slice(m.Records, func(i, j int) bool {
-		return m.Records[i].GoodsId < m.Records[j].GoodsId
+		return m.Records[i].AssetId < m.Records[j].AssetId
 	})
 }
 
-func (m *ActiveSellOrdersExpiration) Add(goodsId string, expiry int64) {
-	newRecord := ActiveSellOrdersExpirationRecord{GoodsId: goodsId, ExpireAt: expiry}
+func (m *ActiveSellOrdersExpiration) Add(assetId string, expiry int64) {
+	newRecord := ActiveSellOrdersExpirationRecord{AssetId: assetId, ExpireAt: expiry}
 
 	if len(m.Records) < 1 {
 		m.Records = []ActiveSellOrdersExpirationRecord{newRecord}
@@ -266,7 +266,7 @@ func (m *ActiveSellOrdersExpiration) Add(goodsId string, expiry int64) {
 	foundAtIdx := -1
 
 	for i, record := range m.Records {
-		if record.GoodsId == goodsId {
+		if record.AssetId == assetId {
 			foundAtIdx = i
 			break
 		}
@@ -281,14 +281,14 @@ func (m *ActiveSellOrdersExpiration) Add(goodsId string, expiry int64) {
 	m.Sort()
 }
 
-func (m *ActiveSellOrdersExpiration) Remove(goodsId string) {
+func (m *ActiveSellOrdersExpiration) Remove(assetId string) {
 	if len(m.Records) < 1 {
 		return
 	}
 
 	modified := make([]ActiveSellOrdersExpirationRecord, 0, len(m.Records))
 	for _, record := range m.Records {
-		if record.GoodsId != goodsId {
+		if record.AssetId != assetId {
 			modified = append(modified, record)
 		}
 	}

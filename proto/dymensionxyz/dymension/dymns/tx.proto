@@ -32,7 +32,7 @@ service Msg {
     // CancelSellOrder is message handler,
     // handles canceling Sell-Order, performed by the owner.
     // This will stop the advertisement and remove the Dym-Name/Alias sale from the market.
-    // Can only be performed if no one has placed a bid on the goods.
+    // Can only be performed if no one has placed a bid on the asset.
     rpc CancelSellOrder(MsgCancelSellOrder) returns (MsgCancelSellOrderResponse) {}
     // PurchaseOrder is message handler,
     // handles purchasing a Dym-Name/Alias from a Sell-Order, performed by the buyer.
@@ -46,7 +46,7 @@ service Msg {
     rpc CancelBuyOrder(MsgCancelBuyOrder) returns (MsgCancelBuyOrderResponse) {}
     // AcceptBuyOrder is message handler,
     // handles accepting a Buy-Order or raising the amount for negotiation,
-    // performed by the owner of the goods.
+    // performed by the owner of the asset.
     rpc AcceptBuyOrder(MsgAcceptBuyOrder) returns (MsgAcceptBuyOrderResponse) {}
 }
 
@@ -154,11 +154,11 @@ message MsgUpdateDetailsResponse {}
 message MsgPlaceSellOrder {
     option (cosmos.msg.v1.signer) = "owner";
 
-    // goods_id is the Dym-Name/Alias to be opened for sell.
-    string goods_id = 1;
+    // asset_id is the Dym-Name/Alias to be opened for sell.
+    string asset_id = 1;
 
-    // order_type is the goods type of the order, is Dym-Name for current version.
-    OrderType order_type = 2;
+    // asset_type is the type of the asset of the order, is Dym-Name/Alias.
+    AssetType asset_type = 2;
 
     // owner is the bech32-encoded address of the account which owns the order.
     string owner = 3;
@@ -179,11 +179,11 @@ message MsgPlaceSellOrderResponse {}
 message MsgCancelSellOrder {
     option (cosmos.msg.v1.signer) = "owner";
 
-    // goods_id is the Dym-Name/Alias to cancel selling.
-    string goods_id = 1;
+    // asset_id is the Dym-Name/Alias to cancel selling.
+    string asset_id = 1;
 
-    // order_type is the goods type of the order, is Dym-Name for current version.
-    OrderType order_type = 2;
+    // asset_type is the type of the asset of the order, is Dym-Name/Alias.
+    AssetType asset_type = 2;
 
     // owner is the bech32-encoded address of the account which owns the Dym-Name as well as the order.
     string owner = 3;
@@ -196,15 +196,15 @@ message MsgCancelSellOrderResponse {}
 message MsgPurchaseOrder {
     option (cosmos.msg.v1.signer) = "buyer";
 
-    // goods_id is the Dym-Name/Alias to be purchased for.
-    string goods_id = 1;
+    // asset_id is the Dym-Name/Alias to be purchased for.
+    string asset_id = 1;
 
-    // order_type is the goods type of the order, is Dym-Name for current version.
-    OrderType order_type = 2;
+    // asset_type is the type of the asset of the order, is Dym-Name/Alias.
+    AssetType asset_type = 2;
 
     // params is the list of parameters of the bid.
-    // It is empty for order type Dym-Name.
-    // It has one element for order type Alias, which is the rollapp_id to assigned for.
+    // It is empty for asset type Dym-Name.
+    // It has one element for asset type Alias, which is the rollapp_id to assigned for.
     repeated string params = 3;
 
     // buyer is the account address of the account which is purchasing the Dym-Name.
@@ -220,15 +220,15 @@ message MsgPurchaseOrderResponse {}
 // MsgPlaceBuyOrder defines the message used for user to place an offer, to buy a Dym-Name.
 message MsgPlaceBuyOrder {
     option (cosmos.msg.v1.signer) = "buyer";
-    // goods_id is the Dym-Name/Alias wishing to buy.
-    string goods_id = 1;
+    // asset_id is the Dym-Name/Alias wishing to buy.
+    string asset_id = 1;
 
-    // order_type is the goods type of the order, is Dym-Name for current version.
-    OrderType order_type = 2;
+    // asset_type is the type of the asset of the order, is Dym-Name/Alias.
+    AssetType asset_type = 2;
 
     // params is the list of parameters of the offer.
-    // It is empty for order type Dym-Name.
-    // It has one element for order type Alias, which is the rollapp_id to assigned for.
+    // It is empty for asset type Dym-Name.
+    // It has one element for asset type Alias, which is the rollapp_id to assigned for.
     repeated string params = 3;
 
     // buyer is the account address of the account which is purchasing the Dym-Name.

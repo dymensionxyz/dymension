@@ -23,12 +23,12 @@ func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurch
 
 	var resp *dymnstypes.MsgPurchaseOrderResponse
 	var err error
-	if msg.OrderType == dymnstypes.NameOrder {
-		resp, err = k.processPurchaseOrderTypeDymName(ctx, msg, params)
-	} else if msg.OrderType == dymnstypes.AliasOrder {
-		resp, err = k.processPurchaseOrderTypeAlias(ctx, msg, params)
+	if msg.AssetType == dymnstypes.TypeName {
+		resp, err = k.processPurchaseOrderWithAssetTypeDymName(ctx, msg, params)
+	} else if msg.AssetType == dymnstypes.TypeAlias {
+		resp, err = k.processPurchaseOrderWithAssetTypeAlias(ctx, msg, params)
 	} else {
-		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
+		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", msg.AssetType)
 	}
 	if err != nil {
 		return nil, err
@@ -39,8 +39,8 @@ func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurch
 	return resp, nil
 }
 
-// processPurchaseOrderTypeDymName handles the message handled by PurchaseOrder, type Dym-Name.
-func (k msgServer) processPurchaseOrderTypeDymName(
+// processPurchaseOrderWithAssetTypeDymName handles the message handled by PurchaseOrder, type Dym-Name.
+func (k msgServer) processPurchaseOrderWithAssetTypeDymName(
 	ctx sdk.Context,
 	msg *dymnstypes.MsgPurchaseOrder, params dymnstypes.Params,
 ) (*dymnstypes.MsgPurchaseOrderResponse, error) {
@@ -48,14 +48,14 @@ func (k msgServer) processPurchaseOrderTypeDymName(
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading of Dym-Name is disabled")
 	}
 
-	dymName, so, err := k.validatePurchaseOrderTypeDymName(ctx, msg)
+	dymName, so, err := k.validatePurchaseOrderWithAssetTypeDymName(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
 
 	if so.HighestBid != nil {
 		// refund previous bidder
-		if err := k.RefundBid(ctx, *so.HighestBid, so.Type); err != nil {
+		if err := k.RefundBid(ctx, *so.HighestBid, so.AssetType); err != nil {
 			return nil, err
 		}
 	}
@@ -93,20 +93,20 @@ func (k msgServer) processPurchaseOrderTypeDymName(
 	return &dymnstypes.MsgPurchaseOrderResponse{}, nil
 }
 
-// validatePurchaseOrderTypeDymName handles validation for the message handled by PurchaseOrder, type Dym-Name.
-func (k msgServer) validatePurchaseOrderTypeDymName(ctx sdk.Context, msg *dymnstypes.MsgPurchaseOrder) (*dymnstypes.DymName, *dymnstypes.SellOrder, error) {
-	dymName := k.GetDymName(ctx, msg.GoodsId)
+// validatePurchaseOrderWithAssetTypeDymName handles validation for the message handled by PurchaseOrder, type Dym-Name.
+func (k msgServer) validatePurchaseOrderWithAssetTypeDymName(ctx sdk.Context, msg *dymnstypes.MsgPurchaseOrder) (*dymnstypes.DymName, *dymnstypes.SellOrder, error) {
+	dymName := k.GetDymName(ctx, msg.AssetId)
 	if dymName == nil {
-		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.GoodsId)
+		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.AssetId)
 	}
 
 	if dymName.Owner == msg.Buyer {
 		return nil, nil, errorsmod.Wrap(gerrc.ErrPermissionDenied, "cannot purchase your own dym name")
 	}
 
-	so := k.GetSellOrder(ctx, msg.GoodsId, msg.OrderType)
+	so := k.GetSellOrder(ctx, msg.AssetId, msg.AssetType)
 	if so == nil {
-		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.GoodsId)
+		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.AssetId)
 	}
 
 	if so.HasExpiredAtCtx(ctx) {
@@ -146,8 +146,8 @@ func (k msgServer) validatePurchaseOrderTypeDymName(ctx sdk.Context, msg *dymnst
 	return dymName, so, nil
 }
 
-// processPurchaseOrderTypeAlias handles the message handled by PurchaseOrder, type Alias.
-func (k msgServer) processPurchaseOrderTypeAlias(
+// processPurchaseOrderWithAssetTypeAlias handles the message handled by PurchaseOrder, type Alias.
+func (k msgServer) processPurchaseOrderWithAssetTypeAlias(
 	ctx sdk.Context,
 	msg *dymnstypes.MsgPurchaseOrder, params dymnstypes.Params,
 ) (*dymnstypes.MsgPurchaseOrderResponse, error) {
@@ -155,14 +155,14 @@ func (k msgServer) processPurchaseOrderTypeAlias(
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading of Alias is disabled")
 	}
 
-	so, err := k.validatePurchaseOrderTypeAlias(ctx, msg)
+	so, err := k.validatePurchaseOrderWithAssetTypeAlias(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
 
 	if so.HighestBid != nil {
 		// refund previous bidder
-		if err := k.RefundBid(ctx, *so.HighestBid, so.Type); err != nil {
+		if err := k.RefundBid(ctx, *so.HighestBid, so.AssetType); err != nil {
 			return nil, err
 		}
 	}
@@ -191,7 +191,7 @@ func (k msgServer) processPurchaseOrderTypeAlias(
 
 	// try to complete the purchase
 	if so.HasFinishedAtCtx(ctx) {
-		if err := k.CompleteAliasSellOrder(ctx, so.GoodsId); err != nil {
+		if err := k.CompleteAliasSellOrder(ctx, so.AssetId); err != nil {
 			return nil, err
 		}
 	}
@@ -199,8 +199,8 @@ func (k msgServer) processPurchaseOrderTypeAlias(
 	return &dymnstypes.MsgPurchaseOrderResponse{}, nil
 }
 
-// validatePurchaseOrderTypeAlias handles validation for the message handled by PurchaseOrder, type Alias.
-func (k msgServer) validatePurchaseOrderTypeAlias(ctx sdk.Context, msg *dymnstypes.MsgPurchaseOrder) (*dymnstypes.SellOrder, error) {
+// validatePurchaseOrderWithAssetTypeAlias handles validation for the message handled by PurchaseOrder, type Alias.
+func (k msgServer) validatePurchaseOrderWithAssetTypeAlias(ctx sdk.Context, msg *dymnstypes.MsgPurchaseOrder) (*dymnstypes.SellOrder, error) {
 	destinationRollAppId := msg.Params[0]
 
 	if !k.IsRollAppId(ctx, destinationRollAppId) {
@@ -211,24 +211,24 @@ func (k msgServer) validatePurchaseOrderTypeAlias(ctx sdk.Context, msg *dymnstyp
 		return nil, errorsmod.Wrapf(gerrc.ErrPermissionDenied, "not the owner of the RollApp: %s", destinationRollAppId)
 	}
 
-	existingRollAppIdUsingAlias, found := k.GetRollAppIdByAlias(ctx, msg.GoodsId)
+	existingRollAppIdUsingAlias, found := k.GetRollAppIdByAlias(ctx, msg.AssetId)
 	if !found {
-		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "alias not owned by any RollApp: %s", msg.GoodsId)
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "alias not owned by any RollApp: %s", msg.AssetId)
 	}
 
 	if destinationRollAppId == existingRollAppIdUsingAlias {
 		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "destination Roll-App ID is the same as the source")
 	}
 
-	if k.IsAliasPresentsInParamsAsAliasOrChainId(ctx, msg.GoodsId) {
+	if k.IsAliasPresentsInParamsAsAliasOrChainId(ctx, msg.AssetId) {
 		return nil, errorsmod.Wrapf(gerrc.ErrPermissionDenied,
-			"prohibited to trade aliases which is reserved for chain-id or alias in module params: %s", msg.GoodsId,
+			"prohibited to trade aliases which is reserved for chain-id or alias in module params: %s", msg.AssetId,
 		)
 	}
 
-	so := k.GetSellOrder(ctx, msg.GoodsId, msg.OrderType)
+	so := k.GetSellOrder(ctx, msg.AssetId, msg.AssetType)
 	if so == nil {
-		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.GoodsId)
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.AssetId)
 	}
 
 	if so.HasExpiredAtCtx(ctx) {

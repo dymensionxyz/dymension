@@ -53,21 +53,21 @@ func TestGenesisState_Validate(t *testing.T) {
 			},
 			BuyOrders: []BuyOrder{
 				{
-					Id:      "101",
-					GoodsId: "my-name",
-					Type:    NameOrder,
-					Buyer:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+					Id:        "101",
+					AssetId:   "my-name",
+					AssetType: TypeName,
+					Buyer:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 					OfferPrice: sdk.Coin{
 						Denom:  params.BaseDenom,
 						Amount: sdk.OneInt(),
 					},
 				},
 				{
-					Id:      "202",
-					GoodsId: "alias",
-					Type:    AliasOrder,
-					Params:  []string{"rollapp_1-1"},
-					Buyer:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+					Id:        "202",
+					AssetId:   "alias",
+					AssetType: TypeAlias,
+					Params:    []string{"rollapp_1-1"},
+					Buyer:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 					OfferPrice: sdk.Coin{
 						Denom:  params.BaseDenom,
 						Amount: sdk.OneInt(),

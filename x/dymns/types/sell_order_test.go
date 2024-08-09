@@ -12,15 +12,15 @@ import (
 
 func TestSellOrder_GetIdentity(t *testing.T) {
 	nameSo := &SellOrder{
-		GoodsId:  "my-name",
-		Type:     NameOrder,
-		ExpireAt: 1234,
+		AssetId:   "my-name",
+		AssetType: TypeName,
+		ExpireAt:  1234,
 	}
 	require.Equal(t, "my-name|1|1234", nameSo.GetIdentity())
 	aliasSo := &SellOrder{
-		GoodsId:  "alias",
-		Type:     AliasOrder,
-		ExpireAt: 1234,
+		AssetId:   "alias",
+		AssetType: TypeAlias,
+		ExpireAt:  1234,
 	}
 	require.Equal(t, "alias|2|1234", aliasSo.GetIdentity())
 }
@@ -167,15 +167,15 @@ func TestSellOrder_HasFinished(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &SellOrder{
-				GoodsId:    "a",
+				AssetId:    "a",
 				ExpireAt:   tt.expireAt,
 				MinPrice:   oneCoin,
 				SellPrice:  tt.sellPrice,
 				HighestBid: tt.highestBid,
 			}
 
-			for _, orderType := range []OrderType{NameOrder, AliasOrder} {
-				m.Type = orderType
+			for _, assetType := range []AssetType{TypeName, TypeAlias} {
+				m.AssetType = assetType
 				require.Equal(t, tt.wantFinished, m.HasFinishedAtCtx(
 					sdk.Context{}.WithBlockTime(now),
 				))
@@ -195,7 +195,7 @@ func TestSellOrder_Validate(t *testing.T) {
 	tests := []struct {
 		name            string
 		dymName         string
-		_type           OrderType
+		_type           AssetType
 		expireAt        int64
 		minPrice        sdk.Coin
 		sellPrice       *sdk.Coin
@@ -206,7 +206,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:      "pass - (Name) valid sell order",
 			dymName:   "my-name",
-			_type:     NameOrder,
+			_type:     TypeName,
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: dymnsutils.TestCoinP(1),
@@ -218,7 +218,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:      "pass - (Alias) valid sell order",
 			dymName:   "alias",
-			_type:     AliasOrder,
+			_type:     TypeAlias,
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: dymnsutils.TestCoinP(1),
@@ -231,7 +231,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:      "fail - (Alias) reject invalid bid",
 			dymName:   "alias",
-			_type:     AliasOrder,
+			_type:     TypeAlias,
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: dymnsutils.TestCoinP(1),
@@ -246,7 +246,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:      "pass - (Name) valid sell order without bid",
 			dymName:   "my-name",
-			_type:     NameOrder,
+			_type:     TypeName,
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: dymnsutils.TestCoinP(1),
@@ -254,7 +254,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:      "pass - (Alias) valid sell order without bid",
 			dymName:   "alias",
-			_type:     AliasOrder,
+			_type:     TypeAlias,
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: dymnsutils.TestCoinP(1),
@@ -262,7 +262,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:      "pass - (Name) valid sell order without setting sell price",
 			dymName:   "my-name",
-			_type:     NameOrder,
+			_type:     TypeName,
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: nil,
@@ -270,7 +270,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:      "pass - (Alias) valid sell order without setting sell price",
 			dymName:   "alias",
-			_type:     AliasOrder,
+			_type:     TypeAlias,
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: nil,
@@ -278,7 +278,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - (Name) reject empty name",
 			dymName:         "",
-			_type:           NameOrder,
+			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(1),
 			wantErr:         true,
@@ -287,7 +287,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - (Alias) reject empty alias",
 			dymName:         "",
-			_type:           AliasOrder,
+			_type:           TypeAlias,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(1),
 			wantErr:         true,
@@ -295,8 +295,8 @@ func TestSellOrder_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - reject unknown type",
-			dymName:         "goods",
-			_type:           OrderType_OT_UNKNOWN,
+			dymName:         "asset",
+			_type:           AssetType_AT_UNKNOWN,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(1),
 			wantErr:         true,
@@ -305,7 +305,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - (Name) reject bad name",
 			dymName:         "-my-name",
-			_type:           NameOrder,
+			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(1),
 			wantErr:         true,
@@ -314,7 +314,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - (Alias) reject bad alias",
 			dymName:         "bad-alias",
-			_type:           AliasOrder,
+			_type:           TypeAlias,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(1),
 			wantErr:         true,
@@ -323,7 +323,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - empty time",
 			dymName:         "my-name",
-			_type:           NameOrder,
+			_type:           TypeName,
 			expireAt:        0,
 			minPrice:        dymnsutils.TestCoin(1),
 			wantErr:         true,
@@ -332,7 +332,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - min price is zero",
 			dymName:         "my-name",
-			_type:           NameOrder,
+			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(0),
 			wantErr:         true,
@@ -341,7 +341,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - min price is empty",
 			dymName:         "my-name",
-			_type:           NameOrder,
+			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
 			minPrice:        sdk.Coin{},
 			wantErr:         true,
@@ -350,7 +350,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - min price is negative",
 			dymName:         "my-name",
-			_type:           NameOrder,
+			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(-1),
 			wantErr:         true,
@@ -359,7 +359,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:     "fail - min price is invalid",
 			dymName:  "my-name",
-			_type:    NameOrder,
+			_type:    TypeName,
 			expireAt: time.Now().Unix(),
 			minPrice: sdk.Coin{
 				Denom:  "-",
@@ -371,7 +371,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - sell price is negative",
 			dymName:         "my-name",
-			_type:           NameOrder,
+			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(1),
 			sellPrice:       dymnsutils.TestCoinP(-1),
@@ -381,7 +381,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:     "fail - sell price is invalid",
 			dymName:  "my-name",
-			_type:    NameOrder,
+			_type:    TypeName,
 			expireAt: time.Now().Unix(),
 			minPrice: dymnsutils.TestCoin(1),
 			sellPrice: &sdk.Coin{
@@ -394,7 +394,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - sell price is less than min price",
 			dymName:         "my-name",
-			_type:           NameOrder,
+			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(2),
 			sellPrice:       dymnsutils.TestCoinP(1),
@@ -404,7 +404,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - sell price denom must match min price denom",
 			dymName:         "my-name",
-			_type:           NameOrder,
+			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(1),
 			sellPrice:       dymnsutils.TestCoin2P(sdk.NewInt64Coin("u"+params.BaseDenom, 2)),
@@ -414,7 +414,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:      "fail - invalid highest bid",
 			dymName:   "my-name",
-			_type:     NameOrder,
+			_type:     TypeName,
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: dymnsutils.TestCoinP(1),
@@ -428,7 +428,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:      "fail - highest bid < min price",
 			dymName:   "my-name",
-			_type:     NameOrder,
+			_type:     TypeName,
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(2),
 			sellPrice: dymnsutils.TestCoinP(3),
@@ -442,7 +442,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		{
 			name:      "fail - highest bid > sell price",
 			dymName:   "my-name",
-			_type:     NameOrder,
+			_type:     TypeName,
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(2),
 			sellPrice: dymnsutils.TestCoinP(3),
@@ -457,8 +457,8 @@ func TestSellOrder_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &SellOrder{
-				GoodsId:    tt.dymName,
-				Type:       tt._type,
+				AssetId:    tt.dymName,
+				AssetType:  tt._type,
 				ExpireAt:   tt.expireAt,
 				MinPrice:   tt.minPrice,
 				SellPrice:  tt.sellPrice,
@@ -481,8 +481,8 @@ func TestSellOrder_Validate(t *testing.T) {
 func TestSellOrderBid_Validate(t *testing.T) {
 	t.Run("nil obj", func(t *testing.T) {
 		m := (*SellOrderBid)(nil)
-		require.Error(t, m.Validate(NameOrder))
-		require.Error(t, m.Validate(AliasOrder))
+		require.Error(t, m.Validate(TypeName))
+		require.Error(t, m.Validate(TypeAlias))
 	})
 
 	//goland:noinspection SpellCheckingInspection
@@ -491,7 +491,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 		bidder          string
 		price           sdk.Coin
 		params          []string
-		orderType       OrderType
+		assetType       AssetType
 		wantErr         bool
 		wantErrContains string
 	}{
@@ -499,14 +499,14 @@ func TestSellOrderBid_Validate(t *testing.T) {
 			name:      "pass - (Name) valid sell order bid",
 			bidder:    "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			params:    nil,
-			orderType: NameOrder,
+			assetType: TypeName,
 			price:     dymnsutils.TestCoin(1),
 		},
 		{
 			name:      "pass - (Alias) valid sell order bid",
 			bidder:    "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			params:    []string{"rollapp_1-1"},
-			orderType: AliasOrder,
+			assetType: TypeAlias,
 			price:     dymnsutils.TestCoin(1),
 		},
 		{
@@ -514,7 +514,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 			bidder:          "",
 			price:           dymnsutils.TestCoin(1),
 			params:          nil,
-			orderType:       NameOrder,
+			assetType:       TypeName,
 			wantErr:         true,
 			wantErrContains: "SO bidder is empty",
 		},
@@ -523,7 +523,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 			bidder:          "0x1",
 			price:           dymnsutils.TestCoin(1),
 			params:          nil,
-			orderType:       NameOrder,
+			assetType:       TypeName,
 			wantErr:         true,
 			wantErrContains: "SO bidder is not a valid bech32 account address",
 		},
@@ -532,7 +532,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 			bidder:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			price:           dymnsutils.TestCoin(0),
 			params:          nil,
-			orderType:       NameOrder,
+			assetType:       TypeName,
 			wantErr:         true,
 			wantErrContains: "SO bid price is zero",
 		},
@@ -541,7 +541,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 			bidder:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			price:           sdk.Coin{},
 			params:          nil,
-			orderType:       NameOrder,
+			assetType:       TypeName,
 			wantErr:         true,
 			wantErrContains: "SO bid price is zero",
 		},
@@ -553,7 +553,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 				Amount: sdk.NewInt(-1),
 			},
 			params:          nil,
-			orderType:       NameOrder,
+			assetType:       TypeName,
 			wantErr:         true,
 			wantErrContains: "SO bid price is negative",
 		},
@@ -565,7 +565,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 				Amount: sdk.OneInt(),
 			},
 			params:          nil,
-			orderType:       NameOrder,
+			assetType:       TypeName,
 			wantErr:         true,
 			wantErrContains: "SO bid price is invalid",
 		},
@@ -574,16 +574,16 @@ func TestSellOrderBid_Validate(t *testing.T) {
 			bidder:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			price:           dymnsutils.TestCoin(1),
 			params:          []string{"non-empty"},
-			orderType:       NameOrder,
+			assetType:       TypeName,
 			wantErr:         true,
-			wantErrContains: "not accept order params for order type",
+			wantErrContains: "not accept order params for asset type",
 		},
 		{
 			name:            "fail - (Alias) bad params",
 			bidder:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			price:           dymnsutils.TestCoin(1),
 			params:          nil,
-			orderType:       AliasOrder,
+			assetType:       TypeAlias,
 			wantErr:         true,
 			wantErrContains: "expect 1 order param of RollApp ID",
 		},
@@ -595,7 +595,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 				Price:  tt.price,
 				Params: tt.params,
 			}
-			err := m.Validate(tt.orderType)
+			err := m.Validate(tt.assetType)
 			if tt.wantErr {
 				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
 				require.Error(t, err)
@@ -624,17 +624,17 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 			name: "pass - valid",
 			sellOrders: []SellOrder{
 				{
-					GoodsId:   "my-name",
-					Type:      NameOrder,
+					AssetId:   "my-name",
+					AssetType: TypeName,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
 					SellPrice: dymnsutils.TestCoinP(1),
 				},
 				{
-					GoodsId:  "my-name",
-					Type:     NameOrder,
-					ExpireAt: 2,
-					MinPrice: dymnsutils.TestCoin(1),
+					AssetId:   "my-name",
+					AssetType: TypeName,
+					ExpireAt:  2,
+					MinPrice:  dymnsutils.TestCoin(1),
 				},
 			},
 		},
@@ -642,17 +642,17 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 			name: "pass - valid",
 			sellOrders: []SellOrder{
 				{
-					GoodsId:   "alias",
-					Type:      AliasOrder,
+					AssetId:   "alias",
+					AssetType: TypeAlias,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
 					SellPrice: dymnsutils.TestCoinP(1),
 				},
 				{
-					GoodsId:  "alias",
-					Type:     AliasOrder,
-					ExpireAt: 2,
-					MinPrice: dymnsutils.TestCoin(1),
+					AssetId:   "alias",
+					AssetType: TypeAlias,
+					ExpireAt:  2,
+					MinPrice:  dymnsutils.TestCoin(1),
 				},
 			},
 		},
@@ -664,16 +664,16 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 			name: "fail - reject if SO element is invalid",
 			sellOrders: []SellOrder{
 				{
-					GoodsId:  "a",
-					Type:     NameOrder,
-					ExpireAt: 1,
-					MinPrice: dymnsutils.TestCoin(0), // invalid
+					AssetId:   "a",
+					AssetType: TypeName,
+					ExpireAt:  1,
+					MinPrice:  dymnsutils.TestCoin(0), // invalid
 				},
 				{
-					GoodsId:  "a",
-					Type:     NameOrder,
-					ExpireAt: 2,
-					MinPrice: dymnsutils.TestCoin(1),
+					AssetId:   "a",
+					AssetType: TypeName,
+					ExpireAt:  2,
+					MinPrice:  dymnsutils.TestCoin(1),
 				},
 			},
 			wantErr:         true,
@@ -683,17 +683,17 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 			name: "fail - reject if duplicated SO",
 			sellOrders: []SellOrder{
 				{
-					GoodsId:   "my-name",
-					Type:      NameOrder,
+					AssetId:   "my-name",
+					AssetType: TypeName,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
 					SellPrice: dymnsutils.TestCoinP(1),
 				},
 				{
-					GoodsId:  "my-name",
-					Type:     NameOrder,
-					ExpireAt: 1,
-					MinPrice: dymnsutils.TestCoin(1),
+					AssetId:   "my-name",
+					AssetType: TypeName,
+					ExpireAt:  1,
+					MinPrice:  dymnsutils.TestCoin(1),
 				},
 			},
 			wantErr:         true,
@@ -703,81 +703,81 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 			name: "fail - reject if duplicated SO",
 			sellOrders: []SellOrder{
 				{
-					GoodsId:   "alias",
-					Type:      AliasOrder,
+					AssetId:   "alias",
+					AssetType: TypeAlias,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
 					SellPrice: dymnsutils.TestCoinP(1),
 				},
 				{
-					GoodsId:  "alias",
-					Type:     AliasOrder,
-					ExpireAt: 1,
-					MinPrice: dymnsutils.TestCoin(1),
+					AssetId:   "alias",
+					AssetType: TypeAlias,
+					ExpireAt:  1,
+					MinPrice:  dymnsutils.TestCoin(1),
 				},
 			},
 			wantErr:         true,
 			wantErrContains: "historical SO is not unique",
 		},
 		{
-			name: "fail - reject if SO element has different goods ID",
+			name: "fail - reject if SO element has different asset ID",
 			sellOrders: []SellOrder{
 				{
-					GoodsId:   "aaa",
-					Type:      NameOrder,
+					AssetId:   "aaa",
+					AssetType: TypeName,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
 					SellPrice: dymnsutils.TestCoinP(1),
 				},
 				{
-					GoodsId:  "bbb",
-					Type:     NameOrder,
-					ExpireAt: 2,
-					MinPrice: dymnsutils.TestCoin(1),
+					AssetId:   "bbb",
+					AssetType: TypeName,
+					ExpireAt:  2,
+					MinPrice:  dymnsutils.TestCoin(1),
 				},
 			},
 			wantErr:         true,
-			wantErrContains: "historical SOs have different goods ID",
+			wantErrContains: "historical SOs have different asset ID",
 		},
 		{
-			name: "fail - reject if SO element has different goods ID",
+			name: "fail - reject if SO element has different asset ID",
 			sellOrders: []SellOrder{
 				{
-					GoodsId:   "aaa",
-					Type:      AliasOrder,
+					AssetId:   "aaa",
+					AssetType: TypeAlias,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
 					SellPrice: dymnsutils.TestCoinP(1),
 				},
 				{
-					GoodsId:  "bbb",
-					Type:     AliasOrder,
-					ExpireAt: 2,
-					MinPrice: dymnsutils.TestCoin(1),
+					AssetId:   "bbb",
+					AssetType: TypeAlias,
+					ExpireAt:  2,
+					MinPrice:  dymnsutils.TestCoin(1),
 				},
 			},
 			wantErr:         true,
-			wantErrContains: "historical SOs have different goods ID",
+			wantErrContains: "historical SOs have different asset ID",
 		},
 		{
-			name: "fail - reject if SO element has mixed order types",
+			name: "fail - reject if SO element has mixed asset types",
 			sellOrders: []SellOrder{
 				{
-					GoodsId:   "aaa",
-					Type:      NameOrder,
+					AssetId:   "aaa",
+					AssetType: TypeName,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
 					SellPrice: dymnsutils.TestCoinP(1),
 				},
 				{
-					GoodsId:  "aaa",
-					Type:     AliasOrder,
-					ExpireAt: 2,
-					MinPrice: dymnsutils.TestCoin(1),
+					AssetId:   "aaa",
+					AssetType: TypeAlias,
+					ExpireAt:  2,
+					MinPrice:  dymnsutils.TestCoin(1),
 				},
 			},
 			wantErr:         true,
-			wantErrContains: "historical SOs have different order type",
+			wantErrContains: "historical SOs have different asset type",
 		},
 	}
 	for _, tt := range tests {
@@ -802,8 +802,8 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 func TestSellOrder_GetSdkEvent(t *testing.T) {
 	t.Run("all fields", func(t *testing.T) {
 		event := SellOrder{
-			GoodsId:   "a",
-			Type:      NameOrder,
+			AssetId:   "a",
+			AssetType: TypeName,
 			ExpireAt:  123456,
 			MinPrice:  dymnsutils.TestCoin(1),
 			SellPrice: dymnsutils.TestCoinP(3),
@@ -814,8 +814,8 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 		}.GetSdkEvent("action-name")
 		requireEventEquals(t, event,
 			EventTypeSellOrder,
-			AttributeKeySoGoodsId, "a",
-			AttributeKeySoType, NameOrder.FriendlyString(),
+			AttributeKeySoAssetId, "a",
+			AttributeKeySoAssetType, TypeName.FriendlyString(),
 			AttributeKeySoExpiryEpoch, "123456",
 			AttributeKeySoMinPrice, "1"+params.BaseDenom,
 			AttributeKeySoSellPrice, "3"+params.BaseDenom,
@@ -827,8 +827,8 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 
 	t.Run("SO type alias", func(t *testing.T) {
 		event := SellOrder{
-			GoodsId:   "a",
-			Type:      AliasOrder,
+			AssetId:   "a",
+			AssetType: TypeAlias,
 			ExpireAt:  123456,
 			MinPrice:  dymnsutils.TestCoin(1),
 			SellPrice: dymnsutils.TestCoinP(3),
@@ -840,16 +840,16 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 		require.NotNil(t, event)
 		require.Equal(t, EventTypeSellOrder, event.Type)
 		require.Len(t, event.Attributes, 8)
-		require.Equal(t, AttributeKeySoType, event.Attributes[1].Key)
-		require.Equal(t, AliasOrder.FriendlyString(), event.Attributes[1].Value)
+		require.Equal(t, AttributeKeySoAssetType, event.Attributes[1].Key)
+		require.Equal(t, TypeAlias.FriendlyString(), event.Attributes[1].Value)
 	})
 
 	t.Run("no sell-price", func(t *testing.T) {
 		event := SellOrder{
-			GoodsId:  "a",
-			Type:     NameOrder,
-			ExpireAt: 123456,
-			MinPrice: dymnsutils.TestCoin(1),
+			AssetId:   "a",
+			AssetType: TypeName,
+			ExpireAt:  123456,
+			MinPrice:  dymnsutils.TestCoin(1),
 			HighestBid: &SellOrderBid{
 				Bidder: "d",
 				Price:  dymnsutils.TestCoin(2),
@@ -857,8 +857,8 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 		}.GetSdkEvent("action-name")
 		requireEventEquals(t, event,
 			EventTypeSellOrder,
-			AttributeKeySoGoodsId, "a",
-			AttributeKeySoType, NameOrder.FriendlyString(),
+			AttributeKeySoAssetId, "a",
+			AttributeKeySoAssetType, TypeName.FriendlyString(),
 			AttributeKeySoExpiryEpoch, "123456",
 			AttributeKeySoMinPrice, "1"+params.BaseDenom,
 			AttributeKeySoSellPrice, "0"+params.BaseDenom,
@@ -870,16 +870,16 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 
 	t.Run("no highest bid", func(t *testing.T) {
 		event := SellOrder{
-			GoodsId:   "a",
-			Type:      NameOrder,
+			AssetId:   "a",
+			AssetType: TypeName,
 			ExpireAt:  123456,
 			MinPrice:  dymnsutils.TestCoin(1),
 			SellPrice: dymnsutils.TestCoinP(3),
 		}.GetSdkEvent("action-name")
 		requireEventEquals(t, event,
 			EventTypeSellOrder,
-			AttributeKeySoGoodsId, "a",
-			AttributeKeySoType, NameOrder.FriendlyString(),
+			AttributeKeySoAssetId, "a",
+			AttributeKeySoAssetType, TypeName.FriendlyString(),
 			AttributeKeySoExpiryEpoch, "123456",
 			AttributeKeySoMinPrice, "1"+params.BaseDenom,
 			AttributeKeySoSellPrice, "3"+params.BaseDenom,
@@ -900,14 +900,14 @@ func TestActiveSellOrdersExpiration_Validate(t *testing.T) {
 		{
 			name: "pass",
 			records: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 2}, {GoodsId: "b", ExpireAt: 1},
+				{AssetId: "a", ExpireAt: 2}, {AssetId: "b", ExpireAt: 1},
 			},
 			wantErr: false,
 		},
 		{
 			name: "fail - name must be unique",
 			records: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 2}, {GoodsId: "a", ExpireAt: 1},
+				{AssetId: "a", ExpireAt: 2}, {AssetId: "a", ExpireAt: 1},
 			},
 			wantErr:         true,
 			wantErrContains: "active SO is not unique",
@@ -915,14 +915,14 @@ func TestActiveSellOrdersExpiration_Validate(t *testing.T) {
 		{
 			name: "pass - expire at can be duplicated",
 			records: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 2}, {GoodsId: "b", ExpireAt: 2},
+				{AssetId: "a", ExpireAt: 2}, {AssetId: "b", ExpireAt: 2},
 			},
 			wantErr: false,
 		},
 		{
 			name: "fail - expire at must be > 0",
 			records: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 0}, {GoodsId: "b", ExpireAt: -1},
+				{AssetId: "a", ExpireAt: 0}, {AssetId: "b", ExpireAt: -1},
 			},
 			wantErr:         true,
 			wantErrContains: "active SO expiry is empty",
@@ -930,7 +930,7 @@ func TestActiveSellOrdersExpiration_Validate(t *testing.T) {
 		{
 			name: "fail - must be sorted",
 			records: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "b", ExpireAt: 1}, {GoodsId: "a", ExpireAt: 1},
+				{AssetId: "b", ExpireAt: 1}, {AssetId: "a", ExpireAt: 1},
 			},
 			wantErr:         true,
 			wantErrContains: "active SO names are not sorted",
@@ -975,28 +975,28 @@ func TestActiveSellOrdersExpiration_Sort(t *testing.T) {
 		{
 			name: "can sort",
 			records: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "b", ExpireAt: 2}, {GoodsId: "a", ExpireAt: 2},
+				{AssetId: "b", ExpireAt: 2}, {AssetId: "a", ExpireAt: 2},
 			},
 			want: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 2}, {GoodsId: "b", ExpireAt: 2},
+				{AssetId: "a", ExpireAt: 2}, {AssetId: "b", ExpireAt: 2},
 			},
 		},
 		{
 			name: "sort by name asc",
 			records: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "b", ExpireAt: 1}, {GoodsId: "a", ExpireAt: 2}, {GoodsId: "c", ExpireAt: 3},
+				{AssetId: "b", ExpireAt: 1}, {AssetId: "a", ExpireAt: 2}, {AssetId: "c", ExpireAt: 3},
 			},
 			want: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 2}, {GoodsId: "b", ExpireAt: 1}, {GoodsId: "c", ExpireAt: 3},
+				{AssetId: "a", ExpireAt: 2}, {AssetId: "b", ExpireAt: 1}, {AssetId: "c", ExpireAt: 3},
 			},
 		},
 		{
 			name: "can sort one",
 			records: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 2},
+				{AssetId: "a", ExpireAt: 2},
 			},
 			want: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 2},
+				{AssetId: "a", ExpireAt: 2},
 			},
 		},
 		{
@@ -1033,40 +1033,40 @@ func TestActiveSellOrdersExpiration_Add(t *testing.T) {
 	}{
 		{
 			name:      "can add",
-			existing:  []ActiveSellOrdersExpirationRecord{{GoodsId: "a", ExpireAt: 1}},
+			existing:  []ActiveSellOrdersExpirationRecord{{AssetId: "a", ExpireAt: 1}},
 			addName:   "b",
 			addExpiry: 2,
 			want: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 1}, {GoodsId: "b", ExpireAt: 2},
+				{AssetId: "a", ExpireAt: 1}, {AssetId: "b", ExpireAt: 2},
 			},
 		},
 		{
 			name:      "add will perform sort",
-			existing:  []ActiveSellOrdersExpirationRecord{{GoodsId: "b", ExpireAt: 1}},
+			existing:  []ActiveSellOrdersExpirationRecord{{AssetId: "b", ExpireAt: 1}},
 			addName:   "a",
 			addExpiry: 2,
 			want: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 2}, {GoodsId: "b", ExpireAt: 1},
+				{AssetId: "a", ExpireAt: 2}, {AssetId: "b", ExpireAt: 1},
 			},
 		},
 		{
 			name:      "add can override existing",
-			existing:  []ActiveSellOrdersExpirationRecord{{GoodsId: "b", ExpireAt: 1}},
+			existing:  []ActiveSellOrdersExpirationRecord{{AssetId: "b", ExpireAt: 1}},
 			addName:   "b",
 			addExpiry: 2,
 			want: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "b", ExpireAt: 2},
+				{AssetId: "b", ExpireAt: 2},
 			},
 		},
 		{
 			name: "add can override existing",
 			existing: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "b", ExpireAt: 1}, {GoodsId: "c", ExpireAt: 1}, {GoodsId: "d", ExpireAt: 1},
+				{AssetId: "b", ExpireAt: 1}, {AssetId: "c", ExpireAt: 1}, {AssetId: "d", ExpireAt: 1},
 			},
 			addName:   "c",
 			addExpiry: 2,
 			want: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "b", ExpireAt: 1}, {GoodsId: "c", ExpireAt: 2}, {GoodsId: "d", ExpireAt: 1},
+				{AssetId: "b", ExpireAt: 1}, {AssetId: "c", ExpireAt: 2}, {AssetId: "d", ExpireAt: 1},
 			},
 		},
 		{
@@ -1075,7 +1075,7 @@ func TestActiveSellOrdersExpiration_Add(t *testing.T) {
 			addName:   "a",
 			addExpiry: 1,
 			want: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 1},
+				{AssetId: "a", ExpireAt: 1},
 			},
 		},
 		{
@@ -1084,7 +1084,7 @@ func TestActiveSellOrdersExpiration_Add(t *testing.T) {
 			addName:   "a",
 			addExpiry: 1,
 			want: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 1},
+				{AssetId: "a", ExpireAt: 1},
 			},
 		},
 	}
@@ -1110,17 +1110,17 @@ func TestActiveSellOrdersExpiration_Remove(t *testing.T) {
 		{
 			name: "can remove",
 			existing: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 1}, {GoodsId: "b", ExpireAt: 1},
+				{AssetId: "a", ExpireAt: 1}, {AssetId: "b", ExpireAt: 1},
 			},
 			removeName: "a",
 			want: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "b", ExpireAt: 1},
+				{AssetId: "b", ExpireAt: 1},
 			},
 		},
 		{
 			name: "remove the last one",
 			existing: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 1},
+				{AssetId: "a", ExpireAt: 1},
 			},
 			removeName: "a",
 			want:       []ActiveSellOrdersExpirationRecord{},
@@ -1128,41 +1128,41 @@ func TestActiveSellOrdersExpiration_Remove(t *testing.T) {
 		{
 			name: "remove in head",
 			existing: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 1}, {GoodsId: "b", ExpireAt: 1}, {GoodsId: "c", ExpireAt: 1},
+				{AssetId: "a", ExpireAt: 1}, {AssetId: "b", ExpireAt: 1}, {AssetId: "c", ExpireAt: 1},
 			},
 			removeName: "a",
 			want: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "b", ExpireAt: 1}, {GoodsId: "c", ExpireAt: 1},
+				{AssetId: "b", ExpireAt: 1}, {AssetId: "c", ExpireAt: 1},
 			},
 		},
 		{
 			name: "remove in middle",
 			existing: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 1}, {GoodsId: "b", ExpireAt: 1}, {GoodsId: "c", ExpireAt: 1},
+				{AssetId: "a", ExpireAt: 1}, {AssetId: "b", ExpireAt: 1}, {AssetId: "c", ExpireAt: 1},
 			},
 			removeName: "b",
 			want: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 1}, {GoodsId: "c", ExpireAt: 1},
+				{AssetId: "a", ExpireAt: 1}, {AssetId: "c", ExpireAt: 1},
 			},
 		},
 		{
 			name: "remove in tails",
 			existing: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 1}, {GoodsId: "b", ExpireAt: 1}, {GoodsId: "c", ExpireAt: 1},
+				{AssetId: "a", ExpireAt: 1}, {AssetId: "b", ExpireAt: 1}, {AssetId: "c", ExpireAt: 1},
 			},
 			removeName: "c",
 			want: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "a", ExpireAt: 1}, {GoodsId: "b", ExpireAt: 1},
+				{AssetId: "a", ExpireAt: 1}, {AssetId: "b", ExpireAt: 1},
 			},
 		},
 		{
 			name: "remove keep order",
 			existing: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "c", ExpireAt: 1}, {GoodsId: "b", ExpireAt: 1}, {GoodsId: "a", ExpireAt: 1},
+				{AssetId: "c", ExpireAt: 1}, {AssetId: "b", ExpireAt: 1}, {AssetId: "a", ExpireAt: 1},
 			},
 			removeName: "b",
 			want: []ActiveSellOrdersExpirationRecord{
-				{GoodsId: "c", ExpireAt: 1}, {GoodsId: "a", ExpireAt: 1},
+				{AssetId: "c", ExpireAt: 1}, {AssetId: "a", ExpireAt: 1},
 			},
 		},
 		{

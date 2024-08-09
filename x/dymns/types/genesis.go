@@ -26,7 +26,7 @@ func (m GenesisState) Validate() error {
 
 	for _, soBid := range m.SellOrderBids {
 		soBid.Params = nil // treat it as refund name orders
-		if err := soBid.Validate(NameOrder); err != nil {
+		if err := soBid.Validate(TypeName); err != nil {
 			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Sell-Order-Bid by '%s': %v", soBid.Bidder, err)
 		}
 	}

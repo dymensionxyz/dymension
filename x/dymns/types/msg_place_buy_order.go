@@ -11,19 +11,19 @@ var _ sdk.Msg = &MsgPlaceBuyOrder{}
 
 // ValidateBasic performs basic validation for the MsgPlaceBuyOrder.
 func (m *MsgPlaceBuyOrder) ValidateBasic() error {
-	if m.OrderType == NameOrder {
-		if !dymnsutils.IsValidDymName(m.GoodsId) {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "name is not a valid dym name: %s", m.GoodsId)
+	if m.AssetType == TypeName {
+		if !dymnsutils.IsValidDymName(m.AssetId) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "name is not a valid dym name: %s", m.AssetId)
 		}
-	} else if m.OrderType == AliasOrder {
-		if !dymnsutils.IsValidAlias(m.GoodsId) {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "alias is not a valid alias: %s", m.GoodsId)
+	} else if m.AssetType == TypeAlias {
+		if !dymnsutils.IsValidAlias(m.AssetId) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "alias is not a valid alias: %s", m.AssetId)
 		}
 	} else {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", m.OrderType)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", m.AssetType)
 	}
 
-	if err := ValidateOrderParams(m.Params, m.OrderType); err != nil {
+	if err := ValidateOrderParams(m.Params, m.AssetType); err != nil {
 		return err
 	}
 

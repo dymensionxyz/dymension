@@ -674,20 +674,20 @@ func Test_msgServer_RegisterName(t *testing.T) {
 
 				if tt.setupHistoricalData {
 					so1 := dymnstypes.SellOrder{
-						GoodsId:  useRecordName,
-						Type:     dymnstypes.NameOrder,
-						ExpireAt: now.Unix() - 1,
-						MinPrice: dymnsutils.TestCoin(1),
+						AssetId:   useRecordName,
+						AssetType: dymnstypes.TypeName,
+						ExpireAt:  now.Unix() - 1,
+						MinPrice:  dymnsutils.TestCoin(1),
 					}
 					err := dk.SetSellOrder(ctx, so1)
 					require.NoError(t, err)
 
-					err = dk.MoveSellOrderToHistorical(ctx, useRecordName, dymnstypes.NameOrder)
+					err = dk.MoveSellOrderToHistorical(ctx, useRecordName, dymnstypes.TypeName)
 					require.NoError(t, err)
 
 					so2 := dymnstypes.SellOrder{
-						GoodsId:   useRecordName,
-						Type:      dymnstypes.NameOrder,
+						AssetId:   useRecordName,
+						AssetType: dymnstypes.TypeName,
 						ExpireAt:  tt.existingDymName.ExpireAt - 1,
 						MinPrice:  dymnsutils.TestCoin(1),
 						SellPrice: dymnsutils.TestCoinP(2),
@@ -699,7 +699,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 					err = dk.SetSellOrder(ctx, so2)
 					require.NoError(t, err)
 
-					require.Len(t, dk.GetHistoricalSellOrders(ctx, useRecordName, dymnstypes.NameOrder), 1)
+					require.Len(t, dk.GetHistoricalSellOrders(ctx, useRecordName, dymnstypes.TypeName), 1)
 				}
 			} else {
 				require.False(t, tt.setupHistoricalData, "bad setup testcase")
@@ -751,8 +751,8 @@ func Test_msgServer_RegisterName(t *testing.T) {
 				}
 
 				if tt.setupHistoricalData {
-					require.NotNil(t, dk.GetSellOrder(ctx, useRecordName, dymnstypes.NameOrder), "sell order must be kept")
-					require.Len(t, dk.GetHistoricalSellOrders(ctx, useRecordName, dymnstypes.NameOrder), 1, "historical data must be kept")
+					require.NotNil(t, dk.GetSellOrder(ctx, useRecordName, dymnstypes.TypeName), "sell order must be kept")
+					require.Len(t, dk.GetHistoricalSellOrders(ctx, useRecordName, dymnstypes.TypeName), 1, "historical data must be kept")
 				}
 				return
 			}
@@ -774,8 +774,8 @@ func Test_msgServer_RegisterName(t *testing.T) {
 
 			if tt.setupHistoricalData {
 				if tt.wantPruneHistoricalData {
-					require.Nil(t, dk.GetSellOrder(ctx, useRecordName, dymnstypes.NameOrder), "sell order must be pruned")
-					require.Empty(t, dk.GetHistoricalSellOrders(ctx, useRecordName, dymnstypes.NameOrder), "historical data must be pruned")
+					require.Nil(t, dk.GetSellOrder(ctx, useRecordName, dymnstypes.TypeName), "sell order must be pruned")
+					require.Empty(t, dk.GetHistoricalSellOrders(ctx, useRecordName, dymnstypes.TypeName), "historical data must be pruned")
 
 					if tt.existingDymName.Owner != laterDymName.Owner {
 						ownedByPreviousOwner, err := dk.GetDymNamesOwnedBy(ctx, tt.existingDymName.Owner)
@@ -793,8 +793,8 @@ func Test_msgServer_RegisterName(t *testing.T) {
 						require.Empty(t, mappedDymNamesByPreviousOwner, "reverse mapping should be removed")
 					}
 				} else {
-					require.NotNil(t, dk.GetSellOrder(ctx, useRecordName, dymnstypes.NameOrder), "sell order must be kept")
-					require.Len(t, dk.GetHistoricalSellOrders(ctx, useRecordName, dymnstypes.NameOrder), 1, "historical data must be kept")
+					require.NotNil(t, dk.GetSellOrder(ctx, useRecordName, dymnstypes.TypeName), "sell order must be kept")
+					require.Len(t, dk.GetHistoricalSellOrders(ctx, useRecordName, dymnstypes.TypeName), 1, "historical data must be kept")
 				}
 			} else {
 				require.False(t, tt.wantPruneHistoricalData, "bad setup testcase")

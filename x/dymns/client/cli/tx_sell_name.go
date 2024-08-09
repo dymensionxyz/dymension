@@ -86,8 +86,8 @@ func NewPlaceDymNameSellOrderTxCmd() *cobra.Command {
 			}
 
 			msg := &dymnstypes.MsgPlaceSellOrder{
-				GoodsId:   dymName,
-				OrderType: dymnstypes.NameOrder,
+				AssetId:   dymName,
+				AssetType: dymnstypes.TypeName,
 				MinPrice:  sdk.NewCoin(resParams.Params.Price.PriceDenom, sdk.NewInt(int64(minPriceDym)).MulRaw(adymToDymMultiplier)),
 				SellPrice: sellPrice,
 				Owner:     seller,

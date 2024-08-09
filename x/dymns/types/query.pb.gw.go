@@ -250,7 +250,7 @@ func local_request_Query_DymNamesOwnedByAccount_0(ctx context.Context, marshaler
 }
 
 var (
-	filter_Query_SellOrder_0 = &utilities.DoubleArray{Encoding: map[string]int{"goods_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_Query_SellOrder_0 = &utilities.DoubleArray{Encoding: map[string]int{"asset_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_Query_SellOrder_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -264,15 +264,15 @@ func request_Query_SellOrder_0(ctx context.Context, marshaler runtime.Marshaler,
 		_   = err
 	)
 
-	val, ok = pathParams["goods_id"]
+	val, ok = pathParams["asset_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "goods_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "asset_id")
 	}
 
-	protoReq.GoodsId, err = runtime.String(val)
+	protoReq.AssetId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "goods_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "asset_id", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -298,15 +298,15 @@ func local_request_Query_SellOrder_0(ctx context.Context, marshaler runtime.Mars
 		_   = err
 	)
 
-	val, ok = pathParams["goods_id"]
+	val, ok = pathParams["asset_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "goods_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "asset_id")
 	}
 
-	protoReq.GoodsId, err = runtime.String(val)
+	protoReq.AssetId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "goods_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "asset_id", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -1632,7 +1632,7 @@ var (
 
 	pattern_Query_DymNamesOwnedByAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "owned_by", "owner"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_SellOrder_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "sell_order", "goods_id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_SellOrder_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "sell_order", "asset_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_HistoricalSellOrderOfDymName_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "dymns", "historical_sell_order", "dym_name"}, "", runtime.AssumeColonVerbOpt(false)))
 

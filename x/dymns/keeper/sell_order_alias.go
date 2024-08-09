@@ -10,7 +10,7 @@ import (
 // CompleteAliasSellOrder completes the active sell order of the Alias,
 // give value to the previous owner, and assign alias usage to destination RollApp.
 func (k Keeper) CompleteAliasSellOrder(ctx sdk.Context, name string) error {
-	so := k.GetSellOrder(ctx, name, dymnstypes.AliasOrder)
+	so := k.GetSellOrder(ctx, name, dymnstypes.TypeAlias)
 	if so == nil {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", name)
 	}
@@ -27,9 +27,9 @@ func (k Keeper) CompleteAliasSellOrder(ctx sdk.Context, name string) error {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "no bid placed")
 	}
 
-	existingRollAppIdUsingAlias, found := k.GetRollAppIdByAlias(ctx, so.GoodsId)
+	existingRollAppIdUsingAlias, found := k.GetRollAppIdByAlias(ctx, so.AssetId)
 	if !found {
-		return errorsmod.Wrapf(gerrc.ErrNotFound, "alias not owned by any RollApp: %s", so.GoodsId)
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "alias not owned by any RollApp: %s", so.AssetId)
 	}
 
 	existingRollAppUsingAlias, found := k.rollappKeeper.GetRollapp(ctx, existingRollAppIdUsingAlias)
@@ -56,15 +56,15 @@ func (k Keeper) CompleteAliasSellOrder(ctx sdk.Context, name string) error {
 
 	// NOTE: sell order with type alias does not maintain historical sell order records,
 	// so we just need to remove the active Sell-Order record
-	k.DeleteSellOrder(ctx, so.GoodsId, so.Type)
+	k.DeleteSellOrder(ctx, so.AssetId, so.AssetType)
 
 	// unlink from source RollApp
-	if err := k.RemoveAliasFromRollAppId(ctx, existingRollAppIdUsingAlias, so.GoodsId); err != nil {
+	if err := k.RemoveAliasFromRollAppId(ctx, existingRollAppIdUsingAlias, so.AssetId); err != nil {
 		return err
 	}
 
 	// link to destination RollApp
-	if err := k.SetAliasForRollAppId(ctx, destinationRollAppId, so.GoodsId); err != nil {
+	if err := k.SetAliasForRollAppId(ctx, destinationRollAppId, so.AssetId); err != nil {
 		return err
 	}
 

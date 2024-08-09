@@ -74,8 +74,8 @@ func NewOfferBuyAliasTxCmd() *cobra.Command {
 			}
 
 			msg := &dymnstypes.MsgPlaceBuyOrder{
-				GoodsId:         alias,
-				OrderType:       dymnstypes.AliasOrder,
+				AssetId:         alias,
+				AssetType:       dymnstypes.TypeAlias,
 				Buyer:           buyer,
 				ContinueOrderId: continueOrderId,
 				Offer: sdk.Coin{

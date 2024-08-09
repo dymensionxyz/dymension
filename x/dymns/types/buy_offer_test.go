@@ -35,8 +35,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 	tests := []struct {
 		name                   string
 		orderId                string
-		goodsId                string
-		_type                  OrderType
+		assetId                string
+		assetType              AssetType
 		params                 []string
 		buyer                  string
 		offerPrice             sdk.Coin
@@ -47,8 +47,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:                   "pass - (Name) valid offer",
 			orderId:                "101",
-			goodsId:                "my-name",
-			_type:                  NameOrder,
+			assetId:                "my-name",
+			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(1),
@@ -57,8 +57,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:                   "pass - (Alias) valid offer",
 			orderId:                "201",
-			goodsId:                "alias",
-			_type:                  AliasOrder,
+			assetId:                "alias",
+			assetType:              TypeAlias,
 			params:                 []string{"rollapp_1-1"},
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(1),
@@ -67,8 +67,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:                   "pass - valid offer with counterparty offer price",
 			orderId:                "101",
-			goodsId:                "my-name",
-			_type:                  NameOrder,
+			assetId:                "my-name",
+			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(1),
@@ -77,8 +77,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:                   "pass - valid offer without counterparty offer price",
 			orderId:                "101",
-			goodsId:                "my-name",
-			_type:                  NameOrder,
+			assetId:                "my-name",
+			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(1),
@@ -87,8 +87,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - empty offer ID",
 			orderId:         "",
-			goodsId:         "my-name",
-			_type:           NameOrder,
+			assetId:         "my-name",
+			assetType:       TypeName,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -97,9 +97,9 @@ func TestBuyOrder_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - offer ID prefix not match type, case Dym-Name",
-			orderId:         CreateBuyOrderId(AliasOrder, 1),
-			goodsId:         "my-name",
-			_type:           NameOrder,
+			orderId:         CreateBuyOrderId(TypeAlias, 1),
+			assetId:         "my-name",
+			assetType:       TypeName,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -108,9 +108,9 @@ func TestBuyOrder_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - offer ID prefix not match type, case Alias",
-			orderId:         CreateBuyOrderId(NameOrder, 1),
-			goodsId:         "my-name",
-			_type:           AliasOrder,
+			orderId:         CreateBuyOrderId(TypeName, 1),
+			assetId:         "my-name",
+			assetType:       TypeAlias,
 			params:          []string{"rollapp_1-1"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -120,8 +120,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - bad offer ID",
 			orderId:         "@",
-			goodsId:         "my-name",
-			_type:           NameOrder,
+			assetId:         "my-name",
+			assetType:       TypeName,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -131,8 +131,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - (Name) empty name",
 			orderId:         "101",
-			goodsId:         "",
-			_type:           NameOrder,
+			assetId:         "",
+			assetType:       TypeName,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -142,8 +142,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - (Alias) empty alias",
 			orderId:         "201",
-			goodsId:         "",
-			_type:           AliasOrder,
+			assetId:         "",
+			assetType:       TypeAlias,
 			params:          []string{"rollapp_1-1"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -153,8 +153,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - (Name) bad name",
 			orderId:         "101",
-			goodsId:         "@",
-			_type:           NameOrder,
+			assetId:         "@",
+			assetType:       TypeName,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -164,8 +164,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - (Alias) bad name",
 			orderId:         "201",
-			goodsId:         "bad-alias",
-			_type:           AliasOrder,
+			assetId:         "bad-alias",
+			assetType:       TypeAlias,
 			params:          []string{"rollapp_1-1"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -175,19 +175,19 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - (Name) reject non-empty params",
 			orderId:         "101",
-			goodsId:         "my-name",
-			_type:           NameOrder,
+			assetId:         "my-name",
+			assetType:       TypeName,
 			params:          []string{"non-empty"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
 			wantErr:         true,
-			wantErrContains: "not accept order params for order type",
+			wantErrContains: "not accept order params for asset type",
 		},
 		{
 			name:            "fail - (Alias) reject empty params",
 			orderId:         "201",
-			goodsId:         "alias",
-			_type:           AliasOrder,
+			assetId:         "alias",
+			assetType:       TypeAlias,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -197,8 +197,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - (Alias) reject bad params",
 			orderId:         "201",
-			goodsId:         "alias",
-			_type:           AliasOrder,
+			assetId:         "alias",
+			assetType:       TypeAlias,
 			params:          []string{"@chain"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -208,8 +208,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - bad buyer",
 			orderId:         "101",
-			goodsId:         "my-name",
-			_type:           NameOrder,
+			assetId:         "my-name",
+			assetType:       TypeName,
 			params:          nil,
 			buyer:           "0x1",
 			offerPrice:      dymnsutils.TestCoin(1),
@@ -219,8 +219,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - offer price is zero",
 			orderId:         "101",
-			goodsId:         "my-name",
-			_type:           NameOrder,
+			assetId:         "my-name",
+			assetType:       TypeName,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(0),
@@ -230,8 +230,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - offer price is empty",
 			orderId:         "101",
-			goodsId:         "my-name",
-			_type:           NameOrder,
+			assetId:         "my-name",
+			assetType:       TypeName,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      sdk.Coin{},
@@ -241,8 +241,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:            "fail - offer price is negative",
 			orderId:         "101",
-			goodsId:         "my-name",
-			_type:           NameOrder,
+			assetId:         "my-name",
+			assetType:       TypeName,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(-1),
@@ -250,12 +250,12 @@ func TestBuyOrder_Validate(t *testing.T) {
 			wantErrContains: "offer price is negative",
 		},
 		{
-			name:    "fail - offer price is invalid",
-			orderId: "101",
-			goodsId: "my-name",
-			_type:   NameOrder,
-			params:  nil,
-			buyer:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			name:      "fail - offer price is invalid",
+			orderId:   "101",
+			assetId:   "my-name",
+			assetType: TypeName,
+			params:    nil,
+			buyer:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice: sdk.Coin{
 				Denom:  "-",
 				Amount: sdk.OneInt(),
@@ -266,8 +266,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:                   "pass - counter-party offer price is zero",
 			orderId:                "101",
-			goodsId:                "my-name",
-			_type:                  NameOrder,
+			assetId:                "my-name",
+			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(1),
@@ -276,8 +276,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:                   "pass - counter-party offer price is empty",
 			orderId:                "101",
-			goodsId:                "my-name",
-			_type:                  NameOrder,
+			assetId:                "my-name",
+			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(1),
@@ -286,8 +286,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:                   "fail - counter-party offer price is negative",
 			orderId:                "101",
-			goodsId:                "my-name",
-			_type:                  NameOrder,
+			assetId:                "my-name",
+			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(1),
@@ -298,8 +298,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:       "fail - counter-party offer price is invalid",
 			orderId:    "101",
-			goodsId:    "my-name",
-			_type:      NameOrder,
+			assetId:    "my-name",
+			assetType:  TypeName,
 			params:     nil,
 			buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice: dymnsutils.TestCoin(1),
@@ -313,8 +313,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:                   "pass - counterparty offer price can be less than offer price",
 			orderId:                "101",
-			goodsId:                "my-name",
-			_type:                  NameOrder,
+			assetId:                "my-name",
+			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(2),
@@ -324,8 +324,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:                   "pass - counterparty offer price can be equals to offer price",
 			orderId:                "101",
-			goodsId:                "my-name",
-			_type:                  NameOrder,
+			assetId:                "my-name",
+			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(2),
@@ -335,8 +335,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:                   "pass - counterparty offer price can be greater than offer price",
 			orderId:                "101",
-			goodsId:                "my-name",
-			_type:                  NameOrder,
+			assetId:                "my-name",
+			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(2),
@@ -346,8 +346,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 		{
 			name:                   "fail - counterparty offer price denom must match offer price denom",
 			orderId:                "101",
-			goodsId:                "my-name",
-			_type:                  NameOrder,
+			assetId:                "my-name",
+			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             dymnsutils.TestCoin(1),
@@ -356,22 +356,22 @@ func TestBuyOrder_Validate(t *testing.T) {
 			wantErrContains:        "counterparty offer price denom is different from offer price denom",
 		},
 		{
-			name:            "fail - reject unknown order type",
+			name:            "fail - reject unknown asset type",
 			orderId:         "101",
-			goodsId:         "goods",
-			_type:           OrderType_OT_UNKNOWN,
+			assetId:         "asset",
+			assetType:       AssetType_AT_UNKNOWN,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:      dymnsutils.TestCoin(1),
 			wantErr:         true,
-			wantErrContains: "invalid order type",
+			wantErrContains: "invalid asset type",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &BuyOrder{
 				Id:                     tt.orderId,
-				GoodsId:                tt.goodsId,
-				Type:                   tt._type,
+				AssetId:                tt.assetId,
+				AssetType:              tt.assetType,
 				Params:                 tt.params,
 				Buyer:                  tt.buyer,
 				OfferPrice:             tt.offerPrice,
@@ -396,8 +396,8 @@ func TestBuyOrder_GetSdkEvent(t *testing.T) {
 	t.Run("all fields", func(t *testing.T) {
 		event := BuyOrder{
 			Id:                     "1",
-			GoodsId:                "a",
-			Type:                   NameOrder,
+			AssetId:                "a",
+			AssetType:              TypeName,
 			Buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			OfferPrice:             dymnsutils.TestCoin(1),
 			CounterpartyOfferPrice: dymnsutils.TestCoinP(2),
@@ -405,8 +405,8 @@ func TestBuyOrder_GetSdkEvent(t *testing.T) {
 		requireEventEquals(t, event,
 			EventTypeBuyOrder,
 			AttributeKeyBoId, "1",
-			AttributeKeyBoGoodsId, "a",
-			AttributeKeyBoType, NameOrder.FriendlyString(),
+			AttributeKeyBoAssetId, "a",
+			AttributeKeyBoAssetType, TypeName.FriendlyString(),
 			AttributeKeyBoBuyer, "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			AttributeKeyBoOfferPrice, "1"+params.BaseDenom,
 			AttributeKeyBoCounterpartyOfferPrice, "2"+params.BaseDenom,
@@ -417,8 +417,8 @@ func TestBuyOrder_GetSdkEvent(t *testing.T) {
 	t.Run("BO type Alias", func(t *testing.T) {
 		event := BuyOrder{
 			Id:                     "1",
-			GoodsId:                "a",
-			Type:                   AliasOrder,
+			AssetId:                "a",
+			AssetType:              TypeAlias,
 			Buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			OfferPrice:             dymnsutils.TestCoin(1),
 			CounterpartyOfferPrice: dymnsutils.TestCoinP(2),
@@ -426,15 +426,15 @@ func TestBuyOrder_GetSdkEvent(t *testing.T) {
 		require.NotNil(t, event)
 		require.Equal(t, EventTypeBuyOrder, event.Type)
 		require.Len(t, event.Attributes, 7)
-		require.Equal(t, AttributeKeyBoType, event.Attributes[2].Key)
-		require.Equal(t, AliasOrder.FriendlyString(), event.Attributes[2].Value)
+		require.Equal(t, AttributeKeyBoAssetType, event.Attributes[2].Key)
+		require.Equal(t, TypeAlias.FriendlyString(), event.Attributes[2].Value)
 	})
 
 	t.Run("no counterparty offer price", func(t *testing.T) {
 		event := BuyOrder{
 			Id:                     "1",
-			GoodsId:                "a",
-			Type:                   NameOrder,
+			AssetId:                "a",
+			AssetType:              TypeName,
 			Buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			OfferPrice:             dymnsutils.TestCoin(1),
 			CounterpartyOfferPrice: nil,
@@ -442,8 +442,8 @@ func TestBuyOrder_GetSdkEvent(t *testing.T) {
 		requireEventEquals(t, event,
 			EventTypeBuyOrder,
 			AttributeKeyBoId, "1",
-			AttributeKeyBoGoodsId, "a",
-			AttributeKeyBoType, NameOrder.FriendlyString(),
+			AttributeKeyBoAssetId, "a",
+			AttributeKeyBoAssetType, TypeName.FriendlyString(),
 			AttributeKeyBoBuyer, "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			AttributeKeyBoOfferPrice, "1"+params.BaseDenom,
 			AttributeKeyBoCounterpartyOfferPrice, "",
@@ -549,50 +549,50 @@ func TestIsValidBuyOrderId(t *testing.T) {
 func TestCreateBuyOrderId(t *testing.T) {
 	tests := []struct {
 		name      string
-		_type     OrderType
+		_type     AssetType
 		i         uint64
 		want      string
 		wantPanic bool
 	}{
 		{
 			name:  "pass - type Dym-Name",
-			_type: NameOrder,
+			_type: TypeName,
 			i:     1,
 			want:  "101",
 		},
 		{
 			name:  "pass - type Alias",
-			_type: AliasOrder,
+			_type: TypeAlias,
 			i:     1,
 			want:  "201",
 		},
 		{
 			name:  "pass - type Dym-Name, max uint64",
-			_type: NameOrder,
+			_type: TypeName,
 			i:     math.MaxUint64,
 			want:  "10" + "18446744073709551615",
 		},
 		{
 			name:  "pass - type Alias, max uint64",
-			_type: AliasOrder,
+			_type: TypeAlias,
 			i:     math.MaxUint64,
 			want:  "20" + "18446744073709551615",
 		},
 		{
 			name:      "fail - reject unknown type",
-			_type:     OrderType_OT_UNKNOWN,
+			_type:     AssetType_AT_UNKNOWN,
 			i:         1,
 			wantPanic: true,
 		},
 		{
 			name:      "fail - reject bad input number",
-			_type:     NameOrder,
+			_type:     TypeName,
 			i:         0,
 			wantPanic: true,
 		},
 		{
 			name:      "fail - reject bad input number",
-			_type:     AliasOrder,
+			_type:     TypeAlias,
 			i:         0,
 			wantPanic: true,
 		},

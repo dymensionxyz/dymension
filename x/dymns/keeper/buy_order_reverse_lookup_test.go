@@ -41,8 +41,8 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOrder(t *testing.T) {
 
 	offer1 := dymnstypes.BuyOrder{
 		Id:                     "101",
-		GoodsId:                "a",
-		Type:                   dymnstypes.NameOrder,
+		AssetId:                "a",
+		AssetType:              dymnstypes.TypeName,
 		Buyer:                  buyer1a,
 		OfferPrice:             dymnsutils.TestCoin(1),
 		CounterpartyOfferPrice: nil,
@@ -53,8 +53,8 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOrder(t *testing.T) {
 
 	offer2 := dymnstypes.BuyOrder{
 		Id:                     "202",
-		GoodsId:                "alias",
-		Type:                   dymnstypes.AliasOrder,
+		AssetId:                "alias",
+		AssetType:              dymnstypes.TypeAlias,
 		Params:                 []string{"rollapp_1-1"},
 		Buyer:                  buyer2a,
 		OfferPrice:             dymnsutils.TestCoin(1),
@@ -66,8 +66,8 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOrder(t *testing.T) {
 
 	offer3 := dymnstypes.BuyOrder{
 		Id:                     "103",
-		GoodsId:                "c",
-		Type:                   dymnstypes.NameOrder,
+		AssetId:                "c",
+		AssetType:              dymnstypes.TypeName,
 		Buyer:                  buyer2a,
 		OfferPrice:             dymnsutils.TestCoin(1),
 		CounterpartyOfferPrice: nil,
@@ -78,8 +78,8 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOrder(t *testing.T) {
 
 	offer4 := dymnstypes.BuyOrder{
 		Id:                     "204",
-		GoodsId:                "salas",
-		Type:                   dymnstypes.AliasOrder,
+		AssetId:                "salas",
+		AssetType:              dymnstypes.TypeAlias,
 		Params:                 []string{"rollapp_2-2"},
 		Buyer:                  buyer3a,
 		OfferPrice:             dymnsutils.TestCoin(1),
@@ -155,8 +155,8 @@ func TestKeeper_RemoveReverseMappingBuyerToPlacedBuyOrder(t *testing.T) {
 
 	offer1 := dymnstypes.BuyOrder{
 		Id:                     "101",
-		GoodsId:                "my-name",
-		Type:                   dymnstypes.NameOrder,
+		AssetId:                "my-name",
+		AssetType:              dymnstypes.TypeName,
 		Buyer:                  buyerA,
 		OfferPrice:             dymnsutils.TestCoin(1),
 		CounterpartyOfferPrice: nil,
@@ -166,8 +166,8 @@ func TestKeeper_RemoveReverseMappingBuyerToPlacedBuyOrder(t *testing.T) {
 
 	offer2 := dymnstypes.BuyOrder{
 		Id:                     "202",
-		GoodsId:                "alias",
-		Type:                   dymnstypes.AliasOrder,
+		AssetId:                "alias",
+		AssetType:              dymnstypes.TypeAlias,
 		Params:                 []string{"rollapp_1-1"},
 		Buyer:                  buyerA,
 		OfferPrice:             dymnsutils.TestCoin(1),
@@ -214,110 +214,110 @@ func TestKeeper_RemoveReverseMappingBuyerToPlacedBuyOrder(t *testing.T) {
 	require.Len(t, placedByBuyer, 0)
 }
 
-func TestKeeper_AddReverseMappingGoodsIdToBuyOrder_Generic(t *testing.T) {
-	supportedOrderTypes := []dymnstypes.OrderType{
-		dymnstypes.NameOrder, dymnstypes.AliasOrder,
+func TestKeeper_AddReverseMappingAssetIdToBuyOrder_Generic(t *testing.T) {
+	supportedAssetTypes := []dymnstypes.AssetType{
+		dymnstypes.TypeName, dymnstypes.TypeAlias,
 	}
 
 	t.Run("pass - can add", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		const goodsId = "goods"
+		const assetId = "asset"
 
-		for _, orderType := range supportedOrderTypes {
-			err := dk.AddReverseMappingGoodsIdToBuyOrder(ctx, goodsId, orderType, dymnstypes.CreateBuyOrderId(orderType, 1))
+		for _, assetType := range supportedAssetTypes {
+			err := dk.AddReverseMappingAssetIdToBuyOrder(ctx, assetId, assetType, dymnstypes.CreateBuyOrderId(assetType, 1))
 			require.NoError(t, err)
 		}
 
-		require.NotEmpty(t, dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, dymnstypes.DymNameToBuyOrderIdsRvlKey(goodsId)).OrderIds)
-		require.NotEmpty(t, dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, dymnstypes.AliasToBuyOrderIdsRvlKey(goodsId)).OrderIds)
+		require.NotEmpty(t, dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, dymnstypes.DymNameToBuyOrderIdsRvlKey(assetId)).OrderIds)
+		require.NotEmpty(t, dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, dymnstypes.AliasToBuyOrderIdsRvlKey(assetId)).OrderIds)
 	})
 
-	t.Run("pass - can add without collision across order types", func(t *testing.T) {
+	t.Run("pass - can add without collision across asset types", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		const goodsId = "goods"
+		const assetId = "asset"
 
-		for _, orderType := range supportedOrderTypes {
-			err := dk.AddReverseMappingGoodsIdToBuyOrder(ctx, goodsId, orderType, dymnstypes.CreateBuyOrderId(orderType, 1))
+		for _, assetType := range supportedAssetTypes {
+			err := dk.AddReverseMappingAssetIdToBuyOrder(ctx, assetId, assetType, dymnstypes.CreateBuyOrderId(assetType, 1))
 			require.NoError(t, err)
 		}
 
-		err := dk.AddReverseMappingGoodsIdToBuyOrder(ctx, goodsId, dymnstypes.NameOrder, dymnstypes.CreateBuyOrderId(dymnstypes.NameOrder, 2))
+		err := dk.AddReverseMappingAssetIdToBuyOrder(ctx, assetId, dymnstypes.TypeName, dymnstypes.CreateBuyOrderId(dymnstypes.TypeName, 2))
 		require.NoError(t, err)
 
-		err = dk.AddReverseMappingGoodsIdToBuyOrder(ctx, goodsId, dymnstypes.AliasOrder, dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 3))
+		err = dk.AddReverseMappingAssetIdToBuyOrder(ctx, assetId, dymnstypes.TypeAlias, dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 3))
 		require.NoError(t, err)
 
-		nameOffers := dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, dymnstypes.DymNameToBuyOrderIdsRvlKey(goodsId))
+		nameOffers := dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, dymnstypes.DymNameToBuyOrderIdsRvlKey(assetId))
 		require.Len(t, nameOffers.OrderIds, 2)
-		aliasOffers := dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, dymnstypes.AliasToBuyOrderIdsRvlKey(goodsId))
+		aliasOffers := dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, dymnstypes.AliasToBuyOrderIdsRvlKey(assetId))
 		require.Len(t, aliasOffers.OrderIds, 2)
 
 		require.NotEqual(t, nameOffers.OrderIds, aliasOffers.OrderIds, "data must be persisted separately")
 
-		require.Equal(t, dymnstypes.CreateBuyOrderId(dymnstypes.NameOrder, 1), nameOffers.OrderIds[0])
-		require.Equal(t, dymnstypes.CreateBuyOrderId(dymnstypes.NameOrder, 2), nameOffers.OrderIds[1])
-		require.Equal(t, dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 1), aliasOffers.OrderIds[0])
-		require.Equal(t, dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 3), aliasOffers.OrderIds[1])
+		require.Equal(t, dymnstypes.CreateBuyOrderId(dymnstypes.TypeName, 1), nameOffers.OrderIds[0])
+		require.Equal(t, dymnstypes.CreateBuyOrderId(dymnstypes.TypeName, 2), nameOffers.OrderIds[1])
+		require.Equal(t, dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 1), aliasOffers.OrderIds[0])
+		require.Equal(t, dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 3), aliasOffers.OrderIds[1])
 	})
 
 	t.Run("fail - should reject invalid offer id", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		for _, orderType := range supportedOrderTypes {
+		for _, assetType := range supportedAssetTypes {
 			requireErrorContains(t,
-				dk.AddReverseMappingGoodsIdToBuyOrder(ctx, "goods", orderType, "@"),
+				dk.AddReverseMappingAssetIdToBuyOrder(ctx, "asset", assetType, "@"),
 				"invalid Buy-Order ID",
 			)
 		}
 	})
 
-	t.Run("fail - should reject invalid goods id", func(t *testing.T) {
+	t.Run("fail - should reject invalid asset id", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		for _, orderType := range supportedOrderTypes {
+		for _, assetType := range supportedAssetTypes {
 			var wantErrContains string
-			switch orderType {
-			case dymnstypes.NameOrder:
+			switch assetType {
+			case dymnstypes.TypeName:
 				wantErrContains = "invalid Dym-Name"
-			case dymnstypes.AliasOrder:
+			case dymnstypes.TypeAlias:
 				wantErrContains = "invalid Alias"
 			default:
-				t.Fatalf("unsupported order type: %s", orderType)
+				t.Fatalf("unsupported asset type: %s", assetType)
 			}
 			requireErrorContains(
 				t,
-				dk.AddReverseMappingGoodsIdToBuyOrder(ctx, "@", orderType, dymnstypes.CreateBuyOrderId(orderType, 1)),
+				dk.AddReverseMappingAssetIdToBuyOrder(ctx, "@", assetType, dymnstypes.CreateBuyOrderId(assetType, 1)),
 				wantErrContains,
 			)
 		}
 	})
 
-	t.Run("fail - should reject invalid order type", func(t *testing.T) {
+	t.Run("fail - should reject invalid asset type", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 		requireErrorContains(t,
-			dk.AddReverseMappingGoodsIdToBuyOrder(ctx, "@", dymnstypes.OrderType_OT_UNKNOWN, "101"),
-			"invalid order type",
+			dk.AddReverseMappingAssetIdToBuyOrder(ctx, "@", dymnstypes.AssetType_AT_UNKNOWN, "101"),
+			"invalid asset type",
 		)
 
 		for i := int32(0); i < 99; i++ {
-			orderType := dymnstypes.OrderType(i)
+			assetType := dymnstypes.AssetType(i)
 
-			if slices.Contains(supportedOrderTypes, dymnstypes.OrderType(i)) {
+			if slices.Contains(supportedAssetTypes, dymnstypes.AssetType(i)) {
 				continue
 			}
 
 			requireErrorContains(t,
-				dk.AddReverseMappingGoodsIdToBuyOrder(ctx, "@", orderType, "101"),
-				"invalid order type",
+				dk.AddReverseMappingAssetIdToBuyOrder(ctx, "@", assetType, "101"),
+				"invalid asset type",
 			)
 		}
 	})
 }
 
-func TestKeeper_GetAddReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T) {
+func TestKeeper_GetAddReverseMappingAssetIdToBuyOrder_Type_DymName(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 	_, err := dk.GetBuyOrdersOfDymName(ctx, "@")
@@ -340,8 +340,8 @@ func TestKeeper_GetAddReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T)
 
 	offer11 := dymnstypes.BuyOrder{
 		Id:         "1011",
-		GoodsId:    dymName1.Name,
-		Type:       dymnstypes.NameOrder,
+		AssetId:    dymName1.Name,
+		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
@@ -349,8 +349,8 @@ func TestKeeper_GetAddReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T)
 
 	offer12 := dymnstypes.BuyOrder{
 		Id:         "1012",
-		GoodsId:    dymName1.Name,
-		Type:       dymnstypes.NameOrder,
+		AssetId:    dymName1.Name,
+		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
@@ -358,12 +358,12 @@ func TestKeeper_GetAddReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T)
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingGoodsIdToBuyOrder(ctx, dymName1.Name, dymnstypes.NameOrder, offer11.Id),
+		dk.AddReverseMappingAssetIdToBuyOrder(ctx, dymName1.Name, dymnstypes.TypeName, offer11.Id),
 	)
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingGoodsIdToBuyOrder(ctx, dymName1.Name, dymnstypes.NameOrder, offer12.Id),
+		dk.AddReverseMappingAssetIdToBuyOrder(ctx, dymName1.Name, dymnstypes.TypeName, offer12.Id),
 	)
 
 	dymName2 := dymnstypes.DymName{
@@ -376,8 +376,8 @@ func TestKeeper_GetAddReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T)
 
 	offer2 := dymnstypes.BuyOrder{
 		Id:         "102",
-		GoodsId:    dymName2.Name,
-		Type:       dymnstypes.NameOrder,
+		AssetId:    dymName2.Name,
+		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
@@ -385,19 +385,19 @@ func TestKeeper_GetAddReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T)
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingGoodsIdToBuyOrder(ctx, dymName2.Name, dymnstypes.NameOrder, offer2.Id),
+		dk.AddReverseMappingAssetIdToBuyOrder(ctx, dymName2.Name, dymnstypes.TypeName, offer2.Id),
 	)
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingGoodsIdToBuyOrder(ctx, dymName1.Name, dymnstypes.NameOrder, "1012356215631"),
+		dk.AddReverseMappingAssetIdToBuyOrder(ctx, dymName1.Name, dymnstypes.TypeName, "1012356215631"),
 		"no check non-existing offer id",
 	)
 
 	t.Run("no error if duplicated name", func(t *testing.T) {
 		for i := 0; i < 3; i++ {
 			require.NoError(t,
-				dk.AddReverseMappingGoodsIdToBuyOrder(ctx, dymName2.Name, dymnstypes.NameOrder, offer2.Id),
+				dk.AddReverseMappingAssetIdToBuyOrder(ctx, dymName2.Name, dymnstypes.TypeName, offer2.Id),
 			)
 		}
 	})
@@ -430,7 +430,7 @@ func TestKeeper_GetAddReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T)
 	})
 }
 
-func TestKeeper_GetAddReverseMappingGoodsIdToBuyOrder_Type_Alias(t *testing.T) {
+func TestKeeper_GetAddReverseMappingAssetIdToBuyOrder_Type_Alias(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 	_, err := dk.GetBuyOrdersOfAlias(ctx, "@")
@@ -447,9 +447,9 @@ func TestKeeper_GetAddReverseMappingGoodsIdToBuyOrder_Type_Alias(t *testing.T) {
 	buyerA := testAddr(1).bech32()
 
 	offer11 := dymnstypes.BuyOrder{
-		Id:         dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 11),
-		GoodsId:    alias1,
-		Type:       dymnstypes.AliasOrder,
+		Id:         dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 11),
+		AssetId:    alias1,
+		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{dstRollAppId},
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
@@ -457,9 +457,9 @@ func TestKeeper_GetAddReverseMappingGoodsIdToBuyOrder_Type_Alias(t *testing.T) {
 	require.NoError(t, dk.SetBuyOrder(ctx, offer11))
 
 	offer12 := dymnstypes.BuyOrder{
-		Id:         dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 12),
-		GoodsId:    alias1,
-		Type:       dymnstypes.AliasOrder,
+		Id:         dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 12),
+		AssetId:    alias1,
+		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{dstRollAppId},
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
@@ -468,20 +468,20 @@ func TestKeeper_GetAddReverseMappingGoodsIdToBuyOrder_Type_Alias(t *testing.T) {
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingGoodsIdToBuyOrder(ctx, alias1, dymnstypes.AliasOrder, offer11.Id),
+		dk.AddReverseMappingAssetIdToBuyOrder(ctx, alias1, dymnstypes.TypeAlias, offer11.Id),
 	)
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingGoodsIdToBuyOrder(ctx, alias1, dymnstypes.AliasOrder, offer12.Id),
+		dk.AddReverseMappingAssetIdToBuyOrder(ctx, alias1, dymnstypes.TypeAlias, offer12.Id),
 	)
 
 	const alias2 = "two"
 
 	offer2 := dymnstypes.BuyOrder{
-		Id:         dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 2),
-		GoodsId:    alias2,
-		Type:       dymnstypes.AliasOrder,
+		Id:         dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 2),
+		AssetId:    alias2,
+		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{dstRollAppId},
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
@@ -490,19 +490,19 @@ func TestKeeper_GetAddReverseMappingGoodsIdToBuyOrder_Type_Alias(t *testing.T) {
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingGoodsIdToBuyOrder(ctx, alias2, dymnstypes.AliasOrder, offer2.Id),
+		dk.AddReverseMappingAssetIdToBuyOrder(ctx, alias2, dymnstypes.TypeAlias, offer2.Id),
 	)
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingGoodsIdToBuyOrder(ctx, alias2, dymnstypes.AliasOrder, "2012356215631"),
+		dk.AddReverseMappingAssetIdToBuyOrder(ctx, alias2, dymnstypes.TypeAlias, "2012356215631"),
 		"no check non-existing offer id",
 	)
 
 	t.Run("no error if duplicated name", func(t *testing.T) {
 		for i := 0; i < 3; i++ {
 			require.NoError(t,
-				dk.AddReverseMappingGoodsIdToBuyOrder(ctx, alias2, dymnstypes.AliasOrder, offer2.Id),
+				dk.AddReverseMappingAssetIdToBuyOrder(ctx, alias2, dymnstypes.TypeAlias, offer2.Id),
 			)
 		}
 	})
@@ -524,21 +524,21 @@ func TestKeeper_GetAddReverseMappingGoodsIdToBuyOrder_Type_Alias(t *testing.T) {
 	require.Len(t, linkedByNotExists, 0)
 }
 
-func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Generic(t *testing.T) {
-	supportedOrderTypes := []dymnstypes.OrderType{
-		dymnstypes.NameOrder, dymnstypes.AliasOrder,
+func TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Generic(t *testing.T) {
+	supportedAssetTypes := []dymnstypes.AssetType{
+		dymnstypes.TypeName, dymnstypes.TypeAlias,
 	}
 
 	t.Run("pass - can remove", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		for _, orderType := range supportedOrderTypes {
-			err := dk.AddReverseMappingGoodsIdToBuyOrder(ctx, "goods", orderType, dymnstypes.CreateBuyOrderId(orderType, 1))
+		for _, assetType := range supportedAssetTypes {
+			err := dk.AddReverseMappingAssetIdToBuyOrder(ctx, "asset", assetType, dymnstypes.CreateBuyOrderId(assetType, 1))
 			require.NoError(t, err)
 		}
 
-		for _, orderType := range supportedOrderTypes {
-			err := dk.RemoveReverseMappingGoodsIdToBuyOrder(ctx, "goods", orderType, dymnstypes.CreateBuyOrderId(orderType, 1))
+		for _, assetType := range supportedAssetTypes {
+			err := dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, "asset", assetType, dymnstypes.CreateBuyOrderId(assetType, 1))
 			require.NoError(t, err)
 		}
 	})
@@ -546,85 +546,85 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Generic(t *testing.T) {
 	t.Run("pass - can remove of non-exists", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		for _, orderType := range supportedOrderTypes {
-			err := dk.RemoveReverseMappingGoodsIdToBuyOrder(ctx, "goods", orderType, dymnstypes.CreateBuyOrderId(orderType, 1))
+		for _, assetType := range supportedAssetTypes {
+			err := dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, "asset", assetType, dymnstypes.CreateBuyOrderId(assetType, 1))
 			require.NoError(t, err)
 		}
 	})
 
-	t.Run("pass - can remove without collision across order types", func(t *testing.T) {
+	t.Run("pass - can remove without collision across asset types", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		const goodsId = "goods"
+		const assetId = "asset"
 
-		for _, orderType := range supportedOrderTypes {
-			err := dk.AddReverseMappingGoodsIdToBuyOrder(ctx, goodsId, orderType, dymnstypes.CreateBuyOrderId(orderType, 1))
+		for _, assetType := range supportedAssetTypes {
+			err := dk.AddReverseMappingAssetIdToBuyOrder(ctx, assetId, assetType, dymnstypes.CreateBuyOrderId(assetType, 1))
 			require.NoError(t, err)
 		}
 
-		err := dk.RemoveReverseMappingGoodsIdToBuyOrder(ctx, goodsId, dymnstypes.NameOrder, dymnstypes.CreateBuyOrderId(dymnstypes.NameOrder, 1))
+		err := dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, assetId, dymnstypes.TypeName, dymnstypes.CreateBuyOrderId(dymnstypes.TypeName, 1))
 		require.NoError(t, err)
 
-		require.Empty(t, dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, dymnstypes.DymNameToBuyOrderIdsRvlKey(goodsId)).OrderIds)
-		require.NotEmpty(t, dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, dymnstypes.AliasToBuyOrderIdsRvlKey(goodsId)).OrderIds)
+		require.Empty(t, dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, dymnstypes.DymNameToBuyOrderIdsRvlKey(assetId)).OrderIds)
+		require.NotEmpty(t, dk.GenericGetReverseLookupBuyOrderIdsRecord(ctx, dymnstypes.AliasToBuyOrderIdsRvlKey(assetId)).OrderIds)
 	})
 
 	t.Run("fail - should reject invalid offer id", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		for _, orderType := range supportedOrderTypes {
+		for _, assetType := range supportedAssetTypes {
 			requireErrorContains(t,
-				dk.RemoveReverseMappingGoodsIdToBuyOrder(ctx, "goods", orderType, "@"),
+				dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, "asset", assetType, "@"),
 				"invalid Buy-Order ID",
 			)
 		}
 	})
 
-	t.Run("fail - should reject invalid goods id", func(t *testing.T) {
+	t.Run("fail - should reject invalid asset id", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		for _, orderType := range supportedOrderTypes {
+		for _, assetType := range supportedAssetTypes {
 			var wantErrContains string
-			switch orderType {
-			case dymnstypes.NameOrder:
+			switch assetType {
+			case dymnstypes.TypeName:
 				wantErrContains = "invalid Dym-Name"
-			case dymnstypes.AliasOrder:
+			case dymnstypes.TypeAlias:
 				wantErrContains = "invalid Alias"
 			default:
-				t.Fatalf("unsupported order type: %s", orderType)
+				t.Fatalf("unsupported asset type: %s", assetType)
 			}
 			requireErrorContains(
 				t,
-				dk.RemoveReverseMappingGoodsIdToBuyOrder(ctx, "@", orderType, dymnstypes.CreateBuyOrderId(orderType, 1)),
+				dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, "@", assetType, dymnstypes.CreateBuyOrderId(assetType, 1)),
 				wantErrContains,
 			)
 		}
 	})
 
-	t.Run("fail - should reject invalid order type", func(t *testing.T) {
+	t.Run("fail - should reject invalid asset type", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 		requireErrorContains(t,
-			dk.RemoveReverseMappingGoodsIdToBuyOrder(ctx, "@", dymnstypes.OrderType_OT_UNKNOWN, "101"),
-			"invalid order type",
+			dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, "@", dymnstypes.AssetType_AT_UNKNOWN, "101"),
+			"invalid asset type",
 		)
 
 		for i := int32(0); i < 99; i++ {
-			orderType := dymnstypes.OrderType(i)
+			assetType := dymnstypes.AssetType(i)
 
-			if slices.Contains(supportedOrderTypes, dymnstypes.OrderType(i)) {
+			if slices.Contains(supportedAssetTypes, dymnstypes.AssetType(i)) {
 				continue
 			}
 
 			requireErrorContains(t,
-				dk.RemoveReverseMappingGoodsIdToBuyOrder(ctx, "@", orderType, "101"),
-				"invalid order type",
+				dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, "@", assetType, "101"),
+				"invalid asset type",
 			)
 		}
 	})
 }
 
-func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T) {
+func TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Type_DymName(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 	ownerA := testAddr(1).bech32()
@@ -640,8 +640,8 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T)
 
 	offer11 := dymnstypes.BuyOrder{
 		Id:         "1011",
-		GoodsId:    dymName1.Name,
-		Type:       dymnstypes.NameOrder,
+		AssetId:    dymName1.Name,
+		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
@@ -649,8 +649,8 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T)
 
 	offer12 := dymnstypes.BuyOrder{
 		Id:         "1012",
-		GoodsId:    dymName1.Name,
-		Type:       dymnstypes.NameOrder,
+		AssetId:    dymName1.Name,
+		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
@@ -658,12 +658,12 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T)
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingGoodsIdToBuyOrder(ctx, dymName1.Name, dymnstypes.NameOrder, offer11.Id),
+		dk.AddReverseMappingAssetIdToBuyOrder(ctx, dymName1.Name, dymnstypes.TypeName, offer11.Id),
 	)
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingGoodsIdToBuyOrder(ctx, dymName1.Name, dymnstypes.NameOrder, offer12.Id),
+		dk.AddReverseMappingAssetIdToBuyOrder(ctx, dymName1.Name, dymnstypes.TypeName, offer12.Id),
 	)
 
 	dymName2 := dymnstypes.DymName{
@@ -676,8 +676,8 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T)
 
 	offer2 := dymnstypes.BuyOrder{
 		Id:         "102",
-		GoodsId:    dymName2.Name,
-		Type:       dymnstypes.NameOrder,
+		AssetId:    dymName2.Name,
+		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
@@ -685,7 +685,7 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T)
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingGoodsIdToBuyOrder(ctx, dymName2.Name, dymnstypes.NameOrder, offer2.Id),
+		dk.AddReverseMappingAssetIdToBuyOrder(ctx, dymName2.Name, dymnstypes.TypeName, offer2.Id),
 	)
 
 	t.Run("no error if remove a record that not linked", func(t *testing.T) {
@@ -694,7 +694,7 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T)
 
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingGoodsIdToBuyOrder(ctx, dymName1.Name, dymnstypes.NameOrder, offer2.Id),
+			dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, dymName1.Name, dymnstypes.TypeName, offer2.Id),
 		)
 
 		linked, err := dk.GetBuyOrdersOfDymName(ctx, dymName1.Name)
@@ -705,7 +705,7 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T)
 	t.Run("no error if element is not in the list", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingGoodsIdToBuyOrder(ctx, dymName1.Name, dymnstypes.NameOrder, "10218362184621"),
+			dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, dymName1.Name, dymnstypes.TypeName, "10218362184621"),
 		)
 
 		linked, err := dk.GetBuyOrdersOfDymName(ctx, dymName1.Name)
@@ -716,7 +716,7 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T)
 	t.Run("remove correctly", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingGoodsIdToBuyOrder(ctx, dymName1.Name, dymnstypes.NameOrder, offer11.Id),
+			dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, dymName1.Name, dymnstypes.TypeName, offer11.Id),
 		)
 
 		linked, err := dk.GetBuyOrdersOfDymName(ctx, dymName1.Name)
@@ -726,7 +726,7 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T)
 
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingGoodsIdToBuyOrder(ctx, dymName1.Name, dymnstypes.NameOrder, offer12.Id),
+			dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, dymName1.Name, dymnstypes.TypeName, offer12.Id),
 		)
 
 		linked, err = dk.GetBuyOrdersOfDymName(ctx, dymName1.Name)
@@ -739,7 +739,7 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_DymName(t *testing.T)
 	require.Len(t, linked, 1)
 }
 
-func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_Alias(t *testing.T) {
+func TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Type_Alias(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 	buyerA := testAddr(1).bech32()
@@ -749,9 +749,9 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_Alias(t *testing.T) {
 	const dstRollAppId = "rollapp_3-2"
 
 	offer11 := dymnstypes.BuyOrder{
-		Id:         dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 11),
-		GoodsId:    alias1,
-		Type:       dymnstypes.AliasOrder,
+		Id:         dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 11),
+		AssetId:    alias1,
+		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{dstRollAppId},
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
@@ -759,9 +759,9 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_Alias(t *testing.T) {
 	require.NoError(t, dk.SetBuyOrder(ctx, offer11))
 
 	offer12 := dymnstypes.BuyOrder{
-		Id:         dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 12),
-		GoodsId:    alias1,
-		Type:       dymnstypes.AliasOrder,
+		Id:         dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 12),
+		AssetId:    alias1,
+		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{dstRollAppId},
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
@@ -770,20 +770,20 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_Alias(t *testing.T) {
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingGoodsIdToBuyOrder(ctx, alias1, dymnstypes.AliasOrder, offer11.Id),
+		dk.AddReverseMappingAssetIdToBuyOrder(ctx, alias1, dymnstypes.TypeAlias, offer11.Id),
 	)
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingGoodsIdToBuyOrder(ctx, alias1, dymnstypes.AliasOrder, offer12.Id),
+		dk.AddReverseMappingAssetIdToBuyOrder(ctx, alias1, dymnstypes.TypeAlias, offer12.Id),
 	)
 
 	const alias2 = "two"
 
 	offer2 := dymnstypes.BuyOrder{
-		Id:         dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 2),
-		GoodsId:    alias2,
-		Type:       dymnstypes.AliasOrder,
+		Id:         dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 2),
+		AssetId:    alias2,
+		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{dstRollAppId},
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
@@ -792,7 +792,7 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_Alias(t *testing.T) {
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingGoodsIdToBuyOrder(ctx, alias2, dymnstypes.AliasOrder, offer2.Id),
+		dk.AddReverseMappingAssetIdToBuyOrder(ctx, alias2, dymnstypes.TypeAlias, offer2.Id),
 	)
 
 	t.Run("no error if remove a record that not linked", func(t *testing.T) {
@@ -801,7 +801,7 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_Alias(t *testing.T) {
 
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingGoodsIdToBuyOrder(ctx, alias1, dymnstypes.AliasOrder, offer2.Id),
+			dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, alias1, dymnstypes.TypeAlias, offer2.Id),
 		)
 
 		linked, err := dk.GetBuyOrdersOfAlias(ctx, alias1)
@@ -812,7 +812,7 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_Alias(t *testing.T) {
 	t.Run("no error if element is not in the list", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingGoodsIdToBuyOrder(ctx, alias1, dymnstypes.AliasOrder, "20218362184621"),
+			dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, alias1, dymnstypes.TypeAlias, "20218362184621"),
 		)
 
 		linked, err := dk.GetBuyOrdersOfAlias(ctx, alias1)
@@ -823,7 +823,7 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_Alias(t *testing.T) {
 	t.Run("remove correctly", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingGoodsIdToBuyOrder(ctx, alias1, dymnstypes.AliasOrder, offer11.Id),
+			dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, alias1, dymnstypes.TypeAlias, offer11.Id),
 		)
 
 		linked, err := dk.GetBuyOrdersOfAlias(ctx, alias1)
@@ -833,7 +833,7 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOrder_Type_Alias(t *testing.T) {
 
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingGoodsIdToBuyOrder(ctx, alias1, dymnstypes.AliasOrder, offer12.Id),
+			dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, alias1, dymnstypes.TypeAlias, offer12.Id),
 		)
 
 		linked, err = dk.GetBuyOrdersOfAlias(ctx, alias1)

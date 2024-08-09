@@ -109,8 +109,8 @@ func (s *KeeperTestSuite) setBuyOrderWithFunctionsAfter(buyOrder dymnstypes.BuyO
 	err := s.dymNsKeeper.SetBuyOrder(s.ctx, buyOrder)
 	s.Require().NoError(err)
 
-	err = s.dymNsKeeper.AddReverseMappingGoodsIdToBuyOrder(s.ctx,
-		buyOrder.GoodsId, buyOrder.Type, buyOrder.Id,
+	err = s.dymNsKeeper.AddReverseMappingAssetIdToBuyOrder(s.ctx,
+		buyOrder.AssetId, buyOrder.AssetType, buyOrder.Id,
 	)
 	s.Require().NoError(err)
 }
@@ -193,8 +193,8 @@ func (m reqRollApp) HasNoAlias() {
 type sellOrderBuilder struct {
 	s *KeeperTestSuite
 	//
-	goodsId   string
-	orderType dymnstypes.OrderType
+	assetId   string
+	assetType dymnstypes.AssetType
 	expiry    int64
 	minPrice  int64
 	sellPrice *int64
@@ -205,18 +205,18 @@ type sellOrderBuilder struct {
 }
 
 func (s *KeeperTestSuite) newDymNameSellOrder(dymName string) *sellOrderBuilder {
-	return s.newSellOrder(dymName, dymnstypes.NameOrder)
+	return s.newSellOrder(dymName, dymnstypes.TypeName)
 }
 
 func (s *KeeperTestSuite) newAliasSellOrder(alias string) *sellOrderBuilder {
-	return s.newSellOrder(alias, dymnstypes.AliasOrder)
+	return s.newSellOrder(alias, dymnstypes.TypeAlias)
 }
 
-func (s *KeeperTestSuite) newSellOrder(goodsId string, orderType dymnstypes.OrderType) *sellOrderBuilder {
+func (s *KeeperTestSuite) newSellOrder(assetId string, assetType dymnstypes.AssetType) *sellOrderBuilder {
 	return &sellOrderBuilder{
 		s:         s,
-		goodsId:   goodsId,
-		orderType: orderType,
+		assetId:   assetId,
+		assetType: assetType,
 		expiry:    s.now.Add(time.Second).Unix(),
 		minPrice:  0,
 	}
@@ -261,8 +261,8 @@ func (b *sellOrderBuilder) BuildP() *dymnstypes.SellOrder {
 
 func (b *sellOrderBuilder) Build() dymnstypes.SellOrder {
 	so := dymnstypes.SellOrder{
-		GoodsId:    b.goodsId,
-		Type:       b.orderType,
+		AssetId:    b.assetId,
+		AssetType:  b.assetType,
 		ExpireAt:   b.expiry,
 		MinPrice:   dymnsutils.TestCoin(b.minPrice),
 		SellPrice:  nil,
@@ -290,28 +290,28 @@ type buyOrderBuilder struct {
 	s *KeeperTestSuite
 	//
 	id         string
-	goodsId    string
-	orderType  dymnstypes.OrderType
+	assetId    string
+	assetType  dymnstypes.AssetType
 	buyer      string
 	offerPrice int64
 	params     []string
 }
 
 func (s *KeeperTestSuite) newDymNameBuyOrder(buyer, dymName string) *buyOrderBuilder {
-	return s.newBuyOrder(buyer, dymName, dymnstypes.NameOrder)
+	return s.newBuyOrder(buyer, dymName, dymnstypes.TypeName)
 }
 
 func (s *KeeperTestSuite) newAliasBuyOrder(buyer, alias, rollAppId string) *buyOrderBuilder {
-	ob := s.newBuyOrder(buyer, alias, dymnstypes.AliasOrder)
+	ob := s.newBuyOrder(buyer, alias, dymnstypes.TypeAlias)
 	ob.params = []string{rollAppId}
 	return ob
 }
 
-func (s *KeeperTestSuite) newBuyOrder(buyer, goodsId string, orderType dymnstypes.OrderType) *buyOrderBuilder {
+func (s *KeeperTestSuite) newBuyOrder(buyer, assetId string, assetType dymnstypes.AssetType) *buyOrderBuilder {
 	return &buyOrderBuilder{
 		s:          s,
-		goodsId:    goodsId,
-		orderType:  orderType,
+		assetId:    assetId,
+		assetType:  assetType,
 		buyer:      buyer,
 		offerPrice: 1,
 		params:     nil,
@@ -336,8 +336,8 @@ func (b *buyOrderBuilder) BuildP() *dymnstypes.BuyOrder {
 func (b *buyOrderBuilder) Build() dymnstypes.BuyOrder {
 	bo := dymnstypes.BuyOrder{
 		Id:         b.id,
-		GoodsId:    b.goodsId,
-		Type:       b.orderType,
+		AssetId:    b.assetId,
+		AssetType:  b.assetType,
 		Params:     b.params,
 		Buyer:      b.buyer,
 		OfferPrice: dymnsutils.TestCoin(b.offerPrice),

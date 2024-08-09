@@ -86,7 +86,7 @@ func TestKeeper_RefundBid(t *testing.T) {
 			if tt.genesis {
 				err = dk.GenesisRefundBid(ctx, soBid)
 			} else {
-				err = dk.RefundBid(ctx, soBid, dymnstypes.NameOrder)
+				err = dk.RefundBid(ctx, soBid, dymnstypes.TypeName)
 			}
 
 			if tt.wantErr {
@@ -130,8 +130,8 @@ func TestKeeper_RefundBid(t *testing.T) {
 func TestKeeper_RefundBuyOrder(t *testing.T) {
 	buyerA := testAddr(1).bech32()
 
-	supportedOrderTypes := []dymnstypes.OrderType{
-		dymnstypes.NameOrder, dymnstypes.AliasOrder,
+	supportedAssetTypes := []dymnstypes.AssetType{
+		dymnstypes.TypeName, dymnstypes.TypeAlias,
 	}
 
 	tests := []struct {
@@ -186,8 +186,8 @@ func TestKeeper_RefundBuyOrder(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		for _, orderType := range supportedOrderTypes {
-			t.Run(fmt.Sprintf("%s (%s)", tt.name, orderType.FriendlyString()), func(t *testing.T) {
+		for _, assetType := range supportedAssetTypes {
+			t.Run(fmt.Sprintf("%s (%s)", tt.name, assetType.FriendlyString()), func(t *testing.T) {
 				dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
 
 				if !tt.fundModuleAccountBalance.IsNil() {
@@ -198,14 +198,14 @@ func TestKeeper_RefundBuyOrder(t *testing.T) {
 				}
 
 				var orderParams []string
-				if orderType == dymnstypes.AliasOrder {
+				if assetType == dymnstypes.TypeAlias {
 					orderParams = []string{"rollapp_1-1"}
 				}
 
 				offer := dymnstypes.BuyOrder{
-					Id:         dymnstypes.CreateBuyOrderId(orderType, 1),
-					GoodsId:    "goods",
-					Type:       orderType,
+					Id:         dymnstypes.CreateBuyOrderId(assetType, 1),
+					AssetId:    "asset",
+					AssetType:  assetType,
 					Params:     orderParams,
 					Buyer:      tt.refundToAccount,
 					OfferPrice: tt.refundAmount,

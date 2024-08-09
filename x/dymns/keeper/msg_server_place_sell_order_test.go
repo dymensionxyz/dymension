@@ -101,7 +101,7 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 		{
 			name: "fail - existing active SO, not finished",
 			existingSo: &dymnstypes.SellOrder{
-				Type:      dymnstypes.NameOrder,
+				AssetType: dymnstypes.TypeName,
 				ExpireAt:  now.Add(time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
@@ -113,7 +113,7 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 		{
 			name: "fail - existing active SO, expired",
 			existingSo: &dymnstypes.SellOrder{
-				Type:      dymnstypes.NameOrder,
+				AssetType: dymnstypes.TypeName,
 				ExpireAt:  now.Add(-1 * time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
@@ -125,7 +125,7 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 		{
 			name: "fail - existing active SO, not expired, completed",
 			existingSo: &dymnstypes.SellOrder{
-				Type:      dymnstypes.NameOrder,
+				AssetType: dymnstypes.TypeName,
 				ExpireAt:  now.Add(time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
@@ -141,7 +141,7 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 		{
 			name: "fail - existing active SO, expired, completed",
 			existingSo: &dymnstypes.SellOrder{
-				Type:      dymnstypes.NameOrder,
+				AssetType: dymnstypes.TypeName,
 				ExpireAt:  now.Add(-1 * time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
@@ -230,7 +230,7 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 			}
 
 			if tt.existingSo != nil {
-				tt.existingSo.GoodsId = name
+				tt.existingSo.AssetId = name
 				err := dk.SetSellOrder(ctx, *tt.existingSo)
 				require.NoError(t, err)
 			}
@@ -240,8 +240,8 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 				useOwner = tt.customOwner
 			}
 			msg := &dymnstypes.MsgPlaceSellOrder{
-				GoodsId:   name,
-				OrderType: dymnstypes.NameOrder,
+				AssetId:   name,
+				AssetType: dymnstypes.TypeName,
 				MinPrice:  tt.minPrice,
 				SellPrice: tt.sellPrice,
 				Owner:     useOwner,
@@ -277,7 +277,7 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 
 				require.Nil(t, resp)
 
-				so := dk.GetSellOrder(ctx, name, dymnstypes.NameOrder)
+				so := dk.GetSellOrder(ctx, name, dymnstypes.TypeName)
 				if tt.existingSo != nil {
 					require.NotNil(t, so)
 					require.Equal(t, *tt.existingSo, *so)
@@ -295,12 +295,12 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 
-			so := dk.GetSellOrder(ctx, name, dymnstypes.NameOrder)
+			so := dk.GetSellOrder(ctx, name, dymnstypes.TypeName)
 			require.NotNil(t, so)
 
 			expectedSo := dymnstypes.SellOrder{
-				GoodsId:    name,
-				Type:       dymnstypes.NameOrder,
+				AssetId:    name,
+				AssetType:  dymnstypes.TypeName,
 				ExpireAt:   ctx.BlockTime().Add(moduleParams.Misc.SellOrderDuration).Unix(),
 				MinPrice:   msg.MinPrice,
 				SellPrice:  msg.SellPrice,
@@ -319,11 +319,11 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 				"should consume params gas",
 			)
 
-			aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.NameOrder)
+			aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
 
 			var found bool
 			for _, record := range aSoe.Records {
-				if record.GoodsId == name {
+				if record.AssetId == name {
 					found = true
 					require.Equal(t, expectedSo.ExpireAt, record.ExpireAt)
 					break
@@ -399,7 +399,7 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 		{
 			name: "fail - existing active SO, not finished",
 			existingSo: &dymnstypes.SellOrder{
-				Type:      dymnstypes.AliasOrder,
+				AssetType: dymnstypes.TypeAlias,
 				ExpireAt:  now.Add(time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
@@ -411,7 +411,7 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 		{
 			name: "fail - existing active SO, expired",
 			existingSo: &dymnstypes.SellOrder{
-				Type:      dymnstypes.AliasOrder,
+				AssetType: dymnstypes.TypeAlias,
 				ExpireAt:  now.Add(-1 * time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
@@ -423,7 +423,7 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 		{
 			name: "fail - existing active SO, not expired, completed",
 			existingSo: &dymnstypes.SellOrder{
-				Type:      dymnstypes.AliasOrder,
+				AssetType: dymnstypes.TypeAlias,
 				ExpireAt:  now.Add(time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
@@ -440,7 +440,7 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 		{
 			name: "fail - existing active SO, expired, completed",
 			existingSo: &dymnstypes.SellOrder{
-				Type:      dymnstypes.AliasOrder,
+				AssetType: dymnstypes.TypeAlias,
 				ExpireAt:  now.Add(-1 * time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
@@ -531,7 +531,7 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 			}
 
 			if tt.existingSo != nil {
-				tt.existingSo.GoodsId = alias
+				tt.existingSo.AssetId = alias
 				err := dk.SetSellOrder(ctx, *tt.existingSo)
 				require.NoError(t, err)
 			}
@@ -541,8 +541,8 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 				useOwner = tt.customOwner
 			}
 			msg := &dymnstypes.MsgPlaceSellOrder{
-				GoodsId:   alias,
-				OrderType: dymnstypes.AliasOrder,
+				AssetId:   alias,
+				AssetType: dymnstypes.TypeAlias,
 				MinPrice:  tt.minPrice,
 				SellPrice: tt.sellPrice,
 				Owner:     useOwner,
@@ -571,7 +571,7 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 
 				require.Nil(t, resp)
 
-				so := dk.GetSellOrder(ctx, alias, dymnstypes.AliasOrder)
+				so := dk.GetSellOrder(ctx, alias, dymnstypes.TypeAlias)
 				if tt.existingSo != nil {
 					require.NotNil(t, so)
 					require.Equal(t, *tt.existingSo, *so)
@@ -589,12 +589,12 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 
-			so := dk.GetSellOrder(ctx, alias, dymnstypes.AliasOrder)
+			so := dk.GetSellOrder(ctx, alias, dymnstypes.TypeAlias)
 			require.NotNil(t, so)
 
 			expectedSo := dymnstypes.SellOrder{
-				GoodsId:    alias,
-				Type:       dymnstypes.AliasOrder,
+				AssetId:    alias,
+				AssetType:  dymnstypes.TypeAlias,
 				ExpireAt:   ctx.BlockTime().Add(moduleParams.Misc.SellOrderDuration).Unix(),
 				MinPrice:   msg.MinPrice,
 				SellPrice:  msg.SellPrice,
@@ -613,11 +613,11 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 				"should consume params gas",
 			)
 
-			aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.AliasOrder)
+			aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeAlias)
 
 			var found bool
 			for _, record := range aSoe.Records {
-				if record.GoodsId == alias {
+				if record.AssetId == alias {
 					found = true
 					require.Equal(t, expectedSo.ExpireAt, record.ExpireAt)
 					break

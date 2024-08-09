@@ -58,8 +58,8 @@ func NewPlaceBidOnDymNameOrderTxCmd() *cobra.Command {
 			}
 
 			msg := &dymnstypes.MsgPurchaseOrder{
-				GoodsId:   dymName,
-				OrderType: dymnstypes.NameOrder,
+				AssetId:   dymName,
+				AssetType: dymnstypes.TypeName,
 				Offer:     sdk.NewCoin(params.BaseDenom, sdk.NewInt(int64(amount)).MulRaw(adymToDymMultiplier)),
 				Buyer:     buyer,
 			}

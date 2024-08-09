@@ -96,8 +96,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantBuyOrderId:        "101",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "101",
-				GoodsId:    dymName.Name,
-				Type:       dymnstypes.NameOrder,
+				AssetId:    dymName.Name,
+				AssetType:  dymnstypes.TypeName,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 			},
@@ -110,8 +110,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "102",
-				GoodsId:                dymName.Name,
-				Type:                   dymnstypes.NameOrder,
+				AssetId:                dymName.Name,
+				AssetType:              dymnstypes.TypeName,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: nil,
@@ -126,8 +126,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantBuyOrderId:        "102",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "102",
-				GoodsId:    dymName.Name,
-				Type:       dymnstypes.NameOrder,
+				AssetId:    dymName.Name,
+				AssetType:  dymnstypes.TypeName,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 1),
 			},
@@ -140,8 +140,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:         "202",
-				GoodsId:    dymName.Name,
-				Type:       dymnstypes.AliasOrder,
+				AssetId:    dymName.Name,
+				AssetType:  dymnstypes.TypeAlias,
 				Params:     []string{"rollapp_1-1"},
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -153,12 +153,12 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			originalModuleBalance: 0,
 			originalBuyerBalance:  1,
 			wantErr:               true,
-			wantErrContains:       "order type mismatch with existing offer",
+			wantErrContains:       "asset type mismatch with existing offer",
 			wantBuyOrderId:        "102",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "202",
-				GoodsId:    dymName.Name,
-				Type:       dymnstypes.AliasOrder,
+				AssetId:    dymName.Name,
+				AssetType:  dymnstypes.TypeAlias,
 				Params:     []string{"rollapp_1-1"},
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -172,8 +172,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "102",
-				GoodsId:                dymName.Name,
-				Type:                   dymnstypes.NameOrder,
+				AssetId:                dymName.Name,
+				AssetType:              dymnstypes.TypeName,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: dymnsutils.TestCoinP(minOfferPrice + 3),
@@ -188,8 +188,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantBuyOrderId:        "102",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:                     "102",
-				GoodsId:                dymName.Name,
-				Type:                   dymnstypes.NameOrder,
+				AssetId:                dymName.Name,
+				AssetType:              dymnstypes.TypeName,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 1),
 				CounterpartyOfferPrice: dymnsutils.TestCoinP(minOfferPrice + 3),
@@ -203,8 +203,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "102",
-				GoodsId:                dymName.Name,
-				Type:                   dymnstypes.NameOrder,
+				AssetId:                dymName.Name,
+				AssetType:              dymnstypes.TypeName,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: dymnsutils.TestCoinP(minOfferPrice + 3),
@@ -219,8 +219,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantBuyOrderId:        "102",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:                     "102",
-				GoodsId:                dymName.Name,
-				Type:                   dymnstypes.NameOrder,
+				AssetId:                dymName.Name,
+				AssetType:              dymnstypes.TypeName,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 3),
 				CounterpartyOfferPrice: dymnsutils.TestCoinP(minOfferPrice + 3),
@@ -234,8 +234,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "102",
-				GoodsId:                dymName.Name,
-				Type:                   dymnstypes.NameOrder,
+				AssetId:                dymName.Name,
+				AssetType:              dymnstypes.TypeName,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: dymnsutils.TestCoinP(minOfferPrice + 3),
@@ -250,8 +250,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantBuyOrderId:        "102",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:                     "102",
-				GoodsId:                dymName.Name,
-				Type:                   dymnstypes.NameOrder,
+				AssetId:                dymName.Name,
+				AssetType:              dymnstypes.TypeName,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 4),
 				CounterpartyOfferPrice: dymnsutils.TestCoinP(minOfferPrice + 3),
@@ -265,8 +265,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "101",
-				GoodsId:                dymName.Name,
-				Type:                   dymnstypes.NameOrder,
+				AssetId:                dymName.Name,
+				AssetType:              dymnstypes.TypeName,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: nil,
@@ -281,8 +281,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantBuyOrderId:        "101",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "101",
-				GoodsId:    dymName.Name,
-				Type:       dymnstypes.NameOrder,
+				AssetId:    dymName.Name,
+				AssetType:  dymnstypes.TypeName,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2),
 			},
@@ -434,8 +434,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "101",
-				GoodsId:                dymName.Name,
-				Type:                   dymnstypes.NameOrder,
+				AssetId:                dymName.Name,
+				AssetType:              dymnstypes.TypeName,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: nil,
@@ -453,8 +453,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantBuyOrderId: "102",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "102",
-				GoodsId:    dymName.Name,
-				Type:       dymnstypes.NameOrder,
+				AssetId:    dymName.Name,
+				AssetType:  dymnstypes.TypeName,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 1),
 			},
@@ -467,8 +467,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "101",
-				GoodsId:                dymName.Name,
-				Type:                   dymnstypes.NameOrder,
+				AssetId:                dymName.Name,
+				AssetType:              dymnstypes.TypeName,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: nil,
@@ -486,8 +486,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantErrContains: "Buy-Order ID: 102: not found",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "101",
-				GoodsId:    dymName.Name,
-				Type:       dymnstypes.NameOrder,
+				AssetId:    dymName.Name,
+				AssetType:  dymnstypes.TypeName,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 			},
@@ -504,8 +504,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "101",
-				GoodsId:                dymName.Name,
-				Type:                   dymnstypes.NameOrder,
+				AssetId:                dymName.Name,
+				AssetType:              dymnstypes.TypeName,
 				Buyer:                  anotherBuyerA, // not the buyer
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: nil,
@@ -523,8 +523,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantErrContains: "not the owner of the offer",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "101",
-				GoodsId:    dymName.Name,
-				Type:       dymnstypes.NameOrder,
+				AssetId:    dymName.Name,
+				AssetType:  dymnstypes.TypeName,
 				Buyer:      anotherBuyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 			},
@@ -541,8 +541,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "101",
-				GoodsId:                "another-name",
-				Type:                   dymnstypes.NameOrder,
+				AssetId:                "another-name",
+				AssetType:              dymnstypes.TypeName,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: nil,
@@ -560,8 +560,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantErrContains: "Dym-Name mismatch with existing offer",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "101",
-				GoodsId:    "another-name",
-				Type:       dymnstypes.NameOrder,
+				AssetId:    "another-name",
+				AssetType:  dymnstypes.TypeName,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 			},
@@ -577,10 +577,10 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			name:            "fail - continue an existing offer but mis-match offer denom",
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOrder{
-				Id:      "101",
-				GoodsId: dymName.Name,
-				Type:    dymnstypes.NameOrder,
-				Buyer:   buyerA,
+				Id:        "101",
+				AssetId:   dymName.Name,
+				AssetType: dymnstypes.TypeName,
+				Buyer:     buyerA,
 				OfferPrice: sdk.Coin{
 					Denom:  "u" + denom,
 					Amount: sdk.NewInt(minOfferPrice),
@@ -599,10 +599,10 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantErr:         true,
 			wantErrContains: "offer denomination mismatch with existing offer",
 			wantLaterOffer: &dymnstypes.BuyOrder{
-				Id:      "101",
-				GoodsId: dymName.Name,
-				Type:    dymnstypes.NameOrder,
-				Buyer:   buyerA,
+				Id:        "101",
+				AssetId:   dymName.Name,
+				AssetType: dymnstypes.TypeName,
+				Buyer:     buyerA,
 				OfferPrice: sdk.Coin{
 					Denom:  "u" + denom,
 					Amount: sdk.NewInt(minOfferPrice),
@@ -621,8 +621,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "101",
-				GoodsId:                dymName.Name,
-				Type:                   dymnstypes.NameOrder,
+				AssetId:                dymName.Name,
+				AssetType:              dymnstypes.TypeName,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 2),
 				CounterpartyOfferPrice: nil,
@@ -640,8 +640,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantErrContains: "offer price must be greater than existing offer price",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "101",
-				GoodsId:    dymName.Name,
-				Type:       dymnstypes.NameOrder,
+				AssetId:    dymName.Name,
+				AssetType:  dymnstypes.TypeName,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2), // keep
 			},
@@ -658,8 +658,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "101",
-				GoodsId:                dymName.Name,
-				Type:                   dymnstypes.NameOrder,
+				AssetId:                dymName.Name,
+				AssetType:              dymnstypes.TypeName,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 2),
 				CounterpartyOfferPrice: nil,
@@ -677,8 +677,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantErrContains: "offer price must be greater than existing offer price",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "101",
-				GoodsId:    dymName.Name,
-				Type:       dymnstypes.NameOrder,
+				AssetId:    dymName.Name,
+				AssetType:  dymnstypes.TypeName,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2),
 			},
@@ -705,8 +705,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			wantBuyOrderId:              "101",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "101",
-				GoodsId:    dymName.Name,
-				Type:       dymnstypes.NameOrder,
+				AssetId:    dymName.Name,
+				AssetType:  dymnstypes.TypeName,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 			},
@@ -731,8 +731,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 				require.Equal(t, "101", offers[0].Id)
 
 				resp, err := dymnskeeper.NewMsgServerImpl(dk).PlaceBuyOrder(ctx, &dymnstypes.MsgPlaceBuyOrder{
-					GoodsId:   dymName.Name,
-					OrderType: dymnstypes.NameOrder,
+					AssetId:   dymName.Name,
+					AssetType: dymnstypes.TypeName,
 					Buyer:     anotherBuyerA,
 					Offer:     dymnsutils.TestCoin(minOfferPrice),
 				})
@@ -758,8 +758,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "102",
-				GoodsId:                dymName.Name,
-				Type:                   dymnstypes.NameOrder,
+				AssetId:                dymName.Name,
+				AssetType:              dymnstypes.TypeName,
 				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: nil,
@@ -777,15 +777,15 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 				err := dk.AddReverseMappingBuyerToBuyOrderRecord(ctx, buyerA, "102")
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingGoodsIdToBuyOrder(ctx, dymName.Name, dymnstypes.NameOrder, "102")
+				err = dk.AddReverseMappingAssetIdToBuyOrder(ctx, dymName.Name, dymnstypes.TypeName, "102")
 				require.NoError(t, err)
 			},
 			wantErr:        false,
 			wantBuyOrderId: "102",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "102",
-				GoodsId:    dymName.Name,
-				Type:       dymnstypes.NameOrder,
+				AssetId:    dymName.Name,
+				AssetType:  dymnstypes.TypeName,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 1),
 			},
@@ -810,8 +810,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 				require.Equal(t, "102", offers[0].Id)
 
 				resp, err := dymnskeeper.NewMsgServerImpl(dk).PlaceBuyOrder(ctx, &dymnstypes.MsgPlaceBuyOrder{
-					GoodsId:   dymName.Name,
-					OrderType: dymnstypes.NameOrder,
+					AssetId:   dymName.Name,
+					AssetType: dymnstypes.TypeName,
 					Buyer:     anotherBuyerA,
 					Offer:     dymnsutils.TestCoin(minOfferPrice),
 				})
@@ -893,8 +893,8 @@ func Test_msgServer_PlaceBuyOrder_DymName(t *testing.T) {
 			}
 
 			resp, err := dymnskeeper.NewMsgServerImpl(dk).PlaceBuyOrder(ctx, &dymnstypes.MsgPlaceBuyOrder{
-				GoodsId:         tt.dymName,
-				OrderType:       dymnstypes.NameOrder,
+				AssetId:         tt.dymName,
+				AssetType:       dymnstypes.TypeName,
 				Buyer:           tt.buyer,
 				ContinueOrderId: tt.existingBuyOrderId,
 				Offer:           tt.offer,
@@ -1039,8 +1039,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantBuyOrderId:        "201",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
-				GoodsId:    rollApp_1_by1_asSrc.alias,
-				Type:       dymnstypes.AliasOrder,
+				AssetId:    rollApp_1_by1_asSrc.alias,
+				AssetType:  dymnstypes.TypeAlias,
 				Params:     []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:      rollApp_2_by2_asDest.creator,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -1083,8 +1083,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
-				GoodsId:                rollApp_1_by1_asSrc.alias,
-				Type:                   dymnstypes.AliasOrder,
+				AssetId:                rollApp_1_by1_asSrc.alias,
+				AssetType:              dymnstypes.TypeAlias,
 				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:                  rollApp_2_by2_asDest.creator,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -1101,8 +1101,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantBuyOrderId:        "202",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "202",
-				GoodsId:    rollApp_1_by1_asSrc.alias,
-				Type:       dymnstypes.AliasOrder,
+				AssetId:    rollApp_1_by1_asSrc.alias,
+				AssetType:  dymnstypes.TypeAlias,
 				Params:     []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:      rollApp_2_by2_asDest.creator,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 1),
@@ -1116,8 +1116,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
-				GoodsId:                rollApp_1_by1_asSrc.alias,
-				Type:                   dymnstypes.AliasOrder,
+				AssetId:                rollApp_1_by1_asSrc.alias,
+				AssetType:              dymnstypes.TypeAlias,
 				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:                  rollApp_2_by2_asDest.creator,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -1146,8 +1146,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantBuyOrderId:  "202",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "202",
-				GoodsId:    rollApp_1_by1_asSrc.alias,
-				Type:       dymnstypes.AliasOrder,
+				AssetId:    rollApp_1_by1_asSrc.alias,
+				AssetType:  dymnstypes.TypeAlias,
 				Params:     []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:      rollApp_2_by2_asDest.creator,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -1161,8 +1161,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:         "102",
-				GoodsId:    rollApp_1_by1_asSrc.alias,
-				Type:       dymnstypes.NameOrder,
+				AssetId:    rollApp_1_by1_asSrc.alias,
+				AssetType:  dymnstypes.TypeName,
 				Buyer:      rollApp_2_by2_asDest.creator,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 			},
@@ -1174,12 +1174,12 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			originalModuleBalance: 0,
 			originalBuyerBalance:  1,
 			wantErr:               true,
-			wantErrContains:       "order type mismatch with existing offer",
+			wantErrContains:       "asset type mismatch with existing offer",
 			wantBuyOrderId:        "102",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "102",
-				GoodsId:    rollApp_1_by1_asSrc.alias,
-				Type:       dymnstypes.NameOrder,
+				AssetId:    rollApp_1_by1_asSrc.alias,
+				AssetType:  dymnstypes.TypeName,
 				Buyer:      rollApp_2_by2_asDest.creator,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 			},
@@ -1192,8 +1192,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
-				GoodsId:                rollApp_1_by1_asSrc.alias,
-				Type:                   dymnstypes.AliasOrder,
+				AssetId:                rollApp_1_by1_asSrc.alias,
+				AssetType:              dymnstypes.TypeAlias,
 				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:                  rollApp_2_by2_asDest.creator,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -1210,8 +1210,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantBuyOrderId:        "202",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
-				GoodsId:                rollApp_1_by1_asSrc.alias,
-				Type:                   dymnstypes.AliasOrder,
+				AssetId:                rollApp_1_by1_asSrc.alias,
+				AssetType:              dymnstypes.TypeAlias,
 				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:                  rollApp_2_by2_asDest.creator,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 1),
@@ -1226,8 +1226,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
-				GoodsId:                rollApp_1_by1_asSrc.alias,
-				Type:                   dymnstypes.AliasOrder,
+				AssetId:                rollApp_1_by1_asSrc.alias,
+				AssetType:              dymnstypes.TypeAlias,
 				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:                  rollApp_2_by2_asDest.creator,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -1244,8 +1244,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantBuyOrderId:        "202",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
-				GoodsId:                rollApp_1_by1_asSrc.alias,
-				Type:                   dymnstypes.AliasOrder,
+				AssetId:                rollApp_1_by1_asSrc.alias,
+				AssetType:              dymnstypes.TypeAlias,
 				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:                  rollApp_2_by2_asDest.creator,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 3),
@@ -1260,8 +1260,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
-				GoodsId:                rollApp_1_by1_asSrc.alias,
-				Type:                   dymnstypes.AliasOrder,
+				AssetId:                rollApp_1_by1_asSrc.alias,
+				AssetType:              dymnstypes.TypeAlias,
 				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:                  rollApp_2_by2_asDest.creator,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -1278,8 +1278,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantBuyOrderId:        "202",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
-				GoodsId:                rollApp_1_by1_asSrc.alias,
-				Type:                   dymnstypes.AliasOrder,
+				AssetId:                rollApp_1_by1_asSrc.alias,
+				AssetType:              dymnstypes.TypeAlias,
 				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:                  rollApp_2_by2_asDest.creator,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 4),
@@ -1294,8 +1294,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "201",
-				GoodsId:                rollApp_1_by1_asSrc.alias,
-				Type:                   dymnstypes.AliasOrder,
+				AssetId:                rollApp_1_by1_asSrc.alias,
+				AssetType:              dymnstypes.TypeAlias,
 				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:                  rollApp_2_by2_asDest.creator,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -1312,8 +1312,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantBuyOrderId:        "201",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
-				GoodsId:    rollApp_1_by1_asSrc.alias,
-				Type:       dymnstypes.AliasOrder,
+				AssetId:    rollApp_1_by1_asSrc.alias,
+				AssetType:  dymnstypes.TypeAlias,
 				Params:     []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:      rollApp_2_by2_asDest.creator,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2),
@@ -1380,8 +1380,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantBuyOrderId:        "201",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
-				GoodsId:    rollApp_1_by1_asSrc.alias,
-				Type:       dymnstypes.AliasOrder,
+				AssetId:    rollApp_1_by1_asSrc.alias,
+				AssetType:  dymnstypes.TypeAlias,
 				Params:     []string{rollApp_4_by1_asDest_noAlias.rollAppID},
 				Buyer:      rollApp_1_by1_asSrc.creator,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -1434,8 +1434,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "201",
-				GoodsId:                rollApp_1_by1_asSrc.alias,
-				Type:                   dymnstypes.AliasOrder,
+				AssetId:                rollApp_1_by1_asSrc.alias,
+				AssetType:              dymnstypes.TypeAlias,
 				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:                  rollApp_2_by2_asDest.creator,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -1455,8 +1455,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantBuyOrderId: "202",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "202",
-				GoodsId:    rollApp_1_by1_asSrc.alias,
-				Type:       dymnstypes.AliasOrder,
+				AssetId:    rollApp_1_by1_asSrc.alias,
+				AssetType:  dymnstypes.TypeAlias,
 				Params:     []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:      rollApp_2_by2_asDest.creator,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 1),
@@ -1470,8 +1470,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "201",
-				GoodsId:                rollApp_1_by1_asSrc.alias,
-				Type:                   dymnstypes.AliasOrder,
+				AssetId:                rollApp_1_by1_asSrc.alias,
+				AssetType:              dymnstypes.TypeAlias,
 				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:                  rollApp_2_by2_asDest.creator,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -1491,8 +1491,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantErrContains: "Buy-Order ID: 202: not found",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
-				GoodsId:    rollApp_1_by1_asSrc.alias,
-				Type:       dymnstypes.AliasOrder,
+				AssetId:    rollApp_1_by1_asSrc.alias,
+				AssetType:  dymnstypes.TypeAlias,
 				Params:     []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:      rollApp_2_by2_asDest.creator,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -1510,8 +1510,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "201",
-				GoodsId:                rollApp_1_by1_asSrc.alias,
-				Type:                   dymnstypes.AliasOrder,
+				AssetId:                rollApp_1_by1_asSrc.alias,
+				AssetType:              dymnstypes.TypeAlias,
 				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:                  creator_3_asBuyer, // not the buyer
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -1531,8 +1531,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantErrContains: "not the owner of the offer",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
-				GoodsId:    rollApp_1_by1_asSrc.alias,
-				Type:       dymnstypes.AliasOrder,
+				AssetId:    rollApp_1_by1_asSrc.alias,
+				AssetType:  dymnstypes.TypeAlias,
 				Params:     []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:      creator_3_asBuyer,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -1550,8 +1550,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "201",
-				GoodsId:                "another",
-				Type:                   dymnstypes.AliasOrder,
+				AssetId:                "another",
+				AssetType:              dymnstypes.TypeAlias,
 				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:                  rollApp_2_by2_asDest.creator,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -1571,8 +1571,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantErrContains: "alias mismatch with existing offer",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
-				GoodsId:    "another",
-				Type:       dymnstypes.AliasOrder,
+				AssetId:    "another",
+				AssetType:  dymnstypes.TypeAlias,
 				Params:     []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:      rollApp_2_by2_asDest.creator,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -1589,11 +1589,11 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			name:             "fail - continue an existing offer but mis-match offer denom",
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
 			existingOffer: &dymnstypes.BuyOrder{
-				Id:      "201",
-				GoodsId: rollApp_1_by1_asSrc.alias,
-				Type:    dymnstypes.AliasOrder,
-				Params:  []string{rollApp_2_by2_asDest.rollAppID},
-				Buyer:   rollApp_2_by2_asDest.creator,
+				Id:        "201",
+				AssetId:   rollApp_1_by1_asSrc.alias,
+				AssetType: dymnstypes.TypeAlias,
+				Params:    []string{rollApp_2_by2_asDest.rollAppID},
+				Buyer:     rollApp_2_by2_asDest.creator,
 				OfferPrice: sdk.Coin{
 					Denom:  "u" + denom,
 					Amount: sdk.NewInt(minOfferPrice),
@@ -1613,11 +1613,11 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantErr:         true,
 			wantErrContains: "offer denomination mismatch with existing offer",
 			wantLaterOffer: &dymnstypes.BuyOrder{
-				Id:      "201",
-				GoodsId: rollApp_1_by1_asSrc.alias,
-				Type:    dymnstypes.AliasOrder,
-				Params:  []string{rollApp_2_by2_asDest.rollAppID},
-				Buyer:   rollApp_2_by2_asDest.creator,
+				Id:        "201",
+				AssetId:   rollApp_1_by1_asSrc.alias,
+				AssetType: dymnstypes.TypeAlias,
+				Params:    []string{rollApp_2_by2_asDest.rollAppID},
+				Buyer:     rollApp_2_by2_asDest.creator,
 				OfferPrice: sdk.Coin{
 					Denom:  "u" + denom,
 					Amount: sdk.NewInt(minOfferPrice),
@@ -1636,8 +1636,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "201",
-				GoodsId:                rollApp_1_by1_asSrc.alias,
-				Type:                   dymnstypes.AliasOrder,
+				AssetId:                rollApp_1_by1_asSrc.alias,
+				AssetType:              dymnstypes.TypeAlias,
 				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:                  rollApp_2_by2_asDest.creator,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 2),
@@ -1657,8 +1657,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantErrContains: "offer price must be greater than existing offer price",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
-				GoodsId:    rollApp_1_by1_asSrc.alias,
-				Type:       dymnstypes.AliasOrder,
+				AssetId:    rollApp_1_by1_asSrc.alias,
+				AssetType:  dymnstypes.TypeAlias,
 				Params:     []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:      rollApp_2_by2_asDest.creator,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2), // keep
@@ -1676,8 +1676,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "201",
-				GoodsId:                rollApp_1_by1_asSrc.alias,
-				Type:                   dymnstypes.AliasOrder,
+				AssetId:                rollApp_1_by1_asSrc.alias,
+				AssetType:              dymnstypes.TypeAlias,
 				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:                  rollApp_2_by2_asDest.creator,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 2),
@@ -1697,8 +1697,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantErrContains: "offer price must be greater than existing offer price",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
-				GoodsId:    rollApp_1_by1_asSrc.alias,
-				Type:       dymnstypes.AliasOrder,
+				AssetId:    rollApp_1_by1_asSrc.alias,
+				AssetType:  dymnstypes.TypeAlias,
 				Params:     []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:      rollApp_2_by2_asDest.creator,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2),
@@ -1796,8 +1796,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			wantBuyOrderId:              "201",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "201",
-				GoodsId:    rollApp_1_by1_asSrc.alias,
-				Type:       dymnstypes.AliasOrder,
+				AssetId:    rollApp_1_by1_asSrc.alias,
+				AssetType:  dymnstypes.TypeAlias,
 				Params:     []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:      rollApp_2_by2_asDest.creator,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -1823,8 +1823,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 				require.Equal(t, "201", offers[0].Id)
 
 				resp, err := dymnskeeper.NewMsgServerImpl(dk).PlaceBuyOrder(ctx, &dymnstypes.MsgPlaceBuyOrder{
-					GoodsId:   rollApp_1_by1_asSrc.alias,
-					OrderType: dymnstypes.AliasOrder,
+					AssetId:   rollApp_1_by1_asSrc.alias,
+					AssetType: dymnstypes.TypeAlias,
 					Params:    []string{rollApp_3_by3_asDest_noAlias.rollAppID},
 					Buyer:     rollApp_3_by3_asDest_noAlias.creator,
 					Offer:     dymnsutils.TestCoin(minOfferPrice),
@@ -1851,8 +1851,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			existingRollApps: []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest, rollApp_3_by3_asDest_noAlias},
 			existingOffer: &dymnstypes.BuyOrder{
 				Id:                     "202",
-				GoodsId:                rollApp_1_by1_asSrc.alias,
-				Type:                   dymnstypes.AliasOrder,
+				AssetId:                rollApp_1_by1_asSrc.alias,
+				AssetType:              dymnstypes.TypeAlias,
 				Params:                 []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:                  rollApp_2_by2_asDest.creator,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
@@ -1872,15 +1872,15 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 				err := dk.AddReverseMappingBuyerToBuyOrderRecord(ctx, rollApp_2_by2_asDest.creator, "202")
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingGoodsIdToBuyOrder(ctx, rollApp_1_by1_asSrc.alias, dymnstypes.AliasOrder, "202")
+				err = dk.AddReverseMappingAssetIdToBuyOrder(ctx, rollApp_1_by1_asSrc.alias, dymnstypes.TypeAlias, "202")
 				require.NoError(t, err)
 			},
 			wantErr:        false,
 			wantBuyOrderId: "202",
 			wantLaterOffer: &dymnstypes.BuyOrder{
 				Id:         "202",
-				GoodsId:    rollApp_1_by1_asSrc.alias,
-				Type:       dymnstypes.AliasOrder,
+				AssetId:    rollApp_1_by1_asSrc.alias,
+				AssetType:  dymnstypes.TypeAlias,
 				Params:     []string{rollApp_2_by2_asDest.rollAppID},
 				Buyer:      rollApp_2_by2_asDest.creator,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 1),
@@ -1906,8 +1906,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 				require.Equal(t, "202", offers[0].Id)
 
 				resp, err := dymnskeeper.NewMsgServerImpl(dk).PlaceBuyOrder(ctx, &dymnstypes.MsgPlaceBuyOrder{
-					GoodsId:   rollApp_1_by1_asSrc.alias,
-					OrderType: dymnstypes.AliasOrder,
+					AssetId:   rollApp_1_by1_asSrc.alias,
+					AssetType: dymnstypes.TypeAlias,
 					Params:    []string{rollApp_3_by3_asDest_noAlias.rollAppID},
 					Buyer:     rollApp_3_by3_asDest_noAlias.creator,
 					Offer:     dymnsutils.TestCoin(minOfferPrice),
@@ -1996,8 +1996,8 @@ func Test_msgServer_PlaceBuyOrder_Alias(t *testing.T) {
 			}
 
 			resp, err := dymnskeeper.NewMsgServerImpl(dk).PlaceBuyOrder(ctx, &dymnstypes.MsgPlaceBuyOrder{
-				GoodsId:         tt.alias,
-				OrderType:       dymnstypes.AliasOrder,
+				AssetId:         tt.alias,
+				AssetType:       dymnstypes.TypeAlias,
 				Buyer:           tt.buyer,
 				Params:          []string{tt.dstRollAppId},
 				ContinueOrderId: tt.existingBuyOrderId,

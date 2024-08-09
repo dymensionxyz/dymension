@@ -24,7 +24,7 @@ func (k Keeper) SetSellOrder(ctx sdk.Context, so dymnstypes.SellOrder) error {
 
 	// persist record
 	store := ctx.KVStore(k.storeKey)
-	soKey := dymnstypes.SellOrderKey(so.GoodsId, so.Type)
+	soKey := dymnstypes.SellOrderKey(so.AssetId, so.AssetType)
 	bz := k.cdc.MustMarshal(&so)
 	store.Set(soKey, bz)
 
@@ -36,10 +36,10 @@ func (k Keeper) SetSellOrder(ctx sdk.Context, so dymnstypes.SellOrder) error {
 // GetSellOrder retrieves active Sell-Order of the corresponding Dym-Name/Alias from the KVStore.
 // If the Sell-Order does not exist, nil is returned.
 func (k Keeper) GetSellOrder(ctx sdk.Context,
-	goodsId string, orderType dymnstypes.OrderType,
+	assetId string, assetType dymnstypes.AssetType,
 ) *dymnstypes.SellOrder {
 	store := ctx.KVStore(k.storeKey)
-	soKey := dymnstypes.SellOrderKey(goodsId, orderType)
+	soKey := dymnstypes.SellOrderKey(assetId, assetType)
 
 	bz := store.Get(soKey)
 	if bz == nil {
@@ -53,14 +53,14 @@ func (k Keeper) GetSellOrder(ctx sdk.Context,
 }
 
 // DeleteSellOrder deletes the Sell-Order from the KVStore.
-func (k Keeper) DeleteSellOrder(ctx sdk.Context, goodsId string, orderType dymnstypes.OrderType) {
-	so := k.GetSellOrder(ctx, goodsId, orderType)
+func (k Keeper) DeleteSellOrder(ctx sdk.Context, assetId string, assetType dymnstypes.AssetType) {
+	so := k.GetSellOrder(ctx, assetId, assetType)
 	if so == nil {
 		return
 	}
 
 	store := ctx.KVStore(k.storeKey)
-	soKey := dymnstypes.SellOrderKey(goodsId, orderType)
+	soKey := dymnstypes.SellOrderKey(assetId, assetType)
 	store.Delete(soKey)
 
 	ctx.EventManager().EmitEvent(so.GetSdkEvent(dymnstypes.AttributeValueSoActionNameDelete))
@@ -88,29 +88,29 @@ func (k Keeper) GetAllSellOrders(ctx sdk.Context) (list []dymnstypes.SellOrder) 
 // MoveSellOrderToHistorical moves the active Sell-Order record of the Dym-Name/Alias
 // into historical, and deletes the original record from KVStore.
 func (k Keeper) MoveSellOrderToHistorical(ctx sdk.Context,
-	goodsId string, orderType dymnstypes.OrderType,
+	assetId string, assetType dymnstypes.AssetType,
 ) error {
 	// find active record
-	so := k.GetSellOrder(ctx, goodsId, orderType)
+	so := k.GetSellOrder(ctx, assetId, assetType)
 	if so == nil {
-		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s: %s", orderType.FriendlyString(), goodsId)
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s: %s", assetType.FriendlyString(), assetId)
 	}
 
 	if so.HighestBid == nil {
 		// in-case of no bid, check if the order has expired
 		if !so.HasExpiredAtCtx(ctx) {
 			return errorsmod.Wrapf(gerrc.ErrFailedPrecondition,
-				"Sell-Order not yet expired: %s", goodsId,
+				"Sell-Order not yet expired: %s", assetId,
 			)
 		}
 	}
 
 	// remove the active record
-	k.DeleteSellOrder(ctx, so.GoodsId, so.Type)
+	k.DeleteSellOrder(ctx, so.AssetId, so.AssetType)
 
 	// set historical records
 	store := ctx.KVStore(k.storeKey)
-	hSoKey := dymnstypes.HistoricalSellOrdersKey(goodsId, so.Type)
+	hSoKey := dymnstypes.HistoricalSellOrdersKey(assetId, so.AssetType)
 	bz := store.Get(hSoKey)
 
 	var hSo dymnstypes.HistoricalSellOrders
@@ -131,7 +131,7 @@ func (k Keeper) MoveSellOrderToHistorical(ctx sdk.Context,
 		return nil
 	}
 
-	k.SetHistoricalSellOrders(ctx, goodsId, orderType, hSo)
+	k.SetHistoricalSellOrders(ctx, assetId, assetType, hSo)
 
 	var minExpiry int64 = -1
 	for _, hSo := range hSo.SellOrders {
@@ -140,7 +140,7 @@ func (k Keeper) MoveSellOrderToHistorical(ctx sdk.Context,
 		}
 	}
 	if minExpiry > 0 {
-		k.SetMinExpiryHistoricalSellOrder(ctx, goodsId, orderType, minExpiry)
+		k.SetMinExpiryHistoricalSellOrder(ctx, assetId, assetType, minExpiry)
 	}
 
 	return nil
@@ -148,20 +148,20 @@ func (k Keeper) MoveSellOrderToHistorical(ctx sdk.Context,
 
 // SetHistoricalSellOrders store the Historical Sell-Orders of the corresponding Dym-Name/Alias into the KVStore.
 func (k Keeper) SetHistoricalSellOrders(ctx sdk.Context,
-	goodsId string, orderType dymnstypes.OrderType, hSo dymnstypes.HistoricalSellOrders,
+	assetId string, assetType dymnstypes.AssetType, hSo dymnstypes.HistoricalSellOrders,
 ) {
 	store := ctx.KVStore(k.storeKey)
-	hSoKey := dymnstypes.HistoricalSellOrdersKey(goodsId, orderType)
+	hSoKey := dymnstypes.HistoricalSellOrdersKey(assetId, assetType)
 	bz := k.cdc.MustMarshal(&hSo)
 	store.Set(hSoKey, bz)
 }
 
 // GetHistoricalSellOrders retrieves Historical Sell-Orders of the corresponding Dym-Name/Alias from the KVStore.
 func (k Keeper) GetHistoricalSellOrders(ctx sdk.Context,
-	goodsId string, orderType dymnstypes.OrderType,
+	assetId string, assetType dymnstypes.AssetType,
 ) []dymnstypes.SellOrder {
 	store := ctx.KVStore(k.storeKey)
-	hSoKey := dymnstypes.HistoricalSellOrdersKey(goodsId, orderType)
+	hSoKey := dymnstypes.HistoricalSellOrdersKey(assetId, assetType)
 
 	bz := store.Get(hSoKey)
 	if bz == nil {
@@ -175,15 +175,15 @@ func (k Keeper) GetHistoricalSellOrders(ctx sdk.Context,
 }
 
 // DeleteHistoricalSellOrders deletes the Historical Sell-Orders of specific Dym-Name/Alias from the KVStore.
-func (k Keeper) DeleteHistoricalSellOrders(ctx sdk.Context, goodsId string, orderType dymnstypes.OrderType) {
+func (k Keeper) DeleteHistoricalSellOrders(ctx sdk.Context, assetId string, assetType dymnstypes.AssetType) {
 	store := ctx.KVStore(k.storeKey)
-	hSoKey := dymnstypes.HistoricalSellOrdersKey(goodsId, orderType)
+	hSoKey := dymnstypes.HistoricalSellOrdersKey(assetId, assetType)
 	store.Delete(hSoKey)
 }
 
 // SetActiveSellOrdersExpiration stores the expiration of the active Sell-Orders records into the KVStore.
 func (k Keeper) SetActiveSellOrdersExpiration(ctx sdk.Context,
-	so *dymnstypes.ActiveSellOrdersExpiration, orderType dymnstypes.OrderType,
+	so *dymnstypes.ActiveSellOrdersExpiration, assetType dymnstypes.AssetType,
 ) error {
 	so.Sort()
 
@@ -192,13 +192,13 @@ func (k Keeper) SetActiveSellOrdersExpiration(ctx sdk.Context,
 	}
 
 	var key []byte
-	switch orderType {
-	case dymnstypes.NameOrder:
+	switch assetType {
+	case dymnstypes.TypeName:
 		key = dymnstypes.KeyActiveSellOrdersExpirationOfDymName
-	case dymnstypes.AliasOrder:
+	case dymnstypes.TypeAlias:
 		key = dymnstypes.KeyActiveSellOrdersExpirationOfAlias
 	default:
-		panic("invalid order type: " + orderType.FriendlyString())
+		panic("invalid asset type: " + assetType.FriendlyString())
 	}
 
 	// persist record
@@ -210,18 +210,18 @@ func (k Keeper) SetActiveSellOrdersExpiration(ctx sdk.Context,
 
 // GetActiveSellOrdersExpiration retrieves the expiration of the active Sell-Orders records from the KVStore.
 func (k Keeper) GetActiveSellOrdersExpiration(ctx sdk.Context,
-	orderType dymnstypes.OrderType,
+	assetType dymnstypes.AssetType,
 ) *dymnstypes.ActiveSellOrdersExpiration {
 	store := ctx.KVStore(k.storeKey)
 
 	var key []byte
-	switch orderType {
-	case dymnstypes.NameOrder:
+	switch assetType {
+	case dymnstypes.TypeName:
 		key = dymnstypes.KeyActiveSellOrdersExpirationOfDymName
-	case dymnstypes.AliasOrder:
+	case dymnstypes.TypeAlias:
 		key = dymnstypes.KeyActiveSellOrdersExpirationOfAlias
 	default:
-		panic("invalid order type: " + orderType.FriendlyString())
+		panic("invalid asset type: " + assetType.FriendlyString())
 	}
 
 	var record dymnstypes.ActiveSellOrdersExpiration
@@ -241,10 +241,10 @@ func (k Keeper) GetActiveSellOrdersExpiration(ctx sdk.Context,
 // SetMinExpiryHistoricalSellOrder stores the minimum expiry
 // of all historical Sell-Orders by each Dym-Name into the KVStore.
 func (k Keeper) SetMinExpiryHistoricalSellOrder(ctx sdk.Context,
-	goodsId string, orderType dymnstypes.OrderType, minExpiry int64,
+	assetId string, assetType dymnstypes.AssetType, minExpiry int64,
 ) {
 	store := ctx.KVStore(k.storeKey)
-	key := dymnstypes.MinExpiryHistoricalSellOrdersKey(goodsId, orderType)
+	key := dymnstypes.MinExpiryHistoricalSellOrdersKey(assetId, assetType)
 	if minExpiry < 1 {
 		store.Delete(key)
 	} else {
@@ -255,10 +255,10 @@ func (k Keeper) SetMinExpiryHistoricalSellOrder(ctx sdk.Context,
 // GetMinExpiryHistoricalSellOrder retrieves the minimum expiry
 // of all historical Sell-Orders by the Dym-Name/Alias from the KVStore.
 func (k Keeper) GetMinExpiryHistoricalSellOrder(ctx sdk.Context,
-	goodsId string, orderType dymnstypes.OrderType,
+	assetId string, assetType dymnstypes.AssetType,
 ) (minExpiry int64, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := dymnstypes.MinExpiryHistoricalSellOrdersKey(goodsId, orderType)
+	key := dymnstypes.MinExpiryHistoricalSellOrdersKey(assetId, assetType)
 	bz := store.Get(key)
 	if bz != nil {
 		minExpiry = int64(sdk.BigEndianToUint64(bz))

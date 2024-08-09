@@ -61,10 +61,10 @@ func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		so := dymnstypes.SellOrder{
-			GoodsId:  dymName.Name,
-			Type:     dymnstypes.NameOrder,
-			ExpireAt: now.Unix() + 1,
-			MinPrice: dymnsutils.TestCoin(100),
+			AssetId:   dymName.Name,
+			AssetType: dymnstypes.TypeName,
+			ExpireAt:  now.Unix() + 1,
+			MinPrice:  dymnsutils.TestCoin(100),
 		}
 		err = dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
@@ -79,8 +79,8 @@ func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		so := dymnstypes.SellOrder{
-			GoodsId:   dymName.Name,
-			Type:      dymnstypes.NameOrder,
+			AssetId:   dymName.Name,
+			AssetType: dymnstypes.TypeName,
 			ExpireAt:  now.Unix() + 1,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(300),
@@ -102,8 +102,8 @@ func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		so := dymnstypes.SellOrder{
-			GoodsId:   dymName.Name,
-			Type:      dymnstypes.NameOrder,
+			AssetId:   dymName.Name,
+			AssetType: dymnstypes.TypeName,
 			ExpireAt:  now.Unix() - 1,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(300),
@@ -121,10 +121,10 @@ func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		so := dymnstypes.SellOrder{
-			GoodsId:  dymName.Name,
-			Type:     dymnstypes.NameOrder,
-			ExpireAt: now.Unix() + 1,
-			MinPrice: dymnsutils.TestCoin(100),
+			AssetId:   dymName.Name,
+			AssetType: dymnstypes.TypeName,
+			ExpireAt:  now.Unix() + 1,
+			MinPrice:  dymnsutils.TestCoin(100),
 			HighestBid: &dymnstypes.SellOrderBid{
 				Bidder: buyerA,
 				Price:  dymnsutils.TestCoin(200),
@@ -246,9 +246,9 @@ func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 			setDymNameWithFunctionsAfter(ctx, dymName, t, dk)
 
 			so := dymnstypes.SellOrder{
-				GoodsId:  dymName.Name,
-				Type:     dymnstypes.NameOrder,
-				MinPrice: dymnsutils.TestCoin(100),
+				AssetId:   dymName.Name,
+				AssetType: dymnstypes.TypeName,
+				MinPrice:  dymnsutils.TestCoin(100),
 			}
 
 			if tt.expiredSO {
@@ -279,8 +279,8 @@ func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 			errCompleteSellOrder := dk.CompleteDymNameSellOrder(ctx, dymName.Name)
 			laterDymName := dk.GetDymName(ctx, dymName.Name)
 			require.NotNil(t, laterDymName)
-			laterSo := dk.GetSellOrder(ctx, dymName.Name, dymnstypes.NameOrder)
-			historicalSo := dk.GetHistoricalSellOrders(ctx, dymName.Name, dymnstypes.NameOrder)
+			laterSo := dk.GetSellOrder(ctx, dymName.Name, dymnstypes.TypeName)
+			historicalSo := dk.GetHistoricalSellOrders(ctx, dymName.Name, dymnstypes.TypeName)
 			laterOwnerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(ownerA), params.BaseDenom)
 			laterBuyerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(buyerA), params.BaseDenom)
 			laterDymNamesOwnedByOwner, err := dk.GetDymNamesOwnedBy(ctx, ownerA)
@@ -375,8 +375,8 @@ func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 		setDymNameWithFunctionsAfter(ctx, dymName, t, dk)
 
 		so := dymnstypes.SellOrder{
-			GoodsId:   dymName.Name,
-			Type:      dymnstypes.NameOrder,
+			AssetId:   dymName.Name,
+			AssetType: dymnstypes.TypeName,
 			ExpireAt:  now.Unix() + 1,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(offerValue),
@@ -421,10 +421,10 @@ func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 		require.Equal(t, dymName.Name, laterFallbackAddressOwnerDymNames[0].Name)
 
 		// SO records should be processed as normal
-		laterSo := dk.GetSellOrder(ctx, dymName.Name, dymnstypes.NameOrder)
+		laterSo := dk.GetSellOrder(ctx, dymName.Name, dymnstypes.TypeName)
 		require.Nil(t, laterSo, "SO should be deleted")
 
-		historicalSo := dk.GetHistoricalSellOrders(ctx, dymName.Name, dymnstypes.NameOrder)
+		historicalSo := dk.GetHistoricalSellOrders(ctx, dymName.Name, dymnstypes.TypeName)
 		require.Len(t, historicalSo, 1, "SO should be moved to historical")
 	})
 }
@@ -432,9 +432,9 @@ func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 func TestKeeper_GetMinExpiryOfAllHistoricalDymNameSellOrders(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-	dk.SetMinExpiryHistoricalSellOrder(ctx, "one", dymnstypes.NameOrder, 1)
-	dk.SetMinExpiryHistoricalSellOrder(ctx, "two", dymnstypes.NameOrder, 22)
-	dk.SetMinExpiryHistoricalSellOrder(ctx, "three", dymnstypes.NameOrder, 333)
+	dk.SetMinExpiryHistoricalSellOrder(ctx, "one", dymnstypes.TypeName, 1)
+	dk.SetMinExpiryHistoricalSellOrder(ctx, "two", dymnstypes.TypeName, 22)
+	dk.SetMinExpiryHistoricalSellOrder(ctx, "three", dymnstypes.TypeName, 333)
 
 	records := dk.GetMinExpiryOfAllHistoricalDymNameSellOrders(ctx)
 	require.Len(t, records, 3)
@@ -453,7 +453,7 @@ func TestKeeper_GetMinExpiryOfAllHistoricalDymNameSellOrders(t *testing.T) {
 		},
 	}, records)
 
-	dk.SetMinExpiryHistoricalSellOrder(ctx, "three", dymnstypes.NameOrder, 0)
+	dk.SetMinExpiryHistoricalSellOrder(ctx, "three", dymnstypes.TypeName, 0)
 	records = dk.GetMinExpiryOfAllHistoricalDymNameSellOrders(ctx)
 	require.Len(t, records, 2)
 	require.Equal(t, []dymnstypes.HistoricalSellOrderMinExpiry{
@@ -470,10 +470,10 @@ func TestKeeper_GetMinExpiryOfAllHistoricalDymNameSellOrders(t *testing.T) {
 	t.Run("result must be sorted by Dym-Name", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		dk.SetMinExpiryHistoricalSellOrder(ctx, "a", dymnstypes.NameOrder, 1)
-		dk.SetMinExpiryHistoricalSellOrder(ctx, "c", dymnstypes.NameOrder, 2)
-		dk.SetMinExpiryHistoricalSellOrder(ctx, "b", dymnstypes.NameOrder, 3)
-		dk.SetMinExpiryHistoricalSellOrder(ctx, "d", dymnstypes.NameOrder, 4)
+		dk.SetMinExpiryHistoricalSellOrder(ctx, "a", dymnstypes.TypeName, 1)
+		dk.SetMinExpiryHistoricalSellOrder(ctx, "c", dymnstypes.TypeName, 2)
+		dk.SetMinExpiryHistoricalSellOrder(ctx, "b", dymnstypes.TypeName, 3)
+		dk.SetMinExpiryHistoricalSellOrder(ctx, "d", dymnstypes.TypeName, 4)
 
 		records := dk.GetMinExpiryOfAllHistoricalDymNameSellOrders(ctx)
 		require.Equal(t, []dymnstypes.HistoricalSellOrderMinExpiry{

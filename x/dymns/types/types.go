@@ -29,8 +29,8 @@ const (
 const (
 	EventTypeSellOrder            = ModuleName + "_so"
 	AttributeKeySoActionName      = "action"
-	AttributeKeySoGoodsId         = "goods_id"
-	AttributeKeySoType            = "type"
+	AttributeKeySoAssetId         = "asset_id"
+	AttributeKeySoAssetType       = "asset_type"
 	AttributeKeySoExpiryEpoch     = "expiry_epoch"
 	AttributeKeySoMinPrice        = "min_price"
 	AttributeKeySoSellPrice       = "sell_price"
@@ -49,8 +49,8 @@ const (
 	EventTypeBuyOrder                    = ModuleName + "_bo"
 	AttributeKeyBoActionName             = "action"
 	AttributeKeyBoId                     = "id"
-	AttributeKeyBoGoodsId                = "goods_id"
-	AttributeKeyBoType                   = "type"
+	AttributeKeyBoAssetId                = "asset_id"
+	AttributeKeyBoAssetType              = "asset_type"
 	AttributeKeyBoBuyer                  = "buyer"
 	AttributeKeyBoOfferPrice             = "offer_price"
 	AttributeKeyBoCounterpartyOfferPrice = "counterparty_offer_price"
@@ -63,16 +63,16 @@ const (
 )
 
 const (
-	EventTypeSell         = ModuleName + "_sell"
-	AttributeKeySellType  = "type"
-	AttributeKeySellName  = "name"
-	AttributeKeySellPrice = "price"
-	AttributeKeySellTo    = "buyer"
+	EventTypeSell = ModuleName + "_sell"
+	// TODO DymNS: fires this for alias in hook
+	AttributeKeySellAssetType = "asset_type"
+	AttributeKeySellName      = "name"
+	AttributeKeySellPrice     = "price"
+	AttributeKeySellTo        = "buyer"
 )
 
 const (
 	AttributeValueSellTypeName = "name"
 
-	// TODO DymNS: fires this in hook
 	AttributeValueSellTypeAlias = "alias"
 )

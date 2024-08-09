@@ -86,7 +86,7 @@ func (k Keeper) InsertNewBuyOrder(ctx sdk.Context, buyOrder dymnstypes.BuyOrder)
 	}
 
 	count := k.IncreaseBuyOrdersCountAndGet(ctx)
-	newOrderId := dymnstypes.CreateBuyOrderId(buyOrder.Type, count)
+	newOrderId := dymnstypes.CreateBuyOrderId(buyOrder.AssetType, count)
 
 	existingRecord := k.GetBuyOrder(ctx, newOrderId)
 	if existingRecord != nil {

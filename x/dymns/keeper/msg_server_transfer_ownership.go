@@ -46,7 +46,7 @@ func (k msgServer) validateTransferDymNameOwnership(ctx sdk.Context, msg *dymnst
 		return nil, errorsmod.Wrap(gerrc.ErrUnauthenticated, "Dym-Name is already expired")
 	}
 
-	so := k.GetSellOrder(ctx, msg.Name, dymnstypes.NameOrder)
+	so := k.GetSellOrder(ctx, msg.Name, dymnstypes.TypeName)
 	if so != nil {
 		// by ignoring SO, can fall into case that SO not completed/lost funds of bidder,...
 

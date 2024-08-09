@@ -46,7 +46,7 @@ service Query {
 
   // SellOrder queries the active SO of a Dym-Name/Alias.
   rpc SellOrder(QuerySellOrderRequest) returns (QuerySellOrderResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/dymns/sell_order/{goods_id}";
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/sell_order/{asset_id}";
   }
 
   // HistoricalSellOrderOfDymName queries the historical SOs of a Dym-Name.
@@ -192,11 +192,11 @@ message QueryDymNamesOwnedByAccountResponse {
 message QuerySellOrderRequest {
   option (gogoproto.equal)           = false;
 
-  // goods_id is the Dym-Name/Alias to query the active Sell-Order for.
-  string goods_id = 1;
+  // asset_id is the Dym-Name/Alias to query the active Sell-Order for.
+  string asset_id = 1;
 
-  // order_type can be either "Dym-Name" or "Alias".
-  string order_type = 2;
+  // asset_type can be either "Dym-Name" or "Alias".
+  string asset_type = 2;
 }
 
 // QuerySellOrderResponse is the response type for the Query/SellOrder RPC method.

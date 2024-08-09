@@ -70,23 +70,23 @@ func (k Keeper) RemoveReverseMappingBuyerToBuyOrder(ctx sdk.Context, buyer, orde
 	return k.GenericRemoveReverseLookupBuyOrderIdRecord(ctx, key, orderId)
 }
 
-// AddReverseMappingGoodsIdToBuyOrder add a reverse mapping from Dym-Name/Alias to the Buy-Order ID which placed for it, into the KVStore.
-func (k Keeper) AddReverseMappingGoodsIdToBuyOrder(ctx sdk.Context, goodsId string, orderType dymnstypes.OrderType, orderId string) error {
+// AddReverseMappingAssetIdToBuyOrder add a reverse mapping from Dym-Name/Alias to the Buy-Order ID which placed for it, into the KVStore.
+func (k Keeper) AddReverseMappingAssetIdToBuyOrder(ctx sdk.Context, assetId string, assetType dymnstypes.AssetType, orderId string) error {
 	var key []byte
 
-	switch orderType {
-	case dymnstypes.NameOrder:
-		if !dymnsutils.IsValidDymName(goodsId) {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name: %s", goodsId)
+	switch assetType {
+	case dymnstypes.TypeName:
+		if !dymnsutils.IsValidDymName(assetId) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name: %s", assetId)
 		}
-		key = dymnstypes.DymNameToBuyOrderIdsRvlKey(goodsId)
-	case dymnstypes.AliasOrder:
-		if !dymnsutils.IsValidAlias(goodsId) {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Alias: %s", goodsId)
+		key = dymnstypes.DymNameToBuyOrderIdsRvlKey(assetId)
+	case dymnstypes.TypeAlias:
+		if !dymnsutils.IsValidAlias(assetId) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Alias: %s", assetId)
 		}
-		key = dymnstypes.AliasToBuyOrderIdsRvlKey(goodsId)
+		key = dymnstypes.AliasToBuyOrderIdsRvlKey(assetId)
 	default:
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", orderType)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", assetType)
 	}
 
 	if !dymnstypes.IsValidBuyOrderId(orderId) {
@@ -146,23 +146,23 @@ func (k Keeper) GetBuyOrdersOfAlias(
 	return buyOrders, nil
 }
 
-// RemoveReverseMappingGoodsIdToBuyOrder removes reverse mapping from Dym-Name/Alias to Buy-Order which placed for it, from the KVStore.
-func (k Keeper) RemoveReverseMappingGoodsIdToBuyOrder(ctx sdk.Context, goodsId string, orderType dymnstypes.OrderType, orderId string) error {
+// RemoveReverseMappingAssetIdToBuyOrder removes reverse mapping from Dym-Name/Alias to Buy-Order which placed for it, from the KVStore.
+func (k Keeper) RemoveReverseMappingAssetIdToBuyOrder(ctx sdk.Context, assetId string, assetType dymnstypes.AssetType, orderId string) error {
 	var key []byte
 
-	switch orderType {
-	case dymnstypes.NameOrder:
-		if !dymnsutils.IsValidDymName(goodsId) {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name: %s", goodsId)
+	switch assetType {
+	case dymnstypes.TypeName:
+		if !dymnsutils.IsValidDymName(assetId) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name: %s", assetId)
 		}
-		key = dymnstypes.DymNameToBuyOrderIdsRvlKey(goodsId)
-	case dymnstypes.AliasOrder:
-		if !dymnsutils.IsValidAlias(goodsId) {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Alias: %s", goodsId)
+		key = dymnstypes.DymNameToBuyOrderIdsRvlKey(assetId)
+	case dymnstypes.TypeAlias:
+		if !dymnsutils.IsValidAlias(assetId) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Alias: %s", assetId)
 		}
-		key = dymnstypes.AliasToBuyOrderIdsRvlKey(goodsId)
+		key = dymnstypes.AliasToBuyOrderIdsRvlKey(assetId)
 	default:
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", orderType)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", assetType)
 	}
 
 	if !dymnstypes.IsValidBuyOrderId(orderId) {

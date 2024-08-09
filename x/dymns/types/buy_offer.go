@@ -32,8 +32,8 @@ func (m *BuyOrder) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "ID of offer is not a valid offer id")
 	}
 
-	switch m.Type {
-	case NameOrder:
+	switch m.AssetType {
+	case TypeName:
 		if !strings.HasPrefix(m.Id, BuyOrderIdTypeDymNamePrefix) {
 			return errorsmod.Wrap(
 				gerrc.ErrInvalidArgument,
@@ -41,14 +41,14 @@ func (m *BuyOrder) Validate() error {
 			)
 		}
 
-		if m.GoodsId == "" {
+		if m.AssetId == "" {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of offer is empty")
 		}
 
-		if !dymnsutils.IsValidDymName(m.GoodsId) {
+		if !dymnsutils.IsValidDymName(m.AssetId) {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of offer is not a valid dym name")
 		}
-	case AliasOrder:
+	case TypeAlias:
 		if !strings.HasPrefix(m.Id, BuyOrderIdTypeAliasPrefix) {
 			return errorsmod.Wrap(
 				gerrc.ErrInvalidArgument,
@@ -56,18 +56,18 @@ func (m *BuyOrder) Validate() error {
 			)
 		}
 
-		if m.GoodsId == "" {
+		if m.AssetId == "" {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "alias of offer is empty")
 		}
 
-		if !dymnsutils.IsValidAlias(m.GoodsId) {
+		if !dymnsutils.IsValidAlias(m.AssetId) {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "alias of offer is not a valid alias")
 		}
 	default:
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", m.Type)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", m.AssetType)
 	}
 
-	if err := ValidateOrderParams(m.Params, m.Type); err != nil {
+	if err := ValidateOrderParams(m.Params, m.AssetType); err != nil {
 		return err
 	}
 
@@ -114,8 +114,8 @@ func (m BuyOrder) GetSdkEvent(actionName string) sdk.Event {
 	return sdk.NewEvent(
 		EventTypeBuyOrder,
 		sdk.NewAttribute(AttributeKeyBoId, m.Id),
-		sdk.NewAttribute(AttributeKeyBoGoodsId, m.GoodsId),
-		sdk.NewAttribute(AttributeKeyBoType, m.Type.FriendlyString()),
+		sdk.NewAttribute(AttributeKeyBoAssetId, m.AssetId),
+		sdk.NewAttribute(AttributeKeyBoAssetType, m.AssetType.FriendlyString()),
 		sdk.NewAttribute(AttributeKeyBoBuyer, m.Buyer),
 		sdk.NewAttribute(AttributeKeyBoOfferPrice, m.OfferPrice.String()),
 		attrCounterpartyOfferPrice,
@@ -140,12 +140,12 @@ func IsValidBuyOrderId(id string) bool {
 }
 
 // CreateBuyOrderId creates a new BuyOrder ID from the given parameters.
-func CreateBuyOrderId(_type OrderType, i uint64) string {
+func CreateBuyOrderId(_type AssetType, i uint64) string {
 	var prefix string
 	switch _type {
-	case NameOrder:
+	case TypeName:
 		prefix = BuyOrderIdTypeDymNamePrefix
-	case AliasOrder:
+	case TypeAlias:
 		prefix = BuyOrderIdTypeAliasPrefix
 	default:
 		panic(fmt.Sprintf("unknown buy offer type: %d", _type))

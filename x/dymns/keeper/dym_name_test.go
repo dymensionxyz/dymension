@@ -508,31 +508,31 @@ func TestKeeper_PruneDymName(t *testing.T) {
 
 	// setup historical SO
 	expiredSo := dymnstypes.SellOrder{
-		GoodsId:   dymName1.Name,
-		Type:      dymnstypes.NameOrder,
+		AssetId:   dymName1.Name,
+		AssetType: dymnstypes.TypeName,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(300),
 	}
 	err = dk.SetSellOrder(ctx, expiredSo)
 	require.NoError(t, err)
-	err = dk.MoveSellOrderToHistorical(ctx, expiredSo.GoodsId, expiredSo.Type)
+	err = dk.MoveSellOrderToHistorical(ctx, expiredSo.AssetId, expiredSo.AssetType)
 	require.NoError(t, err)
-	require.Len(t, dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.NameOrder), 1)
-	minExpiry, found := dk.GetMinExpiryHistoricalSellOrder(ctx, dymName1.Name, dymnstypes.NameOrder)
+	require.Len(t, dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.TypeName), 1)
+	minExpiry, found := dk.GetMinExpiryHistoricalSellOrder(ctx, dymName1.Name, dymnstypes.TypeName)
 	require.True(t, found)
 	require.Equal(t, expiredSo.ExpireAt, minExpiry)
 
 	// setup active SO
 	so := dymnstypes.SellOrder{
-		GoodsId:  dymName1.Name,
-		Type:     dymnstypes.NameOrder,
-		ExpireAt: now.Add(time.Hour).Unix(),
-		MinPrice: dymnsutils.TestCoin(100),
+		AssetId:   dymName1.Name,
+		AssetType: dymnstypes.TypeName,
+		ExpireAt:  now.Add(time.Hour).Unix(),
+		MinPrice:  dymnsutils.TestCoin(100),
 	}
 	err = dk.SetSellOrder(ctx, so)
 	require.NoError(t, err)
-	require.NotNil(t, dk.GetSellOrder(ctx, dymName1.Name, dymnstypes.NameOrder))
+	require.NotNil(t, dk.GetSellOrder(ctx, dymName1.Name, dymnstypes.TypeName))
 
 	// prune
 	err = dk.PruneDymName(ctx, dymName1.Name)
@@ -544,14 +544,14 @@ func TestKeeper_PruneDymName(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, owned, "reserve mapping should be removed")
 
-	require.Nil(t, dk.GetSellOrder(ctx, dymName1.Name, dymnstypes.NameOrder), "active SO should be removed")
+	require.Nil(t, dk.GetSellOrder(ctx, dymName1.Name, dymnstypes.TypeName), "active SO should be removed")
 
 	require.Empty(t,
-		dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.NameOrder),
+		dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.TypeName),
 		"historical SO should be removed",
 	)
 
-	_, found = dk.GetMinExpiryHistoricalSellOrder(ctx, dymName1.Name, dymnstypes.NameOrder)
+	_, found = dk.GetMinExpiryHistoricalSellOrder(ctx, dymName1.Name, dymnstypes.TypeName)
 	require.False(t, found)
 }
 

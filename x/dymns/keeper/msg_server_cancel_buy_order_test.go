@@ -63,16 +63,16 @@ func Test_msgServer_CancelBuyOrder_DymName(t *testing.T) {
 
 	offer := &dymnstypes.BuyOrder{
 		Id:         "101",
-		GoodsId:    dymName.Name,
-		Type:       dymnstypes.NameOrder,
+		AssetId:    dymName.Name,
+		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 	}
 
 	offerByAnother := &dymnstypes.BuyOrder{
 		Id:         "10999",
-		GoodsId:    dymName.Name,
-		Type:       dymnstypes.NameOrder,
+		AssetId:    dymName.Name,
+		AssetType:  dymnstypes.TypeName,
 		Buyer:      anotherBuyerA,
 		OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 	}
@@ -155,7 +155,7 @@ func Test_msgServer_CancelBuyOrder_DymName(t *testing.T) {
 				require.NoError(t, err)
 				require.Len(t, buyOrders, 1)
 
-				buyOrders, err = dk.GetBuyOrdersOfDymName(ctx, offer.GoodsId)
+				buyOrders, err = dk.GetBuyOrdersOfDymName(ctx, offer.AssetId)
 				require.NoError(t, err)
 				require.Len(t, buyOrders, 1)
 			},
@@ -169,7 +169,7 @@ func Test_msgServer_CancelBuyOrder_DymName(t *testing.T) {
 				require.NoError(t, err)
 				require.Empty(t, buyOrders)
 
-				buyOrders, err = dk.GetBuyOrdersOfDymName(ctx, offer.GoodsId)
+				buyOrders, err = dk.GetBuyOrdersOfDymName(ctx, offer.AssetId)
 				require.NoError(t, err)
 				require.Empty(t, buyOrders)
 			},
@@ -296,7 +296,7 @@ func Test_msgServer_CancelBuyOrder_DymName(t *testing.T) {
 				err = dk.AddReverseMappingBuyerToBuyOrderRecord(ctx, tt.existingOffer.Buyer, tt.existingOffer.Id)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingGoodsIdToBuyOrder(ctx, tt.existingOffer.GoodsId, tt.existingOffer.Type, tt.existingOffer.Id)
+				err = dk.AddReverseMappingAssetIdToBuyOrder(ctx, tt.existingOffer.AssetId, tt.existingOffer.AssetType, tt.existingOffer.Id)
 				require.NoError(t, err)
 			}
 
@@ -418,18 +418,18 @@ func Test_msgServer_CancelBuyOrder_Alias(t *testing.T) {
 	}
 
 	offerAliasOfRollAppOne := &dymnstypes.BuyOrder{
-		Id:         dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 1),
-		GoodsId:    rollApp_One_By1.aliases[0],
-		Type:       dymnstypes.AliasOrder,
+		Id:         dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 1),
+		AssetId:    rollApp_One_By1.aliases[0],
+		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{rollApp_Two_By2.rollAppId},
 		Buyer:      rollApp_Two_By2.creator,
 		OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 	}
 
 	offerAliasOfRollAppOneByAnother := &dymnstypes.BuyOrder{
-		Id:         dymnstypes.CreateBuyOrderId(dymnstypes.AliasOrder, 2),
-		GoodsId:    rollApp_One_By1.aliases[0],
-		Type:       dymnstypes.AliasOrder,
+		Id:         dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 2),
+		AssetId:    rollApp_One_By1.aliases[0],
+		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{rollApp_Three_By3.rollAppId},
 		Buyer:      rollApp_Three_By3.creator,
 		OfferPrice: dymnsutils.TestCoin(minOfferPrice),
@@ -513,7 +513,7 @@ func Test_msgServer_CancelBuyOrder_Alias(t *testing.T) {
 				require.NoError(t, err)
 				require.Len(t, orderIds, 1)
 
-				orderIds, err = dk.GetBuyOrdersOfAlias(ctx, offerAliasOfRollAppOne.GoodsId)
+				orderIds, err = dk.GetBuyOrdersOfAlias(ctx, offerAliasOfRollAppOne.AssetId)
 				require.NoError(t, err)
 				require.Len(t, orderIds, 1)
 			},
@@ -527,7 +527,7 @@ func Test_msgServer_CancelBuyOrder_Alias(t *testing.T) {
 				require.NoError(t, err)
 				require.Empty(t, orderIds)
 
-				orderIds, err = dk.GetBuyOrdersOfAlias(ctx, offerAliasOfRollAppOne.GoodsId)
+				orderIds, err = dk.GetBuyOrdersOfAlias(ctx, offerAliasOfRollAppOne.AssetId)
 				require.NoError(t, err)
 				require.Empty(t, orderIds)
 			},
@@ -551,9 +551,9 @@ func Test_msgServer_CancelBuyOrder_Alias(t *testing.T) {
 				)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingGoodsIdToBuyOrder(
+				err = dk.AddReverseMappingAssetIdToBuyOrder(
 					ctx,
-					offerAliasOfRollAppOneByAnother.GoodsId, offerAliasOfRollAppOneByAnother.Type,
+					offerAliasOfRollAppOneByAnother.AssetId, offerAliasOfRollAppOneByAnother.AssetType,
 					offerAliasOfRollAppOneByAnother.Id,
 				)
 				require.NoError(t, err)
@@ -562,7 +562,7 @@ func Test_msgServer_CancelBuyOrder_Alias(t *testing.T) {
 				require.NoError(t, err)
 				require.Len(t, orderIds, 1)
 
-				orderIds, err = dk.GetBuyOrdersOfAlias(ctx, offerAliasOfRollAppOne.GoodsId)
+				orderIds, err = dk.GetBuyOrdersOfAlias(ctx, offerAliasOfRollAppOne.AssetId)
 				require.NoError(t, err)
 				require.Len(t, orderIds, 2)
 			},
@@ -576,7 +576,7 @@ func Test_msgServer_CancelBuyOrder_Alias(t *testing.T) {
 				require.NoError(t, err)
 				require.Empty(t, orderIds)
 
-				orderIds, err = dk.GetBuyOrdersOfAlias(ctx, offerAliasOfRollAppOne.GoodsId)
+				orderIds, err = dk.GetBuyOrdersOfAlias(ctx, offerAliasOfRollAppOne.AssetId)
 				require.NoError(t, err)
 				require.Len(t, orderIds, 1)
 				require.Equal(t, offerAliasOfRollAppOneByAnother.Id, orderIds[0].Id)
@@ -710,7 +710,7 @@ func Test_msgServer_CancelBuyOrder_Alias(t *testing.T) {
 				err = dk.AddReverseMappingBuyerToBuyOrderRecord(ctx, tt.existingOffer.Buyer, tt.existingOffer.Id)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingGoodsIdToBuyOrder(ctx, tt.existingOffer.GoodsId, tt.existingOffer.Type, tt.existingOffer.Id)
+				err = dk.AddReverseMappingAssetIdToBuyOrder(ctx, tt.existingOffer.AssetId, tt.existingOffer.AssetType, tt.existingOffer.Id)
 				require.NoError(t, err)
 			}
 

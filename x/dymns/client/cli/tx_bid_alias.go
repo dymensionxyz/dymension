@@ -58,8 +58,8 @@ func NewPlaceBidOnAliasOrderTxCmd() *cobra.Command {
 			}
 
 			msg := &dymnstypes.MsgPurchaseOrder{
-				GoodsId:   alias,
-				OrderType: dymnstypes.AliasOrder,
+				AssetId:   alias,
+				AssetType: dymnstypes.TypeAlias,
 				Offer:     sdk.NewCoin(params.BaseDenom, sdk.NewInt(int64(amount)).MulRaw(adymToDymMultiplier)),
 				Buyer:     buyer,
 			}

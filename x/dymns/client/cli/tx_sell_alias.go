@@ -81,8 +81,8 @@ func NewPlaceAliasSellOrderTxCmd() *cobra.Command {
 			}
 
 			msg := &dymnstypes.MsgPlaceSellOrder{
-				GoodsId:   alias,
-				OrderType: dymnstypes.AliasOrder,
+				AssetId:   alias,
+				AssetType: dymnstypes.TypeAlias,
 				MinPrice:  sdk.NewCoin(resParams.Params.Price.PriceDenom, sdk.NewInt(int64(minPriceDym)).MulRaw(adymToDymMultiplier)),
 				SellPrice: sellPrice,
 				Owner:     seller,

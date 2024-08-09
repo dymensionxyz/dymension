@@ -14,8 +14,8 @@ import (
 
 // CmdQuerySellOrder is the CLI command for querying the current active Sell Order of a Dym-Name
 func CmdQuerySellOrder() *cobra.Command {
-	targetSellOrderTypeDymName := dymnstypes.NameOrder.FriendlyString()
-	targetSellOrderTypeAlias := dymnstypes.AliasOrder.FriendlyString()
+	targetSellOrderAssetTypeDymName := dymnstypes.TypeName.FriendlyString()
+	targetSellOrderAssetTypeAlias := dymnstypes.TypeAlias.FriendlyString()
 
 	cmd := &cobra.Command{
 		Use:     "sell-order [Dym-Name/Alias]",
@@ -24,8 +24,8 @@ func CmdQuerySellOrder() *cobra.Command {
 		Example: fmt.Sprintf(
 			`%s q %s sell-order my-name --%s=%s
 %s q %s sell-order dym --%s=%s`,
-			version.AppName, dymnstypes.ModuleName, flagTargetType, targetSellOrderTypeDymName,
-			version.AppName, dymnstypes.ModuleName, flagTargetType, targetSellOrderTypeAlias,
+			version.AppName, dymnstypes.ModuleName, flagTargetType, targetSellOrderAssetTypeDymName,
+			version.AppName, dymnstypes.ModuleName, flagTargetType, targetSellOrderAssetTypeAlias,
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -39,11 +39,11 @@ func CmdQuerySellOrder() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := dymnstypes.NewQueryClient(clientCtx)
 			switch targetType {
-			case targetSellOrderTypeDymName:
+			case targetSellOrderAssetTypeDymName:
 				if !dymnsutils.IsValidDymName(input) {
 					return fmt.Errorf("input is not a valid Dym-Name: %s", input)
 				}
-			case targetSellOrderTypeAlias:
+			case targetSellOrderAssetTypeAlias:
 				if !dymnsutils.IsValidAlias(input) {
 					return fmt.Errorf("input is not a valid Alias: %s", input)
 				}
@@ -52,7 +52,7 @@ func CmdQuerySellOrder() *cobra.Command {
 			}
 
 			res, err := queryClient.SellOrder(cmd.Context(), &dymnstypes.QuerySellOrderRequest{
-				GoodsId: input,
+				AssetId: input,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to fetch Sell Order of '%s': %w", input, err)
@@ -68,7 +68,7 @@ func CmdQuerySellOrder() *cobra.Command {
 
 	flags.AddQueryFlagsToCmd(cmd)
 
-	cmd.Flags().String(flagTargetType, targetSellOrderTypeDymName, fmt.Sprintf("Target type to query for, one of: %s/%s", targetSellOrderTypeDymName, targetSellOrderTypeAlias))
+	cmd.Flags().String(flagTargetType, targetSellOrderAssetTypeDymName, fmt.Sprintf("Target type to query for, one of: %s/%s", targetSellOrderAssetTypeDymName, targetSellOrderAssetTypeAlias))
 
 	return cmd
 }

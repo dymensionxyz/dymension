@@ -26,10 +26,10 @@ func (k msgServer) CancelBuyOrder(goCtx context.Context, msg *dymnstypes.MsgCanc
 
 	var resp *dymnstypes.MsgCancelBuyOrderResponse
 	var err error
-	if offer.Type == dymnstypes.NameOrder || offer.Type == dymnstypes.AliasOrder {
+	if offer.AssetType == dymnstypes.TypeName || offer.AssetType == dymnstypes.TypeAlias {
 		resp, err = k.processCancelBuyOrder(ctx, msg, *offer)
 	} else {
-		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", offer.Type)
+		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", offer.AssetType)
 	}
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (k msgServer) removeBuyOrder(ctx sdk.Context, offer dymnstypes.BuyOrder) er
 		return err
 	}
 
-	err = k.RemoveReverseMappingGoodsIdToBuyOrder(ctx, offer.GoodsId, offer.Type, offer.Id)
+	err = k.RemoveReverseMappingAssetIdToBuyOrder(ctx, offer.AssetId, offer.AssetType, offer.Id)
 	if err != nil {
 		return err
 	}

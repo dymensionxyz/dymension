@@ -75,8 +75,8 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		registerRollApp(rollApp_2_asDst, ctx, dk, rk)
 
 		so := dymnstypes.SellOrder{
-			GoodsId:   "void",
-			Type:      dymnstypes.AliasOrder,
+			AssetId:   "void",
+			AssetType: dymnstypes.TypeAlias,
 			ExpireAt:  now.Unix() + 1,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(200),
@@ -89,7 +89,7 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		err := dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.GoodsId), "alias not owned by any RollApp: void: not found")
+		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "alias not owned by any RollApp: void: not found")
 	})
 
 	t.Run("destination Roll-App not found", func(t *testing.T) {
@@ -100,8 +100,8 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		const sellPrice = 200
 
 		so := dymnstypes.SellOrder{
-			GoodsId:   rollApp_1_asSrc.alias,
-			Type:      dymnstypes.AliasOrder,
+			AssetId:   rollApp_1_asSrc.alias,
+			AssetType: dymnstypes.TypeAlias,
 			ExpireAt:  now.Unix() + 1,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(sellPrice),
@@ -114,7 +114,7 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		err := dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.GoodsId), "destination Roll-App does not exists")
+		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "destination Roll-App does not exists")
 	})
 
 	t.Run("SO not found", func(t *testing.T) {
@@ -136,15 +136,15 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		registerRollApp(rollApp_2_asDst, ctx, dk, rk)
 
 		so := dymnstypes.SellOrder{
-			GoodsId:  rollApp_1_asSrc.alias,
-			Type:     dymnstypes.AliasOrder,
-			ExpireAt: now.Unix() + 1,
-			MinPrice: dymnsutils.TestCoin(100),
+			AssetId:   rollApp_1_asSrc.alias,
+			AssetType: dymnstypes.TypeAlias,
+			ExpireAt:  now.Unix() + 1,
+			MinPrice:  dymnsutils.TestCoin(100),
 		}
 		err := dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.GoodsId), "Sell-Order has not finished yet")
+		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "Sell-Order has not finished yet")
 	})
 
 	t.Run("SO has bidder but not yet completed", func(t *testing.T) {
@@ -154,8 +154,8 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		registerRollApp(rollApp_2_asDst, ctx, dk, rk)
 
 		so := dymnstypes.SellOrder{
-			GoodsId:   rollApp_1_asSrc.alias,
-			Type:      dymnstypes.AliasOrder,
+			AssetId:   rollApp_1_asSrc.alias,
+			AssetType: dymnstypes.TypeAlias,
 			ExpireAt:  now.Unix() + 1,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(300),
@@ -168,7 +168,7 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		err := dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.GoodsId), "Sell-Order has not finished yet")
+		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "Sell-Order has not finished yet")
 	})
 
 	t.Run("SO expired without bidder", func(t *testing.T) {
@@ -178,8 +178,8 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		registerRollApp(rollApp_2_asDst, ctx, dk, rk)
 
 		so := dymnstypes.SellOrder{
-			GoodsId:   rollApp_1_asSrc.alias,
-			Type:      dymnstypes.AliasOrder,
+			AssetId:   rollApp_1_asSrc.alias,
+			AssetType: dymnstypes.TypeAlias,
 			ExpireAt:  now.Unix() - 1,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(300),
@@ -187,7 +187,7 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		err := dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.GoodsId), "no bid placed")
+		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "no bid placed")
 	})
 
 	t.Run("SO without sell price, with bid, finished by expiry", func(t *testing.T) {
@@ -197,10 +197,10 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		registerRollApp(rollApp_2_asDst, ctx, dk, rk)
 
 		so := dymnstypes.SellOrder{
-			GoodsId:  rollApp_1_asSrc.alias,
-			Type:     dymnstypes.AliasOrder,
-			ExpireAt: now.Unix() + 1,
-			MinPrice: dymnsutils.TestCoin(100),
+			AssetId:   rollApp_1_asSrc.alias,
+			AssetType: dymnstypes.TypeAlias,
+			ExpireAt:  now.Unix() + 1,
+			MinPrice:  dymnsutils.TestCoin(100),
 			HighestBid: &dymnstypes.SellOrderBid{
 				Bidder: rollApp_2_asDst.creator,
 				Price:  dymnsutils.TestCoin(200),
@@ -210,7 +210,7 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		err := dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.GoodsId), "Sell-Order has not finished yet")
+		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "Sell-Order has not finished yet")
 	})
 
 	const ownerOriginalBalance int64 = 1000
@@ -318,9 +318,9 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 			registerRollApp(rollApp_2_asDst, ctx, dk, rk)
 
 			so := dymnstypes.SellOrder{
-				GoodsId:  rollApp_1_asSrc.alias,
-				Type:     dymnstypes.AliasOrder,
-				MinPrice: dymnsutils.TestCoin(100),
+				AssetId:   rollApp_1_asSrc.alias,
+				AssetType: dymnstypes.TypeAlias,
+				MinPrice:  dymnsutils.TestCoin(100),
 			}
 
 			if tt.expiredSO {
@@ -354,12 +354,12 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 
 			// test
 
-			errCompleteSellOrder := dk.CompleteAliasSellOrder(ctx, so.GoodsId)
+			errCompleteSellOrder := dk.CompleteAliasSellOrder(ctx, so.AssetId)
 
-			laterSo := dk.GetSellOrder(ctx, so.GoodsId, dymnstypes.AliasOrder)
+			laterSo := dk.GetSellOrder(ctx, so.AssetId, dymnstypes.TypeAlias)
 
-			historicalSo := dk.GetHistoricalSellOrders(ctx, so.GoodsId, dymnstypes.AliasOrder)
-			require.Empty(t, historicalSo, "historical should be empty as not supported for order type Alias")
+			historicalSo := dk.GetHistoricalSellOrders(ctx, so.AssetId, dymnstypes.TypeAlias)
+			require.Empty(t, historicalSo, "historical should be empty as not supported for asset type Alias")
 
 			laterOwnerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(rollApp_1_asSrc.creator), params.BaseDenom)
 			laterBuyerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(rollApp_2_asDst.creator), params.BaseDenom)
@@ -397,7 +397,7 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 			require.NoError(t, errCompleteSellOrder, "action should be successful")
 
 			require.Nil(t, laterSo, "SO should be deleted")
-			require.Empty(t, historicalSo, "historical should be empty as not supported for order type Alias")
+			require.Empty(t, historicalSo, "historical should be empty as not supported for asset type Alias")
 
 			require.Empty(t, laterAliasOfRollApp1, "should not be linked to RollApp 1 anymore")
 			require.Equal(t, rollApp_2_asDst.rollAppId, laterAliasLinkedToRollAppId, "alias should be linked to RollApp 2")
@@ -429,8 +429,8 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		registerRollApp(rollApp_3_asDst_byOwner, ctx, dk, rk)
 
 		so := dymnstypes.SellOrder{
-			GoodsId:   rollApp_1_asSrc.alias,
-			Type:      dymnstypes.AliasOrder,
+			AssetId:   rollApp_1_asSrc.alias,
+			AssetType: dymnstypes.TypeAlias,
 			ExpireAt:  now.Unix() + 1,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(offerValue),
@@ -444,20 +444,20 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		err = dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		err = dk.CompleteAliasSellOrder(ctx, so.GoodsId)
+		err = dk.CompleteAliasSellOrder(ctx, so.AssetId)
 		require.NoError(t, err)
 
 		// Alias should be transferred as normal
 		laterAliasOfRollApp1, _ := dk.GetAliasByRollAppId(ctx, rollApp_1_asSrc.rollAppId)
 		laterAliasOfRollApp3, _ := dk.GetAliasByRollAppId(ctx, rollApp_3_asDst_byOwner.rollAppId)
-		laterAliasLinkedToRollAppId, _ := dk.GetRollAppIdByAlias(ctx, so.GoodsId)
+		laterAliasLinkedToRollAppId, _ := dk.GetRollAppIdByAlias(ctx, so.AssetId)
 
 		require.Empty(t, laterAliasOfRollApp1, "should not be linked to RollApp 1 anymore")
 		require.Equal(t, rollApp_3_asDst_byOwner.alias, laterAliasOfRollApp3, "alias should be linked to RollApp 3")
 		require.Equal(t, rollApp_3_asDst_byOwner.rollAppId, laterAliasLinkedToRollAppId, "alias should be linked to RollApp 3")
 
 		// ensure all existing alias are linked to the correct RollApp
-		for _, alias := range []string{rollApp_3_asDst_byOwner.alias, so.GoodsId} {
+		for _, alias := range []string{rollApp_3_asDst_byOwner.alias, so.AssetId} {
 			requireAliasLinkedToRollApp(alias, rollApp_3_asDst_byOwner.rollAppId, t, ctx, dk)
 		}
 
@@ -466,10 +466,10 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		require.Equal(t, int64(offerValue+ownerOriginalBalance), laterOwnerBalance.Amount.Int64())
 
 		// SO records should be processed as normal
-		laterSo := dk.GetSellOrder(ctx, so.GoodsId, dymnstypes.AliasOrder)
+		laterSo := dk.GetSellOrder(ctx, so.AssetId, dymnstypes.TypeAlias)
 		require.Nil(t, laterSo, "SO should be deleted")
 
-		historicalSo := dk.GetHistoricalSellOrders(ctx, so.GoodsId, dymnstypes.AliasOrder)
-		require.Empty(t, historicalSo, "historical should be empty as not supported for order type Alias")
+		historicalSo := dk.GetHistoricalSellOrders(ctx, so.AssetId, dymnstypes.TypeAlias)
+		require.Empty(t, historicalSo, "historical should be empty as not supported for asset type Alias")
 	})
 }

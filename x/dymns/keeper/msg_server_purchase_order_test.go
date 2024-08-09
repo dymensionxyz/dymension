@@ -38,24 +38,24 @@ func Test_msgServer_PurchaseOrder_DymName(t *testing.T) {
 
 		requireErrorFContains(t, func() error {
 			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
-				OrderType: dymnstypes.NameOrder,
+				AssetType: dymnstypes.TypeName,
 			})
 			return err
 		}, gerrc.ErrInvalidArgument.Error())
 	})
 
-	t.Run("reject if message order type is Unknown", func(t *testing.T) {
+	t.Run("reject if message asset type is Unknown", func(t *testing.T) {
 		dk, _, ctx := setupTest()
 
 		requireErrorFContains(t, func() error {
 			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
-				GoodsId:   "goods",
-				OrderType: dymnstypes.OrderType_OT_UNKNOWN,
+				AssetId:   "asset",
+				AssetType: dymnstypes.AssetType_AT_UNKNOWN,
 				Buyer:     testAddr(0).bech32(),
 				Offer:     dymnsutils.TestCoin(1),
 			})
 			return err
-		}, "invalid order type")
+		}, "invalid asset type")
 	})
 
 	ownerA := testAddr(1).bech32()
@@ -464,9 +464,9 @@ func Test_msgServer_PurchaseOrder_DymName(t *testing.T) {
 			}
 
 			so := dymnstypes.SellOrder{
-				GoodsId:  dymName.Name,
-				Type:     dymnstypes.NameOrder,
-				MinPrice: dymnsutils.TestCoin(minPrice),
+				AssetId:   dymName.Name,
+				AssetType: dymnstypes.TypeName,
+				MinPrice:  dymnsutils.TestCoin(minPrice),
 			}
 
 			if tt.expiredSellOrder {
@@ -511,8 +511,8 @@ func Test_msgServer_PurchaseOrder_DymName(t *testing.T) {
 				useDenom = tt.customBidDenom
 			}
 			resp, errPurchaseName := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
-				GoodsId:   dymName.Name,
-				OrderType: dymnstypes.NameOrder,
+				AssetId:   dymName.Name,
+				AssetType: dymnstypes.TypeName,
 				Offer:     sdk.NewInt64Coin(useDenom, tt.newBid),
 				Buyer:     useBuyer,
 			})
@@ -523,8 +523,8 @@ func Test_msgServer_PurchaseOrder_DymName(t *testing.T) {
 				require.Equal(t, originalDymNameExpiry, laterDymName.ExpireAt, "expiry should not be changed")
 			}
 
-			laterSo := dk.GetSellOrder(ctx, dymName.Name, dymnstypes.NameOrder)
-			historicalSo := dk.GetHistoricalSellOrders(ctx, dymName.Name, dymnstypes.NameOrder)
+			laterSo := dk.GetSellOrder(ctx, dymName.Name, dymnstypes.TypeName)
+			historicalSo := dk.GetHistoricalSellOrders(ctx, dymName.Name, dymnstypes.TypeName)
 			laterOwnerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(ownerA), params.BaseDenom)
 			laterBuyerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(buyerA), params.BaseDenom)
 			laterPreviousBidderBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(previousBidderA), params.BaseDenom)
@@ -617,8 +617,8 @@ func Test_msgServer_PurchaseOrder_DymName(t *testing.T) {
 
 		requireErrorFContains(t, func() error {
 			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
-				GoodsId:   "my-name",
-				OrderType: dymnstypes.NameOrder,
+				AssetId:   "my-name",
+				AssetType: dymnstypes.TypeName,
 				Offer:     dymnsutils.TestCoin(100),
 				Buyer:     buyerA,
 			})
@@ -634,7 +634,7 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 
 		s.requireErrorFContains(func() error {
 			_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &dymnstypes.MsgPurchaseOrder{
-				OrderType: dymnstypes.AliasOrder,
+				AssetType: dymnstypes.TypeAlias,
 			})
 			return err
 		}, gerrc.ErrInvalidArgument.Error())
@@ -654,10 +654,10 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 	const originalBalanceCreator3 int64 = 400
 	const minPrice int64 = 100
 
-	msg := func(buyer string, offer int64, goodsId, dstRollAppId string) dymnstypes.MsgPurchaseOrder {
+	msg := func(buyer string, offer int64, assetId, dstRollAppId string) dymnstypes.MsgPurchaseOrder {
 		return dymnstypes.MsgPurchaseOrder{
-			GoodsId:   goodsId,
-			OrderType: dymnstypes.AliasOrder,
+			AssetId:   assetId,
+			AssetType: dymnstypes.TypeAlias,
 			Params:    []string{dstRollAppId},
 			Offer:     dymnsutils.TestCoin(offer),
 			Buyer:     buyer,
@@ -1208,7 +1208,7 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 			}
 
 			if tt.sellOrder != nil {
-				s.Require().Equal(tt.sellOrder.GoodsId, tt.msg.GoodsId, "bad setup")
+				s.Require().Equal(tt.sellOrder.AssetId, tt.msg.AssetId, "bad setup")
 
 				err := s.dymNsKeeper.SetSellOrder(s.ctx, *tt.sellOrder)
 				s.Require().NoError(err)
@@ -1232,10 +1232,10 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 				s.True(s.dymNsKeeper.IsRollAppId(s.ctx, ra.rollAppId))
 			}
 
-			historicalSo := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, tt.msg.GoodsId, dymnstypes.AliasOrder)
+			historicalSo := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, tt.msg.AssetId, dymnstypes.TypeAlias)
 			s.Empty(historicalSo, "no historical SO should be made for alias order regardless state of tx")
 
-			laterSo := s.dymNsKeeper.GetSellOrder(s.ctx, tt.msg.GoodsId, dymnstypes.AliasOrder)
+			laterSo := s.dymNsKeeper.GetSellOrder(s.ctx, tt.msg.AssetId, dymnstypes.TypeAlias)
 
 			if tt.wantErr {
 				s.requireErrorContains(errPurchaseName, tt.wantErrContains)
@@ -1271,7 +1271,7 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 				s.Nil(laterSo, "SO should be deleted")
 
 				s.requireRollApp(tt.sourceRollAppId).HasNoAlias()
-				s.requireRollApp(destinationRollAppId).HasAlias(tt.msg.GoodsId)
+				s.requireRollApp(destinationRollAppId).HasAlias(tt.msg.AssetId)
 			} else {
 				if len(tt.rollApps) > 0 {
 					for _, ra := range tt.rollApps {
@@ -1302,8 +1302,8 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 
 		s.requireErrorFContains(func() error {
 			_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &dymnstypes.MsgPurchaseOrder{
-				GoodsId:   "alias",
-				OrderType: dymnstypes.AliasOrder,
+				AssetId:   "alias",
+				AssetType: dymnstypes.TypeAlias,
 				Params:    []string{rollApp_2_byBuyer_asDst.rollAppId},
 				Offer:     dymnsutils.TestCoin(100),
 				Buyer:     creator_2_asBuyer,

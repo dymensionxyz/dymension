@@ -96,9 +96,9 @@ func (e epochHooks) processCleanupHistoricalDymNameSellOrders(
 	sort.Strings(cleanupHistoricalForDymNames)
 
 	for _, dymName := range cleanupHistoricalForDymNames {
-		list := dk.GetHistoricalSellOrders(ctx, dymName, dymnstypes.NameOrder)
+		list := dk.GetHistoricalSellOrders(ctx, dymName, dymnstypes.TypeName)
 		if len(list) < 1 {
-			dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.NameOrder, 0)
+			dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.TypeName, 0)
 			continue
 		}
 
@@ -110,8 +110,8 @@ func (e epochHooks) processCleanupHistoricalDymNameSellOrders(
 		}
 
 		if len(keepList) == 0 {
-			dk.DeleteHistoricalSellOrders(ctx, dymName, dymnstypes.NameOrder)
-			dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.NameOrder, 0)
+			dk.DeleteHistoricalSellOrders(ctx, dymName, dymnstypes.TypeName)
+			dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.TypeName, 0)
 			continue
 		}
 
@@ -121,13 +121,13 @@ func (e epochHooks) processCleanupHistoricalDymNameSellOrders(
 				newMinExpiry = hso.ExpireAt
 			}
 		}
-		dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.NameOrder, newMinExpiry)
+		dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.TypeName, newMinExpiry)
 
 		if len(keepList) != len(list) {
 			hso := dymnstypes.HistoricalSellOrders{
 				SellOrders: keepList,
 			}
-			dk.SetHistoricalSellOrders(ctx, dymName, dymnstypes.NameOrder, hso)
+			dk.SetHistoricalSellOrders(ctx, dymName, dymnstypes.TypeName, hso)
 		}
 	}
 
@@ -187,7 +187,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	dk := e.Keeper
 
-	aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.NameOrder)
+	aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
 	nowEpochUTC := ctx.BlockTime().Unix()
 	var finishedSOs []dymnstypes.SellOrder
 	if len(aSoe.Records) > 0 {
@@ -199,11 +199,11 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 				continue
 			}
 
-			so := dk.GetSellOrder(ctx, record.GoodsId, dymnstypes.NameOrder)
+			so := dk.GetSellOrder(ctx, record.AssetId, dymnstypes.TypeName)
 
 			if so == nil {
 				// remove the invalid entry
-				invalidRecordsToRemove = append(invalidRecordsToRemove, record.GoodsId)
+				invalidRecordsToRemove = append(invalidRecordsToRemove, record.AssetId)
 				continue
 			}
 
@@ -211,7 +211,7 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 				// invalid entry
 				dk.Logger(ctx).Error(
 					"DymNS hook After-Epoch-End: sell order has not finished",
-					"name", record.GoodsId, "order-type", dymnstypes.NameOrder.FriendlyString(),
+					"name", record.AssetId, "order-type", dymnstypes.TypeName.FriendlyString(),
 					"expiry", record.ExpireAt, "now", nowEpochUTC,
 					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 				)
@@ -234,24 +234,24 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 	}
 
 	sort.Slice(finishedSOs, func(i, j int) bool {
-		return finishedSOs[i].GoodsId < finishedSOs[j].GoodsId
+		return finishedSOs[i].AssetId < finishedSOs[j].AssetId
 	})
 
 	dk.Logger(ctx).Info(
 		"DymNS hook After-Epoch-End: processing finished SOs",
-		"order-type", dymnstypes.NameOrder.FriendlyString(),
+		"order-type", dymnstypes.TypeName.FriendlyString(),
 		"count", len(finishedSOs),
 		"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 	)
 
 	for _, so := range finishedSOs {
-		aSoe.Remove(so.GoodsId)
+		aSoe.Remove(so.AssetId)
 
 		if so.HighestBid != nil {
-			if err := dk.CompleteDymNameSellOrder(ctx, so.GoodsId); err != nil {
+			if err := dk.CompleteDymNameSellOrder(ctx, so.AssetId); err != nil {
 				dk.Logger(ctx).Error(
 					"DymNS hook After-Epoch-End: failed to complete sell order",
-					"name", so.GoodsId, "order-type", dymnstypes.NameOrder.FriendlyString(),
+					"name", so.AssetId, "order-type", dymnstypes.TypeName.FriendlyString(),
 					"expiry", so.ExpireAt, "now", nowEpochUTC,
 					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 					"error", err,
@@ -263,10 +263,10 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 
 		// no bid placed, it just a normal expiry without winner,
 		// in this case, just move to history
-		if err := dk.MoveSellOrderToHistorical(ctx, so.GoodsId, dymnstypes.NameOrder); err != nil {
+		if err := dk.MoveSellOrderToHistorical(ctx, so.AssetId, dymnstypes.TypeName); err != nil {
 			dk.Logger(ctx).Error(
 				"DymNS hook After-Epoch-End: failed to move expired sell order to historical",
-				"name", so.GoodsId, "order-type", dymnstypes.NameOrder.FriendlyString(),
+				"name", so.AssetId, "order-type", dymnstypes.TypeName.FriendlyString(),
 				"expiry", so.ExpireAt, "now", nowEpochUTC,
 				"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 				"error", err,
@@ -275,10 +275,10 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 		}
 	}
 
-	if err := dk.SetActiveSellOrdersExpiration(ctx, aSoe, dymnstypes.NameOrder); err != nil {
+	if err := dk.SetActiveSellOrdersExpiration(ctx, aSoe, dymnstypes.TypeName); err != nil {
 		dk.Logger(ctx).Error(
 			"DymNS hook After-Epoch-End: failed to update active SO expiry",
-			"order-type", dymnstypes.NameOrder.FriendlyString(),
+			"order-type", dymnstypes.TypeName.FriendlyString(),
 			"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 			"error", err,
 		)
@@ -300,7 +300,7 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 
 	dk := e.Keeper
 
-	aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.AliasOrder)
+	aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeAlias)
 	nowEpochUTC := ctx.BlockTime().Unix()
 	var finishedSOs []dymnstypes.SellOrder
 	if len(aSoe.Records) > 0 {
@@ -312,11 +312,11 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 				continue
 			}
 
-			so := dk.GetSellOrder(ctx, record.GoodsId, dymnstypes.AliasOrder)
+			so := dk.GetSellOrder(ctx, record.AssetId, dymnstypes.TypeAlias)
 
 			if so == nil {
 				// remove the invalid entry
-				invalidRecordsToRemove = append(invalidRecordsToRemove, record.GoodsId)
+				invalidRecordsToRemove = append(invalidRecordsToRemove, record.AssetId)
 				continue
 			}
 
@@ -324,7 +324,7 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 				// invalid entry
 				dk.Logger(ctx).Error(
 					"DymNS hook After-Epoch-End: sell order has not finished",
-					"alias", record.GoodsId, "order-type", dymnstypes.AliasOrder.FriendlyString(),
+					"alias", record.AssetId, "order-type", dymnstypes.TypeAlias.FriendlyString(),
 					"expiry", record.ExpireAt, "now", nowEpochUTC,
 					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 				)
@@ -347,35 +347,35 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 	}
 
 	sort.Slice(finishedSOs, func(i, j int) bool {
-		return finishedSOs[i].GoodsId < finishedSOs[j].GoodsId
+		return finishedSOs[i].AssetId < finishedSOs[j].AssetId
 	})
 
 	dk.Logger(ctx).Info(
 		"DymNS hook After-Epoch-End: processing finished SOs",
-		"order-type", dymnstypes.AliasOrder.FriendlyString(),
+		"order-type", dymnstypes.TypeAlias.FriendlyString(),
 		"count", len(finishedSOs),
 		"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 	)
 
 	for _, so := range finishedSOs {
-		aSoe.Remove(so.GoodsId)
+		aSoe.Remove(so.AssetId)
 
 		if so.HighestBid == nil {
 			// no bid placed, it just a normal expiry without winner,
 			// in this case, just delete it, because Alias SO does not support historical SO
-			dk.DeleteSellOrder(ctx, so.GoodsId, dymnstypes.AliasOrder)
+			dk.DeleteSellOrder(ctx, so.AssetId, dymnstypes.TypeAlias)
 			continue
 		}
 
 		// Sell-Order will be force cancelled and refund bids if any,
 		// when the alias is prohibited to trade
-		forceCancel := prohibitedToTradeAliases[so.GoodsId]
+		forceCancel := prohibitedToTradeAliases[so.AssetId]
 
 		if forceCancel {
-			if err := dk.RefundBid(ctx, *so.HighestBid, dymnstypes.AliasOrder); err != nil {
+			if err := dk.RefundBid(ctx, *so.HighestBid, dymnstypes.TypeAlias); err != nil {
 				dk.Logger(ctx).Error(
 					"DymNS hook After-Epoch-End: failed to refund bid for a force-to-cancel sell order",
-					"alias", so.GoodsId, "order-type", dymnstypes.AliasOrder.FriendlyString(),
+					"alias", so.AssetId, "order-type", dymnstypes.TypeAlias.FriendlyString(),
 					"expiry", so.ExpireAt, "now", nowEpochUTC,
 					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 					"error", err,
@@ -383,14 +383,14 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 				return err
 			}
 
-			dk.DeleteSellOrder(ctx, so.GoodsId, dymnstypes.AliasOrder)
+			dk.DeleteSellOrder(ctx, so.AssetId, dymnstypes.TypeAlias)
 			continue
 		}
 
-		if err := dk.CompleteAliasSellOrder(ctx, so.GoodsId); err != nil {
+		if err := dk.CompleteAliasSellOrder(ctx, so.AssetId); err != nil {
 			dk.Logger(ctx).Error(
 				"DymNS hook After-Epoch-End: failed to complete sell order",
-				"alias", so.GoodsId, "order-type", dymnstypes.AliasOrder.FriendlyString(),
+				"alias", so.AssetId, "order-type", dymnstypes.TypeAlias.FriendlyString(),
 				"expiry", so.ExpireAt, "now", nowEpochUTC,
 				"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 				"error", err,
@@ -399,10 +399,10 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 		}
 	}
 
-	if err := dk.SetActiveSellOrdersExpiration(ctx, aSoe, dymnstypes.AliasOrder); err != nil {
+	if err := dk.SetActiveSellOrdersExpiration(ctx, aSoe, dymnstypes.TypeAlias); err != nil {
 		dk.Logger(ctx).Error(
 			"DymNS hook After-Epoch-End: failed to update active SO expiry",
-			"order-type", dymnstypes.AliasOrder.FriendlyString(),
+			"order-type", dymnstypes.TypeAlias.FriendlyString(),
 			"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 			"error", err,
 		)

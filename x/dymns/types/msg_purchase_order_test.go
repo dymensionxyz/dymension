@@ -15,8 +15,8 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 	//goland:noinspection SpellCheckingInspection
 	tests := []struct {
 		name            string
-		goodsId         string
-		orderType       OrderType
+		assetId         string
+		assetType       AssetType
 		params          []string
 		offer           sdk.Coin
 		buyer           string
@@ -25,23 +25,23 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 	}{
 		{
 			name:      "pass - (Name) valid",
-			goodsId:   "my-name",
-			orderType: NameOrder,
+			assetId:   "my-name",
+			assetType: TypeName,
 			offer:     validOffer,
 			buyer:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
 			name:      "pass - (Alias) valid",
-			goodsId:   "alias",
-			orderType: AliasOrder,
+			assetId:   "alias",
+			assetType: TypeAlias,
 			params:    []string{"rollapp_1-1"},
 			offer:     validOffer,
 			buyer:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
 			name:            "fail - (Name) reject empty name",
-			goodsId:         "",
-			orderType:       NameOrder,
+			assetId:         "",
+			assetType:       TypeName,
 			offer:           validOffer,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
@@ -49,8 +49,8 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - (Alias) reject empty alias",
-			goodsId:         "",
-			orderType:       AliasOrder,
+			assetId:         "",
+			assetType:       TypeAlias,
 			params:          []string{"rollapp_1-1"},
 			offer:           validOffer,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -59,8 +59,8 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - (Name) bad name",
-			goodsId:         "-my-name",
-			orderType:       NameOrder,
+			assetId:         "-my-name",
+			assetType:       TypeName,
 			offer:           validOffer,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
@@ -68,8 +68,8 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - (Alias) bad alias",
-			goodsId:         "bad-alias",
-			orderType:       AliasOrder,
+			assetId:         "bad-alias",
+			assetType:       TypeAlias,
 			params:          []string{"rollapp_1-1"},
 			offer:           validOffer,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -78,28 +78,28 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - (Name) reject non-empty params",
-			goodsId:         "my-name",
-			orderType:       NameOrder,
+			assetId:         "my-name",
+			assetType:       TypeName,
 			params:          []string{"one"},
 			offer:           validOffer,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
-			wantErrContains: "not accept order params for order type",
+			wantErrContains: "not accept order params for asset type",
 		},
 		{
 			name:            "fail - (Alias) reject empty params",
-			goodsId:         "alias",
-			orderType:       AliasOrder,
+			assetId:         "alias",
+			assetType:       TypeAlias,
 			params:          nil,
 			offer:           validOffer,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
-			wantErrContains: "expect 1 order param of RollApp ID for order type",
+			wantErrContains: "expect 1 order param of RollApp ID for asset type",
 		},
 		{
 			name:            "fail - (Alias) reject bad params",
-			goodsId:         "alias",
-			orderType:       AliasOrder,
+			assetId:         "alias",
+			assetType:       TypeAlias,
 			params:          []string{"-not-chain-id-"},
 			offer:           validOffer,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -108,25 +108,25 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - (Name) missing offer",
-			goodsId:         "my-name",
-			orderType:       NameOrder,
+			assetId:         "my-name",
+			assetType:       TypeName,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "invalid offer",
 		},
 		{
 			name:            "fail - (Alias) missing offer",
-			goodsId:         "alias",
+			assetId:         "alias",
 			params:          []string{"rollapp_1-1"},
-			orderType:       AliasOrder,
+			assetType:       TypeAlias,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "invalid offer",
 		},
 		{
 			name:            "fail - (Name) offer can not be zero",
-			goodsId:         "my-name",
-			orderType:       NameOrder,
+			assetId:         "my-name",
+			assetType:       TypeName,
 			offer:           dymnsutils.TestCoin(0),
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
@@ -134,8 +134,8 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - (Alias) offer can not be zero",
-			goodsId:         "alias",
-			orderType:       AliasOrder,
+			assetId:         "alias",
+			assetType:       TypeAlias,
 			params:          []string{"rollapp_1-1"},
 			offer:           dymnsutils.TestCoin(0),
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -144,8 +144,8 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:      "fail - offer can not be negative",
-			goodsId:   "my-name",
-			orderType: NameOrder,
+			assetId:   "my-name",
+			assetType: TypeName,
 			offer: sdk.Coin{
 				Denom:  params.BaseDenom,
 				Amount: sdk.NewInt(-1),
@@ -156,8 +156,8 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - missing buyer",
-			goodsId:         "my-name",
-			orderType:       NameOrder,
+			assetId:         "my-name",
+			assetType:       TypeName,
 			offer:           validOffer,
 			buyer:           "",
 			wantErr:         true,
@@ -165,8 +165,8 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - invalid buyer",
-			goodsId:         "my-name",
-			orderType:       NameOrder,
+			assetId:         "my-name",
+			assetType:       TypeName,
 			offer:           validOffer,
 			buyer:           "dym1fl48vsnmsdzcv",
 			wantErr:         true,
@@ -174,28 +174,28 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - buyer must be dym1",
-			goodsId:         "my-name",
-			orderType:       NameOrder,
+			assetId:         "my-name",
+			assetType:       TypeName,
 			offer:           validOffer,
 			buyer:           "nim1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3pklgjx",
 			wantErr:         true,
 			wantErrContains: "buyer is not a valid bech32 account address",
 		},
 		{
-			name:            "fail - reject unknown order type",
-			goodsId:         "goods",
-			orderType:       OrderType_OT_UNKNOWN,
+			name:            "fail - reject unknown asset type",
+			assetId:         "asset",
+			assetType:       AssetType_AT_UNKNOWN,
 			offer:           validOffer,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
-			wantErrContains: "invalid order type",
+			wantErrContains: "invalid asset type",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &MsgPurchaseOrder{
-				GoodsId:   tt.goodsId,
-				OrderType: tt.orderType,
+				AssetId:   tt.assetId,
+				AssetType: tt.assetType,
 				Params:    tt.params,
 				Offer:     tt.offer,
 				Buyer:     tt.buyer,

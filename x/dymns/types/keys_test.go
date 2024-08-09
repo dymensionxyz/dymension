@@ -14,29 +14,29 @@ func TestStorePrefixes(t *testing.T) {
 		require.Equal(t, []byte{0x03}, KeyPrefixRvlConfiguredAddressToDymNamesInclude, "do not change it, will break the app")
 		require.Equal(t, []byte{0x04}, KeyPrefixRvlFallbackAddressToDymNamesInclude, "do not change it, will break the app")
 		require.Equal(t, []byte{0x05}, KeyPrefixSellOrder, "do not change it, will break the app")
-		require.Equal(t, []byte{0x05, partialStoreOrderTypeDymName}, KeyPrefixDymNameSellOrder, "do not change it, will break the app")
-		require.Equal(t, []byte{0x07, partialStoreOrderTypeDymName}, KeyPrefixDymNameHistoricalSellOrders, "do not change it, will break the app")
-		require.Equal(t, []byte{0x08, partialStoreOrderTypeDymName}, KeyPrefixMinExpiryDymNameHistoricalSellOrders, "do not change it, will break the app")
-		require.Equal(t, []byte{0x05, partialStoreOrderTypeAlias}, KeyPrefixAliasSellOrder, "do not change it, will break the app")
-		require.Equal(t, []byte{0x07, partialStoreOrderTypeAlias}, KeyPrefixAliasHistoricalSellOrders, "do not change it, will break the app")
-		require.Equal(t, []byte{0x08, partialStoreOrderTypeAlias}, KeyPrefixMinExpiryAliasHistoricalSellOrders, "do not change it, will break the app")
+		require.Equal(t, []byte{0x05, partialStoreAssetTypeDymName}, KeyPrefixDymNameSellOrder, "do not change it, will break the app")
+		require.Equal(t, []byte{0x07, partialStoreAssetTypeDymName}, KeyPrefixDymNameHistoricalSellOrders, "do not change it, will break the app")
+		require.Equal(t, []byte{0x08, partialStoreAssetTypeDymName}, KeyPrefixMinExpiryDymNameHistoricalSellOrders, "do not change it, will break the app")
+		require.Equal(t, []byte{0x05, partialStoreAssetTypeAlias}, KeyPrefixAliasSellOrder, "do not change it, will break the app")
+		require.Equal(t, []byte{0x07, partialStoreAssetTypeAlias}, KeyPrefixAliasHistoricalSellOrders, "do not change it, will break the app")
+		require.Equal(t, []byte{0x08, partialStoreAssetTypeAlias}, KeyPrefixMinExpiryAliasHistoricalSellOrders, "do not change it, will break the app")
 		require.Equal(t, []byte{0x0A}, KeyPrefixBuyOrder, "do not change it, will break the app")
 		require.Equal(t, []byte{0x0B}, KeyPrefixRvlBuyerToBuyOrderIds, "do not change it, will break the app")
-		require.Equal(t, []byte{0x0C, partialStoreOrderTypeDymName}, KeyPrefixRvlDymNameToBuyOrderIds, "do not change it, will break the app")
-		require.Equal(t, []byte{0x0C, partialStoreOrderTypeAlias}, KeyPrefixRvlAliasToBuyOrderIds, "do not change it, will break the app")
+		require.Equal(t, []byte{0x0C, partialStoreAssetTypeDymName}, KeyPrefixRvlDymNameToBuyOrderIds, "do not change it, will break the app")
+		require.Equal(t, []byte{0x0C, partialStoreAssetTypeAlias}, KeyPrefixRvlAliasToBuyOrderIds, "do not change it, will break the app")
 		require.Equal(t, []byte{0x0D}, KeyPrefixRollAppIdToAliases, "do not change it, will break the app")
 		require.Equal(t, []byte{0x0E}, KeyPrefixRvlAliasToRollAppId, "do not change it, will break the app")
 	})
 
 	t.Run("ensure keys are not mistakenly modified", func(t *testing.T) {
-		require.Equal(t, []byte{0x06, partialStoreOrderTypeDymName}, KeyActiveSellOrdersExpirationOfDymName, "do not change it, will break the app")
-		require.Equal(t, []byte{0x06, partialStoreOrderTypeAlias}, KeyActiveSellOrdersExpirationOfAlias, "do not change it, will break the app")
+		require.Equal(t, []byte{0x06, partialStoreAssetTypeDymName}, KeyActiveSellOrdersExpirationOfDymName, "do not change it, will break the app")
+		require.Equal(t, []byte{0x06, partialStoreAssetTypeAlias}, KeyActiveSellOrdersExpirationOfAlias, "do not change it, will break the app")
 		require.Equal(t, []byte{0x09}, KeyCountBuyOrders, "do not change it, will break the app")
 	})
 
 	t.Run("ensure partitioned keys are not mistakenly modified", func(t *testing.T) {
-		require.Equal(t, byte(0x00), byte(partialStoreOrderTypeDymName), "do not change it, will break the app")
-		require.Equal(t, byte(0x01), byte(partialStoreOrderTypeAlias), "do not change it, will break the app")
+		require.Equal(t, byte(0x00), byte(partialStoreAssetTypeDymName), "do not change it, will break the app")
+		require.Equal(t, byte(0x01), byte(partialStoreAssetTypeAlias), "do not change it, will break the app")
 	})
 }
 
@@ -45,18 +45,18 @@ func TestKeys(t *testing.T) {
 	for _, dymName := range []string{"a", "b", "my-name"} {
 		t.Run(dymName, func(t *testing.T) {
 			require.Equal(t, append(KeyPrefixDymName, []byte(dymName)...), DymNameKey(dymName))
-			require.Equal(t, append(KeyPrefixDymNameSellOrder, []byte(dymName)...), SellOrderKey(dymName, NameOrder))
-			require.Equal(t, append(KeyPrefixDymNameHistoricalSellOrders, []byte(dymName)...), HistoricalSellOrdersKey(dymName, NameOrder))
-			require.Equal(t, append(KeyPrefixMinExpiryDymNameHistoricalSellOrders, []byte(dymName)...), MinExpiryHistoricalSellOrdersKey(dymName, NameOrder))
+			require.Equal(t, append(KeyPrefixDymNameSellOrder, []byte(dymName)...), SellOrderKey(dymName, TypeName))
+			require.Equal(t, append(KeyPrefixDymNameHistoricalSellOrders, []byte(dymName)...), HistoricalSellOrdersKey(dymName, TypeName))
+			require.Equal(t, append(KeyPrefixMinExpiryDymNameHistoricalSellOrders, []byte(dymName)...), MinExpiryHistoricalSellOrdersKey(dymName, TypeName))
 			require.Equal(t, append(KeyPrefixRvlDymNameToBuyOrderIds, []byte(dymName)...), DymNameToBuyOrderIdsRvlKey(dymName))
 		})
 	}
 
 	for _, alias := range []string{"a", "b", "alias"} {
 		t.Run(alias, func(t *testing.T) {
-			require.Equal(t, append(KeyPrefixAliasSellOrder, []byte(alias)...), SellOrderKey(alias, AliasOrder))
-			require.Equal(t, append(KeyPrefixAliasHistoricalSellOrders, []byte(alias)...), HistoricalSellOrdersKey(alias, AliasOrder))
-			require.Equal(t, append(KeyPrefixMinExpiryAliasHistoricalSellOrders, []byte(alias)...), MinExpiryHistoricalSellOrdersKey(alias, AliasOrder))
+			require.Equal(t, append(KeyPrefixAliasSellOrder, []byte(alias)...), SellOrderKey(alias, TypeAlias))
+			require.Equal(t, append(KeyPrefixAliasHistoricalSellOrders, []byte(alias)...), HistoricalSellOrdersKey(alias, TypeAlias))
+			require.Equal(t, append(KeyPrefixMinExpiryAliasHistoricalSellOrders, []byte(alias)...), MinExpiryHistoricalSellOrdersKey(alias, TypeAlias))
 			require.Equal(t, append(KeyPrefixRvlAliasToBuyOrderIds, []byte(alias)...), AliasToBuyOrderIdsRvlKey(alias))
 		})
 	}
@@ -86,9 +86,9 @@ func TestKeys(t *testing.T) {
 		})
 	}
 
-	t.Run("should panics of getting Sell-Order related keys if order type is invalid", func(t *testing.T) {
-		require.Panics(t, func() { _ = SellOrderKey("goods", OrderType_OT_UNKNOWN) })
-		require.Panics(t, func() { _ = HistoricalSellOrdersKey("goods", OrderType_OT_UNKNOWN) })
-		require.Panics(t, func() { _ = MinExpiryHistoricalSellOrdersKey("goods", OrderType_OT_UNKNOWN) })
+	t.Run("should panics of getting Sell-Order related keys if asset type is invalid", func(t *testing.T) {
+		require.Panics(t, func() { _ = SellOrderKey("asset", AssetType_AT_UNKNOWN) })
+		require.Panics(t, func() { _ = HistoricalSellOrdersKey("asset", AssetType_AT_UNKNOWN) })
+		require.Panics(t, func() { _ = MinExpiryHistoricalSellOrdersKey("asset", AssetType_AT_UNKNOWN) })
 	})
 }

@@ -110,26 +110,26 @@ func (q queryServer) SellOrder(goCtx context.Context, req *dymnstypes.QuerySellO
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	var orderType dymnstypes.OrderType
-	switch req.OrderType {
-	case dymnstypes.NameOrder.FriendlyString():
-		if !dymnsutils.IsValidDymName(req.GoodsId) {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid Dym-Name: %s", req.GoodsId)
+	var assetType dymnstypes.AssetType
+	switch req.AssetType {
+	case dymnstypes.TypeName.FriendlyString():
+		if !dymnsutils.IsValidDymName(req.AssetId) {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid Dym-Name: %s", req.AssetId)
 		}
-		orderType = dymnstypes.NameOrder
-	case dymnstypes.AliasOrder.FriendlyString():
-		if !dymnsutils.IsValidAlias(req.GoodsId) {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid alias: %s", req.GoodsId)
+		assetType = dymnstypes.TypeName
+	case dymnstypes.TypeAlias.FriendlyString():
+		if !dymnsutils.IsValidAlias(req.AssetId) {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid alias: %s", req.AssetId)
 		}
-		orderType = dymnstypes.AliasOrder
+		assetType = dymnstypes.TypeAlias
 	default:
-		return nil, status.Errorf(codes.InvalidArgument, "invalid order type: %s", req.OrderType)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid asset type: %s", req.AssetType)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	so := q.GetSellOrder(ctx, req.GoodsId, orderType)
+	so := q.GetSellOrder(ctx, req.AssetId, assetType)
 	if so == nil {
-		return nil, status.Errorf(codes.NotFound, "no active Sell Order for %s '%s' at this moment", orderType.FriendlyString(), req.GoodsId)
+		return nil, status.Errorf(codes.NotFound, "no active Sell Order for %s '%s' at this moment", assetType.FriendlyString(), req.AssetId)
 	}
 
 	return &dymnstypes.QuerySellOrderResponse{
@@ -148,7 +148,7 @@ func (q queryServer) HistoricalSellOrderOfDymName(goCtx context.Context, req *dy
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	hso := q.GetHistoricalSellOrders(ctx, req.DymName, dymnstypes.NameOrder)
+	hso := q.GetHistoricalSellOrders(ctx, req.DymName, dymnstypes.TypeName)
 
 	return &dymnstypes.QueryHistoricalSellOrderOfDymNameResponse{
 		Result: hso,
@@ -389,7 +389,7 @@ func (q queryServer) Alias(goCtx context.Context, req *dymnstypes.QueryAliasRequ
 	var buyOrderIds []string
 
 	if !q.IsAliasPresentsInParamsAsAliasOrChainId(ctx, req.Alias) {
-		foundSellOrder = q.GetSellOrder(ctx, req.Alias, dymnstypes.AliasOrder) != nil
+		foundSellOrder = q.GetSellOrder(ctx, req.Alias, dymnstypes.TypeAlias) != nil
 
 		aliasToBuyOrderIdsRvlKey := dymnstypes.AliasToBuyOrderIdsRvlKey(req.Alias)
 		buyOrderIds = q.GenericGetReverseLookupBuyOrderIdsRecord(ctx, aliasToBuyOrderIdsRvlKey).OrderIds

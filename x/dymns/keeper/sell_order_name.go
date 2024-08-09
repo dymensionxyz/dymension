@@ -21,7 +21,7 @@ func (k Keeper) CompleteDymNameSellOrder(ctx sdk.Context, name string) error {
 	// here we don't check Dym-Name expiration, because it can not happen,
 	// and there is a grace period for the owner to renew the Dym-Name in case bad things happen
 
-	so := k.GetSellOrder(ctx, name, dymnstypes.NameOrder)
+	so := k.GetSellOrder(ctx, name, dymnstypes.TypeName)
 	if so == nil {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", name)
 	}
@@ -55,7 +55,7 @@ func (k Keeper) CompleteDymNameSellOrder(ctx sdk.Context, name string) error {
 	}
 
 	// move the SO to history
-	if err := k.MoveSellOrderToHistorical(ctx, dymName.Name, so.Type); err != nil {
+	if err := k.MoveSellOrderToHistorical(ctx, dymName.Name, so.AssetType); err != nil {
 		return err
 	}
 

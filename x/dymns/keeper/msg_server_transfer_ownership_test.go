@@ -94,9 +94,9 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 			},
 			sellOrder: &dymnstypes.SellOrder{
-				Type:     dymnstypes.NameOrder,
-				ExpireAt: 1,
-				MinPrice: dymnsutils.TestCoin(100),
+				AssetType: dymnstypes.TypeName,
+				ExpireAt:  1,
+				MinPrice:  dymnsutils.TestCoin(100),
 			},
 			wantErr:         true,
 			wantErrContains: "can not transfer ownership while there is an active Sell Order",
@@ -109,9 +109,9 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 			},
 			sellOrder: &dymnstypes.SellOrder{
-				Type:     dymnstypes.NameOrder,
-				ExpireAt: now.Unix() + 1,
-				MinPrice: dymnsutils.TestCoin(100),
+				AssetType: dymnstypes.TypeName,
+				ExpireAt:  now.Unix() + 1,
+				MinPrice:  dymnsutils.TestCoin(100),
 			},
 			wantErr:         true,
 			wantErrContains: "can not transfer ownership while there is an active Sell Order",
@@ -124,9 +124,9 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 			},
 			sellOrder: &dymnstypes.SellOrder{
-				Type:     dymnstypes.NameOrder,
-				ExpireAt: now.Unix() + 1,
-				MinPrice: dymnsutils.TestCoin(100),
+				AssetType: dymnstypes.TypeName,
+				ExpireAt:  now.Unix() + 1,
+				MinPrice:  dymnsutils.TestCoin(100),
 				HighestBid: &dymnstypes.SellOrderBid{
 					Bidder: bidderA,
 					Price:  dymnsutils.TestCoin(200),
@@ -143,7 +143,7 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 			},
 			sellOrder: &dymnstypes.SellOrder{
-				Type:      dymnstypes.NameOrder,
+				AssetType: dymnstypes.TypeName,
 				ExpireAt:  now.Unix() + 1,
 				MinPrice:  dymnsutils.TestCoin(100),
 				SellPrice: dymnsutils.TestCoinP(200),
@@ -193,22 +193,22 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 				// setup historical SO
 
 				so := &dymnstypes.SellOrder{
-					GoodsId:  recordName,
-					Type:     dymnstypes.NameOrder,
-					MinPrice: dymnsutils.TestCoin(100),
-					ExpireAt: 1,
+					AssetId:   recordName,
+					AssetType: dymnstypes.TypeName,
+					MinPrice:  dymnsutils.TestCoin(100),
+					ExpireAt:  1,
 				}
 				require.NoError(t, dk.SetSellOrder(ctx, *so))
 
-				err := dk.MoveSellOrderToHistorical(ctx, recordName, so.Type)
+				err := dk.MoveSellOrderToHistorical(ctx, recordName, so.AssetType)
 				require.NoError(t, err)
 
-				require.NotEmpty(t, dk.GetHistoricalSellOrders(ctx, recordName, so.Type))
+				require.NotEmpty(t, dk.GetHistoricalSellOrders(ctx, recordName, so.AssetType))
 			}
 
 			if tt.sellOrder != nil {
 				require.NotNil(t, tt.dymName, "bad test setup")
-				tt.sellOrder.GoodsId = recordName
+				tt.sellOrder.AssetId = recordName
 				require.NoError(t, dk.SetSellOrder(ctx, *tt.sellOrder))
 			}
 
@@ -258,7 +258,7 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 						require.Len(t, names, 1, "reverse mapping should be kept")
 					}
 
-					require.NotEmpty(t, dk.GetHistoricalSellOrders(ctx, recordName, dymnstypes.NameOrder), "historical SO should be kept")
+					require.NotEmpty(t, dk.GetHistoricalSellOrders(ctx, recordName, dymnstypes.TypeName), "historical SO should be kept")
 				}
 				return
 			}
@@ -315,7 +315,7 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 			require.NoError(t, err)
 			require.Len(t, names, 1, "reverse mapping of new owner should be added")
 
-			require.Empty(t, dk.GetHistoricalSellOrders(ctx, recordName, dymnstypes.NameOrder), "historical SO should be removed")
+			require.Empty(t, dk.GetHistoricalSellOrders(ctx, recordName, dymnstypes.TypeName), "historical SO should be removed")
 		})
 	}
 }

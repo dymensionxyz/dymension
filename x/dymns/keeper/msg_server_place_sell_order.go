@@ -25,12 +25,12 @@ func (k msgServer) PlaceSellOrder(goCtx context.Context, msg *dymnstypes.MsgPlac
 	var resp *dymnstypes.MsgPlaceSellOrderResponse
 	var err error
 
-	if msg.OrderType == dymnstypes.NameOrder {
-		resp, err = k.processPlaceSellOrderTypeDymName(ctx, msg, params)
-	} else if msg.OrderType == dymnstypes.AliasOrder {
-		resp, err = k.processPlaceSellOrderTypeAlias(ctx, msg, params)
+	if msg.AssetType == dymnstypes.TypeName {
+		resp, err = k.processPlaceSellOrderWithAssetTypeDymName(ctx, msg, params)
+	} else if msg.AssetType == dymnstypes.TypeAlias {
+		resp, err = k.processPlaceSellOrderWithAssetTypeAlias(ctx, msg, params)
 	} else {
-		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
+		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", msg.AssetType)
 	}
 	if err != nil {
 		return nil, err
@@ -41,8 +41,8 @@ func (k msgServer) PlaceSellOrder(goCtx context.Context, msg *dymnstypes.MsgPlac
 	return resp, nil
 }
 
-// processPlaceSellOrderTypeDymName handles the message handled by PlaceSellOrder, type Dym-Name.
-func (k msgServer) processPlaceSellOrderTypeDymName(
+// processPlaceSellOrderWithAssetTypeDymName handles the message handled by PlaceSellOrder, type Dym-Name.
+func (k msgServer) processPlaceSellOrderWithAssetTypeDymName(
 	ctx sdk.Context,
 	msg *dymnstypes.MsgPlaceSellOrder, params dymnstypes.Params,
 ) (*dymnstypes.MsgPlaceSellOrderResponse, error) {
@@ -50,7 +50,7 @@ func (k msgServer) processPlaceSellOrderTypeDymName(
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading of Dym-Name is disabled")
 	}
 
-	dymName, err := k.validatePlaceSellOrderTypeDymName(ctx, msg, params)
+	dymName, err := k.validatePlaceSellOrderWithAssetTypeDymName(ctx, msg, params)
 	if err != nil {
 		return nil, err
 	}
@@ -73,23 +73,23 @@ func (k msgServer) processPlaceSellOrderTypeDymName(
 		return nil, err
 	}
 
-	aSoe := k.GetActiveSellOrdersExpiration(ctx, so.Type)
-	aSoe.Add(so.GoodsId, so.ExpireAt)
-	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, so.Type); err != nil {
+	aSoe := k.GetActiveSellOrdersExpiration(ctx, so.AssetType)
+	aSoe.Add(so.AssetId, so.ExpireAt)
+	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, so.AssetType); err != nil {
 		return nil, err
 	}
 
 	return &dymnstypes.MsgPlaceSellOrderResponse{}, nil
 }
 
-// validatePlaceSellOrderTypeDymName handles validation for message handled by PlaceSellOrder, type Dym-Name.
-func (k msgServer) validatePlaceSellOrderTypeDymName(
+// validatePlaceSellOrderWithAssetTypeDymName handles validation for message handled by PlaceSellOrder, type Dym-Name.
+func (k msgServer) validatePlaceSellOrderWithAssetTypeDymName(
 	ctx sdk.Context,
 	msg *dymnstypes.MsgPlaceSellOrder, params dymnstypes.Params,
 ) (*dymnstypes.DymName, error) {
-	dymName := k.GetDymName(ctx, msg.GoodsId)
+	dymName := k.GetDymName(ctx, msg.AssetId)
 	if dymName == nil {
-		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.GoodsId)
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.AssetId)
 	}
 
 	if dymName.Owner != msg.Owner {
@@ -100,7 +100,7 @@ func (k msgServer) validatePlaceSellOrderTypeDymName(
 		return nil, errorsmod.Wrap(gerrc.ErrUnauthenticated, "Dym-Name is already expired")
 	}
 
-	existingActiveSo := k.GetSellOrder(ctx, dymName.Name, msg.OrderType)
+	existingActiveSo := k.GetSellOrder(ctx, dymName.Name, msg.AssetType)
 	if existingActiveSo != nil {
 		if existingActiveSo.HasFinishedAtCtx(ctx) {
 			return nil, errorsmod.Wrap(
@@ -121,8 +121,8 @@ func (k msgServer) validatePlaceSellOrderTypeDymName(
 	return dymName, nil
 }
 
-// processPlaceSellOrderTypeAlias handles the message handled by PlaceSellOrder, type Alias.
-func (k msgServer) processPlaceSellOrderTypeAlias(
+// processPlaceSellOrderWithAssetTypeAlias handles the message handled by PlaceSellOrder, type Alias.
+func (k msgServer) processPlaceSellOrderWithAssetTypeAlias(
 	ctx sdk.Context,
 	msg *dymnstypes.MsgPlaceSellOrder, params dymnstypes.Params,
 ) (*dymnstypes.MsgPlaceSellOrderResponse, error) {
@@ -130,7 +130,7 @@ func (k msgServer) processPlaceSellOrderTypeAlias(
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading of Alias is disabled")
 	}
 
-	err := k.validatePlaceSellOrderTypeAlias(ctx, msg, params)
+	err := k.validatePlaceSellOrderWithAssetTypeAlias(ctx, msg, params)
 	if err != nil {
 		return nil, err
 	}
@@ -146,25 +146,25 @@ func (k msgServer) processPlaceSellOrderTypeAlias(
 		return nil, err
 	}
 
-	aSoe := k.GetActiveSellOrdersExpiration(ctx, so.Type)
-	aSoe.Add(so.GoodsId, so.ExpireAt)
-	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, so.Type); err != nil {
+	aSoe := k.GetActiveSellOrdersExpiration(ctx, so.AssetType)
+	aSoe.Add(so.AssetId, so.ExpireAt)
+	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, so.AssetType); err != nil {
 		return nil, err
 	}
 
 	return &dymnstypes.MsgPlaceSellOrderResponse{}, nil
 }
 
-// validatePlaceSellOrderTypeAlias handles validation for message handled by PlaceSellOrder, type Alias.
-func (k msgServer) validatePlaceSellOrderTypeAlias(
+// validatePlaceSellOrderWithAssetTypeAlias handles validation for message handled by PlaceSellOrder, type Alias.
+func (k msgServer) validatePlaceSellOrderWithAssetTypeAlias(
 	ctx sdk.Context,
 	msg *dymnstypes.MsgPlaceSellOrder, params dymnstypes.Params,
 ) error {
-	alias := msg.GoodsId
+	alias := msg.AssetId
 
-	if k.IsAliasPresentsInParamsAsAliasOrChainId(ctx, msg.GoodsId) {
+	if k.IsAliasPresentsInParamsAsAliasOrChainId(ctx, msg.AssetId) {
 		return errorsmod.Wrapf(gerrc.ErrPermissionDenied,
-			"prohibited to trade aliases which is reserved for chain-id or alias in module params: %s", msg.GoodsId,
+			"prohibited to trade aliases which is reserved for chain-id or alias in module params: %s", msg.AssetId,
 		)
 	}
 
@@ -179,7 +179,7 @@ func (k msgServer) validatePlaceSellOrderTypeAlias(
 		)
 	}
 
-	existingActiveSo := k.GetSellOrder(ctx, alias, msg.OrderType)
+	existingActiveSo := k.GetSellOrder(ctx, alias, msg.AssetType)
 	if existingActiveSo != nil {
 		if existingActiveSo.HasFinishedAtCtx(ctx) {
 			return errorsmod.Wrap(

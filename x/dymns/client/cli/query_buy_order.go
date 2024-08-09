@@ -117,11 +117,11 @@ func printBuyOrder(offer dymnstypes.BuyOrder) error {
 	}
 	fmt.Printf("ID: %s\n", offer.Id)
 	fmt.Printf(" Buyer: %s\n", offer.Buyer)
-	fmt.Printf(" Type: %s\n", offer.Type.FriendlyString())
-	if offer.Type == dymnstypes.NameOrder {
-		fmt.Printf(" Dym-Name: %s\n", offer.GoodsId)
-	} else if offer.Type == dymnstypes.AliasOrder {
-		fmt.Printf(" Alias: %s\n", offer.GoodsId)
+	fmt.Printf(" Type: %s\n", offer.AssetType.FriendlyString())
+	if offer.AssetType == dymnstypes.TypeName {
+		fmt.Printf(" Dym-Name: %s\n", offer.AssetId)
+	} else if offer.AssetType == dymnstypes.TypeAlias {
+		fmt.Printf(" Alias: %s\n", offer.AssetId)
 		fmt.Printf(" For RollApp: %s\n", offer.Params[0])
 	}
 	fmt.Printf(" Offer Price: %s\n", offer.OfferPrice)

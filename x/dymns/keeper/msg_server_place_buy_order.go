@@ -24,12 +24,12 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 	var resp *dymnstypes.MsgPlaceBuyOrderResponse
 	var err error
 
-	if msg.OrderType == dymnstypes.NameOrder {
-		resp, err = k.placeBuyOrderTypeDymName(ctx, msg, params)
-	} else if msg.OrderType == dymnstypes.AliasOrder {
-		resp, err = k.placeBuyOrderTypeAlias(ctx, msg, params)
+	if msg.AssetType == dymnstypes.TypeName {
+		resp, err = k.placeBuyOrderWithAssetTypeDymName(ctx, msg, params)
+	} else if msg.AssetType == dymnstypes.TypeAlias {
+		resp, err = k.placeBuyOrderWithAssetTypeAlias(ctx, msg, params)
 	} else {
-		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
+		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", msg.AssetType)
 	}
 	if err != nil {
 		return nil, err
@@ -47,8 +47,8 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 	return resp, nil
 }
 
-// placeBuyOrderTypeDymName handles the message handled by PlaceBuyOrder, type Dym-Name.
-func (k msgServer) placeBuyOrderTypeDymName(
+// placeBuyOrderWithAssetTypeDymName handles the message handled by PlaceBuyOrder, type Dym-Name.
+func (k msgServer) placeBuyOrderWithAssetTypeDymName(
 	ctx sdk.Context,
 	msg *dymnstypes.MsgPlaceBuyOrder, params dymnstypes.Params,
 ) (*dymnstypes.MsgPlaceBuyOrderResponse, error) {
@@ -56,7 +56,7 @@ func (k msgServer) placeBuyOrderTypeDymName(
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading of Dym-Name is disabled")
 	}
 
-	existingOffer, err := k.validatePlaceBuyOrderTypeDymName(ctx, msg, params)
+	existingOffer, err := k.validatePlaceBuyOrderWithAssetTypeDymName(ctx, msg, params)
 	if err != nil {
 		return nil, err
 	}
@@ -78,8 +78,8 @@ func (k msgServer) placeBuyOrderTypeDymName(
 
 		offer = dymnstypes.BuyOrder{
 			Id:         "", // will be auto-generated
-			GoodsId:    msg.GoodsId,
-			Type:       dymnstypes.NameOrder,
+			AssetId:    msg.AssetId,
+			AssetType:  dymnstypes.TypeName,
 			Params:     msg.Params,
 			Buyer:      msg.Buyer,
 			OfferPrice: msg.Offer,
@@ -95,7 +95,7 @@ func (k msgServer) placeBuyOrderTypeDymName(
 			return nil, err
 		}
 
-		err = k.AddReverseMappingGoodsIdToBuyOrder(ctx, msg.GoodsId, offer.Type, offer.Id)
+		err = k.AddReverseMappingAssetIdToBuyOrder(ctx, msg.AssetId, offer.AssetType, offer.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -114,14 +114,14 @@ func (k msgServer) placeBuyOrderTypeDymName(
 	}, nil
 }
 
-// validatePlaceBuyOrderTypeDymName handles validation for the message handled by PlaceBuyOrder, type Dym-Name.
-func (k msgServer) validatePlaceBuyOrderTypeDymName(
+// validatePlaceBuyOrderWithAssetTypeDymName handles validation for the message handled by PlaceBuyOrder, type Dym-Name.
+func (k msgServer) validatePlaceBuyOrderWithAssetTypeDymName(
 	ctx sdk.Context,
 	msg *dymnstypes.MsgPlaceBuyOrder, params dymnstypes.Params,
 ) (existingOffer *dymnstypes.BuyOrder, err error) {
-	dymName := k.GetDymNameWithExpirationCheck(ctx, msg.GoodsId)
+	dymName := k.GetDymNameWithExpirationCheck(ctx, msg.AssetId)
 	if dymName == nil {
-		err = errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.GoodsId)
+		err = errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.AssetId)
 		return
 	}
 	if dymName.Owner == msg.Buyer {
@@ -160,12 +160,12 @@ func (k msgServer) validatePlaceBuyOrderTypeDymName(
 			err = errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the offer")
 			return
 		}
-		if existingOffer.GoodsId != msg.GoodsId {
+		if existingOffer.AssetId != msg.AssetId {
 			err = errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name mismatch with existing offer")
 			return
 		}
-		if existingOffer.Type != msg.OrderType {
-			err = errorsmod.Wrap(gerrc.ErrInvalidArgument, "order type mismatch with existing offer")
+		if existingOffer.AssetType != msg.AssetType {
+			err = errorsmod.Wrap(gerrc.ErrInvalidArgument, "asset type mismatch with existing offer")
 			return
 		}
 		if existingOffer.OfferPrice.Denom != msg.Offer.Denom {
@@ -187,8 +187,8 @@ func (k msgServer) validatePlaceBuyOrderTypeDymName(
 	return
 }
 
-// placeBuyOrderTypeAlias handles the message handled by PlaceBuyOrder, type Alias.
-func (k msgServer) placeBuyOrderTypeAlias(
+// placeBuyOrderWithAssetTypeAlias handles the message handled by PlaceBuyOrder, type Alias.
+func (k msgServer) placeBuyOrderWithAssetTypeAlias(
 	ctx sdk.Context,
 	msg *dymnstypes.MsgPlaceBuyOrder, params dymnstypes.Params,
 ) (*dymnstypes.MsgPlaceBuyOrderResponse, error) {
@@ -196,7 +196,7 @@ func (k msgServer) placeBuyOrderTypeAlias(
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading of Alias is disabled")
 	}
 
-	existingOffer, err := k.validatePlaceBuyOrderTypeAlias(ctx, msg, params)
+	existingOffer, err := k.validatePlaceBuyOrderWithAssetTypeAlias(ctx, msg, params)
 	if err != nil {
 		return nil, err
 	}
@@ -218,8 +218,8 @@ func (k msgServer) placeBuyOrderTypeAlias(
 
 		offer = dymnstypes.BuyOrder{
 			Id:         "", // will be auto-generated
-			GoodsId:    msg.GoodsId,
-			Type:       dymnstypes.AliasOrder,
+			AssetId:    msg.AssetId,
+			AssetType:  dymnstypes.TypeAlias,
 			Params:     msg.Params,
 			Buyer:      msg.Buyer,
 			OfferPrice: msg.Offer,
@@ -235,7 +235,7 @@ func (k msgServer) placeBuyOrderTypeAlias(
 			return nil, err
 		}
 
-		err = k.AddReverseMappingGoodsIdToBuyOrder(ctx, msg.GoodsId, offer.Type, offer.Id)
+		err = k.AddReverseMappingAssetIdToBuyOrder(ctx, msg.AssetId, offer.AssetType, offer.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -254,8 +254,8 @@ func (k msgServer) placeBuyOrderTypeAlias(
 	}, nil
 }
 
-// validatePlaceBuyOrderTypeAlias handles validation for the message handled by PlaceBuyOrder, type Alias.
-func (k msgServer) validatePlaceBuyOrderTypeAlias(
+// validatePlaceBuyOrderWithAssetTypeAlias handles validation for the message handled by PlaceBuyOrder, type Alias.
+func (k msgServer) validatePlaceBuyOrderWithAssetTypeAlias(
 	ctx sdk.Context,
 	msg *dymnstypes.MsgPlaceBuyOrder, params dymnstypes.Params,
 ) (existingOffer *dymnstypes.BuyOrder, err error) {
@@ -271,9 +271,9 @@ func (k msgServer) validatePlaceBuyOrderTypeAlias(
 		return
 	}
 
-	existingRollAppIdUsingAlias, found := k.GetRollAppIdByAlias(ctx, msg.GoodsId)
+	existingRollAppIdUsingAlias, found := k.GetRollAppIdByAlias(ctx, msg.AssetId)
 	if !found {
-		err = errorsmod.Wrapf(gerrc.ErrNotFound, "alias is not in-used: %s", msg.GoodsId)
+		err = errorsmod.Wrapf(gerrc.ErrNotFound, "alias is not in-used: %s", msg.AssetId)
 		return
 	}
 
@@ -282,9 +282,9 @@ func (k msgServer) validatePlaceBuyOrderTypeAlias(
 		return
 	}
 
-	if k.IsAliasPresentsInParamsAsAliasOrChainId(ctx, msg.GoodsId) {
+	if k.IsAliasPresentsInParamsAsAliasOrChainId(ctx, msg.AssetId) {
 		err = errorsmod.Wrapf(gerrc.ErrPermissionDenied,
-			"prohibited to trade aliases which is reserved for chain-id or alias in module params: %s", msg.GoodsId,
+			"prohibited to trade aliases which is reserved for chain-id or alias in module params: %s", msg.AssetId,
 		)
 		return
 	}
@@ -312,12 +312,12 @@ func (k msgServer) validatePlaceBuyOrderTypeAlias(
 			err = errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the offer")
 			return
 		}
-		if existingOffer.GoodsId != msg.GoodsId {
+		if existingOffer.AssetId != msg.AssetId {
 			err = errorsmod.Wrap(gerrc.ErrInvalidArgument, "alias mismatch with existing offer")
 			return
 		}
-		if existingOffer.Type != msg.OrderType {
-			err = errorsmod.Wrap(gerrc.ErrInvalidArgument, "order type mismatch with existing offer")
+		if existingOffer.AssetType != msg.AssetType {
+			err = errorsmod.Wrap(gerrc.ErrInvalidArgument, "asset type mismatch with existing offer")
 			return
 		}
 		if existingOffer.OfferPrice.Denom != msg.Offer.Denom {

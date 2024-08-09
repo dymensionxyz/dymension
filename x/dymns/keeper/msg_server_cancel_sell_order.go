@@ -13,7 +13,7 @@ import (
 // CancelSellOrder is message handler,
 // handles canceling Sell-Order, performed by the owner.
 // This will stop the advertisement and remove the Dym-Name/Alias sale from the market.
-// Can only be performed if no one has placed a bid on the goods.
+// Can only be performed if no one has placed a bid on the asset.
 func (k msgServer) CancelSellOrder(goCtx context.Context, msg *dymnstypes.MsgCancelSellOrder) (*dymnstypes.MsgCancelSellOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -23,12 +23,12 @@ func (k msgServer) CancelSellOrder(goCtx context.Context, msg *dymnstypes.MsgCan
 
 	var resp *dymnstypes.MsgCancelSellOrderResponse
 	var err error
-	if msg.OrderType == dymnstypes.NameOrder {
-		resp, err = k.processCancelSellOrderTypeDymName(ctx, msg)
-	} else if msg.OrderType == dymnstypes.AliasOrder {
-		resp, err = k.processCancelSellOrderTypeAlias(ctx, msg)
+	if msg.AssetType == dymnstypes.TypeName {
+		resp, err = k.processCancelSellOrderWithAssetTypeDymName(ctx, msg)
+	} else if msg.AssetType == dymnstypes.TypeAlias {
+		resp, err = k.processCancelSellOrderWithAssetTypeAlias(ctx, msg)
 	} else {
-		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order type: %s", msg.OrderType)
+		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", msg.AssetType)
 	}
 	if err != nil {
 		return nil, err
@@ -39,41 +39,41 @@ func (k msgServer) CancelSellOrder(goCtx context.Context, msg *dymnstypes.MsgCan
 	return resp, nil
 }
 
-// processCancelSellOrderTypeDymName handles the message handled by CancelSellOrder, type Dym-Name.
-func (k msgServer) processCancelSellOrderTypeDymName(
+// processCancelSellOrderWithAssetTypeDymName handles the message handled by CancelSellOrder, type Dym-Name.
+func (k msgServer) processCancelSellOrderWithAssetTypeDymName(
 	ctx sdk.Context, msg *dymnstypes.MsgCancelSellOrder,
 ) (*dymnstypes.MsgCancelSellOrderResponse, error) {
-	if err := k.validateCancelSellOrderTypeDymName(ctx, msg); err != nil {
+	if err := k.validateCancelSellOrderWithAssetTypeDymName(ctx, msg); err != nil {
 		return nil, err
 	}
 
-	k.DeleteSellOrder(ctx, msg.GoodsId, msg.OrderType)
+	k.DeleteSellOrder(ctx, msg.AssetId, msg.AssetType)
 
-	aSoe := k.GetActiveSellOrdersExpiration(ctx, msg.OrderType)
-	aSoe.Remove(msg.GoodsId)
-	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, msg.OrderType); err != nil {
+	aSoe := k.GetActiveSellOrdersExpiration(ctx, msg.AssetType)
+	aSoe.Remove(msg.AssetId)
+	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, msg.AssetType); err != nil {
 		return nil, err
 	}
 
 	return &dymnstypes.MsgCancelSellOrderResponse{}, nil
 }
 
-// validateCancelSellOrderTypeDymName handles validation for the message handled by CancelSellOrder, type Dym-Name.
-func (k msgServer) validateCancelSellOrderTypeDymName(
+// validateCancelSellOrderWithAssetTypeDymName handles validation for the message handled by CancelSellOrder, type Dym-Name.
+func (k msgServer) validateCancelSellOrderWithAssetTypeDymName(
 	ctx sdk.Context, msg *dymnstypes.MsgCancelSellOrder,
 ) error {
-	dymName := k.GetDymName(ctx, msg.GoodsId)
+	dymName := k.GetDymName(ctx, msg.AssetId)
 	if dymName == nil {
-		return errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.GoodsId)
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.AssetId)
 	}
 
 	if dymName.Owner != msg.Owner {
 		return errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the Dym-Name")
 	}
 
-	so := k.GetSellOrder(ctx, msg.GoodsId, msg.OrderType)
+	so := k.GetSellOrder(ctx, msg.AssetId, msg.AssetType)
 	if so == nil {
-		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.GoodsId)
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.AssetId)
 	}
 
 	if so.HasExpiredAtCtx(ctx) {
@@ -87,41 +87,41 @@ func (k msgServer) validateCancelSellOrderTypeDymName(
 	return nil
 }
 
-// processCancelSellOrderTypeAlias handles the message handled by CancelSellOrder, type Alias.
-func (k msgServer) processCancelSellOrderTypeAlias(
+// processCancelSellOrderWithAssetTypeAlias handles the message handled by CancelSellOrder, type Alias.
+func (k msgServer) processCancelSellOrderWithAssetTypeAlias(
 	ctx sdk.Context, msg *dymnstypes.MsgCancelSellOrder,
 ) (*dymnstypes.MsgCancelSellOrderResponse, error) {
-	if err := k.validateCancelSellOrderTypeAlias(ctx, msg); err != nil {
+	if err := k.validateCancelSellOrderWithAssetTypeAlias(ctx, msg); err != nil {
 		return nil, err
 	}
 
-	k.DeleteSellOrder(ctx, msg.GoodsId, msg.OrderType)
+	k.DeleteSellOrder(ctx, msg.AssetId, msg.AssetType)
 
-	aSoe := k.GetActiveSellOrdersExpiration(ctx, msg.OrderType)
-	aSoe.Remove(msg.GoodsId)
-	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, msg.OrderType); err != nil {
+	aSoe := k.GetActiveSellOrdersExpiration(ctx, msg.AssetType)
+	aSoe.Remove(msg.AssetId)
+	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, msg.AssetType); err != nil {
 		return nil, err
 	}
 
 	return &dymnstypes.MsgCancelSellOrderResponse{}, nil
 }
 
-// validateCancelSellOrderTypeAlias handles validation for the message handled by CancelSellOrder, type Alias.
-func (k msgServer) validateCancelSellOrderTypeAlias(
+// validateCancelSellOrderWithAssetTypeAlias handles validation for the message handled by CancelSellOrder, type Alias.
+func (k msgServer) validateCancelSellOrderWithAssetTypeAlias(
 	ctx sdk.Context, msg *dymnstypes.MsgCancelSellOrder,
 ) error {
-	existingRollAppIdUsingAlias, found := k.GetRollAppIdByAlias(ctx, msg.GoodsId)
+	existingRollAppIdUsingAlias, found := k.GetRollAppIdByAlias(ctx, msg.AssetId)
 	if !found {
-		return errorsmod.Wrapf(gerrc.ErrNotFound, "alias is not in-used: %s", msg.GoodsId)
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "alias is not in-used: %s", msg.AssetId)
 	}
 
 	if !k.IsRollAppCreator(ctx, existingRollAppIdUsingAlias, msg.Owner) {
 		return errorsmod.Wrapf(gerrc.ErrPermissionDenied, "not the owner of the RollApp")
 	}
 
-	so := k.GetSellOrder(ctx, msg.GoodsId, msg.OrderType)
+	so := k.GetSellOrder(ctx, msg.AssetId, msg.AssetType)
 	if so == nil {
-		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.GoodsId)
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.AssetId)
 	}
 
 	if so.HasExpiredAtCtx(ctx) {

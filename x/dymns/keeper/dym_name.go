@@ -199,11 +199,11 @@ func (k Keeper) GetAllDymNames(ctx sdk.Context) (list []dymnstypes.DymName) {
 // PruneDymName removes a Dym-Name from the KVStore, as well as all related records.
 func (k Keeper) PruneDymName(ctx sdk.Context, name string) error {
 	// remove SO (force, ignore active SO)
-	k.DeleteSellOrder(ctx, name, dymnstypes.NameOrder)
+	k.DeleteSellOrder(ctx, name, dymnstypes.TypeName)
 
 	// remove historical SO
-	k.DeleteHistoricalSellOrders(ctx, name, dymnstypes.NameOrder)
-	k.SetMinExpiryHistoricalSellOrder(ctx, name, dymnstypes.NameOrder, 0)
+	k.DeleteHistoricalSellOrders(ctx, name, dymnstypes.TypeName)
+	k.SetMinExpiryHistoricalSellOrder(ctx, name, dymnstypes.TypeName, 0)
 
 	dymName := k.GetDymName(ctx, name)
 	if dymName == nil {
