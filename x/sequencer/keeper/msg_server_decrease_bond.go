@@ -40,7 +40,7 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 	k.setDecreasingBondQueue(ctx, types.BondReduction{
 		SequencerAddress:   msg.Creator,
 		DecreaseBondAmount: msg.DecreaseAmount,
-		DecreateBondTime:   completionTime,
+		DecreaseBondTime:   completionTime,
 	})
 
 	return &types.MsgDecreaseBondResponse{

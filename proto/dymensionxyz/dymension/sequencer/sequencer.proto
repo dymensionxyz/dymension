@@ -45,6 +45,6 @@ message BondReduction {
   string sequencer_address = 1;
   // decrease_bond_amount is the amount of tokens to be unbonded.
   cosmos.base.v1beta1.Coin decrease_bond_amount = 2 [(gogoproto.nullable) = false];
-  // decreate_bond_time defines, if unbonding, the min time for the sequencer to complete unbonding.
-  google.protobuf.Timestamp decreate_bond_time = 3 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  // decrease_bond_time defines, if unbonding, the min time for the sequencer to complete unbonding.
+  google.protobuf.Timestamp decrease_bond_time = 3 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
 }
