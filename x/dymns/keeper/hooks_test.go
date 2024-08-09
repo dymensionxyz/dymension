@@ -2684,6 +2684,24 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 			laterCreatorBalance := bk.GetBalance(ctx, creatorAccAddr, dymnsutils.TestCoin(0).Denom)
 			require.NotNil(t, laterCreatorBalance)
 			require.Equal(t, tt.wantLaterCreatorBalance, laterCreatorBalance.Amount.Int64(), "creator balance mismatch")
+
+			// event should be fired
+			func() {
+				if tt.alias == "" {
+					return
+				}
+
+				events := ctx.EventManager().Events()
+				require.NotEmpty(t, events)
+
+				for _, event := range events {
+					if event.Type == dymnstypes.EventTypeSell {
+						return
+					}
+				}
+
+				t.Errorf("event %s not found", dymnstypes.EventTypeSell)
+			}()
 		})
 	}
 

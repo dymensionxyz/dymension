@@ -470,6 +470,14 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 		return err
 	}
 
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		dymnstypes.EventTypeSell,
+		sdk.NewAttribute(dymnstypes.AttributeKeySellAssetType, dymnstypes.TypeAlias.FriendlyString()),
+		sdk.NewAttribute(dymnstypes.AttributeKeySellName, alias),
+		sdk.NewAttribute(dymnstypes.AttributeKeySellPrice, aliasCost.String()),
+		sdk.NewAttribute(dymnstypes.AttributeKeySellTo, rollappID),
+	))
+
 	return nil
 }
 

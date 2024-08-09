@@ -62,17 +62,11 @@ const (
 	AttributeValueBoActionNameDelete = "delete"
 )
 
+// Event to fire when a Dym-Name/Asset is sold.
 const (
-	EventTypeSell = ModuleName + "_sell"
-	// TODO DymNS: fires this for alias in hook
+	EventTypeSell             = ModuleName + "_sell"
 	AttributeKeySellAssetType = "asset_type"
 	AttributeKeySellName      = "name"
 	AttributeKeySellPrice     = "price"
 	AttributeKeySellTo        = "buyer"
-)
-
-const (
-	AttributeValueSellTypeName = "name"
-
-	AttributeValueSellTypeAlias = "alias"
 )
