@@ -34,6 +34,7 @@ import (
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
@@ -112,6 +113,7 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	consensusparamtypes.StoreKey,
 	rollappmoduletypes.StoreKey,
 	sequencermoduletypes.StoreKey,
+	sponsorshiptypes.StoreKey,
 	streamermoduletypes.StoreKey,
 	packetforwardtypes.StoreKey,
 	delayedacktypes.StoreKey,

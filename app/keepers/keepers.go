@@ -87,6 +87,8 @@ import (
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencermodulekeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	streamermodule "github.com/dymensionxyz/dymension/v3/x/streamer"
 	streamermodulekeeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -133,10 +135,11 @@ type AppKeepers struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	RollappKeeper   *rollappmodulekeeper.Keeper
-	SequencerKeeper sequencermodulekeeper.Keeper
-	StreamerKeeper  streamermodulekeeper.Keeper
-	EIBCKeeper      eibckeeper.Keeper
+	RollappKeeper     *rollappmodulekeeper.Keeper
+	SequencerKeeper   sequencermodulekeeper.Keeper
+	SponsorshipKeeper sponsorshipkeeper.Keeper
+	StreamerKeeper    streamermodulekeeper.Keeper
+	EIBCKeeper        eibckeeper.Keeper
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
@@ -367,6 +370,15 @@ func (a *AppKeepers) InitKeepers(
 		&a.SequencerKeeper,
 	)
 
+	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
+		appCodec,
+		a.keys[sponsorshiptypes.StoreKey],
+		a.AccountKeeper,
+		a.StakingKeeper,
+		a.IncentivesKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
 	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
 		a.keys[streamermoduletypes.StoreKey],
 		a.GetSubspace(streamermoduletypes.ModuleName),
@@ -485,7 +497,11 @@ func (a *AppKeepers) InitTransferStack() {
 
 func (a *AppKeepers) SetupHooks() {
 	a.StakingKeeper.SetHooks(
-		stakingtypes.NewMultiStakingHooks(a.DistrKeeper.Hooks(), a.SlashingKeeper.Hooks()),
+		stakingtypes.NewMultiStakingHooks(
+			a.DistrKeeper.Hooks(),
+			a.SlashingKeeper.Hooks(),
+			a.SponsorshipKeeper.Hooks(),
+		),
 	)
 
 	// register the staking hooks
@@ -578,6 +594,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibcexported.ModuleName)
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
 	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
+	paramsKeeper.Subspace(sponsorshiptypes.ModuleName)
 	paramsKeeper.Subspace(streamermoduletypes.ModuleName)
 	paramsKeeper.Subspace(denommetadatamoduletypes.ModuleName)
 	paramsKeeper.Subspace(delayedacktypes.ModuleName)
