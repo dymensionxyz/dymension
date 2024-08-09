@@ -40,7 +40,8 @@ var (
 	UnbondedSequencersKeyPrefix  = []byte{0xa2}
 	UnbondingSequencersKeyPrefix = []byte{0xa3}
 
-	UnbondingQueueKey = []byte{0x41} // prefix for the timestamps in unbonding queue
+	UnbondingQueueKey      = []byte{0x41} // prefix for the timestamps in unbonding queue
+	DecreasingBondQueueKey = []byte{0x42} // prefix for the timestamps in decreasing bond queue
 )
 
 /* --------------------- specific sequencer address keys -------------------- */
@@ -98,6 +99,28 @@ func UnbondingQueueByTimeKey(endTime time.Time) []byte {
 
 func UnbondingSequencerKey(sequencerAddress string, endTime time.Time) []byte {
 	key := UnbondingQueueByTimeKey(endTime)
+	key = append(key, KeySeparator...)
+	key = append(key, []byte(sequencerAddress)...)
+	return key
+}
+
+/* -------------------------- decreasing bond queue keys -------------------------- */
+func DecreasingBondQueueByTimeKey(endTime time.Time) []byte {
+	timeBz := sdk.FormatTimeBytes(endTime)
+	prefixL := len(DecreasingBondQueueKey)
+
+	bz := make([]byte, prefixL+len(timeBz))
+
+	// copy the prefix
+	copy(bz[:prefixL], DecreasingBondQueueKey)
+	// copy the encoded time bytes
+	copy(bz[prefixL:prefixL+len(timeBz)], timeBz)
+
+	return bz
+}
+
+func GetDecreasingBondQueueKey(sequencerAddress string, endTime time.Time) []byte {
+	key := DecreasingBondQueueByTimeKey(endTime)
 	key = append(key, KeySeparator...)
 	key = append(key, []byte(sequencerAddress)...)
 	return key

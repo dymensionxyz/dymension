@@ -11,11 +11,13 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateSequencer{}, "sequencer/CreateSequencer", nil)
 	cdc.RegisterConcrete(&MsgUnbond{}, "sequencer/Unbond", nil)
 	cdc.RegisterConcrete(&MsgIncreaseBond{}, "sequencer/IncreaseBond", nil)
+	cdc.RegisterConcrete(&MsgDecreaseBond{}, "sequencer/DecreaseBond", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCreateSequencer{},
+		&MsgDecreaseBond{},
 		&MsgUnbond{},
 		&MsgIncreaseBond{},
 	)

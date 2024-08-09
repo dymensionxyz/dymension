@@ -86,6 +86,14 @@ func (k Keeper) Jail(ctx sdk.Context, seq types.Sequencer) error {
 	// in case we are slashing an unbonding sequencer, we need to remove it from the unbonding queue
 	if oldStatus == types.Unbonding {
 		k.removeUnbondingSequencer(ctx, seq)
+	} else {
+		// in case the sequencer is currently reducing its bond, then we need to remove it from the decreasing bond queue
+		// all the tokens are burned, so we don't need to reduce the bond anymore
+		if bondReductions := k.getSequencerDecreasingBonds(ctx, seq.Address); len(bondReductions) > 0 {
+			for _, bondReduce := range bondReductions {
+				k.removeDecreasingBondQueue(ctx, bondReduce)
+			}
+		}
 	}
 
 	// set the status to unbonded
