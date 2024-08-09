@@ -29,6 +29,8 @@ import (
 )
 
 func DymNSKeeper(t testing.TB) (dymnskeeper.Keeper, dymnskeeper.BankKeeper, rollappkeeper.Keeper, sdk.Context) {
+	dymnskeeper.ClearCaches()
+
 	dymNsStoreKey := sdk.NewKVStoreKey(dymnstypes.StoreKey)
 	dymNsMemStoreKey := storetypes.NewMemoryStoreKey(dymnstypes.MemStoreKey)
 

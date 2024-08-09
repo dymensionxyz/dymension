@@ -52,6 +52,9 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.dymNsKeeper = dk
 	s.rollAppKeeper = rk
 	s.bankKeeper = bk
+
+	// others
+	dymnskeeper.ClearCaches()
 }
 
 func (s *KeeperTestSuite) mintToModuleAccount(amount int64) {

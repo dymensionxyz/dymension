@@ -51,3 +51,8 @@ func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
 func (k Keeper) Codec() codec.BinaryCodec {
 	return k.cdc
 }
+
+// ClearCaches invoke clear caches. To be used in tests only.
+func ClearCaches() {
+	cacheIsRollAppId.Clear()
+}
