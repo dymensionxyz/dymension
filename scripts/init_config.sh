@@ -46,6 +46,7 @@ set_EVM_params
 set_bank_denom_metadata
 set_epochs_params
 set_incentives_params
+set_dymns_params
 
 # Setup genesis account and transaction
 dymd keys add "$KEY_NAME" --keyring-backend test

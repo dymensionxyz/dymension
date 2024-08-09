@@ -1,0 +1,12 @@
+syntax = "proto3";
+package dymensionxyz.dymension.dymns;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
+
+// MultipleAliases contains a list of alias.
+message MultipleAliases {
+  // aliases is a list of alias, available for a RollApp.
+  repeated string aliases = 1;
+}
