@@ -1,13 +1,12 @@
 package types
 
 import (
-	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var (
-	ErrCanOnlyUpdatePendingPacket = errorsmod.Register(ModuleName, 1, "can only update pending packet")
-	ErrRollappPacketDoesNotExist  = errorsmod.Register(ModuleName, 2, "rollapp packet does not exist")
-	ErrRollappPacketAlreadyExists = errorsmod.Register(ModuleName, 3, "rollapp packet already exists")
-	ErrUnknownRequest             = errorsmod.Register(ModuleName, 8, "unknown request")
-	ErrBadEIBCFee                 = errorsmod.Register(ModuleName, 10, "provided eibc fee is invalid")
+	ErrCanOnlyUpdatePendingPacket = gerrc.ErrFailedPrecondition.Wrap("can only update pending packet")
+	ErrRollappPacketDoesNotExist  = gerrc.ErrNotFound.Wrap("rollapp packet")
+	ErrRollappPacketAlreadyExists = gerrc.ErrAlreadyExists.Wrap("rollapp packet")
+	ErrBadEIBCFee                 = gerrc.ErrInvalidArgument.Wrap("eibc fee")
 )

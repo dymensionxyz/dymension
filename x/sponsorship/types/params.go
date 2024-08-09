@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
@@ -21,13 +22,13 @@ func DefaultParams() Params {
 
 func (p Params) Validate() error {
 	if p.MinAllocationWeight.IsNegative() {
-		return ErrInvalidParams.Wrapf("MinAllocationWeight must be >= 0, got %d", p.MinAllocationWeight.Int64())
+		return errorsmod.Wrapf(ErrInvalidParams, "MinAllocationWeight must be >= 0, got %d", p.MinAllocationWeight.Int64())
 	}
 	if p.MinAllocationWeight.GT(hundred) {
-		return ErrInvalidParams.Wrapf("MinAllocationWeight must be <= 100, got %d", p.MinAllocationWeight.Int64())
+		return errorsmod.Wrapf(ErrInvalidParams, "MinAllocationWeight must be <= 100, got %d", p.MinAllocationWeight.Int64())
 	}
 	if p.MinVotingPower.IsNegative() {
-		return ErrInvalidParams.Wrapf("MinVotingPower must be >= 0, got %d", p.MinVotingPower.Int64())
+		return errorsmod.Wrapf(ErrInvalidParams, "MinVotingPower must be >= 0, got %d", p.MinVotingPower.Int64())
 	}
 	return nil
 }
@@ -52,10 +53,10 @@ func validateMinAllocationWeight(i interface{}) error {
 	}
 
 	if value.IsNegative() {
-		return ErrInvalidParams.Wrapf("MinAllocationWeight must be >= 0, got %d", value.Int64())
+		return errorsmod.Wrapf(ErrInvalidParams, "MinAllocationWeight must be >= 0, got %d", value.Int64())
 	}
 	if value.GT(hundred) {
-		return ErrInvalidParams.Wrapf("MinAllocationWeight must be <= 100, got %d", value.Int64())
+		return errorsmod.Wrapf(ErrInvalidParams, "MinAllocationWeight must be <= 100, got %d", value.Int64())
 	}
 
 	return nil
@@ -68,7 +69,7 @@ func validateMinVotingPower(i interface{}) error {
 	}
 
 	if value.IsNegative() {
-		return ErrInvalidParams.Wrapf("MinVotingPower must be >= 0, got %d", value.Int64())
+		return errorsmod.Wrapf(ErrInvalidParams, "MinVotingPower must be >= 0, got %d", value.Int64())
 	}
 
 	return nil
