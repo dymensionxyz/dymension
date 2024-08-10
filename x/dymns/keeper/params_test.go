@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+
 	"github.com/stretchr/testify/require"
 
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
@@ -221,26 +223,20 @@ func (s *KeeperTestSuite) TestKeeper_CanUseAliasForNewRegistration() {
 			wantErr: false,
 			want:    false,
 		},
-		// TODO DymNS: FIXME * this test will panic because RollApp keeper now validate the RollApp-ID,
-		//  must find a way to make a RollApp with chain-id compatible with alias format
-		/*
-			{
-				name:  "pass - returns as NOT free if it is a RollApp-ID",
-				alias: "bridge",
-				preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-					rk.SetRollapp(ctx, rollapptypes.Rollapp{
-						RollappId: "bridge",
-						Owner:     testAddr(1).bech32(),
-					})
-					err := dk.SetAliasForRollAppId(ctx, "bridge", "b")
-					require.NoError(t, err)
-
-					require.True(t, dk.IsRollAppId(ctx, "bridge"))
-				},
-				wantErr: false,
-				want:    false,
+		{
+			name:  "pass - returns as NOT free if it is a RollApp-ID",
+			alias: "bridge",
+			preSetup: func(s *KeeperTestSuite) {
+				s.pureSetRollApp(rollapptypes.Rollapp{
+					RollappId: "bridge",
+					Owner:     testAddr(1).bech32(),
+				})
+				err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, "bridge", "b")
+				s.Require().NoError(err)
 			},
-		*/
+			wantErr: false,
+			want:    false,
+		},
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {

@@ -4,10 +4,25 @@ import (
 	"testing"
 	"time"
 
+	tmdb "github.com/cometbft/cometbft-db"
+	"github.com/cometbft/cometbft/libs/log"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/store"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/dymensionxyz/dymension/v3/app/params"
+
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
@@ -18,12 +33,15 @@ import (
 
 type KeeperTestSuite struct {
 	suite.Suite
-	ctx           sdk.Context
-	chainId       string
-	now           time.Time
+	ctx     sdk.Context
+	chainId string
+	now     time.Time
+
 	dymNsKeeper   dymnskeeper.Keeper
 	rollAppKeeper rollappkeeper.Keeper
 	bankKeeper    dymnstypes.BankKeeper
+
+	rollappStoreKey storetypes.StoreKey
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -34,26 +52,114 @@ func (s *KeeperTestSuite) SetupSuite() {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
+	var ctx sdk.Context
+
+	var dk dymnskeeper.Keeper
+	var bk dymnstypes.BankKeeper
+	var rk *rollappkeeper.Keeper
+
+	var rollappStoreKey storetypes.StoreKey
+
+	{
+		// initialization
+		dymNsStoreKey := sdk.NewKVStoreKey(dymnstypes.StoreKey)
+		dymNsMemStoreKey := storetypes.NewMemoryStoreKey(dymnstypes.MemStoreKey)
+
+		authStoreKey := sdk.NewKVStoreKey(authtypes.StoreKey)
+
+		bankStoreKey := sdk.NewKVStoreKey(banktypes.StoreKey)
+
+		rollappStoreKey = sdk.NewKVStoreKey(rollapptypes.StoreKey)
+		rollappMemStoreKey := storetypes.NewMemoryStoreKey(rollapptypes.MemStoreKey)
+
+		db := tmdb.NewMemDB()
+		stateStore := store.NewCommitMultiStore(db)
+		stateStore.MountStoreWithDB(dymNsStoreKey, storetypes.StoreTypeIAVL, db)
+		stateStore.MountStoreWithDB(dymNsMemStoreKey, storetypes.StoreTypeMemory, nil)
+		stateStore.MountStoreWithDB(authStoreKey, storetypes.StoreTypeIAVL, db)
+		stateStore.MountStoreWithDB(bankStoreKey, storetypes.StoreTypeIAVL, db)
+		stateStore.MountStoreWithDB(rollappStoreKey, storetypes.StoreTypeIAVL, db)
+		stateStore.MountStoreWithDB(rollappMemStoreKey, storetypes.StoreTypeMemory, nil)
+		s.Require().NoError(stateStore.LoadLatestVersion())
+
+		registry := codectypes.NewInterfaceRegistry()
+		cdc := codec.NewProtoCodec(registry)
+
+		dymNSParamsSubspace := typesparams.NewSubspace(cdc,
+			dymnstypes.Amino,
+			dymNsStoreKey,
+			dymNsMemStoreKey,
+			"DymNSParams",
+		)
+
+		rollappParamsSubspace := typesparams.NewSubspace(cdc,
+			rollapptypes.Amino,
+			rollappStoreKey,
+			rollappMemStoreKey,
+			"RollappParams",
+		)
+
+		authKeeper := authkeeper.NewAccountKeeper(
+			cdc,
+			authStoreKey,
+			authtypes.ProtoBaseAccount,
+			map[string][]string{
+				banktypes.ModuleName:  {authtypes.Minter, authtypes.Burner},
+				dymnstypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+			},
+			params.AccountAddressPrefix,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		)
+		authtypes.RegisterInterfaces(registry)
+
+		bk = bankkeeper.NewBaseKeeper(
+			cdc,
+			bankStoreKey,
+			authKeeper,
+			map[string]bool{},
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		)
+		banktypes.RegisterInterfaces(registry)
+
+		rk = rollappkeeper.NewKeeper(
+			cdc,
+			rollappStoreKey,
+			rollappParamsSubspace,
+			nil, nil, nil,
+		)
+
+		dk = dymnskeeper.NewKeeper(cdc,
+			dymNsStoreKey,
+			dymNSParamsSubspace,
+			bk,
+			rk,
+		)
+
+		ctx = sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())
+
+		s.Require().NoError(dk.SetParams(ctx, dymnstypes.DefaultParams()))
+	}
+
 	const chainId = "dymension_1100-1"
 
-	now := time.Now().UTC()
-	dk, bk, rk, ctx := testkeeper.DymNSKeeper(s.T())
-	ctx = ctx.WithBlockTime(now).WithChainID(chainId)
-
-	// enable trading
-	moduleParams := dk.GetParams(ctx)
-	moduleParams.Misc.EnableTradingName = true
-	moduleParams.Misc.EnableTradingAlias = true
-	err := dk.SetParams(ctx, moduleParams)
-	s.Require().NoError(err)
-
 	// set
-	s.ctx = ctx
 	s.chainId = chainId
-	s.now = now
+	s.now = time.Now().UTC()
+	s.ctx = ctx.WithBlockTime(s.now).WithChainID(chainId)
 	s.dymNsKeeper = dk
-	s.rollAppKeeper = rk
+	s.rollAppKeeper = *rk
 	s.bankKeeper = bk
+	s.rollappStoreKey = rollappStoreKey
+
+	// custom
+	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+		moduleParams.Chains.AliasesOfChainIds = nil
+		// force enable trading
+		moduleParams.Misc.EnableTradingName = true
+		moduleParams.Misc.EnableTradingAlias = true
+
+		return moduleParams
+	})
 
 	// others
 	dymnskeeper.ClearCaches()
@@ -132,6 +238,18 @@ func (s *KeeperTestSuite) persistRollApp(ra rollapp) {
 		err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, ra.rollAppId, alias)
 		s.Require().NoError(err)
 	}
+}
+
+// pureSetRollApp persists a rollapp without any side effects and all checking was skipped.
+// Used to persist some invalid rollapp for testing.
+func (s *KeeperTestSuite) pureSetRollApp(ra rollapptypes.Rollapp) {
+	store := prefix.NewStore(s.ctx.KVStore(s.rollappStoreKey), rollapptypes.KeyPrefix(rollapptypes.RollappKeyPrefix))
+	b := s.dymNsKeeper.Codec().MustMarshal(&ra)
+	store.Set(rollapptypes.RollappKey(
+		ra.RollappId,
+	), b)
+
+	s.Require().True(s.dymNsKeeper.IsRollAppId(s.ctx, ra.RollappId))
 }
 
 func (s *KeeperTestSuite) moduleParams() dymnstypes.Params {

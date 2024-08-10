@@ -2472,11 +2472,12 @@ func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 		},
 		{
 			name:        "fail - reject if alias is a RollApp-ID",
-			addRollApps: []string{"rollapp_1-1", "rollapp_2-2" /*, "rollapp"*/},
+			addRollApps: []string{"rollapp_1-1", "rollapp_2-2"},
 			preRunSetup: func(s *KeeperTestSuite) {
-				// TODO DymNS: FIXME * this test will panic because RollApp keeper now validate the RollApp-ID,
-				//  must find a way to make a RollApp with chain-id compatible with alias format
-				s.T().SkipNow()
+				s.pureSetRollApp(rollapptypes.Rollapp{
+					RollappId: "rollapp",
+					Owner:     creatorAccAddr.String(),
+				})
 
 				s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
 					moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
