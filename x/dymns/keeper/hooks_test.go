@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"sort"
-	"testing"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -10,42 +9,35 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-	"github.com/stretchr/testify/require"
 )
 
-func Test_epochHooks_BeforeEpochStart(t *testing.T) {
-	now := time.Now().UTC()
+func (s *KeeperTestSuite) Test_epochHooks_BeforeEpochStart() {
 	const daysKeepHistorical = 1
-	require.Greater(t, daysKeepHistorical, 0, "mis-configured test case")
+	s.Require().Greater(daysKeepHistorical, 0, "mis-configured test case")
 
-	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockTime(now)
-
-		params := dk.GetParams(ctx)
-		params.Misc.PreservedClosedSellOrderDuration = daysKeepHistorical * 24 * time.Hour
-		err := dk.SetParams(ctx, params)
-		require.NoError(t, err)
-
-		return dk, ctx
+	setupParams := func(s *KeeperTestSuite) {
+		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+			moduleParams.Misc.PreservedClosedSellOrderDuration = daysKeepHistorical * 24 * time.Hour
+			return moduleParams
+		})
 	}
 
-	t.Run("should do something even nothing to do", func(t *testing.T) {
-		dk, ctx := setupTest()
+	s.Run("should do something even nothing to do", func() {
+		s.SetupTest()
 
-		params := dk.GetParams(ctx)
+		setupParams(s)
 
-		originalGas := ctx.GasMeter().GasConsumed()
+		originalGas := s.ctx.GasMeter().GasConsumed()
 
-		err := dk.GetEpochHooks().BeforeEpochStart(ctx, params.Misc.BeginEpochHookIdentifier, 1)
-		require.NoError(t, err)
+		err := s.dymNsKeeper.GetEpochHooks().BeforeEpochStart(
+			s.ctx, s.moduleParams().Misc.BeginEpochHookIdentifier, 1,
+		)
+		s.Require().NoError(err)
 
 		// gas should be changed because it should at least reading the params to check epoch identifier
-		require.Less(t, originalGas, ctx.GasMeter().GasConsumed(), "should do something")
+		s.Require().Less(originalGas, s.ctx.GasMeter().GasConsumed(), "should do something")
 	})
 
 	ownerA := testAddr(1).bech32()
@@ -54,21 +46,21 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 		Name:       "a",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   now.Add(365 * 24 * time.Hour).Unix(),
+		ExpireAt:   s.now.Add(365 * 24 * time.Hour).Unix(),
 	}
 
 	dymNameB := dymnstypes.DymName{
 		Name:       "b",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   now.Unix(),
+		ExpireAt:   s.now.Unix(),
 	}
 
 	dymNameC := dymnstypes.DymName{
 		Name:       "c",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   now.Add(-365 * 24 * time.Hour).Unix(),
+		ExpireAt:   s.now.Add(-365 * 24 * time.Hour).Unix(),
 	}
 
 	dymNameD := dymnstypes.DymName{
@@ -79,7 +71,7 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 	}
 
 	getEpochWithOffset := func(offset int64) int64 {
-		return now.Unix() + offset
+		return s.now.Unix() + offset
 	}
 	genSo := func(
 		dymName dymnstypes.DymName, offsetExpiry int64,
@@ -92,40 +84,11 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 		}
 	}
 
-	type testSuite struct {
-		t   *testing.T
-		dk  dymnskeeper.Keeper
-		ctx sdk.Context
-	}
+	requireDymNameNotChanged := func(dymName dymnstypes.DymName, s *KeeperTestSuite) {
+		laterDymName := s.dymNsKeeper.GetDymName(s.ctx, dymName.Name)
+		s.Require().NotNil(laterDymName)
 
-	nts := func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) testSuite {
-		return testSuite{
-			t:   t,
-			dk:  dk,
-			ctx: ctx,
-		}
-	}
-
-	requireDymNameNotChanged := func(dymName dymnstypes.DymName, ts testSuite) {
-		laterDymName := ts.dk.GetDymName(ts.ctx, dymName.Name)
-		require.NotNil(t, laterDymName)
-
-		require.Equal(t, dymName, *laterDymName, "nothing changed")
-	}
-
-	requireNoActiveSO := func(dymName dymnstypes.DymName, ts testSuite) {
-		so := ts.dk.GetSellOrder(ts.ctx, dymName.Name, dymnstypes.TypeName)
-		require.Nil(t, so)
-	}
-
-	requireActiveSO := func(dymName dymnstypes.DymName, ts testSuite) {
-		so := ts.dk.GetSellOrder(ts.ctx, dymName.Name, dymnstypes.TypeName)
-		require.NotNil(t, so)
-	}
-
-	requireHistoricalSOs := func(dymName dymnstypes.DymName, wantCount int, ts testSuite) {
-		historicalSOs := ts.dk.GetHistoricalSellOrders(ts.ctx, dymName.Name, dymnstypes.TypeName)
-		require.Lenf(t, historicalSOs, wantCount, "should have %d historical SOs", wantCount)
+		s.Require().Equal(dymName, *laterDymName, "nothing changed")
 	}
 
 	testsCleanupHistoricalSellOrders := []struct {
@@ -138,8 +101,8 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 		wantErr                        bool
 		wantErrContains                string
 		wantMinExpiryPerDymNameRecords []dymnstypes.HistoricalSellOrderMinExpiry
-		preHookTestFunc                func(*testing.T, dymnskeeper.Keeper, sdk.Context)
-		afterHookTestFunc              func(*testing.T, dymnskeeper.Keeper, sdk.Context)
+		preHookTestFunc                func(*KeeperTestSuite)
+		afterHookTestFunc              func(*KeeperTestSuite)
 	}{
 		{
 			name:     "simple cleanup",
@@ -153,28 +116,24 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 			},
 			wantErr:                        false,
 			wantMinExpiryPerDymNameRecords: nil,
-			preHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
-
-				requireHistoricalSOs(dymNameA, 1, ts)
-				requireHistoricalSOs(dymNameB, 0, ts)
-				requireHistoricalSOs(dymNameC, 0, ts)
-				requireHistoricalSOs(dymNameD, 0, ts)
+			preHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireDymName(dymNameA.Name).mustHaveHistoricalSoCount(1)
+				s.requireDymName(dymNameB.Name).noHistoricalSO()
+				s.requireDymName(dymNameC.Name).noHistoricalSO()
+				s.requireDymName(dymNameD.Name).noHistoricalSO()
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireDymNameNotChanged(dymNameA, s)
+				s.requireDymName(dymNameA.Name).noHistoricalSO()
 
-				requireDymNameNotChanged(dymNameA, ts)
-				requireHistoricalSOs(dymNameA, 0, ts)
+				requireDymNameNotChanged(dymNameB, s)
+				s.requireDymName(dymNameB.Name).noHistoricalSO()
 
-				requireDymNameNotChanged(dymNameB, ts)
-				requireHistoricalSOs(dymNameB, 0, ts)
+				requireDymNameNotChanged(dymNameC, s)
+				s.requireDymName(dymNameC.Name).noHistoricalSO()
 
-				requireDymNameNotChanged(dymNameC, ts)
-				requireHistoricalSOs(dymNameC, 0, ts)
-
-				requireDymNameNotChanged(dymNameD, ts)
-				requireHistoricalSOs(dymNameD, 0, ts)
+				requireDymNameNotChanged(dymNameD, s)
+				s.requireDymName(dymNameD.Name).noHistoricalSO()
 			},
 		},
 		{
@@ -195,15 +154,11 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 					MinExpiry: getEpochWithOffset(-daysKeepHistorical*86400 - 1),
 				},
 			},
-			preHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
-
-				requireHistoricalSOs(dymNameA, 1, ts)
+			preHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireDymName(dymNameA.Name).mustHaveHistoricalSoCount(1)
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
-
-				requireHistoricalSOs(dymNameA, 1, ts)
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireDymName(dymNameA.Name).mustHaveHistoricalSoCount(1)
 			},
 		},
 		{
@@ -220,25 +175,28 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 			},
 			wantErr:                        false,
 			wantMinExpiryPerDymNameRecords: nil,
-			preHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
-
-				requireHistoricalSOs(dymNameA, 1, ts)
-				requireActiveSO(dymNameA, ts)
-				requireHistoricalSOs(dymNameB, 0, ts)
-				requireHistoricalSOs(dymNameC, 0, ts)
-				requireHistoricalSOs(dymNameD, 0, ts)
+			preHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireDymName(dymNameA.Name).
+					mustHaveActiveSO().
+					mustHaveHistoricalSoCount(1)
+				s.requireDymName(dymNameB.Name).
+					noHistoricalSO()
+				s.requireDymName(dymNameC.Name).
+					noHistoricalSO()
+				s.requireDymName(dymNameD.Name).
+					noHistoricalSO()
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
-
-				requireDymNameNotChanged(dymNameA, ts)
-				requireHistoricalSOs(dymNameA, 0, ts)
-				requireActiveSO(dymNameA, ts)
-
-				requireHistoricalSOs(dymNameB, 0, ts)
-				requireHistoricalSOs(dymNameC, 0, ts)
-				requireHistoricalSOs(dymNameD, 0, ts)
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireDymNameNotChanged(dymNameA, s)
+				s.requireDymName(dymNameA.Name).
+					mustHaveActiveSO().
+					noHistoricalSO()
+				s.requireDymName(dymNameB.Name).
+					noHistoricalSO()
+				s.requireDymName(dymNameC.Name).
+					noHistoricalSO()
+				s.requireDymName(dymNameD.Name).
+					noHistoricalSO()
 			},
 		},
 		{
@@ -251,21 +209,22 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 			minExpiryByDymName:             nil,
 			wantErr:                        false,
 			wantMinExpiryPerDymNameRecords: nil,
-			preHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
-
-				requireHistoricalSOs(dymNameA, 0, ts)
-				requireActiveSO(dymNameA, ts)
-				requireHistoricalSOs(dymNameB, 0, ts)
-				requireHistoricalSOs(dymNameC, 0, ts)
-				requireHistoricalSOs(dymNameD, 0, ts)
+			preHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireDymName(dymNameA.Name).
+					mustHaveActiveSO().
+					noHistoricalSO()
+				s.requireDymName(dymNameB.Name).
+					noHistoricalSO()
+				s.requireDymName(dymNameC.Name).
+					noHistoricalSO()
+				s.requireDymName(dymNameD.Name).
+					noHistoricalSO()
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
-
-				requireDymNameNotChanged(dymNameA, ts)
-				requireHistoricalSOs(dymNameA, 0, ts)
-				requireActiveSO(dymNameA, ts)
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireDymNameNotChanged(dymNameA, s)
+				s.requireDymName(dymNameA.Name).
+					mustHaveActiveSO().
+					noHistoricalSO()
 			},
 		},
 		{
@@ -287,21 +246,22 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 					MinExpiry: getEpochWithOffset(-1),
 				},
 			},
-			preHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
-
-				requireHistoricalSOs(dymNameA, 1, ts)
-				requireActiveSO(dymNameA, ts)
-				requireHistoricalSOs(dymNameB, 0, ts)
-				requireHistoricalSOs(dymNameC, 0, ts)
-				requireHistoricalSOs(dymNameD, 0, ts)
+			preHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireDymName(dymNameA.Name).
+					mustHaveActiveSO().
+					mustHaveHistoricalSoCount(1)
+				s.requireDymName(dymNameB.Name).
+					noHistoricalSO()
+				s.requireDymName(dymNameC.Name).
+					noHistoricalSO()
+				s.requireDymName(dymNameD.Name).
+					noHistoricalSO()
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
-
-				requireDymNameNotChanged(dymNameA, ts)
-				requireHistoricalSOs(dymNameA, 1, ts)
-				requireActiveSO(dymNameA, ts)
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireDymNameNotChanged(dymNameA, s)
+				s.requireDymName(dymNameA.Name).
+					mustHaveActiveSO().
+					mustHaveHistoricalSoCount(1)
 			},
 		},
 		{
@@ -323,32 +283,32 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 			},
 			wantErr:                        false,
 			wantMinExpiryPerDymNameRecords: nil,
-			preHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
-
-				requireHistoricalSOs(dymNameA, 3, ts)
-				requireHistoricalSOs(dymNameB, 0, ts)
-				requireHistoricalSOs(dymNameC, 2, ts)
-				requireHistoricalSOs(dymNameD, 0, ts)
+			preHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireDymName(dymNameA.Name).mustHaveHistoricalSoCount(3)
+				s.requireDymName(dymNameB.Name).noHistoricalSO()
+				s.requireDymName(dymNameC.Name).mustHaveHistoricalSoCount(2)
+				s.requireDymName(dymNameD.Name).noHistoricalSO()
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireDymNameNotChanged(dymNameA, s)
+				s.requireDymName(dymNameA.Name).
+					noActiveSO().
+					noHistoricalSO()
 
-				requireDymNameNotChanged(dymNameA, ts)
-				requireHistoricalSOs(dymNameA, 0, ts)
-				requireNoActiveSO(dymNameA, ts)
+				requireDymNameNotChanged(dymNameB, s)
+				s.requireDymName(dymNameB.Name).
+					noActiveSO().
+					noHistoricalSO()
 
-				requireDymNameNotChanged(dymNameB, ts)
-				requireHistoricalSOs(dymNameB, 0, ts)
-				requireNoActiveSO(dymNameB, ts)
+				requireDymNameNotChanged(dymNameC, s)
+				s.requireDymName(dymNameC.Name).
+					mustHaveActiveSO().
+					noHistoricalSO()
 
-				requireDymNameNotChanged(dymNameC, ts)
-				requireHistoricalSOs(dymNameC, 0, ts)
-				requireActiveSO(dymNameC, ts)
-
-				requireDymNameNotChanged(dymNameD, ts)
-				requireHistoricalSOs(dymNameD, 0, ts)
-				requireNoActiveSO(dymNameD, ts)
+				requireDymNameNotChanged(dymNameD, s)
+				s.requireDymName(dymNameD.Name).
+					noActiveSO().
+					noHistoricalSO()
 			},
 		},
 		{
@@ -375,32 +335,32 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 					MinExpiry: getEpochWithOffset(-9),
 				},
 			},
-			preHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
-
-				requireHistoricalSOs(dymNameA, 3, ts)
-				requireHistoricalSOs(dymNameB, 0, ts)
-				requireHistoricalSOs(dymNameC, 2, ts)
-				requireHistoricalSOs(dymNameD, 0, ts)
+			preHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireDymName(dymNameA.Name).mustHaveHistoricalSoCount(3)
+				s.requireDymName(dymNameB.Name).noHistoricalSO()
+				s.requireDymName(dymNameC.Name).mustHaveHistoricalSoCount(2)
+				s.requireDymName(dymNameD.Name).noHistoricalSO()
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireDymNameNotChanged(dymNameA, s)
+				s.requireDymName(dymNameA.Name).
+					mustHaveActiveSO().
+					mustHaveHistoricalSoCount(1)
 
-				requireDymNameNotChanged(dymNameA, ts)
-				requireHistoricalSOs(dymNameA, 1, ts)
-				requireActiveSO(dymNameA, ts)
+				requireDymNameNotChanged(dymNameB, s)
+				s.requireDymName(dymNameB.Name).
+					mustHaveActiveSO().
+					noHistoricalSO()
 
-				requireDymNameNotChanged(dymNameB, ts)
-				requireHistoricalSOs(dymNameB, 0, ts)
-				requireActiveSO(dymNameB, ts)
+				requireDymNameNotChanged(dymNameC, s)
+				s.requireDymName(dymNameC.Name).
+					mustHaveActiveSO().
+					noHistoricalSO()
 
-				requireDymNameNotChanged(dymNameC, ts)
-				requireHistoricalSOs(dymNameC, 0, ts)
-				requireActiveSO(dymNameC, ts)
-
-				requireDymNameNotChanged(dymNameD, ts)
-				requireHistoricalSOs(dymNameD, 0, ts)
-				requireNoActiveSO(dymNameD, ts)
+				requireDymNameNotChanged(dymNameD, s)
+				s.requireDymName(dymNameD.Name).
+					noActiveSO().
+					noHistoricalSO()
 			},
 		},
 		{
@@ -422,16 +382,12 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 					MinExpiry: getEpochWithOffset(-10),
 				},
 			},
-			preHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
-
-				requireHistoricalSOs(dymNameA, 3, ts)
+			preHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireDymName(dymNameA.Name).mustHaveHistoricalSoCount(3)
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
-
-				requireDymNameNotChanged(dymNameA, ts)
-				requireHistoricalSOs(dymNameA, 2, ts)
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireDymNameNotChanged(dymNameA, s)
+				s.requireDymName(dymNameA.Name).mustHaveHistoricalSoCount(2)
 			},
 		},
 		{
@@ -469,32 +425,32 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 					MinExpiry: getEpochWithOffset(-8),
 				},
 			},
-			preHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
-
-				requireHistoricalSOs(dymNameA, 3, ts)
-				requireHistoricalSOs(dymNameB, 2, ts)
-				requireHistoricalSOs(dymNameC, 2, ts)
-				requireHistoricalSOs(dymNameD, 0, ts)
+			preHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireDymName(dymNameA.Name).mustHaveHistoricalSoCount(3)
+				s.requireDymName(dymNameB.Name).mustHaveHistoricalSoCount(2)
+				s.requireDymName(dymNameC.Name).mustHaveHistoricalSoCount(2)
+				s.requireDymName(dymNameD.Name).noHistoricalSO()
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireDymNameNotChanged(dymNameA, s)
+				s.requireDymName(dymNameA.Name).
+					mustHaveActiveSO().
+					mustHaveHistoricalSoCount(1)
 
-				requireDymNameNotChanged(dymNameA, ts)
-				requireHistoricalSOs(dymNameA, 1, ts)
-				requireActiveSO(dymNameA, ts)
+				requireDymNameNotChanged(dymNameB, s)
+				s.requireDymName(dymNameB.Name).
+					mustHaveActiveSO().
+					mustHaveHistoricalSoCount(2)
 
-				requireDymNameNotChanged(dymNameB, ts)
-				requireHistoricalSOs(dymNameB, 2, ts)
-				requireActiveSO(dymNameB, ts)
+				requireDymNameNotChanged(dymNameC, s)
+				s.requireDymName(dymNameC.Name).
+					mustHaveActiveSO().
+					noHistoricalSO()
 
-				requireDymNameNotChanged(dymNameC, ts)
-				requireHistoricalSOs(dymNameC, 0, ts)
-				requireActiveSO(dymNameC, ts)
-
-				requireDymNameNotChanged(dymNameD, ts)
-				requireHistoricalSOs(dymNameD, 0, ts)
-				requireActiveSO(dymNameD, ts)
+				requireDymNameNotChanged(dymNameD, s)
+				s.requireDymName(dymNameD.Name).
+					mustHaveActiveSO().
+					noHistoricalSO()
 			},
 		},
 		{
@@ -507,16 +463,12 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 			},
 			wantErr:                        false,
 			wantMinExpiryPerDymNameRecords: nil,
-			preHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
-
-				requireHistoricalSOs(dymNameA, 0, ts)
+			preHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireDymName(dymNameA.Name).noHistoricalSO()
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
-
-				requireDymNameNotChanged(dymNameA, ts)
-				requireHistoricalSOs(dymNameA, 0, ts)
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireDymNameNotChanged(dymNameA, s)
+				s.requireDymName(dymNameA.Name).noHistoricalSO()
 			},
 		},
 		{
@@ -542,102 +494,107 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 				},
 				// incorrect of Dym-Name D was removed
 			},
-			preHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
+			preHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireDymName(dymNameA.Name).
+					mustHaveHistoricalSoCount(1)
 
-				requireHistoricalSOs(dymNameA, 1, ts)
-				requireHistoricalSOs(dymNameD, 0, ts)
+				s.requireDymName(dymNameD.Name).
+					noHistoricalSO()
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, ctx sdk.Context) {
-				ts := nts(t, dk, ctx)
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireDymNameNotChanged(dymNameA, s)
+				s.requireDymName(dymNameA.Name).
+					mustHaveActiveSO().
+					mustHaveHistoricalSoCount(1)
 
-				requireDymNameNotChanged(dymNameA, ts)
-				requireHistoricalSOs(dymNameA, 1, ts)
-				requireActiveSO(dymNameA, ts)
+				requireDymNameNotChanged(dymNameB, s)
+				s.requireDymName(dymNameB.Name).
+					mustHaveActiveSO().
+					noHistoricalSO()
 
-				requireDymNameNotChanged(dymNameB, ts)
-				requireHistoricalSOs(dymNameB, 0, ts)
-				requireActiveSO(dymNameB, ts)
+				requireDymNameNotChanged(dymNameC, s)
+				s.requireDymName(dymNameC.Name).
+					mustHaveActiveSO().
+					noHistoricalSO()
 
-				requireDymNameNotChanged(dymNameC, ts)
-				requireHistoricalSOs(dymNameC, 0, ts)
-				requireActiveSO(dymNameC, ts)
-
-				requireDymNameNotChanged(dymNameD, ts)
-				requireHistoricalSOs(dymNameD, 0, ts)
-				requireActiveSO(dymNameD, ts)
+				requireDymNameNotChanged(dymNameD, s)
+				s.requireDymName(dymNameD.Name).
+					mustHaveActiveSO().
+					noHistoricalSO()
 			},
 		},
 	}
 	for _, tt := range testsCleanupHistoricalSellOrders {
-		t.Run(tt.name, func(t *testing.T) {
-			require.NotNil(t, tt.preHookTestFunc, "mis-configured test case")
-			require.NotNil(t, tt.afterHookTestFunc, "mis-configured test case")
+		s.Run(tt.name, func() {
+			s.Require().NotNil(tt.preHookTestFunc, "mis-configured test case")
+			s.Require().NotNil(tt.afterHookTestFunc, "mis-configured test case")
 
-			dk, ctx := setupTest()
+			s.SetupTest()
+
+			setupParams(s)
 
 			for _, dymName := range tt.dymNames {
-				err := dk.SetDymName(ctx, dymName)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetDymName(s.ctx, dymName)
+				s.Require().NoError(err)
 			}
 
 			for _, so := range tt.historicalSOs {
-				err := dk.SetSellOrder(ctx, so)
-				require.NoError(t, err)
-				err = dk.MoveSellOrderToHistorical(ctx, so.AssetId, so.AssetType)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetSellOrder(s.ctx, so)
+				s.Require().NoError(err)
+				err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, so.AssetId, so.AssetType)
+				s.Require().NoError(err)
 			}
 
 			for _, so := range tt.activeSOs {
-				err := dk.SetSellOrder(ctx, so)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetSellOrder(s.ctx, so)
+				s.Require().NoError(err)
 			}
 
-			meh := dk.GetMinExpiryOfAllHistoricalDymNameSellOrders(ctx)
+			meh := s.dymNsKeeper.GetMinExpiryOfAllHistoricalDymNameSellOrders(s.ctx)
 			if len(meh) > 0 {
 				// clear existing records to simulate cases of malformed state
 				for _, record := range meh {
-					dk.SetMinExpiryHistoricalSellOrder(ctx, record.DymName, dymnstypes.TypeName, 0)
+					s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, record.DymName, dymnstypes.TypeName, 0)
 				}
 			}
 			if len(tt.minExpiryByDymName) > 0 {
 				for dymName, minExpiry := range tt.minExpiryByDymName {
-					dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.TypeName, minExpiry)
+					s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, dymName, dymnstypes.TypeName, minExpiry)
 				}
 			}
 
-			tt.preHookTestFunc(t, dk, ctx)
+			tt.preHookTestFunc(s)
 
-			moduleParams := dk.GetParams(ctx)
+			moduleParams := s.dymNsKeeper.GetParams(s.ctx)
 			useEpochIdentifier := moduleParams.Misc.BeginEpochHookIdentifier
 			if tt.customEpochIdentifier != "" {
 				useEpochIdentifier = tt.customEpochIdentifier
 			}
-			err := dk.GetEpochHooks().BeforeEpochStart(ctx, useEpochIdentifier, 1)
+			err := s.dymNsKeeper.GetEpochHooks().BeforeEpochStart(s.ctx, useEpochIdentifier, 1)
 
 			defer func() {
-				if t.Failed() {
+				if s.T().Failed() {
 					return
 				}
 
-				tt.afterHookTestFunc(t, dk, ctx)
+				tt.afterHookTestFunc(s)
 
-				meh := dk.GetMinExpiryOfAllHistoricalDymNameSellOrders(ctx)
+				meh := s.dymNsKeeper.GetMinExpiryOfAllHistoricalDymNameSellOrders(s.ctx)
 				if len(tt.wantMinExpiryPerDymNameRecords) == 0 {
-					require.Empty(t, meh)
+					s.Require().Empty(meh)
 				} else {
-					require.Equal(t, tt.wantMinExpiryPerDymNameRecords, meh, "lists mismatch")
+					s.Require().Equal(tt.wantMinExpiryPerDymNameRecords, meh, "lists mismatch")
 				}
 			}()
 
 			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), tt.wantErrContains)
 				return
 			}
 
-			require.NoError(t, err)
+			s.Require().NoError(err)
 		})
 	}
 
@@ -649,7 +606,7 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 		{
 			name: "pass - can clear when expired",
 			preservedRegistrationParams: dymnstypes.PreservedRegistrationParams{
-				ExpirationEpoch: now.Add(-time.Second).Unix(),
+				ExpirationEpoch: s.now.Add(-time.Second).Unix(),
 				PreservedDymNames: []dymnstypes.PreservedDymName{
 					{
 						DymName:            "preserved",
@@ -665,7 +622,7 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 		{
 			name: "pass - keep when not expired",
 			preservedRegistrationParams: dymnstypes.PreservedRegistrationParams{
-				ExpirationEpoch: now.Add(time.Hour).Unix(),
+				ExpirationEpoch: s.now.Add(time.Hour).Unix(),
 				PreservedDymNames: []dymnstypes.PreservedDymName{
 					{
 						DymName:            "preserved",
@@ -674,7 +631,7 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 				},
 			},
 			wantPreservedRegistrationParams: dymnstypes.PreservedRegistrationParams{
-				ExpirationEpoch: now.Add(time.Hour).Unix(),
+				ExpirationEpoch: s.now.Add(time.Hour).Unix(),
 				PreservedDymNames: []dymnstypes.PreservedDymName{
 					{
 						DymName:            "preserved",
@@ -685,17 +642,21 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 		},
 	}
 	for _, tt := range testsClearPreservedRegistration {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, ctx := setupTest()
+		s.Run(tt.name, func() {
+			s.SetupTest()
 
-			moduleParams := dk.GetParams(ctx)
-			moduleParams.PreservedRegistration = tt.preservedRegistrationParams
-			require.NoError(t, dk.SetParams(ctx, moduleParams))
+			s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+				moduleParams.PreservedRegistration = tt.preservedRegistrationParams
+				return moduleParams
+			})
 
-			err := dk.GetEpochHooks().BeforeEpochStart(ctx, moduleParams.Misc.BeginEpochHookIdentifier, 1)
-			require.NoError(t, err)
+			err := s.dymNsKeeper.GetEpochHooks().BeforeEpochStart(
+				s.ctx,
+				s.moduleParams().Misc.BeginEpochHookIdentifier, 1,
+			)
+			s.Require().NoError(err)
 
-			require.Equal(t, tt.wantPreservedRegistrationParams, dk.GetParams(ctx).PreservedRegistration)
+			s.Require().Equal(tt.wantPreservedRegistrationParams, s.dymNsKeeper.GetParams(s.ctx).PreservedRegistration)
 		})
 	}
 }
@@ -922,16 +883,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd() {
 	})
 }
 
-func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) {
-	now := time.Now().UTC()
-
-	setupTest := func() (dymnskeeper.Keeper, dymnstypes.BankKeeper, sdk.Context) {
-		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockTime(now)
-
-		return dk, bk, ctx
-	}
-
+func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders() {
 	ownerAcc := testAddr(1)
 	ownerA := ownerAcc.bech32()
 
@@ -942,36 +894,35 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 		Name:       "a",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 1,
 	}
 
 	dymNameB := dymnstypes.DymName{
 		Name:       "b",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 1,
 	}
 
 	dymNameC := dymnstypes.DymName{
 		Name:       "c",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 1,
 	}
 
 	dymNameD := dymnstypes.DymName{
 		Name:       "d",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 1,
 	}
 
 	coin100 := dymnsutils.TestCoin(100)
 	coin200 := dymnsutils.TestCoin(200)
-	denom := dymnsutils.TestCoin(0).Denom
 
-	soExpiredEpoch := now.Unix() - 1
-	soNotExpiredEpoch := now.Unix() + 1
+	soExpiredEpoch := s.now.Unix() - 1
+	soNotExpiredEpoch := s.now.Add(time.Hour).Unix()
 
 	const soExpired = true
 	const soNotExpired = false
@@ -994,97 +945,57 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 		}
 	}
 
-	type testSuite struct {
-		t   *testing.T
-		dk  dymnskeeper.Keeper
-		bk  dymnstypes.BankKeeper
-		ctx sdk.Context
+	requireOwnerChanged := func(dymName dymnstypes.DymName, newOwner string, s *KeeperTestSuite) {
+		s.Require().NotEmpty(newOwner, "mis-configured test case")
+
+		laterDymName := s.dymNsKeeper.GetDymName(s.ctx, dymName.Name)
+		s.Require().NotNil(laterDymName)
+
+		s.Require().Equal(newOwner, laterDymName.Owner, "ownership must be transferred")
+		s.Require().Equal(newOwner, laterDymName.Controller, "controller must be changed")
+		s.Require().Equal(dymName.ExpireAt, laterDymName.ExpireAt, "expiry must not be changed")
+		s.Require().Empty(laterDymName.Configs, "configs must be cleared")
 	}
 
-	nts := func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) testSuite {
-		return testSuite{
-			t:   t,
-			dk:  dk,
-			bk:  bk,
-			ctx: ctx,
-		}
+	requireDymNameNotChanged := func(dymName dymnstypes.DymName, s *KeeperTestSuite) {
+		laterDymName := s.dymNsKeeper.GetDymName(s.ctx, dymName.Name)
+		s.Require().NotNil(laterDymName)
+
+		s.Require().Equal(dymName, *laterDymName, "nothing changed")
 	}
 
-	requireOwnerChanged := func(dymName dymnstypes.DymName, newOwner string, ts testSuite) {
-		require.NotEmpty(t, newOwner, "mis-configured test case")
-
-		laterDymName := ts.dk.GetDymName(ts.ctx, dymName.Name)
-		require.NotNil(t, laterDymName)
-
-		require.Equal(t, newOwner, laterDymName.Owner, "ownership must be transferred")
-		require.Equal(t, newOwner, laterDymName.Controller, "controller must be changed")
-		require.Equal(t, dymName.ExpireAt, laterDymName.ExpireAt, "expiry must not be changed")
-		require.Empty(t, laterDymName.Configs, "configs must be cleared")
-	}
-
-	requireDymNameNotChanged := func(dymName dymnstypes.DymName, ts testSuite) {
-		laterDymName := ts.dk.GetDymName(ts.ctx, dymName.Name)
-		require.NotNil(t, laterDymName)
-
-		require.Equal(t, dymName, *laterDymName, "nothing changed")
-	}
-
-	requireNoActiveSO := func(dymName dymnstypes.DymName, ts testSuite) {
-		so := ts.dk.GetSellOrder(ts.ctx, dymName.Name, dymnstypes.TypeName)
-		require.Nil(t, so)
-	}
-
-	requireHistoricalSOs := func(dymName dymnstypes.DymName, wantCount int, ts testSuite) {
-		historicalSOs := ts.dk.GetHistoricalSellOrders(ts.ctx, dymName.Name, dymnstypes.TypeName)
-		require.Lenf(t, historicalSOs, wantCount, "should have %d historical SOs", wantCount)
-	}
-
-	requireModuleBalance := func(wantAmount int64, ts testSuite) {
-		moduleBalance := ts.bk.GetBalance(ts.ctx, dymNsModuleAccAddr, denom)
-		require.NotNil(t, moduleBalance)
-
-		require.Equalf(t, wantAmount, moduleBalance.Amount.Int64(), "module balance should be %d", wantAmount)
-	}
-
-	requireAccountBalance := func(bech32Addr string, wantAmount int64, ts testSuite) {
-		accountBalance := ts.bk.GetBalance(ts.ctx, sdk.MustAccAddressFromBech32(bech32Addr), denom)
-		require.NotNil(t, accountBalance)
-
-		require.Equalf(t, wantAmount, accountBalance.Amount.Int64(), "account balance should be %d", wantAmount)
-	}
-
-	requireConfiguredAddressMappedDymNames := func(ts testSuite, cfgAddr string, names ...string) {
-		dymNames, err := ts.dk.GetDymNamesContainsConfiguredAddress(ts.ctx, cfgAddr)
-		require.NoError(ts.t, err)
-		require.Len(ts.t, dymNames, len(names))
+	requireConfiguredAddressMappedDymNames := func(s *KeeperTestSuite, cfgAddr string, names ...string) {
+		dymNames, err := s.dymNsKeeper.GetDymNamesContainsConfiguredAddress(s.ctx, cfgAddr)
+		s.Require().NoError(err)
+		s.Require().Len(dymNames, len(names))
 		sort.Strings(names)
 		sort.Slice(dymNames, func(i, j int) bool {
 			return dymNames[i].Name < dymNames[j].Name
 		})
 		for i, name := range names {
-			require.Equal(ts.t, name, dymNames[i].Name)
+			s.Require().Equal(name, dymNames[i].Name)
 		}
 	}
 
-	requireConfiguredAddressMappedNoDymName := func(ts testSuite, cfgAddr string) {
-		requireConfiguredAddressMappedDymNames(ts, cfgAddr)
+	requireConfiguredAddressMappedNoDymName := func(s *KeeperTestSuite, cfgAddr string) {
+		requireConfiguredAddressMappedDymNames(s, cfgAddr)
 	}
 
-	requireFallbackAddrMappedDymNames := func(ts testSuite, fallbackAddr dymnstypes.FallbackAddress, names ...string) {
-		dymNames, err := ts.dk.GetDymNamesContainsFallbackAddress(ts.ctx, fallbackAddr)
-		require.NoError(ts.t, err)
-		require.Len(ts.t, dymNames, len(names))
+	requireFallbackAddrMappedDymNames := func(s *KeeperTestSuite, fallbackAddr dymnstypes.FallbackAddress, names ...string) {
+		dymNames, err := s.dymNsKeeper.GetDymNamesContainsFallbackAddress(s.ctx, fallbackAddr)
+		s.Require().NoError(err)
+		s.Require().Len(dymNames, len(names))
 		sort.Strings(names)
 		sort.Slice(dymNames, func(i, j int) bool {
 			return dymNames[i].Name < dymNames[j].Name
 		})
 		for i, name := range names {
-			require.Equal(ts.t, name, dymNames[i].Name)
+			s.Require().Equal(name, dymNames[i].Name)
 		}
 	}
 
-	requireFallbackAddrMappedNoDymName := func(ts testSuite, fallbackAddr dymnstypes.FallbackAddress) {
-		requireFallbackAddrMappedDymNames(ts, fallbackAddr)
+	requireFallbackAddrMappedNoDymName := func(s *KeeperTestSuite, fallbackAddr dymnstypes.FallbackAddress) {
+		requireFallbackAddrMappedDymNames(s, fallbackAddr)
 	}
 
 	tests := []struct {
@@ -1094,11 +1005,11 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 		expiryByDymName       []dymnstypes.ActiveSellOrdersExpirationRecord
 		preMintModuleBalance  int64
 		customEpochIdentifier string
-		beforeHookTestFunc    func(*testing.T, dymnskeeper.Keeper, dymnstypes.BankKeeper, sdk.Context)
+		beforeHookTestFunc    func(*KeeperTestSuite)
 		wantErr               bool
 		wantErrContains       string
 		wantExpiryByDymName   []dymnstypes.ActiveSellOrdersExpirationRecord
-		afterHookTestFunc     func(*testing.T, dymnskeeper.Keeper, dymnstypes.BankKeeper, sdk.Context)
+		afterHookTestFunc     func(*KeeperTestSuite)
 	}{
 		{
 			name:       "pass - simple process expired SO",
@@ -1111,30 +1022,28 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 				},
 			},
 			preMintModuleBalance: 200,
-			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
-				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				requireConfiguredAddressMappedDymNames(s, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireConfiguredAddressMappedNoDymName(s, bidderA)
+				requireFallbackAddrMappedDymNames(s, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireFallbackAddrMappedNoDymName(s, bidderAcc.fallback())
 			},
 			wantErr:             false,
 			wantExpiryByDymName: nil,
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
-				ts := nts(t, dk, bk, ctx)
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireDymNameNotChanged(dymNameA, s)
+				s.requireDymName(dymNameA.Name).
+					noActiveSO().
+					mustHaveHistoricalSoCount(1)
 
-				requireDymNameNotChanged(dymNameA, ts)
-				requireNoActiveSO(dymNameA, ts)
-				requireHistoricalSOs(dymNameA, 1, ts)
+				s.Require().EqualValues(200, s.moduleBalance())
 
-				requireModuleBalance(200, ts)
+				s.EqualValues(0, s.balance(dymNameA.Owner))
 
-				requireAccountBalance(dymNameA.Owner, 0, ts)
-
-				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
+				requireConfiguredAddressMappedDymNames(s, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireConfiguredAddressMappedNoDymName(s, bidderA)
+				requireFallbackAddrMappedDymNames(s, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireFallbackAddrMappedNoDymName(s, bidderAcc.fallback())
 			},
 		},
 		{
@@ -1151,30 +1060,28 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 				},
 			},
 			preMintModuleBalance: 200,
-			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
-				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name)
-				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				requireConfiguredAddressMappedDymNames(s, ownerA, dymNameA.Name)
+				requireConfiguredAddressMappedNoDymName(s, bidderA)
+				requireFallbackAddrMappedDymNames(s, ownerAcc.fallback(), dymNameA.Name)
+				requireFallbackAddrMappedNoDymName(s, bidderAcc.fallback())
 			},
 			wantErr:             false,
 			wantExpiryByDymName: nil,
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
-				ts := nts(t, dk, bk, ctx)
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireOwnerChanged(dymNameA, bidderA, s)
+				s.requireDymName(dymNameA.Name).
+					noActiveSO().
+					mustHaveHistoricalSoCount(1)
 
-				requireOwnerChanged(dymNameA, bidderA, ts)
-				requireNoActiveSO(dymNameA, ts)
-				requireHistoricalSOs(dymNameA, 1, ts)
+				s.Require().EqualValues(0, s.moduleBalance()) // 200 should be transferred to previous owner
 
-				requireModuleBalance(0, ts) // should be transferred to previous owner
+				s.Require().EqualValues(200, s.balance(dymNameA.Owner)) // previous owner should earn from bid
 
-				requireAccountBalance(dymNameA.Owner, 200, ts) // previous owner should earn from bid
-
-				requireConfiguredAddressMappedNoDymName(ts, ownerA)
-				requireConfiguredAddressMappedDymNames(ts, bidderA, dymNameA.Name)
-				requireFallbackAddrMappedNoDymName(ts, ownerAcc.fallback())
-				requireFallbackAddrMappedDymNames(ts, bidderAcc.fallback(), dymNameA.Name)
+				requireConfiguredAddressMappedNoDymName(s, ownerA)
+				requireConfiguredAddressMappedDymNames(s, bidderA, dymNameA.Name)
+				requireFallbackAddrMappedNoDymName(s, ownerAcc.fallback())
+				requireFallbackAddrMappedDymNames(s, bidderAcc.fallback(), dymNameA.Name)
 			},
 		},
 		{
@@ -1191,30 +1098,28 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 				},
 			},
 			preMintModuleBalance: 250,
-			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
-				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name)
-				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				requireConfiguredAddressMappedDymNames(s, ownerA, dymNameA.Name)
+				requireConfiguredAddressMappedNoDymName(s, bidderA)
+				requireFallbackAddrMappedDymNames(s, ownerAcc.fallback(), dymNameA.Name)
+				requireFallbackAddrMappedNoDymName(s, bidderAcc.fallback())
 			},
 			wantErr:             false,
 			wantExpiryByDymName: nil,
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
-				ts := nts(t, dk, bk, ctx)
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireOwnerChanged(dymNameA, bidderA, s)
+				s.requireDymName(dymNameA.Name).
+					noActiveSO().
+					mustHaveHistoricalSoCount(1)
 
-				requireOwnerChanged(dymNameA, bidderA, ts)
-				requireNoActiveSO(dymNameA, ts)
-				requireHistoricalSOs(dymNameA, 1, ts)
+				s.Require().EqualValues(150, s.moduleBalance()) // 100 should be transferred to previous owner
 
-				requireModuleBalance(150, ts) // 100 should be transferred to previous owner
+				s.Require().EqualValues(100, s.balance(dymNameA.Owner)) // previous owner should earn from bid
 
-				requireAccountBalance(dymNameA.Owner, 100, ts) // previous owner should earn from bid
-
-				requireConfiguredAddressMappedNoDymName(ts, ownerA)
-				requireConfiguredAddressMappedDymNames(ts, bidderA, dymNameA.Name)
-				requireFallbackAddrMappedNoDymName(ts, ownerAcc.fallback())
-				requireFallbackAddrMappedDymNames(ts, bidderAcc.fallback(), dymNameA.Name)
+				requireConfiguredAddressMappedNoDymName(s, ownerA)
+				requireConfiguredAddressMappedDymNames(s, bidderA, dymNameA.Name)
+				requireFallbackAddrMappedNoDymName(s, ownerAcc.fallback())
+				requireFallbackAddrMappedDymNames(s, bidderAcc.fallback(), dymNameA.Name)
 			},
 		},
 		{
@@ -1256,12 +1161,11 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 				},
 			},
 			preMintModuleBalance: 450,
-			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
-				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				requireConfiguredAddressMappedDymNames(s, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireConfiguredAddressMappedNoDymName(s, bidderA)
+				requireFallbackAddrMappedDymNames(s, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireFallbackAddrMappedNoDymName(s, bidderAcc.fallback())
 			},
 			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
@@ -1270,38 +1174,39 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 					ExpireAt: soNotExpiredEpoch,
 				},
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
-				ts := nts(t, dk, bk, ctx)
-
+			afterHookTestFunc: func(s *KeeperTestSuite) {
 				// SO for Dym-Name A is expired without any bid/winner
-				requireDymNameNotChanged(dymNameA, ts)
-				requireNoActiveSO(dymNameA, ts)
-				requireHistoricalSOs(dymNameA, 1, ts)
+				requireDymNameNotChanged(dymNameA, s)
+				s.requireDymName(dymNameA.Name).
+					noActiveSO().
+					mustHaveHistoricalSoCount(1)
 
 				// SO for Dym-Name B not yet finished
-				requireDymNameNotChanged(dymNameB, ts)
-				soB := ts.dk.GetSellOrder(ts.ctx, dymNameB.Name, dymnstypes.TypeName)
-				require.NotNil(t, soB)
-				requireHistoricalSOs(dymNameB, 0, ts)
+				requireDymNameNotChanged(dymNameB, s)
+				soB := s.dymNsKeeper.GetSellOrder(s.ctx, dymNameB.Name, dymnstypes.TypeName)
+				s.Require().NotNil(soB)
+				s.requireDymName(dymNameB.Name).noHistoricalSO()
 
 				// SO for Dym-Name C is completed with winner
-				requireOwnerChanged(dymNameC, bidderA, ts)
-				requireNoActiveSO(dymNameC, ts)
-				requireHistoricalSOs(dymNameC, 1, ts)
+				requireOwnerChanged(dymNameC, bidderA, s)
+				s.requireDymName(dymNameC.Name).
+					noActiveSO().
+					mustHaveHistoricalSoCount(1)
 
 				// SO for Dym-Name D is completed with winner
-				requireOwnerChanged(dymNameD, bidderA, ts)
-				requireNoActiveSO(dymNameD, ts)
-				requireHistoricalSOs(dymNameD, 1, ts)
+				requireOwnerChanged(dymNameD, bidderA, s)
+				s.requireDymName(dymNameD.Name).
+					noActiveSO().
+					mustHaveHistoricalSoCount(1)
 
-				requireModuleBalance(150, ts)
+				s.Require().EqualValues(150, s.moduleBalance())
 
-				requireAccountBalance(ownerA, 300, ts) // price from 2 completed SO
+				s.Require().EqualValues(300, s.balance(ownerA)) // 200 from SO C, 100 from SO D
 
-				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
-				requireConfiguredAddressMappedDymNames(ts, bidderA, dymNameC.Name, dymNameD.Name)
-				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name)
-				requireFallbackAddrMappedDymNames(ts, bidderAcc.fallback(), dymNameC.Name, dymNameD.Name)
+				requireConfiguredAddressMappedDymNames(s, ownerA, dymNameA.Name, dymNameB.Name)
+				requireConfiguredAddressMappedDymNames(s, bidderA, dymNameC.Name, dymNameD.Name)
+				requireFallbackAddrMappedDymNames(s, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name)
+				requireFallbackAddrMappedDymNames(s, bidderAcc.fallback(), dymNameC.Name, dymNameD.Name)
 			},
 		},
 		{
@@ -1344,12 +1249,11 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 			},
 			preMintModuleBalance:  450,
 			customEpochIdentifier: "another",
-			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
-				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				requireConfiguredAddressMappedDymNames(s, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireConfiguredAddressMappedNoDymName(s, bidderA)
+				requireFallbackAddrMappedDymNames(s, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireFallbackAddrMappedNoDymName(s, bidderAcc.fallback())
 			},
 			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
@@ -1370,22 +1274,20 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 					ExpireAt: soExpiredEpoch,
 				},
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
-				ts := nts(t, dk, bk, ctx)
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireDymNameNotChanged(dymNameA, s)
+				requireDymNameNotChanged(dymNameB, s)
+				requireDymNameNotChanged(dymNameC, s)
+				requireDymNameNotChanged(dymNameD, s)
 
-				requireDymNameNotChanged(dymNameA, ts)
-				requireDymNameNotChanged(dymNameB, ts)
-				requireDymNameNotChanged(dymNameC, ts)
-				requireDymNameNotChanged(dymNameD, ts)
+				s.Require().EqualValues(450, s.moduleBalance())
 
-				requireModuleBalance(450, ts)
+				s.Require().EqualValues(0, s.balance(ownerA))
 
-				requireAccountBalance(ownerA, 0, ts)
-
-				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
+				requireConfiguredAddressMappedDymNames(s, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireConfiguredAddressMappedNoDymName(s, bidderA)
+				requireFallbackAddrMappedDymNames(s, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireFallbackAddrMappedNoDymName(s, bidderAcc.fallback())
 			},
 		},
 		{
@@ -1406,24 +1308,22 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 					ExpireAt: soExpiredEpoch,
 				},
 			},
-			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
-				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name)
-				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				requireConfiguredAddressMappedDymNames(s, ownerA, dymNameA.Name, dymNameB.Name)
+				requireConfiguredAddressMappedNoDymName(s, bidderA)
+				requireFallbackAddrMappedDymNames(s, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name)
+				requireFallbackAddrMappedNoDymName(s, bidderAcc.fallback())
 			},
 			wantErr:             false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				// removed reference to Dym-Name A because of processed
 				// removed reference to Dym-Name B because SO not exists
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
-				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name)
-				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireConfiguredAddressMappedDymNames(s, ownerA, dymNameA.Name, dymNameB.Name)
+				requireConfiguredAddressMappedNoDymName(s, bidderA)
+				requireFallbackAddrMappedDymNames(s, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name)
+				requireFallbackAddrMappedNoDymName(s, bidderAcc.fallback())
 			},
 		},
 		{
@@ -1444,12 +1344,11 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 					ExpireAt: soExpiredEpoch,
 				},
 			},
-			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
-				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name)
-				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				requireConfiguredAddressMappedDymNames(s, ownerA, dymNameA.Name, dymNameB.Name)
+				requireConfiguredAddressMappedNoDymName(s, bidderA)
+				requireFallbackAddrMappedDymNames(s, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name)
+				requireFallbackAddrMappedNoDymName(s, bidderAcc.fallback())
 			},
 			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
@@ -1458,12 +1357,11 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 					ExpireAt: soNotExpiredEpoch,
 				},
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
-				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name)
-				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				requireConfiguredAddressMappedDymNames(s, ownerA, dymNameA.Name, dymNameB.Name)
+				requireConfiguredAddressMappedNoDymName(s, bidderA)
+				requireFallbackAddrMappedDymNames(s, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name)
+				requireFallbackAddrMappedNoDymName(s, bidderAcc.fallback())
 			},
 		},
 		{
@@ -1480,12 +1378,11 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 				},
 			},
 			preMintModuleBalance: 1, // not enough balance
-			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
-				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name)
-				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				requireConfiguredAddressMappedDymNames(s, ownerA, dymNameA.Name)
+				requireConfiguredAddressMappedNoDymName(s, bidderA)
+				requireFallbackAddrMappedDymNames(s, ownerAcc.fallback(), dymNameA.Name)
+				requireFallbackAddrMappedNoDymName(s, bidderAcc.fallback())
 			},
 			wantErr:         true,
 			wantErrContains: "insufficient funds",
@@ -1495,77 +1392,76 @@ func Test_epochHooks_AfterEpochEnd_processActiveDymNameSellOrders(t *testing.T) 
 					ExpireAt: soExpiredEpoch,
 				},
 			},
-			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, ctx sdk.Context) {
+			afterHookTestFunc: func(s *KeeperTestSuite) {
 				// unchanged
-				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name)
-				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
+
+				requireConfiguredAddressMappedDymNames(s, ownerA, dymNameA.Name)
+				requireConfiguredAddressMappedNoDymName(s, bidderA)
+				requireFallbackAddrMappedDymNames(s, ownerAcc.fallback(), dymNameA.Name)
+				requireFallbackAddrMappedNoDymName(s, bidderAcc.fallback())
 			},
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			require.NotNil(t, tt.beforeHookTestFunc, "mis-configured test case")
-			require.NotNil(t, tt.afterHookTestFunc, "mis-configured test case")
+		s.Run(tt.name, func() {
+			s.Require().NotNil(tt.beforeHookTestFunc, "mis-configured test case")
+			s.Require().NotNil(tt.afterHookTestFunc, "mis-configured test case")
 
-			dk, bk, ctx := setupTest()
+			s.SetupTest()
 
 			if tt.preMintModuleBalance > 0 {
-				err := bk.MintCoins(ctx, dymnstypes.ModuleName, dymnsutils.TestCoins(tt.preMintModuleBalance))
-				require.NoError(t, err)
+				s.mintToModuleAccount(tt.preMintModuleBalance)
 			}
 
-			err := dk.SetActiveSellOrdersExpiration(ctx, &dymnstypes.ActiveSellOrdersExpiration{
+			err := s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, &dymnstypes.ActiveSellOrdersExpiration{
 				Records: tt.expiryByDymName,
 			}, dymnstypes.TypeName)
-			require.NoError(t, err)
+			s.Require().NoError(err)
 
 			for _, dymName := range tt.dymNames {
-				setDymNameWithFunctionsAfter(ctx, dymName, t, dk)
+				s.setDymNameWithFunctionsAfter(dymName)
 			}
 
 			for _, so := range tt.sellOrders {
-				err = dk.SetSellOrder(ctx, so)
-				require.NoError(t, err)
+				err = s.dymNsKeeper.SetSellOrder(s.ctx, so)
+				s.Require().NoError(err)
 			}
 
-			moduleParams := dk.GetParams(ctx)
+			moduleParams := s.dymNsKeeper.GetParams(s.ctx)
 
 			useEpochIdentifier := moduleParams.Misc.EndEpochHookIdentifier
 			if tt.customEpochIdentifier != "" {
 				useEpochIdentifier = tt.customEpochIdentifier
 			}
 
-			tt.beforeHookTestFunc(t, dk, bk, ctx)
+			tt.beforeHookTestFunc(s)
 
-			err = dk.GetEpochHooks().AfterEpochEnd(ctx, useEpochIdentifier, 1)
+			err = s.dymNsKeeper.GetEpochHooks().AfterEpochEnd(s.ctx, useEpochIdentifier, 1)
 
 			defer func() {
-				if t.Failed() {
+				if s.T().Failed() {
 					return
 				}
 
-				tt.afterHookTestFunc(t, dk, bk, ctx)
+				tt.afterHookTestFunc(s)
 
-				aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
+				aSoe := s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, dymnstypes.TypeName)
 				if len(tt.wantExpiryByDymName) == 0 {
-					require.Empty(t, aSoe.Records)
+					s.Require().Empty(aSoe.Records)
 				} else {
-					require.Equal(t, tt.wantExpiryByDymName, aSoe.Records)
+					s.Require().Equal(tt.wantExpiryByDymName, aSoe.Records)
 				}
 			}()
 
 			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), tt.wantErrContains)
 
 				return
 			}
 
-			require.NoError(t, err)
+			s.Require().NoError(err)
 		})
 	}
 }

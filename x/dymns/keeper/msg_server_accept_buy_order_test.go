@@ -17,8 +17,6 @@ import (
 )
 
 func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
-	now := time.Now().UTC()
-
 	const minOfferPrice = 5
 	const daysProhibitSell = 30
 
@@ -51,7 +49,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 		Name:       "a",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   now.Add(daysProhibitSell * 24 * time.Hour).Add(time.Second).Unix(),
+		ExpireAt:   s.now.Add(daysProhibitSell * 24 * time.Hour).Add(time.Second).Unix(),
 	}
 
 	sameDymNameButOwnedByAnother := &dymnstypes.DymName{
@@ -450,7 +448,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 					Name:       dymName.Name,
 					Owner:      dymName.Owner,
 					Controller: dymName.Controller,
-					ExpireAt:   now.Unix() - 1,
+					ExpireAt:   s.now.Unix() - 1,
 				}
 			}(),
 			existingOffer:          offer,
@@ -490,7 +488,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 					Name:       dymName.Name,
 					Owner:      dymName.Owner,
 					Controller: dymName.Owner,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Add(time.Hour).Unix(),
 				}
 			}(),
 			existingOffer:         offer,
@@ -506,7 +504,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 					Name:       dymName.Name,
 					Owner:      dymName.Owner,
 					Controller: dymName.Owner,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Add(time.Hour).Unix(),
 				}
 			}(),
 			wantLaterOffer:         offer,

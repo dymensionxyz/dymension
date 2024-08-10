@@ -2,21 +2,11 @@ package keeper_test
 
 import (
 	"reflect"
-	"testing"
-	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	"github.com/stretchr/testify/require"
 )
 
-func TestKeeper_MigrateChainIds(t *testing.T) {
-	now := time.Now().UTC()
-	const chainId = "dymension_1100-1"
-
+func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 	addr1a := testAddr(1).bech32()
 	addr2a := testAddr(2).bech32()
 	cosmos3A := testAddr(3).bech32C("cosmos")
@@ -26,7 +16,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 		dymNames              []dymnstypes.DymName
 		replacement           []dymnstypes.MigrateChainId
 		chainsAliasParams     []dymnstypes.AliasesOfChainId
-		additionalSetup       func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper)
+		additionalSetup       func(s *KeeperTestSuite)
 		wantErr               bool
 		wantErrContains       string
 		wantDymNames          []dymnstypes.DymName
@@ -39,7 +29,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-3",
@@ -51,7 +41,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "b",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 			},
 			replacement: []dymnstypes.MigrateChainId{
@@ -77,7 +67,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-4",
@@ -89,7 +79,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "b",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 			},
 			wantChainsAliasParams: []dymnstypes.AliasesOfChainId{
@@ -121,7 +111,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Aliases: []string{"bb"},
 				},
 				{
-					ChainId: chainId,
+					ChainId: s.chainId,
 					Aliases: []string{"dym"},
 				},
 			},
@@ -136,7 +126,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Aliases: []string{"bb"},
 				},
 				{
-					ChainId: chainId,
+					ChainId: s.chainId,
 					Aliases: []string{"dym"},
 				},
 			},
@@ -148,7 +138,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-3",
@@ -160,7 +150,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "b",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -199,7 +189,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-4",
@@ -211,7 +201,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "b",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -242,7 +232,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-3",
@@ -254,7 +244,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "b",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() - 1,
+					ExpireAt:   s.now.Unix() - 1,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-3",
@@ -275,7 +265,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-4",
@@ -287,7 +277,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "b",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() - 1,
+					ExpireAt:   s.now.Unix() - 1,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-3", // keep
@@ -304,7 +294,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "blumbus_111-1",
@@ -321,7 +311,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 			},
 			chainsAliasParams: []dymnstypes.AliasesOfChainId{
 				{
-					ChainId: chainId,
+					ChainId: s.chainId,
 					Aliases: []string{"dym"}, // collision with new chain-id
 				},
 				{
@@ -336,7 +326,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "blumbus_111-1", // not updated
@@ -348,7 +338,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 			wantChainsAliasParams: []dymnstypes.AliasesOfChainId{
 				// not changed
 				{
-					ChainId: chainId,
+					ChainId: s.chainId,
 					Aliases: []string{"dym"},
 				},
 				{
@@ -367,7 +357,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 			},
 			chainsAliasParams: []dymnstypes.AliasesOfChainId{
 				{
-					ChainId: chainId,
+					ChainId: s.chainId,
 					Aliases: []string{"dym"}, // collision with new chain-id
 				},
 				{
@@ -380,7 +370,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 			wantChainsAliasParams: []dymnstypes.AliasesOfChainId{
 				// not changed
 				{
-					ChainId: chainId,
+					ChainId: s.chainId,
 					Aliases: []string{"dym"},
 				},
 				{
@@ -410,7 +400,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 			},
 			chainsAliasParams: []dymnstypes.AliasesOfChainId{
 				{
-					ChainId: chainId,
+					ChainId: s.chainId,
 					Aliases: []string{"dym"},
 				},
 				{
@@ -425,7 +415,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 			wantErr: false,
 			wantChainsAliasParams: []dymnstypes.AliasesOfChainId{
 				{
-					ChainId: chainId,
+					ChainId: s.chainId,
 					Aliases: []string{"dym"},
 				},
 				{
@@ -441,7 +431,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						// migrate this will cause non-unique config
 						{
@@ -462,7 +452,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "b",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -476,7 +466,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "c",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -499,7 +489,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -519,7 +509,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "b",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -533,7 +523,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Name:       "c",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -547,60 +537,59 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
+		s.Run(tt.name, func() {
+			s.SetupTest()
 
-			ctx = ctx.WithBlockTime(now).WithChainID(chainId)
-
-			moduleParams := dk.GetParams(ctx)
-			moduleParams.Chains.AliasesOfChainIds = tt.chainsAliasParams
-			require.NoError(t, dk.SetParams(ctx, moduleParams))
+			s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+				moduleParams.Chains.AliasesOfChainIds = tt.chainsAliasParams
+				return moduleParams
+			})
 
 			for _, dymName := range tt.dymNames {
-				setDymNameWithFunctionsAfter(ctx, dymName, t, dk)
+				s.setDymNameWithFunctionsAfter(dymName)
 			}
 
 			if tt.additionalSetup != nil {
-				tt.additionalSetup(ctx, dk, rk)
+				tt.additionalSetup(s)
 			}
 
-			err := dk.MigrateChainIds(ctx, tt.replacement)
+			err := s.dymNsKeeper.MigrateChainIds(s.ctx, tt.replacement)
 
 			defer func() {
-				laterModuleParams := dk.GetParams(ctx)
+				laterModuleParams := s.moduleParams()
 				if len(tt.wantChainsAliasParams) > 0 || len(laterModuleParams.Chains.AliasesOfChainIds) > 0 {
 					if !reflect.DeepEqual(tt.wantChainsAliasParams, laterModuleParams.Chains.AliasesOfChainIds) {
-						t.Errorf("alias: want %v, got %v", tt.wantChainsAliasParams, laterModuleParams.Chains.AliasesOfChainIds)
+						s.T().Errorf("alias: want %v, got %v", tt.wantChainsAliasParams, laterModuleParams.Chains.AliasesOfChainIds)
 					}
 				}
 			}()
 
 			defer func() {
 				for _, wantDymName := range tt.wantDymNames {
-					laterDymName := dk.GetDymName(ctx, wantDymName.Name)
-					require.NotNil(t, laterDymName)
+					laterDymName := s.dymNsKeeper.GetDymName(s.ctx, wantDymName.Name)
+					s.Require().NotNil(laterDymName)
 					if !reflect.DeepEqual(wantDymName.Configs, laterDymName.Configs) {
-						t.Errorf("dym name config: want %v, got %v", wantDymName.Configs, laterDymName.Configs)
+						s.T().Errorf("dym name config: want %v, got %v", wantDymName.Configs, laterDymName.Configs)
 					}
 					if !reflect.DeepEqual(wantDymName, *laterDymName) {
-						t.Errorf("dym name: want %v, got %v", wantDymName, *laterDymName)
+						s.T().Errorf("dym name: want %v, got %v", wantDymName, *laterDymName)
 					}
 				}
 			}()
 
 			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), tt.wantErrContains)
 				return
 			}
 
-			require.NoError(t, err)
+			s.Require().NoError(err)
 		})
 	}
 }
 
-func TestKeeper_UpdateAliases(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_UpdateAliases() {
 	tests := []struct {
 		name                  string
 		chainsAliasParams     []dymnstypes.AliasesOfChainId
@@ -914,36 +903,37 @@ func TestKeeper_UpdateAliases(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+		s.Run(tt.name, func() {
+			s.SetupTest()
 
-			moduleParams := dk.GetParams(ctx)
-			moduleParams.Chains.AliasesOfChainIds = tt.chainsAliasParams
-			require.NoError(t, dk.SetParams(ctx, moduleParams))
+			s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+				moduleParams.Chains.AliasesOfChainIds = tt.chainsAliasParams
+				return moduleParams
+			})
 
-			err := dk.UpdateAliases(ctx, tt.add, tt.remove)
+			err := s.dymNsKeeper.UpdateAliases(s.ctx, tt.add, tt.remove)
 
-			laterModuleParams := dk.GetParams(ctx)
+			laterModuleParams := s.moduleParams()
 			defer func() {
-				if t.Failed() {
+				if s.T().Failed() {
 					return
 				}
 
 				if len(tt.wantChainsAliasParams) == 0 {
-					require.Empty(t, laterModuleParams.Chains.AliasesOfChainIds)
+					s.Require().Empty(laterModuleParams.Chains.AliasesOfChainIds)
 				} else {
-					require.Equal(t, tt.wantChainsAliasParams, laterModuleParams.Chains.AliasesOfChainIds)
+					s.Require().Equal(tt.wantChainsAliasParams, laterModuleParams.Chains.AliasesOfChainIds)
 				}
 			}()
 
 			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), tt.wantErrContains)
 				return
 			}
 
-			require.NoError(t, err)
+			s.Require().NoError(err)
 		})
 	}
 }

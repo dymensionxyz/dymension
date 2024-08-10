@@ -620,3 +620,41 @@ func (m reqFallbackAddr) notMappedToAnyDymName() {
 	m.s.Require().NoError(err)
 	m.s.Require().Empty(dymNames)
 }
+
+//
+
+type reqDymNameS struct {
+	s       *KeeperTestSuite
+	dymName string
+}
+
+func (s *KeeperTestSuite) requireDymName(dymName string) *reqDymNameS {
+	return &reqDymNameS{
+		s:       s,
+		dymName: dymName,
+	}
+}
+
+func (m reqDymNameS) mustHaveActiveSO() reqDymNameS {
+	so := m.s.dymNsKeeper.GetSellOrder(m.s.ctx, m.dymName, dymnstypes.TypeName)
+	m.s.Require().NotNil(so)
+	return m
+}
+
+func (m reqDymNameS) noActiveSO() reqDymNameS {
+	so := m.s.dymNsKeeper.GetSellOrder(m.s.ctx, m.dymName, dymnstypes.TypeName)
+	m.s.Require().Nil(so)
+	return m
+}
+
+func (m reqDymNameS) mustHaveHistoricalSoCount(count int) reqDymNameS {
+	hso := m.s.dymNsKeeper.GetHistoricalSellOrders(m.s.ctx, m.dymName, dymnstypes.TypeName)
+	m.s.Require().Len(hso, count)
+	return m
+}
+
+func (m reqDymNameS) noHistoricalSO() reqDymNameS {
+	hso := m.s.dymNsKeeper.GetHistoricalSellOrders(m.s.ctx, m.dymName, dymnstypes.TypeName)
+	m.s.Require().Empty(hso)
+	return m
+}
