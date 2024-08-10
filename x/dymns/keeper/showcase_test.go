@@ -3,16 +3,12 @@ package keeper_test
 import (
 	"sort"
 	"strings"
-	"testing"
 	"time"
 
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
@@ -35,17 +31,17 @@ Why reverse-resolve address to Dym-Name-Address?
 */
 
 //goland:noinspection SpellCheckingInspection
-func TestKeeper_NewRegistration(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_NewRegistration() {
 	/**
 	This show how Dym-Name record look like in store, after new registration
 	And basic resolve Dym-Name-Address & reverse-resolve address to the Dym-Name-Address
 	*/
 
-	sc := setupShowcase(t)
+	sc := setupShowcase(s)
 
-	require.Equal(t, "dymension", sc.ctx.ChainID()) // our chain-id is "dymension"
+	s.Require().Equal("dymension", sc.s.ctx.ChainID()) // our chain-id is "dymension"
 
-	dymNameExpirationDate := sc.now.Add(365 * 24 * time.Hour)
+	dymNameExpirationDate := sc.s.now.Add(365 * 24 * time.Hour)
 
 	sc.
 		newDymName(
@@ -57,7 +53,7 @@ func TestKeeper_NewRegistration(t *testing.T) {
 		withExpiry(dymNameExpirationDate).
 		save()
 
-	t.Run("this show how the new Dym-Name record look like after new registration", func(t *testing.T) {
+	s.Run("this show how the new Dym-Name record look like after new registration", func() {
 		sc.requireDymName("my-name").equals(
 			dymnstypes.DymName{
 				Name:       "my-name",
@@ -70,14 +66,14 @@ func TestKeeper_NewRegistration(t *testing.T) {
 		)
 	})
 
-	t.Run("this show how resolve Dym-Name-Address look like for brand-new Dym-Name", func(t *testing.T) {
+	s.Run("this show how resolve Dym-Name-Address look like for brand-new Dym-Name", func() {
 		// resolve "my-name@dymension" to "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
 		sc.
 			requireResolveDymNameAddress("my-name@dymension").
 			Equals("dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue")
 	})
 
-	t.Run("this show how reverse-resolve to a Dym-Name-Address look like for brand-new Dym-Name", func(t *testing.T) {
+	s.Run("this show how reverse-resolve to a Dym-Name-Address look like for brand-new Dym-Name", func() {
 		// resolve "my-name@dymension" to "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
 		// and reverse-resolve is to resolve from "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue" back to "my-name@dymension"
 
@@ -87,14 +83,14 @@ func TestKeeper_NewRegistration(t *testing.T) {
 
 		// reverse lookup from 0x address
 		ownerIn0xFormat := common.BytesToAddress(sdk.MustAccAddressFromBech32("dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue")).String()
-		require.Equal(t, "0x4feA76427B8345861e80A3540a8a9D936FD39391", ownerIn0xFormat)
+		s.Require().Equal("0x4feA76427B8345861e80A3540a8a9D936FD39391", ownerIn0xFormat)
 		sc.
 			requireReverseResolve(ownerIn0xFormat).forChainId("dymension").
 			equals("my-name@dymension")
 		// reverse lookup from 0x address has some limitation, I'll provide more details at later parts
 	})
 
-	t.Run("this show how resolve address across all RollApps", func(t *testing.T) {
+	s.Run("this show how resolve address across all RollApps", func() {
 		dymName := sc.requireDymName("my-name").get()
 		ownerAccAddr := sdk.MustAccAddressFromBech32(dymName.Owner)
 
@@ -105,9 +101,9 @@ func TestKeeper_NewRegistration(t *testing.T) {
 
 		// convert owner address to RollApp's bech32 prefix
 		ownerWithONEPrefix := sdk.MustBech32ifyAddressBytes("one", ownerAccAddr)
-		require.Equal(t, "one1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3668wjg", ownerWithONEPrefix)
+		s.Require().Equal("one1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3668wjg", ownerWithONEPrefix)
 		ownerWithTWOPrefix := sdk.MustBech32ifyAddressBytes("two", ownerAccAddr)
-		require.Equal(t, "two1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3y4eefh", ownerWithTWOPrefix)
+		s.Require().Equal("two1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3y4eefh", ownerWithTWOPrefix)
 
 		sc.
 			requireResolveDymNameAddress("my-name@" + rollAppONE.RollappId).
@@ -123,9 +119,9 @@ func TestKeeper_NewRegistration(t *testing.T) {
 			NoResult()
 	})
 
-	t.Run("when Dym-Name is expired, resolution won't work in both ways", func(t *testing.T) {
+	s.Run("when Dym-Name is expired, resolution won't work in both ways", func() {
 		dymName := sc.requireDymName("my-name").get()
-		dymName.ExpireAt = sc.now.Add(-1 * time.Hour).Unix()
+		dymName.ExpireAt = sc.s.now.Add(-1 * time.Hour).Unix()
 		sc.requireDymName("my-name").update(*dymName)
 
 		// resolve address don't work anymore
@@ -160,7 +156,7 @@ func TestKeeper_NewRegistration(t *testing.T) {
 }
 
 //goland:noinspection SpellCheckingInspection
-func TestKeeper_DefaultDymNameConfiguration(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_DefaultDymNameConfiguration() {
 	/**
 	This adds more information about the default resolution
 	and how things change after update the default resolution
@@ -170,9 +166,9 @@ func TestKeeper_DefaultDymNameConfiguration(t *testing.T) {
 	* limit to the default only *
 	*/
 
-	sc := setupShowcase(t)
+	sc := setupShowcase(s)
 
-	require.Equal(t, "dymension", sc.ctx.ChainID()) // our chain-id is "dymension"
+	s.Require().Equal("dymension", sc.s.ctx.ChainID()) // our chain-id is "dymension"
 
 	owner := "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
 
@@ -183,10 +179,10 @@ func TestKeeper_DefaultDymNameConfiguration(t *testing.T) {
 		).
 		save()
 
-	t.Run("default resolution", func(t *testing.T) {
+	s.Run("default resolution", func() {
 		// by default, there is no configuration for configuration
 		dymName := sc.requireDymName("my-name").get()
-		require.Empty(t, dymName.Configs) // no config record
+		s.Require().Empty(dymName.Configs) // no config record
 
 		// so when query Dym-Name-Address, it will resolve to the Owner
 		sc.
@@ -215,10 +211,10 @@ func TestKeeper_DefaultDymNameConfiguration(t *testing.T) {
 				Value:   owner,
 			},
 		}
-		require.Len(t, dymName.Configs, 1) // ignore this line
+		s.Require().Len(dymName.Configs, 1) // ignore this line
 	})
 
-	t.Run("this is how things changed after we change the default resolution", func(t *testing.T) {
+	s.Run("this is how things changed after we change the default resolution", func() {
 		dymName := sc.requireDymName("my-name").get()
 
 		// create a new test account
@@ -260,15 +256,15 @@ func TestKeeper_DefaultDymNameConfiguration(t *testing.T) {
 }
 
 //goland:noinspection SpellCheckingInspection
-func TestKeeper_DymNameConfiguration(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_DymNameConfiguration() {
 	/**
 	This show how Dym-Name record look like in store, after update configuration resolution
 	And resolve Dym-Name-Address & reverse-resolve address to the Dym-Name-Address in a more complex way
 	*/
 
-	sc := setupShowcase(t)
+	sc := setupShowcase(s)
 
-	require.Equal(t, "dymension", sc.ctx.ChainID()) // our chain-id is "dymension"
+	s.Require().Equal("dymension", sc.s.ctx.ChainID()) // our chain-id is "dymension"
 
 	owner := sc.newTestAccount() // account 1
 
@@ -385,7 +381,7 @@ func TestKeeper_DymNameConfiguration(t *testing.T) {
 	// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	sc.requireDymName("my-name").update(*dymName)
 
-	t.Run("this show how the new Dym-Name record look like after updated", func(t *testing.T) {
+	s.Run("this show how the new Dym-Name record look like after updated", func() {
 		sc.requireDymName("my-name").equals(
 			dymnstypes.DymName{
 				Name:       "my-name",
@@ -447,21 +443,21 @@ func TestKeeper_DymNameConfiguration(t *testing.T) {
 		)
 	})
 
-	t.Run("resolve and reverse-resolve after updated", func(t *testing.T) {
+	s.Run("resolve and reverse-resolve after updated", func() {
 		// now we run the pending tests
 		sc.runPendingTests()
 	})
 }
 
 //goland:noinspection SpellCheckingInspection
-func TestKeeper_Alias(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_Alias() {
 	/**
 	This show details about Alias: working with alias and how it affects the resolution
 	*/
 
-	sc := setupShowcase(t)
+	sc := setupShowcase(s)
 
-	require.Equal(t, "dymension", sc.ctx.ChainID()) // our chain-id is "dymension"
+	s.Require().Equal("dymension", sc.s.ctx.ChainID()) // our chain-id is "dymension"
 
 	// register some aliases
 	sc.registerAlias("dym").forChainId("dymension")
@@ -486,7 +482,7 @@ func TestKeeper_Alias(t *testing.T) {
 	updateDymName(dymName).resolveTo(ethereumAddr).onChain("ethereum").add()
 	sc.requireDymName("my-name").update(*dymName)
 
-	t.Run("resolve address", func(t *testing.T) {
+	s.Run("resolve address", func() {
 		// general resolution using chain-id
 		sc.
 			requireResolveDymNameAddress("my-name@dymension").
@@ -516,7 +512,7 @@ func TestKeeper_Alias(t *testing.T) {
 			Equals(strings.ToLower(ethereumAddr))
 	})
 
-	t.Run("reverse-resolve address", func(t *testing.T) {
+	s.Run("reverse-resolve address", func() {
 		// if a chain has alias configured then reverse-resolve will use the alias instead of the chain-id
 		sc.
 			requireReverseResolve(owner.bech32()).
@@ -536,7 +532,7 @@ func TestKeeper_Alias(t *testing.T) {
 			equals("my-name@eth") // alias "eth" is used instead of "ethereum"
 	})
 
-	t.Run("when alias is defined in params, it has priority over RollApp", func(t *testing.T) {
+	s.Run("when alias is defined in params, it has priority over RollApp", func() {
 		// this RollApp is uses the alias "cosmos" which supposed to belong to Cosmos Hub
 		_ = sc.
 			newRollApp("unexpected_2-2").
@@ -561,7 +557,7 @@ func TestKeeper_Alias(t *testing.T) {
 			Equals(owner.bech32C("cosmos")) // that's it
 	})
 
-	t.Run("Reverse-resolve when alias is defined in params, it has priority over RollApp", func(t *testing.T) {
+	s.Run("Reverse-resolve when alias is defined in params, it has priority over RollApp", func() {
 		// this RollApp is uses the alias "injective" which supposed to belong to Injective
 		_ = sc.
 			newRollApp("unintended_3-3").
@@ -605,7 +601,7 @@ func TestKeeper_Alias(t *testing.T) {
 }
 
 //goland:noinspection SpellCheckingInspection
-func TestKeeper_ResolveExtraFormat(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_ResolveExtraFormat() {
 	/**
 	This show additional details about Extra Format resolution for the Dym-Name-Address.
 	Extra formats:
@@ -624,9 +620,9 @@ func TestKeeper_ResolveExtraFormat(t *testing.T) {
 	The result is expected to be the same as the input address, with prefix changed corresponding to the chain-id.
 	*/
 
-	sc := setupShowcase(t)
+	sc := setupShowcase(s)
 
-	require.Equal(t, "dymension", sc.ctx.ChainID()) // our chain-id is "dymension"
+	s.Require().Equal("dymension", sc.s.ctx.ChainID()) // our chain-id is "dymension"
 	sc.registerAlias("dym").forChainId("dymension")
 
 	rollApp1 := sc.newRollApp("one_1-1").withBech32Prefix("one").withAlias("one").save()
@@ -635,7 +631,7 @@ func TestKeeper_ResolveExtraFormat(t *testing.T) {
 
 	testAccount := sc.newTestAccount()
 
-	t.Run("resolve hex to chain-based bech32", func(t *testing.T) {
+	s.Run("resolve hex to chain-based bech32", func() {
 		// 0x...@dymension
 		sc.requireResolveDymNameAddress(testAccount.hexStr() + "@dymension").
 			Equals(testAccount.bech32())
@@ -659,7 +655,7 @@ func TestKeeper_ResolveExtraFormat(t *testing.T) {
 			Equals(testAccount.bech32C("one"))
 	})
 
-	t.Run("resolve bech32 to chain-based bech32", func(t *testing.T) {
+	s.Run("resolve bech32 to chain-based bech32", func() {
 		// kava1...@dymension
 		sc.requireResolveDymNameAddress(testAccount.bech32C("kava") + "@dymension").
 			Equals(testAccount.bech32())
@@ -682,7 +678,7 @@ func TestKeeper_ResolveExtraFormat(t *testing.T) {
 	sc.requireResolveDymNameAddress("otherNotWelformedAddress@dymension").
 		WillError()
 
-	t.Run("when alias is defined in params, it has priority over RollApp", func(t *testing.T) {
+	s.Run("when alias is defined in params, it has priority over RollApp", func() {
 		_ = sc.
 			newRollApp("unintended_3-3").
 			withAlias("injective").
@@ -702,15 +698,15 @@ func TestKeeper_ResolveExtraFormat(t *testing.T) {
 }
 
 //goland:noinspection SpellCheckingInspection
-func TestKeeper_ReverseResolve(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_ReverseResolve() {
 	/**
 	This show advanced details about Reverse-Resolve:
 	working with reverse-resolve and some vector affects the resolution
 	*/
 
-	sc := setupShowcase(t)
+	sc := setupShowcase(s)
 
-	require.Equal(t, "dymension", sc.ctx.ChainID()) // our chain-id is "dymension"
+	s.Require().Equal("dymension", sc.s.ctx.ChainID()) // our chain-id is "dymension"
 
 	owner := sc.newTestAccount()
 
@@ -725,7 +721,7 @@ func TestKeeper_ReverseResolve(t *testing.T) {
 	// register a RollApp
 	_ = sc.newRollApp("one_1-1").withBech32Prefix("one").save()
 
-	t.Run("normal reverse-resolve", func(t *testing.T) {
+	s.Run("normal reverse-resolve", func() {
 		sc.
 			requireReverseResolve(owner.bech32()).
 			forChainId("dymension").
@@ -754,7 +750,7 @@ func TestKeeper_ReverseResolve(t *testing.T) {
 			equals("my-name@one_1-1")
 	})
 
-	t.Run("normal reverse-resolve NOT work for chains those are NEITHER host-chain nor RollApp", func(t *testing.T) {
+	s.Run("normal reverse-resolve NOT work for chains those are NEITHER host-chain nor RollApp", func() {
 		sc.
 			requireReverseResolve(owner.bech32()).
 			forChainId("injective-1").
@@ -781,7 +777,7 @@ func TestKeeper_ReverseResolve(t *testing.T) {
 		// And that's why we Do Not support reverse-resolve for chains those are NEITHER host-chain nor RollApp.
 	})
 
-	t.Run("when alias is registered, reverse resolve will use the alias instead of chain-id", func(t *testing.T) {
+	s.Run("when alias is registered, reverse resolve will use the alias instead of chain-id", func() {
 		sc.newRollApp("two_2-2").withAlias("two").save()
 		sc.
 			requireReverseResolve(owner.hexStr()).
@@ -794,21 +790,16 @@ func TestKeeper_ReverseResolve(t *testing.T) {
 /*                     setup area, no need to read                            */
 /* -------------------------------------------------------------------------- */
 
-func setupShowcase(t *testing.T) *showcaseSetup {
+func setupShowcase(s *KeeperTestSuite) *showcaseSetup {
 	const chainId = "dymension"
-	now := time.Now().UTC()
 
-	dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
-	ctx = ctx.WithBlockTime(now).WithChainID(chainId)
+	s.ctx = s.ctx.WithChainID(chainId)
 
 	scs := &showcaseSetup{
-		now: now,
-
-		ctx: ctx,
-		dk:  dk,
-		rk:  rk,
-
-		t: t,
+		s:                   s,
+		recentTestAccountNo: 0,
+		dymNameOwner:        ta{},
+		laterTests:          nil,
 	}
 
 	scs.dymNameOwner = scs.newTestAccount()
@@ -817,16 +808,13 @@ func setupShowcase(t *testing.T) *showcaseSetup {
 }
 
 type showcaseSetup struct {
-	now time.Time
+	s *KeeperTestSuite
 
-	ctx sdk.Context
-	dk  dymnskeeper.Keeper
-	rk  rollappkeeper.Keeper
+	chainId string
 
 	recentTestAccountNo uint64
 	dymNameOwner        ta
 
-	t          *testing.T
 	laterTests []func()
 }
 
@@ -835,43 +823,10 @@ func (m *showcaseSetup) newTestAccount() ta {
 	return testAddr(m.recentTestAccountNo)
 }
 
-func (m *showcaseSetup) newDymName(name string, owner string) *configureDymName {
-	return &configureDymName{
-		scs:        m,
-		name:       name,
-		owner:      owner,
-		controller: owner,
-		expiry:     m.now.Add(365 * 24 * time.Hour),
-		configs:    nil,
-	}
-}
-
-func (m *showcaseSetup) newRollApp(rollAppId string) *configureRollApp {
-	return &configureRollApp{
-		scs:       m,
-		rollAppId: rollAppId,
-	}
-}
-
 func (m *showcaseSetup) requireDymName(name string) reqDymName {
 	return reqDymName{
 		scs:  m,
 		name: name,
-	}
-}
-
-func (m *showcaseSetup) requireResolveDymNameAddress(dymNameAddress string) reqResolveDymNameAddress {
-	return reqResolveDymNameAddress{
-		scs:            m,
-		dymNameAddress: dymNameAddress,
-	}
-}
-
-func (m *showcaseSetup) requireReverseResolve(addresses ...string) *reqReverseResolveDymNameAddress {
-	return &reqReverseResolveDymNameAddress{
-		scs:            m,
-		workingChainId: m.ctx.ChainID(),
-		addresses:      addresses,
 	}
 }
 
@@ -888,26 +843,32 @@ func (m *showcaseSetup) runPendingTests() {
 	}
 }
 
-func (m *showcaseSetup) registerAlias(alias string) regAlias {
-	return regAlias{
-		scs:   m,
-		alias: alias,
-	}
-}
+//
 
 type reqDymName struct {
 	scs  *showcaseSetup
 	name string
 }
 
+func (m *showcaseSetup) newDymName(name string, owner string) *configureDymName {
+	return &configureDymName{
+		scs:        m,
+		name:       name,
+		owner:      owner,
+		controller: owner,
+		expiry:     m.s.now.Add(365 * 24 * time.Hour),
+		configs:    nil,
+	}
+}
+
 func (m reqDymName) equals(otherDymName dymnstypes.DymName) {
-	dymName := m.scs.dk.GetDymName(m.scs.ctx, m.name)
-	require.NotNil(m.scs.t, dymName)
-	require.Equal(m.scs.t, otherDymName, *dymName)
+	dymName := m.scs.s.dymNsKeeper.GetDymName(m.scs.s.ctx, m.name)
+	require.NotNil(m.scs.s.T(), dymName)
+	require.Equal(m.scs.s.T(), otherDymName, *dymName)
 }
 
 func (m reqDymName) get() *dymnstypes.DymName {
-	return m.scs.dk.GetDymName(m.scs.ctx, m.name)
+	return m.scs.s.dymNsKeeper.GetDymName(m.scs.s.ctx, m.name)
 }
 
 func (m reqDymName) MustHasConfig(filter func(cfg dymnstypes.DymNameConfig) bool) {
@@ -919,28 +880,30 @@ func (m reqDymName) MustHasConfig(filter func(cfg dymnstypes.DymNameConfig) bool
 			break
 		}
 	}
-	require.True(m.scs.t, anyMatch)
+	require.True(m.scs.s.T(), anyMatch)
 }
 
 func (m reqDymName) NotHaveConfig(filter func(cfg dymnstypes.DymNameConfig) bool) {
 	dymName := m.get()
 	for _, cfg := range dymName.Configs {
-		require.False(m.scs.t, filter(cfg))
+		require.False(m.scs.s.T(), filter(cfg))
 	}
 }
 
 func (m reqDymName) update(dymName dymnstypes.DymName) {
-	require.Equal(m.scs.t, m.name, dymName.Name, "passed wrong Dym-Name")
+	require.Equal(m.scs.s.T(), m.name, dymName.Name, "passed wrong Dym-Name")
 
 	for i, config := range dymName.Configs {
-		if config.ChainId == m.scs.ctx.ChainID() {
+		if config.ChainId == m.scs.s.ctx.ChainID() {
 			config.ChainId = ""
 			dymName.Configs[i] = config
 		}
 	}
 
-	setDymNameWithFunctionsAfter(m.scs.ctx, dymName, m.scs.t, m.scs.dk)
+	m.scs.s.setDymNameWithFunctionsAfter(dymName)
 }
+
+//
 
 type configureDymName struct {
 	scs        *showcaseSetup
@@ -969,18 +932,27 @@ func (m configureDymName) build() dymnstypes.DymName {
 
 func (m configureDymName) save() *dymnstypes.DymName {
 	dymName := m.build()
-	setDymNameWithFunctionsAfter(m.scs.ctx, dymName, m.scs.t, m.scs.dk)
+	m.scs.s.setDymNameWithFunctionsAfter(dymName)
 
-	record := m.scs.dk.GetDymName(m.scs.ctx, dymName.Name)
-	require.NotNil(m.scs.t, record)
+	record := m.scs.s.dymNsKeeper.GetDymName(m.scs.s.ctx, dymName.Name)
+	require.NotNil(m.scs.s.T(), record)
 	return record
 }
+
+//
 
 type configureRollApp struct {
 	scs          *showcaseSetup
 	rollAppId    string
 	alias        string
 	bech32Prefix string
+}
+
+func (m *showcaseSetup) newRollApp(rollAppId string) *configureRollApp {
+	return &configureRollApp{
+		scs:       m,
+		rollAppId: rollAppId,
+	}
 }
 
 func (m *configureRollApp) withAlias(alias string) *configureRollApp {
@@ -999,48 +971,80 @@ func (m *configureRollApp) withoutBech32Prefix() *configureRollApp {
 }
 
 func (m configureRollApp) save() *rollapptypes.Rollapp {
-	registerRollApp(m.scs.t, m.scs.ctx, m.scs.rk, m.scs.dk, m.rollAppId, m.bech32Prefix, m.alias)
+	m.scs.s.persistRollApp(
+		rollapp{
+			rollAppId: m.rollAppId,
+			owner:     testAddr(0).bech32(),
+			bech32:    m.bech32Prefix,
+			alias:     m.alias,
+			aliases: func() []string {
+				if m.alias == "" {
+					return nil
+				}
+				return []string{m.alias}
+			}(),
+		},
+	)
 
-	rollApp, found := m.scs.rk.GetRollapp(m.scs.ctx, m.rollAppId)
-	require.True(m.scs.t, found)
+	rollApp, found := m.scs.s.rollAppKeeper.GetRollapp(m.scs.s.ctx, m.rollAppId)
+	m.scs.s.Require().True(found)
 	return &rollApp
 }
+
+//
 
 type reqResolveDymNameAddress struct {
 	scs            *showcaseSetup
 	dymNameAddress string
 }
 
+func (m *showcaseSetup) requireResolveDymNameAddress(dymNameAddress string) reqResolveDymNameAddress {
+	return reqResolveDymNameAddress{
+		scs:            m,
+		dymNameAddress: dymNameAddress,
+	}
+}
+
 func (m reqResolveDymNameAddress) Equals(want string) {
-	outputAddress, err := m.scs.dk.ResolveByDymNameAddress(m.scs.ctx, m.dymNameAddress)
-	require.NoError(m.scs.t, err)
-	require.Equal(m.scs.t, want, outputAddress)
+	outputAddress, err := m.scs.s.dymNsKeeper.ResolveByDymNameAddress(m.scs.s.ctx, m.dymNameAddress)
+	require.NoError(m.scs.s.T(), err)
+	require.Equal(m.scs.s.T(), want, outputAddress)
 }
 
 func (m reqResolveDymNameAddress) NotEquals(want string) {
-	outputAddress, err := m.scs.dk.ResolveByDymNameAddress(m.scs.ctx, m.dymNameAddress)
-	require.NoError(m.scs.t, err)
-	require.NotEqual(m.scs.t, want, outputAddress)
+	outputAddress, err := m.scs.s.dymNsKeeper.ResolveByDymNameAddress(m.scs.s.ctx, m.dymNameAddress)
+	require.NoError(m.scs.s.T(), err)
+	require.NotEqual(m.scs.s.T(), want, outputAddress)
 }
 
 func (m reqResolveDymNameAddress) NoResult() {
-	outputAddress, err := m.scs.dk.ResolveByDymNameAddress(m.scs.ctx, m.dymNameAddress)
+	outputAddress, err := m.scs.s.dymNsKeeper.ResolveByDymNameAddress(m.scs.s.ctx, m.dymNameAddress)
 	if err != nil {
-		require.Contains(m.scs.t, err.Error(), "not found")
+		require.Contains(m.scs.s.T(), err.Error(), "not found")
 	} else {
-		require.Empty(m.scs.t, outputAddress)
+		require.Empty(m.scs.s.T(), outputAddress)
 	}
 }
 
 func (m reqResolveDymNameAddress) WillError() {
-	_, err := m.scs.dk.ResolveByDymNameAddress(m.scs.ctx, m.dymNameAddress)
-	require.Error(m.scs.t, err)
+	_, err := m.scs.s.dymNsKeeper.ResolveByDymNameAddress(m.scs.s.ctx, m.dymNameAddress)
+	require.Error(m.scs.s.T(), err)
 }
+
+//
 
 type reqReverseResolveDymNameAddress struct {
 	scs            *showcaseSetup
 	workingChainId string
 	addresses      []string
+}
+
+func (m *showcaseSetup) requireReverseResolve(addresses ...string) *reqReverseResolveDymNameAddress {
+	return &reqReverseResolveDymNameAddress{
+		scs:            m,
+		workingChainId: m.s.ctx.ChainID(),
+		addresses:      addresses,
+	}
 }
 
 func (m *reqReverseResolveDymNameAddress) forChainId(workingChainId string) *reqReverseResolveDymNameAddress {
@@ -1050,9 +1054,9 @@ func (m *reqReverseResolveDymNameAddress) forChainId(workingChainId string) *req
 
 func (m reqReverseResolveDymNameAddress) equals(wantMany ...string) {
 	for _, address := range m.addresses {
-		m.scs.t.Run("reverse-resolve for "+address, func(t *testing.T) {
-			list, err := m.scs.dk.ReverseResolveDymNameAddress(m.scs.ctx, address, m.workingChainId)
-			require.NoError(m.scs.t, err)
+		m.scs.s.Run("reverse-resolve for "+address, func() {
+			list, err := m.scs.s.dymNsKeeper.ReverseResolveDymNameAddress(m.scs.s.ctx, address, m.workingChainId)
+			require.NoError(m.scs.s.T(), err)
 
 			var dymNameAddresses []string
 			for _, dna := range list {
@@ -1061,20 +1065,22 @@ func (m reqReverseResolveDymNameAddress) equals(wantMany ...string) {
 
 			sort.Strings(dymNameAddresses)
 			sort.Strings(wantMany)
-			require.Equal(m.scs.t, wantMany, dymNameAddresses)
+			require.Equal(m.scs.s.T(), wantMany, dymNameAddresses)
 		})
 	}
 }
 
 func (m reqReverseResolveDymNameAddress) NoResult() {
 	for _, address := range m.addresses {
-		m.scs.t.Run("reverse-resolve for "+address, func(t *testing.T) {
-			list, err := m.scs.dk.ReverseResolveDymNameAddress(m.scs.ctx, address, m.workingChainId)
-			require.NoError(m.scs.t, err)
-			require.Empty(m.scs.t, list)
+		m.scs.s.Run("reverse-resolve for "+address, func() {
+			list, err := m.scs.s.dymNsKeeper.ReverseResolveDymNameAddress(m.scs.s.ctx, address, m.workingChainId)
+			require.NoError(m.scs.s.T(), err)
+			require.Empty(m.scs.s.T(), list)
 		})
 	}
 }
+
+//
 
 type udtDymName struct {
 	dymName *dymnstypes.DymName
@@ -1090,6 +1096,8 @@ func (m *udtDymName) resolveTo(value string) *udtDymNameConfigResolveTo {
 		value:      value,
 	}
 }
+
+//
 
 type udtDymNameConfigResolveTo struct {
 	udtDymName *udtDymName
@@ -1123,21 +1131,30 @@ func (m *udtDymNameConfigResolveTo) add() {
 	})
 }
 
+//
+
 type regAlias struct {
 	scs   *showcaseSetup
 	alias string
 }
 
-func (m regAlias) forChainId(chainId string) {
-	require.NotEmpty(m.scs.t, m.alias)
-	require.NotEmpty(m.scs.t, chainId)
+func (m *showcaseSetup) registerAlias(alias string) regAlias {
+	return regAlias{
+		scs:   m,
+		alias: alias,
+	}
+}
 
-	moduleParams := m.scs.dk.GetParams(m.scs.ctx)
+func (m regAlias) forChainId(chainId string) {
+	require.NotEmpty(m.scs.s.T(), m.alias)
+	require.NotEmpty(m.scs.s.T(), chainId)
+
+	moduleParams := m.scs.s.dymNsKeeper.GetParams(m.scs.s.ctx)
 	moduleParams.Chains.AliasesOfChainIds = append(moduleParams.Chains.AliasesOfChainIds, dymnstypes.AliasesOfChainId{
 		ChainId: chainId,
 		Aliases: []string{m.alias},
 	})
 
-	err := m.scs.dk.SetParams(m.scs.ctx, moduleParams)
-	require.NoError(m.scs.t, err)
+	err := m.scs.s.dymNsKeeper.SetParams(m.scs.s.ctx, moduleParams)
+	require.NoError(m.scs.s.T(), err)
 }

@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"slices"
 	"sort"
 	"testing"
 	"time"
@@ -235,6 +236,14 @@ func (s *KeeperTestSuite) persistRollApp(ras ...rollapp) {
 			Owner:        ra.owner,
 			Bech32Prefix: ra.bech32,
 		})
+
+		if ra.alias != "" {
+			if len(ra.aliases) == 0 {
+				panic("must provide aliases if alias is set")
+			} else if !slices.Contains(ra.aliases, ra.alias) {
+				panic("alias must be in aliases")
+			}
+		}
 
 		for _, alias := range ra.aliases {
 			err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, ra.rollAppId, alias)

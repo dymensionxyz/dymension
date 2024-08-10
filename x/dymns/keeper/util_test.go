@@ -14,8 +14,6 @@ import (
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 var dymNsModuleAccAddr = authtypes.NewModuleAddress(dymnstypes.ModuleName)
@@ -24,27 +22,6 @@ func setDymNameWithFunctionsAfter(ctx sdk.Context, dymName dymnstypes.DymName, t
 	require.NoError(t, dk.SetDymName(ctx, dymName))
 	require.NoError(t, dk.AfterDymNameOwnerChanged(ctx, dymName.Name))
 	require.NoError(t, dk.AfterDymNameConfigChanged(ctx, dymName.Name))
-}
-
-func registerRollApp(
-	t *testing.T,
-	ctx sdk.Context,
-	rk rollappkeeper.Keeper, dk dymnskeeper.Keeper,
-	rollAppID, bech32, alias string,
-) {
-	rk.SetRollapp(ctx, rollapptypes.Rollapp{
-		RollappId:    rollAppID,
-		Owner:        testAddr(0).bech32(),
-		Bech32Prefix: bech32,
-	})
-	if alias != "" {
-		err := dk.SetAliasForRollAppId(ctx, rollAppID, alias)
-		require.NoError(t, err)
-
-		a, found := dk.GetAliasByRollAppId(ctx, rollAppID)
-		require.True(t, found)
-		require.Equal(t, alias, a)
-	}
 }
 
 // ta stands for test-address, a simple wrapper for generating account for testing purpose.
