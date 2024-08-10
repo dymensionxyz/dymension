@@ -252,7 +252,7 @@ func (s *KeeperTestSuite) TestKeeper_CanUseAliasForNewRegistration() {
 
 			can, err := s.dymNsKeeper.CanUseAliasForNewRegistration(s.ctx, tt.alias)
 			if tt.wantErr {
-				s.requireErrorContains(err, tt.wantErrContains)
+				s.Require().ErrorContains(err, tt.wantErrContains)
 
 				s.Require().False(can)
 				return

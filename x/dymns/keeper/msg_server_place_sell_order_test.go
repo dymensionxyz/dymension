@@ -45,10 +45,9 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 	t.Run("reject if message not pass validate basic", func(t *testing.T) {
 		dk, _, ctx := setupTest()
 
-		requireErrorFContains(t, func() error {
-			_, err := dymnskeeper.NewMsgServerImpl(dk).PlaceSellOrder(ctx, &dymnstypes.MsgPlaceSellOrder{})
-			return err
-		}, gerrc.ErrInvalidArgument.Error())
+		_, err := dymnskeeper.NewMsgServerImpl(dk).PlaceSellOrder(ctx, &dymnstypes.MsgPlaceSellOrder{})
+
+		require.ErrorContains(t, err, gerrc.ErrInvalidArgument.Error())
 	})
 
 	const name = "my-name"

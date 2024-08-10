@@ -56,16 +56,14 @@ func Test_msgServer_CancelSellOrder_DymName(t *testing.T) {
 	require.Len(t, dymNames, 2)
 
 	t.Run("do not process message that not pass basic validation", func(t *testing.T) {
-		requireErrorFContains(t, func() error {
-			resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
-				AssetId: "abc",
-				Owner:   "0x1", // invalid owner
-			})
+		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
+			AssetId: "abc",
+			Owner:   "0x1", // invalid owner
+		})
 
-			require.Nil(t, resp)
+		require.ErrorContains(t, err, gerrc.ErrInvalidArgument.Error())
 
-			return err
-		}, gerrc.ErrInvalidArgument.Error())
+		require.Nil(t, resp)
 	})
 
 	t.Run("do not process message that refer to non-existing Dym-Name", func(t *testing.T) {
@@ -339,16 +337,13 @@ func Test_msgServer_CancelSellOrder_Alias(t *testing.T) {
 	}
 
 	t.Run("do not process message that not pass basic validation", func(t *testing.T) {
-		requireErrorFContains(t, func() error {
-			resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
-				AssetId: rollapp_1_ofOwner.alias,
-				Owner:   "0x1", // invalid owner
-			})
+		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
+			AssetId: rollapp_1_ofOwner.alias,
+			Owner:   "0x1", // invalid owner
+		})
 
-			require.Nil(t, resp)
-
-			return err
-		}, gerrc.ErrInvalidArgument.Error())
+		require.ErrorContains(t, err, gerrc.ErrInvalidArgument.Error())
+		require.Nil(t, resp)
 	})
 
 	t.Run("do not process message that refer to non-existing alias", func(t *testing.T) {

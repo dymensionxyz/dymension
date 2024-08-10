@@ -46,7 +46,7 @@ func (s *KeeperTestSuite) TestKeeper_GetSetAliasForRollAppId() {
 		s.True(found)
 
 		err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp2.rollAppId, rollApp1.alias)
-		s.requireErrorContains(err, "alias currently being in used by:")
+		s.Require().ErrorContains(err, "alias currently being in used by:")
 	})
 
 	s.Run("set - reject bad chain-id", func() {
@@ -58,10 +58,10 @@ func (s *KeeperTestSuite) TestKeeper_GetSetAliasForRollAppId() {
 		s.Require().True(s.dymNsKeeper.IsRollAppId(s.ctx, rollApp2.rollAppId), "must be a RollApp")
 
 		err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp2.rollAppId, "")
-		s.requireErrorContains(err, "invalid alias")
+		s.Require().ErrorContains(err, "invalid alias")
 
 		err = s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp2.rollAppId, "@")
-		s.requireErrorContains(err, "invalid alias")
+		s.Require().ErrorContains(err, "invalid alias")
 	})
 
 	s.Run("get - of existing RollApp but no alias set", func() {
@@ -80,7 +80,7 @@ func (s *KeeperTestSuite) TestKeeper_GetSetAliasForRollAppId() {
 		s.Require().False(s.dymNsKeeper.IsRollAppId(s.ctx, rollApp3NotExists.rollAppId))
 
 		err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp3NotExists.rollAppId, rollApp3NotExists.alias)
-		s.requireErrorContains(err, "not a RollApp")
+		s.Require().ErrorContains(err, "not a RollApp")
 	})
 
 	s.Run("get - non-exists RollApp returns empty", func() {
@@ -385,7 +385,7 @@ func (s *KeeperTestSuite) TestKeeper_RemoveAliasFromRollAppId() {
 			}()
 
 			if tt.wantErr {
-				s.requireErrorContains(err, tt.wantErrContains)
+				s.Require().ErrorContains(err, tt.wantErrContains)
 				return
 			}
 

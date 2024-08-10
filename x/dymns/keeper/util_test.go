@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/stretchr/testify/require"
 	"sort"
 	"testing"
 	"time"
@@ -15,7 +16,6 @@ import (
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/stretchr/testify/require"
 )
 
 var dymNsModuleAccAddr = authtypes.NewModuleAddress(dymnstypes.ModuleName)
@@ -40,16 +40,6 @@ func requireDymNameList(dymNames []dymnstypes.DymName, wantNames []string, t *te
 	}
 
 	require.Equal(t, wantNames, gotNames, msgAndArgs...)
-}
-
-func requireErrorContains(t *testing.T, err error, contains string) {
-	require.Error(t, err)
-	require.NotEmpty(t, contains, "mis-configured test")
-	require.Contains(t, err.Error(), contains)
-}
-
-func requireErrorFContains(t *testing.T, f func() error, contains string) {
-	requireErrorContains(t, f(), contains)
 }
 
 func registerRollApp(

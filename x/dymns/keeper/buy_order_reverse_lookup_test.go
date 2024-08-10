@@ -266,7 +266,7 @@ func TestKeeper_AddReverseMappingAssetIdToBuyOrder_Generic(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 		for _, assetType := range supportedAssetTypes {
-			requireErrorContains(t,
+			require.ErrorContains(t,
 				dk.AddReverseMappingAssetIdToBuyOrder(ctx, "asset", assetType, "@"),
 				"invalid Buy-Order ID",
 			)
@@ -286,7 +286,7 @@ func TestKeeper_AddReverseMappingAssetIdToBuyOrder_Generic(t *testing.T) {
 			default:
 				t.Fatalf("unsupported asset type: %s", assetType)
 			}
-			requireErrorContains(
+			require.ErrorContains(
 				t,
 				dk.AddReverseMappingAssetIdToBuyOrder(ctx, "@", assetType, dymnstypes.CreateBuyOrderId(assetType, 1)),
 				wantErrContains,
@@ -297,7 +297,7 @@ func TestKeeper_AddReverseMappingAssetIdToBuyOrder_Generic(t *testing.T) {
 	t.Run("fail - should reject invalid asset type", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		requireErrorContains(t,
+		require.ErrorContains(t,
 			dk.AddReverseMappingAssetIdToBuyOrder(ctx, "@", dymnstypes.AssetType_AT_UNKNOWN, "101"),
 			"invalid asset type",
 		)
@@ -309,7 +309,7 @@ func TestKeeper_AddReverseMappingAssetIdToBuyOrder_Generic(t *testing.T) {
 				continue
 			}
 
-			requireErrorContains(t,
+			require.ErrorContains(t,
 				dk.AddReverseMappingAssetIdToBuyOrder(ctx, "@", assetType, "101"),
 				"invalid asset type",
 			)
@@ -573,7 +573,7 @@ func TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Generic(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 		for _, assetType := range supportedAssetTypes {
-			requireErrorContains(t,
+			require.ErrorContains(t,
 				dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, "asset", assetType, "@"),
 				"invalid Buy-Order ID",
 			)
@@ -593,7 +593,7 @@ func TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Generic(t *testing.T) {
 			default:
 				t.Fatalf("unsupported asset type: %s", assetType)
 			}
-			requireErrorContains(
+			require.ErrorContains(
 				t,
 				dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, "@", assetType, dymnstypes.CreateBuyOrderId(assetType, 1)),
 				wantErrContains,
@@ -604,7 +604,7 @@ func TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Generic(t *testing.T) {
 	t.Run("fail - should reject invalid asset type", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-		requireErrorContains(t,
+		require.ErrorContains(t,
 			dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, "@", dymnstypes.AssetType_AT_UNKNOWN, "101"),
 			"invalid asset type",
 		)
@@ -616,7 +616,7 @@ func TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Generic(t *testing.T) {
 				continue
 			}
 
-			requireErrorContains(t,
+			require.ErrorContains(t,
 				dk.RemoveReverseMappingAssetIdToBuyOrder(ctx, "@", assetType, "101"),
 				"invalid asset type",
 			)

@@ -89,7 +89,7 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		err := dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "alias not owned by any RollApp: void: not found")
+		require.ErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "alias not owned by any RollApp: void: not found")
 	})
 
 	t.Run("destination Roll-App not found", func(t *testing.T) {
@@ -114,7 +114,7 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		err := dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "destination Roll-App does not exists")
+		require.ErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "destination Roll-App does not exists")
 	})
 
 	t.Run("SO not found", func(t *testing.T) {
@@ -123,7 +123,7 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		registerRollApp(rollApp_1_asSrc, ctx, dk, rk)
 		registerRollApp(rollApp_2_asDst, ctx, dk, rk)
 
-		requireErrorContains(t,
+		require.ErrorContains(t,
 			dk.CompleteAliasSellOrder(ctx, rollApp_1_asSrc.alias),
 			fmt.Sprintf("Sell-Order: %s: not found", rollApp_1_asSrc.alias),
 		)
@@ -144,7 +144,7 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		err := dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "Sell-Order has not finished yet")
+		require.ErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "Sell-Order has not finished yet")
 	})
 
 	t.Run("SO has bidder but not yet completed", func(t *testing.T) {
@@ -168,7 +168,7 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		err := dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "Sell-Order has not finished yet")
+		require.ErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "Sell-Order has not finished yet")
 	})
 
 	t.Run("SO expired without bidder", func(t *testing.T) {
@@ -187,7 +187,7 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		err := dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "no bid placed")
+		require.ErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "no bid placed")
 	})
 
 	t.Run("SO without sell price, with bid, finished by expiry", func(t *testing.T) {
@@ -210,7 +210,7 @@ func TestKeeper_CompleteAliasSellOrder(t *testing.T) {
 		err := dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "Sell-Order has not finished yet")
+		require.ErrorContains(t, dk.CompleteAliasSellOrder(ctx, so.AssetId), "Sell-Order has not finished yet")
 	})
 
 	const ownerOriginalBalance int64 = 1000

@@ -2130,7 +2130,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			}()
 
 			if tt.wantErr {
-				s.requireErrorContains(err, tt.wantErrContains)
+				s.Require().ErrorContains(err, tt.wantErrContains)
 
 				return
 			}

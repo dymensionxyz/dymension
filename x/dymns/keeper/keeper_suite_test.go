@@ -163,18 +163,6 @@ func (s *KeeperTestSuite) setDymNameWithFunctionsAfter(dymName dymnstypes.DymNam
 
 //
 
-func (s *KeeperTestSuite) requireErrorContains(err error, errMsgContains string) {
-	s.Require().NotEmpty(errMsgContains, "mis-configured test")
-	s.Require().Error(err)
-	s.Require().Contains(err.Error(), errMsgContains)
-}
-
-func (s *KeeperTestSuite) requireErrorFContains(f func() error, contains string) {
-	s.requireErrorContains(f(), contains)
-}
-
-//
-
 type rollapp struct {
 	rollAppId string
 	owner     string

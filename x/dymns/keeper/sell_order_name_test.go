@@ -39,7 +39,7 @@ func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 	t.Run("Dym-Name not found", func(t *testing.T) {
 		dk, _, ctx := setupTest()
 
-		requireErrorContains(t, dk.CompleteDymNameSellOrder(ctx, "non-exists"), "Dym-Name: non-exists: not found")
+		require.ErrorContains(t, dk.CompleteDymNameSellOrder(ctx, "non-exists"), "Dym-Name: non-exists: not found")
 	})
 
 	t.Run("SO not found", func(t *testing.T) {
@@ -48,7 +48,7 @@ func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 		err := dk.SetDymName(ctx, dymName)
 		require.NoError(t, err)
 
-		requireErrorContains(t,
+		require.ErrorContains(t,
 			dk.CompleteDymNameSellOrder(ctx, dymName.Name),
 			fmt.Sprintf("Sell-Order: %s: not found", dymName.Name),
 		)
@@ -69,7 +69,7 @@ func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 		err = dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteDymNameSellOrder(ctx, dymName.Name), "Sell-Order has not finished yet")
+		require.ErrorContains(t, dk.CompleteDymNameSellOrder(ctx, dymName.Name), "Sell-Order has not finished yet")
 	})
 
 	t.Run("SO has bidder but not yet completed", func(t *testing.T) {
@@ -92,7 +92,7 @@ func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 		err = dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteDymNameSellOrder(ctx, dymName.Name), "Sell-Order has not finished yet")
+		require.ErrorContains(t, dk.CompleteDymNameSellOrder(ctx, dymName.Name), "Sell-Order has not finished yet")
 	})
 
 	t.Run("SO expired without bidder", func(t *testing.T) {
@@ -111,7 +111,7 @@ func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 		err = dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteDymNameSellOrder(ctx, dymName.Name), "no bid placed")
+		require.ErrorContains(t, dk.CompleteDymNameSellOrder(ctx, dymName.Name), "no bid placed")
 	})
 
 	t.Run("SO without sell price, with bid, finished by expiry", func(t *testing.T) {
@@ -133,7 +133,7 @@ func TestKeeper_CompleteDymNameSellOrder(t *testing.T) {
 		err = dk.SetSellOrder(ctx, so)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteDymNameSellOrder(ctx, dymName.Name), "Sell-Order has not finished yet")
+		require.ErrorContains(t, dk.CompleteDymNameSellOrder(ctx, dymName.Name), "Sell-Order has not finished yet")
 	})
 
 	const ownerOriginalBalance int64 = 1000

@@ -505,7 +505,7 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 
 			resp, err := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper).SellOrder(sdk.WrapSDKContext(s.ctx), tt.req)
 			if tt.wantErr {
-				s.requireErrorContains(err, tt.wantErrContains)
+				s.Require().ErrorContains(err, tt.wantErrContains)
 				return
 			}
 
@@ -1800,7 +1800,7 @@ func Test_queryServer_BuyOrderById(t *testing.T) {
 			})
 
 			if tt.wantErr {
-				requireErrorContains(t, err, tt.wantErrContains)
+				require.ErrorContains(t, err, tt.wantErrContains)
 				require.Nil(t, resp)
 				return
 			}

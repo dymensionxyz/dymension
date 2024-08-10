@@ -36,26 +36,24 @@ func Test_msgServer_PurchaseOrder_DymName(t *testing.T) {
 	t.Run("reject if message not pass validate basic", func(t *testing.T) {
 		dk, _, ctx := setupTest()
 
-		requireErrorFContains(t, func() error {
-			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
-				AssetType: dymnstypes.TypeName,
-			})
-			return err
-		}, gerrc.ErrInvalidArgument.Error())
+		_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
+			AssetType: dymnstypes.TypeName,
+		})
+
+		require.ErrorContains(t, err, gerrc.ErrInvalidArgument.Error())
 	})
 
 	t.Run("reject if message asset type is Unknown", func(t *testing.T) {
 		dk, _, ctx := setupTest()
 
-		requireErrorFContains(t, func() error {
-			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
-				AssetId:   "asset",
-				AssetType: dymnstypes.AssetType_AT_UNKNOWN,
-				Buyer:     testAddr(0).bech32(),
-				Offer:     dymnsutils.TestCoin(1),
-			})
-			return err
-		}, "invalid asset type")
+		_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
+			AssetId:   "asset",
+			AssetType: dymnstypes.AssetType_AT_UNKNOWN,
+			Buyer:     testAddr(0).bech32(),
+			Offer:     dymnsutils.TestCoin(1),
+		})
+
+		require.ErrorContains(t, err, gerrc.ErrInvalidArgument.Error())
 	})
 
 	ownerA := testAddr(1).bech32()
@@ -615,15 +613,13 @@ func Test_msgServer_PurchaseOrder_DymName(t *testing.T) {
 		err := dk.SetParams(ctx, moduleParams)
 		require.NoError(t, err)
 
-		requireErrorFContains(t, func() error {
-			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
-				AssetId:   "my-name",
-				AssetType: dymnstypes.TypeName,
-				Offer:     dymnsutils.TestCoin(100),
-				Buyer:     buyerA,
-			})
-			return err
-		}, "trading of Dym-Name is disabled")
+		_, err = dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
+			AssetId:   "my-name",
+			AssetType: dymnstypes.TypeName,
+			Offer:     dymnsutils.TestCoin(100),
+			Buyer:     buyerA,
+		})
+		require.ErrorContains(t, err, "unmet precondition")
 	})
 }
 
@@ -632,12 +628,10 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 	s.Run("reject if message not pass validate basic", func() {
 		s.SetupTest()
 
-		s.requireErrorFContains(func() error {
-			_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &dymnstypes.MsgPurchaseOrder{
-				AssetType: dymnstypes.TypeAlias,
-			})
-			return err
-		}, gerrc.ErrInvalidArgument.Error())
+		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &dymnstypes.MsgPurchaseOrder{
+			AssetType: dymnstypes.TypeAlias,
+		})
+		s.Require().ErrorContains(err, gerrc.ErrInvalidArgument.Error())
 	})
 
 	creator_1_asOwner := testAddr(1).bech32()
@@ -1238,7 +1232,7 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 			laterSo := s.dymNsKeeper.GetSellOrder(s.ctx, tt.msg.AssetId, dymnstypes.TypeAlias)
 
 			if tt.wantErr {
-				s.requireErrorContains(errPurchaseName, tt.wantErrContains)
+				s.Require().ErrorContains(errPurchaseName, tt.wantErrContains)
 				s.Nil(resp)
 				s.Require().False(tt.wantCompleted, "mis-configured test case")
 				s.Less(
@@ -1300,15 +1294,13 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 		err := s.dymNsKeeper.SetParams(s.ctx, moduleParams)
 		s.Require().NoError(err)
 
-		s.requireErrorFContains(func() error {
-			_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &dymnstypes.MsgPurchaseOrder{
-				AssetId:   "alias",
-				AssetType: dymnstypes.TypeAlias,
-				Params:    []string{rollApp_2_byBuyer_asDst.rollAppId},
-				Offer:     dymnsutils.TestCoin(100),
-				Buyer:     creator_2_asBuyer,
-			})
-			return err
-		}, "trading of Alias is disabled")
+		_, err = dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &dymnstypes.MsgPurchaseOrder{
+			AssetId:   "alias",
+			AssetType: dymnstypes.TypeAlias,
+			Params:    []string{rollApp_2_byBuyer_asDst.rollAppId},
+			Offer:     dymnsutils.TestCoin(100),
+			Buyer:     creator_2_asBuyer,
+		})
+		s.Require().ErrorContains(err, "trading of Alias is disabled")
 	})
 }

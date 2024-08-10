@@ -26,10 +26,8 @@ func Test_msgServer_SetController(t *testing.T) {
 	t.Run("reject if message not pass validate basic", func(t *testing.T) {
 		dk, ctx := setupTest()
 
-		requireErrorFContains(t, func() error {
-			_, err := dymnskeeper.NewMsgServerImpl(dk).SetController(ctx, &dymnstypes.MsgSetController{})
-			return err
-		}, gerrc.ErrInvalidArgument.Error())
+		_, err := dymnskeeper.NewMsgServerImpl(dk).SetController(ctx, &dymnstypes.MsgSetController{})
+		require.ErrorContains(t, err, gerrc.ErrInvalidArgument.Error())
 	})
 
 	ownerA := testAddr(1).bech32()
