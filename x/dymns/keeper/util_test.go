@@ -1,10 +1,11 @@
 package keeper_test
 
 import (
-	"github.com/stretchr/testify/require"
 	"sort"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/ethereum/go-ethereum/common"
 
