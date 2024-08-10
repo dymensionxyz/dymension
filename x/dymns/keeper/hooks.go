@@ -187,44 +187,46 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 	dk := e.Keeper
 
 	aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
+	if len(aSoe.Records) < 1 {
+		return nil
+	}
+
 	nowEpochUTC := ctx.BlockTime().Unix()
 	var finishedSOs []dymnstypes.SellOrder
-	if len(aSoe.Records) > 0 {
-		invalidRecordsToRemove := make([]string, 0)
+	invalidRecordsToRemove := make([]string, 0)
 
-		for i, record := range aSoe.Records {
-			if record.ExpireAt > nowEpochUTC {
-				// skip not expired ones
-				continue
-			}
-
-			so := dk.GetSellOrder(ctx, record.AssetId, dymnstypes.TypeName)
-
-			if so == nil {
-				// remove the invalid entry
-				invalidRecordsToRemove = append(invalidRecordsToRemove, record.AssetId)
-				continue
-			}
-
-			if !so.HasFinished(nowEpochUTC) {
-				// invalid entry
-				dk.Logger(ctx).Error(
-					"DymNS hook After-Epoch-End: sell order has not finished",
-					"name", record.AssetId, "order-type", dymnstypes.TypeName.FriendlyString(),
-					"expiry", record.ExpireAt, "now", nowEpochUTC,
-					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
-				)
-
-				aSoe.Records[i].ExpireAt = so.ExpireAt // correct it
-				continue
-			}
-
-			finishedSOs = append(finishedSOs, *so)
+	for i, record := range aSoe.Records {
+		if record.ExpireAt > nowEpochUTC {
+			// skip not expired ones
+			continue
 		}
 
-		for _, name := range invalidRecordsToRemove {
-			aSoe.Remove(name)
+		so := dk.GetSellOrder(ctx, record.AssetId, dymnstypes.TypeName)
+
+		if so == nil {
+			// remove the invalid entry
+			invalidRecordsToRemove = append(invalidRecordsToRemove, record.AssetId)
+			continue
 		}
+
+		if !so.HasFinished(nowEpochUTC) {
+			// invalid entry
+			dk.Logger(ctx).Error(
+				"DymNS hook After-Epoch-End: sell order has not finished",
+				"name", record.AssetId, "order-type", dymnstypes.TypeName.FriendlyString(),
+				"expiry", record.ExpireAt, "now", nowEpochUTC,
+				"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
+			)
+
+			aSoe.Records[i].ExpireAt = so.ExpireAt // correct it
+			continue
+		}
+
+		finishedSOs = append(finishedSOs, *so)
+	}
+
+	for _, name := range invalidRecordsToRemove {
+		aSoe.Remove(name)
 	}
 
 	if len(finishedSOs) < 1 {
@@ -289,6 +291,13 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 
 // processActiveAliasSellOrders moves expired Alias Sell-Orders to historical and completes Alias Sell-Orders with winners.
 func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64, params dymnstypes.Params) error {
+	dk := e.Keeper
+
+	aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeAlias)
+	if len(aSoe.Records) < 1 {
+		return nil
+	}
+
 	prohibitedToTradeAliases := make(map[string]bool)
 	for _, aliasesOfChainId := range params.Chains.AliasesOfChainIds {
 		prohibitedToTradeAliases[aliasesOfChainId.ChainId] = true
@@ -297,47 +306,42 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 		}
 	}
 
-	dk := e.Keeper
-
-	aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeAlias)
 	nowEpochUTC := ctx.BlockTime().Unix()
 	var finishedSOs []dymnstypes.SellOrder
-	if len(aSoe.Records) > 0 {
-		invalidRecordsToRemove := make([]string, 0)
+	invalidRecordsToRemove := make([]string, 0)
 
-		for i, record := range aSoe.Records {
-			if record.ExpireAt > nowEpochUTC {
-				// skip not expired ones
-				continue
-			}
-
-			so := dk.GetSellOrder(ctx, record.AssetId, dymnstypes.TypeAlias)
-
-			if so == nil {
-				// remove the invalid entry
-				invalidRecordsToRemove = append(invalidRecordsToRemove, record.AssetId)
-				continue
-			}
-
-			if !so.HasFinished(nowEpochUTC) {
-				// invalid entry
-				dk.Logger(ctx).Error(
-					"DymNS hook After-Epoch-End: sell order has not finished",
-					"alias", record.AssetId, "order-type", dymnstypes.TypeAlias.FriendlyString(),
-					"expiry", record.ExpireAt, "now", nowEpochUTC,
-					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
-				)
-
-				aSoe.Records[i].ExpireAt = so.ExpireAt // correct it
-				continue
-			}
-
-			finishedSOs = append(finishedSOs, *so)
+	for i, record := range aSoe.Records {
+		if record.ExpireAt > nowEpochUTC {
+			// skip not expired ones
+			continue
 		}
 
-		for _, name := range invalidRecordsToRemove {
-			aSoe.Remove(name)
+		so := dk.GetSellOrder(ctx, record.AssetId, dymnstypes.TypeAlias)
+
+		if so == nil {
+			// remove the invalid entry
+			invalidRecordsToRemove = append(invalidRecordsToRemove, record.AssetId)
+			continue
 		}
+
+		if !so.HasFinished(nowEpochUTC) {
+			// invalid entry
+			dk.Logger(ctx).Error(
+				"DymNS hook After-Epoch-End: sell order has not finished",
+				"alias", record.AssetId, "order-type", dymnstypes.TypeAlias.FriendlyString(),
+				"expiry", record.ExpireAt, "now", nowEpochUTC,
+				"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
+			)
+
+			aSoe.Records[i].ExpireAt = so.ExpireAt // correct it
+			continue
+		}
+
+		finishedSOs = append(finishedSOs, *so)
+	}
+
+	for _, name := range invalidRecordsToRemove {
+		aSoe.Remove(name)
 	}
 
 	if len(finishedSOs) < 1 {
