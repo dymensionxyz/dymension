@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
@@ -57,28 +59,66 @@ func (s *KeeperTestSuite) SetupTest() {
 	dymnskeeper.ClearCaches()
 }
 
+func (s *KeeperTestSuite) priceDenom() string {
+	return s.dymNsKeeper.GetParams(s.ctx).Price.PriceDenom
+}
+
 func (s *KeeperTestSuite) mintToModuleAccount(amount int64) {
-	err := s.bankKeeper.MintCoins(s.ctx, dymnstypes.ModuleName, dymnsutils.TestCoins(amount))
+	err := s.bankKeeper.MintCoins(s.ctx,
+		dymnstypes.ModuleName,
+		sdk.Coins{sdk.NewCoin(s.priceDenom(), sdk.NewInt(amount))},
+	)
+	s.Require().NoError(err)
+}
+
+func (s *KeeperTestSuite) mintToModuleAccount2(amount sdkmath.Int) {
+	err := s.bankKeeper.MintCoins(s.ctx,
+		dymnstypes.ModuleName,
+		sdk.Coins{sdk.NewCoin(s.priceDenom(), amount)},
+	)
 	s.Require().NoError(err)
 }
 
 func (s *KeeperTestSuite) mintToAccount(bech32Account string, amount int64) {
-	err := s.bankKeeper.MintCoins(s.ctx, dymnstypes.ModuleName, dymnsutils.TestCoins(amount))
-	s.Require().NoError(err)
-	err = s.bankKeeper.SendCoinsFromModuleToAccount(s.ctx,
+	s.mintToModuleAccount(amount)
+	err := s.bankKeeper.SendCoinsFromModuleToAccount(s.ctx,
 		dymnstypes.ModuleName,
 		sdk.MustAccAddressFromBech32(bech32Account),
-		dymnsutils.TestCoins(amount),
+		sdk.Coins{sdk.NewCoin(s.priceDenom(), sdk.NewInt(amount))},
+	)
+	s.Require().NoError(err)
+}
+
+func (s *KeeperTestSuite) mintToAccount2(bech32Account string, amount sdkmath.Int) {
+	s.mintToModuleAccount2(amount)
+	err := s.bankKeeper.SendCoinsFromModuleToAccount(s.ctx,
+		dymnstypes.ModuleName,
+		sdk.MustAccAddressFromBech32(bech32Account),
+		sdk.Coins{sdk.NewCoin(s.priceDenom(), amount)},
 	)
 	s.Require().NoError(err)
 }
 
 func (s *KeeperTestSuite) balance(bech32Account string) int64 {
-	return s.bankKeeper.GetBalance(s.ctx, sdk.MustAccAddressFromBech32(bech32Account), s.dymNsKeeper.GetParams(s.ctx).Price.PriceDenom).Amount.Int64()
+	return s.bankKeeper.GetBalance(s.ctx,
+		sdk.MustAccAddressFromBech32(bech32Account),
+		s.priceDenom(),
+	).Amount.Int64()
+}
+
+func (s *KeeperTestSuite) balance2(bech32Account string) sdkmath.Int {
+	return s.bankKeeper.GetBalance(s.ctx,
+		sdk.MustAccAddressFromBech32(bech32Account),
+		s.priceDenom(),
+	).Amount
 }
 
 func (s *KeeperTestSuite) moduleBalance() int64 {
 	return s.balance(dymNsModuleAccAddr.String())
+}
+
+func (s *KeeperTestSuite) moduleBalance2() sdkmath.Int {
+	return s.balance2(dymNsModuleAccAddr.String())
 }
 
 func (s *KeeperTestSuite) persistRollApp(ra rollapp) {
@@ -88,8 +128,8 @@ func (s *KeeperTestSuite) persistRollApp(ra rollapp) {
 		Bech32Prefix: ra.bech32,
 	})
 
-	if ra.alias != "" {
-		err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, ra.rollAppId, ra.alias)
+	for _, alias := range ra.aliases {
+		err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, ra.rollAppId, alias)
 		s.Require().NoError(err)
 	}
 }
@@ -115,6 +155,12 @@ func (s *KeeperTestSuite) setBuyOrderWithFunctionsAfter(buyOrder dymnstypes.BuyO
 	s.Require().NoError(err)
 }
 
+func (s *KeeperTestSuite) setDymNameWithFunctionsAfter(dymName dymnstypes.DymName) {
+	s.Require().NoError(s.dymNsKeeper.SetDymName(s.ctx, dymName))
+	s.Require().NoError(s.dymNsKeeper.AfterDymNameOwnerChanged(s.ctx, dymName.Name))
+	s.Require().NoError(s.dymNsKeeper.AfterDymNameConfigChanged(s.ctx, dymName.Name))
+}
+
 //
 
 func (s *KeeperTestSuite) requireErrorContains(err error, errMsgContains string) {
@@ -134,6 +180,7 @@ type rollapp struct {
 	owner     string
 	bech32    string
 	alias     string
+	aliases   []string
 }
 
 func newRollApp(rollAppId string) *rollapp {
@@ -141,7 +188,7 @@ func newRollApp(rollAppId string) *rollapp {
 		rollAppId: rollAppId,
 		owner:     testAddr(0).bech32(),
 		bech32:    "",
-		alias:     "",
+		aliases:   nil,
 	}
 }
 
@@ -156,7 +203,10 @@ func (r *rollapp) WithBech32(bech32 string) *rollapp {
 }
 
 func (r *rollapp) WithAlias(alias string) *rollapp {
-	r.alias = alias
+	r.aliases = append(r.aliases, alias)
+	if r.alias == "" {
+		r.alias = alias
+	}
 	return r
 }
 
@@ -175,6 +225,9 @@ func (s *KeeperTestSuite) requireRollApp(rollAppId string) *reqRollApp {
 }
 
 func (m reqRollApp) HasAlias(aliases ...string) {
+	if len(aliases) == 0 {
+		panic("must provide at least one alias")
+	}
 	for _, alias := range aliases {
 		rollAppId, found := m.s.dymNsKeeper.GetRollAppIdByAlias(m.s.ctx, alias)
 		m.s.Require().True(found)
@@ -203,9 +256,15 @@ func (s *KeeperTestSuite) requireAlias(alias string) *reqAlias {
 }
 
 func (m reqAlias) NotInUse() {
-	rollAppId, found := m.s.dymNsKeeper.GetRollAppIdByAlias(m.s.ctx, m.alias)
+	gotRollAppId, found := m.s.dymNsKeeper.GetRollAppIdByAlias(m.s.ctx, m.alias)
 	m.s.Require().False(found)
-	m.s.Require().Empty(rollAppId)
+	m.s.Require().Empty(gotRollAppId)
+}
+
+func (m reqAlias) LinkedToRollApp(rollAppId string) {
+	gotRollAppId, found := m.s.dymNsKeeper.GetRollAppIdByAlias(m.s.ctx, m.alias)
+	m.s.Require().True(found)
+	m.s.Require().Equal(rollAppId, gotRollAppId)
 }
 
 //
@@ -315,10 +374,6 @@ type buyOrderBuilder struct {
 	buyer      string
 	offerPrice int64
 	params     []string
-}
-
-func (s *KeeperTestSuite) newDymNameBuyOrder(buyer, dymName string) *buyOrderBuilder {
-	return s.newBuyOrder(buyer, dymName, dymnstypes.TypeName)
 }
 
 func (s *KeeperTestSuite) newAliasBuyOrder(buyer, alias, rollAppId string) *buyOrderBuilder {

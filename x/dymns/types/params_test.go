@@ -1,12 +1,12 @@
 package types
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/stretchr/testify/require"
 )
 
@@ -78,13 +78,13 @@ func TestDefaultPriceParams(t *testing.T) {
 	t.Run("ensure setting is correct", func(t *testing.T) {
 		i, ok := sdk.NewIntFromString("5" + "000000000000000000")
 		require.True(t, ok)
-		require.Equal(t, i, priceParams.NamePrice_5PlusLetters)
+		require.Equal(t, i, priceParams.NamePriceSteps[4])
 	})
 
 	t.Run("ensure price setting is at least 1 DYM", func(t *testing.T) {
 		oneDym, ok := sdk.NewIntFromString("1" + "000000000000000000")
 		require.True(t, ok)
-		if oneDym.GT(priceParams.NamePrice_5PlusLetters) {
+		if oneDym.GT(priceParams.NamePriceSteps[4]) {
 			require.Fail(t, "price should be at least 1 DYM")
 		}
 		if oneDym.GT(priceParams.PriceExtends) {
@@ -116,7 +116,7 @@ func TestParams_Validate(t *testing.T) {
 	require.NoError(t, (&moduleParams).Validate())
 
 	moduleParams = DefaultParams()
-	moduleParams.Price.NamePrice_1Letter = sdk.ZeroInt()
+	moduleParams.Price.MinOfferPrice = sdk.ZeroInt()
 	require.Error(t, (&moduleParams).Validate())
 
 	moduleParams = DefaultParams()
@@ -133,190 +133,149 @@ func TestParams_Validate(t *testing.T) {
 }
 
 func TestPriceParams_Validate(t *testing.T) {
-	validPriceParams := PriceParams{
-		NamePrice_1Letter:       sdk.NewInt(6),
-		NamePrice_2Letters:      sdk.NewInt(5),
-		NamePrice_3Letters:      sdk.NewInt(4),
-		NamePrice_4Letters:      sdk.NewInt(3),
-		NamePrice_5PlusLetters:  sdk.NewInt(2),
-		AliasPrice_1Letter:      sdk.NewInt(16),
-		AliasPrice_2Letters:     sdk.NewInt(15),
-		AliasPrice_3Letters:     sdk.NewInt(14),
-		AliasPrice_4Letters:     sdk.NewInt(13),
-		AliasPrice_5Letters:     sdk.NewInt(12),
-		AliasPrice_6Letters:     sdk.NewInt(11),
-		AliasPrice_7PlusLetters: sdk.NewInt(10),
+	t.Run("pass - default must be valid", func(t *testing.T) {
+		defaultPriceParams := DefaultPriceParams()
 
-		PriceExtends:  sdk.NewInt(2),
-		PriceDenom:    params.BaseDenom,
-		MinOfferPrice: sdk.NewInt(7),
-	}
+		// copy to ensure no new fields are added
+		validPriceParams := PriceParams{
+			NamePriceSteps:  defaultPriceParams.NamePriceSteps,
+			AliasPriceSteps: defaultPriceParams.AliasPriceSteps,
+			PriceExtends:    defaultPriceParams.PriceExtends,
+			PriceDenom:      defaultPriceParams.PriceDenom,
+			MinOfferPrice:   defaultPriceParams.MinOfferPrice,
+		}
 
-	require.NoError(t, validPriceParams.Validate())
-
-	t.Run("price denom", func(t *testing.T) {
-		m := validPriceParams
-		m.PriceDenom = ""
-		require.Error(t, m.Validate())
-
-		m.PriceDenom = "--"
-		require.Error(t, m.Validate())
+		require.NoError(t, validPriceParams.Validate())
 	})
 
-	t.Run("min offer price", func(t *testing.T) {
-		m := validPriceParams
+	t.Run("fail - price steps must be ordered descending", func(t *testing.T) {
+		for i := 0; i < len(DefaultPriceParams().NamePriceSteps)-1; i++ {
+			priceParams := DefaultPriceParams()
+			priceParams.NamePriceSteps[i], priceParams.NamePriceSteps[i+1] = priceParams.NamePriceSteps[i+1], priceParams.NamePriceSteps[i]
+			require.ErrorContains(t,
+				priceParams.Validate(),
+				fmt.Sprintf("previous Dym-Name price step must be greater than the next step at: %d", i),
+			)
+		}
 
-		m.MinOfferPrice = sdkmath.Int{}
-		require.Error(t, m.Validate())
-
-		m.MinOfferPrice = sdk.ZeroInt()
-		require.Error(t, m.Validate())
-
-		m.MinOfferPrice = sdk.NewInt(-1)
-		require.Error(t, m.Validate())
+		for i := 0; i < len(DefaultPriceParams().AliasPriceSteps)-1; i++ {
+			priceParams := DefaultPriceParams()
+			priceParams.AliasPriceSteps[i], priceParams.AliasPriceSteps[i+1] = priceParams.AliasPriceSteps[i+1], priceParams.AliasPriceSteps[i]
+			require.ErrorContains(t,
+				priceParams.Validate(),
+				fmt.Sprintf("previous alias price step must be greater than the next step at: %d", i),
+			)
+		}
 	})
 
-	type modifierPrice func(PriceParams, sdkmath.Int) PriceParams
-	type swapPrice func(PriceParams) PriceParams
+	t.Run("mix - minimum price step count", func(t *testing.T) {
+		defaultPriceParams := DefaultPriceParams()
 
-	testsInvalidPrice := []struct {
-		name          string
-		modifierPrice modifierPrice
-		swapPrice     swapPrice
-	}{
-		{
-			name:          "fail - invalid 1 letter name price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.NamePrice_1Letter = v; return p },
-			swapPrice: func(params PriceParams) PriceParams {
-				backup := params.NamePrice_1Letter
-				params.NamePrice_1Letter = params.NamePrice_2Letters
-				params.NamePrice_2Letters = backup
-				return params
-			},
-		},
-		{
-			name:          "fail - invalid 2 letters name price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.NamePrice_2Letters = v; return p },
-			swapPrice: func(params PriceParams) PriceParams {
-				backup := params.NamePrice_2Letters
-				params.NamePrice_2Letters = params.NamePrice_3Letters
-				params.NamePrice_3Letters = backup
-				return params
-			},
-		},
-		{
-			name:          "fail - invalid 3 letters name price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.NamePrice_3Letters = v; return p },
-			swapPrice: func(params PriceParams) PriceParams {
-				backup := params.NamePrice_3Letters
-				params.NamePrice_3Letters = params.NamePrice_4Letters
-				params.NamePrice_4Letters = backup
-				return params
-			},
-		},
-		{
-			name:          "fail - invalid 4 letters name price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.NamePrice_4Letters = v; return p },
-			swapPrice: func(params PriceParams) PriceParams {
-				backup := params.NamePrice_4Letters
-				params.NamePrice_4Letters = params.NamePrice_5PlusLetters
-				params.NamePrice_5PlusLetters = backup
-				return params
-			},
-		},
-		{
-			name:          "fail - invalid 5+ letters name price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.NamePrice_5PlusLetters = v; return p },
-		},
-		{
-			name:          "fail - invalid yearly extends price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.PriceExtends = v; return p },
-			swapPrice: func(params PriceParams) PriceParams {
-				params.PriceExtends = params.NamePrice_5PlusLetters.Add(params.NamePrice_5PlusLetters)
-				return params
-			},
-		},
-		{
-			name:          "fail - invalid 1 letter alias price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_1Letter = v; return p },
-			swapPrice: func(params PriceParams) PriceParams {
-				backup := params.AliasPrice_1Letter
-				params.AliasPrice_1Letter = params.AliasPrice_2Letters
-				params.AliasPrice_2Letters = backup
-				return params
-			},
-		},
-		{
-			name:          "fail - invalid 2 letters alias price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_2Letters = v; return p },
-			swapPrice: func(params PriceParams) PriceParams {
-				backup := params.AliasPrice_2Letters
-				params.AliasPrice_2Letters = params.AliasPrice_3Letters
-				params.AliasPrice_3Letters = backup
-				return params
-			},
-		},
-		{
-			name:          "fail - invalid 3 letters alias price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_3Letters = v; return p },
-			swapPrice: func(params PriceParams) PriceParams {
-				backup := params.AliasPrice_3Letters
-				params.AliasPrice_3Letters = params.AliasPrice_4Letters
-				params.AliasPrice_4Letters = backup
-				return params
-			},
-		},
-		{
-			name:          "fail - invalid 4 letters alias price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_4Letters = v; return p },
-			swapPrice: func(params PriceParams) PriceParams {
-				backup := params.AliasPrice_4Letters
-				params.AliasPrice_4Letters = params.AliasPrice_5Letters
-				params.AliasPrice_5Letters = backup
-				return params
-			},
-		},
-		{
-			name:          "fail - invalid 5 letters alias price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_5Letters = v; return p },
-			swapPrice: func(params PriceParams) PriceParams {
-				backup := params.AliasPrice_5Letters
-				params.AliasPrice_5Letters = params.AliasPrice_6Letters
-				params.AliasPrice_6Letters = backup
-				return params
-			},
-		},
-		{
-			name:          "fail - invalid 6 letters alias price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_6Letters = v; return p },
-			swapPrice: func(params PriceParams) PriceParams {
-				backup := params.AliasPrice_6Letters
-				params.AliasPrice_6Letters = params.AliasPrice_7PlusLetters
-				params.AliasPrice_7PlusLetters = backup
-				return params
-			},
-		},
-		{
-			name:          "fail - invalid 7+ letters alias price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_7PlusLetters = v; return p },
-		},
-	}
-	for _, tt := range testsInvalidPrice {
-		t.Run(tt.name, func(t *testing.T) {
-			err1 := tt.modifierPrice(validPriceParams, sdk.ZeroInt()).Validate()
-			require.Error(t, err1)
-			require.Contains(t, err1.Error(), "is zero")
-			err2 := tt.modifierPrice(validPriceParams, sdk.NewInt(-1)).Validate()
-			require.Error(t, err2)
-			require.Contains(t, err2.Error(), "is negative")
-
-			if tt.swapPrice != nil {
-				err3 := tt.swapPrice(validPriceParams).Validate()
-				require.Error(t, err3)
-				require.Contains(t, err3.Error(), "must be greater")
+		for size := 0; size <= (MinDymNamePriceStepsCount+MinAliasPriceStepsCount)*2; size++ {
+			priceSteps := make([]sdkmath.Int, size)
+			for i := 0; i < size; i++ {
+				priceSteps[i] = sdk.NewInt(int64(1000 - i)).MulRaw(1e18)
 			}
-		})
-	}
+
+			m1 := defaultPriceParams
+			m1.NamePriceSteps = priceSteps
+			if size >= MinDymNamePriceStepsCount {
+				require.NoError(t, m1.Validate())
+			} else {
+				require.ErrorContains(t, m1.Validate(), "price steps must have at least")
+			}
+
+			m2 := defaultPriceParams
+			m2.AliasPriceSteps = priceSteps
+			if size >= MinAliasPriceStepsCount {
+				require.NoError(t, m2.Validate())
+			} else {
+				require.ErrorContains(t, m2.Validate(), "price steps must have at least")
+			}
+		}
+
+		require.GreaterOrEqual(t, MinDymNamePriceStepsCount, 3, "why it so low?")
+		require.GreaterOrEqual(t, MinAliasPriceStepsCount, 3, "why it so low?")
+	})
+
+	t.Run("fail - price denom", func(t *testing.T) {
+		m := DefaultPriceParams()
+
+		m.PriceDenom = ""
+		require.ErrorContains(t, m.Validate(), "price denom cannot be empty")
+
+		for _, denom := range []string{"-", "--", "0"} {
+			m.PriceDenom = denom
+			require.ErrorContains(t, m.Validate(), "invalid price denom")
+		}
+	})
+
+	t.Run("fail - price is too low", func(t *testing.T) {
+		defaultPriceParams := DefaultPriceParams()
+
+		type tc struct {
+			name     string
+			modifier func(PriceParams, sdkmath.Int) PriceParams
+		}
+
+		tests := []tc{
+			{
+				name: "price extends",
+				modifier: func(p PriceParams, v sdkmath.Int) PriceParams {
+					p.PriceExtends = v
+					return p
+				},
+			},
+			{
+				name: "min offer price",
+				modifier: func(p PriceParams, v sdkmath.Int) PriceParams {
+					p.MinOfferPrice = v
+					return p
+				},
+			},
+		}
+
+		for i := 0; i < len(defaultPriceParams.NamePriceSteps); i++ {
+			tests = append(tests, tc{
+				name: fmt.Sprintf("name price steps [%d]", i),
+				modifier: func(p PriceParams, v sdkmath.Int) PriceParams {
+					p.NamePriceSteps[i] = v
+					return p
+				},
+			})
+		}
+
+		for i := 0; i < len(defaultPriceParams.AliasPriceSteps); i++ {
+			tests = append(tests, tc{
+				name: fmt.Sprintf("alias price steps [%d]", i),
+				modifier: func(p PriceParams, v sdkmath.Int) PriceParams {
+					p.AliasPriceSteps[i] = v
+					return p
+				},
+			})
+		}
+
+		for _, test := range tests {
+			for _, badPrice := range []sdkmath.Int{{}, sdkmath.NewInt(-1), sdkmath.ZeroInt(), MinPriceValue.Sub(sdkmath.NewInt(1))} {
+				t.Run(fmt.Sprintf("%s with v = %v", test.name, badPrice), func(t *testing.T) {
+					p := test.modifier(DefaultPriceParams(), badPrice)
+					err := (&p).Validate()
+					require.Error(t, err)
+					require.Contains(t, err.Error(), "must be at least")
+				})
+			}
+		}
+	})
+
+	t.Run("fail - yearly extends price can not be higher than last step price", func(t *testing.T) {
+		defaultPriceParams := DefaultPriceParams()
+		defaultPriceParams.PriceExtends = defaultPriceParams.NamePriceSteps[len(defaultPriceParams.NamePriceSteps)-1].AddRaw(1)
+
+		require.ErrorContains(
+			t, defaultPriceParams.Validate(),
+			"Dym-Name price step for the first year must be greater or equals to the yearly extends price",
+		)
+	})
 
 	t.Run("fail - invalid type", func(t *testing.T) {
 		require.Error(t, validatePriceParams("hello world"))
@@ -327,21 +286,51 @@ func TestPriceParams_Validate(t *testing.T) {
 func TestPriceParams_GetPrice(t *testing.T) {
 	priceParams := DefaultPriceParams()
 
-	require.Equal(t, priceParams.NamePrice_1Letter, priceParams.GetFirstYearDymNamePrice("a"))
-	require.Equal(t, priceParams.NamePrice_2Letters, priceParams.GetFirstYearDymNamePrice("ab"))
-	require.Equal(t, priceParams.NamePrice_3Letters, priceParams.GetFirstYearDymNamePrice("dog"))
-	require.Equal(t, priceParams.NamePrice_4Letters, priceParams.GetFirstYearDymNamePrice("pool"))
-	require.Equal(t, priceParams.NamePrice_5PlusLetters, priceParams.GetFirstYearDymNamePrice("angel"))
-	require.Equal(t, priceParams.NamePrice_5PlusLetters, priceParams.GetFirstYearDymNamePrice("dymension"))
+	t.Run("for name length <= number of price steps, use the corresponding price step", func(t *testing.T) {
+		runes := make([]rune, 0)
+		for length := 1; length <= len(priceParams.NamePriceSteps); length++ {
+			runes = append(runes, 'a')
+			require.Equal(t, priceParams.NamePriceSteps[length-1], priceParams.GetFirstYearDymNamePrice(string(runes)))
+		}
+	})
 
-	require.Equal(t, priceParams.AliasPrice_1Letter, priceParams.GetAliasPrice("a"))
-	require.Equal(t, priceParams.AliasPrice_2Letters, priceParams.GetAliasPrice("ab"))
-	require.Equal(t, priceParams.AliasPrice_3Letters, priceParams.GetAliasPrice("dog"))
-	require.Equal(t, priceParams.AliasPrice_4Letters, priceParams.GetAliasPrice("pool"))
-	require.Equal(t, priceParams.AliasPrice_5Letters, priceParams.GetAliasPrice("angel"))
-	require.Equal(t, priceParams.AliasPrice_6Letters, priceParams.GetAliasPrice("bridge"))
-	require.Equal(t, priceParams.AliasPrice_7PlusLetters, priceParams.GetAliasPrice("academy"))
-	require.Equal(t, priceParams.AliasPrice_7PlusLetters, priceParams.GetAliasPrice("dymension"))
+	t.Run("for name length >= number of price steps, use the last price step", func(t *testing.T) {
+		wantPrice := priceParams.NamePriceSteps[len(priceParams.NamePriceSteps)-1]
+
+		runes := make([]rune, len(priceParams.NamePriceSteps))
+		for i := range runes {
+			runes[i] = 'a'
+		}
+		require.Equal(t, wantPrice, priceParams.GetFirstYearDymNamePrice(string(runes)))
+
+		for extraLettersCount := 1; extraLettersCount < 1000; extraLettersCount++ {
+			runes = append(runes, 'a')
+			require.Equal(t, wantPrice, priceParams.GetFirstYearDymNamePrice(string(runes)))
+		}
+	})
+
+	t.Run("for alias length <= number of price steps, use the corresponding price step", func(t *testing.T) {
+		runes := make([]rune, 0)
+		for length := 1; length <= len(priceParams.AliasPriceSteps); length++ {
+			runes = append(runes, 'a')
+			require.Equal(t, priceParams.AliasPriceSteps[length-1], priceParams.GetAliasPrice(string(runes)))
+		}
+	})
+
+	t.Run("for alias length >= number of price steps, use the last price step", func(t *testing.T) {
+		wantPrice := priceParams.AliasPriceSteps[len(priceParams.AliasPriceSteps)-1]
+
+		runes := make([]rune, len(priceParams.AliasPriceSteps))
+		for i := range runes {
+			runes[i] = 'a'
+		}
+		require.Equal(t, wantPrice, priceParams.GetAliasPrice(string(runes)))
+
+		for extraLettersCount := 1; extraLettersCount < 1000; extraLettersCount++ {
+			runes = append(runes, 'a')
+			require.Equal(t, wantPrice, priceParams.GetAliasPrice(string(runes)))
+		}
+	})
 }
 
 //goland:noinspection SpellCheckingInspection

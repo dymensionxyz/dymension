@@ -144,7 +144,7 @@ func (s *KeeperTestSuite) TestKeeper_GetSetAliasForRollAppId() {
 }
 
 func (s *KeeperTestSuite) TestKeeper_GetAliasesOfRollAppId() {
-	rollApp1 := *newRollApp("rollapp_1-1").WithAlias("one")
+	rollApp1 := *newRollApp("rollapp_1-1").WithAlias("one").WithAlias("more").WithAlias("alias")
 	rollApp2 := *newRollApp("rollapp_2-2").WithAlias("two")
 	rollApp3NoAlias := *newRollApp("rollapp_3-3")
 
@@ -152,17 +152,11 @@ func (s *KeeperTestSuite) TestKeeper_GetAliasesOfRollAppId() {
 	s.persistRollApp(rollApp2)
 	s.persistRollApp(rollApp3NoAlias)
 
-	err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp1.rollAppId, "more")
-	s.Require().NoError(err)
-
-	err = s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp1.rollAppId, "alias")
-	s.Require().NoError(err)
-
 	aliases := s.dymNsKeeper.GetAliasesOfRollAppId(s.ctx, rollApp1.rollAppId)
-	s.Require().Equal([]string{rollApp1.alias, "more", "alias"}, aliases)
+	s.Require().Equal([]string{"one", "more", "alias"}, aliases)
 
 	aliases = s.dymNsKeeper.GetAliasesOfRollAppId(s.ctx, rollApp2.rollAppId)
-	s.Require().Equal([]string{rollApp2.alias}, aliases)
+	s.Require().Equal([]string{"two"}, aliases)
 
 	aliases = s.dymNsKeeper.GetAliasesOfRollAppId(s.ctx, rollApp3NoAlias.rollAppId)
 	s.Require().Empty(aliases)

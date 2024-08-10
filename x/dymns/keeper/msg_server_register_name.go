@@ -24,19 +24,7 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 
 	addDurationInSeconds := 86400 * 365 * msg.Duration
 
-	var firstYearPrice sdkmath.Int
-	nameLength := len(msg.Name)
-	if nameLength == 1 {
-		firstYearPrice = params.Price.NamePrice_1Letter
-	} else if nameLength == 2 {
-		firstYearPrice = params.Price.NamePrice_2Letters
-	} else if nameLength == 3 {
-		firstYearPrice = params.Price.NamePrice_3Letters
-	} else if nameLength == 4 {
-		firstYearPrice = params.Price.NamePrice_4Letters
-	} else {
-		firstYearPrice = params.Price.NamePrice_5PlusLetters
-	}
+	firstYearPrice := params.Price.GetFirstYearDymNamePrice(msg.Name)
 
 	var pruneAnyHistoricalData bool
 	var totalCost sdk.Coin

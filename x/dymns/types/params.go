@@ -56,19 +56,23 @@ func DefaultParams() Params {
 // DefaultPriceParams returns a default set of price parameters
 func DefaultPriceParams() PriceParams {
 	return PriceParams{
-		NamePrice_1Letter:      sdk.NewInt(5000 /* DYM */).MulRaw(1e18),
-		NamePrice_2Letters:     sdk.NewInt(2500 /* DYM */).MulRaw(1e18),
-		NamePrice_3Letters:     sdk.NewInt(1000 /* DYM */).MulRaw(1e18),
-		NamePrice_4Letters:     sdk.NewInt(100 /* DYM */).MulRaw(1e18),
-		NamePrice_5PlusLetters: sdk.NewInt(5 /* DYM */).MulRaw(1e18),
+		NamePriceSteps: []sdkmath.Int{
+			sdk.NewInt(5000 /* DYM */).MulRaw(1e18),
+			sdk.NewInt(2500 /* DYM */).MulRaw(1e18),
+			sdk.NewInt(1000 /* DYM */).MulRaw(1e18),
+			sdk.NewInt(100 /* DYM */).MulRaw(1e18),
+			sdk.NewInt(5 /* DYM */).MulRaw(1e18),
+		},
 
-		AliasPrice_1Letter:      sdk.NewInt(5000 /* DYM */).MulRaw(1e18),
-		AliasPrice_2Letters:     sdk.NewInt(1000 /* DYM */).MulRaw(1e18),
-		AliasPrice_3Letters:     sdk.NewInt(250 /* DYM */).MulRaw(1e18),
-		AliasPrice_4Letters:     sdk.NewInt(100 /* DYM */).MulRaw(1e18),
-		AliasPrice_5Letters:     sdk.NewInt(25 /* DYM */).MulRaw(1e18),
-		AliasPrice_6Letters:     sdk.NewInt(10 /* DYM */).MulRaw(1e18),
-		AliasPrice_7PlusLetters: sdk.NewInt(5 /* DYM */).MulRaw(1e18),
+		AliasPriceSteps: []sdkmath.Int{
+			sdk.NewInt(5000 /* DYM */).MulRaw(1e18),
+			sdk.NewInt(1000 /* DYM */).MulRaw(1e18),
+			sdk.NewInt(250 /* DYM */).MulRaw(1e18),
+			sdk.NewInt(100 /* DYM */).MulRaw(1e18),
+			sdk.NewInt(25 /* DYM */).MulRaw(1e18),
+			sdk.NewInt(10 /* DYM */).MulRaw(1e18),
+			sdk.NewInt(5 /* DYM */).MulRaw(1e18),
+		},
 
 		PriceExtends:  sdk.NewInt(5 /* DYM */).MulRaw(1e18),
 		PriceDenom:    params.BaseDenom,
@@ -224,38 +228,22 @@ func (m PriceParams) Validate() error {
 	return validatePriceParams(m)
 }
 
+// GetFirstYearDymNamePrice returns the price for the first year of a Dym-Name registration.
 func (m *PriceParams) GetFirstYearDymNamePrice(name string) sdkmath.Int {
-	switch len(name) {
-	case 1:
-		return m.NamePrice_1Letter
-	case 2:
-		return m.NamePrice_2Letters
-	case 3:
-		return m.NamePrice_3Letters
-	case 4:
-		return m.NamePrice_4Letters
-	default:
-		return m.NamePrice_5PlusLetters
-	}
+	return getElementAtIndexOrLast(m.NamePriceSteps, len(name)-1)
 }
 
+// GetAliasPrice returns the one-off-payment price for an Alias registration.
 func (m *PriceParams) GetAliasPrice(alias string) sdkmath.Int {
-	switch len(alias) {
-	case 1:
-		return m.AliasPrice_1Letter
-	case 2:
-		return m.AliasPrice_2Letters
-	case 3:
-		return m.AliasPrice_3Letters
-	case 4:
-		return m.AliasPrice_4Letters
-	case 5:
-		return m.AliasPrice_5Letters
-	case 6:
-		return m.AliasPrice_6Letters
-	default:
-		return m.AliasPrice_7PlusLetters
+	return getElementAtIndexOrLast(m.AliasPriceSteps, len(alias)-1)
+}
+
+// getElementAtIndexOrLast returns the element at the given index or the last element if the index is out of bounds.
+func getElementAtIndexOrLast(elements []sdkmath.Int, index int) sdkmath.Int {
+	if index >= len(elements) {
+		return elements[len(elements)-1]
 	}
+	return elements[index]
 }
 
 // Validate checks that the ChainsParams have valid values.
@@ -312,20 +300,18 @@ func validatePriceParams(i interface{}) error {
 	}
 
 	if m.PriceDenom == "" {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name price denom cannot be empty")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "price denom cannot be empty")
 	}
 
 	if err := (sdk.Coin{
 		Denom:  m.PriceDenom,
 		Amount: sdk.ZeroInt(),
 	}).Validate(); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name price denom: %s", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid price denom: %s", m.PriceDenom)
 	}
 
-	if m.MinOfferPrice.IsNil() || m.MinOfferPrice.IsZero() {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "min-offer-price is zero")
-	} else if m.MinOfferPrice.IsNegative() {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "min-offer-price is negative")
+	if m.MinOfferPrice.IsNil() || m.MinOfferPrice.LT(MinPriceValue) {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "min-offer-price is must be at least %s%s", MinPriceValue, m.PriceDenom)
 	}
 
 	return nil
@@ -333,59 +319,43 @@ func validatePriceParams(i interface{}) error {
 
 // validateNamePriceParams checks if Dym-Name price in the given PriceParams are valid.
 func validateNamePriceParams(m PriceParams) error {
-	validateNamePrice := func(price sdkmath.Int, letterDesc string) error {
-		if price.IsNil() || price.IsZero() {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Dym-Name price is zero for: %s", letterDesc)
-		} else if price.IsNegative() {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Dym-Name price is negative for: %s", letterDesc)
-		}
-		return nil
-	}
-
-	if err := validateNamePrice(m.NamePrice_1Letter, "1 letter"); err != nil {
-		return err
-	}
-
-	if err := validateNamePrice(m.NamePrice_2Letters, "2 letters"); err != nil {
-		return err
-	}
-
-	if err := validateNamePrice(m.NamePrice_3Letters, "3 letters"); err != nil {
-		return err
-	}
-
-	if err := validateNamePrice(m.NamePrice_4Letters, "4 letters"); err != nil {
-		return err
-	}
-
-	if err := validateNamePrice(m.NamePrice_5PlusLetters, "5+ letters"); err != nil {
-		return err
-	}
-
-	if err := validateNamePrice(m.PriceExtends, "yearly extends"); err != nil {
-		return err
-	}
-
-	if m.NamePrice_1Letter.LTE(m.NamePrice_2Letters) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "1 letter price must be greater than 2 letters price")
-	}
-
-	if m.NamePrice_2Letters.LTE(m.NamePrice_3Letters) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "2 letters price must be greater than 3 letters price")
-	}
-
-	if m.NamePrice_3Letters.LTE(m.NamePrice_4Letters) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "3 letters price must be greater than 4 letters price")
-	}
-
-	if m.NamePrice_4Letters.LTE(m.NamePrice_5PlusLetters) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "4 letters price must be greater than 5+ letters price")
-	}
-
-	if m.NamePrice_5PlusLetters.LT(m.PriceExtends) {
-		return errorsmod.Wrap(
+	if len(m.NamePriceSteps) < MinDymNamePriceStepsCount {
+		return errorsmod.Wrapf(
 			gerrc.ErrInvalidArgument,
-			"5 letters price must be greater or equals to yearly extend price",
+			"Dym-Name price steps must have at least %d steps", MinDymNamePriceStepsCount,
+		)
+	}
+
+	for i, namePriceStep := range m.NamePriceSteps {
+		if namePriceStep.IsNil() || namePriceStep.LT(MinPriceValue) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument,
+				"Dym-Name price step at index %d must be at least %s%s", i, MinPriceValue, m.PriceDenom,
+			)
+		}
+	}
+
+	if m.PriceExtends.IsNil() || m.PriceExtends.LT(MinPriceValue) {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument,
+			"Dym-Name yearly extends price must be at least %s%s", MinPriceValue, m.PriceDenom,
+		)
+	}
+
+	for i := 0; i < len(m.NamePriceSteps)-1; i++ {
+		left := m.NamePriceSteps[i]
+		right := m.NamePriceSteps[i+1]
+		if left.LTE(right) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument,
+				"previous Dym-Name price step must be greater than the next step at: %d", i,
+			)
+		}
+	}
+
+	lastPriceStep := m.NamePriceSteps[len(m.NamePriceSteps)-1]
+	if lastPriceStep.LT(m.PriceExtends) {
+		return errorsmod.Wrapf(
+			gerrc.ErrInvalidArgument,
+			"Dym-Name price step for the first year must be greater or equals to the yearly extends price: %s < %s",
+			lastPriceStep, m.PriceExtends,
 		)
 	}
 
@@ -394,65 +364,29 @@ func validateNamePriceParams(m PriceParams) error {
 
 // validateAliasPriceParams checks if Alias price in the given PriceParams are valid.
 func validateAliasPriceParams(m PriceParams) error {
-	validateAliasPrice := func(price sdkmath.Int, letterDesc string) error {
-		if price.IsNil() || price.IsZero() {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Alias price is zero for: %s", letterDesc)
-		} else if price.IsNegative() {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Alias price is negative for: %s", letterDesc)
+	if len(m.AliasPriceSteps) < MinAliasPriceStepsCount {
+		return errorsmod.Wrapf(
+			gerrc.ErrInvalidArgument,
+			"alias price steps must have at least %d steps", MinAliasPriceStepsCount,
+		)
+	}
+
+	for i, aliasPriceStep := range m.AliasPriceSteps {
+		if aliasPriceStep.IsNil() || aliasPriceStep.LT(MinPriceValue) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument,
+				"alias price step at index %d must be at least %s%s", i, MinPriceValue, m.PriceDenom,
+			)
 		}
-		return nil
 	}
 
-	if err := validateAliasPrice(m.AliasPrice_1Letter, "1 letter"); err != nil {
-		return err
-	}
-
-	if err := validateAliasPrice(m.AliasPrice_2Letters, "2 letters"); err != nil {
-		return err
-	}
-
-	if err := validateAliasPrice(m.AliasPrice_3Letters, "3 letters"); err != nil {
-		return err
-	}
-
-	if err := validateAliasPrice(m.AliasPrice_4Letters, "4 letters"); err != nil {
-		return err
-	}
-
-	if err := validateAliasPrice(m.AliasPrice_5Letters, "5 letters"); err != nil {
-		return err
-	}
-
-	if err := validateAliasPrice(m.AliasPrice_6Letters, "6 letters"); err != nil {
-		return err
-	}
-
-	if err := validateAliasPrice(m.AliasPrice_7PlusLetters, "7+ letters"); err != nil {
-		return err
-	}
-
-	if m.AliasPrice_1Letter.LTE(m.AliasPrice_2Letters) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "1 letter price must be greater than 2 letters price")
-	}
-
-	if m.AliasPrice_2Letters.LTE(m.AliasPrice_3Letters) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "2 letters price must be greater than 3 letters price")
-	}
-
-	if m.AliasPrice_3Letters.LTE(m.AliasPrice_4Letters) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "3 letters price must be greater than 4 letters price")
-	}
-
-	if m.AliasPrice_4Letters.LTE(m.AliasPrice_5Letters) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "4 letters price must be greater than 5 letters price")
-	}
-
-	if m.AliasPrice_5Letters.LTE(m.AliasPrice_6Letters) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "5 letters price must be greater than 6 letters price")
-	}
-
-	if m.AliasPrice_6Letters.LTE(m.AliasPrice_7PlusLetters) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "6 letters price must be greater than 7+ letters price")
+	for i := 0; i < len(m.AliasPriceSteps)-1; i++ {
+		left := m.AliasPriceSteps[i]
+		right := m.AliasPriceSteps[i+1]
+		if left.LTE(right) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument,
+				"previous alias price step must be greater than the next step at: %d", i,
+			)
+		}
 	}
 
 	return nil

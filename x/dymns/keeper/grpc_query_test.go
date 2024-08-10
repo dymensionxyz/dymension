@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
@@ -613,7 +615,7 @@ func Test_queryServer_HistoricalSellOrderOfDymName(t *testing.T) {
 	})
 }
 
-func Test_queryServer_EstimateRegisterName(t *testing.T) {
+func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 	now := time.Now().UTC()
 
 	const denom = "atom"
@@ -624,23 +626,24 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 	const price5PlusL int64 = 5
 	const extendsPrice int64 = 4
 
-	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockTime(now)
+	// the number values used in this test will be multiplied by this value
+	priceMultiplier := sdk.NewInt(1e18)
 
-		params := dymnstypes.DefaultParams()
-		params.Price.PriceDenom = denom
-		params.Price.NamePrice_1Letter = sdk.NewInt(price1L)
-		params.Price.NamePrice_2Letters = sdk.NewInt(price2L)
-		params.Price.NamePrice_3Letters = sdk.NewInt(price3L)
-		params.Price.NamePrice_4Letters = sdk.NewInt(price4L)
-		params.Price.NamePrice_5PlusLetters = sdk.NewInt(price5PlusL)
-		params.Price.PriceExtends = sdk.NewInt(extendsPrice)
-		params.Misc.GracePeriodDuration = 1 * 24 * time.Hour
-		err := dk.SetParams(ctx, params)
-		require.NoError(t, err)
+	setupParams := func(s *KeeperTestSuite) {
+		s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
+			params.Price.PriceDenom = denom
+			params.Price.NamePriceSteps = []sdkmath.Int{
+				sdkmath.NewInt(price1L).Mul(priceMultiplier),
+				sdkmath.NewInt(price2L).Mul(priceMultiplier),
+				sdkmath.NewInt(price3L).Mul(priceMultiplier),
+				sdkmath.NewInt(price4L).Mul(priceMultiplier),
+				sdkmath.NewInt(price5PlusL).Mul(priceMultiplier),
+			}
+			params.Price.PriceExtends = sdk.NewInt(extendsPrice).Mul(priceMultiplier)
+			params.Misc.GracePeriodDuration = 1 * 24 * time.Hour
 
-		return dk, ctx
+			return params
+		})
 	}
 
 	buyerA := testAddr(1).bech32()
@@ -1002,55 +1005,53 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, ctx := setupTest()
+		s.Run(tt.name, func() {
+			s.SetupTest()
 
-			require.Positive(t, dk.MiscParams(ctx).GracePeriodDuration, "bad setup, must have grace period")
+			setupParams(s)
+
+			s.Require().Positive(s.dymNsKeeper.MiscParams(s.ctx).GracePeriodDuration, "bad setup, must have grace period")
 
 			if tt.existingDymName != nil {
-				err := dk.SetDymName(ctx, *tt.existingDymName)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetDymName(s.ctx, *tt.existingDymName)
+				s.Require().NoError(err)
 			}
 
-			queryServer := dymnskeeper.NewQueryServerImpl(dk)
+			queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
-			resp, err := queryServer.EstimateRegisterName(sdk.WrapSDKContext(ctx), &dymnstypes.EstimateRegisterNameRequest{
+			resp, err := queryServer.EstimateRegisterName(sdk.WrapSDKContext(s.ctx), &dymnstypes.EstimateRegisterNameRequest{
 				Name:     tt.dymName,
 				Duration: tt.duration,
 				Owner:    tt.newOwner,
 			})
 
 			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
-				require.Nil(t, resp)
+				s.Require().ErrorContains(err, tt.wantErrContains)
+				s.Nil(resp)
 				return
 			}
 
-			require.NoError(t, err)
-			require.NotNil(t, resp)
+			s.Require().NoError(err)
+			s.Require().NotNil(resp)
 
-			require.Equal(t, tt.wantFirstYearPrice, resp.FirstYearPrice.Amount.Int64())
-			require.Equal(t, tt.wantExtendPrice, resp.ExtendPrice.Amount.Int64())
-			require.Equal(
-				t,
-				tt.wantFirstYearPrice+tt.wantExtendPrice,
-				resp.TotalPrice.Amount.Int64(),
+			s.Equal(sdk.NewInt(tt.wantFirstYearPrice).Mul(priceMultiplier).String(), resp.FirstYearPrice.Amount.String())
+			s.Equal(sdk.NewInt(tt.wantExtendPrice).Mul(priceMultiplier).String(), resp.ExtendPrice.Amount.String())
+			s.Equal(
+				sdk.NewInt(tt.wantFirstYearPrice+tt.wantExtendPrice).Mul(priceMultiplier).String(),
+				resp.TotalPrice.Amount.String(),
 				"total price must be equals to sum of first year and extend price",
 			)
-			require.Equal(t, denom, resp.FirstYearPrice.Denom)
-			require.Equal(t, denom, resp.ExtendPrice.Denom)
-			require.Equal(t, denom, resp.TotalPrice.Denom)
+			s.Equal(denom, resp.FirstYearPrice.Denom)
+			s.Equal(denom, resp.ExtendPrice.Denom)
+			s.Equal(denom, resp.TotalPrice.Denom)
 		})
 	}
 
-	t.Run("reject nil request", func(t *testing.T) {
-		dk, ctx := setupTest()
-		queryServer := dymnskeeper.NewQueryServerImpl(dk)
-		resp, err := queryServer.EstimateRegisterName(sdk.WrapSDKContext(ctx), nil)
-		require.Error(t, err)
-		require.Nil(t, resp)
+	s.Run("reject nil request", func() {
+		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
+		resp, err := queryServer.EstimateRegisterName(sdk.WrapSDKContext(s.ctx), nil)
+		s.Require().ErrorContains(err, "invalid request")
+		s.Require().Nil(resp)
 	})
 }
 

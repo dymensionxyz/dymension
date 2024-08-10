@@ -5,7 +5,8 @@ import (
 	"testing"
 	"time"
 
-	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	sdkmath "cosmossdk.io/math"
+
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -2139,9 +2140,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 	}
 }
 
-func Test_rollappHooks_RollappCreated(t *testing.T) {
-	now := time.Now().UTC()
-
+func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 	const price1L = 9
 	const price2L = 8
 	const price3L = 7
@@ -2150,22 +2149,22 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 	const price6L = 4
 	const price7PL = 3
 
-	setupTest := func() (dymnskeeper.Keeper, dymnstypes.BankKeeper, rollappkeeper.Keeper, sdk.Context) {
-		dk, bk, rk, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockTime(now)
+	// the number values used in this test will be multiplied by this value
+	priceMultiplier := sdk.NewInt(1e18)
 
-		moduleParams := dk.GetParams(ctx)
-		moduleParams.Price.AliasPrice_1Letter = sdk.NewInt(price1L)
-		moduleParams.Price.AliasPrice_2Letters = sdk.NewInt(price2L)
-		moduleParams.Price.AliasPrice_3Letters = sdk.NewInt(price3L)
-		moduleParams.Price.AliasPrice_4Letters = sdk.NewInt(price4L)
-		moduleParams.Price.AliasPrice_5Letters = sdk.NewInt(price5L)
-		moduleParams.Price.AliasPrice_6Letters = sdk.NewInt(price6L)
-		moduleParams.Price.AliasPrice_7PlusLetters = sdk.NewInt(price7PL)
-		err := dk.SetParams(ctx, moduleParams)
-		require.NoError(t, err)
-
-		return dk, bk, rk, ctx
+	setupParams := func(s *KeeperTestSuite) {
+		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+			moduleParams.Price.AliasPriceSteps = []sdkmath.Int{
+				sdk.NewInt(price1L).Mul(priceMultiplier),
+				sdk.NewInt(price2L).Mul(priceMultiplier),
+				sdk.NewInt(price3L).Mul(priceMultiplier),
+				sdk.NewInt(price4L).Mul(priceMultiplier),
+				sdk.NewInt(price5L).Mul(priceMultiplier),
+				sdk.NewInt(price6L).Mul(priceMultiplier),
+				sdk.NewInt(price7PL).Mul(priceMultiplier),
+			}
+			return moduleParams
+		})
 	}
 
 	creatorAccAddr := sdk.AccAddress(testAddr(1).bytes())
@@ -2175,7 +2174,7 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 	tests := []struct {
 		name                    string
 		addRollApps             []string
-		preRunSetup             func(*testing.T, sdk.Context, dymnskeeper.Keeper, rollappkeeper.Keeper)
+		preRunSetup             func(s *KeeperTestSuite)
 		originalCreatorBalance  int64
 		originalModuleBalance   int64
 		rollAppId               string
@@ -2184,7 +2183,7 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 		wantErrContains         string
 		wantSuccess             bool
 		wantLaterCreatorBalance int64
-		postTest                func(*testing.T, sdk.Context, dymnskeeper.Keeper, rollappkeeper.Keeper)
+		postTest                func(s *KeeperTestSuite)
 	}{
 		{
 			name:                    "pass - register without problem",
@@ -2205,14 +2204,14 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 			alias:                  "alias",
 			wantErr:                false,
 			wantSuccess:            true,
-			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
-				require.True(t, found)
-				require.Equal(t, "alias", alias)
+			postTest: func(s *KeeperTestSuite) {
+				alias, found := s.dymNsKeeper.GetAliasByRollAppId(s.ctx, "rollapp_1-1")
+				s.True(found)
+				s.Equal("alias", alias)
 
-				rollAppId, found := dk.GetRollAppIdByAlias(context, "alias")
-				require.True(t, found)
-				require.Equal(t, "rollapp_1-1", rollAppId)
+				rollAppId, found := s.dymNsKeeper.GetRollAppIdByAlias(s.ctx, "alias")
+				s.True(found)
+				s.Equal("rollapp_1-1", rollAppId)
 			},
 		},
 		{
@@ -2224,16 +2223,16 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 			wantErr:                 false,
 			wantSuccess:             true,
 			wantLaterCreatorBalance: 0,
-			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+			postTest: func(s *KeeperTestSuite) {
 				// mapping should not be created
 
-				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
-				require.False(t, found)
-				require.Empty(t, alias)
+				alias, found := s.dymNsKeeper.GetAliasByRollAppId(s.ctx, "rollapp_1-1")
+				s.False(found)
+				s.Empty(alias)
 
-				rollAppId, found := dk.GetRollAppIdByAlias(context, "alias")
-				require.False(t, found)
-				require.Empty(t, rollAppId)
+				rollAppId, found := s.dymNsKeeper.GetRollAppIdByAlias(s.ctx, "alias")
+				s.False(found)
+				s.Empty(rollAppId)
 			},
 		},
 		{
@@ -2348,12 +2347,12 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 			wantErrContains:         "not",
 			wantSuccess:             false,
 			wantLaterCreatorBalance: price1L,
-			postTest: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				_, found := dk.GetAliasByRollAppId(ctx, "nad_0-0")
-				require.False(t, found)
+			postTest: func(s *KeeperTestSuite) {
+				_, found := s.dymNsKeeper.GetAliasByRollAppId(s.ctx, "nad_0-0")
+				s.False(found)
 
-				_, found = dk.GetRollAppIdByAlias(ctx, "alias")
-				require.False(t, found)
+				_, found = s.dymNsKeeper.GetRollAppIdByAlias(s.ctx, "alias")
+				s.False(found)
 			},
 		},
 		{
@@ -2370,20 +2369,19 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 		{
 			name:        "pass - can register if alias is not used",
 			addRollApps: []string{"rollapp_1-1", "rollapp_2-2"},
-			preRunSetup: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				moduleParams := dk.GetParams(ctx)
+			preRunSetup: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+					moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: "dymension_1100-1",
+							Aliases: []string{"dym"},
+						},
+					}
+					return moduleParams
+				})
 
-				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
-					{
-						ChainId: "dymension_1100-1",
-						Aliases: []string{"dym"},
-					},
-				}
-
-				require.NoError(t, dk.SetParams(ctx, moduleParams))
-
-				err := dk.SetAliasForRollAppId(ctx, "rollapp_2-2", "ra2")
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, "rollapp_2-2", "ra2")
+				s.NoError(err)
 			},
 			originalCreatorBalance:  price5L + 2,
 			originalModuleBalance:   1,
@@ -2392,33 +2390,32 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 			wantErr:                 false,
 			wantSuccess:             true,
 			wantLaterCreatorBalance: 2,
-			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
-				require.True(t, found)
-				require.Equal(t, "alias", alias)
+			postTest: func(s *KeeperTestSuite) {
+				alias, found := s.dymNsKeeper.GetAliasByRollAppId(s.ctx, "rollapp_1-1")
+				s.True(found)
+				s.Equal("alias", alias)
 
-				rollAppId, found := dk.GetRollAppIdByAlias(context, "alias")
-				require.True(t, found)
-				require.Equal(t, "rollapp_1-1", rollAppId)
+				rollAppId, found := s.dymNsKeeper.GetRollAppIdByAlias(s.ctx, "alias")
+				s.True(found)
+				s.Equal("rollapp_1-1", rollAppId)
 			},
 		},
 		{
 			name:        "fail - reject if alias is presents as chain-id in params",
 			addRollApps: []string{"rollapp_1-1", "rollapp_2-2"},
-			preRunSetup: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				moduleParams := dk.GetParams(ctx)
+			preRunSetup: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+					moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: "bridge",
+							Aliases: []string{"b"},
+						},
+					}
+					return moduleParams
+				})
 
-				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
-					{
-						ChainId: "bridge",
-						Aliases: []string{"b"},
-					},
-				}
-
-				require.NoError(t, dk.SetParams(ctx, moduleParams))
-
-				err := dk.SetAliasForRollAppId(ctx, "rollapp_2-2", "ra2")
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, "rollapp_2-2", "ra2")
+				s.NoError(err)
 			},
 			originalCreatorBalance:  price1L,
 			originalModuleBalance:   1,
@@ -2428,33 +2425,32 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 			wantErrContains:         "alias already in use or preserved",
 			wantSuccess:             false,
 			wantLaterCreatorBalance: price1L,
-			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
-				require.False(t, found)
-				require.Empty(t, alias)
+			postTest: func(s *KeeperTestSuite) {
+				alias, found := s.dymNsKeeper.GetAliasByRollAppId(s.ctx, "rollapp_1-1")
+				s.False(found)
+				s.Empty(alias)
 
-				rollAppId, found := dk.GetRollAppIdByAlias(context, "bridge")
-				require.False(t, found)
-				require.Empty(t, rollAppId)
+				rollAppId, found := s.dymNsKeeper.GetRollAppIdByAlias(s.ctx, "bridge")
+				s.False(found)
+				s.Empty(rollAppId)
 			},
 		},
 		{
 			name:        "fail - reject if alias is presents as alias of a chain-id in params",
 			addRollApps: []string{"rollapp_1-1", "rollapp_2-2"},
-			preRunSetup: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				moduleParams := dk.GetParams(ctx)
+			preRunSetup: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+					moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: "dymension_1100-1",
+							Aliases: []string{"dym"},
+						},
+					}
+					return moduleParams
+				})
 
-				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
-					{
-						ChainId: "dymension_1100-1",
-						Aliases: []string{"dym"},
-					},
-				}
-
-				require.NoError(t, dk.SetParams(ctx, moduleParams))
-
-				err := dk.SetAliasForRollAppId(ctx, "rollapp_2-2", "ra2")
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, "rollapp_2-2", "ra2")
+				s.NoError(err)
 			},
 			originalCreatorBalance:  price1L,
 			originalModuleBalance:   1,
@@ -2464,37 +2460,36 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 			wantErrContains:         "alias already in use or preserved",
 			wantSuccess:             false,
 			wantLaterCreatorBalance: price1L,
-			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
-				require.False(t, found)
-				require.Empty(t, alias)
+			postTest: func(s *KeeperTestSuite) {
+				alias, found := s.dymNsKeeper.GetAliasByRollAppId(s.ctx, "rollapp_1-1")
+				s.False(found)
+				s.Empty(alias)
 
-				rollAppId, found := dk.GetRollAppIdByAlias(context, "dym")
-				require.False(t, found)
-				require.Empty(t, rollAppId)
+				rollAppId, found := s.dymNsKeeper.GetRollAppIdByAlias(s.ctx, "dym")
+				s.False(found)
+				s.Empty(rollAppId)
 			},
 		},
 		{
 			name:        "fail - reject if alias is a RollApp-ID",
 			addRollApps: []string{"rollapp_1-1", "rollapp_2-2" /*, "rollapp"*/},
-			preRunSetup: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+			preRunSetup: func(s *KeeperTestSuite) {
 				// TODO DymNS: FIXME * this test will panic because RollApp keeper now validate the RollApp-ID,
 				//  must find a way to make a RollApp with chain-id compatible with alias format
-				t.SkipNow()
+				s.T().SkipNow()
 
-				moduleParams := dk.GetParams(ctx)
+				s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+					moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: "dymension_1100-1",
+							Aliases: []string{"dym"},
+						},
+					}
+					return moduleParams
+				})
 
-				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
-					{
-						ChainId: "dymension_1100-1",
-						Aliases: []string{"dym"},
-					},
-				}
-
-				require.NoError(t, dk.SetParams(ctx, moduleParams))
-
-				err := dk.SetAliasForRollAppId(ctx, "rollapp_2-2", "ra2")
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, "rollapp_2-2", "ra2")
+				s.Require().NoError(err)
 			},
 			originalCreatorBalance:  price1L,
 			originalModuleBalance:   1,
@@ -2504,33 +2499,32 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 			wantErrContains:         "alias already in use or preserved",
 			wantSuccess:             false,
 			wantLaterCreatorBalance: price1L,
-			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
-				require.False(t, found)
-				require.Empty(t, alias)
+			postTest: func(s *KeeperTestSuite) {
+				alias, found := s.dymNsKeeper.GetAliasByRollAppId(s.ctx, "rollapp_1-1")
+				s.False(found)
+				s.Empty(alias)
 
-				rollAppId, found := dk.GetRollAppIdByAlias(context, "rollapp")
-				require.False(t, found)
-				require.Empty(t, rollAppId)
+				rollAppId, found := s.dymNsKeeper.GetRollAppIdByAlias(s.ctx, "rollapp")
+				s.False(found)
+				s.Empty(rollAppId)
 			},
 		},
 		{
 			name:        "fail - reject if alias used by another RollApp",
 			addRollApps: []string{"rollapp_1-1", "rollapp_2-2"},
-			preRunSetup: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				moduleParams := dk.GetParams(ctx)
+			preRunSetup: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+					moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: "dymension_1100-1",
+							Aliases: []string{"dym"},
+						},
+					}
+					return moduleParams
+				})
 
-				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
-					{
-						ChainId: "dymension_1100-1",
-						Aliases: []string{"dym"},
-					},
-				}
-
-				require.NoError(t, dk.SetParams(ctx, moduleParams))
-
-				err := dk.SetAliasForRollAppId(ctx, "rollapp_2-2", "alias")
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, "rollapp_2-2", "alias")
+				s.Require().NoError(err)
 			},
 			originalCreatorBalance:  price1L,
 			originalModuleBalance:   1,
@@ -2540,14 +2534,14 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 			wantErrContains:         "alias already in use or preserved",
 			wantSuccess:             false,
 			wantLaterCreatorBalance: price1L,
-			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
-				require.False(t, found)
-				require.Empty(t, alias)
+			postTest: func(s *KeeperTestSuite) {
+				alias, found := s.dymNsKeeper.GetAliasByRollAppId(s.ctx, "rollapp_1-1")
+				s.False(found)
+				s.Empty(alias)
 
-				rollAppId, found := dk.GetRollAppIdByAlias(context, "alias")
-				require.True(t, found)
-				require.Equal(t, "rollapp_2-2", rollAppId)
+				rollAppId, found := s.dymNsKeeper.GetRollAppIdByAlias(s.ctx, "alias")
+				s.True(found)
+				s.Equal("rollapp_2-2", rollAppId)
 			},
 		},
 		{
@@ -2571,12 +2565,12 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 			alias:                  "alias",
 			wantErr:                false,
 			wantSuccess:            true,
-			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+			postTest: func(s *KeeperTestSuite) {
 				dymName := dymnstypes.DymName{
 					Name:       "my-name",
 					Owner:      dymNameOwnerAcc.bech32(),
 					Controller: dymNameOwnerAcc.bech32(),
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -2591,99 +2585,86 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 						},
 					},
 				}
-				setDymNameWithFunctionsAfter(context, dymName, t, dk)
+				s.setDymNameWithFunctionsAfter(dymName)
 
-				outputAddr, err := dk.ResolveByDymNameAddress(context, "my-name@rollapp_1-1")
-				require.NoError(t, err)
-				require.Equal(t, dymNameOwnerAcc.bech32(), outputAddr)
+				outputAddr, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, "my-name@rollapp_1-1")
+				s.Require().NoError(err)
+				s.Equal(dymNameOwnerAcc.bech32(), outputAddr)
 
-				outputAddr, err = dk.ResolveByDymNameAddress(context, "my-name@alias")
-				require.NoError(t, err)
-				require.Equal(t, dymNameOwnerAcc.bech32(), outputAddr)
+				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, "my-name@alias")
+				s.Require().NoError(err)
+				s.Equal(dymNameOwnerAcc.bech32(), outputAddr)
 
-				outputAddr, err = dk.ResolveByDymNameAddress(context, "sub.my-name@alias")
-				require.NoError(t, err)
-				require.Equal(t, anotherAcc.bech32(), outputAddr)
+				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, "sub.my-name@alias")
+				s.Require().NoError(err)
+				s.Equal(anotherAcc.bech32(), outputAddr)
 
-				outputs, err := dk.ReverseResolveDymNameAddress(context, anotherAcc.bech32(), "rollapp_1-1")
-				require.NoError(t, err)
-				require.NotEmpty(t, outputs)
-				require.Equal(t, "sub.my-name@alias", outputs[0].String())
+				outputs, err := s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, anotherAcc.bech32(), "rollapp_1-1")
+				s.Require().NoError(err)
+				s.Require().NotEmpty(outputs)
+				s.Equal("sub.my-name@alias", outputs[0].String())
 			},
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			require.NotEqual(t, tt.wantSuccess, tt.wantErr, "mis-configured test case")
+		s.Run(tt.name, func() {
+			s.Require().NotEqual(tt.wantSuccess, tt.wantErr, "mis-configured test case")
 
-			dk, bk, rk, ctx := setupTest()
+			s.SetupTest()
+
+			setupParams(s)
 
 			if tt.originalCreatorBalance > 0 {
-				err := bk.MintCoins(
-					ctx,
-					dymnstypes.ModuleName, dymnsutils.TestCoins(tt.originalCreatorBalance),
-				)
-				require.NoError(t, err)
-
-				err = bk.SendCoinsFromModuleToAccount(
-					ctx,
-					dymnstypes.ModuleName, creatorAccAddr,
-					dymnsutils.TestCoins(tt.originalCreatorBalance),
-				)
-				require.NoError(t, err)
+				s.mintToAccount2(creatorAccAddr.String(), sdk.NewInt(tt.originalCreatorBalance).Mul(priceMultiplier))
 			}
 
 			if tt.originalModuleBalance > 0 {
-				err := bk.MintCoins(
-					ctx,
-					dymnstypes.ModuleName, dymnsutils.TestCoins(tt.originalModuleBalance),
-				)
-				require.NoError(t, err)
+				s.mintToModuleAccount2(sdk.NewInt(tt.originalModuleBalance).Mul(priceMultiplier))
 			}
 
 			for _, rollAppId := range tt.addRollApps {
-				rk.SetRollapp(ctx, rollapptypes.Rollapp{
+				s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
 					RollappId: rollAppId,
 					Owner:     creatorAccAddr.String(),
 				})
 			}
 
 			if tt.preRunSetup != nil {
-				tt.preRunSetup(t, ctx, dk, rk)
+				tt.preRunSetup(s)
 			}
 
-			err := dk.GetRollAppHooks().RollappCreated(ctx, tt.rollAppId, tt.alias, creatorAccAddr)
+			err := s.dymNsKeeper.GetRollAppHooks().RollappCreated(s.ctx, tt.rollAppId, tt.alias, creatorAccAddr)
 
 			defer func() {
-				if t.Failed() {
+				if s.T().Failed() {
 					return
 				}
 
-				laterModuleBalance := bk.GetBalance(ctx, dymNsModuleAccAddr, dymnsutils.TestCoin(0).Denom)
-				require.NotNil(t, laterModuleBalance)
-				require.Equal(
-					t,
-					tt.originalModuleBalance, laterModuleBalance.Amount.Int64(),
+				laterModuleBalance := s.moduleBalance2()
+				s.Equal(
+					sdk.NewInt(tt.originalModuleBalance).Mul(priceMultiplier),
+					laterModuleBalance,
 					"module balance should not be changed regardless of success because of burn",
 				)
 
 				if tt.postTest != nil {
-					tt.postTest(t, ctx, dk, rk)
+					tt.postTest(s)
 				}
 			}()
 
 			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				s.Require().ErrorContains(err, tt.wantErrContains)
 				return
 			}
 
-			require.NoError(t, err)
+			s.Require().NoError(err)
 
-			laterCreatorBalance := bk.GetBalance(ctx, creatorAccAddr, dymnsutils.TestCoin(0).Denom)
-			require.NotNil(t, laterCreatorBalance)
-			require.Equal(t, tt.wantLaterCreatorBalance, laterCreatorBalance.Amount.Int64(), "creator balance mismatch")
+			laterCreatorBalance := s.balance2(creatorAccAddr.String())
+			s.Equal(
+				sdk.NewInt(tt.wantLaterCreatorBalance).Mul(priceMultiplier),
+				laterCreatorBalance,
+				"creator balance mismatch",
+			)
 
 			// event should be fired
 			func() {
@@ -2691,8 +2672,8 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 					return
 				}
 
-				events := ctx.EventManager().Events()
-				require.NotEmpty(t, events)
+				events := s.ctx.EventManager().Events()
+				s.Require().NotEmpty(events)
 
 				for _, event := range events {
 					if event.Type == dymnstypes.EventTypeSell {
@@ -2700,19 +2681,17 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 					}
 				}
 
-				t.Errorf("event %s not found", dymnstypes.EventTypeSell)
+				s.T().Errorf("event %s not found", dymnstypes.EventTypeSell)
 			}()
 		})
 	}
 
-	t.Run("if alias is empty, do nothing", func(t *testing.T) {
-		dk, _, _, ctx := setupTest()
+	s.Run("if alias is empty, do nothing", func() {
+		originalTxGas := s.ctx.GasMeter().GasConsumed()
 
-		originalTxGas := ctx.GasMeter().GasConsumed()
+		err := s.dymNsKeeper.GetRollAppHooks().RollappCreated(s.ctx, "rollapp_1-1", "", creatorAccAddr)
+		s.Require().NoError(err)
 
-		err := dk.GetRollAppHooks().RollappCreated(ctx, "rollapp_1-1", "", creatorAccAddr)
-		require.NoError(t, err)
-
-		require.Equal(t, originalTxGas, ctx.GasMeter().GasConsumed(), "should not consume gas")
+		s.Equal(originalTxGas, s.ctx.GasMeter().GasConsumed(), "should not consume gas")
 	})
 }

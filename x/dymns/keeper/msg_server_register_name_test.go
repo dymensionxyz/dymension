@@ -1,20 +1,19 @@
 package keeper_test
 
 import (
-	"testing"
 	"time"
+
+	sdkmath "cosmossdk.io/math"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-	"github.com/stretchr/testify/require"
 )
 
-func Test_msgServer_RegisterName(t *testing.T) {
+func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 	now := time.Now().UTC()
 
 	denom := dymnsutils.TestCoin(0).Denom
@@ -26,6 +25,9 @@ func Test_msgServer_RegisterName(t *testing.T) {
 	const extendsPrice = 1
 	const gracePeriod = 30
 
+	// the number values used in this test will be multiplied by this value
+	priceMultiplier := sdk.NewInt(1e18)
+
 	buyerA := testAddr(1).bech32()
 	previousOwnerA := testAddr(2).bech32()
 	anotherA := testAddr(3).bech32()
@@ -35,47 +37,39 @@ func Test_msgServer_RegisterName(t *testing.T) {
 	preservedAddr1a := testAddr(4).bech32()
 	preservedAddr2a := testAddr(5).bech32()
 
-	setupTest := func() (dymnskeeper.Keeper, dymnstypes.BankKeeper, sdk.Context) {
-		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockTime(now)
+	setupParams := func(s *KeeperTestSuite) {
+		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+			moduleParams.Price.NamePriceSteps = []sdkmath.Int{
+				sdk.NewInt(firstYearPrice1L).Mul(priceMultiplier),
+				sdk.NewInt(firstYearPrice2L).Mul(priceMultiplier),
+				sdk.NewInt(firstYearPrice3L).Mul(priceMultiplier),
+				sdk.NewInt(firstYearPrice4L).Mul(priceMultiplier),
+				sdk.NewInt(firstYearPrice5PlusL).Mul(priceMultiplier),
+			}
+			moduleParams.Price.PriceExtends = sdk.NewInt(extendsPrice).Mul(priceMultiplier)
+			moduleParams.Price.PriceDenom = denom
+			// misc
+			moduleParams.Misc.GracePeriodDuration = gracePeriod * 24 * time.Hour
+			// preserved
+			moduleParams.PreservedRegistration.ExpirationEpoch = now.Add(time.Hour).Unix()
+			moduleParams.PreservedRegistration.PreservedDymNames = []dymnstypes.PreservedDymName{
+				{
+					DymName:            preservedDymName,
+					WhitelistedAddress: preservedAddr1a,
+				},
+				{
+					DymName:            preservedDymName,
+					WhitelistedAddress: preservedAddr2a,
+				},
+			}
 
-		moduleParams := dk.GetParams(ctx)
-		// price
-		moduleParams.Price.NamePrice_1Letter = sdk.NewInt(firstYearPrice1L)
-		moduleParams.Price.NamePrice_2Letters = sdk.NewInt(firstYearPrice2L)
-		moduleParams.Price.NamePrice_3Letters = sdk.NewInt(firstYearPrice3L)
-		moduleParams.Price.NamePrice_4Letters = sdk.NewInt(firstYearPrice4L)
-		moduleParams.Price.NamePrice_5PlusLetters = sdk.NewInt(firstYearPrice5PlusL)
-		moduleParams.Price.PriceExtends = sdk.NewInt(extendsPrice)
-		moduleParams.Price.PriceDenom = denom
-		// misc
-		moduleParams.Misc.GracePeriodDuration = gracePeriod * 24 * time.Hour
-		// preserved
-		moduleParams.PreservedRegistration.ExpirationEpoch = now.Add(time.Hour).Unix()
-		moduleParams.PreservedRegistration.PreservedDymNames = []dymnstypes.PreservedDymName{
-			{
-				DymName:            preservedDymName,
-				WhitelistedAddress: preservedAddr1a,
-			},
-			{
-				DymName:            preservedDymName,
-				WhitelistedAddress: preservedAddr2a,
-			},
-		}
-		// submit
-		err := dk.SetParams(ctx, moduleParams)
-		require.NoError(t, err)
-
-		return dk, bk, ctx
+			return moduleParams
+		})
 	}
 
-	t.Run("reject if message not pass validate basic", func(t *testing.T) {
-		dk, _, ctx := setupTest()
-
-		requireErrorFContains(t, func() error {
-			_, err := dymnskeeper.NewMsgServerImpl(dk).RegisterName(ctx, &dymnstypes.MsgRegisterName{})
-			return err
-		}, gerrc.ErrInvalidArgument.Error())
+	s.Run("reject if message not pass validate basic", func() {
+		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).RegisterName(s.ctx, &dymnstypes.MsgRegisterName{})
+		s.Require().ErrorContains(err, gerrc.ErrInvalidArgument.Error())
 	})
 
 	const originalModuleBalance int64 = 88
@@ -90,7 +84,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		customDymName           string
 		existingDymName         *dymnstypes.DymName
 		setupHistoricalData     bool
-		preRunSetup             func(dymnskeeper.Keeper, sdk.Context)
+		preRunSetup             func(s *KeeperTestSuite)
 		wantLaterDymName        *dymnstypes.DymName
 		wantErr                 bool
 		wantErrContains         string
@@ -629,11 +623,11 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			originalBalance: firstYearPrice5PlusL + 3,
 			duration:        1,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL),
-			preRunSetup: func(dk dymnskeeper.Keeper, ctx sdk.Context) {
-				moduleParams := dk.GetParams(ctx)
-				moduleParams.PreservedRegistration.ExpirationEpoch = now.Add(-time.Hour).Unix()
-				err := dk.SetParams(ctx, moduleParams)
-				require.NoError(t, err)
+			preRunSetup: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+					moduleParams.PreservedRegistration.ExpirationEpoch = now.Add(-time.Hour).Unix()
+					return moduleParams
+				})
 			},
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
@@ -644,22 +638,15 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, bk, ctx := setupTest()
+		s.Run(tt.name, func() {
+			s.SetupTest()
 
-			err := bk.MintCoins(ctx, dymnstypes.ModuleName, dymnsutils.TestCoins(originalModuleBalance))
-			require.NoError(t, err)
+			setupParams(s)
+
+			s.mintToModuleAccount2(sdk.NewInt(originalModuleBalance).Mul(priceMultiplier))
 
 			if tt.originalBalance > 0 {
-				coin := dymnsutils.TestCoins(tt.originalBalance)
-				err := bk.MintCoins(ctx, dymnstypes.ModuleName, coin)
-				require.NoError(t, err)
-				err = bk.SendCoinsFromModuleToAccount(
-					ctx,
-					dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(tt.buyer),
-					coin,
-				)
-				require.NoError(t, err)
+				s.mintToAccount2(tt.buyer, sdk.NewInt(tt.originalBalance).Mul(priceMultiplier))
 			}
 
 			useRecordName := "my-name"
@@ -669,8 +656,8 @@ func Test_msgServer_RegisterName(t *testing.T) {
 
 			if tt.existingDymName != nil {
 				tt.existingDymName.Name = useRecordName
-				err := dk.SetDymName(ctx, *tt.existingDymName)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetDymName(s.ctx, *tt.existingDymName)
+				s.Require().NoError(err)
 
 				if tt.setupHistoricalData {
 					so1 := dymnstypes.SellOrder{
@@ -679,11 +666,11 @@ func Test_msgServer_RegisterName(t *testing.T) {
 						ExpireAt:  now.Unix() - 1,
 						MinPrice:  dymnsutils.TestCoin(1),
 					}
-					err := dk.SetSellOrder(ctx, so1)
-					require.NoError(t, err)
+					err := s.dymNsKeeper.SetSellOrder(s.ctx, so1)
+					s.Require().NoError(err)
 
-					err = dk.MoveSellOrderToHistorical(ctx, useRecordName, dymnstypes.TypeName)
-					require.NoError(t, err)
+					err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, useRecordName, dymnstypes.TypeName)
+					s.Require().NoError(err)
 
 					so2 := dymnstypes.SellOrder{
 						AssetId:   useRecordName,
@@ -696,131 +683,147 @@ func Test_msgServer_RegisterName(t *testing.T) {
 							Price:  dymnsutils.TestCoin(2),
 						},
 					}
-					err = dk.SetSellOrder(ctx, so2)
-					require.NoError(t, err)
+					err = s.dymNsKeeper.SetSellOrder(s.ctx, so2)
+					s.Require().NoError(err)
 
-					require.Len(t, dk.GetHistoricalSellOrders(ctx, useRecordName, dymnstypes.TypeName), 1)
+					s.Require().Len(
+						s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, useRecordName, dymnstypes.TypeName), 1,
+					)
 				}
 			} else {
-				require.False(t, tt.setupHistoricalData, "bad setup testcase")
+				s.Require().False(tt.setupHistoricalData, "bad setup testcase")
 			}
 			if tt.wantLaterDymName != nil {
 				tt.wantLaterDymName.Name = useRecordName
 			}
 
 			if tt.preRunSetup != nil {
-				tt.preRunSetup(dk, ctx)
+				tt.preRunSetup(s)
 			}
 
-			resp, err := dymnskeeper.NewMsgServerImpl(dk).RegisterName(ctx, &dymnstypes.MsgRegisterName{
+			resp, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).RegisterName(s.ctx, &dymnstypes.MsgRegisterName{
 				Name:           useRecordName,
 				Duration:       tt.duration,
 				Owner:          tt.buyer,
-				ConfirmPayment: tt.confirmPayment,
+				ConfirmPayment: sdk.NewCoin(tt.confirmPayment.Denom, tt.confirmPayment.Amount.Mul(priceMultiplier)),
 				Contact:        tt.contact,
 			})
-			laterDymName := dk.GetDymName(ctx, useRecordName)
+			laterDymName := s.dymNsKeeper.GetDymName(s.ctx, useRecordName)
 
 			defer func() {
-				laterBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(tt.buyer), denom).Amount.Int64()
-				require.Equal(t, tt.wantLaterBalance, laterBalance)
+				laterBalance := s.balance2(tt.buyer)
+				s.Equal(
+					sdk.NewInt(tt.wantLaterBalance).Mul(priceMultiplier).String(),
+					laterBalance.String(),
+				)
 			}()
 
 			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
-
-				require.Nil(t, resp)
+				s.Require().ErrorContains(err, tt.wantErrContains)
+				s.Nil(resp)
 
 				defer func() {
-					laterModuleBalance := bk.GetBalance(
-						ctx,
-						dymNsModuleAccAddr, denom,
-					).Amount.Int64()
-					require.Equal(t, originalModuleBalance, laterModuleBalance, "module account balance should not be changed")
+					laterModuleBalance := s.moduleBalance2()
+					s.Equal(
+						sdk.NewInt(originalModuleBalance).Mul(priceMultiplier).String(),
+						laterModuleBalance.String(),
+						"module account balance should not be changed",
+					)
 				}()
 
 				if tt.existingDymName != nil {
-					require.Equal(t, *tt.existingDymName, *laterDymName, "should not change existing record")
-					require.NotNil(t, tt.wantLaterDymName, "bad setup testcase")
-					require.Equal(t, *tt.wantLaterDymName, *laterDymName)
+					s.Equal(tt.existingDymName.Name, laterDymName.Name, "should not change existing record")
+					s.Require().NotNil(tt.wantLaterDymName, "bad setup testcase")
+					s.Equal(*tt.wantLaterDymName, *laterDymName)
 				} else {
-					require.Nil(t, laterDymName)
-					require.Nil(t, tt.wantLaterDymName, "bad setup testcase")
+					s.Nil(laterDymName)
+					s.Nil(tt.wantLaterDymName, "bad setup testcase")
 				}
 
 				if tt.setupHistoricalData {
-					require.NotNil(t, dk.GetSellOrder(ctx, useRecordName, dymnstypes.TypeName), "sell order must be kept")
-					require.Len(t, dk.GetHistoricalSellOrders(ctx, useRecordName, dymnstypes.TypeName), 1, "historical data must be kept")
+					s.NotNil(
+						s.dymNsKeeper.GetSellOrder(s.ctx, useRecordName, dymnstypes.TypeName),
+						"sell order must be kept",
+					)
+					s.Len(
+						s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, useRecordName, dymnstypes.TypeName),
+						1,
+						"historical data must be kept",
+					)
 				}
 				return
 			}
 
-			require.NoError(t, err)
-			require.NotNil(t, resp)
+			s.Require().NoError(err)
+			s.NotNil(resp)
 
 			defer func() {
-				laterModuleBalance := bk.GetBalance(
-					ctx,
-					dymNsModuleAccAddr, denom,
-				).Amount.Int64()
-				require.Equal(t, originalModuleBalance, laterModuleBalance, "token should be burned")
+				laterModuleBalance := s.moduleBalance2()
+				s.Equal(
+					sdk.NewInt(originalModuleBalance).Mul(priceMultiplier).String(), laterModuleBalance.String(),
+					"token should be burned",
+				)
 			}()
 
-			require.NotNil(t, laterDymName)
-			require.NotNil(t, tt.wantLaterDymName, "bad setup testcase")
-			require.Equal(t, *tt.wantLaterDymName, *laterDymName)
+			s.NotNil(laterDymName)
+			s.NotNil(tt.wantLaterDymName, "bad setup testcase")
+			s.Equal(*tt.wantLaterDymName, *laterDymName)
 
 			if tt.setupHistoricalData {
 				if tt.wantPruneHistoricalData {
-					require.Nil(t, dk.GetSellOrder(ctx, useRecordName, dymnstypes.TypeName), "sell order must be pruned")
-					require.Empty(t, dk.GetHistoricalSellOrders(ctx, useRecordName, dymnstypes.TypeName), "historical data must be pruned")
+					s.Nil(
+						s.dymNsKeeper.GetSellOrder(s.ctx, useRecordName, dymnstypes.TypeName),
+						"sell order must be pruned",
+					)
+					s.Empty(
+						s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, useRecordName, dymnstypes.TypeName),
+						"historical data must be pruned",
+					)
 
 					if tt.existingDymName.Owner != laterDymName.Owner {
-						ownedByPreviousOwner, err := dk.GetDymNamesOwnedBy(ctx, tt.existingDymName.Owner)
-						require.NoError(t, err)
-						require.Empty(t, ownedByPreviousOwner, "reverse mapping should be removed")
+						ownedByPreviousOwner, err := s.dymNsKeeper.GetDymNamesOwnedBy(s.ctx, tt.existingDymName.Owner)
+						s.Require().NoError(err)
+						s.Empty(ownedByPreviousOwner, "reverse mapping should be removed")
 
-						mappedDymNamesByPreviousOwner, err := dk.GetDymNamesContainsConfiguredAddress(ctx, tt.existingDymName.Owner)
-						require.NoError(t, err)
-						require.Empty(t, mappedDymNamesByPreviousOwner, "reverse mapping should be removed")
+						mappedDymNamesByPreviousOwner, err := s.dymNsKeeper.GetDymNamesContainsConfiguredAddress(s.ctx, tt.existingDymName.Owner)
+						s.Require().NoError(err)
+						s.Empty(mappedDymNamesByPreviousOwner, "reverse mapping should be removed")
 
-						mappedDymNamesByPreviousOwner, err = dk.GetDymNamesContainsFallbackAddress(ctx,
+						mappedDymNamesByPreviousOwner, err = s.dymNsKeeper.GetDymNamesContainsFallbackAddress(s.ctx,
 							sdk.MustAccAddressFromBech32(tt.existingDymName.Owner).Bytes(),
 						)
-						require.NoError(t, err)
-						require.Empty(t, mappedDymNamesByPreviousOwner, "reverse mapping should be removed")
+						s.Require().NoError(err)
+						s.Empty(mappedDymNamesByPreviousOwner, "reverse mapping should be removed")
 					}
 				} else {
-					require.NotNil(t, dk.GetSellOrder(ctx, useRecordName, dymnstypes.TypeName), "sell order must be kept")
-					require.Len(t, dk.GetHistoricalSellOrders(ctx, useRecordName, dymnstypes.TypeName), 1, "historical data must be kept")
+					s.NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, useRecordName, dymnstypes.TypeName), "sell order must be kept")
+					s.Len(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, useRecordName, dymnstypes.TypeName), 1, "historical data must be kept")
 				}
 			} else {
-				require.False(t, tt.wantPruneHistoricalData, "bad setup testcase")
+				s.False(tt.wantPruneHistoricalData, "bad setup testcase")
 			}
 
-			ownedByBuyer, err := dk.GetDymNamesOwnedBy(ctx, tt.buyer)
-			require.NoError(t, err)
-			require.Len(t, ownedByBuyer, 1, "reverse mapping should be set")
-			require.Equal(t, useRecordName, ownedByBuyer[0].Name)
+			ownedByBuyer, err := s.dymNsKeeper.GetDymNamesOwnedBy(s.ctx, tt.buyer)
+			s.Require().NoError(err)
+			s.Len(ownedByBuyer, 1, "reverse mapping should be set")
+			s.Equal(useRecordName, ownedByBuyer[0].Name)
 
-			mappedDymNamesByBuyer, err := dk.GetDymNamesContainsConfiguredAddress(ctx, tt.buyer)
-			require.NoError(t, err)
-			require.Len(t, mappedDymNamesByBuyer, 1, "reverse mapping should be set")
-			require.Equal(t, useRecordName, mappedDymNamesByBuyer[0].Name)
+			mappedDymNamesByBuyer, err := s.dymNsKeeper.GetDymNamesContainsConfiguredAddress(s.ctx, tt.buyer)
+			s.Require().NoError(err)
+			s.Len(mappedDymNamesByBuyer, 1, "reverse mapping should be set")
+			s.Equal(useRecordName, mappedDymNamesByBuyer[0].Name)
 
-			mappedDymNamesByBuyer, err = dk.GetDymNamesContainsFallbackAddress(ctx,
+			mappedDymNamesByBuyer, err = s.dymNsKeeper.GetDymNamesContainsFallbackAddress(s.ctx,
 				sdk.MustAccAddressFromBech32(tt.buyer).Bytes(),
 			)
-			require.NoError(t, err)
-			require.Len(t, mappedDymNamesByBuyer, 1, "reverse mapping should be set")
-			require.Equal(t, useRecordName, mappedDymNamesByBuyer[0].Name)
+			s.Require().NoError(err)
+			s.Len(mappedDymNamesByBuyer, 1, "reverse mapping should be set")
+			s.Equal(useRecordName, mappedDymNamesByBuyer[0].Name)
 		})
 	}
 }
 
-func TestEstimateRegisterName(t *testing.T) {
+func (s *KeeperTestSuite) TestEstimateRegisterName() {
 	now := time.Now()
 
 	const denom = "atom"
@@ -831,14 +834,19 @@ func TestEstimateRegisterName(t *testing.T) {
 	const price5PlusL int64 = 5
 	const extendsPrice int64 = 4
 
+	// the number values used in this test will be multiplied by this value
+	priceMultiplier := sdk.NewInt(1e18)
+
 	params := dymnstypes.DefaultParams()
 	params.Price.PriceDenom = denom
-	params.Price.NamePrice_1Letter = sdk.NewInt(price1L)
-	params.Price.NamePrice_2Letters = sdk.NewInt(price2L)
-	params.Price.NamePrice_3Letters = sdk.NewInt(price3L)
-	params.Price.NamePrice_4Letters = sdk.NewInt(price4L)
-	params.Price.NamePrice_5PlusLetters = sdk.NewInt(price5PlusL)
-	params.Price.PriceExtends = sdk.NewInt(extendsPrice)
+	params.Price.NamePriceSteps = []sdkmath.Int{
+		sdk.NewInt(price1L).Mul(priceMultiplier),
+		sdk.NewInt(price2L).Mul(priceMultiplier),
+		sdk.NewInt(price3L).Mul(priceMultiplier),
+		sdk.NewInt(price4L).Mul(priceMultiplier),
+		sdk.NewInt(price5PlusL).Mul(priceMultiplier),
+	}
+	params.Price.PriceExtends = sdk.NewInt(extendsPrice).Mul(priceMultiplier)
 
 	buyerA := testAddr(1).bech32()
 	previousOwnerA := testAddr(2).bech32()
@@ -1098,7 +1106,7 @@ func TestEstimateRegisterName(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		s.Run(tt.name, func() {
 			got := dymnskeeper.EstimateRegisterName(
 				params,
 				tt.dymName,
@@ -1106,17 +1114,22 @@ func TestEstimateRegisterName(t *testing.T) {
 				tt.newOwner,
 				tt.duration,
 			)
-			require.Equal(t, tt.wantFirstYearPrice, got.FirstYearPrice.Amount.Int64())
-			require.Equal(t, tt.wantExtendPrice, got.ExtendPrice.Amount.Int64())
-			require.Equal(
-				t,
-				tt.wantFirstYearPrice+tt.wantExtendPrice,
-				got.TotalPrice.Amount.Int64(),
+			s.Equal(
+				sdkmath.NewInt(tt.wantFirstYearPrice).Mul(priceMultiplier).String(),
+				got.FirstYearPrice.Amount.String(),
+			)
+			s.Equal(
+				sdkmath.NewInt(tt.wantExtendPrice).Mul(priceMultiplier).String(),
+				got.ExtendPrice.Amount.String(),
+			)
+			s.Equal(
+				sdkmath.NewInt(tt.wantFirstYearPrice+tt.wantExtendPrice).Mul(priceMultiplier).String(),
+				got.TotalPrice.Amount.String(),
 				"total price must be equals to sum of first year and extend price",
 			)
-			require.Equal(t, denom, got.FirstYearPrice.Denom)
-			require.Equal(t, denom, got.ExtendPrice.Denom)
-			require.Equal(t, denom, got.TotalPrice.Denom)
+			s.Equal(denom, got.FirstYearPrice.Denom)
+			s.Equal(denom, got.ExtendPrice.Denom)
+			s.Equal(denom, got.TotalPrice.Denom)
 		})
 	}
 }

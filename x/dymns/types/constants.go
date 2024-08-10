@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -11,7 +12,16 @@ const (
 	// MaxConfigSize is the maximum size allowed for number Dym-Name configuration per Dym-Name.
 	// This is another layer protects spamming the chain with large data.
 	MaxConfigSize = 100
+
+	// MinDymNamePriceStepsCount is the minimum number of price steps required for Dym-Name price.
+	MinDymNamePriceStepsCount = 4
+
+	// MinAliasPriceStepsCount is the minimum number of price steps required for Alias price.
+	MinAliasPriceStepsCount
 )
+
+// MinPriceValue is the minimum value allowed for price configuration.
+var MinPriceValue = sdkmath.NewInt(1e18)
 
 const (
 	// OpGasPlaceSellOrder is the gas consumed when a Dym-Name owner creates a Sell-Order for selling Dym-Name.
