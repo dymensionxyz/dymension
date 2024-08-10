@@ -1,7 +1,10 @@
 package keeper
 
 import (
+	"fmt"
 	"sort"
+
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -213,7 +216,7 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 			// invalid entry
 			dk.Logger(ctx).Error(
 				"DymNS hook After-Epoch-End: sell order has not finished",
-				"name", record.AssetId, "order-type", dymnstypes.TypeName.FriendlyString(),
+				"asset-id", record.AssetId, "asset-type", dymnstypes.TypeName.FriendlyString(),
 				"expiry", record.ExpireAt, "now", nowEpochUTC,
 				"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 			)
@@ -240,46 +243,53 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 
 	dk.Logger(ctx).Info(
 		"DymNS hook After-Epoch-End: processing finished SOs",
-		"order-type", dymnstypes.TypeName.FriendlyString(),
+		"asset-type", dymnstypes.TypeName.FriendlyString(),
 		"count", len(finishedSOs),
 		"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 	)
 
 	for _, so := range finishedSOs {
-		aSoe.Remove(so.AssetId)
+		var errApplyStateChange error
+		// each order should be processed in a branched context, if error, discard the state change
+		// and process next order, to prevent chain reaction when an individual order failed to process
 
 		if so.HighestBid != nil {
-			if err := dk.CompleteDymNameSellOrder(ctx, so.AssetId); err != nil {
+			errApplyStateChange = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+				return dk.CompleteDymNameSellOrder(ctx, so.AssetId)
+			})
+			if errApplyStateChange != nil {
 				dk.Logger(ctx).Error(
 					"DymNS hook After-Epoch-End: failed to complete sell order",
-					"name", so.AssetId, "order-type", dymnstypes.TypeName.FriendlyString(),
+					"asset-id", so.AssetId, "asset-type", dymnstypes.TypeName.FriendlyString(),
 					"expiry", so.ExpireAt, "now", nowEpochUTC,
 					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
-					"error", err,
+					"error", errApplyStateChange,
 				)
-				return err
 			}
-			continue
+		} else {
+			errApplyStateChange = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+				return dk.MoveSellOrderToHistorical(ctx, so.AssetId, dymnstypes.TypeName)
+			})
+			if errApplyStateChange != nil {
+				dk.Logger(ctx).Error(
+					"DymNS hook After-Epoch-End: failed to move expired sell order to historical",
+					"asset-id", so.AssetId, "asset-type", dymnstypes.TypeName.FriendlyString(),
+					"expiry", so.ExpireAt, "now", nowEpochUTC,
+					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
+					"error", errApplyStateChange,
+				)
+			}
 		}
 
-		// no bid placed, it just a normal expiry without winner,
-		// in this case, just move to history
-		if err := dk.MoveSellOrderToHistorical(ctx, so.AssetId, dymnstypes.TypeName); err != nil {
-			dk.Logger(ctx).Error(
-				"DymNS hook After-Epoch-End: failed to move expired sell order to historical",
-				"name", so.AssetId, "order-type", dymnstypes.TypeName.FriendlyString(),
-				"expiry", so.ExpireAt, "now", nowEpochUTC,
-				"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
-				"error", err,
-			)
-			return err
+		if errApplyStateChange == nil {
+			aSoe.Remove(so.AssetId)
 		}
 	}
 
 	if err := dk.SetActiveSellOrdersExpiration(ctx, aSoe, dymnstypes.TypeName); err != nil {
 		dk.Logger(ctx).Error(
 			"DymNS hook After-Epoch-End: failed to update active SO expiry",
-			"order-type", dymnstypes.TypeName.FriendlyString(),
+			"asset-type", dymnstypes.TypeName.FriendlyString(),
 			"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 			"error", err,
 		)
@@ -296,14 +306,6 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 	aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeAlias)
 	if len(aSoe.Records) < 1 {
 		return nil
-	}
-
-	prohibitedToTradeAliases := make(map[string]bool)
-	for _, aliasesOfChainId := range params.Chains.AliasesOfChainIds {
-		prohibitedToTradeAliases[aliasesOfChainId.ChainId] = true
-		for _, alias := range aliasesOfChainId.Aliases {
-			prohibitedToTradeAliases[alias] = true
-		}
 	}
 
 	nowEpochUTC := ctx.BlockTime().Unix()
@@ -328,7 +330,7 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 			// invalid entry
 			dk.Logger(ctx).Error(
 				"DymNS hook After-Epoch-End: sell order has not finished",
-				"alias", record.AssetId, "order-type", dymnstypes.TypeAlias.FriendlyString(),
+				"asset-id", record.AssetId, "asset-type", dymnstypes.TypeAlias.FriendlyString(),
 				"expiry", record.ExpireAt, "now", nowEpochUTC,
 				"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 			)
@@ -355,57 +357,72 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 
 	dk.Logger(ctx).Info(
 		"DymNS hook After-Epoch-End: processing finished SOs",
-		"order-type", dymnstypes.TypeAlias.FriendlyString(),
+		"asset-type", dymnstypes.TypeAlias.FriendlyString(),
 		"count", len(finishedSOs),
 		"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 	)
 
+	prohibitedToTradeAliases := make(map[string]struct{})
+	for _, aliasesOfChainId := range params.Chains.AliasesOfChainIds {
+		prohibitedToTradeAliases[aliasesOfChainId.ChainId] = struct{}{}
+		for _, alias := range aliasesOfChainId.Aliases {
+			prohibitedToTradeAliases[alias] = struct{}{}
+		}
+	}
+
 	for _, so := range finishedSOs {
-		aSoe.Remove(so.AssetId)
+		var errApplyStateChange error
+		// each order should be processed in a branched context, if error, discard the state change
+		// and process next order, to prevent chain reaction when an individual order failed to process
 
 		if so.HighestBid == nil {
 			// no bid placed, it just a normal expiry without winner,
 			// in this case, just delete it, because Alias SO does not support historical SO
 			dk.DeleteSellOrder(ctx, so.AssetId, dymnstypes.TypeAlias)
-			continue
-		}
+			errApplyStateChange = nil
+		} else if _, forceCancel := prohibitedToTradeAliases[so.AssetId]; forceCancel {
+			fmt.Println("Force cancel")
+			// Sell-Order will be force cancelled and refund bids if any,
+			// when the alias is prohibited to trade
 
-		// Sell-Order will be force cancelled and refund bids if any,
-		// when the alias is prohibited to trade
-		forceCancel := prohibitedToTradeAliases[so.AssetId]
-
-		if forceCancel {
-			if err := dk.RefundBid(ctx, *so.HighestBid, dymnstypes.TypeAlias); err != nil {
+			errApplyStateChange = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+				return dk.RefundBid(ctx, *so.HighestBid, dymnstypes.TypeAlias)
+			})
+			if errApplyStateChange != nil {
 				dk.Logger(ctx).Error(
 					"DymNS hook After-Epoch-End: failed to refund bid for a force-to-cancel sell order",
-					"alias", so.AssetId, "order-type", dymnstypes.TypeAlias.FriendlyString(),
+					"asset-id", so.AssetId, "asset-type", dymnstypes.TypeAlias.FriendlyString(),
 					"expiry", so.ExpireAt, "now", nowEpochUTC,
 					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
-					"error", err,
+					"error", errApplyStateChange,
 				)
-				return err
+			} else {
+				dk.DeleteSellOrder(ctx, so.AssetId, dymnstypes.TypeAlias)
 			}
-
-			dk.DeleteSellOrder(ctx, so.AssetId, dymnstypes.TypeAlias)
-			continue
+		} else {
+			errApplyStateChange = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+				return dk.CompleteAliasSellOrder(ctx, so.AssetId)
+			})
+			if errApplyStateChange != nil {
+				dk.Logger(ctx).Error(
+					"DymNS hook After-Epoch-End: failed to complete sell order",
+					"asset-id", so.AssetId, "asset-type", dymnstypes.TypeAlias.FriendlyString(),
+					"expiry", so.ExpireAt, "now", nowEpochUTC,
+					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
+					"error", errApplyStateChange,
+				)
+			}
 		}
 
-		if err := dk.CompleteAliasSellOrder(ctx, so.AssetId); err != nil {
-			dk.Logger(ctx).Error(
-				"DymNS hook After-Epoch-End: failed to complete sell order",
-				"alias", so.AssetId, "order-type", dymnstypes.TypeAlias.FriendlyString(),
-				"expiry", so.ExpireAt, "now", nowEpochUTC,
-				"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
-				"error", err,
-			)
-			return err
+		if errApplyStateChange == nil {
+			aSoe.Remove(so.AssetId)
 		}
 	}
 
 	if err := dk.SetActiveSellOrdersExpiration(ctx, aSoe, dymnstypes.TypeAlias); err != nil {
 		dk.Logger(ctx).Error(
 			"DymNS hook After-Epoch-End: failed to update active SO expiry",
-			"order-type", dymnstypes.TypeAlias.FriendlyString(),
+			"asset-type", dymnstypes.TypeAlias.FriendlyString(),
 			"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 			"error", err,
 		)

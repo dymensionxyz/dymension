@@ -407,6 +407,18 @@ func (m reqAlias) LinkedToRollApp(rollAppId string) {
 	m.s.Require().Equal(rollAppId, gotRollAppId)
 }
 
+func (m reqAlias) mustHaveActiveSO() reqAlias {
+	so := m.s.dymNsKeeper.GetSellOrder(m.s.ctx, m.alias, dymnstypes.TypeAlias)
+	m.s.Require().NotNil(so)
+	return m
+}
+
+func (m reqAlias) noActiveSO() reqAlias {
+	so := m.s.dymNsKeeper.GetSellOrder(m.s.ctx, m.alias, dymnstypes.TypeAlias)
+	m.s.Require().Nil(so)
+	return m
+}
+
 //
 
 type sellOrderBuilder struct {

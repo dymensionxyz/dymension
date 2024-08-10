@@ -1365,12 +1365,14 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveDymNameSell
 			},
 		},
 		{
-			name:     "fail - returns error when can not process complete order",
+			name:     "pass - ignore processing SO when error occurs",
 			dymNames: []dymnstypes.DymName{dymNameA},
-			sellOrders: []dymnstypes.SellOrder{genSo(dymNameA, soExpired, nil, &dymnstypes.SellOrderBid{
-				Bidder: bidderA,
-				Price:  coin100,
-			})},
+			sellOrders: []dymnstypes.SellOrder{
+				genSo(dymNameA, soExpired, nil, &dymnstypes.SellOrderBid{
+					Bidder: bidderA,
+					Price:  coin100,
+				}),
+			},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
 					AssetId:  dymNameA.Name,
@@ -1384,8 +1386,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveDymNameSell
 				requireFallbackAddrMappedDymNames(s, ownerAcc.fallback(), dymNameA.Name)
 				requireFallbackAddrMappedNoDymName(s, bidderAcc.fallback())
 			},
-			wantErr:         true,
-			wantErrContains: "insufficient funds",
+			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
 					AssetId:  dymNameA.Name,
@@ -1399,6 +1400,62 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveDymNameSell
 				requireConfiguredAddressMappedNoDymName(s, bidderA)
 				requireFallbackAddrMappedDymNames(s, ownerAcc.fallback(), dymNameA.Name)
 				requireFallbackAddrMappedNoDymName(s, bidderAcc.fallback())
+
+				s.requireDymName(dymNameA.Name).mustHaveActiveSO()
+
+				s.EqualValues(1, s.moduleBalance())
+			},
+		},
+		{
+			name:     "pass - ignore processing SO when error occurs, one pass one fail",
+			dymNames: []dymnstypes.DymName{dymNameA, dymNameB},
+			sellOrders: []dymnstypes.SellOrder{
+				genSo(dymNameA, soExpired, nil, &dymnstypes.SellOrderBid{
+					Bidder: bidderA,
+					Price:  coin100,
+				}),
+				genSo(dymNameB, soExpired, nil, &dymnstypes.SellOrderBid{
+					Bidder: bidderA,
+					Price:  coin100,
+				}),
+			},
+			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					AssetId:  dymNameA.Name,
+					ExpireAt: soExpiredEpoch,
+				},
+				{
+					AssetId:  dymNameB.Name,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			preMintModuleBalance: 101, // just enough process first SO
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireConfiguredAddress(ownerA).mappedDymNames(
+					dymNameA.Name, dymNameB.Name,
+				)
+				s.requireConfiguredAddress(bidderA).notMappedToAnyDymName()
+			},
+			wantErr: false,
+			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					AssetId:  dymNameB.Name,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireConfiguredAddress(ownerA).mappedDymNames(
+					dymNameB.Name,
+				)
+				s.requireConfiguredAddress(bidderA).mappedDymNames(
+					dymNameA.Name,
+				)
+
+				s.requireDymName(dymNameA.Name).noActiveSO()
+				s.requireDymName(dymNameB.Name).mustHaveActiveSO()
+
+				s.EqualValues(1, s.moduleBalance())
+				s.EqualValues(100, s.balance(ownerA))
 			},
 		},
 	}
@@ -1945,7 +2002,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			},
 		},
 		{
-			name:     "fail - returns error when can not process complete order",
+			name:     "pass - ignore processing SO when error occurs",
 			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
 			sellOrders: []dymnstypes.SellOrder{
 				s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
@@ -1965,8 +2022,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
 				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasNoAlias()
 			},
-			wantErr:         true,
-			wantErrContains: "insufficient funds",
+			wantErr: false,
 			wantExpiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
 					AssetId:  rollApp_1_byOwner_asSrc.alias,
@@ -1977,6 +2033,57 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 				// unchanged
 				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
 				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasNoAlias()
+				s.requireAlias(rollApp_1_byOwner_asSrc.alias).mustHaveActiveSO()
+			},
+		},
+		{
+			name:     "pass - ignore processing SO when error occurs, one pass one fail",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byOwner_asSrc},
+			sellOrders: []dymnstypes.SellOrder{
+				s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).
+					WithExpiry(soExpiredEpoch).
+					WithAliasBid(creator_2_asBidder, minPrice, rollApp_2_byBuyer_asDst.rollAppId).
+					Build(),
+				s.newAliasSellOrder(rollApp_3_byOwner_asSrc.alias).
+					WithMinPrice(minPrice).
+					WithExpiry(soExpiredEpoch).
+					WithAliasBid(creator_2_asBidder, minPrice, rollApp_2_byBuyer_asDst.rollAppId).
+					Build(),
+			},
+			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					AssetId:  rollApp_1_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+				{
+					AssetId:  rollApp_3_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			preMintModuleBalance: minPrice + 1, // just enough for the first SO
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasNoAlias()
+				s.requireRollApp(rollApp_3_byOwner_asSrc.rollAppId).HasAlias(rollApp_3_byOwner_asSrc.alias)
+			},
+			wantErr: false,
+			wantExpiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					AssetId:  rollApp_3_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasNoAlias()
+				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
+				s.requireRollApp(rollApp_3_byOwner_asSrc.rollAppId).HasAlias(rollApp_3_byOwner_asSrc.alias)
+
+				s.requireAlias(rollApp_1_byOwner_asSrc.alias).noActiveSO()
+				s.requireAlias(rollApp_3_byOwner_asSrc.alias).mustHaveActiveSO()
+
+				s.EqualValues(1, s.moduleBalance())
+				s.EqualValues(minPrice, s.balance(rollApp_1_byOwner_asSrc.owner))
 			},
 		},
 	}
