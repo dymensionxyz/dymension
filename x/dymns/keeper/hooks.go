@@ -433,8 +433,8 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 		return nil
 	}
 
+	// ensure RollApp record is set
 	if !h.Keeper.IsRollAppId(ctx, rollappID) {
-		// ensure RollApp record is set
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not a RollApp chain-id: %s", rollappID)
 	}
 

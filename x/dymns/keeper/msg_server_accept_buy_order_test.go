@@ -94,7 +94,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			owner:                 dymName.Owner,
 			minAccept:             offer.OfferPrice,
 			originalModuleBalance: offer.OfferPrice.Amount,
-			originalOwnerBalance:  sdk.ZeroInt(),
+			originalOwnerBalance:  sdk.NewInt(0),
 			preRunSetupFunc:       nil,
 			wantErr:               false,
 			wantLaterOffer:        nil,
@@ -116,7 +116,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			owner:                 dymName.Owner,
 			minAccept:             offer.OfferPrice,
 			originalModuleBalance: offer.OfferPrice.Amount,
-			originalOwnerBalance:  sdk.ZeroInt(),
+			originalOwnerBalance:  sdk.NewInt(0),
 			preRunSetupFunc: func(s *KeeperTestSuite) {
 				key := dymnstypes.DymNameToBuyOrderIdsRvlKey(dymName.Name)
 				orderIds := s.dymNsKeeper.GenericGetReverseLookupBuyOrderIdsRecord(s.ctx, key)
@@ -155,7 +155,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			owner:                 dymName.Owner,
 			minAccept:             offer.OfferPrice,
 			originalModuleBalance: offer.OfferPrice.Amount,
-			originalOwnerBalance:  sdk.ZeroInt(),
+			originalOwnerBalance:  sdk.NewInt(0),
 			preRunSetupFunc: func(s *KeeperTestSuite) {
 				// reverse record still linked to owner before transaction
 				key := dymnstypes.ConfiguredAddressToDymNamesIncludeRvlKey(dymName.Owner)
@@ -375,7 +375,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			owner:                 dymName.Owner,
 			minAccept:             offer.OfferPrice,
 			originalModuleBalance: offer.OfferPrice.Amount,
-			originalOwnerBalance:  sdk.ZeroInt(),
+			originalOwnerBalance:  sdk.NewInt(0),
 			preRunSetupFunc: func(s *KeeperTestSuite) {
 				s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
 					moduleParams.Misc.EnableTradingName = false
@@ -387,7 +387,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			wantLaterOffer:         offer,
 			wantLaterDymName:       dymName,
 			wantLaterModuleBalance: offer.OfferPrice.Amount,
-			wantLaterOwnerBalance:  sdk.ZeroInt(),
+			wantLaterOwnerBalance:  sdk.NewInt(0),
 			wantMinConsumeGas:      1,
 		},
 		{
@@ -621,6 +621,96 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
 			wantMinConsumeGas:      1,
 		},
+		{
+			name:                  "fail - prohibited to accept offer if a Sell-Order is active",
+			existingDymName:       dymName,
+			existingOffer:         offer,
+			buyOrderId:            offer.Id,
+			owner:                 dymName.Owner,
+			minAccept:             offer.OfferPrice,
+			originalModuleBalance: offer.OfferPrice.Amount,
+			originalOwnerBalance:  sdk.NewInt(0),
+			preRunSetupFunc: func(s *KeeperTestSuite) {
+				err := s.dymNsKeeper.SetSellOrder(
+					s.ctx,
+					s.newDymNameSellOrder(dymName.Name).
+						WithMinPrice(1).
+						WithExpiry(s.now.Add(time.Hour).Unix()).
+						Build(),
+				)
+				s.Require().NoError(err)
+			},
+			wantErr:                true,
+			wantErrContains:        "must cancel the sell order first",
+			wantLaterOffer:         offer,
+			wantLaterDymName:       dymName,
+			wantLaterModuleBalance: offer.OfferPrice.Amount,
+			wantLaterOwnerBalance:  sdk.NewInt(0),
+			wantMinConsumeGas:      1,
+		},
+		{
+			name:                  "fail - prohibited to accept offer if a Sell-Order is active, regardless the SO is expired",
+			existingDymName:       dymName,
+			existingOffer:         offer,
+			buyOrderId:            offer.Id,
+			owner:                 dymName.Owner,
+			minAccept:             offer.OfferPrice,
+			originalModuleBalance: offer.OfferPrice.Amount,
+			originalOwnerBalance:  sdk.NewInt(0),
+			preRunSetupFunc: func(s *KeeperTestSuite) {
+				err := s.dymNsKeeper.SetSellOrder(
+					s.ctx,
+					s.newDymNameSellOrder(dymName.Name).
+						WithMinPrice(1).
+						Expired().
+						Build(),
+				)
+				s.Require().NoError(err)
+			},
+			wantErr:                true,
+			wantErrContains:        "must cancel the sell order first",
+			wantLaterOffer:         offer,
+			wantLaterDymName:       dymName,
+			wantLaterModuleBalance: offer.OfferPrice.Amount,
+			wantLaterOwnerBalance:  sdk.NewInt(0),
+			wantMinConsumeGas:      1,
+		},
+		{
+			name:                  "pass - can negotiate when a Sell-Order is active",
+			existingDymName:       dymName,
+			existingOffer:         offer,
+			buyOrderId:            offer.Id,
+			owner:                 dymName.Owner,
+			minAccept:             offer.OfferPrice.AddAmount(sdk.NewInt(1)),
+			originalModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
+			originalOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			preRunSetupFunc: func(s *KeeperTestSuite) {
+				err := s.dymNsKeeper.SetSellOrder(
+					s.ctx,
+					s.newDymNameSellOrder(dymName.Name).
+						WithMinPrice(1).
+						Expired().
+						Build(),
+				)
+				s.Require().NoError(err)
+			},
+			wantErr: false,
+			wantLaterOffer: &dymnstypes.BuyOrder{
+				Id:         offer.Id,
+				AssetId:    offer.AssetId,
+				AssetType:  dymnstypes.TypeName,
+				Buyer:      offer.Buyer,
+				OfferPrice: offer.OfferPrice,
+				CounterpartyOfferPrice: func() *sdk.Coin {
+					coin := offer.OfferPrice.AddAmount(sdk.NewInt(1))
+					return &coin
+				}(),
+			},
+			wantLaterDymName:       dymName,
+			wantLaterModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
+			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
+		},
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
@@ -814,7 +904,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_Alias() {
 					aliases:   append(rollApp_Two_By2_SingleAlias.aliases, offerAliasOfRollAppOne.AssetId),
 				},
 			},
-			wantLaterModuleBalance: sdk.ZeroInt(),
+			wantLaterModuleBalance: sdk.NewInt(0),
 			wantLaterOwnerBalance:  offerAliasOfRollAppOne.OfferPrice.Amount,
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
@@ -838,7 +928,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_Alias() {
 			},
 			wantErr:                false,
 			wantLaterOffer:         nil,
-			wantLaterModuleBalance: sdk.ZeroInt(),
+			wantLaterModuleBalance: sdk.NewInt(0),
 			wantLaterOwnerBalance:  offerAliasOfRollAppOne.OfferPrice.Amount,
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 			afterTestFunc: func(s *KeeperTestSuite) {
@@ -876,7 +966,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_Alias() {
 					aliases:   append(rollApp_Two_By2_SingleAlias.aliases, offerAliasOfRollAppOne.AssetId),
 				},
 			},
-			wantLaterModuleBalance: sdk.ZeroInt(),
+			wantLaterModuleBalance: sdk.NewInt(0),
 			wantLaterOwnerBalance:  offerAliasOfRollAppOne.OfferPrice.Amount,
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 			afterTestFunc: func(s *KeeperTestSuite) {
@@ -1273,7 +1363,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_Alias() {
 					aliases:   append(rollApp_Four_By2_MultipleAliases.aliases, offerAliasOfRollAppOne.AssetId),
 				},
 			},
-			wantLaterModuleBalance: sdk.ZeroInt(),
+			wantLaterModuleBalance: sdk.NewInt(0),
 			wantLaterOwnerBalance:  offerAliasOfRollAppOne.OfferPrice.Amount,
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
@@ -1308,8 +1398,96 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_Alias() {
 					aliases:   append(rollApp_Two_By2_SingleAlias.aliases, rollApp_Three_By1_MultipleAliases.aliases[0]),
 				},
 			},
-			wantLaterModuleBalance: sdk.ZeroInt(),
+			wantLaterModuleBalance: sdk.NewInt(0),
 			wantLaterOwnerBalance:  minOfferPriceCoin.Amount,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
+		},
+		{
+			name:                  "fail - prohibit to accept offer when a Sell-Order is active",
+			existingRollApps:      []rollapp{rollApp_One_By1_SingleAlias, rollApp_Two_By2_SingleAlias},
+			existingOffer:         offerAliasOfRollAppOne,
+			buyOrderId:            offerAliasOfRollAppOne.Id,
+			owner:                 rollApp_One_By1_SingleAlias.owner,
+			minAccept:             offerAliasOfRollAppOne.OfferPrice,
+			originalModuleBalance: offerAliasOfRollAppOne.OfferPrice.Amount,
+			originalOwnerBalance:  sdk.NewInt(0),
+			preRunSetupFunc: func(s *KeeperTestSuite) {
+				err := s.dymNsKeeper.SetSellOrder(
+					s.ctx,
+					s.newAliasSellOrder(offerAliasOfRollAppOne.AssetId).
+						WithExpiry(s.now.Add(time.Hour).Unix()).
+						WithMinPrice(1).
+						Build(),
+				)
+				s.Require().NoError(err)
+			},
+			wantErr:                true,
+			wantErrContains:        "must cancel the sell order first",
+			wantLaterOffer:         offerAliasOfRollAppOne,
+			wantLaterRollApps:      []rollapp{rollApp_One_By1_SingleAlias, rollApp_Two_By2_SingleAlias},
+			wantLaterModuleBalance: offerAliasOfRollAppOne.OfferPrice.Amount,
+			wantLaterOwnerBalance:  sdk.NewInt(0),
+			wantMinConsumeGas:      1,
+		},
+		{
+			name:                  "fail - prohibit to accept offer when a Sell-Order is active, regardless the SO is expired",
+			existingRollApps:      []rollapp{rollApp_One_By1_SingleAlias, rollApp_Two_By2_SingleAlias},
+			existingOffer:         offerAliasOfRollAppOne,
+			buyOrderId:            offerAliasOfRollAppOne.Id,
+			owner:                 rollApp_One_By1_SingleAlias.owner,
+			minAccept:             offerAliasOfRollAppOne.OfferPrice,
+			originalModuleBalance: offerAliasOfRollAppOne.OfferPrice.Amount,
+			originalOwnerBalance:  sdk.NewInt(0),
+			preRunSetupFunc: func(s *KeeperTestSuite) {
+				err := s.dymNsKeeper.SetSellOrder(
+					s.ctx,
+					s.newAliasSellOrder(offerAliasOfRollAppOne.AssetId).
+						Expired().
+						WithMinPrice(1).
+						Build(),
+				)
+				s.Require().NoError(err)
+			},
+			wantErr:                true,
+			wantErrContains:        "must cancel the sell order first",
+			wantLaterOffer:         offerAliasOfRollAppOne,
+			wantLaterRollApps:      []rollapp{rollApp_One_By1_SingleAlias, rollApp_Two_By2_SingleAlias},
+			wantLaterModuleBalance: offerAliasOfRollAppOne.OfferPrice.Amount,
+			wantLaterOwnerBalance:  sdk.NewInt(0),
+			wantMinConsumeGas:      1,
+		},
+		{
+			name:                  "pass - can negotiate when a Sell-Order is active",
+			existingRollApps:      []rollapp{rollApp_One_By1_SingleAlias, rollApp_Two_By2_SingleAlias},
+			existingOffer:         offerAliasOfRollAppOne,
+			buyOrderId:            offerAliasOfRollAppOne.Id,
+			owner:                 rollApp_One_By1_SingleAlias.owner,
+			minAccept:             offerAliasOfRollAppOne.OfferPrice.AddAmount(sdk.NewInt(1)),
+			originalModuleBalance: sdk.NewInt(1),
+			originalOwnerBalance:  sdk.NewInt(2),
+			preRunSetupFunc: func(s *KeeperTestSuite) {
+				err := s.dymNsKeeper.SetSellOrder(
+					s.ctx,
+					s.newAliasSellOrder(offerAliasOfRollAppOne.AssetId).
+						Expired().
+						WithMinPrice(1).
+						Build(),
+				)
+				s.Require().NoError(err)
+			},
+			wantErr: false,
+			wantLaterOffer: &dymnstypes.BuyOrder{
+				Id:                     offerAliasOfRollAppOne.Id,
+				AssetId:                offerAliasOfRollAppOne.AssetId,
+				AssetType:              offerAliasOfRollAppOne.AssetType,
+				Params:                 offerAliasOfRollAppOne.Params,
+				Buyer:                  offerAliasOfRollAppOne.Buyer,
+				OfferPrice:             offerAliasOfRollAppOne.OfferPrice,
+				CounterpartyOfferPrice: uptr.To(offerAliasOfRollAppOne.OfferPrice.AddAmount(sdk.NewInt(1))),
+			},
+			wantLaterRollApps:      []rollapp{rollApp_One_By1_SingleAlias, rollApp_Two_By2_SingleAlias},
+			wantLaterModuleBalance: sdk.NewInt(1),
+			wantLaterOwnerBalance:  sdk.NewInt(2),
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
 	}

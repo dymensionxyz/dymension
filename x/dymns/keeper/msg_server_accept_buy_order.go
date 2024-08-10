@@ -70,6 +70,12 @@ func (k msgServer) processAcceptBuyOrderWithAssetTypeDymName(
 	} else if msg.MinAccept.IsEqual(offer.OfferPrice) {
 		accepted = true
 
+		// check active SO
+		sellOrder := k.GetSellOrder(ctx, offer.AssetId, offer.AssetType)
+		if sellOrder != nil {
+			return nil, errorsmod.Wrapf(gerrc.ErrPermissionDenied, "must cancel the sell order first")
+		}
+
 		// take the offer
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 			ctx,
@@ -174,6 +180,12 @@ func (k msgServer) processAcceptBuyOrderWithAssetTypeAlias(
 		panic("min-accept is less than offer price")
 	} else if msg.MinAccept.IsEqual(offer.OfferPrice) {
 		accepted = true
+
+		// check active SO
+		sellOrder := k.GetSellOrder(ctx, offer.AssetId, offer.AssetType)
+		if sellOrder != nil {
+			return nil, errorsmod.Wrapf(gerrc.ErrPermissionDenied, "must cancel the sell order first")
+		}
 
 		// take the offer
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(
