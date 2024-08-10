@@ -42,3 +42,25 @@ func (m MsgRevokeVote) GetSigners() []sdk.AccAddress {
 	signer, _ := sdk.AccAddressFromBech32(m.Voter)
 	return []sdk.AccAddress{signer}
 }
+
+func (m MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	signer, _ := sdk.AccAddressFromBech32(m.Authority)
+	return []sdk.AccAddress{signer}
+}
+
+func (m MsgUpdateParams) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Authority)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf(
+			"authority '%s' must be a valid bech32 address: %s",
+			m.Authority, err.Error(),
+		)
+	}
+
+	err = m.NewParams.Validate()
+	if err != nil {
+		return ErrInvalidParams.Wrap(err.Error())
+	}
+
+	return nil
+}
