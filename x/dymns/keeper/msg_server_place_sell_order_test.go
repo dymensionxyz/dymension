@@ -2,52 +2,34 @@ package keeper_test
 
 import (
 	"fmt"
-	"testing"
 	"time"
 
-	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-	"github.com/stretchr/testify/require"
 )
 
-func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
-	now := time.Now().UTC()
-
+func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 	const daysProhibitSell = 30
 	const daysSellOrderDuration = 7
-	denom := dymnsutils.TestCoin(0).Denom
 
-	setupTest := func() (dymnskeeper.Keeper, dymnstypes.BankKeeper, sdk.Context) {
-		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockTime(now)
-
-		moduleParams := dk.GetParams(ctx)
-		moduleParams.Price.PriceDenom = denom
-		moduleParams.Misc.ProhibitSellDuration = daysProhibitSell * 24 * time.Hour
-		moduleParams.Misc.SellOrderDuration = daysSellOrderDuration * 24 * time.Hour
-		// force enable trading
-		moduleParams.Misc.EnableTradingName = true
-		moduleParams.Misc.EnableTradingAlias = true
-		err := dk.SetParams(ctx, moduleParams)
-		require.NoError(t, err)
-
-		return dk, bk, ctx
+	setupParams := func(s *KeeperTestSuite) {
+		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+			moduleParams.Misc.ProhibitSellDuration = daysProhibitSell * 24 * time.Hour
+			moduleParams.Misc.SellOrderDuration = daysSellOrderDuration * 24 * time.Hour
+			return moduleParams
+		})
 	}
 
-	t.Run("reject if message not pass validate basic", func(t *testing.T) {
-		dk, _, ctx := setupTest()
+	s.Run("reject if message not pass validate basic", func() {
+		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PlaceSellOrder(s.ctx, &dymnstypes.MsgPlaceSellOrder{})
 
-		_, err := dymnskeeper.NewMsgServerImpl(dk).PlaceSellOrder(ctx, &dymnstypes.MsgPlaceSellOrder{})
-
-		require.ErrorContains(t, err, gerrc.ErrInvalidArgument.Error())
+		s.Require().ErrorContains(err, gerrc.ErrInvalidArgument.Error())
 	})
 
 	const name = "my-name"
@@ -69,7 +51,7 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 		customDymNameOwner      string
 		minPrice                sdk.Coin
 		sellPrice               *sdk.Coin
-		preRunSetup             func(sdk.Context, dymnskeeper.Keeper)
+		preRunSetup             func(*KeeperTestSuite)
 		wantErr                 bool
 		wantErrContains         string
 	}{
@@ -101,7 +83,7 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 			name: "fail - existing active SO, not finished",
 			existingSo: &dymnstypes.SellOrder{
 				AssetType: dymnstypes.TypeName,
-				ExpireAt:  now.Add(time.Hour).Unix(),
+				ExpireAt:  s.now.Add(time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
 			},
@@ -113,7 +95,7 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 			name: "fail - existing active SO, expired",
 			existingSo: &dymnstypes.SellOrder{
 				AssetType: dymnstypes.TypeName,
-				ExpireAt:  now.Add(-1 * time.Hour).Unix(),
+				ExpireAt:  s.now.Add(-1 * time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
 			},
@@ -125,7 +107,7 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 			name: "fail - existing active SO, not expired, completed",
 			existingSo: &dymnstypes.SellOrder{
 				AssetType: dymnstypes.TypeName,
-				ExpireAt:  now.Add(time.Hour).Unix(),
+				ExpireAt:  s.now.Add(time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
 				HighestBid: &dymnstypes.SellOrderBid{
@@ -141,7 +123,7 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 			name: "fail - existing active SO, expired, completed",
 			existingSo: &dymnstypes.SellOrder{
 				AssetType: dymnstypes.TypeName,
-				ExpireAt:  now.Add(-1 * time.Hour).Unix(),
+				ExpireAt:  s.now.Add(-1 * time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
 				HighestBid: &dymnstypes.SellOrderBid{
@@ -155,9 +137,9 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 		},
 		{
 			name:            "fail - not allowed denom",
-			minPrice:        sdk.NewInt64Coin("u"+denom, 100),
+			minPrice:        sdk.NewInt64Coin("u"+s.priceDenom(), 100),
 			wantErr:         true,
-			wantErrContains: fmt.Sprintf("the only denom allowed as price: %s", denom),
+			wantErrContains: fmt.Sprintf("the only denom allowed as price: %s", s.priceDenom()),
 		},
 		{
 			name:                    "fail - can not sell Dym-Name that almost expired",
@@ -195,25 +177,27 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 			dymNameExpiryOffsetDays: 9999,
 			minPrice:                coin100,
 			sellPrice:               nil,
-			preRunSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				moduleParams := dk.GetParams(ctx)
-				moduleParams.Misc.EnableTradingName = false
-				err := dk.SetParams(ctx, moduleParams)
-				require.NoError(t, err)
+			preRunSetup: func(*KeeperTestSuite) {
+				s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+					moduleParams.Misc.EnableTradingName = false
+					return moduleParams
+				})
 			},
 			wantErr:         true,
 			wantErrContains: "trading of Dym-Name is disabled",
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, _, ctx := setupTest()
+		s.Run(tt.name, func() {
+			s.SetupTest()
+
+			setupParams(s)
 
 			useDymNameOwner := ownerA
 			if tt.customDymNameOwner != "" {
 				useDymNameOwner = tt.customDymNameOwner
 			}
-			useDymNameExpiry := ctx.BlockTime().Add(
+			useDymNameExpiry := s.ctx.BlockTime().Add(
 				time.Hour * 24 * time.Duration(tt.dymNameExpiryOffsetDays),
 			).Unix()
 
@@ -224,14 +208,14 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 					Controller: useDymNameOwner,
 					ExpireAt:   useDymNameExpiry,
 				}
-				err := dk.SetDymName(ctx, dymName)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetDymName(s.ctx, dymName)
+				s.Require().NoError(err)
 			}
 
 			if tt.existingSo != nil {
 				tt.existingSo.AssetId = name
-				err := dk.SetSellOrder(ctx, *tt.existingSo)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetSellOrder(s.ctx, *tt.existingSo)
+				s.Require().NoError(err)
 			}
 
 			useOwner := ownerA
@@ -247,21 +231,21 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 			}
 
 			if tt.preRunSetup != nil {
-				tt.preRunSetup(ctx, dk)
+				tt.preRunSetup(s)
 			}
 
-			resp, err := dymnskeeper.NewMsgServerImpl(dk).PlaceSellOrder(ctx, msg)
-			moduleParams := dk.GetParams(ctx)
+			resp, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PlaceSellOrder(s.ctx, msg)
+			moduleParams := s.dymNsKeeper.GetParams(s.ctx)
 
 			defer func() {
-				laterDymName := dk.GetDymName(ctx, name)
+				laterDymName := s.dymNsKeeper.GetDymName(s.ctx, name)
 				if tt.withoutDymName {
-					require.Nil(t, laterDymName)
+					s.Require().Nil(laterDymName)
 					return
 				}
 
-				require.NotNil(t, laterDymName)
-				require.Equal(t, dymnstypes.DymName{
+				s.Require().NotNil(laterDymName)
+				s.Require().Equal(dymnstypes.DymName{
 					Name:       name,
 					Owner:      useDymNameOwner,
 					Controller: useDymNameOwner,
@@ -270,37 +254,37 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 			}()
 
 			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), tt.wantErrContains)
 
-				require.Nil(t, resp)
+				s.Require().Nil(resp)
 
-				so := dk.GetSellOrder(ctx, name, dymnstypes.TypeName)
+				so := s.dymNsKeeper.GetSellOrder(s.ctx, name, dymnstypes.TypeName)
 				if tt.existingSo != nil {
-					require.NotNil(t, so)
-					require.Equal(t, *tt.existingSo, *so)
+					s.Require().NotNil(so)
+					s.Require().Equal(*tt.existingSo, *so)
 				} else {
-					require.Nil(t, so)
+					s.Require().Nil(so)
 				}
 
-				require.Less(t,
-					ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceSellOrder,
+				s.Require().Less(
+					s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceSellOrder,
 					"should not consume params gas on failed operation",
 				)
 				return
 			}
 
-			require.NoError(t, err)
-			require.NotNil(t, resp)
+			s.Require().NoError(err)
+			s.Require().NotNil(resp)
 
-			so := dk.GetSellOrder(ctx, name, dymnstypes.TypeName)
-			require.NotNil(t, so)
+			so := s.dymNsKeeper.GetSellOrder(s.ctx, name, dymnstypes.TypeName)
+			s.Require().NotNil(so)
 
 			expectedSo := dymnstypes.SellOrder{
 				AssetId:    name,
 				AssetType:  dymnstypes.TypeName,
-				ExpireAt:   ctx.BlockTime().Add(moduleParams.Misc.SellOrderDuration).Unix(),
+				ExpireAt:   s.ctx.BlockTime().Add(moduleParams.Misc.SellOrderDuration).Unix(),
 				MinPrice:   msg.MinPrice,
 				SellPrice:  msg.SellPrice,
 				HighestBid: nil,
@@ -309,51 +293,40 @@ func Test_msgServer_PlaceSellOrder_DymName(t *testing.T) {
 				expectedSo.SellPrice = nil
 			}
 
-			require.Nil(t, so.HighestBid, "highest bid should not be set")
+			s.Require().Nil(so.HighestBid, "highest bid should not be set")
 
-			require.Equal(t, expectedSo, *so)
+			s.Require().Equal(expectedSo, *so)
 
-			require.GreaterOrEqual(t,
-				ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceSellOrder,
+			s.Require().GreaterOrEqual(
+				s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceSellOrder,
 				"should consume params gas",
 			)
 
-			aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
+			aSoe := s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, dymnstypes.TypeName)
 
 			var found bool
 			for _, record := range aSoe.Records {
 				if record.AssetId == name {
 					found = true
-					require.Equal(t, expectedSo.ExpireAt, record.ExpireAt)
+					s.Require().Equal(expectedSo.ExpireAt, record.ExpireAt)
 					break
 				}
 			}
 
-			require.True(t, found)
+			s.Require().True(found)
 		})
 	}
 }
 
-func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
-	now := time.Now().UTC()
-
+func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_Alias() {
 	const daysSellOrderDuration = 7
 	denom := dymnsutils.TestCoin(0).Denom
 
-	setupTest := func() (sdk.Context, dymnskeeper.Keeper, rollappkeeper.Keeper, dymnstypes.BankKeeper) {
-		dk, bk, rk, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockTime(now)
-
-		moduleParams := dk.GetParams(ctx)
-		moduleParams.Price.PriceDenom = denom
-		moduleParams.Misc.SellOrderDuration = daysSellOrderDuration * 24 * time.Hour
-		// force enable trading
-		moduleParams.Misc.EnableTradingName = true
-		moduleParams.Misc.EnableTradingAlias = true
-		err := dk.SetParams(ctx, moduleParams)
-		require.NoError(t, err)
-
-		return ctx, dk, rk, bk
+	setupParams := func(s *KeeperTestSuite) {
+		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+			moduleParams.Misc.SellOrderDuration = daysSellOrderDuration * 24 * time.Hour
+			return moduleParams
+		})
 	}
 
 	const srcRollAppId = "rollapp_1-1"
@@ -376,7 +349,7 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 		customRollAppOwner string
 		minPrice           sdk.Coin
 		sellPrice          *sdk.Coin
-		preRunSetup        func(sdk.Context, dymnskeeper.Keeper)
+		preRunSetup        func(*KeeperTestSuite)
 		wantErr            bool
 		wantErrContains    string
 	}{
@@ -399,7 +372,7 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 			name: "fail - existing active SO, not finished",
 			existingSo: &dymnstypes.SellOrder{
 				AssetType: dymnstypes.TypeAlias,
-				ExpireAt:  now.Add(time.Hour).Unix(),
+				ExpireAt:  s.now.Add(time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
 			},
@@ -411,7 +384,7 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 			name: "fail - existing active SO, expired",
 			existingSo: &dymnstypes.SellOrder{
 				AssetType: dymnstypes.TypeAlias,
-				ExpireAt:  now.Add(-1 * time.Hour).Unix(),
+				ExpireAt:  s.now.Add(-1 * time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
 			},
@@ -423,7 +396,7 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 			name: "fail - existing active SO, not expired, completed",
 			existingSo: &dymnstypes.SellOrder{
 				AssetType: dymnstypes.TypeAlias,
-				ExpireAt:  now.Add(time.Hour).Unix(),
+				ExpireAt:  s.now.Add(time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
 				HighestBid: &dymnstypes.SellOrderBid{
@@ -440,7 +413,7 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 			name: "fail - existing active SO, expired, completed",
 			existingSo: &dymnstypes.SellOrder{
 				AssetType: dymnstypes.TypeAlias,
-				ExpireAt:  now.Add(-1 * time.Hour).Unix(),
+				ExpireAt:  s.now.Add(-1 * time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
 				HighestBid: &dymnstypes.SellOrderBid{
@@ -468,16 +441,16 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 			name:      "fail - can NOT place sell order if alias which present in params",
 			minPrice:  coin100,
 			sellPrice: nil,
-			preRunSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				moduleParams := dk.GetParams(ctx)
+			preRunSetup: func(*KeeperTestSuite) {
+				moduleParams := s.dymNsKeeper.GetParams(s.ctx)
 				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
 					{
 						ChainId: "some-chain",
 						Aliases: []string{alias},
 					},
 				}
-				err := dk.SetParams(ctx, moduleParams)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetParams(s.ctx, moduleParams)
+				s.Require().NoError(err)
 			},
 			wantErr:         true,
 			wantErrContains: "prohibited to trade aliases which is reserved for chain-id or alias in module params",
@@ -501,38 +474,40 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 			name:      "fail - can NOT place Alias Sell-Order, when Alias trading is disabled",
 			minPrice:  coin100,
 			sellPrice: nil,
-			preRunSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				moduleParams := dk.GetParams(ctx)
+			preRunSetup: func(*KeeperTestSuite) {
+				moduleParams := s.dymNsKeeper.GetParams(s.ctx)
 				moduleParams.Misc.EnableTradingAlias = false
-				err := dk.SetParams(ctx, moduleParams)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetParams(s.ctx, moduleParams)
+				s.Require().NoError(err)
 			},
 			wantErr:         true,
 			wantErrContains: "trading of Alias is disabled",
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ctx, dk, rk, _ := setupTest()
+		s.Run(tt.name, func() {
+			s.SetupTest()
+
+			setupParams(s)
 
 			useRollAppOwner := ownerA
 			if tt.customRollAppOwner != "" {
 				useRollAppOwner = tt.customRollAppOwner
 			}
 
-			rk.SetRollapp(ctx, rollapptypes.Rollapp{
+			s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
 				RollappId: srcRollAppId,
 				Owner:     useRollAppOwner,
 			})
 			if !tt.withoutAlias {
-				err := dk.SetAliasForRollAppId(ctx, srcRollAppId, alias)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, srcRollAppId, alias)
+				s.Require().NoError(err)
 			}
 
 			if tt.existingSo != nil {
 				tt.existingSo.AssetId = alias
-				err := dk.SetSellOrder(ctx, *tt.existingSo)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetSellOrder(s.ctx, *tt.existingSo)
+				s.Require().NoError(err)
 			}
 
 			useOwner := ownerA
@@ -548,53 +523,53 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 			}
 
 			if tt.preRunSetup != nil {
-				tt.preRunSetup(ctx, dk)
+				tt.preRunSetup(s)
 			}
 
-			resp, err := dymnskeeper.NewMsgServerImpl(dk).PlaceSellOrder(ctx, msg)
-			moduleParams := dk.GetParams(ctx)
+			resp, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PlaceSellOrder(s.ctx, msg)
+			moduleParams := s.dymNsKeeper.GetParams(s.ctx)
 
 			defer func() {
 				if tt.withoutAlias {
-					requireAliasNotInUse(alias, t, ctx, dk)
-					requireRollAppHasNoAlias(srcRollAppId, t, ctx, dk)
+					s.requireAlias(alias).NotInUse()
+					s.requireRollApp(srcRollAppId).HasNoAlias()
 				} else {
-					requireAliasLinkedToRollApp(alias, srcRollAppId, t, ctx, dk)
+					s.requireAlias(alias).LinkedToRollApp(srcRollAppId)
 				}
 			}()
 
 			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), tt.wantErrContains)
 
-				require.Nil(t, resp)
+				s.Require().Nil(resp)
 
-				so := dk.GetSellOrder(ctx, alias, dymnstypes.TypeAlias)
+				so := s.dymNsKeeper.GetSellOrder(s.ctx, alias, dymnstypes.TypeAlias)
 				if tt.existingSo != nil {
-					require.NotNil(t, so)
-					require.Equal(t, *tt.existingSo, *so)
+					s.Require().NotNil(so)
+					s.Require().Equal(*tt.existingSo, *so)
 				} else {
-					require.Nil(t, so)
+					s.Require().Nil(so)
 				}
 
-				require.Less(t,
-					ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceSellOrder,
+				s.Require().Less(
+					s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceSellOrder,
 					"should not consume params gas on failed operation",
 				)
 				return
 			}
 
-			require.NoError(t, err)
-			require.NotNil(t, resp)
+			s.Require().NoError(err)
+			s.Require().NotNil(resp)
 
-			so := dk.GetSellOrder(ctx, alias, dymnstypes.TypeAlias)
-			require.NotNil(t, so)
+			so := s.dymNsKeeper.GetSellOrder(s.ctx, alias, dymnstypes.TypeAlias)
+			s.Require().NotNil(so)
 
 			expectedSo := dymnstypes.SellOrder{
 				AssetId:    alias,
 				AssetType:  dymnstypes.TypeAlias,
-				ExpireAt:   ctx.BlockTime().Add(moduleParams.Misc.SellOrderDuration).Unix(),
+				ExpireAt:   s.ctx.BlockTime().Add(moduleParams.Misc.SellOrderDuration).Unix(),
 				MinPrice:   msg.MinPrice,
 				SellPrice:  msg.SellPrice,
 				HighestBid: nil,
@@ -603,27 +578,27 @@ func Test_msgServer_PlaceSellOrder_Alias(t *testing.T) {
 				expectedSo.SellPrice = nil
 			}
 
-			require.Nil(t, so.HighestBid, "highest bid should not be set")
+			s.Require().Nil(so.HighestBid, "highest bid should not be set")
 
-			require.Equal(t, expectedSo, *so)
+			s.Require().Equal(expectedSo, *so)
 
-			require.GreaterOrEqual(t,
-				ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceSellOrder,
+			s.Require().GreaterOrEqual(
+				s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceSellOrder,
 				"should consume params gas",
 			)
 
-			aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeAlias)
+			aSoe := s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, dymnstypes.TypeAlias)
 
 			var found bool
 			for _, record := range aSoe.Records {
 				if record.AssetId == alias {
 					found = true
-					require.Equal(t, expectedSo.ExpireAt, record.ExpireAt)
+					s.Require().Equal(expectedSo.ExpireAt, record.ExpireAt)
 					break
 				}
 			}
 
-			require.True(t, found)
+			s.Require().True(found)
 		})
 	}
 }

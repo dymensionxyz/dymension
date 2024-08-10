@@ -1,16 +1,9 @@
 package keeper_test
 
 import (
-	"testing"
-
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
-	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/stretchr/testify/require"
 )
 
 func (s *KeeperTestSuite) TestKeeper_GetSetAliasForRollAppId() {
@@ -394,27 +387,11 @@ func (s *KeeperTestSuite) TestKeeper_RemoveAliasFromRollAppId() {
 	}
 }
 
-func TestKeeper_MoveAliasToRollAppId(t *testing.T) {
-	type rollapp struct {
-		rollAppId string
-		alias     string
-	}
-	rollApp1 := rollapp{
-		rollAppId: "rollapp_1-1",
-		alias:     "al1",
-	}
-	rollApp2 := rollapp{
-		rollAppId: "rolling_2-2",
-		alias:     "al2",
-	}
-	rollApp3WithoutAlias := rollapp{
-		rollAppId: "rollapp_3-3",
-		alias:     "",
-	}
-	rollApp4WithoutAlias := rollapp{
-		rollAppId: "rollapp_4-4",
-		alias:     "",
-	}
+func (s *KeeperTestSuite) TestKeeper_MoveAliasToRollAppId() {
+	rollApp1 := *newRollApp("rollapp_1-1").WithAlias("al1")
+	rollApp2 := *newRollApp("rolling_2-2").WithAlias("al2")
+	rollApp3WithoutAlias := *newRollApp("rollapp_3-3")
+	rollApp4WithoutAlias := *newRollApp("rollapp_4-4")
 
 	tests := []struct {
 		name            string
@@ -422,25 +399,25 @@ func TestKeeper_MoveAliasToRollAppId(t *testing.T) {
 		srcRollAppId    string
 		alias           string
 		dstRollAppId    string
-		preTestFunc     func(*testing.T, sdk.Context, dymnskeeper.Keeper, rollappkeeper.Keeper)
+		preTestFunc     func(*KeeperTestSuite)
 		wantErr         bool
 		wantErrContains string
-		afterTestFunc   func(*testing.T, sdk.Context, dymnskeeper.Keeper, rollappkeeper.Keeper)
+		afterTestFunc   func(*KeeperTestSuite)
 	}{
 		{
 			name:         "pass - can move",
-			rollapps:     []rollapp{rollApp1, rollApp2},
+			rollapps:     []rollapp{rollApp1, rollApp3WithoutAlias},
 			srcRollAppId: rollApp1.rollAppId,
 			alias:        rollApp1.alias,
-			dstRollAppId: rollApp2.rollAppId,
-			preTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
-				requireAssignedAliasPairs(rollApp2.rollAppId, rollApp2.alias, t, ctx, dk)
+			dstRollAppId: rollApp3WithoutAlias.rollAppId,
+			preTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasOnlyAlias(rollApp1.alias)
+				s.requireRollApp(rollApp3WithoutAlias.rollAppId).HasNoAlias()
 			},
 			wantErr: false,
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireRollAppHasNoAlias(rollApp1.rollAppId, t, ctx, dk)
-				requireAliasLinkedToRollApp(rollApp1.alias, rollApp2.rollAppId, t, ctx, dk)
+			afterTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasNoAlias()
+				s.requireRollApp(rollApp3WithoutAlias.rollAppId).HasOnlyAlias(rollApp1.alias)
 			},
 		},
 		{
@@ -449,17 +426,16 @@ func TestKeeper_MoveAliasToRollAppId(t *testing.T) {
 			srcRollAppId: rollApp1.rollAppId,
 			alias:        rollApp1.alias,
 			dstRollAppId: rollApp2.rollAppId,
-			preTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
-				requireAssignedAliasPairs(rollApp2.rollAppId, rollApp2.alias, t, ctx, dk)
+			preTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasOnlyAlias(rollApp1.alias)
+				s.requireRollApp(rollApp2.rollAppId).HasOnlyAlias(rollApp2.alias)
 			},
 			wantErr: false,
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireRollAppHasNoAlias(rollApp1.rollAppId, t, ctx, dk)
+			afterTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasNoAlias()
 
 				// now 2 aliases are linked to roll app 2
-				requireAliasLinkedToRollApp(rollApp1.alias, rollApp2.rollAppId, t, ctx, dk)
-				requireAliasLinkedToRollApp(rollApp2.alias, rollApp2.rollAppId, t, ctx, dk)
+				s.requireRollApp(rollApp2.rollAppId).HasAlias(rollApp1.alias, rollApp2.alias)
 			},
 		},
 		{
@@ -468,19 +444,19 @@ func TestKeeper_MoveAliasToRollAppId(t *testing.T) {
 			srcRollAppId: rollApp1.rollAppId,
 			alias:        rollApp1.alias,
 			dstRollAppId: rollApp2.rollAppId,
-			preTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
-				requireAssignedAliasPairs(rollApp2.rollAppId, rollApp2.alias, t, ctx, dk)
+			preTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasOnlyAlias(rollApp1.alias)
+				s.requireRollApp(rollApp2.rollAppId).HasOnlyAlias(rollApp2.alias)
 
-				require.NoError(t, dk.SetAliasForRollAppId(ctx, rollApp2.rollAppId, "new"))
+				// add another alias to roll app 2
+				err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp2.rollAppId, "new")
+				s.Require().NoError(err)
 			},
 			wantErr: false,
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireRollAppHasNoAlias(rollApp1.rollAppId, t, ctx, dk)
+			afterTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasNoAlias()
 				// now 3 aliases are linked to roll app 2
-				requireAliasLinkedToRollApp(rollApp1.alias, rollApp2.rollAppId, t, ctx, dk)
-				requireAliasLinkedToRollApp(rollApp2.alias, rollApp2.rollAppId, t, ctx, dk)
-				requireAliasLinkedToRollApp("new", rollApp2.rollAppId, t, ctx, dk)
+				s.requireRollApp(rollApp2.rollAppId).HasAlias(rollApp1.alias, rollApp2.alias, "new")
 			},
 		},
 		{
@@ -489,14 +465,14 @@ func TestKeeper_MoveAliasToRollAppId(t *testing.T) {
 			srcRollAppId: rollApp1.rollAppId,
 			alias:        rollApp1.alias,
 			dstRollAppId: rollApp3WithoutAlias.rollAppId,
-			preTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
-				requireRollAppHasNoAlias(rollApp3WithoutAlias.rollAppId, t, ctx, dk)
+			preTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasOnlyAlias(rollApp1.alias)
+				s.requireRollApp(rollApp3WithoutAlias.rollAppId).HasNoAlias()
 			},
 			wantErr: false,
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireRollAppHasNoAlias(rollApp1.rollAppId, t, ctx, dk)
-				requireAssignedAliasPairs(rollApp3WithoutAlias.rollAppId, rollApp1.alias, t, ctx, dk)
+			afterTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasNoAlias()
+				s.requireRollApp(rollApp3WithoutAlias.rollAppId).HasOnlyAlias(rollApp1.alias)
 			},
 		},
 		{
@@ -505,15 +481,15 @@ func TestKeeper_MoveAliasToRollAppId(t *testing.T) {
 			srcRollAppId: rollApp3WithoutAlias.rollAppId,
 			alias:        "alias",
 			dstRollAppId: rollApp4WithoutAlias.rollAppId,
-			preTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireRollAppHasNoAlias(rollApp3WithoutAlias.rollAppId, t, ctx, dk)
-				requireRollAppHasNoAlias(rollApp4WithoutAlias.rollAppId, t, ctx, dk)
+			preTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp3WithoutAlias.rollAppId).HasNoAlias()
+				s.requireRollApp(rollApp4WithoutAlias.rollAppId).HasNoAlias()
 			},
 			wantErr:         true,
 			wantErrContains: "alias not found",
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireRollAppHasNoAlias(rollApp3WithoutAlias.rollAppId, t, ctx, dk)
-				requireRollAppHasNoAlias(rollApp4WithoutAlias.rollAppId, t, ctx, dk)
+			afterTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp3WithoutAlias.rollAppId).HasNoAlias()
+				s.requireRollApp(rollApp4WithoutAlias.rollAppId).HasNoAlias()
 			},
 		},
 		{
@@ -522,17 +498,17 @@ func TestKeeper_MoveAliasToRollAppId(t *testing.T) {
 			srcRollAppId: rollApp3WithoutAlias.rollAppId,
 			alias:        rollApp1.alias,
 			dstRollAppId: rollApp4WithoutAlias.rollAppId,
-			preTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
-				requireRollAppHasNoAlias(rollApp3WithoutAlias.rollAppId, t, ctx, dk)
-				requireRollAppHasNoAlias(rollApp4WithoutAlias.rollAppId, t, ctx, dk)
+			preTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasOnlyAlias(rollApp1.alias)
+				s.requireRollApp(rollApp3WithoutAlias.rollAppId).HasNoAlias()
+				s.requireRollApp(rollApp4WithoutAlias.rollAppId).HasNoAlias()
 			},
 			wantErr:         true,
 			wantErrContains: "permission denied",
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
-				requireRollAppHasNoAlias(rollApp3WithoutAlias.rollAppId, t, ctx, dk)
-				requireRollAppHasNoAlias(rollApp4WithoutAlias.rollAppId, t, ctx, dk)
+			afterTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasOnlyAlias(rollApp1.alias)
+				s.requireRollApp(rollApp3WithoutAlias.rollAppId).HasNoAlias()
+				s.requireRollApp(rollApp4WithoutAlias.rollAppId).HasNoAlias()
 			},
 		},
 		{
@@ -541,15 +517,17 @@ func TestKeeper_MoveAliasToRollAppId(t *testing.T) {
 			srcRollAppId: rollApp1.rollAppId,
 			alias:        rollApp2.alias,
 			dstRollAppId: rollApp3WithoutAlias.rollAppId,
-			preTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp2.rollAppId, rollApp2.alias, t, ctx, dk)
-				requireRollAppHasNoAlias(rollApp3WithoutAlias.rollAppId, t, ctx, dk)
+			preTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasOnlyAlias(rollApp1.alias)
+				s.requireRollApp(rollApp2.rollAppId).HasOnlyAlias(rollApp2.alias)
+				s.requireRollApp(rollApp3WithoutAlias.rollAppId).HasNoAlias()
 			},
 			wantErr:         true,
 			wantErrContains: "permission denied",
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp2.rollAppId, rollApp2.alias, t, ctx, dk)
-				requireRollAppHasNoAlias(rollApp3WithoutAlias.rollAppId, t, ctx, dk)
+			afterTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasOnlyAlias(rollApp1.alias)
+				s.requireRollApp(rollApp2.rollAppId).HasOnlyAlias(rollApp2.alias)
+				s.requireRollApp(rollApp3WithoutAlias.rollAppId).HasNoAlias()
 			},
 		},
 		{
@@ -558,15 +536,15 @@ func TestKeeper_MoveAliasToRollAppId(t *testing.T) {
 			srcRollAppId: "@bad",
 			alias:        "alias",
 			dstRollAppId: rollApp3WithoutAlias.rollAppId,
-			preTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAliasNotInUse("alias", t, ctx, dk)
-				requireRollAppHasNoAlias(rollApp3WithoutAlias.rollAppId, t, ctx, dk)
+			preTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp3WithoutAlias.rollAppId).HasNoAlias()
+				s.requireAlias("alias").NotInUse()
 			},
 			wantErr:         true,
 			wantErrContains: "source RollApp does not exists",
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAliasNotInUse("alias", t, ctx, dk)
-				requireRollAppHasNoAlias(rollApp3WithoutAlias.rollAppId, t, ctx, dk)
+			afterTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp3WithoutAlias.rollAppId).HasNoAlias()
+				s.requireAlias("alias").NotInUse()
 			},
 		},
 		{
@@ -575,13 +553,15 @@ func TestKeeper_MoveAliasToRollAppId(t *testing.T) {
 			srcRollAppId: rollApp1.rollAppId,
 			alias:        "@bad",
 			dstRollAppId: rollApp2.rollAppId,
-			preTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
+			preTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasOnlyAlias(rollApp1.alias)
+				s.requireRollApp(rollApp2.rollAppId).HasOnlyAlias(rollApp2.alias)
 			},
 			wantErr:         true,
 			wantErrContains: "invalid alias",
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
+			afterTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasOnlyAlias(rollApp1.alias)
+				s.requireRollApp(rollApp2.rollAppId).HasOnlyAlias(rollApp2.alias)
 			},
 		},
 		{
@@ -590,77 +570,47 @@ func TestKeeper_MoveAliasToRollAppId(t *testing.T) {
 			srcRollAppId: rollApp1.rollAppId,
 			alias:        rollApp1.alias,
 			dstRollAppId: "@bad",
-			preTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
+			preTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasOnlyAlias(rollApp1.alias)
 			},
 			wantErr:         true,
 			wantErrContains: "destination RollApp does not exists",
-			afterTestFunc: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				requireAssignedAliasPairs(rollApp1.rollAppId, rollApp1.alias, t, ctx, dk)
+			afterTestFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(rollApp1.rollAppId).HasOnlyAlias(rollApp1.alias)
 			},
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
+		s.Run(tt.name, func() {
+			s.SetupTest()
 
 			for _, ra := range tt.rollapps {
-				registerRollApp(t, ctx, rk, dk, ra.rollAppId, "", ra.alias)
+				s.persistRollApp(ra)
 			}
 
 			if tt.preTestFunc != nil {
-				tt.preTestFunc(t, ctx, dk, rk)
+				tt.preTestFunc(s)
 			}
 
-			err := dk.MoveAliasToRollAppId(ctx, tt.srcRollAppId, tt.alias, tt.dstRollAppId)
+			err := s.dymNsKeeper.MoveAliasToRollAppId(s.ctx, tt.srcRollAppId, tt.alias, tt.dstRollAppId)
 
 			defer func() {
-				if t.Failed() {
+				if s.T().Failed() {
 					return
 				}
 				if tt.afterTestFunc != nil {
-					tt.afterTestFunc(t, ctx, dk, rk)
+					tt.afterTestFunc(s)
 				}
 			}()
 
 			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				s.Require().ErrorContains(err, tt.wantErrContains)
 				return
 			}
 
-			require.NoError(t, err)
+			s.Require().NoError(err)
 		})
 	}
-}
-
-func requireAssignedAliasPairs(rollAppId, alias string, t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper) {
-	gotAlias, found := dk.GetAliasByRollAppId(ctx, rollAppId)
-	require.True(t, found)
-	require.Equal(t, alias, gotAlias)
-
-	gotRollAppId, found := dk.GetRollAppIdByAlias(ctx, alias)
-	require.True(t, found)
-	require.Equal(t, rollAppId, gotRollAppId)
-}
-
-func requireAliasLinkedToRollApp(alias, rollAppId string, t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper) {
-	gotRollAppId, found := dk.GetRollAppIdByAlias(ctx, alias)
-	require.True(t, found)
-	require.Equal(t, rollAppId, gotRollAppId)
-}
-
-func requireRollAppHasNoAlias(rollAppId string, t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper) {
-	gotAlias, found := dk.GetAliasByRollAppId(ctx, rollAppId)
-	require.False(t, found)
-	require.Empty(t, gotAlias)
-}
-
-func requireAliasNotInUse(alias string, t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper) {
-	gotRollAppId, found := dk.GetRollAppIdByAlias(ctx, alias)
-	require.False(t, found)
-	require.Empty(t, gotRollAppId)
 }
 
 func (s *KeeperTestSuite) TestKeeper_IsAliasPresentsInParamsAsAliasOrChainId() {

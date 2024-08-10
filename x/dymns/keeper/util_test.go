@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"sort"
 	"testing"
 	"time"
 
@@ -25,22 +24,6 @@ func setDymNameWithFunctionsAfter(ctx sdk.Context, dymName dymnstypes.DymName, t
 	require.NoError(t, dk.SetDymName(ctx, dymName))
 	require.NoError(t, dk.AfterDymNameOwnerChanged(ctx, dymName.Name))
 	require.NoError(t, dk.AfterDymNameConfigChanged(ctx, dymName.Name))
-}
-
-func requireDymNameList(dymNames []dymnstypes.DymName, wantNames []string, t *testing.T, msgAndArgs ...any) {
-	var gotNames []string
-	for _, dymName := range dymNames {
-		gotNames = append(gotNames, dymName.Name)
-	}
-
-	sort.Strings(gotNames)
-	sort.Strings(wantNames)
-
-	if len(wantNames) == 0 {
-		wantNames = nil
-	}
-
-	require.Equal(t, wantNames, gotNames, msgAndArgs...)
 }
 
 func registerRollApp(

@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"sort"
 	"testing"
 	"time"
 
@@ -227,16 +228,18 @@ func (s *KeeperTestSuite) moduleBalance2() sdkmath.Int {
 	return s.balance2(dymNsModuleAccAddr.String())
 }
 
-func (s *KeeperTestSuite) persistRollApp(ra rollapp) {
-	s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
-		RollappId:    ra.rollAppId,
-		Owner:        ra.owner,
-		Bech32Prefix: ra.bech32,
-	})
+func (s *KeeperTestSuite) persistRollApp(ras ...rollapp) {
+	for _, ra := range ras {
+		s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
+			RollappId:    ra.rollAppId,
+			Owner:        ra.owner,
+			Bech32Prefix: ra.bech32,
+		})
 
-	for _, alias := range ra.aliases {
-		err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, ra.rollAppId, alias)
-		s.Require().NoError(err)
+		for _, alias := range ra.aliases {
+			err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, ra.rollAppId, alias)
+			s.Require().NoError(err)
+		}
 	}
 }
 
@@ -277,6 +280,22 @@ func (s *KeeperTestSuite) setDymNameWithFunctionsAfter(dymName dymnstypes.DymNam
 	s.Require().NoError(s.dymNsKeeper.SetDymName(s.ctx, dymName))
 	s.Require().NoError(s.dymNsKeeper.AfterDymNameOwnerChanged(s.ctx, dymName.Name))
 	s.Require().NoError(s.dymNsKeeper.AfterDymNameConfigChanged(s.ctx, dymName.Name))
+}
+
+func (s *KeeperTestSuite) requireDymNameList(dymNames []dymnstypes.DymName, wantNames []string) {
+	var gotNames []string
+	for _, dymName := range dymNames {
+		gotNames = append(gotNames, dymName.Name)
+	}
+
+	sort.Strings(gotNames)
+	sort.Strings(wantNames)
+
+	if len(wantNames) == 0 {
+		wantNames = nil
+	}
+
+	s.Require().Equal(wantNames, gotNames)
 }
 
 //
@@ -339,6 +358,12 @@ func (m reqRollApp) HasAlias(aliases ...string) {
 		m.s.Require().True(found)
 		m.s.Require().Equal(m.rollAppId, rollAppId)
 	}
+}
+
+func (m reqRollApp) HasOnlyAlias(alias string) {
+	list := m.s.dymNsKeeper.GetAliasesOfRollAppId(m.s.ctx, m.rollAppId)
+	m.s.Require().Len(list, 1)
+	m.s.Require().Equal(alias, list[0])
 }
 
 func (m reqRollApp) HasNoAlias() {
@@ -525,4 +550,64 @@ func (b *buyOrderBuilder) Build() dymnstypes.BuyOrder {
 	}
 
 	return bo
+}
+
+//
+
+type reqConfiguredAddr struct {
+	s       *KeeperTestSuite
+	cfgAddr string
+}
+
+func (s *KeeperTestSuite) requireConfiguredAddress(cfgAddr string) *reqConfiguredAddr {
+	return &reqConfiguredAddr{
+		s:       s,
+		cfgAddr: cfgAddr,
+	}
+}
+
+func (m reqConfiguredAddr) mappedDymNames(names ...string) {
+	if len(names) == 0 {
+		panic("must provide at least one name")
+	}
+
+	dymNames, err := m.s.dymNsKeeper.GetDymNamesContainsConfiguredAddress(m.s.ctx, m.cfgAddr)
+	m.s.Require().NoError(err)
+	m.s.requireDymNameList(dymNames, names)
+}
+
+func (m reqConfiguredAddr) notMappedToAnyDymName() {
+	dymNames, err := m.s.dymNsKeeper.GetDymNamesContainsConfiguredAddress(m.s.ctx, m.cfgAddr)
+	m.s.Require().NoError(err)
+	m.s.Require().Empty(dymNames)
+}
+
+//
+
+type reqFallbackAddr struct {
+	s      *KeeperTestSuite
+	fbAddr dymnstypes.FallbackAddress
+}
+
+func (s *KeeperTestSuite) requireFallbackAddress(fbAddr dymnstypes.FallbackAddress) *reqFallbackAddr {
+	return &reqFallbackAddr{
+		s:      s,
+		fbAddr: fbAddr,
+	}
+}
+
+func (m reqFallbackAddr) mappedDymNames(names ...string) {
+	if len(names) == 0 {
+		panic("must provide at least one name")
+	}
+
+	dymNames, err := m.s.dymNsKeeper.GetDymNamesContainsFallbackAddress(m.s.ctx, m.fbAddr)
+	m.s.Require().NoError(err)
+	m.s.requireDymNameList(dymNames, names)
+}
+
+func (m reqFallbackAddr) notMappedToAnyDymName() {
+	dymNames, err := m.s.dymNsKeeper.GetDymNamesContainsFallbackAddress(m.s.ctx, m.fbAddr)
+	m.s.Require().NoError(err)
+	m.s.Require().Empty(dymNames)
 }
