@@ -2870,52 +2870,53 @@ paths:
                       price-related parameters.
                     type: object
                     properties:
-                      name_price_1_letter:
-                        type: string
-                        title: Price of 1 letter Dym-Name, apply to first year
-                      name_price_2_letters:
-                        type: string
-                        title: Price of 2 letters Dym-Name, apply to first year
-                      name_price_3_letters:
-                        type: string
-                        title: Price of 3 letters Dym-Name, apply to first year
-                      name_price_4_letters:
-                        type: string
-                        title: Price of 4 letters Dym-Name, apply to first year
-                      name_price_5plus_letters:
-                        type: string
-                        title: Price of 5+ letters Dym-Name, apply to first year
-                      alias_price_1_letter:
-                        type: string
-                        title: Price of 1 letter Alias, one off payment
-                      alias_price_2_letters:
-                        type: string
-                        title: Price of 2 letters Alias, one off payment
-                      alias_price_3_letters:
-                        type: string
-                        title: Price of 3 letters Alias, one off payment
-                      alias_price_4_letters:
-                        type: string
-                        title: Price of 4 letters Alias, one off payment
-                      alias_price_5_letters:
-                        type: string
-                        title: Price of 5 letters Alias, one off payment
-                      alias_price_6_letters:
-                        type: string
-                        title: Price of 6 letters Alias, one off payment
-                      alias_price_7plus_letters:
-                        type: string
-                        title: Price of 7+ letters Alias, one off payment
+                      name_price_steps:
+                        type: array
+                        items:
+                          type: string
+                        description: >-
+                          name_price_steps holds the price steps configuration
+                          for Dym-Name registration, apply to the first year.
+
+                          The price of Dym-Name is calculated based on the
+                          number of letters.
+
+                          The first element is the price of 1 letter Dym-Name,
+                          the last element is the price of N+ letters Dym-Name.
+
+                          Minimum steps count allowed is 4, for 1/2/3/4+ letters
+                          Dym-Name.
+                      alias_price_steps:
+                        type: array
+                        items:
+                          type: string
+                        description: >-
+                          alias_price_steps holds the price steps configuration
+                          for Alias registration, one off payment.
+
+                          The price of Alias is calculated based on the number
+                          of letters.
+
+                          The first element is the price of 1 letter Alias, the
+                          last element is the price of N+ letters Alias.
+
+                          Minimum steps count allowed is 4, for 1/2/3/4+ letters
+                          Alias.
                       price_extends:
                         type: string
-                        title: Price extends Dym-Name yearly, after first year
+                        description: >-
+                          price_extends is used to extends Dym-Name yearly,
+                          after the one-off payment for the first year.
                       price_denom:
                         type: string
-                        title: Denom of the price setup
+                        description: >-
+                          price_denom is the required denomination of the
+                          pricing setup and trading policy.
                       min_offer_price:
                         type: string
                         description: >-
-                          Minimum price of an offer.
+                          min_offer_price is minimum price allowed to place an
+                          offer.
 
                           Mostly used to prevent spamming and abusing store with
                           low price offers,
@@ -59174,52 +59175,49 @@ definitions:
           parameters.
         type: object
         properties:
-          name_price_1_letter:
-            type: string
-            title: Price of 1 letter Dym-Name, apply to first year
-          name_price_2_letters:
-            type: string
-            title: Price of 2 letters Dym-Name, apply to first year
-          name_price_3_letters:
-            type: string
-            title: Price of 3 letters Dym-Name, apply to first year
-          name_price_4_letters:
-            type: string
-            title: Price of 4 letters Dym-Name, apply to first year
-          name_price_5plus_letters:
-            type: string
-            title: Price of 5+ letters Dym-Name, apply to first year
-          alias_price_1_letter:
-            type: string
-            title: Price of 1 letter Alias, one off payment
-          alias_price_2_letters:
-            type: string
-            title: Price of 2 letters Alias, one off payment
-          alias_price_3_letters:
-            type: string
-            title: Price of 3 letters Alias, one off payment
-          alias_price_4_letters:
-            type: string
-            title: Price of 4 letters Alias, one off payment
-          alias_price_5_letters:
-            type: string
-            title: Price of 5 letters Alias, one off payment
-          alias_price_6_letters:
-            type: string
-            title: Price of 6 letters Alias, one off payment
-          alias_price_7plus_letters:
-            type: string
-            title: Price of 7+ letters Alias, one off payment
+          name_price_steps:
+            type: array
+            items:
+              type: string
+            description: >-
+              name_price_steps holds the price steps configuration for Dym-Name
+              registration, apply to the first year.
+
+              The price of Dym-Name is calculated based on the number of
+              letters.
+
+              The first element is the price of 1 letter Dym-Name, the last
+              element is the price of N+ letters Dym-Name.
+
+              Minimum steps count allowed is 4, for 1/2/3/4+ letters Dym-Name.
+          alias_price_steps:
+            type: array
+            items:
+              type: string
+            description: >-
+              alias_price_steps holds the price steps configuration for Alias
+              registration, one off payment.
+
+              The price of Alias is calculated based on the number of letters.
+
+              The first element is the price of 1 letter Alias, the last element
+              is the price of N+ letters Alias.
+
+              Minimum steps count allowed is 4, for 1/2/3/4+ letters Alias.
           price_extends:
             type: string
-            title: Price extends Dym-Name yearly, after first year
+            description: >-
+              price_extends is used to extends Dym-Name yearly, after the
+              one-off payment for the first year.
           price_denom:
             type: string
-            title: Denom of the price setup
+            description: >-
+              price_denom is the required denomination of the pricing setup and
+              trading policy.
           min_offer_price:
             type: string
             description: >-
-              Minimum price of an offer.
+              min_offer_price is minimum price allowed to place an offer.
 
               Mostly used to prevent spamming and abusing store with low price
               offers,
@@ -59460,52 +59458,48 @@ definitions:
   dymensionxyz.dymension.dymns.PriceParams:
     type: object
     properties:
-      name_price_1_letter:
-        type: string
-        title: Price of 1 letter Dym-Name, apply to first year
-      name_price_2_letters:
-        type: string
-        title: Price of 2 letters Dym-Name, apply to first year
-      name_price_3_letters:
-        type: string
-        title: Price of 3 letters Dym-Name, apply to first year
-      name_price_4_letters:
-        type: string
-        title: Price of 4 letters Dym-Name, apply to first year
-      name_price_5plus_letters:
-        type: string
-        title: Price of 5+ letters Dym-Name, apply to first year
-      alias_price_1_letter:
-        type: string
-        title: Price of 1 letter Alias, one off payment
-      alias_price_2_letters:
-        type: string
-        title: Price of 2 letters Alias, one off payment
-      alias_price_3_letters:
-        type: string
-        title: Price of 3 letters Alias, one off payment
-      alias_price_4_letters:
-        type: string
-        title: Price of 4 letters Alias, one off payment
-      alias_price_5_letters:
-        type: string
-        title: Price of 5 letters Alias, one off payment
-      alias_price_6_letters:
-        type: string
-        title: Price of 6 letters Alias, one off payment
-      alias_price_7plus_letters:
-        type: string
-        title: Price of 7+ letters Alias, one off payment
+      name_price_steps:
+        type: array
+        items:
+          type: string
+        description: >-
+          name_price_steps holds the price steps configuration for Dym-Name
+          registration, apply to the first year.
+
+          The price of Dym-Name is calculated based on the number of letters.
+
+          The first element is the price of 1 letter Dym-Name, the last element
+          is the price of N+ letters Dym-Name.
+
+          Minimum steps count allowed is 4, for 1/2/3/4+ letters Dym-Name.
+      alias_price_steps:
+        type: array
+        items:
+          type: string
+        description: >-
+          alias_price_steps holds the price steps configuration for Alias
+          registration, one off payment.
+
+          The price of Alias is calculated based on the number of letters.
+
+          The first element is the price of 1 letter Alias, the last element is
+          the price of N+ letters Alias.
+
+          Minimum steps count allowed is 4, for 1/2/3/4+ letters Alias.
       price_extends:
         type: string
-        title: Price extends Dym-Name yearly, after first year
+        description: >-
+          price_extends is used to extends Dym-Name yearly, after the one-off
+          payment for the first year.
       price_denom:
         type: string
-        title: Denom of the price setup
+        description: >-
+          price_denom is the required denomination of the pricing setup and
+          trading policy.
       min_offer_price:
         type: string
         description: >-
-          Minimum price of an offer.
+          min_offer_price is minimum price allowed to place an offer.
 
           Mostly used to prevent spamming and abusing store with low price
           offers,
@@ -60315,52 +60309,51 @@ definitions:
               parameters.
             type: object
             properties:
-              name_price_1_letter:
-                type: string
-                title: Price of 1 letter Dym-Name, apply to first year
-              name_price_2_letters:
-                type: string
-                title: Price of 2 letters Dym-Name, apply to first year
-              name_price_3_letters:
-                type: string
-                title: Price of 3 letters Dym-Name, apply to first year
-              name_price_4_letters:
-                type: string
-                title: Price of 4 letters Dym-Name, apply to first year
-              name_price_5plus_letters:
-                type: string
-                title: Price of 5+ letters Dym-Name, apply to first year
-              alias_price_1_letter:
-                type: string
-                title: Price of 1 letter Alias, one off payment
-              alias_price_2_letters:
-                type: string
-                title: Price of 2 letters Alias, one off payment
-              alias_price_3_letters:
-                type: string
-                title: Price of 3 letters Alias, one off payment
-              alias_price_4_letters:
-                type: string
-                title: Price of 4 letters Alias, one off payment
-              alias_price_5_letters:
-                type: string
-                title: Price of 5 letters Alias, one off payment
-              alias_price_6_letters:
-                type: string
-                title: Price of 6 letters Alias, one off payment
-              alias_price_7plus_letters:
-                type: string
-                title: Price of 7+ letters Alias, one off payment
+              name_price_steps:
+                type: array
+                items:
+                  type: string
+                description: >-
+                  name_price_steps holds the price steps configuration for
+                  Dym-Name registration, apply to the first year.
+
+                  The price of Dym-Name is calculated based on the number of
+                  letters.
+
+                  The first element is the price of 1 letter Dym-Name, the last
+                  element is the price of N+ letters Dym-Name.
+
+                  Minimum steps count allowed is 4, for 1/2/3/4+ letters
+                  Dym-Name.
+              alias_price_steps:
+                type: array
+                items:
+                  type: string
+                description: >-
+                  alias_price_steps holds the price steps configuration for
+                  Alias registration, one off payment.
+
+                  The price of Alias is calculated based on the number of
+                  letters.
+
+                  The first element is the price of 1 letter Alias, the last
+                  element is the price of N+ letters Alias.
+
+                  Minimum steps count allowed is 4, for 1/2/3/4+ letters Alias.
               price_extends:
                 type: string
-                title: Price extends Dym-Name yearly, after first year
+                description: >-
+                  price_extends is used to extends Dym-Name yearly, after the
+                  one-off payment for the first year.
               price_denom:
                 type: string
-                title: Denom of the price setup
+                description: >-
+                  price_denom is the required denomination of the pricing setup
+                  and trading policy.
               min_offer_price:
                 type: string
                 description: >-
-                  Minimum price of an offer.
+                  min_offer_price is minimum price allowed to place an offer.
 
                   Mostly used to prevent spamming and abusing store with low
                   price offers,
