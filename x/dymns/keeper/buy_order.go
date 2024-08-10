@@ -60,6 +60,7 @@ func (k Keeper) GetAllBuyOrders(ctx sdk.Context) (list []dymnstypes.BuyOrder) {
 }
 
 // GetBuyOrder retrieves the Buy-Order from the KVStore.
+// If the Buy-Order does not exist, nil is returned.
 func (k Keeper) GetBuyOrder(ctx sdk.Context, orderId string) *dymnstypes.BuyOrder {
 	if !dymnstypes.IsValidBuyOrderId(orderId) {
 		panic("invalid Buy-Order ID")

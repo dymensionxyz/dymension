@@ -810,8 +810,6 @@ func setupShowcase(s *KeeperTestSuite) *showcaseSetup {
 type showcaseSetup struct {
 	s *KeeperTestSuite
 
-	chainId string
-
 	recentTestAccountNo uint64
 	dymNameOwner        ta
 

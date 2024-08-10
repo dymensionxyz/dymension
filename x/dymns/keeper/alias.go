@@ -66,12 +66,12 @@ func (k Keeper) GetAliasByRollAppId(ctx sdk.Context, chainId string) (alias stri
 
 // SetAliasForRollAppId assigns the usage of an alias to a RollApp.
 func (k Keeper) SetAliasForRollAppId(ctx sdk.Context, rollAppId, alias string) error {
-	if !k.IsRollAppId(ctx, rollAppId) {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not a RollApp chain-id: %s", rollAppId)
-	}
-
 	if !dymnsutils.IsValidAlias(alias) {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid alias: %s", alias)
+	}
+
+	if !k.IsRollAppId(ctx, rollAppId) {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not a RollApp chain-id: %s", rollAppId)
 	}
 
 	store := ctx.KVStore(k.storeKey)
@@ -109,12 +109,12 @@ func (k Keeper) GetAliasesOfRollAppId(ctx sdk.Context, rollAppId string) []strin
 
 // RemoveAliasFromRollAppId removes the linking of an existing alias from a RollApp.
 func (k Keeper) RemoveAliasFromRollAppId(ctx sdk.Context, rollAppId, alias string) error {
-	if !k.IsRollAppId(ctx, rollAppId) {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not a RollApp chain-id: %s", rollAppId)
-	}
-
 	if !dymnsutils.IsValidAlias(alias) {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid alias: %s", alias)
+	}
+
+	if !k.IsRollAppId(ctx, rollAppId) {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not a RollApp chain-id: %s", rollAppId)
 	}
 
 	store := ctx.KVStore(k.storeKey)
@@ -155,12 +155,12 @@ func (k Keeper) RemoveAliasFromRollAppId(ctx sdk.Context, rollAppId, alias strin
 
 // MoveAliasToRollAppId moves the linking of an existing alias from a RollApp to another RollApp.
 func (k Keeper) MoveAliasToRollAppId(ctx sdk.Context, srcRollAppId, alias, dstRollAppId string) error {
-	if !k.IsRollAppId(ctx, srcRollAppId) {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "source RollApp does not exists: %s", srcRollAppId)
-	}
-
 	if !dymnsutils.IsValidAlias(alias) {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid alias: %s", alias)
+	}
+
+	if !k.IsRollAppId(ctx, srcRollAppId) {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "source RollApp does not exists: %s", srcRollAppId)
 	}
 
 	if !k.IsRollAppId(ctx, dstRollAppId) {
