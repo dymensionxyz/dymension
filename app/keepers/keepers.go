@@ -364,7 +364,6 @@ func (a *AppKeepers) InitKeepers(
 		a.DistrKeeper,
 		a.TxFeesKeeper,
 		a.RollappKeeper,
-		&a.SequencerKeeper,
 	)
 
 	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
