@@ -3,49 +3,40 @@ package keeper_test
 import (
 	"reflect"
 	"sort"
-	"testing"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/stretchr/testify/require"
 )
 
-func Test_queryServer_Params(t *testing.T) {
-	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-
-	params := dk.GetParams(ctx)
+func (s *KeeperTestSuite) Test_queryServer_Params() {
+	params := s.dymNsKeeper.GetParams(s.ctx)
 	params.Misc.ProhibitSellDuration += time.Hour
-	err := dk.SetParams(ctx, params)
-	require.NoError(t, err)
+	err := s.dymNsKeeper.SetParams(s.ctx, params)
+	s.Require().NoError(err)
 
-	queryServer := dymnskeeper.NewQueryServerImpl(dk)
+	queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
-	resp, err := queryServer.Params(sdk.WrapSDKContext(ctx), &dymnstypes.QueryParamsRequest{})
-	require.NoError(t, err)
-	require.NotNil(t, resp)
-	require.Equal(t, params, resp.Params)
+	resp, err := queryServer.Params(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryParamsRequest{})
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+	s.Require().Equal(params, resp.Params)
 }
 
-func Test_queryServer_DymName(t *testing.T) {
-	t.Run("Dym-Name not found", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-
-		queryServer := dymnskeeper.NewQueryServerImpl(dk)
-		resp, err := queryServer.DymName(sdk.WrapSDKContext(ctx), &dymnstypes.QueryDymNameRequest{
+func (s *KeeperTestSuite) Test_queryServer_DymName() {
+	s.Run("Dym-Name not found", func() {
+		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
+		resp, err := queryServer.DymName(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryDymNameRequest{
 			DymName: "not-exists",
 		})
-		require.NoError(t, err)
-		require.Nil(t, resp.DymName)
+		s.Require().NoError(err)
+		s.Require().Nil(resp.DymName)
 	})
-
-	now := time.Now().UTC()
 
 	ownerA := testAddr(1).bech32()
 
@@ -61,7 +52,7 @@ func Test_queryServer_DymName(t *testing.T) {
 				Name:       "a",
 				Owner:      ownerA,
 				Controller: ownerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 99,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -78,7 +69,7 @@ func Test_queryServer_DymName(t *testing.T) {
 				Name:       "a",
 				Owner:      ownerA,
 				Controller: ownerA,
-				ExpireAt:   now.Unix() + 99,
+				ExpireAt:   s.now.Unix() + 99,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -95,7 +86,7 @@ func Test_queryServer_DymName(t *testing.T) {
 				Name:       "a",
 				Owner:      ownerA,
 				Controller: ownerA,
-				ExpireAt:   now.Unix() - 1,
+				ExpireAt:   s.now.Unix() - 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -114,50 +105,42 @@ func Test_queryServer_DymName(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-			ctx = ctx.WithBlockTime(now)
+		s.Run(tt.name, func() {
+			s.SetupTest()
 
 			if tt.dymName != nil {
-				err := dk.SetDymName(ctx, *tt.dymName)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetDymName(s.ctx, *tt.dymName)
+				s.Require().NoError(err)
 			}
 
-			queryServer := dymnskeeper.NewQueryServerImpl(dk)
-			resp, err := queryServer.DymName(sdk.WrapSDKContext(ctx), &dymnstypes.QueryDymNameRequest{
+			queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
+			resp, err := queryServer.DymName(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryDymNameRequest{
 				DymName: tt.queryName,
 			})
-			require.NoError(t, err, "should never returns error")
-			require.NotNil(t, resp, "should never returns nil response")
+			s.Require().NoError(err, "should never returns error")
+			s.Require().NotNil(resp, "should never returns nil response")
 
 			if !tt.wantResult {
-				require.Nil(t, resp.DymName)
+				s.Require().Nil(resp.DymName)
 				return
 			}
 
-			require.NotNil(t, resp.DymName)
-			require.Equal(t, *tt.dymName, *resp.DymName)
+			s.Require().NotNil(resp.DymName)
+			s.Require().Equal(*tt.dymName, *resp.DymName)
 		})
 	}
 
-	t.Run("reject nil request", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	s.Run("reject nil request", func() {
+		s.SetupTest()
 
-		queryServer := dymnskeeper.NewQueryServerImpl(dk)
-		resp, err := queryServer.DymName(sdk.WrapSDKContext(ctx), nil)
-		require.Error(t, err)
-		require.Nil(t, resp)
+		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
+		resp, err := queryServer.DymName(sdk.WrapSDKContext(s.ctx), nil)
+		s.Require().Error(err)
+		s.Require().Nil(resp)
 	})
 }
 
-func Test_queryServer_ResolveDymNameAddresses(t *testing.T) {
-	now := time.Now().UTC()
-
-	const chainId = "dymension_1100-1"
-
-	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-	ctx = ctx.WithBlockTime(now).WithChainID(chainId)
-
+func (s *KeeperTestSuite) Test_queryServer_ResolveDymNameAddresses() {
 	addr1a := testAddr(1).bech32()
 	addr2a := testAddr(2).bech32()
 	addr3a := testAddr(3).bech32()
@@ -166,43 +149,43 @@ func Test_queryServer_ResolveDymNameAddresses(t *testing.T) {
 		Name:       "a",
 		Owner:      addr1a,
 		Controller: addr2a,
-		ExpireAt:   now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 99,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: addr1a,
 		}},
 	}
-	require.NoError(t, dk.SetDymName(ctx, dymNameA))
+	s.Require().NoError(s.dymNsKeeper.SetDymName(s.ctx, dymNameA))
 
 	dymNameB := dymnstypes.DymName{
 		Name:       "b",
 		Owner:      addr1a,
 		Controller: addr2a,
-		ExpireAt:   now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: addr2a,
 		}},
 	}
-	require.NoError(t, dk.SetDymName(ctx, dymNameB))
+	s.Require().NoError(s.dymNsKeeper.SetDymName(s.ctx, dymNameB))
 
 	dymNameC := dymnstypes.DymName{
 		Name:       "c",
 		Owner:      addr1a,
 		Controller: addr2a,
-		ExpireAt:   now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: addr3a,
 		}},
 	}
-	require.NoError(t, dk.SetDymName(ctx, dymNameC))
+	s.Require().NoError(s.dymNsKeeper.SetDymName(s.ctx, dymNameC))
 
 	dymNameD := dymnstypes.DymName{
 		Name:       "d",
 		Owner:      addr1a,
 		Controller: addr2a,
-		ExpireAt:   now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{
 			{
 				Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -217,11 +200,11 @@ func Test_queryServer_ResolveDymNameAddresses(t *testing.T) {
 			},
 		},
 	}
-	require.NoError(t, dk.SetDymName(ctx, dymNameD))
+	s.Require().NoError(s.dymNsKeeper.SetDymName(s.ctx, dymNameD))
 
-	queryServer := dymnskeeper.NewQueryServerImpl(dk)
+	queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
-	resp, err := queryServer.ResolveDymNameAddresses(sdk.WrapSDKContext(ctx), &dymnstypes.ResolveDymNameAddressesRequest{
+	resp, err := queryServer.ResolveDymNameAddresses(sdk.WrapSDKContext(s.ctx), &dymnstypes.ResolveDymNameAddressesRequest{
 		Addresses: []string{
 			"a.dymension_1100-1",
 			"b.dymension_1100-1",
@@ -229,54 +212,47 @@ func Test_queryServer_ResolveDymNameAddresses(t *testing.T) {
 			"a.blumbus_111-1",
 		},
 	})
-	require.NoError(t, err)
-	require.NotNil(t, resp)
-	require.Len(t, resp.ResolvedAddresses, 4)
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+	s.Require().Len(resp.ResolvedAddresses, 4)
 
-	require.Equal(t, addr1a, resp.ResolvedAddresses[0].ResolvedAddress)
-	require.Equal(t, addr2a, resp.ResolvedAddresses[1].ResolvedAddress)
-	require.Equal(t, addr3a, resp.ResolvedAddresses[2].ResolvedAddress)
-	require.Empty(t, resp.ResolvedAddresses[3].ResolvedAddress)
-	require.NotEmpty(t, resp.ResolvedAddresses[3].Error)
+	s.Require().Equal(addr1a, resp.ResolvedAddresses[0].ResolvedAddress)
+	s.Require().Equal(addr2a, resp.ResolvedAddresses[1].ResolvedAddress)
+	s.Require().Equal(addr3a, resp.ResolvedAddresses[2].ResolvedAddress)
+	s.Require().Empty(resp.ResolvedAddresses[3].ResolvedAddress)
+	s.Require().NotEmpty(resp.ResolvedAddresses[3].Error)
 
-	t.Run("reject nil request", func(t *testing.T) {
-		resp, err := queryServer.ResolveDymNameAddresses(sdk.WrapSDKContext(ctx), nil)
-		require.Error(t, err)
-		require.Nil(t, resp)
+	s.Run("reject nil request", func() {
+		resp, err := queryServer.ResolveDymNameAddresses(sdk.WrapSDKContext(s.ctx), nil)
+		s.Require().Error(err)
+		s.Require().Nil(resp)
 	})
 
-	t.Run("reject empty request", func(t *testing.T) {
+	s.Run("reject empty request", func() {
 		resp, err := queryServer.ResolveDymNameAddresses(
-			sdk.WrapSDKContext(ctx),
+			sdk.WrapSDKContext(s.ctx),
 			&dymnstypes.ResolveDymNameAddressesRequest{},
 		)
-		require.Error(t, err)
-		require.Nil(t, resp)
+		s.Require().Error(err)
+		s.Require().Nil(resp)
 	})
 
-	t.Run("resolves default to owner if no config of default (without sub-name)", func(t *testing.T) {
+	s.Run("resolves default to owner if no config of default (without sub-name)", func() {
 		resp, err := queryServer.ResolveDymNameAddresses(
-			sdk.WrapSDKContext(ctx),
+			sdk.WrapSDKContext(s.ctx),
 			&dymnstypes.ResolveDymNameAddressesRequest{
 				Addresses: []string{"d.dymension_1100-1", "d.blumbus_111-1"},
 			},
 		)
-		require.NoError(t, err)
-		require.NotNil(t, resp)
-		require.Len(t, resp.ResolvedAddresses, 2)
-		require.Equal(t, addr1a, resp.ResolvedAddresses[0].ResolvedAddress)
-		require.Equal(t, addr3a, resp.ResolvedAddresses[1].ResolvedAddress)
+		s.Require().NoError(err)
+		s.Require().NotNil(resp)
+		s.Require().Len(resp.ResolvedAddresses, 2)
+		s.Require().Equal(addr1a, resp.ResolvedAddresses[0].ResolvedAddress)
+		s.Require().Equal(addr3a, resp.ResolvedAddresses[1].ResolvedAddress)
 	})
 }
 
-func Test_queryServer_DymNamesOwnedByAccount(t *testing.T) {
-	now := time.Now().UTC()
-
-	const chainId = "dymension_1100-1"
-
-	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-	ctx = ctx.WithBlockTime(now).WithChainID(chainId)
-
+func (s *KeeperTestSuite) Test_queryServer_DymNamesOwnedByAccount() {
 	addr1a := testAddr(1).bech32()
 	addr2a := testAddr(2).bech32()
 	addr3a := testAddr(3).bech32()
@@ -285,70 +261,68 @@ func Test_queryServer_DymNamesOwnedByAccount(t *testing.T) {
 		Name:       "a",
 		Owner:      addr1a,
 		Controller: addr2a,
-		ExpireAt:   now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: addr1a,
 		}},
 	}
-	setDymNameWithFunctionsAfter(ctx, dymNameA, t, dk)
+	s.setDymNameWithFunctionsAfter(dymNameA)
 
 	dymNameB := dymnstypes.DymName{
 		Name:       "b",
 		Owner:      addr1a,
 		Controller: addr2a,
-		ExpireAt:   now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 1,
 	}
-	setDymNameWithFunctionsAfter(ctx, dymNameB, t, dk)
+	s.setDymNameWithFunctionsAfter(dymNameB)
 
 	dymNameCExpired := dymnstypes.DymName{
 		Name:       "c",
 		Owner:      addr1a,
 		Controller: addr2a,
-		ExpireAt:   now.Unix() - 1,
+		ExpireAt:   s.now.Unix() - 1,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: addr3a,
 		}},
 	}
-	setDymNameWithFunctionsAfter(ctx, dymNameCExpired, t, dk)
+	s.setDymNameWithFunctionsAfter(dymNameCExpired)
 
 	dymNameD := dymnstypes.DymName{
 		Name:       "d",
 		Owner:      addr3a,
 		Controller: addr3a,
-		ExpireAt:   now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 1,
 	}
-	setDymNameWithFunctionsAfter(ctx, dymNameD, t, dk)
+	s.setDymNameWithFunctionsAfter(dymNameD)
 
-	queryServer := dymnskeeper.NewQueryServerImpl(dk)
-	resp, err := queryServer.DymNamesOwnedByAccount(sdk.WrapSDKContext(ctx), &dymnstypes.QueryDymNamesOwnedByAccountRequest{
+	queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
+	resp, err := queryServer.DymNamesOwnedByAccount(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryDymNamesOwnedByAccountRequest{
 		Owner: addr1a,
 	})
-	require.NoError(t, err)
-	require.NotNil(t, resp)
-	require.Len(t, resp.DymNames, 2)
-	require.True(t, resp.DymNames[0].Name == dymNameA.Name || resp.DymNames[1].Name == dymNameA.Name)
-	require.True(t, resp.DymNames[0].Name == dymNameB.Name || resp.DymNames[1].Name == dymNameB.Name)
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+	s.Require().Len(resp.DymNames, 2)
+	s.Require().True(resp.DymNames[0].Name == dymNameA.Name || resp.DymNames[1].Name == dymNameA.Name)
+	s.Require().True(resp.DymNames[0].Name == dymNameB.Name || resp.DymNames[1].Name == dymNameB.Name)
 
-	t.Run("reject nil request", func(t *testing.T) {
-		resp, err := queryServer.DymNamesOwnedByAccount(sdk.WrapSDKContext(ctx), nil)
-		require.Error(t, err)
-		require.Nil(t, resp)
+	s.Run("reject nil request", func() {
+		resp, err := queryServer.DymNamesOwnedByAccount(sdk.WrapSDKContext(s.ctx), nil)
+		s.Require().Error(err)
+		s.Require().Nil(resp)
 	})
 
-	t.Run("reject invalid request", func(t *testing.T) {
-		resp, err := queryServer.DymNamesOwnedByAccount(sdk.WrapSDKContext(ctx), &dymnstypes.QueryDymNamesOwnedByAccountRequest{
+	s.Run("reject invalid request", func() {
+		resp, err := queryServer.DymNamesOwnedByAccount(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryDymNamesOwnedByAccountRequest{
 			Owner: "x",
 		})
-		require.Error(t, err)
-		require.Nil(t, resp)
+		s.Require().Error(err)
+		s.Require().Nil(resp)
 	})
 }
 
 func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
-	now := time.Now().UTC()
-
 	addr1a := testAddr(1).bech32()
 	addr2a := testAddr(2).bech32()
 
@@ -356,13 +330,13 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 		Name:       "asset",
 		Owner:      addr1a,
 		Controller: addr2a,
-		ExpireAt:   now.Add(time.Hour).Unix(),
+		ExpireAt:   s.now.Add(time.Hour).Unix(),
 	}
 	dymNameB := dymnstypes.DymName{
 		Name:       "mood",
 		Owner:      addr1a,
 		Controller: addr2a,
-		ExpireAt:   now.Add(time.Hour).Unix(),
+		ExpireAt:   s.now.Add(time.Hour).Unix(),
 	}
 
 	rollAppC := newRollApp("central_1-1").WithAlias("asset")
@@ -516,14 +490,7 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 	}
 }
 
-func Test_queryServer_HistoricalSellOrderOfDymName(t *testing.T) {
-	now := time.Now().UTC()
-
-	const chainId = "dymension_1100-1"
-
-	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-	ctx = ctx.WithBlockTime(now).WithChainID(chainId)
-
+func (s *KeeperTestSuite) Test_queryServer_HistoricalSellOrderOfDymName() {
 	addr1a := testAddr(1).bech32()
 	addr2a := testAddr(2).bech32()
 	addr3a := testAddr(3).bech32()
@@ -532,14 +499,14 @@ func Test_queryServer_HistoricalSellOrderOfDymName(t *testing.T) {
 		Name:       "a",
 		Owner:      addr1a,
 		Controller: addr2a,
-		ExpireAt:   now.Unix() + 100,
+		ExpireAt:   s.now.Unix() + 100,
 	}
-	require.NoError(t, dk.SetDymName(ctx, dymNameA))
+	s.Require().NoError(s.dymNsKeeper.SetDymName(s.ctx, dymNameA))
 	for r := int64(1); r <= 5; r++ {
-		err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{
+		err := s.dymNsKeeper.SetSellOrder(s.ctx, dymnstypes.SellOrder{
 			AssetId:   dymNameA.Name,
 			AssetType: dymnstypes.TypeName,
-			ExpireAt:  now.Unix() + r,
+			ExpireAt:  s.now.Unix() + r,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(200),
 			HighestBid: &dymnstypes.SellOrderBid{
@@ -547,23 +514,23 @@ func Test_queryServer_HistoricalSellOrderOfDymName(t *testing.T) {
 				Price:  dymnsutils.TestCoin(200),
 			},
 		})
-		require.NoError(t, err)
-		err = dk.MoveSellOrderToHistorical(ctx, dymNameA.Name, dymnstypes.TypeName)
-		require.NoError(t, err)
+		s.Require().NoError(err)
+		err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, dymNameA.Name, dymnstypes.TypeName)
+		s.Require().NoError(err)
 	}
 
 	dymNameB := dymnstypes.DymName{
 		Name:       "b",
 		Owner:      addr1a,
 		Controller: addr2a,
-		ExpireAt:   now.Unix() + 100,
+		ExpireAt:   s.now.Unix() + 100,
 	}
-	require.NoError(t, dk.SetDymName(ctx, dymNameB))
+	s.Require().NoError(s.dymNsKeeper.SetDymName(s.ctx, dymNameB))
 	for r := int64(1); r <= 3; r++ {
-		err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{
+		err := s.dymNsKeeper.SetSellOrder(s.ctx, dymnstypes.SellOrder{
 			AssetId:   dymNameB.Name,
 			AssetType: dymnstypes.TypeName,
-			ExpireAt:  now.Unix() + r,
+			ExpireAt:  s.now.Unix() + r,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(300),
 			HighestBid: &dymnstypes.SellOrderBid{
@@ -571,53 +538,51 @@ func Test_queryServer_HistoricalSellOrderOfDymName(t *testing.T) {
 				Price:  dymnsutils.TestCoin(300),
 			},
 		})
-		require.NoError(t, err)
-		err = dk.MoveSellOrderToHistorical(ctx, dymNameB.Name, dymnstypes.TypeName)
-		require.NoError(t, err)
+		s.Require().NoError(err)
+		err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, dymNameB.Name, dymnstypes.TypeName)
+		s.Require().NoError(err)
 	}
 
-	queryServer := dymnskeeper.NewQueryServerImpl(dk)
-	resp, err := queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(ctx), &dymnstypes.QueryHistoricalSellOrderOfDymNameRequest{
+	queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
+	resp, err := queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryHistoricalSellOrderOfDymNameRequest{
 		DymName: dymNameA.Name,
 	})
-	require.NoError(t, err)
-	require.NotNil(t, resp)
-	require.Len(t, resp.Result, 5)
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+	s.Require().Len(resp.Result, 5)
 
-	resp, err = queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(ctx), &dymnstypes.QueryHistoricalSellOrderOfDymNameRequest{
+	resp, err = queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryHistoricalSellOrderOfDymNameRequest{
 		DymName: dymNameB.Name,
 	})
-	require.NoError(t, err)
-	require.NotNil(t, resp)
-	require.Len(t, resp.Result, 3)
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+	s.Require().Len(resp.Result, 3)
 
-	t.Run("returns empty for non-exists Dym-Name", func(t *testing.T) {
-		resp, err := queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(ctx), &dymnstypes.QueryHistoricalSellOrderOfDymNameRequest{
+	s.Run("returns empty for non-exists Dym-Name", func() {
+		resp, err := queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryHistoricalSellOrderOfDymNameRequest{
 			DymName: "not-exists",
 		})
-		require.NoError(t, err)
-		require.NotNil(t, resp)
-		require.Empty(t, resp.Result)
+		s.Require().NoError(err)
+		s.Require().NotNil(resp)
+		s.Require().Empty(resp.Result)
 	})
 
-	t.Run("reject nil request", func(t *testing.T) {
-		resp, err := queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(ctx), nil)
-		require.Error(t, err)
-		require.Nil(t, resp)
+	s.Run("reject nil request", func() {
+		resp, err := queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(s.ctx), nil)
+		s.Require().Error(err)
+		s.Require().Nil(resp)
 	})
 
-	t.Run("reject invalid request", func(t *testing.T) {
-		resp, err := queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(ctx), &dymnstypes.QueryHistoricalSellOrderOfDymNameRequest{
+	s.Run("reject invalid request", func() {
+		resp, err := queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryHistoricalSellOrderOfDymNameRequest{
 			DymName: "$$$",
 		})
-		require.Error(t, err)
-		require.Nil(t, resp)
+		s.Require().Error(err)
+		s.Require().Nil(resp)
 	})
 }
 
 func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
-	now := time.Now().UTC()
-
 	const denom = "atom"
 	const price1L int64 = 9
 	const price2L int64 = 8
@@ -730,7 +695,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "a",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 1,
 			},
 			newOwner:           buyerA,
 			duration:           1,
@@ -744,7 +709,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "a",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 1,
 			},
 			newOwner:           buyerA,
 			duration:           2,
@@ -758,7 +723,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "a",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 1,
 			},
 			newOwner:           buyerA,
 			duration:           99,
@@ -772,7 +737,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "bridge",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 1,
 			},
 			newOwner:           buyerA,
 			duration:           1,
@@ -786,7 +751,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "bridge",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 1,
 			},
 			newOwner:           buyerA,
 			duration:           2,
@@ -800,7 +765,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "bridge",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 1,
 			},
 			newOwner:           buyerA,
 			duration:           99,
@@ -814,7 +779,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "my-name",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() - 1,
+				ExpireAt:   s.now.Unix() - 1,
 			},
 			newOwner:           buyerA,
 			duration:           2,
@@ -828,7 +793,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "bridge",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() - 1,
+				ExpireAt:   s.now.Unix() - 1,
 			},
 			newOwner:           "",
 			duration:           2,
@@ -842,7 +807,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "a",
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   now.Unix() - 1,
+				ExpireAt:   s.now.Unix() - 1,
 			},
 			newOwner:           buyerA,
 			duration:           1,
@@ -856,7 +821,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "a",
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   now.Unix() - 1,
+				ExpireAt:   s.now.Unix() - 1,
 			},
 			newOwner:           buyerA,
 			duration:           3,
@@ -870,7 +835,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "bridge",
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   now.Unix() - 1,
+				ExpireAt:   s.now.Unix() - 1,
 			},
 			newOwner:           buyerA,
 			duration:           1,
@@ -884,7 +849,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "bridge",
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   now.Unix() - 1,
+				ExpireAt:   s.now.Unix() - 1,
 			},
 			newOwner:           buyerA,
 			duration:           3,
@@ -952,7 +917,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "a",
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 1,
 			},
 			newOwner:        buyerA,
 			duration:        1,
@@ -966,7 +931,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "a",
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 1,
 			},
 			newOwner:        "",
 			duration:        1,
@@ -980,7 +945,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "a",
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   now.Unix() - 1, // still in grace period
+				ExpireAt:   s.now.Unix() - 1, // still in grace period
 			},
 			newOwner:           buyerA,
 			duration:           3,
@@ -995,7 +960,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "a",
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   now.Unix() - 1, // still in grace period
+				ExpireAt:   s.now.Unix() - 1, // still in grace period
 			},
 			newOwner:           "",
 			duration:           3,
@@ -1055,57 +1020,53 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 	})
 }
 
-func Test_queryServer_ReverseResolveAddress(t *testing.T) {
-	now := time.Now().UTC()
-
-	const chainId = "dymension_1100-1"
+func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 	const nimChainId = "nim_1122-1"
 
-	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
-		dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockTime(now).WithChainID(chainId)
+	setupTest := func() {
+		s.SetupTest()
 
-		moduleParams := dk.GetParams(ctx)
-		moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
-			{
-				ChainId: chainId,
-				Aliases: []string{"dym"},
-			},
-			{
-				ChainId: nimChainId,
-				Aliases: []string{"nim"},
-			},
-		}
-		err := dk.SetParams(ctx, moduleParams)
-		require.NoError(t, err)
+		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+			moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: s.chainId,
+					Aliases: []string{"dym"},
+				},
+				{
+					ChainId: nimChainId,
+					Aliases: []string{"nim"},
+				},
+			}
+			return moduleParams
+		})
 
 		// add rollapp to enable hex address reverse mapping for this chain
-		rk.SetRollapp(ctx, rollapptypes.Rollapp{
+		s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
 			RollappId: nimChainId,
 			Owner:     testAddr(0).bech32(),
 		})
-
-		return dk, ctx
 	}
 
-	t.Run("reject nil request", func(t *testing.T) {
-		dk, ctx := setupTest()
-		queryServer := dymnskeeper.NewQueryServerImpl(dk)
+	s.Run("reject nil request", func() {
+		s.SetupTest()
 
-		resp, err := queryServer.ReverseResolveAddress(sdk.WrapSDKContext(ctx), nil)
-		require.Error(t, err)
-		require.Nil(t, resp)
+		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
+
+		resp, err := queryServer.ReverseResolveAddress(sdk.WrapSDKContext(s.ctx), nil)
+		s.Require().Error(err)
+		s.Require().Nil(resp)
 	})
 
-	t.Run("reject empty request", func(t *testing.T) {
-		dk, ctx := setupTest()
-		queryServer := dymnskeeper.NewQueryServerImpl(dk)
+	s.Run("reject empty request", func() {
+		s.SetupTest()
 
-		resp, err := queryServer.ReverseResolveAddress(sdk.WrapSDKContext(ctx), &dymnstypes.ReverseResolveAddressRequest{
+		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
+
+		resp, err := queryServer.ReverseResolveAddress(sdk.WrapSDKContext(s.ctx), &dymnstypes.ReverseResolveAddressRequest{
 			Addresses: []string{},
 		})
-		require.Error(t, err)
-		require.Nil(t, resp)
+		s.Require().Error(err)
+		s.Require().Nil(resp)
 	})
 
 	ownerAcc := testAddr(1)
@@ -1132,7 +1093,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 			},
 			addresses: []string{ownerAcc.bech32(), ownerAcc.hexStr()},
@@ -1145,7 +1106,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Candidates: []string{"a@dym"},
 				},
 			},
-			wantWorkingChainId: chainId,
+			wantWorkingChainId: s.chainId,
 		},
 		{
 			name: "pass - ignore bad input address",
@@ -1154,7 +1115,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 			},
 			addresses: []string{ownerAcc.bech32(), ownerAcc.hexStr(), "@", string(make([]rune, 1000))},
@@ -1167,7 +1128,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Candidates: []string{"a@dym"},
 				},
 			},
-			wantWorkingChainId: chainId,
+			wantWorkingChainId: s.chainId,
 		},
 		{
 			name:      "pass - working =-chain-id if empty is host-chain",
@@ -1179,7 +1140,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Candidates: []string{},
 				},
 			},
-			wantWorkingChainId: chainId,
+			wantWorkingChainId: s.chainId,
 		},
 		{
 			name: "pass - multiple addresses",
@@ -1188,7 +1149,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1210,7 +1171,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 				anotherAcc.bech32(),
 				cosmosAcc.bech32(),
 			},
-			workingChainId: chainId,
+			workingChainId: s.chainId,
 			wantErr:        false,
 			wantResult: map[string]dymnstypes.ReverseResolveAddressResult{
 				ownerAcc.bech32(): {
@@ -1223,7 +1184,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Candidates: []string{},
 				},
 			},
-			wantWorkingChainId: chainId,
+			wantWorkingChainId: s.chainId,
 		},
 		{
 			name: "pass - only find on matching chain",
@@ -1232,7 +1193,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1276,7 +1237,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1288,14 +1249,14 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 				},
 			},
 			addresses:      []string{ownerAcc.bech32()},
-			workingChainId: chainId,
+			workingChainId: s.chainId,
 			wantErr:        false,
 			wantResult: map[string]dymnstypes.ReverseResolveAddressResult{
 				ownerAcc.bech32(): {
 					Candidates: []string{"a@dym", "a.b.c.d.a@dym"},
 				},
 			},
-			wantWorkingChainId: chainId,
+			wantWorkingChainId: s.chainId,
 		},
 		{
 			name: "pass - each address match multiple result",
@@ -1304,7 +1265,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1324,7 +1285,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Name:       "b",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1344,7 +1305,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Name:       "c",
 					Owner:      anotherAcc.bech32(),
 					Controller: anotherAcc.bech32(),
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1365,7 +1326,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Candidates: []string{"c@dym", "another.a@dym", "another.b@dym"},
 				},
 			},
-			wantWorkingChainId: chainId,
+			wantWorkingChainId: s.chainId,
 		},
 		{
 			name: "pass - alias not mapped if no alias",
@@ -1374,7 +1335,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1411,7 +1372,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1425,7 +1386,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Name:       "ica",
 					Owner:      icaAcc.bech32(),
 					Controller: icaAcc.bech32(),
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 			},
 			addresses: []string{icaAcc.bech32(), icaAcc.hexStr()},
@@ -1438,7 +1399,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Candidates: []string{"ica@dym", "ica.a@dym"},
 				},
 			},
-			wantWorkingChainId: chainId,
+			wantWorkingChainId: s.chainId,
 		},
 		{
 			name: "pass - chains neither host-chain nor RollApp should not support reverse-resolve hex address",
@@ -1447,7 +1408,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1478,7 +1439,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 			},
 			addresses: []string{anotherAcc.bech32(), anotherAcc.hexStr()},
@@ -1491,7 +1452,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Candidates: []string{},
 				},
 			},
-			wantWorkingChainId: chainId,
+			wantWorkingChainId: s.chainId,
 		},
 		{
 			name: "pass - reverse-resolve bitcoin address (neither bech32 nor hex address)",
@@ -1500,7 +1461,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1522,147 +1483,143 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, ctx := setupTest()
+		s.Run(tt.name, func() {
+			setupTest()
 
 			for _, dymName := range tt.dymNames {
-				setDymNameWithFunctionsAfter(ctx, dymName, t, dk)
+				s.setDymNameWithFunctionsAfter(dymName)
 			}
 
-			queryServer := dymnskeeper.NewQueryServerImpl(dk)
+			queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
-			resp, err := queryServer.ReverseResolveAddress(sdk.WrapSDKContext(ctx), &dymnstypes.ReverseResolveAddressRequest{
+			resp, err := queryServer.ReverseResolveAddress(sdk.WrapSDKContext(s.ctx), &dymnstypes.ReverseResolveAddressRequest{
 				Addresses:      tt.addresses,
 				WorkingChainId: tt.workingChainId,
 			})
 
 			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
-				require.Nil(t, resp)
+				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), tt.wantErrContains)
+				s.Require().Nil(resp)
 				return
 			}
 
-			require.NoError(t, err)
-			require.NotNil(t, resp)
+			s.Require().NoError(err)
+			s.Require().NotNil(resp)
 			if !reflect.DeepEqual(tt.wantResult, resp.Result) {
-				t.Errorf("got = %v, want %v", resp.Result, tt.wantResult)
+				s.T().Errorf("got = %v, want %v", resp.Result, tt.wantResult)
 			}
-			require.Equal(t, tt.wantWorkingChainId, resp.WorkingChainId)
+			s.Require().Equal(tt.wantWorkingChainId, resp.WorkingChainId)
 		})
 	}
 }
 
-func Test_queryServer_TranslateAliasOrChainIdToChainId(t *testing.T) {
-	now := time.Now().UTC()
-
-	const chainId = "dymension_1100-1"
-
+func (s *KeeperTestSuite) Test_queryServer_TranslateAliasOrChainIdToChainId() {
 	registeredAlias := map[string]string{
-		chainId:      "dym",
+		s.chainId:    "dym",
 		"nim_1122-1": "nim",
 	}
 
-	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockTime(now).WithChainID(chainId)
-
-		moduleParams := dk.GetParams(ctx)
-		for chainIdHasAlias, alias := range registeredAlias {
-			moduleParams.Chains.AliasesOfChainIds = append(moduleParams.Chains.AliasesOfChainIds, dymnstypes.AliasesOfChainId{
-				ChainId: chainIdHasAlias,
-				Aliases: []string{alias},
-			})
-		}
-		err := dk.SetParams(ctx, moduleParams)
-		require.NoError(t, err)
-
-		return dk, ctx
+	setupParams := func(s *KeeperTestSuite) {
+		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+			for chainIdHasAlias, alias := range registeredAlias {
+				moduleParams.Chains.AliasesOfChainIds = append(moduleParams.Chains.AliasesOfChainIds, dymnstypes.AliasesOfChainId{
+					ChainId: chainIdHasAlias,
+					Aliases: []string{alias},
+				})
+			}
+			return moduleParams
+		})
 	}
 
-	t.Run("reject nil request", func(t *testing.T) {
-		dk, ctx := setupTest()
-		queryServer := dymnskeeper.NewQueryServerImpl(dk)
+	s.Run("reject nil request", func() {
+		s.SetupTest()
 
-		resp, err := queryServer.TranslateAliasOrChainIdToChainId(sdk.WrapSDKContext(ctx), nil)
-		require.Error(t, err)
-		require.Nil(t, resp)
+		setupParams(s)
+
+		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
+
+		resp, err := queryServer.TranslateAliasOrChainIdToChainId(sdk.WrapSDKContext(s.ctx), nil)
+		s.Require().Error(err)
+		s.Require().Nil(resp)
 	})
 
-	t.Run("reject empty request", func(t *testing.T) {
-		dk, ctx := setupTest()
-		queryServer := dymnskeeper.NewQueryServerImpl(dk)
+	s.Run("reject empty request", func() {
+		s.SetupTest()
 
-		resp, err := queryServer.TranslateAliasOrChainIdToChainId(sdk.WrapSDKContext(ctx), &dymnstypes.QueryTranslateAliasOrChainIdToChainIdRequest{
+		setupParams(s)
+
+		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
+
+		resp, err := queryServer.TranslateAliasOrChainIdToChainId(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryTranslateAliasOrChainIdToChainIdRequest{
 			AliasOrChainId: "",
 		})
-		require.Error(t, err)
-		require.Nil(t, resp)
+		s.Require().Error(err)
+		s.Require().Nil(resp)
 	})
 
-	t.Run("resolve alias to chain-id", func(t *testing.T) {
-		dk, ctx := setupTest()
-		queryServer := dymnskeeper.NewQueryServerImpl(dk)
+	s.Run("resolve alias to chain-id", func() {
+		s.SetupTest()
+
+		setupParams(s)
+
+		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
 		for chainIdHasAlias, alias := range registeredAlias {
-			resp, err := queryServer.TranslateAliasOrChainIdToChainId(sdk.WrapSDKContext(ctx), &dymnstypes.QueryTranslateAliasOrChainIdToChainIdRequest{
+			resp, err := queryServer.TranslateAliasOrChainIdToChainId(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryTranslateAliasOrChainIdToChainIdRequest{
 				AliasOrChainId: alias,
 			})
-			require.NoError(t, err)
-			require.NotNil(t, resp)
-			require.Equal(t, chainIdHasAlias, resp.ChainId)
+			s.Require().NoError(err)
+			s.Require().NotNil(resp)
+			s.Require().Equal(chainIdHasAlias, resp.ChainId)
 		}
 	})
 
-	t.Run("resolve chain-id to chain-id", func(t *testing.T) {
-		dk, ctx := setupTest()
-		queryServer := dymnskeeper.NewQueryServerImpl(dk)
+	s.Run("resolve chain-id to chain-id", func() {
+		s.SetupTest()
+
+		setupParams(s)
+
+		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
 		for chainIdHasAlias := range registeredAlias {
-			resp, err := queryServer.TranslateAliasOrChainIdToChainId(sdk.WrapSDKContext(ctx), &dymnstypes.QueryTranslateAliasOrChainIdToChainIdRequest{
+			resp, err := queryServer.TranslateAliasOrChainIdToChainId(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryTranslateAliasOrChainIdToChainIdRequest{
 				AliasOrChainId: chainIdHasAlias,
 			})
-			require.NoError(t, err)
-			require.NotNil(t, resp)
-			require.Equal(t, chainIdHasAlias, resp.ChainId)
+			s.Require().NoError(err)
+			s.Require().NotNil(resp)
+			s.Require().Equal(chainIdHasAlias, resp.ChainId)
 		}
 	})
 
-	t.Run("treat unknown-chain-id as chain-id", func(t *testing.T) {
-		dk, ctx := setupTest()
-		queryServer := dymnskeeper.NewQueryServerImpl(dk)
+	s.Run("treat unknown-chain-id as chain-id", func() {
+		s.SetupTest()
+
+		setupParams(s)
+
+		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
 		for _, unknownChainId := range []string{
 			"aaa", "bbb", "ccc", "ddd", "eee",
 		} {
-			resp, err := queryServer.TranslateAliasOrChainIdToChainId(sdk.WrapSDKContext(ctx), &dymnstypes.QueryTranslateAliasOrChainIdToChainIdRequest{
+			resp, err := queryServer.TranslateAliasOrChainIdToChainId(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryTranslateAliasOrChainIdToChainIdRequest{
 				AliasOrChainId: unknownChainId,
 			})
-			require.NoError(t, err)
-			require.NotNil(t, resp)
-			require.Equal(t, unknownChainId, resp.ChainId)
+			s.Require().NoError(err)
+			s.Require().NotNil(resp)
+			s.Require().Equal(unknownChainId, resp.ChainId)
 		}
 	})
 }
 
-func Test_queryServer_BuyOrderById(t *testing.T) {
-	now := time.Now().UTC()
+func (s *KeeperTestSuite) Test_queryServer_BuyOrderById() {
+	s.Run("reject nil request", func() {
+		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
-	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockTime(now)
-
-		return dk, ctx
-	}
-
-	t.Run("reject nil request", func(t *testing.T) {
-		dk, ctx := setupTest()
-		queryServer := dymnskeeper.NewQueryServerImpl(dk)
-
-		resp, err := queryServer.BuyOrderById(sdk.WrapSDKContext(ctx), nil)
-		require.Error(t, err)
-		require.Nil(t, resp)
+		resp, err := queryServer.BuyOrderById(sdk.WrapSDKContext(s.ctx), nil)
+		s.Require().Error(err)
+		s.Require().Nil(resp)
 	})
 
 	buyerA := testAddr(1).bech32()
@@ -1785,51 +1742,41 @@ func Test_queryServer_BuyOrderById(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, ctx := setupTest()
+		s.Run(tt.name, func() {
+			s.SetupTest()
 
 			for _, offer := range tt.buyOrders {
-				err := dk.SetBuyOrder(ctx, offer)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetBuyOrder(s.ctx, offer)
+				s.Require().NoError(err)
 			}
 
-			queryServer := dymnskeeper.NewQueryServerImpl(dk)
+			queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
-			resp, err := queryServer.BuyOrderById(sdk.WrapSDKContext(ctx), &dymnstypes.QueryBuyOrderByIdRequest{
+			resp, err := queryServer.BuyOrderById(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryBuyOrderByIdRequest{
 				Id: tt.buyOrderId,
 			})
 
 			if tt.wantErr {
-				require.ErrorContains(t, err, tt.wantErrContains)
-				require.Nil(t, resp)
+				s.Require().ErrorContains(err, tt.wantErrContains)
+				s.Require().Nil(resp)
 				return
 			}
 
-			require.NoError(t, err)
-			require.NotNil(t, resp)
+			s.Require().NoError(err)
+			s.Require().NotNil(resp)
 
-			require.Equal(t, tt.wantOffer, resp.BuyOrder)
+			s.Require().Equal(tt.wantOffer, resp.BuyOrder)
 		})
 	}
 }
 
-func Test_queryServer_BuyOrdersPlacedByAccount(t *testing.T) {
-	now := time.Now().UTC()
+func (s *KeeperTestSuite) Test_queryServer_BuyOrdersPlacedByAccount() {
+	s.Run("reject nil request", func() {
+		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
-	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockTime(now)
-
-		return dk, ctx
-	}
-
-	t.Run("reject nil request", func(t *testing.T) {
-		dk, ctx := setupTest()
-		queryServer := dymnskeeper.NewQueryServerImpl(dk)
-
-		resp, err := queryServer.BuyOrdersPlacedByAccount(sdk.WrapSDKContext(ctx), nil)
-		require.Error(t, err)
-		require.Nil(t, resp)
+		resp, err := queryServer.BuyOrdersPlacedByAccount(sdk.WrapSDKContext(s.ctx), nil)
+		s.Require().Error(err)
+		s.Require().Nil(resp)
 	})
 
 	buyerA := testAddr(1).bech32()
@@ -1976,39 +1923,39 @@ func Test_queryServer_BuyOrdersPlacedByAccount(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, ctx := setupTest()
+		s.Run(tt.name, func() {
+			s.SetupTest()
 
 			for _, dymName := range tt.dymNames {
-				err := dk.SetDymName(ctx, dymName)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetDymName(s.ctx, dymName)
+				s.Require().NoError(err)
 			}
 
 			for _, offer := range tt.offers {
-				err := dk.SetBuyOrder(ctx, offer)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetBuyOrder(s.ctx, offer)
+				s.Require().NoError(err)
 
-				err = dk.AddReverseMappingAssetIdToBuyOrder(ctx, offer.AssetId, offer.AssetType, offer.Id)
-				require.NoError(t, err)
+				err = s.dymNsKeeper.AddReverseMappingAssetIdToBuyOrder(s.ctx, offer.AssetId, offer.AssetType, offer.Id)
+				s.Require().NoError(err)
 
-				err = dk.AddReverseMappingBuyerToBuyOrderRecord(ctx, offer.Buyer, offer.Id)
-				require.NoError(t, err)
+				err = s.dymNsKeeper.AddReverseMappingBuyerToBuyOrderRecord(s.ctx, offer.Buyer, offer.Id)
+				s.Require().NoError(err)
 			}
 
-			queryServer := dymnskeeper.NewQueryServerImpl(dk)
+			queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
-			resp, err := queryServer.BuyOrdersPlacedByAccount(sdk.WrapSDKContext(ctx), &dymnstypes.QueryBuyOrdersPlacedByAccountRequest{
+			resp, err := queryServer.BuyOrdersPlacedByAccount(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryBuyOrdersPlacedByAccountRequest{
 				Account: tt.account,
 			})
 
 			if tt.wantErr {
-				require.Error(t, err)
-				require.Nil(t, resp)
+				s.Require().Error(err)
+				s.Require().Nil(resp)
 				return
 			}
 
-			require.NoError(t, err)
-			require.NotNil(t, resp)
+			s.Require().NoError(err)
+			s.Require().NotNil(resp)
 
 			sort.Slice(tt.wantOffers, func(i, j int) bool {
 				return tt.wantOffers[i].Id < tt.wantOffers[j].Id
@@ -2017,28 +1964,18 @@ func Test_queryServer_BuyOrdersPlacedByAccount(t *testing.T) {
 				return resp.BuyOrders[i].Id < resp.BuyOrders[j].Id
 			})
 
-			require.Equal(t, tt.wantOffers, resp.BuyOrders)
+			s.Require().Equal(tt.wantOffers, resp.BuyOrders)
 		})
 	}
 }
 
-func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
-	now := time.Now().UTC()
+func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByDymName() {
+	s.Run("reject nil request", func() {
+		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
-	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockTime(now)
-
-		return dk, ctx
-	}
-
-	t.Run("reject nil request", func(t *testing.T) {
-		dk, ctx := setupTest()
-		queryServer := dymnskeeper.NewQueryServerImpl(dk)
-
-		resp, err := queryServer.BuyOrdersByDymName(sdk.WrapSDKContext(ctx), nil)
-		require.Error(t, err)
-		require.Nil(t, resp)
+		resp, err := queryServer.BuyOrdersByDymName(sdk.WrapSDKContext(s.ctx), nil)
+		s.Require().Error(err)
+		s.Require().Nil(resp)
 	})
 
 	buyerA := testAddr(1).bech32()
@@ -2060,7 +1997,7 @@ func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2091,13 +2028,13 @@ func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 				{
 					Name:       "b",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2149,13 +2086,13 @@ func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 				{
 					Name:       "b",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2192,7 +2129,7 @@ func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2214,7 +2151,7 @@ func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2231,39 +2168,39 @@ func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, ctx := setupTest()
+		s.Run(tt.name, func() {
+			s.SetupTest()
 
 			for _, dymName := range tt.dymNames {
-				err := dk.SetDymName(ctx, dymName)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetDymName(s.ctx, dymName)
+				s.Require().NoError(err)
 			}
 
 			for _, offer := range tt.offers {
-				err := dk.SetBuyOrder(ctx, offer)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetBuyOrder(s.ctx, offer)
+				s.Require().NoError(err)
 
-				err = dk.AddReverseMappingAssetIdToBuyOrder(ctx, offer.AssetId, offer.AssetType, offer.Id)
-				require.NoError(t, err)
+				err = s.dymNsKeeper.AddReverseMappingAssetIdToBuyOrder(s.ctx, offer.AssetId, offer.AssetType, offer.Id)
+				s.Require().NoError(err)
 
-				err = dk.AddReverseMappingBuyerToBuyOrderRecord(ctx, offer.Buyer, offer.Id)
-				require.NoError(t, err)
+				err = s.dymNsKeeper.AddReverseMappingBuyerToBuyOrderRecord(s.ctx, offer.Buyer, offer.Id)
+				s.Require().NoError(err)
 			}
 
-			queryServer := dymnskeeper.NewQueryServerImpl(dk)
+			queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
-			resp, err := queryServer.BuyOrdersByDymName(sdk.WrapSDKContext(ctx), &dymnstypes.QueryBuyOrdersByDymNameRequest{
+			resp, err := queryServer.BuyOrdersByDymName(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryBuyOrdersByDymNameRequest{
 				Name: tt.dymName,
 			})
 
 			if tt.wantErr {
-				require.Error(t, err)
-				require.Nil(t, resp)
+				s.Require().Error(err)
+				s.Require().Nil(resp)
 				return
 			}
 
-			require.NoError(t, err)
-			require.NotNil(t, resp)
+			s.Require().NoError(err)
+			s.Require().NotNil(resp)
 
 			sort.Slice(tt.wantOffers, func(i, j int) bool {
 				return tt.wantOffers[i].Id < tt.wantOffers[j].Id
@@ -2272,28 +2209,18 @@ func Test_queryServer_BuyOrdersByDymName(t *testing.T) {
 				return resp.BuyOrders[i].Id < resp.BuyOrders[j].Id
 			})
 
-			require.Equal(t, tt.wantOffers, resp.BuyOrders)
+			s.Require().Equal(tt.wantOffers, resp.BuyOrders)
 		})
 	}
 }
 
-func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
-	now := time.Now().UTC()
+func (s *KeeperTestSuite) Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount() {
+	s.Run("reject nil request", func() {
+		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
-	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockTime(now)
-
-		return dk, ctx
-	}
-
-	t.Run("reject nil request", func(t *testing.T) {
-		dk, ctx := setupTest()
-		queryServer := dymnskeeper.NewQueryServerImpl(dk)
-
-		resp, err := queryServer.BuyOrdersOfDymNamesOwnedByAccount(sdk.WrapSDKContext(ctx), nil)
-		require.Error(t, err)
-		require.Nil(t, resp)
+		resp, err := queryServer.BuyOrdersOfDymNamesOwnedByAccount(sdk.WrapSDKContext(s.ctx), nil)
+		s.Require().Error(err)
+		s.Require().Nil(resp)
 	})
 
 	buyerA := testAddr(1).bech32()
@@ -2315,7 +2242,7 @@ func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2346,19 +2273,19 @@ func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 				{
 					Name:       "b",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 				{
 					Name:       "c",
 					Owner:      anotherA,
 					Controller: anotherA,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2424,13 +2351,13 @@ func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 				{
 					Name:       "b",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2467,7 +2394,7 @@ func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2489,7 +2416,7 @@ func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 1,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2506,38 +2433,38 @@ func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, ctx := setupTest()
+		s.Run(tt.name, func() {
+			s.SetupTest()
 
 			for _, dymName := range tt.dymNames {
-				setDymNameWithFunctionsAfter(ctx, dymName, t, dk)
+				s.setDymNameWithFunctionsAfter(dymName)
 			}
 
 			for _, offer := range tt.offers {
-				err := dk.SetBuyOrder(ctx, offer)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetBuyOrder(s.ctx, offer)
+				s.Require().NoError(err)
 
-				err = dk.AddReverseMappingAssetIdToBuyOrder(ctx, offer.AssetId, offer.AssetType, offer.Id)
-				require.NoError(t, err)
+				err = s.dymNsKeeper.AddReverseMappingAssetIdToBuyOrder(s.ctx, offer.AssetId, offer.AssetType, offer.Id)
+				s.Require().NoError(err)
 
-				err = dk.AddReverseMappingBuyerToBuyOrderRecord(ctx, offer.Buyer, offer.Id)
-				require.NoError(t, err)
+				err = s.dymNsKeeper.AddReverseMappingBuyerToBuyOrderRecord(s.ctx, offer.Buyer, offer.Id)
+				s.Require().NoError(err)
 			}
 
-			queryServer := dymnskeeper.NewQueryServerImpl(dk)
+			queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
-			resp, err := queryServer.BuyOrdersOfDymNamesOwnedByAccount(sdk.WrapSDKContext(ctx), &dymnstypes.QueryBuyOrdersOfDymNamesOwnedByAccountRequest{
+			resp, err := queryServer.BuyOrdersOfDymNamesOwnedByAccount(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryBuyOrdersOfDymNamesOwnedByAccountRequest{
 				Account: tt.owner,
 			})
 
 			if tt.wantErr {
-				require.Error(t, err)
-				require.Nil(t, resp)
+				s.Require().Error(err)
+				s.Require().Nil(resp)
 				return
 			}
 
-			require.NoError(t, err)
-			require.NotNil(t, resp)
+			s.Require().NoError(err)
+			s.Require().NotNil(resp)
 
 			sort.Slice(tt.wantOffers, func(i, j int) bool {
 				return tt.wantOffers[i].Id < tt.wantOffers[j].Id
@@ -2546,7 +2473,7 @@ func Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount(t *testing.T) {
 				return resp.BuyOrders[i].Id < resp.BuyOrders[j].Id
 			})
 
-			require.Equal(t, tt.wantOffers, resp.BuyOrders)
+			s.Require().Equal(tt.wantOffers, resp.BuyOrders)
 		})
 	}
 }
