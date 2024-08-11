@@ -27,15 +27,14 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceBuyOrder_DymName() {
 	buyerA := testAddr(2).bech32()
 	anotherBuyerA := testAddr(3).bech32()
 
-	setupParams := func(s *KeeperTestSuite) {
-		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-			moduleParams.Price.MinOfferPrice = minOfferPriceCoin.Amount
-			// force enable trading
-			moduleParams.Misc.EnableTradingName = true
-			moduleParams.Misc.EnableTradingAlias = true
-			return moduleParams
-		})
-	}
+	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+		moduleParams.Price.MinOfferPrice = minOfferPriceCoin.Amount
+		// force enable trading
+		moduleParams.Misc.EnableTradingName = true
+		moduleParams.Misc.EnableTradingAlias = true
+		return moduleParams
+	})
+	s.MakeAnchorContext()
 
 	s.Run("reject if message not pass validate basic", func() {
 		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PlaceBuyOrder(s.ctx, &dymnstypes.MsgPlaceBuyOrder{})
@@ -823,9 +822,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceBuyOrder_DymName() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
-
-			setupParams(s)
+			s.UseAnchorContext()
 
 			if tt.originalModuleBalance.IsPositive() {
 				s.mintToModuleAccount2(tt.originalModuleBalance)
@@ -918,15 +915,14 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceBuyOrder_Alias() {
 	creator_2_asBuyer := testAddr(2).bech32()
 	creator_3_asAnotherBuyer := testAddr(3).bech32()
 
-	setupParams := func(s *KeeperTestSuite) {
-		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-			moduleParams.Price.MinOfferPrice = minOfferPriceCoin.Amount
-			// force enable trading
-			moduleParams.Misc.EnableTradingName = true
-			moduleParams.Misc.EnableTradingAlias = true
-			return moduleParams
-		})
-	}
+	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+		moduleParams.Price.MinOfferPrice = minOfferPriceCoin.Amount
+		// force enable trading
+		moduleParams.Misc.EnableTradingName = true
+		moduleParams.Misc.EnableTradingAlias = true
+		return moduleParams
+	})
+	s.MakeAnchorContext()
 
 	type rollapp struct {
 		rollAppID string
@@ -1885,9 +1881,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceBuyOrder_Alias() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
-
-			setupParams(s)
+			s.UseAnchorContext()
 
 			if tt.originalModuleBalance.IsPositive() {
 				s.mintToModuleAccount2(tt.originalModuleBalance)

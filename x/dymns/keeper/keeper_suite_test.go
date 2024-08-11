@@ -35,7 +35,10 @@ import (
 
 type KeeperTestSuite struct {
 	suite.Suite
-	ctx     sdk.Context
+
+	anchorCtx sdk.Context
+	ctx       sdk.Context
+
 	chainId string
 	now     time.Time
 
@@ -151,6 +154,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	// set
 	s.chainId = chainId
 	s.now = time.Now().UTC()
+	s.anchorCtx = sdk.Context{}
 	s.ctx = ctx.WithBlockTime(s.now).WithChainID(chainId)
 	s.cdc = cdc
 	s.dymNsKeeper = dk
@@ -170,6 +174,28 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	// others
 	dymnskeeper.ClearCaches()
+}
+
+// MakeAnchorContext copies the current context to the anchor context and convert current context into a branch context.
+// This is useful when you want to set up a context and reuse multiple times.
+// This is less expensive than call SetupTest.
+func (s *KeeperTestSuite) MakeAnchorContext() {
+	s.anchorCtx = s.ctx
+	s.UseAnchorContext()
+}
+
+// UseAnchorContext clear any change to the current context and use the anchor context.
+func (s *KeeperTestSuite) UseAnchorContext() {
+	if s.anchorCtx.ChainID() == "" {
+		panic("anchor context not set")
+	}
+	s.ctx, _ = s.anchorCtx.CacheContext()
+	if gasMeter := s.ctx.GasMeter(); gasMeter != nil {
+		gasMeter.RefundGas(gasMeter.GasConsumed(), "reset gas meter")
+	}
+	if blockGasMeter := s.ctx.BlockGasMeter(); blockGasMeter != nil {
+		blockGasMeter.RefundGas(blockGasMeter.GasConsumed(), "reset block gas meter")
+	}
 }
 
 func (s *KeeperTestSuite) priceDenom() string {

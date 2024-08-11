@@ -594,22 +594,21 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 	// the number values used in this test will be multiplied by this value
 	priceMultiplier := sdk.NewInt(1e18)
 
-	setupParams := func(s *KeeperTestSuite) {
-		s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
-			params.Price.PriceDenom = denom
-			params.Price.NamePriceSteps = []sdkmath.Int{
-				sdkmath.NewInt(price1L).Mul(priceMultiplier),
-				sdkmath.NewInt(price2L).Mul(priceMultiplier),
-				sdkmath.NewInt(price3L).Mul(priceMultiplier),
-				sdkmath.NewInt(price4L).Mul(priceMultiplier),
-				sdkmath.NewInt(price5PlusL).Mul(priceMultiplier),
-			}
-			params.Price.PriceExtends = sdk.NewInt(extendsPrice).Mul(priceMultiplier)
-			params.Misc.GracePeriodDuration = 1 * 24 * time.Hour
+	s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
+		params.Price.PriceDenom = denom
+		params.Price.NamePriceSteps = []sdkmath.Int{
+			sdkmath.NewInt(price1L).Mul(priceMultiplier),
+			sdkmath.NewInt(price2L).Mul(priceMultiplier),
+			sdkmath.NewInt(price3L).Mul(priceMultiplier),
+			sdkmath.NewInt(price4L).Mul(priceMultiplier),
+			sdkmath.NewInt(price5PlusL).Mul(priceMultiplier),
+		}
+		params.Price.PriceExtends = sdk.NewInt(extendsPrice).Mul(priceMultiplier)
+		params.Misc.GracePeriodDuration = 1 * 24 * time.Hour
 
-			return params
-		})
-	}
+		return params
+	})
+	s.MakeAnchorContext()
 
 	buyerA := testAddr(1).bech32()
 	previousOwnerA := testAddr(2).bech32()
@@ -971,9 +970,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
-
-			setupParams(s)
+			s.UseAnchorContext()
 
 			s.Require().Positive(s.dymNsKeeper.MiscParams(s.ctx).GracePeriodDuration, "bad setup, must have grace period")
 
@@ -1521,23 +1518,18 @@ func (s *KeeperTestSuite) Test_queryServer_TranslateAliasOrChainIdToChainId() {
 		"nim_1122-1": "nim",
 	}
 
-	setupParams := func(s *KeeperTestSuite) {
-		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-			for chainIdHasAlias, alias := range registeredAlias {
-				moduleParams.Chains.AliasesOfChainIds = append(moduleParams.Chains.AliasesOfChainIds, dymnstypes.AliasesOfChainId{
-					ChainId: chainIdHasAlias,
-					Aliases: []string{alias},
-				})
-			}
-			return moduleParams
-		})
-	}
+	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+		for chainIdHasAlias, alias := range registeredAlias {
+			moduleParams.Chains.AliasesOfChainIds = append(moduleParams.Chains.AliasesOfChainIds, dymnstypes.AliasesOfChainId{
+				ChainId: chainIdHasAlias,
+				Aliases: []string{alias},
+			})
+		}
+		return moduleParams
+	})
+	s.MakeAnchorContext()
 
 	s.Run("reject nil request", func() {
-		s.SetupTest()
-
-		setupParams(s)
-
 		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
 		resp, err := queryServer.TranslateAliasOrChainIdToChainId(sdk.WrapSDKContext(s.ctx), nil)
@@ -1546,10 +1538,6 @@ func (s *KeeperTestSuite) Test_queryServer_TranslateAliasOrChainIdToChainId() {
 	})
 
 	s.Run("reject empty request", func() {
-		s.SetupTest()
-
-		setupParams(s)
-
 		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
 		resp, err := queryServer.TranslateAliasOrChainIdToChainId(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryTranslateAliasOrChainIdToChainIdRequest{
@@ -1560,9 +1548,7 @@ func (s *KeeperTestSuite) Test_queryServer_TranslateAliasOrChainIdToChainId() {
 	})
 
 	s.Run("resolve alias to chain-id", func() {
-		s.SetupTest()
-
-		setupParams(s)
+		s.UseAnchorContext()
 
 		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
@@ -1577,9 +1563,7 @@ func (s *KeeperTestSuite) Test_queryServer_TranslateAliasOrChainIdToChainId() {
 	})
 
 	s.Run("resolve chain-id to chain-id", func() {
-		s.SetupTest()
-
-		setupParams(s)
+		s.UseAnchorContext()
 
 		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
@@ -1594,9 +1578,7 @@ func (s *KeeperTestSuite) Test_queryServer_TranslateAliasOrChainIdToChainId() {
 	})
 
 	s.Run("treat unknown-chain-id as chain-id", func() {
-		s.SetupTest()
-
-		setupParams(s)
+		s.UseAnchorContext()
 
 		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 

@@ -19,18 +19,13 @@ func (s *KeeperTestSuite) Test_epochHooks_BeforeEpochStart() {
 	const daysKeepHistorical = 1
 	s.Require().Greater(daysKeepHistorical, 0, "mis-configured test case")
 
-	setupParams := func(s *KeeperTestSuite) {
-		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-			moduleParams.Misc.PreservedClosedSellOrderDuration = daysKeepHistorical * 24 * time.Hour
-			return moduleParams
-		})
-	}
+	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+		moduleParams.Misc.PreservedClosedSellOrderDuration = daysKeepHistorical * 24 * time.Hour
+		return moduleParams
+	})
+	s.MakeAnchorContext()
 
 	s.Run("should do something even nothing to do", func() {
-		s.SetupTest()
-
-		setupParams(s)
-
 		originalGas := s.ctx.GasMeter().GasConsumed()
 
 		err := s.dymNsKeeper.GetEpochHooks().BeforeEpochStart(
@@ -531,9 +526,7 @@ func (s *KeeperTestSuite) Test_epochHooks_BeforeEpochStart() {
 			s.Require().NotNil(tt.preHookTestFunc, "mis-configured test case")
 			s.Require().NotNil(tt.afterHookTestFunc, "mis-configured test case")
 
-			s.SetupTest()
-
-			setupParams(s)
+			s.UseAnchorContext()
 
 			for _, dymName := range tt.dymNames {
 				err := s.dymNsKeeper.SetDymName(s.ctx, dymName)
@@ -2259,20 +2252,19 @@ func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 	// the number values used in this test will be multiplied by this value
 	priceMultiplier := sdk.NewInt(1e18)
 
-	setupParams := func(s *KeeperTestSuite) {
-		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-			moduleParams.Price.AliasPriceSteps = []sdkmath.Int{
-				sdk.NewInt(price1L).Mul(priceMultiplier),
-				sdk.NewInt(price2L).Mul(priceMultiplier),
-				sdk.NewInt(price3L).Mul(priceMultiplier),
-				sdk.NewInt(price4L).Mul(priceMultiplier),
-				sdk.NewInt(price5L).Mul(priceMultiplier),
-				sdk.NewInt(price6L).Mul(priceMultiplier),
-				sdk.NewInt(price7PL).Mul(priceMultiplier),
-			}
-			return moduleParams
-		})
-	}
+	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+		moduleParams.Price.AliasPriceSteps = []sdkmath.Int{
+			sdk.NewInt(price1L).Mul(priceMultiplier),
+			sdk.NewInt(price2L).Mul(priceMultiplier),
+			sdk.NewInt(price3L).Mul(priceMultiplier),
+			sdk.NewInt(price4L).Mul(priceMultiplier),
+			sdk.NewInt(price5L).Mul(priceMultiplier),
+			sdk.NewInt(price6L).Mul(priceMultiplier),
+			sdk.NewInt(price7PL).Mul(priceMultiplier),
+		}
+		return moduleParams
+	})
+	s.MakeAnchorContext()
 
 	creatorAccAddr := sdk.AccAddress(testAddr(1).bytes())
 	dymNameOwnerAcc := testAddr(2)
@@ -2718,9 +2710,7 @@ func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 		s.Run(tt.name, func() {
 			s.Require().NotEqual(tt.wantSuccess, tt.wantErr, "mis-configured test case")
 
-			s.SetupTest()
-
-			setupParams(s)
+			s.UseAnchorContext()
 
 			if tt.originalCreatorBalance > 0 {
 				s.mintToAccount2(creatorAccAddr.String(), sdk.NewInt(tt.originalCreatorBalance).Mul(priceMultiplier))

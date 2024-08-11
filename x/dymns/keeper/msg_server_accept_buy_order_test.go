@@ -29,16 +29,15 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 	ownerA := testAddr(2).bech32()
 	anotherOwnerA := testAddr(3).bech32()
 
-	setupParams := func(s *KeeperTestSuite) {
-		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-			moduleParams.Price.MinOfferPrice = minOfferPriceCoin.Amount
-			moduleParams.Misc.ProhibitSellDuration = daysProhibitSell * 24 * time.Hour
-			// force enable trading
-			moduleParams.Misc.EnableTradingName = true
-			moduleParams.Misc.EnableTradingAlias = true
-			return moduleParams
-		})
-	}
+	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+		moduleParams.Price.MinOfferPrice = minOfferPriceCoin.Amount
+		moduleParams.Misc.ProhibitSellDuration = daysProhibitSell * 24 * time.Hour
+		// force enable trading
+		moduleParams.Misc.EnableTradingName = true
+		moduleParams.Misc.EnableTradingAlias = true
+		return moduleParams
+	})
+	s.MakeAnchorContext()
 
 	s.Run("reject if message not pass validate basic", func() {
 		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).AcceptBuyOrder(s.ctx, &dymnstypes.MsgAcceptBuyOrder{})
@@ -714,9 +713,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
-
-			setupParams(s)
+			s.UseAnchorContext()
 
 			if tt.originalModuleBalance.IsPositive() {
 				s.mintToModuleAccount2(tt.originalModuleBalance)
@@ -821,15 +818,14 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_Alias() {
 		WithOwner(creator_2_asBuyer).
 		WithAlias("four1").WithAlias("four2").WithAlias("four3")
 
-	setupParams := func(s *KeeperTestSuite) {
-		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-			moduleParams.Price.MinOfferPrice = minOfferPriceCoin.Amount
-			// force enable trading
-			moduleParams.Misc.EnableTradingName = true
-			moduleParams.Misc.EnableTradingAlias = true
-			return moduleParams
-		})
-	}
+	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+		moduleParams.Price.MinOfferPrice = minOfferPriceCoin.Amount
+		// force enable trading
+		moduleParams.Misc.EnableTradingName = true
+		moduleParams.Misc.EnableTradingAlias = true
+		return moduleParams
+	})
+	s.MakeAnchorContext()
 
 	s.Run("reject if message not pass validate basic", func() {
 		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).AcceptBuyOrder(s.ctx, &dymnstypes.MsgAcceptBuyOrder{})
@@ -1493,9 +1489,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_Alias() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
-
-			setupParams(s)
+			s.UseAnchorContext()
 
 			if tt.originalModuleBalance.IsPositive() {
 				s.mintToModuleAccount2(tt.originalModuleBalance)

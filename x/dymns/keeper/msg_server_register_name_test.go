@@ -37,35 +37,34 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 	preservedAddr1a := testAddr(4).bech32()
 	preservedAddr2a := testAddr(5).bech32()
 
-	setupParams := func(s *KeeperTestSuite) {
-		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-			moduleParams.Price.NamePriceSteps = []sdkmath.Int{
-				sdk.NewInt(firstYearPrice1L).Mul(priceMultiplier),
-				sdk.NewInt(firstYearPrice2L).Mul(priceMultiplier),
-				sdk.NewInt(firstYearPrice3L).Mul(priceMultiplier),
-				sdk.NewInt(firstYearPrice4L).Mul(priceMultiplier),
-				sdk.NewInt(firstYearPrice5PlusL).Mul(priceMultiplier),
-			}
-			moduleParams.Price.PriceExtends = sdk.NewInt(extendsPrice).Mul(priceMultiplier)
-			moduleParams.Price.PriceDenom = denom
-			// misc
-			moduleParams.Misc.GracePeriodDuration = gracePeriod * 24 * time.Hour
-			// preserved
-			moduleParams.PreservedRegistration.ExpirationEpoch = now.Add(time.Hour).Unix()
-			moduleParams.PreservedRegistration.PreservedDymNames = []dymnstypes.PreservedDymName{
-				{
-					DymName:            preservedDymName,
-					WhitelistedAddress: preservedAddr1a,
-				},
-				{
-					DymName:            preservedDymName,
-					WhitelistedAddress: preservedAddr2a,
-				},
-			}
+	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+		moduleParams.Price.NamePriceSteps = []sdkmath.Int{
+			sdk.NewInt(firstYearPrice1L).Mul(priceMultiplier),
+			sdk.NewInt(firstYearPrice2L).Mul(priceMultiplier),
+			sdk.NewInt(firstYearPrice3L).Mul(priceMultiplier),
+			sdk.NewInt(firstYearPrice4L).Mul(priceMultiplier),
+			sdk.NewInt(firstYearPrice5PlusL).Mul(priceMultiplier),
+		}
+		moduleParams.Price.PriceExtends = sdk.NewInt(extendsPrice).Mul(priceMultiplier)
+		moduleParams.Price.PriceDenom = denom
+		// misc
+		moduleParams.Misc.GracePeriodDuration = gracePeriod * 24 * time.Hour
+		// preserved
+		moduleParams.PreservedRegistration.ExpirationEpoch = now.Add(time.Hour).Unix()
+		moduleParams.PreservedRegistration.PreservedDymNames = []dymnstypes.PreservedDymName{
+			{
+				DymName:            preservedDymName,
+				WhitelistedAddress: preservedAddr1a,
+			},
+			{
+				DymName:            preservedDymName,
+				WhitelistedAddress: preservedAddr2a,
+			},
+		}
 
-			return moduleParams
-		})
-	}
+		return moduleParams
+	})
+	s.MakeAnchorContext()
 
 	s.Run("reject if message not pass validate basic", func() {
 		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).RegisterName(s.ctx, &dymnstypes.MsgRegisterName{})
@@ -639,9 +638,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
-
-			setupParams(s)
+			s.UseAnchorContext()
 
 			s.mintToModuleAccount2(sdk.NewInt(originalModuleBalance).Mul(priceMultiplier))
 

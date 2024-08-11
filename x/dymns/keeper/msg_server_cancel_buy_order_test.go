@@ -23,15 +23,14 @@ func (s *KeeperTestSuite) Test_msgServer_CancelBuyOrder_DymName() {
 	anotherBuyerA := testAddr(2).bech32()
 	ownerA := testAddr(3).bech32()
 
-	setupParams := func(s *KeeperTestSuite) {
-		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-			moduleParams.Price.MinOfferPrice = minOfferPriceCoin.Amount
-			// force enable trading
-			moduleParams.Misc.EnableTradingName = true
-			moduleParams.Misc.EnableTradingAlias = true
-			return moduleParams
-		})
-	}
+	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+		moduleParams.Price.MinOfferPrice = minOfferPriceCoin.Amount
+		// force enable trading
+		moduleParams.Misc.EnableTradingName = true
+		moduleParams.Misc.EnableTradingAlias = true
+		return moduleParams
+	})
+	s.MakeAnchorContext()
 
 	s.Run("reject if message not pass validate basic", func() {
 		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).CancelBuyOrder(s.ctx, &dymnstypes.MsgCancelBuyOrder{})
@@ -241,9 +240,7 @@ func (s *KeeperTestSuite) Test_msgServer_CancelBuyOrder_DymName() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
-
-			setupParams(s)
+			s.UseAnchorContext()
 
 			if tt.originalModuleBalance.IsPositive() {
 				s.mintToModuleAccount2(tt.originalModuleBalance)
@@ -337,15 +334,14 @@ func (s *KeeperTestSuite) Test_msgServer_CancelBuyOrder_Alias() {
 	creator_2_asBuyer := testAddr(2).bech32()
 	creator_3_asAnotherBuyer := testAddr(3).bech32()
 
-	setupParams := func(s *KeeperTestSuite) {
-		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-			moduleParams.Price.MinOfferPrice = minOfferPriceCoin.Amount
-			// force enable trading
-			moduleParams.Misc.EnableTradingName = true
-			moduleParams.Misc.EnableTradingAlias = true
-			return moduleParams
-		})
-	}
+	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+		moduleParams.Price.MinOfferPrice = minOfferPriceCoin.Amount
+		// force enable trading
+		moduleParams.Misc.EnableTradingName = true
+		moduleParams.Misc.EnableTradingAlias = true
+		return moduleParams
+	})
+	s.MakeAnchorContext()
 
 	s.Run("reject if message not pass validate basic", func() {
 		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).CancelBuyOrder(s.ctx, &dymnstypes.MsgCancelBuyOrder{})
@@ -622,9 +618,7 @@ func (s *KeeperTestSuite) Test_msgServer_CancelBuyOrder_Alias() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
-
-			setupParams(s)
+			s.UseAnchorContext()
 
 			if tt.originalModuleBalance.IsPositive() {
 				s.mintToModuleAccount2(tt.originalModuleBalance)

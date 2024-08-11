@@ -18,13 +18,12 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 	const daysProhibitSell = 30
 	const daysSellOrderDuration = 7
 
-	setupParams := func(s *KeeperTestSuite) {
-		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-			moduleParams.Misc.ProhibitSellDuration = daysProhibitSell * 24 * time.Hour
-			moduleParams.Misc.SellOrderDuration = daysSellOrderDuration * 24 * time.Hour
-			return moduleParams
-		})
-	}
+	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+		moduleParams.Misc.ProhibitSellDuration = daysProhibitSell * 24 * time.Hour
+		moduleParams.Misc.SellOrderDuration = daysSellOrderDuration * 24 * time.Hour
+		return moduleParams
+	})
+	s.MakeAnchorContext()
 
 	s.Run("reject if message not pass validate basic", func() {
 		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PlaceSellOrder(s.ctx, &dymnstypes.MsgPlaceSellOrder{})
@@ -189,9 +188,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
-
-			setupParams(s)
+			s.UseAnchorContext()
 
 			useDymNameOwner := ownerA
 			if tt.customDymNameOwner != "" {
@@ -322,12 +319,11 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_Alias() {
 	const daysSellOrderDuration = 7
 	denom := dymnsutils.TestCoin(0).Denom
 
-	setupParams := func(s *KeeperTestSuite) {
-		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-			moduleParams.Misc.SellOrderDuration = daysSellOrderDuration * 24 * time.Hour
-			return moduleParams
-		})
-	}
+	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+		moduleParams.Misc.SellOrderDuration = daysSellOrderDuration * 24 * time.Hour
+		return moduleParams
+	})
+	s.MakeAnchorContext()
 
 	const srcRollAppId = "rollapp_1-1"
 	const alias = "alias"
@@ -486,9 +482,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_Alias() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
-
-			setupParams(s)
+			s.UseAnchorContext()
 
 			useRollAppOwner := ownerA
 			if tt.customRollAppOwner != "" {
