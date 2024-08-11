@@ -30,20 +30,17 @@ type KeeperTestHelper struct {
 	Ctx sdk.Context
 }
 
+func (s *KeeperTestHelper) CreateDefaultRollappAndProposer() (string, string) {
+	rollappId := s.CreateDefaultRollapp()
+	proposer := s.CreateDefaultSequencer(s.Ctx, rollappId)
+	return rollappId, proposer
+}
+
 // creates a rollapp and return its rollappID
 func (s *KeeperTestHelper) CreateDefaultRollapp() string {
 	rollappId := urand.RollappID()
 	s.CreateRollappByName(rollappId)
 	return rollappId
-}
-
-func (s *KeeperTestHelper) CreateDefaultRollappAndProposer() (string, string) {
-	rollappId := s.CreateDefaultRollapp()
-
-	pubkey := ed25519.GenPrivKey().PubKey()
-	err := s.CreateSequencerByPubkey(s.Ctx, rollappId, pubkey)
-	s.Require().NoError(err)
-	return rollappId, sdk.AccAddress(pubkey.Address()).String()
 }
 
 func (s *KeeperTestHelper) CreateRollappByName(name string) {
@@ -82,18 +79,6 @@ func (s *KeeperTestHelper) CreateSequencerByPubkey(ctx sdk.Context, rollappId st
 	addr := sdk.AccAddress(pubKey.Address())
 	// fund account
 	err := bankutil.FundAccount(s.App.BankKeeper, ctx, addr, sdk.NewCoins(bond))
-
-	/*
-			func (s *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId string) string {
-			return s.CreateSequencerWithBond(ctx, rollappId, bond)
-		}
-
-		func (s *KeeperTestHelper) CreateSequencerWithBond(ctx sdk.Context, rollappId string, bond sdk.Coin) string {
-			pubkey1 := secp256k1.GenPrivKey().PubKey()
-			addr1 := sdk.AccAddress(pubkey1.Address())
-			pkAny1, err := codectypes.NewAnyWithValue(pubkey1)
-	*/
-
 	s.Require().Nil(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pubKey)
