@@ -5,6 +5,7 @@ import (
 	fmt "fmt"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/utils"
 )
 
@@ -114,8 +115,30 @@ func NoticePeriodSequencerKey(sequencerAddress string, endTime time.Time) []byte
 	return key
 }
 
-/* --------------------- active and next sequencer keys --------------------- */
+/* -------------------------- decreasing bond queue keys -------------------------- */
+func DecreasingBondQueueByTimeKey(endTime time.Time) []byte {
+	// FIXME: use utils.EncodeTimeToKey
+	timeBz := sdk.FormatTimeBytes(endTime)
+	prefixL := len(DecreasingBondQueueKey)
 
+	bz := make([]byte, prefixL+len(timeBz))
+
+	// copy the prefix
+	copy(bz[:prefixL], DecreasingBondQueueKey)
+	// copy the encoded time bytes
+	copy(bz[prefixL:prefixL+len(timeBz)], timeBz)
+
+	return bz
+}
+
+func GetDecreasingBondQueueKey(sequencerAddress string, endTime time.Time) []byte {
+	key := DecreasingBondQueueByTimeKey(endTime)
+	key = append(key, KeySeparator...)
+	key = append(key, []byte(sequencerAddress)...)
+	return key
+}
+
+/* --------------------- active and next sequencer keys --------------------- */
 func ProposerByRollappKey(rollappId string) []byte {
 	return []byte(fmt.Sprintf("%s%s%s", ProposerKeyPrefix, KeySeparator, []byte(rollappId)))
 }

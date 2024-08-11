@@ -23,7 +23,7 @@ func (seq Sequencer) ValidateBasic() error {
 }
 
 func (seq Sequencer) IsEmpty() bool {
-	return seq.SequencerAddress == ""
+	return seq.Address == ""
 }
 
 func (seq Sequencer) IsBonded() bool {

@@ -59,7 +59,7 @@ func (k Keeper) GetProposerByRollapp(c context.Context, req *types.QueryGetPropo
 	}
 
 	return &types.QueryGetProposerByRollappResponse{
-		ProposerAddr: seq.SequencerAddress,
+		ProposerAddr: seq.Address,
 	}, nil
 }
 
@@ -73,7 +73,7 @@ func (k Keeper) GetNextProposerByRollapp(c context.Context, req *types.QueryGetN
 	seq, ok := k.GetNextProposer(ctx, req.RollappId)
 	if ok {
 		return &types.QueryGetNextProposerByRollappResponse{
-			NextProposerAddr:   seq.SequencerAddress,
+			NextProposerAddr:   seq.Address,
 			RotationInProgress: true,
 		}, nil
 	}
@@ -81,7 +81,7 @@ func (k Keeper) GetNextProposerByRollapp(c context.Context, req *types.QueryGetN
 	// if rotation is not in progress, we return the expected next proposer in case for the next rotation
 	expectedNext := k.ExpectedNextProposer(ctx, req.RollappId)
 	return &types.QueryGetNextProposerByRollappResponse{
-		NextProposerAddr:   expectedNext.SequencerAddress,
+		NextProposerAddr:   expectedNext.Address,
 		RotationInProgress: false,
 	}, nil
 }

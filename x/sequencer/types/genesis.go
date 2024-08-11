@@ -21,9 +21,9 @@ func (gs GenesisState) Validate() error {
 
 		// TODO: should run validation on the sequencer objects
 
-		index := string(SequencerKey(elem.Address))
-		if _, ok := sequencerIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for sequencer")
+		seqKey := string(SequencerKey(elem.Address))
+		if _, ok := sequencerIndexMap[seqKey]; ok {
+			return fmt.Errorf("duplicated address for sequencer")
 		}
 		sequencerIndexMap[seqKey] = struct{}{}
 	}

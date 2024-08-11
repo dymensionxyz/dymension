@@ -22,28 +22,21 @@ func TestInitGenesis(t *testing.T) {
 			// rollapp 1
 			// bonded - no tokens
 			{
-<<<<<<< HEAD
-				SequencerAddress: "rollapp1_addr1",
-				RollappId:        "rollapp1",
-				Status:           types.Bonded,
-				Tokens:           sdk.Coins(nil),
-=======
-				Address:  "0",
-				Status:   types.Bonded,
-				Proposer: true,
->>>>>>> main
+				Address:   "rollapp1_addr1",
+				RollappId: "rollapp1",
+				Status:    types.Bonded,
+				Tokens:    sdk.Coins(nil),
 			},
 			// bonded - 100 dym
 			{
-<<<<<<< HEAD
-				SequencerAddress: "rollapp1_addr2",
-				RollappId:        "rollapp1",
-				Status:           types.Bonded,
-				Tokens:           sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(100))),
+				Address:   "rollapp1_addr2",
+				RollappId: "rollapp1",
+				Status:    types.Bonded,
+				Tokens:    sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(100))),
 			},
 			// unbonding
 			{
-				SequencerAddress:    "rollapp1_addr3",
+				Address:             "rollapp1_addr3",
 				RollappId:           "rollapp1",
 				Status:              types.Unbonding,
 				Tokens:              sdk.Coins(nil),
@@ -52,21 +45,21 @@ func TestInitGenesis(t *testing.T) {
 			},
 			// unbonded
 			{
-				SequencerAddress: "rollapp1_addr4",
-				RollappId:        "rollapp1",
-				Status:           types.Unbonded,
-				Tokens:           sdk.Coins(nil),
+				Address:   "rollapp1_addr4",
+				RollappId: "rollapp1",
+				Status:    types.Unbonded,
+				Tokens:    sdk.Coins(nil),
 			},
 			// rollapp 2
 			{
-				SequencerAddress: "rollapp2_addr1",
-				RollappId:        "rollapp2",
-				Status:           types.Bonded,
-				Tokens:           sdk.Coins(nil),
+				Address:   "rollapp2_addr1",
+				RollappId: "rollapp2",
+				Status:    types.Bonded,
+				Tokens:    sdk.Coins(nil),
 			},
 			// unbonding
 			{
-				SequencerAddress:    "rollapp2_addr2",
+				Address:             "rollapp2_addr2",
 				RollappId:           "rollapp2",
 				Status:              types.Unbonding,
 				Tokens:              sdk.Coins(nil),
@@ -76,23 +69,19 @@ func TestInitGenesis(t *testing.T) {
 			// rollapp 3
 			// proposer with notice period
 			{
-				SequencerAddress:    "rollapp3_addr1",
+				Address:             "rollapp3_addr1",
 				RollappId:           "rollapp3",
 				Status:              types.Bonded,
 				Tokens:              sdk.Coins(nil),
 				UnbondRequestHeight: 20,
 				NoticePeriodTime:    timeToTest,
-=======
-				Address: "1",
-				Status:  types.Bonded,
 			},
 		},
 		BondReductions: []types.BondReduction{
 			{
-				SequencerAddress:   "0",
+				SequencerAddress:   "rollapp1_addr1",
 				DecreaseBondAmount: sdk.NewCoin("dym", sdk.NewInt(100)),
-				DecreaseBondTime:   time.Now().UTC(),
->>>>>>> main
+				DecreaseBondTime:   timeToTest,
 			},
 		},
 		GenesisProposers: []types.GenesisProposer{
@@ -117,54 +106,12 @@ func TestInitGenesis(t *testing.T) {
 	require.Len(t, k.GetMatureNoticePeriodSequencers(ctx, timeToTest), 1)
 	require.Len(t, k.GetMatureUnbondingSequencers(ctx, timeToTest), 2)
 	require.Len(t, k.GetAllProposers(ctx), 2)
+	require.Len(t, k.GetAllBondReductions(ctx), 1)
 
 	got := sequencer.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
 	require.Equal(t, genesisState.Params, got.Params)
 	require.ElementsMatch(t, genesisState.SequencerList, got.SequencerList)
-<<<<<<< HEAD
-=======
+	require.ElementsMatch(t, genesisState.GenesisProposers, got.GenesisProposers)
 	require.ElementsMatch(t, genesisState.BondReductions, got.BondReductions)
-	// this line is used by starport scaffolding # genesis/test/assert
-}
-
-func TestExportGenesis(t *testing.T) {
-	params := types.Params{
-		MinBond:                 sdk.NewCoin("dym", sdk.NewInt(100)),
-		UnbondingTime:           100,
-		LivenessSlashMultiplier: sdk.ZeroDec(),
-	}
-	sequencerList := []types.Sequencer{
-		{
-			Address:  "0",
-			Status:   types.Bonded,
-			Proposer: true,
-		},
-		{
-			Address: "1",
-			Status:  types.Bonded,
-		},
-	}
-	bondReductions := []types.BondReduction{
-		{
-			SequencerAddress:   "0",
-			DecreaseBondAmount: sdk.NewCoin("dym", sdk.NewInt(100)),
-			DecreaseBondTime:   time.Now().UTC(),
-		},
-	}
-	k, ctx := keepertest.SequencerKeeper(t)
-	k.SetParams(ctx, params)
-	for _, sequencer := range sequencerList {
-		k.SetSequencer(ctx, sequencer)
-	}
-	for _, bondReduction := range bondReductions {
-		k.SetDecreasingBondQueue(ctx, bondReduction)
-	}
-
-	got := sequencer.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.Equal(t, params, got.Params)
-	require.ElementsMatch(t, sequencerList, got.SequencerList)
-	require.ElementsMatch(t, bondReductions, got.BondReductions)
->>>>>>> main
 }

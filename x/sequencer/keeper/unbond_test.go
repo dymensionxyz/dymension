@@ -15,16 +15,8 @@ func (suite *SequencerTestSuite) TestUnbondingMultiple() {
 
 	keeper := suite.App.SequencerKeeper
 
-<<<<<<< HEAD
-	rollappId := suite.CreateDefaultRollapp()
-	_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId) // proposer for rollapp
-=======
 	rollappId, pk1 := suite.CreateDefaultRollapp()
 	rollappId2, pk2 := suite.CreateDefaultRollapp()
->>>>>>> main
-
-	rollappId2 := suite.CreateDefaultRollapp()
-	_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId2) // proposer for rollapp2
 
 	numOfSequencers := 4
 	numOfSequencers2 := 3
@@ -33,16 +25,10 @@ func (suite *SequencerTestSuite) TestUnbondingMultiple() {
 	seqAddr1 := make([]string, numOfSequencers)
 	seqAddr2 := make([]string, numOfSequencers2)
 
-<<<<<<< HEAD
-	// create sequencers for rollapp1
-	for i := 0; i < numOfSequencers; i++ {
-		seqAddr1[i] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-=======
 	// create 5 sequencers for rollapp1
 	seqAddr1[0] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
 	for i := 1; i < numOfSequencers; i++ {
 		seqAddr1[i] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
->>>>>>> main
 	}
 
 	// create 3 sequencers for rollapp2
@@ -83,15 +69,11 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	blockheight := 20
 	var err error
 
-<<<<<<< HEAD
-	rollappId := suite.CreateDefaultRollapp()
-	_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId) // proposer
+	rollappId, _ := suite.CreateDefaultRollapp()
+	_, _ = suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId) // proposer
 
-	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-=======
-	rollappId, pk1 := suite.CreateDefaultRollapp()
+	pk1 := ed25519.GenPrivKey().PubKey()
 	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
->>>>>>> main
 	sequencer1, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Require().True(sequencer1.Status == types.Bonded)
 	suite.Require().False(sequencer1.Tokens.IsZero())

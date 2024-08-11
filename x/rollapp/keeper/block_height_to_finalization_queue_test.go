@@ -643,6 +643,7 @@ func (suite *RollappTestSuite) setMockErrRollappKeeperHooks(failIndexes []types.
 var _ types.RollappHooks = mockRollappHooks{}
 
 type mockRollappHooks struct {
+	types.StubRollappCreatedHooks
 	failIndexes []types.StateInfoIndex
 }
 
@@ -652,6 +653,3 @@ func (m mockRollappHooks) AfterStateFinalized(_ sdk.Context, _ string, stateInfo
 	}
 	return
 }
-func (m mockRollappHooks) BeforeUpdateState(sdk.Context, string, string, bool) error { return nil }
-func (m mockRollappHooks) FraudSubmitted(sdk.Context, string, uint64, string) error  { return nil }
-func (m mockRollappHooks) RollappCreated(sdk.Context, string) error                  { return nil }

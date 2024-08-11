@@ -14,20 +14,10 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-<<<<<<< HEAD
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/stretchr/testify/suite"
-
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-=======
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
->>>>>>> main
 )
 
 type SequencerTestSuite struct {
@@ -53,8 +43,8 @@ func (suite *SequencerTestSuite) SetupTest() {
 	suite.Ctx = ctx
 	suite.queryClient = queryClient
 }
-<<<<<<< HEAD
-=======
+
+//FIXME: review if needed as available in the main suite
 
 func (suite *SequencerTestSuite) CreateDefaultRollapp() (string, cryptotypes.PubKey) {
 	pubkey := ed25519.GenPrivKey().PubKey()
@@ -99,4 +89,16 @@ func (suite *SequencerTestSuite) CreateSequencerWithBond(ctx sdk.Context, rollap
 	suite.Require().NoError(err)
 	return addr.String()
 }
->>>>>>> main
+
+func (suite *SequencerTestSuite) assertSlashed(seqAddr string) {
+	seq, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddr)
+	suite.Require().True(found)
+	suite.True(seq.Jailed)
+	suite.Equal(types.Unbonded, seq.Status)
+	suite.Equal(sdk.Coins(nil), seq.Tokens)
+
+	sequencers := suite.App.SequencerKeeper.GetMatureUnbondingSequencers(suite.Ctx, suite.Ctx.BlockTime())
+	for _, s := range sequencers {
+		suite.NotEqual(s.Address, seqAddr)
+	}
+}

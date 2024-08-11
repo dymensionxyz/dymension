@@ -19,7 +19,7 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 		sdk.NewEvent(
 			types.EventTypeNoticePeriodStarted,
 			sdk.NewAttribute(types.AttributeKeyRollappId, seq.RollappId),
-			sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
+			sdk.NewAttribute(types.AttributeKeySequencer, seq.Address),
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.String()),
 		),
 	)
@@ -33,7 +33,7 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.Time) {
 	seqs := k.GetMatureNoticePeriodSequencers(ctx, currTime)
 	for _, seq := range seqs {
-		if k.isProposer(ctx, seq.RollappId, seq.SequencerAddress) {
+		if k.isProposer(ctx, seq.RollappId, seq.Address) {
 			k.startRotation(ctx, seq.RollappId)
 			k.removeNoticePeriodSequencer(ctx, seq)
 		}
@@ -49,7 +49,7 @@ func (k Keeper) IsRotating(ctx sdk.Context, rollappId string) bool {
 // isNoticePeriodRequired returns true if the sequencer requires a notice period before unbonding
 // Both the proposer and the next proposer require a notice period
 func (k Keeper) isNoticePeriodRequired(ctx sdk.Context, seq types.Sequencer) bool {
-	return k.isProposer(ctx, seq.RollappId, seq.SequencerAddress) || k.isNextProposer(ctx, seq.RollappId, seq.SequencerAddress)
+	return k.isProposer(ctx, seq.RollappId, seq.Address) || k.isNextProposer(ctx, seq.RollappId, seq.Address)
 }
 
 // ExpectedNextProposer returns the next proposer for a rollapp
@@ -73,7 +73,7 @@ func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) types.Se
 	// return the first sequencer that is not the proposer
 	proposer, _ := k.GetProposer(ctx, rollappId)
 	for _, s := range seqs {
-		if s.SequencerAddress != proposer.SequencerAddress {
+		if s.Address != proposer.Address {
 			return s
 		}
 	}
@@ -87,15 +87,15 @@ func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) types.Se
 func (k Keeper) startRotation(ctx sdk.Context, rollappId string) {
 	// next proposer can be empty if there are no bonded sequencers available
 	nextProposer := k.ExpectedNextProposer(ctx, rollappId)
-	k.setNextProposer(ctx, rollappId, nextProposer.SequencerAddress)
+	k.setNextProposer(ctx, rollappId, nextProposer.Address)
 
-	k.Logger(ctx).Info("rotation started", "rollappId", rollappId, "nextProposer", nextProposer.SequencerAddress)
+	k.Logger(ctx).Info("rotation started", "rollappId", rollappId, "nextProposer", nextProposer.Address)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeRotationStarted,
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
-			sdk.NewAttribute(types.AttributeKeyNextProposer, nextProposer.SequencerAddress),
+			sdk.NewAttribute(types.AttributeKeyNextProposer, nextProposer.Address),
 		),
 	)
 }
@@ -117,9 +117,9 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 	}
 
 	k.removeNextProposer(ctx, rollappId)
-	k.SetProposer(ctx, rollappId, nextProposer.SequencerAddress)
+	k.SetProposer(ctx, rollappId, nextProposer.Address)
 
-	if nextProposer.SequencerAddress == NO_SEQUENCER_AVAILABLE {
+	if nextProposer.Address == NO_SEQUENCER_AVAILABLE {
 		k.Logger(ctx).Info("Rollapp left with no proposer.", "RollappID", rollappId)
 	}
 
@@ -127,7 +127,7 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 		sdk.NewEvent(
 			types.EventTypeProposerRotated,
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
-			sdk.NewAttribute(types.AttributeKeySequencer, nextProposer.SequencerAddress),
+			sdk.NewAttribute(types.AttributeKeySequencer, nextProposer.Address),
 		),
 	)
 }

@@ -4,7 +4,6 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
@@ -69,35 +68,3 @@ func TestSequencersByRollappGet(t *testing.T) {
 		nullify.Fill(rst),
 	)
 }
-<<<<<<< HEAD
-=======
-
-func (suite *SequencerTestSuite) TestRotatingSequencerByBond() {
-	rollappId, pk := suite.CreateDefaultRollapp()
-
-	numOfSequencers := 5
-
-	// create sequencers
-	seqAddrs := make([]string, numOfSequencers)
-	seqAddrs[0] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
-	for j := 1; j < len(seqAddrs)-1; j++ {
-		seqAddrs[j] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
-	}
-	// last one with high bond is the expected new proposer
-	pkx := ed25519.GenPrivKey().PubKey()
-	seqAddrs[len(seqAddrs)-1] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, sdk.NewCoin(bond.Denom, bond.Amount.MulRaw(2)), pkx)
-	expecetedProposer := seqAddrs[len(seqAddrs)-1]
-
-	// check starting proposer and unbond
-	sequencer, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddrs[0])
-	suite.Require().True(found)
-	suite.Require().True(sequencer.Proposer)
-
-	suite.App.SequencerKeeper.RotateProposer(suite.Ctx, rollappId)
-
-	// check proposer rotation
-	newProposer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, expecetedProposer)
-	suite.Equal(types.Bonded, newProposer.Status)
-	suite.True(newProposer.Proposer)
-}
->>>>>>> main

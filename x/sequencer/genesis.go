@@ -40,7 +40,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	for _, proposer := range proposers {
 		genesis.GenesisProposers = append(genesis.GenesisProposers, types.GenesisProposer{
 			RollappId: proposer.RollappId,
-			Address:   proposer.SequencerAddress,
+			Address:   proposer.Address,
 		})
 	}
 

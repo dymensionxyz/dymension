@@ -80,12 +80,12 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 
 	sequencer := types.Sequencer{
-		SequencerAddress: msg.Creator,
-		DymintPubKey:     msg.DymintPubKey,
-		RollappId:        msg.RollappId,
-		Description:      msg.Description,
-		Status:           types.Bonded,
-		Tokens:           bond,
+		Address:      msg.Creator,
+		DymintPubKey: msg.DymintPubKey,
+		RollappId:    msg.RollappId,
+		Metadata:     msg.Metadata,
+		Status:       types.Bonded,
+		Tokens:       bond,
 	}
 
 	bondedSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Bonded)
@@ -93,7 +93,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	// if this is the first sequencer, make it a PROPOSER
 	proposer := len(bondedSequencers) == 0
 	if proposer {
-		k.SetProposer(ctx, sequencer.RollappId, sequencer.SequencerAddress)
+		k.SetProposer(ctx, sequencer.RollappId, sequencer.Address)
 	}
 
 	// edge case handling:

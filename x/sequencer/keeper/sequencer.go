@@ -39,7 +39,7 @@ func (k Keeper) UpdateSequencer(ctx sdk.Context, sequencer types.Sequencer, oldS
 
 	// status changed, need to remove old status key
 	if len(oldStatus) > 0 && sequencer.Status != oldStatus[0] {
-		oldKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, oldStatus[0])
+		oldKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.Address, oldStatus[0])
 		store.Delete(oldKey)
 	}
 }
@@ -175,14 +175,14 @@ func (k Keeper) AddSequencerToNoticePeriodQueue(ctx sdk.Context, sequencer types
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&sequencer)
 
-	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.SequencerAddress, sequencer.NoticePeriodTime)
+	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.Address, sequencer.NoticePeriodTime)
 	store.Set(noticePeriodKey, b)
 }
 
 // remove sequencer from notice period queue
 func (k Keeper) removeNoticePeriodSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
-	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.SequencerAddress, sequencer.NoticePeriodTime)
+	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.Address, sequencer.NoticePeriodTime)
 	store.Delete(noticePeriodKey)
 }
 
@@ -227,7 +227,7 @@ func (k Keeper) removeProposer(ctx sdk.Context, rollappId string) {
 
 func (k Keeper) isProposer(ctx sdk.Context, rollappId, seqAddr string) bool {
 	proposer, ok := k.GetProposer(ctx, rollappId)
-	return ok && proposer.SequencerAddress == seqAddr
+	return ok && proposer.Address == seqAddr
 }
 
 // SetNextProposer sets the next proposer for a rollapp
@@ -263,7 +263,7 @@ func (k Keeper) isNextProposerSet(ctx sdk.Context, rollappId string) bool {
 
 func (k Keeper) isNextProposer(ctx sdk.Context, rollappId, seqAddr string) bool {
 	nextProposer, ok := k.GetNextProposer(ctx, rollappId)
-	return ok && nextProposer.SequencerAddress == seqAddr
+	return ok && nextProposer.Address == seqAddr
 }
 
 // removeNextProposer removes the next proposer for a rollapp

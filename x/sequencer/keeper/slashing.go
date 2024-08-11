@@ -1,57 +1,21 @@
 package keeper
 
 import (
-	"fmt"
-
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 )
 
-// SlashAndJailFraud slashes the sequencer for misbehaviour other than liveness issues
-// Can occur on both Bonded and Unbonding sequencers
-func (k Keeper) SlashAndJailFraud(ctx sdk.Context, seqAddr string) error {
-	seq, err := k.unbondSequencerAndBurn(ctx, seqAddr)
-	if err != nil {
-		return fmt.Errorf("slash sequencer: %w", err)
+func (k Keeper) JailSequencerOnFraud(ctx sdk.Context, seqAddr string) error {
+	seq, found := k.GetSequencer(ctx, seqAddr)
+	if !found {
+		return types.ErrUnknownSequencer
 	}
 
-	seq.Jailed = true
-	seq.UnbondRequestHeight = ctx.BlockHeight()
-	seq.UnbondTime = ctx.BlockTime()
-	k.UpdateSequencer(ctx, *seq)
-
-	// emit event
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeSlashed,
-			sdk.NewAttribute(types.AttributeKeySequencer, seqAddr),
-			sdk.NewAttribute(types.AttributeKeyBond, seqTokens.String()),
-		),
-	)
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeJailed,
-			sdk.NewAttribute(types.AttributeKeySequencer, seq.Address),
-		),
-	)
-
-	return nil
-}
-
-// InstantUnbondAllSequencers unbonds all sequencers for a rollapp
-// This is called by the `FraudSubmitted` hook
-func (k Keeper) InstantUnbondAllSequencers(ctx sdk.Context, rollappID string) error {
-	// unbond all bonded/unbonding sequencers
-	bonded := k.GetSequencersByRollappByStatus(ctx, rollappID, types.Bonded)
-	unbonding := k.GetSequencersByRollappByStatus(ctx, rollappID, types.Unbonding)
-	for _, sequencer := range append(bonded, unbonding...) {
-		err := k.unbondSequencer(ctx, sequencer.SequencerAddress)
-		if err != nil {
-			return err
-		}
+	if err := k.Jail(ctx, seq); err != nil {
+		return errorsmod.Wrap(err, "jail")
 	}
 
 	return nil
@@ -85,11 +49,19 @@ func (k Keeper) LivenessLiableSequencer(ctx sdk.Context, rollappID string) (type
 }
 
 func (k Keeper) Slash(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coins) error {
-	seq.Tokens = seq.Tokens.Sub(amt...)
-	err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, amt)
-	if err != nil {
-		return errorsmod.Wrap(err, "burn coins")
+	if seq.Status == types.Unbonded {
+		return errorsmod.Wrap(
+			types.ErrInvalidSequencerStatus,
+			"can't slash unbonded sequencer",
+		)
 	}
+
+	err := k.reduceSequencerBond(ctx, seq, amt, true)
+	if err != nil {
+		return errorsmod.Wrap(err, "remove sequencer bond")
+	}
+	k.UpdateSequencer(ctx, *seq)
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSlashed,
@@ -97,5 +69,22 @@ func (k Keeper) Slash(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coins) erro
 			sdk.NewAttribute(types.AttributeKeyBond, amt.String()),
 		),
 	)
+	return nil
+}
+
+func (k Keeper) Jail(ctx sdk.Context, seq types.Sequencer) error {
+	err := k.unbondSequencerAndJail(ctx, seq.Address)
+	if err != nil {
+		return errorsmod.Wrap(err, "unbond and jail")
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeJailed,
+			sdk.NewAttribute(types.AttributeKeySequencer, seq.Address),
+			sdk.NewAttribute(types.AttributeKeyBond, seq.Tokens.String()),
+		),
+	)
+
 	return nil
 }

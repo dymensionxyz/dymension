@@ -24,7 +24,7 @@ func (k Keeper) startUnbondingPeriodForSequencer(ctx sdk.Context, seq *types.Seq
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeUnbonding,
-			sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
+			sdk.NewAttribute(types.AttributeKeySequencer, seq.Address),
 			sdk.NewAttribute(types.AttributeKeyBond, seq.Tokens.String()),
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.String()),
 		),
@@ -39,7 +39,7 @@ func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {
 	sequencers := k.GetMatureUnbondingSequencers(ctx, currTime)
 	for _, seq := range sequencers {
 		wrapFn := func(ctx sdk.Context) error {
-			return k.unbondSequencer(ctx, seq.SequencerAddress)
+			return k.unbondSequencer(ctx, seq.Address)
 		}
 		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
 		if err != nil {
@@ -49,37 +49,66 @@ func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {
 	}
 }
 
-func (k Keeper) HandleBondReduction(ctx sdk.Context, currTime time.Time) {
-	unbondings := k.GetMatureDecreasingBondSequencers(ctx, currTime)
-	for _, unbonding := range unbondings {
-		wrapFn := func(ctx sdk.Context) error {
-			return k.completeBondReduction(ctx, unbonding)
-		}
-		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
+// InstantUnbondAllSequencers unbonds all sequencers for a rollapp
+// This is called when the rollapp is frozen
+func (k Keeper) InstantUnbondAllSequencers(ctx sdk.Context, rollappID string) error {
+	// unbond all bonded/unbonding sequencers
+	bonded := k.GetSequencersByRollappByStatus(ctx, rollappID, types.Bonded)
+	unbonding := k.GetSequencersByRollappByStatus(ctx, rollappID, types.Unbonding)
+	for _, sequencer := range append(bonded, unbonding...) {
+		err := k.unbondSequencer(ctx, sequencer.Address)
 		if err != nil {
-			k.Logger(ctx).Error("reducing sequencer bond", "error", err, "sequencer", unbonding.SequencerAddress)
-			continue
+			return err
 		}
 	}
+
+	return nil
 }
 
-func (k Keeper) unbondSequencerAndBurn(ctx sdk.Context, seqAddr string) (*types.Sequencer, error) {
-	return k.unbondSequencerBurnOrRefund(ctx, seqAddr, true)
+func (k Keeper) reduceSequencerBond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coins, burn bool) error {
+	if amt.IsZero() {
+		return nil
+	}
+	if !seq.Tokens.IsAllGTE(amt) {
+		return errorsmod.Wrapf(
+			types.ErrInsufficientBond,
+			"insufficient bond for sequencer: %s", seq.Address,
+		)
+	}
+	if burn {
+		err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, amt)
+		if err != nil {
+			return err
+		}
+	} else {
+		// refund
+		seqAcc := sdk.MustAccAddressFromBech32(seq.Address)
+		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, seqAcc, amt)
+		if err != nil {
+			return err
+		}
+	}
+
+	seq.Tokens = seq.Tokens.Sub(amt...)
+	return nil
+}
+
+func (k Keeper) unbondSequencerAndJail(ctx sdk.Context, seqAddr string) error {
+	return k.unbond(ctx, seqAddr, true)
 }
 
 func (k Keeper) unbondSequencer(ctx sdk.Context, seqAddr string) error {
-	_, err := k.unbondSequencerBurnOrRefund(ctx, seqAddr, false)
-	return err
+	return k.unbond(ctx, seqAddr, false)
 }
 
-func (k Keeper) unbondSequencerBurnOrRefund(ctx sdk.Context, seqAddr string, burnBond bool) (*types.Sequencer, error) {
+func (k Keeper) unbond(ctx sdk.Context, seqAddr string, jail bool) error {
 	seq, found := k.GetSequencer(ctx, seqAddr)
 	if !found {
-		return nil, types.ErrUnknownSequencer
+		return types.ErrUnknownSequencer
 	}
 
 	if seq.Status == types.Unbonded {
-		return nil, errorsmod.Wrapf(
+		return errorsmod.Wrapf(
 			types.ErrInvalidSequencerStatus,
 			"sequencer status is already unbonded",
 		)
@@ -87,106 +116,61 @@ func (k Keeper) unbondSequencerBurnOrRefund(ctx sdk.Context, seqAddr string, bur
 	// keep the old status for updating the sequencer
 	oldStatus := seq.Status
 
-	// handle bond
-	seqTokens := seq.Tokens
-	if !seqTokens.Empty() {
-		if burnBond {
-			err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, seqTokens)
-			if err != nil {
-				return nil, err
-			}
-		} else { //refund
-			seqAcc, err := sdk.AccAddressFromBech32(seq.SequencerAddress)
-			if err != nil {
-				return nil, err
-			}
-
-			err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, seqAcc, seqTokens)
-			if err != nil {
-				return nil, err
-			}
-		}
-	} else {
-		k.Logger(ctx).Error("sequencer has no tokens to unbond", "sequencer", seq.Address)
+	// handle bond: tokens refunded by default, unless jail is true
+	err := k.reduceSequencerBond(ctx, &seq, seq.Tokens, jail)
+	if err != nil {
+		return errorsmod.Wrap(err, "remove sequencer bond")
 	}
 
+	/* ------------------------------ store cleanup ----------------------------- */
 	// remove from queue if unbonding
 	if oldStatus == types.Unbonding {
 		k.removeUnbondingSequencer(ctx, seq)
 	} else {
-		// in case the sequencer is currently reducing its bond, then we need to remove it from the decreasing bond queue
-		// all the tokens are returned, so we don't need to reduce the bond anymore
-		if bondReductions := k.getSequencerDecreasingBonds(ctx, seq.Address); len(bondReductions) > 0 {
-			for _, bondReduce := range bondReductions {
-				k.removeDecreasingBondQueue(ctx, bondReduce)
-			}
+		// remove from notice period queue if needed
+		if seq.IsNoticePeriodInProgress() {
+			k.removeNoticePeriodSequencer(ctx, seq)
+		}
+
+		// if we unbond the the proposer, remove it
+		// the caller should rotate the proposer
+		if k.isProposer(ctx, seq.RollappId, seqAddr) {
+			k.removeProposer(ctx, seq.RollappId)
+		}
+
+		// if we unbond the next proposer, we're in the middle of rotation
+		// instead of removing the next proposer, we set it to empty, and the chain will halt
+		// FIXME: review again
+		if k.isNextProposer(ctx, seq.RollappId, seqAddr) {
+			k.setNextProposer(ctx, seq.RollappId, NO_SEQUENCER_AVAILABLE)
+		}
+	}
+	// in case the sequencer is currently reducing its bond, then we need to remove it from the decreasing bond queue
+	// all the tokens are returned, so we don't need to reduce the bond anymore
+	if bondReductions := k.getSequencerDecreasingBonds(ctx, seq.Address); len(bondReductions) > 0 {
+		for _, bondReduce := range bondReductions {
+			k.removeDecreasingBondQueue(ctx, bondReduce)
 		}
 	}
 
-	// remove from notice period queue if needed
-	if seq.IsNoticePeriodInProgress() {
-		k.removeNoticePeriodSequencer(ctx, seq)
+	// set the unbonding height and time, if not already set
+	seq.Status = types.Unbonded
+	if seq.UnbondRequestHeight == 0 {
+		seq.UnbondRequestHeight = ctx.BlockHeight()
 	}
-
-	// if the slashed sequencer is the proposer, remove it
-	// the caller should rotate the proposer
-	if k.isProposer(ctx, seq.RollappId, seqAddr) {
-		k.removeProposer(ctx, seq.RollappId)
-	}
-
-	// if we slash the next proposer, we're in the middle of rotation
-	// instead of removing the next proposer, we set it to empty, and the chain will halt
-	if k.isNextProposer(ctx, seq.RollappId, seqAddr) {
-		k.setNextProposer(ctx, seq.RollappId, NO_SEQUENCER_AVAILABLE)
+	if seq.UnbondTime.IsZero() {
+		seq.UnbondTime = ctx.BlockTime()
 	}
 
 	// update the sequencer in store
-	seq.Status = types.Unbonded
-	seq.Tokens = sdk.Coins{}
 	k.UpdateSequencer(ctx, seq, oldStatus)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeUnbonded,
 			sdk.NewAttribute(types.AttributeKeySequencer, seqAddr),
-			sdk.NewAttribute(types.AttributeKeyBond, seqTokens.String()),
 		),
 	)
-
-	return &seq, nil
-}
-
-func (k Keeper) completeBondReduction(ctx sdk.Context, reduction types.BondReduction) error {
-	seq, found := k.GetSequencer(ctx, reduction.SequencerAddress)
-	if !found {
-		return types.ErrUnknownSequencer
-	}
-
-	if seq.Tokens.IsAllLT(sdk.NewCoins(reduction.DecreaseBondAmount)) {
-		return errorsmod.Wrapf(
-			types.ErrInsufficientBond,
-			"sequencer does not have enough bond to reduce insufficient bond: got %s, reducing by %s",
-			seq.Tokens.String(),
-			reduction.DecreaseBondAmount.String(),
-		)
-	}
-	newBalance := seq.Tokens.Sub(reduction.DecreaseBondAmount)
-	// in case between unbonding queue and now, the minbond value is increased,
-	// handle it by only returning upto minBond amount and not all
-	minBond := k.GetParams(ctx).MinBond
-	if newBalance.IsAllLT(sdk.NewCoins(minBond)) {
-		diff := minBond.SubAmount(newBalance.AmountOf(minBond.Denom))
-		reduction.DecreaseBondAmount = reduction.DecreaseBondAmount.Sub(diff)
-	}
-	seqAddr := sdk.MustAccAddressFromBech32(reduction.SequencerAddress)
-	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, seqAddr, sdk.NewCoins(reduction.DecreaseBondAmount))
-	if err != nil {
-		return err
-	}
-
-	seq.Tokens = seq.Tokens.Sub(reduction.DecreaseBondAmount)
-	k.SetSequencer(ctx, seq)
-	k.removeDecreasingBondQueue(ctx, reduction)
 
 	return nil
 }

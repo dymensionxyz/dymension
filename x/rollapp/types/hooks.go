@@ -68,13 +68,15 @@ func (h MultiRollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias stri
 	return nil
 }
 
+var _ RollappHooks = &StubRollappCreatedHooks{}
+
 type StubRollappCreatedHooks struct{}
 
 func (StubRollappCreatedHooks) RollappCreated(sdk.Context, string, string, sdk.AccAddress) error {
 	return nil
 }
-func (StubRollappCreatedHooks) BeforeUpdateState(sdk.Context, string, string) error      { return nil }
-func (StubRollappCreatedHooks) FraudSubmitted(sdk.Context, string, uint64, string) error { return nil }
+func (StubRollappCreatedHooks) BeforeUpdateState(sdk.Context, string, string, bool) error { return nil }
+func (StubRollappCreatedHooks) FraudSubmitted(sdk.Context, string, uint64, string) error  { return nil }
 func (StubRollappCreatedHooks) AfterStateFinalized(sdk.Context, string, *StateInfo) error {
 	return nil
 }

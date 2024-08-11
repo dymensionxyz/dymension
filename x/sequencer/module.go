@@ -168,6 +168,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 	am.keeper.UnbondAllMatureSequencers(ctx, ctx.BlockTime())
 
 	// Handle bond reduction
-	am.keeper.HandleBondReduction(ctx, ctx.BlockTime)
+	am.keeper.HandleBondReduction(ctx, ctx.BlockTime())
+
 	return []abci.ValidatorUpdate{}
 }

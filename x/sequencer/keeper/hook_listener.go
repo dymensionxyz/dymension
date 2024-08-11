@@ -45,7 +45,7 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 	if !ok {
 		return errors.Join(gerrc.ErrNotFound, types.ErrNoProposer)
 	}
-	if sequencer.SequencerAddress != proposer.SequencerAddress {
+	if sequencer.Address != proposer.Address {
 		return types.ErrNotActiveSequencer
 	}
 
@@ -65,7 +65,7 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 // FraudSubmitted implements the RollappHooks interface
 // It slashes the sequencer and unbonds all other bonded sequencers
 func (hook rollappHook) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
-	err := hook.k.SlashAndJailFraud(ctx, seqAddr)
+	err := hook.k.JailSequencerOnFraud(ctx, seqAddr)
 	if err != nil {
 		return err
 	}

@@ -125,6 +125,9 @@ func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) error
 }
 
 func migrateSequencers(ctx sdk.Context, sequencerkeeper sequencerkeeper.Keeper) {
+
+	// FIXME: handle migration
+
 	list := sequencerkeeper.GetAllSequencers(ctx)
 	for _, oldSequencer := range list {
 		newSequencer := ConvertOldSequencerToNew(oldSequencer)
@@ -164,7 +167,6 @@ func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Seque
 		DymintPubKey: old.DymintPubKey,
 		RollappId:    old.RollappId,
 		Status:       old.Status,
-		Proposer:     old.Proposer,
 		Tokens:       old.Tokens,
 		Metadata: sequencertypes.SequencerMetadata{
 			Moniker: old.Metadata.Moniker,

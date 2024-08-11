@@ -210,7 +210,7 @@ func (suite *RollappTestSuite) assertFraudHandled(rollappId string) {
 	_, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
 	suite.Require().False(ok)
 	seq := suite.App.SequencerKeeper.ExpectedNextProposer(suite.Ctx, rollappId)
-	suite.Require().Empty(seq.SequencerAddress)
+	suite.Require().Empty(seq.Address)
 
 	// check states
 	finalIdx, _ := suite.App.RollappKeeper.GetLatestFinalizedStateIndex(suite.Ctx, rollappId)

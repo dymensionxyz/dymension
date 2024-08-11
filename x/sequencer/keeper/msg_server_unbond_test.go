@@ -3,37 +3,20 @@ package keeper_test
 import (
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-<<<<<<< HEAD
 func (suite *SequencerTestSuite) TestUnbondingNonProposer() {
 	suite.SetupTest()
-	rollappId := suite.CreateDefaultRollapp()
+	rollappId, _ := suite.CreateDefaultRollapp()
 
-	proposerAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	bondedAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	proposerAddr, _ := suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
+	bondedAddr, _ := suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
 	suite.Require().NotEqual(proposerAddr, bondedAddr)
-=======
-func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
-	rollappId, pk1 := suite.CreateDefaultRollapp()
-
-	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
-	seqAddrs := make([]string, 2)
-	pk2, pk3 := ed25519.GenPrivKey().PubKey(), ed25519.GenPrivKey().PubKey()
-	seqAddrs[0] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk2)
-	seqAddrs[1] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk3)
-	// sort the  non proposer sequencers by address
-	sort.Strings(seqAddrs)
-	addr2 := seqAddrs[0]
-	addr3 := seqAddrs[1]
->>>>>>> main
 
 	proposer, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
 	suite.Require().True(ok)
-	suite.Equal(proposerAddr, proposer.SequencerAddress)
+	suite.Equal(proposerAddr, proposer.Address)
 
 	/* ------------------------- unbond non proposer sequencer ------------------------ */
 	bondedSeq, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, bondedAddr)
@@ -57,15 +40,15 @@ func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
 	// check proposer not changed
 	proposer, ok = suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
 	suite.Require().True(ok)
-	suite.Equal(proposerAddr, proposer.SequencerAddress)
+	suite.Equal(proposerAddr, proposer.Address)
 }
 
 func (suite *SequencerTestSuite) TestUnbondingProposer() {
 	suite.SetupTest()
-	rollappId := suite.CreateDefaultRollapp()
+	rollappId, _ := suite.CreateDefaultRollapp()
 
-	proposerAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	proposerAddr, _ := suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
+	_, _ = suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	unbondMsg := types.MsgUnbond{Creator: proposerAddr}
@@ -75,7 +58,7 @@ func (suite *SequencerTestSuite) TestUnbondingProposer() {
 	// check proposer still bonded and notice period started
 	p, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
 	suite.Require().True(ok)
-	suite.Equal(proposerAddr, p.SequencerAddress)
+	suite.Equal(proposerAddr, p.Address)
 	suite.Equal(suite.Ctx.BlockHeight(), p.UnbondRequestHeight)
 
 	// next proposer should not be set yet
@@ -90,16 +73,8 @@ func (suite *SequencerTestSuite) TestUnbondingProposer() {
 }
 
 func (suite *SequencerTestSuite) TestUnbondingNotBondedSequencer() {
-<<<<<<< HEAD
-	suite.SetupTest()
-	suite.Ctx = suite.Ctx.WithBlockHeight(10)
-
-	rollappId := suite.CreateDefaultRollapp()
-	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-=======
 	rollappId, pk1 := suite.CreateDefaultRollapp()
 	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
->>>>>>> main
 
 	unbondMsg := types.MsgUnbond{Creator: addr1}
 	res, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)

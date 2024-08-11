@@ -9,24 +9,11 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-func (suite *SequencerTestSuite) assertSlashed(seqAddr string) {
-	seq, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddr)
-	suite.Require().True(found)
-	suite.True(seq.Jailed)
-	suite.Equal(types.Unbonded, seq.Status)
-	suite.Equal(sdk.Coins(nil), seq.Tokens)
-
-	sequencers := suite.App.SequencerKeeper.GetMatureUnbondingSequencers(suite.Ctx, suite.Ctx.BlockTime())
-	for _, s := range sequencers {
-		suite.NotEqual(s.Address, seqAddr)
-	}
-}
-
 func (suite *SequencerTestSuite) TestSlashingUnknownSequencer() {
 	suite.CreateDefaultRollapp()
 	keeper := suite.App.SequencerKeeper
 
-	err := keeper.SlashAndJailFraud(suite.Ctx, "unknown_sequencer")
+	err := keeper.JailSequencerOnFraud(suite.Ctx, "unknown_sequencer")
 	suite.ErrorIs(err, types.ErrUnknownSequencer)
 }
 
@@ -43,7 +30,7 @@ func (suite *SequencerTestSuite) TestSlashingUnbondedSequencer() {
 	res, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
 
-	unbondTime := res.CompletionTime
+	unbondTime := res.GetUnbondingCompletionTime()
 	keeper.UnbondAllMatureSequencers(suite.Ctx, unbondTime.Add(1*time.Second))
 
 	seq, found := keeper.GetSequencer(suite.Ctx, seqAddr)
@@ -51,7 +38,7 @@ func (suite *SequencerTestSuite) TestSlashingUnbondedSequencer() {
 
 	suite.Equal(seq.Address, seqAddr)
 	suite.Equal(seq.Status, types.Unbonded)
-	err = keeper.SlashAndJailFraud(suite.Ctx, seqAddr)
+	err = keeper.JailSequencerOnFraud(suite.Ctx, seqAddr)
 	suite.ErrorIs(err, types.ErrInvalidSequencerStatus)
 }
 
@@ -71,7 +58,7 @@ func (suite *SequencerTestSuite) TestSlashingUnbondingSequencer() {
 	seq, ok := keeper.GetSequencer(suite.Ctx, seqAddr)
 	suite.Require().True(ok)
 	suite.Equal(seq.Status, types.Unbonding)
-	err = keeper.SlashAndJailFraud(suite.Ctx, seqAddr)
+	err = keeper.JailSequencerOnFraud(suite.Ctx, seqAddr)
 	suite.NoError(err)
 
 	suite.assertSlashed(seqAddr)
@@ -91,14 +78,15 @@ func (suite *SequencerTestSuite) TestSlashingProposerSequencer() {
 	seq, ok := keeper.GetSequencer(suite.Ctx, seqAddr)
 	suite.Require().True(ok)
 	suite.Equal(seq.Status, types.Bonded)
-	suite.True(seq.Proposer)
 
 	seq2, ok := keeper.GetSequencer(suite.Ctx, seqAddr2)
 	suite.Require().True(ok)
 	suite.Equal(seq2.Status, types.Bonded)
-	suite.False(seq2.Proposer)
 
-	err := keeper.SlashAndJailFraud(suite.Ctx, seqAddr)
+	proposer, _ := keeper.GetProposer(suite.Ctx, rollappId)
+	suite.Equal(proposer.Address, seqAddr)
+
+	err := keeper.JailSequencerOnFraud(suite.Ctx, seqAddr)
 	suite.NoError(err)
 
 	suite.assertSlashed(seqAddr)
@@ -106,5 +94,31 @@ func (suite *SequencerTestSuite) TestSlashingProposerSequencer() {
 	seq2, ok = keeper.GetSequencer(suite.Ctx, seqAddr2)
 	suite.Require().True(ok)
 	suite.Equal(seq2.Status, types.Bonded)
-	suite.True(seq2.Proposer)
+
+	proposer, found := keeper.GetProposer(suite.Ctx, rollappId)
+	suite.Require().False(found)
+}
+
+func (suite *SequencerTestSuite) TestSlashAndJailBondReducingSequencer() {
+	suite.SetupTest()
+	keeper := suite.App.SequencerKeeper
+
+	rollappId, pk := suite.CreateDefaultRollapp()
+	seqAddr := suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)), pk)
+
+	suite.Ctx = suite.Ctx.WithBlockHeight(20)
+	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
+
+	reduceBondMsg := types.MsgDecreaseBond{Creator: seqAddr, DecreaseAmount: sdk.NewInt64Coin(bond.Denom, 10)}
+	resp, err := suite.msgServer.DecreaseBond(suite.Ctx, &reduceBondMsg)
+	suite.Require().NoError(err)
+	bondReductions := keeper.GetMatureDecreasingBondSequencers(suite.Ctx, resp.GetCompletionTime())
+	suite.Require().Len(bondReductions, 1)
+
+	err = keeper.JailSequencerOnFraud(suite.Ctx, seqAddr)
+	suite.NoError(err)
+
+	bondReductions = keeper.GetMatureDecreasingBondSequencers(suite.Ctx, resp.GetCompletionTime())
+	suite.Require().Len(bondReductions, 0)
+	suite.assertSlashed(seqAddr)
 }

@@ -116,6 +116,8 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 					return
 				}
 
+				// FIXME: check for rollapp gauges creation
+
 				return
 			},
 			expPass: true,
@@ -184,6 +186,8 @@ func (s *UpgradeTestSuite) validateRollappsMigration(numRoll int) error {
 }
 
 func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
+	// FIXME: test proposer migration
+
 	expectSequencers := make([]sequencertypes.Sequencer, numSeq)
 	for i, sequencer := range s.seedSequencers(numSeq) {
 		expectSequencers[i] = v4.ConvertOldSequencerToNew(sequencer)
@@ -256,9 +260,8 @@ func (s *UpgradeTestSuite) seedSequencers(numSeq int) []sequencertypes.Sequencer
 				Moniker: fmt.Sprintf("sequencer-%d", i),
 				Details: fmt.Sprintf("Additional details about the sequencer-%d", i),
 			},
-			Status:   sequencertypes.Bonded,
-			Proposer: true,
-			Tokens:   sdk.NewCoins(sdk.NewInt64Coin("dym", 100)),
+			Status: sequencertypes.Bonded,
+			Tokens: sdk.NewCoins(sdk.NewInt64Coin("dym", 100)),
 		}
 		sequencers[i] = sequencer
 	}
