@@ -4,9 +4,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/dymensionxyz/dymension/v3/app/params"
+
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/stretchr/testify/require"
 )
+
+func init() {
+	params.SetAddressPrefixes()
+}
 
 func TestIsValidBech32AccountAddress(t *testing.T) {
 	//goland:noinspection SpellCheckingInspection

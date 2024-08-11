@@ -34,7 +34,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceBuyOrder_DymName() {
 		moduleParams.Misc.EnableTradingAlias = true
 		return moduleParams
 	})
-	s.MakeAnchorContext()
+	s.SaveCurrentContext()
 
 	s.Run("reject if message not pass validate basic", func() {
 		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PlaceBuyOrder(s.ctx, &dymnstypes.MsgPlaceBuyOrder{})
@@ -822,7 +822,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceBuyOrder_DymName() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.UseAnchorContext()
+			s.RefreshContext()
 
 			if tt.originalModuleBalance.IsPositive() {
 				s.mintToModuleAccount2(tt.originalModuleBalance)
@@ -922,7 +922,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceBuyOrder_Alias() {
 		moduleParams.Misc.EnableTradingAlias = true
 		return moduleParams
 	})
-	s.MakeAnchorContext()
+	s.SaveCurrentContext()
 
 	type rollapp struct {
 		rollAppID string
@@ -1881,7 +1881,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceBuyOrder_Alias() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.UseAnchorContext()
+			s.RefreshContext()
 
 			if tt.originalModuleBalance.IsPositive() {
 				s.mintToModuleAccount2(tt.originalModuleBalance)

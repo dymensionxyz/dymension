@@ -1,18 +1,11 @@
 package keeper_test
 
 import (
-	"fmt"
-	"testing"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app/params"
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-	"github.com/stretchr/testify/require"
 )
 
-func TestKeeper_RefundBid(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_RefundBid() {
 	bidderA := testAddr(1).bech32()
 
 	tests := []struct {
@@ -27,23 +20,23 @@ func TestKeeper_RefundBid(t *testing.T) {
 		{
 			name:                     "pass - refund bid",
 			refundToAccount:          bidderA,
-			refundAmount:             dymnsutils.TestCoin(100),
-			fundModuleAccountBalance: dymnsutils.TestCoin(150),
+			refundAmount:             s.coin(100),
+			fundModuleAccountBalance: s.coin(150),
 			genesis:                  false,
 		},
 		{
 			name:                     "pass - refund bid genesis",
 			refundToAccount:          bidderA,
-			refundAmount:             dymnsutils.TestCoin(100),
-			fundModuleAccountBalance: dymnsutils.TestCoin(0), // no need balance, will mint
+			refundAmount:             s.coin(100),
+			fundModuleAccountBalance: s.coin(0), // no need balance, will mint
 			genesis:                  true,
 			wantErr:                  false,
 		},
 		{
 			name:                     "fail - refund bid normally but module account has no balance",
 			refundToAccount:          bidderA,
-			refundAmount:             dymnsutils.TestCoin(100),
-			fundModuleAccountBalance: dymnsutils.TestCoin(0),
+			refundAmount:             s.coin(100),
+			fundModuleAccountBalance: s.coin(0),
 			genesis:                  false,
 			wantErr:                  true,
 			wantErrContains:          "insufficient funds",
@@ -51,8 +44,8 @@ func TestKeeper_RefundBid(t *testing.T) {
 		{
 			name:                     "fail - refund bid normally but module account does not have enough balance",
 			refundToAccount:          bidderA,
-			refundAmount:             dymnsutils.TestCoin(100),
-			fundModuleAccountBalance: dymnsutils.TestCoin(50),
+			refundAmount:             s.coin(100),
+			fundModuleAccountBalance: s.coin(50),
 			genesis:                  false,
 			wantErr:                  true,
 			wantErrContains:          "insufficient funds",
@@ -60,20 +53,20 @@ func TestKeeper_RefundBid(t *testing.T) {
 		{
 			name:                     "fail - bad bidder",
 			refundToAccount:          "0x1",
-			refundAmount:             dymnsutils.TestCoin(100),
-			fundModuleAccountBalance: dymnsutils.TestCoin(100),
+			refundAmount:             s.coin(100),
+			fundModuleAccountBalance: s.coin(100),
 			wantErr:                  true,
 			wantErrContains:          "SO bidder is not a valid bech32 account address",
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
+		s.Run(tt.name, func() {
+			s.RefreshContext()
 
 			if !tt.fundModuleAccountBalance.IsNil() {
 				if !tt.fundModuleAccountBalance.IsZero() {
-					err := bk.MintCoins(ctx, dymnstypes.ModuleName, sdk.Coins{tt.fundModuleAccountBalance})
-					require.NoError(t, err)
+					err := s.bankKeeper.MintCoins(s.ctx, dymnstypes.ModuleName, sdk.Coins{tt.fundModuleAccountBalance})
+					s.Require().NoError(err)
 				}
 			}
 
@@ -84,33 +77,36 @@ func TestKeeper_RefundBid(t *testing.T) {
 
 			var err error
 			if tt.genesis {
-				err = dk.GenesisRefundBid(ctx, soBid)
+				err = s.dymNsKeeper.GenesisRefundBid(s.ctx, soBid)
 			} else {
-				err = dk.RefundBid(ctx, soBid, dymnstypes.TypeName)
+				err = s.dymNsKeeper.RefundBid(s.ctx, soBid, dymnstypes.TypeName)
 			}
 
 			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), tt.wantErrContains)
 				return
 			}
 
-			require.NoError(t, err)
+			s.Require().NoError(err)
 
-			laterBidderBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(tt.refundToAccount), params.BaseDenom)
-			require.Equal(t, tt.refundAmount.Amount.BigInt(), laterBidderBalance.Amount.BigInt())
+			laterBidderBalance := s.balance2(tt.refundToAccount)
+			s.Require().Equal(tt.refundAmount.Amount.String(), laterBidderBalance.String())
 
-			laterDymNsModuleBalance := bk.GetBalance(ctx, dymNsModuleAccAddr, params.BaseDenom)
+			laterDymNsModuleBalance := s.moduleBalance2()
 			if tt.genesis {
-				require.True(t, laterDymNsModuleBalance.IsZero())
+				s.Require().True(laterDymNsModuleBalance.IsZero())
 			} else {
-				require.Equal(t, tt.fundModuleAccountBalance.Sub(tt.refundAmount).Amount.BigInt(), laterDymNsModuleBalance.Amount.BigInt())
+				s.Require().Equal(
+					tt.fundModuleAccountBalance.Sub(tt.refundAmount).Amount.String(),
+					laterDymNsModuleBalance.String(),
+				)
 			}
 
 			// event should be fired
-			events := ctx.EventManager().Events()
-			require.NotEmpty(t, events)
+			events := s.ctx.EventManager().Events()
+			s.Require().NotEmpty(events)
 
 			var found bool
 			for _, event := range events {
@@ -121,13 +117,13 @@ func TestKeeper_RefundBid(t *testing.T) {
 			}
 
 			if !found {
-				t.Errorf("event %s not found", dymnstypes.EventTypeSoRefundBid)
+				s.T().Errorf("event %s not found", dymnstypes.EventTypeSoRefundBid)
 			}
 		})
 	}
 }
 
-func TestKeeper_RefundBuyOrder(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_RefundBuyOrder() {
 	buyerA := testAddr(1).bech32()
 
 	supportedAssetTypes := []dymnstypes.AssetType{
@@ -146,23 +142,23 @@ func TestKeeper_RefundBuyOrder(t *testing.T) {
 		{
 			name:                     "pass - refund offer",
 			refundToAccount:          buyerA,
-			refundAmount:             dymnsutils.TestCoin(100),
-			fundModuleAccountBalance: dymnsutils.TestCoin(150),
+			refundAmount:             s.coin(100),
+			fundModuleAccountBalance: s.coin(150),
 			genesis:                  false,
 		},
 		{
 			name:                     "pass - refund offer genesis",
 			refundToAccount:          buyerA,
-			refundAmount:             dymnsutils.TestCoin(100),
-			fundModuleAccountBalance: dymnsutils.TestCoin(0), // no need balance, will mint
+			refundAmount:             s.coin(100),
+			fundModuleAccountBalance: s.coin(0), // no need balance, will mint
 			genesis:                  true,
 			wantErr:                  false,
 		},
 		{
 			name:                     "fail - refund offer normally but module account has no balance",
 			refundToAccount:          buyerA,
-			refundAmount:             dymnsutils.TestCoin(100),
-			fundModuleAccountBalance: dymnsutils.TestCoin(0),
+			refundAmount:             s.coin(100),
+			fundModuleAccountBalance: s.coin(0),
 			genesis:                  false,
 			wantErr:                  true,
 			wantErrContains:          "insufficient funds",
@@ -170,8 +166,8 @@ func TestKeeper_RefundBuyOrder(t *testing.T) {
 		{
 			name:                     "fail - refund offer normally but module account does not have enough balance",
 			refundToAccount:          buyerA,
-			refundAmount:             dymnsutils.TestCoin(100),
-			fundModuleAccountBalance: dymnsutils.TestCoin(50),
+			refundAmount:             s.coin(100),
+			fundModuleAccountBalance: s.coin(50),
 			genesis:                  false,
 			wantErr:                  true,
 			wantErrContains:          "insufficient funds",
@@ -179,80 +175,85 @@ func TestKeeper_RefundBuyOrder(t *testing.T) {
 		{
 			name:                     "fail - bad offer buyer address",
 			refundToAccount:          "0x1",
-			refundAmount:             dymnsutils.TestCoin(100),
-			fundModuleAccountBalance: dymnsutils.TestCoin(100),
+			refundAmount:             s.coin(100),
+			fundModuleAccountBalance: s.coin(100),
 			wantErr:                  true,
 			wantErrContains:          "buyer is not a valid bech32 account address",
 		},
 	}
 	for _, tt := range tests {
-		for _, assetType := range supportedAssetTypes {
-			t.Run(fmt.Sprintf("%s (%s)", tt.name, assetType.FriendlyString()), func(t *testing.T) {
-				dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
+		s.Run(tt.name, func() {
+			for _, assetType := range supportedAssetTypes {
+				s.Run(assetType.FriendlyString(), func() {
+					s.RefreshContext()
 
-				if !tt.fundModuleAccountBalance.IsNil() {
-					if !tt.fundModuleAccountBalance.IsZero() {
-						err := bk.MintCoins(ctx, dymnstypes.ModuleName, sdk.Coins{tt.fundModuleAccountBalance})
-						require.NoError(t, err)
+					if !tt.fundModuleAccountBalance.IsNil() {
+						if !tt.fundModuleAccountBalance.IsZero() {
+							err := s.bankKeeper.MintCoins(s.ctx, dymnstypes.ModuleName, sdk.Coins{tt.fundModuleAccountBalance})
+							s.Require().NoError(err)
+						}
 					}
-				}
 
-				var orderParams []string
-				if assetType == dymnstypes.TypeAlias {
-					orderParams = []string{"rollapp_1-1"}
-				}
-
-				offer := dymnstypes.BuyOrder{
-					Id:         dymnstypes.CreateBuyOrderId(assetType, 1),
-					AssetId:    "asset",
-					AssetType:  assetType,
-					Params:     orderParams,
-					Buyer:      tt.refundToAccount,
-					OfferPrice: tt.refundAmount,
-				}
-
-				var err error
-				if tt.genesis {
-					err = dk.GenesisRefundBuyOrder(ctx, offer)
-				} else {
-					err = dk.RefundBuyOrder(ctx, offer)
-				}
-
-				if tt.wantErr {
-					require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-					require.Error(t, err)
-					require.Contains(t, err.Error(), tt.wantErrContains)
-					return
-				}
-
-				require.NoError(t, err)
-
-				laterBidderBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(tt.refundToAccount), params.BaseDenom)
-				require.Equal(t, tt.refundAmount.Amount.BigInt(), laterBidderBalance.Amount.BigInt())
-
-				laterDymNsModuleBalance := bk.GetBalance(ctx, dymNsModuleAccAddr, params.BaseDenom)
-				if tt.genesis {
-					require.True(t, laterDymNsModuleBalance.IsZero())
-				} else {
-					require.Equal(t, tt.fundModuleAccountBalance.Sub(tt.refundAmount).Amount.BigInt(), laterDymNsModuleBalance.Amount.BigInt())
-				}
-
-				// event should be fired
-				events := ctx.EventManager().Events()
-				require.NotEmpty(t, events)
-
-				var found bool
-				for _, event := range events {
-					if event.Type == dymnstypes.EventTypeBoRefundOffer {
-						found = true
-						break
+					var orderParams []string
+					if assetType == dymnstypes.TypeAlias {
+						orderParams = []string{"rollapp_1-1"}
 					}
-				}
 
-				if !found {
-					t.Errorf("event %s not found", dymnstypes.EventTypeBoRefundOffer)
-				}
-			})
-		}
+					offer := dymnstypes.BuyOrder{
+						Id:         dymnstypes.CreateBuyOrderId(assetType, 1),
+						AssetId:    "asset",
+						AssetType:  assetType,
+						Params:     orderParams,
+						Buyer:      tt.refundToAccount,
+						OfferPrice: tt.refundAmount,
+					}
+
+					var err error
+					if tt.genesis {
+						err = s.dymNsKeeper.GenesisRefundBuyOrder(s.ctx, offer)
+					} else {
+						err = s.dymNsKeeper.RefundBuyOrder(s.ctx, offer)
+					}
+
+					if tt.wantErr {
+						s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
+						s.Require().Error(err)
+						s.Require().Contains(err.Error(), tt.wantErrContains)
+						return
+					}
+
+					s.Require().NoError(err)
+
+					laterBidderBalance := s.balance2(tt.refundToAccount)
+					s.Require().Equal(tt.refundAmount.Amount.String(), laterBidderBalance.String())
+
+					laterDymNsModuleBalance := s.moduleBalance2()
+					if tt.genesis {
+						s.Require().True(laterDymNsModuleBalance.IsZero())
+					} else {
+						s.Require().Equal(
+							tt.fundModuleAccountBalance.Sub(tt.refundAmount).Amount.String(),
+							laterDymNsModuleBalance.String(),
+						)
+					}
+
+					// event should be fired
+					events := s.ctx.EventManager().Events()
+					s.Require().NotEmpty(events)
+
+					var found bool
+					for _, event := range events {
+						if event.Type == dymnstypes.EventTypeBoRefundOffer {
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						s.T().Errorf("event %s not found", dymnstypes.EventTypeBoRefundOffer)
+					}
+				})
+			}
+		})
 	}
 }

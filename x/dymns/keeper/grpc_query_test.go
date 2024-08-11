@@ -5,13 +5,13 @@ import (
 	"sort"
 	"time"
 
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func (s *KeeperTestSuite) Test_queryServer_Params() {
@@ -106,7 +106,7 @@ func (s *KeeperTestSuite) Test_queryServer_DymName() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			if tt.dymName != nil {
 				err := s.dymNsKeeper.SetDymName(s.ctx, *tt.dymName)
@@ -131,7 +131,7 @@ func (s *KeeperTestSuite) Test_queryServer_DymName() {
 	}
 
 	s.Run("reject nil request", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 		resp, err := queryServer.DymName(sdk.WrapSDKContext(s.ctx), nil)
@@ -161,7 +161,7 @@ func (s *KeeperTestSuite) Test_queryServer_ResolveDymNameAddresses() {
 		Name:       "b",
 		Owner:      addr1a,
 		Controller: addr2a,
-		ExpireAt:   s.now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 100,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: addr2a,
@@ -173,7 +173,7 @@ func (s *KeeperTestSuite) Test_queryServer_ResolveDymNameAddresses() {
 		Name:       "c",
 		Owner:      addr1a,
 		Controller: addr2a,
-		ExpireAt:   s.now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 100,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: addr3a,
@@ -185,7 +185,7 @@ func (s *KeeperTestSuite) Test_queryServer_ResolveDymNameAddresses() {
 		Name:       "d",
 		Owner:      addr1a,
 		Controller: addr2a,
-		ExpireAt:   s.now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 100,
 		Configs: []dymnstypes.DymNameConfig{
 			{
 				Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -261,7 +261,7 @@ func (s *KeeperTestSuite) Test_queryServer_DymNamesOwnedByAccount() {
 		Name:       "a",
 		Owner:      addr1a,
 		Controller: addr2a,
-		ExpireAt:   s.now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 100,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: addr1a,
@@ -273,7 +273,7 @@ func (s *KeeperTestSuite) Test_queryServer_DymNamesOwnedByAccount() {
 		Name:       "b",
 		Owner:      addr1a,
 		Controller: addr2a,
-		ExpireAt:   s.now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 100,
 	}
 	s.setDymNameWithFunctionsAfter(dymNameB)
 
@@ -293,7 +293,7 @@ func (s *KeeperTestSuite) Test_queryServer_DymNamesOwnedByAccount() {
 		Name:       "d",
 		Owner:      addr3a,
 		Controller: addr3a,
-		ExpireAt:   s.now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 100,
 	}
 	s.setDymNameWithFunctionsAfter(dymNameD)
 
@@ -471,7 +471,7 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			if tt.preRunFunc != nil {
 				tt.preRunFunc(s)
@@ -507,11 +507,11 @@ func (s *KeeperTestSuite) Test_queryServer_HistoricalSellOrderOfDymName() {
 			AssetId:   dymNameA.Name,
 			AssetType: dymnstypes.TypeName,
 			ExpireAt:  s.now.Unix() + r,
-			MinPrice:  dymnsutils.TestCoin(100),
-			SellPrice: dymnsutils.TestCoinP(200),
+			MinPrice:  s.coin(100),
+			SellPrice: uptr.To(s.coin(200)),
 			HighestBid: &dymnstypes.SellOrderBid{
 				Bidder: addr3a,
-				Price:  dymnsutils.TestCoin(200),
+				Price:  s.coin(200),
 			},
 		})
 		s.Require().NoError(err)
@@ -531,11 +531,11 @@ func (s *KeeperTestSuite) Test_queryServer_HistoricalSellOrderOfDymName() {
 			AssetId:   dymNameB.Name,
 			AssetType: dymnstypes.TypeName,
 			ExpireAt:  s.now.Unix() + r,
-			MinPrice:  dymnsutils.TestCoin(100),
-			SellPrice: dymnsutils.TestCoinP(300),
+			MinPrice:  s.coin(100),
+			SellPrice: uptr.To(s.coin(300)),
 			HighestBid: &dymnstypes.SellOrderBid{
 				Bidder: addr3a,
-				Price:  dymnsutils.TestCoin(300),
+				Price:  s.coin(300),
 			},
 		})
 		s.Require().NoError(err)
@@ -608,7 +608,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 
 		return params
 	})
-	s.MakeAnchorContext()
+	s.SaveCurrentContext()
 
 	buyerA := testAddr(1).bech32()
 	previousOwnerA := testAddr(2).bech32()
@@ -694,7 +694,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "a",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           1,
@@ -708,7 +708,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "a",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           2,
@@ -722,7 +722,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "a",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           99,
@@ -736,7 +736,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "bridge",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           1,
@@ -750,7 +750,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "bridge",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           2,
@@ -764,7 +764,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "bridge",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           99,
@@ -916,7 +916,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "a",
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			newOwner:        buyerA,
 			duration:        1,
@@ -930,7 +930,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 				Name:       "a",
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			newOwner:        "",
 			duration:        1,
@@ -970,7 +970,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.UseAnchorContext()
+			s.RefreshContext()
 
 			s.Require().Positive(s.dymNsKeeper.MiscParams(s.ctx).GracePeriodDuration, "bad setup, must have grace period")
 
@@ -1020,33 +1020,22 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 	const nimChainId = "nim_1122-1"
 
-	setupTest := func() {
-		s.SetupTest()
-
-		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-			moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
-				{
-					ChainId: s.chainId,
-					Aliases: []string{"dym"},
-				},
-				{
-					ChainId: nimChainId,
-					Aliases: []string{"nim"},
-				},
-			}
-			return moduleParams
-		})
-
-		// add rollapp to enable hex address reverse mapping for this chain
-		s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
-			RollappId: nimChainId,
-			Owner:     testAddr(0).bech32(),
-		})
-	}
+	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+		moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+			{
+				ChainId: s.chainId,
+				Aliases: []string{"dym"},
+			},
+			{
+				ChainId: nimChainId,
+				Aliases: []string{"nim"},
+			},
+		}
+		return moduleParams
+	})
+	s.SaveCurrentContext()
 
 	s.Run("reject nil request", func() {
-		s.SetupTest()
-
 		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
 		resp, err := queryServer.ReverseResolveAddress(sdk.WrapSDKContext(s.ctx), nil)
@@ -1055,8 +1044,6 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 	})
 
 	s.Run("reject empty request", func() {
-		s.SetupTest()
-
 		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
 		resp, err := queryServer.ReverseResolveAddress(sdk.WrapSDKContext(s.ctx), &dymnstypes.ReverseResolveAddressRequest{
@@ -1090,7 +1077,7 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 			},
 			addresses: []string{ownerAcc.bech32(), ownerAcc.hexStr()},
@@ -1112,7 +1099,7 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 			},
 			addresses: []string{ownerAcc.bech32(), ownerAcc.hexStr(), "@", string(make([]rune, 1000))},
@@ -1146,7 +1133,7 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1190,7 +1177,7 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1234,7 +1221,7 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1262,7 +1249,7 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1282,7 +1269,7 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 					Name:       "b",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1302,7 +1289,7 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 					Name:       "c",
 					Owner:      anotherAcc.bech32(),
 					Controller: anotherAcc.bech32(),
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1332,7 +1319,7 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1369,7 +1356,7 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1383,7 +1370,7 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 					Name:       "ica",
 					Owner:      icaAcc.bech32(),
 					Controller: icaAcc.bech32(),
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 			},
 			addresses: []string{icaAcc.bech32(), icaAcc.hexStr()},
@@ -1405,7 +1392,7 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1436,7 +1423,7 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 			},
 			addresses: []string{anotherAcc.bech32(), anotherAcc.hexStr()},
@@ -1458,7 +1445,7 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 					Name:       "a",
 					Owner:      ownerAcc.bech32(),
 					Controller: ownerAcc.bech32(),
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1481,7 +1468,7 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			setupTest()
+			s.RefreshContext()
 
 			for _, dymName := range tt.dymNames {
 				s.setDymNameWithFunctionsAfter(dymName)
@@ -1527,7 +1514,7 @@ func (s *KeeperTestSuite) Test_queryServer_TranslateAliasOrChainIdToChainId() {
 		}
 		return moduleParams
 	})
-	s.MakeAnchorContext()
+	s.SaveCurrentContext()
 
 	s.Run("reject nil request", func() {
 		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
@@ -1548,7 +1535,7 @@ func (s *KeeperTestSuite) Test_queryServer_TranslateAliasOrChainIdToChainId() {
 	})
 
 	s.Run("resolve alias to chain-id", func() {
-		s.UseAnchorContext()
+		s.RefreshContext()
 
 		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
@@ -1563,7 +1550,7 @@ func (s *KeeperTestSuite) Test_queryServer_TranslateAliasOrChainIdToChainId() {
 	})
 
 	s.Run("resolve chain-id to chain-id", func() {
-		s.UseAnchorContext()
+		s.RefreshContext()
 
 		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
@@ -1578,7 +1565,7 @@ func (s *KeeperTestSuite) Test_queryServer_TranslateAliasOrChainIdToChainId() {
 	})
 
 	s.Run("treat unknown-chain-id as chain-id", func() {
-		s.UseAnchorContext()
+		s.RefreshContext()
 
 		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
 
@@ -1622,7 +1609,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrderById() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 			},
 			buyOrderId: "101",
@@ -1632,7 +1619,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrderById() {
 				AssetId:    "a",
 				AssetType:  dymnstypes.TypeName,
 				Buyer:      buyerA,
-				OfferPrice: dymnsutils.TestCoin(1),
+				OfferPrice: s.coin(1),
 			},
 		},
 		{
@@ -1643,21 +1630,21 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrderById() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 				{
 					Id:         "102",
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(2),
+					OfferPrice: s.coin(2),
 				},
 				{
 					Id:         "103",
 					AssetId:    "b",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(3),
+					OfferPrice: s.coin(3),
 				},
 			},
 			buyOrderId: "102",
@@ -1667,7 +1654,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrderById() {
 				AssetId:    "a",
 				AssetType:  dymnstypes.TypeName,
 				Buyer:      buyerA,
-				OfferPrice: dymnsutils.TestCoin(2),
+				OfferPrice: s.coin(2),
 			},
 		},
 		{
@@ -1678,14 +1665,14 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrderById() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 				{
 					Id:         "102",
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(2),
+					OfferPrice: s.coin(2),
 				},
 			},
 			buyOrderId:      "103",
@@ -1700,7 +1687,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrderById() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 			},
 			buyOrderId:      "",
@@ -1715,7 +1702,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrderById() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 			},
 			buyOrderId:      "@",
@@ -1725,7 +1712,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrderById() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			for _, offer := range tt.buyOrders {
 				err := s.dymNsKeeper.SetBuyOrder(s.ctx, offer)
@@ -1780,7 +1767,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersPlacedByAccount() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 			},
 			account: buyerA,
@@ -1791,7 +1778,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersPlacedByAccount() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 			},
 		},
@@ -1803,28 +1790,28 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersPlacedByAccount() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 				{
 					Id:         "102",
 					AssetId:    "b",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(2),
+					OfferPrice: s.coin(2),
 				},
 				{
 					Id:         "103",
 					AssetId:    "c",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA, // should exclude this
-					OfferPrice: dymnsutils.TestCoin(3),
+					OfferPrice: s.coin(3),
 				},
 				{
 					Id:         "104",
 					AssetId:    "d",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(4),
+					OfferPrice: s.coin(4),
 				},
 			},
 			account: buyerA,
@@ -1835,21 +1822,21 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersPlacedByAccount() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 				{
 					Id:         "102",
 					AssetId:    "b",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(2),
+					OfferPrice: s.coin(2),
 				},
 				{
 					Id:         "104",
 					AssetId:    "d",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(4),
+					OfferPrice: s.coin(4),
 				},
 			},
 		},
@@ -1861,14 +1848,14 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersPlacedByAccount() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 				{
 					Id:         "102",
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 			},
 			account:    buyerA,
@@ -1883,7 +1870,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersPlacedByAccount() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 			},
 			account: "",
@@ -1897,7 +1884,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersPlacedByAccount() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 			},
 			account: "0x1",
@@ -1906,7 +1893,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersPlacedByAccount() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			for _, dymName := range tt.dymNames {
 				err := s.dymNsKeeper.SetDymName(s.ctx, dymName)
@@ -1979,7 +1966,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByDymName() {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -1988,7 +1975,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByDymName() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 			},
 			dymName: "a",
@@ -1999,7 +1986,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByDymName() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 			},
 		},
@@ -2010,13 +1997,13 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByDymName() {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 				{
 					Name:       "b",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2025,21 +2012,21 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByDymName() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 				{
 					Id:         "102",
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
-					OfferPrice: dymnsutils.TestCoin(2),
+					OfferPrice: s.coin(2),
 				},
 				{
 					Id:         "103",
 					AssetId:    "b",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
-					OfferPrice: dymnsutils.TestCoin(3),
+					OfferPrice: s.coin(3),
 				},
 			},
 			dymName: "a",
@@ -2050,14 +2037,14 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByDymName() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 				{
 					Id:         "102",
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
-					OfferPrice: dymnsutils.TestCoin(2),
+					OfferPrice: s.coin(2),
 				},
 			},
 		},
@@ -2068,13 +2055,13 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByDymName() {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 				{
 					Name:       "b",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2083,21 +2070,21 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByDymName() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 				{
 					Id:         "102",
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
-					OfferPrice: dymnsutils.TestCoin(2),
+					OfferPrice: s.coin(2),
 				},
 				{
 					Id:         "103",
 					AssetId:    "b",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
-					OfferPrice: dymnsutils.TestCoin(3),
+					OfferPrice: s.coin(3),
 				},
 			},
 			dymName:    "c",
@@ -2111,7 +2098,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByDymName() {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2120,7 +2107,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByDymName() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 			},
 			dymName: "",
@@ -2133,7 +2120,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByDymName() {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2142,7 +2129,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByDymName() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 			},
 			dymName: "@",
@@ -2151,7 +2138,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByDymName() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			for _, dymName := range tt.dymNames {
 				err := s.dymNsKeeper.SetDymName(s.ctx, dymName)
@@ -2224,7 +2211,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount() {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2233,7 +2220,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 			},
 			owner:   ownerA,
@@ -2244,7 +2231,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 			},
 		},
@@ -2255,19 +2242,19 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount() {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 				{
 					Name:       "b",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 				{
 					Name:       "c",
 					Owner:      anotherA,
 					Controller: anotherA,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2276,28 +2263,28 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 				{
 					Id:         "102",
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
-					OfferPrice: dymnsutils.TestCoin(2),
+					OfferPrice: s.coin(2),
 				},
 				{
 					Id:         "103",
 					AssetId:    "b",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
-					OfferPrice: dymnsutils.TestCoin(3),
+					OfferPrice: s.coin(3),
 				},
 				{
 					Id:         "104",
 					AssetId:    "c",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      ownerA,
-					OfferPrice: dymnsutils.TestCoin(3),
+					OfferPrice: s.coin(3),
 				},
 			},
 			owner:   ownerA,
@@ -2308,21 +2295,21 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 				{
 					Id:         "102",
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
-					OfferPrice: dymnsutils.TestCoin(2),
+					OfferPrice: s.coin(2),
 				},
 				{
 					Id:         "103",
 					AssetId:    "b",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
-					OfferPrice: dymnsutils.TestCoin(3),
+					OfferPrice: s.coin(3),
 				},
 			},
 		},
@@ -2333,13 +2320,13 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount() {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 				{
 					Name:       "b",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2348,21 +2335,21 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 				{
 					Id:         "102",
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
-					OfferPrice: dymnsutils.TestCoin(2),
+					OfferPrice: s.coin(2),
 				},
 				{
 					Id:         "103",
 					AssetId:    "b",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      anotherA,
-					OfferPrice: dymnsutils.TestCoin(3),
+					OfferPrice: s.coin(3),
 				},
 			},
 			owner:      anotherA,
@@ -2376,7 +2363,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount() {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2385,7 +2372,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 			},
 			owner:   "",
@@ -2398,7 +2385,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount() {
 					Name:       "a",
 					Owner:      ownerA,
 					Controller: ownerA,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 			},
 			offers: []dymnstypes.BuyOrder{
@@ -2407,7 +2394,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount() {
 					AssetId:    "a",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
 			},
 			owner:   "0x1",
@@ -2416,7 +2403,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			for _, dymName := range tt.dymNames {
 				s.setDymNameWithFunctionsAfter(dymName)
@@ -2637,7 +2624,7 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			for _, rollApp := range tt.rollApps {
 				s.persistRollApp(rollApp)
@@ -2759,7 +2746,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByAlias() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			for _, rollapp := range tt.rollapp {
 				s.persistRollApp(rollapp)
@@ -2974,7 +2961,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersOfAliasesLinkedToRollApp() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			for _, rollapp := range tt.rollapp {
 				s.persistRollApp(rollapp)

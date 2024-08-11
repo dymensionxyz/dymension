@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"time"
 
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -10,13 +12,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
 func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 	now := time.Now().UTC()
 
-	denom := dymnsutils.TestCoin(0).Denom
+	denom := s.coin(0).Denom
 	const firstYearPrice1L = 6
 	const firstYearPrice2L = 5
 	const firstYearPrice3L = 4
@@ -64,7 +65,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 
 		return moduleParams
 	})
-	s.MakeAnchorContext()
+	s.SaveCurrentContext()
 
 	s.Run("reject if message not pass validate basic", func() {
 		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).RegisterName(s.ctx, &dymnstypes.MsgRegisterName{})
@@ -95,7 +96,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + extendsPrice + 3,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
+			confirmPayment:  s.coin(firstYearPrice5PlusL + extendsPrice),
 			contact:         "contact@example.com",
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
@@ -110,7 +111,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           buyerA,
 			originalBalance: 1,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
+			confirmPayment:  s.coin(firstYearPrice5PlusL + extendsPrice),
 			contact:         "contact@example.com",
 			existingDymName: &dymnstypes.DymName{
 				Owner:      previousOwnerA,
@@ -133,7 +134,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           buyerA,
 			originalBalance: 1,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
+			confirmPayment:  s.coin(firstYearPrice5PlusL + extendsPrice),
 			existingDymName: &dymnstypes.DymName{
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
@@ -153,7 +154,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:            buyerA,
 			originalBalance:  1,
 			duration:         2,
-			confirmPayment:   dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
+			confirmPayment:   s.coin(firstYearPrice5PlusL + extendsPrice),
 			wantErr:          true,
 			wantErrContains:  "insufficient funds",
 			wantLaterBalance: 1,
@@ -163,7 +164,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:            buyerA,
 			originalBalance:  firstYearPrice5PlusL + extendsPrice + 3,
 			duration:         2,
-			confirmPayment:   dymnsutils.TestCoin(1),
+			confirmPayment:   s.coin(1),
 			wantErr:          true,
 			wantErrContains:  "actual payment is is different with provided by user",
 			wantLaterBalance: firstYearPrice5PlusL + extendsPrice + 3,
@@ -173,7 +174,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + extendsPrice*2 + 3,
 			duration:        3,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice*2),
+			confirmPayment:  s.coin(firstYearPrice5PlusL + extendsPrice*2),
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
@@ -186,7 +187,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + 3,
 			duration:        1,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL),
+			confirmPayment:  s.coin(firstYearPrice5PlusL),
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
@@ -200,7 +201,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			customDymName:   "kids",
 			originalBalance: firstYearPrice4L + extendsPrice + 3,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice4L + extendsPrice),
+			confirmPayment:  s.coin(firstYearPrice4L + extendsPrice),
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
@@ -214,7 +215,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			customDymName:   "kids",
 			originalBalance: firstYearPrice4L + 3,
 			duration:        1,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice4L),
+			confirmPayment:  s.coin(firstYearPrice4L),
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
@@ -228,7 +229,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			customDymName:   "abc",
 			originalBalance: firstYearPrice3L + extendsPrice + 3,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice3L + extendsPrice),
+			confirmPayment:  s.coin(firstYearPrice3L + extendsPrice),
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
@@ -242,7 +243,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			customDymName:   "abc",
 			originalBalance: firstYearPrice3L + 3,
 			duration:        1,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice3L),
+			confirmPayment:  s.coin(firstYearPrice3L),
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
@@ -256,7 +257,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			customDymName:   "ab",
 			originalBalance: firstYearPrice2L + extendsPrice + 3,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice2L + extendsPrice),
+			confirmPayment:  s.coin(firstYearPrice2L + extendsPrice),
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
@@ -270,7 +271,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			customDymName:   "ab",
 			originalBalance: firstYearPrice2L + 3,
 			duration:        1,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice2L),
+			confirmPayment:  s.coin(firstYearPrice2L),
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
@@ -284,7 +285,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			customDymName:   "a",
 			originalBalance: firstYearPrice1L + extendsPrice + 3,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice1L + extendsPrice),
+			confirmPayment:  s.coin(firstYearPrice1L + extendsPrice),
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
@@ -298,7 +299,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			customDymName:   "a",
 			originalBalance: firstYearPrice1L + 3,
 			duration:        1,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice1L),
+			confirmPayment:  s.coin(firstYearPrice1L),
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
@@ -311,16 +312,16 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(extendsPrice * 2),
+			confirmPayment:  s.coin(extendsPrice * 2),
 			existingDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   now.Unix() + 100,
 			},
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1 + 86400*365*2,
+				ExpireAt:   now.Unix() + 100 + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
@@ -329,11 +330,11 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(extendsPrice * 2),
+			confirmPayment:  s.coin(extendsPrice * 2),
 			existingDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: buyerA,
@@ -344,7 +345,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1 + 86400*365*2,
+				ExpireAt:   now.Unix() + 100 + 86400*365*2,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: buyerA,
@@ -359,12 +360,12 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(extendsPrice * 2),
+			confirmPayment:  s.coin(extendsPrice * 2),
 			contact:         "new-contact@example.com",
 			existingDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: buyerA,
@@ -375,7 +376,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1 + 86400*365*2,
+				ExpireAt:   now.Unix() + 100 + 86400*365*2,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: buyerA,
@@ -390,7 +391,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(extendsPrice * 2),
+			confirmPayment:  s.coin(extendsPrice * 2),
 			existingDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
@@ -408,7 +409,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(extendsPrice * 2),
+			confirmPayment:  s.coin(extendsPrice * 2),
 			contact:         "new-contact@example.com",
 			existingDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
@@ -428,7 +429,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(extendsPrice * 2),
+			confirmPayment:  s.coin(extendsPrice * 2),
 			existingDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
@@ -453,7 +454,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(extendsPrice * 2),
+			confirmPayment:  s.coin(extendsPrice * 2),
 			contact:         "new-contact@example.com",
 			existingDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
@@ -480,7 +481,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + extendsPrice + 3,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
+			confirmPayment:  s.coin(firstYearPrice5PlusL + extendsPrice),
 			existingDymName: &dymnstypes.DymName{
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
@@ -498,7 +499,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + extendsPrice + 3,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
+			confirmPayment:  s.coin(firstYearPrice5PlusL + extendsPrice),
 			existingDymName: &dymnstypes.DymName{
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
@@ -522,7 +523,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + extendsPrice + 3,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
+			confirmPayment:  s.coin(firstYearPrice5PlusL + extendsPrice),
 			contact:         "new-contact@example.com",
 			existingDymName: &dymnstypes.DymName{
 				Owner:      previousOwnerA,
@@ -548,7 +549,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           buyerA,
 			originalBalance: 1,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
+			confirmPayment:  s.coin(firstYearPrice5PlusL + extendsPrice),
 			existingDymName: &dymnstypes.DymName{
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
@@ -568,7 +569,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			buyer:           preservedAddr1a,
 			originalBalance: firstYearPrice5PlusL + 3,
 			duration:        1,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL),
+			confirmPayment:  s.coin(firstYearPrice5PlusL),
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      preservedAddr1a,
 				Controller: preservedAddr1a,
@@ -582,7 +583,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			customDymName:   preservedDymName,
 			originalBalance: firstYearPrice5PlusL + extendsPrice + 3,
 			duration:        2,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
+			confirmPayment:  s.coin(firstYearPrice5PlusL + extendsPrice),
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      preservedAddr1a,
 				Controller: preservedAddr1a,
@@ -596,7 +597,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			customDymName:   preservedDymName,
 			originalBalance: firstYearPrice5PlusL + 3,
 			duration:        1,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL),
+			confirmPayment:  s.coin(firstYearPrice5PlusL),
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      preservedAddr2a,
 				Controller: preservedAddr2a,
@@ -610,7 +611,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			customDymName:    preservedDymName,
 			originalBalance:  firstYearPrice5PlusL + 3,
 			duration:         1,
-			confirmPayment:   dymnsutils.TestCoin(firstYearPrice5PlusL),
+			confirmPayment:   s.coin(firstYearPrice5PlusL),
 			wantErr:          true,
 			wantErrContains:  "only able to be registered by specific addresses",
 			wantLaterBalance: firstYearPrice5PlusL + 3,
@@ -621,7 +622,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			customDymName:   preservedDymName,
 			originalBalance: firstYearPrice5PlusL + 3,
 			duration:        1,
-			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL),
+			confirmPayment:  s.coin(firstYearPrice5PlusL),
 			preRunSetup: func(s *KeeperTestSuite) {
 				s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
 					moduleParams.PreservedRegistration.ExpirationEpoch = now.Add(-time.Hour).Unix()
@@ -638,7 +639,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.UseAnchorContext()
+			s.RefreshContext()
 
 			s.mintToModuleAccount2(sdk.NewInt(originalModuleBalance).Mul(priceMultiplier))
 
@@ -661,7 +662,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 						AssetId:   useRecordName,
 						AssetType: dymnstypes.TypeName,
 						ExpireAt:  now.Unix() - 1,
-						MinPrice:  dymnsutils.TestCoin(1),
+						MinPrice:  s.coin(1),
 					}
 					err := s.dymNsKeeper.SetSellOrder(s.ctx, so1)
 					s.Require().NoError(err)
@@ -673,11 +674,11 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 						AssetId:   useRecordName,
 						AssetType: dymnstypes.TypeName,
 						ExpireAt:  tt.existingDymName.ExpireAt - 1,
-						MinPrice:  dymnsutils.TestCoin(1),
-						SellPrice: dymnsutils.TestCoinP(2),
+						MinPrice:  s.coin(1),
+						SellPrice: uptr.To(s.coin(2)),
 						HighestBid: &dymnstypes.SellOrderBid{
 							Bidder: anotherA,
-							Price:  dymnsutils.TestCoin(2),
+							Price:  s.coin(2),
 						},
 					}
 					err = s.dymNsKeeper.SetSellOrder(s.ctx, so2)
@@ -918,7 +919,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "a",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           1,
@@ -932,7 +933,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "a",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           2,
@@ -946,7 +947,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "a",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           99,
@@ -960,7 +961,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "bridge",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           1,
@@ -974,7 +975,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "bridge",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           2,
@@ -988,7 +989,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "central",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           99,

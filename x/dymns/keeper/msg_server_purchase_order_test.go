@@ -2,70 +2,47 @@ package keeper_test
 
 import (
 	"fmt"
-	"testing"
-	"time"
+
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-	"github.com/stretchr/testify/require"
 )
 
-func Test_msgServer_PurchaseOrder_DymName(t *testing.T) {
-	now := time.Now().UTC()
-	futureEpoch := now.Unix() + 1
-
-	setupTest := func() (dymnskeeper.Keeper, dymnstypes.BankKeeper, sdk.Context) {
-		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockTime(now)
-
-		// force enable trading
-		moduleParams := dk.GetParams(ctx)
-		moduleParams.Misc.EnableTradingName = true
-		moduleParams.Misc.EnableTradingAlias = true
-		require.NoError(t, dk.SetParams(ctx, moduleParams))
-
-		return dk, bk, ctx
-	}
-
-	t.Run("reject if message not pass validate basic", func(t *testing.T) {
-		dk, _, ctx := setupTest()
-
-		_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
+func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_DymName() {
+	s.Run("reject if message not pass validate basic", func() {
+		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &dymnstypes.MsgPurchaseOrder{
 			AssetType: dymnstypes.TypeName,
 		})
 
-		require.ErrorContains(t, err, gerrc.ErrInvalidArgument.Error())
+		s.Require().ErrorContains(err, gerrc.ErrInvalidArgument.Error())
 	})
 
-	t.Run("reject if message asset type is Unknown", func(t *testing.T) {
-		dk, _, ctx := setupTest()
-
-		_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
+	s.Run("reject if message asset type is Unknown", func() {
+		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &dymnstypes.MsgPurchaseOrder{
 			AssetId:   "asset",
 			AssetType: dymnstypes.AssetType_AT_UNKNOWN,
 			Buyer:     testAddr(0).bech32(),
-			Offer:     dymnsutils.TestCoin(1),
+			Offer:     s.coin(1),
 		})
 
-		require.ErrorContains(t, err, gerrc.ErrInvalidArgument.Error())
+		s.Require().ErrorContains(err, gerrc.ErrInvalidArgument.Error())
 	})
 
 	ownerA := testAddr(1).bech32()
 	buyerA := testAddr(2).bech32()
 	previousBidderA := testAddr(3).bech32()
 
-	originalDymNameExpiry := futureEpoch
+	originalDymNameExpiry := s.now.Unix() + 100
 	dymName := dymnstypes.DymName{
 		Name:       "my-name",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   originalDymNameExpiry,
+		ExpireAt:   s.now.Unix() + 100,
 	}
 
 	const ownerOriginalBalance int64 = 1000
@@ -416,9 +393,8 @@ func Test_msgServer_PurchaseOrder_DymName(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// setup execution context
-			dk, bk, ctx := setupTest()
+		s.Run(tt.name, func() {
+			s.RefreshContext()
 
 			useOwnerOriginalBalance := ownerOriginalBalance
 			useBuyerOriginalBalance := buyerOriginalBalance
@@ -427,28 +403,9 @@ func Test_msgServer_PurchaseOrder_DymName(t *testing.T) {
 			}
 			usePreviousBidderOriginalBalance := previousBidderOriginalBalance
 
-			err := bk.MintCoins(ctx,
-				dymnstypes.ModuleName,
-				dymnsutils.TestCoins(
-					useOwnerOriginalBalance+useBuyerOriginalBalance+usePreviousBidderOriginalBalance,
-				),
-			)
-			require.NoError(t, err)
-			err = bk.SendCoinsFromModuleToAccount(ctx,
-				dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(ownerA),
-				dymnsutils.TestCoins(useOwnerOriginalBalance),
-			)
-			require.NoError(t, err)
-			err = bk.SendCoinsFromModuleToAccount(ctx,
-				dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(buyerA),
-				dymnsutils.TestCoins(useBuyerOriginalBalance),
-			)
-			require.NoError(t, err)
-			err = bk.SendCoinsFromModuleToAccount(ctx,
-				dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(previousBidderA),
-				dymnsutils.TestCoins(usePreviousBidderOriginalBalance),
-			)
-			require.NoError(t, err)
+			s.mintToAccount(ownerA, useOwnerOriginalBalance)
+			s.mintToAccount(buyerA, useBuyerOriginalBalance)
+			s.mintToAccount(previousBidderA, usePreviousBidderOriginalBalance)
 
 			dymName.Configs = []dymnstypes.DymNameConfig{
 				{
@@ -458,48 +415,48 @@ func Test_msgServer_PurchaseOrder_DymName(t *testing.T) {
 			}
 
 			if !tt.withoutDymName {
-				setDymNameWithFunctionsAfter(ctx, dymName, t, dk)
+				s.setDymNameWithFunctionsAfter(dymName)
 			}
 
 			so := dymnstypes.SellOrder{
 				AssetId:   dymName.Name,
 				AssetType: dymnstypes.TypeName,
-				MinPrice:  dymnsutils.TestCoin(minPrice),
+				MinPrice:  s.coin(minPrice),
 			}
 
 			if tt.expiredSellOrder {
-				so.ExpireAt = now.Unix() - 1
+				so.ExpireAt = s.now.Unix() - 1
 			} else {
-				so.ExpireAt = futureEpoch
+				so.ExpireAt = s.now.Unix() + 100
 			}
 
-			require.GreaterOrEqual(t, tt.sellPrice, int64(0), "bad setup")
+			s.Require().GreaterOrEqual(tt.sellPrice, int64(0), "bad setup")
 			if tt.sellPrice > 0 {
-				so.SellPrice = dymnsutils.TestCoinP(tt.sellPrice)
+				so.SellPrice = uptr.To(s.coin(tt.sellPrice))
 			}
 
-			require.GreaterOrEqual(t, tt.previousBid, int64(0), "bad setup")
+			s.Require().GreaterOrEqual(tt.previousBid, int64(0), "bad setup")
 			if tt.previousBid > 0 {
 				so.HighestBid = &dymnstypes.SellOrderBid{
 					Bidder: previousBidderA,
-					Price:  dymnsutils.TestCoin(tt.previousBid),
+					Price:  s.coin(tt.previousBid),
 				}
 
 				// mint coin to module account because we charged bidder before update SO
 				if !tt.skipPreMintModuleAccount {
-					err = bk.MintCoins(ctx, dymnstypes.ModuleName, sdk.NewCoins(so.HighestBid.Price))
-					require.NoError(t, err)
+					err := s.bankKeeper.MintCoins(s.ctx, dymnstypes.ModuleName, sdk.NewCoins(so.HighestBid.Price))
+					s.Require().NoError(err)
 				}
 			}
 
 			if !tt.withoutSellOrder {
-				err = dk.SetSellOrder(ctx, so)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetSellOrder(s.ctx, so)
+				s.Require().NoError(err)
 			}
 
 			// test
 
-			require.GreaterOrEqual(t, tt.newBid, int64(0), "mis-configured test case")
+			s.Require().GreaterOrEqual(tt.newBid, int64(0), "mis-configured test case")
 			useBuyer := buyerA
 			if tt.customBuyer != "" {
 				useBuyer = tt.customBuyer
@@ -508,126 +465,117 @@ func Test_msgServer_PurchaseOrder_DymName(t *testing.T) {
 			if tt.customBidDenom != "" {
 				useDenom = tt.customBidDenom
 			}
-			resp, errPurchaseName := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
+			resp, errPurchaseName := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &dymnstypes.MsgPurchaseOrder{
 				AssetId:   dymName.Name,
 				AssetType: dymnstypes.TypeName,
 				Offer:     sdk.NewInt64Coin(useDenom, tt.newBid),
 				Buyer:     useBuyer,
 			})
-			laterDymName := dk.GetDymName(ctx, dymName.Name)
+			laterDymName := s.dymNsKeeper.GetDymName(s.ctx, dymName.Name)
 			if !tt.withoutDymName {
-				require.NotNil(t, laterDymName)
-				require.Equal(t, dymName.Name, laterDymName.Name, "name should not be changed")
-				require.Equal(t, originalDymNameExpiry, laterDymName.ExpireAt, "expiry should not be changed")
+				s.Require().NotNil(laterDymName)
+				s.Require().Equal(dymName.Name, laterDymName.Name, "name should not be changed")
+				s.Require().Equal(originalDymNameExpiry, laterDymName.ExpireAt, "expiry should not be changed")
 			}
 
-			laterSo := dk.GetSellOrder(ctx, dymName.Name, dymnstypes.TypeName)
-			historicalSo := dk.GetHistoricalSellOrders(ctx, dymName.Name, dymnstypes.TypeName)
-			laterOwnerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(ownerA), params.BaseDenom)
-			laterBuyerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(buyerA), params.BaseDenom)
-			laterPreviousBidderBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(previousBidderA), params.BaseDenom)
-			laterDymNamesOwnedByOwner, err := dk.GetDymNamesOwnedBy(ctx, ownerA)
-			require.NoError(t, err)
-			laterDymNamesOwnedByBuyer, err := dk.GetDymNamesOwnedBy(ctx, buyerA)
-			require.NoError(t, err)
-			laterDymNamesOwnedByPreviousBidder, err := dk.GetDymNamesOwnedBy(ctx, previousBidderA)
-			require.NoError(t, err)
+			laterSo := s.dymNsKeeper.GetSellOrder(s.ctx, dymName.Name, dymnstypes.TypeName)
+			historicalSo := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, dymName.Name, dymnstypes.TypeName)
+			laterOwnerBalance := s.balance(ownerA)
+			laterBuyerBalance := s.balance(buyerA)
+			laterPreviousBidderBalance := s.balance(previousBidderA)
+			laterDymNamesOwnedByOwner, err := s.dymNsKeeper.GetDymNamesOwnedBy(s.ctx, ownerA)
+			s.Require().NoError(err)
+			laterDymNamesOwnedByBuyer, err := s.dymNsKeeper.GetDymNamesOwnedBy(s.ctx, buyerA)
+			s.Require().NoError(err)
+			laterDymNamesOwnedByPreviousBidder, err := s.dymNsKeeper.GetDymNamesOwnedBy(s.ctx, previousBidderA)
+			s.Require().NoError(err)
 
-			require.Equal(t, tt.wantOwnerBalanceLater, laterOwnerBalance.Amount.Int64(), "owner balance mis-match")
-			require.Equal(t, tt.wantBuyerBalanceLater, laterBuyerBalance.Amount.Int64(), "buyer balance mis-match")
-			require.Equal(t, tt.wantPreviousBidderBalanceLater, laterPreviousBidderBalance.Amount.Int64(), "previous bidder balance mis-match")
+			s.Require().Equal(tt.wantOwnerBalanceLater, laterOwnerBalance, "owner balance mis-match")
+			s.Require().Equal(tt.wantBuyerBalanceLater, laterBuyerBalance, "buyer balance mis-match")
+			s.Require().Equal(tt.wantPreviousBidderBalanceLater, laterPreviousBidderBalance, "previous bidder balance mis-match")
 
-			require.Empty(t, laterDymNamesOwnedByPreviousBidder, "no reverse record should be made for previous bidder")
+			s.Require().Empty(laterDymNamesOwnedByPreviousBidder, "no reverse record should be made for previous bidder")
 
 			if tt.wantErr {
-				require.Error(t, errPurchaseName, "action should be failed")
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Contains(t, errPurchaseName.Error(), tt.wantErrContains)
-				require.Nil(t, resp)
+				s.Require().Error(errPurchaseName, "action should be failed")
+				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
+				s.Require().Contains(errPurchaseName.Error(), tt.wantErrContains)
+				s.Require().Nil(resp)
 
-				require.False(t, tt.wantOwnershipChanged, "mis-configured test case")
+				s.Require().False(tt.wantOwnershipChanged, "mis-configured test case")
 
-				require.Less(t,
-					ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceBidOnSellOrder,
+				s.Require().Less(
+					s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceBidOnSellOrder,
 					"should not consume params gas on failed operation",
 				)
 			} else {
-				require.NoError(t, errPurchaseName, "action should be successful")
-				require.NotNil(t, resp)
+				s.Require().NoError(errPurchaseName, "action should be successful")
+				s.Require().NotNil(resp)
 
-				require.GreaterOrEqual(t,
-					ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceBidOnSellOrder,
+				s.Require().GreaterOrEqual(
+					s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceBidOnSellOrder,
 					"should consume params gas",
 				)
 			}
 
 			if tt.wantOwnershipChanged {
-				if tt.withoutDymName {
-					t.Errorf("mis-configured test case")
-					return
-				}
-				if tt.withoutSellOrder {
-					t.Errorf("mis-configured test case")
-					return
-				}
+				s.Require().False(tt.withoutDymName, "mis-configured test case")
+				s.Require().False(tt.withoutSellOrder, "mis-configured test case")
 
-				require.Nil(t, laterSo, "SO should be deleted")
-				require.Len(t, historicalSo, 1, "SO should be moved to historical")
+				s.Require().Nil(laterSo, "SO should be deleted")
+				s.Require().Len(historicalSo, 1, "SO should be moved to historical")
 
-				require.Equal(t, buyerA, laterDymName.Owner, "ownership should be changed")
-				require.Equal(t, buyerA, laterDymName.Controller, "controller should be changed")
-				require.Empty(t, laterDymName.Configs, "configs should be cleared")
-				require.Empty(t, laterDymNamesOwnedByOwner, "reverse record should be removed")
-				require.Len(t, laterDymNamesOwnedByBuyer, 1, "reverse record should be added")
+				s.Require().Equal(buyerA, laterDymName.Owner, "ownership should be changed")
+				s.Require().Equal(buyerA, laterDymName.Controller, "controller should be changed")
+				s.Require().Empty(laterDymName.Configs, "configs should be cleared")
+				s.Require().Empty(laterDymNamesOwnedByOwner, "reverse record should be removed")
+				s.Require().Len(laterDymNamesOwnedByBuyer, 1, "reverse record should be added")
 			} else {
 				if tt.withoutDymName {
-					require.Nil(t, laterDymName)
-					require.Empty(t, laterDymNamesOwnedByOwner)
-					require.Empty(t, laterDymNamesOwnedByBuyer)
+					s.Require().Nil(laterDymName)
+					s.Require().Empty(laterDymNamesOwnedByOwner)
+					s.Require().Empty(laterDymNamesOwnedByBuyer)
 				} else {
-					require.Equal(t, ownerA, laterDymName.Owner, "ownership should not be changed")
-					require.Equal(t, ownerA, laterDymName.Controller, "controller should not be changed")
-					require.NotEmpty(t, laterDymName.Configs, "configs should be kept")
-					require.Equal(t, dymName.Configs, laterDymName.Configs, "configs not be changed")
-					require.Len(t, laterDymNamesOwnedByOwner, 1, "reverse record should be kept")
-					require.Empty(t, laterDymNamesOwnedByBuyer, "reverse record should not be added")
+					s.Require().Equal(ownerA, laterDymName.Owner, "ownership should not be changed")
+					s.Require().Equal(ownerA, laterDymName.Controller, "controller should not be changed")
+					s.Require().NotEmpty(laterDymName.Configs, "configs should be kept")
+					s.Require().Equal(dymName.Configs, laterDymName.Configs, "configs not be changed")
+					s.Require().Len(laterDymNamesOwnedByOwner, 1, "reverse record should be kept")
+					s.Require().Empty(laterDymNamesOwnedByBuyer, "reverse record should not be added")
 				}
 
 				if tt.withoutSellOrder {
-					require.Nil(t, laterSo)
-					require.Empty(t, historicalSo)
+					s.Require().Nil(laterSo)
+					s.Require().Empty(historicalSo)
 				} else {
-					require.NotNil(t, laterSo, "SO should not be deleted")
-					require.Empty(t, historicalSo, "SO should not be moved to historical")
+					s.Require().NotNil(laterSo, "SO should not be deleted")
+					s.Require().Empty(historicalSo, "SO should not be moved to historical")
 				}
 			}
 		})
 	}
 
-	t.Run("reject purchase order when trading is disabled", func(t *testing.T) {
-		// setup execution context
-		dk, _, ctx := setupTest()
+	s.Run("reject purchase order when trading is disabled", func() {
+		s.RefreshContext()
 
-		moduleParams := dk.GetParams(ctx)
-		moduleParams.Misc.EnableTradingName = false
-		err := dk.SetParams(ctx, moduleParams)
-		require.NoError(t, err)
+		s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+			moduleParams.Misc.EnableTradingName = false
+			return moduleParams
+		})
 
-		_, err = dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
+		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &dymnstypes.MsgPurchaseOrder{
 			AssetId:   "my-name",
 			AssetType: dymnstypes.TypeName,
-			Offer:     dymnsutils.TestCoin(100),
+			Offer:     s.coin(100),
 			Buyer:     buyerA,
 		})
-		require.ErrorContains(t, err, "unmet precondition")
+		s.Require().ErrorContains(err, "unmet precondition")
 	})
 }
 
 //goland:noinspection GoSnakeCaseUsage
 func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 	s.Run("reject if message not pass validate basic", func() {
-		s.SetupTest()
-
 		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &dymnstypes.MsgPurchaseOrder{
 			AssetType: dymnstypes.TypeAlias,
 		})
@@ -653,7 +601,7 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 			AssetId:   assetId,
 			AssetType: dymnstypes.TypeAlias,
 			Params:    []string{dstRollAppId},
-			Offer:     dymnsutils.TestCoin(offer),
+			Offer:     s.coin(offer),
 			Buyer:     buyer,
 		}
 	}
@@ -1183,8 +1131,7 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			// setup execution context
-			s.SetupTest()
+			s.RefreshContext()
 
 			useOriginalBalanceCreator1 := originalBalanceCreator1
 			useOriginalBalanceCreator2 := originalBalanceCreator2
@@ -1287,7 +1234,7 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 	}
 
 	s.Run("reject purchase order when trading is disabled", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		moduleParams := s.dymNsKeeper.GetParams(s.ctx)
 		moduleParams.Misc.EnableTradingAlias = false
@@ -1298,7 +1245,7 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 			AssetId:   "alias",
 			AssetType: dymnstypes.TypeAlias,
 			Params:    []string{rollApp_2_byBuyer_asDst.rollAppId},
-			Offer:     dymnsutils.TestCoin(100),
+			Offer:     s.coin(100),
 			Buyer:     creator_2_asBuyer,
 		})
 		s.Require().ErrorContains(err, "trading of Alias is disabled")

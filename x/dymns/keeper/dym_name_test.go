@@ -2,17 +2,16 @@ package keeper_test
 
 import (
 	"strings"
-	"testing"
 	"time"
 	"unicode"
+
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/stretchr/testify/require"
 )
 
 func (s *KeeperTestSuite) TestKeeper_GetSetDeleteDymName() {
@@ -286,7 +285,7 @@ func (s *KeeperTestSuite) TestKeeper_GetDymNameWithExpirationCheck() {
 		Name:       "a",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   s.now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 100,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Path:  "www",
@@ -457,8 +456,8 @@ func (s *KeeperTestSuite) TestKeeper_PruneDymName() {
 		AssetId:   dymName1.Name,
 		AssetType: dymnstypes.TypeName,
 		ExpireAt:  1,
-		MinPrice:  dymnsutils.TestCoin(100),
-		SellPrice: dymnsutils.TestCoinP(300),
+		MinPrice:  s.coin(100),
+		SellPrice: uptr.To(s.coin(300)),
 	}
 	err = s.dymNsKeeper.SetSellOrder(s.ctx, expiredSo)
 	s.Require().NoError(err)
@@ -474,7 +473,7 @@ func (s *KeeperTestSuite) TestKeeper_PruneDymName() {
 		AssetId:   dymName1.Name,
 		AssetType: dymnstypes.TypeName,
 		ExpireAt:  s.now.Add(time.Hour).Unix(),
-		MinPrice:  dymnsutils.TestCoin(100),
+		MinPrice:  s.coin(100),
 	}
 	err = s.dymNsKeeper.SetSellOrder(s.ctx, so)
 	s.Require().NoError(err)
@@ -546,7 +545,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: addr3a,
@@ -561,7 +560,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: addr3a,
@@ -576,7 +575,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "b",
@@ -592,7 +591,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "b",
@@ -608,7 +607,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "c.b",
@@ -624,7 +623,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "c.b",
@@ -640,7 +639,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: addr3a,
@@ -656,7 +655,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: addr3a,
@@ -672,7 +671,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "b",
@@ -689,7 +688,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "b",
@@ -706,7 +705,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "c.b",
@@ -723,7 +722,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "",
@@ -752,7 +751,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "c.b",
@@ -769,7 +768,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "c.b",
@@ -822,7 +821,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "c.b",
@@ -875,7 +874,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "nim_1122-1",
@@ -917,7 +916,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "b",
@@ -933,7 +932,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 					Name:       "b",
 					Owner:      addr1a,
 					Controller: addr2a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "b",
@@ -971,7 +970,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
@@ -1027,7 +1026,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
@@ -1088,7 +1087,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "c.b",
@@ -1109,7 +1108,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "",
@@ -1126,7 +1125,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs:    nil,
 			},
 			dymNameAddress:    "a.dymension_1100-1",
@@ -1139,7 +1138,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1159,7 +1158,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1196,7 +1195,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1235,7 +1234,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs:    nil,
 			},
 			dymNameAddress:  "sub.a.dymension_1100-1",
@@ -1287,7 +1286,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "",
@@ -1304,7 +1303,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr2a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1413,7 +1412,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				Name:       "a",
 				Owner:      addr1a,
 				Controller: addr1a,
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1510,7 +1509,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			if tt.preSetup != nil {
 				tt.preSetup(s)
@@ -1545,7 +1544,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 	}
 
 	s.Run("mixed tests", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		bech32Addr := func(no uint64) string {
 			return testAddr(no).bech32()
@@ -1578,7 +1577,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 			Name:       "name1",
 			Owner:      bech32Addr(1),
 			Controller: bech32Addr(2),
-			ExpireAt:   s.now.Unix() + 1,
+			ExpireAt:   s.now.Unix() + 100,
 			Configs: []dymnstypes.DymNameConfig{
 				{
 					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1636,7 +1635,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 			Name:       "name2",
 			Owner:      bech32Addr(100),
 			Controller: bech32Addr(101),
-			ExpireAt:   s.now.Unix() + 1,
+			ExpireAt:   s.now.Unix() + 100,
 			Configs: []dymnstypes.DymNameConfig{
 				{
 					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1694,7 +1693,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 			Name:       "name3",
 			Owner:      bech32Addr(200),
 			Controller: bech32Addr(201),
-			ExpireAt:   s.now.Unix() + 1,
+			ExpireAt:   s.now.Unix() + 100,
 			Configs: []dymnstypes.DymNameConfig{
 				{
 					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1758,7 +1757,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 			Name:       "name4",
 			Owner:      "dym1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqp7vezn",
 			Controller: bech32Addr(301),
-			ExpireAt:   s.now.Unix() + 1,
+			ExpireAt:   s.now.Unix() + 100,
 			Configs: []dymnstypes.DymNameConfig{
 				{
 					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1779,7 +1778,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 		s.Require().True(found)
 
 		tc := func(name, chainIdOrAlias string) input {
-			return newInputTestcase(name, chainIdOrAlias, s.ctx, s.dymNsKeeper, s.T())
+			return newInputTestcase(name, chainIdOrAlias, s)
 		}
 
 		tc("name1", s.chainId).WithSubName("s1").RequireResolveTo(bech32Addr(3))
@@ -1859,17 +1858,15 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 }
 
 type input struct {
-	t   *testing.T
-	ctx sdk.Context
-	dk  dymnskeeper.Keeper
+	s *KeeperTestSuite
 	//
 	name           string
 	chainIdOrAlias string
 	subName        string
 }
 
-func newInputTestcase(name, chainIdOrAlias string, ctx sdk.Context, dk dymnskeeper.Keeper, t *testing.T) input {
-	return input{name: name, chainIdOrAlias: chainIdOrAlias, ctx: ctx, dk: dk, t: t}
+func newInputTestcase(name, chainIdOrAlias string, s *KeeperTestSuite) input {
+	return input{name: name, chainIdOrAlias: chainIdOrAlias, s: s}
 }
 
 func (m input) WithSubName(subName string) input {
@@ -1898,16 +1895,16 @@ func (m input) buildDymNameAddrsCases() []string {
 
 func (m input) RequireNotResolve() {
 	for _, dymNameAddr := range m.buildDymNameAddrsCases() {
-		_, err := m.dk.ResolveByDymNameAddress(m.ctx, dymNameAddr)
-		require.Error(m.t, err)
+		_, err := m.s.dymNsKeeper.ResolveByDymNameAddress(m.s.ctx, dymNameAddr)
+		m.s.Require().Error(err)
 	}
 }
 
 func (m input) RequireResolveTo(wantAddr string) {
 	for _, dymNameAddr := range m.buildDymNameAddrsCases() {
-		gotAddr, err := m.dk.ResolveByDymNameAddress(m.ctx, dymNameAddr)
-		require.NoError(m.t, err)
-		require.Equal(m.t, wantAddr, gotAddr)
+		gotAddr, err := m.s.dymNsKeeper.ResolveByDymNameAddress(m.s.ctx, dymNameAddr)
+		m.s.Require().NoError(err)
+		m.s.Require().Equal(wantAddr, gotAddr)
 	}
 }
 
@@ -3218,7 +3215,7 @@ func (s *KeeperTestSuite) TestKeeper_ReverseResolveDymNameAddress() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			s.persistRollApp(
 				*newRollApp(rollAppId1).WithBech32(rollApp1Bech32),

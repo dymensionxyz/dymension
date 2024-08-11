@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+
 	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -27,17 +29,20 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/suite"
 )
 
+func init() {
+	params.SetAddressPrefixes()
+}
+
 type KeeperTestSuite struct {
 	suite.Suite
 
-	anchorCtx sdk.Context
-	ctx       sdk.Context
+	savedCtx sdk.Context
+	ctx      sdk.Context
 
 	chainId string
 	now     time.Time
@@ -154,7 +159,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	// set
 	s.chainId = chainId
 	s.now = time.Now().UTC()
-	s.anchorCtx = sdk.Context{}
+	s.savedCtx = sdk.Context{}
 	s.ctx = ctx.WithBlockTime(s.now).WithChainID(chainId)
 	s.cdc = cdc
 	s.dymNsKeeper = dk
@@ -174,22 +179,31 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	// others
 	dymnskeeper.ClearCaches()
+
+	s.SaveCurrentContext()
 }
 
-// MakeAnchorContext copies the current context to the anchor context and convert current context into a branch context.
+func (s *KeeperTestSuite) AfterTest(_, _ string) {
+	dymnskeeper.ClearCaches()
+}
+
+// SaveCurrentContext saves the current context and convert current context into a branch context.
 // This is useful when you want to set up a context and reuse multiple times.
 // This is less expensive than call SetupTest.
-func (s *KeeperTestSuite) MakeAnchorContext() {
-	s.anchorCtx = s.ctx
-	s.UseAnchorContext()
+func (s *KeeperTestSuite) SaveCurrentContext() {
+	s.savedCtx = s.ctx
+	s.RefreshContext()
 }
 
-// UseAnchorContext clear any change to the current context and use the anchor context.
-func (s *KeeperTestSuite) UseAnchorContext() {
-	if s.anchorCtx.ChainID() == "" {
-		panic("anchor context not set")
+// RefreshContext clear any change to the current context and use a new copy of the saved context.
+func (s *KeeperTestSuite) RefreshContext() {
+	defer func() {
+		dymnskeeper.ClearCaches()
+	}()
+	if s.savedCtx.ChainID() == "" {
+		panic("saved context not set")
 	}
-	s.ctx, _ = s.anchorCtx.CacheContext()
+	s.ctx, _ = s.savedCtx.CacheContext()
 	if gasMeter := s.ctx.GasMeter(); gasMeter != nil {
 		gasMeter.RefundGas(gasMeter.GasConsumed(), "reset gas meter")
 	}
@@ -336,6 +350,10 @@ func (s *KeeperTestSuite) requireDymNameList(dymNames []dymnstypes.DymName, want
 	}
 
 	s.Require().Equal(wantNames, gotNames)
+}
+
+func (s *KeeperTestSuite) coin(amount int64) sdk.Coin {
+	return sdk.NewCoin(s.priceDenom(), sdk.NewInt(amount))
 }
 
 //
@@ -575,19 +593,19 @@ func (b *sellOrderBuilder) Build() dymnstypes.SellOrder {
 		AssetId:    b.assetId,
 		AssetType:  b.assetType,
 		ExpireAt:   b.expiry,
-		MinPrice:   dymnsutils.TestCoin(b.minPrice),
+		MinPrice:   b.s.coin(b.minPrice),
 		SellPrice:  nil,
 		HighestBid: nil,
 	}
 
 	if b.sellPrice != nil {
-		so.SellPrice = dymnsutils.TestCoinP(*b.sellPrice)
+		so.SellPrice = uptr.To(b.s.coin(*b.sellPrice))
 	}
 
 	if b.bidder != "" {
 		so.HighestBid = &dymnstypes.SellOrderBid{
 			Bidder: b.bidder,
-			Price:  dymnsutils.TestCoin(b.bidAmount),
+			Price:  b.s.coin(b.bidAmount),
 			Params: b.params,
 		}
 	}
@@ -647,7 +665,7 @@ func (b *buyOrderBuilder) Build() dymnstypes.BuyOrder {
 		AssetType:  b.assetType,
 		Params:     b.params,
 		Buyer:      b.buyer,
-		OfferPrice: dymnsutils.TestCoin(b.offerPrice),
+		OfferPrice: b.s.coin(b.offerPrice),
 	}
 
 	return bo
@@ -748,5 +766,28 @@ func (m reqDymNameS) mustHaveHistoricalSoCount(count int) reqDymNameS {
 func (m reqDymNameS) noHistoricalSO() reqDymNameS {
 	hso := m.s.dymNsKeeper.GetHistoricalSellOrders(m.s.ctx, m.dymName, dymnstypes.TypeName)
 	m.s.Require().Empty(hso)
+	return m
+}
+
+func (m reqDymNameS) mustEquals(another dymnstypes.DymName) reqDymNameS {
+	dymName := m.s.dymNsKeeper.GetDymName(m.s.ctx, m.dymName)
+	m.s.Require().NotNil(dymName)
+	m.s.Require().Equal(another, *dymName)
+	return m
+}
+
+func (m reqDymNameS) ownerChangedTo(newOwner string) reqDymNameS {
+	dymName := m.s.dymNsKeeper.GetDymName(m.s.ctx, m.dymName)
+	m.s.Require().NotNil(dymName)
+	m.s.Require().Equal(newOwner, dymName.Owner)
+	m.s.Require().Equal(newOwner, dymName.Controller, "controller must be updated to new owner when owner changed")
+	m.s.Require().Empty(dymName.Configs, "configs must be cleared when owner changed")
+	return m
+}
+
+func (m reqDymNameS) expiryEquals(expiry int64) reqDymNameS {
+	dymName := m.s.dymNsKeeper.GetDymName(m.s.ctx, m.dymName)
+	m.s.Require().NotNil(dymName)
+	m.s.Require().Equal(expiry, dymName.ExpireAt)
 	return m
 }

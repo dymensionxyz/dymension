@@ -3,9 +3,10 @@ package types
 import (
 	"testing"
 
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,53 +26,53 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			name:      "pass - (Name) valid sell order",
 			assetId:   "my-name",
 			assetType: TypeName,
-			minPrice:  dymnsutils.TestCoin(1),
-			sellPrice: dymnsutils.TestCoinP(1),
+			minPrice:  testCoin(1),
+			sellPrice: uptr.To(testCoin(1)),
 			owner:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
 			name:      "pass - (Alias) valid sell order",
 			assetId:   "alias",
 			assetType: TypeAlias,
-			minPrice:  dymnsutils.TestCoin(1),
-			sellPrice: dymnsutils.TestCoinP(1),
+			minPrice:  testCoin(1),
+			sellPrice: uptr.To(testCoin(1)),
 			owner:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
 			name:      "pass - (Name) valid sell order without bid",
 			assetId:   "my-name",
 			assetType: TypeName,
-			minPrice:  dymnsutils.TestCoin(1),
-			sellPrice: dymnsutils.TestCoinP(1),
+			minPrice:  testCoin(1),
+			sellPrice: uptr.To(testCoin(1)),
 			owner:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
 			name:      "pass - (Alias) valid sell order without bid",
 			assetId:   "alias",
 			assetType: TypeAlias,
-			minPrice:  dymnsutils.TestCoin(1),
-			sellPrice: dymnsutils.TestCoinP(1),
+			minPrice:  testCoin(1),
+			sellPrice: uptr.To(testCoin(1)),
 			owner:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
 			name:      "pass - (Name) valid sell order without setting sell price",
 			assetId:   "my-name",
 			assetType: TypeName,
-			minPrice:  dymnsutils.TestCoin(1),
+			minPrice:  testCoin(1),
 			owner:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
 			name:      "pass - (Alias) valid sell order without setting sell price",
 			assetId:   "alias",
 			assetType: TypeAlias,
-			minPrice:  dymnsutils.TestCoin(1),
+			minPrice:  testCoin(1),
 			owner:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
 			name:            "fail - (Name) empty name",
 			assetId:         "",
 			assetType:       TypeName,
-			minPrice:        dymnsutils.TestCoin(1),
+			minPrice:        testCoin(1),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "name is not a valid dym name",
@@ -80,7 +81,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			name:            "fail - (Alias) empty alias",
 			assetId:         "",
 			assetType:       TypeAlias,
-			minPrice:        dymnsutils.TestCoin(1),
+			minPrice:        testCoin(1),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "alias is not a valid alias",
@@ -89,7 +90,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			name:            "fail - (Name) bad name",
 			assetId:         "-my-name",
 			assetType:       TypeName,
-			minPrice:        dymnsutils.TestCoin(1),
+			minPrice:        testCoin(1),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "name is not a valid dym name",
@@ -98,7 +99,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			name:            "fail - (Alias) bad alias",
 			assetId:         "bad-alias",
 			assetType:       TypeAlias,
-			minPrice:        dymnsutils.TestCoin(1),
+			minPrice:        testCoin(1),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "alias is not a valid alias",
@@ -107,7 +108,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			name:            "fail - min price is zero",
 			assetId:         "my-name",
 			assetType:       TypeName,
-			minPrice:        dymnsutils.TestCoin(0),
+			minPrice:        testCoin(0),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "SO min price is zero",
@@ -149,8 +150,8 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			name:            "fail - sell price is negative",
 			assetId:         "my-name",
 			assetType:       TypeName,
-			minPrice:        dymnsutils.TestCoin(1),
-			sellPrice:       dymnsutils.TestCoinP(-1),
+			minPrice:        testCoin(1),
+			sellPrice:       uptr.To(testCoin(-1)),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "SO sell price is negative",
@@ -159,7 +160,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			name:      "fail - sell price is invalid",
 			assetId:   "my-name",
 			assetType: TypeName,
-			minPrice:  dymnsutils.TestCoin(1),
+			minPrice:  testCoin(1),
 			sellPrice: &sdk.Coin{
 				Denom:  "-",
 				Amount: sdk.OneInt(),
@@ -172,8 +173,8 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			name:            "fail - sell price is less than min price",
 			assetId:         "my-name",
 			assetType:       TypeName,
-			minPrice:        dymnsutils.TestCoin(2),
-			sellPrice:       dymnsutils.TestCoinP(1),
+			minPrice:        testCoin(2),
+			sellPrice:       uptr.To(testCoin(1)),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "SO sell price is less than min price",
@@ -182,8 +183,8 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			name:            "fail - sell price denom must match min price denom",
 			assetId:         "my-name",
 			assetType:       TypeName,
-			minPrice:        dymnsutils.TestCoin(2),
-			sellPrice:       dymnsutils.TestCoin2P(sdk.NewCoin("u"+params.BaseDenom, sdk.OneInt())),
+			minPrice:        testCoin(2),
+			sellPrice:       uptr.To(sdk.NewCoin("u"+params.BaseDenom, sdk.OneInt())),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "SO sell price denom is different from min price denom",
@@ -192,7 +193,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			name:            "fail - missing owner",
 			assetId:         "my-name",
 			assetType:       TypeName,
-			minPrice:        dymnsutils.TestCoin(2),
+			minPrice:        testCoin(2),
 			owner:           "",
 			wantErr:         true,
 			wantErrContains: "owner is not a valid bech32 account address",
@@ -201,7 +202,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			name:            "fail - invalid owner",
 			assetId:         "my-name",
 			assetType:       TypeName,
-			minPrice:        dymnsutils.TestCoin(2),
+			minPrice:        testCoin(2),
 			owner:           "dym1fl48vsnmsdzcv85",
 			wantErr:         true,
 			wantErrContains: "owner is not a valid bech32 account address",
@@ -210,7 +211,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			name:            "fail - owner must be dym1",
 			assetId:         "my-name",
 			assetType:       TypeName,
-			minPrice:        dymnsutils.TestCoin(2),
+			minPrice:        testCoin(2),
 			owner:           "nim1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3pklgjx",
 			wantErr:         true,
 			wantErrContains: "owner is not a valid bech32 account address",
@@ -219,7 +220,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			name:            "fail - reject unknown asset type",
 			assetId:         "asset",
 			assetType:       AssetType_AT_UNKNOWN,
-			minPrice:        dymnsutils.TestCoin(2),
+			minPrice:        testCoin(2),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "invalid asset type",
@@ -248,8 +249,8 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgPlaceSellOrder_ToSellOrder(t *testing.T) {
-	validMinPrice := dymnsutils.TestCoin(1)
-	validSellPrice := dymnsutils.TestCoin(1)
+	validMinPrice := testCoin(1)
+	validSellPrice := testCoin(1)
 
 	tests := []struct {
 		name      string
@@ -307,7 +308,7 @@ func TestMsgPlaceSellOrder_ToSellOrder(t *testing.T) {
 			assetId:   "my-name",
 			assetType: TypeName,
 			minPrice:  validMinPrice,
-			sellPrice: dymnsutils.TestCoin2P(sdk.NewCoin(validMinPrice.Denom, sdk.ZeroInt())),
+			sellPrice: uptr.To(sdk.NewCoin(validMinPrice.Denom, sdk.ZeroInt())),
 			Owner:     "",
 			want: SellOrder{
 				AssetId:   "my-name",

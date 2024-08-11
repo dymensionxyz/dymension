@@ -123,7 +123,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{},
 			preTestFunc: func(s *KeeperTestSuite) {
@@ -137,7 +137,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			postTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(ownerAcc.bech32()).mappedDymNames(recordName)
@@ -205,7 +205,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(ownerAcc.bech32()).mappedDymNames(recordName)
@@ -222,7 +222,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			postTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(ownerAcc.bech32()).mappedDymNames(recordName)
@@ -236,7 +236,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(ownerAcc.bech32()).mappedDymNames(recordName)
@@ -253,7 +253,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			postTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(ownerAcc.bech32()).mappedDymNames(recordName)
@@ -267,7 +267,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(ownerAcc.bech32()).mappedDymNames(recordName)
@@ -284,7 +284,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			postTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(ownerAcc.bech32()).mappedDymNames(recordName)
@@ -298,7 +298,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(ownerAcc.bech32()).mappedDymNames(recordName)
@@ -316,7 +316,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			postTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(ownerAcc.bech32()).mappedDymNames(recordName)
@@ -330,7 +330,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(ownerAcc.bech32()).mappedDymNames(recordName)
@@ -346,7 +346,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -369,7 +369,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(anotherAcc.bech32C("rol")).notMappedToAnyDymName()
@@ -389,7 +389,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -410,7 +410,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.Require().Equal(
@@ -429,7 +429,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -449,7 +449,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -472,7 +472,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -499,7 +499,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -527,7 +527,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -554,7 +554,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -578,7 +578,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs:    nil,
 			},
 			wantMinGasConsumed: 1,
@@ -594,7 +594,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -618,7 +618,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -640,7 +640,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -669,7 +669,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -691,7 +691,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -719,7 +719,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -741,7 +741,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -770,7 +770,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
@@ -834,7 +834,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(ownerAcc.bech32()).mappedDymNames(recordName)
@@ -852,7 +852,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -875,7 +875,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -901,7 +901,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -924,7 +924,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    "blumbus_100-1",
@@ -942,7 +942,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -965,7 +965,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -991,7 +991,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1020,7 +1020,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1052,7 +1052,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1081,7 +1081,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(anotherAcc.checksumHex()).notMappedToAnyDymName()
@@ -1098,7 +1098,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1122,7 +1122,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress("0x" + strings.ToLower(_32BytesAcc.hexStr())[2:]).notMappedToAnyDymName()
@@ -1138,7 +1138,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1163,7 +1163,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(strings.ToUpper(anotherAcc.hexStr())[2:]).notMappedToAnyDymName()
@@ -1178,7 +1178,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1204,7 +1204,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(strings.ToUpper(_32BytesAcc.hexStr())[2:]).notMappedToAnyDymName()
@@ -1219,7 +1219,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1245,7 +1245,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(ownerAcc.bech32()).mappedDymNames(recordName)
@@ -1264,7 +1264,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			wantMinGasConsumed: 1,
 			postTestFunc: func(s *KeeperTestSuite) {
@@ -1279,7 +1279,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(ownerAcc.bech32()).mappedDymNames(recordName)
@@ -1298,7 +1298,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			wantMinGasConsumed: 1,
 			postTestFunc: func(s *KeeperTestSuite) {
@@ -1314,7 +1314,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(ownerAcc.bech32()).mappedDymNames(recordName)
@@ -1333,7 +1333,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			wantMinGasConsumed: 1,
 			postTestFunc: func(s *KeeperTestSuite) {
@@ -1349,7 +1349,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
@@ -1368,7 +1368,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			wantMinGasConsumed: 1,
 			postTestFunc:       func(s *KeeperTestSuite) {},
@@ -1378,7 +1378,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.persistRollApp(
@@ -1396,7 +1396,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			wantMinGasConsumed: 1,
 			postTestFunc:       func(s *KeeperTestSuite) {},
@@ -1406,7 +1406,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			preTestFunc: func(s *KeeperTestSuite) {
 				s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
@@ -1424,7 +1424,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1442,7 +1442,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1476,7 +1476,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -1508,7 +1508,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			s.Require().NotNil(tt.preTestFunc)
 			s.Require().NotNil(tt.postTestFunc)
 
-			s.SetupTest()
+			s.RefreshContext()
 
 			if tt.dymName != nil {
 				if tt.dymName.Name == "" {
@@ -1573,7 +1573,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 
 	for _, input := range nonHostChainBech32InputSet {
 		s.Run("non-bech32/non-hex on non-host/non-RollApp chain: "+input, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			const anotherChainId = "another"
 
@@ -1581,7 +1581,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 				Name:       "a",
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
-				ExpireAt:   s.now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			}
 			s.Require().NoError(s.dymNsKeeper.SetDymName(s.ctx, dymName))
 
@@ -1902,7 +1902,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress_ReverseMapping() {
 				s.Require().True(tt.wantReject, "multiple input resolve-to only be used with want-reject")
 			}
 
-			s.SetupTest()
+			s.RefreshContext()
 
 			dymName := dymnstypes.DymName{
 				Name:       name,

@@ -5,12 +5,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/stretchr/testify/require"
 )
 
 func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
-	validOffer := dymnsutils.TestCoin(100)
+	validOffer := testCoin(100)
 
 	//goland:noinspection SpellCheckingInspection
 	tests := []struct {
@@ -127,7 +126,7 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 			name:            "fail - (Name) offer can not be zero",
 			assetId:         "my-name",
 			assetType:       TypeName,
-			offer:           dymnsutils.TestCoin(0),
+			offer:           testCoin(0),
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "offer must be positive",
@@ -137,7 +136,7 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 			assetId:         "alias",
 			assetType:       TypeAlias,
 			params:          []string{"rollapp_1-1"},
-			offer:           dymnsutils.TestCoin(0),
+			offer:           testCoin(0),
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "offer must be positive",

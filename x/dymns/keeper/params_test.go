@@ -1,39 +1,34 @@
 package keeper_test
 
 import (
-	"testing"
 	"time"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
-	"github.com/stretchr/testify/require"
-
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
-func TestGetSetParams(t *testing.T) {
-	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+func (s *KeeperTestSuite) TestGetSetParams() {
 	params := dymnstypes.DefaultParams()
 
-	err := dk.SetParams(ctx, params)
-	require.NoError(t, err)
+	err := s.dymNsKeeper.SetParams(s.ctx, params)
+	s.Require().NoError(err)
 
-	require.Equal(t, params, dk.GetParams(ctx))
+	s.Require().Equal(params, s.dymNsKeeper.GetParams(s.ctx))
 
-	t.Run("can not set invalid params", func(t *testing.T) {
+	s.Run("can not set invalid params", func() {
 		params := dymnstypes.DefaultParams()
 		params.Misc.BeginEpochHookIdentifier = ""
-		require.Error(t, dk.SetParams(ctx, params))
+		s.Require().Error(s.dymNsKeeper.SetParams(s.ctx, params))
 	})
 
-	t.Run("can not set invalid params", func(t *testing.T) {
+	s.Run("can not set invalid params", func() {
 		params := dymnstypes.DefaultParams()
 		params.Price.PriceDenom = ""
-		require.Error(t, dk.SetParams(ctx, params))
+		s.Require().Error(s.dymNsKeeper.SetParams(s.ctx, params))
 	})
 
-	t.Run("can not set invalid params", func(t *testing.T) {
+	s.Run("can not set invalid params", func() {
 		params := dymnstypes.DefaultParams()
 		params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
 			{
@@ -41,13 +36,13 @@ func TestGetSetParams(t *testing.T) {
 				Aliases: nil,
 			},
 		}
-		require.Error(t, dk.SetParams(ctx, params))
+		s.Require().Error(s.dymNsKeeper.SetParams(s.ctx, params))
 	})
 
-	t.Run("can not set invalid params", func(t *testing.T) {
+	s.Run("can not set invalid params", func() {
 		params := dymnstypes.DefaultParams()
 		params.Misc.GracePeriodDuration = -999 * time.Hour
-		require.Error(t, dk.SetParams(ctx, params))
+		s.Require().Error(s.dymNsKeeper.SetParams(s.ctx, params))
 	})
 }
 
@@ -240,7 +235,7 @@ func (s *KeeperTestSuite) TestKeeper_CanUseAliasForNewRegistration() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			if tt.preSetup != nil {
 				tt.preSetup(s)

@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,7 +13,6 @@ import (
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/dymns"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -83,11 +84,11 @@ func TestExportThenInitGenesis(t *testing.T) {
 		AssetId:   dymName1.Name,
 		AssetType: dymnstypes.TypeName,
 		ExpireAt:  1,
-		MinPrice:  dymnsutils.TestCoin(100),
-		SellPrice: dymnsutils.TestCoinP(300),
+		MinPrice:  testCoin(100),
+		SellPrice: uptr.To(testCoin(300)),
 		HighestBid: &dymnstypes.SellOrderBid{
 			Bidder: bidder1,
-			Price:  dymnsutils.TestCoin(200),
+			Price:  testCoin(200),
 		},
 	}
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so1))
@@ -96,11 +97,11 @@ func TestExportThenInitGenesis(t *testing.T) {
 		AssetId:   dymName2.Name,
 		AssetType: dymnstypes.TypeName,
 		ExpireAt:  1,
-		MinPrice:  dymnsutils.TestCoin(100),
-		SellPrice: dymnsutils.TestCoinP(900),
+		MinPrice:  testCoin(100),
+		SellPrice: uptr.To(testCoin(900)),
 		HighestBid: &dymnstypes.SellOrderBid{
 			Bidder: bidder2,
-			Price:  dymnsutils.TestCoin(800),
+			Price:  testCoin(800),
 		},
 	}
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so2))
@@ -109,8 +110,8 @@ func TestExportThenInitGenesis(t *testing.T) {
 		AssetId:   dymName3JustExpired.Name,
 		AssetType: dymnstypes.TypeName,
 		ExpireAt:  1,
-		MinPrice:  dymnsutils.TestCoin(100),
-		SellPrice: dymnsutils.TestCoinP(200),
+		MinPrice:  testCoin(100),
+		SellPrice: uptr.To(testCoin(200)),
 	}
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so3))
 
@@ -118,11 +119,11 @@ func TestExportThenInitGenesis(t *testing.T) {
 		AssetId:   "alias",
 		AssetType: dymnstypes.TypeAlias,
 		ExpireAt:  1,
-		MinPrice:  dymnsutils.TestCoin(100),
-		SellPrice: dymnsutils.TestCoinP(900),
+		MinPrice:  testCoin(100),
+		SellPrice: uptr.To(testCoin(900)),
 		HighestBid: &dymnstypes.SellOrderBid{
 			Bidder: bidder3,
-			Price:  dymnsutils.TestCoin(777),
+			Price:  testCoin(777),
 			Params: []string{"rollapp_1-1"},
 		},
 	}
@@ -132,7 +133,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		AssetId:   "cosmos",
 		AssetType: dymnstypes.TypeAlias,
 		ExpireAt:  1,
-		MinPrice:  dymnsutils.TestCoin(100),
+		MinPrice:  testCoin(100),
 	}
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so5))
 
@@ -141,7 +142,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		AssetId:    dymName1.Name,
 		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyer1,
-		OfferPrice: dymnsutils.TestCoin(100),
+		OfferPrice: testCoin(100),
 	}
 	require.NoError(t, oldKeeper.SetBuyOrder(oldCtx, offer1))
 
@@ -150,7 +151,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		AssetId:    dymName2.Name,
 		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyer2,
-		OfferPrice: dymnsutils.TestCoin(200),
+		OfferPrice: testCoin(200),
 	}
 	require.NoError(t, oldKeeper.SetBuyOrder(oldCtx, offer2))
 
@@ -159,7 +160,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		AssetId:    dymName3JustExpired.Name,
 		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyer3,
-		OfferPrice: dymnsutils.TestCoin(300),
+		OfferPrice: testCoin(300),
 	}
 	require.NoError(t, oldKeeper.SetBuyOrder(oldCtx, offer3OfExpired))
 
@@ -169,7 +170,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{"rollapp_2-2"},
 		Buyer:      buyer4,
-		OfferPrice: dymnsutils.TestCoin(333),
+		OfferPrice: testCoin(333),
 	}
 	require.NoError(t, oldKeeper.SetBuyOrder(oldCtx, offer4))
 
@@ -179,7 +180,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{"rollapp_3-3"},
 		Buyer:      buyer5,
-		OfferPrice: dymnsutils.TestCoin(555),
+		OfferPrice: testCoin(555),
 	}
 	require.NoError(t, oldKeeper.SetBuyOrder(oldCtx, offer5))
 
@@ -287,38 +288,38 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	t.Run("sell orders's non-refunded bids should be refunded correctly", func(t *testing.T) {
 		require.Equal(t,
-			dymnsutils.TestCoin(200),
+			testCoin(200),
 			newBankKeeper.GetBalance(newCtx, sdk.MustAccAddressFromBech32(bidder1), params.BaseDenom),
 		)
 		require.Equal(t,
-			dymnsutils.TestCoin(800),
+			testCoin(800),
 			newBankKeeper.GetBalance(newCtx, sdk.MustAccAddressFromBech32(bidder2), params.BaseDenom),
 		)
 		require.Equal(t,
-			dymnsutils.TestCoin(777),
+			testCoin(777),
 			newBankKeeper.GetBalance(newCtx, sdk.MustAccAddressFromBech32(bidder3), params.BaseDenom),
 		)
 	})
 
 	t.Run("non-refunded buy-offers should be refunded correctly", func(t *testing.T) {
 		require.Equal(t,
-			dymnsutils.TestCoin(100),
+			testCoin(100),
 			newBankKeeper.GetBalance(newCtx, sdk.MustAccAddressFromBech32(buyer1), params.BaseDenom),
 		)
 		require.Equal(t,
-			dymnsutils.TestCoin(200),
+			testCoin(200),
 			newBankKeeper.GetBalance(newCtx, sdk.MustAccAddressFromBech32(buyer2), params.BaseDenom),
 		)
 		require.Equal(t,
-			dymnsutils.TestCoin(300),
+			testCoin(300),
 			newBankKeeper.GetBalance(newCtx, sdk.MustAccAddressFromBech32(buyer3), params.BaseDenom),
 		)
 		require.Equal(t,
-			dymnsutils.TestCoin(333),
+			testCoin(333),
 			newBankKeeper.GetBalance(newCtx, sdk.MustAccAddressFromBech32(buyer4), params.BaseDenom),
 		)
 		require.Equal(t,
-			dymnsutils.TestCoin(555),
+			testCoin(555),
 			newBankKeeper.GetBalance(newCtx, sdk.MustAccAddressFromBech32(buyer5), params.BaseDenom),
 		)
 	})
@@ -369,4 +370,11 @@ func TestExportThenInitGenesis(t *testing.T) {
 			})
 		})
 	})
+}
+
+func testCoin(amount int64) sdk.Coin {
+	return sdk.Coin{
+		Denom:  params.BaseDenom,
+		Amount: sdk.NewInt(amount),
+	}
 }

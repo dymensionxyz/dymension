@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,7 +28,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			continueOrderId: "",
-			offer:           dymnsutils.TestCoin(1),
+			offer:           testCoin(1),
 			wantErr:         false,
 		},
 		{
@@ -39,7 +38,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			params:          []string{"rollapp_1-1"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			continueOrderId: "",
-			offer:           dymnsutils.TestCoin(1),
+			offer:           testCoin(1),
 			wantErr:         false,
 		},
 		{
@@ -48,7 +47,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			assetType:       TypeName,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			continueOrderId: "101",
-			offer:           dymnsutils.TestCoin(1),
+			offer:           testCoin(1),
 			wantErr:         false,
 		},
 		{
@@ -58,7 +57,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			params:          []string{"rollapp_1-1"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			continueOrderId: "101",
-			offer:           dymnsutils.TestCoin(1),
+			offer:           testCoin(1),
 			wantErr:         false,
 		},
 		{
@@ -66,7 +65,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			assetId:         "@",
 			assetType:       TypeName,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offer:           dymnsutils.TestCoin(1),
+			offer:           testCoin(1),
 			wantErr:         true,
 			wantErrContains: "name is not a valid dym name",
 		},
@@ -76,7 +75,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			assetType:       TypeAlias,
 			params:          []string{"rollapp_1-1"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offer:           dymnsutils.TestCoin(1),
+			offer:           testCoin(1),
 			wantErr:         true,
 			wantErrContains: "alias is not a valid alias",
 		},
@@ -86,7 +85,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			assetType:       TypeName,
 			params:          []string{"not-empty"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offer:           dymnsutils.TestCoin(1),
+			offer:           testCoin(1),
 			wantErr:         true,
 			wantErrContains: "not accept order params for asset type",
 		},
@@ -96,7 +95,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			assetType:       TypeAlias,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offer:           dymnsutils.TestCoin(1),
+			offer:           testCoin(1),
 			wantErr:         true,
 			wantErrContains: "expect 1 order param of RollApp ID for asset type",
 		},
@@ -106,7 +105,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			assetType:       TypeAlias,
 			params:          []string{"@chain-id"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offer:           dymnsutils.TestCoin(1),
+			offer:           testCoin(1),
 			wantErr:         true,
 			wantErrContains: "invalid RollApp ID format",
 		},
@@ -115,7 +114,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			assetId:         "my-name",
 			assetType:       TypeName,
 			buyer:           "dym1fl48vsnmsdzcv85",
-			offer:           dymnsutils.TestCoin(1),
+			offer:           testCoin(1),
 			wantErr:         true,
 			wantErrContains: "buyer is not a valid bech32 account address",
 		},
@@ -125,7 +124,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			assetType:       TypeName,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			continueOrderId: "@",
-			offer:           dymnsutils.TestCoin(1),
+			offer:           testCoin(1),
 			wantErr:         true,
 			wantErrContains: "continue offer id is not a valid offer id",
 		},
@@ -143,7 +142,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			assetId:         "my-name",
 			assetType:       TypeName,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offer:           dymnsutils.TestCoin(0),
+			offer:           testCoin(0),
 			wantErr:         true,
 			wantErrContains: "offer amount must be positive",
 		},
@@ -164,7 +163,7 @@ func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 			assetId:         "asset",
 			assetType:       AssetType_AT_UNKNOWN,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offer:           dymnsutils.TestCoin(1),
+			offer:           testCoin(1),
 			wantErr:         true,
 			wantErrContains: "invalid asset type",
 		},

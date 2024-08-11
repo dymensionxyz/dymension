@@ -29,7 +29,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-3",
@@ -41,7 +41,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "b",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 			},
 			replacement: []dymnstypes.MigrateChainId{
@@ -67,7 +67,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-4",
@@ -79,7 +79,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "b",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 				},
 			},
 			wantChainsAliasParams: []dymnstypes.AliasesOfChainId{
@@ -138,7 +138,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-3",
@@ -150,7 +150,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "b",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -189,7 +189,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-4",
@@ -201,7 +201,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "b",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -232,7 +232,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-3",
@@ -265,7 +265,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-4",
@@ -294,7 +294,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "blumbus_111-1",
@@ -326,7 +326,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "blumbus_111-1", // not updated
@@ -431,7 +431,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						// migrate this will cause non-unique config
 						{
@@ -452,7 +452,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "b",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -466,7 +466,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "c",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -489,7 +489,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "a",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -509,7 +509,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "b",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -523,7 +523,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 					Name:       "c",
 					Owner:      addr1a,
 					Controller: addr1a,
-					ExpireAt:   s.now.Unix() + 1,
+					ExpireAt:   s.now.Unix() + 100,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
@@ -538,7 +538,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
 				moduleParams.Chains.AliasesOfChainIds = tt.chainsAliasParams
@@ -904,7 +904,7 @@ func (s *KeeperTestSuite) TestKeeper_UpdateAliases() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
 				moduleParams.Chains.AliasesOfChainIds = tt.chainsAliasParams

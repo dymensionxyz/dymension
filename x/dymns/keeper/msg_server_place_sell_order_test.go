@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -11,7 +13,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
 func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
@@ -23,7 +24,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 		moduleParams.Misc.SellOrderDuration = daysSellOrderDuration * 24 * time.Hour
 		return moduleParams
 	})
-	s.MakeAnchorContext()
+	s.SaveCurrentContext()
 
 	s.Run("reject if message not pass validate basic", func() {
 		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PlaceSellOrder(s.ctx, &dymnstypes.MsgPlaceSellOrder{})
@@ -37,9 +38,9 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 	notOwnerA := testAddr(2).bech32()
 	bidderA := testAddr(3).bech32()
 
-	coin100 := dymnsutils.TestCoin(100)
-	coin200 := dymnsutils.TestCoin(200)
-	coin300 := dymnsutils.TestCoin(300)
+	coin100 := s.coin(100)
+	coin200 := s.coin(200)
+	coin300 := s.coin(300)
 
 	tests := []struct {
 		name                    string
@@ -157,7 +158,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 			name:                    "pass - successfully place Dym-Name Sell-Order, without sell price",
 			dymNameExpiryOffsetDays: 9999,
 			minPrice:                coin100,
-			sellPrice:               dymnsutils.TestCoinP(0),
+			sellPrice:               uptr.To(s.coin(0)),
 		},
 		{
 			name:                    "pass - successfully place Dym-Name Sell-Order, with sell price",
@@ -188,7 +189,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.UseAnchorContext()
+			s.RefreshContext()
 
 			useDymNameOwner := ownerA
 			if tt.customDymNameOwner != "" {
@@ -317,13 +318,13 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 
 func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_Alias() {
 	const daysSellOrderDuration = 7
-	denom := dymnsutils.TestCoin(0).Denom
+	denom := s.coin(0).Denom
 
 	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
 		moduleParams.Misc.SellOrderDuration = daysSellOrderDuration * 24 * time.Hour
 		return moduleParams
 	})
-	s.MakeAnchorContext()
+	s.SaveCurrentContext()
 
 	const srcRollAppId = "rollapp_1-1"
 	const alias = "alias"
@@ -333,9 +334,9 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_Alias() {
 	notOwnerA := testAddr(2).bech32()
 	bidderA := testAddr(3).bech32()
 
-	coin100 := dymnsutils.TestCoin(100)
-	coin200 := dymnsutils.TestCoin(200)
-	coin300 := dymnsutils.TestCoin(300)
+	coin100 := s.coin(100)
+	coin200 := s.coin(200)
+	coin300 := s.coin(300)
 
 	tests := []struct {
 		name               string
@@ -454,7 +455,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_Alias() {
 		{
 			name:      "pass - successfully place Alias Sell-Order, without sell price",
 			minPrice:  coin100,
-			sellPrice: dymnsutils.TestCoinP(0),
+			sellPrice: uptr.To(s.coin(0)),
 		},
 		{
 			name:      "pass - successfully place Alias Sell-Order, with sell price",
@@ -482,7 +483,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_Alias() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.UseAnchorContext()
+			s.RefreshContext()
 
 			useRollAppOwner := ownerA
 			if tt.customRollAppOwner != "" {

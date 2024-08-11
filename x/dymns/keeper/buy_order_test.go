@@ -2,92 +2,90 @@ package keeper_test
 
 import (
 	"math"
-	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	"github.com/stretchr/testify/require"
 )
 
-func TestKeeper_IncreaseBuyOrdersCountAndGet(t *testing.T) {
-	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+func (s *KeeperTestSuite) TestKeeper_IncreaseBuyOrdersCountAndGet() {
+	s.Require().Zero(s.dymNsKeeper.GetCountBuyOrders(s.ctx))
 
-	require.Zero(t, dk.GetCountBuyOrders(ctx))
+	count := s.dymNsKeeper.IncreaseBuyOrdersCountAndGet(s.ctx)
+	s.Require().Equal(uint64(1), count)
+	s.Require().Equal(uint64(1), s.dymNsKeeper.GetCountBuyOrders(s.ctx))
 
-	count := dk.IncreaseBuyOrdersCountAndGet(ctx)
-	require.Equal(t, uint64(1), count)
-	require.Equal(t, uint64(1), dk.GetCountBuyOrders(ctx))
+	count = s.dymNsKeeper.IncreaseBuyOrdersCountAndGet(s.ctx)
+	s.Require().Equal(uint64(2), count)
+	s.Require().Equal(uint64(2), s.dymNsKeeper.GetCountBuyOrders(s.ctx))
 
-	count = dk.IncreaseBuyOrdersCountAndGet(ctx)
-	require.Equal(t, uint64(2), count)
-	require.Equal(t, uint64(2), dk.GetCountBuyOrders(ctx))
+	count = s.dymNsKeeper.IncreaseBuyOrdersCountAndGet(s.ctx)
+	s.Require().Equal(uint64(3), count)
+	s.Require().Equal(uint64(3), s.dymNsKeeper.GetCountBuyOrders(s.ctx))
 
-	count = dk.IncreaseBuyOrdersCountAndGet(ctx)
-	require.Equal(t, uint64(3), count)
-	require.Equal(t, uint64(3), dk.GetCountBuyOrders(ctx))
+	s.dymNsKeeper.SetCountBuyOrders(s.ctx, math.MaxUint64-1)
 
-	dk.SetCountBuyOrders(ctx, math.MaxUint64-1)
+	count = s.dymNsKeeper.IncreaseBuyOrdersCountAndGet(s.ctx)
+	s.Require().Equal(uint64(math.MaxUint64), count)
+	s.Require().Equal(uint64(math.MaxUint64), s.dymNsKeeper.GetCountBuyOrders(s.ctx))
 
-	count = dk.IncreaseBuyOrdersCountAndGet(ctx)
-	require.Equal(t, uint64(math.MaxUint64), count)
-	require.Equal(t, uint64(math.MaxUint64), dk.GetCountBuyOrders(ctx))
-
-	require.Panics(t, func() {
-		dk.IncreaseBuyOrdersCountAndGet(ctx)
+	s.Require().Panics(func() {
+		s.dymNsKeeper.IncreaseBuyOrdersCountAndGet(s.ctx)
 	}, "expect panic on overflow when increasing count of all-time buy offer records greater than uint64")
 }
 
-func TestKeeper_GetSetInsertNewBuyOrder(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_GetSetInsertNewBuyOrder() {
 	buyerA := testAddr(1).bech32()
 
 	supportedAssetTypes := []dymnstypes.AssetType{
 		dymnstypes.TypeName, dymnstypes.TypeAlias,
 	}
 
-	t.Run("get non-exists offer should returns nil", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		offer := dk.GetBuyOrder(ctx, "10183418")
-		require.Nil(t, offer)
+	s.Run("get non-exists offer should returns nil", func() {
+		offer := s.dymNsKeeper.GetBuyOrder(s.ctx, "10183418")
+		s.Require().Nil(offer)
 	})
 
-	t.Run("should returns error when set empty ID offer", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-
+	s.Run("should returns error when set empty ID offer", func() {
 		for _, assetType := range supportedAssetTypes {
-			err := dk.SetBuyOrder(ctx, dymnstypes.BuyOrder{
-				Id:         "",
-				AssetId:    "asset",
-				AssetType:  assetType,
-				Buyer:      buyerA,
-				OfferPrice: dymnsutils.TestCoin(1),
+			s.Run(assetType.FriendlyString(), func() {
+				s.RefreshContext()
+
+				var params []string
+				if assetType == dymnstypes.TypeAlias {
+					params = []string{"rollapp_1-1"}
+				}
+
+				err := s.dymNsKeeper.SetBuyOrder(s.ctx, dymnstypes.BuyOrder{
+					Id:         "",
+					AssetId:    "asset",
+					AssetType:  assetType,
+					Params:     params,
+					Buyer:      buyerA,
+					OfferPrice: s.coin(1),
+				})
+				s.Require().ErrorContains(err, "ID of offer is empty")
 			})
-			require.Error(t, err)
-			require.Contains(t, err.Error(), "ID of offer is empty")
 		}
 	})
 
-	t.Run("can set and can get", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	s.Run("can set and can get", func() {
+		s.RefreshContext()
 
 		offer1 := dymnstypes.BuyOrder{
 			Id:         "101",
 			AssetId:    "my-name",
 			AssetType:  dymnstypes.TypeName,
 			Buyer:      buyerA,
-			OfferPrice: dymnsutils.TestCoin(1),
+			OfferPrice: s.coin(1),
 		}
 
-		err := dk.SetBuyOrder(ctx, offer1)
-		require.NoError(t, err)
+		err := s.dymNsKeeper.SetBuyOrder(s.ctx, offer1)
+		s.Require().NoError(err)
 
-		offerGot1 := dk.GetBuyOrder(ctx, offer1.Id)
-		require.NotNil(t, offerGot1)
+		offerGot1 := s.dymNsKeeper.GetBuyOrder(s.ctx, offer1.Id)
+		s.Require().NotNil(offerGot1)
 
-		require.Equal(t, offer1, *offerGot1)
+		s.Require().Equal(offer1, *offerGot1)
 
 		offer2 := dymnstypes.BuyOrder{
 			Id:         "202",
@@ -95,28 +93,28 @@ func TestKeeper_GetSetInsertNewBuyOrder(t *testing.T) {
 			AssetType:  dymnstypes.TypeAlias,
 			Params:     []string{"rollapp_1-1"},
 			Buyer:      buyerA,
-			OfferPrice: dymnsutils.TestCoin(1),
+			OfferPrice: s.coin(1),
 		}
 
-		err = dk.SetBuyOrder(ctx, offer2)
-		require.NoError(t, err)
+		err = s.dymNsKeeper.SetBuyOrder(s.ctx, offer2)
+		s.Require().NoError(err)
 
-		offerGot2 := dk.GetBuyOrder(ctx, offer2.Id)
-		require.NotNil(t, offerGot2)
+		offerGot2 := s.dymNsKeeper.GetBuyOrder(s.ctx, offer2.Id)
+		s.Require().NotNil(offerGot2)
 
-		require.Equal(t, offer2, *offerGot2)
+		s.Require().Equal(offer2, *offerGot2)
 
 		// previous record should not be effected
 
-		offerGot1 = dk.GetBuyOrder(ctx, offer1.Id)
-		require.NotNil(t, offerGot1)
+		offerGot1 = s.dymNsKeeper.GetBuyOrder(s.ctx, offer1.Id)
+		s.Require().NotNil(offerGot1)
 
-		require.NotEqual(t, *offerGot1, *offerGot2)
-		require.Equal(t, offer1, *offerGot1)
+		s.Require().NotEqual(*offerGot1, *offerGot2)
+		s.Require().Equal(offer1, *offerGot1)
 	})
 
-	t.Run("set omits params if empty", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	s.Run("set omits params if empty", func() {
+		s.RefreshContext()
 
 		offer1 := dymnstypes.BuyOrder{
 			Id:         "101",
@@ -124,54 +122,62 @@ func TestKeeper_GetSetInsertNewBuyOrder(t *testing.T) {
 			AssetType:  dymnstypes.TypeName,
 			Params:     []string{},
 			Buyer:      buyerA,
-			OfferPrice: dymnsutils.TestCoin(1),
+			OfferPrice: s.coin(1),
 		}
 
-		err := dk.SetBuyOrder(ctx, offer1)
-		require.NoError(t, err)
+		err := s.dymNsKeeper.SetBuyOrder(s.ctx, offer1)
+		s.Require().NoError(err)
 
-		offerGot1 := dk.GetBuyOrder(ctx, offer1.Id)
-		require.NotNil(t, offerGot1)
+		offerGot1 := s.dymNsKeeper.GetBuyOrder(s.ctx, offer1.Id)
+		s.Require().NotNil(offerGot1)
 
-		require.Nil(t, offerGot1.Params)
+		s.Require().Nil(offerGot1.Params)
 	})
 
-	t.Run("should panic when insert non-empty ID offer", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-
+	s.Run("should panic when insert non-empty ID offer", func() {
 		for _, assetType := range supportedAssetTypes {
-			require.Panics(t, func() {
-				_, _ = dk.InsertNewBuyOrder(ctx, dymnstypes.BuyOrder{
-					Id:         dymnstypes.CreateBuyOrderId(assetType, 1),
-					AssetId:    "asset",
-					AssetType:  assetType,
-					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+			s.Run(assetType.FriendlyString(), func() {
+				s.RefreshContext()
+
+				var params []string
+				if assetType == dymnstypes.TypeAlias {
+					params = []string{"rollapp_1-1"}
+				}
+
+				s.Require().Panics(func() {
+					_, _ = s.dymNsKeeper.InsertNewBuyOrder(s.ctx, dymnstypes.BuyOrder{
+						Id:         dymnstypes.CreateBuyOrderId(assetType, 1),
+						AssetId:    "asset",
+						AssetType:  assetType,
+						Params:     params,
+						Buyer:      buyerA,
+						OfferPrice: s.coin(1),
+					})
 				})
 			})
 		}
 	})
 
-	t.Run("can insert", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	s.Run("can insert", func() {
+		s.RefreshContext()
 
 		offer1a := dymnstypes.BuyOrder{
 			Id:         "",
 			AssetId:    "my-name",
 			AssetType:  dymnstypes.TypeName,
 			Buyer:      buyerA,
-			OfferPrice: dymnsutils.TestCoin(1),
+			OfferPrice: s.coin(1),
 		}
 
-		offer1b, err := dk.InsertNewBuyOrder(ctx, offer1a)
-		require.NoError(t, err)
-		require.Equal(t, "101", offer1b.Id)
+		offer1b, err := s.dymNsKeeper.InsertNewBuyOrder(s.ctx, offer1a)
+		s.Require().NoError(err)
+		s.Require().Equal("101", offer1b.Id)
 
-		offerGot1 := dk.GetBuyOrder(ctx, "101")
-		require.NotNil(t, offerGot1)
+		offerGot1 := s.dymNsKeeper.GetBuyOrder(s.ctx, "101")
+		s.Require().NotNil(offerGot1)
 
 		offer1a.Id = offer1b.Id
-		require.Equal(t, offer1a, *offerGot1)
+		s.Require().Equal(offer1a, *offerGot1)
 
 		offer2a := dymnstypes.BuyOrder{
 			Id:         "",
@@ -179,123 +185,127 @@ func TestKeeper_GetSetInsertNewBuyOrder(t *testing.T) {
 			AssetType:  dymnstypes.TypeAlias,
 			Params:     []string{"rollapp_1-1"},
 			Buyer:      buyerA,
-			OfferPrice: dymnsutils.TestCoin(1),
+			OfferPrice: s.coin(1),
 		}
 
-		offer2b, err := dk.InsertNewBuyOrder(ctx, offer2a)
-		require.NoError(t, err)
-		require.Equal(t, "202", offer2b.Id)
+		offer2b, err := s.dymNsKeeper.InsertNewBuyOrder(s.ctx, offer2a)
+		s.Require().NoError(err)
+		s.Require().Equal("202", offer2b.Id)
 
-		offerGot2 := dk.GetBuyOrder(ctx, "202")
-		require.NotNil(t, offerGot2)
+		offerGot2 := s.dymNsKeeper.GetBuyOrder(s.ctx, "202")
+		s.Require().NotNil(offerGot2)
 
 		offer2a.Id = offer2b.Id
-		require.Equal(t, offer2a, *offerGot2)
+		s.Require().Equal(offer2a, *offerGot2)
 
 		// previous record should not be effected
 
-		offerGot1 = dk.GetBuyOrder(ctx, "101")
-		require.NotNil(t, offerGot1)
+		offerGot1 = s.dymNsKeeper.GetBuyOrder(s.ctx, "101")
+		s.Require().NotNil(offerGot1)
 
-		require.NotEqual(t, *offerGot1, *offerGot2)
-		require.Equal(t, offer1a, *offerGot1)
+		s.Require().NotEqual(*offerGot1, *offerGot2)
+		s.Require().Equal(offer1a, *offerGot1)
 	})
 
-	t.Run("can not insert duplicated", func(t *testing.T) {
+	s.Run("can not insert duplicated", func() {
 		for _, assetType := range supportedAssetTypes {
-			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+			s.Run(assetType.FriendlyString(), func() {
+				s.RefreshContext()
 
-			dk.SetCountBuyOrders(ctx, 1)
-			const nextId uint64 = 2
+				s.dymNsKeeper.SetCountBuyOrders(s.ctx, 1)
+				const nextId uint64 = 2
 
-			var params []string
-			if assetType == dymnstypes.TypeAlias {
-				params = []string{"rollapp_1-1"}
-			}
+				var params []string
+				if assetType == dymnstypes.TypeAlias {
+					params = []string{"rollapp_1-1"}
+				}
 
-			existing := dymnstypes.BuyOrder{
-				Id:         dymnstypes.CreateBuyOrderId(assetType, nextId),
-				AssetId:    "asset",
-				AssetType:  assetType,
-				Params:     params,
-				Buyer:      buyerA,
-				OfferPrice: dymnsutils.TestCoin(1),
-			}
+				existing := dymnstypes.BuyOrder{
+					Id:         dymnstypes.CreateBuyOrderId(assetType, nextId),
+					AssetId:    "asset",
+					AssetType:  assetType,
+					Params:     params,
+					Buyer:      buyerA,
+					OfferPrice: s.coin(1),
+				}
 
-			err := dk.SetBuyOrder(ctx, existing)
-			require.NoError(t, err)
+				err := s.dymNsKeeper.SetBuyOrder(s.ctx, existing)
+				s.Require().NoError(err)
 
-			offer := dymnstypes.BuyOrder{
-				Id:         "",
-				AssetId:    "asset",
-				AssetType:  assetType,
-				Params:     params,
-				Buyer:      buyerA,
-				OfferPrice: dymnsutils.TestCoin(1),
-			}
+				offer := dymnstypes.BuyOrder{
+					Id:         "",
+					AssetId:    "asset",
+					AssetType:  assetType,
+					Params:     params,
+					Buyer:      buyerA,
+					OfferPrice: s.coin(1),
+				}
 
-			_, err = dk.InsertNewBuyOrder(ctx, offer)
-			require.Error(t, err)
-			require.Contains(t, err.Error(), "Buy-Order ID already exists")
+				_, err = s.dymNsKeeper.InsertNewBuyOrder(s.ctx, offer)
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), "Buy-Order ID already exists")
+			})
 		}
 	})
 
-	t.Run("should automatically fill ID when insert", func(t *testing.T) {
+	s.Run("should automatically fill ID when insert", func() {
 		for _, assetType := range supportedAssetTypes {
-			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+			s.Run(assetType.FriendlyString(), func() {
+				s.RefreshContext()
 
-			var params []string
-			if assetType == dymnstypes.TypeAlias {
-				params = []string{"rollapp_1-1"}
-			}
+				var params []string
+				if assetType == dymnstypes.TypeAlias {
+					params = []string{"rollapp_1-1"}
+				}
 
-			offer1 := dymnstypes.BuyOrder{
-				Id:         "",
-				AssetId:    "one",
-				AssetType:  assetType,
-				Params:     params,
-				Buyer:      buyerA,
-				OfferPrice: dymnsutils.TestCoin(1),
-			}
+				offer1 := dymnstypes.BuyOrder{
+					Id:         "",
+					AssetId:    "one",
+					AssetType:  assetType,
+					Params:     params,
+					Buyer:      buyerA,
+					OfferPrice: s.coin(1),
+				}
 
-			offer, err := dk.InsertNewBuyOrder(ctx, offer1)
-			require.NoError(t, err)
+				offer, err := s.dymNsKeeper.InsertNewBuyOrder(s.ctx, offer1)
+				s.Require().NoError(err)
 
-			wantId1 := dymnstypes.CreateBuyOrderId(assetType, 1)
-			require.Equal(t, wantId1, offer.Id)
+				wantId1 := dymnstypes.CreateBuyOrderId(assetType, 1)
+				s.Require().Equal(wantId1, offer.Id)
 
-			offerGot := dk.GetBuyOrder(ctx, wantId1)
-			require.NotNil(t, offerGot)
+				offerGot := s.dymNsKeeper.GetBuyOrder(s.ctx, wantId1)
+				s.Require().NotNil(offerGot)
 
-			offer1.Id = wantId1
-			require.Equal(t, offer1, *offerGot)
+				offer1.Id = wantId1
+				s.Require().Equal(offer1, *offerGot)
 
-			dk.SetCountBuyOrders(ctx, 99)
+				s.dymNsKeeper.SetCountBuyOrders(s.ctx, 99)
 
-			offer2 := dymnstypes.BuyOrder{
-				Id:         "",
-				AssetId:    "two",
-				AssetType:  assetType,
-				Params:     params,
-				Buyer:      buyerA,
-				OfferPrice: dymnsutils.TestCoin(1),
-			}
-			offer, err = dk.InsertNewBuyOrder(ctx, offer2)
-			require.NoError(t, err)
+				offer2 := dymnstypes.BuyOrder{
+					Id:         "",
+					AssetId:    "two",
+					AssetType:  assetType,
+					Params:     params,
+					Buyer:      buyerA,
+					OfferPrice: s.coin(1),
+				}
+				offer, err = s.dymNsKeeper.InsertNewBuyOrder(s.ctx, offer2)
+				s.Require().NoError(err)
 
-			wantId2 := dymnstypes.CreateBuyOrderId(assetType, 100)
-			require.Equal(t, wantId2, offer.Id)
+				wantId2 := dymnstypes.CreateBuyOrderId(assetType, 100)
+				s.Require().Equal(wantId2, offer.Id)
 
-			offerGot = dk.GetBuyOrder(ctx, wantId2)
-			require.NotNil(t, offerGot)
+				offerGot = s.dymNsKeeper.GetBuyOrder(s.ctx, wantId2)
+				s.Require().NotNil(offerGot)
 
-			offer2.Id = wantId2
-			require.Equal(t, offer2, *offerGot)
+				offer2.Id = wantId2
+				s.Require().Equal(offer2, *offerGot)
+			})
 		}
 	})
 
-	t.Run("can delete", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	s.Run("can delete", func() {
+		s.RefreshContext()
 
 		var err error
 
@@ -304,10 +314,10 @@ func TestKeeper_GetSetInsertNewBuyOrder(t *testing.T) {
 			AssetId:    "a",
 			AssetType:  dymnstypes.TypeName,
 			Buyer:      buyerA,
-			OfferPrice: dymnsutils.TestCoin(1),
+			OfferPrice: s.coin(1),
 		}
-		err = dk.SetBuyOrder(ctx, offer1)
-		require.NoError(t, err)
+		err = s.dymNsKeeper.SetBuyOrder(s.ctx, offer1)
+		s.Require().NoError(err)
 
 		offer2 := dymnstypes.BuyOrder{
 			Id:         "202",
@@ -315,20 +325,20 @@ func TestKeeper_GetSetInsertNewBuyOrder(t *testing.T) {
 			AssetType:  dymnstypes.TypeAlias,
 			Params:     []string{"rollapp_1-1"},
 			Buyer:      buyerA,
-			OfferPrice: dymnsutils.TestCoin(2),
+			OfferPrice: s.coin(2),
 		}
-		err = dk.SetBuyOrder(ctx, offer2)
-		require.NoError(t, err)
+		err = s.dymNsKeeper.SetBuyOrder(s.ctx, offer2)
+		s.Require().NoError(err)
 
 		offer3 := dymnstypes.BuyOrder{
 			Id:         "103",
 			AssetId:    "c",
 			AssetType:  dymnstypes.TypeName,
 			Buyer:      buyerA,
-			OfferPrice: dymnsutils.TestCoin(3),
+			OfferPrice: s.coin(3),
 		}
-		err = dk.SetBuyOrder(ctx, offer3)
-		require.NoError(t, err)
+		err = s.dymNsKeeper.SetBuyOrder(s.ctx, offer3)
+		s.Require().NoError(err)
 
 		offer4 := dymnstypes.BuyOrder{
 			Id:         "204",
@@ -336,47 +346,47 @@ func TestKeeper_GetSetInsertNewBuyOrder(t *testing.T) {
 			AssetType:  dymnstypes.TypeAlias,
 			Params:     []string{"rollapp_2-2"},
 			Buyer:      buyerA,
-			OfferPrice: dymnsutils.TestCoin(4),
+			OfferPrice: s.coin(4),
 		}
-		err = dk.SetBuyOrder(ctx, offer4)
-		require.NoError(t, err)
+		err = s.dymNsKeeper.SetBuyOrder(s.ctx, offer4)
+		s.Require().NoError(err)
 
-		require.NotNil(t, dk.GetBuyOrder(ctx, offer1.Id))
-		require.NotNil(t, dk.GetBuyOrder(ctx, offer2.Id))
-		require.NotNil(t, dk.GetBuyOrder(ctx, offer3.Id))
-		require.NotNil(t, dk.GetBuyOrder(ctx, offer4.Id))
+		s.Require().NotNil(s.dymNsKeeper.GetBuyOrder(s.ctx, offer1.Id))
+		s.Require().NotNil(s.dymNsKeeper.GetBuyOrder(s.ctx, offer2.Id))
+		s.Require().NotNil(s.dymNsKeeper.GetBuyOrder(s.ctx, offer3.Id))
+		s.Require().NotNil(s.dymNsKeeper.GetBuyOrder(s.ctx, offer4.Id))
 
-		dk.DeleteBuyOrder(ctx, offer2.Id)
-		require.NotNil(t, dk.GetBuyOrder(ctx, offer1.Id))
-		require.Nil(t, dk.GetBuyOrder(ctx, offer2.Id))
-		require.NotNil(t, dk.GetBuyOrder(ctx, offer3.Id))
-		require.NotNil(t, dk.GetBuyOrder(ctx, offer4.Id))
+		s.dymNsKeeper.DeleteBuyOrder(s.ctx, offer2.Id)
+		s.Require().NotNil(s.dymNsKeeper.GetBuyOrder(s.ctx, offer1.Id))
+		s.Require().Nil(s.dymNsKeeper.GetBuyOrder(s.ctx, offer2.Id))
+		s.Require().NotNil(s.dymNsKeeper.GetBuyOrder(s.ctx, offer3.Id))
+		s.Require().NotNil(s.dymNsKeeper.GetBuyOrder(s.ctx, offer4.Id))
 
-		dk.DeleteBuyOrder(ctx, offer4.Id)
-		require.NotNil(t, dk.GetBuyOrder(ctx, offer1.Id))
-		require.Nil(t, dk.GetBuyOrder(ctx, offer2.Id))
-		require.NotNil(t, dk.GetBuyOrder(ctx, offer3.Id))
-		require.Nil(t, dk.GetBuyOrder(ctx, offer4.Id))
+		s.dymNsKeeper.DeleteBuyOrder(s.ctx, offer4.Id)
+		s.Require().NotNil(s.dymNsKeeper.GetBuyOrder(s.ctx, offer1.Id))
+		s.Require().Nil(s.dymNsKeeper.GetBuyOrder(s.ctx, offer2.Id))
+		s.Require().NotNil(s.dymNsKeeper.GetBuyOrder(s.ctx, offer3.Id))
+		s.Require().Nil(s.dymNsKeeper.GetBuyOrder(s.ctx, offer4.Id))
 
-		dk.DeleteBuyOrder(ctx, offer3.Id)
-		require.NotNil(t, dk.GetBuyOrder(ctx, offer1.Id))
-		require.Nil(t, dk.GetBuyOrder(ctx, offer2.Id))
-		require.Nil(t, dk.GetBuyOrder(ctx, offer3.Id))
-		require.Nil(t, dk.GetBuyOrder(ctx, offer4.Id))
+		s.dymNsKeeper.DeleteBuyOrder(s.ctx, offer3.Id)
+		s.Require().NotNil(s.dymNsKeeper.GetBuyOrder(s.ctx, offer1.Id))
+		s.Require().Nil(s.dymNsKeeper.GetBuyOrder(s.ctx, offer2.Id))
+		s.Require().Nil(s.dymNsKeeper.GetBuyOrder(s.ctx, offer3.Id))
+		s.Require().Nil(s.dymNsKeeper.GetBuyOrder(s.ctx, offer4.Id))
 	})
 
-	t.Run("delete non-existing will not panics", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	s.Run("delete non-existing will not panics", func() {
+		s.RefreshContext()
 
-		dk.DeleteBuyOrder(ctx, "1099999")
-		dk.DeleteBuyOrder(ctx, "2099999")
+		s.dymNsKeeper.DeleteBuyOrder(s.ctx, "1099999")
+		s.dymNsKeeper.DeleteBuyOrder(s.ctx, "2099999")
 	})
 
-	t.Run("event should be fired on set/insert offer", func(t *testing.T) {
+	s.Run("event should be fired on set/insert offer", func() {
 		tests := []struct {
 			name    string
 			offer   dymnstypes.BuyOrder
-			setFunc func(ctx sdk.Context, dk dymnskeeper.Keeper, offer dymnstypes.BuyOrder)
+			setFunc func(offer dymnstypes.BuyOrder, s *KeeperTestSuite)
 		}{
 			{
 				name: "set offer type Dym-Name",
@@ -385,11 +395,11 @@ func TestKeeper_GetSetInsertNewBuyOrder(t *testing.T) {
 					AssetId:    "my-name",
 					AssetType:  dymnstypes.TypeName,
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
-				setFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper, offer dymnstypes.BuyOrder) {
-					err := dk.SetBuyOrder(ctx, offer)
-					require.NoError(t, err)
+				setFunc: func(offer dymnstypes.BuyOrder, s *KeeperTestSuite) {
+					err := s.dymNsKeeper.SetBuyOrder(s.ctx, offer)
+					s.Require().NoError(err)
 				},
 			},
 			{
@@ -400,22 +410,22 @@ func TestKeeper_GetSetInsertNewBuyOrder(t *testing.T) {
 					AssetType:  dymnstypes.TypeAlias,
 					Params:     []string{"rollapp_1-1"},
 					Buyer:      buyerA,
-					OfferPrice: dymnsutils.TestCoin(1),
+					OfferPrice: s.coin(1),
 				},
-				setFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper, offer dymnstypes.BuyOrder) {
-					err := dk.SetBuyOrder(ctx, offer)
-					require.NoError(t, err)
+				setFunc: func(offer dymnstypes.BuyOrder, s *KeeperTestSuite) {
+					err := s.dymNsKeeper.SetBuyOrder(s.ctx, offer)
+					s.Require().NoError(err)
 				},
 			},
 		}
 		for _, tt := range tests {
-			t.Run(tt.name, func(t *testing.T) {
-				dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+			s.Run(tt.name, func() {
+				s.RefreshContext()
 
-				tt.setFunc(ctx, dk, tt.offer)
+				tt.setFunc(tt.offer, s)
 
-				events := ctx.EventManager().Events()
-				require.NotEmpty(t, events)
+				events := s.ctx.EventManager().Events()
+				s.Require().NotEmpty(events)
 
 				for _, event := range events {
 					if event.Type != dymnstypes.EventTypeBuyOrder {
@@ -428,68 +438,74 @@ func TestKeeper_GetSetInsertNewBuyOrder(t *testing.T) {
 							actionName = attr.Value
 						}
 					}
-					require.NotEmpty(t, actionName, "event attr action name could not be found")
-					require.Equalf(t,
+					s.Require().NotEmpty(actionName, "event attr action name could not be found")
+					s.Require().Equalf(
 						actionName, dymnstypes.AttributeValueBoActionNameSet,
 						"event attr action name should be `%s`", dymnstypes.AttributeValueBoActionNameSet,
 					)
 					return
 				}
 
-				t.Errorf("event %s not found", dymnstypes.EventTypeBuyOrder)
+				s.T().Errorf("event %s not found", dymnstypes.EventTypeBuyOrder)
 			})
 		}
 	})
 
-	t.Run("event should be fired on delete offer", func(t *testing.T) {
+	s.Run("event should be fired on delete offer", func() {
 		for _, assetType := range supportedAssetTypes {
-			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+			s.Run(assetType.FriendlyString(), func() {
+				s.RefreshContext()
 
-			offer := dymnstypes.BuyOrder{
-				Id:         dymnstypes.CreateBuyOrderId(assetType, 1),
-				AssetId:    "asset",
-				AssetType:  assetType,
-				Buyer:      buyerA,
-				OfferPrice: dymnsutils.TestCoin(1),
-			}
-
-			err := dk.SetBuyOrder(ctx, offer)
-			require.NoError(t, err)
-
-			ctx = ctx.WithEventManager(sdk.NewEventManager())
-
-			dk.DeleteBuyOrder(ctx, offer.Id)
-
-			events := ctx.EventManager().Events()
-			require.NotEmpty(t, events)
-
-			for _, event := range events {
-				if event.Type != dymnstypes.EventTypeBuyOrder {
-					continue
+				var params []string
+				if assetType == dymnstypes.TypeAlias {
+					params = []string{"rollapp_1-1"}
 				}
 
-				var actionName string
-				for _, attr := range event.Attributes {
-					if attr.Key == dymnstypes.AttributeKeyBoActionName {
-						actionName = attr.Value
+				offer := dymnstypes.BuyOrder{
+					Id:         dymnstypes.CreateBuyOrderId(assetType, 1),
+					AssetId:    "asset",
+					AssetType:  assetType,
+					Params:     params,
+					Buyer:      buyerA,
+					OfferPrice: s.coin(1),
+				}
+
+				err := s.dymNsKeeper.SetBuyOrder(s.ctx, offer)
+				s.Require().NoError(err)
+
+				s.ctx = s.ctx.WithEventManager(sdk.NewEventManager())
+
+				s.dymNsKeeper.DeleteBuyOrder(s.ctx, offer.Id)
+
+				events := s.ctx.EventManager().Events()
+				s.Require().NotEmpty(events)
+
+				for _, event := range events {
+					if event.Type != dymnstypes.EventTypeBuyOrder {
+						continue
 					}
-				}
-				require.NotEmpty(t, actionName, "event attr action name could not be found")
-				require.Equalf(t,
-					actionName, dymnstypes.AttributeValueBoActionNameDelete,
-					"event attr action name should be `%s`", dymnstypes.AttributeValueBoActionNameDelete,
-				)
-				return
-			}
 
-			t.Errorf("event %s not found", dymnstypes.EventTypeBuyOrder)
+					var actionName string
+					for _, attr := range event.Attributes {
+						if attr.Key == dymnstypes.AttributeKeyBoActionName {
+							actionName = attr.Value
+						}
+					}
+					s.Require().NotEmpty(actionName, "event attr action name could not be found")
+					s.Require().Equalf(
+						actionName, dymnstypes.AttributeValueBoActionNameDelete,
+						"event attr action name should be `%s`", dymnstypes.AttributeValueBoActionNameDelete,
+					)
+					return
+				}
+
+				s.T().Errorf("event %s not found", dymnstypes.EventTypeBuyOrder)
+			})
 		}
 	})
 }
 
-func TestKeeper_GetAllBuyOrders(t *testing.T) {
-	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-
+func (s *KeeperTestSuite) TestKeeper_GetAllBuyOrders() {
 	buyerA := testAddr(1).bech32()
 
 	offer1 := dymnstypes.BuyOrder{
@@ -497,14 +513,14 @@ func TestKeeper_GetAllBuyOrders(t *testing.T) {
 		AssetId:    "a",
 		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(1),
+		OfferPrice: s.coin(1),
 	}
-	err := dk.SetBuyOrder(ctx, offer1)
-	require.NoError(t, err)
+	err := s.dymNsKeeper.SetBuyOrder(s.ctx, offer1)
+	s.Require().NoError(err)
 
-	offers := dk.GetAllBuyOrders(ctx)
-	require.Len(t, offers, 1)
-	require.Equal(t, offer1, offers[0])
+	offers := s.dymNsKeeper.GetAllBuyOrders(s.ctx)
+	s.Require().Len(offers, 1)
+	s.Require().Equal(offer1, offers[0])
 
 	offer2 := dymnstypes.BuyOrder{
 		Id:         "202",
@@ -512,28 +528,28 @@ func TestKeeper_GetAllBuyOrders(t *testing.T) {
 		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{"rollapp_1-1"},
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(1),
+		OfferPrice: s.coin(1),
 	}
-	err = dk.SetBuyOrder(ctx, offer2)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetBuyOrder(s.ctx, offer2)
+	s.Require().NoError(err)
 
-	offers = dk.GetAllBuyOrders(ctx)
-	require.Len(t, offers, 2)
-	require.Equal(t, []dymnstypes.BuyOrder{offer1, offer2}, offers)
+	offers = s.dymNsKeeper.GetAllBuyOrders(s.ctx)
+	s.Require().Len(offers, 2)
+	s.Require().Equal([]dymnstypes.BuyOrder{offer1, offer2}, offers)
 
 	offer3 := dymnstypes.BuyOrder{
 		Id:         "103",
 		AssetId:    "a",
 		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(1),
+		OfferPrice: s.coin(1),
 	}
-	err = dk.SetBuyOrder(ctx, offer3)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetBuyOrder(s.ctx, offer3)
+	s.Require().NoError(err)
 
-	offers = dk.GetAllBuyOrders(ctx)
-	require.Len(t, offers, 3)
-	require.Equal(t, []dymnstypes.BuyOrder{
+	offers = s.dymNsKeeper.GetAllBuyOrders(s.ctx)
+	s.Require().Len(offers, 3)
+	s.Require().Equal([]dymnstypes.BuyOrder{
 		offer1, offer3, // <= Dym-Name Buy-Order should be sorted first
 		offer2, // <= Alias Buy-Order should be sorted second
 		// because of store branched by asset type
@@ -545,26 +561,26 @@ func TestKeeper_GetAllBuyOrders(t *testing.T) {
 		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{"rollapp_2-2"},
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(1),
+		OfferPrice: s.coin(1),
 	}
-	err = dk.SetBuyOrder(ctx, offer4)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetBuyOrder(s.ctx, offer4)
+	s.Require().NoError(err)
 
-	offers = dk.GetAllBuyOrders(ctx)
-	require.Len(t, offers, 4)
-	require.Equal(t, []dymnstypes.BuyOrder{offer1, offer3, offer2, offer4}, offers)
+	offers = s.dymNsKeeper.GetAllBuyOrders(s.ctx)
+	s.Require().Len(offers, 4)
+	s.Require().Equal([]dymnstypes.BuyOrder{offer1, offer3, offer2, offer4}, offers)
 
 	offer5 := dymnstypes.BuyOrder{
 		Id:         "105",
 		AssetId:    "b",
 		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(3),
+		OfferPrice: s.coin(3),
 	}
-	err = dk.SetBuyOrder(ctx, offer5)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetBuyOrder(s.ctx, offer5)
+	s.Require().NoError(err)
 
-	offers = dk.GetAllBuyOrders(ctx)
-	require.Len(t, offers, 5)
-	require.Equal(t, []dymnstypes.BuyOrder{offer1, offer3, offer5, offer2, offer4}, offers)
+	offers = s.dymNsKeeper.GetAllBuyOrders(s.ctx)
+	s.Require().Len(offers, 5)
+	s.Require().Equal([]dymnstypes.BuyOrder{offer1, offer3, offer5, offer2, offer4}, offers)
 }

@@ -6,7 +6,6 @@ import (
 	"golang.org/x/exp/slices"
 
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
 func (s *KeeperTestSuite) TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOrder() {
@@ -33,7 +32,7 @@ func (s *KeeperTestSuite) TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOrder()
 		AssetId:                "a",
 		AssetType:              dymnstypes.TypeName,
 		Buyer:                  buyer1a,
-		OfferPrice:             dymnsutils.TestCoin(1),
+		OfferPrice:             s.coin(1),
 		CounterpartyOfferPrice: nil,
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer1))
@@ -46,7 +45,7 @@ func (s *KeeperTestSuite) TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOrder()
 		AssetType:              dymnstypes.TypeAlias,
 		Params:                 []string{"rollapp_1-1"},
 		Buyer:                  buyer2a,
-		OfferPrice:             dymnsutils.TestCoin(1),
+		OfferPrice:             s.coin(1),
 		CounterpartyOfferPrice: nil,
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer2))
@@ -58,7 +57,7 @@ func (s *KeeperTestSuite) TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOrder()
 		AssetId:                "c",
 		AssetType:              dymnstypes.TypeName,
 		Buyer:                  buyer2a,
-		OfferPrice:             dymnsutils.TestCoin(1),
+		OfferPrice:             s.coin(1),
 		CounterpartyOfferPrice: nil,
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer3))
@@ -71,7 +70,7 @@ func (s *KeeperTestSuite) TestKeeper_GetAddReverseMappingBuyerToPlacedBuyOrder()
 		AssetType:              dymnstypes.TypeAlias,
 		Params:                 []string{"rollapp_2-2"},
 		Buyer:                  buyer3a,
-		OfferPrice:             dymnsutils.TestCoin(1),
+		OfferPrice:             s.coin(1),
 		CounterpartyOfferPrice: nil,
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer4))
@@ -138,7 +137,7 @@ func (s *KeeperTestSuite) TestKeeper_RemoveReverseMappingBuyerToPlacedBuyOrder()
 		AssetId:                "my-name",
 		AssetType:              dymnstypes.TypeName,
 		Buyer:                  buyerA,
-		OfferPrice:             dymnsutils.TestCoin(1),
+		OfferPrice:             s.coin(1),
 		CounterpartyOfferPrice: nil,
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer1))
@@ -150,7 +149,7 @@ func (s *KeeperTestSuite) TestKeeper_RemoveReverseMappingBuyerToPlacedBuyOrder()
 		AssetType:              dymnstypes.TypeAlias,
 		Params:                 []string{"rollapp_1-1"},
 		Buyer:                  buyerA,
-		OfferPrice:             dymnsutils.TestCoin(1),
+		OfferPrice:             s.coin(1),
 		CounterpartyOfferPrice: nil,
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer2))
@@ -192,7 +191,7 @@ func (s *KeeperTestSuite) TestKeeper_AddReverseMappingAssetIdToBuyOrder_Generic(
 	}
 
 	s.Run("pass - can add", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		const assetId = "asset"
 
@@ -206,7 +205,7 @@ func (s *KeeperTestSuite) TestKeeper_AddReverseMappingAssetIdToBuyOrder_Generic(
 	})
 
 	s.Run("pass - can add without collision across asset types", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		const assetId = "asset"
 
@@ -235,7 +234,7 @@ func (s *KeeperTestSuite) TestKeeper_AddReverseMappingAssetIdToBuyOrder_Generic(
 	})
 
 	s.Run("fail - should reject invalid offer id", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		for _, assetType := range supportedAssetTypes {
 			s.Require().ErrorContains(s.dymNsKeeper.AddReverseMappingAssetIdToBuyOrder(s.ctx, "asset", assetType, "@"),
@@ -245,7 +244,7 @@ func (s *KeeperTestSuite) TestKeeper_AddReverseMappingAssetIdToBuyOrder_Generic(
 	})
 
 	s.Run("fail - should reject invalid asset id", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		for _, assetType := range supportedAssetTypes {
 			var wantErrContains string
@@ -265,7 +264,7 @@ func (s *KeeperTestSuite) TestKeeper_AddReverseMappingAssetIdToBuyOrder_Generic(
 	})
 
 	s.Run("fail - should reject invalid asset type", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		s.Require().ErrorContains(
 			s.dymNsKeeper.AddReverseMappingAssetIdToBuyOrder(s.ctx, "@", dymnstypes.AssetType_AT_UNKNOWN, "101"),
@@ -310,7 +309,7 @@ func (s *KeeperTestSuite) TestKeeper_GetAddReverseMappingAssetIdToBuyOrder_Type_
 		AssetId:    dymName1.Name,
 		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(1),
+		OfferPrice: s.coin(1),
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer11))
 
@@ -319,7 +318,7 @@ func (s *KeeperTestSuite) TestKeeper_GetAddReverseMappingAssetIdToBuyOrder_Type_
 		AssetId:    dymName1.Name,
 		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(1),
+		OfferPrice: s.coin(1),
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer12))
 
@@ -340,7 +339,7 @@ func (s *KeeperTestSuite) TestKeeper_GetAddReverseMappingAssetIdToBuyOrder_Type_
 		AssetId:    dymName2.Name,
 		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(1),
+		OfferPrice: s.coin(1),
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer2))
 
@@ -404,7 +403,7 @@ func (s *KeeperTestSuite) TestKeeper_GetAddReverseMappingAssetIdToBuyOrder_Type_
 		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{dstRollAppId},
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(1),
+		OfferPrice: s.coin(1),
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer11))
 
@@ -414,7 +413,7 @@ func (s *KeeperTestSuite) TestKeeper_GetAddReverseMappingAssetIdToBuyOrder_Type_
 		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{dstRollAppId},
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(1),
+		OfferPrice: s.coin(1),
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer12))
 
@@ -430,7 +429,7 @@ func (s *KeeperTestSuite) TestKeeper_GetAddReverseMappingAssetIdToBuyOrder_Type_
 		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{dstRollAppId},
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(1),
+		OfferPrice: s.coin(1),
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer2))
 
@@ -470,7 +469,7 @@ func (s *KeeperTestSuite) TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Gener
 	}
 
 	s.Run("pass - can remove", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		for _, assetType := range supportedAssetTypes {
 			err := s.dymNsKeeper.AddReverseMappingAssetIdToBuyOrder(s.ctx, "asset", assetType, dymnstypes.CreateBuyOrderId(assetType, 1))
@@ -484,7 +483,7 @@ func (s *KeeperTestSuite) TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Gener
 	})
 
 	s.Run("pass - can remove of non-exists", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		for _, assetType := range supportedAssetTypes {
 			err := s.dymNsKeeper.RemoveReverseMappingAssetIdToBuyOrder(s.ctx, "asset", assetType, dymnstypes.CreateBuyOrderId(assetType, 1))
@@ -493,7 +492,7 @@ func (s *KeeperTestSuite) TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Gener
 	})
 
 	s.Run("pass - can remove without collision across asset types", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		const assetId = "asset"
 
@@ -510,7 +509,7 @@ func (s *KeeperTestSuite) TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Gener
 	})
 
 	s.Run("fail - should reject invalid offer id", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		for _, assetType := range supportedAssetTypes {
 			s.Require().ErrorContains(
@@ -521,7 +520,7 @@ func (s *KeeperTestSuite) TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Gener
 	})
 
 	s.Run("fail - should reject invalid asset id", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		for _, assetType := range supportedAssetTypes {
 			var wantErrContains string
@@ -541,7 +540,7 @@ func (s *KeeperTestSuite) TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Gener
 	})
 
 	s.Run("fail - should reject invalid asset type", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		s.Require().ErrorContains(
 			s.dymNsKeeper.RemoveReverseMappingAssetIdToBuyOrder(s.ctx, "@", dymnstypes.AssetType_AT_UNKNOWN, "101"),
@@ -580,7 +579,7 @@ func (s *KeeperTestSuite) TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Type_
 		AssetId:    dymName1.Name,
 		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(1),
+		OfferPrice: s.coin(1),
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer11))
 
@@ -589,7 +588,7 @@ func (s *KeeperTestSuite) TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Type_
 		AssetId:    dymName1.Name,
 		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(1),
+		OfferPrice: s.coin(1),
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer12))
 
@@ -610,7 +609,7 @@ func (s *KeeperTestSuite) TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Type_
 		AssetId:    dymName2.Name,
 		AssetType:  dymnstypes.TypeName,
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(1),
+		OfferPrice: s.coin(1),
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer2))
 
@@ -668,7 +667,7 @@ func (s *KeeperTestSuite) TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Type_
 		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{dstRollAppId},
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(1),
+		OfferPrice: s.coin(1),
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer11))
 
@@ -678,7 +677,7 @@ func (s *KeeperTestSuite) TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Type_
 		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{dstRollAppId},
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(1),
+		OfferPrice: s.coin(1),
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer12))
 
@@ -694,7 +693,7 @@ func (s *KeeperTestSuite) TestKeeper_RemoveReverseMappingAssetIdToBuyOrder_Type_
 		AssetType:  dymnstypes.TypeAlias,
 		Params:     []string{dstRollAppId},
 		Buyer:      buyerA,
-		OfferPrice: dymnsutils.TestCoin(1),
+		OfferPrice: s.coin(1),
 	}
 	s.Require().NoError(s.dymNsKeeper.SetBuyOrder(s.ctx, offer2))
 

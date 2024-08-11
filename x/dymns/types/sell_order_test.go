@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,10 +34,10 @@ func TestSellOrder_HasSetSellPrice(t *testing.T) {
 		SellPrice: &sdk.Coin{},
 	}).HasSetSellPrice())
 	require.False(t, (&SellOrder{
-		SellPrice: dymnsutils.TestCoinP(0),
+		SellPrice: uptr.To(testCoin(0)),
 	}).HasSetSellPrice())
 	require.True(t, (&SellOrder{
-		SellPrice: dymnsutils.TestCoinP(1),
+		SellPrice: uptr.To(testCoin(1)),
 	}).HasSetSellPrice())
 }
 
@@ -68,9 +69,9 @@ func TestSellOrder_HasExpired(t *testing.T) {
 }
 
 func TestSellOrder_HasFinished(t *testing.T) {
-	oneCoin := dymnsutils.TestCoin(1)
-	threeCoin := dymnsutils.TestCoin(3)
-	zeroCoin := dymnsutils.TestCoin(0)
+	oneCoin := testCoin(1)
+	threeCoin := testCoin(3)
+	zeroCoin := testCoin(0)
 
 	now := time.Now().UTC()
 
@@ -208,11 +209,11 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:   "my-name",
 			_type:     TypeName,
 			expireAt:  time.Now().Unix(),
-			minPrice:  dymnsutils.TestCoin(1),
-			sellPrice: dymnsutils.TestCoinP(1),
+			minPrice:  testCoin(1),
+			sellPrice: uptr.To(testCoin(1)),
 			highestBid: &SellOrderBid{
 				Bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-				Price:  dymnsutils.TestCoin(1),
+				Price:  testCoin(1),
 			},
 		},
 		{
@@ -220,11 +221,11 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:   "alias",
 			_type:     TypeAlias,
 			expireAt:  time.Now().Unix(),
-			minPrice:  dymnsutils.TestCoin(1),
-			sellPrice: dymnsutils.TestCoinP(1),
+			minPrice:  testCoin(1),
+			sellPrice: uptr.To(testCoin(1)),
 			highestBid: &SellOrderBid{
 				Bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-				Price:  dymnsutils.TestCoin(1),
+				Price:  testCoin(1),
 				Params: []string{"rollapp_1-1"},
 			},
 		},
@@ -233,11 +234,11 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:   "alias",
 			_type:     TypeAlias,
 			expireAt:  time.Now().Unix(),
-			minPrice:  dymnsutils.TestCoin(1),
-			sellPrice: dymnsutils.TestCoinP(1),
+			minPrice:  testCoin(1),
+			sellPrice: uptr.To(testCoin(1)),
 			highestBid: &SellOrderBid{
 				Bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-				Price:  dymnsutils.TestCoin(1),
+				Price:  testCoin(1),
 				Params: nil, // empty
 			},
 			wantErr:         true,
@@ -248,23 +249,23 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:   "my-name",
 			_type:     TypeName,
 			expireAt:  time.Now().Unix(),
-			minPrice:  dymnsutils.TestCoin(1),
-			sellPrice: dymnsutils.TestCoinP(1),
+			minPrice:  testCoin(1),
+			sellPrice: uptr.To(testCoin(1)),
 		},
 		{
 			name:      "pass - (Alias) valid sell order without bid",
 			dymName:   "alias",
 			_type:     TypeAlias,
 			expireAt:  time.Now().Unix(),
-			minPrice:  dymnsutils.TestCoin(1),
-			sellPrice: dymnsutils.TestCoinP(1),
+			minPrice:  testCoin(1),
+			sellPrice: uptr.To(testCoin(1)),
 		},
 		{
 			name:      "pass - (Name) valid sell order without setting sell price",
 			dymName:   "my-name",
 			_type:     TypeName,
 			expireAt:  time.Now().Unix(),
-			minPrice:  dymnsutils.TestCoin(1),
+			minPrice:  testCoin(1),
 			sellPrice: nil,
 		},
 		{
@@ -272,7 +273,7 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:   "alias",
 			_type:     TypeAlias,
 			expireAt:  time.Now().Unix(),
-			minPrice:  dymnsutils.TestCoin(1),
+			minPrice:  testCoin(1),
 			sellPrice: nil,
 		},
 		{
@@ -280,7 +281,7 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:         "",
 			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
-			minPrice:        dymnsutils.TestCoin(1),
+			minPrice:        testCoin(1),
 			wantErr:         true,
 			wantErrContains: "Dym-Name of SO is empty",
 		},
@@ -289,7 +290,7 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:         "",
 			_type:           TypeAlias,
 			expireAt:        time.Now().Unix(),
-			minPrice:        dymnsutils.TestCoin(1),
+			minPrice:        testCoin(1),
 			wantErr:         true,
 			wantErrContains: "alias of SO is empty",
 		},
@@ -298,7 +299,7 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:         "asset",
 			_type:           AssetType_AT_UNKNOWN,
 			expireAt:        time.Now().Unix(),
-			minPrice:        dymnsutils.TestCoin(1),
+			minPrice:        testCoin(1),
 			wantErr:         true,
 			wantErrContains: "invalid SO type",
 		},
@@ -307,7 +308,7 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:         "-my-name",
 			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
-			minPrice:        dymnsutils.TestCoin(1),
+			minPrice:        testCoin(1),
 			wantErr:         true,
 			wantErrContains: "Dym-Name of SO is not a valid dym name",
 		},
@@ -316,7 +317,7 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:         "bad-alias",
 			_type:           TypeAlias,
 			expireAt:        time.Now().Unix(),
-			minPrice:        dymnsutils.TestCoin(1),
+			minPrice:        testCoin(1),
 			wantErr:         true,
 			wantErrContains: "alias of SO is not a valid alias",
 		},
@@ -325,7 +326,7 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:         "my-name",
 			_type:           TypeName,
 			expireAt:        0,
-			minPrice:        dymnsutils.TestCoin(1),
+			minPrice:        testCoin(1),
 			wantErr:         true,
 			wantErrContains: "SO expiry is empty",
 		},
@@ -334,7 +335,7 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:         "my-name",
 			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
-			minPrice:        dymnsutils.TestCoin(0),
+			minPrice:        testCoin(0),
 			wantErr:         true,
 			wantErrContains: "SO min price is zero",
 		},
@@ -352,7 +353,7 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:         "my-name",
 			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
-			minPrice:        dymnsutils.TestCoin(-1),
+			minPrice:        testCoin(-1),
 			wantErr:         true,
 			wantErrContains: "SO min price is negative",
 		},
@@ -373,8 +374,8 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:         "my-name",
 			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
-			minPrice:        dymnsutils.TestCoin(1),
-			sellPrice:       dymnsutils.TestCoinP(-1),
+			minPrice:        testCoin(1),
+			sellPrice:       uptr.To(testCoin(-1)),
 			wantErr:         true,
 			wantErrContains: "SO sell price is negative",
 		},
@@ -383,7 +384,7 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:  "my-name",
 			_type:    TypeName,
 			expireAt: time.Now().Unix(),
-			minPrice: dymnsutils.TestCoin(1),
+			minPrice: testCoin(1),
 			sellPrice: &sdk.Coin{
 				Denom:  "-",
 				Amount: sdk.OneInt(),
@@ -396,8 +397,8 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:         "my-name",
 			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
-			minPrice:        dymnsutils.TestCoin(2),
-			sellPrice:       dymnsutils.TestCoinP(1),
+			minPrice:        testCoin(2),
+			sellPrice:       uptr.To(testCoin(1)),
 			wantErr:         true,
 			wantErrContains: "SO sell price is less than min price",
 		},
@@ -406,8 +407,8 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:         "my-name",
 			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
-			minPrice:        dymnsutils.TestCoin(1),
-			sellPrice:       dymnsutils.TestCoin2P(sdk.NewInt64Coin("u"+params.BaseDenom, 2)),
+			minPrice:        testCoin(1),
+			sellPrice:       uptr.To(sdk.NewInt64Coin("u"+params.BaseDenom, 2)),
 			wantErr:         true,
 			wantErrContains: "SO sell price denom is different from min price denom",
 		},
@@ -416,11 +417,11 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:   "my-name",
 			_type:     TypeName,
 			expireAt:  time.Now().Unix(),
-			minPrice:  dymnsutils.TestCoin(1),
-			sellPrice: dymnsutils.TestCoinP(1),
+			minPrice:  testCoin(1),
+			sellPrice: uptr.To(testCoin(1)),
 			highestBid: &SellOrderBid{
 				Bidder: "0x1",
-				Price:  dymnsutils.TestCoin(1),
+				Price:  testCoin(1),
 			},
 			wantErr:         true,
 			wantErrContains: "SO bidder is not a valid bech32 account address",
@@ -430,11 +431,11 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:   "my-name",
 			_type:     TypeName,
 			expireAt:  time.Now().Unix(),
-			minPrice:  dymnsutils.TestCoin(2),
-			sellPrice: dymnsutils.TestCoinP(3),
+			minPrice:  testCoin(2),
+			sellPrice: uptr.To(testCoin(3)),
 			highestBid: &SellOrderBid{
 				Bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-				Price:  dymnsutils.TestCoin(1),
+				Price:  testCoin(1),
 			},
 			wantErr:         true,
 			wantErrContains: "SO highest bid price is less than min price",
@@ -444,11 +445,11 @@ func TestSellOrder_Validate(t *testing.T) {
 			dymName:   "my-name",
 			_type:     TypeName,
 			expireAt:  time.Now().Unix(),
-			minPrice:  dymnsutils.TestCoin(2),
-			sellPrice: dymnsutils.TestCoinP(3),
+			minPrice:  testCoin(2),
+			sellPrice: uptr.To(testCoin(3)),
 			highestBid: &SellOrderBid{
 				Bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-				Price:  dymnsutils.TestCoin(4),
+				Price:  testCoin(4),
 			},
 			wantErr:         true,
 			wantErrContains: "SO sell price is less than highest bid price",
@@ -500,19 +501,19 @@ func TestSellOrderBid_Validate(t *testing.T) {
 			bidder:    "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			params:    nil,
 			assetType: TypeName,
-			price:     dymnsutils.TestCoin(1),
+			price:     testCoin(1),
 		},
 		{
 			name:      "pass - (Alias) valid sell order bid",
 			bidder:    "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			params:    []string{"rollapp_1-1"},
 			assetType: TypeAlias,
-			price:     dymnsutils.TestCoin(1),
+			price:     testCoin(1),
 		},
 		{
 			name:            "fail - empty bidder",
 			bidder:          "",
-			price:           dymnsutils.TestCoin(1),
+			price:           testCoin(1),
 			params:          nil,
 			assetType:       TypeName,
 			wantErr:         true,
@@ -521,7 +522,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 		{
 			name:            "fail - bad bidder",
 			bidder:          "0x1",
-			price:           dymnsutils.TestCoin(1),
+			price:           testCoin(1),
 			params:          nil,
 			assetType:       TypeName,
 			wantErr:         true,
@@ -530,7 +531,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 		{
 			name:            "fail - zero price",
 			bidder:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			price:           dymnsutils.TestCoin(0),
+			price:           testCoin(0),
 			params:          nil,
 			assetType:       TypeName,
 			wantErr:         true,
@@ -572,7 +573,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 		{
 			name:            "fail - (Name) bad params",
 			bidder:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			price:           dymnsutils.TestCoin(1),
+			price:           testCoin(1),
 			params:          []string{"non-empty"},
 			assetType:       TypeName,
 			wantErr:         true,
@@ -581,7 +582,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 		{
 			name:            "fail - (Alias) bad params",
 			bidder:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			price:           dymnsutils.TestCoin(1),
+			price:           testCoin(1),
 			params:          nil,
 			assetType:       TypeAlias,
 			wantErr:         true,
@@ -627,14 +628,14 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 					AssetId:   "my-name",
 					AssetType: TypeName,
 					ExpireAt:  1,
-					MinPrice:  dymnsutils.TestCoin(1),
-					SellPrice: dymnsutils.TestCoinP(1),
+					MinPrice:  testCoin(1),
+					SellPrice: uptr.To(testCoin(1)),
 				},
 				{
 					AssetId:   "my-name",
 					AssetType: TypeName,
 					ExpireAt:  2,
-					MinPrice:  dymnsutils.TestCoin(1),
+					MinPrice:  testCoin(1),
 				},
 			},
 		},
@@ -645,14 +646,14 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 					AssetId:   "alias",
 					AssetType: TypeAlias,
 					ExpireAt:  1,
-					MinPrice:  dymnsutils.TestCoin(1),
-					SellPrice: dymnsutils.TestCoinP(1),
+					MinPrice:  testCoin(1),
+					SellPrice: uptr.To(testCoin(1)),
 				},
 				{
 					AssetId:   "alias",
 					AssetType: TypeAlias,
 					ExpireAt:  2,
-					MinPrice:  dymnsutils.TestCoin(1),
+					MinPrice:  testCoin(1),
 				},
 			},
 		},
@@ -667,13 +668,13 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 					AssetId:   "a",
 					AssetType: TypeName,
 					ExpireAt:  1,
-					MinPrice:  dymnsutils.TestCoin(0), // invalid
+					MinPrice:  testCoin(0), // invalid
 				},
 				{
 					AssetId:   "a",
 					AssetType: TypeName,
 					ExpireAt:  2,
-					MinPrice:  dymnsutils.TestCoin(1),
+					MinPrice:  testCoin(1),
 				},
 			},
 			wantErr:         true,
@@ -686,14 +687,14 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 					AssetId:   "my-name",
 					AssetType: TypeName,
 					ExpireAt:  1,
-					MinPrice:  dymnsutils.TestCoin(1),
-					SellPrice: dymnsutils.TestCoinP(1),
+					MinPrice:  testCoin(1),
+					SellPrice: uptr.To(testCoin(1)),
 				},
 				{
 					AssetId:   "my-name",
 					AssetType: TypeName,
 					ExpireAt:  1,
-					MinPrice:  dymnsutils.TestCoin(1),
+					MinPrice:  testCoin(1),
 				},
 			},
 			wantErr:         true,
@@ -706,14 +707,14 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 					AssetId:   "alias",
 					AssetType: TypeAlias,
 					ExpireAt:  1,
-					MinPrice:  dymnsutils.TestCoin(1),
-					SellPrice: dymnsutils.TestCoinP(1),
+					MinPrice:  testCoin(1),
+					SellPrice: uptr.To(testCoin(1)),
 				},
 				{
 					AssetId:   "alias",
 					AssetType: TypeAlias,
 					ExpireAt:  1,
-					MinPrice:  dymnsutils.TestCoin(1),
+					MinPrice:  testCoin(1),
 				},
 			},
 			wantErr:         true,
@@ -726,14 +727,14 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 					AssetId:   "aaa",
 					AssetType: TypeName,
 					ExpireAt:  1,
-					MinPrice:  dymnsutils.TestCoin(1),
-					SellPrice: dymnsutils.TestCoinP(1),
+					MinPrice:  testCoin(1),
+					SellPrice: uptr.To(testCoin(1)),
 				},
 				{
 					AssetId:   "bbb",
 					AssetType: TypeName,
 					ExpireAt:  2,
-					MinPrice:  dymnsutils.TestCoin(1),
+					MinPrice:  testCoin(1),
 				},
 			},
 			wantErr:         true,
@@ -746,14 +747,14 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 					AssetId:   "aaa",
 					AssetType: TypeAlias,
 					ExpireAt:  1,
-					MinPrice:  dymnsutils.TestCoin(1),
-					SellPrice: dymnsutils.TestCoinP(1),
+					MinPrice:  testCoin(1),
+					SellPrice: uptr.To(testCoin(1)),
 				},
 				{
 					AssetId:   "bbb",
 					AssetType: TypeAlias,
 					ExpireAt:  2,
-					MinPrice:  dymnsutils.TestCoin(1),
+					MinPrice:  testCoin(1),
 				},
 			},
 			wantErr:         true,
@@ -766,14 +767,14 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 					AssetId:   "aaa",
 					AssetType: TypeName,
 					ExpireAt:  1,
-					MinPrice:  dymnsutils.TestCoin(1),
-					SellPrice: dymnsutils.TestCoinP(1),
+					MinPrice:  testCoin(1),
+					SellPrice: uptr.To(testCoin(1)),
 				},
 				{
 					AssetId:   "aaa",
 					AssetType: TypeAlias,
 					ExpireAt:  2,
-					MinPrice:  dymnsutils.TestCoin(1),
+					MinPrice:  testCoin(1),
 				},
 			},
 			wantErr:         true,
@@ -805,11 +806,11 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 			AssetId:   "a",
 			AssetType: TypeName,
 			ExpireAt:  123456,
-			MinPrice:  dymnsutils.TestCoin(1),
-			SellPrice: dymnsutils.TestCoinP(3),
+			MinPrice:  testCoin(1),
+			SellPrice: uptr.To(testCoin(3)),
 			HighestBid: &SellOrderBid{
 				Bidder: "d",
-				Price:  dymnsutils.TestCoin(2),
+				Price:  testCoin(2),
 			},
 		}.GetSdkEvent("action-name")
 		requireEventEquals(t, event,
@@ -830,11 +831,11 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 			AssetId:   "a",
 			AssetType: TypeAlias,
 			ExpireAt:  123456,
-			MinPrice:  dymnsutils.TestCoin(1),
-			SellPrice: dymnsutils.TestCoinP(3),
+			MinPrice:  testCoin(1),
+			SellPrice: uptr.To(testCoin(3)),
 			HighestBid: &SellOrderBid{
 				Bidder: "d",
-				Price:  dymnsutils.TestCoin(2),
+				Price:  testCoin(2),
 			},
 		}.GetSdkEvent("action-name")
 		require.NotNil(t, event)
@@ -849,10 +850,10 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 			AssetId:   "a",
 			AssetType: TypeName,
 			ExpireAt:  123456,
-			MinPrice:  dymnsutils.TestCoin(1),
+			MinPrice:  testCoin(1),
 			HighestBid: &SellOrderBid{
 				Bidder: "d",
-				Price:  dymnsutils.TestCoin(2),
+				Price:  testCoin(2),
 			},
 		}.GetSdkEvent("action-name")
 		requireEventEquals(t, event,
@@ -873,8 +874,8 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 			AssetId:   "a",
 			AssetType: TypeName,
 			ExpireAt:  123456,
-			MinPrice:  dymnsutils.TestCoin(1),
-			SellPrice: dymnsutils.TestCoinP(3),
+			MinPrice:  testCoin(1),
+			SellPrice: uptr.To(testCoin(3)),
 		}.GetSdkEvent("action-name")
 		requireEventEquals(t, event,
 			EventTypeSellOrder,
@@ -1198,5 +1199,12 @@ func requireEventEquals(t *testing.T, event sdk.Event, wantType string, wantAttr
 	for i := 0; i < len(wantAttributePairs); i += 2 {
 		require.Equal(t, wantAttributePairs[i], event.Attributes[i/2].Key)
 		require.Equal(t, wantAttributePairs[i+1], event.Attributes[i/2].Value)
+	}
+}
+
+func testCoin(amount int64) sdk.Coin {
+	return sdk.Coin{
+		Denom:  params.BaseDenom,
+		Amount: sdk.NewInt(amount),
 	}
 }

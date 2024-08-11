@@ -1,33 +1,16 @@
 package keeper_test
 
 import (
-	"testing"
-	"time"
-
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	"github.com/stretchr/testify/require"
 )
 
-func Test_msgServer_SetController(t *testing.T) {
-	now := time.Now().UTC()
-
-	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockTime(now)
-
-		return dk, ctx
-	}
-
-	t.Run("reject if message not pass validate basic", func(t *testing.T) {
-		dk, ctx := setupTest()
-
-		_, err := dymnskeeper.NewMsgServerImpl(dk).SetController(ctx, &dymnstypes.MsgSetController{})
-		require.ErrorContains(t, err, gerrc.ErrInvalidArgument.Error())
+func (s *KeeperTestSuite) Test_msgServer_SetController() {
+	s.Run("reject if message not pass validate basic", func() {
+		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).SetController(s.ctx, &dymnstypes.MsgSetController{})
+		s.Require().ErrorContains(err, gerrc.ErrInvalidArgument.Error())
 	})
 
 	ownerA := testAddr(1).bech32()
@@ -53,7 +36,7 @@ func Test_msgServer_SetController(t *testing.T) {
 				Name:       "a",
 				Owner:      notOwnerA,
 				Controller: notOwnerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			recordName:      "a",
 			wantErr:         true,
@@ -65,7 +48,7 @@ func Test_msgServer_SetController(t *testing.T) {
 				Name:       "a",
 				Owner:      ownerA,
 				Controller: controllerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			recordName:      "a",
 			wantErr:         true,
@@ -77,7 +60,7 @@ func Test_msgServer_SetController(t *testing.T) {
 				Name:       "a",
 				Owner:      ownerA,
 				Controller: controllerA,
-				ExpireAt:   now.Unix() - 1,
+				ExpireAt:   s.now.Unix() - 1,
 			},
 			recordName:      "a",
 			wantErr:         true,
@@ -89,7 +72,7 @@ func Test_msgServer_SetController(t *testing.T) {
 				Name:       "a",
 				Owner:      ownerA,
 				Controller: ownerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			recordName: "a",
 		},
@@ -99,7 +82,7 @@ func Test_msgServer_SetController(t *testing.T) {
 				Name:       "a",
 				Owner:      ownerA,
 				Controller: ownerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: ownerA,
@@ -109,51 +92,51 @@ func Test_msgServer_SetController(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, ctx := setupTest()
+		s.Run(tt.name, func() {
+			s.RefreshContext()
 
 			if tt.dymName != nil {
-				err := dk.SetDymName(ctx, *tt.dymName)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetDymName(s.ctx, *tt.dymName)
+				s.Require().NoError(err)
 			}
 
-			resp, err := dymnskeeper.NewMsgServerImpl(dk).SetController(ctx, &dymnstypes.MsgSetController{
+			resp, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).SetController(s.ctx, &dymnstypes.MsgSetController{
 				Name:       tt.recordName,
 				Controller: controllerA,
 				Owner:      ownerA,
 			})
 			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), tt.wantErrContains)
 
-				require.Nil(t, resp)
+				s.Require().Nil(resp)
 
-				laterDymName := dk.GetDymName(ctx, tt.recordName)
+				laterDymName := s.dymNsKeeper.GetDymName(s.ctx, tt.recordName)
 
 				if tt.dymName != nil {
-					require.Equal(t, *tt.dymName, *laterDymName)
+					s.Require().Equal(*tt.dymName, *laterDymName)
 				} else {
-					require.Nil(t, laterDymName)
+					s.Require().Nil(laterDymName)
 				}
 
 				return
 			}
 
-			require.NoError(t, err)
+			s.Require().NoError(err)
 
-			require.NotNil(t, resp)
+			s.Require().NotNil(resp)
 
-			require.NotNil(t, tt.dymName, "mis-configured test case")
+			s.Require().NotNil(tt.dymName, "mis-configured test case")
 
-			laterDymName := dk.GetDymName(ctx, tt.recordName)
-			require.NotNil(t, laterDymName)
+			laterDymName := s.dymNsKeeper.GetDymName(s.ctx, tt.recordName)
+			s.Require().NotNil(laterDymName)
 
-			require.Equal(t, controllerA, laterDymName.Controller)
-			require.Equal(t, ownerA, laterDymName.Owner)
+			s.Require().Equal(controllerA, laterDymName.Controller)
+			s.Require().Equal(ownerA, laterDymName.Owner)
 
-			require.Equal(t, tt.dymName.ExpireAt, laterDymName.ExpireAt)
-			require.Equal(t, tt.dymName.Configs, laterDymName.Configs)
+			s.Require().Equal(tt.dymName.ExpireAt, laterDymName.ExpireAt)
+			s.Require().Equal(tt.dymName.Configs, laterDymName.Configs)
 		})
 	}
 }

@@ -1,27 +1,16 @@
 package keeper_test
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/require"
-
 	"github.com/ethereum/go-ethereum/common"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
-	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
 var dymNsModuleAccAddr = authtypes.NewModuleAddress(dymnstypes.ModuleName)
-
-func setDymNameWithFunctionsAfter(ctx sdk.Context, dymName dymnstypes.DymName, t *testing.T, dk dymnskeeper.Keeper) {
-	require.NoError(t, dk.SetDymName(ctx, dymName))
-	require.NoError(t, dk.AfterDymNameOwnerChanged(ctx, dymName.Name))
-	require.NoError(t, dk.AfterDymNameConfigChanged(ctx, dymName.Name))
-}
 
 // ta stands for test-address, a simple wrapper for generating account for testing purpose.
 // Usage is short, memorable, easy to type.

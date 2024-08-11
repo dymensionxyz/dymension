@@ -2,34 +2,20 @@ package keeper_test
 
 import (
 	"fmt"
-	"testing"
-	"time"
+
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-	"github.com/stretchr/testify/require"
 )
 
-func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
-	now := time.Now().UTC()
-
-	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockTime(now)
-
-		return dk, ctx
-	}
-
-	t.Run("reject if message not pass validate basic", func(t *testing.T) {
-		dk, ctx := setupTest()
-
-		_, err := dymnskeeper.NewMsgServerImpl(dk).TransferDymNameOwnership(ctx, &dymnstypes.MsgTransferDymNameOwnership{})
-		require.ErrorContains(t, err, gerrc.ErrInvalidArgument.Error())
+func (s *KeeperTestSuite) Test_msgServer_TransferDymNameOwnership() {
+	s.Run("reject if message not pass validate basic", func() {
+		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).TransferDymNameOwnership(s.ctx, &dymnstypes.MsgTransferDymNameOwnership{})
+		s.Require().ErrorContains(err, gerrc.ErrInvalidArgument.Error())
 	})
 
 	ownerA := testAddr(1).bech32()
@@ -58,7 +44,7 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 			dymName: &dymnstypes.DymName{
 				Owner:      anotherA,
 				Controller: anotherA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			wantErr:         true,
 			wantErrContains: "not the owner of the Dym-Name",
@@ -68,7 +54,7 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerA,
 				Controller: ownerA,
-				ExpireAt:   now.Unix() - 1,
+				ExpireAt:   s.now.Unix() - 1,
 			},
 			wantErr:         true,
 			wantErrContains: "Dym-Name is already expired",
@@ -78,7 +64,7 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerA,
 				Controller: ownerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			customNewOwner:  ownerA,
 			wantErr:         true,
@@ -89,12 +75,12 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerA,
 				Controller: ownerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			sellOrder: &dymnstypes.SellOrder{
 				AssetType: dymnstypes.TypeName,
 				ExpireAt:  1,
-				MinPrice:  dymnsutils.TestCoin(100),
+				MinPrice:  s.coin(100),
 			},
 			wantErr:         true,
 			wantErrContains: "can not transfer ownership while there is an active Sell Order",
@@ -104,12 +90,12 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerA,
 				Controller: ownerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			sellOrder: &dymnstypes.SellOrder{
 				AssetType: dymnstypes.TypeName,
-				ExpireAt:  now.Unix() + 1,
-				MinPrice:  dymnsutils.TestCoin(100),
+				ExpireAt:  s.now.Unix() + 100,
+				MinPrice:  s.coin(100),
 			},
 			wantErr:         true,
 			wantErrContains: "can not transfer ownership while there is an active Sell Order",
@@ -119,15 +105,15 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerA,
 				Controller: ownerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			sellOrder: &dymnstypes.SellOrder{
 				AssetType: dymnstypes.TypeName,
-				ExpireAt:  now.Unix() + 1,
-				MinPrice:  dymnsutils.TestCoin(100),
+				ExpireAt:  s.now.Unix() + 100,
+				MinPrice:  s.coin(100),
 				HighestBid: &dymnstypes.SellOrderBid{
 					Bidder: bidderA,
-					Price:  dymnsutils.TestCoin(200),
+					Price:  s.coin(200),
 				},
 			},
 			wantErr:         true,
@@ -138,16 +124,16 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerA,
 				Controller: ownerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			sellOrder: &dymnstypes.SellOrder{
 				AssetType: dymnstypes.TypeName,
-				ExpireAt:  now.Unix() + 1,
-				MinPrice:  dymnsutils.TestCoin(100),
-				SellPrice: dymnsutils.TestCoinP(200),
+				ExpireAt:  s.now.Unix() + 100,
+				MinPrice:  s.coin(100),
+				SellPrice: uptr.To(s.coin(200)),
 				HighestBid: &dymnstypes.SellOrderBid{
 					Bidder: bidderA,
-					Price:  dymnsutils.TestCoin(200),
+					Price:  s.coin(200),
 				},
 			},
 			wantErr:         true,
@@ -158,7 +144,7 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerA,
 				Controller: ownerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 		},
 		{
@@ -166,7 +152,7 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerA,
 				Controller: ownerA,
-				ExpireAt:   now.Unix() + 1,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
@@ -177,14 +163,14 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, ctx := setupTest()
+		s.Run(tt.name, func() {
+			s.RefreshContext()
 
 			if tt.dymName != nil {
 				if tt.dymName.Name == "" {
 					tt.dymName.Name = recordName
 				}
-				setDymNameWithFunctionsAfter(ctx, *tt.dymName, t, dk)
+				s.setDymNameWithFunctionsAfter(*tt.dymName)
 			}
 
 			if tt.dymName != nil {
@@ -193,21 +179,21 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 				so := &dymnstypes.SellOrder{
 					AssetId:   recordName,
 					AssetType: dymnstypes.TypeName,
-					MinPrice:  dymnsutils.TestCoin(100),
+					MinPrice:  s.coin(100),
 					ExpireAt:  1,
 				}
-				require.NoError(t, dk.SetSellOrder(ctx, *so))
+				s.Require().NoError(s.dymNsKeeper.SetSellOrder(s.ctx, *so))
 
-				err := dk.MoveSellOrderToHistorical(ctx, recordName, so.AssetType)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, recordName, so.AssetType)
+				s.Require().NoError(err)
 
-				require.NotEmpty(t, dk.GetHistoricalSellOrders(ctx, recordName, so.AssetType))
+				s.Require().NotEmpty(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, recordName, so.AssetType))
 			}
 
 			if tt.sellOrder != nil {
-				require.NotNil(t, tt.dymName, "bad test setup")
+				s.Require().NotNil(tt.dymName, "bad test setup")
 				tt.sellOrder.AssetId = recordName
-				require.NoError(t, dk.SetSellOrder(ctx, *tt.sellOrder))
+				s.Require().NoError(s.dymNsKeeper.SetSellOrder(s.ctx, *tt.sellOrder))
 			}
 
 			useNewOwner := newOwnerA
@@ -220,58 +206,58 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 				Owner:    ownerA,
 				NewOwner: useNewOwner,
 			}
-			resp, err := dymnskeeper.NewMsgServerImpl(dk).TransferDymNameOwnership(ctx, msg)
-			laterDymName := dk.GetDymName(ctx, recordName)
+			resp, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).TransferDymNameOwnership(s.ctx, msg)
+			laterDymName := s.dymNsKeeper.GetDymName(s.ctx, recordName)
 
 			if tt.dymName != nil {
-				require.NotNil(t, laterDymName)
+				s.Require().NotNil(laterDymName)
 			} else {
-				require.Nil(t, laterDymName)
+				s.Require().Nil(laterDymName)
 			}
 
 			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), tt.wantErrContains)
 
-				require.Nil(t, resp)
+				s.Require().Nil(resp)
 
 				if tt.dymName != nil {
-					require.Equal(t, *tt.dymName, *laterDymName, "Dym-Name should not be changed")
+					s.Require().Equal(*tt.dymName, *laterDymName, "Dym-Name should not be changed")
 
-					if tt.dymName.ExpireAt > now.Unix() {
-						list, err := dk.GetDymNamesOwnedBy(ctx, tt.dymName.Owner)
+					if tt.dymName.ExpireAt > s.now.Unix() {
+						list, err := s.dymNsKeeper.GetDymNamesOwnedBy(s.ctx, tt.dymName.Owner)
 						// GetDymNamesOwnedBy does not return expired Dym-Names
-						require.NoError(t, err)
-						require.Len(t, list, 1, "reverse mapping should be kept")
+						s.Require().NoError(err)
+						s.Require().Len(list, 1, "reverse mapping should be kept")
 
-						names, err := dk.GetDymNamesContainsConfiguredAddress(ctx, tt.dymName.Owner)
-						require.NoError(t, err)
-						require.Len(t, names, 1, "reverse mapping should be kept")
+						names, err := s.dymNsKeeper.GetDymNamesContainsConfiguredAddress(s.ctx, tt.dymName.Owner)
+						s.Require().NoError(err)
+						s.Require().Len(names, 1, "reverse mapping should be kept")
 
-						names, err = dk.GetDymNamesContainsFallbackAddress(ctx,
+						names, err = s.dymNsKeeper.GetDymNamesContainsFallbackAddress(s.ctx,
 							sdk.MustAccAddressFromBech32(tt.dymName.Owner).Bytes(),
 						)
-						require.NoError(t, err)
-						require.Len(t, names, 1, "reverse mapping should be kept")
+						s.Require().NoError(err)
+						s.Require().Len(names, 1, "reverse mapping should be kept")
 					}
 
-					require.NotEmpty(t, dk.GetHistoricalSellOrders(ctx, recordName, dymnstypes.TypeName), "historical SO should be kept")
+					s.Require().NotEmpty(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, recordName, dymnstypes.TypeName), "historical SO should be kept")
 				}
 				return
 			}
 
-			require.NotNil(t, tt.dymName, "bad test setup")
+			s.Require().NotNil(tt.dymName, "bad test setup")
 
-			require.NoError(t, err)
+			s.Require().NoError(err)
 
-			require.NotNil(t, resp)
+			s.Require().NotNil(resp)
 
 			previousOwner := ownerA
 
-			require.NotNil(t, laterDymName)
+			s.Require().NotNil(laterDymName)
 
-			require.Equal(t,
+			s.Require().Equal(
 				tt.dymName.ExpireAt, laterDymName.ExpireAt,
 				"expiration date should not be changed",
 			)
@@ -283,37 +269,37 @@ func Test_msgServer_TransferDymNameOwnership(t *testing.T) {
 				ExpireAt:   tt.dymName.ExpireAt,
 				Configs:    nil,
 			}
-			require.Equal(t, wantLaterDymName, *laterDymName)
+			s.Require().Equal(wantLaterDymName, *laterDymName)
 
-			list, err := dk.GetDymNamesOwnedBy(ctx, previousOwner)
-			require.NoError(t, err)
-			require.Empty(t, list, "reverse mapping of previous owner should be removed")
+			list, err := s.dymNsKeeper.GetDymNamesOwnedBy(s.ctx, previousOwner)
+			s.Require().NoError(err)
+			s.Require().Empty(list, "reverse mapping of previous owner should be removed")
 
-			names, err := dk.GetDymNamesContainsConfiguredAddress(ctx, previousOwner)
-			require.NoError(t, err)
-			require.Empty(t, names, "reverse mapping of previous owner should be removed")
+			names, err := s.dymNsKeeper.GetDymNamesContainsConfiguredAddress(s.ctx, previousOwner)
+			s.Require().NoError(err)
+			s.Require().Empty(names, "reverse mapping of previous owner should be removed")
 
-			names, err = dk.GetDymNamesContainsFallbackAddress(ctx,
+			names, err = s.dymNsKeeper.GetDymNamesContainsFallbackAddress(s.ctx,
 				sdk.MustAccAddressFromBech32(previousOwner).Bytes(),
 			)
-			require.NoError(t, err)
-			require.Empty(t, names, "reverse mapping of previous owner should be removed")
+			s.Require().NoError(err)
+			s.Require().Empty(names, "reverse mapping of previous owner should be removed")
 
-			list, err = dk.GetDymNamesOwnedBy(ctx, useNewOwner)
-			require.NoError(t, err)
-			require.Len(t, list, 1, "reverse mapping of new owner should be added")
+			list, err = s.dymNsKeeper.GetDymNamesOwnedBy(s.ctx, useNewOwner)
+			s.Require().NoError(err)
+			s.Require().Len(list, 1, "reverse mapping of new owner should be added")
 
-			names, err = dk.GetDymNamesContainsConfiguredAddress(ctx, useNewOwner)
-			require.NoError(t, err)
-			require.Len(t, names, 1, "reverse mapping of new owner should be added")
+			names, err = s.dymNsKeeper.GetDymNamesContainsConfiguredAddress(s.ctx, useNewOwner)
+			s.Require().NoError(err)
+			s.Require().Len(names, 1, "reverse mapping of new owner should be added")
 
-			names, err = dk.GetDymNamesContainsFallbackAddress(ctx,
+			names, err = s.dymNsKeeper.GetDymNamesContainsFallbackAddress(s.ctx,
 				sdk.MustAccAddressFromBech32(useNewOwner).Bytes(),
 			)
-			require.NoError(t, err)
-			require.Len(t, names, 1, "reverse mapping of new owner should be added")
+			s.Require().NoError(err)
+			s.Require().Len(names, 1, "reverse mapping of new owner should be added")
 
-			require.Empty(t, dk.GetHistoricalSellOrders(ctx, recordName, dymnstypes.TypeName), "historical SO should be removed")
+			s.Require().Empty(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, recordName, dymnstypes.TypeName), "historical SO should be removed")
 		})
 	}
 }

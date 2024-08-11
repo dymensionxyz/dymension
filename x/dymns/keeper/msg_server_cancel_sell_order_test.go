@@ -3,12 +3,13 @@ package keeper_test
 import (
 	"fmt"
 
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
 func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
@@ -22,7 +23,7 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 		Name:       "a",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   s.now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 100,
 	}
 	err := s.dymNsKeeper.SetDymName(s.ctx, dymName1)
 	s.Require().NoError(err)
@@ -31,7 +32,7 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 		Name:       "b",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   s.now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 100,
 	}
 	err = s.dymNsKeeper.SetDymName(s.ctx, dymName2)
 	s.Require().NoError(err)
@@ -76,9 +77,9 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 		so11 := dymnstypes.SellOrder{
 			AssetId:   dymName1.Name,
 			AssetType: dymnstypes.TypeName,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
-			SellPrice: dymnsutils.TestCoinP(300),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
+			SellPrice: uptr.To(s.coin(300)),
 		}
 		err = s.dymNsKeeper.SetSellOrder(s.ctx, so11)
 		s.Require().NoError(err)
@@ -113,8 +114,8 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 			AssetId:   dymName1.Name,
 			AssetType: dymnstypes.TypeName,
 			ExpireAt:  1,
-			MinPrice:  dymnsutils.TestCoin(100),
-			SellPrice: dymnsutils.TestCoinP(300),
+			MinPrice:  s.coin(100),
+			SellPrice: uptr.To(s.coin(300)),
 		}
 		err = s.dymNsKeeper.SetSellOrder(s.ctx, so11)
 		s.Require().NoError(err)
@@ -137,11 +138,11 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 		so11 := dymnstypes.SellOrder{
 			AssetId:   dymName1.Name,
 			AssetType: dymnstypes.TypeName,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
 			HighestBid: &dymnstypes.SellOrderBid{
 				Bidder: bidderA,
-				Price:  dymnsutils.TestCoin(300),
+				Price:  s.coin(300),
 			},
 		}
 		err = s.dymNsKeeper.SetSellOrder(s.ctx, so11)
@@ -167,8 +168,8 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 		so11 := dymnstypes.SellOrder{
 			AssetId:   dymName1.Name,
 			AssetType: dymnstypes.TypeName,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
 		}
 		err = s.dymNsKeeper.SetSellOrder(s.ctx, so11)
 		s.Require().NoError(err)
@@ -177,8 +178,8 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 		so12 := dymnstypes.SellOrder{
 			AssetId:   dymName2.Name,
 			AssetType: dymnstypes.TypeName,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
 		}
 		err = s.dymNsKeeper.SetSellOrder(s.ctx, so12)
 		s.Require().NoError(err)
@@ -220,8 +221,8 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 		so11 := dymnstypes.SellOrder{
 			AssetId:   dymName1.Name,
 			AssetType: dymnstypes.TypeName,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
 		}
 		err = s.dymNsKeeper.SetSellOrder(s.ctx, so11)
 		s.Require().NoError(err)
@@ -229,8 +230,8 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 		so12 := dymnstypes.SellOrder{
 			AssetId:   dymName2.Name,
 			AssetType: dymnstypes.TypeName,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
 		}
 		err = s.dymNsKeeper.SetSellOrder(s.ctx, so12)
 		s.Require().NoError(err)
@@ -313,9 +314,9 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_Alias() {
 		so11 := dymnstypes.SellOrder{
 			AssetId:   rollapp_1_ofOwner.alias,
 			AssetType: dymnstypes.TypeAlias,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
-			SellPrice: dymnsutils.TestCoinP(300),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
+			SellPrice: uptr.To(s.coin(300)),
 		}
 		err := s.dymNsKeeper.SetSellOrder(s.ctx, so11)
 		s.Require().NoError(err)
@@ -339,8 +340,8 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_Alias() {
 			AssetId:   rollapp_1_ofOwner.alias,
 			AssetType: dymnstypes.TypeAlias,
 			ExpireAt:  1,
-			MinPrice:  dymnsutils.TestCoin(100),
-			SellPrice: dymnsutils.TestCoinP(300),
+			MinPrice:  s.coin(100),
+			SellPrice: uptr.To(s.coin(300)),
 		}
 		err := s.dymNsKeeper.SetSellOrder(s.ctx, so11)
 		s.Require().NoError(err)
@@ -363,11 +364,11 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_Alias() {
 		so11 := dymnstypes.SellOrder{
 			AssetId:   rollapp_1_ofOwner.alias,
 			AssetType: dymnstypes.TypeAlias,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
 			HighestBid: &dymnstypes.SellOrderBid{
 				Bidder: bidderA,
-				Price:  dymnsutils.TestCoin(300),
+				Price:  s.coin(300),
 				Params: []string{rollapp_4_ofBidder.rollAppId},
 			},
 		}
@@ -394,8 +395,8 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_Alias() {
 		so11 := dymnstypes.SellOrder{
 			AssetId:   rollapp_1_ofOwner.alias,
 			AssetType: dymnstypes.TypeAlias,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
 		}
 		err := s.dymNsKeeper.SetSellOrder(s.ctx, so11)
 		s.Require().NoError(err)
@@ -404,8 +405,8 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_Alias() {
 		so12 := dymnstypes.SellOrder{
 			AssetId:   rollapp_2_ofOwner.alias,
 			AssetType: dymnstypes.TypeAlias,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
 		}
 		err = s.dymNsKeeper.SetSellOrder(s.ctx, so12)
 		s.Require().NoError(err)
@@ -447,8 +448,8 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_Alias() {
 		so11 := dymnstypes.SellOrder{
 			AssetId:   rollapp_1_ofOwner.alias,
 			AssetType: dymnstypes.TypeAlias,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
 		}
 		err := s.dymNsKeeper.SetSellOrder(s.ctx, so11)
 		s.Require().NoError(err)
@@ -456,8 +457,8 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_Alias() {
 		so12 := dymnstypes.SellOrder{
 			AssetId:   rollapp_2_ofOwner.alias,
 			AssetType: dymnstypes.TypeAlias,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
 		}
 		err = s.dymNsKeeper.SetSellOrder(s.ctx, so12)
 		s.Require().NoError(err)

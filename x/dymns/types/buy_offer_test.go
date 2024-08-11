@@ -4,9 +4,10 @@ import (
 	"math"
 	"testing"
 
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,10 +19,10 @@ func TestBuyOrder_HasCounterpartyOfferPrice(t *testing.T) {
 		CounterpartyOfferPrice: &sdk.Coin{},
 	}).HasCounterpartyOfferPrice())
 	require.False(t, (&BuyOrder{
-		CounterpartyOfferPrice: dymnsutils.TestCoinP(0),
+		CounterpartyOfferPrice: uptr.To(testCoin(0)),
 	}).HasCounterpartyOfferPrice())
 	require.True(t, (&BuyOrder{
-		CounterpartyOfferPrice: dymnsutils.TestCoinP(1),
+		CounterpartyOfferPrice: uptr.To(testCoin(1)),
 	}).HasCounterpartyOfferPrice())
 }
 
@@ -51,7 +52,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:             dymnsutils.TestCoin(1),
+			offerPrice:             testCoin(1),
 			counterpartyOfferPrice: nil,
 		},
 		{
@@ -61,7 +62,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:              TypeAlias,
 			params:                 []string{"rollapp_1-1"},
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:             dymnsutils.TestCoin(1),
+			offerPrice:             testCoin(1),
 			counterpartyOfferPrice: nil,
 		},
 		{
@@ -71,8 +72,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:             dymnsutils.TestCoin(1),
-			counterpartyOfferPrice: dymnsutils.TestCoinP(2),
+			offerPrice:             testCoin(1),
+			counterpartyOfferPrice: uptr.To(testCoin(2)),
 		},
 		{
 			name:                   "pass - valid offer without counterparty offer price",
@@ -81,7 +82,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:             dymnsutils.TestCoin(1),
+			offerPrice:             testCoin(1),
 			counterpartyOfferPrice: nil,
 		},
 		{
@@ -91,7 +92,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:       TypeName,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:      dymnsutils.TestCoin(1),
+			offerPrice:      testCoin(1),
 			wantErr:         true,
 			wantErrContains: "ID of offer is empty",
 		},
@@ -102,7 +103,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:       TypeName,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:      dymnsutils.TestCoin(1),
+			offerPrice:      testCoin(1),
 			wantErr:         true,
 			wantErrContains: "mismatch type of Buy-Order ID prefix and type",
 		},
@@ -113,7 +114,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:       TypeAlias,
 			params:          []string{"rollapp_1-1"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:      dymnsutils.TestCoin(1),
+			offerPrice:      testCoin(1),
 			wantErr:         true,
 			wantErrContains: "mismatch type of Buy-Order ID prefix and type",
 		},
@@ -124,7 +125,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:       TypeName,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:      dymnsutils.TestCoin(1),
+			offerPrice:      testCoin(1),
 			wantErr:         true,
 			wantErrContains: "ID of offer is not a valid offer id",
 		},
@@ -135,7 +136,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:       TypeName,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:      dymnsutils.TestCoin(1),
+			offerPrice:      testCoin(1),
 			wantErr:         true,
 			wantErrContains: "Dym-Name of offer is empty",
 		},
@@ -146,7 +147,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:       TypeAlias,
 			params:          []string{"rollapp_1-1"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:      dymnsutils.TestCoin(1),
+			offerPrice:      testCoin(1),
 			wantErr:         true,
 			wantErrContains: "alias of offer is empty",
 		},
@@ -157,7 +158,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:       TypeName,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:      dymnsutils.TestCoin(1),
+			offerPrice:      testCoin(1),
 			wantErr:         true,
 			wantErrContains: "Dym-Name of offer is not a valid dym name",
 		},
@@ -168,7 +169,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:       TypeAlias,
 			params:          []string{"rollapp_1-1"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:      dymnsutils.TestCoin(1),
+			offerPrice:      testCoin(1),
 			wantErr:         true,
 			wantErrContains: "alias of offer is not a valid alias",
 		},
@@ -179,7 +180,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:       TypeName,
 			params:          []string{"non-empty"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:      dymnsutils.TestCoin(1),
+			offerPrice:      testCoin(1),
 			wantErr:         true,
 			wantErrContains: "not accept order params for asset type",
 		},
@@ -190,7 +191,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:       TypeAlias,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:      dymnsutils.TestCoin(1),
+			offerPrice:      testCoin(1),
 			wantErr:         true,
 			wantErrContains: "expect 1 order param of RollApp ID",
 		},
@@ -201,7 +202,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:       TypeAlias,
 			params:          []string{"@chain"},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:      dymnsutils.TestCoin(1),
+			offerPrice:      testCoin(1),
 			wantErr:         true,
 			wantErrContains: "invalid RollApp ID format",
 		},
@@ -212,7 +213,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:       TypeName,
 			params:          nil,
 			buyer:           "0x1",
-			offerPrice:      dymnsutils.TestCoin(1),
+			offerPrice:      testCoin(1),
 			wantErr:         true,
 			wantErrContains: "buyer is not a valid bech32 account address",
 		},
@@ -223,7 +224,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:       TypeName,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:      dymnsutils.TestCoin(0),
+			offerPrice:      testCoin(0),
 			wantErr:         true,
 			wantErrContains: "offer price is zero",
 		},
@@ -245,7 +246,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:       TypeName,
 			params:          nil,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:      dymnsutils.TestCoin(-1),
+			offerPrice:      testCoin(-1),
 			wantErr:         true,
 			wantErrContains: "offer price is negative",
 		},
@@ -270,8 +271,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:             dymnsutils.TestCoin(1),
-			counterpartyOfferPrice: dymnsutils.TestCoinP(0),
+			offerPrice:             testCoin(1),
+			counterpartyOfferPrice: uptr.To(testCoin(0)),
 		},
 		{
 			name:                   "pass - counter-party offer price is empty",
@@ -280,7 +281,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:             dymnsutils.TestCoin(1),
+			offerPrice:             testCoin(1),
 			counterpartyOfferPrice: &sdk.Coin{},
 		},
 		{
@@ -290,8 +291,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:             dymnsutils.TestCoin(1),
-			counterpartyOfferPrice: dymnsutils.TestCoinP(-1),
+			offerPrice:             testCoin(1),
+			counterpartyOfferPrice: uptr.To(testCoin(-1)),
 			wantErr:                true,
 			wantErrContains:        "counterparty offer price is negative",
 		},
@@ -302,7 +303,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:  TypeName,
 			params:     nil,
 			buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice: dymnsutils.TestCoin(1),
+			offerPrice: testCoin(1),
 			counterpartyOfferPrice: &sdk.Coin{
 				Denom:  "-",
 				Amount: sdk.OneInt(),
@@ -317,8 +318,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:             dymnsutils.TestCoin(2),
-			counterpartyOfferPrice: dymnsutils.TestCoinP(1),
+			offerPrice:             testCoin(2),
+			counterpartyOfferPrice: uptr.To(testCoin(1)),
 			wantErr:                false,
 		},
 		{
@@ -328,8 +329,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:             dymnsutils.TestCoin(2),
-			counterpartyOfferPrice: dymnsutils.TestCoinP(2),
+			offerPrice:             testCoin(2),
+			counterpartyOfferPrice: uptr.To(testCoin(2)),
 			wantErr:                false,
 		},
 		{
@@ -339,8 +340,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:             dymnsutils.TestCoin(2),
-			counterpartyOfferPrice: dymnsutils.TestCoinP(3),
+			offerPrice:             testCoin(2),
+			counterpartyOfferPrice: uptr.To(testCoin(3)),
 			wantErr:                false,
 		},
 		{
@@ -350,8 +351,8 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetType:              TypeName,
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:             dymnsutils.TestCoin(1),
-			counterpartyOfferPrice: dymnsutils.TestCoin2P(sdk.NewInt64Coin("u"+params.BaseDenom, 2)),
+			offerPrice:             testCoin(1),
+			counterpartyOfferPrice: uptr.To(sdk.NewInt64Coin("u"+params.BaseDenom, 2)),
 			wantErr:                true,
 			wantErrContains:        "counterparty offer price denom is different from offer price denom",
 		},
@@ -361,7 +362,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			assetId:         "asset",
 			assetType:       AssetType_AT_UNKNOWN,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			offerPrice:      dymnsutils.TestCoin(1),
+			offerPrice:      testCoin(1),
 			wantErr:         true,
 			wantErrContains: "invalid asset type",
 		},
@@ -399,8 +400,8 @@ func TestBuyOrder_GetSdkEvent(t *testing.T) {
 			AssetId:                "a",
 			AssetType:              TypeName,
 			Buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			OfferPrice:             dymnsutils.TestCoin(1),
-			CounterpartyOfferPrice: dymnsutils.TestCoinP(2),
+			OfferPrice:             testCoin(1),
+			CounterpartyOfferPrice: uptr.To(testCoin(2)),
 		}.GetSdkEvent("action-name")
 		requireEventEquals(t, event,
 			EventTypeBuyOrder,
@@ -420,8 +421,8 @@ func TestBuyOrder_GetSdkEvent(t *testing.T) {
 			AssetId:                "a",
 			AssetType:              TypeAlias,
 			Buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			OfferPrice:             dymnsutils.TestCoin(1),
-			CounterpartyOfferPrice: dymnsutils.TestCoinP(2),
+			OfferPrice:             testCoin(1),
+			CounterpartyOfferPrice: uptr.To(testCoin(2)),
 		}.GetSdkEvent("action-name")
 		require.NotNil(t, event)
 		require.Equal(t, EventTypeBuyOrder, event.Type)
@@ -436,7 +437,7 @@ func TestBuyOrder_GetSdkEvent(t *testing.T) {
 			AssetId:                "a",
 			AssetType:              TypeName,
 			Buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			OfferPrice:             dymnsutils.TestCoin(1),
+			OfferPrice:             testCoin(1),
 			CounterpartyOfferPrice: nil,
 		}.GetSdkEvent("action-name")
 		requireEventEquals(t, event,

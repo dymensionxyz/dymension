@@ -4,146 +4,146 @@ import (
 	cryptorand "crypto/rand"
 	"fmt"
 	"math/big"
-	"testing"
-	"time"
+
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-	"github.com/stretchr/testify/require"
 )
 
-func TestKeeper_GetSetSellOrder(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_GetSetSellOrder() {
 	supportedAssetTypes := []dymnstypes.AssetType{
 		dymnstypes.TypeName, dymnstypes.TypeAlias,
 	}
 
-	t.Run("reject invalid SO", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-
-		err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{})
-		require.Error(t, err)
+	s.Run("reject invalid SO", func() {
+		err := s.dymNsKeeper.SetSellOrder(s.ctx, dymnstypes.SellOrder{})
+		s.Require().Error(err)
 	})
 
-	t.Run("can set", func(t *testing.T) {
+	s.Run("can set", func() {
 		for _, assetType := range supportedAssetTypes {
-			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+			s.Run(assetType.FriendlyString(), func() {
+				s.RefreshContext()
 
-			so := dymnstypes.SellOrder{
-				AssetId:   "asset",
-				AssetType: assetType,
-				ExpireAt:  1,
-				MinPrice:  dymnsutils.TestCoin(100),
-			}
-			err := dk.SetSellOrder(ctx, so)
-			require.NoError(t, err)
-		}
-	})
-
-	t.Run("event should be fired on set", func(t *testing.T) {
-		for _, assetType := range supportedAssetTypes {
-			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-
-			so := dymnstypes.SellOrder{
-				AssetId:   "asset",
-				AssetType: assetType,
-				ExpireAt:  1,
-				MinPrice:  dymnsutils.TestCoin(100),
-			}
-			err := dk.SetSellOrder(ctx, so)
-			require.NoError(t, err)
-
-			events := ctx.EventManager().Events()
-			require.NotEmpty(t, events)
-
-			func(events sdk.Events) {
-				for _, event := range events {
-					if event.Type != dymnstypes.EventTypeSellOrder {
-						continue
-					}
-
-					var actionName string
-					for _, attr := range event.Attributes {
-						if attr.Key == dymnstypes.AttributeKeySoActionName {
-							actionName = attr.Value
-						}
-					}
-					require.NotEmpty(t, actionName, "event attr action name could not be found")
-					require.Equalf(t,
-						actionName, dymnstypes.AttributeValueSoActionNameSet,
-						"event attr action name should be `%s`", dymnstypes.AttributeValueSoActionNameSet,
-					)
-					return
-				}
-
-				t.Errorf("event %s not found", dymnstypes.EventTypeSellOrder)
-			}(events)
-		}
-	})
-
-	t.Run("can not set Sell-Order with unknown type", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-
-		err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{
-			AssetId:   "asset",
-			AssetType: dymnstypes.AssetType_AT_UNKNOWN,
-			ExpireAt:  1,
-			MinPrice:  dymnsutils.TestCoin(100),
-		})
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "invalid SO type")
-	})
-
-	t.Run("non-exists returns nil", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-
-		for _, assetType := range supportedAssetTypes {
-			require.Nil(t, dk.GetSellOrder(ctx, "asset", assetType))
-		}
-	})
-
-	t.Run("omit Sell Price if zero", func(t *testing.T) {
-		for _, sellPrice := range []*sdk.Coin{nil, dymnsutils.TestCoinP(0), {}} {
-			for _, assetType := range supportedAssetTypes {
-				dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-
-				err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{
+				so := dymnstypes.SellOrder{
 					AssetId:   "asset",
 					AssetType: assetType,
 					ExpireAt:  1,
-					MinPrice:  dymnsutils.TestCoin(100),
-					SellPrice: sellPrice,
-				})
-				require.NoError(t, err)
+					MinPrice:  s.coin(100),
+				}
+				err := s.dymNsKeeper.SetSellOrder(s.ctx, so)
+				s.Require().NoError(err)
+			})
+		}
+	})
 
-				require.Nil(t, dk.GetSellOrder(ctx, "asset", assetType).SellPrice)
+	s.Run("event should be fired on set", func() {
+		for _, assetType := range supportedAssetTypes {
+			s.Run(assetType.FriendlyString(), func() {
+				s.RefreshContext()
+
+				so := dymnstypes.SellOrder{
+					AssetId:   "asset",
+					AssetType: assetType,
+					ExpireAt:  1,
+					MinPrice:  s.coin(100),
+				}
+				err := s.dymNsKeeper.SetSellOrder(s.ctx, so)
+				s.Require().NoError(err)
+
+				events := s.ctx.EventManager().Events()
+				s.Require().NotEmpty(events)
+
+				func(events sdk.Events) {
+					for _, event := range events {
+						if event.Type != dymnstypes.EventTypeSellOrder {
+							continue
+						}
+
+						var actionName string
+						for _, attr := range event.Attributes {
+							if attr.Key == dymnstypes.AttributeKeySoActionName {
+								actionName = attr.Value
+							}
+						}
+						s.Require().NotEmpty(actionName, "event attr action name could not be found")
+						s.Require().Equalf(
+							actionName, dymnstypes.AttributeValueSoActionNameSet,
+							"event attr action name should be `%s`", dymnstypes.AttributeValueSoActionNameSet,
+						)
+						return
+					}
+
+					s.T().Errorf("event %s not found", dymnstypes.EventTypeSellOrder)
+				}(events)
+			})
+		}
+	})
+
+	s.Run("can not set Sell-Order with unknown type", func() {
+		s.RefreshContext()
+
+		err := s.dymNsKeeper.SetSellOrder(s.ctx, dymnstypes.SellOrder{
+			AssetId:   "asset",
+			AssetType: dymnstypes.AssetType_AT_UNKNOWN,
+			ExpireAt:  1,
+			MinPrice:  s.coin(100),
+		})
+		s.Require().ErrorContains(err, "invalid SO type")
+	})
+
+	s.Run("non-exists returns nil", func() {
+		s.RefreshContext()
+
+		for _, assetType := range supportedAssetTypes {
+			s.Require().Nil(s.dymNsKeeper.GetSellOrder(s.ctx, "asset", assetType))
+		}
+	})
+
+	s.Run("omit Sell Price if zero", func() {
+		for _, sellPrice := range []*sdk.Coin{nil, uptr.To(s.coin(0)), {}} {
+			for _, assetType := range supportedAssetTypes {
+				s.Run(assetType.FriendlyString(), func() {
+					s.RefreshContext()
+
+					err := s.dymNsKeeper.SetSellOrder(s.ctx, dymnstypes.SellOrder{
+						AssetId:   "asset",
+						AssetType: assetType,
+						ExpireAt:  1,
+						MinPrice:  s.coin(100),
+						SellPrice: sellPrice,
+					})
+					s.Require().NoError(err)
+
+					s.Require().Nil(s.dymNsKeeper.GetSellOrder(s.ctx, "asset", assetType).SellPrice)
+				})
 			}
 		}
 	})
 
-	t.Run("omit Bid params if empty", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	s.Run("omit Bid params if empty", func() {
+		s.RefreshContext()
 
-		err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{
+		err := s.dymNsKeeper.SetSellOrder(s.ctx, dymnstypes.SellOrder{
 			AssetId:   "asset",
 			AssetType: dymnstypes.TypeName,
 			ExpireAt:  1,
-			MinPrice:  dymnsutils.TestCoin(100),
+			MinPrice:  s.coin(100),
 			HighestBid: &dymnstypes.SellOrderBid{
 				Bidder: testAddr(1).bech32(),
-				Price:  dymnsutils.TestCoin(200),
+				Price:  s.coin(200),
 				Params: []string{},
 			},
 		})
-		require.NoError(t, err)
+		s.Require().NoError(err)
 
-		require.Nil(t, dk.GetSellOrder(ctx, "asset", dymnstypes.TypeName).HighestBid.Params)
+		s.Require().Nil(s.dymNsKeeper.GetSellOrder(s.ctx, "asset", dymnstypes.TypeName).HighestBid.Params)
 	})
 
-	t.Run("get returns correct inserted record, regardless type", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	s.Run("get returns correct inserted record, regardless type", func() {
+		s.RefreshContext()
 
 		var sellOrders []dymnstypes.SellOrder
 
@@ -156,96 +156,100 @@ func TestKeeper_GetSetSellOrder(t *testing.T) {
 					AssetId:   fmt.Sprintf("dog%d", i), // same asset id for all types
 					AssetType: assetType,
 					ExpireAt:  1 + int64(i),
-					MinPrice:  dymnsutils.TestCoin(int64(seed + i)),
+					MinPrice:  s.coin(int64(seed + i)),
 				}
-				err := dk.SetSellOrder(ctx, so)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetSellOrder(s.ctx, so)
+				s.Require().NoError(err)
 
 				sellOrders = append(sellOrders, so)
 			}
 		}
 
 		for _, so := range sellOrders {
-			got := dk.GetSellOrder(ctx, so.AssetId, so.AssetType)
-			require.NotNil(t, got)
-			require.Equal(t, so, *got)
+			got := s.dymNsKeeper.GetSellOrder(s.ctx, so.AssetId, so.AssetType)
+			s.Require().NotNil(got)
+			s.Require().Equal(so, *got)
 		}
 	})
 }
 
-func TestKeeper_DeleteSellOrder(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_DeleteSellOrder() {
 	supportedAssetTypes := []dymnstypes.AssetType{
 		dymnstypes.TypeName, dymnstypes.TypeAlias,
 	}
 
-	t.Run("can delete", func(t *testing.T) {
+	s.Run("can delete", func() {
 		for _, assetType := range supportedAssetTypes {
-			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+			s.Run(assetType.FriendlyString(), func() {
+				s.RefreshContext()
 
-			so := dymnstypes.SellOrder{
-				AssetId:   "asset",
-				AssetType: assetType,
-				ExpireAt:  1,
-				MinPrice:  dymnsutils.TestCoin(1),
-			}
-
-			err := dk.SetSellOrder(ctx, so)
-			require.NoError(t, err)
-
-			require.NotNil(t, dk.GetSellOrder(ctx, so.AssetId, so.AssetType))
-
-			dk.DeleteSellOrder(ctx, so.AssetId, so.AssetType)
-
-			require.Nil(t, dk.GetSellOrder(ctx, so.AssetId, so.AssetType))
-		}
-	})
-
-	t.Run("event should be fired upon deletion", func(t *testing.T) {
-		for _, assetType := range supportedAssetTypes {
-			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-
-			so := dymnstypes.SellOrder{
-				AssetId:   "asset",
-				AssetType: assetType,
-				ExpireAt:  1,
-				MinPrice:  dymnsutils.TestCoin(1),
-			}
-
-			err := dk.SetSellOrder(ctx, so)
-			require.NoError(t, err)
-
-			dk.DeleteSellOrder(ctx, so.AssetId, so.AssetType)
-
-			events := ctx.EventManager().Events()
-			require.NotEmpty(t, events)
-
-			func(events sdk.Events) {
-				for _, event := range events {
-					if event.Type != dymnstypes.EventTypeSellOrder {
-						continue
-					}
-
-					var actionName string
-					for _, attr := range event.Attributes {
-						if attr.Key == dymnstypes.AttributeKeySoActionName {
-							actionName = attr.Value
-						}
-					}
-					require.NotEmpty(t, actionName, "event attr action name could not be found")
-					require.Equalf(t,
-						actionName, dymnstypes.AttributeValueSoActionNameSet,
-						"event attr action name should be `%s`", dymnstypes.AttributeValueSoActionNameDelete,
-					)
-					return
+				so := dymnstypes.SellOrder{
+					AssetId:   "asset",
+					AssetType: assetType,
+					ExpireAt:  1,
+					MinPrice:  s.coin(1),
 				}
 
-				t.Errorf("event %s not found", dymnstypes.EventTypeSellOrder)
-			}(events)
+				err := s.dymNsKeeper.SetSellOrder(s.ctx, so)
+				s.Require().NoError(err)
+
+				s.Require().NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, so.AssetId, so.AssetType))
+
+				s.dymNsKeeper.DeleteSellOrder(s.ctx, so.AssetId, so.AssetType)
+
+				s.Require().Nil(s.dymNsKeeper.GetSellOrder(s.ctx, so.AssetId, so.AssetType))
+			})
 		}
 	})
 
-	t.Run("delete remove the correct record regardless type", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	s.Run("event should be fired upon deletion", func() {
+		for _, assetType := range supportedAssetTypes {
+			s.Run(assetType.FriendlyString(), func() {
+				s.RefreshContext()
+
+				so := dymnstypes.SellOrder{
+					AssetId:   "asset",
+					AssetType: assetType,
+					ExpireAt:  1,
+					MinPrice:  s.coin(1),
+				}
+
+				err := s.dymNsKeeper.SetSellOrder(s.ctx, so)
+				s.Require().NoError(err)
+
+				s.dymNsKeeper.DeleteSellOrder(s.ctx, so.AssetId, so.AssetType)
+
+				events := s.ctx.EventManager().Events()
+				s.Require().NotEmpty(events)
+
+				func(events sdk.Events) {
+					for _, event := range events {
+						if event.Type != dymnstypes.EventTypeSellOrder {
+							continue
+						}
+
+						var actionName string
+						for _, attr := range event.Attributes {
+							if attr.Key == dymnstypes.AttributeKeySoActionName {
+								actionName = attr.Value
+							}
+						}
+						s.Require().NotEmpty(actionName, "event attr action name could not be found")
+						s.Require().Equalf(
+							actionName, dymnstypes.AttributeValueSoActionNameSet,
+							"event attr action name should be `%s`", dymnstypes.AttributeValueSoActionNameDelete,
+						)
+						return
+					}
+
+					s.T().Errorf("event %s not found", dymnstypes.EventTypeSellOrder)
+				}(events)
+			})
+		}
+	})
+
+	s.Run("delete remove the correct record regardless type", func() {
+		s.RefreshContext()
 
 		type testCase struct {
 			so      dymnstypes.SellOrder
@@ -262,45 +266,42 @@ func TestKeeper_DeleteSellOrder(t *testing.T) {
 					AssetId:   fmt.Sprintf("dog%03d%d", i, j),
 					AssetType: assetType,
 					ExpireAt:  1,
-					MinPrice:  dymnsutils.TestCoin(1),
+					MinPrice:  s.coin(1),
 				}
 
-				err := dk.SetSellOrder(ctx, so)
-				require.NoError(t, err)
+				err := s.dymNsKeeper.SetSellOrder(s.ctx, so)
+				s.Require().NoError(err)
 
-				require.NotNil(t, dk.GetSellOrder(ctx, so.AssetId, so.AssetType))
+				s.Require().NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, so.AssetId, so.AssetType))
 
 				testCases = append(testCases, &testCase{so: so, deleted: false})
 			}
 		}
 
-		require.Len(t, testCases, seed*len(supportedAssetTypes))
-		require.Len(t, dk.GetAllSellOrders(ctx), len(testCases))
+		s.Require().Len(testCases, seed*len(supportedAssetTypes))
+		s.Require().Len(s.dymNsKeeper.GetAllSellOrders(s.ctx), len(testCases))
 
 		// test delete
 		for i, tc := range testCases {
-			dk.DeleteSellOrder(ctx, tc.so.AssetId, tc.so.AssetType)
+			s.dymNsKeeper.DeleteSellOrder(s.ctx, tc.so.AssetId, tc.so.AssetType)
 			tc.deleted = true
-			require.Nil(t, dk.GetSellOrder(ctx, tc.so.AssetId, tc.so.AssetType))
+			s.Require().Nil(s.dymNsKeeper.GetSellOrder(s.ctx, tc.so.AssetId, tc.so.AssetType))
 
-			require.Len(t, dk.GetAllSellOrders(ctx), len(testCases)-(i+1))
+			s.Require().Len(s.dymNsKeeper.GetAllSellOrders(s.ctx), len(testCases)-(i+1))
 
 			for _, tc2 := range testCases {
 				if tc2.deleted {
-					require.Nil(t, dk.GetSellOrder(ctx, tc2.so.AssetId, tc2.so.AssetType))
+					s.Require().Nil(s.dymNsKeeper.GetSellOrder(s.ctx, tc2.so.AssetId, tc2.so.AssetType))
 				} else {
-					require.NotNil(t, dk.GetSellOrder(ctx, tc2.so.AssetId, tc2.so.AssetType))
+					s.Require().NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, tc2.so.AssetId, tc2.so.AssetType))
 				}
 			}
 		}
 	})
 }
 
-func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
-	now := time.Now().UTC()
-
-	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-	ctx = ctx.WithBlockTime(now)
+func (s *KeeperTestSuite) TestKeeper_MoveSellOrderToHistorical() {
+	s.RefreshContext()
 
 	ownerA := testAddr(1).bech32()
 	bidderA := testAddr(2).bech32()
@@ -309,202 +310,199 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 		Name:       "a",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 100,
 	}
-	err := dk.SetDymName(ctx, dymName1)
-	require.NoError(t, err)
+	err := s.dymNsKeeper.SetDymName(s.ctx, dymName1)
+	s.Require().NoError(err)
 
 	dymName2 := dymnstypes.DymName{
 		Name:       "b",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 100,
 	}
-	err = dk.SetDymName(ctx, dymName2)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetDymName(s.ctx, dymName2)
+	s.Require().NoError(err)
 
-	dymNames := dk.GetAllNonExpiredDymNames(ctx)
-	require.Len(t, dymNames, 2)
+	dymNames := s.dymNsKeeper.GetAllNonExpiredDymNames(s.ctx)
+	s.Require().Len(dymNames, 2)
 
 	so11 := dymnstypes.SellOrder{
 		AssetId:   dymName1.Name,
 		AssetType: dymnstypes.TypeName,
 		ExpireAt:  1,
-		MinPrice:  dymnsutils.TestCoin(100),
-		SellPrice: dymnsutils.TestCoinP(300),
+		MinPrice:  s.coin(100),
+		SellPrice: uptr.To(s.coin(300)),
 	}
-	err = dk.SetSellOrder(ctx, so11)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetSellOrder(s.ctx, so11)
+	s.Require().NoError(err)
 
 	alias2 := "alias"
 	so21 := dymnstypes.SellOrder{
 		AssetId:   alias2,
 		AssetType: dymnstypes.TypeAlias,
 		ExpireAt:  2,
-		MinPrice:  dymnsutils.TestCoin(100),
+		MinPrice:  s.coin(100),
 	}
-	err = dk.SetSellOrder(ctx, so21)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetSellOrder(s.ctx, so21)
+	s.Require().NoError(err)
 
 	alias3 := "salas"
 	so3 := dymnstypes.SellOrder{
 		AssetId:   alias3,
 		AssetType: dymnstypes.TypeAlias,
 		ExpireAt:  3,
-		MinPrice:  dymnsutils.TestCoin(222),
+		MinPrice:  s.coin(222),
 	}
-	err = dk.SetSellOrder(ctx, so3)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetSellOrder(s.ctx, so3)
+	s.Require().NoError(err)
 
-	t.Run("should able to move", func(t *testing.T) {
-		err := dk.MoveSellOrderToHistorical(ctx, so11.AssetId, so11.AssetType)
-		require.NoError(t, err)
+	s.Run("should able to move", func() {
+		err := s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, so11.AssetId, so11.AssetType)
+		s.Require().NoError(err)
 
-		err = dk.MoveSellOrderToHistorical(ctx, so21.AssetId, so21.AssetType)
-		require.NoError(t, err)
+		err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, so21.AssetId, so21.AssetType)
+		s.Require().NoError(err)
 	})
 
-	t.Run("moved SO should be removed from active", func(t *testing.T) {
-		require.Nil(t, dk.GetSellOrder(ctx, so11.AssetId, so11.AssetType))
-		require.Nil(t, dk.GetSellOrder(ctx, so21.AssetId, so21.AssetType))
+	s.Run("moved SO should be removed from active", func() {
+		s.Require().Nil(s.dymNsKeeper.GetSellOrder(s.ctx, so11.AssetId, so11.AssetType))
+		s.Require().Nil(s.dymNsKeeper.GetSellOrder(s.ctx, so21.AssetId, so21.AssetType))
 	})
 
-	t.Run("has min expiry mapping", func(t *testing.T) {
-		minExpiry, found := dk.GetMinExpiryHistoricalSellOrder(ctx, so11.AssetId, so11.AssetType)
-		require.True(t, found)
-		require.Equal(t, so11.ExpireAt, minExpiry)
+	s.Run("has min expiry mapping", func() {
+		minExpiry, found := s.dymNsKeeper.GetMinExpiryHistoricalSellOrder(s.ctx, so11.AssetId, so11.AssetType)
+		s.Require().True(found)
+		s.Require().Equal(so11.ExpireAt, minExpiry)
 
-		minExpiry, found = dk.GetMinExpiryHistoricalSellOrder(ctx, so21.AssetId, so21.AssetType)
-		require.True(t, found)
-		require.Equal(t, so21.ExpireAt, minExpiry)
+		minExpiry, found = s.dymNsKeeper.GetMinExpiryHistoricalSellOrder(s.ctx, so21.AssetId, so21.AssetType)
+		s.Require().True(found)
+		s.Require().Equal(so21.ExpireAt, minExpiry)
 	})
 
-	t.Run("should not move non-exists", func(t *testing.T) {
-		err := dk.MoveSellOrderToHistorical(ctx, "non-exists", dymnstypes.TypeName)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "Sell-Order: Dym-Name: non-exists")
+	s.Run("should not move non-exists", func() {
+		err := s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, "non-exists", dymnstypes.TypeName)
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "Sell-Order: Dym-Name: non-exists")
 
-		err = dk.MoveSellOrderToHistorical(ctx, "non-exists", dymnstypes.TypeAlias)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "Sell-Order: Alias: non-exists")
+		err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, "non-exists", dymnstypes.TypeAlias)
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "Sell-Order: Alias: non-exists")
 	})
 
-	t.Run("should able to move a duplicated without error", func(t *testing.T) {
+	s.Run("should able to move a duplicated without error", func() {
 		defer func() {
-			dk.DeleteSellOrder(ctx, so11.AssetId, so11.AssetType)
-			dk.DeleteSellOrder(ctx, so21.AssetId, so21.AssetType)
+			s.dymNsKeeper.DeleteSellOrder(s.ctx, so11.AssetId, so11.AssetType)
+			s.dymNsKeeper.DeleteSellOrder(s.ctx, so21.AssetId, so21.AssetType)
 		}()
 
 		for _, so := range []dymnstypes.SellOrder{so11, so21} {
-			err = dk.SetSellOrder(ctx, so)
-			require.NoError(t, err)
+			err = s.dymNsKeeper.SetSellOrder(s.ctx, so)
+			s.Require().NoError(err)
 
-			err = dk.MoveSellOrderToHistorical(ctx, so.AssetId, so.AssetType)
-			require.NoError(t, err)
+			err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, so.AssetId, so.AssetType)
+			s.Require().NoError(err)
 
-			list := dk.GetHistoricalSellOrders(ctx, so.AssetId, so.AssetType)
-			require.Len(t, list, 1, "do not persist duplicated historical SO")
+			list := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, so.AssetId, so.AssetType)
+			s.Require().Len(list, 1, "do not persist duplicated historical SO")
 		}
 	})
 
-	t.Run("other records remaining as-is", func(t *testing.T) {
-		require.Empty(t, dk.GetSellOrder(ctx, dymName2.Name, dymnstypes.TypeName))
-		require.NotNil(t, dk.GetSellOrder(ctx, alias3, dymnstypes.TypeAlias))
+	s.Run("other records remaining as-is", func() {
+		s.Require().Empty(s.dymNsKeeper.GetSellOrder(s.ctx, dymName2.Name, dymnstypes.TypeName))
+		s.Require().NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, alias3, dymnstypes.TypeAlias))
 	})
 
 	so4 := dymnstypes.SellOrder{
 		AssetId:   dymName2.Name,
 		AssetType: dymnstypes.TypeName,
 		ExpireAt:  1,
-		MinPrice:  dymnsutils.TestCoin(100),
+		MinPrice:  s.coin(100),
 	}
-	err = dk.SetSellOrder(ctx, so4)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetSellOrder(s.ctx, so4)
+	s.Require().NoError(err)
 
-	t.Run("should able to move", func(t *testing.T) {
-		err := dk.MoveSellOrderToHistorical(ctx, so4.AssetId, so4.AssetType)
-		require.NoError(t, err)
+	s.Run("should able to move", func() {
+		err := s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, so4.AssetId, so4.AssetType)
+		s.Require().NoError(err)
 	})
 
-	t.Run("other records remaining as-is", func(t *testing.T) {
-		require.Len(t, dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.TypeName), 1)
-		require.Len(t, dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.TypeName), 1)
-		require.Len(t, dk.GetHistoricalSellOrders(ctx, alias2, dymnstypes.TypeAlias), 1)
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.TypeAlias))
+	s.Run("other records remaining as-is", func() {
+		s.Require().Len(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, dymName1.Name, dymnstypes.TypeName), 1)
+		s.Require().Len(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, dymName2.Name, dymnstypes.TypeName), 1)
+		s.Require().Len(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, alias2, dymnstypes.TypeAlias), 1)
+		s.Require().Empty(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, alias3, dymnstypes.TypeAlias))
 	})
 
 	so12 := dymnstypes.SellOrder{
 		AssetId:   dymName1.Name,
 		AssetType: dymnstypes.TypeName,
-		ExpireAt:  now.Unix() + 1,
-		MinPrice:  dymnsutils.TestCoin(100),
-		SellPrice: dymnsutils.TestCoinP(300),
+		ExpireAt:  s.now.Unix() + 100,
+		MinPrice:  s.coin(100),
+		SellPrice: uptr.To(s.coin(300)),
 	}
-	err = dk.SetSellOrder(ctx, so12)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetSellOrder(s.ctx, so12)
+	s.Require().NoError(err)
 
 	so22 := dymnstypes.SellOrder{
 		AssetId:   alias2,
 		AssetType: dymnstypes.TypeAlias,
-		ExpireAt:  now.Unix() + 1,
-		MinPrice:  dymnsutils.TestCoin(100),
-		SellPrice: dymnsutils.TestCoinP(300),
+		ExpireAt:  s.now.Unix() + 100,
+		MinPrice:  s.coin(100),
+		SellPrice: uptr.To(s.coin(300)),
 	}
-	err = dk.SetSellOrder(ctx, so22)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetSellOrder(s.ctx, so22)
+	s.Require().NoError(err)
 
-	t.Run("should not move yet finished SO", func(t *testing.T) {
-		err := dk.MoveSellOrderToHistorical(ctx, so12.AssetId, so12.AssetType)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "Sell-Order not yet expired")
+	s.Run("should not move yet finished SO", func() {
+		err := s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, so12.AssetId, so12.AssetType)
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "Sell-Order not yet expired")
 
-		err = dk.MoveSellOrderToHistorical(ctx, so22.AssetId, so22.AssetType)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "Sell-Order not yet expired")
+		err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, so22.AssetId, so22.AssetType)
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "Sell-Order not yet expired")
 	})
 
 	for _, so := range []dymnstypes.SellOrder{so12, so22} {
 		so.HighestBid = &dymnstypes.SellOrderBid{
 			Bidder: bidderA,
-			Price:  dymnsutils.TestCoin(300),
+			Price:  s.coin(300),
 		}
 		if so.AssetType == dymnstypes.TypeAlias {
 			so.HighestBid.Params = []string{"rollapp_1-1"}
 		}
 
-		err = dk.SetSellOrder(ctx, so)
-		require.NoError(t, err)
+		err = s.dymNsKeeper.SetSellOrder(s.ctx, so)
+		s.Require().NoError(err)
 
-		t.Run("should able to move finished SO", func(t *testing.T) {
-			err := dk.MoveSellOrderToHistorical(ctx, so.AssetId, so.AssetType)
-			require.NoError(t, err)
+		s.Run("should able to move finished SO", func() {
+			err := s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, so.AssetId, so.AssetType)
+			s.Require().NoError(err)
 
-			list := dk.GetHistoricalSellOrders(ctx, so.AssetId, so.AssetType)
-			require.Len(t, list, 2, "should appended to historical")
+			list := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, so.AssetId, so.AssetType)
+			s.Require().Len(list, 2, "should appended to historical")
 		})
 	}
 
-	minExpiry, found := dk.GetMinExpiryHistoricalSellOrder(ctx, so12.AssetId, so12.AssetType)
-	require.True(t, found)
-	require.Equal(t, so11.ExpireAt, minExpiry, "should keep the minimum")
-	require.NotEqual(t, so12.ExpireAt, minExpiry, "should keep the minimum")
+	minExpiry, found := s.dymNsKeeper.GetMinExpiryHistoricalSellOrder(s.ctx, so12.AssetId, so12.AssetType)
+	s.Require().True(found)
+	s.Require().Equal(so11.ExpireAt, minExpiry, "should keep the minimum")
+	s.Require().NotEqual(so12.ExpireAt, minExpiry, "should keep the minimum")
 
-	minExpiry, found = dk.GetMinExpiryHistoricalSellOrder(ctx, so22.AssetId, so22.AssetType)
-	require.True(t, found)
-	require.Equal(t, so21.ExpireAt, minExpiry, "should keep the minimum")
-	require.NotEqual(t, so22.ExpireAt, minExpiry, "should keep the minimum")
+	minExpiry, found = s.dymNsKeeper.GetMinExpiryHistoricalSellOrder(s.ctx, so22.AssetId, so22.AssetType)
+	s.Require().True(found)
+	s.Require().Equal(so21.ExpireAt, minExpiry, "should keep the minimum")
+	s.Require().NotEqual(so22.ExpireAt, minExpiry, "should keep the minimum")
 
-	t.Run("other records remaining as-is", func(t *testing.T) {
-		require.Len(t, dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.TypeName), 1)
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.TypeAlias))
+	s.Run("other records remaining as-is", func() {
+		s.Require().Len(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, dymName2.Name, dymnstypes.TypeName), 1)
+		s.Require().Empty(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, alias3, dymnstypes.TypeAlias))
 	})
 }
 
-func TestKeeper_GetAndDeleteHistoricalSellOrders(t *testing.T) {
-	now := time.Now().UTC()
-
-	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-	ctx = ctx.WithBlockTime(now)
+func (s *KeeperTestSuite) TestKeeper_GetAndDeleteHistoricalSellOrders() {
+	s.RefreshContext()
 
 	ownerA := testAddr(1).bech32()
 
@@ -512,138 +510,138 @@ func TestKeeper_GetAndDeleteHistoricalSellOrders(t *testing.T) {
 		Name:       "a",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 100,
 	}
-	err := dk.SetDymName(ctx, dymName1)
-	require.NoError(t, err)
+	err := s.dymNsKeeper.SetDymName(s.ctx, dymName1)
+	s.Require().NoError(err)
 
 	dymName2 := dymnstypes.DymName{
 		Name:       "b",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   now.Unix() + 1,
+		ExpireAt:   s.now.Unix() + 100,
 	}
-	err = dk.SetDymName(ctx, dymName2)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetDymName(s.ctx, dymName2)
+	s.Require().NoError(err)
 
 	alias3 := "alias"
 	alias4 := "salas"
 
-	t.Run("getting non-exists should returns empty", func(t *testing.T) {
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.TypeName))
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.TypeName))
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.TypeAlias))
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, alias4, dymnstypes.TypeAlias))
+	s.Run("getting non-exists should returns empty", func() {
+		s.Require().Empty(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, dymName1.Name, dymnstypes.TypeName))
+		s.Require().Empty(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, dymName2.Name, dymnstypes.TypeName))
+		s.Require().Empty(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, alias3, dymnstypes.TypeAlias))
+		s.Require().Empty(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, alias4, dymnstypes.TypeAlias))
 	})
 
 	so11 := dymnstypes.SellOrder{
 		AssetId:   dymName1.Name,
 		AssetType: dymnstypes.TypeName,
 		ExpireAt:  1,
-		MinPrice:  dymnsutils.TestCoin(100),
-		SellPrice: dymnsutils.TestCoinP(300),
+		MinPrice:  s.coin(100),
+		SellPrice: uptr.To(s.coin(300)),
 	}
-	err = dk.SetSellOrder(ctx, so11)
-	require.NoError(t, err)
-	err = dk.MoveSellOrderToHistorical(ctx, so11.AssetId, so11.AssetType)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetSellOrder(s.ctx, so11)
+	s.Require().NoError(err)
+	err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, so11.AssetId, so11.AssetType)
+	s.Require().NoError(err)
 
 	so2 := dymnstypes.SellOrder{
 		AssetId:   alias3,
 		AssetType: dymnstypes.TypeAlias,
 		ExpireAt:  7,
-		MinPrice:  dymnsutils.TestCoin(200),
+		MinPrice:  s.coin(200),
 	}
-	err = dk.SetSellOrder(ctx, so2)
-	require.NoError(t, err)
-	err = dk.MoveSellOrderToHistorical(ctx, so2.AssetId, so2.AssetType)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetSellOrder(s.ctx, so2)
+	s.Require().NoError(err)
+	err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, so2.AssetId, so2.AssetType)
+	s.Require().NoError(err)
 
 	so3 := dymnstypes.SellOrder{
 		AssetId:   dymName2.Name,
 		AssetType: dymnstypes.TypeName,
 		ExpireAt:  1,
-		MinPrice:  dymnsutils.TestCoin(100),
+		MinPrice:  s.coin(100),
 	}
-	err = dk.SetSellOrder(ctx, so3)
-	require.NoError(t, err)
-	err = dk.MoveSellOrderToHistorical(ctx, so3.AssetId, so3.AssetType)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetSellOrder(s.ctx, so3)
+	s.Require().NoError(err)
+	err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, so3.AssetId, so3.AssetType)
+	s.Require().NoError(err)
 
 	so3.ExpireAt++
-	err = dk.SetSellOrder(ctx, so3)
-	require.NoError(t, err)
-	err = dk.MoveSellOrderToHistorical(ctx, so3.AssetId, so3.AssetType)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetSellOrder(s.ctx, so3)
+	s.Require().NoError(err)
+	err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, so3.AssetId, so3.AssetType)
+	s.Require().NoError(err)
 
 	so4 := dymnstypes.SellOrder{
 		AssetId:   alias4,
 		AssetType: dymnstypes.TypeAlias,
 		ExpireAt:  5,
-		MinPrice:  dymnsutils.TestCoin(500),
+		MinPrice:  s.coin(500),
 	}
-	err = dk.SetSellOrder(ctx, so4)
-	require.NoError(t, err)
-	err = dk.MoveSellOrderToHistorical(ctx, so4.AssetId, so4.AssetType)
-	require.NoError(t, err)
+	err = s.dymNsKeeper.SetSellOrder(s.ctx, so4)
+	s.Require().NoError(err)
+	err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, so4.AssetId, so4.AssetType)
+	s.Require().NoError(err)
 
-	t.Run("fetch correctly", func(t *testing.T) {
-		list1 := dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.TypeName)
-		require.Len(t, list1, 1)
-		list2 := dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.TypeName)
-		require.Len(t, list2, 2)
-		list3 := dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.TypeAlias)
-		require.Len(t, list3, 1)
-		list4 := dk.GetHistoricalSellOrders(ctx, alias4, dymnstypes.TypeAlias)
-		require.Len(t, list4, 1)
+	s.Run("fetch correctly", func() {
+		list1 := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, dymName1.Name, dymnstypes.TypeName)
+		s.Require().Len(list1, 1)
+		list2 := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, dymName2.Name, dymnstypes.TypeName)
+		s.Require().Len(list2, 2)
+		list3 := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, alias3, dymnstypes.TypeAlias)
+		s.Require().Len(list3, 1)
+		list4 := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, alias4, dymnstypes.TypeAlias)
+		s.Require().Len(list4, 1)
 
-		require.Equal(t, so3.AssetId, list2[0].AssetId)
-		require.Equal(t, so3.AssetId, list2[1].AssetId)
+		s.Require().Equal(so3.AssetId, list2[0].AssetId)
+		s.Require().Equal(so3.AssetId, list2[1].AssetId)
 
-		require.Equal(t, int64(1), list2[0].ExpireAt)
-		require.Equal(t, int64(2), list2[1].ExpireAt)
+		s.Require().Equal(int64(1), list2[0].ExpireAt)
+		s.Require().Equal(int64(2), list2[1].ExpireAt)
 
-		require.Equal(t, int64(7), list3[0].ExpireAt)
-		require.Equal(t, int64(5), list4[0].ExpireAt)
+		s.Require().Equal(int64(7), list3[0].ExpireAt)
+		s.Require().Equal(int64(5), list4[0].ExpireAt)
 	})
 
-	t.Run("delete", func(t *testing.T) {
-		dk.DeleteHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.TypeName)
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.TypeName))
+	s.Run("delete", func() {
+		s.dymNsKeeper.DeleteHistoricalSellOrders(s.ctx, dymName1.Name, dymnstypes.TypeName)
+		s.Require().Empty(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, dymName1.Name, dymnstypes.TypeName))
 
-		list2 := dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.TypeName)
-		require.Len(t, list2, 2)
+		list2 := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, dymName2.Name, dymnstypes.TypeName)
+		s.Require().Len(list2, 2)
 
-		dk.DeleteHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.TypeName)
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, dymName2.Name, dymnstypes.TypeName))
+		s.dymNsKeeper.DeleteHistoricalSellOrders(s.ctx, dymName2.Name, dymnstypes.TypeName)
+		s.Require().Empty(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, dymName2.Name, dymnstypes.TypeName))
 
-		list3 := dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.TypeAlias)
-		require.Len(t, list3, 1)
+		list3 := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, alias3, dymnstypes.TypeAlias)
+		s.Require().Len(list3, 1)
 
-		dk.DeleteHistoricalSellOrders(ctx, alias3, dymnstypes.TypeAlias)
-		require.Empty(t, dk.GetHistoricalSellOrders(ctx, alias3, dymnstypes.TypeAlias))
+		s.dymNsKeeper.DeleteHistoricalSellOrders(s.ctx, alias3, dymnstypes.TypeAlias)
+		s.Require().Empty(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, alias3, dymnstypes.TypeAlias))
 
-		list4 := dk.GetHistoricalSellOrders(ctx, alias4, dymnstypes.TypeAlias)
-		require.Len(t, list4, 1)
+		list4 := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, alias4, dymnstypes.TypeAlias)
+		s.Require().Len(list4, 1)
 	})
 }
 
-func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
-	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+func (s *KeeperTestSuite) TestKeeper_GetSetActiveSellOrdersExpiration() {
+	s.RefreshContext()
 
 	supportedAssetTypes := []dymnstypes.AssetType{
 		dymnstypes.TypeName, dymnstypes.TypeAlias,
 	}
 
-	t.Run("get", func(t *testing.T) {
+	s.Run("get", func() {
 		for _, assetType := range supportedAssetTypes {
-			aSoe := dk.GetActiveSellOrdersExpiration(ctx, assetType)
-			require.Empty(t, aSoe.Records, "default list must be empty")
-			require.NotNil(t, aSoe.Records, "list must be initialized")
+			aSoe := s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, assetType)
+			s.Require().Empty(aSoe.Records, "default list must be empty")
+			s.Require().NotNil(aSoe.Records, "list must be initialized")
 		}
 	})
 
-	t.Run("set", func(t *testing.T) {
+	s.Run("set", func() {
 		for _, assetType := range supportedAssetTypes {
 			aSoe := &dymnstypes.ActiveSellOrdersExpiration{
 				Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
@@ -657,21 +655,21 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 					},
 				},
 			}
-			err := dk.SetActiveSellOrdersExpiration(ctx, aSoe, assetType)
-			require.NoError(t, err)
+			err := s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, aSoe, assetType)
+			s.Require().NoError(err)
 
-			aSoe = dk.GetActiveSellOrdersExpiration(ctx, assetType)
-			require.Len(t, aSoe.Records, 2)
-			require.Equal(t, "hello", aSoe.Records[0].AssetId)
-			require.Equal(t, int64(123), aSoe.Records[0].ExpireAt)
-			require.Equal(t, "world", aSoe.Records[1].AssetId)
-			require.Equal(t, int64(456), aSoe.Records[1].ExpireAt)
+			aSoe = s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, assetType)
+			s.Require().Len(aSoe.Records, 2)
+			s.Require().Equal("hello", aSoe.Records[0].AssetId)
+			s.Require().Equal(int64(123), aSoe.Records[0].ExpireAt)
+			s.Require().Equal("world", aSoe.Records[1].AssetId)
+			s.Require().Equal(int64(456), aSoe.Records[1].ExpireAt)
 		}
 	})
 
-	t.Run("must automatically sort when set", func(t *testing.T) {
+	s.Run("must automatically sort when set", func() {
 		for _, assetType := range supportedAssetTypes {
-			err := dk.SetActiveSellOrdersExpiration(ctx, &dymnstypes.ActiveSellOrdersExpiration{
+			err := s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, &dymnstypes.ActiveSellOrdersExpiration{
 				Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
 					{
 						AssetId:  "bbb",
@@ -683,22 +681,22 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 					},
 				},
 			}, assetType)
-			require.NoError(t, err)
+			s.Require().NoError(err)
 
-			aSoe := dk.GetActiveSellOrdersExpiration(ctx, assetType)
-			require.Len(t, aSoe.Records, 2)
+			aSoe := s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, assetType)
+			s.Require().Len(aSoe.Records, 2)
 
-			require.Equal(t, "aaa", aSoe.Records[0].AssetId)
-			require.Equal(t, int64(123), aSoe.Records[0].ExpireAt)
-			require.Equal(t, "bbb", aSoe.Records[1].AssetId)
-			require.Equal(t, int64(456), aSoe.Records[1].ExpireAt)
+			s.Require().Equal("aaa", aSoe.Records[0].AssetId)
+			s.Require().Equal(int64(123), aSoe.Records[0].ExpireAt)
+			s.Require().Equal("bbb", aSoe.Records[1].AssetId)
+			s.Require().Equal(int64(456), aSoe.Records[1].ExpireAt)
 		}
 	})
 
-	t.Run("can not set if set is not valid", func(t *testing.T) {
+	s.Run("can not set if set is not valid", func() {
 		for _, assetType := range supportedAssetTypes {
 			// not unique
-			err := dk.SetActiveSellOrdersExpiration(ctx, &dymnstypes.ActiveSellOrdersExpiration{
+			err := s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, &dymnstypes.ActiveSellOrdersExpiration{
 				Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
 					{
 						AssetId:  "dup",
@@ -710,10 +708,10 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 					},
 				},
 			}, assetType)
-			require.Error(t, err)
+			s.Require().Error(err)
 
 			// zero expiry
-			err = dk.SetActiveSellOrdersExpiration(ctx, &dymnstypes.ActiveSellOrdersExpiration{
+			err = s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, &dymnstypes.ActiveSellOrdersExpiration{
 				Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
 					{
 						AssetId:  "alice",
@@ -725,12 +723,12 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 					},
 				},
 			}, assetType)
-			require.Error(t, err)
+			s.Require().Error(err)
 		}
 	})
 
-	t.Run("each asset type persists separately", func(t *testing.T) {
-		err := dk.SetActiveSellOrdersExpiration(ctx, &dymnstypes.ActiveSellOrdersExpiration{
+	s.Run("each asset type persists separately", func() {
+		err := s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, &dymnstypes.ActiveSellOrdersExpiration{
 			Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
 					AssetId:  "asset",
@@ -738,9 +736,9 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 				},
 			},
 		}, dymnstypes.TypeName)
-		require.NoError(t, err)
+		s.Require().NoError(err)
 
-		err = dk.SetActiveSellOrdersExpiration(ctx, &dymnstypes.ActiveSellOrdersExpiration{
+		err = s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, &dymnstypes.ActiveSellOrdersExpiration{
 			Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
 					AssetId:  "asset",
@@ -748,84 +746,86 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 				},
 			},
 		}, dymnstypes.TypeAlias)
-		require.NoError(t, err)
+		s.Require().NoError(err)
 
-		listName := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
-		require.Len(t, listName.Records, 1)
-		require.Equal(t, "asset", listName.Records[0].AssetId)
-		require.Equal(t, int64(1), listName.Records[0].ExpireAt)
+		listName := s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, dymnstypes.TypeName)
+		s.Require().Len(listName.Records, 1)
+		s.Require().Equal("asset", listName.Records[0].AssetId)
+		s.Require().Equal(int64(1), listName.Records[0].ExpireAt)
 
-		listAlias := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeAlias)
-		require.Len(t, listAlias.Records, 1)
-		require.Equal(t, "asset", listAlias.Records[0].AssetId)
-		require.Equal(t, int64(2), listAlias.Records[0].ExpireAt)
+		listAlias := s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, dymnstypes.TypeAlias)
+		s.Require().Len(listAlias.Records, 1)
+		s.Require().Equal("asset", listAlias.Records[0].AssetId)
+		s.Require().Equal(int64(2), listAlias.Records[0].ExpireAt)
 	})
 }
 
-func TestKeeper_GetSetMinExpiryHistoricalSellOrder(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_GetSetMinExpiryHistoricalSellOrder() {
 	supportedAssetTypes := []dymnstypes.AssetType{
 		dymnstypes.TypeName, dymnstypes.TypeAlias,
 	}
 
 	for _, assetType := range supportedAssetTypes {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+		s.Run(assetType.FriendlyString(), func() {
+			s.RefreshContext()
 
-		dk.SetMinExpiryHistoricalSellOrder(ctx, "hello", assetType, 123)
-		dk.SetMinExpiryHistoricalSellOrder(ctx, "world", assetType, 456)
+			s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, "hello", assetType, 123)
+			s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, "world", assetType, 456)
 
-		minExpiry, found := dk.GetMinExpiryHistoricalSellOrder(ctx, "hello", assetType)
-		require.True(t, found)
-		require.Equal(t, int64(123), minExpiry)
+			minExpiry, found := s.dymNsKeeper.GetMinExpiryHistoricalSellOrder(s.ctx, "hello", assetType)
+			s.Require().True(found)
+			s.Require().Equal(int64(123), minExpiry)
 
-		minExpiry, found = dk.GetMinExpiryHistoricalSellOrder(ctx, "world", assetType)
-		require.True(t, found)
-		require.Equal(t, int64(456), minExpiry)
+			minExpiry, found = s.dymNsKeeper.GetMinExpiryHistoricalSellOrder(s.ctx, "world", assetType)
+			s.Require().True(found)
+			s.Require().Equal(int64(456), minExpiry)
 
-		minExpiry, found = dk.GetMinExpiryHistoricalSellOrder(ctx, "non-exists", assetType)
-		require.False(t, found)
-		require.Zero(t, minExpiry)
+			minExpiry, found = s.dymNsKeeper.GetMinExpiryHistoricalSellOrder(s.ctx, "non-exists", assetType)
+			s.Require().False(found)
+			s.Require().Zero(minExpiry)
 
-		t.Run("set zero means delete", func(t *testing.T) {
-			dk.SetMinExpiryHistoricalSellOrder(ctx, "hello", assetType, 0)
+			s.Run("set zero means delete", func() {
+				s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, "hello", assetType, 0)
 
-			minExpiry, found = dk.GetMinExpiryHistoricalSellOrder(ctx, "hello", assetType)
-			require.False(t, found)
-			require.Zero(t, minExpiry)
+				minExpiry, found = s.dymNsKeeper.GetMinExpiryHistoricalSellOrder(s.ctx, "hello", assetType)
+				s.Require().False(found)
+				s.Require().Zero(minExpiry)
+			})
 		})
 	}
 
-	t.Run("each asset type persists separately", func(t *testing.T) {
-		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	s.Run("each asset type persists separately", func() {
+		s.RefreshContext()
 
-		dk.SetMinExpiryHistoricalSellOrder(ctx, "asset", dymnstypes.TypeName, 1)
-		dk.SetMinExpiryHistoricalSellOrder(ctx, "asset", dymnstypes.TypeAlias, 2)
-		dk.SetMinExpiryHistoricalSellOrder(ctx, "pool", dymnstypes.TypeAlias, 2)
+		s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, "asset", dymnstypes.TypeName, 1)
+		s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, "asset", dymnstypes.TypeAlias, 2)
+		s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, "pool", dymnstypes.TypeAlias, 2)
 
-		minExpiry, found := dk.GetMinExpiryHistoricalSellOrder(ctx, "asset", dymnstypes.TypeName)
-		require.True(t, found)
-		require.Equal(t, int64(1), minExpiry)
+		minExpiry, found := s.dymNsKeeper.GetMinExpiryHistoricalSellOrder(s.ctx, "asset", dymnstypes.TypeName)
+		s.Require().True(found)
+		s.Require().Equal(int64(1), minExpiry)
 
-		minExpiry, found = dk.GetMinExpiryHistoricalSellOrder(ctx, "asset", dymnstypes.TypeAlias)
-		require.True(t, found)
-		require.Equal(t, int64(2), minExpiry)
+		minExpiry, found = s.dymNsKeeper.GetMinExpiryHistoricalSellOrder(s.ctx, "asset", dymnstypes.TypeAlias)
+		s.Require().True(found)
+		s.Require().Equal(int64(2), minExpiry)
 
-		minExpiry, found = dk.GetMinExpiryHistoricalSellOrder(ctx, "pool", dymnstypes.TypeName)
-		require.False(t, found)
-		require.Zero(t, minExpiry)
+		minExpiry, found = s.dymNsKeeper.GetMinExpiryHistoricalSellOrder(s.ctx, "pool", dymnstypes.TypeName)
+		s.Require().False(found)
+		s.Require().Zero(minExpiry)
 	})
 }
 
-func TestKeeper_GetAllSellOrders(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_GetAllSellOrders() {
 	supportedAssetTypes := []dymnstypes.AssetType{
 		dymnstypes.TypeName, dymnstypes.TypeAlias,
 	}
 
-	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	s.RefreshContext()
 
 	var sellOrders []dymnstypes.SellOrder
 
 	n, err := cryptorand.Int(cryptorand.Reader, big.NewInt(1000))
-	require.NoError(t, err)
+	s.Require().NoError(err)
 
 	seed := 200 + int(n.Int64())
 
@@ -835,22 +835,22 @@ func TestKeeper_GetAllSellOrders(t *testing.T) {
 				AssetId:   fmt.Sprintf("dog%03d%d", i, j),
 				AssetType: assetType,
 				ExpireAt:  1,
-				MinPrice:  dymnsutils.TestCoin(1),
+				MinPrice:  s.coin(1),
 			}
-			err := dk.SetSellOrder(ctx, so)
-			require.NoError(t, err)
+			err := s.dymNsKeeper.SetSellOrder(s.ctx, so)
+			s.Require().NoError(err)
 
 			sellOrders = append(sellOrders, so)
 		}
 	}
 
-	require.Len(t, sellOrders, seed*len(supportedAssetTypes))
+	s.Require().Len(sellOrders, seed*len(supportedAssetTypes))
 
-	allSellOrders := dk.GetAllSellOrders(ctx)
+	allSellOrders := s.dymNsKeeper.GetAllSellOrders(s.ctx)
 
-	require.Len(t, allSellOrders, len(sellOrders), "should returns all inserted records")
+	s.Require().Len(allSellOrders, len(sellOrders), "should returns all inserted records")
 
 	for _, so := range sellOrders {
-		require.Contains(t, allSellOrders, so)
+		s.Require().Contains(allSellOrders, so)
 	}
 }

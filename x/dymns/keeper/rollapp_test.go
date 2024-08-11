@@ -1,22 +1,16 @@
 package keeper_test
 
 import (
-	"testing"
-
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/stretchr/testify/require"
 )
 
-func TestKeeper_IsRollAppId(t *testing.T) {
-	dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
-
-	rk.SetRollapp(ctx, rollapptypes.Rollapp{
+func (s *KeeperTestSuite) TestKeeper_IsRollAppId() {
+	s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
 		RollappId: "rollapp_1-1",
 		Owner:     testAddr(1).bech32(),
 	})
 
-	rk.SetRollapp(ctx, rollapptypes.Rollapp{
+	s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
 		RollappId: "rolling_2-2",
 		Owner:     testAddr(2).bech32(),
 	})
@@ -59,14 +53,14 @@ func TestKeeper_IsRollAppId(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.rollAppId, func(t *testing.T) {
-			gotIsRollApp := dk.IsRollAppId(ctx, tt.rollAppId)
-			require.Equal(t, tt.wantIsRollApp, gotIsRollApp)
+		s.Run(tt.rollAppId, func() {
+			gotIsRollApp := s.dymNsKeeper.IsRollAppId(s.ctx, tt.rollAppId)
+			s.Require().Equal(tt.wantIsRollApp, gotIsRollApp)
 		})
 	}
 }
 
-func TestKeeper_IsRollAppCreator(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_IsRollAppCreator() {
 	acc1 := testAddr(1)
 	acc2 := testAddr(2)
 
@@ -119,20 +113,20 @@ func TestKeeper_IsRollAppCreator(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
+		s.Run(tt.name, func() {
+			s.RefreshContext()
 
 			if tt.rollApp != nil {
-				rk.SetRollapp(ctx, *tt.rollApp)
+				s.rollAppKeeper.SetRollapp(s.ctx, *tt.rollApp)
 			}
 
-			got := dk.IsRollAppCreator(ctx, tt.rollAppId, tt.account)
-			require.Equal(t, tt.want, got)
+			got := s.dymNsKeeper.IsRollAppCreator(s.ctx, tt.rollAppId, tt.account)
+			s.Require().Equal(tt.want, got)
 		})
 	}
 
-	t.Run("pass - can detect among multiple RollApps of same owned", func(t *testing.T) {
-		dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
+	s.Run("pass - can detect among multiple RollApps of same owned", func() {
+		s.RefreshContext()
 
 		rollAppABy1 := rollapptypes.Rollapp{
 			RollappId: "rollapp_1-1",
@@ -151,24 +145,24 @@ func TestKeeper_IsRollAppCreator(t *testing.T) {
 			Owner:     acc2.bech32(),
 		}
 
-		rk.SetRollapp(ctx, rollAppABy1)
-		rk.SetRollapp(ctx, rollAppBBy1)
-		rk.SetRollapp(ctx, rollAppCBy2)
-		rk.SetRollapp(ctx, rollAppDBy2)
+		s.rollAppKeeper.SetRollapp(s.ctx, rollAppABy1)
+		s.rollAppKeeper.SetRollapp(s.ctx, rollAppBBy1)
+		s.rollAppKeeper.SetRollapp(s.ctx, rollAppCBy2)
+		s.rollAppKeeper.SetRollapp(s.ctx, rollAppDBy2)
 
-		require.True(t, dk.IsRollAppCreator(ctx, rollAppABy1.RollappId, acc1.bech32()))
-		require.True(t, dk.IsRollAppCreator(ctx, rollAppBBy1.RollappId, acc1.bech32()))
-		require.True(t, dk.IsRollAppCreator(ctx, rollAppCBy2.RollappId, acc2.bech32()))
-		require.True(t, dk.IsRollAppCreator(ctx, rollAppDBy2.RollappId, acc2.bech32()))
+		s.Require().True(s.dymNsKeeper.IsRollAppCreator(s.ctx, rollAppABy1.RollappId, acc1.bech32()))
+		s.Require().True(s.dymNsKeeper.IsRollAppCreator(s.ctx, rollAppBBy1.RollappId, acc1.bech32()))
+		s.Require().True(s.dymNsKeeper.IsRollAppCreator(s.ctx, rollAppCBy2.RollappId, acc2.bech32()))
+		s.Require().True(s.dymNsKeeper.IsRollAppCreator(s.ctx, rollAppDBy2.RollappId, acc2.bech32()))
 
-		require.False(t, dk.IsRollAppCreator(ctx, rollAppABy1.RollappId, acc2.bech32()))
-		require.False(t, dk.IsRollAppCreator(ctx, rollAppBBy1.RollappId, acc2.bech32()))
-		require.False(t, dk.IsRollAppCreator(ctx, rollAppCBy2.RollappId, acc1.bech32()))
-		require.False(t, dk.IsRollAppCreator(ctx, rollAppDBy2.RollappId, acc1.bech32()))
+		s.Require().False(s.dymNsKeeper.IsRollAppCreator(s.ctx, rollAppABy1.RollappId, acc2.bech32()))
+		s.Require().False(s.dymNsKeeper.IsRollAppCreator(s.ctx, rollAppBBy1.RollappId, acc2.bech32()))
+		s.Require().False(s.dymNsKeeper.IsRollAppCreator(s.ctx, rollAppCBy2.RollappId, acc1.bech32()))
+		s.Require().False(s.dymNsKeeper.IsRollAppCreator(s.ctx, rollAppDBy2.RollappId, acc1.bech32()))
 	})
 }
 
-func TestKeeper_GetRollAppBech32Prefix(t *testing.T) {
+func (s *KeeperTestSuite) TestKeeper_GetRollAppBech32Prefix() {
 	rollApp1 := rollapptypes.Rollapp{
 		RollappId:    "rollapp_1-1",
 		Owner:        testAddr(0).bech32(),
@@ -185,19 +179,18 @@ func TestKeeper_GetRollAppBech32Prefix(t *testing.T) {
 		Bech32Prefix: "nah",
 	}
 
-	dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
-	rk.SetRollapp(ctx, rollApp1)
-	rk.SetRollapp(ctx, rollApp2)
+	s.rollAppKeeper.SetRollapp(s.ctx, rollApp1)
+	s.rollAppKeeper.SetRollapp(s.ctx, rollApp2)
 
-	bech32, found := dk.GetRollAppBech32Prefix(ctx, rollApp1.RollappId)
-	require.True(t, found)
-	require.Equal(t, "one", bech32)
+	bech32, found := s.dymNsKeeper.GetRollAppBech32Prefix(s.ctx, rollApp1.RollappId)
+	s.True(found)
+	s.Equal("one", bech32)
 
-	bech32, found = dk.GetRollAppBech32Prefix(ctx, rollApp2.RollappId)
-	require.True(t, found)
-	require.Equal(t, "two", bech32)
+	bech32, found = s.dymNsKeeper.GetRollAppBech32Prefix(s.ctx, rollApp2.RollappId)
+	s.True(found)
+	s.Equal("two", bech32)
 
-	bech32, found = dk.GetRollAppBech32Prefix(ctx, rollApp3NonExists.RollappId)
-	require.False(t, found)
-	require.Empty(t, bech32)
+	bech32, found = s.dymNsKeeper.GetRollAppBech32Prefix(s.ctx, rollApp3NonExists.RollappId)
+	s.False(found)
+	s.Empty(bech32)
 }

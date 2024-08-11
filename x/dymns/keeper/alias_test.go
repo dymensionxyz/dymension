@@ -89,7 +89,7 @@ func (s *KeeperTestSuite) TestKeeper_GetSetAliasForRollAppId() {
 	})
 
 	s.Run("set/get - can set multiple alias to a single Roll-App", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		type testCase struct {
 			rollAppId string
@@ -356,7 +356,7 @@ func (s *KeeperTestSuite) TestKeeper_RemoveAliasFromRollAppId() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			for _, ra := range tt.addRollApps {
 				s.persistRollApp(ra)
@@ -582,7 +582,7 @@ func (s *KeeperTestSuite) TestKeeper_MoveAliasToRollAppId() {
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.SetupTest()
+			s.RefreshContext()
 
 			for _, ra := range tt.rollapps {
 				s.persistRollApp(ra)

@@ -3,8 +3,9 @@ package keeper_test
 import (
 	"fmt"
 
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
 //goland:noinspection GoSnakeCaseUsage
@@ -18,7 +19,7 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 	rollApp_4_asDst_byOwner := *newRollApp("rollapp_4-1").WithOwner(creator_1_asOwner).WithAlias("exists")
 
 	s.Run("alias not found", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		s.persistRollApp(rollApp_2_asSrc)
 		s.persistRollApp(rollApp_3_asDst)
@@ -26,12 +27,12 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 		so := dymnstypes.SellOrder{
 			AssetId:   "void",
 			AssetType: dymnstypes.TypeAlias,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
-			SellPrice: dymnsutils.TestCoinP(200),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
+			SellPrice: uptr.To(s.coin(200)),
 			HighestBid: &dymnstypes.SellOrderBid{
 				Bidder: rollApp_3_asDst.owner,
-				Price:  dymnsutils.TestCoin(200),
+				Price:  s.coin(200),
 				Params: []string{rollApp_3_asDst.rollAppId},
 			},
 		}
@@ -42,7 +43,7 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 	})
 
 	s.Run("destination Roll-App not found", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		s.persistRollApp(rollApp_1_asSrc)
 
@@ -51,12 +52,12 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 		so := dymnstypes.SellOrder{
 			AssetId:   rollApp_1_asSrc.alias,
 			AssetType: dymnstypes.TypeAlias,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
-			SellPrice: dymnsutils.TestCoinP(sellPrice),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
+			SellPrice: uptr.To(s.coin(sellPrice)),
 			HighestBid: &dymnstypes.SellOrderBid{
 				Bidder: rollApp_3_asDst.owner,
-				Price:  dymnsutils.TestCoin(sellPrice),
+				Price:  s.coin(sellPrice),
 				Params: []string{"nah_0-0"},
 			},
 		}
@@ -67,7 +68,7 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 	})
 
 	s.Run("SO not found", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		s.persistRollApp(rollApp_1_asSrc)
 		s.persistRollApp(rollApp_3_asDst)
@@ -79,7 +80,7 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 	})
 
 	s.Run("SO not yet completed, no bidder", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		s.persistRollApp(rollApp_1_asSrc)
 		s.persistRollApp(rollApp_3_asDst)
@@ -87,8 +88,8 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 		so := dymnstypes.SellOrder{
 			AssetId:   rollApp_1_asSrc.alias,
 			AssetType: dymnstypes.TypeAlias,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
 		}
 		err := s.dymNsKeeper.SetSellOrder(s.ctx, so)
 		s.Require().NoError(err)
@@ -100,7 +101,7 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 	})
 
 	s.Run("SO has bidder but not yet completed", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		s.persistRollApp(rollApp_1_asSrc)
 		s.persistRollApp(rollApp_3_asDst)
@@ -108,12 +109,12 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 		so := dymnstypes.SellOrder{
 			AssetId:   rollApp_1_asSrc.alias,
 			AssetType: dymnstypes.TypeAlias,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
-			SellPrice: dymnsutils.TestCoinP(300),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
+			SellPrice: uptr.To(s.coin(300)),
 			HighestBid: &dymnstypes.SellOrderBid{
 				Bidder: rollApp_3_asDst.owner,
-				Price:  dymnsutils.TestCoin(200), // lower than sell price
+				Price:  s.coin(200), // lower than sell price
 				Params: []string{rollApp_3_asDst.rollAppId},
 			},
 		}
@@ -127,7 +128,7 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 	})
 
 	s.Run("SO expired without bidder", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		s.persistRollApp(rollApp_1_asSrc)
 		s.persistRollApp(rollApp_3_asDst)
@@ -136,8 +137,8 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 			AssetId:   rollApp_1_asSrc.alias,
 			AssetType: dymnstypes.TypeAlias,
 			ExpireAt:  s.now.Unix() - 1,
-			MinPrice:  dymnsutils.TestCoin(100),
-			SellPrice: dymnsutils.TestCoinP(300),
+			MinPrice:  s.coin(100),
+			SellPrice: uptr.To(s.coin(300)),
 		}
 		err := s.dymNsKeeper.SetSellOrder(s.ctx, so)
 		s.Require().NoError(err)
@@ -146,7 +147,7 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 	})
 
 	s.Run("SO without sell price, with bid, finished by expiry", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		s.persistRollApp(rollApp_1_asSrc)
 		s.persistRollApp(rollApp_3_asDst)
@@ -154,11 +155,11 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 		so := dymnstypes.SellOrder{
 			AssetId:   rollApp_1_asSrc.alias,
 			AssetType: dymnstypes.TypeAlias,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
 			HighestBid: &dymnstypes.SellOrderBid{
 				Bidder: rollApp_3_asDst.owner,
-				Price:  dymnsutils.TestCoin(200),
+				Price:  s.coin(200),
 				Params: []string{rollApp_3_asDst.rollAppId},
 			},
 		}
@@ -251,7 +252,7 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			// setup execution context
-			s.SetupTest()
+			s.RefreshContext()
 
 			s.mintToAccount(creator_1_asOwner, ownerOriginalBalance)
 			s.mintToAccount(creator_2_asBuyer, buyerOriginalBalance)
@@ -262,7 +263,7 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 			so := dymnstypes.SellOrder{
 				AssetId:   rollApp_1_asSrc.alias,
 				AssetType: dymnstypes.TypeAlias,
-				MinPrice:  dymnsutils.TestCoin(100),
+				MinPrice:  s.coin(100),
 			}
 
 			if tt.expiredSO {
@@ -272,13 +273,13 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 			}
 
 			s.Require().GreaterOrEqual(tt.sellPrice, int64(0), "bad setup")
-			so.SellPrice = dymnsutils.TestCoinP(tt.sellPrice)
+			so.SellPrice = uptr.To(s.coin(tt.sellPrice))
 
 			s.Require().GreaterOrEqual(tt.bid, int64(0), "bad setup")
 			if tt.bid > 0 {
 				so.HighestBid = &dymnstypes.SellOrderBid{
 					Bidder: rollApp_3_asDst.owner,
-					Price:  dymnsutils.TestCoin(tt.bid),
+					Price:  s.coin(tt.bid),
 					Params: []string{rollApp_3_asDst.rollAppId},
 				}
 
@@ -349,7 +350,7 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 	}
 
 	s.Run("if buyer is owner, can still process", func() {
-		s.SetupTest()
+		s.RefreshContext()
 
 		const ownerOriginalBalance = 100
 		const moduleAccountOriginalBalance = 1000
@@ -364,12 +365,12 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 		so := dymnstypes.SellOrder{
 			AssetId:   rollApp_1_asSrc.alias,
 			AssetType: dymnstypes.TypeAlias,
-			ExpireAt:  s.now.Unix() + 1,
-			MinPrice:  dymnsutils.TestCoin(100),
-			SellPrice: dymnsutils.TestCoinP(offerValue),
+			ExpireAt:  s.now.Unix() + 100,
+			MinPrice:  s.coin(100),
+			SellPrice: uptr.To(s.coin(offerValue)),
 			HighestBid: &dymnstypes.SellOrderBid{
 				Bidder: rollApp_4_asDst_byOwner.owner,
-				Price:  dymnsutils.TestCoin(offerValue),
+				Price:  s.coin(offerValue),
 				Params: []string{rollApp_4_asDst_byOwner.rollAppId},
 			},
 		}

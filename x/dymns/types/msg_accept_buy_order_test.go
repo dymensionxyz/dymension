@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,14 +22,14 @@ func TestMsgAcceptBuyOrder_ValidateBasic(t *testing.T) {
 			name:       "pass - valid",
 			buyOrderId: "101",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			minAccept:  dymnsutils.TestCoin(1),
+			minAccept:  testCoin(1),
 			wantErr:    false,
 		},
 		{
 			name:            "fail - reject bad offer id",
 			buyOrderId:      "@",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			minAccept:       dymnsutils.TestCoin(1),
+			minAccept:       testCoin(1),
 			wantErr:         true,
 			wantErrContains: "offer id is not a valid buy name offer id",
 		},
@@ -38,7 +37,7 @@ func TestMsgAcceptBuyOrder_ValidateBasic(t *testing.T) {
 			name:            "fail - reject bad owner",
 			buyOrderId:      "101",
 			owner:           "x",
-			minAccept:       dymnsutils.TestCoin(1),
+			minAccept:       testCoin(1),
 			wantErr:         true,
 			wantErrContains: "owner is not a valid bech32 account address",
 		},
@@ -54,7 +53,7 @@ func TestMsgAcceptBuyOrder_ValidateBasic(t *testing.T) {
 			name:            "fail - reject zero coin",
 			buyOrderId:      "101",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			minAccept:       dymnsutils.TestCoin(0),
+			minAccept:       testCoin(0),
 			wantErr:         true,
 			wantErrContains: "min-accept amount must be positive",
 		},
