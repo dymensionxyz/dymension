@@ -25,7 +25,7 @@ type UpgradeTestSuite struct {
 }
 
 // SetupTest initializes the necessary items for each test
-func (s *UpgradeTestSuite) SetupTest(t *testing.T) {
+func (s *UpgradeTestSuite) SetupTestCustom(t *testing.T) {
 	s.App = apptesting.Setup(t, false)
 	s.Ctx = s.App.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
 }
@@ -115,7 +115,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 	for _, tc := range testCases {
 		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			s.SetupTest(s.T()) // Reset for each case
+			s.SetupTestCustom(s.T()) // Reset for each case
 
 			tc.upgrade()
 			err := tc.postUpgrade()

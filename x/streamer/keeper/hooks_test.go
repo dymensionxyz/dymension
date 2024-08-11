@@ -21,8 +21,6 @@ var singleDistrInfo []types.DistrRecord = []types.DistrRecord{
 }
 
 func (suite *KeeperTestSuite) TestHookOperation() {
-	suite.SetupTest()
-
 	err := suite.CreateGauge()
 	suite.Require().NoError(err)
 
