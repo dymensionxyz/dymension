@@ -15,8 +15,6 @@ var _ = suite.TestingSuite(nil)
 
 // TestGRPCStreamByID tests querying streams via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCStreamByID() {
-	suite.SetupTest()
-
 	// create a stream
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 	streamID, stream := suite.CreateDefaultStream(coins)
@@ -37,8 +35,6 @@ func (suite *KeeperTestSuite) TestGRPCStreamByID() {
 
 // TestGRPCStreams tests querying upcoming and active streams via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCStreams() {
-	suite.SetupTest()
-
 	// ensure initially querying streams returns no streams
 	res, err := suite.querier.Streams(sdk.WrapSDKContext(suite.Ctx), &types.StreamsRequest{})
 	suite.Require().NoError(err)
@@ -78,8 +74,6 @@ func (suite *KeeperTestSuite) TestGRPCStreams() {
 
 // TestGRPCActiveStreams tests querying active streams via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCActiveStreams() {
-	suite.SetupTest()
-
 	// ensure initially querying active streams returns no streams
 	res, err := suite.querier.ActiveStreams(sdk.WrapSDKContext(suite.Ctx), &types.ActiveStreamsRequest{})
 	suite.Require().NoError(err)
@@ -127,8 +121,6 @@ func (suite *KeeperTestSuite) TestGRPCActiveStreams() {
 
 // TestGRPCUpcomingStreams tests querying upcoming streams via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCUpcomingStreams() {
-	suite.SetupTest()
-
 	// ensure initially querying upcoming streams returns no streams
 	res, err := suite.querier.UpcomingStreams(sdk.WrapSDKContext(suite.Ctx), &types.UpcomingStreamsRequest{})
 	suite.Require().NoError(err)
@@ -174,7 +166,7 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingStreams() {
 // TestGRPCToDistributeCoins tests querying coins that are going to be distributed via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	var err error
-	suite.SetupTest()
+
 	err = suite.CreateGauge()
 	suite.Require().NoError(err)
 	err = suite.CreateGauge()

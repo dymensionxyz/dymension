@@ -132,8 +132,6 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
 			goCtx := sdk.WrapSDKContext(suite.Ctx)
 			rollapp := rollapptypes.Rollapp{
 				RollappId:        "rollapp_1234-1",
