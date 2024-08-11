@@ -61,7 +61,10 @@ func NewOfferBuyAliasTxCmd() *cobra.Command {
 				return fmt.Errorf("flag --%s is required", flags.FlagFrom)
 			}
 
-			continueOrderId, _ := cmd.Flags().GetString(flagContinueOrderId)
+			continueOrderId, err := cmd.Flags().GetString(flagContinueOrderId)
+			if err != nil {
+				return err
+			}
 			if continueOrderId != "" && !dymnstypes.IsValidBuyOrderId(continueOrderId) {
 				return fmt.Errorf("invalid continue offer id")
 			}

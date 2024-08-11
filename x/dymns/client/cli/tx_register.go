@@ -46,7 +46,10 @@ func NewRegisterDymNameTxCmd() *cobra.Command {
 				return fmt.Errorf("input Dym-Name '%s' is not a valid Dym-Name", dymName)
 			}
 
-			years, _ := cmd.Flags().GetInt64(flagYears)
+			years, err := cmd.Flags().GetInt64(flagYears)
+			if err != nil {
+				return err
+			}
 			if years < 1 {
 				return fmt.Errorf("years must be greater than 0, specify by flag --%s", flagYears)
 			}
@@ -57,7 +60,10 @@ func NewRegisterDymNameTxCmd() *cobra.Command {
 				return fmt.Errorf("flag --%s is required", flags.FlagFrom)
 			}
 
-			confirmPaymentStr, _ := cmd.Flags().GetString(flagConfirmPayment)
+			confirmPaymentStr, err := cmd.Flags().GetString(flagConfirmPayment)
+			if err != nil {
+				return err
+			}
 			if confirmPaymentStr == "" {
 				// mode query to get the estimated payment amount
 				queryClient := dymnstypes.NewQueryClient(clientCtx)
@@ -104,7 +110,10 @@ func NewRegisterDymNameTxCmd() *cobra.Command {
 				return fmt.Errorf("invalid confirm payment: %w", err)
 			}
 
-			contact, _ := cmd.Flags().GetString(flagContact)
+			contact, err := cmd.Flags().GetString(flagContact)
+			if err != nil {
+				return err
+			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &dymnstypes.MsgRegisterName{
 				Name:           dymName,

@@ -28,7 +28,10 @@ func CmdQueryReverseResolveDymNameAddress() *cobra.Command {
 		),
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			workingChainId, _ := cmd.Flags().GetString(flagWorkingChainId)
+			workingChainId, err := cmd.Flags().GetString(flagWorkingChainId)
+			if err != nil {
+				return err
+			}
 
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := dymnstypes.NewQueryClient(clientCtx)

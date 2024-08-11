@@ -47,14 +47,16 @@ func CmdQueryBuyOrder() *cobra.Command {
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			targetType, _ := cmd.Flags().GetString(flagTargetType)
+			targetType, err := cmd.Flags().GetString(flagTargetType)
+			if err != nil {
+				return err
+			}
 
 			if targetType == "" {
 				return fmt.Errorf("flag --%s is required", flagTargetType)
 			}
 
 			var offers []dymnstypes.BuyOrder
-			var err error
 
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := dymnstypes.NewQueryClient(clientCtx)

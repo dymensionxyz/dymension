@@ -39,8 +39,14 @@ func NewUpdateDetailsTxCmd() *cobra.Command {
 				return fmt.Errorf("flag --%s is required", flags.FlagFrom)
 			}
 
-			contact, _ := cmd.Flags().GetString(flagContact)
-			clearConfigs, _ := cmd.Flags().GetBool(flagClearConfigs)
+			contact, err := cmd.Flags().GetString(flagContact)
+			if err != nil {
+				return err
+			}
+			clearConfigs, err := cmd.Flags().GetBool(flagClearConfigs)
+			if err != nil {
+				return err
+			}
 
 			msg := &dymnstypes.MsgUpdateDetails{
 				Name:         dymName,

@@ -31,7 +31,10 @@ func CmdQuerySellOrder() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input := args[0]
 
-			targetType, _ := cmd.Flags().GetString(flagTargetType)
+			targetType, err := cmd.Flags().GetString(flagTargetType)
+			if err != nil {
+				return err
+			}
 			if targetType == "" {
 				return fmt.Errorf("flag --%s is required", flagTargetType)
 			}
