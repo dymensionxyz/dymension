@@ -64,7 +64,7 @@ func CmdVote() *cobra.Command {
 func CmdRevokeVote() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "revoke-vote --from <voter>",
-		Short:   "Submit a vote for gauges",
+		Short:   "Revoke a previously submitted vote for gauges",
 		Example: "dymd tx sponsorship revoke-vote --from my_validator",
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -367,7 +367,15 @@ func (a *AppKeepers) InitKeepers(
 		a.DistrKeeper,
 		a.TxFeesKeeper,
 		a.RollappKeeper,
-		&a.SequencerKeeper,
+	)
+
+	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
+		appCodec,
+		a.keys[sponsorshiptypes.StoreKey],
+		a.AccountKeeper,
+		a.StakingKeeper,
+		a.IncentivesKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(

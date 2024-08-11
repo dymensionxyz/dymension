@@ -13,7 +13,6 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestParamsQuery() {
-	suite.SetupTest()
 	wctx := sdk.WrapSDKContext(suite.Ctx)
 	params := types.DefaultParams()
 	suite.App.EIBCKeeper.SetParams(suite.Ctx, params)
@@ -24,7 +23,6 @@ func (suite *KeeperTestSuite) TestParamsQuery() {
 }
 
 func (suite *KeeperTestSuite) TestQueryDemandOrderById() {
-	suite.SetupTest()
 	keeper := suite.App.EIBCKeeper
 
 	// Validate demand order query with empty request
@@ -46,7 +44,6 @@ func (suite *KeeperTestSuite) TestQueryDemandOrderById() {
 }
 
 func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
-	suite.SetupTest()
 	keeper := suite.App.EIBCKeeper
 
 	// Define the number of demand orders and create addresses

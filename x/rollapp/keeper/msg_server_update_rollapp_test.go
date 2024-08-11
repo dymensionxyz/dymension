@@ -114,8 +114,6 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
 			goCtx := sdk.WrapSDKContext(suite.Ctx)
 			rollapp := types.Rollapp{
 				RollappId:        rollappId,
@@ -154,8 +152,6 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 }
 
 func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
-	suite.SetupTest()
-
 	const rollappId = "rollapp_1234-1"
 
 	// 1. register rollapp

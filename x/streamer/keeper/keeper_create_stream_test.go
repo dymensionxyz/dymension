@@ -67,8 +67,6 @@ func TestSpendable(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) TestCreateStream_CoinsSpendable() {
-	suite.SetupTest()
-
 	currModuleBalance := suite.App.BankKeeper.GetAllBalances(suite.Ctx, authtypes.NewModuleAddress(types.ModuleName))
 	suite.Require().Equal(len(currModuleBalance), 2)
 	coins1 := sdk.NewCoins(currModuleBalance[0])
@@ -200,7 +198,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 	}
 
 	for _, tc := range tests {
-		suite.SetupTest()
+
 		_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, tc.coins, tc.distrTo, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver, NonSponsored)
 		if tc.expectErr {
 			suite.Require().Error(err, tc.name)

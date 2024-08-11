@@ -71,8 +71,6 @@ func (suite *RollappTestSuite) TestTransferOwnership() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
 			rollapp := types.Rollapp{
 				RollappId: rollappId,
 				Owner:     alice,
