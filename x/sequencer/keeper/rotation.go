@@ -105,7 +105,7 @@ func (k Keeper) startRotation(ctx sdk.Context, rollappId string) {
 // it will start unbonding the current proposer, and set new proposer from the bonded sequencers
 func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 	nextProposer, ok := k.GetNextProposer(ctx, rollappId)
-	if !ok { // nextProposer is guaranteed to exist by caller
+	if !ok { // nextProposer is guaranteed to be set by caller
 		k.Logger(ctx).Error("next proposer not set. rotation didn't completed", "rollappId", rollappId)
 		return
 	}
