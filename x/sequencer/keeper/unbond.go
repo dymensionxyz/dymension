@@ -153,8 +153,10 @@ func (k Keeper) unbond(ctx sdk.Context, seqAddr string, jail bool) error {
 		}
 	}
 
+	if jail {
+		seq.Jailed = true
+	}
 	// set the unbonding height and time, if not already set
-	seq.Status = types.Unbonded
 	if seq.UnbondRequestHeight == 0 {
 		seq.UnbondRequestHeight = ctx.BlockHeight()
 	}
@@ -163,6 +165,7 @@ func (k Keeper) unbond(ctx sdk.Context, seqAddr string, jail bool) error {
 	}
 
 	// update the sequencer in store
+	seq.Status = types.Unbonded
 	k.UpdateSequencer(ctx, seq, oldStatus)
 
 	ctx.EventManager().EmitEvent(

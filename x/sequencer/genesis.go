@@ -36,6 +36,8 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis := types.GenesisState{}
 	genesis.Params = k.GetParams(ctx)
 	genesis.SequencerList = k.GetAllSequencers(ctx)
+	genesis.BondReductions = k.GetAllBondReductions(ctx)
+
 	proposers := k.GetAllProposers(ctx)
 	for _, proposer := range proposers {
 		genesis.GenesisProposers = append(genesis.GenesisProposers, types.GenesisProposer{

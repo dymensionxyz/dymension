@@ -18,7 +18,7 @@ func (suite *RollappTestSuite) TestInvariants() {
 	// create rollapps
 	seqPerRollapp := make(map[string]string)
 	for i := 0; i < numOfRollapps; i++ {
-		rollapp, seqaddr := suite.CreateDefaultRollappWithProposer()
+		rollapp, seqaddr := suite.CreateDefaultRollappAndProposer()
 
 		// skip one of the rollapps so it won't have any state updates
 		if i == 0 {
@@ -27,10 +27,10 @@ func (suite *RollappTestSuite) TestInvariants() {
 		seqPerRollapp[rollapp] = seqaddr
 	}
 
-	rollapp, seqaddr := suite.CreateRollappWithNameWithProposer("dym_1100-1")
+	rollapp, seqaddr := suite.CreateDefaultRollappAndProposer()
 	seqPerRollapp[rollapp] = seqaddr
 
-	rollapp, seqaddr = suite.CreateRollappWithNameWithProposer("dymd_1101-2")
+	rollapp, seqaddr = suite.CreateDefaultRollappAndProposer()
 	seqPerRollapp[rollapp] = seqaddr
 
 	// send state updates
@@ -142,7 +142,9 @@ func (suite *RollappTestSuite) TestRollappFinalizedStateInvariant() {
 	for _, tc := range cases {
 		suite.Run(tc.name, func() {
 			// create rollapp
-			suite.CreateRollappWithNameWithProposer(tc.rollappId)
+			suite.CreateRollappByName(tc.rollappId)
+			// create sequencer
+			suite.CreateDefaultSequencer(ctx, tc.rollappId)
 			// update state infos
 			if tc.stateInfo != nil {
 				suite.App.RollappKeeper.SetStateInfo(ctx, *tc.stateInfo)

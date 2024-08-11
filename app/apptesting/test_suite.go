@@ -30,19 +30,28 @@ type KeeperTestHelper struct {
 	Ctx sdk.Context
 }
 
-func (s *KeeperTestHelper) CreateDefaultRollappWithProposer() (string, string) {
-	return s.CreateRollappWithNameWithProposer(urand.RollappID())
+// creates a rollapp and return its rollappID
+func (s *KeeperTestHelper) CreateDefaultRollapp() string {
+	rollappId := urand.RollappID()
+	s.CreateRollappByName(rollappId)
+	return rollappId
 }
 
-func (s *KeeperTestHelper) CreateRollappWithNameWithProposer(name string) (string, string) {
-	pubkey := ed25519.GenPrivKey().PubKey()
-	addr := sdk.AccAddress(pubkey.Address())
+func (s *KeeperTestHelper) CreateDefaultRollappAndProposer() (string, string) {
+	rollappId := s.CreateDefaultRollapp()
 
+	pubkey := ed25519.GenPrivKey().PubKey()
+	err := s.CreateSequencerByPubkey(s.Ctx, rollappId, pubkey)
+	s.Require().NoError(err)
+	return rollappId, sdk.AccAddress(pubkey.Address()).String()
+}
+
+func (s *KeeperTestHelper) CreateRollappByName(name string) {
 	alias := strings.NewReplacer("_", "", "-", "").Replace(name) // base it on rollappID to avoid alias conflicts
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:          alice,
 		RollappId:        name,
-		InitialSequencer: addr.String(),
+		InitialSequencer: "*",
 		Bech32Prefix:     strings.ToLower(rand.Str(3)),
 		GenesisChecksum:  "1234567890abcdefg",
 		Alias:            alias,
@@ -57,24 +66,19 @@ func (s *KeeperTestHelper) CreateRollappWithNameWithProposer(name string) (strin
 		},
 	}
 
-	// aliceBal := sdk.NewCoins(s.App.RollappKeeper.GetParams(s.Ctx).RegistrationFee) TODO: enable after x/dymns hooks are wired
-	// FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(alice), aliceBal)
-
 	msgServer := rollappkeeper.NewMsgServerImpl(*s.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(s.Ctx, &msgCreateRollapp)
 	s.Require().NoError(err)
-
-	err = s.CreateSequencer(s.Ctx, name, pubkey)
-	s.Require().NoError(err)
-	return name, addr.String()
 }
 
-func (s *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId string) (string, error) {
+func (s *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId string) string {
 	pubkey := ed25519.GenPrivKey().PubKey()
-	return sdk.AccAddress(pubkey.Address()).String(), s.CreateSequencer(ctx, rollappId, pubkey)
+	err := s.CreateSequencerByPubkey(ctx, rollappId, pubkey)
+	s.Require().NoError(err)
+	return sdk.AccAddress(pubkey.Address()).String()
 }
 
-func (s *KeeperTestHelper) CreateSequencer(ctx sdk.Context, rollappId string, pubKey types.PubKey) error {
+func (s *KeeperTestHelper) CreateSequencerByPubkey(ctx sdk.Context, rollappId string, pubKey types.PubKey) error {
 	addr := sdk.AccAddress(pubKey.Address())
 	// fund account
 	err := bankutil.FundAccount(s.App.BankKeeper, ctx, addr, sdk.NewCoins(bond))

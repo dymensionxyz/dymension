@@ -42,7 +42,7 @@ func (suite *SequencerTestSuite) TestUnbondingMultiple() {
 	now := time.Now()
 	unbondTime := now.Add(keeper.GetParams(suite.Ctx).UnbondingTime)
 	suite.Ctx = suite.Ctx.WithBlockTime(now)
-	for i := 0; i < unbodingSeq; i++ {
+	for i := 1; i < unbodingSeq+1; i++ {
 		unbondMsg := types.MsgUnbond{Creator: seqAddr1[i]}
 		_, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 		suite.Require().NoError(err)
@@ -69,8 +69,8 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	blockheight := 20
 	var err error
 
-	rollappId, _ := suite.CreateDefaultRollapp()
-	_, _ = suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId) // proposer
+	rollappId, pk := suite.CreateDefaultRollapp()
+	_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
 
 	pk1 := ed25519.GenPrivKey().PubKey()
 	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)

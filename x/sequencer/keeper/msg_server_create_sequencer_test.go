@@ -331,7 +331,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 				},
 			}
 			_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-			suite.Require().ErrorIs(err, tc.expErr)
+			suite.Require().ErrorIs(err, tc.expErr, tc.name)
 
 			if tc.expErr != nil {
 				return
@@ -341,9 +341,9 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 			proposer, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
 			suite.Require().True(ok)
 			if seq.expProposer {
-				suite.Require().Equal(addr.String(), proposer)
+				suite.Require().Equal(addr.String(), proposer.Address, tc.name)
 			} else {
-				suite.Require().NotEqual(addr.String(), proposer)
+				suite.Require().NotEqual(addr.String(), proposer.Address, tc.name)
 			}
 		}
 	}

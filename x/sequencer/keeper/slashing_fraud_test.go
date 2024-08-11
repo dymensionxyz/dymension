@@ -19,9 +19,9 @@ func (suite *SequencerTestSuite) TestSlashingUnknownSequencer() {
 
 func (suite *SequencerTestSuite) TestSlashingUnbondedSequencer() {
 	keeper := suite.App.SequencerKeeper
+	rollappId, _ := suite.CreateDefaultRollappAndProposer()
 
-	rollappId, pk := suite.CreateDefaultRollapp()
-	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
+	seqAddr := suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId) // bonded non proposer
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(20)
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
@@ -46,7 +46,9 @@ func (suite *SequencerTestSuite) TestSlashingUnbondingSequencer() {
 	keeper := suite.App.SequencerKeeper
 
 	rollappId, pk := suite.CreateDefaultRollapp()
-	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
+	_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
+
+	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(20)
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())

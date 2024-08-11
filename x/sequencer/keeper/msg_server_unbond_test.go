@@ -3,15 +3,15 @@ package keeper_test
 import (
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func (suite *SequencerTestSuite) TestUnbondingNonProposer() {
-	suite.SetupTest()
-	rollappId, _ := suite.CreateDefaultRollapp()
+	rollappId, pk := suite.CreateDefaultRollapp()
+	proposerAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
 
-	proposerAddr, _ := suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
-	bondedAddr, _ := suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
+	bondedAddr := suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
 	suite.Require().NotEqual(proposerAddr, bondedAddr)
 
 	proposer, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
@@ -45,10 +45,11 @@ func (suite *SequencerTestSuite) TestUnbondingNonProposer() {
 
 func (suite *SequencerTestSuite) TestUnbondingProposer() {
 	suite.SetupTest()
-	rollappId, _ := suite.CreateDefaultRollapp()
+	rollappId, pk := suite.CreateDefaultRollapp()
+	proposerAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
 
-	proposerAddr, _ := suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
-	_, _ = suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
+	pk2 := ed25519.GenPrivKey().PubKey()
+	_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk2)
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	unbondMsg := types.MsgUnbond{Creator: proposerAddr}
@@ -72,7 +73,9 @@ func (suite *SequencerTestSuite) TestUnbondingProposer() {
 	suite.Require().Len(m, 1)
 }
 
-func (suite *SequencerTestSuite) TestUnbondingNotBondedSequencer() {
+func (suite *SequencerTestSuite) TestUnbondingUnbondedSequencer() {
+	suite.Ctx = suite.Ctx.WithBlockHeight(10)
+
 	rollappId, pk1 := suite.CreateDefaultRollapp()
 	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
 

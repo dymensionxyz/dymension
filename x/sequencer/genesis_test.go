@@ -87,7 +87,7 @@ func TestInitGenesis(t *testing.T) {
 		GenesisProposers: []types.GenesisProposer{
 			{
 				Address:   "rollapp1_addr1",
-				RollappId: "rollap1",
+				RollappId: "rollapp1",
 			},
 			{
 				Address:   "rollapp3_addr1",

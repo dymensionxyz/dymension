@@ -49,11 +49,11 @@ func (suite *SequencerTestSuite) TestExpectedNextProposer() {
 // TestStartRotation tests the StartRotation function which is called when a sequencer has finished its notice period
 func (suite *SequencerTestSuite) TestStartRotation() {
 	suite.SetupTest()
-	rollappId, _ := suite.CreateDefaultRollapp()
+	rollappId, pk := suite.CreateDefaultRollapp()
+	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
 
-	addr1, _ := suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
-	_, _ = suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
-	_, _ = suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
+	_ = suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
+	_ = suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	unbondMsg := types.MsgUnbond{Creator: addr1}
@@ -84,10 +84,9 @@ func (suite *SequencerTestSuite) TestStartRotation() {
 
 func (suite *SequencerTestSuite) TestRotateProposer() {
 	suite.SetupTest()
-	rollappId, _ := suite.CreateDefaultRollapp()
-
-	addr1, _ := suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
-	addr2, _ := suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
+	rollappId, pk := suite.CreateDefaultRollapp()
+	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
+	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	unbondMsg := types.MsgUnbond{Creator: addr1}
@@ -116,9 +115,8 @@ func (suite *SequencerTestSuite) TestRotateProposer() {
 
 func (suite *SequencerTestSuite) TestRotateProposerNoNextProposer() {
 	suite.SetupTest()
-	rollappId, _ := suite.CreateDefaultRollapp()
-
-	addr1, _ := suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
+	rollappId, pk := suite.CreateDefaultRollapp()
+	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	unbondMsg := types.MsgUnbond{Creator: addr1}
@@ -142,9 +140,9 @@ func (suite *SequencerTestSuite) TestStartRotationTwice() {
 	suite.SetupTest()
 	suite.Ctx = suite.Ctx.WithBlockHeight(10)
 
-	rollappId, _ := suite.CreateDefaultRollapp()
-	addr1, _ := suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
-	addr2, _ := suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
+	rollappId, pk := suite.CreateDefaultRollapp()
+	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
+	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 
 	// unbond proposer
 	unbondMsg := types.MsgUnbond{Creator: addr1}

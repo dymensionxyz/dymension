@@ -27,7 +27,11 @@ func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
 		pki := ed25519.GenPrivKey().PubKey()
 		seqAddrs[i] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, pki)
 	}
+
 	proposer := seqAddrs[0]
+	p, found := keeper.GetProposer(suite.Ctx, rollappId)
+	suite.Require().True(found)
+	suite.Require().Equal(proposer, p.Address)
 
 	// queue the third sequencer to reduce bond
 	unbondMsg := types.MsgDecreaseBond{Creator: seqAddrs[0], DecreaseAmount: sdk.NewInt64Coin(bond.Denom, 10)}
