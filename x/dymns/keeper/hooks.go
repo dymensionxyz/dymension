@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 
@@ -461,7 +462,7 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 
 	canUseAlias, err := h.CanUseAliasForNewRegistration(ctx, alias)
 	if err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInternal, "failed to check availability of alias: %s", alias)
+		return errorsmod.Wrapf(errors.Join(gerrc.ErrInternal, err), "failed to check availability of alias: %s", alias)
 	}
 
 	if !canUseAlias {
