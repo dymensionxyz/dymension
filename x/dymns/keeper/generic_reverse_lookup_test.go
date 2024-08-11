@@ -11,7 +11,7 @@ import (
 var keyTestReverseLookup = []byte("test-reverse-lookup")
 
 func (s *KeeperTestSuite) TestKeeper_GenericAddGetRemoveReverseLookupRecord() {
-	codec := s.dymNsKeeper.Codec()
+	codec := s.cdc
 
 	type testEntity struct {
 		getter  func(ctx sdk.Context, key []byte, s *KeeperTestSuite) []string

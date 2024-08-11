@@ -39,6 +39,8 @@ type KeeperTestSuite struct {
 	chainId string
 	now     time.Time
 
+	cdc codec.BinaryCodec
+
 	dymNsKeeper   dymnskeeper.Keeper
 	rollAppKeeper rollappkeeper.Keeper
 	bankKeeper    dymnstypes.BankKeeper
@@ -55,6 +57,8 @@ func (s *KeeperTestSuite) SetupSuite() {
 
 func (s *KeeperTestSuite) SetupTest() {
 	var ctx sdk.Context
+
+	var cdc codec.BinaryCodec
 
 	var dk dymnskeeper.Keeper
 	var bk dymnstypes.BankKeeper
@@ -85,7 +89,7 @@ func (s *KeeperTestSuite) SetupTest() {
 		s.Require().NoError(stateStore.LoadLatestVersion())
 
 		registry := codectypes.NewInterfaceRegistry()
-		cdc := codec.NewProtoCodec(registry)
+		cdc = codec.NewProtoCodec(registry)
 
 		dymNSParamsSubspace := typesparams.NewSubspace(cdc,
 			dymnstypes.Amino,
@@ -148,6 +152,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.chainId = chainId
 	s.now = time.Now().UTC()
 	s.ctx = ctx.WithBlockTime(s.now).WithChainID(chainId)
+	s.cdc = cdc
 	s.dymNsKeeper = dk
 	s.rollAppKeeper = *rk
 	s.bankKeeper = bk
@@ -256,7 +261,7 @@ func (s *KeeperTestSuite) persistRollApp(ras ...rollapp) {
 // Used to persist some invalid rollapp for testing.
 func (s *KeeperTestSuite) pureSetRollApp(ra rollapptypes.Rollapp) {
 	_store := prefix.NewStore(s.ctx.KVStore(s.rollappStoreKey), rollapptypes.KeyPrefix(rollapptypes.RollappKeyPrefix))
-	b := s.dymNsKeeper.Codec().MustMarshal(&ra)
+	b := s.cdc.MustMarshal(&ra)
 	_store.Set(rollapptypes.RollappKey(
 		ra.RollappId,
 	), b)
