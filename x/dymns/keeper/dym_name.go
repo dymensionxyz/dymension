@@ -666,7 +666,8 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 
 	_, bz, err2 := bech32.DecodeAndConvert(bech32Addr)
 	if err2 != nil {
-		panic(errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to decode bech32 address %s", bech32Addr))
+		// this can not happen because we have checked the format before
+		panic("failed to decode bech32 address: " + bech32Addr)
 	}
 
 	return k.fallbackReverseResolveDymNameAddress(

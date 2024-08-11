@@ -148,7 +148,7 @@ func CreateBuyOrderId(_type AssetType, i uint64) string {
 	case TypeAlias:
 		prefix = BuyOrderIdTypeAliasPrefix
 	default:
-		panic(fmt.Sprintf("unknown buy offer type: %d", _type))
+		panic(fmt.Sprintf("unknown buy asset type: %d", _type))
 	}
 
 	buyOrderId := prefix + sdkmath.NewIntFromUint64(i).String()

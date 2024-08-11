@@ -13,6 +13,8 @@ func (k Keeper) IncreaseBuyOrdersCountAndGet(ctx sdk.Context) uint64 {
 	newCount := countFromStore + 1
 
 	if newCount < countFromStore {
+		// this case can happen only if all-time total count of Buy-Order records exceeds uint64.
+		// It's not likely to happens.
 		panic("overflow")
 	}
 
@@ -81,8 +83,10 @@ func (k Keeper) GetBuyOrder(ctx sdk.Context, orderId string) *dymnstypes.BuyOrde
 }
 
 // InsertNewBuyOrder assigns ID and insert new Buy-Order record into the KVStore.
+// The method will panic if the ID of the Buy-Order is not empty.
 func (k Keeper) InsertNewBuyOrder(ctx sdk.Context, buyOrder dymnstypes.BuyOrder) (dymnstypes.BuyOrder, error) {
 	if buyOrder.Id != "" {
+		// wrong call, consider use SetBuyOrder instead
 		panic("ID of the buy order must be empty")
 	}
 
