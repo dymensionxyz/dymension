@@ -30,9 +30,9 @@ func TestInitGenesis(t *testing.T) {
 		},
 		BondReductions: []types.BondReduction{
 			{
-				SequencerAddress: "0",
-				UnbondAmount:     sdk.NewCoin("dym", sdk.NewInt(100)),
-				UnbondTime:       time.Now().UTC(),
+				SequencerAddress:   "0",
+				DecreaseBondAmount: sdk.NewCoin("dym", sdk.NewInt(100)),
+				DecreaseBondTime:   time.Now().UTC(),
 			},
 		},
 		// this line is used by starport scaffolding # genesis/test/state
@@ -70,9 +70,9 @@ func TestExportGenesis(t *testing.T) {
 	}
 	bondReductions := []types.BondReduction{
 		{
-			SequencerAddress: "0",
-			UnbondAmount:     sdk.NewCoin("dym", sdk.NewInt(100)),
-			UnbondTime:       time.Now().UTC(),
+			SequencerAddress:   "0",
+			DecreaseBondAmount: sdk.NewCoin("dym", sdk.NewInt(100)),
+			DecreaseBondTime:   time.Now().UTC(),
 		},
 	}
 	k, ctx := keepertest.SequencerKeeper(t)

@@ -37,8 +37,9 @@ func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// ParamSetPairs implements params.ParamSet.
-func (p Params) ParamSetPairs() paramtypes.ParamSetPairs {
+// ParamSetPairs implements params.ParamSet. Params must have a pointer receiver since it is registered as
+// a pointer in the ParamKeyTable method.
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyMinAllocationWeight, &p.MinAllocationWeight, validateMinAllocationWeight),
 		paramtypes.NewParamSetPair(KeyMinVotingPower, &p.MinVotingPower, validateMinVotingPower),

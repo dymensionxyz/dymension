@@ -75,6 +75,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/incentives"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
 	sequencermodule "github.com/dymensionxyz/dymension/v3/x/sequencer"
+	"github.com/dymensionxyz/dymension/v3/x/sponsorship"
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	streamermodule "github.com/dymensionxyz/dymension/v3/x/streamer"
 
 	"github.com/dymensionxyz/dymension/v3/x/delayedack"
@@ -135,6 +137,7 @@ var ModuleBasics = module.NewBasicManager(
 	transfer.AppModuleBasic{},
 	vesting.AppModuleBasic{},
 	rollapp.AppModuleBasic{},
+	sponsorship.AppModuleBasic{},
 	sequencer.AppModuleBasic{},
 	streamer.AppModuleBasic{},
 	denommetadata.AppModuleBasic{},
@@ -187,6 +190,7 @@ func (a *AppKeepers) SetupModules(
 		ibctransfer.NewAppModule(a.TransferKeeper),
 		rollappmodule.NewAppModule(appCodec, a.RollappKeeper, a.AccountKeeper, a.BankKeeper),
 		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper, a.AccountKeeper, a.BankKeeper),
+		sponsorship.NewAppModule(a.SponsorshipKeeper),
 		streamermodule.NewAppModule(a.StreamerKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
 		delayedackmodule.NewAppModule(appCodec, a.DelayedAckKeeper),
 		denommetadatamodule.NewAppModule(a.DenomMetadataKeeper, *a.EvmKeeper, a.BankKeeper),
@@ -230,6 +234,7 @@ var maccPerms = map[string][]string{
 	ibctransfertypes.ModuleName:                        {authtypes.Minter, authtypes.Burner},
 	sequencermoduletypes.ModuleName:                    {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 	rollappmoduletypes.ModuleName:                      {authtypes.Burner},
+	sponsorshiptypes.ModuleName:                        nil,
 	streamermoduletypes.ModuleName:                     nil,
 	evmtypes.ModuleName:                                {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account.
 	evmtypes.ModuleVirtualFrontierContractDeployerName: nil,                                  // used for deploying virtual frontier bank contract.
@@ -264,6 +269,7 @@ var BeginBlockers = []string{
 	paramstypes.ModuleName,
 	rollappmoduletypes.ModuleName,
 	sequencermoduletypes.ModuleName,
+	sponsorshiptypes.ModuleName,
 	streamermoduletypes.ModuleName,
 	denommetadatamoduletypes.ModuleName,
 	delayedacktypes.ModuleName,
@@ -300,6 +306,7 @@ var EndBlockers = []string{
 	packetforwardtypes.ModuleName,
 	rollappmoduletypes.ModuleName,
 	sequencermoduletypes.ModuleName,
+	sponsorshiptypes.ModuleName,
 	streamermoduletypes.ModuleName,
 	denommetadatamoduletypes.ModuleName,
 	delayedacktypes.ModuleName,
@@ -337,6 +344,7 @@ var InitGenesis = []string{
 	feegrant.ModuleName,
 	rollappmoduletypes.ModuleName,
 	sequencermoduletypes.ModuleName,
+	sponsorshiptypes.ModuleName,
 	streamermoduletypes.ModuleName,
 	denommetadatamoduletypes.ModuleName, // must after `x/bank` to trigger hooks
 	delayedacktypes.ModuleName,
