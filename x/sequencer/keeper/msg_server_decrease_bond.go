@@ -37,7 +37,7 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 		}
 	}
 	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
-	k.setDecreasingBondQueue(ctx, types.BondReduction{
+	k.SetDecreasingBondQueue(ctx, types.BondReduction{
 		SequencerAddress:   msg.Creator,
 		DecreaseBondAmount: msg.DecreaseAmount,
 		DecreaseBondTime:   completionTime,
