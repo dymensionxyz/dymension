@@ -4,6 +4,8 @@ import (
 	"sort"
 	"time"
 
+	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
+
 	sdkmath "cosmossdk.io/math"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -2800,4 +2802,312 @@ func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 
 		s.Equal(originalTxGas, s.ctx.GasMeter().GasConsumed(), "should not consume gas")
 	})
+}
+
+func (s *KeeperTestSuite) Test_rollappHooks_OnRollAppIdChanged() {
+	const previousRollAppId = "rollapp_1-1"
+	const newRollAppId = "rollapp_1-2"
+
+	const name1 = "name1"
+	const name2 = "name2"
+
+	user1Acc := testAddr(1)
+	user2Acc := testAddr(2)
+	user3Acc := testAddr(3)
+	user4Acc := testAddr(4)
+	user5Acc := testAddr(5)
+
+	genRollApp := func(rollAppId string, aliases ...string) *rollapp {
+		ra := newRollApp(rollAppId)
+		for _, alias := range aliases {
+			_ = ra.WithAlias(alias)
+		}
+		return ra
+	}
+
+	tests := []struct {
+		name      string
+		setupFunc func(s *KeeperTestSuite)
+		testFunc  func(s *KeeperTestSuite)
+	}{
+		{
+			name: "pass - normal migration, with alias, with Dym-Name",
+			setupFunc: func(s *KeeperTestSuite) {
+				s.persistRollApp(*genRollApp(previousRollAppId, "alias"))
+				s.persistRollApp(*genRollApp(newRollAppId))
+
+				s.requireRollApp(previousRollAppId).HasAlias("alias")
+				s.requireRollApp(newRollAppId).HasNoAlias()
+
+				s.setDymNameWithFunctionsAfter(
+					newDN(name1, user1Acc.bech32()).
+						cfgN(previousRollAppId, "", user2Acc.bech32()).
+						build(),
+				)
+
+				outputAddr, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+previousRollAppId)
+				s.NoError(err)
+				s.Equal(user2Acc.bech32(), outputAddr)
+
+				outputDymNameAddrs, err := s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user2Acc.bech32(), previousRollAppId)
+				s.NoError(err)
+				s.NotEmpty(outputDymNameAddrs)
+
+				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+newRollAppId)
+				s.ErrorContains(err, "not found")
+
+				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user2Acc.bech32(), newRollAppId)
+				s.NoError(err)
+				s.Empty(outputDymNameAddrs)
+			},
+			testFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(previousRollAppId).HasNoAlias()
+				s.requireRollApp(newRollAppId).HasAlias("alias")
+
+				//
+
+				outputAddr, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+previousRollAppId)
+				s.ErrorContains(err, "not found")
+
+				outputDymNameAddrs, err := s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user2Acc.bech32(), previousRollAppId)
+				s.NoError(err)
+				s.Empty(outputDymNameAddrs)
+
+				//
+
+				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+newRollAppId)
+				s.NoError(err)
+				s.Equal(user2Acc.bech32(), outputAddr)
+
+				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user2Acc.bech32(), newRollAppId)
+				s.NoError(err)
+				s.NotEmpty(outputDymNameAddrs)
+			},
+		},
+		{
+			name: "pass - normal migration, with multiple aliases, with multiple Dym-Names",
+			setupFunc: func(s *KeeperTestSuite) {
+				s.persistRollApp(*genRollApp(previousRollAppId, "one", "two", "three"))
+				s.persistRollApp(*genRollApp(newRollAppId))
+
+				s.requireRollApp(previousRollAppId).HasAlias("one", "two", "three")
+				s.requireRollApp(newRollAppId).HasNoAlias()
+
+				s.setDymNameWithFunctionsAfter(
+					newDN(name1, user1Acc.bech32()).
+						cfgN(previousRollAppId, "", user2Acc.bech32()).
+						build(),
+				)
+
+				s.setDymNameWithFunctionsAfter(
+					newDN(name2, user1Acc.bech32()).
+						cfgN(previousRollAppId, "", user2Acc.bech32()).
+						cfgN(previousRollAppId, "sub2", user2Acc.bech32()).
+						cfgN(previousRollAppId, "sub3", user3Acc.bech32()).
+						cfgN("", "", user4Acc.bech32()).
+						cfgN("", "sub5", user5Acc.bech32()).
+						build(),
+				)
+
+				//
+
+				outputAddr, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+previousRollAppId)
+				s.NoError(err)
+				s.Equal(user2Acc.bech32(), outputAddr)
+
+				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name2+"@"+previousRollAppId)
+				s.NoError(err)
+				s.Equal(user2Acc.bech32(), outputAddr)
+
+				outputDymNameAddrs, err := s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user2Acc.bech32(), previousRollAppId)
+				s.NoError(err)
+				s.Len(outputDymNameAddrs, 3) // 1 from name1, 2 from name2
+
+				//
+
+				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, "sub2."+name2+"@"+previousRollAppId)
+				s.NoError(err)
+				s.Equal(user2Acc.bech32(), outputAddr)
+
+				//
+
+				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, "sub3."+name2+"@"+previousRollAppId)
+				s.NoError(err)
+				s.Equal(user3Acc.bech32(), outputAddr)
+
+				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user3Acc.bech32(), previousRollAppId)
+				s.NoError(err)
+				s.Len(outputDymNameAddrs, 1)
+
+				//
+
+				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name2+"@"+s.chainId)
+				s.NoError(err)
+				s.Equal(user4Acc.bech32(), outputAddr)
+
+				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user4Acc.bech32(), s.chainId)
+				s.NoError(err)
+				s.Len(outputDymNameAddrs, 1)
+
+				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user4Acc.bech32(), previousRollAppId)
+				s.NoError(err)
+				if s.Len(outputDymNameAddrs, 1) {
+					s.Equal(name2+"@one", outputDymNameAddrs[0].String()) // result of fallback lookup
+				}
+
+				//
+
+				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, "sub5."+name2+"@"+s.chainId)
+				s.NoError(err)
+				s.Equal(user5Acc.bech32(), outputAddr)
+
+				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user5Acc.bech32(), s.chainId)
+				s.NoError(err)
+				s.Len(outputDymNameAddrs, 1)
+
+				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user5Acc.bech32(), previousRollAppId)
+				s.NoError(err)
+				s.Empty(outputDymNameAddrs) // no fallback lookup because it's a sub-name
+			},
+			testFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(previousRollAppId).HasNoAlias()
+				s.requireRollApp(newRollAppId).HasAlias("one", "two", "three")
+
+				//
+
+				outputAddr, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+newRollAppId)
+				s.NoError(err)
+				s.Equal(user2Acc.bech32(), outputAddr)
+
+				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name2+"@"+newRollAppId)
+				s.NoError(err)
+				s.Equal(user2Acc.bech32(), outputAddr)
+
+				outputDymNameAddrs, err := s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user2Acc.bech32(), newRollAppId)
+				s.NoError(err)
+				s.Len(outputDymNameAddrs, 3) // 1 from name1, 2 from name2
+
+				//
+
+				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, "sub2."+name2+"@"+newRollAppId)
+				s.NoError(err)
+				s.Equal(user2Acc.bech32(), outputAddr)
+
+				//
+
+				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, "sub3."+name2+"@"+newRollAppId)
+				s.NoError(err)
+				s.Equal(user3Acc.bech32(), outputAddr)
+
+				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user3Acc.bech32(), newRollAppId)
+				s.NoError(err)
+				s.Len(outputDymNameAddrs, 1)
+
+				//
+
+				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name2+"@"+s.chainId)
+				s.NoError(err)
+				s.Equal(user4Acc.bech32(), outputAddr)
+
+				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user4Acc.bech32(), s.chainId)
+				s.NoError(err)
+				s.Len(outputDymNameAddrs, 1)
+
+				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user4Acc.bech32(), newRollAppId)
+				s.NoError(err)
+				if s.Len(outputDymNameAddrs, 1) {
+					s.Equal(name2+"@one", outputDymNameAddrs[0].String()) // result of fallback lookup
+				}
+
+				//
+
+				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, "sub5."+name2+"@"+s.chainId)
+				s.NoError(err)
+				s.Equal(user5Acc.bech32(), outputAddr)
+
+				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user5Acc.bech32(), s.chainId)
+				s.NoError(err)
+				s.Len(outputDymNameAddrs, 1)
+
+				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user5Acc.bech32(), newRollAppId)
+				s.NoError(err)
+				s.Empty(outputDymNameAddrs) // no fallback lookup because it's a sub-name
+			},
+		},
+		{
+			name: "fail - when migrate alias failed, should not change anything",
+			setupFunc: func(s *KeeperTestSuite) {
+				s.persistRollApp(*genRollApp(previousRollAppId, "alias"))
+				s.persistRollApp(*genRollApp(newRollAppId))
+
+				s.requireRollApp(previousRollAppId).HasAlias("alias")
+				s.requireRollApp(newRollAppId).HasNoAlias()
+
+				s.setDymNameWithFunctionsAfter(
+					newDN(name1, user1Acc.bech32()).
+						cfgN(previousRollAppId, "", user2Acc.bech32()).
+						build(),
+				)
+
+				outputAddr, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+previousRollAppId)
+				s.NoError(err)
+				s.Equal(user2Acc.bech32(), outputAddr)
+
+				outputDymNameAddrs, err := s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user2Acc.bech32(), previousRollAppId)
+				s.NoError(err)
+				s.NotEmpty(outputDymNameAddrs)
+
+				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+newRollAppId)
+				s.ErrorContains(err, "not found")
+
+				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user2Acc.bech32(), newRollAppId)
+				s.NoError(err)
+				s.Empty(outputDymNameAddrs)
+
+				// delete the rollapp to make the migration fail
+				s.rollAppKeeper.RemoveRollapp(s.ctx, previousRollAppId)
+
+				dymnskeeper.ClearCaches()
+
+				s.Require().False(s.dymNsKeeper.IsRollAppId(s.ctx, previousRollAppId))
+			},
+			testFunc: func(s *KeeperTestSuite) {
+				// unchanged
+
+				s.requireRollApp(newRollAppId).HasNoAlias()
+
+				outputAddr, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+previousRollAppId)
+				s.NoError(err)
+				s.Equal(user2Acc.bech32(), outputAddr)
+
+				outputDymNameAddrs, err := s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user2Acc.bech32(), previousRollAppId)
+				s.NoError(err)
+				s.NotEmpty(outputDymNameAddrs)
+
+				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+newRollAppId)
+				s.ErrorContains(err, "not found")
+
+				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user2Acc.bech32(), newRollAppId)
+				s.NoError(err)
+				s.Empty(outputDymNameAddrs)
+			},
+		},
+	}
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			s.SetupTest()
+
+			if tt.setupFunc != nil {
+				tt.setupFunc(s)
+			}
+
+			err := s.dymNsKeeper.GetFutureRollAppHooks().OnRollAppIdChanged(s.ctx, previousRollAppId, newRollAppId)
+
+			if tt.testFunc != nil {
+				tt.testFunc(s)
+			}
+
+			s.Require().NoError(err)
+		})
+	}
 }

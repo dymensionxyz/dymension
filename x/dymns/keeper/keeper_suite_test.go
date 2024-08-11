@@ -255,9 +255,9 @@ func (s *KeeperTestSuite) persistRollApp(ras ...rollapp) {
 // pureSetRollApp persists a rollapp without any side effects and all checking was skipped.
 // Used to persist some invalid rollapp for testing.
 func (s *KeeperTestSuite) pureSetRollApp(ra rollapptypes.Rollapp) {
-	store := prefix.NewStore(s.ctx.KVStore(s.rollappStoreKey), rollapptypes.KeyPrefix(rollapptypes.RollappKeyPrefix))
+	_store := prefix.NewStore(s.ctx.KVStore(s.rollappStoreKey), rollapptypes.KeyPrefix(rollapptypes.RollappKeyPrefix))
 	b := s.dymNsKeeper.Codec().MustMarshal(&ra)
-	store.Set(rollapptypes.RollappKey(
+	_store.Set(rollapptypes.RollappKey(
 		ra.RollappId,
 	), b)
 
@@ -269,9 +269,9 @@ func (s *KeeperTestSuite) moduleParams() dymnstypes.Params {
 }
 
 func (s *KeeperTestSuite) updateModuleParams(f func(dymnstypes.Params) dymnstypes.Params) {
-	params := s.moduleParams()
-	params = f(params)
-	err := s.dymNsKeeper.SetParams(s.ctx, params)
+	moduleParams := s.moduleParams()
+	moduleParams = f(moduleParams)
+	err := s.dymNsKeeper.SetParams(s.ctx, moduleParams)
 	s.Require().NoError(err)
 }
 
@@ -346,6 +346,55 @@ func (r *rollapp) WithAlias(alias string) *rollapp {
 
 //
 
+type dymNameBuilder struct {
+	name       string
+	owner      string
+	controller string
+	expireAt   int64
+	configs    []dymnstypes.DymNameConfig
+}
+
+func newDN(name, owner string) *dymNameBuilder {
+	return &dymNameBuilder{
+		name:       name,
+		owner:      owner,
+		controller: owner,
+		expireAt:   time.Now().Unix() + 10,
+		configs:    nil,
+	}
+}
+
+func (m *dymNameBuilder) exp(now time.Time, offset int64) *dymNameBuilder {
+	m.expireAt = now.Unix() + offset
+	return m
+}
+
+func (m *dymNameBuilder) cfgN(chainId, subName, resolveTo string) *dymNameBuilder {
+	m.configs = append(m.configs, dymnstypes.DymNameConfig{
+		Type:    dymnstypes.DymNameConfigType_DCT_NAME,
+		ChainId: chainId,
+		Path:    subName,
+		Value:   resolveTo,
+	})
+	return m
+}
+
+func (m *dymNameBuilder) build() dymnstypes.DymName {
+	return dymnstypes.DymName{
+		Name:       m.name,
+		Owner:      m.owner,
+		Controller: m.controller,
+		ExpireAt:   m.expireAt,
+		Configs:    m.configs,
+	}
+}
+
+func (m *dymNameBuilder) buildSlice() []dymnstypes.DymName {
+	return []dymnstypes.DymName{m.build()}
+}
+
+//
+
 type reqRollApp struct {
 	s         *KeeperTestSuite
 	rollAppId string
@@ -377,7 +426,7 @@ func (m reqRollApp) HasOnlyAlias(alias string) {
 
 func (m reqRollApp) HasNoAlias() {
 	alias, found := m.s.dymNsKeeper.GetAliasByRollAppId(m.s.ctx, m.rollAppId)
-	m.s.Require().False(found)
+	m.s.Require().Falsef(found, "got: %v", m.s.dymNsKeeper.GetAliasesOfRollAppId(m.s.ctx, m.rollAppId))
 	m.s.Require().Empty(alias)
 }
 
@@ -397,7 +446,7 @@ func (s *KeeperTestSuite) requireAlias(alias string) *reqAlias {
 
 func (m reqAlias) NotInUse() {
 	gotRollAppId, found := m.s.dymNsKeeper.GetRollAppIdByAlias(m.s.ctx, m.alias)
-	m.s.Require().False(found)
+	m.s.Require().False(found, "got: %s", gotRollAppId)
 	m.s.Require().Empty(gotRollAppId)
 }
 
@@ -629,7 +678,7 @@ func (m reqFallbackAddr) mappedDymNames(names ...string) {
 
 func (m reqFallbackAddr) notMappedToAnyDymName() {
 	dymNames, err := m.s.dymNsKeeper.GetDymNamesContainsFallbackAddress(m.s.ctx, m.fbAddr)
-	m.s.Require().NoError(err)
+	m.s.Require().NoError(err, "got: %v", dymNames)
 	m.s.Require().Empty(dymNames)
 }
 

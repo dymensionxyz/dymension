@@ -461,7 +461,7 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 
 	canUseAlias, err := h.CanUseAliasForNewRegistration(ctx, alias)
 	if err != nil {
-		return err
+		return errorsmod.Wrapf(gerrc.ErrInternal, "failed to check availability of alias: %s", alias)
 	}
 
 	if !canUseAlias {
@@ -469,7 +469,7 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 	}
 
 	if err := h.Keeper.SetAliasForRollAppId(ctx, rollappID, alias); err != nil {
-		return err
+		return errorsmod.Wrap(gerrc.ErrInternal, "failed to set alias for RollApp")
 	}
 
 	params := h.Keeper.GetParams(ctx)
@@ -511,5 +511,76 @@ func (h rollappHooks) AfterStateFinalized(_ sdk.Context, _ string, _ *rollapptyp
 }
 
 func (h rollappHooks) FraudSubmitted(_ sdk.Context, _ string, _ uint64, _ string) error {
+	return nil
+}
+
+// FutureRollappHooks is temporary added to handle future hooks that not available yet.
+type FutureRollappHooks interface {
+	OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, newRollAppId string) error
+	// Just a pseudo method signature, the actual method signature might be different.
+
+	// TODO DymNS: connect to the actual implementation when the hooks are available.
+	//   The implementation of OnRollAppIdChanged assume that both of the RollApp records are exists in the x/rollapp store.
+}
+
+var _ FutureRollappHooks = rollappHooks{}
+
+func (k Keeper) GetFutureRollAppHooks() FutureRollappHooks {
+	return rollappHooks{
+		Keeper: k,
+	}
+}
+
+func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, newRollAppId string) error {
+	// This can be call when the RollAppId is changed due to fraud submission,
+	// so due to the critical nature of the reason,
+	// the following execution will be done in branched context to prevent any side effects.
+	// If any error occurs, the state change to this module will be discarded, no error returned to the caller.
+
+	logger := h.Logger(ctx).With(
+		"old-rollapp-id", previousRollAppId, "new-rollapp-id", newRollAppId,
+	)
+
+	logger.Info("begin DymNS hook on RollApp ID changed")
+	defer func() {
+		logger.Info("finished DymNS hook on RollApp ID changed")
+	}()
+
+	if err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+		aliases := h.GetAliasesOfRollAppId(ctx, previousRollAppId)
+
+		for _, alias := range aliases {
+			if err := h.MoveAliasToRollAppId(ctx, previousRollAppId, alias, newRollAppId); err != nil {
+				logger.Error("failed to migrate alias", "alias", alias, "error", err)
+				return err
+			}
+		}
+
+		return nil
+	}); err != nil {
+		logger.Error("aborted alias migration", "error", err)
+
+		// do not return error, that might cause the caller to revert an important execution
+		return nil
+	}
+
+	if err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+		previousChainIdsToNewChainId := map[string]string{
+			previousRollAppId: newRollAppId,
+		}
+
+		if err := h.migrateChainIdsInDymNames(ctx, previousChainIdsToNewChainId); err != nil {
+			logger.Error("failed to migrate chain-ids in Dym-Names", "error", err)
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		logger.Error("aborted chain-id migration in Dym-Names configurations", "error", err)
+
+		// do not return error, that might cause the caller to revert an important execution
+		return nil
+	}
+
 	return nil
 }

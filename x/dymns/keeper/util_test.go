@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -76,51 +75,4 @@ func (a ta) checksumHex() string {
 		panic("invalid call")
 	}
 	return common.BytesToAddress(a.bz).Hex()
-}
-
-type dymNameBuilder struct {
-	name       string
-	owner      string
-	controller string
-	expireAt   int64
-	configs    []dymnstypes.DymNameConfig
-}
-
-func newDN(name, owner string) *dymNameBuilder {
-	return &dymNameBuilder{
-		name:       name,
-		owner:      owner,
-		controller: owner,
-		expireAt:   time.Now().Unix() + 10,
-		configs:    nil,
-	}
-}
-
-func (m *dymNameBuilder) exp(now time.Time, offset int64) *dymNameBuilder {
-	m.expireAt = now.Unix() + offset
-	return m
-}
-
-func (m *dymNameBuilder) cfgN(chainId, subName, resolveTo string) *dymNameBuilder {
-	m.configs = append(m.configs, dymnstypes.DymNameConfig{
-		Type:    dymnstypes.DymNameConfigType_DCT_NAME,
-		ChainId: chainId,
-		Path:    subName,
-		Value:   resolveTo,
-	})
-	return m
-}
-
-func (m *dymNameBuilder) build() dymnstypes.DymName {
-	return dymnstypes.DymName{
-		Name:       m.name,
-		Owner:      m.owner,
-		Controller: m.controller,
-		ExpireAt:   m.expireAt,
-		Configs:    m.configs,
-	}
-}
-
-func (m *dymNameBuilder) buildSlice() []dymnstypes.DymName {
-	return []dymnstypes.DymName{m.build()}
 }
