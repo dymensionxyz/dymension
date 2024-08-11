@@ -116,7 +116,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 					return
 				}
 
-				// FIXME: check for rollapp gauges creation
+				// TODO: check for rollapp gauges creation
 
 				return
 			},
@@ -186,7 +186,7 @@ func (s *UpgradeTestSuite) validateRollappsMigration(numRoll int) error {
 }
 
 func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
-	// FIXME: test proposer migration
+	// FIXME: test proposer migration (https://github.com/dymensionxyz/dymension/issues/1026)
 
 	expectSequencers := make([]sequencertypes.Sequencer, numSeq)
 	for i, sequencer := range s.seedSequencers(numSeq) {

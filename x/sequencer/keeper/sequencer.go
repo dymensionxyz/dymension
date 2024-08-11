@@ -120,6 +120,7 @@ func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string
 /* -------------------------------------------------------------------------- */
 /*                               Unbonding queue                              */
 /* -------------------------------------------------------------------------- */
+
 // GetMatureUnbondingSequencers returns all unbonding sequencers
 func (k Keeper) GetMatureUnbondingSequencers(ctx sdk.Context, endTime time.Time) (list []types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
@@ -154,6 +155,7 @@ func (k Keeper) removeUnbondingSequencer(ctx sdk.Context, sequencer types.Sequen
 /* -------------------------------------------------------------------------- */
 /*                                notice period                               */
 /* -------------------------------------------------------------------------- */
+
 // GetMatureNoticePeriodSequencers returns all sequencers that have finished their notice period
 func (k Keeper) GetMatureNoticePeriodSequencers(ctx sdk.Context, endTime time.Time) (list []types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
@@ -187,6 +189,7 @@ func (k Keeper) removeNoticePeriodSequencer(ctx sdk.Context, sequencer types.Seq
 }
 
 /* ------------------------- proposer/next proposer ------------------------- */
+
 // GetAllProposers returns all proposers for all rollapps
 func (k Keeper) GetAllProposers(ctx sdk.Context) (list []types.Sequencer) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ProposerByRollappKey(""))

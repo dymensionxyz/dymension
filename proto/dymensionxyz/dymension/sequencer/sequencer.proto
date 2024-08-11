@@ -50,8 +50,6 @@ message Sequencer {
       [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
 }
 
-
-
 // BondReduction defines an object which holds the information about the sequencer and its queued unbonding amount
 message BondReduction {
   // sequencer_address is the bech32-encoded address of the sequencer account which is the account that the message was sent from.

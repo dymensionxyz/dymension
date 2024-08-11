@@ -6,6 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// TODO: move to sdk-utils (https://github.com/dymensionxyz/dymension/issues/1008)
+
 // EncodeTimeToKey combines a given byte slice (queueKey) with an encoded representation of a specified time (endTime).
 // The resulting byte slice can be used for lexicographical sorting, as the encoded time is in big-endian order.
 //

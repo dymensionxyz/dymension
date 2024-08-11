@@ -20,8 +20,8 @@ func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
 	pk22 := ed25519.GenPrivKey().PubKey()
 
 	// create 2 sequencer
-	addr11 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk11)
-	addr21 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk12)
+	addr11 := suite.CreateSequencer(suite.Ctx, rollappId, pk11)
+	addr21 := suite.CreateSequencer(suite.Ctx, rollappId, pk12)
 	seq1, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr11)
 	require.True(suite.T(), found)
 	seq2, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr21)
@@ -30,8 +30,8 @@ func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
 		Sequencers: []types.Sequencer{seq1, seq2},
 	}
 
-	addr12 := suite.CreateDefaultSequencer(suite.Ctx, rollappId2, pk21)
-	addr22 := suite.CreateDefaultSequencer(suite.Ctx, rollappId2, pk22)
+	addr12 := suite.CreateSequencer(suite.Ctx, rollappId2, pk21)
+	addr22 := suite.CreateSequencer(suite.Ctx, rollappId2, pk22)
 	seq3, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr12)
 	require.True(suite.T(), found)
 	seq4, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr22)
@@ -93,8 +93,8 @@ func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 	rollappId, pk11 := suite.CreateDefaultRollapp()
 	pk12 := ed25519.GenPrivKey().PubKey()
 	// create 2 sequencers on rollapp1
-	addr11 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk11)
-	addr21 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk12)
+	addr11 := suite.CreateSequencer(suite.Ctx, rollappId, pk11)
+	addr21 := suite.CreateSequencer(suite.Ctx, rollappId, pk12)
 	_, err := msgserver.Unbond(suite.Ctx, &types.MsgUnbond{
 		Creator: addr21,
 	})
@@ -103,8 +103,8 @@ func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 	// create 2 sequencers on rollapp2
 	rollappId2, pk21 := suite.CreateDefaultRollapp()
 	pk22 := ed25519.GenPrivKey().PubKey()
-	addr12 := suite.CreateDefaultSequencer(suite.Ctx, rollappId2, pk21)
-	addr22 := suite.CreateDefaultSequencer(suite.Ctx, rollappId2, pk22)
+	addr12 := suite.CreateSequencer(suite.Ctx, rollappId2, pk21)
+	addr22 := suite.CreateSequencer(suite.Ctx, rollappId2, pk22)
 
 	for _, tc := range []struct {
 		desc          string

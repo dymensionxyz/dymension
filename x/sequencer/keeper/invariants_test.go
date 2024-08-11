@@ -28,10 +28,10 @@ func (suite *SequencerTestSuite) TestInvariants() {
 
 		// create sequencers
 		seqAddr := make([]string, numOfSequencers)
-		seqAddr[0] = suite.CreateDefaultSequencer(suite.Ctx, rollapp, pk)
+		seqAddr[0] = suite.CreateSequencer(suite.Ctx, rollapp, pk)
 		for j := 1; j < numOfSequencers; j++ {
 			pki := ed25519.GenPrivKey().PubKey()
-			seqAddr[j] = suite.CreateDefaultSequencer(suite.Ctx, rollapp, pki)
+			seqAddr[j] = suite.CreateSequencer(suite.Ctx, rollapp, pki)
 		}
 
 		// unbonding some sequencers

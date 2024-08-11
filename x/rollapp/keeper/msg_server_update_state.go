@@ -19,11 +19,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	}
 
 	// call the before-update-state hook
-	// checks if:
-	// 	1. creator is the sequencer
-	// 	2. sequencer rollappId matches the rollappId
-	// 	3. sequencer is bonded
-	// 	4. sequencer is the proposer
+	// currently used by `x/sequencer` to:
+	// 1. validate the state update submitter
+	// 2. complete the rotation of the proposer if needed
 	err := k.hooks.BeforeUpdateState(ctx, msg.Creator, msg.RollappId, msg.Last)
 	if err != nil {
 		return nil, err

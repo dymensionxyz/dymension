@@ -9,9 +9,9 @@ import (
 
 func (suite *SequencerTestSuite) TestUnbondingNonProposer() {
 	rollappId, pk := suite.CreateDefaultRollapp()
-	proposerAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
+	proposerAddr := suite.CreateSequencer(suite.Ctx, rollappId, pk)
 
-	bondedAddr := suite.KeeperTestHelper.CreateDefaultSequencer(suite.Ctx, rollappId)
+	bondedAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 	suite.Require().NotEqual(proposerAddr, bondedAddr)
 
 	proposer, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
@@ -41,15 +41,17 @@ func (suite *SequencerTestSuite) TestUnbondingNonProposer() {
 	proposer, ok = suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
 	suite.Require().True(ok)
 	suite.Equal(proposerAddr, proposer.Address)
+
+	// try to unbond again. already unbonded, we expect error
+	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
+	suite.Require().Error(err)
 }
 
 func (suite *SequencerTestSuite) TestUnbondingProposer() {
-	suite.SetupTest()
-	rollappId, pk := suite.CreateDefaultRollapp()
-	proposerAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
+	suite.Ctx = suite.Ctx.WithBlockHeight(10)
 
-	pk2 := ed25519.GenPrivKey().PubKey()
-	_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk2)
+	rollappId, proposerAddr := suite.CreateDefaultRollappAndProposer()
+	_ = suite.CreateSequencer(suite.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	unbondMsg := types.MsgUnbond{Creator: proposerAddr}
@@ -62,6 +64,10 @@ func (suite *SequencerTestSuite) TestUnbondingProposer() {
 	suite.Equal(proposerAddr, p.Address)
 	suite.Equal(suite.Ctx.BlockHeight(), p.UnbondRequestHeight)
 
+	// unbonding again, we expect error as sequencer is in notice period
+	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
+	suite.Require().Error(err)
+
 	// next proposer should not be set yet
 	_, ok = suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
 	suite.Require().False(ok)
@@ -71,36 +77,4 @@ func (suite *SequencerTestSuite) TestUnbondingProposer() {
 	suite.Require().Len(m, 0)
 	m = suite.App.SequencerKeeper.GetMatureNoticePeriodSequencers(suite.Ctx, p.NoticePeriodTime.Add(1*time.Second))
 	suite.Require().Len(m, 1)
-}
-
-func (suite *SequencerTestSuite) TestUnbondingUnbondedSequencer() {
-	suite.Ctx = suite.Ctx.WithBlockHeight(10)
-
-	rollappId, pk1 := suite.CreateDefaultRollapp()
-	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
-
-	unbondMsg := types.MsgUnbond{Creator: addr1}
-	res, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
-	suite.Require().NoError(err)
-
-	// unbonding again, we expect error as sequencer is in notice period
-	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
-	suite.Require().Error(err)
-
-	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, res.GetNoticePeriodCompletionTime().Add(10*time.Second))
-	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
-	suite.Require().Error(err)
-
-	// complete rotation
-	suite.App.SequencerKeeper.RotateProposer(suite.Ctx, rollappId)
-	sequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
-	suite.Require().Equal(types.Unbonding, sequencer.Status)
-
-	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, sequencer.UnbondTime.Add(10*time.Second))
-	sequencer, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
-	suite.Require().Equal(types.Unbonded, sequencer.Status)
-
-	// already unbonded, we expect error
-	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
-	suite.Require().Error(err)
 }

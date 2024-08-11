@@ -50,7 +50,7 @@ func CreateUpgradeHandler(
 		}
 		migrateSequencers(ctx, keepers.SequencerKeeper)
 
-		// TODO: create rollapp gauges for each existing rollapp
+		// TODO: create rollapp gauges for each existing rollapp (https://github.com/dymensionxyz/dymension/issues/1005)
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -125,8 +125,7 @@ func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) error
 }
 
 func migrateSequencers(ctx sdk.Context, sequencerkeeper sequencerkeeper.Keeper) {
-
-	// FIXME: handle migration
+	// FIXME: handle migration (https://github.com/dymensionxyz/dymension/issues/1026)
 
 	list := sequencerkeeper.GetAllSequencers(ctx)
 	for _, oldSequencer := range list {

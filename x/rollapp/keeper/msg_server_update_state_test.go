@@ -99,6 +99,7 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownRollappId() {
 	_, err := suite.PostStateUpdate(suite.Ctx, "unknown_rollapp", alice, 1, uint64(3))
 	suite.EqualError(err, types.ErrUnknownRollappID.Error())
 }
+
 func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
 	rollappId, _ := suite.CreateDefaultRollappAndProposer()
 
@@ -156,8 +157,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 	suite.ErrorIs(err, sequencertypes.ErrUnknownSequencer)
 }
 
-func (suite *RollappTestSuite) TestFirstUpdateStateGensisHightGreaterThanZero() {
-	suite.SetupTest()
+func (suite *RollappTestSuite) TestFirstUpdateStateGenesisHeightGreaterThanZero() {
 	rollappId, proposer := suite.CreateDefaultRollappAndProposer()
 
 	_, err := suite.PostStateUpdate(suite.Ctx, rollappId, proposer, 3, uint64(3))
@@ -200,8 +200,6 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 }
 
 func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
-	suite.SetupTest()
-
 	rollappId, proposer := suite.CreateDefaultRollappAndProposer()
 
 	// set initial latestStateInfoIndex

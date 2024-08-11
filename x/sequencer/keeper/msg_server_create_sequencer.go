@@ -45,15 +45,13 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	// 	1. the initial sequencer from getting selected as the first proposer,
 	// 	2. the rollapp from getting sealed
 	// In case the InitialSequencer is set to the "*" wildcard, any sequencer can be the first to register.
-	isInitialOrAllAllowed := slices.Contains(strings.Split(rollapp.InitialSequencer, ","), msg.Creator) || rollapp.InitialSequencer == "*"
-
 	if !rollapp.Sealed {
-		if isInitialOrAllAllowed {
-			if err := k.rollappKeeper.SealRollapp(ctx, msg.RollappId); err != nil {
-				return nil, err
-			}
-		} else {
+		isInitialOrAllAllowed := slices.Contains(strings.Split(rollapp.InitialSequencer, ","), msg.Creator) || rollapp.InitialSequencer == "*"
+		if !isInitialOrAllAllowed {
 			return nil, types.ErrNotInitialSequencer
+		}
+		if err := k.rollappKeeper.SealRollapp(ctx, msg.RollappId); err != nil {
+			return nil, err
 		}
 	}
 
@@ -88,11 +86,10 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		Tokens:       bond,
 	}
 
-	bondedSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Bonded)
-
 	// if this is the first sequencer, make it a PROPOSER
-	proposer := len(bondedSequencers) == 0
-	if proposer {
+	bondedSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Bonded)
+	isProposer := len(bondedSequencers) == 0
+	if isProposer {
 		k.SetProposer(ctx, sequencer.RollappId, sequencer.Address)
 	}
 
@@ -115,7 +112,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			sdk.NewAttribute(types.AttributeKeyRollappId, msg.RollappId),
 			sdk.NewAttribute(types.AttributeKeySequencer, msg.Creator),
 			sdk.NewAttribute(types.AttributeKeyBond, msg.Bond.String()),
-			sdk.NewAttribute(types.AttributeKeyProposer, strconv.FormatBool(proposer)),
+			sdk.NewAttribute(types.AttributeKeyProposer, strconv.FormatBool(isProposer)),
 		),
 	)
 

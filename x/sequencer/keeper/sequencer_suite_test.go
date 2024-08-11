@@ -44,8 +44,6 @@ func (suite *SequencerTestSuite) SetupTest() {
 	suite.queryClient = queryClient
 }
 
-//FIXME: review if needed as available in the main suite
-
 func (suite *SequencerTestSuite) CreateDefaultRollapp() (string, cryptotypes.PubKey) {
 	pubkey := ed25519.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
@@ -63,7 +61,7 @@ func (suite *SequencerTestSuite) CreateRollappWithInitialSequencer(initSeq strin
 	return rollapp.GetRollappId()
 }
 
-func (suite *SequencerTestSuite) CreateDefaultSequencer(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey) string {
+func (suite *SequencerTestSuite) CreateSequencer(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey) string {
 	return suite.CreateSequencerWithBond(ctx, rollappId, bond, pk)
 }
 
@@ -82,7 +80,8 @@ func (suite *SequencerTestSuite) CreateSequencerWithBond(ctx sdk.Context, rollap
 		Bond:         bond,
 		RollappId:    rollappId,
 		Metadata: types.SequencerMetadata{
-			Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+			Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+			EvmRpcs: []string{"https://rpc.evm.rollapp.noisnemyd.xyz:443"},
 		},
 	}
 	_, err = suite.msgServer.CreateSequencer(ctx, &sequencerMsg1)
@@ -90,7 +89,7 @@ func (suite *SequencerTestSuite) CreateSequencerWithBond(ctx sdk.Context, rollap
 	return addr.String()
 }
 
-func (suite *SequencerTestSuite) assertSlashed(seqAddr string) {
+func (suite *SequencerTestSuite) assertJailed(seqAddr string) {
 	seq, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddr)
 	suite.Require().True(found)
 	suite.True(seq.Jailed)

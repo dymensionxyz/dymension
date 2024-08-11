@@ -13,16 +13,16 @@ import (
 func (suite *SequencerTestSuite) TestIncreaseBond() {
 	rollappId, pk := suite.CreateDefaultRollapp()
 	// setup a default sequencer
-	defaultSequencerAddress := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
+	defaultSequencerAddress := suite.CreateSequencer(suite.Ctx, rollappId, pk)
 	// setup an unbonded sequencer
 	pk1 := ed25519.GenPrivKey().PubKey()
-	unbondedSequencerAddress := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
+	unbondedSequencerAddress := suite.CreateSequencer(suite.Ctx, rollappId, pk1)
 	unbondedSequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, unbondedSequencerAddress)
 	unbondedSequencer.Status = types.Unbonded
 	suite.App.SequencerKeeper.UpdateSequencer(suite.Ctx, unbondedSequencer, unbondedSequencer.Status)
 	// setup a jailed sequencer
 	pk2 := ed25519.GenPrivKey().PubKey()
-	jailedSequencerAddress := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk2)
+	jailedSequencerAddress := suite.CreateSequencer(suite.Ctx, rollappId, pk2)
 	jailedSequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, jailedSequencerAddress)
 	jailedSequencer.Jailed = true
 	suite.App.SequencerKeeper.UpdateSequencer(suite.Ctx, jailedSequencer, jailedSequencer.Status)

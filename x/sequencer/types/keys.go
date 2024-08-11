@@ -117,7 +117,7 @@ func NoticePeriodSequencerKey(sequencerAddress string, endTime time.Time) []byte
 
 /* -------------------------- decreasing bond queue keys -------------------------- */
 func DecreasingBondQueueByTimeKey(endTime time.Time) []byte {
-	// FIXME: use utils.EncodeTimeToKey
+	// TODO: use utils.EncodeTimeToKey
 	timeBz := sdk.FormatTimeBytes(endTime)
 	prefixL := len(DecreasingBondQueueKey)
 

@@ -25,7 +25,7 @@ func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
 
 	for i := 1; i < numOfSequencers; i++ {
 		pki := ed25519.GenPrivKey().PubKey()
-		seqAddrs[i] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, pki)
+		seqAddrs[i] = suite.CreateSequencer(suite.Ctx, rollappId, pki)
 	}
 
 	proposer := seqAddrs[0]
@@ -56,7 +56,7 @@ func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
 		suite.Require().Equal(sequencer.Status, types.Unbonded)
 	}
 
-	// check no proposer is set for the rollapp
+	// check no proposer is set for the rollapp after fraud
 	_, ok := keeper.GetProposer(suite.Ctx, rollappId)
 	suite.Require().False(ok)
 	// check if bond reduction queue is pruned
