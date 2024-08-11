@@ -12,9 +12,11 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/stretchr/testify/require"
+
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/stretchr/testify/require"
 )
 
 func SequencerKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
@@ -41,7 +43,7 @@ func SequencerKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		storeKey,
 		paramsSubspace,
 		nil,
-		nil,
+		&rollappkeeper.Keeper{},
 	)
 
 	ctx := sdk.NewContext(stateStore, cometbftproto.Header{}, false, log.NewNopLogger())

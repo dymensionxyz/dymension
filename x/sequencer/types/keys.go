@@ -47,9 +47,9 @@ var (
 	UnbondedSequencersKeyPrefix  = []byte{0xa2}
 	UnbondingSequencersKeyPrefix = []byte{0xa3}
 
-	UnbondingQueueKey    = []byte{0x41} // prefix for the timestamps in unbonding queue
-	NoticePeriodQueueKey = []byte{0x42} // prefix for the timestamps in notice period queue
-
+	UnbondingQueueKey      = []byte{0x41} // prefix for the timestamps in unbonding queue
+	NoticePeriodQueueKey   = []byte{0x42} // prefix for the timestamps in notice period queue
+	DecreasingBondQueueKey = []byte{0x43} // prefix for the timestamps in decreasing bond queue
 )
 
 /* --------------------- specific sequencer address keys -------------------- */

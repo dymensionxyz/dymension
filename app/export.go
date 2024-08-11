@@ -6,7 +6,6 @@ import (
 	"log"
 
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -54,7 +53,7 @@ func (app *App) ExportAppStateAndValidators(
 func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []string) {
 	applyAllowedAddrs := false
 
-	// check if there is a allowed address list
+	// check if there is an allowed address list
 	if len(jailAllowedAddrs) > 0 {
 		applyAllowedAddrs = true
 	}
@@ -83,7 +82,7 @@ func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []str
 		return false
 	})
 
-	// withdraw all delegator rewards
+	// Withdraw all delegator rewards
 	dels := app.StakingKeeper.GetAllDelegations(ctx)
 	for _, delegation := range dels {
 		_, err := app.DistrKeeper.WithdrawDelegationRewards(ctx, delegation.GetDelegatorAddr(), delegation.GetValidatorAddr())

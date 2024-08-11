@@ -25,6 +25,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.GenesisProposers {
 		k.SetProposer(ctx, elem.RollappId, elem.Address)
 	}
+
+	for _, bondReduction := range genState.BondReductions {
+		k.SetDecreasingBondQueue(ctx, bondReduction)
+	}
 }
 
 // ExportGenesis returns the sequencer module's exported genesis.

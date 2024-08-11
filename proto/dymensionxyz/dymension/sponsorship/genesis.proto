@@ -2,6 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.sponsorship;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "dymensionxyz/dymension/sponsorship/sponsorship.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/sponsorship/types";
@@ -10,4 +11,28 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/sponsorship/types";
 message GenesisState {
   // Params defines params for x/sponsorship module.
   Params params = 1 [ (gogoproto.nullable) = false ];
+  // VoterInfos hold information about voters.
+  repeated VoterInfo voter_infos = 2 [ (gogoproto.nullable) = false ];
+}
+
+// VoterInfo hold information about the voter.
+message VoterInfo {
+  // Voter is the bech32 encoded address of the user sending the vote.
+  string voter = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // Vote represents the user's vote.
+  Vote vote = 2 [ (gogoproto.nullable) = false ];
+  // Validators is a breakdown of the user's voting power for different validators.
+  repeated ValidatorVotingPower validators = 3 [ (gogoproto.nullable) = false ];
+}
+
+// ValidatorVotingPower holds information about how much voting power the user
+// gets from delegating to the given validator.
+message ValidatorVotingPower {
+  // Validator is the bech32 encoded address of the validator.
+  string validator = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // Power is a total voting power assigned to this validator.
+  string power = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
 }

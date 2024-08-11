@@ -1,0 +1,17 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+import "gogoproto/gogo.proto";
+import "dymensionxyz/dymension/rollapp/state_info.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+// LivenessEvent stores upcoming slash/jail actions on sequencers of rollapps
+message LivenessEvent {
+  // RollappId of relevant rollapp
+  string rollapp_id = 1;
+  // HubHeight when event will occur
+  int64 hub_height = 2;
+  // IsJail is true iff the event is to jail rather than slash
+  bool is_jail = 3;
+}

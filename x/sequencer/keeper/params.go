@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -13,6 +14,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		k.MinBond(ctx),
 		k.UnbondingTime(ctx),
 		k.NoticePeriod(ctx),
+		k.LivenessSlashMultiplier(ctx),
 	)
 }
 
@@ -28,6 +30,11 @@ func (k Keeper) UnbondingTime(ctx sdk.Context) (res time.Duration) {
 
 func (k Keeper) NoticePeriod(ctx sdk.Context) (res time.Duration) {
 	k.paramstore.Get(ctx, types.KeyNoticePeriod, &res)
+	return
+}
+
+func (k Keeper) LivenessSlashMultiplier(ctx sdk.Context) (res sdk.Dec) {
+	k.paramstore.Get(ctx, types.KeyLivenessSlashMultiplier, &res)
 	return
 }
 

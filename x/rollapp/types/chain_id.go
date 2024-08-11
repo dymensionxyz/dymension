@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	"github.com/cometbft/cometbft/types"
 )
 
 var (
@@ -38,67 +39,40 @@ func NewChainID(id string) (ChainID, error) {
 		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "empty")
 	}
 
-	if len(chainID) > 48 {
-		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "exceeds 48 chars: %s: len: %d", chainID, len(chainID))
+	if len(chainID) > types.MaxChainIDLen {
+		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "exceeds %d chars: %s: len: %d", types.MaxChainIDLen, chainID, len(chainID))
 	}
 
-	eip155, err := getEIP155ID(chainID)
-	if err != nil {
-		return ChainID{}, err
-	}
-	revision, err := getRevisionNumber(chainID)
-	if err != nil {
-		return ChainID{}, err
-	}
-	matches := strings.Split(chainID, "-")
-
-	if matches[0] == "" {
-		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "empty chain id before '-'")
-	}
-
-	return ChainID{
-		chainID:  chainID,
-		eip155ID: eip155,
-		revision: revision,
-		name:     matches[0],
-	}, nil
-}
-
-// getEIP155ID parses a string chain identifier's epoch to an Ethereum-compatible
-// chain-id in *big.Int format. The function returns an error if the chain-id has an invalid format
-func getEIP155ID(chainID string) (*big.Int, error) {
 	matches := ethermintChainID.FindStringSubmatch(chainID)
 
 	if matches == nil || len(matches) != 4 || matches[1] == "" {
-		return nil, nil
+		return ChainID{}, ErrInvalidRollappID
 	}
 	// verify that the chain-id entered is a base 10 integer
 	chainIDInt, ok := new(big.Int).SetString(matches[2], 10)
 	if !ok {
-		return nil, errorsmod.Wrapf(ErrInvalidRollappID, "epoch %s must be base-10 integer format", matches[2])
+		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "EIP155 part %s must be base-10 integer format", matches[2])
 	}
 
-	return chainIDInt, nil
-}
-
-// getRevisionNumber parses a string chain identifier and returns the revision number
-func getRevisionNumber(chainID string) (uint64, error) {
-	matches := strings.Split(chainID, "-")
-	if len(matches) == 1 {
-		return 0, nil
-	}
-	if len(matches) != 2 {
-		return 0, errorsmod.Wrapf(ErrInvalidRollappID, "unable to parse revision number")
-	}
-	revision, err := strconv.ParseUint(matches[1], 0, 64)
+	revision, err := strconv.ParseUint(matches[3], 0, 64)
 	if err != nil {
-		return 0, errorsmod.Wrapf(ErrInvalidRollappID, "unable to parse revision number: error: %v", err)
+		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "parse revision number: error: %v", err)
 	}
-	return revision, nil
+
+	return ChainID{
+		chainID:  chainID,
+		eip155ID: chainIDInt,
+		revision: revision,
+		name:     matches[1],
+	}, nil
 }
 
-func (c *ChainID) IsEIP155() bool {
-	return c.eip155ID != nil
+func MustNewChainID(id string) ChainID {
+	chainID, err := NewChainID(id)
+	if err != nil {
+		panic(err)
+	}
+	return chainID
 }
 
 func (c *ChainID) GetChainID() string {

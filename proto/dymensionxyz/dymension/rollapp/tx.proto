@@ -5,6 +5,7 @@ package dymensionxyz.dymension.rollapp;
 import "cosmos/msg/v1/msg.proto";
 import "dymensionxyz/dymension/rollapp/block_descriptor.proto";
 import "dymensionxyz/dymension/rollapp/rollapp.proto";
+import "dymensionxyz/dymension/rollapp/metadata.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
@@ -13,7 +14,9 @@ import "gogoproto/gogo.proto";
 // Msg defines the Msg service.
 service Msg {
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
+  rpc UpdateRollappInformation(MsgUpdateRollappInformation) returns (MsgUpdateRollappInformationResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
+  rpc TransferOwnership(MsgTransferOwnership) returns (MsgTransferOwnershipResponse);
 }
 
 // MsgCreateRollapp creates a new rollapp chain on the hub.
@@ -22,22 +25,46 @@ message MsgCreateRollapp {
   // creator is the bech32-encoded address of the rollapp creator
   string creator = 1;
   // rollappId is the unique identifier of the rollapp chain.
-  // The rollappId follows the same standard as cosmos chain_id
-  string rollappId = 2;// [(gogoproto.customname) = "ChainID"];
-  // maxSequencers is the maximum number of sequencers
-  uint64 maxSequencers = 6;
-  // permissionedAddresses is a bech32-encoded address list of the 
-  // sequencers that are allowed to serve this rollappId.
-  // In the case of an empty list, the rollapp is considered permissionless
-  repeated string permissionedAddresses = 7;
-  reserved 8;
-  reserved 9;
-  reserved 10;
+  // The rollapp_id follows the same standard as cosmos chain_id
+  string rollapp_id = 2;
+  reserved 3 to 10;
+  // initial_sequencer takes one or more coma-separated bech32-encoded addresses of the
+  // sequencer(s) that are allowed to initially serve this rollappId.
+  string initial_sequencer = 11;
+  // the unique rollapp address bech32 prefix.
+  string bech32_prefix = 12;
+  // alias is the chain alias used for display and namespace system
+  string alias = 13;
+  // checksum used to verify integrity of the genesis file
+  string genesis_checksum = 14;
+  // metadata is the rollapp metadata
+  RollappMetadata metadata = 15;
+  // vm_type is the type of rollapp machine: EVM or WASM
+  Rollapp.VMType vm_type = 16;
 }
 
 message MsgCreateRollappResponse {
 }
 
+// MsgUpdateRollappInformation updates the rollapp information.
+message MsgUpdateRollappInformation {
+  option (cosmos.msg.v1.signer) = "owner";
+  // owner is the bech32-encoded address of the rollapp owner
+  string owner = 1;
+  // rollapp_id is the unique identifier of the rollapp chain.
+  string rollapp_id = 2;
+  // initial_sequencer is one or more bech32-encoded address of the
+  // sequencer that are allowed to initially serve this rollappId.
+  // wildcard '*' means any sequencer is allowed to be the first proposer.
+  string initial_sequencer = 3;
+  // checksum used to verify integrity
+  string genesis_checksum = 4;
+  // metadata is the rollapp metadata
+  RollappMetadata metadata = 5 [(gogoproto.nullable) = true ];
+}
+
+message MsgUpdateRollappInformationResponse {
+}
 
 // MsgUpdateState updates a rollapp state with a block batch.
 // a block batch is a list of ordered blocks (by height)
@@ -54,8 +81,8 @@ message MsgUpdateState {
   uint64 numBlocks = 4;
   // DAPath is the description of the location on the DA layer
   string DAPath = 5;
-  // version is the version of the rollapp
-  uint64 version = 6;
+
+  reserved 6;
   // BDs is a list of block description objects (one per block)
   // the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
   BlockDescriptors BDs = 7 [(gogoproto.nullable) = false];
@@ -64,4 +91,18 @@ message MsgUpdateState {
 }
 
 message MsgUpdateStateResponse {
+}
+
+// MsgTransferOwnership transfers the ownership of a rollapp chain to a new owner.
+message MsgTransferOwnership {
+  option (cosmos.msg.v1.signer) = "current_owner";
+  // current_owner is the bech32-encoded address of the current owner
+  string current_owner = 1;
+  // new_owner is the bech32-encoded address of the new owner
+  string new_owner = 2;
+  // rollapp_id is the unique identifier of the rollapp chain.
+  string rollapp_id = 3;
+}
+
+message MsgTransferOwnershipResponse {
 }

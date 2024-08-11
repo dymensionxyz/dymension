@@ -5,8 +5,9 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // startUnbondingPeriodForSequencer sets the sequencer to unbonding status
@@ -42,7 +43,21 @@ func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {
 		}
 		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
 		if err != nil {
-			k.Logger(ctx).Error("unbond sequencer", "error", err, "sequencer", seq.SequencerAddress)
+			k.Logger(ctx).Error("unbond sequencer", "error", err, "sequencer", seq.Address)
+			continue
+		}
+	}
+}
+
+func (k Keeper) HandleBondReduction(ctx sdk.Context, currTime time.Time) {
+	unbondings := k.GetMatureDecreasingBondSequencers(ctx, currTime)
+	for _, unbonding := range unbondings {
+		wrapFn := func(ctx sdk.Context) error {
+			return k.completeBondReduction(ctx, unbonding)
+		}
+		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
+		if err != nil {
+			k.Logger(ctx).Error("reducing sequencer bond", "error", err, "sequencer", unbonding.SequencerAddress)
 			continue
 		}
 	}
@@ -92,12 +107,20 @@ func (k Keeper) unbondSequencerBurnOrRefund(ctx sdk.Context, seqAddr string, bur
 			}
 		}
 	} else {
-		k.Logger(ctx).Error("sequencer has no tokens to unbond", "sequencer", seq.SequencerAddress)
+		k.Logger(ctx).Error("sequencer has no tokens to unbond", "sequencer", seq.Address)
 	}
 
 	// remove from queue if unbonding
 	if oldStatus == types.Unbonding {
 		k.removeUnbondingSequencer(ctx, seq)
+	} else {
+		// in case the sequencer is currently reducing its bond, then we need to remove it from the decreasing bond queue
+		// all the tokens are returned, so we don't need to reduce the bond anymore
+		if bondReductions := k.getSequencerDecreasingBonds(ctx, seq.Address); len(bondReductions) > 0 {
+			for _, bondReduce := range bondReductions {
+				k.removeDecreasingBondQueue(ctx, bondReduce)
+			}
+		}
 	}
 
 	// remove from notice period queue if needed
@@ -131,4 +154,39 @@ func (k Keeper) unbondSequencerBurnOrRefund(ctx sdk.Context, seqAddr string, bur
 	)
 
 	return &seq, nil
+}
+
+func (k Keeper) completeBondReduction(ctx sdk.Context, reduction types.BondReduction) error {
+	seq, found := k.GetSequencer(ctx, reduction.SequencerAddress)
+	if !found {
+		return types.ErrUnknownSequencer
+	}
+
+	if seq.Tokens.IsAllLT(sdk.NewCoins(reduction.DecreaseBondAmount)) {
+		return errorsmod.Wrapf(
+			types.ErrInsufficientBond,
+			"sequencer does not have enough bond to reduce insufficient bond: got %s, reducing by %s",
+			seq.Tokens.String(),
+			reduction.DecreaseBondAmount.String(),
+		)
+	}
+	newBalance := seq.Tokens.Sub(reduction.DecreaseBondAmount)
+	// in case between unbonding queue and now, the minbond value is increased,
+	// handle it by only returning upto minBond amount and not all
+	minBond := k.GetParams(ctx).MinBond
+	if newBalance.IsAllLT(sdk.NewCoins(minBond)) {
+		diff := minBond.SubAmount(newBalance.AmountOf(minBond.Denom))
+		reduction.DecreaseBondAmount = reduction.DecreaseBondAmount.Sub(diff)
+	}
+	seqAddr := sdk.MustAccAddressFromBech32(reduction.SequencerAddress)
+	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, seqAddr, sdk.NewCoins(reduction.DecreaseBondAmount))
+	if err != nil {
+		return err
+	}
+
+	seq.Tokens = seq.Tokens.Sub(reduction.DecreaseBondAmount)
+	k.SetSequencer(ctx, seq)
+	k.removeDecreasingBondQueue(ctx, reduction)
+
+	return nil
 }

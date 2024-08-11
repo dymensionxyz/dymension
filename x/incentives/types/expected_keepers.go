@@ -3,13 +3,11 @@ package types
 import (
 	time "time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	seqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // BankKeeper defines the expected interface needed to retrieve account balances.
@@ -50,8 +48,4 @@ type TxFeesKeeper interface {
 
 type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (rollapptypes.Rollapp, bool)
-}
-
-type SequencerKeeper interface {
-	GetProposer(ctx sdk.Context, rollappId string) (seqtypes.Sequencer, bool)
 }

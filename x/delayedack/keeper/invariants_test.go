@@ -31,8 +31,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 	rollappBlocks := make(map[string]uint64)
 
 	for i := 0; i < numOfRollapps; i++ {
-		rollapp := suite.CreateDefaultRollapp()
-		seqaddr := suite.CreateDefaultSequencer(suite.Ctx, rollapp)
+		rollapp, seqaddr := suite.CreateDefaultRollappWithProposer()
 
 		// skip one of the rollapps so it won't have any state updates
 		if i == 0 {
@@ -237,8 +236,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			// create rollapp
 			suite.SetupTest()
 			ctx := suite.Ctx
-			suite.CreateRollappWithName(rollapp)
-			proposer := suite.CreateDefaultSequencer(ctx, rollapp)
+			_, proposer := suite.CreateRollappWithNameWithProposer(rollapp)
 
 			// update state infos
 			stateInfo := rollapptypes.StateInfo{

@@ -164,9 +164,10 @@ func (am AppModule) GetHooks() []types.RollappHooks {
 	return am.keeper.GetHooks()
 }
 
-// EndBlock executes all ABCI EndBlock logic respective to the capability module. It
-// returns no validator updates.
+// EndBlock finalizes states from rollapps (after dispute period) and corresponding packets. It slashes and jails
+// sequencers of inactive rollapps.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	am.keeper.FinalizeRollappStates(ctx)
+	am.keeper.CheckLiveness(ctx)
 	return []abci.ValidatorUpdate{}
 }

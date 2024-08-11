@@ -1,26 +1,26 @@
 package types
 
 import (
-	fmt "fmt"
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uparam"
 	"gopkg.in/yaml.v2"
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
-	// MinBond types.Coin `protobuf:"bytes,1,opt,name=min_bond,json=minBond,proto3" json:"min_bond,omitempty"`
-	// UnbondingTime time.Duration `protobuf:"bytes,2,opt,name=unbonding_time,json=unbondingTime,proto3,stdduration" json:"unbonding_time"`
-
-	// MinBond is the minimum bond required to be a validator
+	// DefaultMinBond is the minimum bond required to be a validator
 	DefaultMinBond uint64 = 1000000
-	// UnbondingTime is the time duration for unbonding
+	// DefaultUnbondingTime is the time duration for unbonding
 	DefaultUnbondingTime time.Duration = time.Hour * 24 * 7 * 2 // 2 weeks
 	// DefaultNoticePeriod is the time duration for notice period
 	DefaultNoticePeriod time.Duration = time.Hour * 24 * 7 // 1 week
+	// DefaultLivenessSlashMultiplier gives the amount of tokens to slash if the sequencer is liable for a liveness failure
+	DefaultLivenessSlashMultiplier sdk.Dec = sdk.MustNewDecFromStr("0.01907") // leaves 50% of original funds remaining after 48 slashes
 
 	// KeyMinBond is store's key for MinBond Params
 	KeyMinBond = []byte("MinBond")
@@ -28,6 +28,8 @@ var (
 	KeyUnbondingTime = []byte("UnbondingTime")
 	// KeyNoticePeriod is store's key for NoticePeriod Params
 	KeyNoticePeriod = []byte("NoticePeriod")
+	// KeyLivenessSlashMultiplier is store's key for LivenessSlashMultiplier Params
+	KeyLivenessSlashMultiplier = []byte("LivenessSlashMultiplier")
 )
 
 // ParamKeyTable the param key table for launch module
@@ -36,11 +38,12 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(minBond sdk.Coin, unbondingPeriod, noticePeriod time.Duration) Params {
+func NewParams(minBond sdk.Coin, unbondingPeriod, noticePeriod time.Duration, livenessSlashMul sdk.Dec) Params {
 	return Params{
-		MinBond:       minBond,
-		UnbondingTime: unbondingPeriod,
-		NoticePeriod:  noticePeriod,
+		MinBond:                 minBond,
+		UnbondingTime:           unbondingPeriod,
+		NoticePeriod:            noticePeriod,
+		LivenessSlashMultiplier: livenessSlashMul,
 	}
 }
 
@@ -52,7 +55,7 @@ func DefaultParams() Params {
 	}
 	minBond := sdk.NewCoin(denom, sdk.NewIntFromUint64(DefaultMinBond))
 	return NewParams(
-		minBond, DefaultUnbondingTime, DefaultNoticePeriod,
+		minBond, DefaultUnbondingTime, DefaultNoticePeriod, DefaultLivenessSlashMultiplier,
 	)
 }
 
@@ -62,6 +65,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyMinBond, &p.MinBond, validateMinBond),
 		paramtypes.NewParamSetPair(KeyUnbondingTime, &p.UnbondingTime, validateTime),
 		paramtypes.NewParamSetPair(KeyNoticePeriod, &p.NoticePeriod, validateTime),
+		paramtypes.NewParamSetPair(KeyLivenessSlashMultiplier, &p.LivenessSlashMultiplier, validateLivenessSlashMultiplier),
 	}
 }
 
@@ -94,6 +98,10 @@ func validateMinBond(i interface{}) error {
 	return nil
 }
 
+func validateLivenessSlashMultiplier(i interface{}) error {
+	return uparam.ValidateZeroToOneDec(i)
+}
+
 // Validate validates the set of params
 func (p Params) Validate() error {
 	if err := validateMinBond(p.MinBond); err != nil {
@@ -105,6 +113,10 @@ func (p Params) Validate() error {
 	}
 
 	if err := validateTime(p.NoticePeriod); err != nil {
+		return err
+	}
+
+	if err := validateLivenessSlashMultiplier(p.LivenessSlashMultiplier); err != nil {
 		return err
 	}
 

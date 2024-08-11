@@ -43,6 +43,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+- (sequencer) [#1037](https://github.com/dymensionxyz/dymension/issues/1037) Enforce rpcs and evm rpcs for sequencer registration
+- (rollapp) [#1036](https://github.com/dymensionxyz/dymension/issues/1036) Add VMType field to Rollapp
 - (swagger) [#856](https://github.com/dymensionxyz/dymension/issues/856) Add make command `proto-swagger-gen`
 - (delayedack) [#825](https://github.com/dymensionxyz/dymension/issues/825) Add query for rollapp packets using CLI
 
@@ -52,6 +54,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+- (rollapp) [#999](https://github.com/dymensionxyz/dymension/issues/999) Handle sequencer information updates.
+- (rollapp) [#996](https://github.com/dymensionxyz/dymension/issues/996) Handle rollapp information updates.
+- (sequencer) [#955](https://github.com/dymensionxyz/dymension/issues/979) Rework the sequencer registration flow.
 - (app) [#972](https://github.com/dymensionxyz/dymension/pull/972) Refactor upgrade handlers. 
 - (delayedack) [#972](https://github.com/dymensionxyz/dymension/pull/972) Use pagination when deleting rollapp packets.
 - (denommetadata) [#955](https://github.com/dymensionxyz/dymension/issues/955) Add IBC middleware to create denom metadata from rollapp, on IBC transfer.

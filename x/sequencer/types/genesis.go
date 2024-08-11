@@ -1,6 +1,6 @@
 package types
 
-import fmt "fmt"
+import "fmt"
 
 // DefaultGenesis returns the default Capability genesis state
 func DefaultGenesis() *GenesisState {
@@ -21,8 +21,8 @@ func (gs GenesisState) Validate() error {
 
 		// TODO: should run validation on the sequencer objects
 
-		seqKey := string(SequencerKey(elem.SequencerAddress))
-		if _, ok := sequencerIndexMap[seqKey]; ok {
+		index := string(SequencerKey(elem.Address))
+		if _, ok := sequencerIndexMap[index]; ok {
 			return fmt.Errorf("duplicated index for sequencer")
 		}
 		sequencerIndexMap[seqKey] = struct{}{}

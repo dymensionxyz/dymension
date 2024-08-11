@@ -9,7 +9,6 @@ import (
 )
 
 func (suite *RollappTestSuite) TestInvariants() {
-	suite.SetupTest()
 	initialheight := int64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(initialheight)
 
@@ -19,8 +18,7 @@ func (suite *RollappTestSuite) TestInvariants() {
 	// create rollapps
 	seqPerRollapp := make(map[string]string)
 	for i := 0; i < numOfRollapps; i++ {
-		rollapp := suite.CreateDefaultRollapp()
-		seqaddr := suite.CreateDefaultSequencer(suite.Ctx, rollapp)
+		rollapp, seqaddr := suite.CreateDefaultRollappWithProposer()
 
 		// skip one of the rollapps so it won't have any state updates
 		if i == 0 {
@@ -29,12 +27,10 @@ func (suite *RollappTestSuite) TestInvariants() {
 		seqPerRollapp[rollapp] = seqaddr
 	}
 
-	rollapp := suite.CreateRollappWithName("dym_1100-1")
-	seqaddr := suite.CreateDefaultSequencer(suite.Ctx, rollapp)
+	rollapp, seqaddr := suite.CreateRollappWithNameWithProposer("dym_1100-1")
 	seqPerRollapp[rollapp] = seqaddr
 
-	rollapp = suite.CreateRollappWithName("dym_1100")
-	seqaddr = suite.CreateDefaultSequencer(suite.Ctx, rollapp)
+	rollapp, seqaddr = suite.CreateRollappWithNameWithProposer("dymd_1101-2")
 	seqPerRollapp[rollapp] = seqaddr
 
 	// send state updates
@@ -60,9 +56,8 @@ func (suite *RollappTestSuite) TestInvariants() {
 }
 
 func (suite *RollappTestSuite) TestRollappFinalizedStateInvariant() {
-	suite.SetupTest()
 	ctx := suite.Ctx
-	rollapp1, rollapp2, rollapp3 := "rollapp1", "rollapp2", "rollapp3"
+	rollapp1, rollapp2, rollapp3 := "rollapp_1234-1", "unrollapp_2345-1", "trollapp_3456-1"
 	cases := []struct {
 		name                     string
 		rollappId                string
@@ -73,7 +68,7 @@ func (suite *RollappTestSuite) TestRollappFinalizedStateInvariant() {
 	}{
 		{
 			"successful invariant check",
-			"rollapp1",
+			rollapp1,
 			&types.StateInfo{
 				StateInfoIndex: types.StateInfoIndex{
 					RollappId: rollapp1,
@@ -147,7 +142,7 @@ func (suite *RollappTestSuite) TestRollappFinalizedStateInvariant() {
 	for _, tc := range cases {
 		suite.Run(tc.name, func() {
 			// create rollapp
-			suite.CreateRollappWithName(tc.rollappId)
+			suite.CreateRollappWithNameWithProposer(tc.rollappId)
 			// update state infos
 			if tc.stateInfo != nil {
 				suite.App.RollappKeeper.SetStateInfo(ctx, *tc.stateInfo)

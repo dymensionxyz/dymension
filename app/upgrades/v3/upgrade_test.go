@@ -25,7 +25,7 @@ type UpgradeTestSuite struct {
 }
 
 // SetupTest initializes the necessary items for each test
-func (s *UpgradeTestSuite) SetupTest(t *testing.T) {
+func (s *UpgradeTestSuite) SetupTestCustom(t *testing.T) {
 	s.App = apptesting.Setup(t, false)
 	s.Ctx = s.App.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
 }
@@ -40,7 +40,7 @@ var (
 
 	// CreateGaugeFee is the fee required to create a new gauge.
 	expectCreateGaugeFee = DYM.Mul(sdk.NewInt(10))
-	// AddToGagugeFee is the fee required to add to gauge.
+	// AddToGaugeFee is the fee required to add to gauge.
 	expectAddToGaugeFee = sdk.ZeroInt()
 
 	expectDelayedackEpochIdentifier = "hour"
@@ -49,7 +49,6 @@ var (
 
 const (
 	dummyUpgradeHeight          = 5
-	expectRollappsEnabled       = false
 	expectDisputePeriodInBlocks = 120960
 	expectMinBond               = "1000000000000000000000"
 )
@@ -63,9 +62,9 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 		expPass     bool
 	}{
 		{
-			"Test that upgrade does not panic and sets correct parameters",
+			msg: "Test that upgrade does not panic and sets correct parameters",
 
-			func() {
+			upgrade: func() {
 				// Run upgrade
 				s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight - 1)
 				plan := upgradetypes.Plan{Name: "v3", Height: dummyUpgradeHeight}
@@ -81,7 +80,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 					s.App.BeginBlocker(s.Ctx, abci.RequestBeginBlock{})
 				})
 			},
-			func() error {
+			postUpgrade: func() error {
 				// Post-update validation to ensure parameters are correctly set
 
 				// Check Delayedack parameters
@@ -93,7 +92,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 				// Check Rollapp parameters
 				rollappParams := s.App.RollappKeeper.GetParams(s.Ctx)
-				if rollappParams.RollappsEnabled != expectRollappsEnabled || rollappParams.DisputePeriodInBlocks != expectDisputePeriodInBlocks {
+				if rollappParams.DisputePeriodInBlocks != expectDisputePeriodInBlocks {
 					return fmt.Errorf("rollapp parameters not set correctly")
 				}
 
@@ -110,13 +109,13 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 				return nil
 			},
-			true,
+			expPass: true,
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			s.SetupTest(s.T()) // Reset for each case
+			s.SetupTestCustom(s.T()) // Reset for each case
 
 			tc.upgrade()
 			err := tc.postUpgrade()

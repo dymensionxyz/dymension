@@ -26,4 +26,11 @@ message Params {
   // unbonding starting. the proposer is still bonded during this period.
   google.protobuf.Duration notice_period = 3
       [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true ];
+      
+  // LivenessSlashMultiplier multiplies with the tokens of the slashed sequencer to compute the burn amount.
+  string liveness_slash_multiplier = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.moretags) = "yaml:\"liveness_slash_multiplier\"",
+    (gogoproto.nullable) = false
+  ];
 }

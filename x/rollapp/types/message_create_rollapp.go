@@ -8,14 +8,25 @@ const TypeMsgCreateRollapp = "create_rollapp"
 
 var _ sdk.Msg = &MsgCreateRollapp{}
 
-const MaxAllowedSequencers = 100
-
-func NewMsgCreateRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string) *MsgCreateRollapp {
+func NewMsgCreateRollapp(
+	creator,
+	rollappId,
+	initSequencer,
+	bech32Prefix,
+	genesisChecksum,
+	alias string,
+	vmType Rollapp_VMType,
+	metadata *RollappMetadata,
+) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
-		Creator:               creator,
-		RollappId:             rollappId,
-		MaxSequencers:         maxSequencers,
-		PermissionedAddresses: permissionedAddresses,
+		Creator:          creator,
+		RollappId:        rollappId,
+		InitialSequencer: initSequencer,
+		Bech32Prefix:     bech32Prefix,
+		GenesisChecksum:  genesisChecksum,
+		Alias:            alias,
+		VmType:           vmType,
+		Metadata:         metadata,
 	}
 }
 
@@ -41,10 +52,23 @@ func (msg *MsgCreateRollapp) GetSignBytes() []byte {
 }
 
 func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
-	return NewRollapp(msg.Creator, msg.RollappId, msg.MaxSequencers, msg.PermissionedAddresses, false)
+	return NewRollapp(
+		msg.Creator,
+		msg.RollappId,
+		msg.InitialSequencer,
+		msg.Bech32Prefix,
+		msg.GenesisChecksum,
+		msg.VmType,
+		msg.Metadata,
+		false,
+	)
 }
 
 func (msg *MsgCreateRollapp) ValidateBasic() error {
+	if len(msg.Alias) == 0 {
+		return ErrInvalidAlias
+	}
+
 	rollapp := msg.GetRollapp()
 	if err := rollapp.ValidateBasic(); err != nil {
 		return err

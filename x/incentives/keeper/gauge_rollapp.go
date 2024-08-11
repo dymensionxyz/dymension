@@ -41,13 +41,13 @@ func (k Keeper) CreateRollappGauge(ctx sdk.Context, rollappId string) (uint64, e
 }
 
 func (k Keeper) distributeToRollappGauge(ctx sdk.Context, gauge types.Gauge) (totalDistrCoins sdk.Coins, err error) {
-	proposer, ok := k.sq.GetProposer(ctx, gauge.GetRollapp().RollappId)
-	if !ok {
-		k.Logger(ctx).Error(fmt.Sprintf("no active sequencer found for rollapp %s", gauge.GetRollapp().RollappId))
-		return sdk.Coins{}, nil
+	// Get the rollapp owner
+	rollapp, found := k.rk.GetRollapp(ctx, gauge.GetRollapp().RollappId)
+	if !found {
+		return sdk.Coins{}, fmt.Errorf("gauge %d: rollapp %s not found", gauge.Id, gauge.GetRollapp().RollappId)
 	}
-
-	addr := sdk.MustAccAddressFromBech32(proposer.SequencerAddress)
+	// Ignore the error since the owner must always be valid in x/rollapp
+	addr := sdk.MustAccAddressFromBech32(rollapp.Owner)
 
 	totalDistrCoins = gauge.Coins.Sub(gauge.DistributedCoins...)
 	if totalDistrCoins.Empty() {
