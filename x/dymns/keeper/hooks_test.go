@@ -2853,7 +2853,7 @@ func (s *KeeperTestSuite) Test_rollappHooks_OnRollAppIdChanged() {
 				s.NoError(err)
 				s.NotEmpty(outputDymNameAddrs)
 
-				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+newRollAppId)
+				_, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+newRollAppId)
 				s.ErrorContains(err, "not found")
 
 				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user2Acc.bech32(), newRollAppId)
@@ -2866,7 +2866,7 @@ func (s *KeeperTestSuite) Test_rollappHooks_OnRollAppIdChanged() {
 
 				//
 
-				outputAddr, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+previousRollAppId)
+				_, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+previousRollAppId)
 				s.ErrorContains(err, "not found")
 
 				outputDymNameAddrs, err := s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user2Acc.bech32(), previousRollAppId)
@@ -2875,7 +2875,7 @@ func (s *KeeperTestSuite) Test_rollappHooks_OnRollAppIdChanged() {
 
 				//
 
-				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+newRollAppId)
+				outputAddr, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+newRollAppId)
 				s.NoError(err)
 				s.Equal(user2Acc.bech32(), outputAddr)
 
@@ -3057,7 +3057,7 @@ func (s *KeeperTestSuite) Test_rollappHooks_OnRollAppIdChanged() {
 				s.NoError(err)
 				s.NotEmpty(outputDymNameAddrs)
 
-				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+newRollAppId)
+				_, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+newRollAppId)
 				s.ErrorContains(err, "not found")
 
 				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user2Acc.bech32(), newRollAppId)
@@ -3084,7 +3084,7 @@ func (s *KeeperTestSuite) Test_rollappHooks_OnRollAppIdChanged() {
 				s.NoError(err)
 				s.NotEmpty(outputDymNameAddrs)
 
-				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+newRollAppId)
+				_, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+newRollAppId)
 				s.ErrorContains(err, "not found")
 
 				outputDymNameAddrs, err = s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, user2Acc.bech32(), newRollAppId)
