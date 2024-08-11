@@ -138,7 +138,8 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 					}, {
 						rollappId: "rollappa_2345-1",
 						stateUpdates: []stateUpdate{{
-							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10}},
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10,
+						}},
 					},
 				},
 				finalizations: []blockEnd{
@@ -155,7 +156,8 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 					{
 						rollappId: "rollapp_1234-1",
 						stateUpdates: []stateUpdate{{
-							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10}},
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10,
+						}},
 					}, {
 						rollappId: "rollappa_2345-1",
 						stateUpdates: []stateUpdate{{
@@ -170,7 +172,8 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 							rollappsLeft: []rollappQueue{{
 								rollappId: "rollappa_2345-1",
 								index:     1,
-							}}}},
+							}},
+						}},
 					},
 				},
 			},
@@ -216,21 +219,25 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 					{
 						// first finalization: 4 states finalized, 3 states left
 						wantNumFinalized: 4,
-						wantQueue: []queue{{
-							rollappsLeft: []rollappQueue{
-								{
-									rollappId: "rollappi_4567-1",
-									index:     1,
-								}, {
-									rollappId: "rollappo_5678-1",
-									index:     1,
-								}}}, {
-							rollappsLeft: []rollappQueue{
-								{
-									rollappId: "rollappi_4567-1",
-									index:     2,
+						wantQueue: []queue{
+							{
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollappi_4567-1",
+										index:     1,
+									}, {
+										rollappId: "rollappo_5678-1",
+										index:     1,
+									},
 								},
-							}},
+							}, {
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollappi_4567-1",
+										index:     2,
+									},
+								},
+							},
 						},
 					}, {
 						// second finalization: 1 state finalized from first finalization, 2 states left
@@ -238,18 +245,22 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 						recovers: map[types.StateInfoIndex]struct{}{
 							{RollappId: "rollappi_4567-1", Index: 1}: {},
 						},
-						wantQueue: []queue{{
-							rollappsLeft: []rollappQueue{
-								{
-									rollappId: "rollappo_5678-1",
-									index:     1,
-								}}}, {
-							rollappsLeft: []rollappQueue{
-								{
-									rollappId: "rollappi_4567-1",
-									index:     2,
+						wantQueue: []queue{
+							{
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollappo_5678-1",
+										index:     1,
+									},
 								},
-							}},
+							}, {
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollappi_4567-1",
+										index:     2,
+									},
+								},
+							},
 						},
 					}, {
 						// third finalization: 1 state finalized from first finalization, 1 state left
@@ -257,13 +268,15 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 						recovers: map[types.StateInfoIndex]struct{}{
 							{RollappId: "rollappo_5678-1", Index: 1}: {},
 						},
-						wantQueue: []queue{{
-							rollappsLeft: []rollappQueue{
-								{
-									rollappId: "rollappi_4567-1",
-									index:     2,
+						wantQueue: []queue{
+							{
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollappi_4567-1",
+										index:     2,
+									},
 								},
-							}},
+							},
 						},
 					}, {
 						// fourth finalization: 1 state finalized from first finalization, 0 states left
