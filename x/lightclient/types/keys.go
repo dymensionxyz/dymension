@@ -9,9 +9,25 @@ const (
 
 	// QuerierRoute defines the module's query routing key
 	QuerierRoute = ModuleName
+
+	// TransientKey defines the module's transient store key
+	TransientKey = "t_lightclient"
 )
 
+// KV Store
 var (
-	SequencersKeyPrefix = []byte{0x00} // prefix/seqAddr
-
+	RollappClientKey = []byte{0x01}
 )
+
+// Transient Store
+var (
+	LightClientRegistrationKey = []byte{0x02}
+)
+
+func CanonicalClientKey(rollappId string) []byte {
+	return append(RollappClientKey, []byte(rollappId)...)
+}
+
+func CanonicalLightClientRegistrationKey(rollappId string) []byte {
+	return append(LightClientRegistrationKey, []byte(rollappId)...)
+}
