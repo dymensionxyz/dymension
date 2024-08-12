@@ -10,7 +10,6 @@ import (
 )
 
 func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
-	suite.SetupTest()
 	rollappId, pk1 := suite.CreateDefaultRollapp()
 
 	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
@@ -76,7 +75,6 @@ func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
 }
 
 func (suite *SequencerTestSuite) TestUnbondingNotBondedSequencer() {
-	suite.SetupTest()
 	rollappId, pk1 := suite.CreateDefaultRollapp()
 	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
 

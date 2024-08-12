@@ -15,7 +15,6 @@ import (
 // TODO: refactor the tests to use test-cases
 // TODO: wrap the create rollapp and sequencer into a helper function
 func (suite *RollappTestSuite) TestFirstUpdateState() {
-	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	// set rollapp
@@ -69,7 +68,6 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 }
 
 func (suite *RollappTestSuite) TestUpdateState() {
-	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	// parameters
@@ -180,7 +178,6 @@ func (suite *RollappTestSuite) TestUpdateState() {
 }
 
 func (suite *RollappTestSuite) TestUpdateStateUnknownRollappId() {
-	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	// update state of unknown rollapp
@@ -199,7 +196,6 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownRollappId() {
 
 // FIXME: need to add sequncer to rollapp to test this scenario
 func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
-	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	// set rollapp
@@ -227,7 +223,6 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
 }
 
 func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
-	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	// set rollapp
@@ -264,7 +259,6 @@ func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
 }
 
 func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
-	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	rollappID := urand.RollappID()
@@ -303,7 +297,6 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 }
 
 func (suite *RollappTestSuite) TestFirstUpdateStateGensisHeightGreaterThanZero() {
-	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	// set rollapp
@@ -341,7 +334,6 @@ func (suite *RollappTestSuite) TestFirstUpdateStateGensisHeightGreaterThanZero()
 }
 
 func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
-	suite.SetupTest()
 	_ = sdk.WrapSDKContext(suite.Ctx)
 
 	// set rollapp
@@ -401,7 +393,6 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 }
 
 func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
-	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	// set rollapp
@@ -447,7 +438,6 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 
 // TODO: should test all status other than Proposer
 func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
-	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	// set rollapp

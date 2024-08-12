@@ -62,7 +62,7 @@ func (suite *KeeperTestSuite) TestTerminateStream() {
 	}
 
 	for _, tc := range tests {
-		suite.SetupTest()
+
 		id := tc.createStreamFunc(suite)
 
 		if tc.expectErr {

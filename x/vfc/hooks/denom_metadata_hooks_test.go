@@ -8,8 +8,6 @@ import (
 )
 
 func (suite *HooksTestSuite) TestHookOperation_AfterDenomMetadataCreation() {
-	suite.SetupTest()
-
 	denomAdym := createDenomMetadata("adym", "DYM", 18)
 	suite.Require().Nil(denomAdym.Validate(), "bad setup")
 
