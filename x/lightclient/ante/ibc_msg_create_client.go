@@ -1,7 +1,7 @@
 package ante
 
 import (
-	"reflect"
+	"bytes"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -51,7 +51,7 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 			return
 		}
 		// Check if block descriptor state root matches tendermint consensus state root
-		if reflect.DeepEqual(blockDescriptor.StateRoot, tendermintConsensusState.GetRoot().GetHash()) {
+		if bytes.Equal(blockDescriptor.StateRoot, tendermintConsensusState.GetRoot().GetHash()) {
 			return
 		}
 		// Check if block descriptor timestamp matches tendermint consensus state timestamp

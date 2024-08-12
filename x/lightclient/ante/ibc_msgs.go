@@ -33,10 +33,12 @@ func (i IBCMessagesDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		case *ibcclienttypes.MsgCreateClient:
 			i.HandleMsgCreateClient(ctx, msg)
 		case *ibcclienttypes.MsgSubmitMisbehaviour:
-			i.HandleMsgSubmitMisbehaviour(ctx, msg)
+			if err := i.HandleMsgSubmitMisbehaviour(ctx, msg); err != nil {
+				return ctx, err
+			}
 		case *ibcclienttypes.MsgUpdateClient:
-			{
-
+			if err := i.HandleMsgUpdateClient(ctx, msg); err != nil {
+				return ctx, err
 			}
 		default:
 			continue
