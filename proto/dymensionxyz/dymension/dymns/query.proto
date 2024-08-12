@@ -146,6 +146,9 @@ message QueryAliasResponse {
 
   // buy_order_ids is the list of Buy-Order IDs for the alias.
   repeated string buy_order_ids = 3;
+
+  // same_chain_aliases is the list of aliases for the same chain that associated with the alias.
+  repeated string same_chain_aliases = 4;
 }
 
 // ResolveDymNameAddressesRequest is the request type for the Query/ResolveDymNameAddresses RPC method.

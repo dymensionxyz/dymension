@@ -2450,17 +2450,19 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersOfDymNamesOwnedByAccount() {
 func (s *KeeperTestSuite) Test_queryServer_Alias() {
 	rollApp1 := newRollApp("rollapp_1-1").WithOwner(testAddr(1).bech32()).WithAlias("one")
 	rollApp2 := newRollApp("rollapp_2-2").WithAlias("two")
+	rollApp3 := newRollApp("rollapp_3-1").WithAlias("three").WithAlias("another").WithAlias("alias")
 
 	tests := []struct {
-		name               string
-		rollApps           []rollapp
-		preRunFunc         func(s *KeeperTestSuite)
-		req                *dymnstypes.QueryAliasRequest
-		wantErr            bool
-		wantErrContains    string
-		wantChainId        string
-		wantFoundSellOrder bool
-		wantBuyOrderIds    []string
+		name                 string
+		rollApps             []rollapp
+		preRunFunc           func(s *KeeperTestSuite)
+		req                  *dymnstypes.QueryAliasRequest
+		wantErr              bool
+		wantErrContains      string
+		wantChainId          string
+		wantFoundSellOrder   bool
+		wantBuyOrderIds      []string
+		wantSameChainAliases []string
 	}{
 		{
 			name:     "pass - can return alias of mapping in params",
@@ -2476,11 +2478,12 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 					return params
 				})
 			},
-			req:                &dymnstypes.QueryAliasRequest{Alias: "dym"},
-			wantErr:            false,
-			wantChainId:        "dymension_1100-1",
-			wantFoundSellOrder: false,
-			wantBuyOrderIds:    nil,
+			req:                  &dymnstypes.QueryAliasRequest{Alias: "dym"},
+			wantErr:              false,
+			wantChainId:          "dymension_1100-1",
+			wantFoundSellOrder:   false,
+			wantBuyOrderIds:      nil,
+			wantSameChainAliases: nil,
 		},
 		{
 			name:     "pass - can return alias of mapping in params, even if there are multiple mappings",
@@ -2500,11 +2503,33 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 					return params
 				})
 			},
-			req:                &dymnstypes.QueryAliasRequest{Alias: "dymension"},
-			wantErr:            false,
-			wantChainId:        "dymension_1100-1",
-			wantFoundSellOrder: false,
-			wantBuyOrderIds:    nil,
+			req:                  &dymnstypes.QueryAliasRequest{Alias: "dymension"},
+			wantErr:              false,
+			wantChainId:          "dymension_1100-1",
+			wantFoundSellOrder:   false,
+			wantBuyOrderIds:      nil,
+			wantSameChainAliases: []string{"dym"},
+		},
+		{
+			name:     "pass - can return alias of mapping in params, also returns the other aliases mapped",
+			rollApps: nil,
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
+					params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: "dymension_1100-1",
+							Aliases: []string{"more", "dym", "dymension"},
+						},
+					}
+					return params
+				})
+			},
+			req:                  &dymnstypes.QueryAliasRequest{Alias: "dymension"},
+			wantErr:              false,
+			wantChainId:          "dymension_1100-1",
+			wantFoundSellOrder:   false,
+			wantBuyOrderIds:      nil,
+			wantSameChainAliases: []string{"more", "dym"},
 		},
 		{
 			name:     "pass - if alias is mapped both in params and RollApp alias, priority params",
@@ -2514,7 +2539,7 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 					params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
 						{
 							ChainId: "dymension_1100-1",
-							Aliases: []string{"dym"},
+							Aliases: []string{"dym", "more", "dymension"},
 						},
 					}
 					return params
@@ -2526,11 +2551,12 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 
 				s.Require().True(s.dymNsKeeper.IsRollAppId(s.ctx, "dym_1-1"))
 			},
-			req:                &dymnstypes.QueryAliasRequest{Alias: "dym"},
-			wantErr:            false,
-			wantChainId:        "dymension_1100-1",
-			wantFoundSellOrder: false,
-			wantBuyOrderIds:    nil,
+			req:                  &dymnstypes.QueryAliasRequest{Alias: "dym"},
+			wantErr:              false,
+			wantChainId:          "dymension_1100-1",
+			wantFoundSellOrder:   false,
+			wantBuyOrderIds:      nil,
+			wantSameChainAliases: []string{"more", "dymension"},
 		},
 		{
 			name:     "pass - returns Sell/Buy orders info if alias is mapped in RollApp alias",
@@ -2562,6 +2588,20 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 				dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 1),
 				dymnstypes.CreateBuyOrderId(dymnstypes.TypeAlias, 2),
 			},
+			wantSameChainAliases: nil,
+		},
+		{
+			name:     "pass - include the other aliases of the same RollApp to response",
+			rollApps: nil,
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.persistRollApp(*rollApp3)
+			},
+			req:                  &dymnstypes.QueryAliasRequest{Alias: rollApp3.alias},
+			wantErr:              false,
+			wantChainId:          rollApp3.rollAppId,
+			wantFoundSellOrder:   false,
+			wantBuyOrderIds:      nil,
+			wantSameChainAliases: []string{"another", "alias"},
 		},
 		{
 			name:     "pass - if alias is mapped both in params and RollApp alias, priority params, ignore Sell/Buy orders",
@@ -2655,6 +2695,14 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 				sort.Strings(tt.wantBuyOrderIds)
 				sort.Strings(resp.BuyOrderIds)
 				s.Equal(tt.wantBuyOrderIds, resp.BuyOrderIds)
+			}
+
+			if len(tt.wantSameChainAliases) == 0 {
+				s.Empty(resp.SameChainAliases)
+			} else {
+				sort.Strings(tt.wantSameChainAliases)
+				sort.Strings(resp.SameChainAliases)
+				s.Equal(tt.wantSameChainAliases, resp.SameChainAliases)
 			}
 		})
 	}

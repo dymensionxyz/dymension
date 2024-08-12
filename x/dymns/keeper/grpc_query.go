@@ -387,18 +387,38 @@ func (q queryServer) Alias(goCtx context.Context, req *dymnstypes.QueryAliasRequ
 
 	var foundSellOrder bool
 	var buyOrderIds []string
+	var aliasesOfSameChain []string
 
-	if !q.IsAliasPresentsInParamsAsAliasOrChainId(ctx, req.Alias) {
+	if q.IsAliasPresentsInParamsAsAliasOrChainId(ctx, req.Alias) {
+		moduleParams := q.GetParams(ctx)
+
+		for _, aliasesOfChainId := range moduleParams.Chains.AliasesOfChainIds {
+			if chainId != aliasesOfChainId.ChainId {
+				continue
+			}
+
+			aliasesOfSameChain = aliasesOfChainId.Aliases
+			break
+		}
+	} else {
 		foundSellOrder = q.GetSellOrder(ctx, req.Alias, dymnstypes.TypeAlias) != nil
 
 		aliasToBuyOrderIdsRvlKey := dymnstypes.AliasToBuyOrderIdsRvlKey(req.Alias)
 		buyOrderIds = q.GenericGetReverseLookupBuyOrderIdsRecord(ctx, aliasToBuyOrderIdsRvlKey).OrderIds
+
+		aliasesOfSameChain = q.GetAliasesOfRollAppId(ctx, chainId)
+	}
+
+	if len(aliasesOfSameChain) > 0 {
+		// exclude the alias itself
+		aliasesOfSameChain = dymnstypes.StringList(aliasesOfSameChain).Exclude([]string{req.Alias})
 	}
 
 	return &dymnstypes.QueryAliasResponse{
-		ChainId:        chainId,
-		FoundSellOrder: foundSellOrder,
-		BuyOrderIds:    buyOrderIds,
+		ChainId:          chainId,
+		FoundSellOrder:   foundSellOrder,
+		BuyOrderIds:      buyOrderIds,
+		SameChainAliases: aliasesOfSameChain,
 	}, nil
 }
 
