@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -136,6 +137,10 @@ func validateMetadata(metadata *RollappMetadata) error {
 
 	if err := validateURL(metadata.X); err != nil {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
+	}
+
+	if err := validateURL(metadata.GenesisUrl); err != nil {
+		return errorsmod.Wrap(errors.Join(ErrInvalidURL, err), "genesis url")
 	}
 
 	if err := validateURL(metadata.Telegram); err != nil {
