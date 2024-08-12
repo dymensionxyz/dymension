@@ -16,4 +16,6 @@ message RollappMetadata {
   string telegram = 5;
   // x is the rollapp twitter link
   string x = 6;
+  // genesis_url has the genesis file
+  string genesis_url = 7;
 }

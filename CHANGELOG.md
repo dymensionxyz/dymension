@@ -1,189 +1,181 @@
-#  (2024-08-11)
+<!--
+Guiding Principles:
 
+Changelogs are for humans, not machines.
+There should be an entry for every single version.
+The same types of changes should be grouped.
+Versions and sections should be linkable.
+The latest version comes first.
+The release date of each version is displayed.
+Mention whether you follow Semantic Versioning.
 
-### Bug Fixes
+Usage:
 
-* accept rollapp initial state with arbitrary height ([#687](https://github.com/dymensionxyz/dymension/issues/687)) ([ba6659a](https://github.com/dymensionxyz/dymension/commit/ba6659acab794ed7af6791920d35c80518771f6f))
-* **account:** fixed wrong bech32 prefix for accountKeeper ([#776](https://github.com/dymensionxyz/dymension/issues/776)) ([153e923](https://github.com/dymensionxyz/dymension/commit/153e9239330a1d987546ea5b030cb1dfd47de788))
-* add `--gas-prices` flag to bootstrap shell scripts ([#530](https://github.com/dymensionxyz/dymension/issues/530)) ([a818e6c](https://github.com/dymensionxyz/dymension/commit/a818e6c023508098e276c5d52392b45a80dee66c))
-* add basic validation on demand order id  ([#656](https://github.com/dymensionxyz/dymension/issues/656)) ([4770e99](https://github.com/dymensionxyz/dymension/commit/4770e99443f0bb019e1f6aa6f06bfd1cd4e7044f))
-* Add missing param initialization for delayedAck ([#621](https://github.com/dymensionxyz/dymension/issues/621)) ([aaf25a2](https://github.com/dymensionxyz/dymension/commit/aaf25a2031b1f8f3a4dc2d95ffb7212ae3e3749e))
-* Add support for delayedack middleware to also delay ack and timeout packets ([#480](https://github.com/dymensionxyz/dymension/issues/480)) ([b9bcee9](https://github.com/dymensionxyz/dymension/commit/b9bcee9ff058138c566cf3175ce18e8d14891031))
-* Add support for making swaps with metamask  ([#474](https://github.com/dymensionxyz/dymension/issues/474)) ([eceb064](https://github.com/dymensionxyz/dymension/commit/eceb0644a2ecbe75e5f111aec2aad824a3b183e1))
-* added NewAuthzLimiterDecorator on ante handler ([#506](https://github.com/dymensionxyz/dymension/issues/506)) ([b38e65f](https://github.com/dymensionxyz/dymension/commit/b38e65fd797ab215a26034250346f7cea8b01a92))
-* adding invariant wiring ([#702](https://github.com/dymensionxyz/dymension/issues/702)) ([3a4313f](https://github.com/dymensionxyz/dymension/commit/3a4313f410f9f5e9bb0d6e4d7d00b0d4c8e7176b))
-* **ante:** Add missing ante handler ([#780](https://github.com/dymensionxyz/dymension/issues/780)) ([511a820](https://github.com/dymensionxyz/dymension/commit/511a820627ff4bde2c9cb8883287418f815bae7b))
-* **ante:** Use UnpackAny for ExtensionOptionsWeb3Tx ([#777](https://github.com/dymensionxyz/dymension/issues/777)) ([6cd9da4](https://github.com/dymensionxyz/dymension/commit/6cd9da42161a3ba2b930ac059a3f3d8cc9d641f1))
-* bad state info finalization ([#647](https://github.com/dymensionxyz/dymension/issues/647)) ([3012d5c](https://github.com/dymensionxyz/dymension/commit/3012d5cb9b1baad0f111047bb338e9667bfe9460))
-* bug missing denom metadata ([#314](https://github.com/dymensionxyz/dymension/issues/314)) ([1e68d77](https://github.com/dymensionxyz/dymension/commit/1e68d770a85b48d9df9f811418d7df844517251e))
-* changed denom to udym ([#194](https://github.com/dymensionxyz/dymension/issues/194)) ([07e2e21](https://github.com/dymensionxyz/dymension/commit/07e2e21a0f28629f0cee6b28d2e983312d5b18ae))
-* changed finalization logic to be based on current height backwards ([#602](https://github.com/dymensionxyz/dymension/issues/602)) ([27af157](https://github.com/dymensionxyz/dymension/commit/27af1577e7a45a147f55b98cfc9f1acfdf64070d))
-* Changed v2 upgrade handler to not panic when client status is not found. ([#449](https://github.com/dymensionxyz/dymension/issues/449)) ([8e297d3](https://github.com/dymensionxyz/dymension/commit/8e297d31f1d659350cbf1aa87be4325d4117c368))
-* **code standards:** bring over more linters from dymint repo ([#884](https://github.com/dymensionxyz/dymension/issues/884)) ([98faac3](https://github.com/dymensionxyz/dymension/commit/98faac38c13ba06e10466c79a24ad42b739ee66d))
-* **code standards:** deletes unused all invariants func ([#894](https://github.com/dymensionxyz/dymension/issues/894)) ([26a8163](https://github.com/dymensionxyz/dymension/commit/26a81635ef53b8f6080882e13fb29a5ada7ce5ce))
-* **code standards:** remove calls to suite.SetupTest ([#1052](https://github.com/dymensionxyz/dymension/issues/1052)) ([d2baf5b](https://github.com/dymensionxyz/dymension/commit/d2baf5b8cd6da58936332ead94e5cf0de7259481))
-* **code standards:** rename fullfilled -> fulfilled ([#895](https://github.com/dymensionxyz/dymension/issues/895)) ([551a945](https://github.com/dymensionxyz/dymension/commit/551a945337e4864d3f2dafd25148dd915e252072))
-* **code standards:** use dymensionxyz/gerrc instead of gerr ([#959](https://github.com/dymensionxyz/dymension/issues/959)) ([a262275](https://github.com/dymensionxyz/dymension/commit/a2622758bb0486d352f312f32e739afe333ee149))
-* **code standards:** use https://github.com/dymensionxyz/sdk-utils ([#968](https://github.com/dymensionxyz/dymension/issues/968)) ([d15973b](https://github.com/dymensionxyz/dymension/commit/d15973b715cd87f672c29910b48fc6bfe2a72a02))
-* **delayedack:**  use correct port, chan in packet uid ([#963](https://github.com/dymensionxyz/dymension/issues/963)) ([48824ed](https://github.com/dymensionxyz/dymension/commit/48824ed62092782a4e292a08b018588f9907e00e))
-* **delayedack:** acknowledgement not written in case of ackerr ([#824](https://github.com/dymensionxyz/dymension/issues/824)) ([d0a5df1](https://github.com/dymensionxyz/dymension/commit/d0a5df18b4f96554f6ce2e1f1fd3181496e2e16d))
-* **delayedack:** do not create eibc order on timeout/errack if fee is not positive ([#801](https://github.com/dymensionxyz/dymension/issues/801)) ([770609f](https://github.com/dymensionxyz/dymension/commit/770609f142b4fdb05367c81512e40d971ea8c1d0))
-* **delayedack:** fix missing validation of channel id when validating rollapp packet ([#796](https://github.com/dymensionxyz/dymension/issues/796)) ([e06d1b5](https://github.com/dymensionxyz/dymension/commit/e06d1b5a9ec5c390e4136768530a5cd65428df18))
-* **delayedack:** handle finalization errors per rollapp ([#966](https://github.com/dymensionxyz/dymension/issues/966)) ([d8de3c6](https://github.com/dymensionxyz/dymension/commit/d8de3c6c29b79f1c77d00aa3ba71ae8e5ff7b602))
-* **delayedack:** panic on nil reference when err is returned from updateRollapWithStatus ([#774](https://github.com/dymensionxyz/dymension/issues/774)) ([8aaca22](https://github.com/dymensionxyz/dymension/commit/8aaca2247210ad31649e150c120ddb9efe45579d))
-* **delayedack:** rollapp packet finalization not filtered by rollapp  ([#766](https://github.com/dymensionxyz/dymension/issues/766)) ([d3e497b](https://github.com/dymensionxyz/dymension/commit/d3e497b285f3886b770e07f0d4c4e0c9a4f2b0ac))
-* **delayedack:** use must unmarshal ([#748](https://github.com/dymensionxyz/dymension/issues/748)) ([44ceebd](https://github.com/dymensionxyz/dymension/commit/44ceebd42a820b1fddbed22a291aa1afbf8adcbc))
-* **delayedack:** wrong delayedack channels for onTimeout and OnAck  ([#815](https://github.com/dymensionxyz/dymension/issues/815)) ([32b5ea0](https://github.com/dymensionxyz/dymension/commit/32b5ea0672c0883aa18040b2f5d1732f2a584cf9))
-* **denommetada:** sync validations between different token metadata components ([#782](https://github.com/dymensionxyz/dymension/issues/782)) ([8eebba8](https://github.com/dymensionxyz/dymension/commit/8eebba8869c958c1f995c82c96caecbca1cd3c42))
-* denommetadata ibc middleware panic on non-rollapp transfer  ([#383](https://github.com/dymensionxyz/dymension/issues/383)) ([0e7af57](https://github.com/dymensionxyz/dymension/commit/0e7af573a4daf9dba8000248fc7486ac2b42cdb0))
-* disable usage of eIBC combined with PFM  ([#601](https://github.com/dymensionxyz/dymension/issues/601)) ([463c72e](https://github.com/dymensionxyz/dymension/commit/463c72e976cf66e965436c2add423e40974dc40d))
-* **docs:** adds docstrings for demand order proto ([#896](https://github.com/dymensionxyz/dymension/issues/896)) ([f6630da](https://github.com/dymensionxyz/dymension/commit/f6630da1de694780afdb9d50a94ca4dbdb7e65c1))
-* **eibc,delaydack:** add validation to eibc and delayedack genesis state ([#967](https://github.com/dymensionxyz/dymension/issues/967)) ([fcd6081](https://github.com/dymensionxyz/dymension/commit/fcd6081202048bd10ff80cf89f1529fd929394c0))
-* **eIBC:** bridging_fee taken from original recipient and not from fufliller  ([#918](https://github.com/dymensionxyz/dymension/issues/918)) ([7654979](https://github.com/dymensionxyz/dymension/commit/765497923ae16b85a0acc55108a4e8a135238423))
-* **eibc:** fix `update-demand-order` CLI ([#992](https://github.com/dymensionxyz/dymension/issues/992)) ([e538ff7](https://github.com/dymensionxyz/dymension/commit/e538ff7cb0f003d2158125ce79ade091f7c26b0f))
-* **eibc:** improve eibc memo error handling ([#838](https://github.com/dymensionxyz/dymension/issues/838)) ([9f7fd4e](https://github.com/dymensionxyz/dymension/commit/9f7fd4efcd529318bfaa9a70dc2ef417dbe6d975))
-* **eibc:** Remove reverted packet to ensure UnderlyingPacketExistInvariant ([#778](https://github.com/dymensionxyz/dymension/issues/778)) ([5be8f71](https://github.com/dymensionxyz/dymension/commit/5be8f71e78c7f2e54faaeadaf99cfcb2551105e3))
-* **eibc:** wrong packet written on delayedack  acknowledgment  ([#834](https://github.com/dymensionxyz/dymension/issues/834)) ([4613066](https://github.com/dymensionxyz/dymension/commit/461306673274fad4c729d551c8fcad36bf8122ec))
-* fix grace period finalization test ([#650](https://github.com/dymensionxyz/dymension/issues/650)) ([c5271b5](https://github.com/dymensionxyz/dymension/commit/c5271b50a01181c9f280d868da7c90da451efd0e))
-* fix osmo dep version ([#696](https://github.com/dymensionxyz/dymension/issues/696)) ([067a132](https://github.com/dymensionxyz/dymension/commit/067a132551ab07fea13202380979c28d652fcacf))
-* fix pfm with delayed ack ([#610](https://github.com/dymensionxyz/dymension/issues/610)) ([8093e21](https://github.com/dymensionxyz/dymension/commit/8093e210f017aec21ce703d45890be4113770ebd))
-* fixed default prefix back to dym ([#244](https://github.com/dymensionxyz/dymension/issues/244)) ([fca3852](https://github.com/dymensionxyz/dymension/commit/fca38521f8e85f48275b80864684a0fd39bbe416))
-* fixed export genesis of denommetadata module ([#756](https://github.com/dymensionxyz/dymension/issues/756)) ([19a588c](https://github.com/dymensionxyz/dymension/commit/19a588ce8ac3c607d4f42f1a362969b8408c238f))
-* fixed genesis script ([#353](https://github.com/dymensionxyz/dymension/issues/353)) ([434fc5b](https://github.com/dymensionxyz/dymension/commit/434fc5b462655e43fb6e539353e6a01d0af14395))
-* fixed go.mod after merged PR ([#751](https://github.com/dymensionxyz/dymension/issues/751)) ([732e425](https://github.com/dymensionxyz/dymension/commit/732e4254d84cef7342a0a95e6792338bf6a20acb))
-* Fixed guide for setting up chain manually ([#468](https://github.com/dymensionxyz/dymension/issues/468)) ([907763b](https://github.com/dymensionxyz/dymension/commit/907763b036a6195e827a60af0d1e28a42470d668))
-* fixed pre-commit hooks and linter comments ([#357](https://github.com/dymensionxyz/dymension/issues/357)) ([9f0cfe6](https://github.com/dymensionxyz/dymension/commit/9f0cfe6c706a2ff12ece7eb79a2bddc7f25f08ad))
-* **fraud:** refunding pending outgoing packets ([#816](https://github.com/dymensionxyz/dymension/issues/816)) ([456e6aa](https://github.com/dymensionxyz/dymension/commit/456e6aa4991d3e98a2f96e034758d1adb44928e7))
-* **genesis bridge:** better UX for chains without genesis transfers ([#961](https://github.com/dymensionxyz/dymension/issues/961)) ([8a232ee](https://github.com/dymensionxyz/dymension/commit/8a232ee4d17c3bb74f65f882391650fd9e01d55c))
-* go.work.sum files shouldn't be left when not committing go.work itself ([#684](https://github.com/dymensionxyz/dymension/issues/684)) ([de60aeb](https://github.com/dymensionxyz/dymension/commit/de60aeb5a68b0d63399001e99591efb46770c8e3))
-* hub not producing snapshots ([#292](https://github.com/dymensionxyz/dymension/issues/292)) ([e9b242b](https://github.com/dymensionxyz/dymension/commit/e9b242be9d86961bfa9880934d129751a38ea8be))
-* limit the number of permissioned addresses introduced in a MsgCreateRollapp ([#692](https://github.com/dymensionxyz/dymension/issues/692)) ([87330fd](https://github.com/dymensionxyz/dymension/commit/87330fd9d46a45b17c287baec41893b58d93e5e0))
-* minor audit fixes ([#501](https://github.com/dymensionxyz/dymension/issues/501)) ([78c55b8](https://github.com/dymensionxyz/dymension/commit/78c55b8ef5d67eabc1f68506f2bf225342013053))
-* packet forward middleware panic when transferring tokens with 10^18 denom ([#262](https://github.com/dymensionxyz/dymension/issues/262)) ([bedea9d](https://github.com/dymensionxyz/dymension/commit/bedea9de15753d6b0b220f461d427bac2a32753a))
-* potential int overflow when creating sequencers ([#704](https://github.com/dymensionxyz/dymension/issues/704)) ([d254fe2](https://github.com/dymensionxyz/dymension/commit/d254fe2a9fe98c47e316a0276dba9ca345129181))
-* proof height ante decorator ([#655](https://github.com/dymensionxyz/dymension/issues/655)) ([9072971](https://github.com/dymensionxyz/dymension/commit/90729718dc488e9c27f7477ca17ec7326fb25ec2))
-* removed ibc dependency on x/rollapp/types ([#246](https://github.com/dymensionxyz/dymension/issues/246)) ([228ff62](https://github.com/dymensionxyz/dymension/commit/228ff624f61cf3ec9337a24f8376289d81ffbea3))
-* removed rollapp related logic from init genesis and missing params fix ([#772](https://github.com/dymensionxyz/dymension/issues/772)) ([f0c035d](https://github.com/dymensionxyz/dymension/commit/f0c035d97f1ca456801e844adde75c161f552eb4))
-* Restored power reduction to 100k  ([#450](https://github.com/dymensionxyz/dymension/issues/450)) ([6d7a371](https://github.com/dymensionxyz/dymension/commit/6d7a371d93e7157f92ce62f9cbc1fac43749c092))
-* **rollapp:** allow creating rollapp with same eip155 when forking ([#808](https://github.com/dymensionxyz/dymension/issues/808)) ([8007da9](https://github.com/dymensionxyz/dymension/commit/8007da9377090a9d95ceb99f956e8fc890b3c346))
-* **rollapp:** change finalization end blocker logic to not leave broken invariants ([#669](https://github.com/dymensionxyz/dymension/issues/669)) ([9a27004](https://github.com/dymensionxyz/dymension/commit/9a27004ceee6d2126eb0b2c4115c980435c4247e))
-* **rollapp:** changed state info index to be saved as big indian ([#770](https://github.com/dymensionxyz/dymension/issues/770)) ([1778716](https://github.com/dymensionxyz/dymension/commit/1778716c6d38347909e8d5c02e8f42482d6e3dc2))
-* **rollapp:** EIP155 rollapp keys can be overwritten ([#718](https://github.com/dymensionxyz/dymension/issues/718)) ([2f9c3da](https://github.com/dymensionxyz/dymension/commit/2f9c3da62e03e65a3c7ba84c00d9f8ad64a5effb))
-* **rollapp:** fix register denom metadata not triggering VFC creation ([#731](https://github.com/dymensionxyz/dymension/issues/731)) ([bc7ad7f](https://github.com/dymensionxyz/dymension/commit/bc7ad7fbe750dd3405cddea34a95ef492c8c3a05))
-* **rollapp:** fixed proto contract field name mismatch ([#1042](https://github.com/dymensionxyz/dymension/issues/1042)) ([babc49b](https://github.com/dymensionxyz/dymension/commit/babc49b3e041dd0dda5cfa7d2e9961f9a0bf515a))
-* **rollapp:** genesisState of rollapp is non-nullable struct ([#742](https://github.com/dymensionxyz/dymension/issues/742)) ([13b381d](https://github.com/dymensionxyz/dymension/commit/13b381d7f7f7f0fc0683df966375550e0b466655))
-* **rollapp:** missing rollappid validation on rollapp creation ([#712](https://github.com/dymensionxyz/dymension/issues/712)) ([e0c6cc3](https://github.com/dymensionxyz/dymension/commit/e0c6cc3a678b71232de3cb175dde8918d3d847b2))
-* **rollapp:** pass client keeper to ra keeper ([#973](https://github.com/dymensionxyz/dymension/issues/973)) ([0f84b52](https://github.com/dymensionxyz/dymension/commit/0f84b52c85e2fa31a5be7421b76fd89d33f19838))
-* **rollapp:** prevent overflow on rollapp state update ([#960](https://github.com/dymensionxyz/dymension/issues/960)) ([36430d2](https://github.com/dymensionxyz/dymension/commit/36430d210fbbd5ee8f33b090d3e66e5892d30145))
-* **rollapp:** restore the ability to import rollapp state ([#883](https://github.com/dymensionxyz/dymension/issues/883)) ([73a8a1d](https://github.com/dymensionxyz/dymension/commit/73a8a1d8da8a48f236ce2503eeac6cd8b13ff4e4))
-* **rollapp:** rollapp genesis token not registered as IBC denom ([#673](https://github.com/dymensionxyz/dymension/issues/673)) ([6c97620](https://github.com/dymensionxyz/dymension/commit/6c97620c6d84cfe5f4ca7430874c3dbb079d582c))
-* **rollapp:** trigger EventTypeStatusChange instead of EventTypeStateUpdate on state update finalization ([#913](https://github.com/dymensionxyz/dymension/issues/913)) ([3e7dfc9](https://github.com/dymensionxyz/dymension/commit/3e7dfc9981ef668dfecb0b3ce20859c7fc7b1377))
-* **rollapp:** use ApplyFuncIfNoError in finalize end blocker ([#745](https://github.com/dymensionxyz/dymension/issues/745)) ([9d49b7f](https://github.com/dymensionxyz/dymension/commit/9d49b7f67bdbbc72c775f7d3477f2693fdaba50f))
-* **rollapp:** validate rollapp token metadata ([#471](https://github.com/dymensionxyz/dymension/issues/471)) ([4168eb0](https://github.com/dymensionxyz/dymension/commit/4168eb06c7ed1ed45e30ea9317b23eba50eddeb7))
-* **sequencers:** broken invariant with unbonding sequencers ([#725](https://github.com/dymensionxyz/dymension/issues/725)) ([57b6430](https://github.com/dymensionxyz/dymension/commit/57b643061672069b07039c2b1c64384e8eaf571f))
-* **sequencer:** setting proposer to false when forceUnbonding ([#771](https://github.com/dymensionxyz/dymension/issues/771)) ([0ccb065](https://github.com/dymensionxyz/dymension/commit/0ccb065c831d3237d38ff5c9c34d7d0884b49881))
-* **sequencer:** validate dymint pubkey when creating sequencer ([#713](https://github.com/dymensionxyz/dymension/issues/713)) ([b82fa41](https://github.com/dymensionxyz/dymension/commit/b82fa418787740cc5413f1bbfe774c1814d96b76))
-* typos in comments ([#554](https://github.com/dymensionxyz/dymension/issues/554)) ([3b75e27](https://github.com/dymensionxyz/dymension/commit/3b75e276af5e5e34a2f41a4e5436807c017dc924))
-* Update dymd source path in Dockerfile ([#352](https://github.com/dymensionxyz/dymension/issues/352)) ([89675e9](https://github.com/dymensionxyz/dymension/commit/89675e92124493060e4675e115ebf662a88595b8))
-* Update goland compatibility version for Docker ([#404](https://github.com/dymensionxyz/dymension/issues/404)) ([536a29e](https://github.com/dymensionxyz/dymension/commit/536a29e14c93e71c4e503bb6dfab0c75f4ecb519))
-* update packet forward middleware ([#678](https://github.com/dymensionxyz/dymension/issues/678)) ([e8fb7c4](https://github.com/dymensionxyz/dymension/commit/e8fb7c413b2ccd752d946bc148d190671587c1be))
-* validate the IBC client on fraud proposal ([#701](https://github.com/dymensionxyz/dymension/issues/701)) ([5f5eaab](https://github.com/dymensionxyz/dymension/commit/5f5eaab8201743167da12904976ba90f01ba46ed))
-* Various Audit fixes ([#511](https://github.com/dymensionxyz/dymension/issues/511)) ([080cf5a](https://github.com/dymensionxyz/dymension/commit/080cf5a189ec4a0d2c57e7d7873660414c0b82a1))
-* version bumps ([#677](https://github.com/dymensionxyz/dymension/issues/677)) ([23c9237](https://github.com/dymensionxyz/dymension/commit/23c9237e0b8c514f2dbb31decb4b71f99c839402))
-* **vesting:** removed vesting msgs rejections ([#768](https://github.com/dymensionxyz/dymension/issues/768)) ([5dea665](https://github.com/dymensionxyz/dymension/commit/5dea665d1fae5ee4ef7f987f1c5ef59b202bfa51))
-* wrong state update height for invariants test in rollapp module ([#693](https://github.com/dymensionxyz/dymension/issues/693)) ([c3ee7a0](https://github.com/dymensionxyz/dymension/commit/c3ee7a0cbbeca3225aa731df0a508cd60e500554))
+Change log entries are to be added to the Unreleased section under the
+appropriate stanza (see below). Each entry should ideally include a tag and
+the Github issue reference in the following format:
 
+* (<tag>) \#<issue-number> message
+
+The issue numbers will later be link-ified during the release process so you do
+not have to worry about including a link manually, but you can if you wish.
+
+Types of changes (Stanzas):
+
+"Features" for new features.
+"Improvements" for changes in existing functionality.
+"Deprecated" for soon-to-be removed features.
+"Bug Fixes" for any bug fixes.
+"Client Breaking" for breaking CLI commands and REST routes used by end-users.
+"API Breaking" for breaking exported APIs used by developers building on SDK.
+"State Machine Breaking" for any changes that result in a different AppState
+given same genesisState and txList.
+Ref: https://keepachangelog.com/en/1.0.0/
+-->
+
+# Changelog
+
+## Unreleased
+
+### State Machine Breaking
+
+- (dependencies) [#970](https://github.com/dymensionxyz/dymension/pull/970) Bump dependencies cosmos-sdk to v0.47.12 
 
 ### Features
 
-*  ci pipeline ([#39](https://github.com/dymensionxyz/dymension/issues/39)) ([475eead](https://github.com/dymensionxyz/dymension/commit/475eead933ccf64ebfcd3ee17a7f77e505d95999))
-* Add ability to query demand order by id. ([#608](https://github.com/dymensionxyz/dymension/issues/608)) ([a2073a5](https://github.com/dymensionxyz/dymension/commit/a2073a52dfae1ee9b0ca6251ad1538d3c6cf4137))
-* add amm functionality ([#331](https://github.com/dymensionxyz/dymension/issues/331)) ([230afd0](https://github.com/dymensionxyz/dymension/commit/230afd06db2ac29e71a31c0fcc9cc0df5d515de7))
-* Add Devel IDE debug config ([#666](https://github.com/dymensionxyz/dymension/issues/666)) ([fdf15bb](https://github.com/dymensionxyz/dymension/commit/fdf15bbb3f2990e6e9fdd72302b6f27f13934cb8))
-* add events for sequencer module ([#626](https://github.com/dymensionxyz/dymension/issues/626)) ([2ec1f4f](https://github.com/dymensionxyz/dymension/commit/2ec1f4ff52ab10d54b5ac62a35ea279bf8df6a3e))
-* add incentives gauges to the hub ([#340](https://github.com/dymensionxyz/dymension/issues/340)) ([9f9e5dd](https://github.com/dymensionxyz/dymension/commit/9f9e5dd2b1507e9d6ad98ba1b8a865bb51f9c7bb))
-* add Query demand orders by status cmd ([#637](https://github.com/dymensionxyz/dymension/issues/637)) ([bcb9a81](https://github.com/dymensionxyz/dymension/commit/bcb9a81a8623a5d3a0ce2c219266a7998c28ced2))
-* Add token metadata registration on rollapp genesis event ([#695](https://github.com/dymensionxyz/dymension/issues/695)) ([657138c](https://github.com/dymensionxyz/dymension/commit/657138cd24ceb620af193d99da85f75913ae5b45))
-* add/update multiple denom metadata in same proposal ([#661](https://github.com/dymensionxyz/dymension/issues/661)) ([a62000d](https://github.com/dymensionxyz/dymension/commit/a62000dfbc8569f907bde560b29a71cefe83d532))
-* added /healthcheck endpoint that return 200OK if hub's height progress… ([#241](https://github.com/dymensionxyz/dymension/issues/241)) ([b173915](https://github.com/dymensionxyz/dymension/commit/b173915a5a43b1e28c74649f619008a248319ded))
-* added ante handler to pass proofHeight to middleware ([#634](https://github.com/dymensionxyz/dymension/issues/634)) ([ee0788e](https://github.com/dymensionxyz/dymension/commit/ee0788ee39c56ff8aac3acb1d1ebcce8da1526fb))
-* added inspect command ([#296](https://github.com/dymensionxyz/dymension/issues/296)) ([f0604ee](https://github.com/dymensionxyz/dymension/commit/f0604ee6cb17f6741610656833a5f4a8d77d8c25))
-* added invariants for streamer ([#422](https://github.com/dymensionxyz/dymension/issues/422)) ([eb17c75](https://github.com/dymensionxyz/dymension/commit/eb17c753922577c03da02940eb3f680ab4e53170))
-* allow sequencer to register on multiple rollapps ([#308](https://github.com/dymensionxyz/dymension/issues/308)) ([c808d79](https://github.com/dymensionxyz/dymension/commit/c808d79999f9c0d662dc9954230b94460b23ce1e))
-* Allows querying for a rollapp by it's EIP155  ([#299](https://github.com/dymensionxyz/dymension/issues/299)) ([4ee6b75](https://github.com/dymensionxyz/dymension/commit/4ee6b752dae868b760cb85e2f2533a261038a3ef))
-* amm modifications for the dymension hub ([#332](https://github.com/dymensionxyz/dymension/issues/332)) ([36c13d5](https://github.com/dymensionxyz/dymension/commit/36c13d56eb52be03ed0e405b85f5265a03c46e8e))
-* bridging fee middleware ([#899](https://github.com/dymensionxyz/dymension/issues/899)) ([a74ffb0](https://github.com/dymensionxyz/dymension/commit/a74ffb0cec00768bbb8dbe3fd6413e66388010d3))
-* create gov proposal for token metadata registration ([#632](https://github.com/dymensionxyz/dymension/issues/632)) ([de8e643](https://github.com/dymensionxyz/dymension/commit/de8e643d00ad9302393561c9e6d3c8a047f80217))
-* create irc request ([#229](https://github.com/dymensionxyz/dymension/issues/229)) ([a30fd43](https://github.com/dymensionxyz/dymension/commit/a30fd4355f63b7b8f93912b309163a245b5dad3e))
-* create shared package ([#60](https://github.com/dymensionxyz/dymension/issues/60)) ([0068d1c](https://github.com/dymensionxyz/dymension/commit/0068d1c20dd385fd6ef39efa3be3aab45b226665))
-* delay ack middleware ([#361](https://github.com/dymensionxyz/dymension/issues/361)) ([4cefec0](https://github.com/dymensionxyz/dymension/commit/4cefec086c6a43594e2de8c25ffa592ad33ee2b0))
-* **delayedack:** Add type filter for delayedack query ([#860](https://github.com/dymensionxyz/dymension/issues/860)) ([57eca21](https://github.com/dymensionxyz/dymension/commit/57eca21cb5a3b91ebfe08f2e48ee8eeca6534a10))
-* **delayedack:** delayedack invariant for finalized and reverted packets ([#686](https://github.com/dymensionxyz/dymension/issues/686)) ([cecb03c](https://github.com/dymensionxyz/dymension/commit/cecb03c54194535215ce21e248b947697067b6fd))
-* **delayedack:** eibc demand order on ack error ([#733](https://github.com/dymensionxyz/dymension/issues/733)) ([a3c7739](https://github.com/dymensionxyz/dymension/commit/a3c7739f26d776c567cfcf2765a198769a187dd9))
-* **delayedack:** paginate rollapp packets when deleting them ([#972](https://github.com/dymensionxyz/dymension/issues/972)) ([1b11625](https://github.com/dymensionxyz/dymension/commit/1b11625498d75a96523a9c49f72a6ebad627c93b))
-* **delayedack:** rollapp ibc state validation upon state update ([#641](https://github.com/dymensionxyz/dymension/issues/641)) ([70aa5b6](https://github.com/dymensionxyz/dymension/commit/70aa5b6446c2a6efff3b5041d132068a6ed24d3f))
-* delete finalized rollapp packets  ([#535](https://github.com/dymensionxyz/dymension/issues/535)) ([eefc4f5](https://github.com/dymensionxyz/dymension/commit/eefc4f59c04b25e31d479db03db17a6bab6a48b8))
-* delete vue ([#68](https://github.com/dymensionxyz/dymension/issues/68)) ([2ac5476](https://github.com/dymensionxyz/dymension/commit/2ac5476c9ab20fedc20fa68c69ae19be629e74ae))
-* denommetadata module hook for denom creation and update ([#664](https://github.com/dymensionxyz/dymension/issues/664)) ([21a17f1](https://github.com/dymensionxyz/dymension/commit/21a17f12866bb390d426a6ed344f089e254a0815))
-* **denommetadata:** register IBC denom on transfer  ([#956](https://github.com/dymensionxyz/dymension/issues/956)) ([5ba056c](https://github.com/dymensionxyz/dymension/commit/5ba056cb721d23d9cfd2423694dec9d6c3474cca))
-* discard pending rollapp ibc packets upon fraud ([#653](https://github.com/dymensionxyz/dymension/issues/653)) ([9a97986](https://github.com/dymensionxyz/dymension/commit/9a97986d4bbce7dbb377aa92aefddd6e0a30eadb))
-* eIBC V1 ([#493](https://github.com/dymensionxyz/dymension/issues/493)) ([248650a](https://github.com/dymensionxyz/dymension/commit/248650ac7ecc36e2d3723dcecffdaf21d9742ea5))
-* **eibc:** add extra info to demand order ([#950](https://github.com/dymensionxyz/dymension/issues/950)) ([2528e5d](https://github.com/dymensionxyz/dymension/commit/2528e5dfff793605c303f51f5e57475297b326b3))
-* **eibc:** add filter by fulfillment to demand orders ([#929](https://github.com/dymensionxyz/dymension/issues/929)) ([87539aa](https://github.com/dymensionxyz/dymension/commit/87539aa943106336ec6687df87104a065006684b))
-* **eibc:** auto create eibc demand order for rollapp packets ([#944](https://github.com/dymensionxyz/dymension/issues/944)) ([0274850](https://github.com/dymensionxyz/dymension/commit/027485029f74a9cce3f486a352343a8a1f1a79b5))
-* **eibc:** Expand list-demand-orders query with more parameters ([#851](https://github.com/dymensionxyz/dymension/issues/851)) ([c3d9307](https://github.com/dymensionxyz/dymension/commit/c3d93075779ab5fc7fb8ecc5a98c690d220ff59c))
-* **eibc:** update demand order ([#915](https://github.com/dymensionxyz/dymension/issues/915)) ([6721d98](https://github.com/dymensionxyz/dymension/commit/6721d984c49ba2cca8a7aafd6c2307af0eba758e))
-* **evm:** integrate virtual frontier bank contract ([#668](https://github.com/dymensionxyz/dymension/issues/668)) ([079417d](https://github.com/dymensionxyz/dymension/commit/079417ddb2f6a4e8c9a0754cbca8fb91c8bdeec8))
-* freeze rollapp after fraud ([#629](https://github.com/dymensionxyz/dymension/issues/629)) ([f76fc29](https://github.com/dymensionxyz/dymension/commit/f76fc29ae3c6734194d7c51713862e6d6e013862))
-* **genesis bridge:** genesis transfers ([#933](https://github.com/dymensionxyz/dymension/issues/933)) ([4565f34](https://github.com/dymensionxyz/dymension/commit/4565f34fe8a8d2cd9e34a42bd6e3cf71ecbfecd9))
-* gov proposal for rollapp fraud event ([#622](https://github.com/dymensionxyz/dymension/issues/622)) ([bd0aa22](https://github.com/dymensionxyz/dymension/commit/bd0aa22381bf13952552713304d675e4938b2fea))
-* **ibc transfer:** Register IBC denom on transfer ([#900](https://github.com/dymensionxyz/dymension/issues/900)) ([78494bd](https://github.com/dymensionxyz/dymension/commit/78494bd3fec5c1a3a01db7b1c1c0cf2acfff882b))
-* implement incentives manager ([#349](https://github.com/dymensionxyz/dymension/issues/349)) ([07072c1](https://github.com/dymensionxyz/dymension/commit/07072c120998dcb9a6e47cc578f3bdd50849c346))
-* implement streamer module ([#369](https://github.com/dymensionxyz/dymension/issues/369)) ([e5e2c05](https://github.com/dymensionxyz/dymension/commit/e5e2c05bea55312704095252f55b03c2cd83eae6))
-* **incentives:** rollapp gauges ([#947](https://github.com/dymensionxyz/dymension/issues/947)) ([6483533](https://github.com/dymensionxyz/dymension/commit/648353317fbdecc785cf207e8944e448fbe6237e))
-* **incentives:** send rewards to rollapp creator address ([#1047](https://github.com/dymensionxyz/dymension/issues/1047)) ([88a5f9e](https://github.com/dymensionxyz/dymension/commit/88a5f9e0b9c236439536d4f76062d3018eead68e))
-* invariants for rollapp and sequencer modules ([#603](https://github.com/dymensionxyz/dymension/issues/603)) ([3cf597f](https://github.com/dymensionxyz/dymension/commit/3cf597f01e05901287075ef44b749fd10fd659e2))
-* IRC module and IBC message interceptor refactor ([#200](https://github.com/dymensionxyz/dymension/issues/200)) ([e7131ff](https://github.com/dymensionxyz/dymension/commit/e7131ffb3987092fca3517ea36d23c13fe6a601c))
-* lockdrop module ([#381](https://github.com/dymensionxyz/dymension/issues/381)) ([6f9bf00](https://github.com/dymensionxyz/dymension/commit/6f9bf00d967bfdcf1cd41faeb6834b40200dde9d))
-* refactored hooks from `panic` to errors ([#259](https://github.com/dymensionxyz/dymension/issues/259)) ([6d41b3b](https://github.com/dymensionxyz/dymension/commit/6d41b3b948186f725c31b54afb7d7c40f47cd3e3))
-* register denom metadata for new rollapp received ibc ([#313](https://github.com/dymensionxyz/dymension/issues/313)) ([bfb96d9](https://github.com/dymensionxyz/dymension/commit/bfb96d9198fb10846d27f2b87ffd181ea974019f))
-* Rollapp genesis tokens upon channel creation ([#642](https://github.com/dymensionxyz/dymension/issues/642)) ([c53c2a7](https://github.com/dymensionxyz/dymension/commit/c53c2a749aeffe10f3f0132f4fb1d08e03616464))
-* **rollapp:** add ability to create a rollapp ([#36](https://github.com/dymensionxyz/dymension/issues/36)) ([d3df68e](https://github.com/dymensionxyz/dymension/commit/d3df68e98a24c1c03c5082a07582b8e1e96ec91b))
-* **rollapp:** add vm type to rollapp registration ([#1040](https://github.com/dymensionxyz/dymension/issues/1040)) ([2a8d639](https://github.com/dymensionxyz/dymension/commit/2a8d6398690c88f0d7b4b3fe9952a9138d1acfa1))
-* **rollapp:** create rollapp tests ([#57](https://github.com/dymensionxyz/dymension/issues/57)) ([937b981](https://github.com/dymensionxyz/dymension/commit/937b981a013bf00c92fa81cf53a57a6b71ed8d22))
-* **rollapp:** create state status enum & dispute_period_in_blocks param ([#62](https://github.com/dymensionxyz/dymension/issues/62)) ([3724e50](https://github.com/dymensionxyz/dymension/commit/3724e5002b6cb02d11598209ddf917edbcac2fc3))
-* **rollapp:** enforce EIP155 chain ID for rollapp creation ([#1020](https://github.com/dymensionxyz/dymension/issues/1020)) ([55a7517](https://github.com/dymensionxyz/dymension/commit/55a7517ceaa151cb22c4f40064f7aa1ae5b89d88))
-* **rollapp:** new rollapp registration flow ([#980](https://github.com/dymensionxyz/dymension/issues/980)) ([afd8254](https://github.com/dymensionxyz/dymension/commit/afd8254a010c0a177c7f9a8896f49d01084101c0))
-* **rollapp:** option to transfer rollapp owner  ([#1039](https://github.com/dymensionxyz/dymension/issues/1039)) ([ce6f078](https://github.com/dymensionxyz/dymension/commit/ce6f0784b3f8cede95eff60aa3054e199ba7d147))
-* **rollapp:** refactor rollapp cli to be more useful ([#842](https://github.com/dymensionxyz/dymension/issues/842)) ([90e8b37](https://github.com/dymensionxyz/dymension/commit/90e8b37f92473493a33ee13ef839a2efef90b84a))
-* **rollapp:** remove alias from rollapp ([#1034](https://github.com/dymensionxyz/dymension/issues/1034)) ([71eac1b](https://github.com/dymensionxyz/dymension/commit/71eac1b3a2a0c8ab4696c36314a3670462c66a23))
-* **rollapp:** rollapp deployers whitelist ([#79](https://github.com/dymensionxyz/dymension/issues/79)) ([83a762c](https://github.com/dymensionxyz/dymension/commit/83a762c8e04f4fd53988099f9a641593727103ab))
-* **rollapp:** rollapp state finalization ([#74](https://github.com/dymensionxyz/dymension/issues/74)) ([836fd47](https://github.com/dymensionxyz/dymension/commit/836fd47acb9e91c5c5d27930716fc06ff1845697))
-* **rollapp:** state index refactor ([#73](https://github.com/dymensionxyz/dymension/issues/73)) ([4d6ecf1](https://github.com/dymensionxyz/dymension/commit/4d6ecf17ad336b0ac381562f33788c0f526eac42))
-* sequencer bonding and slashing mvp ([#579](https://github.com/dymensionxyz/dymension/issues/579)) ([5c9d49f](https://github.com/dymensionxyz/dymension/commit/5c9d49fbc90e636282da50c560f42b626f33547a))
-* **sequencer, rollapp:** liveness slashing and jailing ([#1009](https://github.com/dymensionxyz/dymension/issues/1009)) ([04bd9df](https://github.com/dymensionxyz/dymension/commit/04bd9df0eec8abff6e24fc8e089be7b596227216))
-* **sequencer:** add ability to create sequencer ([#41](https://github.com/dymensionxyz/dymension/issues/41)) ([8bd90e2](https://github.com/dymensionxyz/dymension/commit/8bd90e2689635ec61f8c44f82683ecbdc358cfb6)), closes [#39](https://github.com/dymensionxyz/dymension/issues/39)
-* **sequencer:** Allow a sequencer to decrease their bond ([#1031](https://github.com/dymensionxyz/dymension/issues/1031)) ([acd9d13](https://github.com/dymensionxyz/dymension/commit/acd9d13935a98dd43d13affdd440a78c85f3a961))
-* **sequencer:** Allow a sequencer to increase their bond  ([#1015](https://github.com/dymensionxyz/dymension/issues/1015)) ([7d27b75](https://github.com/dymensionxyz/dymension/commit/7d27b75aeb8bf7105583ae35d2d02ade6e972afd))
-* **sequencer:** create sequencer tests ([#58](https://github.com/dymensionxyz/dymension/issues/58)) ([25a316a](https://github.com/dymensionxyz/dymension/commit/25a316af80147ea1014fa2397bae2b2679f7ce32))
-* **sequencer:** enforce endpoints on sequencer registration ([#1043](https://github.com/dymensionxyz/dymension/issues/1043)) ([c2c92a9](https://github.com/dymensionxyz/dymension/commit/c2c92a9274a3c1544b9b232bee16678029f4b682))
-* **sequencer:** Implement genesis Import/Export for Bond Reductions ([#1075](https://github.com/dymensionxyz/dymension/issues/1075)) ([155db63](https://github.com/dymensionxyz/dymension/commit/155db63cf42939f948199ea85f66027544df8304))
-* **sequencer:** sequencer scheduler ([#64](https://github.com/dymensionxyz/dymension/issues/64)) ([6cca902](https://github.com/dymensionxyz/dymension/commit/6cca9024fc09d08b28ae76f76c1bef92af30a5df))
-* **sequencers:** sort sequencers by bond when rotating ([#724](https://github.com/dymensionxyz/dymension/issues/724)) ([3b4b731](https://github.com/dymensionxyz/dymension/commit/3b4b7314f8b3fff54a715595933cba3dc8516e18))
-* simulation tests ([#76](https://github.com/dymensionxyz/dymension/issues/76)) ([3fc38ce](https://github.com/dymensionxyz/dymension/commit/3fc38ceeac18acd8b91d8eb1e591f2994aa0e8a7))
-* **sponsorship:** added proto contracts ([#990](https://github.com/dymensionxyz/dymension/issues/990)) ([54c0fca](https://github.com/dymensionxyz/dymension/commit/54c0fca5fada0292428f1721ff2475d4f8590f1d))
-* **sponsorship:** added voting mechanisms and staking hooks ([#1044](https://github.com/dymensionxyz/dymension/issues/1044)) ([836e500](https://github.com/dymensionxyz/dymension/commit/836e50018d63d2e3caba522c91f4e932b9c540cd))
-* **sponsorship:** module scaffolding ([#994](https://github.com/dymensionxyz/dymension/issues/994)) ([695583c](https://github.com/dymensionxyz/dymension/commit/695583c7eeeaf828c724f49035f5f328853e7f90))
-* streamer additional gov proposals ([#424](https://github.com/dymensionxyz/dymension/issues/424)) ([70af875](https://github.com/dymensionxyz/dymension/commit/70af8755d2cd9a050cbc1372638d4e5c848a2dde))
-* support automatic eibc order creation for timeout ([#598](https://github.com/dymensionxyz/dymension/issues/598)) ([86db62a](https://github.com/dymensionxyz/dymension/commit/86db62a74e6dcd9e95eaaf170c3c8deccd7d07f4))
-* **swagger:** add make command `proto-swagger-gen` ([#856](https://github.com/dymensionxyz/dymension/issues/856)) ([d79ac7b](https://github.com/dymensionxyz/dymension/commit/d79ac7ba7ce6d629d02420d9be30d3cf07a89bd7))
-* update state ([#63](https://github.com/dymensionxyz/dymension/issues/63)) ([2a4290d](https://github.com/dymensionxyz/dymension/commit/2a4290d6047178042a19b74795ddef1301461797))
-* **upgrade:** add upgrade handler for new and modified modules ([#783](https://github.com/dymensionxyz/dymension/issues/783)) ([1a1da34](https://github.com/dymensionxyz/dymension/commit/1a1da347b0aa6032a72b59cad2ed8d011dedcfea))
+- (sequencer) [#1037](https://github.com/dymensionxyz/dymension/issues/1037) Enforce rpcs and evm rpcs for sequencer registration
+- (rollapp) [#1036](https://github.com/dymensionxyz/dymension/issues/1036) Add VMType field to Rollapp
+- (swagger) [#856](https://github.com/dymensionxyz/dymension/issues/856) Add make command `proto-swagger-gen`
+- (delayedack) [#825](https://github.com/dymensionxyz/dymension/issues/825) Add query for rollapp packets using CLI
 
+### Bug Fixes
 
-### Performance Improvements
+## [v3.1.0](https://github.com/dymensionxyz/dymension/releases/tag/v3.1.0)
 
-* use errors.New to replace fmt.Errorf with no parameters ([#857](https://github.com/dymensionxyz/dymension/issues/857)) ([2f0f1e2](https://github.com/dymensionxyz/dymension/commit/2f0f1e2bf0de521da68f61a2c5abe6c2de5f1385))
+### Features
 
+- (rollapp) [#999](https://github.com/dymensionxyz/dymension/issues/999) Handle sequencer information updates.
+- (rollapp) [#996](https://github.com/dymensionxyz/dymension/issues/996) Handle rollapp information updates.
+- (sequencer) [#955](https://github.com/dymensionxyz/dymension/issues/979) Rework the sequencer registration flow.
+- (app) [#972](https://github.com/dymensionxyz/dymension/pull/972) Refactor upgrade handlers. 
+- (delayedack) [#972](https://github.com/dymensionxyz/dymension/pull/972) Use pagination when deleting rollapp packets.
+- (denommetadata) [#955](https://github.com/dymensionxyz/dymension/issues/955) Add IBC middleware to create denom metadata from rollapp, on IBC transfer.
+- (genesisbridge) [#932](https://github.com/dymensionxyz/dymension/issues/932) Adds ibc module and ante handler to stop transfers to/from rollapp that has an incomplete genesis bridge (transfersEnabled)
+- (genesisbridge) [#932](https://github.com/dymensionxyz/dymension/issues/932) Adds a new temporary ibc module to set the canonical channel id, since we no longer do that using a whitelisted addr
+- (genesisbridge) [#932](https://github.com/dymensionxyz/dymension/issues/932) Adds a new ibc module to handle incoming 'genesis transfers'. It validates the special memo and registers a denom. It will not allow any regular transfers if transfers are not enabled
+- (rollapp) [#932](https://github.com/dymensionxyz/dymension/issues/932) Renames is_genesis_event on the rollapp genesis state to 'transfers_enabled' this is backwards compatible
+- (rollapp) [#932](https://github.com/dymensionxyz/dymension/issues/932) Removes concept of passing genesis accounts and denoms in the create rollapp message
+- (rollapp) [#932](https://github.com/dymensionxyz/dymension/issues/932) Adds a transfersenabled flag to createRollapp (might be changed in future)
+- (delayedack) [#932](https://github.com/dymensionxyz/dymension/issues/932) Adds the notion of skipctx, to skip it with a special sdk context value
+- (code standards) [#932](https://github.com/dymensionxyz/dymension/issues/932) Adds a gerr (google error ) and derr (dymension error) packages for idiomatic error handling. (In future we will consolidate across dymint/rdk)
+- (denommetadata) [#907](https://github.com/dymensionxyz/dymension/issues/907) Add IBC middleware to migrate denom metadata to rollappp, remove `CreateDenomMetadata` and `UpdateDenomMetadata` tx handlers
+- (eibc) [#873](https://github.com/dymensionxyz/dymension/issues/873) Add `FulfillerAddress` to `DemandOrder` and its event
+- (delayedack) [#849](https://github.com/dymensionxyz/dymension/issues/849) Add demand order filters: type, rollapp id and limit
+- (delayedack) [#850](https://github.com/dymensionxyz/dymension/issues/850) Add type filter for delayedack
+- (rollapp) [#829](https://github.com/dymensionxyz/dymension/issues/829) Refactor rollapp cli to be more useful
+- (delayedack) [#728](https://github.com/dymensionxyz/dymension/issues/728) Create eibc order on err ack from rollapp
+- (delayedack) [#672](https://github.com/dymensionxyz/dymension/issues/672) Delayedack invariant for finalized and reverted packets
+- (evm) [#668](https://github.com/dymensionxyz/dymension/issues/668) Integrate virtual frontier bank contract
+- (denommetadata) [#660](https://github.com/dymensionxyz/dymension/issues/660) Add/update multiple denom metadata in same proposal
+- (denommetadata) [#659](https://github.com/dymensionxyz/dymension/issues/659) Denommetadata module hook for denom creation and update
+- (vfc) [#658](https://github.com/dymensionxyz/dymension/issues/658) VFC should be triggered upon new Denom Metadata registration
+- (delayedack) [#655](https://github.com/dymensionxyz/dymension/pull/655) Fix proof height ante decorator
+- (delayedack) [#643](https://github.com/dymensionxyz/dymension/issues/643) Validate rollapp IBC state update against current rollapp state
+- (ibc) [#636](https://github.com/dymensionxyz/dymension/issues/636) Add ability to query IBC demand orders by status
+- (rollapp) [#628](https://github.com/dymensionxyz/dymension/issues/628) Freeze rollapp after fraud
+- (vfc) [#627](https://github.com/dymensionxyz/dymension/issues/627) Add VFC Contract for the hub
+- (delayedack) [#624](https://github.com/dymensionxyz/dymension/issues/624) Discard pending rollapp ibc packets upon fraud
+- (rollapp) [#617](https://github.com/dymensionxyz/dymension/issues/617) Rollapp tokens minting on hub upon rollapp channel creation
+- (rollapp) [#615](https://github.com/dymensionxyz/dymension/issues/615) Gov proposal for rollapp fraud event
+- (eibc) [#607](https://github.com/dymensionxyz/dymension/issues/607) Add ability to query demand order by id
+- (rollapp) [#605](https://github.com/dymensionxyz/dymension/issues/605) Switch the proposing sequencer after unbonding
+- (denommetadata) [#60d](https://github.com/dymensionxyz/dymension/issues/604) Create gov proposal for token metadata registration
+- (eibc) [#593](https://github.com/dymensionxyz/dymension/issues/593) Release timed out eIBC funds 
+- (upgrade) [#572](https://github.com/dymensionxyz/dymension/issues/572) Add upgrade handler for new and modified modules 
+- (dependencies) [#525](https://github.com/dymensionxyz/dymension/pull/525) Add Ledger Nano X and S+ support
+- (rollapp) [#496](https://github.com/dymensionxyz/dymension/issues/496) Sequencer bonding and Slashing MVP
+- (ci) [#444](https://github.com/dymensionxyz/dymension/issues/444) Add e2e IBC Transfer Tests
+- (rollapp) [#421](https://github.com/dymensionxyz/dymension/issues/421) Invariants for rollapp module
+- (delayedack) [#391](https://github.com/dymensionxyz/dymension/issues/391) Added ante handler to pass proofHeight to middleware
 
+### Bug Fixes
 
+- (eibc,delayedack) [#942](https://github.com/dymensionxyz/dymension/issues/942) Add missing genesis validation
+- (rollapp) [#317](https://github.com/dymensionxyz/research/issues/317) Prevent overflow on rollapp state update
+- (code standards) [#932](https://github.com/dymensionxyz/dymension/issues/932) Dry out existing middlewares to make use of new .GetValidTransfer* functions which take care of parsing and validating the fungible packet, and querying and validating any associated rollapp and finalizations
+- (code standards) [#932](https://github.com/dymensionxyz/dymension/issues/932) Removes the obsolete ValidateRollappId func and sub routines
+- (code standards) [#932](https://github.com/dymensionxyz/dymension/issues/932) Simplify GetAllBlockHeightToFinalizationQueue
+- (code standards) [#932](https://github.com/dymensionxyz/dymension/issues/932) Fixes naming for our 'middlewares' to make them clearly one of ibc module / ics4 wrapper / middleware
+- (code standards) [#932](https://github.com/dymensionxyz/dymension/issues/932) Moves our various utils to properly namespaced packages under utils/
+- (rollapp) [#839](https://github.com/dymensionxyz/dymension/issues/839) Remove rollapp deprecated fields
+- (eibc) [#836](https://github.com/dymensionxyz/dymension/issues/836) Improve eibc memo error handling
+- (eibc) [#830](https://github.com/dymensionxyz/dymension/issues/830) Invalid tx should return ackErr
+- (eibc) [#828](https://github.com/dymensionxyz/dymension/issues/828) Wrong packet written on delayedack acknowledgement
+- (delayedack) [#822](https://github.com/dymensionxyz/dymension/issues/822) Acknowledgement not written in case of ackerr
+- (rollapp) [#820](https://github.com/dymensionxyz/dymension/issues/820) Invariant block-height-to-finalization-queue fix for freezing rollapp
+- (delayedack) [#814](https://github.com/dymensionxyz/dymension/issues/814) Proof height ante handler doesn't gurantee uniqueness
+- (fraud) [#811](https://github.com/dymensionxyz/dymension/issues/811) Refunding pending outgoing packets
+- (delayedack) [#810](https://github.com/dymensionxyz/dymension/issues/810) Wrong denom metadata created for eIBC on delayedack timeout and ack
+- (delayedack) [#809](https://github.com/dymensionxyz/dymension/issues/809) Delayed ack wrong channels on timeout and ack
+- (rollapp) [#807](https://github.com/dymensionxyz/dymension/issues/807) Allow creating rollapp same eip155 when forking
+- (delayedack) [#799](https://github.com/dymensionxyz/dymension/issues/799) Do not create eibc order on timeout/errAck if fee is not positive
+- (delayedack) [#794](https://github.com/dymensionxyz/dymension/issues/794) Fix missing validation of channel id when validating rollapp packet
+- (rollapp) [#769](https://github.com/dymensionxyz/dymension/issues/769) Rollapp genesis related state shouldn't be imported
+- (rollapp) [#767](https://github.com/dymensionxyz/dymension/issues/767) Saved state info index as big endian
+- (delayedack) [#764](https://github.com/dymensionxyz/dymension/issues/764) Fix panic on `nil` dereferences if `UpdateRollappPacketWithStatus` errors
+- (account) [#762](https://github.com/dymensionxyz/dymension/issues/762) Fix wrong `bech32` prefix for `accountKeeper`
+- (ante) [#761](https://github.com/dymensionxyz/dymension/issues/761) Use `UnpackAny` for `ExtensionOptionsWeb3Tx` (audit)
+- (eibc) [#760](https://github.com/dymensionxyz/dymension/issues/760) Remove reverted packet to ensure `UnderlyingPacketExistInvariant`
+- (sequencer) [#758](https://github.com/dymensionxyz/dymension/issues/758) Fix setting proposer to `false` when `forceUnbonding`
+- (delayedack) [#757](https://github.com/dymensionxyz/dymension/issues/757) Fix ibc packet finalization, optimize ibc packet retrieval
+- (ante) [#755](https://github.com/dymensionxyz/dymension/issues/755) Add missing ante handler
+- (vesting) [#754](https://github.com/dymensionxyz/dymension/issues/754) Removed vesting msgs rejections
+- (denommetadata) [#753](https://github.com/dymensionxyz/dymension/issues/753) Fix export genesis of denommetadata module
+- (denommetadata) [#750](https://github.com/dymensionxyz/dymension/issues/750) Sync validations between different token metadata components
+- (delayedack) [#741](https://github.com/dymensionxyz/dymension/issues/741) Use must unmarshal packet and demand orders
+- (dependencies) [#743](https://github.com/dymensionxyz/dymension/issues/743) Update hashicorp go-getter dependency
+- (rollapp) [#740](https://github.com/dymensionxyz/dymension/issues/740) Fix `genesisState` of rollapp is non-nullable struct
+- (rollapp) [#739](https://github.com/dymensionxyz/dymension/issues/739) Use cached context to avoid panic in finalize queue
+- (eibc,delayedack) [#728](https://github.com/dymensionxyz/dymension/issues/728) Create eIBC order upon ackError in the delayed ack middleware
+- (vfc) [#726](https://github.com/dymensionxyz/dymension/issues/726) Remove denommetadata ibc middleware and register denoms in genesis event
+- (rollapp) [#717](https://github.com/dymensionxyz/dymension/issues/717) Fix EIP155 keys owned by other rollapps can be overwritten
+- (sequencer) [#716](https://github.com/dymensionxyz/dymension/issues/716) Sort sequencers by bond when rotating
+- (sequencer) [#714](https://github.com/dymensionxyz/dymension/issues/714) Fix broken invariant with unbonding sequencers
+- (rollapp) [#710](https://github.com/dymensionxyz/dymension/issues/710) Fix missing `rollappID validation on rollapp creation
+- (sequencer) [#708](https://github.com/dymensionxyz/dymension/issues/708) Validate dymint pubkey when creating sequencer
+- (denommetadata) [#706](https://github.com/dymensionxyz/dymension/issues/706) Remove redundant logs
+- (sequencer) [#703](https://github.com/dymensionxyz/dymension/issues/703) Fix potential int overflow when creating sequencers
+- (eibc,rollapp,sequencer) [#700](https://github.com/dymensionxyz/dymension/issues/700) Fix missing invariants wiring
+- (rollapp) [#699](https://github.com/dymensionxyz/dymension/pull/699) Validate the IBC client on fraud proposal
+- (rollapp) [#691](https://github.com/dymensionxyz/dymension/pull/691) Limit the number of permissioned addresses in MsgCreateRollapp
+- (denommetadata) [#694](https://github.com/dymensionxyz/dymension/pull/694) Add token metadata on genesis event
+- (rollapp) [#690](https://github.com/dymensionxyz/dymension/pull/690) Fix wrong height in state update in rollapp module invariants test
+- (rollapp) [#681](https://github.com/dymensionxyz/dymension/pull/681) Accept rollapp initial state with arbitrary height
+- (ibc) [#678](https://github.com/dymensionxyz/dymension/pull/678) Apply a pfm patch
+- (rollapp) [#671](https://github.com/dymensionxyz/dymension/pull/671) Fix rollapp genesis token not registered as IBC denom
+- (delayedack) [#670](https://github.com/dymensionxyz/dymension/issues/670) Finalize error handling per rollapp
+- (dependencies) [#677](https://github.com/dymensionxyz/dymension/pull/677) Bump cosmos ecosystem dependencies
+- (hygiene) [#676](https://github.com/dymensionxyz/dymension/pull/676) Lint tests
+- (rollapp) [#657](https://github.com/dymensionxyz/dymension/pull/657) Verification of broken invariant logic
+- (rollapp) [#649](https://github.com/dymensionxyz/dymension/pull/649) Fix grace period finalization test
+- (rollapp) [#646](https://github.com/dymensionxyz/dymension/pull/646) Fix problem with state info finalization queue
+- (eibc) [#644](https://github.com/dymensionxyz/dymension/pull/644) Limit `order_id` length when submitting eIBC order to avoid block spam
+- (sequencer) [#625](https://github.com/dymensionxyz/dymension/pull/625) Add events for sequencer module
+- (delayedack) [#620](https://github.com/dymensionxyz/dymension/pull/620) Add missing param initialization for delayedAck
+- (eibc) [#609](https://github.com/dymensionxyz/dymension/pull/609) DelayedAck panic on PFM memo
+- (eibc) [#600](https://github.com/dymensionxyz/dymension/pull/600) Temporarily disable eIBC + PFM for txs initiated on rollapp
+- (ibc) [#569](https://github.com/dymensionxyz/dymension/issues/569) Move e2e tests to dymension
+- (ibc) [#532](https://github.com/dymensionxyz/dymension/issues/532) Delete RollappPackets after finalization/revert #532
+- (rollapp) [#471](https://github.com/dymensionxyz/dymension/issues/471) Validate rollapp token metadata
+- (rollapp) [#341](https://github.com/dymensionxyz/dymension/issues/341) Change finalization logic to calculate finalization from the end
+
+___
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [v0.1.0](https://github.com/dymensionxyz/dymension/releases/tag/v0.1.0-alpha)
+
+Initial Release!
