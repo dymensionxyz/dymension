@@ -20,8 +20,11 @@ func (suite *RollappTestSuite) TestCreateRollapp() {
 
 func (suite *RollappTestSuite) TestCreateRollappUnauthorizedRollappCreator() {
 	suite.SetupTest()
-	_ = types.ErrFeePayment
-	suite.createRollappWithCreatorAndVerify(sdkerrors.ErrInsufficientFunds, bob) // bob is broke
+
+	_ = types.ErrFeePayment // this error is not being used anywhere so keep it used here to pass lint
+	// TODO: ^^^^^^^^^^^^^^ use this error or delete it
+
+	suite.createRollappWithCreatorAndVerify(sdkerrors.ErrInsufficientFunds, bob, false) // bob is broke
 }
 
 func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
@@ -310,10 +313,12 @@ func (suite *RollappTestSuite) createRollapp(expectedErr error) {
 }
 
 func (suite *RollappTestSuite) createRollappAndVerify(expectedErr error) types.RollappSummary {
-	return suite.createRollappWithCreatorAndVerify(expectedErr, alice)
+	return suite.createRollappWithCreatorAndVerify(expectedErr, alice, true)
 }
 
-func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr error, creator string) types.RollappSummary {
+func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(
+	expectedErr error, creator string, fundAccount bool,
+) types.RollappSummary {
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 	// generate sequencer address
 	address := sample.AccAddress()
@@ -327,6 +332,9 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 		Alias:            strings.ToLower(rand.Str(7)),
 		VmType:           types.Rollapp_EVM,
 		Metadata:         &mockRollappMetadata,
+	}
+	if fundAccount {
+		suite.FundForAliasRegistration(rollapp)
 	}
 	// rollappExpect is the expected result of creating rollapp
 	rollappExpect := types.Rollapp{
