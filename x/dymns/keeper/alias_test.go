@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -688,6 +687,136 @@ func (s *KeeperTestSuite) TestKeeper_IsAliasPresentsInParamsAsAliasOrChainId() {
 
 			got := s.dymNsKeeper.IsAliasPresentsInParamsAsAliasOrChainId(s.ctx, tt.alias)
 			s.Require().Equal(tt.want, got)
+		})
+	}
+}
+
+func (s *KeeperTestSuite) TestKeeper_SetDefaultAlias() {
+	const rollAppId = "rollapp_1-1"
+
+	const anotherRollAppId = "rollapp_2-2"
+	const anotherRollAppAlias = "another"
+
+	tests := []struct {
+		name             string
+		rollAppId        string
+		skipCreateRolApp bool
+		existingAliases  []string
+		moveAlias        string
+		wantErr          bool
+		wantErrContains  string
+		wantAliases      []string
+	}{
+		{
+			name:            "pass - can set",
+			rollAppId:       rollAppId,
+			existingAliases: []string{"alias", "default"},
+			moveAlias:       "default",
+			wantErr:         false,
+			wantAliases:     []string{"default", "alias"},
+		},
+		{
+			name:            "pass - can set among multiple aliases",
+			rollAppId:       rollAppId,
+			existingAliases: []string{"alias", "default", "of", "rollapp"},
+			moveAlias:       "default",
+			wantErr:         false,
+			wantAliases:     []string{"default", "alias", "of", "rollapp"},
+		},
+		{
+			name:            "pass - can set default to default",
+			rollAppId:       rollAppId,
+			existingAliases: []string{"default", "alias", "here"},
+			moveAlias:       "default",
+			wantErr:         false,
+			wantAliases:     []string{"default", "alias", "here"}, // unchanged
+		},
+		{
+			name:            "pass - can set default even when only one alias",
+			rollAppId:       rollAppId,
+			existingAliases: []string{"default"},
+			moveAlias:       "default",
+			wantErr:         false,
+			wantAliases:     []string{"default"},
+		},
+		{
+			name:             "fail - reject invalid RollApp ID",
+			rollAppId:        "@@@",
+			skipCreateRolApp: true,
+			existingAliases:  nil,
+			moveAlias:        "default",
+			wantErr:          true,
+			wantErrContains:  "alias is not linked to the RollApp",
+			wantAliases:      nil,
+		},
+		{
+			name:            "fail - reject invalid input Alias",
+			rollAppId:       rollAppId,
+			existingAliases: []string{"alias", "default"},
+			moveAlias:       "@@@",
+			wantErr:         true,
+			wantErrContains: "alias is not linked to the RollApp",
+			wantAliases:     []string{"alias", "default"},
+		},
+		{
+			name:            "fail - reject alias belong to another",
+			rollAppId:       rollAppId,
+			existingAliases: []string{"alias", "default"},
+			moveAlias:       anotherRollAppAlias,
+			wantErr:         true,
+			wantErrContains: "alias is not linked to the RollApp",
+			wantAliases:     []string{"alias", "default"},
+		},
+		{
+			name:            "fail - reject alias that not exists",
+			rollAppId:       rollAppId,
+			existingAliases: []string{"alias", "default"},
+			moveAlias:       "void",
+			wantErr:         true,
+			wantErrContains: "alias is not linked to the RollApp",
+			wantAliases:     []string{"alias", "default"},
+		},
+	}
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			s.RefreshContext()
+
+			if !tt.skipCreateRolApp {
+				if tt.rollAppId != "" {
+					ra := newRollApp(tt.rollAppId)
+					for _, existingAlias := range tt.existingAliases {
+						ra = ra.WithAlias(existingAlias)
+					}
+					s.persistRollApp(*ra)
+				} else {
+					s.Require().Empty(tt.existingAliases, "bad setup")
+				}
+
+				s.persistRollApp(
+					*newRollApp(anotherRollAppId).WithAlias(anotherRollAppAlias),
+				)
+			}
+
+			err := s.dymNsKeeper.SetDefaultAlias(s.ctx, tt.rollAppId, tt.moveAlias)
+
+			defer func() {
+				if tt.rollAppId == "" || s.T().Failed() {
+					return
+				}
+				aliasesAfter := s.dymNsKeeper.GetAliasesOfRollAppId(s.ctx, tt.rollAppId)
+				if len(tt.wantAliases) == 0 {
+					s.Empty(aliasesAfter)
+				} else {
+					s.Equal(tt.wantAliases, aliasesAfter)
+				}
+			}()
+
+			if tt.wantErr {
+				s.Require().ErrorContains(err, tt.wantErrContains)
+				return
+			}
+
+			s.Require().NoError(err)
 		})
 	}
 }

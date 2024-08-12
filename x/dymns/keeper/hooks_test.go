@@ -3041,6 +3041,84 @@ func (s *KeeperTestSuite) Test_rollappHooks_OnRollAppIdChanged() {
 				s.Empty(outputDymNameAddrs)
 			},
 		},
+		{
+			name: "pass - when the new RollApp has existing aliases, merge them",
+			setupFunc: func(s *KeeperTestSuite) {
+				s.persistRollApp(*genRollApp(previousRollAppId, "one", "two", "three"))
+				s.persistRollApp(*genRollApp(newRollAppId, "four", "five", "six"))
+
+				s.setDymNameWithFunctionsAfter(
+					newDN(name1, user1Acc.bech32()).
+						cfgN(previousRollAppId, "", user2Acc.bech32()).
+						build(),
+				)
+
+				//
+
+				s.requireRollApp(previousRollAppId).HasAlias("one", "two", "three")
+				s.requireRollApp(newRollAppId).HasAlias("four", "five", "six")
+
+				outputAddr, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+previousRollAppId)
+				s.NoError(err)
+				s.Equal(user2Acc.bech32(), outputAddr)
+			},
+			testFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(previousRollAppId).HasNoAlias()
+				s.requireRollApp(newRollAppId).HasAlias("one", "two", "three", "four", "five", "six")
+
+				// others
+
+				outputAddr, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+newRollAppId)
+				s.NoError(err)
+				s.Equal(user2Acc.bech32(), outputAddr)
+			},
+		},
+		{
+			name: "pass - when previous RollApp has no alias",
+			setupFunc: func(s *KeeperTestSuite) {
+				s.persistRollApp(*genRollApp(previousRollAppId))
+				s.persistRollApp(*genRollApp(newRollAppId, "new"))
+
+				s.setDymNameWithFunctionsAfter(
+					newDN(name1, user1Acc.bech32()).
+						cfgN(previousRollAppId, "", user2Acc.bech32()).
+						build(),
+				)
+
+				//
+
+				s.requireRollApp(previousRollAppId).HasNoAlias()
+				s.requireRollApp(newRollAppId).HasAlias("new")
+
+				outputAddr, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+previousRollAppId)
+				s.NoError(err)
+				s.Equal(user2Acc.bech32(), outputAddr)
+			},
+			testFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(previousRollAppId).HasNoAlias()
+				s.requireRollApp(newRollAppId).HasAlias("new")
+
+				// others
+
+				outputAddr, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, name1+"@"+newRollAppId)
+				s.NoError(err)
+				s.Equal(user2Acc.bech32(), outputAddr)
+			},
+		},
+		{
+			name: "pass - when the new RollApp has existing aliases, priority previous default alias",
+			setupFunc: func(s *KeeperTestSuite) {
+				s.persistRollApp(*genRollApp(previousRollAppId, "old", "journey"))
+				s.persistRollApp(*genRollApp(newRollAppId, "new"))
+
+				s.requireRollApp(previousRollAppId).HasAlias("old", "journey")
+				s.requireRollApp(newRollAppId).HasAlias("new")
+			},
+			testFunc: func(s *KeeperTestSuite) {
+				s.requireRollApp(previousRollAppId).HasNoAlias()
+				s.requireRollApp(newRollAppId).HasAliasesWithOrder("old", "new", "journey")
+			},
+		},
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {

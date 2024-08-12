@@ -202,3 +202,33 @@ func (k Keeper) IsAliasPresentsInParamsAsAliasOrChainId(ctx sdk.Context, alias s
 
 	return false
 }
+
+// SetDefaultAlias move the alias into the first place, so it can be used as default alias in resolution.
+func (k Keeper) SetDefaultAlias(ctx sdk.Context, rollAppId, alias string) error {
+	existingAliases := k.GetAliasesOfRollAppId(ctx, rollAppId)
+	existingIndex := -1
+
+	for i, existingAlias := range existingAliases {
+		if alias == existingAlias {
+			existingIndex = i
+			break
+		}
+	}
+
+	if existingIndex < 0 {
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "alias is not linked to the RollApp: %s", alias)
+	}
+
+	if existingIndex == 0 {
+		// no need to do anything
+		return nil
+	}
+
+	existingAliases[0], existingAliases[existingIndex] = existingAliases[existingIndex], existingAliases[0]
+
+	store := ctx.KVStore(k.storeKey)
+	keyR2A := dymnstypes.RollAppIdToAliasesKey(rollAppId)
+	store.Set(keyR2A, k.cdc.MustMarshal(&dymnstypes.MultipleAliases{Aliases: existingAliases}))
+
+	return nil
+}

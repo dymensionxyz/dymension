@@ -548,16 +548,20 @@ func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, new
 	}()
 
 	if err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-		aliases := h.GetAliasesOfRollAppId(ctx, previousRollAppId)
+		aliasesLinkedToPreviousRollApp := h.GetAliasesOfRollAppId(ctx, previousRollAppId)
+		if len(aliasesLinkedToPreviousRollApp) == 0 {
+			return nil
+		}
 
-		for _, alias := range aliases {
+		for _, alias := range aliasesLinkedToPreviousRollApp {
 			if err := h.MoveAliasToRollAppId(ctx, previousRollAppId, alias, newRollAppId); err != nil {
 				logger.Error("failed to migrate alias", "alias", alias, "error", err)
 				return err
 			}
 		}
 
-		return nil
+		// now priority the first alias from previous RollApp, because users are already familiar with it.
+		return h.SetDefaultAlias(ctx, newRollAppId, aliasesLinkedToPreviousRollApp[0])
 	}); err != nil {
 		logger.Error("aborted alias migration", "error", err)
 

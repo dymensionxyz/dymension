@@ -467,6 +467,14 @@ func (m reqRollApp) HasAlias(aliases ...string) {
 	}
 }
 
+func (m reqRollApp) HasAliasesWithOrder(aliases ...string) {
+	if len(aliases) < 2 {
+		panic("must provide at least two aliases")
+	}
+	existingAliases := m.s.dymNsKeeper.GetAliasesOfRollAppId(m.s.ctx, m.rollAppId)
+	m.s.Require().Equal(aliases, existingAliases)
+}
+
 func (m reqRollApp) HasOnlyAlias(alias string) {
 	list := m.s.dymNsKeeper.GetAliasesOfRollAppId(m.s.ctx, m.rollAppId)
 	m.s.Require().Len(list, 1)
