@@ -21,6 +21,8 @@ faucet:
   - 100000stake
   host: 0.0.0.0:4500
 client:
+  typescript:
+    path: ts-client
   openapi:
     path: docs/static/openapi.yml
 validators:
