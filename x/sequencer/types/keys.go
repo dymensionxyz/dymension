@@ -5,7 +5,6 @@ import (
 	fmt "fmt"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/utils"
 )
 
@@ -117,18 +116,7 @@ func NoticePeriodSequencerKey(sequencerAddress string, endTime time.Time) []byte
 
 /* -------------------------- decreasing bond queue keys -------------------------- */
 func DecreasingBondQueueByTimeKey(endTime time.Time) []byte {
-	// TODO: use utils.EncodeTimeToKey
-	timeBz := sdk.FormatTimeBytes(endTime)
-	prefixL := len(DecreasingBondQueueKey)
-
-	bz := make([]byte, prefixL+len(timeBz))
-
-	// copy the prefix
-	copy(bz[:prefixL], DecreasingBondQueueKey)
-	// copy the encoded time bytes
-	copy(bz[prefixL:prefixL+len(timeBz)], timeBz)
-
-	return bz
+	return utils.EncodeTimeToKey(DecreasingBondQueueKey, endTime)
 }
 
 func GetDecreasingBondQueueKey(sequencerAddress string, endTime time.Time) []byte {

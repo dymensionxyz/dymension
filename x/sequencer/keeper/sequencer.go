@@ -30,17 +30,12 @@ func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 //   - oldStatus: An optional parameter representing the old status of the sequencer.
 //     Needs to be provided if the status of the sequencer has changed (e.g from Bonded to Unbonding).
 func (k Keeper) UpdateSequencer(ctx sdk.Context, sequencer types.Sequencer, oldStatus ...types.OperatingStatus) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshal(&sequencer)
-	store.Set(types.SequencerKey(sequencer.Address), b)
-
-	seqByRollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.Address, sequencer.Status)
-	store.Set(seqByRollappKey, b)
+	k.SetSequencer(ctx, sequencer)
 
 	// status changed, need to remove old status key
 	if len(oldStatus) > 0 && sequencer.Status != oldStatus[0] {
 		oldKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.Address, oldStatus[0])
-		store.Delete(oldKey)
+		ctx.KVStore(k.storeKey).Delete(oldKey)
 	}
 }
 

@@ -139,10 +139,9 @@ func (k Keeper) unbond(ctx sdk.Context, seqAddr string, jail bool) error {
 		}
 
 		// if we unbond the next proposer, we're in the middle of rotation
-		// instead of removing the next proposer, we set it to empty, and the chain will halt
-		// FIXME: review again
+		// the caller should clean the rotation state
 		if k.isNextProposer(ctx, seq.RollappId, seqAddr) {
-			k.setNextProposer(ctx, seq.RollappId, NO_SEQUENCER_AVAILABLE)
+			k.removeNextProposer(ctx, seq.RollappId)
 		}
 	}
 	// in case the sequencer is currently reducing its bond, then we need to remove it from the decreasing bond queue

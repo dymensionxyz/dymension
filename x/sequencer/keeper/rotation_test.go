@@ -170,7 +170,6 @@ func (suite *SequencerTestSuite) TestStartRotationTwice() {
 	suite.Require().True(n.IsNoticePeriodInProgress())
 
 	// rotation completes before notice period ends for addr2 (the nextProposer)
-	// FIXME: what if notice period ends for addr2 before rotation completes?
 	suite.App.SequencerKeeper.RotateProposer(suite.Ctx, rollappId) // simulate lastBlock received
 
 	// validate addr2 is now proposer and still with notice period

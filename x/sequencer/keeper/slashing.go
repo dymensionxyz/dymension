@@ -4,7 +4,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 )
 
@@ -43,9 +42,11 @@ func (k Keeper) JailLiveness(ctx sdk.Context, rollappID string) error {
 
 // LivenessLiableSequencer returns the sequencer who is responsible for ensuring liveness
 func (k Keeper) LivenessLiableSequencer(ctx sdk.Context, rollappID string) (types.Sequencer, error) {
-	// TODO: find the sequencer who is currently responsible for ensuring liveness
-	//  https://github.com/dymensionxyz/dymension/issues/1018
-	return types.Sequencer{}, errorsmod.Wrap(gerrc.ErrNotFound, "not implemented")
+	proposer, found := k.GetProposer(ctx, rollappID)
+	if !found {
+		return types.Sequencer{}, types.ErrNoProposer
+	}
+	return proposer, nil
 }
 
 func (k Keeper) Slash(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coins) error {
