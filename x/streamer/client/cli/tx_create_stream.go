@@ -7,16 +7,16 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/spf13/cobra"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
-
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/dymension/v3/utils"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
+
+const FlagSponsored = "sponsored"
 
 // NewCmdSubmitCreateStreamProposal broadcasts a CreateStream message.
 func NewCmdSubmitCreateStreamProposal() *cobra.Command {
@@ -34,9 +34,20 @@ func NewCmdSubmitCreateStreamProposal() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			records, err := parseRecords(args[0], args[1])
+
+			sponsoredInt, err := cmd.Flags().GetCount(FlagSponsored)
 			if err != nil {
 				return err
+			}
+			sponsored := sponsoredInt > 0
+
+			var records []types.DistrRecord
+			// Ignore records is the stream is sponsored
+			if !sponsored {
+				records, err = parseRecords(args[0], args[1])
+				if err != nil {
+					return err
+				}
 			}
 
 			coins, err := sdk.ParseCoinsNormalized(args[2])
@@ -69,7 +80,7 @@ func NewCmdSubmitCreateStreamProposal() *cobra.Command {
 				return err
 			}
 
-			content := types.NewCreateStreamProposal(proposal.Title, proposal.Description, coins, records, startTime, epochIdentifier, epochs)
+			content := types.NewCreateStreamProposal(proposal.Title, proposal.Description, coins, records, startTime, epochIdentifier, epochs, sponsored)
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
@@ -87,6 +98,7 @@ func NewCmdSubmitCreateStreamProposal() *cobra.Command {
 	cmd.Flags().String(govcli.FlagTitle, "", "The proposal title")
 	cmd.Flags().String(govcli.FlagDescription, "", "The proposal description")
 	cmd.Flags().String(govcli.FlagDeposit, "", "The proposal deposit")
+	cmd.Flags().Count(FlagSponsored, "The stream is based on the sponsorship distribution")
 
 	cmd.Flags().AddFlagSet(FlagSetCreateStream())
 	return cmd
