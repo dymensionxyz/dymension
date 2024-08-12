@@ -32,11 +32,11 @@ func (i IBCMessagesDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		switch msg := m.(type) {
 		case *ibcclienttypes.MsgCreateClient:
 			i.HandleMsgCreateClient(ctx, msg)
+		case *ibcclienttypes.MsgSubmitMisbehaviour:
+			i.HandleMsgSubmitMisbehaviour(ctx, msg)
 		case *ibcclienttypes.MsgUpdateClient:
 			{
-			}
-		case *ibcclienttypes.MsgSubmitMisbehaviour:
-			{
+
 			}
 		default:
 			continue
