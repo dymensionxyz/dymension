@@ -1562,6 +1562,13 @@ paths:
                 items:
                   type: string
                 description: buy_order_ids is the list of Buy-Order IDs for the alias.
+              same_chain_aliases:
+                type: array
+                items:
+                  type: string
+                description: >-
+                  same_chain_aliases is the list of aliases for the same chain
+                  that associated with the alias.
             title: QueryAliasResponse
         default:
           description: An unexpected error response.
@@ -3013,6 +3020,20 @@ paths:
 
                           therefore help reduce the risk of new owner of
                           Dym-Name not able to renew it on time.
+
+
+                          For example:
+                            Let say the configured Sell-Order duration is 7 days, the prohibit sell duration is 30 days and you owns a Dym-Name.
+                            We assume your Dym-Name expiration date is Mar 9th, 2024. then 30 days before, from Feb 9th, 2024,
+                            the Dym-Name is prohibited to be sold.
+                            We have some cases:
+                            - If the you places a Sell Order at Feb 2nd, 2024, the Sell-Order supposed to be expired at Feb 9th, 2024,
+                            which is within the prohibited range, so the Sell-Order can not be placed.
+                            - If the you places a Sell Order at Feb 1st, 2024, the Sell-Order supposed to be expired at Feb 8th, 2024,
+                            which is outside the prohibited range, so the Sell-Order can be placed.
+                            - If someone put an offer (Buy-Order) at Feb 1st, 2024, and you have some days to accept it,
+                            exactly from the moment order placed, until end of Feb 8th, 2024, which is outside the prohibited range.
+                            After that, from Feb 9th, it is prohibited to accept the Buy-Order.
                       enable_trading_name:
                         type: boolean
                         description: >-
@@ -3573,6 +3594,9 @@ paths:
                       x:
                         type: string
                         title: x is the rollapp twitter link
+                      genesis_url:
+                        type: string
+                        title: genesis_url has the genesis file
                   initial_sequencer:
                     type: string
                     description: >-
@@ -4224,6 +4248,9 @@ paths:
                       x:
                         type: string
                         title: x is the rollapp twitter link
+                      genesis_url:
+                        type: string
+                        title: genesis_url has the genesis file
                   initial_sequencer:
                     type: string
                     description: >-
@@ -59154,6 +59181,20 @@ definitions:
 
           therefore help reduce the risk of new owner of Dym-Name not able to
           renew it on time.
+
+
+          For example:
+            Let say the configured Sell-Order duration is 7 days, the prohibit sell duration is 30 days and you owns a Dym-Name.
+            We assume your Dym-Name expiration date is Mar 9th, 2024. then 30 days before, from Feb 9th, 2024,
+            the Dym-Name is prohibited to be sold.
+            We have some cases:
+            - If the you places a Sell Order at Feb 2nd, 2024, the Sell-Order supposed to be expired at Feb 9th, 2024,
+            which is within the prohibited range, so the Sell-Order can not be placed.
+            - If the you places a Sell Order at Feb 1st, 2024, the Sell-Order supposed to be expired at Feb 8th, 2024,
+            which is outside the prohibited range, so the Sell-Order can be placed.
+            - If someone put an offer (Buy-Order) at Feb 1st, 2024, and you have some days to accept it,
+            exactly from the moment order placed, until end of Feb 8th, 2024, which is outside the prohibited range.
+            After that, from Feb 9th, it is prohibited to accept the Buy-Order.
       enable_trading_name:
         type: boolean
         description: |-
@@ -59306,6 +59347,20 @@ definitions:
 
               therefore help reduce the risk of new owner of Dym-Name not able
               to renew it on time.
+
+
+              For example:
+                Let say the configured Sell-Order duration is 7 days, the prohibit sell duration is 30 days and you owns a Dym-Name.
+                We assume your Dym-Name expiration date is Mar 9th, 2024. then 30 days before, from Feb 9th, 2024,
+                the Dym-Name is prohibited to be sold.
+                We have some cases:
+                - If the you places a Sell Order at Feb 2nd, 2024, the Sell-Order supposed to be expired at Feb 9th, 2024,
+                which is within the prohibited range, so the Sell-Order can not be placed.
+                - If the you places a Sell Order at Feb 1st, 2024, the Sell-Order supposed to be expired at Feb 8th, 2024,
+                which is outside the prohibited range, so the Sell-Order can be placed.
+                - If someone put an offer (Buy-Order) at Feb 1st, 2024, and you have some days to accept it,
+                exactly from the moment order placed, until end of Feb 8th, 2024, which is outside the prohibited range.
+                After that, from Feb 9th, it is prohibited to accept the Buy-Order.
           enable_trading_name:
             type: boolean
             description: |-
@@ -59520,6 +59575,13 @@ definitions:
         items:
           type: string
         description: buy_order_ids is the list of Buy-Order IDs for the alias.
+      same_chain_aliases:
+        type: array
+        items:
+          type: string
+        description: >-
+          same_chain_aliases is the list of aliases for the same chain that
+          associated with the alias.
     title: QueryAliasResponse
   dymensionxyz.dymension.dymns.QueryBuyOrderByIdResponse:
     type: object
@@ -60445,6 +60507,20 @@ definitions:
 
                   therefore help reduce the risk of new owner of Dym-Name not
                   able to renew it on time.
+
+
+                  For example:
+                    Let say the configured Sell-Order duration is 7 days, the prohibit sell duration is 30 days and you owns a Dym-Name.
+                    We assume your Dym-Name expiration date is Mar 9th, 2024. then 30 days before, from Feb 9th, 2024,
+                    the Dym-Name is prohibited to be sold.
+                    We have some cases:
+                    - If the you places a Sell Order at Feb 2nd, 2024, the Sell-Order supposed to be expired at Feb 9th, 2024,
+                    which is within the prohibited range, so the Sell-Order can not be placed.
+                    - If the you places a Sell Order at Feb 1st, 2024, the Sell-Order supposed to be expired at Feb 8th, 2024,
+                    which is outside the prohibited range, so the Sell-Order can be placed.
+                    - If someone put an offer (Buy-Order) at Feb 1st, 2024, and you have some days to accept it,
+                    exactly from the moment order placed, until end of Feb 8th, 2024, which is outside the prohibited range.
+                    After that, from Feb 9th, it is prohibited to accept the Buy-Order.
               enable_trading_name:
                 type: boolean
                 description: |-
@@ -61117,6 +61193,9 @@ definitions:
               x:
                 type: string
                 title: x is the rollapp twitter link
+              genesis_url:
+                type: string
+                title: genesis_url has the genesis file
           initial_sequencer:
             type: string
             description: >-
@@ -61442,6 +61521,9 @@ definitions:
           x:
             type: string
             title: x is the rollapp twitter link
+          genesis_url:
+            type: string
+            title: genesis_url has the genesis file
       initial_sequencer:
         type: string
         description: >-
@@ -61540,6 +61622,9 @@ definitions:
       x:
         type: string
         title: x is the rollapp twitter link
+      genesis_url:
+        type: string
+        title: genesis_url has the genesis file
   dymensionxyz.dymension.rollapp.RollappSummary:
     type: object
     properties:
