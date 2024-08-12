@@ -155,7 +155,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	const rollappId = "rollapp_1234-1"
 
 	// 1. register rollapp
-	_, err := suite.msgServer.CreateRollapp(suite.Ctx, &types.MsgCreateRollapp{
+	msg := types.MsgCreateRollapp{
 		RollappId:        rollappId,
 		Creator:          alice,
 		GenesisChecksum:  "",
@@ -163,7 +163,9 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		Alias:            "default",
 		VmType:           types.Rollapp_EVM,
 		Bech32Prefix:     "rol",
-	})
+	}
+	suite.FundForAliasRegistration(msg)
+	_, err := suite.msgServer.CreateRollapp(suite.Ctx, &msg)
 	suite.Require().NoError(err)
 
 	// 2. try to register sequencer (not initial) - should fail because rollapp is not sealed
