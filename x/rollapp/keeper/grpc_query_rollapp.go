@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -39,27 +40,20 @@ func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest)
 }
 
 func (k Keeper) Rollapp(c context.Context, req *types.QueryGetRollappRequest) (*types.QueryGetRollappResponse, error) {
-	return queryRollapp[types.QueryGetRollappRequest](c, k, req, k.GetRollapp, req.GetRollappId)
+	ctx := sdk.UnwrapSDKContext(c)
+	ra, ok := k.GetRollapp(ctx, req.RollappId)
+	return getSummaryResponse(ctx, k, ra, ok)
 }
 
 func (k Keeper) RollappByEIP155(c context.Context, req *types.QueryGetRollappByEIP155Request) (*types.QueryGetRollappResponse, error) {
-	return queryRollapp[types.QueryGetRollappByEIP155Request](c, k, req, k.GetRollappByEIP155, req.GetEip155)
+	ctx := sdk.UnwrapSDKContext(c)
+	ra, ok := k.GetRollappByEIP155(ctx, req.Eip155)
+	return getSummaryResponse(ctx, k, ra, ok)
 }
 
-type (
-	queryRollappFn[T any]       func(ctx sdk.Context, q T) (val types.Rollapp, found bool)
-	queryRollappGetArgFn[T any] func() T
-)
-
-func queryRollapp[Q, T any](c context.Context, k Keeper, req any, qFn queryRollappFn[T], argFn queryRollappGetArgFn[T]) (*types.QueryGetRollappResponse, error) {
-	if req == (*Q)(nil) {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	rollapp, found := qFn(ctx, argFn())
-	if !found {
-		return nil, status.Error(codes.NotFound, "not found")
+func getSummaryResponse(ctx sdk.Context, k Keeper, rollapp types.Rollapp, ok bool) (*types.QueryGetRollappResponse, error) {
+	if !ok {
+		return nil, gerrc.ErrNotFound.Wrap("rollapp")
 	}
 
 	summary := k.buildRollappSummary(ctx, rollapp)
