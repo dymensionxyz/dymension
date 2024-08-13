@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	"regexp"
 	"strings"
 
@@ -99,4 +100,8 @@ func PossibleAccountRegardlessChain(address string) bool {
 	}
 
 	return true
+}
+
+func init() {
+	params.SetAddressPrefixes()
 }
