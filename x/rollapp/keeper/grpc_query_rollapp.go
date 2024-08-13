@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -18,7 +19,7 @@ func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest)
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	var rollapps []types.RollappSummary
+	var rollapps []types.QueryGetRollappResponse
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
@@ -29,7 +30,11 @@ func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest)
 		if err := k.cdc.Unmarshal(value, &rollapp); err != nil {
 			return err
 		}
-		rollapps = append(rollapps, k.buildRollappSummary(ctx, rollapp))
+		res, err := getSummaryResponse(ctx, k, rollapp, true)
+		if err != nil {
+			return errorsmod.Wrap(err, "get summary response")
+		}
+		rollapps = append(rollapps, *res)
 		return nil
 	})
 	if err != nil {
@@ -56,26 +61,20 @@ func getSummaryResponse(ctx sdk.Context, k Keeper, rollapp types.Rollapp, ok boo
 		return nil, gerrc.ErrNotFound.Wrap("rollapp")
 	}
 
-	summary := k.buildRollappSummary(ctx, rollapp)
-
-	return &types.QueryGetRollappResponse{
-		Rollapp:                   rollapp,
-		LatestStateIndex:          summary.LatestStateIndex,
-		LatestFinalizedStateIndex: summary.LatestFinalizedStateIndex,
-	}, nil
-}
-
-func (k Keeper) buildRollappSummary(ctx sdk.Context, rollapp types.Rollapp) types.RollappSummary {
-	rollappSummary := types.RollappSummary{
+	s := types.RollappSummary{
 		RollappId: rollapp.RollappId,
 	}
 	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
 	if found {
-		rollappSummary.LatestStateIndex = &latestStateInfoIndex
+		s.LatestStateIndex = &latestStateInfoIndex
 	}
 	latestFinalizedStateInfoIndex, found := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
 	if found {
-		rollappSummary.LatestFinalizedStateIndex = &latestFinalizedStateInfoIndex
+		s.LatestFinalizedStateIndex = &latestFinalizedStateInfoIndex
 	}
-	return rollappSummary
+
+	return &types.QueryGetRollappResponse{
+		Rollapp: rollapp,
+		Summary: s,
+	}, nil
 }
