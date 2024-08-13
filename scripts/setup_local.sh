@@ -114,7 +114,7 @@ if [ ! "$answer" != "${answer#[Nn]}" ] ;then
   # Add genesis accounts and provide coins to the accounts
   "$EXECUTABLE" add-genesis-account "$(dymd keys show pools --keyring-backend test -a)" 1000000000000000000000000adym,10000000000uatom,500000000000uusd
   # Give some uatom to the local-user as well
-  "$EXECUTABLE" add-genesis-account $(dymd keys show user --keyring-backend test -a) 1000000000000000000000000adym,10000000000uatom
+  "$EXECUTABLE" add-genesis-account "$(dymd keys show user --keyring-backend test -a)" 1000000000000000000000000adym,10000000000uatom
 fi
 
 echo "$MNEMONIC" | "$EXECUTABLE" keys add "$KEY_NAME" --recover --keyring-backend test
