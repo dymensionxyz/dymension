@@ -5,25 +5,6 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
-// TODO DymNS: remove this mock
-type mockRollAppData struct {
-	alias  string
-	bech32 string
-}
-
-var mockRollAppsData = map[string]mockRollAppData{
-	"nim_1122-1": {
-		alias:  "nim",
-		bech32: "nim",
-	},
-	"mande_18071918-1": {
-		alias:  "mande",
-		bech32: "mande",
-	},
-}
-
-// end of mock
-
 // cacheIsRollAppId is used to cache if the RollApp exists by its ID.
 // This is used to reduce the number of queries to the RollApp store.
 // Note: only RollApp-Id is cached, present RollApp ID is roll app,
@@ -37,10 +18,6 @@ func (k Keeper) IsRollAppId(ctx sdk.Context, chainId string) bool {
 	}
 
 	_, found := k.rollappKeeper.GetRollapp(ctx, chainId)
-
-	if !found {
-		_, found = mockRollAppsData[chainId]
-	}
 
 	if found {
 		cacheIsRollAppId.Set(chainId, struct{}{})
@@ -60,10 +37,6 @@ func (k Keeper) GetRollAppBech32Prefix(ctx sdk.Context, chainId string) (bech32P
 	rollApp, found := k.rollappKeeper.GetRollapp(ctx, chainId)
 	if found && len(rollApp.Bech32Prefix) > 0 {
 		return rollApp.Bech32Prefix, true
-	}
-
-	if data, found := mockRollAppsData[chainId]; found {
-		return data.bech32, len(data.bech32) > 0
 	}
 
 	return "", false

@@ -21,14 +21,6 @@ func (k Keeper) GetRollAppIdByAlias(ctx sdk.Context, alias string) (rollAppId st
 	bz := store.Get(key)
 	if bz != nil {
 		rollAppId = string(bz)
-		return
-	}
-
-	for rid, data := range mockRollAppsData {
-		if data.alias == alias {
-			rollAppId = rid
-			return
-		}
 	}
 
 	return
@@ -50,15 +42,7 @@ func (k Keeper) GetAliasByRollAppId(ctx sdk.Context, chainId string) (alias stri
 	if bz != nil {
 		var multipleAliases dymnstypes.MultipleAliases
 		k.cdc.MustUnmarshal(bz, &multipleAliases)
-		if len(multipleAliases.Aliases) > 0 {
-			alias = multipleAliases.Aliases[0]
-			return
-		}
-	}
-
-	if data, ok := mockRollAppsData[chainId]; ok {
-		alias = data.alias
-		return
+		alias = multipleAliases.Aliases[0]
 	}
 
 	return
