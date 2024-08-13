@@ -55,6 +55,7 @@ func (suite *SequencerTestSuite) CreateRollappWithInitialSequencer(initSeq strin
 		RollappId:        urand.RollappID(),
 		Owner:            sample.AccAddress(),
 		GenesisChecksum:  "checksum",
+		Bech32Prefix:     "rol",
 		InitialSequencer: initSeq,
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
