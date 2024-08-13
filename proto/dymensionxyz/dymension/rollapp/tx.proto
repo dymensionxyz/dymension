@@ -91,6 +91,8 @@ message MsgUpdateState {
 }
 
 message MsgUpdateStateResponse {
+  string nextProposerAddr = 1;
+  bool rotationInProgress = 2;
 }
 
 // MsgTransferOwnership transfers the ownership of a rollapp chain to a new owner.
