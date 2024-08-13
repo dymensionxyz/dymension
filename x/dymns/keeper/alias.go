@@ -116,21 +116,19 @@ func (k Keeper) RemoveAliasFromRollAppId(ctx sdk.Context, rollAppId, alias strin
 	if bz := store.Get(keyR2A); bz != nil {
 		k.cdc.MustUnmarshal(bz, &multipleAliases)
 	}
+	countAliases := len(multipleAliases.Aliases)
 
-	newMultipleAliases := dymnstypes.MultipleAliases{
-		Aliases: multipleAliases.Aliases[:], // copy
-	}
-	newMultipleAliases.Aliases = slices.DeleteFunc(newMultipleAliases.Aliases, func(a string) bool {
+	multipleAliases.Aliases = slices.DeleteFunc(multipleAliases.Aliases, func(a string) bool {
 		return a == alias
 	})
-	if len(newMultipleAliases.Aliases) == len(multipleAliases.Aliases) {
+	if len(multipleAliases.Aliases) == countAliases {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "alias not found: %s", alias)
 	}
 
-	if len(newMultipleAliases.Aliases) == 0 {
+	if len(multipleAliases.Aliases) == 0 {
 		store.Delete(keyR2A)
 	} else {
-		store.Set(keyR2A, k.cdc.MustMarshal(&newMultipleAliases))
+		store.Set(keyR2A, k.cdc.MustMarshal(&multipleAliases))
 	}
 	store.Delete(keyA2R)
 
