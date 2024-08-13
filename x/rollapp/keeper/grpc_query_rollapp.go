@@ -46,7 +46,7 @@ func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest)
 
 func (k Keeper) Rollapp(c context.Context, req *types.QueryGetRollappRequest) (*types.QueryGetRollappResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	ra, ok := k.GetRollapp(ctx, req.RollappId)
+	ra, ok := k.GetRollapp(ctx, req.GetRollappId())
 	return getSummaryResponse(ctx, k, ra, ok)
 }
 
@@ -58,7 +58,7 @@ func (k Keeper) RollappByEIP155(c context.Context, req *types.QueryGetRollappByE
 
 func getSummaryResponse(ctx sdk.Context, k Keeper, rollapp types.Rollapp, ok bool) (*types.QueryGetRollappResponse, error) {
 	if !ok {
-		return nil, gerrc.ErrNotFound.Wrap("rollapp")
+		return nil, errorsmod.Wrap(gerrc.ErrNotFound, "rollapp")
 	}
 
 	s := types.RollappSummary{

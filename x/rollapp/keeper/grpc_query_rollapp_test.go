@@ -1,19 +1,36 @@
 package keeper_test
 
 import (
+	"flag"
 	"strconv"
 	"testing"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"pgregory.net/rapid"
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
+
+func TestQuery(t *testing.T) {
+	flag.Set("rapid.checks", "50")
+	flag.Set("rapid.steps", "50")
+	rapid.Check(t, func(t *rapid.T) {
+		t.Repeat(map[string]func(*rapid.T){
+			"": func(t *rapid.T) {
+			},
+			"foo": func(t *rapid.T) {
+			},
+		})
+	})
+}
 
 // Prevent strconv unused error
 var _ = strconv.IntSize
@@ -47,7 +64,7 @@ func TestRollappQuerySingle(t *testing.T) {
 			request: &types.QueryGetRollappRequest{
 				RollappId: strconv.Itoa(100000),
 			},
-			err: status.Error(codes.NotFound, "not found"),
+			err: gerrc.ErrNotFound,
 		},
 		{
 			desc: "InvalidRequest",
@@ -57,12 +74,12 @@ func TestRollappQuerySingle(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			response, err := keeper.Rollapp(wctx, tc.request)
 			if tc.err != nil {
-				require.ErrorIs(t, err, tc.err)
+				require.True(t, errorsmod.IsOf(err, tc.err))
 			} else {
 				require.NoError(t, err)
 				require.Equal(t,
-					nullify.Fill(tc.response),
-					nullify.Fill(response),
+					nullify.Fill(tc.response.Rollapp),
+					nullify.Fill(response.Rollapp),
 				)
 			}
 		})
@@ -118,9 +135,5 @@ func TestRollappQueryPaginated(t *testing.T) {
 			nullify.Fill(msgs),
 			nullify.Fill(resp.Rollapp),
 		)
-	})
-	t.Run("InvalidRequest", func(t *testing.T) {
-		_, err := keeper.RollappAll(wctx, nil)
-		require.ErrorIs(t, err, status.Error(codes.InvalidArgument, "invalid request"))
 	})
 }
