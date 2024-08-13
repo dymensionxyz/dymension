@@ -7,7 +7,6 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-// x/rollapp module sentinel errors
 var (
 	ErrRollappExists                   = errorsmod.Register(ModuleName, 1000, "rollapp already exists")
 	ErrInvalidInitialSequencer         = errorsmod.Register(ModuleName, 1001, "empty initial sequencer")
@@ -38,7 +37,6 @@ var (
 	ErrInvalidTokenLogoURI             = errorsmod.Wrap(gerrc.ErrInvalidArgument, "token logo uri")
 	ErrInvalidMetadata                 = errorsmod.Wrap(gerrc.ErrInvalidArgument, "metadata")
 	ErrImmutableFieldUpdateAfterSealed = errorsmod.Wrap(gerrc.ErrInvalidArgument, "update immutable field after rollapp sealed")
-	ErrSealWithImmutableFieldsNotSet   = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "seal with immutable fields not set")
 	ErrUnauthorizedSigner              = errorsmod.Wrap(gerrc.ErrPermissionDenied, "unauthorized signer")
 	ErrSameOwner                       = errorsmod.Wrap(gerrc.ErrInvalidArgument, "same owner")
 	ErrInvalidRequest                  = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid request")
