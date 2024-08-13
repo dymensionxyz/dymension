@@ -52,8 +52,16 @@ func (k Keeper) BeginCanonicalLightClientRegistration(ctx sdk.Context, rollappId
 	store.Set(types.CanonicalLightClientRegistrationKey(rollappId), []byte(clientID))
 }
 
-func (k Keeper) ConfirmCanonicalLightClientRegistration(ctx sdk.Context, rollappId string, clientID string) {
-	k.SetCanonicalClient(ctx, rollappId, clientID)
+func (k Keeper) GetCanonicalLightClientRegistration(ctx sdk.Context, rollappId string) (string, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.CanonicalLightClientRegistrationKey(rollappId))
+	if bz == nil {
+		return "", false
+	}
+	return string(bz), true
+}
+
+func (k Keeper) ClearCanonicalLightClientRegistration(ctx sdk.Context, rollappId string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.CanonicalLightClientRegistrationKey(rollappId))
 }

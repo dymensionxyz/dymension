@@ -49,5 +49,6 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	// if len(header.ValidatorSet.Validators) == 1 && header.ValidatorSet.Validators[0].Address {
 
 	// }
+
 	return nil
 }

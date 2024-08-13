@@ -16,7 +16,7 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 		return
 	}
 	// Only tendermint client types can be set as canonical light client
-	if clientState.ClientType() != exported.Tendermint {
+	if clientState.ClientType() == exported.Tendermint {
 		// Cast client state to tendermint client state - we need this to check the chain id and latest height
 		tendmermintClientState, ok := clientState.(*ibctm.ClientState)
 		if !ok {
@@ -59,6 +59,13 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 		// if blockDescriptor.Timestamp != tendermintConsensusState.GetTimestamp() {
 		// 	return
 		// }
+
+		// Check if the validator set hash matches the sequencer
+		// if len(tendermintConsensusState.GetNextValidators().Validators) == 1 && tendermintConsensusState.GetNextValidators().Validators[0].Address {
+		// 	return
+		// }
+
+		// Check if the nextValidatorHash matches the sequencer for h+1
 
 		// Generate client id and begin canonical light client registration by storing it in transient store.
 		// Will be confirmed after the client is created in post handler.

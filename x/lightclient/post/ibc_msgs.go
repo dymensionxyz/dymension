@@ -1,0 +1,33 @@
+package post
+
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
+)
+
+var _ sdk.PostDecorator = IBCMessagesDecorator{}
+
+type IBCMessagesDecorator struct {
+	ibcKeeper         ibckeeper.Keeper
+	lightClientKeeper keeper.Keeper
+}
+
+func NewIBCMessagesDecorator() IBCMessagesDecorator {
+	return IBCMessagesDecorator{}
+}
+
+// PostHandle implements types.PostDecorator.
+func (i IBCMessagesDecorator) PostHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, success bool, next sdk.PostHandler) (newCtx sdk.Context, err error) {
+	msgs := tx.GetMsgs()
+	for _, m := range msgs {
+		switch msg := m.(type) {
+		case *ibcclienttypes.MsgCreateClient:
+			i.HandleMsgCreateClient(ctx, msg, success)
+		default:
+			continue
+		}
+	}
+	return next(ctx, tx, simulate, success)
+}
