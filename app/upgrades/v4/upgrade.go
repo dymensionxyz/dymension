@@ -129,6 +129,10 @@ func migrateSequencers(ctx sdk.Context, sequencerkeeper sequencerkeeper.Keeper) 
 	for _, oldSequencer := range list {
 		newSequencer := ConvertOldSequencerToNew(oldSequencer)
 		sequencerkeeper.SetSequencer(ctx, newSequencer)
+
+		if oldSequencer.Proposer {
+			sequencerkeeper.SetProposer(ctx, oldSequencer.RollappId, oldSequencer.Address)
+		}
 	}
 }
 
