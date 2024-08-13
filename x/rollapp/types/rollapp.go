@@ -68,8 +68,10 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
 	}
 
-	if err = validateBech32Prefix(r.Bech32Prefix); err != nil {
-		return errorsmod.Wrap(ErrInvalidBech32Prefix, err.Error())
+	if r.Sealed || r.Bech32Prefix != "" {
+		if err = validateBech32Prefix(r.Bech32Prefix); err != nil {
+			return errorsmod.Wrap(ErrInvalidBech32Prefix, err.Error())
+		}
 	}
 
 	if len(r.GenesisChecksum) > maxGenesisChecksumLength {
@@ -85,6 +87,10 @@ func (r Rollapp) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+func (r Rollapp) AllImmutableFieldsAreSet() bool {
+	return r.GenesisChecksum != "" && r.InitialSequencer != "" && r.Bech32Prefix != ""
 }
 
 func validateInitialSequencer(initialSequencer string) error {

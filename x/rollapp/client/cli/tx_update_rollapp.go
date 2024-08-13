@@ -12,7 +12,7 @@ import (
 
 func CmdUpdateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "update-rollapp [rollapp-id] [init-sequencer] [genesis_checksum] [metadata]",
+		Use:     "update-rollapp [rollapp-id] [init-sequencer] [genesis_checksum] [metadata] [bech32-prefix]",
 		Short:   "Update a new rollapp",
 		Example: "dymd tx rollapp update-rollapp ROLLAPP_CHAIN_ID --init-sequencer '<seq_address1>,<seq_address2>' --genesis-checksum <genesis_checksum> --metadata metadata.json",
 		Args:    cobra.MinimumNArgs(1),
@@ -25,6 +25,11 @@ func CmdUpdateRollapp() *cobra.Command {
 			}
 
 			genesisChecksum, err := cmd.Flags().GetString(FlagGenesisChecksum)
+			if err != nil {
+				return
+			}
+
+			bech32Prefix, err := cmd.Flags().GetString(FlagBech32Prefix)
 			if err != nil {
 				return
 			}
@@ -52,6 +57,7 @@ func CmdUpdateRollapp() *cobra.Command {
 				initSequencer,
 				genesisChecksum,
 				metadata,
+				bech32Prefix,
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

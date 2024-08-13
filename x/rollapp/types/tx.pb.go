@@ -6,6 +6,10 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	io "io"
+	math "math"
+	math_bits "math/bits"
+
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
@@ -13,15 +17,14 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	io "io"
-	math "math"
-	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
-var _ = proto.Marshal
-var _ = fmt.Errorf
-var _ = math.Inf
+var (
+	_ = proto.Marshal
+	_ = fmt.Errorf
+	_ = math.Inf
+)
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -57,9 +60,11 @@ func (*MsgCreateRollapp) ProtoMessage()    {}
 func (*MsgCreateRollapp) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1a86300fb8647ecb, []int{0}
 }
+
 func (m *MsgCreateRollapp) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgCreateRollapp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgCreateRollapp.Marshal(b, m, deterministic)
@@ -72,12 +77,15 @@ func (m *MsgCreateRollapp) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
+
 func (m *MsgCreateRollapp) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgCreateRollapp.Merge(m, src)
 }
+
 func (m *MsgCreateRollapp) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgCreateRollapp) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgCreateRollapp.DiscardUnknown(m)
 }
@@ -140,8 +148,7 @@ func (m *MsgCreateRollapp) GetVmType() Rollapp_VMType {
 	return Rollapp_Unspecified
 }
 
-type MsgCreateRollappResponse struct {
-}
+type MsgCreateRollappResponse struct{}
 
 func (m *MsgCreateRollappResponse) Reset()         { *m = MsgCreateRollappResponse{} }
 func (m *MsgCreateRollappResponse) String() string { return proto.CompactTextString(m) }
@@ -149,9 +156,11 @@ func (*MsgCreateRollappResponse) ProtoMessage()    {}
 func (*MsgCreateRollappResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1a86300fb8647ecb, []int{1}
 }
+
 func (m *MsgCreateRollappResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgCreateRollappResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgCreateRollappResponse.Marshal(b, m, deterministic)
@@ -164,12 +173,15 @@ func (m *MsgCreateRollappResponse) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
+
 func (m *MsgCreateRollappResponse) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgCreateRollappResponse.Merge(m, src)
 }
+
 func (m *MsgCreateRollappResponse) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgCreateRollappResponse) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgCreateRollappResponse.DiscardUnknown(m)
 }
@@ -190,7 +202,7 @@ type MsgUpdateRollappInformation struct {
 	GenesisChecksum string `protobuf:"bytes,4,opt,name=genesis_checksum,json=genesisChecksum,proto3" json:"genesis_checksum,omitempty"`
 	// metadata is the rollapp metadata
 	Metadata *RollappMetadata `protobuf:"bytes,5,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	// the unique rollapp address bech32 prefix.
+	// the unique rollapp address bech32 prefix. empty means will not be updated.
 	Bech32Prefix string `protobuf:"bytes,6,opt,name=bech32_prefix,json=bech32Prefix,proto3" json:"bech32_prefix,omitempty"`
 }
 
@@ -200,9 +212,11 @@ func (*MsgUpdateRollappInformation) ProtoMessage()    {}
 func (*MsgUpdateRollappInformation) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1a86300fb8647ecb, []int{2}
 }
+
 func (m *MsgUpdateRollappInformation) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgUpdateRollappInformation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgUpdateRollappInformation.Marshal(b, m, deterministic)
@@ -215,12 +229,15 @@ func (m *MsgUpdateRollappInformation) XXX_Marshal(b []byte, deterministic bool) 
 		return b[:n], nil
 	}
 }
+
 func (m *MsgUpdateRollappInformation) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgUpdateRollappInformation.Merge(m, src)
 }
+
 func (m *MsgUpdateRollappInformation) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgUpdateRollappInformation) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgUpdateRollappInformation.DiscardUnknown(m)
 }
@@ -269,8 +286,7 @@ func (m *MsgUpdateRollappInformation) GetBech32Prefix() string {
 	return ""
 }
 
-type MsgUpdateRollappInformationResponse struct {
-}
+type MsgUpdateRollappInformationResponse struct{}
 
 func (m *MsgUpdateRollappInformationResponse) Reset()         { *m = MsgUpdateRollappInformationResponse{} }
 func (m *MsgUpdateRollappInformationResponse) String() string { return proto.CompactTextString(m) }
@@ -278,9 +294,11 @@ func (*MsgUpdateRollappInformationResponse) ProtoMessage()    {}
 func (*MsgUpdateRollappInformationResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1a86300fb8647ecb, []int{3}
 }
+
 func (m *MsgUpdateRollappInformationResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgUpdateRollappInformationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgUpdateRollappInformationResponse.Marshal(b, m, deterministic)
@@ -293,12 +311,15 @@ func (m *MsgUpdateRollappInformationResponse) XXX_Marshal(b []byte, deterministi
 		return b[:n], nil
 	}
 }
+
 func (m *MsgUpdateRollappInformationResponse) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgUpdateRollappInformationResponse.Merge(m, src)
 }
+
 func (m *MsgUpdateRollappInformationResponse) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgUpdateRollappInformationResponse) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgUpdateRollappInformationResponse.DiscardUnknown(m)
 }
@@ -330,9 +351,11 @@ func (*MsgUpdateState) ProtoMessage()    {}
 func (*MsgUpdateState) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1a86300fb8647ecb, []int{4}
 }
+
 func (m *MsgUpdateState) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgUpdateState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgUpdateState.Marshal(b, m, deterministic)
@@ -345,12 +368,15 @@ func (m *MsgUpdateState) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
+
 func (m *MsgUpdateState) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgUpdateState.Merge(m, src)
 }
+
 func (m *MsgUpdateState) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgUpdateState) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgUpdateState.DiscardUnknown(m)
 }
@@ -399,8 +425,7 @@ func (m *MsgUpdateState) GetBDs() BlockDescriptors {
 	return BlockDescriptors{}
 }
 
-type MsgUpdateStateResponse struct {
-}
+type MsgUpdateStateResponse struct{}
 
 func (m *MsgUpdateStateResponse) Reset()         { *m = MsgUpdateStateResponse{} }
 func (m *MsgUpdateStateResponse) String() string { return proto.CompactTextString(m) }
@@ -408,9 +433,11 @@ func (*MsgUpdateStateResponse) ProtoMessage()    {}
 func (*MsgUpdateStateResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1a86300fb8647ecb, []int{5}
 }
+
 func (m *MsgUpdateStateResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgUpdateStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgUpdateStateResponse.Marshal(b, m, deterministic)
@@ -423,12 +450,15 @@ func (m *MsgUpdateStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
+
 func (m *MsgUpdateStateResponse) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgUpdateStateResponse.Merge(m, src)
 }
+
 func (m *MsgUpdateStateResponse) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgUpdateStateResponse) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgUpdateStateResponse.DiscardUnknown(m)
 }
@@ -451,9 +481,11 @@ func (*MsgTransferOwnership) ProtoMessage()    {}
 func (*MsgTransferOwnership) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1a86300fb8647ecb, []int{6}
 }
+
 func (m *MsgTransferOwnership) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgTransferOwnership) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgTransferOwnership.Marshal(b, m, deterministic)
@@ -466,12 +498,15 @@ func (m *MsgTransferOwnership) XXX_Marshal(b []byte, deterministic bool) ([]byte
 		return b[:n], nil
 	}
 }
+
 func (m *MsgTransferOwnership) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgTransferOwnership.Merge(m, src)
 }
+
 func (m *MsgTransferOwnership) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgTransferOwnership) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgTransferOwnership.DiscardUnknown(m)
 }
@@ -499,8 +534,7 @@ func (m *MsgTransferOwnership) GetRollappId() string {
 	return ""
 }
 
-type MsgTransferOwnershipResponse struct {
-}
+type MsgTransferOwnershipResponse struct{}
 
 func (m *MsgTransferOwnershipResponse) Reset()         { *m = MsgTransferOwnershipResponse{} }
 func (m *MsgTransferOwnershipResponse) String() string { return proto.CompactTextString(m) }
@@ -508,9 +542,11 @@ func (*MsgTransferOwnershipResponse) ProtoMessage()    {}
 func (*MsgTransferOwnershipResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1a86300fb8647ecb, []int{7}
 }
+
 func (m *MsgTransferOwnershipResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgTransferOwnershipResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgTransferOwnershipResponse.Marshal(b, m, deterministic)
@@ -523,12 +559,15 @@ func (m *MsgTransferOwnershipResponse) XXX_Marshal(b []byte, deterministic bool)
 		return b[:n], nil
 	}
 }
+
 func (m *MsgTransferOwnershipResponse) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgTransferOwnershipResponse.Merge(m, src)
 }
+
 func (m *MsgTransferOwnershipResponse) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgTransferOwnershipResponse) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgTransferOwnershipResponse.DiscardUnknown(m)
 }
@@ -604,8 +643,10 @@ var fileDescriptor_1a86300fb8647ecb = []byte{
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConn
+var (
+	_ context.Context
+	_ grpc.ClientConn
+)
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
@@ -674,18 +715,20 @@ type MsgServer interface {
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
-type UnimplementedMsgServer struct {
-}
+type UnimplementedMsgServer struct{}
 
 func (*UnimplementedMsgServer) CreateRollapp(ctx context.Context, req *MsgCreateRollapp) (*MsgCreateRollappResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateRollapp not implemented")
 }
+
 func (*UnimplementedMsgServer) UpdateRollappInformation(ctx context.Context, req *MsgUpdateRollappInformation) (*MsgUpdateRollappInformationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateRollappInformation not implemented")
 }
+
 func (*UnimplementedMsgServer) UpdateState(ctx context.Context, req *MsgUpdateState) (*MsgUpdateStateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateState not implemented")
 }
+
 func (*UnimplementedMsgServer) TransferOwnership(ctx context.Context, req *MsgTransferOwnership) (*MsgTransferOwnershipResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransferOwnership not implemented")
 }
@@ -1156,6 +1199,7 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+
 func (m *MsgCreateRollapp) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1318,9 +1362,11 @@ func (m *MsgTransferOwnershipResponse) Size() (n int) {
 func sovTx(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
+
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
+
 func (m *MsgCreateRollapp) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1618,6 +1664,7 @@ func (m *MsgCreateRollapp) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgCreateRollappResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1668,6 +1715,7 @@ func (m *MsgCreateRollappResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgUpdateRollappInformation) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1914,6 +1962,7 @@ func (m *MsgUpdateRollappInformation) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgUpdateRollappInformationResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1964,6 +2013,7 @@ func (m *MsgUpdateRollappInformationResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgUpdateState) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2181,6 +2231,7 @@ func (m *MsgUpdateState) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgUpdateStateResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2231,6 +2282,7 @@ func (m *MsgUpdateStateResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgTransferOwnership) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2377,6 +2429,7 @@ func (m *MsgTransferOwnership) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgTransferOwnershipResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2427,6 +2480,7 @@ func (m *MsgTransferOwnershipResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func skipTx(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0

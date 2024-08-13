@@ -39,6 +39,10 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		current.GenesisChecksum = update.GenesisChecksum
 	}
 
+	if update.Bech32Prefix != "" {
+		current.Bech32Prefix = update.Bech32Prefix
+	}
+
 	if update.Metadata != nil && !update.Metadata.IsEmpty() {
 		current.Metadata = update.Metadata
 	}
@@ -106,7 +110,7 @@ func (k Keeper) SealRollapp(ctx sdk.Context, rollappId string) error {
 		return gerrc.ErrNotFound
 	}
 
-	if rollapp.GenesisChecksum == "" || rollapp.InitialSequencer == "" {
+	if !rollapp.AllImmutableFieldsAreSet() {
 		return types.ErrSealWithImmutableFieldsNotSet
 	}
 
