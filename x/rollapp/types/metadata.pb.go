@@ -27,9 +27,9 @@ type RollappMetadata struct {
 	Website string `protobuf:"bytes,1,opt,name=website,proto3" json:"website,omitempty"`
 	// description is the rollapp description. should be limited to 512 chars
 	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	// logo_data_uri is a base64 rep with a URI prefix to the rollapp logo. Should be limited to 25kb.
+	// logo_data_uri is a base64 rep with a URI prefix to the rollapp logo. Size limited
 	LogoDataUri string `protobuf:"bytes,3,opt,name=logo_data_uri,json=logoDataUri,proto3" json:"logo_data_uri,omitempty"`
-	// token_logo_data_uri is a URI to the native token logo. Should be limited to 25kb.
+	// token_logo_data_uri is a URI to the native token logo. Size limited
 	TokenLogoDataUri string `protobuf:"bytes,4,opt,name=token_logo_data_uri,json=tokenLogoDataUri,proto3" json:"token_logo_data_uri,omitempty"`
 	// telegram is the rollapp telegram link
 	Telegram string `protobuf:"bytes,5,opt,name=telegram,proto3" json:"telegram,omitempty"`

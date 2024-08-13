@@ -41,8 +41,6 @@ func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// TODO DymNS: I'm not really familiar with this kind of params update via GOV, so please test with care.
-
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	return NewParams(

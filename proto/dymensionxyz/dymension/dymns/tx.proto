@@ -4,7 +4,9 @@ package dymensionxyz.dymension.dymns;
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
 import "dymensionxyz/dymension/dymns/market.proto";
+import "dymensionxyz/dymension/dymns/params.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 
@@ -48,6 +50,9 @@ service Msg {
     // handles accepting a Buy-Order or raising the amount for negotiation,
     // performed by the owner of the asset.
     rpc AcceptBuyOrder(MsgAcceptBuyOrder) returns (MsgAcceptBuyOrderResponse) {}
+
+    // UpdateParams is used for updating module params.
+    rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
 // MsgRegisterName defines the message used for user to register or extends ownership duration of a Dym-Name.
@@ -282,3 +287,23 @@ message MsgAcceptBuyOrderResponse {
     // accepted is the flag to indicate if the offer is accepted (price matched).
     bool accepted = 1;
 }
+
+// MsgUpdateParams allows to update module params.
+message MsgUpdateParams {
+    option (cosmos.msg.v1.signer) = "authority";
+
+    // authority is the address that controls the module.
+    string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+    // new_price_params is the optional update new price params if provided.
+    PriceParams new_price_params = 2;
+
+    // new_chains_params is the optional update new chains params if provided.
+    // Not recommended, consider using a dedicated gov proposal for this instead of update params by this way.
+    ChainsParams new_chains_params = 3;
+
+    // new_misc_params is the optional update new misc params if provided.
+    MiscParams new_misc_params = 4;
+}
+
+message MsgUpdateParamsResponse {}

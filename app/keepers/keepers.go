@@ -418,6 +418,7 @@ func (a *AppKeepers) InitKeepers(
 		a.GetSubspace(dymnstypes.ModuleName),
 		a.BankKeeper,
 		a.RollappKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// Create Transfer Keepers

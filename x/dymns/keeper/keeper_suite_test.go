@@ -147,6 +147,7 @@ func (s *KeeperTestSuite) SetupTest() {
 			dymNSParamsSubspace,
 			bk,
 			rk,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		)
 
 		ctx = sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())

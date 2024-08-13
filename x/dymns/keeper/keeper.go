@@ -14,6 +14,8 @@ import (
 
 // Keeper of the DymNS store
 type Keeper struct {
+	authority string // authority is the x/gov module account
+
 	cdc           codec.BinaryCodec
 	storeKey      storetypes.StoreKey
 	paramStore    paramtypes.Subspace
@@ -28,12 +30,15 @@ func NewKeeper(
 	ps paramtypes.Subspace,
 	bk dymnstypes.BankKeeper,
 	rk dymnstypes.RollAppKeeper,
+	authority string,
 ) Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
 		ps = ps.WithKeyTable(dymnstypes.ParamKeyTable())
 	}
 	return Keeper{
+		authority: authority,
+
 		cdc:           cdc,
 		storeKey:      key,
 		paramStore:    ps,
