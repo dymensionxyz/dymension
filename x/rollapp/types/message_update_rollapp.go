@@ -1,8 +1,11 @@
 package types
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 const TypeMsgUpdateRollappInformation = "update_rollapp"
@@ -15,6 +18,7 @@ func NewMsgUpdateRollappInformation(
 	initSequencer,
 	genesisChecksum string,
 	metadata *RollappMetadata,
+	bech32Prefix string,
 ) *MsgUpdateRollappInformation {
 	return &MsgUpdateRollappInformation{
 		Owner:            creator,
@@ -22,6 +26,7 @@ func NewMsgUpdateRollappInformation(
 		InitialSequencer: initSequencer,
 		GenesisChecksum:  genesisChecksum,
 		Metadata:         metadata,
+		Bech32Prefix:     bech32Prefix,
 	}
 }
 
@@ -58,6 +63,12 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 		return ErrInvalidGenesisChecksum
 	}
 
+	if msg.Bech32Prefix != "" {
+		if err := validateBech32Prefix(msg.Bech32Prefix); err != nil {
+			return errorsmod.Wrap(errors.Join(err, gerrc.ErrInvalidArgument), "bech32 prefix")
+		}
+	}
+
 	if err := validateMetadata(msg.Metadata); err != nil {
 		return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
 	}
@@ -66,5 +77,5 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 }
 
 func (msg *MsgUpdateRollappInformation) UpdatingImmutableValues() bool {
-	return msg.InitialSequencer != "" || msg.GenesisChecksum != ""
+	return msg.InitialSequencer != "" || msg.GenesisChecksum != "" || msg.Bech32Prefix != ""
 }
