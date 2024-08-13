@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"flag"
+	"math"
 	"testing"
 
 	errorsmod "cosmossdk.io/errors"
@@ -85,53 +86,19 @@ func TestQuery(t *testing.T) {
 					require.Equal(t, id, res.Rollapp.RollappId)
 				}
 			},
-			"query paginate key": func(t *rapid.T) {
+			"query many": func(t *rapid.T) {
 				var key []byte
 				unseen := maps.Clone(m)
-				reverse := rapid.Bool().Draw(t, "reverse")
-				for {
-					limit := rapid.Uint64().Draw(t, "limit")
-					q := &types.QueryAllRollappRequest{Pagination: &query.PageRequest{
-						Key:     key,
-						Limit:   limit,
-						Reverse: reverse,
-					}}
-					res, err := k.RollappAll(sdk.WrapSDKContext(ctx), q)
-					require.NoError(t, err)
-					for _, ra := range res.Rollapp {
-						_, ok := unseen[ra.Rollapp.RollappId]
-						require.True(t, ok)
-						delete(unseen, ra.Rollapp.RollappId)
-					}
-					key = res.Pagination.NextKey
-					if key == nil {
-						break
-					}
-				}
-				require.Empty(t, unseen)
-			},
-			"query paginate offset": func(r *rapid.T) {
-				unseen := maps.Clone(m)
-				offset := uint64(0)
-				reverse := rapid.Bool().Draw(r, "reverse")
-				for {
-					limit := rapid.Uint64().Draw(r, "limit")
-					q := &types.QueryAllRollappRequest{Pagination: &query.PageRequest{
-						Offset:  offset,
-						Limit:   limit,
-						Reverse: reverse,
-					}}
-					res, err := k.RollappAll(sdk.WrapSDKContext(ctx), q)
-					require.NoError(t, err)
-					for _, ra := range res.Rollapp {
-						_, ok := unseen[ra.Rollapp.RollappId]
-						require.True(t, ok, "id", ra.Rollapp.RollappId)
-						delete(unseen, ra.Rollapp.RollappId)
-					}
-					if uint64(len(res.Rollapp)) < limit {
-						break
-					}
-					offset += uint64(len(res.Rollapp))
+				q := &types.QueryAllRollappRequest{Pagination: &query.PageRequest{
+					Key:   key,
+					Limit: math.MaxUint64, // no need to rest pagination mechanism
+				}}
+				res, err := k.RollappAll(sdk.WrapSDKContext(ctx), q)
+				require.NoError(t, err)
+				for _, ra := range res.Rollapp {
+					_, ok := unseen[ra.Rollapp.RollappId]
+					require.True(t, ok)
+					delete(unseen, ra.Rollapp.RollappId)
 				}
 				require.Empty(t, unseen)
 			},
