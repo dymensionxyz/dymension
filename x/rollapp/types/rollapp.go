@@ -10,6 +10,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
@@ -70,7 +71,7 @@ func (r Rollapp) ValidateBasic() error {
 
 	if r.Sealed || r.Bech32Prefix != "" {
 		if err = validateBech32Prefix(r.Bech32Prefix); err != nil {
-			return errorsmod.Wrap(ErrInvalidBech32Prefix, err.Error())
+			return gerrc.ErrInvalidArgument.Wrap("bech32")
 		}
 	}
 
@@ -118,16 +119,16 @@ func validateInitialSequencer(initialSequencer string) error {
 func validateBech32Prefix(prefix string) error {
 	bechAddr, err := sdk.Bech32ifyAddressBytes(prefix, sample.Acc())
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "bech32ify addr bytes")
 	}
 
 	bAddr, err := sdk.GetFromBech32(bechAddr, prefix)
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "get from bech 32")
 	}
 
 	if err = sdk.VerifyAddressFormat(bAddr); err != nil {
-		return err
+		return errorsmod.Wrap(err, "verify addr format")
 	}
 	return nil
 }
