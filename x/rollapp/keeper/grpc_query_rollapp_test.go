@@ -9,7 +9,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/exp/slices"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"pgregory.net/rapid"
@@ -22,11 +24,60 @@ import (
 func TestQuery(t *testing.T) {
 	flag.Set("rapid.checks", "50")
 	flag.Set("rapid.steps", "50")
-	rapid.Check(t, func(t *rapid.T) {
-		t.Repeat(map[string]func(*rapid.T){
-			"": func(t *rapid.T) {
+	rapid.Check(t, func(r *rapid.T) {
+		k, ctx := keepertest.RollappKeeper(t)
+		ids := rapid.SampledFrom([]string{
+			urand.RollappID(),
+			urand.RollappID(),
+			urand.RollappID(),
+			urand.RollappID(),
+			urand.RollappID(),
+		})
+		m := map[string]types.Rollapp{}
+		r.Repeat(map[string]func(*rapid.T){
+			"": func(r *rapid.T) {
 			},
-			"foo": func(t *rapid.T) {
+			"put": func(r *rapid.T) {
+				ra := types.Rollapp{RollappId: ids.Draw(r, "id")}
+				m[ra.RollappId] = ra
+				k.SetRollapp(ctx, ra)
+			},
+			"del": func(r *rapid.T) {
+				id := ids.Draw(r, "id")
+				delete(m, id)
+				k.RemoveRollapp(ctx, id)
+			},
+			"get one": func(r *rapid.T) {
+				id := ids.Draw(r, "id")
+				ra, ok := k.GetRollapp(ctx, id)
+				_, okM := m[ra.RollappId]
+				require.Equal(r, okM, ok)
+				if okM {
+					require.Equal(r, ra.RollappId, id)
+				}
+			},
+			"get all": func(r *rapid.T) {
+				got := k.GetAllRollapps(ctx)
+
+				for _, ra := range got {
+					_, ok := m[ra.RollappId]
+					require.True(t, ok)
+				}
+				for _, ra := range m {
+					require.True(t, slices.ContainsFunc(got, func(raGot types.Rollapp) bool {
+						return raGot.RollappId == ra.RollappId
+					}))
+				}
+			},
+			"get one by name": func(r *rapid.T) {
+				id := ids.Draw(r, "id")
+				cid, _ := types.NewChainID(id)
+				ra, ok := k.GetRollappByName(ctx, cid.GetName())
+				_, okM := m[ra.RollappId]
+				require.Equal(r, okM, ok)
+				if okM {
+					require.Equal(r, ra.RollappId, id)
+				}
 			},
 		})
 	})
