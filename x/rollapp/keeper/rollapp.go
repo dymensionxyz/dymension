@@ -39,6 +39,10 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		current.GenesisChecksum = update.GenesisChecksum
 	}
 
+	if update.Bech32Prefix != "" {
+		current.Bech32Prefix = update.Bech32Prefix
+	}
+
 	if update.Metadata != nil && !update.Metadata.IsEmpty() {
 		current.Metadata = update.Metadata
 	}
@@ -106,8 +110,8 @@ func (k Keeper) SealRollapp(ctx sdk.Context, rollappId string) error {
 		return gerrc.ErrNotFound
 	}
 
-	if rollapp.GenesisChecksum == "" || rollapp.InitialSequencer == "" {
-		return types.ErrSealWithImmutableFieldsNotSet
+	if !rollapp.AllImmutableFieldsAreSet() {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "seal with immutable fields not set")
 	}
 
 	rollapp.Sealed = true
@@ -204,9 +208,4 @@ func (k Keeper) GetAllRollapps(ctx sdk.Context) (list []types.Rollapp) {
 func (k Keeper) IsRollappStarted(ctx sdk.Context, rollappId string) bool {
 	_, found := k.GetLatestStateInfoIndex(ctx, rollappId)
 	return found
-}
-
-func (k Keeper) IsRollappSealed(ctx sdk.Context, rollappId string) bool {
-	rollapp, found := k.GetRollapp(ctx, rollappId)
-	return found && rollapp.Sealed
 }

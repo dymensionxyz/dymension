@@ -35,8 +35,6 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 		Creator:          alice,
 		RollappId:        "rollapp_1234-1",
 		InitialSequencer: sample.AccAddress(),
-		Bech32Prefix:     "rol",
-		GenesisChecksum:  "checksum",
 		Alias:            "rollapp",
 		VmType:           types.Rollapp_EVM,
 	}
