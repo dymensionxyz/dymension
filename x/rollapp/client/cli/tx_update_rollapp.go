@@ -12,7 +12,7 @@ import (
 
 func CmdUpdateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "update-rollapp [rollapp-id] [init-sequencer] [genesis_checksum] [metadata] [bech32-prefix]",
+		Use:     "update-rollapp [rollapp-id] [init-sequencer] [genesis_checksum] [bech32-prefix] [metadata] ",
 		Short:   "Update a new rollapp",
 		Example: "dymd tx rollapp update-rollapp ROLLAPP_CHAIN_ID --init-sequencer '<seq_address1>,<seq_address2>' --genesis-checksum <genesis_checksum> --metadata metadata.json",
 		Args:    cobra.MinimumNArgs(1),
