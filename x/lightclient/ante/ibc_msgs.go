@@ -5,27 +5,25 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
 
 var _ sdk.AnteDecorator = IBCMessagesDecorator{}
 
-type RollappKeeperExpected interface {
-	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
-	FindStateInfoByHeight(ctx sdk.Context, rollappId string, height uint64) (rollapptypes.StateInfo, error)
-}
-
 type IBCMessagesDecorator struct {
 	ibcKeeper         ibckeeper.Keeper
-	rollappKeeper     RollappKeeperExpected
+	rollappKeeper     types.RollappKeeperExpected
 	lightClientKeeper keeper.Keeper
 }
 
-func NewIBCMessagesDecorator() IBCMessagesDecorator {
-	return IBCMessagesDecorator{}
+func NewIBCMessagesDecorator(k keeper.Keeper, ibcK ibckeeper.Keeper, rk types.RollappKeeperExpected) IBCMessagesDecorator {
+	return IBCMessagesDecorator{
+		ibcKeeper:         ibcK,
+		rollappKeeper:     rk,
+		lightClientKeeper: k,
+	}
 }
 
-// AnteHandle implements types.AnteDecorator.
 func (i IBCMessagesDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	msgs := tx.GetMsgs()
 	for _, m := range msgs {

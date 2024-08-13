@@ -1,12 +1,11 @@
 package ante
 
 import (
-	"bytes"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
 
 func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibcclienttypes.MsgCreateClient) {
@@ -17,13 +16,13 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 	}
 	// Only tendermint client types can be set as canonical light client
 	if clientState.ClientType() == exported.Tendermint {
-		// Cast client state to tendermint client state - we need this to check the chain id and latest height
-		tendmermintClientState, ok := clientState.(*ibctm.ClientState)
+		// Cast client state to tendermint client state - we need this to get the chain id and state height
+		tmClientState, ok := clientState.(*ibctm.ClientState)
 		if !ok {
 			return
 		}
 		// Check if rollapp exists for given chain id
-		rollappID := tendmermintClientState.ChainId
+		rollappID := tmClientState.ChainId
 		_, found := i.rollappKeeper.GetRollapp(ctx, rollappID)
 		if !found {
 			return
@@ -34,7 +33,7 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 			return
 		}
 		// Check if there are existing block descriptors for the given height of client state
-		height := tendmermintClientState.GetLatestHeight()
+		height := tmClientState.GetLatestHeight()
 		stateInfo, err := i.rollappKeeper.FindStateInfoByHeight(ctx, rollappID, height.GetRevisionHeight())
 		if err != nil {
 			return
@@ -45,27 +44,16 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 		if err != nil {
 			return
 		}
-		// Cast consensus state to tendermint consensus state - we need this to check the state root and timestamp
-		tendermintConsensusState, ok := consensusState.(*ibctm.ConsensusState)
+		// Cast consensus state to tendermint consensus state - we need this to get the state root and timestamp and nextValHash
+		tmConsensusState, ok := consensusState.(*ibctm.ConsensusState)
 		if !ok {
 			return
 		}
-		// Check if block descriptor state root matches tendermint consensus state root
-		if bytes.Equal(blockDescriptor.StateRoot, tendermintConsensusState.GetRoot().GetHash()) {
-			return
+		// Check if the consensus state is compatible with the block descriptor state
+		err = types.StateCompatible(*tmConsensusState, blockDescriptor)
+		if err != nil {
+			return // In case of incompatibility, the client will be created but not set as canonical
 		}
-		// Check if block descriptor timestamp matches tendermint consensus state timestamp
-		// TODO: Add this field to BD struct
-		// if blockDescriptor.Timestamp != tendermintConsensusState.GetTimestamp() {
-		// 	return
-		// }
-
-		// Check if the validator set hash matches the sequencer
-		// if len(tendermintConsensusState.GetNextValidators().Validators) == 1 && tendermintConsensusState.GetNextValidators().Validators[0].Address {
-		// 	return
-		// }
-
-		// Check if the nextValidatorHash matches the sequencer for h+1
 
 		// Generate client id and begin canonical light client registration by storing it in transient store.
 		// Will be confirmed after the client is created in post handler.

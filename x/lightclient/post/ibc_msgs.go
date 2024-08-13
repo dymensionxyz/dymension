@@ -18,7 +18,6 @@ func NewIBCMessagesDecorator() IBCMessagesDecorator {
 	return IBCMessagesDecorator{}
 }
 
-// PostHandle implements types.PostDecorator.
 func (i IBCMessagesDecorator) PostHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, success bool, next sdk.PostHandler) (newCtx sdk.Context, err error) {
 	msgs := tx.GetMsgs()
 	for _, m := range msgs {

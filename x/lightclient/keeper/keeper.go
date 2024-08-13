@@ -8,23 +8,30 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
 
 type Keeper struct {
-	cdc      codec.BinaryCodec
-	storeKey storetypes.StoreKey
+	cdc             codec.BinaryCodec
+	storeKey        storetypes.StoreKey
+	ibcKeeper       ibckeeper.Keeper
+	sequencerKeeper types.SequencerKeeperExpected
 }
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
+	ibcKeeper ibckeeper.Keeper,
+	sequencerKeeper types.SequencerKeeperExpected,
 ) *Keeper {
 
 	k := &Keeper{
-		cdc:      cdc,
-		storeKey: storeKey,
+		cdc:             cdc,
+		storeKey:        storeKey,
+		ibcKeeper:       ibcKeeper,
+		sequencerKeeper: sequencerKeeper,
 	}
 	return k
 }
@@ -64,4 +71,18 @@ func (k Keeper) GetCanonicalLightClientRegistration(ctx sdk.Context, rollappId s
 func (k Keeper) ClearCanonicalLightClientRegistration(ctx sdk.Context, rollappId string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.CanonicalLightClientRegistrationKey(rollappId))
+}
+
+func (k Keeper) SetConsensusStateSigner(ctx sdk.Context, clientID string, height uint64, sequencer string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.ConsensusStateSignerKeyByClientID(clientID, height), []byte(sequencer))
+}
+
+func (k Keeper) GetConsensusStateSigner(ctx sdk.Context, clientID string, height uint64) (string, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ConsensusStateSignerKeyByClientID(clientID, height))
+	if bz == nil {
+		return "", false
+	}
+	return string(bz), true
 }

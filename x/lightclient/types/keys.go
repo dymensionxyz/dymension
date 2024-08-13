@@ -1,5 +1,9 @@
 package types
 
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
 const (
 	// ModuleName defines the module name
 	ModuleName = "lightclient"
@@ -16,7 +20,8 @@ const (
 
 // KV Store
 var (
-	RollappClientKey = []byte{0x01}
+	RollappClientKey        = []byte{0x01}
+	ConsensusStateSignerKey = []byte{0x03}
 )
 
 // Transient Store
@@ -30,4 +35,9 @@ func CanonicalClientKey(rollappId string) []byte {
 
 func CanonicalLightClientRegistrationKey(rollappId string) []byte {
 	return append(LightClientRegistrationKey, []byte(rollappId)...)
+}
+
+func ConsensusStateSignerKeyByClientID(clientID string, height uint64) []byte {
+	prefix := append([]byte(clientID), sdk.Uint64ToBigEndian(height)...)
+	return append(ConsensusStateSignerKey, prefix...)
 }

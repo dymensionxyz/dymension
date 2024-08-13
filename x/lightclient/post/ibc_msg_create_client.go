@@ -7,23 +7,29 @@ import (
 )
 
 func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibcclienttypes.MsgCreateClient, success bool) {
+	clientState, err := ibcclienttypes.UnpackClientState(msg.ClientState)
+	if err != nil {
+		return
+	}
+	// Parse client state to tendermint client state to get the chain id
+	tmClientState, ok := clientState.(*ibctm.ClientState)
+	if !ok {
+		return
+	}
+	rollappID := tmClientState.ChainId
+	// If tx failed, no need to proceed with canonical client registration
 	if success {
-		clientState, err := ibcclienttypes.UnpackClientState(msg.ClientState)
-		if err != nil {
-			return
-		}
-		tendmermintClientState, ok := clientState.(*ibctm.ClientState)
-		if !ok {
-			return
-		}
-		rollappID := tendmermintClientState.ChainId
-		nextClientID, registrationFound := i.lightClientKeeper.GetCanonicalClient(ctx, rollappID)
+		// Check if a client registration is in progress
+		nextClientID, registrationFound := i.lightClientKeeper.GetCanonicalLightClientRegistration(ctx, rollappID)
 		if registrationFound {
+			// Check if the client was successfully created with given clientID
 			_, clientFound := i.ibcKeeper.ClientKeeper.GetClientState(ctx, nextClientID)
 			if clientFound {
+				// Set the client as the canonical client for the rollapp
 				i.lightClientKeeper.SetCanonicalClient(ctx, rollappID, nextClientID)
 			}
-			i.lightClientKeeper.ClearCanonicalLightClientRegistration(ctx, rollappID)
+
 		}
 	}
+	i.lightClientKeeper.ClearCanonicalLightClientRegistration(ctx, rollappID)
 }
