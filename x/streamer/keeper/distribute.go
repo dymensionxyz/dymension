@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
@@ -11,8 +12,6 @@ import (
 
 // DistributeByWeights allocates and distributes coin according a gauge’s proportional weight that is recorded in the record.
 func (k Keeper) DistributeByWeights(ctx sdk.Context, coins sdk.Coins, distrInfo *types.DistrInfo) (sdk.Coins, error) {
-	logger := k.Logger(ctx)
-
 	if coins.Empty() {
 		return coins, fmt.Errorf("coins to allocate cannot be empty")
 	}
@@ -23,37 +22,49 @@ func (k Keeper) DistributeByWeights(ctx sdk.Context, coins sdk.Coins, distrInfo 
 
 	totalDistrCoins := sdk.NewCoins()
 	totalWeightDec := sdk.NewDecFromInt(distrInfo.TotalWeight)
+	for _, record := range distrInfo.Records {
+		allocatedCoins, err := k.DistributeToGauge(ctx, coins, record, totalWeightDec)
+		if err != nil {
+			return sdk.Coins{}, fmt.Errorf("distribute to gauge %d: %w", record.GaugeId, err)
+		}
+		totalDistrCoins = totalDistrCoins.Add(allocatedCoins...)
+	}
+
+	return totalDistrCoins, nil
+}
+
+func (k Keeper) DistributeToGauge(ctx sdk.Context, coins sdk.Coins, record types.DistrRecord, totalWeight math.LegacyDec) (sdk.Coins, error) {
+	totalAllocated := sdk.NewCoins()
 	for _, coin := range coins {
 		if coin.IsZero() {
 			continue
 		}
-		assetAmountDec := sdk.NewDecFromInt(coin.Amount)
-		for _, record := range distrInfo.Records {
-			allocatingAmount := assetAmountDec.Mul(sdk.NewDecFromInt(record.Weight).Quo(totalWeightDec)).TruncateInt()
 
-			// when weight is too small and no amount is allocated, just skip this to avoid zero coin send issues
-			if !allocatingAmount.IsPositive() {
-				logger.Info(fmt.Sprintf("allocating amount for (%d, %s) record is not positive", record.GaugeId, record.Weight.String()))
-				continue
-			}
+		assetAmount := sdk.NewDecFromInt(coin.Amount)
+		weightDec := sdk.NewDecFromInt(record.Weight)
+		allocatingAmount := assetAmount.Mul(weightDec.Quo(totalWeight)).TruncateInt()
 
-			_, err := k.ik.GetGaugeByID(ctx, record.GaugeId)
-			if err != nil {
-				logger.Error(fmt.Sprintf("failed to get gauge %d", record.GaugeId), "error", err.Error())
-				continue
-			}
-
-			allocatedCoin := sdk.Coin{Denom: coin.Denom, Amount: allocatingAmount}
-			err = k.ik.AddToGaugeRewards(ctx, k.ak.GetModuleAddress(types.ModuleName), sdk.NewCoins(allocatedCoin), record.GaugeId)
-			if err != nil {
-				logger.Error("failed to add to gauge rewards", "error", err.Error())
-				continue
-			}
-			totalDistrCoins = totalDistrCoins.Add(allocatedCoin)
+		// when weight is too small and no amount is allocated, just skip this to avoid zero coin send issues
+		if !allocatingAmount.IsPositive() {
+			k.Logger(ctx).Info(fmt.Sprintf("allocating amount for (%d, %s) record is not positive", record.GaugeId, record.Weight.String()))
+			continue
 		}
+
+		_, err := k.ik.GetGaugeByID(ctx, record.GaugeId)
+		if err != nil {
+			return sdk.Coins{}, fmt.Errorf("get gauge %d: %w", record.GaugeId, err)
+		}
+
+		allocatedCoin := sdk.Coin{Denom: coin.Denom, Amount: allocatingAmount}
+		err = k.ik.AddToGaugeRewards(ctx, k.ak.GetModuleAddress(types.ModuleName), sdk.NewCoins(allocatedCoin), record.GaugeId)
+		if err != nil {
+			return sdk.Coins{}, fmt.Errorf("add rewards to gauge %d: %w", record.GaugeId, err)
+		}
+
+		totalAllocated = totalAllocated.Add(allocatedCoin)
 	}
 
-	return totalDistrCoins, nil
+	return totalAllocated, nil
 }
 
 // Distribute distributes coins from an array of streams to all eligible locks.
@@ -81,16 +92,9 @@ func (k Keeper) Distribute(ctx sdk.Context, streams []types.Stream) (sdk.Coins, 
 // distributeStream runs the distribution logic for a stream, and adds the sends to
 // the distrInfo struct. It also updates the stream for the distribution.
 func (k Keeper) distributeStream(ctx sdk.Context, stream types.Stream) (sdk.Coins, error) {
-	totalDistrCoins := sdk.NewCoins()
 	remainCoins := stream.Coins.Sub(stream.DistributedCoins...)
 	remainEpochs := stream.NumEpochsPaidOver - stream.FilledEpochs
-
-	for _, coin := range remainCoins {
-		epochAmt := coin.Amount.Quo(sdk.NewInt(int64(remainEpochs)))
-		if epochAmt.IsPositive() {
-			totalDistrCoins = totalDistrCoins.Add(sdk.Coin{Denom: coin.Denom, Amount: epochAmt})
-		}
-	}
+	epochCoins := remainCoins.QuoInt(math.NewIntFromUint64(remainEpochs))
 
 	// If the stream uses a sponsorship plan, query it and update stream distr info. The distribution
 	// might be empty and this is a valid scenario. In that case, we'll just skip at without
@@ -105,12 +109,12 @@ func (k Keeper) distributeStream(ctx sdk.Context, stream types.Stream) (sdk.Coin
 		stream.DistributeTo = info
 	}
 
-	totalDistrCoins, err := k.DistributeByWeights(ctx, totalDistrCoins, stream.DistributeTo)
+	distributedCoins, err := k.DistributeByWeights(ctx, epochCoins, stream.DistributeTo)
 	if err != nil {
 		return nil, err
 	}
 
-	err = k.updateStreamPostDistribute(ctx, stream, totalDistrCoins)
+	err = k.updateStreamPostDistribute(ctx, stream, distributedCoins)
 	if err != nil {
 		return nil, err
 	}
@@ -119,10 +123,11 @@ func (k Keeper) distributeStream(ctx sdk.Context, stream types.Stream) (sdk.Coin
 		sdk.NewEvent(
 			types.TypeEvtDistribution,
 			sdk.NewAttribute(types.AttributeStreamID, osmoutils.Uint64ToString(stream.Id)),
-			sdk.NewAttribute(types.AttributeAmount, totalDistrCoins.String()),
+			sdk.NewAttribute(types.AttributeAmount, distributedCoins.String()),
 		),
 	})
-	return totalDistrCoins, nil
+
+	return distributedCoins, nil
 }
 
 // updateStreamPostDistribute increments the stream's filled epochs field.
