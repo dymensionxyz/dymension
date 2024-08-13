@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
@@ -141,7 +142,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				Alias:            "Rollapp",
 				VmType:           Rollapp_EVM,
 			},
-			err: ErrInvalidBech32Prefix,
+			err: gerrc.ErrInvalidArgument,
 		},
 		{
 			name: "invalid metadata: invalid logo data uri",

@@ -61,6 +61,8 @@ message MsgUpdateRollappInformation {
   string genesis_checksum = 4;
   // metadata is the rollapp metadata
   RollappMetadata metadata = 5 [(gogoproto.nullable) = true ];
+  // the unique rollapp address bech32 prefix.
+  string bech32_prefix = 6;
 }
 
 message MsgUpdateRollappInformationResponse {
