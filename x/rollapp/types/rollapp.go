@@ -42,7 +42,7 @@ const (
 	maxDescriptionLength     = 512
 	maxURLLength             = 256
 	maxGenesisChecksumLength = 64
-	maxDataURILength         = 25 * 1024 // 25KB
+	maxDataURILength         = 40 * 1024 // 25KB
 	dataURIPattern           = `^data:(?P<mimeType>[\w/]+);base64,(?P<data>[A-Za-z0-9+/=]+)$`
 )
 
