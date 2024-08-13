@@ -69,7 +69,7 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
 	}
 
-	if r.Sealed || r.Bech32Prefix != "" {
+	if r.Bech32Prefix != "" {
 		if err = validateBech32Prefix(r.Bech32Prefix); err != nil {
 			return gerrc.ErrInvalidArgument.Wrap("bech32")
 		}
