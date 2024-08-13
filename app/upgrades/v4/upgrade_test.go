@@ -214,6 +214,13 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 
 		s.Require().JSONEq(string(seq), string(nSeq))
 	}
+
+	// check proposer
+	for _, rollapp := range s.App.RollappKeeper.GetAllRollapps(s.Ctx) {
+		_, found := s.App.SequencerKeeper.GetProposer(s.Ctx, rollapp.RollappId)
+		s.Assert().True(found)
+	}
+
 	return nil
 }
 
@@ -265,7 +272,7 @@ func (s *UpgradeTestSuite) seedSequencers(numRollapps int) []sequencertypes.Sequ
 				},
 				Status:   sequencertypes.Bonded,
 				Tokens:   sdk.NewCoins(sdk.NewInt64Coin("dym", 100)),
-				Proposer: j == 0, //first sequencer is proposer
+				Proposer: j == 0, // first sequencer is proposer
 			}
 			sequencers = append(sequencers, sequencer)
 		}
