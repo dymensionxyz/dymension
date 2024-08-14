@@ -76,5 +76,7 @@ message RollappSummary {
   StateInfoIndex latestStateIndex = 2;
   // Defines the index of the last rollapp UpdateState that was finalized.
   StateInfoIndex latestFinalizedStateIndex = 3;
+  uint64 latestHeight = 4; // TODO:
+  uint64 latestFinalizedHeight = 5; // TODO:
 }
 
