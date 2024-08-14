@@ -41,7 +41,9 @@ func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.
 }
 
 // IsRotating returns true if the rollapp is currently in the process of rotation.
-// A process of rotation is defined by the time between when the proposer notice period is over till the proposer sends his last batch.
+// A process of rotation is defined by the existence of a next proposer. The next proposer can also be a "dummy" sequencer (i.e empty) in case no sequencer came. This is still considered rotation
+// as the sequencer is rotating to an empty one (i.e gracefully leaving the rollapp).
+// The next proposer can only be set after the notice period is over. The rotation period is over after the proposer sends his last batch.
 func (k Keeper) IsRotating(ctx sdk.Context, rollappId string) bool {
 	return k.isNextProposerSet(ctx, rollappId)
 }
