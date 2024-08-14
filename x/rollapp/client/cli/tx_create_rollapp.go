@@ -14,9 +14,9 @@ import (
 
 func CmdCreateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "create-rollapp [rollapp-id] [alias] [vm-type] [init-sequencer-address] [metadata] [bech32-prefix] [genesis_checksum]",
+		Use:     "create-rollapp [rollapp-id] [alias] [vm-type]",
 		Short:   "Create a new rollapp",
-		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID Rollapp EVM '<seq_address1>,<seq_address2>' metadata.json ethm <genesis_checksum>",
+		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID --init-sequencer '<seq_address1>,<seq_address2>' --genesis-checksum <genesis_checksum> --metadata metadata.json",
 		Args:    cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// nolint:gofumpt
@@ -27,24 +27,31 @@ func CmdCreateRollapp() *cobra.Command {
 				return types.ErrInvalidVMType
 			}
 
-			var genesisChecksum, argInitSequencerAddress, argBech32Prefix string
-			if len(args) > 3 {
-				argInitSequencerAddress = args[3]
+			initSequencer, err := cmd.Flags().GetString(FlagInitSequencer)
+			if err != nil {
+				return err
+			}
+
+			genesisChecksum, err := cmd.Flags().GetString(FlagGenesisChecksum)
+			if err != nil {
+				return err
+			}
+
+			bech32Prefix, err := cmd.Flags().GetString(FlagBech32Prefix)
+			if err != nil {
+				return err
+			}
+
+			metadataFlag, err := cmd.Flags().GetString(FlagMetadata)
+			if err != nil {
+				return err
 			}
 
 			metadata := new(types.RollappMetadata)
-			if len(args) > 4 {
-				if err := utils.ParseJsonFromFile(args[4], metadata); err != nil {
+			if metadataFlag != "" {
+				if err = utils.ParseJsonFromFile(metadataFlag, metadata); err != nil {
 					return err
 				}
-			}
-
-			if len(args) > 5 {
-				argBech32Prefix = args[5]
-			}
-
-			if len(args) > 6 {
-				genesisChecksum = args[6]
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -55,8 +62,8 @@ func CmdCreateRollapp() *cobra.Command {
 			msg := types.NewMsgCreateRollapp(
 				clientCtx.GetFromAddress().String(),
 				argRollappId,
-				argInitSequencerAddress,
-				argBech32Prefix,
+				initSequencer,
+				bech32Prefix,
 				genesisChecksum,
 				alias,
 				types.Rollapp_VMType(vmType),
@@ -67,7 +74,7 @@ func CmdCreateRollapp() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FlagSetCreateRollapp())
+	cmd.Flags().AddFlagSet(FlagSetUpdateRollapp())
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
