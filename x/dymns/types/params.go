@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -397,39 +398,44 @@ func validateChainsParams(i interface{}) error {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid parameter type: %T", i)
 	}
 
+	if err := validateAliasesOfChainIds(m.AliasesOfChainIds); err != nil {
+		return errorsmod.Wrapf(errors.Join(gerrc.ErrInvalidArgument, err), "alias of chain-id")
+	}
+
+	return nil
+}
+
+func validateAliasesOfChainIds(aliasesOfChainIds []AliasesOfChainId) error {
 	uniqueChainIdAliasAmongAliasConfig := make(map[string]bool)
 	// Describe usage of Go Map: only used for validation
-	for _, record := range m.AliasesOfChainIds {
+	for _, record := range aliasesOfChainIds {
 		chainID := record.ChainId
 		aliases := record.Aliases
 		if len(chainID) < 3 {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "alias: chain ID must be at least 3 characters: %s", chainID)
+			return fmt.Errorf("chain ID must be at least 3 characters: %s", chainID)
 		}
 
 		if !dymnsutils.IsValidChainIdFormat(chainID) {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "alias: chain ID is not well-formed: %s", chainID)
+			return fmt.Errorf("chain ID is not well-formed: %s", chainID)
 		}
 
 		if _, ok := uniqueChainIdAliasAmongAliasConfig[chainID]; ok {
-			return errorsmod.Wrapf(
-				gerrc.ErrInvalidArgument,
-				"alias: chain ID and alias must unique among all, found duplicated: %s", chainID,
+			return fmt.Errorf(
+				"chain ID and alias must unique among all, found duplicated: %s", chainID,
 			)
 		}
 		uniqueChainIdAliasAmongAliasConfig[chainID] = true
 
 		for _, alias := range aliases {
 			if !dymnsutils.IsValidAlias(alias) {
-				return errorsmod.Wrapf(
-					gerrc.ErrInvalidArgument,
+				return fmt.Errorf(
 					"alias is not well-formed: %s", alias,
 				)
 			}
 
 			if _, ok := uniqueChainIdAliasAmongAliasConfig[alias]; ok {
-				return errorsmod.Wrapf(
-					gerrc.ErrInvalidArgument,
-					"alias: chain ID and alias must unique among all, found duplicated: %s", alias,
+				return fmt.Errorf(
+					"chain ID and alias must unique among all, found duplicated: %s", alias,
 				)
 			}
 			uniqueChainIdAliasAmongAliasConfig[alias] = true

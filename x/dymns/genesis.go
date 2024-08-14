@@ -22,6 +22,11 @@ func InitGenesis(ctx sdk.Context, k dymnskeeper.Keeper, genState dymnstypes.Gene
 	for _, offer := range genState.BuyOrders {
 		mustNoError(k.GenesisRefundBuyOrder(ctx, offer))
 	}
+	for _, aliasesOfRollApp := range genState.AliasesOfRollapps {
+		for _, alias := range aliasesOfRollApp.Aliases {
+			mustNoError(k.SetAliasForRollAppId(ctx, aliasesOfRollApp.ChainId, alias))
+		}
+	}
 }
 
 // mustNoError is used when an action, which returns an error, must be run successfully without error.
@@ -75,10 +80,14 @@ func ExportGenesis(ctx sdk.Context, k dymnskeeper.Keeper) *dymnstypes.GenesisSta
 		nonRefundedBuyOrders = append(nonRefundedBuyOrders, truncatedOffer)
 	}
 
+	// Collect aliases of RollApps so that we can add back later.
+	aliasesOfRollApps := k.GetAllRollAppsWithAliases(ctx)
+
 	return &dymnstypes.GenesisState{
-		Params:        params,
-		DymNames:      nonExpiredDymNameAndWithinGracePeriod,
-		SellOrderBids: nonRefundedBids,
-		BuyOrders:     nonRefundedBuyOrders,
+		Params:            params,
+		DymNames:          nonExpiredDymNameAndWithinGracePeriod,
+		SellOrderBids:     nonRefundedBids,
+		BuyOrders:         nonRefundedBuyOrders,
+		AliasesOfRollapps: aliasesOfRollApps,
 	}
 }

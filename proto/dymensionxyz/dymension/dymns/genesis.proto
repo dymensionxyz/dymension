@@ -23,4 +23,10 @@ message GenesisState {
   // buy_orders are records which used to refund the bid amount to the bidder
   // of the Buy-Order which was not finished during genesis export
   repeated BuyOrder buy_orders = 4 [(gogoproto.nullable) = false];
+
+  // aliases_of_rollapps defines all the aliases of all RollApps.
+  repeated AliasesOfChainId aliases_of_rollapps = 5 [
+    (gogoproto.moretags) = "yaml:\"aliases_of_rollapps\"",
+    (gogoproto.nullable) = false
+  ];
 }

@@ -74,6 +74,12 @@ func TestGenesisState_Validate(t *testing.T) {
 					},
 				},
 			},
+			AliasesOfRollapps: []AliasesOfChainId{
+				{
+					ChainId: "rollapp_1-1",
+					Aliases: []string{"alias"},
+				},
+			},
 		}).Validate())
 	})
 
@@ -126,6 +132,15 @@ func TestGenesisState_Validate(t *testing.T) {
 				{
 					Buyer: "",
 				},
+			},
+		}).Validate())
+	})
+
+	t.Run("fail - invalid aliases of RollApps", func(t *testing.T) {
+		require.Error(t, (GenesisState{
+			Params: DefaultParams(),
+			AliasesOfRollapps: []AliasesOfChainId{
+				{},
 			},
 		}).Validate())
 	})

@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
@@ -20,11 +22,17 @@ import (
 func TestExportThenInitGenesis(t *testing.T) {
 	now := time.Now().UTC()
 
-	oldKeeper, _, _, oldCtx := testkeeper.DymNSKeeper(t)
+	oldKeeper, _, oldRollAppKeeper, oldCtx := testkeeper.DymNSKeeper(t)
 	oldCtx = oldCtx.WithBlockTime(now)
 	moduleParams := oldKeeper.GetParams(oldCtx)
 	moduleParams.Misc.GracePeriodDuration = 30 * 24 * time.Hour
 	require.NoError(t, oldKeeper.SetParams(oldCtx, moduleParams))
+
+	type rollapp struct {
+		rollAppId string
+		owner     string
+		alias     string
+	}
 
 	// Setup genesis state
 	owner1 := sample.AccAddress()
@@ -40,6 +48,22 @@ func TestExportThenInitGenesis(t *testing.T) {
 	buyer3 := sample.AccAddress()
 	buyer4 := sample.AccAddress()
 	buyer5 := sample.AccAddress()
+
+	rollApp1 := rollapp{
+		rollAppId: "rollapp_1-1",
+		owner:     sample.AccAddress(),
+		alias:     "alias",
+	}
+	rollApp2 := rollapp{
+		rollAppId: "rollapp_2-2",
+		owner:     sample.AccAddress(),
+		alias:     "cosmos",
+	}
+	rollApp3 := rollapp{
+		rollAppId: "rollapp_3-3",
+		owner:     sample.AccAddress(),
+		alias:     "",
+	}
 
 	dymName1 := dymnstypes.DymName{
 		Name:       "my-name",
@@ -116,7 +140,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so3))
 
 	so4 := dymnstypes.SellOrder{
-		AssetId:   "alias",
+		AssetId:   rollApp1.alias,
 		AssetType: dymnstypes.TypeAlias,
 		ExpireAt:  1,
 		MinPrice:  testCoin(100),
@@ -124,13 +148,13 @@ func TestExportThenInitGenesis(t *testing.T) {
 		HighestBid: &dymnstypes.SellOrderBid{
 			Bidder: bidder3,
 			Price:  testCoin(777),
-			Params: []string{"rollapp_1-1"},
+			Params: []string{rollApp2.rollAppId},
 		},
 	}
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so4))
 
 	so5 := dymnstypes.SellOrder{
-		AssetId:   "cosmos",
+		AssetId:   rollApp2.alias,
 		AssetType: dymnstypes.TypeAlias,
 		ExpireAt:  1,
 		MinPrice:  testCoin(100),
@@ -166,9 +190,9 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	offer4 := dymnstypes.BuyOrder{
 		Id:         "204",
-		AssetId:    "cosmos",
+		AssetId:    rollApp1.alias,
 		AssetType:  dymnstypes.TypeAlias,
-		Params:     []string{"rollapp_2-2"},
+		Params:     []string{rollApp2.rollAppId},
 		Buyer:      buyer4,
 		OfferPrice: testCoin(333),
 	}
@@ -176,13 +200,23 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	offer5 := dymnstypes.BuyOrder{
 		Id:         "205",
-		AssetId:    "alias",
+		AssetId:    rollApp1.alias,
 		AssetType:  dymnstypes.TypeAlias,
-		Params:     []string{"rollapp_3-3"},
+		Params:     []string{rollApp3.rollAppId},
 		Buyer:      buyer5,
 		OfferPrice: testCoin(555),
 	}
 	require.NoError(t, oldKeeper.SetBuyOrder(oldCtx, offer5))
+
+	for _, ra := range []rollapp{rollApp1, rollApp2, rollApp3} {
+		oldRollAppKeeper.SetRollapp(oldCtx, rollapptypes.Rollapp{
+			RollappId: ra.rollAppId,
+			Owner:     ra.owner,
+		})
+		if ra.alias != "" {
+			require.NoError(t, oldKeeper.SetAliasForRollAppId(oldCtx, ra.rollAppId, ra.alias))
+		}
+	}
 
 	// Export genesis state
 	genState := dymns.ExportGenesis(oldCtx, oldKeeper)
@@ -223,14 +257,33 @@ func TestExportThenInitGenesis(t *testing.T) {
 		require.Contains(t, genState.BuyOrders, offer5)
 	})
 
+	t.Run("aliases of rollapps should be exported correctly", func(t *testing.T) {
+		require.Len(t, genState.AliasesOfRollapps, 2)
+		require.Contains(t, genState.AliasesOfRollapps, dymnstypes.AliasesOfChainId{
+			ChainId: rollApp1.rollAppId,
+			Aliases: []string{rollApp1.alias},
+		})
+		require.Contains(t, genState.AliasesOfRollapps, dymnstypes.AliasesOfChainId{
+			ChainId: rollApp2.rollAppId,
+			Aliases: []string{rollApp2.alias},
+		})
+	})
+
 	// Init genesis state
 
 	genState.Params.Misc.BeginEpochHookIdentifier = "week" // Change the epoch identifier to test if it is imported correctly
 	genState.Params.Misc.SellOrderDuration = 9999 * time.Hour
 	genState.Params.PreservedRegistration.ExpirationEpoch = 8888
 
-	newDymNsKeeper, newBankKeeper, _, newCtx := testkeeper.DymNSKeeper(t)
+	newDymNsKeeper, newBankKeeper, newRollAppKeeper, newCtx := testkeeper.DymNSKeeper(t)
 	newCtx = newCtx.WithBlockTime(now)
+
+	for _, ra := range []rollapp{rollApp1, rollApp2, rollApp3} {
+		newRollAppKeeper.SetRollapp(newCtx, rollapptypes.Rollapp{
+			RollappId: ra.rollAppId,
+			Owner:     ra.owner,
+		})
+	}
 
 	dymns.InitGenesis(newCtx, newDymNsKeeper, *genState)
 
@@ -324,6 +377,17 @@ func TestExportThenInitGenesis(t *testing.T) {
 		)
 	})
 
+	t.Run("aliases of RollApps should be linked correctly", func(t *testing.T) {
+		rollApp1Aliases := newDymNsKeeper.GetAliasesOfRollAppId(newCtx, rollApp1.rollAppId)
+		require.ElementsMatch(t, []string{rollApp1.alias}, rollApp1Aliases)
+
+		rollApp2Aliases := newDymNsKeeper.GetAliasesOfRollAppId(newCtx, rollApp2.rollAppId)
+		require.ElementsMatch(t, []string{rollApp2.alias}, rollApp2Aliases)
+
+		rollApp3Aliases := newDymNsKeeper.GetAliasesOfRollAppId(newCtx, rollApp3.rollAppId)
+		require.Empty(t, rollApp3Aliases)
+	})
+
 	// Init genesis state but with invalid input
 	newDymNsKeeper, newBankKeeper, _, newCtx = testkeeper.DymNSKeeper(t)
 
@@ -366,6 +430,32 @@ func TestExportThenInitGenesis(t *testing.T) {
 				Params: dymnstypes.DefaultParams(),
 				BuyOrders: []dymnstypes.BuyOrder{
 					{}, // empty content
+				},
+			})
+		})
+	})
+
+	t.Run("fail - invalid aliases of RollApps", func(t *testing.T) {
+		require.Panics(t, func() {
+			dymns.InitGenesis(newCtx, newDymNsKeeper, dymnstypes.GenesisState{
+				Params: dymnstypes.DefaultParams(),
+				AliasesOfRollapps: []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "rollapp_1-1",
+						Aliases: []string{"@invalid"},
+					},
+				},
+			})
+		})
+
+		require.Panics(t, func() {
+			dymns.InitGenesis(newCtx, newDymNsKeeper, dymnstypes.GenesisState{
+				Params: dymnstypes.DefaultParams(),
+				AliasesOfRollapps: []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "@@@",
+						Aliases: []string{"alias"},
+					},
 				},
 			})
 		})

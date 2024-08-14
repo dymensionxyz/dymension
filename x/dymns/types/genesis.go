@@ -1,7 +1,10 @@
 package types
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -35,6 +38,10 @@ func (m GenesisState) Validate() error {
 		if err := bo.Validate(); err != nil {
 			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Buy-Order by '%s': %v", bo.Buyer, err)
 		}
+	}
+
+	if err := validateAliasesOfChainIds(m.AliasesOfRollapps); err != nil {
+		return errorsmod.Wrapf(errors.Join(gerrc.ErrInvalidArgument, err), "alias of chain-id")
 	}
 
 	return nil
