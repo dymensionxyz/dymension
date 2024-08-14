@@ -363,13 +363,7 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 		"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 	)
 
-	prohibitedToTradeAliases := make(map[string]struct{})
-	for _, aliasesOfChainId := range params.Chains.AliasesOfChainIds {
-		prohibitedToTradeAliases[aliasesOfChainId.ChainId] = struct{}{}
-		for _, alias := range aliasesOfChainId.Aliases {
-			prohibitedToTradeAliases[alias] = struct{}{}
-		}
-	}
+	prohibitedToTradeAliases := e.GetAllAliasAndChainIdInParams(ctx)
 
 	for _, so := range finishedSOs {
 		var errApplyStateChange error

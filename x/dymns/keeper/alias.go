@@ -165,24 +165,28 @@ func (k Keeper) MoveAliasToRollAppId(ctx sdk.Context, srcRollAppId, alias, dstRo
 	return k.SetAliasForRollAppId(ctx, dstRollAppId, alias)
 }
 
-// IsAliasPresentsInParamsAsAliasOrChainId returns true if the alias presents in the params.
-// Extra check if it collision with chain-ids there.
-func (k Keeper) IsAliasPresentsInParamsAsAliasOrChainId(ctx sdk.Context, alias string) bool {
+// GetAllAliasAndChainIdInParams returns all aliases and chain-ids in the params.
+// Note: this method returns a map so the iteration is non-deterministic,
+// any implementation should not rely on the order of the result.
+func (k Keeper) GetAllAliasAndChainIdInParams(ctx sdk.Context) map[string]struct{} {
 	params := k.GetParams(ctx)
 
+	result := make(map[string]struct{})
 	for _, aliasesOfChainId := range params.Chains.AliasesOfChainIds {
-		if alias == aliasesOfChainId.ChainId {
-			return true
-		}
-
+		result[aliasesOfChainId.ChainId] = struct{}{}
 		for _, a := range aliasesOfChainId.Aliases {
-			if alias == a {
-				return true
-			}
+			result[a] = struct{}{}
 		}
 	}
 
-	return false
+	return result
+}
+
+// IsAliasPresentsInParamsAsAliasOrChainId returns true if the alias presents in the params.
+// Extra check if it collision with chain-ids there.
+func (k Keeper) IsAliasPresentsInParamsAsAliasOrChainId(ctx sdk.Context, alias string) bool {
+	_, found := k.GetAllAliasAndChainIdInParams(ctx)[alias]
+	return found
 }
 
 // SetDefaultAlias move the alias into the first place, so it can be used as default alias in resolution.
@@ -213,4 +217,25 @@ func (k Keeper) SetDefaultAlias(ctx sdk.Context, rollAppId, alias string) error 
 	store.Set(keyR2A, k.cdc.MustMarshal(&dymnstypes.MultipleAliases{Aliases: existingAliases}))
 
 	return nil
+}
+
+// GetAllRollAppsWithAliases returns all RollAppIDs which have aliases and their aliases.
+func (k Keeper) GetAllRollAppsWithAliases(ctx sdk.Context) (list []dymnstypes.AliasesOfChainId) {
+	store := ctx.KVStore(k.storeKey)
+
+	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixRollAppIdToAliases)
+	defer func() {
+		_ = iterator.Close()
+	}()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var multipleAliases dymnstypes.MultipleAliases
+		k.cdc.MustUnmarshal(iterator.Value(), &multipleAliases)
+		list = append(list, dymnstypes.AliasesOfChainId{
+			ChainId: string(iterator.Key()[len(dymnstypes.KeyPrefixRollAppIdToAliases):]),
+			Aliases: multipleAliases.Aliases,
+		})
+	}
+
+	return list
 }

@@ -7,6 +7,7 @@ import "cosmos/base/v1beta1/coin.proto";
 import "dymensionxyz/dymension/dymns/params.proto";
 import "dymensionxyz/dymension/dymns/dym_name.proto";
 import "dymensionxyz/dymension/dymns/market.proto";
+import "dymensionxyz/dymension/dymns/alias.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 
@@ -25,6 +26,11 @@ service Query {
   // Alias queries the chain_id associated as well as the Sell-Order and Buy-Order IDs relates to the alias.
   rpc Alias(QueryAliasRequest) returns (QueryAliasResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/dymns/alias/{alias}";
+  }
+
+  // Aliases queries all the aliases for a chain id or all chains.
+  rpc Aliases(QueryAliasesRequest) returns (QueryAliasesResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/aliases";
   }
 
   // ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account address of each pointing to.
@@ -149,6 +155,18 @@ message QueryAliasResponse {
 
   // same_chain_aliases is the list of aliases for the same chain that associated with the alias.
   repeated string same_chain_aliases = 4;
+}
+
+message QueryAliasesRequest {
+  option (gogoproto.equal)           = false;
+
+  // chain_id to query alias for, empty for all chains.
+  string chain_id = 1;
+}
+
+message QueryAliasesResponse {
+  // aliases_by_chain_id is the map of aliases by chain id.
+  map<string, MultipleAliases> aliases_by_chain_id = 1 [(gogoproto.nullable) = false];
 }
 
 // ResolveDymNameAddressesRequest is the request type for the Query/ResolveDymNameAddresses RPC method.

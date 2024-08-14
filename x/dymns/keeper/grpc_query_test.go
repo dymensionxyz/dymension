@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
 	"time"
@@ -3049,4 +3050,239 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersOfAliasesLinkedToRollApp() {
 			}
 		})
 	}
+}
+
+func (s *KeeperTestSuite) Test_queryServer_Aliases() {
+	rollApp1 := *newRollApp("rollapp_1-1").WithAlias("one").WithAlias("two")
+	rollApp2 := *newRollApp("rollapp_2-2").WithAlias("three")
+	rollApp3WithoutAlias := *newRollApp("rollapp_3-1")
+
+	tests := []struct {
+		name                   string
+		paramsAliasesByChainId []dymnstypes.AliasesOfChainId
+		rollApps               []rollapp
+		chainId                string
+		wantErr                bool
+		wantErrContains        string
+		want                   map[string]dymnstypes.MultipleAliases
+	}{
+		{
+			name: "pass - can returns all chains aliases",
+			paramsAliasesByChainId: []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: "dymension_1100-1",
+					Aliases: []string{"dym", "dymension"},
+				},
+				{
+					ChainId: "blumbus_111-1",
+					Aliases: []string{"blumbus"},
+				},
+			},
+			rollApps: []rollapp{rollApp1, rollApp2, rollApp3WithoutAlias},
+			chainId:  "",
+			wantErr:  false,
+			want: map[string]dymnstypes.MultipleAliases{
+				"dymension_1100-1": {Aliases: []string{"dym", "dymension"}},
+				"blumbus_111-1":    {Aliases: []string{"blumbus"}},
+				rollApp1.rollAppId: {Aliases: rollApp1.aliases},
+				rollApp2.rollAppId: {Aliases: rollApp2.aliases},
+			},
+		},
+		{
+			name: "pass - can returns corresponding chain when filter, case in params",
+			paramsAliasesByChainId: []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: "dymension_1100-1",
+					Aliases: []string{"dym", "dymension"},
+				},
+				{
+					ChainId: "blumbus_111-1",
+					Aliases: []string{"blumbus"},
+				},
+			},
+			rollApps: []rollapp{rollApp1, rollApp2, rollApp3WithoutAlias},
+			chainId:  "dymension_1100-1",
+			wantErr:  false,
+			want: map[string]dymnstypes.MultipleAliases{
+				"dymension_1100-1": {Aliases: []string{"dym", "dymension"}},
+			},
+		},
+		{
+			name: "pass - can returns corresponding chain when filter, case in RollApp",
+			paramsAliasesByChainId: []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: "dymension_1100-1",
+					Aliases: []string{"dym", "dymension"},
+				},
+				{
+					ChainId: "blumbus_111-1",
+					Aliases: []string{"blumbus"},
+				},
+			},
+			rollApps: []rollapp{rollApp1, rollApp2, rollApp3WithoutAlias},
+			chainId:  rollApp1.rollAppId,
+			wantErr:  false,
+			want: map[string]dymnstypes.MultipleAliases{
+				rollApp1.rollAppId: {Aliases: rollApp1.aliases},
+			},
+		},
+		{
+			name: "pass - if an alias of a RollApp is reserved in params, exclude it",
+			paramsAliasesByChainId: []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: "dymension_1100-1",
+					Aliases: []string{
+						"dym",
+						rollApp1.aliases[0], // reserved
+					},
+				},
+			},
+			rollApps: []rollapp{rollApp1, rollApp2},
+			chainId:  "",
+			wantErr:  false,
+			want: map[string]dymnstypes.MultipleAliases{
+				"dymension_1100-1": {
+					Aliases: []string{
+						"dym",
+						rollApp1.aliases[0],
+					},
+				},
+				rollApp1.rollAppId: {
+					Aliases: rollApp1.aliases[1:], // ignore the reserved one
+				},
+				rollApp2.rollAppId: {
+					Aliases: rollApp2.aliases,
+				},
+			},
+		},
+		{
+			name: "pass - if an alias of a RollApp is reserved in params, exclude it",
+			paramsAliasesByChainId: []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: "dymension_1100-1",
+					Aliases: []string{
+						"dym",
+						rollApp1.aliases[0], // reserved
+					},
+				},
+			},
+			rollApps: []rollapp{rollApp1},
+			chainId:  rollApp1.rollAppId,
+			wantErr:  false,
+			want: map[string]dymnstypes.MultipleAliases{
+				rollApp1.rollAppId: {
+					Aliases: rollApp1.aliases[1:], // ignore the reserved one
+				},
+			},
+		},
+		{
+			name: "pass - if an alias of a RollApp is reserved in params, exclude it, if not any remaining alias, skip it",
+			paramsAliasesByChainId: []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: "dymension_1100-1",
+					Aliases: rollApp1.aliases,
+				},
+			},
+			rollApps: []rollapp{rollApp1},
+			chainId:  "",
+			wantErr:  false,
+			want: map[string]dymnstypes.MultipleAliases{
+				"dymension_1100-1": {Aliases: rollApp1.aliases},
+			},
+		},
+		{
+			name: "pass - if an alias of a RollApp is reserved in params, exclude it, if not any remaining alias, skip it",
+			paramsAliasesByChainId: []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: "dymension_1100-1",
+					Aliases: rollApp1.aliases,
+				},
+			},
+			rollApps: []rollapp{rollApp1},
+			chainId:  rollApp1.rollAppId,
+			wantErr:  false,
+			want:     map[string]dymnstypes.MultipleAliases{}, // totally excluded
+		},
+		{
+			name: "pass - if a RollApp ID presents in both params and local mapped alias, merge result",
+			paramsAliasesByChainId: []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: "dymension_1100-1",
+					Aliases: []string{"dym"},
+				},
+				{
+					ChainId: rollApp1.rollAppId,
+					Aliases: []string{"more", "alias"},
+				},
+			},
+			rollApps: []rollapp{rollApp1, rollApp2, rollApp3WithoutAlias},
+			chainId:  "",
+			wantErr:  false,
+			want: map[string]dymnstypes.MultipleAliases{
+				"dymension_1100-1": {Aliases: []string{"dym"}},
+				rollApp1.rollAppId: {
+					Aliases: append( // merged
+						[]string{"more", "alias"}, // respect params, put it on head
+						rollApp1.aliases...),
+				},
+				rollApp2.rollAppId: {Aliases: rollApp2.aliases},
+			},
+		},
+		{
+			name:                   "fail - reject bad chain-id in request",
+			paramsAliasesByChainId: nil,
+			rollApps:               nil,
+			chainId:                "@@@",
+			wantErr:                true,
+			wantErrContains:        "invalid chain id",
+			want:                   nil,
+		},
+	}
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			s.RefreshContext()
+
+			s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+				moduleParams.Chains.AliasesOfChainIds = tt.paramsAliasesByChainId
+				return moduleParams
+			})
+
+			for _, rollApp := range tt.rollApps {
+				s.persistRollApp(rollApp)
+			}
+
+			resp, err := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper).Aliases(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryAliasesRequest{
+				ChainId: tt.chainId,
+			})
+			if tt.wantErr {
+				s.Require().ErrorContains(err, tt.wantErrContains)
+				s.Require().Nil(resp)
+				return
+			}
+
+			s.Require().NoError(err)
+			s.Require().NotNil(resp)
+
+			if len(tt.want) == 0 {
+				s.Empty(resp.AliasesByChainId)
+			} else if !s.True(reflect.DeepEqual(tt.want, resp.AliasesByChainId)) {
+				fmt.Println("Maps are not equals")
+				fmt.Println(" Expected:")
+				for chainId, aliases := range tt.want {
+					fmt.Printf("  %s: %v\n", chainId, aliases)
+				}
+				fmt.Println(" Got:")
+				for chainId, aliases := range resp.AliasesByChainId {
+					fmt.Printf("  %s: %v\n", chainId, aliases)
+				}
+			}
+		})
+	}
+
+	s.Run("fail - reject nil request", func() {
+		resp, err := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper).Aliases(sdk.WrapSDKContext(s.ctx), nil)
+		s.Require().Error(err)
+		s.Require().Nil(resp)
+		s.Require().Contains(err.Error(), "invalid request")
+	})
 }

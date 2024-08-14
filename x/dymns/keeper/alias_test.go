@@ -612,6 +612,109 @@ func (s *KeeperTestSuite) TestKeeper_MoveAliasToRollAppId() {
 	}
 }
 
+func (s *KeeperTestSuite) TestKeeper_GetAllAliasAndChainIdInParams() {
+	tests := []struct {
+		name  string
+		setup func() []dymnstypes.AliasesOfChainId
+		want  map[string]struct{}
+	}{
+		{
+			name: "returns empty when params empty",
+			setup: func() []dymnstypes.AliasesOfChainId {
+				return nil
+			},
+			want: map[string]struct{}{},
+		},
+		{
+			name: "returns alias and chain-id, single record, no alias",
+			setup: func() []dymnstypes.AliasesOfChainId {
+				return []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "dymension_1100-1",
+						Aliases: nil,
+					},
+				}
+			},
+			want: map[string]struct{}{
+				"dymension_1100-1": {},
+			},
+		},
+		{
+			name: "returns alias and chain-id, single record, single alias",
+			setup: func() []dymnstypes.AliasesOfChainId {
+				return []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "dymension_1100-1",
+						Aliases: []string{"dym"},
+					},
+				}
+			},
+			want: map[string]struct{}{
+				"dymension_1100-1": {},
+				"dym":              {},
+			},
+		},
+		{
+			name: "returns alias and chain-id, single record, multiple aliases",
+			setup: func() []dymnstypes.AliasesOfChainId {
+				return []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "dymension_1100-1",
+						Aliases: []string{"dym", "dymension"},
+					},
+				}
+			},
+			want: map[string]struct{}{
+				"dymension_1100-1": {},
+				"dym":              {},
+				"dymension":        {},
+			},
+		},
+		{
+			name: "returns alias and chain-id, multiple record, multiple aliases",
+			setup: func() []dymnstypes.AliasesOfChainId {
+				return []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "dymension_1100-1",
+						Aliases: []string{"dym", "dymension"},
+					},
+					{
+						ChainId: "blumbus_111-1",
+						Aliases: []string{"bb", "blumbus"},
+					},
+				}
+			},
+			want: map[string]struct{}{
+				"dymension_1100-1": {},
+				"dym":              {},
+				"dymension":        {},
+				"blumbus_111-1":    {},
+				"bb":               {},
+				"blumbus":          {},
+			},
+		},
+	}
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			s.RefreshContext()
+
+			aliasesOfChainIds := tt.setup()
+			s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+				moduleParams.Chains.AliasesOfChainIds = aliasesOfChainIds
+				return moduleParams
+			})
+
+			got := s.dymNsKeeper.GetAllAliasAndChainIdInParams(s.ctx)
+			if len(tt.want) == 0 {
+				s.Require().Empty(got)
+				return
+			}
+
+			s.Require().Equal(tt.want, got)
+		})
+	}
+}
+
 func (s *KeeperTestSuite) TestKeeper_IsAliasPresentsInParamsAsAliasOrChainId() {
 	tests := []struct {
 		name       string
@@ -817,6 +920,69 @@ func (s *KeeperTestSuite) TestKeeper_SetDefaultAlias() {
 			}
 
 			s.Require().NoError(err)
+		})
+	}
+}
+
+func (s *KeeperTestSuite) TestKeeper_GetAllRollAppsWithAliases() {
+	rollApp1 := *newRollApp("rollapp_1-1").WithAlias("al1").WithAlias("al2")
+	rollApp2 := *newRollApp("rollapp_2-2").WithAlias("al3")
+
+	tests := []struct {
+		name       string
+		preRunFunc func(s *KeeperTestSuite)
+		want       []dymnstypes.AliasesOfChainId
+	}{
+		{
+			name:       "if empty, returns empty",
+			preRunFunc: nil,
+			want:       nil,
+		},
+		{
+			name: "can return RollApp with aliases",
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.persistRollApp(rollApp1)
+			},
+			want: []dymnstypes.AliasesOfChainId{
+				{ChainId: rollApp1.rollAppId, Aliases: rollApp1.aliases},
+			},
+		},
+		{
+			name: "can return RollApp with alias",
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.persistRollApp(rollApp2)
+			},
+			want: []dymnstypes.AliasesOfChainId{
+				{ChainId: rollApp2.rollAppId, Aliases: rollApp2.aliases},
+			},
+		},
+		{
+			name: "can return all RollApps with aliases",
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.persistRollApp(rollApp1)
+				s.persistRollApp(rollApp2)
+			},
+			want: []dymnstypes.AliasesOfChainId{
+				{ChainId: rollApp1.rollAppId, Aliases: rollApp1.aliases},
+				{ChainId: rollApp2.rollAppId, Aliases: rollApp2.aliases},
+			},
+		},
+	}
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			s.RefreshContext()
+
+			if tt.preRunFunc != nil {
+				tt.preRunFunc(s)
+			}
+
+			got := s.dymNsKeeper.GetAllRollAppsWithAliases(s.ctx)
+			if len(tt.want) == 0 {
+				s.Require().Empty(got)
+				return
+			}
+
+			s.Require().Equal(tt.want, got)
 		})
 	}
 }

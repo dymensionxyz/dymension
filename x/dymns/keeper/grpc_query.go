@@ -422,6 +422,65 @@ func (q queryServer) Alias(goCtx context.Context, req *dymnstypes.QueryAliasRequ
 	}, nil
 }
 
+// Aliases queries all the aliases for a chain id or all chains.
+func (q queryServer) Aliases(goCtx context.Context, req *dymnstypes.QueryAliasesRequest) (*dymnstypes.QueryAliasesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	if req.ChainId != "" && !dymnsutils.IsValidChainIdFormat(req.ChainId) {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid chain id: %s", req.ChainId)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	aliasesByChainId := make(map[string]dymnstypes.MultipleAliases)
+	for _, aliasesOfChainId := range q.GetParams(ctx).Chains.AliasesOfChainIds {
+		if len(aliasesOfChainId.Aliases) < 1 {
+			continue
+		}
+		aliasesByChainId[aliasesOfChainId.ChainId] = dymnstypes.MultipleAliases{
+			Aliases: aliasesOfChainId.Aliases,
+		}
+	}
+
+	reservedAliases := q.GetAllAliasAndChainIdInParams(ctx)
+	rollAppsWithAliases := q.GetAllRollAppsWithAliases(ctx)
+	for _, rollAppWithAliases := range rollAppsWithAliases {
+		if req.ChainId != "" && req.ChainId != rollAppWithAliases.ChainId {
+			continue
+		}
+		var filteredAliases []string
+		for _, alias := range rollAppWithAliases.Aliases {
+			if _, found := reservedAliases[alias]; found {
+				continue
+			}
+			filteredAliases = append(filteredAliases, alias)
+		}
+		if len(filteredAliases) < 1 {
+			continue
+		}
+		existingAliases := aliasesByChainId[rollAppWithAliases.ChainId]
+		aliasesByChainId[rollAppWithAliases.ChainId] = dymnstypes.MultipleAliases{
+			Aliases: append(existingAliases.Aliases, filteredAliases...),
+		}
+	}
+
+	if req.ChainId != "" {
+		if ma, found := aliasesByChainId[req.ChainId]; found {
+			aliasesByChainId = map[string]dymnstypes.MultipleAliases{
+				req.ChainId: ma,
+			}
+		} else {
+			clear(aliasesByChainId)
+		}
+	}
+
+	return &dymnstypes.QueryAliasesResponse{
+		AliasesByChainId: aliasesByChainId,
+	}, nil
+}
+
 // BuyOrdersByAlias queries all the buy orders of an Alias.
 func (q queryServer) BuyOrdersByAlias(goCtx context.Context, req *dymnstypes.QueryBuyOrdersByAliasRequest) (*dymnstypes.QueryBuyOrdersByAliasResponse, error) {
 	if req == nil {
