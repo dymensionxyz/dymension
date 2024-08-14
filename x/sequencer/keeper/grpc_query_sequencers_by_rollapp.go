@@ -70,18 +70,10 @@ func (k Keeper) GetNextProposerByRollapp(c context.Context, req *types.QueryGetN
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	seq, ok := k.GetNextProposer(ctx, req.RollappId)
-	if ok {
-		return &types.QueryGetNextProposerByRollappResponse{
-			NextProposerAddr:   seq.Address,
-			RotationInProgress: true,
-		}, nil
-	}
-
 	// if rotation is not in progress, we return the expected next proposer in case for the next rotation
 	expectedNext := k.ExpectedNextProposer(ctx, req.RollappId)
 	return &types.QueryGetNextProposerByRollappResponse{
 		NextProposerAddr:   expectedNext.Address,
-		RotationInProgress: false,
+		RotationInProgress: k.IsRotating(ctx, req.RollappId),
 	}, nil
 }

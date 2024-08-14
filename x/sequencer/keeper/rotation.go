@@ -55,9 +55,9 @@ func (k Keeper) isNoticePeriodRequired(ctx sdk.Context, seq types.Sequencer) boo
 // ExpectedNextProposer returns the next proposer for a rollapp
 func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) types.Sequencer {
 	// if nextProposer is set, were in the middle of rotation
-	seq, ok := k.GetNextProposer(ctx, rollappId)
+	seqAddr, ok := k.GetNextProposerAddr(ctx, rollappId)
 	if ok {
-		return seq
+		return k.MustGetSequencer(ctx, seqAddr)
 	}
 
 	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
@@ -104,7 +104,7 @@ func (k Keeper) startRotation(ctx sdk.Context, rollappId string) {
 // It's called when a last state update is received from the active, rotating sequencer.
 // it will start unbonding the current proposer, and set new proposer from the bonded sequencers
 func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
-	nextProposer, ok := k.GetNextProposer(ctx, rollappId)
+	nextProposerAddr, ok := k.GetNextProposerAddr(ctx, rollappId)
 	if !ok { // nextProposer is guaranteed to be set by caller
 		k.Logger(ctx).Error("next proposer not set. rotation didn't completed", "rollappId", rollappId)
 		return
@@ -117,9 +117,9 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 	}
 
 	k.removeNextProposer(ctx, rollappId)
-	k.SetProposer(ctx, rollappId, nextProposer.Address)
+	k.SetProposer(ctx, rollappId, nextProposerAddr)
 
-	if nextProposer.Address == NO_SEQUENCER_AVAILABLE {
+	if nextProposerAddr == NO_SEQUENCER_AVAILABLE {
 		k.Logger(ctx).Info("Rollapp left with no proposer.", "RollappID", rollappId)
 	}
 
@@ -127,7 +127,7 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 		sdk.NewEvent(
 			types.EventTypeProposerRotated,
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
-			sdk.NewAttribute(types.AttributeKeySequencer, nextProposer.Address),
+			sdk.NewAttribute(types.AttributeKeySequencer, nextProposerAddr),
 		),
 	)
 }

@@ -8,7 +8,7 @@ if [ "$EXECUTABLE" = "" ]; then
     exit 1
   fi
   echo "EXECUTABLE is not set, using '${DEFAULT_EXECUTABLE}'"
-  EXECUTABLE=$DEFAULT_SEQUENCER_KEY_PATH
+  EXECUTABLE=$DEFAULT_EXECUTABLE
 fi
 
 # Validate dymension binary exists

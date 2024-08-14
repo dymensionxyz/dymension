@@ -82,8 +82,8 @@ func ProposerBondedInvariant(k Keeper) sdk.Invariant {
 				msg += "active sequencer is not bonded " + rollapp.RollappId + "\n"
 			}
 
-			next, ok := k.GetNextProposer(ctx, rollapp.RollappId)
-			if ok && next.Status != types.Bonded {
+			next := k.ExpectedNextProposer(ctx, rollapp.RollappId)
+			if !next.IsEmpty() && next.Status != types.Bonded {
 				broken = true
 				msg += "next sequencer is not bonded " + rollapp.RollappId + "\n"
 			}

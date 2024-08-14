@@ -170,3 +170,7 @@ func (l livenessMockSequencerKeeper) clear(rollappID string) {
 	delete(l.slashes, rollappID)
 	delete(l.jails, rollappID)
 }
+
+func (l livenessMockSequencerKeeper) GetNextProposerAddr(ctx sdk.Context, rollappId string) (address string, found bool) {
+	return "", false
+}

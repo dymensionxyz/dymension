@@ -81,6 +81,15 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		FinalizationQueue: newFinalizationQueue,
 	})
 
+	// check if sequencer rotation in progress
+	nextAddr, found := k.sequencerKeeper.GetNextProposerAddr(ctx, msg.RollappId)
+	res := &types.MsgUpdateStateResponse{
+		NextProposerAddr:   nextAddr,
+		RotationInProgress: found,
+	}
+
+	// TODO: enforce `final_state_update_timeout` from this phase if found
+	// https://github.com/dymensionxyz/dymension/issues/1085
 	k.IndicateLiveness(ctx, &rollapp)
 
 	ctx.EventManager().EmitEvent(
@@ -89,5 +98,5 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		),
 	)
 
-	return &types.MsgUpdateStateResponse{}, nil
+	return res, nil
 }

@@ -17,4 +17,5 @@ type ChannelKeeper interface {
 type SequencerKeeper interface {
 	SlashLiveness(ctx sdk.Context, rollappID string) error
 	JailLiveness(ctx sdk.Context, rollappID string) error
+	GetNextProposerAddr(ctx sdk.Context, rollappId string) (address string, found bool)
 }

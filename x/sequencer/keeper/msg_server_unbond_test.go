@@ -69,7 +69,7 @@ func (suite *SequencerTestSuite) TestUnbondingProposer() {
 	suite.Require().Error(err)
 
 	// next proposer should not be set yet
-	_, ok = suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
+	_, ok = suite.App.SequencerKeeper.GetNextProposerAddr(suite.Ctx, rollappId)
 	suite.Require().False(ok)
 
 	// check notice period queue
