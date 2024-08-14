@@ -16,7 +16,7 @@ func CmdCreateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "create-rollapp [rollapp-id] [alias] [vm-type]",
 		Short:   "Create a new rollapp",
-		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID --init-sequencer '<seq_address1>,<seq_address2>' --genesis-checksum <genesis_checksum> --metadata metadata.json",
+		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID Rollapp EVM --init-sequencer '<seq_address1>,<seq_address2>' --genesis-checksum <genesis_checksum> --metadata metadata.json",
 		Args:    cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// nolint:gofumpt
