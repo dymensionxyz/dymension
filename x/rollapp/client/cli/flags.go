@@ -11,13 +11,6 @@ const (
 	FlagBech32Prefix    = "bech32-prefix"
 )
 
-// FlagSetCreateRollapp returns flags for creating rollapps.
-func FlagSetCreateRollapp() *flag.FlagSet {
-	fs := flag.NewFlagSet("", flag.ContinueOnError)
-
-	return fs
-}
-
 // FlagSetUpdateRollapp returns flags for updating rollapps.
 func FlagSetUpdateRollapp() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)

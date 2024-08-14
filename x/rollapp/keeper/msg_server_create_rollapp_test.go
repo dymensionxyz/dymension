@@ -27,6 +27,23 @@ func (suite *RollappTestSuite) TestCreateRollappUnauthorizedRollappCreator() {
 	suite.createRollappWithCreatorAndVerify(sdkerrors.ErrInsufficientFunds, bob, false) // bob is broke
 }
 
+func (suite *RollappTestSuite) TestCreateRollappWithBechGenesisSum() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	rollapp := types.MsgCreateRollapp{
+		Creator:          alice,
+		RollappId:        "rollapp_1234-1",
+		InitialSequencer: sample.AccAddress(),
+		Alias:            "Rollapp",
+		VmType:           types.Rollapp_EVM,
+		Bech32Prefix:     "rol",
+		GenesisChecksum:  "checksum",
+	}
+	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	suite.Require().NoError(err)
+}
+
 func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
