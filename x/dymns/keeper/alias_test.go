@@ -154,6 +154,145 @@ func (s *KeeperTestSuite) TestKeeper_GetAliasesOfRollAppId() {
 	s.Require().Empty(aliases)
 }
 
+func (s *KeeperTestSuite) TestKeeper_GetEffectiveAliasesByChainId() {
+	rollApp1 := *newRollApp("rollapp_1-1").WithAlias("one").WithAlias("two")
+	rollApp2 := *newRollApp("rollapp_2-2").WithAlias("three")
+	rollApp3WithoutAlias := *newRollApp("rollapp_3-1")
+
+	tests := []struct {
+		name                   string
+		paramsAliasesByChainId []dymnstypes.AliasesOfChainId
+		rollApps               []rollapp
+		chainId                string
+		wantErr                bool
+		wantErrContains        string
+		want                   []string
+	}{
+		{
+			name: "pass - can returns, case in params",
+			paramsAliasesByChainId: []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: "dymension_1100-1",
+					Aliases: []string{"dym", "dymension"},
+				},
+				{
+					ChainId: "blumbus_111-1",
+					Aliases: []string{"blumbus"},
+				},
+			},
+			rollApps: []rollapp{rollApp1, rollApp2, rollApp3WithoutAlias},
+			chainId:  "dymension_1100-1",
+			wantErr:  false,
+			want:     []string{"dym", "dymension"},
+		},
+		{
+			name: "pass - can returns, case in RollApp",
+			paramsAliasesByChainId: []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: "dymension_1100-1",
+					Aliases: []string{"dym", "dymension"},
+				},
+				{
+					ChainId: "blumbus_111-1",
+					Aliases: []string{"blumbus"},
+				},
+			},
+			rollApps: []rollapp{rollApp1, rollApp2, rollApp3WithoutAlias},
+			chainId:  rollApp1.rollAppId,
+			wantErr:  false,
+			want:     rollApp1.aliases,
+		},
+		{
+			name: "pass - if an alias of a RollApp is reserved in params, exclude it",
+			paramsAliasesByChainId: []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: "dymension_1100-1",
+					Aliases: []string{
+						"dym",
+						rollApp1.aliases[0], // reserved
+					},
+				},
+			},
+			rollApps: []rollapp{rollApp1},
+			chainId:  rollApp1.rollAppId,
+			wantErr:  false,
+			want:     rollApp1.aliases[1:], // ignore the reserved one
+		},
+		{
+			name: "pass - if an alias of a RollApp is reserved in params, exclude it, if not any remaining alias, skip it",
+			paramsAliasesByChainId: []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: "dymension_1100-1",
+					Aliases: rollApp1.aliases,
+				},
+			},
+			rollApps: []rollapp{rollApp1},
+			chainId:  rollApp1.rollAppId,
+			wantErr:  false,
+			want:     nil, // totally excluded
+		},
+		{
+			name: "pass - if a RollApp ID presents in both params and local mapped alias, merge result",
+			paramsAliasesByChainId: []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: "dymension_1100-1",
+					Aliases: []string{"dym"},
+				},
+				{
+					ChainId: rollApp1.rollAppId,
+					Aliases: []string{"more", "alias"},
+				},
+			},
+			rollApps: []rollapp{rollApp1, rollApp2, rollApp3WithoutAlias},
+			chainId:  rollApp1.rollAppId,
+			wantErr:  false,
+			want: append( // merged
+				[]string{"more", "alias"}, // respect params, put it on head
+				rollApp1.aliases...,
+			),
+		},
+		{
+			name: "pass - if a chain does not have alias (both params and RollApp), returns empty",
+			paramsAliasesByChainId: []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: "dymension_1100-1",
+					Aliases: []string{"dym"},
+				},
+				{
+					ChainId: "blumbus_111-1",
+					Aliases: nil,
+				},
+			},
+			rollApps: []rollapp{rollApp1, rollApp3WithoutAlias},
+			chainId:  "blumbus_111-1",
+			wantErr:  false,
+			want:     nil,
+		},
+	}
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			s.RefreshContext()
+
+			s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+				moduleParams.Chains.AliasesOfChainIds = tt.paramsAliasesByChainId
+				return moduleParams
+			})
+
+			for _, rollApp := range tt.rollApps {
+				s.persistRollApp(rollApp)
+			}
+
+			aliases := s.dymNsKeeper.GetEffectiveAliasesByChainId(s.ctx, tt.chainId)
+
+			if len(tt.want) == 0 {
+				s.Empty(aliases)
+			} else {
+				s.Equal(tt.want, aliases)
+			}
+		})
+	}
+}
+
 func (s *KeeperTestSuite) TestKeeper_RemoveAliasFromRollAppId() {
 	rollApp1 := *newRollApp("rollapp_1-1").WithAlias("al1")
 	rollApp2 := *newRollApp("rolling_2-2").WithAlias("al2")

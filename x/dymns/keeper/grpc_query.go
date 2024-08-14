@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -434,6 +435,19 @@ func (q queryServer) Aliases(goCtx context.Context, req *dymnstypes.QueryAliases
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if req.ChainId != "" {
+		aliases := q.GetEffectiveAliasesByChainId(ctx, req.ChainId)
+		resp := dymnstypes.QueryAliasesResponse{}
+		if len(aliases) > 0 {
+			resp.AliasesByChainId = map[string]dymnstypes.MultipleAliases{
+				req.ChainId: {
+					Aliases: aliases,
+				},
+			}
+		}
+		return &resp, nil
+	}
+
 	aliasesByChainId := make(map[string]dymnstypes.MultipleAliases)
 	for _, aliasesOfChainId := range q.GetParams(ctx).Chains.AliasesOfChainIds {
 		if len(aliasesOfChainId.Aliases) < 1 {
@@ -444,35 +458,25 @@ func (q queryServer) Aliases(goCtx context.Context, req *dymnstypes.QueryAliases
 		}
 	}
 
-	reservedAliases := q.GetAllAliasAndChainIdInParams(ctx)
 	rollAppsWithAliases := q.GetAllRollAppsWithAliases(ctx)
-	for _, rollAppWithAliases := range rollAppsWithAliases {
-		if req.ChainId != "" && req.ChainId != rollAppWithAliases.ChainId {
-			continue
-		}
-		var filteredAliases []string
-		for _, alias := range rollAppWithAliases.Aliases {
-			if _, found := reservedAliases[alias]; found {
+	if len(rollAppsWithAliases) > 0 {
+		reservedAliases := q.GetAllAliasAndChainIdInParams(ctx)
+
+		for _, rollAppWithAliases := range rollAppsWithAliases {
+			aliases := rollAppWithAliases.Aliases
+			aliases = slices.DeleteFunc(aliases, func(a string) bool {
+				_, found := reservedAliases[a]
+				return found
+			})
+
+			if len(aliases) < 1 {
 				continue
 			}
-			filteredAliases = append(filteredAliases, alias)
-		}
-		if len(filteredAliases) < 1 {
-			continue
-		}
-		existingAliases := aliasesByChainId[rollAppWithAliases.ChainId]
-		aliasesByChainId[rollAppWithAliases.ChainId] = dymnstypes.MultipleAliases{
-			Aliases: append(existingAliases.Aliases, filteredAliases...),
-		}
-	}
 
-	if req.ChainId != "" {
-		if ma, found := aliasesByChainId[req.ChainId]; found {
-			aliasesByChainId = map[string]dymnstypes.MultipleAliases{
-				req.ChainId: ma,
+			existingAliases := aliasesByChainId[rollAppWithAliases.ChainId]
+			aliasesByChainId[rollAppWithAliases.ChainId] = dymnstypes.MultipleAliases{
+				Aliases: append(existingAliases.Aliases, aliases...),
 			}
-		} else {
-			clear(aliasesByChainId)
 		}
 	}
 

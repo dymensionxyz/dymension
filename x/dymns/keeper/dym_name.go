@@ -813,58 +813,40 @@ func (k Keeper) fallbackReverseResolveDymNameAddress(
 
 // ReplaceChainIdWithAliasIfPossible replaces the chain-id with alias if possible for the reverse resolved records.
 func (k Keeper) ReplaceChainIdWithAliasIfPossible(ctx sdk.Context, reverseResolvedRecords dymnstypes.ReverseResolvedDymNameAddresses) []dymnstypes.ReverseResolvedDymNameAddress {
-	if len(reverseResolvedRecords) > 0 {
-		for i, reverseResolvedRecord := range reverseResolvedRecords {
-			if reverseResolvedRecord.ChainIdOrAlias == "" {
-				reverseResolvedRecords[i].ChainIdOrAlias = ctx.ChainID()
-			}
+	if len(reverseResolvedRecords) < 1 {
+		return reverseResolvedRecords
+	}
+
+	resolvedCache := make(map[string]string)
+	// Describe usage of Go Map: used for caching purpose, no iteration.
+
+	for i, reverseResolvedRecord := range reverseResolvedRecords {
+		chainIdOrAlias := reverseResolvedRecord.ChainIdOrAlias
+
+		if chainIdOrAlias == "" {
+			chainIdOrAlias = ctx.ChainID()
+			reverseResolvedRecords[i].ChainIdOrAlias = chainIdOrAlias
 		}
 
-		chainIdToAlias := make(map[string]string)
-		preservedAliasesInParams := make(map[string]bool)
-		// Describe usage of Go Map: used for caching purpose, no iteration.
-
-		chainsParams := k.ChainsParams(ctx)
-		for _, record := range chainsParams.AliasesOfChainIds {
-			if len(record.Aliases) > 0 {
-				chainIdToAlias[record.ChainId] = record.Aliases[0]
-
-				for _, alias := range record.Aliases {
-					preservedAliasesInParams[alias] = true
-				}
+		if resolvedTo, found := resolvedCache[chainIdOrAlias]; found {
+			if resolvedTo != chainIdOrAlias {
+				reverseResolvedRecords[i].ChainIdOrAlias = resolvedTo
 			}
+			continue
 		}
 
-		for i, reverseResolvedRecord := range reverseResolvedRecords {
-			chainId := reverseResolvedRecord.ChainIdOrAlias
-			if alias, found := chainIdToAlias[chainId]; found {
-				if len(alias) > 0 {
-					reverseResolvedRecords[i].ChainIdOrAlias = alias
-				}
-				continue
-			}
+		aliases := k.GetEffectiveAliasesByChainId(ctx, chainIdOrAlias)
 
-			isRollAppId := k.IsRollAppId(ctx, chainId)
-			if !isRollAppId {
-				chainIdToAlias[chainId] = chainId
-				continue
-			}
-
-			alias, found := k.GetAliasByRollAppId(ctx, chainId)
-			if !found {
-				chainIdToAlias[chainId] = chainId
-				continue
-			}
-
-			if _, preserved := preservedAliasesInParams[alias]; preserved {
-				// the alias is being used in the params, and we do prioritize it
-				chainIdToAlias[chainId] = chainId
-				continue
-			}
-
-			chainIdToAlias[chainId] = alias
-			reverseResolvedRecords[i].ChainIdOrAlias = alias
+		if len(aliases) < 1 {
+			// no alias found, no need to replace
+			resolvedCache[chainIdOrAlias] = chainIdOrAlias // cache it
+			continue
 		}
+
+		defaultAlias := aliases[0]
+
+		reverseResolvedRecords[i].ChainIdOrAlias = defaultAlias
+		resolvedCache[chainIdOrAlias] = defaultAlias // cache it
 	}
 
 	return reverseResolvedRecords

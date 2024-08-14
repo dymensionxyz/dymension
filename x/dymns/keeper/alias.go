@@ -79,6 +79,7 @@ func (k Keeper) SetAliasForRollAppId(ctx sdk.Context, rollAppId, alias string) e
 }
 
 // GetAliasesOfRollAppId returns all aliases linked to a RollApp.
+// Notes: the result does not exclude aliases reserved in params.
 func (k Keeper) GetAliasesOfRollAppId(ctx sdk.Context, rollAppId string) []string {
 	store := ctx.KVStore(k.storeKey)
 	keyR2A := dymnstypes.RollAppIdToAliasesKey(rollAppId)
@@ -89,6 +90,34 @@ func (k Keeper) GetAliasesOfRollAppId(ctx sdk.Context, rollAppId string) []strin
 	}
 
 	return multipleAliases.Aliases
+}
+
+// GetEffectiveAliasesByChainId returns all effective aliases by chain-id.
+// Effective means: if an alias is reserved in params, it will be excluded from the result if the chain-id is a RollApp.
+func (k Keeper) GetEffectiveAliasesByChainId(ctx sdk.Context, chainId string) []string {
+	var result []string
+	for _, aliasesOfChainId := range k.GetParams(ctx).Chains.AliasesOfChainIds {
+		if aliasesOfChainId.ChainId != chainId {
+			continue
+		}
+		result = aliasesOfChainId.Aliases
+		break
+	}
+
+	if k.IsRollAppId(ctx, chainId) {
+		reservedAliases := k.GetAllAliasAndChainIdInParams(ctx)
+
+		aliases := k.GetAliasesOfRollAppId(ctx, chainId)
+
+		aliases = slices.DeleteFunc(aliases, func(a string) bool {
+			_, found := reservedAliases[a]
+			return found
+		})
+
+		result = append(result, aliases...)
+	}
+
+	return result
 }
 
 // RemoveAliasFromRollAppId removes the linking of an existing alias from a RollApp.

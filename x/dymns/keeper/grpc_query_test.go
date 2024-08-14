@@ -3229,6 +3229,49 @@ func (s *KeeperTestSuite) Test_queryServer_Aliases() {
 			},
 		},
 		{
+			name: "pass - if a RollApp ID presents in both params and local mapped alias, merge result",
+			paramsAliasesByChainId: []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: "dymension_1100-1",
+					Aliases: []string{"dym"},
+				},
+				{
+					ChainId: rollApp1.rollAppId,
+					Aliases: []string{"more", "alias"},
+				},
+			},
+			rollApps: []rollapp{rollApp1, rollApp2, rollApp3WithoutAlias},
+			chainId:  rollApp1.rollAppId,
+			wantErr:  false,
+			want: map[string]dymnstypes.MultipleAliases{
+				rollApp1.rollAppId: {
+					Aliases: append( // merged
+						[]string{"more", "alias"}, // respect params, put it on head
+						rollApp1.aliases...),
+				},
+			},
+		},
+		{
+			name: "pass - if a chain does not have alias (both params and RollApp), exclude from result",
+			paramsAliasesByChainId: []dymnstypes.AliasesOfChainId{
+				{
+					ChainId: "dymension_1100-1",
+					Aliases: []string{"dym"},
+				},
+				{
+					ChainId: "blumbus_111-1",
+					Aliases: nil,
+				},
+			},
+			rollApps: []rollapp{rollApp1, rollApp3WithoutAlias},
+			chainId:  "",
+			wantErr:  false,
+			want: map[string]dymnstypes.MultipleAliases{
+				"dymension_1100-1": {Aliases: []string{"dym"}},
+				rollApp1.rollAppId: {Aliases: rollApp1.aliases},
+			},
+		},
+		{
 			name:                   "fail - reject bad chain-id in request",
 			paramsAliasesByChainId: nil,
 			rollApps:               nil,
