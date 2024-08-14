@@ -15,8 +15,6 @@ import (
 )
 
 func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
-	now := time.Now().UTC()
-
 	denom := s.coin(0).Denom
 	const firstYearPrice1L = 6
 	const firstYearPrice2L = 5
@@ -51,7 +49,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 		// misc
 		moduleParams.Misc.GracePeriodDuration = gracePeriod * 24 * time.Hour
 		// preserved
-		moduleParams.PreservedRegistration.ExpirationEpoch = now.Add(time.Hour).Unix()
+		moduleParams.PreservedRegistration.ExpirationEpoch = s.now.Add(time.Hour).Unix()
 		moduleParams.PreservedRegistration.PreservedDymNames = []dymnstypes.PreservedDymName{
 			{
 				DymName:            preservedDymName,
@@ -101,7 +99,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365*2,
+				ExpireAt:   s.now.Unix() + 86400*365*2,
 				Contact:    "contact@example.com",
 			},
 			wantLaterBalance: 3,
@@ -116,13 +114,13 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			existingDymName: &dymnstypes.DymName{
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   now.Add(time.Hour).Unix(),
+				ExpireAt:   s.now.Add(time.Hour).Unix(),
 				Contact:    "existing@example.com",
 			},
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   now.Add(time.Hour).Unix(),
+				ExpireAt:   s.now.Add(time.Hour).Unix(),
 				Contact:    "existing@example.com",
 			},
 			wantErr:          true,
@@ -138,12 +136,12 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			existingDymName: &dymnstypes.DymName{
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   now.Unix() - 1,
+				ExpireAt:   s.now.Unix() - 1,
 			},
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   now.Unix() - 1,
+				ExpireAt:   s.now.Unix() - 1,
 			},
 			wantErr:          true,
 			wantErrContains:  "can be taken over after",
@@ -178,7 +176,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365*3,
+				ExpireAt:   s.now.Unix() + 86400*365*3,
 			},
 			wantLaterBalance: 3,
 		},
@@ -191,7 +189,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365,
+				ExpireAt:   s.now.Unix() + 86400*365,
 			},
 			wantLaterBalance: 3,
 		},
@@ -205,7 +203,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365*2,
+				ExpireAt:   s.now.Unix() + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
@@ -219,7 +217,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365,
+				ExpireAt:   s.now.Unix() + 86400*365,
 			},
 			wantLaterBalance: 3,
 		},
@@ -233,7 +231,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365*2,
+				ExpireAt:   s.now.Unix() + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
@@ -247,7 +245,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365,
+				ExpireAt:   s.now.Unix() + 86400*365,
 			},
 			wantLaterBalance: 3,
 		},
@@ -261,7 +259,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365*2,
+				ExpireAt:   s.now.Unix() + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
@@ -275,7 +273,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365,
+				ExpireAt:   s.now.Unix() + 86400*365,
 			},
 			wantLaterBalance: 3,
 		},
@@ -289,7 +287,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365*2,
+				ExpireAt:   s.now.Unix() + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
@@ -303,7 +301,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365,
+				ExpireAt:   s.now.Unix() + 86400*365,
 			},
 			wantLaterBalance: 3,
 		},
@@ -316,12 +314,12 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			existingDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 100,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 100 + 86400*365*2,
+				ExpireAt:   s.now.Unix() + 100 + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
@@ -334,7 +332,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			existingDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 100,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: buyerA,
@@ -345,7 +343,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 100 + 86400*365*2,
+				ExpireAt:   s.now.Unix() + 100 + 86400*365*2,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: buyerA,
@@ -365,7 +363,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			existingDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 100,
+				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: buyerA,
@@ -376,7 +374,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 100 + 86400*365*2,
+				ExpireAt:   s.now.Unix() + 100 + 86400*365*2,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: buyerA,
@@ -400,7 +398,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365*2,
+				ExpireAt:   s.now.Unix() + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
@@ -419,7 +417,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365*2,
+				ExpireAt:   s.now.Unix() + 86400*365*2,
 				Contact:    "new-contact@example.com",
 			},
 			wantLaterBalance: 3,
@@ -443,7 +441,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365*2,
+				ExpireAt:   s.now.Unix() + 86400*365*2,
 				Configs:    nil,
 			},
 			wantLaterBalance:        3,
@@ -469,7 +467,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365*2,
+				ExpireAt:   s.now.Unix() + 86400*365*2,
 				Configs:    nil,
 				Contact:    "new-contact@example.com",
 			},
@@ -490,7 +488,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365*2,
+				ExpireAt:   s.now.Unix() + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
@@ -513,7 +511,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365*2,
+				ExpireAt:   s.now.Unix() + 86400*365*2,
 				Configs:    nil,
 			},
 			wantLaterBalance: 3,
@@ -538,7 +536,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365*2,
+				ExpireAt:   s.now.Unix() + 86400*365*2,
 				Configs:    nil,
 				Contact:    "new-contact@example.com",
 			},
@@ -573,7 +571,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      preservedAddr1a,
 				Controller: preservedAddr1a,
-				ExpireAt:   now.Unix() + 86400*365*1,
+				ExpireAt:   s.now.Unix() + 86400*365*1,
 			},
 			wantLaterBalance: 3,
 		},
@@ -587,7 +585,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      preservedAddr1a,
 				Controller: preservedAddr1a,
-				ExpireAt:   now.Unix() + 86400*365*2,
+				ExpireAt:   s.now.Unix() + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
@@ -601,7 +599,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      preservedAddr2a,
 				Controller: preservedAddr2a,
-				ExpireAt:   now.Unix() + 86400*365*1,
+				ExpireAt:   s.now.Unix() + 86400*365*1,
 			},
 			wantLaterBalance: 3,
 		},
@@ -625,14 +623,14 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			confirmPayment:  s.coin(firstYearPrice5PlusL),
 			preRunSetup: func(s *KeeperTestSuite) {
 				s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-					moduleParams.PreservedRegistration.ExpirationEpoch = now.Add(-time.Hour).Unix()
+					moduleParams.PreservedRegistration.ExpirationEpoch = s.now.Add(-time.Hour).Unix()
 					return moduleParams
 				})
 			},
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 86400*365*1,
+				ExpireAt:   s.now.Unix() + 86400*365*1,
 			},
 			wantLaterBalance: 3,
 		},
@@ -661,7 +659,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 					so1 := dymnstypes.SellOrder{
 						AssetId:   useRecordName,
 						AssetType: dymnstypes.TypeName,
-						ExpireAt:  now.Unix() - 1,
+						ExpireAt:  s.now.Unix() - 1,
 						MinPrice:  s.coin(1),
 					}
 					err := s.dymNsKeeper.SetSellOrder(s.ctx, so1)
@@ -822,8 +820,6 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 }
 
 func (s *KeeperTestSuite) TestEstimateRegisterName() {
-	now := time.Now()
-
 	const denom = "atom"
 	const price1L int64 = 9
 	const price2L int64 = 8
@@ -919,7 +915,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "a",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 100,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           1,
@@ -933,7 +929,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "a",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 100,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           2,
@@ -947,7 +943,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "a",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 100,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           99,
@@ -961,7 +957,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "bridge",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 100,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           1,
@@ -975,7 +971,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "bridge",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 100,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           2,
@@ -989,7 +985,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "central",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() + 100,
+				ExpireAt:   s.now.Unix() + 100,
 			},
 			newOwner:           buyerA,
 			duration:           99,
@@ -1003,7 +999,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "central",
 				Owner:      buyerA,
 				Controller: buyerA,
-				ExpireAt:   now.Unix() - 1,
+				ExpireAt:   s.now.Unix() - 1,
 			},
 			newOwner:           buyerA,
 			duration:           2,
@@ -1017,7 +1013,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "a",
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   now.Unix() - 1,
+				ExpireAt:   s.now.Unix() - 1,
 			},
 			newOwner:           buyerA,
 			duration:           1,
@@ -1031,7 +1027,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "a",
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   now.Unix() - 1,
+				ExpireAt:   s.now.Unix() - 1,
 			},
 			newOwner:           buyerA,
 			duration:           3,
@@ -1045,7 +1041,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "bridge",
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   now.Unix() - 1,
+				ExpireAt:   s.now.Unix() - 1,
 			},
 			newOwner:           buyerA,
 			duration:           1,
@@ -1059,7 +1055,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				Name:       "bridge",
 				Owner:      previousOwnerA,
 				Controller: previousOwnerA,
-				ExpireAt:   now.Unix() - 1,
+				ExpireAt:   s.now.Unix() - 1,
 			},
 			newOwner:           buyerA,
 			duration:           3,

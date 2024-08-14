@@ -26,8 +26,9 @@ const (
 // NewRegisterDymNameTxCmd is the CLI command for registering a new Dym-Name or extending the duration of an owned Dym-Name.
 func NewRegisterDymNameTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "register [Dym-Name]",
-		Short: "Register a new Dym-Name or Extends the duration of an owned Dym-Name.",
+		Use:     "register-name [Dym-Name]",
+		Aliases: []string{"register"},
+		Short:   "Register a new Dym-Name or Extends the duration of an owned Dym-Name.",
 		Example: fmt.Sprintf(
 			"$ %s tx %s register myname --years 3 --confirm-payment 15000000000000000000%s --%s hub-user",
 			version.AppName, dymnstypes.ModuleName,
@@ -43,7 +44,7 @@ func NewRegisterDymNameTxCmd() *cobra.Command {
 
 			dymName := args[0]
 			if !dymnsutils.IsValidDymName(dymName) {
-				return fmt.Errorf("input Dym-Name '%s' is not a valid Dym-Name", dymName)
+				return fmt.Errorf("input is not a valid Dym-Name: %s", dymName)
 			}
 
 			years, err := cmd.Flags().GetInt64(flagYears)

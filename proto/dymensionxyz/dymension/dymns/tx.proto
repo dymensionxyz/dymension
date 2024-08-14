@@ -15,6 +15,8 @@ service Msg {
     // RegisterName is message handler, handles registration of a new Dym-Name
     // or extends the ownership duration of an existing Dym-Name.
     rpc RegisterName(MsgRegisterName) returns (MsgRegisterNameResponse) {}
+    // RegisterAlias is message handler, handles registration of a new Alias for an existing RollApp.
+    rpc RegisterAlias(MsgRegisterAlias) returns (MsgRegisterAliasResponse) {}
     // TransferDymNameOwnership is message handler,
     // handles transfer of ownership of a Dym-Name, performed by the owner.
     rpc TransferDymNameOwnership(MsgTransferDymNameOwnership) returns (MsgTransferDymNameOwnershipResponse) {}
@@ -77,6 +79,26 @@ message MsgRegisterName {
 
 // MsgRegisterNameResponse defines the response for the name registration.
 message MsgRegisterNameResponse {}
+
+// MsgRegisterAlias defines the message used for user to register a new Alias for their owned RollApp.
+message MsgRegisterAlias {
+    option (cosmos.msg.v1.signer) = "owner";
+    // alias to be registered.
+    string alias = 1;
+
+    // rollapp_id is RollApp ID that the new Alias to be assigned for.
+    string rollapp_id = 2;
+
+    // owner is the account address of the RollApp which owns the Alias.
+    string owner = 3;
+
+    // confirm_payment is used to ensure user acknowledge of the amount coin that the user must pay.
+    // If the amount mis-match with the actual payment, the transaction will be rejected.
+    cosmos.base.v1beta1.Coin confirm_payment = 4 [(gogoproto.nullable) = false];
+}
+
+// MsgRegisterAliasResponse defines the response for the alias registration.
+message MsgRegisterAliasResponse {}
 
 // MsgTransferDymNameOwnership defines the message used for user to transfer ownership of a Dym-Name.
 message MsgTransferDymNameOwnership {

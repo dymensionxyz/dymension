@@ -60,7 +60,7 @@ func (k msgServer) validateTransferDymNameOwnership(ctx sdk.Context, msg *dymnst
 }
 
 // transferDymNameOwnership transfers ownership of a Dym-Name to a new owner.
-func (k msgServer) transferDymNameOwnership(ctx sdk.Context, dymName dymnstypes.DymName, newOwner string) error {
+func (k Keeper) transferDymNameOwnership(ctx sdk.Context, dymName dymnstypes.DymName, newOwner string) error {
 	if err := k.PruneDymName(ctx, dymName.Name); err != nil {
 		return err
 	}

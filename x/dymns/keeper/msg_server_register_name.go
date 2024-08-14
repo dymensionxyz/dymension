@@ -228,6 +228,8 @@ func (k msgServer) validateRegisterName(ctx sdk.Context, msg *dymnstypes.MsgRegi
 	return dymName, &params, nil
 }
 
+// EstimateRegisterName returns the estimated amount of coins required to register a new Dym-Name
+// or extends the ownership duration of an existing Dym-Name.
 func EstimateRegisterName(
 	params dymnstypes.Params,
 	name string,

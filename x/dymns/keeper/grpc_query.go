@@ -197,6 +197,41 @@ func (q queryServer) EstimateRegisterName(goCtx context.Context, req *dymnstypes
 	return &estimation, nil
 }
 
+// EstimateRegisterAlias estimates the cost to register an Alias.
+func (q queryServer) EstimateRegisterAlias(goCtx context.Context, req *dymnstypes.EstimateRegisterAliasRequest) (*dymnstypes.EstimateRegisterAliasResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	if !dymnsutils.IsValidAlias(req.Alias) {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid alias: %s", req.Alias)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	rollApp, found := q.rollappKeeper.GetRollapp(ctx, req.RollappId)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "RollApp not found: %s", req.RollappId)
+	}
+
+	if rollApp.Owner != req.Owner {
+		return nil, status.Errorf(codes.PermissionDenied, "not the owner of the RollApp")
+	}
+
+	canUseAlias, err := q.CanUseAliasForNewRegistration(ctx, req.Alias)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to check availability of alias: %s", req.Alias)
+	}
+	if !canUseAlias {
+		return nil, status.Errorf(codes.AlreadyExists, "alias already taken: %s", req.Alias)
+	}
+
+	moduleParams := q.GetParams(ctx)
+	estimation := EstimateRegisterAlias(req.Alias, moduleParams)
+
+	return &estimation, nil
+}
+
 // ReverseResolveAddress resolves multiple account addresses to Dym-Name Addresses which point to each.
 // This function may return multiple possible Dym-Name-Addresses those point to each of the input address.
 //

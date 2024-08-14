@@ -228,12 +228,12 @@ func (m PriceParams) Validate() error {
 }
 
 // GetFirstYearDymNamePrice returns the price for the first year of a Dym-Name registration.
-func (m *PriceParams) GetFirstYearDymNamePrice(name string) sdkmath.Int {
+func (m PriceParams) GetFirstYearDymNamePrice(name string) sdkmath.Int {
 	return getElementAtIndexOrLast(m.NamePriceSteps, len(name)-1)
 }
 
 // GetAliasPrice returns the one-off-payment price for an Alias registration.
-func (m *PriceParams) GetAliasPrice(alias string) sdkmath.Int {
+func (m PriceParams) GetAliasPrice(alias string) sdkmath.Int {
 	return getElementAtIndexOrLast(m.AliasPriceSteps, len(alias)-1)
 }
 

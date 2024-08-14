@@ -1018,6 +1018,207 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 	})
 }
 
+func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterAlias() {
+	const denom = "atom"
+	const price1L int64 = 9
+	const price2L int64 = 8
+	const price3L int64 = 7
+	const price4L int64 = 6
+	const price5PlusL int64 = 5
+
+	// the number values used in this test will be multiplied by this value
+	priceMultiplier := sdk.NewInt(1e18)
+
+	s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
+		params.Price.PriceDenom = denom
+		params.Price.AliasPriceSteps = []sdkmath.Int{
+			sdkmath.NewInt(price1L).Mul(priceMultiplier),
+			sdkmath.NewInt(price2L).Mul(priceMultiplier),
+			sdkmath.NewInt(price3L).Mul(priceMultiplier),
+			sdkmath.NewInt(price4L).Mul(priceMultiplier),
+			sdkmath.NewInt(price5PlusL).Mul(priceMultiplier),
+		}
+		params.Misc.GracePeriodDuration = 1 * 24 * time.Hour
+
+		return params
+	})
+	s.SaveCurrentContext()
+
+	rollAppOwner := testAddr(1).bech32()
+	notTheOwnerOfRollApp := testAddr(2).bech32()
+
+	const existingRollAppId = "rollapp_1-1"
+	const existingAlias = "occupied"
+	const notExistingRollAppId = "nad_0-0"
+
+	tests := []struct {
+		name            string
+		alias           string
+		rollAppId       string
+		owner           string
+		preRunFunc      func(s *KeeperTestSuite)
+		wantErr         bool
+		wantErrContains string
+		wantPrice       int64
+	}{
+		{
+			name:      "pass - can estimate",
+			alias:     "a",
+			rollAppId: existingRollAppId,
+			owner:     rollAppOwner,
+			wantPrice: price1L,
+		},
+		{
+			name:      "pass - can estimate, 1 letter",
+			alias:     "a",
+			rollAppId: existingRollAppId,
+			owner:     rollAppOwner,
+			wantPrice: price1L,
+		},
+		{
+			name:      "pass - can estimate, 2 letters",
+			alias:     "oh",
+			rollAppId: existingRollAppId,
+			owner:     rollAppOwner,
+			wantPrice: price2L,
+		},
+		{
+			name:      "pass - can estimate, 3 letters",
+			alias:     "dog",
+			rollAppId: existingRollAppId,
+			owner:     rollAppOwner,
+			wantPrice: price3L,
+		},
+		{
+			name:      "pass - can estimate, 4 letters",
+			alias:     "pool",
+			rollAppId: existingRollAppId,
+			owner:     rollAppOwner,
+			wantPrice: price4L,
+		},
+		{
+			name:      "pass - can estimate, 5 letters",
+			alias:     "sword",
+			rollAppId: existingRollAppId,
+			owner:     rollAppOwner,
+			wantPrice: price5PlusL,
+		},
+		{
+			name:      "pass - can estimate, 6 letters",
+			alias:     "bridge",
+			rollAppId: existingRollAppId,
+			owner:     rollAppOwner,
+			wantPrice: price5PlusL,
+		},
+		{
+			name:      "pass - can estimate, 5+ letters",
+			alias:     "wholesome",
+			rollAppId: existingRollAppId,
+			owner:     rollAppOwner,
+			wantPrice: price5PlusL,
+		},
+		{
+			name:            "fail - reject invalid alias",
+			alias:           "-a-",
+			rollAppId:       existingRollAppId,
+			owner:           rollAppOwner,
+			wantErr:         true,
+			wantErrContains: "invalid alias",
+		},
+		{
+			name:            "fail - reject invalid RollApp ID",
+			alias:           "a",
+			rollAppId:       "@rollapp",
+			owner:           rollAppOwner,
+			wantErr:         true,
+			wantErrContains: "RollApp not found",
+		},
+		{
+			name:            "fail - reject Roll App does not exist",
+			alias:           "a",
+			rollAppId:       notExistingRollAppId,
+			owner:           rollAppOwner,
+			wantErr:         true,
+			wantErrContains: "RollApp not found",
+		},
+		{
+			name:            "fail - reject not the owner of RollApp ID",
+			alias:           "a",
+			rollAppId:       existingRollAppId,
+			owner:           notTheOwnerOfRollApp,
+			wantErr:         true,
+			wantErrContains: "not the owner of the RollApp",
+		},
+		{
+			name:            "fail - reject alias that already taken",
+			alias:           existingAlias,
+			rollAppId:       existingRollAppId,
+			owner:           rollAppOwner,
+			wantErr:         true,
+			wantErrContains: "alias already taken",
+		},
+		{
+			name:      "fail - reject alias that reserved in params",
+			alias:     "dym",
+			rollAppId: existingRollAppId,
+			owner:     rollAppOwner,
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
+					moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+						{
+							ChainId: s.chainId,
+							Aliases: []string{"dym"},
+						},
+					}
+					return moduleParams
+				})
+			},
+			wantErr:         true,
+			wantErrContains: "alias already taken",
+		},
+	}
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			s.RefreshContext()
+
+			s.persistRollApp(
+				*newRollApp(existingRollAppId).WithOwner(rollAppOwner).WithAlias(existingAlias),
+			)
+
+			if tt.preRunFunc != nil {
+				tt.preRunFunc(s)
+			}
+
+			queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
+
+			resp, err := queryServer.EstimateRegisterAlias(sdk.WrapSDKContext(s.ctx), &dymnstypes.EstimateRegisterAliasRequest{
+				Alias:     tt.alias,
+				RollappId: tt.rollAppId,
+				Owner:     tt.owner,
+			})
+
+			if tt.wantErr {
+				s.Require().ErrorContains(err, tt.wantErrContains)
+				s.Nil(resp)
+				return
+			}
+
+			s.Require().NoError(err)
+			s.Require().NotNil(resp)
+
+			s.Equal(sdk.NewInt(tt.wantPrice).Mul(priceMultiplier).String(), resp.Price.Amount.String())
+			s.Equal(denom, resp.Price.Denom)
+		})
+	}
+
+	s.Run("reject nil request", func() {
+		queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
+		resp, err := queryServer.EstimateRegisterAlias(sdk.WrapSDKContext(s.ctx), nil)
+		s.Require().ErrorContains(err, "invalid request")
+		s.Require().Nil(resp)
+	})
+}
+
 func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 	const nimChainId = "nim_1122-1"
 

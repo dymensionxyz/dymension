@@ -320,7 +320,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 				},
 			},
 			wantErr:         true,
-			wantErrContains: "chains params: alias: chain ID and alias must unique among all",
+			wantErrContains: "chain ID and alias must unique among all, found duplicated",
 			wantDymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
@@ -366,7 +366,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 				},
 			},
 			wantErr:         true,
-			wantErrContains: "chains params: alias: chain ID and alias must unique among all",
+			wantErrContains: "chain ID and alias must unique among all, found duplicated",
 			wantChainsAliasParams: []dymnstypes.AliasesOfChainId{
 				// not changed
 				{

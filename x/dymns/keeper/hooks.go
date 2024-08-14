@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
-
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -454,7 +455,7 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not a RollApp chain-id: %s", rollappID)
 	}
 
-	canUseAlias, err := h.CanUseAliasForNewRegistration(ctx, alias)
+	canUseAlias, err := h.Keeper.CanUseAliasForNewRegistration(ctx, alias)
 	if err != nil {
 		return errorsmod.Wrapf(errors.Join(gerrc.ErrInternal, err), "failed to check availability of alias: %s", alias)
 	}
@@ -463,38 +464,15 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 		return errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias already in use or preserved: %s", alias)
 	}
 
-	if err := h.Keeper.SetAliasForRollAppId(ctx, rollappID, alias); err != nil {
-		return errorsmod.Wrap(gerrc.ErrInternal, "failed to set alias for RollApp")
-	}
+	moduleParams := h.Keeper.GetParams(ctx)
 
-	params := h.Keeper.GetParams(ctx)
 	aliasCost := sdk.NewCoins(
 		sdk.NewCoin(
-			params.Price.PriceDenom, params.Price.GetAliasPrice(alias),
+			moduleParams.Price.PriceDenom, moduleParams.Price.GetAliasPrice(alias),
 		),
 	)
 
-	if err := h.bankKeeper.SendCoinsFromAccountToModule(ctx,
-		creatorAddr,
-		dymnstypes.ModuleName,
-		aliasCost,
-	); err != nil {
-		return err
-	}
-
-	if err := h.bankKeeper.BurnCoins(ctx, dymnstypes.ModuleName, aliasCost); err != nil {
-		return err
-	}
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		dymnstypes.EventTypeSell,
-		sdk.NewAttribute(dymnstypes.AttributeKeySellAssetType, dymnstypes.TypeAlias.FriendlyString()),
-		sdk.NewAttribute(dymnstypes.AttributeKeySellName, alias),
-		sdk.NewAttribute(dymnstypes.AttributeKeySellPrice, aliasCost.String()),
-		sdk.NewAttribute(dymnstypes.AttributeKeySellTo, rollappID),
-	))
-
-	return nil
+	return h.Keeper.registerAliasForRollApp(ctx, rollappID, creatorAddr, alias, aliasCost)
 }
 
 func (h rollappHooks) BeforeUpdateState(_ sdk.Context, _ string, _ string) error {

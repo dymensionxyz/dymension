@@ -65,6 +65,11 @@ service Query {
     option (google.api.http).get = "/dymensionxyz/dymension/dymns/estimate_register_name/{name}/{duration}";
   }
 
+  // EstimateRegisterAlias estimates the cost to register an Alias.
+  rpc EstimateRegisterAlias(EstimateRegisterAliasRequest) returns (EstimateRegisterAliasResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/estimate_register_alias/{alias}";
+  }
+
   // ReverseResolveAddress resolves multiple account addresses to Dym-Name Addresses which point to each.
   // This function may return multiple possible Dym-Name-Addresses those point to each of the input address.
   //
@@ -264,6 +269,26 @@ message EstimateRegisterNameResponse {
 
   // total_price is the total price to register the Dym-Name for the specified duration.
   cosmos.base.v1beta1.Coin total_price = 3 [(gogoproto.nullable) = false];
+}
+
+// EstimateRegisterAliasRequest is the request type for the Query/EstimateRegisterAlias RPC method.
+message EstimateRegisterAliasRequest {
+  option (gogoproto.equal)           = false;
+
+  // alias to be registered.
+  string alias = 1;
+
+  // rollapp_id is the rollapp to link the alias to.
+  string rollapp_id = 2;
+
+  // owner is the bech32-encoded address of the account which owns the order.
+  string owner = 3;
+}
+
+// EstimateRegisterAliasResponse is the response type for the Query/EstimateRegisterAlias RPC method.
+message EstimateRegisterAliasResponse {
+  // price is the price to register the alias.
+  cosmos.base.v1beta1.Coin price = 1 [(gogoproto.nullable) = false];
 }
 
 // ReverseResolveAddressRequest is the request type for the Query/ReverseResolveAddress RPC method.

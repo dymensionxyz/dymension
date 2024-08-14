@@ -15,6 +15,9 @@ func TestMsgs_Signers(t *testing.T) {
 			&MsgRegisterName{
 				Owner: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			},
+			&MsgRegisterAlias{
+				Owner: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			},
 			&MsgTransferDymNameOwnership{
 				Owner: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			},
@@ -55,6 +58,7 @@ func TestMsgs_Signers(t *testing.T) {
 	t.Run("bad signers should panic", func(t *testing.T) {
 		msgs := []sdk.Msg{
 			&MsgRegisterName{},
+			&MsgRegisterAlias{},
 			&MsgTransferDymNameOwnership{},
 			&MsgSetController{},
 			&MsgUpdateResolveAddress{},
@@ -79,6 +83,7 @@ func TestMsgs_ImplementLegacyMsg(t *testing.T) {
 	//goland:noinspection GoDeprecation
 	msgs := []legacytx.LegacyMsg{
 		&MsgRegisterName{},
+		&MsgRegisterAlias{},
 		&MsgTransferDymNameOwnership{},
 		&MsgSetController{},
 		&MsgUpdateResolveAddress{},
@@ -100,6 +105,7 @@ func TestMsgs_ImplementLegacyMsg(t *testing.T) {
 
 func TestMsgs_Type(t *testing.T) {
 	require.Equal(t, "register_name", (&MsgRegisterName{}).Type())
+	require.Equal(t, "register_alias", (&MsgRegisterAlias{}).Type())
 	require.Equal(t, "transfer_dym_name_ownership", (&MsgTransferDymNameOwnership{}).Type())
 	require.Equal(t, "set_controller", (&MsgSetController{}).Type())
 	require.Equal(t, "update_resolve_address", (&MsgUpdateResolveAddress{}).Type())
