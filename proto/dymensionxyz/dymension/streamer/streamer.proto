@@ -1,0 +1,21 @@
+syntax = "proto3";
+package dymensionxyz.dymension.streamer;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
+
+message EpochPointer {
+  // StreamID is the ID of a stream.
+  uint64 stream_id = 1;
+  // GaugeID is the ID of a gauge.
+  uint64 gauge_id = 2;
+  // EpochIdentifier is a unique reference to this particular timer.
+  string epoch_identifier = 3;
+  // EpochCoins are coins that need to be distributed in this epoch.
+  repeated cosmos.base.v1beta1.Coin epoch_coins = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}

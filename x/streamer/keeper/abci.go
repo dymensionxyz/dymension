@@ -1,96 +1,139 @@
 package keeper
 
 import (
+	"slices"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 func (k Keeper) EndBlock(ctx sdk.Context) {
-	epochPointers := k.GetEpochPointers
-}
-
-type EpochPointer struct {
-	epochRewards sdk.Coins
-	epochID      string
-	streamID     uint64
-	gaugeID      uint64
-}
-
-// Notes:
-// GetStreamsFromID - ??
-func (k Keeper) processEpochPointer(ctx sdk.Context, p EpochPointer) error {
-	nextP, found := k.nextValidEpochPointer(ctx, p)
-	if !found {
-		return nil // no more gauges to iterate
-	}
-	if nextP.streamID == p.streamID {
-		// the current stream is valid, so we adjust the gauge reference
-		nextP.gaugeID = p.gaugeID
-	}
-
-	// now nextP points to the valid gauge
-}
-
-func (k Keeper) fillIterations(ctx sdk.Context, iterationsLimit int, p EpochPointer) (sdk.Coins, int, error) {
-	if iterationsLimit <= 0 {
-		// TODO
-	}
-
-	totalDistributed := sdk.NewCoins()
-	totalIterations := 0
+	//epochPointers := k.GetEpochPointers
+	var epochPointers []types.EpochPointer
 
 	// less than 10 streams every epoch
-	//streams := k.GetStreamsStartingFromID(ctx, p.streamID)
-	var streams []types.Stream
-	for _, stream := range streams {
-		totalWeight := sdk.NewDecFromInt(stream.DistributeTo.TotalWeight)
-		for _, gauge := range stream.DistributeTo.Records {
-			if totalIterations > iterationsLimit {
-				break
-			}
+	streams := k.GetActiveStreams(ctx)
 
-			if gauge.GaugeId < p.gaugeID {
-				continue // TODO: do we need to count this "empty" iterations?
-			}
+	//iterationsPerBlock := k.GetParams(ctx)
+	maxPerBlock := 500
+	iterationsPerBlock := 0
 
-			distributed, err := k.DistributeToGauge(ctx, p.epochRewards, gauge, totalWeight)
-			if err != nil {
-				return sdk.Coins{}, 0, err
-			}
+	totalDistributed := sdk.NewCoins()
 
-			totalDistributed = totalDistributed.Add(distributed...)
-			totalIterations++
+	for _, pointer := range epochPointers {
+		remainIterations := maxPerBlock - iterationsPerBlock
+
+		if remainIterations <= 0 {
+			// no more iterations available for this block
+			break
 		}
+
+		result, err := k.ProcessEpochPointer(ctx, remainIterations, pointer, streams)
+		if err != nil {
+			panic(err) // ?? or Logger.Error
+		}
+
+		totalDistributed = totalDistributed.Add(result.Distributed...)
+		iterationsPerBlock += result.Iterations
 	}
 
-	// TODO: update every stream
-
-	return totalDistributed, totalIterations, nil
+	// TODO event
 }
 
-// if the initial epoch pointer is valid, return it. note that it might have non-first gauge ID
-// otherwise, return the first valid stream with the first gauge ID
-// return false if no more streams are presented
-// now x/streamer support only one empty distribution: from x/sponsorship, fix it?
-func (k Keeper) nextValidEpochPointer(ctx sdk.Context, p EpochPointer) (EpochPointer, bool) {
-	const Break = true
-	const Continue = false
-	var found = false
+type ProcessEpochPointerResult struct {
+	Distributed sdk.Coins
+	Iterations  int
+	Pointer     types.EpochPointer
+}
 
-	// iterate streams starting including the start position
-	k.IterateStreamsFromID(ctx, p.streamID, func(s types.Stream) bool {
-		if s.DistrEpochIdentifier == p.epochID && len(s.DistributeTo.Records) != 0 {
-			found = true
-			p = EpochPointer{
-				epochID:  p.epochID,
-				streamID: s.Id,
-				gaugeID:  s.DistributeTo.Records[0].GaugeId,
-			}
-			return Break
+func (k Keeper) ProcessEpochPointer(
+	ctx sdk.Context,
+	iterationsLimit int,
+	p types.EpochPointer,
+	streams []types.Stream,
+) (ProcessEpochPointerResult, error) {
+	totalDistributed := sdk.NewCoins()
+
+	iter := NewStreamIterator(streams, p.StreamId, p.GaugeId, p.EpochIdentifier)
+	for ; iter.Iterations() <= iterationsLimit && iter.Valid(); iter.Next() {
+		stream := iter.Stream()
+		gauge := iter.Gauge()
+
+		distributed, err := k.DistributeToGauge(ctx, p.EpochCoins, gauge, stream.DistributeTo.TotalWeight)
+		if err != nil {
+			// TODO: don't return error??
+			return ProcessEpochPointerResult{}, err
 		}
-		return Continue
+
+		totalDistributed = totalDistributed.Add(distributed...)
+
+		p.StreamId = stream.Id
+		p.GaugeId = gauge.GaugeId
+	}
+
+	return ProcessEpochPointerResult{
+		Distributed: totalDistributed,
+		Iterations:  iter.Iterations(),
+		Pointer:     p,
+	}, nil
+}
+
+type StreamIterator struct {
+	data            []types.Stream
+	streamIdx       int
+	gaugeIdx        int
+	epochIdentifier string
+	iterations      int
+}
+
+func NewStreamIterator(data []types.Stream, startStreamID uint64, startGaugeID uint64, epochIdentifier string) StreamIterator {
+	// streamIdx is the position where the stream is found, or the position where it would appear in the sort order
+	streamIdx, _ := slices.BinarySearchFunc(data, startStreamID, func(stream types.Stream, targetID uint64) int {
+		return int(stream.Id - targetID)
 	})
 
-	return p, found
+	// streamIdx is the position where the gauge is found, or the position where it would appear in the sort order
+	gaugeIdx, _ := slices.BinarySearchFunc(data[streamIdx].DistributeTo.Records, startGaugeID, func(record types.DistrRecord, targetID uint64) int {
+		return int(record.GaugeId - targetID)
+	})
+
+	return StreamIterator{
+		data:            data,
+		streamIdx:       streamIdx,
+		gaugeIdx:        gaugeIdx,
+		epochIdentifier: epochIdentifier,
+		iterations:      0,
+	}
+}
+
+func (i *StreamIterator) Next() {
+	i.gaugeIdx++
+	if i.gaugeIdx >= len(i.data[i.streamIdx].DistributeTo.Records) {
+		// Find the next appropriate stream
+		i.streamIdx++
+		for ; i.streamIdx < len(i.data); i.streamIdx++ {
+			if i.data[i.streamIdx].DistrEpochIdentifier == i.epochIdentifier {
+				i.gaugeIdx = 0
+				break
+			}
+		}
+	}
+	i.iterations++
+}
+
+func (i StreamIterator) Stream() types.Stream {
+	return i.data[i.streamIdx]
+}
+
+func (i StreamIterator) Gauge() types.DistrRecord {
+	return i.data[i.streamIdx].DistributeTo.Records[i.gaugeIdx]
+}
+
+func (i StreamIterator) Valid() bool {
+	return i.streamIdx < len(i.data)
+}
+
+func (i StreamIterator) Iterations() int {
+	return i.iterations
 }

@@ -21,9 +21,8 @@ func (k Keeper) DistributeByWeights(ctx sdk.Context, coins sdk.Coins, distrInfo 
 	}
 
 	totalDistrCoins := sdk.NewCoins()
-	totalWeightDec := sdk.NewDecFromInt(distrInfo.TotalWeight)
 	for _, record := range distrInfo.Records {
-		allocatedCoins, err := k.DistributeToGauge(ctx, coins, record, totalWeightDec)
+		allocatedCoins, err := k.DistributeToGauge(ctx, coins, record, distrInfo.TotalWeight)
 		if err != nil {
 			return sdk.Coins{}, fmt.Errorf("distribute to gauge %d: %w", record.GaugeId, err)
 		}
@@ -33,16 +32,17 @@ func (k Keeper) DistributeByWeights(ctx sdk.Context, coins sdk.Coins, distrInfo 
 	return totalDistrCoins, nil
 }
 
-func (k Keeper) DistributeToGauge(ctx sdk.Context, coins sdk.Coins, record types.DistrRecord, totalWeight math.LegacyDec) (sdk.Coins, error) {
+func (k Keeper) DistributeToGauge(ctx sdk.Context, coins sdk.Coins, record types.DistrRecord, totalWeight math.Int) (sdk.Coins, error) {
 	totalAllocated := sdk.NewCoins()
 	for _, coin := range coins {
 		if coin.IsZero() {
 			continue
 		}
 
-		assetAmount := sdk.NewDecFromInt(coin.Amount)
+		assetAmountDec := sdk.NewDecFromInt(coin.Amount)
 		weightDec := sdk.NewDecFromInt(record.Weight)
-		allocatingAmount := assetAmount.Mul(weightDec.Quo(totalWeight)).TruncateInt()
+		totalDec := sdk.NewDecFromInt(totalWeight)
+		allocatingAmount := assetAmountDec.Mul(weightDec.Quo(totalDec)).TruncateInt()
 
 		// when weight is too small and no amount is allocated, just skip this to avoid zero coin send issues
 		if !allocatingAmount.IsPositive() {
