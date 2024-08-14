@@ -90,9 +90,16 @@ message MsgUpdateState {
   bool last = 8;
 }
 
+// MsgUpdateStateResponse is the response to the MsgUpdateState message
+// We use the update state response to inform the proposer of important information, as events based logic is not 100% reliable
+// Currently we inform the proposer in case a rotation is in progress
 message MsgUpdateStateResponse {
-  string nextProposerAddr = 1;
-  bool rotationInProgress = 2;
+  // rotationInProgress is true if a rotation is in progress
+  bool rotationInProgress = 1;
+  // nextProposerAddr is the bech32-encoded address of the next proposer in case a rotation is in progress
+  // this field is only valid if rotationInProgress is true
+  // this field can be empty, which means the rollapp is left with no proposer
+  string nextProposerAddr = 2;
 }
 
 // MsgTransferOwnership transfers the ownership of a rollapp chain to a new owner.
