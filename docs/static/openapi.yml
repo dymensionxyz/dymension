@@ -1600,6 +1600,58 @@ paths:
           type: string
       tags:
         - Query
+  /dymensionxyz/dymension/dymns/aliases:
+    get:
+      summary: Aliases queries all the aliases for a chain id or all chains.
+      operationId: Aliases
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              aliases_by_chain_id:
+                type: object
+                additionalProperties:
+                  type: object
+                  properties:
+                    aliases:
+                      type: array
+                      items:
+                        type: string
+                      description: aliases is a list of alias, available for a RollApp.
+                  description: MultipleAliases contains a list of alias.
+                description: aliases_by_chain_id is the map of aliases by chain id.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: chain_id
+          description: chain_id to query alias for, empty for all chains.
+          in: query
+          required: false
+          type: string
+      tags:
+        - Query
   /dymensionxyz/dymension/dymns/buy_order/{id}:
     get:
       summary: BuyOrderById queries a Buy-Order by its id.
@@ -3580,14 +3632,14 @@ paths:
                           limited to 512 chars
                       logo_data_uri:
                         type: string
-                        description: >-
+                        title: >-
                           logo_data_uri is a base64 rep with a URI prefix to the
-                          rollapp logo. Should be limited to 25kb.
+                          rollapp logo. Size limited
                       token_logo_data_uri:
                         type: string
-                        description: >-
+                        title: >-
                           token_logo_data_uri is a URI to the native token logo.
-                          Should be limited to 25kb.
+                          Size limited
                       telegram:
                         type: string
                         title: telegram is the rollapp telegram link
@@ -4234,14 +4286,14 @@ paths:
                           limited to 512 chars
                       logo_data_uri:
                         type: string
-                        description: >-
+                        title: >-
                           logo_data_uri is a base64 rep with a URI prefix to the
-                          rollapp logo. Should be limited to 25kb.
+                          rollapp logo. Size limited
                       token_logo_data_uri:
                         type: string
-                        description: >-
+                        title: >-
                           token_logo_data_uri is a URI to the native token logo.
-                          Should be limited to 25kb.
+                          Size limited
                       telegram:
                         type: string
                         title: telegram is the rollapp telegram link
@@ -7177,6 +7229,11 @@ paths:
                       title: >-
                         distributed_coins are coins that have been distributed
                         already
+                    sponsored:
+                      type: boolean
+                      description: >-
+                        Sponsored indicates if the stream is based on the
+                        sponsorship distribution.
                   description: >-
                     Stream is an object that stores and distributes yields to
                     recipients who
@@ -7450,6 +7507,11 @@ paths:
                     title: >-
                       distributed_coins are coins that have been distributed
                       already
+                  sponsored:
+                    type: boolean
+                    description: >-
+                      Sponsored indicates if the stream is based on the
+                      sponsorship distribution.
                 description: >-
                   Stream is an object that stores and distributes yields to
                   recipients who
@@ -7596,6 +7658,11 @@ paths:
                       title: >-
                         distributed_coins are coins that have been distributed
                         already
+                    sponsored:
+                      type: boolean
+                      description: >-
+                        Sponsored indicates if the stream is based on the
+                        sponsorship distribution.
                   description: >-
                     Stream is an object that stores and distributes yields to
                     recipients who
@@ -7821,6 +7888,11 @@ paths:
                       title: >-
                         distributed_coins are coins that have been distributed
                         already
+                    sponsored:
+                      type: boolean
+                      description: >-
+                        Sponsored indicates if the stream is based on the
+                        sponsorship distribution.
                   description: >-
                     Stream is an object that stores and distributes yields to
                     recipients who
@@ -59207,6 +59279,15 @@ definitions:
           To be used in the future when Alias trading implementation is ready
           or disable trading of Alias when needed.
     description: MiscParams defines group of miscellaneous parameters.
+  dymensionxyz.dymension.dymns.MultipleAliases:
+    type: object
+    properties:
+      aliases:
+        type: array
+        items:
+          type: string
+        description: aliases is a list of alias, available for a RollApp.
+    description: MultipleAliases contains a list of alias.
   dymensionxyz.dymension.dymns.Params:
     type: object
     properties:
@@ -59583,6 +59664,21 @@ definitions:
           same_chain_aliases is the list of aliases for the same chain that
           associated with the alias.
     title: QueryAliasResponse
+  dymensionxyz.dymension.dymns.QueryAliasesResponse:
+    type: object
+    properties:
+      aliases_by_chain_id:
+        type: object
+        additionalProperties:
+          type: object
+          properties:
+            aliases:
+              type: array
+              items:
+                type: string
+              description: aliases is a list of alias, available for a RollApp.
+          description: MultipleAliases contains a list of alias.
+        description: aliases_by_chain_id is the map of aliases by chain id.
   dymensionxyz.dymension.dymns.QueryBuyOrderByIdResponse:
     type: object
     properties:
@@ -61179,14 +61275,14 @@ definitions:
                   512 chars
               logo_data_uri:
                 type: string
-                description: >-
+                title: >-
                   logo_data_uri is a base64 rep with a URI prefix to the rollapp
-                  logo. Should be limited to 25kb.
+                  logo. Size limited
               token_logo_data_uri:
                 type: string
-                description: >-
-                  token_logo_data_uri is a URI to the native token logo. Should
-                  be limited to 25kb.
+                title: >-
+                  token_logo_data_uri is a URI to the native token logo. Size
+                  limited
               telegram:
                 type: string
                 title: telegram is the rollapp telegram link
@@ -61507,14 +61603,14 @@ definitions:
               chars
           logo_data_uri:
             type: string
-            description: >-
+            title: >-
               logo_data_uri is a base64 rep with a URI prefix to the rollapp
-              logo. Should be limited to 25kb.
+              logo. Size limited
           token_logo_data_uri:
             type: string
-            description: >-
-              token_logo_data_uri is a URI to the native token logo. Should be
-              limited to 25kb.
+            title: >-
+              token_logo_data_uri is a URI to the native token logo. Size
+              limited
           telegram:
             type: string
             title: telegram is the rollapp telegram link
@@ -61608,14 +61704,12 @@ definitions:
         title: description is the rollapp description. should be limited to 512 chars
       logo_data_uri:
         type: string
-        description: >-
+        title: >-
           logo_data_uri is a base64 rep with a URI prefix to the rollapp logo.
-          Should be limited to 25kb.
+          Size limited
       token_logo_data_uri:
         type: string
-        description: >-
-          token_logo_data_uri is a URI to the native token logo. Should be
-          limited to 25kb.
+        title: token_logo_data_uri is a URI to the native token logo. Size limited
       telegram:
         type: string
         title: telegram is the rollapp telegram link
@@ -63668,6 +63762,11 @@ definitions:
 
                   signatures required by gogoproto.
               title: distributed_coins are coins that have been distributed already
+            sponsored:
+              type: boolean
+              description: >-
+                Sponsored indicates if the stream is based on the sponsorship
+                distribution.
           description: >-
             Stream is an object that stores and distributes yields to recipients
             who
@@ -63827,6 +63926,11 @@ definitions:
             NOTE: The amount field is an Int which implements the custom method
             signatures required by gogoproto.
         title: distributed_coins are coins that have been distributed already
+      sponsored:
+        type: boolean
+        description: >-
+          Sponsored indicates if the stream is based on the sponsorship
+          distribution.
     description: >-
       Stream is an object that stores and distributes yields to recipients who
 
@@ -63925,6 +64029,11 @@ definitions:
 
                 signatures required by gogoproto.
             title: distributed_coins are coins that have been distributed already
+          sponsored:
+            type: boolean
+            description: >-
+              Sponsored indicates if the stream is based on the sponsorship
+              distribution.
         description: >-
           Stream is an object that stores and distributes yields to recipients
           who
@@ -64027,6 +64136,11 @@ definitions:
 
                   signatures required by gogoproto.
               title: distributed_coins are coins that have been distributed already
+            sponsored:
+              type: boolean
+              description: >-
+                Sponsored indicates if the stream is based on the sponsorship
+                distribution.
           description: >-
             Stream is an object that stores and distributes yields to recipients
             who
@@ -64156,6 +64270,11 @@ definitions:
 
                   signatures required by gogoproto.
               title: distributed_coins are coins that have been distributed already
+            sponsored:
+              type: boolean
+              description: >-
+                Sponsored indicates if the stream is based on the sponsorship
+                distribution.
           description: >-
             Stream is an object that stores and distributes yields to recipients
             who
