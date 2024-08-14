@@ -35,7 +35,7 @@ func (suite *RollappTestSuite) TestCreateRollappWithBechGenesisSum() {
 		Creator:          alice,
 		RollappId:        "rollapp_1234-1",
 		InitialSequencer: sample.AccAddress(),
-		Alias:            "Rollapp",
+		Alias:            "rollapp",
 		VmType:           types.Rollapp_EVM,
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
