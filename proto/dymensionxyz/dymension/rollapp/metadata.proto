@@ -8,12 +8,18 @@ message RollappMetadata {
   string website = 1;
   // description is the rollapp description. should be limited to 512 chars
   string description = 2;
-  // logo_data_uri is a base64 rep with a URI prefix to the rollapp logo. Should be limited to 25kb.
+  // logo_data_uri is a base64 rep with a URI prefix to the rollapp logo. Size limited
   string logo_data_uri = 3;
-  // token_logo_data_uri is a URI to the native token logo. Should be limited to 25kb.
+  // token_logo_data_uri is a URI to the native token logo. Size limited
   string token_logo_data_uri = 4;
   // telegram is the rollapp telegram link
   string telegram = 5;
   // x is the rollapp twitter link
   string x = 6;
+  // genesis_url has the genesis file
+  string genesis_url = 7;
+  // display_name is a non semantic name for displaying on gui etc. Size limited.
+  string display_name = 8;
+  // tagline is a non semantic tagline/catch-phrase. Size limited.
+  string tagline = 9;
 }

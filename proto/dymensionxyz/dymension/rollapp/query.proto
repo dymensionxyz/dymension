@@ -86,13 +86,8 @@ message QueryGetLatestStateIndexResponse {
 
 message QueryGetRollappResponse {
   Rollapp rollapp = 1 [ (gogoproto.nullable) = false ];
-  // Defines the index of the last rollapp UpdateState.
-  StateInfoIndex latestStateIndex = 2;
-  // Defines the index of the last rollapp UpdateState that was finalized.
-  StateInfoIndex latestFinalizedStateIndex = 3;
-
-  uint64 latestHeight = 4;
-  uint64 latestFinalizedHeight = 5;
+  reserved 2 to 5;
+  RollappSummary summary = 6 [ (gogoproto.nullable) = false ];
 }
 
 message QueryAllRollappRequest {
@@ -100,7 +95,8 @@ message QueryAllRollappRequest {
 }
 
 message QueryAllRollappResponse {
-  repeated RollappSummary rollapp = 1 [ (gogoproto.nullable) = false ];
+  reserved 1;
+  repeated QueryGetRollappResponse rollapp = 3 [ (gogoproto.nullable) = false ];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 

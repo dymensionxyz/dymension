@@ -3,12 +3,13 @@ package types
 import (
 	time "time"
 
-	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
 // BankKeeper defines the expected interface needed to retrieve account balances.
@@ -36,4 +37,8 @@ type IncentivesKeeper interface {
 
 	GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*incentivestypes.Gauge, error)
 	AddToGaugeRewards(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins, gaugeID uint64) error
+}
+
+type SponsorshipKeeper interface {
+	GetDistribution(ctx sdk.Context) (types.Distribution, error)
 }

@@ -29,9 +29,7 @@ func init() {
 }
 
 // NewCreateStreamProposal creates a new create stream proposal.
-//
-//nolint:interfacer
-func NewCreateStreamProposal(title, description string, coins sdk.Coins, distrToRecords []DistrRecord, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64) *CreateStreamProposal {
+func NewCreateStreamProposal(title, description string, coins sdk.Coins, distrToRecords []DistrRecord, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64, sponsored bool) *CreateStreamProposal {
 	return &CreateStreamProposal{
 		Title:                title,
 		Description:          description,
@@ -40,6 +38,7 @@ func NewCreateStreamProposal(title, description string, coins sdk.Coins, distrTo
 		StartTime:            startTime,
 		DistrEpochIdentifier: epochIdentifier,
 		NumEpochsPaidOver:    numEpochsPaidOver,
+		Sponsored:            sponsored,
 	}
 }
 

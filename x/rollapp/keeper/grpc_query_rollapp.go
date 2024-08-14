@@ -3,9 +3,11 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -17,7 +19,7 @@ func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest)
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	var rollapps []types.RollappSummary
+	var rollapps []types.QueryGetRollappResponse
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
@@ -28,7 +30,11 @@ func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest)
 		if err := k.cdc.Unmarshal(value, &rollapp); err != nil {
 			return err
 		}
-		rollapps = append(rollapps, k.buildRollappSummary(ctx, rollapp))
+		res, err := getSummaryResponse(ctx, k, rollapp, true)
+		if err != nil {
+			return errorsmod.Wrap(err, "get summary response")
+		}
+		rollapps = append(rollapps, *res)
 		return nil
 	})
 	if err != nil {
@@ -39,49 +45,36 @@ func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest)
 }
 
 func (k Keeper) Rollapp(c context.Context, req *types.QueryGetRollappRequest) (*types.QueryGetRollappResponse, error) {
-	return queryRollapp[types.QueryGetRollappRequest](c, k, req, k.GetRollapp, req.GetRollappId)
+	ctx := sdk.UnwrapSDKContext(c)
+	ra, ok := k.GetRollapp(ctx, req.GetRollappId())
+	return getSummaryResponse(ctx, k, ra, ok)
 }
 
 func (k Keeper) RollappByEIP155(c context.Context, req *types.QueryGetRollappByEIP155Request) (*types.QueryGetRollappResponse, error) {
-	return queryRollapp[types.QueryGetRollappByEIP155Request](c, k, req, k.GetRollappByEIP155, req.GetEip155)
-}
-
-type (
-	queryRollappFn[T any]       func(ctx sdk.Context, q T) (val types.Rollapp, found bool)
-	queryRollappGetArgFn[T any] func() T
-)
-
-func queryRollapp[Q, T any](c context.Context, k Keeper, req any, qFn queryRollappFn[T], argFn queryRollappGetArgFn[T]) (*types.QueryGetRollappResponse, error) {
-	if req == (*Q)(nil) {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
 	ctx := sdk.UnwrapSDKContext(c)
-
-	rollapp, found := qFn(ctx, argFn())
-	if !found {
-		return nil, status.Error(codes.NotFound, "not found")
-	}
-
-	summary := k.buildRollappSummary(ctx, rollapp)
-
-	return &types.QueryGetRollappResponse{
-		Rollapp:                   rollapp,
-		LatestStateIndex:          summary.LatestStateIndex,
-		LatestFinalizedStateIndex: summary.LatestFinalizedStateIndex,
-	}, nil
+	ra, ok := k.GetRollappByEIP155(ctx, req.Eip155)
+	return getSummaryResponse(ctx, k, ra, ok)
 }
 
-func (k Keeper) buildRollappSummary(ctx sdk.Context, rollapp types.Rollapp) types.RollappSummary {
-	rollappSummary := types.RollappSummary{
+func getSummaryResponse(ctx sdk.Context, k Keeper, rollapp types.Rollapp, ok bool) (*types.QueryGetRollappResponse, error) {
+	if !ok {
+		return nil, errorsmod.Wrap(gerrc.ErrNotFound, "rollapp")
+	}
+
+	s := types.RollappSummary{
 		RollappId: rollapp.RollappId,
 	}
 	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
 	if found {
-		rollappSummary.LatestStateIndex = &latestStateInfoIndex
+		s.LatestStateIndex = &latestStateInfoIndex
 	}
 	latestFinalizedStateInfoIndex, found := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
 	if found {
-		rollappSummary.LatestFinalizedStateIndex = &latestFinalizedStateInfoIndex
+		s.LatestFinalizedStateIndex = &latestFinalizedStateInfoIndex
 	}
-	return rollappSummary
+
+	return &types.QueryGetRollappResponse{
+		Rollapp: rollapp,
+		Summary: s,
+	}, nil
 }

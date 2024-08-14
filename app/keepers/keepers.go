@@ -377,6 +377,15 @@ func (a *AppKeepers) InitKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
+		appCodec,
+		a.keys[sponsorshiptypes.StoreKey],
+		a.AccountKeeper,
+		a.StakingKeeper,
+		a.IncentivesKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
 	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
 		a.keys[streamermoduletypes.StoreKey],
 		a.GetSubspace(streamermoduletypes.ModuleName),
@@ -384,6 +393,7 @@ func (a *AppKeepers) InitKeepers(
 		a.EpochsKeeper,
 		a.AccountKeeper,
 		a.IncentivesKeeper,
+		a.SponsorshipKeeper,
 	)
 
 	a.EIBCKeeper = *eibckeeper.NewKeeper(
