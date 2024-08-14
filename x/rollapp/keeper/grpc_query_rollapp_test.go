@@ -20,8 +20,8 @@ import (
 )
 
 func TestQuery(t *testing.T) {
-	flag.Set("rapid.checks", "50")
-	flag.Set("rapid.steps", "50")
+	_ = flag.Set("rapid.checks", "50")
+	_ = flag.Set("rapid.steps", "50")
 	rapid.Check(t, func(r *rapid.T) {
 		k, ctx := keepertest.RollappKeeper(t)
 		ids := rapid.SampledFrom([]string{
