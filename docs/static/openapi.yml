@@ -2538,6 +2538,69 @@ paths:
           type: string
       tags:
         - Query
+  /dymensionxyz/dymension/dymns/estimate_register_alias/{alias}:
+    get:
+      summary: EstimateRegisterAlias estimates the cost to register an Alias.
+      operationId: EstimateRegisterAlias
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              price:
+                description: price is the price to register the alias.
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+            description: >-
+              EstimateRegisterAliasResponse is the response type for the
+              Query/EstimateRegisterAlias RPC method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: alias
+          description: alias to be registered.
+          in: path
+          required: true
+          type: string
+        - name: rollapp_id
+          description: rollapp_id is the rollapp to link the alias to.
+          in: query
+          required: false
+          type: string
+        - name: owner
+          description: >-
+            owner is the bech32-encoded address of the account which owns the
+            order.
+          in: query
+          required: false
+          type: string
+      tags:
+        - Query
   /dymensionxyz/dymension/dymns/estimate_register_name/{name}/{duration}:
     get:
       summary: EstimateRegisterName estimates the cost to register a Dym-Name.
@@ -3649,6 +3712,16 @@ paths:
                       genesis_url:
                         type: string
                         title: genesis_url has the genesis file
+                      display_name:
+                        type: string
+                        description: >-
+                          display_name is a non semantic name for displaying on
+                          gui etc. Size limited.
+                      tagline:
+                        type: string
+                        description: >-
+                          tagline is a non semantic tagline/catch-phrase. Size
+                          limited.
                   initial_sequencer:
                     type: string
                     description: >-
@@ -3694,84 +3767,101 @@ paths:
 
                   sequencers can be created and attached. The RollApp is
                   identified by rollappId
-              latestStateIndex:
-                description: Defines the index of the last rollapp UpdateState.
+              summary:
                 type: object
                 properties:
                   rollappId:
                     type: string
+                    description: >-
+                      The unique identifier of the rollapp chain.
+
+                      The rollappId follows the same standard as cosmos
+                      chain_id.
+                  latestStateIndex:
+                    description: Defines the index of the last rollapp UpdateState.
+                    type: object
+                    properties:
+                      rollappId:
+                        type: string
+                        title: >-
+                          rollappId is the rollapp that the sequencer belongs to
+                          and asking to update
+
+                          it used to identify the what rollapp a StateInfo
+                          belongs
+
+                          The rollappId follows the same standard as cosmos
+                          chain_id
+                      index:
+                        type: string
+                        format: uint64
+                        title: >-
+                          index is a sequential increasing number, updating on
+                          each
+
+                          state update used for indexing to a specific state
+                          info, the first index is 1
                     title: >-
-                      rollappId is the rollapp that the sequencer belongs to and
-                      asking to update
+                      StateInfoIndex is the data used for indexing and
+                      retrieving a StateInfo 
 
-                      it used to identify the what rollapp a StateInfo belongs
+                      it updated and saved with every UpdateState in StateInfo.
 
-                      The rollappId follows the same standard as cosmos chain_id
-                  index:
+                      We use the this structure also for:
+
+                      1. LatestStateInfoIndex which defines the rollapps'
+                      current (latest) index of the last UpdateState 
+
+                      2. LatestFinalizedStateIndex which defines the rollapps'
+                      current (latest) index of the latest StateInfo that was
+                      finalized
+                  latestFinalizedStateIndex:
+                    description: >-
+                      Defines the index of the last rollapp UpdateState that was
+                      finalized.
+                    type: object
+                    properties:
+                      rollappId:
+                        type: string
+                        title: >-
+                          rollappId is the rollapp that the sequencer belongs to
+                          and asking to update
+
+                          it used to identify the what rollapp a StateInfo
+                          belongs
+
+                          The rollappId follows the same standard as cosmos
+                          chain_id
+                      index:
+                        type: string
+                        format: uint64
+                        title: >-
+                          index is a sequential increasing number, updating on
+                          each
+
+                          state update used for indexing to a specific state
+                          info, the first index is 1
+                    title: >-
+                      StateInfoIndex is the data used for indexing and
+                      retrieving a StateInfo 
+
+                      it updated and saved with every UpdateState in StateInfo.
+
+                      We use the this structure also for:
+
+                      1. LatestStateInfoIndex which defines the rollapps'
+                      current (latest) index of the last UpdateState 
+
+                      2. LatestFinalizedStateIndex which defines the rollapps'
+                      current (latest) index of the latest StateInfo that was
+                      finalized
+                  latestHeight:
                     type: string
                     format: uint64
-                    title: >-
-                      index is a sequential increasing number, updating on each
-
-                      state update used for indexing to a specific state info,
-                      the first index is 1
-                title: >-
-                  StateInfoIndex is the data used for indexing and retrieving a
-                  StateInfo 
-
-                  it updated and saved with every UpdateState in StateInfo.
-
-                  We use the this structure also for:
-
-                  1. LatestStateInfoIndex which defines the rollapps' current
-                  (latest) index of the last UpdateState 
-
-                  2. LatestFinalizedStateIndex which defines the rollapps'
-                  current (latest) index of the latest StateInfo that was
-                  finalized
-              latestFinalizedStateIndex:
-                description: >-
-                  Defines the index of the last rollapp UpdateState that was
-                  finalized.
-                type: object
-                properties:
-                  rollappId:
-                    type: string
-                    title: >-
-                      rollappId is the rollapp that the sequencer belongs to and
-                      asking to update
-
-                      it used to identify the what rollapp a StateInfo belongs
-
-                      The rollappId follows the same standard as cosmos chain_id
-                  index:
+                  latestFinalizedHeight:
                     type: string
                     format: uint64
-                    title: >-
-                      index is a sequential increasing number, updating on each
-
-                      state update used for indexing to a specific state info,
-                      the first index is 1
-                title: >-
-                  StateInfoIndex is the data used for indexing and retrieving a
-                  StateInfo 
-
-                  it updated and saved with every UpdateState in StateInfo.
-
-                  We use the this structure also for:
-
-                  1. LatestStateInfoIndex which defines the rollapps' current
-                  (latest) index of the last UpdateState 
-
-                  2. LatestFinalizedStateIndex which defines the rollapps'
-                  current (latest) index of the latest StateInfo that was
-                  finalized
-              latestHeight:
-                type: string
-                format: uint64
-              latestFinalizedHeight:
-                type: string
-                format: uint64
+                title: Rollapp summary is a compact representation of Rollapp
         default:
           description: An unexpected error response.
           schema:
@@ -4006,94 +4096,252 @@ paths:
                 items:
                   type: object
                   properties:
-                    rollappId:
-                      type: string
-                      description: >-
-                        The unique identifier of the rollapp chain.
+                    rollapp:
+                      type: object
+                      properties:
+                        rollapp_id:
+                          type: string
+                          description: >-
+                            The unique identifier of the rollapp chain.
 
-                        The rollappId follows the same standard as cosmos
-                        chain_id.
-                    latestStateIndex:
+                            The rollapp_id follows the same standard as cosmos
+                            chain_id.
+                        owner:
+                          type: string
+                          description: >-
+                            owner is the bech32-encoded address of the rollapp
+                            owner.
+                        genesis_state:
+                          title: >-
+                            genesis_state is a partial repr of the state the hub
+                            can expect the rollapp to be in upon genesis
+                          type: object
+                          properties:
+                            transfers_enabled:
+                              type: boolean
+                              description: >-
+                                If true, then full usage of the canonical ibc
+                                transfer channel is enabled.
+
+                                Note: in v3.1.0 and prior this field marked the
+                                completion of the 'genesis event'
+
+                                Keeping and renaming the field enables a
+                                seamless upgrade
+                                https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
+
+                                to the new genesis transfer protocol
+
+                                Note: if this field is false, ibc transfers may
+                                still be allowed in one or either direction.
+                        channel_id:
+                          type: string
+                          description: >-
+                            channel_id will be set to the canonical IBC channel
+                            of the rollapp.
+                        frozen:
+                          type: boolean
+                          description: >-
+                            frozen is a boolean that indicates if the rollapp is
+                            frozen.
+                        registeredDenoms:
+                          type: array
+                          items:
+                            type: string
+                          title: >-
+                            registeredDenoms is a list of registered denom bases
+                            on this rollapp
+                        bech32_prefix:
+                          type: string
+                          title: unique bech32 prefix
+                        genesis_checksum:
+                          type: string
+                          title: >-
+                            checksum used to verify integrity of the genesis
+                            file
+                        metadata:
+                          title: metadata is the rollapp metadata
+                          type: object
+                          properties:
+                            website:
+                              type: string
+                              title: website is the rollapp website
+                            description:
+                              type: string
+                              title: >-
+                                description is the rollapp description. should
+                                be limited to 512 chars
+                            logo_data_uri:
+                              type: string
+                              title: >-
+                                logo_data_uri is a base64 rep with a URI prefix
+                                to the rollapp logo. Size limited
+                            token_logo_data_uri:
+                              type: string
+                              title: >-
+                                token_logo_data_uri is a URI to the native token
+                                logo. Size limited
+                            telegram:
+                              type: string
+                              title: telegram is the rollapp telegram link
+                            x:
+                              type: string
+                              title: x is the rollapp twitter link
+                            genesis_url:
+                              type: string
+                              title: genesis_url has the genesis file
+                            display_name:
+                              type: string
+                              description: >-
+                                display_name is a non semantic name for
+                                displaying on gui etc. Size limited.
+                            tagline:
+                              type: string
+                              description: >-
+                                tagline is a non semantic tagline/catch-phrase.
+                                Size limited.
+                        initial_sequencer:
+                          type: string
+                          description: >-
+                            initial_sequencer is an option to preset one or more
+                            coma-separated bech32-encoded addresses of the
+
+                            sequencer(s) that are allowed to initially register
+                            and serve for this rollapp.
+
+                            if left empty, no sequencer is allowed to register.
+
+                            if set to "*" any sequencer can register.
+                        vm_type:
+                          title: 'vm_type is the type of rollapp machine: EVM or WASM'
+                          type: string
+                          enum:
+                            - Unspecified
+                            - EVM
+                            - WASM
+                          default: Unspecified
+                        sealed:
+                          type: boolean
+                          description: >-
+                            sealed is a boolean that indicates if the immutable
+                            fields are no longer updatable.
+                        liveness_event_height:
+                          type: string
+                          format: int64
+                          title: >-
+                            LivenessEventHeight is the height of an upcoming
+                            liveness event (slash or jail)
+
+                            0 means not set
+                        last_state_update_height:
+                          type: string
+                          format: int64
+                          title: >-
+                            The LastStateUpdateHeight HUB height when the last
+                            state update was received
+                      title: >-
+                        Rollapp defines a rollapp object. First, the RollApp is
+                        created and then
+
+                        sequencers can be created and attached. The RollApp is
+                        identified by rollappId
+                    summary:
                       type: object
                       properties:
                         rollappId:
                           type: string
-                          title: >-
-                            rollappId is the rollapp that the sequencer belongs
-                            to and asking to update
-
-                            it used to identify the what rollapp a StateInfo
-                            belongs
+                          description: >-
+                            The unique identifier of the rollapp chain.
 
                             The rollappId follows the same standard as cosmos
-                            chain_id
-                        index:
+                            chain_id.
+                        latestStateIndex:
+                          description: Defines the index of the last rollapp UpdateState.
+                          type: object
+                          properties:
+                            rollappId:
+                              type: string
+                              title: >-
+                                rollappId is the rollapp that the sequencer
+                                belongs to and asking to update
+
+                                it used to identify the what rollapp a StateInfo
+                                belongs
+
+                                The rollappId follows the same standard as
+                                cosmos chain_id
+                            index:
+                              type: string
+                              format: uint64
+                              title: >-
+                                index is a sequential increasing number,
+                                updating on each
+
+                                state update used for indexing to a specific
+                                state info, the first index is 1
+                          title: >-
+                            StateInfoIndex is the data used for indexing and
+                            retrieving a StateInfo 
+
+                            it updated and saved with every UpdateState in
+                            StateInfo.
+
+                            We use the this structure also for:
+
+                            1. LatestStateInfoIndex which defines the rollapps'
+                            current (latest) index of the last UpdateState 
+
+                            2. LatestFinalizedStateIndex which defines the
+                            rollapps' current (latest) index of the latest
+                            StateInfo that was finalized
+                        latestFinalizedStateIndex:
+                          description: >-
+                            Defines the index of the last rollapp UpdateState
+                            that was finalized.
+                          type: object
+                          properties:
+                            rollappId:
+                              type: string
+                              title: >-
+                                rollappId is the rollapp that the sequencer
+                                belongs to and asking to update
+
+                                it used to identify the what rollapp a StateInfo
+                                belongs
+
+                                The rollappId follows the same standard as
+                                cosmos chain_id
+                            index:
+                              type: string
+                              format: uint64
+                              title: >-
+                                index is a sequential increasing number,
+                                updating on each
+
+                                state update used for indexing to a specific
+                                state info, the first index is 1
+                          title: >-
+                            StateInfoIndex is the data used for indexing and
+                            retrieving a StateInfo 
+
+                            it updated and saved with every UpdateState in
+                            StateInfo.
+
+                            We use the this structure also for:
+
+                            1. LatestStateInfoIndex which defines the rollapps'
+                            current (latest) index of the last UpdateState 
+
+                            2. LatestFinalizedStateIndex which defines the
+                            rollapps' current (latest) index of the latest
+                            StateInfo that was finalized
+                        latestHeight:
                           type: string
                           format: uint64
-                          title: >-
-                            index is a sequential increasing number, updating on
-                            each
-
-                            state update used for indexing to a specific state
-                            info, the first index is 1
-                      title: >-
-                        StateInfoIndex is the data used for indexing and
-                        retrieving a StateInfo 
-
-                        it updated and saved with every UpdateState in
-                        StateInfo.
-
-                        We use the this structure also for:
-
-                        1. LatestStateInfoIndex which defines the rollapps'
-                        current (latest) index of the last UpdateState 
-
-                        2. LatestFinalizedStateIndex which defines the rollapps'
-                        current (latest) index of the latest StateInfo that was
-                        finalized
-                      description: Defines the index of the last rollapp UpdateState.
-                    latestFinalizedStateIndex:
-                      type: object
-                      properties:
-                        rollappId:
-                          type: string
-                          title: >-
-                            rollappId is the rollapp that the sequencer belongs
-                            to and asking to update
-
-                            it used to identify the what rollapp a StateInfo
-                            belongs
-
-                            The rollappId follows the same standard as cosmos
-                            chain_id
-                        index:
+                        latestFinalizedHeight:
                           type: string
                           format: uint64
-                          title: >-
-                            index is a sequential increasing number, updating on
-                            each
-
-                            state update used for indexing to a specific state
-                            info, the first index is 1
-                      title: >-
-                        StateInfoIndex is the data used for indexing and
-                        retrieving a StateInfo 
-
-                        it updated and saved with every UpdateState in
-                        StateInfo.
-
-                        We use the this structure also for:
-
-                        1. LatestStateInfoIndex which defines the rollapps'
-                        current (latest) index of the last UpdateState 
-
-                        2. LatestFinalizedStateIndex which defines the rollapps'
-                        current (latest) index of the latest StateInfo that was
-                        finalized
-                      description: >-
-                        Defines the index of the last rollapp UpdateState that
-                        was finalized.
-                  title: Rollapp summary is a compact representation of Rollapp
+                      title: Rollapp summary is a compact representation of Rollapp
               pagination:
                 type: object
                 properties:
@@ -4303,6 +4551,16 @@ paths:
                       genesis_url:
                         type: string
                         title: genesis_url has the genesis file
+                      display_name:
+                        type: string
+                        description: >-
+                          display_name is a non semantic name for displaying on
+                          gui etc. Size limited.
+                      tagline:
+                        type: string
+                        description: >-
+                          tagline is a non semantic tagline/catch-phrase. Size
+                          limited.
                   initial_sequencer:
                     type: string
                     description: >-
@@ -4348,84 +4606,101 @@ paths:
 
                   sequencers can be created and attached. The RollApp is
                   identified by rollappId
-              latestStateIndex:
-                description: Defines the index of the last rollapp UpdateState.
+              summary:
                 type: object
                 properties:
                   rollappId:
                     type: string
+                    description: >-
+                      The unique identifier of the rollapp chain.
+
+                      The rollappId follows the same standard as cosmos
+                      chain_id.
+                  latestStateIndex:
+                    description: Defines the index of the last rollapp UpdateState.
+                    type: object
+                    properties:
+                      rollappId:
+                        type: string
+                        title: >-
+                          rollappId is the rollapp that the sequencer belongs to
+                          and asking to update
+
+                          it used to identify the what rollapp a StateInfo
+                          belongs
+
+                          The rollappId follows the same standard as cosmos
+                          chain_id
+                      index:
+                        type: string
+                        format: uint64
+                        title: >-
+                          index is a sequential increasing number, updating on
+                          each
+
+                          state update used for indexing to a specific state
+                          info, the first index is 1
                     title: >-
-                      rollappId is the rollapp that the sequencer belongs to and
-                      asking to update
+                      StateInfoIndex is the data used for indexing and
+                      retrieving a StateInfo 
 
-                      it used to identify the what rollapp a StateInfo belongs
+                      it updated and saved with every UpdateState in StateInfo.
 
-                      The rollappId follows the same standard as cosmos chain_id
-                  index:
+                      We use the this structure also for:
+
+                      1. LatestStateInfoIndex which defines the rollapps'
+                      current (latest) index of the last UpdateState 
+
+                      2. LatestFinalizedStateIndex which defines the rollapps'
+                      current (latest) index of the latest StateInfo that was
+                      finalized
+                  latestFinalizedStateIndex:
+                    description: >-
+                      Defines the index of the last rollapp UpdateState that was
+                      finalized.
+                    type: object
+                    properties:
+                      rollappId:
+                        type: string
+                        title: >-
+                          rollappId is the rollapp that the sequencer belongs to
+                          and asking to update
+
+                          it used to identify the what rollapp a StateInfo
+                          belongs
+
+                          The rollappId follows the same standard as cosmos
+                          chain_id
+                      index:
+                        type: string
+                        format: uint64
+                        title: >-
+                          index is a sequential increasing number, updating on
+                          each
+
+                          state update used for indexing to a specific state
+                          info, the first index is 1
+                    title: >-
+                      StateInfoIndex is the data used for indexing and
+                      retrieving a StateInfo 
+
+                      it updated and saved with every UpdateState in StateInfo.
+
+                      We use the this structure also for:
+
+                      1. LatestStateInfoIndex which defines the rollapps'
+                      current (latest) index of the last UpdateState 
+
+                      2. LatestFinalizedStateIndex which defines the rollapps'
+                      current (latest) index of the latest StateInfo that was
+                      finalized
+                  latestHeight:
                     type: string
                     format: uint64
-                    title: >-
-                      index is a sequential increasing number, updating on each
-
-                      state update used for indexing to a specific state info,
-                      the first index is 1
-                title: >-
-                  StateInfoIndex is the data used for indexing and retrieving a
-                  StateInfo 
-
-                  it updated and saved with every UpdateState in StateInfo.
-
-                  We use the this structure also for:
-
-                  1. LatestStateInfoIndex which defines the rollapps' current
-                  (latest) index of the last UpdateState 
-
-                  2. LatestFinalizedStateIndex which defines the rollapps'
-                  current (latest) index of the latest StateInfo that was
-                  finalized
-              latestFinalizedStateIndex:
-                description: >-
-                  Defines the index of the last rollapp UpdateState that was
-                  finalized.
-                type: object
-                properties:
-                  rollappId:
-                    type: string
-                    title: >-
-                      rollappId is the rollapp that the sequencer belongs to and
-                      asking to update
-
-                      it used to identify the what rollapp a StateInfo belongs
-
-                      The rollappId follows the same standard as cosmos chain_id
-                  index:
+                  latestFinalizedHeight:
                     type: string
                     format: uint64
-                    title: >-
-                      index is a sequential increasing number, updating on each
-
-                      state update used for indexing to a specific state info,
-                      the first index is 1
-                title: >-
-                  StateInfoIndex is the data used for indexing and retrieving a
-                  StateInfo 
-
-                  it updated and saved with every UpdateState in StateInfo.
-
-                  We use the this structure also for:
-
-                  1. LatestStateInfoIndex which defines the rollapps' current
-                  (latest) index of the last UpdateState 
-
-                  2. LatestFinalizedStateIndex which defines the rollapps'
-                  current (latest) index of the latest StateInfo that was
-                  finalized
-              latestHeight:
-                type: string
-                format: uint64
-              latestFinalizedHeight:
-                type: string
-                format: uint64
+                title: Rollapp summary is a compact representation of Rollapp
         default:
           description: An unexpected error response.
           schema:
@@ -59174,6 +59449,20 @@ definitions:
     description: |-
       DymNameConfigType specifies the type of the Dym-Name configuration.
       Currently only supports Name, similar to DNS.
+  dymensionxyz.dymension.dymns.EstimateRegisterAliasResponse:
+    type: object
+    properties:
+      price:
+        description: price is the price to register the alias.
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+    description: >-
+      EstimateRegisterAliasResponse is the response type for the
+      Query/EstimateRegisterAlias RPC method.
   dymensionxyz.dymension.dymns.EstimateRegisterNameResponse:
     type: object
     properties:
@@ -61060,82 +61349,238 @@ definitions:
         items:
           type: object
           properties:
-            rollappId:
-              type: string
-              description: |-
-                The unique identifier of the rollapp chain.
-                The rollappId follows the same standard as cosmos chain_id.
-            latestStateIndex:
+            rollapp:
+              type: object
+              properties:
+                rollapp_id:
+                  type: string
+                  description: |-
+                    The unique identifier of the rollapp chain.
+                    The rollapp_id follows the same standard as cosmos chain_id.
+                owner:
+                  type: string
+                  description: owner is the bech32-encoded address of the rollapp owner.
+                genesis_state:
+                  title: >-
+                    genesis_state is a partial repr of the state the hub can
+                    expect the rollapp to be in upon genesis
+                  type: object
+                  properties:
+                    transfers_enabled:
+                      type: boolean
+                      description: >-
+                        If true, then full usage of the canonical ibc transfer
+                        channel is enabled.
+
+                        Note: in v3.1.0 and prior this field marked the
+                        completion of the 'genesis event'
+
+                        Keeping and renaming the field enables a seamless
+                        upgrade
+                        https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
+
+                        to the new genesis transfer protocol
+
+                        Note: if this field is false, ibc transfers may still be
+                        allowed in one or either direction.
+                channel_id:
+                  type: string
+                  description: >-
+                    channel_id will be set to the canonical IBC channel of the
+                    rollapp.
+                frozen:
+                  type: boolean
+                  description: frozen is a boolean that indicates if the rollapp is frozen.
+                registeredDenoms:
+                  type: array
+                  items:
+                    type: string
+                  title: >-
+                    registeredDenoms is a list of registered denom bases on this
+                    rollapp
+                bech32_prefix:
+                  type: string
+                  title: unique bech32 prefix
+                genesis_checksum:
+                  type: string
+                  title: checksum used to verify integrity of the genesis file
+                metadata:
+                  title: metadata is the rollapp metadata
+                  type: object
+                  properties:
+                    website:
+                      type: string
+                      title: website is the rollapp website
+                    description:
+                      type: string
+                      title: >-
+                        description is the rollapp description. should be
+                        limited to 512 chars
+                    logo_data_uri:
+                      type: string
+                      title: >-
+                        logo_data_uri is a base64 rep with a URI prefix to the
+                        rollapp logo. Size limited
+                    token_logo_data_uri:
+                      type: string
+                      title: >-
+                        token_logo_data_uri is a URI to the native token logo.
+                        Size limited
+                    telegram:
+                      type: string
+                      title: telegram is the rollapp telegram link
+                    x:
+                      type: string
+                      title: x is the rollapp twitter link
+                    genesis_url:
+                      type: string
+                      title: genesis_url has the genesis file
+                    display_name:
+                      type: string
+                      description: >-
+                        display_name is a non semantic name for displaying on
+                        gui etc. Size limited.
+                    tagline:
+                      type: string
+                      description: >-
+                        tagline is a non semantic tagline/catch-phrase. Size
+                        limited.
+                initial_sequencer:
+                  type: string
+                  description: >-
+                    initial_sequencer is an option to preset one or more
+                    coma-separated bech32-encoded addresses of the
+
+                    sequencer(s) that are allowed to initially register and
+                    serve for this rollapp.
+
+                    if left empty, no sequencer is allowed to register.
+
+                    if set to "*" any sequencer can register.
+                vm_type:
+                  title: 'vm_type is the type of rollapp machine: EVM or WASM'
+                  type: string
+                  enum:
+                    - Unspecified
+                    - EVM
+                    - WASM
+                  default: Unspecified
+                sealed:
+                  type: boolean
+                  description: >-
+                    sealed is a boolean that indicates if the immutable fields
+                    are no longer updatable.
+                liveness_event_height:
+                  type: string
+                  format: int64
+                  title: >-
+                    LivenessEventHeight is the height of an upcoming liveness
+                    event (slash or jail)
+
+                    0 means not set
+                last_state_update_height:
+                  type: string
+                  format: int64
+                  title: >-
+                    The LastStateUpdateHeight HUB height when the last state
+                    update was received
+              title: >-
+                Rollapp defines a rollapp object. First, the RollApp is created
+                and then
+
+                sequencers can be created and attached. The RollApp is
+                identified by rollappId
+            summary:
               type: object
               properties:
                 rollappId:
                   type: string
+                  description: |-
+                    The unique identifier of the rollapp chain.
+                    The rollappId follows the same standard as cosmos chain_id.
+                latestStateIndex:
+                  description: Defines the index of the last rollapp UpdateState.
+                  type: object
+                  properties:
+                    rollappId:
+                      type: string
+                      title: >-
+                        rollappId is the rollapp that the sequencer belongs to
+                        and asking to update
+
+                        it used to identify the what rollapp a StateInfo belongs
+
+                        The rollappId follows the same standard as cosmos
+                        chain_id
+                    index:
+                      type: string
+                      format: uint64
+                      title: >-
+                        index is a sequential increasing number, updating on
+                        each
+
+                        state update used for indexing to a specific state info,
+                        the first index is 1
                   title: >-
-                    rollappId is the rollapp that the sequencer belongs to and
-                    asking to update
+                    StateInfoIndex is the data used for indexing and retrieving
+                    a StateInfo 
 
-                    it used to identify the what rollapp a StateInfo belongs
+                    it updated and saved with every UpdateState in StateInfo.
 
-                    The rollappId follows the same standard as cosmos chain_id
-                index:
+                    We use the this structure also for:
+
+                    1. LatestStateInfoIndex which defines the rollapps' current
+                    (latest) index of the last UpdateState 
+
+                    2. LatestFinalizedStateIndex which defines the rollapps'
+                    current (latest) index of the latest StateInfo that was
+                    finalized
+                latestFinalizedStateIndex:
+                  description: >-
+                    Defines the index of the last rollapp UpdateState that was
+                    finalized.
+                  type: object
+                  properties:
+                    rollappId:
+                      type: string
+                      title: >-
+                        rollappId is the rollapp that the sequencer belongs to
+                        and asking to update
+
+                        it used to identify the what rollapp a StateInfo belongs
+
+                        The rollappId follows the same standard as cosmos
+                        chain_id
+                    index:
+                      type: string
+                      format: uint64
+                      title: >-
+                        index is a sequential increasing number, updating on
+                        each
+
+                        state update used for indexing to a specific state info,
+                        the first index is 1
+                  title: >-
+                    StateInfoIndex is the data used for indexing and retrieving
+                    a StateInfo 
+
+                    it updated and saved with every UpdateState in StateInfo.
+
+                    We use the this structure also for:
+
+                    1. LatestStateInfoIndex which defines the rollapps' current
+                    (latest) index of the last UpdateState 
+
+                    2. LatestFinalizedStateIndex which defines the rollapps'
+                    current (latest) index of the latest StateInfo that was
+                    finalized
+                latestHeight:
                   type: string
                   format: uint64
-                  title: >-
-                    index is a sequential increasing number, updating on each
-
-                    state update used for indexing to a specific state info, the
-                    first index is 1
-              title: >-
-                StateInfoIndex is the data used for indexing and retrieving a
-                StateInfo 
-
-                it updated and saved with every UpdateState in StateInfo.
-
-                We use the this structure also for:
-
-                1. LatestStateInfoIndex which defines the rollapps' current
-                (latest) index of the last UpdateState 
-
-                2. LatestFinalizedStateIndex which defines the rollapps' current
-                (latest) index of the latest StateInfo that was finalized
-              description: Defines the index of the last rollapp UpdateState.
-            latestFinalizedStateIndex:
-              type: object
-              properties:
-                rollappId:
-                  type: string
-                  title: >-
-                    rollappId is the rollapp that the sequencer belongs to and
-                    asking to update
-
-                    it used to identify the what rollapp a StateInfo belongs
-
-                    The rollappId follows the same standard as cosmos chain_id
-                index:
+                latestFinalizedHeight:
                   type: string
                   format: uint64
-                  title: >-
-                    index is a sequential increasing number, updating on each
-
-                    state update used for indexing to a specific state info, the
-                    first index is 1
-              title: >-
-                StateInfoIndex is the data used for indexing and retrieving a
-                StateInfo 
-
-                it updated and saved with every UpdateState in StateInfo.
-
-                We use the this structure also for:
-
-                1. LatestStateInfoIndex which defines the rollapps' current
-                (latest) index of the last UpdateState 
-
-                2. LatestFinalizedStateIndex which defines the rollapps' current
-                (latest) index of the latest StateInfo that was finalized
-              description: >-
-                Defines the index of the last rollapp UpdateState that was
-                finalized.
-          title: Rollapp summary is a compact representation of Rollapp
+              title: Rollapp summary is a compact representation of Rollapp
       pagination:
         type: object
         properties:
@@ -61292,6 +61737,14 @@ definitions:
               genesis_url:
                 type: string
                 title: genesis_url has the genesis file
+              display_name:
+                type: string
+                description: >-
+                  display_name is a non semantic name for displaying on gui etc.
+                  Size limited.
+              tagline:
+                type: string
+                description: tagline is a non semantic tagline/catch-phrase. Size limited.
           initial_sequencer:
             type: string
             description: >-
@@ -61337,80 +61790,91 @@ definitions:
 
           sequencers can be created and attached. The RollApp is identified by
           rollappId
-      latestStateIndex:
-        description: Defines the index of the last rollapp UpdateState.
+      summary:
         type: object
         properties:
           rollappId:
             type: string
+            description: |-
+              The unique identifier of the rollapp chain.
+              The rollappId follows the same standard as cosmos chain_id.
+          latestStateIndex:
+            description: Defines the index of the last rollapp UpdateState.
+            type: object
+            properties:
+              rollappId:
+                type: string
+                title: >-
+                  rollappId is the rollapp that the sequencer belongs to and
+                  asking to update
+
+                  it used to identify the what rollapp a StateInfo belongs
+
+                  The rollappId follows the same standard as cosmos chain_id
+              index:
+                type: string
+                format: uint64
+                title: >-
+                  index is a sequential increasing number, updating on each
+
+                  state update used for indexing to a specific state info, the
+                  first index is 1
             title: >-
-              rollappId is the rollapp that the sequencer belongs to and asking
-              to update
+              StateInfoIndex is the data used for indexing and retrieving a
+              StateInfo 
 
-              it used to identify the what rollapp a StateInfo belongs
+              it updated and saved with every UpdateState in StateInfo.
 
-              The rollappId follows the same standard as cosmos chain_id
-          index:
+              We use the this structure also for:
+
+              1. LatestStateInfoIndex which defines the rollapps' current
+              (latest) index of the last UpdateState 
+
+              2. LatestFinalizedStateIndex which defines the rollapps' current
+              (latest) index of the latest StateInfo that was finalized
+          latestFinalizedStateIndex:
+            description: >-
+              Defines the index of the last rollapp UpdateState that was
+              finalized.
+            type: object
+            properties:
+              rollappId:
+                type: string
+                title: >-
+                  rollappId is the rollapp that the sequencer belongs to and
+                  asking to update
+
+                  it used to identify the what rollapp a StateInfo belongs
+
+                  The rollappId follows the same standard as cosmos chain_id
+              index:
+                type: string
+                format: uint64
+                title: >-
+                  index is a sequential increasing number, updating on each
+
+                  state update used for indexing to a specific state info, the
+                  first index is 1
+            title: >-
+              StateInfoIndex is the data used for indexing and retrieving a
+              StateInfo 
+
+              it updated and saved with every UpdateState in StateInfo.
+
+              We use the this structure also for:
+
+              1. LatestStateInfoIndex which defines the rollapps' current
+              (latest) index of the last UpdateState 
+
+              2. LatestFinalizedStateIndex which defines the rollapps' current
+              (latest) index of the latest StateInfo that was finalized
+          latestHeight:
             type: string
             format: uint64
-            title: >-
-              index is a sequential increasing number, updating on each
-
-              state update used for indexing to a specific state info, the first
-              index is 1
-        title: >-
-          StateInfoIndex is the data used for indexing and retrieving a
-          StateInfo 
-
-          it updated and saved with every UpdateState in StateInfo.
-
-          We use the this structure also for:
-
-          1. LatestStateInfoIndex which defines the rollapps' current (latest)
-          index of the last UpdateState 
-
-          2. LatestFinalizedStateIndex which defines the rollapps' current
-          (latest) index of the latest StateInfo that was finalized
-      latestFinalizedStateIndex:
-        description: Defines the index of the last rollapp UpdateState that was finalized.
-        type: object
-        properties:
-          rollappId:
-            type: string
-            title: >-
-              rollappId is the rollapp that the sequencer belongs to and asking
-              to update
-
-              it used to identify the what rollapp a StateInfo belongs
-
-              The rollappId follows the same standard as cosmos chain_id
-          index:
+          latestFinalizedHeight:
             type: string
             format: uint64
-            title: >-
-              index is a sequential increasing number, updating on each
-
-              state update used for indexing to a specific state info, the first
-              index is 1
-        title: >-
-          StateInfoIndex is the data used for indexing and retrieving a
-          StateInfo 
-
-          it updated and saved with every UpdateState in StateInfo.
-
-          We use the this structure also for:
-
-          1. LatestStateInfoIndex which defines the rollapps' current (latest)
-          index of the last UpdateState 
-
-          2. LatestFinalizedStateIndex which defines the rollapps' current
-          (latest) index of the latest StateInfo that was finalized
-      latestHeight:
-        type: string
-        format: uint64
-      latestFinalizedHeight:
-        type: string
-        format: uint64
+        title: Rollapp summary is a compact representation of Rollapp
   dymensionxyz.dymension.rollapp.QueryGetStateInfoResponse:
     type: object
     properties:
@@ -61620,6 +62084,14 @@ definitions:
           genesis_url:
             type: string
             title: genesis_url has the genesis file
+          display_name:
+            type: string
+            description: >-
+              display_name is a non semantic name for displaying on gui etc.
+              Size limited.
+          tagline:
+            type: string
+            description: tagline is a non semantic tagline/catch-phrase. Size limited.
       initial_sequencer:
         type: string
         description: >-
@@ -61719,6 +62191,14 @@ definitions:
       genesis_url:
         type: string
         title: genesis_url has the genesis file
+      display_name:
+        type: string
+        description: >-
+          display_name is a non semantic name for displaying on gui etc. Size
+          limited.
+      tagline:
+        type: string
+        description: tagline is a non semantic tagline/catch-phrase. Size limited.
   dymensionxyz.dymension.rollapp.RollappSummary:
     type: object
     properties:
@@ -61728,40 +62208,7 @@ definitions:
           The unique identifier of the rollapp chain.
           The rollappId follows the same standard as cosmos chain_id.
       latestStateIndex:
-        type: object
-        properties:
-          rollappId:
-            type: string
-            title: >-
-              rollappId is the rollapp that the sequencer belongs to and asking
-              to update
-
-              it used to identify the what rollapp a StateInfo belongs
-
-              The rollappId follows the same standard as cosmos chain_id
-          index:
-            type: string
-            format: uint64
-            title: >-
-              index is a sequential increasing number, updating on each
-
-              state update used for indexing to a specific state info, the first
-              index is 1
-        title: >-
-          StateInfoIndex is the data used for indexing and retrieving a
-          StateInfo 
-
-          it updated and saved with every UpdateState in StateInfo.
-
-          We use the this structure also for:
-
-          1. LatestStateInfoIndex which defines the rollapps' current (latest)
-          index of the last UpdateState 
-
-          2. LatestFinalizedStateIndex which defines the rollapps' current
-          (latest) index of the latest StateInfo that was finalized
         description: Defines the index of the last rollapp UpdateState.
-      latestFinalizedStateIndex:
         type: object
         properties:
           rollappId:
@@ -61794,7 +62241,46 @@ definitions:
 
           2. LatestFinalizedStateIndex which defines the rollapps' current
           (latest) index of the latest StateInfo that was finalized
+      latestFinalizedStateIndex:
         description: Defines the index of the last rollapp UpdateState that was finalized.
+        type: object
+        properties:
+          rollappId:
+            type: string
+            title: >-
+              rollappId is the rollapp that the sequencer belongs to and asking
+              to update
+
+              it used to identify the what rollapp a StateInfo belongs
+
+              The rollappId follows the same standard as cosmos chain_id
+          index:
+            type: string
+            format: uint64
+            title: >-
+              index is a sequential increasing number, updating on each
+
+              state update used for indexing to a specific state info, the first
+              index is 1
+        title: >-
+          StateInfoIndex is the data used for indexing and retrieving a
+          StateInfo 
+
+          it updated and saved with every UpdateState in StateInfo.
+
+          We use the this structure also for:
+
+          1. LatestStateInfoIndex which defines the rollapps' current (latest)
+          index of the last UpdateState 
+
+          2. LatestFinalizedStateIndex which defines the rollapps' current
+          (latest) index of the latest StateInfo that was finalized
+      latestHeight:
+        type: string
+        format: uint64
+      latestFinalizedHeight:
+        type: string
+        format: uint64
     title: Rollapp summary is a compact representation of Rollapp
   dymensionxyz.dymension.rollapp.StateInfo:
     type: object
