@@ -21,7 +21,7 @@ func NewRegisterAliasTxCmd() *cobra.Command {
 		Aliases: []string{"register-handle"},
 		Short:   "Register a new Alias/Handle for the owned Roll App",
 		Example: fmt.Sprintf(
-			"$ %s tx %s register-alias rolx rollappx_1-1 --confirm-payment 15000000000000000000%s --%s hub-user",
+			"$ %s tx %s register-alias rolx rollappx_1-1 --confirm-payment 15000000000000000000%s --%s sequencer",
 			version.AppName, dymnstypes.ModuleName,
 			params.BaseDenom,
 			flags.FlagFrom,

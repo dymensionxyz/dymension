@@ -84,10 +84,6 @@ func (k Keeper) registerAliasForRollApp(
 	alias string,
 	registrationFee sdk.Coins,
 ) error {
-	if err := k.SetAliasForRollAppId(ctx, rollAppId, alias); err != nil {
-		return errorsmod.Wrap(gerrc.ErrInternal, "failed to set alias for RollApp")
-	}
-
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx,
 		owner,
 		dymnstypes.ModuleName,
@@ -98,6 +94,10 @@ func (k Keeper) registerAliasForRollApp(
 
 	if err := k.bankKeeper.BurnCoins(ctx, dymnstypes.ModuleName, registrationFee); err != nil {
 		return err
+	}
+
+	if err := k.SetAliasForRollAppId(ctx, rollAppId, alias); err != nil {
+		return errorsmod.Wrap(gerrc.ErrInternal, "failed to set alias for RollApp")
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(

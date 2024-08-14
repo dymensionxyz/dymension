@@ -1,7 +1,10 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -20,9 +23,9 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 	// the number values used in this test will be multiplied by this value
 	priceMultiplier := sdk.NewInt(1e18)
 
-	rollApp1 := *newRollApp("rollapp_1-1").WithOwner(testAddr(1).bech32()).WithAlias("one")
-	rollApp2 := *newRollApp("rollapp_2-2").WithOwner(testAddr(2).bech32()).WithAlias("two")
-	rollApp3WithoutAlias := *newRollApp("rollapp_3-3").WithOwner(testAddr(3).bech32())
+	rollApp1 := *newRollApp("rollapp_1-1").WithOwner(testAddr(1).bech32()).WithBech32("one").WithAlias("one")
+	rollApp2 := *newRollApp("rollapp_2-2").WithOwner(testAddr(2).bech32()).WithBech32("two").WithAlias("two")
+	rollApp3WithoutAlias := *newRollApp("rollapp_3-3").WithBech32("three").WithOwner(testAddr(3).bech32())
 
 	buyerNotOwnedAnyRollApp := testAddr(4).bech32()
 
@@ -57,6 +60,15 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 	})
 
 	s.mintToModuleAccount(originalModuleBalance)
+
+	dymNameOwnerAcc := testAddr(5)
+	dymName := dymnstypes.DymName{
+		Name:       "my-name",
+		Owner:      dymNameOwnerAcc.bech32(),
+		Controller: dymNameOwnerAcc.bech32(),
+		ExpireAt:   s.now.Unix() + 100,
+	}
+	s.setDymNameWithFunctionsAfter(dymName)
 
 	s.SaveCurrentContext()
 
@@ -103,6 +115,49 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 			wantLaterAliasLinkedTo:         rollApp1.rollAppId,
 			wantLaterBuyerBalance:          1,
 			wantLaterAliasesOwnedByRollApp: append(rollApp1.aliases, "oh"),
+		},
+		{
+			name: "pass - can register to RollApp that not owned any alias",
+			msg: dymnstypes.MsgRegisterAlias{
+				Alias:          "oh",
+				RollappId:      rollApp3WithoutAlias.rollAppId,
+				Owner:          rollApp3WithoutAlias.owner,
+				ConfirmPayment: sdk.NewCoin(denom, sdk.NewInt(price2L)),
+			},
+			buyerBalance:                   price2L + 1,
+			wantErr:                        false,
+			wantLaterAliasLinkedTo:         rollApp3WithoutAlias.rollAppId,
+			wantLaterBuyerBalance:          1,
+			wantLaterAliasesOwnedByRollApp: []string{"oh"},
+		},
+		{
+			name: "pass - deduct correct amount of balance",
+			msg: dymnstypes.MsgRegisterAlias{
+				Alias:          "oh",
+				RollappId:      rollApp3WithoutAlias.rollAppId,
+				Owner:          rollApp3WithoutAlias.owner,
+				ConfirmPayment: sdk.NewCoin(denom, sdk.NewInt(price2L)),
+			},
+			buyerBalance:                   price1L,
+			wantErr:                        false,
+			wantLaterAliasLinkedTo:         rollApp3WithoutAlias.rollAppId,
+			wantLaterBuyerBalance:          price1L - price2L,
+			wantLaterAliasesOwnedByRollApp: []string{"oh"},
+		},
+		{
+			name: "fail - reject if buyer does not have enough balance to register",
+			msg: dymnstypes.MsgRegisterAlias{
+				Alias:          freeAlias8L,
+				RollappId:      rollApp1.rollAppId,
+				Owner:          rollApp1.owner,
+				ConfirmPayment: sdk.NewCoin(denom, sdk.NewInt(price5PlusL)),
+			},
+			buyerBalance:                   price5PlusL - 1,
+			wantErr:                        true,
+			wantErrContains:                "insufficient funds",
+			wantLaterAliasLinkedTo:         "",
+			wantLaterBuyerBalance:          price5PlusL - 1,
+			wantLaterAliasesOwnedByRollApp: rollApp1.aliases,
 		},
 		{
 			name:            "fail - reject bad request",
@@ -236,7 +291,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 			defer func() {
 				rollAppId, found := s.dymNsKeeper.GetRollAppIdByAlias(s.ctx, tt.msg.Alias)
 				if tt.wantLaterAliasLinkedTo == "" {
-					s.False(found, "alias should not be linked to any RollApp")
+					s.Falsef(found, "alias should not be linked to any RollApp but got: %s", rollAppId)
 				} else {
 					s.True(found, "alias should be linked to a RollApp")
 					s.Equal(tt.wantLaterAliasLinkedTo, rollAppId, "alias should be linked to the RollApp")
@@ -259,6 +314,20 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 			}
 
 			s.Require().NoError(err)
+
+			rollApp, found := s.rollAppKeeper.GetRollapp(s.ctx, tt.msg.RollappId)
+			s.Require().True(found)
+
+			outputAddr, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, fmt.Sprintf("%s@%s", dymName.Name, tt.msg.Alias))
+			s.Require().NoError(err)
+			s.Equal(dymNameOwnerAcc.bech32C(rollApp.Bech32Prefix), outputAddr, "resolution should be correct")
+
+			if len(tt.wantLaterAliasesOwnedByRollApp) == 1 {
+				outputDNA, err := s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, dymNameOwnerAcc.bech32C(rollApp.Bech32Prefix), rollApp.RollappId)
+				s.Require().NoError(err)
+				s.Require().NotEmpty(outputDNA, "should have value")
+				s.Equal(fmt.Sprintf("%s@%s", dymName.Name, tt.msg.Alias), outputDNA[0].String(), "reverse resolution should be correct")
+			}
 		})
 	}
 

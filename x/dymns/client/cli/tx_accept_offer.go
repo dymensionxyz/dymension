@@ -22,7 +22,7 @@ func NewAcceptBuyOrderTxCmd() *cobra.Command {
 		Use:   fmt.Sprintf("accept-offer [offer-id] [amount] %s", params.DisplayDenom),
 		Short: "Accept a Buy-Order for your Dym-Name/Alias/Handle",
 		Example: fmt.Sprintf(
-			"$ %s tx %s accept-offer 1 50 %s --%s hub-user/sequencer",
+			"$ %s tx %s accept-offer 1 50 %s --%s owner",
 			version.AppName, dymnstypes.ModuleName,
 			params.DisplayDenom,
 			flags.FlagFrom,
