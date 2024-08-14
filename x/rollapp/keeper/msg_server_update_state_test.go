@@ -514,7 +514,7 @@ func getAll(suite *RollappTestSuite) (map[string]*types.RollappSummary, int) {
 
 		for i := 0; i < len(queryAllResponse.GetRollapp()); i++ {
 			rollappRes := queryAllResponse.GetRollapp()[i]
-			rollappsRes[rollappRes.GetRollappId()] = &rollappRes
+			rollappsRes[rollappRes.Summary.GetRollappId()] = &rollappRes.Summary
 		}
 		totalChecked += len(queryAllResponse.GetRollapp())
 		nextKey = queryAllResponse.GetPagination().GetNextKey()

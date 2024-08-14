@@ -41,6 +41,8 @@ func NewRollapp(
 
 const (
 	maxDescriptionLength     = 512
+	maxDisplayNameLength     = 32
+	maxTaglineLength         = 64
 	maxURLLength             = 256
 	maxGenesisChecksumLength = 64
 	maxDataURILength         = 40 * 1024 // 25KB
@@ -156,6 +158,14 @@ func validateMetadata(metadata *RollappMetadata) error {
 
 	if len(metadata.Description) > maxDescriptionLength {
 		return ErrInvalidDescription
+	}
+
+	if len(metadata.DisplayName) > maxDisplayNameLength {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "display name too long")
+	}
+
+	if len(metadata.Tagline) > maxTaglineLength {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "tagline too long")
 	}
 
 	if err := validateBaseURI(metadata.LogoDataUri); err != nil {
