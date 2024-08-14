@@ -93,9 +93,9 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		k.SetProposer(ctx, sequencer.RollappId, sequencer.Address)
 	}
 
-    // we currently only support setting next proposer (or empty one) before the rotation started. This is in order to 
-    // avoid handling the case a potential next proposer bonds in the middle of a rotation. 
-    // This will be handled in next iteration.
+	// we currently only support setting next proposer (or empty one) before the rotation started. This is in order to
+	// avoid handling the case a potential next proposer bonds in the middle of a rotation.
+	// This will be handled in next iteration.
 	nextProposer := k.IsRotating(ctx, sequencer.RollappId) && k.ExpectedNextProposer(ctx, sequencer.RollappId).IsEmpty()
 	if nextProposer {
 		k.Logger(ctx).Info("rotation in progress. sequencer registration disabled", "rollappId", sequencer.RollappId)
