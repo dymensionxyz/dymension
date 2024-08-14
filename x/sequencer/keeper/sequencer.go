@@ -237,21 +237,21 @@ func (k Keeper) setNextProposer(ctx sdk.Context, rollappId, seqAddr string) {
 	store.Set(nextProposerKey, addressBytes)
 }
 
-// GetNextProposerAddr returns the next proposer for a rollapp
+// GetNextProposer returns the next proposer for a rollapp
 // It will return found=false if the next proposer is not set
 // It will return found=true if the next proposer is set, even if it's empty
-func (k Keeper) GetNextProposerAddr(ctx sdk.Context, rollappId string) (seqAddr string, found bool) {
+func (k Keeper) GetNextProposer(ctx sdk.Context, rollappId string) (val types.Sequencer, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.NextProposerByRollappKey(rollappId))
 	if b == nil {
-		return "", false
+		return val, false
 	}
 
 	address := string(b)
 	if address == NO_SEQUENCER_AVAILABLE {
-		return "", true
+		return val, true
 	}
-	return address, true
+	return k.GetSequencer(ctx, address)
 }
 
 func (k Keeper) isNextProposerSet(ctx sdk.Context, rollappId string) bool {
@@ -260,8 +260,8 @@ func (k Keeper) isNextProposerSet(ctx sdk.Context, rollappId string) bool {
 }
 
 func (k Keeper) isNextProposer(ctx sdk.Context, rollappId, seqAddr string) bool {
-	nextProposerAddr, ok := k.GetNextProposerAddr(ctx, rollappId)
-	return ok && nextProposerAddr == seqAddr
+	nextProposer, ok := k.GetNextProposer(ctx, rollappId)
+	return ok && nextProposer.Address == seqAddr
 }
 
 // removeNextProposer removes the next proposer for a rollapp
