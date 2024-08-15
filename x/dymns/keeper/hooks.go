@@ -34,66 +34,28 @@ func (k Keeper) GetEpochHooks() epochstypes.EpochHooks {
 }
 
 // BeforeEpochStart is the epoch start hook.
-// Business logic is to prune the expired preserved registration.
-func (e epochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	params := e.GetParams(ctx)
-
-	if epochIdentifier != params.Misc.BeginEpochHookIdentifier {
-		return nil
-	}
-
-	e.Keeper.Logger(ctx).Info("DymNS hook Before-Epoch-Start: triggered", "epoch-number", epochNumber, "epoch-identifier", epochIdentifier)
-
-	var updatedParams bool
-	params, updatedParams = e.processCleanupPreservedRegistration(ctx, epochIdentifier, epochNumber, params)
-	if updatedParams {
-		if err := e.SetParams(ctx, params); err != nil {
-			return err
-		}
-	}
-
+func (e epochHooks) BeforeEpochStart(_ sdk.Context, _ string, _ int64) error {
 	return nil
-}
-
-// processCleanupPreservedRegistration clears preserved registration if it's expired.
-func (e epochHooks) processCleanupPreservedRegistration(ctx sdk.Context, epochIdentifier string, epochNumber int64, params dymnstypes.Params) (updatedParams dymnstypes.Params, updated bool) {
-	if params.PreservedRegistration.ExpirationEpoch >= ctx.BlockTime().Unix() {
-		return
-	}
-
-	// expired, clear it
-
-	e.Keeper.Logger(ctx).Info(
-		"DymNS hook Before-Epoch-Start: processing cleanup preserved registration",
-		"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
-	)
-
-	updatedParams = params
-
-	updatedParams.PreservedRegistration = dymnstypes.PreservedRegistrationParams{}
-	updated = true
-
-	return
 }
 
 // AfterEpochEnd is the epoch end hook.
 func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	params := e.GetParams(ctx)
+	miscParams := e.MiscParams(ctx)
 
-	if epochIdentifier != params.Misc.EndEpochHookIdentifier {
+	if epochIdentifier != miscParams.EndEpochHookIdentifier {
 		return nil
 	}
 
 	e.Keeper.Logger(ctx).Info("DymNS hook After-Epoch-End: triggered", "epoch-number", epochNumber, "epoch-identifier", epochIdentifier)
 
-	if params.Misc.EnableTradingName {
+	if miscParams.EnableTradingName {
 		if err := e.processActiveDymNameSellOrders(ctx, epochIdentifier, epochNumber); err != nil {
 			return err
 		}
 	}
 
-	if params.Misc.EnableTradingAlias {
-		if err := e.processActiveAliasSellOrders(ctx, epochIdentifier, epochNumber, params); err != nil {
+	if miscParams.EnableTradingAlias {
+		if err := e.processActiveAliasSellOrders(ctx, epochIdentifier, epochNumber); err != nil {
 			return err
 		}
 	}
@@ -208,7 +170,7 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 
 // processActiveAliasSellOrders process the finished Alias Sell-Orders.
 // Sell-Order will be deleted. If the Sell-Order has a winner, the Alias linking will be updated.
-func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64, params dymnstypes.Params) error {
+func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	dk := e.Keeper
 
 	aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeAlias)

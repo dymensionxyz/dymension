@@ -14,81 +14,16 @@ import (
 )
 
 func (s *KeeperTestSuite) Test_epochHooks_BeforeEpochStart() {
-	s.Run("should do something even nothing to do", func() {
+	s.Run("should do nothing", func() {
 		originalGas := s.ctx.GasMeter().GasConsumed()
 
 		err := s.dymNsKeeper.GetEpochHooks().BeforeEpochStart(
-			s.ctx, s.moduleParams().Misc.BeginEpochHookIdentifier, 1,
+			s.ctx, "hour", 1,
 		)
 		s.Require().NoError(err)
 
-		// gas should be changed because it should at least reading the params to check epoch identifier
-		s.Require().Less(originalGas, s.ctx.GasMeter().GasConsumed(), "should do something")
+		s.Require().Equal(originalGas, s.ctx.GasMeter().GasConsumed())
 	})
-
-	ownerA := testAddr(1).bech32()
-
-	testsClearPreservedRegistration := []struct {
-		name                            string
-		preservedRegistrationParams     dymnstypes.PreservedRegistrationParams
-		wantPreservedRegistrationParams dymnstypes.PreservedRegistrationParams
-	}{
-		{
-			name: "pass - can clear when expired",
-			preservedRegistrationParams: dymnstypes.PreservedRegistrationParams{
-				ExpirationEpoch: s.now.Add(-time.Second).Unix(),
-				PreservedDymNames: []dymnstypes.PreservedDymName{
-					{
-						DymName:            "preserved",
-						WhitelistedAddress: ownerA,
-					},
-				},
-			},
-			wantPreservedRegistrationParams: dymnstypes.PreservedRegistrationParams{
-				ExpirationEpoch:   0,
-				PreservedDymNames: nil,
-			},
-		},
-		{
-			name: "pass - keep when not expired",
-			preservedRegistrationParams: dymnstypes.PreservedRegistrationParams{
-				ExpirationEpoch: s.now.Add(time.Hour).Unix(),
-				PreservedDymNames: []dymnstypes.PreservedDymName{
-					{
-						DymName:            "preserved",
-						WhitelistedAddress: ownerA,
-					},
-				},
-			},
-			wantPreservedRegistrationParams: dymnstypes.PreservedRegistrationParams{
-				ExpirationEpoch: s.now.Add(time.Hour).Unix(),
-				PreservedDymNames: []dymnstypes.PreservedDymName{
-					{
-						DymName:            "preserved",
-						WhitelistedAddress: ownerA,
-					},
-				},
-			},
-		},
-	}
-	for _, tt := range testsClearPreservedRegistration {
-		s.Run(tt.name, func() {
-			s.RefreshContext()
-
-			s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-				moduleParams.PreservedRegistration = tt.preservedRegistrationParams
-				return moduleParams
-			})
-
-			err := s.dymNsKeeper.GetEpochHooks().BeforeEpochStart(
-				s.ctx,
-				s.moduleParams().Misc.BeginEpochHookIdentifier, 1,
-			)
-			s.Require().NoError(err)
-
-			s.Require().Equal(tt.wantPreservedRegistrationParams, s.dymNsKeeper.GetParams(s.ctx).PreservedRegistration)
-		})
-	}
 }
 
 //goland:noinspection GoSnakeCaseUsage

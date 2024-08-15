@@ -18,7 +18,7 @@ func (s *KeeperTestSuite) TestGetSetParams() {
 
 	s.Run("can not set invalid params", func() {
 		params := dymnstypes.DefaultParams()
-		params.Misc.BeginEpochHookIdentifier = ""
+		params.Misc.EndEpochHookIdentifier = ""
 		s.Require().Error(s.dymNsKeeper.SetParams(s.ctx, params))
 	})
 

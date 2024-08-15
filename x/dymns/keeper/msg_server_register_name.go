@@ -200,31 +200,6 @@ func (k msgServer) validateRegisterName(ctx sdk.Context, msg *dymnstypes.MsgRegi
 		}
 	}
 
-	if params.PreservedRegistration.IsDuringWhitelistRegistrationPeriod(ctx) {
-		if len(params.PreservedRegistration.PreservedDymNames) > 0 {
-			whitelistedAddresses := make(map[string]bool)
-			// Describe usage of Go Map: only used for validation
-			for _, preservedDymName := range params.PreservedRegistration.PreservedDymNames {
-				if preservedDymName.DymName != msg.Name {
-					continue
-				}
-				whitelistedAddresses[preservedDymName.WhitelistedAddress] = true
-			}
-
-			if len(whitelistedAddresses) == 0 {
-				// no whitelisted address, free to register
-			} else {
-				_, found := whitelistedAddresses[msg.Owner]
-				if !found {
-					return nil, nil, errorsmod.Wrapf(
-						gerrc.ErrUnauthenticated,
-						"Dym-Name is preserved, only able to be registered by specific addresses: %s", msg.Name,
-					)
-				}
-			}
-		}
-	}
-
 	return dymName, &params, nil
 }
 

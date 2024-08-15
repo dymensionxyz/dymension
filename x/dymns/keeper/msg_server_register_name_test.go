@@ -31,11 +31,6 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 	previousOwnerA := testAddr(2).bech32()
 	anotherA := testAddr(3).bech32()
 
-	const preservedDymName = "preserved"
-
-	preservedAddr1a := testAddr(4).bech32()
-	preservedAddr2a := testAddr(5).bech32()
-
 	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
 		moduleParams.Price.NamePriceSteps = []sdkmath.Int{
 			sdk.NewInt(firstYearPrice1L).Mul(priceMultiplier),
@@ -48,18 +43,6 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 		moduleParams.Price.PriceDenom = denom
 		// misc
 		moduleParams.Misc.GracePeriodDuration = gracePeriod * 24 * time.Hour
-		// preserved
-		moduleParams.PreservedRegistration.ExpirationEpoch = s.now.Add(time.Hour).Unix()
-		moduleParams.PreservedRegistration.PreservedDymNames = []dymnstypes.PreservedDymName{
-			{
-				DymName:            preservedDymName,
-				WhitelistedAddress: preservedAddr1a,
-			},
-			{
-				DymName:            preservedDymName,
-				WhitelistedAddress: preservedAddr2a,
-			},
-		}
 
 		return moduleParams
 	})
@@ -561,78 +544,6 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantErr:          true,
 			wantErrContains:  "insufficient funds",
 			wantLaterBalance: 1,
-		},
-		{
-			name:            "pass - address in the preserved Dym-Name list, can still buy other Dym-Names",
-			buyer:           preservedAddr1a,
-			originalBalance: firstYearPrice5PlusL + 3,
-			duration:        1,
-			confirmPayment:  s.coin(firstYearPrice5PlusL),
-			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      preservedAddr1a,
-				Controller: preservedAddr1a,
-				ExpireAt:   s.now.Unix() + 86400*365*1,
-			},
-			wantLaterBalance: 3,
-		},
-		{
-			name:            "pass - only whitelisted address can buy preserved Dym-Name, addr 1",
-			buyer:           preservedAddr1a,
-			customDymName:   preservedDymName,
-			originalBalance: firstYearPrice5PlusL + extendsPrice + 3,
-			duration:        2,
-			confirmPayment:  s.coin(firstYearPrice5PlusL + extendsPrice),
-			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      preservedAddr1a,
-				Controller: preservedAddr1a,
-				ExpireAt:   s.now.Unix() + 86400*365*2,
-			},
-			wantLaterBalance: 3,
-		},
-		{
-			name:            "pass - only whitelisted address can buy preserved Dym-Name, addr 2",
-			buyer:           preservedAddr2a,
-			customDymName:   preservedDymName,
-			originalBalance: firstYearPrice5PlusL + 3,
-			duration:        1,
-			confirmPayment:  s.coin(firstYearPrice5PlusL),
-			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      preservedAddr2a,
-				Controller: preservedAddr2a,
-				ExpireAt:   s.now.Unix() + 86400*365*1,
-			},
-			wantLaterBalance: 3,
-		},
-		{
-			name:             "fail - only whitelisted address can buy preserved Dym-Name, reject others",
-			buyer:            buyerA,
-			customDymName:    preservedDymName,
-			originalBalance:  firstYearPrice5PlusL + 3,
-			duration:         1,
-			confirmPayment:   s.coin(firstYearPrice5PlusL),
-			wantErr:          true,
-			wantErrContains:  "only able to be registered by specific addresses",
-			wantLaterBalance: firstYearPrice5PlusL + 3,
-		},
-		{
-			name:            "pass - after preserved expiration date, anyone can buy preserved Dym-Name",
-			buyer:           buyerA,
-			customDymName:   preservedDymName,
-			originalBalance: firstYearPrice5PlusL + 3,
-			duration:        1,
-			confirmPayment:  s.coin(firstYearPrice5PlusL),
-			preRunSetup: func(s *KeeperTestSuite) {
-				s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-					moduleParams.PreservedRegistration.ExpirationEpoch = s.now.Add(-time.Hour).Unix()
-					return moduleParams
-				})
-			},
-			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyerA,
-				Controller: buyerA,
-				ExpireAt:   s.now.Unix() + 86400*365*1,
-			},
-			wantLaterBalance: 3,
 		},
 	}
 	for _, tt := range tests {

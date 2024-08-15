@@ -13,7 +13,6 @@ func (k Keeper) GetParams(ctx sdk.Context) dymnstypes.Params {
 		k.PriceParams(ctx),
 		k.ChainsParams(ctx),
 		k.MiscParams(ctx),
-		k.PreservedRegistrationParams(ctx),
 	)
 }
 
@@ -41,12 +40,6 @@ func (k Keeper) ChainsParams(ctx sdk.Context) (res dymnstypes.ChainsParams) {
 // MiscParams returns the miscellaneous params
 func (k Keeper) MiscParams(ctx sdk.Context) (res dymnstypes.MiscParams) {
 	k.paramStore.Get(ctx, dymnstypes.KeyMiscParams, &res)
-	return
-}
-
-// PreservedRegistrationParams returns the preserved registration params
-func (k Keeper) PreservedRegistrationParams(ctx sdk.Context) (res dymnstypes.PreservedRegistrationParams) {
-	k.paramStore.Get(ctx, dymnstypes.KeyPreservedRegistrationParams, &res)
 	return
 }
 
