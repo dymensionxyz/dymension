@@ -766,18 +766,6 @@ func (m reqDymNameS) noActiveSO() reqDymNameS {
 	return m
 }
 
-func (m reqDymNameS) mustHaveHistoricalSoCount(count int) reqDymNameS {
-	hso := m.s.dymNsKeeper.GetHistoricalSellOrders(m.s.ctx, m.dymName, dymnstypes.TypeName)
-	m.s.Require().Len(hso, count)
-	return m
-}
-
-func (m reqDymNameS) noHistoricalSO() reqDymNameS {
-	hso := m.s.dymNsKeeper.GetHistoricalSellOrders(m.s.ctx, m.dymName, dymnstypes.TypeName)
-	m.s.Require().Empty(hso)
-	return m
-}
-
 func (m reqDymNameS) mustEquals(another dymnstypes.DymName) reqDymNameS {
 	dymName := m.s.dymNsKeeper.GetDymName(m.s.ctx, m.dymName)
 	m.s.Require().NotNil(dymName)

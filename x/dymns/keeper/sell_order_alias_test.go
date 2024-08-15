@@ -300,9 +300,6 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 
 			laterSo := s.dymNsKeeper.GetSellOrder(s.ctx, so.AssetId, dymnstypes.TypeAlias)
 
-			historicalSo := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, so.AssetId, dymnstypes.TypeAlias)
-			s.Require().Empty(historicalSo, "historical should be empty as not supported for asset type Alias")
-
 			laterOwnerBalance := s.balance(creator_1_asOwner)
 			laterBuyerBalance := s.balance(creator_2_asBuyer)
 
@@ -339,7 +336,6 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 			s.Require().NoError(errCompleteSellOrder, "action should be successful")
 
 			s.Require().Nil(laterSo, "SO should be deleted")
-			s.Require().Empty(historicalSo, "historical should be empty as not supported for asset type Alias")
 
 			s.Require().Empty(laterAliasOfRollApp1, "should not be linked to RollApp 1 anymore")
 			s.Require().Equal(rollApp_3_asDst.rollAppId, laterAliasLinkedToRollAppId, "alias should be linked to RollApp 2")
@@ -402,8 +398,5 @@ func (s *KeeperTestSuite) TestKeeper_CompleteAliasSellOrder() {
 		// SO records should be processed as normal
 		laterSo := s.dymNsKeeper.GetSellOrder(s.ctx, so.AssetId, dymnstypes.TypeAlias)
 		s.Require().Nil(laterSo, "SO should be deleted")
-
-		historicalSo := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, so.AssetId, dymnstypes.TypeAlias)
-		s.Require().Empty(historicalSo, "historical should be empty as not supported for asset type Alias")
 	})
 }

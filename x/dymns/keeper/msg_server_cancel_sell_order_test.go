@@ -252,9 +252,6 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 		s.Require().Nil(s.dymNsKeeper.GetSellOrder(s.ctx, so11.AssetId, dymnstypes.TypeName), "SO should be removed from active")
 		s.Require().NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, dymName2.Name, dymnstypes.TypeName), "other records remaining as-is")
 
-		list := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, so11.AssetId, dymnstypes.TypeName)
-		s.Require().Empty(list, "no historical record should be added")
-
 		s.GreaterOrEqual(
 			s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasCloseSellOrder,
 			"should consume params gas",
@@ -478,9 +475,6 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_Alias() {
 
 		s.Require().Nil(s.dymNsKeeper.GetSellOrder(s.ctx, so11.AssetId, dymnstypes.TypeAlias), "SO should be removed from active")
 		s.Require().NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, so12.AssetId, dymnstypes.TypeAlias), "other records remaining as-is")
-
-		list := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, so11.AssetId, dymnstypes.TypeAlias)
-		s.Require().Empty(list, "no historical record should be added")
 
 		s.GreaterOrEqual(
 			s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasCloseSellOrder,

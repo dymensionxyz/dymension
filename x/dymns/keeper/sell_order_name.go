@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"sort"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -54,10 +52,8 @@ func (k Keeper) CompleteDymNameSellOrder(ctx sdk.Context, name string) error {
 		return err
 	}
 
-	// move the SO to history
-	if err := k.MoveSellOrderToHistorical(ctx, dymName.Name, so.AssetType); err != nil {
-		return err
-	}
+	// remove SO record
+	k.DeleteSellOrder(ctx, so.AssetId, so.AssetType)
 
 	// transfer ownership
 
@@ -89,45 +85,4 @@ func (k Keeper) CompleteDymNameSellOrder(ctx sdk.Context, name string) error {
 	}
 
 	return nil
-}
-
-// GetMinExpiryOfAllHistoricalDymNameSellOrders returns the minimum expiry
-// of all historical Sell-Orders by each Dym-Name.
-func (k Keeper) GetMinExpiryOfAllHistoricalDymNameSellOrders(
-	ctx sdk.Context,
-) (minExpiryPerDymNameRecords []dymnstypes.HistoricalSellOrderMinExpiry) {
-	store := ctx.KVStore(k.storeKey)
-
-	nameToMinExpiry := make(map[string]int64)
-	defer func() {
-		if len(nameToMinExpiry) < 1 {
-			return
-		}
-
-		minExpiryPerDymNameRecords = make([]dymnstypes.HistoricalSellOrderMinExpiry, 0, len(nameToMinExpiry))
-		for name, minExpiry := range nameToMinExpiry {
-			minExpiryPerDymNameRecords = append(minExpiryPerDymNameRecords, dymnstypes.HistoricalSellOrderMinExpiry{
-				DymName:   name,
-				MinExpiry: minExpiry,
-			})
-		}
-
-		sort.Slice(minExpiryPerDymNameRecords, func(i, j int) bool {
-			return minExpiryPerDymNameRecords[i].DymName < minExpiryPerDymNameRecords[j].DymName
-		})
-	}()
-
-	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixMinExpiryDymNameHistoricalSellOrders)
-	defer func() {
-		_ = iterator.Close() // nolint: errcheck
-	}()
-
-	for ; iterator.Valid(); iterator.Next() {
-		dymName := string(iterator.Key()[len(dymnstypes.KeyPrefixMinExpiryDymNameHistoricalSellOrders):])
-		minExpiry := int64(sdk.BigEndianToUint64(iterator.Value()))
-
-		nameToMinExpiry[dymName] = minExpiry
-	}
-
-	return
 }

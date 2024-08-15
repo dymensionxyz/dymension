@@ -201,10 +201,6 @@ func (k Keeper) PruneDymName(ctx sdk.Context, name string) error {
 	// remove SO (force, ignore active SO)
 	k.DeleteSellOrder(ctx, name, dymnstypes.TypeName)
 
-	// remove historical SO
-	k.DeleteHistoricalSellOrders(ctx, name, dymnstypes.TypeName)
-	k.SetMinExpiryHistoricalSellOrder(ctx, name, dymnstypes.TypeName, 0)
-
 	dymName := k.GetDymName(ctx, name)
 	if dymName == nil {
 		return nil

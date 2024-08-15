@@ -14,15 +14,6 @@ import (
 )
 
 func (s *KeeperTestSuite) Test_epochHooks_BeforeEpochStart() {
-	const daysKeepHistorical = 1
-	s.Require().Greater(daysKeepHistorical, 0, "mis-configured test case")
-
-	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-		moduleParams.Misc.PreservedClosedSellOrderDuration = daysKeepHistorical * 24 * time.Hour
-		return moduleParams
-	})
-	s.SaveCurrentContext()
-
 	s.Run("should do something even nothing to do", func() {
 		originalGas := s.ctx.GasMeter().GasConsumed()
 
@@ -36,564 +27,6 @@ func (s *KeeperTestSuite) Test_epochHooks_BeforeEpochStart() {
 	})
 
 	ownerA := testAddr(1).bech32()
-
-	dymNameA := dymnstypes.DymName{
-		Name:       "a",
-		Owner:      ownerA,
-		Controller: ownerA,
-		ExpireAt:   s.now.Add(365 * 24 * time.Hour).Unix(),
-	}
-
-	dymNameB := dymnstypes.DymName{
-		Name:       "b",
-		Owner:      ownerA,
-		Controller: ownerA,
-		ExpireAt:   s.now.Unix(),
-	}
-
-	dymNameC := dymnstypes.DymName{
-		Name:       "c",
-		Owner:      ownerA,
-		Controller: ownerA,
-		ExpireAt:   s.now.Add(-365 * 24 * time.Hour).Unix(),
-	}
-
-	dymNameD := dymnstypes.DymName{
-		Name:       "d",
-		Owner:      ownerA,
-		Controller: ownerA,
-		ExpireAt:   1,
-	}
-
-	originalDymNameA := dymNameA
-	originalDymNameB := dymNameB
-	originalDymNameC := dymNameC
-	originalDymNameD := dymNameD
-
-	getEpochWithOffset := func(offset int64) int64 {
-		return s.now.Unix() + offset
-	}
-	genSo := func(
-		dymName dymnstypes.DymName, offsetExpiry int64,
-	) dymnstypes.SellOrder {
-		return dymnstypes.SellOrder{
-			AssetId:   dymName.Name,
-			AssetType: dymnstypes.TypeName,
-			ExpireAt:  getEpochWithOffset(offsetExpiry),
-			MinPrice:  s.coin(100),
-		}
-	}
-
-	testsCleanupHistoricalSellOrders := []struct {
-		name                           string
-		dymNames                       []dymnstypes.DymName
-		historicalSOs                  []dymnstypes.SellOrder
-		activeSOs                      []dymnstypes.SellOrder
-		minExpiryByDymName             map[string]int64
-		customEpochIdentifier          string
-		wantErr                        bool
-		wantErrContains                string
-		wantMinExpiryPerDymNameRecords []dymnstypes.HistoricalSellOrderMinExpiry
-		preHookTestFunc                func(*KeeperTestSuite)
-		afterHookTestFunc              func(*KeeperTestSuite)
-	}{
-		{
-			name:     "simple cleanup",
-			dymNames: []dymnstypes.DymName{dymNameA, dymNameB, dymNameC, dymNameD},
-			historicalSOs: []dymnstypes.SellOrder{
-				genSo(dymNameA, -daysKeepHistorical*86400-1),
-			},
-			activeSOs: nil,
-			minExpiryByDymName: map[string]int64{
-				dymNameA.Name: getEpochWithOffset(-daysKeepHistorical*86400 - 1),
-			},
-			wantErr:                        false,
-			wantMinExpiryPerDymNameRecords: nil,
-			preHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).mustHaveHistoricalSoCount(1)
-				s.requireDymName(dymNameB.Name).noHistoricalSO()
-				s.requireDymName(dymNameC.Name).noHistoricalSO()
-				s.requireDymName(dymNameD.Name).noHistoricalSO()
-			},
-			afterHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).
-					noHistoricalSO().
-					mustEquals(originalDymNameA)
-
-				s.requireDymName(dymNameB.Name).
-					noHistoricalSO().
-					mustEquals(originalDymNameB)
-
-				s.requireDymName(dymNameC.Name).
-					noHistoricalSO().
-					mustEquals(originalDymNameC)
-
-				s.requireDymName(dymNameD.Name).
-					noHistoricalSO().
-					mustEquals(originalDymNameD)
-			},
-		},
-		{
-			name:     "mis-match epoch will clean nothing",
-			dymNames: []dymnstypes.DymName{dymNameA},
-			historicalSOs: []dymnstypes.SellOrder{
-				genSo(dymNameA, -daysKeepHistorical*86400-1),
-			},
-			activeSOs: nil,
-			minExpiryByDymName: map[string]int64{
-				dymNameA.Name: getEpochWithOffset(-daysKeepHistorical*86400 - 1),
-			},
-			customEpochIdentifier: "not-match",
-			wantErr:               false,
-			wantMinExpiryPerDymNameRecords: []dymnstypes.HistoricalSellOrderMinExpiry{
-				{
-					DymName:   dymNameA.Name,
-					MinExpiry: getEpochWithOffset(-daysKeepHistorical*86400 - 1),
-				},
-			},
-			preHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).mustHaveHistoricalSoCount(1)
-			},
-			afterHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).mustHaveHistoricalSoCount(1)
-			},
-		},
-		{
-			name:     "simple cleanup, with active SO",
-			dymNames: []dymnstypes.DymName{dymNameA, dymNameB, dymNameC, dymNameD},
-			historicalSOs: []dymnstypes.SellOrder{
-				genSo(dymNameA, -daysKeepHistorical*86400-1),
-			},
-			activeSOs: []dymnstypes.SellOrder{
-				genSo(dymNameA, +1),
-			},
-			minExpiryByDymName: map[string]int64{
-				dymNameA.Name: getEpochWithOffset(-daysKeepHistorical*86400 - 1),
-			},
-			wantErr:                        false,
-			wantMinExpiryPerDymNameRecords: nil,
-			preHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).
-					mustHaveActiveSO().
-					mustHaveHistoricalSoCount(1)
-				s.requireDymName(dymNameB.Name).
-					noHistoricalSO()
-				s.requireDymName(dymNameC.Name).
-					noHistoricalSO()
-				s.requireDymName(dymNameD.Name).
-					noHistoricalSO()
-			},
-			afterHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).
-					mustHaveActiveSO().
-					noHistoricalSO().
-					mustEquals(originalDymNameA)
-				s.requireDymName(dymNameB.Name).
-					noHistoricalSO()
-				s.requireDymName(dymNameC.Name).
-					noHistoricalSO()
-				s.requireDymName(dymNameD.Name).
-					noHistoricalSO()
-			},
-		},
-		{
-			name:          "simple cleanup, no historical record to prune",
-			dymNames:      []dymnstypes.DymName{dymNameA},
-			historicalSOs: nil,
-			activeSOs: []dymnstypes.SellOrder{
-				genSo(dymNameA, +1),
-			},
-			minExpiryByDymName:             nil,
-			wantErr:                        false,
-			wantMinExpiryPerDymNameRecords: nil,
-			preHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).
-					mustHaveActiveSO().
-					noHistoricalSO()
-				s.requireDymName(dymNameB.Name).
-					noHistoricalSO()
-				s.requireDymName(dymNameC.Name).
-					noHistoricalSO()
-				s.requireDymName(dymNameD.Name).
-					noHistoricalSO()
-			},
-			afterHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).
-					mustHaveActiveSO().
-					noHistoricalSO().
-					mustEquals(originalDymNameA)
-			},
-		},
-		{
-			name:     "simple cleanup, nothing to prune",
-			dymNames: []dymnstypes.DymName{dymNameA},
-			historicalSOs: []dymnstypes.SellOrder{
-				genSo(dymNameA, -1),
-			},
-			activeSOs: []dymnstypes.SellOrder{
-				genSo(dymNameA, +1),
-			},
-			minExpiryByDymName: map[string]int64{
-				dymNameA.Name: getEpochWithOffset(-1),
-			},
-			wantErr: false,
-			wantMinExpiryPerDymNameRecords: []dymnstypes.HistoricalSellOrderMinExpiry{
-				{
-					DymName:   dymNameA.Name,
-					MinExpiry: getEpochWithOffset(-1),
-				},
-			},
-			preHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).
-					mustHaveActiveSO().
-					mustHaveHistoricalSoCount(1)
-				s.requireDymName(dymNameB.Name).
-					noHistoricalSO()
-				s.requireDymName(dymNameC.Name).
-					noHistoricalSO()
-				s.requireDymName(dymNameD.Name).
-					noHistoricalSO()
-			},
-			afterHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).
-					mustHaveActiveSO().
-					mustHaveHistoricalSoCount(1).
-					mustEquals(originalDymNameA)
-			},
-		},
-		{
-			name:     "cleanup multiple Historical SO, all need to prune",
-			dymNames: []dymnstypes.DymName{dymNameA, dymNameB, dymNameC, dymNameD},
-			historicalSOs: []dymnstypes.SellOrder{
-				genSo(dymNameA, -(daysKeepHistorical+0)*86400-1),
-				genSo(dymNameA, -(daysKeepHistorical+2)*86400-1),
-				genSo(dymNameA, -(daysKeepHistorical+1)*86400-1),
-				genSo(dymNameC, -(daysKeepHistorical+3)*86400-1),
-				genSo(dymNameC, -(daysKeepHistorical+5)*86400-1),
-			},
-			activeSOs: []dymnstypes.SellOrder{
-				genSo(dymNameC, +1),
-			},
-			minExpiryByDymName: map[string]int64{
-				dymNameA.Name: getEpochWithOffset(-(daysKeepHistorical+2)*86400 - 1),
-				dymNameC.Name: getEpochWithOffset(-(daysKeepHistorical+5)*86400 - 1),
-			},
-			wantErr:                        false,
-			wantMinExpiryPerDymNameRecords: nil,
-			preHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).mustHaveHistoricalSoCount(3)
-				s.requireDymName(dymNameB.Name).noHistoricalSO()
-				s.requireDymName(dymNameC.Name).mustHaveHistoricalSoCount(2)
-				s.requireDymName(dymNameD.Name).noHistoricalSO()
-			},
-			afterHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).
-					noActiveSO().
-					noHistoricalSO().
-					mustEquals(originalDymNameA)
-
-				s.requireDymName(dymNameB.Name).
-					noActiveSO().
-					noHistoricalSO().
-					mustEquals(originalDymNameB)
-
-				s.requireDymName(dymNameC.Name).
-					mustHaveActiveSO().
-					noHistoricalSO().
-					mustEquals(originalDymNameC)
-
-				s.requireDymName(dymNameD.Name).
-					noActiveSO().
-					noHistoricalSO().
-					mustEquals(originalDymNameD)
-			},
-		},
-		{
-			name:     "cleanup multiple Historical SO, some need to prune while some not",
-			dymNames: []dymnstypes.DymName{dymNameA, dymNameB, dymNameC, dymNameD},
-			historicalSOs: []dymnstypes.SellOrder{
-				genSo(dymNameA, -(daysKeepHistorical+0)*86400-1),
-				genSo(dymNameA, -(daysKeepHistorical+2)*86400-1),
-				genSo(dymNameA, -9),
-				genSo(dymNameC, -(daysKeepHistorical+3)*86400-1),
-				genSo(dymNameC, -(daysKeepHistorical+5)*86400-1),
-			},
-			activeSOs: []dymnstypes.SellOrder{
-				genSo(dymNameA, +1), genSo(dymNameB, +1), genSo(dymNameC, +1),
-			},
-			minExpiryByDymName: map[string]int64{
-				dymNameA.Name: getEpochWithOffset(-(daysKeepHistorical+2)*86400 - 1),
-				dymNameC.Name: getEpochWithOffset(-(daysKeepHistorical+5)*86400 - 1),
-			},
-			wantErr: false,
-			wantMinExpiryPerDymNameRecords: []dymnstypes.HistoricalSellOrderMinExpiry{
-				{
-					DymName:   dymNameA.Name,
-					MinExpiry: getEpochWithOffset(-9),
-				},
-			},
-			preHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).mustHaveHistoricalSoCount(3)
-				s.requireDymName(dymNameB.Name).noHistoricalSO()
-				s.requireDymName(dymNameC.Name).mustHaveHistoricalSoCount(2)
-				s.requireDymName(dymNameD.Name).noHistoricalSO()
-			},
-			afterHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).
-					mustHaveActiveSO().
-					mustHaveHistoricalSoCount(1).
-					mustEquals(originalDymNameA)
-
-				s.requireDymName(dymNameB.Name).
-					mustHaveActiveSO().
-					noHistoricalSO().
-					mustEquals(originalDymNameB)
-
-				s.requireDymName(dymNameC.Name).
-					mustHaveActiveSO().
-					noHistoricalSO().
-					mustEquals(originalDymNameC)
-
-				s.requireDymName(dymNameD.Name).
-					noActiveSO().
-					noHistoricalSO().
-					mustEquals(originalDymNameD)
-			},
-		},
-		{
-			name:     "should update min expiry correctly",
-			dymNames: []dymnstypes.DymName{dymNameA, dymNameB, dymNameC, dymNameD},
-			historicalSOs: []dymnstypes.SellOrder{
-				genSo(dymNameA, -9),
-				genSo(dymNameA, -(daysKeepHistorical+2)*86400-1),
-				genSo(dymNameA, -10),
-			},
-			activeSOs: nil,
-			minExpiryByDymName: map[string]int64{
-				dymNameA.Name: getEpochWithOffset(-(daysKeepHistorical+2)*86400 - 1),
-			},
-			wantErr: false,
-			wantMinExpiryPerDymNameRecords: []dymnstypes.HistoricalSellOrderMinExpiry{
-				{
-					DymName:   dymNameA.Name,
-					MinExpiry: getEpochWithOffset(-10),
-				},
-			},
-			preHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).mustHaveHistoricalSoCount(3)
-			},
-			afterHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).
-					mustHaveHistoricalSoCount(2).
-					mustEquals(originalDymNameA)
-			},
-		},
-		{
-			name:     "mixed cleanup",
-			dymNames: []dymnstypes.DymName{dymNameA, dymNameB, dymNameC, dymNameD},
-			historicalSOs: []dymnstypes.SellOrder{
-				// Dym-Name A has some historical SO, some need to prune, some not
-				genSo(dymNameA, -(daysKeepHistorical+0)*86400-1),
-				genSo(dymNameA, -(daysKeepHistorical+2)*86400-1),
-				genSo(dymNameA, -9),
-				// Dym-Name B has some historical SO, no need to prune
-				genSo(dymNameB, -8),
-				genSo(dymNameB, -7),
-				// Dym-Name C has some historical SO, all need to prune
-				genSo(dymNameC, -(daysKeepHistorical+3)*86400-1),
-				genSo(dymNameC, -(daysKeepHistorical+5)*86400-1),
-				// Dym-Name D has no historical SO
-			},
-			activeSOs: []dymnstypes.SellOrder{
-				genSo(dymNameA, +1), genSo(dymNameB, +1), genSo(dymNameC, +1), genSo(dymNameD, +1),
-			},
-			minExpiryByDymName: map[string]int64{
-				dymNameA.Name: getEpochWithOffset(-(daysKeepHistorical+2)*86400 - 1),
-				dymNameB.Name: getEpochWithOffset(-8),
-				dymNameC.Name: getEpochWithOffset(-(daysKeepHistorical+5)*86400 - 1),
-			},
-			wantErr: false,
-			wantMinExpiryPerDymNameRecords: []dymnstypes.HistoricalSellOrderMinExpiry{
-				{
-					DymName:   dymNameA.Name,
-					MinExpiry: getEpochWithOffset(-9),
-				},
-				{
-					DymName:   dymNameB.Name,
-					MinExpiry: getEpochWithOffset(-8),
-				},
-			},
-			preHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).mustHaveHistoricalSoCount(3)
-				s.requireDymName(dymNameB.Name).mustHaveHistoricalSoCount(2)
-				s.requireDymName(dymNameC.Name).mustHaveHistoricalSoCount(2)
-				s.requireDymName(dymNameD.Name).noHistoricalSO()
-			},
-			afterHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).
-					mustHaveActiveSO().
-					mustHaveHistoricalSoCount(1).
-					mustEquals(originalDymNameA)
-
-				s.requireDymName(dymNameB.Name).
-					mustHaveActiveSO().
-					mustHaveHistoricalSoCount(2).
-					mustEquals(originalDymNameB)
-
-				s.requireDymName(dymNameC.Name).
-					mustHaveActiveSO().
-					noHistoricalSO().
-					mustEquals(originalDymNameC)
-
-				s.requireDymName(dymNameD.Name).
-					mustHaveActiveSO().
-					noHistoricalSO().
-					mustEquals(originalDymNameD)
-			},
-		},
-		{
-			name:          "case no historical SO but has min expiry",
-			dymNames:      []dymnstypes.DymName{dymNameA},
-			historicalSOs: nil,
-			activeSOs:     nil,
-			minExpiryByDymName: map[string]int64{
-				dymNameA.Name: 1, // incorrect state: no historical SO but has min expiry
-			},
-			wantErr:                        false,
-			wantMinExpiryPerDymNameRecords: nil,
-			preHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).noHistoricalSO()
-			},
-			afterHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).
-					noHistoricalSO().
-					mustEquals(originalDymNameA)
-			},
-		},
-		{
-			name:     "mixed cleanup with incorrect state",
-			dymNames: []dymnstypes.DymName{dymNameA, dymNameB, dymNameC, dymNameD},
-			historicalSOs: []dymnstypes.SellOrder{
-				// Dym-Name A has some SO, no need to prune
-				genSo(dymNameA, -9),
-				// Dym-Name D has no historical SO
-			},
-			activeSOs: []dymnstypes.SellOrder{
-				genSo(dymNameA, +1), genSo(dymNameB, +1), genSo(dymNameC, +1), genSo(dymNameD, +1),
-			},
-			minExpiryByDymName: map[string]int64{
-				dymNameA.Name: getEpochWithOffset(-daysKeepHistorical*86400 - 1), // incorrect state: has historical SO, no need to prune but min-expiry indicates need to prune
-				dymNameD.Name: 1,                                                 // incorrect state: no historical SO but has min expiry
-			},
-			wantErr: false,
-			wantMinExpiryPerDymNameRecords: []dymnstypes.HistoricalSellOrderMinExpiry{
-				{
-					DymName:   dymNameA.Name,
-					MinExpiry: getEpochWithOffset(-9), // corrected value
-				},
-				// incorrect of Dym-Name D was removed
-			},
-			preHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).
-					mustHaveHistoricalSoCount(1)
-
-				s.requireDymName(dymNameD.Name).
-					noHistoricalSO()
-			},
-			afterHookTestFunc: func(s *KeeperTestSuite) {
-				s.requireDymName(dymNameA.Name).
-					mustHaveActiveSO().
-					mustHaveHistoricalSoCount(1).
-					mustEquals(originalDymNameA)
-
-				s.requireDymName(dymNameB.Name).
-					mustHaveActiveSO().
-					noHistoricalSO().
-					mustEquals(originalDymNameB)
-
-				s.requireDymName(dymNameC.Name).
-					mustHaveActiveSO().
-					noHistoricalSO().
-					mustEquals(originalDymNameC)
-
-				s.requireDymName(dymNameD.Name).
-					mustHaveActiveSO().
-					noHistoricalSO().
-					mustEquals(originalDymNameD)
-			},
-		},
-	}
-	for _, tt := range testsCleanupHistoricalSellOrders {
-		s.Run(tt.name, func() {
-			s.Require().NotNil(tt.preHookTestFunc, "mis-configured test case")
-			s.Require().NotNil(tt.afterHookTestFunc, "mis-configured test case")
-
-			s.RefreshContext()
-
-			for _, dymName := range tt.dymNames {
-				err := s.dymNsKeeper.SetDymName(s.ctx, dymName)
-				s.Require().NoError(err)
-			}
-
-			for _, so := range tt.historicalSOs {
-				err := s.dymNsKeeper.SetSellOrder(s.ctx, so)
-				s.Require().NoError(err)
-				err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, so.AssetId, so.AssetType)
-				s.Require().NoError(err)
-			}
-
-			for _, so := range tt.activeSOs {
-				err := s.dymNsKeeper.SetSellOrder(s.ctx, so)
-				s.Require().NoError(err)
-			}
-
-			meh := s.dymNsKeeper.GetMinExpiryOfAllHistoricalDymNameSellOrders(s.ctx)
-			if len(meh) > 0 {
-				// clear existing records to simulate cases of malformed state
-				for _, record := range meh {
-					s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, record.DymName, dymnstypes.TypeName, 0)
-				}
-			}
-			if len(tt.minExpiryByDymName) > 0 {
-				for dymName, minExpiry := range tt.minExpiryByDymName {
-					s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, dymName, dymnstypes.TypeName, minExpiry)
-				}
-			}
-
-			tt.preHookTestFunc(s)
-
-			moduleParams := s.dymNsKeeper.GetParams(s.ctx)
-			useEpochIdentifier := moduleParams.Misc.BeginEpochHookIdentifier
-			if tt.customEpochIdentifier != "" {
-				useEpochIdentifier = tt.customEpochIdentifier
-			}
-			err := s.dymNsKeeper.GetEpochHooks().BeforeEpochStart(s.ctx, useEpochIdentifier, 1)
-
-			defer func() {
-				if s.T().Failed() {
-					return
-				}
-
-				tt.afterHookTestFunc(s)
-
-				meh := s.dymNsKeeper.GetMinExpiryOfAllHistoricalDymNameSellOrders(s.ctx)
-				if len(tt.wantMinExpiryPerDymNameRecords) == 0 {
-					s.Require().Empty(meh)
-				} else {
-					s.Require().Equal(tt.wantMinExpiryPerDymNameRecords, meh, "lists mismatch")
-				}
-			}()
-
-			if tt.wantErr {
-				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
-				s.Require().Error(err)
-				s.Require().Contains(err.Error(), tt.wantErrContains)
-				return
-			}
-
-			s.Require().NoError(err)
-		})
-	}
 
 	testsClearPreservedRegistration := []struct {
 		name                            string
@@ -982,7 +415,6 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveDymNameSell
 			afterHookTestFunc: func(s *KeeperTestSuite) {
 				s.requireDymName(dymNameA.Name).
 					noActiveSO().
-					mustHaveHistoricalSoCount(1).
 					mustEquals(originalDymNameA)
 
 				s.Require().EqualValues(200, s.moduleBalance())
@@ -1020,7 +452,6 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveDymNameSell
 			afterHookTestFunc: func(s *KeeperTestSuite) {
 				s.requireDymName(dymNameA.Name).
 					noActiveSO().
-					mustHaveHistoricalSoCount(1).
 					ownerChangedTo(bidderA).
 					expiryEquals(originalDymNameA.ExpireAt)
 
@@ -1059,7 +490,6 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveDymNameSell
 			afterHookTestFunc: func(s *KeeperTestSuite) {
 				s.requireDymName(dymNameA.Name).
 					noActiveSO().
-					mustHaveHistoricalSoCount(1).
 					ownerChangedTo(bidderA).
 					expiryEquals(originalDymNameA.ExpireAt)
 
@@ -1129,27 +559,23 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveDymNameSell
 				// SO for Dym-Name A is expired without any bid/winner
 				s.requireDymName(dymNameA.Name).
 					noActiveSO().
-					mustHaveHistoricalSoCount(1).
 					mustEquals(originalDymNameA)
 
 				// SO for Dym-Name B not yet finished
 				soB := s.dymNsKeeper.GetSellOrder(s.ctx, dymNameB.Name, dymnstypes.TypeName)
 				s.Require().NotNil(soB)
 				s.requireDymName(dymNameB.Name).
-					noHistoricalSO().
 					mustEquals(originalDymNameB)
 
 				// SO for Dym-Name C is completed with winner
 				s.requireDymName(dymNameC.Name).
 					noActiveSO().
-					mustHaveHistoricalSoCount(1).
 					ownerChangedTo(bidderA).
 					expiryEquals(originalDymNameC.ExpireAt)
 
 				// SO for Dym-Name D is completed with winner
 				s.requireDymName(dymNameD.Name).
 					noActiveSO().
-					mustHaveHistoricalSoCount(1).
 					ownerChangedTo(bidderA).
 					expiryEquals(originalDymNameD.ExpireAt)
 
@@ -1546,16 +972,6 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 	const soExpiredEpoch = 1
 	soNotExpiredEpoch := s.now.Add(time.Hour).Unix()
 
-	requireNoActiveSO := func(alias string) {
-		so := s.dymNsKeeper.GetSellOrder(s.ctx, alias, dymnstypes.TypeAlias)
-		s.Nil(so)
-	}
-
-	requireNoHistoricalSO := func(alias string) {
-		historicalSOs := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, alias, dymnstypes.TypeAlias)
-		s.Empty(historicalSOs, "should have no historical SOs since Alias SOs are not supported")
-	}
-
 	tests := []struct {
 		name                  string
 		rollApps              []rollapp
@@ -1591,8 +1007,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			wantErr:           false,
 			wantExpiryByAlias: nil,
 			afterHookTestFunc: func(s *KeeperTestSuite) {
-				requireNoActiveSO(rollApp_1_byOwner_asSrc.alias)
-				requireNoHistoricalSO(rollApp_1_byOwner_asSrc.alias)
+				s.requireAlias(rollApp_1_byOwner_asSrc.alias).noActiveSO()
 
 				// unchanged
 
@@ -1631,8 +1046,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasNoAlias()
 				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
 
-				requireNoActiveSO(rollApp_1_byOwner_asSrc.alias)
-				requireNoHistoricalSO(rollApp_1_byOwner_asSrc.alias)
+				s.requireAlias(rollApp_1_byOwner_asSrc.alias).noActiveSO()
 
 				s.Zero(s.moduleBalance())                                     // should be transferred to previous owner
 				s.Equal(int64(200), s.balance(rollApp_1_byOwner_asSrc.owner)) // previous owner should earn from bid
@@ -1666,8 +1080,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasNoAlias()
 				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
 
-				requireNoActiveSO(rollApp_1_byOwner_asSrc.alias)
-				requireNoHistoricalSO(rollApp_1_byOwner_asSrc.alias)
+				s.requireAlias(rollApp_1_byOwner_asSrc.alias).noActiveSO()
 
 				s.Equal(int64(250-minPrice), s.moduleBalance())                    // should be transferred to previous owner
 				s.Equal(int64(minPrice), s.balance(rollApp_1_byOwner_asSrc.owner)) // previous owner should earn from bid
@@ -1813,8 +1226,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			afterHookTestFunc: func(s *KeeperTestSuite) {
 				// SO for alias 1 is expired without any bid/winner
 				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
-				requireNoActiveSO(rollApp_1_byOwner_asSrc.alias)
-				requireNoHistoricalSO(rollApp_1_byOwner_asSrc.alias)
+				s.requireAlias(rollApp_1_byOwner_asSrc.alias).noActiveSO()
 
 				// SO of the prohibited alias should be removed
 				s.Nil(s.dymNsKeeper.GetSellOrder(s.ctx, aliasProhibitedTrading, dymnstypes.TypeAlias))
@@ -1822,17 +1234,14 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 				// SO for alias 3 not yet finished
 				s.requireRollApp(rollApp_3_byOwner_asSrc.rollAppId).HasAlias(rollApp_3_byOwner_asSrc.alias)
 				s.NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, rollApp_3_byOwner_asSrc.alias, dymnstypes.TypeAlias))
-				requireNoHistoricalSO(rollApp_3_byOwner_asSrc.alias)
 
 				// SO for alias 4 is completed with winner
 				s.requireRollApp(rollApp_4_byOwner_asSrc.rollAppId).HasNoAlias()
-				requireNoActiveSO(rollApp_4_byOwner_asSrc.alias)
-				requireNoHistoricalSO(rollApp_4_byOwner_asSrc.alias)
+				s.requireAlias(rollApp_4_byOwner_asSrc.alias).noActiveSO()
 
 				// SO for alias 5 is completed with winner
 				s.requireRollApp(rollApp_5_byOwner_asSrc.rollAppId).HasNoAlias()
-				requireNoActiveSO(rollApp_5_byOwner_asSrc.alias)
-				requireNoHistoricalSO(rollApp_5_byOwner_asSrc.alias)
+				s.requireAlias(rollApp_5_byOwner_asSrc.alias).noActiveSO()
 
 				// aliases moved to RollApps of the winner
 				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).

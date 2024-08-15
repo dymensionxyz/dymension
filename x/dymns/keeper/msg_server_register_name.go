@@ -26,11 +26,11 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 
 	firstYearPrice := params.Price.GetFirstYearDymNamePrice(msg.Name)
 
-	var pruneAnyHistoricalData bool
+	var prunePreviousDymNameRecord bool
 	var totalCost sdk.Coin
 	if dymName == nil {
 		// register new
-		pruneAnyHistoricalData = true
+		prunePreviousDymNameRecord = true
 
 		dymName = &dymnstypes.DymName{
 			Name:       msg.Name,
@@ -54,7 +54,7 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 	} else if dymName.Owner == msg.Owner {
 		if dymName.IsExpiredAtCtx(ctx) {
 			// renew
-			pruneAnyHistoricalData = true
+			prunePreviousDymNameRecord = true
 
 			dymName = &dymnstypes.DymName{
 				Name:       msg.Name,
@@ -66,7 +66,7 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 			}
 		} else {
 			// extends
-			pruneAnyHistoricalData = false
+			prunePreviousDymNameRecord = false
 
 			// just add duration, no need to change any existing configuration
 			dymName.ExpireAt += addDurationInSeconds
@@ -85,7 +85,7 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 		)
 	} else {
 		// take over
-		pruneAnyHistoricalData = true
+		prunePreviousDymNameRecord = true
 
 		dymName = &dymnstypes.DymName{
 			Name:       msg.Name,
@@ -134,7 +134,7 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 		return nil, err
 	}
 
-	if pruneAnyHistoricalData {
+	if prunePreviousDymNameRecord {
 		if err := k.PruneDymName(ctx, msg.Name); err != nil {
 			return nil, err
 		}

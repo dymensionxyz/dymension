@@ -6,8 +6,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/dymensionxyz/sdk-utils/utils/uptr"
-
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -489,98 +487,6 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 			s.Require().Equal(*tt.wantSellOrder, resp.Result)
 		})
 	}
-}
-
-func (s *KeeperTestSuite) Test_queryServer_HistoricalSellOrderOfDymName() {
-	addr1a := testAddr(1).bech32()
-	addr2a := testAddr(2).bech32()
-	addr3a := testAddr(3).bech32()
-
-	dymNameA := dymnstypes.DymName{
-		Name:       "a",
-		Owner:      addr1a,
-		Controller: addr2a,
-		ExpireAt:   s.now.Unix() + 100,
-	}
-	s.Require().NoError(s.dymNsKeeper.SetDymName(s.ctx, dymNameA))
-	for r := int64(1); r <= 5; r++ {
-		err := s.dymNsKeeper.SetSellOrder(s.ctx, dymnstypes.SellOrder{
-			AssetId:   dymNameA.Name,
-			AssetType: dymnstypes.TypeName,
-			ExpireAt:  s.now.Unix() + r,
-			MinPrice:  s.coin(100),
-			SellPrice: uptr.To(s.coin(200)),
-			HighestBid: &dymnstypes.SellOrderBid{
-				Bidder: addr3a,
-				Price:  s.coin(200),
-			},
-		})
-		s.Require().NoError(err)
-		err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, dymNameA.Name, dymnstypes.TypeName)
-		s.Require().NoError(err)
-	}
-
-	dymNameB := dymnstypes.DymName{
-		Name:       "b",
-		Owner:      addr1a,
-		Controller: addr2a,
-		ExpireAt:   s.now.Unix() + 100,
-	}
-	s.Require().NoError(s.dymNsKeeper.SetDymName(s.ctx, dymNameB))
-	for r := int64(1); r <= 3; r++ {
-		err := s.dymNsKeeper.SetSellOrder(s.ctx, dymnstypes.SellOrder{
-			AssetId:   dymNameB.Name,
-			AssetType: dymnstypes.TypeName,
-			ExpireAt:  s.now.Unix() + r,
-			MinPrice:  s.coin(100),
-			SellPrice: uptr.To(s.coin(300)),
-			HighestBid: &dymnstypes.SellOrderBid{
-				Bidder: addr3a,
-				Price:  s.coin(300),
-			},
-		})
-		s.Require().NoError(err)
-		err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, dymNameB.Name, dymnstypes.TypeName)
-		s.Require().NoError(err)
-	}
-
-	queryServer := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper)
-	resp, err := queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryHistoricalSellOrderOfDymNameRequest{
-		DymName: dymNameA.Name,
-	})
-	s.Require().NoError(err)
-	s.Require().NotNil(resp)
-	s.Require().Len(resp.Result, 5)
-
-	resp, err = queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryHistoricalSellOrderOfDymNameRequest{
-		DymName: dymNameB.Name,
-	})
-	s.Require().NoError(err)
-	s.Require().NotNil(resp)
-	s.Require().Len(resp.Result, 3)
-
-	s.Run("returns empty for non-exists Dym-Name", func() {
-		resp, err := queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryHistoricalSellOrderOfDymNameRequest{
-			DymName: "not-exists",
-		})
-		s.Require().NoError(err)
-		s.Require().NotNil(resp)
-		s.Require().Empty(resp.Result)
-	})
-
-	s.Run("reject nil request", func() {
-		resp, err := queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(s.ctx), nil)
-		s.Require().Error(err)
-		s.Require().Nil(resp)
-	})
-
-	s.Run("reject invalid request", func() {
-		resp, err := queryServer.HistoricalSellOrderOfDymName(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryHistoricalSellOrderOfDymNameRequest{
-			DymName: "$$$",
-		})
-		s.Require().Error(err)
-		s.Require().Nil(resp)
-	})
 }
 
 func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {

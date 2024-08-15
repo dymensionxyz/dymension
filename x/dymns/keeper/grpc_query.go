@@ -138,24 +138,6 @@ func (q queryServer) SellOrder(goCtx context.Context, req *dymnstypes.QuerySellO
 	}, nil
 }
 
-// HistoricalSellOrderOfDymName queries the historical SOs of a Dym-Name.
-func (q queryServer) HistoricalSellOrderOfDymName(goCtx context.Context, req *dymnstypes.QueryHistoricalSellOrderOfDymNameRequest) (*dymnstypes.QueryHistoricalSellOrderOfDymNameResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-
-	if !dymnsutils.IsValidDymName(req.DymName) {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid dym name: %s", req.DymName)
-	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	hso := q.GetHistoricalSellOrders(ctx, req.DymName, dymnstypes.TypeName)
-
-	return &dymnstypes.QueryHistoricalSellOrderOfDymNameResponse{
-		Result: hso,
-	}, nil
-}
-
 // EstimateRegisterName estimates the cost to register a Dym-Name.
 func (q queryServer) EstimateRegisterName(goCtx context.Context, req *dymnstypes.EstimateRegisterNameRequest) (*dymnstypes.EstimateRegisterNameResponse, error) {
 	if req == nil {

@@ -5,8 +5,6 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/dymensionxyz/sdk-utils/utils/uptr"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -451,23 +449,6 @@ func (s *KeeperTestSuite) TestKeeper_PruneDymName() {
 	s.Require().NoError(err)
 	s.Require().Len(owned, 1)
 
-	// setup historical SO
-	expiredSo := dymnstypes.SellOrder{
-		AssetId:   dymName1.Name,
-		AssetType: dymnstypes.TypeName,
-		ExpireAt:  1,
-		MinPrice:  s.coin(100),
-		SellPrice: uptr.To(s.coin(300)),
-	}
-	err = s.dymNsKeeper.SetSellOrder(s.ctx, expiredSo)
-	s.Require().NoError(err)
-	err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, expiredSo.AssetId, expiredSo.AssetType)
-	s.Require().NoError(err)
-	s.Require().Len(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, dymName1.Name, dymnstypes.TypeName), 1)
-	minExpiry, found := s.dymNsKeeper.GetMinExpiryHistoricalSellOrder(s.ctx, dymName1.Name, dymnstypes.TypeName)
-	s.Require().True(found)
-	s.Require().Equal(expiredSo.ExpireAt, minExpiry)
-
 	// setup active SO
 	so := dymnstypes.SellOrder{
 		AssetId:   dymName1.Name,
@@ -490,14 +471,6 @@ func (s *KeeperTestSuite) TestKeeper_PruneDymName() {
 	s.Require().Empty(owned, "reserve mapping should be removed")
 
 	s.Require().Nil(s.dymNsKeeper.GetSellOrder(s.ctx, dymName1.Name, dymnstypes.TypeName), "active SO should be removed")
-
-	s.Require().Empty(
-		s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, dymName1.Name, dymnstypes.TypeName),
-		"historical SO should be removed",
-	)
-
-	_, found = s.dymNsKeeper.GetMinExpiryHistoricalSellOrder(s.ctx, dymName1.Name, dymnstypes.TypeName)
-	s.Require().False(found)
 }
 
 //goland:noinspection SpellCheckingInspection

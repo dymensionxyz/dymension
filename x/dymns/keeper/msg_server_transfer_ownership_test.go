@@ -173,23 +173,6 @@ func (s *KeeperTestSuite) Test_msgServer_TransferDymNameOwnership() {
 				s.setDymNameWithFunctionsAfter(*tt.dymName)
 			}
 
-			if tt.dymName != nil {
-				// setup historical SO
-
-				so := &dymnstypes.SellOrder{
-					AssetId:   recordName,
-					AssetType: dymnstypes.TypeName,
-					MinPrice:  s.coin(100),
-					ExpireAt:  1,
-				}
-				s.Require().NoError(s.dymNsKeeper.SetSellOrder(s.ctx, *so))
-
-				err := s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, recordName, so.AssetType)
-				s.Require().NoError(err)
-
-				s.Require().NotEmpty(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, recordName, so.AssetType))
-			}
-
 			if tt.sellOrder != nil {
 				s.Require().NotNil(tt.dymName, "bad test setup")
 				tt.sellOrder.AssetId = recordName
@@ -241,8 +224,6 @@ func (s *KeeperTestSuite) Test_msgServer_TransferDymNameOwnership() {
 						s.Require().NoError(err)
 						s.Require().Len(names, 1, "reverse mapping should be kept")
 					}
-
-					s.Require().NotEmpty(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, recordName, dymnstypes.TypeName), "historical SO should be kept")
 				}
 				return
 			}
@@ -298,8 +279,6 @@ func (s *KeeperTestSuite) Test_msgServer_TransferDymNameOwnership() {
 			)
 			s.Require().NoError(err)
 			s.Require().Len(names, 1, "reverse mapping of new owner should be added")
-
-			s.Require().Empty(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, recordName, dymnstypes.TypeName), "historical SO should be removed")
 		})
 	}
 }

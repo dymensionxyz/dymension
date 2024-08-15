@@ -54,8 +54,7 @@ func (k Keeper) CompleteAliasSellOrder(ctx sdk.Context, name string) error {
 		return err
 	}
 
-	// NOTE: sell order with type alias does not maintain historical sell order records,
-	// so we just need to remove the active Sell-Order record
+	// remove SO record
 	k.DeleteSellOrder(ctx, so.AssetId, so.AssetType)
 
 	// unlink from source RollApp

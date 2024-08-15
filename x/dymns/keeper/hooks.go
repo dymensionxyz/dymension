@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 
 	errorsmod "cosmossdk.io/errors"
@@ -35,7 +34,7 @@ func (k Keeper) GetEpochHooks() epochstypes.EpochHooks {
 }
 
 // BeforeEpochStart is the epoch start hook.
-// Business logic is to prune historical sell orders and clearing preserved registration.
+// Business logic is to prune the expired preserved registration.
 func (e epochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	params := e.GetParams(ctx)
 
@@ -45,94 +44,11 @@ func (e epochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, ep
 
 	e.Keeper.Logger(ctx).Info("DymNS hook Before-Epoch-Start: triggered", "epoch-number", epochNumber, "epoch-identifier", epochIdentifier)
 
-	if err := e.processCleanupHistoricalDymNameSellOrders(ctx, epochIdentifier, epochNumber, params); err != nil {
-		return err
-	}
-
 	var updatedParams bool
 	params, updatedParams = e.processCleanupPreservedRegistration(ctx, epochIdentifier, epochNumber, params)
 	if updatedParams {
 		if err := e.SetParams(ctx, params); err != nil {
 			return err
-		}
-	}
-
-	return nil
-}
-
-// processCleanupHistoricalDymNameSellOrders prunes historical Dym-Name Sell-Orders records store when reservation date passed.
-func (e epochHooks) processCleanupHistoricalDymNameSellOrders(
-	ctx sdk.Context,
-	epochIdentifier string, epochNumber int64,
-	params dymnstypes.Params,
-) error {
-	dk := e.Keeper
-
-	/**
-	We use this method instead of iterating through all historical sell orders.
-	It helps reduce number of IO needed to read all historical sell orders.
-	*/
-	minExpiryPerDymNameRecords := dk.GetMinExpiryOfAllHistoricalDymNameSellOrders(ctx)
-	if len(minExpiryPerDymNameRecords) < 1 {
-		return nil
-	}
-
-	cleanBeforeEpochUTC := ctx.BlockTime().Add(-1 * params.Misc.PreservedClosedSellOrderDuration).Unix()
-
-	var cleanupHistoricalForDymNames []string
-	for _, minExpiryPerDymName := range minExpiryPerDymNameRecords {
-		if minExpiryPerDymName.MinExpiry > cleanBeforeEpochUTC {
-			continue
-		}
-
-		cleanupHistoricalForDymNames = append(cleanupHistoricalForDymNames, minExpiryPerDymName.DymName)
-	}
-	if len(cleanupHistoricalForDymNames) < 1 {
-		return nil
-	}
-
-	e.Keeper.Logger(ctx).Info(
-		"DymNS hook Before-Epoch-Start: processing cleanup historical sell orders",
-		"count", len(cleanupHistoricalForDymNames),
-		"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
-	)
-
-	// ensure deterministic order, this action should be done regardless of the materials was sorted or not
-	sort.Strings(cleanupHistoricalForDymNames)
-
-	for _, dymName := range cleanupHistoricalForDymNames {
-		list := dk.GetHistoricalSellOrders(ctx, dymName, dymnstypes.TypeName)
-		if len(list) < 1 {
-			dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.TypeName, 0)
-			continue
-		}
-
-		var keepList []dymnstypes.SellOrder
-		for _, hso := range list {
-			if hso.ExpireAt > cleanBeforeEpochUTC {
-				keepList = append(keepList, hso)
-			}
-		}
-
-		if len(keepList) == 0 {
-			dk.DeleteHistoricalSellOrders(ctx, dymName, dymnstypes.TypeName)
-			dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.TypeName, 0)
-			continue
-		}
-
-		newMinExpiry := keepList[0].ExpireAt
-		for _, hso := range keepList {
-			if hso.ExpireAt < newMinExpiry {
-				newMinExpiry = hso.ExpireAt
-			}
-		}
-		dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.TypeName, newMinExpiry)
-
-		if len(keepList) != len(list) {
-			hso := dymnstypes.HistoricalSellOrders{
-				SellOrders: keepList,
-			}
-			dk.SetHistoricalSellOrders(ctx, dymName, dymnstypes.TypeName, hso)
 		}
 	}
 
@@ -161,8 +77,6 @@ func (e epochHooks) processCleanupPreservedRegistration(ctx sdk.Context, epochId
 }
 
 // AfterEpochEnd is the epoch end hook.
-// Business logic is to move expired Sell-Orders to historical
-// and if Sell-Order has a winner, complete that SO.
 func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	params := e.GetParams(ctx)
 
@@ -188,8 +102,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 }
 
 // processActiveDymNameSellOrders process the finished Dym-Name Sell-Orders.
-//   - Completes Dym-Name Sell-Orders with winners, move the Sell-Order to historical record.
-//   - Expired SO without winner will be deleted.
+// Sell-Order will be deleted. If the Sell-Order has a winner, the Dym-Name ownership will be transferred.
 func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	dk := e.Keeper
 
@@ -271,18 +184,8 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 				)
 			}
 		} else {
-			errApplyStateChange = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-				return dk.MoveSellOrderToHistorical(ctx, so.AssetId, dymnstypes.TypeName)
-			})
-			if errApplyStateChange != nil {
-				dk.Logger(ctx).Error(
-					"DymNS hook After-Epoch-End: failed to move expired sell order to historical",
-					"asset-id", so.AssetId, "asset-type", dymnstypes.TypeName.FriendlyString(),
-					"expiry", so.ExpireAt, "now", nowEpochUTC,
-					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
-					"error", errApplyStateChange,
-				)
-			}
+			dk.DeleteSellOrder(ctx, so.AssetId, dymnstypes.TypeName)
+			errApplyStateChange = nil
 		}
 
 		if errApplyStateChange == nil {
@@ -304,8 +207,7 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 }
 
 // processActiveAliasSellOrders process the finished Alias Sell-Orders.
-//   - Completes Alias Sell-Orders with winners.
-//   - Expired SO without winner will be deleted.
+// Sell-Order will be deleted. If the Sell-Order has a winner, the Alias linking will be updated.
 func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64, params dymnstypes.Params) error {
 	dk := e.Keeper
 
@@ -376,12 +278,10 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 		// and process next order, to prevent chain reaction when an individual order failed to process
 
 		if so.HighestBid == nil {
-			// no bid placed, it just a normal expiry without winner,
-			// in this case, just delete it, because Alias SO does not support historical SO
+			// no bid placed, it just a normal expiry without winner
 			dk.DeleteSellOrder(ctx, so.AssetId, dymnstypes.TypeAlias)
 			errApplyStateChange = nil
 		} else if _, forceCancel := prohibitedToTradeAliases[so.AssetId]; forceCancel {
-			fmt.Println("Force cancel")
 			// Sell-Order will be force cancelled and refund bids if any,
 			// when the alias is prohibited to trade
 

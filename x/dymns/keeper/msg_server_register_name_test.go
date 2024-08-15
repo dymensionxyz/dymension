@@ -73,21 +73,21 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 	const originalModuleBalance int64 = 88
 
 	tests := []struct {
-		name                    string
-		buyer                   string
-		originalBalance         int64
-		duration                int64
-		confirmPayment          sdk.Coin
-		contact                 string
-		customDymName           string
-		existingDymName         *dymnstypes.DymName
-		setupHistoricalData     bool
-		preRunSetup             func(s *KeeperTestSuite)
-		wantLaterDymName        *dymnstypes.DymName
-		wantErr                 bool
-		wantErrContains         string
-		wantLaterBalance        int64
-		wantPruneHistoricalData bool
+		name                 string
+		buyer                string
+		originalBalance      int64
+		duration             int64
+		confirmPayment       sdk.Coin
+		contact              string
+		customDymName        string
+		existingDymName      *dymnstypes.DymName
+		setupActiveSellOrder bool
+		preRunSetup          func(s *KeeperTestSuite)
+		wantLaterDymName     *dymnstypes.DymName
+		wantErr              bool
+		wantErrContains      string
+		wantLaterBalance     int64
+		wantPruneSellOrder   bool
 	}{
 		{
 			name:            "pass - can register, new Dym-Name",
@@ -324,7 +324,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "pass - when extend owned non-expired Dym-Name, keep config and historical data",
+			name:            "pass - when extend owned non-expired Dym-Name, keep config",
 			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
@@ -339,7 +339,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 				}},
 				Contact: "existing@example.com",
 			},
-			setupHistoricalData: true,
+			setupActiveSellOrder: true,
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
@@ -350,11 +350,11 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 				}},
 				Contact: "existing@example.com",
 			},
-			wantLaterBalance:        3,
-			wantPruneHistoricalData: false,
+			wantLaterBalance:   3,
+			wantPruneSellOrder: false,
 		},
 		{
-			name:            "pass - when extend owned non-expired Dym-Name, keep config and historical data, update contact if provided",
+			name:            "pass - when extend owned non-expired Dym-Name, keep config, update contact if provided",
 			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
@@ -370,7 +370,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 				}},
 				Contact: "existing@example.com",
 			},
-			setupHistoricalData: true,
+			setupActiveSellOrder: true,
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
@@ -381,8 +381,8 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 				}},
 				Contact: "new-contact@example.com",
 			},
-			wantLaterBalance:        3,
-			wantPruneHistoricalData: false,
+			wantLaterBalance:   3,
+			wantPruneSellOrder: false,
 		},
 		{
 			name:            "pass - can renew owned Dym-Name, expired",
@@ -437,15 +437,15 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 					Value: buyerA,
 				}},
 			},
-			setupHistoricalData: true,
+			setupActiveSellOrder: true,
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
 				ExpireAt:   s.now.Unix() + 86400*365*2,
 				Configs:    nil,
 			},
-			wantLaterBalance:        3,
-			wantPruneHistoricalData: true,
+			wantLaterBalance:   3,
+			wantPruneSellOrder: true,
 		},
 		{
 			name:            "pass - when renew previously-owned expired Dym-Name, reset config, update contact if provided",
@@ -463,7 +463,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 					Value: buyerA,
 				}},
 			},
-			setupHistoricalData: true,
+			setupActiveSellOrder: true,
 			wantLaterDymName: &dymnstypes.DymName{
 				Owner:      buyerA,
 				Controller: buyerA,
@@ -471,8 +471,8 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 				Configs:    nil,
 				Contact:    "new-contact@example.com",
 			},
-			wantLaterBalance:        3,
-			wantPruneHistoricalData: true,
+			wantLaterBalance:   3,
+			wantPruneSellOrder: true,
 		},
 		{
 			name:            "pass - can take over an expired Dym-Name after grace period has passed",
@@ -655,20 +655,8 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 				err := s.dymNsKeeper.SetDymName(s.ctx, *tt.existingDymName)
 				s.Require().NoError(err)
 
-				if tt.setupHistoricalData {
-					so1 := dymnstypes.SellOrder{
-						AssetId:   useRecordName,
-						AssetType: dymnstypes.TypeName,
-						ExpireAt:  s.now.Unix() - 1,
-						MinPrice:  s.coin(1),
-					}
-					err := s.dymNsKeeper.SetSellOrder(s.ctx, so1)
-					s.Require().NoError(err)
-
-					err = s.dymNsKeeper.MoveSellOrderToHistorical(s.ctx, useRecordName, dymnstypes.TypeName)
-					s.Require().NoError(err)
-
-					so2 := dymnstypes.SellOrder{
+				if tt.setupActiveSellOrder {
+					so := dymnstypes.SellOrder{
 						AssetId:   useRecordName,
 						AssetType: dymnstypes.TypeName,
 						ExpireAt:  tt.existingDymName.ExpireAt - 1,
@@ -679,15 +667,11 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 							Price:  s.coin(2),
 						},
 					}
-					err = s.dymNsKeeper.SetSellOrder(s.ctx, so2)
+					err = s.dymNsKeeper.SetSellOrder(s.ctx, so)
 					s.Require().NoError(err)
-
-					s.Require().Len(
-						s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, useRecordName, dymnstypes.TypeName), 1,
-					)
 				}
 			} else {
-				s.Require().False(tt.setupHistoricalData, "bad setup testcase")
+				s.Require().False(tt.setupActiveSellOrder, "bad setup testcase")
 			}
 			if tt.wantLaterDymName != nil {
 				tt.wantLaterDymName.Name = useRecordName
@@ -736,15 +720,10 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 					s.Nil(tt.wantLaterDymName, "bad setup testcase")
 				}
 
-				if tt.setupHistoricalData {
+				if tt.setupActiveSellOrder {
 					s.NotNil(
 						s.dymNsKeeper.GetSellOrder(s.ctx, useRecordName, dymnstypes.TypeName),
 						"sell order must be kept",
-					)
-					s.Len(
-						s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, useRecordName, dymnstypes.TypeName),
-						1,
-						"historical data must be kept",
 					)
 				}
 				return
@@ -765,15 +744,11 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			s.NotNil(tt.wantLaterDymName, "bad setup testcase")
 			s.Equal(*tt.wantLaterDymName, *laterDymName)
 
-			if tt.setupHistoricalData {
-				if tt.wantPruneHistoricalData {
+			if tt.setupActiveSellOrder {
+				if tt.wantPruneSellOrder {
 					s.Nil(
 						s.dymNsKeeper.GetSellOrder(s.ctx, useRecordName, dymnstypes.TypeName),
 						"sell order must be pruned",
-					)
-					s.Empty(
-						s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, useRecordName, dymnstypes.TypeName),
-						"historical data must be pruned",
 					)
 
 					if tt.existingDymName.Owner != laterDymName.Owner {
@@ -793,10 +768,9 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 					}
 				} else {
 					s.NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, useRecordName, dymnstypes.TypeName), "sell order must be kept")
-					s.Len(s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, useRecordName, dymnstypes.TypeName), 1, "historical data must be kept")
 				}
 			} else {
-				s.False(tt.wantPruneHistoricalData, "bad setup testcase")
+				s.False(tt.wantPruneSellOrder, "bad setup testcase")
 			}
 
 			ownedByBuyer, err := s.dymNsKeeper.GetDymNamesOwnedBy(s.ctx, tt.buyer)

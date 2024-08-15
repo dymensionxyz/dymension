@@ -252,7 +252,6 @@ func (s *KeeperTestSuite) TestKeeper_CompleteDymNameSellOrder() {
 			laterDymName := s.dymNsKeeper.GetDymName(s.ctx, dymName.Name)
 			s.Require().NotNil(laterDymName)
 			laterSo := s.dymNsKeeper.GetSellOrder(s.ctx, dymName.Name, dymnstypes.TypeName)
-			historicalSo := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, dymName.Name, dymnstypes.TypeName)
 			laterOwnerBalance := s.balance(ownerA)
 			laterBuyerBalance := s.balance(buyerA)
 			laterDymNamesOwnedByOwner, err := s.dymNsKeeper.GetDymNamesOwnedBy(s.ctx, ownerA)
@@ -277,7 +276,6 @@ func (s *KeeperTestSuite) TestKeeper_CompleteDymNameSellOrder() {
 				s.Require().Contains(errCompleteSellOrder.Error(), tt.wantErrContains)
 
 				s.Require().NotNil(laterSo, "SO should not be deleted")
-				s.Require().Empty(historicalSo, "SO should not be moved to historical")
 
 				s.Require().Equal(ownerA, laterDymName.Owner, "ownership should not be changed")
 				s.Require().Equal(ownerA, laterDymName.Controller, "controller should not be changed")
@@ -300,7 +298,6 @@ func (s *KeeperTestSuite) TestKeeper_CompleteDymNameSellOrder() {
 			s.Require().NoError(errCompleteSellOrder, "action should be successful")
 
 			s.Require().Nil(laterSo, "SO should be deleted")
-			s.Require().Len(historicalSo, 1, "SO should be moved to historical")
 
 			s.Require().Equal(buyerA, laterDymName.Owner, "ownership should be changed")
 			s.Require().Equal(buyerA, laterDymName.Controller, "controller should be changed")
@@ -387,74 +384,5 @@ func (s *KeeperTestSuite) TestKeeper_CompleteDymNameSellOrder() {
 		// SO records should be processed as normal
 		laterSo := s.dymNsKeeper.GetSellOrder(s.ctx, dymName.Name, dymnstypes.TypeName)
 		s.Require().Nil(laterSo, "SO should be deleted")
-
-		historicalSo := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, dymName.Name, dymnstypes.TypeName)
-		s.Require().Len(historicalSo, 1, "SO should be moved to historical")
-	})
-}
-
-func (s *KeeperTestSuite) TestKeeper_GetMinExpiryOfAllHistoricalDymNameSellOrders() {
-	s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, "one", dymnstypes.TypeName, 1)
-	s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, "two", dymnstypes.TypeName, 22)
-	s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, "three", dymnstypes.TypeName, 333)
-
-	records := s.dymNsKeeper.GetMinExpiryOfAllHistoricalDymNameSellOrders(s.ctx)
-	s.Require().Len(records, 3)
-	s.Require().Equal([]dymnstypes.HistoricalSellOrderMinExpiry{
-		{
-			DymName:   "one",
-			MinExpiry: 1,
-		},
-		{
-			DymName:   "three",
-			MinExpiry: 333,
-		},
-		{
-			DymName:   "two",
-			MinExpiry: 22,
-		},
-	}, records)
-
-	s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, "three", dymnstypes.TypeName, 0)
-	records = s.dymNsKeeper.GetMinExpiryOfAllHistoricalDymNameSellOrders(s.ctx)
-	s.Require().Len(records, 2)
-	s.Require().Equal([]dymnstypes.HistoricalSellOrderMinExpiry{
-		{
-			DymName:   "one",
-			MinExpiry: 1,
-		},
-		{
-			DymName:   "two",
-			MinExpiry: 22,
-		},
-	}, records)
-
-	s.Run("result must be sorted by Dym-Name", func() {
-		s.RefreshContext()
-
-		s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, "a", dymnstypes.TypeName, 1)
-		s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, "c", dymnstypes.TypeName, 2)
-		s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, "b", dymnstypes.TypeName, 3)
-		s.dymNsKeeper.SetMinExpiryHistoricalSellOrder(s.ctx, "d", dymnstypes.TypeName, 4)
-
-		records := s.dymNsKeeper.GetMinExpiryOfAllHistoricalDymNameSellOrders(s.ctx)
-		s.Require().Equal([]dymnstypes.HistoricalSellOrderMinExpiry{
-			{
-				DymName:   "a",
-				MinExpiry: 1,
-			},
-			{
-				DymName:   "b",
-				MinExpiry: 3,
-			},
-			{
-				DymName:   "c",
-				MinExpiry: 2,
-			},
-			{
-				DymName:   "d",
-				MinExpiry: 4,
-			},
-		}, records)
 	})
 }

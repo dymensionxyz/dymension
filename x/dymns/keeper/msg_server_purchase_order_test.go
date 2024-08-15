@@ -479,7 +479,6 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_DymName() {
 			}
 
 			laterSo := s.dymNsKeeper.GetSellOrder(s.ctx, dymName.Name, dymnstypes.TypeName)
-			historicalSo := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, dymName.Name, dymnstypes.TypeName)
 			laterOwnerBalance := s.balance(ownerA)
 			laterBuyerBalance := s.balance(buyerA)
 			laterPreviousBidderBalance := s.balance(previousBidderA)
@@ -523,7 +522,6 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_DymName() {
 				s.Require().False(tt.withoutSellOrder, "mis-configured test case")
 
 				s.Require().Nil(laterSo, "SO should be deleted")
-				s.Require().Len(historicalSo, 1, "SO should be moved to historical")
 
 				s.Require().Equal(buyerA, laterDymName.Owner, "ownership should be changed")
 				s.Require().Equal(buyerA, laterDymName.Controller, "controller should be changed")
@@ -546,10 +544,8 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_DymName() {
 
 				if tt.withoutSellOrder {
 					s.Require().Nil(laterSo)
-					s.Require().Empty(historicalSo)
 				} else {
 					s.Require().NotNil(laterSo, "SO should not be deleted")
-					s.Require().Empty(historicalSo, "SO should not be moved to historical")
 				}
 			}
 		})
@@ -1172,9 +1168,6 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 			for _, ra := range tt.rollApps {
 				s.True(s.dymNsKeeper.IsRollAppId(s.ctx, ra.rollAppId))
 			}
-
-			historicalSo := s.dymNsKeeper.GetHistoricalSellOrders(s.ctx, tt.msg.AssetId, dymnstypes.TypeAlias)
-			s.Empty(historicalSo, "no historical SO should be made for alias order regardless state of tx")
 
 			laterSo := s.dymNsKeeper.GetSellOrder(s.ctx, tt.msg.AssetId, dymnstypes.TypeAlias)
 
