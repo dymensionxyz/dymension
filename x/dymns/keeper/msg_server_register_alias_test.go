@@ -359,9 +359,9 @@ func (s *KeeperTestSuite) TestEstimateRegisterAlias() {
 	// the number values used in this test will be multiplied by this value
 	priceMultiplier := sdk.NewInt(1e18)
 
-	params := dymnstypes.DefaultParams()
-	params.Price.PriceDenom = denom
-	params.Price.AliasPriceSteps = []sdkmath.Int{
+	priceParams := dymnstypes.DefaultPriceParams()
+	priceParams.PriceDenom = denom
+	priceParams.AliasPriceSteps = []sdkmath.Int{
 		sdk.NewInt(price1L).Mul(priceMultiplier),
 		sdk.NewInt(price2L).Mul(priceMultiplier),
 		sdk.NewInt(price3L).Mul(priceMultiplier),
@@ -414,7 +414,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterAlias() {
 		s.Run(tt.name, func() {
 			got := dymnskeeper.EstimateRegisterAlias(
 				tt.alias,
-				params,
+				priceParams,
 			)
 			s.Equal(
 				sdkmath.NewInt(tt.wantPrice).Mul(priceMultiplier).String(),

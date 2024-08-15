@@ -266,11 +266,11 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 		return errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias already in use or preserved: %s", alias)
 	}
 
-	moduleParams := h.Keeper.GetParams(ctx)
+	priceParams := h.Keeper.PriceParams(ctx)
 
 	aliasCost := sdk.NewCoins(
 		sdk.NewCoin(
-			moduleParams.Price.PriceDenom, moduleParams.Price.GetAliasPrice(alias),
+			priceParams.PriceDenom, priceParams.GetAliasPrice(alias),
 		),
 	)
 

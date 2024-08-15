@@ -26,15 +26,15 @@ func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcce
 		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Order: %s", msg.OrderId)
 	}
 
-	params := k.GetParams(ctx)
+	miscParams := k.MiscParams(ctx)
 
 	var resp *dymnstypes.MsgAcceptBuyOrderResponse
 	var err error
 
 	if bo.AssetType == dymnstypes.TypeName {
-		resp, err = k.processAcceptBuyOrderWithAssetTypeDymName(ctx, msg, *bo, params)
+		resp, err = k.processAcceptBuyOrderWithAssetTypeDymName(ctx, msg, *bo, miscParams)
 	} else if bo.AssetType == dymnstypes.TypeAlias {
-		resp, err = k.processAcceptBuyOrderWithAssetTypeAlias(ctx, msg, *bo, params)
+		resp, err = k.processAcceptBuyOrderWithAssetTypeAlias(ctx, msg, *bo, miscParams)
 	} else {
 		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", bo.AssetType)
 	}
@@ -50,13 +50,13 @@ func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcce
 // processAcceptBuyOrderWithAssetTypeDymName handles the message handled by AcceptBuyOrder, type Dym-Name.
 func (k msgServer) processAcceptBuyOrderWithAssetTypeDymName(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgAcceptBuyOrder, offer dymnstypes.BuyOrder, params dymnstypes.Params,
+	msg *dymnstypes.MsgAcceptBuyOrder, offer dymnstypes.BuyOrder, miscParams dymnstypes.MiscParams,
 ) (*dymnstypes.MsgAcceptBuyOrderResponse, error) {
-	if !params.Misc.EnableTradingName {
+	if !miscParams.EnableTradingName {
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading of Dym-Name is disabled")
 	}
 
-	dymName, err := k.validateAcceptBuyOrderWithAssetTypeDymName(ctx, msg, offer, params)
+	dymName, err := k.validateAcceptBuyOrderWithAssetTypeDymName(ctx, msg, offer)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (k msgServer) processAcceptBuyOrderWithAssetTypeDymName(
 // validateAcceptBuyOrderWithAssetTypeDymName handles validation for the message handled by AcceptBuyOrder, type Dym-Name.
 func (k msgServer) validateAcceptBuyOrderWithAssetTypeDymName(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgAcceptBuyOrder, bo dymnstypes.BuyOrder, params dymnstypes.Params,
+	msg *dymnstypes.MsgAcceptBuyOrder, bo dymnstypes.BuyOrder,
 ) (*dymnstypes.DymName, error) {
 	dymName := k.GetDymNameWithExpirationCheck(ctx, bo.AssetId)
 	if dymName == nil {
@@ -145,9 +145,9 @@ func (k msgServer) validateAcceptBuyOrderWithAssetTypeDymName(
 // processAcceptBuyOrderWithAssetTypeAlias handles the message handled by AcceptBuyOrder, type Alias.
 func (k msgServer) processAcceptBuyOrderWithAssetTypeAlias(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgAcceptBuyOrder, offer dymnstypes.BuyOrder, params dymnstypes.Params,
+	msg *dymnstypes.MsgAcceptBuyOrder, offer dymnstypes.BuyOrder, miscParams dymnstypes.MiscParams,
 ) (*dymnstypes.MsgAcceptBuyOrderResponse, error) {
-	if !params.Misc.EnableTradingAlias {
+	if !miscParams.EnableTradingAlias {
 		return nil, errorsmod.Wrap(gerrc.ErrPermissionDenied, "trading of Alias is disabled")
 	}
 

@@ -154,7 +154,6 @@ func (q queryServer) EstimateRegisterName(goCtx context.Context, req *dymnstypes
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	params := q.GetParams(ctx)
 	existingDymNameRecord := q.GetDymName(ctx, req.Name) // can be nil if not registered before
 
 	if existingDymNameRecord != nil && existingDymNameRecord.Owner != req.Owner {
@@ -170,7 +169,7 @@ func (q queryServer) EstimateRegisterName(goCtx context.Context, req *dymnstypes
 	}
 
 	estimation := EstimateRegisterName(
-		params,
+		q.PriceParams(ctx),
 		req.Name,
 		existingDymNameRecord,
 		req.Owner,
@@ -208,8 +207,7 @@ func (q queryServer) EstimateRegisterAlias(goCtx context.Context, req *dymnstype
 		return nil, status.Errorf(codes.AlreadyExists, "alias already taken: %s", req.Alias)
 	}
 
-	moduleParams := q.GetParams(ctx)
-	estimation := EstimateRegisterAlias(req.Alias, moduleParams)
+	estimation := EstimateRegisterAlias(req.Alias, q.PriceParams(ctx))
 
 	return &estimation, nil
 }
@@ -408,9 +406,7 @@ func (q queryServer) Alias(goCtx context.Context, req *dymnstypes.QueryAliasRequ
 	var aliasesOfSameChain []string
 
 	if q.IsAliasPresentsInParamsAsAliasOrChainId(ctx, req.Alias) {
-		moduleParams := q.GetParams(ctx)
-
-		for _, aliasesOfChainId := range moduleParams.Chains.AliasesOfChainIds {
+		for _, aliasesOfChainId := range q.ChainsParams(ctx).AliasesOfChainIds {
 			if chainId != aliasesOfChainId.ChainId {
 				continue
 			}
@@ -466,7 +462,7 @@ func (q queryServer) Aliases(goCtx context.Context, req *dymnstypes.QueryAliases
 	}
 
 	aliasesByChainId := make(map[string]dymnstypes.MultipleAliases)
-	for _, aliasesOfChainId := range q.GetParams(ctx).Chains.AliasesOfChainIds {
+	for _, aliasesOfChainId := range q.ChainsParams(ctx).AliasesOfChainIds {
 		if len(aliasesOfChainId.Aliases) < 1 {
 			continue
 		}

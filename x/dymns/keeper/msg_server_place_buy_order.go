@@ -19,15 +19,16 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 		return nil, err
 	}
 
-	params := k.GetParams(ctx)
+	priceParams := k.PriceParams(ctx)
+	miscParams := k.MiscParams(ctx)
 
 	var resp *dymnstypes.MsgPlaceBuyOrderResponse
 	var err error
 
 	if msg.AssetType == dymnstypes.TypeName {
-		resp, err = k.placeBuyOrderWithAssetTypeDymName(ctx, msg, params)
+		resp, err = k.placeBuyOrderWithAssetTypeDymName(ctx, msg, priceParams, miscParams)
 	} else if msg.AssetType == dymnstypes.TypeAlias {
-		resp, err = k.placeBuyOrderWithAssetTypeAlias(ctx, msg, params)
+		resp, err = k.placeBuyOrderWithAssetTypeAlias(ctx, msg, priceParams, miscParams)
 	} else {
 		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", msg.AssetType)
 	}
@@ -50,13 +51,13 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 // placeBuyOrderWithAssetTypeDymName handles the message handled by PlaceBuyOrder, type Dym-Name.
 func (k msgServer) placeBuyOrderWithAssetTypeDymName(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgPlaceBuyOrder, params dymnstypes.Params,
+	msg *dymnstypes.MsgPlaceBuyOrder, priceParams dymnstypes.PriceParams, miscParams dymnstypes.MiscParams,
 ) (*dymnstypes.MsgPlaceBuyOrderResponse, error) {
-	if !params.Misc.EnableTradingName {
+	if !miscParams.EnableTradingName {
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading of Dym-Name is disabled")
 	}
 
-	existingOffer, err := k.validatePlaceBuyOrderWithAssetTypeDymName(ctx, msg, params)
+	existingOffer, err := k.validatePlaceBuyOrderWithAssetTypeDymName(ctx, msg, priceParams)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +118,7 @@ func (k msgServer) placeBuyOrderWithAssetTypeDymName(
 // validatePlaceBuyOrderWithAssetTypeDymName handles validation for the message handled by PlaceBuyOrder, type Dym-Name.
 func (k msgServer) validatePlaceBuyOrderWithAssetTypeDymName(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgPlaceBuyOrder, params dymnstypes.Params,
+	msg *dymnstypes.MsgPlaceBuyOrder, priceParams dymnstypes.PriceParams,
 ) (existingOffer *dymnstypes.BuyOrder, err error) {
 	dymName := k.GetDymNameWithExpirationCheck(ctx, msg.AssetId)
 	if dymName == nil {
@@ -129,15 +130,15 @@ func (k msgServer) validatePlaceBuyOrderWithAssetTypeDymName(
 		return
 	}
 
-	if msg.Offer.Denom != params.Price.PriceDenom {
+	if msg.Offer.Denom != priceParams.PriceDenom {
 		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument,
-			"invalid offer denomination, only accept %s", params.Price.PriceDenom,
+			"invalid offer denomination, only accept %s", priceParams.PriceDenom,
 		)
 		return
 	}
-	if msg.Offer.Amount.LT(params.Price.MinOfferPrice) {
+	if msg.Offer.Amount.LT(priceParams.MinOfferPrice) {
 		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument,
-			"offer price must be greater than or equal to %s", params.Price.MinOfferPrice.String(),
+			"offer price must be greater than or equal to %s", priceParams.MinOfferPrice.String(),
 		)
 		return
 	}
@@ -182,13 +183,13 @@ func (k msgServer) validatePlaceBuyOrderWithAssetTypeDymName(
 // placeBuyOrderWithAssetTypeAlias handles the message handled by PlaceBuyOrder, type Alias.
 func (k msgServer) placeBuyOrderWithAssetTypeAlias(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgPlaceBuyOrder, params dymnstypes.Params,
+	msg *dymnstypes.MsgPlaceBuyOrder, priceParams dymnstypes.PriceParams, miscParams dymnstypes.MiscParams,
 ) (*dymnstypes.MsgPlaceBuyOrderResponse, error) {
-	if !params.Misc.EnableTradingAlias {
+	if !miscParams.EnableTradingAlias {
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading of Alias is disabled")
 	}
 
-	existingOffer, err := k.validatePlaceBuyOrderWithAssetTypeAlias(ctx, msg, params)
+	existingOffer, err := k.validatePlaceBuyOrderWithAssetTypeAlias(ctx, msg, priceParams)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +250,7 @@ func (k msgServer) placeBuyOrderWithAssetTypeAlias(
 // validatePlaceBuyOrderWithAssetTypeAlias handles validation for the message handled by PlaceBuyOrder, type Alias.
 func (k msgServer) validatePlaceBuyOrderWithAssetTypeAlias(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgPlaceBuyOrder, params dymnstypes.Params,
+	msg *dymnstypes.MsgPlaceBuyOrder, priceParams dymnstypes.PriceParams,
 ) (existingOffer *dymnstypes.BuyOrder, err error) {
 	destinationRollAppId := msg.Params[0]
 
@@ -282,15 +283,15 @@ func (k msgServer) validatePlaceBuyOrderWithAssetTypeAlias(
 		return
 	}
 
-	if msg.Offer.Denom != params.Price.PriceDenom {
+	if msg.Offer.Denom != priceParams.PriceDenom {
 		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument,
-			"invalid offer denomination, only accept %s", params.Price.PriceDenom,
+			"invalid offer denomination, only accept %s", priceParams.PriceDenom,
 		)
 		return
 	}
-	if msg.Offer.Amount.LT(params.Price.MinOfferPrice) {
+	if msg.Offer.Amount.LT(priceParams.MinOfferPrice) {
 		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument,
-			"offer price must be greater than or equal to %s", params.Price.MinOfferPrice.String(),
+			"offer price must be greater than or equal to %s", priceParams.MinOfferPrice.String(),
 		)
 		return
 	}

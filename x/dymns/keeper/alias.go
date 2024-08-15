@@ -96,7 +96,7 @@ func (k Keeper) GetAliasesOfRollAppId(ctx sdk.Context, rollAppId string) []strin
 // Effective means: if an alias is reserved in params, it will be excluded from the result if the chain-id is a RollApp.
 func (k Keeper) GetEffectiveAliasesByChainId(ctx sdk.Context, chainId string) []string {
 	var result []string
-	for _, aliasesOfChainId := range k.GetParams(ctx).Chains.AliasesOfChainIds {
+	for _, aliasesOfChainId := range k.ChainsParams(ctx).AliasesOfChainIds {
 		if aliasesOfChainId.ChainId != chainId {
 			continue
 		}
@@ -109,6 +109,8 @@ func (k Keeper) GetEffectiveAliasesByChainId(ctx sdk.Context, chainId string) []
 
 		aliases := k.GetAliasesOfRollAppId(ctx, chainId)
 
+		// exclude the reserved aliases
+		// Please read the `processActiveAliasSellOrders` method (hooks.go) for more information.
 		aliases = slices.DeleteFunc(aliases, func(a string) bool {
 			_, found := reservedAliases[a]
 			return found

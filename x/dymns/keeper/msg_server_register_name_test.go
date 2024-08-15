@@ -716,16 +716,16 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 	// the number values used in this test will be multiplied by this value
 	priceMultiplier := sdk.NewInt(1e18)
 
-	params := dymnstypes.DefaultParams()
-	params.Price.PriceDenom = denom
-	params.Price.NamePriceSteps = []sdkmath.Int{
+	priceParams := dymnstypes.DefaultPriceParams()
+	priceParams.PriceDenom = denom
+	priceParams.NamePriceSteps = []sdkmath.Int{
 		sdk.NewInt(price1L).Mul(priceMultiplier),
 		sdk.NewInt(price2L).Mul(priceMultiplier),
 		sdk.NewInt(price3L).Mul(priceMultiplier),
 		sdk.NewInt(price4L).Mul(priceMultiplier),
 		sdk.NewInt(price5PlusL).Mul(priceMultiplier),
 	}
-	params.Price.PriceExtends = sdk.NewInt(extendsPrice).Mul(priceMultiplier)
+	priceParams.PriceExtends = sdk.NewInt(extendsPrice).Mul(priceMultiplier)
 
 	buyerA := testAddr(1).bech32()
 	previousOwnerA := testAddr(2).bech32()
@@ -987,7 +987,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			got := dymnskeeper.EstimateRegisterName(
-				params,
+				priceParams,
 				tt.dymName,
 				tt.existingDymName,
 				tt.newOwner,

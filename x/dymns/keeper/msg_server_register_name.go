@@ -17,14 +17,16 @@ import (
 func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegisterName) (*dymnstypes.MsgRegisterNameResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	dymName, params, err := k.validateRegisterName(ctx, msg)
+	dymName, err := k.validateRegisterName(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
 
+	priceParams := k.PriceParams(ctx)
+
 	addDurationInSeconds := 86400 * 365 * msg.Duration
 
-	firstYearPrice := params.Price.GetFirstYearDymNamePrice(msg.Name)
+	firstYearPrice := priceParams.GetFirstYearDymNamePrice(msg.Name)
 
 	var prunePreviousDymNameRecord bool
 	var totalCost sdk.Coin
@@ -42,9 +44,9 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 		}
 
 		totalCost = sdk.NewCoin(
-			params.Price.PriceDenom,
+			priceParams.PriceDenom,
 			firstYearPrice.Add( // first year has different price
-				params.Price.PriceExtends.Mul(
+				priceParams.PriceExtends.Mul(
 					sdkmath.NewInt(
 						msg.Duration-1, // subtract first year
 					),
@@ -78,8 +80,8 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 		}
 
 		totalCost = sdk.NewCoin(
-			params.Price.PriceDenom,
-			params.Price.PriceExtends.Mul(
+			priceParams.PriceDenom,
+			priceParams.PriceExtends.Mul(
 				sdkmath.NewInt(msg.Duration),
 			),
 		)
@@ -97,9 +99,9 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 		}
 
 		totalCost = sdk.NewCoin(
-			params.Price.PriceDenom,
+			priceParams.PriceDenom,
 			firstYearPrice.Add( // first year has different price
-				params.Price.PriceExtends.Mul(
+				priceParams.PriceExtends.Mul(
 					sdkmath.NewInt(
 						msg.Duration-1, // subtract first year
 					),
@@ -164,12 +166,12 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 }
 
 // validateRegisterName handles validation for the message handled by RegisterName.
-func (k msgServer) validateRegisterName(ctx sdk.Context, msg *dymnstypes.MsgRegisterName) (*dymnstypes.DymName, *dymnstypes.Params, error) {
+func (k msgServer) validateRegisterName(ctx sdk.Context, msg *dymnstypes.MsgRegisterName) (*dymnstypes.DymName, error) {
 	if err := msg.ValidateBasic(); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	params := k.GetParams(ctx)
+	miscParams := k.MiscParams(ctx)
 
 	dymName := k.GetDymName(ctx, msg.Name)
 	if dymName != nil {
@@ -177,7 +179,7 @@ func (k msgServer) validateRegisterName(ctx sdk.Context, msg *dymnstypes.MsgRegi
 			// just renew or extends
 		} else {
 			if !dymName.IsExpiredAtCtx(ctx) {
-				return nil, nil, gerrc.ErrUnauthenticated
+				return nil, gerrc.ErrUnauthenticated
 			}
 
 			// take over
@@ -186,11 +188,11 @@ func (k msgServer) validateRegisterName(ctx sdk.Context, msg *dymnstypes.MsgRegi
 			// Grace period is the time period after the Dym-Name expired
 			// that the previous owner can re-purchase the Dym-Name and no one else can take over.
 			// This follow domain specification to prevent user mistake.
-			dymNameCanBeTakeOverAfterEpoch := dymName.ExpireAt + int64(params.Misc.GracePeriodDuration.Seconds())
+			dymNameCanBeTakeOverAfterEpoch := dymName.ExpireAt + int64(miscParams.GracePeriodDuration.Seconds())
 
 			if ctx.BlockTime().Unix() < dymNameCanBeTakeOverAfterEpoch {
 				// still in grace period
-				return nil, nil, errorsmod.Wrapf(
+				return nil, errorsmod.Wrapf(
 					gerrc.ErrFailedPrecondition,
 					"can be taken over after: %s", time.Unix(dymNameCanBeTakeOverAfterEpoch, 0).UTC().Format(time.DateTime),
 				)
@@ -200,13 +202,13 @@ func (k msgServer) validateRegisterName(ctx sdk.Context, msg *dymnstypes.MsgRegi
 		}
 	}
 
-	return dymName, &params, nil
+	return dymName, nil
 }
 
 // EstimateRegisterName returns the estimated amount of coins required to register a new Dym-Name
 // or extends the ownership duration of an existing Dym-Name.
 func EstimateRegisterName(
-	params dymnstypes.Params,
+	priceParams dymnstypes.PriceParams,
 	name string,
 	existingDymName *dymnstypes.DymName,
 	newOwner string,
@@ -218,14 +220,14 @@ func EstimateRegisterName(
 		// Dym-Name exists and just renew or extends by the same owner
 
 		newFirstYearPrice = sdk.ZeroInt() // regardless of expired or not, we don't charge this
-		extendsPrice = params.Price.PriceExtends.Mul(
+		extendsPrice = priceParams.PriceExtends.Mul(
 			sdkmath.NewInt(duration),
 		)
 	} else {
 		// new registration or take over
-		newFirstYearPrice = params.Price.GetFirstYearDymNamePrice(name) // charge based on name length for the first year
+		newFirstYearPrice = priceParams.GetFirstYearDymNamePrice(name) // charge based on name length for the first year
 		if duration > 1 {
-			extendsPrice = params.Price.PriceExtends.Mul(
+			extendsPrice = priceParams.PriceExtends.Mul(
 				sdkmath.NewInt(duration - 1), // subtract first year, which has different price
 			)
 		} else {
@@ -234,8 +236,8 @@ func EstimateRegisterName(
 	}
 
 	return dymnstypes.EstimateRegisterNameResponse{
-		FirstYearPrice: sdk.NewCoin(params.Price.PriceDenom, newFirstYearPrice),
-		ExtendPrice:    sdk.NewCoin(params.Price.PriceDenom, extendsPrice),
-		TotalPrice:     sdk.NewCoin(params.Price.PriceDenom, newFirstYearPrice.Add(extendsPrice)),
+		FirstYearPrice: sdk.NewCoin(priceParams.PriceDenom, newFirstYearPrice),
+		ExtendPrice:    sdk.NewCoin(priceParams.PriceDenom, extendsPrice),
+		TotalPrice:     sdk.NewCoin(priceParams.PriceDenom, newFirstYearPrice.Add(extendsPrice)),
 	}
 }

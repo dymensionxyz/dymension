@@ -19,15 +19,16 @@ func (k msgServer) PlaceSellOrder(goCtx context.Context, msg *dymnstypes.MsgPlac
 		return nil, err
 	}
 
-	params := k.GetParams(ctx)
+	priceParams := k.PriceParams(ctx)
+	miscParams := k.MiscParams(ctx)
 
 	var resp *dymnstypes.MsgPlaceSellOrderResponse
 	var err error
 
 	if msg.AssetType == dymnstypes.TypeName {
-		resp, err = k.processPlaceSellOrderWithAssetTypeDymName(ctx, msg, params)
+		resp, err = k.processPlaceSellOrderWithAssetTypeDymName(ctx, msg, priceParams, miscParams)
 	} else if msg.AssetType == dymnstypes.TypeAlias {
-		resp, err = k.processPlaceSellOrderWithAssetTypeAlias(ctx, msg, params)
+		resp, err = k.processPlaceSellOrderWithAssetTypeAlias(ctx, msg, priceParams, miscParams)
 	} else {
 		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", msg.AssetType)
 	}
@@ -43,19 +44,19 @@ func (k msgServer) PlaceSellOrder(goCtx context.Context, msg *dymnstypes.MsgPlac
 // processPlaceSellOrderWithAssetTypeDymName handles the message handled by PlaceSellOrder, type Dym-Name.
 func (k msgServer) processPlaceSellOrderWithAssetTypeDymName(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgPlaceSellOrder, params dymnstypes.Params,
+	msg *dymnstypes.MsgPlaceSellOrder, priceParams dymnstypes.PriceParams, miscParams dymnstypes.MiscParams,
 ) (*dymnstypes.MsgPlaceSellOrderResponse, error) {
-	if !params.Misc.EnableTradingName {
+	if !miscParams.EnableTradingName {
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading of Dym-Name is disabled")
 	}
 
-	dymName, err := k.validatePlaceSellOrderWithAssetTypeDymName(ctx, msg, params)
+	dymName, err := k.validatePlaceSellOrderWithAssetTypeDymName(ctx, msg, priceParams)
 	if err != nil {
 		return nil, err
 	}
 
 	so := msg.ToSellOrder()
-	so.ExpireAt = ctx.BlockTime().Add(params.Misc.SellOrderDuration).Unix()
+	so.ExpireAt = ctx.BlockTime().Add(miscParams.SellOrderDuration).Unix()
 
 	if so.ExpireAt >= dymName.ExpireAt {
 		return nil, errorsmod.Wrap(
@@ -83,7 +84,7 @@ func (k msgServer) processPlaceSellOrderWithAssetTypeDymName(
 // validatePlaceSellOrderWithAssetTypeDymName handles validation for message handled by PlaceSellOrder, type Dym-Name.
 func (k msgServer) validatePlaceSellOrderWithAssetTypeDymName(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgPlaceSellOrder, params dymnstypes.Params,
+	msg *dymnstypes.MsgPlaceSellOrder, priceParams dymnstypes.PriceParams,
 ) (*dymnstypes.DymName, error) {
 	dymName := k.GetDymName(ctx, msg.AssetId)
 	if dymName == nil {
@@ -109,10 +110,10 @@ func (k msgServer) validatePlaceSellOrderWithAssetTypeDymName(
 		return nil, errorsmod.Wrap(gerrc.ErrAlreadyExists, "an active Sell-Order already exists for the Dym-Name")
 	}
 
-	if msg.MinPrice.Denom != params.Price.PriceDenom {
+	if msg.MinPrice.Denom != priceParams.PriceDenom {
 		return nil, errorsmod.Wrapf(
 			gerrc.ErrInvalidArgument,
-			"the only denom allowed as price: %s", params.Price.PriceDenom,
+			"the only denom allowed as price: %s", priceParams.PriceDenom,
 		)
 	}
 
@@ -122,19 +123,19 @@ func (k msgServer) validatePlaceSellOrderWithAssetTypeDymName(
 // processPlaceSellOrderWithAssetTypeAlias handles the message handled by PlaceSellOrder, type Alias.
 func (k msgServer) processPlaceSellOrderWithAssetTypeAlias(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgPlaceSellOrder, params dymnstypes.Params,
+	msg *dymnstypes.MsgPlaceSellOrder, priceParams dymnstypes.PriceParams, miscParams dymnstypes.MiscParams,
 ) (*dymnstypes.MsgPlaceSellOrderResponse, error) {
-	if !params.Misc.EnableTradingAlias {
+	if !miscParams.EnableTradingAlias {
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading of Alias is disabled")
 	}
 
-	err := k.validatePlaceSellOrderWithAssetTypeAlias(ctx, msg, params)
+	err := k.validatePlaceSellOrderWithAssetTypeAlias(ctx, msg, priceParams)
 	if err != nil {
 		return nil, err
 	}
 
 	so := msg.ToSellOrder()
-	so.ExpireAt = ctx.BlockTime().Add(params.Misc.SellOrderDuration).Unix()
+	so.ExpireAt = ctx.BlockTime().Add(miscParams.SellOrderDuration).Unix()
 
 	if err := so.Validate(); err != nil {
 		panic(errorsmod.Wrap(err, "un-expected invalid state of created SO"))
@@ -156,7 +157,7 @@ func (k msgServer) processPlaceSellOrderWithAssetTypeAlias(
 // validatePlaceSellOrderWithAssetTypeAlias handles validation for message handled by PlaceSellOrder, type Alias.
 func (k msgServer) validatePlaceSellOrderWithAssetTypeAlias(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgPlaceSellOrder, params dymnstypes.Params,
+	msg *dymnstypes.MsgPlaceSellOrder, priceParams dymnstypes.PriceParams,
 ) error {
 	alias := msg.AssetId
 
@@ -189,10 +190,10 @@ func (k msgServer) validatePlaceSellOrderWithAssetTypeAlias(
 		return errorsmod.Wrap(gerrc.ErrAlreadyExists, "an active Sell-Order already exists for the Alias")
 	}
 
-	if msg.MinPrice.Denom != params.Price.PriceDenom {
+	if msg.MinPrice.Denom != priceParams.PriceDenom {
 		return errorsmod.Wrapf(
 			gerrc.ErrInvalidArgument,
-			"the only denom allowed as price: %s", params.Price.PriceDenom,
+			"the only denom allowed as price: %s", priceParams.PriceDenom,
 		)
 	}
 

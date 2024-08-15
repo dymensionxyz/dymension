@@ -21,10 +21,10 @@ func (k msgServer) RegisterAlias(goCtx context.Context, msg *dymnstypes.MsgRegis
 		return nil, err
 	}
 
-	moduleParams := k.GetParams(ctx)
+	priceParams := k.PriceParams(ctx)
 
 	registrationCost := sdk.NewCoin(
-		moduleParams.Price.PriceDenom, moduleParams.Price.GetAliasPrice(msg.Alias),
+		priceParams.PriceDenom, priceParams.GetAliasPrice(msg.Alias),
 	)
 
 	if !registrationCost.Equal(msg.ConfirmPayment) {
@@ -113,9 +113,9 @@ func (k Keeper) registerAliasForRollApp(
 
 // EstimateRegisterAlias is a function to estimate the cost of registering an alias.
 func EstimateRegisterAlias(
-	alias string, params dymnstypes.Params,
+	alias string, priceParams dymnstypes.PriceParams,
 ) dymnstypes.EstimateRegisterAliasResponse {
 	return dymnstypes.EstimateRegisterAliasResponse{
-		Price: sdk.NewCoin(params.Price.PriceDenom, params.Price.GetAliasPrice(alias)),
+		Price: sdk.NewCoin(priceParams.PriceDenom, priceParams.GetAliasPrice(alias)),
 	}
 }

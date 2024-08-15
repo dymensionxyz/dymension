@@ -19,14 +19,14 @@ func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurch
 		return nil, err
 	}
 
-	params := k.GetParams(ctx)
+	miscParams := k.MiscParams(ctx)
 
 	var resp *dymnstypes.MsgPurchaseOrderResponse
 	var err error
 	if msg.AssetType == dymnstypes.TypeName {
-		resp, err = k.processPurchaseOrderWithAssetTypeDymName(ctx, msg, params)
+		resp, err = k.processPurchaseOrderWithAssetTypeDymName(ctx, msg, miscParams)
 	} else if msg.AssetType == dymnstypes.TypeAlias {
-		resp, err = k.processPurchaseOrderWithAssetTypeAlias(ctx, msg, params)
+		resp, err = k.processPurchaseOrderWithAssetTypeAlias(ctx, msg, miscParams)
 	} else {
 		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", msg.AssetType)
 	}
@@ -42,9 +42,9 @@ func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurch
 // processPurchaseOrderWithAssetTypeDymName handles the message handled by PurchaseOrder, type Dym-Name.
 func (k msgServer) processPurchaseOrderWithAssetTypeDymName(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgPurchaseOrder, params dymnstypes.Params,
+	msg *dymnstypes.MsgPurchaseOrder, miscParams dymnstypes.MiscParams,
 ) (*dymnstypes.MsgPurchaseOrderResponse, error) {
-	if !params.Misc.EnableTradingName {
+	if !miscParams.EnableTradingName {
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading of Dym-Name is disabled")
 	}
 
@@ -149,9 +149,9 @@ func (k msgServer) validatePurchaseOrderWithAssetTypeDymName(ctx sdk.Context, ms
 // processPurchaseOrderWithAssetTypeAlias handles the message handled by PurchaseOrder, type Alias.
 func (k msgServer) processPurchaseOrderWithAssetTypeAlias(
 	ctx sdk.Context,
-	msg *dymnstypes.MsgPurchaseOrder, params dymnstypes.Params,
+	msg *dymnstypes.MsgPurchaseOrder, miscParams dymnstypes.MiscParams,
 ) (*dymnstypes.MsgPurchaseOrderResponse, error) {
-	if !params.Misc.EnableTradingAlias {
+	if !miscParams.EnableTradingAlias {
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading of Alias is disabled")
 	}
 
