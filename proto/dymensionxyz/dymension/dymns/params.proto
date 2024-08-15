@@ -26,16 +26,6 @@ message Params {
     (gogoproto.moretags) = "yaml:\"misc\"",
     (gogoproto.nullable) = false
   ];
-
-  // preserved_registration contains setting for preserved registration Dym-Names,
-  // allow to be registered by specific account within a short period of time.
-  // This list will be cleared after the expiration epoch to save space.
-  // This is useful as when go-live, the team can reserve some Dym-Names for specific purpose
-  // and for well-known entities, not to be registered/stolen by others.
-  PreservedRegistrationParams preserved_registration = 4 [
-    (gogoproto.moretags) = "yaml:\"preserved_registration\"",
-    (gogoproto.nullable) = false
-  ];
 }
 
 // PriceParams defines the pricing of Dym-Name and price-related parameters.
@@ -112,26 +102,21 @@ message AliasesOfChainId {
 
 // MiscParams defines group of miscellaneous parameters.
 message MiscParams {
-  // begin_epoch_hook_identifier is the identifier of the begin epoch hook.
-  string begin_epoch_hook_identifier = 1 [
-    (gogoproto.moretags) = "yaml:\"begin_epoch_hook_identifier\""
-  ];
-
   // end_epoch_hook_identifier is the identifier of the end epoch hook.
-  string end_epoch_hook_identifier = 2 [
+  string end_epoch_hook_identifier = 1 [
     (gogoproto.moretags) = "yaml:\"end_epoch_hook_identifier\""
   ];
 
   // grace_period_duration is the amount of time that the former owner of an expired Dym-Name
   // can renew it before completely lost.
-  google.protobuf.Duration grace_period_duration = 3 [
+  google.protobuf.Duration grace_period_duration = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.stdduration) = true,
     (gogoproto.moretags) = "yaml:\"grace_period_duration\""
   ];
 
   // sell_order_duration is the amount of time of a Sell-Order from created to expired.
-  google.protobuf.Duration sell_order_duration = 4 [
+  google.protobuf.Duration sell_order_duration = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.stdduration) = true,
     (gogoproto.moretags) = "yaml:\"sell_order_duration\""
@@ -155,7 +140,7 @@ message MiscParams {
   //   - If someone put an offer (Buy-Order) at Feb 1st, 2024, and you have some days to accept it,
   //   exactly from the moment order placed, until end of Feb 8th, 2024, which is outside the prohibited range.
   //   After that, from Feb 9th, it is prohibited to accept the Buy-Order.
-  google.protobuf.Duration prohibit_sell_duration = 5 [
+  google.protobuf.Duration prohibit_sell_duration = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.stdduration) = true,
     (gogoproto.moretags) = "yaml:\"prohibit_sell_duration\""
@@ -163,46 +148,10 @@ message MiscParams {
 
   // enable_trading_name is the flag to enable trading of Dym-Name.
   // To be used to stop trading of Dym-Name when needed.
-  bool enable_trading_name = 6;
+  bool enable_trading_name = 5;
 
   // enable_trading_alias is the flag to enable trading of Alias.
   // To be used in the future when Alias trading implementation is ready
   // or disable trading of Alias when needed.
-  bool enable_trading_alias = 7;
-}
-
-// PreservedRegistrationParams contains setting for preserved registration Dym-Names,
-// allow to be registered by specific account within a short period of time.
-// This list will be cleared after the expiration epoch to save space.
-// This is useful as when go-live, the team can preserved some Dym-Names for specific purpose
-// and for well-known entities, not to be registered/stolen by others.
-message PreservedRegistrationParams {
-  // expiration_epoch is the epoch that the preserved registration period will be expired.
-  int64 expiration_epoch = 1 [
-    (gogoproto.moretags) = "yaml:\"expiration_epoch\""
-  ];
-
-  // preserved_dym_names is the list of preserved Dym-Names.
-  // Each record defines the Dym-Name and the whitelisted address that can register the preserved Dym-Name.
-  // It is allowed for one Dym-Name to have multiple whitelisted addresses and vice versa.
-  // This list will be cleared after the expiration epoch to save space.
-  repeated PreservedDymName preserved_dym_names = 2 [
-    (gogoproto.moretags) = "yaml:\"preserved_dym_names\"",
-    (gogoproto.nullable) = false
-  ];
-}
-
-// PreservedDymName defines one preserved Dym-Name and the whitelisted address that can register the preserved dym-name.
-// If want to reserve a Dym-Name for multiple addresses, add multiple PreservedDymName with the same Dym-Name.
-// If want to reserve multiple Dym-Names for one address, add multiple PreservedDymName with the same address.
-message PreservedDymName {
-  // dym_name is name of the preserved Dym-Name that enable whitelisted for.
-  string dym_name = 1 [
-    (gogoproto.moretags) = "yaml:\"dym_name\""
-  ];
-
-  // whitelisted_address is the only address that can register the preserved Dym-Name.
-  string whitelisted_address = 2 [
-    (gogoproto.moretags) = "yaml:\"whitelisted_address\""
-  ];
+  bool enable_trading_alias = 6;
 }
