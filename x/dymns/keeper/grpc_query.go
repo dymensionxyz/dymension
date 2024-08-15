@@ -190,13 +190,15 @@ func (q queryServer) EstimateRegisterAlias(goCtx context.Context, req *dymnstype
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	rollApp, found := q.rollappKeeper.GetRollapp(ctx, req.RollappId)
-	if !found {
-		return nil, status.Errorf(codes.NotFound, "RollApp not found: %s", req.RollappId)
-	}
+	if req.RollappId != "" && req.Owner != "" {
+		rollApp, found := q.rollappKeeper.GetRollapp(ctx, req.RollappId)
+		if !found {
+			return nil, status.Errorf(codes.NotFound, "RollApp not found: %s", req.RollappId)
+		}
 
-	if rollApp.Owner != req.Owner {
-		return nil, status.Errorf(codes.PermissionDenied, "not the owner of the RollApp")
+		if rollApp.Owner != req.Owner {
+			return nil, status.Errorf(codes.PermissionDenied, "not the owner of the RollApp")
+		}
 	}
 
 	canUseAlias, err := q.CanUseAliasForNewRegistration(ctx, req.Alias)

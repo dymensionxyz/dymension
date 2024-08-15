@@ -982,6 +982,13 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterAlias() {
 			wantPrice: price1L,
 		},
 		{
+			name:      "pass - can estimate without RollApp-ID and owner",
+			alias:     "a",
+			rollAppId: "",
+			owner:     "",
+			wantPrice: price1L,
+		},
+		{
 			name:      "pass - can estimate, 2 letters",
 			alias:     "oh",
 			rollAppId: existingRollAppId,
