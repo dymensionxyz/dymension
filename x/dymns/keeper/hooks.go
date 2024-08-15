@@ -2,8 +2,9 @@ package keeper
 
 import (
 	"errors"
-	"github.com/cometbft/cometbft/libs/log"
 	"sort"
+
+	"github.com/cometbft/cometbft/libs/log"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -47,16 +48,16 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 		return nil
 	}
 
-	e.Keeper.Logger(ctx).Info("DymNS hook After-Epoch-End: triggered", "epoch-number", epochNumber, "epoch-identifier", epochIdentifier)
+	logger := e.Logger(ctx).With("hook", "After-Epoch-End", "epoch-number", epochNumber, "epoch-identifier", epochIdentifier)
 
 	if miscParams.EnableTradingName {
-		if err := e.processActiveDymNameSellOrders(ctx, epochIdentifier, epochNumber); err != nil {
+		if err := e.processActiveDymNameSellOrders(ctx, logger); err != nil {
 			return err
 		}
 	}
 
 	if miscParams.EnableTradingAlias {
-		if err := e.processActiveAliasSellOrders(ctx, epochIdentifier, epochNumber); err != nil {
+		if err := e.processActiveAliasSellOrders(ctx, logger); err != nil {
 			return err
 		}
 	}
@@ -66,11 +67,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 
 // processActiveDymNameSellOrders process the finished Dym-Name Sell-Orders.
 // Sell-Order will be deleted. If the Sell-Order has a winner, the Dym-Name ownership will be transferred.
-func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	logger := e.Logger(ctx).With(
-		"hook", "After-Epoch-End", "epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
-	)
-
+func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, logger log.Logger) error {
 	finishedSOs, aSoe := e.getFinishedSellOrders(ctx, dymnstypes.TypeName, logger)
 
 	if len(finishedSOs) < 1 || len(aSoe.Records) < 1 {
@@ -80,21 +77,21 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 	logger.Info("processing finished SOs", "count", len(finishedSOs))
 
 	for _, so := range finishedSOs {
-		var errApplyStateChange error
 		// each order should be processed in a branched context, if error, discard the state change
 		// and process next order, to prevent chain reaction when an individual order failed to process
-
-		if so.HighestBid != nil {
-			errApplyStateChange = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-				return e.CompleteDymNameSellOrder(ctx, so.AssetId)
-			})
-			if errApplyStateChange != nil {
-				logger.Error("failed to complete sell order", "asset-id", so.AssetId, "error", errApplyStateChange)
+		errApplyStateChange := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+			if so.HighestBid == nil {
+				e.DeleteSellOrder(ctx, so.AssetId, dymnstypes.TypeName)
+				return nil
 			}
-		} else {
-			e.DeleteSellOrder(ctx, so.AssetId, dymnstypes.TypeName)
-			errApplyStateChange = nil
-		}
+
+			if err := e.CompleteDymNameSellOrder(ctx, so.AssetId); err != nil {
+				logger.Error("failed to complete sell order", "asset-id", so.AssetId, "error", err)
+				return err
+			}
+
+			return nil
+		})
 
 		if errApplyStateChange == nil {
 			aSoe.Remove(so.AssetId)
@@ -111,11 +108,7 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 
 // processActiveAliasSellOrders process the finished Alias Sell-Orders.
 // Sell-Order will be deleted. If the Sell-Order has a winner, the Alias linking will be updated.
-func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	logger := e.Logger(ctx).With(
-		"hook", "After-Epoch-End", "epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
-	)
-
+func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, logger log.Logger) error {
 	finishedSOs, aSoe := e.getFinishedSellOrders(ctx, dymnstypes.TypeAlias, logger)
 
 	if len(finishedSOs) < 1 || len(aSoe.Records) < 1 {
@@ -127,34 +120,32 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifie
 	prohibitedToTradeAliases := e.GetAllAliasAndChainIdInParams(ctx)
 
 	for _, so := range finishedSOs {
-		var errApplyStateChange error
 		// each order should be processed in a branched context, if error, discard the state change
 		// and process next order, to prevent chain reaction when an individual order failed to process
-
-		if so.HighestBid == nil {
-			// no bid placed, it just a normal expiry without winner
-			e.DeleteSellOrder(ctx, so.AssetId, dymnstypes.TypeAlias)
-			errApplyStateChange = nil
-		} else if _, forceCancel := prohibitedToTradeAliases[so.AssetId]; forceCancel {
-			// Sell-Order will be force cancelled and refund bids if any,
-			// when the alias is prohibited to trade
-
-			errApplyStateChange = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-				return e.RefundBid(ctx, *so.HighestBid, dymnstypes.TypeAlias)
-			})
-			if errApplyStateChange != nil {
-				logger.Error("failed to refund bid for a force-to-cancel sell order", "asset-id", so.AssetId, "error", errApplyStateChange)
-			} else {
+		errApplyStateChange := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+			if so.HighestBid == nil {
 				e.DeleteSellOrder(ctx, so.AssetId, dymnstypes.TypeAlias)
+				return nil
 			}
-		} else {
-			errApplyStateChange = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-				return e.CompleteAliasSellOrder(ctx, so.AssetId)
-			})
-			if errApplyStateChange != nil {
-				logger.Error("failed to complete sell order", "asset-id", so.AssetId, "error", errApplyStateChange)
+
+			if _, forceCancel := prohibitedToTradeAliases[so.AssetId]; forceCancel {
+				// Sell-Order will be force cancelled and refund bids if any,
+				// when the alias is prohibited to trade
+				if err := e.RefundBid(ctx, *so.HighestBid, dymnstypes.TypeAlias); err != nil {
+					logger.Error("failed to refund bid for a force-to-cancel sell order", "asset-id", so.AssetId, "error", err)
+					return err
+				}
+				e.DeleteSellOrder(ctx, so.AssetId, dymnstypes.TypeAlias)
+				return nil
 			}
-		}
+
+			if err := e.CompleteAliasSellOrder(ctx, so.AssetId); err != nil {
+				logger.Error("failed to complete sell order", "asset-id", so.AssetId, "error", err)
+				return err
+			}
+
+			return nil
+		})
 
 		if errApplyStateChange == nil {
 			aSoe.Remove(so.AssetId)
