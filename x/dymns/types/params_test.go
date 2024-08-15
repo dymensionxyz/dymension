@@ -34,39 +34,20 @@ func TestNewParams(t *testing.T) {
 			},
 		},
 		MiscParams{
-			BeginEpochHookIdentifier: "b",
-			EndEpochHookIdentifier:   "c",
-			GracePeriodDuration:      666 * time.Hour,
-			SellOrderDuration:        333 * time.Hour,
-			ProhibitSellDuration:     9999 * time.Hour,
-		},
-		PreservedRegistrationParams{
-			ExpirationEpoch: 888,
-			PreservedDymNames: []PreservedDymName{
-				{
-					DymName:            "an",
-					WhitelistedAddress: "aa",
-				},
-				{
-					DymName:            "bn",
-					WhitelistedAddress: "ba",
-				},
-			},
+			EndEpochHookIdentifier: "c",
+			GracePeriodDuration:    666 * time.Hour,
+			SellOrderDuration:      333 * time.Hour,
+			ProhibitSellDuration:   9999 * time.Hour,
 		},
 	)
 	require.Equal(t, "a", moduleParams.Price.PriceDenom)
 	require.Len(t, moduleParams.Chains.AliasesOfChainIds, 1)
 	require.Equal(t, "dymension_1100-1", moduleParams.Chains.AliasesOfChainIds[0].ChainId)
 	require.Len(t, moduleParams.Chains.AliasesOfChainIds[0].Aliases, 2)
-	require.Equal(t, "b", moduleParams.Misc.BeginEpochHookIdentifier)
 	require.Equal(t, "c", moduleParams.Misc.EndEpochHookIdentifier)
 	require.Equal(t, 666.0, moduleParams.Misc.GracePeriodDuration.Hours())
 	require.Equal(t, 333.0, moduleParams.Misc.SellOrderDuration.Hours())
 	require.Equal(t, 9999.0, moduleParams.Misc.ProhibitSellDuration.Hours())
-	require.Equal(t, int64(888), moduleParams.PreservedRegistration.ExpirationEpoch)
-	require.Len(t, moduleParams.PreservedRegistration.PreservedDymNames, 2)
-	require.Equal(t, "an", moduleParams.PreservedRegistration.PreservedDymNames[0].DymName)
-	require.Equal(t, "aa", moduleParams.PreservedRegistration.PreservedDymNames[0].WhitelistedAddress)
 }
 
 func TestDefaultPriceParams(t *testing.T) {
@@ -99,14 +80,10 @@ func TestDefaultMiscParams(t *testing.T) {
 	require.NoError(t, DefaultMiscParams().Validate())
 }
 
-func TestDefaultPreservedRegistrationParams(t *testing.T) {
-	require.NoError(t, DefaultPreservedRegistrationParams().Validate())
-}
-
 func TestParams_ParamSetPairs(t *testing.T) {
 	moduleParams := DefaultParams()
 	paramSetPairs := (&moduleParams).ParamSetPairs()
-	require.Len(t, paramSetPairs, 4)
+	require.Len(t, paramSetPairs, 3)
 }
 
 func TestParams_Validate(t *testing.T) {
@@ -123,10 +100,6 @@ func TestParams_Validate(t *testing.T) {
 
 	moduleParams = DefaultParams()
 	moduleParams.Misc.SellOrderDuration = 0
-	require.Error(t, (&moduleParams).Validate())
-
-	moduleParams = DefaultParams()
-	moduleParams.PreservedRegistration.ExpirationEpoch = -1
 	require.Error(t, (&moduleParams).Validate())
 }
 
@@ -480,23 +453,9 @@ func TestMiscParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name: "pass - begin epoch hour is valid",
-			modifier: func(p MiscParams) MiscParams {
-				p.BeginEpochHookIdentifier = "hour"
-				return p
-			},
-		},
-		{
 			name: "pass - end epoch hour is valid",
 			modifier: func(p MiscParams) MiscParams {
 				p.EndEpochHookIdentifier = "hour"
-				return p
-			},
-		},
-		{
-			name: "pass - begin epoch day is valid",
-			modifier: func(p MiscParams) MiscParams {
-				p.BeginEpochHookIdentifier = "day"
 				return p
 			},
 		},
@@ -508,27 +467,11 @@ func TestMiscParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name: "pass - begin epoch week is valid",
-			modifier: func(p MiscParams) MiscParams {
-				p.BeginEpochHookIdentifier = "week"
-				return p
-			},
-		},
-		{
 			name: "pass - end epoch week is valid",
 			modifier: func(p MiscParams) MiscParams {
 				p.EndEpochHookIdentifier = "week"
 				return p
 			},
-		},
-		{
-			name: "fail - begin other epoch is invalid",
-			modifier: func(p MiscParams) MiscParams {
-				p.BeginEpochHookIdentifier = "invalid"
-				return p
-			},
-			wantErr:         true,
-			wantErrContains: "invalid epoch identifier: invalid",
 		},
 		{
 			name: "fail - end other epoch is invalid",
@@ -610,186 +553,6 @@ func TestMiscParams_Validate(t *testing.T) {
 		require.Error(t, validateMiscParams("hello world"))
 		require.Error(t, validateMiscParams(&MiscParams{}), "not accept pointer")
 	})
-}
-
-//goland:noinspection SpellCheckingInspection
-func TestPreservedRegistrationParams_Validate(t *testing.T) {
-	tests := []struct {
-		name            string
-		modifier        func(PreservedRegistrationParams) PreservedRegistrationParams
-		wantErr         bool
-		wantErrContains string
-	}{
-		{
-			name:     "pass - default is valid",
-			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams { return p },
-		},
-		{
-			name: "pass - valid",
-			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
-				p.ExpirationEpoch = 1
-				p.PreservedDymNames = []PreservedDymName{
-					{
-						DymName:            "a",
-						WhitelistedAddress: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-					},
-					{
-						DymName:            "b",
-						WhitelistedAddress: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-					},
-				}
-				return p
-			},
-		},
-		{
-			name: "pass - expiration epoch = 0 is valid",
-			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
-				p.ExpirationEpoch = 0
-				return p
-			},
-		},
-		{
-			name: "fail - negative expiration epoch is invalid",
-			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
-				p.ExpirationEpoch = -1
-				return p
-			},
-			wantErr:         true,
-			wantErrContains: "expiration epoch cannot be negative",
-		},
-		{
-			name: "pass - expiration epoch in the past is valid",
-			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
-				p.ExpirationEpoch = 1 // epoch 1 is in the past
-				return p
-			},
-		},
-		{
-			name: "pass - empty preserved Dym-Name list is valid",
-			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
-				p.PreservedDymNames = nil
-				return p
-			},
-		},
-		{
-			name: "fail - Dym-Name must be valid",
-			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
-				p.PreservedDymNames = []PreservedDymName{
-					{
-						DymName:            "!a!",
-						WhitelistedAddress: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-					},
-				}
-				return p
-			},
-			wantErr:         true,
-			wantErrContains: "is not well-formed",
-		},
-		{
-			name: "fail - Dym-Name must be valid, not allow @ part",
-			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
-				p.PreservedDymNames = []PreservedDymName{
-					{
-						DymName:            "invalid@dym",
-						WhitelistedAddress: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-					},
-				}
-				return p
-			},
-			wantErr:         true,
-			wantErrContains: "is not well-formed",
-		},
-		{
-			name: "fail - address must be valid bech32",
-			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
-				p.PreservedDymNames = []PreservedDymName{
-					{
-						DymName:            "a",
-						WhitelistedAddress: "dym1fl48vsnms",
-					},
-				}
-				return p
-			},
-			wantErr:         true,
-			wantErrContains: "has invalid whitelisted address",
-		},
-		{
-			name: "fail - address hex is not allowed",
-			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
-				p.PreservedDymNames = []PreservedDymName{
-					{
-						DymName:            "a",
-						WhitelistedAddress: "0x1234567890123456789012345678901234567890",
-					},
-				}
-				return p
-			},
-			wantErr:         true,
-			wantErrContains: "has invalid whitelisted address",
-		},
-		{
-			name: "fail - duplicated pairs is now allowed",
-			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
-				p.PreservedDymNames = []PreservedDymName{
-					{
-						DymName:            "a",
-						WhitelistedAddress: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-					},
-					{
-						DymName:            "bbbb",
-						WhitelistedAddress: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-					},
-					{
-						// duplicated
-						DymName:            "a",
-						WhitelistedAddress: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-					},
-				}
-				return p
-			},
-			wantErr:         true,
-			wantErrContains: "is duplicated",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := tt.modifier(DefaultPreservedRegistrationParams()).Validate()
-			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
-				return
-			}
-
-			require.NoError(t, err)
-		})
-	}
-
-	t.Run("fail - invalid type", func(t *testing.T) {
-		require.Error(t, validatePreservedRegistrationParams("hello world"))
-		require.Error(t, validatePreservedRegistrationParams(&PreservedRegistrationParams{}), "not accept pointer")
-	})
-}
-
-func TestPreservedRegistrationParams_IsDuringWhitelistRegistrationPeriod(t *testing.T) {
-	moduleParams := PreservedRegistrationParams{
-		ExpirationEpoch: 100,
-	}
-
-	ctxAtEpoch := func(epoch int64) sdk.Context {
-		ctx := sdk.Context{}
-		ctx = ctx.WithBlockTime(time.Unix(epoch, 0))
-		return ctx
-	}
-
-	require.True(t, moduleParams.IsDuringWhitelistRegistrationPeriod(ctxAtEpoch(99)))
-	require.True(t, moduleParams.IsDuringWhitelistRegistrationPeriod(ctxAtEpoch(100)))
-	require.False(t, moduleParams.IsDuringWhitelistRegistrationPeriod(ctxAtEpoch(101)))
-
-	moduleParams = PreservedRegistrationParams{
-		ExpirationEpoch: 0,
-	}
-	require.False(t, moduleParams.IsDuringWhitelistRegistrationPeriod(ctxAtEpoch(1)))
 }
 
 func Test_validateEpochIdentifier(t *testing.T) {

@@ -27,14 +27,10 @@ var (
 
 	// KeyMiscParams is the key for the misc params
 	KeyMiscParams = []byte("MiscParams")
-
-	// KeyPreservedRegistrationParams is the key for the preserved registration params
-	KeyPreservedRegistrationParams = []byte("PreservedRegistrationParams")
 )
 
 const (
-	defaultBeginEpochHookIdentifier = "day" // less-frequently for cleanup
-	defaultEndEpochHookIdentifier   = "hour"
+	defaultEndEpochHookIdentifier = "hour"
 )
 
 // ParamKeyTable the param key table for launch module
@@ -48,7 +44,6 @@ func DefaultParams() Params {
 		DefaultPriceParams(),
 		DefaultChainsParams(),
 		DefaultMiscParams(),
-		DefaultPreservedRegistrationParams(),
 	)
 }
 
@@ -156,41 +151,23 @@ func DefaultChainsParams() ChainsParams {
 // DefaultMiscParams returns a default set of misc parameters
 func DefaultMiscParams() MiscParams {
 	return MiscParams{
-		BeginEpochHookIdentifier: defaultBeginEpochHookIdentifier,
-		EndEpochHookIdentifier:   defaultEndEpochHookIdentifier,
-		GracePeriodDuration:      30 * 24 * time.Hour,
-		SellOrderDuration:        3 * 24 * time.Hour,
-		ProhibitSellDuration:     30 * 24 * time.Hour,
-		EnableTradingName:        true,
-		EnableTradingAlias:       true,
-	}
-}
-
-// DefaultPreservedRegistrationParams returns a default set of preserved registration parameters
-func DefaultPreservedRegistrationParams() PreservedRegistrationParams {
-	// TODO DymNS: Add default preserved registration params
-	return PreservedRegistrationParams{
-		ExpirationEpoch: 1727740799, // 2024-09-30 23:59:59 UTC
-		PreservedDymNames: []PreservedDymName{
-			{
-				// this is just a pseudo address, replace it with the real one
-				DymName:            "big-brain-staking",
-				WhitelistedAddress: "dym1nd3qxp7xec90n9exr4ua3v26r940pl9nyy8whh",
-			},
-		},
+		EndEpochHookIdentifier: defaultEndEpochHookIdentifier,
+		GracePeriodDuration:    30 * 24 * time.Hour,
+		SellOrderDuration:      3 * 24 * time.Hour,
+		ProhibitSellDuration:   30 * 24 * time.Hour,
+		EnableTradingName:      true,
+		EnableTradingAlias:     true,
 	}
 }
 
 // NewParams creates a new Params object from given parameters
 func NewParams(
-	price PriceParams, chains ChainsParams,
-	misc MiscParams, preservedRegistration PreservedRegistrationParams,
+	price PriceParams, chains ChainsParams, misc MiscParams,
 ) Params {
 	return Params{
-		Price:                 price,
-		Chains:                chains,
-		Misc:                  misc,
-		PreservedRegistration: preservedRegistration,
+		Price:  price,
+		Chains: chains,
+		Misc:   misc,
 	}
 }
 
@@ -200,7 +177,6 @@ func (m *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyPriceParams, &m.Price, validatePriceParams),
 		paramtypes.NewParamSetPair(KeyChainsParams, &m.Chains, validateChainsParams),
 		paramtypes.NewParamSetPair(KeyMiscParams, &m.Misc, validateMiscParams),
-		paramtypes.NewParamSetPair(KeyPreservedRegistrationParams, &m.PreservedRegistration, validatePreservedRegistrationParams),
 	}
 }
 
@@ -214,9 +190,6 @@ func (m *Params) Validate() error {
 	}
 	if err := m.Misc.Validate(); err != nil {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "misc params: %v", err)
-	}
-	if err := m.PreservedRegistration.Validate(); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "preserved registration params: %v", err)
 	}
 	return nil
 }
@@ -252,17 +225,6 @@ func (m ChainsParams) Validate() error {
 // Validate checks that the MiscParams have valid values.
 func (m MiscParams) Validate() error {
 	return validateMiscParams(m)
-}
-
-// Validate checks that the PreservedRegistrationParams have valid values.
-func (m PreservedRegistrationParams) Validate() error {
-	return validatePreservedRegistrationParams(m)
-}
-
-// IsDuringWhitelistRegistrationPeriod returns true if still in the preserved registration period.
-// It checks if the current block time is less than the expiration epoch.
-func (m PreservedRegistrationParams) IsDuringWhitelistRegistrationPeriod(ctx sdk.Context) bool {
-	return m.ExpirationEpoch >= ctx.BlockTime().Unix()
 }
 
 // validateEpochIdentifier checks if the given epoch identifier is valid.
@@ -451,10 +413,6 @@ func validateMiscParams(i interface{}) error {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid parameter type: %T", i)
 	}
 
-	if err := validateEpochIdentifier(m.BeginEpochHookIdentifier); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "begin epoch hook identifier: %v", err)
-	}
-
 	if err := validateEpochIdentifier(m.EndEpochHookIdentifier); err != nil {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "end epoch hook identifier: %v", err)
 	}
@@ -469,38 +427,6 @@ func validateMiscParams(i interface{}) error {
 
 	if m.ProhibitSellDuration <= 0 {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "prohibit sell duration cannot be zero")
-	}
-
-	return nil
-}
-
-// validatePreservedRegistrationParams checks if the given PreservedRegistrationParams are valid.
-func validatePreservedRegistrationParams(i interface{}) error {
-	m, ok := i.(PreservedRegistrationParams)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if m.ExpirationEpoch < 0 {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "expiration epoch cannot be negative")
-	}
-
-	uniquePairs := make(map[string]bool)
-	// Describe usage of Go Map: only used for validation
-	for _, preservedDymName := range m.PreservedDymNames {
-		if !dymnsutils.IsValidDymName(preservedDymName.DymName) {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "preserved Dym-Name is not well-formed: %s", preservedDymName.DymName)
-		}
-
-		if !dymnsutils.IsValidBech32AccountAddress(preservedDymName.WhitelistedAddress, true) {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "preserved Dym-Name has invalid whitelisted address: %s", preservedDymName.WhitelistedAddress)
-		}
-
-		pairKey := fmt.Sprintf("%s|%s", preservedDymName.DymName, preservedDymName.WhitelistedAddress)
-		if _, ok := uniquePairs[pairKey]; ok {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "preserved dym name and whitelisted address pair is duplicated: %s & %s", preservedDymName.DymName, preservedDymName.WhitelistedAddress)
-		}
-		uniquePairs[pairKey] = true
 	}
 
 	return nil

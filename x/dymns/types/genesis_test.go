@@ -88,7 +88,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			Params: Params{
 				Price: DefaultPriceParams(),
 				Misc: MiscParams{
-					BeginEpochHookIdentifier: "invalid",
+					EndEpochHookIdentifier: "invalid",
 				},
 			},
 		}).Validate())
@@ -97,7 +97,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			Params: Params{
 				Price: PriceParams{},
 				Misc: MiscParams{
-					BeginEpochHookIdentifier: "invalid",
+					EndEpochHookIdentifier: "invalid",
 				},
 			},
 		}).Validate())
