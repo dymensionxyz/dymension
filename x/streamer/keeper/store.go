@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/gogoproto/proto"
+
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -126,4 +127,16 @@ func (k Keeper) deleteStreamRefByKey(ctx sdk.Context, key []byte, streamID uint6
 		store.Set(key, bz)
 	}
 	return nil
+}
+
+func (k Keeper) GetAllEpochPointers(ctx sdk.Context) ([]types.EpochPointer, error) {
+	iter, err := k.epochPointers.Iterate(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	return iter.Values()
+}
+
+func (k Keeper) SaveEpochPointer(ctx sdk.Context, p types.EpochPointer) error {
+	return k.epochPointers.Set(ctx, p.EpochIdentifier, p)
 }

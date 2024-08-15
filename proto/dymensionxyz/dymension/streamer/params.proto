@@ -9,4 +9,7 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
 
 // Params holds parameters for the streamer module
 message Params {
+  // MaxIterationPerBlock defines the maximum number of gauges that could be processed in a single block.
+  // This param is used during the pagination process.
+  uint64 max_iterations_per_block = 1;
 }

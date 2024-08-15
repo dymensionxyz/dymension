@@ -1,0 +1,9 @@
+syntax = "proto3";
+package dymensionxyz.dymension.streamer;
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
+
+message EventEndBlock {
+  uint64 iterations = 1;
+  uint64 max_iterations = 2;
+}

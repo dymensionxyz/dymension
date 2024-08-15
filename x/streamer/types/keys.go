@@ -39,4 +39,7 @@ var (
 
 	// KeyIndexSeparator defines key for merging bytes.
 	KeyIndexSeparator = []byte{0x07}
+
+	// KeyPrefixEpochPointers defines a prefix key holding EpochPointer objects.
+	KeyPrefixEpochPointers = []byte{0x08}
 )

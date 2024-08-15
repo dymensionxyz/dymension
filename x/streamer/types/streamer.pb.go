@@ -25,6 +25,9 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// EpochPointer is a special object used for the streamer pagination. It helps iterate over
+// streams with the specified epoch identifier within one epoch. Additionally, holds coins
+// that must be distributed in this epoch.
 type EpochPointer struct {
 	// StreamID is the ID of a stream.
 	StreamId uint64 `protobuf:"varint,1,opt,name=stream_id,json=streamId,proto3" json:"stream_id,omitempty"`

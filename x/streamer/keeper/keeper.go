@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"time"
 
+	"cosmossdk.io/collections"
 	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
+	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -25,13 +28,27 @@ type Keeper struct {
 	ak         types.AccountKeeper
 	ik         types.IncentivesKeeper
 	sk         types.SponsorshipKeeper
+
+	// epochPointers hold a mapping from the epoch identifier to EpochPointer.
+	epochPointers collections.Map[string, types.EpochPointer]
 }
 
 // NewKeeper returns a new instance of the incentive module keeper struct.
-func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk types.BankKeeper, ek types.EpochKeeper, ak types.AccountKeeper, ik types.IncentivesKeeper, sk types.SponsorshipKeeper) *Keeper {
+func NewKeeper(
+	cdc codec.BinaryCodec,
+	storeKey storetypes.StoreKey,
+	paramSpace paramtypes.Subspace,
+	bk types.BankKeeper,
+	ek types.EpochKeeper,
+	ak types.AccountKeeper,
+	ik types.IncentivesKeeper,
+	sk types.SponsorshipKeeper,
+) *Keeper {
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
+
+	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
 
 	return &Keeper{
 		storeKey:   storeKey,
@@ -41,6 +58,13 @@ func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk 
 		ak:         ak,
 		ik:         ik,
 		sk:         sk,
+		epochPointers: collections.NewMap(
+			sb,
+			types.KeyPrefixEpochPointers,
+			"epoch_pointers",
+			collections.StringKey,
+			collcompat.ProtoValue[types.EpochPointer](cdc),
+		),
 	}
 }
 

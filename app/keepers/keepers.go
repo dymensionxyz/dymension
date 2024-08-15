@@ -395,6 +395,7 @@ func (a *AppKeepers) InitKeepers(
 	)
 
 	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
+		appCodec,
 		a.keys[streamermoduletypes.StoreKey],
 		a.GetSubspace(streamermoduletypes.ModuleName),
 		a.BankKeeper,
