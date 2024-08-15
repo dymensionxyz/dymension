@@ -2687,146 +2687,6 @@ paths:
           type: string
       tags:
         - Query
-  /dymensionxyz/dymension/dymns/historical_sell_order/dym_name/{dym_name}:
-    get:
-      summary: HistoricalSellOrderOfDymName queries the historical SOs of a Dym-Name.
-      operationId: HistoricalSellOrderOfDymName
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              result:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    asset_id:
-                      type: string
-                      description: asset_id is the Dym-Name/Alias being opened to be sold.
-                    asset_type:
-                      description: >-
-                        asset_type is the type of the asset of the order, is
-                        Dym-Name/Alias.
-                      type: string
-                      enum:
-                        - AT_UNKNOWN
-                        - AT_DYM_NAME
-                        - AT_ALIAS
-                      default: AT_UNKNOWN
-                    expire_at:
-                      type: string
-                      format: int64
-                      title: expire_at is the last effective date of this SO
-                    min_price:
-                      description: >-
-                        min_price is the minimum price that the owner is willing
-                        to accept for the asset.
-                      type: object
-                      properties:
-                        denom:
-                          type: string
-                        amount:
-                          type: string
-                    sell_price:
-                      description: >-
-                        sell_price is the price that the owner is willing to
-                        sell the Dym-Name/Alias for,
-
-                        the SO will be closed when the price is met.
-
-                        If the sell price is zero, the SO will be closed when
-                        the expire_at is reached and the highest bidder wins.
-                      type: object
-                      properties:
-                        denom:
-                          type: string
-                        amount:
-                          type: string
-                    highest_bid:
-                      description: >-
-                        highest_bid is the highest bid on the SO, if any. Price
-                        must be greater than or equal to the min_price.
-                      type: object
-                      properties:
-                        bidder:
-                          type: string
-                          description: >-
-                            bidder is the account address of the account which
-                            placed the bid.
-                        price:
-                          description: price is the amount of coin offered by the bidder.
-                          type: object
-                          properties:
-                            denom:
-                              type: string
-                            amount:
-                              type: string
-                        params:
-                          type: array
-                          items:
-                            type: string
-                          description: >-
-                            params is the list of parameters of the bid.
-
-                            It is empty for asset type Dym-Name.
-
-                            It has one element for asset type Alias, which is
-                            the rollapp_id to assigned for.
-                  description: >-
-                    SellOrder defines a sell order, placed by owner, to sell a
-                    Dym-Name/Alias.
-
-                    Sell-Order has an expiry date.
-
-                    After expiry date, if no one has placed a bid, this
-                    Sell-Order will be closed, no change.
-
-                    If there is a bid, the highest bid will win, and the
-                    Dym-Name/Alias ownership will be transferred to the winner.
-
-                    If the bid matches the sell price, the Dym-Name/Alias
-                    ownership will be transferred to the bidder immediately.
-
-                    SO will be moved to historical records after
-                    completion/expiry.
-                description: >-
-                  result defines the historical Sell-Orders of the Dym-Name
-                  queried.
-            description: >-
-              QueryHistoricalSellOrderOfDymNameResponse is the response type for
-              the Query/HistoricalSellOrder RPC method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: dym_name
-          description: dym_name is the Dym-Name to query the historical Sell-Orders for.
-          in: path
-          required: true
-          type: string
-      tags:
-        - Query
   /dymensionxyz/dymension/dymns/owned_by/{owner}:
     get:
       summary: DymNamesOwnedByAccount queries the Dym-Names owned by an account.
@@ -3086,11 +2946,6 @@ paths:
                     description: misc is group of miscellaneous parameters.
                     type: object
                     properties:
-                      begin_epoch_hook_identifier:
-                        type: string
-                        description: >-
-                          begin_epoch_hook_identifier is the identifier of the
-                          begin epoch hook.
                       end_epoch_hook_identifier:
                         type: string
                         description: >-
@@ -3108,16 +2963,6 @@ paths:
                         description: >-
                           sell_order_duration is the amount of time of a
                           Sell-Order from created to expired.
-                      preserved_closed_sell_order_duration:
-                        type: string
-                        description: >-
-                          preserved_closed_sell_order_duration is the amount of
-                          time
-
-                          to keep closed Sell-Orders as historical records
-                          before it is deleted,
-
-                          based on expiry date and block time.
                       prohibit_sell_duration:
                         type: string
                         description: >-
@@ -3166,69 +3011,6 @@ paths:
                           implementation is ready
 
                           or disable trading of Alias when needed.
-                  preserved_registration:
-                    description: >-
-                      preserved_registration contains setting for preserved
-                      registration Dym-Names,
-
-                      allow to be registered by specific account within a short
-                      period of time.
-
-                      This list will be cleared after the expiration epoch to
-                      save space.
-
-                      This is useful as when go-live, the team can reserve some
-                      Dym-Names for specific purpose
-
-                      and for well-known entities, not to be registered/stolen
-                      by others.
-                    type: object
-                    properties:
-                      expiration_epoch:
-                        type: string
-                        format: int64
-                        description: >-
-                          expiration_epoch is the epoch that the preserved
-                          registration period will be expired.
-                      preserved_dym_names:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            dym_name:
-                              type: string
-                              description: >-
-                                dym_name is name of the preserved Dym-Name that
-                                enable whitelisted for.
-                            whitelisted_address:
-                              type: string
-                              description: >-
-                                whitelisted_address is the only address that can
-                                register the preserved Dym-Name.
-                          description: >-
-                            PreservedDymName defines one preserved Dym-Name and
-                            the whitelisted address that can register the
-                            preserved dym-name.
-
-                            If want to reserve a Dym-Name for multiple
-                            addresses, add multiple PreservedDymName with the
-                            same Dym-Name.
-
-                            If want to reserve multiple Dym-Names for one
-                            address, add multiple PreservedDymName with the same
-                            address.
-                        description: >-
-                          preserved_dym_names is the list of preserved
-                          Dym-Names.
-
-                          Each record defines the Dym-Name and the whitelisted
-                          address that can register the preserved Dym-Name.
-
-                          It is allowed for one Dym-Name to have multiple
-                          whitelisted addresses and vice versa.
-
-                          This list will be cleared after the expiration epoch
-                          to save space.
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -3430,6 +3212,7 @@ paths:
             type: object
             properties:
               result:
+                description: result is the active Sell-Order for the Dym-Name/Alias.
                 type: object
                 properties:
                   asset_id:
@@ -3504,23 +3287,6 @@ paths:
 
                           It has one element for asset type Alias, which is the
                           rollapp_id to assigned for.
-                description: >-
-                  SellOrder defines a sell order, placed by owner, to sell a
-                  Dym-Name/Alias.
-
-                  Sell-Order has an expiry date.
-
-                  After expiry date, if no one has placed a bid, this Sell-Order
-                  will be closed, no change.
-
-                  If there is a bid, the highest bid will win, and the
-                  Dym-Name/Alias ownership will be transferred to the winner.
-
-                  If the bid matches the sell price, the Dym-Name/Alias
-                  ownership will be transferred to the bidder immediately.
-
-                  SO will be moved to historical records after
-                  completion/expiry.
             description: >-
               QuerySellOrderResponse is the response type for the
               Query/SellOrder RPC method.
@@ -59502,9 +59268,6 @@ definitions:
   dymensionxyz.dymension.dymns.MiscParams:
     type: object
     properties:
-      begin_epoch_hook_identifier:
-        type: string
-        description: begin_epoch_hook_identifier is the identifier of the begin epoch hook.
       end_epoch_hook_identifier:
         type: string
         description: end_epoch_hook_identifier is the identifier of the end epoch hook.
@@ -59520,12 +59283,6 @@ definitions:
         description: >-
           sell_order_duration is the amount of time of a Sell-Order from created
           to expired.
-      preserved_closed_sell_order_duration:
-        type: string
-        description: |-
-          preserved_closed_sell_order_duration is the amount of time
-          to keep closed Sell-Orders as historical records before it is deleted,
-          based on expiry date and block time.
       prohibit_sell_duration:
         type: string
         description: >-
@@ -59672,11 +59429,6 @@ definitions:
         description: misc is group of miscellaneous parameters.
         type: object
         properties:
-          begin_epoch_hook_identifier:
-            type: string
-            description: >-
-              begin_epoch_hook_identifier is the identifier of the begin epoch
-              hook.
           end_epoch_hook_identifier:
             type: string
             description: end_epoch_hook_identifier is the identifier of the end epoch hook.
@@ -59692,15 +59444,6 @@ definitions:
             description: >-
               sell_order_duration is the amount of time of a Sell-Order from
               created to expired.
-          preserved_closed_sell_order_duration:
-            type: string
-            description: >-
-              preserved_closed_sell_order_duration is the amount of time
-
-              to keep closed Sell-Orders as historical records before it is
-              deleted,
-
-              based on expiry date and block time.
           prohibit_sell_duration:
             type: string
             description: >-
@@ -59745,141 +59488,7 @@ definitions:
               ready
 
               or disable trading of Alias when needed.
-      preserved_registration:
-        description: >-
-          preserved_registration contains setting for preserved registration
-          Dym-Names,
-
-          allow to be registered by specific account within a short period of
-          time.
-
-          This list will be cleared after the expiration epoch to save space.
-
-          This is useful as when go-live, the team can reserve some Dym-Names
-          for specific purpose
-
-          and for well-known entities, not to be registered/stolen by others.
-        type: object
-        properties:
-          expiration_epoch:
-            type: string
-            format: int64
-            description: >-
-              expiration_epoch is the epoch that the preserved registration
-              period will be expired.
-          preserved_dym_names:
-            type: array
-            items:
-              type: object
-              properties:
-                dym_name:
-                  type: string
-                  description: >-
-                    dym_name is name of the preserved Dym-Name that enable
-                    whitelisted for.
-                whitelisted_address:
-                  type: string
-                  description: >-
-                    whitelisted_address is the only address that can register
-                    the preserved Dym-Name.
-              description: >-
-                PreservedDymName defines one preserved Dym-Name and the
-                whitelisted address that can register the preserved dym-name.
-
-                If want to reserve a Dym-Name for multiple addresses, add
-                multiple PreservedDymName with the same Dym-Name.
-
-                If want to reserve multiple Dym-Names for one address, add
-                multiple PreservedDymName with the same address.
-            description: >-
-              preserved_dym_names is the list of preserved Dym-Names.
-
-              Each record defines the Dym-Name and the whitelisted address that
-              can register the preserved Dym-Name.
-
-              It is allowed for one Dym-Name to have multiple whitelisted
-              addresses and vice versa.
-
-              This list will be cleared after the expiration epoch to save
-              space.
     description: Params defines the parameters for the module.
-  dymensionxyz.dymension.dymns.PreservedDymName:
-    type: object
-    properties:
-      dym_name:
-        type: string
-        description: >-
-          dym_name is name of the preserved Dym-Name that enable whitelisted
-          for.
-      whitelisted_address:
-        type: string
-        description: >-
-          whitelisted_address is the only address that can register the
-          preserved Dym-Name.
-    description: >-
-      PreservedDymName defines one preserved Dym-Name and the whitelisted
-      address that can register the preserved dym-name.
-
-      If want to reserve a Dym-Name for multiple addresses, add multiple
-      PreservedDymName with the same Dym-Name.
-
-      If want to reserve multiple Dym-Names for one address, add multiple
-      PreservedDymName with the same address.
-  dymensionxyz.dymension.dymns.PreservedRegistrationParams:
-    type: object
-    properties:
-      expiration_epoch:
-        type: string
-        format: int64
-        description: >-
-          expiration_epoch is the epoch that the preserved registration period
-          will be expired.
-      preserved_dym_names:
-        type: array
-        items:
-          type: object
-          properties:
-            dym_name:
-              type: string
-              description: >-
-                dym_name is name of the preserved Dym-Name that enable
-                whitelisted for.
-            whitelisted_address:
-              type: string
-              description: >-
-                whitelisted_address is the only address that can register the
-                preserved Dym-Name.
-          description: >-
-            PreservedDymName defines one preserved Dym-Name and the whitelisted
-            address that can register the preserved dym-name.
-
-            If want to reserve a Dym-Name for multiple addresses, add multiple
-            PreservedDymName with the same Dym-Name.
-
-            If want to reserve multiple Dym-Names for one address, add multiple
-            PreservedDymName with the same address.
-        description: >-
-          preserved_dym_names is the list of preserved Dym-Names.
-
-          Each record defines the Dym-Name and the whitelisted address that can
-          register the preserved Dym-Name.
-
-          It is allowed for one Dym-Name to have multiple whitelisted addresses
-          and vice versa.
-
-          This list will be cleared after the expiration epoch to save space.
-    description: >-
-      PreservedRegistrationParams contains setting for preserved registration
-      Dym-Names,
-
-      allow to be registered by specific account within a short period of time.
-
-      This list will be cleared after the expiration epoch to save space.
-
-      This is useful as when go-live, the team can preserved some Dym-Names for
-      specific purpose
-
-      and for well-known entities, not to be registered/stolen by others.
   dymensionxyz.dymension.dymns.PriceParams:
     type: object
     properties:
@@ -60643,106 +60252,6 @@ definitions:
     description: >-
       QueryDymNamesOwnedByAccountResponse is the response type for the
       Query/DymNamesOwnedByAccount RPC method.
-  dymensionxyz.dymension.dymns.QueryHistoricalSellOrderOfDymNameResponse:
-    type: object
-    properties:
-      result:
-        type: array
-        items:
-          type: object
-          properties:
-            asset_id:
-              type: string
-              description: asset_id is the Dym-Name/Alias being opened to be sold.
-            asset_type:
-              description: >-
-                asset_type is the type of the asset of the order, is
-                Dym-Name/Alias.
-              type: string
-              enum:
-                - AT_UNKNOWN
-                - AT_DYM_NAME
-                - AT_ALIAS
-              default: AT_UNKNOWN
-            expire_at:
-              type: string
-              format: int64
-              title: expire_at is the last effective date of this SO
-            min_price:
-              description: >-
-                min_price is the minimum price that the owner is willing to
-                accept for the asset.
-              type: object
-              properties:
-                denom:
-                  type: string
-                amount:
-                  type: string
-            sell_price:
-              description: >-
-                sell_price is the price that the owner is willing to sell the
-                Dym-Name/Alias for,
-
-                the SO will be closed when the price is met.
-
-                If the sell price is zero, the SO will be closed when the
-                expire_at is reached and the highest bidder wins.
-              type: object
-              properties:
-                denom:
-                  type: string
-                amount:
-                  type: string
-            highest_bid:
-              description: >-
-                highest_bid is the highest bid on the SO, if any. Price must be
-                greater than or equal to the min_price.
-              type: object
-              properties:
-                bidder:
-                  type: string
-                  description: >-
-                    bidder is the account address of the account which placed
-                    the bid.
-                price:
-                  description: price is the amount of coin offered by the bidder.
-                  type: object
-                  properties:
-                    denom:
-                      type: string
-                    amount:
-                      type: string
-                params:
-                  type: array
-                  items:
-                    type: string
-                  description: >-
-                    params is the list of parameters of the bid.
-
-                    It is empty for asset type Dym-Name.
-
-                    It has one element for asset type Alias, which is the
-                    rollapp_id to assigned for.
-          description: >-
-            SellOrder defines a sell order, placed by owner, to sell a
-            Dym-Name/Alias.
-
-            Sell-Order has an expiry date.
-
-            After expiry date, if no one has placed a bid, this Sell-Order will
-            be closed, no change.
-
-            If there is a bid, the highest bid will win, and the Dym-Name/Alias
-            ownership will be transferred to the winner.
-
-            If the bid matches the sell price, the Dym-Name/Alias ownership will
-            be transferred to the bidder immediately.
-
-            SO will be moved to historical records after completion/expiry.
-        description: result defines the historical Sell-Orders of the Dym-Name queried.
-    description: >-
-      QueryHistoricalSellOrderOfDymNameResponse is the response type for the
-      Query/HistoricalSellOrder RPC method.
   dymensionxyz.dymension.dymns.QueryParamsResponse:
     type: object
     properties:
@@ -60845,11 +60354,6 @@ definitions:
             description: misc is group of miscellaneous parameters.
             type: object
             properties:
-              begin_epoch_hook_identifier:
-                type: string
-                description: >-
-                  begin_epoch_hook_identifier is the identifier of the begin
-                  epoch hook.
               end_epoch_hook_identifier:
                 type: string
                 description: >-
@@ -60867,15 +60371,6 @@ definitions:
                 description: >-
                   sell_order_duration is the amount of time of a Sell-Order from
                   created to expired.
-              preserved_closed_sell_order_duration:
-                type: string
-                description: >-
-                  preserved_closed_sell_order_duration is the amount of time
-
-                  to keep closed Sell-Orders as historical records before it is
-                  deleted,
-
-                  based on expiry date and block time.
               prohibit_sell_duration:
                 type: string
                 description: >-
@@ -60920,71 +60415,12 @@ definitions:
                   ready
 
                   or disable trading of Alias when needed.
-          preserved_registration:
-            description: >-
-              preserved_registration contains setting for preserved registration
-              Dym-Names,
-
-              allow to be registered by specific account within a short period
-              of time.
-
-              This list will be cleared after the expiration epoch to save
-              space.
-
-              This is useful as when go-live, the team can reserve some
-              Dym-Names for specific purpose
-
-              and for well-known entities, not to be registered/stolen by
-              others.
-            type: object
-            properties:
-              expiration_epoch:
-                type: string
-                format: int64
-                description: >-
-                  expiration_epoch is the epoch that the preserved registration
-                  period will be expired.
-              preserved_dym_names:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    dym_name:
-                      type: string
-                      description: >-
-                        dym_name is name of the preserved Dym-Name that enable
-                        whitelisted for.
-                    whitelisted_address:
-                      type: string
-                      description: >-
-                        whitelisted_address is the only address that can
-                        register the preserved Dym-Name.
-                  description: >-
-                    PreservedDymName defines one preserved Dym-Name and the
-                    whitelisted address that can register the preserved
-                    dym-name.
-
-                    If want to reserve a Dym-Name for multiple addresses, add
-                    multiple PreservedDymName with the same Dym-Name.
-
-                    If want to reserve multiple Dym-Names for one address, add
-                    multiple PreservedDymName with the same address.
-                description: >-
-                  preserved_dym_names is the list of preserved Dym-Names.
-
-                  Each record defines the Dym-Name and the whitelisted address
-                  that can register the preserved Dym-Name.
-
-                  It is allowed for one Dym-Name to have multiple whitelisted
-                  addresses and vice versa.
-
-                  This list will be cleared after the expiration epoch to save
-                  space.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   dymensionxyz.dymension.dymns.QuerySellOrderResponse:
     type: object
     properties:
       result:
+        description: result is the active Sell-Order for the Dym-Name/Alias.
         type: object
         properties:
           asset_id:
@@ -61059,22 +60495,6 @@ definitions:
 
                   It has one element for asset type Alias, which is the
                   rollapp_id to assigned for.
-        description: >-
-          SellOrder defines a sell order, placed by owner, to sell a
-          Dym-Name/Alias.
-
-          Sell-Order has an expiry date.
-
-          After expiry date, if no one has placed a bid, this Sell-Order will be
-          closed, no change.
-
-          If there is a bid, the highest bid will win, and the Dym-Name/Alias
-          ownership will be transferred to the winner.
-
-          If the bid matches the sell price, the Dym-Name/Alias ownership will
-          be transferred to the bidder immediately.
-
-          SO will be moved to historical records after completion/expiry.
     description: >-
       QuerySellOrderResponse is the response type for the Query/SellOrder RPC
       method.
@@ -61250,8 +60670,6 @@ definitions:
 
       If the bid matches the sell price, the Dym-Name/Alias ownership will be
       transferred to the bidder immediately.
-
-      SO will be moved to historical records after completion/expiry.
   dymensionxyz.dymension.dymns.SellOrderBid:
     type: object
     properties:
