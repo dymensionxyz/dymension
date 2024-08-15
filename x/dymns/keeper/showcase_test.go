@@ -11,7 +11,6 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/stretchr/testify/require"
 )
 
 /**
@@ -861,8 +860,8 @@ func (m *showcaseSetup) newDymName(name string, owner string) *configureDymName 
 
 func (m reqDymName) equals(otherDymName dymnstypes.DymName) {
 	dymName := m.scs.s.dymNsKeeper.GetDymName(m.scs.s.ctx, m.name)
-	require.NotNil(m.scs.s.T(), dymName)
-	require.Equal(m.scs.s.T(), otherDymName, *dymName)
+	m.scs.s.Require().NotNil(dymName)
+	m.scs.s.Require().Equal(otherDymName, *dymName)
 }
 
 func (m reqDymName) get() *dymnstypes.DymName {
@@ -878,18 +877,18 @@ func (m reqDymName) MustHasConfig(filter func(cfg dymnstypes.DymNameConfig) bool
 			break
 		}
 	}
-	require.True(m.scs.s.T(), anyMatch)
+	m.scs.s.Require().True(anyMatch)
 }
 
 func (m reqDymName) NotHaveConfig(filter func(cfg dymnstypes.DymNameConfig) bool) {
 	dymName := m.get()
 	for _, cfg := range dymName.Configs {
-		require.False(m.scs.s.T(), filter(cfg))
+		m.scs.s.Require().False(filter(cfg))
 	}
 }
 
 func (m reqDymName) update(dymName dymnstypes.DymName) {
-	require.Equal(m.scs.s.T(), m.name, dymName.Name, "passed wrong Dym-Name")
+	m.scs.s.Require().Equal(m.name, dymName.Name, "passed wrong Dym-Name")
 
 	for i, config := range dymName.Configs {
 		if config.ChainId == m.scs.s.ctx.ChainID() {
@@ -933,7 +932,7 @@ func (m configureDymName) save() *dymnstypes.DymName {
 	m.scs.s.setDymNameWithFunctionsAfter(dymName)
 
 	record := m.scs.s.dymNsKeeper.GetDymName(m.scs.s.ctx, dymName.Name)
-	require.NotNil(m.scs.s.T(), record)
+	m.scs.s.Require().NotNil(record)
 	return record
 }
 
@@ -1005,28 +1004,28 @@ func (m *showcaseSetup) requireResolveDymNameAddress(dymNameAddress string) reqR
 
 func (m reqResolveDymNameAddress) Equals(want string) {
 	outputAddress, err := m.scs.s.dymNsKeeper.ResolveByDymNameAddress(m.scs.s.ctx, m.dymNameAddress)
-	require.NoError(m.scs.s.T(), err)
-	require.Equal(m.scs.s.T(), want, outputAddress)
+	m.scs.s.Require().NoError(err)
+	m.scs.s.Require().Equal(want, outputAddress)
 }
 
 func (m reqResolveDymNameAddress) NotEquals(want string) {
 	outputAddress, err := m.scs.s.dymNsKeeper.ResolveByDymNameAddress(m.scs.s.ctx, m.dymNameAddress)
-	require.NoError(m.scs.s.T(), err)
-	require.NotEqual(m.scs.s.T(), want, outputAddress)
+	m.scs.s.Require().NoError(err)
+	m.scs.s.Require().NotEqual(want, outputAddress)
 }
 
 func (m reqResolveDymNameAddress) NoResult() {
 	outputAddress, err := m.scs.s.dymNsKeeper.ResolveByDymNameAddress(m.scs.s.ctx, m.dymNameAddress)
 	if err != nil {
-		require.Contains(m.scs.s.T(), err.Error(), "not found")
+		m.scs.s.Require().ErrorContains(err, "not found")
 	} else {
-		require.Empty(m.scs.s.T(), outputAddress)
+		m.scs.s.Require().Empty(outputAddress)
 	}
 }
 
 func (m reqResolveDymNameAddress) WillError() {
 	_, err := m.scs.s.dymNsKeeper.ResolveByDymNameAddress(m.scs.s.ctx, m.dymNameAddress)
-	require.Error(m.scs.s.T(), err)
+	m.scs.s.Require().Error(err)
 }
 
 //
@@ -1054,7 +1053,7 @@ func (m reqReverseResolveDymNameAddress) equals(wantMany ...string) {
 	for _, address := range m.addresses {
 		m.scs.s.Run("reverse-resolve for "+address, func() {
 			list, err := m.scs.s.dymNsKeeper.ReverseResolveDymNameAddress(m.scs.s.ctx, address, m.workingChainId)
-			require.NoError(m.scs.s.T(), err)
+			m.scs.s.Require().NoError(err)
 
 			var dymNameAddresses []string
 			for _, dna := range list {
@@ -1063,7 +1062,8 @@ func (m reqReverseResolveDymNameAddress) equals(wantMany ...string) {
 
 			sort.Strings(dymNameAddresses)
 			sort.Strings(wantMany)
-			require.Equal(m.scs.s.T(), wantMany, dymNameAddresses)
+
+			m.scs.s.Require().Equal(wantMany, dymNameAddresses)
 		})
 	}
 }
@@ -1072,8 +1072,8 @@ func (m reqReverseResolveDymNameAddress) NoResult() {
 	for _, address := range m.addresses {
 		m.scs.s.Run("reverse-resolve for "+address, func() {
 			list, err := m.scs.s.dymNsKeeper.ReverseResolveDymNameAddress(m.scs.s.ctx, address, m.workingChainId)
-			require.NoError(m.scs.s.T(), err)
-			require.Empty(m.scs.s.T(), list)
+			m.scs.s.Require().NoError(err)
+			m.scs.s.Require().Empty(list)
 		})
 	}
 }
@@ -1144,8 +1144,8 @@ func (m *showcaseSetup) registerAlias(alias string) regAlias {
 }
 
 func (m regAlias) forChainId(chainId string) {
-	require.NotEmpty(m.scs.s.T(), m.alias)
-	require.NotEmpty(m.scs.s.T(), chainId)
+	m.scs.s.Require().NotEmpty(m.alias)
+	m.scs.s.Require().NotEmpty(chainId)
 
 	moduleParams := m.scs.s.dymNsKeeper.GetParams(m.scs.s.ctx)
 	moduleParams.Chains.AliasesOfChainIds = append(moduleParams.Chains.AliasesOfChainIds, dymnstypes.AliasesOfChainId{
@@ -1154,5 +1154,5 @@ func (m regAlias) forChainId(chainId string) {
 	})
 
 	err := m.scs.s.dymNsKeeper.SetParams(m.scs.s.ctx, moduleParams)
-	require.NoError(m.scs.s.T(), err)
+	m.scs.s.Require().NoError(err)
 }
