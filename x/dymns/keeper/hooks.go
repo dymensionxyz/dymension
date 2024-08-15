@@ -187,7 +187,9 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 	return nil
 }
 
-// processActiveDymNameSellOrders moves expired Dym-Name Sell-Orders to historical and completes Dym-Name Sell-Orders with winners.
+// processActiveDymNameSellOrders process the finished Dym-Name Sell-Orders.
+//   - Completes Dym-Name Sell-Orders with winners, move the Sell-Order to historical record.
+//   - Expired SO without winner will be deleted.
 func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	dk := e.Keeper
 
@@ -301,7 +303,9 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, epochIdentif
 	return nil
 }
 
-// processActiveAliasSellOrders moves expired Alias Sell-Orders to historical and completes Alias Sell-Orders with winners.
+// processActiveAliasSellOrders process the finished Alias Sell-Orders.
+//   - Completes Alias Sell-Orders with winners.
+//   - Expired SO without winner will be deleted.
 func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64, params dymnstypes.Params) error {
 	dk := e.Keeper
 

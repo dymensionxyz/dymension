@@ -87,6 +87,8 @@ func (k Keeper) GetAllSellOrders(ctx sdk.Context) (list []dymnstypes.SellOrder) 
 
 // MoveSellOrderToHistorical moves the active Sell-Order record of the Dym-Name/Alias
 // into historical, and deletes the original record from KVStore.
+// Note: Currently, only historical Sell-Order for Dym-Name is supported,
+// so this method only called by Dym-Name Sell-Order processing flows.
 func (k Keeper) MoveSellOrderToHistorical(ctx sdk.Context,
 	assetId string, assetType dymnstypes.AssetType,
 ) error {
@@ -147,6 +149,8 @@ func (k Keeper) MoveSellOrderToHistorical(ctx sdk.Context,
 }
 
 // SetHistoricalSellOrders store the Historical Sell-Orders of the corresponding Dym-Name/Alias into the KVStore.
+// Note: Currently, only historical Sell-Order for Dym-Name is supported,
+// so this method only called by Dym-Name Sell-Order processing flows.
 func (k Keeper) SetHistoricalSellOrders(ctx sdk.Context,
 	assetId string, assetType dymnstypes.AssetType, hSo dymnstypes.HistoricalSellOrders,
 ) {
@@ -157,6 +161,8 @@ func (k Keeper) SetHistoricalSellOrders(ctx sdk.Context,
 }
 
 // GetHistoricalSellOrders retrieves Historical Sell-Orders of the corresponding Dym-Name/Alias from the KVStore.
+// Note: Currently, only historical Sell-Order for Dym-Name is supported,
+// so this method only called by Dym-Name Sell-Order related flows.
 func (k Keeper) GetHistoricalSellOrders(ctx sdk.Context,
 	assetId string, assetType dymnstypes.AssetType,
 ) []dymnstypes.SellOrder {
@@ -175,6 +181,8 @@ func (k Keeper) GetHistoricalSellOrders(ctx sdk.Context,
 }
 
 // DeleteHistoricalSellOrders deletes the Historical Sell-Orders of specific Dym-Name/Alias from the KVStore.
+// Note: Currently, only historical Sell-Order for Dym-Name is supported,
+// so this method only called by Dym-Name Sell-Order processing flows.
 func (k Keeper) DeleteHistoricalSellOrders(ctx sdk.Context, assetId string, assetType dymnstypes.AssetType) {
 	store := ctx.KVStore(k.storeKey)
 	hSoKey := dymnstypes.HistoricalSellOrdersKey(assetId, assetType)
@@ -240,6 +248,8 @@ func (k Keeper) GetActiveSellOrdersExpiration(ctx sdk.Context,
 
 // SetMinExpiryHistoricalSellOrder stores the minimum expiry
 // of all historical Sell-Orders by each Dym-Name into the KVStore.
+// Note: Currently, only historical Sell-Order for Dym-Name is supported,
+// so this method only called by Dym-Name Sell-Order processing flows.
 func (k Keeper) SetMinExpiryHistoricalSellOrder(ctx sdk.Context,
 	assetId string, assetType dymnstypes.AssetType, minExpiry int64,
 ) {
@@ -254,6 +264,8 @@ func (k Keeper) SetMinExpiryHistoricalSellOrder(ctx sdk.Context,
 
 // GetMinExpiryHistoricalSellOrder retrieves the minimum expiry
 // of all historical Sell-Orders by the Dym-Name/Alias from the KVStore.
+// Note: Currently, only historical Sell-Order for Dym-Name is supported,
+// so this method only called by Dym-Name Sell-Order processing flows.
 func (k Keeper) GetMinExpiryHistoricalSellOrder(ctx sdk.Context,
 	assetId string, assetType dymnstypes.AssetType,
 ) (minExpiry int64, found bool) {
