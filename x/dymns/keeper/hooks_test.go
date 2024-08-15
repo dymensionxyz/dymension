@@ -1069,6 +1069,57 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			},
 		},
 		{
+			name: "pass - failed to refunds records that alias presents in params will keep the data as is",
+			rollApps: []rollapp{
+				rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst,
+			},
+			sellOrders: []dymnstypes.SellOrder{
+				s.newAliasSellOrder(aliasProhibitedTrading).
+					WithMinPrice(minPrice).
+					WithSellPrice(200).
+					WithExpiry(soExpiredEpoch).
+					WithAliasBid(rollApp_2_byBuyer_asDst.owner, minPrice, rollApp_2_byBuyer_asDst.rollAppId).
+					Build(),
+			},
+			expiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					AssetId:  aliasProhibitedTrading,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			preMintModuleBalance: 1,
+			beforeHookTestFunc: func(s *KeeperTestSuite) {
+				err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, rollApp_1_byOwner_asSrc.rollAppId, aliasProhibitedTrading)
+				s.NoError(err)
+
+				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(
+					rollApp_1_byOwner_asSrc.alias, aliasProhibitedTrading,
+				)
+				s.requireRollApp(rollApp_2_byBuyer_asDst.rollAppId).HasNoAlias()
+
+				s.updateModuleParams(func(p dymnstypes.Params) dymnstypes.Params {
+					p.Chains.AliasesOfChainIds = append(p.Chains.AliasesOfChainIds, dymnstypes.AliasesOfChainId{
+						ChainId: "some-chain",
+						Aliases: []string{aliasProhibitedTrading},
+					})
+					return p
+				})
+			},
+			wantErr: false,
+			wantExpiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
+				{
+					AssetId:  aliasProhibitedTrading,
+					ExpireAt: soExpiredEpoch,
+				},
+			},
+			afterHookTestFunc: func(s *KeeperTestSuite) {
+				s.NotNil(s.dymNsKeeper.GetSellOrder(s.ctx, aliasProhibitedTrading, dymnstypes.TypeAlias))
+
+				s.Equal(int64(1), s.moduleBalance())
+				s.Zero(s.balance(rollApp_2_byBuyer_asDst.owner))
+			},
+		},
+		{
 			name: "pass - process multiple - mixed SOs",
 			rollApps: []rollapp{
 				rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byOwner_asSrc, rollApp_4_byOwner_asSrc, rollApp_5_byOwner_asSrc,
