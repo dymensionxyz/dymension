@@ -137,15 +137,6 @@ message MiscParams {
     (gogoproto.moretags) = "yaml:\"sell_order_duration\""
   ];
 
-  // preserved_closed_sell_order_duration is the amount of time
-  // to keep closed Sell-Orders as historical records before it is deleted,
-  // based on expiry date and block time.
-  google.protobuf.Duration preserved_closed_sell_order_duration = 5 [
-    (gogoproto.nullable) = false,
-    (gogoproto.stdduration) = true,
-    (gogoproto.moretags) = "yaml:\"preserved_closed_sell_order_duration\""
-  ];
-
   // prohibit_sell_duration is the amount of time,
   // if the Sell-Order expiration date enters the range before expiry of Dym-Name, the Sell-Order can not be placed.
   // The logic also applies when the owner accepts a Buy-Order, the Dym-Name can not be sold.
@@ -164,7 +155,7 @@ message MiscParams {
   //   - If someone put an offer (Buy-Order) at Feb 1st, 2024, and you have some days to accept it,
   //   exactly from the moment order placed, until end of Feb 8th, 2024, which is outside the prohibited range.
   //   After that, from Feb 9th, it is prohibited to accept the Buy-Order.
-  google.protobuf.Duration prohibit_sell_duration = 6 [
+  google.protobuf.Duration prohibit_sell_duration = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.stdduration) = true,
     (gogoproto.moretags) = "yaml:\"prohibit_sell_duration\""
@@ -172,12 +163,12 @@ message MiscParams {
 
   // enable_trading_name is the flag to enable trading of Dym-Name.
   // To be used to stop trading of Dym-Name when needed.
-  bool enable_trading_name = 7;
+  bool enable_trading_name = 6;
 
   // enable_trading_alias is the flag to enable trading of Alias.
   // To be used in the future when Alias trading implementation is ready
   // or disable trading of Alias when needed.
-  bool enable_trading_alias = 8;
+  bool enable_trading_alias = 7;
 }
 
 // PreservedRegistrationParams contains setting for preserved registration Dym-Names,

@@ -11,7 +11,6 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 // After expiry date, if no one has placed a bid, this Sell-Order will be closed, no change.
 // If there is a bid, the highest bid will win, and the Dym-Name/Alias ownership will be transferred to the winner.
 // If the bid matches the sell price, the Dym-Name/Alias ownership will be transferred to the bidder immediately.
-// SO will be moved to historical records after completion/expiry.
 message SellOrder {
   // asset_id is the Dym-Name/Alias being opened to be sold.
   string asset_id = 1;
@@ -61,12 +60,6 @@ message SellOrderBid {
   // It is empty for asset type Dym-Name.
   // It has one element for asset type Alias, which is the rollapp_id to assigned for.
   repeated string params = 3;
-}
-
-// HistoricalSellOrders contains list of closed Sell-Orders of the same asset.
-message HistoricalSellOrders {
-  // sell_orders is list of closed Sell-Orders of the same asset.
-  repeated SellOrder sell_orders = 1 [(gogoproto.nullable) = false];
 }
 
 // BuyOrder defines an offer to buy a Dym-Name/Alias, placed by buyer.

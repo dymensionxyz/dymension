@@ -55,11 +55,6 @@ service Query {
     option (google.api.http).get = "/dymensionxyz/dymension/dymns/sell_order/{asset_id}";
   }
 
-  // HistoricalSellOrderOfDymName queries the historical SOs of a Dym-Name.
-  rpc HistoricalSellOrderOfDymName(QueryHistoricalSellOrderOfDymNameRequest) returns (QueryHistoricalSellOrderOfDymNameResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/dymns/historical_sell_order/dym_name/{dym_name}";
-  }
-
   // EstimateRegisterName estimates the cost to register a Dym-Name.
   rpc EstimateRegisterName(EstimateRegisterNameRequest) returns (EstimateRegisterNameResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/dymns/estimate_register_name/{name}/{duration}";
@@ -229,20 +224,6 @@ message QuerySellOrderRequest {
 message QuerySellOrderResponse {
   // result is the active Sell-Order for the Dym-Name/Alias.
   SellOrder result = 1 [(gogoproto.nullable) = false];
-}
-
-// QueryHistoricalSellOrderOfDymNameRequest is the request type for the Query/HistoricalSellOrder RPC method.
-message QueryHistoricalSellOrderOfDymNameRequest {
-  option (gogoproto.equal)           = false;
-
-  // dym_name is the Dym-Name to query the historical Sell-Orders for.
-  string dym_name = 1;
-}
-
-// QueryHistoricalSellOrderOfDymNameResponse is the response type for the Query/HistoricalSellOrder RPC method.
-message QueryHistoricalSellOrderOfDymNameResponse {
-  // result defines the historical Sell-Orders of the Dym-Name queried.
-  repeated SellOrder result = 1 [(gogoproto.nullable) = false];
 }
 
 // EstimateRegisterNameRequest is the request type for the Query/EstimateRegisterName RPC method.
