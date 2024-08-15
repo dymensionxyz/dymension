@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -148,17 +147,6 @@ func (m *ReverseLookupDymNames) Validate() error {
 // It compares the expiry with the block time in context.
 func (m DymName) IsExpiredAtCtx(ctx sdk.Context) bool {
 	return m.ExpireAt < ctx.BlockTime().Unix()
-}
-
-// IsProhibitedTradingAt checks if the Dym-Name is prohibited from trading at the given anchor time.
-// The prohibition is based on the expiry time
-// and Dym-Name is prohibited from trading after the given duration before expiry.
-func (m DymName) IsProhibitedTradingAt(anchor time.Time, prohibitSellDuration time.Duration) bool {
-	prohibitSellingAfterEpoch := time.Unix(m.ExpireAt, 0).UTC().Add(
-		-1 * prohibitSellDuration,
-	).Unix()
-
-	return prohibitSellingAfterEpoch < anchor.Unix()
 }
 
 // GetSdkEvent returns the sdk event contains information of Dym-Name.

@@ -154,7 +154,6 @@ func DefaultMiscParams() MiscParams {
 		EndEpochHookIdentifier: defaultEndEpochHookIdentifier,
 		GracePeriodDuration:    30 * 24 * time.Hour,
 		SellOrderDuration:      3 * 24 * time.Hour,
-		ProhibitSellDuration:   30 * 24 * time.Hour,
 		EnableTradingName:      true,
 		EnableTradingAlias:     true,
 	}
@@ -423,10 +422,6 @@ func validateMiscParams(i interface{}) error {
 
 	if m.SellOrderDuration <= 0 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Sell Orders duration can not be zero")
-	}
-
-	if m.ProhibitSellDuration <= 0 {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "prohibit sell duration cannot be zero")
 	}
 
 	return nil

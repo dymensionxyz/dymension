@@ -68,7 +68,7 @@ type SellOrder struct {
 	// min_price is the minimum price that the owner is willing to accept for the asset.
 	MinPrice types.Coin `protobuf:"bytes,4,opt,name=min_price,json=minPrice,proto3" json:"min_price"`
 	// sell_price is the price that the owner is willing to sell the Dym-Name/Alias for,
-	// the SO will be closed when the price is met.
+	// the SO will be completed when the price is met, ownership transferred.
 	// If the sell price is zero, the SO will be closed when the expire_at is reached and the highest bidder wins.
 	SellPrice *types.Coin `protobuf:"bytes,5,opt,name=sell_price,json=sellPrice,proto3" json:"sell_price,omitempty"`
 	// highest_bid is the highest bid on the SO, if any. Price must be greater than or equal to the min_price.

@@ -37,7 +37,6 @@ func TestNewParams(t *testing.T) {
 			EndEpochHookIdentifier: "c",
 			GracePeriodDuration:    666 * time.Hour,
 			SellOrderDuration:      333 * time.Hour,
-			ProhibitSellDuration:   9999 * time.Hour,
 		},
 	)
 	require.Equal(t, "a", moduleParams.Price.PriceDenom)
@@ -47,7 +46,6 @@ func TestNewParams(t *testing.T) {
 	require.Equal(t, "c", moduleParams.Misc.EndEpochHookIdentifier)
 	require.Equal(t, 666.0, moduleParams.Misc.GracePeriodDuration.Hours())
 	require.Equal(t, 333.0, moduleParams.Misc.SellOrderDuration.Hours())
-	require.Equal(t, 9999.0, moduleParams.Misc.ProhibitSellDuration.Hours())
 }
 
 func TestDefaultPriceParams(t *testing.T) {
@@ -439,7 +437,6 @@ func TestMiscParams_Validate(t *testing.T) {
 			modifier: func(p MiscParams) MiscParams {
 				p.GracePeriodDuration = 1 * time.Nanosecond
 				p.SellOrderDuration = 1 * time.Nanosecond
-				p.ProhibitSellDuration = 1 * time.Nanosecond
 				return p
 			},
 		},
@@ -448,7 +445,6 @@ func TestMiscParams_Validate(t *testing.T) {
 			modifier: func(p MiscParams) MiscParams {
 				p.GracePeriodDuration = 0
 				p.SellOrderDuration = 1 * time.Nanosecond
-				p.ProhibitSellDuration = 1 * time.Nanosecond
 				return p
 			},
 		},
@@ -515,24 +511,6 @@ func TestMiscParams_Validate(t *testing.T) {
 			},
 			wantErr:         true,
 			wantErrContains: "Sell Orders duration can not be zero",
-		},
-		{
-			name: "fail - days prohibit sell can not be zero",
-			modifier: func(p MiscParams) MiscParams {
-				p.ProhibitSellDuration = 0
-				return p
-			},
-			wantErr:         true,
-			wantErrContains: "prohibit sell duration cannot be zero",
-		},
-		{
-			name: "fail - days prohibit sell can not be negative",
-			modifier: func(p MiscParams) MiscParams {
-				p.ProhibitSellDuration = -1 * time.Nanosecond
-				return p
-			},
-			wantErr:         true,
-			wantErrContains: "prohibit sell duration cannot be zero",
 		},
 	}
 	for _, tt := range tests {

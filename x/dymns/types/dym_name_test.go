@@ -665,16 +665,6 @@ func TestDymName_IsExpiredAt(t *testing.T) {
 	}
 }
 
-func TestDymName_IsProhibitedTradingAt(t *testing.T) {
-	now := time.Now().UTC()
-	require.False(t, DymName{
-		ExpireAt: now.Unix() + 10,
-	}.IsProhibitedTradingAt(now, 5*time.Second))
-	require.True(t, DymName{
-		ExpireAt: now.Unix() + 10,
-	}.IsProhibitedTradingAt(now, 15*time.Second))
-}
-
 func TestDymName_GetSdkEvent(t *testing.T) {
 	event := DymName{
 		Name:       "a",
