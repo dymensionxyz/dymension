@@ -156,14 +156,13 @@ func DefaultChainsParams() ChainsParams {
 // DefaultMiscParams returns a default set of misc parameters
 func DefaultMiscParams() MiscParams {
 	return MiscParams{
-		BeginEpochHookIdentifier:         defaultBeginEpochHookIdentifier,
-		EndEpochHookIdentifier:           defaultEndEpochHookIdentifier,
-		GracePeriodDuration:              30 * 24 * time.Hour,
-		SellOrderDuration:                3 * 24 * time.Hour,
-		PreservedClosedSellOrderDuration: 7 * 24 * time.Hour,
-		ProhibitSellDuration:             30 * 24 * time.Hour,
-		EnableTradingName:                true,
-		EnableTradingAlias:               true,
+		BeginEpochHookIdentifier: defaultBeginEpochHookIdentifier,
+		EndEpochHookIdentifier:   defaultEndEpochHookIdentifier,
+		GracePeriodDuration:      30 * 24 * time.Hour,
+		SellOrderDuration:        3 * 24 * time.Hour,
+		ProhibitSellDuration:     30 * 24 * time.Hour,
+		EnableTradingName:        true,
+		EnableTradingAlias:       true,
 	}
 }
 
@@ -466,10 +465,6 @@ func validateMiscParams(i interface{}) error {
 
 	if m.SellOrderDuration <= 0 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Sell Orders duration can not be zero")
-	}
-
-	if m.PreservedClosedSellOrderDuration <= 0 {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "preserved closed Sell Orders duration can not be zero")
 	}
 
 	if m.ProhibitSellDuration <= 0 {

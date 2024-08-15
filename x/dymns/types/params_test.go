@@ -34,12 +34,11 @@ func TestNewParams(t *testing.T) {
 			},
 		},
 		MiscParams{
-			BeginEpochHookIdentifier:         "b",
-			EndEpochHookIdentifier:           "c",
-			GracePeriodDuration:              666 * time.Hour,
-			SellOrderDuration:                333 * time.Hour,
-			PreservedClosedSellOrderDuration: 222 * time.Hour,
-			ProhibitSellDuration:             9999 * time.Hour,
+			BeginEpochHookIdentifier: "b",
+			EndEpochHookIdentifier:   "c",
+			GracePeriodDuration:      666 * time.Hour,
+			SellOrderDuration:        333 * time.Hour,
+			ProhibitSellDuration:     9999 * time.Hour,
 		},
 		PreservedRegistrationParams{
 			ExpirationEpoch: 888,
@@ -63,7 +62,6 @@ func TestNewParams(t *testing.T) {
 	require.Equal(t, "c", moduleParams.Misc.EndEpochHookIdentifier)
 	require.Equal(t, 666.0, moduleParams.Misc.GracePeriodDuration.Hours())
 	require.Equal(t, 333.0, moduleParams.Misc.SellOrderDuration.Hours())
-	require.Equal(t, 222.0, moduleParams.Misc.PreservedClosedSellOrderDuration.Hours())
 	require.Equal(t, 9999.0, moduleParams.Misc.ProhibitSellDuration.Hours())
 	require.Equal(t, int64(888), moduleParams.PreservedRegistration.ExpirationEpoch)
 	require.Len(t, moduleParams.PreservedRegistration.PreservedDymNames, 2)
@@ -124,7 +122,7 @@ func TestParams_Validate(t *testing.T) {
 	require.Error(t, (&moduleParams).Validate())
 
 	moduleParams = DefaultParams()
-	moduleParams.Misc.PreservedClosedSellOrderDuration = 0
+	moduleParams.Misc.SellOrderDuration = 0
 	require.Error(t, (&moduleParams).Validate())
 
 	moduleParams = DefaultParams()
@@ -468,7 +466,6 @@ func TestMiscParams_Validate(t *testing.T) {
 			modifier: func(p MiscParams) MiscParams {
 				p.GracePeriodDuration = 1 * time.Nanosecond
 				p.SellOrderDuration = 1 * time.Nanosecond
-				p.PreservedClosedSellOrderDuration = 1 * time.Nanosecond
 				p.ProhibitSellDuration = 1 * time.Nanosecond
 				return p
 			},
@@ -478,7 +475,6 @@ func TestMiscParams_Validate(t *testing.T) {
 			modifier: func(p MiscParams) MiscParams {
 				p.GracePeriodDuration = 0
 				p.SellOrderDuration = 1 * time.Nanosecond
-				p.PreservedClosedSellOrderDuration = 1 * time.Nanosecond
 				p.ProhibitSellDuration = 1 * time.Nanosecond
 				return p
 			},
@@ -576,24 +572,6 @@ func TestMiscParams_Validate(t *testing.T) {
 			},
 			wantErr:         true,
 			wantErrContains: "Sell Orders duration can not be zero",
-		},
-		{
-			name: "fail - days preserved closed SO duration can not be zero",
-			modifier: func(p MiscParams) MiscParams {
-				p.PreservedClosedSellOrderDuration = 0
-				return p
-			},
-			wantErr:         true,
-			wantErrContains: "preserved closed Sell Orders duration can not be zero",
-		},
-		{
-			name: "fail - days preserved closed SO duration can not be negative",
-			modifier: func(p MiscParams) MiscParams {
-				p.PreservedClosedSellOrderDuration = -1 * time.Nanosecond
-				return p
-			},
-			wantErr:         true,
-			wantErrContains: "preserved closed Sell Orders duration can not be zero",
 		},
 		{
 			name: "fail - days prohibit sell can not be zero",

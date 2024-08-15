@@ -26,8 +26,6 @@ const (
 	prefixRvlFallbackAddressToDymNamesInclude   // reverse lookup store
 	prefixSellOrder
 	prefixActiveSellOrdersExpiration
-	prefixHistoricalSellOrders
-	prefixMinExpiryHistoricalSellOrders
 	prefixCountBuyOrders
 	prefixBuyOrder
 	prefixRvlBuyerToBuyOrderIds   // reverse lookup store
@@ -63,20 +61,8 @@ var (
 	// KeyPrefixDymNameSellOrder is the key prefix for the active SellOrder records of type DymName
 	KeyPrefixDymNameSellOrder = []byte{prefixSellOrder, partialStoreAssetTypeDymName}
 
-	// KeyPrefixDymNameHistoricalSellOrders is the key prefix for the historical SellOrder records of type DymName
-	KeyPrefixDymNameHistoricalSellOrders = []byte{prefixHistoricalSellOrders, partialStoreAssetTypeDymName}
-
-	// KeyPrefixMinExpiryDymNameHistoricalSellOrders is the key prefix for the lowest expiry among the historical SellOrder records of each specific Dym-Name
-	KeyPrefixMinExpiryDymNameHistoricalSellOrders = []byte{prefixMinExpiryHistoricalSellOrders, partialStoreAssetTypeDymName}
-
 	// KeyPrefixAliasSellOrder is the key prefix for the active SellOrder records of type Alias
 	KeyPrefixAliasSellOrder = []byte{prefixSellOrder, partialStoreAssetTypeAlias}
-
-	// KeyPrefixAliasHistoricalSellOrders is the key prefix for the historical SellOrder records of type Alias
-	KeyPrefixAliasHistoricalSellOrders = []byte{prefixHistoricalSellOrders, partialStoreAssetTypeAlias}
-
-	// KeyPrefixMinExpiryAliasHistoricalSellOrders is the key prefix for the lowest expiry among the historical SellOrder records of each specific Alias
-	KeyPrefixMinExpiryAliasHistoricalSellOrders = []byte{prefixMinExpiryHistoricalSellOrders, partialStoreAssetTypeAlias}
 
 	// KeyPrefixBuyOrder is the key prefix for the active BuyOrder records regardless asset type DymName/Alias
 	KeyPrefixBuyOrder = []byte{prefixBuyOrder}
@@ -133,30 +119,6 @@ func SellOrderKey(assetId string, assetType AssetType) []byte {
 		return append(KeyPrefixDymNameSellOrder, []byte(assetId)...)
 	case TypeAlias:
 		return append(KeyPrefixAliasSellOrder, []byte(assetId)...)
-	default:
-		panic("invalid asset type: " + assetType.FriendlyString())
-	}
-}
-
-// HistoricalSellOrdersKey returns a key for the historical Sell-Orders of the Dym-Name/Alias
-func HistoricalSellOrdersKey(assetId string, assetType AssetType) []byte {
-	switch assetType {
-	case TypeName:
-		return append(KeyPrefixDymNameHistoricalSellOrders, []byte(assetId)...)
-	case TypeAlias:
-		return append(KeyPrefixAliasHistoricalSellOrders, []byte(assetId)...)
-	default:
-		panic("invalid asset type: " + assetType.FriendlyString())
-	}
-}
-
-// MinExpiryHistoricalSellOrdersKey returns a key for lowest expiry among the historical Sell-Orders of the Dym-Name/Alias
-func MinExpiryHistoricalSellOrdersKey(assetId string, assetType AssetType) []byte {
-	switch assetType {
-	case TypeName:
-		return append(KeyPrefixMinExpiryDymNameHistoricalSellOrders, []byte(assetId)...)
-	case TypeAlias:
-		return append(KeyPrefixMinExpiryAliasHistoricalSellOrders, []byte(assetId)...)
 	default:
 		panic("invalid asset type: " + assetType.FriendlyString())
 	}

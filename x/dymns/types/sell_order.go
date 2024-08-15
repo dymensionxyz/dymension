@@ -153,39 +153,6 @@ func (m *SellOrderBid) Validate(assetType AssetType) error {
 	return nil
 }
 
-// Validate performs basic validation for the HistoricalSellOrders.
-func (m *HistoricalSellOrders) Validate() error {
-	if m == nil {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "historical SOs is nil")
-	}
-
-	if len(m.SellOrders) > 0 {
-		assetId := m.SellOrders[0].AssetId
-		assetType := m.SellOrders[0].AssetType
-		uniqueIdentity := make(map[string]bool)
-		// Describe usage of Go Map: only used for validation
-		for _, so := range m.SellOrders {
-			if err := so.Validate(); err != nil {
-				return err
-			}
-
-			if so.AssetId != assetId {
-				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "historical SOs have different asset ID: %s != %s", assetId, so.AssetId)
-			}
-			if so.AssetType != assetType {
-				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "historical SOs have different asset type: %s != %s", assetType, so.AssetType)
-			}
-
-			if _, duplicated := uniqueIdentity[so.GetIdentity()]; duplicated {
-				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "historical SO is not unique: %s", so.GetIdentity())
-			}
-			uniqueIdentity[so.GetIdentity()] = true
-		}
-	}
-
-	return nil
-}
-
 // GetSdkEvent returns the sdk event contains information of Sell-Order record.
 // Fired when Sell-Order record is set into store.
 func (m SellOrder) GetSdkEvent(actionName string) sdk.Event {
