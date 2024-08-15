@@ -511,7 +511,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 			sdkmath.NewInt(price5PlusL).Mul(priceMultiplier),
 		}
 		params.Price.PriceExtends = sdk.NewInt(extendsPrice).Mul(priceMultiplier)
-		params.Misc.GracePeriodDuration = 1 * 24 * time.Hour
+		params.Misc.GracePeriodDuration = 30 * 24 * time.Hour
 
 		return params
 	})
@@ -944,7 +944,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterAlias() {
 			sdkmath.NewInt(price4L).Mul(priceMultiplier),
 			sdkmath.NewInt(price5PlusL).Mul(priceMultiplier),
 		}
-		params.Misc.GracePeriodDuration = 1 * 24 * time.Hour
+		params.Misc.GracePeriodDuration = 30 * 24 * time.Hour
 
 		return params
 	})

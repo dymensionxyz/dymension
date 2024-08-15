@@ -433,17 +433,9 @@ func TestMiscParams_Validate(t *testing.T) {
 			modifier: func(p MiscParams) MiscParams { return p },
 		},
 		{
-			name: "pass - all = 1 is valid",
-			modifier: func(p MiscParams) MiscParams {
-				p.GracePeriodDuration = 1 * time.Nanosecond
-				p.SellOrderDuration = 1 * time.Nanosecond
-				return p
-			},
-		},
-		{
 			name: "pass - minimum allowed",
 			modifier: func(p MiscParams) MiscParams {
-				p.GracePeriodDuration = 0
+				p.GracePeriodDuration = 30 * 24 * time.Hour
 				p.SellOrderDuration = 1 * time.Nanosecond
 				return p
 			},
@@ -479,20 +471,13 @@ func TestMiscParams_Validate(t *testing.T) {
 			wantErrContains: "invalid epoch identifier: invalid",
 		},
 		{
-			name: "pass - grace period = 0 is valid",
+			name: "fail - grace period can not lower than 30 days",
 			modifier: func(p MiscParams) MiscParams {
-				p.GracePeriodDuration = 0
-				return p
-			},
-		},
-		{
-			name: "fail - grace period can not be negative",
-			modifier: func(p MiscParams) MiscParams {
-				p.GracePeriodDuration = -1 * time.Nanosecond
+				p.GracePeriodDuration = 30*24*time.Hour - time.Nanosecond
 				return p
 			},
 			wantErr:         true,
-			wantErrContains: "grace period duration cannot be negative",
+			wantErrContains: "grace period duration cannot be less than",
 		},
 		{
 			name: "fail - days SO duration can not be zero",

@@ -416,8 +416,9 @@ func validateMiscParams(i interface{}) error {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "end epoch hook identifier: %v", err)
 	}
 
-	if m.GracePeriodDuration < 0 {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "grace period duration cannot be negative")
+	const minGracePeriodDuration = 30 * 24 * time.Hour
+	if m.GracePeriodDuration < minGracePeriodDuration {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "grace period duration cannot be less than: %s", minGracePeriodDuration)
 	}
 
 	if m.SellOrderDuration <= 0 {
