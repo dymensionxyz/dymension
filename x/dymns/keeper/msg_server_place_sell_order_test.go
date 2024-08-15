@@ -16,11 +16,9 @@ import (
 )
 
 func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
-	const daysProhibitSell = 30
 	const daysSellOrderDuration = 7
 
 	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-		moduleParams.Misc.ProhibitSellDuration = daysProhibitSell * 24 * time.Hour
 		moduleParams.Misc.SellOrderDuration = daysSellOrderDuration * 24 * time.Hour
 		return moduleParams
 	})
@@ -78,6 +76,15 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 			minPrice:                coin100,
 			wantErr:                 true,
 			wantErrContains:         "Dym-Name is already expired",
+		},
+		{
+			name:                    "fail - reject SO if the expiry pass Dym-Name expiry",
+			withoutDymName:          false,
+			existingSo:              nil,
+			dymNameExpiryOffsetDays: daysSellOrderDuration - 1,
+			minPrice:                coin100,
+			wantErr:                 true,
+			wantErrContains:         "the remaining time of the Dym-Name is too short",
 		},
 		{
 			name: "fail - existing active SO, not finished",
@@ -140,13 +147,6 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 			minPrice:        sdk.NewInt64Coin("u"+s.priceDenom(), 100),
 			wantErr:         true,
 			wantErrContains: fmt.Sprintf("the only denom allowed as price: %s", s.priceDenom()),
-		},
-		{
-			name:                    "fail - can not sell Dym-Name that almost expired",
-			dymNameExpiryOffsetDays: daysProhibitSell - 1,
-			minPrice:                coin100,
-			wantErr:                 true,
-			wantErrContains:         "duration before Dym-Name expiry, prohibited to sell",
 		},
 		{
 			name:                    "pass - successfully place Dym-Name Sell-Order, without sell price",

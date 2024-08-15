@@ -129,14 +129,6 @@ func (k msgServer) validatePlaceBuyOrderWithAssetTypeDymName(
 		return
 	}
 
-	if dymName.IsProhibitedTradingAt(ctx.BlockTime(), k.GetParams(ctx).Misc.ProhibitSellDuration) {
-		err = errorsmod.Wrapf(gerrc.ErrFailedPrecondition,
-			"duration before Dym-Name expiry, prohibited to trade: %s",
-			params.Misc.ProhibitSellDuration,
-		)
-		return
-	}
-
 	if msg.Offer.Denom != params.Price.PriceDenom {
 		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument,
 			"invalid offer denomination, only accept %s", params.Price.PriceDenom,

@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"time"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
@@ -58,15 +57,14 @@ func (k msgServer) processPlaceSellOrderWithAssetTypeDymName(
 	so := msg.ToSellOrder()
 	so.ExpireAt = ctx.BlockTime().Add(params.Misc.SellOrderDuration).Unix()
 
-	if err := so.Validate(); err != nil {
-		panic(errorsmod.Wrap(err, "un-expected invalid state of created SO"))
+	if so.ExpireAt >= dymName.ExpireAt {
+		return nil, errorsmod.Wrap(
+			gerrc.ErrPermissionDenied, "the remaining time of the Dym-Name is too short",
+		)
 	}
 
-	if dymName.IsProhibitedTradingAt(time.Unix(so.ExpireAt, 0), params.Misc.ProhibitSellDuration) {
-		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition,
-			"duration before Dym-Name expiry, prohibited to sell: %s",
-			params.Misc.ProhibitSellDuration,
-		)
+	if err := so.Validate(); err != nil {
+		panic(errorsmod.Wrap(err, "un-expected invalid state of created SO"))
 	}
 
 	if err := k.SetSellOrder(ctx, so); err != nil {

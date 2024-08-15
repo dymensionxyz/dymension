@@ -358,28 +358,6 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceBuyOrder_DymName() {
 			},
 		},
 		{
-			name: "fail - reject Dym-Name that almost expired",
-			existingDymName: &dymnstypes.DymName{
-				Name:       dymName.Name,
-				Owner:      dymName.Owner,
-				Controller: dymName.Owner,
-				ExpireAt:   s.now.Add(1 * time.Second).Unix(),
-			},
-			dymName:                dymName.Name,
-			buyer:                  buyerA,
-			offer:                  minOfferPriceCoin,
-			originalModuleBalance:  sdk.NewInt(1),
-			originalBuyerBalance:   minOfferPriceCoin.Amount,
-			wantErr:                true,
-			wantErrContains:        "duration before Dym-Name expiry, prohibited to trade",
-			wantLaterModuleBalance: sdk.NewInt(1),
-			wantLaterBuyerBalance:  minOfferPriceCoin.Amount,
-			wantMinConsumeGas:      1,
-			afterTestFunc: func(s *KeeperTestSuite) {
-				s.Require().Empty(s.dymNsKeeper.GetAllBuyOrders(s.ctx))
-			},
-		},
-		{
 			name:            "fail - offer denom must match params",
 			existingDymName: dymName,
 			dymName:         dymName.Name,

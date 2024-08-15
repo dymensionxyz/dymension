@@ -18,7 +18,6 @@ import (
 
 func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 	const minOfferPrice = 5
-	const daysProhibitSell = 30
 
 	// the number values used in this test will be multiplied by this value
 	priceMultiplier := sdk.NewInt(1e18)
@@ -31,7 +30,6 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 
 	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
 		moduleParams.Price.MinOfferPrice = minOfferPriceCoin.Amount
-		moduleParams.Misc.ProhibitSellDuration = daysProhibitSell * 24 * time.Hour
 		// force enable trading
 		moduleParams.Misc.EnableTradingName = true
 		moduleParams.Misc.EnableTradingAlias = true
@@ -48,7 +46,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 		Name:       "a",
 		Owner:      ownerA,
 		Controller: ownerA,
-		ExpireAt:   s.now.Add(daysProhibitSell * 24 * time.Hour).Add(time.Second).Unix(),
+		ExpireAt:   s.now.Unix() + 100,
 	}
 
 	sameDymNameButOwnedByAnother := &dymnstypes.DymName{
@@ -475,37 +473,6 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			wantErr:                true,
 			wantErrContains:        "not the owner of the Dym-Name",
 			wantLaterDymName:       sameDymNameButOwnedByAnother,
-			wantLaterOffer:         offer,
-			wantLaterModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
-			wantMinConsumeGas:      1,
-		},
-		{
-			name: "fail - can not accept offer if Dym-Name expiration less than grace period",
-			existingDymName: func() *dymnstypes.DymName {
-				return &dymnstypes.DymName{
-					Name:       dymName.Name,
-					Owner:      dymName.Owner,
-					Controller: dymName.Owner,
-					ExpireAt:   s.now.Add(time.Hour).Unix(),
-				}
-			}(),
-			existingOffer:         offer,
-			buyOrderId:            offer.Id,
-			owner:                 ownerA,
-			minAccept:             offer.OfferPrice,
-			originalModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			originalOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
-			wantErr:               true,
-			wantErrContains:       "duration before Dym-Name expiry, prohibited to sell",
-			wantLaterDymName: func() *dymnstypes.DymName {
-				return &dymnstypes.DymName{
-					Name:       dymName.Name,
-					Owner:      dymName.Owner,
-					Controller: dymName.Owner,
-					ExpireAt:   s.now.Add(time.Hour).Unix(),
-				}
-			}(),
 			wantLaterOffer:         offer,
 			wantLaterModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
 			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),

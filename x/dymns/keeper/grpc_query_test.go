@@ -15,7 +15,7 @@ import (
 
 func (s *KeeperTestSuite) Test_queryServer_Params() {
 	params := s.dymNsKeeper.GetParams(s.ctx)
-	params.Misc.ProhibitSellDuration += time.Hour
+	params.Misc.SellOrderDuration += time.Hour
 	err := s.dymNsKeeper.SetParams(s.ctx, params)
 	s.Require().NoError(err)
 

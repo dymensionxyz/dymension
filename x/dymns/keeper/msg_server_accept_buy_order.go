@@ -121,13 +121,6 @@ func (k msgServer) validateAcceptBuyOrderWithAssetTypeDymName(
 		return nil, errorsmod.Wrapf(gerrc.ErrPermissionDenied, "not the owner of the Dym-Name")
 	}
 
-	if dymName.IsProhibitedTradingAt(ctx.BlockTime(), params.Misc.ProhibitSellDuration) {
-		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition,
-			"duration before Dym-Name expiry, prohibited to sell: %s",
-			params.Misc.ProhibitSellDuration,
-		)
-	}
-
 	if bo.Buyer == msg.Owner {
 		return nil, errorsmod.Wrapf(gerrc.ErrPermissionDenied, "cannot accept own offer")
 	}
