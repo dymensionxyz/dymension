@@ -87,10 +87,6 @@ func DefaultChainsParams() ChainsParams {
 				Aliases: []string{"blumbus"},
 			},
 			{
-				ChainId: "froopyland_100-1",
-				Aliases: []string{"froopyland", "frl"},
-			},
-			{
 				ChainId: "cosmoshub-4",
 				Aliases: []string{"cosmos"},
 			},
