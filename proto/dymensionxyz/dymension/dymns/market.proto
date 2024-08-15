@@ -25,7 +25,7 @@ message SellOrder {
   cosmos.base.v1beta1.Coin min_price = 4 [(gogoproto.nullable) = false];
 
   // sell_price is the price that the owner is willing to sell the Dym-Name/Alias for,
-  // the SO will be closed when the price is met.
+  // the SO will be completed when the price is met, ownership transferred.
   // If the sell price is zero, the SO will be closed when the expire_at is reached and the highest bidder wins.
   cosmos.base.v1beta1.Coin sell_price = 5;
 

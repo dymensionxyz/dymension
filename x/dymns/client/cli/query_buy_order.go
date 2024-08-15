@@ -29,7 +29,7 @@ func CmdQueryBuyOrder() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "buy-order [target]",
 		Aliases: []string{"offer"},
-		Short:   "Get list of Buy-Orders corresponding to the target",
+		Short:   fmt.Sprintf("Get list of Buy-Orders corresponding to the offer-id/buyer/owner/name/alias/rollapp, provided by the flag --%s", flagTargetType),
 		Example: fmt.Sprintf(
 			`%s q %s offer 1 --%s=%s
 %s q %s offer dym1buyer --%s=%s
