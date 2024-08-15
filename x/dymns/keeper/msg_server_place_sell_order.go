@@ -161,6 +161,7 @@ func (k msgServer) validatePlaceSellOrderWithAssetTypeAlias(
 	alias := msg.AssetId
 
 	if k.IsAliasPresentsInParamsAsAliasOrChainId(ctx, msg.AssetId) {
+		// Please read the `processActiveAliasSellOrders` method (hooks.go) for more information.
 		return errorsmod.Wrapf(gerrc.ErrPermissionDenied,
 			"prohibited to trade aliases which is reserved for chain-id or alias in module params: %s", msg.AssetId,
 		)

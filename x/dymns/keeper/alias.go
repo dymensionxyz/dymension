@@ -198,10 +198,8 @@ func (k Keeper) MoveAliasToRollAppId(ctx sdk.Context, srcRollAppId, alias, dstRo
 // Note: this method returns a map so the iteration is non-deterministic,
 // any implementation should not rely on the order of the result.
 func (k Keeper) GetAllAliasAndChainIdInParams(ctx sdk.Context) map[string]struct{} {
-	params := k.GetParams(ctx)
-
 	result := make(map[string]struct{})
-	for _, aliasesOfChainId := range params.Chains.AliasesOfChainIds {
+	for _, aliasesOfChainId := range k.ChainsParams(ctx).AliasesOfChainIds {
 		result[aliasesOfChainId.ChainId] = struct{}{}
 		for _, a := range aliasesOfChainId.Aliases {
 			result[a] = struct{}{}

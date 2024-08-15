@@ -56,6 +56,7 @@ func (k Keeper) CanUseAliasForNewRegistration(ctx sdk.Context, aliasCandidate st
 	}
 
 	if k.IsAliasPresentsInParamsAsAliasOrChainId(ctx, aliasCandidate) {
+		// Please read the `processActiveAliasSellOrders` method (hooks.go) for more information.
 		can = false
 		return
 	}

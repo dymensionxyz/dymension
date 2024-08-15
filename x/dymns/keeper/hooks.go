@@ -128,6 +128,23 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, logger log.Log
 				return nil
 			}
 
+			/**
+			For the Sell-Orders which the assets are prohibited to trade,
+			the Sell-Order will be force cancelled and the bids will be refunded.
+
+			Why some aliases are prohibited to trade? And what are they?
+			In module params, there is a list of alias mapping for some external well-known chains.
+			So those aliases are considered as reserved for the external chains,
+			therefor trading is not allowed.
+
+			Why can someone own a prohibited alias?
+			An alias can be bought before the reservation was made.
+			But when the alias becomes reserved for the external well-known chains,
+			the alias will be prohibited to trade.
+
+			Why can someone place a Sell-Order for the prohibited alias?
+			When a Sell-Order created before the reservation was made.
+			*/
 			if _, forceCancel := prohibitedToTradeAliases[so.AssetId]; forceCancel {
 				// Sell-Order will be force cancelled and refund bids if any,
 				// when the alias is prohibited to trade
