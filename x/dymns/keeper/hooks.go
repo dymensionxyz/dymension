@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"errors"
-	"sort"
-
 	"github.com/cometbft/cometbft/libs/log"
 
 	errorsmod "cosmossdk.io/errors"
@@ -229,11 +227,6 @@ func (e epochHooks) getFinishedSellOrders(ctx sdk.Context, assetType dymnstypes.
 	for _, name := range invalidRecordsToRemove {
 		aSoe.Remove(name)
 	}
-
-	// guarantee of the execution order
-	sort.Slice(finishedSellOrders, func(i, j int) bool {
-		return finishedSellOrders[i].AssetId < finishedSellOrders[j].AssetId
-	})
 
 	return
 }
