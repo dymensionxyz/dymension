@@ -69,7 +69,9 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 // processActiveDymNameSellOrders process the finished Dym-Name Sell-Orders.
 // Sell-Order will be deleted. If the Sell-Order has a winner, the Dym-Name ownership will be transferred.
 func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, logger log.Logger) error {
-	finishedSOs, aSoe := e.getFinishedSellOrders(ctx, dymnstypes.TypeName, logger)
+	activeSellOrdersExpiration := e.Keeper.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
+
+	finishedSOs := e.getFinishedSellOrders(ctx, activeSellOrdersExpiration, dymnstypes.TypeName)
 
 	if len(finishedSOs) < 1 {
 		return nil
@@ -94,7 +96,7 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, logger log.L
 		})
 
 		if errApplyStateChange == nil {
-			aSoe.Remove(so.AssetId)
+			activeSellOrdersExpiration.Remove(so.AssetId)
 		} else {
 			logger.Error(
 				"failed to process finished sell order.", "asset-id", so.AssetId,
@@ -104,7 +106,7 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, logger log.L
 		}
 	}
 
-	if err := e.SetActiveSellOrdersExpiration(ctx, aSoe, dymnstypes.TypeName); err != nil {
+	if err := e.SetActiveSellOrdersExpiration(ctx, activeSellOrdersExpiration, dymnstypes.TypeName); err != nil {
 		return errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "failed to update active SO expiry")
 	}
 
@@ -117,7 +119,9 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, logger log.L
 // Sell-Orders for the aliases that are prohibited to trade will be force cancelled,
 // please read the code body for more information about what it is.
 func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, logger log.Logger) error {
-	finishedSOs, aSoe := e.getFinishedSellOrders(ctx, dymnstypes.TypeAlias, logger)
+	activeSellOrdersExpiration := e.Keeper.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeAlias)
+
+	finishedSOs := e.getFinishedSellOrders(ctx, activeSellOrdersExpiration, dymnstypes.TypeAlias)
 
 	if len(finishedSOs) < 1 {
 		return nil
@@ -171,7 +175,7 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, logger log.Log
 		})
 
 		if errApplyStateChange == nil {
-			aSoe.Remove(so.AssetId)
+			activeSellOrdersExpiration.Remove(so.AssetId)
 		} else {
 			_, forceCancel := prohibitedToTradeAliases[so.AssetId]
 			logger.Error(
@@ -182,7 +186,7 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, logger log.Log
 		}
 	}
 
-	if err := e.SetActiveSellOrdersExpiration(ctx, aSoe, dymnstypes.TypeAlias); err != nil {
+	if err := e.SetActiveSellOrdersExpiration(ctx, activeSellOrdersExpiration, dymnstypes.TypeAlias); err != nil {
 		e.Keeper.Logger(ctx).Error("failed to update active SO expiry.", "error", err)
 		return err
 	}
@@ -192,26 +196,14 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, logger log.Log
 
 // getFinishedSellOrders returns the finished Sell-Orders for the asset type.
 // Finished Sell-Orders are the Sell-Orders that have expired or completed by having a bid.
-func (e epochHooks) getFinishedSellOrders(ctx sdk.Context, assetType dymnstypes.AssetType, logger log.Logger) (
-	finishedSellOrders []dymnstypes.SellOrder, // the finished Sell-Order records from store
-	aSoe *dymnstypes.ActiveSellOrdersExpiration, // the active Sell-Orders expiration record from store, it might be updated if there invalid entry detected therefor fixed. Use this to update the store.
-) {
-	aSoe = e.Keeper.GetActiveSellOrdersExpiration(ctx, assetType)
-
+func (e epochHooks) getFinishedSellOrders(
+	ctx sdk.Context,
+	activeSellOrdersExpiration *dymnstypes.ActiveSellOrdersExpiration,
+	assetType dymnstypes.AssetType,
+) (finishedSellOrders []dymnstypes.SellOrder) {
 	blockEpochUTC := ctx.BlockTime().Unix()
-	logger = logger.With("asset-type", assetType.PrettyName(), "time", blockEpochUTC)
 
-	/*
-		The following part is to filter out the finished Sell-Orders,
-		plus one logic to correct the invalid Sell-Order expiry.
-		Currently, there is no such case that can cause an invalid Sell-Order expiry,
-		but it's good to have a correction logic for the future
-		because this part is executed by hook, and to make sure the hook always be executed efficiently,
-		we need to make sure the data is always valid.
-	*/
-	invalidRecordsToRemove := make([]string, 0)
-
-	for i, record := range aSoe.Records {
+	for _, record := range activeSellOrdersExpiration.Records {
 		if record.ExpireAt > blockEpochUTC {
 			// skip not expired ones
 			continue
@@ -220,24 +212,16 @@ func (e epochHooks) getFinishedSellOrders(ctx sdk.Context, assetType dymnstypes.
 		so := e.GetSellOrder(ctx, record.AssetId, assetType)
 
 		if so == nil {
-			// remove the invalid entry
-			invalidRecordsToRemove = append(invalidRecordsToRemove, record.AssetId)
+			// ignore the invalid entries for now, invariant will catch it
 			continue
 		}
 
 		if !so.HasFinished(blockEpochUTC) {
-			// invalid entry
-			logger.Error("sell order has not finished.", "asset-id", record.AssetId, "expiry", record.ExpireAt)
-
-			aSoe.Records[i].ExpireAt = so.ExpireAt // correct it
+			// ignore the invalid entries for now, invariant will catch it
 			continue
 		}
 
 		finishedSellOrders = append(finishedSellOrders, *so)
-	}
-
-	for _, name := range invalidRecordsToRemove {
-		aSoe.Remove(name)
 	}
 
 	return

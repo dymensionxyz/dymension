@@ -606,7 +606,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveDymNameSell
 			},
 		},
 		{
-			name:     "pass - should remove expiry reference to non-exists SO",
+			name:     "pass - keep expiry reference to non-exists SO, later invariants will catch it",
 			dymNames: []dymnstypes.DymName{dymNameA, dymNameB},
 			sellOrders: []dymnstypes.SellOrder{
 				genSo(dymNameA, soExpired, nil, nil),
@@ -629,10 +629,14 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveDymNameSell
 				s.requireFallbackAddress(ownerAcc.fallback()).mappedDymNames(dymNameA.Name, dymNameB.Name)
 				s.requireFallbackAddress(bidderAcc.fallback()).notMappedToAnyDymName()
 			},
-			wantErr:             false,
+			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				// removed reference to Dym-Name A because of processed
-				// removed reference to Dym-Name B because SO not exists
+				{
+					// the reference to non-exists existing SO should be kept
+					AssetId:  dymNameB.Name,
+					ExpireAt: soExpiredEpoch,
+				},
 			},
 			afterHookTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(ownerA).mappedDymNames(dymNameA.Name, dymNameB.Name)
@@ -642,7 +646,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveDymNameSell
 			},
 		},
 		{
-			name:     "pass - update expiry if in-correct",
+			name:     "pass - ignore expiry if in-correct, later invariants will catch it",
 			dymNames: []dymnstypes.DymName{dymNameA, dymNameB},
 			sellOrders: []dymnstypes.SellOrder{
 				genSo(dymNameA, soExpired, nil, nil),
@@ -669,7 +673,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveDymNameSell
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
 					AssetId:  dymNameB.Name,
-					ExpireAt: soNotExpiredEpoch,
+					ExpireAt: soExpiredEpoch, // incorrect still kept, later invariant will catch it
 				},
 			},
 			afterHookTestFunc: func(s *KeeperTestSuite) {
@@ -1328,7 +1332,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			},
 		},
 		{
-			name:     "pass - should remove expiry reference to non-exists SO",
+			name:     "pass - should ignore expiry reference to non-exists SO, invariants will catch it later",
 			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_3_byOwner_asSrc},
 			sellOrders: []dymnstypes.SellOrder{
 				s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
@@ -1353,10 +1357,14 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 				s.requireRollApp(rollApp_1_byOwner_asSrc.rollAppId).HasAlias(rollApp_1_byOwner_asSrc.alias)
 				s.requireRollApp(rollApp_3_byOwner_asSrc.rollAppId).HasAlias(rollApp_3_byOwner_asSrc.alias)
 			},
-			wantErr:           false,
+			wantErr: false,
 			wantExpiryByAlias: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				// removed reference to alias of RollApp 1 because of processed
-				// removed reference to alias of RollApp 2 because SO not exists
+				{
+					// reference to the non-existing SO will be kept and later catch by invariants
+					AssetId:  rollApp_3_byOwner_asSrc.alias,
+					ExpireAt: soExpiredEpoch,
+				},
 			},
 			afterHookTestFunc: func(s *KeeperTestSuite) {
 				// unchanged
@@ -1365,7 +1373,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			},
 		},
 		{
-			name:     "pass - update expiry if in-correct",
+			name:     "pass - ignore incorrect expiry, later invariants will catch it",
 			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byOwner_asSrc},
 			sellOrders: []dymnstypes.SellOrder{
 				s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
@@ -1396,7 +1404,7 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 				// reference to alias of RollApp 3 was kept because not expired
 				{
 					AssetId:  rollApp_3_byOwner_asSrc.alias,
-					ExpireAt: soNotExpiredEpoch,
+					ExpireAt: soExpiredEpoch, // still keep the incorrect expiry
 				},
 			},
 			afterHookTestFunc: func(s *KeeperTestSuite) {
