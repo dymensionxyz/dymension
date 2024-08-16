@@ -191,6 +191,14 @@ func (e epochHooks) getFinishedSellOrders(ctx sdk.Context, assetType dymnstypes.
 	blockEpochUTC := ctx.BlockTime().Unix()
 	logger = logger.With("asset-type", assetType.FriendlyString(), "time", blockEpochUTC)
 
+	/*
+		The following part is to filter out the finished Sell-Orders,
+		plus one logic to correct the invalid Sell-Order expiry.
+		Currently, there is no such case that can cause an invalid Sell-Order expiry,
+		but it's good to have a correction logic for the future
+		because this part is executed by hook, and to make sure the hook always be executed efficiently,
+		we need to make sure the data is always valid.
+	*/
 	invalidRecordsToRemove := make([]string, 0)
 
 	for i, record := range aSoe.Records {
