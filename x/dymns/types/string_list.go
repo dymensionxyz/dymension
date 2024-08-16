@@ -1,6 +1,8 @@
 package types
 
-import "sort"
+import "slices"
+
+// TODO: move this to a sdk-utils package
 
 // StringList is a list of strings.
 // Used to add some operations on the list.
@@ -68,6 +70,6 @@ func (m StringList) Exclude(toBeExcluded StringList) (afterExcluded StringList) 
 
 // Sort sorts the elements in the list.
 func (m StringList) Sort() StringList {
-	sort.Strings(m)
+	slices.Sort(m)
 	return m
 }

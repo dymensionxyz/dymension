@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 
 	errorsmod "cosmossdk.io/errors"
@@ -249,15 +250,7 @@ func (m *ActiveSellOrdersExpiration) Add(assetId string, expiry int64) {
 }
 
 func (m *ActiveSellOrdersExpiration) Remove(assetId string) {
-	if len(m.Records) < 1 {
-		return
-	}
-
-	modified := make([]ActiveSellOrdersExpirationRecord, 0, len(m.Records))
-	for _, record := range m.Records {
-		if record.AssetId != assetId {
-			modified = append(modified, record)
-		}
-	}
-	m.Records = modified
+	m.Records = slices.DeleteFunc(m.Records, func(r ActiveSellOrdersExpirationRecord) bool {
+		return r.AssetId == assetId
+	})
 }
