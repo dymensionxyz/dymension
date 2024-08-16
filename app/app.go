@@ -15,7 +15,6 @@ import (
 
 	simappparams "cosmossdk.io/simapp/params"
 	"github.com/cosmos/cosmos-sdk/runtime"
-	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
@@ -58,6 +57,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app/ante"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
+	"github.com/dymensionxyz/dymension/v3/app/post"
 
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/keeper"
@@ -217,13 +217,15 @@ func New(
 		MaxTxGasWanted:         maxGasWanted,
 		ExtensionOptionChecker: nil, // uses default
 		RollappKeeper:          *app.RollappKeeper,
+		LightClientKeeper:      &app.LightClientKeeper,
 	})
 	if err != nil {
 		panic(err)
 	}
-	postHandler, err := posthandler.NewPostHandler(
-		posthandler.HandlerOptions{},
-	)
+	postHandler, err := post.NewPostHandler(post.HandlerOptions{
+		IBCKeeper:         app.IBCKeeper,
+		LightClientKeeper: &app.LightClientKeeper,
+	})
 	if err != nil {
 		panic(fmt.Errorf("failed to create PostHandler: %w", err))
 	}

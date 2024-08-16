@@ -46,10 +46,11 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 			return nil
 		}
 		bd := stateInfo.GetBDs().BD[height.GetRevisionHeight()-stateInfo.GetStartHeight()]
+
 		ibcState := types.IBCState{
 			Root:               header.Header.GetAppHash(),
 			Height:             height.GetRevisionHeight(),
-			Validator:          header.Header.ValidatorsHash,
+			Validator:          header.Header.ProposerAddress,
 			NextValidatorsHash: header.Header.NextValidatorsHash,
 			Timestamp:          header.Header.Time,
 		}

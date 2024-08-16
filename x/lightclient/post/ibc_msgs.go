@@ -14,8 +14,11 @@ type IBCMessagesDecorator struct {
 	lightClientKeeper keeper.Keeper
 }
 
-func NewIBCMessagesDecorator() IBCMessagesDecorator {
-	return IBCMessagesDecorator{}
+func NewIBCMessagesDecorator(k keeper.Keeper, ibcK ibckeeper.Keeper) IBCMessagesDecorator {
+	return IBCMessagesDecorator{
+		ibcKeeper:         ibcK,
+		lightClientKeeper: k,
+	}
 }
 
 func (i IBCMessagesDecorator) PostHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, success bool, next sdk.PostHandler) (newCtx sdk.Context, err error) {

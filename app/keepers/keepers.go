@@ -81,6 +81,8 @@ import (
 	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	lightclientmodulekeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
+	lightclientmoduletypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
@@ -140,6 +142,7 @@ type AppKeepers struct {
 	SponsorshipKeeper sponsorshipkeeper.Keeper
 	StreamerKeeper    streamermodulekeeper.Keeper
 	EIBCKeeper        eibckeeper.Keeper
+	LightClientKeeper lightclientmodulekeeper.Keeper
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
@@ -356,6 +359,13 @@ func (a *AppKeepers) InitKeepers(
 		a.RollappKeeper,
 	)
 
+	a.LightClientKeeper = *lightclientmodulekeeper.NewKeeper(
+		appCodec,
+		a.keys[lightclientmoduletypes.StoreKey],
+		*a.IBCKeeper,
+		a.SequencerKeeper,
+	)
+
 	a.RollappKeeper.SetSequencerKeeper(a.SequencerKeeper)
 
 	a.IncentivesKeeper = incentiveskeeper.NewKeeper(
@@ -558,6 +568,7 @@ func (a *AppKeepers) SetupHooks() {
 		a.SequencerKeeper.RollappHooks(),
 		a.delayedAckMiddleware,
 		a.StreamerKeeper.Hooks(),
+		a.LightClientKeeper.RollappHooks(),
 	))
 }
 

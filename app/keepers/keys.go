@@ -32,6 +32,7 @@ import (
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	lightcliendmoduletypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -45,7 +46,7 @@ func (a *AppKeepers) GenerateKeys() {
 	a.keys = KVStoreKeys
 
 	// Define transient store keys
-	a.tkeys = sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
+	a.tkeys = sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey, lightcliendmoduletypes.TransientKey)
 
 	// MemKeys are for information that is stored only in RAM.
 	a.memKeys = sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -128,4 +129,5 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	poolmanagertypes.StoreKey,
 	incentivestypes.StoreKey,
 	txfeestypes.StoreKey,
+	lightcliendmoduletypes.StoreKey,
 )

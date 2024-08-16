@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-
-	errorsmod "cosmossdk.io/errors"
 )
 
 func CheckCompatibility(ibcState IBCState, raState RollappState) error {
@@ -28,6 +28,7 @@ func CheckCompatibility(ibcState IBCState, raState RollappState) error {
 	if raState.NextBlockSequencer == "" {
 		return nil
 	}
+
 	// Check if the nextValidatorHash matches the sequencer for h+1
 	if !bytes.Equal(ibcState.NextValidatorsHash, []byte(raState.NextBlockSequencer)) {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "next validator hash does not match the sequencer for h+1")
