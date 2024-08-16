@@ -71,7 +71,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, logger log.Logger) error {
 	activeSellOrdersExpiration := e.Keeper.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
 
-	finishedSOs := e.getFinishedSellOrders(ctx, activeSellOrdersExpiration, dymnstypes.TypeName)
+	finishedSOs := e.getFinishedSellOrders(ctx, activeSellOrdersExpiration, dymnstypes.TypeName, logger)
 
 	if len(finishedSOs) < 1 {
 		return nil
@@ -121,7 +121,7 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, logger log.L
 func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, logger log.Logger) error {
 	activeSellOrdersExpiration := e.Keeper.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeAlias)
 
-	finishedSOs := e.getFinishedSellOrders(ctx, activeSellOrdersExpiration, dymnstypes.TypeAlias)
+	finishedSOs := e.getFinishedSellOrders(ctx, activeSellOrdersExpiration, dymnstypes.TypeAlias, logger)
 
 	if len(finishedSOs) < 1 {
 		return nil
@@ -198,8 +198,8 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, logger log.Log
 // Finished Sell-Orders are the Sell-Orders that have expired or completed by having a bid.
 func (e epochHooks) getFinishedSellOrders(
 	ctx sdk.Context,
-	activeSellOrdersExpiration *dymnstypes.ActiveSellOrdersExpiration,
-	assetType dymnstypes.AssetType,
+	activeSellOrdersExpiration *dymnstypes.ActiveSellOrdersExpiration, assetType dymnstypes.AssetType,
+	logger log.Logger,
 ) (finishedSellOrders []dymnstypes.SellOrder) {
 	blockEpochUTC := ctx.BlockTime().Unix()
 
@@ -212,11 +212,20 @@ func (e epochHooks) getFinishedSellOrders(
 		so := e.GetSellOrder(ctx, record.AssetId, assetType)
 
 		if so == nil {
+			logger.Error(
+				"invalid entry on Active Sell Order Expiration records: Sell Order not found.",
+				"asset-id", record.AssetId, "asset-type", assetType.PrettyName(),
+			)
 			// ignore the invalid entries for now, invariant will catch it
 			continue
 		}
 
 		if !so.HasFinished(blockEpochUTC) {
+			logger.Error(
+				"invalid entry on Active Sell Order Expiration records: Sell Order not yet finished.",
+				"asset-id", record.AssetId, "asset-type", assetType.PrettyName(),
+				"record-expiry", record.ExpireAt, "actual-expiry", so.ExpireAt,
+			)
 			// ignore the invalid entries for now, invariant will catch it
 			continue
 		}
