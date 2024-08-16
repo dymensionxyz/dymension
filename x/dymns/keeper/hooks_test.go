@@ -3,8 +3,6 @@ package keeper_test
 import (
 	"time"
 
-	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
-
 	sdkmath "cosmossdk.io/math"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -2418,8 +2416,6 @@ func (s *KeeperTestSuite) Test_rollappHooks_OnRollAppIdChanged() {
 
 				// delete the rollapp to make the migration fail
 				s.rollAppKeeper.RemoveRollapp(s.ctx, previousRollAppId)
-
-				dymnskeeper.ClearCaches()
 
 				s.Require().False(s.dymNsKeeper.IsRollAppId(s.ctx, previousRollAppId))
 			},

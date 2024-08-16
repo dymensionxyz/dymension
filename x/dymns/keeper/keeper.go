@@ -51,8 +51,3 @@ func NewKeeper(
 func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", dymnstypes.ModuleName))
 }
-
-// ClearCaches invoke clear caches. To be used in tests only.
-func ClearCaches() {
-	cacheIsRollAppId.Clear()
-}
