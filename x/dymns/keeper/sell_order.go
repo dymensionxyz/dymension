@@ -84,11 +84,11 @@ func (k Keeper) GetAllSellOrders(ctx sdk.Context) (list []dymnstypes.SellOrder) 
 
 // SetActiveSellOrdersExpiration stores the expiration of the active Sell-Orders records into the KVStore.
 func (k Keeper) SetActiveSellOrdersExpiration(ctx sdk.Context,
-	so *dymnstypes.ActiveSellOrdersExpiration, assetType dymnstypes.AssetType,
+	aSoe *dymnstypes.ActiveSellOrdersExpiration, assetType dymnstypes.AssetType,
 ) error {
-	so.Sort()
+	aSoe.Sort()
 
-	if err := so.Validate(); err != nil {
+	if err := aSoe.Validate(); err != nil {
 		return err
 	}
 
@@ -104,7 +104,7 @@ func (k Keeper) SetActiveSellOrdersExpiration(ctx sdk.Context,
 
 	// persist record
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(so)
+	bz := k.cdc.MustMarshal(aSoe)
 	store.Set(key, bz)
 	return nil
 }
@@ -125,16 +125,16 @@ func (k Keeper) GetActiveSellOrdersExpiration(ctx sdk.Context,
 		panic("invalid asset type: " + assetType.FriendlyString())
 	}
 
-	var record dymnstypes.ActiveSellOrdersExpiration
+	var aSoe dymnstypes.ActiveSellOrdersExpiration
 
 	bz := store.Get(key)
 	if bz != nil {
-		k.cdc.MustUnmarshal(bz, &record)
+		k.cdc.MustUnmarshal(bz, &aSoe)
 	}
 
-	if record.Records == nil {
-		record.Records = make([]dymnstypes.ActiveSellOrdersExpirationRecord, 0)
+	if aSoe.Records == nil {
+		aSoe.Records = make([]dymnstypes.ActiveSellOrdersExpirationRecord, 0)
 	}
 
-	return &record
+	return &aSoe
 }

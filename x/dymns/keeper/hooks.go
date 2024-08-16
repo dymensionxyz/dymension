@@ -105,7 +105,9 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, logger log.L
 }
 
 // processActiveAliasSellOrders process the finished Alias Sell-Orders.
-// Sell-Order will be deleted. If the Sell-Order has a winner, the Alias linking will be updated.
+// Sell-Order will be deleted.
+// If the Sell-Order has a winner, the Alias linking will be updated.
+// Sell-Orders for the aliases that are prohibited to trade will be force cancelled, please read the code body for more information about what it is.
 func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, logger log.Logger) error {
 	finishedSOs, aSoe := e.getFinishedSellOrders(ctx, dymnstypes.TypeAlias, logger)
 
