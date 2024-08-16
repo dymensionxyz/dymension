@@ -1,0 +1,16 @@
+{
+  "add": [{
+    "chain_id": "dymension_1100-1",
+    "alias": "dym"
+  },{
+    "chain_id": "blumbus_111-1",
+    "alias": "bb"
+  }],
+  "remove": [{
+    "chain_id": "dymension_1100-1",
+    "alias": "dymension"
+  },{
+    "chain_id": "froopyland_111-1",
+    "alias": "fl"
+  }]
+}
