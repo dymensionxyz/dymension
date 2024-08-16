@@ -3,6 +3,8 @@ package keeper
 import (
 	"errors"
 
+	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
+
 	"github.com/cometbft/cometbft/libs/log"
 
 	errorsmod "cosmossdk.io/errors"
@@ -268,12 +270,11 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not a RollApp chain-id: %s", rollappID)
 	}
 
-	canUseAlias, err := h.Keeper.CanUseAliasForNewRegistration(ctx, alias)
-	if err != nil {
-		return errorsmod.Wrapf(errors.Join(gerrc.ErrInternal, err), "failed to check availability of alias: %s", alias)
+	if !dymnsutils.IsValidAlias(alias) {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid alias format: %s", alias)
 	}
 
-	if !canUseAlias {
+	if !h.Keeper.CanUseAliasForNewRegistration(ctx, alias) {
 		return errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias already in use or preserved: %s", alias)
 	}
 

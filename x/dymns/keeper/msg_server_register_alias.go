@@ -66,12 +66,7 @@ func (k msgServer) validateRegisterAlias(ctx sdk.Context, msg *dymnstypes.MsgReg
 		return errorsmod.Wrapf(gerrc.ErrPermissionDenied, "not the owner of the RollApp")
 	}
 
-	canUseAlias, err := k.CanUseAliasForNewRegistration(ctx, msg.Alias)
-	if err != nil {
-		return errorsmod.Wrapf(errors.Join(gerrc.ErrInternal, err), "failed to check availability of alias: %s", msg.Alias)
-	}
-
-	if !canUseAlias {
+	if !k.CanUseAliasForNewRegistration(ctx, msg.Alias) {
 		return errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias already in use or preserved: %s", msg.Alias)
 	}
 

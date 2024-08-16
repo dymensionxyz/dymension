@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // GetParams get all parameters as types.Params
@@ -49,29 +48,24 @@ func (k Keeper) MiscParams(ctx sdk.Context) (res dymnstypes.MiscParams) {
 //   - The format is invalid.
 //   - The alias is exists in the params, mapped by a chain-id or registered to a Roll-App.
 //   - The alias is equals to a known chain-id, from the params.
-func (k Keeper) CanUseAliasForNewRegistration(ctx sdk.Context, aliasCandidate string) (can bool, err error) {
+func (k Keeper) CanUseAliasForNewRegistration(ctx sdk.Context, aliasCandidate string) (can bool) {
 	if !dymnsutils.IsValidAlias(aliasCandidate) {
-		err = gerrc.ErrInvalidArgument.Wrap("alias candidate")
-		return
+		return false
 	}
 
 	if k.IsAliasPresentsInParamsAsAliasOrChainId(ctx, aliasCandidate) {
 		// Please read the `processActiveAliasSellOrders` method (hooks.go) for more information.
-		can = false
-		return
+		return false
 	}
 
 	if isRollAppId := k.IsRollAppId(ctx, aliasCandidate); isRollAppId {
-		can = false
-		return
+		return false
 	}
 
-	_, found := k.GetRollAppIdByAlias(ctx, aliasCandidate)
-	if found {
-		can = false
-		return
+	_, foundRollAppIdFromAlias := k.GetRollAppIdByAlias(ctx, aliasCandidate)
+	if foundRollAppIdFromAlias {
+		return false
 	}
 
-	can = true
-	return
+	return true
 }

@@ -1815,7 +1815,7 @@ func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 			rollAppId:               "rollapp_1-1",
 			alias:                   "@@@",
 			wantErr:                 true,
-			wantErrContains:         "alias candidate: invalid argument",
+			wantErrContains:         "invalid alias format",
 			wantSuccess:             false,
 			wantLaterCreatorBalance: price1L,
 		},

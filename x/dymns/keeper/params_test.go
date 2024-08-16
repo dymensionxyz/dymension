@@ -48,24 +48,20 @@ func (s *KeeperTestSuite) TestGetSetParams() {
 
 func (s *KeeperTestSuite) TestKeeper_CanUseAliasForNewRegistration() {
 	tests := []struct {
-		name            string
-		alias           string
-		preSetup        func(s *KeeperTestSuite)
-		wantErr         bool
-		wantErrContains string
-		want            bool
+		name     string
+		alias    string
+		preSetup func(s *KeeperTestSuite)
+		want     bool
 	}{
 		{
-			name:    "pass - can check",
-			alias:   "a",
-			wantErr: false,
-			want:    true,
+			name:  "pass - can check",
+			alias: "a",
+			want:  true,
 		},
 		{
-			name:            "fail - reject bad alias",
-			alias:           "@",
-			wantErr:         true,
-			wantErrContains: "alias candidate: invalid argument",
+			name:  "fail - reject bad alias",
+			alias: "@",
+			want:  false,
 		},
 		{
 			name:  "pass - returns as free if neither in Params or Roll-App",
@@ -87,14 +83,12 @@ func (s *KeeperTestSuite) TestKeeper_CanUseAliasForNewRegistration() {
 
 				s.requireRollApp("rollapp_1-1").HasAlias("ra")
 			},
-			wantErr: false,
-			want:    true,
+			want: true,
 		},
 		{
-			name:    "pass - returns as free if no params, no Roll-App",
-			alias:   "free",
-			wantErr: false,
-			want:    true,
+			name:  "pass - returns as free if no params, no Roll-App",
+			alias: "free",
+			want:  true,
 		},
 		{
 			name:  "pass - returns as NOT free if reserved in Params",
@@ -116,8 +110,7 @@ func (s *KeeperTestSuite) TestKeeper_CanUseAliasForNewRegistration() {
 
 				s.requireRollApp("rollapp_1-1").HasAlias("ra")
 			},
-			wantErr: false,
-			want:    false,
+			want: false,
 		},
 		{
 			name:  "pass - returns as NOT free if reserved in Params as chain-id, without alias",
@@ -133,8 +126,7 @@ func (s *KeeperTestSuite) TestKeeper_CanUseAliasForNewRegistration() {
 					return params
 				})
 			},
-			wantErr: false,
-			want:    false,
+			want: false,
 		},
 		{
 			name:  "pass - returns as NOT free if reserved in RollApp",
@@ -156,8 +148,7 @@ func (s *KeeperTestSuite) TestKeeper_CanUseAliasForNewRegistration() {
 
 				s.requireRollApp("rollapp_1-1").HasAlias("ra")
 			},
-			wantErr: false,
-			want:    false,
+			want: false,
 		},
 		{
 			name:  "pass - returns as NOT free if reserved in RollApp, which owned multiple aliases",
@@ -175,8 +166,7 @@ func (s *KeeperTestSuite) TestKeeper_CanUseAliasForNewRegistration() {
 
 				s.requireRollApp("rollapp_1-1").HasAlias("one", "two", "three")
 			},
-			wantErr: false,
-			want:    false,
+			want: false,
 		},
 		{
 			name:  "pass - returns as NOT free if reserved in both Params and RollApp",
@@ -198,8 +188,7 @@ func (s *KeeperTestSuite) TestKeeper_CanUseAliasForNewRegistration() {
 
 				s.requireRollApp("dymension_1-1").HasAlias("dym")
 			},
-			wantErr: false,
-			want:    false,
+			want: false,
 		},
 		{
 			name:  "pass - returns as NOT free if it is a Chain-ID in params mapping",
@@ -215,8 +204,7 @@ func (s *KeeperTestSuite) TestKeeper_CanUseAliasForNewRegistration() {
 					return params
 				})
 			},
-			wantErr: false,
-			want:    false,
+			want: false,
 		},
 		{
 			name:  "pass - returns as NOT free if it is a RollApp-ID",
@@ -229,8 +217,7 @@ func (s *KeeperTestSuite) TestKeeper_CanUseAliasForNewRegistration() {
 				err := s.dymNsKeeper.SetAliasForRollAppId(s.ctx, "bridge", "b")
 				s.Require().NoError(err)
 			},
-			wantErr: false,
-			want:    false,
+			want: false,
 		},
 	}
 	for _, tt := range tests {
@@ -241,15 +228,7 @@ func (s *KeeperTestSuite) TestKeeper_CanUseAliasForNewRegistration() {
 				tt.preSetup(s)
 			}
 
-			can, err := s.dymNsKeeper.CanUseAliasForNewRegistration(s.ctx, tt.alias)
-			if tt.wantErr {
-				s.Require().ErrorContains(err, tt.wantErrContains)
-
-				s.Require().False(can)
-				return
-			}
-
-			s.Require().NoError(err)
+			can := s.dymNsKeeper.CanUseAliasForNewRegistration(s.ctx, tt.alias)
 			s.Require().Equal(tt.want, can)
 		})
 	}

@@ -201,11 +201,7 @@ func (q queryServer) EstimateRegisterAlias(goCtx context.Context, req *dymnstype
 		}
 	}
 
-	canUseAlias, err := q.CanUseAliasForNewRegistration(ctx, req.Alias)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to check availability of alias: %s", req.Alias)
-	}
-	if !canUseAlias {
+	if !q.CanUseAliasForNewRegistration(ctx, req.Alias) {
 		return nil, status.Errorf(codes.AlreadyExists, "alias already taken: %s", req.Alias)
 	}
 
