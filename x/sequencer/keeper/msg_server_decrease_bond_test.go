@@ -14,13 +14,13 @@ func (suite *SequencerTestSuite) TestDecreaseBond() {
 	defaultSequencerAddress := suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)), pk)
 	// setup an unbonded sequencer
 	unbondedPk := ed25519.GenPrivKey().PubKey()
-	unbondedSequencerAddress := suite.CreateDefaultSequencer(suite.Ctx, rollappId, unbondedPk)
+	unbondedSequencerAddress := suite.CreateSequencer(suite.Ctx, rollappId, unbondedPk)
 	unbondedSequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, unbondedSequencerAddress)
 	unbondedSequencer.Status = types.Unbonded
 	suite.App.SequencerKeeper.UpdateSequencer(suite.Ctx, unbondedSequencer, unbondedSequencer.Status)
 	// setup a jailed sequencer
 	jailedPk := ed25519.GenPrivKey().PubKey()
-	jailedSequencerAddress := suite.CreateDefaultSequencer(suite.Ctx, rollappId, jailedPk)
+	jailedSequencerAddress := suite.CreateSequencer(suite.Ctx, rollappId, jailedPk)
 	jailedSequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, jailedSequencerAddress)
 	jailedSequencer.Jailed = true
 	suite.App.SequencerKeeper.UpdateSequencer(suite.Ctx, jailedSequencer, jailedSequencer.Status)

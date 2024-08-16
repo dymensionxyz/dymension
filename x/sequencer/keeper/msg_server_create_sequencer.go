@@ -45,15 +45,13 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	// 	1. the initial sequencer from getting selected as the first proposer,
 	// 	2. the rollapp from getting sealed
 	// In case the InitialSequencer is set to the "*" wildcard, any sequencer can be the first to register.
-	isInitialOrAllAllowed := slices.Contains(strings.Split(rollapp.InitialSequencer, ","), msg.Creator) || rollapp.InitialSequencer == "*"
-
 	if !rollapp.Sealed {
-		if isInitialOrAllAllowed {
-			if err := k.rollappKeeper.SealRollapp(ctx, msg.RollappId); err != nil {
-				return nil, err
-			}
-		} else {
+		isInitialOrAllAllowed := slices.Contains(strings.Split(rollapp.InitialSequencer, ","), msg.Creator) || rollapp.InitialSequencer == "*"
+		if !isInitialOrAllAllowed {
 			return nil, types.ErrNotInitialSequencer
+		}
+		if err := k.rollappKeeper.SealRollapp(ctx, msg.RollappId); err != nil {
+			return nil, err
 		}
 	}
 
@@ -85,8 +83,23 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		RollappId:    msg.RollappId,
 		Metadata:     msg.Metadata,
 		Status:       types.Bonded,
-		Proposer:     !rollapp.Sealed,
 		Tokens:       bond,
+	}
+
+	// if this is the first sequencer, make it a PROPOSER
+	bondedSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Bonded)
+	isProposer := len(bondedSequencers) == 0
+	if isProposer {
+		k.SetProposer(ctx, sequencer.RollappId, sequencer.Address)
+	}
+
+	// we currently only support setting next proposer (or empty one) before the rotation started. This is in order to
+	// avoid handling the case a potential next proposer bonds in the middle of a rotation.
+	// This will be handled in next iteration.
+	nextProposer := k.IsRotating(ctx, sequencer.RollappId) && k.ExpectedNextProposer(ctx, sequencer.RollappId).IsEmpty()
+	if nextProposer {
+		k.Logger(ctx).Info("rotation in progress. sequencer registration disabled", "rollappId", sequencer.RollappId)
+		return nil, types.ErrRotationInProgress
 	}
 
 	k.SetSequencer(ctx, sequencer)
@@ -97,7 +110,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			sdk.NewAttribute(types.AttributeKeyRollappId, msg.RollappId),
 			sdk.NewAttribute(types.AttributeKeySequencer, msg.Creator),
 			sdk.NewAttribute(types.AttributeKeyBond, msg.Bond.String()),
-			sdk.NewAttribute(types.AttributeKeyProposer, strconv.FormatBool(sequencer.Proposer)),
+			sdk.NewAttribute(types.AttributeKeyProposer, strconv.FormatBool(isProposer)),
 		),
 	)
 
