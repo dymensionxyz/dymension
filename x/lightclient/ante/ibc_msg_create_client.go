@@ -1,6 +1,8 @@
 package ante
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -49,8 +51,39 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 		if !ok {
 			return
 		}
+		// Convert timestamp from nanoseconds to time.Time
+		timestamp := time.Unix(0, int64(tmConsensusState.GetTimestamp()))
+
+		ibcState := types.IBCState{
+			Root:               tmConsensusState.GetRoot().GetHash(),
+			Height:             tmClientState.GetLatestHeight().GetRevisionHeight(),
+			Validator:          []byte{}, // not sure if this info is available in the tendermint consensus state
+			NextValidatorsHash: tmConsensusState.NextValidatorsHash,
+			Timestamp:          timestamp,
+		}
+		rollappState := types.RollappState{
+			BlockSequencer:  stateInfo.Sequencer,
+			BlockDescriptor: blockDescriptor,
+		}
+		// Check if bd for next block exists and is part of same state info
+		nextHeight := height.GetRevisionHeight() + 1
+		if stateInfo.StartHeight+stateInfo.NumBlocks >= nextHeight {
+			rollappState.NextBlockDescriptor = stateInfo.GetBDs().BD[nextHeight-stateInfo.StartHeight]
+			rollappState.NextBlockSequencer = stateInfo.Sequencer
+		} else {
+			// nextBD doesnt exist in same stateInfo. So lookup in the next StateInfo
+			currentStateInfoIndex := stateInfo.GetIndex().Index
+			nextStateInfo, found := i.rollappKeeper.GetStateInfo(ctx, rollappID, currentStateInfoIndex+1)
+			if !found {
+				// if next state info doesnt exist, ignore this one condition when performing state compatibility check
+				rollappState.NextBlockSequencer = ""
+			} else {
+				rollappState.NextBlockSequencer = nextStateInfo.Sequencer
+				rollappState.NextBlockDescriptor = nextStateInfo.GetBDs().BD[0]
+			}
+		}
 		// Check if the consensus state is compatible with the block descriptor state
-		err = types.StateCompatible(*tmConsensusState, blockDescriptor)
+		err = types.CheckCompatibility(ibcState, rollappState)
 		if err != nil {
 			return // In case of incompatibility, the client will be created but not set as canonical
 		}

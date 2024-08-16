@@ -45,8 +45,35 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 			i.lightClientKeeper.SetConsensusStateSigner(ctx, msg.ClientId, height.GetRevisionHeight(), string(blockProposer))
 			return nil
 		}
+		bd := stateInfo.GetBDs().BD[height.GetRevisionHeight()-stateInfo.GetStartHeight()]
+		ibcState := types.IBCState{
+			Root:               header.Header.GetAppHash(),
+			Height:             height.GetRevisionHeight(),
+			Validator:          header.Header.ValidatorsHash,
+			NextValidatorsHash: header.Header.NextValidatorsHash,
+			Timestamp:          header.Header.Time,
+		}
+		rollappState := types.RollappState{
+			BlockSequencer:  stateInfo.Sequencer,
+			BlockDescriptor: bd,
+		}
+		// Check that BD for next block exists
+		if height.GetRevisionHeight()-stateInfo.GetStartHeight()+1 < uint64(len(stateInfo.GetBDs().BD)) {
+			rollappState.NextBlockSequencer = stateInfo.Sequencer
+			rollappState.NextBlockDescriptor = stateInfo.GetBDs().BD[height.GetRevisionHeight()-stateInfo.GetStartHeight()+1]
+		} else {
+			// next BD does not exist in this state info, check the next state info
+			nextStateInfo, found := i.rollappKeeper.GetStateInfo(ctx, rollappID, stateInfo.GetIndex().Index+1)
+			if !found {
+				// if next state info does not exist, then we can't verify the next block valhash. So we ignore this check
+				rollappState.NextBlockSequencer = ""
+			} else {
+				rollappState.NextBlockSequencer = nextStateInfo.Sequencer
+				rollappState.NextBlockDescriptor = nextStateInfo.GetBDs().BD[0]
+			}
+		}
 		// Ensure that the ibc header is compatible with the existing rollapp state
-		err = types.HeaderCompatible(*header, stateInfo)
+		err = types.CheckCompatibility(ibcState, rollappState)
 		if err != nil {
 			return err
 		}

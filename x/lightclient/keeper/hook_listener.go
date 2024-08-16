@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
@@ -27,7 +29,7 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappId string, stat
 		return nil
 	}
 	bds := stateInfo.GetBDs()
-	for _, bd := range bds.GetBD() {
+	for i, bd := range bds.GetBD() {
 		// Check if any optimistic updates were made for the given height
 		signer, found := hook.k.GetConsensusStateSigner(ctx, canonicalClient, bd.GetHeight())
 		if !found {
@@ -44,7 +46,26 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappId string, stat
 			return nil
 		}
 
-		err := types.StateCompatible(*tmConsensusState, bd)
+		// Convert timestamp from nanoseconds to time.Time
+		timestamp := time.Unix(0, int64(tmConsensusState.GetTimestamp()))
+
+		ibcState := types.IBCState{
+			Root:               tmConsensusState.GetRoot().GetHash(),
+			Height:             bd.GetHeight(),
+			Validator:          []byte(signer),
+			NextValidatorsHash: tmConsensusState.NextValidatorsHash,
+			Timestamp:          timestamp,
+		}
+		rollappState := types.RollappState{
+			BlockSequencer:  stateInfo.Sequencer,
+			BlockDescriptor: bd,
+		}
+		// check if bd for next block exists
+		if i+1 < len(bds.GetBD()) {
+			rollappState.NextBlockSequencer = stateInfo.Sequencer
+			rollappState.NextBlockDescriptor = bds.GetBD()[i+1]
+		}
+		err := types.CheckCompatibility(ibcState, rollappState)
 		if err != nil {
 			// If the state is not compatible,
 			// Take this state update as source of truth over the IBC update
