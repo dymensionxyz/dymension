@@ -137,6 +137,14 @@ func (k Keeper) GetAllEpochPointers(ctx sdk.Context) ([]types.EpochPointer, erro
 	return iter.Values()
 }
 
+func (k Keeper) GetEpochPointer(ctx sdk.Context, epochIdentifier string) (types.EpochPointer, error) {
+	return k.epochPointers.Get(ctx, epochIdentifier)
+}
+
+func (k Keeper) HasEpochPointer(ctx sdk.Context, epochIdentifier string) (bool, error) {
+	return k.epochPointers.Has(ctx, epochIdentifier)
+}
+
 func (k Keeper) SaveEpochPointer(ctx sdk.Context, p types.EpochPointer) error {
 	return k.epochPointers.Set(ctx, p.EpochIdentifier, p)
 }
