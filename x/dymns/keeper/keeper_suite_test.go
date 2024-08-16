@@ -179,13 +179,11 @@ func (s *KeeperTestSuite) SetupTest() {
 	})
 
 	// others
-	dymnskeeper.ClearCaches()
 
 	s.SaveCurrentContext()
 }
 
 func (s *KeeperTestSuite) AfterTest(_, _ string) {
-	dymnskeeper.ClearCaches()
 }
 
 // SaveCurrentContext saves the current context and convert current context into a branch context.
@@ -198,9 +196,6 @@ func (s *KeeperTestSuite) SaveCurrentContext() {
 
 // RefreshContext clear any change to the current context and use a new copy of the saved context.
 func (s *KeeperTestSuite) RefreshContext() {
-	defer func() {
-		dymnskeeper.ClearCaches()
-	}()
 	if s.savedCtx.ChainID() == "" {
 		panic("saved context not set")
 	}
