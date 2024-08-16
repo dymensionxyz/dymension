@@ -156,7 +156,7 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		dymnstypes.EventTypeSell,
-		sdk.NewAttribute(dymnstypes.AttributeKeySellAssetType, dymnstypes.TypeName.FriendlyString()),
+		sdk.NewAttribute(dymnstypes.AttributeKeySellAssetType, dymnstypes.TypeName.PrettyName()),
 		sdk.NewAttribute(dymnstypes.AttributeKeySellName, dymName.Name),
 		sdk.NewAttribute(dymnstypes.AttributeKeySellPrice, totalCost.String()),
 		sdk.NewAttribute(dymnstypes.AttributeKeySellTo, msg.Owner),

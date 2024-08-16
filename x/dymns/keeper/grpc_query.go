@@ -113,12 +113,12 @@ func (q queryServer) SellOrder(goCtx context.Context, req *dymnstypes.QuerySellO
 
 	var assetType dymnstypes.AssetType
 	switch req.AssetType {
-	case dymnstypes.TypeName.FriendlyString():
+	case dymnstypes.TypeName.PrettyName():
 		if !dymnsutils.IsValidDymName(req.AssetId) {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid Dym-Name: %s", req.AssetId)
 		}
 		assetType = dymnstypes.TypeName
-	case dymnstypes.TypeAlias.FriendlyString():
+	case dymnstypes.TypeAlias.PrettyName():
 		if !dymnsutils.IsValidAlias(req.AssetId) {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid alias: %s", req.AssetId)
 		}
@@ -130,7 +130,7 @@ func (q queryServer) SellOrder(goCtx context.Context, req *dymnstypes.QuerySellO
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	so := q.GetSellOrder(ctx, req.AssetId, assetType)
 	if so == nil {
-		return nil, status.Errorf(codes.NotFound, "no active Sell Order for %s '%s' at this moment", assetType.FriendlyString(), req.AssetId)
+		return nil, status.Errorf(codes.NotFound, "no active Sell Order for %s '%s' at this moment", assetType.PrettyName(), req.AssetId)
 	}
 
 	return &dymnstypes.QuerySellOrderResponse{

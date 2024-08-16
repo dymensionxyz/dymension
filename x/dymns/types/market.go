@@ -14,13 +14,13 @@ const (
 	TypeAlias = AssetType_AT_ALIAS
 )
 
-var assetTypeFriendlyStrings = map[AssetType]string{
+var assetTypePrettyName = map[AssetType]string{
 	AssetType_AT_DYM_NAME: "Dym-Name",
 	AssetType_AT_ALIAS:    "Alias",
 }
 
-func (x AssetType) FriendlyString() string {
-	if s, ok := assetTypeFriendlyStrings[x]; ok {
+func (x AssetType) PrettyName() string {
+	if s, ok := assetTypePrettyName[x]; ok {
 		return s
 	}
 	return "Unknown"
@@ -31,14 +31,14 @@ func ValidateOrderParams(params []string, assetType AssetType) error {
 	case AssetType_AT_DYM_NAME:
 		if len(params) != 0 {
 			return errorsmod.Wrapf(gerrc.ErrInvalidArgument,
-				"not accept order params for asset type: %s", assetType.FriendlyString(),
+				"not accept order params for asset type: %s", assetType.PrettyName(),
 			)
 		}
 		return nil
 	case AssetType_AT_ALIAS:
 		if len(params) != 1 {
 			return errorsmod.Wrapf(gerrc.ErrInvalidArgument,
-				"expect 1 order param of RollApp ID for asset type: %s", assetType.FriendlyString(),
+				"expect 1 order param of RollApp ID for asset type: %s", assetType.PrettyName(),
 			)
 		}
 		if !dymnsutils.IsValidChainIdFormat(params[0]) {

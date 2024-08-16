@@ -360,7 +360,7 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 			},
 			req: &dymnstypes.QuerySellOrderRequest{
 				AssetId:   dymNameA.Name,
-				AssetType: dymnstypes.TypeName.FriendlyString(),
+				AssetType: dymnstypes.TypeName.PrettyName(),
 			},
 			wantErr:       false,
 			wantSellOrder: &soDymNameA,
@@ -373,7 +373,7 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 			},
 			req: &dymnstypes.QuerySellOrderRequest{
 				AssetId:   rollAppC.alias,
-				AssetType: dymnstypes.TypeAlias.FriendlyString(),
+				AssetType: dymnstypes.TypeAlias.PrettyName(),
 			},
 			wantErr:       false,
 			wantSellOrder: &soAliasRollAppC,
@@ -391,7 +391,7 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 			},
 			req: &dymnstypes.QuerySellOrderRequest{
 				AssetId:   dymNameA.Name,
-				AssetType: dymnstypes.TypeName.FriendlyString(),
+				AssetType: dymnstypes.TypeName.PrettyName(),
 			},
 			wantErr:       false,
 			wantSellOrder: &soDymNameA,
@@ -409,7 +409,7 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 			},
 			req: &dymnstypes.QuerySellOrderRequest{
 				AssetId:   rollAppC.alias,
-				AssetType: dymnstypes.TypeAlias.FriendlyString(),
+				AssetType: dymnstypes.TypeAlias.PrettyName(),
 			},
 			wantErr:       false,
 			wantSellOrder: &soAliasRollAppC,
@@ -424,7 +424,7 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 			name: "fail - reject bad Dym-Name request",
 			req: &dymnstypes.QuerySellOrderRequest{
 				AssetId:   "$$$",
-				AssetType: dymnstypes.TypeName.FriendlyString(),
+				AssetType: dymnstypes.TypeName.PrettyName(),
 			},
 			wantErr:         true,
 			wantErrContains: "invalid Dym-Name",
@@ -433,7 +433,7 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 			name: "fail - reject bad Alias request",
 			req: &dymnstypes.QuerySellOrderRequest{
 				AssetId:   "$$$",
-				AssetType: dymnstypes.TypeAlias.FriendlyString(),
+				AssetType: dymnstypes.TypeAlias.PrettyName(),
 			},
 			wantErr:         true,
 			wantErrContains: "invalid alias",
@@ -452,7 +452,7 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 			preRunFunc: nil,
 			req: &dymnstypes.QuerySellOrderRequest{
 				AssetId:   dymNameB.Name,
-				AssetType: dymnstypes.TypeName.FriendlyString(),
+				AssetType: dymnstypes.TypeName.PrettyName(),
 			},
 			wantErr:         true,
 			wantErrContains: "no active Sell Order for Dym-Name",
@@ -462,7 +462,7 @@ func (s *KeeperTestSuite) Test_queryServer_SellOrder() {
 			preRunFunc: nil,
 			req: &dymnstypes.QuerySellOrderRequest{
 				AssetId:   rollAppD.alias,
-				AssetType: dymnstypes.TypeAlias.FriendlyString(),
+				AssetType: dymnstypes.TypeAlias.PrettyName(),
 			},
 			wantErr:         true,
 			wantErrContains: "no active Sell Order for Alias",

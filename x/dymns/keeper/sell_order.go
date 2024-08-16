@@ -99,7 +99,7 @@ func (k Keeper) SetActiveSellOrdersExpiration(ctx sdk.Context,
 	case dymnstypes.TypeAlias:
 		key = dymnstypes.KeyActiveSellOrdersExpirationOfAlias
 	default:
-		panic("invalid asset type: " + assetType.FriendlyString())
+		panic("invalid asset type: " + assetType.PrettyName())
 	}
 
 	// persist record
@@ -122,7 +122,7 @@ func (k Keeper) GetActiveSellOrdersExpiration(ctx sdk.Context,
 	case dymnstypes.TypeAlias:
 		key = dymnstypes.KeyActiveSellOrdersExpirationOfAlias
 	default:
-		panic("invalid asset type: " + assetType.FriendlyString())
+		panic("invalid asset type: " + assetType.PrettyName())
 	}
 
 	var aSoe dymnstypes.ActiveSellOrdersExpiration

@@ -197,7 +197,7 @@ func (e epochHooks) getFinishedSellOrders(ctx sdk.Context, assetType dymnstypes.
 	aSoe = e.Keeper.GetActiveSellOrdersExpiration(ctx, assetType)
 
 	blockEpochUTC := ctx.BlockTime().Unix()
-	logger = logger.With("asset-type", assetType.FriendlyString(), "time", blockEpochUTC)
+	logger = logger.With("asset-type", assetType.PrettyName(), "time", blockEpochUTC)
 
 	/*
 		The following part is to filter out the finished Sell-Orders,

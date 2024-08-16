@@ -24,7 +24,7 @@ func (s *KeeperTestSuite) TestKeeper_GetSetSellOrder() {
 
 	s.Run("can set", func() {
 		for _, assetType := range supportedAssetTypes {
-			s.Run(assetType.FriendlyString(), func() {
+			s.Run(assetType.PrettyName(), func() {
 				s.RefreshContext()
 
 				so := dymnstypes.SellOrder{
@@ -41,7 +41,7 @@ func (s *KeeperTestSuite) TestKeeper_GetSetSellOrder() {
 
 	s.Run("event should be fired on set", func() {
 		for _, assetType := range supportedAssetTypes {
-			s.Run(assetType.FriendlyString(), func() {
+			s.Run(assetType.PrettyName(), func() {
 				s.RefreshContext()
 
 				so := dymnstypes.SellOrder{
@@ -105,7 +105,7 @@ func (s *KeeperTestSuite) TestKeeper_GetSetSellOrder() {
 	s.Run("omit Sell Price if zero", func() {
 		for _, sellPrice := range []*sdk.Coin{nil, uptr.To(s.coin(0)), {}} {
 			for _, assetType := range supportedAssetTypes {
-				s.Run(assetType.FriendlyString(), func() {
+				s.Run(assetType.PrettyName(), func() {
 					s.RefreshContext()
 
 					err := s.dymNsKeeper.SetSellOrder(s.ctx, dymnstypes.SellOrder{
@@ -180,7 +180,7 @@ func (s *KeeperTestSuite) TestKeeper_DeleteSellOrder() {
 
 	s.Run("can delete", func() {
 		for _, assetType := range supportedAssetTypes {
-			s.Run(assetType.FriendlyString(), func() {
+			s.Run(assetType.PrettyName(), func() {
 				s.RefreshContext()
 
 				so := dymnstypes.SellOrder{
@@ -204,7 +204,7 @@ func (s *KeeperTestSuite) TestKeeper_DeleteSellOrder() {
 
 	s.Run("event should be fired upon deletion", func() {
 		for _, assetType := range supportedAssetTypes {
-			s.Run(assetType.FriendlyString(), func() {
+			s.Run(assetType.PrettyName(), func() {
 				s.RefreshContext()
 
 				so := dymnstypes.SellOrder{

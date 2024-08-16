@@ -47,7 +47,7 @@ func (s *KeeperTestSuite) TestKeeper_GetSetInsertNewBuyOrder() {
 
 	s.Run("should returns error when set empty ID offer", func() {
 		for _, assetType := range supportedAssetTypes {
-			s.Run(assetType.FriendlyString(), func() {
+			s.Run(assetType.PrettyName(), func() {
 				s.RefreshContext()
 
 				var params []string
@@ -136,7 +136,7 @@ func (s *KeeperTestSuite) TestKeeper_GetSetInsertNewBuyOrder() {
 
 	s.Run("should panic when insert non-empty ID offer", func() {
 		for _, assetType := range supportedAssetTypes {
-			s.Run(assetType.FriendlyString(), func() {
+			s.Run(assetType.PrettyName(), func() {
 				s.RefreshContext()
 
 				var params []string
@@ -209,7 +209,7 @@ func (s *KeeperTestSuite) TestKeeper_GetSetInsertNewBuyOrder() {
 
 	s.Run("can not insert duplicated", func() {
 		for _, assetType := range supportedAssetTypes {
-			s.Run(assetType.FriendlyString(), func() {
+			s.Run(assetType.PrettyName(), func() {
 				s.RefreshContext()
 
 				s.dymNsKeeper.SetCountBuyOrders(s.ctx, 1)
@@ -250,7 +250,7 @@ func (s *KeeperTestSuite) TestKeeper_GetSetInsertNewBuyOrder() {
 
 	s.Run("should automatically fill ID when insert", func() {
 		for _, assetType := range supportedAssetTypes {
-			s.Run(assetType.FriendlyString(), func() {
+			s.Run(assetType.PrettyName(), func() {
 				s.RefreshContext()
 
 				var params []string
@@ -453,7 +453,7 @@ func (s *KeeperTestSuite) TestKeeper_GetSetInsertNewBuyOrder() {
 
 	s.Run("event should be fired on delete offer", func() {
 		for _, assetType := range supportedAssetTypes {
-			s.Run(assetType.FriendlyString(), func() {
+			s.Run(assetType.PrettyName(), func() {
 				s.RefreshContext()
 
 				var params []string

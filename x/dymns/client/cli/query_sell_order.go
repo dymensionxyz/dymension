@@ -14,8 +14,8 @@ import (
 
 // CmdQuerySellOrder is the CLI command for querying the current active Sell Order of a Dym-Name
 func CmdQuerySellOrder() *cobra.Command {
-	targetSellOrderAssetTypeDymName := dymnstypes.TypeName.FriendlyString()
-	targetSellOrderAssetTypeAlias := dymnstypes.TypeAlias.FriendlyString()
+	targetSellOrderAssetTypeDymName := dymnstypes.TypeName.PrettyName()
+	targetSellOrderAssetTypeAlias := dymnstypes.TypeAlias.PrettyName()
 
 	cmd := &cobra.Command{
 		Use:     "sell-order [Dym-Name/Alias]",

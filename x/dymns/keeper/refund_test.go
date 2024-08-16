@@ -184,7 +184,7 @@ func (s *KeeperTestSuite) TestKeeper_RefundBuyOrder() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			for _, assetType := range supportedAssetTypes {
-				s.Run(assetType.FriendlyString(), func() {
+				s.Run(assetType.PrettyName(), func() {
 					s.RefreshContext()
 
 					if !tt.fundModuleAccountBalance.IsNil() {

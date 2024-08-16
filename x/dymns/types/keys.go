@@ -120,7 +120,7 @@ func SellOrderKey(assetId string, assetType AssetType) []byte {
 	case TypeAlias:
 		return append(KeyPrefixAliasSellOrder, []byte(assetId)...)
 	default:
-		panic("invalid asset type: " + assetType.FriendlyString())
+		panic("invalid asset type: " + assetType.PrettyName())
 	}
 }
 

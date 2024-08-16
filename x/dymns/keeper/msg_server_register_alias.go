@@ -102,7 +102,7 @@ func (k Keeper) registerAliasForRollApp(
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		dymnstypes.EventTypeSell,
-		sdk.NewAttribute(dymnstypes.AttributeKeySellAssetType, dymnstypes.TypeAlias.FriendlyString()),
+		sdk.NewAttribute(dymnstypes.AttributeKeySellAssetType, dymnstypes.TypeAlias.PrettyName()),
 		sdk.NewAttribute(dymnstypes.AttributeKeySellName, alias),
 		sdk.NewAttribute(dymnstypes.AttributeKeySellPrice, registrationFee.String()),
 		sdk.NewAttribute(dymnstypes.AttributeKeySellTo, rollAppId),

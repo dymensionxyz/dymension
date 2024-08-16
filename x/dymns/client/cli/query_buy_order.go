@@ -119,7 +119,7 @@ func printBuyOrder(offer dymnstypes.BuyOrder) error {
 	}
 	fmt.Printf("ID: %s\n", offer.Id)
 	fmt.Printf(" Buyer: %s\n", offer.Buyer)
-	fmt.Printf(" Type: %s\n", offer.AssetType.FriendlyString())
+	fmt.Printf(" Type: %s\n", offer.AssetType.PrettyName())
 	if offer.AssetType == dymnstypes.TypeName {
 		fmt.Printf(" Dym-Name: %s\n", offer.AssetId)
 	} else if offer.AssetType == dymnstypes.TypeAlias {

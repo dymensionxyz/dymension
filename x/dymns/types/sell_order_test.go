@@ -625,7 +625,7 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 		requireEventEquals(t, event,
 			EventTypeSellOrder,
 			AttributeKeySoAssetId, "a",
-			AttributeKeySoAssetType, TypeName.FriendlyString(),
+			AttributeKeySoAssetType, TypeName.PrettyName(),
 			AttributeKeySoExpiryEpoch, "123456",
 			AttributeKeySoMinPrice, "1"+params.BaseDenom,
 			AttributeKeySoSellPrice, "3"+params.BaseDenom,
@@ -651,7 +651,7 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 		require.Equal(t, EventTypeSellOrder, event.Type)
 		require.Len(t, event.Attributes, 8)
 		require.Equal(t, AttributeKeySoAssetType, event.Attributes[1].Key)
-		require.Equal(t, TypeAlias.FriendlyString(), event.Attributes[1].Value)
+		require.Equal(t, TypeAlias.PrettyName(), event.Attributes[1].Value)
 	})
 
 	t.Run("no sell-price", func(t *testing.T) {
@@ -668,7 +668,7 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 		requireEventEquals(t, event,
 			EventTypeSellOrder,
 			AttributeKeySoAssetId, "a",
-			AttributeKeySoAssetType, TypeName.FriendlyString(),
+			AttributeKeySoAssetType, TypeName.PrettyName(),
 			AttributeKeySoExpiryEpoch, "123456",
 			AttributeKeySoMinPrice, "1"+params.BaseDenom,
 			AttributeKeySoSellPrice, "0"+params.BaseDenom,
@@ -689,7 +689,7 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 		requireEventEquals(t, event,
 			EventTypeSellOrder,
 			AttributeKeySoAssetId, "a",
-			AttributeKeySoAssetType, TypeName.FriendlyString(),
+			AttributeKeySoAssetType, TypeName.PrettyName(),
 			AttributeKeySoExpiryEpoch, "123456",
 			AttributeKeySoMinPrice, "1"+params.BaseDenom,
 			AttributeKeySoSellPrice, "3"+params.BaseDenom,

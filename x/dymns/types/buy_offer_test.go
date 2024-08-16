@@ -407,7 +407,7 @@ func TestBuyOrder_GetSdkEvent(t *testing.T) {
 			EventTypeBuyOrder,
 			AttributeKeyBoId, "1",
 			AttributeKeyBoAssetId, "a",
-			AttributeKeyBoAssetType, TypeName.FriendlyString(),
+			AttributeKeyBoAssetType, TypeName.PrettyName(),
 			AttributeKeyBoBuyer, "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			AttributeKeyBoOfferPrice, "1"+params.BaseDenom,
 			AttributeKeyBoCounterpartyOfferPrice, "2"+params.BaseDenom,
@@ -428,7 +428,7 @@ func TestBuyOrder_GetSdkEvent(t *testing.T) {
 		require.Equal(t, EventTypeBuyOrder, event.Type)
 		require.Len(t, event.Attributes, 7)
 		require.Equal(t, AttributeKeyBoAssetType, event.Attributes[2].Key)
-		require.Equal(t, TypeAlias.FriendlyString(), event.Attributes[2].Value)
+		require.Equal(t, TypeAlias.PrettyName(), event.Attributes[2].Value)
 	})
 
 	t.Run("no counterparty offer price", func(t *testing.T) {
@@ -444,7 +444,7 @@ func TestBuyOrder_GetSdkEvent(t *testing.T) {
 			EventTypeBuyOrder,
 			AttributeKeyBoId, "1",
 			AttributeKeyBoAssetId, "a",
-			AttributeKeyBoAssetType, TypeName.FriendlyString(),
+			AttributeKeyBoAssetType, TypeName.PrettyName(),
 			AttributeKeyBoBuyer, "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			AttributeKeyBoOfferPrice, "1"+params.BaseDenom,
 			AttributeKeyBoCounterpartyOfferPrice, "",

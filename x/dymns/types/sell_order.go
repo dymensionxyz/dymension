@@ -176,7 +176,7 @@ func (m SellOrder) GetSdkEvent(actionName string) sdk.Event {
 	return sdk.NewEvent(
 		EventTypeSellOrder,
 		sdk.NewAttribute(AttributeKeySoAssetId, m.AssetId),
-		sdk.NewAttribute(AttributeKeySoAssetType, m.AssetType.FriendlyString()),
+		sdk.NewAttribute(AttributeKeySoAssetType, m.AssetType.PrettyName()),
 		sdk.NewAttribute(AttributeKeySoExpiryEpoch, fmt.Sprintf("%d", m.ExpireAt)),
 		sdk.NewAttribute(AttributeKeySoMinPrice, m.MinPrice.String()),
 		sdk.NewAttribute(AttributeKeySoSellPrice, sellPrice.String()),

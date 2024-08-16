@@ -115,7 +115,7 @@ func (m BuyOrder) GetSdkEvent(actionName string) sdk.Event {
 		EventTypeBuyOrder,
 		sdk.NewAttribute(AttributeKeyBoId, m.Id),
 		sdk.NewAttribute(AttributeKeyBoAssetId, m.AssetId),
-		sdk.NewAttribute(AttributeKeyBoAssetType, m.AssetType.FriendlyString()),
+		sdk.NewAttribute(AttributeKeyBoAssetType, m.AssetType.PrettyName()),
 		sdk.NewAttribute(AttributeKeyBoBuyer, m.Buyer),
 		sdk.NewAttribute(AttributeKeyBoOfferPrice, m.OfferPrice.String()),
 		attrCounterpartyOfferPrice,
