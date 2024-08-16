@@ -63,9 +63,5 @@ func (k Keeper) CanUseAliasForNewRegistration(ctx sdk.Context, aliasCandidate st
 	}
 
 	_, foundRollAppIdFromAlias := k.GetRollAppIdByAlias(ctx, aliasCandidate)
-	if foundRollAppIdFromAlias {
-		return false
-	}
-
-	return true
+	return !foundRollAppIdFromAlias
 }
