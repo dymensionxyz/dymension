@@ -100,15 +100,18 @@ func (suite *KeeperTestSuite) ExpectedDefaultStream(streamID uint64, starttime t
 	distInfo, err := types.NewDistrInfo(defaultDistrInfo)
 	suite.Require().NoError(err)
 
+	const numEpochsPaidOver = 30
 	return types.Stream{
 		Id:                   streamID,
 		DistributeTo:         distInfo,
 		Coins:                coins,
 		StartTime:            starttime,
 		DistrEpochIdentifier: "day",
-		NumEpochsPaidOver:    30,
+		NumEpochsPaidOver:    numEpochsPaidOver,
 		FilledEpochs:         0,
 		DistributedCoins:     sdk.Coins{},
+		Sponsored:            false,
+		EpochCoins:           coins.QuoInt(math.NewInt(numEpochsPaidOver)),
 	}
 }
 
@@ -209,4 +212,21 @@ func (suite *KeeperTestSuite) Delegate(delAddr sdk.AccAddress, valAddr sdk.ValAd
 	suite.Require().True(found)
 
 	return del
+}
+
+func (suite *KeeperTestSuite) DistributeAllRewards(streams []types.Stream) sdk.Coins {
+	rewards := sdk.Coins{}
+	for _, stream := range streams {
+		res := suite.App.StreamerKeeper.DistributeRewards(
+			suite.Ctx,
+			types.NewEpochPointer(stream.DistrEpochIdentifier),
+			types.IterationsNoLimit,
+			[]types.Stream{stream},
+		)
+		suite.Require().Len(res.FilledStreams, 1)
+		err := suite.App.StreamerKeeper.SetStream(suite.Ctx, &res.FilledStreams[0])
+		suite.Require().NoError(err)
+		rewards = rewards.Add(res.DistributedCoins...)
+	}
+	return rewards
 }

@@ -6,7 +6,6 @@ import (
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 
-	"github.com/dymensionxyz/dymension/v3/internal/pagination"
 	ctypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -43,20 +42,11 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochN
 
 // AfterEpochEnd is the epoch end hook.
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coins, error) {
-	// Get all active streams
 	activeStreams := k.GetActiveStreams(ctx)
-
-	// Temporary map for convenient calculations
-	newActiveStreamsMap := make(map[uint64]types.Stream, len(activeStreams))
-	for _, s := range activeStreams {
-		// Filter streams by the epoch identifier
-		if epochIdentifier == s.DistrEpochIdentifier {
-			newActiveStreamsMap[s.Id] = s
-		}
-	}
 
 	// Move upcoming streams to active if start time reached
 	upcomingStreams := k.GetUpcomingStreams(ctx)
+	var newlyActivated []types.Stream
 	for _, s := range upcomingStreams {
 		if !ctx.BlockTime().Before(s.StartTime) {
 			err := k.moveUpcomingStreamToActiveStream(ctx, s)
@@ -65,13 +55,12 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coin
 			}
 
 			if epochIdentifier == s.DistrEpochIdentifier {
-				// Save a relevant stream as a new active
-				newActiveStreamsMap[s.Id] = s
+				newlyActivated = append(newlyActivated, s)
 			}
 		}
 	}
 
-	if len(newActiveStreamsMap) == 0 {
+	if len(activeStreams) == 0 && len(newlyActivated) == 0 {
 		// Nothing to distribute
 		return sdk.Coins{}, nil
 	}
@@ -81,45 +70,30 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coin
 		return sdk.Coins{}, fmt.Errorf("get epoch pointer for epoch '%s': %w", epochIdentifier, err)
 	}
 
-	totalDistributed := sdk.NewCoins()
-
-	// Distribute to all the remaining gauges that are left after EndBlock
-	newPointer, _ := IterateEpochPointer(epochPointer, activeStreams, types.IterationsNoLimit, func(v StreamGauge) pagination.Stop {
-		distributed, errX := k.DistributeToGauge(ctx, v.Stream.EpochCoins, v.Gauge, v.Stream.DistributeTo.TotalWeight)
-		if errX != nil {
-			// Ignore this gauge
-			k.Logger(ctx).
-				With("streamID", v.Stream.Id, "gaugeID", v.Gauge.GaugeId, "error", errX.Error()).
-				Error("Failed to distribute to gauge")
-		}
-
-		totalDistributed = totalDistributed.Add(distributed...)
-
-		// Update distributed coins for the stream
-		stream := newActiveStreamsMap[v.Stream.Id]
-		stream.DistributedCoins = stream.DistributedCoins.Add(distributed...)
-		newActiveStreamsMap[v.Stream.Id] = stream
-
-		return pagination.Continue
-	})
+	distrResult := k.DistributeRewards(ctx, epochPointer, types.IterationsNoLimit, activeStreams)
 
 	// Update streams with respect to a new epoch and save them
-	for _, s := range newActiveStreamsMap {
-		err = k.UpdateStreamAtEpochStart(ctx, s)
+	for _, s := range append(distrResult.FilledStreams, newlyActivated...) {
+		updated, err := k.UpdateStreamAtEpochStart(ctx, s)
 		if err != nil {
 			return sdk.Coins{}, fmt.Errorf("update stream '%d' at epoch start: %w", s.Id, err)
 		}
+		// Save the stream
+		err = k.SetStream(ctx, &updated)
+		if err != nil {
+			return sdk.Coins{}, fmt.Errorf("set stream: %w", err)
+		}
 	}
 
-	newPointer.SetToFirstGauge()
-	err = k.SaveEpochPointer(ctx, newPointer)
+	distrResult.NewPointer.SetToFirstGauge()
+	err = k.SaveEpochPointer(ctx, distrResult.NewPointer)
 	if err != nil {
 		return sdk.Coins{}, fmt.Errorf("save epoch pointer: %w", err)
 	}
 
-	ctx.Logger().Info("Streamer distributed coins", "amount", totalDistributed.String())
+	ctx.Logger().Info("Streamer distributed coins", "amount", distrResult.DistributedCoins.String())
 
-	return totalDistributed, nil
+	return distrResult.DistributedCoins, nil
 }
 
 // BeforeEpochStart is the epoch start hook.

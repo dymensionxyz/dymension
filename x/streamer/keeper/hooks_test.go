@@ -70,9 +70,6 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 	err = suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "day", 0)
 	suite.Require().NoError(err)
 
-	err = suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "day", 0)
-	suite.Require().NoError(err)
-
 	// check active streams
 	streams = suite.App.StreamerKeeper.GetActiveStreams(suite.Ctx)
 	suite.Require().Len(streams, 3)

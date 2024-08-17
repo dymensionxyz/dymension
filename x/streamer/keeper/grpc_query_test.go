@@ -185,26 +185,34 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	stream, err := suite.querier.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(stream)
-	streams := []types.Stream{*stream}
 
 	// check to distribute coins after stream creation, but before stream active
 	res, err = suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Equal(res.Coins, coins)
 
-	// move stream from an upcoming to an active status
-	// suite.Ctx = suite.Ctx.WithBlockTime(startTime)
-	err = suite.querier.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream)
-	suite.Require().NoError(err)
-
 	// check to distribute coins after stream creation
-	// ensure this equals the coins within the previously created non perpetual stream
+	// ensure this equals the coins within the previously created non-perpetual stream
 	res, err = suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Equal(res.Coins, coins)
 
-	// distribute coins to stakers
-	distrCoins, err := suite.querier.Distribute(suite.Ctx, streams)
+	// move stream from an upcoming to an active status
+	// distribute coins to stakers through calling the hook, this simulates the new epoch start
+	// the stream is moved to active and its rewards are to be distributed during the epoch
+	distrCoins, err := suite.App.StreamerKeeper.AfterEpochEnd(suite.Ctx, "day")
+	suite.Require().NoError(err)
+	suite.Require().Empty(distrCoins)
+
+	// check to distribute coins after the epoch start
+	// ensure this equals the coins within the previously created non-perpetual stream
+	// the rewards are not distributed yet
+	res, err = suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
+	suite.Require().NoError(err)
+	suite.Require().Equal(res.Coins, coins)
+
+	// trigger the epoch end. this will distribute all rewards assigned to this epoch
+	distrCoins, err = suite.App.StreamerKeeper.AfterEpochEnd(suite.Ctx, "day")
 	suite.Require().NoError(err)
 	suite.Require().Equal(distrCoins, sdk.Coins{sdk.NewInt64Coin("stake", 10000)})
 
@@ -214,19 +222,27 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	stream, err = suite.querier.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(stream)
-	suite.Require().Equal(stream.FilledEpochs, uint64(1))
+	suite.Require().Equal(stream.FilledEpochs, uint64(2))
 	suite.Require().Equal(stream.DistributedCoins, sdk.Coins{sdk.NewInt64Coin("stake", 10000)})
-	streams = []types.Stream{*stream}
 
 	// check that the to distribute coins is equal to the initial stream coin balance minus what has been distributed already (10-4=6)
 	res, err = suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Equal(res.Coins, coins.Sub(distrCoins...))
 
-	// distribute second round to stakers
-	distrCoins, err = suite.querier.Distribute(suite.Ctx, streams)
+	// trigger the next epoch end. this will distribute the second round
+	distrCoins, err = suite.App.StreamerKeeper.AfterEpochEnd(suite.Ctx, "day")
 	suite.Require().NoError(err)
 	suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("stake", 10000)}, distrCoins)
+
+	// check stream changes after distribution
+	// ensure the stream's filled epochs have been increased by 1
+	// ensure we have distributed 4 out of the 10 stake tokens
+	stream, err = suite.querier.GetStreamByID(suite.Ctx, streamID)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(stream)
+	suite.Require().Equal(stream.FilledEpochs, uint64(3))
+	suite.Require().Equal(stream.DistributedCoins, sdk.Coins{sdk.NewInt64Coin("stake", 20000)})
 
 	// now that all coins have been distributed (4 in first found 6 in the second round)
 	// to distribute coins should be null

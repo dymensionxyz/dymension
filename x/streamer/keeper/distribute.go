@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
+	"github.com/dymensionxyz/dymension/v3/internal/pagination"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
@@ -53,31 +54,19 @@ func (k Keeper) DistributeToGauge(ctx sdk.Context, coins sdk.Coins, record types
 	return totalAllocated, nil
 }
 
-// Distribute distributes coins from an array of streams to all eligible locks.
-// TODO: delete
-func (k Keeper) Distribute(ctx sdk.Context, streams []types.Stream) (sdk.Coins, error) {
-	totalDistributedCoins := sdk.Coins{}
-	streamDistributedCoins := sdk.Coins{}
-	for _, stream := range streams {
-		wrappedDistributeFn := func(ctx sdk.Context) error {
-			var err error
-			err = k.UpdateStreamAtEpochStart(ctx, stream)
-			return err
-		}
-
-		err := osmoutils.ApplyFuncIfNoError(ctx, wrappedDistributeFn)
+// UpdateStreamAtEpochStart updates the stream for a new epoch.
+func (k Keeper) UpdateStreamAtEpochStart(ctx sdk.Context, stream types.Stream) (types.Stream, error) {
+	// Check if stream has completed its distribution
+	if stream.FilledEpochs >= stream.NumEpochsPaidOver {
+		err := k.moveActiveStreamToFinishedStream(ctx, stream)
 		if err != nil {
-			ctx.Logger().Error("Failed to distribute stream", "streamID", stream.Id, "error", err.Error())
-			continue
+			return types.Stream{}, fmt.Errorf("move active stream to finished stream: %w", err)
 		}
-		totalDistributedCoins = totalDistributedCoins.Add(streamDistributedCoins...)
+		return stream, nil
 	}
 
-	return totalDistributedCoins, nil
-}
+	// If the stream is not finalized, update it for the next distribution
 
-// UpdateStreamAtEpochStart updates the stream for a new epoch.
-func (k Keeper) UpdateStreamAtEpochStart(ctx sdk.Context, stream types.Stream) error {
 	remainCoins := stream.Coins.Sub(stream.DistributedCoins...)
 	remainEpochs := stream.NumEpochsPaidOver - stream.FilledEpochs
 	epochCoins := remainCoins.QuoInt(math.NewIntFromUint64(remainEpochs))
@@ -88,29 +77,19 @@ func (k Keeper) UpdateStreamAtEpochStart(ctx sdk.Context, stream types.Stream) e
 	if stream.Sponsored {
 		distr, err := k.sk.GetDistribution(ctx)
 		if err != nil {
-			return fmt.Errorf("get sponsorship distribution: %w", err)
+			return types.Stream{}, fmt.Errorf("get sponsorship distribution: %w", err)
 		}
 		// Update stream distr info
 		stream.DistributeTo = types.DistrInfoFromDistribution(distr)
 	}
 
-	// Don't fill streams in which there's nothing to fill
-	if !stream.DistributeTo.TotalWeight.IsZero() {
-		stream.FilledEpochs += 1
-	}
+	// Add coins to distribute during the next epoch
 	stream.EpochCoins = epochCoins
 
-	err := k.setStream(ctx, &stream)
-	if err != nil {
-		return fmt.Errorf("set stream: %w", err)
-	}
-
-	// Check if stream has completed its distribution
-	if stream.FilledEpochs >= stream.NumEpochsPaidOver {
-		err := k.moveActiveStreamToFinishedStream(ctx, stream)
-		if err != nil {
-			return fmt.Errorf("move active stream to finished stream: %w", err)
-		}
+	// Don't fill streams in which there's nothing to fill. Note that rewards are distributed post factum.
+	// I.e., first increase the filled epoch number, then distribute rewards during the epoch.
+	if !stream.DistributeTo.TotalWeight.IsZero() {
+		stream.FilledEpochs += 1
 	}
 
 	// TODO: can we delete this event?
@@ -122,5 +101,59 @@ func (k Keeper) UpdateStreamAtEpochStart(ctx sdk.Context, stream types.Stream) e
 		),
 	})
 
-	return nil
+	return stream, nil
+}
+
+type DistributeRewardsResult struct {
+	NewPointer       types.EpochPointer
+	FilledStreams    []types.Stream
+	DistributedCoins sdk.Coins
+	Iterations       uint64
+}
+
+func (k Keeper) DistributeRewards(
+	ctx sdk.Context,
+	pointer types.EpochPointer,
+	limit uint64,
+	streams []types.Stream,
+) DistributeRewardsResult {
+	totalDistributed := sdk.NewCoins()
+
+	// Temporary map for convenient calculations
+	streamsMap := make(map[uint64]types.Stream, len(streams))
+	for _, s := range streams {
+		streamsMap[s.Id] = s
+	}
+
+	// Distribute to all the remaining gauges that are left after EndBlock
+	newPointer, iterations := IterateEpochPointer(pointer, streams, limit, func(v StreamGauge) pagination.Stop {
+		distributed, errX := k.DistributeToGauge(ctx, v.Stream.EpochCoins, v.Gauge, v.Stream.DistributeTo.TotalWeight)
+		if errX != nil {
+			// Ignore this gauge
+			k.Logger(ctx).
+				With("streamID", v.Stream.Id, "gaugeID", v.Gauge.GaugeId, "error", errX.Error()).
+				Error("Failed to distribute to gauge")
+		}
+
+		totalDistributed = totalDistributed.Add(distributed...)
+
+		// Update distributed coins for the stream
+		stream := streamsMap[v.Stream.Id]
+		stream.DistributedCoins = stream.DistributedCoins.Add(distributed...)
+		streamsMap[v.Stream.Id] = stream
+
+		return pagination.Continue
+	})
+
+	filledStreams := make([]types.Stream, 0, len(streamsMap))
+	for _, stream := range streamsMap {
+		filledStreams = append(filledStreams, stream)
+	}
+
+	return DistributeRewardsResult{
+		NewPointer:       newPointer,
+		FilledStreams:    filledStreams,
+		DistributedCoins: totalDistributed,
+		Iterations:       iterations,
+	}
 }

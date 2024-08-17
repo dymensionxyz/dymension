@@ -119,8 +119,6 @@ func (suite *KeeperTestSuite) TestTerminateStream_ModuleDistributedCoins() {
 	id2, stream2 := suite.CreateStream(defaultDistrInfo, sdk.Coins{coinActive}, time.Time{}, "day", 10)
 	err = suite.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream2)
 	suite.Require().NoError(err)
-	err = suite.App.StreamerKeeper.UpdateStreamAtEpochStart(suite.Ctx, *stream2)
-	suite.Require().NoError(err)
 
 	toDist := suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
 	suite.Require().Equal(coinUpcoming.Add(coinActive).Amount, toDist.AmountOf("stake"))

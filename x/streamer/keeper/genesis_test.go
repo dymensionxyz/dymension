@@ -63,15 +63,18 @@ func TestStreamerExportGenesis(t *testing.T) {
 	require.NoError(t, err)
 
 	// ensure the first stream listed in the exported genesis explicitly matches expectation
+	const numEpochsPaidOver = 30
 	require.Equal(t, genesis.Streams[0], types.Stream{
 		Id:                   streamID,
 		DistributeTo:         distInfo,
 		Coins:                coins,
-		NumEpochsPaidOver:    30,
+		StartTime:            startTime.UTC(),
 		DistrEpochIdentifier: "day",
+		NumEpochsPaidOver:    numEpochsPaidOver,
 		FilledEpochs:         0,
 		DistributedCoins:     sdk.Coins(nil),
-		StartTime:            startTime.UTC(),
+		Sponsored:            false,
+		EpochCoins:           coins.QuoInt(math.NewInt(numEpochsPaidOver)),
 	})
 }
 

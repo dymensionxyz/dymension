@@ -136,7 +136,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.D
 		sponsored,
 	)
 
-	err = k.setStream(ctx, &stream)
+	err = k.SetStream(ctx, &stream)
 	if err != nil {
 		return 0, err
 	}

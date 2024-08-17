@@ -43,7 +43,7 @@ func (k Keeper) CreateStreamRefKeys(ctx sdk.Context, stream *types.Stream, combi
 // SetStreamWithRefKey takes a single stream and assigns a key.
 // Takes combinedKey (the keyPrefix for upcoming, active, or finished streams combined with stream start time) and adds a reference to the respective stream ID.
 func (k Keeper) SetStreamWithRefKey(ctx sdk.Context, stream *types.Stream) error {
-	err := k.setStream(ctx, stream)
+	err := k.SetStream(ctx, stream)
 	if err != nil {
 		return err
 	}
@@ -68,8 +68,8 @@ func streamStoreKey(ID uint64) []byte {
 	return combineKeys(types.KeyPrefixPeriodStream, sdk.Uint64ToBigEndian(ID))
 }
 
-// setStream set the stream inside store.
-func (k Keeper) setStream(ctx sdk.Context, stream *types.Stream) error {
+// SetStream set the stream inside store.
+func (k Keeper) SetStream(ctx sdk.Context, stream *types.Stream) error {
 	store := ctx.KVStore(k.storeKey)
 	bz, err := proto.Marshal(stream)
 	if err != nil {
