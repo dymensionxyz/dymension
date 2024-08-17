@@ -300,16 +300,13 @@ type FutureRollappHooks interface {
 	// OnRollAppIdChanged is called when a RollApp's ID is changed, typically due to fraud submission.
 	// It migrates all aliases and Dym-Names associated with the previous RollApp ID to the new one.
 	// This function executes step by step in a branched context to prevent side effects, and any errors
-	// during execution will result in the state changes being discarded without returning an error.
+	// during execution will result in the state changes being discarded.
 	//
 	// Parameters:
 	//   - ctx: The SDK context
 	//   - previousRollAppId: The original ID of the RollApp
 	//   - newRollAppId: The new ID assigned to the RollApp
-	//
-	// Returns:
-	//   - error: Always returns nil to prevent reverting critical executions in the caller
-	OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, newRollAppId string) error
+	OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, newRollAppId string)
 	// Just a pseudo method signature, the actual method signature might be different.
 
 	// TODO DymNS: connect to the actual implementation when the hooks are available.
@@ -325,7 +322,7 @@ func (k Keeper) GetFutureRollAppHooks() FutureRollappHooks {
 }
 
 // OnRollAppIdChanged implements FutureRollappHooks.
-func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, newRollAppId string) error {
+func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, newRollAppId string) {
 	logger := h.Logger(ctx).With(
 		"old-rollapp-id", previousRollAppId, "new-rollapp-id", newRollAppId,
 	)
@@ -354,9 +351,7 @@ func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, new
 		return h.SetDefaultAlias(ctx, newRollAppId, aliasesLinkedToPreviousRollApp[0])
 	}); err != nil {
 		logger.Error("aborted alias migration", "error", err)
-
-		// do not return error, that might cause the caller to revert an important execution
-		return nil
+		return
 	}
 
 	if err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
@@ -371,10 +366,8 @@ func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, new
 		return nil
 	}); err != nil {
 		logger.Error("aborted chain-id migration in Dym-Names configurations", "error", err)
-
-		// do not return error, that might cause the caller to revert an important execution
-		return nil
+		return
 	}
 
-	return nil
+	return
 }

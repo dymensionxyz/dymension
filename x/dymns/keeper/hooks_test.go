@@ -2527,13 +2527,11 @@ func (s *KeeperTestSuite) Test_rollappHooks_OnRollAppIdChanged() {
 				tt.setupFunc(s)
 			}
 
-			err := s.dymNsKeeper.GetFutureRollAppHooks().OnRollAppIdChanged(s.ctx, previousRollAppId, newRollAppId)
+			s.dymNsKeeper.GetFutureRollAppHooks().OnRollAppIdChanged(s.ctx, previousRollAppId, newRollAppId)
 
 			if tt.testFunc != nil {
 				tt.testFunc(s)
 			}
-
-			s.Require().NoError(err)
 		})
 	}
 }
