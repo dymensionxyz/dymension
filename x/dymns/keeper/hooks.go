@@ -195,7 +195,8 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, logger log.Log
 }
 
 // getFinishedSellOrders returns the finished Sell-Orders for the asset type.
-// Finished Sell-Orders are the Sell-Orders that have expired or completed by having a bid.
+// Finished Sell-Orders are the Sell-Orders that have expired.
+// Expired sell-orders can either have a bid or not. In both cases we consider them as `finished`.
 func (e epochHooks) getFinishedSellOrders(
 	ctx sdk.Context,
 	activeSellOrdersExpiration *dymnstypes.ActiveSellOrdersExpiration, assetType dymnstypes.AssetType,
@@ -296,6 +297,8 @@ func (h rollappHooks) FraudSubmitted(_ sdk.Context, _ string, _ uint64, _ string
 
 // FutureRollappHooks is temporary added to handle future hooks that not available yet.
 type FutureRollappHooks interface {
+	// OnRollAppIdChanged is called when the RollApp ID is changed.
+	// The reason for a RollApp ID replacement might cause by fraud submission or other critical reasons.
 	OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, newRollAppId string) error
 	// Just a pseudo method signature, the actual method signature might be different.
 
@@ -311,12 +314,8 @@ func (k Keeper) GetFutureRollAppHooks() FutureRollappHooks {
 	}
 }
 
+// OnRollAppIdChanged implements FutureRollappHooks.
 func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, newRollAppId string) error {
-	// This can be call when the RollAppId is changed due to fraud submission,
-	// so due to the critical nature of the reason,
-	// the following execution will be done in branched context to prevent any side effects.
-	// If any error occurs, the state change to this module will be discarded, no error returned to the caller.
-
 	logger := h.Logger(ctx).With(
 		"old-rollapp-id", previousRollAppId, "new-rollapp-id", newRollAppId,
 	)
@@ -326,6 +325,9 @@ func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, new
 		logger.Info("finished DymNS hook on RollApp ID changed")
 	}()
 
+	// Due to the critical nature reason of the hook,
+	// each step will be done in branched context and drop if error, to prevent any side effects.
+
 	if err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
 		aliasesLinkedToPreviousRollApp := h.GetAliasesOfRollAppId(ctx, previousRollAppId)
 		if len(aliasesLinkedToPreviousRollApp) == 0 {
@@ -334,8 +336,7 @@ func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, new
 
 		for _, alias := range aliasesLinkedToPreviousRollApp {
 			if err := h.MoveAliasToRollAppId(ctx, previousRollAppId, alias, newRollAppId); err != nil {
-				logger.Error("failed to migrate alias", "alias", alias, "error", err)
-				return err
+				return errorsmod.Wrapf(errors.Join(gerrc.ErrInternal, err), "failed to migrate alias: %s", alias)
 			}
 		}
 
@@ -354,8 +355,7 @@ func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, new
 		}
 
 		if err := h.migrateChainIdsInDymNames(ctx, previousChainIdsToNewChainId); err != nil {
-			logger.Error("failed to migrate chain-ids in Dym-Names", "error", err)
-			return err
+			return errorsmod.Wrapf(errors.Join(gerrc.ErrInternal, err), "failed to migrate chain-ids in Dym-Names")
 		}
 
 		return nil
