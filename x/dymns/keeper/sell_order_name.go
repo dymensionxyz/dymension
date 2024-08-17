@@ -10,6 +10,10 @@ import (
 
 // CompleteDymNameSellOrder completes the active sell order of the Dym-Name,
 // give value to the previous owner, and transfer ownership to new owner.
+//
+// Sell-Order is considered completed when:
+//   - There is a bid placed, and the Sell-Order has expired.
+//   - There is a bid placed, and it matches the sell price.
 func (k Keeper) CompleteDymNameSellOrder(ctx sdk.Context, name string) error {
 	dymName := k.GetDymName(ctx, name)
 	if dymName == nil {
@@ -38,11 +42,12 @@ func (k Keeper) CompleteDymNameSellOrder(ctx sdk.Context, name string) error {
 
 	newOwner := so.HighestBid.Bidder
 
-	// complete the Sell
+	// complete the Sell-Order
 
 	previousOwner := dymName.Owner
 
-	// give value to the previous owner
+	// bid placed by the bidder will be transferred to the previous owner
+
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 		ctx,
 		dymnstypes.ModuleName,
@@ -57,6 +62,8 @@ func (k Keeper) CompleteDymNameSellOrder(ctx sdk.Context, name string) error {
 
 	// transfer ownership
 
+	// remove the existing reverse mapping
+
 	if err := k.BeforeDymNameOwnerChanged(ctx, dymName.Name); err != nil {
 		return err
 	}
@@ -66,15 +73,17 @@ func (k Keeper) CompleteDymNameSellOrder(ctx sdk.Context, name string) error {
 	}
 
 	// update Dym records to prevent any potential mistake
-	dymName.Owner = newOwner
-	dymName.Controller = newOwner
-	dymName.Configs = nil
-	dymName.Contact = ""
+	dymName.Owner = newOwner      // ownership transfer
+	dymName.Controller = newOwner // new owner becomes the controller
+	dymName.Configs = nil         // clear all configs
+	dymName.Contact = ""          // clear contact
 
 	// persist updated DymName
 	if err := k.SetDymName(ctx, *dymName); err != nil {
 		return err
 	}
+
+	// update reverse mapping
 
 	if err := k.AfterDymNameOwnerChanged(ctx, dymName.Name); err != nil {
 		return err

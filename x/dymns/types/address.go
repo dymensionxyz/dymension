@@ -9,8 +9,9 @@ import (
 )
 
 // FallbackAddress is used for reverse lookup using fallback mechanism.
-// Fallback mechanism is used in reverse-lookup, to find all possible Dym-Name-Address from account address in bytes,
-// compatible for coin-type-60 chains only (host-chain, RollApps)
+// Fallback mechanism is used in reverse-lookup, to find possible Dym-Name-Addresses from account address in bytes,
+// compatible for host-chain and RollApps only.
+// The other chains are not supported because of HD-Path might be different.
 type FallbackAddress []byte
 
 // ValidateBasic performs basic validation for the FallbackAddress.

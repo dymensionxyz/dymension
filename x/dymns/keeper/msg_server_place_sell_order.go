@@ -25,6 +25,8 @@ func (k msgServer) PlaceSellOrder(goCtx context.Context, msg *dymnstypes.MsgPlac
 	var resp *dymnstypes.MsgPlaceSellOrderResponse
 	var err error
 
+	// process the Sell-Order based on the asset type
+
 	if msg.AssetType == dymnstypes.TypeName {
 		resp, err = k.processPlaceSellOrderWithAssetTypeDymName(ctx, msg, priceParams, miscParams)
 	} else if msg.AssetType == dymnstypes.TypeAlias {
@@ -36,6 +38,8 @@ func (k msgServer) PlaceSellOrder(goCtx context.Context, msg *dymnstypes.MsgPlac
 		return nil, err
 	}
 
+	// Charge protocol fee.
+	// The protocol fee mechanism is used to prevent spamming to the network.
 	consumeMinimumGas(ctx, dymnstypes.OpGasPlaceSellOrder, "PlaceSellOrder")
 
 	return resp, nil

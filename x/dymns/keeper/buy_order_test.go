@@ -503,6 +503,12 @@ func (s *KeeperTestSuite) TestKeeper_GetSetInsertNewBuyOrder() {
 			})
 		}
 	})
+
+	s.Run("get - should panic if input Buy-Order ID is malformed", func() {
+		s.Require().Panics(func() {
+			_ = s.dymNsKeeper.GetBuyOrder(s.ctx, "invalid")
+		})
+	})
 }
 
 func (s *KeeperTestSuite) TestKeeper_GetAllBuyOrders() {

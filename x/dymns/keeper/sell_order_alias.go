@@ -9,6 +9,10 @@ import (
 
 // CompleteAliasSellOrder completes the active sell order of the Alias,
 // give value to the previous owner, and assign alias usage to destination RollApp.
+//
+// Sell-Order is considered completed when:
+//   - There is a bid placed, and the Sell-Order has expired.
+//   - There is a bid placed, and it matches the sell price.
 func (k Keeper) CompleteAliasSellOrder(ctx sdk.Context, name string) error {
 	so := k.GetSellOrder(ctx, name, dymnstypes.TypeAlias)
 	if so == nil {
@@ -22,6 +26,8 @@ func (k Keeper) CompleteAliasSellOrder(ctx sdk.Context, name string) error {
 	// the SO can be expired at this point,
 	// in case the highest bid is lower than sell price or no sell price is set,
 	// so the order is expired, but no logic to complete the SO, then will be completed via hooks
+
+	// validation
 
 	if so.HighestBid == nil {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "no bid placed")
@@ -42,9 +48,9 @@ func (k Keeper) CompleteAliasSellOrder(ctx sdk.Context, name string) error {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "destination Roll-App does not exists: %s", destinationRollAppId)
 	}
 
-	// complete the Sell
+	// complete the Sell-Order
 
-	// give value to the previous owner
+	// bid placed by the bidder will be transferred to the previous owner
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 		ctx,
 		dymnstypes.ModuleName,

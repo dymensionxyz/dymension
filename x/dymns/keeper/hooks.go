@@ -348,7 +348,7 @@ func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, new
 		}
 
 		// now priority the first alias from previous RollApp, because users are already familiar with it.
-		return h.SetDefaultAlias(ctx, newRollAppId, aliasesLinkedToPreviousRollApp[0])
+		return h.SetDefaultAliasForRollApp(ctx, newRollAppId, aliasesLinkedToPreviousRollApp[0])
 	}); err != nil {
 		logger.Error("aborted alias migration", "error", err)
 		return

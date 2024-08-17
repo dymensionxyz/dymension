@@ -95,6 +95,8 @@ func (k msgServer) UpdateResolveAddress(goCtx context.Context, msg *dymnstypes.M
 		return nil, err
 	}
 
+	// Charge protocol fee.
+	// The protocol fee mechanism is used to prevent spamming to the network.
 	consumeMinimumGas(ctx, minimumTxGasRequired, "UpdateResolveAddress")
 
 	return &dymnstypes.MsgUpdateResolveAddressResponse{}, nil

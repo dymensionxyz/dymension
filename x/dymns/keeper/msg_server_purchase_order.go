@@ -23,6 +23,9 @@ func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurch
 
 	var resp *dymnstypes.MsgPurchaseOrderResponse
 	var err error
+
+	// process the purchase order based on the asset type
+
 	if msg.AssetType == dymnstypes.TypeName {
 		resp, err = k.processPurchaseOrderWithAssetTypeDymName(ctx, msg, miscParams)
 	} else if msg.AssetType == dymnstypes.TypeAlias {
@@ -34,6 +37,7 @@ func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurch
 		return nil, err
 	}
 
+	// charge protocol fee
 	consumeMinimumGas(ctx, dymnstypes.OpGasPlaceBidOnSellOrder, "PurchaseOrder")
 
 	return resp, nil

@@ -28,10 +28,6 @@ func (k Keeper) IncreaseBuyOrdersCountAndGet(ctx sdk.Context) uint64 {
 func (k Keeper) GetCountBuyOrders(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(dymnstypes.KeyCountBuyOrders)
-	if bz == nil {
-		return 0
-	}
-
 	return sdk.BigEndianToUint64(bz)
 }
 
@@ -44,6 +40,7 @@ func (k Keeper) SetCountBuyOrders(ctx sdk.Context, value uint64) {
 
 // GetAllBuyOrders returns all Buy-Order records from the KVStore.
 // No filter is applied.
+// Store iterator is expensive so this function should be used only in Genesis and for testing purpose.
 func (k Keeper) GetAllBuyOrders(ctx sdk.Context) (list []dymnstypes.BuyOrder) {
 	store := ctx.KVStore(k.storeKey)
 
@@ -90,8 +87,12 @@ func (k Keeper) InsertNewBuyOrder(ctx sdk.Context, buyOrder dymnstypes.BuyOrder)
 		panic("ID of the buy order must be empty")
 	}
 
+	// generate new order ID
+
 	count := k.IncreaseBuyOrdersCountAndGet(ctx)
 	newOrderId := dymnstypes.CreateBuyOrderId(buyOrder.AssetType, count)
+
+	// check if the ID is already used
 
 	existingRecord := k.GetBuyOrder(ctx, newOrderId)
 	if existingRecord != nil {
@@ -100,8 +101,8 @@ func (k Keeper) InsertNewBuyOrder(ctx sdk.Context, buyOrder dymnstypes.BuyOrder)
 		)
 	}
 
+	// assign the ID to the new record and persist
 	buyOrder.Id = newOrderId
-
 	if err := k.SetBuyOrder(ctx, buyOrder); err != nil {
 		return buyOrder, err
 	}

@@ -21,6 +21,8 @@ func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcce
 		return nil, err
 	}
 
+	// get the Buy-Order record from store
+
 	bo := k.GetBuyOrder(ctx, msg.OrderId)
 	if bo == nil {
 		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Order: %s", msg.OrderId)
@@ -30,6 +32,8 @@ func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcce
 
 	var resp *dymnstypes.MsgAcceptBuyOrderResponse
 	var err error
+
+	// process the Buy-Order based on the asset type
 
 	if bo.AssetType == dymnstypes.TypeName {
 		resp, err = k.processAcceptBuyOrderWithAssetTypeDymName(ctx, msg, *bo, miscParams)
@@ -42,6 +46,7 @@ func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcce
 		return nil, err
 	}
 
+	// charge protocol fee
 	consumeMinimumGas(ctx, dymnstypes.OpGasUpdateBuyOrder, "AcceptBuyOrder")
 
 	return resp, nil

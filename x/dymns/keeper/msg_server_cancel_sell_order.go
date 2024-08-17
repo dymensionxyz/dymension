@@ -23,6 +23,9 @@ func (k msgServer) CancelSellOrder(goCtx context.Context, msg *dymnstypes.MsgCan
 
 	var resp *dymnstypes.MsgCancelSellOrderResponse
 	var err error
+
+	// process the Sell-Order based on the asset type
+
 	if msg.AssetType == dymnstypes.TypeName {
 		resp, err = k.processCancelSellOrderWithAssetTypeDymName(ctx, msg)
 	} else if msg.AssetType == dymnstypes.TypeAlias {
@@ -34,6 +37,7 @@ func (k msgServer) CancelSellOrder(goCtx context.Context, msg *dymnstypes.MsgCan
 		return nil, err
 	}
 
+	// charge protocol fee
 	consumeMinimumGas(ctx, dymnstypes.OpGasCloseSellOrder, "CancelSellOrder")
 
 	return resp, nil

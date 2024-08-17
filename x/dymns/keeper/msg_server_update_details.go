@@ -55,6 +55,7 @@ func (k msgServer) UpdateDetails(goCtx context.Context, msg *dymnstypes.MsgUpdat
 		}
 	}
 
+	// charge protocol fee
 	consumeMinimumGas(ctx, minimumTxGasRequired, "UpdateDetails")
 
 	return &dymnstypes.MsgUpdateDetailsResponse{}, nil

@@ -19,22 +19,28 @@ func (k msgServer) CancelBuyOrder(goCtx context.Context, msg *dymnstypes.MsgCanc
 		return nil, err
 	}
 
-	offer := k.GetBuyOrder(ctx, msg.OrderId)
-	if offer == nil {
+	// get the Buy-Order record from store
+
+	bo := k.GetBuyOrder(ctx, msg.OrderId)
+	if bo == nil {
 		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Order ID: %s", msg.OrderId)
 	}
 
 	var resp *dymnstypes.MsgCancelBuyOrderResponse
 	var err error
-	if offer.AssetType == dymnstypes.TypeName || offer.AssetType == dymnstypes.TypeAlias {
-		resp, err = k.processCancelBuyOrder(ctx, msg, *offer)
+
+	// process the Buy-Order based on the asset type
+
+	if bo.AssetType == dymnstypes.TypeName || bo.AssetType == dymnstypes.TypeAlias {
+		resp, err = k.processCancelBuyOrder(ctx, msg, *bo)
 	} else {
-		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", offer.AssetType)
+		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", bo.AssetType)
 	}
 	if err != nil {
 		return nil, err
 	}
 
+	// charge protocol fee
 	consumeMinimumGas(ctx, dymnstypes.OpGasCloseBuyOrder, "CancelBuyOrder")
 
 	return resp, nil

@@ -10,7 +10,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-// GetRollAppIdByAlias returns the RollApp-Id by the alias.
+// GetRollAppIdByAlias returns the RollApp ID which is linked to the input alias.
 func (k Keeper) GetRollAppIdByAlias(ctx sdk.Context, alias string) (rollAppId string, found bool) {
 	defer func() {
 		found = rollAppId != ""
@@ -26,9 +26,9 @@ func (k Keeper) GetRollAppIdByAlias(ctx sdk.Context, alias string) (rollAppId st
 	return
 }
 
-// GetAliasByRollAppId returns the first alias (in case RollApp has multiple aliases) by the RollApp-Id.
-func (k Keeper) GetAliasByRollAppId(ctx sdk.Context, chainId string) (alias string, found bool) {
-	if !k.IsRollAppId(ctx, chainId) {
+// GetAliasByRollAppId returns the first alias (in case RollApp has multiple aliases) linked to the RollApp ID.
+func (k Keeper) GetAliasByRollAppId(ctx sdk.Context, rollAppId string) (alias string, found bool) {
+	if !k.IsRollAppId(ctx, rollAppId) {
 		return
 	}
 
@@ -37,7 +37,7 @@ func (k Keeper) GetAliasByRollAppId(ctx sdk.Context, chainId string) (alias stri
 	}()
 
 	store := ctx.KVStore(k.storeKey)
-	key := dymnstypes.RollAppIdToAliasesKey(chainId)
+	key := dymnstypes.RollAppIdToAliasesKey(rollAppId)
 	bz := store.Get(key)
 	if bz != nil {
 		var multipleAliases dymnstypes.MultipleAliases
@@ -62,10 +62,12 @@ func (k Keeper) SetAliasForRollAppId(ctx sdk.Context, rollAppId, alias string) e
 	keyR2A := dymnstypes.RollAppIdToAliasesKey(rollAppId)
 	keyA2R := dymnstypes.AliasToRollAppIdRvlKey(alias)
 
+	// ensure the alias is not being used by another RollApp
 	if bz := store.Get(keyA2R); bz != nil {
 		return errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias currently being in used by: %s", string(bz))
 	}
 
+	// one RollApp can have multiple aliases, append to the existing list
 	var multipleAliases dymnstypes.MultipleAliases
 	if bz := store.Get(keyR2A); bz != nil {
 		k.cdc.MustUnmarshal(bz, &multipleAliases)
@@ -95,31 +97,32 @@ func (k Keeper) GetAliasesOfRollAppId(ctx sdk.Context, rollAppId string) []strin
 // GetEffectiveAliasesByChainId returns all effective aliases by chain-id.
 // Effective means: if an alias is reserved in params, it will be excluded from the result if the chain-id is a RollApp.
 func (k Keeper) GetEffectiveAliasesByChainId(ctx sdk.Context, chainId string) []string {
-	var result []string
+	var effectiveAliases []string
+
+	// check if there is a mapping in params
 	for _, aliasesOfChainId := range k.ChainsParams(ctx).AliasesOfChainIds {
 		if aliasesOfChainId.ChainId != chainId {
 			continue
 		}
-		result = aliasesOfChainId.Aliases
+		effectiveAliases = aliasesOfChainId.Aliases
 		break
 	}
 
 	if k.IsRollAppId(ctx, chainId) {
-		reservedAliases := k.GetAllAliasAndChainIdInParams(ctx)
+		aliasesOfRollApp := k.GetAliasesOfRollAppId(ctx, chainId)
 
-		aliases := k.GetAliasesOfRollAppId(ctx, chainId)
-
-		// exclude the reserved aliases
+		// If the chain-id is a RollApp, must exclude the aliases which being reserved in params.
 		// Please read the `processActiveAliasSellOrders` method (hooks.go) for more information.
-		aliases = slices.DeleteFunc(aliases, func(a string) bool {
+		reservedAliases := k.GetAllAliasAndChainIdInParams(ctx)
+		aliasesOfRollApp = slices.DeleteFunc(aliasesOfRollApp, func(a string) bool {
 			_, found := reservedAliases[a]
 			return found
 		})
 
-		result = append(result, aliases...)
+		effectiveAliases = append(effectiveAliases, aliasesOfRollApp...)
 	}
 
-	return result
+	return effectiveAliases
 }
 
 // RemoveAliasFromRollAppId removes the linking of an existing alias from a RollApp.
@@ -136,6 +139,7 @@ func (k Keeper) RemoveAliasFromRollAppId(ctx sdk.Context, rollAppId, alias strin
 	keyR2A := dymnstypes.RollAppIdToAliasesKey(rollAppId)
 	keyA2R := dymnstypes.AliasToRollAppIdRvlKey(alias)
 
+	// ensure the alias is being used by the RollApp
 	bzRollAppId := store.Get(keyA2R)
 	if bzRollAppId == nil {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "alias not found: %s", alias)
@@ -143,24 +147,31 @@ func (k Keeper) RemoveAliasFromRollAppId(ctx sdk.Context, rollAppId, alias strin
 		return errorsmod.Wrapf(gerrc.ErrPermissionDenied, "alias currently being in used by: %s", string(bzRollAppId))
 	}
 
+	// load the existing aliases of the RollApp
 	var multipleAliases dymnstypes.MultipleAliases
 	if bz := store.Get(keyR2A); bz != nil {
 		k.cdc.MustUnmarshal(bz, &multipleAliases)
 	}
-	countAliases := len(multipleAliases.Aliases)
 
+	// remove the alias from the RollApp alias list
+	originalAliasesCount := len(multipleAliases.Aliases)
 	multipleAliases.Aliases = slices.DeleteFunc(multipleAliases.Aliases, func(a string) bool {
 		return a == alias
 	})
-	if len(multipleAliases.Aliases) == countAliases {
+	if len(multipleAliases.Aliases) == originalAliasesCount {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "alias not found: %s", alias)
 	}
 
+	// update store
+
+	// if no alias left, remove the key, otherwise update new list
 	if len(multipleAliases.Aliases) == 0 {
 		store.Delete(keyR2A)
 	} else {
 		store.Set(keyR2A, k.cdc.MustMarshal(&multipleAliases))
 	}
+
+	// remove the alias to RollAppId mapping
 	store.Delete(keyA2R)
 
 	return nil
@@ -189,9 +200,13 @@ func (k Keeper) MoveAliasToRollAppId(ctx sdk.Context, srcRollAppId, alias, dstRo
 		return errorsmod.Wrapf(gerrc.ErrPermissionDenied, "source RollApp mis-match: %s", inUsedByRollApp)
 	}
 
+	// remove the existing link
+
 	if err := k.RemoveAliasFromRollAppId(ctx, srcRollAppId, alias); err != nil {
 		return err
 	}
+
+	// set the new link
 
 	return k.SetAliasForRollAppId(ctx, dstRollAppId, alias)
 }
@@ -218,11 +233,13 @@ func (k Keeper) IsAliasPresentsInParamsAsAliasOrChainId(ctx sdk.Context, alias s
 	return found
 }
 
-// SetDefaultAlias move the alias into the first place, so it can be used as default alias in resolution.
-func (k Keeper) SetDefaultAlias(ctx sdk.Context, rollAppId, alias string) error {
+// SetDefaultAliasForRollApp move the alias into the first place, so it can be used as default alias in resolution.
+func (k Keeper) SetDefaultAliasForRollApp(ctx sdk.Context, rollAppId, alias string) error {
+	// load the existing aliases of the RollApp from store
 	existingAliases := k.GetAliasesOfRollAppId(ctx, rollAppId)
-	existingIndex := -1
 
+	// swap the alias to the first place
+	existingIndex := -1
 	for i, existingAlias := range existingAliases {
 		if alias == existingAlias {
 			existingIndex = i
@@ -234,12 +251,13 @@ func (k Keeper) SetDefaultAlias(ctx sdk.Context, rollAppId, alias string) error 
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "alias is not linked to the RollApp: %s", alias)
 	}
 
-	if existingIndex == 0 {
-		// no need to do anything
+	if existingIndex == 0 { // no need to do anything
 		return nil
 	}
 
 	existingAliases[0], existingAliases[existingIndex] = existingAliases[existingIndex], existingAliases[0]
+
+	// update the new list into store
 
 	store := ctx.KVStore(k.storeKey)
 	keyR2A := dymnstypes.RollAppIdToAliasesKey(rollAppId)
@@ -248,7 +266,7 @@ func (k Keeper) SetDefaultAlias(ctx sdk.Context, rollAppId, alias string) error 
 	return nil
 }
 
-// GetAllRollAppsWithAliases returns all RollAppIDs which have aliases and their aliases.
+// GetAllRollAppsWithAliases returns all RollApp IDs which have aliases and their aliases.
 func (k Keeper) GetAllRollAppsWithAliases(ctx sdk.Context) (list []dymnstypes.AliasesOfChainId) {
 	store := ctx.KVStore(k.storeKey)
 

@@ -11,10 +11,10 @@ func (k Keeper) SetSellOrder(ctx sdk.Context, so dymnstypes.SellOrder) error {
 		return err
 	}
 
+	// micro optimize to save space
 	if !so.HasSetSellPrice() {
 		so.SellPrice = nil
 	}
-
 	if so.HighestBid != nil && len(so.HighestBid.Params) == 0 {
 		so.HighestBid.Params = nil
 	}
@@ -65,6 +65,7 @@ func (k Keeper) DeleteSellOrder(ctx sdk.Context, assetId string, assetType dymns
 
 // GetAllSellOrders returns all active Sell-Orders from the KVStore.
 // No filter is applied.
+// Store iterator is expensive so this function should be used only in Genesis and for testing purpose.
 func (k Keeper) GetAllSellOrders(ctx sdk.Context) (list []dymnstypes.SellOrder) {
 	store := ctx.KVStore(k.storeKey)
 
@@ -83,15 +84,20 @@ func (k Keeper) GetAllSellOrders(ctx sdk.Context) (list []dymnstypes.SellOrder) 
 }
 
 // SetActiveSellOrdersExpiration stores the expiration of the active Sell-Orders records into the KVStore.
+// When a Sell-Order is created, it has an expiration time, later be processed by the batch processing in `x/epochs` hooks,
+// instead of iterating through all the Sell-Orders records in store, we store the expiration of the active Sell-Orders,
+// so that we can easily find the expired Sell-Orders and conditionally load them to process.
+// This expiration list should be maintained accordingly to the Sell-Order CRUD.
 func (k Keeper) SetActiveSellOrdersExpiration(ctx sdk.Context,
-	aSoe *dymnstypes.ActiveSellOrdersExpiration, assetType dymnstypes.AssetType,
+	activeSellOrdersExpiration *dymnstypes.ActiveSellOrdersExpiration, assetType dymnstypes.AssetType,
 ) error {
-	aSoe.Sort()
+	activeSellOrdersExpiration.Sort()
 
-	if err := aSoe.Validate(); err != nil {
+	if err := activeSellOrdersExpiration.Validate(); err != nil {
 		return err
 	}
 
+	// use key according to asset type
 	var key []byte
 	switch assetType {
 	case dymnstypes.TypeName:
@@ -104,17 +110,20 @@ func (k Keeper) SetActiveSellOrdersExpiration(ctx sdk.Context,
 
 	// persist record
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(aSoe)
+	bz := k.cdc.MustMarshal(activeSellOrdersExpiration)
 	store.Set(key, bz)
 	return nil
 }
 
-// GetActiveSellOrdersExpiration retrieves the expiration of the active Sell-Orders records from the KVStore.
+// GetActiveSellOrdersExpiration retrieves the expiration of the active Sell-Orders records
+// of the corresponding asset type.
+// For more information, see SetActiveSellOrdersExpiration.
 func (k Keeper) GetActiveSellOrdersExpiration(ctx sdk.Context,
 	assetType dymnstypes.AssetType,
 ) *dymnstypes.ActiveSellOrdersExpiration {
 	store := ctx.KVStore(k.storeKey)
 
+	// use key according to asset type
 	var key []byte
 	switch assetType {
 	case dymnstypes.TypeName:
@@ -125,16 +134,16 @@ func (k Keeper) GetActiveSellOrdersExpiration(ctx sdk.Context,
 		panic("invalid asset type: " + assetType.PrettyName())
 	}
 
-	var aSoe dymnstypes.ActiveSellOrdersExpiration
+	var activeSellOrdersExpiration dymnstypes.ActiveSellOrdersExpiration
 
 	bz := store.Get(key)
 	if bz != nil {
-		k.cdc.MustUnmarshal(bz, &aSoe)
+		k.cdc.MustUnmarshal(bz, &activeSellOrdersExpiration)
 	}
 
-	if aSoe.Records == nil {
-		aSoe.Records = make([]dymnstypes.ActiveSellOrdersExpirationRecord, 0)
+	if activeSellOrdersExpiration.Records == nil {
+		activeSellOrdersExpiration.Records = make([]dymnstypes.ActiveSellOrdersExpirationRecord, 0)
 	}
 
-	return &aSoe
+	return &activeSellOrdersExpiration
 }

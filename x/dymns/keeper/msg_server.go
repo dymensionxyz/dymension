@@ -22,7 +22,7 @@ func NewMsgServerImpl(keeper Keeper) dymnstypes.MsgServer {
 func consumeMinimumGas(ctx sdk.Context, minimumGas uint64, actionName string) {
 	if minimumGas > 0 {
 		if consumedGas := ctx.GasMeter().GasConsumed(); consumedGas < minimumGas {
-			// we only consume the gas that is needed to reach the minimum gas
+			// we only consume the gas that is needed to reach the target minimum gas
 			gasToConsume := minimumGas - consumedGas
 
 			ctx.GasMeter().ConsumeGas(gasToConsume, actionName)

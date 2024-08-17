@@ -933,7 +933,7 @@ func (s *KeeperTestSuite) TestKeeper_IsAliasPresentsInParamsAsAliasOrChainId() {
 	}
 }
 
-func (s *KeeperTestSuite) TestKeeper_SetDefaultAlias() {
+func (s *KeeperTestSuite) TestKeeper_SetDefaultAliasForRollApp() {
 	const rollAppId = "rollapp_1-1"
 
 	const anotherRollAppId = "rollapp_2-2"
@@ -1039,7 +1039,7 @@ func (s *KeeperTestSuite) TestKeeper_SetDefaultAlias() {
 				)
 			}
 
-			err := s.dymNsKeeper.SetDefaultAlias(s.ctx, tt.rollAppId, tt.moveAlias)
+			err := s.dymNsKeeper.SetDefaultAliasForRollApp(s.ctx, tt.rollAppId, tt.moveAlias)
 
 			defer func() {
 				if tt.rollAppId == "" || s.T().Failed() {

@@ -16,7 +16,7 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(dymnstypes.ModuleName, sellOrderExpirationInvariantName, SellOrderExpirationInvariant(k))
 }
 
-// SellOrderExpirationInvariant checks that the records in the `ActiveSellOrdersExpiration` (aSoe) records are valid.
+// SellOrderExpirationInvariant checks that the records in the `ActiveSellOrdersExpiration` records are valid.
 // The `ActiveSellOrdersExpiration` is used in hook and records are fetch from the store frequently,
 // so we need to make sure the records are correct.
 func SellOrderExpirationInvariant(k Keeper) sdk.Invariant {

@@ -25,6 +25,8 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 	var resp *dymnstypes.MsgPlaceBuyOrderResponse
 	var err error
 
+	// process the Buy-Order based on the asset type
+
 	if msg.AssetType == dymnstypes.TypeName {
 		resp, err = k.placeBuyOrderWithAssetTypeDymName(ctx, msg, priceParams, miscParams)
 	} else if msg.AssetType == dymnstypes.TypeAlias {
@@ -36,13 +38,13 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 		return nil, err
 	}
 
+	// compute protocol fee and charge
 	var minimumTxGasRequired sdk.Gas
 	if msg.ContinueOrderId != "" {
 		minimumTxGasRequired = dymnstypes.OpGasUpdateBuyOrder
 	} else {
 		minimumTxGasRequired = dymnstypes.OpGasPutBuyOrder
 	}
-
 	consumeMinimumGas(ctx, minimumTxGasRequired, "PlaceBuyOrder")
 
 	return resp, nil

@@ -12,7 +12,9 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
-// AddReverseMappingOwnerToOwnedDymName add a reverse mapping from owner to owned Dym-Name into the KVStore.
+// AddReverseMappingOwnerToOwnedDymName add a reverse mapping from the owner to owned Dym-Name into the KVStore.
+// This reverse mapping should help to find all Dym-Names that owned by the account address.
+// This should be called when a new Dym-Name is created and after the owner is updated.
 func (k Keeper) AddReverseMappingOwnerToOwnedDymName(ctx sdk.Context, owner, name string) error {
 	accAddr, err := sdk.AccAddressFromBech32(owner)
 	if err != nil {
@@ -25,8 +27,8 @@ func (k Keeper) AddReverseMappingOwnerToOwnedDymName(ctx sdk.Context, owner, nam
 }
 
 // GetDymNamesOwnedBy returns all Dym-Names owned by the account address.
-// The action done by reverse mapping from owner to owned Dym-Name.
 // The Dym-Names are filtered by the owner and excluded expired Dym-Name using the time from context.
+// The action done by reverse mapping from owner to owned Dym-Name.
 func (k Keeper) GetDymNamesOwnedBy(
 	ctx sdk.Context, owner string,
 ) ([]dymnstypes.DymName, error) {
@@ -35,21 +37,28 @@ func (k Keeper) GetDymNamesOwnedBy(
 		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, owner)
 	}
 
+	// load the reverse mapping record
 	dymNamesOwnedByAccountKey := dymnstypes.DymNamesOwnedByAccountRvlKey(accAddr)
-
 	existingOwnedDymNames := k.GenericGetReverseLookupDymNamesRecord(ctx, dymNamesOwnedByAccountKey)
+
+	// load the Dym-Names follow the names from the reverse mapping
 
 	var dymNames []dymnstypes.DymName
 	for _, owned := range existingOwnedDymNames.DymNames {
 		dymName := k.GetDymNameWithExpirationCheck(ctx, owned)
+
+		// invalid records will be skipped
+
 		if dymName == nil {
-			// dym-name not found or expired, skip
+			// Dym-Name not found or expired, skip
 			continue
 		}
+
 		if dymName.Owner != owner {
-			// dym-name owner mismatch, skip
+			// Dym-Name owner mismatch, skip
 			continue
 		}
+
 		dymNames = append(dymNames, *dymName)
 	}
 
@@ -57,6 +66,7 @@ func (k Keeper) GetDymNamesOwnedBy(
 }
 
 // RemoveReverseMappingOwnerToOwnedDymName removes a reverse mapping from owner to owned Dym-Name from the KVStore.
+// This should be called before the Dym-Name is deleted or before the owner is updated.
 func (k Keeper) RemoveReverseMappingOwnerToOwnedDymName(ctx sdk.Context, owner, name string) error {
 	accAddr, err := sdk.AccAddressFromBech32(owner)
 	if err != nil {
@@ -70,6 +80,8 @@ func (k Keeper) RemoveReverseMappingOwnerToOwnedDymName(ctx sdk.Context, owner, 
 
 // AddReverseMappingConfiguredAddressToDymName add a reverse mapping from configured address to Dym-Name
 // which contains the configuration, into the KVStore.
+// This reverse mapping should help to find all Dym-Names that contains the configured address.
+// This should be called when a new Dym-Name is created and after the configuration is updated.
 func (k Keeper) AddReverseMappingConfiguredAddressToDymName(ctx sdk.Context, configuredAddress, name string) error {
 	configuredAddress = normalizeConfiguredAddressForReverseMapping(configuredAddress)
 	if err := validateConfiguredAddressForReverseMapping(configuredAddress); err != nil {
@@ -89,22 +101,27 @@ func (k Keeper) AddReverseMappingConfiguredAddressToDymName(ctx sdk.Context, con
 func (k Keeper) GetDymNamesContainsConfiguredAddress(
 	ctx sdk.Context, configuredAddress string,
 ) ([]dymnstypes.DymName, error) {
+	// normalize the configured address following rule and validate it
 	configuredAddress = normalizeConfiguredAddressForReverseMapping(configuredAddress)
 	if err := validateConfiguredAddressForReverseMapping(configuredAddress); err != nil {
 		return nil, err
 	}
 
+	// load the reverse mapping record
 	key := dymnstypes.ConfiguredAddressToDymNamesIncludeRvlKey(configuredAddress)
-
 	currentDymNamesContainsConfiguredAddress := k.GenericGetReverseLookupDymNamesRecord(ctx, key)
+
+	// load the Dym-Names follow the names from the reverse mapping
 
 	var dymNames []dymnstypes.DymName
 	for _, name := range currentDymNamesContainsConfiguredAddress.DymNames {
 		dymName := k.GetDymNameWithExpirationCheck(ctx, name)
+
 		if dymName == nil {
-			// dym-name not found, skip
+			// Dym-Name not found or expired, skip
 			continue
 		}
+
 		dymNames = append(dymNames, *dymName)
 	}
 
@@ -113,6 +130,7 @@ func (k Keeper) GetDymNamesContainsConfiguredAddress(
 
 // RemoveReverseMappingConfiguredAddressToDymName removes reverse mapping from configured address
 // to Dym-Names which contains it from the KVStore.
+// This should be called before the Dym-Name is deleted or before the configuration is updated.
 func (k Keeper) RemoveReverseMappingConfiguredAddressToDymName(ctx sdk.Context, configuredAddress, name string) error {
 	configuredAddress = normalizeConfiguredAddressForReverseMapping(configuredAddress)
 	if err := validateConfiguredAddressForReverseMapping(configuredAddress); err != nil {
@@ -150,6 +168,8 @@ func normalizeConfiguredAddressForReverseMapping(configuredAddress string) strin
 
 // AddReverseMappingFallbackAddressToDymName add a reverse mapping
 // from fallback address to Dym-Name which contains the fallback address, into the KVStore.
+// This reverse mapping should help to find all Dym-Names that contains the fallback address.
+// This should be called when a new Dym-Name is created and after the configuration is updated.
 func (k Keeper) AddReverseMappingFallbackAddressToDymName(ctx sdk.Context, fallbackAddr dymnstypes.FallbackAddress, name string) error {
 	if err := fallbackAddr.ValidateBasic(); err != nil {
 		return err
@@ -173,17 +193,21 @@ func (k Keeper) GetDymNamesContainsFallbackAddress(
 		return nil, err
 	}
 
+	// load the reverse mapping record
 	key := dymnstypes.FallbackAddressToDymNamesIncludeRvlKey(fallbackAddr)
-
 	currentDymNamesContainsFallbackAddress := k.GenericGetReverseLookupDymNamesRecord(ctx, key)
+
+	// load the Dym-Names follow the names from the reverse mapping
 
 	var dymNames []dymnstypes.DymName
 	for _, name := range currentDymNamesContainsFallbackAddress.DymNames {
 		dymName := k.GetDymNameWithExpirationCheck(ctx, name)
+
 		if dymName == nil {
-			// dym-name not found, skip
+			// dym-name not found or expired, skip
 			continue
 		}
+
 		dymNames = append(dymNames, *dymName)
 	}
 
@@ -192,6 +216,7 @@ func (k Keeper) GetDymNamesContainsFallbackAddress(
 
 // RemoveReverseMappingFallbackAddressToDymName removes reverse mapping
 // from fallback address to Dym-Names which contains it from the KVStore.
+// This should be called before the Dym-Name is deleted or before the configuration is updated.
 func (k Keeper) RemoveReverseMappingFallbackAddressToDymName(ctx sdk.Context, fallbackAddr dymnstypes.FallbackAddress, name string) error {
 	if err := fallbackAddr.ValidateBasic(); err != nil {
 		return err
