@@ -1,14 +1,10 @@
 #!/bin/sh
 
 if [ "$EXECUTABLE" = "" ]; then
-  DEFAULT_EXECUTABLE=$(which dymd)
-
-  if [ "$DEFAULT_EXECUTABLE" = "" ]; then
+    echo 'please run `make install` and export the installed binary with'
+    echo '`export EXECUTABLE=$(which dymd)'
     echo "dymd not found in PATH. Exiting."
     exit 1
-  fi
-  echo "EXECUTABLE is not set, using '${DEFAULT_EXECUTABLE}'"
-  EXECUTABLE=$DEFAULT_EXECUTABLE
 fi
 
 # Validate dymension binary exists
