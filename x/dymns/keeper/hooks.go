@@ -297,8 +297,18 @@ func (h rollappHooks) FraudSubmitted(_ sdk.Context, _ string, _ uint64, _ string
 
 // FutureRollappHooks is temporary added to handle future hooks that not available yet.
 type FutureRollappHooks interface {
-	// OnRollAppIdChanged is called when the RollApp ID is changed.
-	// The reason for a RollApp ID replacement might cause by fraud submission or other critical reasons.
+	// OnRollAppIdChanged is called when a RollApp's ID is changed, typically due to fraud submission.
+	// It migrates all aliases and Dym-Names associated with the previous RollApp ID to the new one.
+	// This function executes step by step in a branched context to prevent side effects, and any errors
+	// during execution will result in the state changes being discarded without returning an error.
+	//
+	// Parameters:
+	//   - ctx: The SDK context
+	//   - previousRollAppId: The original ID of the RollApp
+	//   - newRollAppId: The new ID assigned to the RollApp
+	//
+	// Returns:
+	//   - error: Always returns nil to prevent reverting critical executions in the caller
 	OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, newRollAppId string) error
 	// Just a pseudo method signature, the actual method signature might be different.
 
