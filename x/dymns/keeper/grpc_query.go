@@ -59,6 +59,10 @@ func (q queryServer) ResolveDymNameAddresses(goCtx context.Context, req *dymnsty
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
+	if addrCount := len(req.Addresses); addrCount > dymnstypes.LimitMaxElementsInApiRequest {
+		return nil, status.Errorf(codes.InvalidArgument, "too many input addresses: %d > %d", addrCount, dymnstypes.LimitMaxElementsInApiRequest)
+	}
+
 	// There is a phishing attack vector like this: dym1.....@dym
 	// With the current implementation, it is limited to 20 characters per name/sub-name
 	// so, it is easier to recognize: dym1234.5678@dym
@@ -216,12 +220,12 @@ func (q queryServer) EstimateRegisterAlias(goCtx context.Context, req *dymnstype
 // For example: when we have "my-name@dym" resolves to "dym1a..."
 // so reverse resolve will return "my-name@dym" when input is "dym1a..."
 func (q queryServer) ReverseResolveAddress(goCtx context.Context, req *dymnstypes.ReverseResolveAddressRequest) (*dymnstypes.ReverseResolveAddressResponse, error) {
-	if req == nil {
+	if req == nil || len(req.Addresses) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	if len(req.Addresses) < 1 {
-		return nil, status.Error(codes.InvalidArgument, "no addresses provided")
+	if addrCount := len(req.Addresses); addrCount > dymnstypes.LimitMaxElementsInApiRequest {
+		return nil, status.Errorf(codes.InvalidArgument, "too many input addresses: %d > %d", addrCount, dymnstypes.LimitMaxElementsInApiRequest)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -423,7 +427,9 @@ func (q queryServer) Alias(goCtx context.Context, req *dymnstypes.QueryAliasRequ
 
 	if len(aliasesOfSameChain) > 0 {
 		// exclude the alias itself
-		aliasesOfSameChain = dymnstypes.StringList(aliasesOfSameChain).Exclude([]string{req.Alias})
+		aliasesOfSameChain = slices.DeleteFunc(aliasesOfSameChain, func(alias string) bool {
+			return alias == req.Alias
+		})
 	}
 
 	return &dymnstypes.QueryAliasResponse{

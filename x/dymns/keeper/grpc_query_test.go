@@ -249,6 +249,17 @@ func (s *KeeperTestSuite) Test_queryServer_ResolveDymNameAddresses() {
 		s.Require().Equal(addr1a, resp.ResolvedAddresses[0].ResolvedAddress)
 		s.Require().Equal(addr3a, resp.ResolvedAddresses[1].ResolvedAddress)
 	})
+
+	s.Run("should limit number of input", func() {
+		resp, err := queryServer.ResolveDymNameAddresses(
+			sdk.WrapSDKContext(s.ctx),
+			&dymnstypes.ResolveDymNameAddressesRequest{
+				Addresses: make([]string, 101),
+			},
+		)
+		s.Require().ErrorContains(err, "too many input addresses")
+		s.Require().Nil(resp)
+	})
 }
 
 func (s *KeeperTestSuite) Test_queryServer_DymNamesOwnedByAccount() {
@@ -1579,6 +1590,13 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 				},
 			},
 			wantWorkingChainId: "bitcoin",
+		},
+		{
+			name:            "fail - should limit the number of input addresses",
+			addresses:       make([]string, 101),
+			workingChainId:  s.chainId,
+			wantErr:         true,
+			wantErrContains: "too many input addresses",
 		},
 	}
 	for _, tt := range tests {

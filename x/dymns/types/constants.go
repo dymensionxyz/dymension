@@ -63,3 +63,8 @@ const (
 	BuyOrderIdTypeDymNamePrefix = "10"
 	BuyOrderIdTypeAliasPrefix   = "20"
 )
+
+const (
+	// LimitMaxElementsInApiRequest is the maximum number of elements allowed in a single API request.
+	LimitMaxElementsInApiRequest = 100
+)
