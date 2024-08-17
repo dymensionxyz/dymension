@@ -327,9 +327,6 @@ func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, new
 	)
 
 	logger.Info("begin DymNS hook on RollApp ID changed.")
-	defer func() {
-		logger.Info("finished DymNS hook on RollApp ID changed.")
-	}()
 
 	// Due to the critical nature reason of the hook,
 	// each step will be done in branched context and drop if error, to prevent any side effects.
@@ -349,7 +346,7 @@ func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, new
 		// now priority the first alias from previous RollApp, because users are already familiar with it.
 		return h.SetDefaultAliasForRollApp(ctx, newRollAppId, aliasesLinkedToPreviousRollApp[0])
 	}); err != nil {
-		logger.Error("aborted alias migration", "error", err)
+		logger.Error("aborted alias migration.", "error", err)
 		return
 	}
 
@@ -364,9 +361,9 @@ func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, new
 
 		return nil
 	}); err != nil {
-		logger.Error("aborted chain-id migration in Dym-Names configurations", "error", err)
+		logger.Error("aborted chain-id migration in Dym-Names configurations.", "error", err)
 		return
 	}
 
-	return
+	logger.Info("finished DymNS hook on RollApp ID changed.")
 }
