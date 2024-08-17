@@ -187,8 +187,7 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, logger log.Log
 	}
 
 	if err := e.SetActiveSellOrdersExpiration(ctx, activeSellOrdersExpiration, dymnstypes.TypeAlias); err != nil {
-		e.Keeper.Logger(ctx).Error("failed to update active SO expiry.", "error", err)
-		return err
+		return errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "failed to update active SO expiry")
 	}
 
 	return nil
@@ -327,9 +326,9 @@ func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, new
 		"old-rollapp-id", previousRollAppId, "new-rollapp-id", newRollAppId,
 	)
 
-	logger.Info("begin DymNS hook on RollApp ID changed")
+	logger.Info("begin DymNS hook on RollApp ID changed.")
 	defer func() {
-		logger.Info("finished DymNS hook on RollApp ID changed")
+		logger.Info("finished DymNS hook on RollApp ID changed.")
 	}()
 
 	// Due to the critical nature reason of the hook,

@@ -776,7 +776,7 @@ func (s *KeeperTestSuite) TestKeeper_UpdateAliases() {
 				},
 			},
 			wantErr:         true,
-			wantErrContains: "alias: d1 for dymension_1100-1: already exists",
+			wantErrContains: "alias d1 already mapped to chain-id dymension_1100-1 in params",
 			wantChainsAliasParams: []dymnstypes.AliasesOfChainId{
 				{
 					ChainId: "dymension_1100-1",
@@ -836,7 +836,7 @@ func (s *KeeperTestSuite) TestKeeper_UpdateAliases() {
 				},
 			},
 			wantErr:         true,
-			wantErrContains: "not found to remove",
+			wantErrContains: "alias does not exists in params: d3: not found",
 			wantChainsAliasParams: []dymnstypes.AliasesOfChainId{
 				{
 					ChainId: "dymension_1100-1",

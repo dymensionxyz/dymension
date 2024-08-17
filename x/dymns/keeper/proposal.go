@@ -1,7 +1,10 @@
 package keeper
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
@@ -70,12 +73,7 @@ func (k Keeper) migrateChainIdsInParams(ctx sdk.Context, previousChainIdsToNewCh
 	}
 
 	if err := k.SetParams(ctx, params); err != nil {
-		k.Logger(ctx).Error(
-			"failed to update params",
-			"error", err,
-			"migration-state", "aborted",
-		)
-		return err
+		return errorsmod.Wrapf(errors.Join(gerrc.ErrInternal, err), "failed to update params")
 	}
 
 	return nil
@@ -86,9 +84,6 @@ func (k Keeper) migrateChainIdsInDymNames(ctx sdk.Context, previousChainIdsToNew
 	// We only migrate for Dym-Names that not expired to reduce IO needed.
 
 	nonExpiredDymNames := k.GetAllNonExpiredDymNames(ctx)
-	if len(nonExpiredDymNames) < 1 {
-		return nil
-	}
 
 	for _, dymName := range nonExpiredDymNames {
 		newConfigs := make([]dymnstypes.DymNameConfig, len(dymName.Configs))
@@ -113,11 +108,9 @@ func (k Keeper) migrateChainIdsInDymNames(ctx sdk.Context, previousChainIdsToNew
 
 		if err := dymName.Validate(); err != nil {
 			k.Logger(ctx).Error(
-				"failed to migrate chain ids for Dym-Name",
+				"failed to migrate chain ids for Dym-Name, ignored",
 				"dymName", dymName.Name,
-				"step", "Validate",
 				"error", err,
-				"migration-state", "continue",
 			)
 			// Skip migration for this Dym-Name.
 			// We don't want to break the migration process for other Dym-Names.
@@ -133,17 +126,13 @@ func (k Keeper) migrateChainIdsInDymNames(ctx sdk.Context, previousChainIdsToNew
 		// Reverse-resolve records are re-computed in runtime anyway.
 
 		if err := k.SetDymName(ctx, dymName); err != nil {
-			k.Logger(ctx).Error(
-				"failed to migrate chain ids for Dym-Name",
-				"dymName", dymName.Name,
-				"step", "SetDymName",
-				"error", err,
-				"migration-state", "aborted",
+			return errorsmod.Wrapf(
+				errors.Join(gerrc.ErrInternal, err),
+				"failed to migrate chain ids for Dym-Name: %s", dymName.Name,
 			)
-			return err
 		}
 
-		k.Logger(ctx).Info("migrated chain ids for Dym-Name", "dymName", dymName.Name)
+		k.Logger(ctx).Info("migrated chain ids for Dym-Name.", "dymName", dymName.Name)
 	}
 
 	return nil
@@ -178,16 +167,7 @@ func (k Keeper) UpdateAliases(ctx sdk.Context, add, remove []dymnstypes.UpdateAl
 
 			_, foundAlias := existingAliases[alias]
 			if foundAlias {
-				err := errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias: %s for %s", alias, chainId)
-				k.Logger(ctx).Error(
-					"failed to add alias for chain-id",
-					"chain-id", chainId,
-					"alias", alias,
-					"step", "add",
-					"error", err,
-					"update-state", "aborted",
-				)
-				return err
+				return errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias %s already mapped to chain-id %s in params", alias, chainId)
 			}
 
 			existingAliases[alias] = true
@@ -202,30 +182,12 @@ func (k Keeper) UpdateAliases(ctx sdk.Context, add, remove []dymnstypes.UpdateAl
 
 			aliasesPerChainId, foundExistingChainId := chainIdToAliasConfig[chainId]
 			if !foundExistingChainId {
-				err := errorsmod.Wrapf(gerrc.ErrNotFound, "chain id not found to remove: %s", chainId)
-				k.Logger(ctx).Error(
-					"failed to remove alias for chain-id",
-					"chain-id", chainId,
-					"alias", alias,
-					"step", "remove",
-					"error", err,
-					"update-state", "aborted",
-				)
-				return err
+				return errorsmod.Wrapf(gerrc.ErrNotFound, "chain id not found to remove: %s", chainId)
 			}
 
 			_, foundAlias := aliasesPerChainId[alias]
 			if !foundAlias {
-				err := errorsmod.Wrapf(gerrc.ErrNotFound, "alias not found to remove: %s", alias)
-				k.Logger(ctx).Error(
-					"failed to remove alias for chain-id",
-					"chain-id", chainId,
-					"alias", alias,
-					"step", "remove",
-					"error", err,
-					"update-state", "aborted",
-				)
-				return err
+				return errorsmod.Wrapf(gerrc.ErrNotFound, "alias does not exists in params: %s", alias)
 			}
 
 			delete(aliasesPerChainId, alias)
@@ -250,12 +212,7 @@ func (k Keeper) UpdateAliases(ctx sdk.Context, add, remove []dymnstypes.UpdateAl
 	params.Chains.AliasesOfChainIds = newAliasesOfChainIds
 
 	if err := k.SetParams(ctx, params); err != nil {
-		k.Logger(ctx).Error(
-			"failed to update params",
-			"error", err,
-			"migration-state", "aborted",
-		)
-		return err
+		return errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "failed to update params")
 	}
 
 	return nil
