@@ -15,8 +15,6 @@ var (
 
 	// CreateGaugeFee is the fee required to create a new gauge.
 	CreateGaugeFee = DYM.Mul(sdk.NewInt(10))
-	// AddToGaugeFee is the fee required to add to gauge.
-	AddToGaugeFee = sdk.ZeroInt()
 )
 
 // NewAssetGauge creates a new asset gauge to stream rewards to some asset lockup conditions.

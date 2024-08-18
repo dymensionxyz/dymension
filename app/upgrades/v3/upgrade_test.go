@@ -40,8 +40,6 @@ var (
 
 	// CreateGaugeFee is the fee required to create a new gauge.
 	expectCreateGaugeFee = DYM.Mul(sdk.NewInt(10))
-	// AddToGaugeFee is the fee required to add to gauge.
-	expectAddToGaugeFee = sdk.ZeroInt()
 
 	expectDelayedackEpochIdentifier = "hour"
 	expectDelayedackBridgingFee     = sdk.NewDecWithPrec(1, 3)
@@ -103,7 +101,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				}
 
 				// Check Incentives parameters
-				if !incentivestypes.CreateGaugeFee.Equal(expectCreateGaugeFee) || !incentivestypes.AddToGaugeFee.Equal(expectAddToGaugeFee) {
+				if !incentivestypes.CreateGaugeFee.Equal(expectCreateGaugeFee) {
 					return fmt.Errorf("incentives parameters not set correctly")
 				}
 

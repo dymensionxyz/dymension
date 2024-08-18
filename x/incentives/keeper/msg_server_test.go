@@ -11,6 +11,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -105,6 +106,8 @@ func (suite *KeeperTestSuite) TestCreateGauge() {
 			Duration:      defaultLockDuration,
 		}
 
+		txfeesBalanceBefore := bankKeeper.GetBalance(ctx, accountKeeper.GetModuleAddress(txfees.ModuleName), "adym")
+
 		msg := &types.MsgCreateGauge{
 			IsPerpetual:       tc.isPerpetual,
 			Owner:             testAccountAddress.String(),
@@ -129,7 +132,9 @@ func (suite *KeeperTestSuite) TestCreateGauge() {
 			finalAccountBalance := accountBalance.Sub(fee...)
 			suite.Require().Equal(finalAccountBalance.String(), balanceAmount.String(), "test: %v", tc.name)
 
-			//FIXME: test fee charged to txfees module account
+			// test fee charged to txfees module account
+			txfeesBalanceAfter := bankKeeper.GetBalance(ctx, accountKeeper.GetModuleAddress(txfees.ModuleName), "adym")
+			suite.Require().Equal(txfeesBalanceBefore.Amount.Add(types.CreateGaugeFee), txfeesBalanceAfter.Amount, "test: %v", tc.name)
 		}
 	}
 }
@@ -230,10 +235,8 @@ func (suite *KeeperTestSuite) TestAddToGauge() {
 		bal := bankKeeper.GetAllBalances(ctx, testAccountAddress)
 
 		if tc.expectErr {
-			fee := sdk.NewCoins(sdk.NewCoin("adym", types.AddToGaugeFee))
 			accountBalance := tc.accountBalanceToFund.Sub(tc.gaugeAddition...)
-			finalAccountBalance := accountBalance.Sub(fee...)
-			suite.Require().Equal(finalAccountBalance.String(), bal.String(), "test: %v", tc.name)
+			suite.Require().Equal(accountBalance.String(), bal.String(), "test: %v", tc.name)
 		}
 	}
 }
