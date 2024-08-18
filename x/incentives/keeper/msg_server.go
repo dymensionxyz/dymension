@@ -2,14 +2,17 @@ package keeper
 
 import (
 	"context"
-
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 
+	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+
+	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // msgServer provides a way to reference keeper pointer in the message server interface.
@@ -27,21 +30,24 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 var _ types.MsgServer = msgServer{}
 
 // CreateGauge creates a gauge and sends coins to the gauge.
+// Creation fee is charged from the address and sent to the txfees module to be burned.
 // Emits create gauge event and returns the create gauge response.
 func (server msgServer) CreateGauge(goCtx context.Context, msg *types.MsgCreateGauge) (*types.MsgCreateGaugeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	k := server.keeper
 	owner, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := server.keeper.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, types.CreateGaugeFee, msg.Coins); err != nil {
-		return nil, err
+	// charge creation fee
+	if err := k.chargeCreationFee(ctx, owner); err != nil {
+		return nil, fmt.Errorf("charge creation fee: %w", err)
 	}
 
 	gaugeID, err := server.keeper.CreateGauge(ctx, msg.IsPerpetual, owner, msg.Coins, msg.DistributeTo, msg.StartTime, msg.NumEpochsPaidOver)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return nil, fmt.Errorf("create gauge: %w", err)
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -63,12 +69,9 @@ func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGau
 		return nil, err
 	}
 
-	if err := server.keeper.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, types.AddToGaugeFee, msg.Rewards); err != nil {
-		return nil, err
-	}
 	err = server.keeper.AddToGaugeRewards(ctx, owner, msg.Rewards, msg.GaugeId)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return nil, fmt.Errorf("add to gauge rewards: %w", err)
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -81,30 +84,12 @@ func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGau
 	return &types.MsgAddToGaugeResponse{}, nil
 }
 
-// chargeFeeIfSufficientFeeDenomBalance charges fee in the base denom on the address if the address has
-// balance that is less than fee + amount of the coin from gaugeCoins that is of base denom.
-// gaugeCoins might not have a coin of tx base denom. In that case, fee is only compared to balance.
-// The fee is sent to the community pool.
-func (k Keeper) chargeFeeIfSufficientFeeDenomBalance(ctx sdk.Context, address sdk.AccAddress, fee sdk.Int, gaugeCoins sdk.Coins) (err error) {
-	var feeDenom string
-	if k.tk == nil {
-		feeDenom, err = sdk.GetBaseDenom()
-	} else {
-		feeDenom, err = k.tk.GetBaseDenom(ctx)
-	}
+// chargeCreationFee charges the creation fee from the address.
+// The fee is sent to the txfees module, to be burned.
+func (k Keeper) chargeCreationFee(ctx sdk.Context, address sdk.AccAddress) (err error) {
+	feeDenom, err := k.tk.GetBaseDenom(ctx)
 	if err != nil {
-		return err
+		return errorsmod.Wrapf(gerrc.ErrInternal, "get base denom: %v", err)
 	}
-
-	totalCost := gaugeCoins.AmountOf(feeDenom).Add(fee)
-	accountBalance := k.bk.GetBalance(ctx, address, feeDenom).Amount
-
-	if accountBalance.LT(totalCost) {
-		return errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "account's balance is less than the total cost of the message. Balance: %s %s, Total Cost: %s", feeDenom, accountBalance, totalCost)
-	}
-
-	if err := k.ck.FundCommunityPool(ctx, sdk.NewCoins(sdk.NewCoin(feeDenom, fee)), address); err != nil {
-		return err
-	}
-	return nil
+	return k.bk.SendCoinsFromAccountToModule(ctx, address, txfeestypes.ModuleName, sdk.NewCoins(sdk.NewCoin(feeDenom, types.CreateGaugeFee)))
 }

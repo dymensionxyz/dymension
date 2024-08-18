@@ -111,14 +111,7 @@ func (k Keeper) CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddr
 		return 0, fmt.Errorf("denom does not exist: %s", distrTo.Denom)
 	}
 
-	gauge := types.Gauge{
-		Id:                k.GetLastGaugeID(ctx) + 1,
-		IsPerpetual:       isPerpetual,
-		DistributeTo:      &types.Gauge_Asset{Asset: &distrTo},
-		Coins:             coins,
-		StartTime:         startTime,
-		NumEpochsPaidOver: numEpochsPaidOver,
-	}
+	gauge := types.NewAssetGauge(k.GetLastGaugeID(ctx)+1, isPerpetual, distrTo, coins, startTime, numEpochsPaidOver)
 
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, gauge.Coins); err != nil {
 		return 0, err

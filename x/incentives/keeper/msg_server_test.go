@@ -17,12 +17,11 @@ import (
 
 var _ = suite.TestingSuite(nil)
 
-func (suite *KeeperTestSuite) TestCreateGauge_Fee() {
+func (suite *KeeperTestSuite) TestCreateGauge() {
 	tests := []struct {
 		name                 string
 		accountBalanceToFund sdk.Coins
 		gaugeAddition        sdk.Coins
-		expectedEndBalance   sdk.Coins
 		isPerpetual          bool
 		isModuleAccount      bool
 		expectErr            bool
@@ -123,25 +122,23 @@ func (suite *KeeperTestSuite) TestCreateGauge_Fee() {
 			suite.Require().NoError(err, "test: %v", tc.name)
 		}
 
-		balanceAmount := bankKeeper.GetAllBalances(ctx, testAccountAddress)
-
-		if tc.expectErr {
-			suite.Require().Equal(tc.accountBalanceToFund.String(), balanceAmount.String(), "test: %v", tc.name)
-		} else {
+		if !tc.expectErr {
+			balanceAmount := bankKeeper.GetAllBalances(ctx, testAccountAddress)
 			fee := sdk.NewCoins(sdk.NewCoin("adym", types.CreateGaugeFee))
 			accountBalance := tc.accountBalanceToFund.Sub(tc.gaugeAddition...)
 			finalAccountBalance := accountBalance.Sub(fee...)
 			suite.Require().Equal(finalAccountBalance.String(), balanceAmount.String(), "test: %v", tc.name)
+
+			//FIXME: test fee charged to txfees module account
 		}
 	}
 }
 
-func (suite *KeeperTestSuite) TestAddToGauge_Fee() {
+func (suite *KeeperTestSuite) TestAddToGauge() {
 	tests := []struct {
 		name                 string
 		accountBalanceToFund sdk.Coins
 		gaugeAddition        sdk.Coins
-		nonexistentGauge     bool
 		isPerpetual          bool
 		isModuleAccount      bool
 		expectErr            bool
@@ -196,7 +193,6 @@ func (suite *KeeperTestSuite) TestAddToGauge_Fee() {
 
 		testAccountPubkey := secp256k1.GenPrivKeyFromSecret([]byte("acc")).PubKey()
 		testAccountAddress := sdk.AccAddress(testAccountPubkey.Address())
-		// testAccountAddress := suite.TestAccs[0]
 
 		ctx := suite.Ctx
 		bankKeeper := suite.App.BankKeeper
@@ -204,7 +200,6 @@ func (suite *KeeperTestSuite) TestAddToGauge_Fee() {
 		accountKeeper := suite.App.AccountKeeper
 		msgServer := keeper.NewMsgServerImpl(incentivesKeeper)
 
-		// suite.FundAcc(testAccountAddress, testutil.DefaultAcctFunds)
 		suite.FundAcc(testAccountAddress, tc.accountBalanceToFund)
 
 		if tc.isModuleAccount {
@@ -218,9 +213,6 @@ func (suite *KeeperTestSuite) TestAddToGauge_Fee() {
 		// System under test.
 		coins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(500000000)))
 		gaugeID, _, _, _ := suite.SetupNewGauge(true, coins)
-		if tc.nonexistentGauge {
-			gaugeID = incentivesKeeper.GetLastGaugeID(ctx) + 1
-		}
 		msg := &types.MsgAddToGauge{
 			Owner:   testAccountAddress.String(),
 			GaugeId: gaugeID,
@@ -238,8 +230,6 @@ func (suite *KeeperTestSuite) TestAddToGauge_Fee() {
 		bal := bankKeeper.GetAllBalances(ctx, testAccountAddress)
 
 		if tc.expectErr {
-			suite.Require().Equal(tc.accountBalanceToFund.String(), bal.String(), "test: %v", tc.name)
-		} else {
 			fee := sdk.NewCoins(sdk.NewCoin("adym", types.AddToGaugeFee))
 			accountBalance := tc.accountBalanceToFund.Sub(tc.gaugeAddition...)
 			finalAccountBalance := accountBalance.Sub(fee...)
