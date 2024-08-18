@@ -18,8 +18,8 @@ func (k Keeper) startUnbondingPeriodForSequencer(ctx sdk.Context, seq *types.Seq
 	seq.UnbondTime = completionTime
 
 	seq.Status = types.Unbonding
-	k.UpdateSequencer(ctx, *seq, types.Bonded)
-	k.AddSequencerToUnbondingQueue(ctx, *seq)
+	k.UpdateSequencer(ctx, seq, types.Bonded)
+	k.AddSequencerToUnbondingQueue(ctx, seq)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -50,7 +50,7 @@ func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {
 }
 
 // InstantUnbondAllSequencers unbonds all sequencers for a rollapp
-// This is called when the rollapp is frozen
+// This is called when there is a fraud
 func (k Keeper) InstantUnbondAllSequencers(ctx sdk.Context, rollappID string) error {
 	// unbond all bonded/unbonding sequencers
 	bonded := k.GetSequencersByRollappByStatus(ctx, rollappID, types.Bonded)
@@ -65,15 +65,13 @@ func (k Keeper) InstantUnbondAllSequencers(ctx sdk.Context, rollappID string) er
 	return nil
 }
 
+// reduceSequencerBond reduces the bond of a sequencer
+// if burn is true, the tokens are burned, otherwise they are refunded
+// returns an error if the sequencer does not have enough bond
+// method updates the sequencer object. doesn't update the store
 func (k Keeper) reduceSequencerBond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coins, burn bool) error {
 	if amt.IsZero() {
 		return nil
-	}
-	if !seq.Tokens.IsAllGTE(amt) {
-		return errorsmod.Wrapf(
-			types.ErrInsufficientBond,
-			"insufficient bond for sequencer: %s", seq.Address,
-		)
 	}
 	if burn {
 		err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, amt)
@@ -101,6 +99,9 @@ func (k Keeper) unbondSequencer(ctx sdk.Context, seqAddr string) error {
 	return k.unbond(ctx, seqAddr, false)
 }
 
+// unbond unbonds a sequencer
+// if jail is true, the sequencer is jailed as well (cannot be bonded again)
+// bonded tokens are refunded by default, unless jail is true
 func (k Keeper) unbond(ctx sdk.Context, seqAddr string, jail bool) error {
 	seq, found := k.GetSequencer(ctx, seqAddr)
 	if !found {
@@ -132,7 +133,7 @@ func (k Keeper) unbond(ctx sdk.Context, seqAddr string, jail bool) error {
 			k.removeNoticePeriodSequencer(ctx, seq)
 		}
 
-		// if we unbond the the proposer, remove it
+		// if we unbond the proposer, remove it
 		// the caller should rotate the proposer
 		if k.isProposer(ctx, seq.RollappId, seqAddr) {
 			k.removeProposer(ctx, seq.RollappId)
@@ -155,7 +156,8 @@ func (k Keeper) unbond(ctx sdk.Context, seqAddr string, jail bool) error {
 	if jail {
 		seq.Jailed = true
 	}
-	// set the unbonding height and time, if not already set
+	// set the unbonding height and time, if not already set.
+	// to avoid leaving unbonded sequencer in the store with no unbond height or time
 	if seq.UnbondRequestHeight == 0 {
 		seq.UnbondRequestHeight = ctx.BlockHeight()
 	}
@@ -165,7 +167,7 @@ func (k Keeper) unbond(ctx sdk.Context, seqAddr string, jail bool) error {
 
 	// update the sequencer in store
 	seq.Status = types.Unbonded
-	k.UpdateSequencer(ctx, seq, oldStatus)
+	k.UpdateSequencer(ctx, &seq, oldStatus)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

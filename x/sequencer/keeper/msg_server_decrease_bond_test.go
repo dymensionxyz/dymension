@@ -17,13 +17,13 @@ func (suite *SequencerTestSuite) TestDecreaseBond() {
 	unbondedSequencerAddress := suite.CreateSequencer(suite.Ctx, rollappId, unbondedPk)
 	unbondedSequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, unbondedSequencerAddress)
 	unbondedSequencer.Status = types.Unbonded
-	suite.App.SequencerKeeper.UpdateSequencer(suite.Ctx, unbondedSequencer, unbondedSequencer.Status)
+	suite.App.SequencerKeeper.UpdateSequencer(suite.Ctx, &unbondedSequencer, unbondedSequencer.Status)
 	// setup a jailed sequencer
 	jailedPk := ed25519.GenPrivKey().PubKey()
 	jailedSequencerAddress := suite.CreateSequencer(suite.Ctx, rollappId, jailedPk)
 	jailedSequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, jailedSequencerAddress)
 	jailedSequencer.Jailed = true
-	suite.App.SequencerKeeper.UpdateSequencer(suite.Ctx, jailedSequencer, jailedSequencer.Status)
+	suite.App.SequencerKeeper.UpdateSequencer(suite.Ctx, &jailedSequencer, jailedSequencer.Status)
 
 	testCase := []struct {
 		name        string

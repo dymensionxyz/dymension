@@ -29,8 +29,8 @@ func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 //   - sequencer: The sequencer object to be updated.
 //   - oldStatus: An optional parameter representing the old status of the sequencer.
 //     Needs to be provided if the status of the sequencer has changed (e.g from Bonded to Unbonding).
-func (k Keeper) UpdateSequencer(ctx sdk.Context, sequencer types.Sequencer, oldStatus ...types.OperatingStatus) {
-	k.SetSequencer(ctx, sequencer)
+func (k Keeper) UpdateSequencer(ctx sdk.Context, sequencer *types.Sequencer, oldStatus ...types.OperatingStatus) {
+	k.SetSequencer(ctx, *sequencer)
 
 	// status changed, need to remove old status key
 	if len(oldStatus) > 0 && sequencer.Status != oldStatus[0] {
@@ -132,9 +132,9 @@ func (k Keeper) GetMatureUnbondingSequencers(ctx sdk.Context, endTime time.Time)
 	return
 }
 
-func (k Keeper) AddSequencerToUnbondingQueue(ctx sdk.Context, sequencer types.Sequencer) {
+func (k Keeper) AddSequencerToUnbondingQueue(ctx sdk.Context, sequencer *types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshal(&sequencer)
+	b := k.cdc.MustMarshal(sequencer)
 
 	unbondingQueueKey := types.UnbondingSequencerKey(sequencer.Address, sequencer.UnbondTime)
 	store.Set(unbondingQueueKey, b)
@@ -168,9 +168,9 @@ func (k Keeper) GetMatureNoticePeriodSequencers(ctx sdk.Context, endTime time.Ti
 }
 
 // AddSequencerToNoticePeriodQueue set sequencer in notice period queue
-func (k Keeper) AddSequencerToNoticePeriodQueue(ctx sdk.Context, sequencer types.Sequencer) {
+func (k Keeper) AddSequencerToNoticePeriodQueue(ctx sdk.Context, sequencer *types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshal(&sequencer)
+	b := k.cdc.MustMarshal(sequencer)
 
 	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.Address, sequencer.NoticePeriodTime)
 	store.Set(noticePeriodKey, b)
@@ -212,7 +212,7 @@ func (k Keeper) SetProposer(ctx sdk.Context, rollappId, sequencerAddr string) {
 func (k Keeper) GetProposer(ctx sdk.Context, rollappId string) (val types.Sequencer, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.ProposerByRollappKey(rollappId))
-	if len(b) == 0 {
+	if len(b) == 0 || string(b) == NO_SEQUENCER_AVAILABLE {
 		return val, false
 	}
 

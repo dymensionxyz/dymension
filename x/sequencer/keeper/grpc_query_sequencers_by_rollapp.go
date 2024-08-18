@@ -55,7 +55,7 @@ func (k Keeper) GetProposerByRollapp(c context.Context, req *types.QueryGetPropo
 
 	seq, ok := k.GetProposer(ctx, req.RollappId)
 	if !ok {
-		return nil, errors.Join(gerrc.ErrNotFound, types.ErrNoProposer)
+		return nil, types.ErrNoProposer
 	}
 
 	return &types.QueryGetProposerByRollappResponse{

@@ -4,16 +4,18 @@ import (
 	"sort"
 	"time"
 
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
 	completionTime := ctx.BlockTime().Add(k.NoticePeriod(ctx))
 	seq.NoticePeriodTime = completionTime
 
-	k.UpdateSequencer(ctx, *seq)
-	k.AddSequencerToNoticePeriodQueue(ctx, *seq)
+	k.UpdateSequencer(ctx, seq)
+	k.AddSequencerToNoticePeriodQueue(ctx, seq)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -30,6 +32,7 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 // MatureSequencersWithNoticePeriod start rotation flow for all sequencers that have finished their notice period
 // The next proposer is set to the next bonded sequencer
 // The hub will expect a "last state update" from the sequencer to start unbonding
+// In the middle of rotation, the next proposer required a notice period as well.
 func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.Time) {
 	seqs := k.GetMatureNoticePeriodSequencers(ctx, currTime)
 	for _, seq := range seqs {
@@ -37,6 +40,8 @@ func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.
 			k.startRotation(ctx, seq.RollappId)
 			k.removeNoticePeriodSequencer(ctx, seq)
 		}
+		// next proposer cannot mature it's notice period until the current proposer has finished rotation
+		// minor effect as notice_period >>> rotation time
 	}
 }
 
@@ -55,19 +60,17 @@ func (k Keeper) isNoticePeriodRequired(ctx sdk.Context, seq types.Sequencer) boo
 }
 
 // ExpectedNextProposer returns the next proposer for a rollapp
+// it selects the next proposer from the bonded sequencers by bond amount
+// if there are no bonded sequencers, it returns an empty sequencer
 func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) types.Sequencer {
-	// if nextProposer is set, were in the middle of rotation
+	// if nextProposer is set, were in the middle of rotation. The expected next proposer cannot change
 	seq, ok := k.GetNextProposer(ctx, rollappId)
 	if ok {
 		return seq
 	}
 
-	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
-	if len(seqs) == 0 {
-		return types.Sequencer{}
-	}
-
 	// take the next bonded sequencer to be the proposer. sorted by bond
+	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
 	sort.SliceStable(seqs, func(i, j int) bool {
 		return seqs[i].Tokens.IsAllGT(seqs[j].Tokens)
 	})
@@ -102,14 +105,14 @@ func (k Keeper) startRotation(ctx sdk.Context, rollappId string) {
 	)
 }
 
-// RotateProposer completes the sequencer rotation flow.
+// CompleteRotation completes the sequencer rotation flow.
 // It's called when a last state update is received from the active, rotating sequencer.
 // it will start unbonding the current proposer, and set new proposer from the bonded sequencers
-func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
+func (k Keeper) CompleteRotation(ctx sdk.Context, rollappId string) error {
 	nextProposer, ok := k.GetNextProposer(ctx, rollappId)
-	if !ok { // nextProposer is guaranteed to be set by caller
-		k.Logger(ctx).Error("next proposer not set. rotation didn't completed", "rollappId", rollappId)
-		return
+	if !ok {
+		// nextProposer is expected to be set at this point
+		return errors.Wrapf(gerrc.ErrInternal, "next proposer not set for rollapp %s", rollappId)
 	}
 
 	// start unbonding the current proposer
@@ -132,4 +135,6 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 			sdk.NewAttribute(types.AttributeKeySequencer, nextProposer.Address),
 		),
 	)
+
+	return nil
 }

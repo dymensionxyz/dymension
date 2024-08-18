@@ -86,20 +86,19 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		Tokens:       bond,
 	}
 
-	// if this is the first sequencer, make it a PROPOSER
-	bondedSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Bonded)
-	isProposer := len(bondedSequencers) == 0
-	if isProposer {
-		k.SetProposer(ctx, sequencer.RollappId, sequencer.Address)
-	}
-
 	// we currently only support setting next proposer (or empty one) before the rotation started. This is in order to
 	// avoid handling the case a potential next proposer bonds in the middle of a rotation.
 	// This will be handled in next iteration.
-	nextProposer := k.IsRotating(ctx, sequencer.RollappId) && k.ExpectedNextProposer(ctx, sequencer.RollappId).IsEmpty()
-	if nextProposer {
+	nextProposer, ok := k.GetNextProposer(ctx, msg.RollappId)
+	if ok && nextProposer.IsEmpty() {
 		k.Logger(ctx).Info("rotation in progress. sequencer registration disabled", "rollappId", sequencer.RollappId)
 		return nil, types.ErrRotationInProgress
+	}
+
+	// if no proposer set for he rollapp, set this sequencer as the proposer
+	_, proposerExists := k.GetProposer(ctx, msg.RollappId)
+	if !proposerExists {
+		k.SetProposer(ctx, sequencer.RollappId, sequencer.Address)
 	}
 
 	k.SetSequencer(ctx, sequencer)
@@ -110,7 +109,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			sdk.NewAttribute(types.AttributeKeyRollappId, msg.RollappId),
 			sdk.NewAttribute(types.AttributeKeySequencer, msg.Creator),
 			sdk.NewAttribute(types.AttributeKeyBond, msg.Bond.String()),
-			sdk.NewAttribute(types.AttributeKeyProposer, strconv.FormatBool(isProposer)),
+			sdk.NewAttribute(types.AttributeKeyProposer, strconv.FormatBool(!proposerExists)),
 		),
 	)
 

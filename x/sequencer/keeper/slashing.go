@@ -61,7 +61,7 @@ func (k Keeper) Slash(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coins) erro
 	if err != nil {
 		return errorsmod.Wrap(err, "remove sequencer bond")
 	}
-	k.UpdateSequencer(ctx, *seq)
+	k.UpdateSequencer(ctx, seq)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -73,6 +73,7 @@ func (k Keeper) Slash(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coins) erro
 	return nil
 }
 
+// Jail sets the sequencer status to Jailed and unbonds the sequencer
 func (k Keeper) Jail(ctx sdk.Context, seq types.Sequencer) error {
 	err := k.unbondSequencerAndJail(ctx, seq.Address)
 	if err != nil {

@@ -1,13 +1,10 @@
 package keeper
 
 import (
-	"errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var _ rollapptypes.RollappHooks = rollappHook{}
@@ -30,33 +27,22 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 // performs a rotation of the proposer.
 // Returns an error if any of the checks fail, otherwise returns nil.
 func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, lastStateUpdateBySequencer bool) error {
-	// check to see if the sequencer has been registered before
-	sequencer, found := hook.k.GetSequencer(ctx, seqAddr)
-	if !found {
-		return types.ErrUnknownSequencer
-	}
-
-	// check to see if the rollappId matches the one of the sequencer
-	if sequencer.RollappId != rollappId {
-		return types.ErrSequencerRollappMismatch
-	}
-
 	proposer, ok := hook.k.GetProposer(ctx, rollappId)
 	if !ok {
-		return errors.Join(gerrc.ErrNotFound, types.ErrNoProposer)
+		return types.ErrNoProposer
 	}
-	if sequencer.Address != proposer.Address {
+	if seqAddr != proposer.Address {
 		return types.ErrNotActiveSequencer
 	}
 
 	if lastStateUpdateBySequencer {
-		if !hook.k.IsRotating(ctx, rollappId) {
-			return types.ErrInvalidRequest
-		}
 		// last state update received by sequencer
 		// it's expected that the sequencer produced a last block which handovers the proposer role on the L2
 		// any divergence from this is considered fraud
-		hook.k.RotateProposer(ctx, rollappId)
+		err := hook.k.CompleteRotation(ctx, rollappId)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

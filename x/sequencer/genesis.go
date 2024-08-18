@@ -16,9 +16,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 
 		// Set the unbonding queue for the sequencer
 		if elem.Status == types.Unbonding {
-			k.AddSequencerToUnbondingQueue(ctx, elem)
+			k.AddSequencerToUnbondingQueue(ctx, &elem)
 		} else if elem.IsNoticePeriodInProgress() {
-			k.AddSequencerToNoticePeriodQueue(ctx, elem)
+			k.AddSequencerToNoticePeriodQueue(ctx, &elem)
 		}
 	}
 

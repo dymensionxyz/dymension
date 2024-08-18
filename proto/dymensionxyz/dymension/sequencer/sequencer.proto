@@ -40,8 +40,7 @@ message Sequencer {
   // unbond_request_height stores the height at which this sequencer has
   // requested to unbond.
   int64 unbond_request_height = 9;
-  // unbond_time defines, if unbonding, the min time for the sequencer to
-  // complete unbonding.
+  // unbond_time defines the time when the sequencer will complete unbonding.
   google.protobuf.Timestamp unbond_time = 10
       [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
 

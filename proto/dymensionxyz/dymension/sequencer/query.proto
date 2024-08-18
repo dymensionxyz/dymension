@@ -108,6 +108,9 @@ message QueryGetNextProposerByRollappRequest { string rollappId = 1; }
 
 // Response type for the GetNextProposerByRollapp RPC method.
 message QueryGetNextProposerByRollappResponse {
+  // nextProposerAddr is the address of the next proposer.
+  // can be empty if no sequencer is available to be the next proposer. 
   string nextProposerAddr = 1;
+  // rotationInProgress is true if the proposer rotation is in progress.
   bool rotationInProgress = 2;
 }
