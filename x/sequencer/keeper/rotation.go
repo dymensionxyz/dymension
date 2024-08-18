@@ -107,20 +107,21 @@ func (k Keeper) startRotation(ctx sdk.Context, rollappId string) {
 
 // CompleteRotation completes the sequencer rotation flow.
 // It's called when a last state update is received from the active, rotating sequencer.
-// it will start unbonding the current proposer, and set new proposer from the bonded sequencers
+// it will start unbonding the current proposer, and sets the nextProposer as the proposer.
 func (k Keeper) CompleteRotation(ctx sdk.Context, rollappId string) error {
+	proposer, ok := k.GetProposer(ctx, rollappId)
+	if !ok {
+		return errors.Wrapf(gerrc.ErrInternal, "proposer not set for rollapp %s", rollappId)
+	}
 	nextProposer, ok := k.GetNextProposer(ctx, rollappId)
 	if !ok {
-		// nextProposer is expected to be set at this point
 		return errors.Wrapf(gerrc.ErrInternal, "next proposer not set for rollapp %s", rollappId)
 	}
 
 	// start unbonding the current proposer
-	proposer, ok := k.GetProposer(ctx, rollappId)
-	if ok {
-		k.startUnbondingPeriodForSequencer(ctx, &proposer)
-	}
+	k.startUnbondingPeriodForSequencer(ctx, &proposer)
 
+	// change the proposer
 	k.removeNextProposer(ctx, rollappId)
 	k.SetProposer(ctx, rollappId, nextProposer.Address)
 
