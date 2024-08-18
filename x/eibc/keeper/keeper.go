@@ -95,10 +95,7 @@ func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types
 		return nil, err
 	}
 
-	if err = ctx.EventManager().EmitTypedEvent(&types.EventDemandOrderPacketStatusUpdated{
-		OrderId:         demandOrder.Id,
-		NewPacketStatus: newStatus,
-	}); err != nil {
+	if err = ctx.EventManager().EmitTypedEvent(demandOrder.GetPacketStatusUpdatedEvent(newStatus)); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 

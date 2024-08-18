@@ -3,7 +3,6 @@ package types
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"strconv"
 
 	"cosmossdk.io/math"
 
@@ -73,23 +72,42 @@ func (m *DemandOrder) Validate() error {
 	return nil
 }
 
-func (m *DemandOrder) GetEvents() []sdk.Attribute {
-	eventAttributes := []sdk.Attribute{
-		sdk.NewAttribute(AttributeKeyId, m.Id),
-		sdk.NewAttribute(AttributeKeyPrice, m.Price.String()),
-		sdk.NewAttribute(AttributeKeyFee, m.Fee.String()),
-		sdk.NewAttribute(AttributeKeyIsFulfilled, strconv.FormatBool(m.IsFulfilled())),
-		sdk.NewAttribute(AttributeKeyPacketStatus, m.TrackingPacketStatus.String()),
-		sdk.NewAttribute(AttributeKeyPacketKey, m.TrackingPacketKey),
-		sdk.NewAttribute(AttributeKeyRollappId, m.RollappId),
-		sdk.NewAttribute(AttributeKeyRecipient, m.Recipient),
+func (m *DemandOrder) GetCreatedEvent() *EventDemandOrderCreated {
+	return &EventDemandOrderCreated{
+		OrderId:      m.Id,
+		Price:        m.Price.String(),
+		Fee:          m.Fee.String(),
+		IsFulfilled:  m.IsFulfilled(),
+		PacketStatus: m.TrackingPacketStatus.String(),
+		PacketKey:    m.TrackingPacketKey,
+		RollappId:    m.RollappId,
+		Recipient:    m.Recipient,
 	}
+}
 
-	if m.FulfillerAddress != "" {
-		eventAttributes = append(eventAttributes, sdk.NewAttribute(AttributeKeyFulfillerAddress, m.FulfillerAddress))
+func (m *DemandOrder) GetFulfilledEvent(expectedFee string) *EventDemandOrderFulfilled {
+	return &EventDemandOrderFulfilled{
+		OrderId:      m.Id,
+		Price:        m.Price.String(),
+		Fee:          expectedFee + m.Price.Denoms()[0],
+		IsFulfilled:  true,
+		PacketStatus: m.TrackingPacketStatus.String(),
+		Fulfiller:    m.FulfillerAddress,
 	}
+}
 
-	return eventAttributes
+func (m *DemandOrder) GetUpdatedEvent(newFee string) *EventDemandOrderFeeUpdated {
+	return &EventDemandOrderFeeUpdated{
+		OrderId: m.Id,
+		NewFee:  newFee,
+	}
+}
+
+func (m *DemandOrder) GetPacketStatusUpdatedEvent(newStatus commontypes.Status) *EventDemandOrderPacketStatusUpdated {
+	return &EventDemandOrderPacketStatusUpdated{
+		OrderId:         m.Id,
+		NewPacketStatus: newStatus,
+	}
 }
 
 // GetRecipientBech32Address returns the recipient address as a string.

@@ -52,12 +52,9 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 		return fmt.Errorf("set eibc demand order: %w", err)
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeEIBC,
-			eibcDemandOrder.GetEvents()...,
-		),
-	)
+	if err = ctx.EventManager().EmitTypedEvent(eibcDemandOrder.GetCreatedEvent()); err != nil {
+		return fmt.Errorf("emit event: %w", err)
+	}
 
 	return nil
 }

@@ -64,7 +64,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, err
 	}
 
-	if err = ctx.EventManager().EmitTypedEvent(msg); err != nil {
+	if err = ctx.EventManager().EmitTypedEvent(demandOrder.GetFulfilledEvent(msg.ExpectedFee)); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
@@ -127,10 +127,7 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 		return nil, err
 	}
 
-	if err = ctx.EventManager().EmitTypedEvent(&types.EventDemandOrderFeeUpdated{
-		OrderId: demandOrder.Id,
-		NewFee:  msg.NewFee,
-	}); err != nil {
+	if err = ctx.EventManager().EmitTypedEvent(demandOrder.GetUpdatedEvent(msg.NewFee)); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
