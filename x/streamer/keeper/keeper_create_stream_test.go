@@ -198,7 +198,6 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 	}
 
 	for _, tc := range tests {
-
 		_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, tc.coins, tc.distrTo, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver, NonSponsored)
 		if tc.expectErr {
 			suite.Require().Error(err, tc.name)
