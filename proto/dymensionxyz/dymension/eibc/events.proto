@@ -1,0 +1,25 @@
+syntax = "proto3";
+package dymensionxyz.dymension.eibc;
+
+import "gogoproto/gogo.proto";
+
+import "dymensionxyz/dymension/common/status.proto";
+import "dymensionxyz/dymension/eibc/demand_order.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
+
+// EventDemandOrderPacketStatusUpdate is emitted when the status of the related packet is updated.
+message EventDemandOrderPacketStatusUpdated {
+  // order_id is the unique identifier of the demand order.
+  string order_id = 1;
+  // new_packet_status is the status of the packet after the update.
+  dymensionxyz.dymension.common.Status new_packet_status = 2;
+}
+
+// EventDemandOrderFeeUpdate is emitted when the fee of the demand order is updated.
+message EventDemandOrderFeeUpdated {
+  // order_id is the unique identifier of the demand order.
+  string order_id = 1;
+  // new_fee is the new fee amount set in the order.
+  string new_fee = 2;
+}

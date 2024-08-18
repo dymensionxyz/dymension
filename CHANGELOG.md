@@ -50,6 +50,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+- (eibc) [#845](https://github.com/dymensionxyz/dymension/issues/845) Segregate eibc events as per use cases
+
 ## [v3.1.0](https://github.com/dymensionxyz/dymension/releases/tag/v3.1.0)
 
 ### Features
