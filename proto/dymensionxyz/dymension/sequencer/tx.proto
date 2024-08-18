@@ -48,10 +48,8 @@ message MsgUpdateSequencerInformation {
   option (cosmos.msg.v1.signer) = "creator";
   // creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
   string creator = 1;
-  // rollapp_id defines the rollapp to which the sequencer belongs.
-  string rollapp_id = 2;
   // metadata defines the extra information for the sequencer.
-  SequencerMetadata metadata = 3 [(gogoproto.nullable) = false];
+  SequencerMetadata metadata = 2 [(gogoproto.nullable) = false];
 }
 
 message MsgUpdateSequencerInformationResponse {}

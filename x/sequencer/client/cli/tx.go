@@ -85,14 +85,13 @@ func CmdCreateSequencer() *cobra.Command {
 
 func CmdUpdateSequencer() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-sequencer [rollapp-id] [metadata]",
+		Use:   "update-sequencer [metadata]",
 		Short: "Update a sequencer",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argRollappId := args[0]
 
 			metadata := new(types.SequencerMetadata)
-			if err = utils.ParseJsonFromFile(args[1], metadata); err != nil {
+			if err = utils.ParseJsonFromFile(args[0], metadata); err != nil {
 				return
 			}
 
@@ -103,7 +102,6 @@ func CmdUpdateSequencer() *cobra.Command {
 
 			msg, err := types.NewMsgUpdateSequencerInformation(
 				clientCtx.GetFromAddress().String(),
-				argRollappId,
 				metadata,
 			)
 			if err != nil {

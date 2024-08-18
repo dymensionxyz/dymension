@@ -431,7 +431,7 @@ func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 	return sequencersRes, totalRes
 }
 
-// equalSequencer receives two sequencers and compares them. If there they not equal, fails the test
+// equalSequencer receives two sequencers and compares them. If they are not equal, fails the test
 func (suite *SequencerTestSuite) equalSequencer(s1 *types.Sequencer, s2 *types.Sequencer) {
 	eq := compareSequencers(s1, s2)
 	suite.Require().True(eq, "expected: %v\nfound: %v", *s1, *s2)
