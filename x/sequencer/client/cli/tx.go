@@ -43,7 +43,7 @@ func CmdCreateSequencer() *cobra.Command {
 			bond := args[2]
 
 			var metadata types.SequencerMetadata
-			if len(args) == 3 {
+			if len(args) == 4 {
 				if err = utils.ParseJsonFromFile(args[3], &metadata); err != nil {
 					return
 				}
