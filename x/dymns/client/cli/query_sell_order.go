@@ -55,7 +55,8 @@ func CmdQuerySellOrder() *cobra.Command {
 			}
 
 			res, err := queryClient.SellOrder(cmd.Context(), &dymnstypes.QuerySellOrderRequest{
-				AssetId: input,
+				AssetId:   input,
+				AssetType: targetType,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to fetch Sell Order of '%s': %w", input, err)
