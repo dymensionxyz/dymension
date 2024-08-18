@@ -116,6 +116,10 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 					return
 				}
 
+				// Check rollapp gauges
+				if err = s.validateRollappGaugesMigration(); err != nil {
+					return
+				}
 				return
 			},
 			expPass: true,
@@ -180,6 +184,33 @@ func (s *UpgradeTestSuite) validateRollappsMigration(numRoll int) error {
 	if !reflect.DeepEqual(rollapps, expectRollapps) {
 		return fmt.Errorf("rollapps do not match")
 	}
+	return nil
+}
+
+// validate rollapp gauges
+func (s *UpgradeTestSuite) validateRollappGaugesMigration() error {
+	rollappMap := make(map[string]struct{}) // Create a map to store rollapps
+
+	rollapps := s.App.RollappKeeper.GetAllRollapps(s.Ctx)
+	for _, rollapp := range rollapps {
+		rollappMap[rollapp.RollappId] = struct{}{} // Store rollapp in the map
+	}
+
+	gauges := s.App.IncentivesKeeper.GetActiveGauges(s.Ctx)
+	if len(gauges) == len(rollapps) {
+		return fmt.Errorf("rollapp gauges not created for all rollapps")
+	}
+
+	for _, gauge := range gauges {
+		if gauge.GetRollapp() != nil {
+			rollappMap[gauge.GetRollapp().RollappId] = struct{}{}
+		}
+	}
+	// Check that for each rollapp there exists a rollapp gauge
+	if len(rollappMap) != len(rollapps) {
+		return fmt.Errorf("rollapp gauges not created for all rollapps")
+	}
+
 	return nil
 }
 

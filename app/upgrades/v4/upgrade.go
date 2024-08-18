@@ -26,6 +26,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -50,7 +51,9 @@ func CreateUpgradeHandler(
 		}
 		migrateSequencers(ctx, keepers.SequencerKeeper)
 
-		// TODO: create rollapp gauges for each existing rollapp
+		if err := migrateRollappGauges(ctx, keepers.RollappKeeper, keepers.IncentivesKeeper); err != nil {
+			return nil, err
+		}
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -110,6 +113,18 @@ func migrateRollappParams(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) 
 	params := rollapptypes.DefaultParams()
 	params.DisputePeriodInBlocks = rollappkeeper.DisputePeriodInBlocks(ctx)
 	rollappkeeper.SetParams(ctx, params)
+}
+
+// migrateRollappGauges creates a gauge for each rollapp in the store
+func migrateRollappGauges(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, incentivizeKeeper *incentiveskeeper.Keeper) error {
+	rollapps := rollappkeeper.GetAllRollapps(ctx)
+	for _, rollapp := range rollapps {
+		_, err := incentivizeKeeper.CreateRollappGauge(ctx, rollapp.RollappId)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) error {
