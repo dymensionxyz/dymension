@@ -85,28 +85,28 @@ func (m *DemandOrder) GetCreatedEvent() *EventDemandOrderCreated {
 	}
 }
 
-func (m *DemandOrder) GetFulfilledEvent(expectedFee string) *EventDemandOrderFulfilled {
+func (m *DemandOrder) GetFulfilledEvent() *EventDemandOrderFulfilled {
 	return &EventDemandOrderFulfilled{
 		OrderId:      m.Id,
 		Price:        m.Price.String(),
-		Fee:          expectedFee + m.Price.Denoms()[0],
+		Fee:          m.Fee.String(),
 		IsFulfilled:  true,
 		PacketStatus: m.TrackingPacketStatus.String(),
 		Fulfiller:    m.FulfillerAddress,
 	}
 }
 
-func (m *DemandOrder) GetUpdatedEvent(newFee string) *EventDemandOrderFeeUpdated {
+func (m *DemandOrder) GetUpdatedEvent() *EventDemandOrderFeeUpdated {
 	return &EventDemandOrderFeeUpdated{
 		OrderId: m.Id,
-		NewFee:  newFee,
+		NewFee:  m.Fee.String(),
 	}
 }
 
-func (m *DemandOrder) GetPacketStatusUpdatedEvent(newStatus commontypes.Status) *EventDemandOrderPacketStatusUpdated {
+func (m *DemandOrder) GetPacketStatusUpdatedEvent() *EventDemandOrderPacketStatusUpdated {
 	return &EventDemandOrderPacketStatusUpdated{
 		OrderId:         m.Id,
-		NewPacketStatus: newStatus,
+		NewPacketStatus: m.TrackingPacketStatus,
 	}
 }
 
