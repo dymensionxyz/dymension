@@ -17,6 +17,8 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibcchannelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
 
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
@@ -26,6 +28,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -49,6 +52,7 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 		migrateSequencers(ctx, keepers.SequencerKeeper)
+		migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper)
 
 		// TODO: create rollapp gauges for each existing rollapp
 
@@ -129,6 +133,25 @@ func migrateSequencers(ctx sdk.Context, sequencerkeeper sequencerkeeper.Keeper) 
 	for _, oldSequencer := range list {
 		newSequencer := ConvertOldSequencerToNew(oldSequencer)
 		sequencerkeeper.SetSequencer(ctx, newSequencer)
+	}
+}
+
+func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, lightClientKeeper lightclientkeeper.Keeper, ibcChannelKeeper ibcchannelkeeper.Keeper) {
+	list := rollappkeeper.GetAllRollapps(ctx)
+	for _, rollapp := range list {
+		// check if the rollapp has a canonical channel already
+		if rollapp.ChannelId == "" {
+			return
+		}
+		// get the client ID the channel belongs to
+		_, connection, err := ibcChannelKeeper.GetChannelConnection(ctx, ibctransfertypes.PortID, rollapp.ChannelId)
+		if err != nil {
+			// if could not find a connection, skip the cannonical client assignment
+			return
+		}
+		clientID := connection.GetClientID()
+		// todo: should this be canonical client? or candidate client?
+		lightClientKeeper.SetCanonicalClient(ctx, rollapp.RollappId, clientID)
 	}
 }
 

@@ -75,8 +75,7 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 			currentStateInfoIndex := stateInfo.GetIndex().Index
 			nextStateInfo, found := i.rollappKeeper.GetStateInfo(ctx, rollappID, currentStateInfoIndex+1)
 			if !found {
-				// if next state info doesnt exist, ignore this one condition when performing state compatibility check
-				rollappState.NextBlockSequencer = ""
+				return // There is no BD for h+1, so we can't verify the next block valhash. So we cant mark this client as canonical
 			} else {
 				rollappState.NextBlockSequencer = nextStateInfo.Sequencer
 				rollappState.NextBlockDescriptor = nextStateInfo.GetBDs().BD[0]
