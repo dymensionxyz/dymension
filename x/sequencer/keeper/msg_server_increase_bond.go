@@ -25,7 +25,7 @@ func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBon
 
 	// update the sequencers bond amount in state
 	sequencer.Tokens = sequencer.Tokens.Add(msg.AddAmount)
-	k.UpdateSequencer(ctx, sequencer, sequencer.Status)
+	k.UpdateSequencer(ctx, &sequencer, sequencer.Status)
 
 	// emit a typed event which includes the added amount and the active bond amount
 	err = ctx.EventManager().EmitTypedEvent(

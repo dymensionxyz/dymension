@@ -9,7 +9,7 @@ import (
 // RegisterInvariants registers the sequencer module invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "sequencers-count", SequencersCountInvariant(k))
-	ir.RegisterRoute(types.ModuleName, "sequencers-per-rollapp", SequencersPerRollappInvariant(k))
+	ir.RegisterRoute(types.ModuleName, "sequencer-proposer-bonded", ProposerBondedInvariant(k))
 }
 
 // AllInvariants runs all invariants of the x/sequencer module.
@@ -19,10 +19,12 @@ func AllInvariants(k Keeper) sdk.Invariant {
 		if stop {
 			return res, stop
 		}
-		res, stop = SequencersPerRollappInvariant(k)(ctx)
+
+		res, stop = ProposerBondedInvariant(k)(ctx)
 		if stop {
 			return res, stop
 		}
+
 		return "", false
 	}
 }
@@ -64,7 +66,8 @@ func SequencersCountInvariant(k Keeper) sdk.Invariant {
 	}
 }
 
-func SequencersPerRollappInvariant(k Keeper) sdk.Invariant {
+// ProposerBondedInvariant checks if the proposer and next proposer are bonded as expected
+func ProposerBondedInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
 			broken bool
@@ -73,31 +76,21 @@ func SequencersPerRollappInvariant(k Keeper) sdk.Invariant {
 
 		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
 		for _, rollapp := range rollapps {
-			bonded := k.GetSequencersByRollappByStatus(ctx, rollapp.RollappId, types.Bonded)
-
-			if len(bonded) == 0 {
-				continue
-			}
-
-			proposerFound := false
-			for _, seq := range bonded {
-				if seq.Proposer {
-					if proposerFound {
-						broken = true
-						msg += "more than one proposer for rollapp " + rollapp.RollappId + "\n"
-					}
-					proposerFound = true
-				}
-			}
-			if !proposerFound {
+			active, ok := k.GetProposer(ctx, rollapp.RollappId)
+			if ok && active.Status != types.Bonded {
 				broken = true
-				msg += "no proposer for rollapp " + rollapp.RollappId + "\n"
+				msg += "active sequencer is not bonded " + rollapp.RollappId + "\n"
 			}
 
+			next := k.ExpectedNextProposer(ctx, rollapp.RollappId)
+			if !next.IsEmpty() && next.Status != types.Bonded {
+				broken = true
+				msg += "next sequencer is not bonded " + rollapp.RollappId + "\n"
+			}
 		}
 
 		return sdk.FormatInvariant(
-			types.ModuleName, "sequencers-per-rollapp",
+			types.ModuleName, "sequencer-bonded",
 			msg,
 		), broken
 	}

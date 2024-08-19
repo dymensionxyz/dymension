@@ -5,7 +5,7 @@ import (
 	fmt "fmt"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/utils"
 )
 
 var _ binary.ByteOrder
@@ -22,9 +22,6 @@ const (
 
 	// QuerierRoute defines the module's query routing key
 	QuerierRoute = ModuleName
-
-	// MemStoreKey defines the in-memory store key
-	MemStoreKey = "mem_sequencer"
 )
 
 var (
@@ -36,12 +33,23 @@ var (
 
 	// SequencersByRollappKeyPrefix is the prefix to retrieve all SequencersByRollapp
 	SequencersByRollappKeyPrefix = []byte{0x01} // prefix/rollappId
+
+	// ProposerKeyPrefix is the prefix to retrieve the proposer for a rollapp
+	// This key is set when the rotation handshake is completed
+	ProposerKeyPrefix = []byte{0x02} // prefix/rollappId
+	// NextProposerKeyPrefix is the prefix to retrieve the next proposer for a rollapp
+	// This key is set only when rotation handshake is started
+	// It will be cleared after the rotation is completed
+	NextProposerKeyPrefix = []byte{0x03} // prefix/rollappId
+
+	// Prefixes for the different sequencer statuses
 	BondedSequencersKeyPrefix    = []byte{0xa1}
 	UnbondedSequencersKeyPrefix  = []byte{0xa2}
 	UnbondingSequencersKeyPrefix = []byte{0xa3}
 
 	UnbondingQueueKey      = []byte{0x41} // prefix for the timestamps in unbonding queue
-	DecreasingBondQueueKey = []byte{0x42} // prefix for the timestamps in decreasing bond queue
+	NoticePeriodQueueKey   = []byte{0x42} // prefix for the timestamps in notice period queue
+	DecreasingBondQueueKey = []byte{0x43} // prefix for the timestamps in decreasing bond queue
 )
 
 /* --------------------- specific sequencer address keys -------------------- */
@@ -82,19 +90,14 @@ func SequencersByRollappByStatusKey(rollappId string, status OperatingStatus) []
 	return []byte(fmt.Sprintf("%s%s%s", SequencersByRollappKey(rollappId), KeySeparator, prefix))
 }
 
-/* -------------------------- unbonding queue keys -------------------------- */
+/* --------------------------  queues keys -------------------------- */
+
 func UnbondingQueueByTimeKey(endTime time.Time) []byte {
-	timeBz := sdk.FormatTimeBytes(endTime)
-	prefixL := len(UnbondingQueueKey)
+	return utils.EncodeTimeToKey(UnbondingQueueKey, endTime)
+}
 
-	bz := make([]byte, prefixL+len(timeBz))
-
-	// copy the prefix
-	copy(bz[:prefixL], UnbondingQueueKey)
-	// copy the encoded time bytes
-	copy(bz[prefixL:prefixL+len(timeBz)], timeBz)
-
-	return bz
+func NoticePeriodQueueByTimeKey(endTime time.Time) []byte {
+	return utils.EncodeTimeToKey(NoticePeriodQueueKey, endTime)
 }
 
 func UnbondingSequencerKey(sequencerAddress string, endTime time.Time) []byte {
@@ -104,19 +107,16 @@ func UnbondingSequencerKey(sequencerAddress string, endTime time.Time) []byte {
 	return key
 }
 
+func NoticePeriodSequencerKey(sequencerAddress string, endTime time.Time) []byte {
+	key := NoticePeriodQueueByTimeKey(endTime)
+	key = append(key, KeySeparator...)
+	key = append(key, []byte(sequencerAddress)...)
+	return key
+}
+
 /* -------------------------- decreasing bond queue keys -------------------------- */
 func DecreasingBondQueueByTimeKey(endTime time.Time) []byte {
-	timeBz := sdk.FormatTimeBytes(endTime)
-	prefixL := len(DecreasingBondQueueKey)
-
-	bz := make([]byte, prefixL+len(timeBz))
-
-	// copy the prefix
-	copy(bz[:prefixL], DecreasingBondQueueKey)
-	// copy the encoded time bytes
-	copy(bz[prefixL:prefixL+len(timeBz)], timeBz)
-
-	return bz
+	return utils.EncodeTimeToKey(DecreasingBondQueueKey, endTime)
 }
 
 func GetDecreasingBondQueueKey(sequencerAddress string, endTime time.Time) []byte {
@@ -124,4 +124,13 @@ func GetDecreasingBondQueueKey(sequencerAddress string, endTime time.Time) []byt
 	key = append(key, KeySeparator...)
 	key = append(key, []byte(sequencerAddress)...)
 	return key
+}
+
+/* --------------------- active and next sequencer keys --------------------- */
+func ProposerByRollappKey(rollappId string) []byte {
+	return []byte(fmt.Sprintf("%s%s%s", ProposerKeyPrefix, KeySeparator, []byte(rollappId)))
+}
+
+func NextProposerByRollappKey(rollappId string) []byte {
+	return []byte(fmt.Sprintf("%s%s%s", NextProposerKeyPrefix, KeySeparator, []byte(rollappId)))
 }
