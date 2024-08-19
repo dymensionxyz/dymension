@@ -273,6 +273,83 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 			},
 		},
 		{
+			name:                  "Send all reward in one single block",
+			maxIterationsPerBlock: 5,
+			numGauges:             4,
+			blocksInEpoch:         5,
+			streams: []types.Stream{
+				{
+					Id:                   1,
+					DistrEpochIdentifier: "day",
+					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 1)),
+					DistributeTo: &types.DistrInfo{
+						Records: []types.DistrRecord{
+							{GaugeId: 1, Weight: math.NewInt(1)},
+						},
+					},
+				},
+				{
+					Id:                   2,
+					DistrEpochIdentifier: "hour",
+					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 1)),
+					DistributeTo: &types.DistrInfo{
+						Records: []types.DistrRecord{
+							{GaugeId: 2, Weight: math.NewInt(1)},
+						},
+					},
+				},
+				{
+					Id:                   3,
+					DistrEpochIdentifier: "hour",
+					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 1)),
+					DistributeTo: &types.DistrInfo{
+						Records: []types.DistrRecord{
+							{GaugeId: 3, Weight: math.NewInt(1)},
+						},
+					},
+				},
+				{
+					Id:                   4,
+					DistrEpochIdentifier: "day",
+					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 1)),
+					DistributeTo: &types.DistrInfo{
+						Records: []types.DistrRecord{
+							{GaugeId: 4, Weight: math.NewInt(1)},
+						},
+					},
+				},
+			},
+			expectedBlockResults: []blockResults{
+				{
+					height: 0,
+					epochPointers: []types.EpochPointer{
+						{
+							StreamId:        types.MaxStreamID,
+							GaugeId:         types.MaxStreamID,
+							EpochIdentifier: "day",
+						},
+						{
+							StreamId:        types.MaxStreamID,
+							GaugeId:         types.MaxStreamID,
+							EpochIdentifier: "hour",
+						},
+					},
+					distributedCoins: []distributedCoins{
+						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("udym", 1))},
+						{streamID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("udym", 1))},
+						{streamID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("udym", 1))},
+						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("udym", 1))},
+					},
+					gauges: []gaugeCoins{
+						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("udym", 1))},
+						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("udym", 1))},
+						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("udym", 1))},
+						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("udym", 1))},
+					},
+				},
+			},
+		},
+		{
 			name:                  "Many blocks",
 			maxIterationsPerBlock: 3,
 			numGauges:             16,

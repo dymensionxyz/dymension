@@ -3,11 +3,11 @@ package keeper
 import (
 	"time"
 
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 // TODO: move to incentives module
@@ -37,9 +37,6 @@ func (k Keeper) CreatePoolGauge(ctx sdk.Context, poolId uint64) error {
 }
 
 func (k Keeper) CreateRollappGauge(ctx sdk.Context, rollappID string) error {
-	_, err := k.ik.CreateRollappGauge(
-		ctx,
-		rollappID,
-	)
+	_, err := k.ik.CreateRollappGauge(ctx, rollappID)
 	return err
 }

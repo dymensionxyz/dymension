@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"sort"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // GetStreamByID returns stream from stream ID.
@@ -24,19 +23,6 @@ func (k Keeper) GetStreamByID(ctx sdk.Context, streamID uint64) (*types.Stream, 
 		return nil, err
 	}
 	return &stream, nil
-}
-
-// GetStreamFromIDs returns multiple streams from a streamIDs array.
-func (k Keeper) GetStreamFromIDs(ctx sdk.Context, streamIDs []uint64) ([]types.Stream, error) {
-	streams := []types.Stream{}
-	for _, streamID := range streamIDs {
-		stream, err := k.GetStreamByID(ctx, streamID)
-		if err != nil {
-			return []types.Stream{}, err
-		}
-		streams = append(streams, *stream)
-	}
-	return streams, nil
 }
 
 // GetStreams returns upcoming, active, and finished streams.

@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // GetLastStreamID returns the last used stream ID.
