@@ -107,7 +107,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.D
 
 	pointerExists, err := k.HasEpochPointer(ctx, epochIdentifier)
 	if err != nil {
-		return 0, fmt.Errorf("check epoch pointer existance: %w", err)
+		return 0, fmt.Errorf("check epoch pointer existence: %w", err)
 	}
 
 	if !pointerExists {

@@ -8,8 +8,10 @@ type Iterator[T any] interface {
 
 type Stop bool
 
-const Break Stop = true
-const Continue Stop = false
+const (
+	Break    Stop = true
+	Continue Stop = false
+)
 
 // Paginate is a function that paginates over an iterator. The callback is executed for each iteration and if it
 // returns true, the pagination stops. The function returns the amount of iterations before stopping.

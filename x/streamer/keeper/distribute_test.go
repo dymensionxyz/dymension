@@ -240,12 +240,12 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 			}
 
 			// Create a stream
-			sID, _ := suite.CreateSponsoredStream(tc.stream.distrInfo, tc.stream.coins, time.Now().Add(-time.Minute), "day", tc.stream.numOfEpochs)
+			sID, s := suite.CreateSponsoredStream(tc.stream.distrInfo, tc.stream.coins, time.Now().Add(-time.Minute), "day", tc.stream.numOfEpochs)
 
 			// Check that the stream distr matches the current sponsorship distr
 			actualDistr, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, sID)
 			suite.Require().NoError(err)
-			//suite.Require().Equal(s, actualDistr)
+			suite.Require().Equal(s, actualDistr)
 			initialDistr := suite.Distribution()
 			initialDistrInfo := types.DistrInfoFromDistribution(initialDistr)
 			suite.Require().Equal(initialDistrInfo.TotalWeight, actualDistr.DistributeTo.TotalWeight)
@@ -257,11 +257,12 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 			}
 
 			// Distribute
-			// Trigger the gauge move from upcoming to active and update its parameters, this simulates an epoch start
-			_, err = suite.App.StreamerKeeper.AfterEpochEnd(suite.Ctx, "day")
+			// First, simulate the epoch start. This moves gauges from upcoming to active and
+			// updates corresponding streams parameters.
+			err = suite.App.StreamerKeeper.BeforeEpochStart(suite.Ctx, "day")
 			suite.Require().NoError(err)
 
-			// Trigger the distribution, this simulates an epoch start
+			// Then, simulate the epoch end. This triggers the distribution of the rewards.
 			_, err = suite.App.StreamerKeeper.AfterEpochEnd(suite.Ctx, "day")
 			suite.Require().NoError(err)
 

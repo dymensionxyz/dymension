@@ -672,7 +672,8 @@ func TestStreamIterator(t *testing.T) {
 				GaugeId:         types.MaxGaugeID,
 				EpochIdentifier: "day",
 			},
-		}, {
+		},
+		{
 			name:     "One irrelevant stream, 0 iterations",
 			maxIters: 0,
 			pointer: types.EpochPointer{

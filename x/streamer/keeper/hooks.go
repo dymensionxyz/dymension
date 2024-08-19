@@ -36,7 +36,47 @@ func (k Keeper) Hooks() Hooks {
 /* -------------------------------------------------------------------------- */
 
 // BeforeEpochStart is the epoch start hook.
-func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
+func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string) error {
+	// Move upcoming streams to active if start time reached
+	upcomingStreams := k.GetUpcomingStreams(ctx)
+	for _, s := range upcomingStreams {
+		if !ctx.BlockTime().Before(s.StartTime) {
+			err := k.moveUpcomingStreamToActiveStream(ctx, s)
+			if err != nil {
+				return fmt.Errorf("move upcoming stream to active stream: %w", err)
+			}
+		}
+	}
+
+	var toStart []types.Stream
+
+	activeStreams := k.GetActiveStreams(ctx)
+	for _, s := range activeStreams {
+		if epochIdentifier == s.DistrEpochIdentifier {
+			toStart = append(toStart, s)
+		}
+	}
+
+	// Update streams with respect to a new epoch and save them
+	for _, s := range toStart {
+		updated, err := k.UpdateStreamAtEpochStart(ctx, s)
+		if err != nil {
+			return fmt.Errorf("update stream '%d' at epoch start: %w", s.Id, err)
+		}
+		// Save the stream
+		err = k.SetStream(ctx, &updated)
+		if err != nil {
+			return fmt.Errorf("set stream: %w", err)
+		}
+	}
+
+	err := ctx.EventManager().EmitTypedEvent(&types.EventEpochStart{
+		ActiveStreamsNum: uint64(len(toStart)),
+	})
+	if err != nil {
+		return fmt.Errorf("emit typed event: %w", err)
+	}
+
 	return nil
 }
 
@@ -44,23 +84,15 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochN
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coins, error) {
 	activeStreams := k.GetActiveStreams(ctx)
 
-	// Move upcoming streams to active if start time reached
-	upcomingStreams := k.GetUpcomingStreams(ctx)
-	var newlyActivated []types.Stream
-	for _, s := range upcomingStreams {
-		if !ctx.BlockTime().Before(s.StartTime) {
-			err := k.moveUpcomingStreamToActiveStream(ctx, s)
-			if err != nil {
-				return sdk.Coins{}, fmt.Errorf("move upcoming stream to active stream: %w", err)
-			}
+	var toDistribute []types.Stream
 
-			if epochIdentifier == s.DistrEpochIdentifier {
-				newlyActivated = append(newlyActivated, s)
-			}
+	for _, s := range activeStreams {
+		if epochIdentifier == s.DistrEpochIdentifier {
+			toDistribute = append(toDistribute, s)
 		}
 	}
 
-	if len(activeStreams) == 0 && len(newlyActivated) == 0 {
+	if len(toDistribute) == 0 {
 		// Nothing to distribute
 		return sdk.Coins{}, nil
 	}
@@ -70,16 +102,12 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coin
 		return sdk.Coins{}, fmt.Errorf("get epoch pointer for epoch '%s': %w", epochIdentifier, err)
 	}
 
-	distrResult := k.DistributeRewards(ctx, epochPointer, types.IterationsNoLimit, activeStreams)
+	distrResult := k.DistributeRewards(ctx, epochPointer, types.IterationsNoLimit, toDistribute)
 
 	// Update streams with respect to a new epoch and save them
-	for _, s := range append(distrResult.FilledStreams, newlyActivated...) {
-		updated, err := k.UpdateStreamAtEpochStart(ctx, s)
-		if err != nil {
-			return sdk.Coins{}, fmt.Errorf("update stream '%d' at epoch start: %w", s.Id, err)
-		}
+	for _, s := range distrResult.FilledStreams {
 		// Save the stream
-		err = k.SetStream(ctx, &updated)
+		err = k.SetStream(ctx, &s)
 		if err != nil {
 			return sdk.Coins{}, fmt.Errorf("set stream: %w", err)
 		}
@@ -91,23 +119,34 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coin
 		return sdk.Coins{}, fmt.Errorf("save epoch pointer: %w", err)
 	}
 
+	err = ctx.EventManager().EmitTypedEvent(&types.EventEpochEnd{
+		Iterations:  distrResult.Iterations,
+		Distributed: distrResult.DistributedCoins,
+	})
+	if err != nil {
+		return sdk.Coins{}, fmt.Errorf("emit typed event: %w", err)
+	}
+
 	ctx.Logger().Info("Streamer distributed coins", "amount", distrResult.DistributedCoins.String())
 
 	return distrResult.DistributedCoins, nil
 }
 
 // BeforeEpochStart is the epoch start hook.
-func (h Hooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	return h.k.BeforeEpochStart(ctx, epochIdentifier, epochNumber)
+func (h Hooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, _ int64) error {
+	err := h.k.BeforeEpochStart(ctx, epochIdentifier)
+	if err != nil {
+		return fmt.Errorf("x/streamer: before epoch '%s' start: %w", epochIdentifier, err)
+	}
+	return nil
 }
 
 // AfterEpochEnd is the epoch end hook.
 func (h Hooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, _ int64) error {
 	_, err := h.k.AfterEpochEnd(ctx, epochIdentifier)
 	if err != nil {
-		return err
+		return fmt.Errorf("x/streamer: after epoch '%s' end: %w", epochIdentifier, err)
 	}
-	// TODO: add event
 	return nil
 }
 

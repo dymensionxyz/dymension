@@ -18,6 +18,7 @@ func (k Keeper) EndBlock(ctx sdk.Context) error {
 
 	maxIterations := k.GetParams(ctx).MaxIterationsPerBlock
 	totalIterations := uint64(0)
+	totalDistributed := sdk.NewCoins()
 
 	for _, p := range epochPointers {
 		remainIterations := maxIterations - totalIterations
@@ -29,7 +30,9 @@ func (k Keeper) EndBlock(ctx sdk.Context) error {
 		result := k.DistributeRewards(ctx, p, remainIterations, streams)
 
 		totalIterations += result.Iterations
+		totalDistributed = totalDistributed.Add(result.DistributedCoins...)
 		streams = result.FilledStreams
+
 		err = k.SaveEpochPointer(ctx, result.NewPointer)
 		if err != nil {
 			return fmt.Errorf("save epoch pointer: %w", err)
@@ -47,6 +50,7 @@ func (k Keeper) EndBlock(ctx sdk.Context) error {
 	err = ctx.EventManager().EmitTypedEvent(&types.EventEndBlock{
 		Iterations:    totalIterations,
 		MaxIterations: maxIterations,
+		Distributed:   totalDistributed,
 	})
 	if err != nil {
 		return fmt.Errorf("emit typed event: %w", err)

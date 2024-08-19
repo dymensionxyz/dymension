@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"slices"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -16,6 +17,8 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 	}
 
 	k.SetParams(ctx, genState.Params)
+
+	slices.SortFunc(genState.Streams, CmpStreams)
 
 	for _, stream := range genState.Streams {
 		err := k.SetStreamWithRefKey(ctx, &stream)

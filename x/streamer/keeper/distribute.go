@@ -111,6 +111,8 @@ type DistributeRewardsResult struct {
 	Iterations       uint64
 }
 
+// DistributeRewards distributes all streams rewards to the corresponding gauges starting with
+// the specified pointer and considering the limit.
 func (k Keeper) DistributeRewards(
 	ctx sdk.Context,
 	pointer types.EpochPointer,
@@ -120,10 +122,7 @@ func (k Keeper) DistributeRewards(
 	totalDistributed := sdk.NewCoins()
 
 	// Temporary map for convenient calculations
-	streamsMap := make(map[uint64]types.Stream, len(streams))
-	for _, s := range streams {
-		streamsMap[s.Id] = s
-	}
+	streamUpdates := make(map[uint64]sdk.Coins, len(streams))
 
 	// Distribute to all the remaining gauges that are left after EndBlock
 	newPointer, iterations := IterateEpochPointer(pointer, streams, limit, func(v StreamGauge) pagination.Stop {
@@ -138,21 +137,21 @@ func (k Keeper) DistributeRewards(
 		totalDistributed = totalDistributed.Add(distributed...)
 
 		// Update distributed coins for the stream
-		stream := streamsMap[v.Stream.Id]
-		stream.DistributedCoins = stream.DistributedCoins.Add(distributed...)
-		streamsMap[v.Stream.Id] = stream
+		update := streamUpdates[v.Stream.Id]
+		update = update.Add(distributed...)
+		streamUpdates[v.Stream.Id] = update
 
 		return pagination.Continue
 	})
 
-	filledStreams := make([]types.Stream, 0, len(streamsMap))
-	for _, stream := range streamsMap {
-		filledStreams = append(filledStreams, stream)
+	for i, s := range streams {
+		s.DistributedCoins = s.DistributedCoins.Add(streamUpdates[s.Id]...)
+		streams[i] = s
 	}
 
 	return DistributeRewardsResult{
 		NewPointer:       newPointer,
-		FilledStreams:    filledStreams,
+		FilledStreams:    streams, // Make sure that the returning slice is always sorted
 		DistributedCoins: totalDistributed,
 		Iterations:       iterations,
 	}

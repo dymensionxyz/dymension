@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"slices"
 	"testing"
 	"time"
 
@@ -124,6 +125,18 @@ func (suite *KeeperTestSuite) CreateGauges(num int) {
 	}
 }
 
+func (suite *KeeperTestSuite) CreateGaugesUntil(num int) {
+	suite.T().Helper()
+
+	gauges := suite.App.IncentivesKeeper.GetGauges(suite.Ctx)
+	remain := num - len(gauges)
+
+	for i := 0; i < remain; i++ {
+		err := suite.CreateGauge()
+		suite.Require().NoError(err)
+	}
+}
+
 func (suite *KeeperTestSuite) Distribution() sponsorshiptypes.Distribution {
 	queryServer := sponsorshipkeeper.NewQueryServer(suite.App.SponsorshipKeeper)
 	d, err := queryServer.Distribution(suite.Ctx, new(sponsorshiptypes.QueryDistributionRequest))
@@ -216,6 +229,7 @@ func (suite *KeeperTestSuite) Delegate(delAddr sdk.AccAddress, valAddr sdk.ValAd
 
 func (suite *KeeperTestSuite) DistributeAllRewards(streams []types.Stream) sdk.Coins {
 	rewards := sdk.Coins{}
+	suite.Require().True(slices.IsSortedFunc(streams, keeper.CmpStreams))
 	for _, stream := range streams {
 		res := suite.App.StreamerKeeper.DistributeRewards(
 			suite.Ctx,

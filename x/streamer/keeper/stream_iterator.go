@@ -41,7 +41,6 @@ type StreamIterator struct {
 	streamIdx       int
 	gaugeIdx        int
 	epochIdentifier string
-	iterations      int
 }
 
 // NewStreamIterator a new StreamIterator starting from the provided stream and gauge IDs. First, it finds a starting
@@ -108,27 +107,17 @@ func (i *StreamIterator) findNextStream() {
 // 3. Stream epoch identifier matches the provided
 // 4. gaugeIdx is less than the number of gauges: the iterator points to the existing gauge
 func (i StreamIterator) validInvariants() bool {
-	i1 := i.streamIdx < len(i.data)
-	if !i1 {
-		return false
-	}
+	/////  1. streamIdx is less than the number of streams
+	return i.streamIdx < len(i.data) &&
 
-	i2 := len(i.data[i.streamIdx].DistributeTo.Records) != 0
-	if !i2 {
-		return false
-	}
+		// 2. stream is non-empty
+		len(i.data[i.streamIdx].DistributeTo.Records) != 0 &&
 
-	i3 := i.data[i.streamIdx].DistrEpochIdentifier == i.epochIdentifier
-	if !i3 {
-		return false
-	}
+		// 3. stream epoch identifier matches the provided
+		i.data[i.streamIdx].DistrEpochIdentifier == i.epochIdentifier &&
 
-	i4 := i.gaugeIdx < len(i.data[i.streamIdx].DistributeTo.Records)
-	if !i4 {
-		return false
-	}
-
-	return true
+		// 4. gaugeIdx is less than the number of gauges
+		i.gaugeIdx < len(i.data[i.streamIdx].DistributeTo.Records)
 }
 
 func (i StreamIterator) Value() StreamGauge {
@@ -138,16 +127,12 @@ func (i StreamIterator) Value() StreamGauge {
 	}
 }
 
-func (i StreamIterator) Stream() types.Stream {
-	return i.data[i.streamIdx]
-}
-
-func (i StreamIterator) Gauge() types.DistrRecord {
-	return i.data[i.streamIdx].DistributeTo.Records[i.gaugeIdx]
-}
-
 func (i StreamIterator) Valid() bool {
 	return i.validInvariants()
+}
+
+func CmpStreams(a, b types.Stream) int {
+	return cmpUint64(a.Id, b.Id)
 }
 
 func cmpUint64(a, b uint64) int {
