@@ -20,44 +20,46 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 	return rollappHook{k: k}
 }
 
-func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
-	// check to see if the sequencer has been registered before
-	sequencer, found := hook.k.GetSequencer(ctx, seqAddr)
-	if !found {
-		return types.ErrUnknownSequencer
+// BeforeUpdateState checks various conditions before updating the state.
+// It verifies if the sequencer has been registered, if the rollappId matches the one of the sequencer,
+// if there is a proposer for the given rollappId, and if the sequencer is the active one.
+// If the lastStateUpdateBySequencer flag is true, it also checks if the rollappId is rotating and
+// performs a rotation of the proposer.
+// Returns an error if any of the checks fail, otherwise returns nil.
+func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, lastStateUpdateBySequencer bool) error {
+	proposer, ok := hook.k.GetProposer(ctx, rollappId)
+	if !ok {
+		return types.ErrNoProposer
 	}
-
-	// check to see if the rollappId matches the one of the sequencer
-	if sequencer.RollappId != rollappId {
-		return types.ErrSequencerRollappMismatch
-	}
-
-	// check to see if the sequencer is active and can make the update
-	if sequencer.Status != types.Bonded {
-		return types.ErrInvalidSequencerStatus
-	}
-
-	if !sequencer.Proposer {
+	if seqAddr != proposer.Address {
 		return types.ErrNotActiveSequencer
 	}
+
+	if lastStateUpdateBySequencer {
+		// last state update received by sequencer
+		// it's expected that the sequencer produced a last block which handovers the proposer role on the L2
+		// any divergence from this is considered fraud
+		err := hook.k.CompleteRotation(ctx, rollappId)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
 // FraudSubmitted implements the RollappHooks interface
 // It slashes the sequencer and unbonds all other bonded sequencers
 func (hook rollappHook) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
-	err := hook.k.SlashAndJailFraud(ctx, seqAddr)
+	err := hook.k.JailSequencerOnFraud(ctx, seqAddr)
 	if err != nil {
 		return err
 	}
 
-	// unbond all other bonded sequencers
-	sequencers := hook.k.GetSequencersByRollappByStatus(ctx, rollappID, types.Bonded)
-	for _, sequencer := range sequencers {
-		err := hook.k.forceUnbondSequencer(ctx, sequencer.Address)
-		if err != nil {
-			return err
-		}
+	// unbond all other other rollapp sequencers
+	err = hook.k.InstantUnbondAllSequencers(ctx, rollappID)
+	if err != nil {
+		return err
 	}
 
 	return nil
