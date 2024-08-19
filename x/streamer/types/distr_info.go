@@ -1,6 +1,7 @@
 package types
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -38,16 +39,19 @@ func (r DistrRecord) ValidateBasic() error {
 // DistrInfoFromDistribution converts sponsorship distribution to the DistrInfo type.
 // Returning an empty DistrInfo (with zero DistrInfo.TotalWeight) is a valid scenario.
 func DistrInfoFromDistribution(d sponsorshiptypes.Distribution) *DistrInfo {
+	totalWeight := math.ZeroInt()
+
 	records := make([]DistrRecord, 0, len(d.Gauges))
 	for _, g := range d.Gauges {
 		records = append(records, DistrRecord{
 			GaugeId: g.GaugeId,
 			Weight:  g.Power,
 		})
+		totalWeight = totalWeight.Add(g.Power)
 	}
 
 	return &DistrInfo{
-		TotalWeight: d.VotingPower,
+		TotalWeight: totalWeight,
 		Records:     records,
 	}
 }
