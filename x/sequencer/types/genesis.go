@@ -29,5 +29,5 @@ func (gs GenesisState) Validate() error {
 
 	// FIXME: validate single PROPOSER per rollapp
 
-	return gs.Params.Validate()
+	return gs.Params.ValidateBasic()
 }

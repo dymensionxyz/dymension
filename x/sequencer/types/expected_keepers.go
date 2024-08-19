@@ -12,6 +12,7 @@ type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
 	GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp)
 	SealRollapp(ctx sdk.Context, rollappId string) error
+	GetParams(ctx sdk.Context) rollapptypes.Params
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

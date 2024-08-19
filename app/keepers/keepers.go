@@ -351,9 +351,9 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[sequencermoduletypes.StoreKey],
 		a.keys[sequencermoduletypes.MemStoreKey],
-		a.GetSubspace(sequencermoduletypes.ModuleName),
 		a.BankKeeper,
 		a.RollappKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.RollappKeeper.SetSequencerKeeper(a.SequencerKeeper)
