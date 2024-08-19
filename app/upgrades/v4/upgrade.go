@@ -51,12 +51,6 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
-		// TODO: all modules with params should be migrated
-		oldSubspace, ok := keepers.ParamsKeeper.GetSubspace(sequencertypes.ModuleName)
-		if !ok {
-			panic("sequencer subspace not found")
-		}
-		migrateSequencersParams(ctx, keepers.SequencerKeeper, oldSubspace)
 		migrateSequencers(ctx, keepers.SequencerKeeper)
 
 		// TODO: create rollapp gauges for each existing rollapp
@@ -117,17 +111,6 @@ func LoadDeprecatedParamsSubspaces(keepers *keepers.AppKeepers) {
 			subspace.WithKeyTable(keyTable)
 		}
 	}
-}
-
-func migrateSequencersParams(ctx sdk.Context, sequencerkeeper sequencerkeeper.Keeper, subspace paramstypes.Subspace) {
-	var currParams sequencertypes.Params
-	subspace.GetParamSet(ctx, &currParams)
-
-	if err := currParams.ValidateBasic(); err != nil {
-		panic(err)
-	}
-
-	sequencerkeeper.SetParams(ctx, currParams)
 }
 
 func migrateDelayedAckParams(ctx sdk.Context, delayedAckKeeper delayedackkeeper.Keeper) {

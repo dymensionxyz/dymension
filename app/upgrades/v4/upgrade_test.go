@@ -74,18 +74,6 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				// Create and store sequencers
 				s.seedAndStoreSequencers(numRollapps)
 
-				testValue := 555555 * time.Second
-				params := sequencertypes.DefaultParams()
-				params.UnbondingTime = testValue
-
-				seqSubspace, ok := s.App.AppKeepers.ParamsKeeper.GetSubspace(sequencertypes.ModuleName)
-				if !ok {
-					panic("sequencer subspace not found")
-				}
-				seqSubspace.Set(s.Ctx, sequencertypes.KeyUnbondingTime, &params.UnbondingTime)
-				seqSubspace.Set(s.Ctx, sequencertypes.KeyMinBond, &params.MinBond)
-				seqSubspace.Set(s.Ctx, sequencertypes.KeyLivenessSlashMultiplier, &params.LivenessSlashMultiplier)
-
 				return nil
 			},
 			upgrade: func() {
