@@ -20,8 +20,9 @@ const (
 
 // KV Store
 var (
-	RollappClientKey        = []byte{0x01}
+	rollappClientKey        = []byte{0x01}
 	ConsensusStateSignerKey = []byte{0x03}
+	canonicalClientKey      = []byte{0x04}
 )
 
 // Transient Store
@@ -29,8 +30,8 @@ var (
 	LightClientRegistrationKey = []byte{0x02}
 )
 
-func CanonicalClientKey(rollappId string) []byte {
-	return append(RollappClientKey, []byte(rollappId)...)
+func RollappClientKey(rollappId string) []byte {
+	return append(rollappClientKey, []byte(rollappId)...)
 }
 
 func CanonicalLightClientRegistrationKey(rollappId string) []byte {
@@ -40,4 +41,8 @@ func CanonicalLightClientRegistrationKey(rollappId string) []byte {
 func ConsensusStateSignerKeyByClientID(clientID string, height uint64) []byte {
 	prefix := append([]byte(clientID), sdk.Uint64ToBigEndian(height)...)
 	return append(ConsensusStateSignerKey, prefix...)
+}
+
+func CanonicalClientKey(clientID string) []byte {
+	return append(canonicalClientKey, []byte(clientID)...)
 }

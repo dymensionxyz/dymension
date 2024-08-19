@@ -3,6 +3,7 @@ package ante
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
@@ -36,6 +37,10 @@ func (i IBCMessagesDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			}
 		case *ibcclienttypes.MsgUpdateClient:
 			if err := i.HandleMsgUpdateClient(ctx, msg); err != nil {
+				return ctx, err
+			}
+		case *ibcchanneltypes.MsgChannelOpenAck:
+			if err := i.HandleMsgChannelOpenAck(ctx, msg); err != nil {
 				return ctx, err
 			}
 		default:

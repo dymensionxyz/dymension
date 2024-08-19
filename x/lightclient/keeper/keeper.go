@@ -42,7 +42,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k Keeper) GetCanonicalClient(ctx sdk.Context, rollappId string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.CanonicalClientKey(rollappId))
+	bz := store.Get(types.RollappClientKey(rollappId))
 	if bz == nil {
 		return "", false
 	}
@@ -51,7 +51,8 @@ func (k Keeper) GetCanonicalClient(ctx sdk.Context, rollappId string) (string, b
 
 func (k Keeper) SetCanonicalClient(ctx sdk.Context, rollappId string, clientID string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.CanonicalClientKey(rollappId), []byte(clientID))
+	store.Set(types.RollappClientKey(rollappId), []byte(clientID))
+	store.Set(types.CanonicalClientKey(clientID), []byte(rollappId))
 }
 
 func (k Keeper) BeginCanonicalLightClientRegistration(ctx sdk.Context, rollappId string, clientID string) {
@@ -81,6 +82,15 @@ func (k Keeper) SetConsensusStateSigner(ctx sdk.Context, clientID string, height
 func (k Keeper) GetConsensusStateSigner(ctx sdk.Context, clientID string, height uint64) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.ConsensusStateSignerKeyByClientID(clientID, height))
+	if bz == nil {
+		return "", false
+	}
+	return string(bz), true
+}
+
+func (k Keeper) GetRollappForClientID(ctx sdk.Context, clientID string) (string, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.CanonicalClientKey(clientID))
 	if bz == nil {
 		return "", false
 	}
