@@ -117,10 +117,16 @@ func TestStreamerInitGenesis(t *testing.T) {
 	}
 
 	// initialize genesis with specified parameter, the stream created earlier, and lockable durations
+	expectedPointer := types.EpochPointer{
+		StreamId:        1,
+		GaugeId:         1,
+		EpochIdentifier: "day",
+	}
 	app.StreamerKeeper.InitGenesis(ctx, types.GenesisState{
-		Params:       types.Params{},
-		Streams:      []types.Stream{stream},
-		LastStreamId: 1,
+		Params:        types.Params{},
+		Streams:       []types.Stream{stream},
+		LastStreamId:  1,
+		EpochPointers: []types.EpochPointer{expectedPointer},
 	})
 
 	// check that the stream created earlier was initialized through initGenesis and still exists on chain
@@ -129,6 +135,9 @@ func TestStreamerInitGenesis(t *testing.T) {
 	require.Len(t, streams, 1)
 	require.Equal(t, streams[0], stream)
 	require.Equal(t, lastStreamID, uint64(1))
+	ep, err := app.StreamerKeeper.GetEpochPointer(ctx, "day")
+	require.NoError(t, err)
+	require.Equal(t, expectedPointer, ep)
 }
 
 func TestStreamerOrder(t *testing.T) {
