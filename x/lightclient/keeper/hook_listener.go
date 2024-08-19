@@ -36,7 +36,7 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappId string, stat
 			continue
 		}
 		height := ibcclienttypes.NewHeight(1, bd.GetHeight())
-		consensusState, found := hook.k.ibcKeeper.ClientKeeper.GetClientConsensusState(ctx, canonicalClient, height)
+		consensusState, found := hook.k.ibcClientKeeper.GetClientConsensusState(ctx, canonicalClient, height)
 		if !found {
 			return nil
 		}

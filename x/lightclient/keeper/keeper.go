@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
@@ -16,21 +15,21 @@ import (
 type Keeper struct {
 	cdc             codec.BinaryCodec
 	storeKey        storetypes.StoreKey
-	ibcKeeper       ibckeeper.Keeper
+	ibcClientKeeper types.IBCClientKeeper
 	sequencerKeeper types.SequencerKeeperExpected
 }
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
-	ibcKeeper ibckeeper.Keeper,
+	ibcKeeper types.IBCClientKeeper,
 	sequencerKeeper types.SequencerKeeperExpected,
 ) *Keeper {
 
 	k := &Keeper{
 		cdc:             cdc,
 		storeKey:        storeKey,
-		ibcKeeper:       ibcKeeper,
+		ibcClientKeeper: ibcKeeper,
 		sequencerKeeper: sequencerKeeper,
 	}
 	return k
