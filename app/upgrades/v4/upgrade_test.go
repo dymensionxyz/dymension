@@ -65,17 +65,34 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			msg:         "Test that upgrade does not panic and sets correct parameters and migrates rollapp module",
 			numRollapps: 5,
 			preUpgrade: func(numRollapps int) error {
+
+				v4.LoadDeprecatedParamsSubspaces(&s.App.AppKeepers)
+
 				// Create and store rollapps
 				s.seedAndStoreRollapps(numRollapps)
 
 				// Create and store sequencers
 				s.seedAndStoreSequencers(numRollapps)
+
+				testValue := 555555 * time.Second
+				params := sequencertypes.DefaultParams()
+				params.UnbondingTime = testValue
+
+				seqSubspace, ok := s.App.AppKeepers.ParamsKeeper.GetSubspace(sequencertypes.ModuleName)
+				if !ok {
+					panic("sequencer subspace not found")
+				}
+				seqSubspace.Set(s.Ctx, sequencertypes.KeyUnbondingTime, &params.UnbondingTime)
+				seqSubspace.Set(s.Ctx, sequencertypes.KeyMinBond, &params.MinBond)
+				seqSubspace.Set(s.Ctx, sequencertypes.KeyLivenessSlashMultiplier, &params.LivenessSlashMultiplier)
+
 				return nil
 			},
 			upgrade: func() {
 				// Run upgrade
 				s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight - 1)
 				plan := upgradetypes.Plan{Name: "v4", Height: dummyUpgradeHeight}
+
 				err := s.App.UpgradeKeeper.ScheduleUpgrade(s.Ctx, plan)
 				s.Require().NoError(err)
 				_, exists := s.App.UpgradeKeeper.GetUpgradePlan(s.Ctx)
