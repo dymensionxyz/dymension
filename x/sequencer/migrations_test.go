@@ -36,7 +36,6 @@ func TestMigrate2to3(t *testing.T) {
 
 	// Call the Migrate2to3 function
 	err := migrator.Migrate2to3(ctx)
-
 	// Check if there was an error
 	if err != nil {
 		t.Errorf("Migrate2to3 returned an error: %s", err)
@@ -47,5 +46,4 @@ func TestMigrate2to3(t *testing.T) {
 	if params.UnbondingTime != testValue {
 		t.Errorf("UnbondingTime not migrated correctly: got %v, expected %v", params.UnbondingTime, testValue)
 	}
-	return
 }

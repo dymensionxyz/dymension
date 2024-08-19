@@ -5,9 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var (
-	_ sdk.Msg = &MsgUnbond{}
-)
+var _ sdk.Msg = &MsgUnbond{}
 
 func NewMsgUnbond(creator string) *MsgUnbond {
 	return &MsgUnbond{

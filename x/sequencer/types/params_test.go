@@ -24,7 +24,7 @@ func TestValidateBasic(t *testing.T) {
 		{
 			"invalid min bond",
 			Params{
-				MinBond:                 sdk.Coin{"testdenom", sdk.NewInt(-5)},
+				MinBond:                 sdk.Coin{Denom: "testdenom", Amount: sdk.NewInt(-5)},
 				UnbondingTime:           params.UnbondingTime,
 				LivenessSlashMultiplier: params.LivenessSlashMultiplier,
 			},

@@ -30,7 +30,6 @@ func NewKeeper(
 	rollappKeeper types.RollappKeeper,
 	authority string,
 ) *Keeper {
-
 	_, err := sdk.AccAddressFromBech32(authority)
 	if err != nil {
 		panic(fmt.Errorf("invalid x/sequencer authority address: %w", err))
