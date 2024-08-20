@@ -282,7 +282,7 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 	return h.Keeper.registerAliasForRollApp(ctx, rollappID, creatorAddr, alias, aliasCost)
 }
 
-func (h rollappHooks) BeforeUpdateState(_ sdk.Context, _ string, _ string) error {
+func (h rollappHooks) BeforeUpdateState(_ sdk.Context, _ string, _ string, _ bool) error {
 	return nil
 }
 
