@@ -28,15 +28,16 @@ type QueryTestSuite struct {
 // SetupLockAndGauge creates both a lock and a gauge.
 func (suite *QueryTestSuite) CreateDefaultRollapp() string {
 	alice := sdk.AccAddress("addr1---------------")
-	// suite.FundAcc(alice, sdk.NewCoins(rollapptypes.DefaultRegistrationFee)) TODO: enable after x/dymns hooks are wired
 
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:      alice.String(),
 		RollappId:    urand.RollappID(),
 		Bech32Prefix: strings.ToLower(tmrand.Str(3)),
-		Alias:        strings.ToLower(tmrand.Str(3)),
+		Alias:        strings.ToLower(tmrand.Str(7)),
 		VmType:       rollapptypes.Rollapp_EVM,
 	}
+
+	suite.FundForAliasRegistration(msgCreateRollapp)
 
 	msgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(suite.Ctx, &msgCreateRollapp)

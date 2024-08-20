@@ -1,0 +1,32 @@
+syntax = "proto3";
+package dymensionxyz.dymension.dymns;
+
+import "gogoproto/gogo.proto";
+import "dymensionxyz/dymension/dymns/params.proto";
+import "dymensionxyz/dymension/dymns/dym_name.proto";
+import "dymensionxyz/dymension/dymns/market.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
+
+// GenesisState defines the DymNS module's genesis state.
+message GenesisState {
+  // params defines all the parameters of the module.
+  Params params = 1 [(gogoproto.nullable) = false];
+
+  // dym_names defines all the dym names in the genesis state.
+  repeated DymName dym_names = 2 [(gogoproto.nullable) = false];
+
+  // sell_order_bids are records which used to refund the bid amount to the bidder
+  // of the Sell-Orders which was not finished during genesis export
+  repeated SellOrderBid sell_order_bids = 3 [(gogoproto.nullable) = false];
+
+  // buy_orders are records which used to refund the bid amount to the bidder
+  // of the Buy-Order which was not finished during genesis export
+  repeated BuyOrder buy_orders = 4 [(gogoproto.nullable) = false];
+
+  // aliases_of_rollapps defines all the aliases of all RollApps.
+  repeated AliasesOfChainId aliases_of_rollapps = 5 [
+    (gogoproto.moretags) = "yaml:\"aliases_of_rollapps\"",
+    (gogoproto.nullable) = false
+  ];
+}

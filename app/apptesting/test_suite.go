@@ -3,6 +3,10 @@ package apptesting
 import (
 	"strings"
 
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	"github.com/dymensionxyz/dymension/v3/app/params"
+	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
+
 	"github.com/cometbft/cometbft/libs/rand"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -44,14 +48,13 @@ func (s *KeeperTestHelper) CreateDefaultRollapp() string {
 }
 
 func (s *KeeperTestHelper) CreateRollappByName(name string) {
-	alias := strings.NewReplacer("_", "", "-", "").Replace(name) // base it on rollappID to avoid alias conflicts
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:          alice,
 		RollappId:        name,
 		InitialSequencer: "*",
 		Bech32Prefix:     strings.ToLower(rand.Str(3)),
 		GenesisChecksum:  "1234567890abcdefg",
-		Alias:            alias,
+		Alias:            strings.ToLower(rand.Str(7)),
 		VmType:           rollapptypes.Rollapp_EVM,
 		Metadata: &rollapptypes.RollappMetadata{
 			Website:          "https://dymension.xyz",
@@ -62,6 +65,8 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 			X:                "https://x.dymension.xyz",
 		},
 	}
+
+	s.FundForAliasRegistration(msgCreateRollapp)
 
 	msgServer := rollappkeeper.NewMsgServerImpl(*s.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(s.Ctx, &msgCreateRollapp)
@@ -138,4 +143,26 @@ func (s *KeeperTestHelper) StateNotAltered() {
 	s.App.Commit()
 	newState := s.App.ExportState(s.Ctx)
 	s.Require().Equal(oldState, newState)
+}
+
+func (s *KeeperTestHelper) FundForAliasRegistration(msgCreateRollApp rollapptypes.MsgCreateRollapp) {
+	err := FundForAliasRegistration(s.Ctx, s.App.BankKeeper, msgCreateRollApp)
+	s.Require().NoError(err)
+}
+
+func FundForAliasRegistration(
+	ctx sdk.Context,
+	bankKeeper bankkeeper.Keeper,
+	msgCreateRollApp rollapptypes.MsgCreateRollapp,
+) error {
+	if msgCreateRollApp.Alias == "" {
+		return nil
+	}
+	dymNsParams := dymnstypes.DefaultPriceParams()
+	aliasRegistrationCost := sdk.NewCoins(sdk.NewCoin(
+		params.BaseDenom, dymNsParams.GetAliasPrice(msgCreateRollApp.Alias),
+	))
+	return bankutil.FundAccount(
+		bankKeeper, ctx, sdk.MustAccAddressFromBech32(msgCreateRollApp.Creator), aliasRegistrationCost,
+	)
 }

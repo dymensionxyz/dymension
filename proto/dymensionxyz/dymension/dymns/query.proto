@@ -1,0 +1,384 @@
+syntax = "proto3";
+package dymensionxyz.dymension.dymns;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "dymensionxyz/dymension/dymns/params.proto";
+import "dymensionxyz/dymension/dymns/dym_name.proto";
+import "dymensionxyz/dymension/dymns/market.proto";
+import "dymensionxyz/dymension/dymns/alias.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Params queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/params";
+  }
+
+  // DymName queries a Dym-Name by its name.
+  rpc DymName(QueryDymNameRequest) returns (QueryDymNameResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/dym_name/{dym_name}";
+  }
+
+  // Alias queries the chain_id associated as well as the Sell-Order and Buy-Order IDs relates to the alias.
+  rpc Alias(QueryAliasRequest) returns (QueryAliasResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/alias/{alias}";
+  }
+
+  // Aliases queries all the aliases for a chain id or all chains.
+  rpc Aliases(QueryAliasesRequest) returns (QueryAliasesResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/aliases";
+  }
+
+  // ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account address of each pointing to.
+  //
+  // For example:
+  //   - "my-name@dym" => "dym1a..."
+  //   - "another.my-name@dym" => "dym1b..."
+  //   - "my-name@nim" => "nim1..."
+  //   - (extra format) "0x1234...6789@nim" => "nim1..."
+  //   - (extra format) "dym1a...@nim" => "nim1..."
+  rpc ResolveDymNameAddresses(ResolveDymNameAddressesRequest) returns (ResolveDymNameAddressesResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/resolve";
+  }
+
+  // DymNamesOwnedByAccount queries the Dym-Names owned by an account.
+  rpc DymNamesOwnedByAccount(QueryDymNamesOwnedByAccountRequest) returns (QueryDymNamesOwnedByAccountResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/owned_by/{owner}";
+  }
+
+  // SellOrder queries the active SO of a Dym-Name/Alias.
+  rpc SellOrder(QuerySellOrderRequest) returns (QuerySellOrderResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/sell_order/{asset_id}";
+  }
+
+  // EstimateRegisterName estimates the cost to register a Dym-Name.
+  rpc EstimateRegisterName(EstimateRegisterNameRequest) returns (EstimateRegisterNameResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/estimate_register_name/{name}/{duration}";
+  }
+
+  // EstimateRegisterAlias estimates the cost to register an Alias.
+  rpc EstimateRegisterAlias(EstimateRegisterAliasRequest) returns (EstimateRegisterAliasResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/estimate_register_alias/{alias}";
+  }
+
+  // ReverseResolveAddress resolves multiple account addresses to Dym-Name Addresses which point to each.
+  // This function may return multiple possible Dym-Name-Addresses those point to each of the input address.
+  //
+  // For example: when we have "my-name@dym" resolves to "dym1a..."
+  // so reverse resolve will return "my-name@dym" when input is "dym1a..."
+  rpc ReverseResolveAddress(ReverseResolveAddressRequest) returns (ReverseResolveAddressResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/reverse_resolve";
+  }
+
+  // TranslateAliasOrChainIdToChainId tries to translate an alias/handle to a chain id.
+  // If an alias/handle can not be translated to chain-id, it is treated as a chain-id and returns.
+  rpc TranslateAliasOrChainIdToChainId(QueryTranslateAliasOrChainIdToChainIdRequest) returns (QueryTranslateAliasOrChainIdToChainIdResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/translate_alias/{alias_or_chain_id}";
+  }
+
+  // BuyOrderById queries a Buy-Order by its id.
+  rpc BuyOrderById(QueryBuyOrderByIdRequest) returns (QueryBuyOrderByIdResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/buy_order/{id}";
+  }
+
+  // BuyOrdersPlacedByAccount queries the all the buy orders placed by an account.
+  rpc BuyOrdersPlacedByAccount(QueryBuyOrdersPlacedByAccountRequest) returns (QueryBuyOrdersPlacedByAccountResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/buy_orders_placed_by_account/{account}";
+  }
+
+  // BuyOrdersByDymName queries all the buy orders of a Dym-Name.
+  rpc BuyOrdersByDymName(QueryBuyOrdersByDymNameRequest) returns (QueryBuyOrdersByDymNameResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/buy_orders_by_dym_name/{name}";
+  }
+
+  // BuyOrdersOfDymNamesOwnedByAccount queries all the buy orders of all Dym-Names owned by an account.
+  rpc BuyOrdersOfDymNamesOwnedByAccount(QueryBuyOrdersOfDymNamesOwnedByAccountRequest) returns (QueryBuyOrdersOfDymNamesOwnedByAccountResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/buy_orders_of_dym_names_owned_by_account/{account}";
+  }
+
+  // BuyOrdersByAlias queries all the buy orders of an Alias.
+  rpc BuyOrdersByAlias(QueryBuyOrdersByAliasRequest) returns (QueryBuyOrdersByAliasResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/buy_orders_by_alias/{alias}";
+  }
+
+  // BuyOrdersOfAliasesLinkedToRollApp queries all the buy orders of all Aliases linked to a RollApp.
+  rpc BuyOrdersOfAliasesLinkedToRollApp(QueryBuyOrdersOfAliasesLinkedToRollAppRequest) returns (QueryBuyOrdersOfAliasesLinkedToRollAppResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/buy_orders_of_aliases_linked_to_rollapp/{rollapp_id}";
+  }
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryDymNameRequest is the request type for the Query/DymName RPC method.
+message QueryDymNameRequest {
+  option (gogoproto.equal)           = false;
+
+  // dym_name is the name of the Dym-Name to query.
+  string dym_name = 1;
+}
+
+// QueryDymNameResponse is the response type for the Query/DymName RPC method.
+message QueryDymNameResponse {
+  // dym_name is the Dym-Name queried for.
+  DymName dym_name = 1;
+}
+
+// QueryAliasRequest is the request type for the Query/QueryAlias RPC method.
+message QueryAliasRequest {
+  option (gogoproto.equal)           = false;
+
+  // alias to query
+  string alias = 1;
+}
+
+// QueryAliasResponse
+message QueryAliasResponse {
+  // chain_id associated with the alias
+  string chain_id = 1;
+
+  // found_sell_order is true if active Sell-Order is found for the alias.
+  bool found_sell_order = 2;
+
+  // buy_order_ids is the list of Buy-Order IDs for the alias.
+  repeated string buy_order_ids = 3;
+
+  // same_chain_aliases is the list of aliases for the same chain that associated with the alias.
+  repeated string same_chain_aliases = 4;
+}
+
+message QueryAliasesRequest {
+  option (gogoproto.equal)           = false;
+
+  // chain_id to query alias for, empty for all chains.
+  string chain_id = 1;
+}
+
+message QueryAliasesResponse {
+  // aliases_by_chain_id is the map of aliases by chain id.
+  map<string, MultipleAliases> aliases_by_chain_id = 1 [(gogoproto.nullable) = false];
+}
+
+// ResolveDymNameAddressesRequest is the request type for the Query/ResolveDymNameAddresses RPC method.
+message ResolveDymNameAddressesRequest {
+  option (gogoproto.equal)           = false;
+
+  // addresses defines the Dym-Name addresses to resolve.
+  repeated string addresses = 1;
+}
+
+// ResultDymNameAddress defines the result of a single Dym-Name address resolution.
+message ResultDymNameAddress {
+  // address is the input Dym-Name address to resolve.
+  string address = 1;
+
+  // resolved_address is the resolved account address.
+  string resolved_address = 2;
+
+  // error is the error that occurred during the resolution.
+  string error = 3;
+}
+
+// ResolveDymNameAddressesResponse is the response type for the Query/ResolveDymNameAddresses RPC method.
+message ResolveDymNameAddressesResponse {
+  // resolved_addresses defines the resolved addresses for each input Dym-Name address.
+  repeated ResultDymNameAddress resolved_addresses = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryDymNamesOwnedByAccountRequest is the request type for the Query/DymNamesOwnedByAccount RPC method.
+message QueryDymNamesOwnedByAccountRequest {
+  option (gogoproto.equal)           = false;
+
+  // owner defines the address of the owner of the Dym-Names to query for.
+  string owner = 1;
+}
+
+//  QueryDymNamesOwnedByAccountResponse is the response type for the Query/DymNamesOwnedByAccount RPC method.
+message QueryDymNamesOwnedByAccountResponse {
+  // dym_names defines the Dym-Names owned by the input account.
+  repeated DymName dym_names = 1 [(gogoproto.nullable) = false];
+}
+
+// QuerySellOrderRequest is the request type for the Query/SellOrder RPC method.
+message QuerySellOrderRequest {
+  option (gogoproto.equal)           = false;
+
+  // asset_id is the Dym-Name/Alias to query the active Sell-Order for.
+  string asset_id = 1;
+
+  // asset_type can be either "Dym-Name" or "Alias".
+  string asset_type = 2;
+}
+
+// QuerySellOrderResponse is the response type for the Query/SellOrder RPC method.
+message QuerySellOrderResponse {
+  // result is the active Sell-Order for the Dym-Name/Alias.
+  SellOrder result = 1 [(gogoproto.nullable) = false];
+}
+
+// EstimateRegisterNameRequest is the request type for the Query/EstimateRegisterName RPC method.
+message EstimateRegisterNameRequest {
+  option (gogoproto.equal)           = false;
+
+  // name is the Dym-Name to be registered.
+  string name = 1;
+
+  // duration is the number of years the Dym-Name will be registered for.
+  int64 duration = 2;
+
+  // owner is the bech32-encoded address of the account which owns the order.
+  string owner = 3;
+}
+
+// EstimateRegisterNameResponse is the response type for the Query/EstimateRegisterName RPC method.
+message EstimateRegisterNameResponse {
+  // first_year_price is the price to register the Dym-Name for the first year.
+  cosmos.base.v1beta1.Coin first_year_price = 1 [(gogoproto.nullable) = false];
+
+  // extend_price is the price to extend the Dym-Name registration for another year.
+  cosmos.base.v1beta1.Coin extend_price = 2 [(gogoproto.nullable) = false];
+
+  // total_price is the total price to register the Dym-Name for the specified duration.
+  cosmos.base.v1beta1.Coin total_price = 3 [(gogoproto.nullable) = false];
+}
+
+// EstimateRegisterAliasRequest is the request type for the Query/EstimateRegisterAlias RPC method.
+message EstimateRegisterAliasRequest {
+  option (gogoproto.equal)           = false;
+
+  // alias to be registered.
+  string alias = 1;
+
+  // rollapp_id is the rollapp to link the alias to.
+  string rollapp_id = 2;
+
+  // owner is the bech32-encoded address of the account which owns the order.
+  string owner = 3;
+}
+
+// EstimateRegisterAliasResponse is the response type for the Query/EstimateRegisterAlias RPC method.
+message EstimateRegisterAliasResponse {
+  // price is the price to register the alias.
+  cosmos.base.v1beta1.Coin price = 1 [(gogoproto.nullable) = false];
+}
+
+// ReverseResolveAddressRequest is the request type for the Query/ReverseResolveAddress RPC method.
+message ReverseResolveAddressRequest {
+  // addresses defines the addresses to reverse resolve. Can be both bech32 and hex addresses.
+  repeated string addresses = 1;
+
+  // working_chain_id defines the chain id to use for the reverse resolution.
+  // Leave empty to use the host chain id.
+  string working_chain_id = 2;
+}
+
+// ReverseResolveAddressResponse is the response type for the Query/ReverseResolveAddress RPC method.
+message ReverseResolveAddressResponse {
+  // result defines the reverse resolution result for each input address.
+  map<string, ReverseResolveAddressResult> result = 1 [(gogoproto.nullable) = false];
+
+  // working_chain_id is the chain id used for the reverse resolution.
+  string working_chain_id = 2;
+}
+
+message ReverseResolveAddressResult {
+  // candidates are the Dym-Name addresses that the input address resolves to. Take one of them.
+  repeated string candidates = 1;
+
+  // error is the error that occurred during the resolution.
+  string error = 2;
+}
+
+// QueryTranslateAliasOrChainIdToChainIdRequest is the request type for the Query/TranslateAliasOrChainIdToChainId RPC method.
+message QueryTranslateAliasOrChainIdToChainIdRequest {
+  // alias_or_chain_id is the alias or chain id to translate.
+  string alias_or_chain_id = 1;
+}
+
+// QueryTranslateAliasOrChainIdToChainIdResponse is the response type for the Query/TranslateAliasOrChainIdToChainId RPC method.
+message QueryTranslateAliasOrChainIdToChainIdResponse {
+  // chain_id is the chain id that the alias or chain id translates to.
+  string chain_id = 1;
+}
+
+// QueryBuyOrderByIdRequest is the request type for the Query/BuyOrderById RPC method.
+message QueryBuyOrderByIdRequest {
+  // id of buy offer to query.
+  string id = 1;
+}
+
+// QueryBuyOrderByIdResponse is the response type for the Query/BuyOrderById RPC method.
+message QueryBuyOrderByIdResponse {
+  // buy_order is the result.
+  BuyOrder buy_order = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryBuyOrdersByAccountRequest is the request type for the Query/BuyOrdersPlacedByAccount RPC method.
+message QueryBuyOrdersPlacedByAccountRequest {
+  // account is the account address to query the placed buy offers.
+  string account = 1;
+}
+
+// QueryBuyOrdersByAccountResponse is the response type for the Query/BuyOrdersPlacedByAccount RPC method.
+message QueryBuyOrdersPlacedByAccountResponse {
+  // offers are the Buy-Orders placed by the account.
+  repeated BuyOrder buy_orders = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryBuyOrdersByDymNameRequest is the request type for the Query/BuyOrdersByDymName RPC method.
+message QueryBuyOrdersByDymNameRequest {
+  // name is the Dym-Name to query the buy offers placed for it.
+  string name = 1;
+}
+
+// QueryBuyOrdersByDymNameResponse is the response type for the Query/BuyOrdersByDymName RPC method.
+message QueryBuyOrdersByDymNameResponse {
+  // buy_orders placed for the Dym-Name.
+  repeated BuyOrder buy_orders = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryBuyOrdersOfDymNamesOwnedByAccountRequest is the request type for the Query/BuyOrdersOfDymNamesOwnedByAccount RPC method.
+message QueryBuyOrdersOfDymNamesOwnedByAccountRequest {
+  // account is the account address to query all the buy offers of the Dym-Names owned by it.
+  string account = 1;
+}
+
+// QueryBuyOrdersOfDymNamesOwnedByAccountResponse is the response type for the Query/BuyOrdersOfDymNamesOwnedByAccount RPC method.
+message QueryBuyOrdersOfDymNamesOwnedByAccountResponse {
+  // buy_orders of all the Dym-Names owned by the input account.
+  repeated BuyOrder buy_orders = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryBuyOrdersByAliasRequest is the request type for the Query/BuyOrdersByAlias RPC method.
+message QueryBuyOrdersByAliasRequest {
+  // alias is the alias to query the buy offers placed for it.
+  string alias = 1;
+}
+
+// QueryBuyOrdersByAliasResponse is the response type for the Query/BuyOrdersByAlias RPC method.
+message QueryBuyOrdersByAliasResponse {
+  // buy_orders of the input alias.
+  repeated BuyOrder buy_orders = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryBuyOrdersOfAliasesLinkedToRollAppRequest is the request type for the Query/BuyOrdersOfAliasesLinkedToRollApp RPC method.
+message QueryBuyOrdersOfAliasesLinkedToRollAppRequest {
+  // rollapp_id is the rollapp to query all the buy offers of the aliases linked to it
+  string rollapp_id = 1;
+}
+
+// QueryBuyOrdersOfAliasesLinkedToRollAppResponse is the response type for the Query/BuyOrdersOfAliasesLinkedToRollApp RPC method.
+message QueryBuyOrdersOfAliasesLinkedToRollAppResponse {
+  // buy_orders are all the buy orders of the aliases linked to the input rollapp.
+  repeated BuyOrder buy_orders = 1 [(gogoproto.nullable) = false];
+}
