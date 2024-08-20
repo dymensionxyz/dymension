@@ -6,12 +6,23 @@ import (
 	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 )
 
 func TestHandleMsgChannelOpenAck(t *testing.T) {
 	keeper, ctx := keepertest.LightClientKeeper(t)
-	rollappKeeper := NewMockRollappKeeper()
+	testRollapps := map[string]rollapptypes.Rollapp{
+		"rollapp-has-canon-client": rollapptypes.Rollapp{
+			RollappId: "rollapp-has-canon-client",
+			ChannelId: "channel-on-canon-client",
+		},
+		"rollapp-no-canon-channel": rollapptypes.Rollapp{
+			RollappId: "rollapp-no-canon-channel",
+			ChannelId: "",
+		},
+	}
+	rollappKeeper := NewMockRollappKeeper(testRollapps)
 	ibcclientKeeper := NewMockIBCClientKeeper()
 	ibcchannelKeeper := NewMockIBCChannelKeeper()
 	keeper.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")

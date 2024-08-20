@@ -15,20 +15,9 @@ type MockRollappKeeper struct {
 	rollapps map[string]rollapptypes.Rollapp
 }
 
-func NewMockRollappKeeper() *MockRollappKeeper {
-	testRollappWithCanonChannel := rollapptypes.Rollapp{
-		RollappId: "rollapp-has-canon-client",
-		ChannelId: "channel-on-canon-client",
-	}
-	testRollappWithNoCanonChannel := rollapptypes.Rollapp{
-		RollappId: "rollapp-no-canon-channel",
-		ChannelId: "",
-	}
+func NewMockRollappKeeper(rollapps map[string]rollapptypes.Rollapp) *MockRollappKeeper {
 	return &MockRollappKeeper{
-		rollapps: map[string]rollapptypes.Rollapp{
-			"rollapp-has-canon-client": testRollappWithCanonChannel,
-			"rollapp-no-canon-channel": testRollappWithNoCanonChannel,
-		},
+		rollapps: rollapps,
 	}
 }
 

@@ -27,7 +27,6 @@ type testInput struct {
 }
 
 func TestHandleMsgCreateClient(t *testing.T) {
-
 	testCases := []struct {
 		name    string
 		prepare func(ctx sdk.Context, k keeper.Keeper) testInput
