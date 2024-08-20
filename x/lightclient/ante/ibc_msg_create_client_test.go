@@ -24,13 +24,13 @@ var (
 	)
 )
 
-type testInput struct {
-	msg        *ibcclienttypes.MsgCreateClient
-	rollapps   map[string]rollapptypes.Rollapp
-	stateInfos map[string]map[uint64]rollapptypes.StateInfo
-}
-
 func TestHandleMsgCreateClient(t *testing.T) {
+	type testInput struct {
+		msg        *ibcclienttypes.MsgCreateClient
+		rollapps   map[string]rollapptypes.Rollapp
+		stateInfos map[string]map[uint64]rollapptypes.StateInfo
+	}
+
 	testCases := []struct {
 		name    string
 		prepare func(ctx sdk.Context, k keeper.Keeper) testInput
@@ -225,13 +225,14 @@ func TestHandleMsgCreateClient(t *testing.T) {
 		{
 			name: "State compatible - Candidate canonical client set",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
+				blocktimestamp := time.Now().UTC()
 				testClientState.ChainId = "rollapp-wants-canon-client"
 				clientState, err := ibcclienttypes.PackClientState(testClientState)
 				require.NoError(t, err)
 				testConsensusState := ibctm.NewConsensusState(
-					time.Now().UTC(),
-					commitmenttypes.NewMerkleRoot([]byte{}),
-					ctx.BlockHeader().ValidatorsHash,
+					blocktimestamp,
+					commitmenttypes.NewMerkleRoot([]byte("appHash")),
+					[]byte("sequencerAddr"),
 				)
 				consState, err := ibcclienttypes.PackConsensusState(testConsensusState)
 				require.NoError(t, err)
@@ -258,13 +259,13 @@ func TestHandleMsgCreateClient(t *testing.T) {
 									BD: []rollapptypes.BlockDescriptor{
 										{
 											Height:    1,
-											StateRoot: []byte{},
-											Timestamp: time.Now().UTC(),
+											StateRoot: []byte("appHash"),
+											Timestamp: blocktimestamp,
 										},
 										{
 											Height:    2,
-											StateRoot: []byte{},
-											Timestamp: time.Now().UTC(),
+											StateRoot: []byte("appHash2"),
+											Timestamp: blocktimestamp.Add(1),
 										},
 									},
 								},

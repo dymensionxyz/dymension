@@ -35,7 +35,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 			return nil
 		}
 		// Check if there are existing block descriptors for the given height of client state
-		height := header.GetHeight()
+		height := header.TrustedHeight
 		stateInfo, err := i.rollappKeeper.FindStateInfoByHeight(ctx, rollappID, height.GetRevisionHeight())
 		if err != nil {
 			// No BDs found for given height.
@@ -66,8 +66,12 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 			// next BD does not exist in this state info, check the next state info
 			nextStateInfo, found := i.rollappKeeper.GetStateInfo(ctx, rollappID, stateInfo.GetIndex().Index+1)
 			if !found {
-				// if next state info does not exist, then we can't verify the next block valhash. So we ignore this check
-				rollappState.NextBlockSequencer = ""
+				// if next state info does not exist, then we can't verify the next block valhash.
+				// Will accept the update optimistically
+				// But also save the blockProposer address with the height for future verification
+				blockProposer := header.Header.ProposerAddress
+				i.lightClientKeeper.SetConsensusStateSigner(ctx, msg.ClientId, height.GetRevisionHeight(), string(blockProposer))
+				return nil
 			} else {
 				rollappState.NextBlockSequencer = nextStateInfo.Sequencer
 				rollappState.NextBlockDescriptor = nextStateInfo.GetBDs().BD[0]

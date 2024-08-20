@@ -1,0 +1,347 @@
+package ante_test
+
+import (
+	"testing"
+	"time"
+
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
+	"github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/stretchr/testify/require"
+)
+
+func TestHandleMsgUpdateClient(t *testing.T) {
+	type testInput struct {
+		msg        *ibcclienttypes.MsgUpdateClient
+		rollapps   map[string]rollapptypes.Rollapp
+		stateInfos map[string]map[uint64]rollapptypes.StateInfo
+	}
+	testCases := []struct {
+		name    string
+		prepare func(ctx sdk.Context, k keeper.Keeper) testInput
+		assert  func(ctx sdk.Context, k keeper.Keeper, err error)
+	}{
+		{
+			name: "Could not find a client with given client id",
+			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
+				return testInput{
+					msg: &ibcclienttypes.MsgUpdateClient{
+						ClientId: "non-existent-client",
+					},
+				}
+			},
+			assert: func(ctx sdk.Context, k keeper.Keeper, err error) {
+				require.NoError(t, err)
+			},
+		},
+		{
+			name: "Could not unpack as tendermint client state",
+			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
+				return testInput{
+					msg: &ibcclienttypes.MsgUpdateClient{
+						ClientId: "non-tm-client-id",
+					},
+				}
+			},
+			assert: func(ctx sdk.Context, k keeper.Keeper, err error) {
+				require.NoError(t, err)
+			},
+		},
+		{
+			name: "Client is not a known canonical client of a rollapp",
+			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
+				return testInput{
+					msg: &ibcclienttypes.MsgUpdateClient{
+						ClientId: "canon-client-id",
+					},
+				}
+			},
+			assert: func(ctx sdk.Context, k keeper.Keeper, err error) {
+				require.NoError(t, err)
+			},
+		},
+		{
+			name: "Could not find state info for height - ensure optimistically accepted and signer stored in state",
+			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+				var (
+					valSet      *cmtproto.ValidatorSet
+					trustedVals *cmtproto.ValidatorSet
+				)
+				signedHeader := &cmtproto.SignedHeader{
+					Header: &cmtproto.Header{
+						ProposerAddress: []byte("sequencerAddr"),
+					},
+					Commit: &cmtproto.Commit{},
+				}
+				header := ibctm.Header{
+					SignedHeader:      signedHeader,
+					ValidatorSet:      valSet,
+					TrustedHeight:     ibcclienttypes.MustParseHeight("1-1"),
+					TrustedValidators: trustedVals,
+				}
+				clientMsg, err := ibcclienttypes.PackClientMessage(&header)
+				require.NoError(t, err)
+				return testInput{
+					msg: &ibcclienttypes.MsgUpdateClient{
+						ClientId:      "canon-client-id",
+						ClientMessage: clientMsg,
+						Signer:        "sequencerAddr",
+					},
+					rollapps: map[string]rollapptypes.Rollapp{
+						"rollapp-has-canon-client": {
+							RollappId: "rollapp-has-canon-client",
+						},
+					},
+					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
+						"rollapp-has-canon-client": {
+							3: {
+								Sequencer: "sequencerAddr",
+								StateInfoIndex: rollapptypes.StateInfoIndex{
+									Index: 3,
+								},
+								StartHeight: 3,
+								NumBlocks:   1,
+								BDs: rollapptypes.BlockDescriptors{
+									BD: []rollapptypes.BlockDescriptor{
+										{
+											Height:    3,
+											StateRoot: []byte{},
+											Timestamp: time.Now().UTC(),
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+			},
+			assert: func(ctx sdk.Context, k keeper.Keeper, err error) {
+				require.NoError(t, err)
+				signer, found := k.GetConsensusStateSigner(ctx, "canon-client-id", 1)
+				require.True(t, found)
+				require.Equal(t, "sequencerAddr", signer)
+			},
+		},
+		{
+			name: "BD does not include next block in state info - ensure optimistically accepted and signer stored in state",
+			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+				var (
+					valSet      *cmtproto.ValidatorSet
+					trustedVals *cmtproto.ValidatorSet
+				)
+				signedHeader := &cmtproto.SignedHeader{
+					Header: &cmtproto.Header{
+						AppHash:            []byte("appHash"),
+						ProposerAddress:    []byte("sequencerAddr"),
+						Time:               time.Now().UTC(),
+						NextValidatorsHash: []byte("nextValHash"),
+					},
+					Commit: &cmtproto.Commit{},
+				}
+				header := ibctm.Header{
+					SignedHeader:      signedHeader,
+					ValidatorSet:      valSet,
+					TrustedHeight:     ibcclienttypes.MustParseHeight("1-1"),
+					TrustedValidators: trustedVals,
+				}
+				clientMsg, err := ibcclienttypes.PackClientMessage(&header)
+				require.NoError(t, err)
+				return testInput{
+					msg: &ibcclienttypes.MsgUpdateClient{
+						ClientId:      "canon-client-id",
+						ClientMessage: clientMsg,
+						Signer:        "sequencerAddr",
+					},
+					rollapps: map[string]rollapptypes.Rollapp{
+						"rollapp-has-canon-client": {
+							RollappId: "rollapp-has-canon-client",
+						},
+					},
+					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
+						"rollapp-has-canon-client": {
+							1: {
+								Sequencer: "sequencerAddr",
+								StateInfoIndex: rollapptypes.StateInfoIndex{
+									Index: 1,
+								},
+								StartHeight: 1,
+								NumBlocks:   1,
+								BDs: rollapptypes.BlockDescriptors{
+									BD: []rollapptypes.BlockDescriptor{
+										{
+											Height:    1,
+											StateRoot: []byte{},
+											Timestamp: time.Now().UTC(),
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+			},
+			assert: func(ctx sdk.Context, k keeper.Keeper, err error) {
+				require.NoError(t, err)
+				signer, found := k.GetConsensusStateSigner(ctx, "canon-client-id", 1)
+				require.True(t, found)
+				require.Equal(t, "sequencerAddr", signer)
+			},
+		},
+		{
+			name: "Ensure state is incompatible - err",
+			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+				var (
+					valSet      *cmtproto.ValidatorSet
+					trustedVals *cmtproto.ValidatorSet
+				)
+				signedHeader := &cmtproto.SignedHeader{
+					Header: &cmtproto.Header{
+						AppHash:            []byte("appHash"),
+						ProposerAddress:    []byte("sequencerAddr"),
+						Time:               time.Now().UTC(),
+						NextValidatorsHash: []byte("nextValHash"),
+					},
+					Commit: &cmtproto.Commit{},
+				}
+				header := ibctm.Header{
+					SignedHeader:      signedHeader,
+					ValidatorSet:      valSet,
+					TrustedHeight:     ibcclienttypes.MustParseHeight("1-1"),
+					TrustedValidators: trustedVals,
+				}
+				clientMsg, err := ibcclienttypes.PackClientMessage(&header)
+				require.NoError(t, err)
+				return testInput{
+					msg: &ibcclienttypes.MsgUpdateClient{
+						ClientId:      "canon-client-id",
+						ClientMessage: clientMsg,
+						Signer:        "sequencerAddr",
+					},
+					rollapps: map[string]rollapptypes.Rollapp{
+						"rollapp-has-canon-client": {
+							RollappId: "rollapp-has-canon-client",
+						},
+					},
+					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
+						"rollapp-has-canon-client": {
+							1: {
+								Sequencer: "sequencerAddr",
+								StateInfoIndex: rollapptypes.StateInfoIndex{
+									Index: 1,
+								},
+								StartHeight: 1,
+								NumBlocks:   2,
+								BDs: rollapptypes.BlockDescriptors{
+									BD: []rollapptypes.BlockDescriptor{
+										{
+											Height:    1,
+											StateRoot: []byte{},
+											Timestamp: time.Now().UTC(),
+										},
+										{
+											Height:    2,
+											StateRoot: []byte{},
+											Timestamp: time.Now().UTC(),
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+			},
+			assert: func(ctx sdk.Context, k keeper.Keeper, err error) {
+				require.ErrorIs(t, err, ibcclienttypes.ErrInvalidConsensus)
+			},
+		},
+		{
+			name: "Ensure state is compatible - happy path",
+			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+				var (
+					valSet      *cmtproto.ValidatorSet
+					trustedVals *cmtproto.ValidatorSet
+				)
+				signedHeader := &cmtproto.SignedHeader{
+					Header: &cmtproto.Header{
+						AppHash:            []byte("appHash"),
+						ProposerAddress:    []byte("sequencerAddr"),
+						Time:               time.Now().UTC(),
+						NextValidatorsHash: []byte("sequencerAddr"),
+					},
+					Commit: &cmtproto.Commit{},
+				}
+				header := ibctm.Header{
+					SignedHeader:      signedHeader,
+					ValidatorSet:      valSet,
+					TrustedHeight:     ibcclienttypes.MustParseHeight("1-1"),
+					TrustedValidators: trustedVals,
+				}
+				clientMsg, err := ibcclienttypes.PackClientMessage(&header)
+				require.NoError(t, err)
+				return testInput{
+					msg: &ibcclienttypes.MsgUpdateClient{
+						ClientId:      "canon-client-id",
+						ClientMessage: clientMsg,
+						Signer:        "sequencerAddr",
+					},
+					rollapps: map[string]rollapptypes.Rollapp{
+						"rollapp-has-canon-client": {
+							RollappId: "rollapp-has-canon-client",
+						},
+					},
+					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
+						"rollapp-has-canon-client": {
+							1: {
+								Sequencer: "sequencerAddr",
+								StateInfoIndex: rollapptypes.StateInfoIndex{
+									Index: 1,
+								},
+								StartHeight: 1,
+								NumBlocks:   2,
+								BDs: rollapptypes.BlockDescriptors{
+									BD: []rollapptypes.BlockDescriptor{
+										{
+											Height:    1,
+											StateRoot: []byte("appHash"),
+											Timestamp: time.Now().UTC(),
+										},
+										{
+											Height:    2,
+											StateRoot: []byte("appHash2"),
+											Timestamp: time.Now().UTC(),
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+			},
+			assert: func(ctx sdk.Context, k keeper.Keeper, err error) {
+				require.NoError(t, err)
+			},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			keeper, ctx := keepertest.LightClientKeeper(t)
+			ibcclientKeeper := NewMockIBCClientKeeper()
+			ibcchannelKeeper := NewMockIBCChannelKeeper()
+			input := tc.prepare(ctx, *keeper)
+			rollappKeeper := NewMockRollappKeeper(input.rollapps, input.stateInfos)
+			ibcMsgDecorator := ante.NewIBCMessagesDecorator(*keeper, ibcclientKeeper, ibcchannelKeeper, rollappKeeper)
+
+			err := ibcMsgDecorator.HandleMsgUpdateClient(ctx, input.msg)
+			tc.assert(ctx, *keeper, err)
+		})
+	}
+}
