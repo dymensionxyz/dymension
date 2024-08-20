@@ -78,7 +78,7 @@ func (m *MockIBCCLientKeeper) GetClientState(ctx sdk.Context, clientID string) (
 }
 
 func (m *MockIBCCLientKeeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) string {
-	return ""
+	return "new-canon-client-1"
 }
 
 type MockIBCChannelKeeper struct{}

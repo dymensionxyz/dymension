@@ -40,6 +40,7 @@ func CheckCompatibility(ibcState IBCState, raState RollappState) error {
 }
 
 func getValHashForSequencer(sequencerTmPubKeyBz []byte) ([]byte, error) {
+	// Creating a dummy tendermint validatorset to calculate the nextValHash
 	var tmpk tmprotocrypto.PublicKey
 	err := tmpk.Unmarshal(sequencerTmPubKeyBz)
 	if err != nil {

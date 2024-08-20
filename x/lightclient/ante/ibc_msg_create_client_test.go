@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
@@ -146,7 +148,7 @@ func TestHandleMsgCreateClient(t *testing.T) {
 								StateInfoIndex: rollapptypes.StateInfoIndex{
 									Index: 1,
 								},
-								Sequencer: "sequencerAddr",
+								Sequencer: keepertest.Alice,
 								BDs: rollapptypes.BlockDescriptors{
 									BD: []rollapptypes.BlockDescriptor{
 										{
@@ -197,7 +199,7 @@ func TestHandleMsgCreateClient(t *testing.T) {
 								StateInfoIndex: rollapptypes.StateInfoIndex{
 									Index: 1,
 								},
-								Sequencer: "sequencerAddr",
+								Sequencer: keepertest.Alice,
 								BDs: rollapptypes.BlockDescriptors{
 									BD: []rollapptypes.BlockDescriptor{
 										{
@@ -229,10 +231,17 @@ func TestHandleMsgCreateClient(t *testing.T) {
 				testClientState.ChainId = "rollapp-wants-canon-client"
 				clientState, err := ibcclienttypes.PackClientState(testClientState)
 				require.NoError(t, err)
+				var nextVals cmttypes.ValidatorSet
+				tmPk, err := k.GetTmPubkey(ctx, keepertest.Alice)
+				require.NoError(t, err)
+				updates, err := cmttypes.PB2TM.ValidatorUpdates([]abci.ValidatorUpdate{{Power: 1, PubKey: tmPk}})
+				require.NoError(t, err)
+				err = nextVals.UpdateWithChangeSet(updates)
+				require.NoError(t, err)
 				testConsensusState := ibctm.NewConsensusState(
 					blocktimestamp,
 					commitmenttypes.NewMerkleRoot([]byte("appHash")),
-					[]byte("sequencerAddr"),
+					nextVals.Hash(),
 				)
 				consState, err := ibcclienttypes.PackConsensusState(testConsensusState)
 				require.NoError(t, err)
@@ -254,7 +263,7 @@ func TestHandleMsgCreateClient(t *testing.T) {
 								StateInfoIndex: rollapptypes.StateInfoIndex{
 									Index: 1,
 								},
-								Sequencer: "sequencerAddr",
+								Sequencer: keepertest.Alice,
 								BDs: rollapptypes.BlockDescriptors{
 									BD: []rollapptypes.BlockDescriptor{
 										{
@@ -277,7 +286,7 @@ func TestHandleMsgCreateClient(t *testing.T) {
 			assert: func(ctx sdk.Context, k keeper.Keeper) {
 				clientID, found := k.GetCanonicalLightClientRegistration(ctx, "rollapp-wants-canon-client")
 				require.True(t, found)
-				require.Equal(t, "client-1", clientID)
+				require.Equal(t, "new-canon-client-1", clientID)
 			},
 		},
 	}
