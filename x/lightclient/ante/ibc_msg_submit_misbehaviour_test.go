@@ -12,7 +12,7 @@ import (
 
 func TestHandleMsgSubmitMisbehaviour(t *testing.T) {
 	keeper, ctx := keepertest.LightClientKeeper(t)
-	rollappKeeper := NewMockRollappKeeper(nil)
+	rollappKeeper := NewMockRollappKeeper(nil, nil)
 	ibcclientKeeper := NewMockIBCClientKeeper()
 	ibcchannelKeeper := NewMockIBCChannelKeeper()
 	keeper.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")

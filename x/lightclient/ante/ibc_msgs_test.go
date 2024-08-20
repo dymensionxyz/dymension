@@ -12,12 +12,14 @@ import (
 )
 
 type MockRollappKeeper struct {
-	rollapps map[string]rollapptypes.Rollapp
+	rollapps   map[string]rollapptypes.Rollapp
+	stateInfos map[string]map[uint64]rollapptypes.StateInfo
 }
 
-func NewMockRollappKeeper(rollapps map[string]rollapptypes.Rollapp) *MockRollappKeeper {
+func NewMockRollappKeeper(rollapps map[string]rollapptypes.Rollapp, stateInfos map[string]map[uint64]rollapptypes.StateInfo) *MockRollappKeeper {
 	return &MockRollappKeeper{
-		rollapps: rollapps,
+		rollapps:   rollapps,
+		stateInfos: stateInfos,
 	}
 }
 
@@ -31,11 +33,24 @@ func (m *MockRollappKeeper) SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rol
 }
 
 func (m *MockRollappKeeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height uint64) (*rollapptypes.StateInfo, error) {
-	return nil, nil
+	stateInfos, found := m.stateInfos[rollappId]
+	if !found {
+		return nil, rollapptypes.ErrUnknownRollappID
+	}
+	stateInfo, found := stateInfos[height]
+	if !found {
+		return nil, rollapptypes.ErrNotFound
+	}
+	return &stateInfo, nil
 }
 
 func (m *MockRollappKeeper) GetStateInfo(ctx sdk.Context, rollappId string, index uint64) (val rollapptypes.StateInfo, found bool) {
-	return rollapptypes.StateInfo{}, false
+	stateInfos, found := m.stateInfos[rollappId]
+	if !found {
+		return val, false
+	}
+	val, found = stateInfos[index]
+	return val, found
 }
 
 type MockIBCCLientKeeper struct{}

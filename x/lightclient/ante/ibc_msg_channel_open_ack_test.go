@@ -13,16 +13,16 @@ import (
 func TestHandleMsgChannelOpenAck(t *testing.T) {
 	keeper, ctx := keepertest.LightClientKeeper(t)
 	testRollapps := map[string]rollapptypes.Rollapp{
-		"rollapp-has-canon-client": rollapptypes.Rollapp{
+		"rollapp-has-canon-client": {
 			RollappId: "rollapp-has-canon-client",
 			ChannelId: "channel-on-canon-client",
 		},
-		"rollapp-no-canon-channel": rollapptypes.Rollapp{
+		"rollapp-no-canon-channel": {
 			RollappId: "rollapp-no-canon-channel",
 			ChannelId: "",
 		},
 	}
-	rollappKeeper := NewMockRollappKeeper(testRollapps)
+	rollappKeeper := NewMockRollappKeeper(testRollapps, nil)
 	ibcclientKeeper := NewMockIBCClientKeeper()
 	ibcchannelKeeper := NewMockIBCChannelKeeper()
 	keeper.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
