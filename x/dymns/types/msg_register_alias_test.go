@@ -41,7 +41,7 @@ func TestMsgRegisterAlias_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - alias is too long",
-			alias:           "12345678901",
+			alias:           "123456789012345678901234567890123",
 			rollAppId:       "rollapp_1-1",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			confirmPayment:  testCoin(1),

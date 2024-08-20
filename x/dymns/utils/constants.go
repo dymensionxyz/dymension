@@ -8,5 +8,5 @@ const (
 	MaxSubNameLength = 66
 
 	// MaxAliasLength is the maximum length allowed for Alias.
-	MaxAliasLength = 10
+	MaxAliasLength = 32
 )
