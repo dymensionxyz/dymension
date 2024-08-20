@@ -68,13 +68,6 @@ func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) error 
 	}
 	store.Set(demandOrderKey, data)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeEIBC,
-			order.GetEvents()...,
-		),
-	)
-
 	return nil
 }
 
@@ -100,6 +93,10 @@ func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types
 	err = k.SetDemandOrder(ctx, demandOrder)
 	if err != nil {
 		return nil, err
+	}
+
+	if err = ctx.EventManager().EmitTypedEvent(demandOrder.GetPacketStatusUpdatedEvent()); err != nil {
+		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
 	return demandOrder, nil
