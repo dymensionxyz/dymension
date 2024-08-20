@@ -81,7 +81,7 @@ func TestAfterUpdateState(t *testing.T) {
 			input: testInput{
 				rollappId: "rollapp-has-canon-client",
 				stateInfo: &rollapptypes.StateInfo{
-					Sequencer: "sequencer1",
+					Sequencer: keepertest.Alice,
 					BDs: rollapptypes.BlockDescriptors{
 						BD: []rollapptypes.BlockDescriptor{
 							{
@@ -109,7 +109,7 @@ func TestAfterUpdateState(t *testing.T) {
 			input: testInput{
 				rollappId: "rollapp-has-canon-client",
 				stateInfo: &rollapptypes.StateInfo{
-					Sequencer: "sequencer1",
+					Sequencer: keepertest.Alice,
 					BDs: rollapptypes.BlockDescriptors{
 						BD: []rollapptypes.BlockDescriptor{
 							{

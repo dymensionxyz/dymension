@@ -54,13 +54,17 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 			NextValidatorsHash: header.Header.NextValidatorsHash,
 			Timestamp:          header.Header.Time,
 		}
+		sequencerPubKey, err := i.lightClientKeeper.GetTmPubkeyAsBytes(ctx, stateInfo.Sequencer)
+		if err != nil {
+			return err
+		}
 		rollappState := types.RollappState{
-			BlockSequencer:  stateInfo.Sequencer,
+			BlockSequencer:  sequencerPubKey,
 			BlockDescriptor: bd,
 		}
 		// Check that BD for next block exists
 		if height.GetRevisionHeight()-stateInfo.GetStartHeight()+1 < uint64(len(stateInfo.GetBDs().BD)) {
-			rollappState.NextBlockSequencer = stateInfo.Sequencer
+			rollappState.NextBlockSequencer = sequencerPubKey
 			rollappState.NextBlockDescriptor = stateInfo.GetBDs().BD[height.GetRevisionHeight()-stateInfo.GetStartHeight()+1]
 		} else {
 			// next BD does not exist in this state info, check the next state info
@@ -73,7 +77,11 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 				i.lightClientKeeper.SetConsensusStateSigner(ctx, msg.ClientId, height.GetRevisionHeight(), string(blockProposer))
 				return nil
 			} else {
-				rollappState.NextBlockSequencer = nextStateInfo.Sequencer
+				nextSequencerPk, err := i.lightClientKeeper.GetTmPubkeyAsBytes(ctx, nextStateInfo.Sequencer)
+				if err != nil {
+					return err
+				}
+				rollappState.NextBlockSequencer = nextSequencerPk
 				rollappState.NextBlockDescriptor = nextStateInfo.GetBDs().BD[0]
 			}
 		}

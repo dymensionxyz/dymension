@@ -7,6 +7,7 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
+
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -31,7 +32,7 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappId string, stat
 	bds := stateInfo.GetBDs()
 	for i, bd := range bds.GetBD() {
 		// Check if any optimistic updates were made for the given height
-		signer, found := hook.k.GetConsensusStateSigner(ctx, canonicalClient, bd.GetHeight())
+		tmHeaderSigner, found := hook.k.GetConsensusStateSigner(ctx, canonicalClient, bd.GetHeight())
 		if !found {
 			continue
 		}
@@ -52,25 +53,32 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappId string, stat
 		ibcState := types.IBCState{
 			Root:               tmConsensusState.GetRoot().GetHash(),
 			Height:             bd.GetHeight(),
-			Validator:          []byte(signer),
+			Validator:          []byte(tmHeaderSigner),
 			NextValidatorsHash: tmConsensusState.NextValidatorsHash,
 			Timestamp:          timestamp,
 		}
+		sequencerPk, err := hook.k.GetTmPubkeyAsBytes(ctx, stateInfo.Sequencer)
+		if err != nil {
+			return err
+		}
 		rollappState := types.RollappState{
-			BlockSequencer:  stateInfo.Sequencer,
+			BlockSequencer:  sequencerPk,
 			BlockDescriptor: bd,
 		}
 		// check if bd for next block exists
 		if i+1 < len(bds.GetBD()) {
-			rollappState.NextBlockSequencer = stateInfo.Sequencer
+			rollappState.NextBlockSequencer = sequencerPk
 			rollappState.NextBlockDescriptor = bds.GetBD()[i+1]
 		}
-		err := types.CheckCompatibility(ibcState, rollappState)
+		err = types.CheckCompatibility(ibcState, rollappState)
 		if err != nil {
 			// If the state is not compatible,
 			// Take this state update as source of truth over the IBC update
 			// Punish the block proposer of the IBC signed header
-			sequencerAddr := signer // todo: signer addr is sent from tm. so will be valconsaddr(?). check and then transform to valid address
+			sequencerAddr, err := hook.k.getAddress([]byte(tmHeaderSigner))
+			if err != nil {
+				return err
+			}
 			err = hook.k.sequencerKeeper.SlashAndJailFraud(ctx, sequencerAddr)
 			if err != nil {
 				return err

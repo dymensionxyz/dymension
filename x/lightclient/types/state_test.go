@@ -27,7 +27,7 @@ func TestCheckCompatibility(t *testing.T) {
 					Root: []byte("root"),
 				},
 				raState: types.RollappState{
-					BlockSequencer: "sequencer",
+					BlockSequencer: []byte("sequencer"),
 					BlockDescriptor: rollapptypes.BlockDescriptor{
 						StateRoot: []byte("not root"),
 					},
@@ -43,7 +43,7 @@ func TestCheckCompatibility(t *testing.T) {
 					Timestamp: time.Now().UTC(),
 				},
 				raState: types.RollappState{
-					BlockSequencer: "sequencer",
+					BlockSequencer: []byte("sequencer"),
 					BlockDescriptor: rollapptypes.BlockDescriptor{
 						StateRoot: []byte("root"),
 						Timestamp: time.Now().UTC().Add(1),
@@ -61,7 +61,7 @@ func TestCheckCompatibility(t *testing.T) {
 					Validator: []byte("validator"),
 				},
 				raState: types.RollappState{
-					BlockSequencer: "sequencer",
+					BlockSequencer: []byte("sequencer"),
 					BlockDescriptor: rollapptypes.BlockDescriptor{
 						StateRoot: []byte("root"),
 						Timestamp: timestamp,
@@ -80,12 +80,12 @@ func TestCheckCompatibility(t *testing.T) {
 					Validator:          []byte("sequencer"),
 				},
 				raState: types.RollappState{
-					BlockSequencer: "sequencer",
+					BlockSequencer: []byte("sequencer"),
 					BlockDescriptor: rollapptypes.BlockDescriptor{
 						StateRoot: []byte("root"),
 						Timestamp: timestamp,
 					},
-					NextBlockSequencer: "next sequencer",
+					NextBlockSequencer: []byte("next sequencer"),
 					NextBlockDescriptor: rollapptypes.BlockDescriptor{
 						StateRoot: []byte("root2"),
 						Timestamp: timestamp,
@@ -104,12 +104,12 @@ func TestCheckCompatibility(t *testing.T) {
 					Validator:          []byte("sequencer"),
 				},
 				raState: types.RollappState{
-					BlockSequencer: "sequencer",
+					BlockSequencer: []byte("sequencer"),
 					BlockDescriptor: rollapptypes.BlockDescriptor{
 						StateRoot: []byte("root"),
 						Timestamp: timestamp,
 					},
-					NextBlockSequencer: "next sequencer",
+					NextBlockSequencer: []byte("next sequencer"),
 					NextBlockDescriptor: rollapptypes.BlockDescriptor{
 						StateRoot: []byte("root2"),
 						Timestamp: timestamp,

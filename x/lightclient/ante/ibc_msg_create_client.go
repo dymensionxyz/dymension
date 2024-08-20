@@ -57,19 +57,23 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 		ibcState := types.IBCState{
 			Root:               tmConsensusState.GetRoot().GetHash(),
 			Height:             tmClientState.GetLatestHeight().GetRevisionHeight(),
-			Validator:          []byte{}, // not sure if this info is available in the tendermint consensus state
+			Validator:          []byte{}, // not sure if this info is available in the tendermint consensus state as no header has been shared yet
 			NextValidatorsHash: tmConsensusState.NextValidatorsHash,
 			Timestamp:          timestamp,
 		}
+		sequencerPk, err := i.lightClientKeeper.GetTmPubkeyAsBytes(ctx, stateInfo.Sequencer)
+		if err != nil {
+			return
+		}
 		rollappState := types.RollappState{
-			BlockSequencer:  stateInfo.Sequencer,
+			BlockSequencer:  sequencerPk,
 			BlockDescriptor: blockDescriptor,
 		}
 		// Check if bd for next block exists and is part of same state info
 		nextHeight := height.GetRevisionHeight() + 1
 		if stateInfo.StartHeight+stateInfo.NumBlocks >= nextHeight {
 			rollappState.NextBlockDescriptor = stateInfo.GetBDs().BD[nextHeight-stateInfo.StartHeight]
-			rollappState.NextBlockSequencer = stateInfo.Sequencer
+			rollappState.NextBlockSequencer = sequencerPk
 		} else {
 			// nextBD doesnt exist in same stateInfo. So lookup in the next StateInfo
 			currentStateInfoIndex := stateInfo.GetIndex().Index
@@ -77,7 +81,11 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 			if !found {
 				return // There is no BD for h+1, so we can't verify the next block valhash. So we cant mark this client as canonical
 			} else {
-				rollappState.NextBlockSequencer = nextStateInfo.Sequencer
+				nextSequencerPk, err := i.lightClientKeeper.GetTmPubkeyAsBytes(ctx, nextStateInfo.Sequencer)
+				if err != nil {
+					return
+				}
+				rollappState.NextBlockSequencer = nextSequencerPk
 				rollappState.NextBlockDescriptor = nextStateInfo.GetBDs().BD[0]
 			}
 		}

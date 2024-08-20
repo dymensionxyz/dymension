@@ -5,10 +5,11 @@ import (
 
 	"github.com/cometbft/cometbft/libs/log"
 
+	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/cosmos/cosmos-sdk/codec"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
 
@@ -17,6 +18,7 @@ type Keeper struct {
 	storeKey        storetypes.StoreKey
 	ibcClientKeeper types.IBCClientKeeperExpected
 	sequencerKeeper types.SequencerKeeperExpected
+	accountKeepr    types.AccountKeeperExpected
 }
 
 func NewKeeper(
@@ -24,6 +26,7 @@ func NewKeeper(
 	storeKey storetypes.StoreKey,
 	ibcKeeper types.IBCClientKeeperExpected,
 	sequencerKeeper types.SequencerKeeperExpected,
+	accountKeeper types.AccountKeeperExpected,
 ) *Keeper {
 
 	k := &Keeper{
@@ -31,8 +34,48 @@ func NewKeeper(
 		storeKey:        storeKey,
 		ibcClientKeeper: ibcKeeper,
 		sequencerKeeper: sequencerKeeper,
+		accountKeepr:    accountKeeper,
 	}
 	return k
+}
+
+func (k Keeper) GetTmPubkeyAsBytes(ctx sdk.Context, sequencerAddr string) ([]byte, error) {
+	tmPk, err := k.GetTmPubkey(ctx, sequencerAddr)
+	if err != nil {
+		return nil, err
+	}
+	tmPkBytes, err := tmPk.Marshal()
+	return tmPkBytes, err
+}
+
+func (k Keeper) GetTmPubkey(ctx sdk.Context, sequencerAddr string) (tmprotocrypto.PublicKey, error) {
+	acc, err := sdk.AccAddressFromBech32(sequencerAddr)
+	if err != nil {
+		return tmprotocrypto.PublicKey{}, err
+	}
+	pk, err := k.accountKeepr.GetPubKey(ctx, acc)
+	if err != nil {
+		return tmprotocrypto.PublicKey{}, err
+	}
+	tmPk, err := cryptocodec.ToTmProtoPublicKey(pk)
+	if err != nil {
+		return tmprotocrypto.PublicKey{}, err
+	}
+	return tmPk, nil
+}
+
+func (k Keeper) getAddress(tmPubkeyBz []byte) (string, error) {
+	var tmpk tmprotocrypto.PublicKey
+	err := tmpk.Unmarshal(tmPubkeyBz)
+	if err != nil {
+		return "", err
+	}
+	pubkey, err := cryptocodec.FromTmProtoPublicKey(tmpk)
+	if err != nil {
+		return "", err
+	}
+	acc := sdk.AccAddress(pubkey.Address().Bytes())
+	return acc.String(), nil
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

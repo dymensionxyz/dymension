@@ -364,6 +364,7 @@ func (a *AppKeepers) InitKeepers(
 		a.keys[lightclientmoduletypes.StoreKey],
 		a.IBCKeeper.ClientKeeper,
 		a.SequencerKeeper,
+		a.AccountKeeper,
 	)
 
 	a.RollappKeeper.SetSequencerKeeper(a.SequencerKeeper)

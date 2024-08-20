@@ -4,7 +4,11 @@ import (
 	"testing"
 	"time"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
+
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
@@ -91,7 +95,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 					msg: &ibcclienttypes.MsgUpdateClient{
 						ClientId:      "canon-client-id",
 						ClientMessage: clientMsg,
-						Signer:        "sequencerAddr",
+						Signer:        "relayerAddr",
 					},
 					rollapps: map[string]rollapptypes.Rollapp{
 						"rollapp-has-canon-client": {
@@ -101,7 +105,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
 						"rollapp-has-canon-client": {
 							3: {
-								Sequencer: "sequencerAddr",
+								Sequencer: keepertest.Alice,
 								StateInfoIndex: rollapptypes.StateInfoIndex{
 									Index: 3,
 								},
@@ -157,7 +161,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 					msg: &ibcclienttypes.MsgUpdateClient{
 						ClientId:      "canon-client-id",
 						ClientMessage: clientMsg,
-						Signer:        "sequencerAddr",
+						Signer:        "relayerAddr",
 					},
 					rollapps: map[string]rollapptypes.Rollapp{
 						"rollapp-has-canon-client": {
@@ -167,7 +171,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
 						"rollapp-has-canon-client": {
 							1: {
-								Sequencer: "sequencerAddr",
+								Sequencer: keepertest.Alice,
 								StateInfoIndex: rollapptypes.StateInfoIndex{
 									Index: 1,
 								},
@@ -233,7 +237,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
 						"rollapp-has-canon-client": {
 							1: {
-								Sequencer: "sequencerAddr",
+								Sequencer: keepertest.Alice,
 								StateInfoIndex: rollapptypes.StateInfoIndex{
 									Index: 1,
 								},
@@ -265,17 +269,29 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 		{
 			name: "Ensure state is compatible - happy path",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
+				sequencer := keepertest.Alice
+				proposerAddr, err := k.GetTmPubkeyAsBytes(ctx, sequencer)
+				require.NoError(t, err)
+				blocktimestamp := time.Now().UTC()
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
 				var (
 					valSet      *cmtproto.ValidatorSet
 					trustedVals *cmtproto.ValidatorSet
+					nextVals    cmttypes.ValidatorSet
 				)
+				var tmpk tmprotocrypto.PublicKey
+				err = tmpk.Unmarshal(proposerAddr)
+				require.NoError(t, err)
+				updates, err := cmttypes.PB2TM.ValidatorUpdates([]abci.ValidatorUpdate{{Power: 1, PubKey: tmpk}})
+				require.NoError(t, err)
+				err = nextVals.UpdateWithChangeSet(updates)
+				require.NoError(t, err)
 				signedHeader := &cmtproto.SignedHeader{
 					Header: &cmtproto.Header{
 						AppHash:            []byte("appHash"),
-						ProposerAddress:    []byte("sequencerAddr"),
-						Time:               time.Now().UTC(),
-						NextValidatorsHash: []byte("sequencerAddr"),
+						ProposerAddress:    proposerAddr,
+						Time:               blocktimestamp,
+						NextValidatorsHash: nextVals.Hash(),
 					},
 					Commit: &cmtproto.Commit{},
 				}
@@ -291,7 +307,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 					msg: &ibcclienttypes.MsgUpdateClient{
 						ClientId:      "canon-client-id",
 						ClientMessage: clientMsg,
-						Signer:        "sequencerAddr",
+						Signer:        "relayerAddr",
 					},
 					rollapps: map[string]rollapptypes.Rollapp{
 						"rollapp-has-canon-client": {
@@ -301,7 +317,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
 						"rollapp-has-canon-client": {
 							1: {
-								Sequencer: "sequencerAddr",
+								Sequencer: keepertest.Alice,
 								StateInfoIndex: rollapptypes.StateInfoIndex{
 									Index: 1,
 								},
@@ -312,12 +328,12 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 										{
 											Height:    1,
 											StateRoot: []byte("appHash"),
-											Timestamp: time.Now().UTC(),
+											Timestamp: blocktimestamp,
 										},
 										{
 											Height:    2,
 											StateRoot: []byte("appHash2"),
-											Timestamp: time.Now().UTC(),
+											Timestamp: blocktimestamp.Add(1),
 										},
 									},
 								},

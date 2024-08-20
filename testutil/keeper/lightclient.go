@@ -7,9 +7,11 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
@@ -19,7 +21,12 @@ import (
 	cometbftdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	Alice = "cosmos1c4k24jzduc365kywrsvf5ujz4ya6mwymy8vq4q"
 )
 
 func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
@@ -39,11 +46,13 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 	mockIBCKeeper := NewMockIBCClientKeeper()
 	mockSequencerKeeper := NewMockSequencerKeeper()
+	mockAccountKeeper := NewMockAccountKeeper()
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
 		mockIBCKeeper,
 		mockSequencerKeeper,
+		mockAccountKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, cometbftproto.Header{}, false, log.NewNopLogger())
@@ -92,4 +101,22 @@ func NewMockSequencerKeeper() *MockSequencerKeeper {
 
 func (m *MockSequencerKeeper) SlashAndJailFraud(ctx sdk.Context, seqAddr string) error {
 	return nil
+}
+
+type MockAccountKeeper struct {
+	pubkey cryptotypes.PubKey
+}
+
+func NewMockAccountKeeper() *MockAccountKeeper {
+	pubkey := ed25519.GenPrivKey().PubKey()
+	return &MockAccountKeeper{
+		pubkey: pubkey,
+	}
+}
+
+func (m *MockAccountKeeper) GetPubKey(ctx sdk.Context, addr sdk.AccAddress) (cryptotypes.PubKey, error) {
+	if addr.String() == Alice {
+		return m.pubkey, nil
+	}
+	return nil, sdkerrors.ErrUnknownAddress
 }
