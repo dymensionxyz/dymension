@@ -24,6 +24,8 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdListSequencer())
 	cmd.AddCommand(CmdShowSequencer())
 	cmd.AddCommand(CmdShowSequencersByRollapp())
+	cmd.AddCommand(CmdGetProposerByRollapp())
+	cmd.AddCommand(CmdGetNextProposerByRollapp())
 
 	return cmd
 }

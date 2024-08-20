@@ -25,13 +25,12 @@ func (suite *RollappTestSuite) TestHandleFraud() {
 	fraudHeight := uint64(300)
 
 	// unrelated rollapp just to validate it's unaffected
-	rollapp2, proposer2 := suite.CreateDefaultRollappWithProposer()
+	rollapp2, proposer2 := suite.CreateDefaultRollappAndProposer()
 
 	// create rollapp and sequencers before fraud evidence
-	rollapp, proposer := suite.CreateDefaultRollappWithProposer()
+	rollapp, proposer := suite.CreateDefaultRollappAndProposer()
 	for i := uint64(0); i < numOfSequencers-1; i++ {
-		_, err = suite.CreateDefaultSequencer(*ctx, rollapp)
-		suite.Require().Nil(err)
+		_ = suite.CreateDefaultSequencer(*ctx, rollapp)
 	}
 
 	// send state updates
@@ -64,7 +63,7 @@ func (suite *RollappTestSuite) TestHandleFraud_InvalidRollapp() {
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
-	rollapp, proposer := suite.CreateDefaultRollappWithProposer()
+	rollapp, proposer := suite.CreateDefaultRollappAndProposer()
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
@@ -77,7 +76,7 @@ func (suite *RollappTestSuite) TestHandleFraud_WrongHeight() {
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
-	rollapp, proposer := suite.CreateDefaultRollappWithProposer()
+	rollapp, proposer := suite.CreateDefaultRollappAndProposer()
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
@@ -90,7 +89,7 @@ func (suite *RollappTestSuite) TestHandleFraud_WrongSequencer() {
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
-	rollapp, proposer := suite.CreateDefaultRollappWithProposer()
+	rollapp, proposer := suite.CreateDefaultRollappAndProposer()
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
@@ -103,7 +102,7 @@ func (suite *RollappTestSuite) TestHandleFraud_WrongChannelID() {
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
-	rollapp, proposer := suite.CreateDefaultRollappWithProposer()
+	rollapp, proposer := suite.CreateDefaultRollappAndProposer()
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
@@ -119,10 +118,9 @@ func (suite *RollappTestSuite) TestHandleFraud_AlreadyReverted() {
 	numOfSequencers := uint64(3) - 1 // already created one with rollapp
 	numOfStates := uint64(10)
 
-	rollapp, proposer := suite.CreateDefaultRollappWithProposer()
+	rollapp, proposer := suite.CreateDefaultRollappAndProposer()
 	for i := uint64(0); i < numOfSequencers-1; i++ {
-		_, err = suite.CreateDefaultSequencer(*ctx, rollapp)
-		suite.Require().Nil(err)
+		_ = suite.CreateDefaultSequencer(*ctx, rollapp)
 	}
 
 	// send state updates
@@ -146,7 +144,7 @@ func (suite *RollappTestSuite) TestHandleFraud_AlreadyFinalized() {
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
-	rollapp, proposer := suite.CreateDefaultRollappWithProposer()
+	rollapp, proposer := suite.CreateDefaultRollappAndProposer()
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
@@ -205,10 +203,12 @@ func (suite *RollappTestSuite) assertFraudHandled(rollappId string) {
 	suite.Require().True(rollapp.Frozen)
 
 	// check sequencers
-	sequencers := suite.App.SequencerKeeper.GetSequencersByRollapp(suite.Ctx, rollappId)
-	for _, sequencer := range sequencers {
-		suite.Require().Equal(types.Unbonded, sequencer.Status)
-	}
+	sequencers := suite.App.SequencerKeeper.GetSequencersByRollappByStatus(suite.Ctx, rollappId, types.Bonded)
+	suite.Require().Equal(0, len(sequencers))
+	_, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	suite.Require().False(ok)
+	seq := suite.App.SequencerKeeper.ExpectedNextProposer(suite.Ctx, rollappId)
+	suite.Require().Empty(seq.Address)
 
 	// check states
 	finalIdx, _ := suite.App.RollappKeeper.GetLatestFinalizedStateIndex(suite.Ctx, rollappId)

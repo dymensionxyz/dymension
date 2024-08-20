@@ -25,6 +25,8 @@ var (
 	ErrUnknownRequest           = errorsmod.Register(ModuleName, 1017, "unknown request")
 	ErrInvalidRequest           = errorsmod.Register(ModuleName, 1018, "invalid request")
 	ErrSequencerJailed          = errorsmod.Register(ModuleName, 1019, "sequencer is jailed")
+	ErrRotationInProgress       = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "sequencer rotation in progress")
+	ErrNoProposer               = errorsmod.Wrap(gerrc.ErrNotFound, "proposer")
 	ErrNotInitialSequencer      = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "not the initial sequencer")
 	ErrInvalidURL               = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid url")
 	ErrInvalidMetadata          = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid metadata")

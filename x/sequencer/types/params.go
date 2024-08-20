@@ -17,13 +17,18 @@ var (
 	DefaultMinBond uint64 = 1000000
 	// DefaultUnbondingTime is the time duration for unbonding
 	DefaultUnbondingTime time.Duration = time.Hour * 24 * 7 * 2 // 2 weeks
+	// DefaultNoticePeriod is the time duration for notice period
+	DefaultNoticePeriod time.Duration = time.Hour * 24 * 7 // 1 week
 	// DefaultLivenessSlashMultiplier gives the amount of tokens to slash if the sequencer is liable for a liveness failure
 	DefaultLivenessSlashMultiplier sdk.Dec = sdk.MustNewDecFromStr("0.01907") // leaves 50% of original funds remaining after 48 slashes
 
 	// KeyMinBond is store's key for MinBond Params
 	KeyMinBond = []byte("MinBond")
 	// KeyUnbondingTime is store's key for UnbondingTime Params
-	KeyUnbondingTime           = []byte("UnbondingTime")
+	KeyUnbondingTime = []byte("UnbondingTime")
+	// KeyNoticePeriod is store's key for NoticePeriod Params
+	KeyNoticePeriod = []byte("NoticePeriod")
+	// KeyLivenessSlashMultiplier is store's key for LivenessSlashMultiplier Params
 	KeyLivenessSlashMultiplier = []byte("LivenessSlashMultiplier")
 )
 
@@ -33,10 +38,11 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(minBond sdk.Coin, unbondingPeriod time.Duration, livenessSlashMul sdk.Dec) Params {
+func NewParams(minBond sdk.Coin, unbondingPeriod, noticePeriod time.Duration, livenessSlashMul sdk.Dec) Params {
 	return Params{
 		MinBond:                 minBond,
 		UnbondingTime:           unbondingPeriod,
+		NoticePeriod:            noticePeriod,
 		LivenessSlashMultiplier: livenessSlashMul,
 	}
 }
@@ -49,7 +55,7 @@ func DefaultParams() Params {
 	}
 	minBond := sdk.NewCoin(denom, sdk.NewIntFromUint64(DefaultMinBond))
 	return NewParams(
-		minBond, DefaultUnbondingTime, DefaultLivenessSlashMultiplier,
+		minBond, DefaultUnbondingTime, DefaultNoticePeriod, DefaultLivenessSlashMultiplier,
 	)
 }
 
@@ -57,12 +63,13 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyMinBond, &p.MinBond, validateMinBond),
-		paramtypes.NewParamSetPair(KeyUnbondingTime, &p.UnbondingTime, validateUnbondingTime),
+		paramtypes.NewParamSetPair(KeyUnbondingTime, &p.UnbondingTime, validateTime),
+		paramtypes.NewParamSetPair(KeyNoticePeriod, &p.NoticePeriod, validateTime),
 		paramtypes.NewParamSetPair(KeyLivenessSlashMultiplier, &p.LivenessSlashMultiplier, validateLivenessSlashMultiplier),
 	}
 }
 
-func validateUnbondingTime(i interface{}) error {
+func validateTime(i interface{}) error {
 	v, ok := i.(time.Duration)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -101,7 +108,11 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if err := validateUnbondingTime(p.UnbondingTime); err != nil {
+	if err := validateTime(p.UnbondingTime); err != nil {
+		return err
+	}
+
+	if err := validateTime(p.NoticePeriod); err != nil {
 		return err
 	}
 
