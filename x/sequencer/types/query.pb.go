@@ -626,8 +626,11 @@ func (m *QueryGetNextProposerByRollappRequest) GetRollappId() string {
 
 // Response type for the GetNextProposerByRollapp RPC method.
 type QueryGetNextProposerByRollappResponse struct {
-	NextProposerAddr   string `protobuf:"bytes,1,opt,name=nextProposerAddr,proto3" json:"nextProposerAddr,omitempty"`
-	RotationInProgress bool   `protobuf:"varint,2,opt,name=rotationInProgress,proto3" json:"rotationInProgress,omitempty"`
+	// nextProposerAddr is the address of the next proposer.
+	// can be empty if no sequencer is available to be the next proposer.
+	NextProposerAddr string `protobuf:"bytes,1,opt,name=nextProposerAddr,proto3" json:"nextProposerAddr,omitempty"`
+	// rotationInProgress is true if the proposer rotation is in progress.
+	RotationInProgress bool `protobuf:"varint,2,opt,name=rotationInProgress,proto3" json:"rotationInProgress,omitempty"`
 }
 
 func (m *QueryGetNextProposerByRollappResponse) Reset()         { *m = QueryGetNextProposerByRollappResponse{} }

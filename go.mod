@@ -246,5 +246,7 @@ replace (
 	//  broken goleveldb
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
+	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.29
+
 	golang.org/x/exp => golang.org/x/exp v0.0.0-20230711153332-06a737ee72cb
 )
