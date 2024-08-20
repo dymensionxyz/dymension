@@ -94,6 +94,7 @@ set_EVM_params
 set_bank_denom_metadata
 set_epochs_params
 set_incentives_params
+set_dymns_params
 
 echo "Enable monitoring? (Y/n) "
 read -r answer
