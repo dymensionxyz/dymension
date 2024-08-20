@@ -19,14 +19,14 @@ func CheckCompatibility(ibcState IBCState, raState RollappState) error {
 	if !ibcState.Timestamp.Equal(raState.BlockDescriptor.Timestamp) {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "block descriptor timestamp does not match tendermint header timestamp")
 	}
-	// in case of msgcreateclinet validator info is not available
+	// in case of msgcreateclient, validator info is not available. it is only send in msgupdateclient as header info
 	// Check if the validator set hash matches the sequencer
-	if len(ibcState.Validator) == 1 && bytes.Equal(ibcState.Validator, []byte(raState.BlockSequencer)) {
+	if len(ibcState.Validator) > 0 && string(ibcState.Validator) != raState.BlockSequencer {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "validator set hash does not match the sequencer")
 	}
 
 	// Check if the nextValidatorHash matches the sequencer for h+1
-	if !bytes.Equal(ibcState.NextValidatorsHash, []byte(raState.NextBlockSequencer)) {
+	if string(ibcState.NextValidatorsHash) != raState.NextBlockSequencer {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "next validator hash does not match the sequencer for h+1")
 	}
 	return nil

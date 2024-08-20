@@ -1,0 +1,132 @@
+package types_test
+
+import (
+	"testing"
+	"time"
+
+	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/stretchr/testify/require"
+)
+
+func TestCheckCompatibility(t *testing.T) {
+	type input struct {
+		ibcState types.IBCState
+		raState  types.RollappState
+	}
+	timestamp := time.Now().UTC()
+	testCases := []struct {
+		name  string
+		input input
+		err   string
+	}{
+		{
+			name: "roots are not equal",
+			input: input{
+				ibcState: types.IBCState{
+					Root: []byte("root"),
+				},
+				raState: types.RollappState{
+					BlockSequencer: "sequencer",
+					BlockDescriptor: rollapptypes.BlockDescriptor{
+						StateRoot: []byte("not root"),
+					},
+				},
+			},
+			err: "block descriptor state root does not match tendermint header app hash",
+		},
+		{
+			name: "timestamps are not equal",
+			input: input{
+				ibcState: types.IBCState{
+					Root:      []byte("root"),
+					Timestamp: time.Now().UTC(),
+				},
+				raState: types.RollappState{
+					BlockSequencer: "sequencer",
+					BlockDescriptor: rollapptypes.BlockDescriptor{
+						StateRoot: []byte("root"),
+						Timestamp: time.Now().UTC().Add(1),
+					},
+				},
+			},
+			err: "block descriptor timestamp does not match tendermint header timestamp",
+		},
+		{
+			name: "validator who signed the block header is not the sequencer who submitted the block",
+			input: input{
+				ibcState: types.IBCState{
+					Root:      []byte("root"),
+					Timestamp: timestamp,
+					Validator: []byte("validator"),
+				},
+				raState: types.RollappState{
+					BlockSequencer: "sequencer",
+					BlockDescriptor: rollapptypes.BlockDescriptor{
+						StateRoot: []byte("root"),
+						Timestamp: timestamp,
+					},
+				},
+			},
+			err: "validator set hash does not match the sequencer",
+		},
+		{
+			name: "nextValidatorHash does not match the sequencer who submitted the next block descriptor",
+			input: input{
+				ibcState: types.IBCState{
+					Root:               []byte("root"),
+					Timestamp:          timestamp,
+					NextValidatorsHash: []byte("next validator hash"),
+					Validator:          []byte("sequencer"),
+				},
+				raState: types.RollappState{
+					BlockSequencer: "sequencer",
+					BlockDescriptor: rollapptypes.BlockDescriptor{
+						StateRoot: []byte("root"),
+						Timestamp: timestamp,
+					},
+					NextBlockSequencer: "next sequencer",
+					NextBlockDescriptor: rollapptypes.BlockDescriptor{
+						StateRoot: []byte("root2"),
+						Timestamp: timestamp,
+					},
+				},
+			},
+			err: "next validator hash does not match the sequencer for h+1",
+		},
+		{
+			name: "all fields are compatible",
+			input: input{
+				ibcState: types.IBCState{
+					Root:               []byte("root"),
+					Timestamp:          timestamp,
+					NextValidatorsHash: []byte("next sequencer"),
+					Validator:          []byte("sequencer"),
+				},
+				raState: types.RollappState{
+					BlockSequencer: "sequencer",
+					BlockDescriptor: rollapptypes.BlockDescriptor{
+						StateRoot: []byte("root"),
+						Timestamp: timestamp,
+					},
+					NextBlockSequencer: "next sequencer",
+					NextBlockDescriptor: rollapptypes.BlockDescriptor{
+						StateRoot: []byte("root2"),
+						Timestamp: timestamp,
+					},
+				},
+			},
+			err: "",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.CheckCompatibility(tc.input.ibcState, tc.input.raState)
+			if tc.err == "" {
+				require.NoError(t, err)
+			} else {
+				require.ErrorContains(t, err, tc.err)
+			}
+		})
+	}
+}
