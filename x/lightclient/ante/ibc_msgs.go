@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
@@ -12,14 +11,16 @@ import (
 var _ sdk.AnteDecorator = IBCMessagesDecorator{}
 
 type IBCMessagesDecorator struct {
-	ibcKeeper         ibckeeper.Keeper
+	ibcClientKeeper   types.IBCClientKeeperExpected
+	ibcChannelKeeper  types.IBCChannelKeeperExpected
 	rollappKeeper     types.RollappKeeperExpected
 	lightClientKeeper keeper.Keeper
 }
 
-func NewIBCMessagesDecorator(k keeper.Keeper, ibcK ibckeeper.Keeper, rk types.RollappKeeperExpected) IBCMessagesDecorator {
+func NewIBCMessagesDecorator(k keeper.Keeper, ibcClient types.IBCClientKeeperExpected, ibcChannel types.IBCChannelKeeperExpected, rk types.RollappKeeperExpected) IBCMessagesDecorator {
 	return IBCMessagesDecorator{
-		ibcKeeper:         ibcK,
+		ibcClientKeeper:   ibcClient,
+		ibcChannelKeeper:  ibcChannel,
 		rollappKeeper:     rk,
 		lightClientKeeper: k,
 	}

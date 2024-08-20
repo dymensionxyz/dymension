@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
+	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -18,6 +19,13 @@ type RollappKeeperExpected interface {
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
 }
 
-type IBCClientKeeper interface {
+type IBCClientKeeperExpected interface {
 	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
+	GenerateClientIdentifier(ctx sdk.Context, clientType string) string
+	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
+}
+
+type IBCChannelKeeperExpected interface {
+	GetChannel(ctx sdk.Context, portID, channelID string) (channel ibcchanneltypes.Channel, found bool)
+	GetChannelConnection(ctx sdk.Context, portID, channelID string) (string, exported.ConnectionI, error)
 }

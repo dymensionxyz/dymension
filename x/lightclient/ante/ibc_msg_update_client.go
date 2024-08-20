@@ -9,7 +9,7 @@ import (
 )
 
 func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibcclienttypes.MsgUpdateClient) error {
-	clientState, found := i.ibcKeeper.ClientKeeper.GetClientState(ctx, msg.ClientId)
+	clientState, found := i.ibcClientKeeper.GetClientState(ctx, msg.ClientId)
 	if !found {
 		return nil
 	}

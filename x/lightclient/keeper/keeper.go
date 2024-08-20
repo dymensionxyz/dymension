@@ -15,14 +15,14 @@ import (
 type Keeper struct {
 	cdc             codec.BinaryCodec
 	storeKey        storetypes.StoreKey
-	ibcClientKeeper types.IBCClientKeeper
+	ibcClientKeeper types.IBCClientKeeperExpected
 	sequencerKeeper types.SequencerKeeperExpected
 }
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
-	ibcKeeper types.IBCClientKeeper,
+	ibcKeeper types.IBCClientKeeperExpected,
 	sequencerKeeper types.SequencerKeeperExpected,
 ) *Keeper {
 

@@ -13,17 +13,19 @@ import (
 func TestHandleMsgSubmitMisbehaviour(t *testing.T) {
 	keeper, ctx := keepertest.LightClientKeeper(t)
 	rollappKeeper := NewMockRollappKeeper()
+	ibcclientKeeper := NewMockIBCClientKeeper()
+	ibcchannelKeeper := NewMockIBCChannelKeeper()
 	keeper.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-	ibcMsgDecorator := ante.NewIBCMessagesDecorator(*keeper, keeper, rollappKeeper)
+	ibcMsgDecorator := ante.NewIBCMessagesDecorator(*keeper, ibcclientKeeper, ibcchannelKeeper, rollappKeeper)
 	testCases := []struct {
 		name     string
 		inputMsg ibcclienttypes.MsgSubmitMisbehaviour
 		err      error
 	}{
 		{
-			name: "Could not unpack light client state",
+			name: "Could not unpack light client state as tendermint client state",
 			inputMsg: ibcclienttypes.MsgSubmitMisbehaviour{
-				ClientId:     "client-id",
+				ClientId:     "non-tm-client-id",
 				Misbehaviour: nil,
 			},
 			err: nil,
@@ -31,10 +33,10 @@ func TestHandleMsgSubmitMisbehaviour(t *testing.T) {
 		{
 			name: "Client is a known canonical client for a rollapp",
 			inputMsg: ibcclienttypes.MsgSubmitMisbehaviour{
-				ClientId:     "client-id",
+				ClientId:     "canon-client-id",
 				Misbehaviour: nil,
 			},
-			err: nil,
+			err: ibcclienttypes.ErrInvalidClient,
 		},
 		{
 			name: "Client is not a known canonical client",

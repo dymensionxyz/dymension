@@ -89,7 +89,7 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 
 		// Generate client id and begin canonical light client registration by storing it in transient store.
 		// Will be confirmed after the client is created in post handler.
-		nextClientID := i.ibcKeeper.ClientKeeper.GenerateClientIdentifier(ctx, exported.Tendermint)
+		nextClientID := i.ibcClientKeeper.GenerateClientIdentifier(ctx, exported.Tendermint)
 		i.lightClientKeeper.BeginCanonicalLightClientRegistration(ctx, rollappID, nextClientID)
 	}
 }

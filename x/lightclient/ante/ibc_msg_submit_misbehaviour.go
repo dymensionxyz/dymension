@@ -8,7 +8,7 @@ import (
 )
 
 func (i IBCMessagesDecorator) HandleMsgSubmitMisbehaviour(ctx sdk.Context, msg *ibcclienttypes.MsgSubmitMisbehaviour) error {
-	clientState, found := i.ibcKeeper.ClientKeeper.GetClientState(ctx, msg.ClientId)
+	clientState, found := i.ibcClientKeeper.GetClientState(ctx, msg.ClientId)
 	if !found {
 		return nil
 	}

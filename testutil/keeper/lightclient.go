@@ -75,6 +75,14 @@ func (m *MockIBCCLientKeeper) GetClientConsensusState(ctx sdk.Context, clientID 
 	return nil, false
 }
 
+func (m *MockIBCCLientKeeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) string {
+	return ""
+}
+
+func (m *MockIBCCLientKeeper) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
+	return nil, false
+}
+
 type MockSequencerKeeper struct {
 }
 

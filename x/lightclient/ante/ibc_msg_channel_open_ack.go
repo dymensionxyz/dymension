@@ -12,7 +12,7 @@ func (i IBCMessagesDecorator) HandleMsgChannelOpenAck(ctx sdk.Context, msg *ibcc
 		return nil
 	}
 	// Check if this channel is being opened on a known canonical client
-	_, connection, err := i.ibcKeeper.ChannelKeeper.GetChannelConnection(ctx, msg.PortId, msg.ChannelId)
+	_, connection, err := i.ibcChannelKeeper.GetChannelConnection(ctx, msg.PortId, msg.ChannelId)
 	if err != nil {
 		return err
 	}
