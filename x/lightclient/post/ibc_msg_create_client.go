@@ -23,7 +23,7 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 		nextClientID, registrationFound := i.lightClientKeeper.GetCanonicalLightClientRegistration(ctx, rollappID)
 		if registrationFound {
 			// Check if the client was successfully created with given clientID
-			_, clientFound := i.ibcKeeper.ClientKeeper.GetClientState(ctx, nextClientID)
+			_, clientFound := i.ibcClientKeeper.GetClientState(ctx, nextClientID)
 			if clientFound {
 				// Set the client as the canonical client for the rollapp
 				i.lightClientKeeper.SetCanonicalClient(ctx, rollappID, nextClientID)

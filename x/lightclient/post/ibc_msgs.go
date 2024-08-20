@@ -3,20 +3,20 @@ package post
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
 
 var _ sdk.PostDecorator = IBCMessagesDecorator{}
 
 type IBCMessagesDecorator struct {
-	ibcKeeper         ibckeeper.Keeper
+	ibcClientKeeper   types.IBCClientKeeperExpected
 	lightClientKeeper keeper.Keeper
 }
 
-func NewIBCMessagesDecorator(k keeper.Keeper, ibcK ibckeeper.Keeper) IBCMessagesDecorator {
+func NewIBCMessagesDecorator(k keeper.Keeper, ibcK types.IBCClientKeeperExpected) IBCMessagesDecorator {
 	return IBCMessagesDecorator{
-		ibcKeeper:         ibcK,
+		ibcClientKeeper:   ibcK,
 		lightClientKeeper: k,
 	}
 }
