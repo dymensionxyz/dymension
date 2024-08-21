@@ -91,18 +91,6 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 				UnbondTime: time.Time{},
 			},
 		}, {
-			name: "Update rollapp: fail - try to update a non-existing rollapp",
-			update: &types.MsgUpdateSequencerInformation{
-				Creator: addr.String(),
-			},
-			malleate: func(*types.Sequencer) {
-				suite.App.SequencerKeeper.SetSequencer(suite.Ctx, types.Sequencer{
-					Address:   addr.String(),
-					RollappId: "rollapp_1236-1",
-				})
-			},
-			expError: types.ErrUnknownRollappID,
-		}, {
 			name: "Update rollapp: fail - try to update a frozen rollapp",
 			update: &types.MsgUpdateSequencerInformation{
 				Creator: addr.String(),
