@@ -1,0 +1,56 @@
+syntax = "proto3";
+package dymensionxyz.dymension.app;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "dymensionxyz/dymension/app/params.proto";
+import "dymensionxyz/dymension/app/app.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/app/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Parameters queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/app/params";
+  }
+  // Queries a App by index.
+  rpc App(QueryGetAppRequest) returns (QueryGetAppResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/app/app/{name}/{rollapp_id}";
+  }
+
+  // Queries a list of App items.
+  rpc AppAll(QueryAllAppRequest) returns (QueryAllAppResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/app/app/{rollapp_id}";
+  }
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryGetAppRequest {
+  string name = 1;
+  string rollapp_id = 2;
+}
+
+message QueryGetAppResponse {
+  App app = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryAllAppRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  // rollapp_id is the optional id of the Rollapp that will be used to filter the query
+  string rollapp_id = 2;
+}
+
+message QueryAllAppResponse {
+  repeated QueryGetAppResponse app = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}

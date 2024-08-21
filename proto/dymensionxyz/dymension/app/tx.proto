@@ -1,0 +1,75 @@
+syntax = "proto3";
+package dymensionxyz.dymension.app;
+
+// this line is used by starport scaffolding # proto/tx/import
+import "cosmos/msg/v1/msg.proto";
+import "dymensionxyz/dymension/app/app.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/app/types";
+
+import "gogoproto/gogo.proto";
+
+// Msg defines the Msg service.
+service Msg {
+  rpc CreateApp(MsgCreateApp) returns (MsgCreateAppResponse);
+  rpc UpdateApp(MsgUpdateApp) returns (MsgUpdateAppResponse);
+  rpc DeleteApp(MsgDeleteApp) returns (MsgDeleteAppResponse);
+}
+
+// MsgCreateApp creates a new app chain on the hub.
+message MsgCreateApp {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the app creator
+  string creator = 1;
+  // name is the unique App's name
+  string name = 2;
+  // rollapp_id is the id of the Rollapp the App belongs to
+  string rollapp_id = 3;
+  // description is the description of the App
+  string description = 4;
+  // image is the relative path to the App image
+  string image = 5;
+  // url is the URL to the App's website
+  string url = 6;
+  // order is the order of the App in the Rollapp
+  int32 order = 7;
+}
+
+message MsgCreateAppResponse {
+}
+
+// MsgUpdateApp updates the app information.
+message MsgUpdateApp {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the app owner
+  string creator = 1;
+  // name is the unique App's name (immutable)
+  string name = 2;
+  // rollapp_id is the id of the Rollapp the App belongs to
+  string rollapp_id = 3;
+  // description is the description of the App
+  string description = 4;
+  // image is the relative path to the App image
+  string image = 5;
+  // url is the URL to the App's website
+  string url = 6;
+  // order is the order of the App in the Rollapp
+  int32 order = 7;
+}
+
+message MsgUpdateAppResponse {
+}
+
+// MsgDeleteApp deletes an app from the hub.
+message MsgDeleteApp {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the app owner
+  string creator = 1;
+  // name is the unique App's name
+  string name = 2;
+  // rollapp_id is the id of the Rollapp the App belongs to
+  string rollapp_id = 3;
+}
+
+message MsgDeleteAppResponse {
+}

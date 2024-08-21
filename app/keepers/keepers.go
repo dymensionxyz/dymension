@@ -70,6 +70,8 @@ import (
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
+	appmodulekeeper "github.com/dymensionxyz/dymension/v3/x/app/keeper"
+	appmoduletypes "github.com/dymensionxyz/dymension/v3/x/app/types"
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -139,6 +141,7 @@ type AppKeepers struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	RollappKeeper     *rollappmodulekeeper.Keeper
+	AppKeeper         *appmodulekeeper.Keeper
 	SequencerKeeper   sequencermodulekeeper.Keeper
 	SponsorshipKeeper sponsorshipkeeper.Keeper
 	StreamerKeeper    streamermodulekeeper.Keeper
@@ -350,6 +353,14 @@ func (a *AppKeepers) InitKeepers(
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ClientKeeper,
 		nil,
+	)
+
+	a.AppKeeper = appmodulekeeper.NewKeeper(
+		appCodec,
+		a.keys[appmoduletypes.StoreKey],
+		a.GetSubspace(appmoduletypes.ModuleName),
+		a.RollappKeeper,
+		a.BankKeeper,
 	)
 
 	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
@@ -609,6 +620,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibcexported.ModuleName)
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
+	paramsKeeper.Subspace(appmoduletypes.ModuleName)
 	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
 	paramsKeeper.Subspace(sponsorshiptypes.ModuleName)
 	paramsKeeper.Subspace(streamermoduletypes.ModuleName)
