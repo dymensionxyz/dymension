@@ -206,17 +206,17 @@ func (suite *KeeperTestSuite) SetupLockAndGauge(isPerpetual bool) (sdk.AccAddres
 
 // SetupLockAndGauge creates both a lock and a gauge.
 func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
-	// suite.FundAcc(addr, sdk.NewCoins(rollapptypes.DefaultRegistrationFee)) TODO: enable after x/dymns hooks are wired
-
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:          addr.String(),
 		RollappId:        urand.RollappID(),
 		Bech32Prefix:     strings.ToLower(tmrand.Str(3)),
 		GenesisChecksum:  "checksum",
 		InitialSequencer: addr.String(),
-		Alias:            "alias",
+		Alias:            strings.ToLower(tmrand.Str(7)),
 		VmType:           rollapptypes.Rollapp_EVM,
 	}
+
+	suite.FundForAliasRegistration(msgCreateRollapp)
 
 	msgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(suite.Ctx, &msgCreateRollapp)

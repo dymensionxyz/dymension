@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"strings"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
@@ -17,9 +19,12 @@ func (suite *RollappTestSuite) TestCreateRollapp() {
 }
 
 func (suite *RollappTestSuite) TestCreateRollappUnauthorizedRollappCreator() {
-	suite.T().Skip() // TODO: enable after x/dymns hook is wired
 	suite.SetupTest()
-	suite.createRollappWithCreatorAndVerify(types.ErrFeePayment, bob) // bob is broke
+
+	_ = types.ErrFeePayment // this error is not being used anywhere so keep it used here to pass lint
+	// TODO: ^^^^^^^^^^^^^^ use this error or delete it
+
+	suite.createRollappWithCreatorAndVerify(sdkerrors.ErrInsufficientFunds, bob, false) // bob is broke
 }
 
 func (suite *RollappTestSuite) TestCreateRollappWithBechGenesisSum() {
@@ -30,7 +35,7 @@ func (suite *RollappTestSuite) TestCreateRollappWithBechGenesisSum() {
 		Creator:          alice,
 		RollappId:        "rollapp_1234-1",
 		InitialSequencer: sample.AccAddress(),
-		Alias:            "Rollapp",
+		Alias:            "rollapp",
 		VmType:           types.Rollapp_EVM,
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
@@ -47,7 +52,7 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 		Creator:          alice,
 		RollappId:        "rollapp_1234-1",
 		InitialSequencer: sample.AccAddress(),
-		Alias:            "Rollapp",
+		Alias:            "rollapp",
 		VmType:           types.Rollapp_EVM,
 	}
 
@@ -90,12 +95,14 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 				RollappId:    test.rollappId,
 				Bech32Prefix: "rol",
 				VmType:       types.Rollapp_EVM,
-				Alias:        strings.ToLower(rand.Str(3)),
+				Alias:        strings.ToLower(rand.Str(7)),
 			}
 
 			if test.malleate != nil {
 				test.malleate()
 			}
+
+			suite.FundForAliasRegistration(newRollapp)
 
 			_, err := suite.msgServer.CreateRollapp(goCtx, &newRollapp)
 			suite.Require().ErrorIs(err, test.expErr)
@@ -199,10 +206,12 @@ func (suite *RollappTestSuite) TestForkChainId() {
 				InitialSequencer: sample.AccAddress(),
 				Bech32Prefix:     "rol",
 				GenesisChecksum:  "checksum",
-				Alias:            "Rollapp1",
+				Alias:            "rollapp1",
 				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
 			}
+
+			suite.FundForAliasRegistration(rollappMsg)
 
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollappMsg)
 			suite.Require().NoError(err)
@@ -217,10 +226,13 @@ func (suite *RollappTestSuite) TestForkChainId() {
 				InitialSequencer: sample.AccAddress(),
 				Bech32Prefix:     "rol",
 				GenesisChecksum:  "checksum1",
-				Alias:            "Rollapp2",
+				Alias:            "rollapp2",
 				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
 			}
+
+			suite.FundForAliasRegistration(rollappMsg2)
+
 			_, err = suite.msgServer.CreateRollapp(goCtx, &rollappMsg2)
 			if test.valid {
 				suite.Require().NoError(err)
@@ -263,6 +275,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 				Alias:            "alias",
 				VmType:           types.Rollapp_EVM,
 			}
+			suite.FundForAliasRegistration(rollapp)
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 			suite.Require().NoError(err)
 
@@ -285,6 +298,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 				Alias:            "alias",
 				VmType:           types.Rollapp_EVM,
 			}
+			suite.FundForAliasRegistration(rollapp)
 			_, err = suite.msgServer.CreateRollapp(goCtx, &badRollapp)
 			// it should not be possible to register rollapp name with extra space
 			suite.Require().ErrorIs(err, types.ErrRollappExists)
@@ -314,10 +328,12 @@ func (suite *RollappTestSuite) createRollapp(expectedErr error) {
 }
 
 func (suite *RollappTestSuite) createRollappAndVerify(expectedErr error) types.RollappSummary {
-	return suite.createRollappWithCreatorAndVerify(expectedErr, alice)
+	return suite.createRollappWithCreatorAndVerify(expectedErr, alice, true)
 }
 
-func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr error, creator string) types.RollappSummary {
+func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(
+	expectedErr error, creator string, fundAccount bool,
+) types.RollappSummary {
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 	// generate sequencer address
 	address := sample.AccAddress()
@@ -328,9 +344,12 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 		InitialSequencer: address,
 		Bech32Prefix:     "rol",
 		GenesisChecksum:  "checksum",
-		Alias:            "alias",
+		Alias:            strings.ToLower(rand.Str(7)),
 		VmType:           types.Rollapp_EVM,
 		Metadata:         &mockRollappMetadata,
+	}
+	if fundAccount {
+		suite.FundForAliasRegistration(rollapp)
 	}
 	// rollappExpect is the expected result of creating rollapp
 	rollappExpect := types.Rollapp{

@@ -59,6 +59,10 @@ func (k Keeper) UnbondingTime(ctx sdk.Context) (res time.Duration) {
 	return k.GetParams(ctx).UnbondingTime
 }
 
+func (k Keeper) NoticePeriod(ctx sdk.Context) (res time.Duration) {
+	return k.GetParams(ctx).NoticePeriod
+}
+
 func (k Keeper) LivenessSlashMultiplier(ctx sdk.Context) (res sdk.Dec) {
 	return k.GetParams(ctx).LivenessSlashMultiplier
 }

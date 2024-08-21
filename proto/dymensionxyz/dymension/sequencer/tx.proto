@@ -89,7 +89,14 @@ message MsgUnbond {
 
 // MsgUnbondResponse defines the Msg/Unbond response type.
 message MsgUnbondResponse {
-  google.protobuf.Timestamp completion_time = 1 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  // completion_time defines the time at which the unbonding will be completed.
+  // If unbonding the proposer, the completion time is the time at which the notice period will be completed.
+  oneof completion_time {
+    // unbonding_completion_time is the time at which the unbonding will be completed.
+    google.protobuf.Timestamp unbonding_completion_time = 1 [ (gogoproto.stdtime) = true];
+    // notice_period_completion_time is the time at which the notice period will be completed.
+    google.protobuf.Timestamp notice_period_completion_time = 2 [ (gogoproto.stdtime) = true];
+  }
 }
 
 // MsgIncreaseBond defines a SDK message for increasing the bond amount of a sequencer.

@@ -17,15 +17,13 @@ type Keeper struct {
 
 	cdc           codec.BinaryCodec
 	storeKey      storetypes.StoreKey
-	memKey        storetypes.StoreKey
 	bankKeeper    types.BankKeeper
 	rollappKeeper types.RollappKeeper
 }
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey,
-	memKey storetypes.StoreKey,
+	storeKey storetypes.StoreKey,
 	bankKeeper types.BankKeeper,
 	rollappKeeper types.RollappKeeper,
 	authority string,
@@ -38,7 +36,6 @@ func NewKeeper(
 	return &Keeper{
 		cdc:           cdc,
 		storeKey:      storeKey,
-		memKey:        memKey,
 		bankKeeper:    bankKeeper,
 		rollappKeeper: rollappKeeper,
 		authority:     authority,

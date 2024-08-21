@@ -5,8 +5,9 @@ import "fmt"
 // DefaultGenesis returns the default Capability genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
-		SequencerList: []Sequencer{},
-		Params:        DefaultParams(),
+		SequencerList:    []Sequencer{},
+		GenesisProposers: []GenesisProposer{},
+		Params:           DefaultParams(),
 	}
 }
 
@@ -18,16 +19,27 @@ func (gs GenesisState) Validate() error {
 
 	for _, elem := range gs.SequencerList {
 
-		// FIXME: should run validation on the sequencer objects
+		// TODO: should run validation on the sequencer objects
 
-		index := string(SequencerKey(elem.Address))
-		if _, ok := sequencerIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for sequencer")
+		seqKey := string(SequencerKey(elem.Address))
+		if _, ok := sequencerIndexMap[seqKey]; ok {
+			return fmt.Errorf("duplicated address for sequencer")
 		}
-		sequencerIndexMap[index] = struct{}{}
+		sequencerIndexMap[seqKey] = struct{}{}
 	}
 
-	// FIXME: validate single PROPOSER per rollapp
+	// Check for duplicated index in proposer
+	proposerIndexMap := make(map[string]struct{})
+	for _, elem := range gs.GenesisProposers {
+		rollappId := elem.RollappId
+		if _, ok := proposerIndexMap[rollappId]; ok {
+			return fmt.Errorf("duplicated proposer for %s", rollappId)
+		}
+		if _, ok := sequencerIndexMap[string(SequencerKey(elem.Address))]; !ok {
+			return fmt.Errorf("proposer %s does not have a sequencer", rollappId)
+		}
+		proposerIndexMap[rollappId] = struct{}{}
+	}
 
 	return gs.Params.ValidateBasic()
 }

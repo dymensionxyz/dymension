@@ -34,7 +34,7 @@ func SimulateMsgCreateRollapp(ak simulationtypes.AccountKeeper, bk simulationtyp
 			RollappId:        rollappId,
 			InitialSequencer: sample.AccAddress(),
 			Bech32Prefix:     "rol",
-			Alias:            "Rollapp",
+			Alias:            "rollapp",
 			Metadata: &types.RollappMetadata{
 				Website:          "https://dymension.xyz",
 				Description:      "Sample description",

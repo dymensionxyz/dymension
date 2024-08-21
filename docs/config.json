@@ -7,7 +7,7 @@
   },
   "apis": [
     {
-      "url": "./tmp-swagger-gen/dymension/delayedack/query.swagger.json",
+      "url": "./tmp-swagger-gen/dymensionxyz/dymension/delayedack/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "DelayedAckParams"
@@ -15,7 +15,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/dymension/eibc/query.swagger.json",
+      "url": "./tmp-swagger-gen/dymensionxyz/dymension/eibc/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "EIbcParams"
@@ -23,7 +23,15 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/dymension/rollapp/query.swagger.json",
+      "url": "./tmp-swagger-gen/dymensionxyz/dymension/dymns/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "DymNSParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/dymensionxyz/dymension/rollapp/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "RollAppParams"
@@ -31,7 +39,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/dymension/sequencer/query.swagger.json",
+      "url": "./tmp-swagger-gen/dymensionxyz/dymension/sequencer/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "SequencerParams"
@@ -39,7 +47,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/dymension/streamer/query.swagger.json",
+      "url": "./tmp-swagger-gen/dymensionxyz/dymension/streamer/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "StreamerParams",
@@ -65,7 +73,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/osmosis/gamm/v2/query.swagger.json",
+      "url": "./tmp-swagger-gen/dymensionxyz/dymension/gamm/v2/query.swagger.json",
       "operationIds": {
         "rename": {
           "SpotPrice": "SpotPriceV2"
@@ -73,7 +81,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/osmosis/gamm/v1beta1/query.swagger.json",
+      "url": "./tmp-swagger-gen/dymensionxyz/dymension/gamm/v1beta1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "GammParams",
@@ -83,10 +91,10 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/osmosis/epochs/query.swagger.json"
+      "url": "./tmp-swagger-gen/dymensionxyz/dymension/epochs/v1beta1/query.swagger.json"
     },
     {
-      "url": "./tmp-swagger-gen/osmosis/incentives/query.swagger.json",
+      "url": "./tmp-swagger-gen/dymensionxyz/dymension/incentives/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "IncentivesParams",
@@ -95,7 +103,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/osmosis/lockup/query.swagger.json",
+      "url": "./tmp-swagger-gen/dymensionxyz/dymension/lockup/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "LockupParams"
@@ -103,7 +111,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/osmosis/txfees/v1beta1/query.swagger.json",
+      "url": "./tmp-swagger-gen/dymensionxyz/dymension/txfees/v1beta1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "TxFeesParams"
