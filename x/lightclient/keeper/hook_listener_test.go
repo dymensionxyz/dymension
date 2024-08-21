@@ -10,8 +10,10 @@ import (
 )
 
 type testInput struct {
-	rollappId string
-	stateInfo *rollapptypes.StateInfo
+	rollappId                 string
+	stateInfo                 *rollapptypes.StateInfo
+	isFirstStateUpdate        bool
+	previousStateHasTimestamp bool
 }
 
 func TestAfterUpdateState(t *testing.T) {
@@ -26,15 +28,17 @@ func TestAfterUpdateState(t *testing.T) {
 		{
 			name: "canonical client does not exist for rollapp",
 			input: testInput{
-				rollappId: "rollapp-no-canon-client",
-				stateInfo: &rollapptypes.StateInfo{},
+				rollappId:          "rollapp-no-canon-client",
+				stateInfo:          &rollapptypes.StateInfo{},
+				isFirstStateUpdate: true,
 			},
 		},
 		{
 			name: "canonical client exists but the BDs are empty",
 			input: testInput{
-				rollappId: "rollapp-has-canon-client",
-				stateInfo: &rollapptypes.StateInfo{},
+				rollappId:          "rollapp-has-canon-client",
+				stateInfo:          &rollapptypes.StateInfo{},
+				isFirstStateUpdate: true,
 			},
 		},
 		{
@@ -52,6 +56,7 @@ func TestAfterUpdateState(t *testing.T) {
 						},
 					},
 				},
+				isFirstStateUpdate: true,
 			},
 		},
 		{
@@ -74,6 +79,7 @@ func TestAfterUpdateState(t *testing.T) {
 						},
 					},
 				},
+				isFirstStateUpdate: true,
 			},
 		},
 		{
@@ -102,10 +108,40 @@ func TestAfterUpdateState(t *testing.T) {
 						},
 					},
 				},
+				isFirstStateUpdate: true,
 			},
 		},
 		{
-			name: "state is compatible - happy path",
+			name: "timestamp is missing and its first state update",
+			input: testInput{
+				rollappId: "rollapp-has-canon-client",
+				stateInfo: &rollapptypes.StateInfo{
+					Sequencer: keepertest.Alice,
+					BDs: rollapptypes.BlockDescriptors{
+						BD: []rollapptypes.BlockDescriptor{
+							{
+								Height:    1,
+								StateRoot: []byte("test"),
+								Timestamp: time.Now().UTC(),
+							},
+							{
+								Height:    2,
+								StateRoot: []byte("test2"),
+								Timestamp: time.Now().Add(1).UTC(),
+							},
+							{
+								Height:    3,
+								StateRoot: []byte("test3"),
+								Timestamp: time.Now().Add(2).UTC(),
+							},
+						},
+					},
+				},
+				isFirstStateUpdate: true,
+			},
+		},
+		{
+			name: "state is compatible",
 			input: testInput{
 				rollappId: "rollapp-has-canon-client",
 				stateInfo: &rollapptypes.StateInfo{
@@ -135,7 +171,7 @@ func TestAfterUpdateState(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := keeper.RollappHooks().AfterUpdateState(ctx, tc.input.rollappId, tc.input.stateInfo)
+			err := keeper.RollappHooks().AfterUpdateState(ctx, tc.input.rollappId, tc.input.stateInfo, tc.input.isFirstStateUpdate, tc.input.previousStateHasTimestamp)
 			require.NoError(t, err)
 		})
 	}

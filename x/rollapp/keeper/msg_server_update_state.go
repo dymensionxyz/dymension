@@ -31,7 +31,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 	// retrieve last updating index
 	var newIndex, lastIndex uint64
+	var previousStateHasTimestamp bool
 	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, msg.RollappId)
+	isFirstStateUpdate := !found
 	if found {
 		// retrieve last updating index
 		stateInfo, found := k.GetStateInfo(ctx, msg.RollappId, latestStateInfoIndex.Index)
@@ -42,6 +44,10 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 				"missing stateInfo for state-index (%d) of rollappId(%s)",
 				latestStateInfoIndex.Index, msg.RollappId)
 		}
+
+		// check if previous state last block desc has timestamp
+		lastBD := stateInfo.GetBDs().BD[stateInfo.NumBlocks-1]
+		previousStateHasTimestamp = !lastBD.Timestamp.IsZero()
 
 		// check to see if received height is the one we expected
 		expectedStartHeight := stateInfo.StartHeight + stateInfo.NumBlocks
@@ -67,7 +73,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
 	k.SetStateInfo(ctx, *stateInfo)
 
-	err = k.hooks.AfterUpdateState(ctx, msg.RollappId, stateInfo)
+	err = k.hooks.AfterUpdateState(ctx, msg.RollappId, stateInfo, isFirstStateUpdate, previousStateHasTimestamp)
 	if err != nil {
 		return nil, err
 	}

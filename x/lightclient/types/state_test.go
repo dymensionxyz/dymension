@@ -36,23 +36,6 @@ func TestCheckCompatibility(t *testing.T) {
 			err: "block descriptor state root does not match tendermint header app hash",
 		},
 		{
-			name: "timestamps are not equal",
-			input: input{
-				ibcState: types.IBCState{
-					Root:      []byte("root"),
-					Timestamp: time.Now().UTC(),
-				},
-				raState: types.RollappState{
-					BlockSequencer: []byte("sequencer"),
-					BlockDescriptor: rollapptypes.BlockDescriptor{
-						StateRoot: []byte("root"),
-						Timestamp: time.Now().UTC().Add(1),
-					},
-				},
-			},
-			err: "block descriptor timestamp does not match tendermint header timestamp",
-		},
-		{
 			name: "validator who signed the block header is not the sequencer who submitted the block",
 			input: input{
 				ibcState: types.IBCState{
@@ -93,6 +76,52 @@ func TestCheckCompatibility(t *testing.T) {
 				},
 			},
 			err: "next validator hash does not match the sequencer for h+1",
+		},
+		{
+			name: "timestamps is empty",
+			input: input{
+				ibcState: types.IBCState{
+					Root:               []byte("root"),
+					Timestamp:          timestamp,
+					NextValidatorsHash: []byte{156, 132, 96, 43, 190, 214, 140, 148, 216, 119, 98, 162, 97, 120, 115, 32, 39, 223, 114, 56, 224, 180, 80, 228, 190, 243, 9, 248, 190, 33, 188, 23},
+					Validator:          []byte("sequencer"),
+				},
+				raState: types.RollappState{
+					BlockSequencer: []byte("sequencer"),
+					BlockDescriptor: rollapptypes.BlockDescriptor{
+						StateRoot: []byte("root"),
+					},
+					NextBlockSequencer: []byte{10, 32, 86, 211, 180, 178, 104, 144, 159, 216, 7, 137, 173, 225, 55, 215, 228, 176, 29, 86, 98, 130, 25, 190, 214, 24, 198, 22, 111, 37, 100, 142, 154, 87},
+					NextBlockDescriptor: rollapptypes.BlockDescriptor{
+						StateRoot: []byte("root2"),
+					},
+				},
+			},
+			err: "block descriptors do not contain block timestamp",
+		},
+		{
+			name: "timestamps are not equal",
+			input: input{
+				ibcState: types.IBCState{
+					Root:               []byte("root"),
+					Timestamp:          timestamp,
+					NextValidatorsHash: []byte{156, 132, 96, 43, 190, 214, 140, 148, 216, 119, 98, 162, 97, 120, 115, 32, 39, 223, 114, 56, 224, 180, 80, 228, 190, 243, 9, 248, 190, 33, 188, 23},
+					Validator:          []byte("sequencer"),
+				},
+				raState: types.RollappState{
+					BlockSequencer: []byte("sequencer"),
+					BlockDescriptor: rollapptypes.BlockDescriptor{
+						StateRoot: []byte("root"),
+						Timestamp: timestamp.Add(1),
+					},
+					NextBlockSequencer: []byte{10, 32, 86, 211, 180, 178, 104, 144, 159, 216, 7, 137, 173, 225, 55, 215, 228, 176, 29, 86, 98, 130, 25, 190, 214, 24, 198, 22, 111, 37, 100, 142, 154, 87},
+					NextBlockDescriptor: rollapptypes.BlockDescriptor{
+						StateRoot: []byte("root2"),
+						Timestamp: timestamp,
+					},
+				},
+			},
+			err: "block descriptor timestamp does not match tendermint header timestamp",
 		},
 		{
 			name: "all fields are compatible",

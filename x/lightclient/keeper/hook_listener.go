@@ -24,7 +24,7 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 	return rollappHook{k: k}
 }
 
-func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappId string, stateInfo *rollapptypes.StateInfo) error {
+func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappId string, stateInfo *rollapptypes.StateInfo, isFirstStateUpdate bool, previousStateHasTimestamp bool) error {
 	canonicalClient, found := hook.k.GetCanonicalClient(ctx, rollappId)
 	if !found {
 		return nil
@@ -72,6 +72,11 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappId string, stat
 		}
 		err = types.CheckCompatibility(ibcState, rollappState)
 		if err != nil {
+			// Only require timestamp on BD if first ever update, or the previous update had BD
+			if err == types.ErrTimestampNotFound && !isFirstStateUpdate && !previousStateHasTimestamp {
+				continue
+			}
+
 			// If the state is not compatible,
 			// Take this state update as source of truth over the IBC update
 			// Punish the block proposer of the IBC signed header

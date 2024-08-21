@@ -11,9 +11,9 @@ import (
 
 // RollappHooks event hooks for rollapp object (noalias)
 type RollappHooks interface {
-	BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error         // Must be called when a rollapp's state changes
-	AfterUpdateState(ctx sdk.Context, rollappID string, stateInfo *StateInfo) error    // Must be called when a rollapp's state changes
-	AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *StateInfo) error // Must be called when a rollapp's state changes
+	BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error                                                               // Must be called when a rollapp's state changes
+	AfterUpdateState(ctx sdk.Context, rollappID string, stateInfo *StateInfo, isFirstStateUpdate bool, previousStateHasTimestamp bool) error // Must be called when a rollapp's state changes
+	AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *StateInfo) error                                                       // Must be called when a rollapp's state changes
 	FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error
 	RollappCreated(ctx sdk.Context, rollappID, alias string, creator sdk.AccAddress) error
 }
@@ -38,9 +38,9 @@ func (h MultiRollappHooks) BeforeUpdateState(ctx sdk.Context, seqAddr string, ro
 	return nil
 }
 
-func (h MultiRollappHooks) AfterUpdateState(ctx sdk.Context, rollappID string, stateInfo *StateInfo) error {
+func (h MultiRollappHooks) AfterUpdateState(ctx sdk.Context, rollappID string, stateInfo *StateInfo, isFirstStateUpdate bool, previousStateHasTimestamp bool) error {
 	for i := range h {
-		err := h[i].AfterUpdateState(ctx, rollappID, stateInfo)
+		err := h[i].AfterUpdateState(ctx, rollappID, stateInfo, isFirstStateUpdate, previousStateHasTimestamp)
 		if err != nil {
 			return err
 		}
@@ -84,8 +84,10 @@ type StubRollappCreatedHooks struct{}
 func (StubRollappCreatedHooks) RollappCreated(sdk.Context, string, string, sdk.AccAddress) error {
 	return nil
 }
-func (StubRollappCreatedHooks) BeforeUpdateState(sdk.Context, string, string) error      { return nil }
-func (StubRollappCreatedHooks) AfterUpdateState(sdk.Context, string, *StateInfo) error   { return nil }
+func (StubRollappCreatedHooks) BeforeUpdateState(sdk.Context, string, string) error { return nil }
+func (StubRollappCreatedHooks) AfterUpdateState(sdk.Context, string, *StateInfo, bool, bool) error {
+	return nil
+}
 func (StubRollappCreatedHooks) FraudSubmitted(sdk.Context, string, uint64, string) error { return nil }
 func (StubRollappCreatedHooks) AfterStateFinalized(sdk.Context, string, *StateInfo) error {
 	return nil
