@@ -137,12 +137,11 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Bech32Prefix:     "old",
 				GenesisChecksum:  "old",
 				Metadata: &types.RollappMetadata{
-					Website:          "",
-					Description:      "",
-					LogoDataUri:      "",
-					TokenLogoDataUri: "",
-					Telegram:         "",
-					X:                "",
+					Website:     "",
+					Description: "",
+					LogoDataUri: "",
+					Telegram:    "",
+					X:           "",
 				},
 			}
 
