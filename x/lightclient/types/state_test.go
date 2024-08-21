@@ -85,7 +85,7 @@ func TestCheckCompatibility(t *testing.T) {
 						StateRoot: []byte("root"),
 						Timestamp: timestamp,
 					},
-					NextBlockSequencer: []byte("next sequencer"),
+					NextBlockSequencer: []byte{10, 32, 6, 234, 170, 31, 60, 164, 237, 129, 237, 38, 152, 233, 81, 240, 243, 121, 79, 108, 152, 75, 27, 247, 76, 48, 15, 132, 61, 27, 161, 82, 197, 249},
 					NextBlockDescriptor: rollapptypes.BlockDescriptor{
 						StateRoot: []byte("root2"),
 						Timestamp: timestamp,
@@ -100,7 +100,7 @@ func TestCheckCompatibility(t *testing.T) {
 				ibcState: types.IBCState{
 					Root:               []byte("root"),
 					Timestamp:          timestamp,
-					NextValidatorsHash: []byte("next sequencer"),
+					NextValidatorsHash: []byte{156, 132, 96, 43, 190, 214, 140, 148, 216, 119, 98, 162, 97, 120, 115, 32, 39, 223, 114, 56, 224, 180, 80, 228, 190, 243, 9, 248, 190, 33, 188, 23},
 					Validator:          []byte("sequencer"),
 				},
 				raState: types.RollappState{
@@ -109,7 +109,7 @@ func TestCheckCompatibility(t *testing.T) {
 						StateRoot: []byte("root"),
 						Timestamp: timestamp,
 					},
-					NextBlockSequencer: []byte("next sequencer"),
+					NextBlockSequencer: []byte{10, 32, 86, 211, 180, 178, 104, 144, 159, 216, 7, 137, 173, 225, 55, 215, 228, 176, 29, 86, 98, 130, 25, 190, 214, 24, 198, 22, 111, 37, 100, 142, 154, 87},
 					NextBlockDescriptor: rollapptypes.BlockDescriptor{
 						StateRoot: []byte("root2"),
 						Timestamp: timestamp,
