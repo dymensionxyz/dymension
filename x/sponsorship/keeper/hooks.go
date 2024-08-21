@@ -8,6 +8,7 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
@@ -79,7 +80,7 @@ func (h Hooks) afterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, 
 		return fmt.Errorf("cannot process hook: %w", err)
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventVotingPowerUpdate{
+	err = uevent.EmitTypedEvent(ctx, &types.EventVotingPowerUpdate{
 		Voter:           delAddr.String(),
 		Validator:       valAddr.String(),
 		Distribution:    result.distribution,
@@ -128,7 +129,7 @@ func (h Hooks) beforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, 
 		return fmt.Errorf("cannot process hook: %w", err)
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventVotingPowerUpdate{
+	err = uevent.EmitTypedEvent(ctx, &types.EventVotingPowerUpdate{
 		Voter:           delAddr.String(),
 		Validator:       valAddr.String(),
 		Distribution:    result.distribution,

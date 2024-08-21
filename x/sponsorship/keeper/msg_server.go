@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
@@ -34,7 +35,7 @@ func (m MsgServer) Vote(goCtx context.Context, msg *types.MsgVote) (*types.MsgVo
 		return nil, err
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventVote{
+	err = uevent.EmitTypedEvent(ctx, &types.EventVote{
 		Voter:        msg.Voter,
 		Vote:         vote,
 		Distribution: distr,
@@ -61,7 +62,7 @@ func (m MsgServer) RevokeVote(goCtx context.Context, msg *types.MsgRevokeVote) (
 		return nil, err
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventRevokeVote{
+	err = uevent.EmitTypedEvent(ctx, &types.EventRevokeVote{
 		Voter:        msg.Voter,
 		Distribution: distr,
 	})
@@ -93,7 +94,7 @@ func (m MsgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams)
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	err = sdkCtx.EventManager().EmitTypedEvent(&types.EventUpdateParams{
+	err = uevent.EmitTypedEvent(sdkCtx, &types.EventUpdateParams{
 		Authority: msg.Authority,
 		NewParams: msg.NewParams,
 		OldParams: oldParams,

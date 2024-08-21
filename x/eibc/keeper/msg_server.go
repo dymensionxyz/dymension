@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -64,7 +65,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, err
 	}
 
-	if err = ctx.EventManager().EmitTypedEvent(demandOrder.GetFulfilledEvent()); err != nil {
+	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetFulfilledEvent()); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
@@ -127,8 +128,8 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 		return nil, err
 	}
 
-	if err = ctx.EventManager().EmitTypedEvent(demandOrder.GetUpdatedEvent()); err != nil {
-		return nil, fmt.Errorf("emit event: %w", err)
+	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetUpdatedEvent()); err != nil {
+		return nil, err
 	}
 
 	return &types.MsgUpdateDemandOrderResponse{}, nil
