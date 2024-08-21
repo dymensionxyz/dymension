@@ -95,6 +95,17 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 			return // In case of incompatibility, the client will be created but not set as canonical
 		}
 
+		// Ensure the light client params conform to expected values
+		if !types.IsCanonicalClientParamsValid(types.CanonicalClientParams{
+			TrustLevel:                   tmClientState.TrustLevel,
+			TrustingPeriod:               tmClientState.TrustingPeriod,
+			UnbondingPeriod:              tmClientState.UnbondingPeriod,
+			MaxClockDrift:                tmClientState.MaxClockDrift,
+			AllowUpdateAfterExpiry:       tmClientState.AllowUpdateAfterExpiry,
+			AllowUpdateAfterMisbehaviour: tmClientState.AllowUpdateAfterMisbehaviour,
+		}) {
+			return
+		}
 		// Generate client id and begin canonical light client registration by storing it in transient store.
 		// Will be confirmed after the client is created in post handler.
 		nextClientID := i.ibcClientKeeper.GenerateClientIdentifier(ctx, exported.Tendermint)

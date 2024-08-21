@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cometbft/cometbft/libs/math"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -225,10 +227,80 @@ func TestHandleMsgCreateClient(t *testing.T) {
 			},
 		},
 		{
-			name: "State compatible - Candidate canonical client set",
+			name: "State compatible but client params not conforming to expected params",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
 				blocktimestamp := time.Now().UTC()
 				testClientState.ChainId = "rollapp-wants-canon-client"
+				clientState, err := ibcclienttypes.PackClientState(testClientState)
+				require.NoError(t, err)
+				var nextVals cmttypes.ValidatorSet
+				tmPk, err := k.GetTmPubkey(ctx, keepertest.Alice)
+				require.NoError(t, err)
+				updates, err := cmttypes.PB2TM.ValidatorUpdates([]abci.ValidatorUpdate{{Power: 1, PubKey: tmPk}})
+				require.NoError(t, err)
+				err = nextVals.UpdateWithChangeSet(updates)
+				require.NoError(t, err)
+				testConsensusState := ibctm.NewConsensusState(
+					blocktimestamp,
+					commitmenttypes.NewMerkleRoot([]byte("appHash")),
+					nextVals.Hash(),
+				)
+				consState, err := ibcclienttypes.PackConsensusState(testConsensusState)
+				require.NoError(t, err)
+				return testInput{
+					msg: &ibcclienttypes.MsgCreateClient{
+						ClientState:    clientState,
+						ConsensusState: consState,
+					},
+					rollapps: map[string]rollapptypes.Rollapp{
+						"rollapp-wants-canon-client": {
+							RollappId: "rollapp-wants-canon-client",
+						},
+					},
+					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
+						"rollapp-wants-canon-client": {
+							1: {
+								StartHeight: 1,
+								NumBlocks:   2,
+								StateInfoIndex: rollapptypes.StateInfoIndex{
+									Index: 1,
+								},
+								Sequencer: keepertest.Alice,
+								BDs: rollapptypes.BlockDescriptors{
+									BD: []rollapptypes.BlockDescriptor{
+										{
+											Height:    1,
+											StateRoot: []byte("appHash"),
+											Timestamp: blocktimestamp,
+										},
+										{
+											Height:    2,
+											StateRoot: []byte("appHash2"),
+											Timestamp: blocktimestamp.Add(1),
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+			},
+			assert: func(ctx sdk.Context, k keeper.Keeper) {
+				_, found := k.GetCanonicalLightClientRegistration(ctx, "rollapp-wants-canon-client")
+				require.False(t, found)
+			},
+		},
+		{
+			name: "State compatible + expected client params - Candidate canonical client set",
+			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
+				blocktimestamp := time.Now().UTC()
+				testClientState.ChainId = "rollapp-wants-canon-client"
+				testClientState.TrustLevel = ibctm.NewFractionFromTm(math.Fraction{Numerator: 1, Denominator: 1})
+				testClientState.TrustingPeriod = time.Hour * 24 * 7 * 2
+				testClientState.UnbondingPeriod = time.Hour * 24 * 7 * 3
+				testClientState.MaxClockDrift = time.Minute * 10
+				testClientState.AllowUpdateAfterExpiry = false
+				testClientState.AllowUpdateAfterMisbehaviour = false
 				clientState, err := ibcclienttypes.PackClientState(testClientState)
 				require.NoError(t, err)
 				var nextVals cmttypes.ValidatorSet
