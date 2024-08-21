@@ -115,7 +115,7 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 					Frozen:    true,
 				})
 			},
-			expError: types.ErrRollappJailed,
+			expError: types.ErrRollappFrozen,
 		}, {
 			name: "Update rollapp: fail - try to update a jailed sequencer",
 			update: &types.MsgUpdateSequencerInformation{

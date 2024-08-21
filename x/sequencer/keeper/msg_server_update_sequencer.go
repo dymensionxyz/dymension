@@ -22,13 +22,10 @@ func (k msgServer) UpdateSequencerInformation(goCtx context.Context, msg *types.
 		return nil, types.ErrSequencerJailed
 	}
 
-	rollapp, found := k.rollappKeeper.GetRollapp(ctx, sequencer.RollappId)
-	if !found {
-		return nil, types.ErrUnknownRollappID
-	}
+	rollapp := k.rollappKeeper.MustGetRollapp(ctx, sequencer.RollappId)
 
 	if rollapp.Frozen {
-		return nil, types.ErrRollappJailed
+		return nil, types.ErrRollappFrozen
 	}
 
 	if err := msg.VMSpecificValidate(rollapp.VmType); err != nil {

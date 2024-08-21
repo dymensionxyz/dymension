@@ -17,7 +17,7 @@ var (
 	ErrInvalidSequencerStatus   = errorsmod.Register(ModuleName, 1008, "invalid sequencer status")
 	ErrInvalidCoinDenom         = errorsmod.Register(ModuleName, 1010, "invalid coin denomination")
 	ErrInsufficientBond         = errorsmod.Register(ModuleName, 1011, "insufficient bond")
-	ErrRollappJailed            = errorsmod.Register(ModuleName, 1012, "rollapp is jailed")
+	ErrRollappFrozen            = errorsmod.Register(ModuleName, 1012, "rollapp is frozen")
 	ErrInvalidAddress           = errorsmod.Register(ModuleName, 1013, "invalid address")
 	ErrInvalidPubKey            = errorsmod.Register(ModuleName, 1014, "invalid pubkey")
 	ErrInvalidCoins             = errorsmod.Register(ModuleName, 1015, "invalid coins")
