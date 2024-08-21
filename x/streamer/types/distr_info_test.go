@@ -75,6 +75,17 @@ func TestDistrInfoFromDistribution(t *testing.T) {
 			},
 		},
 		{
+			name: "Distribution with empty gauges",
+			distr: sponsorshiptypes.Distribution{
+				VotingPower: sdk.NewInt(30),
+				Gauges:      []sponsorshiptypes.Gauge{},
+			},
+			expDistr: &types.DistrInfo{
+				TotalWeight: sdk.ZeroInt(),
+				Records:     []types.DistrRecord{},
+			},
+		},
+		{
 			name: "Distribution with abstained gauge",
 			distr: sponsorshiptypes.Distribution{
 				VotingPower: sdk.NewInt(100),
@@ -91,7 +102,7 @@ func TestDistrInfoFromDistribution(t *testing.T) {
 				},
 			},
 			expDistr: &types.DistrInfo{
-				TotalWeight: sdk.NewInt(100),
+				TotalWeight: sdk.NewInt(70),
 				Records: []types.DistrRecord{
 					// 30 is abstained
 					{
