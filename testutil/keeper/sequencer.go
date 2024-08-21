@@ -21,7 +21,7 @@ import (
 
 func SequencerKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
-	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
+	memStoreKey := storetypes.NewMemoryStoreKey(types.StoreKey + "_transient")
 
 	db := cometbftdb.NewMemDB()
 	stateStore := store.NewCommitMultiStore(db)
@@ -41,7 +41,6 @@ func SequencerKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
-		memStoreKey,
 		paramsSubspace,
 		nil,
 		&rollappkeeper.Keeper{},

@@ -34,17 +34,19 @@ func GetTxCmd() *cobra.Command {
 
 func CmdCreateSequencer() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-sequencer [pubkey] [rollapp-id] [metadata] [bond]",
+		Use:   "create-sequencer [pubkey] [rollapp-id] [bond] [metadata]",
 		Short: "Create a new sequencer for a rollapp",
-		Args:  cobra.ExactArgs(4),
+		Args:  cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argPubkey := args[0]
 			argRollappId := args[1]
-			bond := args[3]
+			bond := args[2]
 
-			metadata := new(types.SequencerMetadata)
-			if err = utils.ParseJsonFromFile(args[2], metadata); err != nil {
-				return
+			var metadata types.SequencerMetadata
+			if len(args) == 4 {
+				if err = utils.ParseJsonFromFile(args[3], &metadata); err != nil {
+					return
+				}
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -67,7 +69,7 @@ func CmdCreateSequencer() *cobra.Command {
 				clientCtx.GetFromAddress().String(),
 				pk,
 				argRollappId,
-				metadata,
+				&metadata,
 				bondCoin,
 			)
 			if err != nil {

@@ -4,6 +4,7 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -157,22 +158,21 @@ func (suite *KeeperTestSuite) TestFulfillOrderEvent() {
 	suite.Require().NoError(err)
 
 	tests := []struct {
-		name                                    string
-		fulfillmentShouldFail                   bool
-		expectedPostFulfillmentEventsCount      int
-		expectedPostFulfillmentEventsType       string
-		expectedPostFulfillmentEventsAttributes []sdk.Attribute
+		name                               string
+		fulfillmentShouldFail              bool
+		expectedPostFulfillmentEventsCount int
+		expectedPostFulfillmentEvent       proto.Message
 	}{
 		{
 			name:                               "Test demand order fulfillment - success",
-			expectedPostFulfillmentEventsType:  eibcEventType,
 			expectedPostFulfillmentEventsCount: 1,
-			expectedPostFulfillmentEventsAttributes: []sdk.Attribute{
-				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
-				sdk.NewAttribute(types.AttributeKeyPrice, "200"+sdk.DefaultBondDenom),
-				sdk.NewAttribute(types.AttributeKeyFee, "50"+sdk.DefaultBondDenom),
-				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "true"),
-				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
+			expectedPostFulfillmentEvent: &types.EventDemandOrderFulfilled{
+				OrderId:      types.BuildDemandIDFromPacketKey(string(rollappPacketKey)),
+				Price:        "200" + sdk.DefaultBondDenom,
+				Fee:          "50" + sdk.DefaultBondDenom,
+				IsFulfilled:  true,
+				PacketStatus: commontypes.Status_PENDING.String(),
+				Fulfiller:    eibcDemandAddr.String(),
 			},
 		},
 		{
@@ -195,13 +195,29 @@ func (suite *KeeperTestSuite) TestFulfillOrderEvent() {
 		} else {
 			suite.Require().NoError(err)
 		}
-		suite.AssertEventEmitted(suite.Ctx, tc.expectedPostFulfillmentEventsType, tc.expectedPostFulfillmentEventsCount)
+		eventName := proto.MessageName(tc.expectedPostFulfillmentEvent)
+		suite.AssertEventEmitted(suite.Ctx, eventName, tc.expectedPostFulfillmentEventsCount)
 		if tc.expectedPostFulfillmentEventsCount > 0 {
-			lastEvent, ok := suite.FindLastEventOfType(suite.Ctx.EventManager().Events(), tc.expectedPostFulfillmentEventsType)
+			lastEvent, ok := suite.FindLastEventOfType(suite.Ctx.EventManager().Events(), eventName)
 			suite.Require().True(ok)
-			suite.AssertAttributes(lastEvent, tc.expectedPostFulfillmentEventsAttributes)
+			event, _ := sdk.TypedEventToEvent(tc.expectedPostFulfillmentEvent)
+			suite.AssertAttributes(lastEvent, getEventAttributes(event))
 		}
 	}
+}
+
+func getEventAttributes(event sdk.Event) []sdk.Attribute {
+	attrs := make([]sdk.Attribute, len(event.Attributes))
+	if event.Attributes == nil {
+		return attrs
+	}
+	for i, a := range event.Attributes {
+		attrs[i] = sdk.Attribute{
+			Key:   a.Key,
+			Value: a.Value,
+		}
+	}
+	return attrs
 }
 
 func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {

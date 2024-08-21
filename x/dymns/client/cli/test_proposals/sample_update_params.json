@@ -1,0 +1,19 @@
+{
+    "messages": [
+        {
+            "@type": "/dymensionxyz.dymension.dymns.MsgUpdateParams",
+            "authority": "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
+            "new_price_params":{
+                "name_price_steps": ["1000000000000000000000","100000000000000000000","10000000000000000000","1000000000000000000"],
+                "alias_price_steps": ["1000000000000000000000","100000000000000000000","10000000000000000000","1000000000000000000"],
+                "price_extends": "1000000000000000000",
+                "price_denom": "adym",
+                "min_offer_price": "1000000000000000000"
+            }
+        }
+    ],
+    "metadata": "",
+    "deposit": "1000000000000000000adym",
+    "title": "Proposal Title",
+    "summary": "Use this command to submit: dymd tx gov submit-proposal sample_update_params.json --from hub-user --gas auto --gas-prices 20000000000adym --yes"
+}

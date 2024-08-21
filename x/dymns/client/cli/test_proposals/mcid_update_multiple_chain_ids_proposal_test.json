@@ -1,0 +1,9 @@
+{
+  "replacement": [{
+    "previous_chain_id": "cosmoshub-3",
+    "new_chain_id": "cosmoshub-4"
+  },{
+    "previous_chain_id": "columbus-4",
+    "new_chain_id": "columbus-5"
+  }]
+}

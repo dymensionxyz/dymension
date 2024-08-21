@@ -15,6 +15,10 @@ set_hub_params() {
     sed -i'' -e 's/mint_denom": ".*"/mint_denom": "adym"/' "$GENESIS_FILE"
 
     jq '.app_state.rollapp.params.dispute_period_in_blocks = "50"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    
+    
+    jq '.app_state.sequencer.params.unbonding_time = "60s"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.app_state.sequencer.params.notice_period = "60s"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 
     #increase the tx size cost per byte from 10 to 100
     jq '.app_state.auth.params.tx_size_cost_per_byte = "100"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
@@ -33,7 +37,7 @@ set_consenus_params() {
 	# 	MaxGas:   10000000, // ten million
     echo "setting consensus params"
     jq '.consensus_params["block"]["max_bytes"] = "4194304"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-    jq '.consensus_params["block"]["max_gas"] = "10000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.consensus_params["block"]["max_gas"] = "40000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
 set_EVM_params() {
@@ -107,4 +111,10 @@ enable_monitoring() {
     sed -ie 's/enabled-unsafe-cors.*$/enabled-unsafe-cors = true/' "$APP_CONFIG_FILE"
     sed -ie 's/enable-unsafe-cors.*$/enabled-unsafe-cors = true/' "$APP_CONFIG_FILE"
     sed -ie 's/cors_allowed_origins.*$/cors_allowed_origins = ["*"]/' "$TENDERMINT_CONFIG_FILE"
+}
+
+# this set_dymns_params function should only be used on local-net for development purpose
+set_dymns_params() {
+    echo "setting dymns params"
+    jq '.app_state.dymns.params.misc.sell_order_duration = "2m"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }

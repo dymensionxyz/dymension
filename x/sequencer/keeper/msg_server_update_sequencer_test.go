@@ -85,12 +85,10 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 					},
 					GasPrice: uptr.To(sdk.NewInt(100)),
 				},
-				Jailed:          false,
-				Proposer:        false,
-				Status:          0,
-				Tokens:          nil,
-				UnbondingHeight: 0,
-				UnbondTime:      time.Time{},
+				Jailed:     false,
+				Status:     0,
+				Tokens:     nil,
+				UnbondTime: time.Time{},
 			},
 		}, {
 			name: "Update rollapp: fail - try to update a non-existing rollapp",
@@ -160,16 +158,14 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 			suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
 			sequencer := types.Sequencer{
-				Address:         addr.String(),
-				DymintPubKey:    pkAny,
-				RollappId:       rollappID,
-				Metadata:        types.SequencerMetadata{},
-				Jailed:          false,
-				Proposer:        false,
-				Status:          0,
-				Tokens:          nil,
-				UnbondingHeight: 0,
-				UnbondTime:      time.Time{},
+				Address:      addr.String(),
+				DymintPubKey: pkAny,
+				RollappId:    rollappID,
+				Metadata:     types.SequencerMetadata{},
+				Jailed:       false,
+				Status:       0,
+				Tokens:       nil,
+				UnbondTime:   time.Time{},
 			}
 
 			suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)

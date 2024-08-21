@@ -10,7 +10,7 @@ printf "version: v1\nname: buf.build/dymensionxyz/dymension\n" > "$SWAGGER_DIR/p
 cp ./proto/buf.gen.swagger.yaml "$SWAGGER_DIR/proto/buf.gen.swagger.yaml"
 
 # copy existing proto files
-cp -r ./proto/dymension "$SWAGGER_DIR/proto"
+cp -r ./proto/dymensionxyz "$SWAGGER_DIR/proto"
 
 # create temporary folder to store intermediate results from `buf generate`
 mkdir -p ./tmp-swagger-gen

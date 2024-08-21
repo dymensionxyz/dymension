@@ -165,7 +165,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	const rollappId = "rollapp_1234-1"
 
 	// 1. register rollapp
-	_, err := suite.msgServer.CreateRollapp(suite.Ctx, &types.MsgCreateRollapp{
+	msg := types.MsgCreateRollapp{
 		RollappId:        rollappId,
 		Creator:          alice,
 		GenesisChecksum:  "",
@@ -173,11 +173,13 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		Alias:            "default",
 		VmType:           types.Rollapp_EVM,
 		Bech32Prefix:     "rol",
-	})
+	}
+	suite.FundForAliasRegistration(msg)
+	_, err := suite.msgServer.CreateRollapp(suite.Ctx, &msg)
 	suite.Require().NoError(err)
 
 	// 2. try to register sequencer (not initial) - should fail because rollapp is not sealed
-	_, err = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	err = suite.CreateSequencerByPubkey(suite.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 	suite.Require().ErrorIs(err, sequencertypes.ErrNotInitialSequencer)
 
 	// 3. update rollapp immutable fields, set InitialSequencer, Alias and GenesisChecksum
@@ -194,11 +196,13 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 
 	// 4. register sequencer (initial) - should be proposer; rollapp should be sealed
 	// from this point on, the rollapp is sealed and immutable fields cannot be updated
-	err = suite.CreateSequencer(suite.Ctx, rollappId, initSeqPubKey)
+	err = suite.CreateSequencerByPubkey(suite.Ctx, rollappId, initSeqPubKey)
 	suite.Require().NoError(err)
 	initSeq, ok := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addrInit)
 	suite.Require().True(ok)
-	suite.Require().True(initSeq.Proposer)
+	proposer, found := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	suite.Require().True(found)
+	suite.Require().Equal(initSeq, proposer)
 	rollapp, ok := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappId)
 	suite.Require().True(ok)
 	suite.Require().True(rollapp.Sealed)
@@ -212,11 +216,10 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	suite.Require().ErrorIs(err, types.ErrImmutableFieldUpdateAfterSealed)
 
 	// 6. register another sequencer - should not be proposer
-	newSeqAddr, err := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	suite.Require().NoError(err)
-	newSequencer, ok := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, newSeqAddr)
-	suite.Require().True(ok)
-	suite.Require().False(newSequencer.Proposer)
+	newSeqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	proposer, found = suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	suite.Require().True(found)
+	suite.Require().NotEqual(proposer, newSeqAddr)
 
 	// 7. create state update
 	suite.App.RollappKeeper.SetLatestStateInfoIndex(suite.Ctx, types.StateInfoIndex{

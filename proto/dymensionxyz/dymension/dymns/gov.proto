@@ -1,0 +1,54 @@
+syntax = "proto3";
+package dymensionxyz.dymension.dymns;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
+
+// MigrateChainIdsProposal defines a proposal to replace chain-id in module params and configurations.
+// This proposal is used when the chain-id of a connected network changes.
+// It will look up and replace the chain-id in module params and all configurations of all non-expired Dym-Names.
+message MigrateChainIdsProposal {
+  // title of the proposal
+  string title = 1;
+
+  // description of the proposal
+  string description = 2;
+
+  // replacements is set of chain-id replacements
+  repeated MigrateChainId replacement = 3 [(gogoproto.nullable) = false];
+}
+
+// MigrateChainId defines a chain-id replacement.
+message MigrateChainId {
+  // previous_chain_id is the chain-id to be replaced
+  string previous_chain_id = 1;
+
+  // new_chain_id is the new chain-id to replace with
+  string new_chain_id = 2;
+}
+
+// UpdateAliasesProposal defines a proposal to update the aliases associated with chain-ids in module params.
+message UpdateAliasesProposal {
+  // title of the proposal
+  string title = 1;
+
+  // description of the proposal
+  string description = 2;
+
+  // add is set of aliases to be mapped to chain-ids
+  repeated UpdateAlias add = 3 [(gogoproto.nullable) = false];
+
+  // remove is set of aliases to remove mapping from chain-ids
+  repeated UpdateAlias remove = 4 [(gogoproto.nullable) = false];
+}
+
+// UpdateAlias defines an alias to chain-id mapping.
+// It can be used to add or remove alias to chain-id mapping.
+message UpdateAlias {
+  // chain_id is the chain-id to take action on
+  string chain_id = 1;
+
+  // alias is the alias to be mapped to chain-id or removed
+  string alias = 2;
+}
