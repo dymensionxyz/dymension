@@ -20,4 +20,6 @@ message RollappMetadata {
   string display_name = 7;
   // tagline is a non semantic tagline/catch-phrase. Size limited.
   string tagline = 8;
+  // token_symbol is the native token symbol
+  string token_symbol = 9;
 }
