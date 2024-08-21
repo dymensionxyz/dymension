@@ -13,7 +13,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	if !found {
 		return nil
 	}
-	// Only continue if the client is a tendermint client as rollapp only supports tendermint clients as canoncial clients
+	// Only continue if the client is a tendermint client as rollapp only supports tendermint clients as canonical clients
 	if clientState.ClientType() == exported.Tendermint {
 		// Cast client state to tendermint client state - we need this to get the chain id(rollapp id)
 		tmClientState, ok := clientState.(*ibctm.ClientState)
@@ -62,35 +62,35 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 			BlockSequencer:  sequencerPubKey,
 			BlockDescriptor: bd,
 		}
-		// Check that BD for next block exists
+		// Check that BD for next block exists in same stateinfo
 		if height.GetRevisionHeight()-stateInfo.GetStartHeight()+1 < uint64(len(stateInfo.GetBDs().BD)) {
 			rollappState.NextBlockSequencer = sequencerPubKey
 			rollappState.NextBlockDescriptor = stateInfo.GetBDs().BD[height.GetRevisionHeight()-stateInfo.GetStartHeight()+1]
 		} else {
 			// next BD does not exist in this state info, check the next state info
 			nextStateInfo, found := i.rollappKeeper.GetStateInfo(ctx, rollappID, stateInfo.GetIndex().Index+1)
-			if !found {
-				// if next state info does not exist, then we can't verify the next block valhash.
-				// Will accept the update optimistically
-				// But also save the blockProposer address with the height for future verification
-				blockProposer := header.Header.ProposerAddress
-				i.lightClientKeeper.SetConsensusStateSigner(ctx, msg.ClientId, height.GetRevisionHeight(), string(blockProposer))
-				return nil
-			} else {
+			if found {
 				nextSequencerPk, err := i.lightClientKeeper.GetTmPubkeyAsBytes(ctx, nextStateInfo.Sequencer)
 				if err != nil {
 					return err
 				}
 				rollappState.NextBlockSequencer = nextSequencerPk
 				rollappState.NextBlockDescriptor = nextStateInfo.GetBDs().BD[0]
+			} else {
+				// if next state info does not exist, then we can't verify the next block valhash.
+				// Will accept the update optimistically
+				// But also save the blockProposer address with the height for future verification
+				blockProposer := header.Header.ProposerAddress
+				i.lightClientKeeper.SetConsensusStateSigner(ctx, msg.ClientId, height.GetRevisionHeight(), string(blockProposer))
+				return nil
 			}
 		}
 		// Ensure that the ibc header is compatible with the existing rollapp state
+		// If its not, we error and prevent the MsgUpdateClient from being processed
 		err = types.CheckCompatibility(ibcState, rollappState)
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
 }

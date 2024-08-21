@@ -18,7 +18,7 @@ func CheckCompatibility(ibcState IBCState, raState RollappState) error {
 	if !bytes.Equal(ibcState.Root, raState.BlockDescriptor.StateRoot) {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "block descriptor state root does not match tendermint header app hash")
 	}
-	// in case of msgcreateclient, validator info is not available. it is only send in msgupdateclient as header info
+	// in case of msgcreateclient, validator info is not available. it is only sent in msgupdateclient as header info
 	// Check if the validator set hash matches the sequencer
 	if len(ibcState.Validator) > 0 && !bytes.Equal(ibcState.Validator, raState.BlockSequencer) {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "validator set hash does not match the sequencer")

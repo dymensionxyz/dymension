@@ -150,7 +150,7 @@ func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Ke
 			return
 		}
 		clientID := connection.GetClientID()
-		// todo: should this be canonical client? or candidate client?
+		// store the rollapp to canonical light client ID mapping
 		lightClientKeeper.SetCanonicalClient(ctx, rollapp.RollappId, clientID)
 	}
 }

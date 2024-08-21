@@ -23,7 +23,7 @@ type CanonicalClientParams struct {
 	MaxClockDrift time.Duration
 	// ProofSpecs defines the ICS-23 standard proof specifications used by
 	// the light client. It is used configure a proof for either existence
-	// or non-existence of a key value pair in state
+	// or non-existence of a key value pair
 	ProofSpecs                   []*ics23.ProofSpec
 	AllowUpdateAfterExpiry       bool
 	AllowUpdateAfterMisbehaviour bool
@@ -44,26 +44,26 @@ var (
 	}
 )
 
-func IsCanonicalClientParamsValid(params CanonicalClientParams) bool {
-	if params.TrustLevel != ExpectedCanonicalClientParams.TrustLevel {
+func IsCanonicalClientParamsValid(clientState *ibctm.ClientState) bool {
+	if clientState.TrustLevel != ExpectedCanonicalClientParams.TrustLevel {
 		return false
 	}
-	if params.TrustingPeriod > ExpectedCanonicalClientParams.TrustingPeriod {
+	if clientState.TrustingPeriod > ExpectedCanonicalClientParams.TrustingPeriod {
 		return false
 	}
-	if params.UnbondingPeriod > ExpectedCanonicalClientParams.UnbondingPeriod {
+	if clientState.UnbondingPeriod > ExpectedCanonicalClientParams.UnbondingPeriod {
 		return false
 	}
-	if params.MaxClockDrift > ExpectedCanonicalClientParams.MaxClockDrift {
+	if clientState.MaxClockDrift > ExpectedCanonicalClientParams.MaxClockDrift {
 		return false
 	}
-	if params.AllowUpdateAfterExpiry != ExpectedCanonicalClientParams.AllowUpdateAfterExpiry {
+	if clientState.AllowUpdateAfterExpiry != ExpectedCanonicalClientParams.AllowUpdateAfterExpiry {
 		return false
 	}
-	if params.AllowUpdateAfterMisbehaviour != ExpectedCanonicalClientParams.AllowUpdateAfterMisbehaviour {
+	if clientState.AllowUpdateAfterMisbehaviour != ExpectedCanonicalClientParams.AllowUpdateAfterMisbehaviour {
 		return false
 	}
-	for i, proofSpec := range params.ProofSpecs {
+	for i, proofSpec := range clientState.ProofSpecs {
 		if proofSpec != ExpectedCanonicalClientParams.ProofSpecs[i] {
 			return false
 		}

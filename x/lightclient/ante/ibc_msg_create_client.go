@@ -11,7 +11,6 @@ import (
 )
 
 func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibcclienttypes.MsgCreateClient) {
-	// Unpack client state from message
 	clientState, err := ibcclienttypes.UnpackClientState(msg.ClientState)
 	if err != nil {
 		return
@@ -41,7 +40,7 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 			return
 		}
 		blockDescriptor := stateInfo.GetBDs().BD[height.GetRevisionHeight()-stateInfo.GetStartHeight()]
-		// Unpack consensus state from message
+
 		consensusState, err := ibcclienttypes.UnpackConsensusState(msg.ConsensusState)
 		if err != nil {
 			return
@@ -57,7 +56,7 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 		ibcState := types.IBCState{
 			Root:               tmConsensusState.GetRoot().GetHash(),
 			Height:             tmClientState.GetLatestHeight().GetRevisionHeight(),
-			Validator:          []byte{}, // not sure if this info is available in the tendermint consensus state as no header has been shared yet
+			Validator:          []byte{}, // This info is available in the tendermint consensus state as no header has been shared yet
 			NextValidatorsHash: tmConsensusState.NextValidatorsHash,
 			Timestamp:          timestamp,
 		}
@@ -96,15 +95,8 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 		}
 
 		// Ensure the light client params conform to expected values
-		if !types.IsCanonicalClientParamsValid(types.CanonicalClientParams{
-			TrustLevel:                   tmClientState.TrustLevel,
-			TrustingPeriod:               tmClientState.TrustingPeriod,
-			UnbondingPeriod:              tmClientState.UnbondingPeriod,
-			MaxClockDrift:                tmClientState.MaxClockDrift,
-			AllowUpdateAfterExpiry:       tmClientState.AllowUpdateAfterExpiry,
-			AllowUpdateAfterMisbehaviour: tmClientState.AllowUpdateAfterMisbehaviour,
-		}) {
-			return
+		if !types.IsCanonicalClientParamsValid(tmClientState) {
+			return // In case of invalid params, the client will be created but not set as canonical
 		}
 		// Generate client id and begin canonical light client registration by storing it in transient store.
 		// Will be confirmed after the client is created in post handler.

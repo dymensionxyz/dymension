@@ -16,7 +16,6 @@ type HandlerOptions struct {
 	LightClientKeeper *lightclientkeeper.Keeper
 }
 
-// NewPostHandler returns an empty PostHandler chain.
 func NewPostHandler(options HandlerOptions) (sdk.PostHandler, error) {
 	if err := options.validate(); err != nil {
 		return nil, err
