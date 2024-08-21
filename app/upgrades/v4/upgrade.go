@@ -172,6 +172,8 @@ func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Seque
 		Address:      old.Address,
 		DymintPubKey: old.DymintPubKey,
 		RollappId:    old.RollappId,
+		Status:       old.Status,
+		Tokens:       old.Tokens,
 		Metadata: sequencertypes.SequencerMetadata{
 			Moniker: old.Metadata.Moniker,
 			Details: old.Metadata.Details,
