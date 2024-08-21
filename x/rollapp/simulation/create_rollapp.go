@@ -36,12 +36,11 @@ func SimulateMsgCreateRollapp(ak simulationtypes.AccountKeeper, bk simulationtyp
 			Bech32Prefix:     "rol",
 			Alias:            "rollapp",
 			Metadata: &types.RollappMetadata{
-				Website:          "https://dymension.xyz",
-				Description:      "Sample description",
-				LogoDataUri:      "data:image/png;base64,c2lzZQ==",
-				TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
-				Telegram:         "https://t.me/rolly",
-				X:                "https://x.dymension.xyz",
+				Website:     "https://dymension.xyz",
+				Description: "Sample description",
+				LogoDataUri: "data:image/png;base64,c2lzZQ==",
+				Telegram:    "https://t.me/rolly",
+				X:           "https://x.dymension.xyz",
 			},
 		}
 
