@@ -132,12 +132,11 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		rollapptypes.Rollapp_EVM,
 
 		&rollapptypes.RollappMetadata{
-			Website:          "http://example.com",
-			Description:      "Some description",
-			LogoDataUri:      "data:image/png;base64,c2lzZQ==",
-			TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
-			Telegram:         "https://t.me/rolly",
-			X:                "https://x.dymension.xyz",
+			Website:     "http://example.com",
+			Description: "Some description",
+			LogoDataUri: "data:image/png;base64,c2lzZQ==",
+			Telegram:    "https://t.me/rolly",
+			X:           "https://x.dymension.xyz",
 		},
 	)
 

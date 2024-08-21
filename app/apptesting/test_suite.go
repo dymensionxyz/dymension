@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 
@@ -57,12 +58,11 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 		Alias:            strings.ToLower(rand.Str(7)),
 		VmType:           rollapptypes.Rollapp_EVM,
 		Metadata: &rollapptypes.RollappMetadata{
-			Website:          "https://dymension.xyz",
-			Description:      "Sample description",
-			LogoDataUri:      "data:image/png;base64,c2lzZQ==",
-			TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
-			Telegram:         "https://t.me/rolly",
-			X:                "https://x.dymension.xyz",
+			Website:     "https://dymension.xyz",
+			Description: "Sample description",
+			LogoDataUri: "data:image/png;base64,c2lzZQ==",
+			Telegram:    "https://t.me/rolly",
+			X:           "https://x.dymension.xyz",
 		},
 	}
 
