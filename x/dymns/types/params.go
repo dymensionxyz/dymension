@@ -51,21 +51,24 @@ func DefaultParams() Params {
 func DefaultPriceParams() PriceParams {
 	return PriceParams{
 		NamePriceSteps: []sdkmath.Int{
-			sdk.NewInt(5000 /* DYM */).MulRaw(1e18),
-			sdk.NewInt(2500 /* DYM */).MulRaw(1e18),
-			sdk.NewInt(1000 /* DYM */).MulRaw(1e18),
-			sdk.NewInt(100 /* DYM */).MulRaw(1e18),
-			sdk.NewInt(5 /* DYM */).MulRaw(1e18),
+			sdk.NewInt(5000 /* DYM */).MulRaw(1e18), // 1 letter
+			sdk.NewInt(2500 /* DYM */).MulRaw(1e18), // 2 letters
+			sdk.NewInt(1000 /* DYM */).MulRaw(1e18), // 3 letters
+			sdk.NewInt(100 /* DYM */).MulRaw(1e18),  // 4 letters
+			sdk.NewInt(5 /* DYM */).MulRaw(1e18),    // 5+ letters
 		},
 
 		AliasPriceSteps: []sdkmath.Int{
-			sdk.NewInt(5000 /* DYM */).MulRaw(1e18),
-			sdk.NewInt(1000 /* DYM */).MulRaw(1e18),
-			sdk.NewInt(250 /* DYM */).MulRaw(1e18),
-			sdk.NewInt(100 /* DYM */).MulRaw(1e18),
-			sdk.NewInt(25 /* DYM */).MulRaw(1e18),
-			sdk.NewInt(10 /* DYM */).MulRaw(1e18),
-			sdk.NewInt(5 /* DYM */).MulRaw(1e18),
+			sdk.NewInt(6000 /* DYM */).MulRaw(1e18), // 1 letter
+			sdk.NewInt(3000 /* DYM */).MulRaw(1e18), // 2 letters
+			sdk.NewInt(1500 /* DYM */).MulRaw(1e18), // 3 letters
+			sdk.NewInt(500 /* DYM */).MulRaw(1e18),  // 4 letters
+			sdk.NewInt(250 /* DYM */).MulRaw(1e18),  // 5 letters
+			sdk.NewInt(100 /* DYM */).MulRaw(1e18),  // 6 letters
+			sdk.NewInt(50 /* DYM */).MulRaw(1e18),   // 7 letters
+			sdk.NewInt(20 /* DYM */).MulRaw(1e18),   // 8 letters
+			sdk.NewInt(10 /* DYM */).MulRaw(1e18),   // 9 letters
+			sdk.NewInt(5 /* DYM */).MulRaw(1e18),    // 10+ letters
 		},
 
 		PriceExtends:  sdk.NewInt(5 /* DYM */).MulRaw(1e18),
