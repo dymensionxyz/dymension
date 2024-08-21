@@ -45,7 +45,7 @@ func (suite *RollappTestSuite) SetupTest() {
 	regFee, _ := sdk.ParseCoinNormalized(registrationFee)
 	app.RollappKeeper.SetParams(ctx, types.DefaultParams().WithDisputePeriodInBlocks(2))
 
-	aliceBal := sdk.NewCoins(regFee.AddAmount(regFee.Amount.Mul(sdk.NewInt(10))))
+	aliceBal := sdk.NewCoins(regFee.AddAmount(regFee.Amount.Mul(sdk.NewInt(50))))
 	apptesting.FundAccount(app, ctx, sdk.MustAccAddressFromBech32(alice), aliceBal)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
