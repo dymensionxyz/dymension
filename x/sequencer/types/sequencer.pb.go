@@ -53,8 +53,7 @@ type Sequencer struct {
 	// unbond_request_height stores the height at which this sequencer has
 	// requested to unbond.
 	UnbondRequestHeight int64 `protobuf:"varint,9,opt,name=unbond_request_height,json=unbondRequestHeight,proto3" json:"unbond_request_height,omitempty"`
-	// unbond_time defines, if unbonding, the min time for the sequencer to
-	// complete unbonding.
+	// unbond_time defines the time when the sequencer will complete unbonding.
 	UnbondTime time.Time `protobuf:"bytes,10,opt,name=unbond_time,json=unbondTime,proto3,stdtime" json:"unbond_time"`
 	// notice_period_time defines the time when the sequencer will finish it's notice period if started
 	NoticePeriodTime time.Time `protobuf:"bytes,11,opt,name=notice_period_time,json=noticePeriodTime,proto3,stdtime" json:"notice_period_time"`
