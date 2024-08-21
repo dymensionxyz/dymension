@@ -8,12 +8,31 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 )
 
+// ValidateBasic performs basic validation of the sequencer object
+func (seq Sequencer) ValidateBasic() error {
+	if seq.Status == Unbonding && (seq.UnbondRequestHeight == 0 || seq.UnbondTime.IsZero()) {
+		return ErrInvalidSequencerStatus
+	}
+
+	// validate notice period
+	if seq.IsNoticePeriodInProgress() && seq.NoticePeriodTime.IsZero() {
+		return ErrInvalidSequencerStatus
+	}
+
+	return nil
+}
+
+func (seq Sequencer) IsEmpty() bool {
+	return seq.Address == ""
+}
+
 func (seq Sequencer) IsBonded() bool {
 	return seq.Status == Bonded
 }
 
-func (seq Sequencer) IsProposer() bool {
-	return seq.Proposer
+// IsNoticePeriodInProgress returns true if the sequencer is bonded and has an unbond request
+func (seq Sequencer) IsNoticePeriodInProgress() bool {
+	return seq.Status == Bonded && seq.UnbondRequestHeight != 0
 }
 
 // GetDymintPubKeyHash returns the hash of the sequencer

@@ -161,7 +161,14 @@ func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	am.keeper.UnbondAllMatureSequencers(ctx, ctx.BlockHeader().Time)
-	am.keeper.HandleBondReduction(ctx, ctx.BlockHeader().Time)
+	// start unbonding period for sequencers after notice period
+	am.keeper.MatureSequencersWithNoticePeriod(ctx, ctx.BlockTime())
+
+	// Unbond all mature sequencers
+	am.keeper.UnbondAllMatureSequencers(ctx, ctx.BlockTime())
+
+	// Handle bond reduction
+	am.keeper.HandleBondReduction(ctx, ctx.BlockTime())
+
 	return []abci.ValidatorUpdate{}
 }

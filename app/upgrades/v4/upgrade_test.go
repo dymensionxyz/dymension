@@ -215,8 +215,9 @@ func (s *UpgradeTestSuite) validateRollappGaugesMigration() error {
 }
 
 func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
-	expectSequencers := make([]sequencertypes.Sequencer, numSeq)
-	for i, sequencer := range s.seedSequencers(numSeq) {
+	testSeqs := s.seedSequencers(numSeq)
+	expectSequencers := make([]sequencertypes.Sequencer, len(testSeqs))
+	for i, sequencer := range testSeqs {
 		expectSequencers[i] = v4.ConvertOldSequencerToNew(sequencer)
 	}
 	sequencers := s.App.SequencerKeeper.GetAllSequencers(s.Ctx)
@@ -242,6 +243,13 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 
 		s.Require().JSONEq(string(seq), string(nSeq))
 	}
+
+	// check proposer
+	for _, rollapp := range s.App.RollappKeeper.GetAllRollapps(s.Ctx) {
+		_, found := s.App.SequencerKeeper.GetProposer(s.Ctx, rollapp.RollappId)
+		s.Assert().True(found)
+	}
+
 	return nil
 }
 
@@ -273,25 +281,30 @@ func (s *UpgradeTestSuite) seedAndStoreSequencers(numRollapps int) {
 	}
 }
 
-func (s *UpgradeTestSuite) seedSequencers(numSeq int) []sequencertypes.Sequencer {
-	sequencers := make([]sequencertypes.Sequencer, numSeq)
-	for i := 0; i < numSeq; i++ {
+func (s *UpgradeTestSuite) seedSequencers(numRollapps int) []sequencertypes.Sequencer {
+	numSeqPerRollapp := numRollapps
+	sequencers := make([]sequencertypes.Sequencer, 0, numSeqPerRollapp*numRollapps)
+	for i := 0; i < numRollapps; i++ {
 		rollappID := rollappIDFromIdx(i)
-		pk := ed25519.GenPrivKeyFromSecret([]byte(rollappID)).PubKey()
-		pkAny, _ := codectypes.NewAnyWithValue(pk)
-		sequencer := sequencertypes.Sequencer{
-			Address:      sdk.AccAddress(pk.Address()).String(),
-			DymintPubKey: pkAny,
-			RollappId:    rollappID,
-			Metadata: sequencertypes.SequencerMetadata{
-				Moniker: fmt.Sprintf("sequencer-%d", i),
-				Details: fmt.Sprintf("Additional details about the sequencer-%d", i),
-			},
-			Status:   sequencertypes.Bonded,
-			Proposer: true,
-			Tokens:   sdk.NewCoins(sdk.NewInt64Coin("dym", 100)),
+
+		for j := 0; j < numSeqPerRollapp; j++ {
+			uuid := fmt.Sprintf("sequencer-%d-%d", i, j)
+			pk := ed25519.GenPrivKeyFromSecret([]byte(uuid)).PubKey()
+			pkAny, _ := codectypes.NewAnyWithValue(pk)
+			sequencer := sequencertypes.Sequencer{
+				Address:      sdk.AccAddress(pk.Address()).String(),
+				DymintPubKey: pkAny,
+				RollappId:    rollappID,
+				Metadata: sequencertypes.SequencerMetadata{
+					Moniker: uuid,
+					Details: fmt.Sprintf("Additional details about the %s", uuid),
+				},
+				Status:   sequencertypes.Bonded,
+				Tokens:   sdk.NewCoins(sdk.NewInt64Coin("dym", 100)),
+				Proposer: j == 0, // first sequencer is proposer
+			}
+			sequencers = append(sequencers, sequencer)
 		}
-		sequencers[i] = sequencer
 	}
 	return sequencers
 }

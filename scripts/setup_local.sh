@@ -1,19 +1,19 @@
 #!/bin/sh
 
-if [ "$EXECUTABLE" = "" ]; then
+if [ "$SETTLEMENT_EXECUTABLE" = "" ]; then
     echo 'please run `make install` and export the installed binary with'
-    echo '`export EXECUTABLE=$(which dymd)'
+    echo '`export SETTLEMENT_EXECUTABLE=$(which dymd)'
     echo "dymd not found in PATH. Exiting."
     exit 1
 fi
 
 # Validate dymension binary exists
 export PATH="$PATH":"$HOME"/go/bin
-if ! command -v "$EXECUTABLE" > /dev/null; then
+if ! command -v "$SETTLEMENT_EXECUTABLE" > /dev/null; then
   make install
 
-  if ! command -v "$EXECUTABLE"; then
-    echo "dymension binary $EXECUTABLE not found in $PATH"
+  if ! command -v "$SETTLEMENT_EXECUTABLE"; then
+    echo "dymension binary $SETTLEMENT_EXECUTABLE not found in $PATH"
     exit 1
   fi
 fi
@@ -65,7 +65,7 @@ if [ -f "$GENESIS_FILE" ]; then
 fi
 
 # Create and init dymension chain
-"$EXECUTABLE" init "$MONIKER_NAME" --chain-id="$CHAIN_ID"
+"$SETTLEMENT_EXECUTABLE" init "$MONIKER_NAME" --chain-id="$CHAIN_ID"
 
 # ---------------------------------------------------------------------------- #
 #                              Set configurations                              #
@@ -94,6 +94,7 @@ set_EVM_params
 set_bank_denom_metadata
 set_epochs_params
 set_incentives_params
+set_dymns_params
 
 echo "Enable monitoring? (Y/n) "
 read -r answer
@@ -104,19 +105,19 @@ fi
 echo "Initialize AMM accounts? (Y/n) "
 read -r answer
 if [ ! "$answer" != "${answer#[Nn]}" ] ;then
-  "$EXECUTABLE" keys add pools --keyring-backend test
-  "$EXECUTABLE" keys add user --keyring-backend test
+  "$SETTLEMENT_EXECUTABLE" keys add pools --keyring-backend test
+  "$SETTLEMENT_EXECUTABLE" keys add user --keyring-backend test
 
   # Add genesis accounts and provide coins to the accounts
-  "$EXECUTABLE" add-genesis-account "$(dymd keys show pools --keyring-backend test -a)" 1000000000000000000000000adym,10000000000uatom,500000000000uusd
+  "$SETTLEMENT_EXECUTABLE" add-genesis-account "$(dymd keys show pools --keyring-backend test -a)" 1000000000000000000000000adym,10000000000uatom,500000000000uusd
   # Give some uatom to the local-user as well
-  "$EXECUTABLE" add-genesis-account "$(dymd keys show user --keyring-backend test -a)" 1000000000000000000000000adym,10000000000uatom
+  "$SETTLEMENT_EXECUTABLE" add-genesis-account "$(dymd keys show user --keyring-backend test -a)" 1000000000000000000000000adym,10000000000uatom
 fi
 
-echo "$MNEMONIC" | "$EXECUTABLE" keys add "$KEY_NAME" --recover --keyring-backend test
-"$EXECUTABLE" add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
+echo "$MNEMONIC" | "$SETTLEMENT_EXECUTABLE" keys add "$KEY_NAME" --recover --keyring-backend test
+"$SETTLEMENT_EXECUTABLE" add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
 
-"$EXECUTABLE" gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
-"$EXECUTABLE" collect-gentxs
+"$SETTLEMENT_EXECUTABLE" gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
+"$SETTLEMENT_EXECUTABLE" collect-gentxs
 
-"$EXECUTABLE" validate-genesis
+"$SETTLEMENT_EXECUTABLE" validate-genesis

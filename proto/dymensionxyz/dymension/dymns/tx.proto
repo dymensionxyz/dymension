@@ -1,0 +1,331 @@
+syntax = "proto3";
+package dymensionxyz.dymension.dymns;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "dymensionxyz/dymension/dymns/market.proto";
+import "dymensionxyz/dymension/dymns/params.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
+
+// Msg defines the Msg service.
+service Msg {
+    // RegisterName is message handler, handles registration of a new Dym-Name
+    // or extends the ownership duration of an existing Dym-Name.
+    rpc RegisterName(MsgRegisterName) returns (MsgRegisterNameResponse) {}
+    // RegisterAlias is message handler, handles registration of a new Alias for an existing RollApp.
+    rpc RegisterAlias(MsgRegisterAlias) returns (MsgRegisterAliasResponse) {}
+    // TransferDymNameOwnership is message handler,
+    // handles transfer of ownership of a Dym-Name, performed by the owner.
+    rpc TransferDymNameOwnership(MsgTransferDymNameOwnership) returns (MsgTransferDymNameOwnershipResponse) {}
+    // SetController is message handler,
+    // handles setting a controller for a Dym-Name, performed by the owner.
+    rpc SetController(MsgSetController) returns (MsgSetControllerResponse) {}
+    // UpdateResolveAddress is message handler,
+    // handles updating Dym-Name-Address resolution configuration, performed by the controller.
+    rpc UpdateResolveAddress(MsgUpdateResolveAddress) returns (MsgUpdateResolveAddressResponse) {}
+    // UpdateDetails is message handler,
+    // handles updating Dym-Name details, performed by the controller.
+    rpc UpdateDetails(MsgUpdateDetails) returns (MsgUpdateDetailsResponse) {}
+
+    // PlaceSellOrder is message handler,
+    // handles creating a Sell-Order that advertise a Dym-Name/Alias is for sale, performed by the owner.
+    rpc PlaceSellOrder(MsgPlaceSellOrder) returns (MsgPlaceSellOrderResponse) {}
+    // CancelSellOrder is message handler,
+    // handles canceling Sell-Order, performed by the owner.
+    // This will stop the advertisement and remove the Dym-Name/Alias sale from the market.
+    // Can only be performed if no one has placed a bid on the asset.
+    rpc CancelSellOrder(MsgCancelSellOrder) returns (MsgCancelSellOrderResponse) {}
+    // PurchaseOrder is message handler,
+    // handles purchasing a Dym-Name/Alias from a Sell-Order, performed by the buyer.
+    rpc PurchaseOrder(MsgPurchaseOrder) returns (MsgPurchaseOrderResponse) {}
+
+    // PlaceBuyOrder is message handler,
+    // handles creating an offer to buy a Dym-Name/Alias, performed by the buyer.
+    rpc PlaceBuyOrder(MsgPlaceBuyOrder) returns (MsgPlaceBuyOrderResponse) {}
+    // CancelBuyOrder is message handler,
+    // handles canceling a Buy-Order, performed by the buyer who placed the offer.
+    rpc CancelBuyOrder(MsgCancelBuyOrder) returns (MsgCancelBuyOrderResponse) {}
+    // AcceptBuyOrder is message handler,
+    // handles accepting a Buy-Order or raising the amount for negotiation,
+    // performed by the owner of the asset.
+    rpc AcceptBuyOrder(MsgAcceptBuyOrder) returns (MsgAcceptBuyOrderResponse) {}
+
+    // UpdateParams is used for updating module params.
+    rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+}
+
+// MsgRegisterName defines the message used for user to register or extends ownership duration of a Dym-Name.
+message MsgRegisterName {
+    option (cosmos.msg.v1.signer) = "owner";
+    // name is the Dym-Name to be registered.
+    string name = 1;
+
+    // owner is the account address of the account which owns the order.
+    string owner = 2;
+
+    // duration is the number of years the Dym-Name will be registered for.
+    int64 duration = 3;
+
+    // confirm_payment is used to ensure user acknowledge of the amount coin that the user must pay.
+    // If the amount mis-match with the actual payment, the transaction will be rejected.
+    cosmos.base.v1beta1.Coin confirm_payment = 4 [(gogoproto.nullable) = false];
+
+    // contact defines an optional contact information for the Dym-Name.
+    string contact = 5;
+}
+
+// MsgRegisterNameResponse defines the response for the name registration.
+message MsgRegisterNameResponse {}
+
+// MsgRegisterAlias defines the message used for user to register a new Alias for their owned RollApp.
+message MsgRegisterAlias {
+    option (cosmos.msg.v1.signer) = "owner";
+    // alias to be registered.
+    string alias = 1;
+
+    // rollapp_id is RollApp ID that the new Alias to be assigned for.
+    string rollapp_id = 2;
+
+    // owner is the account address of the RollApp which owns the Alias.
+    string owner = 3;
+
+    // confirm_payment is used to ensure user acknowledge of the amount coin that the user must pay.
+    // If the amount mis-match with the actual payment, the transaction will be rejected.
+    cosmos.base.v1beta1.Coin confirm_payment = 4 [(gogoproto.nullable) = false];
+}
+
+// MsgRegisterAliasResponse defines the response for the alias registration.
+message MsgRegisterAliasResponse {}
+
+// MsgTransferDymNameOwnership defines the message used for user to transfer ownership of a Dym-Name.
+message MsgTransferDymNameOwnership {
+    option (cosmos.msg.v1.signer) = "owner";
+
+    // name is the Dym-Name to be transferred ownership.
+    string name = 1;
+
+    // owner is the account address of the account which is currently owner of the Dym-Name.
+    string owner = 2;
+
+    // new_owner is the account address of the next account which will own the Dym-Name.
+    string new_owner = 3;
+}
+
+// MsgTransferDymNameOwnershipResponse defines the response for the name transfer.
+message MsgTransferDymNameOwnershipResponse {}
+
+// MsgSetController defines the message used for user to set a controller for a Dym-Name.
+message MsgSetController {
+    option (cosmos.msg.v1.signer) = "owner";
+
+    // name is the Dym-Name to change controller.
+    string name = 1;
+
+    // owner is the account address of the account which is currently owner of the Dym-Name.
+    string owner = 2;
+
+    // controller is the account address of the account which will be the new controller of the Dym-Name.
+    string controller = 3;
+}
+
+// MsgSetControllerResponse defines the response for the name controller setting.
+message MsgSetControllerResponse {}
+
+// MsgUpdateResolveAddress defines the message used for user to update the resolve address of a Dym-Name.
+message MsgUpdateResolveAddress {
+    option (cosmos.msg.v1.signer) = "controller";
+    // name is the Dym-Name to be updated by controller.
+    string name = 1;
+
+    // controller is the account address of the account which has permission to update the Dym-Name.
+    string controller = 2;
+
+    // chain_id is an optional field, chain-based mapping
+    string chain_id = 3;
+
+    // sub_name is an optional field, sub-domain-like mapping
+    string sub_name = 4;
+
+    // resolve_to is the address that this config will resolve to.
+    // Leave it empty to remove the resolve address.
+    string resolve_to = 5;
+}
+
+// MsgUpdateResolveAddressResponse defines the response for the name resolve address update.
+message MsgUpdateResolveAddressResponse {}
+
+// MsgUpdateDetails defines the message used for user to update the details of a Dym-Name.
+message MsgUpdateDetails {
+    option (cosmos.msg.v1.signer) = "controller";
+
+    // name is the Dym-Name to be updated details.
+    string name = 1;
+
+    // controller is the bech32-encoded address of the account which has permission to update details of the Dym-Name.
+    string controller = 2;
+
+    // contact is an optional field, contact information of the Dym-Name.
+    string contact = 3;
+
+    // clear_configs is an optional field, set to true to clear the current configuration.
+    bool clear_configs = 4;
+}
+
+// MsgUpdateDetailsResponse defines the response for the name details update.
+message MsgUpdateDetailsResponse {}
+
+// MsgPlaceSellOrder defines the message used for user to put a Dym-Name/Alias for sale.
+message MsgPlaceSellOrder {
+    option (cosmos.msg.v1.signer) = "owner";
+
+    // asset_id is the Dym-Name/Alias to be opened for sell.
+    string asset_id = 1;
+
+    // asset_type is the type of the asset of the order, is Dym-Name/Alias.
+    AssetType asset_type = 2;
+
+    // owner is the bech32-encoded address of the account which owns the order.
+    string owner = 3;
+
+    // min_price is the minimum price that buyer must pay for the Dym-Name.
+    cosmos.base.v1beta1.Coin min_price = 4 [(gogoproto.nullable) = false];
+
+    // sell_price is the price that buyer must pay for the Dym-Name to immediately own it.
+    // Leaving this field empty/zero means
+    // the Dym-Name is not for immediate purchase and must wait until the Sell-Order expired.
+    cosmos.base.v1beta1.Coin sell_price = 5;
+}
+
+// MsgPlaceSellOrderResponse defines the response after placed the Sell-Order.
+message MsgPlaceSellOrderResponse {}
+
+// MsgCancelSellOrder defines the message used for user to cancel a Sell-Order.
+message MsgCancelSellOrder {
+    option (cosmos.msg.v1.signer) = "owner";
+
+    // asset_id is the Dym-Name/Alias to cancel selling.
+    string asset_id = 1;
+
+    // asset_type is the type of the asset of the order, is Dym-Name/Alias.
+    AssetType asset_type = 2;
+
+    // owner is the bech32-encoded address of the account which owns the Dym-Name as well as the order.
+    string owner = 3;
+}
+
+// MsgCancelSellOrderResponse defines the response for the Sell-Order cancellation.
+message MsgCancelSellOrderResponse {}
+
+// MsgPurchaseOrder defines the message used for user to bid/purchase a Sell-Order.
+message MsgPurchaseOrder {
+    option (cosmos.msg.v1.signer) = "buyer";
+
+    // asset_id is the Dym-Name/Alias to be purchased for.
+    string asset_id = 1;
+
+    // asset_type is the type of the asset of the order, is Dym-Name/Alias.
+    AssetType asset_type = 2;
+
+    // params is the list of parameters of the bid.
+    // It is empty for asset type Dym-Name.
+    // It has one element for asset type Alias, which is the rollapp_id to assigned for.
+    repeated string params = 3;
+
+    // buyer is the account address of the account which is purchasing the Dym-Name.
+    string buyer = 4;
+
+    // offer is the price that buyer is willing to pay for the Dym-Name.
+    cosmos.base.v1beta1.Coin offer = 5 [(gogoproto.nullable) = false];
+}
+
+// MsgPurchaseOrderResponse defines the response for the purchase order.
+message MsgPurchaseOrderResponse {}
+
+// MsgPlaceBuyOrder defines the message used for user to place an offer, to buy a Dym-Name.
+message MsgPlaceBuyOrder {
+    option (cosmos.msg.v1.signer) = "buyer";
+    // asset_id is the Dym-Name/Alias wishing to buy.
+    string asset_id = 1;
+
+    // asset_type is the type of the asset of the order, is Dym-Name/Alias.
+    AssetType asset_type = 2;
+
+    // params is the list of parameters of the offer.
+    // It is empty for asset type Dym-Name.
+    // It has one element for asset type Alias, which is the rollapp_id to assigned for.
+    repeated string params = 3;
+
+    // buyer is the account address of the account which is purchasing the Dym-Name.
+    string buyer = 4;
+
+    // continue_order_id is the optional field, if the buyer wants to extends an existing offer.
+    string continue_order_id = 5;
+
+    // offer is the price that buyer is willing to pay for the Dym-Name.
+    cosmos.base.v1beta1.Coin offer = 6 [(gogoproto.nullable) = false];
+}
+
+// MsgPlaceBuyOrderResponse defines the response after placed the Buy-Order.
+message MsgPlaceBuyOrderResponse {
+    // order_id is the unique identifier of the new generated Buy-Order.
+    string order_id = 1;
+}
+
+// MsgCancelBuyOrder defines the message used for user to cancel a Buy-Order.
+message MsgCancelBuyOrder {
+    option (cosmos.msg.v1.signer) = "buyer";
+    // order_id is the unique identifier of the Buy-Order.
+    string order_id = 1;
+
+    // buyer is the account address of the account which is purchasing the Dym-Name.
+    string buyer = 2;
+}
+
+// MsgCancelBuyOrderResponse defines the response for the Buy-Order cancellation.
+message MsgCancelBuyOrderResponse {}
+
+// MsgAcceptBuyOrder defines the message used for user to accept a Buy-Order.
+message MsgAcceptBuyOrder {
+    option (cosmos.msg.v1.signer) = "owner";
+
+    // order_id is the unique identifier of the Buy-Order.
+    string order_id = 1;
+
+    // owner is the account address of the account which owns the Dym-Name.
+    // And is the only one who can accept the offer.
+    string owner = 2;
+
+    // min_accept is the minimum price that the owner is willing to accept for the Dym-Name.
+    // If this amount matches the offer, the Dym-Name will be transferred to the buyer.
+    // If the offer is lower than this amount, this information will be updated into offer record to inform the buyer.
+    cosmos.base.v1beta1.Coin min_accept = 3 [(gogoproto.nullable) = false];
+}
+
+// MsgAcceptBuyOrderResponse defines the response for the Buy-Order acceptance.
+message MsgAcceptBuyOrderResponse {
+    // accepted is the flag to indicate if the offer is accepted (price matched).
+    bool accepted = 1;
+}
+
+// MsgUpdateParams allows to update module params.
+message MsgUpdateParams {
+    option (cosmos.msg.v1.signer) = "authority";
+
+    // authority is the address that controls the module.
+    string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+    // new_price_params is the optional update new price params if provided.
+    PriceParams new_price_params = 2;
+
+    // new_chains_params is the optional update new chains params if provided.
+    // Not recommended, consider using a dedicated gov proposal for this instead of update params by this way.
+    ChainsParams new_chains_params = 3;
+
+    // new_misc_params is the optional update new misc params if provided.
+    MiscParams new_misc_params = 4;
+}
+
+message MsgUpdateParamsResponse {}

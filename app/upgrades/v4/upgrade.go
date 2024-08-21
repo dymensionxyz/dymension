@@ -144,11 +144,14 @@ func migrateSequencers(ctx sdk.Context, sequencerkeeper sequencerkeeper.Keeper) 
 	for _, oldSequencer := range list {
 		newSequencer := ConvertOldSequencerToNew(oldSequencer)
 		sequencerkeeper.SetSequencer(ctx, newSequencer)
+
+		if oldSequencer.Proposer {
+			sequencerkeeper.SetProposer(ctx, oldSequencer.RollappId, oldSequencer.Address)
+		}
 	}
 }
 
 func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollapp {
-	bech32Prefix := oldRollapp.RollappId[:5]
 	return rollapptypes.Rollapp{
 		RollappId:        oldRollapp.RollappId,
 		Owner:            oldRollapp.Owner,
@@ -157,7 +160,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		Frozen:           oldRollapp.Frozen,
 		RegisteredDenoms: oldRollapp.RegisteredDenoms,
 		// TODO: regarding missing data - https://github.com/dymensionxyz/dymension/issues/986
-		Bech32Prefix:    bech32Prefix,                                        // placeholder data
+		Bech32Prefix:    oldRollapp.RollappId[:5],                            // placeholder data
 		GenesisChecksum: string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
 		VmType:          rollapptypes.Rollapp_EVM,                            // placeholder data
 		Metadata: &rollapptypes.RollappMetadata{
@@ -168,6 +171,8 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 			Telegram:         "",
 			X:                "",
 		},
+		InitialSequencer: "*",
+		Sealed:           true,
 	}
 }
 
@@ -179,7 +184,6 @@ func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Seque
 		DymintPubKey: old.DymintPubKey,
 		RollappId:    old.RollappId,
 		Status:       old.Status,
-		Proposer:     old.Proposer,
 		Tokens:       old.Tokens,
 		Metadata: sequencertypes.SequencerMetadata{
 			Moniker: old.Metadata.Moniker,
