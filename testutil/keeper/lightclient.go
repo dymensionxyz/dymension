@@ -96,8 +96,7 @@ func (m *MockIBCCLientKeeper) GetClientState(ctx sdk.Context, clientID string) (
 	return nil, false
 }
 
-type MockSequencerKeeper struct {
-}
+type MockSequencerKeeper struct{}
 
 func NewMockSequencerKeeper() *MockSequencerKeeper {
 	return &MockSequencerKeeper{}
