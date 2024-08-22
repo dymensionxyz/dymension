@@ -21,7 +21,7 @@ func NewPostHandler(options HandlerOptions) (sdk.PostHandler, error) {
 		return nil, err
 	}
 	postDecorators := []sdk.PostDecorator{
-		lightclientpost.NewIBCMessagesDecorator(*options.LightClientKeeper, *&options.IBCKeeper.ClientKeeper),
+		lightclientpost.NewIBCMessagesDecorator(*options.LightClientKeeper, options.IBCKeeper.ClientKeeper),
 	}
 
 	return sdk.ChainPostDecorators(postDecorators...), nil

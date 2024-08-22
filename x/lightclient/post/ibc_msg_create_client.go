@@ -31,6 +31,6 @@ func (i IBCMessagesDecorator) HandleMsgCreateClient(ctx sdk.Context, msg *ibccli
 
 		}
 	}
-	// Always clear the registration after the tx as the transient store is shared amoung all txs in the block
+	// Always clear the registration after the tx as the transient store is shared among all txs in the block
 	i.lightClientKeeper.ClearCanonicalLightClientRegistration(ctx, rollappID)
 }

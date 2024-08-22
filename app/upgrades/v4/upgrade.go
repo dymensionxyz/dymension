@@ -150,7 +150,7 @@ func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Ke
 		// get the client ID the channel belongs to
 		_, connection, err := ibcChannelKeeper.GetChannelConnection(ctx, ibctransfertypes.PortID, rollapp.ChannelId)
 		if err != nil {
-			// if could not find a connection, skip the cannonical client assignment
+			// if could not find a connection, skip the canonical client assignment
 			return
 		}
 		clientID := connection.GetClientID()
