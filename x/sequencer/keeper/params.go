@@ -10,6 +10,10 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
+const (
+	HubExpectedTimePerBlock = 6 * time.Second
+)
+
 // ValidateParams is stateful validation for params
 // it checks if that UnbondingTime greater then x/rollapp's disputePeriod
 // and that the correct denom is set
@@ -17,7 +21,7 @@ func (k Keeper) ValidateParams(ctx sdk.Context, params types.Params) error {
 	// validate unbonding time > dispute period
 	rollappParams := k.rollappKeeper.GetParams(ctx)
 	// Get the time duration of the dispute period
-	disputeDuration := time.Duration(rollappParams.DisputePeriodInBlocks) * (6 * time.Second) // dispute period duration, assuming 6 seconds per block
+	disputeDuration := time.Duration(rollappParams.DisputePeriodInBlocks) * HubExpectedTimePerBlock // dispute period duration
 	if params.UnbondingTime < disputeDuration {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "unbonding time must be greater than dispute period")
 	}
