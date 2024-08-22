@@ -14,16 +14,19 @@ import (
 )
 
 func CheckCompatibility(ibcState IBCState, raState RollappState) error {
-	// Check if block descriptor state root matches IBC header app hash
+	// Check if block descriptor state root matches IBC block header app hash
 	if !bytes.Equal(ibcState.Root, raState.BlockDescriptor.StateRoot) {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "block descriptor state root does not match tendermint header app hash")
 	}
 	// in case of msgcreateclient, validator info is not available. it is only sent in msgupdateclient as header info
-	// Check if the validator set hash matches the sequencer
+	// Check if the validator pubkey matches the sequencer pubkey
 	if len(ibcState.Validator) > 0 && !bytes.Equal(ibcState.Validator, raState.BlockSequencer) {
-		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "validator set hash does not match the sequencer")
+		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "validator does not match the sequencer")
 	}
-	// Check if the nextValidatorHash matches the sequencer for h+1
+	if len(raState.NextBlockSequencer) == 0 {
+		return ErrNextBlockDescriptorMissing
+	}
+	// Check if the nextValidatorHash matches for the sequencer for h+1 block descriptor
 	nextValHashFromStateInfo, err := getValHashForSequencer(raState.NextBlockSequencer)
 	if err != nil {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, err.Error())
@@ -42,8 +45,9 @@ func CheckCompatibility(ibcState IBCState, raState RollappState) error {
 	return nil
 }
 
+// getValHashForSequencer creates a dummy tendermint validatorset to
+// calculate the nextValHash for the sequencer and returns it
 func getValHashForSequencer(sequencerTmPubKeyBz []byte) ([]byte, error) {
-	// Creating a dummy tendermint validatorset to calculate the nextValHash
 	var tmpk tmprotocrypto.PublicKey
 	err := tmpk.Unmarshal(sequencerTmPubKeyBz)
 	if err != nil {
@@ -62,16 +66,25 @@ func getValHashForSequencer(sequencerTmPubKeyBz []byte) ([]byte, error) {
 }
 
 type IBCState struct {
-	Root               []byte
-	Height             uint64
-	Validator          []byte
+	// Root is the app root shared by the IBC consensus state
+	Root []byte
+	// Height is the block height of the IBC consensus state the root is at
+	Height uint64
+	// Validator is the tendermint pubkey of signer of the block header
+	Validator []byte
+	// NextValidatorsHash is the hash of the next validator set for the next block
 	NextValidatorsHash []byte
-	Timestamp          time.Time
+	// Timestamp is the block timestamp of the header
+	Timestamp time.Time
 }
 
 type RollappState struct {
-	BlockSequencer      []byte
-	BlockDescriptor     rollapptypes.BlockDescriptor
-	NextBlockSequencer  []byte
+	// BlockSequencer is the tendermint pubkey of the sequencer who submitted the block descriptor for the required height
+	BlockSequencer []byte
+	// BlockDescriptor is the block descriptor for the required height
+	BlockDescriptor rollapptypes.BlockDescriptor
+	// NextBlockSequencer is the tendermint pubkey of the sequencer who submitted the block descriptor for the next height (h+1)
+	NextBlockSequencer []byte
+	// NextBlockDescriptor is the block descriptor for the next height (h+1)
 	NextBlockDescriptor rollapptypes.BlockDescriptor
 }

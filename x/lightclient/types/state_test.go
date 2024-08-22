@@ -24,12 +24,21 @@ func TestCheckCompatibility(t *testing.T) {
 			name: "roots are not equal",
 			input: input{
 				ibcState: types.IBCState{
-					Root: []byte("root"),
+					Root:               []byte("root"),
+					Timestamp:          timestamp,
+					NextValidatorsHash: []byte{156, 132, 96, 43, 190, 214, 140, 148, 216, 119, 98, 162, 97, 120, 115, 32, 39, 223, 114, 56, 224, 180, 80, 228, 190, 243, 9, 248, 190, 33, 188, 23},
+					Validator:          []byte("sequencer"),
 				},
 				raState: types.RollappState{
 					BlockSequencer: []byte("sequencer"),
 					BlockDescriptor: rollapptypes.BlockDescriptor{
-						StateRoot: []byte("not root"),
+						StateRoot: []byte("not same root"),
+						Timestamp: timestamp,
+					},
+					NextBlockSequencer: []byte{10, 32, 86, 211, 180, 178, 104, 144, 159, 216, 7, 137, 173, 225, 55, 215, 228, 176, 29, 86, 98, 130, 25, 190, 214, 24, 198, 22, 111, 37, 100, 142, 154, 87},
+					NextBlockDescriptor: rollapptypes.BlockDescriptor{
+						StateRoot: []byte("root2"),
+						Timestamp: timestamp,
 					},
 				},
 			},
@@ -39,9 +48,10 @@ func TestCheckCompatibility(t *testing.T) {
 			name: "validator who signed the block header is not the sequencer who submitted the block",
 			input: input{
 				ibcState: types.IBCState{
-					Root:      []byte("root"),
-					Timestamp: timestamp,
-					Validator: []byte("validator"),
+					Root:               []byte("root"),
+					Timestamp:          timestamp,
+					NextValidatorsHash: []byte{156, 132, 96, 43, 190, 214, 140, 148, 216, 119, 98, 162, 97, 120, 115, 32, 39, 223, 114, 56, 224, 180, 80, 228, 190, 243, 9, 248, 190, 33, 188, 23},
+					Validator:          []byte("validator"),
 				},
 				raState: types.RollappState{
 					BlockSequencer: []byte("sequencer"),
@@ -49,9 +59,14 @@ func TestCheckCompatibility(t *testing.T) {
 						StateRoot: []byte("root"),
 						Timestamp: timestamp,
 					},
+					NextBlockSequencer: []byte{10, 32, 86, 211, 180, 178, 104, 144, 159, 216, 7, 137, 173, 225, 55, 215, 228, 176, 29, 86, 98, 130, 25, 190, 214, 24, 198, 22, 111, 37, 100, 142, 154, 87},
+					NextBlockDescriptor: rollapptypes.BlockDescriptor{
+						StateRoot: []byte("root2"),
+						Timestamp: timestamp,
+					},
 				},
 			},
-			err: "validator set hash does not match the sequencer",
+			err: "validator does not match the sequencer",
 		},
 		{
 			name: "nextValidatorHash does not match the sequencer who submitted the next block descriptor",

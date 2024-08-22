@@ -76,7 +76,7 @@ func TestHandleMsgCreateClient(t *testing.T) {
 				}
 			},
 			assert: func(ctx sdk.Context, k keeper.Keeper) {
-				_, found := k.GetCanonicalClient(ctx, "not-a-rollapp")
+				_, found := k.GetCanonicalLightClientRegistration(ctx, "not-a-rollapp")
 				require.False(t, found)
 			},
 		},
@@ -103,6 +103,8 @@ func TestHandleMsgCreateClient(t *testing.T) {
 				clientID, found := k.GetCanonicalClient(ctx, "rollapp-has-canon-client")
 				require.True(t, found)
 				require.Equal(t, "canon-client-id", clientID)
+				_, registrationPending := k.GetCanonicalLightClientRegistration(ctx, "rollapp-has-canon-client")
+				require.False(t, registrationPending)
 			},
 		},
 		{
@@ -128,7 +130,7 @@ func TestHandleMsgCreateClient(t *testing.T) {
 			},
 		},
 		{
-			name: "Could not find block descriptor for the next height (h+1)",
+			name: "Could not find block descriptor for the next height (h+1) - continue without setting as canonical client",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
 				testClientState.ChainId = "rollapp-wants-canon-client"
 				cs, err := ibcclienttypes.PackClientState(testClientState)
@@ -171,7 +173,7 @@ func TestHandleMsgCreateClient(t *testing.T) {
 			},
 		},
 		{
-			name: "State incompatible",
+			name: "State incompatible - continue without setting as canonical client",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
 				testClientState.ChainId = "rollapp-wants-canon-client"
 				clientState, err := ibcclienttypes.PackClientState(testClientState)
@@ -227,7 +229,7 @@ func TestHandleMsgCreateClient(t *testing.T) {
 			},
 		},
 		{
-			name: "State compatible but client params not conforming to expected params",
+			name: "State compatible but client params not conforming to expected params - continue without setting as canonical client",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
 				blocktimestamp := time.Now().UTC()
 				testClientState.ChainId = "rollapp-wants-canon-client"
@@ -365,8 +367,8 @@ func TestHandleMsgCreateClient(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			keeper, ctx := keepertest.LightClientKeeper(t)
-			ibcclientKeeper := NewMockIBCClientKeeper()
-			ibcchannelKeeper := NewMockIBCChannelKeeper()
+			ibcclientKeeper := NewMockIBCClientKeeper(nil)
+			ibcchannelKeeper := NewMockIBCChannelKeeper(nil)
 			input := tc.prepare(ctx, *keeper)
 			rollappKeeper := NewMockRollappKeeper(input.rollapps, input.stateInfos)
 			ibcMsgDecorator := ante.NewIBCMessagesDecorator(*keeper, ibcclientKeeper, ibcchannelKeeper, rollappKeeper)

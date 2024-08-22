@@ -6,8 +6,6 @@ import (
 
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibcsolomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -53,38 +51,37 @@ func (m *MockRollappKeeper) GetStateInfo(ctx sdk.Context, rollappId string, inde
 	return val, found
 }
 
-type MockIBCCLientKeeper struct{}
-
-func NewMockIBCClientKeeper() *MockIBCCLientKeeper {
-	return &MockIBCCLientKeeper{}
+type MockIBCClientKeeper struct {
+	clientStates map[string]exported.ClientState
 }
 
-func (m *MockIBCCLientKeeper) GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool) {
-	return nil, false
-}
-
-func (m *MockIBCCLientKeeper) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
-	switch clientID {
-	case "non-tm-client-id":
-		clientState := ibcsolomachine.ClientState{}
-		return &clientState, true
-	case "canon-client-id":
-		clientState := ibctm.ClientState{
-			ChainId: "rollapp-has-canon-client",
-		}
-		return &clientState, true
+func NewMockIBCClientKeeper(cs map[string]exported.ClientState) *MockIBCClientKeeper {
+	return &MockIBCClientKeeper{
+		clientStates: cs,
 	}
+}
+
+func (m *MockIBCClientKeeper) GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool) {
 	return nil, false
 }
 
-func (m *MockIBCCLientKeeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) string {
+func (m *MockIBCClientKeeper) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
+	val, found := m.clientStates[clientID]
+	return val, found
+}
+
+func (m *MockIBCClientKeeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) string {
 	return "new-canon-client-1"
 }
 
-type MockIBCChannelKeeper struct{}
+type MockIBCChannelKeeper struct {
+	channelConnections map[string]ibcconnectiontypes.ConnectionEnd
+}
 
-func NewMockIBCChannelKeeper() *MockIBCChannelKeeper {
-	return &MockIBCChannelKeeper{}
+func NewMockIBCChannelKeeper(connections map[string]ibcconnectiontypes.ConnectionEnd) *MockIBCChannelKeeper {
+	return &MockIBCChannelKeeper{
+		channelConnections: connections,
+	}
 }
 
 func (m *MockIBCChannelKeeper) GetChannel(ctx sdk.Context, portID, channelID string) (channel ibcchanneltypes.Channel, found bool) {
@@ -93,19 +90,7 @@ func (m *MockIBCChannelKeeper) GetChannel(ctx sdk.Context, portID, channelID str
 
 func (m *MockIBCChannelKeeper) GetChannelConnection(ctx sdk.Context, portID, channelID string) (string, exported.ConnectionI, error) {
 	if portID == "transfer" {
-		if channelID == "new-channel-on-canon-client" {
-			return "", ibcconnectiontypes.ConnectionEnd{
-				ClientId: "canon-client-id",
-			}, nil
-		}
-		if channelID == "first-channel-on-canon-client" {
-			return "", ibcconnectiontypes.ConnectionEnd{
-				ClientId: "canon-client-id-2",
-			}, nil
-		}
-		return "", ibcconnectiontypes.ConnectionEnd{
-			ClientId: "non-canon-client-id",
-		}, nil
+		return "", m.channelConnections[channelID], nil
 	}
 	return "", nil, nil
 }

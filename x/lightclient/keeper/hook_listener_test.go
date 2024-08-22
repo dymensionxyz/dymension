@@ -4,7 +4,9 @@ import (
 	"testing"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
+	lightClientKeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 )
@@ -17,162 +19,169 @@ type testInput struct {
 }
 
 func TestAfterUpdateState(t *testing.T) {
-	keeper, ctx := keepertest.LightClientKeeper(t)
-	keeper.SetCanonicalClient(ctx, "rollapp-has-canon-client-but-no-state", "canon-client-id-no-state")
-	keeper.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-
 	testCases := []struct {
-		name  string
-		input testInput
+		name      string
+		prepare   func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput
+		expectErr bool
 	}{
 		{
 			name: "canonical client does not exist for rollapp",
-			input: testInput{
-				rollappId:          "rollapp-no-canon-client",
-				stateInfo:          &rollapptypes.StateInfo{},
-				isFirstStateUpdate: true,
+			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
+				return testInput{
+					rollappId:          "rollapp-no-canon-client",
+					stateInfo:          &rollapptypes.StateInfo{},
+					isFirstStateUpdate: true,
+				}
 			},
+			expectErr: false,
 		},
 		{
 			name: "canonical client exists but the BDs are empty",
-			input: testInput{
-				rollappId:          "rollapp-has-canon-client",
-				stateInfo:          &rollapptypes.StateInfo{},
-				isFirstStateUpdate: true,
+			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+				return testInput{
+					rollappId:          "rollapp-has-canon-client",
+					stateInfo:          &rollapptypes.StateInfo{},
+					isFirstStateUpdate: true,
+				}
 			},
+			expectErr: false,
 		},
 		{
-			name: "canonical client exists but consensus state is not found",
-			input: testInput{
-				rollappId: "rollapp-has-canon-client-but-no-state",
-				stateInfo: &rollapptypes.StateInfo{
-					BDs: rollapptypes.BlockDescriptors{
-						BD: []rollapptypes.BlockDescriptor{
-							{
-								Height:    1,
-								StateRoot: []byte("test"),
-								Timestamp: time.Now().UTC(),
+			name: "canonical client exists but consensus state is not found for given height",
+			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client-but-no-state", "canon-client-id-no-state")
+				return testInput{
+					rollappId: "rollapp-has-canon-client-but-no-state",
+					stateInfo: &rollapptypes.StateInfo{
+						BDs: rollapptypes.BlockDescriptors{
+							BD: []rollapptypes.BlockDescriptor{
+								{
+									Height:    1,
+									StateRoot: []byte("test"),
+									Timestamp: time.Now().UTC(),
+								},
 							},
 						},
 					},
-				},
-				isFirstStateUpdate: true,
+					isFirstStateUpdate: true,
+				}
 			},
+			expectErr: false,
 		},
 		{
 			name: "BD does not include next block in state info",
-			input: testInput{
-				rollappId: "rollapp-has-canon-client",
-				stateInfo: &rollapptypes.StateInfo{
-					BDs: rollapptypes.BlockDescriptors{
-						BD: []rollapptypes.BlockDescriptor{
-							{
-								Height:    1,
-								StateRoot: []byte("test"),
-								Timestamp: time.Now().UTC(),
-							},
-							{
-								Height:    2,
-								StateRoot: []byte("test2"),
-								Timestamp: time.Now().Add(1).UTC(),
+			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+				blockSignerTmPubKey, err := k.GetTmPubkeyAsBytes(ctx, keepertest.Alice)
+				require.NoError(t, err)
+				k.SetConsensusStateSigner(ctx, "canon-client-id", 2, string(blockSignerTmPubKey))
+				return testInput{
+					rollappId: "rollapp-has-canon-client",
+					stateInfo: &rollapptypes.StateInfo{
+						Sequencer: keepertest.Alice,
+						BDs: rollapptypes.BlockDescriptors{
+							BD: []rollapptypes.BlockDescriptor{
+								{
+									Height:    1,
+									StateRoot: []byte("test"),
+									Timestamp: time.Now().UTC(),
+								},
+								{
+									Height:    2,
+									StateRoot: []byte("test2"),
+									Timestamp: time.Now().Add(1).UTC(),
+								},
 							},
 						},
 					},
-				},
-				isFirstStateUpdate: true,
+					isFirstStateUpdate: true,
+				}
 			},
+			expectErr: true,
 		},
 		{
 			name: "both states are not compatible - slash the sequencer who signed",
-			input: testInput{
-				rollappId: "rollapp-has-canon-client",
-				stateInfo: &rollapptypes.StateInfo{
-					Sequencer: keepertest.Alice,
-					BDs: rollapptypes.BlockDescriptors{
-						BD: []rollapptypes.BlockDescriptor{
-							{
-								Height:    1,
-								StateRoot: []byte("test"),
-								Timestamp: time.Now().UTC(),
-							},
-							{
-								Height:    2,
-								StateRoot: []byte("this is not compatible"),
-								Timestamp: time.Now().Add(1).UTC(),
-							},
-							{
-								Height:    3,
-								StateRoot: []byte("test3"),
-								Timestamp: time.Now().Add(2).UTC(),
-							},
-						},
-					},
-				},
-				isFirstStateUpdate: true,
-			},
-		},
-		{
-			name: "timestamp is missing and its first state update",
-			input: testInput{
-				rollappId: "rollapp-has-canon-client",
-				stateInfo: &rollapptypes.StateInfo{
-					Sequencer: keepertest.Alice,
-					BDs: rollapptypes.BlockDescriptors{
-						BD: []rollapptypes.BlockDescriptor{
-							{
-								Height:    1,
-								StateRoot: []byte("test"),
-								Timestamp: time.Now().UTC(),
-							},
-							{
-								Height:    2,
-								StateRoot: []byte("test2"),
-								Timestamp: time.Now().Add(1).UTC(),
-							},
-							{
-								Height:    3,
-								StateRoot: []byte("test3"),
-								Timestamp: time.Now().Add(2).UTC(),
+			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+				blockSignerTmPubKey, err := k.GetTmPubkeyAsBytes(ctx, keepertest.Alice)
+				require.NoError(t, err)
+				k.SetConsensusStateSigner(ctx, "canon-client-id", 2, string(blockSignerTmPubKey))
+				return testInput{
+					rollappId: "rollapp-has-canon-client",
+					stateInfo: &rollapptypes.StateInfo{
+						Sequencer: keepertest.Alice,
+						BDs: rollapptypes.BlockDescriptors{
+							BD: []rollapptypes.BlockDescriptor{
+								{
+									Height:    1,
+									StateRoot: []byte("test"),
+									Timestamp: time.Now().UTC(),
+								},
+								{
+									Height:    2,
+									StateRoot: []byte("this is not compatible"),
+									Timestamp: time.Now().Add(1).UTC(),
+								},
+								{
+									Height:    3,
+									StateRoot: []byte("test3"),
+									Timestamp: time.Now().Add(2).UTC(),
+								},
 							},
 						},
 					},
-				},
-				isFirstStateUpdate: true,
+					isFirstStateUpdate: true,
+				}
 			},
+			expectErr: false,
 		},
 		{
 			name: "state is compatible",
-			input: testInput{
-				rollappId: "rollapp-has-canon-client",
-				stateInfo: &rollapptypes.StateInfo{
-					Sequencer: keepertest.Alice,
-					BDs: rollapptypes.BlockDescriptors{
-						BD: []rollapptypes.BlockDescriptor{
-							{
-								Height:    1,
-								StateRoot: []byte("test"),
-								Timestamp: time.Now().UTC(),
-							},
-							{
-								Height:    2,
-								StateRoot: []byte("test2"),
-								Timestamp: time.Now().Add(1).UTC(),
-							},
-							{
-								Height:    3,
-								StateRoot: []byte("test3"),
-								Timestamp: time.Now().Add(2).UTC(),
+			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+				blockSignerTmPubKey, err := k.GetTmPubkeyAsBytes(ctx, keepertest.Alice)
+				require.NoError(t, err)
+				k.SetConsensusStateSigner(ctx, "canon-client-id", 2, string(blockSignerTmPubKey))
+				return testInput{
+					rollappId: "rollapp-has-canon-client",
+					stateInfo: &rollapptypes.StateInfo{
+						Sequencer: keepertest.Alice,
+						BDs: rollapptypes.BlockDescriptors{
+							BD: []rollapptypes.BlockDescriptor{
+								{
+									Height:    1,
+									StateRoot: []byte("test"),
+									Timestamp: time.Now().UTC(),
+								},
+								{
+									Height:    2,
+									StateRoot: []byte("test2"),
+									Timestamp: time.Now().UTC(),
+								},
+								{
+									Height:    3,
+									StateRoot: []byte("test3"),
+									Timestamp: time.Now().Add(1).UTC(),
+								},
 							},
 						},
 					},
-				},
+				}
 			},
+			expectErr: false,
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := keeper.RollappHooks().AfterUpdateState(ctx, tc.input.rollappId, tc.input.stateInfo, tc.input.isFirstStateUpdate, tc.input.previousStateHasTimestamp)
-			require.NoError(t, err)
+			keeper, ctx := keepertest.LightClientKeeper(t)
+			input := tc.prepare(ctx, *keeper)
+			err := keeper.RollappHooks().AfterUpdateState(ctx, input.rollappId, input.stateInfo, input.isFirstStateUpdate, input.previousStateHasTimestamp)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
 		})
 	}
 }

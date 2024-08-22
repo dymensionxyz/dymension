@@ -3,6 +3,7 @@ package ante_test
 import (
 	"testing"
 
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
@@ -22,9 +23,20 @@ func TestHandleMsgChannelOpenAck(t *testing.T) {
 			ChannelId: "",
 		},
 	}
+	testConnections := map[string]ibcconnectiontypes.ConnectionEnd{
+		"new-channel-on-canon-client": {
+			ClientId: "canon-client-id",
+		},
+		"first-channel-on-canon-client": {
+			ClientId: "canon-client-id-2",
+		},
+		"non-canon-channel-id": {
+			ClientId: "non-canon-client-id",
+		},
+	}
 	rollappKeeper := NewMockRollappKeeper(testRollapps, nil)
-	ibcclientKeeper := NewMockIBCClientKeeper()
-	ibcchannelKeeper := NewMockIBCChannelKeeper()
+	ibcclientKeeper := NewMockIBCClientKeeper(nil)
+	ibcchannelKeeper := NewMockIBCChannelKeeper(testConnections)
 	keeper.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
 	keeper.SetCanonicalClient(ctx, "rollapp-no-canon-channel", "canon-client-id-2")
 	ibcMsgDecorator := ante.NewIBCMessagesDecorator(*keeper, ibcclientKeeper, ibcchannelKeeper, rollappKeeper)

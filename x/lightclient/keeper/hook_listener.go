@@ -24,7 +24,13 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 	return rollappHook{k: k}
 }
 
-func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappId string, stateInfo *rollapptypes.StateInfo, isFirstStateUpdate bool, previousStateHasTimestamp bool) error {
+func (hook rollappHook) AfterUpdateState(
+	ctx sdk.Context,
+	rollappId string,
+	stateInfo *rollapptypes.StateInfo,
+	isFirstStateUpdate bool,
+	previousStateHasTimestamp bool,
+) error {
 	canonicalClient, found := hook.k.GetCanonicalClient(ctx, rollappId)
 	if !found {
 		return nil
@@ -37,10 +43,7 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappId string, stat
 			continue
 		}
 		height := ibcclienttypes.NewHeight(1, bd.GetHeight())
-		consensusState, found := hook.k.ibcClientKeeper.GetClientConsensusState(ctx, canonicalClient, height)
-		if !found {
-			return nil
-		}
+		consensusState, _ := hook.k.ibcClientKeeper.GetClientConsensusState(ctx, canonicalClient, height)
 		// Cast consensus state to tendermint consensus state - we need this to check the state root and timestamp and nextValHash
 		tmConsensusState, ok := consensusState.(*ibctm.ConsensusState)
 		if !ok {
@@ -65,7 +68,7 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappId string, stat
 			BlockSequencer:  sequencerPk,
 			BlockDescriptor: bd,
 		}
-		// check if bd for next block exists
+		// check if bd for next block exists in same state info
 		if i+1 < len(bds.GetBD()) {
 			rollappState.NextBlockSequencer = sequencerPk
 			rollappState.NextBlockDescriptor = bds.GetBD()[i+1]
@@ -75,6 +78,11 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappId string, stat
 			// Only require timestamp on BD if first ever update, or the previous update had BD
 			if err == types.ErrTimestampNotFound && !isFirstStateUpdate && !previousStateHasTimestamp {
 				continue
+			}
+
+			// The BD for (h+1) is missing, cannot verify if the nextvalhash matches
+			if err == types.ErrNextBlockDescriptorMissing {
+				return err
 			}
 
 			// If the state is not compatible,

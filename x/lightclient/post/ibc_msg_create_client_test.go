@@ -5,8 +5,11 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	ibcsolomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
@@ -55,7 +58,10 @@ func TestHandleMsgCreateClient(t *testing.T) {
 					success: true,
 				}
 			},
-			assert: func(ctx sdk.Context, k keeper.Keeper) {},
+			assert: func(ctx sdk.Context, k keeper.Keeper) {
+				_, found := k.GetCanonicalLightClientRegistration(ctx, "rollapp-client-registration-in-progress")
+				require.False(t, found)
+			},
 		},
 		{
 			name: "Canonical client registration in progress - tx was failure",
@@ -112,7 +118,13 @@ func TestHandleMsgCreateClient(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			keeper, ctx := keepertest.LightClientKeeper(t)
-			ibcclientKeeper := NewMockIBCClientKeeper()
+			testClientStates := map[string]exported.ClientState{
+				"non-tm-client-id": &ibcsolomachine.ClientState{},
+				"canon-client-id": &ibctm.ClientState{
+					ChainId: "rollapp-has-canon-client",
+				},
+			}
+			ibcclientKeeper := NewMockIBCClientKeeper(testClientStates)
 			ibcMsgDecorator := post.NewIBCMessagesDecorator(*keeper, ibcclientKeeper)
 
 			input := tc.prepare(ctx, *keeper)

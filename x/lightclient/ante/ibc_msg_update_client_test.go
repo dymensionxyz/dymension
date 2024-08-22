@@ -11,6 +11,8 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibcsolomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
@@ -73,10 +75,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 			name: "Could not find state info for height - ensure optimistically accepted and signer stored in state",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				var (
-					valSet      *cmtproto.ValidatorSet
-					trustedVals *cmtproto.ValidatorSet
-				)
+				var valSet, trustedVals *cmtproto.ValidatorSet
 				signedHeader := &cmtproto.SignedHeader{
 					Header: &cmtproto.Header{
 						ProposerAddress: []byte("sequencerAddr"),
@@ -133,73 +132,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 			},
 		},
 		{
-			name: "BD does not include next block in state info - ensure optimistically accepted and signer stored in state",
-			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
-				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				var (
-					valSet      *cmtproto.ValidatorSet
-					trustedVals *cmtproto.ValidatorSet
-				)
-				signedHeader := &cmtproto.SignedHeader{
-					Header: &cmtproto.Header{
-						AppHash:            []byte("appHash"),
-						ProposerAddress:    []byte("sequencerAddr"),
-						Time:               time.Now().UTC(),
-						NextValidatorsHash: []byte("nextValHash"),
-					},
-					Commit: &cmtproto.Commit{},
-				}
-				header := ibctm.Header{
-					SignedHeader:      signedHeader,
-					ValidatorSet:      valSet,
-					TrustedHeight:     ibcclienttypes.MustParseHeight("1-1"),
-					TrustedValidators: trustedVals,
-				}
-				clientMsg, err := ibcclienttypes.PackClientMessage(&header)
-				require.NoError(t, err)
-				return testInput{
-					msg: &ibcclienttypes.MsgUpdateClient{
-						ClientId:      "canon-client-id",
-						ClientMessage: clientMsg,
-						Signer:        "relayerAddr",
-					},
-					rollapps: map[string]rollapptypes.Rollapp{
-						"rollapp-has-canon-client": {
-							RollappId: "rollapp-has-canon-client",
-						},
-					},
-					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
-						"rollapp-has-canon-client": {
-							1: {
-								Sequencer: keepertest.Alice,
-								StateInfoIndex: rollapptypes.StateInfoIndex{
-									Index: 1,
-								},
-								StartHeight: 1,
-								NumBlocks:   1,
-								BDs: rollapptypes.BlockDescriptors{
-									BD: []rollapptypes.BlockDescriptor{
-										{
-											Height:    1,
-											StateRoot: []byte{},
-											Timestamp: time.Now().UTC(),
-										},
-									},
-								},
-							},
-						},
-					},
-				}
-			},
-			assert: func(ctx sdk.Context, k keeper.Keeper, err error) {
-				require.NoError(t, err)
-				signer, found := k.GetConsensusStateSigner(ctx, "canon-client-id", 1)
-				require.True(t, found)
-				require.Equal(t, "sequencerAddr", signer)
-			},
-		},
-		{
-			name: "Ensure state is incompatible - err",
+			name: "State is incompatible",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
 				var (
@@ -350,8 +283,14 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			keeper, ctx := keepertest.LightClientKeeper(t)
-			ibcclientKeeper := NewMockIBCClientKeeper()
-			ibcchannelKeeper := NewMockIBCChannelKeeper()
+			testClientStates := map[string]exported.ClientState{
+				"non-tm-client-id": &ibcsolomachine.ClientState{},
+				"canon-client-id": &ibctm.ClientState{
+					ChainId: "rollapp-has-canon-client",
+				},
+			}
+			ibcclientKeeper := NewMockIBCClientKeeper(testClientStates)
+			ibcchannelKeeper := NewMockIBCChannelKeeper(nil)
 			input := tc.prepare(ctx, *keeper)
 			rollappKeeper := NewMockRollappKeeper(input.rollapps, input.stateInfos)
 			ibcMsgDecorator := ante.NewIBCMessagesDecorator(*keeper, ibcclientKeeper, ibcchannelKeeper, rollappKeeper)

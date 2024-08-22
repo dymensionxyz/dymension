@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -21,7 +21,6 @@ import (
 	cometbftdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,9 +43,23 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
 
-	mockIBCKeeper := NewMockIBCClientKeeper()
+	testConsensusStates := map[string]map[uint64]exported.ConsensusState{
+		"canon-client-id": {
+			2: &ibctm.ConsensusState{
+				Timestamp:          time.Now().UTC(),
+				Root:               commitmenttypes.NewMerkleRoot([]byte("test2")),
+				NextValidatorsHash: []byte{156, 132, 96, 43, 190, 214, 140, 148, 216, 119, 98, 162, 97, 120, 115, 32, 39, 223, 114, 56, 224, 180, 80, 228, 190, 243, 9, 248, 190, 33, 188, 23},
+			},
+		},
+	}
+	sequencerPubKey := ed25519.GenPrivKey().PubKey()
+	testPubKeys := map[string]cryptotypes.PubKey{
+		Alice: sequencerPubKey,
+	}
+
+	mockIBCKeeper := NewMockIBCClientKeeper(testConsensusStates)
 	mockSequencerKeeper := NewMockSequencerKeeper()
-	mockAccountKeeper := NewMockAccountKeeper()
+	mockAccountKeeper := NewMockAccountKeeper(testPubKeys)
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
@@ -61,27 +74,18 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 }
 
 type MockIBCCLientKeeper struct {
+	clientConsensusState map[string]map[uint64]exported.ConsensusState
 }
 
-func NewMockIBCClientKeeper() *MockIBCCLientKeeper {
-	return &MockIBCCLientKeeper{}
+func NewMockIBCClientKeeper(clientCS map[string]map[uint64]exported.ConsensusState) *MockIBCCLientKeeper {
+	return &MockIBCCLientKeeper{
+		clientConsensusState: clientCS,
+	}
 }
 
 func (m *MockIBCCLientKeeper) GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool) {
-	if clientID == "canon-client-id-no-state" {
-		return nil, false
-	}
-	if clientID == "canon-client-id" && height.GetRevisionHeight() == 2 {
-		val := cmttypes.NewMockPV()
-		pk, _ := val.GetPubKey()
-		cs := ibctm.NewConsensusState(
-			time.Now().UTC(),
-			commitmenttypes.NewMerkleRoot([]byte("test2")),
-			cmttypes.NewValidatorSet([]*cmttypes.Validator{cmttypes.NewValidator(pk, 1)}).Hash(),
-		)
-		return cs, true
-	}
-	return nil, false
+	cs, ok := m.clientConsensusState[clientID][height.GetRevisionHeight()]
+	return cs, ok
 }
 
 func (m *MockIBCCLientKeeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) string {
@@ -104,19 +108,19 @@ func (m *MockSequencerKeeper) SlashAndJailFraud(ctx sdk.Context, seqAddr string)
 }
 
 type MockAccountKeeper struct {
-	pubkey cryptotypes.PubKey
+	pubkeys map[string]cryptotypes.PubKey
 }
 
-func NewMockAccountKeeper() *MockAccountKeeper {
-	pubkey := ed25519.GenPrivKey().PubKey()
+func NewMockAccountKeeper(pubkeys map[string]cryptotypes.PubKey) *MockAccountKeeper {
 	return &MockAccountKeeper{
-		pubkey: pubkey,
+		pubkeys: pubkeys,
 	}
 }
 
 func (m *MockAccountKeeper) GetPubKey(ctx sdk.Context, addr sdk.AccAddress) (cryptotypes.PubKey, error) {
-	if addr.String() == Alice {
-		return m.pubkey, nil
+	pubkey, ok := m.pubkeys[addr.String()]
+	if !ok {
+		return nil, sdkerrors.ErrUnknownAddress
 	}
-	return nil, sdkerrors.ErrUnknownAddress
+	return pubkey, nil
 }
