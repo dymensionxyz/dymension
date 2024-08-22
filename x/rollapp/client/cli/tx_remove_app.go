@@ -8,15 +8,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/dymension/v3/x/app/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 var _ = strconv.Itoa(0)
 
-func CmdDeleteApp() *cobra.Command {
+func CmdRemoveApp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete-app [name] [rollapp-id]",
-		Short: "Delete an app",
+		Use:   "remove-app [name] [rollapp-id]",
+		Short: "Remove an app",
 		Args:  cobra.ExactArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -24,7 +24,7 @@ func CmdDeleteApp() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgDeleteApp(
+			msg := types.NewMsgRemoveApp(
 				clientCtx.GetFromAddress().String(),
 				args[0],
 				args[1],

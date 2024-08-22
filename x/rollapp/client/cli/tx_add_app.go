@@ -8,13 +8,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/dymension/v3/x/app/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func CmdCreateApp() *cobra.Command {
+func CmdAddApp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "create-app [name] [rollapp-id] [description] [logo] [url] [order]",
-		Short:   "Create a new app",
+		Use:     "add-app [name] [rollapp-id] [description] [logo] [url] [order]",
+		Short:   "Add a new app",
 		Example: "dymd tx app create-app 'app1' 'rollapp_1234-1' 1 'A description' '/logos/apps/app1.jpeg' 'https://app1.com/'",
 		Args:    cobra.MinimumNArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -39,7 +39,7 @@ func CmdCreateApp() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateApp(
+			msg := types.NewMsgAddApp(
 				clientCtx.GetFromAddress().String(),
 				name,
 				rollappId,

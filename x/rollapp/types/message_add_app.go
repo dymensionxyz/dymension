@@ -5,12 +5,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const TypeMsgCreateApp = "create_app"
+const TypeMsgAddApp = "add_app"
 
-var _ sdk.Msg = &MsgCreateApp{}
+var _ sdk.Msg = &MsgAddApp{}
 
-func NewMsgCreateApp(creator, name, rollappId, description, image, url string, order int32) *MsgCreateApp {
-	return &MsgCreateApp{
+func NewMsgAddApp(creator, name, rollappId, description, image, url string, order int32) *MsgAddApp {
+	return &MsgAddApp{
 		Creator:     creator,
 		Name:        name,
 		RollappId:   rollappId,
@@ -21,15 +21,15 @@ func NewMsgCreateApp(creator, name, rollappId, description, image, url string, o
 	}
 }
 
-func (msg *MsgCreateApp) Route() string {
+func (msg *MsgAddApp) Route() string {
 	return RouterKey
 }
 
-func (msg *MsgCreateApp) Type() string {
-	return TypeMsgCreateApp
+func (msg *MsgAddApp) Type() string {
+	return TypeMsgAddApp
 }
 
-func (msg *MsgCreateApp) GetSigners() []sdk.AccAddress {
+func (msg *MsgAddApp) GetSigners() []sdk.AccAddress {
 	creator, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		panic(err)
@@ -37,12 +37,12 @@ func (msg *MsgCreateApp) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{creator}
 }
 
-func (msg *MsgCreateApp) GetSignBytes() []byte {
+func (msg *MsgAddApp) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg *MsgCreateApp) GetApp() App {
+func (msg *MsgAddApp) GetApp() App {
 	return NewApp(
 		msg.Name,
 		msg.RollappId,
@@ -52,7 +52,7 @@ func (msg *MsgCreateApp) GetApp() App {
 	)
 }
 
-func (msg *MsgCreateApp) ValidateBasic() error {
+func (msg *MsgAddApp) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return errorsmod.Wrap(ErrInvalidCreatorAddress, err.Error())

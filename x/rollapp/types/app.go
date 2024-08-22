@@ -1,9 +1,6 @@
 package types
 
 import (
-	"fmt"
-	"net/url"
-
 	errorsmod "cosmossdk.io/errors"
 )
 
@@ -17,13 +14,8 @@ func NewApp(name, rollappId, description, image, url string) App {
 	}
 }
 
-const (
-	maxDescriptionLength = 512
-	maxURLLength         = 256
-)
-
-func (r App) GetCreatedEvent() *EventAppCreated {
-	return &EventAppCreated{
+func (r App) GetAddedEvent() *EventAppAdded {
+	return &EventAppAdded{
 		App: &r,
 	}
 }
@@ -34,19 +26,19 @@ func (r App) GetUpdatedEvent() *EventAppUpdated {
 	}
 }
 
-func (r App) GetDeletedEvent() *EventAppDeleted {
-	return &EventAppDeleted{
+func (r App) GetRemovedEvent() *EventAppRemoved {
+	return &EventAppRemoved{
 		App: &r,
 	}
 }
 
 func (r App) ValidateBasic() error {
 	if len(r.Name) == 0 {
-		return ErrInvalidName
+		return ErrInvalidAppName
 	}
 
 	if len(r.RollappId) == 0 {
-		return ErrInvalidRollappId
+		return ErrInvalidRollappID
 	}
 
 	if len(r.Description) > maxDescriptionLength {
@@ -54,27 +46,11 @@ func (r App) ValidateBasic() error {
 	}
 
 	if err := validateURL(r.Image); err != nil {
-		return errorsmod.Wrap(ErrInvalidImage, err.Error())
+		return errorsmod.Wrap(ErrInvalidAppImage, err.Error())
 	}
 
 	if err := validateURL(r.Url); err != nil {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
-	}
-
-	return nil
-}
-
-func validateURL(urlStr string) error {
-	if urlStr == "" {
-		return nil
-	}
-
-	if len(urlStr) > maxURLLength {
-		return fmt.Errorf("URL exceeds maximum length")
-	}
-
-	if _, err := url.Parse(urlStr); err != nil {
-		return fmt.Errorf("invalid URL: %w", err)
 	}
 
 	return nil

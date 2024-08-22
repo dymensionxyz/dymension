@@ -73,9 +73,6 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
-	appmodule "github.com/dymensionxyz/dymension/v3/x/app"
-	appmoduletypes "github.com/dymensionxyz/dymension/v3/x/app/types"
-
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
 	eibcmodule "github.com/dymensionxyz/dymension/v3/x/eibc"
@@ -94,6 +91,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/eibc"
 	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp"
 
 	rollappmoduleclient "github.com/dymensionxyz/dymension/v3/x/rollapp/client"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -144,8 +142,7 @@ var ModuleBasics = module.NewBasicManager(
 	evidence.AppModuleBasic{},
 	transfer.AppModuleBasic{},
 	vesting.AppModuleBasic{},
-	rollappmodule.AppModuleBasic{},
-	appmodule.AppModuleBasic{},
+	rollapp.AppModuleBasic{},
 	sponsorship.AppModuleBasic{},
 	sequencer.AppModuleBasic{},
 	streamer.AppModuleBasic{},
@@ -199,7 +196,6 @@ func (a *AppKeepers) SetupModules(
 		packetforwardmiddleware.NewAppModule(a.PacketForwardMiddlewareKeeper, a.GetSubspace(packetforwardtypes.ModuleName)),
 		ibctransfer.NewAppModule(a.TransferKeeper),
 		rollappmodule.NewAppModule(appCodec, a.RollappKeeper, a.AccountKeeper, a.BankKeeper),
-		appmodule.NewAppModule(appCodec, a.AppKeeper, a.RollappKeeper, a.BankKeeper),
 		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper, a.AccountKeeper, a.BankKeeper),
 		sponsorship.NewAppModule(a.SponsorshipKeeper),
 		streamermodule.NewAppModule(a.StreamerKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
@@ -246,7 +242,6 @@ var maccPerms = map[string][]string{
 	ibctransfertypes.ModuleName:                        {authtypes.Minter, authtypes.Burner},
 	sequencermoduletypes.ModuleName:                    {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 	rollappmoduletypes.ModuleName:                      {authtypes.Burner},
-	appmoduletypes.ModuleName:                          {authtypes.Burner},
 	sponsorshiptypes.ModuleName:                        nil,
 	streamermoduletypes.ModuleName:                     nil,
 	evmtypes.ModuleName:                                {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account.
@@ -282,7 +277,6 @@ var BeginBlockers = []string{
 	feegrant.ModuleName,
 	paramstypes.ModuleName,
 	rollappmoduletypes.ModuleName,
-	appmoduletypes.ModuleName,
 	sequencermoduletypes.ModuleName,
 	sponsorshiptypes.ModuleName,
 	streamermoduletypes.ModuleName,
@@ -321,7 +315,6 @@ var EndBlockers = []string{
 	ibctransfertypes.ModuleName,
 	packetforwardtypes.ModuleName,
 	rollappmoduletypes.ModuleName,
-	appmoduletypes.ModuleName,
 	sequencermoduletypes.ModuleName,
 	sponsorshiptypes.ModuleName,
 	streamermoduletypes.ModuleName,
@@ -361,7 +354,6 @@ var InitGenesis = []string{
 	packetforwardtypes.ModuleName,
 	feegrant.ModuleName,
 	rollappmoduletypes.ModuleName,
-	appmoduletypes.ModuleName,
 	sequencermoduletypes.ModuleName,
 	sponsorshiptypes.ModuleName,
 	streamermoduletypes.ModuleName,

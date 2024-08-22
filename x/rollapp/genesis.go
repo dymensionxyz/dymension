@@ -2,12 +2,12 @@ package rollapp
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-// InitGenesis initializes the capability module's state from a provided genesis
-// state.
+// InitGenesis initializes the capability module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	// Set all the rollapp
 	for _, elem := range genState.RollappList {
@@ -32,8 +32,12 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.LivenessEvents {
 		k.PutLivenessEvent(ctx, elem)
 	}
+	// Set all the app
+	for _, elem := range genState.AppList {
+		k.SetApp(ctx, elem)
+	}
+
 	k.SetParams(ctx, genState.Params)
-	// this line is used by starport scaffolding # genesis/module/init
 }
 
 // ExportGenesis returns the capability module's exported genesis.
@@ -47,6 +51,12 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.LatestFinalizedStateIndexList = k.GetAllLatestFinalizedStateIndex(ctx)
 	genesis.BlockHeightToFinalizationQueueList = k.GetAllBlockHeightToFinalizationQueue(ctx)
 	genesis.LivenessEvents = k.GetLivenessEvents(ctx, nil)
+	apps := k.GetRollappApps(ctx, "")
+	var appList []types.App
+	for _, app := range apps {
+		appList = append(appList, *app)
+	}
+	genesis.AppList = appList
 
 	return genesis
 }

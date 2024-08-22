@@ -5,27 +5,27 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const TypeMsgDeleteApp = "delete_app"
+const TypeMsgRemoveApp = "remove_app"
 
-var _ sdk.Msg = &MsgDeleteApp{}
+var _ sdk.Msg = &MsgRemoveApp{}
 
-func NewMsgDeleteApp(creator, name, rollappId string) *MsgDeleteApp {
-	return &MsgDeleteApp{
+func NewMsgRemoveApp(creator, name, rollappId string) *MsgRemoveApp {
+	return &MsgRemoveApp{
 		Creator:   creator,
 		Name:      name,
 		RollappId: rollappId,
 	}
 }
 
-func (msg *MsgDeleteApp) Route() string {
+func (msg *MsgRemoveApp) Route() string {
 	return RouterKey
 }
 
-func (msg *MsgDeleteApp) Type() string {
-	return TypeMsgDeleteApp
+func (msg *MsgRemoveApp) Type() string {
+	return TypeMsgRemoveApp
 }
 
-func (msg *MsgDeleteApp) GetSigners() []sdk.AccAddress {
+func (msg *MsgRemoveApp) GetSigners() []sdk.AccAddress {
 	creator, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		panic(err)
@@ -33,12 +33,12 @@ func (msg *MsgDeleteApp) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{creator}
 }
 
-func (msg *MsgDeleteApp) GetSignBytes() []byte {
+func (msg *MsgRemoveApp) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg *MsgDeleteApp) GetApp() App {
+func (msg *MsgRemoveApp) GetApp() App {
 	return NewApp(
 		msg.Name,
 		msg.RollappId,
@@ -48,18 +48,18 @@ func (msg *MsgDeleteApp) GetApp() App {
 	)
 }
 
-func (msg *MsgDeleteApp) ValidateBasic() error {
+func (msg *MsgRemoveApp) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return errorsmod.Wrap(ErrInvalidCreatorAddress, err.Error())
 	}
 
 	if len(msg.Name) == 0 {
-		return errorsmod.Wrap(ErrInvalidName, "Name cannot be empty")
+		return errorsmod.Wrap(ErrInvalidAppName, "App name cannot be empty")
 	}
 
 	if len(msg.RollappId) == 0 {
-		return errorsmod.Wrap(ErrInvalidRollappId, "RollappId cannot be empty")
+		return errorsmod.Wrap(ErrInvalidRollappID, "RollappId cannot be empty")
 	}
 
 	return nil

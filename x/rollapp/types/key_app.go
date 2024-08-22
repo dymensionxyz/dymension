@@ -13,8 +13,8 @@ const (
 func AppKey(name, rollappId string) []byte {
 	var key []byte
 
-	appIdBytes := []byte(name)
-	key = append(key, appIdBytes...)
+	appNameBytes := []byte(name)
+	key = append(key, appNameBytes...)
 	key = append(key, []byte("/")...)
 	rollappIdBytes := []byte(rollappId)
 	key = append(key, rollappIdBytes...)

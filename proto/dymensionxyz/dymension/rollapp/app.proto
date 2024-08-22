@@ -1,7 +1,7 @@
 syntax = "proto3";
-package dymensionxyz.dymension.app;
+package dymensionxyz.dymension.rollapp;
 
-option go_package = "github.com/dymensionxyz/dymension/v3/x/app/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
 message App {
   // name is the unique App's name

@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/dymension/v3/x/app/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func CmdUpdateApp() *cobra.Command {

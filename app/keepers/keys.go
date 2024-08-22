@@ -29,7 +29,6 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
-	appmoduletypes "github.com/dymensionxyz/dymension/v3/x/app/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -115,7 +114,6 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	crisistypes.StoreKey,
 	consensusparamtypes.StoreKey,
 	rollappmoduletypes.StoreKey,
-	appmoduletypes.StoreKey,
 	sequencermoduletypes.StoreKey,
 	sponsorshiptypes.StoreKey,
 	streamermoduletypes.StoreKey,
