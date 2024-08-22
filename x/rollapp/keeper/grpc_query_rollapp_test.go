@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"flag"
 	"math"
-	"testing"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,15 +14,17 @@ import (
 	"golang.org/x/exp/slices"
 	"pgregory.net/rapid"
 
-	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func TestQuery(t *testing.T) {
+func (suite *RollappTestSuite) TestQuery() {
 	_ = flag.Set("rapid.checks", "50")
 	_ = flag.Set("rapid.steps", "50")
-	rapid.Check(t, func(r *rapid.T) {
-		k, ctx := keepertest.RollappKeeper(t)
+
+	rapid.Check(suite.T(), func(r *rapid.T) {
+		suite.SetupTest()
+
+		k, ctx := suite.App.RollappKeeper, suite.Ctx
 		ids := rapid.SampledFrom([]string{
 			urand.RollappID(),
 			urand.RollappID(),
@@ -32,6 +33,7 @@ func TestQuery(t *testing.T) {
 			urand.RollappID(),
 		})
 		m := map[string]types.Rollapp{}
+
 		r.Repeat(map[string]func(*rapid.T){
 			"": func(t *rapid.T) {
 			},
