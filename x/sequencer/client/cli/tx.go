@@ -91,7 +91,6 @@ func CmdUpdateSequencer() *cobra.Command {
 		Short: "Update a sequencer",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-
 			metadata := new(types.SequencerMetadata)
 			if err = utils.ParseJsonFromFile(args[0], metadata); err != nil {
 				return
