@@ -163,12 +163,15 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		GenesisChecksum: string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
 		VmType:          rollapptypes.Rollapp_EVM,                            // placeholder data
 		Metadata: &rollapptypes.RollappMetadata{
-			Website:          "",
-			Description:      "",
-			LogoDataUri:      "",
-			TokenLogoDataUri: "",
-			Telegram:         "",
-			X:                "",
+			Website:     "",
+			Description: "",
+			LogoDataUri: "",
+			Telegram:    "",
+			X:           "",
+			GenesisUrl:  "",
+			DisplayName: "",
+			Tagline:     "",
+			TokenSymbol: "",
 		},
 		InitialSequencer: "*",
 		Sealed:           true,
