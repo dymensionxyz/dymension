@@ -506,8 +506,8 @@ github.com/dymensionxyz/gerr-cosmos v1.0.0 h1:oi91rgOkpJWr41oX9JOyjvvBnhGY54tj51
 github.com/dymensionxyz/gerr-cosmos v1.0.0/go.mod h1:n+0olxPogzWqFKba45mCpvrHLGmeS8W9UZjggHnWk6c=
 github.com/dymensionxyz/osmosis/osmomath v0.0.6-dymension-v0.1.0.20240820121212-c0e21fa21e43 h1:EskhZ6ILN3vwJ6l8gPWPZ49RFSB52WghT5v+pmzrNCI=
 github.com/dymensionxyz/osmosis/osmomath v0.0.6-dymension-v0.1.0.20240820121212-c0e21fa21e43/go.mod h1:SdGCL9CZb14twRAJUSzb7bRE0OoopRpF2Hnd1UhJpFU=
-github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20240627111157-f2243f47cdb3 h1:4VD23Jv5d8hqXEhLNNcLXlpSDJCWAGYJLF0kisJtkIk=
-github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20240627111157-f2243f47cdb3/go.mod h1:2rsnXAdjYfXtyEw0mNwAdOiAccALYjAPvINGUf9Qg7Y=
+github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20240820121212-c0e21fa21e43 h1:ugbpHwwlckB4W/aNXUTEsxaakPFgXi+LAsCtvfJ200Q=
+github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20240820121212-c0e21fa21e43/go.mod h1:2rsnXAdjYfXtyEw0mNwAdOiAccALYjAPvINGUf9Qg7Y=
 github.com/dymensionxyz/sdk-utils v0.2.8-0.20240821082233-d3adcc68e4e1 h1:XczyKxcb/jYbO5VSp3Ut+sFF9duNorJlX6z0vfIKdPk=
 github.com/dymensionxyz/sdk-utils v0.2.8-0.20240821082233-d3adcc68e4e1/go.mod h1:it9owYOpnIe17+ftTATQNDN4z+mBQx20/2Jm8SK15Rk=
 github.com/eapache/go-resiliency v1.1.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5mFgVsvEsIPBvNs=

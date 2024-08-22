@@ -172,10 +172,6 @@ func validateMetadata(metadata *RollappMetadata) error {
 		return errorsmod.Wrap(ErrInvalidLogoURI, err.Error())
 	}
 
-	if err := validateBaseURI(metadata.TokenLogoDataUri); err != nil {
-		return errorsmod.Wrap(ErrInvalidTokenLogoURI, err.Error())
-	}
-
 	return nil
 }
 
