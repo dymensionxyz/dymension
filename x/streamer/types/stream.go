@@ -7,7 +7,7 @@ import (
 )
 
 // NewStream creates a new stream struct given the required stream parameters.
-func NewStream(id uint64, distrTo *DistrInfo, coins sdk.Coins, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64) Stream {
+func NewStream(id uint64, distrTo *DistrInfo, coins sdk.Coins, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64, sponsored bool) Stream {
 	return Stream{
 		Id:                   id,
 		DistributeTo:         distrTo,
@@ -17,6 +17,7 @@ func NewStream(id uint64, distrTo *DistrInfo, coins sdk.Coins, startTime time.Ti
 		NumEpochsPaidOver:    numEpochsPaidOver,
 		FilledEpochs:         0,
 		DistributedCoins:     sdk.Coins{},
+		Sponsored:            sponsored,
 	}
 }
 

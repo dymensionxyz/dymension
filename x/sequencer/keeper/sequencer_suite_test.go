@@ -55,13 +55,14 @@ func (suite *SequencerTestSuite) CreateRollappWithInitialSequencer(initSeq strin
 		RollappId:        urand.RollappID(),
 		Owner:            sample.AccAddress(),
 		GenesisChecksum:  "checksum",
+		Bech32Prefix:     "rol",
 		InitialSequencer: initSeq,
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 	return rollapp.GetRollappId()
 }
 
-func (suite *SequencerTestSuite) CreateDefaultSequencer(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey) string {
+func (suite *SequencerTestSuite) CreateSequencer(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey) string {
 	return suite.CreateSequencerWithBond(ctx, rollappId, bond, pk)
 }
 
@@ -80,10 +81,24 @@ func (suite *SequencerTestSuite) CreateSequencerWithBond(ctx sdk.Context, rollap
 		Bond:         bond,
 		RollappId:    rollappId,
 		Metadata: types.SequencerMetadata{
-			Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+			Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+			EvmRpcs: []string{"https://rpc.evm.rollapp.noisnemyd.xyz:443"},
 		},
 	}
 	_, err = suite.msgServer.CreateSequencer(ctx, &sequencerMsg1)
 	suite.Require().NoError(err)
 	return addr.String()
+}
+
+func (suite *SequencerTestSuite) assertJailed(seqAddr string) {
+	seq, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddr)
+	suite.Require().True(found)
+	suite.True(seq.Jailed)
+	suite.Equal(types.Unbonded, seq.Status)
+	suite.Equal(sdk.Coins(nil), seq.Tokens)
+
+	sequencers := suite.App.SequencerKeeper.GetMatureUnbondingSequencers(suite.Ctx, suite.Ctx.BlockTime())
+	for _, s := range sequencers {
+		suite.NotEqual(s.Address, seqAddr)
+	}
 }

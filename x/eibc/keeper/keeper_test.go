@@ -19,7 +19,6 @@ import (
 )
 
 const (
-	eibcEventType = "eibc"
 	// valid constants used for testing
 	portid   = "testportid"
 	chanid   = "channel-0"

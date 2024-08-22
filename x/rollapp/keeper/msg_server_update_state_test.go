@@ -12,98 +12,31 @@ import (
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// TODO: refactor the tests to use test-cases
-// TODO: wrap the create rollapp and sequencer into a helper function
 func (suite *RollappTestSuite) TestFirstUpdateState() {
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
-
-	// set rollapp
-	rollapp := types.Rollapp{
-		RollappId:        urand.RollappID(),
-		Owner:            alice,
-		InitialSequencer: sample.AccAddress(),
-		GenesisChecksum:  "checksum",
-		Bech32Prefix:     "rol",
-		Metadata: &types.RollappMetadata{
-			Website:          "https://dymension.xyz",
-			Description:      "Sample description",
-			LogoDataUri:      "data:image/png;base64,c2lzZQ==",
-			TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
-			Telegram:         "https://t.me/rolly",
-			X:                "https://x.dymension.xyz",
-		},
-	}
-	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
-
-	// set sequencer
-	sequencer := sequencertypes.Sequencer{
-		Address:   bob,
-		RollappId: rollapp.GetRollappId(),
-		Status:    sequencertypes.Bonded,
-		Proposer:  true,
-	}
-	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
+	rollappId, proposer := suite.CreateDefaultRollappAndProposer()
 
 	// check no index exists
-	_, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
-	suite.Require().EqualValues(false, found)
+	_, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollappId)
+	suite.Require().False(found)
 
-	// update state
-	updateState := types.MsgUpdateState{
-		Creator:     bob,
-		RollappId:   rollapp.GetRollappId(),
-		StartHeight: 1,
-		NumBlocks:   3,
-		DAPath:      "",
-		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 1}, {Height: 2}}},
-	}
-
-	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
-	suite.Require().Nil(err)
+	_, err := suite.PostStateUpdate(suite.Ctx, rollappId, proposer, 1, uint64(3))
+	suite.Require().NoError(err)
 
 	// check first index is 1
-	expectedLatestStateInfoIndex, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
-	suite.Require().EqualValues(true, found)
-	suite.Require().EqualValues(expectedLatestStateInfoIndex.Index, 1)
+	expectedLatestStateInfoIndex, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollappId)
+	suite.Require().True(found)
+	suite.Require().Equal(expectedLatestStateInfoIndex.Index, uint64(1))
 }
 
 func (suite *RollappTestSuite) TestUpdateState() {
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
-
 	// parameters
 	disputePeriodInBlocks := suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx)
 
 	// set rollapp
-	rollapp := types.Rollapp{
-		RollappId:        urand.RollappID(),
-		Owner:            alice,
-		InitialSequencer: sample.AccAddress(),
-		Bech32Prefix:     "rol",
-		GenesisChecksum:  "checksum",
-	}
-	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
-
-	// set sequencer
-	sequencer := sequencertypes.Sequencer{
-		Address:   bob,
-		RollappId: rollapp.GetRollappId(),
-		Status:    sequencertypes.Bonded,
-		Proposer:  true,
-	}
-	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
+	rollappId, proposer := suite.CreateDefaultRollappAndProposer()
 
 	// create new update
-	updateState := types.MsgUpdateState{
-		Creator:     bob,
-		RollappId:   rollapp.GetRollappId(),
-		StartHeight: 1,
-		NumBlocks:   3,
-		DAPath:      "",
-		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
-	}
-
-	// update state
-	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
+	_, err := suite.PostStateUpdate(suite.Ctx, rollappId, proposer, 1, uint64(3))
 	suite.Require().Nil(err)
 
 	// test 10 update state
@@ -119,15 +52,14 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		}
 
 		suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
-		goCtx = sdk.WrapSDKContext(suite.Ctx)
 
 		// calc new updateState
-		latestStateInfoIndex, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
+		latestStateInfoIndex, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollappId)
 		suite.Require().EqualValues(true, found)
 		// verify index
 		suite.Require().EqualValues(i+1, latestStateInfoIndex.Index)
 		// load last state info
-		expectedStateInfo, found := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, rollapp.GetRollappId(), latestStateInfoIndex.GetIndex())
+		expectedStateInfo, found := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, rollappId, latestStateInfoIndex.GetIndex())
 		suite.Require().EqualValues(true, found)
 
 		// verify finalization queue
@@ -137,18 +69,8 @@ func (suite *RollappTestSuite) TestUpdateState() {
 			FinalizationQueue: []types.StateInfoIndex{latestStateInfoIndex},
 		}, "finalization queue", "i", i)
 
-		// create new update
-		updateState := types.MsgUpdateState{
-			Creator:     bob,
-			RollappId:   rollapp.GetRollappId(),
-			StartHeight: expectedStateInfo.StartHeight + expectedStateInfo.NumBlocks,
-			NumBlocks:   2,
-			DAPath:      "",
-			BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: expectedStateInfo.StartHeight}, {Height: expectedStateInfo.StartHeight + 1}}},
-		}
-
 		// update state
-		_, err := suite.msgServer.UpdateState(goCtx, &updateState)
+		_, err := suite.PostStateUpdate(suite.Ctx, rollappId, proposer, expectedStateInfo.StartHeight+expectedStateInfo.NumBlocks, uint64(2))
 		suite.Require().Nil(err)
 
 		// end block
@@ -156,7 +78,7 @@ func (suite *RollappTestSuite) TestUpdateState() {
 
 		if uint64(suite.Ctx.BlockHeight()) > disputePeriodInBlocks {
 			for i := uint64(1); i <= latestStateInfoIndex.Index; i++ {
-				expectedStateInfo, _ := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, rollapp.GetRollappId(), i)
+				expectedStateInfo, _ := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, rollappId, i)
 				if expectedStateInfo.CreationHeight < uint64(suite.Ctx.BlockHeight())-disputePeriodInBlocks {
 					suite.Require().EqualValues(expectedStateInfo.Status, common.Status_FINALIZED)
 				}
@@ -165,97 +87,36 @@ func (suite *RollappTestSuite) TestUpdateState() {
 
 		// check finalization status change
 		pendingQueues := suite.App.RollappKeeper.GetAllFinalizationQueueUntilHeightInclusive(suite.Ctx, uint64(suite.Ctx.BlockHeader().Height))
-
 		for _, finalizationQueue := range pendingQueues {
-
-			// fmt.Printf("finalizationQueue: %s %d\n", finalizationQueue.String())
 			stateInfo, found := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, finalizationQueue.FinalizationQueue[0].RollappId, finalizationQueue.FinalizationQueue[0].Index)
 			suite.Require().True(found)
 			suite.Require().EqualValues(stateInfo.Status, common.Status_PENDING)
-
 		}
 	}
 }
 
 func (suite *RollappTestSuite) TestUpdateStateUnknownRollappId() {
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
-
-	// update state of unknown rollapp
-	updateState := types.MsgUpdateState{
-		Creator:     bob,
-		RollappId:   urand.RollappID(),
-		StartHeight: 1,
-		NumBlocks:   3,
-		DAPath:      "",
-		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
-	}
-
-	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
+	_, err := suite.PostStateUpdate(suite.Ctx, "unknown_rollapp", alice, 1, uint64(3))
 	suite.EqualError(err, types.ErrUnknownRollappID.Error())
 }
 
-// FIXME: need to add sequncer to rollapp to test this scenario
 func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
-
-	// set rollapp
-	rollapp := types.Rollapp{
-		RollappId:        urand.RollappID(),
-		Owner:            alice,
-		InitialSequencer: sample.AccAddress(),
-		Bech32Prefix:     "rol",
-		GenesisChecksum:  "checksum",
-	}
-	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+	rollappId, _ := suite.CreateDefaultRollappAndProposer()
 
 	// update state
-	updateState := types.MsgUpdateState{
-		Creator:     bob,
-		RollappId:   rollapp.GetRollappId(),
-		StartHeight: 1,
-		NumBlocks:   3,
-		DAPath:      "",
-		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
-	}
-
-	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
-	suite.ErrorIs(err, sequencertypes.ErrUnknownSequencer)
+	_, err := suite.PostStateUpdate(suite.Ctx, rollappId, bob, 1, uint64(3))
+	suite.ErrorIs(err, sequencertypes.ErrNotActiveSequencer)
 }
 
 func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
+	suite.SetupTest()
 
-	// set rollapp
-	rollapp := types.Rollapp{
-		RollappId:        urand.RollappID(),
-		Owner:            alice,
-		InitialSequencer: sample.AccAddress(),
-		Bech32Prefix:     "rol",
-		GenesisChecksum:  "checksum",
-	}
-	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+	rollappId, _ := suite.CreateDefaultRollappAndProposer()
+	_, seq_2 := suite.CreateDefaultRollappAndProposer()
 
-	// set sequencer
-	sequencer := sequencertypes.Sequencer{
-		Address:   bob,
-		RollappId: urand.RollappID(),
-		Status:    sequencertypes.Bonded,
-		Proposer:  true,
-	}
-	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
-
-	// update state
-	updateState := types.MsgUpdateState{
-		Creator:     bob,
-		RollappId:   rollapp.GetRollappId(),
-		StartHeight: 1,
-		NumBlocks:   3,
-		DAPath:      "",
-		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
-	}
-
-	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
-	suite.ErrorIs(err, sequencertypes.ErrSequencerRollappMismatch)
+	// update state from proposer of rollapp2
+	_, err := suite.PostStateUpdate(suite.Ctx, rollappId, seq_2, 1, uint64(3))
+	suite.ErrorIs(err, sequencertypes.ErrNotActiveSequencer)
 }
 
 func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
@@ -278,14 +139,14 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 		Address:   rollapp.InitialSequencer,
 		RollappId: rollappID,
 		Status:    sequencertypes.Bonded,
-		Proposer:  true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
+	suite.App.SequencerKeeper.SetProposer(suite.Ctx, rollappID, sequencer.Address)
 
 	// update state
 	updateState := types.MsgUpdateState{
 		Creator:     bob,
-		RollappId:   rollapp.GetRollappId(),
+		RollappId:   rollappID,
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      "",
@@ -293,81 +154,29 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 	}
 
 	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
-	suite.ErrorIs(err, sequencertypes.ErrUnknownSequencer)
+	suite.ErrorIs(err, sequencertypes.ErrNotActiveSequencer)
 }
 
-func (suite *RollappTestSuite) TestFirstUpdateStateGensisHeightGreaterThanZero() {
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
+func (suite *RollappTestSuite) TestFirstUpdateStateGenesisHeightGreaterThanZero() {
+	rollappId, proposer := suite.CreateDefaultRollappAndProposer()
 
-	// set rollapp
-	rollappID := urand.RollappID()
-	rollapp := types.Rollapp{
-		RollappId:        rollappID,
-		Owner:            alice,
-		InitialSequencer: sample.AccAddress(),
-		Bech32Prefix:     "rol",
-		GenesisChecksum:  "checksum",
-	}
-	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
-
-	// set sequencer
-	sequencer := sequencertypes.Sequencer{
-		Address:   bob,
-		RollappId: rollappID,
-		Status:    sequencertypes.Bonded,
-		Proposer:  true,
-	}
-	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
-
-	// update state
-	updateState := types.MsgUpdateState{
-		Creator:     bob,
-		RollappId:   rollapp.GetRollappId(),
-		StartHeight: 2,
-		NumBlocks:   3,
-		DAPath:      "",
-		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 2}, {Height: 3}}},
-	}
-
-	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
+	_, err := suite.PostStateUpdate(suite.Ctx, rollappId, proposer, 3, uint64(3))
 	suite.NoError(err)
 }
 
 func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
-	_ = sdk.WrapSDKContext(suite.Ctx)
-
-	// set rollapp
-	rollappID := urand.RollappID()
-	rollapp := types.Rollapp{
-		RollappId:        rollappID,
-		Owner:            alice,
-		InitialSequencer: sample.AccAddress(),
-		Bech32Prefix:     "rol",
-		GenesisChecksum:  "checksum",
-	}
-	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
-
-	// set sequencer
-	sequencer := sequencertypes.Sequencer{
-		Address:   bob,
-		RollappId: rollappID,
-		Status:    sequencertypes.Bonded,
-		Proposer:  true,
-	}
-	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
+	rollappId, proposer := suite.CreateDefaultRollappAndProposer()
 
 	// set initial latestStateInfoIndex & StateInfo
 	latestStateInfoIndex := types.StateInfoIndex{
-		RollappId: rollappID,
+		RollappId: rollappId,
 		Index:     1,
 	}
 	stateInfo := types.StateInfo{
-		StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 1},
-		Sequencer:      sequencer.Address,
+		StateInfoIndex: types.StateInfoIndex{RollappId: rollappId, Index: 1},
+		Sequencer:      proposer,
 		StartHeight:    1,
 		NumBlocks:      3,
-		DAPath:         "",
-		CreationHeight: 0,
 		Status:         common.Status_PENDING,
 		BDs:            types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
@@ -376,100 +185,49 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 
 	// bump block height
 	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	// update state
 	updateState := types.MsgUpdateState{
-		Creator:     bob,
-		RollappId:   rollapp.GetRollappId(),
+		Creator:     proposer,
+		RollappId:   rollappId,
 		StartHeight: 2,
 		NumBlocks:   3,
-		DAPath:      "",
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 2}, {Height: 3}, {Height: 4}}},
 	}
 
-	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
+	_, err := suite.msgServer.UpdateState(suite.Ctx, &updateState)
 	suite.ErrorIs(err, types.ErrWrongBlockHeight)
 }
 
 func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
-
-	// set rollapp
-	rollappID := urand.RollappID()
-	rollapp := types.Rollapp{
-		RollappId:        rollappID,
-		Owner:            alice,
-		InitialSequencer: sample.AccAddress(),
-		Bech32Prefix:     "rol",
-		GenesisChecksum:  "checksum",
-	}
-	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
-
-	// set sequencer
-	sequencer := sequencertypes.Sequencer{
-		Address:   bob,
-		RollappId: rollappID,
-		Status:    sequencertypes.Bonded,
-		Proposer:  true,
-	}
-	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
+	rollappId, proposer := suite.CreateDefaultRollappAndProposer()
 
 	// set initial latestStateInfoIndex
 	latestStateInfoIndex := types.StateInfoIndex{
-		RollappId: rollappID,
+		RollappId: rollappId,
 		Index:     1,
 	}
 	suite.App.RollappKeeper.SetLatestStateInfoIndex(suite.Ctx, latestStateInfoIndex)
 
 	// update state
 	updateState := types.MsgUpdateState{
-		Creator:     bob,
-		RollappId:   rollapp.GetRollappId(),
+		Creator:     proposer,
+		RollappId:   rollappId,
 		StartHeight: 1,
 		NumBlocks:   3,
-		DAPath:      "",
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
 
-	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
+	_, err := suite.msgServer.UpdateState(suite.Ctx, &updateState)
 	suite.ErrorIs(err, types.ErrLogic)
 }
 
-// TODO: should test all status other than Proposer
 func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
+	rollappId, _ := suite.CreateDefaultRollappAndProposer()
+	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId) // non-proposer
 
-	// set rollapp
-	rollappID := urand.RollappID()
-	rollapp := types.Rollapp{
-		RollappId:        rollappID,
-		Owner:            alice,
-		InitialSequencer: sample.AccAddress(),
-		Bech32Prefix:     "rol",
-		GenesisChecksum:  "checksum",
-	}
-	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
-
-	// set sequencer
-	sequencer := sequencertypes.Sequencer{
-		Address:   bob,
-		RollappId: rollappID,
-		Status:    sequencertypes.Bonded,
-	}
-	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
-
-	// update state
-	updateState := types.MsgUpdateState{
-		Creator:     bob,
-		RollappId:   rollapp.GetRollappId(),
-		StartHeight: 1,
-		NumBlocks:   3,
-		DAPath:      "",
-		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
-	}
-
-	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
+	// update state from bob
+	_, err := suite.PostStateUpdate(suite.Ctx, rollappId, addr2, 1, uint64(3))
 	suite.ErrorIs(err, sequencertypes.ErrNotActiveSequencer)
 }
 
@@ -514,7 +272,7 @@ func getAll(suite *RollappTestSuite) (map[string]*types.RollappSummary, int) {
 
 		for i := 0; i < len(queryAllResponse.GetRollapp()); i++ {
 			rollappRes := queryAllResponse.GetRollapp()[i]
-			rollappsRes[rollappRes.GetRollappId()] = &rollappRes
+			rollappsRes[rollappRes.Summary.GetRollappId()] = &rollappRes.Summary
 		}
 		totalChecked += len(queryAllResponse.GetRollapp())
 		nextKey = queryAllResponse.GetPagination().GetNextKey()

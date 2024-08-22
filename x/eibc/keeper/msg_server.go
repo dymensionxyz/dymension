@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -57,13 +58,17 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		logger.Error("Failed to send coins", "error", err)
 		return nil, err
 	}
+
 	// Fulfill the order by updating the order status and underlying packet recipient
-	err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, fulfillerAccount.GetAddress())
-	if err != nil {
+	if err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, fulfillerAccount.GetAddress()); err != nil {
 		return nil, err
 	}
 
-	return &types.MsgFulfillOrderResponse{}, err
+	if err = ctx.EventManager().EmitTypedEvent(demandOrder.GetFulfilledEvent()); err != nil {
+		return nil, fmt.Errorf("emit event: %w", err)
+	}
+
+	return &types.MsgFulfillOrderResponse{}, nil
 }
 
 // UpdateDemandOrder implements types.MsgServer.
@@ -118,9 +123,12 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	demandOrder.Fee = sdk.NewCoins(sdk.NewCoin(denom, newFeeInt))
 	demandOrder.Price = sdk.NewCoins(sdk.NewCoin(denom, newPrice))
 
-	err = m.SetDemandOrder(ctx, demandOrder)
-	if err != nil {
+	if err = m.SetDemandOrder(ctx, demandOrder); err != nil {
 		return nil, err
+	}
+
+	if err = ctx.EventManager().EmitTypedEvent(demandOrder.GetUpdatedEvent()); err != nil {
+		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
 	return &types.MsgUpdateDemandOrderResponse{}, nil

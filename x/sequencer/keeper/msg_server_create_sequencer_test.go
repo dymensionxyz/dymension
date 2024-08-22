@@ -57,10 +57,8 @@ func (suite *SequencerTestSuite) TestMinBond() {
 	}
 
 	for _, tc := range testCases {
-		suite.SetupTest()
 		seqParams := types.DefaultParams()
 		seqParams.MinBond = tc.requiredBond
-		seqParams.UnbondingTime = 100
 		suite.App.SequencerKeeper.SetParams(suite.Ctx, seqParams)
 
 		rollappId, pk := suite.CreateDefaultRollapp()
@@ -110,6 +108,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		rollappId, sequencerAddress string
 	}
 	rollappSequencersExpect := make(map[rollappSequencersExpectKey]string)
+	rollappExpectedProposers := make(map[string]string)
 
 	const numRollapps = 3
 	rollappIDs := make([]string, numRollapps)
@@ -122,12 +121,11 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			GenesisChecksum: "1234567890abcdefg",
 			Sealed:          true,
 			Metadata: &rollapptypes.RollappMetadata{
-				Website:          "https://dymension.xyz",
-				Description:      "Sample description",
-				LogoDataUri:      "data:image/png;base64,c2lzZQ==",
-				TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
-				Telegram:         "https://t.me/rolly",
-				X:                "https://x.dymension.xyz",
+				Website:     "https://dymension.xyz",
+				Description: "Sample description",
+				LogoDataUri: "data:image/png;base64,c2lzZQ==",
+				Telegram:    "https://t.me/rolly",
+				X:           "https://x.dymension.xyz",
 			},
 		}
 		suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
@@ -162,10 +160,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				Tokens:       sdk.NewCoins(bond),
 				Metadata:     sequencerMsg.GetMetadata(),
 			}
-			if i == 0 {
-				sequencerExpect.Status = types.Bonded
-				sequencerExpect.Proposer = true
-			}
+
 			// create sequencer
 			createResponse, err := suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 			suite.Require().Nil(err)
@@ -181,12 +176,16 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			// add the sequencer to the list of get all expected list
 			sequencersExpect = append(sequencersExpect, &sequencerExpect)
 
+			if i == 0 {
+				rollappExpectedProposers[rollappId] = sequencerExpect.Address
+			}
+
 			sequencersRes, totalRes := getAll(suite)
 			suite.Require().EqualValues(len(sequencersExpect), totalRes)
 			// verify that query all contains all the sequencers that were created
 			suite.verifyAll(sequencersExpect, sequencersRes)
 
-			// add the sequencer to the list of spesific rollapp
+			// add the sequencer to the list of specific rollapp
 			rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencerExpect.Address}] = sequencerExpect.Address
 		}
 	}
@@ -204,6 +203,12 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				sequencer.Address)
 		}
 		totalFound += len(queryAllResponse.Sequencers)
+
+		// check that the first sequencer created is the active sequencer
+		proposer, err := suite.queryClient.GetProposerByRollapp(goCtx,
+			&types.QueryGetProposerByRollappRequest{RollappId: rollappId})
+		suite.Require().Nil(err)
+		suite.Require().EqualValues(proposer.ProposerAddr, rollappExpectedProposers[rollappId])
 	}
 	suite.Require().EqualValues(totalFound, len(rollappSequencersExpect))
 }
@@ -214,7 +219,6 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 
 	rollappId, pk := suite.CreateDefaultRollapp()
 	addr := sdk.AccAddress(pk.Address())
-
 	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
 	suite.Require().NoError(err)
 
@@ -232,6 +236,15 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.Require().Nil(err)
 
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+	suite.EqualError(err, types.ErrSequencerExists.Error())
+
+	// unbond the sequencer
+	unbondMsg := types.MsgUnbond{Creator: addr.String()}
+	_, err = suite.msgServer.Unbond(goCtx, &unbondMsg)
+	suite.Require().NoError(err)
+
+	// create the sequencer again, expect to fail anyway
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.EqualError(err, types.ErrSequencerExists.Error())
 }
@@ -317,16 +330,20 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 				},
 			}
 			_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-			suite.Require().ErrorIs(err, tc.expErr)
+			suite.Require().ErrorIs(err, tc.expErr, tc.name)
 
 			if tc.expErr != nil {
 				return
 			}
 
 			// check that the sequencer is the proposer
-			initSequencer, ok := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr.String())
+			proposer, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
 			suite.Require().True(ok)
-			suite.Require().Equal(seq.expProposer, initSequencer.Proposer)
+			if seq.expProposer {
+				suite.Require().Equal(addr.String(), proposer.Address, tc.name)
+			} else {
+				suite.Require().NotEqual(addr.String(), proposer.Address, tc.name)
+			}
 		}
 	}
 }
@@ -352,31 +369,6 @@ func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.EqualError(err, types.ErrUnknownRollappID.Error())
-}
-
-func (suite *SequencerTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer() {
-	suite.SetupTest()
-
-	rollappId, pk1 := suite.CreateDefaultRollapp()
-
-	// create first sequencer
-	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
-
-	pk2 := ed25519.GenPrivKey().PubKey()
-	// create second sequencer
-	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk2)
-
-	// check scheduler operating status
-	scheduler, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
-	suite.Require().True(found)
-	suite.EqualValues(scheduler.Status, types.Bonded)
-	suite.True(scheduler.Proposer)
-
-	// check scheduler operating status
-	scheduler, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
-	suite.Require().True(found)
-	suite.EqualValues(scheduler.Status, types.Bonded)
-	suite.False(scheduler.Proposer)
 }
 
 // ---------------------------------------
@@ -462,13 +454,15 @@ func compareSequencers(s1, s2 *types.Sequencer) bool {
 		return false
 	}
 
-	if s1.UnbondingHeight != s2.UnbondingHeight {
+	if s1.UnbondRequestHeight != s2.UnbondRequestHeight {
 		return false
 	}
 	if !s1.UnbondTime.Equal(s2.UnbondTime) {
 		return false
 	}
-
+	if !s1.NoticePeriodTime.Equal(s2.NoticePeriodTime) {
+		return false
+	}
 	if !reflect.DeepEqual(s1.Metadata, s2.Metadata) {
 		return false
 	}

@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -9,6 +10,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
@@ -39,9 +41,11 @@ func NewRollapp(
 
 const (
 	maxDescriptionLength     = 512
+	maxDisplayNameLength     = 32
+	maxTaglineLength         = 64
 	maxURLLength             = 256
 	maxGenesisChecksumLength = 64
-	maxDataURILength         = 25 * 1024 // 25KB
+	maxDataURILength         = 40 * 1024 // 25KB
 	dataURIPattern           = `^data:(?P<mimeType>[\w/]+);base64,(?P<data>[A-Za-z0-9+/=]+)$`
 )
 
@@ -67,8 +71,10 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
 	}
 
-	if err = validateBech32Prefix(r.Bech32Prefix); err != nil {
-		return errorsmod.Wrap(ErrInvalidBech32Prefix, err.Error())
+	if r.Bech32Prefix != "" {
+		if err = validateBech32Prefix(r.Bech32Prefix); err != nil {
+			return gerrc.ErrInvalidArgument.Wrap("bech32")
+		}
 	}
 
 	if len(r.GenesisChecksum) > maxGenesisChecksumLength {
@@ -84,6 +90,10 @@ func (r Rollapp) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+func (r Rollapp) AllImmutableFieldsAreSet() bool {
+	return r.GenesisChecksum != "" && r.InitialSequencer != "" && r.Bech32Prefix != ""
 }
 
 func validateInitialSequencer(initialSequencer string) error {
@@ -111,16 +121,16 @@ func validateInitialSequencer(initialSequencer string) error {
 func validateBech32Prefix(prefix string) error {
 	bechAddr, err := sdk.Bech32ifyAddressBytes(prefix, sample.Acc())
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "bech32ify addr bytes")
 	}
 
 	bAddr, err := sdk.GetFromBech32(bechAddr, prefix)
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "get from bech 32")
 	}
 
 	if err = sdk.VerifyAddressFormat(bAddr); err != nil {
-		return err
+		return errorsmod.Wrap(err, "verify addr format")
 	}
 	return nil
 }
@@ -138,6 +148,10 @@ func validateMetadata(metadata *RollappMetadata) error {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
 	}
 
+	if err := validateURL(metadata.GenesisUrl); err != nil {
+		return errorsmod.Wrap(errors.Join(ErrInvalidURL, err), "genesis url")
+	}
+
 	if err := validateURL(metadata.Telegram); err != nil {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
 	}
@@ -146,12 +160,16 @@ func validateMetadata(metadata *RollappMetadata) error {
 		return ErrInvalidDescription
 	}
 
-	if err := validateBaseURI(metadata.LogoDataUri); err != nil {
-		return errorsmod.Wrap(ErrInvalidLogoURI, err.Error())
+	if len(metadata.DisplayName) > maxDisplayNameLength {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "display name too long")
 	}
 
-	if err := validateBaseURI(metadata.TokenLogoDataUri); err != nil {
-		return errorsmod.Wrap(ErrInvalidTokenLogoURI, err.Error())
+	if len(metadata.Tagline) > maxTaglineLength {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "tagline too long")
+	}
+
+	if err := validateBaseURI(metadata.LogoDataUri); err != nil {
+		return errorsmod.Wrap(ErrInvalidLogoURI, err.Error())
 	}
 
 	return nil

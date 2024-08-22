@@ -21,6 +21,7 @@ import (
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
@@ -119,6 +120,7 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	packetforwardtypes.StoreKey,
 	delayedacktypes.StoreKey,
 	eibcmoduletypes.StoreKey,
+	dymnstypes.StoreKey,
 	// ethermint keys
 	evmtypes.StoreKey,
 	feemarkettypes.StoreKey,

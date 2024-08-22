@@ -77,6 +77,9 @@ import (
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
 	denommetadatamodulekeeper "github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
 	denommetadatamoduletypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
+	dymnsmodule "github.com/dymensionxyz/dymension/v3/x/dymns"
+	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
+	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
@@ -146,6 +149,8 @@ type AppKeepers struct {
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
+
+	DymNSKeeper dymnskeeper.Keeper
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -353,7 +358,6 @@ func (a *AppKeepers) InitKeepers(
 	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[sequencermoduletypes.StoreKey],
-		a.keys[sequencermoduletypes.MemStoreKey],
 		a.GetSubspace(sequencermoduletypes.ModuleName),
 		a.BankKeeper,
 		a.RollappKeeper,
@@ -396,6 +400,7 @@ func (a *AppKeepers) InitKeepers(
 		a.EpochsKeeper,
 		a.AccountKeeper,
 		a.IncentivesKeeper,
+		a.SponsorshipKeeper,
 	)
 
 	a.EIBCKeeper = *eibckeeper.NewKeeper(
@@ -406,6 +411,15 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.BankKeeper,
 		nil,
+	)
+
+	a.DymNSKeeper = dymnskeeper.NewKeeper(
+		appCodec,
+		a.keys[dymnstypes.StoreKey],
+		a.GetSubspace(dymnstypes.ModuleName),
+		a.BankKeeper,
+		a.RollappKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// Create Transfer Keepers
@@ -445,6 +459,7 @@ func (a *AppKeepers) InitKeepers(
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(a.StreamerKeeper)).
 		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(a.RollappKeeper)).
 		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(a.DenomMetadataKeeper)).
+		AddRoute(dymnstypes.RouterKey, dymnsmodule.NewDymNsProposalHandler(a.DymNSKeeper)).
 		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(a.EvmKeeper))
 
 	// Create evidence Keeper for to register the IBC light client misbehaviour evidence route
@@ -553,6 +568,7 @@ func (a *AppKeepers) SetupHooks() {
 			a.StreamerKeeper.Hooks(),
 			a.TxFeesKeeper.Hooks(),
 			a.DelayedAckKeeper.GetEpochHooks(),
+			a.DymNSKeeper.GetEpochHooks(),
 		),
 	)
 
@@ -569,6 +585,7 @@ func (a *AppKeepers) SetupHooks() {
 		a.SequencerKeeper.RollappHooks(),
 		a.delayedAckMiddleware,
 		a.StreamerKeeper.Hooks(),
+		a.DymNSKeeper.GetRollAppHooks(),
 		a.LightClientKeeper.RollappHooks(),
 	))
 }
@@ -610,6 +627,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(denommetadatamoduletypes.ModuleName)
 	paramsKeeper.Subspace(delayedacktypes.ModuleName)
 	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
+	paramsKeeper.Subspace(dymnstypes.ModuleName)
 
 	// ethermint subspaces
 	paramsKeeper.Subspace(evmtypes.ModuleName)

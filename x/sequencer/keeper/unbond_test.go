@@ -18,7 +18,7 @@ func (suite *SequencerTestSuite) TestUnbondingMultiple() {
 	rollappId, pk1 := suite.CreateDefaultRollapp()
 	rollappId2, pk2 := suite.CreateDefaultRollapp()
 
-	numOfSequencers := 5
+	numOfSequencers := 4
 	numOfSequencers2 := 3
 	unbodingSeq := 2
 
@@ -26,15 +26,15 @@ func (suite *SequencerTestSuite) TestUnbondingMultiple() {
 	seqAddr2 := make([]string, numOfSequencers2)
 
 	// create 5 sequencers for rollapp1
-	seqAddr1[0] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
+	seqAddr1[0] = suite.CreateSequencer(suite.Ctx, rollappId, pk1)
 	for i := 1; i < numOfSequencers; i++ {
-		seqAddr1[i] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
+		seqAddr1[i] = suite.CreateSequencer(suite.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 	}
 
 	// create 3 sequencers for rollapp2
-	seqAddr2[0] = suite.CreateDefaultSequencer(suite.Ctx, rollappId2, pk2)
+	seqAddr2[0] = suite.CreateSequencer(suite.Ctx, rollappId2, pk2)
 	for i := 1; i < numOfSequencers2; i++ {
-		seqAddr2[i] = suite.CreateDefaultSequencer(suite.Ctx, rollappId2, ed25519.GenPrivKey().PubKey())
+		seqAddr2[i] = suite.CreateSequencer(suite.Ctx, rollappId2, ed25519.GenPrivKey().PubKey())
 	}
 
 	// start unbonding for 2 sequencers in each rollapp
@@ -42,7 +42,7 @@ func (suite *SequencerTestSuite) TestUnbondingMultiple() {
 	now := time.Now()
 	unbondTime := now.Add(keeper.GetParams(suite.Ctx).UnbondingTime)
 	suite.Ctx = suite.Ctx.WithBlockTime(now)
-	for i := 0; i < unbodingSeq; i++ {
+	for i := 1; i < unbodingSeq+1; i++ {
 		unbondMsg := types.MsgUnbond{Creator: seqAddr1[i]}
 		_, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 		suite.Require().NoError(err)
@@ -69,20 +69,19 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	blockheight := 20
 	var err error
 
-	rollappId, pk1 := suite.CreateDefaultRollapp()
-	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
+	rollappId, pk := suite.CreateDefaultRollapp()
+	_ = suite.CreateSequencer(suite.Ctx, rollappId, pk)
+
+	pk1 := ed25519.GenPrivKey().PubKey()
+	addr1 := suite.CreateSequencer(suite.Ctx, rollappId, pk1)
 	sequencer1, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Require().True(sequencer1.Status == types.Bonded)
-	suite.Require().True(sequencer1.Proposer)
-
 	suite.Require().False(sequencer1.Tokens.IsZero())
 
 	pk2 := ed25519.GenPrivKey().PubKey()
-	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk2)
+	addr2 := suite.CreateSequencer(suite.Ctx, rollappId, pk2)
 	sequencer2, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
 	suite.Require().True(sequencer2.Status == types.Bonded)
-	suite.Require().False(sequencer2.Proposer)
-
 	suite.Require().False(sequencer2.Tokens.IsZero())
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(blockheight))
@@ -94,7 +93,7 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	suite.Require().NoError(err)
 	sequencer1, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Require().True(sequencer1.Status == types.Unbonding)
-	suite.Require().Equal(sequencer1.UnbondingHeight, int64(blockheight))
+	suite.Require().Equal(sequencer1.UnbondRequestHeight, int64(blockheight))
 	suite.Require().False(sequencer1.Tokens.IsZero())
 
 	// start the 2nd unbond later

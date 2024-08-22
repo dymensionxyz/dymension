@@ -3,7 +3,10 @@ package ibctesting_test
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 	"testing"
+
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cometbfttypes "github.com/cometbft/cometbft/types"
@@ -106,7 +109,6 @@ func (s *utilSuite) rollappMsgServer() rollapptypes.MsgServer {
 func (s *utilSuite) SetupTest() {
 	s.coordinator = ibctesting.NewCoordinator(s.T(), 2) // initializes test chains
 	s.coordinator.Chains[rollappChainID()] = s.newTestChainWithSingleValidator(s.T(), s.coordinator, rollappChainID())
-	// s.fundSenderAccount() // TODO: enable after x/dymns hooks are wired
 }
 
 func (s *utilSuite) fundSenderAccount() {
@@ -126,19 +128,24 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		s.hubChain().SenderAccount.GetAddress().String(),
 		"eth",
 		"somechecksum",
-		"Rollapp",
+		strings.ToLower(tmrand.Str(7)),
 		rollapptypes.Rollapp_EVM,
 
 		&rollapptypes.RollappMetadata{
-			Website:          "http://example.com",
-			Description:      "Some description",
-			LogoDataUri:      "data:image/png;base64,c2lzZQ==",
-			TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
-			Telegram:         "https://t.me/rolly",
-			X:                "https://x.dymension.xyz",
+			Website:     "http://example.com",
+			Description: "Some description",
+			LogoDataUri: "data:image/png;base64,c2lzZQ==",
+			Telegram:    "https://t.me/rolly",
+			X:           "https://x.dymension.xyz",
 		},
 	)
-	_, err := s.hubChain().SendMsgs(msgCreateRollapp)
+
+	err := apptesting.FundForAliasRegistration(
+		s.hubCtx(), s.hubApp().BankKeeper, *msgCreateRollapp,
+	)
+	s.Require().NoError(err)
+
+	_, err = s.hubChain().SendMsgs(msgCreateRollapp)
 	s.Require().NoError(err) // message committed
 	if channelID != nil {
 		a := s.hubApp()
