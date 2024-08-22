@@ -78,7 +78,7 @@ func (gs GenesisState) Validate() error {
 	appIndexMap := make(map[string]struct{})
 
 	for _, elem := range gs.AppList {
-		index := string(AppKey(elem.Name, elem.RollappId))
+		index := string(AppKey(elem))
 		if _, ok := appIndexMap[index]; ok {
 			return errors.New("duplicated index for app")
 		}

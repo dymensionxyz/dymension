@@ -62,10 +62,12 @@ func TestInitExportGenesis(t *testing.T) {
 		},
 		AppList: []types.App{
 			{
-				Name: appID1,
+				Name:      appID1,
+				RollappId: rollappID1,
 			},
 			{
-				Name: appID2,
+				Name:      appID2,
+				RollappId: rollappID2,
 			},
 		},
 	}

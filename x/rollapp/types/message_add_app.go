@@ -49,6 +49,7 @@ func (msg *MsgAddApp) GetApp() App {
 		msg.Description,
 		msg.Image,
 		msg.Url,
+		msg.Order,
 	)
 }
 

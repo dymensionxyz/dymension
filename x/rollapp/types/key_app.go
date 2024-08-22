@@ -1,6 +1,8 @@
 package types
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+)
 
 var _ binary.ByteOrder
 
@@ -10,14 +12,18 @@ const (
 )
 
 // AppKey returns the store key to retrieve an App from the index fields
-func AppKey(name, rollappId string) []byte {
+func AppKey(app App) []byte {
 	var key []byte
 
-	appNameBytes := []byte(name)
-	key = append(key, appNameBytes...)
+	rollappIDBytes := []byte(app.RollappId)
+	key = append(key, rollappIDBytes...)
 	key = append(key, []byte("/")...)
-	rollappIdBytes := []byte(rollappId)
-	key = append(key, rollappIdBytes...)
+	appNameBytes := []byte(app.Name)
+	key = append(key, appNameBytes...)
 
 	return key
+}
+
+func RollappAppKeyPrefix(rollappId string) []byte {
+	return append([]byte(rollappId), []byte("/")...)
 }

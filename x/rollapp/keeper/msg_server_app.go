@@ -10,30 +10,34 @@ import (
 )
 
 // AddApp adds a new app
-func (m msgServer) AddApp(goCtx context.Context, msg *types.MsgAddApp) (*types.MsgAddAppResponse, error) {
+func (k msgServer) AddApp(goCtx context.Context, msg *types.MsgAddApp) (*types.MsgAddAppResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	_, err := m.checkInputsAndGetApp(ctx, msg)
-	if err != nil {
+	if err := k.checkInputs(ctx, msg); err != nil {
 		return nil, err
+	}
+
+	// signal to client that ordering is up to them
+	if msg.Order == 0 {
+		msg.Order = -1
 	}
 
 	// charge the app creation fee
 	creator := sdk.MustAccAddressFromBech32(msg.Creator)
-	regFee := sdk.NewCoins(m.AppCost(ctx))
+	appCost := sdk.NewCoins(k.AppCreationCost(ctx))
 
-	if err = m.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, regFee); err != nil {
-		return nil, types.ErrAppCostPayment
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, appCost); err != nil {
+		return nil, types.ErrAppCreationCostPayment
 	}
 
-	if err = m.bankKeeper.BurnCoins(ctx, types.ModuleName, regFee); err != nil {
-		return nil, types.ErrAppCostPayment
+	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, appCost); err != nil {
+		return nil, types.ErrAppCreationCostPayment
 	}
 
 	app := msg.GetApp()
-	m.SetApp(ctx, app)
+	k.SetApp(ctx, app)
 
-	if err = ctx.EventManager().EmitTypedEvent(app.GetAddedEvent()); err != nil {
+	if err := ctx.EventManager().EmitTypedEvent(app.GetAddedEvent()); err != nil {
 		return nil, err
 	}
 
@@ -41,19 +45,18 @@ func (m msgServer) AddApp(goCtx context.Context, msg *types.MsgAddApp) (*types.M
 }
 
 // UpdateApp updates an existing app
-func (m msgServer) UpdateApp(goCtx context.Context, msg *types.MsgUpdateApp) (*types.MsgUpdateAppResponse, error) {
+func (k msgServer) UpdateApp(goCtx context.Context, msg *types.MsgUpdateApp) (*types.MsgUpdateAppResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	_, err := m.checkInputsAndGetApp(ctx, msg)
-	if err != nil {
+	if err := k.checkInputs(ctx, msg); err != nil {
 		return nil, err
 	}
 
 	app := msg.GetApp()
 
-	m.SetApp(ctx, app)
+	k.SetApp(ctx, app)
 
-	if err = ctx.EventManager().EmitTypedEvent(app.GetUpdatedEvent()); err != nil {
+	if err := ctx.EventManager().EmitTypedEvent(app.GetUpdatedEvent()); err != nil {
 		return nil, err
 	}
 
@@ -61,43 +64,41 @@ func (m msgServer) UpdateApp(goCtx context.Context, msg *types.MsgUpdateApp) (*t
 }
 
 // RemoveApp deletes an existing app
-func (m msgServer) RemoveApp(goCtx context.Context, msg *types.MsgRemoveApp) (*types.MsgRemoveAppResponse, error) {
+func (k msgServer) RemoveApp(goCtx context.Context, msg *types.MsgRemoveApp) (*types.MsgRemoveAppResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	_, err := m.checkInputsAndGetApp(ctx, msg)
-	if err != nil {
+	if err := k.checkInputs(ctx, msg); err != nil {
 		return nil, err
 	}
 
 	app := msg.GetApp()
 
-	m.DeleteApp(ctx, app)
+	k.DeleteApp(ctx, app)
 
-	if err = ctx.EventManager().EmitTypedEvent(app.GetRemovedEvent()); err != nil {
+	if err := ctx.EventManager().EmitTypedEvent(app.GetRemovedEvent()); err != nil {
 		return nil, err
 	}
 
 	return &types.MsgRemoveAppResponse{}, nil
 }
 
-func (m msgServer) checkInputsAndGetApp(ctx sdk.Context, msg appMsg) (*types.App, error) {
-	rollapp, ok := m.GetRollapp(ctx, msg.GetRollappId())
-	if !ok {
-		return nil, errorsmod.Wrapf(types.ErrNotFound, "rollappId=%s", msg.GetRollappId())
+func (k msgServer) checkInputs(ctx sdk.Context, msg appMsg) error {
+	rollapp, foundRollapp := k.GetRollapp(ctx, msg.GetRollappId())
+	if !foundRollapp {
+		return errorsmod.Wrapf(types.ErrNotFound, "rollappId=%s", msg.GetRollappId())
 	}
 
 	// check if the sender is the owner of the app
 	if msg.GetCreator() != rollapp.Owner {
-		return nil, types.ErrUnauthorizedSigner
+		return types.ErrUnauthorizedSigner
 	}
 
 	// check if the app already exists
-	app, ok := m.GetApp(ctx, msg.GetName(), msg.GetRollappId())
-	if ok {
-		return nil, types.ErrAppExists
+	if _, foundApp := k.GetApp(ctx, msg.GetName(), msg.GetRollappId()); foundApp {
+		return types.ErrAppExists
 	}
 
-	return &app, nil
+	return nil
 }
 
 type appMsg interface {

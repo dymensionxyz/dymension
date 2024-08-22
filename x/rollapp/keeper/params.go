@@ -13,7 +13,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		k.LivenessSlashBlocks(ctx),
 		k.LivenessSlashInterval(ctx),
 		k.LivenessJailBlocks(ctx),
-		k.AppCost(ctx),
+		k.AppCreationCost(ctx),
 	)
 }
 
@@ -43,8 +43,8 @@ func (k Keeper) LivenessJailBlocks(ctx sdk.Context) (res uint64) {
 	return
 }
 
-// AppCost returns the cost of adding an app
-func (k Keeper) AppCost(ctx sdk.Context) (res sdk.Coin) {
-	k.paramstore.Get(ctx, types.KeyAppCost, &res)
+// AppCreationCost returns the cost of adding an app
+func (k Keeper) AppCreationCost(ctx sdk.Context) (res sdk.Coin) {
+	k.paramstore.Get(ctx, types.KeyAppCreationCost, &res)
 	return
 }

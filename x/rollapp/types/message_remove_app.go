@@ -45,6 +45,7 @@ func (msg *MsgRemoveApp) GetApp() App {
 		"",
 		"",
 		"",
+		0,
 	)
 }
 
