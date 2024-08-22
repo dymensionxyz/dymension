@@ -29,20 +29,18 @@ type CanonicalClientParams struct {
 	AllowUpdateAfterMisbehaviour bool
 }
 
-var (
-	ExpectedCanonicalClientParams = CanonicalClientParams{
-		TrustLevel:      ibctm.NewFractionFromTm(math.Fraction{Numerator: 1, Denominator: 1}),
-		TrustingPeriod:  time.Hour * 24 * 7 * 2,
-		UnbondingPeriod: time.Hour * 24 * 7 * 3,
-		MaxClockDrift:   time.Minute * 10,
-		ProofSpecs: []*ics23.ProofSpec{ // the proofspecs for a SDK chain
-			ics23.IavlSpec,
-			ics23.TendermintSpec,
-		},
-		AllowUpdateAfterExpiry:       false,
-		AllowUpdateAfterMisbehaviour: false,
-	}
-)
+var ExpectedCanonicalClientParams = CanonicalClientParams{
+	TrustLevel:      ibctm.NewFractionFromTm(math.Fraction{Numerator: 1, Denominator: 1}),
+	TrustingPeriod:  time.Hour * 24 * 7 * 2,
+	UnbondingPeriod: time.Hour * 24 * 7 * 3,
+	MaxClockDrift:   time.Minute * 10,
+	ProofSpecs: []*ics23.ProofSpec{ // the proofspecs for a SDK chain
+		ics23.IavlSpec,
+		ics23.TendermintSpec,
+	},
+	AllowUpdateAfterExpiry:       false,
+	AllowUpdateAfterMisbehaviour: false,
+}
 
 func IsCanonicalClientParamsValid(clientState *ibctm.ClientState) bool {
 	if clientState.TrustLevel != ExpectedCanonicalClientParams.TrustLevel {

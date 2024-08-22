@@ -17,11 +17,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	testClientState = ibctm.NewClientState("chain-id",
-		ibctm.DefaultTrustLevel, time.Hour*24*7*2, time.Hour*24*7*2, time.Second*10,
-		ibcclienttypes.MustParseHeight("1-1"), commitmenttypes.GetSDKSpecs(), []string{},
-	)
+var testClientState = ibctm.NewClientState("chain-id",
+	ibctm.DefaultTrustLevel, time.Hour*24*7*2, time.Hour*24*7*2, time.Second*10,
+	ibcclienttypes.MustParseHeight("1-1"), commitmenttypes.GetSDKSpecs(), []string{},
 )
 
 type testInput struct {
@@ -132,5 +130,4 @@ func TestHandleMsgCreateClient(t *testing.T) {
 			tc.assert(ctx, *keeper)
 		})
 	}
-
 }

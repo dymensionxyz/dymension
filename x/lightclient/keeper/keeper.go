@@ -28,7 +28,6 @@ func NewKeeper(
 	sequencerKeeper types.SequencerKeeperExpected,
 	accountKeeper types.AccountKeeperExpected,
 ) *Keeper {
-
 	k := &Keeper{
 		cdc:             cdc,
 		storeKey:        storeKey,

@@ -26,7 +26,6 @@ func (i IBCMessagesDecorator) HandleMsgChannelOpenAck(ctx sdk.Context, msg *ibcc
 		if rollapp.ChannelId != "" {
 			// canonical channel already exists, return error
 			return errorsmod.Wrap(ibcchanneltypes.ErrChannelExists, "cannot create a new channel when a canonical channel already exists for the rollapp")
-
 		}
 		// Set this channel as the canonical channel for the rollapp
 		rollapp.ChannelId = msg.ChannelId

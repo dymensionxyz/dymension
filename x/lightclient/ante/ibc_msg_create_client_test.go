@@ -21,11 +21,9 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-var (
-	testClientState = ibctm.NewClientState("chain-id",
-		ibctm.DefaultTrustLevel, time.Hour*24*7*2, time.Hour*24*7*2, time.Second*10,
-		ibcclienttypes.MustParseHeight("1-1"), commitmenttypes.GetSDKSpecs(), []string{},
-	)
+var testClientState = ibctm.NewClientState("chain-id",
+	ibctm.DefaultTrustLevel, time.Hour*24*7*2, time.Hour*24*7*2, time.Second*10,
+	ibcclienttypes.MustParseHeight("1-1"), commitmenttypes.GetSDKSpecs(), []string{},
 )
 
 func TestHandleMsgCreateClient(t *testing.T) {
@@ -377,5 +375,4 @@ func TestHandleMsgCreateClient(t *testing.T) {
 			tc.assert(ctx, *keeper)
 		})
 	}
-
 }

@@ -66,5 +66,4 @@ func TestHandleMsgSubmitMisbehaviour(t *testing.T) {
 			}
 		})
 	}
-
 }
