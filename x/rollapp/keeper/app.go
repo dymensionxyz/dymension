@@ -43,7 +43,8 @@ func (k Keeper) GetRollappApps(ctx sdk.Context, rollappId string) (list []*types
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AppKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, start)
 
-	defer iterator.Close()
+	defer iterator.Close() // nolint: errcheck
+
 	for ; iterator.Valid(); iterator.Next() {
 		app := new(types.App)
 		k.cdc.MustUnmarshal(iterator.Value(), app)
