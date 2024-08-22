@@ -92,7 +92,7 @@ func (hook rollappHook) AfterUpdateState(
 			if err != nil {
 				return err
 			}
-			err = hook.k.sequencerKeeper.SlashAndJailFraud(ctx, sequencerAddr)
+			err = hook.k.sequencerKeeper.JailSequencerOnFraud(ctx, sequencerAddr)
 			if err != nil {
 				return err
 			}

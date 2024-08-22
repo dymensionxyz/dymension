@@ -10,7 +10,7 @@ import (
 )
 
 type SequencerKeeperExpected interface {
-	SlashAndJailFraud(ctx sdk.Context, seqAddr string) error
+	JailSequencerOnFraud(ctx sdk.Context, seqAddr string) error
 }
 
 type RollappKeeperExpected interface {

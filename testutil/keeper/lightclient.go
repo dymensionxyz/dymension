@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	Alice = "cosmos1c4k24jzduc365kywrsvf5ujz4ya6mwymy8vq4q"
+	Alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
 )
 
 func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
@@ -103,7 +103,7 @@ func NewMockSequencerKeeper() *MockSequencerKeeper {
 	return &MockSequencerKeeper{}
 }
 
-func (m *MockSequencerKeeper) SlashAndJailFraud(ctx sdk.Context, seqAddr string) error {
+func (m *MockSequencerKeeper) JailSequencerOnFraud(ctx sdk.Context, seqAddr string) error {
 	return nil
 }
 
