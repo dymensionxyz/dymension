@@ -3459,16 +3459,9 @@ paths:
                         title: >-
                           description is the rollapp description. should be
                           limited to 512 chars
-                      logo_data_uri:
+                      logo_url:
                         type: string
-                        title: >-
-                          logo_data_uri is a base64 rep with a URI prefix to the
-                          rollapp logo. Size limited
-                      token_logo_data_uri:
-                        type: string
-                        title: >-
-                          token_logo_data_uri is a URI to the native token logo.
-                          Size limited
+                        title: logo_url is the rollapp logo url
                       telegram:
                         type: string
                         title: telegram is the rollapp telegram link
@@ -3937,16 +3930,9 @@ paths:
                               title: >-
                                 description is the rollapp description. should
                                 be limited to 512 chars
-                            logo_data_uri:
+                            logo_url:
                               type: string
-                              title: >-
-                                logo_data_uri is a base64 rep with a URI prefix
-                                to the rollapp logo. Size limited
-                            token_logo_data_uri:
-                              type: string
-                              title: >-
-                                token_logo_data_uri is a URI to the native token
-                                logo. Size limited
+                              title: logo_url is the rollapp logo url
                             telegram:
                               type: string
                               title: telegram is the rollapp telegram link
@@ -4298,16 +4284,9 @@ paths:
                         title: >-
                           description is the rollapp description. should be
                           limited to 512 chars
-                      logo_data_uri:
+                      logo_url:
                         type: string
-                        title: >-
-                          logo_data_uri is a base64 rep with a URI prefix to the
-                          rollapp logo. Size limited
-                      token_logo_data_uri:
-                        type: string
-                        title: >-
-                          token_logo_data_uri is a URI to the native token logo.
-                          Size limited
+                        title: logo_url is the rollapp logo url
                       telegram:
                         type: string
                         title: telegram is the rollapp telegram link
@@ -60834,16 +60813,9 @@ definitions:
                       title: >-
                         description is the rollapp description. should be
                         limited to 512 chars
-                    logo_data_uri:
+                    logo_url:
                       type: string
-                      title: >-
-                        logo_data_uri is a base64 rep with a URI prefix to the
-                        rollapp logo. Size limited
-                    token_logo_data_uri:
-                      type: string
-                      title: >-
-                        token_logo_data_uri is a URI to the native token logo.
-                        Size limited
+                      title: logo_url is the rollapp logo url
                     telegram:
                       type: string
                       title: telegram is the rollapp telegram link
@@ -61136,16 +61108,9 @@ definitions:
                 title: >-
                   description is the rollapp description. should be limited to
                   512 chars
-              logo_data_uri:
+              logo_url:
                 type: string
-                title: >-
-                  logo_data_uri is a base64 rep with a URI prefix to the rollapp
-                  logo. Size limited
-              token_logo_data_uri:
-                type: string
-                title: >-
-                  token_logo_data_uri is a URI to the native token logo. Size
-                  limited
+                title: logo_url is the rollapp logo url
               telegram:
                 type: string
                 title: telegram is the rollapp telegram link
@@ -61483,16 +61448,9 @@ definitions:
             title: >-
               description is the rollapp description. should be limited to 512
               chars
-          logo_data_uri:
+          logo_url:
             type: string
-            title: >-
-              logo_data_uri is a base64 rep with a URI prefix to the rollapp
-              logo. Size limited
-          token_logo_data_uri:
-            type: string
-            title: >-
-              token_logo_data_uri is a URI to the native token logo. Size
-              limited
+            title: logo_url is the rollapp logo url
           telegram:
             type: string
             title: telegram is the rollapp telegram link
@@ -61592,14 +61550,9 @@ definitions:
       description:
         type: string
         title: description is the rollapp description. should be limited to 512 chars
-      logo_data_uri:
+      logo_url:
         type: string
-        title: >-
-          logo_data_uri is a base64 rep with a URI prefix to the rollapp logo.
-          Size limited
-      token_logo_data_uri:
-        type: string
-        title: token_logo_data_uri is a URI to the native token logo. Size limited
+        title: logo_url is the rollapp logo url
       telegram:
         type: string
         title: telegram is the rollapp telegram link
