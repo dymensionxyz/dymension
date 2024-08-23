@@ -45,6 +45,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 
 	"github.com/cosmos/cosmos-sdk/x/crisis"
@@ -57,7 +58,6 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app/ante"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
-	"github.com/dymensionxyz/dymension/v3/app/post"
 
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/keeper"
@@ -222,10 +222,9 @@ func New(
 	if err != nil {
 		panic(err)
 	}
-	postHandler, err := post.NewPostHandler(post.HandlerOptions{
-		IBCKeeper:         app.IBCKeeper,
-		LightClientKeeper: &app.LightClientKeeper,
-	})
+	postHandler, err := posthandler.NewPostHandler(
+		posthandler.HandlerOptions{},
+	)
 	if err != nil {
 		panic(fmt.Errorf("failed to create PostHandler: %w", err))
 	}

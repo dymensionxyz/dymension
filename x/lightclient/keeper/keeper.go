@@ -96,25 +96,6 @@ func (k Keeper) SetCanonicalClient(ctx sdk.Context, rollappId string, clientID s
 	store.Set(types.CanonicalClientKey(clientID), []byte(rollappId))
 }
 
-func (k Keeper) BeginCanonicalLightClientRegistration(ctx sdk.Context, rollappId string, clientID string) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.CanonicalLightClientRegistrationKey(rollappId), []byte(clientID))
-}
-
-func (k Keeper) GetCanonicalLightClientRegistration(ctx sdk.Context, rollappId string) (string, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.CanonicalLightClientRegistrationKey(rollappId))
-	if bz == nil {
-		return "", false
-	}
-	return string(bz), true
-}
-
-func (k Keeper) ClearCanonicalLightClientRegistration(ctx sdk.Context, rollappId string) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.CanonicalLightClientRegistrationKey(rollappId))
-}
-
 func (k Keeper) SetConsensusStateSigner(ctx sdk.Context, clientID string, height uint64, sequencer string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.ConsensusStateSignerKeyByClientID(clientID, height), []byte(sequencer))

@@ -30,8 +30,6 @@ func (i IBCMessagesDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	msgs := tx.GetMsgs()
 	for _, m := range msgs {
 		switch msg := m.(type) {
-		case *ibcclienttypes.MsgCreateClient:
-			i.HandleMsgCreateClient(ctx, msg)
 		case *ibcclienttypes.MsgSubmitMisbehaviour:
 			if err := i.HandleMsgSubmitMisbehaviour(ctx, msg); err != nil {
 				return ctx, err

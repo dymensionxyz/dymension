@@ -10,9 +10,6 @@ const (
 
 	// StoreKey defines the primary module store key
 	StoreKey = ModuleName
-
-	// TransientKey defines the module's transient store key
-	TransientKey = "t_lightclient"
 )
 
 // KV Store
@@ -22,17 +19,8 @@ var (
 	canonicalClientKey      = []byte{0x04}
 )
 
-// Transient Store
-var (
-	lightClientRegistrationKey = []byte{0x02}
-)
-
 func RollappClientKey(rollappId string) []byte {
 	return append(rollappClientKey, []byte(rollappId)...)
-}
-
-func CanonicalLightClientRegistrationKey(rollappId string) []byte {
-	return append(lightClientRegistrationKey, []byte(rollappId)...)
 }
 
 func ConsensusStateSignerKeyByClientID(clientID string, height uint64) []byte {
