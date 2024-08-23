@@ -4,33 +4,32 @@ import (
 	"flag"
 	"fmt"
 	"slices"
+	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	"github.com/stretchr/testify/require"
 	"pgregory.net/rapid"
 
+	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // Storage and query operations work for the event queue
-func (suite *RollappTestSuite) TestLivenessEventsStorage() {
+func TestLivenessEventsStorage(t *testing.T) {
 	_ = flag.Set("rapid.checks", "50")
 	_ = flag.Set("rapid.steps", "50")
 
 	rollapps := rapid.StringMatching("^[a-zA-Z0-9]{1,10}$")
 	heights := rapid.Int64Range(0, 10)
 	isJail := rapid.Bool()
-	rapid.Check(suite.T(), func(r *rapid.T) {
-		suite.SetupTest()
-
-		k, ctx := suite.App.RollappKeeper, suite.Ctx
+	rapid.Check(t, func(r *rapid.T) {
+		k, ctx := keepertest.RollappKeeper(t)
 		model := make(map[string]types.LivenessEvent) // model actual sdk storage
 		modelKey := func(e types.LivenessEvent) string {
 			return fmt.Sprintf("%+v", e)
 		}
-
 		r.Repeat(map[string]func(r *rapid.T){
 			"put": func(r *rapid.T) {
 				e := types.LivenessEvent{
