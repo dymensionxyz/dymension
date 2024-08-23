@@ -2,8 +2,11 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -28,15 +31,18 @@ func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBon
 	k.UpdateSequencer(ctx, &sequencer, sequencer.Status)
 
 	// emit a typed event which includes the added amount and the active bond amount
-	err = ctx.EventManager().EmitTypedEvent(
+	err = uevent.EmitTypedEvent(ctx,
 		&types.EventIncreasedBond{
 			Sequencer:   msg.Creator,
 			Bond:        sequencer.Tokens,
 			AddedAmount: msg.AddAmount,
 		},
 	)
+	if err != nil {
+		return nil, fmt.Errorf("emit event: %w", err)
+	}
 
-	return &types.MsgIncreaseBondResponse{}, err
+	return &types.MsgIncreaseBondResponse{}, nil
 }
 
 func (k msgServer) bondUpdateAllowed(ctx sdk.Context, senderAddress string) (types.Sequencer, error) {

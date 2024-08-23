@@ -8,6 +8,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 
@@ -95,7 +96,7 @@ func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types
 		return nil, err
 	}
 
-	if err = ctx.EventManager().EmitTypedEvent(demandOrder.GetPacketStatusUpdatedEvent()); err != nil {
+	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetPacketStatusUpdatedEvent()); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 

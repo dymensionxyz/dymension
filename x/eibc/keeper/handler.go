@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 	"github.com/pkg/errors"
 
@@ -52,7 +53,7 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 		return fmt.Errorf("set eibc demand order: %w", err)
 	}
 
-	if err = ctx.EventManager().EmitTypedEvent(eibcDemandOrder.GetCreatedEvent()); err != nil {
+	if err = uevent.EmitTypedEvent(ctx, eibcDemandOrder.GetCreatedEvent()); err != nil {
 		return fmt.Errorf("emit event: %w", err)
 	}
 
