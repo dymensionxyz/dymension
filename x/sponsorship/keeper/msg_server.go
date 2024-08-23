@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -41,7 +42,7 @@ func (m MsgServer) Vote(goCtx context.Context, msg *types.MsgVote) (*types.MsgVo
 		Distribution: distr,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
 	return &types.MsgVoteResponse{}, nil
@@ -67,7 +68,7 @@ func (m MsgServer) RevokeVote(goCtx context.Context, msg *types.MsgRevokeVote) (
 		Distribution: distr,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
 	return &types.MsgRevokeVoteResponse{}, nil
@@ -100,7 +101,7 @@ func (m MsgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams)
 		OldParams: oldParams,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
 	return &types.MsgUpdateParamsResponse{}, nil

@@ -89,7 +89,7 @@ func (h Hooks) afterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, 
 		VotingPowerDiff: result.vpDiff,
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("emit event: %w", err)
 	}
 
 	return nil
@@ -138,7 +138,7 @@ func (h Hooks) beforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, 
 		VotingPowerDiff: result.vpDiff,
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("emit event: %w", err)
 	}
 
 	return nil

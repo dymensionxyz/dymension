@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
@@ -37,8 +38,11 @@ func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBon
 			AddedAmount: msg.AddAmount,
 		},
 	)
+	if err != nil {
+		return nil, fmt.Errorf("emit event: %w", err)
+	}
 
-	return &types.MsgIncreaseBondResponse{}, err
+	return &types.MsgIncreaseBondResponse{}, nil
 }
 
 func (k msgServer) bondUpdateAllowed(ctx sdk.Context, senderAddress string) (types.Sequencer, error) {

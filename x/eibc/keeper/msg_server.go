@@ -129,7 +129,7 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	}
 
 	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetUpdatedEvent()); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
 	return &types.MsgUpdateDemandOrderResponse{}, nil
