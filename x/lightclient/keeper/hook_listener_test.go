@@ -59,7 +59,7 @@ func TestAfterUpdateState(t *testing.T) {
 								{
 									Height:    1,
 									StateRoot: []byte("test"),
-									Timestamp: time.Now().UTC(),
+									Timestamp: time.Unix(1724392989, 0),
 								},
 							},
 						},
@@ -85,12 +85,12 @@ func TestAfterUpdateState(t *testing.T) {
 								{
 									Height:    1,
 									StateRoot: []byte("test"),
-									Timestamp: time.Now().UTC(),
+									Timestamp: time.Unix(1724392989, 0),
 								},
 								{
 									Height:    2,
 									StateRoot: []byte("test2"),
-									Timestamp: time.Now().Add(1).UTC(),
+									Timestamp: time.Unix(1724392989, 0).Add(1),
 								},
 							},
 						},
@@ -116,17 +116,17 @@ func TestAfterUpdateState(t *testing.T) {
 								{
 									Height:    1,
 									StateRoot: []byte("test"),
-									Timestamp: time.Now().UTC(),
+									Timestamp: time.Unix(1724392989, 0),
 								},
 								{
 									Height:    2,
 									StateRoot: []byte("this is not compatible"),
-									Timestamp: time.Now().Add(1).UTC(),
+									Timestamp: time.Unix(1724392989, 0).Add(1),
 								},
 								{
 									Height:    3,
 									StateRoot: []byte("test3"),
-									Timestamp: time.Now().Add(2).UTC(),
+									Timestamp: time.Unix(1724392989, 0).Add(2),
 								},
 							},
 						},
@@ -152,17 +152,17 @@ func TestAfterUpdateState(t *testing.T) {
 								{
 									Height:    1,
 									StateRoot: []byte("test"),
-									Timestamp: time.Now().UTC(),
+									Timestamp: time.Unix(1724392989, 0),
 								},
 								{
 									Height:    2,
 									StateRoot: []byte("test2"),
-									Timestamp: time.Now().UTC(),
+									Timestamp: time.Unix(1724392989, 0),
 								},
 								{
 									Height:    3,
 									StateRoot: []byte("test3"),
-									Timestamp: time.Now().Add(1).UTC(),
+									Timestamp: time.Unix(1724392989, 0).Add(1),
 								},
 							},
 						},
@@ -196,17 +196,17 @@ func TestAfterUpdateState_SetCanonicalClient(t *testing.T) {
 				{
 					Height:    1,
 					StateRoot: []byte("test"),
-					Timestamp: time.Now().UTC(),
+					Timestamp: time.Unix(1724392989, 0),
 				},
 				{
 					Height:    2,
 					StateRoot: []byte("test2"),
-					Timestamp: time.Now().UTC(),
+					Timestamp: time.Unix(1724392989, 0),
 				},
 				{
 					Height:    3,
 					StateRoot: []byte("test3"),
-					Timestamp: time.Now().Add(1).UTC(),
+					Timestamp: time.Unix(1724392989, 0).UTC(),
 				},
 			},
 		},

@@ -156,7 +156,7 @@ func TestHandleMsgCreateClient(t *testing.T) {
 										{
 											Height:    1,
 											StateRoot: []byte{},
-											Timestamp: time.Now().UTC(),
+											Timestamp: time.Unix(1724392989, 0),
 										},
 									},
 								},
@@ -177,7 +177,7 @@ func TestHandleMsgCreateClient(t *testing.T) {
 				clientState, err := ibcclienttypes.PackClientState(testClientState)
 				require.NoError(t, err)
 				testConsensusState := ibctm.NewConsensusState(
-					time.Now().UTC(),
+					time.Unix(1724392989, 0),
 					commitmenttypes.NewMerkleRoot([]byte{}),
 					ctx.BlockHeader().ValidatorsHash,
 				)
@@ -207,12 +207,12 @@ func TestHandleMsgCreateClient(t *testing.T) {
 										{
 											Height:    1,
 											StateRoot: []byte{},
-											Timestamp: time.Now().UTC(),
+											Timestamp: time.Unix(1724392989, 0),
 										},
 										{
 											Height:    2,
 											StateRoot: []byte{},
-											Timestamp: time.Now().UTC(),
+											Timestamp: time.Unix(1724392989, 0),
 										},
 									},
 								},
@@ -229,7 +229,7 @@ func TestHandleMsgCreateClient(t *testing.T) {
 		{
 			name: "State compatible but client params not conforming to expected params - continue without setting as canonical client",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
-				blocktimestamp := time.Now().UTC()
+				blocktimestamp := time.Unix(1724392989, 0)
 				testClientState.ChainId = "rollapp-wants-canon-client"
 				clientState, err := ibcclienttypes.PackClientState(testClientState)
 				require.NoError(t, err)
@@ -293,7 +293,7 @@ func TestHandleMsgCreateClient(t *testing.T) {
 		{
 			name: "State compatible + expected client params - Candidate canonical client set",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
-				blocktimestamp := time.Now().UTC()
+				blocktimestamp := time.Unix(1724392989, 0)
 				testClientState.ChainId = "rollapp-wants-canon-client"
 				testClientState.TrustLevel = ibctm.NewFractionFromTm(math.Fraction{Numerator: 1, Denominator: 1})
 				testClientState.TrustingPeriod = time.Hour * 24 * 7 * 2

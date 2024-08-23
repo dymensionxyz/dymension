@@ -115,7 +115,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 										{
 											Height:    3,
 											StateRoot: []byte{},
-											Timestamp: time.Now().UTC(),
+											Timestamp: time.Unix(1724392989, 0),
 										},
 									},
 								},
@@ -143,7 +143,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 					Header: &cmtproto.Header{
 						AppHash:            []byte("appHash"),
 						ProposerAddress:    []byte("sequencerAddr"),
-						Time:               time.Now().UTC(),
+						Time:               time.Unix(1724392989, 0),
 						NextValidatorsHash: []byte("nextValHash"),
 					},
 					Commit: &cmtproto.Commit{},
@@ -181,12 +181,12 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 										{
 											Height:    1,
 											StateRoot: []byte{},
-											Timestamp: time.Now().UTC(),
+											Timestamp: time.Unix(1724392989, 0),
 										},
 										{
 											Height:    2,
 											StateRoot: []byte{},
-											Timestamp: time.Now().UTC(),
+											Timestamp: time.Unix(1724392989, 0),
 										},
 									},
 								},
@@ -205,7 +205,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 				sequencer := keepertest.Alice
 				proposerAddr, err := k.GetTmPubkeyAsBytes(ctx, sequencer)
 				require.NoError(t, err)
-				blocktimestamp := time.Now().UTC()
+				blocktimestamp := time.Unix(1724392989, 0)
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
 				var (
 					valSet      *cmtproto.ValidatorSet

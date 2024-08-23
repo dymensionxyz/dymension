@@ -14,7 +14,7 @@ func TestCheckCompatibility(t *testing.T) {
 		ibcState types.IBCState
 		raState  types.RollappState
 	}
-	timestamp := time.Now().UTC()
+	timestamp := time.Unix(1724392989, 0)
 	testCases := []struct {
 		name  string
 		input input

@@ -58,7 +58,7 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	testConsensusStates := map[string]map[uint64]exported.ConsensusState{
 		"canon-client-id": {
 			2: &ibctm.ConsensusState{
-				Timestamp:          time.Now().UTC(),
+				Timestamp:          time.Unix(1724392989, 0),
 				Root:               commitmenttypes.NewMerkleRoot([]byte("test2")),
 				NextValidatorsHash: nextValHash,
 			},
