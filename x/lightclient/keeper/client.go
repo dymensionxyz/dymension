@@ -11,7 +11,7 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string, stateInfo *rollapptypes.StateInfo) string {
+func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string, stateInfo *rollapptypes.StateInfo) (clientID string) {
 	clients := k.ibcClientKeeper.GetAllGenesisClients(ctx)
 	for _, client := range clients {
 		clientState, err := ibcclienttypes.UnpackClientState(client.ClientState)
@@ -63,11 +63,12 @@ func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string,
 						if err != nil {
 							continue
 						}
-						return client.GetClientId()
+						clientID = client.GetClientId()
+						return
 					}
 				}
 			}
 		}
 	}
-	return ""
+	return
 }

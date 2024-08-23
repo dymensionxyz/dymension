@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -72,6 +73,10 @@ func (m *MockIBCClientKeeper) GetClientState(ctx sdk.Context, clientID string) (
 
 func (m *MockIBCClientKeeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) string {
 	return "new-canon-client-1"
+}
+
+func (m *MockIBCClientKeeper) GetAllGenesisClients(ctx sdk.Context) ibcclienttypes.IdentifiedClientStates {
+	return nil
 }
 
 type MockIBCChannelKeeper struct {

@@ -185,3 +185,36 @@ func TestAfterUpdateState(t *testing.T) {
 		})
 	}
 }
+
+func TestAfterUpdateState_SetCanonicalClient(t *testing.T) {
+	keeper, ctx := keepertest.LightClientKeeper(t)
+	rollappId := "rollapp-wants-canon-client"
+	stateInfo := &rollapptypes.StateInfo{
+		Sequencer: keepertest.Alice,
+		BDs: rollapptypes.BlockDescriptors{
+			BD: []rollapptypes.BlockDescriptor{
+				{
+					Height:    1,
+					StateRoot: []byte("test"),
+					Timestamp: time.Now().UTC(),
+				},
+				{
+					Height:    2,
+					StateRoot: []byte("test2"),
+					Timestamp: time.Now().UTC(),
+				},
+				{
+					Height:    3,
+					StateRoot: []byte("test3"),
+					Timestamp: time.Now().Add(1).UTC(),
+				},
+			},
+		},
+	}
+	err := keeper.RollappHooks().AfterUpdateState(ctx, rollappId, stateInfo, false, false)
+	require.NoError(t, err)
+
+	clientID, found := keeper.GetCanonicalClient(ctx, rollappId)
+	require.True(t, found)
+	require.Equal(t, "canon-client-id", clientID)
+}

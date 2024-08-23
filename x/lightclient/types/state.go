@@ -27,7 +27,7 @@ func CheckCompatibility(ibcState IBCState, raState RollappState) error {
 		return ErrNextBlockDescriptorMissing
 	}
 	// Check if the nextValidatorHash matches for the sequencer for h+1 block descriptor
-	nextValHashFromStateInfo, err := getValHashForSequencer(raState.NextBlockSequencer)
+	nextValHashFromStateInfo, err := GetValHashForSequencer(raState.NextBlockSequencer)
 	if err != nil {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, err.Error())
 	}
@@ -45,9 +45,9 @@ func CheckCompatibility(ibcState IBCState, raState RollappState) error {
 	return nil
 }
 
-// getValHashForSequencer creates a dummy tendermint validatorset to
+// GetValHashForSequencer creates a dummy tendermint validatorset to
 // calculate the nextValHash for the sequencer and returns it
-func getValHashForSequencer(sequencerTmPubKeyBz []byte) ([]byte, error) {
+func GetValHashForSequencer(sequencerTmPubKeyBz []byte) ([]byte, error) {
 	var tmpk tmprotocrypto.PublicKey
 	err := tmpk.Unmarshal(sequencerTmPubKeyBz)
 	if err != nil {

@@ -12,6 +12,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
@@ -20,7 +21,9 @@ import (
 
 	cometbftdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cometbft/cometbft/libs/math"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/stretchr/testify/require"
 )
 
@@ -42,22 +45,40 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
-
+	sequencerPubKey := ed25519.GenPrivKey().PubKey()
+	tmPk, err := cryptocodec.ToTmProtoPublicKey(sequencerPubKey)
+	require.NoError(t, err)
+	tmPkBytes, err := tmPk.Marshal()
+	require.NoError(t, err)
+	nextValHash, err := types.GetValHashForSequencer(tmPkBytes)
+	require.NoError(t, err)
+	testPubKeys := map[string]cryptotypes.PubKey{
+		Alice: sequencerPubKey,
+	}
 	testConsensusStates := map[string]map[uint64]exported.ConsensusState{
 		"canon-client-id": {
 			2: &ibctm.ConsensusState{
 				Timestamp:          time.Now().UTC(),
 				Root:               commitmenttypes.NewMerkleRoot([]byte("test2")),
-				NextValidatorsHash: []byte{156, 132, 96, 43, 190, 214, 140, 148, 216, 119, 98, 162, 97, 120, 115, 32, 39, 223, 114, 56, 224, 180, 80, 228, 190, 243, 9, 248, 190, 33, 188, 23},
+				NextValidatorsHash: nextValHash,
 			},
 		},
 	}
-	sequencerPubKey := ed25519.GenPrivKey().PubKey()
-	testPubKeys := map[string]cryptotypes.PubKey{
-		Alice: sequencerPubKey,
+	cs := ibctm.NewClientState("rollapp-wants-canon-client",
+		ibctm.NewFractionFromTm(math.Fraction{Numerator: 1, Denominator: 1}),
+		time.Hour*24*7*2, time.Hour*24*7*3, time.Minute*10,
+		ibcclienttypes.MustParseHeight("1-2"), commitmenttypes.GetSDKSpecs(), []string{},
+	)
+	packedCS, err := ibcclienttypes.PackClientState(cs)
+	require.NoError(t, err)
+	testGenesisClients := ibcclienttypes.IdentifiedClientStates{
+		{
+			ClientId:    "canon-client-id",
+			ClientState: packedCS,
+		},
 	}
 
-	mockIBCKeeper := NewMockIBCClientKeeper(testConsensusStates)
+	mockIBCKeeper := NewMockIBCClientKeeper(testConsensusStates, testGenesisClients)
 	mockSequencerKeeper := NewMockSequencerKeeper()
 	mockAccountKeeper := NewMockAccountKeeper(testPubKeys)
 	k := keeper.NewKeeper(
@@ -75,11 +96,13 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 type MockIBCCLientKeeper struct {
 	clientConsensusState map[string]map[uint64]exported.ConsensusState
+	genesisClients       ibcclienttypes.IdentifiedClientStates
 }
 
-func NewMockIBCClientKeeper(clientCS map[string]map[uint64]exported.ConsensusState) *MockIBCCLientKeeper {
+func NewMockIBCClientKeeper(clientCS map[string]map[uint64]exported.ConsensusState, genesisClients ibcclienttypes.IdentifiedClientStates) *MockIBCCLientKeeper {
 	return &MockIBCCLientKeeper{
 		clientConsensusState: clientCS,
+		genesisClients:       genesisClients,
 	}
 }
 
@@ -94,6 +117,10 @@ func (m *MockIBCCLientKeeper) GenerateClientIdentifier(ctx sdk.Context, clientTy
 
 func (m *MockIBCCLientKeeper) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
 	return nil, false
+}
+
+func (m *MockIBCCLientKeeper) GetAllGenesisClients(ctx sdk.Context) ibcclienttypes.IdentifiedClientStates {
+	return m.genesisClients
 }
 
 type MockSequencerKeeper struct{}

@@ -2,6 +2,7 @@ package post_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -26,4 +27,8 @@ func (m *MockIBCCLientKeeper) GetClientState(ctx sdk.Context, clientID string) (
 
 func (m *MockIBCCLientKeeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) string {
 	return ""
+}
+
+func (m *MockIBCCLientKeeper) GetAllGenesisClients(ctx sdk.Context) ibcclienttypes.IdentifiedClientStates {
+	return nil
 }
