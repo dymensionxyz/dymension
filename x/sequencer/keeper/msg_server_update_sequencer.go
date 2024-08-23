@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -36,7 +37,7 @@ func (k msgServer) UpdateSequencerInformation(goCtx context.Context, msg *types.
 
 	k.SetSequencer(ctx, sequencer)
 
-	if err := ctx.EventManager().EmitTypedEvent(&sequencer); err != nil {
+	if err := uevent.EmitTypedEvent(ctx, &sequencer); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 

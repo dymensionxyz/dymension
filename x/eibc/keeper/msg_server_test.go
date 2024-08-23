@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -200,7 +201,7 @@ func (suite *KeeperTestSuite) TestFulfillOrderEvent() {
 		if tc.expectedPostFulfillmentEventsCount > 0 {
 			lastEvent, ok := suite.FindLastEventOfType(suite.Ctx.EventManager().Events(), eventName)
 			suite.Require().True(ok)
-			event, _ := sdk.TypedEventToEvent(tc.expectedPostFulfillmentEvent)
+			event, _ := uevent.TypedEventToEvent(tc.expectedPostFulfillmentEvent)
 			suite.AssertAttributes(lastEvent, getEventAttributes(event))
 		}
 	}
