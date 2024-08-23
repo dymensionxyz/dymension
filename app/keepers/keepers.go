@@ -350,6 +350,7 @@ func (a *AppKeepers) InitKeepers(
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ClientKeeper,
 		nil,
+		a.BankKeeper,
 	)
 
 	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
