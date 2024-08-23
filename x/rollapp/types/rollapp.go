@@ -172,6 +172,10 @@ func validateMetadata(metadata *RollappMetadata) error {
 		return errorsmod.Wrap(ErrInvalidLogoURI, err.Error())
 	}
 
+	if err := validateURL(metadata.ExplorerUrl); err != nil {
+		return errorsmod.Wrap(ErrInvalidURL, err.Error())
+	}
+
 	return nil
 }
 

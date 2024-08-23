@@ -35,6 +35,11 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					LogoDataUri: "data:image/png;base64,c2lzZQ==",
 					Telegram:    "https://t.me/rolly",
 					X:           "https://x.dymension.xyz",
+					GenesisUrl:  "https://genesis.dymension.xyz/file.json",
+					DisplayName: "Rollapp",
+					Tagline:     "Tagline",
+					TokenSymbol: "ROLL",
+					ExplorerUrl: "https://explorer.dymension.xyz",
 				},
 			},
 		},
@@ -173,6 +178,21 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				VmType:           Rollapp_EVM,
 			},
 			err: ErrInvalidGenesisChecksum,
+		}, {
+			name: "invalid explorer url",
+			msg: MsgCreateRollapp{
+				Creator:          sample.AccAddress(),
+				Bech32Prefix:     bech32Prefix,
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				GenesisChecksum:  "checksum",
+				Alias:            "alias",
+				VmType:           Rollapp_EVM,
+				Metadata: &RollappMetadata{
+					ExplorerUrl: string(rune(0x7f)),
+				},
+			},
+			err: ErrInvalidURL,
 		},
 	}
 	for _, tt := range tests {
