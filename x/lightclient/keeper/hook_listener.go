@@ -34,6 +34,10 @@ func (hook rollappHook) AfterUpdateState(
 ) error {
 	canonicalClient, found := hook.k.GetCanonicalClient(ctx, rollappId)
 	if !found {
+		canonicalClient = hook.k.GetProspectiveCanonicalClient(ctx, rollappId, stateInfo)
+		if canonicalClient != "" {
+			hook.k.SetCanonicalClient(ctx, rollappId, canonicalClient)
+		}
 		return nil
 	}
 	bds := stateInfo.GetBDs()

@@ -3,6 +3,7 @@ package types
 import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
 	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -24,6 +25,7 @@ type IBCClientKeeperExpected interface {
 	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
 	GenerateClientIdentifier(ctx sdk.Context, clientType string) string
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
+	GetAllGenesisClients(ctx sdk.Context) ibcclienttypes.IdentifiedClientStates
 }
 
 type IBCChannelKeeperExpected interface {
