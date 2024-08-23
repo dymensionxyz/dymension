@@ -22,4 +22,6 @@ message RollappMetadata {
   string tagline = 8;
   // token_symbol is the native token symbol
   string token_symbol = 9;
+  // explorer_url is the rollapp's block explorer link
+  string explorer_url = 10;
 }
