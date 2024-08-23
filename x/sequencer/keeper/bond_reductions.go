@@ -30,7 +30,7 @@ func (k Keeper) completeBondReduction(ctx sdk.Context, reduction types.BondReduc
 		return types.ErrUnknownSequencer
 	}
 
-	if seq.Tokens.IsAllLT(sdk.NewCoins(reduction.DecreaseBondAmount)) {
+	if seq.Tokens.AmountOf(reduction.DecreaseBondAmount.Denom).LT(reduction.DecreaseBondAmount.Amount) {
 		return errorsmod.Wrapf(
 			types.ErrInsufficientBond,
 			"sequencer does not have enough bond to reduce insufficient bond: got %s, reducing by %s",
