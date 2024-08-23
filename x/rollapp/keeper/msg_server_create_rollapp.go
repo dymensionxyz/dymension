@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -27,7 +28,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		return nil, fmt.Errorf("rollapp created hook: %w", err)
 	}
 
-	if err := ctx.EventManager().EmitTypedEvent(msg); err != nil {
+	if err := uevent.EmitTypedEvent(ctx, msg); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
