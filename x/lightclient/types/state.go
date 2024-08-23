@@ -13,12 +13,12 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
+// CheckCompatibility checks if the IBC state and Rollapp state are compatible
 func CheckCompatibility(ibcState IBCState, raState RollappState) error {
 	// Check if block descriptor state root matches IBC block header app hash
 	if !bytes.Equal(ibcState.Root, raState.BlockDescriptor.StateRoot) {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "block descriptor state root does not match tendermint header app hash")
 	}
-	// in case of msgcreateclient, validator info is not available. it is only sent in msgupdateclient as header info
 	// Check if the validator pubkey matches the sequencer pubkey
 	if len(ibcState.Validator) > 0 && !bytes.Equal(ibcState.Validator, raState.BlockSequencer) {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "validator does not match the sequencer")

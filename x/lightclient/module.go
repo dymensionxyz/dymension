@@ -60,7 +60,7 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 	return nil
 }
 
-// RegisterRESTRoutes registers the capability module's REST service handlers.
+// RegisterRESTRoutes registers the module's REST service handlers.
 func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 }
 
@@ -68,12 +68,12 @@ func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Rout
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 }
 
-// GetTxCmd returns the capability module's root tx command.
+// GetTxCmd returns the module's root tx command.
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 	return nil
 }
 
-// GetQueryCmd returns the capability module's root query command.
+// GetQueryCmd returns the module's root query command.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return nil
 }

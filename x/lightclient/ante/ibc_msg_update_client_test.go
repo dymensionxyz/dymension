@@ -132,7 +132,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 			},
 		},
 		{
-			name: "State is incompatible",
+			name: "State is incompatible - do not accept",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
 				var (

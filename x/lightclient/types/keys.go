@@ -12,7 +12,6 @@ const (
 	StoreKey = ModuleName
 )
 
-// KV Store
 var (
 	rollappClientKey        = []byte{0x01}
 	consensusStateSignerKey = []byte{0x03}

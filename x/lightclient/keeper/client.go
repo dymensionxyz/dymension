@@ -11,6 +11,8 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
+// GetProspectiveCanonicalClient returns the client id of the first IBC client which can be set as the canonical client for the given rollapp.
+// Returns empty string if no such client is found.
 func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string, stateInfo *rollapptypes.StateInfo) (clientID string) {
 	clients := k.ibcClientKeeper.GetAllGenesisClients(ctx)
 	for _, client := range clients {
@@ -26,13 +28,12 @@ func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string,
 			}
 			// Check if the client is for the given rollapp
 			if tmClientState.ChainId == rollappId {
-				// Check if the client params match the expected params
+				// Check if the client params match the expected params for a canonical client
 				if types.IsCanonicalClientParamsValid(tmClientState) {
 					sequencerPk, err := k.GetTmPubkeyAsBytes(ctx, stateInfo.Sequencer)
 					if err != nil {
 						continue
 					}
-
 					for i, bd := range stateInfo.GetBDs().BD {
 						height := ibcclienttypes.NewHeight(1, bd.GetHeight())
 						consensusState, found := k.ibcClientKeeper.GetClientConsensusState(ctx, client.ClientId, height)

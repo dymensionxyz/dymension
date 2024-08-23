@@ -25,6 +25,9 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 	return rollappHook{k: k}
 }
 
+// AfterUpdateState is called after a state update is made to a rollapp.
+// This hook checks if the rollapp has a canonical IBC light client and if the Consensus state is compatible with the state update
+// and punishes the sequencer if it is not
 func (hook rollappHook) AfterUpdateState(
 	ctx sdk.Context,
 	rollappId string,
@@ -54,16 +57,12 @@ func (hook rollappHook) AfterUpdateState(
 		if !ok {
 			return nil
 		}
-
-		// Convert timestamp from nanoseconds to time.Time
-		timestamp := time.Unix(0, int64(tmConsensusState.GetTimestamp()))
-
 		ibcState := types.IBCState{
 			Root:               tmConsensusState.GetRoot().GetHash(),
 			Height:             bd.GetHeight(),
 			Validator:          []byte(tmHeaderSigner),
 			NextValidatorsHash: tmConsensusState.NextValidatorsHash,
-			Timestamp:          timestamp,
+			Timestamp:          time.Unix(0, int64(tmConsensusState.GetTimestamp())),
 		}
 		sequencerPk, err := hook.k.GetTmPubkeyAsBytes(ctx, stateInfo.Sequencer)
 		if err != nil {
@@ -84,12 +83,10 @@ func (hook rollappHook) AfterUpdateState(
 			if errors.Is(err, types.ErrTimestampNotFound) && !isFirstStateUpdate && !previousStateHasTimestamp {
 				continue
 			}
-
 			// The BD for (h+1) is missing, cannot verify if the nextvalhash matches
 			if errors.Is(err, types.ErrNextBlockDescriptorMissing) {
 				return err
 			}
-
 			// If the state is not compatible,
 			// Take this state update as source of truth over the IBC update
 			// Punish the block proposer of the IBC signed header

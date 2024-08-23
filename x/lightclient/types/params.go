@@ -42,6 +42,7 @@ var ExpectedCanonicalClientParams = CanonicalClientParams{
 	AllowUpdateAfterMisbehaviour: false,
 }
 
+// IsCanonicalClientParamsValid checks if the given IBC tendermint client state has the expected canonical client parameters
 func IsCanonicalClientParamsValid(clientState *ibctm.ClientState) bool {
 	if clientState.TrustLevel != ExpectedCanonicalClientParams.TrustLevel {
 		return false

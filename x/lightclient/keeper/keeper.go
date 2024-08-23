@@ -38,6 +38,7 @@ func NewKeeper(
 	return k
 }
 
+// GetTmPubkeyAsBytes returns the tendermint public key as bytes for the given sequencer address in bech32 format
 func (k Keeper) GetTmPubkeyAsBytes(ctx sdk.Context, sequencerAddr string) ([]byte, error) {
 	tmPk, err := k.GetTmPubkey(ctx, sequencerAddr)
 	if err != nil {
@@ -47,6 +48,7 @@ func (k Keeper) GetTmPubkeyAsBytes(ctx sdk.Context, sequencerAddr string) ([]byt
 	return tmPkBytes, err
 }
 
+// GetTmPubkey returns the tendermint public key for the given sequencer address in bech32 format
 func (k Keeper) GetTmPubkey(ctx sdk.Context, sequencerAddr string) (tmprotocrypto.PublicKey, error) {
 	acc, err := sdk.AccAddressFromBech32(sequencerAddr)
 	if err != nil {
@@ -63,6 +65,7 @@ func (k Keeper) GetTmPubkey(ctx sdk.Context, sequencerAddr string) (tmprotocrypt
 	return tmPk, nil
 }
 
+// getAddress converts a tendermint public key to a bech32 address
 func (k Keeper) getAddress(tmPubkeyBz []byte) (string, error) {
 	var tmpk tmprotocrypto.PublicKey
 	err := tmpk.Unmarshal(tmPubkeyBz)
