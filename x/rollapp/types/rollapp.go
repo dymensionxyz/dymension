@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"regexp"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -44,11 +43,7 @@ const (
 	maxTaglineLength         = 64
 	maxURLLength             = 256
 	maxGenesisChecksumLength = 64
-	maxDataURILength         = 40 * 1024 // 25KB
-	dataURIPattern           = `^data:(?P<mimeType>[\w/]+);base64,(?P<data>[A-Za-z0-9+/=]+)$`
 )
-
-var dataUriPattern = regexp.MustCompile(dataURIPattern)
 
 func (r Rollapp) LastStateUpdateHeightIsSet() bool {
 	return r.LastStateUpdateHeight != 0
