@@ -52,9 +52,6 @@ import (
 	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	dymnsmodule "github.com/dymensionxyz/dymension/v3/x/dymns"
-	dymnsmoduleclient "github.com/dymensionxyz/dymension/v3/x/dymns/client"
-	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	"github.com/evmos/ethermint/x/evm"
 	evmclient "github.com/evmos/ethermint/x/evm/client"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -70,6 +67,10 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+
+	dymnsmodule "github.com/dymensionxyz/dymension/v3/x/dymns"
+	dymnsmoduleclient "github.com/dymensionxyz/dymension/v3/x/dymns/client"
+	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"

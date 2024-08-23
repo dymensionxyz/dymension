@@ -3,11 +3,15 @@ package types
 import (
 	"errors"
 	"fmt"
+	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
 	"gopkg.in/yaml.v2"
+
+	"github.com/dymensionxyz/dymension/v3/app/params"
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -19,6 +23,13 @@ var (
 	KeyLivenessSlashBlocks   = []byte("LivenessSlashBlocks")
 	KeyLivenessSlashInterval = []byte("LivenessSlashInterval")
 	KeyLivenessJailBlocks    = []byte("LivenessJailBlocks")
+
+	// KeyAppCreationCost defines the key to store the cost of the app
+	KeyAppCreationCost = []byte("KeyAppCreationCost")
+
+	// DYM is 1dym
+	DYM                    = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
+	DefaultAppCreationCost = sdk.NewCoin(params.BaseDenom, DYM)
 )
 
 const (
@@ -42,12 +53,14 @@ func NewParams(
 	livenessSlashBlocks uint64,
 	livenessSlashInterval uint64,
 	livenessJailBlocks uint64,
+	appCreationCost sdk.Coin,
 ) Params {
 	return Params{
 		DisputePeriodInBlocks: disputePeriodInBlocks,
 		LivenessSlashBlocks:   livenessSlashBlocks,
 		LivenessSlashInterval: livenessSlashInterval,
 		LivenessJailBlocks:    livenessJailBlocks,
+		AppCreationCost:       appCreationCost,
 	}
 }
 
@@ -57,6 +70,7 @@ func DefaultParams() Params {
 		DefaultLivenessSlashBlocks,
 		DefaultLivenessSlashInterval,
 		DefaultLivenessJailBlocks,
+		DefaultAppCreationCost,
 	)
 }
 
@@ -67,6 +81,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyLivenessSlashBlocks, &p.LivenessSlashBlocks, validateLivenessSlashBlocks),
 		paramtypes.NewParamSetPair(KeyLivenessSlashInterval, &p.LivenessSlashInterval, validateLivenessSlashInterval),
 		paramtypes.NewParamSetPair(KeyLivenessJailBlocks, &p.LivenessJailBlocks, validateLivenessJailBlocks),
+		paramtypes.NewParamSetPair(KeyAppCreationCost, &p.AppCreationCost, validateAppCreationCost),
 	}
 }
 
@@ -106,6 +121,9 @@ func (p Params) Validate() error {
 		return errorsmod.Wrap(err, "liveness jail blocks")
 	}
 
+	if err := validateAppCreationCost(p.AppCreationCost); err != nil {
+		return errorsmod.Wrap(err, "app creation cost")
+	}
 	return nil
 }
 
@@ -136,6 +154,18 @@ func validateDisputePeriodInBlocks(v interface{}) error {
 
 	if disputePeriodInBlocks < MinDisputePeriodInBlocks {
 		return errors.New("dispute period cannot be lower than 1 block")
+	}
+
+	return nil
+}
+
+func validateAppCreationCost(i interface{}) error {
+	v, ok := i.(sdk.Coin)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if !v.IsValid() {
+		return fmt.Errorf("invalid app creation cost: %s", v)
 	}
 
 	return nil

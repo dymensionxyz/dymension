@@ -1,14 +1,15 @@
 syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+
 import "gogoproto/gogo.proto";
 import "dymensionxyz/dymension/rollapp/params.proto";
 import "dymensionxyz/dymension/rollapp/rollapp.proto";
 import "dymensionxyz/dymension/rollapp/state_info.proto";
 import "dymensionxyz/dymension/rollapp/genesis_transfer.proto";
 import "dymensionxyz/dymension/rollapp/liveness.proto";
-
-option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+import "dymensionxyz/dymension/rollapp/app.proto";
 
 // GenesisState defines the rollapp module's genesis state.
 message GenesisState {
@@ -20,4 +21,5 @@ message GenesisState {
   repeated BlockHeightToFinalizationQueue blockHeightToFinalizationQueueList = 6 [(gogoproto.nullable) = false];
   // LivenessEvents are scheduled upcoming liveness events
   repeated LivenessEvent livenessEvents = 7 [(gogoproto.nullable) = false];
+  repeated App appList = 8 [(gogoproto.nullable) = false];
 }
