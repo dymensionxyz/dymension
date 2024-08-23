@@ -123,7 +123,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			Metadata: &rollapptypes.RollappMetadata{
 				Website:     "https://dymension.xyz",
 				Description: "Sample description",
-				LogoDataUri: "data:image/png;base64,c2lzZQ==",
+				LogoUrl:     "https://dymension.xyz/logo.png",
 				Telegram:    "https://t.me/rolly",
 				X:           "https://x.dymension.xyz",
 			},

@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/url"
@@ -168,8 +167,8 @@ func validateMetadata(metadata *RollappMetadata) error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "tagline too long")
 	}
 
-	if err := validateBaseURI(metadata.LogoDataUri); err != nil {
-		return errorsmod.Wrap(ErrInvalidLogoURI, err.Error())
+	if err := validateURL(metadata.LogoUrl); err != nil {
+		return errorsmod.Wrap(ErrInvalidURL, err.Error())
 	}
 
 	return nil
@@ -186,34 +185,6 @@ func validateURL(urlStr string) error {
 
 	if _, err := url.Parse(urlStr); err != nil {
 		return fmt.Errorf("invalid URL: %w", err)
-	}
-
-	return nil
-}
-
-func validateBaseURI(dataURI string) error {
-	if dataURI == "" {
-		return nil
-	}
-
-	if len(dataURI) > maxDataURILength {
-		return fmt.Errorf("data URI exceeds maximum length")
-	}
-
-	matched := dataUriPattern.MatchString(dataURI)
-	if !matched {
-		return fmt.Errorf("invalid data URI format")
-	}
-
-	commaIndex := strings.Index(dataURI, ",")
-	if commaIndex == -1 {
-		return fmt.Errorf("no comma found in data URI")
-	}
-	base64Data := dataURI[commaIndex+1:]
-
-	_, err := base64.StdEncoding.DecodeString(base64Data)
-	if err != nil {
-		return fmt.Errorf("invalid base64 data: %w", err)
 	}
 
 	return nil

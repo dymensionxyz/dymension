@@ -32,7 +32,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
 					Description: "Sample description",
-					LogoDataUri: "data:image/png;base64,c2lzZQ==",
+					LogoUrl:     "https://dymension.xyz/logo.png",
 					Telegram:    "https://t.me/rolly",
 					X:           "https://x.dymension.xyz",
 				},
@@ -144,7 +144,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			err: gerrc.ErrInvalidArgument,
 		},
 		{
-			name: "invalid metadata: invalid logo data uri",
+			name: "invalid metadata: invalid logo url",
 			msg: MsgCreateRollapp{
 				Creator:          sample.AccAddress(),
 				Bech32Prefix:     bech32Prefix,
@@ -156,10 +156,10 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
 					Description: "Sample description",
-					LogoDataUri: "invalid_uri",
+					LogoUrl:     string(rune(0x7f)),
 				},
 			},
-			err: ErrInvalidLogoURI,
+			err: ErrInvalidURL,
 		},
 		{
 			name: "invalid genesis checksum: too long",
