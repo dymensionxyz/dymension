@@ -151,7 +151,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		Metadata: &rollapptypes.RollappMetadata{
 			Website:     "",
 			Description: "",
-			LogoDataUri: "",
+			LogoUrl:     "",
 			Telegram:    "",
 			X:           "",
 			GenesisUrl:  "",
