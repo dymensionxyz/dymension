@@ -8,8 +8,8 @@ message RollappMetadata {
   string website = 1;
   // description is the rollapp description. should be limited to 512 chars
   string description = 2;
-  // logo_data_uri is a base64 rep with a URI prefix to the rollapp logo. Size limited
-  string logo_data_uri = 3;
+  // logo_url is the rollapp logo url
+  string logo_url = 3;
   // telegram is the rollapp telegram link
   string telegram = 4;
   // x is the rollapp twitter link

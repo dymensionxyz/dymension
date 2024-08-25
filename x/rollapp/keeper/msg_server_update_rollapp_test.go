@@ -139,7 +139,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Metadata: &types.RollappMetadata{
 					Website:     "",
 					Description: "",
-					LogoDataUri: "",
+					LogoUrl:     "",
 					Telegram:    "",
 					X:           "",
 				},
