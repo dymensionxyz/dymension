@@ -3457,6 +3457,14 @@ paths:
                       explorer_url:
                         type: string
                         title: explorer_url is the rollapp's block explorer link
+                      fee_base_denom:
+                        type: string
+                        title: fee_base_denom is the base denom for fees
+                      native_base_denom:
+                        type: string
+                        title: >-
+                          native_base_denom is the base denom for the native
+                          token
                   initial_sequencer:
                     type: string
                     description: >-
@@ -3936,6 +3944,14 @@ paths:
                               title: >-
                                 explorer_url is the rollapp's block explorer
                                 link
+                            fee_base_denom:
+                              type: string
+                              title: fee_base_denom is the base denom for fees
+                            native_base_denom:
+                              type: string
+                              title: >-
+                                native_base_denom is the base denom for the
+                                native token
                         initial_sequencer:
                           type: string
                           description: >-
@@ -4296,6 +4312,14 @@ paths:
                       explorer_url:
                         type: string
                         title: explorer_url is the rollapp's block explorer link
+                      fee_base_denom:
+                        type: string
+                        title: fee_base_denom is the base denom for fees
+                      native_base_denom:
+                        type: string
+                        title: >-
+                          native_base_denom is the base denom for the native
+                          token
                   initial_sequencer:
                     type: string
                     description: >-
@@ -61210,6 +61234,12 @@ definitions:
                     explorer_url:
                       type: string
                       title: explorer_url is the rollapp's block explorer link
+                    fee_base_denom:
+                      type: string
+                      title: fee_base_denom is the base denom for fees
+                    native_base_denom:
+                      type: string
+                      title: native_base_denom is the base denom for the native token
                 initial_sequencer:
                   type: string
                   description: >-
@@ -61509,6 +61539,12 @@ definitions:
               explorer_url:
                 type: string
                 title: explorer_url is the rollapp's block explorer link
+              fee_base_denom:
+                type: string
+                title: fee_base_denom is the base denom for fees
+              native_base_denom:
+                type: string
+                title: native_base_denom is the base denom for the native token
           initial_sequencer:
             type: string
             description: >-
@@ -61855,6 +61891,12 @@ definitions:
           explorer_url:
             type: string
             title: explorer_url is the rollapp's block explorer link
+          fee_base_denom:
+            type: string
+            title: fee_base_denom is the base denom for fees
+          native_base_denom:
+            type: string
+            title: native_base_denom is the base denom for the native token
       initial_sequencer:
         type: string
         description: >-
@@ -61963,6 +62005,12 @@ definitions:
       explorer_url:
         type: string
         title: explorer_url is the rollapp's block explorer link
+      fee_base_denom:
+        type: string
+        title: fee_base_denom is the base denom for fees
+      native_base_denom:
+        type: string
+        title: native_base_denom is the base denom for the native token
   dymensionxyz.dymension.rollapp.RollappSummary:
     type: object
     properties:
