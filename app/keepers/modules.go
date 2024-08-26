@@ -292,7 +292,6 @@ var BeginBlockers = []string{
 }
 
 var EndBlockers = []string{
-	crisistypes.ModuleName,
 	govtypes.ModuleName,
 	stakingtypes.ModuleName,
 	capabilitytypes.ModuleName,
@@ -328,6 +327,7 @@ var EndBlockers = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
+	crisistypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -343,7 +343,6 @@ var InitGenesis = []string{
 	evmtypes.ModuleName,
 	govtypes.ModuleName,
 	minttypes.ModuleName,
-	crisistypes.ModuleName,
 	ibcexported.ModuleName,
 	genutiltypes.ModuleName,
 	evidencetypes.ModuleName,
@@ -367,4 +366,5 @@ var InitGenesis = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
+	crisistypes.ModuleName,
 }
