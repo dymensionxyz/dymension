@@ -18,7 +18,6 @@ type Keeper struct {
 	storeKey        storetypes.StoreKey
 	ibcClientKeeper types.IBCClientKeeperExpected
 	sequencerKeeper types.SequencerKeeperExpected
-	accountKeepr    types.AccountKeeperExpected
 }
 
 func NewKeeper(
@@ -26,43 +25,31 @@ func NewKeeper(
 	storeKey storetypes.StoreKey,
 	ibcKeeper types.IBCClientKeeperExpected,
 	sequencerKeeper types.SequencerKeeperExpected,
-	accountKeeper types.AccountKeeperExpected,
 ) *Keeper {
 	k := &Keeper{
 		cdc:             cdc,
 		storeKey:        storeKey,
 		ibcClientKeeper: ibcKeeper,
 		sequencerKeeper: sequencerKeeper,
-		accountKeepr:    accountKeeper,
 	}
 	return k
 }
 
-// GetTmPubkeyAsBytes returns the tendermint public key as bytes for the given sequencer address in bech32 format
-func (k Keeper) GetTmPubkeyAsBytes(ctx sdk.Context, sequencerAddr string) ([]byte, error) {
-	tmPk, err := k.GetTmPubkey(ctx, sequencerAddr)
-	if err != nil {
-		return nil, err
+// GetSeqeuncerHash returns the seqeuncer's tendermint public key hash
+func (k Keeper) GetSeqeuncerHash(ctx sdk.Context, sequencerAddr string) ([]byte, error) {
+	seq, found := k.sequencerKeeper.GetSequencer(ctx, sequencerAddr)
+	if !found {
+		return nil, fmt.Errorf("sequencer not found")
 	}
-	tmPkBytes, err := tmPk.Marshal()
-	return tmPkBytes, err
+	return seq.GetDymintPubKeyHash()
 }
 
-// GetTmPubkey returns the tendermint public key for the given sequencer address in bech32 format
-func (k Keeper) GetTmPubkey(ctx sdk.Context, sequencerAddr string) (tmprotocrypto.PublicKey, error) {
-	acc, err := sdk.AccAddressFromBech32(sequencerAddr)
-	if err != nil {
-		return tmprotocrypto.PublicKey{}, err
+func (k Keeper) GetSequencerPubKey(ctx sdk.Context, sequencerAddr string) ([]byte, error) {
+	seq, found := k.sequencerKeeper.GetSequencer(ctx, sequencerAddr)
+	if !found {
+		return nil, fmt.Errorf("sequencer not found")
 	}
-	pk, err := k.accountKeepr.GetPubKey(ctx, acc)
-	if err != nil {
-		return tmprotocrypto.PublicKey{}, err
-	}
-	tmPk, err := cryptocodec.ToTmProtoPublicKey(pk)
-	if err != nil {
-		return tmprotocrypto.PublicKey{}, err
-	}
-	return tmPk, nil
+	return seq.GetDymintPubKeyBytes()
 }
 
 // getAddress converts a tendermint public key to a bech32 address
@@ -99,18 +86,18 @@ func (k Keeper) SetCanonicalClient(ctx sdk.Context, rollappId string, clientID s
 	store.Set(types.CanonicalClientKey(clientID), []byte(rollappId))
 }
 
-func (k Keeper) SetConsensusStateSigner(ctx sdk.Context, clientID string, height uint64, sequencer string) {
+func (k Keeper) SetConsensusStateSigner(ctx sdk.Context, clientID string, height uint64, sequencer []byte) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.ConsensusStateSignerKeyByClientID(clientID, height), []byte(sequencer))
+	store.Set(types.ConsensusStateSignerKeyByClientID(clientID, height), sequencer)
 }
 
-func (k Keeper) GetConsensusStateSigner(ctx sdk.Context, clientID string, height uint64) (string, bool) {
+func (k Keeper) GetConsensusStateSigner(ctx sdk.Context, clientID string, height uint64) ([]byte, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.ConsensusStateSignerKeyByClientID(clientID, height))
 	if bz == nil {
-		return "", false
+		return []byte{}, false
 	}
-	return string(bz), true
+	return bz, true
 }
 
 func (k Keeper) GetRollappForClientID(ctx sdk.Context, clientID string) (string, bool) {

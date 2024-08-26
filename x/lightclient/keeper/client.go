@@ -30,7 +30,7 @@ func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string,
 			if tmClientState.ChainId == rollappId {
 				// Check if the client params match the expected params for a canonical client
 				if types.IsCanonicalClientParamsValid(tmClientState) {
-					sequencerPk, err := k.GetTmPubkeyAsBytes(ctx, stateInfo.Sequencer)
+					sequencerPk, err := k.GetSequencerPubKey(ctx, stateInfo.Sequencer)
 					if err != nil {
 						continue
 					}

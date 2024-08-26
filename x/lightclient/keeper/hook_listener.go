@@ -60,11 +60,11 @@ func (hook rollappHook) AfterUpdateState(
 		ibcState := types.IBCState{
 			Root:               tmConsensusState.GetRoot().GetHash(),
 			Height:             bd.GetHeight(),
-			Validator:          []byte(tmHeaderSigner),
+			Validator:          tmHeaderSigner,
 			NextValidatorsHash: tmConsensusState.NextValidatorsHash,
 			Timestamp:          time.Unix(0, int64(tmConsensusState.GetTimestamp())),
 		}
-		sequencerPk, err := hook.k.GetTmPubkeyAsBytes(ctx, stateInfo.Sequencer)
+		sequencerPk, err := hook.k.GetSeqeuncerHash(ctx, stateInfo.Sequencer)
 		if err != nil {
 			return err
 		}
@@ -90,7 +90,7 @@ func (hook rollappHook) AfterUpdateState(
 			// If the state is not compatible,
 			// Take this state update as source of truth over the IBC update
 			// Punish the block proposer of the IBC signed header
-			sequencerAddr, err := hook.k.getAddress([]byte(tmHeaderSigner))
+			sequencerAddr, err := hook.k.getAddress(tmHeaderSigner)
 			if err != nil {
 				return err
 			}

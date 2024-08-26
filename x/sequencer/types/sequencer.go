@@ -61,3 +61,24 @@ func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {
 	tmValidatorSet := cometbfttypes.NewValidatorSet([]*cometbfttypes.Validator{tmValidator})
 	return tmValidatorSet.Hash(), nil
 }
+
+// GetDymintPubKeyBytes returns the bytes of the sequencer's dymint pubkey
+func (seq Sequencer) GetDymintPubKeyBytes() ([]byte, error) {
+	interfaceRegistry := cdctypes.NewInterfaceRegistry()
+	cryptocodec.RegisterInterfaces(interfaceRegistry)
+	protoCodec := codec.NewProtoCodec(interfaceRegistry)
+
+	var pubKey cryptotypes.PubKey
+	err := protoCodec.UnpackAny(seq.DymintPubKey, &pubKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// convert the pubkey to tmPubKey
+	tmPubKey, err := cryptocodec.ToTmProtoPublicKey(pubKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return tmPubKey.Marshal()
+}

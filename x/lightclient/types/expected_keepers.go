@@ -1,17 +1,18 @@
 package types
 
 import (
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
 	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 type SequencerKeeperExpected interface {
-	JailSequencerOnFraud(ctx sdk.Context, seqAddr string) error
+	JailSequencerOnFraud(ctx sdk.Context, sequencerAddress string) error
+	GetSequencer(ctx sdk.Context, sequencerAddress string) (val sequencertypes.Sequencer, found bool)
 }
 
 type RollappKeeperExpected interface {
@@ -31,8 +32,4 @@ type IBCClientKeeperExpected interface {
 type IBCChannelKeeperExpected interface {
 	GetChannel(ctx sdk.Context, portID, channelID string) (channel ibcchanneltypes.Channel, found bool)
 	GetChannelConnection(ctx sdk.Context, portID, channelID string) (string, exported.ConnectionI, error)
-}
-
-type AccountKeeperExpected interface {
-	GetPubKey(ctx sdk.Context, addr sdk.AccAddress) (cryptotypes.PubKey, error)
 }

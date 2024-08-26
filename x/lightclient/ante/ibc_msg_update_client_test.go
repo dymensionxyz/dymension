@@ -4,11 +4,7 @@ import (
 	"testing"
 	"time"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
-
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	cmttypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -128,7 +124,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 				require.NoError(t, err)
 				signer, found := k.GetConsensusStateSigner(ctx, "canon-client-id", 1)
 				require.True(t, found)
-				require.Equal(t, "sequencerAddr", signer)
+				require.Equal(t, []byte("sequencerAddr"), signer)
 			},
 		},
 		{
@@ -203,28 +199,22 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 			name: "Ensure state is compatible - happy path",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
 				sequencer := keepertest.Alice
-				proposerAddr, err := k.GetTmPubkeyAsBytes(ctx, sequencer)
+				proposerAddr, err := k.GetSequencerPubKey(ctx, sequencer)
 				require.NoError(t, err)
 				blocktimestamp := time.Unix(1724392989, 0)
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
 				var (
 					valSet      *cmtproto.ValidatorSet
 					trustedVals *cmtproto.ValidatorSet
-					nextVals    cmttypes.ValidatorSet
 				)
-				var tmpk tmprotocrypto.PublicKey
-				err = tmpk.Unmarshal(proposerAddr)
-				require.NoError(t, err)
-				updates, err := cmttypes.PB2TM.ValidatorUpdates([]abci.ValidatorUpdate{{Power: 1, PubKey: tmpk}})
-				require.NoError(t, err)
-				err = nextVals.UpdateWithChangeSet(updates)
+				nextValsHash, err := k.GetSeqeuncerHash(ctx, sequencer)
 				require.NoError(t, err)
 				signedHeader := &cmtproto.SignedHeader{
 					Header: &cmtproto.Header{
 						AppHash:            []byte("appHash"),
 						ProposerAddress:    proposerAddr,
 						Time:               blocktimestamp,
-						NextValidatorsHash: nextVals.Hash(),
+						NextValidatorsHash: nextValsHash,
 					},
 					Commit: &cmtproto.Commit{},
 				}

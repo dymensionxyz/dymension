@@ -7,23 +7,21 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	cometbftdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/libs/math"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,14 +42,17 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
 	sequencerPubKey := ed25519.GenPrivKey().PubKey()
-	tmPk, err := cryptocodec.ToTmProtoPublicKey(sequencerPubKey)
+	tmPk, err := codectypes.NewAnyWithValue(sequencerPubKey)
 	require.NoError(t, err)
-	tmPkBytes, err := tmPk.Marshal()
+
+	testSequencer := sequencertypes.Sequencer{
+		Address:      Alice,
+		DymintPubKey: tmPk,
+	}
+	nextValHash, err := testSequencer.GetDymintPubKeyHash()
 	require.NoError(t, err)
-	nextValHash, err := types.GetValHashForSequencer(tmPkBytes)
-	require.NoError(t, err)
-	testPubKeys := map[string]cryptotypes.PubKey{
-		Alice: sequencerPubKey,
+	testSequencers := map[string]sequencertypes.Sequencer{
+		Alice: testSequencer,
 	}
 	testConsensusStates := map[string]map[uint64]exported.ConsensusState{
 		"canon-client-id": {
@@ -77,14 +78,12 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	}
 
 	mockIBCKeeper := NewMockIBCClientKeeper(testConsensusStates, testGenesisClients)
-	mockSequencerKeeper := NewMockSequencerKeeper()
-	mockAccountKeeper := NewMockAccountKeeper(testPubKeys)
+	mockSequencerKeeper := NewMockSequencerKeeper(testSequencers)
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
 		mockIBCKeeper,
 		mockSequencerKeeper,
-		mockAccountKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, cometbftproto.Header{}, false, log.NewNopLogger())
@@ -121,30 +120,21 @@ func (m *MockIBCCLientKeeper) GetAllGenesisClients(ctx sdk.Context) ibcclienttyp
 	return m.genesisClients
 }
 
-type MockSequencerKeeper struct{}
+type MockSequencerKeeper struct {
+	sequencers map[string]sequencertypes.Sequencer
+}
 
-func NewMockSequencerKeeper() *MockSequencerKeeper {
-	return &MockSequencerKeeper{}
+func NewMockSequencerKeeper(sequencers map[string]sequencertypes.Sequencer) *MockSequencerKeeper {
+	return &MockSequencerKeeper{
+		sequencers: sequencers,
+	}
 }
 
 func (m *MockSequencerKeeper) JailSequencerOnFraud(ctx sdk.Context, seqAddr string) error {
 	return nil
 }
 
-type MockAccountKeeper struct {
-	pubkeys map[string]cryptotypes.PubKey
-}
-
-func NewMockAccountKeeper(pubkeys map[string]cryptotypes.PubKey) *MockAccountKeeper {
-	return &MockAccountKeeper{
-		pubkeys: pubkeys,
-	}
-}
-
-func (m *MockAccountKeeper) GetPubKey(ctx sdk.Context, addr sdk.AccAddress) (cryptotypes.PubKey, error) {
-	pubkey, ok := m.pubkeys[addr.String()]
-	if !ok {
-		return nil, sdkerrors.ErrUnknownAddress
-	}
-	return pubkey, nil
+func (m *MockSequencerKeeper) GetSequencer(ctx sdk.Context, seqAddr string) (sequencertypes.Sequencer, bool) {
+	seq, ok := m.sequencers[seqAddr]
+	return seq, ok
 }
