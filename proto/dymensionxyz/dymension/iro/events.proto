@@ -1,0 +1,58 @@
+syntax = "proto3";
+package dymensionxyz.dymension.iro;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/protobuf/timestamp.proto";
+import "dymensionxyz/dymension/iro/iro.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/iro/types";
+
+message EventUpdateParams {
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  Params new_params = 2 [ (gogoproto.nullable) = false ];
+  Params old_params = 3 [ (gogoproto.nullable) = false ];
+}
+
+
+message EventNewIROPlan {
+  string creator = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string plan_id = 2;
+  string rollapp_id = 3;
+  string denom = 4;
+  google.protobuf.Timestamp start_time = 5;
+  google.protobuf.Timestamp end_time = 6;
+  uint64 total_amount = 7;
+}
+
+
+message EventBuy {
+  string buyer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string plan_id = 2;
+  string rollapp_id = 3;
+  uint64 amount = 4;
+}
+
+message EventSell {
+  string seller = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string plan_id = 2;
+  string rollapp_id = 3;
+
+  uint64 amount = 4;
+}
+
+message EventClaim {
+  string claimer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string plan_id = 2;
+  string rollapp_id = 3;
+  int64 amount = 4;
+}
+
+
+
+message EventSettle {
+  string settler = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string plan_id = 2;
+  string rollapp_id = 3;
+  int64 amount = 4;
+}

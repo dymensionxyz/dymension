@@ -1,0 +1,16 @@
+syntax = "proto3";
+package dymensionxyz.dymension.iro;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "dymensionxyz/dymension/iro/iro.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/iro/types";
+
+// GenesisState defines the sponsorship module's genesis state.
+message GenesisState {
+  // Params defines params for x/sponsorship module.
+  Params params = 1 [ (gogoproto.nullable) = false ];
+  // VoterInfos hold information about voters.
+  repeated Plan plan = 2 [ (gogoproto.nullable) = false ];
+}

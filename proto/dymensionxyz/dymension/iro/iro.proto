@@ -1,0 +1,48 @@
+syntax = "proto3";
+package dymensionxyz.dymension.iro;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/iro/types";
+
+// Params is a module parameters.
+message Params {
+  string taker_fee = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.moretags) = "yaml:\"taker_fee\"",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// Plan represents a plan in the IRO module.
+message Plan {
+  // The address of the plan owner.
+  string owner = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // The ID of the rollapp.
+  string rollapp_id = 2;
+
+  // The module account address (optional).
+  string module_acc_address = 3 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // The total amount of tokens allocated for the IRO.
+  cosmos.base.v1beta1.Coin total_allocation = 4 [(gogoproto.nullable) = false];
+
+  // Indicates whether the IRO has settled.
+  bool settled = 5;
+
+  // The start time of the plan.
+  google.protobuf.Timestamp start_time = 6;
+
+  // The end time of the plan.
+  google.protobuf.Timestamp end_time = 7;
+
+  // The amount of tokens sold so far.
+  uint64 sold_amt = 8;
+
+  // The amount of tokens claimed so far.
+  uint64 claimed_amt = 9;
+}
