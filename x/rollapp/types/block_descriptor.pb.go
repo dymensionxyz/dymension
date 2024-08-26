@@ -33,7 +33,7 @@ type BlockDescriptor struct {
 	Height uint64 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
 	// stateRoot is a 32 byte array of the hash of the block (state root of the block)
 	StateRoot []byte `protobuf:"bytes,2,opt,name=stateRoot,proto3" json:"stateRoot,omitempty"`
-	// timestamp is the time of the block finalization
+	// timestamp is the time from the block header
 	Timestamp time.Time `protobuf:"bytes,3,opt,name=timestamp,proto3,stdtime" json:"timestamp"`
 }
 

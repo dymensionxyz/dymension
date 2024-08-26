@@ -17,19 +17,20 @@ func (i IBCMessagesDecorator) HandleMsgChannelOpenAck(ctx sdk.Context, msg *ibcc
 		return err
 	}
 	rollappID, found := i.lightClientKeeper.GetRollappForClientID(ctx, connection.GetClientID())
-	if found {
-		// Check if canon channel already exists for rollapp, if yes, return err
-		rollapp, found := i.rollappKeeper.GetRollapp(ctx, rollappID)
-		if !found {
-			return nil
-		}
-		if rollapp.ChannelId != "" {
-			// canonical channel already exists, return error
-			return errorsmod.Wrap(ibcchanneltypes.ErrChannelExists, "cannot create a new channel when a canonical channel already exists for the rollapp")
-		}
-		// Set this channel as the canonical channel for the rollapp
-		rollapp.ChannelId = msg.ChannelId
-		i.rollappKeeper.SetRollapp(ctx, rollapp)
+	if !found {
+		return nil
 	}
+	// Check if canon channel already exists for rollapp, if yes, return err
+	rollapp, found := i.rollappKeeper.GetRollapp(ctx, rollappID)
+	if !found {
+		return nil
+	}
+	if rollapp.ChannelId != "" {
+		return errorsmod.Wrap(ibcchanneltypes.ErrChannelExists, "cannot create a new channel when a canonical channel already exists for the rollapp")
+	}
+	// Set this channel as the canonical channel for the rollapp
+	rollapp.ChannelId = msg.ChannelId
+	i.rollappKeeper.SetRollapp(ctx, rollapp)
+
 	return nil
 }

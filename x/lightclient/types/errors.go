@@ -1,10 +1,11 @@
 package types
 
 import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var (
-	ErrTimestampNotFound          = sdkerrors.Register(ModuleName, 2, "block descriptors do not contain block timestamp")
-	ErrNextBlockDescriptorMissing = sdkerrors.Register(ModuleName, 3, "next block descriptor is missing")
+	ErrTimestampNotFound          = errorsmod.Wrap(gerrc.ErrNotFound, "block descriptors do not contain block timestamp")
+	ErrNextBlockDescriptorMissing = errorsmod.Wrap(gerrc.ErrNotFound, "next block descriptor is missing")
 )

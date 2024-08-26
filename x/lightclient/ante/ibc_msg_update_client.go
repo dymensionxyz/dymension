@@ -86,7 +86,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 			}
 		}
 		// Ensure that the ibc header is compatible with the existing rollapp state
-		// If its not, we error and prevent the MsgUpdateClient from being processed
+		// If it's not, we error and prevent the MsgUpdateClient from being processed
 		err = types.CheckCompatibility(ibcState, rollappState)
 		if err != nil {
 			return err

@@ -6,7 +6,6 @@ import (
 
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -71,10 +70,6 @@ func (m *MockIBCClientKeeper) GetClientState(ctx sdk.Context, clientID string) (
 	return val, found
 }
 
-func (m *MockIBCClientKeeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) string {
-	return "new-canon-client-1"
-}
-
 func (m *MockIBCClientKeeper) GetAllGenesisClients(ctx sdk.Context) ibcclienttypes.IdentifiedClientStates {
 	return nil
 }
@@ -87,10 +82,6 @@ func NewMockIBCChannelKeeper(connections map[string]ibcconnectiontypes.Connectio
 	return &MockIBCChannelKeeper{
 		channelConnections: connections,
 	}
-}
-
-func (m *MockIBCChannelKeeper) GetChannel(ctx sdk.Context, portID, channelID string) (channel ibcchanneltypes.Channel, found bool) {
-	return ibcchanneltypes.Channel{}, false
 }
 
 func (m *MockIBCChannelKeeper) GetChannelConnection(ctx sdk.Context, portID, channelID string) (string, exported.ConnectionI, error) {
