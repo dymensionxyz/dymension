@@ -44,7 +44,7 @@ func IsCanonicalClientParamsValid(clientState *ibctm.ClientState) bool {
 	if clientState.UnbondingPeriod > ExpectedCanonicalClientParams.UnbondingPeriod {
 		return false
 	}
-	if clientState.MaxClockDrift < ExpectedCanonicalClientParams.MaxClockDrift {
+	if clientState.MaxClockDrift > ExpectedCanonicalClientParams.MaxClockDrift {
 		return false
 	}
 	if clientState.AllowUpdateAfterExpiry != ExpectedCanonicalClientParams.AllowUpdateAfterExpiry {
