@@ -22,4 +22,8 @@ message RollappMetadata {
   string tagline = 8;
   // token_symbol is the native token symbol
   string token_symbol = 9;
+  // fee_base_denom is the base denom for fees
+  string fee_base_denom = 10;
+  // native_base_denom is the base denom for the native token
+  string native_base_denom = 11;
 }
