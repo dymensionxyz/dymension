@@ -178,7 +178,8 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				VmType:           Rollapp_EVM,
 			},
 			err: ErrInvalidGenesisChecksum,
-		}, {
+		},
+		{
 			name: "invalid explorer url",
 			msg: MsgCreateRollapp{
 				Creator:          sample.AccAddress(),
