@@ -32,8 +32,6 @@ var (
 	ErrInvalidAlias                    = errorsmod.Wrap(gerrc.ErrInvalidArgument, "alias")
 	ErrInvalidURL                      = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid url")
 	ErrInvalidDescription              = errorsmod.Wrap(gerrc.ErrInvalidArgument, "description")
-	ErrInvalidLogoURI                  = errorsmod.Wrap(gerrc.ErrInvalidArgument, "logo uri")
-	ErrInvalidTokenLogoURI             = errorsmod.Wrap(gerrc.ErrInvalidArgument, "token logo uri")
 	ErrInvalidMetadata                 = errorsmod.Wrap(gerrc.ErrInvalidArgument, "metadata")
 	ErrImmutableFieldUpdateAfterSealed = errorsmod.Wrap(gerrc.ErrInvalidArgument, "update immutable field after rollapp sealed")
 	ErrUnauthorizedSigner              = errorsmod.Wrap(gerrc.ErrPermissionDenied, "unauthorized signer")
