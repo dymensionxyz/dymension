@@ -19,7 +19,7 @@ func (i IBCMessagesDecorator) HandleMsgSubmitMisbehaviour(ctx sdk.Context, msg *
 	}
 	// Check if the client is the canonical client for a rollapp
 	rollappID := tendmermintClientState.ChainId
-	canonicalClient, found := i.lightClientKeeper.GetCanonicalClient(ctx, rollappID)
+	canonicalClient, _ := i.lightClientKeeper.GetCanonicalClient(ctx, rollappID)
 	if canonicalClient == msg.ClientId {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidClient, "cannot submit misbehavour for a canonical client")
 	}
