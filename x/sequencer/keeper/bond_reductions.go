@@ -121,8 +121,8 @@ func (k Keeper) removeBondReduction(ctx sdk.Context, bondReductionID uint64, bon
 	store.Delete(types.GetDecreasingBondIndexKey(bondReductionID))
 }
 
-// getBondReductionsBySequencer returns the bond reduction item given sequencer address
-func (k Keeper) getBondReductionsBySequencer(ctx sdk.Context, sequencerAddr string) (bondReductions []types.BondReduction) {
+// GetBondReductionsBySequencer returns the bond reduction item given sequencer address
+func (k Keeper) GetBondReductionsBySequencer(ctx sdk.Context, sequencerAddr string) (bondReductions []types.BondReduction) {
 	bondReductionIDs := k.getBondReductionIDsBySequencer(ctx, sequencerAddr)
 	for _, bondReductionID := range bondReductionIDs {
 		bd, found := k.GetBondReduction(ctx, bondReductionID)
