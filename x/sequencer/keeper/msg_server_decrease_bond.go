@@ -17,7 +17,7 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 	}
 
 	effectiveBond := sequencer.Tokens
-	if bds := k.getSequencerDecreasingBonds(ctx, msg.Creator); len(bds) > 0 {
+	if bds := k.getBondReductionsBySequencer(ctx, msg.Creator); len(bds) > 0 {
 		for _, bd := range bds {
 			effectiveBond = effectiveBond.Sub(bd.DecreaseBondAmount)
 		}
