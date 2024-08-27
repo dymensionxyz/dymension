@@ -4,6 +4,8 @@ import (
 	"errors"
 	"time"
 
+	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
@@ -59,7 +61,6 @@ func (hook rollappHook) AfterUpdateState(
 		}
 		ibcState := types.IBCState{
 			Root:               tmConsensusState.GetRoot().GetHash(),
-			Height:             bd.GetHeight(),
 			ValidatorsHash:     tmHeaderSigner,
 			NextValidatorsHash: tmConsensusState.NextValidatorsHash,
 			Timestamp:          time.Unix(0, int64(tmConsensusState.GetTimestamp())),
@@ -90,7 +91,7 @@ func (hook rollappHook) AfterUpdateState(
 			// If the state is not compatible,
 			// Take this state update as source of truth over the IBC update
 			// Punish the block proposer of the IBC signed header
-			sequencerAddr, err := hook.k.getAddress(tmHeaderSigner)
+			sequencerAddr, err := getAddress(tmHeaderSigner)
 			if err != nil {
 				return err
 			}
@@ -101,4 +102,19 @@ func (hook rollappHook) AfterUpdateState(
 		}
 	}
 	return nil
+}
+
+// getAddress converts a tendermint public key to a bech32 address
+func getAddress(tmPubkeyBz []byte) (string, error) {
+	var tmpk tmprotocrypto.PublicKey
+	err := tmpk.Unmarshal(tmPubkeyBz)
+	if err != nil {
+		return "", err
+	}
+	pubkey, err := cryptocodec.FromTmProtoPublicKey(tmpk)
+	if err != nil {
+		return "", err
+	}
+	acc := sdk.AccAddress(pubkey.Address().Bytes())
+	return acc.String(), nil
 }

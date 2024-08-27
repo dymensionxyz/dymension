@@ -46,6 +46,11 @@ func (s *StateInfo) GetBlockDescriptor(height uint64) (BlockDescriptor, bool) {
 	return s.BDs.BD[height-s.StartHeight], true
 }
 
+func (s *StateInfo) GetLatestBlockDescriptor() BlockDescriptor {
+	//return s.BDs.BD[s.NumBlocks-1] // todo: should it be this? or the one below? using this breaks ibctesting tests
+	return s.BDs.BD[len(s.BDs.BD)-1]
+}
+
 func (s *StateInfo) GetEvents() []sdk.Attribute {
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(AttributeKeyRollappId, s.StateInfoIndex.RollappId),

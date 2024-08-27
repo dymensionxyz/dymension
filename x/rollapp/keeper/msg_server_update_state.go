@@ -44,7 +44,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		}
 
 		// check if previous state last block desc has timestamp
-		lastBD := stateInfo.BDs.BD[len(stateInfo.BDs.BD)-1]
+		lastBD := stateInfo.GetLatestBlockDescriptor()
 		previousStateHasTimestamp = !lastBD.Timestamp.IsZero()
 
 		// check to see if received height is the one we expected

@@ -8,6 +8,7 @@ import (
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
 )
 
@@ -70,7 +71,7 @@ func TestHandleMsgChannelOpenAck(t *testing.T) {
 				PortId:    "transfer",
 				ChannelId: "new-channel-on-canon-client",
 			},
-			err:            ibcchanneltypes.ErrChannelExists,
+			err:            gerrc.ErrFailedPrecondition,
 			canonClientSet: false,
 		},
 		{

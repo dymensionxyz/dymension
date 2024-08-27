@@ -5,9 +5,7 @@ import (
 
 	"github.com/cometbft/cometbft/libs/log"
 
-	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/cosmos/cosmos-sdk/codec"
-	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
@@ -50,21 +48,6 @@ func (k Keeper) GetSequencerPubKey(ctx sdk.Context, sequencerAddr string) ([]byt
 		return nil, fmt.Errorf("sequencer not found")
 	}
 	return seq.GetDymintPubKeyBytes()
-}
-
-// getAddress converts a tendermint public key to a bech32 address
-func (k Keeper) getAddress(tmPubkeyBz []byte) (string, error) {
-	var tmpk tmprotocrypto.PublicKey
-	err := tmpk.Unmarshal(tmPubkeyBz)
-	if err != nil {
-		return "", err
-	}
-	pubkey, err := cryptocodec.FromTmProtoPublicKey(tmpk)
-	if err != nil {
-		return "", err
-	}
-	acc := sdk.AccAddress(pubkey.Address().Bytes())
-	return acc.String(), nil
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

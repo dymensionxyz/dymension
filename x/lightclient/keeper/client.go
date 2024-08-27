@@ -47,7 +47,6 @@ func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string,
 						}
 						ibcState := types.IBCState{
 							Root:               tmConsensusState.GetRoot().GetHash(),
-							Height:             height.GetRevisionHeight(),
 							NextValidatorsHash: tmConsensusState.NextValidatorsHash,
 							Timestamp:          time.Unix(0, int64(tmConsensusState.GetTimestamp())),
 						}

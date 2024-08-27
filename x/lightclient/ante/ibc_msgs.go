@@ -1,6 +1,7 @@
 package ante
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -32,15 +33,15 @@ func (i IBCMessagesDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		switch msg := m.(type) {
 		case *ibcclienttypes.MsgSubmitMisbehaviour:
 			if err := i.HandleMsgSubmitMisbehaviour(ctx, msg); err != nil {
-				return ctx, err
+				return ctx, errorsmod.Wrap(err, "failed to handle MsgSubmitMisbehaviour")
 			}
 		case *ibcclienttypes.MsgUpdateClient:
 			if err := i.HandleMsgUpdateClient(ctx, msg); err != nil {
-				return ctx, err
+				return ctx, errorsmod.Wrap(err, "failed to handle MsgUpdateClient")
 			}
 		case *ibcchanneltypes.MsgChannelOpenAck:
 			if err := i.HandleMsgChannelOpenAck(ctx, msg); err != nil {
-				return ctx, err
+				return ctx, errorsmod.Wrap(err, "failed to handle MsgChannelOpenAck")
 			}
 		default:
 			continue

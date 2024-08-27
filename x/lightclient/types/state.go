@@ -74,8 +74,6 @@ func GetValHashForSequencer(sequencerTmPubKeyBz []byte) ([]byte, error) {
 type IBCState struct {
 	// Root is the app root shared by the IBC consensus state
 	Root []byte
-	// Height is the block height of the IBC consensus state the root is at
-	Height uint64
 	// ValidatorsHash is the tendermint pubkey of signer of the block header
 	ValidatorsHash []byte
 	// NextValidatorsHash is the hash of the next validator set for the next block

@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func (i IBCMessagesDecorator) HandleMsgChannelOpenAck(ctx sdk.Context, msg *ibcchanneltypes.MsgChannelOpenAck) error {
@@ -23,10 +24,10 @@ func (i IBCMessagesDecorator) HandleMsgChannelOpenAck(ctx sdk.Context, msg *ibcc
 	// Check if canon channel already exists for rollapp, if yes, return err
 	rollapp, found := i.rollappKeeper.GetRollapp(ctx, rollappID)
 	if !found {
-		return nil
+		return errorsmod.Wrap(gerrc.ErrInternal, "rollapp not found")
 	}
 	if rollapp.ChannelId != "" {
-		return errorsmod.Wrap(ibcchanneltypes.ErrChannelExists, "cannot create a new channel when a canonical channel already exists for the rollapp")
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "canonical channel already exists for the rollapp")
 	}
 	// Set this channel as the canonical channel for the rollapp
 	rollapp.ChannelId = msg.ChannelId
