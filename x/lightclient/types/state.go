@@ -20,7 +20,8 @@ func CheckCompatibility(ibcState IBCState, raState RollappState) error {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "block descriptor state root does not match tendermint header app hash")
 	}
 	// Check if the validator pubkey matches the sequencer pubkey
-	if len(ibcState.Validator) > 0 && !bytes.Equal(ibcState.Validator, raState.BlockSequencer) {
+	// The ValidatorsHash is only available when the block header is submitted (i.e only during MsgUpdateClient)
+	if len(ibcState.ValidatorsHash) > 0 && !bytes.Equal(ibcState.ValidatorsHash, raState.BlockSequencer) {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "validator does not match the sequencer")
 	}
 	if len(raState.NextBlockSequencer) == 0 {
@@ -70,8 +71,8 @@ type IBCState struct {
 	Root []byte
 	// Height is the block height of the IBC consensus state the root is at
 	Height uint64
-	// Validator is the tendermint pubkey of signer of the block header
-	Validator []byte
+	// ValidatorsHash is the tendermint pubkey of signer of the block header
+	ValidatorsHash []byte
 	// NextValidatorsHash is the hash of the next validator set for the next block
 	NextValidatorsHash []byte
 	// Timestamp is the block timestamp of the header
