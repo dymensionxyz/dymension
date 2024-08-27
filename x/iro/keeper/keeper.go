@@ -7,8 +7,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 )
 
 type Keeper struct {
@@ -16,6 +18,10 @@ type Keeper struct {
 
 	cdc      codec.BinaryCodec
 	storeKey storetypes.StoreKey
+
+	//FIXME: change to expected keeper
+	rk rollappkeeper.Keeper
+	bk bankkeeper.Keeper
 }
 
 func NewKeeper(

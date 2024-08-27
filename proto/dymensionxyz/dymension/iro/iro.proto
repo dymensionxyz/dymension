@@ -23,39 +23,36 @@ message Plan {
   // The ID of the plan.
   uint64 id = 1;
 
-  // The address of the plan owner.
-  string owner = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-
   // The ID of the rollapp.
-  string rollapp_id = 3;
+  string rollapp_id = 2;
 
   // The module account address (optional).
-  string module_acc_address = 4
+  string module_acc_address = 3
       [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
   // The total amount of tokens allocated for the IRO.
-  cosmos.base.v1beta1.Coin total_allocation = 5
+  cosmos.base.v1beta1.Coin total_allocation = 4
       [ (gogoproto.nullable) = false ];
 
   // Indicates whether the IRO has settled.
-  bool settled = 6;
+  bool settled = 5;
 
   // The start time of the plan.
-  google.protobuf.Timestamp start_time = 7
+  google.protobuf.Timestamp start_time = 6
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
   // The end time of the plan.
-  google.protobuf.Timestamp end_time = 8
+  google.protobuf.Timestamp end_time = 7
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
   // The amount of tokens sold so far.
-  string sold_amt = 9 [
+  string sold_amt = 8 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
 
   // The amount of tokens claimed so far.
-  string claimed_amt = 10 [
+  string claimed_amt = 9 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
