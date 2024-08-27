@@ -116,5 +116,5 @@ message QueryClaimedRequest {
 
 // QueryClaimedResponse is the response type for the Query/QueryClaimed RPC method.
 message QueryClaimedResponse {
-  uint64 claimed_amt = 1;
+  string claimed_amt = 1 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"];
 }

@@ -57,10 +57,10 @@ message MsgCreatePlan {
   cosmos.base.v1beta1.Coin allocated_amount = 3;
 
   // The start time of the plan.
-  google.protobuf.Timestamp start_time = 4;
+  google.protobuf.Timestamp start_time = 4 [ (gogoproto.stdtime) = true ];
 
   // The end time of the plan.
-  google.protobuf.Timestamp end_time = 5;
+  google.protobuf.Timestamp end_time = 5 [ (gogoproto.stdtime) = true ];
 }
 
 message MsgCreatePlanResponse {}

@@ -6,9 +6,10 @@ package types
 import (
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -86,13 +87,9 @@ func (m *EventUpdateParams) GetOldParams() Params {
 }
 
 type EventNewIROPlan struct {
-	Creator     string                 `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
-	PlanId      string                 `protobuf:"bytes,2,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
-	RollappId   string                 `protobuf:"bytes,3,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
-	Denom       string                 `protobuf:"bytes,4,opt,name=denom,proto3" json:"denom,omitempty"`
-	StartTime   *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
-	EndTime     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
-	TotalAmount uint64                 `protobuf:"varint,7,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
+	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	PlanId  string `protobuf:"bytes,2,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
+	Plan    *Plan  `protobuf:"bytes,3,opt,name=plan,proto3" json:"plan,omitempty"`
 }
 
 func (m *EventNewIROPlan) Reset()         { *m = EventNewIROPlan{} }
@@ -142,46 +139,18 @@ func (m *EventNewIROPlan) GetPlanId() string {
 	return ""
 }
 
-func (m *EventNewIROPlan) GetRollappId() string {
+func (m *EventNewIROPlan) GetPlan() *Plan {
 	if m != nil {
-		return m.RollappId
-	}
-	return ""
-}
-
-func (m *EventNewIROPlan) GetDenom() string {
-	if m != nil {
-		return m.Denom
-	}
-	return ""
-}
-
-func (m *EventNewIROPlan) GetStartTime() *timestamppb.Timestamp {
-	if m != nil {
-		return m.StartTime
+		return m.Plan
 	}
 	return nil
-}
-
-func (m *EventNewIROPlan) GetEndTime() *timestamppb.Timestamp {
-	if m != nil {
-		return m.EndTime
-	}
-	return nil
-}
-
-func (m *EventNewIROPlan) GetTotalAmount() uint64 {
-	if m != nil {
-		return m.TotalAmount
-	}
-	return 0
 }
 
 type EventBuy struct {
-	Buyer     string `protobuf:"bytes,1,opt,name=buyer,proto3" json:"buyer,omitempty"`
-	PlanId    string `protobuf:"bytes,2,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
-	RollappId string `protobuf:"bytes,3,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
-	Amount    uint64 `protobuf:"varint,4,opt,name=amount,proto3" json:"amount,omitempty"`
+	Buyer     string                                 `protobuf:"bytes,1,opt,name=buyer,proto3" json:"buyer,omitempty"`
+	PlanId    string                                 `protobuf:"bytes,2,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
+	RollappId string                                 `protobuf:"bytes,3,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
+	Amount    github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=amount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"amount"`
 }
 
 func (m *EventBuy) Reset()         { *m = EventBuy{} }
@@ -238,18 +207,11 @@ func (m *EventBuy) GetRollappId() string {
 	return ""
 }
 
-func (m *EventBuy) GetAmount() uint64 {
-	if m != nil {
-		return m.Amount
-	}
-	return 0
-}
-
 type EventSell struct {
-	Seller    string `protobuf:"bytes,1,opt,name=seller,proto3" json:"seller,omitempty"`
-	PlanId    string `protobuf:"bytes,2,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
-	RollappId string `protobuf:"bytes,3,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
-	Amount    uint64 `protobuf:"varint,4,opt,name=amount,proto3" json:"amount,omitempty"`
+	Seller    string                                 `protobuf:"bytes,1,opt,name=seller,proto3" json:"seller,omitempty"`
+	PlanId    string                                 `protobuf:"bytes,2,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
+	RollappId string                                 `protobuf:"bytes,3,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
+	Amount    github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=amount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"amount"`
 }
 
 func (m *EventSell) Reset()         { *m = EventSell{} }
@@ -306,18 +268,11 @@ func (m *EventSell) GetRollappId() string {
 	return ""
 }
 
-func (m *EventSell) GetAmount() uint64 {
-	if m != nil {
-		return m.Amount
-	}
-	return 0
-}
-
 type EventClaim struct {
-	Claimer   string `protobuf:"bytes,1,opt,name=claimer,proto3" json:"claimer,omitempty"`
-	PlanId    string `protobuf:"bytes,2,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
-	RollappId string `protobuf:"bytes,3,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
-	Amount    int64  `protobuf:"varint,4,opt,name=amount,proto3" json:"amount,omitempty"`
+	Claimer   string                                 `protobuf:"bytes,1,opt,name=claimer,proto3" json:"claimer,omitempty"`
+	PlanId    string                                 `protobuf:"bytes,2,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
+	RollappId string                                 `protobuf:"bytes,3,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
+	Amount    github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=amount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"amount"`
 }
 
 func (m *EventClaim) Reset()         { *m = EventClaim{} }
@@ -374,18 +329,9 @@ func (m *EventClaim) GetRollappId() string {
 	return ""
 }
 
-func (m *EventClaim) GetAmount() int64 {
-	if m != nil {
-		return m.Amount
-	}
-	return 0
-}
-
 type EventSettle struct {
-	Settler   string `protobuf:"bytes,1,opt,name=settler,proto3" json:"settler,omitempty"`
-	PlanId    string `protobuf:"bytes,2,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
-	RollappId string `protobuf:"bytes,3,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
-	Amount    int64  `protobuf:"varint,4,opt,name=amount,proto3" json:"amount,omitempty"`
+	PlanId    string `protobuf:"bytes,1,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
+	RollappId string `protobuf:"bytes,2,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
 }
 
 func (m *EventSettle) Reset()         { *m = EventSettle{} }
@@ -421,13 +367,6 @@ func (m *EventSettle) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventSettle proto.InternalMessageInfo
 
-func (m *EventSettle) GetSettler() string {
-	if m != nil {
-		return m.Settler
-	}
-	return ""
-}
-
 func (m *EventSettle) GetPlanId() string {
 	if m != nil {
 		return m.PlanId
@@ -440,13 +379,6 @@ func (m *EventSettle) GetRollappId() string {
 		return m.RollappId
 	}
 	return ""
-}
-
-func (m *EventSettle) GetAmount() int64 {
-	if m != nil {
-		return m.Amount
-	}
-	return 0
 }
 
 func init() {
@@ -463,42 +395,39 @@ func init() {
 }
 
 var fileDescriptor_9d7833031285167c = []byte{
-	// 553 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x94, 0x41, 0x6b, 0x13, 0x41,
-	0x14, 0xc7, 0x33, 0x6d, 0x9a, 0x74, 0x5f, 0x05, 0x71, 0x09, 0xba, 0x06, 0xdc, 0xc6, 0x20, 0x98,
-	0x8b, 0xbb, 0xa5, 0x45, 0xc1, 0x63, 0x23, 0x52, 0xe2, 0x41, 0xcb, 0x56, 0x2f, 0x5e, 0xc2, 0x24,
-	0x33, 0x6e, 0x17, 0x66, 0x67, 0x96, 0x99, 0xd9, 0xa6, 0xeb, 0x47, 0x10, 0x84, 0xfa, 0x2d, 0xfc,
-	0x00, 0x7e, 0x88, 0x1e, 0x8b, 0x27, 0x2f, 0x8a, 0x24, 0x5f, 0x44, 0x76, 0x76, 0x12, 0xbd, 0xd4,
-	0x44, 0xc9, 0x6d, 0xfe, 0xef, 0xfd, 0xdf, 0xec, 0xef, 0xbd, 0x37, 0x2c, 0x3c, 0x24, 0x45, 0x4a,
-	0xb9, 0x4a, 0x04, 0x3f, 0x2f, 0xde, 0x87, 0x0b, 0x11, 0x26, 0x52, 0x84, 0xf4, 0x8c, 0x72, 0xad,
-	0x82, 0x4c, 0x0a, 0x2d, 0xdc, 0xf6, 0x9f, 0xc6, 0x60, 0x21, 0x82, 0x44, 0x8a, 0x76, 0x2b, 0x16,
-	0xb1, 0x30, 0xb6, 0xb0, 0x3c, 0x55, 0x15, 0xed, 0xbb, 0x63, 0xa1, 0x52, 0xa1, 0x86, 0x55, 0xa2,
-	0x12, 0x36, 0xb5, 0x1b, 0x0b, 0x11, 0x33, 0x1a, 0x1a, 0x35, 0xca, 0xdf, 0x85, 0x3a, 0x49, 0xa9,
-	0xd2, 0x38, 0xcd, 0xac, 0xe1, 0xc1, 0x5f, 0xb0, 0x12, 0x69, 0xbf, 0xd0, 0xfd, 0x8e, 0xe0, 0xd6,
-	0xf3, 0x12, 0xf2, 0x4d, 0x46, 0xb0, 0xa6, 0xc7, 0x58, 0xe2, 0x54, 0xb9, 0x4f, 0xc0, 0xc1, 0xb9,
-	0x3e, 0x15, 0x32, 0xd1, 0x85, 0x87, 0x3a, 0xa8, 0xe7, 0xf4, 0xbd, 0xaf, 0x5f, 0x1e, 0xb5, 0x2c,
-	0xc1, 0x21, 0x21, 0x92, 0x2a, 0x75, 0xa2, 0x65, 0xc2, 0xe3, 0xe8, 0xb7, 0xd5, 0x3d, 0x02, 0xe0,
-	0x74, 0x32, 0xcc, 0xcc, 0x2d, 0xde, 0x46, 0x07, 0xf5, 0x76, 0xf6, 0xbb, 0xc1, 0xf5, 0x6d, 0x07,
-	0xd5, 0xf7, 0xfa, 0xf5, 0xcb, 0x1f, 0xbb, 0xb5, 0xc8, 0xe1, 0x74, 0x62, 0x01, 0x8e, 0x00, 0x04,
-	0x23, 0xf3, 0x8b, 0x36, 0xff, 0xf5, 0x22, 0xc1, 0x48, 0x15, 0xe8, 0x7e, 0xde, 0x80, 0x9b, 0xa6,
-	0xbf, 0x97, 0x74, 0x32, 0x88, 0x5e, 0x1d, 0x33, 0xcc, 0xdd, 0x7d, 0x68, 0x8e, 0x25, 0xc5, 0x5a,
-	0xc8, 0xa5, 0xbd, 0xcd, 0x8d, 0xee, 0x1d, 0x68, 0x66, 0x0c, 0xf3, 0x61, 0x42, 0x4c, 0x5b, 0x4e,
-	0xd4, 0x28, 0xe5, 0x80, 0xb8, 0xf7, 0x00, 0xa4, 0x60, 0x0c, 0x67, 0x59, 0x99, 0xdb, 0x34, 0x39,
-	0xc7, 0x46, 0x06, 0xc4, 0x6d, 0xc1, 0x16, 0xa1, 0x5c, 0xa4, 0x5e, 0xdd, 0x64, 0x2a, 0xe1, 0x3e,
-	0x05, 0x50, 0x1a, 0x4b, 0x3d, 0x2c, 0x97, 0xe6, 0x6d, 0x99, 0xf6, 0xda, 0x41, 0xb5, 0xd1, 0x60,
-	0xbe, 0xd1, 0xe0, 0xf5, 0x7c, 0xa3, 0x91, 0x63, 0xdc, 0xa5, 0x76, 0x1f, 0xc3, 0x36, 0xe5, 0xa4,
-	0x2a, 0x6c, 0x2c, 0x2d, 0x6c, 0x52, 0x4e, 0x4c, 0xd9, 0x7d, 0xb8, 0xa1, 0x85, 0xc6, 0x6c, 0x88,
-	0x53, 0x91, 0x73, 0xed, 0x35, 0x3b, 0xa8, 0x57, 0x8f, 0x76, 0x4c, 0xec, 0xd0, 0x84, 0xba, 0x1f,
-	0x10, 0x6c, 0x9b, 0x51, 0xf5, 0xf3, 0xc2, 0x0d, 0x60, 0x6b, 0x94, 0x17, 0x74, 0xf9, 0x84, 0x2a,
-	0xdb, 0x7f, 0xcf, 0xe7, 0x36, 0x34, 0x2c, 0x51, 0xdd, 0x10, 0x59, 0xd5, 0xfd, 0x88, 0xc0, 0x31,
-	0x30, 0x27, 0x94, 0x31, 0x77, 0x0f, 0x1a, 0x8a, 0x32, 0xb6, 0x02, 0x8e, 0xf5, 0xad, 0x9d, 0xe7,
-	0x02, 0x01, 0x18, 0x9e, 0x67, 0x0c, 0x27, 0xa9, 0x79, 0x42, 0xe5, 0x81, 0xae, 0xf2, 0x84, 0x2a,
-	0xe3, 0x9a, 0x90, 0x36, 0x17, 0x48, 0x9f, 0x10, 0xec, 0xd8, 0x11, 0x69, 0xcd, 0x68, 0xc9, 0xa4,
-	0xcc, 0x69, 0x05, 0x26, 0x6b, 0x5c, 0x37, 0x53, 0xff, 0xc5, 0xe5, 0xd4, 0x47, 0x57, 0x53, 0x1f,
-	0xfd, 0x9c, 0xfa, 0xe8, 0x62, 0xe6, 0xd7, 0xae, 0x66, 0x7e, 0xed, 0xdb, 0xcc, 0xaf, 0xbd, 0xdd,
-	0x8b, 0x13, 0x7d, 0x9a, 0x8f, 0x82, 0xb1, 0x48, 0xc3, 0x6b, 0xfe, 0x4c, 0x67, 0x07, 0xe1, 0xb9,
-	0xf9, 0x3d, 0xe9, 0x22, 0xa3, 0x6a, 0xd4, 0x30, 0xef, 0xf9, 0xe0, 0x57, 0x00, 0x00, 0x00, 0xff,
-	0xff, 0x0a, 0xa7, 0x6c, 0x76, 0x60, 0x05, 0x00, 0x00,
+	// 509 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x94, 0x41, 0x6b, 0x13, 0x41,
+	0x14, 0xc7, 0x33, 0x6d, 0x4c, 0xdd, 0xd7, 0x83, 0xb8, 0x14, 0x8c, 0x01, 0x37, 0x61, 0x11, 0xed,
+	0xa5, 0xbb, 0xa5, 0x15, 0xef, 0x46, 0x6a, 0x89, 0x07, 0x2d, 0x5b, 0xbc, 0x78, 0x09, 0x93, 0xcc,
+	0xb8, 0x1d, 0x9c, 0x9d, 0x59, 0x66, 0x66, 0x9b, 0xae, 0x9f, 0xc2, 0x83, 0x1f, 0xc5, 0x93, 0x20,
+	0x78, 0xec, 0xb1, 0x78, 0x12, 0xc1, 0x22, 0xc9, 0x17, 0x91, 0x9d, 0x9d, 0xd6, 0x20, 0x24, 0xad,
+	0xa7, 0x9e, 0xf6, 0xbd, 0x79, 0xff, 0x79, 0xef, 0xf7, 0x76, 0x1e, 0x0f, 0x1e, 0x93, 0x32, 0xa3,
+	0x42, 0x33, 0x29, 0x4e, 0xca, 0x0f, 0xf1, 0xa5, 0x13, 0x33, 0x25, 0x63, 0x7a, 0x4c, 0x85, 0xd1,
+	0x51, 0xae, 0xa4, 0x91, 0x7e, 0x67, 0x5e, 0x18, 0x5d, 0x3a, 0x11, 0x53, 0xb2, 0xb3, 0x91, 0xca,
+	0x54, 0x5a, 0x59, 0x5c, 0x59, 0xf5, 0x8d, 0xce, 0xfd, 0xb1, 0xd4, 0x99, 0xd4, 0xc3, 0x3a, 0x50,
+	0x3b, 0x2e, 0xd4, 0x4d, 0xa5, 0x4c, 0x39, 0x8d, 0xad, 0x37, 0x2a, 0xde, 0xc5, 0x86, 0x65, 0x54,
+	0x1b, 0x9c, 0xe5, 0x4e, 0xf0, 0x70, 0x09, 0x16, 0x53, 0xae, 0x42, 0xf8, 0x0b, 0xc1, 0xdd, 0xbd,
+	0x0a, 0xf2, 0x4d, 0x4e, 0xb0, 0xa1, 0x07, 0x58, 0xe1, 0x4c, 0xfb, 0x4f, 0xc1, 0xc3, 0x85, 0x39,
+	0x92, 0x8a, 0x99, 0xb2, 0x8d, 0x7a, 0x68, 0xd3, 0xeb, 0xb7, 0xbf, 0x7f, 0xde, 0xda, 0x70, 0x04,
+	0xcf, 0x08, 0x51, 0x54, 0xeb, 0x43, 0xa3, 0x98, 0x48, 0x93, 0xbf, 0x52, 0x7f, 0x1f, 0x40, 0xd0,
+	0xc9, 0x30, 0xb7, 0x59, 0xda, 0x2b, 0x3d, 0xb4, 0xb9, 0xbe, 0x13, 0x46, 0x8b, 0xdb, 0x8e, 0xea,
+	0x7a, 0xfd, 0xe6, 0xe9, 0x79, 0xb7, 0x91, 0x78, 0x82, 0x4e, 0x1c, 0xc0, 0x3e, 0x80, 0xe4, 0xe4,
+	0x22, 0xd1, 0xea, 0xff, 0x26, 0x92, 0x9c, 0xd4, 0x07, 0xe1, 0x27, 0x04, 0x77, 0x6c, 0x7f, 0xaf,
+	0xe8, 0x64, 0x90, 0xbc, 0x3e, 0xe0, 0x58, 0xf8, 0x3b, 0xb0, 0x36, 0x56, 0x14, 0x1b, 0xa9, 0xae,
+	0xec, 0xed, 0x42, 0xe8, 0xdf, 0x83, 0xb5, 0x9c, 0x63, 0x31, 0x64, 0xc4, 0xb6, 0xe5, 0x25, 0xad,
+	0xca, 0x1d, 0x10, 0xff, 0x09, 0x34, 0x2b, 0xcb, 0x31, 0xf6, 0x96, 0x32, 0x72, 0x2c, 0x12, 0xab,
+	0x0e, 0xbf, 0x20, 0xb8, 0x6d, 0xb1, 0xfa, 0x45, 0xe9, 0x47, 0x70, 0x6b, 0x54, 0x94, 0xf4, 0x6a,
+	0x9a, 0x5a, 0xb6, 0x98, 0xe5, 0x01, 0x80, 0x92, 0x9c, 0xe3, 0x3c, 0xaf, 0x62, 0xab, 0x36, 0xe6,
+	0xb9, 0x93, 0x01, 0xf1, 0x5f, 0x40, 0x0b, 0x67, 0xb2, 0x10, 0xa6, 0xdd, 0xb4, 0x85, 0xa2, 0xea,
+	0x67, 0xfd, 0x3c, 0xef, 0x3e, 0x4a, 0x99, 0x39, 0x2a, 0x46, 0xd1, 0x58, 0x66, 0x6e, 0xc6, 0xdc,
+	0x67, 0x4b, 0x93, 0xf7, 0xb1, 0x29, 0x73, 0xaa, 0xa3, 0x81, 0x30, 0x89, 0xbb, 0x1d, 0x7e, 0x45,
+	0xe0, 0x59, 0xf8, 0x43, 0xca, 0xb9, 0xbf, 0x0d, 0x2d, 0x4d, 0x39, 0xbf, 0x06, 0xbe, 0xd3, 0xdd,
+	0x38, 0xff, 0x37, 0x04, 0x60, 0xf9, 0x9f, 0x73, 0xcc, 0x32, 0x3b, 0x0e, 0x95, 0x41, 0xaf, 0x33,
+	0x0e, 0xb5, 0xf0, 0xc6, 0x5b, 0xd8, 0x83, 0x75, 0xf7, 0x02, 0xc6, 0x70, 0x3a, 0x8f, 0x83, 0x96,
+	0xe0, 0xac, 0xfc, 0x83, 0xd3, 0x7f, 0x79, 0x3a, 0x0d, 0xd0, 0xd9, 0x34, 0x40, 0xbf, 0xa7, 0x01,
+	0xfa, 0x38, 0x0b, 0x1a, 0x67, 0xb3, 0xa0, 0xf1, 0x63, 0x16, 0x34, 0xde, 0x6e, 0xcf, 0x01, 0x2d,
+	0x58, 0x24, 0xc7, 0xbb, 0xf1, 0x89, 0xdd, 0x26, 0x16, 0x6f, 0xd4, 0xb2, 0x0b, 0x65, 0xf7, 0x4f,
+	0x00, 0x00, 0x00, 0xff, 0xff, 0x80, 0x5e, 0xcb, 0x40, 0x0f, 0x05, 0x00, 0x00,
 }
 
 func (m *EventUpdateParams) Marshal() (dAtA []byte, err error) {
@@ -571,46 +500,15 @@ func (m *EventNewIROPlan) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.TotalAmount != 0 {
-		i = encodeVarintEvents(dAtA, i, uint64(m.TotalAmount))
-		i--
-		dAtA[i] = 0x38
-	}
-	if m.EndTime != nil {
+	if m.Plan != nil {
 		{
-			size, err := m.EndTime.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.Plan.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
 			i -= size
 			i = encodeVarintEvents(dAtA, i, uint64(size))
 		}
-		i--
-		dAtA[i] = 0x32
-	}
-	if m.StartTime != nil {
-		{
-			size, err := m.StartTime.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintEvents(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x2a
-	}
-	if len(m.Denom) > 0 {
-		i -= len(m.Denom)
-		copy(dAtA[i:], m.Denom)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.Denom)))
-		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.RollappId) > 0 {
-		i -= len(m.RollappId)
-		copy(dAtA[i:], m.RollappId)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.RollappId)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -651,11 +549,16 @@ func (m *EventBuy) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Amount != 0 {
-		i = encodeVarintEvents(dAtA, i, uint64(m.Amount))
-		i--
-		dAtA[i] = 0x20
+	{
+		size := m.Amount.Size()
+		i -= size
+		if _, err := m.Amount.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0x22
 	if len(m.RollappId) > 0 {
 		i -= len(m.RollappId)
 		copy(dAtA[i:], m.RollappId)
@@ -700,11 +603,16 @@ func (m *EventSell) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Amount != 0 {
-		i = encodeVarintEvents(dAtA, i, uint64(m.Amount))
-		i--
-		dAtA[i] = 0x20
+	{
+		size := m.Amount.Size()
+		i -= size
+		if _, err := m.Amount.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0x22
 	if len(m.RollappId) > 0 {
 		i -= len(m.RollappId)
 		copy(dAtA[i:], m.RollappId)
@@ -749,11 +657,16 @@ func (m *EventClaim) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Amount != 0 {
-		i = encodeVarintEvents(dAtA, i, uint64(m.Amount))
-		i--
-		dAtA[i] = 0x20
+	{
+		size := m.Amount.Size()
+		i -= size
+		if _, err := m.Amount.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0x22
 	if len(m.RollappId) > 0 {
 		i -= len(m.RollappId)
 		copy(dAtA[i:], m.RollappId)
@@ -798,29 +711,17 @@ func (m *EventSettle) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Amount != 0 {
-		i = encodeVarintEvents(dAtA, i, uint64(m.Amount))
-		i--
-		dAtA[i] = 0x20
-	}
 	if len(m.RollappId) > 0 {
 		i -= len(m.RollappId)
 		copy(dAtA[i:], m.RollappId)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.RollappId)))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x12
 	}
 	if len(m.PlanId) > 0 {
 		i -= len(m.PlanId)
 		copy(dAtA[i:], m.PlanId)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.PlanId)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Settler) > 0 {
-		i -= len(m.Settler)
-		copy(dAtA[i:], m.Settler)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.Settler)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -869,24 +770,9 @@ func (m *EventNewIROPlan) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	l = len(m.RollappId)
-	if l > 0 {
+	if m.Plan != nil {
+		l = m.Plan.Size()
 		n += 1 + l + sovEvents(uint64(l))
-	}
-	l = len(m.Denom)
-	if l > 0 {
-		n += 1 + l + sovEvents(uint64(l))
-	}
-	if m.StartTime != nil {
-		l = m.StartTime.Size()
-		n += 1 + l + sovEvents(uint64(l))
-	}
-	if m.EndTime != nil {
-		l = m.EndTime.Size()
-		n += 1 + l + sovEvents(uint64(l))
-	}
-	if m.TotalAmount != 0 {
-		n += 1 + sovEvents(uint64(m.TotalAmount))
 	}
 	return n
 }
@@ -909,9 +795,8 @@ func (m *EventBuy) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	if m.Amount != 0 {
-		n += 1 + sovEvents(uint64(m.Amount))
-	}
+	l = m.Amount.Size()
+	n += 1 + l + sovEvents(uint64(l))
 	return n
 }
 
@@ -933,9 +818,8 @@ func (m *EventSell) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	if m.Amount != 0 {
-		n += 1 + sovEvents(uint64(m.Amount))
-	}
+	l = m.Amount.Size()
+	n += 1 + l + sovEvents(uint64(l))
 	return n
 }
 
@@ -957,9 +841,8 @@ func (m *EventClaim) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	if m.Amount != 0 {
-		n += 1 + sovEvents(uint64(m.Amount))
-	}
+	l = m.Amount.Size()
+	n += 1 + l + sovEvents(uint64(l))
 	return n
 }
 
@@ -969,10 +852,6 @@ func (m *EventSettle) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Settler)
-	if l > 0 {
-		n += 1 + l + sovEvents(uint64(l))
-	}
 	l = len(m.PlanId)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
@@ -980,9 +859,6 @@ func (m *EventSettle) Size() (n int) {
 	l = len(m.RollappId)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
-	}
-	if m.Amount != 0 {
-		n += 1 + sovEvents(uint64(m.Amount))
 	}
 	return n
 }
@@ -1236,71 +1112,7 @@ func (m *EventNewIROPlan) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvents
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.RollappId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Denom", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvents
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Denom = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field StartTime", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Plan", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1327,68 +1139,13 @@ func (m *EventNewIROPlan) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.StartTime == nil {
-				m.StartTime = &timestamppb.Timestamp{}
+			if m.Plan == nil {
+				m.Plan = &Plan{}
 			}
-			if err := m.StartTime.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.Plan.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field EndTime", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvents
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.EndTime == nil {
-				m.EndTime = &timestamppb.Timestamp{}
-			}
-			if err := m.EndTime.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 7:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TotalAmount", wireType)
-			}
-			m.TotalAmount = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvents
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.TotalAmount |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])
@@ -1536,10 +1293,10 @@ func (m *EventBuy) Unmarshal(dAtA []byte) error {
 			m.RollappId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
-			if wireType != 0 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
 			}
-			m.Amount = 0
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvents
@@ -1549,11 +1306,26 @@ func (m *EventBuy) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Amount |= uint64(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])
@@ -1701,10 +1473,10 @@ func (m *EventSell) Unmarshal(dAtA []byte) error {
 			m.RollappId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
-			if wireType != 0 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
 			}
-			m.Amount = 0
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvents
@@ -1714,11 +1486,26 @@ func (m *EventSell) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Amount |= uint64(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])
@@ -1866,10 +1653,10 @@ func (m *EventClaim) Unmarshal(dAtA []byte) error {
 			m.RollappId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
-			if wireType != 0 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
 			}
-			m.Amount = 0
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvents
@@ -1879,11 +1666,26 @@ func (m *EventClaim) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Amount |= int64(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])
@@ -1936,38 +1738,6 @@ func (m *EventSettle) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Settler", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvents
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Settler = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field PlanId", wireType)
 			}
 			var stringLen uint64
@@ -1998,7 +1768,7 @@ func (m *EventSettle) Unmarshal(dAtA []byte) error {
 			}
 			m.PlanId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
 			}
@@ -2030,25 +1800,6 @@ func (m *EventSettle) Unmarshal(dAtA []byte) error {
 			}
 			m.RollappId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
-			}
-			m.Amount = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvents
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Amount |= int64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])
