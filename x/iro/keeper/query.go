@@ -26,8 +26,18 @@ func (k Keeper) Params(goCtx context.Context, req *types.QueryParamsRequest) (*t
 }
 
 // QueryClaimed implements types.QueryServer.
-func (k Keeper) QueryClaimed(context.Context, *types.QueryClaimedRequest) (*types.QueryClaimedResponse, error) {
-	panic("unimplemented")
+func (k Keeper) QueryClaimed(goCtx context.Context, req *types.QueryClaimedRequest) (*types.QueryClaimedResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	plan, found := k.GetPlan(ctx, req.PlanId)
+	if !found {
+		return nil, status.Error(codes.NotFound, "plan not found")
+	}
+
+	return &types.QueryClaimedResponse{ClaimedAmt: &plan.ClaimedAmt}, nil
 }
 
 // QueryCost implements types.QueryServer.
