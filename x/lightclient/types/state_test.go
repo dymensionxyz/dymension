@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
@@ -39,7 +41,7 @@ func TestCheckCompatibility(t *testing.T) {
 	testCases := []struct {
 		name  string
 		input func() input
-		err   string
+		err   error
 	}{
 		{
 			name: "roots are not equal",
@@ -51,7 +53,7 @@ func TestCheckCompatibility(t *testing.T) {
 					raState:  invalidRootRaState,
 				}
 			},
-			err: "block descriptor state root does not match tendermint header app hash",
+			err: errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "block descriptor state root does not match tendermint header app hash"),
 		},
 		{
 			name: "validator who signed the block header is not the sequencer who submitted the block",
@@ -63,7 +65,7 @@ func TestCheckCompatibility(t *testing.T) {
 					raState:  invalidValidatorHashRAState,
 				}
 			},
-			err: "validator does not match the sequencer",
+			err: errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "validator does not match the sequencer"),
 		},
 		{
 			name: "nextValidatorHash does not match the sequencer who submitted the next block descriptor",
@@ -75,7 +77,7 @@ func TestCheckCompatibility(t *testing.T) {
 					raState:  validRollappState,
 				}
 			},
-			err: "next validator hash does not match the sequencer for h+1",
+			err: errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "next validator hash does not match the sequencer for h+1"),
 		},
 		{
 			name: "timestamps is empty",
@@ -88,7 +90,7 @@ func TestCheckCompatibility(t *testing.T) {
 					raState:  emptyTimestampRAState,
 				}
 			},
-			err: "block descriptors do not contain block timestamp",
+			err: types.ErrTimestampNotFound,
 		},
 		{
 			name: "timestamps are not equal",
@@ -100,7 +102,7 @@ func TestCheckCompatibility(t *testing.T) {
 					raState:  invalidTimestampRAState,
 				}
 			},
-			err: "block descriptor timestamp does not match tendermint header timestamp",
+			err: errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "block descriptor timestamp does not match tendermint header timestamp"),
 		},
 		{
 			name: "all fields are compatible",
@@ -110,17 +112,17 @@ func TestCheckCompatibility(t *testing.T) {
 					raState:  validRollappState,
 				}
 			},
-			err: "",
+			err: nil,
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			input := tc.input()
 			err := types.CheckCompatibility(input.ibcState, input.raState)
-			if tc.err == "" {
-				require.NoError(t, err)
+			if err != nil {
+				require.ErrorIs(t, err, tc.err)
 			} else {
-				require.ErrorContains(t, err, tc.err)
+				require.NoError(t, err)
 			}
 		})
 	}

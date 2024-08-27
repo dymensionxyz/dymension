@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"errors"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -30,7 +31,7 @@ func CheckCompatibility(ibcState IBCState, raState RollappState) error {
 	// Check if the nextValidatorHash matches for the sequencer for h+1 block descriptor
 	nextValHashFromStateInfo, err := GetValHashForSequencer(raState.NextBlockSequencer)
 	if err != nil {
-		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, err.Error())
+		return errors.Join(ibcclienttypes.ErrInvalidConsensus, err)
 	}
 	if !bytes.Equal(ibcState.NextValidatorsHash, nextValHashFromStateInfo) {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "next validator hash does not match the sequencer for h+1")
