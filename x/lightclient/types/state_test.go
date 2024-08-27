@@ -5,6 +5,8 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -12,20 +14,24 @@ import (
 )
 
 var (
-	timestamp     = time.Unix(1724392989, 0)
+	sequencerPubKey = ed25519.GenPrivKey().PubKey()
+	tmPk, _         = cryptocodec.ToTmProtoPublicKey(sequencerPubKey)
+	valHash, _      = types.GetValHashForSequencer(tmPk)
+	timestamp       = time.Unix(1724392989, 0)
+
 	validIBCState = types.IBCState{
 		Root:               []byte("root"),
 		Timestamp:          timestamp,
-		NextValidatorsHash: []byte{156, 132, 96, 43, 190, 214, 140, 148, 216, 119, 98, 162, 97, 120, 115, 32, 39, 223, 114, 56, 224, 180, 80, 228, 190, 243, 9, 248, 190, 33, 188, 23},
-		ValidatorsHash:     []byte{156, 132, 96, 43, 190, 214, 140, 148, 216, 119, 98, 162, 97, 120, 115, 32, 39, 223, 114, 56, 224, 180, 80, 228, 190, 243, 9, 248, 190, 33, 188, 23},
+		NextValidatorsHash: valHash,
+		ValidatorsHash:     valHash,
 	}
 	validRollappState = types.RollappState{
-		BlockSequencer: []byte{10, 32, 86, 211, 180, 178, 104, 144, 159, 216, 7, 137, 173, 225, 55, 215, 228, 176, 29, 86, 98, 130, 25, 190, 214, 24, 198, 22, 111, 37, 100, 142, 154, 87},
+		BlockSequencer: tmPk,
 		BlockDescriptor: rollapptypes.BlockDescriptor{
 			StateRoot: []byte("root"),
 			Timestamp: timestamp,
 		},
-		NextBlockSequencer: []byte{10, 32, 86, 211, 180, 178, 104, 144, 159, 216, 7, 137, 173, 225, 55, 215, 228, 176, 29, 86, 98, 130, 25, 190, 214, 24, 198, 22, 111, 37, 100, 142, 154, 87},
+		NextBlockSequencer: tmPk,
 		NextBlockDescriptor: rollapptypes.BlockDescriptor{
 			StateRoot: []byte("root2"),
 			Timestamp: timestamp,
@@ -58,8 +64,11 @@ func TestCheckCompatibility(t *testing.T) {
 		{
 			name: "validator who signed the block header is not the sequencer who submitted the block",
 			input: func() input {
+				newSequencer := ed25519.GenPrivKey().PubKey()
+				newtmPk, err := cryptocodec.ToTmProtoPublicKey(newSequencer)
+				require.NoError(t, err)
 				invalidValidatorHashRAState := validRollappState
-				invalidValidatorHashRAState.BlockSequencer = []byte("notsamesequencer")
+				invalidValidatorHashRAState.BlockSequencer = newtmPk
 				return input{
 					ibcState: validIBCState,
 					raState:  invalidValidatorHashRAState,

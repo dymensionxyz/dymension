@@ -1,6 +1,7 @@
 package types
 
 import (
+	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	cometbfttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -62,8 +63,8 @@ func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {
 	return tmValidatorSet.Hash(), nil
 }
 
-// GetDymintPubKeyBytes returns the bytes of the sequencer's dymint pubkey
-func (seq Sequencer) GetDymintPubKeyBytes() ([]byte, error) {
+// GetCometPubKey returns the bytes of the sequencer's dymint pubkey
+func (seq Sequencer) GetCometPubKey() (tmprotocrypto.PublicKey, error) {
 	interfaceRegistry := cdctypes.NewInterfaceRegistry()
 	cryptocodec.RegisterInterfaces(interfaceRegistry)
 	protoCodec := codec.NewProtoCodec(interfaceRegistry)
@@ -71,14 +72,10 @@ func (seq Sequencer) GetDymintPubKeyBytes() ([]byte, error) {
 	var pubKey cryptotypes.PubKey
 	err := protoCodec.UnpackAny(seq.DymintPubKey, &pubKey)
 	if err != nil {
-		return nil, err
+		return tmprotocrypto.PublicKey{}, err
 	}
 
 	// convert the pubkey to tmPubKey
 	tmPubKey, err := cryptocodec.ToTmProtoPublicKey(pubKey)
-	if err != nil {
-		return nil, err
-	}
-
-	return tmPubKey.Marshal()
+	return tmPubKey, err
 }

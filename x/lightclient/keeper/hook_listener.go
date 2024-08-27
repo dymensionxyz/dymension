@@ -65,7 +65,7 @@ func (hook rollappHook) AfterUpdateState(
 			NextValidatorsHash: tmConsensusState.NextValidatorsHash,
 			Timestamp:          time.Unix(0, int64(tmConsensusState.GetTimestamp())),
 		}
-		sequencerPk, err := hook.k.GetSeqeuncerHash(ctx, stateInfo.Sequencer)
+		sequencerPk, err := hook.k.GetSequencerPubKey(ctx, stateInfo.Sequencer)
 		if err != nil {
 			return err
 		}

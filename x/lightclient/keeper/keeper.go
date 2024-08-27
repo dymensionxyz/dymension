@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cometbft/cometbft/libs/log"
+	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -42,12 +43,12 @@ func (k Keeper) GetSeqeuncerHash(ctx sdk.Context, sequencerAddr string) ([]byte,
 	return seq.GetDymintPubKeyHash()
 }
 
-func (k Keeper) GetSequencerPubKey(ctx sdk.Context, sequencerAddr string) ([]byte, error) {
+func (k Keeper) GetSequencerPubKey(ctx sdk.Context, sequencerAddr string) (tmprotocrypto.PublicKey, error) {
 	seq, found := k.sequencerKeeper.GetSequencer(ctx, sequencerAddr)
 	if !found {
-		return nil, fmt.Errorf("sequencer not found")
+		return tmprotocrypto.PublicKey{}, fmt.Errorf("sequencer not found")
 	}
-	return seq.GetDymintPubKeyBytes()
+	return seq.GetCometPubKey()
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

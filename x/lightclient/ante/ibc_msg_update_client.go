@@ -66,7 +66,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 		// next BD does not exist in this state info, check the next state info
 		nextStateInfo, found := i.rollappKeeper.GetStateInfo(ctx, rollappID, stateInfo.GetIndex().Index+1)
 		if found {
-			nextSequencerPk, err := i.lightClientKeeper.GetSeqeuncerHash(ctx, nextStateInfo.Sequencer)
+			nextSequencerPk, err := i.lightClientKeeper.GetSequencerPubKey(ctx, nextStateInfo.Sequencer)
 			if err != nil {
 				return err
 			}

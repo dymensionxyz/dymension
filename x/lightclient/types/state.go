@@ -29,7 +29,7 @@ func CheckCompatibility(ibcState IBCState, raState RollappState) error {
 	if len(ibcState.ValidatorsHash) > 0 && !bytes.Equal(ibcState.ValidatorsHash, valHashFromStateInfo) {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "validator does not match the sequencer")
 	}
-	if len(raState.NextBlockSequencer) == 0 {
+	if raState.NextBlockSequencer.Size() == 0 {
 		return ErrNextBlockDescriptorMissing
 	}
 	// Check if the nextValidatorHash matches for the sequencer for h+1 block descriptor
@@ -53,14 +53,9 @@ func CheckCompatibility(ibcState IBCState, raState RollappState) error {
 
 // GetValHashForSequencer creates a dummy tendermint validatorset to
 // calculate the nextValHash for the sequencer and returns it
-func GetValHashForSequencer(sequencerTmPubKeyBz []byte) ([]byte, error) {
-	var tmpk tmprotocrypto.PublicKey
-	err := tmpk.Unmarshal(sequencerTmPubKeyBz)
-	if err != nil {
-		return nil, err
-	}
+func GetValHashForSequencer(sequencerTmPubKey tmprotocrypto.PublicKey) ([]byte, error) {
 	var nextValSet cmttypes.ValidatorSet
-	updates, err := cmttypes.PB2TM.ValidatorUpdates([]abci.ValidatorUpdate{{Power: 1, PubKey: tmpk}})
+	updates, err := cmttypes.PB2TM.ValidatorUpdates([]abci.ValidatorUpdate{{Power: 1, PubKey: sequencerTmPubKey}})
 	if err != nil {
 		return nil, err
 	}
@@ -84,11 +79,11 @@ type IBCState struct {
 
 type RollappState struct {
 	// BlockSequencer is the tendermint pubkey of the sequencer who submitted the block descriptor for the required height
-	BlockSequencer []byte
+	BlockSequencer tmprotocrypto.PublicKey
 	// BlockDescriptor is the block descriptor for the required height
 	BlockDescriptor rollapptypes.BlockDescriptor
 	// NextBlockSequencer is the tendermint pubkey of the sequencer who submitted the block descriptor for the next height (h+1)
-	NextBlockSequencer []byte
+	NextBlockSequencer tmprotocrypto.PublicKey
 	// NextBlockDescriptor is the block descriptor for the next height (h+1)
 	NextBlockDescriptor rollapptypes.BlockDescriptor
 }

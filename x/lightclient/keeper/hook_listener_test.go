@@ -106,7 +106,9 @@ func TestAfterUpdateState(t *testing.T) {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
 				blockSignerTmPubKey, err := k.GetSequencerPubKey(ctx, keepertest.Alice)
 				require.NoError(t, err)
-				k.SetConsensusStateSigner(ctx, "canon-client-id", 2, blockSignerTmPubKey)
+				blockSignerTmPubKeyBytes, err := blockSignerTmPubKey.Marshal()
+				require.NoError(t, err)
+				k.SetConsensusStateSigner(ctx, "canon-client-id", 2, blockSignerTmPubKeyBytes)
 				return testInput{
 					rollappId: "rollapp-has-canon-client",
 					stateInfo: &rollapptypes.StateInfo{
@@ -142,7 +144,9 @@ func TestAfterUpdateState(t *testing.T) {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
 				blockSignerTmPubKey, err := k.GetSequencerPubKey(ctx, keepertest.Alice)
 				require.NoError(t, err)
-				k.SetConsensusStateSigner(ctx, "canon-client-id", 2, blockSignerTmPubKey)
+				blockSignerTmPubKeyBytes, err := blockSignerTmPubKey.Marshal()
+				require.NoError(t, err)
+				k.SetConsensusStateSigner(ctx, "canon-client-id", 2, blockSignerTmPubKeyBytes)
 				return testInput{
 					rollappId: "rollapp-has-canon-client",
 					stateInfo: &rollapptypes.StateInfo{

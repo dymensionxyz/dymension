@@ -201,6 +201,8 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 				sequencer := keepertest.Alice
 				proposerAddr, err := k.GetSequencerPubKey(ctx, sequencer)
 				require.NoError(t, err)
+				proposerAddrBytes, err := proposerAddr.Marshal()
+				require.NoError(t, err)
 				blocktimestamp := time.Unix(1724392989, 0)
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
 				var (
@@ -212,7 +214,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 				signedHeader := &cmtproto.SignedHeader{
 					Header: &cmtproto.Header{
 						AppHash:            []byte("appHash"),
-						ProposerAddress:    proposerAddr,
+						ProposerAddress:    proposerAddrBytes,
 						Time:               blocktimestamp,
 						ValidatorsHash:     nextValsHash,
 						NextValidatorsHash: nextValsHash,
