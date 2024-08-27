@@ -214,6 +214,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 						AppHash:            []byte("appHash"),
 						ProposerAddress:    proposerAddr,
 						Time:               blocktimestamp,
+						ValidatorsHash:     nextValsHash,
 						NextValidatorsHash: nextValsHash,
 					},
 					Commit: &cmtproto.Commit{},

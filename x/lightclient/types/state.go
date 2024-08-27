@@ -21,8 +21,12 @@ func CheckCompatibility(ibcState IBCState, raState RollappState) error {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "block descriptor state root does not match tendermint header app hash")
 	}
 	// Check if the validator pubkey matches the sequencer pubkey
+	valHashFromStateInfo, err := GetValHashForSequencer(raState.BlockSequencer)
+	if err != nil {
+		return errors.Join(ibcclienttypes.ErrInvalidConsensus, err)
+	}
 	// The ValidatorsHash is only available when the block header is submitted (i.e only during MsgUpdateClient)
-	if len(ibcState.ValidatorsHash) > 0 && !bytes.Equal(ibcState.ValidatorsHash, raState.BlockSequencer) {
+	if len(ibcState.ValidatorsHash) > 0 && !bytes.Equal(ibcState.ValidatorsHash, valHashFromStateInfo) {
 		return errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "validator does not match the sequencer")
 	}
 	if len(raState.NextBlockSequencer) == 0 {

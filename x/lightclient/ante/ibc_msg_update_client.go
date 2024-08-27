@@ -45,12 +45,12 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 			i.lightClientKeeper.SetConsensusStateSigner(ctx, msg.ClientId, height.GetRevisionHeight(), blockProposer)
 			return nil
 		}
-		bd := stateInfo.GetBDs().BD[height.GetRevisionHeight()-stateInfo.GetStartHeight()]
+		bd, _ := stateInfo.GetBlockDescriptor(height.GetRevisionHeight())
 
 		ibcState := types.IBCState{
 			Root:               header.Header.GetAppHash(),
 			Height:             height.GetRevisionHeight(),
-			Validator:          header.Header.ProposerAddress,
+			ValidatorsHash:     header.Header.ValidatorsHash,
 			NextValidatorsHash: header.Header.NextValidatorsHash,
 			Timestamp:          header.Header.Time,
 		}
@@ -63,9 +63,9 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 			BlockDescriptor: bd,
 		}
 		// Check that BD for next block exists in same stateinfo
-		if height.GetRevisionHeight()-stateInfo.GetStartHeight()+1 < uint64(len(stateInfo.GetBDs().BD)) {
+		if stateInfo.ContainsHeight(height.GetRevisionHeight() + 1) {
 			rollappState.NextBlockSequencer = sequencerPubKey
-			rollappState.NextBlockDescriptor = stateInfo.GetBDs().BD[height.GetRevisionHeight()-stateInfo.GetStartHeight()+1]
+			rollappState.NextBlockDescriptor, _ = stateInfo.GetBlockDescriptor(height.GetRevisionHeight() + 1)
 		} else {
 			// next BD does not exist in this state info, check the next state info
 			nextStateInfo, found := i.rollappKeeper.GetStateInfo(ctx, rollappID, stateInfo.GetIndex().Index+1)

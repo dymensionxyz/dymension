@@ -34,7 +34,7 @@ func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string,
 					if err != nil {
 						continue
 					}
-					for i, bd := range stateInfo.GetBDs().BD {
+					for _, bd := range stateInfo.GetBDs().BD {
 						height := ibcclienttypes.NewHeight(1, bd.GetHeight())
 						consensusState, found := k.ibcClientKeeper.GetClientConsensusState(ctx, client.ClientId, height)
 						if !found {
@@ -56,8 +56,8 @@ func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string,
 							BlockDescriptor: bd,
 						}
 						// Check if BD for next block exists in same stateinfo
-						if i+1 < len(stateInfo.GetBDs().BD) {
-							rollappState.NextBlockDescriptor = stateInfo.GetBDs().BD[i+1]
+						if stateInfo.ContainsHeight(bd.GetHeight() + 1) {
+							rollappState.NextBlockDescriptor, _ = stateInfo.GetBlockDescriptor(bd.GetHeight() + 1)
 							rollappState.NextBlockSequencer = sequencerPk
 						}
 						err := types.CheckCompatibility(ibcState, rollappState)

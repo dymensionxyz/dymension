@@ -17,10 +17,10 @@ var (
 		Root:               []byte("root"),
 		Timestamp:          timestamp,
 		NextValidatorsHash: []byte{156, 132, 96, 43, 190, 214, 140, 148, 216, 119, 98, 162, 97, 120, 115, 32, 39, 223, 114, 56, 224, 180, 80, 228, 190, 243, 9, 248, 190, 33, 188, 23},
-		ValidatorsHash:     []byte("sequencer"),
+		ValidatorsHash:     []byte{156, 132, 96, 43, 190, 214, 140, 148, 216, 119, 98, 162, 97, 120, 115, 32, 39, 223, 114, 56, 224, 180, 80, 228, 190, 243, 9, 248, 190, 33, 188, 23},
 	}
 	validRollappState = types.RollappState{
-		BlockSequencer: []byte("sequencer"),
+		BlockSequencer: []byte{10, 32, 86, 211, 180, 178, 104, 144, 159, 216, 7, 137, 173, 225, 55, 215, 228, 176, 29, 86, 98, 130, 25, 190, 214, 24, 198, 22, 111, 37, 100, 142, 154, 87},
 		BlockDescriptor: rollapptypes.BlockDescriptor{
 			StateRoot: []byte("root"),
 			Timestamp: timestamp,

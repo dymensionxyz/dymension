@@ -60,7 +60,7 @@ func (hook rollappHook) AfterUpdateState(
 		ibcState := types.IBCState{
 			Root:               tmConsensusState.GetRoot().GetHash(),
 			Height:             bd.GetHeight(),
-			Validator:          tmHeaderSigner,
+			ValidatorsHash:     tmHeaderSigner,
 			NextValidatorsHash: tmConsensusState.NextValidatorsHash,
 			Timestamp:          time.Unix(0, int64(tmConsensusState.GetTimestamp())),
 		}

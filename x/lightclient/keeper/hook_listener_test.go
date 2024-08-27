@@ -190,7 +190,9 @@ func TestAfterUpdateState_SetCanonicalClient(t *testing.T) {
 	keeper, ctx := keepertest.LightClientKeeper(t)
 	rollappId := "rollapp-wants-canon-client"
 	stateInfo := &rollapptypes.StateInfo{
-		Sequencer: keepertest.Alice,
+		Sequencer:   keepertest.Alice,
+		StartHeight: 1,
+		NumBlocks:   3,
 		BDs: rollapptypes.BlockDescriptors{
 			BD: []rollapptypes.BlockDescriptor{
 				{
