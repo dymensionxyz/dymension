@@ -2,12 +2,10 @@ package keeper
 
 import (
 	"context"
-	"errors"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	lightclienttypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -32,8 +30,6 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// retrieve last updating index
 	var newIndex, lastIndex uint64
 	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, msg.RollappId)
-	// If this is the very first state update, assume the rollapp is upgraded
-	rollappUpgradedForTimestamp := !found
 	if found {
 		// retrieve last updating index
 		stateInfo, found := k.GetStateInfo(ctx, msg.RollappId, latestStateInfoIndex.Index)
@@ -46,8 +42,14 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		}
 
 		// if previous block descriptor has timestamp, it means the rollapp is upgraded
+		// therefore all new BDs need to have timestamp
 		lastBD := stateInfo.GetLatestBlockDescriptor()
-		rollappUpgradedForTimestamp = !lastBD.Timestamp.IsZero()
+		if !lastBD.Timestamp.IsZero() {
+			err := msg.BDs.Validate()
+			if err != nil {
+				return nil, err
+			}
+		}
 
 		// check to see if received height is the one we expected
 		expectedStartHeight := stateInfo.StartHeight + stateInfo.NumBlocks
@@ -75,10 +77,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 	err = k.hooks.AfterUpdateState(ctx, msg.RollappId, stateInfo)
 	if err != nil {
-		// Upgraded rollapps must have timestamps in BDs
-		if !(errors.Is(err, lightclienttypes.ErrTimestampNotFound) && rollappUpgradedForTimestamp) {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	stateInfoIndex := stateInfo.GetIndex()

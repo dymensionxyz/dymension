@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"time"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -229,6 +231,29 @@ func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 	// update state from bob
 	_, err := suite.PostStateUpdate(suite.Ctx, rollappId, addr2, 1, uint64(3))
 	suite.ErrorIs(err, sequencertypes.ErrNotActiveSequencer)
+}
+
+func (suite *RollappTestSuite) TestUpdateStateDowngradeTimestamp() {
+	rollappId, proposer := suite.CreateDefaultRollappAndProposer()
+	// update state without timestamp
+	_, err := suite.PostStateUpdate(suite.Ctx, rollappId, proposer, 1, uint64(3))
+	suite.NoError(err)
+
+	// update state with timestamp - this "upgrades" the rollapp such that all new state updates must have timestamp in BD
+	updateState := types.MsgUpdateState{
+		Creator:     proposer,
+		RollappId:   rollappId,
+		StartHeight: 4,
+		NumBlocks:   1,
+		DAPath:      "",
+		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 4, Timestamp: time.Now().UTC()}}},
+	}
+	_, err = suite.msgServer.UpdateState(suite.Ctx, &updateState)
+	suite.NoError(err)
+
+	// update state without timestamp
+	_, err = suite.PostStateUpdate(suite.Ctx, rollappId, proposer, 5, uint64(1))
+	suite.ErrorIs(err, types.ErrInvalidBlockDescriptorTimestamp)
 }
 
 // ---------------------------------------
