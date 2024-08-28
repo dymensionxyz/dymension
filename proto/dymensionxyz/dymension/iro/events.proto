@@ -30,6 +30,7 @@ message EventBuy {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+  //FIXME: add cost
 }
 
 message EventSell {
@@ -41,6 +42,9 @@ message EventSell {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+
+  //FIXME: add cost
+
 }
 
 message EventClaim {

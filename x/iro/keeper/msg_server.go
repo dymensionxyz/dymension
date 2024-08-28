@@ -54,8 +54,10 @@ func (m msgServer) Sell(context.Context, *types.MsgSell) (*types.MsgSellResponse
 }
 
 // UpdateParams implements types.MsgServer.
-func (m msgServer) UpdateParams(context.Context, *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	// ctx := sdk.UnwrapSDKContext(goCtx)
 	panic("unimplemented")
+
 }
 
 // NewMsgServerImpl returns an implementation of the MsgServer interface
