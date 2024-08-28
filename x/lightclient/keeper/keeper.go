@@ -57,7 +57,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k Keeper) GetCanonicalClient(ctx sdk.Context, rollappId string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.RollappClientKey(rollappId))
+	bz := store.Get(types.GetRollappClientKey(rollappId))
 	if bz == nil {
 		return "", false
 	}
@@ -66,8 +66,21 @@ func (k Keeper) GetCanonicalClient(ctx sdk.Context, rollappId string) (string, b
 
 func (k Keeper) SetCanonicalClient(ctx sdk.Context, rollappId string, clientID string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.RollappClientKey(rollappId), []byte(clientID))
+	store.Set(types.GetRollappClientKey(rollappId), []byte(clientID))
 	store.Set(types.CanonicalClientKey(clientID), []byte(rollappId))
+}
+
+func (k Keeper) GetAllCanonicalClients(ctx sdk.Context) (clients []*types.CanonicalClient) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.RollappClientKey)
+	defer iterator.Close() // nolint: errcheck
+	for ; iterator.Valid(); iterator.Next() {
+		clients = append(clients, &types.CanonicalClient{
+			RollappId:   string(iterator.Key()[1:]),
+			IbcClientId: string(iterator.Value()),
+		})
+	}
+	return
 }
 
 func (k Keeper) SetConsensusStateSigner(ctx sdk.Context, clientID string, height uint64, sequencer []byte) {
@@ -82,6 +95,22 @@ func (k Keeper) GetConsensusStateSigner(ctx sdk.Context, clientID string, height
 		return []byte{}, false
 	}
 	return bz, true
+}
+
+func (k Keeper) GetAllConsensusStateSigners(ctx sdk.Context) (signers []*types.ConsensusStateSigner) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ConsensusStateSignerKey)
+	defer iterator.Close() // nolint: errcheck
+	for ; iterator.Valid(); iterator.Next() {
+		key := iterator.Key()
+		clientID, height := types.ParseConsensusStateSignerKey(key)
+		signers = append(signers, &types.ConsensusStateSigner{
+			IbcClientId: clientID,
+			Height:      height,
+			Signer:      string(iterator.Value()),
+		})
+	}
+	return
 }
 
 func (k Keeper) GetRollappForClientID(ctx sdk.Context, clientID string) (string, bool) {

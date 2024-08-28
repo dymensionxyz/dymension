@@ -1,6 +1,8 @@
 package types
 
 import (
+	"bytes"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -12,21 +14,40 @@ const (
 	StoreKey = ModuleName
 )
 
+const (
+	keySeparator = "/"
+)
+
 var (
-	rollappClientKey        = []byte{0x01}
-	consensusStateSignerKey = []byte{0x03}
+	RollappClientKey        = []byte{0x01}
+	ConsensusStateSignerKey = []byte{0x03}
 	canonicalClientKey      = []byte{0x04}
 )
 
-func RollappClientKey(rollappId string) []byte {
-	return append(rollappClientKey, []byte(rollappId)...)
+func GetRollappClientKey(rollappId string) []byte {
+	key := RollappClientKey
+	key = append(key, []byte(rollappId)...)
+	return key
 }
 
 func ConsensusStateSignerKeyByClientID(clientID string, height uint64) []byte {
-	prefix := append([]byte(clientID), sdk.Uint64ToBigEndian(height)...)
-	return append(consensusStateSignerKey, prefix...)
+	key := ConsensusStateSignerKey
+	key = append(key, []byte(clientID)...)
+	key = append(key, keySeparator...)
+	key = append(key, sdk.Uint64ToBigEndian(height)...)
+	return key
 }
 
 func CanonicalClientKey(clientID string) []byte {
-	return append(canonicalClientKey, []byte(clientID)...)
+	key := canonicalClientKey
+	key = append(key, []byte(clientID)...)
+	return key
+}
+
+func ParseConsensusStateSignerKey(key []byte) (clientID string, height uint64) {
+	key = key[len(ConsensusStateSignerKey):]
+	parts := bytes.Split(key, []byte(keySeparator))
+	clientID = string(parts[0])
+	height = sdk.BigEndianToUint64(parts[1])
+	return
 }
