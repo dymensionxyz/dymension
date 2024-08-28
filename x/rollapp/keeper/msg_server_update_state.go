@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"context"
+	"errors"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	lightclienttypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -29,9 +31,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 	// retrieve last updating index
 	var newIndex, lastIndex uint64
-	var previousStateHasTimestamp bool
 	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, msg.RollappId)
-	isFirstStateUpdate := !found
+	// If this is the very first state update, assume the rollapp is upgraded
+	rollappUpgradedForTimestamp := !found
 	if found {
 		// retrieve last updating index
 		stateInfo, found := k.GetStateInfo(ctx, msg.RollappId, latestStateInfoIndex.Index)
@@ -43,9 +45,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 				latestStateInfoIndex.Index, msg.RollappId)
 		}
 
-		// check if previous state last block desc has timestamp
+		// if previous block descriptor has timestamp, it means the rollapp is upgraded
 		lastBD := stateInfo.GetLatestBlockDescriptor()
-		previousStateHasTimestamp = !lastBD.Timestamp.IsZero()
+		rollappUpgradedForTimestamp = !lastBD.Timestamp.IsZero()
 
 		// check to see if received height is the one we expected
 		expectedStartHeight := stateInfo.StartHeight + stateInfo.NumBlocks
@@ -71,9 +73,12 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
 	k.SetStateInfo(ctx, *stateInfo)
 
-	err = k.hooks.AfterUpdateState(ctx, msg.RollappId, stateInfo, isFirstStateUpdate, previousStateHasTimestamp)
+	err = k.hooks.AfterUpdateState(ctx, msg.RollappId, stateInfo)
 	if err != nil {
-		return nil, err
+		// Upgraded rollapps must have timestamps in BDs
+		if !(errors.Is(err, lightclienttypes.ErrTimestampNotFound) && rollappUpgradedForTimestamp) {
+			return nil, err
+		}
 	}
 
 	stateInfoIndex := stateInfo.GetIndex()

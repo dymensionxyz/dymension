@@ -12,10 +12,8 @@ import (
 )
 
 type testInput struct {
-	rollappId                 string
-	stateInfo                 *rollapptypes.StateInfo
-	isFirstStateUpdate        bool
-	previousStateHasTimestamp bool
+	rollappId string
+	stateInfo *rollapptypes.StateInfo
 }
 
 func TestAfterUpdateState(t *testing.T) {
@@ -28,9 +26,8 @@ func TestAfterUpdateState(t *testing.T) {
 			name: "canonical client does not exist for rollapp",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
 				return testInput{
-					rollappId:          "rollapp-no-canon-client",
-					stateInfo:          &rollapptypes.StateInfo{},
-					isFirstStateUpdate: true,
+					rollappId: "rollapp-no-canon-client",
+					stateInfo: &rollapptypes.StateInfo{},
 				}
 			},
 			expectErr: false,
@@ -40,9 +37,8 @@ func TestAfterUpdateState(t *testing.T) {
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
 				return testInput{
-					rollappId:          "rollapp-has-canon-client",
-					stateInfo:          &rollapptypes.StateInfo{},
-					isFirstStateUpdate: true,
+					rollappId: "rollapp-has-canon-client",
+					stateInfo: &rollapptypes.StateInfo{},
 				}
 			},
 			expectErr: false,
@@ -64,7 +60,6 @@ func TestAfterUpdateState(t *testing.T) {
 							},
 						},
 					},
-					isFirstStateUpdate: true,
 				}
 			},
 			expectErr: false,
@@ -95,7 +90,6 @@ func TestAfterUpdateState(t *testing.T) {
 							},
 						},
 					},
-					isFirstStateUpdate: true,
 				}
 			},
 			expectErr: true,
@@ -133,7 +127,6 @@ func TestAfterUpdateState(t *testing.T) {
 							},
 						},
 					},
-					isFirstStateUpdate: true,
 				}
 			},
 			expectErr: false,
@@ -180,7 +173,7 @@ func TestAfterUpdateState(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			keeper, ctx := keepertest.LightClientKeeper(t)
 			input := tc.prepare(ctx, *keeper)
-			err := keeper.RollappHooks().AfterUpdateState(ctx, input.rollappId, input.stateInfo, input.isFirstStateUpdate, input.previousStateHasTimestamp)
+			err := keeper.RollappHooks().AfterUpdateState(ctx, input.rollappId, input.stateInfo)
 			if tc.expectErr {
 				require.Error(t, err)
 			} else {
@@ -217,7 +210,7 @@ func TestAfterUpdateState_SetCanonicalClient(t *testing.T) {
 			},
 		},
 	}
-	err := keeper.RollappHooks().AfterUpdateState(ctx, rollappId, stateInfo, false, false)
+	err := keeper.RollappHooks().AfterUpdateState(ctx, rollappId, stateInfo)
 	require.NoError(t, err)
 
 	clientID, found := keeper.GetCanonicalClient(ctx, rollappId)

@@ -286,7 +286,7 @@ func (h rollappHooks) BeforeUpdateState(_ sdk.Context, _ string, _ string, _ boo
 	return nil
 }
 
-func (h rollappHooks) AfterUpdateState(_ sdk.Context, _ string, _ *rollapptypes.StateInfo, _ bool, _ bool) error {
+func (h rollappHooks) AfterUpdateState(_ sdk.Context, _ string, _ *rollapptypes.StateInfo) error {
 	return nil
 }
 

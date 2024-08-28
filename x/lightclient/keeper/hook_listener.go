@@ -34,8 +34,6 @@ func (hook rollappHook) AfterUpdateState(
 	ctx sdk.Context,
 	rollappId string,
 	stateInfo *rollapptypes.StateInfo,
-	isFirstStateUpdate bool,
-	previousStateHasTimestamp bool,
 ) error {
 	canonicalClient, found := hook.k.GetCanonicalClient(ctx, rollappId)
 	if !found {
@@ -80,10 +78,6 @@ func (hook rollappHook) AfterUpdateState(
 		}
 		err = types.CheckCompatibility(ibcState, rollappState)
 		if err != nil {
-			// Only require timestamp on BD if first ever update, or the previous update had BD
-			if errors.Is(err, types.ErrTimestampNotFound) && !isFirstStateUpdate && !previousStateHasTimestamp {
-				continue
-			}
 			// The BD for (h+1) is missing, cannot verify if the nextvalhash matches
 			if errors.Is(err, types.ErrNextBlockDescriptorMissing) {
 				return err
