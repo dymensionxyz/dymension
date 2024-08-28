@@ -15,8 +15,11 @@ const (
 )
 
 // GetProspectiveCanonicalClient returns the client id of the first IBC client which can be set as the canonical client for the given rollapp.
-// Returns empty string if no such client is found.
-func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string, stateInfo *rollapptypes.StateInfo) (clientID string) {
+// The canonical client criteria are:
+// 1. The client must be a tendermint client.
+// 2. The client state must match the expected client params as configured by the module
+// 3. All the block descriptors in the state info must be compatible with the client consensus state
+func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string, stateInfo *rollapptypes.StateInfo) (clientID string, foundClient bool) {
 	clients := k.ibcClientKeeper.GetAllGenesisClients(ctx)
 	for _, client := range clients {
 		clientState, err := ibcclienttypes.UnpackClientState(client.ClientState)
@@ -66,8 +69,37 @@ func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string,
 				continue
 			}
 			clientID = client.GetClientId()
+			foundClient = true
 			return
 		}
+	}
+	return
+}
+
+func (k Keeper) GetCanonicalClient(ctx sdk.Context, rollappId string) (string, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetRollappClientKey(rollappId))
+	if bz == nil {
+		return "", false
+	}
+	return string(bz), true
+}
+
+func (k Keeper) SetCanonicalClient(ctx sdk.Context, rollappId string, clientID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.GetRollappClientKey(rollappId), []byte(clientID))
+	store.Set(types.CanonicalClientKey(clientID), []byte(rollappId))
+}
+
+func (k Keeper) GetAllCanonicalClients(ctx sdk.Context) (clients []types.CanonicalClient) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.RollappClientKey)
+	defer iterator.Close() // nolint: errcheck
+	for ; iterator.Valid(); iterator.Next() {
+		clients = append(clients, types.CanonicalClient{
+			RollappId:   string(iterator.Key()[1:]),
+			IbcClientId: string(iterator.Value()),
+		})
 	}
 	return
 }
