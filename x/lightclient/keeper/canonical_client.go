@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
@@ -18,8 +19,8 @@ const (
 // The canonical client criteria are:
 // 1. The client must be a tendermint client.
 // 2. The client state must match the expected client params as configured by the module
-// 3. All the block descriptors in the state info must be compatible with the client consensus state
-func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string, stateInfo *rollapptypes.StateInfo) (clientID string, foundClient bool) {
+// 3. All the existing consensus states much match the corresponding height rollapp block descriptors
+func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string, stateInfo *rollapptypes.StateInfo) (clientID string, stateCompatible bool) {
 	clients := k.ibcClientKeeper.GetAllGenesisClients(ctx)
 	for _, client := range clients {
 		clientState, err := ibcclienttypes.UnpackClientState(client.ClientState)
@@ -41,36 +42,49 @@ func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string,
 		if err != nil {
 			continue
 		}
-		for _, bd := range stateInfo.GetBDs().BD {
-			height := ibcclienttypes.NewHeight(ibcRevisionNumber, bd.GetHeight())
-			consensusState, found := k.ibcClientKeeper.GetClientConsensusState(ctx, client.ClientId, height)
-			if !found {
-				continue
-			}
-			// Cast consensus state to tendermint consensus state - we need this to check the state root and timestamp and nextValHash
-			tmConsensusState, ok := consensusState.(*ibctm.ConsensusState)
-			if !ok {
-				continue
-			}
+		res, err := k.ibcClientKeeper.ConsensusStateHeights(ctx, &ibcclienttypes.QueryConsensusStateHeightsRequest{
+			ClientId:   client.GetClientId(),
+			Pagination: &query.PageRequest{Limit: stateInfo.GetLatestHeight()},
+		})
+		stateCompatible = true
+		for _, consensusHeight := range res.ConsensusStateHeights {
+			consensusState, _ := k.ibcClientKeeper.GetClientConsensusState(ctx, client.ClientId, consensusHeight)
+			tmConsensusState, _ := consensusState.(*ibctm.ConsensusState)
 			ibcState := types.IBCState{
 				Root:               tmConsensusState.GetRoot().GetHash(),
 				NextValidatorsHash: tmConsensusState.NextValidatorsHash,
 				Timestamp:          time.Unix(0, int64(tmConsensusState.GetTimestamp())),
 			}
-			rollappState := types.RollappState{
-				BlockDescriptor: bd,
-			}
-			// Check if BD for next block exists in same stateinfo
-			if stateInfo.ContainsHeight(bd.GetHeight() + 1) {
+
+			var rollappState types.RollappState
+			bd, found := stateInfo.GetBlockDescriptor(consensusHeight.GetRevisionHeight())
+			if found {
+				rollappState.BlockDescriptor = bd
 				rollappState.NextBlockSequencer = sequencerPk
+			} else {
+				// Look up the state info for the block descriptor
+				oldStateInfo, err := k.rollappKeeper.FindStateInfoByHeight(ctx, rollappId, consensusHeight.GetRevisionHeight())
+				if err != nil {
+					stateCompatible = false
+					break
+				}
+				bd, _ = oldStateInfo.GetBlockDescriptor(consensusHeight.GetRevisionHeight())
+				oldSequencerPk, err := k.GetSequencerPubKey(ctx, oldStateInfo.Sequencer)
+				if err != nil {
+					stateCompatible = false
+					break
+				}
+				rollappState.BlockDescriptor = bd
+				rollappState.NextBlockSequencer = oldSequencerPk
 			}
 			err := types.CheckCompatibility(ibcState, rollappState)
 			if err != nil {
-				continue
+				stateCompatible = false
+				break
 			}
-			clientID = client.GetClientId()
-			foundClient = true
-			return
+		}
+		if stateCompatible {
+			return client.GetClientId(), true
 		}
 	}
 	return

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -99,7 +100,10 @@ type MockIBCCLientKeeper struct {
 	genesisClients       ibcclienttypes.IdentifiedClientStates
 }
 
-func NewMockIBCClientKeeper(clientCS map[string]map[uint64]exported.ConsensusState, genesisClients ibcclienttypes.IdentifiedClientStates) *MockIBCCLientKeeper {
+func NewMockIBCClientKeeper(
+	clientCS map[string]map[uint64]exported.ConsensusState,
+	genesisClients ibcclienttypes.IdentifiedClientStates,
+) *MockIBCCLientKeeper {
 	return &MockIBCCLientKeeper{
 		clientConsensusState: clientCS,
 		genesisClients:       genesisClients,
@@ -117,6 +121,15 @@ func (m *MockIBCCLientKeeper) GetClientState(ctx sdk.Context, clientID string) (
 
 func (m *MockIBCCLientKeeper) GetAllGenesisClients(ctx sdk.Context) ibcclienttypes.IdentifiedClientStates {
 	return m.genesisClients
+}
+
+func (m *MockIBCCLientKeeper) ConsensusStateHeights(c context.Context, req *ibcclienttypes.QueryConsensusStateHeightsRequest) (*ibcclienttypes.QueryConsensusStateHeightsResponse, error) {
+	heights := []ibcclienttypes.Height{
+		ibcclienttypes.NewHeight(1, 2),
+	}
+	return &ibcclienttypes.QueryConsensusStateHeightsResponse{
+		ConsensusStateHeights: heights,
+	}, nil
 }
 
 type MockSequencerKeeper struct {

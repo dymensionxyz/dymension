@@ -1,6 +1,8 @@
 package types
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -25,6 +27,7 @@ type IBCClientKeeperExpected interface {
 	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
 	GetAllGenesisClients(ctx sdk.Context) ibcclienttypes.IdentifiedClientStates
+	ConsensusStateHeights(c context.Context, req *ibcclienttypes.QueryConsensusStateHeightsRequest) (*ibcclienttypes.QueryConsensusStateHeightsResponse, error)
 }
 
 type IBCChannelKeeperExpected interface {
