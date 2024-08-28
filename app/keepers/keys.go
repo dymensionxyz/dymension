@@ -28,9 +28,8 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
-	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lightcliendmoduletypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
