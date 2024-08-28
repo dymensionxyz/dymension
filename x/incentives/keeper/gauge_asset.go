@@ -185,7 +185,7 @@ func SumLocksByDenom(locks []lockuptypes.PeriodLock, denom string) (math.Int, er
 	// validate the denom once, so we can avoid the expensive validate check in the hot loop.
 	err := sdk.ValidateDenom(denom)
 	if err != nil {
-		return math.Int{}, fmt.Errorf("invalid denom used internally: %s, %v", denom, err)
+		return math.Int{}, fmt.Errorf("invalid denom used internally: %s, %w", denom, err)
 	}
 	for _, lock := range locks {
 		var amt math.Int
