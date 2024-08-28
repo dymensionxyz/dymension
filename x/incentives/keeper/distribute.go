@@ -4,13 +4,11 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Distribute distributes coins from an array of gauges.

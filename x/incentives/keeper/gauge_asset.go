@@ -7,11 +7,10 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // distributionInfo stores all of the information for rewards distributions.
@@ -220,7 +219,7 @@ func checkBigInt(bi *big.Int) error {
 	return nil
 }
 
-// faster coins.AmountOf if we know that coins must contain the denom.
+// guaranteedNonzeroCoinAmountOf is a faster coins.AmountOf if we know that coins must contain the denom.
 // returns a new big int that can be mutated.
 func guaranteedNonzeroCoinAmountOf(coins sdk.Coins, denom string) math.Int {
 	if coins.Len() == 1 {
