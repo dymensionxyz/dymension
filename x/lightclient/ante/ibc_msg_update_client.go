@@ -31,6 +31,12 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	if !ok {
 		return nil
 	}
+	ibcState := types.IBCState{
+		Root:               header.Header.GetAppHash(),
+		NextValidatorsHash: header.Header.NextValidatorsHash,
+		Timestamp:          header.Header.Time,
+	}
+
 	// Check if there are existing block descriptors for the given height of client state
 	height := header.TrustedHeight
 	stateInfo, err := i.rollappKeeper.FindStateInfoByHeight(ctx, rollappID, height.GetRevisionHeight())
@@ -44,39 +50,22 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	}
 	bd, _ := stateInfo.GetBlockDescriptor(height.GetRevisionHeight())
 
-	ibcState := types.IBCState{
-		Root:               header.Header.GetAppHash(),
-		NextValidatorsHash: header.Header.NextValidatorsHash,
-		Timestamp:          header.Header.Time,
+	stateInfo, err = i.rollappKeeper.FindStateInfoByHeight(ctx, rollappID, height.GetRevisionHeight()+1)
+	if err != nil {
+		// No BDs found for next height.
+		// Will accept the update optimistically
+		// But also save the blockProposer address with the height for future verification
+		blockProposer := header.Header.ProposerAddress
+		i.lightClientKeeper.SetConsensusStateSigner(ctx, msg.ClientId, height.GetRevisionHeight(), blockProposer)
+		return nil
 	}
 	sequencerPubKey, err := i.lightClientKeeper.GetSequencerPubKey(ctx, stateInfo.Sequencer)
 	if err != nil {
 		return err
 	}
 	rollappState := types.RollappState{
-		BlockDescriptor: bd,
-	}
-	// Check that BD for next block exists in same stateinfo
-	if stateInfo.ContainsHeight(height.GetRevisionHeight() + 1) {
-		rollappState.NextBlockSequencer = sequencerPubKey
-	} else {
-		// next BD does not exist in this state info, check the next state info
-		nextStateInfo, found := i.rollappKeeper.GetStateInfo(ctx, rollappID, stateInfo.GetIndex().Index+1)
-		if found {
-			nextSequencerPk, err := i.lightClientKeeper.GetSequencerPubKey(ctx, nextStateInfo.Sequencer)
-			if err != nil {
-				return err
-			}
-			rollappState.NextBlockSequencer = nextSequencerPk
-		} else {
-			// if next state info does not exist, then we can't verify the next block valhash.
-			// Will accept the update optimistically
-			// But also save the blockProposer address with the height for future verification
-			// When the corresponding state info is submitted by the sequencer, will perform the verification
-			blockProposer := header.Header.ProposerAddress
-			i.lightClientKeeper.SetConsensusStateSigner(ctx, msg.ClientId, height.GetRevisionHeight(), blockProposer)
-			return nil
-		}
+		BlockDescriptor:    bd,
+		NextBlockSequencer: sequencerPubKey,
 	}
 	// Ensure that the ibc header is compatible with the existing rollapp state
 	// If it's not, we error and prevent the MsgUpdateClient from being processed

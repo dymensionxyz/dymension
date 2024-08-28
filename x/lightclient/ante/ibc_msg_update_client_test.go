@@ -172,7 +172,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 									Index: 1,
 								},
 								StartHeight: 1,
-								NumBlocks:   2,
+								NumBlocks:   1,
 								BDs: rollapptypes.BlockDescriptors{
 									BD: []rollapptypes.BlockDescriptor{
 										{
@@ -180,9 +180,21 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 											StateRoot: []byte{},
 											Timestamp: time.Unix(1724392989, 0),
 										},
+									},
+								},
+							},
+							2: {
+								Sequencer: keepertest.Alice,
+								StateInfoIndex: rollapptypes.StateInfoIndex{
+									Index: 2,
+								},
+								StartHeight: 2,
+								NumBlocks:   1,
+								BDs: rollapptypes.BlockDescriptors{
+									BD: []rollapptypes.BlockDescriptor{
 										{
 											Height:    2,
-											StateRoot: []byte{},
+											StateRoot: []byte("appHash2"),
 											Timestamp: time.Unix(1724392989, 0),
 										},
 									},
