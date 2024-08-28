@@ -68,7 +68,7 @@ func TestAfterUpdateState(t *testing.T) {
 			name: "BD does not include next block in state info",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				blockSignerTmPubKey, err := k.GetSeqeuncerHash(ctx, keepertest.Alice)
+				blockSignerTmPubKey, err := k.GetSequencerHash(ctx, keepertest.Alice)
 				require.NoError(t, err)
 				k.SetConsensusStateSigner(ctx, "canon-client-id", 2, blockSignerTmPubKey)
 				return testInput{

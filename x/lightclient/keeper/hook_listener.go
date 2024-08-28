@@ -50,7 +50,7 @@ func (hook rollappHook) AfterUpdateState(
 		if !found {
 			continue
 		}
-		height := ibcclienttypes.NewHeight(1, bd.GetHeight())
+		height := ibcclienttypes.NewHeight(ibcRevisionNumber, bd.GetHeight())
 		consensusState, _ := hook.k.ibcClientKeeper.GetClientConsensusState(ctx, canonicalClient, height)
 		// Cast consensus state to tendermint consensus state - we need this to check the state root and timestamp and nextValHash
 		tmConsensusState, ok := consensusState.(*ibctm.ConsensusState)

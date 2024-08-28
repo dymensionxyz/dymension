@@ -209,7 +209,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 					valSet      *cmtproto.ValidatorSet
 					trustedVals *cmtproto.ValidatorSet
 				)
-				nextValsHash, err := k.GetSeqeuncerHash(ctx, sequencer)
+				nextValsHash, err := k.GetSequencerHash(ctx, sequencer)
 				require.NoError(t, err)
 				signedHeader := &cmtproto.SignedHeader{
 					Header: &cmtproto.Header{

@@ -37,8 +37,8 @@ func NewKeeper(
 	return k
 }
 
-// GetSeqeuncerHash returns the seqeuncer's tendermint public key hash
-func (k Keeper) GetSeqeuncerHash(ctx sdk.Context, sequencerAddr string) ([]byte, error) {
+// GetSequencerHash returns the seqeuncer's tendermint public key hash
+func (k Keeper) GetSequencerHash(ctx sdk.Context, sequencerAddr string) ([]byte, error) {
 	seq, found := k.sequencerKeeper.GetSequencer(ctx, sequencerAddr)
 	if !found {
 		return nil, fmt.Errorf("sequencer not found")

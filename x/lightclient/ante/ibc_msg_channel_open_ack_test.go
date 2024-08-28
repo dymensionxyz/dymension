@@ -42,10 +42,10 @@ func TestHandleMsgChannelOpenAck(t *testing.T) {
 	keeper.SetCanonicalClient(ctx, "rollapp-no-canon-channel", "canon-client-id-2")
 	ibcMsgDecorator := ante.NewIBCMessagesDecorator(*keeper, ibcclientKeeper, ibcchannelKeeper, rollappKeeper)
 	testCases := []struct {
-		name           string
-		inputMsg       ibcchanneltypes.MsgChannelOpenAck
-		err            error
-		canonClientSet bool
+		name            string
+		inputMsg        ibcchanneltypes.MsgChannelOpenAck
+		err             error
+		canonChannelSet bool
 	}{
 		{
 			name: "port id is not transfer port",
@@ -53,8 +53,8 @@ func TestHandleMsgChannelOpenAck(t *testing.T) {
 				PortId:    "not-transfer-port",
 				ChannelId: "channel-id",
 			},
-			err:            nil,
-			canonClientSet: false,
+			err:             nil,
+			canonChannelSet: false,
 		},
 		{
 			name: "channel not on a canonical client",
@@ -62,8 +62,8 @@ func TestHandleMsgChannelOpenAck(t *testing.T) {
 				PortId:    "transfer",
 				ChannelId: "non-canon-channel-id",
 			},
-			err:            nil,
-			canonClientSet: false,
+			err:             nil,
+			canonChannelSet: false,
 		},
 		{
 			name: "canonical channel already exists for rollapp",
@@ -71,8 +71,8 @@ func TestHandleMsgChannelOpenAck(t *testing.T) {
 				PortId:    "transfer",
 				ChannelId: "new-channel-on-canon-client",
 			},
-			err:            gerrc.ErrFailedPrecondition,
-			canonClientSet: false,
+			err:             gerrc.ErrFailedPrecondition,
+			canonChannelSet: false,
 		},
 		{
 			name: "canonical channel does not exist - set new channel as canonical",
@@ -80,8 +80,8 @@ func TestHandleMsgChannelOpenAck(t *testing.T) {
 				PortId:    "transfer",
 				ChannelId: "first-channel-on-canon-client",
 			},
-			err:            nil,
-			canonClientSet: true,
+			err:             nil,
+			canonChannelSet: true,
 		},
 	}
 	for _, tc := range testCases {
@@ -92,7 +92,7 @@ func TestHandleMsgChannelOpenAck(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
-			if tc.canonClientSet {
+			if tc.canonChannelSet {
 				rollapp, found := rollappKeeper.GetRollapp(ctx, "rollapp-no-canon-channel")
 				require.True(t, found)
 				require.Equal(t, tc.inputMsg.ChannelId, rollapp.ChannelId)
