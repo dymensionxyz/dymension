@@ -64,11 +64,11 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	// test plan exists
 	plan, found := k.GetPlanByRollapp(s.Ctx, rollappId)
 	s.Require().True(found)
-	s.Require().Equal(planId, plan.Id)
+	s.Require().Equal(planId, fmt.Sprintf("%d", plan.Id))
 
 	plan, found = k.GetPlanByRollapp(s.Ctx, rollappId2)
 	s.Require().True(found)
-	s.Require().Equal(planId2, plan.Id)
+	s.Require().Equal(planId2, fmt.Sprintf("%d", plan.Id))
 
 	// test get all plans
 	plans := k.GetAllPlans(s.Ctx)

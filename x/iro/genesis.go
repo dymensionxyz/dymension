@@ -11,7 +11,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	_ = k.AK.GetModuleAccount(ctx, types.ModuleName) // called to ensure the module account is set
 	k.SetParams(ctx, genState.Params)
 
-	for _, plan := range genState.Plan {
+	for _, plan := range genState.Plans {
 		k.SetPlan(ctx, plan)
 	}
 }
@@ -23,7 +23,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 
 	plans := k.GetAllPlans(ctx)
 	for _, plan := range plans {
-		genesis.Plan = append(genesis.Plan, plan)
+		genesis.Plans = append(genesis.Plans, plan)
 	}
 
 	return genesis
