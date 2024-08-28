@@ -84,6 +84,7 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		storeKey,
 		mockIBCKeeper,
 		mockSequencerKeeper,
+		nil,
 	)
 
 	ctx := sdk.NewContext(stateStore, cometbftproto.Header{}, false, log.NewNopLogger())

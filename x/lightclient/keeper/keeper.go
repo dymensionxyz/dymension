@@ -17,6 +17,7 @@ type Keeper struct {
 	storeKey        storetypes.StoreKey
 	ibcClientKeeper types.IBCClientKeeperExpected
 	sequencerKeeper types.SequencerKeeperExpected
+	rollappKeeper   types.RollappKeeperExpected
 }
 
 func NewKeeper(
@@ -24,12 +25,14 @@ func NewKeeper(
 	storeKey storetypes.StoreKey,
 	ibcKeeper types.IBCClientKeeperExpected,
 	sequencerKeeper types.SequencerKeeperExpected,
+	rollappKeeper types.RollappKeeperExpected,
 ) *Keeper {
 	k := &Keeper{
 		cdc:             cdc,
 		storeKey:        storeKey,
 		ibcClientKeeper: ibcKeeper,
 		sequencerKeeper: sequencerKeeper,
+		rollappKeeper:   rollappKeeper,
 	}
 	return k
 }
