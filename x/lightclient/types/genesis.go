@@ -2,6 +2,13 @@ package types
 
 import fmt "fmt"
 
+func DefaultGenesisState() GenesisState {
+	return GenesisState{
+		CanonicalClients:      []CanonicalClient{},
+		ConsensusStateSigners: []ConsensusStateSigner{},
+	}
+}
+
 func (g GenesisState) Validate() error {
 	for _, client := range g.CanonicalClients {
 		if client.RollappId == "" {

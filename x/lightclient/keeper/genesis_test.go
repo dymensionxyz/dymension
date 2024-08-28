@@ -10,11 +10,11 @@ import (
 
 func TestInitGenesis(t *testing.T) {
 	keeper, ctx := keepertest.LightClientKeeper(t)
-	clients := []*types.CanonicalClient{
+	clients := []types.CanonicalClient{
 		{RollappId: "rollapp-1", IbcClientId: "client-1"},
 		{RollappId: "rollapp-2", IbcClientId: "client-2"},
 	}
-	stateSigners := []*types.ConsensusStateSigner{
+	stateSigners := []types.ConsensusStateSigner{
 		{IbcClientId: "client-1", Height: 1, Signer: "signer-1"},
 		{IbcClientId: "client-1", Height: 2, Signer: "signer-1"},
 	}

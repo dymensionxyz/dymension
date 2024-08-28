@@ -1,11 +1,13 @@
 syntax = "proto3";
 package dymensionxyz.dymension.lightclient;
 
+import "gogoproto/gogo.proto";
+
 option go_package = "github.com/dymensionxyz/dymension/v3/x/lightclient/types";
 
 message GenesisState {
-    repeated CanonicalClient canonical_clients = 1;
-    repeated ConsensusStateSigner consensus_state_signers = 2;
+    repeated CanonicalClient canonical_clients = 1 [ (gogoproto.nullable) = false ];
+    repeated ConsensusStateSigner consensus_state_signers = 2 [ (gogoproto.nullable) = false ];
 }
 
 message CanonicalClient {

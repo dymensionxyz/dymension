@@ -16,11 +16,11 @@ func TestGenesisValidate(t *testing.T) {
 		{
 			name: "valid",
 			g: types.GenesisState{
-				CanonicalClients: []*types.CanonicalClient{
+				CanonicalClients: []types.CanonicalClient{
 					{RollappId: "rollapp-1", IbcClientId: "client-1"},
 					{RollappId: "rollapp-2", IbcClientId: "client-2"},
 				},
-				ConsensusStateSigners: []*types.ConsensusStateSigner{
+				ConsensusStateSigners: []types.ConsensusStateSigner{
 					{IbcClientId: "client-1", Height: 1, Signer: "signer-1"},
 					{IbcClientId: "client-1", Height: 2, Signer: "signer-1"},
 				},
@@ -30,7 +30,7 @@ func TestGenesisValidate(t *testing.T) {
 		{
 			name: "invalid rollapp id",
 			g: types.GenesisState{
-				CanonicalClients: []*types.CanonicalClient{
+				CanonicalClients: []types.CanonicalClient{
 					{RollappId: "", IbcClientId: "client-1"},
 				},
 			},
@@ -39,7 +39,7 @@ func TestGenesisValidate(t *testing.T) {
 		{
 			name: "invalid ibc client id",
 			g: types.GenesisState{
-				CanonicalClients: []*types.CanonicalClient{
+				CanonicalClients: []types.CanonicalClient{
 					{RollappId: "rollapp-1", IbcClientId: ""},
 				},
 			},
@@ -48,7 +48,7 @@ func TestGenesisValidate(t *testing.T) {
 		{
 			name: "invalid height",
 			g: types.GenesisState{
-				ConsensusStateSigners: []*types.ConsensusStateSigner{
+				ConsensusStateSigners: []types.ConsensusStateSigner{
 					{IbcClientId: "client-1", Height: 0, Signer: "signer-1"},
 				},
 			},
@@ -57,7 +57,7 @@ func TestGenesisValidate(t *testing.T) {
 		{
 			name: "invalid signer",
 			g: types.GenesisState{
-				ConsensusStateSigners: []*types.ConsensusStateSigner{
+				ConsensusStateSigners: []types.ConsensusStateSigner{
 					{IbcClientId: "client-1", Height: 1, Signer: ""},
 				},
 			},
@@ -66,6 +66,11 @@ func TestGenesisValidate(t *testing.T) {
 		{
 			name:  "empty",
 			g:     types.GenesisState{},
+			valid: true,
+		},
+		{
+			name:  "default",
+			g:     types.DefaultGenesisState(),
 			valid: true,
 		},
 	}

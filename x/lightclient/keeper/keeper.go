@@ -73,12 +73,12 @@ func (k Keeper) SetCanonicalClient(ctx sdk.Context, rollappId string, clientID s
 	store.Set(types.CanonicalClientKey(clientID), []byte(rollappId))
 }
 
-func (k Keeper) GetAllCanonicalClients(ctx sdk.Context) (clients []*types.CanonicalClient) {
+func (k Keeper) GetAllCanonicalClients(ctx sdk.Context) (clients []types.CanonicalClient) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.RollappClientKey)
 	defer iterator.Close() // nolint: errcheck
 	for ; iterator.Valid(); iterator.Next() {
-		clients = append(clients, &types.CanonicalClient{
+		clients = append(clients, types.CanonicalClient{
 			RollappId:   string(iterator.Key()[1:]),
 			IbcClientId: string(iterator.Value()),
 		})
@@ -100,14 +100,14 @@ func (k Keeper) GetConsensusStateSigner(ctx sdk.Context, clientID string, height
 	return bz, true
 }
 
-func (k Keeper) GetAllConsensusStateSigners(ctx sdk.Context) (signers []*types.ConsensusStateSigner) {
+func (k Keeper) GetAllConsensusStateSigners(ctx sdk.Context) (signers []types.ConsensusStateSigner) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ConsensusStateSignerKey)
 	defer iterator.Close() // nolint: errcheck
 	for ; iterator.Valid(); iterator.Next() {
 		key := iterator.Key()
 		clientID, height := types.ParseConsensusStateSignerKey(key)
-		signers = append(signers, &types.ConsensusStateSigner{
+		signers = append(signers, types.ConsensusStateSigner{
 			IbcClientId: clientID,
 			Height:      height,
 			Signer:      string(iterator.Value()),
