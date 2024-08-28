@@ -16,9 +16,7 @@ type BankKeeper interface {
 
 	HasSupply(ctx sdk.Context, denom string) bool
 
-	SendCoinsFromModuleToAccount(
-		ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins,
-	) error
+	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 }
@@ -26,9 +24,6 @@ type BankKeeper interface {
 // LockupKeeper defines the expected interface needed to retrieve locks.
 type LockupKeeper interface {
 	GetLocksLongerThanDurationDenom(ctx sdk.Context, denom string, duration time.Duration) []lockuptypes.PeriodLock
-	GetPeriodLocksAccumulation(ctx sdk.Context, query lockuptypes.QueryCondition) sdk.Int
-	GetAccountPeriodLocks(ctx sdk.Context, addr sdk.AccAddress) []lockuptypes.PeriodLock
-	GetLockByID(ctx sdk.Context, lockID uint64) (*lockuptypes.PeriodLock, error)
 }
 
 // EpochKeeper defines the expected interface needed to retrieve epoch info.

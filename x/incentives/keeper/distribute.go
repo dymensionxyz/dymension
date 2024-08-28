@@ -4,8 +4,10 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,6 +19,10 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge) (sdk.Coins, er
 	lockHolders := newDistributionInfo()
 
 	totalDistributedCoins := sdk.Coins{}
+
+	// Cache specific for asset gauges. Helps reduce the number of x/lockup requests.
+	locksByDenomCache := make(map[string][]lockuptypes.PeriodLock)
+
 	for _, gauge := range gauges {
 		var (
 			gaugeDistributedCoins sdk.Coins
@@ -24,7 +30,8 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge) (sdk.Coins, er
 		)
 		switch gauge.DistributeTo.(type) {
 		case *types.Gauge_Asset:
-			gaugeDistributedCoins, err = k.distributeToAssetGauge(ctx, gauge, &lockHolders)
+			filteredLocks := k.getDistributeToBaseLocks(ctx, gauge, locksByDenomCache)
+			gaugeDistributedCoins, err = k.distributeToAssetGauge(ctx, gauge, filteredLocks, &lockHolders)
 		case *types.Gauge_Rollapp:
 			gaugeDistributedCoins, err = k.distributeToRollappGauge(ctx, gauge)
 		default:
