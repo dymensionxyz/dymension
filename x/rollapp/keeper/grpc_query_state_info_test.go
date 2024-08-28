@@ -177,5 +177,4 @@ func TestFindStateInfoByHeight(t *testing.T) {
 			}
 		})
 	}
-
 }
