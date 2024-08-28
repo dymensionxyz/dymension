@@ -12,6 +12,7 @@ import (
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
 )
 
 // Prevent strconv unused error
@@ -77,4 +78,104 @@ func TestStateInfoQuerySingle(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestFindStateInfoByHeight(t *testing.T) {
+	keeper, ctx := keepertest.RollappKeeper(t)
+	rollappID := urand.RollappID()
+	keeper.SetRollapp(ctx, types.Rollapp{
+		RollappId: rollappID,
+	})
+	keeper.SetStateInfo(ctx, types.StateInfo{
+		StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 1},
+		StartHeight:    1,
+		NumBlocks:      2,
+	})
+	keeper.SetStateInfo(ctx, types.StateInfo{
+		StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 2},
+		StartHeight:    3,
+		NumBlocks:      3,
+	})
+	keeper.SetStateInfo(ctx, types.StateInfo{
+		StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 3},
+		StartHeight:    6,
+		NumBlocks:      4,
+	})
+	keeper.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
+		RollappId: rollappID,
+		Index:     3,
+	})
+
+	type testInput struct {
+		rollappId string
+		height    uint64
+	}
+
+	testCase := []struct {
+		name           string
+		input          testInput
+		stateInfoIndex uint64
+		err            error
+	}{
+		{
+			name: "Zero height",
+			input: testInput{
+				rollappId: "1",
+				height:    0,
+			},
+			err: types.ErrInvalidHeight,
+		},
+		{
+			name: "Rollapp not found",
+			input: testInput{
+				rollappId: "unknown",
+				height:    1,
+			},
+			err: types.ErrUnknownRollappID,
+		},
+		{
+			name: "First height",
+			input: testInput{
+				rollappId: rollappID,
+				height:    1,
+			},
+			stateInfoIndex: 1,
+		},
+		{
+			name: "Last height",
+			input: testInput{
+				rollappId: rollappID,
+				height:    9,
+			},
+			stateInfoIndex: 3,
+		},
+		{
+			name: "Height in between",
+			input: testInput{
+				rollappId: rollappID,
+				height:    4,
+			},
+			stateInfoIndex: 2,
+		},
+		{
+			name: "Height not found",
+			input: testInput{
+				rollappId: rollappID,
+				height:    10,
+			},
+			err: types.ErrStateNotExists,
+		},
+	}
+	for _, tc := range testCase {
+		t.Run(tc.name, func(t *testing.T) {
+			response, err := keeper.FindStateInfoByHeight(ctx, tc.input.rollappId, tc.input.height)
+			if tc.err != nil {
+				require.ErrorIs(t, err, tc.err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tc.stateInfoIndex, response.StateInfoIndex.Index)
+			}
+		})
+	}
+
 }
