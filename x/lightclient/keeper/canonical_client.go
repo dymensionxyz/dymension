@@ -46,6 +46,9 @@ func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string,
 			ClientId:   client.GetClientId(),
 			Pagination: &query.PageRequest{Limit: stateInfo.GetLatestHeight()},
 		})
+		if err != nil {
+			continue
+		}
 		stateCompatible = true
 		for _, consensusHeight := range res.ConsensusStateHeights {
 			consensusState, _ := k.ibcClientKeeper.GetClientConsensusState(ctx, client.ClientId, consensusHeight)

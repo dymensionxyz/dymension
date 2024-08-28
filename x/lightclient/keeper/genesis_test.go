@@ -33,10 +33,10 @@ func TestInitGenesis(t *testing.T) {
 
 	signer, found := keeper.GetConsensusStateSigner(ctx, "client-1", 1)
 	require.True(t, found)
-	require.Equal(t, "signer-1", string(signer))
+	require.Equal(t, "signer-1", signer)
 	signer, found = keeper.GetConsensusStateSigner(ctx, "client-1", 2)
 	require.True(t, found)
-	require.Equal(t, "signer-1", string(signer))
+	require.Equal(t, "signer-1", signer)
 }
 
 func TestExportGenesis(t *testing.T) {
