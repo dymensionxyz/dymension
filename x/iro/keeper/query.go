@@ -13,7 +13,7 @@ var _ types.QueryServer = Keeper{}
 
 // NewQueryServer creates a new querier for iro clients.
 func NewQueryServer(k Keeper) types.QueryServer {
-	return Keeper(k)
+	return k
 }
 
 func (k Keeper) Params(goCtx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {

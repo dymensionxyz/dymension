@@ -17,7 +17,7 @@ func TestGenesis(t *testing.T) {
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
-	k, ctx := keepertest.IroKeeper(t)
+	k, ctx := keepertest.IROKeeper(t)
 	iro.InitGenesis(ctx, *k, genesisState)
 	got := iro.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)

@@ -55,6 +55,7 @@ import (
 	dymnsmodule "github.com/dymensionxyz/dymension/v3/x/dymns"
 	dymnsmoduleclient "github.com/dymensionxyz/dymension/v3/x/dymns/client"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
+	"github.com/dymensionxyz/dymension/v3/x/iro"
 	"github.com/evmos/ethermint/x/evm"
 	evmclient "github.com/evmos/ethermint/x/evm/client"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -91,6 +92,8 @@ import (
 	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp"
+
+	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 
 	rollappmoduleclient "github.com/dymensionxyz/dymension/v3/x/rollapp/client"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -147,6 +150,7 @@ var ModuleBasics = module.NewBasicManager(
 	streamer.AppModuleBasic{},
 	denommetadata.AppModuleBasic{},
 	packetforward.AppModuleBasic{},
+	iro.AppModuleBasic{},
 	delayedack.AppModuleBasic{},
 	eibc.AppModuleBasic{},
 	dymnsmodule.AppModuleBasic{},
@@ -195,6 +199,7 @@ func (a *AppKeepers) SetupModules(
 		packetforwardmiddleware.NewAppModule(a.PacketForwardMiddlewareKeeper, a.GetSubspace(packetforwardtypes.ModuleName)),
 		ibctransfer.NewAppModule(a.TransferKeeper),
 		rollappmodule.NewAppModule(appCodec, a.RollappKeeper, a.AccountKeeper, a.BankKeeper),
+		iro.NewAppModule(appCodec, *a.IROKeeper),
 		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper, a.AccountKeeper, a.BankKeeper),
 		sponsorship.NewAppModule(a.SponsorshipKeeper),
 		streamermodule.NewAppModule(a.StreamerKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
@@ -227,6 +232,7 @@ func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 	// exclude the streamer as we want him to be able to get external incentives
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
+	modAccAddrs[authtypes.NewModuleAddress(irotypes.ModuleName).String()] = false
 	return modAccAddrs
 }
 
@@ -250,6 +256,7 @@ var maccPerms = map[string][]string{
 	incentivestypes.ModuleName:                         {authtypes.Minter, authtypes.Burner},
 	txfeestypes.ModuleName:                             {authtypes.Burner},
 	dymnstypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
+	irotypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
 }
 
 var BeginBlockers = []string{
@@ -289,6 +296,7 @@ var BeginBlockers = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
+	irotypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -328,6 +336,7 @@ var EndBlockers = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
+	irotypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -367,4 +376,5 @@ var InitGenesis = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
+	irotypes.ModuleName,
 }

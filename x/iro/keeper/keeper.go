@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
@@ -20,18 +21,24 @@ type Keeper struct {
 	storeKey storetypes.StoreKey
 
 	//FIXME: change to expected keeper
-	rk rollappkeeper.Keeper
+	AK *authkeeper.AccountKeeper
 	bk bankkeeper.Keeper
+	rk *rollappkeeper.Keeper
 }
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
-
+	ak *authkeeper.AccountKeeper,
+	bk bankkeeper.Keeper,
+	rk *rollappkeeper.Keeper,
 ) *Keeper {
 	return &Keeper{
 		cdc:      cdc,
 		storeKey: storeKey,
+		AK:       ak,
+		bk:       bk,
+		rk:       rk,
 	}
 }
 

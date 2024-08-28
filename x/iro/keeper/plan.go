@@ -53,7 +53,7 @@ func (k Keeper) GetPlanByRollapp(ctx sdk.Context, rollappId string) (val types.P
 func (k Keeper) MustGetPlan(ctx sdk.Context, planId string) types.Plan {
 	plan, found := k.GetPlan(ctx, planId)
 	if !found {
-		panic(fmt.Sprintf("plan not found for ID: %d", planId))
+		panic(fmt.Sprintf("plan not found for ID: %s", planId))
 	}
 	return plan
 }

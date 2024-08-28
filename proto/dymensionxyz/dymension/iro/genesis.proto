@@ -12,5 +12,5 @@ message GenesisState {
   // Params defines params for x/sponsorship module.
   Params params = 1 [ (gogoproto.nullable) = false ];
   // VoterInfos hold information about voters.
-  repeated Plan plan = 2 [ (gogoproto.nullable) = false ];
+  repeated Plan plans = 2 [ (gogoproto.nullable) = false ];
 }

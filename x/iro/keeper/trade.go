@@ -63,12 +63,15 @@ func (k Keeper) Buy(ctx sdk.Context, planId, buyer string, amountTokensToBuy, ma
 	k.SetPlan(ctx, plan)
 
 	// Emit event
-	ctx.EventManager().EmitTypedEvent(&types.EventBuy{
+	err = ctx.EventManager().EmitTypedEvent(&types.EventBuy{
 		Buyer:     buyer,
 		PlanId:    planId,
 		RollappId: plan.RollappId,
 		Amount:    amountTokensToBuy,
 	})
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -112,12 +115,15 @@ func (k Keeper) Sell(ctx sdk.Context, planId, seller string, amountTokensToSell,
 	k.SetPlan(ctx, plan)
 
 	// Emit event
-	ctx.EventManager().EmitTypedEvent(&types.EventSell{
+	err = ctx.EventManager().EmitTypedEvent(&types.EventSell{
 		Seller:    seller,
 		PlanId:    planId,
 		RollappId: plan.RollappId,
 		Amount:    amountTokensToSell,
 	})
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -84,6 +84,8 @@ import (
 	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
+	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
@@ -121,6 +123,7 @@ type AppKeepers struct {
 	FeeGrantKeeper                feegrantkeeper.Keeper
 	PacketForwardMiddlewareKeeper *packetforwardkeeper.Keeper
 	ConsensusParamsKeeper         consensusparamkeeper.Keeper
+	IROKeeper                     *irokeeper.Keeper
 
 	// Ethermint keepers
 	EvmKeeper       *evmkeeper.Keeper
@@ -361,6 +364,14 @@ func (a *AppKeepers) InitKeepers(
 	)
 
 	a.RollappKeeper.SetSequencerKeeper(a.SequencerKeeper)
+
+	a.IROKeeper = irokeeper.NewKeeper(
+		appCodec,
+		a.keys[irotypes.StoreKey],
+		&a.AccountKeeper,
+		a.BankKeeper,
+		a.RollappKeeper,
+	)
 
 	a.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		a.keys[incentivestypes.StoreKey],

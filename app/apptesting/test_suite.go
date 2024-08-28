@@ -63,6 +63,7 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 			LogoUrl:     "https://dymension.xyz/logo.png",
 			Telegram:    "https://t.me/rolly",
 			X:           "https://x.dymension.xyz",
+			TokenSymbol: "ROL",
 		},
 	}
 
