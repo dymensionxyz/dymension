@@ -33,23 +33,15 @@ func TestAfterUpdateState(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name: "canonical client exists but the BDs are empty",
-			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
-				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				return testInput{
-					rollappId: "rollapp-has-canon-client",
-					stateInfo: &rollapptypes.StateInfo{},
-				}
-			},
-			expectErr: false,
-		},
-		{
 			name: "canonical client exists but consensus state is not found for given height",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client-but-no-state", "canon-client-id-no-state")
 				return testInput{
 					rollappId: "rollapp-has-canon-client-but-no-state",
 					stateInfo: &rollapptypes.StateInfo{
+						Sequencer:   keepertest.Alice,
+						StartHeight: 1,
+						NumBlocks:   1,
 						BDs: rollapptypes.BlockDescriptors{
 							BD: []rollapptypes.BlockDescriptor{
 								{
@@ -63,36 +55,6 @@ func TestAfterUpdateState(t *testing.T) {
 				}
 			},
 			expectErr: false,
-		},
-		{
-			name: "BD does not include next block in state info",
-			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
-				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				blockSignerTmPubKey, err := k.GetSequencerHash(ctx, keepertest.Alice)
-				require.NoError(t, err)
-				k.SetConsensusStateSigner(ctx, "canon-client-id", 2, blockSignerTmPubKey)
-				return testInput{
-					rollappId: "rollapp-has-canon-client",
-					stateInfo: &rollapptypes.StateInfo{
-						Sequencer: keepertest.Alice,
-						BDs: rollapptypes.BlockDescriptors{
-							BD: []rollapptypes.BlockDescriptor{
-								{
-									Height:    1,
-									StateRoot: []byte("test"),
-									Timestamp: time.Unix(1724392989, 0),
-								},
-								{
-									Height:    2,
-									StateRoot: []byte("test2"),
-									Timestamp: time.Unix(1724392989, 0).Add(1),
-								},
-							},
-						},
-					},
-				}
-			},
-			expectErr: true,
 		},
 		{
 			name: "both states are not compatible - slash the sequencer who signed",
@@ -106,7 +68,9 @@ func TestAfterUpdateState(t *testing.T) {
 				return testInput{
 					rollappId: "rollapp-has-canon-client",
 					stateInfo: &rollapptypes.StateInfo{
-						Sequencer: keepertest.Alice,
+						Sequencer:   keepertest.Alice,
+						StartHeight: 1,
+						NumBlocks:   3,
 						BDs: rollapptypes.BlockDescriptors{
 							BD: []rollapptypes.BlockDescriptor{
 								{
@@ -143,7 +107,9 @@ func TestAfterUpdateState(t *testing.T) {
 				return testInput{
 					rollappId: "rollapp-has-canon-client",
 					stateInfo: &rollapptypes.StateInfo{
-						Sequencer: keepertest.Alice,
+						Sequencer:   keepertest.Alice,
+						StartHeight: 1,
+						NumBlocks:   3,
 						BDs: rollapptypes.BlockDescriptors{
 							BD: []rollapptypes.BlockDescriptor{
 								{
