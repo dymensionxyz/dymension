@@ -58,18 +58,20 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) SetConsensusStateSigner(ctx sdk.Context, clientID string, height uint64, sequencer []byte) {
+// SetConsenusStateSigner sets the bech32 address of the sequencer who signed the block header for the given height of the client
+func (k Keeper) SetConsensusStateSigner(ctx sdk.Context, clientID string, height uint64, sequencerAddr string) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.ConsensusStateSignerKeyByClientID(clientID, height), sequencer)
+	store.Set(types.ConsensusStateSignerKeyByClientID(clientID, height), []byte(sequencerAddr))
 }
 
-func (k Keeper) GetConsensusStateSigner(ctx sdk.Context, clientID string, height uint64) ([]byte, bool) {
+// GetConsensusStateSigner returns the bech32 address of the sequencer who signed the block header for the given height of the client
+func (k Keeper) GetConsensusStateSigner(ctx sdk.Context, clientID string, height uint64) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.ConsensusStateSignerKeyByClientID(clientID, height))
 	if bz == nil {
-		return []byte{}, false
+		return "", false
 	}
-	return bz, true
+	return string(bz), true
 }
 
 func (k Keeper) GetAllConsensusStateSigners(ctx sdk.Context) (signers []types.ConsensusStateSigner) {

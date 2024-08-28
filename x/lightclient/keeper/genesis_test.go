@@ -44,8 +44,8 @@ func TestExportGenesis(t *testing.T) {
 
 	keeper.SetCanonicalClient(ctx, "rollapp-1", "client-1")
 	keeper.SetCanonicalClient(ctx, "rollapp-2", "client-2")
-	keeper.SetConsensusStateSigner(ctx, "client-1", 1, []byte("signer-1"))
-	keeper.SetConsensusStateSigner(ctx, "client-1", 2, []byte("signer-1"))
+	keeper.SetConsensusStateSigner(ctx, "client-1", 1, "signer-1")
+	keeper.SetConsensusStateSigner(ctx, "client-1", 2, "signer-1")
 
 	genesis := keeper.ExportGenesis(ctx)
 

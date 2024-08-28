@@ -44,7 +44,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 		// No BDs found for given height.
 		// Will accept the update optimistically
 		// But also save the blockProposer address with the height for future verification
-		i.acceptUpdateOptimistically(ctx, rollappID, msg.ClientId, header)
+		i.acceptUpdateOptimistically(ctx, msg.ClientId, header)
 		return nil
 	}
 	bd, _ := stateInfo.GetBlockDescriptor(height.GetRevisionHeight())
@@ -54,7 +54,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 		// No BDs found for next height.
 		// Will accept the update optimistically
 		// But also save the blockProposer address with the height for future verification
-		i.acceptUpdateOptimistically(ctx, rollappID, msg.ClientId, header)
+		i.acceptUpdateOptimistically(ctx, msg.ClientId, header)
 		return nil
 	}
 	sequencerPubKey, err := i.lightClientKeeper.GetSequencerPubKey(ctx, stateInfo.Sequencer)
@@ -75,7 +75,8 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	return nil
 }
 
-func (i IBCMessagesDecorator) acceptUpdateOptimistically(ctx sdk.Context, rollappID string, clientID string, header *ibctm.Header) {
+func (i IBCMessagesDecorator) acceptUpdateOptimistically(ctx sdk.Context, clientID string, header *ibctm.Header) {
 	proposerAddress := header.Header.ProposerAddress
-	i.lightClientKeeper.SetConsensusStateSigner(ctx, clientID, header.TrustedHeight.RevisionHeight, proposerAddress)
+	proposerBech32Address := sdk.AccAddress(proposerAddress).String()
+	i.lightClientKeeper.SetConsensusStateSigner(ctx, clientID, header.TrustedHeight.RevisionHeight, proposerBech32Address)
 }

@@ -125,7 +125,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 				require.NoError(t, err)
 				signer, found := k.GetConsensusStateSigner(ctx, "canon-client-id", 1)
 				require.True(t, found)
-				require.Equal(t, []byte("sequencerAddr"), signer)
+				require.Equal(t, sdk.AccAddress([]byte("sequencerAddr")).String(), signer)
 			},
 		},
 		{
