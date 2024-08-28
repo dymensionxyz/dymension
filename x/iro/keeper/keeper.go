@@ -51,7 +51,7 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.ParamsKey)
 	if b == nil {
-		return types.DefaultParams()
+		panic("params should have been set")
 	}
 
 	k.cdc.MustUnmarshal(b, &params)

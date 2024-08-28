@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
@@ -36,7 +37,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId, buyer string, amountTokensToBuy, ma
 
 	//FIXME: move curve to the plan
 	// Calculate cost over fixed price curve
-	curve := NewLinearBondingCurve(math.ZeroInt(), math.OneInt())
+	curve := types.NewBondingCurve(math.OneInt(), math.ZeroInt(), math.OneInt())
 	cost := curve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy))
 
 	// Validate expected out amount
@@ -44,13 +45,18 @@ func (k Keeper) Buy(ctx sdk.Context, planId, buyer string, amountTokensToBuy, ma
 		return errorsmod.Wrapf(types.ErrInvalidExpectedOutAmount, "maxCost: %s, cost: %s", maxCost.String(), cost.String())
 	}
 
-	//FIXME: Charge taker fee
-
 	// send DYM from buyer to the plan
-	err = k.SendTokens(ctx, plan.RollappID, price.OutAmount)
+	//FIXME: Charge taker fee
+	err = k.bk.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(buyer), types.ModuleName, sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
+	if err != nil {
+		return err
+	}
 
-	// send FUT from the plan to the buyer
-	err = k.SendTokens(ctx, plan.FUTDenom, plan.FUTDenom, buyer)
+	// send allocated tokens from the plan to the buyer
+	err = k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sdk.MustAccAddressFromBech32(buyer), sdk.NewCoins(sdk.NewCoin(plan.TotalAllocation.Denom, amountTokensToBuy)))
+	if err != nil {
+		return err
+	}
 
 	// Update plan
 	plan.SoldAmt = plan.SoldAmt.Add(amountTokensToBuy)
@@ -81,7 +87,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId, seller string, amountTokensToSell,
 
 	//FIXME: move curve to the plan
 	// Calculate cost over fixed price curve
-	curve := NewLinearBondingCurve(math.ZeroInt(), math.OneInt())
+	curve := types.NewBondingCurve(math.OneInt(), math.ZeroInt(), math.OneInt())
 	cost := curve.Cost(plan.SoldAmt.Sub(amountTokensToSell), plan.SoldAmt)
 
 	// Validate expected out amount
@@ -89,33 +95,29 @@ func (k Keeper) Sell(ctx sdk.Context, planId, seller string, amountTokensToSell,
 		return errorsmod.Wrapf(types.ErrInvalidMinCost, "minCost: %s, cost: %s", minCost.String(), cost.String())
 	}
 
-	// Validate expected out amount
-	if cost.LT(minCost) {
-		return errorsmod.Wrapf(types.ErrInvalidMinCost, "minCost: %s", minCost.String())
-	}
-
-	// Charge taker fee
-	err = k.ChargeTakerFee(ctx, plan.RollappID, price.OutAmount)
+	// send tokens from seller to the plan
+	err = k.bk.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(seller), types.ModuleName, sdk.NewCoins(sdk.NewCoin(plan.TotalAllocation.Denom, amountTokensToSell)))
 	if err != nil {
 		return err
 	}
 
-	// send tokens
-	err = k.SendTokens(ctx, plan.RollappID, price.OutAmount)
-
+	// send DYM from the plan to the seller
+	//FIXME: Charge taker fee
+	err = k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sdk.MustAccAddressFromBech32(seller), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
+	if err != nil {
+		return err
+	}
 	// Update plan
 	plan.SoldAmt = plan.SoldAmt.Sub(amountTokensToSell)
 	k.SetPlan(ctx, plan)
 
 	// Emit event
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeSell,
-			sdk.NewAttribute(types.AttributeKeyPlanID, planId),
-			sdk.NewAttribute(types.AttributeKeyAmount, amountTokensToSell.String()),
-			sdk.NewAttribute(types.AttributeKeyPrice, price.String()),
-		),
-	)
+	ctx.EventManager().EmitTypedEvent(&types.EventSell{
+		Seller:    seller,
+		PlanId:    planId,
+		RollappId: plan.RollappId,
+		Amount:    amountTokensToSell,
+	})
 
 	return nil
 }

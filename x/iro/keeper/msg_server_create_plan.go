@@ -74,6 +74,8 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, end
 
 	// FIXME: move the minted tokens to plan’s module account
 
+	// FIXME: set curve config + validation
+
 	// Create a new plan
 	plan := types.Plan{
 		Id:               k.GetLastPlanId(ctx) + 1,

@@ -18,4 +18,5 @@ var (
 	ErrPlanNotFound                 = errorsmod.Register(ModuleName, 1108, "plan not found")
 	ErrInvalidExpectedOutAmount     = errorsmod.Register(ModuleName, 1109, "invalid expected out amount")
 	ErrInvalidMinCost               = errorsmod.Register(ModuleName, 1110, "invalid minimum cost")
+	ErrInvalidBondingCurve          = errorsmod.Register(ModuleName, 1111, "invalid bonding curve params")
 )
