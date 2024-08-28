@@ -46,7 +46,6 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 
 	ibcState := types.IBCState{
 		Root:               header.Header.GetAppHash(),
-		ValidatorsHash:     header.Header.ValidatorsHash,
 		NextValidatorsHash: header.Header.NextValidatorsHash,
 		Timestamp:          header.Header.Time,
 	}
@@ -55,13 +54,11 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 		return err
 	}
 	rollappState := types.RollappState{
-		BlockSequencer:  sequencerPubKey,
 		BlockDescriptor: bd,
 	}
 	// Check that BD for next block exists in same stateinfo
 	if stateInfo.ContainsHeight(height.GetRevisionHeight() + 1) {
 		rollappState.NextBlockSequencer = sequencerPubKey
-		rollappState.NextBlockDescriptor, _ = stateInfo.GetBlockDescriptor(height.GetRevisionHeight() + 1)
 	} else {
 		// next BD does not exist in this state info, check the next state info
 		nextStateInfo, found := i.rollappKeeper.GetStateInfo(ctx, rollappID, stateInfo.GetIndex().Index+1)
@@ -71,7 +68,6 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 				return err
 			}
 			rollappState.NextBlockSequencer = nextSequencerPk
-			rollappState.NextBlockDescriptor = nextStateInfo.GetBDs().BD[0]
 		} else {
 			// if next state info does not exist, then we can't verify the next block valhash.
 			// Will accept the update optimistically

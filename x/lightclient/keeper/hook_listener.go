@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"errors"
 	"time"
 
 	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
@@ -59,7 +58,6 @@ func (hook rollappHook) AfterUpdateState(
 		}
 		ibcState := types.IBCState{
 			Root:               tmConsensusState.GetRoot().GetHash(),
-			ValidatorsHash:     tmHeaderSigner,
 			NextValidatorsHash: tmConsensusState.NextValidatorsHash,
 			Timestamp:          time.Unix(0, int64(tmConsensusState.GetTimestamp())),
 		}
@@ -68,20 +66,14 @@ func (hook rollappHook) AfterUpdateState(
 			return err
 		}
 		rollappState := types.RollappState{
-			BlockSequencer:  sequencerPk,
 			BlockDescriptor: bd,
 		}
 		// check if bd for next block exists in same state info
 		if i+1 < len(bds.GetBD()) {
 			rollappState.NextBlockSequencer = sequencerPk
-			rollappState.NextBlockDescriptor = bds.GetBD()[i+1]
 		}
 		err = types.CheckCompatibility(ibcState, rollappState)
 		if err != nil {
-			// The BD for (h+1) is missing, cannot verify if the nextvalhash matches
-			if errors.Is(err, types.ErrNextBlockDescriptorMissing) {
-				return err
-			}
 			// If the state is not compatible,
 			// Take this state update as source of truth over the IBC update
 			// Punish the block proposer of the IBC signed header

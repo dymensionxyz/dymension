@@ -4,10 +4,8 @@ import (
 	"testing"
 	"time"
 
-	errorsmod "cosmossdk.io/errors"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
@@ -23,19 +21,13 @@ var (
 		Root:               []byte("root"),
 		Timestamp:          timestamp,
 		NextValidatorsHash: valHash,
-		ValidatorsHash:     valHash,
 	}
 	validRollappState = types.RollappState{
-		BlockSequencer: tmPk,
 		BlockDescriptor: rollapptypes.BlockDescriptor{
 			StateRoot: []byte("root"),
 			Timestamp: timestamp,
 		},
 		NextBlockSequencer: tmPk,
-		NextBlockDescriptor: rollapptypes.BlockDescriptor{
-			StateRoot: []byte("root2"),
-			Timestamp: timestamp,
-		},
 	}
 )
 
@@ -59,22 +51,7 @@ func TestCheckCompatibility(t *testing.T) {
 					raState:  invalidRootRaState,
 				}
 			},
-			err: errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "block descriptor state root does not match tendermint header app hash"),
-		},
-		{
-			name: "validator who signed the block header is not the sequencer who submitted the block",
-			input: func() input {
-				newSequencer := ed25519.GenPrivKey().PubKey()
-				newtmPk, err := cryptocodec.ToTmProtoPublicKey(newSequencer)
-				require.NoError(t, err)
-				invalidValidatorHashRAState := validRollappState
-				invalidValidatorHashRAState.BlockSequencer = newtmPk
-				return input{
-					ibcState: validIBCState,
-					raState:  invalidValidatorHashRAState,
-				}
-			},
-			err: errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "validator does not match the sequencer"),
+			err: types.ErrStateRootsMismatch,
 		},
 		{
 			name: "nextValidatorHash does not match the sequencer who submitted the next block descriptor",
@@ -86,20 +63,19 @@ func TestCheckCompatibility(t *testing.T) {
 					raState:  validRollappState,
 				}
 			},
-			err: errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "next validator hash does not match the sequencer for h+1"),
+			err: types.ErrValidatorHashMismatch,
 		},
 		{
-			name: "timestamps is empty",
+			name: "timestamps is empty. ignore timestamp check",
 			input: func() input {
 				emptyTimestampRAState := validRollappState
 				emptyTimestampRAState.BlockDescriptor.Timestamp = time.Time{}
-				emptyTimestampRAState.NextBlockDescriptor.Timestamp = time.Time{}
 				return input{
 					ibcState: validIBCState,
 					raState:  emptyTimestampRAState,
 				}
 			},
-			err: types.ErrTimestampNotFound,
+			err: nil,
 		},
 		{
 			name: "timestamps are not equal",
@@ -111,7 +87,7 @@ func TestCheckCompatibility(t *testing.T) {
 					raState:  invalidTimestampRAState,
 				}
 			},
-			err: errorsmod.Wrap(ibcclienttypes.ErrInvalidConsensus, "block descriptor timestamp does not match tendermint header timestamp"),
+			err: types.ErrTimestampMismatch,
 		},
 		{
 			name: "all fields are compatible",

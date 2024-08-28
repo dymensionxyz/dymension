@@ -55,12 +55,10 @@ func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string,
 				Timestamp:          time.Unix(0, int64(tmConsensusState.GetTimestamp())),
 			}
 			rollappState := types.RollappState{
-				BlockSequencer:  sequencerPk,
 				BlockDescriptor: bd,
 			}
 			// Check if BD for next block exists in same stateinfo
 			if stateInfo.ContainsHeight(bd.GetHeight() + 1) {
-				rollappState.NextBlockDescriptor, _ = stateInfo.GetBlockDescriptor(bd.GetHeight() + 1)
 				rollappState.NextBlockSequencer = sequencerPk
 			}
 			err := types.CheckCompatibility(ibcState, rollappState)

@@ -13,6 +13,7 @@ import (
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 )
@@ -192,7 +193,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 				}
 			},
 			assert: func(ctx sdk.Context, k keeper.Keeper, err error) {
-				require.ErrorIs(t, err, ibcclienttypes.ErrInvalidConsensus)
+				require.ErrorIs(t, err, types.ErrStateRootsMismatch)
 			},
 		},
 		{
