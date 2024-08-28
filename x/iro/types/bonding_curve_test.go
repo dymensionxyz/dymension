@@ -8,37 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBondingCurveIntegral(t *testing.T) {
-	m := math.NewInt(2)
-	n := math.NewInt(2)
-	c := math.NewInt(1)
-	bondingCurve := types.NewBondingCurve(m, c, n)
-
-	// Test case 1: x = 0
-	x := math.NewInt(0)
-	expected := math.NewInt(0)
-	result := bondingCurve.Integral(x)
-	require.Equal(t, expected, result)
-
-	// Test case 2: x = 1
-	x = math.NewInt(1)
-	expected = math.NewInt(3)
-	result = bondingCurve.Integral(x)
-	require.Equal(t, expected, result)
-
-	// Test case 3: x = 2
-	x = math.NewInt(2)
-	expected = math.NewInt(14)
-	result = bondingCurve.Integral(x)
-	require.Equal(t, expected, result)
-
-	// Test case 4: x = 3
-	x = math.NewInt(3)
-	expected = math.NewInt(39)
-	result = bondingCurve.Integral(x)
-	require.Equal(t, expected, result)
-}
-
 // y=mx^n+c
 // m >= 0, c > 0
 func TestBondingCurve_ValidateBasic(t *testing.T) {

@@ -14,6 +14,16 @@ var (
 )
 
 func (m *MsgCreatePlan) ValidateBasic() error {
+	if m.EndTime.Before(m.StartTime) {
+		return sdkerrors.ErrInvalidRequest.Wrapf("endtime %v must be after starttime %v", m.EndTime, m.StartTime)
+	}
+	if m.AllocatedAmount.IsZero() || m.AllocatedAmount.IsNegative() {
+		return sdkerrors.ErrInvalidRequest.Wrapf("allocated amount %v must be positive", m.AllocatedAmount)
+	}
+	_, err := sdk.AccAddressFromBech32(m.Owner)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid owner address: %s", err)
+	}
 	return nil
 }
 
@@ -23,7 +33,21 @@ func (m *MsgCreatePlan) GetSigners() []sdk.AccAddress {
 }
 
 func (m *MsgBuy) ValidateBasic() error {
-	// FIXME: Implement MsgBuy validation
+	// buyer bech32
+	_, err := sdk.AccAddressFromBech32(m.Buyer)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid buyer address: %s", err)
+	}
+
+	// coin exist and valid
+	if m.Amount.IsNil() || m.Amount.IsZero() || m.Amount.IsNegative() {
+		return sdkerrors.ErrInvalidRequest.Wrapf("amount %v must be positive", m.Amount)
+	}
+
+	if m.ExpectedOutAmount.IsNil() || m.ExpectedOutAmount.IsZero() || m.ExpectedOutAmount.IsNegative() {
+		return sdkerrors.ErrInvalidRequest.Wrapf("expected out amount %v must be positive", m.ExpectedOutAmount)
+	}
+
 	return nil
 }
 
@@ -33,7 +57,21 @@ func (m *MsgBuy) GetSigners() []sdk.AccAddress {
 }
 
 func (m *MsgSell) ValidateBasic() error {
-	// FIXME: Implement MsgSell validation
+	// seller bech32
+	_, err := sdk.AccAddressFromBech32(m.Seller)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid seller address: %s", err)
+	}
+
+	// coin exist and valid
+	if m.Amount.IsNil() || m.Amount.IsZero() || m.Amount.IsNegative() {
+		return sdkerrors.ErrInvalidRequest.Wrapf("amount %v must be positive", m.Amount)
+	}
+
+	if m.ExpectedOutAmount.IsNil() || m.ExpectedOutAmount.IsZero() || m.ExpectedOutAmount.IsNegative() {
+		return sdkerrors.ErrInvalidRequest.Wrapf("expected out amount %v must be positive", m.ExpectedOutAmount)
+	}
+
 	return nil
 }
 
@@ -44,6 +82,11 @@ func (m *MsgSell) GetSigners() []sdk.AccAddress {
 }
 
 func (m *MsgClaim) ValidateBasic() error {
+	// claimer bech32
+	_, err := sdk.AccAddressFromBech32(m.Claimer)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid claimer address: %s", err)
+	}
 
 	return nil
 }
