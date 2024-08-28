@@ -17,7 +17,7 @@ import (
 // Compatibility Criteria:
 // 1. The app root shared by the IBC consensus state matches the block descriptor state root for the same height
 // 2. The next validator hash shared by the IBC consensus state matches the sequencer hash for the next block descriptor
-// 3. The block descriptor timestamp matches the tendermint header timestamp
+// 3. The block descriptor timestamp matches the tendermint header timestamp (only if timestamp exists for the block descriptor)
 func CheckCompatibility(ibcState IBCState, raState RollappState) error {
 	// Check if block descriptor state root matches IBC block header app hash
 	if !bytes.Equal(ibcState.Root, raState.BlockDescriptor.StateRoot) {
