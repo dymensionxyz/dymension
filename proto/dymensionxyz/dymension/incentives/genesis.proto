@@ -3,8 +3,8 @@ package dymensionxyz.dymension.incentives;
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
-import "dymension/incentives/params.proto";
-import "dymension/incentives/gauge.proto";
+import "dymensionxyz/dymension/incentives/params.proto";
+import "dymensionxyz/dymension/incentives/gauge.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/incentives/types";
 // GenesisState defines the incentives module's various parameters when first
