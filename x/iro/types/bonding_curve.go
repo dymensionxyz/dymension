@@ -12,6 +12,7 @@ with the following actions:
     The integral of y = m * x^N + c is (m / (N + 1)) * x^(N + 1) + c * x.
 */
 type BondingCurve struct {
+	//FIXME: change to Dec
 	M math.Int
 	N uint64
 	C math.Int
@@ -54,11 +55,11 @@ func (lbc BondingCurve) Cost(x, x1 math.Int) math.Int {
 func (lbc BondingCurve) Integral(x math.Int) math.Int {
 	nPlusOne := int64(lbc.N + 1)
 
-	xNPlusOne := x.ToLegacyDec().Power(uint64(nPlusOne)) // Calculate x^(N + 1)
-	mDivNPlusOne := lbc.M.Quo(math.NewInt(nPlusOne))     // Calculate m / (N + 1)
-	cx := lbc.C.Mul(x)                                   // Calculate C * x
+	xNPlusOne := x.ToLegacyDec().Power(uint64(nPlusOne))              // Calculate x^(N + 1)
+	mDivNPlusOne := lbc.M.ToLegacyDec().QuoInt(math.NewInt(nPlusOne)) // Calculate m / (N + 1)
+	cx := lbc.C.Mul(x)                                                // Calculate C * x
 
 	// Calculate the integral
-	integral := xNPlusOne.TruncateInt().Mul(mDivNPlusOne).Add(cx)
+	integral := xNPlusOne.Mul(mDivNPlusOne).TruncateInt().Add(cx)
 	return integral
 }

@@ -8,20 +8,10 @@ import (
 )
 
 func (s *KeeperTestSuite) TestCreatePlan_Validation() {
+	// FIXME: implement this
 	// rollappId := s.CreateDefaultRollapp()
 	// owner := apptesting.Alice
 
-	// cases := []struct {
-	// 	name          string
-	// 	allocated     sdk.Int
-	// 	startTime     time.Time
-	// 	endTime       time.Time
-	// 	expectedError error
-	// }{
-	// 	//bad owner
-	// 	//
-	// 	{},
-	// }
 	// if rollapp.GenesisChecksum == "" {
 	// 	return types.ErrRollappGenesisChecksumNotSet
 	// }
