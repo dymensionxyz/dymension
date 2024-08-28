@@ -81,7 +81,7 @@ func (hook rollappHook) AfterUpdateState(
 			if err != nil {
 				return err
 			}
-			err = hook.k.sequencerKeeper.JailSequencerOnFraud(ctx, sequencerAddr)
+			err = hook.k.rollappKeeper.HandleFraud(ctx, rollappId, canonicalClient, bd.GetHeight(), sequencerAddr)
 			if err != nil {
 				return err
 			}

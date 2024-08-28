@@ -16,6 +16,7 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	cometbftdb "github.com/cometbft/cometbft-db"
@@ -79,12 +80,13 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 	mockIBCKeeper := NewMockIBCClientKeeper(testConsensusStates, testGenesisClients)
 	mockSequencerKeeper := NewMockSequencerKeeper(testSequencers)
+	mockRollappKeeper := NewMockRollappKeeper()
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
 		mockIBCKeeper,
 		mockSequencerKeeper,
-		nil,
+		mockRollappKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, cometbftproto.Header{}, false, log.NewNopLogger())
@@ -127,11 +129,33 @@ func NewMockSequencerKeeper(sequencers map[string]sequencertypes.Sequencer) *Moc
 	}
 }
 
-func (m *MockSequencerKeeper) JailSequencerOnFraud(ctx sdk.Context, seqAddr string) error {
-	return nil
-}
-
 func (m *MockSequencerKeeper) GetSequencer(ctx sdk.Context, seqAddr string) (sequencertypes.Sequencer, bool) {
 	seq, ok := m.sequencers[seqAddr]
 	return seq, ok
+}
+
+type MockRollappKeeper struct {
+}
+
+func NewMockRollappKeeper() *MockRollappKeeper {
+	return &MockRollappKeeper{}
+}
+
+func (m *MockRollappKeeper) GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool) {
+	return rollapptypes.Rollapp{}, false
+}
+
+func (m *MockRollappKeeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height uint64) (*rollapptypes.StateInfo, error) {
+	return nil, nil
+}
+
+func (m *MockRollappKeeper) GetStateInfo(ctx sdk.Context, rollappId string, index uint64) (val rollapptypes.StateInfo, found bool) {
+	return rollapptypes.StateInfo{}, false
+}
+
+func (m *MockRollappKeeper) SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp) {
+}
+
+func (m *MockRollappKeeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHeight uint64, seqAddr string) error {
+	return nil
 }
