@@ -70,13 +70,8 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		time.Hour*24*7*2, time.Hour*24*7*3, time.Minute*10,
 		ibcclienttypes.MustParseHeight("1-2"), commitmenttypes.GetSDKSpecs(), []string{},
 	)
-	packedCS, err := ibcclienttypes.PackClientState(cs)
-	require.NoError(t, err)
-	testGenesisClients := ibcclienttypes.IdentifiedClientStates{
-		{
-			ClientId:    "canon-client-id",
-			ClientState: packedCS,
-		},
+	testGenesisClients := map[string]exported.ClientState{
+		"canon-client-id": cs,
 	}
 
 	mockIBCKeeper := NewMockIBCClientKeeper(testConsensusStates, testGenesisClients)
@@ -97,16 +92,16 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 type MockIBCCLientKeeper struct {
 	clientConsensusState map[string]map[uint64]exported.ConsensusState
-	genesisClients       ibcclienttypes.IdentifiedClientStates
+	clientStates         map[string]exported.ClientState
 }
 
 func NewMockIBCClientKeeper(
 	clientCS map[string]map[uint64]exported.ConsensusState,
-	genesisClients ibcclienttypes.IdentifiedClientStates,
+	genesisClients map[string]exported.ClientState,
 ) *MockIBCCLientKeeper {
 	return &MockIBCCLientKeeper{
 		clientConsensusState: clientCS,
-		genesisClients:       genesisClients,
+		clientStates:         genesisClients,
 	}
 }
 
@@ -119,8 +114,12 @@ func (m *MockIBCCLientKeeper) GetClientState(ctx sdk.Context, clientID string) (
 	return nil, false
 }
 
-func (m *MockIBCCLientKeeper) GetAllGenesisClients(ctx sdk.Context) ibcclienttypes.IdentifiedClientStates {
-	return m.genesisClients
+func (m *MockIBCCLientKeeper) IterateClientStates(ctx sdk.Context, prefix []byte, cb func(clientID string, cs exported.ClientState) bool) {
+	for clientID, cs := range m.clientStates {
+		if cb(clientID, cs) {
+			break
+		}
+	}
 }
 
 func (m *MockIBCCLientKeeper) ConsensusStateHeights(c context.Context, req *ibcclienttypes.QueryConsensusStateHeightsRequest) (*ibcclienttypes.QueryConsensusStateHeightsResponse, error) {

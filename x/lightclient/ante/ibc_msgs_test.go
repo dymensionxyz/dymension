@@ -76,8 +76,8 @@ func (m *MockIBCClientKeeper) GetClientState(ctx sdk.Context, clientID string) (
 	return val, found
 }
 
-func (m *MockIBCClientKeeper) GetAllGenesisClients(ctx sdk.Context) ibcclienttypes.IdentifiedClientStates {
-	return nil
+func (m *MockIBCClientKeeper) IterateClientStates(ctx sdk.Context, prefix []byte, cb func(clientID string, cs exported.ClientState) bool) {
+
 }
 
 func (m *MockIBCClientKeeper) ConsensusStateHeights(c context.Context, req *ibcclienttypes.QueryConsensusStateHeightsRequest) (*ibcclienttypes.QueryConsensusStateHeightsResponse, error) {

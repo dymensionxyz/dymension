@@ -26,7 +26,7 @@ type RollappKeeperExpected interface {
 type IBCClientKeeperExpected interface {
 	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
-	GetAllGenesisClients(ctx sdk.Context) ibcclienttypes.IdentifiedClientStates
+	IterateClientStates(ctx sdk.Context, prefix []byte, cb func(clientID string, cs exported.ClientState) bool)
 	ConsensusStateHeights(c context.Context, req *ibcclienttypes.QueryConsensusStateHeightsRequest) (*ibcclienttypes.QueryConsensusStateHeightsResponse, error)
 }
 
