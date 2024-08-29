@@ -309,5 +309,5 @@ func (q Querier) DenomLockNumBreakdown(goCtx context.Context, _ *types.DenomLock
 	if err != nil {
 		return nil, err
 	}
-	return &types.DenomLockNumBreakdownResponse{Nums: nums}, nil
+	return &types.DenomLockNumBreakdownResponse{Breakdown: nums}, nil
 }

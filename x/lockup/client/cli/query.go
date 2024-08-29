@@ -42,6 +42,8 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdOutputLocksJson(),
 		GetCmdAccountLockedDuration(),
 		GetCmdNextLockID(),
+		GetCmdDenomLockNum(),
+		GetCmdDenomLockNumBreakdown(),
 		osmocli.GetParams[*types.QueryParamsRequest](
 			types.ModuleName, types.NewQueryClient),
 	)
@@ -241,6 +243,22 @@ func GetCmdTotalLockedByDenom() (*osmocli.QueryDescriptor, *types.LockedDenomReq
 		},
 		Flags: osmocli.FlagDesc{OptionalFlags: []*pflag.FlagSet{FlagSetMinDuration()}},
 	}, &types.LockedDenomRequest{}
+}
+
+// GetCmdDenomLockNum returns the number of lockups for the specified denom.
+func GetCmdDenomLockNum() *cobra.Command {
+	return osmocli.SimpleQueryCmd[*types.DenomLockNumRequest](
+		"denom-lock-num <denom>",
+		"Query the number of lockups for the specified denom",
+		`{{.Short}}`, types.ModuleName, types.NewQueryClient)
+}
+
+// GetCmdDenomLockNumBreakdown returns the denom breakdown of the number of lockups.
+func GetCmdDenomLockNumBreakdown() *cobra.Command {
+	return osmocli.SimpleQueryCmd[*types.DenomLockNumBreakdownRequest](
+		"denom-lock-num-breakdown",
+		"Query the denom breakdown of the number of lockups",
+		`{{.Short}}`, types.ModuleName, types.NewQueryClient)
 }
 
 // GetCmdOutputLocksJson outputs all locks into a file called lock_export.json.

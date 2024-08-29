@@ -313,5 +313,5 @@ message DenomLockNumResponse {
 
 message DenomLockNumBreakdownRequest {}
 message DenomLockNumBreakdownResponse {
-  repeated DenomLockNum nums = 1 [ (gogoproto.nullable) = false ];
+  repeated DenomLockNum breakdown = 1 [ (gogoproto.nullable) = false ];
 }
