@@ -16,7 +16,10 @@ message CanonicalClient {
 }
 
 message ConsensusStateSigner {
+    // ibc_client_id is the canonical IBC client which has accepted a client update optimistically
     string ibc_client_id = 1;
+    // height is the client height which was updated optimistically
     uint64 height = 2;
+    // signer is the bech32 address of the block proposer which signed the tm header
     string signer = 3;
 }

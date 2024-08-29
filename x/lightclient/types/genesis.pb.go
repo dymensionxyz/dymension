@@ -128,9 +128,12 @@ func (m *CanonicalClient) GetIbcClientId() string {
 }
 
 type ConsensusStateSigner struct {
+	// ibc_client_id is the canonical IBC client which has accepted a client update optimistically
 	IbcClientId string `protobuf:"bytes,1,opt,name=ibc_client_id,json=ibcClientId,proto3" json:"ibc_client_id,omitempty"`
-	Height      uint64 `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
-	Signer      string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
+	// height is the client height which was updated optimistically
+	Height uint64 `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
+	// signer is the bech32 address of the block proposer which signed the tm header
+	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
 }
 
 func (m *ConsensusStateSigner) Reset()         { *m = ConsensusStateSigner{} }
