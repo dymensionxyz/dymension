@@ -147,9 +147,12 @@ func (k Keeper) unbond(ctx sdk.Context, seqAddr string, jail bool) error {
 	}
 	// in case the sequencer is currently reducing its bond, then we need to remove it from the decreasing bond queue
 	// all the tokens are returned, so we don't need to reduce the bond anymore
-	if bondReductions := k.getSequencerDecreasingBonds(ctx, seq.Address); len(bondReductions) > 0 {
-		for _, bondReduce := range bondReductions {
-			k.removeDecreasingBondQueue(ctx, bondReduce)
+	if bondReductionIDs := k.getBondReductionIDsBySequencer(ctx, seq.Address); len(bondReductionIDs) > 0 {
+		for _, bondReductionID := range bondReductionIDs {
+			bondReduction, found := k.GetBondReduction(ctx, bondReductionID)
+			if found {
+				k.removeBondReduction(ctx, bondReductionID, bondReduction)
+			}
 		}
 	}
 
