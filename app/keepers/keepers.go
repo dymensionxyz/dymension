@@ -370,6 +370,7 @@ func (a *AppKeepers) InitKeepers(
 		a.SequencerKeeper,
 		a.RollappKeeper,
 	)
+
 	a.RollappKeeper.SetSequencerKeeper(a.SequencerKeeper)
 
 	a.IncentivesKeeper = incentiveskeeper.NewKeeper(

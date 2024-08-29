@@ -60,11 +60,9 @@ func TestAfterUpdateState(t *testing.T) {
 			name: "both states are not compatible - slash the sequencer who signed",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				blockSignerTmPubKey, err := k.GetSequencerPubKey(ctx, keepertest.Alice)
+				seqValHash, err := k.GetSequencerHash(ctx, keepertest.Alice)
 				require.NoError(t, err)
-				blockSignerTmPubKeyBytes, err := blockSignerTmPubKey.Marshal()
-				require.NoError(t, err)
-				k.SetConsensusStateSigner(ctx, "canon-client-id", 2, string(blockSignerTmPubKeyBytes))
+				k.SetConsensusStateValHash(ctx, "canon-client-id", 2, seqValHash)
 				return testInput{
 					rollappId: "rollapp-has-canon-client",
 					stateInfo: &rollapptypes.StateInfo{
@@ -99,11 +97,9 @@ func TestAfterUpdateState(t *testing.T) {
 			name: "state is compatible",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				blockSignerTmPubKey, err := k.GetSequencerPubKey(ctx, keepertest.Alice)
+				seqValHash, err := k.GetSequencerHash(ctx, keepertest.Alice)
 				require.NoError(t, err)
-				blockSignerTmPubKeyBytes, err := blockSignerTmPubKey.Marshal()
-				require.NoError(t, err)
-				k.SetConsensusStateSigner(ctx, "canon-client-id", 2, string(blockSignerTmPubKeyBytes))
+				k.SetConsensusStateValHash(ctx, "canon-client-id", 2, seqValHash)
 				return testInput{
 					rollappId: "rollapp-has-canon-client",
 					stateInfo: &rollapptypes.StateInfo{

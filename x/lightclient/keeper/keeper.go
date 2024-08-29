@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/cometbft/cometbft/libs/log"
@@ -58,29 +59,43 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// SetConsenusStateSigner sets the bech32 address of the sequencer who signed the block header for the given height of the client
-func (k Keeper) SetConsensusStateSigner(ctx sdk.Context, clientID string, height uint64, sequencerAddr string) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.ConsensusStateSignerKeyByClientID(clientID, height), []byte(sequencerAddr))
+func (k Keeper) GetSequencerFromValHash(ctx sdk.Context, blockValHash []byte) (string, error) {
+	sequencerList := k.sequencerKeeper.GetAllSequencers(ctx)
+	for _, seq := range sequencerList {
+		seqHash, err := seq.GetDymintPubKeyHash()
+		if err != nil {
+			return "", err
+		}
+		if bytes.Equal(seqHash, blockValHash) {
+			return seq.Address, nil
+		}
+	}
+	return "", types.ErrSequencerNotFound
 }
 
-// GetConsensusStateSigner returns the bech32 address of the sequencer who signed the block header for the given height of the client
-func (k Keeper) GetConsensusStateSigner(ctx sdk.Context, clientID string, height uint64) (string, bool) {
+// SetConsenusStateSigner sets block valHash for the given height of the client
+func (k Keeper) SetConsensusStateValHash(ctx sdk.Context, clientID string, height uint64, blockValHash []byte) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.ConsensusStateSignerKeyByClientID(clientID, height))
+	store.Set(types.ConsensusStateValhashKeyByClientID(clientID, height), blockValHash)
+}
+
+// GetConsensusStateValHash returns the block valHash for the given height of the client
+func (k Keeper) GetConsensusStateValHash(ctx sdk.Context, clientID string, height uint64) ([]byte, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ConsensusStateValhashKeyByClientID(clientID, height))
 	if bz == nil {
-		return "", false
+		return nil, false
 	}
-	return string(bz), true
+	return bz, true
 }
 
 func (k Keeper) GetAllConsensusStateSigners(ctx sdk.Context) (signers []types.ConsensusStateSigner) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ConsensusStateSignerKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ConsensusStateValhashKey)
 	defer iterator.Close() // nolint: errcheck
 	for ; iterator.Valid(); iterator.Next() {
 		key := iterator.Key()
-		clientID, height := types.ParseConsensusStateSignerKey(key)
+		clientID, height := types.ParseConsensusStateValhashKey(key)
 		signers = append(signers, types.ConsensusStateSigner{
 			IbcClientId: clientID,
 			Height:      height,

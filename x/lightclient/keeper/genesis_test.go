@@ -31,12 +31,12 @@ func TestInitGenesis(t *testing.T) {
 	require.True(t, found)
 	require.Equal(t, "client-2", ibc)
 
-	signer, found := keeper.GetConsensusStateSigner(ctx, "client-1", 1)
+	signer, found := keeper.GetConsensusStateValHash(ctx, "client-1", 1)
 	require.True(t, found)
-	require.Equal(t, "signer-1", signer)
-	signer, found = keeper.GetConsensusStateSigner(ctx, "client-1", 2)
+	require.Equal(t, []byte("signer-1"), signer)
+	signer, found = keeper.GetConsensusStateValHash(ctx, "client-1", 2)
 	require.True(t, found)
-	require.Equal(t, "signer-1", signer)
+	require.Equal(t, []byte("signer-1"), signer)
 }
 
 func TestExportGenesis(t *testing.T) {
@@ -44,8 +44,8 @@ func TestExportGenesis(t *testing.T) {
 
 	keeper.SetCanonicalClient(ctx, "rollapp-1", "client-1")
 	keeper.SetCanonicalClient(ctx, "rollapp-2", "client-2")
-	keeper.SetConsensusStateSigner(ctx, "client-1", 1, "signer-1")
-	keeper.SetConsensusStateSigner(ctx, "client-1", 2, "signer-1")
+	keeper.SetConsensusStateValHash(ctx, "client-1", 1, []byte("signer-1"))
+	keeper.SetConsensusStateValHash(ctx, "client-1", 2, []byte("signer-1"))
 
 	genesis := keeper.ExportGenesis(ctx)
 

@@ -19,9 +19,9 @@ const (
 )
 
 var (
-	RollappClientKey        = []byte{0x01}
-	ConsensusStateSignerKey = []byte{0x03}
-	canonicalClientKey      = []byte{0x04}
+	RollappClientKey         = []byte{0x01}
+	ConsensusStateValhashKey = []byte{0x03}
+	canonicalClientKey       = []byte{0x04}
 )
 
 func GetRollappClientKey(rollappId string) []byte {
@@ -30,8 +30,8 @@ func GetRollappClientKey(rollappId string) []byte {
 	return key
 }
 
-func ConsensusStateSignerKeyByClientID(clientID string, height uint64) []byte {
-	key := ConsensusStateSignerKey
+func ConsensusStateValhashKeyByClientID(clientID string, height uint64) []byte {
+	key := ConsensusStateValhashKey
 	key = append(key, []byte(clientID)...)
 	key = append(key, keySeparator...)
 	key = append(key, sdk.Uint64ToBigEndian(height)...)
@@ -44,8 +44,8 @@ func CanonicalClientKey(clientID string) []byte {
 	return key
 }
 
-func ParseConsensusStateSignerKey(key []byte) (clientID string, height uint64) {
-	key = key[len(ConsensusStateSignerKey):]
+func ParseConsensusStateValhashKey(key []byte) (clientID string, height uint64) {
+	key = key[len(ConsensusStateValhashKey):]
 	parts := bytes.Split(key, []byte(keySeparator))
 	clientID = string(parts[0])
 	height = sdk.BigEndianToUint64(parts[1])

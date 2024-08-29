@@ -50,24 +50,24 @@ func (hook rollappHook) AfterUpdateState(
 	for h := latestHeight - 1; h >= stateInfo.StartHeight; h-- {
 		bd, _ := stateInfo.GetBlockDescriptor(h)
 		// Check if any optimistic updates were made for the given height
-		tmHeaderSigner, found := hook.k.GetConsensusStateSigner(ctx, canonicalClient, bd.GetHeight())
+		blockValHash, found := hook.k.GetConsensusStateValHash(ctx, canonicalClient, bd.GetHeight())
 		if !found {
 			continue
 		}
-		err := hook.checkStateForHeight(ctx, rollappId, bd, canonicalClient, sequencerPk, tmHeaderSigner)
+		err := hook.checkStateForHeight(ctx, rollappId, bd, canonicalClient, sequencerPk, blockValHash)
 		if err != nil {
 			return err
 		}
 	}
 	// Check for the last BD from the previous stateInfo as now we have the nextValhash available for that block
-	tmHeaderSigner, found := hook.k.GetConsensusStateSigner(ctx, canonicalClient, stateInfo.StartHeight-1)
+	blockValHash, found := hook.k.GetConsensusStateValHash(ctx, canonicalClient, stateInfo.StartHeight-1)
 	if found {
 		previousStateInfo, err := hook.k.rollappKeeper.FindStateInfoByHeight(ctx, rollappId, stateInfo.StartHeight-1)
 		if err != nil {
 			return err
 		}
 		bd, _ := previousStateInfo.GetBlockDescriptor(stateInfo.StartHeight - 1)
-		err = hook.checkStateForHeight(ctx, rollappId, bd, canonicalClient, sequencerPk, tmHeaderSigner)
+		err = hook.checkStateForHeight(ctx, rollappId, bd, canonicalClient, sequencerPk, blockValHash)
 		if err != nil {
 			return err
 		}
@@ -75,7 +75,7 @@ func (hook rollappHook) AfterUpdateState(
 	return nil
 }
 
-func (hook rollappHook) checkStateForHeight(ctx sdk.Context, rollappId string, bd rollapptypes.BlockDescriptor, canonicalClient string, sequencerPk tmprotocrypto.PublicKey, tmHeaderSignerAddress string) error {
+func (hook rollappHook) checkStateForHeight(ctx sdk.Context, rollappId string, bd rollapptypes.BlockDescriptor, canonicalClient string, sequencerPk tmprotocrypto.PublicKey, blockValHash []byte) error {
 	height := ibcclienttypes.NewHeight(ibcRevisionNumber, bd.GetHeight())
 	consensusState, _ := hook.k.ibcClientKeeper.GetClientConsensusState(ctx, canonicalClient, height)
 	// Cast consensus state to tendermint consensus state - we need this to check the state root and timestamp and nextValHash
@@ -97,7 +97,11 @@ func (hook rollappHook) checkStateForHeight(ctx sdk.Context, rollappId string, b
 		// If the state is not compatible,
 		// Take this state update as source of truth over the IBC update
 		// Punish the block proposer of the IBC signed header
-		err = hook.k.rollappKeeper.HandleFraud(ctx, rollappId, canonicalClient, bd.GetHeight(), tmHeaderSignerAddress)
+		sequencerAddress, err := hook.k.GetSequencerFromValHash(ctx, blockValHash)
+		if err != nil {
+			return err
+		}
+		err = hook.k.rollappKeeper.HandleFraud(ctx, rollappId, canonicalClient, bd.GetHeight(), sequencerAddress)
 		if err != nil {
 			return err
 		}

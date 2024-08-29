@@ -13,6 +13,7 @@ import (
 
 type SequencerKeeperExpected interface {
 	GetSequencer(ctx sdk.Context, sequencerAddress string) (val sequencertypes.Sequencer, found bool)
+	GetAllSequencers(ctx sdk.Context) (list []sequencertypes.Sequencer)
 }
 
 type RollappKeeperExpected interface {

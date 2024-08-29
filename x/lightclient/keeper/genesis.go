@@ -13,7 +13,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genesisState types.GenesisState) {
 		k.SetCanonicalClient(ctx, client.RollappId, client.IbcClientId)
 	}
 	for _, stateSigner := range genesisState.GetConsensusStateSigners() {
-		k.SetConsensusStateSigner(ctx, stateSigner.IbcClientId, stateSigner.Height, stateSigner.Signer)
+		k.SetConsensusStateValHash(ctx, stateSigner.IbcClientId, stateSigner.Height, []byte(stateSigner.Signer))
 	}
 }
 

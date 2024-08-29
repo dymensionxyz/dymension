@@ -72,10 +72,12 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 			name: "Could not find state info for height - ensure optimistically accepted and signer stored in state",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+				seqValHash, err := k.GetSequencerHash(ctx, keepertest.Alice)
+				require.NoError(t, err)
 				var valSet, trustedVals *cmtproto.ValidatorSet
 				signedHeader := &cmtproto.SignedHeader{
 					Header: &cmtproto.Header{
-						ProposerAddress: []byte("sequencerAddr"),
+						ValidatorsHash: seqValHash,
 					},
 					Commit: &cmtproto.Commit{},
 				}
@@ -123,9 +125,11 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 			},
 			assert: func(ctx sdk.Context, k keeper.Keeper, err error) {
 				require.NoError(t, err)
-				signer, found := k.GetConsensusStateSigner(ctx, "canon-client-id", 1)
+				seqValHash, found := k.GetConsensusStateValHash(ctx, "canon-client-id", 1)
 				require.True(t, found)
-				require.Equal(t, sdk.AccAddress([]byte("sequencerAddr")).String(), signer)
+				seq, err := k.GetSequencerFromValHash(ctx, seqValHash)
+				require.NoError(t, err)
+				require.Equal(t, keepertest.Alice, seq)
 			},
 		},
 		{
