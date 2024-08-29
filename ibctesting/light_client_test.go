@@ -1,13 +1,21 @@
 package ibctesting_test
 
 import (
+	"testing"
+
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"testing"
 
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/suite"
 )
+
+var canonicalClientConfig = ibctesting.TendermintConfig{
+	TrustLevel:      types.ExpectedCanonicalClientParams.TrustLevel,
+	TrustingPeriod:  types.ExpectedCanonicalClientParams.TrustingPeriod,
+	UnbondingPeriod: types.ExpectedCanonicalClientParams.UnbondingPeriod,
+	MaxClockDrift:   types.ExpectedCanonicalClientParams.MaxClockDrift,
+}
 
 type lightClientSuite struct {
 	utilSuite
@@ -38,13 +46,7 @@ func (s *lightClientSuite) TestSetCanonicalClient_FailsIncompatibleState() {
 	s.createRollapp(false, nil)
 	s.registerSequencer()
 	// create a custom tm client which matches the trust requirements of a canonical client
-	newTmConfig := ibctesting.TendermintConfig{
-		TrustLevel:      types.ExpectedCanonicalClientParams.TrustLevel,
-		TrustingPeriod:  types.ExpectedCanonicalClientParams.TrustingPeriod,
-		UnbondingPeriod: types.ExpectedCanonicalClientParams.UnbondingPeriod,
-		MaxClockDrift:   types.ExpectedCanonicalClientParams.MaxClockDrift,
-	}
-	endpointA := ibctesting.NewEndpoint(s.hubChain(), &newTmConfig, ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
+	endpointA := ibctesting.NewEndpoint(s.hubChain(), &canonicalClientConfig, ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
 	endpointB := ibctesting.NewEndpoint(s.rollappChain(), ibctesting.NewTendermintConfig(), ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
 	endpointA.Counterparty = endpointB
 	endpointB.Counterparty = endpointA
@@ -66,13 +68,7 @@ func (s *lightClientSuite) TestSetCanonicalClient_Succeeds() {
 	s.createRollapp(false, nil)
 	s.registerSequencer()
 	// create a custom tm client which matches the trust requirements of a canonical client
-	newTmConfig := ibctesting.TendermintConfig{
-		TrustLevel:      types.ExpectedCanonicalClientParams.TrustLevel,
-		TrustingPeriod:  types.ExpectedCanonicalClientParams.TrustingPeriod,
-		UnbondingPeriod: types.ExpectedCanonicalClientParams.UnbondingPeriod,
-		MaxClockDrift:   types.ExpectedCanonicalClientParams.MaxClockDrift,
-	}
-	endpointA := ibctesting.NewEndpoint(s.hubChain(), &newTmConfig, ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
+	endpointA := ibctesting.NewEndpoint(s.hubChain(), &canonicalClientConfig, ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
 	endpointB := ibctesting.NewEndpoint(s.rollappChain(), ibctesting.NewTendermintConfig(), ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
 	endpointA.Counterparty = endpointB
 	endpointB.Counterparty = endpointA
@@ -102,5 +98,33 @@ func (s *lightClientSuite) TestSetCanonicalClient_Succeeds() {
 
 	canonClientID, found := s.hubApp().LightClientKeeper.GetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID)
 	s.True(found)
-	s.Equal("07-tendermint-0", canonClientID)
+	s.Equal(endpointA.ClientID, canonClientID)
+}
+
+func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateDoesntExist() {
+	s.createRollapp(false, nil)
+	s.registerSequencer()
+	currentRollappBlockHeight := uint64(s.rollappChain().App.LastBlockHeight())
+	s.updateRollappState(currentRollappBlockHeight)
+	s.path = s.newTransferPath(s.hubChain(), s.rollappChain())
+	s.coordinator.SetupClients(s.path)
+	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID, s.path.EndpointA.ClientID)
+
+	for i := 0; i < 10; i++ {
+		s.hubChain().NextBlock()
+		s.rollappChain().NextBlock()
+	}
+
+	height := s.path.EndpointA.GetClientState().GetLatestHeight()
+	s.NoError(s.path.EndpointA.UpdateClient())
+	// As there was no stateinfo found for the height, should have accepted the update optimistically.
+	seqValHash, found := s.hubApp().LightClientKeeper.GetConsensusStateValHash(s.hubCtx(), s.path.EndpointA.ClientID, height.GetRevisionHeight())
+	s.True(found)
+	seqAddr, err := s.hubApp().LightClientKeeper.GetSequencerFromValHash(s.hubCtx(), seqValHash)
+	s.NoError(err)
+	s.Equal(s.hubChain().SenderAccount.GetAddress().String(), seqAddr)
+}
+
+func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists() {
+	// todo
 }
