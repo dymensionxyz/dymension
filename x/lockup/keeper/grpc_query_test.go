@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -540,6 +541,90 @@ func (suite *KeeperTestSuite) TestLockedDenom() {
 	suite.WithdrawAllMaturedLocks()
 	testTotalLockedDuration("2h", 0)
 	testTotalLockedDuration("1h", 10)
+}
+
+func (suite *KeeperTestSuite) TestDenomLockNum() {
+	suite.SetupTest()
+	addr1 := sdk.AccAddress("addr1---------------")
+
+	testDenomLockNum := func(denom string, expectedAmount int64) {
+		suite.T().Helper()
+		res, err := suite.querier.DenomLockNum(
+			sdk.WrapSDKContext(suite.Ctx),
+			&types.DenomLockNumRequest{Denom: denom},
+		)
+		if expectedAmount == 0 {
+			suite.Require().Error(err)
+			suite.Require().ErrorIs(err, collections.ErrNotFound)
+		} else {
+			suite.Require().NoError(err)
+			suite.Require().Equal(res.LockNum, expectedAmount)
+		}
+	}
+
+	// lock stake coins
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
+	suite.LockTokens(addr1, coins, time.Hour)
+
+	// test with single lockup
+	testDenomLockNum("stake", 1)
+	testDenomLockNum("adym", 0)
+
+	// lock stake coins once again
+	coins = sdk.Coins{sdk.NewInt64Coin("stake", 10)}
+	suite.LockTokens(addr1, coins, time.Hour)
+
+	testDenomLockNum("stake", 2)
+	testDenomLockNum("adym", 0)
+
+	// adds different account and lockup for testing
+	addr2 := sdk.AccAddress("addr2---------------")
+
+	// lock adym
+	coins = sdk.Coins{sdk.NewInt64Coin("adym", 20)}
+	suite.LockTokens(addr2, coins, time.Hour*2)
+
+	testDenomLockNum("stake", 2)
+	testDenomLockNum("adym", 1)
+
+	// lock adym once again
+	coins = sdk.Coins{sdk.NewInt64Coin("adym", 20)}
+	suite.LockTokens(addr2, coins, time.Hour*2)
+
+	testDenomLockNum("stake", 2)
+	testDenomLockNum("adym", 2)
+
+	// test unlocking
+	suite.BeginUnlocking(addr2)
+
+	// locks still exist
+	testDenomLockNum("stake", 2)
+	testDenomLockNum("adym", 2)
+
+	// finish unlocking
+	duration, _ := time.ParseDuration("2h")
+	suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(duration))
+	suite.WithdrawAllMaturedLocks()
+
+	// no adym locked
+	testDenomLockNum("stake", 2)
+	testDenomLockNum("adym", 0)
+
+	// test unlocking once again
+	suite.BeginUnlocking(addr1)
+	suite.BeginUnlocking(addr2)
+
+	// still no adym locked
+	testDenomLockNum("stake", 2)
+	testDenomLockNum("adym", 0)
+
+	// finish unlocking once again
+	suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(duration))
+	suite.WithdrawAllMaturedLocks()
+
+	// no stake and adym locked
+	testDenomLockNum("stake", 0)
+	testDenomLockNum("adym", 0)
 }
 
 func (suite *KeeperTestSuite) TestParams() {

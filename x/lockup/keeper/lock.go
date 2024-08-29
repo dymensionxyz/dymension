@@ -149,6 +149,11 @@ func (k Keeper) lock(ctx sdk.Context, lock types.PeriodLock, tokensToLock sdk.Co
 	// add to accumulation store
 	for _, coin := range tokensToLock {
 		k.accumulationStore(ctx, coin.Denom).Increase(accumulationKey(lock.Duration), coin.Amount)
+
+		err = k.IncreaseDenomLockNum(ctx, coin.Denom)
+		if err != nil {
+			return err
+		}
 	}
 
 	k.hooks.OnTokenLocked(ctx, owner, lock.ID, lock.Coins, lock.Duration, lock.EndTime)
@@ -359,6 +364,11 @@ func (k Keeper) unlockMaturedLockInternalLogic(ctx sdk.Context, lock types.Perio
 	// remove from accumulation store
 	for _, coin := range lock.Coins {
 		k.accumulationStore(ctx, coin.Denom).Decrease(accumulationKey(lock.Duration), coin.Amount)
+
+		err = k.DecreaseDenomLockNum(ctx, coin.Denom)
+		if err != nil {
+			return err
+		}
 	}
 
 	k.hooks.OnTokenUnlocked(ctx, owner, lock.ID, lock.Coins, lock.Duration, lock.EndTime)
@@ -483,6 +493,11 @@ func (k Keeper) InitializeAllLocks(ctx sdk.Context, locks []types.PeriodLock) er
 		for _, d := range durations {
 			amt := curDurationMap[d]
 			k.accumulationStore(ctx, denom).Increase(accumulationKey(d), amt)
+
+			err := k.IncreaseDenomLockNum(ctx, denom)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

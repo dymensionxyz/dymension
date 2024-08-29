@@ -121,6 +121,16 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/lockup/v1beta1/params";
   }
+
+  // DenomLockNum returns the number of lockups for the specified denom.
+  rpc DenomLockNum(DenomLockNumRequest) returns (DenomLockNumResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/lockup/v1beta1/denom_lock_num/{denom}";
+  }
+
+  // DenomLockNumBreakdown returns the denom breakdown of the number of lockups.
+  rpc DenomLockNumBreakdown(DenomLockNumBreakdownRequest) returns (DenomLockNumBreakdownResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/lockup/v1beta1/denom_lock_num_breakdown";
+  }
 }
 
 message ModuleBalanceRequest {};
@@ -292,4 +302,16 @@ message AccountLockedLongerDurationDenomResponse {
 message QueryParamsRequest {}
 message QueryParamsResponse {
   Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+message DenomLockNumRequest {
+  string denom = 1;
+}
+message DenomLockNumResponse {
+  int64 lock_num = 1;
+}
+
+message DenomLockNumBreakdownRequest {}
+message DenomLockNumBreakdownResponse {
+  repeated DenomLockNum nums = 1 [ (gogoproto.nullable) = false ];
 }

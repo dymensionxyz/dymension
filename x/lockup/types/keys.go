@@ -61,6 +61,9 @@ var (
 	// KeyPrefixSyntheticLockTimestamp defines prefix for the iteration of synthetic lockups by timestamp.
 	KeyPrefixSyntheticLockTimestamp = []byte{0x10}
 
+	// KeyPrefixDenomLockNum defines a prefix for the number of lockups held by the specific denom.
+	KeyPrefixDenomLockNum = []byte{0x11}
+
 	// KeyPrefixLockAccumulation defines prefix for the lock accumulation store.
 	KeyPrefixLockAccumulation = []byte{0x20}
 

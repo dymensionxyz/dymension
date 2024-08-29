@@ -293,3 +293,21 @@ func (q Querier) Params(goCtx context.Context, req *types.QueryParamsRequest) (*
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	return &types.QueryParamsResponse{Params: q.Keeper.GetParams(ctx)}, nil
 }
+
+func (q Querier) DenomLockNum(goCtx context.Context, req *types.DenomLockNumRequest) (*types.DenomLockNumResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	num, err := q.GetDenomLockNum(ctx, req.Denom)
+	if err != nil {
+		return nil, err
+	}
+	return &types.DenomLockNumResponse{LockNum: num}, nil
+}
+
+func (q Querier) DenomLockNumBreakdown(goCtx context.Context, _ *types.DenomLockNumBreakdownRequest) (*types.DenomLockNumBreakdownResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	nums, err := q.GetAllDenomLockNums(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &types.DenomLockNumBreakdownResponse{Nums: nums}, nil
+}

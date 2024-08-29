@@ -69,6 +69,10 @@ func TestInitGenesis(t *testing.T) {
 		Duration: time.Second,
 	})
 	require.Equal(t, sdk.NewInt(30000000), acc)
+
+	num, err := app.LockupKeeper.GetDenomLockNum(ctx, "foo")
+	require.NoError(t, err)
+	require.Equal(t, int64(3), num)
 }
 
 func TestExportGenesis(t *testing.T) {
@@ -85,6 +89,10 @@ func TestExportGenesis(t *testing.T) {
 
 	coins := app.LockupKeeper.GetAccountLockedCoins(ctx, acc2)
 	require.Equal(t, coins.String(), sdk.NewInt64Coin("foo", 10000000).String())
+
+	num, err := app.LockupKeeper.GetDenomLockNum(ctx, "foo")
+	require.NoError(t, err)
+	require.Equal(t, int64(4), num)
 
 	genesisExported := app.LockupKeeper.ExportGenesis(ctx)
 	require.Equal(t, genesisExported.LastLockId, uint64(11))

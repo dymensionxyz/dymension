@@ -79,3 +79,8 @@ message QueryCondition {
   ];
 }
 
+message DenomLockNum {
+  string denom = 1;
+  int64 lock_num = 2;
+}
+

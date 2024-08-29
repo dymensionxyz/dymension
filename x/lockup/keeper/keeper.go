@@ -3,11 +3,13 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/collections"
 	"github.com/cometbft/cometbft/libs/log"
 	stroretypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
@@ -21,6 +23,8 @@ type Keeper struct {
 
 	ak types.AccountKeeper
 	bk types.BankKeeper
+
+	denomLockNum collections.Map[string, int64] // use int64 to properly handle lower bound overflows
 }
 
 // NewKeeper returns an instance of Keeper.
@@ -30,11 +34,20 @@ func NewKeeper(storeKey stroretypes.StoreKey, paramSpace paramtypes.Subspace, ak
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
 
+	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
+
 	return &Keeper{
 		storeKey:   storeKey,
 		paramSpace: paramSpace,
 		ak:         ak,
 		bk:         bk,
+		denomLockNum: collections.NewMap(
+			sb,
+			types.KeyPrefixDenomLockNum,
+			"num_lockups_by_denom",
+			collections.StringKey,
+			collections.Int64Value,
+		),
 	}
 }
 

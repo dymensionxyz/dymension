@@ -2,9 +2,11 @@ package keeper
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"time"
 
+	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gogoproto/proto"
@@ -245,4 +247,53 @@ func (k Keeper) GetAccountPeriodLocks(ctx sdk.Context, addr sdk.AccAddress) []ty
 	unlockings := k.getLocksFromIterator(ctx, k.AccountLockIterator(ctx, true, addr))
 	notUnlockings := k.getLocksFromIterator(ctx, k.AccountLockIterator(ctx, false, addr))
 	return combineLocks(notUnlockings, unlockings)
+}
+
+func (k Keeper) IncreaseDenomLockNum(ctx sdk.Context, denom string) error {
+	num, err := k.denomLockNum.Get(ctx, denom)
+	// if the record is not found, then num is 0 be default
+	if err != nil && !errors.Is(err, collections.ErrNotFound) {
+		return err
+	}
+	return k.denomLockNum.Set(ctx, denom, num+1)
+}
+
+func (k Keeper) DecreaseDenomLockNum(ctx sdk.Context, denom string) error {
+	num, err := k.denomLockNum.Get(ctx, denom)
+	// if the record is not found, then num is 0 be default
+	if err != nil && !errors.Is(err, collections.ErrNotFound) {
+		return err
+	}
+	// the last occurrence of this denom
+	if num-1 == 0 {
+		return k.denomLockNum.Remove(ctx, denom)
+	}
+	return k.denomLockNum.Set(ctx, denom, num-1)
+}
+
+// GetDenomLockNum returns the number of lockups for a specific denomination.
+// Returns 0 and no error if the denom is not found.
+func (k Keeper) GetDenomLockNum(ctx sdk.Context, denom string) (int64, error) {
+	return k.denomLockNum.Get(ctx, denom)
+}
+
+// GetAllDenomLockNums returns the denom breakdown of the number of lockups.
+func (k Keeper) GetAllDenomLockNums(ctx sdk.Context) ([]types.DenomLockNum, error) {
+	iterator, err := k.denomLockNum.Iterate(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer iterator.Close() // nolint: errcheck
+	var nums []types.DenomLockNum
+	for ; iterator.Valid(); iterator.Next() {
+		kv, err := iterator.KeyValue()
+		if err != nil {
+			return nil, err
+		}
+		nums = append(nums, types.DenomLockNum{
+			Denom:   kv.Key,
+			LockNum: kv.Value,
+		})
+	}
+	return nums, nil
 }
