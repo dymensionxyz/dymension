@@ -174,6 +174,7 @@ func (suite *KeeperTestSuite) TestFulfillOrderEvent() {
 				IsFulfilled:  true,
 				PacketStatus: commontypes.Status_PENDING.String(),
 				Fulfiller:    eibcDemandAddr.String(),
+				PacketType:   commontypes.RollappPacket_ON_RECV.String(),
 			},
 		},
 		{

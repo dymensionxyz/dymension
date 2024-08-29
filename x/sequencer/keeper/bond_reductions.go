@@ -30,7 +30,7 @@ func (k Keeper) completeBondReduction(ctx sdk.Context, reduction types.BondReduc
 		return types.ErrUnknownSequencer
 	}
 
-	if seq.Tokens.IsAllLT(sdk.NewCoins(reduction.DecreaseBondAmount)) {
+	if !seq.Tokens.IsAllGTE(sdk.NewCoins(reduction.DecreaseBondAmount)) {
 		return errorsmod.Wrapf(
 			types.ErrInsufficientBond,
 			"sequencer does not have enough bond to reduce insufficient bond: got %s, reducing by %s",
@@ -42,7 +42,7 @@ func (k Keeper) completeBondReduction(ctx sdk.Context, reduction types.BondReduc
 	// in case between unbonding queue and now, the minbond value is increased,
 	// handle it by only returning upto minBond amount and not all
 	minBond := k.GetParams(ctx).MinBond
-	if newBalance.IsAllLT(sdk.NewCoins(minBond)) {
+	if !newBalance.IsAllGTE(sdk.NewCoins(minBond)) {
 		diff := minBond.SubAmount(newBalance.AmountOf(minBond.Denom))
 		reduction.DecreaseBondAmount = reduction.DecreaseBondAmount.Sub(diff)
 	}

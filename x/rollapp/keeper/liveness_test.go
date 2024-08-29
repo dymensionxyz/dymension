@@ -7,12 +7,13 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	"github.com/stretchr/testify/require"
 	"pgregory.net/rapid"
+
+	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // Storage and query operations work for the event queue
@@ -74,21 +75,18 @@ func TestLivenessEventsStorage(t *testing.T) {
 }
 
 // The protocol works.
-func TestLivenessFlow(t *testing.T) {
+func (suite *RollappTestSuite) TestLivenessFlow() {
 	_ = flag.Set("rapid.checks", "500")
 	_ = flag.Set("rapid.steps", "300")
-	rapid.Check(t, func(r *rapid.T) {
-		s := new(RollappTestSuite)
-		s.SetT(t)
-		s.SetS(s)
-		s.SetupTest()
+	rapid.Check(suite.T(), func(r *rapid.T) {
+		suite.SetupTest()
 
 		rollapps := []string{urand.RollappID(), urand.RollappID()}
 
 		tracker := newLivenessMockSequencerKeeper()
-		s.keeper().SetSequencerKeeper(tracker)
+		suite.keeper().SetSequencerKeeper(tracker)
 		for _, ra := range rollapps {
-			s.keeper().SetRollapp(s.Ctx, types.NewRollapp("", ra, "", "", "", types.Rollapp_Unspecified, nil, false))
+			suite.keeper().SetRollapp(suite.Ctx, types.NewRollapp("", ra, "", "", "", types.Rollapp_Unspecified, nil, false))
 		}
 
 		hLastUpdate := map[string]int64{}
@@ -97,17 +95,17 @@ func TestLivenessFlow(t *testing.T) {
 		r.Repeat(map[string]func(r *rapid.T){
 			"": func(r *rapid.T) { // check
 				// 1. check registered invariant
-				msg, notOk := keeper.LivenessEventInvariant(*s.keeper())(s.Ctx)
+				msg, notOk := keeper.LivenessEventInvariant(*suite.keeper())(suite.Ctx)
 				require.False(r, notOk, msg)
 				// 2. check the right amount of slashing occurred
 				for _, ra := range rollapps {
-					h := s.Ctx.BlockHeight()
+					h := suite.Ctx.BlockHeight()
 					lastUpdate, ok := hLastUpdate[ra]
 					if !ok {
 						continue // we can freely assume we will not need to slash a rollapp if it has NEVER had an update
 					}
 					elapsed := uint64(h - lastUpdate)
-					p := s.keeper().GetParams(s.Ctx)
+					p := suite.keeper().GetParams(suite.Ctx)
 					if elapsed <= p.LivenessJailBlocks {
 						require.Zero(r, tracker.jails[ra], "expect not jailed")
 					} else {
@@ -129,15 +127,15 @@ func TestLivenessFlow(t *testing.T) {
 			"state update": func(r *rapid.T) {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
 				if !rollappIsDown[raID] {
-					ra := s.keeper().MustGetRollapp(s.Ctx, raID)
-					s.keeper().IndicateLiveness(s.Ctx, &ra)
-					hLastUpdate[raID] = s.Ctx.BlockHeight()
+					ra := suite.keeper().MustGetRollapp(suite.Ctx, raID)
+					suite.keeper().IndicateLiveness(suite.Ctx, &ra)
+					hLastUpdate[raID] = suite.Ctx.BlockHeight()
 					tracker.clear(raID)
 				}
 			},
 			"hub end blocks": func(r *rapid.T) {
 				for range rapid.IntRange(0, 100).Draw(r, "num blocks") {
-					s.nextBlock()
+					suite.nextBlock()
 				}
 			},
 		})

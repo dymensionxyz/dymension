@@ -60,8 +60,6 @@ func (m *DemandOrder) ValidateBasic() error {
 		return ErrInvalidRecipientAddress
 	}
 
-	// Validate the tracking packet key
-
 	return nil
 }
 
@@ -82,6 +80,7 @@ func (m *DemandOrder) GetCreatedEvent() *EventDemandOrderCreated {
 		PacketKey:    m.TrackingPacketKey,
 		RollappId:    m.RollappId,
 		Recipient:    m.Recipient,
+		PacketType:   m.Type.String(),
 	}
 }
 
@@ -93,6 +92,7 @@ func (m *DemandOrder) GetFulfilledEvent() *EventDemandOrderFulfilled {
 		IsFulfilled:  true,
 		PacketStatus: m.TrackingPacketStatus.String(),
 		Fulfiller:    m.FulfillerAddress,
+		PacketType:   m.Type.String(),
 	}
 }
 
@@ -107,6 +107,7 @@ func (m *DemandOrder) GetPacketStatusUpdatedEvent() *EventDemandOrderPacketStatu
 	return &EventDemandOrderPacketStatusUpdated{
 		OrderId:         m.Id,
 		NewPacketStatus: m.TrackingPacketStatus,
+		IsFulfilled:     m.IsFulfilled(),
 	}
 }
 
