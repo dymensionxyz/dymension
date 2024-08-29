@@ -54,9 +54,10 @@ func (k Keeper) DistributeToGauge(ctx sdk.Context, coins sdk.Coins, record types
 	return totalAllocated, nil
 }
 
-// UpdateStreamAtEpochStart updates the stream for a new epoch.
+// UpdateStreamAtEpochStart updates the stream for a new epoch. Streams distribute rewards post factum.
+// Meaning, first increase the filled epoch pointer, then distribute rewards for this epoch.
 func (k Keeper) UpdateStreamAtEpochStart(ctx sdk.Context, stream types.Stream) (types.Stream, error) {
-	// Check if stream has completed its distribution
+	// Check if stream has completed its distribution. This is a post factum check.
 	if stream.FilledEpochs >= stream.NumEpochsPaidOver {
 		err := k.moveActiveStreamToFinishedStream(ctx, stream)
 		if err != nil {

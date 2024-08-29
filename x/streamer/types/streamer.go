@@ -34,3 +34,12 @@ func (p *EpochPointer) SetToFirstGauge() {
 func (p *EpochPointer) SetToLastGauge() {
 	p.Set(MaxStreamID, MaxGaugeID)
 }
+
+//
+//func SortEpochPointers(ep []EpochPointer) {
+//	slices.SortFunc(ep, func(a, b EpochPointer) int {
+//
+//	})
+//}
+//
+//func

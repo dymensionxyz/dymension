@@ -105,18 +105,6 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.D
 		return 0, fmt.Errorf("epoch identifier does not exist: %s", epochIdentifier)
 	}
 
-	pointerExists, err := k.HasEpochPointer(ctx, epochIdentifier)
-	if err != nil {
-		return 0, fmt.Errorf("check epoch pointer existence: %w", err)
-	}
-
-	if !pointerExists {
-		err = k.SaveEpochPointer(ctx, types.NewEpochPointer(epochIdentifier))
-		if err != nil {
-			return 0, fmt.Errorf("save epoch pointer: %w", err)
-		}
-	}
-
 	if numEpochsPaidOver <= 0 {
 		return 0, fmt.Errorf("numEpochsPaidOver must be greater than 0")
 	}
@@ -136,7 +124,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.D
 		sponsored,
 	)
 
-	err = k.SetStream(ctx, &stream)
+	err := k.SetStream(ctx, &stream)
 	if err != nil {
 		return 0, err
 	}

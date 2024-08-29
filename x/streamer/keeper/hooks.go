@@ -35,7 +35,10 @@ func (k Keeper) Hooks() Hooks {
 /*                                 epoch hooks                                */
 /* -------------------------------------------------------------------------- */
 
-// BeforeEpochStart is the epoch start hook.
+// BeforeEpochStart updates the streams based on a new epoch and emits an event.
+// It moves upcoming streams to active if the start time has been reached.
+// It updates active streams with respect to the new epoch and saves them.
+// Finally, it emits an event with the number of active streams.
 func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string) error {
 	// Move upcoming streams to active if start time reached
 	upcomingStreams := k.GetUpcomingStreams(ctx)
@@ -48,14 +51,7 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string) error 
 		}
 	}
 
-	var toStart []types.Stream
-
-	activeStreams := k.GetActiveStreams(ctx)
-	for _, s := range activeStreams {
-		if epochIdentifier == s.DistrEpochIdentifier {
-			toStart = append(toStart, s)
-		}
-	}
+	toStart := k.GetActiveStreamsForEpoch(ctx, epochIdentifier)
 
 	// Update streams with respect to a new epoch and save them
 	for _, s := range toStart {
@@ -80,17 +76,11 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string) error 
 	return nil
 }
 
-// AfterEpochEnd is the epoch end hook.
+// AfterEpochEnd distributes rewards, updates streams, and saves the changes to the state after the epoch end.
+// It distributes rewards to streams that have the specified epoch identifier or aborts if there are no streams
+// in this epoch. After the distribution, it resets the epoch pointer to the very fist gauge.
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coins, error) {
-	activeStreams := k.GetActiveStreams(ctx)
-
-	var toDistribute []types.Stream
-
-	for _, s := range activeStreams {
-		if epochIdentifier == s.DistrEpochIdentifier {
-			toDistribute = append(toDistribute, s)
-		}
-	}
+	toDistribute := k.GetActiveStreamsForEpoch(ctx, epochIdentifier)
 
 	if len(toDistribute) == 0 {
 		// Nothing to distribute
@@ -113,6 +103,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coin
 		}
 	}
 
+	// Reset the epoch pointer
 	distrResult.NewPointer.SetToFirstGauge()
 	err = k.SaveEpochPointer(ctx, distrResult.NewPointer)
 	if err != nil {

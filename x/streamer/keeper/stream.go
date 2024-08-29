@@ -45,6 +45,18 @@ func (k Keeper) GetActiveStreams(ctx sdk.Context) []types.Stream {
 	return k.getStreamsFromIterator(ctx, k.ActiveStreamsIterator(ctx))
 }
 
+// GetActiveStreamsForEpoch returns active streams with the specified epoch identifier.
+func (k Keeper) GetActiveStreamsForEpoch(ctx sdk.Context, epochIdentifier string) []types.Stream {
+	streams := k.getStreamsFromIterator(ctx, k.ActiveStreamsIterator(ctx))
+	activeStreams := make([]types.Stream, 0)
+	for _, stream := range streams {
+		if stream.DistrEpochIdentifier == epochIdentifier {
+			activeStreams = append(activeStreams, stream)
+		}
+	}
+	return activeStreams
+}
+
 // GetUpcomingStreams returns upcoming streams.
 func (k Keeper) GetUpcomingStreams(ctx sdk.Context) []types.Stream {
 	return k.getStreamsFromIterator(ctx, k.UpcomingStreamsIterator(ctx))

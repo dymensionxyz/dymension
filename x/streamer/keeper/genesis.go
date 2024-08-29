@@ -29,6 +29,15 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 
 	k.SetLastStreamID(ctx, genState.LastStreamId)
 
+	// Create epoch pointers for all epoch infos
+	for _, epoch := range k.ek.AllEpochInfos(ctx) {
+		err := k.SaveEpochPointer(ctx, types.NewEpochPointer(epoch.Identifier))
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// Fill epoch pointers specified in the genesis
 	for _, pointer := range genState.EpochPointers {
 		err := k.SaveEpochPointer(ctx, pointer)
 		if err != nil {
