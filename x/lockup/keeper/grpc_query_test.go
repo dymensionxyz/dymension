@@ -547,7 +547,7 @@ func (suite *KeeperTestSuite) TestDenomLockNum() {
 	suite.SetupTest()
 	addr1 := sdk.AccAddress("addr1---------------")
 
-	testDenomLockNum := func(denom string, expectedAmount int64) {
+	testDenomLockNum := func(denom string, expectedAmount uint64) {
 		suite.T().Helper()
 		res, err := suite.querier.DenomLockNum(
 			sdk.WrapSDKContext(suite.Ctx),

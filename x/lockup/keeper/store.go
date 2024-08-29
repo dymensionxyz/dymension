@@ -249,31 +249,35 @@ func (k Keeper) GetAccountPeriodLocks(ctx sdk.Context, addr sdk.AccAddress) []ty
 	return combineLocks(notUnlockings, unlockings)
 }
 
+// IncreaseDenomLockNum increases the lock count for a specific denom.
+// If the record is not found, it assumes that the denom is new and sets 1 as default.
 func (k Keeper) IncreaseDenomLockNum(ctx sdk.Context, denom string) error {
 	num, err := k.denomLockNum.Get(ctx, denom)
-	// if the record is not found, then num is 0 be default
+	// if the record is not found, then num is 0 by default
 	if err != nil && !errors.Is(err, collections.ErrNotFound) {
 		return err
 	}
 	return k.denomLockNum.Set(ctx, denom, num+1)
 }
 
+// DecreaseDenomLockNum decreases the lock count for a given denom. If the current number is <= 1,
+// the denom is removed from the store since after execution there won't be any occurrences of it.
+// Returns error if the denom is not found.
 func (k Keeper) DecreaseDenomLockNum(ctx sdk.Context, denom string) error {
 	num, err := k.denomLockNum.Get(ctx, denom)
-	// if the record is not found, then num is 0 be default
-	if err != nil && !errors.Is(err, collections.ErrNotFound) {
+	if err != nil {
 		return err
 	}
 	// the last occurrence of this denom
-	if num-1 == 0 {
+	if num <= 1 {
 		return k.denomLockNum.Remove(ctx, denom)
 	}
 	return k.denomLockNum.Set(ctx, denom, num-1)
 }
 
 // GetDenomLockNum returns the number of lockups for a specific denomination.
-// Returns 0 and no error if the denom is not found.
-func (k Keeper) GetDenomLockNum(ctx sdk.Context, denom string) (int64, error) {
+// Returns error if the denom is not found.
+func (k Keeper) GetDenomLockNum(ctx sdk.Context, denom string) (uint64, error) {
 	return k.denomLockNum.Get(ctx, denom)
 }
 

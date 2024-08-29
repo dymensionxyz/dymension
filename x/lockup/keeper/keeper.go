@@ -24,7 +24,7 @@ type Keeper struct {
 	ak types.AccountKeeper
 	bk types.BankKeeper
 
-	denomLockNum collections.Map[string, int64] // use int64 to properly handle lower bound overflows
+	denomLockNum collections.Map[string, uint64]
 }
 
 // NewKeeper returns an instance of Keeper.
@@ -46,7 +46,7 @@ func NewKeeper(storeKey stroretypes.StoreKey, paramSpace paramtypes.Subspace, ak
 			types.KeyPrefixDenomLockNum,
 			"num_lockups_by_denom",
 			collections.StringKey,
-			collections.Int64Value,
+			collections.Uint64Value,
 		),
 	}
 }

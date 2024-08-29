@@ -72,7 +72,7 @@ func TestInitGenesis(t *testing.T) {
 
 	num, err := app.LockupKeeper.GetDenomLockNum(ctx, "foo")
 	require.NoError(t, err)
-	require.Equal(t, int64(3), num)
+	require.Equal(t, uint64(3), num)
 }
 
 func TestExportGenesis(t *testing.T) {
@@ -92,7 +92,7 @@ func TestExportGenesis(t *testing.T) {
 
 	num, err := app.LockupKeeper.GetDenomLockNum(ctx, "foo")
 	require.NoError(t, err)
-	require.Equal(t, int64(4), num)
+	require.Equal(t, uint64(4), num)
 
 	genesisExported := app.LockupKeeper.ExportGenesis(ctx)
 	require.Equal(t, genesisExported.LastLockId, uint64(11))

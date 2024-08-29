@@ -79,8 +79,9 @@ message QueryCondition {
   ];
 }
 
+// DenomLockNum represents the number of locks for the specific denom.
 message DenomLockNum {
   string denom = 1;
-  int64 lock_num = 2;
+  uint64 lock_num = 2;
 }
 

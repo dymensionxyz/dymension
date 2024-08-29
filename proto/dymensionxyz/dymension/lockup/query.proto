@@ -308,7 +308,7 @@ message DenomLockNumRequest {
   string denom = 1;
 }
 message DenomLockNumResponse {
-  int64 lock_num = 1;
+  uint64 lock_num = 1;
 }
 
 message DenomLockNumBreakdownRequest {}
