@@ -73,14 +73,18 @@ func (k Keeper) isValidClient(ctx sdk.Context, clientID string, cs exported.Clie
 	if !types.IsCanonicalClientParamsValid(tmClientState) {
 		return false
 	}
+	maxHeight := stateInfo.GetLatestHeight() - 1
 	res, err := k.ibcClientKeeper.ConsensusStateHeights(ctx, &ibcclienttypes.QueryConsensusStateHeightsRequest{
 		ClientId:   clientID,
-		Pagination: &query.PageRequest{Limit: stateInfo.GetLatestHeight()},
+		Pagination: &query.PageRequest{Limit: maxHeight},
 	})
 	if err != nil {
 		return false
 	}
 	for _, consensusHeight := range res.ConsensusStateHeights {
+		if consensusHeight.GetRevisionHeight() > maxHeight {
+			continue
+		}
 		consensusState, _ := k.ibcClientKeeper.GetClientConsensusState(ctx, clientID, consensusHeight)
 		tmConsensusState, _ := consensusState.(*ibctm.ConsensusState)
 		ibcState := types.IBCState{

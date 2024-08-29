@@ -1,10 +1,12 @@
 package types
 
 import (
+	"bytes"
 	"time"
 
 	"github.com/cometbft/cometbft/libs/math"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ics23 "github.com/cosmos/ics23/go"
 )
@@ -31,10 +33,7 @@ var ExpectedCanonicalClientParams = ibctm.ClientState{
 	// ProofSpecs defines the ICS-23 standard proof specifications used by
 	// the light client. It is used configure a proof for either existence
 	// or non-existence of a key value pair
-	ProofSpecs: []*ics23.ProofSpec{ // the proofspecs for a SDK chain
-		ics23.IavlSpec,
-		ics23.TendermintSpec,
-	},
+	ProofSpecs:                   commitmenttypes.GetSDKSpecs(),
 	AllowUpdateAfterExpiry:       false,
 	AllowUpdateAfterMisbehaviour: false,
 	// For chains using Cosmos-SDK's default x/upgrade module, the upgrade path is as follows
@@ -65,7 +64,7 @@ func IsCanonicalClientParamsValid(clientState *ibctm.ClientState) bool {
 		return false
 	}
 	for i, proofSpec := range clientState.ProofSpecs {
-		if proofSpec != ExpectedCanonicalClientParams.ProofSpecs[i] {
+		if !EqualICS23ProofSpecs(*proofSpec, *ExpectedCanonicalClientParams.ProofSpecs[i]) {
 			return false
 		}
 	}
@@ -74,5 +73,57 @@ func IsCanonicalClientParamsValid(clientState *ibctm.ClientState) bool {
 			return false
 		}
 	}
+	return true
+}
+
+func EqualICS23ProofSpecs(proofSpecs1, proofSpecs2 ics23.ProofSpec) bool {
+	if proofSpecs1.MaxDepth != proofSpecs2.MaxDepth {
+		return false
+	}
+	if proofSpecs1.MinDepth != proofSpecs2.MinDepth {
+		return false
+	}
+	if proofSpecs1.PrehashKeyBeforeComparison != proofSpecs2.PrehashKeyBeforeComparison {
+		return false
+	}
+	if proofSpecs1.LeafSpec.Hash != proofSpecs2.LeafSpec.Hash {
+		return false
+	}
+	if proofSpecs1.LeafSpec.PrehashKey != proofSpecs2.LeafSpec.PrehashKey {
+		return false
+	}
+	if proofSpecs1.LeafSpec.PrehashValue != proofSpecs2.LeafSpec.PrehashValue {
+		return false
+	}
+	if proofSpecs1.LeafSpec.Length != proofSpecs2.LeafSpec.Length {
+		return false
+	}
+	if !bytes.Equal(proofSpecs1.LeafSpec.Prefix, proofSpecs2.LeafSpec.Prefix) {
+		return false
+	}
+	if len(proofSpecs1.InnerSpec.ChildOrder) != len(proofSpecs2.InnerSpec.ChildOrder) {
+		return false
+	}
+	for i, childOrder := range proofSpecs1.InnerSpec.ChildOrder {
+		if childOrder != proofSpecs2.InnerSpec.ChildOrder[i] {
+			return false
+		}
+	}
+	if proofSpecs1.InnerSpec.ChildSize != proofSpecs2.InnerSpec.ChildSize {
+		return false
+	}
+	if proofSpecs1.InnerSpec.MinPrefixLength != proofSpecs2.InnerSpec.MinPrefixLength {
+		return false
+	}
+	if proofSpecs1.InnerSpec.MaxPrefixLength != proofSpecs2.InnerSpec.MaxPrefixLength {
+		return false
+	}
+	if !bytes.Equal(proofSpecs1.InnerSpec.EmptyChild, proofSpecs2.InnerSpec.EmptyChild) {
+		return false
+	}
+	if proofSpecs1.InnerSpec.Hash != proofSpecs2.InnerSpec.Hash {
+		return false
+	}
+
 	return true
 }
