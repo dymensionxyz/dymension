@@ -127,4 +127,14 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateDoesntExist() {
 
 func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists() {
 	// todo
+
+	// state match
+	// states dont match
+}
+
+func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists() {
+	// todo
+
+	// states match
+	// states dont match - handle fraud
 }

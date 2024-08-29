@@ -154,8 +154,7 @@ func (m *MockSequencerKeeper) GetAllSequencers(ctx sdk.Context) []sequencertypes
 	return seqs
 }
 
-type MockRollappKeeper struct {
-}
+type MockRollappKeeper struct{}
 
 func NewMockRollappKeeper() *MockRollappKeeper {
 	return &MockRollappKeeper{}
