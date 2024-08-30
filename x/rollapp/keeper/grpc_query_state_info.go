@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -73,111 +74,22 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 			rollappId)
 	}
 	// initial interval to search in
-	startInfoIndex := uint64(1) // see TODO bellow
+	startInfoIndex := uint64(1)
 	endInfoIndex := stateInfoIndex.Index
-
-	// get state info
-	LatestStateInfo, found := k.GetStateInfo(ctx, rollappId, endInfoIndex)
-	if !found {
-		return nil, errorsmod.Wrapf(types.ErrNotFound,
-			"StateInfo wasn't found for rollappId=%s, index=%d",
-			rollappId, endInfoIndex)
-	}
-
-	// check that height exists
-	if height >= LatestStateInfo.StartHeight+LatestStateInfo.NumBlocks {
-		return nil, errorsmod.Wrapf(types.ErrStateNotExists,
-			"rollappId=%s, height=%d",
-			rollappId, height)
-	}
-
-	// check if the height belongs to this batch
-	if height >= LatestStateInfo.StartHeight {
-		return &LatestStateInfo, nil
-	}
-
-	maxNumberOfSteps := endInfoIndex - startInfoIndex + 1
-	stepNum := uint64(0)
-	for ; stepNum < maxNumberOfSteps; stepNum += 1 {
-		// we know that endInfoIndex > startInfoIndex
-		// otherwise the height should have been found
-		if endInfoIndex <= startInfoIndex {
-			return nil, errorsmod.Wrapf(types.ErrLogic,
-				"endInfoIndex should be != than startInfoIndex rollappId=%s, startInfoIndex=%d, endInfoIndex=%d",
-				rollappId, startInfoIndex, endInfoIndex)
+	for startInfoIndex <= endInfoIndex {
+		midIndex := startInfoIndex + (endInfoIndex-startInfoIndex)/2
+		state, ok := k.GetStateInfo(ctx, rollappId, midIndex)
+		if !ok {
+			return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "StateInfo wasn't found for rollappId=%s, index=%d", rollappId, midIndex)
 		}
-		// 1. get state info
-		startStateInfo, found := k.GetStateInfo(ctx, rollappId, startInfoIndex)
-		if !found {
-			// TODO:
-			// if stateInfo is missing it won't be logic error if history deletion be implemented
-			// for that we will have to check the oldest we have
-			return nil, errorsmod.Wrapf(types.ErrNotFound,
-				"StateInfo wasn't found for rollappId=%s, index=%d",
-				rollappId, startInfoIndex)
+		if state.ContainsHeight(height) {
+			return &state, nil
 		}
-		endStateInfo, found := k.GetStateInfo(ctx, rollappId, endInfoIndex)
-		if !found {
-			return nil, errorsmod.Wrapf(types.ErrNotFound,
-				"StateInfo wasn't found for rollappId=%s, index=%d",
-				rollappId, endInfoIndex)
-		}
-		startHeight := startStateInfo.StartHeight
-		endHeight := endStateInfo.StartHeight + endStateInfo.NumBlocks - 1
-
-		// 2. check startStateInfo
-		if height >= startStateInfo.StartHeight &&
-			(startStateInfo.StartHeight+startStateInfo.NumBlocks) > height {
-			return &startStateInfo, nil
-		}
-
-		// 3. check endStateInfo
-		if height >= endStateInfo.StartHeight &&
-			(endStateInfo.StartHeight+endStateInfo.NumBlocks) > height {
-			return &endStateInfo, nil
-		}
-
-		// 4. calculate the average blocks per batch
-		avgBlocksPerBatch := (endHeight - startHeight + 1) / (endInfoIndex - startInfoIndex + 1)
-		if avgBlocksPerBatch == 0 {
-			return nil, errorsmod.Wrapf(types.ErrLogic,
-				"avgBlocksPerBatch is zero!!! rollappId=%s, endHeight=%d, startHeight=%d, endInfoIndex=%d, startInfoIndex=%d",
-				rollappId, endHeight, startHeight, endInfoIndex, startInfoIndex)
-		}
-
-		// 5. load the candidate block batch
-		infoIndexStep := (height - startHeight) / avgBlocksPerBatch
-		if infoIndexStep == 0 {
-			infoIndexStep = 1
-		}
-		candidateInfoIndex := startInfoIndex + infoIndexStep
-		if candidateInfoIndex > endInfoIndex {
-			// skip to the last, probably the steps to big
-			candidateInfoIndex = endInfoIndex
-		}
-		if candidateInfoIndex == endInfoIndex {
-			candidateInfoIndex = endInfoIndex - 1
-		}
-		candidateStateInfo, found := k.GetStateInfo(ctx, rollappId, candidateInfoIndex)
-		if !found {
-			return nil, errorsmod.Wrapf(types.ErrNotFound,
-				"StateInfo wasn't found for rollappId=%s, index=%d",
-				rollappId, candidateInfoIndex)
-		}
-
-		// 6. check the candidate
-		if candidateStateInfo.StartHeight > height {
-			endInfoIndex = candidateInfoIndex - 1
+		if height < state.GetStartHeight() {
+			endInfoIndex = midIndex - 1
 		} else {
-			if candidateStateInfo.StartHeight+candidateStateInfo.NumBlocks-1 < height {
-				startInfoIndex = candidateInfoIndex + 1
-			} else {
-				return &candidateStateInfo, nil
-			}
+			startInfoIndex = midIndex + 1
 		}
 	}
-
-	return nil, errorsmod.Wrapf(types.ErrLogic,
-		"More searching steps than indexes! rollappId=%s, stepNum=%d, maxNumberOfSteps=%d",
-		rollappId, stepNum, maxNumberOfSteps)
+	return nil, errorsmod.Wrapf(types.ErrStateNotExists, "StateInfo wasn't found for rollappId=%s, height=%d", rollappId, height)
 }

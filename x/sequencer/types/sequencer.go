@@ -1,6 +1,7 @@
 package types
 
 import (
+	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	cometbfttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -38,13 +39,7 @@ func (seq Sequencer) IsNoticePeriodInProgress() bool {
 // GetDymintPubKeyHash returns the hash of the sequencer
 // as expected to be written on the rollapp ibc client headers
 func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {
-	// load the dymint pubkey into a cryptotypes.PubKey
-	interfaceRegistry := cdctypes.NewInterfaceRegistry()
-	cryptocodec.RegisterInterfaces(interfaceRegistry)
-	protoCodec := codec.NewProtoCodec(interfaceRegistry)
-
-	var pubKey cryptotypes.PubKey
-	err := protoCodec.UnpackAny(seq.DymintPubKey, &pubKey)
+	pubKey, err := seq.getCosmosPubKey()
 	if err != nil {
 		return nil, err
 	}
@@ -60,4 +55,26 @@ func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {
 	tmValidator := cometbfttypes.NewValidator(tmPubKey, 1)
 	tmValidatorSet := cometbfttypes.NewValidatorSet([]*cometbfttypes.Validator{tmValidator})
 	return tmValidatorSet.Hash(), nil
+}
+
+// GetCometPubKey returns the bytes of the sequencer's dymint pubkey
+func (seq Sequencer) GetCometPubKey() (tmprotocrypto.PublicKey, error) {
+	pubKey, err := seq.getCosmosPubKey()
+	if err != nil {
+		return tmprotocrypto.PublicKey{}, err
+	}
+
+	// convert the pubkey to tmPubKey
+	tmPubKey, err := cryptocodec.ToTmProtoPublicKey(pubKey)
+	return tmPubKey, err
+}
+
+func (seq Sequencer) getCosmosPubKey() (cryptotypes.PubKey, error) {
+	interfaceRegistry := cdctypes.NewInterfaceRegistry()
+	cryptocodec.RegisterInterfaces(interfaceRegistry)
+	protoCodec := codec.NewProtoCodec(interfaceRegistry)
+
+	var pubKey cryptotypes.PubKey
+	err := protoCodec.UnpackAny(seq.DymintPubKey, &pubKey)
+	return pubKey, err
 }
