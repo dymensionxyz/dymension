@@ -25,7 +25,7 @@ func (g GenesisState) Validate() error {
 		if stateSigner.Height == 0 {
 			return fmt.Errorf("invalid height: %v", stateSigner)
 		}
-		if stateSigner.Signer == "" {
+		if stateSigner.BlockValHash == "" {
 			return fmt.Errorf("invalid signer: %v", stateSigner)
 		}
 	}

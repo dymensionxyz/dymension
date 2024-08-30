@@ -20,6 +20,6 @@ message ConsensusStateSigner {
     string ibc_client_id = 1;
     // height is the client height which was updated optimistically
     uint64 height = 2;
-    // signer is the bech32 address of the block proposer which signed the tm header
-    string signer = 3;
+    // blockValHash is the valhash of the block which was updated optimistically
+    string blockValHash = 3;
 }

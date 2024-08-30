@@ -102,9 +102,9 @@ func (k Keeper) GetAllConsensusStateSigners(ctx sdk.Context) (signers []types.Co
 		key := iterator.Key()
 		clientID, height := types.ParseConsensusStateValhashKey(key)
 		signers = append(signers, types.ConsensusStateSigner{
-			IbcClientId: clientID,
-			Height:      height,
-			Signer:      string(iterator.Value()),
+			IbcClientId:  clientID,
+			Height:       height,
+			BlockValHash: string(iterator.Value()),
 		})
 	}
 	return

@@ -15,8 +15,8 @@ func TestInitGenesis(t *testing.T) {
 		{RollappId: "rollapp-2", IbcClientId: "client-2"},
 	}
 	stateSigners := []types.ConsensusStateSigner{
-		{IbcClientId: "client-1", Height: 1, Signer: "signer-1"},
-		{IbcClientId: "client-1", Height: 2, Signer: "signer-1"},
+		{IbcClientId: "client-1", Height: 1, BlockValHash: "signer-1"},
+		{IbcClientId: "client-1", Height: 2, BlockValHash: "signer-1"},
 	}
 
 	keeper.InitGenesis(ctx, types.GenesisState{
@@ -59,6 +59,6 @@ func TestExportGenesis(t *testing.T) {
 	require.Equal(t, "client-1", genesis.ConsensusStateSigners[1].IbcClientId)
 	require.Equal(t, uint64(1), genesis.ConsensusStateSigners[0].Height)
 	require.Equal(t, uint64(2), genesis.ConsensusStateSigners[1].Height)
-	require.Equal(t, "signer-1", genesis.ConsensusStateSigners[0].Signer)
-	require.Equal(t, "signer-1", genesis.ConsensusStateSigners[1].Signer)
+	require.Equal(t, "signer-1", genesis.ConsensusStateSigners[0].BlockValHash)
+	require.Equal(t, "signer-1", genesis.ConsensusStateSigners[1].BlockValHash)
 }
