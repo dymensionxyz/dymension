@@ -143,7 +143,7 @@ func (suite *SequencerTestSuite) TestHandleBondReduction() {
 	sequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, defaultSequencerAddress)
 	suite.Require().Equal(bond.AddAmount(sdk.NewInt(50)), sequencer.Tokens[0])
 	// ensure the bond decresing queue is empty
-	reds := suite.App.SequencerKeeper.GetMatureDecreasingBondSequencers(suite.Ctx, expectedCompletionTime)
+	reds := suite.App.SequencerKeeper.GetMatureDecreasingBondIDs(suite.Ctx, expectedCompletionTime)
 	suite.Require().Len(reds, 0)
 }
 
@@ -175,7 +175,7 @@ func (suite *SequencerTestSuite) TestHandleBondReduction_MinBondIncrease() {
 	sequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, defaultSequencerAddress)
 	suite.Require().Equal(bond.AddAmount(sdk.NewInt(60)), sequencer.Tokens[0])
 	// ensure the bond decresing queue is empty
-	reds := suite.App.SequencerKeeper.GetMatureDecreasingBondSequencers(suite.Ctx, expectedCompletionTime)
+	reds := suite.App.SequencerKeeper.GetMatureDecreasingBondIDs(suite.Ctx, expectedCompletionTime)
 	suite.Require().Len(reds, 0)
 	// Ensure the bond has been refunded
 	curBalance = suite.App.BankKeeper.GetBalance(suite.Ctx, sdk.MustAccAddressFromBech32(defaultSequencerAddress), bondDenom)

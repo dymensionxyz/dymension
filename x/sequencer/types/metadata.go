@@ -15,6 +15,7 @@ const (
 	MaxDetailsLength      = 280
 	MaxExtraDataLength    = 280
 	maxURLLength          = 256
+	maxListLength         = 5
 )
 
 func (d SequencerMetadata) Validate() error {
@@ -115,6 +116,26 @@ func (d SequencerMetadata) EnsureLength() (SequencerMetadata, error) {
 		if len(cd.X) > MaxContactFieldLength {
 			return d, errors.Newf("invalid x length; got: %d, max: %d", len(cd.X), MaxContactFieldLength)
 		}
+	}
+
+	if len(d.P2PSeeds) > maxListLength {
+		return d, errors.Newf("invalid p2p seeds length; got: %d, max: %d", len(d.P2PSeeds), maxListLength)
+	}
+
+	if len(d.Rpcs) > maxListLength {
+		return d, errors.Newf("invalid rpcs length; got: %d, max: %d", len(d.Rpcs), maxListLength)
+	}
+
+	if len(d.EvmRpcs) > maxListLength {
+		return d, errors.Newf("invalid evm rpcs length; got: %d, max: %d", len(d.EvmRpcs), maxListLength)
+	}
+
+	if len(d.RestApiUrls) > maxListLength {
+		return d, errors.Newf("invalid rest api urls length; got: %d, max: %d", len(d.RestApiUrls), maxListLength)
+	}
+
+	if len(d.GenesisUrls) > maxListLength {
+		return d, errors.Newf("invalid genesis urls length; got: %d, max: %d", len(d.GenesisUrls), maxListLength)
 	}
 
 	return d, nil

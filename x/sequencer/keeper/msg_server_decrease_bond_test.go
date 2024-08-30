@@ -90,10 +90,12 @@ func (suite *SequencerTestSuite) TestDecreaseBond() {
 				expectedCompletionTime := suite.Ctx.BlockHeader().Time.Add(suite.App.SequencerKeeper.UnbondingTime(suite.Ctx))
 				suite.Require().Equal(expectedCompletionTime, resp.CompletionTime)
 				// check if the unbonding is set correctly
-				unbondings := suite.App.SequencerKeeper.GetMatureDecreasingBondSequencers(suite.Ctx, expectedCompletionTime)
-				suite.Require().Len(unbondings, 1)
-				suite.Require().Equal(tc.msg.Creator, unbondings[0].SequencerAddress)
-				suite.Require().Equal(tc.msg.DecreaseAmount, unbondings[0].DecreaseBondAmount)
+				bondReductionIDs := suite.App.SequencerKeeper.GetMatureDecreasingBondIDs(suite.Ctx, expectedCompletionTime)
+				suite.Require().Len(bondReductionIDs, 1)
+				bondReduction, found := suite.App.SequencerKeeper.GetBondReduction(suite.Ctx, bondReductionIDs[0])
+				suite.Require().True(found)
+				suite.Require().Equal(tc.msg.Creator, bondReduction.SequencerAddress)
+				suite.Require().Equal(tc.msg.DecreaseAmount, bondReduction.DecreaseBondAmount)
 			}
 		})
 	}

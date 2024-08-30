@@ -37,7 +37,7 @@ func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
 	unbondMsg := types.MsgDecreaseBond{Creator: seqAddrs[0], DecreaseAmount: sdk.NewInt64Coin(bond.Denom, 10)}
 	resp, err := suite.msgServer.DecreaseBond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
-	bds := keeper.GetMatureDecreasingBondSequencers(suite.Ctx, resp.GetCompletionTime())
+	bds := keeper.GetMatureDecreasingBondIDs(suite.Ctx, resp.GetCompletionTime())
 	suite.Require().Len(bds, 1)
 
 	err = keeper.RollappHooks().FraudSubmitted(suite.Ctx, rollappId, 0, proposer)
@@ -60,6 +60,6 @@ func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
 	_, ok := keeper.GetProposer(suite.Ctx, rollappId)
 	suite.Require().False(ok)
 	// check if bond reduction queue is pruned
-	bds = keeper.GetMatureDecreasingBondSequencers(suite.Ctx, resp.GetCompletionTime())
+	bds = keeper.GetMatureDecreasingBondIDs(suite.Ctx, resp.GetCompletionTime())
 	suite.Require().Len(bds, 0)
 }
