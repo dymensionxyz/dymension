@@ -40,6 +40,7 @@ func (k Keeper) SetCanonicalClient(ctx sdk.Context, rollappId string, clientID s
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetRollappClientKey(rollappId), []byte(clientID))
 	store.Set(types.CanonicalClientKey(clientID), []byte(rollappId))
+	// TODO: event and log
 }
 
 func (k Keeper) GetAllCanonicalClients(ctx sdk.Context) (clients []types.CanonicalClient) {
