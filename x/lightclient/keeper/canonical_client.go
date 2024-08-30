@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // GetProspectiveCanonicalClient returns the client id of the first IBC client which can be set as the canonical client for the given rollapp.
@@ -15,9 +14,9 @@ import (
 // 1. The client must be a tendermint client.
 // 2. The client state must match the expected client params as configured by the module
 // 3. All the existing consensus states much match the corresponding height rollapp block descriptors
-func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string, stateInfo *rollapptypes.StateInfo) (clientID string, stateCompatible bool) {
+func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string, maxHeight uint64) (clientID string, stateCompatible bool) {
 	k.ibcClientKeeper.IterateClientStates(ctx, nil, func(client string, cs exported.ClientState) bool {
-		ok := k.isValidClient(ctx, client, cs, rollappId, stateInfo)
+		ok := k.isValidClient(ctx, client, cs, rollappId, maxHeight)
 		if ok {
 			clientID = client
 			stateCompatible = true
@@ -56,7 +55,7 @@ func (k Keeper) GetAllCanonicalClients(ctx sdk.Context) (clients []types.Canonic
 	return
 }
 
-func (k Keeper) isValidClient(ctx sdk.Context, clientID string, cs exported.ClientState, rollappId string, stateInfo *rollapptypes.StateInfo) bool {
+func (k Keeper) isValidClient(ctx sdk.Context, clientID string, cs exported.ClientState, rollappId string, maxHeight uint64) bool {
 	tmClientState, ok := cs.(*ibctm.ClientState)
 	if !ok {
 		return false
@@ -67,7 +66,6 @@ func (k Keeper) isValidClient(ctx sdk.Context, clientID string, cs exported.Clie
 	if !types.IsCanonicalClientParamsValid(tmClientState) {
 		return false
 	}
-	maxHeight := stateInfo.GetLatestHeight() - 1
 	res, err := k.ibcClientKeeper.ConsensusStateHeights(ctx, &ibcclienttypes.QueryConsensusStateHeightsRequest{
 		ClientId:   clientID,
 		Pagination: &query.PageRequest{Limit: maxHeight},
@@ -76,36 +74,30 @@ func (k Keeper) isValidClient(ctx sdk.Context, clientID string, cs exported.Clie
 		return false
 	}
 	for _, consensusHeight := range res.ConsensusStateHeights {
-		if consensusHeight.GetRevisionHeight() > maxHeight {
-			continue
+		h := consensusHeight.GetRevisionHeight()
+		if maxHeight < h {
+			break
 		}
 		consensusState, _ := k.ibcClientKeeper.GetClientConsensusState(ctx, clientID, consensusHeight)
 		tmConsensusState, _ := consensusState.(*ibctm.ConsensusState)
-
-		var rollappState types.RollappState
-		bd, found := stateInfo.GetBlockDescriptor(consensusHeight.GetRevisionHeight())
-		if found {
-			rollappState.BlockDescriptor = bd
-			sequencerPk, err := k.GetSequencerPubKey(ctx, stateInfo.Sequencer)
-			if err != nil {
-				return false
-			}
-			rollappState.NextBlockSequencer = sequencerPk
-		} else {
-			// Look up the state info for the block descriptor
-			oldStateInfo, err := k.rollappKeeper.FindStateInfoByHeight(ctx, rollappId, consensusHeight.GetRevisionHeight())
-			if err != nil {
-				return false
-			}
-			bd, _ = oldStateInfo.GetBlockDescriptor(consensusHeight.GetRevisionHeight())
-			oldSequencer, err := k.GetSequencerPubKey(ctx, oldStateInfo.Sequencer)
-			if err != nil {
-				return false
-			}
-			rollappState.BlockDescriptor = bd
-			rollappState.NextBlockSequencer = oldSequencer
+		stateInfoH, err := k.rollappKeeper.FindStateInfoByHeight(ctx, rollappId, h)
+		if err != nil {
+			return false
 		}
-		err := types.CheckCompatibility(*tmConsensusState, rollappState)
+		stateInfoHplus1, err := k.rollappKeeper.FindStateInfoByHeight(ctx, rollappId, h+1)
+		if err != nil {
+			return false
+		}
+		bd, _ := stateInfoH.GetBlockDescriptor(h)
+		oldSequencer, err := k.GetSequencerPubKey(ctx, stateInfoHplus1.Sequencer)
+		if err != nil {
+			return false
+		}
+		rollappState := types.RollappState{
+			BlockDescriptor:    bd,
+			NextBlockSequencer: oldSequencer,
+		}
+		err = types.CheckCompatibility(*tmConsensusState, rollappState)
 		if err != nil {
 			return false
 		}
