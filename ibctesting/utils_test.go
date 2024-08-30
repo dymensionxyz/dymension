@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+	"time"
 
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 
@@ -198,6 +199,7 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 		blockDescriptors.BD[i] = rollapptypes.BlockDescriptor{
 			Height:    startHeight + uint64(i),
 			StateRoot: bytes.Repeat([]byte{byte(startHeight) + byte(i)}, 32),
+			Timestamp: time.Now().UTC(),
 		}
 	}
 	// Update the state

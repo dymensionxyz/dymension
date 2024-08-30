@@ -61,6 +61,11 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 		// bump state index
 		lastIndex = latestStateInfoIndex.Index
+	} else {
+		err := msg.BDs.Validate()
+		if err != nil {
+			return nil, err
+		}
 	}
 	newIndex = lastIndex + 1
 
