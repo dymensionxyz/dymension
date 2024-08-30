@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 
@@ -66,7 +67,7 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string) error 
 		}
 	}
 
-	err := ctx.EventManager().EmitTypedEvent(&types.EventEpochStart{
+	err := uevent.EmitTypedEvent(ctx, &types.EventEpochStart{
 		ActiveStreamsNum: uint64(len(toStart)),
 	})
 	if err != nil {

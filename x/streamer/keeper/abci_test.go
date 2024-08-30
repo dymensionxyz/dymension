@@ -27,7 +27,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 			streams: []types.Stream{
 				{
 					Id:                   1,
-					DistrEpochIdentifier: "day",
+					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 100)),
 					DistributeTo: &types.DistrInfo{
 						Records: []types.DistrRecord{
@@ -40,7 +40,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				},
 				{
 					Id:                   2,
-					DistrEpochIdentifier: "hour",
+					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 100)),
 					DistributeTo: &types.DistrInfo{
 						Records: []types.DistrRecord{
@@ -53,7 +53,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				},
 				{
 					Id:                   3,
-					DistrEpochIdentifier: "hour",
+					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 100)),
 					DistributeTo: &types.DistrInfo{
 						Records: []types.DistrRecord{
@@ -66,7 +66,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				},
 				{
 					Id:                   4,
-					DistrEpochIdentifier: "day",
+					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 100)),
 					DistributeTo: &types.DistrInfo{
 						Records: []types.DistrRecord{
@@ -85,12 +85,21 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{
 							StreamId:        types.MaxStreamID,
 							GaugeId:         types.MaxStreamID,
-							EpochIdentifier: "day",
+							EpochIdentifier: "hour",
+							EpochDuration:   time.Hour,
 						},
 						{
 							StreamId:        2,
 							GaugeId:         6,
-							EpochIdentifier: "hour",
+							EpochIdentifier: "day",
+							EpochDuration:   24 * time.Hour,
+						},
+						// week epoch pointer is not used
+						{
+							StreamId:        types.MinStreamID,
+							GaugeId:         types.MinStreamID,
+							EpochIdentifier: "week",
+							EpochDuration:   7 * 24 * time.Hour,
 						},
 					},
 					distributedCoins: []distributedCoins{
@@ -132,7 +141,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 			streams: []types.Stream{
 				{
 					Id:                   1,
-					DistrEpochIdentifier: "day",
+					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 100)),
 					DistributeTo: &types.DistrInfo{
 						Records: []types.DistrRecord{
@@ -145,7 +154,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				},
 				{
 					Id:                   2,
-					DistrEpochIdentifier: "hour",
+					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 100)),
 					DistributeTo: &types.DistrInfo{
 						Records: []types.DistrRecord{
@@ -158,7 +167,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				},
 				{
 					Id:                   3,
-					DistrEpochIdentifier: "hour",
+					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 100)),
 					DistributeTo: &types.DistrInfo{
 						Records: []types.DistrRecord{
@@ -171,7 +180,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				},
 				{
 					Id:                   4,
-					DistrEpochIdentifier: "day",
+					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 100)),
 					DistributeTo: &types.DistrInfo{
 						Records: []types.DistrRecord{
@@ -190,12 +199,21 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{
 							StreamId:        4,
 							GaugeId:         14,
-							EpochIdentifier: "day",
+							EpochIdentifier: "hour",
+							EpochDuration:   time.Hour,
 						},
 						{
 							StreamId:        0,
 							GaugeId:         0,
-							EpochIdentifier: "hour",
+							EpochIdentifier: "day",
+							EpochDuration:   24 * time.Hour,
+						},
+						// week epoch pointer is not used
+						{
+							StreamId:        types.MinStreamID,
+							GaugeId:         types.MinStreamID,
+							EpochIdentifier: "week",
+							EpochDuration:   7 * 24 * time.Hour,
 						},
 					},
 					distributedCoins: []distributedCoins{
@@ -233,12 +251,21 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{
 							StreamId:        types.MaxStreamID,
 							GaugeId:         types.MaxStreamID,
-							EpochIdentifier: "day",
+							EpochIdentifier: "hour",
+							EpochDuration:   time.Hour,
 						},
 						{
 							StreamId:        2,
 							GaugeId:         7,
-							EpochIdentifier: "hour",
+							EpochIdentifier: "day",
+							EpochDuration:   24 * time.Hour,
+						},
+						// week epoch pointer is not used
+						{
+							StreamId:        types.MinStreamID,
+							GaugeId:         types.MinStreamID,
+							EpochIdentifier: "week",
+							EpochDuration:   7 * 24 * time.Hour,
 						},
 					},
 					distributedCoins: []distributedCoins{
@@ -280,7 +307,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 			streams: []types.Stream{
 				{
 					Id:                   1,
-					DistrEpochIdentifier: "day",
+					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 1)),
 					DistributeTo: &types.DistrInfo{
 						Records: []types.DistrRecord{
@@ -290,7 +317,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				},
 				{
 					Id:                   2,
-					DistrEpochIdentifier: "hour",
+					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 1)),
 					DistributeTo: &types.DistrInfo{
 						Records: []types.DistrRecord{
@@ -300,7 +327,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				},
 				{
 					Id:                   3,
-					DistrEpochIdentifier: "hour",
+					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 1)),
 					DistributeTo: &types.DistrInfo{
 						Records: []types.DistrRecord{
@@ -310,7 +337,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				},
 				{
 					Id:                   4,
-					DistrEpochIdentifier: "day",
+					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 1)),
 					DistributeTo: &types.DistrInfo{
 						Records: []types.DistrRecord{
@@ -326,12 +353,21 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{
 							StreamId:        types.MaxStreamID,
 							GaugeId:         types.MaxStreamID,
-							EpochIdentifier: "day",
+							EpochIdentifier: "hour",
+							EpochDuration:   time.Hour,
 						},
 						{
 							StreamId:        types.MaxStreamID,
 							GaugeId:         types.MaxStreamID,
-							EpochIdentifier: "hour",
+							EpochIdentifier: "day",
+							EpochDuration:   24 * time.Hour,
+						},
+						// week epoch pointer is not used, however it points on the last gauge
+						{
+							StreamId:        types.MaxStreamID,
+							GaugeId:         types.MaxStreamID,
+							EpochIdentifier: "week",
+							EpochDuration:   7 * 24 * time.Hour,
 						},
 					},
 					distributedCoins: []distributedCoins{
@@ -357,7 +393,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 			streams: []types.Stream{
 				{
 					Id:                   1,
-					DistrEpochIdentifier: "day",
+					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 100)),
 					DistributeTo: &types.DistrInfo{
 						Records: []types.DistrRecord{
@@ -370,7 +406,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				},
 				{
 					Id:                   2,
-					DistrEpochIdentifier: "hour",
+					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 100)),
 					DistributeTo: &types.DistrInfo{
 						Records: []types.DistrRecord{
@@ -383,7 +419,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				},
 				{
 					Id:                   3,
-					DistrEpochIdentifier: "hour",
+					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 100)),
 					DistributeTo: &types.DistrInfo{
 						Records: []types.DistrRecord{
@@ -396,7 +432,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				},
 				{
 					Id:                   4,
-					DistrEpochIdentifier: "day",
+					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("udym", 100)),
 					DistributeTo: &types.DistrInfo{
 						Records: []types.DistrRecord{
@@ -415,12 +451,21 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{
 							StreamId:        1,
 							GaugeId:         4,
-							EpochIdentifier: "day",
+							EpochIdentifier: "hour",
+							EpochDuration:   time.Hour,
 						},
 						{
 							StreamId:        0,
 							GaugeId:         0,
-							EpochIdentifier: "hour",
+							EpochIdentifier: "day",
+							EpochDuration:   24 * time.Hour,
+						},
+						// week epoch pointer is not used
+						{
+							StreamId:        types.MinStreamID,
+							GaugeId:         types.MinStreamID,
+							EpochIdentifier: "week",
+							EpochDuration:   7 * 24 * time.Hour,
 						},
 					},
 					distributedCoins: []distributedCoins{
@@ -458,12 +503,21 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{
 							StreamId:        4,
 							GaugeId:         15,
-							EpochIdentifier: "day",
+							EpochIdentifier: "hour",
+							EpochDuration:   time.Hour,
 						},
 						{
 							StreamId:        0,
 							GaugeId:         0,
-							EpochIdentifier: "hour",
+							EpochIdentifier: "day",
+							EpochDuration:   24 * time.Hour,
+						},
+						// week epoch pointer is not used
+						{
+							StreamId:        types.MinStreamID,
+							GaugeId:         types.MinStreamID,
+							EpochIdentifier: "week",
+							EpochDuration:   7 * 24 * time.Hour,
 						},
 					},
 					distributedCoins: []distributedCoins{
@@ -501,12 +555,21 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{
 							StreamId:        types.MaxStreamID,
 							GaugeId:         types.MaxGaugeID,
-							EpochIdentifier: "day",
+							EpochIdentifier: "hour",
+							EpochDuration:   time.Hour,
 						},
 						{
 							StreamId:        2,
 							GaugeId:         6,
-							EpochIdentifier: "hour",
+							EpochIdentifier: "day",
+							EpochDuration:   24 * time.Hour,
+						},
+						// week epoch pointer is not used
+						{
+							StreamId:        types.MinStreamID,
+							GaugeId:         types.MinStreamID,
+							EpochIdentifier: "week",
+							EpochDuration:   7 * 24 * time.Hour,
 						},
 					},
 					distributedCoins: []distributedCoins{
@@ -544,12 +607,21 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{
 							StreamId:        types.MaxStreamID,
 							GaugeId:         types.MaxGaugeID,
-							EpochIdentifier: "day",
+							EpochIdentifier: "hour",
+							EpochDuration:   time.Hour,
 						},
 						{
 							StreamId:        3,
 							GaugeId:         9,
-							EpochIdentifier: "hour",
+							EpochIdentifier: "day",
+							EpochDuration:   24 * time.Hour,
+						},
+						// week epoch pointer is not used
+						{
+							StreamId:        types.MinStreamID,
+							GaugeId:         types.MinStreamID,
+							EpochIdentifier: "week",
+							EpochDuration:   7 * 24 * time.Hour,
 						},
 					},
 					distributedCoins: []distributedCoins{
@@ -587,12 +659,21 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{
 							StreamId:        types.MaxStreamID,
 							GaugeId:         types.MaxGaugeID,
-							EpochIdentifier: "day",
+							EpochIdentifier: "hour",
+							EpochDuration:   time.Hour,
 						},
 						{
 							StreamId:        3,
 							GaugeId:         12,
-							EpochIdentifier: "hour",
+							EpochIdentifier: "day",
+							EpochDuration:   24 * time.Hour,
+						},
+						// week epoch pointer is not used
+						{
+							StreamId:        types.MinStreamID,
+							GaugeId:         types.MinStreamID,
+							EpochIdentifier: "week",
+							EpochDuration:   7 * 24 * time.Hour,
 						},
 					},
 					distributedCoins: []distributedCoins{
@@ -630,12 +711,21 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{
 							StreamId:        types.MaxStreamID,
 							GaugeId:         types.MaxGaugeID,
-							EpochIdentifier: "day",
+							EpochIdentifier: "hour",
+							EpochDuration:   time.Hour,
 						},
 						{
 							StreamId:        types.MaxStreamID,
 							GaugeId:         types.MaxStreamID,
-							EpochIdentifier: "hour",
+							EpochIdentifier: "day",
+							EpochDuration:   24 * time.Hour,
+						},
+						// week epoch pointer is not used, however it points on the last gauge
+						{
+							StreamId:        types.MaxStreamID,
+							GaugeId:         types.MaxStreamID,
+							EpochIdentifier: "week",
+							EpochDuration:   7 * 24 * time.Hour,
 						},
 					},
 					distributedCoins: []distributedCoins{
@@ -690,9 +780,9 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 			}
 
 			// Start epochs
-			err := s.App.StreamerKeeper.BeforeEpochStart(s.Ctx, "day")
+			err := s.App.StreamerKeeper.BeforeEpochStart(s.Ctx, "hour")
 			s.Require().NoError(err)
-			err = s.App.StreamerKeeper.BeforeEpochStart(s.Ctx, "hour")
+			err = s.App.StreamerKeeper.BeforeEpochStart(s.Ctx, "day")
 			s.Require().NoError(err)
 
 			for i := range tc.blocksInEpoch {
@@ -716,7 +806,8 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				// Verify epoch pointers are valid
 				pointers, err := s.App.StreamerKeeper.GetAllEpochPointers(s.Ctx)
 				s.Require().NoError(err)
-				// Equality here is important!
+				// Equality here is important! Pointers must be filled from shorter to longer.
+				types.SortEpochPointers(pointers)
 				s.Require().Equal(expected.epochPointers, pointers)
 
 				// Verify gauges are rewarded. Equality here is important!

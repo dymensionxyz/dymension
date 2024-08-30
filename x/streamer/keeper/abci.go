@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
@@ -15,6 +16,9 @@ func (k Keeper) EndBlock(ctx sdk.Context) error {
 	if err != nil {
 		return fmt.Errorf("get all epoch pointers: %w", err)
 	}
+
+	// Sort epoch pointers to distribute to shorter epochs first
+	types.SortEpochPointers(epochPointers)
 
 	maxIterations := k.GetParams(ctx).MaxIterationsPerBlock
 	totalIterations := uint64(0)
@@ -47,7 +51,7 @@ func (k Keeper) EndBlock(ctx sdk.Context) error {
 		}
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventEndBlock{
+	err = uevent.EmitTypedEvent(ctx, &types.EventEndBlock{
 		Iterations:    totalIterations,
 		MaxIterations: maxIterations,
 		Distributed:   totalDistributed,

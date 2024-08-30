@@ -26,7 +26,7 @@ const (
 	NonSponsored = false
 )
 
-var defaultDistrInfo []types.DistrRecord = []types.DistrRecord{
+var defaultDistrInfo = []types.DistrRecord{
 	{
 		GaugeId: 1,
 		Weight:  math.NewInt(50),
@@ -231,9 +231,10 @@ func (suite *KeeperTestSuite) DistributeAllRewards(streams []types.Stream) sdk.C
 	rewards := sdk.Coins{}
 	suite.Require().True(slices.IsSortedFunc(streams, keeper.CmpStreams))
 	for _, stream := range streams {
+		epoch := suite.App.EpochsKeeper.GetEpochInfo(suite.Ctx, stream.DistrEpochIdentifier)
 		res := suite.App.StreamerKeeper.DistributeRewards(
 			suite.Ctx,
-			types.NewEpochPointer(stream.DistrEpochIdentifier),
+			types.NewEpochPointer(epoch.Identifier, epoch.Duration),
 			types.IterationsNoLimit,
 			[]types.Stream{stream},
 		)

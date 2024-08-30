@@ -366,7 +366,7 @@ var InitGenesis = []string{
 	eibcmoduletypes.ModuleName,
 	dymnstypes.ModuleName,
 	epochstypes.ModuleName,
-	streamermoduletypes.ModuleName,
+	streamermoduletypes.ModuleName, // must be after x/epochs to fill epoch pointers
 	lockuptypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,

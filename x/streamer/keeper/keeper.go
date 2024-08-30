@@ -29,8 +29,13 @@ type Keeper struct {
 	ik         types.IncentivesKeeper
 	sk         types.SponsorshipKeeper
 
-	// epochPointers hold a mapping from the epoch identifier to EpochPointer.
+	// epochPointers holds a mapping from the epoch identifier to EpochPointer.
 	epochPointers collections.Map[string, types.EpochPointer]
+
+	// epochSortOrder holds the order of sorting for epoch identifiers.
+	// Keys are epoch identifiers, values are the order priority.
+	// Higher values indicate higher priority in sorting.
+	epochSortOrder map[string]int
 }
 
 // NewKeeper returns a new instance of the incentive module keeper struct.

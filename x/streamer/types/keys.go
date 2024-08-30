@@ -1,6 +1,6 @@
 package types
 
-var (
+const (
 	// ModuleName defines the module name.
 	ModuleName = "streamer"
 
@@ -10,12 +10,11 @@ var (
 	// RouterKey is the message route for slashing.
 	RouterKey = ModuleName
 
-	// QuerierRoute defines the module's query routing key.
-	QuerierRoute = ModuleName
-
 	// MemStoreKey defines the in-memory store key.
 	MemStoreKey = "mem_capability"
+)
 
+var (
 	// KeyPrefixTimestamp defines prefix key for timestamp iterator key.
 	KeyPrefixTimestamp = []byte{0x01}
 

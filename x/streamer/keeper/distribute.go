@@ -5,7 +5,6 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
 	"github.com/dymensionxyz/dymension/v3/internal/pagination"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -92,15 +91,6 @@ func (k Keeper) UpdateStreamAtEpochStart(ctx sdk.Context, stream types.Stream) (
 	if !stream.DistributeTo.TotalWeight.IsZero() {
 		stream.FilledEpochs += 1
 	}
-
-	// TODO: can we delete this event?
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.TypeEvtDistribution,
-			sdk.NewAttribute(types.AttributeStreamID, osmoutils.Uint64ToString(stream.Id)),
-			sdk.NewAttribute(types.AttributeAmount, epochCoins.String()),
-		),
-	})
 
 	return stream, nil
 }

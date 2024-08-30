@@ -31,7 +31,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 
 	// Create epoch pointers for all epoch infos
 	for _, epoch := range k.ek.AllEpochInfos(ctx) {
-		err := k.SaveEpochPointer(ctx, types.NewEpochPointer(epoch.Identifier))
+		err := k.SaveEpochPointer(ctx, types.NewEpochPointer(epoch.Identifier, epoch.Duration))
 		if err != nil {
 			panic(err)
 		}

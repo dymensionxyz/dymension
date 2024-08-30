@@ -13,7 +13,7 @@ import (
 
 var _ = suite.TestingSuite(nil)
 
-var singleDistrInfo []types.DistrRecord = []types.DistrRecord{
+var singleDistrInfo = []types.DistrRecord{
 	{
 		GaugeId: 1,
 		Weight:  math.NewInt(100),
