@@ -55,7 +55,7 @@ func CmdShowStateInfo() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 			res, err := queryClient.StateInfo(context.Background(), params)
 			if err != nil {
-				return err
+				return fmt.Errorf("state info: %w", err)
 			}
 			return clientCtx.PrintProto(res)
 		},
