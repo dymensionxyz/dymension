@@ -31,10 +31,13 @@ func TestTransferGenesisTestSuite(t *testing.T) {
 func (s *transferGenesisSuite) SetupTest() {
 	s.utilSuite.SetupTest()
 	path := s.newTransferPath(s.hubChain(), s.rollappChain())
-	s.coordinator.Setup(path)
+	s.coordinator.SetupConnections(path)
 	s.createRollapp(false, nil) // genesis protocol is not finished yet
 	s.registerSequencer()
 	s.path = path
+	// set the canonical client before creating channels
+	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), rollappChainID(), s.path.EndpointA.ClientID)
+	s.coordinator.CreateChannels(path)
 
 	// set hooks to avoid actually creating VFC contract, as this places extra requirements on the test setup
 	// we assume that if the denom metadata was created (checked below), then the hooks ran correctly

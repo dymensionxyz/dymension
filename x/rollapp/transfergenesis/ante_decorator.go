@@ -7,10 +7,15 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 
 	transferTypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 type GetRollapp func(ctx sdk.Context, rollappId string) (val types.Rollapp, found bool)
+
+type ChannelKeeper interface {
+	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error) // implemented by ibc channel keeper
+}
 
 // TransferEnabledDecorator only allows ibc transfers to a rollapp if that rollapp has finished
 // the transfer genesis protocol.
