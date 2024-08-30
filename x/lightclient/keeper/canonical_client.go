@@ -12,10 +12,6 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-const (
-	ibcRevisionNumber = 1
-)
-
 // GetProspectiveCanonicalClient returns the client id of the first IBC client which can be set as the canonical client for the given rollapp.
 // The canonical client criteria are:
 // 1. The client must be a tendermint client.

@@ -76,5 +76,5 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 }
 
 func (i IBCMessagesDecorator) acceptUpdateOptimistically(ctx sdk.Context, clientID string, header *ibctm.Header) {
-	i.lightClientKeeper.SetConsensusStateValHash(ctx, clientID, header.TrustedHeight.RevisionHeight, header.Header.ValidatorsHash)
+	i.lightClientKeeper.SetConsensusStateValHash(ctx, clientID, uint64(header.Header.Height), header.Header.ValidatorsHash)
 }

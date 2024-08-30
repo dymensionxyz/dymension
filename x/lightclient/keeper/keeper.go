@@ -79,6 +79,11 @@ func (k Keeper) SetConsensusStateValHash(ctx sdk.Context, clientID string, heigh
 	store.Set(types.ConsensusStateValhashKeyByClientID(clientID, height), blockValHash)
 }
 
+func (k Keeper) RemoveConsensusStateValHash(ctx sdk.Context, clientID string, height uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.ConsensusStateValhashKeyByClientID(clientID, height))
+}
+
 // GetConsensusStateValHash returns the block valHash for the given height of the client
 func (k Keeper) GetConsensusStateValHash(ctx sdk.Context, clientID string, height uint64) ([]byte, bool) {
 	store := ctx.KVStore(k.storeKey)

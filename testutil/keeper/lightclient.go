@@ -111,7 +111,8 @@ func (m *MockIBCCLientKeeper) GetClientConsensusState(ctx sdk.Context, clientID 
 }
 
 func (m *MockIBCCLientKeeper) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
-	return nil, false
+	cs, ok := m.clientStates[clientID]
+	return cs, ok
 }
 
 func (m *MockIBCCLientKeeper) IterateClientStates(ctx sdk.Context, prefix []byte, cb func(clientID string, cs exported.ClientState) bool) {

@@ -76,7 +76,8 @@ func (hook rollappHook) AfterUpdateState(
 }
 
 func (hook rollappHook) checkStateForHeight(ctx sdk.Context, rollappId string, bd rollapptypes.BlockDescriptor, canonicalClient string, sequencerPk tmprotocrypto.PublicKey, blockValHash []byte) error {
-	height := ibcclienttypes.NewHeight(ibcRevisionNumber, bd.GetHeight())
+	cs, _ := hook.k.ibcClientKeeper.GetClientState(ctx, canonicalClient)
+	height := ibcclienttypes.NewHeight(cs.GetLatestHeight().GetRevisionNumber(), bd.GetHeight())
 	consensusState, _ := hook.k.ibcClientKeeper.GetClientConsensusState(ctx, canonicalClient, height)
 	// Cast consensus state to tendermint consensus state - we need this to check the state root and timestamp and nextValHash
 	tmConsensusState, ok := consensusState.(*ibctm.ConsensusState)
@@ -106,5 +107,6 @@ func (hook rollappHook) checkStateForHeight(ctx sdk.Context, rollappId string, b
 			return err
 		}
 	}
+	hook.k.RemoveConsensusStateValHash(ctx, canonicalClient, bd.GetHeight())
 	return nil
 }
