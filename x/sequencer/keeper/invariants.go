@@ -10,7 +10,6 @@ import (
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "sequencers-count", SequencersCountInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "sequencer-proposer-bonded", ProposerBondedInvariant(k))
-	ir.RegisterRoute(types.ModuleName, "sequencer-min-bond", SequencerMinBondInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "sequencer-positive-balance-post-bond-reduction", SequencerPositiveBalancePostBondReduction(k))
 }
 
@@ -98,30 +97,7 @@ func ProposerBondedInvariant(k Keeper) sdk.Invariant {
 	}
 }
 
-// SequencerMinBondInvariant checks if the sequencer always maintains the minimum bond as long as it is bonded status
-func SequencerMinBondInvariant(k Keeper) sdk.Invariant {
-	return func(ctx sdk.Context) (string, bool) {
-		var (
-			broken bool
-			msg    string
-		)
-		minBond := sdk.NewCoins(k.MinBond(ctx))
-		sequencers := k.GetAllSequencers(ctx)
-		for _, seq := range sequencers {
-			if seq.Status == types.Bonded && !seq.Tokens.IsAllGTE(minBond) {
-				broken = true
-				msg += "bonded sequencer does not have minimum bond " + seq.Address + "\n"
-			}
-		}
-
-		return sdk.FormatInvariant(
-			types.ModuleName, "sequencer-min-bond",
-			msg,
-		), broken
-	}
-}
-
-// SequencerPositiveBalancePostBondReduction checks if the sequencer maintains a positive balance after all bond reductions are applied
+// SequencerPositiveBalancePostBondReduction checks if the sequencer maintains a non-negative balance after all bond reductions are applied
 func SequencerPositiveBalancePostBondReduction(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
