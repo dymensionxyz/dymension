@@ -15,7 +15,7 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 	if !found {
 		return nil, types.ErrUnknownSequencer
 	}
-	if !sequencer.AllowBondUpdate() {
+	if !sequencer.IsBonded() {
 		return nil, types.ErrInvalidSequencerStatus
 	}
 

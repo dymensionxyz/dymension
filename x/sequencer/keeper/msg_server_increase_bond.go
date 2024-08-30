@@ -18,7 +18,7 @@ func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBon
 	if !found {
 		return nil, types.ErrUnknownSequencer
 	}
-	if !sequencer.AllowBondUpdate() {
+	if !sequencer.IsBonded() {
 		return nil, types.ErrInvalidSequencerStatus
 	}
 
