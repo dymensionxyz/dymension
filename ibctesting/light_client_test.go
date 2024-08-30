@@ -146,6 +146,7 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_Compatible() {
 		s.rollappChain().NextBlock()
 	}
 	header, err := s.path.EndpointA.Chain.ConstructUpdateTMClientHeader(s.path.EndpointA.Counterparty.Chain, s.path.EndpointA.ClientID)
+	s.NoError(err)
 
 	for i := 0; i < 2; i++ {
 		lastHeader := s.rollappChain().LastHeader
@@ -195,6 +196,7 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_NotCompatible()
 		s.rollappChain().NextBlock()
 	}
 	header, err := s.path.EndpointA.Chain.ConstructUpdateTMClientHeader(s.path.EndpointA.Counterparty.Chain, s.path.EndpointA.ClientID)
+	s.NoError(err)
 
 	for i := 0; i < 2; i++ {
 		lastHeader := s.rollappChain().LastHeader
@@ -253,6 +255,7 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_Compatibl
 		s.rollappChain().NextBlock()
 	}
 	header, err := s.path.EndpointA.Chain.ConstructUpdateTMClientHeader(s.path.EndpointA.Counterparty.Chain, s.path.EndpointA.ClientID)
+	s.NoError(err)
 
 	for i := 0; i < 2; i++ {
 		lastHeader := s.rollappChain().LastHeader
@@ -308,6 +311,7 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_NotCompat
 		s.rollappChain().NextBlock()
 	}
 	header, err := s.path.EndpointA.Chain.ConstructUpdateTMClientHeader(s.path.EndpointA.Counterparty.Chain, s.path.EndpointA.ClientID)
+	s.NoError(err)
 
 	for i := 0; i < 2; i++ {
 		lastHeader := s.rollappChain().LastHeader
