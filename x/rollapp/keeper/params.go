@@ -13,6 +13,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		k.LivenessSlashBlocks(ctx),
 		k.LivenessSlashInterval(ctx),
 		k.LivenessJailBlocks(ctx),
+		k.EpochIdentifier(ctx),
 	)
 }
 
@@ -39,5 +40,10 @@ func (k Keeper) LivenessSlashInterval(ctx sdk.Context) (res uint64) {
 
 func (k Keeper) LivenessJailBlocks(ctx sdk.Context) (res uint64) {
 	k.paramstore.Get(ctx, types.KeyLivenessJailBlocks, &res)
+	return
+}
+
+func (k Keeper) EpochIdentifier(ctx sdk.Context) (res string) {
+	k.paramstore.Get(ctx, types.KeyEpochIdentifier, &res)
 	return
 }

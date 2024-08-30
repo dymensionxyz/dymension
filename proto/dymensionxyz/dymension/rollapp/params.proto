@@ -9,7 +9,7 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 // Params defines the parameters for the module.
 message Params {
   option (gogoproto.goproto_stringer) = false;
-  
+
   // dispute_period_in_blocks the number of blocks it takes
   // to change a status of a state from received to finalized.
   // during that period, any user could submit fraud proof
@@ -24,4 +24,7 @@ message Params {
   uint64 liveness_slash_interval = 5  [(gogoproto.moretags) = "yaml:\"liveness_slash_interval\""];
   // The time (num hub blocks) a sequencer can be down after which he will be jailed rather than slashed
   uint64 liveness_jail_blocks = 6 [(gogoproto.moretags) = "yaml:\"liveness_jail_blocks\""];
+  // epoch_identifier is the identifier for the epoch
+  string epoch_identifier = 8
+  [ (gogoproto.moretags) = "yaml:\"epoch_identifier\"" ];
 }

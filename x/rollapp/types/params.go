@@ -19,6 +19,9 @@ var (
 	KeyLivenessSlashBlocks   = []byte("LivenessSlashBlocks")
 	KeyLivenessSlashInterval = []byte("LivenessSlashInterval")
 	KeyLivenessJailBlocks    = []byte("LivenessJailBlocks")
+
+	// KeyEpochIdentifier defines the key to store the epoch identifier
+	KeyEpochIdentifier = []byte("EpochIdentifier")
 )
 
 const (
@@ -29,6 +32,7 @@ const (
 	DefaultLivenessSlashBlocks   = uint64(7200)  // 12 hours at 1 block per 6 seconds
 	DefaultLivenessSlashInterval = uint64(3600)  // 1 hour at 1 block per 6 seconds
 	DefaultLivenessJailBlocks    = uint64(28800) // 48 hours at 1 block per 6 seconds
+	defaultEpochIdentifier       = "hour"
 )
 
 // ParamKeyTable the param key table for launch module
@@ -42,12 +46,14 @@ func NewParams(
 	livenessSlashBlocks uint64,
 	livenessSlashInterval uint64,
 	livenessJailBlocks uint64,
+	epochIdentifier string,
 ) Params {
 	return Params{
 		DisputePeriodInBlocks: disputePeriodInBlocks,
 		LivenessSlashBlocks:   livenessSlashBlocks,
 		LivenessSlashInterval: livenessSlashInterval,
 		LivenessJailBlocks:    livenessJailBlocks,
+		EpochIdentifier:       epochIdentifier,
 	}
 }
 
@@ -57,6 +63,7 @@ func DefaultParams() Params {
 		DefaultLivenessSlashBlocks,
 		DefaultLivenessSlashInterval,
 		DefaultLivenessJailBlocks,
+		defaultEpochIdentifier,
 	)
 }
 

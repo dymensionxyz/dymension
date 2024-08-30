@@ -2,9 +2,11 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -15,6 +17,12 @@ func (k Keeper) SetStateInfo(ctx sdk.Context, stateInfo types.StateInfo) {
 	store.Set(types.StateInfoKey(
 		stateInfo.StateInfoIndex,
 	), b)
+
+	// store a key prefixed with the creation timestamp
+	storeTS := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TimestampedStateInfoKeyPrefix))
+	storeTS.Set(types.StateInfoTimestampKey(
+		stateInfo,
+	), []byte{})
 }
 
 // GetStateInfo returns a stateInfo from its index
@@ -84,4 +92,36 @@ func (k Keeper) GetAllStateInfo(ctx sdk.Context) (list []types.StateInfo) {
 	}
 
 	return
+}
+
+// DeleteStateInfoUntilTimestamp deletes all stateInfo until the given timestamp
+func (k Keeper) DeleteStateInfoUntilTimestamp(ctx sdk.Context, endTimestampExcl time.Time) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateInfoKeyPrefix))
+	storeTS := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TimestampedStateInfoKeyPrefix))
+	k.IterateStateInfoWithTimestamp(storeTS, endTimestampExcl.UnixMicro(), func(keyTS []byte) bool {
+		key := keyTS[types.TimestampPrefixLen:] // remove the timestamp prefix
+		store.Delete(key)
+		storeTS.Delete(keyTS)
+		return false
+	})
+}
+
+// IterateStateInfoWithTimestamp iterates over stateInfo until timestamp
+func (k Keeper) IterateStateInfoWithTimestamp(store prefix.Store, endTimestampUNIX int64, fn func(key []byte) (stop bool)) {
+	endKey := types.StateInfoTimestampKeyPrefix(endTimestampUNIX)
+	iterator := store.ReverseIterator(nil, endKey)
+
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		if fn(iterator.Key()) {
+			break
+		}
+	}
+}
+
+// HasStateInfoTimestampKey checks if the stateInfo has a timestamp key
+func (k Keeper) HasStateInfoTimestampKey(ctx sdk.Context, stateInfo types.StateInfo) bool {
+	storeTS := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TimestampedStateInfoKeyPrefix))
+	return storeTS.Has(types.StateInfoTimestampKey(stateInfo))
 }
