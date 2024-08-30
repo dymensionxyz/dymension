@@ -107,7 +107,7 @@ func SequencerPositiveBalancePostBondReduction(k Keeper) sdk.Invariant {
 		sequencers := k.GetAllSequencers(ctx)
 		for _, seq := range sequencers {
 			effectiveBond := seq.Tokens
-			if bondReductions := k.getSequencerDecreasingBonds(ctx, seq.Address); len(bondReductions) > 0 {
+			if bondReductions := k.GetBondReductionsBySequencer(ctx, seq.Address); len(bondReductions) > 0 {
 				for _, bd := range bondReductions {
 					effectiveBond = effectiveBond.Sub(bd.DecreaseBondAmount)
 				}
