@@ -31,11 +31,13 @@ func (hook rollappHook) AfterUpdateState(
 	rollappId string,
 	stateInfo *rollapptypes.StateInfo,
 ) error {
+	ctx.Logger().Info("Light client. AfterUpdateState.")
 	canonicalClient, found := hook.k.GetCanonicalClient(ctx, rollappId)
 	if !found {
 		canonicalClient, foundClient := hook.k.GetProspectiveCanonicalClient(ctx, rollappId, stateInfo.GetLatestHeight()-1)
 		if foundClient {
 			hook.k.SetCanonicalClient(ctx, rollappId, canonicalClient)
+			ctx.Logger().Info("Light client. Set canonical.", "canonical", canonicalClient)
 		}
 		return nil
 	}
