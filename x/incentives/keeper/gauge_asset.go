@@ -187,13 +187,7 @@ func SumLocksByDenom(locks []lockuptypes.PeriodLock, denom string) (math.Int, er
 		return math.Int{}, fmt.Errorf("invalid denom used internally: %s, %w", denom, err)
 	}
 	for _, lock := range locks {
-		var amt math.Int
-		// skip a 1second cumulative runtimeEq check
-		if len(lock.Coins) == 1 {
-			amt = lock.Coins[0].Amount
-		} else {
-			amt = lock.Coins.AmountOfNoDenomValidation(denom)
-		}
+		amt := lock.Coins.AmountOfNoDenomValidation(denom)
 		sumBi.Add(sumBi, amt.BigIntMut())
 	}
 
