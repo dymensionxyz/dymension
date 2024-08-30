@@ -70,7 +70,7 @@ func (suite *SequencerTestSuite) TestIncreaseBond() {
 				Creator:   jailedSequencerAddress,
 				AddAmount: bondAmount,
 			},
-			expectedErr: types.ErrSequencerJailed,
+			expectedErr: types.ErrInvalidSequencerStatus,
 		},
 		{
 			name: "sequencer doesn't have enough balance",

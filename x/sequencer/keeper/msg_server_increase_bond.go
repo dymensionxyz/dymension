@@ -14,14 +14,17 @@ import (
 func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBond) (*types.MsgIncreaseBondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	sequencer, err := k.bondUpdateAllowed(ctx, msg.GetCreator())
-	if err != nil {
-		return nil, err
+	sequencer, found := k.GetSequencer(ctx, msg.GetCreator())
+	if !found {
+		return nil, types.ErrUnknownSequencer
+	}
+	if !sequencer.AllowBondUpdate() {
+		return nil, types.ErrInvalidSequencerStatus
 	}
 
 	// transfer the bond from the sequencer to the module account
 	seqAcc := sdk.MustAccAddressFromBech32(msg.Creator)
-	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.AddAmount))
+	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.AddAmount))
 	if err != nil {
 		return nil, err
 	}
@@ -43,23 +46,4 @@ func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBon
 	}
 
 	return &types.MsgIncreaseBondResponse{}, nil
-}
-
-func (k msgServer) bondUpdateAllowed(ctx sdk.Context, senderAddress string) (types.Sequencer, error) {
-	// check if the sequencer already exists
-	sequencer, found := k.GetSequencer(ctx, senderAddress)
-	if !found {
-		return types.Sequencer{}, types.ErrUnknownSequencer
-	}
-
-	// check if the sequencer is bonded
-	if !sequencer.IsBonded() {
-		return types.Sequencer{}, types.ErrInvalidSequencerStatus
-	}
-
-	// check if sequencer is currently jailed
-	if sequencer.Jailed {
-		return types.Sequencer{}, types.ErrSequencerJailed
-	}
-	return sequencer, nil
 }

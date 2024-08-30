@@ -11,9 +11,12 @@ import (
 func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBond) (*types.MsgDecreaseBondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	sequencer, err := k.bondUpdateAllowed(ctx, msg.GetCreator())
-	if err != nil {
-		return nil, err
+	sequencer, found := k.GetSequencer(ctx, msg.GetCreator())
+	if !found {
+		return nil, types.ErrUnknownSequencer
+	}
+	if !sequencer.AllowBondUpdate() {
+		return nil, types.ErrInvalidSequencerStatus
 	}
 
 	effectiveBond := sequencer.Tokens

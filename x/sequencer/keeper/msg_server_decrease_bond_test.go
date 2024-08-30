@@ -52,7 +52,7 @@ func (suite *SequencerTestSuite) TestDecreaseBond() {
 				Creator:        jailedSequencerAddress,
 				DecreaseAmount: sdk.NewInt64Coin(bondDenom, 10),
 			},
-			expectedErr: types.ErrSequencerJailed,
+			expectedErr: types.ErrInvalidSequencerStatus,
 		},
 		{
 			name: "decreased bond value to less than minimum bond value",

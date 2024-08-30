@@ -61,3 +61,7 @@ func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {
 	tmValidatorSet := cometbfttypes.NewValidatorSet([]*cometbfttypes.Validator{tmValidator})
 	return tmValidatorSet.Hash(), nil
 }
+
+func (seq Sequencer) AllowBondUpdate() bool {
+	return seq.IsBonded() && !seq.Jailed
+}
