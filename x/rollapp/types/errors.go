@@ -36,9 +36,9 @@ var (
 	ErrImmutableFieldUpdateAfterSealed = errorsmod.Wrap(gerrc.ErrInvalidArgument, "update immutable field after rollapp sealed")
 	ErrUnauthorizedSigner              = errorsmod.Wrap(gerrc.ErrPermissionDenied, "unauthorized signer")
 	ErrSameOwner                       = errorsmod.Wrap(gerrc.ErrInvalidArgument, "same owner")
-	ErrInvalidRequest                  = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid request")
-	ErrInvalidVMType                   = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid vm type")
-	ErrInvalidBlockDescriptorTimestamp = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid block descriptor timestamp")
+	ErrInvalidRequest                  = errorsmod.Wrap(gerrc.ErrInvalidArgument, "request")
+	ErrInvalidVMType                   = errorsmod.Wrap(gerrc.ErrInvalidArgument, "vm type")
+	ErrInvalidBlockDescriptorTimestamp = errorsmod.Wrap(gerrc.ErrInvalidArgument, "block descriptor timestamp")
 
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")
