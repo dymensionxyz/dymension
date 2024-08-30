@@ -6,6 +6,8 @@ import (
 
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
@@ -17,8 +19,8 @@ var (
 	valHash, _      = types.GetValHashForSequencer(tmPk)
 	timestamp       = time.Unix(1724392989, 0)
 
-	validIBCState = types.IBCState{
-		Root:               []byte("root"),
+	validIBCState = ibctm.ConsensusState{
+		Root:               commitmenttypes.NewMerkleRoot([]byte("root")),
 		Timestamp:          timestamp,
 		NextValidatorsHash: valHash,
 	}
@@ -33,7 +35,7 @@ var (
 
 func TestCheckCompatibility(t *testing.T) {
 	type input struct {
-		ibcState types.IBCState
+		ibcState ibctm.ConsensusState
 		raState  types.RollappState
 	}
 	testCases := []struct {

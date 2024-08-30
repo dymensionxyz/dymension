@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"time"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -83,11 +81,6 @@ func (k Keeper) isValidClient(ctx sdk.Context, clientID string, cs exported.Clie
 		}
 		consensusState, _ := k.ibcClientKeeper.GetClientConsensusState(ctx, clientID, consensusHeight)
 		tmConsensusState, _ := consensusState.(*ibctm.ConsensusState)
-		ibcState := types.IBCState{
-			Root:               tmConsensusState.GetRoot().GetHash(),
-			NextValidatorsHash: tmConsensusState.NextValidatorsHash,
-			Timestamp:          time.Unix(0, int64(tmConsensusState.GetTimestamp())),
-		}
 
 		var rollappState types.RollappState
 		bd, found := stateInfo.GetBlockDescriptor(consensusHeight.GetRevisionHeight())
@@ -112,7 +105,7 @@ func (k Keeper) isValidClient(ctx sdk.Context, clientID string, cs exported.Clie
 			rollappState.BlockDescriptor = bd
 			rollappState.NextBlockSequencer = oldSequencer
 		}
-		err := types.CheckCompatibility(ibcState, rollappState)
+		err := types.CheckCompatibility(*tmConsensusState, rollappState)
 		if err != nil {
 			return false
 		}

@@ -3,12 +3,12 @@ package types
 import (
 	"bytes"
 	"errors"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	cmttypes "github.com/cometbft/cometbft/types"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -18,9 +18,9 @@ import (
 // 1. The app root shared by the IBC consensus state matches the block descriptor state root for the same height
 // 2. The next validator hash shared by the IBC consensus state matches the sequencer hash for the next block descriptor
 // 3. The block descriptor timestamp matches the tendermint header timestamp (only if timestamp exists for the block descriptor)
-func CheckCompatibility(ibcState IBCState, raState RollappState) error {
+func CheckCompatibility(ibcState ibctm.ConsensusState, raState RollappState) error {
 	// Check if block descriptor state root matches IBC block header app hash
-	if !bytes.Equal(ibcState.Root, raState.BlockDescriptor.StateRoot) {
+	if !bytes.Equal(ibcState.Root.GetHash(), raState.BlockDescriptor.StateRoot) {
 		return errorsmod.Wrap(ErrStateRootsMismatch, "block descriptor state root does not match tendermint header app hash")
 	}
 	// Check if the nextValidatorHash matches for the sequencer for h+1 block descriptor
@@ -50,15 +50,6 @@ func GetValHashForSequencer(sequencerTmPubKey tmprotocrypto.PublicKey) ([]byte, 
 		return nil, err
 	}
 	return nextValSet.Hash(), nil
-}
-
-type IBCState struct {
-	// Root is the app root shared by the IBC consensus state
-	Root []byte
-	// NextValidatorsHash is the hash of the next validator set for the next block
-	NextValidatorsHash []byte
-	// Timestamp is the block timestamp of the header
-	Timestamp time.Time
 }
 
 type RollappState struct {

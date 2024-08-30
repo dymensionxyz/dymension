@@ -31,11 +31,6 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	if !ok {
 		return nil
 	}
-	ibcState := types.IBCState{
-		Root:               header.Header.GetAppHash(),
-		NextValidatorsHash: header.Header.NextValidatorsHash,
-		Timestamp:          header.Header.Time,
-	}
 
 	// Check if there are existing block descriptors for the given height of client state
 	height := uint64(header.Header.Height)
@@ -67,7 +62,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	}
 	// Ensure that the ibc header is compatible with the existing rollapp state
 	// If it's not, we error and prevent the MsgUpdateClient from being processed
-	err = types.CheckCompatibility(ibcState, rollappState)
+	err = types.CheckCompatibility(*header.ConsensusState(), rollappState)
 	if err != nil {
 		return err
 	}

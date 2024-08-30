@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"time"
-
 	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -84,16 +82,11 @@ func (hook rollappHook) checkStateForHeight(ctx sdk.Context, rollappId string, b
 	if !ok {
 		return nil
 	}
-	ibcState := types.IBCState{
-		Root:               tmConsensusState.GetRoot().GetHash(),
-		NextValidatorsHash: tmConsensusState.NextValidatorsHash,
-		Timestamp:          time.Unix(0, int64(tmConsensusState.GetTimestamp())),
-	}
 	rollappState := types.RollappState{
 		BlockDescriptor:    bd,
 		NextBlockSequencer: sequencerPk,
 	}
-	err := types.CheckCompatibility(ibcState, rollappState)
+	err := types.CheckCompatibility(*tmConsensusState, rollappState)
 	if err != nil {
 		// If the state is not compatible,
 		// Take this state update as source of truth over the IBC update
