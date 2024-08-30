@@ -59,8 +59,8 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) GetSequencerFromValHash(ctx sdk.Context, blockValHash []byte) (string, error) {
-	sequencerList := k.sequencerKeeper.GetAllSequencers(ctx)
+func (k Keeper) GetSequencerFromValHash(ctx sdk.Context, rollappID string, blockValHash []byte) (string, error) {
+	sequencerList := k.sequencerKeeper.GetSequencersByRollapp(ctx, rollappID)
 	for _, seq := range sequencerList {
 		seqHash, err := seq.GetDymintPubKeyHash()
 		if err != nil {

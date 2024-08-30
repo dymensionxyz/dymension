@@ -124,7 +124,7 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateDoesntExist() {
 	// As there was no stateinfo found for the height, should have accepted the update optimistically.
 	seqValHash, found := s.hubApp().LightClientKeeper.GetConsensusStateValHash(s.hubCtx(), s.path.EndpointA.ClientID, s.path.EndpointA.GetClientState().GetLatestHeight().GetRevisionHeight())
 	s.True(found)
-	seqAddr, err := s.hubApp().LightClientKeeper.GetSequencerFromValHash(s.hubCtx(), seqValHash)
+	seqAddr, err := s.hubApp().LightClientKeeper.GetSequencerFromValHash(s.hubCtx(), s.rollappChain().ChainID, seqValHash)
 	s.NoError(err)
 	s.Equal(s.hubChain().SenderAccount.GetAddress().String(), seqAddr)
 }

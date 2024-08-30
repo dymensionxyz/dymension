@@ -128,7 +128,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 				require.NoError(t, err)
 				seqValHash, found := k.GetConsensusStateValHash(ctx, "canon-client-id", 1)
 				require.True(t, found)
-				seq, err := k.GetSequencerFromValHash(ctx, seqValHash)
+				seq, err := k.GetSequencerFromValHash(ctx, "rollapp-has-canon-client", seqValHash)
 				require.NoError(t, err)
 				require.Equal(t, keepertest.Alice, seq)
 			},

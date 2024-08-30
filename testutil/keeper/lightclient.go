@@ -147,7 +147,7 @@ func (m *MockSequencerKeeper) GetSequencer(ctx sdk.Context, seqAddr string) (seq
 	return seq, ok
 }
 
-func (m *MockSequencerKeeper) GetAllSequencers(ctx sdk.Context) []sequencertypes.Sequencer {
+func (m *MockSequencerKeeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list []sequencertypes.Sequencer) {
 	seqs := make([]sequencertypes.Sequencer, 0, len(m.sequencers))
 	for _, seq := range m.sequencers {
 		seqs = append(seqs, seq)

@@ -91,7 +91,7 @@ func (hook rollappHook) checkStateForHeight(ctx sdk.Context, rollappId string, b
 		// If the state is not compatible,
 		// Take this state update as source of truth over the IBC update
 		// Punish the block proposer of the IBC signed header
-		sequencerAddress, err := hook.k.GetSequencerFromValHash(ctx, blockValHash)
+		sequencerAddress, err := hook.k.GetSequencerFromValHash(ctx, rollappId, blockValHash)
 		if err != nil {
 			return err
 		}
