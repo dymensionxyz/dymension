@@ -2,11 +2,11 @@ package keeper
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 
 	"github.com/cometbft/cometbft/libs/log"
 	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -117,4 +117,10 @@ func (k Keeper) GetRollappForClientID(ctx sdk.Context, clientID string) (string,
 		return "", false
 	}
 	return string(bz), true
+}
+
+func (k Keeper) LightClient(goCtx context.Context, req *types.QueryGetLightClientRequest) (*types.QueryGetLightClientResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	id, _ := k.GetCanonicalClient(ctx, req.GetRollappId()) // if not found then empty
+	return &types.QueryGetLightClientResponse{ClientId: id}, nil
 }

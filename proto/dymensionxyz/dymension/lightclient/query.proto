@@ -16,8 +16,7 @@ message QueryGetLightClientResponse {
 
 // Query defines the gRPC querier service.
 service Query {
-  // Parameters queries the parameters of the module.
-  rpc Params(QueryGetLightClientRequest) returns (QueryGetLightClientResponse) {
+  rpc LightClient(QueryGetLightClientRequest) returns (QueryGetLightClientResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/lightclient/lightclient";
   }
 }
