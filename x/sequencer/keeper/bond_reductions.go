@@ -33,10 +33,7 @@ func (k Keeper) completeBondReduction(ctx sdk.Context, bondReductionID uint64) e
 			bondReductionID,
 		)
 	}
-	seq, found := k.GetSequencer(ctx, reduction.SequencerAddress)
-	if !found {
-		return types.ErrUnknownSequencer
-	}
+	seq := k.MustGetSequencer(ctx, reduction.SequencerAddress)
 
 	if !seq.Tokens.IsAllGTE(sdk.NewCoins(reduction.DecreaseBondAmount)) {
 		return errorsmod.Wrapf(
