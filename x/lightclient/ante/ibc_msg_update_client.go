@@ -38,8 +38,8 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	}
 
 	// Check if there are existing block descriptors for the given height of client state
-	height := header.TrustedHeight
-	stateInfo, err := i.rollappKeeper.FindStateInfoByHeight(ctx, rollappID, height.GetRevisionHeight())
+	height := uint64(header.Header.Height)
+	stateInfo, err := i.rollappKeeper.FindStateInfoByHeight(ctx, rollappID, height)
 	if err != nil {
 		// No BDs found for given height.
 		// Will accept the update optimistically
@@ -47,9 +47,9 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 		i.acceptUpdateOptimistically(ctx, msg.ClientId, header)
 		return nil
 	}
-	bd, _ := stateInfo.GetBlockDescriptor(height.GetRevisionHeight())
+	bd, _ := stateInfo.GetBlockDescriptor(height)
 
-	stateInfo, err = i.rollappKeeper.FindStateInfoByHeight(ctx, rollappID, height.GetRevisionHeight()+1)
+	stateInfo, err = i.rollappKeeper.FindStateInfoByHeight(ctx, rollappID, height+1)
 	if err != nil {
 		// No BDs found for next height.
 		// Will accept the update optimistically

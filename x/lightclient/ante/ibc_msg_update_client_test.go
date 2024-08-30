@@ -78,6 +78,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 				signedHeader := &cmtproto.SignedHeader{
 					Header: &cmtproto.Header{
 						ValidatorsHash: seqValHash,
+						Height:         1,
 					},
 					Commit: &cmtproto.Commit{},
 				}
@@ -146,6 +147,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 						ProposerAddress:    []byte("sequencerAddr"),
 						Time:               time.Unix(1724392989, 0),
 						NextValidatorsHash: []byte("nextValHash"),
+						Height:             1,
 					},
 					Commit: &cmtproto.Commit{},
 				}
@@ -235,6 +237,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 						Time:               blocktimestamp,
 						ValidatorsHash:     nextValsHash,
 						NextValidatorsHash: nextValsHash,
+						Height:             1,
 					},
 					Commit: &cmtproto.Commit{},
 				}

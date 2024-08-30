@@ -1,6 +1,10 @@
 package ibctesting_test
 
 import (
+	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	"testing"
 
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
@@ -125,16 +129,119 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateDoesntExist() {
 	s.Equal(s.hubChain().SenderAccount.GetAddress().String(), seqAddr)
 }
 
-func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists() {
-	// todo
+func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_Compatible() {
+	s.createRollapp(false, nil)
+	s.registerSequencer()
+	s.path = s.newTransferPath(s.hubChain(), s.rollappChain())
+	s.coordinator.SetupClients(s.path)
+	s.NoError(s.path.EndpointA.UpdateClient())
+	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID, s.path.EndpointA.ClientID)
 
-	// state match
-	// states dont match
+	bds := rollapptypes.BlockDescriptors{}
+	for i := 0; i < 2; i++ {
+		lastHeader := s.rollappChain().LastHeader
+		bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
+		bds.BD = append(bds.BD, bd)
+		s.hubChain().NextBlock()
+		s.rollappChain().NextBlock()
+	}
+	header, err := s.path.EndpointA.Chain.ConstructUpdateTMClientHeader(s.path.EndpointA.Counterparty.Chain, s.path.EndpointA.ClientID)
+
+	for i := 0; i < 2; i++ {
+		lastHeader := s.rollappChain().LastHeader
+		bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
+		bds.BD = append(bds.BD, bd)
+		s.hubChain().NextBlock()
+		s.rollappChain().NextBlock()
+	}
+	msgUpdateState := rollapptypes.NewMsgUpdateState(
+		s.hubChain().SenderAccount.GetAddress().String(),
+		rollappChainID(),
+		"mock-da-path",
+		bds.BD[0].Height, uint64(len(bds.BD)), &bds,
+	)
+	_, err = s.rollappMsgServer().UpdateState(s.hubCtx(), msgUpdateState)
+	s.NoError(err)
+
+	msg, err := clienttypes.NewMsgUpdateClient(
+		s.path.EndpointA.ClientID, header,
+		s.path.EndpointA.Chain.SenderAccount.GetAddress().String(),
+	)
+	s.NoError(err)
+
+	// As there was compatible stateinfo found, should accept the ClientUpdate without any error.
+	_, err = s.path.EndpointA.Chain.SendMsgs(msg)
+	s.NoError(err)
+	s.Equal(uint64(header.Header.Height), s.path.EndpointA.GetClientState().GetLatestHeight().GetRevisionHeight())
+	// There shouldnt be any optimistic updates as the roots were verified
+	_, found := s.hubApp().LightClientKeeper.GetConsensusStateValHash(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
+	s.False(found)
 }
 
-func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists() {
-	// todo
+func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_NotCompatible() {
+	s.createRollapp(false, nil)
+	s.registerSequencer()
+	s.path = s.newTransferPath(s.hubChain(), s.rollappChain())
+	s.coordinator.SetupClients(s.path)
+	s.NoError(s.path.EndpointA.UpdateClient())
+	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID, s.path.EndpointA.ClientID)
 
+	bds := rollapptypes.BlockDescriptors{}
+	for i := 0; i < 2; i++ {
+		lastHeader := s.rollappChain().LastHeader
+		bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
+		bds.BD = append(bds.BD, bd)
+		s.hubChain().NextBlock()
+		s.rollappChain().NextBlock()
+	}
+	header, err := s.path.EndpointA.Chain.ConstructUpdateTMClientHeader(s.path.EndpointA.Counterparty.Chain, s.path.EndpointA.ClientID)
+
+	for i := 0; i < 2; i++ {
+		lastHeader := s.rollappChain().LastHeader
+		bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
+		bd.Timestamp = bd.Timestamp.AddDate(0, 0, 1) // wrong timestamp to cause state mismatch
+		bds.BD = append(bds.BD, bd)
+		s.hubChain().NextBlock()
+		s.rollappChain().NextBlock()
+	}
+	msgUpdateState := rollapptypes.NewMsgUpdateState(
+		s.hubChain().SenderAccount.GetAddress().String(),
+		rollappChainID(),
+		"mock-da-path",
+		bds.BD[0].Height, uint64(len(bds.BD)), &bds,
+	)
+	_, err = s.rollappMsgServer().UpdateState(s.hubCtx(), msgUpdateState)
+	s.NoError(err)
+
+	msg, err := clienttypes.NewMsgUpdateClient(
+		s.path.EndpointA.ClientID, header,
+		s.path.EndpointA.Chain.SenderAccount.GetAddress().String(),
+	)
+	s.NoError(err)
+
+	// As there was incompatible stateinfo found, should prevent light client update.
+	s.path.EndpointA.Chain.Coordinator.UpdateTimeForChain(s.path.EndpointA.Chain)
+	_, _, err = simapp.SignAndDeliver( // Explicitly submitting msg as we expect it to fail
+		s.path.EndpointA.Chain.T,
+		s.path.EndpointA.Chain.TxConfig,
+		s.path.EndpointA.Chain.App.GetBaseApp(),
+		s.path.EndpointA.Chain.GetContext().BlockHeader(),
+		[]sdk.Msg{msg},
+		s.path.EndpointA.Chain.ChainID,
+		[]uint64{s.path.EndpointA.Chain.SenderAccount.GetAccountNumber()},
+		[]uint64{s.path.EndpointA.Chain.SenderAccount.GetSequence()},
+		true, false, s.path.EndpointA.Chain.SenderPrivKey,
+	)
+	s.Error(err)
+	s.True(errorsmod.IsOf(err, types.ErrTimestampMismatch))
+}
+
+func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_Compatible() {
+	// todo
 	// states match
-	// states dont match - handle fraud
+}
+
+func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_NotCompatible() {
+	// todo
+	// states dont match - fraud
 }
