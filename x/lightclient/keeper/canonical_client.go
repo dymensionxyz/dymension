@@ -62,15 +62,15 @@ func (k Keeper) isValidClient(ctx sdk.Context, clientID string, cs exported.Clie
 	l := ctx.Logger().With("callsite", "is valid client")
 	tmClientState, ok := cs.(*ibctm.ClientState)
 	if !ok {
-		l.Info("not tm client")
+		l.Info("not tm client") // TODO: remove
 		return false
 	}
 	if tmClientState.ChainId != rollappId {
-		l.Info("wrong chain id")
+		l.Info("wrong chain id") // TODO: remove
 		return false
 	}
 	if !types.IsCanonicalClientParamsValid(tmClientState) {
-		l.Info("invalid params")
+		l.Info("invalid params") // TODO: remove
 		return false
 	}
 	res, err := k.ibcClientKeeper.ConsensusStateHeights(ctx, &ibcclienttypes.QueryConsensusStateHeightsRequest{
@@ -78,33 +78,34 @@ func (k Keeper) isValidClient(ctx sdk.Context, clientID string, cs exported.Clie
 		Pagination: &query.PageRequest{Limit: maxHeight},
 	})
 	if err != nil {
-		l.Info("failed to query cons state heights")
+		l.Info("failed to query cons state heights") // TODO: remove
 		return false
 	}
-	l.Info("iterating cons state heights", "n", len(res.ConsensusStateHeights))
+	l.Info("iterating cons state heights", "n", len(res.ConsensusStateHeights)) // TODO: remove
+	atLeastOneMatch := false
 	for _, consensusHeight := range res.ConsensusStateHeights {
 		h := consensusHeight.GetRevisionHeight()
-		l.Info("checking cons state", "height", h)
+		l.Info("checking cons state", "height", h) // TODO: remove
 		if maxHeight < h {
-			l.Info("max height reached")
+			l.Info("max height reached") // TODO: remove
 			break
 		}
 		consensusState, _ := k.ibcClientKeeper.GetClientConsensusState(ctx, clientID, consensusHeight)
 		tmConsensusState, _ := consensusState.(*ibctm.ConsensusState)
 		stateInfoH, err := k.rollappKeeper.FindStateInfoByHeight(ctx, rollappId, h)
 		if err != nil {
-			l.Info("find state info for h")
+			l.Info("find state info for h") // TODO: remove
 			return false
 		}
 		stateInfoHplus1, err := k.rollappKeeper.FindStateInfoByHeight(ctx, rollappId, h+1)
 		if err != nil {
-			l.Info("find state info for h+1")
+			l.Info("find state info for h+1") // TODO: remove
 			return false
 		}
 		bd, _ := stateInfoH.GetBlockDescriptor(h)
 		oldSequencer, err := k.GetSequencerPubKey(ctx, stateInfoHplus1.Sequencer)
 		if err != nil {
-			l.Info("get seq pub key")
+			l.Info("get seq pub key") // TODO: remove
 			return false
 		}
 		rollappState := types.RollappState{
@@ -113,9 +114,13 @@ func (k Keeper) isValidClient(ctx sdk.Context, clientID string, cs exported.Clie
 		}
 		err = types.CheckCompatibility(*tmConsensusState, rollappState)
 		if err != nil {
-			l.Info("incompat")
+			l.Info("incompat") // TODO: remove
 			return false
 		}
+		atLeastOneMatch = true
 	}
-	return true
+	// Need to be sure that at least one consensus state agrees with a state update
+	// (There are also no disagreeing consensus states. There may be some consensus states
+	// for future state updates, which will incur a fraud if they disagree.)
+	return atLeastOneMatch
 }
