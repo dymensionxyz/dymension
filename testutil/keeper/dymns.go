@@ -9,6 +9,7 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	"github.com/dymensionxyz/dymension/v3/app/params"
 
 	tmdb "github.com/cometbft/cometbft-db"
@@ -93,6 +94,7 @@ func DymNSKeeper(t testing.TB) (dymnskeeper.Keeper, dymnstypes.BankKeeper, rolla
 		rollappStoreKey,
 		rollappParamsSubspace,
 		nil, nil, nil,
+		bankKeeper,
 	)
 
 	k := dymnskeeper.NewKeeper(cdc,

@@ -30,7 +30,7 @@ func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest)
 		if err := k.cdc.Unmarshal(value, &rollapp); err != nil {
 			return err
 		}
-		res, err := getSummaryResponse(ctx, k, rollapp, true)
+		res, err := getSummaryResponse(ctx, k, rollapp, true, !req.OmitApps)
 		if err != nil {
 			return errorsmod.Wrap(err, "get summary response")
 		}
@@ -47,16 +47,16 @@ func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest)
 func (k Keeper) Rollapp(c context.Context, req *types.QueryGetRollappRequest) (*types.QueryGetRollappResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	ra, ok := k.GetRollapp(ctx, req.GetRollappId())
-	return getSummaryResponse(ctx, k, ra, ok)
+	return getSummaryResponse(ctx, k, ra, ok, !req.OmitApps)
 }
 
 func (k Keeper) RollappByEIP155(c context.Context, req *types.QueryGetRollappByEIP155Request) (*types.QueryGetRollappResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	ra, ok := k.GetRollappByEIP155(ctx, req.Eip155)
-	return getSummaryResponse(ctx, k, ra, ok)
+	return getSummaryResponse(ctx, k, ra, ok, !req.OmitApps)
 }
 
-func getSummaryResponse(ctx sdk.Context, k Keeper, rollapp types.Rollapp, ok bool) (*types.QueryGetRollappResponse, error) {
+func getSummaryResponse(ctx sdk.Context, k Keeper, rollapp types.Rollapp, ok, withApps bool) (*types.QueryGetRollappResponse, error) {
 	if !ok {
 		return nil, errorsmod.Wrap(gerrc.ErrNotFound, "rollapp")
 	}
@@ -73,8 +73,14 @@ func getSummaryResponse(ctx sdk.Context, k Keeper, rollapp types.Rollapp, ok boo
 		s.LatestFinalizedStateIndex = &latestFinalizedStateInfoIndex
 	}
 
-	return &types.QueryGetRollappResponse{
+	resp := &types.QueryGetRollappResponse{
 		Rollapp: rollapp,
 		Summary: s,
-	}, nil
+	}
+
+	if withApps {
+		resp.Apps = k.GetRollappApps(ctx, rollapp.RollappId)
+	}
+
+	return resp, nil
 }
