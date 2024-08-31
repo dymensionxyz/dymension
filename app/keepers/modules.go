@@ -93,6 +93,8 @@ import (
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp"
 
+	lightclientmodule "github.com/dymensionxyz/dymension/v3/x/lightclient"
+	lightclientmoduletypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollappmoduleclient "github.com/dymensionxyz/dymension/v3/x/rollapp/client"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer"
@@ -151,6 +153,7 @@ var ModuleBasics = module.NewBasicManager(
 	delayedack.AppModuleBasic{},
 	eibc.AppModuleBasic{},
 	dymnsmodule.AppModuleBasic{},
+	lightclientmodule.AppModuleBasic{},
 
 	// Ethermint modules
 	evm.AppModuleBasic{},
@@ -203,6 +206,7 @@ func (a *AppKeepers) SetupModules(
 		denommetadatamodule.NewAppModule(a.DenomMetadataKeeper, *a.EvmKeeper, a.BankKeeper),
 		eibcmodule.NewAppModule(appCodec, a.EIBCKeeper, a.AccountKeeper, a.BankKeeper),
 		dymnsmodule.NewAppModule(appCodec, a.DymNSKeeper),
+		lightclientmodule.NewAppModule(appCodec, a.LightClientKeeper),
 
 		// Ethermint app modules
 		evm.NewAppModule(a.EvmKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),
@@ -290,10 +294,10 @@ var BeginBlockers = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
+	lightclientmoduletypes.ModuleName,
 }
 
 var EndBlockers = []string{
-	crisistypes.ModuleName,
 	govtypes.ModuleName,
 	stakingtypes.ModuleName,
 	capabilitytypes.ModuleName,
@@ -329,6 +333,8 @@ var EndBlockers = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
+	lightclientmoduletypes.ModuleName,
+	crisistypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -344,7 +350,6 @@ var InitGenesis = []string{
 	evmtypes.ModuleName,
 	govtypes.ModuleName,
 	minttypes.ModuleName,
-	crisistypes.ModuleName,
 	ibcexported.ModuleName,
 	genutiltypes.ModuleName,
 	evidencetypes.ModuleName,
@@ -368,4 +373,6 @@ var InitGenesis = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
+	lightclientmoduletypes.ModuleName,
+	crisistypes.ModuleName,
 }

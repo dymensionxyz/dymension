@@ -42,6 +42,7 @@ var (
 	ErrInvalidVMType                   = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid vm type")
 	ErrInvalidAppName                  = errorsmod.Wrap(gerrc.ErrInvalidArgument, "app name")
 	ErrInvalidAppImage                 = errorsmod.Wrap(gerrc.ErrInvalidArgument, "app image path")
+	ErrInvalidBlockDescriptorTimestamp = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid block descriptor timestamp")
 
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")

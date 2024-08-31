@@ -56,14 +56,15 @@ func (s *AnteTestSuite) SetupTestCheckTx(isCheckTx bool) {
 
 	anteHandler, err := ante.NewAnteHandler(
 		ante.HandlerOptions{
-			AccountKeeper:   &s.app.AccountKeeper,
-			BankKeeper:      s.app.BankKeeper,
-			IBCKeeper:       s.app.IBCKeeper,
-			EvmKeeper:       s.app.EvmKeeper,
-			FeeMarketKeeper: s.app.FeeMarketKeeper,
-			TxFeesKeeper:    s.app.TxFeesKeeper,
-			FeegrantKeeper:  s.app.FeeGrantKeeper,
-			SignModeHandler: txConfig.SignModeHandler(),
+			AccountKeeper:     &s.app.AccountKeeper,
+			BankKeeper:        s.app.BankKeeper,
+			IBCKeeper:         s.app.IBCKeeper,
+			EvmKeeper:         s.app.EvmKeeper,
+			FeeMarketKeeper:   s.app.FeeMarketKeeper,
+			TxFeesKeeper:      s.app.TxFeesKeeper,
+			FeegrantKeeper:    s.app.FeeGrantKeeper,
+			SignModeHandler:   txConfig.SignModeHandler(),
+			LightClientKeeper: &s.app.LightClientKeeper,
 		},
 	)
 
