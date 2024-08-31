@@ -554,7 +554,7 @@ type MsgAddApp struct {
 	RollappId string `protobuf:"bytes,3,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
 	// description is the description of the App
 	Description string `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
-	// image is the relative path to the App image
+	// image is the url to the App image
 	Image string `protobuf:"bytes,5,opt,name=image,proto3" json:"image,omitempty"`
 	// url is the URL to the App's website
 	Url string `protobuf:"bytes,6,opt,name=url,proto3" json:"url,omitempty"`
@@ -690,7 +690,7 @@ type MsgUpdateApp struct {
 	RollappId string `protobuf:"bytes,3,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
 	// description is the description of the App
 	Description string `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
-	// image is the relative path to the App image
+	// image is the url to the App image
 	Image string `protobuf:"bytes,5,opt,name=image,proto3" json:"image,omitempty"`
 	// url is the URL to the App's website
 	Url string `protobuf:"bytes,6,opt,name=url,proto3" json:"url,omitempty"`

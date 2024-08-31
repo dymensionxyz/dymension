@@ -38,6 +38,10 @@ func (r App) ValidateBasic() error {
 		return ErrInvalidAppName
 	}
 
+	if len(r.Name) > maxAppNameLength {
+		return ErrInvalidAppName
+	}
+
 	if len(r.RollappId) == 0 {
 		return ErrInvalidRollappID
 	}

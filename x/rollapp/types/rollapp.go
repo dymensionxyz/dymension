@@ -38,6 +38,7 @@ func NewRollapp(
 }
 
 const (
+	maxAppNameLength         = 32
 	maxDescriptionLength     = 512
 	maxDisplayNameLength     = 32
 	maxTaglineLength         = 64

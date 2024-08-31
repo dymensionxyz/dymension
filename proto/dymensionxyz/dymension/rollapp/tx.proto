@@ -121,7 +121,7 @@ message MsgAddApp {
   string rollapp_id = 3;
   // description is the description of the App
   string description = 4;
-  // image is the relative path to the App image
+  // image is the url to the App image
   string image = 5;
   // url is the URL to the App's website
   string url = 6;
@@ -143,7 +143,7 @@ message MsgUpdateApp {
   string rollapp_id = 3;
   // description is the description of the App
   string description = 4;
-  // image is the relative path to the App image
+  // image is the url to the App image
   string image = 5;
   // url is the URL to the App's website
   string url = 6;

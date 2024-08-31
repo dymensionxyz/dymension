@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
@@ -134,7 +135,7 @@ func (suite *RollappTestSuite) Test_msgServer_AddApp() {
 					Order:       1,
 				},
 			},
-			wantErr: types.ErrUnauthorizedSigner,
+			wantErr: gerrc.ErrPermissionDenied,
 		}, {
 			name: "fail: add app with different rollapp",
 			msgs: []*types.MsgAddApp{
@@ -168,7 +169,7 @@ func (suite *RollappTestSuite) Test_msgServer_AddApp() {
 					RollappId: rollappID,
 				})
 			},
-			wantErr: types.ErrAppExists,
+			wantErr: gerrc.ErrAlreadyExists,
 		}, {
 			name: "success: add app with same name and different rollappID",
 			msgs: []*types.MsgAddApp{
@@ -224,7 +225,9 @@ func (suite *RollappTestSuite) Test_msgServer_AddApp() {
 
 			for _, msg := range tt.msgs {
 				_, err := suite.msgServer.AddApp(goCtx, msg)
-				suite.Require().ErrorIs(err, tt.wantErr)
+				if tt.wantErr != nil {
+					suite.Require().ErrorContains(err, tt.wantErr.Error())
+				}
 			}
 
 			if tt.wantErr != nil {
@@ -243,6 +246,298 @@ func (suite *RollappTestSuite) Test_msgServer_AddApp() {
 
 			for i, app := range rollapp.Apps {
 				suite.Require().Equal(tt.msgs[i].Order, app.Order)
+			}
+		})
+	}
+}
+
+func (suite *RollappTestSuite) Test_msgServer_UpdateApp() {
+	rollappID := urand.RollappID()
+
+	tests := []struct {
+		name     string
+		msgs     []*types.MsgUpdateApp
+		malleate func()
+		wantErr  error
+	}{
+		{
+			name: "success: update existing app",
+			msgs: []*types.MsgUpdateApp{
+				{
+					Creator:     alice,
+					Name:        "app1",
+					RollappId:   rollappID,
+					Description: "Updated description",
+					Image:       "http://example.com/updated_image",
+					Url:         "http://example.com/updated_app",
+					Order:       2,
+				},
+			},
+			malleate: func() {
+				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Name:      "app1",
+					RollappId: rollappID,
+					Order:     1,
+				})
+			},
+		}, {
+			name: "fail: update non-existent app",
+			msgs: []*types.MsgUpdateApp{
+				{
+					Creator:     alice,
+					Name:        "non_existent_app",
+					RollappId:   rollappID,
+					Description: "This app does not exist",
+					Image:       "http://example.com/non_existent_image",
+					Url:         "http://example.com/non_existent_app",
+					Order:       1,
+				},
+			},
+			wantErr: gerrc.ErrNotFound,
+		}, {
+			name: "fail: update app with different creator",
+			msgs: []*types.MsgUpdateApp{
+				{
+					Creator:     bob,
+					Name:        "app1",
+					RollappId:   rollappID,
+					Description: "Trying to update with a different creator",
+					Image:       "http://example.com/different_creator_image",
+					Url:         "http://example.com/different_creator_app",
+					Order:       2,
+				},
+			},
+			malleate: func() {
+				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Name:      "app1",
+					RollappId: rollappID,
+					Order:     1,
+				})
+			},
+			wantErr: gerrc.ErrPermissionDenied,
+		}, {
+			name: "success: update multiple apps",
+			msgs: []*types.MsgUpdateApp{
+				{
+					Creator:     alice,
+					Name:        "app1",
+					RollappId:   rollappID,
+					Description: "Updated app1",
+					Image:       "http://example.com/updated_image1",
+					Url:         "http://example.com/updated_app1",
+					Order:       3,
+				}, {
+					Creator:     alice,
+					Name:        "app2",
+					RollappId:   rollappID,
+					Description: "Updated app2",
+					Image:       "http://example.com/updated_image2",
+					Url:         "http://example.com/updated_app2",
+					Order:       1,
+				},
+			},
+			malleate: func() {
+				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Name:      "app1",
+					RollappId: rollappID,
+					Order:     2,
+				})
+				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Name:      "app2",
+					RollappId: rollappID,
+					Order:     1,
+				})
+			},
+		}, {
+			name: "fail: update app with different rollapp",
+			msgs: []*types.MsgUpdateApp{
+				{
+					Creator:     alice,
+					Name:        "app1",
+					RollappId:   urand.RollappID(),
+					Description: "Trying to update with a different rollapp",
+					Image:       "http://example.com/different_rollapp_image",
+					Url:         "http://example.com/different_rollapp_app",
+					Order:       1,
+				},
+			},
+			wantErr: types.ErrNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		suite.T().Run(tt.name, func(t *testing.T) {
+			suite.SetupTest()
+			suite.createRollappWithIDAndCreator(rollappID, alice)
+
+			goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+			if tt.malleate != nil {
+				tt.malleate()
+			}
+
+			for _, msg := range tt.msgs {
+				_, err := suite.msgServer.UpdateApp(goCtx, msg)
+				if tt.wantErr != nil {
+					suite.Require().ErrorContains(err, tt.wantErr.Error())
+				}
+			}
+
+			if tt.wantErr != nil {
+				return
+			}
+
+			rollapp, err := suite.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{
+				RollappId: rollappID,
+			})
+			suite.Require().NoError(err)
+			suite.Require().Len(rollapp.Apps, len(tt.msgs))
+
+			slices.SortFunc(tt.msgs, func(a, b *types.MsgUpdateApp) int {
+				return cmp.Compare(a.Order, b.Order)
+			})
+
+			for i, app := range rollapp.Apps {
+				suite.Require().Equal(tt.msgs[i].Order, app.Order)
+				suite.Require().Equal(tt.msgs[i].Description, app.Description)
+				suite.Require().Equal(tt.msgs[i].Image, app.Image)
+				suite.Require().Equal(tt.msgs[i].Url, app.Url)
+			}
+		})
+	}
+}
+
+func (suite *RollappTestSuite) Test_msgServer_RemoveApp() {
+	rollappID := urand.RollappID()
+
+	tests := []struct {
+		name     string
+		msgs     []*types.MsgRemoveApp
+		malleate func()
+		wantErr  error
+	}{
+		{
+			name: "success: remove existing app",
+			msgs: []*types.MsgRemoveApp{
+				{
+					Creator:   alice,
+					Name:      "app1",
+					RollappId: rollappID,
+				},
+			},
+			malleate: func() {
+				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Name:      "app1",
+					RollappId: rollappID,
+				})
+			},
+		}, {
+			name: "fail: remove non-existent app",
+			msgs: []*types.MsgRemoveApp{
+				{
+					Creator:   alice,
+					Name:      "non_existent_app",
+					RollappId: rollappID,
+				},
+			},
+			wantErr: gerrc.ErrNotFound,
+		}, {
+			name: "fail: remove app with different creator",
+			msgs: []*types.MsgRemoveApp{
+				{
+					Creator:   bob,
+					Name:      "app1",
+					RollappId: rollappID,
+				},
+			},
+			malleate: func() {
+				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Name:      "app1",
+					RollappId: rollappID,
+				})
+			},
+			wantErr: gerrc.ErrPermissionDenied,
+		}, {
+			name: "fail: remove app with different rollapp",
+			msgs: []*types.MsgRemoveApp{
+				{
+					Creator:   alice,
+					Name:      "app1",
+					RollappId: urand.RollappID(),
+				},
+			},
+			malleate: func() {
+				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Name:      "app1",
+					RollappId: rollappID,
+				})
+			},
+			wantErr: types.ErrNotFound,
+		}, {
+			name: "success: remove multiple apps",
+			msgs: []*types.MsgRemoveApp{
+				{
+					Creator:   alice,
+					Name:      "app1",
+					RollappId: rollappID,
+				}, {
+					Creator:   alice,
+					Name:      "app2",
+					RollappId: rollappID,
+				},
+			},
+			malleate: func() {
+				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Name:      "app1",
+					RollappId: rollappID,
+				})
+				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Name:      "app2",
+					RollappId: rollappID,
+				})
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		suite.T().Run(tt.name, func(t *testing.T) {
+			suite.SetupTest()
+			suite.createRollappWithIDAndCreator(rollappID, alice)
+
+			goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+			if tt.malleate != nil {
+				tt.malleate()
+			}
+
+			rollapp, err := suite.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{
+				RollappId: rollappID,
+			})
+			suite.Require().NoError(err)
+			createdAppsCount := len(rollapp.Apps)
+
+			for _, msg := range tt.msgs {
+				_, err := suite.msgServer.RemoveApp(goCtx, msg)
+				if tt.wantErr != nil {
+					suite.Require().ErrorContains(err, tt.wantErr.Error())
+				}
+			}
+
+			if tt.wantErr != nil {
+				return
+			}
+
+			rollapp, err = suite.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{
+				RollappId: rollappID,
+			})
+			suite.Require().NoError(err)
+
+			expectAppsCount := createdAppsCount - len(tt.msgs)
+			suite.Require().Len(rollapp.Apps, expectAppsCount)
+
+			for _, msg := range tt.msgs {
+				_, found := suite.App.RollappKeeper.GetApp(suite.Ctx, msg.Name, msg.RollappId)
+				suite.Require().False(found)
 			}
 		})
 	}

@@ -3,8 +3,8 @@ package keeper
 import (
 	"context"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -17,7 +17,7 @@ func (k msgServer) AddApp(goCtx context.Context, msg *types.MsgAddApp) (*types.M
 		return nil, err
 	}
 
-	// signal to client that ordering is up to them
+	// If order is not set by the client, all order will get -1 which will make it random.
 	if msg.Order == 0 {
 		msg.Order = -1
 	}
@@ -85,17 +85,25 @@ func (k msgServer) RemoveApp(goCtx context.Context, msg *types.MsgRemoveApp) (*t
 func (k msgServer) checkInputs(ctx sdk.Context, msg appMsg) error {
 	rollapp, foundRollapp := k.GetRollapp(ctx, msg.GetRollappId())
 	if !foundRollapp {
-		return errorsmod.Wrapf(types.ErrNotFound, "rollappId=%s", msg.GetRollappId())
+		return gerrc.ErrNotFound.Wrapf("rollappId: %s", msg.GetRollappId())
 	}
 
 	// check if the sender is the owner of the app
 	if msg.GetCreator() != rollapp.Owner {
-		return types.ErrUnauthorizedSigner
+		return gerrc.ErrPermissionDenied.Wrap("not the owner of the RollApp")
 	}
 
 	// check if the app already exists
-	if _, foundApp := k.GetApp(ctx, msg.GetName(), msg.GetRollappId()); foundApp {
-		return types.ErrAppExists
+	_, foundApp := k.GetApp(ctx, msg.GetName(), msg.GetRollappId())
+	switch msg.(type) {
+	case *types.MsgAddApp:
+		if foundApp {
+			return gerrc.ErrAlreadyExists.Wrap("app already exists")
+		}
+	case *types.MsgUpdateApp, *types.MsgRemoveApp:
+		if !foundApp {
+			return gerrc.ErrNotFound.Wrap("app not found")
+		}
 	}
 
 	return nil
