@@ -45,12 +45,15 @@ func CreateUpgradeHandler(
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 
+		LoadDeprecatedParamsSubspaces(keepers)
+
 		migrateModuleParams(ctx, keepers)
 		migrateDelayedAckParams(ctx, keepers.DelayedAckKeeper)
 		migrateRollappParams(ctx, keepers.RollappKeeper)
 		if err := migrateRollapps(ctx, keepers.RollappKeeper); err != nil {
 			return nil, err
 		}
+
 		migrateSequencers(ctx, keepers.SequencerKeeper)
 		migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper)
 
@@ -64,10 +67,18 @@ func CreateUpgradeHandler(
 
 //nolint:staticcheck
 func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
-	// Set param key table for params module migration
+	// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
+	baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
+	baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
+}
+
+// LoadDeprecatedParamsSubspaces loads the deprecated param subspaces for each module
+// used to support the migration from x/params to each module's own store
+func LoadDeprecatedParamsSubspaces(keepers *keepers.AppKeepers) {
 	for _, subspace := range keepers.ParamsKeeper.GetSubspaces() {
 		var keyTable paramstypes.KeyTable
 		switch subspace.Name() {
+		// Cosmos SDK modules
 		case authtypes.ModuleName:
 			keyTable = authtypes.ParamKeyTable()
 		case banktypes.ModuleName:
@@ -85,6 +96,12 @@ func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
 		case crisistypes.ModuleName:
 			keyTable = crisistypes.ParamKeyTable()
 
+		// Dymension modules
+		case rollapptypes.ModuleName:
+			keyTable = rollapptypes.ParamKeyTable()
+		case sequencertypes.ModuleName:
+			keyTable = sequencertypes.ParamKeyTable()
+
 		// Ethermint  modules
 		case evmtypes.ModuleName:
 			keyTable = evmtypes.ParamKeyTable()
@@ -98,9 +115,6 @@ func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
 			subspace.WithKeyTable(keyTable)
 		}
 	}
-	// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
-	baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
-	baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
 }
 
 func migrateDelayedAckParams(ctx sdk.Context, delayedAckKeeper delayedackkeeper.Keeper) {

@@ -359,9 +359,9 @@ func (a *AppKeepers) InitKeepers(
 	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[sequencermoduletypes.StoreKey],
-		a.GetSubspace(sequencermoduletypes.ModuleName),
 		a.BankKeeper,
 		a.RollappKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.LightClientKeeper = *lightclientmodulekeeper.NewKeeper(

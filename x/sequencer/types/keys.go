@@ -27,6 +27,9 @@ const (
 )
 
 var (
+	// ParamsKey is the prefix for params key
+	ParamsKey = []byte{0xa0}
+
 	// KeySeparator defines the separator for keys
 	KeySeparator = "/"
 
