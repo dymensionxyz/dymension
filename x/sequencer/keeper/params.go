@@ -14,9 +14,11 @@ const (
 	HubExpectedTimePerBlock = 6 * time.Second
 )
 
-// ValidateParams is stateful validation for params
-// it checks if that UnbondingTime greater then x/rollapp's disputePeriod
-// and that the correct denom is set
+// ValidateParams is a stateful validation for params.
+// it validates that unbonding time  is greater then x/rollapp's dispute period
+// and that the correct denom is set.
+// The unbonding time is set by governance hence it's more of a sanity/human error check which 
+// in theory should never fail as setting such unbonding time has wide protocol security implications beyond the dispute period. 
 func (k Keeper) ValidateParams(ctx sdk.Context, params types.Params) error {
 	// validate unbonding time > dispute period
 	rollappParams := k.rollappKeeper.GetParams(ctx)
