@@ -12,9 +12,11 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 type Keeper struct {
+	rollapptypes.StubRollappCreatedHooks
 	authority string // authority is the x/gov module account
 
 	cdc      codec.BinaryCodec
@@ -63,4 +65,9 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 
 	k.cdc.MustUnmarshal(b, &params)
 	return params
+}
+
+// GetModuleAccountAddress returns the address of the module account
+func (k Keeper) GetModuleAccountAddress() string {
+	return k.AK.GetModuleAddress(types.ModuleName).String()
 }

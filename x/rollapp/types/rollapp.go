@@ -52,14 +52,18 @@ func (r Rollapp) LastStateUpdateHeightIsSet() bool {
 }
 
 // get rollapp denom
+// FIXME: keep the denom on the rollapp struct
 func (r Rollapp) GetIBCDenom() (string, error) {
 	if r.ChannelId == "" {
 		// FIXME: return typed error
 		return "", fmt.Errorf("rollapp channel id not set")
 	}
-	denom := uibc.GetForeignDenomTrace(r.ChannelId, r.Metadata.BaseDenom)
-
-	return r.Bech32Prefix + r.RollappId, nil
+	if r.Metadata.NativeBaseDenom == "" {
+		// FIXME: return typed error
+		return "", fmt.Errorf("rollapp native base denom not set")
+	}
+	denom := uibc.GetForeignDenomTrace(r.ChannelId, r.Metadata.NativeBaseDenom)
+	return denom.IBCDenom(), nil
 }
 
 func (r Rollapp) ValidateBasic() error {

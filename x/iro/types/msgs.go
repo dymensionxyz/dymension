@@ -25,6 +25,11 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid owner address: %s", err)
 	}
 
+	// validate allocated amount
+	if m.AllocatedAmount.IsNil() || !m.AllocatedAmount.IsPositive() {
+		return sdkerrors.ErrInvalidRequest.Wrapf("allocated amount %v must be positive", m.AllocatedAmount)
+	}
+
 	// validate bonding curve params
 	if err := m.BondingCurve.ValidateBasic(); err != nil {
 		return err

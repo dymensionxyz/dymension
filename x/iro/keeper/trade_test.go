@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
@@ -16,12 +15,13 @@ import (
 func (s *KeeperTestSuite) TestBuy() {
 	rollappId := s.CreateDefaultRollapp()
 	k := s.App.IROKeeper
+	curve := types.DefaultBondingCurve()
 
 	startTime := time.Now().Add(time.Hour)
 	maxAmt := sdk.NewInt(1_000_000_000)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, sdk.NewInt(1_000_000), startTime, startTime.Add(time.Hour), rollapp)
+	planId, err := k.CreatePlan(s.Ctx, sdk.NewInt(1_000_000), startTime, startTime.Add(time.Hour), rollapp, curve)
 	s.Require().NoError(err)
 
 	// buyer bech32
@@ -54,7 +54,6 @@ func (s *KeeperTestSuite) TestBuy() {
 	s.Assert().Equal(sdk.NewInt(0), plan.SoldAmt)
 
 	amountTokensToBuy := sdk.NewInt(100)
-	curve := types.NewBondingCurve(math.OneInt(), math.ZeroInt(), math.OneInt())
 	expectedCost := curve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy))
 	err = k.Buy(s.Ctx, planId, buyer.String(), amountTokensToBuy, maxAmt)
 	s.Require().NoError(err)

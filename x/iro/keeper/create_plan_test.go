@@ -8,8 +8,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
+// FIXME: implement this
 func (s *KeeperTestSuite) TestCreatePlan_Validation() {
-	// FIXME: implement this
 	// rollappId := s.CreateDefaultRollapp()
 	// owner := apptesting.Alice
 

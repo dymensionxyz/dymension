@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -10,43 +11,41 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
+// TransfersEnabled called by the genesis transfer IBC module when a transfer is handled
+func (k Keeper) TransfersEnabled(ctx sdk.Context, rollappId string) error {
+	return k.Settle(ctx, rollappId)
+}
+
 // Settle settles the iro plan with the given rollappId
 func (k Keeper) Settle(ctx sdk.Context, rollappId string) error {
-	/*
-
-	 */
-	// Get the rollapp's denom
 	rollapp := k.rk.MustGetRollapp(ctx, rollappId)
-	// rollapp validation
-	if rollapp.ChannelId == "" {
-		return errorsmod.Wrapf(types.ErrInvalidRollappGenesisState, "rollappId: %s", rollappId)
-	}
 
 	// Get the plan
 	plan, found := k.GetPlanByRollapp(ctx, rollappId)
 	if !found {
-		return errorsmod.Wrapf(types.ErrPlanNotFound, "rollappId: %s", rollappId)
+		return nil
 	}
+
 	if plan.IsSettled() {
-		return errorsmod.Wrapf(types.ErrPlanSettled, "rollappId: %s", rollappId)
+		return errorsmod.Wrapf(errors.Join(gerrc.ErrInternal, types.ErrPlanSettled), "rollappId: %s", rollappId)
 	}
 
-	// FIXME: implement get denom by rollapp
-	// planDenom := types.GetPlanDenom(rollappId)
-	rollappDenom := "fixme"
-	//FIXME: set settled denom to the plan
+	// Get the rollapp's denom
+	rollappDenom, err := rollapp.GetIBCDenom()
+	if err != nil {
+		return err
+	}
 
-	// validate the required funds are available in the module account //funds validated by the `genesistransfer` handler
+	// validate the required funds are available in the module account
+	// funds expected as it's validated in the genesis transfer handler
 	balance := k.bk.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), rollappDenom)
 	if balance.Amount.LT(plan.TotalAllocation.Amount) {
 		return errorsmod.Wrapf(gerrc.ErrInternal, "required: %s, available: %s", plan.TotalAllocation.String(), balance.String())
 	}
 
-	// //FIXME: move the funds to the plan's module account
-
 	// "claims" the unsold FUT token
 	futBalance := k.bk.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.TotalAllocation.Denom)
-	err := k.bk.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(futBalance))
+	err = k.bk.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(futBalance))
 	if err != nil {
 		return err
 	}
