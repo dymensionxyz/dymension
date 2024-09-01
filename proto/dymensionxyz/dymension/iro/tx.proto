@@ -58,11 +58,13 @@ message MsgCreatePlan {
     (gogoproto.nullable) = false
   ];
 
+  BondingCurve bonding_curve = 4 [ (gogoproto.nullable) = false ];
+
   // The start time of the plan.
-  google.protobuf.Timestamp start_time = 4 [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  google.protobuf.Timestamp start_time = 5 [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
   // The end time of the plan.
-  google.protobuf.Timestamp end_time = 5 [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  google.protobuf.Timestamp end_time = 6 [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 }
 
 message MsgCreatePlanResponse {

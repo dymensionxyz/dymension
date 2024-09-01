@@ -40,6 +40,8 @@ func (k Keeper) Buy(ctx sdk.Context, planId, buyer string, amountTokensToBuy, ma
 	curve := types.NewBondingCurve(math.OneInt(), math.ZeroInt(), math.OneInt())
 	cost := curve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy))
 
+	// FIXME: validate cost is positive
+
 	// Validate expected out amount
 	if cost.GT(maxCost) {
 		return errorsmod.Wrapf(types.ErrInvalidExpectedOutAmount, "maxCost: %s, cost: %s", maxCost.String(), cost.String())

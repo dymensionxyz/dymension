@@ -1,23 +1,71 @@
 package keeper
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // Settle settles the iro plan with the given rollappId
 func (k Keeper) Settle(ctx sdk.Context, rollappId string) error {
 	/*
-			validate the required funds are available in the module account //funds validated by the `genesistransfer` handler
-			- rollapp token is known on the rollapp object
-		* "claims" the unsold FUT token
-		* move the funds to the plan's module account
-		* mark the plan as `settled`, allowing users to claim tokens
 
-		* uses the raised DYM and unsold tokens to bootstrap the rollapp's liquidity pool
-	*/
+	 */
+	// Get the rollapp's denom
+	rollapp := k.rk.MustGetRollapp(ctx, rollappId)
+	// rollapp validation
+	if rollapp.ChannelId == "" {
+		return errorsmod.Wrapf(types.ErrInvalidRollappGenesisState, "rollappId: %s", rollappId)
+	}
+
+	// Get the plan
+	plan, found := k.GetPlanByRollapp(ctx, rollappId)
+	if !found {
+		return errorsmod.Wrapf(types.ErrPlanNotFound, "rollappId: %s", rollappId)
+	}
+	if plan.Settled {
+		return errorsmod.Wrapf(types.ErrPlanSettled, "rollappId: %s", rollappId)
+	}
+
+	// FIXME: implement get denom by rollapp
+	// planDenom := types.GetPlanDenom(rollappId)
+	rollappDenom := "fixme"
+	//FIXME: set settled denom to the plan
+
+	// validate the required funds are available in the module account //funds validated by the `genesistransfer` handler
+	balance := k.bk.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), rollappDenom)
+	if balance.Amount.LT(plan.TotalAllocation.Amount) {
+		return errorsmod.Wrapf(gerrc.ErrInternal, "required: %s, available: %s", plan.TotalAllocation.String(), balance.String())
+	}
+
+	// //FIXME: move the funds to the plan's module account
+
+	// "claims" the unsold FUT token
+	futBalance := k.bk.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.TotalAllocation.Denom)
+	err := k.bk.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(futBalance))
+	if err != nil {
+		return err
+	}
+
+	// mark the plan as `settled`, allowing users to claim tokens
+	plan.Settled = true
+	k.SetPlan(ctx, plan)
+
+	// FIXME: uses the raised DYM and unsold tokens to bootstrap the rollapp's liquidity pool
+
+	// Emit event
+	err = ctx.EventManager().EmitTypedEvent(&types.EventSettle{
+		RollappId: rollappId,
+		PlanId:    fmt.Sprintf("%d", plan.Id),
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

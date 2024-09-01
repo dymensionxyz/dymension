@@ -24,6 +24,12 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid owner address: %s", err)
 	}
+
+	// validate bonding curve params
+	if err := m.BondingCurve.ValidateBasic(); err != nil {
+		return err
+	}
+
 	return nil
 }
 

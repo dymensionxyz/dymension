@@ -61,6 +61,20 @@ func (k Keeper) QueryPlans(context.Context, *types.QueryPlansRequest) (*types.Qu
 }
 
 // QueryPrice implements types.QueryServer.
-func (k Keeper) QueryPrice(context.Context, *types.QueryPriceRequest) (*types.QueryPriceResponse, error) {
-	panic("unimplemented")
+func (k Keeper) QueryPrice(goCtx context.Context, req *types.QueryPriceRequest) (*types.QueryPriceResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	plan, found := k.GetPlan(ctx, req.PlanId)
+	if !found {
+		return nil, status.Error(codes.NotFound, "plan not found")
+	}
+
+	_ = plan
+	// FIXME: get the price from the plan
+
+	return &types.QueryPriceResponse{Price: &sdk.Coin{}}, nil
+
 }

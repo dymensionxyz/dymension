@@ -10,6 +10,9 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
+// FIXME: test trade after settled
+// FIXME: test taker fee
+
 func (s *KeeperTestSuite) TestBuy() {
 	rollappId := s.CreateDefaultRollapp()
 	k := s.App.IROKeeper

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/simulation/types"
 )
 
 func (s *KeeperTestSuite) TestCreatePlan_Validation() {

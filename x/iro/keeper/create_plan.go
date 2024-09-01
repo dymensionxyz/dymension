@@ -47,7 +47,7 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrPlanExists)
 	}
 
-	planId, err := m.Keeper.CreatePlan(ctx, req.AllocatedAmount, req.StartTime, req.EndTime, rollapp)
+	planId, err := m.Keeper.CreatePlan(ctx, req.AllocatedAmount, req.StartTime, req.EndTime, rollapp, req.BondingCurve)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func ValidateRollappPreconditions(rollapp rollapptypes.Rollapp) error {
 	return nil
 }
 
-func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, end time.Time, rollapp rollapptypes.Rollapp) (string, error) {
+func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, end time.Time, rollapp rollapptypes.Rollapp, curve types.BondingCurve) (string, error) {
 
 	// FIXME: create a module account for the plan
 
@@ -95,7 +95,7 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, end
 		RollappId:        rollapp.RollappId,
 		ModuleAccAddress: "", // FIXME
 		TotalAllocation:  allocation,
-		Settled:          false,
+		BondingCurve:     curve,
 		StartTime:        start,
 		EndTime:          end,
 		SoldAmt:          math.Int{},
