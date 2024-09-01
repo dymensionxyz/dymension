@@ -52,10 +52,6 @@ import (
 	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	dymnsmodule "github.com/dymensionxyz/dymension/v3/x/dymns"
-	dymnsmoduleclient "github.com/dymensionxyz/dymension/v3/x/dymns/client"
-	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	"github.com/dymensionxyz/dymension/v3/x/iro"
 	"github.com/evmos/ethermint/x/evm"
 	evmclient "github.com/evmos/ethermint/x/evm/client"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -71,6 +67,10 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+
+	dymnsmodule "github.com/dymensionxyz/dymension/v3/x/dymns"
+	dymnsmoduleclient "github.com/dymensionxyz/dymension/v3/x/dymns/client"
+	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
@@ -91,14 +91,15 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/eibc"
 	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp"
-
+	"github.com/dymensionxyz/dymension/v3/x/iro"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
-
+	lightclientmodule "github.com/dymensionxyz/dymension/v3/x/lightclient"
+	lightclientmoduletypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp"
 	rollappmoduleclient "github.com/dymensionxyz/dymension/v3/x/rollapp/client"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer"
-	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer"
 	streamermoduleclient "github.com/dymensionxyz/dymension/v3/x/streamer/client"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -154,6 +155,7 @@ var ModuleBasics = module.NewBasicManager(
 	delayedack.AppModuleBasic{},
 	eibc.AppModuleBasic{},
 	dymnsmodule.AppModuleBasic{},
+	lightclientmodule.AppModuleBasic{},
 
 	// Ethermint modules
 	evm.AppModuleBasic{},
@@ -200,13 +202,14 @@ func (a *AppKeepers) SetupModules(
 		ibctransfer.NewAppModule(a.TransferKeeper),
 		rollappmodule.NewAppModule(appCodec, a.RollappKeeper, a.AccountKeeper, a.BankKeeper),
 		iro.NewAppModule(appCodec, *a.IROKeeper),
-		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper, a.AccountKeeper, a.BankKeeper),
+		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(sequencertypes.ModuleName)),
 		sponsorship.NewAppModule(a.SponsorshipKeeper),
 		streamermodule.NewAppModule(a.StreamerKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
 		delayedackmodule.NewAppModule(appCodec, a.DelayedAckKeeper),
 		denommetadatamodule.NewAppModule(a.DenomMetadataKeeper, *a.EvmKeeper, a.BankKeeper),
 		eibcmodule.NewAppModule(appCodec, a.EIBCKeeper, a.AccountKeeper, a.BankKeeper),
 		dymnsmodule.NewAppModule(appCodec, a.DymNSKeeper),
+		lightclientmodule.NewAppModule(appCodec, a.LightClientKeeper),
 
 		// Ethermint app modules
 		evm.NewAppModule(a.EvmKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),
@@ -245,7 +248,7 @@ var maccPerms = map[string][]string{
 	stakingtypes.NotBondedPoolName:                     {authtypes.Burner, authtypes.Staking},
 	govtypes.ModuleName:                                {authtypes.Burner},
 	ibctransfertypes.ModuleName:                        {authtypes.Minter, authtypes.Burner},
-	sequencermoduletypes.ModuleName:                    {authtypes.Minter, authtypes.Burner, authtypes.Staking},
+	sequencertypes.ModuleName:                          {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 	rollappmoduletypes.ModuleName:                      {authtypes.Burner},
 	sponsorshiptypes.ModuleName:                        nil,
 	streamermoduletypes.ModuleName:                     nil,
@@ -283,7 +286,7 @@ var BeginBlockers = []string{
 	feegrant.ModuleName,
 	paramstypes.ModuleName,
 	rollappmoduletypes.ModuleName,
-	sequencermoduletypes.ModuleName,
+	sequencertypes.ModuleName,
 	sponsorshiptypes.ModuleName,
 	streamermoduletypes.ModuleName,
 	denommetadatamoduletypes.ModuleName,
@@ -297,10 +300,10 @@ var BeginBlockers = []string{
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	irotypes.ModuleName,
+	lightclientmoduletypes.ModuleName,
 }
 
 var EndBlockers = []string{
-	crisistypes.ModuleName,
 	govtypes.ModuleName,
 	stakingtypes.ModuleName,
 	capabilitytypes.ModuleName,
@@ -322,7 +325,7 @@ var EndBlockers = []string{
 	ibctransfertypes.ModuleName,
 	packetforwardtypes.ModuleName,
 	rollappmoduletypes.ModuleName,
-	sequencermoduletypes.ModuleName,
+	sequencertypes.ModuleName,
 	sponsorshiptypes.ModuleName,
 	streamermoduletypes.ModuleName,
 	denommetadatamoduletypes.ModuleName,
@@ -337,6 +340,8 @@ var EndBlockers = []string{
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	irotypes.ModuleName,
+	lightclientmoduletypes.ModuleName,
+	crisistypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -352,7 +357,6 @@ var InitGenesis = []string{
 	evmtypes.ModuleName,
 	govtypes.ModuleName,
 	minttypes.ModuleName,
-	crisistypes.ModuleName,
 	ibcexported.ModuleName,
 	genutiltypes.ModuleName,
 	evidencetypes.ModuleName,
@@ -362,7 +366,7 @@ var InitGenesis = []string{
 	packetforwardtypes.ModuleName,
 	feegrant.ModuleName,
 	rollappmoduletypes.ModuleName,
-	sequencermoduletypes.ModuleName,
+	sequencertypes.ModuleName,
 	sponsorshiptypes.ModuleName,
 	streamermoduletypes.ModuleName,
 	denommetadatamoduletypes.ModuleName, // must after `x/bank` to trigger hooks
@@ -377,4 +381,6 @@ var InitGenesis = []string{
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	irotypes.ModuleName,
+	lightclientmoduletypes.ModuleName,
+	crisistypes.ModuleName,
 }

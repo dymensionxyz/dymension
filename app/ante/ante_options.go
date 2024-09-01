@@ -6,6 +6,7 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
 
@@ -26,6 +27,7 @@ type HandlerOptions struct {
 	MaxTxGasWanted         uint64
 	ExtensionOptionChecker ante.ExtensionOptionChecker
 	RollappKeeper          rollappkeeper.Keeper
+	LightClientKeeper      *lightclientkeeper.Keeper
 }
 
 func (options HandlerOptions) validate() error {
@@ -46,6 +48,9 @@ func (options HandlerOptions) validate() error {
 	}
 	if options.TxFeesKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "tx fees keeper is required for AnteHandler")
+	}
+	if options.LightClientKeeper == nil {
+		return errorsmod.Wrap(errortypes.ErrLogic, "light client keeper is required for AnteHandler")
 	}
 	return nil
 }

@@ -88,9 +88,10 @@ func TestStateInfoByHeightMissingStateInfo(t *testing.T) {
 		Height:    100,
 	}
 	_, err := k.StateInfo(wctx, request)
+	errIndex := 1 + (85-1)/2 // Using binary search, the middle index is lookedup first and is missing.
 	require.EqualError(t, err, errorsmod.Wrapf(types.ErrNotFound,
 		"StateInfo wasn't found for rollappId=%s, index=%d",
-		rollappId, 85).Error())
+		rollappId, errIndex).Error())
 }
 
 func TestStateInfoByHeightMissingStateInfo1(t *testing.T) {
@@ -115,9 +116,10 @@ func TestStateInfoByHeightMissingStateInfo1(t *testing.T) {
 		NumBlocks:      1,
 	})
 	_, err := k.StateInfo(wctx, request)
+	errIndex := 1 + (60-1)/2 // Using binary search, the middle index is lookedup first and is missing.
 	require.EqualError(t, err, errorsmod.Wrapf(types.ErrNotFound,
 		"StateInfo wasn't found for rollappId=%s, index=%d",
-		rollappId, 1).Error())
+		rollappId, errIndex).Error())
 }
 
 func TestStateInfoByHeightErr(t *testing.T) {

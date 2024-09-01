@@ -2963,37 +2963,6 @@ paths:
                         description: >-
                           sell_order_duration is the amount of time of a
                           Sell-Order from created to expired.
-                      prohibit_sell_duration:
-                        type: string
-                        description: >-
-                          prohibit_sell_duration is the amount of time,
-
-                          if the Sell-Order expiration date enters the range
-                          before expiry of Dym-Name, the Sell-Order can not be
-                          placed.
-
-                          The logic also applies when the owner accepts a
-                          Buy-Order, the Dym-Name can not be sold.
-
-                          This is to prevent the new owner of Dym-Name to sell
-                          it before the Dym-Name expires,
-
-                          therefore help reduce the risk of new owner of
-                          Dym-Name not able to renew it on time.
-
-
-                          For example:
-                            Let say the configured Sell-Order duration is 7 days, the prohibit sell duration is 30 days and you owns a Dym-Name.
-                            We assume your Dym-Name expiration date is Mar 9th, 2024. then 30 days before, from Feb 9th, 2024,
-                            the Dym-Name is prohibited to be sold.
-                            We have some cases:
-                            - If the you places a Sell Order at Feb 2nd, 2024, the Sell-Order supposed to be expired at Feb 9th, 2024,
-                            which is within the prohibited range, so the Sell-Order can not be placed.
-                            - If the you places a Sell Order at Feb 1st, 2024, the Sell-Order supposed to be expired at Feb 8th, 2024,
-                            which is outside the prohibited range, so the Sell-Order can be placed.
-                            - If someone put an offer (Buy-Order) at Feb 1st, 2024, and you have some days to accept it,
-                            exactly from the moment order placed, until end of Feb 8th, 2024, which is outside the prohibited range.
-                            After that, from Feb 9th, it is prohibited to accept the Buy-Order.
                       enable_trading_name:
                         type: boolean
                         description: >-
@@ -3247,7 +3216,8 @@ paths:
                       sell_price is the price that the owner is willing to sell
                       the Dym-Name/Alias for,
 
-                      the SO will be closed when the price is met.
+                      the SO will be completed when the price is met, ownership
+                      transferred.
 
                       If the sell price is zero, the SO will be closed when the
                       expire_at is reached and the highest bidder wins.
@@ -3481,6 +3451,20 @@ paths:
                         description: >-
                           tagline is a non semantic tagline/catch-phrase. Size
                           limited.
+                      token_symbol:
+                        type: string
+                        title: token_symbol is the native token symbol
+                      explorer_url:
+                        type: string
+                        title: explorer_url is the rollapp's block explorer link
+                      fee_base_denom:
+                        type: string
+                        title: fee_base_denom is the base denom for fees
+                      native_base_denom:
+                        type: string
+                        title: >-
+                          native_base_denom is the base denom for the native
+                          token
                   initial_sequencer:
                     type: string
                     description: >-
@@ -3952,6 +3936,22 @@ paths:
                               description: >-
                                 tagline is a non semantic tagline/catch-phrase.
                                 Size limited.
+                            token_symbol:
+                              type: string
+                              title: token_symbol is the native token symbol
+                            explorer_url:
+                              type: string
+                              title: >-
+                                explorer_url is the rollapp's block explorer
+                                link
+                            fee_base_denom:
+                              type: string
+                              title: fee_base_denom is the base denom for fees
+                            native_base_denom:
+                              type: string
+                              title: >-
+                                native_base_denom is the base denom for the
+                                native token
                         initial_sequencer:
                           type: string
                           description: >-
@@ -4306,6 +4306,20 @@ paths:
                         description: >-
                           tagline is a non semantic tagline/catch-phrase. Size
                           limited.
+                      token_symbol:
+                        type: string
+                        title: token_symbol is the native token symbol
+                      explorer_url:
+                        type: string
+                        title: explorer_url is the rollapp's block explorer link
+                      fee_base_denom:
+                        type: string
+                        title: fee_base_denom is the base denom for fees
+                      native_base_denom:
+                        type: string
+                        title: >-
+                          native_base_denom is the base denom for the native
+                          token
                   initial_sequencer:
                     type: string
                     description: >-
@@ -4630,6 +4644,230 @@ paths:
           type: boolean
       tags:
         - Query
+  /dymensionxyz/dymension/sequencer/next_proposer/{rollappId}:
+    get:
+      summary: Queries the next proposer by rollappId.
+      operationId: GetNextProposerByRollapp
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              nextProposerAddr:
+                type: string
+                description: >-
+                  nextProposerAddr is the address of the next proposer.
+
+                  can be empty if no sequencer is available to be the next
+                  proposer.
+              rotationInProgress:
+                type: boolean
+                description: >-
+                  rotationInProgress is true if the proposer rotation is in
+                  progress.
+            description: Response type for the GetNextProposerByRollapp RPC method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                      description: >-
+                        A URL/resource name that uniquely identifies the type of
+                        the serialized
+
+                        protocol buffer message. This string must contain at
+                        least
+
+                        one "/" character. The last segment of the URL's path
+                        must represent
+
+                        the fully qualified name of the type (as in
+
+                        `path/google.protobuf.Duration`). The name should be in
+                        a canonical form
+
+                        (e.g., leading "." is not accepted).
+
+
+                        In practice, teams usually precompile into the binary
+                        all types that they
+
+                        expect it to use in the context of Any. However, for
+                        URLs which use the
+
+                        scheme `http`, `https`, or no scheme, one can optionally
+                        set up a type
+
+                        server that maps type URLs to message definitions as
+                        follows:
+
+
+                        * If no scheme is provided, `https` is assumed.
+
+                        * An HTTP GET on the URL must yield a
+                        [google.protobuf.Type][]
+                          value in binary format, or produce an error.
+                        * Applications are allowed to cache lookup results based
+                        on the
+                          URL, or have them precompiled into a binary to avoid any
+                          lookup. Therefore, binary compatibility needs to be preserved
+                          on changes to types. (Use versioned type names to manage
+                          breaking changes.)
+
+                        Note: this functionality is not currently available in
+                        the official
+
+                        protobuf release, and it is not used for type URLs
+                        beginning with
+
+                        type.googleapis.com.
+
+
+                        Schemes other than `http`, `https` (or the empty scheme)
+                        might be
+
+                        used with implementation specific semantics.
+                    value:
+                      type: string
+                      format: byte
+                      description: >-
+                        Must be a valid serialized protocol buffer of the above
+                        specified type.
+                  description: >-
+                    `Any` contains an arbitrary serialized protocol buffer
+                    message along with a
+
+                    URL that describes the type of the serialized message.
+
+
+                    Protobuf library provides support to pack/unpack Any values
+                    in the form
+
+                    of utility functions or additional generated methods of the
+                    Any type.
+
+
+                    Example 1: Pack and unpack a message in C++.
+
+                        Foo foo = ...;
+                        Any any;
+                        any.PackFrom(foo);
+                        ...
+                        if (any.UnpackTo(&foo)) {
+                          ...
+                        }
+
+                    Example 2: Pack and unpack a message in Java.
+
+                        Foo foo = ...;
+                        Any any = Any.pack(foo);
+                        ...
+                        if (any.is(Foo.class)) {
+                          foo = any.unpack(Foo.class);
+                        }
+                        // or ...
+                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+                          foo = any.unpack(Foo.getDefaultInstance());
+                        }
+
+                    Example 3: Pack and unpack a message in Python.
+
+                        foo = Foo(...)
+                        any = Any()
+                        any.Pack(foo)
+                        ...
+                        if any.Is(Foo.DESCRIPTOR):
+                          any.Unpack(foo)
+                          ...
+
+                    Example 4: Pack and unpack a message in Go
+
+                         foo := &pb.Foo{...}
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
+                         ...
+                         foo := &pb.Foo{}
+                         if err := any.UnmarshalTo(foo); err != nil {
+                           ...
+                         }
+
+                    The pack methods provided by protobuf library will by
+                    default use
+
+                    'type.googleapis.com/full.type.name' as the type URL and the
+                    unpack
+
+                    methods only use the fully qualified type name after the
+                    last '/'
+
+                    in the type URL, for example "foo.bar.com/x/y.z" will yield
+                    type
+
+                    name "y.z".
+
+
+                    JSON
+
+
+                    The JSON representation of an `Any` value uses the regular
+
+                    representation of the deserialized, embedded message, with
+                    an
+
+                    additional field `@type` which contains the type URL.
+                    Example:
+
+                        package google.profile;
+                        message Person {
+                          string first_name = 1;
+                          string last_name = 2;
+                        }
+
+                        {
+                          "@type": "type.googleapis.com/google.profile.Person",
+                          "firstName": <string>,
+                          "lastName": <string>
+                        }
+
+                    If the embedded message type is well-known and has a custom
+                    JSON
+
+                    representation, that representation will be embedded adding
+                    a field
+
+                    `value` which holds the custom JSON in addition to the
+                    `@type`
+
+                    field. Example (for message [google.protobuf.Duration][]):
+
+                        {
+                          "@type": "type.googleapis.com/google.protobuf.Duration",
+                          "value": "1.212s"
+                        }
+      parameters:
+        - name: rollappId
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
   /dymensionxyz/dymension/sequencer/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -4662,6 +4900,16 @@ paths:
                   unbonding_time:
                     type: string
                     description: unbonding_time is the time duration of unbonding.
+                  notice_period:
+                    type: string
+                    description: >-
+                      notice_period is the time duration of notice period.
+
+                      notice period is the duration between the unbond request
+                      and the actual
+
+                      unbonding starting. the proposer is still bonded during
+                      this period.
                   liveness_slash_multiplier:
                     type: string
                     description: >-
@@ -4864,6 +5112,220 @@ paths:
                           "@type": "type.googleapis.com/google.protobuf.Duration",
                           "value": "1.212s"
                         }
+      tags:
+        - Query
+  /dymensionxyz/dymension/sequencer/proposer/{rollappId}:
+    get:
+      summary: Queries the current proposer by rollappId.
+      operationId: GetProposerByRollapp
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              proposerAddr:
+                type: string
+            description: Response type for the GetProposerByRollapp RPC method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                      description: >-
+                        A URL/resource name that uniquely identifies the type of
+                        the serialized
+
+                        protocol buffer message. This string must contain at
+                        least
+
+                        one "/" character. The last segment of the URL's path
+                        must represent
+
+                        the fully qualified name of the type (as in
+
+                        `path/google.protobuf.Duration`). The name should be in
+                        a canonical form
+
+                        (e.g., leading "." is not accepted).
+
+
+                        In practice, teams usually precompile into the binary
+                        all types that they
+
+                        expect it to use in the context of Any. However, for
+                        URLs which use the
+
+                        scheme `http`, `https`, or no scheme, one can optionally
+                        set up a type
+
+                        server that maps type URLs to message definitions as
+                        follows:
+
+
+                        * If no scheme is provided, `https` is assumed.
+
+                        * An HTTP GET on the URL must yield a
+                        [google.protobuf.Type][]
+                          value in binary format, or produce an error.
+                        * Applications are allowed to cache lookup results based
+                        on the
+                          URL, or have them precompiled into a binary to avoid any
+                          lookup. Therefore, binary compatibility needs to be preserved
+                          on changes to types. (Use versioned type names to manage
+                          breaking changes.)
+
+                        Note: this functionality is not currently available in
+                        the official
+
+                        protobuf release, and it is not used for type URLs
+                        beginning with
+
+                        type.googleapis.com.
+
+
+                        Schemes other than `http`, `https` (or the empty scheme)
+                        might be
+
+                        used with implementation specific semantics.
+                    value:
+                      type: string
+                      format: byte
+                      description: >-
+                        Must be a valid serialized protocol buffer of the above
+                        specified type.
+                  description: >-
+                    `Any` contains an arbitrary serialized protocol buffer
+                    message along with a
+
+                    URL that describes the type of the serialized message.
+
+
+                    Protobuf library provides support to pack/unpack Any values
+                    in the form
+
+                    of utility functions or additional generated methods of the
+                    Any type.
+
+
+                    Example 1: Pack and unpack a message in C++.
+
+                        Foo foo = ...;
+                        Any any;
+                        any.PackFrom(foo);
+                        ...
+                        if (any.UnpackTo(&foo)) {
+                          ...
+                        }
+
+                    Example 2: Pack and unpack a message in Java.
+
+                        Foo foo = ...;
+                        Any any = Any.pack(foo);
+                        ...
+                        if (any.is(Foo.class)) {
+                          foo = any.unpack(Foo.class);
+                        }
+                        // or ...
+                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+                          foo = any.unpack(Foo.getDefaultInstance());
+                        }
+
+                    Example 3: Pack and unpack a message in Python.
+
+                        foo = Foo(...)
+                        any = Any()
+                        any.Pack(foo)
+                        ...
+                        if any.Is(Foo.DESCRIPTOR):
+                          any.Unpack(foo)
+                          ...
+
+                    Example 4: Pack and unpack a message in Go
+
+                         foo := &pb.Foo{...}
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
+                         ...
+                         foo := &pb.Foo{}
+                         if err := any.UnmarshalTo(foo); err != nil {
+                           ...
+                         }
+
+                    The pack methods provided by protobuf library will by
+                    default use
+
+                    'type.googleapis.com/full.type.name' as the type URL and the
+                    unpack
+
+                    methods only use the fully qualified type name after the
+                    last '/'
+
+                    in the type URL, for example "foo.bar.com/x/y.z" will yield
+                    type
+
+                    name "y.z".
+
+
+                    JSON
+
+
+                    The JSON representation of an `Any` value uses the regular
+
+                    representation of the deserialized, embedded message, with
+                    an
+
+                    additional field `@type` which contains the type URL.
+                    Example:
+
+                        package google.profile;
+                        message Person {
+                          string first_name = 1;
+                          string last_name = 2;
+                        }
+
+                        {
+                          "@type": "type.googleapis.com/google.profile.Person",
+                          "firstName": <string>,
+                          "lastName": <string>
+                        }
+
+                    If the embedded message type is well-known and has a custom
+                    JSON
+
+                    representation, that representation will be embedded adding
+                    a field
+
+                    `value` which holds the custom JSON in addition to the
+                    `@type`
+
+                    field. Example (for message [google.protobuf.Duration][]):
+
+                        {
+                          "@type": "type.googleapis.com/google.protobuf.Duration",
+                          "value": "1.212s"
+                        }
+      parameters:
+        - name: rollappId
+          in: path
+          required: true
+          type: string
       tags:
         - Query
   /dymensionxyz/dymension/sequencer/sequencer:
@@ -5159,9 +5621,6 @@ paths:
                         from bonded status or not.
                     proposer:
                       type: boolean
-                      description: >-
-                        proposer defines whether the sequencer is a proposer or
-                        not.
                     status:
                       description: >-
                         status is the sequencer status
@@ -5196,18 +5655,26 @@ paths:
                       description: >-
                         tokens define the delegated tokens (incl.
                         self-delegation).
-                    unbonding_height:
+                    unbond_request_height:
                       type: string
                       format: int64
                       description: >-
-                        unbonding_height defines, if unbonding, the height at
-                        which this sequencer has begun unbonding.
+                        unbond_request_height stores the height at which this
+                        sequencer has
+
+                        requested to unbond.
                     unbond_time:
                       type: string
                       format: date-time
                       description: >-
-                        unbond_time defines, if unbonding, the min time for the
-                        sequencer to complete unbonding.
+                        unbond_time defines the time when the sequencer will
+                        complete unbonding.
+                    notice_period_time:
+                      type: string
+                      format: date-time
+                      title: >-
+                        notice_period_time defines the time when the sequencer
+                        will finish it's notice period if started
                   description: >-
                     Sequencer defines a sequencer identified by its' address
                     (sequencerAddress).
@@ -5782,9 +6249,6 @@ paths:
                       bonded status or not.
                   proposer:
                     type: boolean
-                    description: >-
-                      proposer defines whether the sequencer is a proposer or
-                      not.
                   status:
                     description: >-
                       status is the sequencer status
@@ -5818,18 +6282,26 @@ paths:
                     description: >-
                       tokens define the delegated tokens (incl.
                       self-delegation).
-                  unbonding_height:
+                  unbond_request_height:
                     type: string
                     format: int64
                     description: >-
-                      unbonding_height defines, if unbonding, the height at
-                      which this sequencer has begun unbonding.
+                      unbond_request_height stores the height at which this
+                      sequencer has
+
+                      requested to unbond.
                   unbond_time:
                     type: string
                     format: date-time
                     description: >-
-                      unbond_time defines, if unbonding, the min time for the
-                      sequencer to complete unbonding.
+                      unbond_time defines the time when the sequencer will
+                      complete unbonding.
+                  notice_period_time:
+                    type: string
+                    format: date-time
+                    title: >-
+                      notice_period_time defines the time when the sequencer
+                      will finish it's notice period if started
                 description: >-
                   Sequencer defines a sequencer identified by its' address
                   (sequencerAddress).
@@ -6330,9 +6802,6 @@ paths:
                         from bonded status or not.
                     proposer:
                       type: boolean
-                      description: >-
-                        proposer defines whether the sequencer is a proposer or
-                        not.
                     status:
                       description: >-
                         status is the sequencer status
@@ -6367,18 +6836,26 @@ paths:
                       description: >-
                         tokens define the delegated tokens (incl.
                         self-delegation).
-                    unbonding_height:
+                    unbond_request_height:
                       type: string
                       format: int64
                       description: >-
-                        unbonding_height defines, if unbonding, the height at
-                        which this sequencer has begun unbonding.
+                        unbond_request_height stores the height at which this
+                        sequencer has
+
+                        requested to unbond.
                     unbond_time:
                       type: string
                       format: date-time
                       description: >-
-                        unbond_time defines, if unbonding, the min time for the
-                        sequencer to complete unbonding.
+                        unbond_time defines the time when the sequencer will
+                        complete unbonding.
+                    notice_period_time:
+                      type: string
+                      format: date-time
+                      title: >-
+                        notice_period_time defines the time when the sequencer
+                        will finish it's notice period if started
                   description: >-
                     Sequencer defines a sequencer identified by its' address
                     (sequencerAddress).
@@ -6879,9 +7356,6 @@ paths:
                         from bonded status or not.
                     proposer:
                       type: boolean
-                      description: >-
-                        proposer defines whether the sequencer is a proposer or
-                        not.
                     status:
                       description: >-
                         status is the sequencer status
@@ -6916,18 +7390,26 @@ paths:
                       description: >-
                         tokens define the delegated tokens (incl.
                         self-delegation).
-                    unbonding_height:
+                    unbond_request_height:
                       type: string
                       format: int64
                       description: >-
-                        unbonding_height defines, if unbonding, the height at
-                        which this sequencer has begun unbonding.
+                        unbond_request_height stores the height at which this
+                        sequencer has
+
+                        requested to unbond.
                     unbond_time:
                       type: string
                       format: date-time
                       description: >-
-                        unbond_time defines, if unbonding, the min time for the
-                        sequencer to complete unbonding.
+                        unbond_time defines the time when the sequencer will
+                        complete unbonding.
+                    notice_period_time:
+                      type: string
+                      format: date-time
+                      title: >-
+                        notice_period_time defines the time when the sequencer
+                        will finish it's notice period if started
                   description: >-
                     Sequencer defines a sequencer identified by its' address
                     (sequencerAddress).
@@ -59262,36 +59744,6 @@ definitions:
         description: >-
           sell_order_duration is the amount of time of a Sell-Order from created
           to expired.
-      prohibit_sell_duration:
-        type: string
-        description: >-
-          prohibit_sell_duration is the amount of time,
-
-          if the Sell-Order expiration date enters the range before expiry of
-          Dym-Name, the Sell-Order can not be placed.
-
-          The logic also applies when the owner accepts a Buy-Order, the
-          Dym-Name can not be sold.
-
-          This is to prevent the new owner of Dym-Name to sell it before the
-          Dym-Name expires,
-
-          therefore help reduce the risk of new owner of Dym-Name not able to
-          renew it on time.
-
-
-          For example:
-            Let say the configured Sell-Order duration is 7 days, the prohibit sell duration is 30 days and you owns a Dym-Name.
-            We assume your Dym-Name expiration date is Mar 9th, 2024. then 30 days before, from Feb 9th, 2024,
-            the Dym-Name is prohibited to be sold.
-            We have some cases:
-            - If the you places a Sell Order at Feb 2nd, 2024, the Sell-Order supposed to be expired at Feb 9th, 2024,
-            which is within the prohibited range, so the Sell-Order can not be placed.
-            - If the you places a Sell Order at Feb 1st, 2024, the Sell-Order supposed to be expired at Feb 8th, 2024,
-            which is outside the prohibited range, so the Sell-Order can be placed.
-            - If someone put an offer (Buy-Order) at Feb 1st, 2024, and you have some days to accept it,
-            exactly from the moment order placed, until end of Feb 8th, 2024, which is outside the prohibited range.
-            After that, from Feb 9th, it is prohibited to accept the Buy-Order.
       enable_trading_name:
         type: boolean
         description: |-
@@ -59423,36 +59875,6 @@ definitions:
             description: >-
               sell_order_duration is the amount of time of a Sell-Order from
               created to expired.
-          prohibit_sell_duration:
-            type: string
-            description: >-
-              prohibit_sell_duration is the amount of time,
-
-              if the Sell-Order expiration date enters the range before expiry
-              of Dym-Name, the Sell-Order can not be placed.
-
-              The logic also applies when the owner accepts a Buy-Order, the
-              Dym-Name can not be sold.
-
-              This is to prevent the new owner of Dym-Name to sell it before the
-              Dym-Name expires,
-
-              therefore help reduce the risk of new owner of Dym-Name not able
-              to renew it on time.
-
-
-              For example:
-                Let say the configured Sell-Order duration is 7 days, the prohibit sell duration is 30 days and you owns a Dym-Name.
-                We assume your Dym-Name expiration date is Mar 9th, 2024. then 30 days before, from Feb 9th, 2024,
-                the Dym-Name is prohibited to be sold.
-                We have some cases:
-                - If the you places a Sell Order at Feb 2nd, 2024, the Sell-Order supposed to be expired at Feb 9th, 2024,
-                which is within the prohibited range, so the Sell-Order can not be placed.
-                - If the you places a Sell Order at Feb 1st, 2024, the Sell-Order supposed to be expired at Feb 8th, 2024,
-                which is outside the prohibited range, so the Sell-Order can be placed.
-                - If someone put an offer (Buy-Order) at Feb 1st, 2024, and you have some days to accept it,
-                exactly from the moment order placed, until end of Feb 8th, 2024, which is outside the prohibited range.
-                After that, from Feb 9th, it is prohibited to accept the Buy-Order.
           enable_trading_name:
             type: boolean
             description: |-
@@ -60350,36 +60772,6 @@ definitions:
                 description: >-
                   sell_order_duration is the amount of time of a Sell-Order from
                   created to expired.
-              prohibit_sell_duration:
-                type: string
-                description: >-
-                  prohibit_sell_duration is the amount of time,
-
-                  if the Sell-Order expiration date enters the range before
-                  expiry of Dym-Name, the Sell-Order can not be placed.
-
-                  The logic also applies when the owner accepts a Buy-Order, the
-                  Dym-Name can not be sold.
-
-                  This is to prevent the new owner of Dym-Name to sell it before
-                  the Dym-Name expires,
-
-                  therefore help reduce the risk of new owner of Dym-Name not
-                  able to renew it on time.
-
-
-                  For example:
-                    Let say the configured Sell-Order duration is 7 days, the prohibit sell duration is 30 days and you owns a Dym-Name.
-                    We assume your Dym-Name expiration date is Mar 9th, 2024. then 30 days before, from Feb 9th, 2024,
-                    the Dym-Name is prohibited to be sold.
-                    We have some cases:
-                    - If the you places a Sell Order at Feb 2nd, 2024, the Sell-Order supposed to be expired at Feb 9th, 2024,
-                    which is within the prohibited range, so the Sell-Order can not be placed.
-                    - If the you places a Sell Order at Feb 1st, 2024, the Sell-Order supposed to be expired at Feb 8th, 2024,
-                    which is outside the prohibited range, so the Sell-Order can be placed.
-                    - If someone put an offer (Buy-Order) at Feb 1st, 2024, and you have some days to accept it,
-                    exactly from the moment order placed, until end of Feb 8th, 2024, which is outside the prohibited range.
-                    After that, from Feb 9th, it is prohibited to accept the Buy-Order.
               enable_trading_name:
                 type: boolean
                 description: |-
@@ -60434,7 +60826,8 @@ definitions:
               sell_price is the price that the owner is willing to sell the
               Dym-Name/Alias for,
 
-              the SO will be closed when the price is met.
+              the SO will be completed when the price is met, ownership
+              transferred.
 
               If the sell price is zero, the SO will be closed when the
               expire_at is reached and the highest bidder wins.
@@ -60598,7 +60991,7 @@ definitions:
           sell_price is the price that the owner is willing to sell the
           Dym-Name/Alias for,
 
-          the SO will be closed when the price is met.
+          the SO will be completed when the price is met, ownership transferred.
 
           If the sell price is zero, the SO will be closed when the expire_at is
           reached and the highest bidder wins.
@@ -60835,6 +61228,18 @@ definitions:
                       description: >-
                         tagline is a non semantic tagline/catch-phrase. Size
                         limited.
+                    token_symbol:
+                      type: string
+                      title: token_symbol is the native token symbol
+                    explorer_url:
+                      type: string
+                      title: explorer_url is the rollapp's block explorer link
+                    fee_base_denom:
+                      type: string
+                      title: fee_base_denom is the base denom for fees
+                    native_base_denom:
+                      type: string
+                      title: native_base_denom is the base denom for the native token
                 initial_sequencer:
                   type: string
                   description: >-
@@ -61128,6 +61533,18 @@ definitions:
               tagline:
                 type: string
                 description: tagline is a non semantic tagline/catch-phrase. Size limited.
+              token_symbol:
+                type: string
+                title: token_symbol is the native token symbol
+              explorer_url:
+                type: string
+                title: explorer_url is the rollapp's block explorer link
+              fee_base_denom:
+                type: string
+                title: fee_base_denom is the base denom for fees
+              native_base_denom:
+                type: string
+                title: native_base_denom is the base denom for the native token
           initial_sequencer:
             type: string
             description: >-
@@ -61468,6 +61885,18 @@ definitions:
           tagline:
             type: string
             description: tagline is a non semantic tagline/catch-phrase. Size limited.
+          token_symbol:
+            type: string
+            title: token_symbol is the native token symbol
+          explorer_url:
+            type: string
+            title: explorer_url is the rollapp's block explorer link
+          fee_base_denom:
+            type: string
+            title: fee_base_denom is the base denom for fees
+          native_base_denom:
+            type: string
+            title: native_base_denom is the base denom for the native token
       initial_sequencer:
         type: string
         description: >-
@@ -61570,6 +61999,18 @@ definitions:
       tagline:
         type: string
         description: tagline is a non semantic tagline/catch-phrase. Size limited.
+      token_symbol:
+        type: string
+        title: token_symbol is the native token symbol
+      explorer_url:
+        type: string
+        title: explorer_url is the rollapp's block explorer link
+      fee_base_denom:
+        type: string
+        title: fee_base_denom is the base denom for fees
+      native_base_denom:
+        type: string
+        title: native_base_denom is the base denom for the native token
   dymensionxyz.dymension.rollapp.RollappSummary:
     type: object
     properties:
@@ -61798,9 +62239,12 @@ definitions:
     default: OPERATING_STATUS_UNBONDED
     description: >-
       - OPERATING_STATUS_UNBONDED: OPERATING_STATUS_UNBONDED defines a sequencer
-      that is not active and won't be scheduled
+      that is not active and won't
+
+      be scheduled
        - OPERATING_STATUS_UNBONDING: UNBONDING defines a sequencer that is currently unbonding.
-       - OPERATING_STATUS_BONDED: OPERATING_STATUS_BONDED defines a sequencer that is bonded and can be scheduled
+       - OPERATING_STATUS_BONDED: OPERATING_STATUS_BONDED defines a sequencer that is bonded and can be
+      scheduled
     title: OperatingStatus defines the operating status of a sequencer
   dymensionxyz.dymension.sequencer.Params:
     type: object
@@ -61820,12 +62264,39 @@ definitions:
       unbonding_time:
         type: string
         description: unbonding_time is the time duration of unbonding.
+      notice_period:
+        type: string
+        description: >-
+          notice_period is the time duration of notice period.
+
+          notice period is the duration between the unbond request and the
+          actual
+
+          unbonding starting. the proposer is still bonded during this period.
       liveness_slash_multiplier:
         type: string
         description: >-
           LivenessSlashMultiplier multiplies with the tokens of the slashed
           sequencer to compute the burn amount.
     description: Params defines the parameters for the module.
+  dymensionxyz.dymension.sequencer.QueryGetNextProposerByRollappResponse:
+    type: object
+    properties:
+      nextProposerAddr:
+        type: string
+        description: |-
+          nextProposerAddr is the address of the next proposer.
+          can be empty if no sequencer is available to be the next proposer.
+      rotationInProgress:
+        type: boolean
+        description: rotationInProgress is true if the proposer rotation is in progress.
+    description: Response type for the GetNextProposerByRollapp RPC method.
+  dymensionxyz.dymension.sequencer.QueryGetProposerByRollappResponse:
+    type: object
+    properties:
+      proposerAddr:
+        type: string
+    description: Response type for the GetProposerByRollapp RPC method.
   dymensionxyz.dymension.sequencer.QueryGetSequencerResponse:
     type: object
     properties:
@@ -62091,7 +62562,6 @@ definitions:
               status or not.
           proposer:
             type: boolean
-            description: proposer defines whether the sequencer is a proposer or not.
           status:
             description: status is the sequencer status (bonded/unbonding/unbonded).
             type: string
@@ -62119,18 +62589,26 @@ definitions:
 
                 signatures required by gogoproto.
             description: tokens define the delegated tokens (incl. self-delegation).
-          unbonding_height:
+          unbond_request_height:
             type: string
             format: int64
             description: >-
-              unbonding_height defines, if unbonding, the height at which this
-              sequencer has begun unbonding.
+              unbond_request_height stores the height at which this sequencer
+              has
+
+              requested to unbond.
           unbond_time:
             type: string
             format: date-time
             description: >-
-              unbond_time defines, if unbonding, the min time for the sequencer
-              to complete unbonding.
+              unbond_time defines the time when the sequencer will complete
+              unbonding.
+          notice_period_time:
+            type: string
+            format: date-time
+            title: >-
+              notice_period_time defines the time when the sequencer will finish
+              it's notice period if started
         description: >-
           Sequencer defines a sequencer identified by its' address
           (sequencerAddress).
@@ -62407,7 +62885,6 @@ definitions:
                 status or not.
             proposer:
               type: boolean
-              description: proposer defines whether the sequencer is a proposer or not.
             status:
               description: status is the sequencer status (bonded/unbonding/unbonded).
               type: string
@@ -62435,18 +62912,26 @@ definitions:
 
                   signatures required by gogoproto.
               description: tokens define the delegated tokens (incl. self-delegation).
-            unbonding_height:
+            unbond_request_height:
               type: string
               format: int64
               description: >-
-                unbonding_height defines, if unbonding, the height at which this
-                sequencer has begun unbonding.
+                unbond_request_height stores the height at which this sequencer
+                has
+
+                requested to unbond.
             unbond_time:
               type: string
               format: date-time
               description: >-
-                unbond_time defines, if unbonding, the min time for the
-                sequencer to complete unbonding.
+                unbond_time defines the time when the sequencer will complete
+                unbonding.
+            notice_period_time:
+              type: string
+              format: date-time
+              title: >-
+                notice_period_time defines the time when the sequencer will
+                finish it's notice period if started
           description: >-
             Sequencer defines a sequencer identified by its' address
             (sequencerAddress).
@@ -62723,7 +63208,6 @@ definitions:
                 status or not.
             proposer:
               type: boolean
-              description: proposer defines whether the sequencer is a proposer or not.
             status:
               description: status is the sequencer status (bonded/unbonding/unbonded).
               type: string
@@ -62751,18 +63235,26 @@ definitions:
 
                   signatures required by gogoproto.
               description: tokens define the delegated tokens (incl. self-delegation).
-            unbonding_height:
+            unbond_request_height:
               type: string
               format: int64
               description: >-
-                unbonding_height defines, if unbonding, the height at which this
-                sequencer has begun unbonding.
+                unbond_request_height stores the height at which this sequencer
+                has
+
+                requested to unbond.
             unbond_time:
               type: string
               format: date-time
               description: >-
-                unbond_time defines, if unbonding, the min time for the
-                sequencer to complete unbonding.
+                unbond_time defines the time when the sequencer will complete
+                unbonding.
+            notice_period_time:
+              type: string
+              format: date-time
+              title: >-
+                notice_period_time defines the time when the sequencer will
+                finish it's notice period if started
           description: >-
             Sequencer defines a sequencer identified by its' address
             (sequencerAddress).
@@ -62793,6 +63285,16 @@ definitions:
           unbonding_time:
             type: string
             description: unbonding_time is the time duration of unbonding.
+          notice_period:
+            type: string
+            description: >-
+              notice_period is the time duration of notice period.
+
+              notice period is the duration between the unbond request and the
+              actual
+
+              unbonding starting. the proposer is still bonded during this
+              period.
           liveness_slash_multiplier:
             type: string
             description: >-
@@ -63070,7 +63572,6 @@ definitions:
                 status or not.
             proposer:
               type: boolean
-              description: proposer defines whether the sequencer is a proposer or not.
             status:
               description: status is the sequencer status (bonded/unbonding/unbonded).
               type: string
@@ -63098,18 +63599,26 @@ definitions:
 
                   signatures required by gogoproto.
               description: tokens define the delegated tokens (incl. self-delegation).
-            unbonding_height:
+            unbond_request_height:
               type: string
               format: int64
               description: >-
-                unbonding_height defines, if unbonding, the height at which this
-                sequencer has begun unbonding.
+                unbond_request_height stores the height at which this sequencer
+                has
+
+                requested to unbond.
             unbond_time:
               type: string
               format: date-time
               description: >-
-                unbond_time defines, if unbonding, the min time for the
-                sequencer to complete unbonding.
+                unbond_time defines the time when the sequencer will complete
+                unbonding.
+            notice_period_time:
+              type: string
+              format: date-time
+              title: >-
+                notice_period_time defines the time when the sequencer will
+                finish it's notice period if started
           description: >-
             Sequencer defines a sequencer identified by its' address
             (sequencerAddress).
@@ -63397,7 +63906,6 @@ definitions:
           status or not.
       proposer:
         type: boolean
-        description: proposer defines whether the sequencer is a proposer or not.
       status:
         description: status is the sequencer status (bonded/unbonding/unbonded).
         type: string
@@ -63422,18 +63930,24 @@ definitions:
             NOTE: The amount field is an Int which implements the custom method
             signatures required by gogoproto.
         description: tokens define the delegated tokens (incl. self-delegation).
-      unbonding_height:
+      unbond_request_height:
         type: string
         format: int64
-        description: >-
-          unbonding_height defines, if unbonding, the height at which this
-          sequencer has begun unbonding.
+        description: |-
+          unbond_request_height stores the height at which this sequencer has
+          requested to unbond.
       unbond_time:
         type: string
         format: date-time
         description: >-
-          unbond_time defines, if unbonding, the min time for the sequencer to
-          complete unbonding.
+          unbond_time defines the time when the sequencer will complete
+          unbonding.
+      notice_period_time:
+        type: string
+        format: date-time
+        title: >-
+          notice_period_time defines the time when the sequencer will finish
+          it's notice period if started
     description: >-
       Sequencer defines a sequencer identified by its' address
       (sequencerAddress).

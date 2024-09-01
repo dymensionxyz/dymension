@@ -15,8 +15,8 @@ func DefaultGenesis() *GenesisState {
 		LatestStateInfoIndexList:           []StateInfoIndex{},
 		LatestFinalizedStateIndexList:      []StateInfoIndex{},
 		BlockHeightToFinalizationQueueList: []BlockHeightToFinalizationQueue{},
-		// this line is used by starport scaffolding # genesis/types/default
-		Params: DefaultParams(),
+		AppList:                            []App{},
+		Params:                             DefaultParams(),
 	}
 }
 
@@ -74,7 +74,16 @@ func (gs GenesisState) Validate() error {
 		blockHeightToFinalizationQueueIndexMap[index] = struct{}{}
 	}
 
-	// TODO:
+	// Check for duplicated index in app
+	appIndexMap := make(map[string]struct{})
+
+	for _, elem := range gs.AppList {
+		index := string(AppKey(elem))
+		if _, ok := appIndexMap[index]; ok {
+			return errors.New("duplicated index for app")
+		}
+		appIndexMap[index] = struct{}{}
+	}
 
 	return gs.Params.Validate()
 }

@@ -87,13 +87,13 @@ func (suite *SequencerTestSuite) TestJailBondReducingSequencer() {
 	reduceBondMsg := types.MsgDecreaseBond{Creator: seqAddr, DecreaseAmount: sdk.NewInt64Coin(bond.Denom, 10)}
 	resp, err := suite.msgServer.DecreaseBond(suite.Ctx, &reduceBondMsg)
 	suite.Require().NoError(err)
-	bondReductions := keeper.GetMatureDecreasingBondSequencers(suite.Ctx, resp.GetCompletionTime())
+	bondReductions := keeper.GetMatureDecreasingBondIDs(suite.Ctx, resp.GetCompletionTime())
 	suite.Require().Len(bondReductions, 1)
 
 	err = keeper.JailSequencerOnFraud(suite.Ctx, seqAddr)
 	suite.NoError(err)
 
-	bondReductions = keeper.GetMatureDecreasingBondSequencers(suite.Ctx, resp.GetCompletionTime())
+	bondReductions = keeper.GetMatureDecreasingBondIDs(suite.Ctx, resp.GetCompletionTime())
 	suite.Require().Len(bondReductions, 0)
 	suite.assertJailed(seqAddr)
 }

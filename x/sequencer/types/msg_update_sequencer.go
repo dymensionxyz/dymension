@@ -8,13 +8,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-const (
-	TypeMsgUpdateSequencerInformation = "update_sequencer"
-)
-
 var (
 	_ sdk.Msg                            = &MsgUpdateSequencerInformation{}
-	_ sdk.Msg                            = &MsgUnbond{}
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateSequencerInformation)(nil)
 )
 
@@ -30,10 +25,6 @@ func NewMsgUpdateSequencerInformation(creator string, metadata *SequencerMetadat
 
 func (msg *MsgUpdateSequencerInformation) Route() string {
 	return RouterKey
-}
-
-func (msg *MsgUpdateSequencerInformation) Type() string {
-	return TypeMsgUpdateSequencerInformation
 }
 
 func (msg *MsgUpdateSequencerInformation) GetSigners() []sdk.AccAddress {

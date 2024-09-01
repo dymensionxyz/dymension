@@ -41,6 +41,16 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 				latestStateInfoIndex.Index, msg.RollappId)
 		}
 
+		// if previous block descriptor has timestamp, it means the rollapp is upgraded
+		// therefore all new BDs need to have timestamp
+		lastBD := stateInfo.GetLatestBlockDescriptor()
+		if !lastBD.Timestamp.IsZero() {
+			err := msg.BDs.Validate()
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		// check to see if received height is the one we expected
 		expectedStartHeight := stateInfo.StartHeight + stateInfo.NumBlocks
 		if expectedStartHeight != msg.StartHeight {
@@ -51,6 +61,11 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 		// bump state index
 		lastIndex = latestStateInfoIndex.Index
+	} else {
+		err := msg.BDs.Validate()
+		if err != nil {
+			return nil, err
+		}
 	}
 	newIndex = lastIndex + 1
 
@@ -64,6 +79,11 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	stateInfo := types.NewStateInfo(msg.RollappId, newIndex, msg.Creator, msg.StartHeight, msg.NumBlocks, msg.DAPath, creationHeight, msg.BDs)
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
 	k.SetStateInfo(ctx, *stateInfo)
+
+	err = k.hooks.AfterUpdateState(ctx, msg.RollappId, stateInfo)
+	if err != nil {
+		return nil, err
+	}
 
 	stateInfoIndex := stateInfo.GetIndex()
 	newFinalizationQueue := []types.StateInfoIndex{stateInfoIndex}

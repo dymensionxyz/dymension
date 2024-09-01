@@ -1,14 +1,15 @@
 syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymensionxyz/dymension/rollapp/params.proto";
 import "dymensionxyz/dymension/rollapp/rollapp.proto";
 import "dymensionxyz/dymension/rollapp/state_info.proto";
-
-option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+import "dymensionxyz/dymension/rollapp/app.proto";
 
 // Query defines the gRPC querier service.
 service Query {
@@ -64,9 +65,17 @@ message QueryParamsResponse {
   Params params = 1 [ (gogoproto.nullable) = false ];
 }
 
-message QueryGetRollappRequest { string rollappId = 1; }
+message QueryGetRollappRequest {
+  string rollappId = 1;
+  // omit_apps is an optional flag to omit the list of apps in the response
+  bool omit_apps = 2;
+}
 
-message QueryGetRollappByEIP155Request { uint64 eip155 = 1; }
+message QueryGetRollappByEIP155Request {
+  uint64 eip155 = 1;
+  // omit_apps is an optional flag to omit the list of apps in the response
+  bool omit_apps = 2;
+}
 
 message QueryGetLatestHeightRequest {
   string rollappId = 1;
@@ -88,10 +97,14 @@ message QueryGetRollappResponse {
   Rollapp rollapp = 1 [ (gogoproto.nullable) = false ];
   reserved 2 to 5;
   RollappSummary summary = 6 [ (gogoproto.nullable) = false ];
+  // apps is the list of (lazy-loaded) apps in the rollapp
+  repeated App apps = 7 [ (gogoproto.nullable) = true ];
 }
 
 message QueryAllRollappRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  // omit_apps is an optional flag to omit the list of apps in the response
+  bool omit_apps = 2;
 }
 
 message QueryAllRollappResponse {

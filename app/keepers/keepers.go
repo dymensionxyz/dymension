@@ -86,6 +86,8 @@ import (
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
+	lightclientmodulekeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
+	lightclientmoduletypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
@@ -146,6 +148,7 @@ type AppKeepers struct {
 	SponsorshipKeeper sponsorshipkeeper.Keeper
 	StreamerKeeper    streamermodulekeeper.Keeper
 	EIBCKeeper        eibckeeper.Keeper
+	LightClientKeeper lightclientmodulekeeper.Keeper
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
@@ -353,13 +356,22 @@ func (a *AppKeepers) InitKeepers(
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ClientKeeper,
 		nil,
+		a.BankKeeper,
 	)
 
 	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[sequencermoduletypes.StoreKey],
-		a.GetSubspace(sequencermoduletypes.ModuleName),
 		a.BankKeeper,
+		a.RollappKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
+	a.LightClientKeeper = *lightclientmodulekeeper.NewKeeper(
+		appCodec,
+		a.keys[lightclientmoduletypes.StoreKey],
+		a.IBCKeeper.ClientKeeper,
+		a.SequencerKeeper,
 		a.RollappKeeper,
 	)
 
@@ -512,7 +524,6 @@ func (a *AppKeepers) InitTransferStack() {
 	)
 	a.TransferStack = a.delayedAckMiddleware
 	a.TransferStack = transfergenesis.NewIBCModule(a.TransferStack, a.DelayedAckKeeper, *a.RollappKeeper, a.TransferKeeper, a.DenomMetadataKeeper)
-	a.TransferStack = transfergenesis.NewIBCModuleCanonicalChannelHack(a.TransferStack, *a.RollappKeeper, a.IBCKeeper.ChannelKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
@@ -586,6 +597,7 @@ func (a *AppKeepers) SetupHooks() {
 		a.delayedAckMiddleware,
 		a.StreamerKeeper.Hooks(),
 		a.DymNSKeeper.GetRollAppHooks(),
+		a.LightClientKeeper.RollappHooks(),
 	))
 }
 

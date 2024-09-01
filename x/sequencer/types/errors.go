@@ -31,4 +31,5 @@ var (
 	ErrInvalidURL               = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid url")
 	ErrInvalidMetadata          = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid metadata")
 	ErrInvalidVMTypeUpdate      = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid vm type update")
+	ErrUnknownBondReduction     = errorsmod.Wrap(gerrc.ErrNotFound, "unknown bond reduction")
 )

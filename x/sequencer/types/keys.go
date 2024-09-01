@@ -5,6 +5,8 @@ import (
 	fmt "fmt"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/utils"
 )
 
@@ -25,6 +27,9 @@ const (
 )
 
 var (
+	// ParamsKey is the prefix for params key
+	ParamsKey = []byte{0xa0}
+
 	// KeySeparator defines the separator for keys
 	KeySeparator = "/"
 
@@ -47,9 +52,13 @@ var (
 	UnbondedSequencersKeyPrefix  = []byte{0xa2}
 	UnbondingSequencersKeyPrefix = []byte{0xa3}
 
-	UnbondingQueueKey      = []byte{0x41} // prefix for the timestamps in unbonding queue
-	NoticePeriodQueueKey   = []byte{0x42} // prefix for the timestamps in notice period queue
-	DecreasingBondQueueKey = []byte{0x43} // prefix for the timestamps in decreasing bond queue
+	UnbondingQueueKey    = []byte{0x41} // prefix for the timestamps in unbonding queue
+	NoticePeriodQueueKey = []byte{0x42} // prefix for the timestamps in notice period queue
+
+	DecreasingBondQueueKey     = []byte{0x43} // prefix for the timestamps in decreasing bond queue
+	DecreasingBondIndexKey     = []byte{0x44} // prefix for the index count for bond reductions
+	DecreasingBondSequencerKey = []byte{0x45} // prefix for the decreasing bond queue by sequencer
+	DecreasingBondIDKey        = []byte{0x46} // prefix for the decreasing bond count - used to generate ID
 )
 
 /* --------------------- specific sequencer address keys -------------------- */
@@ -123,6 +132,25 @@ func GetDecreasingBondQueueKey(sequencerAddress string, endTime time.Time) []byt
 	key := DecreasingBondQueueByTimeKey(endTime)
 	key = append(key, KeySeparator...)
 	key = append(key, []byte(sequencerAddress)...)
+	return key
+}
+
+func GetDecreasingBondIndexKey(bondReductionID uint64) []byte {
+	key := DecreasingBondIndexKey
+	key = append(key, KeySeparator...)
+	key = append(key, sdk.Uint64ToBigEndian(bondReductionID)...)
+	return key
+}
+
+func GetDecreasingBondIDKey() []byte {
+	return DecreasingBondIDKey
+}
+
+func GetDecreasingBondSequencerKey(sequencerAddress string) []byte {
+	key := DecreasingBondSequencerKey
+	key = append(key, KeySeparator...)
+	key = append(key, []byte(sequencerAddress)...)
+	key = append(key, KeySeparator...)
 	return key
 }
 

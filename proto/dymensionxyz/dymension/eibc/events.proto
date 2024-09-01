@@ -26,6 +26,8 @@ message EventDemandOrderCreated {
   string rollapp_id = 7;
   // recipient is the address of the recipient.
   string recipient = 8;
+  // packet_type is the type of the packet.
+  string packet_type = 9;
 }
 
 // EventDemandOrderPacketStatusUpdate is emitted when the status of the related packet is updated.
@@ -34,6 +36,8 @@ message EventDemandOrderPacketStatusUpdated {
   string order_id = 1;
   // new_packet_status is the status of the packet after the update.
   dymensionxyz.dymension.common.Status new_packet_status = 2;
+  // is_fulfilled is the flag indicating whether the order is fulfilled.
+  bool is_fulfilled = 3;
 }
 
 // EventDemandOrderFeeUpdate is emitted when the fee of the demand order is updated.
@@ -58,4 +62,6 @@ message EventDemandOrderFulfilled {
   string packet_status = 5;
   // fulfiller is the address of the fulfiller.
   string fulfiller = 9;
+  // packet_type is the type of the packet.
+  string packet_type = 10;
 }
