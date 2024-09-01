@@ -81,8 +81,8 @@ func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 			s.Require().True(errorsmod.IsOf(err, gerrc.ErrFailedPrecondition))
 			ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 			ra.ChannelId = s.path.EndpointA.ChannelID
+			ra.GenesisState.TransfersEnabled = true
 			s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), ra)
-			s.hubApp().RollappKeeper.EnableTransfers(s.hubCtx(), ra.RollappId)
 		} else {
 			s.Require().NoError(err)
 		}

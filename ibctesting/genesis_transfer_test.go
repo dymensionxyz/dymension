@@ -80,7 +80,7 @@ func (s *transferGenesisSuite) TestHappyPath() {
 		// has the denom?
 		ibcDenom := types.ParseDenomTrace(types.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, denom)).IBCDenom()
 		metadata, found := s.hubApp().BankKeeper.GetDenomMetaData(s.hubCtx(), ibcDenom)
-		s.Require().True(found, "missing denom metadata for rollapps taking token")
+		s.Require().True(found, "missing denom metadata for rollapps taking token", "denom", ibcDenom)
 		s.Require().Equal(ibcDenom, metadata.Base)
 		// has the tokens?
 		c := s.hubApp().BankKeeper.GetBalance(s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), ibcDenom)
