@@ -11,7 +11,7 @@ import (
 )
 
 func (k Keeper) validateTradeable(ctx sdk.Context, plan types.Plan, trader string) error {
-	if plan.Settled {
+	if plan.IsSettled() {
 		return errorsmod.Wrapf(types.ErrPlanSettled, "planId: %d", plan.Id)
 	}
 
@@ -35,12 +35,13 @@ func (k Keeper) Buy(ctx sdk.Context, planId, buyer string, amountTokensToBuy, ma
 		return err
 	}
 
-	//FIXME: move curve to the plan
 	// Calculate cost over fixed price curve
-	curve := types.NewBondingCurve(math.OneInt(), math.ZeroInt(), math.OneInt())
-	cost := curve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy))
+	cost := plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy))
 
-	// FIXME: validate cost is positive
+	// validate cost is positive
+	if !cost.IsPositive() {
+		return errorsmod.Wrapf(types.ErrInvalidCost, "cost: %s", cost.String())
+	}
 
 	// Validate expected out amount
 	if cost.GT(maxCost) {
@@ -92,8 +93,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId, seller string, amountTokensToSell,
 
 	//FIXME: move curve to the plan
 	// Calculate cost over fixed price curve
-	curve := types.NewBondingCurve(math.OneInt(), math.ZeroInt(), math.OneInt())
-	cost := curve.Cost(plan.SoldAmt.Sub(amountTokensToSell), plan.SoldAmt)
+	cost := plan.BondingCurve.Cost(plan.SoldAmt.Sub(amountTokensToSell), plan.SoldAmt)
 
 	// Validate expected out amount
 	if cost.LT(minCost) {

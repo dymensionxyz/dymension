@@ -27,7 +27,7 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId string) error {
 	if !found {
 		return errorsmod.Wrapf(types.ErrPlanNotFound, "rollappId: %s", rollappId)
 	}
-	if plan.Settled {
+	if plan.IsSettled() {
 		return errorsmod.Wrapf(types.ErrPlanSettled, "rollappId: %s", rollappId)
 	}
 
@@ -52,7 +52,7 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId string) error {
 	}
 
 	// mark the plan as `settled`, allowing users to claim tokens
-	plan.Settled = true
+	plan.SettledDenom = rollappDenom
 	k.SetPlan(ctx, plan)
 
 	// FIXME: uses the raised DYM and unsold tokens to bootstrap the rollapp's liquidity pool
@@ -76,7 +76,7 @@ func (k Keeper) Claim(ctx sdk.Context, planId, claimer string) error {
 		return errorsmod.Wrapf(types.ErrPlanNotFound, "planId: %s", planId)
 	}
 
-	if !plan.Settled {
+	if !plan.IsSettled() {
 		return errorsmod.Wrapf(types.ErrPlanSettled, "planId: %s", planId)
 	}
 

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/simulation/types"
+	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
 func (s *KeeperTestSuite) TestCreatePlan_Validation() {
@@ -30,6 +30,7 @@ func (s *KeeperTestSuite) TestCreatePlan_Validation() {
 	// if req.EndTime.Before(ctx.BlockTime()) {
 	// 	return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrInvalidEndTime)
 	// }
+	return
 }
 
 func (s *KeeperTestSuite) TestCreatePlan() {
@@ -37,18 +38,19 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	rollappId2 := s.CreateDefaultRollapp()
 
 	k := s.App.IROKeeper
+	curve := types.DefaultBondingCurve()
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp)
+	planId, err := k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp, curve)
 	s.Require().NoError(err)
 
 	// creating a a plan for same rollapp should fail
-	_, err = k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp)
+	_, err = k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp, curve)
 	s.Require().Error(err)
 
 	// create plan for different rollappID. test last planId increases
 	rollapp2, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId2)
-	planId2, err := k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp2)
+	planId2, err := k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp2, curve)
 	s.Require().NoError(err)
 	s.Require().Greater(planId2, planId)
 
@@ -64,7 +66,6 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	// test get all plans
 	plans := k.GetAllPlans(s.Ctx)
 	s.Require().Len(plans, 2)
-
 }
 
 func (s *KeeperTestSuite) TestMintAllocation() {

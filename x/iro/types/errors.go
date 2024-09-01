@@ -20,4 +20,5 @@ var (
 	ErrInvalidMinCost               = errorsmod.Register(ModuleName, 1110, "invalid minimum cost")
 	ErrInvalidBondingCurve          = errorsmod.Register(ModuleName, 1111, "invalid bonding curve params")
 	ErrInvalidRollappGenesisState   = errorsmod.Register(ModuleName, 1112, "invalid rollapp genesis state")
+	ErrInvalidCost                  = errorsmod.Register(ModuleName, 1113, "invalid cost")
 )

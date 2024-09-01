@@ -9,6 +9,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
@@ -47,6 +48,17 @@ const (
 
 func (r Rollapp) LastStateUpdateHeightIsSet() bool {
 	return r.LastStateUpdateHeight != 0
+}
+
+// get rollapp denom
+func (r Rollapp) GetIBCDenom() (string, error) {
+	if r.ChannelId == "" {
+		// FIXME: return typed error
+		return "", fmt.Errorf("rollapp channel id not set")
+	}
+	denom := uibc.GetForeignDenomTrace(r.ChannelId, r.Metadata.BaseDenom)
+
+	return r.Bech32Prefix + r.RollappId, nil
 }
 
 func (r Rollapp) ValidateBasic() error {
