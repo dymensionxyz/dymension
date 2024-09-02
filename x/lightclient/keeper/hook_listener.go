@@ -31,13 +31,11 @@ func (hook rollappHook) AfterUpdateState(
 	rollappId string,
 	stateInfo *rollapptypes.StateInfo,
 ) error {
-	ctx.Logger().Info("Light client. AfterUpdateState.") // TODO: remove
 	canonicalClient, found := hook.k.GetCanonicalClient(ctx, rollappId)
 	if !found {
 		canonicalClient, foundClient := hook.k.GetProspectiveCanonicalClient(ctx, rollappId, stateInfo.GetLatestHeight()-1)
 		if foundClient {
 			hook.k.SetCanonicalClient(ctx, rollappId, canonicalClient)
-			ctx.Logger().Info("Light client. Set canonical.", "canonical", canonicalClient) // TODO: remove
 		}
 		return nil
 	}
@@ -82,7 +80,7 @@ func (hook rollappHook) checkStateForHeight(ctx sdk.Context, rollappId string, b
 	// Cast consensus state to tendermint consensus state - we need this to check the state root and timestamp and nextValHash
 	tmConsensusState, ok := consensusState.(*ibctm.ConsensusState)
 	if !ok {
-		return nil // TODO: why nil?
+		return nil
 	}
 	rollappState := types.RollappState{
 		BlockDescriptor:    bd,

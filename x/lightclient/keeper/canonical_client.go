@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"errors"
+
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -15,11 +18,9 @@ import (
 // 2. The client state must match the expected client params as configured by the module
 // 3. All the existing consensus states much match the corresponding height rollapp block descriptors
 func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string, maxHeight uint64) (clientID string, stateCompatible bool) {
-	k.Logger(ctx).Info("GetProspectiveCanonicalClient.")
 	k.ibcClientKeeper.IterateClientStates(ctx, nil, func(client string, cs exported.ClientState) bool {
-		k.Logger(ctx).Info("GetProspectiveCanonicalClient.", "client", client)
-		ok := k.isValidClient(ctx, client, cs, rollappId, maxHeight)
-		if ok {
+		err := k.validClient(ctx, client, cs, rollappId, maxHeight)
+		if err == nil {
 			clientID = client
 			stateCompatible = true
 			return true
@@ -58,58 +59,47 @@ func (k Keeper) GetAllCanonicalClients(ctx sdk.Context) (clients []types.Canonic
 	return
 }
 
-func (k Keeper) isValidClient(ctx sdk.Context, clientID string, cs exported.ClientState, rollappId string, maxHeight uint64) bool {
-	l := ctx.Logger().With("callsite", "is valid client")
+func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.ClientState, rollappId string, maxHeight uint64) error {
 	tmClientState, ok := cs.(*ibctm.ClientState)
 	if !ok {
-		l.Info("not tm client") // TODO: remove
-		return false
+		return errors.New("not tm client")
 	}
 	if tmClientState.ChainId != rollappId {
-		l.Info("wrong chain id") // TODO: remove
-		return false
+		return errors.New("wrong chain id")
 	}
 
 	expClient := types.ExpectedCanonicalClientParams(k.sequencerKeeper.UnbondingTime(ctx))
 
 	if err := types.IsCanonicalClientParamsValid(tmClientState, &expClient); err != nil {
-		l.Info("invalid params", "error", err) // TODO: remove
-		return false
+		return errorsmod.Wrap(err, "params")
 	}
 	res, err := k.ibcClientKeeper.ConsensusStateHeights(ctx, &ibcclienttypes.QueryConsensusStateHeightsRequest{
 		ClientId:   clientID,
 		Pagination: &query.PageRequest{Limit: maxHeight},
 	})
 	if err != nil {
-		l.Info("failed to query cons state heights") // TODO: remove
-		return false
+		return errorsmod.Wrap(err, "cons state heights")
 	}
-	l.Info("iterating cons state heights", "n", len(res.ConsensusStateHeights)) // TODO: remove
 	atLeastOneMatch := false
 	for _, consensusHeight := range res.ConsensusStateHeights {
 		h := consensusHeight.GetRevisionHeight()
-		l.Info("checking cons state", "height", h) // TODO: remove
 		if maxHeight < h {
-			l.Info("max height reached") // TODO: remove
 			break
 		}
 		consensusState, _ := k.ibcClientKeeper.GetClientConsensusState(ctx, clientID, consensusHeight)
 		tmConsensusState, _ := consensusState.(*ibctm.ConsensusState)
 		stateInfoH, err := k.rollappKeeper.FindStateInfoByHeight(ctx, rollappId, h)
 		if err != nil {
-			l.Info("find state info for h") // TODO: remove
-			return false
+			return errorsmod.Wrap(err, "find state info by height h")
 		}
 		stateInfoHplus1, err := k.rollappKeeper.FindStateInfoByHeight(ctx, rollappId, h+1)
 		if err != nil {
-			l.Info("find state info for h+1") // TODO: remove
-			return false
+			return errorsmod.Wrap(err, "find state info by height h+1")
 		}
 		bd, _ := stateInfoH.GetBlockDescriptor(h)
 		oldSequencer, err := k.GetSequencerPubKey(ctx, stateInfoHplus1.Sequencer)
 		if err != nil {
-			l.Info("get seq pub key") // TODO: remove
-			return false
+			return errorsmod.Wrap(err, "get sequencer pubkey")
 		}
 		rollappState := types.RollappState{
 			BlockDescriptor:    bd,
@@ -117,13 +107,15 @@ func (k Keeper) isValidClient(ctx sdk.Context, clientID string, cs exported.Clie
 		}
 		err = types.CheckCompatibility(*tmConsensusState, rollappState)
 		if err != nil {
-			l.Info("incompat") // TODO: remove
-			return false
+			return errorsmod.Wrap(err, "check compatibility")
 		}
 		atLeastOneMatch = true
 	}
 	// Need to be sure that at least one consensus state agrees with a state update
 	// (There are also no disagreeing consensus states. There may be some consensus states
 	// for future state updates, which will incur a fraud if they disagree.)
-	return atLeastOneMatch
+	if !atLeastOneMatch {
+		return errors.New("no matching consensus state found")
+	}
+	return nil
 }
