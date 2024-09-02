@@ -10,14 +10,17 @@ import (
 )
 
 // FIXME: test trade after settled
+
 // FIXME: test taker fee
+
+// FIXME: add sell test
 
 func (s *KeeperTestSuite) TestBuy() {
 	rollappId := s.CreateDefaultRollapp()
 	k := s.App.IROKeeper
 	curve := types.DefaultBondingCurve()
 
-	startTime := time.Now().Add(time.Hour)
+	startTime := time.Now()
 	maxAmt := sdk.NewInt(1_000_000_000)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)

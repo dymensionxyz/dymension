@@ -30,3 +30,8 @@ func (p Plan) IsSettled() bool {
 func (p Plan) ModuleAccName() string {
 	return ModuleName + "-" + p.RollappId
 }
+
+func (p Plan) GetAddress() sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(p.ModuleAccAddress)
+	return addr
+}

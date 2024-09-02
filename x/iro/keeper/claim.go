@@ -35,7 +35,6 @@ func (k Keeper) Claim(ctx sdk.Context, planId, claimer string) error {
 	if availableTokens.IsZero() {
 		return nil
 	}
-
 	err := k.bk.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(claimer), types.ModuleName, sdk.NewCoins(availableTokens))
 	if err != nil {
 		return err

@@ -60,7 +60,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId, buyer string, amountTokensToBuy, ma
 	//FIXME: Charge taker fee
 
 	// send DYM from buyer to the plan. DYM sent directly to the plan's module account
-	err = k.bk.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(buyer), plan.ModuleAccName(), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
+	err = k.bk.SendCoins(ctx, sdk.MustAccAddressFromBech32(buyer), plan.GetAddress(), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId, seller string, amountTokensToSell,
 	//FIXME: Charge taker fee
 
 	// send DYM from the plan to the seller. DYM managed by the plan's module account
-	err = k.bk.SendCoinsFromModuleToAccount(ctx, plan.ModuleAccName(), sdk.MustAccAddressFromBech32(seller), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
+	err = k.bk.SendCoins(ctx, plan.GetAddress(), sdk.MustAccAddressFromBech32(seller), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
 	if err != nil {
 		return err
 	}

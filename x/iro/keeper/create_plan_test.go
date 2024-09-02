@@ -66,6 +66,15 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	// test get all plans
 	plans := k.GetAllPlans(s.Ctx)
 	s.Require().Len(plans, 2)
+
+	ok := s.App.AccountKeeper.HasAccount(s.Ctx, plan.GetAddress())
+	s.Require().True(ok)
+
+	// test module account has the expected creation fee
+	expectedCreationFee := s.App.IROKeeper.GetParams(s.Ctx).CreationFee
+	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, plan.GetAddress())
+	s.Require().Len(balances, 1)
+	s.Require().Equal(expectedCreationFee, balances[0])
 }
 
 func (s *KeeperTestSuite) TestMintAllocation() {

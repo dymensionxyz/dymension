@@ -19,11 +19,6 @@ func (k Keeper) SetPlan(ctx sdk.Context, plan types.Plan) {
 	store.Set(planByRollappKey, []byte(fmt.Sprintf("%d", plan.Id)))
 }
 
-// UpdatePlan updates the state of a plan in the keeper
-func (k Keeper) UpdatePlan(ctx sdk.Context, plan *types.Plan) {
-	k.SetPlan(ctx, *plan)
-}
-
 // GetPlan returns a plan from its index
 func (k Keeper) GetPlan(ctx sdk.Context, planId string) (val types.Plan, found bool) {
 	store := ctx.KVStore(k.storeKey)
