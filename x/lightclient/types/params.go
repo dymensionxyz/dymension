@@ -26,7 +26,7 @@ func ExpectedCanonicalClientParams(rollappUnbondingPeriod time.Duration) ibctm.C
 		// Trust level is the fraction of the trusted validator set
 		// that must sign over a new untrusted header before it is accepted.
 		// For a rollapp should be 1/1.
-		TrustLevel: ibctm.NewFractionFromTm(math.Fraction{Numerator: 1, Denominator: 1}),
+		TrustLevel: ibctm.NewFractionFromTm(math.Fraction{Numerator: 1, Denominator: 3}),
 		// TrustingPeriod is the duration of the period since the
 		// LatestTimestamp during which the submitted headers are valid for update.
 		TrustingPeriod: time.Hour * 24 * 10,
