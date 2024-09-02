@@ -12,13 +12,14 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/stretchr/testify/suite"
 )
 
 var canonicalClientConfig = ibctesting.TendermintConfig{
 	TrustLevel:      types.DefaultExpectedCanonicalClientParams().TrustLevel,
 	TrustingPeriod:  types.DefaultExpectedCanonicalClientParams().TrustingPeriod,
-	UnbondingPeriod: types.DefaultExpectedCanonicalClientParams().UnbondingPeriod,
+	UnbondingPeriod: sequencertypes.DefaultUnbondingTime,
 	MaxClockDrift:   types.DefaultExpectedCanonicalClientParams().MaxClockDrift,
 }
 
@@ -102,7 +103,7 @@ func (s *lightClientSuite) TestSetCanonicalClient_Succeeds() {
 	s.Require().NoError(err)
 
 	canonClientID, found := s.hubApp().LightClientKeeper.GetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID)
-	s.True(found)
+	s.Require().True(found)
 	s.Equal(endpointA.ClientID, canonClientID)
 }
 

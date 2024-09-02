@@ -10,10 +10,11 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ics23 "github.com/cosmos/ics23/go"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func DefaultExpectedCanonicalClientParams() ibctm.ClientState {
-	return ExpectedCanonicalClientParams(time.Hour * 24 * 7 * 3)
+	return ExpectedCanonicalClientParams(sequencertypes.DefaultUnbondingTime)
 }
 
 // ExpectedCanonicalClientParams defines the expected parameters for a canonical IBC Tendermint client state
@@ -28,7 +29,7 @@ func ExpectedCanonicalClientParams(rollappUnbondingPeriod time.Duration) ibctm.C
 		TrustLevel: ibctm.NewFractionFromTm(math.Fraction{Numerator: 1, Denominator: 1}),
 		// TrustingPeriod is the duration of the period since the
 		// LatestTimestamp during which the submitted headers are valid for update.
-		TrustingPeriod: time.Hour * 24 * 7 * 2, // TODO: need to set appropriately
+		TrustingPeriod: time.Hour * 24 * 10, // TODO: need to set appropriately
 		// Unbonding period is the duration of the sequencer unbonding period.
 		UnbondingPeriod: rollappUnbondingPeriod,
 		// MaxClockDrift defines how much new (untrusted) header's Time
