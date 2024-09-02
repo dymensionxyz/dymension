@@ -43,7 +43,6 @@ func (s *KeeperTestSuite) TestSettle() {
 	s.Require().True(balance.IsZero())
 }
 
-// TestClaim after settle
 func (s *KeeperTestSuite) TestClaim() {
 	rollappId := s.CreateDefaultRollapp()
 	k := s.App.IROKeeper
@@ -87,3 +86,36 @@ func (s *KeeperTestSuite) TestClaim() {
 }
 
 // Test liquidity pool bootstrap
+func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
+	rollappId := s.CreateDefaultRollapp()
+	k := s.App.IROKeeper
+	curve := types.DefaultBondingCurve()
+
+	startTime := time.Now()
+	amt := sdk.NewInt(1_000_000)
+	rollappDenom := "dasdasdasdasdsa"
+
+	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+	planId, err := k.CreatePlan(s.Ctx, amt, startTime, startTime.Add(time.Hour), rollapp, curve)
+	s.Require().NoError(err)
+
+	//FIXME: fund for creation fee
+
+	// should succeed after fund
+	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
+	err = k.Settle(s.Ctx, rollappId, rollappDenom)
+	s.Require().NoError(err)
+
+	pool, err := s.App.GAMMKeeper.GetPool(s.Ctx, 1)
+	s.Require().NoError(err)
+
+	price, err := pool.SpotPrice(s.Ctx, rollappDenom, "adym")
+	s.Require().NoError(err)
+
+	plan := k.MustGetPlan(s.Ctx, planId)
+	lastPrice := plan.BondingCurve.SpotPrice(plan.SoldAmt)
+	s.Require().Equal(lastPrice, price)
+
+}
+
+// test edge cases: nothing sold, all sold

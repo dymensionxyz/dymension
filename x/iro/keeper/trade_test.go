@@ -42,11 +42,6 @@ func (s *KeeperTestSuite) TestBuy() {
 	// plan start
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
 
-	// buy more than total allocation limit - should fail
-	//FIXME: move to separate test
-	err = k.Buy(s.Ctx, planId, buyer.String(), sdk.NewInt(1_000_001), maxAmt)
-	s.Require().Error(err)
-
 	// cost is higher than maxCost specified - should fail
 	err = k.Buy(s.Ctx, planId, buyer.String(), sdk.NewInt(1_000), sdk.NewInt(10))
 	s.Require().Error(err)

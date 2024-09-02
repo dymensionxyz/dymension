@@ -10,6 +10,7 @@ import (
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	balancer "github.com/osmosis-labs/osmosis/v15/x/gamm/pool-models/balancer"
 )
 
 // TransfersEnabled called by the genesis transfer IBC module when a transfer is handled
@@ -72,11 +73,35 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 
 	// find the limiting factor
 	unallocatedTokens := plan.TotalAllocation.Amount.Sub(plan.SoldAmt) // assumed > 0, as we enforce it in the Buy function
+
 	raisedDYM := k.bk.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), appparams.BaseDenom)
 	tokens, dym := determineLimitingFactor(unallocatedTokens, raisedDYM.Amount, lastPrice)
 
-	// FIXME: create pool
-	_, _ = tokens, dym
+	rollappLiquidityCoin := sdk.NewCoin(plan.SettledDenom, tokens)
+	dymLiquidityCoin := sdk.NewCoin(appparams.BaseDenom, dym)
+
+	// send the raised DYM to the iro module
+	err := k.bk.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(dymLiquidityCoin))
+	if err != nil {
+		return err
+	}
+	// create pool
+	balancerPool := balancer.NewMsgCreateBalancerPool(k.AK.GetModuleAddress(types.ModuleName), balancer.PoolParams{}, []balancer.PoolAsset{
+		{
+			Token:  dymLiquidityCoin,
+			Weight: math.OneInt(),
+		},
+		{
+			Token:  rollappLiquidityCoin,
+			Weight: math.OneInt(),
+		},
+	}, "")
+
+	// FIXME: skip the pool creation fee
+	_, err = k.gk.CreatePool(ctx, balancerPool)
+	if err != nil {
+		return err
+	}
 
 	// FIXME: Add incentives
 	return nil

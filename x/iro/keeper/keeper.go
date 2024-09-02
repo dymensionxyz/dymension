@@ -13,6 +13,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
 )
 
 type Keeper struct {
@@ -26,6 +27,7 @@ type Keeper struct {
 	AK *authkeeper.AccountKeeper
 	bk bankkeeper.Keeper
 	rk *rollappkeeper.Keeper
+	gk *gammkeeper.Keeper
 }
 
 func NewKeeper(
@@ -34,6 +36,8 @@ func NewKeeper(
 	ak *authkeeper.AccountKeeper,
 	bk bankkeeper.Keeper,
 	rk *rollappkeeper.Keeper,
+	gk *gammkeeper.Keeper,
+
 ) *Keeper {
 	return &Keeper{
 		cdc:      cdc,
@@ -41,6 +45,7 @@ func NewKeeper(
 		AK:       ak,
 		bk:       bk,
 		rk:       rk,
+		gk:       gk,
 	}
 }
 

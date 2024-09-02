@@ -383,6 +383,7 @@ func (a *AppKeepers) InitKeepers(
 		&a.AccountKeeper,
 		a.BankKeeper,
 		a.RollappKeeper,
+		a.GAMMKeeper,
 	)
 
 	a.IncentivesKeeper = incentiveskeeper.NewKeeper(
