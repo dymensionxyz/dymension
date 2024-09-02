@@ -32,7 +32,7 @@ func (k Keeper) StateInfo(c context.Context, req *types.QueryGetStateInfoRequest
 				if _, exists := k.GetRollapp(ctx, req.RollappId); !exists {
 					return nil, types.ErrRollappNotRegistered
 				}
-				return nil, errorsmod.Wrap(gerrc.ErrNotFound, "get rollapp")
+				return nil, status.Error(codes.NotFound, "not found")
 			}
 			req.Index = latestStateIndex.Index
 		}
@@ -42,7 +42,7 @@ func (k Keeper) StateInfo(c context.Context, req *types.QueryGetStateInfoRequest
 	if req.Index != 0 {
 		val, found := k.GetStateInfo(ctx, req.RollappId, req.Index)
 		if !found {
-			return nil, errorsmod.Wrap(gerrc.ErrNotFound, "get state info")
+			return nil, status.Error(codes.NotFound, "not found")
 		}
 		stateInfo = val
 	} else if req.Height != 0 {
