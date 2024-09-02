@@ -52,10 +52,13 @@ func (suite *SequencerTestSuite) CreateDefaultRollapp() (string, cryptotypes.Pub
 
 func (suite *SequencerTestSuite) CreateRollappWithInitialSequencer(initSeq string) string {
 	rollapp := rollapptypes.Rollapp{
-		RollappId:        urand.RollappID(),
-		Owner:            sample.AccAddress(),
-		GenesisChecksum:  "checksum",
-		Bech32Prefix:     "rol",
+		RollappId: urand.RollappID(),
+		Owner:     sample.AccAddress(),
+		GenesisInfo: rollapptypes.GenesisInfo{
+			Bech32Prefix:    "rol",
+			GenesisChecksum: "checksum",
+			NativeDenom:     &rollapptypes.DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+		},
 		InitialSequencer: initSeq,
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)

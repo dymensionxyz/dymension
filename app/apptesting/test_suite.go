@@ -54,10 +54,17 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 		Creator:          alice,
 		RollappId:        name,
 		InitialSequencer: "*",
-		Bech32Prefix:     strings.ToLower(rand.Str(3)),
-		GenesisChecksum:  "1234567890abcdefg",
 		Alias:            strings.ToLower(rand.Str(7)),
 		VmType:           rollapptypes.Rollapp_EVM,
+		GenesisInfo: rollapptypes.GenesisInfo{
+			Bech32Prefix:    strings.ToLower(rand.Str(3)),
+			GenesisChecksum: "1234567890abcdefg",
+			NativeDenom: &rollapptypes.DenomMetadata{
+				Display:  "DEN",
+				Base:     "aden",
+				Exponent: 18,
+			},
+		},
 		Metadata: &rollapptypes.RollappMetadata{
 			Website:     "https://dymension.xyz",
 			Description: "Sample description",

@@ -548,10 +548,9 @@ func (suite *RollappTestSuite) createRollappWithIDAndCreator(rollappId string, c
 		Creator:          creator,
 		RollappId:        rollappId,
 		InitialSequencer: sample.AccAddress(),
-		Bech32Prefix:     "rol",
-		GenesisChecksum:  "checksum",
 		VmType:           types.Rollapp_EVM,
 		Metadata:         &mockRollappMetadata,
+		GenesisInfo:      mockGenesisInfo,
 	}
 	suite.FundForAliasRegistration(rollapp)
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp.GetRollapp())

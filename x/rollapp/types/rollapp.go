@@ -16,21 +16,19 @@ import (
 func NewRollapp(
 	creator,
 	rollappId,
-	initSequencer,
-	bech32Prefix,
-	genesisChecksum string,
+	initialSequencer string,
 	vmType Rollapp_VMType,
 	metadata *RollappMetadata,
+	genInfo GenesisInfo,
 	transfersEnabled bool,
 ) Rollapp {
 	return Rollapp{
 		RollappId:        rollappId,
 		Owner:            creator,
-		InitialSequencer: initSequencer,
-		GenesisChecksum:  genesisChecksum,
-		Bech32Prefix:     bech32Prefix,
+		InitialSequencer: initialSequencer,
 		VmType:           vmType,
 		Metadata:         metadata,
+		GenesisInfo:      genInfo,
 		GenesisState: RollappGenesisState{
 			TransfersEnabled: transfersEnabled,
 		},
@@ -66,14 +64,8 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
 	}
 
-	if r.Bech32Prefix != "" {
-		if err = validateBech32Prefix(r.Bech32Prefix); err != nil {
-			return gerrc.ErrInvalidArgument.Wrap("bech32")
-		}
-	}
-
-	if len(r.GenesisChecksum) > maxGenesisChecksumLength {
-		return errorsmod.Wrap(ErrInvalidGenesisChecksum, "GenesisChecksum")
+	if err = r.GenesisInfo.Validate(); err != nil {
+		return err
 	}
 
 	if r.VmType == 0 {
@@ -88,7 +80,33 @@ func (r Rollapp) ValidateBasic() error {
 }
 
 func (r Rollapp) AllImmutableFieldsAreSet() bool {
-	return r.GenesisChecksum != "" && r.InitialSequencer != "" && r.Bech32Prefix != ""
+	return r.InitialSequencer != ""
+}
+
+func (r Rollapp) GenesisInfoFieldsAreSet() bool {
+	return r.GenesisInfo.GenesisChecksum != "" && r.GenesisInfo.NativeDenom != nil && r.GenesisInfo.NativeDenom.Validate() == nil && r.GenesisInfo.Bech32Prefix != ""
+}
+
+func (r GenesisInfo) Validate() error {
+	if r.Bech32Prefix != "" {
+		if err := validateBech32Prefix(r.Bech32Prefix); err != nil {
+			return gerrc.ErrInvalidArgument.Wrap("bech32")
+		}
+	}
+
+	if len(r.GenesisChecksum) > maxGenesisChecksumLength {
+		return errorsmod.Wrap(ErrInvalidGenesisChecksum, "GenesisChecksum")
+	}
+
+	if r.NativeDenom == nil {
+		return errorsmod.Wrap(ErrInvalidNativeDenom, "NativeDenom")
+	}
+
+	if err := r.NativeDenom.Validate(); err != nil {
+		return errorsmod.Wrap(ErrInvalidNativeDenom, err.Error())
+	}
+
+	return nil
 }
 
 func validateInitialSequencer(initialSequencer string) error {
@@ -127,6 +145,18 @@ func validateBech32Prefix(prefix string) error {
 	if err = sdk.VerifyAddressFormat(bAddr); err != nil {
 		return errorsmod.Wrap(err, "verify addr format")
 	}
+	return nil
+}
+
+func (dm DenomMetadata) Validate() error {
+	if dm.Base == "" {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "base denom")
+	}
+
+	if dm.Display == "" {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "display denom")
+	}
+
 	return nil
 }
 

@@ -16,7 +16,7 @@ func CmdCreateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "create-rollapp [rollapp-id] [alias] [vm-type]",
 		Short:   "Create a new rollapp",
-		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID Rollapp EVM --init-sequencer '<seq_address1>,<seq_address2>' --genesis-checksum <genesis_checksum> --metadata metadata.json",
+		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID Rollapp EVM --init-sequencer '<seq_address1>,<seq_address2>' --genesis-checksum <genesis_checksum> --native-denom native_denom.json --metadata metadata.json",
 		Args:    cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// nolint:gofumpt
@@ -32,26 +32,14 @@ func CmdCreateRollapp() *cobra.Command {
 				return err
 			}
 
-			genesisChecksum, err := cmd.Flags().GetString(FlagGenesisChecksum)
+			genesisInfo, err := parseGenesisInfo(cmd)
 			if err != nil {
 				return err
 			}
 
-			bech32Prefix, err := cmd.Flags().GetString(FlagBech32Prefix)
+			metadata, err := parseMetadata(cmd)
 			if err != nil {
 				return err
-			}
-
-			metadataFlag, err := cmd.Flags().GetString(FlagMetadata)
-			if err != nil {
-				return err
-			}
-
-			metadata := new(types.RollappMetadata)
-			if metadataFlag != "" {
-				if err = utils.ParseJsonFromFile(metadataFlag, metadata); err != nil {
-					return err
-				}
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -63,11 +51,10 @@ func CmdCreateRollapp() *cobra.Command {
 				clientCtx.GetFromAddress().String(),
 				argRollappId,
 				initSequencer,
-				bech32Prefix,
-				genesisChecksum,
 				alias,
 				types.Rollapp_VMType(vmType),
 				metadata,
+				genesisInfo,
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
@@ -78,4 +65,51 @@ func CmdCreateRollapp() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
+}
+
+func parseGenesisInfo(cmd *cobra.Command) (types.GenesisInfo, error) {
+	var (
+		genesisInfo types.GenesisInfo
+		err         error
+	)
+
+	genesisInfo.GenesisChecksum, err = cmd.Flags().GetString(FlagGenesisChecksum)
+	if err != nil {
+		return types.GenesisInfo{}, err
+	}
+
+	genesisInfo.Bech32Prefix, err = cmd.Flags().GetString(FlagBech32Prefix)
+	if err != nil {
+		return types.GenesisInfo{}, err
+	}
+
+	nativeDenomFlag, err := cmd.Flags().GetString(FlagNativeDenom)
+	if err != nil {
+		return types.GenesisInfo{}, err
+	}
+
+	genesisInfo.NativeDenom = new(types.DenomMetadata)
+	if nativeDenomFlag != "" {
+		if err = utils.ParseJsonFromFile(nativeDenomFlag, genesisInfo.NativeDenom); err != nil {
+			return types.GenesisInfo{}, err
+		}
+	}
+
+	return genesisInfo, nil
+}
+
+func parseMetadata(cmd *cobra.Command) (*types.RollappMetadata, error) {
+	metadataFlag, err := cmd.Flags().GetString(FlagMetadata)
+	if err != nil {
+		return nil, err
+	}
+
+	metadata := new(types.RollappMetadata)
+	if metadataFlag != "" {
+		if err = utils.ParseJsonFromFile(metadataFlag, metadata); err != nil {
+			return nil, err
+		}
+	}
+
+	return metadata, nil
 }

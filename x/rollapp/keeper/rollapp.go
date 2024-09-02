@@ -31,16 +31,24 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		return current, types.ErrImmutableFieldUpdateAfterSealed
 	}
 
+	if update.UpdatingGenesisInfo() && current.GenesisInfo.Sealed {
+		return current, types.ErrGenesisInfoSealed
+	}
+
 	if update.InitialSequencer != "" {
 		current.InitialSequencer = update.InitialSequencer
 	}
 
-	if update.GenesisChecksum != "" {
-		current.GenesisChecksum = update.GenesisChecksum
+	if update.GenesisInfo.GenesisChecksum != "" {
+		current.GenesisInfo.GenesisChecksum = update.GenesisInfo.GenesisChecksum
 	}
 
-	if update.Bech32Prefix != "" {
-		current.Bech32Prefix = update.Bech32Prefix
+	if update.GenesisInfo.Bech32Prefix != "" {
+		current.GenesisInfo.Bech32Prefix = update.GenesisInfo.Bech32Prefix
+	}
+
+	if update.GenesisInfo.NativeDenom != nil {
+		current.GenesisInfo.NativeDenom = update.GenesisInfo.NativeDenom
 	}
 
 	if update.Metadata != nil && !update.Metadata.IsEmpty() {
@@ -110,11 +118,35 @@ func (k Keeper) SealRollapp(ctx sdk.Context, rollappId string) error {
 		return gerrc.ErrNotFound
 	}
 
+	if rollapp.Sealed {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp already sealed")
+	}
+
 	if !rollapp.AllImmutableFieldsAreSet() {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "seal with immutable fields not set")
 	}
 
 	rollapp.Sealed = true
+	k.SetRollapp(ctx, rollapp)
+
+	return nil
+}
+
+func (k Keeper) SealRollappGenesisInfo(ctx sdk.Context, rollappId string) error {
+	rollapp, found := k.GetRollapp(ctx, rollappId)
+	if !found {
+		return gerrc.ErrNotFound
+	}
+
+	if rollapp.GenesisInfo.Sealed {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info already sealed")
+	}
+
+	if !rollapp.GenesisInfoFieldsAreSet() {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info fields not set")
+	}
+
+	rollapp.GenesisInfo.Sealed = true
 	k.SetRollapp(ctx, rollapp)
 
 	return nil

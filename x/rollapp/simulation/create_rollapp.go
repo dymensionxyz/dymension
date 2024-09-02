@@ -33,7 +33,6 @@ func SimulateMsgCreateRollapp(ak simulationtypes.AccountKeeper, bk simulationtyp
 			Creator:          simAccount.Address.String(),
 			RollappId:        rollappId,
 			InitialSequencer: sample.AccAddress(),
-			Bech32Prefix:     "rol",
 			Alias:            "rollapp",
 			Metadata: &types.RollappMetadata{
 				Website:     "https://dymension.xyz",
@@ -41,6 +40,15 @@ func SimulateMsgCreateRollapp(ak simulationtypes.AccountKeeper, bk simulationtyp
 				LogoUrl:     "https://dymension.xyz/logo.png",
 				Telegram:    "https://t.me/rolly",
 				X:           "https://x.dymension.xyz",
+			},
+			GenesisInfo: types.GenesisInfo{
+				GenesisChecksum: "checksum",
+				Bech32Prefix:    "bech",
+				NativeDenom: &types.DenomMetadata{
+					Display:  "DYM",
+					Base:     "udym",
+					Exponent: 6,
+				},
 			},
 		}
 

@@ -21,7 +21,11 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				Owner:            sample.AccAddress(),
 				RollappId:        "dym_100-1",
 				InitialSequencer: sample.AccAddress(),
-				GenesisChecksum:  "checksum",
+				GenesisInfo: GenesisInfo{
+					Bech32Prefix:    bech32Prefix,
+					GenesisChecksum: "checksum",
+					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+				},
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
 					Description: "Sample description",
@@ -37,7 +41,11 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				Owner:            sample.AccAddress(),
 				InitialSequencer: "invalid_address",
 				RollappId:        "dym_100-1",
-				GenesisChecksum:  "checksum",
+				GenesisInfo: GenesisInfo{
+					Bech32Prefix:    bech32Prefix,
+					GenesisChecksum: "checksum",
+					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+				},
 			},
 			err: ErrInvalidInitialSequencer,
 		},
@@ -47,7 +55,11 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				Owner:            sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
 				RollappId:        "dym_100-1",
-				GenesisChecksum:  "checksum",
+				GenesisInfo: GenesisInfo{
+					Bech32Prefix:    bech32Prefix,
+					GenesisChecksum: "checksum",
+					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+				},
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
 					Description: "Sample description",
@@ -62,7 +74,11 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				Owner:            sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
 				RollappId:        "dym_100-1",
-				GenesisChecksum:  strings.Repeat("a", maxGenesisChecksumLength+1),
+				GenesisInfo: GenesisInfo{
+					Bech32Prefix:    bech32Prefix,
+					GenesisChecksum: strings.Repeat("a", maxGenesisChecksumLength+1),
+					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+				},
 			},
 			err: ErrInvalidGenesisChecksum,
 		},
