@@ -29,6 +29,7 @@ import (
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
+	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -56,6 +57,10 @@ func CreateUpgradeHandler(
 
 		migrateSequencers(ctx, keepers.SequencerKeeper)
 		migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper)
+
+		if err := migrateLockup(ctx, keepers.LockupKeeper); err != nil {
+			return nil, err
+		}
 
 		// TODO: create rollapp gauges for each existing rollapp (https://github.com/dymensionxyz/dymension/issues/1005)
 
@@ -171,6 +176,22 @@ func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Ke
 		// store the rollapp to canonical light client ID mapping
 		lightClientKeeper.SetCanonicalClient(ctx, rollapp.RollappId, clientID)
 	}
+}
+
+func migrateLockup(ctx sdk.Context, lk *lockupkeeper.Keeper) error {
+	list, err := lk.GetPeriodLocks(ctx)
+	if err != nil {
+		return err
+	}
+	for _, lock := range list {
+		for _, coin := range lock.Coins {
+			err = lk.IncreaseDenomLockNum(ctx, coin.Denom)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollapp {
