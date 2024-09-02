@@ -15,6 +15,8 @@ func TestInitExportGenesis(t *testing.T) {
 	const (
 		rollappID1 = "rollapp_1234-1"
 		rollappID2 = "rollupp_1235-2"
+		appID1     = "app1"
+		appID2     = "app2"
 	)
 
 	genesisState := types.GenesisState{
@@ -58,6 +60,16 @@ func TestInitExportGenesis(t *testing.T) {
 				CreationHeight: 1,
 			},
 		},
+		AppList: []types.App{
+			{
+				Name:      appID1,
+				RollappId: rollappID1,
+			},
+			{
+				Name:      appID2,
+				RollappId: rollappID2,
+			},
+		},
 	}
 
 	k, ctx := keepertest.RollappKeeper(t)
@@ -72,4 +84,5 @@ func TestInitExportGenesis(t *testing.T) {
 	require.ElementsMatch(t, genesisState.StateInfoList, got.StateInfoList)
 	require.ElementsMatch(t, genesisState.LatestStateInfoIndexList, got.LatestStateInfoIndexList)
 	require.ElementsMatch(t, genesisState.BlockHeightToFinalizationQueueList, got.BlockHeightToFinalizationQueueList)
+	require.ElementsMatch(t, genesisState.AppList, got.AppList)
 }
