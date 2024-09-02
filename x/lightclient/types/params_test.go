@@ -3,23 +3,12 @@ package types_test
 import (
 	"testing"
 
-	"github.com/cometbft/cometbft/crypto/secp256k1"
 	"github.com/cometbft/cometbft/libs/math"
-	comettypes "github.com/cometbft/cometbft/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ics23 "github.com/cosmos/ics23/go"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
-
-func TestTrustLevel(t *testing.T) {
-	votingPower := int64(1)
-	pk := secp256k1.GenPrivKey().PubKey()
-	vals := []*comettypes.Validator{
-		comettypes.NewValidator(pk, votingPower),
-	}
-	vs := comettypes.NewValidatorSet(vals)
-}
 
 func TestIsCanonicalClientParamsValid(t *testing.T) {
 	t.Skip("disabled temporarily - need to bring back")
