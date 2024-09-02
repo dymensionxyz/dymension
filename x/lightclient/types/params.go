@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/cometbft/cometbft/libs/math"
@@ -57,7 +58,7 @@ func IsCanonicalClientParamsValid(got *ibctm.ClientState, expect *ibctm.ClientSt
 		return errors.New("trust period")
 	}
 	if got.UnbondingPeriod != expect.UnbondingPeriod {
-		return errors.New("unbonding period")
+		return fmt.Errorf("unbonding period: exp: %s: got: %s", expect.UnbondingPeriod, got.UnbondingPeriod)
 	}
 	if got.MaxClockDrift != expect.MaxClockDrift {
 		return errors.New("max clock drift")
