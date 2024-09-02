@@ -10,7 +10,8 @@ var _ binary.ByteOrder
 
 const (
 	// StateInfoKeyPrefix is the prefix to retrieve all StateInfo
-	StateInfoKeyPrefix = "StateInfo/value/"
+	StateInfoKeyPrefix          = "StateInfo/value/"
+	StateInfoIndexKeyPartLength = 8 + 1 + 1 // BigEndian + "/" + "/"
 )
 
 // StateInfoKey returns the store key to retrieve a StateInfo from the index fields
@@ -28,4 +29,13 @@ func StateInfoKey(
 	key = append(key, []byte("/")...)
 
 	return key
+}
+
+func StateInfoIndexFromKey(key []byte) StateInfoIndex {
+	l := len(key)
+	rollappId := string(key[:l-StateInfoIndexKeyPartLength])
+	return StateInfoIndex{
+		RollappId: rollappId,
+		Index:     sdk.BigEndianToUint64(key[len(rollappId)+1 : l-1]),
+	}
 }

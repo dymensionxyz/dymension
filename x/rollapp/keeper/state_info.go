@@ -98,8 +98,23 @@ func (k Keeper) GetAllStateInfo(ctx sdk.Context) (list []types.StateInfo) {
 func (k Keeper) DeleteStateInfoUntilTimestamp(ctx sdk.Context, endTimestampExcl time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateInfoKeyPrefix))
 	storeTS := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TimestampedStateInfoKeyPrefix))
+
+	// get all latest stateInfo and latest finalized stateInfo and add them to a map
+	latestIndexes := append(k.GetAllLatestStateInfoIndex(ctx), k.GetAllLatestFinalizedStateIndex(ctx)...)
+	skipStateInfoIndexesMap := make(map[string]uint64, len(latestIndexes))
+	for _, index := range latestIndexes {
+		skipStateInfoIndexesMap[index.RollappId] = index.Index
+	}
+
 	k.IterateStateInfoWithTimestamp(storeTS, endTimestampExcl.UnixMicro(), func(keyTS []byte) bool {
 		key := keyTS[types.TimestampPrefixLen:] // remove the timestamp prefix
+		// skip latest stateInfo and latest finalized stateInfo
+		stateInfoIndex := types.StateInfoIndexFromKey(key)
+		index := skipStateInfoIndexesMap[stateInfoIndex.RollappId]
+		if index == stateInfoIndex.Index {
+			return false
+		}
+
 		store.Delete(key)
 		storeTS.Delete(keyTS)
 		return false

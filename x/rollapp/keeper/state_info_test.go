@@ -103,6 +103,13 @@ func TestKeeper_DeleteStateInfoUntilTimestamp(t *testing.T) {
 		k.SetStateInfo(ctx, items[i])
 	}
 
+	lastItem := items[len(items)-1]
+	latestStateInfoIndex := types.StateInfoIndex{
+		RollappId: lastItem.StateInfoIndex.RollappId,
+		Index:     lastItem.StateInfoIndex.Index,
+	}
+	k.SetLatestStateInfoIndex(ctx, latestStateInfoIndex)
+
 	// delete all before ts3: only ts3 and ts4 should be found
 	k.DeleteStateInfoUntilTimestamp(ctx, ts2.Add(time.Second))
 
@@ -122,4 +129,21 @@ func TestKeeper_DeleteStateInfoUntilTimestamp(t *testing.T) {
 		assert.Falsef(t, found, "item %v", item)
 		assert.False(t, foundTSKey)
 	}
+
+	// delete all: only ts4 should be found, as it's the latest and has an index
+	k.DeleteStateInfoUntilTimestamp(ctx, ts4.Add(time.Second))
+
+	info3 := items[2]
+	_, found := k.GetStateInfo(ctx,
+		info3.StateInfoIndex.RollappId,
+		info3.StateInfoIndex.Index,
+	)
+	assert.False(t, found)
+
+	info4 := items[3]
+	_, found = k.GetStateInfo(ctx,
+		info4.StateInfoIndex.RollappId,
+		info4.StateInfoIndex.Index,
+	)
+	assert.True(t, found)
 }
