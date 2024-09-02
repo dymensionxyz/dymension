@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	"github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
@@ -22,12 +24,12 @@ func (s *KeeperTestSuite) TestBuy() {
 
 	startTime := time.Now()
 	maxAmt := sdk.NewInt(1_000_000_000)
+	totalAllocation := sdk.NewInt(1_000_000)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, sdk.NewInt(1_000_000), startTime, startTime.Add(time.Hour), rollapp, curve)
+	planId, err := k.CreatePlan(s.Ctx, totalAllocation, startTime, startTime.Add(time.Hour), rollapp, curve)
 	s.Require().NoError(err)
 
-	// buyer bech32
 	buyer := sample.Acc()
 	buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(100_000)))
 	s.FundAcc(buyer, buyersFunds)
@@ -40,7 +42,8 @@ func (s *KeeperTestSuite) TestBuy() {
 	// plan start
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
 
-	// buy more than total allocation - should fail
+	// buy more than total allocation limit - should fail
+	//FIXME: move to separate test
 	err = k.Buy(s.Ctx, planId, buyer.String(), sdk.NewInt(1_000_001), maxAmt)
 	s.Require().Error(err)
 
@@ -79,4 +82,37 @@ func (s *KeeperTestSuite) TestBuy() {
 
 	expectedBaseDenom := fmt.Sprintf("FUT_%s", rollappId)
 	s.Require().Equal(amountTokensToBuy.MulRaw(2), balances.AmountOf(expectedBaseDenom))
+}
+
+func (s *KeeperTestSuite) TestBuyAllocationLimit() {
+	rollappId := s.CreateDefaultRollapp()
+	k := s.App.IROKeeper
+	curve := types.BondingCurve{
+		M: math.LegacyMustNewDecFromStr("0.005"),
+		N: math.LegacyMustNewDecFromStr("0.5"),
+		C: math.LegacyZeroDec(),
+	}
+
+	startTime := time.Now()
+	maxAmt := sdk.NewInt(1_000_000_000)
+	totalAllocation := sdk.NewInt(1_000_000)
+
+	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+	planId, err := k.CreatePlan(s.Ctx, totalAllocation, startTime, startTime.Add(time.Hour), rollapp, curve)
+	s.Require().NoError(err)
+
+	buyer := sample.Acc()
+	s.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(100_000_000_000))))
+
+	// plan start
+	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
+
+	// buy more than total allocation limit - should fail
+	err = k.Buy(s.Ctx, planId, buyer.String(), totalAllocation, maxAmt)
+	s.Require().Error(err)
+
+	// buy less than total allocation limit - should pass
+	maxSellAmt := totalAllocation.ToLegacyDec().Mul(keeper.AllocationSellLimit).TruncateInt()
+	err = k.Buy(s.Ctx, planId, buyer.String(), maxSellAmt, maxAmt)
+	s.Require().NoError(err)
 }

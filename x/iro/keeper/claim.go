@@ -3,9 +3,7 @@ package keeper
 import (
 	"context"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
@@ -23,18 +21,19 @@ func (m msgServer) Claim(ctx context.Context, req *types.MsgClaim) (*types.MsgCl
 func (k Keeper) Claim(ctx sdk.Context, planId, claimer string) error {
 	plan, found := k.GetPlan(ctx, planId)
 	if !found {
-		return errorsmod.Wrapf(types.ErrPlanNotFound, "planId: %s", planId)
+		return types.ErrPlanNotFound
 	}
 
 	if !plan.IsSettled() {
-		return errorsmod.Wrapf(types.ErrPlanSettled, "planId: %s", planId)
+		return types.ErrPlanNotSettled
+	}
+
+	availableTokens := k.bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(claimer), plan.TotalAllocation.Denom)
+	if availableTokens.IsZero() {
+		return types.ErrNoTokensToClaim
 	}
 
 	// Burn all the FUT tokens the user have
-	availableTokens := k.bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(claimer), plan.TotalAllocation.Denom)
-	if availableTokens.IsZero() {
-		return nil
-	}
 	err := k.bk.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(claimer), types.ModuleName, sdk.NewCoins(availableTokens))
 	if err != nil {
 		return err
@@ -45,7 +44,7 @@ func (k Keeper) Claim(ctx sdk.Context, planId, claimer string) error {
 	}
 
 	// Give the user the RA token in return (same amount as the FUT token)
-	err = k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sdk.MustAccAddressFromBech32(claimer), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, availableTokens.Amount)))
+	err = k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sdk.MustAccAddressFromBech32(claimer), sdk.NewCoins(sdk.NewCoin(plan.SettledDenom, availableTokens.Amount)))
 	if err != nil {
 		return err
 	}

@@ -14,28 +14,12 @@ var (
 )
 
 func (m *MsgCreatePlan) ValidateBasic() error {
-	if m.EndTime.Before(m.StartTime) {
-		return sdkerrors.ErrInvalidRequest.Wrapf("endtime %v must be after starttime %v", m.EndTime, m.StartTime)
-	}
-	if m.AllocatedAmount.IsZero() || m.AllocatedAmount.IsNegative() {
-		return sdkerrors.ErrInvalidRequest.Wrapf("allocated amount %v must be positive", m.AllocatedAmount)
-	}
 	_, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid owner address: %s", err)
 	}
-
-	// validate allocated amount
-	if m.AllocatedAmount.IsNil() || !m.AllocatedAmount.IsPositive() {
-		return sdkerrors.ErrInvalidRequest.Wrapf("allocated amount %v must be positive", m.AllocatedAmount)
-	}
-
-	// validate bonding curve params
-	if err := m.BondingCurve.ValidateBasic(); err != nil {
-		return err
-	}
-
-	return nil
+	plan := NewPlan(1, m.RollappId, sdk.NewCoin("dummy", m.AllocatedAmount), m.BondingCurve, m.StartTime, m.EndTime)
+	return plan.ValidateBasic()
 }
 
 func (m *MsgCreatePlan) GetSigners() []sdk.AccAddress {

@@ -12,6 +12,10 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
+var (
+	AllocationSellLimit = math.LegacyNewDecWithPrec(999, 3) // 99.9%
+)
+
 // Buy implements types.MsgServer.
 func (m msgServer) Buy(ctx context.Context, req *types.MsgBuy) (*types.MsgBuyResponse, error) {
 	err := m.Keeper.Buy(sdk.UnwrapSDKContext(ctx), req.PlanId, req.Buyer, req.Amount.Amount, req.ExpectedOutAmount.Amount)
@@ -36,16 +40,20 @@ func (m msgServer) Sell(ctx context.Context, req *types.MsgSell) (*types.MsgSell
 func (k Keeper) Buy(ctx sdk.Context, planId, buyer string, amountTokensToBuy, maxCost math.Int) error {
 	plan, found := k.GetPlan(ctx, planId)
 	if !found {
-		return errorsmod.Wrapf(types.ErrPlanNotFound, "planId: %s", planId)
+		return types.ErrPlanNotFound
 	}
 
-	err := k.validateTradeable(ctx, plan, buyer)
+	err := k.validateIROTradeable(ctx, plan, buyer)
 	if err != nil {
 		return err
 	}
 
-	// FIXME: validate we have enough tokens to sell
-	//  protocol will apply max limit (99.9%?) to enforce initial token liquidity
+	// validate we have enough tokens to sell
+	//  protocol will apply max limit (99.9%) to enforce initial token liquidity
+	maxSellAmt := plan.TotalAllocation.Amount.ToLegacyDec().Mul(AllocationSellLimit).TruncateInt()
+	if plan.SoldAmt.Add(amountTokensToBuy).GT(maxSellAmt) {
+		return types.ErrInsufficientTokens
+	}
 
 	// Calculate cost over fixed price curve
 	cost := plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy))
@@ -99,7 +107,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId, seller string, amountTokensToSell,
 		return errorsmod.Wrapf(types.ErrPlanNotFound, "planId: %s", planId)
 	}
 
-	err := k.validateTradeable(ctx, plan, seller)
+	err := k.validateIROTradeable(ctx, plan, seller)
 	if err != nil {
 		return err
 	}
@@ -143,7 +151,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId, seller string, amountTokensToSell,
 	return nil
 }
 
-func (k Keeper) validateTradeable(ctx sdk.Context, plan types.Plan, trader string) error {
+func (k Keeper) validateIROTradeable(ctx sdk.Context, plan types.Plan, trader string) error {
 	if plan.IsSettled() {
 		return errorsmod.Wrapf(types.ErrPlanSettled, "planId: %d", plan.Id)
 	}

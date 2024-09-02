@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	fmt "fmt"
 	time "time"
 
@@ -30,7 +31,7 @@ func (p Plan) ValidateBasic() error {
 		return ErrInvalidAllocation
 	}
 	if err := p.BondingCurve.ValidateBasic(); err != nil {
-		return ErrInvalidBondingCurve
+		return errors.Join(ErrInvalidBondingCurve, err)
 	}
 	if p.EndTime.Before(p.StartTime) {
 		return ErrInvalidEndTime

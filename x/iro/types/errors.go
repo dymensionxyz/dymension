@@ -23,4 +23,7 @@ var (
 	ErrInvalidCost                  = errorsmod.Register(ModuleName, 1113, "invalid cost")
 	ErrInvalidAllocation            = errorsmod.Register(ModuleName, 1114, "invalid allocation")
 	ErrFailedBootstrapLiquidityPool = errorsmod.Register(ModuleName, 1115, "failed to bootstrap liquidity pool")
+	ErrPlanNotSettled               = errorsmod.Register(ModuleName, 1116, "plan is not settled")
+	ErrNoTokensToClaim              = errorsmod.Register(ModuleName, 1117, "no tokens to claim")
+	ErrInsufficientTokens           = errorsmod.Register(ModuleName, 1118, "insufficient tokens")
 )
