@@ -70,24 +70,6 @@ func TestIsCanonicalClientParamsValid(t *testing.T) {
 			false,
 		},
 		{
-			"invalid allow update after expiry",
-			func() ibctm.ClientState {
-				clientState := types.ExpectedCanonicalClientParams
-				clientState.AllowUpdateAfterExpiry = true
-				return clientState
-			},
-			false,
-		},
-		{
-			"invalid allow update after misbehaviour",
-			func() ibctm.ClientState {
-				clientState := types.ExpectedCanonicalClientParams
-				clientState.AllowUpdateAfterMisbehaviour = true
-				return clientState
-			},
-			false,
-		},
-		{
 			"invalid proof specs",
 			func() ibctm.ClientState {
 				clientState := types.ExpectedCanonicalClientParams
@@ -110,7 +92,7 @@ func TestIsCanonicalClientParamsValid(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			clientState := tc.clientState()
 			valid := types.IsCanonicalClientParamsValid(&clientState)
-			if valid != tc.valid {
+			if valid == nil != tc.valid {
 				t.Errorf("expected valid: %v, got: %v", tc.valid, valid)
 			}
 		})

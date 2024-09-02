@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"errors"
 	"time"
 
 	"github.com/cometbft/cometbft/libs/math"
@@ -14,6 +15,7 @@ import (
 // ExpectedCanonicalClientParams defines the expected parameters for a canonical IBC Tendermint client state
 // The ChainID is not included as that varies for each rollapp
 // The LatestHeight is not included as there is no condition on when a client can be registered as canonical
+// AllowUpdateAfterExpiry and AllowUpdateAfterMisbehaviour are not checked, they are deprecated
 var ExpectedCanonicalClientParams = ibctm.ClientState{
 	// Trust level is the fraction of the trusted validator set
 	// that must sign over a new untrusted header before it is accepted.
@@ -26,59 +28,49 @@ var ExpectedCanonicalClientParams = ibctm.ClientState{
 	UnbondingPeriod: time.Hour * 24 * 7 * 3,
 	// MaxClockDrift defines how much new (untrusted) header's Time
 	// can drift into the future relative to our local clock.
-	MaxClockDrift: time.Minute * 10,
+	MaxClockDrift: time.Minute * 70,
 	// Frozen Height should be zero (default) as frozen clients cannot be canonical
 	// as they cannot receive state updates
 	FrozenHeight: ibcclienttypes.ZeroHeight(),
 	// ProofSpecs defines the ICS-23 standard proof specifications used by
 	// the light client. It is used configure a proof for either existence
 	// or non-existence of a key value pair
-	ProofSpecs:                   commitmenttypes.GetSDKSpecs(),
-	AllowUpdateAfterExpiry:       false,
-	AllowUpdateAfterMisbehaviour: false,
+	ProofSpecs: commitmenttypes.GetSDKSpecs(),
 	// For chains using Cosmos-SDK's default x/upgrade module, the upgrade path is as follows
 	UpgradePath: []string{"upgrade", "upgradedIBCState"},
 }
 
 // IsCanonicalClientParamsValid checks if the given IBC tendermint client state has the expected canonical client parameters
-func IsCanonicalClientParamsValid(clientState *ibctm.ClientState) bool {
-	return true
-	// TODO: coordinate with Rollapp params and relayer defaults
-	/*
-		if clientState.TrustLevel != ExpectedCanonicalClientParams.TrustLevel {
-			return false
+func IsCanonicalClientParamsValid(clientState *ibctm.ClientState) error {
+	if clientState.TrustLevel != ExpectedCanonicalClientParams.TrustLevel {
+		return errors.New("trust level")
+	}
+	if clientState.TrustingPeriod != ExpectedCanonicalClientParams.TrustingPeriod {
+		return errors.New("trust period")
+	}
+	if clientState.UnbondingPeriod != ExpectedCanonicalClientParams.UnbondingPeriod {
+		return errors.New("unbonding period")
+	}
+	if clientState.MaxClockDrift != ExpectedCanonicalClientParams.MaxClockDrift {
+		return errors.New("max clock drift")
+	}
+	if clientState.FrozenHeight != ExpectedCanonicalClientParams.FrozenHeight {
+		return errors.New("frozen height")
+	}
+	for i, proofSpec := range clientState.ProofSpecs {
+		if !proofSpec.SpecEquals(ExpectedCanonicalClientParams.ProofSpecs[i]) {
+			return errors.New("proof spec spec equals")
 		}
-		if clientState.TrustingPeriod != ExpectedCanonicalClientParams.TrustingPeriod {
-			return false
+		if !EqualICS23ProofSpecs(*proofSpec, *ExpectedCanonicalClientParams.ProofSpecs[i]) { // TODO: do we need it?
+			return errors.New("proof spec custom equals")
 		}
-		if clientState.UnbondingPeriod != ExpectedCanonicalClientParams.UnbondingPeriod {
-			return false
+	}
+	for i, path := range clientState.UpgradePath {
+		if path != ExpectedCanonicalClientParams.UpgradePath[i] {
+			return errors.New("upgrade path")
 		}
-		if clientState.MaxClockDrift != ExpectedCanonicalClientParams.MaxClockDrift {
-			return false
-		}
-		if clientState.FrozenHeight != ExpectedCanonicalClientParams.FrozenHeight {
-			return false
-		}
-		if clientState.AllowUpdateAfterExpiry != ExpectedCanonicalClientParams.AllowUpdateAfterExpiry {
-			return false
-		}
-		if clientState.AllowUpdateAfterMisbehaviour != ExpectedCanonicalClientParams.AllowUpdateAfterMisbehaviour {
-			return false
-		}
-		for i, proofSpec := range clientState.ProofSpecs {
-			if !EqualICS23ProofSpecs(*proofSpec, *ExpectedCanonicalClientParams.ProofSpecs[i]) {
-				return false
-			}
-		}
-		for i, path := range clientState.UpgradePath {
-			if path != ExpectedCanonicalClientParams.UpgradePath[i] {
-				return false
-			}
-		}
-		return true
-
-	*/
+	}
+	return nil
 }
 
 func EqualICS23ProofSpecs(proofSpecs1, proofSpecs2 ics23.ProofSpec) bool {

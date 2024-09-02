@@ -69,8 +69,8 @@ func (k Keeper) isValidClient(ctx sdk.Context, clientID string, cs exported.Clie
 		l.Info("wrong chain id") // TODO: remove
 		return false
 	}
-	if !types.IsCanonicalClientParamsValid(tmClientState) {
-		l.Info("invalid params") // TODO: remove
+	if err := types.IsCanonicalClientParamsValid(tmClientState); err != nil {
+		l.Info("invalid params", "error", err) // TODO: remove
 		return false
 	}
 	res, err := k.ibcClientKeeper.ConsensusStateHeights(ctx, &ibcclienttypes.QueryConsensusStateHeightsRequest{
