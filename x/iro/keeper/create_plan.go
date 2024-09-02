@@ -90,7 +90,11 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, end
 	if err != nil {
 		return "", err
 	}
-	plan.ModuleAccAddress = moduleAccountI.GetAddress().String()
+	if plan.ModuleAccAddress != moduleAccountI.GetAddress().String() {
+		return "", errorsmod.Wrap(gerrc.ErrInternal, "module account address mismatch")
+	}
+
+	// FIXME: charge creation fee
 
 	// Set the plan in the store
 	k.SetPlan(ctx, plan)
@@ -100,7 +104,7 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, end
 }
 
 func (k Keeper) CreateModuleAccountForPlan(ctx sdk.Context, plan types.Plan) (authtypes.ModuleAccountI, error) {
-	moduleAccount := authtypes.NewEmptyModuleAccount(plan.RollappId)
+	moduleAccount := authtypes.NewEmptyModuleAccount(plan.ModuleAccName())
 	moduleAccountI, ok := (k.AK.NewAccount(ctx, moduleAccount)).(authtypes.ModuleAccountI)
 	if !ok {
 		return nil, errorsmod.Wrap(gerrc.ErrInternal, "failed to create module account")
