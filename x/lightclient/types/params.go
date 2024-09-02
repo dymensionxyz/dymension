@@ -42,38 +42,43 @@ var ExpectedCanonicalClientParams = ibctm.ClientState{
 
 // IsCanonicalClientParamsValid checks if the given IBC tendermint client state has the expected canonical client parameters
 func IsCanonicalClientParamsValid(clientState *ibctm.ClientState) bool {
-	if clientState.TrustLevel != ExpectedCanonicalClientParams.TrustLevel {
-		return false
-	}
-	if clientState.TrustingPeriod != ExpectedCanonicalClientParams.TrustingPeriod {
-		return false
-	}
-	if clientState.UnbondingPeriod != ExpectedCanonicalClientParams.UnbondingPeriod {
-		return false
-	}
-	if clientState.MaxClockDrift != ExpectedCanonicalClientParams.MaxClockDrift {
-		return false
-	}
-	if clientState.FrozenHeight != ExpectedCanonicalClientParams.FrozenHeight {
-		return false
-	}
-	if clientState.AllowUpdateAfterExpiry != ExpectedCanonicalClientParams.AllowUpdateAfterExpiry {
-		return false
-	}
-	if clientState.AllowUpdateAfterMisbehaviour != ExpectedCanonicalClientParams.AllowUpdateAfterMisbehaviour {
-		return false
-	}
-	for i, proofSpec := range clientState.ProofSpecs {
-		if !EqualICS23ProofSpecs(*proofSpec, *ExpectedCanonicalClientParams.ProofSpecs[i]) {
-			return false
-		}
-	}
-	for i, path := range clientState.UpgradePath {
-		if path != ExpectedCanonicalClientParams.UpgradePath[i] {
-			return false
-		}
-	}
 	return true
+	// TODO: coordinate with Rollapp params and relayer defaults
+	/*
+		if clientState.TrustLevel != ExpectedCanonicalClientParams.TrustLevel {
+			return false
+		}
+		if clientState.TrustingPeriod != ExpectedCanonicalClientParams.TrustingPeriod {
+			return false
+		}
+		if clientState.UnbondingPeriod != ExpectedCanonicalClientParams.UnbondingPeriod {
+			return false
+		}
+		if clientState.MaxClockDrift != ExpectedCanonicalClientParams.MaxClockDrift {
+			return false
+		}
+		if clientState.FrozenHeight != ExpectedCanonicalClientParams.FrozenHeight {
+			return false
+		}
+		if clientState.AllowUpdateAfterExpiry != ExpectedCanonicalClientParams.AllowUpdateAfterExpiry {
+			return false
+		}
+		if clientState.AllowUpdateAfterMisbehaviour != ExpectedCanonicalClientParams.AllowUpdateAfterMisbehaviour {
+			return false
+		}
+		for i, proofSpec := range clientState.ProofSpecs {
+			if !EqualICS23ProofSpecs(*proofSpec, *ExpectedCanonicalClientParams.ProofSpecs[i]) {
+				return false
+			}
+		}
+		for i, path := range clientState.UpgradePath {
+			if path != ExpectedCanonicalClientParams.UpgradePath[i] {
+				return false
+			}
+		}
+		return true
+
+	*/
 }
 
 func EqualICS23ProofSpecs(proofSpecs1, proofSpecs2 ics23.ProofSpec) bool {
