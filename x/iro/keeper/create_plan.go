@@ -84,23 +84,10 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, end
 	if err != nil {
 		return "", err
 	}
-
 	// FIXME: move the minted tokens to plan’s module account
 
-	// FIXME: set curve config + validation
-
 	// Create a new plan
-	plan := types.Plan{
-		Id:               k.GetLastPlanId(ctx) + 1,
-		RollappId:        rollapp.RollappId,
-		ModuleAccAddress: "", // FIXME
-		TotalAllocation:  allocation,
-		BondingCurve:     curve,
-		StartTime:        start,
-		EndTime:          end,
-		SoldAmt:          math.Int{},
-		ClaimedAmt:       math.Int{},
-	}
+	plan := types.NewPlan(k.GetLastPlanId(ctx)+1, rollapp.RollappId, allocation, curve, start, end)
 
 	// Set the plan in the store
 	k.SetPlan(ctx, plan)
