@@ -32,6 +32,14 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 			},
 		},
 		{
+			name: "valid - set initial sequencer to *",
+			msg: MsgUpdateRollappInformation{
+				Owner:            sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				InitialSequencer: "*",
+			},
+		},
+		{
 			name: "invalid initial sequencer address",
 			msg: MsgUpdateRollappInformation{
 				Owner:            sample.AccAddress(),
