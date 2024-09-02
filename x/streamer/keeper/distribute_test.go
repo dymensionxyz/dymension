@@ -234,6 +234,10 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
+			// We must create at least one lock, otherwise distribution won't work
+			lockOwner := apptesting.CreateRandomAccounts(1)[0]
+			suite.LockTokens(lockOwner, sdk.NewCoins(sdk.NewInt64Coin("stake", 100)))
+
 			// Cast an initial vote
 			if tc.hasInitialDistr {
 				suite.Vote(tc.initialVote, sponsorshiptypes.DYM)

@@ -28,6 +28,7 @@ type Keeper struct {
 	ak         types.AccountKeeper
 	ik         types.IncentivesKeeper
 	sk         types.SponsorshipKeeper
+	lk         types.LockupKeeper
 
 	// epochPointers holds a mapping from the epoch identifier to EpochPointer.
 	epochPointers collections.Map[string, types.EpochPointer]

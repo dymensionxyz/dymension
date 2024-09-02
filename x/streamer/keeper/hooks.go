@@ -8,6 +8,7 @@ import (
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 
 	ctypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
@@ -93,10 +94,28 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coin
 		return sdk.Coins{}, fmt.Errorf("get epoch pointer for epoch '%s': %w", epochIdentifier, err)
 	}
 
-	distrResult := k.DistributeRewards(ctx, epochPointer, types.IterationsNoLimit, toDistribute)
+	streamCache := newStreamInfo(toDistribute)
+	gaugeCache := newGaugeInfo()
+
+	distrResult := k.CalculateRewards(ctx, epochPointer, types.IterationsNoLimit, streamCache, gaugeCache)
+
+	// Filter gauges to distribute
+	toDistributeGauges := k.filterGauges(ctx, gaugeCache)
+
+	// Send coins to distribute to the x/incentives module
+	err = k.bk.SendCoinsFromModuleToModule(ctx, types.ModuleName, incentivestypes.ModuleName, streamCache.totalDistr)
+	if err != nil {
+		return nil, fmt.Errorf("send coins: %w", err)
+	}
+
+	// Distribute the rewards
+	_, err = k.ik.Distribute(ctx, toDistributeGauges)
+	if err != nil {
+		return nil, fmt.Errorf("distribute: %w", err)
+	}
 
 	// Update streams with respect to a new epoch and save them
-	for _, s := range distrResult.FilledStreams {
+	for _, s := range streamCache.getStreams() {
 		updated, err := k.UpdateStreamAtEpochEnd(ctx, s)
 		if err != nil {
 			return sdk.Coins{}, fmt.Errorf("update stream '%d' at epoch start: %w", s.Id, err)
@@ -117,15 +136,15 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coin
 
 	err = ctx.EventManager().EmitTypedEvent(&types.EventEpochEnd{
 		Iterations:  distrResult.Iterations,
-		Distributed: distrResult.DistributedCoins,
+		Distributed: streamCache.totalDistr,
 	})
 	if err != nil {
 		return sdk.Coins{}, fmt.Errorf("emit typed event: %w", err)
 	}
 
-	ctx.Logger().Info("Streamer distributed coins", "amount", distrResult.DistributedCoins.String())
+	ctx.Logger().Info("Streamer distributed coins", "amount", streamCache.totalDistr.String())
 
-	return distrResult.DistributedCoins, nil
+	return streamCache.totalDistr, nil
 }
 
 // BeforeEpochStart is the epoch start hook.

@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
@@ -22,7 +23,9 @@ func (k Keeper) EndBlock(ctx sdk.Context) error {
 
 	maxIterations := k.GetParams(ctx).MaxIterationsPerBlock
 	totalIterations := uint64(0)
-	totalDistributed := sdk.NewCoins()
+
+	streamCache := newStreamInfo(streams)
+	gaugeCache := newGaugeInfo()
 
 	for _, p := range epochPointers {
 		remainIterations := maxIterations - totalIterations
@@ -31,11 +34,9 @@ func (k Keeper) EndBlock(ctx sdk.Context) error {
 			break // no more iterations available for this block
 		}
 
-		result := k.DistributeRewards(ctx, p, remainIterations, streams)
+		result := k.CalculateRewards(ctx, p, remainIterations, streamCache, gaugeCache)
 
 		totalIterations += result.Iterations
-		totalDistributed = totalDistributed.Add(result.DistributedCoins...)
-		streams = result.FilledStreams
 
 		err = k.SaveEpochPointer(ctx, result.NewPointer)
 		if err != nil {
@@ -43,8 +44,23 @@ func (k Keeper) EndBlock(ctx sdk.Context) error {
 		}
 	}
 
+	// Filter gauges to distribute
+	toDistribute := k.filterGauges(ctx, gaugeCache)
+
+	// Send coins to distribute to the x/incentives module
+	err = k.bk.SendCoinsFromModuleToModule(ctx, types.ModuleName, incentivestypes.ModuleName, streamCache.totalDistr)
+	if err != nil {
+		return fmt.Errorf("send coins: %w", err)
+	}
+
+	// Distribute the rewards
+	_, err = k.ik.Distribute(ctx, toDistribute)
+	if err != nil {
+		return fmt.Errorf("distribute: %w", err)
+	}
+
 	// Save stream updates
-	for _, stream := range streams {
+	for _, stream := range streamCache.getStreams() {
 		err = k.SetStream(ctx, &stream)
 		if err != nil {
 			return fmt.Errorf("set stream: %w", err)
@@ -54,7 +70,7 @@ func (k Keeper) EndBlock(ctx sdk.Context) error {
 	err = uevent.EmitTypedEvent(ctx, &types.EventEndBlock{
 		Iterations:    totalIterations,
 		MaxIterations: maxIterations,
-		Distributed:   totalDistributed,
+		Distributed:   streamCache.totalDistr,
 	})
 	if err != nil {
 		return fmt.Errorf("emit typed event: %w", err)

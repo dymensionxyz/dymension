@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"slices"
 	"testing"
 	"time"
 
@@ -67,7 +66,7 @@ func (suite *KeeperTestSuite) CreateGauge() error {
 		suite.App.AccountKeeper.GetModuleAddress(types.ModuleName),
 		sdk.Coins{},
 		lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByTime,
+			LockQueryType: lockuptypes.ByDuration,
 			Denom:         "stake",
 			Duration:      time.Hour,
 			Timestamp:     time.Time{},
@@ -228,20 +227,20 @@ func (suite *KeeperTestSuite) Delegate(delAddr sdk.AccAddress, valAddr sdk.ValAd
 }
 
 func (suite *KeeperTestSuite) DistributeAllRewards(streams []types.Stream) sdk.Coins {
-	rewards := sdk.Coins{}
-	suite.Require().True(slices.IsSortedFunc(streams, keeper.CmpStreams))
-	for _, stream := range streams {
-		epoch := suite.App.EpochsKeeper.GetEpochInfo(suite.Ctx, stream.DistrEpochIdentifier)
-		res := suite.App.StreamerKeeper.DistributeRewards(
-			suite.Ctx,
-			types.NewEpochPointer(epoch.Identifier, epoch.Duration),
-			types.IterationsNoLimit,
-			[]types.Stream{stream},
-		)
-		suite.Require().Len(res.FilledStreams, 1)
-		err := suite.App.StreamerKeeper.SetStream(suite.Ctx, &res.FilledStreams[0])
-		suite.Require().NoError(err)
-		rewards = rewards.Add(res.DistributedCoins...)
-	}
-	return rewards
+	// We must create at least one lock, otherwise distribution won't work
+	lockOwner := apptesting.CreateRandomAccounts(1)[0]
+	suite.LockTokens(lockOwner, sdk.NewCoins(sdk.NewInt64Coin("stake", 100)))
+
+	err := suite.App.StreamerKeeper.BeforeEpochStart(suite.Ctx, "day")
+	suite.Require().NoError(err)
+	coins, err := suite.App.StreamerKeeper.AfterEpochEnd(suite.Ctx, "day")
+	suite.Require().NoError(err)
+	return coins
+}
+
+// LockTokens locks tokens for the specified duration
+func (suite *KeeperTestSuite) LockTokens(addr sdk.AccAddress, coins sdk.Coins) {
+	suite.FundAcc(addr, coins)
+	_, err := suite.App.LockupKeeper.CreateLock(suite.Ctx, addr, coins, time.Hour)
+	suite.Require().NoError(err)
 }

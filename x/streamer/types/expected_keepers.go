@@ -16,6 +16,7 @@ import (
 type BankKeeper interface {
 	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
 	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
+	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
 }
 
 // EpochKeeper defines the expected interface needed to retrieve epoch info.
@@ -38,6 +39,12 @@ type IncentivesKeeper interface {
 
 	GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*incentivestypes.Gauge, error)
 	AddToGaugeRewards(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins, gaugeID uint64) error
+
+	Distribute(ctx sdk.Context, gauges []incentivestypes.Gauge) (sdk.Coins, error)
+}
+
+type LockupKeeper interface {
+	GetDenomLockNum(ctx sdk.Context, denom string) (uint64, error)
 }
 
 type SponsorshipKeeper interface {

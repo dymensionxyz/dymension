@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -23,6 +24,10 @@ var singleDistrInfo = []types.DistrRecord{
 func (suite *KeeperTestSuite) TestHookOperation() {
 	err := suite.CreateGauge()
 	suite.Require().NoError(err)
+
+	// we must create at least one lock, otherwise distribution won't work
+	lockOwner := apptesting.CreateRandomAccounts(1)[0]
+	suite.LockTokens(lockOwner, sdk.NewCoins(sdk.NewInt64Coin("stake", 100)))
 
 	// initial module streams check
 	streams := suite.App.StreamerKeeper.GetNotFinishedStreams(suite.Ctx)

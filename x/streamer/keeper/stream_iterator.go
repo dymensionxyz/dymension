@@ -11,7 +11,7 @@ func IterateEpochPointer(
 	p types.EpochPointer,
 	streams []types.Stream,
 	maxIterations uint64,
-	cb func(v StreamGauge) pagination.Stop,
+	cb func(v StreamGauge) (stop bool, weight uint64),
 ) (types.EpochPointer, uint64) {
 	iter := NewStreamIterator(streams, p.StreamId, p.GaugeId, p.EpochIdentifier)
 	iterations := pagination.Paginate(iter, maxIterations, cb)

@@ -356,7 +356,7 @@ func (c *msgClient) CreateGauge(ctx context.Context, in *MsgCreateGauge, opts ..
 
 func (c *msgClient) AddToGauge(ctx context.Context, in *MsgAddToGauge, opts ...grpc.CallOption) (*MsgAddToGaugeResponse, error) {
 	out := new(MsgAddToGaugeResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.incentives.Msg/AddToGauge", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.incentives.Msg/CalculateGaugeRewards", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -377,7 +377,7 @@ func (*UnimplementedMsgServer) CreateGauge(ctx context.Context, req *MsgCreateGa
 	return nil, status.Errorf(codes.Unimplemented, "method CreateGauge not implemented")
 }
 func (*UnimplementedMsgServer) AddToGauge(ctx context.Context, req *MsgAddToGauge) (*MsgAddToGaugeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddToGauge not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method CalculateGaugeRewards not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -412,7 +412,7 @@ func _Msg_AddToGauge_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.incentives.Msg/AddToGauge",
+		FullMethod: "/dymensionxyz.dymension.incentives.Msg/CalculateGaugeRewards",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).AddToGauge(ctx, req.(*MsgAddToGauge))
@@ -429,7 +429,7 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_CreateGauge_Handler,
 		},
 		{
-			MethodName: "AddToGauge",
+			MethodName: "CalculateGaugeRewards",
 			Handler:    _Msg_AddToGauge_Handler,
 		},
 	},
