@@ -19,10 +19,10 @@ func TestBondingCurve_ValidateBasic(t *testing.T) {
 		c         float64
 		expectErr bool
 	}{
-		{"Valid bonding curve", 2, 2, 3, false},
-		{"Valid linear curve", 2, 1, 3, false},
+		{"Valid bonding curve", 2, 2.23124234, 3, false},
+		{"Valid linear curve", 0.2, 0.88888, 3.222, false},
 		{"Valid const price curve", 0, 1, 3, false},
-		{"Invalid C value", 2, 1, 0, true},
+		{"Invalid C value", 2, 1, -1, true},
 		{"Invalid M value", -2, 1, 3, true},
 		{"Invalid N value", 2, -1, 3, true},
 	}
