@@ -50,7 +50,7 @@ func TestStateInfoQuerySingle(t *testing.T) {
 				RollappId: strconv.Itoa(100000),
 				Index:     msgs[0].StateInfoIndex.Index,
 			},
-			werr: status.Error(codes.NotFound, "not found"),
+			err: status.Error(codes.NotFound, "not found"),
 		},
 		{
 			desc: "KeyNotFound",
@@ -58,7 +58,7 @@ func TestStateInfoQuerySingle(t *testing.T) {
 				RollappId: msgs[1].StateInfoIndex.RollappId,
 				Index:     100000,
 			},
-			werr: status.Error(codes.NotFound, "not found"),
+			err: status.Error(codes.NotFound, "not found"),
 		},
 		{
 			desc: "InvalidRequest",
