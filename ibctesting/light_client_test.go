@@ -16,10 +16,10 @@ import (
 )
 
 var canonicalClientConfig = ibctesting.TendermintConfig{
-	TrustLevel:      types.ExpectedCanonicalClientParams.TrustLevel,
-	TrustingPeriod:  types.ExpectedCanonicalClientParams.TrustingPeriod,
-	UnbondingPeriod: types.ExpectedCanonicalClientParams.UnbondingPeriod,
-	MaxClockDrift:   types.ExpectedCanonicalClientParams.MaxClockDrift,
+	TrustLevel:      types.DefaultExpectedCanonicalClientParams().TrustLevel,
+	TrustingPeriod:  types.DefaultExpectedCanonicalClientParams().TrustingPeriod,
+	UnbondingPeriod: types.DefaultExpectedCanonicalClientParams().UnbondingPeriod,
+	MaxClockDrift:   types.DefaultExpectedCanonicalClientParams().MaxClockDrift,
 }
 
 type lightClientSuite struct {

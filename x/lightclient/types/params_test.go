@@ -20,14 +20,14 @@ func TestIsCanonicalClientParamsValid(t *testing.T) {
 		{
 			"valid client state",
 			func() ibctm.ClientState {
-				return types.ExpectedCanonicalClientParams
+				return types.DefaultExpectedCanonicalClientParams()
 			},
 			true,
 		},
 		{
 			"invalid trust level",
 			func() ibctm.ClientState {
-				clientState := types.ExpectedCanonicalClientParams
+				clientState := types.DefaultExpectedCanonicalClientParams()
 				clientState.TrustLevel = ibctm.NewFractionFromTm(math.Fraction{Numerator: 1, Denominator: 2})
 				return clientState
 			},
@@ -36,7 +36,7 @@ func TestIsCanonicalClientParamsValid(t *testing.T) {
 		{
 			"invalid trusting period",
 			func() ibctm.ClientState {
-				clientState := types.ExpectedCanonicalClientParams
+				clientState := types.DefaultExpectedCanonicalClientParams()
 				clientState.TrustingPeriod = clientState.TrustingPeriod + 1
 				return clientState
 			},
@@ -45,7 +45,7 @@ func TestIsCanonicalClientParamsValid(t *testing.T) {
 		{
 			"invalid unbonding period",
 			func() ibctm.ClientState {
-				clientState := types.ExpectedCanonicalClientParams
+				clientState := types.DefaultExpectedCanonicalClientParams()
 				clientState.UnbondingPeriod = clientState.UnbondingPeriod + 1
 				return clientState
 			},
@@ -54,7 +54,7 @@ func TestIsCanonicalClientParamsValid(t *testing.T) {
 		{
 			"invalid max clock drift",
 			func() ibctm.ClientState {
-				clientState := types.ExpectedCanonicalClientParams
+				clientState := types.DefaultExpectedCanonicalClientParams()
 				clientState.MaxClockDrift = clientState.MaxClockDrift + 1
 				return clientState
 			},
@@ -63,7 +63,7 @@ func TestIsCanonicalClientParamsValid(t *testing.T) {
 		{
 			"invalid frozen height",
 			func() ibctm.ClientState {
-				clientState := types.ExpectedCanonicalClientParams
+				clientState := types.DefaultExpectedCanonicalClientParams()
 				clientState.FrozenHeight = ibcclienttypes.NewHeight(1, 1)
 				return clientState
 			},
@@ -72,7 +72,7 @@ func TestIsCanonicalClientParamsValid(t *testing.T) {
 		{
 			"invalid proof specs",
 			func() ibctm.ClientState {
-				clientState := types.ExpectedCanonicalClientParams
+				clientState := types.DefaultExpectedCanonicalClientParams()
 				clientState.ProofSpecs = []*ics23.ProofSpec{ics23.SmtSpec}
 				return clientState
 			},
@@ -81,7 +81,7 @@ func TestIsCanonicalClientParamsValid(t *testing.T) {
 		{
 			"invalid upgrade path",
 			func() ibctm.ClientState {
-				clientState := types.ExpectedCanonicalClientParams
+				clientState := types.DefaultExpectedCanonicalClientParams()
 				clientState.UpgradePath = []string{"custom", "upgrade"}
 				return clientState
 			},
@@ -91,7 +91,8 @@ func TestIsCanonicalClientParamsValid(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			clientState := tc.clientState()
-			valid := types.IsCanonicalClientParamsValid(&clientState)
+			exp := types.DefaultExpectedCanonicalClientParams()
+			valid := types.IsCanonicalClientParamsValid(&clientState, &exp)
 			if valid == nil != tc.valid {
 				t.Errorf("expected valid: %v, got: %v", tc.valid, valid)
 			}
