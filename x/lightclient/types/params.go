@@ -29,7 +29,7 @@ func ExpectedCanonicalClientParams(rollappUnbondingPeriod time.Duration) ibctm.C
 		TrustLevel: ibctm.NewFractionFromTm(math.Fraction{Numerator: 1, Denominator: 1}),
 		// TrustingPeriod is the duration of the period since the
 		// LatestTimestamp during which the submitted headers are valid for update.
-		TrustingPeriod: time.Hour * 24 * 10, // TODO: need to set appropriately
+		TrustingPeriod: time.Hour * 24 * 10,
 		// Unbonding period is the duration of the sequencer unbonding period.
 		UnbondingPeriod: rollappUnbondingPeriod,
 		// MaxClockDrift defines how much new (untrusted) header's Time
