@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
@@ -76,18 +78,19 @@ func ValidateRollappPreconditions(rollapp rollapptypes.Rollapp) error {
 }
 
 func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, end time.Time, rollapp rollapptypes.Rollapp, curve types.BondingCurve) (string, error) {
-
-	// FIXME: create a module account for the plan
-
-	// FIXME: get decimals from the caller
+	// FIXME: get decimals from the caller / rollapp object
 	allocation, err := k.MintAllocation(ctx, allocatedAmount, rollapp.RollappId, rollapp.Metadata.TokenSymbol, 18)
 	if err != nil {
 		return "", err
 	}
-	// FIXME: move the minted tokens to plan’s module account
 
-	// Create a new plan
 	plan := types.NewPlan(k.GetLastPlanId(ctx)+1, rollapp.RollappId, allocation, curve, start, end)
+	// Create a new module account for the IRO plan
+	moduleAccountI, err := k.CreateModuleAccountForPlan(ctx, plan)
+	if err != nil {
+		return "", err
+	}
+	plan.ModuleAccAddress = moduleAccountI.GetAddress().String()
 
 	// Set the plan in the store
 	k.SetPlan(ctx, plan)
@@ -96,16 +99,32 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, end
 	return fmt.Sprintf("%d", plan.Id), nil
 }
 
+func (k Keeper) CreateModuleAccountForPlan(ctx sdk.Context, plan types.Plan) (authtypes.ModuleAccountI, error) {
+	moduleAccount := authtypes.NewEmptyModuleAccount(plan.RollappId)
+	moduleAccountI, ok := (k.AK.NewAccount(ctx, moduleAccount)).(authtypes.ModuleAccountI)
+	if !ok {
+		return nil, errorsmod.Wrap(gerrc.ErrInternal, "failed to create module account")
+	}
+	k.AK.SetModuleAccount(ctx, moduleAccountI)
+	return moduleAccountI, nil
+}
+
 // MintAllocation mints the allocated amount and registers the denom in the bank denom metadata store
 func (k Keeper) MintAllocation(ctx sdk.Context, allocatedAmount math.Int, rollappId, rollappSymbolName string, exponent uint64) (sdk.Coin, error) {
-	// Register the denom in the bank denom metadata store
 	baseDenom := fmt.Sprintf("FUT_%s", rollappId)
-	displayDenom := fmt.Sprintf("FUT_%s", rollappSymbolName)
+	displayDenom := ""
+
+	// FIXME: make the symbol name mandatory?
+	if rollappSymbolName == "" {
+		displayDenom = fmt.Sprintf("FUT_%s", strings.ToUpper(strings.TrimSuffix(rollappId, "_")))
+	} else {
+		displayDenom = fmt.Sprintf("FUT_%s", rollappSymbolName)
+	}
 	metadata := banktypes.Metadata{
 		Description: fmt.Sprintf("Future token for rollapp %s", rollappId),
 		DenomUnits: []*banktypes.DenomUnit{
 			{Denom: baseDenom, Exponent: 0, Aliases: []string{}},
-			{Denom: displayDenom, Exponent: uint32(exponent), Aliases: []string{}},
+			{Denom: displayDenom, Exponent: uint32(exponent), Aliases: []string{}}, //nolint:gosec
 		},
 		Base:    baseDenom,
 		Name:    baseDenom,

@@ -64,7 +64,7 @@ message QueryPlansRequest {
 
 // QueryPlanResponse is the response type for the Query/QueryPlan RPC method.
 message QueryPlansResponse {
-  repeated Plan plans = 1;
+  repeated Plan plans = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryPlanRequest is the request type for the Query/QueryPlan RPC method.
@@ -84,7 +84,7 @@ message QueryPlanByRollappRequest {
 
 // QueryPlanByRollappResponse is the response type for the Query/QueryPlanByRollapp RPC method.
 message QueryPlanByRollappResponse {
-  repeated Plan plans = 1;
+  Plan plan = 1;
 }
 
 // QueryPriceRequest is the request type for the Query/QueryPrice RPC method.

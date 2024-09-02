@@ -11,6 +11,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
+// FIXME: implement!!
+
 var (
 	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 )
