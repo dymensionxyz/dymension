@@ -40,6 +40,8 @@ var ExpectedCanonicalClientParams = ibctm.ClientState{
 	UpgradePath: []string{"upgrade", "upgradedIBCState"},
 }
 
+func
+
 // IsCanonicalClientParamsValid checks if the given IBC tendermint client state has the expected canonical client parameters
 func IsCanonicalClientParamsValid(clientState *ibctm.ClientState) error {
 	if clientState.TrustLevel != ExpectedCanonicalClientParams.TrustLevel {
