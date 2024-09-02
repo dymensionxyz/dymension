@@ -44,6 +44,9 @@ func (k Keeper) Buy(ctx sdk.Context, planId, buyer string, amountTokensToBuy, ma
 		return err
 	}
 
+	// FIXME: validate we have enough tokens to sell
+	//  protocol will apply max limit (99.9%?) to enforce initial token liquidity
+
 	// Calculate cost over fixed price curve
 	cost := plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy))
 
@@ -57,7 +60,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId, buyer string, amountTokensToBuy, ma
 		return errorsmod.Wrapf(types.ErrInvalidExpectedOutAmount, "maxCost: %s, cost: %s", maxCost.String(), cost.String())
 	}
 
-	//FIXME: Charge taker fee
+	// FIXME: Charge taker fee
 
 	// send DYM from buyer to the plan. DYM sent directly to the plan's module account
 	err = k.bk.SendCoins(ctx, sdk.MustAccAddressFromBech32(buyer), plan.GetAddress(), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
@@ -114,7 +117,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId, seller string, amountTokensToSell,
 		return err
 	}
 
-	//FIXME: Charge taker fee
+	// FIXME: Charge taker fee
 
 	// send DYM from the plan to the seller. DYM managed by the plan's module account
 	err = k.bk.SendCoins(ctx, plan.GetAddress(), sdk.MustAccAddressFromBech32(seller), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))

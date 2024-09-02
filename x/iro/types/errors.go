@@ -21,4 +21,6 @@ var (
 	ErrInvalidBondingCurve          = errorsmod.Register(ModuleName, 1111, "invalid bonding curve params")
 	ErrInvalidRollappGenesisState   = errorsmod.Register(ModuleName, 1112, "invalid rollapp genesis state")
 	ErrInvalidCost                  = errorsmod.Register(ModuleName, 1113, "invalid cost")
+	ErrInvalidAllocation            = errorsmod.Register(ModuleName, 1114, "invalid allocation")
+	ErrFailedBootstrapLiquidityPool = errorsmod.Register(ModuleName, 1115, "failed to bootstrap liquidity pool")
 )

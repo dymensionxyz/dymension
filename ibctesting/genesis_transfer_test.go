@@ -116,7 +116,7 @@ func (s *transferGenesisSuite) TestIRO() {
 	s.Require().False(transfersEnabled)
 
 	// test invalid genesis transfers
-	// - TODO: wrong dest
+	// - TODO: wrong dest, wrong base denom, wrong decimals
 	// - wrong amount
 	msg = s.transferMsg(amt.Sub(math.NewInt(100)), denom, true)
 	res, err = s.rollappChain().SendMsgs(msg)

@@ -45,14 +45,14 @@ func (lbc BondingCurve) ValidateBasic() error {
 }
 
 // SpotPrice returns the spot price at x
-func (lbc BondingCurve) SpotPrice(x math.Int) math.Int {
+func (lbc BondingCurve) SpotPrice(x math.Int) math.LegacyDec {
 	// we use osmomath as it support Power function
 	xDec := osmomath.BigDecFromSDKDec(x.ToLegacyDec())
 	nDec := osmomath.BigDecFromSDKDec(lbc.N)
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)
 
-	xPowN := xDec.Power(nDec)                                // Calculate x^N
-	return mDec.Mul(xPowN).SDKDec().Add(lbc.C).TruncateInt() // M * x^N + C
+	xPowN := xDec.Power(nDec)                  // Calculate x^N
+	return mDec.Mul(xPowN).SDKDec().Add(lbc.C) // M * x^N + C
 }
 
 // Cost returns the cost of buying x1 - x tokens

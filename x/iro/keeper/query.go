@@ -110,9 +110,10 @@ func (k Keeper) QueryPrice(goCtx context.Context, req *types.QueryPriceRequest) 
 		return nil, status.Error(codes.NotFound, "plan not found")
 	}
 
-	price := plan.BondingCurve.SpotPrice(plan.SoldAmt)
+	price := plan.BondingCurve.SpotPrice(plan.SoldAmt).TruncateInt()
 	coin := sdk.NewCoin(plan.TotalAllocation.Denom, price)
 
+	// FIXME: should be Decimal price, not coin!
 	return &types.QueryPriceResponse{
 		Price: &coin,
 	}, nil
