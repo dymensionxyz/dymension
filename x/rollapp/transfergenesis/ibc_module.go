@@ -32,6 +32,7 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
+// FIXME: move to errors.go
 var ErrDisabled = errorsmod.Wrap(gerrc.ErrFault, "genesis transfers are disabled")
 
 const (
@@ -105,7 +106,7 @@ func (w IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
-) exported.Acknowledgement {
+) (ack exported.Acknowledgement) {
 	l := w.logger(ctx, packet)
 
 	if commontypes.SkipRollappMiddleware(ctx) {
@@ -162,7 +163,7 @@ func (w IBCModule) OnRecvPacket(
 			return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "validate IRO plan"))
 		}
 
-		// register the denom metadata
+		// FIXME: need to validate the memo denom against the transfer denom?
 		err = w.registerDenomMetadata(ctx, ra.RollappId, ra.ChannelId, memo.Denom)
 		if err != nil {
 			l.Error("Register denom metadata.", "err", err)
@@ -170,22 +171,24 @@ func (w IBCModule) OnRecvPacket(
 		}
 
 		// set the ctx to skip delayedack etc because we want the transfer to happen immediately
-		ctx = commontypes.SkipRollappMiddlewareContext(ctx)
+		ack = w.IBCModule.OnRecvPacket(commontypes.SkipRollappMiddlewareContext(ctx), packet, relayer)
+		// if the ack is nil, we return an error as we expect immediate ack
+		if ack == nil {
+			return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(gerrc.ErrInternal, "transfer genesis: OnRecvPacket"))
+		}
 	} else {
 		// no plan found, genesis transfer memo not allowed
 		if !noMemo {
 			l.Error("No plan found for rollapp. Genesis transfer memo not allowed.")
 			return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer not allowed"))
 		}
+		ack = w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	transferAck := w.IBCModule.OnRecvPacket(ctx, packet, relayer)
-	if !transferAck.Success() {
-		return transferAck
-	}
+	rollappDenomOnHub := uibc.GetForeignDenomTrace(ra.ChannelId, transfer.Denom).IBCDenom()
 
 	w.EnableTransfers(ctx, ra.RollappId)
-	err = w.rollappKeeper.GetHooks().TransfersEnabled(ctx, ra.RollappId)
+	err = w.rollappKeeper.GetHooks().TransfersEnabled(ctx, ra.RollappId, rollappDenomOnHub)
 	if err != nil {
 		l.Error("Transfers enabled hook.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "transfer genesis: transfers enabled hook"))
@@ -193,13 +196,13 @@ func (w IBCModule) OnRecvPacket(
 
 	l.Info("Received valid genesis transfer. Registered denom data.")
 
-	return transferAck
+	return ack
 }
 
 // validate genesis transfer amount is the same as in the `iro` plan
 // validate the destAddr is the same as `x/iro` module account address
 func (w IBCModule) validateGenesisTransfer(plan irotypes.Plan, transfer rollapptypes.TransferData, l log.Logger) error {
-	if plan.TotalAllocation.Amount != transfer.MustAmountInt() {
+	if !plan.TotalAllocation.Amount.Equal(transfer.MustAmountInt()) {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer amount does not match plan amount")
 	}
 
@@ -207,6 +210,8 @@ func (w IBCModule) validateGenesisTransfer(plan irotypes.Plan, transfer rollappt
 	if modAddr != transfer.Receiver {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer receiver does not match module account address")
 	}
+
+	//FIXME: validate denom registered and has correct decimals
 
 	return nil
 }

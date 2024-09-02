@@ -2,10 +2,12 @@ package ibctesting_test
 
 import (
 	"testing"
+	"time"
 
 	"cosmossdk.io/math"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
@@ -44,77 +46,144 @@ func (s *transferGenesisSuite) SetupTest() {
 	s.hubApp().DenomMetadataKeeper.SetHooks(nil)
 }
 
-// In the happy path, the new rollapp will send ibc transfers with a special
-// memo immediately when the channel opens. This will cause  all the denoms to get registered, and tokens
-// to go to the right addresses. After all transfers are sent, the bridge opens.
-func (s *transferGenesisSuite) TestHappyPath() {
-	/*
-		Send a bunch of transfer packets to the hub
-		Check the balances are created
-		Check the denoms are created
-		Check the bridge is enabled (or not)
-	*/
-
+// TestNoIRO tests the case where the rollapp has no IRO plan.
+// In this case, the genesis transfer should fail, but regular transfers should succeed.
+func (s *transferGenesisSuite) TestNoIRO() {
 	amt := math.NewIntFromUint64(10000000000000000000)
+	denom := "foo"
+	coin := sdk.NewCoin(denom, amt)
+	apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.NewCoins(coin))
 
-	denoms := []string{"foo", "bar", "baz"}
+	// no iro plan, so no genesis transfers allowed
+	msg := s.transferMsg(amt, denom, true)
+	res, err := s.rollappChain().SendMsgs(msg)
+	s.Require().NoError(err)
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	s.Require().NoError(err)
+	err = s.path.RelayPacket(packet)
+	s.Require().NoError(err)
 
-	for _, denom := range denoms {
-		/* ------------------- move non-registered token from rollapp ------------------- */
+	hubIBCKeeper := s.hubChain().App.GetIBCKeeper()
+	ack, found := hubIBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	s.Require().True(found)
+	s.Require().NotEqual(channeltypes.CommitAcknowledgement(nil), ack)
 
-		msg := s.transferMsg(amt, denom, true)
-		apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.Coins{msg.Token})
-		res, err := s.rollappChain().SendMsgs(msg)
-		s.Require().NoError(err)
-		packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
-		s.Require().NoError(err)
+	transfersEnabled := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
+	s.Require().False(transfersEnabled)
 
-		err = s.path.RelayPacket(packet)
-		s.Require().NoError(err)
+	// regular transfer, should pass (with delay) and enable bridge
+	msg = s.transferMsg(amt, denom, false)
+	res, err = s.rollappChain().SendMsgs(msg)
+	s.Require().NoError(err)
+	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
+	s.Require().NoError(err)
 
-		transfersEnabled := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
-		s.Require().False(transfersEnabled, "transfers enabled check")
-	}
+	err = s.path.RelayPacket(packet)
+	s.Require().Error(err) // ack is delayed, so error is returned from the framework
 
-	for _, denom := range denoms {
-		// has the denom?
-		ibcDenom := types.ParseDenomTrace(types.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, denom)).IBCDenom()
-		metadata, found := s.hubApp().BankKeeper.GetDenomMetaData(s.hubCtx(), ibcDenom)
-		s.Require().True(found, "missing denom metadata for rollapps taking token", "denom", ibcDenom)
-		s.Require().Equal(ibcDenom, metadata.Base)
-		// has the tokens?
-		c := s.hubApp().BankKeeper.GetBalance(s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), ibcDenom)
-		s.Require().Equal(amt, c.Amount)
-	}
+	transfersEnabled = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
+	s.Require().True(transfersEnabled)
+}
+
+// TestIRO tests the case where the rollapp has an IRO plan.
+// In this case, the genesis transfer is required
+// regular transfers should fail until the genesis transfer is done
+func (s *transferGenesisSuite) TestIRO() {
+	amt := math.NewIntFromUint64(10000000000000000000)
+	denom := "foo"
+	coin := sdk.NewCoin(denom, amt)
+	apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.NewCoins(coin))
+
+	// create IRO plan
+	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+	_, err := s.hubApp().IROKeeper.CreatePlan(s.hubCtx(), amt, time.Time{}, time.Time{}, rollapp, irotypes.DefaultBondingCurve())
+	s.Require().NoError(err)
+
+	// non-genesis transfer should fail, as the bridge is not open
+	msg := s.transferMsg(amt, denom, false)
+	res, err := s.rollappChain().SendMsgs(msg)
+	s.Require().NoError(err)
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	s.Require().NoError(err)
+	err = s.path.RelayPacket(packet)
+	s.Require().NoError(err)
+
+	ack, found := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	s.Require().True(found)
+	s.Require().NotEqual(channeltypes.CommitAcknowledgement(nil), ack) // check for error ack
+
+	transfersEnabled := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
+	s.Require().False(transfersEnabled)
+
+	// test invalid genesis transfers
+	// - TODO: wrong dest
+	// - wrong amount
+	msg = s.transferMsg(amt.Sub(math.NewInt(100)), denom, true)
+	res, err = s.rollappChain().SendMsgs(msg)
+	s.Require().NoError(err)
+	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
+	s.Require().NoError(err)
+	err = s.path.RelayPacket(packet)
+	s.Require().NoError(err)
+
+	ack, found = s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	s.Require().True(found)
+	s.Require().NotEqual(channeltypes.CommitAcknowledgement(nil), ack) // check for error ack
+
+	transfersEnabled = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
+	s.Require().False(transfersEnabled)
+
+	// genesis transfer, should pass and enable bridge
+	msg = s.transferMsg(amt, denom, true)
+	res, err = s.rollappChain().SendMsgs(msg)
+	s.Require().NoError(err)
+	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
+	s.Require().NoError(err)
+	err = s.path.RelayPacket(packet)
+	s.Require().NoError(err)
+
+	transfersEnabled = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
+	s.Require().True(transfersEnabled, "transfers enabled check")
+
+	// has the denom?
+	ibcDenom := types.ParseDenomTrace(types.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, denom)).IBCDenom()
+	metadata, found := s.hubApp().BankKeeper.GetDenomMetaData(s.hubCtx(), ibcDenom)
+	s.Require().True(found, "missing denom metadata for rollapps taking token", "denom", ibcDenom)
+	s.Require().Equal(ibcDenom, metadata.Base)
+	// the iro plan should be settled
+	plan, found := s.hubApp().IROKeeper.GetPlanByRollapp(s.hubCtx(), rollappChainID())
+	s.Require().True(found)
+	s.Require().Equal(plan.SettledDenom, ibcDenom)
 }
 
 // In the fault path, a chain tries to do another genesis transfer (to skip eibc) after the genesis phase
 // is already complete. It triggers a fraud.
 func (s *transferGenesisSuite) TestCannotDoGenesisTransferAfterBridgeEnabled() {
 	amt := math.NewIntFromUint64(10000000000000000000)
+	denom := "foo"
+	apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.NewCoins(sdk.NewCoin(denom, amt.Mul(math.NewInt(10)))))
 
-	denoms := []string{"foo", "bar", "baz"}
+	// non-genesis transfer should enable the bridge
+	msg := s.transferMsg(amt, denom, false)
+	res, err := s.rollappChain().SendMsgs(msg)
+	s.Require().NoError(err)
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	s.Require().NoError(err)
+	err = s.path.RelayPacket(packet)
+	s.Require().Error(err) // ack is delayed, so error is returned from the framework
 
-	for i, denom := range denoms {
-		/* ------------------- move non-registered token from rollapp ------------------- */
+	// genesis transfer after bridge enabled should fail
+	msg = s.transferMsg(amt, denom, true)
+	res, err = s.rollappChain().SendMsgs(msg)
+	s.Require().NoError(err)
+	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
+	s.Require().NoError(err)
+	err = s.path.RelayPacket(packet)
+	s.Require().NoError(err)
 
-		genesis := i%2 == 0 // genesis then regular then genesis again, last one should fail
-		msg := s.transferMsg(amt, denom, genesis)
-		apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.Coins{msg.Token})
-		res, err := s.rollappChain().SendMsgs(msg)
-		s.Require().NoError(err)
-		packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
-		s.Require().NoError(err)
-
-		_ = s.path.RelayPacket(packet)
-
-		if i == 2 {
-
-			expect := channeltypes.NewErrorAcknowledgement(transfergenesis.ErrDisabled)
-			bz, _ := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-			s.Require().Equal(channeltypes.CommitAcknowledgement(expect.Acknowledgement()), bz)
-		}
-	}
+	expect := channeltypes.NewErrorAcknowledgement(transfergenesis.ErrDisabled)
+	bz, _ := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	s.Require().Equal(channeltypes.CommitAcknowledgement(expect.Acknowledgement()), bz)
 }
 
 func (s *transferGenesisSuite) transferMsg(amt math.Int, denom string, isGenesis bool) *types.MsgTransfer {
@@ -157,6 +226,8 @@ func (s *transferGenesisSuite) transferMsg(amt math.Int, denom string, isGenesis
 		msg.Memo = rollapptypes.GenesisTransferMemo{
 			Denom: meta,
 		}.Namespaced().MustString()
+
+		msg.Receiver = s.hubApp().IROKeeper.GetModuleAccountAddress()
 	}
 
 	return msg

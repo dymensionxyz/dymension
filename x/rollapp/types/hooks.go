@@ -16,7 +16,7 @@ type RollappHooks interface {
 	AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *StateInfo) error                   // Must be called when a rollapp's state changes
 	FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error
 	RollappCreated(ctx sdk.Context, rollappID, alias string, creator sdk.AccAddress) error
-	TransfersEnabled(ctx sdk.Context, rollappID string) error
+	TransfersEnabled(ctx sdk.Context, rollappID, rollappIBCDenom string) error
 }
 
 var _ RollappHooks = MultiRollappHooks{}
@@ -80,9 +80,9 @@ func (h MultiRollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias stri
 	return nil
 }
 
-func (h MultiRollappHooks) TransfersEnabled(ctx sdk.Context, rollappID string) error {
+func (h MultiRollappHooks) TransfersEnabled(ctx sdk.Context, rollappID, rollappIBCDenom string) error {
 	for i := range h {
-		err := h[i].TransfersEnabled(ctx, rollappID)
+		err := h[i].TransfersEnabled(ctx, rollappID, rollappIBCDenom)
 		if err != nil {
 			return err
 		}
@@ -107,4 +107,4 @@ func (StubRollappCreatedHooks) AfterStateFinalized(sdk.Context, string, *StateIn
 	return nil
 }
 
-func (StubRollappCreatedHooks) TransfersEnabled(sdk.Context, string) error { return nil }
+func (StubRollappCreatedHooks) TransfersEnabled(sdk.Context, string, string) error { return nil }
