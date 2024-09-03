@@ -9,7 +9,7 @@ func NewApp(name, rollappId, description, image, url string, order int32) App {
 		Name:        name,
 		RollappId:   rollappId,
 		Description: description,
-		Image:       image,
+		ImageUrl:    image,
 		Url:         url,
 		Order:       order,
 	}
@@ -50,7 +50,7 @@ func (r App) ValidateBasic() error {
 		return ErrInvalidDescription
 	}
 
-	if err := validateURL(r.Image); err != nil {
+	if err := validateURL(r.ImageUrl); err != nil {
 		return errorsmod.Wrap(ErrInvalidAppImage, err.Error())
 	}
 
