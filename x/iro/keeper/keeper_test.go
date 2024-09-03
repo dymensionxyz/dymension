@@ -53,6 +53,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 func (suite *KeeperTestSuite) BuySomeTokens(planId string, buyer sdk.AccAddress, amt math.Int) {
 	maxAmt := sdk.NewInt(1_000_000_000)
 	suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("adym", amt)))
-	err := suite.App.IROKeeper.Buy(suite.Ctx, planId, buyer.String(), amt, maxAmt)
+	err := suite.App.IROKeeper.Buy(suite.Ctx, planId, buyer, amt, maxAmt)
 	suite.Require().NoError(err)
 }

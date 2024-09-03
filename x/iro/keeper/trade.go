@@ -16,7 +16,12 @@ var AllocationSellLimit = math.LegacyNewDecWithPrec(999, 3) // 99.9%
 
 // Buy implements types.MsgServer.
 func (m msgServer) Buy(ctx context.Context, req *types.MsgBuy) (*types.MsgBuyResponse, error) {
-	err := m.Keeper.Buy(sdk.UnwrapSDKContext(ctx), req.PlanId, req.Buyer, req.Amount.Amount, req.ExpectedOutAmount.Amount)
+	buyer, err := sdk.AccAddressFromBech32(req.Buyer)
+	if err != nil {
+		return nil, err
+	}
+
+	err = m.Keeper.Buy(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Amount.Amount, req.ExpectedOutAmount.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +31,11 @@ func (m msgServer) Buy(ctx context.Context, req *types.MsgBuy) (*types.MsgBuyRes
 
 // Sell implements types.MsgServer.
 func (m msgServer) Sell(ctx context.Context, req *types.MsgSell) (*types.MsgSellResponse, error) {
-	err := m.Keeper.Sell(sdk.UnwrapSDKContext(ctx), req.PlanId, req.Seller, req.Amount.Amount, req.ExpectedOutAmount.Amount)
+	seller, err := sdk.AccAddressFromBech32(req.Seller)
+	if err != nil {
+		return nil, err
+	}
+	err = m.Keeper.Sell(sdk.UnwrapSDKContext(ctx), req.PlanId, seller, req.Amount.Amount, req.ExpectedOutAmount.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -35,13 +44,13 @@ func (m msgServer) Sell(ctx context.Context, req *types.MsgSell) (*types.MsgSell
 }
 
 // Buy buys allocation with price according to the price curve
-func (k Keeper) Buy(ctx sdk.Context, planId, buyer string, amountTokensToBuy, maxCost math.Int) error {
+func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amountTokensToBuy, maxCost math.Int) error {
 	plan, found := k.GetPlan(ctx, planId)
 	if !found {
 		return types.ErrPlanNotFound
 	}
 
-	err := k.validateIROTradeable(ctx, plan, buyer)
+	err := k.validateIROTradeable(ctx, plan, buyer.String())
 	if err != nil {
 		return err
 	}
@@ -69,13 +78,13 @@ func (k Keeper) Buy(ctx sdk.Context, planId, buyer string, amountTokensToBuy, ma
 	// FIXME: Charge taker fee
 
 	// send DYM from buyer to the plan. DYM sent directly to the plan's module account
-	err = k.BK.SendCoins(ctx, sdk.MustAccAddressFromBech32(buyer), plan.GetAddress(), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
+	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
 	if err != nil {
 		return err
 	}
 
 	// send allocated tokens from the plan to the buyer
-	err = k.BK.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sdk.MustAccAddressFromBech32(buyer), sdk.NewCoins(sdk.NewCoin(plan.TotalAllocation.Denom, amountTokensToBuy)))
+	err = k.BK.SendCoinsFromModuleToAccount(ctx, types.ModuleName, buyer, sdk.NewCoins(sdk.NewCoin(plan.TotalAllocation.Denom, amountTokensToBuy)))
 	if err != nil {
 		return err
 	}
@@ -86,7 +95,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId, buyer string, amountTokensToBuy, ma
 
 	// Emit event
 	err = ctx.EventManager().EmitTypedEvent(&types.EventBuy{
-		Buyer:     buyer,
+		Buyer:     buyer.String(),
 		PlanId:    planId,
 		RollappId: plan.RollappId,
 		Amount:    amountTokensToBuy,
@@ -99,13 +108,13 @@ func (k Keeper) Buy(ctx sdk.Context, planId, buyer string, amountTokensToBuy, ma
 }
 
 // Sell sells allocation with price according to the price curve
-func (k Keeper) Sell(ctx sdk.Context, planId, seller string, amountTokensToSell, minCost math.Int) error {
+func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amountTokensToSell, minCost math.Int) error {
 	plan, found := k.GetPlan(ctx, planId)
 	if !found {
 		return errorsmod.Wrapf(types.ErrPlanNotFound, "planId: %s", planId)
 	}
 
-	err := k.validateIROTradeable(ctx, plan, seller)
+	err := k.validateIROTradeable(ctx, plan, seller.String())
 	if err != nil {
 		return err
 	}
@@ -118,7 +127,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId, seller string, amountTokensToSell,
 	}
 
 	// send allocated tokens from seller to the plan
-	err = k.BK.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(seller), types.ModuleName, sdk.NewCoins(sdk.NewCoin(plan.TotalAllocation.Denom, amountTokensToSell)))
+	err = k.BK.SendCoinsFromAccountToModule(ctx, seller, types.ModuleName, sdk.NewCoins(sdk.NewCoin(plan.TotalAllocation.Denom, amountTokensToSell)))
 	if err != nil {
 		return err
 	}
@@ -126,7 +135,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId, seller string, amountTokensToSell,
 	// FIXME: Charge taker fee
 
 	// send DYM from the plan to the seller. DYM managed by the plan's module account
-	err = k.BK.SendCoins(ctx, plan.GetAddress(), sdk.MustAccAddressFromBech32(seller), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
+	err = k.BK.SendCoins(ctx, plan.GetAddress(), seller, sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
 	if err != nil {
 		return err
 	}
@@ -137,7 +146,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId, seller string, amountTokensToSell,
 
 	// Emit event
 	err = ctx.EventManager().EmitTypedEvent(&types.EventSell{
-		Seller:    seller,
+		Seller:    seller.String(),
 		PlanId:    planId,
 		RollappId: plan.RollappId,
 		Amount:    amountTokensToSell,

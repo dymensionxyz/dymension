@@ -80,7 +80,7 @@ func (s *KeeperTestSuite) TestClaim() {
 	s.BuySomeTokens(planId, claimer, soldAmt)
 
 	// claim should fail as not settled
-	err = k.Claim(s.Ctx, planId, claimer.String())
+	err = k.Claim(s.Ctx, planId, claimer)
 	s.Require().Error(err)
 
 	// settle
@@ -90,11 +90,11 @@ func (s *KeeperTestSuite) TestClaim() {
 	s.Require().NoError(err)
 
 	// claim should fail as no balance available (random address)
-	err = k.Claim(s.Ctx, planId, sample.Acc().String())
+	err = k.Claim(s.Ctx, planId, sample.Acc())
 	s.Require().Error(err)
 
 	// fund. claim should succeed
-	err = k.Claim(s.Ctx, planId, claimer.String())
+	err = k.Claim(s.Ctx, planId, claimer)
 	s.Require().NoError(err)
 
 	// assert claimed amt
@@ -127,7 +127,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 	buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(100_000)))
 	s.FundAcc(buyer, buyersFunds)
 
-	err = k.Buy(s.Ctx, planId, buyer.String(), sdk.NewInt(1_000), sdk.NewInt(100_000))
+	err = k.Buy(s.Ctx, planId, buyer, sdk.NewInt(1_000), sdk.NewInt(100_000))
 	s.Require().NoError(err)
 
 	// settle should succeed after fund

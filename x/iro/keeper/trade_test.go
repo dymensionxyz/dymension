@@ -36,18 +36,18 @@ func (s *KeeperTestSuite) TestBuy() {
 
 	// buy before plan start - should fail
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(-time.Minute))
-	err = k.Buy(s.Ctx, planId, buyer.String(), sdk.NewInt(1_000), maxAmt)
+	err = k.Buy(s.Ctx, planId, buyer, sdk.NewInt(1_000), maxAmt)
 	s.Require().Error(err)
 
 	// plan start
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
 
 	// cost is higher than maxCost specified - should fail
-	err = k.Buy(s.Ctx, planId, buyer.String(), sdk.NewInt(1_000), sdk.NewInt(10))
+	err = k.Buy(s.Ctx, planId, buyer, sdk.NewInt(1_000), sdk.NewInt(10))
 	s.Require().Error(err)
 
 	// buy more than user's balance - should fail
-	err = k.Buy(s.Ctx, planId, buyer.String(), sdk.NewInt(900_000), maxAmt)
+	err = k.Buy(s.Ctx, planId, buyer, sdk.NewInt(900_000), maxAmt)
 	s.Require().Error(err)
 
 	// successful buy
@@ -56,19 +56,19 @@ func (s *KeeperTestSuite) TestBuy() {
 
 	amountTokensToBuy := sdk.NewInt(100)
 	expectedCost := curve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy))
-	err = k.Buy(s.Ctx, planId, buyer.String(), amountTokensToBuy, maxAmt)
+	err = k.Buy(s.Ctx, planId, buyer, amountTokensToBuy, maxAmt)
 	s.Require().NoError(err)
 	plan, _ = k.GetPlan(s.Ctx, planId)
 	s.Assert().True(plan.SoldAmt.Equal(amountTokensToBuy))
 
 	// buy again, check cost changed
 	expectedCost2 := curve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy))
-	err = k.Buy(s.Ctx, planId, buyer.String(), amountTokensToBuy, maxAmt)
+	err = k.Buy(s.Ctx, planId, buyer, amountTokensToBuy, maxAmt)
 	s.Require().NoError(err)
 	s.Assert().True(expectedCost2.GT(expectedCost))
 
 	// buy more than left - should fail
-	err = k.Buy(s.Ctx, planId, buyer.String(), sdk.NewInt(999_999), maxAmt)
+	err = k.Buy(s.Ctx, planId, buyer, sdk.NewInt(999_999), maxAmt)
 	s.Require().Error(err)
 
 	// assert balance
@@ -103,11 +103,11 @@ func (s *KeeperTestSuite) TestBuyAllocationLimit() {
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
 
 	// buy more than total allocation limit - should fail
-	err = k.Buy(s.Ctx, planId, buyer.String(), totalAllocation, maxAmt)
+	err = k.Buy(s.Ctx, planId, buyer, totalAllocation, maxAmt)
 	s.Require().Error(err)
 
 	// buy less than total allocation limit - should pass
 	maxSellAmt := totalAllocation.ToLegacyDec().Mul(keeper.AllocationSellLimit).TruncateInt()
-	err = k.Buy(s.Ctx, planId, buyer.String(), maxSellAmt, maxAmt)
+	err = k.Buy(s.Ctx, planId, buyer, maxSellAmt, maxAmt)
 	s.Require().NoError(err)
 }

@@ -9,7 +9,8 @@ import (
 
 // Claim implements types.MsgServer.
 func (m msgServer) Claim(ctx context.Context, req *types.MsgClaim) (*types.MsgClaimResponse, error) {
-	err := m.Keeper.Claim(sdk.UnwrapSDKContext(ctx), req.PlanId, req.Claimer)
+	claimerAddr := sdk.MustAccAddressFromBech32(req.Claimer)
+	err := m.Keeper.Claim(sdk.UnwrapSDKContext(ctx), req.PlanId, claimerAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -18,13 +19,7 @@ func (m msgServer) Claim(ctx context.Context, req *types.MsgClaim) (*types.MsgCl
 }
 
 // Claim claims the FUT token for the real RA token
-// FIXME: use sdk.AccAddress instead of string
-func (k Keeper) Claim(ctx sdk.Context, planId, claimer string) error {
-	claimerAddr, err := sdk.AccAddressFromBech32(claimer)
-	if err != nil {
-		return err
-	}
-
+func (k Keeper) Claim(ctx sdk.Context, planId string, claimer sdk.AccAddress) error {
 	plan, found := k.GetPlan(ctx, planId)
 	if !found {
 		return types.ErrPlanNotFound
@@ -34,13 +29,13 @@ func (k Keeper) Claim(ctx sdk.Context, planId, claimer string) error {
 		return types.ErrPlanNotSettled
 	}
 
-	availableTokens := k.BK.GetBalance(ctx, claimerAddr, plan.TotalAllocation.Denom)
+	availableTokens := k.BK.GetBalance(ctx, claimer, plan.TotalAllocation.Denom)
 	if availableTokens.IsZero() {
 		return types.ErrNoTokensToClaim
 	}
 
 	// Burn all the FUT tokens the user have
-	err = k.BK.SendCoinsFromAccountToModule(ctx, claimerAddr, types.ModuleName, sdk.NewCoins(availableTokens))
+	err := k.BK.SendCoinsFromAccountToModule(ctx, claimer, types.ModuleName, sdk.NewCoins(availableTokens))
 	if err != nil {
 		return err
 	}
@@ -50,7 +45,7 @@ func (k Keeper) Claim(ctx sdk.Context, planId, claimer string) error {
 	}
 
 	// Give the user the RA token in return (same amount as the FUT token)
-	err = k.BK.SendCoinsFromModuleToAccount(ctx, types.ModuleName, claimerAddr, sdk.NewCoins(sdk.NewCoin(plan.SettledDenom, availableTokens.Amount)))
+	err = k.BK.SendCoinsFromModuleToAccount(ctx, types.ModuleName, claimer, sdk.NewCoins(sdk.NewCoin(plan.SettledDenom, availableTokens.Amount)))
 	if err != nil {
 		return err
 	}
@@ -61,7 +56,7 @@ func (k Keeper) Claim(ctx sdk.Context, planId, claimer string) error {
 
 	// Emit event
 	err = ctx.EventManager().EmitTypedEvent(&types.EventClaim{
-		Claimer:   claimer,
+		Claimer:   claimer.String(),
 		PlanId:    planId,
 		RollappId: plan.RollappId,
 		Amount:    availableTokens.Amount,
