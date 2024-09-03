@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
-import "osmosis/lockup/lock.proto";
+import "dymensionxyz/dymension/lockup/lock.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/incentives/types";
 // Gauge is an object that stores and distributes yields to recipients who
