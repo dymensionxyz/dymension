@@ -27,17 +27,19 @@ func newStreamInfo(streams []types.Stream) *streamInfo {
 	return info
 }
 
-func (i *streamInfo) addDistrCoins(stream types.Stream, coins sdk.Coins) {
-	if id, ok := i.streamIDToID[stream.Id]; ok {
+func (i *streamInfo) addDistrCoins(stream types.Stream, coins sdk.Coins) types.Stream {
+	id, ok := i.streamIDToID[stream.Id]
+	if ok {
 		i.IDToStream[id].DistributedCoins = i.IDToStream[id].DistributedCoins.Add(coins...)
 	} else {
-		newID := i.nextID
+		id = i.nextID
 		i.nextID++
-		i.streamIDToID[stream.Id] = newID
+		i.streamIDToID[stream.Id] = id
 		stream.DistributedCoins = stream.DistributedCoins.Add(coins...)
 		i.IDToStream = append(i.IDToStream, stream)
 	}
 	i.totalDistr = i.totalDistr.Add(coins...)
+	return i.IDToStream[id]
 }
 
 func (i *streamInfo) getStreams() []types.Stream {
@@ -59,16 +61,18 @@ func newGaugeInfo() *gaugeInfo {
 	}
 }
 
-func (i *gaugeInfo) addDistrCoins(gauge incentivestypes.Gauge, coins sdk.Coins) {
-	if id, ok := i.gaugeIDToID[gauge.Id]; ok {
+func (i *gaugeInfo) addDistrCoins(gauge incentivestypes.Gauge, coins sdk.Coins) incentivestypes.Gauge {
+	id, ok := i.gaugeIDToID[gauge.Id]
+	if ok {
 		i.IDToGauge[id].Coins = i.IDToGauge[id].Coins.Add(coins...)
 	} else {
-		newID := i.nextID
+		id = i.nextID
 		i.nextID++
-		i.gaugeIDToID[gauge.Id] = newID
+		i.gaugeIDToID[gauge.Id] = id
 		gauge.Coins = gauge.Coins.Add(coins...)
 		i.IDToGauge = append(i.IDToGauge, gauge)
 	}
+	return i.IDToGauge[id]
 }
 
 func (i *gaugeInfo) getGauges() []incentivestypes.Gauge {

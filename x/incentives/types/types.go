@@ -1,6 +1,6 @@
 package types
 
-import lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+import lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 
 type DenomLocksCache map[string][]lockuptypes.PeriodLock
 

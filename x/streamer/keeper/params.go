@@ -1,9 +1,9 @@
 package keeper
 
 import (
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 // GetParams returns all of the parameters in the incentive module.

@@ -164,7 +164,7 @@ func (k Keeper) distributeToAssetGauge(ctx sdk.Context, gauge types.Gauge, locks
 }
 
 // GetDistributeToBaseLocks takes a gauge along with cached period locks by denom and returns locks that must be distributed to
-func (k Keeper) GetDistributeToBaseLocks(ctx sdk.Context, gauge types.Gauge, cache map[string][]lockuptypes.PeriodLock) []lockuptypes.PeriodLock {
+func (k Keeper) GetDistributeToBaseLocks(ctx sdk.Context, gauge types.Gauge, cache types.DenomLocksCache) []lockuptypes.PeriodLock {
 	// if gauge is empty, don't get the locks
 	if gauge.Coins.Empty() {
 		return []lockuptypes.PeriodLock{}

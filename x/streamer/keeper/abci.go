@@ -31,11 +31,11 @@ func (k Keeper) EndBlock(ctx sdk.Context) error {
 	denomLockCache := incentivestypes.NewDenomLocksCache()
 
 	for _, p := range epochPointers {
-		remainIterations := maxIterations - totalIterations
-
-		if remainIterations <= 0 {
+		if totalIterations >= maxIterations {
 			break // no more iterations available for this block
 		}
+
+		remainIterations := maxIterations - totalIterations // always positive
 
 		// Calculate rewards and fill caches
 		result := k.CalculateRewards(ctx, p, remainIterations, streamCache, gaugeCache, denomLockCache)

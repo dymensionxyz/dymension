@@ -88,7 +88,7 @@ func (k Keeper) CalculateRewards(
 
 		// Update distributed coins for the stream
 		streamInfo.addDistrCoins(v.Stream, rewards)
-		gaugeInfo.addDistrCoins(gauge, rewards)
+		gauge = gaugeInfo.addDistrCoins(gauge, rewards)
 
 		weight = k.getGaugeWeight(ctx, gauge, denomLocksCache)
 
