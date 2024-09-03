@@ -13,11 +13,16 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+)
+
+var (
+	successAck = channeltypes.CommitAcknowledgement(channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement())
 )
 
 type transferGenesisSuite struct {
@@ -35,6 +40,15 @@ func (s *transferGenesisSuite) SetupTest() {
 	path := s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.SetupConnections(path)
 	s.createRollapp(false, nil) // genesis protocol is not finished yet
+
+	// fund the rollapp owner account for iro creation fee
+	iroFee := sdk.NewCoin(appparams.BaseDenom, s.hubApp().IROKeeper.GetParams(s.hubCtx()).CreationFee)
+	apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(iroFee))
+
+	// fund the iro module account for pool creation fee
+	poolFee := s.hubApp().GAMMKeeper.GetParams(s.hubCtx()).PoolCreationFee
+	apptesting.FundAccount(s.hubApp(), s.hubCtx(), sdk.MustAccAddressFromBech32(s.hubApp().IROKeeper.GetModuleAccountAddress()), poolFee)
+
 	s.registerSequencer()
 	s.path = path
 	// set the canonical client before creating channels
@@ -66,7 +80,7 @@ func (s *transferGenesisSuite) TestNoIRO() {
 	hubIBCKeeper := s.hubChain().App.GetIBCKeeper()
 	ack, found := hubIBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().True(found)
-	s.Require().NotEqual(channeltypes.CommitAcknowledgement(nil), ack)
+	s.Require().NotEqual(successAck, ack) // assert for ack error
 
 	transfersEnabled := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
 	s.Require().False(transfersEnabled)
@@ -110,13 +124,13 @@ func (s *transferGenesisSuite) TestIRO() {
 
 	ack, found := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().True(found)
-	s.Require().NotEqual(channeltypes.CommitAcknowledgement(nil), ack) // check for error ack
+	s.Require().NotEqual(successAck, ack) // assert for ack error
 
 	transfersEnabled := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
 	s.Require().False(transfersEnabled)
 
-	// test invalid genesis transfers
 	// - TODO: wrong dest, wrong base denom, wrong decimals
+	// test invalid genesis transfers
 	// - wrong amount
 	msg = s.transferMsg(amt.Sub(math.NewInt(100)), denom, true)
 	res, err = s.rollappChain().SendMsgs(msg)
@@ -128,7 +142,7 @@ func (s *transferGenesisSuite) TestIRO() {
 
 	ack, found = s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().True(found)
-	s.Require().NotEqual(channeltypes.CommitAcknowledgement(nil), ack) // check for error ack
+	s.Require().NotEqual(successAck, ack) // assert for ack error
 
 	transfersEnabled = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
 	s.Require().False(transfersEnabled)
@@ -142,6 +156,12 @@ func (s *transferGenesisSuite) TestIRO() {
 	err = s.path.RelayPacket(packet)
 	s.Require().NoError(err)
 
+	// assert the ack succeeded
+	bz, found := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	s.Require().True(found)
+	s.Require().Equal(successAck, bz) // assert for ack success
+
+	// assert the transfers are enabled
 	transfersEnabled = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
 	s.Require().True(transfersEnabled, "transfers enabled check")
 
@@ -150,6 +170,7 @@ func (s *transferGenesisSuite) TestIRO() {
 	metadata, found := s.hubApp().BankKeeper.GetDenomMetaData(s.hubCtx(), ibcDenom)
 	s.Require().True(found, "missing denom metadata for rollapps taking token", "denom", ibcDenom)
 	s.Require().Equal(ibcDenom, metadata.Base)
+
 	// the iro plan should be settled
 	plan, found := s.hubApp().IROKeeper.GetPlanByRollapp(s.hubCtx(), rollappChainID())
 	s.Require().True(found)

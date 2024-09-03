@@ -3,12 +3,15 @@ package keeper_test
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -34,4 +37,22 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.msgServer = keeper.NewMsgServerImpl(*app.IROKeeper)
 	suite.Ctx = ctx
 	suite.queryClient = queryClient
+
+	// fund alice, the default rollapp creator, so it would have enough balance for IRO creation fee
+	rollappId := suite.CreateDefaultRollapp()
+	rollapp := suite.App.RollappKeeper.MustGetRollapp(suite.Ctx, rollappId)
+	funds := suite.App.IROKeeper.GetParams(suite.Ctx).CreationFee.Mul(math.NewInt(10)) // 10 times the creation fee
+	suite.FundAcc(sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, funds)))
+}
+
+//	buyer := sample.Acc()
+//
+// buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(100_000)))
+// s.FundAcc(buyer, buyersFunds)
+// BuySomeTokens buys some tokens from the plan
+func (suite *KeeperTestSuite) BuySomeTokens(planId string, buyer sdk.AccAddress, amt math.Int) {
+	maxAmt := sdk.NewInt(1_000_000_000)
+	suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("adym", amt)))
+	err := suite.App.IROKeeper.Buy(suite.Ctx, planId, buyer.String(), amt, maxAmt)
+	suite.Require().NoError(err)
 }

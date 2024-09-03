@@ -3,19 +3,18 @@ package types
 import (
 	fmt "fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app/params"
+	"cosmossdk.io/math"
 )
 
 // Default parameter values
 
 var (
-	DefaultTakeFee     = "0.02"                                                     // 2%
-	DefaultCreationFee = sdk.NewCoin(params.BaseDenom, sdk.NewInt(10).MulRaw(1e18)) /* DYM */
+	DefaultTakeFee     = "0.02"                       // 2%
+	DefaultCreationFee = math.NewInt(10).MulRaw(1e18) /* 10 DYM */
 )
 
 // NewParams creates a new Params object
-func NewParams(takerFee sdk.Dec, creationFee sdk.Coin) Params {
+func NewParams(takerFee math.LegacyDec, creationFee math.Int) Params {
 	return Params{
 		TakerFee:    takerFee,
 		CreationFee: creationFee,
@@ -25,7 +24,7 @@ func NewParams(takerFee sdk.Dec, creationFee sdk.Coin) Params {
 // DefaultParams returns a default set of parameters.
 func DefaultParams() Params {
 	return Params{
-		TakerFee:    sdk.MustNewDecFromStr(DefaultTakeFee),
+		TakerFee:    math.LegacyMustNewDecFromStr(DefaultTakeFee),
 		CreationFee: DefaultCreationFee,
 	}
 }
@@ -44,15 +43,16 @@ func (p Params) Validate() error {
 }
 
 func validateTakerFee(i interface{}) error {
-	v, ok := i.(sdk.Dec)
+	v, ok := i.(math.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
+
 	if v.IsNil() || v.IsNegative() {
 		return fmt.Errorf("taker fee must be a non-negative decimal: %s", v)
 	}
 
-	if v.GTE(sdk.OneDec()) {
+	if v.GTE(math.LegacyOneDec()) {
 		return fmt.Errorf("taker fee must be less than 1: %s", v)
 	}
 
@@ -60,17 +60,13 @@ func validateTakerFee(i interface{}) error {
 }
 
 func validateCreationFee(i interface{}) error {
-	v, ok := i.(sdk.Coin)
+	v, ok := i.(math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if v.Validate() != nil {
-		return fmt.Errorf("invalid coin: %s", v)
-	}
-
-	if v.IsZero() {
-		return fmt.Errorf("creation fee must be non-zero: %s", v)
+	if !v.IsPositive() {
+		return fmt.Errorf("creation fee must be a positive integer: %s", v)
 	}
 
 	return nil

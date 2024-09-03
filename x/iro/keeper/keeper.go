@@ -25,7 +25,7 @@ type Keeper struct {
 
 	// FIXME: change to expected keeper
 	AK *authkeeper.AccountKeeper
-	bk bankkeeper.Keeper
+	BK bankkeeper.Keeper
 	rk *rollappkeeper.Keeper
 	gk *gammkeeper.Keeper
 }
@@ -43,7 +43,7 @@ func NewKeeper(
 		cdc:      cdc,
 		storeKey: storeKey,
 		AK:       ak,
-		bk:       bk,
+		BK:       bk,
 		rk:       rk,
 		gk:       gk,
 	}

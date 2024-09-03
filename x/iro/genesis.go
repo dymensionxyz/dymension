@@ -1,6 +1,8 @@
 package iro
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
@@ -8,6 +10,12 @@ import (
 
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
+	// check if the iro account exists so it could receive funds
+	moduleAcc := k.AK.GetModuleAccount(ctx, types.ModuleName)
+	if moduleAcc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
+	}
+
 	k.SetParams(ctx, genState.Params)
 
 	lastPlanId := uint64(0)

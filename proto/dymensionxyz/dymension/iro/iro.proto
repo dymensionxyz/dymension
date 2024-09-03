@@ -15,7 +15,10 @@ message Params {
     (gogoproto.nullable) = false
   ];
 
-  cosmos.base.v1beta1.Coin creation_fee = 2 [ (gogoproto.nullable) = false ];
+  string creation_fee = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // Bonding curve represents a bonding curve in the IRO module.

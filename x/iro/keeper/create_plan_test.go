@@ -74,7 +74,7 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	expectedCreationFee := s.App.IROKeeper.GetParams(s.Ctx).CreationFee
 	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, plan.GetAddress())
 	s.Require().Len(balances, 1)
-	s.Require().Equal(expectedCreationFee, balances[0])
+	s.Require().Equal(expectedCreationFee, balances[0].Amount)
 }
 
 func (s *KeeperTestSuite) TestMintAllocation() {

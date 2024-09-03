@@ -14,6 +14,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -94,7 +95,12 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, end
 		return "", errorsmod.Wrap(gerrc.ErrInternal, "module account address mismatch")
 	}
 
-	// FIXME: charge creation fee
+	// charge creation fee
+	fee := sdk.NewCoin(appparams.BaseDenom, k.GetParams(ctx).CreationFee)
+	err = k.BK.SendCoins(ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), plan.GetAddress(), sdk.NewCoins(fee))
+	if err != nil {
+		return "", err
+	}
 
 	// Set the plan in the store
 	k.SetPlan(ctx, plan)
@@ -139,13 +145,13 @@ func (k Keeper) MintAllocation(ctx sdk.Context, allocatedAmount math.Int, rollap
 		return sdk.Coin{}, errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), fmt.Sprintf("metadata: %v", metadata))
 	}
 
-	if k.bk.HasDenomMetaData(ctx, baseDenom) {
+	if k.BK.HasDenomMetaData(ctx, baseDenom) {
 		return sdk.Coin{}, errors.New("denom already exists")
 	}
-	k.bk.SetDenomMetaData(ctx, metadata)
+	k.BK.SetDenomMetaData(ctx, metadata)
 
 	toMint := sdk.NewCoin(baseDenom, allocatedAmount)
-	err := k.bk.MintCoins(ctx, types.ModuleName, sdk.NewCoins(toMint))
+	err := k.BK.MintCoins(ctx, types.ModuleName, sdk.NewCoins(toMint))
 	if err != nil {
 		return sdk.Coin{}, err
 	}

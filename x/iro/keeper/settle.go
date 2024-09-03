@@ -32,14 +32,14 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 
 	// validate the required funds are available in the module account
 	// funds expected as it's validated in the genesis transfer handler
-	balance := k.bk.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), rollappIBCDenom)
+	balance := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), rollappIBCDenom)
 	if balance.Amount.LT(plan.TotalAllocation.Amount) {
 		return errorsmod.Wrapf(gerrc.ErrInternal, "required: %s, available: %s", plan.TotalAllocation.String(), balance.String())
 	}
 
 	// "claims" the unsold FUT token
-	futBalance := k.bk.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.TotalAllocation.Denom)
-	err := k.bk.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(futBalance))
+	futBalance := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.TotalAllocation.Denom)
+	err := k.BK.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(futBalance))
 	if err != nil {
 		return err
 	}
@@ -74,14 +74,14 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 	// find the limiting factor
 	unallocatedTokens := plan.TotalAllocation.Amount.Sub(plan.SoldAmt) // assumed > 0, as we enforce it in the Buy function
 
-	raisedDYM := k.bk.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom)
+	raisedDYM := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom)
 	tokens, dym := determineLimitingFactor(unallocatedTokens, raisedDYM.Amount, lastPrice)
 
 	rollappLiquidityCoin := sdk.NewCoin(plan.SettledDenom, tokens)
 	dymLiquidityCoin := sdk.NewCoin(appparams.BaseDenom, dym)
 
 	// send the raised DYM to the iro module
-	err := k.bk.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(dymLiquidityCoin))
+	err := k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(dymLiquidityCoin))
 	if err != nil {
 		return err
 	}
@@ -110,16 +110,26 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 	return nil
 }
 
-func determineLimitingFactor(unallocatedTokens, raisedDYM math.Int, ratio math.LegacyDec) (tokens, dym math.Int) {
-	requiredDYM := unallocatedTokens.ToLegacyDec().Mul(ratio).TruncateInt()
+func determineLimitingFactor(unsoldTokens, raisedDYM math.Int, ratio math.LegacyDec) (tokens, dym math.Int) {
+	requiredDYM := unsoldTokens.ToLegacyDec().Mul(ratio).TruncateInt()
 
 	// if raisedDYM is less than requiredDYM, than DYM is the limiting factor
+	// we use all the raisedDYM, and the corresponding amount of tokens
 	if raisedDYM.LT(requiredDYM) {
 		dym = raisedDYM
 		tokens = raisedDYM.ToLegacyDec().Quo(ratio).TruncateInt()
-	} else {
-		tokens = unallocatedTokens
-		dym = requiredDYM
+		return
+	}
+
+	// if raisedDYM is more than requiredDYM, than tokens are the limiting factor
+	// we use all the unsold tokens, and the corresponding amount of DYM
+	tokens = unsoldTokens
+	dym = requiredDYM
+
+	// for the edge case where price is 0 (no tokens sold and initial price is 0)
+	// and required DYM is 0, we set the raised DYM as the limiting factor
+	if requiredDYM.IsZero() {
+		dym = raisedDYM
 	}
 	return
 }

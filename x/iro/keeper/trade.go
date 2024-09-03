@@ -71,13 +71,13 @@ func (k Keeper) Buy(ctx sdk.Context, planId, buyer string, amountTokensToBuy, ma
 	// FIXME: Charge taker fee
 
 	// send DYM from buyer to the plan. DYM sent directly to the plan's module account
-	err = k.bk.SendCoins(ctx, sdk.MustAccAddressFromBech32(buyer), plan.GetAddress(), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
+	err = k.BK.SendCoins(ctx, sdk.MustAccAddressFromBech32(buyer), plan.GetAddress(), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
 	if err != nil {
 		return err
 	}
 
 	// send allocated tokens from the plan to the buyer
-	err = k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sdk.MustAccAddressFromBech32(buyer), sdk.NewCoins(sdk.NewCoin(plan.TotalAllocation.Denom, amountTokensToBuy)))
+	err = k.BK.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sdk.MustAccAddressFromBech32(buyer), sdk.NewCoins(sdk.NewCoin(plan.TotalAllocation.Denom, amountTokensToBuy)))
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId, seller string, amountTokensToSell,
 	}
 
 	// send allocated tokens from seller to the plan
-	err = k.bk.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(seller), types.ModuleName, sdk.NewCoins(sdk.NewCoin(plan.TotalAllocation.Denom, amountTokensToSell)))
+	err = k.BK.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(seller), types.ModuleName, sdk.NewCoins(sdk.NewCoin(plan.TotalAllocation.Denom, amountTokensToSell)))
 	if err != nil {
 		return err
 	}
@@ -128,7 +128,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId, seller string, amountTokensToSell,
 	// FIXME: Charge taker fee
 
 	// send DYM from the plan to the seller. DYM managed by the plan's module account
-	err = k.bk.SendCoins(ctx, plan.GetAddress(), sdk.MustAccAddressFromBech32(seller), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
+	err = k.BK.SendCoins(ctx, plan.GetAddress(), sdk.MustAccAddressFromBech32(seller), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
 	if err != nil {
 		return err
 	}

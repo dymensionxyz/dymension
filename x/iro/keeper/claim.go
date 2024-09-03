@@ -18,7 +18,13 @@ func (m msgServer) Claim(ctx context.Context, req *types.MsgClaim) (*types.MsgCl
 }
 
 // Claim claims the FUT token for the real RA token
+// FIXME: use sdk.AccAddress instead of string
 func (k Keeper) Claim(ctx sdk.Context, planId, claimer string) error {
+	claimerAddr, err := sdk.AccAddressFromBech32(claimer)
+	if err != nil {
+		return err
+	}
+
 	plan, found := k.GetPlan(ctx, planId)
 	if !found {
 		return types.ErrPlanNotFound
@@ -28,23 +34,23 @@ func (k Keeper) Claim(ctx sdk.Context, planId, claimer string) error {
 		return types.ErrPlanNotSettled
 	}
 
-	availableTokens := k.bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(claimer), plan.TotalAllocation.Denom)
+	availableTokens := k.BK.GetBalance(ctx, claimerAddr, plan.TotalAllocation.Denom)
 	if availableTokens.IsZero() {
 		return types.ErrNoTokensToClaim
 	}
 
 	// Burn all the FUT tokens the user have
-	err := k.bk.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(claimer), types.ModuleName, sdk.NewCoins(availableTokens))
+	err = k.BK.SendCoinsFromAccountToModule(ctx, claimerAddr, types.ModuleName, sdk.NewCoins(availableTokens))
 	if err != nil {
 		return err
 	}
-	err = k.bk.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(availableTokens))
+	err = k.BK.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(availableTokens))
 	if err != nil {
 		return err
 	}
 
 	// Give the user the RA token in return (same amount as the FUT token)
-	err = k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sdk.MustAccAddressFromBech32(claimer), sdk.NewCoins(sdk.NewCoin(plan.SettledDenom, availableTokens.Amount)))
+	err = k.BK.SendCoinsFromModuleToAccount(ctx, types.ModuleName, claimerAddr, sdk.NewCoins(sdk.NewCoin(plan.SettledDenom, availableTokens.Amount)))
 	if err != nil {
 		return err
 	}

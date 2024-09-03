@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -111,9 +112,8 @@ func (k Keeper) QueryPrice(goCtx context.Context, req *types.QueryPriceRequest) 
 	}
 
 	price := plan.BondingCurve.SpotPrice(plan.SoldAmt).TruncateInt()
-	coin := sdk.NewCoin(plan.TotalAllocation.Denom, price)
+	coin := sdk.NewCoin(appparams.BaseDenom, price)
 
-	// FIXME: should be Decimal price, not coin!
 	return &types.QueryPriceResponse{
 		Price: &coin,
 	}, nil
