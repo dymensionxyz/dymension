@@ -72,8 +72,10 @@ message GenesisInfo {
   string bech32_prefix = 2;
   // native_denom is the base denom for the native token
   DenomMetadata native_denom = 3;
+  // initial_supply is the initial supply of the native token
+  cosmos.base.v1beta1.Coin initial_supply = 4 [(gogoproto.nullable) = false];
   // sealed indicates if the fields in this object are no longer updatable
-  bool sealed = 4;
+  bool sealed = 5;
 }
 
 // Rollapp summary is a compact representation of Rollapp

@@ -49,6 +49,7 @@ func SimulateMsgCreateRollapp(ak simulationtypes.AccountKeeper, bk simulationtyp
 					Base:     "udym",
 					Exponent: 6,
 				},
+				InitialSupply: sdk.NewCoin("udym", sdk.NewInt(1000000000)),
 			},
 		}
 

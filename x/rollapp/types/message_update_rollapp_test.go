@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
@@ -25,6 +26,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					InitialSupply:   sdk.NewCoin("aden", sdk.NewInt(1000)),
 				},
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
@@ -45,6 +47,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					InitialSupply:   sdk.NewCoin("aden", sdk.NewInt(1000)),
 				},
 			},
 			err: ErrInvalidInitialSequencer,
@@ -59,6 +62,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					InitialSupply:   sdk.NewCoin("aden", sdk.NewInt(1000)),
 				},
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
@@ -78,6 +82,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: strings.Repeat("a", maxGenesisChecksumLength+1),
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					InitialSupply:   sdk.NewCoin("aden", sdk.NewInt(1000)),
 				},
 			},
 			err: ErrInvalidGenesisChecksum,

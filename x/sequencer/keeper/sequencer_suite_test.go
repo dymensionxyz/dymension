@@ -58,6 +58,7 @@ func (suite *SequencerTestSuite) CreateRollappWithInitialSequencer(initSeq strin
 			Bech32Prefix:    "rol",
 			GenesisChecksum: "checksum",
 			NativeDenom:     &rollapptypes.DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+			InitialSupply:   sdk.NewCoin("aden", sdk.NewInt(1000)),
 		},
 		InitialSequencer: initSeq,
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/dymension/v3/utils"
@@ -16,7 +17,7 @@ func CmdCreateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "create-rollapp [rollapp-id] [alias] [vm-type]",
 		Short:   "Create a new rollapp",
-		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID Rollapp EVM --init-sequencer '<seq_address1>,<seq_address2>' --genesis-checksum <genesis_checksum> --native-denom native_denom.json --metadata metadata.json",
+		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID Rollapp EVM --init-sequencer '<seq_address1>,<seq_address2>' --genesis-checksum <genesis_checksum> --initial-supply 1000arax --native-denom native_denom.json --metadata metadata.json",
 		Args:    cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// nolint:gofumpt
@@ -91,6 +92,18 @@ func parseGenesisInfo(cmd *cobra.Command) (types.GenesisInfo, error) {
 	genesisInfo.NativeDenom = new(types.DenomMetadata)
 	if nativeDenomFlag != "" {
 		if err = utils.ParseJsonFromFile(nativeDenomFlag, genesisInfo.NativeDenom); err != nil {
+			return types.GenesisInfo{}, err
+		}
+	}
+
+	initialSupplyFlag, err := cmd.Flags().GetString(FlagInitialSupply)
+	if err != nil {
+		return types.GenesisInfo{}, err
+	}
+
+	if initialSupplyFlag != "" {
+		genesisInfo.InitialSupply, err = sdk.ParseCoinNormalized(initialSupplyFlag)
+		if err != nil {
 			return types.GenesisInfo{}, err
 		}
 	}

@@ -84,7 +84,11 @@ func (r Rollapp) AllImmutableFieldsAreSet() bool {
 }
 
 func (r Rollapp) GenesisInfoFieldsAreSet() bool {
-	return r.GenesisInfo.GenesisChecksum != "" && r.GenesisInfo.NativeDenom != nil && r.GenesisInfo.NativeDenom.Validate() == nil && r.GenesisInfo.Bech32Prefix != ""
+	return r.GenesisInfo.GenesisChecksum != "" &&
+		r.GenesisInfo.NativeDenom != nil &&
+		r.GenesisInfo.NativeDenom.Validate() == nil &&
+		r.GenesisInfo.Bech32Prefix != "" &&
+		r.GenesisInfo.InitialSupply.Validate() == nil
 }
 
 func (r GenesisInfo) Validate() error {

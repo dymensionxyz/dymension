@@ -36,6 +36,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				GenesisInfo: types.GenesisInfo{
 					Bech32Prefix:    "new",
 					GenesisChecksum: "new_checksum",
+					InitialSupply:   sdk.NewCoin("aden", sdk.NewInt(1000)),
 					NativeDenom: &types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
@@ -53,6 +54,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				GenesisInfo: types.GenesisInfo{
 					Bech32Prefix:    "new",
 					GenesisChecksum: "new_checksum",
+					InitialSupply:   sdk.NewCoin("aden", sdk.NewInt(1000)),
 					NativeDenom: &types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
@@ -124,6 +126,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Owner:     alice,
 				RollappId: rollappId,
 				GenesisInfo: types.GenesisInfo{
+					InitialSupply: sdk.NewCoin("aden", sdk.NewInt(1000)),
 					NativeDenom: &types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
@@ -155,6 +158,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				GenesisInfo: types.GenesisInfo{
 					Bech32Prefix:    "old",
 					GenesisChecksum: "old",
+					InitialSupply:   sdk.NewCoin("aold", sdk.NewInt(1000)),
 					NativeDenom: &types.DenomMetadata{
 						Display:  "OLD",
 						Base:     "aold",
@@ -187,6 +191,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				GenesisInfo: types.GenesisInfo{
 					Bech32Prefix:    "old",
 					GenesisChecksum: "old",
+					InitialSupply:   sdk.NewCoin("aold", sdk.NewInt(1000)),
 					NativeDenom: &types.DenomMetadata{
 						Display:  "OLD",
 						Base:     "aold",
@@ -224,6 +229,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		GenesisInfo: types.GenesisInfo{
 			Bech32Prefix:    "rol",
 			GenesisChecksum: "checksum",
+			InitialSupply:   sdk.NewCoin("aden", sdk.NewInt(1000)),
 			NativeDenom: &types.DenomMetadata{
 				Display:  "DEN",
 				Base:     "aden",
