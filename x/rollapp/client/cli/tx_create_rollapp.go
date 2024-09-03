@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -72,6 +73,7 @@ func parseGenesisInfo(cmd *cobra.Command) (types.GenesisInfo, error) {
 	var (
 		genesisInfo types.GenesisInfo
 		err         error
+		ok          bool
 	)
 
 	genesisInfo.GenesisChecksum, err = cmd.Flags().GetString(FlagGenesisChecksum)
@@ -102,9 +104,9 @@ func parseGenesisInfo(cmd *cobra.Command) (types.GenesisInfo, error) {
 	}
 
 	if initialSupplyFlag != "" {
-		genesisInfo.InitialSupply, err = sdk.ParseCoinNormalized(initialSupplyFlag)
-		if err != nil {
-			return types.GenesisInfo{}, err
+		genesisInfo.InitialSupply, ok = sdk.NewIntFromString(initialSupplyFlag)
+		if !ok {
+			return types.GenesisInfo{}, fmt.Errorf("invalid initial supply: %s", initialSupplyFlag)
 		}
 	}
 

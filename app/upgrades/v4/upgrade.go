@@ -203,7 +203,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 				Base:     "aden", // placeholder data
 				Exponent: 6,      // placeholder data
 			},
-			InitialSupply: sdk.NewCoin("aden", sdk.NewInt(100000)), // placeholder data
+			InitialSupply: sdk.NewInt(100000), // placeholder data
 			Sealed:        true,
 		},
 		InitialSequencer: "*",

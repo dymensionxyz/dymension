@@ -88,7 +88,7 @@ func (r Rollapp) GenesisInfoFieldsAreSet() bool {
 		r.GenesisInfo.NativeDenom != nil &&
 		r.GenesisInfo.NativeDenom.Validate() == nil &&
 		r.GenesisInfo.Bech32Prefix != "" &&
-		r.GenesisInfo.InitialSupply.Validate() == nil
+		!r.GenesisInfo.InitialSupply.IsNil()
 }
 
 func (r GenesisInfo) Validate() error {

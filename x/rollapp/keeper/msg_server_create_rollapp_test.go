@@ -391,5 +391,5 @@ var mockGenesisInfo = types.GenesisInfo{
 		Base:     "aden",
 		Exponent: 18,
 	},
-	InitialSupply: sdk.NewCoin("aden", sdk.NewInt(100000000)),
+	InitialSupply: sdk.NewInt(100000000),
 }

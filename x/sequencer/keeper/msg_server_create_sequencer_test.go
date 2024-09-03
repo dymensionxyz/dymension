@@ -128,7 +128,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			GenesisInfo: rollapptypes.GenesisInfo{
 				Bech32Prefix:    bech32Prefix,
 				GenesisChecksum: "1234567890abcdefg",
-				InitialSupply:   sdk.NewCoin("aden", sdk.NewInt(1000)),
+				InitialSupply:   sdk.NewInt(1000),
 				NativeDenom: &rollapptypes.DenomMetadata{
 					Display:  "DEN",
 					Base:     "aden",

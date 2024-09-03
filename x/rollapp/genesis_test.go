@@ -27,13 +27,13 @@ func TestInitExportGenesis(t *testing.T) {
 			{
 				RollappId: rollappID1,
 				GenesisInfo: types.GenesisInfo{
-					InitialSupply: sdk.NewCoin("udym", sdk.NewInt(1000)),
+					InitialSupply: sdk.NewInt(1000),
 				},
 			},
 			{
 				RollappId: rollappID2,
 				GenesisInfo: types.GenesisInfo{
-					InitialSupply: sdk.NewCoin("udym", sdk.NewInt(1001)),
+					InitialSupply: sdk.NewInt(1001),
 				},
 			},
 		},

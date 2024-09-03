@@ -4,7 +4,6 @@ package dymensionxyz.dymension.rollapp;
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
 import "gogoproto/gogo.proto";
-import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
 
 import "dymensionxyz/dymension/rollapp/state_info.proto";
@@ -73,7 +72,10 @@ message GenesisInfo {
   // native_denom is the base denom for the native token
   DenomMetadata native_denom = 3;
   // initial_supply is the initial supply of the native token
-  cosmos.base.v1beta1.Coin initial_supply = 4 [(gogoproto.nullable) = false];
+  string initial_supply = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
   // sealed indicates if the fields in this object are no longer updatable
   bool sealed = 5;
 }
