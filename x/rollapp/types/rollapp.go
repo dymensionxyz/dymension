@@ -42,6 +42,8 @@ const (
 	maxTaglineLength         = 64
 	maxURLLength             = 256
 	maxGenesisChecksumLength = 64
+	maxDenomBaseLength       = 128
+	maxDenomDisplayLength    = 128
 )
 
 func (r Rollapp) LastStateUpdateHeightIsSet() bool {
@@ -72,8 +74,10 @@ func (r Rollapp) ValidateBasic() error {
 		return ErrInvalidVMType
 	}
 
-	if err = validateMetadata(r.Metadata); err != nil {
-		return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
+	if r.Metadata != nil {
+		if err = r.Metadata.Validate(); err != nil {
+			return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
+		}
 	}
 
 	return nil
@@ -108,6 +112,10 @@ func (r GenesisInfo) Validate() error {
 
 	if err := r.NativeDenom.Validate(); err != nil {
 		return errorsmod.Wrap(ErrInvalidNativeDenom, err.Error())
+	}
+
+	if r.InitialSupply.IsNil() {
+		return errorsmod.Wrap(ErrInvalidInitialSupply, "InitialSupply")
 	}
 
 	return nil
@@ -153,60 +161,62 @@ func validateBech32Prefix(prefix string) error {
 }
 
 func (dm DenomMetadata) Validate() error {
-	if dm.Base == "" {
+	if l := len(dm.Base); l == 0 || l > maxDenomBaseLength {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "base denom")
 	}
 
-	if dm.Display == "" {
+	if l := len(dm.Display); l == 0 || l > maxDenomDisplayLength {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "display denom")
 	}
 
 	return nil
 }
 
-func validateMetadata(metadata *RollappMetadata) error {
-	if metadata == nil {
-		return nil
-	}
-
-	if err := validateURL(metadata.Website); err != nil {
+func (md *RollappMetadata) Validate() error {
+	if err := validateURL(md.Website); err != nil {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
 	}
 
-	if err := validateURL(metadata.X); err != nil {
+	if err := validateURL(md.X); err != nil {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
 	}
 
-	if err := validateURL(metadata.GenesisUrl); err != nil {
+	if err := validateURL(md.GenesisUrl); err != nil {
 		return errorsmod.Wrap(errors.Join(ErrInvalidURL, err), "genesis url")
 	}
 
-	if err := validateURL(metadata.Telegram); err != nil {
+	if err := validateURL(md.Telegram); err != nil {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
 	}
 
-	if len(metadata.Description) > maxDescriptionLength {
+	if len(md.Description) > maxDescriptionLength {
 		return ErrInvalidDescription
 	}
 
-	if len(metadata.DisplayName) > maxDisplayNameLength {
+	if len(md.DisplayName) > maxDisplayNameLength {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "display name too long")
 	}
 
-	if len(metadata.Tagline) > maxTaglineLength {
+	if len(md.Tagline) > maxTaglineLength {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "tagline too long")
 	}
 
-	if err := validateURL(metadata.LogoUrl); err != nil {
+	if err := validateURL(md.LogoUrl); err != nil {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
 	}
 
-	if err := validateURL(metadata.ExplorerUrl); err != nil {
+	if err := validateURL(md.ExplorerUrl); err != nil {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
 	}
 
-	if err := validateURL(metadata.LogoUrl); err != nil {
+	if err := validateURL(md.LogoUrl); err != nil {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
+	}
+
+	if md.FeeDenom != nil {
+		if err := md.FeeDenom.Validate(); err != nil {
+			return errorsmod.Wrap(ErrInvalidFeeDenom, err.Error())
+		}
 	}
 
 	return nil

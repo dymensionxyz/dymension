@@ -126,12 +126,22 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Owner:     alice,
 				RollappId: rollappId,
 				GenesisInfo: types.GenesisInfo{
-					InitialSupply: sdk.NewInt(1000),
 					NativeDenom: &types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
 						Exponent: 18,
 					},
+				},
+			},
+			genInfoSealed: true,
+			expError:      types.ErrGenesisInfoSealed,
+		}, {
+			name: "Update rollapp: fail - try to update initial_supply when sealed",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
+				GenesisInfo: types.GenesisInfo{
+					InitialSupply: sdk.NewInt(1000),
 				},
 			},
 			genInfoSealed: true,

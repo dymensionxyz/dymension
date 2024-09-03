@@ -67,8 +67,10 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 		}
 	}
 
-	if err := validateMetadata(msg.Metadata); err != nil {
-		return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
+	if msg.Metadata != nil {
+		if err := msg.Metadata.Validate(); err != nil {
+			return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
+		}
 	}
 
 	return nil
@@ -79,5 +81,8 @@ func (msg *MsgUpdateRollappInformation) UpdatingImmutableValues() bool {
 }
 
 func (msg *MsgUpdateRollappInformation) UpdatingGenesisInfo() bool {
-	return msg.GenesisInfo.GenesisChecksum != "" || msg.GenesisInfo.Bech32Prefix != "" || msg.GenesisInfo.NativeDenom != nil
+	return msg.GenesisInfo.GenesisChecksum != "" ||
+		msg.GenesisInfo.Bech32Prefix != "" ||
+		msg.GenesisInfo.NativeDenom != nil ||
+		!msg.GenesisInfo.InitialSupply.IsNil()
 }

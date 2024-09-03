@@ -244,6 +244,23 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			},
 			err: ErrInvalidURL,
 		},
+		{
+			name: "invalid initial supply",
+			msg: MsgCreateRollapp{
+				Creator:          sample.AccAddress(),
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				Alias:            "alias",
+				VmType:           Rollapp_EVM,
+				GenesisInfo: GenesisInfo{
+					Bech32Prefix:    bech32Prefix,
+					GenesisChecksum: "checksum",
+					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					InitialSupply:   sdk.Int{},
+				},
+			},
+			err: ErrInvalidInitialSupply,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -44,6 +44,8 @@ var (
 	ErrInvalidAppImage                 = errorsmod.Wrap(gerrc.ErrInvalidArgument, "app image path")
 	ErrInvalidBlockDescriptorTimestamp = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid block descriptor timestamp")
 	ErrInvalidNativeDenom              = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid native denom")
+	ErrInvalidFeeDenom                 = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid fee denom")
+	ErrInvalidInitialSupply            = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid initial supply")
 
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")
