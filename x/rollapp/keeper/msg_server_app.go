@@ -22,16 +22,16 @@ func (k msgServer) AddApp(goCtx context.Context, msg *types.MsgAddApp) (*types.M
 		msg.Order = -1
 	}
 
-	// charge the app creation fee
+	// charge the app registration fee
 	creator := sdk.MustAccAddressFromBech32(msg.Creator)
-	appCost := sdk.NewCoins(k.AppCreationCost(ctx))
+	appFee := sdk.NewCoins(k.AppRegistrationFee(ctx))
 
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, appCost); err != nil {
-		return nil, types.ErrAppCreationCostPayment
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, appFee); err != nil {
+		return nil, types.ErrAppRegistrationFeePayment
 	}
 
-	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, appCost); err != nil {
-		return nil, types.ErrAppCreationCostPayment
+	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, appFee); err != nil {
+		return nil, types.ErrAppRegistrationFeePayment
 	}
 
 	app := msg.GetApp()

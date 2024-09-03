@@ -45,7 +45,7 @@ func (suite *RollappTestSuite) createRollappWithApp() types.RollappSummary {
 		Name:        req.GetName(),
 		RollappId:   req.GetRollappId(),
 		Description: req.GetDescription(),
-		Image:       req.GetImage(),
+		ImageUrl:    req.GetImage(),
 		Url:         req.GetUrl(),
 		Order:       req.GetOrder(),
 	}
@@ -206,10 +206,10 @@ func (suite *RollappTestSuite) Test_msgServer_AddApp() {
 			},
 			malleate: func() {
 				params := suite.App.RollappKeeper.GetParams(suite.Ctx)
-				params.AppCreationCost = sdk.NewInt64Coin("arax", 1)
+				params.AppRegistrationFee = sdk.NewInt64Coin("arax", 1)
 				suite.App.RollappKeeper.SetParams(suite.Ctx, params)
 			},
-			wantErr: types.ErrAppCreationCostPayment,
+			wantErr: types.ErrAppRegistrationFeePayment,
 		},
 	}
 	for _, tt := range tests {
@@ -400,7 +400,7 @@ func (suite *RollappTestSuite) Test_msgServer_UpdateApp() {
 			for i, app := range rollapp.Apps {
 				suite.Require().Equal(tt.msgs[i].Order, app.Order)
 				suite.Require().Equal(tt.msgs[i].Description, app.Description)
-				suite.Require().Equal(tt.msgs[i].Image, app.Image)
+				suite.Require().Equal(tt.msgs[i].Image, app.ImageUrl)
 				suite.Require().Equal(tt.msgs[i].Url, app.Url)
 			}
 		})

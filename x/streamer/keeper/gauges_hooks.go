@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 

@@ -61,8 +61,6 @@ import (
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	"github.com/osmosis-labs/osmosis/v15/x/gamm"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
-	"github.com/osmosis-labs/osmosis/v15/x/lockup"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 	"github.com/osmosis-labs/osmosis/v15/x/poolmanager"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
@@ -77,6 +75,8 @@ import (
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
 	eibcmodule "github.com/dymensionxyz/dymension/v3/x/eibc"
 	"github.com/dymensionxyz/dymension/v3/x/incentives"
+	"github.com/dymensionxyz/dymension/v3/x/lockup"
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
 	sequencermodule "github.com/dymensionxyz/dymension/v3/x/sequencer"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship"
@@ -213,7 +213,7 @@ func (a *AppKeepers) SetupModules(
 		feemarket.NewAppModule(a.FeeMarketKeeper, a.GetSubspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())),
 
 		// osmosis modules
-		lockup.NewAppModule(*a.LockupKeeper, a.AccountKeeper, a.BankKeeper),
+		lockup.NewAppModule(*a.LockupKeeper),
 		epochs.NewAppModule(*a.EpochsKeeper),
 		gamm.NewAppModule(appCodec, *a.GAMMKeeper, a.AccountKeeper, a.BankKeeper),
 		poolmanager.NewAppModule(*a.PoolManagerKeeper, a.GAMMKeeper),

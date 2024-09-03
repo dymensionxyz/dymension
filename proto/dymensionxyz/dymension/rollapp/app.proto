@@ -10,8 +10,8 @@ message App {
   string rollapp_id = 2;
   // description is the description of the App
   string description = 3;
-  // image is the relative path to the App image
-  string image = 4;
+  // image_url is the URL to the App's image
+  string image_url = 4;
   // url is the URL to the App's website
   string url = 5;
   // order is the order of the App in the Rollapp

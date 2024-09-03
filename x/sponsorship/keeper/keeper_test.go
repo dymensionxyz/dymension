@@ -11,10 +11,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
