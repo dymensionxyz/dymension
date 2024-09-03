@@ -40,11 +40,8 @@ type IncentivesKeeper interface {
 	GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*incentivestypes.Gauge, error)
 	AddToGaugeRewards(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins, gaugeID uint64) error
 
-	Distribute(ctx sdk.Context, gauges []incentivestypes.Gauge) (sdk.Coins, error)
-}
-
-type LockupKeeper interface {
-	GetDenomLockNum(ctx sdk.Context, denom string) (uint64, error)
+	Distribute(ctx sdk.Context, gauges []incentivestypes.Gauge, cache incentivestypes.DenomLocksCache, epochEnd bool) (sdk.Coins, error)
+	GetDistributeToBaseLocks(ctx sdk.Context, gauge incentivestypes.Gauge, cache map[string][]lockuptypes.PeriodLock) []lockuptypes.PeriodLock
 }
 
 type SponsorshipKeeper interface {

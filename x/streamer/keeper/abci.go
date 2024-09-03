@@ -24,8 +24,11 @@ func (k Keeper) EndBlock(ctx sdk.Context) error {
 	maxIterations := k.GetParams(ctx).MaxIterationsPerBlock
 	totalIterations := uint64(0)
 
+	// Init helper caches
 	streamCache := newStreamInfo(streams)
 	gaugeCache := newGaugeInfo()
+	// Cache specific for asset gauges. Helps reduce the number of x/lockup requests.
+	denomLockCache := incentivestypes.NewDenomLocksCache()
 
 	for _, p := range epochPointers {
 		remainIterations := maxIterations - totalIterations
@@ -34,7 +37,8 @@ func (k Keeper) EndBlock(ctx sdk.Context) error {
 			break // no more iterations available for this block
 		}
 
-		result := k.CalculateRewards(ctx, p, remainIterations, streamCache, gaugeCache)
+		// Calculate rewards and fill caches
+		result := k.CalculateRewards(ctx, p, remainIterations, streamCache, gaugeCache, denomLockCache)
 
 		totalIterations += result.Iterations
 
@@ -44,9 +48,6 @@ func (k Keeper) EndBlock(ctx sdk.Context) error {
 		}
 	}
 
-	// Filter gauges to distribute
-	toDistribute := k.filterGauges(ctx, gaugeCache)
-
 	// Send coins to distribute to the x/incentives module
 	err = k.bk.SendCoinsFromModuleToModule(ctx, types.ModuleName, incentivestypes.ModuleName, streamCache.totalDistr)
 	if err != nil {
@@ -54,7 +55,8 @@ func (k Keeper) EndBlock(ctx sdk.Context) error {
 	}
 
 	// Distribute the rewards
-	_, err = k.ik.Distribute(ctx, toDistribute)
+	const NonEpochEnd = false
+	_, err = k.ik.Distribute(ctx, gaugeCache.getGauges(), denomLockCache, NonEpochEnd)
 	if err != nil {
 		return fmt.Errorf("distribute: %w", err)
 	}

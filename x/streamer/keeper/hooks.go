@@ -94,13 +94,14 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coin
 		return sdk.Coins{}, fmt.Errorf("get epoch pointer for epoch '%s': %w", epochIdentifier, err)
 	}
 
+	// Init helper caches
 	streamCache := newStreamInfo(toDistribute)
 	gaugeCache := newGaugeInfo()
+	// Cache specific for asset gauges. Helps reduce the number of x/lockup requests.
+	denomLockCache := incentivestypes.NewDenomLocksCache()
 
-	distrResult := k.CalculateRewards(ctx, epochPointer, types.IterationsNoLimit, streamCache, gaugeCache)
-
-	// Filter gauges to distribute
-	toDistributeGauges := k.filterGauges(ctx, gaugeCache)
+	// Calculate rewards and fill caches
+	distrResult := k.CalculateRewards(ctx, epochPointer, types.IterationsNoLimit, streamCache, gaugeCache, denomLockCache)
 
 	// Send coins to distribute to the x/incentives module
 	err = k.bk.SendCoinsFromModuleToModule(ctx, types.ModuleName, incentivestypes.ModuleName, streamCache.totalDistr)
@@ -109,7 +110,8 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coin
 	}
 
 	// Distribute the rewards
-	_, err = k.ik.Distribute(ctx, toDistributeGauges)
+	const EpochEnd = true
+	_, err = k.ik.Distribute(ctx, gaugeCache.getGauges(), denomLockCache, EpochEnd)
 	if err != nil {
 		return nil, fmt.Errorf("distribute: %w", err)
 	}

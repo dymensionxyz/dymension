@@ -101,14 +101,11 @@ func (k Keeper) sendRewardsToLocks(ctx sdk.Context, distrs *distributionInfo) er
 // distributeToAssetGauge runs the distribution logic for a gauge, and adds the sends to
 // the distrInfo struct. It also updates the gauge for the distribution.
 // Locks is expected to be the correct set of lock recipients for this gauge.
-func (k Keeper) distributeToAssetGauge(ctx sdk.Context, gauge types.Gauge, currResult *distributionInfo) (sdk.Coins, error) {
+func (k Keeper) distributeToAssetGauge(ctx sdk.Context, gauge types.Gauge, locks []lockuptypes.PeriodLock, currResult *distributionInfo) (sdk.Coins, error) {
 	assetDist := gauge.GetAsset()
 	if assetDist == nil {
 		return sdk.Coins{}, fmt.Errorf("gauge %d is not an asset gauge", gauge.Id)
 	}
-
-	locksByDenomCache := make(map[string][]lockuptypes.PeriodLock)
-	locks := k.getDistributeToBaseLocks(ctx, gauge, locksByDenomCache)
 
 	denom := assetDist.Denom
 	lockSum := lockuptypes.SumLocksByDenom(locks, denom)
@@ -135,8 +132,7 @@ func (k Keeper) distributeToAssetGauge(ctx sdk.Context, gauge types.Gauge, currR
 	// this should never happen in practice
 	if remainCoins.Empty() {
 		ctx.Logger().Error(fmt.Sprintf("gauge %d is empty, skipping", gauge.Id))
-		err := k.updateGaugePostDistribute(ctx, gauge, sdk.Coins{})
-		return sdk.Coins{}, err
+		return sdk.Coins{}, nil
 	}
 
 	totalDistrCoins := sdk.NewCoins()
@@ -164,12 +160,11 @@ func (k Keeper) distributeToAssetGauge(ctx sdk.Context, gauge types.Gauge, currR
 		totalDistrCoins = totalDistrCoins.Add(distrCoins...)
 	}
 
-	err := k.updateGaugePostDistribute(ctx, gauge, totalDistrCoins)
-	return totalDistrCoins, err
+	return totalDistrCoins, nil
 }
 
-// getDistributeToBaseLocks takes a gauge along with cached period locks by denom and returns locks that must be distributed to
-func (k Keeper) getDistributeToBaseLocks(ctx sdk.Context, gauge types.Gauge, cache map[string][]lockuptypes.PeriodLock) []lockuptypes.PeriodLock {
+// GetDistributeToBaseLocks takes a gauge along with cached period locks by denom and returns locks that must be distributed to
+func (k Keeper) GetDistributeToBaseLocks(ctx sdk.Context, gauge types.Gauge, cache map[string][]lockuptypes.PeriodLock) []lockuptypes.PeriodLock {
 	// if gauge is empty, don't get the locks
 	if gauge.Coins.Empty() {
 		return []lockuptypes.PeriodLock{}
