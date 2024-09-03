@@ -31,6 +31,7 @@ func (s *KeeperTestSuite) TestSettle() {
 
 	// should succeed after fund
 	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
+	s.FundModuleAcc(types.ModuleName, s.App.GAMMKeeper.GetParams(s.Ctx).PoolCreationFee) // FIXME: remove once creation fee is removed
 	err = k.Settle(s.Ctx, rollappId, rollappDenom)
 	s.Require().NoError(err)
 
@@ -66,6 +67,7 @@ func (s *KeeperTestSuite) TestClaim() {
 
 	// settle
 	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
+	s.FundModuleAcc(types.ModuleName, s.App.GAMMKeeper.GetParams(s.Ctx).PoolCreationFee) // FIXME: remove once creation fee is removed
 	err = k.Settle(s.Ctx, rollappId, rollappDenom)
 	s.Require().NoError(err)
 
@@ -99,23 +101,30 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 	planId, err := k.CreatePlan(s.Ctx, amt, startTime, startTime.Add(time.Hour), rollapp, curve)
 	s.Require().NoError(err)
 
-	//FIXME: fund for creation fee
+	// buy some tokens
+	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
+	buyer := sample.Acc()
+	buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(100_000)))
+	s.FundAcc(buyer, buyersFunds)
 
-	// should succeed after fund
+	err = k.Buy(s.Ctx, planId, buyer.String(), sdk.NewInt(1_000), sdk.NewInt(100_000))
+	s.Require().NoError(err)
+
+	// settle should succeed after fund
 	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
+	s.FundModuleAcc(types.ModuleName, s.App.GAMMKeeper.GetParams(s.Ctx).PoolCreationFee) // FIXME: remove once creation fee is removed
 	err = k.Settle(s.Ctx, rollappId, rollappDenom)
 	s.Require().NoError(err)
 
 	pool, err := s.App.GAMMKeeper.GetPool(s.Ctx, 1)
 	s.Require().NoError(err)
 
-	price, err := pool.SpotPrice(s.Ctx, rollappDenom, "adym")
+	price, err := pool.SpotPrice(s.Ctx, "adym", rollappDenom)
 	s.Require().NoError(err)
 
 	plan := k.MustGetPlan(s.Ctx, planId)
 	lastPrice := plan.BondingCurve.SpotPrice(plan.SoldAmt)
 	s.Require().Equal(lastPrice, price)
-
 }
 
 // test edge cases: nothing sold, all sold

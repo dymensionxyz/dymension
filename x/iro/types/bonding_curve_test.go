@@ -73,9 +73,9 @@ func TestBondingCurve_Linear(t *testing.T) {
 	require.Equal(t, integral2, curve.Integral(x2))
 	require.Equal(t, integral3, curve.Integral(x3))
 
-	require.Equal(t, spotPrice1, curve.SpotPrice(x1))
-	require.Equal(t, spotPrice2, curve.SpotPrice(x2))
-	require.Equal(t, spotPrice3, curve.SpotPrice(x3))
+	require.Equal(t, spotPrice1, curve.SpotPrice(x1).TruncateInt())
+	require.Equal(t, spotPrice2, curve.SpotPrice(x2).TruncateInt())
+	require.Equal(t, spotPrice3, curve.SpotPrice(x3).TruncateInt())
 
 	require.Equal(t, cost1to2, curve.Cost(x1, x2))
 	require.Equal(t, cost2to3, curve.Cost(x2, x3))
@@ -112,9 +112,9 @@ func TestBondingCurve_Quadratic(t *testing.T) {
 	require.Equal(t, integral2, curve.Integral(x2))
 	require.Equal(t, integral3, curve.Integral(x3))
 
-	require.Equal(t, spotPrice1, curve.SpotPrice(x1))
-	require.Equal(t, spotPrice2, curve.SpotPrice(x2))
-	require.Equal(t, spotPrice3, curve.SpotPrice(x3))
+	require.Equal(t, spotPrice1, curve.SpotPrice(x1).TruncateInt())
+	require.Equal(t, spotPrice2, curve.SpotPrice(x2).TruncateInt())
+	require.Equal(t, spotPrice3, curve.SpotPrice(x3).TruncateInt())
 
 	require.Equal(t, cost1to2, curve.Cost(x1, x2))
 	require.Equal(t, cost2to3, curve.Cost(x2, x3))
@@ -150,9 +150,9 @@ func TestBondingCurve_Cubic(t *testing.T) {
 	require.Equal(t, integral2, curve.Integral(x2))
 	require.Equal(t, integral3, curve.Integral(x3))
 
-	require.Equal(t, spotPrice1, curve.SpotPrice(x1))
-	require.Equal(t, spotPrice2, curve.SpotPrice(x2))
-	require.Equal(t, spotPrice3, curve.SpotPrice(x3))
+	require.Equal(t, spotPrice1, curve.SpotPrice(x1).TruncateInt())
+	require.Equal(t, spotPrice2, curve.SpotPrice(x2).TruncateInt())
+	require.Equal(t, spotPrice3, curve.SpotPrice(x3).TruncateInt())
 
 	require.Equal(t, cost1to2, curve.Cost(x1, x2))
 	require.Equal(t, cost2to3, curve.Cost(x2, x3))
@@ -185,9 +185,9 @@ func TestBondingCurve_HighExponent(t *testing.T) {
 	cost1to2 := math.NewInt(210)    // 210 - 0
 	cost2to3 := math.NewInt(167456) // 167666 - 210
 
-	require.Equal(t, spotPrice1, curve.SpotPrice(x1))
-	require.Equal(t, spotPrice2, curve.SpotPrice(x2))
-	require.Equal(t, spotPrice3, curve.SpotPrice(x3))
+	require.Equal(t, spotPrice1, curve.SpotPrice(x1).TruncateInt())
+	require.Equal(t, spotPrice2, curve.SpotPrice(x2).TruncateInt())
+	require.Equal(t, spotPrice3, curve.SpotPrice(x3).TruncateInt())
 
 	require.Equal(t, integral1, curve.Integral(x1))
 	require.Equal(t, integral2, curve.Integral(x2))
@@ -227,9 +227,9 @@ func TestBondingCurve_SquareRoot(t *testing.T) {
 	require.Equal(t, integral2, curve.Integral(x2))
 	require.Equal(t, integral3, curve.Integral(x3))
 
-	require.Equal(t, spotPrice1, curve.SpotPrice(x1))
-	require.Equal(t, spotPrice2, curve.SpotPrice(x2))
-	require.Equal(t, spotPrice3, curve.SpotPrice(x3))
+	require.Equal(t, spotPrice1, curve.SpotPrice(x1).TruncateInt())
+	require.Equal(t, spotPrice2, curve.SpotPrice(x2).TruncateInt())
+	require.Equal(t, spotPrice3, curve.SpotPrice(x3).TruncateInt())
 
 	require.Equal(t, cost1to2, curve.Cost(x1, x2))
 	require.Equal(t, cost2to3, curve.Cost(x2, x3))

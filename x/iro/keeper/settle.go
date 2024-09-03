@@ -74,7 +74,7 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 	// find the limiting factor
 	unallocatedTokens := plan.TotalAllocation.Amount.Sub(plan.SoldAmt) // assumed > 0, as we enforce it in the Buy function
 
-	raisedDYM := k.bk.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), appparams.BaseDenom)
+	raisedDYM := k.bk.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom)
 	tokens, dym := determineLimitingFactor(unallocatedTokens, raisedDYM.Amount, lastPrice)
 
 	rollappLiquidityCoin := sdk.NewCoin(plan.SettledDenom, tokens)
@@ -85,8 +85,11 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 	if err != nil {
 		return err
 	}
+
 	// create pool
-	balancerPool := balancer.NewMsgCreateBalancerPool(k.AK.GetModuleAddress(types.ModuleName), balancer.PoolParams{}, []balancer.PoolAsset{
+	gammGlobalParams := k.gk.GetParams(ctx).GlobalFees
+	poolParams := balancer.NewPoolParams(gammGlobalParams.SwapFee, gammGlobalParams.ExitFee, nil)
+	balancerPool := balancer.NewMsgCreateBalancerPool(k.AK.GetModuleAddress(types.ModuleName), poolParams, []balancer.PoolAsset{
 		{
 			Token:  dymLiquidityCoin,
 			Weight: math.OneInt(),
@@ -111,7 +114,7 @@ func determineLimitingFactor(unallocatedTokens, raisedDYM math.Int, ratio math.L
 	requiredDYM := unallocatedTokens.ToLegacyDec().Mul(ratio).TruncateInt()
 
 	// if raisedDYM is less than requiredDYM, than DYM is the limiting factor
-	if requiredDYM.LT(raisedDYM) {
+	if raisedDYM.LT(requiredDYM) {
 		dym = raisedDYM
 		tokens = raisedDYM.ToLegacyDec().Quo(ratio).TruncateInt()
 	} else {
