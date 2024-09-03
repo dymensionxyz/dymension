@@ -3,7 +3,7 @@ package keeper
 import (
 	"slices"
 
-	"github.com/dymensionxyz/dymension/v3/internal/pagination"
+	"github.com/dymensionxyz/dymension/v3/utils/pagination"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
