@@ -80,6 +80,10 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string) error 
 // AfterEpochEnd distributes rewards, updates streams, and saves the changes to the state after the epoch end.
 // It distributes rewards to streams that have the specified epoch identifier or aborts if there are no streams
 // in this epoch. After the distribution, it resets the epoch pointer to the very fist gauge.
+// The method uses three caches:
+//   - Stream cache for updating stream distributed coins
+//   - Gauge cache for updating gauge coins
+//   - Number of locks per denom to reduce the number of requests for x/lockup
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coins, error) {
 	toDistribute := k.GetActiveStreamsForEpoch(ctx, epochIdentifier)
 
@@ -96,6 +100,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coin
 	// Init helper caches
 	streamCache := newStreamInfo(toDistribute)
 	gaugeCache := newGaugeInfo()
+
 	// Cache specific for asset gauges. Helps reduce the number of x/lockup requests.
 	denomLockCache := incentivestypes.NewDenomLocksCache()
 

@@ -27,6 +27,9 @@ func newStreamInfo(streams []types.Stream) *streamInfo {
 	return info
 }
 
+// addDistrCoins adds distributed coins to the given stream. If the stream ID exists in the cache,
+// it updates the distributed coins for that stream. If the stream ID doesn't exist, it creates
+// a new ID for the stream and adds the stream to the cache. Returns the updated stream.
 func (i *streamInfo) addDistrCoins(stream types.Stream, coins sdk.Coins) types.Stream {
 	id, ok := i.streamIDToID[stream.Id]
 	if ok {
@@ -61,6 +64,9 @@ func newGaugeInfo() *gaugeInfo {
 	}
 }
 
+// addDistrCoins adds coins to the given gauge. If the gauge ID exists in the cache, it updates the coins
+// for that gauge. If the gauge ID doesn't exist, it creates a new ID for the gauge and adds the gauge
+// to the cache. Returns the updated stream.
 func (i *gaugeInfo) addDistrCoins(gauge incentivestypes.Gauge, coins sdk.Coins) incentivestypes.Gauge {
 	id, ok := i.gaugeIDToID[gauge.Id]
 	if ok {

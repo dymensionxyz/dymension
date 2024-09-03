@@ -10,6 +10,12 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
+// EndBlock iterates over the epoch pointers, calculates rewards, distributes them, and updates the streams.
+// It also sends coins to the x/incentives module before the gauge distribution and emits an end block event.
+// The method uses three caches:
+//   - Stream cache for updating stream distributed coins
+//   - Gauge cache for updating gauge coins
+//   - Number of locks per denom to reduce the number of requests for x/lockup
 func (k Keeper) EndBlock(ctx sdk.Context) error {
 	streams := k.GetActiveStreams(ctx)
 
@@ -27,6 +33,7 @@ func (k Keeper) EndBlock(ctx sdk.Context) error {
 	// Init helper caches
 	streamCache := newStreamInfo(streams)
 	gaugeCache := newGaugeInfo()
+
 	// Cache specific for asset gauges. Helps reduce the number of x/lockup requests.
 	denomLockCache := incentivestypes.NewDenomLocksCache()
 

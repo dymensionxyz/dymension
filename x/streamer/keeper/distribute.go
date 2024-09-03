@@ -11,6 +11,10 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
+// CalculateGaugeRewards calculates the rewards to be distributed for a specific gauge based on the provided
+// coins, distribution record, and total weight. The method iterates through the coins, calculates the
+// allocating amount based on the weight of the gauge and the total weight, and adds the allocated amount
+// to the rewards. If the allocating amount is not positive, the coin is skipped.
 func (k Keeper) CalculateGaugeRewards(ctx sdk.Context, coins sdk.Coins, record types.DistrRecord, totalWeight math.Int) (sdk.Coins, error) {
 	if coins.Empty() {
 		return nil, fmt.Errorf("coins to allocate cannot be empty")
@@ -51,8 +55,8 @@ type DistributeRewardsResult struct {
 }
 
 // CalculateRewards calculates rewards for streams and corresponding gauges. Is starts processing gauges from
-// the specified pointer and considering the limit. This method doesn't have any state updates and validations
-// (for example, if the gauge exists or is unfinished), it only calculates rewards and fills respective caches.
+// the specified pointer and considering the limit. This method doesn't have any state updates, it only
+// calculates rewards and fills respective caches.
 func (k Keeper) CalculateRewards(
 	ctx sdk.Context,
 	pointer types.EpochPointer,
@@ -101,6 +105,8 @@ func (k Keeper) CalculateRewards(
 	}
 }
 
+// getActiveGaugeByID returns the active gauge with the given ID from the keeper.
+// An error is returned if the gauge does not exist or if it is finished.
 func (k Keeper) getActiveGaugeByID(ctx sdk.Context, gaugeID uint64) (incentivestypes.Gauge, error) {
 	// validate the gauge exists
 	gauge, err := k.ik.GetGaugeByID(ctx, gaugeID)
