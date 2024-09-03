@@ -38,6 +38,7 @@ func NewRollapp(
 }
 
 const (
+	maxAppNameLength         = 32
 	maxDescriptionLength     = 512
 	maxDisplayNameLength     = 32
 	maxTaglineLength         = 64
@@ -167,6 +168,10 @@ func validateMetadata(metadata *RollappMetadata) error {
 	}
 
 	if err := validateURL(metadata.ExplorerUrl); err != nil {
+		return errorsmod.Wrap(ErrInvalidURL, err.Error())
+	}
+
+	if err := validateURL(metadata.LogoUrl); err != nil {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
 	}
 

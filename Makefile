@@ -208,7 +208,7 @@ proto-download-deps:
 	git remote add origin "https://github.com/dymensionxyz/ethermint.git" && \
 	git config core.sparseCheckout true && \
 	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
-	git fetch --depth=1 origin "$(DEPS_ETHERMINT_VERSION)" && \
+	git fetch --depth=1 origin "b1506ae83050d2361857251766d93253e317900c" && \
 	git checkout FETCH_HEAD && \
 	rm -f ./proto/buf.* && \
 	mv ./proto/* ..
@@ -220,7 +220,7 @@ proto-download-deps:
 	git remote add origin "https://github.com/dymensionxyz/osmosis.git" && \
 	git config core.sparseCheckout true && \
 	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
-	git fetch --depth=1 origin "$(DEPS_OSMOSIS_VERSION)" && \
+	git fetch --depth=1 origin "f2243f47cdb341359eb793b508e03bdf42b15f5e" && \
 	git checkout FETCH_HEAD && \
 	rm -f ./proto/buf.* && \
 	mv ./proto/* ..

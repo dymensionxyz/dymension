@@ -20,10 +20,6 @@ func (suite *RollappTestSuite) TestCreateRollapp() {
 
 func (suite *RollappTestSuite) TestCreateRollappUnauthorizedRollappCreator() {
 	suite.SetupTest()
-
-	_ = types.ErrFeePayment // this error is not being used anywhere so keep it used here to pass lint
-	// TODO: ^^^^^^^^^^^^^^ use this error or delete it
-
 	suite.createRollappWithCreatorAndVerify(sdkerrors.ErrInsufficientFunds, bob, false) // bob is broke
 }
 

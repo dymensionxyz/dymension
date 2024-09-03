@@ -43,6 +43,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+- (rollapp) [#1127](https://github.com/dymensionxyz/dymension/issues/1127) Add apps to rollapp
 - (sequencer) [#1037](https://github.com/dymensionxyz/dymension/issues/1037) Enforce rpcs and evm rpcs for sequencer registration
 - (rollapp) [#1036](https://github.com/dymensionxyz/dymension/issues/1036) Add VMType field to Rollapp
 - (swagger) [#856](https://github.com/dymensionxyz/dymension/issues/856) Add make command `proto-swagger-gen`

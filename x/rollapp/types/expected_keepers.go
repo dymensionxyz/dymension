@@ -21,3 +21,9 @@ type SequencerKeeper interface {
 	JailLiveness(ctx sdk.Context, rollappID string) error
 	UnbondingTime(ctx sdk.Context) (res time.Duration)
 }
+
+// BankKeeper defines the expected interface needed to retrieve account balances.
+type BankKeeper interface {
+	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
+}

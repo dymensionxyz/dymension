@@ -41,5 +41,5 @@ func (gs GenesisState) Validate() error {
 		proposerIndexMap[rollappId] = struct{}{}
 	}
 
-	return gs.Params.Validate()
+	return gs.Params.ValidateBasic()
 }
