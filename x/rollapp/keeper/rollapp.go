@@ -35,7 +35,7 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		current.InitialSequencer = update.InitialSequencer
 	}
 
-	//FIXME: if iro plan exists, genesis checksum cannot be updated
+	// FIXME: if iro plan exists, genesis checksum cannot be updated
 
 	if update.GenesisChecksum != "" {
 		current.GenesisChecksum = update.GenesisChecksum

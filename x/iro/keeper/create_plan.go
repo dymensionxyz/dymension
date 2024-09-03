@@ -58,7 +58,6 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 	return &types.MsgCreatePlanResponse{
 		PlanId: planId,
 	}, nil
-
 }
 
 func ValidateRollappPreconditions(rollapp rollapptypes.Rollapp) error {

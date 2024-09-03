@@ -37,7 +37,6 @@ func NewKeeper(
 	bk bankkeeper.Keeper,
 	rk *rollappkeeper.Keeper,
 	gk *gammkeeper.Keeper,
-
 ) *Keeper {
 	return &Keeper{
 		cdc:      cdc,

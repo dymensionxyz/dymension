@@ -96,7 +96,6 @@ func (k Keeper) QueryPlans(goCtx context.Context, req *types.QueryPlansRequest) 
 	plans := k.GetAllPlans(ctx)
 
 	return &types.QueryPlansResponse{Plans: plans}, nil
-
 }
 
 // QueryPrice implements types.QueryServer.

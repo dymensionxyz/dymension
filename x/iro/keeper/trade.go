@@ -12,9 +12,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
-var (
-	AllocationSellLimit = math.LegacyNewDecWithPrec(999, 3) // 99.9%
-)
+var AllocationSellLimit = math.LegacyNewDecWithPrec(999, 3) // 99.9%
 
 // Buy implements types.MsgServer.
 func (m msgServer) Buy(ctx context.Context, req *types.MsgBuy) (*types.MsgBuyResponse, error) {

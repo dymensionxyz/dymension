@@ -71,7 +71,6 @@ func (m *MsgSell) ValidateBasic() error {
 }
 
 func (m *MsgSell) GetSigners() []sdk.AccAddress {
-
 	addr := sdk.MustAccAddressFromBech32(m.Seller)
 	return []sdk.AccAddress{addr}
 }

@@ -210,7 +210,7 @@ func (w IBCModule) validateGenesisTransfer(plan irotypes.Plan, transfer rollappt
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer receiver does not match module account address")
 	}
 
-	//FIXME: validate denom registered and has correct decimals
+	// FIXME: validate denom registered and has correct decimals
 
 	return nil
 }
