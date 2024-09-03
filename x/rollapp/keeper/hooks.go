@@ -30,7 +30,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, _ int
 
 	currentTimestamp := ctx.BlockTime()
 	seqUnbondingTime := e.sequencerKeeper.UnbondingTime(ctx)
-	endTimestamp := currentTimestamp.Add(-seqUnbondingTime).Add(defaultDeleteStateInfoTimestampThreshold) // add a threshold for good measure
+	endTimestamp := currentTimestamp.Add(-seqUnbondingTime).Add(-defaultDeleteStateInfoTimestampThreshold) // add a threshold for good measure
 
 	e.DeleteStateInfoUntilTimestamp(ctx, endTimestamp)
 	return nil
