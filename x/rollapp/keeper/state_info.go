@@ -135,7 +135,7 @@ func (k Keeper) IterateStateInfoWithTimestamp(store prefix.Store, endTimestampUN
 	}
 }
 
-// HasStateInfoTimestampKey checks if the stateInfo has a timestamp key
+// HasStateInfoTimestampKey checks if the stateInfo has a timestamp key - used for testing
 func (k Keeper) HasStateInfoTimestampKey(ctx sdk.Context, stateInfo types.StateInfo) bool {
 	storeTS := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TimestampedStateInfoKeyPrefix))
 	return storeTS.Has(types.StateInfoTimestampKey(stateInfo))

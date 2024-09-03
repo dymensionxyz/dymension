@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
+	"github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	"gopkg.in/yaml.v2"
 
 	"github.com/dymensionxyz/dymension/v3/app/params"
@@ -25,7 +26,7 @@ var (
 	KeyLivenessJailBlocks    = []byte("LivenessJailBlocks")
 
 	// KeyAppRegistrationFee defines the key to store the cost of the app
-	KeyAppRegistrationFee = []byte("KeyAppRegistrationFee")
+	KeyAppRegistrationFee = []byte("AppRegistrationFee")
 
 	// DYM is 1dym
 	DYM                       = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
@@ -89,6 +90,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyLivenessSlashInterval, &p.LivenessSlashInterval, validateLivenessSlashInterval),
 		paramtypes.NewParamSetPair(KeyLivenessJailBlocks, &p.LivenessJailBlocks, validateLivenessJailBlocks),
 		paramtypes.NewParamSetPair(KeyAppRegistrationFee, &p.AppRegistrationFee, validateAppRegistrationFee),
+		paramtypes.NewParamSetPair(KeyEpochIdentifier, &p.EpochIdentifier, types.ValidateEpochIdentifierInterface),
 	}
 }
 

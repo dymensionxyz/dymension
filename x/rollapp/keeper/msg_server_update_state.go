@@ -76,6 +76,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	})
 
 	creationHeight := uint64(ctx.BlockHeight())
+	blockTime := ctx.BlockTime()
 	stateInfo := types.NewStateInfo(
 		msg.RollappId,
 		newIndex,
@@ -85,7 +86,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		msg.DAPath,
 		creationHeight,
 		msg.BDs,
-		ctx.BlockTime(),
+		blockTime,
 	)
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
 	k.SetStateInfo(ctx, *stateInfo)

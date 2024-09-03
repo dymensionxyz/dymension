@@ -9,7 +9,7 @@ import (
 
 var _ epochstypes.EpochHooks = epochHooks{}
 
-const defaultDeleteTimestampThreshold = time.Hour * 24
+const defaultDeleteStateInfoTimestampThreshold = time.Hour * 24
 
 type epochHooks struct {
 	Keeper
@@ -30,13 +30,11 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, _ int
 
 	currentTimestamp := ctx.BlockTime()
 	seqUnbondingTime := e.sequencerKeeper.UnbondingTime(ctx)
-	endTimestamp := currentTimestamp.Add(-seqUnbondingTime).Add(defaultDeleteTimestampThreshold) // add a threshold for good measure
+	endTimestamp := currentTimestamp.Add(-seqUnbondingTime).Add(defaultDeleteStateInfoTimestampThreshold) // add a threshold for good measure
 
 	e.DeleteStateInfoUntilTimestamp(ctx, endTimestamp)
 	return nil
 }
 
 // BeforeEpochStart is the epoch start hook.
-func (e epochHooks) BeforeEpochStart(sdk.Context, string, int64) error {
-	return nil
-}
+func (e epochHooks) BeforeEpochStart(sdk.Context, string, int64) error { return nil }
