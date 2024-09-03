@@ -8,6 +8,7 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
 )
 
+// nolint: gosec
 func TestStateInfoIndexFromKey(t *testing.T) {
 	index := StateInfoIndex{
 		RollappId: urand.RollappID(),
