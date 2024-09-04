@@ -1,10 +1,12 @@
-package types
+package types_test
 
 import (
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/require"
+
+	denomtypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
 func Test_fromBankDenomMetadata(t *testing.T) {
@@ -14,7 +16,7 @@ func Test_fromBankDenomMetadata(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want *DenomMetadata
+		want *denomtypes.DenomMetadata
 	}{
 		{
 			name: "success",
@@ -36,9 +38,9 @@ func Test_fromBankDenomMetadata(t *testing.T) {
 					URIHash: "hash",
 				},
 			},
-			want: &DenomMetadata{
+			want: &denomtypes.DenomMetadata{
 				Description: "New denom",
-				DenomUnits: []*DenomUnit{
+				DenomUnits: []*denomtypes.DenomUnit{
 					{
 						Denom:    "denom",
 						Exponent: 18,
@@ -56,7 +58,7 @@ func Test_fromBankDenomMetadata(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := fromBankDenomMetadata(tt.args.metadata)
+			got := denomtypes.FromBankDenomMetadata(tt.args.metadata)
 			require.Equal(t, tt.want, got)
 		})
 	}

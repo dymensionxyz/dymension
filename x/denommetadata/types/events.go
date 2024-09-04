@@ -3,14 +3,14 @@ package types
 import banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 func NewEventDenomMetadataCreated(metadata banktypes.Metadata) *EventDenomMetadataCreated {
-	return &EventDenomMetadataCreated{Metadata: fromBankDenomMetadata(metadata)}
+	return &EventDenomMetadataCreated{Metadata: FromBankDenomMetadata(metadata)}
 }
 
 func NewEventDenomMetadataUpdated(metadata banktypes.Metadata) *EventDenomMetadataUpdated {
-	return &EventDenomMetadataUpdated{Metadata: fromBankDenomMetadata(metadata)}
+	return &EventDenomMetadataUpdated{Metadata: FromBankDenomMetadata(metadata)}
 }
 
-func fromBankDenomMetadata(metadata banktypes.Metadata) *DenomMetadata {
+func FromBankDenomMetadata(metadata banktypes.Metadata) *DenomMetadata {
 	return &DenomMetadata{
 		Description: metadata.Description,
 		DenomUnits:  fromBankDenomUnit(metadata.DenomUnits),
