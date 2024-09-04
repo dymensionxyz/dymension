@@ -192,7 +192,6 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 			GenesisUrl:  "",
 			DisplayName: "",
 			Tagline:     "",
-			TokenSymbol: "",
 			FeeDenom:    nil,
 		},
 		GenesisInfo: rollapptypes.GenesisInfo{

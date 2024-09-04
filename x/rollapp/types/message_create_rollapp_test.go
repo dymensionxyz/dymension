@@ -43,7 +43,6 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					GenesisUrl:  "https://genesis.dymension.xyz/file.json",
 					DisplayName: "Rollapp",
 					Tagline:     "Tagline",
-					TokenSymbol: "ROLL",
 					ExplorerUrl: "https://explorer.dymension.xyz",
 				},
 			},
