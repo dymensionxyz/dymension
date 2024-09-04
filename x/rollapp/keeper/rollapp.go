@@ -132,7 +132,7 @@ func (k Keeper) SetRollappAsStarted(ctx sdk.Context, rollappId string) error {
 		return gerrc.ErrNotFound
 	}
 
-	// check if genesis info is sealed
+	// if genesis info is not sealed, seal it if possible
 	if !rollapp.GenesisInfo.Sealed {
 		// seal if available
 		if !rollapp.GenesisInfoFieldsAreSet() {

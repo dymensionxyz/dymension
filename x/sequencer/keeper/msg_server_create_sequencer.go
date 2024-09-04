@@ -50,6 +50,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		if !isInitialOrAllAllowed {
 			return nil, types.ErrNotInitialSequencer
 		}
+
 		if err := k.rollappKeeper.SetRollappAsStarted(ctx, msg.RollappId); err != nil {
 			return nil, err
 		}

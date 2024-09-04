@@ -75,6 +75,10 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, plan.GetAddress())
 	s.Require().Len(balances, 1)
 	s.Require().Equal(expectedCreationFee, balances[0].Amount)
+
+	// assert that genesis info is sealed
+	rollapp, _ = s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+	s.Require().True(rollapp.GenesisInfo.Sealed)
 }
 
 func (s *KeeperTestSuite) TestMintAllocation() {

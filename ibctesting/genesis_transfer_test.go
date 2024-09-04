@@ -47,9 +47,8 @@ func (s *transferGenesisSuite) SetupTest() {
 	poolFee := s.hubApp().GAMMKeeper.GetParams(s.hubCtx()).PoolCreationFee
 	apptesting.FundAccount(s.hubApp(), s.hubCtx(), sdk.MustAccAddressFromBech32(s.hubApp().IROKeeper.GetModuleAccountAddress()), poolFee)
 
-	s.registerSequencer()
-	s.path = path
 	// set the canonical client before creating channels
+	s.path = path
 	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), rollappChainID(), s.path.EndpointA.ClientID)
 	s.coordinator.CreateChannels(path)
 

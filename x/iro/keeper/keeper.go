@@ -23,7 +23,7 @@ type Keeper struct {
 	cdc      codec.BinaryCodec
 	storeKey storetypes.StoreKey
 
-	// FIXME: change to expected keeper
+	// FIXME: change to expected keeper interface
 	AK *authkeeper.AccountKeeper
 	BK bankkeeper.Keeper
 	rk *rollappkeeper.Keeper

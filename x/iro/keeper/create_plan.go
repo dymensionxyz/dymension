@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -33,12 +32,6 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, sdkerrors.ErrUnauthorized
 	}
 
-	// Validate rollapp preconditions
-	err := ValidateRollappPreconditions(rollapp)
-	if err != nil {
-		return nil, errors.Join(gerrc.ErrFailedPrecondition, err)
-	}
-
 	// validate end time is in the future
 	if req.EndTime.Before(ctx.BlockTime()) {
 		return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrInvalidEndTime)
@@ -54,8 +47,6 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 	if err != nil {
 		return nil, err
 	}
-
-	// FIXME: seal rollapp's genesis info
 
 	return &types.MsgCreatePlanResponse{
 		PlanId: planId,
@@ -76,8 +67,13 @@ func ValidateRollappPreconditions(rollapp rollapptypes.Rollapp) error {
 }
 
 func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, end time.Time, rollapp rollapptypes.Rollapp, curve types.BondingCurve) (string, error) {
-	// FIXME: get decimals from the caller / rollapp object
-	allocation, err := k.MintAllocation(ctx, allocatedAmount, rollapp.RollappId, rollapp.GenesisInfo.NativeDenom.Base, uint64(rollapp.GenesisInfo.NativeDenom.Exponent))
+	// Validate rollapp preconditions
+	err := ValidateRollappPreconditions(rollapp)
+	if err != nil {
+		return "", errors.Join(gerrc.ErrFailedPrecondition, err)
+	}
+
+	allocation, err := k.MintAllocation(ctx, allocatedAmount, rollapp.RollappId, rollapp.GenesisInfo.NativeDenom.Display, uint64(rollapp.GenesisInfo.NativeDenom.Exponent))
 	if err != nil {
 		return "", err
 	}
@@ -103,6 +99,11 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, end
 	k.SetPlan(ctx, plan)
 	k.SetLastPlanId(ctx, plan.Id)
 
+	err = k.rk.SealRollappGenesisInfo(ctx, rollapp.RollappId)
+	if err != nil {
+		return "", err
+	}
+
 	return fmt.Sprintf("%d", plan.Id), nil
 }
 
@@ -119,14 +120,7 @@ func (k Keeper) CreateModuleAccountForPlan(ctx sdk.Context, plan types.Plan) (au
 // MintAllocation mints the allocated amount and registers the denom in the bank denom metadata store
 func (k Keeper) MintAllocation(ctx sdk.Context, allocatedAmount math.Int, rollappId, rollappSymbolName string, exponent uint64) (sdk.Coin, error) {
 	baseDenom := fmt.Sprintf("FUT_%s", rollappId)
-	displayDenom := ""
-
-	// FIXME: make the symbol name mandatory?
-	if rollappSymbolName == "" {
-		displayDenom = fmt.Sprintf("FUT_%s", strings.ToUpper(strings.TrimSuffix(rollappId, "_")))
-	} else {
-		displayDenom = fmt.Sprintf("FUT_%s", rollappSymbolName)
-	}
+	displayDenom := fmt.Sprintf("FUT_%s", rollappSymbolName)
 	metadata := banktypes.Metadata{
 		Description: fmt.Sprintf("Future token for rollapp %s", rollappId),
 		DenomUnits: []*banktypes.DenomUnit{
