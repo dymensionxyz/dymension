@@ -66,8 +66,8 @@ message Plan {
   google.protobuf.Timestamp start_time = 7
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
-  // The end time of the plan.
-  google.protobuf.Timestamp end_time = 8
+  // The time before which the rollapp cannot be started.
+  google.protobuf.Timestamp pre_launch_time = 8
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
   // The amount of tokens sold so far.

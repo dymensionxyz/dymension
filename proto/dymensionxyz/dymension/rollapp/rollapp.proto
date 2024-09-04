@@ -4,24 +4,29 @@ package dymensionxyz.dymension.rollapp;
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
 import "cosmos/msg/v1/msg.proto";
 
 import "dymensionxyz/dymension/rollapp/state_info.proto";
 import "dymensionxyz/dymension/rollapp/metadata.proto";
 
-// RollappGenesisState is a partial repr of the state the hub can expect the rollapp to be in upon genesis
+// RollappGenesisState is a partial repr of the state the hub can expect the
+// rollapp to be in upon genesis
 message RollappGenesisState {
   reserved 1;
   // If true, then full usage of the canonical ibc transfer channel is enabled.
-  // Note: in v3.1.0 and prior this field marked the completion of the 'genesis event'
-  // Keeping and renaming the field enables a seamless upgrade https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
+  // Note: in v3.1.0 and prior this field marked the completion of the 'genesis
+  // event' Keeping and renaming the field enables a seamless upgrade
+  // https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
   // to the new genesis transfer protocol
-  // Note: if this field is false, ibc transfers may still be allowed in one or either direction.
+  // Note: if this field is false, ibc transfers may still be allowed in one or
+  // either direction.
   bool transfers_enabled = 2;
 }
 
 // Rollapp defines a rollapp object. First, the RollApp is created and then
-// sequencers can be created and attached. The RollApp is identified by rollappId
+// sequencers can be created and attached. The RollApp is identified by
+// rollappId
 message Rollapp {
   // The unique identifier of the rollapp chain.
   // The rollapp_id follows the same standard as cosmos chain_id.
@@ -30,8 +35,9 @@ message Rollapp {
   string owner = 2;
   // field numbers not to be reused
   reserved 3 to 6;
-  // genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis
-  RollappGenesisState genesis_state = 7 [(gogoproto.nullable) = false];
+  // genesis_state is a partial repr of the state the hub can expect the rollapp
+  // to be in upon genesis
+  RollappGenesisState genesis_state = 7 [ (gogoproto.nullable) = false ];
   // channel_id will be set to the canonical IBC channel of the rollapp.
   string channel_id = 8;
   // frozen is a boolean that indicates if the rollapp is frozen.
@@ -41,11 +47,11 @@ message Rollapp {
   // metadata is the rollapp metadata
   RollappMetadata metadata = 11;
   // genesis_info keeps immutable rollapp fields
-  GenesisInfo genesis_info = 12 [(gogoproto.nullable) = false];
-  // initial_sequencer is an option to preset one or more coma-separated bech32-encoded addresses of the
-  // sequencer(s) that are allowed to initially register and serve for this rollapp.
-  // if left empty, no sequencer is allowed to register.
-  // if set to "*" any sequencer can register.
+  GenesisInfo genesis_info = 12 [ (gogoproto.nullable) = false ];
+  // initial_sequencer is an option to preset one or more coma-separated
+  // bech32-encoded addresses of the sequencer(s) that are allowed to initially
+  // register and serve for this rollapp. if left empty, no sequencer is allowed
+  // to register. if set to "*" any sequencer can register.
   string initial_sequencer = 13;
 
   enum VMType {
@@ -55,13 +61,22 @@ message Rollapp {
   }
   // vm_type is the type of rollapp machine: EVM or WASM
   VMType vm_type = 14;
-  // started is a boolean that indicates that the rollapp has a proposer, and the initial sequencer is immutable
+  // started is a boolean that indicates that the rollapp has a proposer, and
+  // the initial sequencer is immutable
   bool started = 15;
-  // LivenessEventHeight is the height of an upcoming liveness event (slash or jail)
-  // 0 means not set
-  int64 liveness_event_height = 16;
-  // The LastStateUpdateHeight HUB height when the last state update was received
-  int64 last_state_update_height = 17;
+
+  // pre_launch_time is the timestamp indicating the time before which the
+  // rollapp cannot be started.
+  // Set when creating IRO plan for the rollapp
+  google.protobuf.Timestamp pre_launch_time = 16
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+
+  // LivenessEventHeight is the height of an upcoming liveness event (slash or
+  // jail) 0 means not set
+  int64 liveness_event_height = 17;
+  // The LastStateUpdateHeight HUB height when the last state update was
+  // received
+  int64 last_state_update_height = 18;
 }
 
 message GenesisInfo {
@@ -70,7 +85,7 @@ message GenesisInfo {
   // unique bech32 prefix
   string bech32_prefix = 2;
   // native_denom is the base denom for the native token
-  DenomMetadata native_denom = 3 [(gogoproto.nullable) = false];
+  DenomMetadata native_denom = 3 [ (gogoproto.nullable) = false ];
   // initial_supply is the initial supply of the native token
   string initial_supply = 4 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
@@ -89,7 +104,6 @@ message RollappSummary {
   StateInfoIndex latestStateIndex = 2;
   // Defines the index of the last rollapp UpdateState that was finalized.
   StateInfoIndex latestFinalizedStateIndex = 3;
-  uint64 latestHeight = 4; // TODO:
+  uint64 latestHeight = 4;          // TODO:
   uint64 latestFinalizedHeight = 5; // TODO:
 }
-

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -37,7 +38,6 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 
 	if update.InitialSequencer != "" {
 		current.InitialSequencer = update.InitialSequencer
-
 	}
 
 	if update.GenesisInfo.GenesisChecksum != "" {
@@ -147,21 +147,15 @@ func (k Keeper) SetRollappAsStarted(ctx sdk.Context, rollappId string) error {
 	return nil
 }
 
-func (k Keeper) SealRollappGenesisInfo(ctx sdk.Context, rollappId string) error {
+// UpdateRollappWithIROPlan
+func (k Keeper) UpdateRollappWithIROPlan(ctx sdk.Context, rollappId string, preLaunchTime time.Time) error {
 	rollapp, found := k.GetRollapp(ctx, rollappId)
 	if !found {
 		return gerrc.ErrNotFound
 	}
 
-	if rollapp.GenesisInfo.Sealed {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info already sealed")
-	}
-
-	if !rollapp.GenesisInfoFieldsAreSet() {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info fields not set")
-	}
-
 	rollapp.GenesisInfo.Sealed = true
+	rollapp.PreLaunchTime = preLaunchTime
 	k.SetRollapp(ctx, rollapp)
 
 	return nil

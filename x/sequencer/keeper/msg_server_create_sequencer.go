@@ -51,6 +51,11 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			return nil, types.ErrNotInitialSequencer
 		}
 
+		// check pre launch time
+		if rollapp.PreLaunchTime.After(ctx.BlockTime()) {
+			return nil, types.ErrBeforePreLaunchTime
+		}
+
 		if err := k.rollappKeeper.SetRollappAsStarted(ctx, msg.RollappId); err != nil {
 			return nil, err
 		}

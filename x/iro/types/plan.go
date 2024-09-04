@@ -17,7 +17,7 @@ func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurv
 		TotalAllocation: allocation,
 		BondingCurve:    curve,
 		StartTime:       start,
-		EndTime:         end,
+		PreLaunchTime:   end,
 		SoldAmt:         math.ZeroInt(),
 		ClaimedAmt:      math.ZeroInt(),
 	}
@@ -33,7 +33,7 @@ func (p Plan) ValidateBasic() error {
 	if err := p.BondingCurve.ValidateBasic(); err != nil {
 		return errors.Join(ErrInvalidBondingCurve, err)
 	}
-	if p.EndTime.Before(p.StartTime) {
+	if p.PreLaunchTime.Before(p.StartTime) {
 		return ErrInvalidEndTime
 	}
 	if p.ModuleAccAddress == "" {

@@ -63,8 +63,8 @@ message MsgCreatePlan {
   // The start time of the plan.
   google.protobuf.Timestamp start_time = 5 [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
-  // The end time of the plan.
-  google.protobuf.Timestamp end_time = 6 [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  // The time before which the rollapp cannot be started.
+  google.protobuf.Timestamp pre_launch_time = 6 [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 }
 
 message MsgCreatePlanResponse {
