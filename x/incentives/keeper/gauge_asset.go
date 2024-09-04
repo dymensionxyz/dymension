@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
 // distributionInfo stores all of the information for rewards distributions.

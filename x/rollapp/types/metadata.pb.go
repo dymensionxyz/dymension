@@ -27,20 +27,26 @@ type RollappMetadata struct {
 	Website string `protobuf:"bytes,1,opt,name=website,proto3" json:"website,omitempty"`
 	// description is the rollapp description. should be limited to 512 chars
 	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	// logo_data_uri is a base64 rep with a URI prefix to the rollapp logo. Size limited
-	LogoDataUri string `protobuf:"bytes,3,opt,name=logo_data_uri,json=logoDataUri,proto3" json:"logo_data_uri,omitempty"`
-	// token_logo_data_uri is a URI to the native token logo. Size limited
-	TokenLogoDataUri string `protobuf:"bytes,4,opt,name=token_logo_data_uri,json=tokenLogoDataUri,proto3" json:"token_logo_data_uri,omitempty"`
+	// logo_url is the rollapp logo url
+	LogoUrl string `protobuf:"bytes,3,opt,name=logo_url,json=logoUrl,proto3" json:"logo_url,omitempty"`
 	// telegram is the rollapp telegram link
-	Telegram string `protobuf:"bytes,5,opt,name=telegram,proto3" json:"telegram,omitempty"`
+	Telegram string `protobuf:"bytes,4,opt,name=telegram,proto3" json:"telegram,omitempty"`
 	// x is the rollapp twitter link
-	X string `protobuf:"bytes,6,opt,name=x,proto3" json:"x,omitempty"`
+	X string `protobuf:"bytes,5,opt,name=x,proto3" json:"x,omitempty"`
 	// genesis_url has the genesis file
-	GenesisUrl string `protobuf:"bytes,7,opt,name=genesis_url,json=genesisUrl,proto3" json:"genesis_url,omitempty"`
+	GenesisUrl string `protobuf:"bytes,6,opt,name=genesis_url,json=genesisUrl,proto3" json:"genesis_url,omitempty"`
 	// display_name is a non semantic name for displaying on gui etc. Size limited.
-	DisplayName string `protobuf:"bytes,8,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	DisplayName string `protobuf:"bytes,7,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	// tagline is a non semantic tagline/catch-phrase. Size limited.
-	Tagline string `protobuf:"bytes,9,opt,name=tagline,proto3" json:"tagline,omitempty"`
+	Tagline string `protobuf:"bytes,8,opt,name=tagline,proto3" json:"tagline,omitempty"`
+	// token_symbol is the native token symbol
+	TokenSymbol string `protobuf:"bytes,9,opt,name=token_symbol,json=tokenSymbol,proto3" json:"token_symbol,omitempty"`
+	// explorer_url is the rollapp's block explorer link
+	ExplorerUrl string `protobuf:"bytes,10,opt,name=explorer_url,json=explorerUrl,proto3" json:"explorer_url,omitempty"`
+	// fee_base_denom is the base denom for fees
+	FeeBaseDenom string `protobuf:"bytes,11,opt,name=fee_base_denom,json=feeBaseDenom,proto3" json:"fee_base_denom,omitempty"`
+	// native_base_denom is the base denom for the native token
+	NativeBaseDenom string `protobuf:"bytes,12,opt,name=native_base_denom,json=nativeBaseDenom,proto3" json:"native_base_denom,omitempty"`
 }
 
 func (m *RollappMetadata) Reset()         { *m = RollappMetadata{} }
@@ -90,16 +96,9 @@ func (m *RollappMetadata) GetDescription() string {
 	return ""
 }
 
-func (m *RollappMetadata) GetLogoDataUri() string {
+func (m *RollappMetadata) GetLogoUrl() string {
 	if m != nil {
-		return m.LogoDataUri
-	}
-	return ""
-}
-
-func (m *RollappMetadata) GetTokenLogoDataUri() string {
-	if m != nil {
-		return m.TokenLogoDataUri
+		return m.LogoUrl
 	}
 	return ""
 }
@@ -139,6 +138,34 @@ func (m *RollappMetadata) GetTagline() string {
 	return ""
 }
 
+func (m *RollappMetadata) GetTokenSymbol() string {
+	if m != nil {
+		return m.TokenSymbol
+	}
+	return ""
+}
+
+func (m *RollappMetadata) GetExplorerUrl() string {
+	if m != nil {
+		return m.ExplorerUrl
+	}
+	return ""
+}
+
+func (m *RollappMetadata) GetFeeBaseDenom() string {
+	if m != nil {
+		return m.FeeBaseDenom
+	}
+	return ""
+}
+
+func (m *RollappMetadata) GetNativeBaseDenom() string {
+	if m != nil {
+		return m.NativeBaseDenom
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*RollappMetadata)(nil), "dymensionxyz.dymension.rollapp.RollappMetadata")
 }
@@ -148,27 +175,30 @@ func init() {
 }
 
 var fileDescriptor_481e8ecd49e74695 = []byte{
-	// 314 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x91, 0xbd, 0x4e, 0xf3, 0x30,
-	0x18, 0x85, 0xeb, 0x7e, 0x1f, 0xfd, 0x71, 0x8b, 0x40, 0x66, 0xb1, 0x18, 0x4c, 0xe9, 0xc4, 0xd2,
-	0x64, 0x28, 0x57, 0x80, 0x18, 0xa1, 0x43, 0xa5, 0x2e, 0x2c, 0x91, 0xdb, 0xbc, 0x0a, 0x16, 0x8e,
-	0x6d, 0xd9, 0x2e, 0x24, 0x5c, 0x05, 0x97, 0xc1, 0xa5, 0x30, 0x76, 0x64, 0x44, 0xed, 0x8d, 0xa0,
-	0x3a, 0x21, 0x2a, 0x03, 0x5b, 0xce, 0xf3, 0x3e, 0xb1, 0x74, 0x74, 0xf0, 0x24, 0x2d, 0x73, 0x50,
-	0x4e, 0x68, 0x55, 0x94, 0xaf, 0x71, 0x13, 0x62, 0xab, 0xa5, 0xe4, 0xc6, 0xc4, 0x39, 0x78, 0x9e,
-	0x72, 0xcf, 0x23, 0x63, 0xb5, 0xd7, 0x84, 0x1d, 0xea, 0x51, 0x13, 0xa2, 0x5a, 0x1f, 0xbf, 0xb7,
-	0xf1, 0xc9, 0xbc, 0xfa, 0xbe, 0xaf, 0xff, 0x24, 0x14, 0x77, 0x5f, 0x60, 0xe9, 0x84, 0x07, 0x8a,
-	0x46, 0xe8, 0xaa, 0x3f, 0xff, 0x89, 0x64, 0x84, 0x07, 0x29, 0xb8, 0x95, 0x15, 0xc6, 0x0b, 0xad,
-	0x68, 0x3b, 0x5c, 0x0f, 0x11, 0x19, 0xe3, 0x63, 0xa9, 0x33, 0x9d, 0xec, 0x1f, 0x4a, 0xd6, 0x56,
-	0xd0, 0x7f, 0x95, 0xb3, 0x87, 0xb7, 0xdc, 0xf3, 0x85, 0x15, 0x64, 0x82, 0xcf, 0xbc, 0x7e, 0x02,
-	0x95, 0xfc, 0x36, 0xff, 0x07, 0xf3, 0x34, 0x9c, 0xee, 0x0e, 0xf4, 0x73, 0xdc, 0xf3, 0x20, 0x21,
-	0xb3, 0x3c, 0xa7, 0x47, 0xc1, 0x69, 0x32, 0x19, 0x62, 0x54, 0xd0, 0x4e, 0x80, 0xa8, 0x20, 0x17,
-	0x78, 0x90, 0x81, 0x02, 0x27, 0x5c, 0xb2, 0xb6, 0x92, 0x76, 0x03, 0xc7, 0x35, 0x5a, 0x58, 0x49,
-	0x2e, 0xf1, 0x30, 0x15, 0xce, 0x48, 0x5e, 0x26, 0x8a, 0xe7, 0x40, 0x7b, 0x75, 0x81, 0x8a, 0xcd,
-	0x78, 0x0e, 0xfb, 0xf2, 0x9e, 0x67, 0x52, 0x28, 0xa0, 0xfd, 0xaa, 0x7c, 0x1d, 0x6f, 0x66, 0x1f,
-	0x5b, 0x86, 0x36, 0x5b, 0x86, 0xbe, 0xb6, 0x0c, 0xbd, 0xed, 0x58, 0x6b, 0xb3, 0x63, 0xad, 0xcf,
-	0x1d, 0x6b, 0x3d, 0x5c, 0x67, 0xc2, 0x3f, 0xae, 0x97, 0xd1, 0x4a, 0xe7, 0xf1, 0x1f, 0xf3, 0x3c,
-	0x4f, 0xe3, 0xa2, 0xd9, 0xc8, 0x97, 0x06, 0xdc, 0xb2, 0x13, 0x16, 0x9a, 0x7e, 0x07, 0x00, 0x00,
-	0xff, 0xff, 0x57, 0xc6, 0x9c, 0x00, 0xd2, 0x01, 0x00, 0x00,
+	// 363 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x92, 0x3d, 0x4f, 0xe3, 0x30,
+	0x18, 0xc7, 0x9b, 0xeb, 0x5d, 0x5f, 0xdc, 0xe8, 0xaa, 0xf3, 0xe4, 0xbb, 0x21, 0x57, 0x10, 0x03,
+	0x42, 0x22, 0x19, 0xca, 0x27, 0xa8, 0x58, 0xe9, 0x50, 0xc4, 0xc2, 0x12, 0x39, 0xcd, 0xd3, 0x60,
+	0xe1, 0x97, 0xc8, 0x76, 0x4b, 0xc2, 0x27, 0x60, 0xe4, 0x63, 0x31, 0x76, 0x64, 0x44, 0xed, 0x17,
+	0x41, 0x71, 0xd2, 0xa8, 0x0c, 0x6c, 0xf9, 0xff, 0x9e, 0xdf, 0x63, 0xfd, 0x23, 0x1b, 0x5d, 0xa6,
+	0xa5, 0x00, 0x69, 0x98, 0x92, 0x45, 0xf9, 0x1c, 0xb5, 0x21, 0xd2, 0x8a, 0x73, 0x9a, 0xe7, 0x91,
+	0x00, 0x4b, 0x53, 0x6a, 0x69, 0x98, 0x6b, 0x65, 0x15, 0x0e, 0x8e, 0xf5, 0xb0, 0x0d, 0x61, 0xa3,
+	0x9f, 0xbe, 0x74, 0xd1, 0x78, 0x51, 0x7f, 0xdf, 0x34, 0x9b, 0x98, 0xa0, 0xfe, 0x13, 0x24, 0x86,
+	0x59, 0x20, 0xde, 0xc4, 0x3b, 0x1f, 0x2e, 0x0e, 0x11, 0x4f, 0xd0, 0x28, 0x05, 0xb3, 0xd4, 0x2c,
+	0xb7, 0x4c, 0x49, 0xf2, 0xc3, 0x4d, 0x8f, 0x11, 0xfe, 0x8b, 0x06, 0x5c, 0x65, 0x2a, 0x5e, 0x6b,
+	0x4e, 0xba, 0xf5, 0x72, 0x95, 0xef, 0x34, 0xc7, 0xff, 0xd0, 0xc0, 0x02, 0x87, 0x4c, 0x53, 0x41,
+	0x7e, 0xba, 0x51, 0x9b, 0xb1, 0x8f, 0xbc, 0x82, 0xfc, 0x72, 0xd0, 0x2b, 0xf0, 0x7f, 0x34, 0xca,
+	0x40, 0x82, 0x61, 0xc6, 0x9d, 0xd3, 0x73, 0x1c, 0x35, 0xa8, 0x3a, 0xea, 0x04, 0xf9, 0x29, 0x33,
+	0x39, 0xa7, 0x65, 0x2c, 0xa9, 0x00, 0xd2, 0x6f, 0x8a, 0xd4, 0x6c, 0x4e, 0x05, 0x54, 0x3f, 0x61,
+	0x69, 0xc6, 0x99, 0x04, 0x32, 0xa8, 0x7b, 0x34, 0xb1, 0x5a, 0xb6, 0xea, 0x11, 0x64, 0x6c, 0x4a,
+	0x91, 0x28, 0x4e, 0x86, 0xf5, 0xb2, 0x63, 0xb7, 0x0e, 0x55, 0x0a, 0x14, 0x39, 0x57, 0x1a, 0xb4,
+	0x6b, 0x80, 0x6a, 0xe5, 0xc0, 0xaa, 0x0a, 0x67, 0xe8, 0xf7, 0x0a, 0x20, 0x4e, 0xa8, 0x81, 0x38,
+	0x05, 0xa9, 0x04, 0x19, 0x39, 0xc9, 0x5f, 0x01, 0xcc, 0xa8, 0x81, 0xeb, 0x8a, 0xe1, 0x0b, 0xf4,
+	0x47, 0x52, 0xcb, 0x36, 0x5f, 0x44, 0xdf, 0x89, 0xe3, 0x7a, 0xd0, 0xba, 0xb3, 0xf9, 0xdb, 0x2e,
+	0xf0, 0xb6, 0xbb, 0xc0, 0xfb, 0xd8, 0x05, 0xde, 0xeb, 0x3e, 0xe8, 0x6c, 0xf7, 0x41, 0xe7, 0x7d,
+	0x1f, 0x74, 0xee, 0xaf, 0x32, 0x66, 0x1f, 0xd6, 0x49, 0xb8, 0x54, 0x22, 0xfa, 0xe6, 0xfa, 0x37,
+	0xd3, 0xa8, 0x68, 0xdf, 0x80, 0x2d, 0x73, 0x30, 0x49, 0xcf, 0xbd, 0x80, 0xe9, 0x67, 0x00, 0x00,
+	0x00, 0xff, 0xff, 0xc5, 0xb0, 0x9f, 0x51, 0x32, 0x02, 0x00, 0x00,
 }
 
 func (m *RollappMetadata) Marshal() (dAtA []byte, err error) {
@@ -191,52 +221,73 @@ func (m *RollappMetadata) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.NativeBaseDenom) > 0 {
+		i -= len(m.NativeBaseDenom)
+		copy(dAtA[i:], m.NativeBaseDenom)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.NativeBaseDenom)))
+		i--
+		dAtA[i] = 0x62
+	}
+	if len(m.FeeBaseDenom) > 0 {
+		i -= len(m.FeeBaseDenom)
+		copy(dAtA[i:], m.FeeBaseDenom)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.FeeBaseDenom)))
+		i--
+		dAtA[i] = 0x5a
+	}
+	if len(m.ExplorerUrl) > 0 {
+		i -= len(m.ExplorerUrl)
+		copy(dAtA[i:], m.ExplorerUrl)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.ExplorerUrl)))
+		i--
+		dAtA[i] = 0x52
+	}
+	if len(m.TokenSymbol) > 0 {
+		i -= len(m.TokenSymbol)
+		copy(dAtA[i:], m.TokenSymbol)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.TokenSymbol)))
+		i--
+		dAtA[i] = 0x4a
+	}
 	if len(m.Tagline) > 0 {
 		i -= len(m.Tagline)
 		copy(dAtA[i:], m.Tagline)
 		i = encodeVarintMetadata(dAtA, i, uint64(len(m.Tagline)))
 		i--
-		dAtA[i] = 0x4a
+		dAtA[i] = 0x42
 	}
 	if len(m.DisplayName) > 0 {
 		i -= len(m.DisplayName)
 		copy(dAtA[i:], m.DisplayName)
 		i = encodeVarintMetadata(dAtA, i, uint64(len(m.DisplayName)))
 		i--
-		dAtA[i] = 0x42
+		dAtA[i] = 0x3a
 	}
 	if len(m.GenesisUrl) > 0 {
 		i -= len(m.GenesisUrl)
 		copy(dAtA[i:], m.GenesisUrl)
 		i = encodeVarintMetadata(dAtA, i, uint64(len(m.GenesisUrl)))
 		i--
-		dAtA[i] = 0x3a
+		dAtA[i] = 0x32
 	}
 	if len(m.X) > 0 {
 		i -= len(m.X)
 		copy(dAtA[i:], m.X)
 		i = encodeVarintMetadata(dAtA, i, uint64(len(m.X)))
 		i--
-		dAtA[i] = 0x32
+		dAtA[i] = 0x2a
 	}
 	if len(m.Telegram) > 0 {
 		i -= len(m.Telegram)
 		copy(dAtA[i:], m.Telegram)
 		i = encodeVarintMetadata(dAtA, i, uint64(len(m.Telegram)))
 		i--
-		dAtA[i] = 0x2a
-	}
-	if len(m.TokenLogoDataUri) > 0 {
-		i -= len(m.TokenLogoDataUri)
-		copy(dAtA[i:], m.TokenLogoDataUri)
-		i = encodeVarintMetadata(dAtA, i, uint64(len(m.TokenLogoDataUri)))
-		i--
 		dAtA[i] = 0x22
 	}
-	if len(m.LogoDataUri) > 0 {
-		i -= len(m.LogoDataUri)
-		copy(dAtA[i:], m.LogoDataUri)
-		i = encodeVarintMetadata(dAtA, i, uint64(len(m.LogoDataUri)))
+	if len(m.LogoUrl) > 0 {
+		i -= len(m.LogoUrl)
+		copy(dAtA[i:], m.LogoUrl)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.LogoUrl)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -282,11 +333,7 @@ func (m *RollappMetadata) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovMetadata(uint64(l))
 	}
-	l = len(m.LogoDataUri)
-	if l > 0 {
-		n += 1 + l + sovMetadata(uint64(l))
-	}
-	l = len(m.TokenLogoDataUri)
+	l = len(m.LogoUrl)
 	if l > 0 {
 		n += 1 + l + sovMetadata(uint64(l))
 	}
@@ -307,6 +354,22 @@ func (m *RollappMetadata) Size() (n int) {
 		n += 1 + l + sovMetadata(uint64(l))
 	}
 	l = len(m.Tagline)
+	if l > 0 {
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	l = len(m.TokenSymbol)
+	if l > 0 {
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	l = len(m.ExplorerUrl)
+	if l > 0 {
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	l = len(m.FeeBaseDenom)
+	if l > 0 {
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	l = len(m.NativeBaseDenom)
 	if l > 0 {
 		n += 1 + l + sovMetadata(uint64(l))
 	}
@@ -414,7 +477,7 @@ func (m *RollappMetadata) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LogoDataUri", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field LogoUrl", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -442,41 +505,9 @@ func (m *RollappMetadata) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.LogoDataUri = string(dAtA[iNdEx:postIndex])
+			m.LogoUrl = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TokenLogoDataUri", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowMetadata
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthMetadata
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthMetadata
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.TokenLogoDataUri = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Telegram", wireType)
 			}
@@ -508,7 +539,7 @@ func (m *RollappMetadata) Unmarshal(dAtA []byte) error {
 			}
 			m.Telegram = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 6:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field X", wireType)
 			}
@@ -540,7 +571,7 @@ func (m *RollappMetadata) Unmarshal(dAtA []byte) error {
 			}
 			m.X = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 7:
+		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field GenesisUrl", wireType)
 			}
@@ -572,7 +603,7 @@ func (m *RollappMetadata) Unmarshal(dAtA []byte) error {
 			}
 			m.GenesisUrl = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 8:
+		case 7:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DisplayName", wireType)
 			}
@@ -604,7 +635,7 @@ func (m *RollappMetadata) Unmarshal(dAtA []byte) error {
 			}
 			m.DisplayName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 9:
+		case 8:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Tagline", wireType)
 			}
@@ -635,6 +666,134 @@ func (m *RollappMetadata) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.Tagline = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TokenSymbol", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TokenSymbol = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExplorerUrl", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExplorerUrl = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FeeBaseDenom", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FeeBaseDenom = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 12:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NativeBaseDenom", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NativeBaseDenom = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

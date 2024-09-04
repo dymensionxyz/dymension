@@ -8,33 +8,23 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-const (
-	TypeMsgUpdateSequencerInformation = "update_sequencer"
-)
-
 var (
 	_ sdk.Msg                            = &MsgUpdateSequencerInformation{}
-	_ sdk.Msg                            = &MsgUnbond{}
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateSequencerInformation)(nil)
 )
 
-func NewMsgUpdateSequencerInformation(creator string, rollappId string, metadata *SequencerMetadata) (*MsgUpdateSequencerInformation, error) {
+func NewMsgUpdateSequencerInformation(creator string, metadata *SequencerMetadata) (*MsgUpdateSequencerInformation, error) {
 	if metadata == nil {
 		return nil, ErrInvalidRequest
 	}
 	return &MsgUpdateSequencerInformation{
-		Creator:   creator,
-		RollappId: rollappId,
-		Metadata:  *metadata,
+		Creator:  creator,
+		Metadata: *metadata,
 	}, nil
 }
 
 func (msg *MsgUpdateSequencerInformation) Route() string {
 	return RouterKey
-}
-
-func (msg *MsgUpdateSequencerInformation) Type() string {
-	return TypeMsgUpdateSequencerInformation
 }
 
 func (msg *MsgUpdateSequencerInformation) GetSigners() []sdk.AccAddress {
@@ -59,9 +49,14 @@ func (msg *MsgUpdateSequencerInformation) ValidateBasic() error {
 }
 
 func (msg *MsgUpdateSequencerInformation) VMSpecificValidate(vmType types.Rollapp_VMType) error {
-	if vmType == types.Rollapp_EVM {
+	switch vmType {
+	case types.Rollapp_EVM:
 		if err := validateURLs(msg.Metadata.EvmRpcs); err != nil {
 			return errorsmod.Wrap(err, "invalid evm rpcs URLs")
+		}
+	default:
+		if len(msg.Metadata.EvmRpcs) > 0 {
+			return errorsmod.Wrap(ErrInvalidVMTypeUpdate, "evm rpcs should be empty")
 		}
 	}
 	return nil

@@ -2,8 +2,10 @@ package apptesting
 
 import (
 	"strings"
+	"time"
 
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 
@@ -57,12 +59,11 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 		Alias:            strings.ToLower(rand.Str(7)),
 		VmType:           rollapptypes.Rollapp_EVM,
 		Metadata: &rollapptypes.RollappMetadata{
-			Website:          "https://dymension.xyz",
-			Description:      "Sample description",
-			LogoDataUri:      "data:image/png;base64,c2lzZQ==",
-			TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
-			Telegram:         "https://t.me/rolly",
-			X:                "https://x.dymension.xyz",
+			Website:     "https://dymension.xyz",
+			Description: "Sample description",
+			LogoUrl:     "https://dymension.xyz/logo.png",
+			Telegram:    "https://t.me/rolly",
+			X:           "https://x.dymension.xyz",
 		},
 	}
 
@@ -109,7 +110,7 @@ func (s *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAddr s
 	var bds rollapptypes.BlockDescriptors
 	bds.BD = make([]rollapptypes.BlockDescriptor, numOfBlocks)
 	for k := 0; k < int(numOfBlocks); k++ {
-		bds.BD[k] = rollapptypes.BlockDescriptor{Height: startHeight + uint64(k)}
+		bds.BD[k] = rollapptypes.BlockDescriptor{Height: startHeight + uint64(k), Timestamp: time.Now().UTC()}
 	}
 
 	updateState := rollapptypes.MsgUpdateState{

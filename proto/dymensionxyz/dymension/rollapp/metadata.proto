@@ -8,18 +8,24 @@ message RollappMetadata {
   string website = 1;
   // description is the rollapp description. should be limited to 512 chars
   string description = 2;
-  // logo_data_uri is a base64 rep with a URI prefix to the rollapp logo. Size limited
-  string logo_data_uri = 3;
-  // token_logo_data_uri is a URI to the native token logo. Size limited
-  string token_logo_data_uri = 4;
+  // logo_url is the rollapp logo url
+  string logo_url = 3;
   // telegram is the rollapp telegram link
-  string telegram = 5;
+  string telegram = 4;
   // x is the rollapp twitter link
-  string x = 6;
+  string x = 5;
   // genesis_url has the genesis file
-  string genesis_url = 7;
+  string genesis_url = 6;
   // display_name is a non semantic name for displaying on gui etc. Size limited.
-  string display_name = 8;
+  string display_name = 7;
   // tagline is a non semantic tagline/catch-phrase. Size limited.
-  string tagline = 9;
+  string tagline = 8;
+  // token_symbol is the native token symbol
+  string token_symbol = 9;
+  // explorer_url is the rollapp's block explorer link
+  string explorer_url = 10;
+  // fee_base_denom is the base denom for fees
+  string fee_base_denom = 11;
+  // native_base_denom is the base denom for the native token
+  string native_base_denom = 12;
 }

@@ -3,12 +3,11 @@ package keeper_test
 import (
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
 var _ = suite.TestingSuite(nil)

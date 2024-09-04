@@ -17,6 +17,8 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibcchannelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
 
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
@@ -27,6 +29,7 @@ import (
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
+	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -43,13 +46,17 @@ func CreateUpgradeHandler(
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 
+		LoadDeprecatedParamsSubspaces(keepers)
+
 		migrateModuleParams(ctx, keepers)
 		migrateDelayedAckParams(ctx, keepers.DelayedAckKeeper)
 		migrateRollappParams(ctx, keepers.RollappKeeper)
 		if err := migrateRollapps(ctx, keepers.RollappKeeper); err != nil {
 			return nil, err
 		}
+
 		migrateSequencers(ctx, keepers.SequencerKeeper)
+		migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper)
 
 		if err := migrateRollappGauges(ctx, keepers.RollappKeeper, keepers.IncentivesKeeper); err != nil {
 			return nil, err
@@ -63,10 +70,18 @@ func CreateUpgradeHandler(
 
 //nolint:staticcheck
 func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
-	// Set param key table for params module migration
+	// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
+	baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
+	baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
+}
+
+// LoadDeprecatedParamsSubspaces loads the deprecated param subspaces for each module
+// used to support the migration from x/params to each module's own store
+func LoadDeprecatedParamsSubspaces(keepers *keepers.AppKeepers) {
 	for _, subspace := range keepers.ParamsKeeper.GetSubspaces() {
 		var keyTable paramstypes.KeyTable
 		switch subspace.Name() {
+		// Cosmos SDK modules
 		case authtypes.ModuleName:
 			keyTable = authtypes.ParamKeyTable()
 		case banktypes.ModuleName:
@@ -84,6 +99,12 @@ func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
 		case crisistypes.ModuleName:
 			keyTable = crisistypes.ParamKeyTable()
 
+		// Dymension modules
+		case rollapptypes.ModuleName:
+			keyTable = rollapptypes.ParamKeyTable()
+		case sequencertypes.ModuleName:
+			keyTable = sequencertypes.ParamKeyTable()
+
 		// Ethermint  modules
 		case evmtypes.ModuleName:
 			keyTable = evmtypes.ParamKeyTable()
@@ -97,9 +118,6 @@ func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
 			subspace.WithKeyTable(keyTable)
 		}
 	}
-	// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
-	baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
-	baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
 }
 
 func migrateDelayedAckParams(ctx sdk.Context, delayedAckKeeper delayedackkeeper.Keeper) {
@@ -151,6 +169,25 @@ func migrateSequencers(ctx sdk.Context, sequencerkeeper sequencerkeeper.Keeper) 
 	}
 }
 
+func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, lightClientKeeper lightclientkeeper.Keeper, ibcChannelKeeper ibcchannelkeeper.Keeper) {
+	list := rollappkeeper.GetAllRollapps(ctx)
+	for _, rollapp := range list {
+		// check if the rollapp has a canonical channel already
+		if rollapp.ChannelId == "" {
+			return
+		}
+		// get the client ID the channel belongs to
+		_, connection, err := ibcChannelKeeper.GetChannelConnection(ctx, ibctransfertypes.PortID, rollapp.ChannelId)
+		if err != nil {
+			// if could not find a connection, skip the canonical client assignment
+			return
+		}
+		clientID := connection.GetClientID()
+		// store the rollapp to canonical light client ID mapping
+		lightClientKeeper.SetCanonicalClient(ctx, rollapp.RollappId, clientID)
+	}
+}
+
 func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollapp {
 	return rollapptypes.Rollapp{
 		RollappId:        oldRollapp.RollappId,
@@ -164,12 +201,17 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		GenesisChecksum: string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
 		VmType:          rollapptypes.Rollapp_EVM,                            // placeholder data
 		Metadata: &rollapptypes.RollappMetadata{
-			Website:          "",
-			Description:      "",
-			LogoDataUri:      "",
-			TokenLogoDataUri: "",
-			Telegram:         "",
-			X:                "",
+			Website:         "",
+			Description:     "",
+			LogoUrl:         "",
+			Telegram:        "",
+			X:               "",
+			GenesisUrl:      "",
+			DisplayName:     "",
+			Tagline:         "",
+			TokenSymbol:     "",
+			FeeBaseDenom:    "",
+			NativeBaseDenom: "",
 		},
 		InitialSequencer: "*",
 		Sealed:           true,

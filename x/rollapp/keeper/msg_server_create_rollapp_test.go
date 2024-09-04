@@ -20,10 +20,6 @@ func (suite *RollappTestSuite) TestCreateRollapp() {
 
 func (suite *RollappTestSuite) TestCreateRollappUnauthorizedRollappCreator() {
 	suite.SetupTest()
-
-	_ = types.ErrFeePayment // this error is not being used anywhere so keep it used here to pass lint
-	// TODO: ^^^^^^^^^^^^^^ use this error or delete it
-
 	suite.createRollappWithCreatorAndVerify(sdkerrors.ErrInsufficientFunds, bob, false) // bob is broke
 }
 
@@ -384,10 +380,9 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(
 }
 
 var mockRollappMetadata = types.RollappMetadata{
-	Website:          "https://dymension.xyz",
-	Description:      "Sample description",
-	LogoDataUri:      "data:image/png;base64,c2lzZQ==",
-	TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
-	Telegram:         "https://t.me/rolly",
-	X:                "https://x.dymension.xyz",
+	Website:     "https://dymension.xyz",
+	Description: "Sample description",
+	LogoUrl:     "https://dymension.xyz/logo.png",
+	Telegram:    "https://t.me/rolly",
+	X:           "https://x.dymension.xyz",
 }

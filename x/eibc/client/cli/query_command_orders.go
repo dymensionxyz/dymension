@@ -107,10 +107,11 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
   rollapp_id:	%s
   status:	%s
   packet_key:	%s
+  packet_type:  %s
   fulfiller:	%s
 `,
 					o.Id, o.Recipient, parseAndFormat(o.Price), parseAndFormat(o.Fee), o.RollappId,
-					o.TrackingPacketStatus, strings.TrimSpace(o.TrackingPacketKey), o.FulfillerAddress)
+					o.TrackingPacketStatus, strings.TrimSpace(o.TrackingPacketKey), o.Type, o.FulfillerAddress)
 			}
 
 			fmt.Printf("\ncount: %d; ts: %s\n", len(res.DemandOrders), time.Now().Format(time.RFC3339))

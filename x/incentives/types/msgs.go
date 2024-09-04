@@ -4,9 +4,9 @@ import (
 	"errors"
 	"time"
 
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
 const (

@@ -137,12 +137,11 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Bech32Prefix:     "old",
 				GenesisChecksum:  "old",
 				Metadata: &types.RollappMetadata{
-					Website:          "",
-					Description:      "",
-					LogoDataUri:      "",
-					TokenLogoDataUri: "",
-					Telegram:         "",
-					X:                "",
+					Website:     "",
+					Description: "",
+					LogoUrl:     "",
+					Telegram:    "",
+					X:           "",
 				},
 			}
 
@@ -253,9 +252,8 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		GasPrice: uptr.To(sdk.NewInt(100)),
 	}
 	_, err = suite.seqMsgServer.UpdateSequencerInformation(suite.Ctx, &sequencertypes.MsgUpdateSequencerInformation{
-		Creator:   addrInit,
-		RollappId: rollappId,
-		Metadata:  metadata,
+		Creator:  addrInit,
+		Metadata: metadata,
 	})
 	suite.Require().NoError(err)
 	initSeq, ok = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addrInit)

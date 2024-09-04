@@ -3,17 +3,15 @@ package keeper_test
 import (
 	"time"
 
-	"github.com/stretchr/testify/suite"
-
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var _ = suite.TestingSuite(nil)

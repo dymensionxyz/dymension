@@ -5,16 +5,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/spf13/cobra"
-
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils/osmocli"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils/osmocli"
+	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
 // GetTxCmd returns the transaction commands for this module.
