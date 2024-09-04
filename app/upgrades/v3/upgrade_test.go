@@ -10,7 +10,6 @@ import (
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app"
@@ -39,9 +38,9 @@ var (
 	DYM = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
 
 	// CreateGaugeFee is the fee required to create a new gauge.
-	expectCreateGaugeFee = DYM.Mul(sdk.NewInt(10))
+	// expectCreateGaugeFee = DYM.Mul(sdk.NewInt(10))
 	// AddToGaugeFee is the fee required to add to gauge.
-	expectAddToGaugeFee = sdk.ZeroInt()
+	// expectAddToGaugeFee = sdk.ZeroInt()
 
 	expectDelayedackEpochIdentifier = "hour"
 	expectDelayedackBridgingFee     = sdk.NewDecWithPrec(1, 3)
@@ -102,10 +101,11 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 					return fmt.Errorf("sequencer parameters not set correctly")
 				}
 
+				// These fields are deleted in the next update
 				// Check Incentives parameters
-				if !incentivestypes.CreateGaugeFee.Equal(expectCreateGaugeFee) || !incentivestypes.AddToGaugeFee.Equal(expectAddToGaugeFee) {
-					return fmt.Errorf("incentives parameters not set correctly")
-				}
+				//if !incentivestypes.CreateGaugeFee.Equal(expectCreateGaugeFee) || !incentivestypes.AddToGaugeFee.Equal(expectAddToGaugeFee) {
+				//	return fmt.Errorf("incentives parameters not set correctly")
+				//}
 
 				return nil
 			},
