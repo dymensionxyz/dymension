@@ -110,7 +110,7 @@ func (s *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAddr s
 	var bds rollapptypes.BlockDescriptors
 	bds.BD = make([]rollapptypes.BlockDescriptor, numOfBlocks)
 	for k := uint64(0); k < numOfBlocks; k++ {
-		bds.BD[k] = rollapptypes.BlockDescriptor{Height: startHeight + uint64(k), Timestamp: time.Now().UTC()}
+		bds.BD[k] = rollapptypes.BlockDescriptor{Height: startHeight + k, Timestamp: time.Now().UTC()}
 	}
 
 	updateState := rollapptypes.MsgUpdateState{
