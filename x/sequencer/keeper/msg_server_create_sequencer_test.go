@@ -117,7 +117,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		rollapp := rollapptypes.Rollapp{
 			RollappId: urand.RollappID(),
 			Owner:     alice,
-			Sealed:    true,
+			Started:   true,
 			Metadata: &rollapptypes.RollappMetadata{
 				Website:     "https://dymension.xyz",
 				Description: "Sample description",
@@ -129,7 +129,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				Bech32Prefix:    bech32Prefix,
 				GenesisChecksum: "1234567890abcdefg",
 				InitialSupply:   sdk.NewInt(1000),
-				NativeDenom: &rollapptypes.DenomMetadata{
+				NativeDenom: rollapptypes.DenomMetadata{
 					Display:  "DEN",
 					Base:     "aden",
 					Exponent: 18,
@@ -294,7 +294,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 			rollappInitialSeq: alice,
 			malleate: func(rollappID string) {
 				r, _ := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
-				r.Sealed = true
+				r.Started = true
 				suite.App.RollappKeeper.SetRollapp(suite.Ctx, r)
 			},
 			expErr: nil,
@@ -304,7 +304,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 			rollappInitialSeq: "*",
 			malleate: func(rollappID string) {
 				r, _ := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
-				r.Sealed = true
+				r.Started = true
 				suite.App.RollappKeeper.SetRollapp(suite.Ctx, r)
 			},
 			expErr: nil,

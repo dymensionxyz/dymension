@@ -386,7 +386,7 @@ var mockRollappMetadata = types.RollappMetadata{
 var mockGenesisInfo = types.GenesisInfo{
 	Bech32Prefix:    "rol",
 	GenesisChecksum: "checksum",
-	NativeDenom: &types.DenomMetadata{
+	NativeDenom: types.DenomMetadata{
 		Display:  "DEN",
 		Base:     "aden",
 		Exponent: 18,

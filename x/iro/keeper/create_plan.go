@@ -55,22 +55,20 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, err
 	}
 
+	// FIXME: seal rollapp's genesis info
+
 	return &types.MsgCreatePlanResponse{
 		PlanId: planId,
 	}, nil
 }
 
 func ValidateRollappPreconditions(rollapp rollapptypes.Rollapp) error {
-	if rollapp.GenesisChecksum == "" {
-		return types.ErrRollappGenesisChecksumNotSet
-	}
-
-	if rollapp.Metadata.TokenSymbol == "" {
-		return types.ErrRollappTokenSymbolNotSet
+	if !rollapp.GenesisInfoFieldsAreSet() {
+		return types.ErrRollappGenesisInfoNotSet
 	}
 
 	// rollapp cannot be sealed when creating a plan
-	if rollapp.Sealed {
+	if rollapp.Started {
 		return types.ErrRollappSealed
 	}
 
@@ -79,7 +77,7 @@ func ValidateRollappPreconditions(rollapp rollapptypes.Rollapp) error {
 
 func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, end time.Time, rollapp rollapptypes.Rollapp, curve types.BondingCurve) (string, error) {
 	// FIXME: get decimals from the caller / rollapp object
-	allocation, err := k.MintAllocation(ctx, allocatedAmount, rollapp.RollappId, rollapp.Metadata.TokenSymbol, 18)
+	allocation, err := k.MintAllocation(ctx, allocatedAmount, rollapp.RollappId, rollapp.GenesisInfo.NativeDenom.Base, uint64(rollapp.GenesisInfo.NativeDenom.Exponent))
 	if err != nil {
 		return "", err
 	}

@@ -86,7 +86,7 @@ func (s *KeeperTestSuite) TestMintAllocation() {
 	expectedBaseDenom := fmt.Sprintf("FUT_%s", rollappId)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	minted, err := k.MintAllocation(s.Ctx, allocatedAmount, rollapp.RollappId, rollapp.Metadata.TokenSymbol, 18)
+	minted, err := k.MintAllocation(s.Ctx, allocatedAmount, rollapp.RollappId, rollapp.GenesisInfo.NativeDenom.Base, uint64(rollapp.GenesisInfo.NativeDenom.Exponent))
 	s.Require().NoError(err)
 
 	// assert denom metadata registered

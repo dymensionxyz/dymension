@@ -9,7 +9,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
@@ -51,21 +50,6 @@ func (r Rollapp) LastStateUpdateHeightIsSet() bool {
 	return r.LastStateUpdateHeight != 0
 }
 
-// get rollapp denom
-// FIXME: keep the denom on the rollapp struct
-func (r Rollapp) GetIBCDenom() (string, error) {
-	if r.ChannelId == "" {
-		// FIXME: return typed error
-		return "", fmt.Errorf("rollapp channel id not set")
-	}
-	if r.Metadata.NativeBaseDenom == "" {
-		// FIXME: return typed error
-		return "", fmt.Errorf("rollapp native base denom not set")
-	}
-	denom := uibc.GetForeignDenomTrace(r.ChannelId, r.Metadata.NativeBaseDenom)
-	return denom.IBCDenom(), nil
-}
-
 func (r Rollapp) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(r.Owner)
 	if err != nil {
@@ -96,16 +80,17 @@ func (r Rollapp) ValidateBasic() error {
 		}
 	}
 
-	return nil
-}
+	// if rollapp is started, genesis info must be sealed
+	// FIXME: enable
+	// if r.Started && !r.GenesisInfo.Sealed {
+	// 	return fmt.Errorf("genesis info needs to be sealed if rollapp is started")
+	// }
 
-func (r Rollapp) AllImmutableFieldsAreSet() bool {
-	return r.InitialSequencer != ""
+	return nil
 }
 
 func (r Rollapp) GenesisInfoFieldsAreSet() bool {
 	return r.GenesisInfo.GenesisChecksum != "" &&
-		r.GenesisInfo.NativeDenom != nil &&
 		r.GenesisInfo.NativeDenom.Validate() == nil &&
 		r.GenesisInfo.Bech32Prefix != "" &&
 		!r.GenesisInfo.InitialSupply.IsNil()
@@ -114,24 +99,20 @@ func (r Rollapp) GenesisInfoFieldsAreSet() bool {
 func (r GenesisInfo) Validate() error {
 	if r.Bech32Prefix != "" {
 		if err := validateBech32Prefix(r.Bech32Prefix); err != nil {
-			return gerrc.ErrInvalidArgument.Wrap("bech32")
+			return errors.Join(ErrInvalidBech32Prefix, err)
 		}
 	}
 
 	if len(r.GenesisChecksum) > maxGenesisChecksumLength {
-		return errorsmod.Wrap(ErrInvalidGenesisChecksum, "GenesisChecksum")
-	}
-
-	if r.NativeDenom == nil {
-		return errorsmod.Wrap(ErrInvalidNativeDenom, "NativeDenom")
+		return ErrInvalidGenesisChecksum
 	}
 
 	if err := r.NativeDenom.Validate(); err != nil {
-		return errorsmod.Wrap(ErrInvalidNativeDenom, err.Error())
+		return errors.Join(ErrInvalidNativeDenom, err)
 	}
 
 	if r.InitialSupply.IsNil() {
-		return errorsmod.Wrap(ErrInvalidInitialSupply, "InitialSupply")
+		return ErrInvalidInitialSupply
 	}
 
 	return nil
@@ -162,16 +143,16 @@ func validateInitialSequencer(initialSequencer string) error {
 func validateBech32Prefix(prefix string) error {
 	bechAddr, err := sdk.Bech32ifyAddressBytes(prefix, sample.Acc())
 	if err != nil {
-		return errorsmod.Wrap(err, "bech32ify addr bytes")
+		return err
 	}
 
 	bAddr, err := sdk.GetFromBech32(bechAddr, prefix)
 	if err != nil {
-		return errorsmod.Wrap(err, "get from bech 32")
+		return err
 	}
 
 	if err = sdk.VerifyAddressFormat(bAddr); err != nil {
-		return errorsmod.Wrap(err, "verify addr format")
+		return err
 	}
 	return nil
 }
@@ -184,6 +165,8 @@ func (dm DenomMetadata) Validate() error {
 	if l := len(dm.Display); l == 0 || l > maxDenomDisplayLength {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "display denom")
 	}
+
+	// FIXME: validate exponent
 
 	return nil
 }

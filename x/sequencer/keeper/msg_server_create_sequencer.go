@@ -45,12 +45,12 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	// 	1. the initial sequencer from getting selected as the first proposer,
 	// 	2. the rollapp from getting sealed
 	// In case the InitialSequencer is set to the "*" wildcard, any sequencer can be the first to register.
-	if !rollapp.Sealed {
+	if !rollapp.Started {
 		isInitialOrAllAllowed := slices.Contains(strings.Split(rollapp.InitialSequencer, ","), msg.Creator) || rollapp.InitialSequencer == "*"
 		if !isInitialOrAllAllowed {
 			return nil, types.ErrNotInitialSequencer
 		}
-		if err := k.rollappKeeper.SealRollapp(ctx, msg.RollappId); err != nil {
+		if err := k.rollappKeeper.SetRollappAsStarted(ctx, msg.RollappId); err != nil {
 			return nil, err
 		}
 	}

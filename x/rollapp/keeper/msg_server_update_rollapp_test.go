@@ -37,7 +37,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 					Bech32Prefix:    "new",
 					GenesisChecksum: "new_checksum",
 					InitialSupply:   sdk.NewInt(1000),
-					NativeDenom: &types.DenomMetadata{
+					NativeDenom: types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
 						Exponent: 18,
@@ -55,7 +55,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 					Bech32Prefix:    "new",
 					GenesisChecksum: "new_checksum",
 					InitialSupply:   sdk.NewInt(1000),
-					NativeDenom: &types.DenomMetadata{
+					NativeDenom: types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
 						Exponent: 18,
@@ -126,7 +126,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Owner:     alice,
 				RollappId: rollappId,
 				GenesisInfo: types.GenesisInfo{
-					NativeDenom: &types.DenomMetadata{
+					NativeDenom: types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
 						Exponent: 18,
@@ -154,6 +154,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Metadata:  &mockRollappMetadata,
 			},
 			rollappSealed: true,
+			genInfoSealed: true,
 			expError:      nil,
 			expRollapp: types.Rollapp{
 				RollappId:        rollappId,
@@ -162,18 +163,19 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				ChannelId:        "",
 				Frozen:           false,
 				RegisteredDenoms: nil,
-				Sealed:           true,
+				Started:          true,
 				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
 				GenesisInfo: types.GenesisInfo{
 					Bech32Prefix:    "old",
 					GenesisChecksum: "old",
 					InitialSupply:   sdk.NewInt(1000),
-					NativeDenom: &types.DenomMetadata{
+					NativeDenom: types.DenomMetadata{
 						Display:  "OLD",
 						Base:     "aold",
 						Exponent: 18,
 					},
+					Sealed: true,
 				},
 			},
 		},
@@ -188,7 +190,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				InitialSequencer: "",
 				ChannelId:        "",
 				Frozen:           tc.frozen,
-				Sealed:           tc.rollappSealed,
+				Started:          tc.rollappSealed,
 				RegisteredDenoms: nil,
 				VmType:           types.Rollapp_EVM,
 				Metadata: &types.RollappMetadata{
@@ -202,7 +204,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 					Bech32Prefix:    "old",
 					GenesisChecksum: "old",
 					InitialSupply:   sdk.NewInt(1000),
-					NativeDenom: &types.DenomMetadata{
+					NativeDenom: types.DenomMetadata{
 						Display:  "OLD",
 						Base:     "aold",
 						Exponent: 18,
@@ -240,7 +242,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 			Bech32Prefix:    "rol",
 			GenesisChecksum: "checksum",
 			InitialSupply:   sdk.NewInt(1000),
-			NativeDenom: &types.DenomMetadata{
+			NativeDenom: types.DenomMetadata{
 				Display:  "DEN",
 				Base:     "aden",
 				Exponent: 18,
@@ -278,7 +280,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	suite.Require().Equal(initSeq, proposer)
 	rollapp, ok := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappId)
 	suite.Require().True(ok)
-	suite.Require().True(rollapp.Sealed)
+	suite.Require().True(rollapp.Started)
 
 	// 5. try to update rollapp immutable fields - should fail because rollapp is sealed
 	_, err = suite.msgServer.UpdateRollappInformation(suite.Ctx, &types.MsgUpdateRollappInformation{

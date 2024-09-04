@@ -60,7 +60,7 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 			Bech32Prefix:    strings.ToLower(rand.Str(3)),
 			GenesisChecksum: "1234567890abcdefg",
 			InitialSupply:   sdk.NewInt(1000),
-			NativeDenom: &rollapptypes.DenomMetadata{
+			NativeDenom: rollapptypes.DenomMetadata{
 				Display:  "DEN",
 				Base:     "aden",
 				Exponent: 18,
@@ -72,7 +72,6 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 			LogoUrl:     "https://dymension.xyz/logo.png",
 			Telegram:    "https://t.me/rolly",
 			X:           "https://x.dymension.xyz",
-			TokenSymbol: "ROL",
 		},
 	}
 

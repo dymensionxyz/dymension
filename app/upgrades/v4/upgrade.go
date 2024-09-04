@@ -197,7 +197,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		GenesisInfo: rollapptypes.GenesisInfo{
 			Bech32Prefix:    oldRollapp.RollappId[:5],                            // placeholder data
 			GenesisChecksum: string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
-			NativeDenom: &rollapptypes.DenomMetadata{
+			NativeDenom: rollapptypes.DenomMetadata{
 				Display:  "DEN",  // placeholder data
 				Base:     "aden", // placeholder data
 				Exponent: 6,      // placeholder data
@@ -206,7 +206,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 			Sealed:        true,
 		},
 		InitialSequencer: "*",
-		Sealed:           true,
+		Started:          true,
 	}
 }
 

@@ -138,7 +138,7 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		rollapptypes.GenesisInfo{
 			GenesisChecksum: "somechecksum",
 			Bech32Prefix:    "eth",
-			NativeDenom: &rollapptypes.DenomMetadata{
+			NativeDenom: rollapptypes.DenomMetadata{
 				Display:  "DEN",
 				Base:     "aden",
 				Exponent: 18,

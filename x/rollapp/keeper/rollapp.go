@@ -26,8 +26,8 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		return current, types.ErrRollappFrozen
 	}
 
-	// immutable values cannot be updated when the rollapp is sealed
-	if update.UpdatingImmutableValues() && current.Sealed {
+	// immutable values cannot be updated when the rollapp is started
+	if update.UpdatingInitialSequencer() && current.Started {
 		return current, types.ErrImmutableFieldUpdateAfterSealed
 	}
 
@@ -48,7 +48,7 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		current.GenesisInfo.Bech32Prefix = update.GenesisInfo.Bech32Prefix
 	}
 
-	if update.GenesisInfo.NativeDenom != nil {
+	if update.GenesisInfo.NativeDenom.Base != "" {
 		current.GenesisInfo.NativeDenom = update.GenesisInfo.NativeDenom
 	}
 
@@ -117,21 +117,31 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 	), []byte(rollapp.RollappId))
 }
 
-func (k Keeper) SealRollapp(ctx sdk.Context, rollappId string) error {
+// IsRollappSealed returns true if the rollapp's genesis info is sealed
+func (k Keeper) IsGenesisSealed(ctx sdk.Context, rollappId string) bool {
+	rollapp, found := k.GetRollapp(ctx, rollappId)
+	if !found {
+		return false
+	}
+	return rollapp.GenesisInfo.Sealed
+}
+
+func (k Keeper) SetRollappAsStarted(ctx sdk.Context, rollappId string) error {
 	rollapp, found := k.GetRollapp(ctx, rollappId)
 	if !found {
 		return gerrc.ErrNotFound
 	}
 
-	if rollapp.Sealed {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp already sealed")
+	// check if genesis info is sealed
+	if !rollapp.GenesisInfo.Sealed {
+		// seal if available
+		if !rollapp.GenesisInfoFieldsAreSet() {
+			return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info fields not set")
+		}
+		rollapp.GenesisInfo.Sealed = true
 	}
 
-	if !rollapp.AllImmutableFieldsAreSet() {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "seal with immutable fields not set")
-	}
-
-	rollapp.Sealed = true
+	rollapp.Started = true
 	k.SetRollapp(ctx, rollapp)
 
 	return nil

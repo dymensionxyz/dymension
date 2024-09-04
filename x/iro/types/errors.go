@@ -26,4 +26,5 @@ var (
 	ErrPlanNotSettled               = errorsmod.Register(ModuleName, 1116, "plan is not settled")
 	ErrNoTokensToClaim              = errorsmod.Register(ModuleName, 1117, "no tokens to claim")
 	ErrInsufficientTokens           = errorsmod.Register(ModuleName, 1118, "insufficient tokens")
+	ErrRollappGenesisInfoNotSet     = errorsmod.Register(ModuleName, 1119, "rollapp genesis info not set")
 )
