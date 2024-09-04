@@ -46,6 +46,13 @@ const (
 	maxDenomDisplayLength    = 128
 )
 
+type AllowedDecimals uint32
+
+const (
+	Decimals6  AllowedDecimals = 6
+	Decimals18 AllowedDecimals = 18
+)
+
 func (r Rollapp) LastStateUpdateHeightIsSet() bool {
 	return r.LastStateUpdateHeight != 0
 }
@@ -81,10 +88,9 @@ func (r Rollapp) ValidateBasic() error {
 	}
 
 	// if rollapp is started, genesis info must be sealed
-	// FIXME: enable
-	// if r.Started && !r.GenesisInfo.Sealed {
-	// 	return fmt.Errorf("genesis info needs to be sealed if rollapp is started")
-	// }
+	if r.Started && !r.GenesisInfo.Sealed {
+		return fmt.Errorf("genesis info needs to be sealed if rollapp is started")
+	}
 
 	return nil
 }
@@ -166,7 +172,10 @@ func (dm DenomMetadata) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "display denom")
 	}
 
-	// FIXME: validate exponent
+	// validate exponent
+	if AllowedDecimals(dm.Exponent) != Decimals6 && AllowedDecimals(dm.Exponent) != Decimals18 {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "exponent")
+	}
 
 	return nil
 }

@@ -32,7 +32,6 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-// FIXME: move to errors.go
 var ErrDisabled = errorsmod.Wrap(gerrc.ErrFault, "genesis transfers are disabled")
 
 const (
@@ -157,13 +156,12 @@ func (w IBCModule) OnRecvPacket(
 		}
 
 		// validate the transfer against the IRO plan
-		err = w.validateGenesisTransfer(plan, transfer, l)
+		err = w.validateGenesisTransfer(plan, transfer, memo.Denom)
 		if err != nil {
 			l.Error("Validate IRO plan.", "err", err)
 			return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "validate IRO plan"))
 		}
 
-		// FIXME: need to validate the memo denom against the transfer denom?
 		err = w.registerDenomMetadata(ctx, ra.RollappId, ra.ChannelId, memo.Denom)
 		if err != nil {
 			l.Error("Register denom metadata.", "err", err)
@@ -200,7 +198,7 @@ func (w IBCModule) OnRecvPacket(
 
 // validate genesis transfer amount is the same as in the `iro` plan
 // validate the destAddr is the same as `x/iro` module account address
-func (w IBCModule) validateGenesisTransfer(plan irotypes.Plan, transfer rollapptypes.TransferData, l log.Logger) error {
+func (w IBCModule) validateGenesisTransfer(plan irotypes.Plan, transfer rollapptypes.TransferData, rollappDenom banktypes.Metadata) error {
 	if !plan.TotalAllocation.Amount.Equal(transfer.MustAmountInt()) {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer amount does not match plan amount")
 	}
@@ -210,8 +208,21 @@ func (w IBCModule) validateGenesisTransfer(plan irotypes.Plan, transfer rollappt
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer receiver does not match module account address")
 	}
 
-	// FIXME: validate denom registered and has correct decimals
+	// validate the memo denom against the transfer denom
+	if rollappDenom.Base != transfer.FungibleTokenPacketData.Denom {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp denom does not match transfer denom")
+	}
 
+	correct := false
+	for _, unit := range rollappDenom.DenomUnits {
+		if transfer.Rollapp.GenesisInfo.NativeDenom.Exponent == unit.Exponent {
+			correct = true
+			break
+		}
+	}
+	if !correct {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp denom missing correct exponent")
+	}
 	return nil
 }
 
