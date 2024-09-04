@@ -1,6 +1,8 @@
 package types
 
 import (
+	"errors"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -15,13 +17,13 @@ func DefaultGenesis() *GenesisState {
 func (g GenesisState) Validate() error {
 	err := g.Params.Validate()
 	if err != nil {
-		return ErrInvalidGenesis.Wrapf(err.Error())
+		return errors.Join(ErrInvalidGenesis, err)
 	}
 
 	for _, i := range g.VoterInfos {
 		err = i.Validate()
 		if err != nil {
-			return ErrInvalidGenesis.Wrapf(err.Error())
+			return errors.Join(ErrInvalidGenesis, err)
 		}
 	}
 

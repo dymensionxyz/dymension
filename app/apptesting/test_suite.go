@@ -109,7 +109,7 @@ func (s *KeeperTestHelper) CreateSequencerByPubkey(ctx sdk.Context, rollappId st
 func (s *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAddr string, startHeight, numOfBlocks uint64) (lastHeight uint64, err error) {
 	var bds rollapptypes.BlockDescriptors
 	bds.BD = make([]rollapptypes.BlockDescriptor, numOfBlocks)
-	for k := 0; k < int(numOfBlocks); k++ {
+	for k := uint64(0); k < numOfBlocks; k++ {
 		bds.BD[k] = rollapptypes.BlockDescriptor{Height: startHeight + uint64(k), Timestamp: time.Now().UTC()}
 	}
 
