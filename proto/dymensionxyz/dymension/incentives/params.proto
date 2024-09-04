@@ -10,4 +10,14 @@ message Params {
   // (day, week, etc.)
   string distr_epoch_identifier = 1
       [ (gogoproto.moretags) = "yaml:\"distr_epoch_identifier\"" ];
+  // CreateGaugeFee is the fee required to create a new gauge.
+  string create_gauge_fee = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  // AddToGaugeFee is the fee required to add to gauge.
+  string add_to_gauge_fee = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
 }

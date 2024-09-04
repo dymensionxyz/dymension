@@ -36,7 +36,7 @@ type Params struct {
 	LivenessSlashInterval uint64 `protobuf:"varint,5,opt,name=liveness_slash_interval,json=livenessSlashInterval,proto3" json:"liveness_slash_interval,omitempty" yaml:"liveness_slash_interval"`
 	// The time (num hub blocks) a sequencer can be down after which he will be jailed rather than slashed
 	LivenessJailBlocks uint64 `protobuf:"varint,6,opt,name=liveness_jail_blocks,json=livenessJailBlocks,proto3" json:"liveness_jail_blocks,omitempty" yaml:"liveness_jail_blocks"`
-	// app_registration_fee is the fee for registering the App
+	// app_registration_fee is the fee for registering an App
 	AppRegistrationFee types.Coin `protobuf:"bytes,7,opt,name=app_registration_fee,json=appRegistrationFee,proto3" json:"app_registration_fee" yaml:"app_registration_fee"`
 }
 

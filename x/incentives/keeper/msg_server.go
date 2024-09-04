@@ -3,13 +3,12 @@ package keeper
 import (
 	"context"
 
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
-
 	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+
+	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 )
 
 // msgServer provides a way to reference keeper pointer in the message server interface.
@@ -35,7 +34,8 @@ func (server msgServer) CreateGauge(goCtx context.Context, msg *types.MsgCreateG
 		return nil, err
 	}
 
-	if err := server.keeper.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, types.CreateGaugeFee, msg.Coins); err != nil {
+	createGaugeFee := server.keeper.GetParams(ctx).CreateGaugeFee
+	if err := server.keeper.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, createGaugeFee, msg.Coins); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,8 @@ func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGau
 		return nil, err
 	}
 
-	if err := server.keeper.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, types.AddToGaugeFee, msg.Rewards); err != nil {
+	addToGaugeFee := server.keeper.GetParams(ctx).AddToGaugeFee
+	if err := server.keeper.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, addToGaugeFee, msg.Rewards); err != nil {
 		return nil, err
 	}
 	err = server.keeper.AddToGaugeRewards(ctx, owner, msg.Rewards, msg.GaugeId)

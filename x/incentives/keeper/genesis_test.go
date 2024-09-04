@@ -97,6 +97,8 @@ func TestIncentivesInitGenesis(t *testing.T) {
 	app.IncentivesKeeper.InitGenesis(ctx, types.GenesisState{
 		Params: types.Params{
 			DistrEpochIdentifier: "week",
+			CreateGaugeFee:       sdk.ZeroInt(),
+			AddToGaugeFee:        sdk.ZeroInt(),
 		},
 		Gauges: []types.Gauge{gauge},
 		LockableDurations: []time.Duration{

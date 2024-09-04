@@ -28,6 +28,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -56,6 +58,7 @@ func CreateUpgradeHandler(
 
 		migrateSequencers(ctx, keepers.SequencerKeeper)
 		migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper)
+		migrateIncentivesParams(ctx, keepers.IncentivesKeeper)
 
 		// TODO: create rollapp gauges for each existing rollapp (https://github.com/dymensionxyz/dymension/issues/1005)
 
@@ -171,6 +174,14 @@ func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Ke
 		// store the rollapp to canonical light client ID mapping
 		lightClientKeeper.SetCanonicalClient(ctx, rollapp.RollappId, clientID)
 	}
+}
+
+func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {
+	params := ik.GetParams(ctx)
+	defaultParams := incentivestypes.DefaultParams()
+	params.CreateGaugeFee = defaultParams.CreateGaugeFee
+	params.AddToGaugeFee = defaultParams.AddToGaugeFee
+	ik.SetParams(ctx, params)
 }
 
 func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollapp {
