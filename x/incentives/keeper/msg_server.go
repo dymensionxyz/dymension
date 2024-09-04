@@ -45,7 +45,7 @@ func (server msgServer) CreateGauge(goCtx context.Context, msg *types.MsgCreateG
 		return nil, fmt.Errorf("charge creation fee: %w", err)
 	}
 
-	gaugeID, err := server.keeper.CreateGauge(ctx, msg.IsPerpetual, owner, msg.Coins, msg.DistributeTo, msg.StartTime, msg.NumEpochsPaidOver)
+	gaugeID, err := k.CreateGauge(ctx, msg.IsPerpetual, owner, msg.Coins, msg.DistributeTo, msg.StartTime, msg.NumEpochsPaidOver)
 	if err != nil {
 		return nil, fmt.Errorf("create gauge: %w", err)
 	}
@@ -64,12 +64,13 @@ func (server msgServer) CreateGauge(goCtx context.Context, msg *types.MsgCreateG
 // Emits add to gauge event and returns the add to gauge response.
 func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGauge) (*types.MsgAddToGaugeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	k := server.keeper
 	owner, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return nil, err
 	}
 
-	err = server.keeper.AddToGaugeRewards(ctx, owner, msg.Rewards, msg.GaugeId)
+	err = k.AddToGaugeRewards(ctx, owner, msg.Rewards, msg.GaugeId)
 	if err != nil {
 		return nil, fmt.Errorf("add to gauge rewards: %w", err)
 	}
