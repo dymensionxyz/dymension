@@ -23,8 +23,9 @@ func (suite *RollappTestSuite) TestTransferOwnership() {
 			),
 			expError: nil,
 			expRollapp: types.Rollapp{
-				Owner:     bob,
-				RollappId: rollappId,
+				Owner:       bob,
+				RollappId:   rollappId,
+				GenesisInfo: mockGenesisInfo,
 			},
 		}, {
 			name: "Transfer rollapp ownership: failed, rollapp not found",
@@ -72,10 +73,11 @@ func (suite *RollappTestSuite) TestTransferOwnership() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			rollapp := types.Rollapp{
-				RollappId: rollappId,
-				Owner:     alice,
-				Frozen:    false,
-				Sealed:    false,
+				RollappId:   rollappId,
+				Owner:       alice,
+				GenesisInfo: mockGenesisInfo,
+				Frozen:      false,
+				Sealed:      false,
 			}
 
 			if tc.malleate != nil {

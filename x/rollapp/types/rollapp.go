@@ -16,21 +16,19 @@ import (
 func NewRollapp(
 	creator,
 	rollappId,
-	initSequencer,
-	bech32Prefix,
-	genesisChecksum string,
+	initialSequencer string,
 	vmType Rollapp_VMType,
 	metadata *RollappMetadata,
+	genInfo GenesisInfo,
 	transfersEnabled bool,
 ) Rollapp {
 	return Rollapp{
 		RollappId:        rollappId,
 		Owner:            creator,
-		InitialSequencer: initSequencer,
-		GenesisChecksum:  genesisChecksum,
-		Bech32Prefix:     bech32Prefix,
+		InitialSequencer: initialSequencer,
 		VmType:           vmType,
 		Metadata:         metadata,
+		GenesisInfo:      genInfo,
 		GenesisState: RollappGenesisState{
 			TransfersEnabled: transfersEnabled,
 		},
@@ -44,6 +42,8 @@ const (
 	maxTaglineLength         = 64
 	maxURLLength             = 256
 	maxGenesisChecksumLength = 64
+	maxDenomBaseLength       = 128
+	maxDenomDisplayLength    = 128
 )
 
 func (r Rollapp) LastStateUpdateHeightIsSet() bool {
@@ -66,8 +66,38 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
 	}
 
+	if err = r.GenesisInfo.Validate(); err != nil {
+		return err
+	}
+
+	if r.VmType == 0 {
+		return ErrInvalidVMType
+	}
+
+	if r.Metadata != nil {
+		if err = r.Metadata.Validate(); err != nil {
+			return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
+		}
+	}
+
+	return nil
+}
+
+func (r Rollapp) AllImmutableFieldsAreSet() bool {
+	return r.InitialSequencer != ""
+}
+
+func (r Rollapp) GenesisInfoFieldsAreSet() bool {
+	return r.GenesisInfo.GenesisChecksum != "" &&
+		r.GenesisInfo.NativeDenom != nil &&
+		r.GenesisInfo.NativeDenom.Validate() == nil &&
+		r.GenesisInfo.Bech32Prefix != "" &&
+		!r.GenesisInfo.InitialSupply.IsNil()
+}
+
+func (r GenesisInfo) Validate() error {
 	if r.Bech32Prefix != "" {
-		if err = validateBech32Prefix(r.Bech32Prefix); err != nil {
+		if err := validateBech32Prefix(r.Bech32Prefix); err != nil {
 			return gerrc.ErrInvalidArgument.Wrap("bech32")
 		}
 	}
@@ -76,19 +106,19 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidGenesisChecksum, "GenesisChecksum")
 	}
 
-	if r.VmType == 0 {
-		return ErrInvalidVMType
+	if r.NativeDenom == nil {
+		return errorsmod.Wrap(ErrInvalidNativeDenom, "NativeDenom")
 	}
 
-	if err = validateMetadata(r.Metadata); err != nil {
-		return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
+	if err := r.NativeDenom.Validate(); err != nil {
+		return errorsmod.Wrap(ErrInvalidNativeDenom, err.Error())
+	}
+
+	if r.InitialSupply.IsNil() {
+		return errorsmod.Wrap(ErrInvalidInitialSupply, "InitialSupply")
 	}
 
 	return nil
-}
-
-func (r Rollapp) AllImmutableFieldsAreSet() bool {
-	return r.GenesisChecksum != "" && r.InitialSequencer != "" && r.Bech32Prefix != ""
 }
 
 func validateInitialSequencer(initialSequencer string) error {
@@ -130,49 +160,63 @@ func validateBech32Prefix(prefix string) error {
 	return nil
 }
 
-func validateMetadata(metadata *RollappMetadata) error {
-	if metadata == nil {
-		return nil
+func (dm DenomMetadata) Validate() error {
+	if l := len(dm.Base); l == 0 || l > maxDenomBaseLength {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "base denom")
 	}
 
-	if err := validateURL(metadata.Website); err != nil {
+	if l := len(dm.Display); l == 0 || l > maxDenomDisplayLength {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "display denom")
+	}
+
+	return nil
+}
+
+func (md *RollappMetadata) Validate() error {
+	if err := validateURL(md.Website); err != nil {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
 	}
 
-	if err := validateURL(metadata.X); err != nil {
+	if err := validateURL(md.X); err != nil {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
 	}
 
-	if err := validateURL(metadata.GenesisUrl); err != nil {
+	if err := validateURL(md.GenesisUrl); err != nil {
 		return errorsmod.Wrap(errors.Join(ErrInvalidURL, err), "genesis url")
 	}
 
-	if err := validateURL(metadata.Telegram); err != nil {
+	if err := validateURL(md.Telegram); err != nil {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
 	}
 
-	if len(metadata.Description) > maxDescriptionLength {
+	if len(md.Description) > maxDescriptionLength {
 		return ErrInvalidDescription
 	}
 
-	if len(metadata.DisplayName) > maxDisplayNameLength {
+	if len(md.DisplayName) > maxDisplayNameLength {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "display name too long")
 	}
 
-	if len(metadata.Tagline) > maxTaglineLength {
+	if len(md.Tagline) > maxTaglineLength {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "tagline too long")
 	}
 
-	if err := validateURL(metadata.LogoUrl); err != nil {
+	if err := validateURL(md.LogoUrl); err != nil {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
 	}
 
-	if err := validateURL(metadata.ExplorerUrl); err != nil {
+	if err := validateURL(md.ExplorerUrl); err != nil {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
 	}
 
-	if err := validateURL(metadata.LogoUrl); err != nil {
+	if err := validateURL(md.LogoUrl); err != nil {
 		return errorsmod.Wrap(ErrInvalidURL, err.Error())
+	}
+
+	if md.FeeDenom != nil {
+		if err := md.FeeDenom.Validate(); err != nil {
+			return errorsmod.Wrap(ErrInvalidFeeDenom, err.Error())
+		}
 	}
 
 	return nil

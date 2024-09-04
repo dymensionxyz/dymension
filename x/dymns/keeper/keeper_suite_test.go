@@ -276,9 +276,11 @@ func (s *KeeperTestSuite) moduleBalance2() sdkmath.Int {
 func (s *KeeperTestSuite) persistRollApp(ras ...rollapp) {
 	for _, ra := range ras {
 		s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
-			RollappId:    ra.rollAppId,
-			Owner:        ra.owner,
-			Bech32Prefix: ra.bech32,
+			RollappId: ra.rollAppId,
+			Owner:     ra.owner,
+			GenesisInfo: rollapptypes.GenesisInfo{
+				Bech32Prefix: ra.bech32,
+			},
 		})
 
 		if ra.alias != "" {

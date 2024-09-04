@@ -6,10 +6,11 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
@@ -320,10 +321,10 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 
 			outputAddr, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, fmt.Sprintf("%s@%s", dymName.Name, tt.msg.Alias))
 			s.Require().NoError(err)
-			s.Equal(dymNameOwnerAcc.bech32C(rollApp.Bech32Prefix), outputAddr, "resolution should be correct")
+			s.Equal(dymNameOwnerAcc.bech32C(rollApp.GenesisInfo.Bech32Prefix), outputAddr, "resolution should be correct")
 
 			if len(tt.wantLaterAliasesOwnedByRollApp) == 1 {
-				outputDNA, err := s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, dymNameOwnerAcc.bech32C(rollApp.Bech32Prefix), rollApp.RollappId)
+				outputDNA, err := s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, dymNameOwnerAcc.bech32C(rollApp.GenesisInfo.Bech32Prefix), rollApp.RollappId)
 				s.Require().NoError(err)
 				s.Require().NotEmpty(outputDNA, "should have value")
 				s.Equal(fmt.Sprintf("%s@%s", dymName.Name, tt.msg.Alias), outputDNA[0].String(), "reverse resolution should be correct")

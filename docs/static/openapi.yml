@@ -3411,12 +3411,6 @@ paths:
                     title: >-
                       registeredDenoms is a list of registered denom bases on
                       this rollapp
-                  bech32_prefix:
-                    type: string
-                    title: unique bech32 prefix
-                  genesis_checksum:
-                    type: string
-                    title: checksum used to verify integrity of the genesis file
                   metadata:
                     title: metadata is the rollapp metadata
                     type: object
@@ -3451,20 +3445,51 @@ paths:
                         description: >-
                           tagline is a non semantic tagline/catch-phrase. Size
                           limited.
-                      token_symbol:
-                        type: string
-                        title: token_symbol is the native token symbol
                       explorer_url:
                         type: string
                         title: explorer_url is the rollapp's block explorer link
-                      fee_base_denom:
+                      fee_denom:
+                        title: fee_denom is the base denom for fees
+                        type: object
+                        properties:
+                          display:
+                            type: string
+                          base:
+                            type: string
+                          exponent:
+                            type: integer
+                            format: int64
+                  genesis_info:
+                    title: genesis_info keeps immutable rollapp fields
+                    type: object
+                    properties:
+                      genesis_checksum:
                         type: string
-                        title: fee_base_denom is the base denom for fees
-                      native_base_denom:
+                        title: checksum used to verify integrity of the genesis file
+                      bech32_prefix:
+                        type: string
+                        title: unique bech32 prefix
+                      native_denom:
+                        title: native_denom is the base denom for the native token
+                        type: object
+                        properties:
+                          display:
+                            type: string
+                          base:
+                            type: string
+                          exponent:
+                            type: integer
+                            format: int64
+                      initial_supply:
                         type: string
                         title: >-
-                          native_base_denom is the base denom for the native
+                          initial_supply is the initial supply of the native
                           token
+                      sealed:
+                        type: boolean
+                        title: >-
+                          sealed indicates if the fields in this object are no
+                          longer updatable
                   initial_sequencer:
                     type: string
                     description: >-
@@ -3605,6 +3630,31 @@ paths:
                     type: string
                     format: uint64
                 title: Rollapp summary is a compact representation of Rollapp
+              apps:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      title: name is the unique App's name
+                    rollapp_id:
+                      type: string
+                      title: rollapp_id is the id of the Rollapp the App belongs to
+                    description:
+                      type: string
+                      title: description is the description of the App
+                    image:
+                      type: string
+                      title: image is the relative path to the App image
+                    url:
+                      type: string
+                      title: url is the URL to the App's website
+                    order:
+                      type: integer
+                      format: int32
+                      title: order is the order of the App in the Rollapp
+                title: apps is the list of (lazy-loaded) apps in the rollapp
         default:
           description: An unexpected error response.
           schema:
@@ -3633,6 +3683,13 @@ paths:
           required: true
           type: string
           format: uint64
+        - name: omit_apps
+          description: >-
+            omit_apps is an optional flag to omit the list of apps in the
+            response.
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   /dymensionxyz/dymension/rollapp/latest_height/{rollappId}:
@@ -3797,6 +3854,22 @@ paths:
                     title: >-
                       The time (num hub blocks) a sequencer can be down after
                       which he will be jailed rather than slashed
+                  app_creation_cost:
+                    title: app_creation_cost is the cost for registering the App
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -3894,14 +3967,6 @@ paths:
                           title: >-
                             registeredDenoms is a list of registered denom bases
                             on this rollapp
-                        bech32_prefix:
-                          type: string
-                          title: unique bech32 prefix
-                        genesis_checksum:
-                          type: string
-                          title: >-
-                            checksum used to verify integrity of the genesis
-                            file
                         metadata:
                           title: metadata is the rollapp metadata
                           type: object
@@ -3936,22 +4001,57 @@ paths:
                               description: >-
                                 tagline is a non semantic tagline/catch-phrase.
                                 Size limited.
-                            token_symbol:
-                              type: string
-                              title: token_symbol is the native token symbol
                             explorer_url:
                               type: string
                               title: >-
                                 explorer_url is the rollapp's block explorer
                                 link
-                            fee_base_denom:
-                              type: string
-                              title: fee_base_denom is the base denom for fees
-                            native_base_denom:
+                            fee_denom:
+                              title: fee_denom is the base denom for fees
+                              type: object
+                              properties:
+                                display:
+                                  type: string
+                                base:
+                                  type: string
+                                exponent:
+                                  type: integer
+                                  format: int64
+                        genesis_info:
+                          title: genesis_info keeps immutable rollapp fields
+                          type: object
+                          properties:
+                            genesis_checksum:
                               type: string
                               title: >-
-                                native_base_denom is the base denom for the
+                                checksum used to verify integrity of the genesis
+                                file
+                            bech32_prefix:
+                              type: string
+                              title: unique bech32 prefix
+                            native_denom:
+                              title: >-
+                                native_denom is the base denom for the native
+                                token
+                              type: object
+                              properties:
+                                display:
+                                  type: string
+                                base:
+                                  type: string
+                                exponent:
+                                  type: integer
+                                  format: int64
+                            initial_supply:
+                              type: string
+                              title: >-
+                                initial_supply is the initial supply of the
                                 native token
+                            sealed:
+                              type: boolean
+                              title: >-
+                                sealed indicates if the fields in this object
+                                are no longer updatable
                         initial_sequencer:
                           type: string
                           description: >-
@@ -4094,6 +4194,33 @@ paths:
                           type: string
                           format: uint64
                       title: Rollapp summary is a compact representation of Rollapp
+                    apps:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            title: name is the unique App's name
+                          rollapp_id:
+                            type: string
+                            title: >-
+                              rollapp_id is the id of the Rollapp the App
+                              belongs to
+                          description:
+                            type: string
+                            title: description is the description of the App
+                          image:
+                            type: string
+                            title: image is the relative path to the App image
+                          url:
+                            type: string
+                            title: url is the URL to the App's website
+                          order:
+                            type: integer
+                            format: int32
+                            title: order is the order of the App in the Rollapp
+                      title: apps is the list of (lazy-loaded) apps in the rollapp
               pagination:
                 type: object
                 properties:
@@ -4201,6 +4328,13 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: omit_apps
+          description: >-
+            omit_apps is an optional flag to omit the list of apps in the
+            response.
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   /dymensionxyz/dymension/rollapp/rollapp/{rollappId}:
@@ -4266,12 +4400,6 @@ paths:
                     title: >-
                       registeredDenoms is a list of registered denom bases on
                       this rollapp
-                  bech32_prefix:
-                    type: string
-                    title: unique bech32 prefix
-                  genesis_checksum:
-                    type: string
-                    title: checksum used to verify integrity of the genesis file
                   metadata:
                     title: metadata is the rollapp metadata
                     type: object
@@ -4306,20 +4434,51 @@ paths:
                         description: >-
                           tagline is a non semantic tagline/catch-phrase. Size
                           limited.
-                      token_symbol:
-                        type: string
-                        title: token_symbol is the native token symbol
                       explorer_url:
                         type: string
                         title: explorer_url is the rollapp's block explorer link
-                      fee_base_denom:
+                      fee_denom:
+                        title: fee_denom is the base denom for fees
+                        type: object
+                        properties:
+                          display:
+                            type: string
+                          base:
+                            type: string
+                          exponent:
+                            type: integer
+                            format: int64
+                  genesis_info:
+                    title: genesis_info keeps immutable rollapp fields
+                    type: object
+                    properties:
+                      genesis_checksum:
                         type: string
-                        title: fee_base_denom is the base denom for fees
-                      native_base_denom:
+                        title: checksum used to verify integrity of the genesis file
+                      bech32_prefix:
+                        type: string
+                        title: unique bech32 prefix
+                      native_denom:
+                        title: native_denom is the base denom for the native token
+                        type: object
+                        properties:
+                          display:
+                            type: string
+                          base:
+                            type: string
+                          exponent:
+                            type: integer
+                            format: int64
+                      initial_supply:
                         type: string
                         title: >-
-                          native_base_denom is the base denom for the native
+                          initial_supply is the initial supply of the native
                           token
+                      sealed:
+                        type: boolean
+                        title: >-
+                          sealed indicates if the fields in this object are no
+                          longer updatable
                   initial_sequencer:
                     type: string
                     description: >-
@@ -4460,6 +4619,31 @@ paths:
                     type: string
                     format: uint64
                 title: Rollapp summary is a compact representation of Rollapp
+              apps:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      title: name is the unique App's name
+                    rollapp_id:
+                      type: string
+                      title: rollapp_id is the id of the Rollapp the App belongs to
+                    description:
+                      type: string
+                      title: description is the description of the App
+                    image:
+                      type: string
+                      title: image is the relative path to the App image
+                    url:
+                      type: string
+                      title: url is the URL to the App's website
+                    order:
+                      type: integer
+                      format: int32
+                      title: order is the order of the App in the Rollapp
+                title: apps is the list of (lazy-loaded) apps in the rollapp
         default:
           description: An unexpected error response.
           schema:
@@ -4487,6 +4671,13 @@ paths:
           in: path
           required: true
           type: string
+        - name: omit_apps
+          description: >-
+            omit_apps is an optional flag to omit the list of apps in the
+            response.
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   /dymensionxyz/dymension/rollapp/state_info/{rollappId}/{index}:
@@ -4596,6 +4787,10 @@ paths:
                               title: >-
                                 stateRoot is a 32 byte array of the hash of the
                                 block (state root of the block)
+                            timestamp:
+                              type: string
+                              format: date-time
+                              title: timestamp is the time from the block header
                           description: >-
                             BlockDescriptor defines a single rollapp chain block
                             description.
@@ -61068,6 +61263,28 @@ definitions:
           It has one element for asset type Alias, which is the rollapp_id to
           assigned for.
     description: SellOrderBid defines a bid placed by an account on a Sell-Order.
+  dymensionxyz.dymension.rollapp.App:
+    type: object
+    properties:
+      name:
+        type: string
+        title: name is the unique App's name
+      rollapp_id:
+        type: string
+        title: rollapp_id is the id of the Rollapp the App belongs to
+      description:
+        type: string
+        title: description is the description of the App
+      image:
+        type: string
+        title: image is the relative path to the App image
+      url:
+        type: string
+        title: url is the URL to the App's website
+      order:
+        type: integer
+        format: int32
+        title: order is the order of the App in the Rollapp
   dymensionxyz.dymension.rollapp.BlockDescriptor:
     type: object
     properties:
@@ -61081,6 +61298,10 @@ definitions:
         title: >-
           stateRoot is a 32 byte array of the hash of the block (state root of
           the block)
+      timestamp:
+        type: string
+        format: date-time
+        title: timestamp is the time from the block header
     description: BlockDescriptor defines a single rollapp chain block description.
   dymensionxyz.dymension.rollapp.BlockDescriptors:
     type: object
@@ -61100,8 +61321,48 @@ definitions:
               title: >-
                 stateRoot is a 32 byte array of the hash of the block (state
                 root of the block)
+            timestamp:
+              type: string
+              format: date-time
+              title: timestamp is the time from the block header
           description: BlockDescriptor defines a single rollapp chain block description.
     description: BlockDescriptors defines list of BlockDescriptor.
+  dymensionxyz.dymension.rollapp.DenomMetadata:
+    type: object
+    properties:
+      display:
+        type: string
+      base:
+        type: string
+      exponent:
+        type: integer
+        format: int64
+  dymensionxyz.dymension.rollapp.GenesisInfo:
+    type: object
+    properties:
+      genesis_checksum:
+        type: string
+        title: checksum used to verify integrity of the genesis file
+      bech32_prefix:
+        type: string
+        title: unique bech32 prefix
+      native_denom:
+        title: native_denom is the base denom for the native token
+        type: object
+        properties:
+          display:
+            type: string
+          base:
+            type: string
+          exponent:
+            type: integer
+            format: int64
+      initial_supply:
+        type: string
+        title: initial_supply is the initial supply of the native token
+      sealed:
+        type: boolean
+        title: sealed indicates if the fields in this object are no longer updatable
   dymensionxyz.dymension.rollapp.Params:
     type: object
     properties:
@@ -61130,6 +61391,19 @@ definitions:
         title: >-
           The time (num hub blocks) a sequencer can be down after which he will
           be jailed rather than slashed
+      app_creation_cost:
+        title: app_creation_cost is the cost for registering the App
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
     description: Params defines the parameters for the module.
   dymensionxyz.dymension.rollapp.QueryAllRollappResponse:
     type: object
@@ -61188,12 +61462,6 @@ definitions:
                   title: >-
                     registeredDenoms is a list of registered denom bases on this
                     rollapp
-                bech32_prefix:
-                  type: string
-                  title: unique bech32 prefix
-                genesis_checksum:
-                  type: string
-                  title: checksum used to verify integrity of the genesis file
                 metadata:
                   title: metadata is the rollapp metadata
                   type: object
@@ -61228,18 +61496,49 @@ definitions:
                       description: >-
                         tagline is a non semantic tagline/catch-phrase. Size
                         limited.
-                    token_symbol:
-                      type: string
-                      title: token_symbol is the native token symbol
                     explorer_url:
                       type: string
                       title: explorer_url is the rollapp's block explorer link
-                    fee_base_denom:
+                    fee_denom:
+                      title: fee_denom is the base denom for fees
+                      type: object
+                      properties:
+                        display:
+                          type: string
+                        base:
+                          type: string
+                        exponent:
+                          type: integer
+                          format: int64
+                genesis_info:
+                  title: genesis_info keeps immutable rollapp fields
+                  type: object
+                  properties:
+                    genesis_checksum:
                       type: string
-                      title: fee_base_denom is the base denom for fees
-                    native_base_denom:
+                      title: checksum used to verify integrity of the genesis file
+                    bech32_prefix:
                       type: string
-                      title: native_base_denom is the base denom for the native token
+                      title: unique bech32 prefix
+                    native_denom:
+                      title: native_denom is the base denom for the native token
+                      type: object
+                      properties:
+                        display:
+                          type: string
+                        base:
+                          type: string
+                        exponent:
+                          type: integer
+                          format: int64
+                    initial_supply:
+                      type: string
+                      title: initial_supply is the initial supply of the native token
+                    sealed:
+                      type: boolean
+                      title: >-
+                        sealed indicates if the fields in this object are no
+                        longer updatable
                 initial_sequencer:
                   type: string
                   description: >-
@@ -61376,6 +61675,31 @@ definitions:
                   type: string
                   format: uint64
               title: Rollapp summary is a compact representation of Rollapp
+            apps:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    title: name is the unique App's name
+                  rollapp_id:
+                    type: string
+                    title: rollapp_id is the id of the Rollapp the App belongs to
+                  description:
+                    type: string
+                    title: description is the description of the App
+                  image:
+                    type: string
+                    title: image is the relative path to the App image
+                  url:
+                    type: string
+                    title: url is the URL to the App's website
+                  order:
+                    type: integer
+                    format: int32
+                    title: order is the order of the App in the Rollapp
+              title: apps is the list of (lazy-loaded) apps in the rollapp
       pagination:
         type: object
         properties:
@@ -61495,12 +61819,6 @@ definitions:
             title: >-
               registeredDenoms is a list of registered denom bases on this
               rollapp
-          bech32_prefix:
-            type: string
-            title: unique bech32 prefix
-          genesis_checksum:
-            type: string
-            title: checksum used to verify integrity of the genesis file
           metadata:
             title: metadata is the rollapp metadata
             type: object
@@ -61533,18 +61851,49 @@ definitions:
               tagline:
                 type: string
                 description: tagline is a non semantic tagline/catch-phrase. Size limited.
-              token_symbol:
-                type: string
-                title: token_symbol is the native token symbol
               explorer_url:
                 type: string
                 title: explorer_url is the rollapp's block explorer link
-              fee_base_denom:
+              fee_denom:
+                title: fee_denom is the base denom for fees
+                type: object
+                properties:
+                  display:
+                    type: string
+                  base:
+                    type: string
+                  exponent:
+                    type: integer
+                    format: int64
+          genesis_info:
+            title: genesis_info keeps immutable rollapp fields
+            type: object
+            properties:
+              genesis_checksum:
                 type: string
-                title: fee_base_denom is the base denom for fees
-              native_base_denom:
+                title: checksum used to verify integrity of the genesis file
+              bech32_prefix:
                 type: string
-                title: native_base_denom is the base denom for the native token
+                title: unique bech32 prefix
+              native_denom:
+                title: native_denom is the base denom for the native token
+                type: object
+                properties:
+                  display:
+                    type: string
+                  base:
+                    type: string
+                  exponent:
+                    type: integer
+                    format: int64
+              initial_supply:
+                type: string
+                title: initial_supply is the initial supply of the native token
+              sealed:
+                type: boolean
+                title: >-
+                  sealed indicates if the fields in this object are no longer
+                  updatable
           initial_sequencer:
             type: string
             description: >-
@@ -61675,6 +62024,31 @@ definitions:
             type: string
             format: uint64
         title: Rollapp summary is a compact representation of Rollapp
+      apps:
+        type: array
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+              title: name is the unique App's name
+            rollapp_id:
+              type: string
+              title: rollapp_id is the id of the Rollapp the App belongs to
+            description:
+              type: string
+              title: description is the description of the App
+            image:
+              type: string
+              title: image is the relative path to the App image
+            url:
+              type: string
+              title: url is the URL to the App's website
+            order:
+              type: integer
+              format: int32
+              title: order is the order of the App in the Rollapp
+        title: apps is the list of (lazy-loaded) apps in the rollapp
   dymensionxyz.dymension.rollapp.QueryGetStateInfoResponse:
     type: object
     properties:
@@ -61765,6 +62139,10 @@ definitions:
                       title: >-
                         stateRoot is a 32 byte array of the hash of the block
                         (state root of the block)
+                    timestamp:
+                      type: string
+                      format: date-time
+                      title: timestamp is the time from the block header
                   description: >-
                     BlockDescriptor defines a single rollapp chain block
                     description.
@@ -61802,6 +62180,22 @@ definitions:
             title: >-
               The time (num hub blocks) a sequencer can be down after which he
               will be jailed rather than slashed
+          app_creation_cost:
+            title: app_creation_cost is the cost for registering the App
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   dymensionxyz.dymension.rollapp.Rollapp:
     type: object
@@ -61847,12 +62241,6 @@ definitions:
         items:
           type: string
         title: registeredDenoms is a list of registered denom bases on this rollapp
-      bech32_prefix:
-        type: string
-        title: unique bech32 prefix
-      genesis_checksum:
-        type: string
-        title: checksum used to verify integrity of the genesis file
       metadata:
         title: metadata is the rollapp metadata
         type: object
@@ -61885,18 +62273,49 @@ definitions:
           tagline:
             type: string
             description: tagline is a non semantic tagline/catch-phrase. Size limited.
-          token_symbol:
-            type: string
-            title: token_symbol is the native token symbol
           explorer_url:
             type: string
             title: explorer_url is the rollapp's block explorer link
-          fee_base_denom:
+          fee_denom:
+            title: fee_denom is the base denom for fees
+            type: object
+            properties:
+              display:
+                type: string
+              base:
+                type: string
+              exponent:
+                type: integer
+                format: int64
+      genesis_info:
+        title: genesis_info keeps immutable rollapp fields
+        type: object
+        properties:
+          genesis_checksum:
             type: string
-            title: fee_base_denom is the base denom for fees
-          native_base_denom:
+            title: checksum used to verify integrity of the genesis file
+          bech32_prefix:
             type: string
-            title: native_base_denom is the base denom for the native token
+            title: unique bech32 prefix
+          native_denom:
+            title: native_denom is the base denom for the native token
+            type: object
+            properties:
+              display:
+                type: string
+              base:
+                type: string
+              exponent:
+                type: integer
+                format: int64
+          initial_supply:
+            type: string
+            title: initial_supply is the initial supply of the native token
+          sealed:
+            type: boolean
+            title: >-
+              sealed indicates if the fields in this object are no longer
+              updatable
       initial_sequencer:
         type: string
         description: >-
@@ -61999,18 +62418,20 @@ definitions:
       tagline:
         type: string
         description: tagline is a non semantic tagline/catch-phrase. Size limited.
-      token_symbol:
-        type: string
-        title: token_symbol is the native token symbol
       explorer_url:
         type: string
         title: explorer_url is the rollapp's block explorer link
-      fee_base_denom:
-        type: string
-        title: fee_base_denom is the base denom for fees
-      native_base_denom:
-        type: string
-        title: native_base_denom is the base denom for the native token
+      fee_denom:
+        title: fee_denom is the base denom for fees
+        type: object
+        properties:
+          display:
+            type: string
+          base:
+            type: string
+          exponent:
+            type: integer
+            format: int64
   dymensionxyz.dymension.rollapp.RollappSummary:
     type: object
     properties:
@@ -62181,6 +62602,10 @@ definitions:
                   title: >-
                     stateRoot is a 32 byte array of the hash of the block (state
                     root of the block)
+                timestamp:
+                  type: string
+                  format: date-time
+                  title: timestamp is the time from the block header
               description: >-
                 BlockDescriptor defines a single rollapp chain block
                 description.
