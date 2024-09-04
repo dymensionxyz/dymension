@@ -136,6 +136,10 @@ type MockSequencerKeeper struct {
 	sequencers map[string]sequencertypes.Sequencer
 }
 
+func (m *MockSequencerKeeper) UnbondingTime(ctx sdk.Context) (res time.Duration) {
+	return types.DefaultExpectedCanonicalClientParams().UnbondingPeriod
+}
+
 func NewMockSequencerKeeper(sequencers map[string]sequencertypes.Sequencer) *MockSequencerKeeper {
 	return &MockSequencerKeeper{
 		sequencers: sequencers,
