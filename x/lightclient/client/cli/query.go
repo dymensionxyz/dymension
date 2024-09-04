@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -31,18 +30,20 @@ func CmdGetLightClient() *cobra.Command {
 		Use:   "light-client [rollapp-id]",
 		Short: "Get canonical light client if it exists.",
 		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-
-			queryClient := types.NewQueryClient(clientCtx)
-
+		RunE: func(cmd *cobra.Command, args []string) error {
 			argRollappId := args[0]
 
 			req := &types.QueryGetLightClientRequest{
 				RollappId: argRollappId,
 			}
 
-			res, err := queryClient.LightClient(context.Background(), req)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.LightClient(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
