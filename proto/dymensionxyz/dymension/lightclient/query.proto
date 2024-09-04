@@ -1,0 +1,24 @@
+syntax = "proto3";
+package dymensionxyz.dymension.lightclient;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/lightclient/types";
+
+message QueryGetLightClientRequest {
+  option (gogoproto.equal)           = false;
+  string rollapp_id = 1;
+}
+message QueryGetLightClientResponse {
+  // empty if doesn't exist
+  string client_id = 2;
+}
+
+// Query defines the gRPC querier service.
+service Query {
+  rpc LightClient(QueryGetLightClientRequest) returns (QueryGetLightClientResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/lightclient/lightclient/{rollapp_id}";
+  }
+}
+

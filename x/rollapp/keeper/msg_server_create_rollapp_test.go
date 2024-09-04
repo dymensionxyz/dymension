@@ -33,8 +33,7 @@ func (suite *RollappTestSuite) TestCreateRollappWithBechGenesisSum() {
 		InitialSequencer: sample.AccAddress(),
 		Alias:            "rollapp",
 		VmType:           types.Rollapp_EVM,
-		Bech32Prefix:     "rol",
-		GenesisChecksum:  "checksum",
+		GenesisInfo:      mockGenesisInfo,
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.Require().NoError(err)
@@ -87,11 +86,11 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 	for _, test := range tests {
 		suite.Run(test.name, func() {
 			newRollapp := types.MsgCreateRollapp{
-				Creator:      alice,
-				RollappId:    test.rollappId,
-				Bech32Prefix: "rol",
-				VmType:       types.Rollapp_EVM,
-				Alias:        strings.ToLower(rand.Str(7)),
+				Creator:     alice,
+				RollappId:   test.rollappId,
+				VmType:      types.Rollapp_EVM,
+				Alias:       strings.ToLower(rand.Str(7)),
+				GenesisInfo: mockGenesisInfo,
 			}
 
 			if test.malleate != nil {
@@ -200,11 +199,10 @@ func (suite *RollappTestSuite) TestForkChainId() {
 				Creator:          alice,
 				RollappId:        test.rollappId,
 				InitialSequencer: sample.AccAddress(),
-				Bech32Prefix:     "rol",
-				GenesisChecksum:  "checksum",
 				Alias:            "rollapp1",
 				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
+				GenesisInfo:      mockGenesisInfo,
 			}
 
 			suite.FundForAliasRegistration(rollappMsg)
@@ -216,15 +214,17 @@ func (suite *RollappTestSuite) TestForkChainId() {
 			rollapp.Frozen = true
 			suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
+			genesisInfo := mockGenesisInfo
+			genesisInfo.GenesisChecksum = "checksum1"
+
 			rollappMsg2 := types.MsgCreateRollapp{
 				Creator:          alice,
 				RollappId:        test.newRollappId,
 				InitialSequencer: sample.AccAddress(),
-				Bech32Prefix:     "rol",
-				GenesisChecksum:  "checksum1",
 				Alias:            "rollapp2",
 				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
+				GenesisInfo:      genesisInfo,
 			}
 
 			suite.FundForAliasRegistration(rollappMsg2)
@@ -266,10 +266,9 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 				Creator:          alice,
 				RollappId:        test.rollappId,
 				InitialSequencer: sample.AccAddress(),
-				Bech32Prefix:     "rol",
-				GenesisChecksum:  "checksum",
 				Alias:            "alias",
 				VmType:           types.Rollapp_EVM,
+				GenesisInfo:      mockGenesisInfo,
 			}
 			suite.FundForAliasRegistration(rollapp)
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -289,10 +288,9 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 				Creator:          alice,
 				RollappId:        test.badRollappId,
 				InitialSequencer: sample.AccAddress(),
-				Bech32Prefix:     "rol",
-				GenesisChecksum:  "checksum",
 				Alias:            "alias",
 				VmType:           types.Rollapp_EVM,
+				GenesisInfo:      mockGenesisInfo,
 			}
 			suite.FundForAliasRegistration(rollapp)
 			_, err = suite.msgServer.CreateRollapp(goCtx, &badRollapp)
@@ -338,11 +336,10 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(
 		Creator:          creator,
 		RollappId:        urand.RollappID(),
 		InitialSequencer: address,
-		Bech32Prefix:     "rol",
-		GenesisChecksum:  "checksum",
 		Alias:            strings.ToLower(rand.Str(7)),
 		VmType:           types.Rollapp_EVM,
 		Metadata:         &mockRollappMetadata,
+		GenesisInfo:      mockGenesisInfo,
 	}
 	if fundAccount {
 		suite.FundForAliasRegistration(rollapp)
@@ -352,10 +349,9 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(
 		RollappId:        rollapp.GetRollappId(),
 		Owner:            rollapp.GetCreator(),
 		InitialSequencer: rollapp.GetInitialSequencer(),
-		GenesisChecksum:  rollapp.GetGenesisChecksum(),
-		Bech32Prefix:     rollapp.GetBech32Prefix(),
 		VmType:           types.Rollapp_EVM,
 		Metadata:         rollapp.GetMetadata(),
+		GenesisInfo:      rollapp.GetGenesisInfo(),
 	}
 	// create rollapp
 	createResponse, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -385,4 +381,15 @@ var mockRollappMetadata = types.RollappMetadata{
 	LogoUrl:     "https://dymension.xyz/logo.png",
 	Telegram:    "https://t.me/rolly",
 	X:           "https://x.dymension.xyz",
+}
+
+var mockGenesisInfo = types.GenesisInfo{
+	Bech32Prefix:    "rol",
+	GenesisChecksum: "checksum",
+	NativeDenom: &types.DenomMetadata{
+		Display:  "DEN",
+		Base:     "aden",
+		Exponent: 18,
+	},
+	InitialSupply: sdk.NewInt(100000000),
 }

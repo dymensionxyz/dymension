@@ -47,7 +47,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		if !lastBD.Timestamp.IsZero() {
 			err := msg.BDs.Validate()
 			if err != nil {
-				return nil, err
+				return nil, errorsmod.Wrap(err, "block descriptors")
 			}
 		}
 
@@ -64,7 +64,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	} else {
 		err := msg.BDs.Validate()
 		if err != nil {
-			return nil, err
+			return nil, errorsmod.Wrap(err, "block descriptors")
 		}
 	}
 	newIndex = lastIndex + 1
@@ -82,7 +82,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 	err = k.hooks.AfterUpdateState(ctx, msg.RollappId, stateInfo)
 	if err != nil {
-		return nil, err
+		return nil, errorsmod.Wrap(err, "after update state")
 	}
 
 	stateInfoIndex := stateInfo.GetIndex()

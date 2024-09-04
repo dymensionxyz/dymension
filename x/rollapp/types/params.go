@@ -24,12 +24,12 @@ var (
 	KeyLivenessSlashInterval = []byte("LivenessSlashInterval")
 	KeyLivenessJailBlocks    = []byte("LivenessJailBlocks")
 
-	// KeyAppCreationCost defines the key to store the cost of the app
-	KeyAppCreationCost = []byte("KeyAppCreationCost")
+	// KeyAppRegistrationFee defines the key to store the cost of the app
+	KeyAppRegistrationFee = []byte("KeyAppRegistrationFee")
 
 	// DYM is 1dym
-	DYM                    = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-	DefaultAppCreationCost = sdk.NewCoin(params.BaseDenom, DYM)
+	DYM                       = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
+	DefaultAppRegistrationFee = sdk.NewCoin(params.BaseDenom, DYM)
 )
 
 const (
@@ -53,14 +53,14 @@ func NewParams(
 	livenessSlashBlocks uint64,
 	livenessSlashInterval uint64,
 	livenessJailBlocks uint64,
-	appCreationCost sdk.Coin,
+	appRegistrationFee sdk.Coin,
 ) Params {
 	return Params{
 		DisputePeriodInBlocks: disputePeriodInBlocks,
 		LivenessSlashBlocks:   livenessSlashBlocks,
 		LivenessSlashInterval: livenessSlashInterval,
 		LivenessJailBlocks:    livenessJailBlocks,
-		AppCreationCost:       appCreationCost,
+		AppRegistrationFee:    appRegistrationFee,
 	}
 }
 
@@ -70,7 +70,7 @@ func DefaultParams() Params {
 		DefaultLivenessSlashBlocks,
 		DefaultLivenessSlashInterval,
 		DefaultLivenessJailBlocks,
-		DefaultAppCreationCost,
+		DefaultAppRegistrationFee,
 	)
 }
 
@@ -81,7 +81,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyLivenessSlashBlocks, &p.LivenessSlashBlocks, validateLivenessSlashBlocks),
 		paramtypes.NewParamSetPair(KeyLivenessSlashInterval, &p.LivenessSlashInterval, validateLivenessSlashInterval),
 		paramtypes.NewParamSetPair(KeyLivenessJailBlocks, &p.LivenessJailBlocks, validateLivenessJailBlocks),
-		paramtypes.NewParamSetPair(KeyAppCreationCost, &p.AppCreationCost, validateAppCreationCost),
+		paramtypes.NewParamSetPair(KeyAppRegistrationFee, &p.AppRegistrationFee, validateAppRegistrationFee),
 	}
 }
 
@@ -121,8 +121,8 @@ func (p Params) Validate() error {
 		return errorsmod.Wrap(err, "liveness jail blocks")
 	}
 
-	if err := validateAppCreationCost(p.AppCreationCost); err != nil {
-		return errorsmod.Wrap(err, "app creation cost")
+	if err := validateAppRegistrationFee(p.AppRegistrationFee); err != nil {
+		return errorsmod.Wrap(err, "app registration fee")
 	}
 	return nil
 }
@@ -159,7 +159,7 @@ func validateDisputePeriodInBlocks(v interface{}) error {
 	return nil
 }
 
-func validateAppCreationCost(i interface{}) error {
+func validateAppRegistrationFee(i interface{}) error {
 	v, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

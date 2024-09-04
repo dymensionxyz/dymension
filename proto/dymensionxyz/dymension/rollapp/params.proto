@@ -24,9 +24,9 @@ message Params {
   uint64 liveness_slash_interval = 5  [(gogoproto.moretags) = "yaml:\"liveness_slash_interval\""];
   // The time (num hub blocks) a sequencer can be down after which he will be jailed rather than slashed
   uint64 liveness_jail_blocks = 6 [(gogoproto.moretags) = "yaml:\"liveness_jail_blocks\""];
-  // app_creation_cost is the cost for registering the App
-  cosmos.base.v1beta1.Coin app_creation_cost = 7 [
+  // app_registration_fee is the fee for registering an App
+  cosmos.base.v1beta1.Coin app_registration_fee = 7 [
     (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"app_creation_cost\""
+    (gogoproto.moretags) = "yaml:\"app_registration_fee\""
   ];
 }

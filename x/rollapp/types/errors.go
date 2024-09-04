@@ -18,7 +18,7 @@ var (
 	ErrWrongBlockHeight              = errorsmod.Register(ModuleName, 1009, "start-height does not match rollapps state")
 	ErrInvalidGenesisChecksum        = errorsmod.Register(ModuleName, 1010, "invalid genesis checksum")
 	ErrInvalidStateRoot              = errorsmod.Register(ModuleName, 1011, "invalid blocks state root")
-	ErrAppCreationCostPayment        = errorsmod.Register(ModuleName, 1013, "app creation cost payment error")
+	ErrAppRegistrationFeePayment     = errorsmod.Register(ModuleName, 1013, "app registration fee payment error")
 	ErrStateNotExists                = errorsmod.Register(ModuleName, 1017, "state of this height doesn't exist")
 	ErrInvalidHeight                 = errorsmod.Register(ModuleName, 1018, "invalid rollapp height")
 	ErrInvalidRollappID              = errorsmod.Register(ModuleName, 1020, "invalid rollapp-id")
@@ -35,6 +35,7 @@ var (
 	ErrInvalidDescription              = errorsmod.Wrap(gerrc.ErrInvalidArgument, "description")
 	ErrInvalidMetadata                 = errorsmod.Wrap(gerrc.ErrInvalidArgument, "metadata")
 	ErrImmutableFieldUpdateAfterSealed = errorsmod.Wrap(gerrc.ErrInvalidArgument, "update immutable field after rollapp sealed")
+	ErrGenesisInfoSealed               = errorsmod.Wrap(gerrc.ErrInvalidArgument, "update genesis info sealed")
 	ErrUnauthorizedSigner              = errorsmod.Wrap(gerrc.ErrPermissionDenied, "unauthorized signer")
 	ErrSameOwner                       = errorsmod.Wrap(gerrc.ErrInvalidArgument, "same owner")
 	ErrInvalidRequest                  = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid request")
@@ -42,6 +43,9 @@ var (
 	ErrInvalidAppName                  = errorsmod.Wrap(gerrc.ErrInvalidArgument, "app name")
 	ErrInvalidAppImage                 = errorsmod.Wrap(gerrc.ErrInvalidArgument, "app image path")
 	ErrInvalidBlockDescriptorTimestamp = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid block descriptor timestamp")
+	ErrInvalidNativeDenom              = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid native denom")
+	ErrInvalidFeeDenom                 = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid fee denom")
+	ErrInvalidInitialSupply            = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid initial supply")
 
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")

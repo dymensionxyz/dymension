@@ -4,7 +4,6 @@ package dymensionxyz.dymension.rollapp;
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
 import "gogoproto/gogo.proto";
-import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
 
 import "dymensionxyz/dymension/rollapp/state_info.proto";
@@ -39,17 +38,15 @@ message Rollapp {
   bool frozen = 9;
   // registeredDenoms is a list of registered denom bases on this rollapp
   repeated string registeredDenoms = 10;
-  // unique bech32 prefix
-  string bech32_prefix = 11;
-  // checksum used to verify integrity of the genesis file
-  string genesis_checksum = 12;
   // metadata is the rollapp metadata
-  RollappMetadata metadata = 14;
+  RollappMetadata metadata = 11;
+  // genesis_info keeps immutable rollapp fields
+  GenesisInfo genesis_info = 12 [(gogoproto.nullable) = false];
   // initial_sequencer is an option to preset one or more coma-separated bech32-encoded addresses of the
   // sequencer(s) that are allowed to initially register and serve for this rollapp.
   // if left empty, no sequencer is allowed to register.
   // if set to "*" any sequencer can register.
-  string initial_sequencer = 15;
+  string initial_sequencer = 13;
 
   enum VMType {
     Unspecified = 0;
@@ -57,14 +54,30 @@ message Rollapp {
     WASM = 2;
   }
   // vm_type is the type of rollapp machine: EVM or WASM
-  VMType vm_type = 16;
+  VMType vm_type = 14;
   // sealed is a boolean that indicates if the immutable fields are no longer updatable.
-  bool sealed = 17;
+  bool sealed = 15;
   // LivenessEventHeight is the height of an upcoming liveness event (slash or jail)
   // 0 means not set
-  int64 liveness_event_height = 18;
+  int64 liveness_event_height = 16;
   // The LastStateUpdateHeight HUB height when the last state update was received
-  int64 last_state_update_height = 19;
+  int64 last_state_update_height = 17;
+}
+
+message GenesisInfo {
+  // checksum used to verify integrity of the genesis file
+  string genesis_checksum = 1;
+  // unique bech32 prefix
+  string bech32_prefix = 2;
+  // native_denom is the base denom for the native token
+  DenomMetadata native_denom = 3;
+  // initial_supply is the initial supply of the native token
+  string initial_supply = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // sealed indicates if the fields in this object are no longer updatable
+  bool sealed = 5;
 }
 
 // Rollapp summary is a compact representation of Rollapp

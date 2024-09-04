@@ -164,19 +164,25 @@ func (s *KeeperTestSuite) TestKeeper_IsRollAppCreator() {
 
 func (s *KeeperTestSuite) TestKeeper_GetRollAppBech32Prefix() {
 	rollApp1 := rollapptypes.Rollapp{
-		RollappId:    "rollapp_1-1",
-		Owner:        testAddr(0).bech32(),
-		Bech32Prefix: "one",
+		RollappId: "rollapp_1-1",
+		Owner:     testAddr(0).bech32(),
+		GenesisInfo: rollapptypes.GenesisInfo{
+			Bech32Prefix: "one",
+		},
 	}
 	rollApp2 := rollapptypes.Rollapp{
-		RollappId:    "rolling_2-2",
-		Owner:        testAddr(0).bech32(),
-		Bech32Prefix: "two",
+		RollappId: "rolling_2-2",
+		Owner:     testAddr(0).bech32(),
+		GenesisInfo: rollapptypes.GenesisInfo{
+			Bech32Prefix: "two",
+		},
 	}
 	rollApp3NonExists := rollapptypes.Rollapp{
-		RollappId:    "nah_3-3",
-		Owner:        testAddr(0).bech32(),
-		Bech32Prefix: "nah",
+		RollappId: "nah_3-3",
+		Owner:     testAddr(0).bech32(),
+		GenesisInfo: rollapptypes.GenesisInfo{
+			Bech32Prefix: "three",
+		},
 	}
 
 	s.rollAppKeeper.SetRollapp(s.ctx, rollApp1)

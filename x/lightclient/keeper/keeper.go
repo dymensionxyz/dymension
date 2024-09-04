@@ -2,11 +2,11 @@ package keeper
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 
 	"github.com/cometbft/cometbft/libs/log"
 	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,7 +38,7 @@ func NewKeeper(
 	return k
 }
 
-// GetSequencerHash returns the seqeuncer's tendermint public key hash
+// GetSequencerHash returns the sequencer's tendermint public key hash
 func (k Keeper) GetSequencerHash(ctx sdk.Context, sequencerAddr string) ([]byte, error) {
 	seq, found := k.sequencerKeeper.GetSequencer(ctx, sequencerAddr)
 	if !found {
@@ -73,7 +73,7 @@ func (k Keeper) GetSequencerFromValHash(ctx sdk.Context, rollappID string, block
 	return "", types.ErrSequencerNotFound
 }
 
-// SetConsenusStateSigner sets block valHash for the given height of the client
+// SetConsensusStateValHash sets block valHash for the given height of the client
 func (k Keeper) SetConsensusStateValHash(ctx sdk.Context, clientID string, height uint64, blockValHash []byte) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.ConsensusStateValhashKeyByClientID(clientID, height), blockValHash)
@@ -117,4 +117,10 @@ func (k Keeper) GetRollappForClientID(ctx sdk.Context, clientID string) (string,
 		return "", false
 	}
 	return string(bz), true
+}
+
+func (k Keeper) LightClient(goCtx context.Context, req *types.QueryGetLightClientRequest) (*types.QueryGetLightClientResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	id, _ := k.GetCanonicalClient(ctx, req.GetRollappId()) // if not found then empty
+	return &types.QueryGetLightClientResponse{ClientId: id}, nil
 }

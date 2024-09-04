@@ -115,17 +115,25 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 	// for 3 rollapps, test 10 sequencers creations
 	for j := 0; j < numRollapps; j++ {
 		rollapp := rollapptypes.Rollapp{
-			RollappId:       urand.RollappID(),
-			Owner:           alice,
-			Bech32Prefix:    bech32Prefix,
-			GenesisChecksum: "1234567890abcdefg",
-			Sealed:          true,
+			RollappId: urand.RollappID(),
+			Owner:     alice,
+			Sealed:    true,
 			Metadata: &rollapptypes.RollappMetadata{
 				Website:     "https://dymension.xyz",
 				Description: "Sample description",
 				LogoUrl:     "https://dymension.xyz/logo.png",
 				Telegram:    "https://t.me/rolly",
 				X:           "https://x.dymension.xyz",
+			},
+			GenesisInfo: rollapptypes.GenesisInfo{
+				Bech32Prefix:    bech32Prefix,
+				GenesisChecksum: "1234567890abcdefg",
+				InitialSupply:   sdk.NewInt(1000),
+				NativeDenom: &rollapptypes.DenomMetadata{
+					Display:  "DEN",
+					Base:     "aden",
+					Exponent: 18,
+				},
 			},
 		}
 		suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)

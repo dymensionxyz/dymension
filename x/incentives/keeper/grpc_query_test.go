@@ -4,12 +4,11 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/stretchr/testify/suite"
 
-	query "github.com/cosmos/cosmos-sdk/types/query"
-
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
 var _ = suite.TestingSuite(nil)
