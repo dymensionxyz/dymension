@@ -77,7 +77,7 @@ func (suite *RollappTestSuite) TestTransferOwnership() {
 				Owner:       alice,
 				GenesisInfo: mockGenesisInfo,
 				Frozen:      false,
-				Sealed:      false,
+				Launched:    false,
 			}
 
 			if tc.malleate != nil {

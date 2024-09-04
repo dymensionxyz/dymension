@@ -55,8 +55,8 @@ message Rollapp {
   }
   // vm_type is the type of rollapp machine: EVM or WASM
   VMType vm_type = 14;
-  // sealed is a boolean that indicates if the immutable fields are no longer updatable.
-  bool sealed = 15;
+  // launched is a boolean that indicates that the Rollapp has been launched and the immutable fields are no longer updatable.
+  bool launched = 15;
   // LivenessEventHeight is the height of an upcoming liveness event (slash or jail)
   // 0 means not set
   int64 liveness_event_height = 16;
