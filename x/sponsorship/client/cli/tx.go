@@ -105,18 +105,18 @@ func ParseGaugeWeights(inputWeights string) ([]types.GaugeWeight, error) {
 			return nil, fmt.Errorf("invalid gauge ID '%s': %w", idValue[0], err)
 		}
 
-		weight, err := strconv.Atoi(idValue[1])
-		if err != nil {
-			return nil, fmt.Errorf("invalid gauge weight '%s': %w", idValue[1], err)
+		weight, ok := math.NewIntFromString(idValue[1])
+		if !ok {
+			return nil, fmt.Errorf("invalid gauge weight '%s'", idValue[1])
 		}
 
-		if weight < 0 || weight > 100 {
-			return nil, fmt.Errorf("weight must be between 0 and 100, got %d", weight)
+		if weight.LT(types.MinAllocationWeight) || weight.GT(types.MaxAllocationWeight) {
+			return nil, fmt.Errorf("weight must be between 1 and 100 * 10^18, got %s", weight)
 		}
 
 		weights = append(weights, types.GaugeWeight{
 			GaugeId: gaugeID,
-			Weight:  math.NewInt(int64(weight)),
+			Weight:  weight,
 		})
 	}
 

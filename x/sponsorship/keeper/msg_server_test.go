@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"cosmossdk.io/math"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -46,7 +45,7 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 			msg: types.MsgUpdateParams{
 				Authority: authority,
 				NewParams: types.Params{
-					MinAllocationWeight: math.NewInt(101), // > 100%
+					MinAllocationWeight: types.DYM.MulRaw(101), // > 100%
 					MinVotingPower:      types.DefaultMinVotingPower,
 				},
 			},

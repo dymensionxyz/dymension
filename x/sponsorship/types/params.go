@@ -21,13 +21,13 @@ func DefaultParams() Params {
 
 func (p Params) Validate() error {
 	if p.MinAllocationWeight.IsNegative() {
-		return ErrInvalidParams.Wrapf("MinAllocationWeight must be >= 0, got %d", p.MinAllocationWeight.Int64())
+		return ErrInvalidParams.Wrapf("MinAllocationWeight must be >= 0, got %s", p.MinAllocationWeight)
 	}
-	if p.MinAllocationWeight.GT(hundred) {
-		return ErrInvalidParams.Wrapf("MinAllocationWeight must be <= 100, got %d", p.MinAllocationWeight.Int64())
+	if p.MinAllocationWeight.GT(MaxAllocationWeight) {
+		return ErrInvalidParams.Wrapf("MinAllocationWeight must be <= 100 * 10^18, got %s", p.MinAllocationWeight)
 	}
 	if p.MinVotingPower.IsNegative() {
-		return ErrInvalidParams.Wrapf("MinVotingPower must be >= 0, got %d", p.MinVotingPower.Int64())
+		return ErrInvalidParams.Wrapf("MinVotingPower must be >= 0, got %s", p.MinVotingPower)
 	}
 	return nil
 }
@@ -53,10 +53,10 @@ func validateMinAllocationWeight(i interface{}) error {
 	}
 
 	if value.IsNegative() {
-		return ErrInvalidParams.Wrapf("MinAllocationWeight must be >= 0, got %d", value.Int64())
+		return ErrInvalidParams.Wrapf("MinAllocationWeight must be >= 0, got %s", value)
 	}
-	if value.GT(hundred) {
-		return ErrInvalidParams.Wrapf("MinAllocationWeight must be <= 100, got %d", value.Int64())
+	if value.GT(MaxAllocationWeight) {
+		return ErrInvalidParams.Wrapf("MinAllocationWeight must be <= 100 * 10^18, got %s", value)
 	}
 
 	return nil
@@ -69,7 +69,7 @@ func validateMinVotingPower(i interface{}) error {
 	}
 
 	if value.IsNegative() {
-		return ErrInvalidParams.Wrapf("MinVotingPower must be >= 0, got %d", value.Int64())
+		return ErrInvalidParams.Wrapf("MinVotingPower must be >= 0, got %s", value)
 	}
 
 	return nil
