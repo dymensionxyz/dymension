@@ -7,7 +7,9 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
+	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 )
 
 func (s *KeeperTestSuite) TestSettle() {
@@ -130,21 +132,50 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 	err = k.Buy(s.Ctx, planId, buyer, sdk.NewInt(1_000), sdk.NewInt(100_000))
 	s.Require().NoError(err)
 
+	plan := k.MustGetPlan(s.Ctx, planId)
+	raisedDYM := k.BK.GetBalance(s.Ctx, plan.GetAddress(), appparams.BaseDenom)
+	preSettleCoins := sdk.NewCoins(raisedDYM, sdk.NewCoin(rollappDenom, amt.Sub(plan.SoldAmt)))
+
 	// settle should succeed after fund
 	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
 	s.FundModuleAcc(types.ModuleName, s.App.GAMMKeeper.GetParams(s.Ctx).PoolCreationFee) // FIXME: remove once creation fee is removed
 	err = k.Settle(s.Ctx, rollappId, rollappDenom)
 	s.Require().NoError(err)
 
-	pool, err := s.App.GAMMKeeper.GetPool(s.Ctx, 1)
+	/* -------------------------- assert liquidity pool ------------------------- */
+	// pool created
+	expectedPoolID := uint64(1)
+	pool, err := s.App.GAMMKeeper.GetPool(s.Ctx, expectedPoolID)
 	s.Require().NoError(err)
 
+	// pool price should be the same as the last price of the plan
 	price, err := pool.SpotPrice(s.Ctx, "adym", rollappDenom)
 	s.Require().NoError(err)
 
-	plan := k.MustGetPlan(s.Ctx, planId)
+	plan = k.MustGetPlan(s.Ctx, planId)
 	lastPrice := plan.BondingCurve.SpotPrice(plan.SoldAmt)
 	s.Require().Equal(lastPrice, price)
+
+	// assert incentives
+	poolCoins := pool.GetTotalPoolLiquidity(s.Ctx)
+	gauges, err := s.App.IncentivesKeeper.GetGaugesForDenom(s.Ctx, gammtypes.GetPoolShareDenom(expectedPoolID))
+	s.Require().NoError(err)
+	found := false
+	gauge := incentivestypes.Gauge{}
+	for _, gauge = range gauges {
+		if !gauge.IsPerpetual {
+			found = true
+			break
+		}
+	}
+	s.Require().True(found)
+	s.Require().False(gauge.Coins.IsZero())
+
+	// expected tokens for incentives:
+	// 		raisedDYM - poolCoins
+	// 		totalAllocation - soldAmt - poolCoins
+	expectedIncentives := preSettleCoins.Sub(poolCoins...)
+	s.Assert().Equal(expectedIncentives, gauge.Coins)
 }
 
 // test edge cases: nothing sold, all sold

@@ -3,14 +3,17 @@ package keeper
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	balancer "github.com/osmosis-labs/osmosis/v15/x/gamm/pool-models/balancer"
+	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 )
 
 // TransfersEnabled called by the genesis transfer IBC module when a transfer is handled
@@ -68,23 +71,21 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 
 // Bootstrap liquidity pool with the raised DYM and unsold tokens
 func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
-	// calculate last price
-	lastPrice := plan.BondingCurve.SpotPrice(plan.SoldAmt)
-
-	// find the limiting factor
-	unallocatedTokens := plan.TotalAllocation.Amount.Sub(plan.SoldAmt) // assumed > 0, as we enforce it in the Buy function
-
-	raisedDYM := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom)
-	tokens, dym := determineLimitingFactor(unallocatedTokens, raisedDYM.Amount, lastPrice)
-
-	rollappLiquidityCoin := sdk.NewCoin(plan.SettledDenom, tokens)
-	dymLiquidityCoin := sdk.NewCoin(appparams.BaseDenom, dym)
+	unallocatedTokens := plan.TotalAllocation.Amount.Sub(plan.SoldAmt)        // assumed > 0, as we enforce it in the Buy function
+	raisedDYM := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom) // assumed > 0, as we enforce it by IRO creation fee
 
 	// send the raised DYM to the iro module
-	err := k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(dymLiquidityCoin))
+	err := k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(raisedDYM))
 	if err != nil {
 		return err
 	}
+
+	// calculate last price
+	lastPrice := plan.BondingCurve.SpotPrice(plan.SoldAmt)
+	// find the tokens needed to bootstrap the pool, to fulfill last price
+	tokens, dym := determineLimitingFactor(unallocatedTokens, raisedDYM.Amount, lastPrice)
+	rollappLiquidityCoin := sdk.NewCoin(plan.SettledDenom, tokens)
+	dymLiquidityCoin := sdk.NewCoin(appparams.BaseDenom, dym)
 
 	// create pool
 	gammGlobalParams := k.gk.GetParams(ctx).GlobalFees
@@ -100,13 +101,27 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 		},
 	}, "")
 
-	// FIXME: skip the pool creation fee
-	_, err = k.gk.CreatePool(ctx, balancerPool)
+	poolId, err := k.gk.CreatePool(ctx, balancerPool) // FIXME: skip the pool creation fee
 	if err != nil {
 		return err
 	}
 
-	// FIXME: Add incentives
+	// Add incentives
+	poolDenom := gammtypes.GetPoolShareDenom(poolId)
+	incentives := sdk.NewCoins(
+		sdk.NewCoin(dymLiquidityCoin.Denom, raisedDYM.Amount.Sub(dymLiquidityCoin.Amount)),
+		sdk.NewCoin(rollappLiquidityCoin.Denom, unallocatedTokens.Sub(rollappLiquidityCoin.Amount)),
+	)
+	distrTo := lockuptypes.QueryCondition{
+		LockQueryType: lockuptypes.ByDuration,
+		Denom:         poolDenom,
+		Duration:      k.ik.GetLockableDurations(ctx)[0],
+	}
+	_, err = k.ik.CreateGauge(ctx, false, k.AK.GetModuleAddress(types.ModuleName), incentives, distrTo, ctx.BlockTime().Add(time.Hour), 30)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

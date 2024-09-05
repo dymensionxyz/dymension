@@ -8,7 +8,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
@@ -82,7 +81,7 @@ func (r Rollapp) ValidateBasic() error {
 
 	if r.Metadata != nil {
 		if err = r.Metadata.Validate(); err != nil {
-			return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
+			return errors.Join(ErrInvalidMetadata, err)
 		}
 	}
 
@@ -168,16 +167,16 @@ func validateBech32Prefix(prefix string) error {
 
 func (dm DenomMetadata) Validate() error {
 	if l := len(dm.Base); l == 0 || l > maxDenomBaseLength {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "base denom")
+		return fmt.Errorf("base denom")
 	}
 
 	if l := len(dm.Display); l == 0 || l > maxDenomDisplayLength {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "display denom")
+		return fmt.Errorf("display denom")
 	}
 
 	// validate exponent
 	if AllowedDecimals(dm.Exponent) != Decimals18 {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "exponent")
+		return fmt.Errorf("invalid exponent")
 	}
 
 	return nil
@@ -185,48 +184,44 @@ func (dm DenomMetadata) Validate() error {
 
 func (md *RollappMetadata) Validate() error {
 	if err := validateURL(md.Website); err != nil {
-		return errorsmod.Wrap(ErrInvalidURL, err.Error())
+		return errorsmod.Wrap(err, "website URL")
 	}
 
 	if err := validateURL(md.X); err != nil {
-		return errorsmod.Wrap(ErrInvalidURL, err.Error())
+		return errorsmod.Wrap(err, "X URL")
 	}
 
 	if err := validateURL(md.GenesisUrl); err != nil {
-		return errorsmod.Wrap(errors.Join(ErrInvalidURL, err), "genesis url")
+		return errorsmod.Wrap(err, "genesis URL")
 	}
 
 	if err := validateURL(md.Telegram); err != nil {
-		return errorsmod.Wrap(ErrInvalidURL, err.Error())
+		return errorsmod.Wrap(err, "telegram URL")
 	}
 
 	if len(md.Description) > maxDescriptionLength {
-		return ErrInvalidDescription
+		return fmt.Errorf("description too long")
 	}
 
 	if len(md.DisplayName) > maxDisplayNameLength {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "display name too long")
+		return fmt.Errorf("display name too long")
 	}
 
 	if len(md.Tagline) > maxTaglineLength {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "tagline too long")
+		return fmt.Errorf("tagline too long")
 	}
 
 	if err := validateURL(md.LogoUrl); err != nil {
-		return errorsmod.Wrap(ErrInvalidURL, err.Error())
+		return errors.Join(ErrInvalidURL, err)
 	}
 
 	if err := validateURL(md.ExplorerUrl); err != nil {
-		return errorsmod.Wrap(ErrInvalidURL, err.Error())
-	}
-
-	if err := validateURL(md.LogoUrl); err != nil {
-		return errorsmod.Wrap(ErrInvalidURL, err.Error())
+		return errors.Join(ErrInvalidURL, err)
 	}
 
 	if md.FeeDenom != nil {
 		if err := md.FeeDenom.Validate(); err != nil {
-			return errorsmod.Wrap(ErrInvalidFeeDenom, err.Error())
+			return errors.Join(ErrInvalidFeeDenom, err)
 		}
 	}
 

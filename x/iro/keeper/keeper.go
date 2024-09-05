@@ -10,6 +10,7 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
+	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -28,6 +29,7 @@ type Keeper struct {
 	BK bankkeeper.Keeper
 	rk *rollappkeeper.Keeper
 	gk *gammkeeper.Keeper
+	ik *incentiveskeeper.Keeper
 }
 
 func NewKeeper(
@@ -37,6 +39,7 @@ func NewKeeper(
 	bk bankkeeper.Keeper,
 	rk *rollappkeeper.Keeper,
 	gk *gammkeeper.Keeper,
+	ik *incentiveskeeper.Keeper,
 ) *Keeper {
 	return &Keeper{
 		cdc:      cdc,
@@ -45,6 +48,7 @@ func NewKeeper(
 		BK:       bk,
 		rk:       rk,
 		gk:       gk,
+		ik:       ik,
 	}
 }
 

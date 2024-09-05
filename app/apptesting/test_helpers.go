@@ -39,6 +39,7 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	app "github.com/dymensionxyz/dymension/v3/app"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
@@ -80,17 +81,20 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 	params.SetAddressPrefixes()
 
 	newApp := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encCdc, EmptyAppOptions{}, bam.SetChainID(TestChainID))
-
 	defaultGenesisState := app.NewDefaultGenesisState(encCdc.Codec)
 
-	// set EnableCreate to false
-	if evmGenesisStateJson, found := defaultGenesisState[evmtypes.ModuleName]; found {
-		// force disable Enable Create of x/evm
-		var evmGenesisState evmtypes.GenesisState
-		encCdc.Codec.MustUnmarshalJSON(evmGenesisStateJson, &evmGenesisState)
-		evmGenesisState.Params.EnableCreate = false
-		defaultGenesisState[evmtypes.ModuleName] = encCdc.Codec.MustMarshalJSON(&evmGenesisState)
-	}
+	incentivesGenesisStateJson := defaultGenesisState[incentivestypes.ModuleName]
+	var incentivesGenesisState incentivestypes.GenesisState
+	encCdc.Codec.MustUnmarshalJSON(incentivesGenesisStateJson, &incentivesGenesisState)
+	incentivesGenesisState.LockableDurations = append(incentivesGenesisState.LockableDurations, time.Second*60)
+	defaultGenesisState[incentivestypes.ModuleName] = encCdc.Codec.MustMarshalJSON(&incentivesGenesisState)
+
+	// force disable EnableCreate of x/evm
+	evmGenesisStateJson := defaultGenesisState[evmtypes.ModuleName]
+	var evmGenesisState evmtypes.GenesisState
+	encCdc.Codec.MustUnmarshalJSON(evmGenesisStateJson, &evmGenesisState)
+	evmGenesisState.Params.EnableCreate = false
+	defaultGenesisState[evmtypes.ModuleName] = encCdc.Codec.MustMarshalJSON(&evmGenesisState)
 
 	return newApp, defaultGenesisState
 }

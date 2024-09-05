@@ -177,6 +177,17 @@ func (k Keeper) GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*types.Gauge, err
 	return &gauge, nil
 }
 
+// GetGaugesForDenom returns the gauge for a given denom.
+// ActiveGaugesPerDenom returns all active gauges for the specified denom.
+func (k Keeper) GetGaugesForDenom(ctx sdk.Context, denom string) ([]types.Gauge, error) {
+	_, gauges, err := k.filterByPrefixAndDenom(ctx, types.KeyPrefixGauges, denom, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return gauges, nil
+}
+
 // GetGaugeFromIDs returns multiple gauges from a gaugeIDs array.
 func (k Keeper) GetGaugeFromIDs(ctx sdk.Context, gaugeIDs []uint64) ([]types.Gauge, error) {
 	gauges := []types.Gauge{}

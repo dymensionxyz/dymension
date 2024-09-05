@@ -376,15 +376,6 @@ func (a *AppKeepers) InitKeepers(
 
 	a.RollappKeeper.SetSequencerKeeper(a.SequencerKeeper)
 
-	a.IROKeeper = irokeeper.NewKeeper(
-		appCodec,
-		a.keys[irotypes.StoreKey],
-		&a.AccountKeeper,
-		a.BankKeeper,
-		a.RollappKeeper,
-		a.GAMMKeeper,
-	)
-
 	a.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		a.keys[incentivestypes.StoreKey],
 		a.GetSubspace(incentivestypes.ModuleName),
@@ -394,6 +385,16 @@ func (a *AppKeepers) InitKeepers(
 		a.DistrKeeper,
 		a.TxFeesKeeper,
 		a.RollappKeeper,
+	)
+
+	a.IROKeeper = irokeeper.NewKeeper(
+		appCodec,
+		a.keys[irotypes.StoreKey],
+		&a.AccountKeeper,
+		a.BankKeeper,
+		a.RollappKeeper,
+		a.GAMMKeeper,
+		a.IncentivesKeeper,
 	)
 
 	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(

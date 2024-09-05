@@ -10,6 +10,7 @@ import (
 
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
+	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 )
 
 var AllocationSellLimit = math.LegacyNewDecWithPrec(999, 3) // 99.9%
@@ -56,7 +57,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 	}
 
 	// validate we have enough tokens to sell
-	//  protocol will apply max limit (99.9%) to enforce initial token liquidity
+	// protocol will apply max limit (99.9%) to enforce initial token liquidity
 	maxSellAmt := plan.TotalAllocation.Amount.ToLegacyDec().Mul(AllocationSellLimit).TruncateInt()
 	if plan.SoldAmt.Add(amountTokensToBuy).GT(maxSellAmt) {
 		return types.ErrInsufficientTokens

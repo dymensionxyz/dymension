@@ -200,7 +200,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 			NativeDenom: rollapptypes.DenomMetadata{
 				Display:  "DEN",  // placeholder data
 				Base:     "aden", // placeholder data
-				Exponent: 6,      // placeholder data
+				Exponent: 18,     // placeholder data
 			},
 			InitialSupply: sdk.NewInt(100000), // placeholder data
 			Sealed:        true,
