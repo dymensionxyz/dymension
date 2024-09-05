@@ -217,7 +217,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 			Sealed:        true,
 		},
 		InitialSequencer: "*",
-		Sealed:           true,
+		Launched:         true,
 	}
 }
 

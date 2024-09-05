@@ -17,7 +17,7 @@ set_hub_params() {
     jq '.app_state.rollapp.params.dispute_period_in_blocks = "50"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     
     
-    jq '.app_state.sequencer.params.unbonding_time = "60s"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.app_state.sequencer.params.unbonding_time = "1209600s"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     jq '.app_state.sequencer.params.notice_period = "60s"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 
     #increase the tx size cost per byte from 10 to 100

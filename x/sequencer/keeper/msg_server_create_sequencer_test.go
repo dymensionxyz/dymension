@@ -117,7 +117,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		rollapp := rollapptypes.Rollapp{
 			RollappId: urand.RollappID(),
 			Owner:     alice,
-			Sealed:    true,
+			Launched:  true,
 			Metadata: &rollapptypes.RollappMetadata{
 				Website:     "https://dymension.xyz",
 				Description: "Sample description",
@@ -289,22 +289,22 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 			sequencers:        []sequencer{{creatorName: "bob", expProposer: true}, {creatorName: "steve", expProposer: false}},
 			rollappInitialSeq: "*",
 		}, {
-			name:              "success - any sequencer can be the first proposer, rollapp sealed",
+			name:              "success - any sequencer can be the first proposer, rollapp launched",
 			sequencers:        []sequencer{{creatorName: "bob", expProposer: false}},
 			rollappInitialSeq: alice,
 			malleate: func(rollappID string) {
 				r, _ := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
-				r.Sealed = true
+				r.Launched = true
 				suite.App.RollappKeeper.SetRollapp(suite.Ctx, r)
 			},
 			expErr: nil,
 		}, {
-			name:              "success - no initial sequencer, rollapp sealed",
+			name:              "success - no initial sequencer, rollapp launched",
 			sequencers:        []sequencer{{creatorName: "bob", expProposer: false}},
 			rollappInitialSeq: "*",
 			malleate: func(rollappID string) {
 				r, _ := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
-				r.Sealed = true
+				r.Launched = true
 				suite.App.RollappKeeper.SetRollapp(suite.Ctx, r)
 			},
 			expErr: nil,

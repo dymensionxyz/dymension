@@ -27,8 +27,8 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr().String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(50)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(50)},
 					},
 				})
 
@@ -63,8 +63,8 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr().String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(50)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(50)},
 					},
 				})
 
@@ -97,8 +97,8 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr().String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(50)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(50)},
 					},
 				})
 
@@ -134,8 +134,8 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr().String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(50)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(50)},
 					},
 				})
 
@@ -168,8 +168,8 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr().String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(50)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(50)},
 					},
 				})
 
@@ -201,8 +201,8 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr().String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(50)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(50)},
 					},
 				})
 
@@ -231,8 +231,8 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr().String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(50)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(50)},
 					},
 				})
 
@@ -267,8 +267,8 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr().String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(50)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(50)},
 					},
 				})
 
@@ -295,8 +295,8 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr().String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(50)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(50)},
 					},
 				})
 
@@ -329,8 +329,8 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr().String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(50)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(50)},
 					},
 				})
 
@@ -366,8 +366,8 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr().String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(50)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(50)},
 					},
 				})
 

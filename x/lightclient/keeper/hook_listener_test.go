@@ -22,6 +22,9 @@ func TestAfterUpdateState(t *testing.T) {
 		prepare   func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput
 		expectErr bool
 	}{
+		// TODO: tests need expanding
+		//  At least the following need to be added
+		//  - Client with all cons states after the state update will not be canonical
 		{
 			name: "canonical client does not exist for rollapp",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {

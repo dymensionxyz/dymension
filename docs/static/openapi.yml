@@ -3510,11 +3510,11 @@ paths:
                       - EVM
                       - WASM
                     default: Unspecified
-                  sealed:
+                  launched:
                     type: boolean
                     description: >-
-                      sealed is a boolean that indicates if the immutable fields
-                      are no longer updatable.
+                      // launched is a boolean that indicates that the Rollapp has
+                      been launched and the immutable fields are no longer updatable.
                   liveness_event_height:
                     type: string
                     format: int64
@@ -4072,11 +4072,11 @@ paths:
                             - EVM
                             - WASM
                           default: Unspecified
-                        sealed:
+                        launched:
                           type: boolean
                           description: >-
-                            sealed is a boolean that indicates if the immutable
-                            fields are no longer updatable.
+                            // launched is a boolean that indicates that the Rollapp has
+                           been launched and the immutable fields are no longer updatable.
                         liveness_event_height:
                           type: string
                           format: int64
@@ -4499,11 +4499,11 @@ paths:
                       - EVM
                       - WASM
                     default: Unspecified
-                  sealed:
+                  launched:
                     type: boolean
                     description: >-
-                      sealed is a boolean that indicates if the immutable fields
-                      are no longer updatable.
+                      launched is a boolean that indicates that the Rollapp has
+                      been launched and the immutable fields are no longer updatable.
                   liveness_event_height:
                     type: string
                     format: int64
@@ -61559,11 +61559,11 @@ definitions:
                     - EVM
                     - WASM
                   default: Unspecified
-                sealed:
+                launched:
                   type: boolean
                   description: >-
-                    sealed is a boolean that indicates if the immutable fields
-                    are no longer updatable.
+                    launched is a boolean that indicates that the Rollapp has
+                    been launched and the immutable fields are no longer updatable.
                 liveness_event_height:
                   type: string
                   format: int64
@@ -61914,11 +61914,11 @@ definitions:
               - EVM
               - WASM
             default: Unspecified
-          sealed:
+          launched:
             type: boolean
             description: >-
-              sealed is a boolean that indicates if the immutable fields are no
-              longer updatable.
+              // launched is a boolean that indicates that the Rollapp has been
+               launched and the immutable fields are no longer updatable.
           liveness_event_height:
             type: string
             format: int64
@@ -62336,11 +62336,11 @@ definitions:
           - EVM
           - WASM
         default: Unspecified
-      sealed:
+      launched:
         type: boolean
         description: >-
-          sealed is a boolean that indicates if the immutable fields are no
-          longer updatable.
+          launched is a boolean that indicates that the Rollapp has
+          been launched and the immutable fields are no longer updatable.
       liveness_event_height:
         type: string
         format: int64
