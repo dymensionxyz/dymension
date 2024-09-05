@@ -27,13 +27,19 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // Params is a module parameters.
 type Params struct {
 	// MinAllocationWeight is a minimum portion of the user's voting power that
-	// one can allocate to a single gauge. The value must fall between 0 and 100,
-	// inclusively. For example, if this parameter is 20%, then the min allocation
-	// is 20%, and consequently, the user can vote on a max of 5 gauges (100 / 20
-	// = 5).
+	// one can allocate to a single gauge. The value is measured in percentages
+	// and must fall between 1 and 100 * 10^18, inclusive. The base unit is 10^-18%,
+	// so
+	//   - 1 --> 10^-18%
+	//   - 10^18 --> 1%
+	//   - 100 * 10^18 --> 100%.
+	//
+	// Example! If this parameter is 20 * 10^18, which implies 20%, then the min
+	// allocation is 20%, and consequently, one can vote on a max of 5 gauges:
+	// 100 / 20 = 5.
 	MinAllocationWeight github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,1,opt,name=min_allocation_weight,json=minAllocationWeight,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"min_allocation_weight"`
 	// MinVotingPower is a minimum voting power a user must have in order to be
-	// able to vote.
+	// able to vote. Denominated in aDYM.
 	MinVotingPower github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=min_voting_power,json=minVotingPower,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"min_voting_power"`
 }
 
