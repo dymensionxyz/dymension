@@ -59,7 +59,7 @@ func ValidateRollappPreconditions(rollapp rollapptypes.Rollapp) error {
 	}
 
 	// rollapp cannot be sealed when creating a plan
-	if rollapp.Started {
+	if rollapp.Launched {
 		return types.ErrRollappSealed
 	}
 

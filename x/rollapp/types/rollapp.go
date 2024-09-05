@@ -49,7 +49,6 @@ const (
 type AllowedDecimals uint32
 
 const (
-	Decimals6  AllowedDecimals = 6
 	Decimals18 AllowedDecimals = 18
 )
 
@@ -88,11 +87,15 @@ func (r Rollapp) ValidateBasic() error {
 	}
 
 	// if rollapp is started, genesis info must be sealed
-	if r.Started && !r.GenesisInfo.Sealed {
+	if r.Launched && !r.GenesisInfo.Sealed {
 		return fmt.Errorf("genesis info needs to be sealed if rollapp is started")
 	}
 
 	return nil
+}
+
+func (r Rollapp) AllImmutableFieldsAreSet() bool {
+	return r.InitialSequencer != ""
 }
 
 func (r Rollapp) GenesisInfoFieldsAreSet() bool {
@@ -173,7 +176,7 @@ func (dm DenomMetadata) Validate() error {
 	}
 
 	// validate exponent
-	if AllowedDecimals(dm.Exponent) != Decimals6 && AllowedDecimals(dm.Exponent) != Decimals18 {
+	if AllowedDecimals(dm.Exponent) != Decimals18 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "exponent")
 	}
 

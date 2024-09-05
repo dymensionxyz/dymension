@@ -74,7 +74,7 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 	return nil
 }
 
-func (msg *MsgUpdateRollappInformation) UpdatingInitialSequencer() bool {
+func (msg *MsgUpdateRollappInformation) UpdatingImmutableValues() bool {
 	return msg.InitialSequencer != ""
 }
 
