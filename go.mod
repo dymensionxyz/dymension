@@ -1,6 +1,6 @@
 module github.com/dymensionxyz/dymension/v3
 
-go 1.23
+go 1.22.4
 
 require (
 	cosmossdk.io/api v0.7.0
