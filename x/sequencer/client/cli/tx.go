@@ -204,5 +204,3 @@ func CmdDecreaseBond() *cobra.Command {
 
 	return cmd
 }
-
-// dym1f8s733ufmvc606jvq3cwtzumhz8u9dn0400lw4
