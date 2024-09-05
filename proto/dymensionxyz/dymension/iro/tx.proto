@@ -61,11 +61,17 @@ message MsgCreatePlan {
   BondingCurve bonding_curve = 4 [ (gogoproto.nullable) = false ];
 
   // The start time of the plan.
-  google.protobuf.Timestamp start_time = 5 [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  google.protobuf.Timestamp start_time = 5
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
   // The time before which the rollapp cannot be started.
-  google.protobuf.Timestamp pre_launch_time = 6 [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  google.protobuf.Timestamp pre_launch_time = 6
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+
+  // The incentive plan parameters for the tokens left after the plan is settled.
+  IncentivePlanParams incentive_plan_params = 7 [ (gogoproto.nullable) = false ];
 }
+
 
 message MsgCreatePlanResponse {
   // The ID of the plan.
@@ -77,7 +83,6 @@ message MsgBuy {
   option (cosmos.msg.v1.signer) = "buyer";
 
   string buyer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-
 
   // The ID of the plan.
   string plan_id = 2;
@@ -97,7 +102,6 @@ message MsgSell {
 
   string seller = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
-
   // The ID of the plan.
   string plan_id = 2;
 
@@ -115,7 +119,6 @@ message MsgClaim {
   option (cosmos.msg.v1.signer) = "claimer";
 
   string claimer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-
 
   // The ID of the plan.
   string plan_id = 2;

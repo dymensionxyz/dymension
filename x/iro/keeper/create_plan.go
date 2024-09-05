@@ -43,7 +43,7 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrPlanExists)
 	}
 
-	planId, err := m.Keeper.CreatePlan(ctx, req.AllocatedAmount, req.StartTime, req.PreLaunchTime, rollapp, req.BondingCurve)
+	planId, err := m.Keeper.CreatePlan(ctx, req.AllocatedAmount, req.StartTime, req.PreLaunchTime, rollapp, req.BondingCurve, req.IncentivePlanParams)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func ValidateRollappPreconditions(rollapp rollapptypes.Rollapp) error {
 	return nil
 }
 
-func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, preLaunchTime time.Time, rollapp rollapptypes.Rollapp, curve types.BondingCurve) (string, error) {
+func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, preLaunchTime time.Time, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams) (string, error) {
 	// Validate rollapp preconditions
 	err := ValidateRollappPreconditions(rollapp)
 	if err != nil {
@@ -78,7 +78,7 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 		return "", err
 	}
 
-	plan := types.NewPlan(k.GetLastPlanId(ctx)+1, rollapp.RollappId, allocation, curve, start, preLaunchTime)
+	plan := types.NewPlan(k.GetLastPlanId(ctx)+1, rollapp.RollappId, allocation, curve, start, preLaunchTime, incentivesParams)
 	// Create a new module account for the IRO plan
 	moduleAccountI, err := k.CreateModuleAccountForPlan(ctx, plan)
 	if err != nil {

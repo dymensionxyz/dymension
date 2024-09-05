@@ -107,7 +107,7 @@ func (s *transferGenesisSuite) TestIRO() {
 
 	// create IRO plan
 	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
-	_, err := s.hubApp().IROKeeper.CreatePlan(s.hubCtx(), amt, time.Time{}, time.Time{}, rollapp, irotypes.DefaultBondingCurve())
+	_, err := s.hubApp().IROKeeper.CreatePlan(s.hubCtx(), amt, time.Time{}, time.Time{}, rollapp, irotypes.DefaultBondingCurve(), irotypes.DefaultIncentivePlanParams())
 	s.Require().NoError(err)
 
 	// non-genesis transfer should fail, as the bridge is not open

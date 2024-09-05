@@ -10,16 +10,17 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
-func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurve, start time.Time, end time.Time) Plan {
+func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurve, start time.Time, end time.Time, incentivesParams IncentivePlanParams) Plan {
 	plan := Plan{
-		Id:              id,
-		RollappId:       rollappId,
-		TotalAllocation: allocation,
-		BondingCurve:    curve,
-		StartTime:       start,
-		PreLaunchTime:   end,
-		SoldAmt:         math.ZeroInt(),
-		ClaimedAmt:      math.ZeroInt(),
+		Id:                  id,
+		RollappId:           rollappId,
+		TotalAllocation:     allocation,
+		BondingCurve:        curve,
+		StartTime:           start,
+		PreLaunchTime:       end,
+		IncentivePlanParams: incentivesParams,
+		SoldAmt:             math.ZeroInt(),
+		ClaimedAmt:          math.ZeroInt(),
 	}
 	plan.ModuleAccAddress = authtypes.NewModuleAddress(plan.ModuleAccName()).String()
 	return plan
@@ -46,6 +47,10 @@ func (p Plan) ValidateBasic() error {
 		return fmt.Errorf("claimed amount cannot be negative: %s", p.ClaimedAmt.String())
 	}
 
+	if err := p.IncentivePlanParams.ValidateBasic(); err != nil {
+		return errors.Join(ErrInvalidIncentivePlanParams, err)
+	}
+
 	return nil
 }
 
@@ -60,4 +65,18 @@ func (p Plan) ModuleAccName() string {
 func (p Plan) GetAddress() sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(p.ModuleAccAddress)
 	return addr
+}
+
+func DefaultIncentivePlanParams() IncentivePlanParams {
+	return IncentivePlanParams{
+		NumEpochsPaidOver: 43200, // 1 month in minute epoch
+	}
+}
+
+func (i IncentivePlanParams) ValidateBasic() error {
+	// TODO: add stricter enforcement
+	if i.NumEpochsPaidOver == 0 {
+		return fmt.Errorf("number of epochs paid over cannot be zero")
+	}
+	return nil
 }

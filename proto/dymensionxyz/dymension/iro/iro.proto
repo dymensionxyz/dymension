@@ -81,4 +81,16 @@ message Plan {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+
+  // The incentive plan parameters for the tokens left after the plan is settled.
+  IncentivePlanParams incentive_plan_params = 11 [ (gogoproto.nullable) = false ];
+}
+
+message IncentivePlanParams {
+  // start_time is the distribution start time
+  google.protobuf.Timestamp start_time = 1
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  // num_epochs_paid_over is the number of total epochs distribution will be
+  // completed over
+  uint64 num_epochs_paid_over = 2;
 }

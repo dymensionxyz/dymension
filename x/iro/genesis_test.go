@@ -15,8 +15,8 @@ import (
 var (
 	amt   = sdk.NewCoin("foo", math.NewInt(100))
 	plans = []types.Plan{
-		types.NewPlan(1, "rollapp1", amt, types.DefaultBondingCurve(), time.Time{}, time.Time{}),
-		types.NewPlan(2, "rollapp2", amt, types.DefaultBondingCurve(), time.Time{}, time.Time{}),
+		types.NewPlan(1, "rollapp1", amt, types.DefaultBondingCurve(), time.Time{}, time.Time{}, types.DefaultIncentivePlanParams()),
+		types.NewPlan(2, "rollapp2", amt, types.DefaultBondingCurve(), time.Time{}, time.Time{}, types.DefaultIncentivePlanParams()),
 	}
 )
 

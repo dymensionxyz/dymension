@@ -21,13 +21,14 @@ func (s *KeeperTestSuite) TestBuy() {
 	rollappId := s.CreateDefaultRollapp()
 	k := s.App.IROKeeper
 	curve := types.DefaultBondingCurve()
+	incentives := types.DefaultIncentivePlanParams()
 
 	startTime := time.Now()
 	maxAmt := sdk.NewInt(1_000_000_000)
 	totalAllocation := sdk.NewInt(1_000_000)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, totalAllocation, startTime, startTime.Add(time.Hour), rollapp, curve)
+	planId, err := k.CreatePlan(s.Ctx, totalAllocation, startTime, startTime.Add(time.Hour), rollapp, curve, incentives)
 	s.Require().NoError(err)
 
 	buyer := sample.Acc()
@@ -87,13 +88,14 @@ func (s *KeeperTestSuite) TestBuyAllocationLimit() {
 		N: math.LegacyMustNewDecFromStr("0.5"),
 		C: math.LegacyZeroDec(),
 	}
+	incentives := types.DefaultIncentivePlanParams()
 
 	startTime := time.Now()
 	maxAmt := sdk.NewInt(1_000_000_000)
 	totalAllocation := sdk.NewInt(1_000_000)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, totalAllocation, startTime, startTime.Add(time.Hour), rollapp, curve)
+	planId, err := k.CreatePlan(s.Ctx, totalAllocation, startTime, startTime.Add(time.Hour), rollapp, curve, incentives)
 	s.Require().NoError(err)
 
 	buyer := sample.Acc()

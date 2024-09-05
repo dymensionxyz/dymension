@@ -27,4 +27,5 @@ var (
 	ErrNoTokensToClaim              = errorsmod.Register(ModuleName, 1117, "no tokens to claim")
 	ErrInsufficientTokens           = errorsmod.Register(ModuleName, 1118, "insufficient tokens")
 	ErrRollappGenesisInfoNotSet     = errorsmod.Register(ModuleName, 1119, "rollapp genesis info not set")
+	ErrInvalidIncentivePlanParams   = errorsmod.Register(ModuleName, 1120, "invalid incentive plan params")
 )

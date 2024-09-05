@@ -16,6 +16,7 @@ func (s *KeeperTestSuite) TestSettle() {
 	rollappId := s.CreateDefaultRollapp()
 	k := s.App.IROKeeper
 	curve := types.DefaultBondingCurve()
+	incentives := types.DefaultIncentivePlanParams()
 
 	startTime := time.Now()
 	endTime := startTime.Add(time.Hour)
@@ -23,7 +24,7 @@ func (s *KeeperTestSuite) TestSettle() {
 	rollappDenom := "dasdasdasdasdsa"
 
 	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, amt, startTime, endTime, rollapp, curve)
+	planId, err := k.CreatePlan(s.Ctx, amt, startTime, endTime, rollapp, curve, incentives)
 	s.Require().NoError(err)
 	planDenom := k.MustGetPlan(s.Ctx, planId).TotalAllocation.Denom
 
@@ -63,13 +64,14 @@ func (s *KeeperTestSuite) TestClaim() {
 	rollappId := s.CreateDefaultRollapp()
 	k := s.App.IROKeeper
 	curve := types.DefaultBondingCurve()
+	incentives := types.DefaultIncentivePlanParams()
 	rollappDenom := "dasdasdasdasdsa"
 
 	startTime := time.Now()
 	amt := sdk.NewInt(1_000_000)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, amt, startTime, startTime.Add(time.Hour), rollapp, curve)
+	planId, err := k.CreatePlan(s.Ctx, amt, startTime, startTime.Add(time.Hour), rollapp, curve, incentives)
 	s.Require().NoError(err)
 	planDenom := k.MustGetPlan(s.Ctx, planId).TotalAllocation.Denom
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, k.AK.GetModuleAddress(types.ModuleName), planDenom)
@@ -111,6 +113,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 	rollappId := s.CreateDefaultRollapp()
 	k := s.App.IROKeeper
 	curve := types.DefaultBondingCurve()
+	incentives := types.DefaultIncentivePlanParams()
 
 	startTime := time.Now()
 	amt := sdk.NewInt(1_000_000)
@@ -120,7 +123,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 
 	// create IRO plan
 	apptesting.FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, k.GetParams(s.Ctx).CreationFee)))
-	planId, err := k.CreatePlan(s.Ctx, amt, startTime, startTime.Add(time.Hour), rollapp, curve)
+	planId, err := k.CreatePlan(s.Ctx, amt, startTime, startTime.Add(time.Hour), rollapp, curve, incentives)
 	s.Require().NoError(err)
 
 	// buy some tokens

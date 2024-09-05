@@ -39,18 +39,19 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 
 	k := s.App.IROKeeper
 	curve := types.DefaultBondingCurve()
+	incentives := types.DefaultIncentivePlanParams()
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp, curve)
+	planId, err := k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
 	s.Require().NoError(err)
 
 	// creating a a plan for same rollapp should fail
-	_, err = k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp, curve)
+	_, err = k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
 	s.Require().Error(err)
 
 	// create plan for different rollappID. test last planId increases
 	rollapp2, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId2)
-	planId2, err := k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp2, curve)
+	planId2, err := k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp2, curve, incentives)
 	s.Require().NoError(err)
 	s.Require().Greater(planId2, planId)
 
