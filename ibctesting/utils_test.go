@@ -200,7 +200,7 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	numBlocks := endHeight - startHeight + 1
 	// populate the block descriptors
 	blockDescriptors := &rollapptypes.BlockDescriptors{BD: make([]rollapptypes.BlockDescriptor, numBlocks)}
-	for i := 0; i < int(numBlocks); i++ {
+	for i := uint64(0); i < numBlocks; i++ {
 		blockDescriptors.BD[i] = rollapptypes.BlockDescriptor{
 			Height:    startHeight + uint64(i),
 			StateRoot: bytes.Repeat([]byte{byte(startHeight) + byte(i)}, 32),
