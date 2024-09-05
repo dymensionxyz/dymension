@@ -1,0 +1,31 @@
+syntax = "proto3";
+package dymensionxyz.dymension.denommetadata;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/denommetadata/types";
+
+message EventDenomMetadataCreated {
+    DenomMetadata metadata = 1;
+}
+
+message EventDenomMetadataUpdated {
+    DenomMetadata metadata = 1;
+}
+
+message DenomMetadata {
+    string description = 1;
+    repeated DenomUnit denom_units = 2;
+    string base = 3;
+    string display = 4;
+    string name = 5;
+    string symbol = 6;
+    string uri = 7 [(gogoproto.customname) = "URI"];
+    string uri_hash = 8 [(gogoproto.customname) = "URIHash"];
+}
+
+message DenomUnit {
+    string denom = 1;
+    uint32 exponent = 2;
+    repeated string aliases = 3;
+}
