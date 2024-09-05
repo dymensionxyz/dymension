@@ -19,6 +19,6 @@ var (
 	// 1 unit is 10^-18%. 100 * 10^18 is 100%.
 	MaxAllocationWeight = DYM.MulRaw(100)
 
-	DefaultMinAllocationWeight = MinAllocationWeight // 10^-18%
-	DefaultMinVotingPower      = DYM                 // 1 DYM
+	DefaultMinAllocationWeight = DYM // 1%
+	DefaultMinVotingPower      = DYM // 1 DYM
 )
