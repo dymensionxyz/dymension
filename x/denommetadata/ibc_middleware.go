@@ -180,7 +180,8 @@ func NewICS4Wrapper(
 func (m *ICS4Wrapper) SendPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	destinationPort string, destinationChannel string,
+	destinationPort string,
+	destinationChannel string,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	data []byte,
@@ -194,16 +195,15 @@ func (m *ICS4Wrapper) SendPacket(
 		return 0, types.ErrMemoDenomMetadataAlreadyExists
 	}
 
-	transferData, err := m.rollappKeeper.GetValidTransfer(ctx, data, destinationPort, destinationChannel)
-	if err != nil {
-		return 0, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "get valid transfer data: %s", err.Error())
-	}
-
-	rollapp := transferData.Rollapp
 	// TODO: currently we check if receiving chain is a rollapp, consider that other chains also might want this feature
 	// meaning, find a better way to check if the receiving chain supports this middleware
-	if rollapp == nil {
+	rollappID, ok := types.CtxToRollappID(ctx)
+	if !ok {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
+	}
+	rollapp, ok := m.rollappKeeper.GetRollapp(ctx, rollappID)
+	if !ok {
+		return 0, errorsmod.Wrap(gerrc.ErrInternal, "have rollapp id but rollapp not found")
 	}
 
 	if transfertypes.ReceiverChainIsSource(destinationPort, destinationChannel, packet.Denom) {

@@ -17,6 +17,10 @@ type DenomMetadataKeeper interface {
 }
 
 type RollappKeeper interface {
+	GetRollapp(
+		ctx sdk.Context,
+		rollappId string,
+	) (val rollapptypes.Rollapp, found bool)
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
 	GetValidTransfer(
 		ctx sdk.Context,
