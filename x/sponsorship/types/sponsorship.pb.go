@@ -271,7 +271,7 @@ type GaugeWeight struct {
 	// GaugeID is the ID of the gauge.
 	GaugeId uint64 `protobuf:"varint,1,opt,name=gauge_id,json=gaugeId,proto3" json:"gauge_id,omitempty"`
 	// Weight is a portion of the voting power that is allocated for the given
-	// gauge. The value must fall between Params.MinAllocationWeight and 100,
+	// gauge. The value must fall between Params.MinAllocationWeight and 100*10^18,
 	// inclusive.
 	Weight github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=weight,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"weight"`
 }
