@@ -76,10 +76,14 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 		return errorsmod.Wrapf(types.ErrInvalidExpectedOutAmount, "maxCost: %s, cost: %s", maxCost.String(), cost.String())
 	}
 
-	// FIXME: Charge taker fee
+	// Charge taker fee
+	costC, err := k.chargeTakerFee(ctx, sdk.NewCoin(appparams.BaseDenom, cost), buyer)
+	if err != nil {
+		return err
+	}
 
 	// send DYM from buyer to the plan. DYM sent directly to the plan's module account
-	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
+	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(costC))
 	if err != nil {
 		return err
 	}
@@ -133,10 +137,14 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 		return err
 	}
 
-	// FIXME: Charge taker fee
+	// Charge taker fee
+	costC, err := k.chargeTakerFee(ctx, sdk.NewCoin(appparams.BaseDenom, cost), seller)
+	if err != nil {
+		return err
+	}
 
 	// send DYM from the plan to the seller. DYM managed by the plan's module account
-	err = k.BK.SendCoins(ctx, plan.GetAddress(), seller, sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, cost)))
+	err = k.BK.SendCoins(ctx, plan.GetAddress(), seller, sdk.NewCoins(costC))
 	if err != nil {
 		return err
 	}
@@ -170,4 +178,30 @@ func (k Keeper) validateIROTradeable(ctx sdk.Context, plan types.Plan, trader st
 	}
 
 	return nil
+}
+
+func (k Keeper) chargeTakerFee(ctx sdk.Context, cost sdk.Coin, sender sdk.AccAddress) (sdk.Coin, error) {
+	newAmt, takerFeeCoin := k.calcTakerFee(cost, k.GetParams(ctx).TakerFee)
+	if newAmt.IsZero() {
+		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalidCost, "no tokens left after taker fee")
+	}
+
+	if takerFeeCoin.IsZero() {
+		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalidCost, "taker fee is zero")
+	}
+
+	err := k.BK.SendCoinsFromAccountToModule(ctx, sender, txfeestypes.ModuleName, sdk.NewCoins(takerFeeCoin))
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+
+	return newAmt, nil
+}
+
+// Returns remaining amount in to swap, and takerFeeCoins.
+// returns (1 - takerFee) * tokenIn, takerFee * tokenIn
+func (k Keeper) calcTakerFee(amt sdk.Coin, takerFee sdk.Dec) (sdk.Coin, sdk.Coin) {
+	newAmt := math.LegacyNewDecFromInt(amt.Amount).MulTruncate(sdk.OneDec().Sub(takerFee)).TruncateInt()
+	takerFeeAmt := amt.Amount.Sub(newAmt)
+	return sdk.NewCoin(amt.Denom, newAmt), sdk.NewCoin(amt.Denom, takerFeeAmt)
 }

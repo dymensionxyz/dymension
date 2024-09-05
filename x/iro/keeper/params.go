@@ -23,6 +23,8 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 		return nil, err
 	}
 
+	// FIXME: validate creation fee > pool creation fee (until pool creation free removed for IRO)
+
 	m.Keeper.SetParams(ctx, req.NewParams)
 
 	return &types.MsgUpdateParamsResponse{}, nil

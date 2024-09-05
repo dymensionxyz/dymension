@@ -101,7 +101,7 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 		},
 	}, "")
 
-	poolId, err := k.gk.CreatePool(ctx, balancerPool) // FIXME: skip the pool creation fee
+	poolId, err := k.gk.CreatePool(ctx, balancerPool) // TODO: skip the pool creation fee
 	if err != nil {
 		return err
 	}

@@ -9,7 +9,7 @@ import (
 // Default parameter values
 
 var (
-	DefaultTakeFee     = "0.02"                       // 2%
+	DefaultTakerFee    = "0.02"                       // 2%
 	DefaultCreationFee = math.NewInt(10).MulRaw(1e18) /* 10 DYM */
 )
 
@@ -24,7 +24,7 @@ func NewParams(takerFee math.LegacyDec, creationFee math.Int) Params {
 // DefaultParams returns a default set of parameters.
 func DefaultParams() Params {
 	return Params{
-		TakerFee:    math.LegacyMustNewDecFromStr(DefaultTakeFee),
+		TakerFee:    math.LegacyMustNewDecFromStr(DefaultTakerFee),
 		CreationFee: DefaultCreationFee,
 	}
 }
