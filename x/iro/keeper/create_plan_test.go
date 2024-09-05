@@ -8,29 +8,32 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
-// FIXME: implement this
-func (s *KeeperTestSuite) TestCreatePlan_Validation() {
-	// rollappId := s.CreateDefaultRollapp()
-	// owner := apptesting.Alice
+func (s *KeeperTestSuite) TestValidateRollappPreconditions_MissingGenesisInfo() {
+	rollappId := s.CreateDefaultRollapp()
+	k := s.App.IROKeeper
+	curve := types.DefaultBondingCurve()
+	incentives := types.DefaultIncentivePlanParams()
 
-	// if rollapp.GenesisChecksum == "" {
-	// 	return types.ErrRollappGenesisChecksumNotSet
-	// }
+	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
 
-	// if rollapp.Metadata.TokenSymbol == "" {
-	// 	return types.ErrRollappTokenSymbolNotSet
-	// }
+	// test missing genesis checksum
+	rollapp.GenesisInfo.GenesisChecksum = ""
+	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+	_, err := k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
+	s.Require().Error(err)
 
-	// // rollapp cannot be sealed when creating a plan
-	// if rollapp.Sealed {
-	// 	return types.ErrRollappSealed
-	// }
+	// test already launched
+	rollapp.GenesisInfo.GenesisChecksum = "aaaaaa"
+	rollapp.Launched = true
+	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+	_, err = k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
+	s.Require().Error(err)
+	rollapp.Launched = false
 
-	// // validate end time is in the future
-	// if req.EndTime.Before(ctx.BlockTime()) {
-	// 	return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrInvalidEndTime)
-	// }
-	return
+	// add check for happy path
+	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+	_, err = k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
+	s.Require().NoError(err)
 }
 
 func (s *KeeperTestSuite) TestCreatePlan() {

@@ -101,7 +101,8 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 		},
 	}, "")
 
-	poolId, err := k.gk.CreatePool(ctx, balancerPool) // TODO: skip the pool creation fee
+	// we call the pool manager directly, instead of the gamm keeper, to avoid the pool creation fee
+	poolId, err := k.pm.CreatePool(ctx, balancerPool)
 	if err != nil {
 		return err
 	}

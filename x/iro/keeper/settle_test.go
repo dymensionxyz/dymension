@@ -43,7 +43,6 @@ func (s *KeeperTestSuite) TestSettle() {
 
 	// should succeed after fund
 	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
-	s.FundModuleAcc(types.ModuleName, s.App.GAMMKeeper.GetParams(s.Ctx).PoolCreationFee) // TODO: remove once creation fee is removed
 	err = k.Settle(s.Ctx, rollappId, rollappDenom)
 	s.Require().NoError(err)
 
@@ -89,7 +88,6 @@ func (s *KeeperTestSuite) TestClaim() {
 
 	// settle
 	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
-	s.FundModuleAcc(types.ModuleName, s.App.GAMMKeeper.GetParams(s.Ctx).PoolCreationFee) // TODO: remove once creation fee is removed
 	err = k.Settle(s.Ctx, rollappId, rollappDenom)
 	s.Require().NoError(err)
 
@@ -141,7 +139,6 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 
 	// settle should succeed after fund
 	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
-	s.FundModuleAcc(types.ModuleName, s.App.GAMMKeeper.GetParams(s.Ctx).PoolCreationFee) // TODO: remove once creation fee is removed
 	err = k.Settle(s.Ctx, rollappId, rollappDenom)
 	s.Require().NoError(err)
 

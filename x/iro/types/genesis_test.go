@@ -7,8 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// FIXME: test plan validation
-
 func TestGenesisState_Validate(t *testing.T) {
 	tests := []struct {
 		desc     string
@@ -20,7 +18,8 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: types.DefaultGenesis(),
 			valid:    true,
 		},
-		// FIXME: add more test cases
+		// TODO: add more test cases (test params validation, test plan validation)
+		// TODO: test duplicates,
 	}
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {

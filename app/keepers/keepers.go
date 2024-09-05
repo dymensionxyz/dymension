@@ -395,6 +395,7 @@ func (a *AppKeepers) InitKeepers(
 		a.RollappKeeper,
 		a.GAMMKeeper,
 		a.IncentivesKeeper,
+		a.PoolManagerKeeper,
 	)
 
 	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
