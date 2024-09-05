@@ -27,9 +27,9 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		return current, types.ErrRollappFrozen
 	}
 
-	// immutable values cannot be updated when the rollapp is started
-	if update.UpdatingInitialSequencer() && current.Started {
-		return current, types.ErrImmutableFieldUpdateAfterSealed
+	// immutable values cannot be updated when the rollapp is launched
+	if update.UpdatingImmutableValues() && current.Launched {
+		return current, types.ErrImmutableFieldUpdateAfterLaunched
 	}
 
 	if update.UpdatingGenesisInfo() && current.GenesisInfo.Sealed {
@@ -132,6 +132,14 @@ func (k Keeper) SetRollappAsStarted(ctx sdk.Context, rollappId string) error {
 		return gerrc.ErrNotFound
 	}
 
+	if !rollapp.AllImmutableFieldsAreSet() {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "seal with immutable fields not set")
+	}
+
+	if rollapp.Launched {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp already launched")
+	}
+
 	// if genesis info is not sealed, seal it if possible
 	if !rollapp.GenesisInfo.Sealed {
 		// seal if available
@@ -141,7 +149,7 @@ func (k Keeper) SetRollappAsStarted(ctx sdk.Context, rollappId string) error {
 		rollapp.GenesisInfo.Sealed = true
 	}
 
-	rollapp.Started = true
+	rollapp.Launched = true
 	k.SetRollapp(ctx, rollapp)
 
 	return nil

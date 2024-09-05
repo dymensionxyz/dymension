@@ -18,13 +18,13 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 	)
 
 	tests := []struct {
-		name          string
-		update        *types.MsgUpdateRollappInformation
-		rollappSealed bool
-		genInfoSealed bool
-		frozen        bool
-		expError      error
-		expRollapp    types.Rollapp
+		name            string
+		update          *types.MsgUpdateRollappInformation
+		rollappLaunched bool
+		genInfoSealed   bool
+		frozen          bool
+		expError        error
+		expRollapp      types.Rollapp
 	}{
 		{
 			name: "Update rollapp: success",
@@ -88,14 +88,14 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 			frozen:   true,
 			expError: types.ErrRollappFrozen,
 		}, {
-			name: "Update rollapp: fail - try to update InitialSequencer when sealed",
+			name: "Update rollapp: fail - try to update InitialSequencer when launched",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
 			},
-			rollappSealed: true,
-			expError:      types.ErrImmutableFieldUpdateAfterSealed,
+			rollappLaunched: true,
+			expError:        types.ErrImmutableFieldUpdateAfterLaunched,
 		}, {
 			name: "Update rollapp: fail - try to update genesis checksum when sealed",
 			update: &types.MsgUpdateRollappInformation{
@@ -153,9 +153,9 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				RollappId: rollappId,
 				Metadata:  &mockRollappMetadata,
 			},
-			rollappSealed: true,
-			genInfoSealed: true,
-			expError:      nil,
+			rollappLaunched: true,
+			genInfoSealed:   true,
+			expError:        nil,
 			expRollapp: types.Rollapp{
 				RollappId:        rollappId,
 				Owner:            alice,
@@ -163,7 +163,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				ChannelId:        "",
 				Frozen:           false,
 				RegisteredDenoms: nil,
-				Started:          true,
+				Launched:         true,
 				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
 				GenesisInfo: types.GenesisInfo{
@@ -190,7 +190,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				InitialSequencer: "",
 				ChannelId:        "",
 				Frozen:           tc.frozen,
-				Started:          tc.rollappSealed,
+				Launched:         tc.rollappLaunched,
 				RegisteredDenoms: nil,
 				VmType:           types.Rollapp_EVM,
 				Metadata: &types.RollappMetadata{
@@ -253,7 +253,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	_, err := suite.msgServer.CreateRollapp(suite.Ctx, &msg)
 	suite.Require().NoError(err)
 
-	// 2. try to register sequencer (not initial) - should fail because rollapp is not sealed
+	// 2. try to register sequencer (not initial) - should fail because rollapp is not launched
 	err = suite.CreateSequencerByPubkey(suite.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 	suite.Require().ErrorIs(err, sequencertypes.ErrNotInitialSequencer)
 
@@ -269,8 +269,8 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	})
 	suite.Require().NoError(err)
 
-	// 4. register sequencer (initial) - should be proposer; rollapp should be sealed
-	// from this point on, the rollapp is sealed and immutable fields cannot be updated
+	// 4. register sequencer (initial) - should be proposer; rollapp should be launched
+	// from this point on, the rollapp is launched and immutable fields cannot be updated
 	err = suite.CreateSequencerByPubkey(suite.Ctx, rollappId, initSeqPubKey)
 	suite.Require().NoError(err)
 	initSeq, ok := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addrInit)
@@ -280,15 +280,15 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	suite.Require().Equal(initSeq, proposer)
 	rollapp, ok := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappId)
 	suite.Require().True(ok)
-	suite.Require().True(rollapp.Started)
+	suite.Require().True(rollapp.Launched)
 
-	// 5. try to update rollapp immutable fields - should fail because rollapp is sealed
+	// 5. try to update rollapp immutable fields - should fail because rollapp is launched
 	_, err = suite.msgServer.UpdateRollappInformation(suite.Ctx, &types.MsgUpdateRollappInformation{
 		Owner:            alice,
 		RollappId:        rollappId,
 		InitialSequencer: "new",
 	})
-	suite.Require().ErrorIs(err, types.ErrImmutableFieldUpdateAfterSealed)
+	suite.Require().ErrorIs(err, types.ErrImmutableFieldUpdateAfterLaunched)
 
 	// 6. register another sequencer - should not be proposer
 	newSeqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)

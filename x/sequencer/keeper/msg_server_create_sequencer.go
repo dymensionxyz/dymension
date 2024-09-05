@@ -36,16 +36,16 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 
 	// In case InitialSequencer is set to one or more bech32 addresses, only one of them can be the first to register,
-	// and is automatically selected as the first proposer, allowing the Rollapp to be sealed
+	// and is automatically selected as the first proposer, allowing the Rollapp to be set to 'launched'
 	// (provided that all the immutable fields are set in the Rollapp).
 	// This limitation prevents scenarios such as:
 	// a) any unintended initial sequencer getting registered before the immutable fields are set in the Rollapp.
 	// b) situation when sequencer "X" is registered prior to the initial sequencer,
 	// after which the initial sequencer's address is set to sequencer X's address, effectively preventing:
 	// 	1. the initial sequencer from getting selected as the first proposer,
-	// 	2. the rollapp from getting sealed
+	// 	2. the rollapp from getting launched again
 	// In case the InitialSequencer is set to the "*" wildcard, any sequencer can be the first to register.
-	if !rollapp.Started {
+	if !rollapp.Launched {
 		isInitialOrAllAllowed := slices.Contains(strings.Split(rollapp.InitialSequencer, ","), msg.Creator) || rollapp.InitialSequencer == "*"
 		if !isInitialOrAllAllowed {
 			return nil, types.ErrNotInitialSequencer
