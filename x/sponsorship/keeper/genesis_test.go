@@ -32,7 +32,7 @@ func (s *KeeperTestSuite) TestGenesis() {
 						Vote: types.Vote{
 							VotingPower: math.NewInt(600),
 							Weights: []types.GaugeWeight{
-								{GaugeId: 1, Weight: math.NewInt(100)},
+								{GaugeId: 1, Weight: types.DYM.MulRaw(100)},
 							},
 						},
 						Validators: []types.ValidatorVotingPower{
@@ -45,7 +45,7 @@ func (s *KeeperTestSuite) TestGenesis() {
 						Vote: types.Vote{
 							VotingPower: math.NewInt(400),
 							Weights: []types.GaugeWeight{
-								{GaugeId: 2, Weight: math.NewInt(100)},
+								{GaugeId: 2, Weight: types.DYM.MulRaw(100)},
 							},
 						},
 						Validators: []types.ValidatorVotingPower{

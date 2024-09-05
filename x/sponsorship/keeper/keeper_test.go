@@ -48,6 +48,8 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.Ctx = ctx
 	s.queryClient = queryClient
 	s.msgServer = msgServer
+
+	s.SetDefaultTestParams()
 }
 
 func (s *KeeperTestSuite) CreateGauge() uint64 {
@@ -287,4 +289,17 @@ func (s *KeeperTestSuite) AssertDelegatorValidator(delAddr sdk.AccAddress, valAd
 	vp, err := s.App.SponsorshipKeeper.GetDelegatorValidatorPower(s.Ctx, delAddr, valAddr)
 	s.Require().NoError(err)
 	s.Require().Equal(expectedPower, vp)
+}
+
+// SetDefaultTestParams sets module params with MinVotingPower = 1 for convenience.
+func (s *KeeperTestSuite) SetDefaultTestParams() {
+	err := s.App.SponsorshipKeeper.SetParams(s.Ctx, DefaultTestParams())
+	s.Require().NoError(err)
+}
+
+// DefaultTestParams returns module params with MinVotingPower = 1 for convenience.
+func DefaultTestParams() types.Params {
+	params := types.DefaultParams()
+	params.MinVotingPower = math.NewInt(1)
+	return params
 }
