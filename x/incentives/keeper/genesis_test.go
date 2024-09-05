@@ -96,9 +96,11 @@ func TestIncentivesInitGenesis(t *testing.T) {
 	// initialize genesis with specified parameter, the gauge created earlier, and lockable durations
 	app.IncentivesKeeper.InitGenesis(ctx, types.GenesisState{
 		Params: types.Params{
-			DistrEpochIdentifier: "week",
-			CreateGaugeFee:       sdk.ZeroInt(),
-			AddToGaugeFee:        sdk.ZeroInt(),
+			DistrEpochIdentifier:          "week",
+			CreateGaugeFee:                sdk.ZeroInt(),
+			AddToGaugeFee:                 sdk.ZeroInt(),
+			BaseGasFeeForCreateGauge:      0,
+			BaseGasFeeForAddRewardToGauge: 0,
 		},
 		Gauges: []types.Gauge{gauge},
 		LockableDurations: []time.Duration{

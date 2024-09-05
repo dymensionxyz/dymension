@@ -119,6 +119,12 @@ func (k Keeper) CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddr
 		NumEpochsPaidOver: numEpochsPaidOver,
 	}
 
+	// Fixed gas consumption create gauge based on the number of coins to add
+	baseGasFee := k.GetParams(ctx).BaseGasFeeForCreateGauge
+	denoms := uint64(len(gauge.Coins))
+	// Both baseGasFee and denoms are relatively small, so their multiplication shouldn't lead to overflow in practice
+	ctx.GasMeter().ConsumeGas(baseGasFee*denoms, "scaling gas cost for creating gauge rewards")
+
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, gauge.Coins); err != nil {
 		return 0, err
 	}
@@ -149,6 +155,13 @@ func (k Keeper) AddToGaugeRewards(ctx sdk.Context, owner sdk.AccAddress, coins s
 	if gauge.IsFinishedGauge(ctx.BlockTime()) {
 		return types.UnexpectedFinishedGaugeError{GaugeId: gaugeID}
 	}
+
+	// Fixed gas consumption adding reward to gauges based on the number of coins to add
+	baseGasFee := k.GetParams(ctx).BaseGasFeeForAddRewardToGauge
+	denoms := uint64(len(coins) + len(gauge.Coins))
+	// Both baseGasFee and denoms are relatively small, so their multiplication shouldn't lead to overflow in practice
+	ctx.GasMeter().ConsumeGas(baseGasFee*denoms, "scaling gas cost for adding to gauge rewards")
+
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, coins); err != nil {
 		return err
 	}

@@ -20,4 +20,11 @@ message Params {
     (gogoproto.nullable) = false,
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
+  // BaseGasFeeForCreateGauge is the gas fee for creating a gauge.
+  // This gas is charged for each denom while creating a gauge.
+  uint64 base_gas_fee_for_create_gauge = 4;
+  // BaseGasFeeForAddRewardToGauge is the gas fee for adding reward to gauges.
+  // This gas is charged for each denom while adding to a gauge plus for
+  // each denom the gauge already holds.
+  uint64 base_gas_fee_for_add_reward_to_gauge = 5;
 }
