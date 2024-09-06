@@ -112,6 +112,10 @@ func (r GenesisInfo) Validate() error {
 		}
 	}
 
+	if !r.InitialSupply.IsNil() && r.InitialSupply.IsNegative() {
+		return errorsmod.Wrap(ErrInvalidInitialSupply, "InitialSupply")
+	}
+
 	return nil
 }
 
