@@ -56,7 +56,7 @@ func CmdGetExpectedClientState() *cobra.Command {
 
 			clientState, err := clienttypes.UnpackClientState(clientStateRes.ClientState)
 			if err != nil {
-				return err
+				return fmt.Errorf("unpack client state response: %w", err)
 			}
 
 			tm, ok := clientState.(*ibctm.ClientState)
