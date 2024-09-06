@@ -24,6 +24,10 @@ type IBCMiddleware struct {
 	raKeeper rollappkeeper.Keeper
 }
 
+func (w IBCMiddleware) NextIBCMiddleware() porttypes.IBCModule {
+	return w.IBCModule
+}
+
 type option func(*IBCMiddleware)
 
 func WithIBCModule(m porttypes.IBCModule) option {

@@ -1,0 +1,30 @@
+syntax = "proto3";
+package dymensionxyz.dymension.delayedack;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/msg/v1/msg.proto";
+import "dymensionxyz/dymension/sponsorship/sponsorship.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
+
+// Msg defines the Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  // FinalizePacket is used to finalize a packet.
+  rpc FinalizePacket(MsgFinalizePacket) returns (MsgFinalizePacketResponse);
+}
+
+// MsgFinalizePacket is used to finalize a packet.
+message MsgFinalizePacket {
+  option (cosmos.msg.v1.signer) = "sender";
+
+  string sender = 1;
+  string rollapp_id = 2;
+  string packet_type = 3;
+  string packet_src_channel = 4;
+  string packet_sequence = 5;
+}
+
+message MsgFinalizePacketResponse {}

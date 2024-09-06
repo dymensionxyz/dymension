@@ -36,6 +36,25 @@ func (k Keeper) FinalizeRollappPackets(ctx sdk.Context, ibc porttypes.IBCModule,
 	return nil
 }
 
+func (k Keeper) FinalizeRollappPacket(ctx sdk.Context, ibc porttypes.IBCModule, rollappID string, stateEndHeight uint64) error {
+	rollappPendingPackets := k.ListRollappPackets(ctx, types.PendingByRollappIDByMaxHeight(rollappID, stateEndHeight))
+	if len(rollappPendingPackets) == 0 {
+		return nil
+	}
+	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
+	// Get the packets for the rollapp until height
+	logger.Debug("finalizing IBC rollapp packets",
+		"rollappID", rollappID,
+		"state end height", stateEndHeight,
+		"num packets", len(rollappPendingPackets))
+	for _, rollappPacket := range rollappPendingPackets {
+		if err := k.finalizeRollappPacket(ctx, ibc, rollappID, logger, rollappPacket); err != nil {
+			return fmt.Errorf("finalize rollapp packet: %w", err)
+		}
+	}
+	return nil
+}
+
 type wrappedFunc func(ctx sdk.Context) error
 
 func (k Keeper) finalizeRollappPacket(
