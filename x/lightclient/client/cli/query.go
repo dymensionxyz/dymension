@@ -5,8 +5,11 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
@@ -51,9 +54,23 @@ func CmdGetExpectedClientState() *cobra.Command {
 				return err
 			}
 
-			return clientCtx.PrintProto(clientStateRes)
+			clientState, err := clienttypes.UnpackClientState(clientStateRes.ClientState)
+			if err != nil {
+				return err
+			}
+
+			tm, ok := clientState.(*ibctm.ClientState)
+			if !ok {
+				return fmt.Errorf("expected tendermint client state")
+			}
+
+			relevant := types.ExpectedClientFieldMask(*tm)
+			return clientCtx.PrintObjectLegacy(relevant)
+
+			// return clientCtx.PrintProto(clientStateRes)
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }

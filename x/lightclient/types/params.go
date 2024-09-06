@@ -18,6 +18,30 @@ func DefaultExpectedCanonicalClientParams() ibctm.ClientState {
 	return ExpectedCanonicalClientParams(sequencertypes.DefaultUnbondingTime)
 }
 
+type ExpectedClientFields struct {
+	TrustLevel      ibctm.Fraction
+	TrustingPeriod  time.Duration
+	UnbondingPeriod time.Duration
+	MaxClockDrift   time.Duration
+	FrozenHeight    ibcclienttypes.Height
+	ProofSpecs      []*ics23.ProofSpec
+	UpgradePath     []string
+}
+
+// ExpectedClientFieldMask returns only relevant fields of expected client state
+// It's a quick hack to make query more readable
+func ExpectedClientFieldMask(state ibctm.ClientState) ExpectedClientFields {
+	return ExpectedClientFields{
+		TrustLevel:      state.TrustLevel,
+		TrustingPeriod:  state.TrustingPeriod,
+		UnbondingPeriod: state.UnbondingPeriod,
+		MaxClockDrift:   state.MaxClockDrift,
+		FrozenHeight:    state.FrozenHeight,
+		ProofSpecs:      state.ProofSpecs,
+		UpgradePath:     state.UpgradePath,
+	}
+}
+
 // ExpectedCanonicalClientParams defines the expected parameters for a canonical IBC Tendermint client state
 // The ChainID is not included as that varies for each rollapp
 // The LatestHeight is not included as there is no condition on when a client can be registered as canonical
