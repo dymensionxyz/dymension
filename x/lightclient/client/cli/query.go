@@ -33,8 +33,19 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 
 func CmdGetExpectedClientState() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "expected",
-		Short:   "Query the expected client state",
+		Use:   "expected",
+		Short: "Query the expected client state - NOTE: not all returned fields are relevant",
+		Long: `Query the expected client state.
+Relevant fields:
+	trust level
+	trust period
+	unbonding period
+	max clock drift
+	frozen height
+	proof specs
+	upgrade path
+	
+The other fields can take any value`,
 		Example: fmt.Sprintf("%s query %s expected", version.AppName, ibcexported.ModuleName),
 		Args:    cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
