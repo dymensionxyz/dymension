@@ -59,6 +59,10 @@ func (k Keeper) GetAllCanonicalClients(ctx sdk.Context) (clients []types.Canonic
 	return
 }
 
+func (k Keeper) expectedClient(ctx sdk.Context) ibctm.ClientState {
+	return types.ExpectedCanonicalClientParams(k.sequencerKeeper.UnbondingTime(ctx))
+}
+
 func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.ClientState, rollappId string, maxHeight uint64) error {
 	tmClientState, ok := cs.(*ibctm.ClientState)
 	if !ok {
@@ -68,7 +72,7 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.Client
 		return errors.New("wrong chain id")
 	}
 
-	expClient := types.ExpectedCanonicalClientParams(k.sequencerKeeper.UnbondingTime(ctx))
+	expClient := k.expectedClient(ctx)
 
 	if err := types.IsCanonicalClientParamsValid(tmClientState, &expClient); err != nil {
 		return errorsmod.Wrap(err, "params")
