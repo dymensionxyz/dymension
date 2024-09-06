@@ -106,15 +106,13 @@ func (r GenesisInfo) Validate() error {
 		return errorsmod.Wrap(ErrInvalidGenesisChecksum, "GenesisChecksum")
 	}
 
-	if r.NativeDenom == nil {
-		return errorsmod.Wrap(ErrInvalidNativeDenom, "NativeDenom")
+	if r.NativeDenom != nil {
+		if err := r.NativeDenom.Validate(); err != nil {
+			return errorsmod.Wrap(ErrInvalidNativeDenom, err.Error())
+		}
 	}
 
-	if err := r.NativeDenom.Validate(); err != nil {
-		return errorsmod.Wrap(ErrInvalidNativeDenom, err.Error())
-	}
-
-	if r.InitialSupply.IsNil() {
+	if !r.InitialSupply.IsNil() && r.InitialSupply.IsNegative() {
 		return errorsmod.Wrap(ErrInvalidInitialSupply, "InitialSupply")
 	}
 
