@@ -12,6 +12,7 @@ import (
 var (
 	DefaultTakerFee                   = "0.02"                       // 2%
 	DefaultCreationFee                = math.NewInt(10).MulRaw(1e18) /* 10 DYM */
+	DefaultMinPlanDuration            = 7 * 24 * time.Hour           // 7 days
 	DefaultIncentivePlanMinimumParams = IncentivePlanParams{
 		NumEpochsPaidOver:        10_080,           // default: min 7 days (based on 1 minute distribution epoch)
 		StartTimeAfterSettlement: 60 * time.Minute, // default: min 1 hour after settlement
@@ -19,10 +20,11 @@ var (
 )
 
 // NewParams creates a new Params object
-func NewParams(takerFee math.LegacyDec, creationFee math.Int, minIncentivePlanParams IncentivePlanParams) Params {
+func NewParams(takerFee math.LegacyDec, creationFee math.Int, minPlanDuration time.Duration, minIncentivePlanParams IncentivePlanParams) Params {
 	return Params{
 		TakerFee:                   takerFee,
 		CreationFee:                creationFee,
+		MinPlanDuration:            minPlanDuration,
 		IncentivePlanMinimumParams: minIncentivePlanParams,
 	}
 }
@@ -32,6 +34,7 @@ func DefaultParams() Params {
 	return Params{
 		TakerFee:                   math.LegacyMustNewDecFromStr(DefaultTakerFee),
 		CreationFee:                DefaultCreationFee,
+		MinPlanDuration:            DefaultMinPlanDuration,
 		IncentivePlanMinimumParams: DefaultIncentivePlanMinimumParams,
 	}
 }
@@ -44,6 +47,10 @@ func (p Params) Validate() error {
 
 	if err := validateCreationFee(p.CreationFee); err != nil {
 		return err
+	}
+
+	if p.MinPlanDuration <= 0 {
+		return fmt.Errorf("minimum plan duration must be greater than 0: %s", p.MinPlanDuration)
 	}
 
 	if err := validateIncentivePlanParams(p.IncentivePlanMinimumParams); err != nil {
