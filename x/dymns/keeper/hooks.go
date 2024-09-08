@@ -298,7 +298,7 @@ func (h rollappHooks) FraudSubmitted(_ sdk.Context, _ string, _ uint64, _ string
 	return nil
 }
 
-func (h rollappHooks) TransfersEnabled(_ sdk.Context, _, _ string) error {
+func (h rollappHooks) AfterTransfersEnabled(_ sdk.Context, _, _ string) error {
 	return nil
 }
 

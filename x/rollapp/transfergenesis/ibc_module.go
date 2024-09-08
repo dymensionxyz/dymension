@@ -185,7 +185,7 @@ func (w IBCModule) OnRecvPacket(
 
 	w.EnableTransfers(ctx, ra.RollappId)
 	rollappDenomOnHub := uibc.GetForeignDenomTrace(ra.ChannelId, transfer.Denom).IBCDenom()
-	err = w.rollappKeeper.GetHooks().TransfersEnabled(ctx, ra.RollappId, rollappDenomOnHub)
+	err = w.rollappKeeper.GetHooks().AfterTransfersEnabled(ctx, ra.RollappId, rollappDenomOnHub)
 	if err != nil {
 		l.Error("Transfers enabled hook.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "transfer genesis: transfers enabled hook"))

@@ -3,7 +3,6 @@ package keeper
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
@@ -16,9 +15,9 @@ import (
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 )
 
-// TransfersEnabled called by the genesis transfer IBC module when a transfer is handled
+// AfterTransfersEnabled called by the genesis transfer IBC module when a transfer is handled
 // This is a rollapp module hook
-func (k Keeper) TransfersEnabled(ctx sdk.Context, rollappId, rollappIBCDenom string) error {
+func (k Keeper) AfterTransfersEnabled(ctx sdk.Context, rollappId, rollappIBCDenom string) error {
 	return k.Settle(ctx, rollappId, rollappIBCDenom)
 }
 
@@ -36,7 +35,7 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 	// validate the required funds are available in the module account
 	// funds expected as it's validated in the genesis transfer handler
 	balance := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), rollappIBCDenom)
-	if balance.Amount.LT(plan.TotalAllocation.Amount) {
+	if !balance.Amount.Equal(plan.TotalAllocation.Amount) {
 		return errorsmod.Wrapf(gerrc.ErrInternal, "required: %s, available: %s", plan.TotalAllocation.String(), balance.String())
 	}
 
@@ -118,7 +117,7 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 		Denom:         poolDenom,
 		Duration:      k.ik.GetLockableDurations(ctx)[0],
 	}
-	_, err = k.ik.CreateGauge(ctx, false, k.AK.GetModuleAddress(types.ModuleName), incentives, distrTo, ctx.BlockTime().Add(time.Hour), 30)
+	_, err = k.ik.CreateGauge(ctx, false, k.AK.GetModuleAddress(types.ModuleName), incentives, distrTo, plan.IncentivePlanParams.StartTime, plan.IncentivePlanParams.NumEpochsPaidOver)
 	if err != nil {
 		return err
 	}
@@ -126,20 +125,20 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 	return nil
 }
 
-func determineLimitingFactor(unsoldTokens, raisedDYM math.Int, ratio math.LegacyDec) (tokens, dym math.Int) {
-	requiredDYM := unsoldTokens.ToLegacyDec().Mul(ratio).TruncateInt()
+func determineLimitingFactor(unsoldRATokens, raisedDYM math.Int, settledIROPrice math.LegacyDec) (RATokens, dym math.Int) {
+	requiredDYM := unsoldRATokens.ToLegacyDec().Mul(settledIROPrice).TruncateInt()
 
 	// if raisedDYM is less than requiredDYM, than DYM is the limiting factor
 	// we use all the raisedDYM, and the corresponding amount of tokens
 	if raisedDYM.LT(requiredDYM) {
 		dym = raisedDYM
-		tokens = raisedDYM.ToLegacyDec().Quo(ratio).TruncateInt()
+		RATokens = raisedDYM.ToLegacyDec().Quo(settledIROPrice).TruncateInt()
 		return
 	}
 
 	// if raisedDYM is more than requiredDYM, than tokens are the limiting factor
 	// we use all the unsold tokens, and the corresponding amount of DYM
-	tokens = unsoldTokens
+	RATokens = unsoldRATokens
 	dym = requiredDYM
 
 	// for the edge case where price is 0 (no tokens sold and initial price is 0)
