@@ -41,8 +41,6 @@ const (
 	maxTaglineLength         = 64
 	maxURLLength             = 256
 	maxGenesisChecksumLength = 64
-	maxDenomBaseLength       = 128
-	maxDenomDisplayLength    = 128
 )
 
 type AllowedDecimals uint32
@@ -166,12 +164,12 @@ func validateBech32Prefix(prefix string) error {
 }
 
 func (dm DenomMetadata) Validate() error {
-	if l := len(dm.Base); l == 0 || l > maxDenomBaseLength {
-		return fmt.Errorf("base denom")
+	if err := sdk.ValidateDenom(dm.Base); err != nil {
+		return fmt.Errorf("invalid metadata base denom: %w", err)
 	}
 
-	if l := len(dm.Display); l == 0 || l > maxDenomDisplayLength {
-		return fmt.Errorf("display denom")
+	if err := sdk.ValidateDenom(dm.Display); err != nil {
+		return fmt.Errorf("invalid metadata display denom: %w", err)
 	}
 
 	// validate exponent

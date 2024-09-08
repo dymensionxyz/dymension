@@ -35,11 +35,11 @@ func (m *MsgBuy) ValidateBasic() error {
 	}
 
 	// coin exist and valid
-	if m.Amount.IsNil() || m.Amount.IsZero() || m.Amount.IsNegative() {
+	if m.Amount.IsNil() || !m.Amount.IsPositive() {
 		return sdkerrors.ErrInvalidRequest.Wrapf("amount %v must be positive", m.Amount)
 	}
 
-	if m.ExpectedOutAmount.IsNil() || m.ExpectedOutAmount.IsZero() || m.ExpectedOutAmount.IsNegative() {
+	if m.ExpectedOutAmount.IsNil() || !m.ExpectedOutAmount.IsPositive() {
 		return sdkerrors.ErrInvalidRequest.Wrapf("expected out amount %v must be positive", m.ExpectedOutAmount)
 	}
 
@@ -59,11 +59,11 @@ func (m *MsgSell) ValidateBasic() error {
 	}
 
 	// coin exist and valid
-	if m.Amount.IsNil() || m.Amount.IsZero() || m.Amount.IsNegative() {
+	if m.Amount.IsNil() || !m.Amount.IsPositive() {
 		return sdkerrors.ErrInvalidRequest.Wrapf("amount %v must be positive", m.Amount)
 	}
 
-	if m.ExpectedOutAmount.IsNil() || m.ExpectedOutAmount.IsZero() || m.ExpectedOutAmount.IsNegative() {
+	if m.ExpectedOutAmount.IsNil() || !m.ExpectedOutAmount.IsPositive() {
 		return sdkerrors.ErrInvalidRequest.Wrapf("expected out amount %v must be positive", m.ExpectedOutAmount)
 	}
 

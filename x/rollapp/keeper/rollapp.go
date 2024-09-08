@@ -126,14 +126,14 @@ func (k Keeper) IsGenesisSealed(ctx sdk.Context, rollappId string) bool {
 	return rollapp.GenesisInfo.Sealed
 }
 
-func (k Keeper) SetRollappAsStarted(ctx sdk.Context, rollappId string) error {
+func (k Keeper) SetRollappAsLaunched(ctx sdk.Context, rollappId string) error {
 	rollapp, found := k.GetRollapp(ctx, rollappId)
 	if !found {
 		return gerrc.ErrNotFound
 	}
 
 	if !rollapp.AllImmutableFieldsAreSet() {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "seal with immutable fields not set")
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "launch with immutable fields not set")
 	}
 
 	if rollapp.Launched {
