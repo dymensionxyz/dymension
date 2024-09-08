@@ -2,6 +2,7 @@ package types
 
 import (
 	fmt "fmt"
+	"time"
 
 	"cosmossdk.io/math"
 )
@@ -9,23 +10,29 @@ import (
 // Default parameter values
 
 var (
-	DefaultTakerFee    = "0.02"                       // 2%
-	DefaultCreationFee = math.NewInt(10).MulRaw(1e18) /* 10 DYM */
+	DefaultTakerFee                   = "0.02"                       // 2%
+	DefaultCreationFee                = math.NewInt(10).MulRaw(1e18) /* 10 DYM */
+	DefaultIncentivePlanMinimumParams = IncentivePlanParams{
+		NumEpochsPaidOver:        10_080,           // default: min 7 days (based on 1 minute distribution epoch)
+		StartTimeAfterSettlement: 60 * time.Minute, // default: min 1 hour after settlement
+	}
 )
 
 // NewParams creates a new Params object
-func NewParams(takerFee math.LegacyDec, creationFee math.Int) Params {
+func NewParams(takerFee math.LegacyDec, creationFee math.Int, minIncentivePlanParams IncentivePlanParams) Params {
 	return Params{
-		TakerFee:    takerFee,
-		CreationFee: creationFee,
+		TakerFee:                   takerFee,
+		CreationFee:                creationFee,
+		IncentivePlanMinimumParams: minIncentivePlanParams,
 	}
 }
 
 // DefaultParams returns a default set of parameters.
 func DefaultParams() Params {
 	return Params{
-		TakerFee:    math.LegacyMustNewDecFromStr(DefaultTakerFee),
-		CreationFee: DefaultCreationFee,
+		TakerFee:                   math.LegacyMustNewDecFromStr(DefaultTakerFee),
+		CreationFee:                DefaultCreationFee,
+		IncentivePlanMinimumParams: DefaultIncentivePlanMinimumParams,
 	}
 }
 
@@ -36,6 +43,10 @@ func (p Params) Validate() error {
 	}
 
 	if err := validateCreationFee(p.CreationFee); err != nil {
+		return err
+	}
+
+	if err := validateIncentivePlanParams(p.IncentivePlanMinimumParams); err != nil {
 		return err
 	}
 
@@ -67,6 +78,24 @@ func validateCreationFee(i interface{}) error {
 
 	if !v.IsPositive() {
 		return fmt.Errorf("creation fee must be a positive integer: %s", v)
+	}
+
+	return nil
+}
+
+// validateIncentivePlanParams
+func validateIncentivePlanParams(i interface{}) error {
+	v, ok := i.(IncentivePlanParams)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v.NumEpochsPaidOver < 1 {
+		return fmt.Errorf("incentive plan num epochs paid over must be greater than 0: %d", v.NumEpochsPaidOver)
+	}
+
+	if v.StartTimeAfterSettlement <= 0 {
+		return fmt.Errorf("incentive plan start time after settlement must be greater than 0: %s", v.StartTimeAfterSettlement)
 	}
 
 	return nil

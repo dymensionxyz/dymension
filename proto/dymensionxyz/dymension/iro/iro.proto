@@ -3,6 +3,7 @@ package dymensionxyz.dymension.iro;
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 
@@ -19,6 +20,8 @@ message Params {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+
+  IncentivePlanParams incentive_plan_minimum_params = 3 [ (gogoproto.nullable) = false ];
 }
 
 // Bonding curve represents a bonding curve in the IRO module.
@@ -87,9 +90,10 @@ message Plan {
 }
 
 message IncentivePlanParams {
-  // start_time is the distribution start time
-  google.protobuf.Timestamp start_time = 1
-      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  // start_time_after_settlement is the time after IRO settlement when the
+  // distribution of the remaining tokens as incentives will start
+  google.protobuf.Duration start_time_after_settlement = 1
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
   // num_epochs_paid_over is the number of total epochs distribution will be
   // completed over
   uint64 num_epochs_paid_over = 2;

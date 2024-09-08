@@ -41,6 +41,15 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrInvalidEndTime)
 	}
 
+	// validate incentive plan params
+	incentivesMinParams := m.Keeper.GetParams(ctx).IncentivePlanMinimumParams
+	if req.IncentivePlanParams.NumEpochsPaidOver < incentivesMinParams.NumEpochsPaidOver {
+		return nil, errors.Join(gerrc.ErrFailedPrecondition, errorsmod.Wrap(types.ErrInvalidIncentivePlanParams, "num epochs paid over"))
+	}
+	if req.IncentivePlanParams.StartTimeAfterSettlement < incentivesMinParams.StartTimeAfterSettlement {
+		return nil, errors.Join(gerrc.ErrFailedPrecondition, errorsmod.Wrap(types.ErrInvalidIncentivePlanParams, "start time after settlement"))
+	}
+
 	// Check if the plan already exists
 	_, found = m.Keeper.GetPlanByRollapp(ctx, rollapp.RollappId)
 	if found {
