@@ -6,8 +6,8 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
@@ -42,6 +42,10 @@ func (k *Keeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadat
 	if err != nil {
 		return err
 	}
+
+	if err = uevent.EmitTypedEvent(ctx, types.NewEventDenomMetadataCreated(metadata)); err != nil {
+		return fmt.Errorf("emit event: %w", err)
+	}
 	return nil
 }
 
@@ -55,6 +59,10 @@ func (k *Keeper) UpdateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadat
 	err := k.hooks.AfterDenomMetadataUpdate(ctx, metadata)
 	if err != nil {
 		return err
+	}
+
+	if err = uevent.EmitTypedEvent(ctx, types.NewEventDenomMetadataUpdated(metadata)); err != nil {
+		return fmt.Errorf("emit event: %w", err)
 	}
 	return nil
 }

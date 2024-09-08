@@ -41,13 +41,13 @@ func TestParams(t *testing.T) {
 			errorContains: "MinAllocationWeight must be >= 0",
 		},
 		{
-			name: "MinAllocationWeight > 100",
+			name: "MinAllocationWeight > 100 * 10^18",
 			input: types.Params{
-				MinAllocationWeight: math.NewInt(110),
+				MinAllocationWeight: types.DYM.MulRaw(110),
 				MinVotingPower:      math.NewInt(20),
 			},
 			errorIs:       types.ErrInvalidParams,
-			errorContains: "MinAllocationWeight must be <= 100",
+			errorContains: "MinAllocationWeight must be <= 100 * 10^18, got 110000000000000000000",
 		},
 		{
 			name: "MinVotingPower < 0",

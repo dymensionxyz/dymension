@@ -47,17 +47,17 @@ func TestMsgVote(t *testing.T) {
 			errorContains: "voter '123123' must be a valid bech32 address",
 		},
 		{
-			name: "Invalid distribution, Weight > 100",
+			name: "Invalid distribution, Weight > 100 * 10^18",
 			input: types.MsgVote{
 				Voter: addrs[0],
 				Weights: []types.GaugeWeight{
-					{GaugeId: 15, Weight: math.NewInt(101)},
-					{GaugeId: 10, Weight: math.NewInt(30)},
-					{GaugeId: 12, Weight: math.NewInt(10)},
+					{GaugeId: 15, Weight: types.DYM.MulRaw(101)},
+					{GaugeId: 10, Weight: types.DYM.MulRaw(30)},
+					{GaugeId: 12, Weight: types.DYM.MulRaw(10)},
 				},
 			},
 			errorIs:       types.ErrInvalidDistribution,
-			errorContains: "weight must be <= 100",
+			errorContains: "weight must be <= 100 * 10^18",
 		},
 	}
 

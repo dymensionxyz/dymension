@@ -45,8 +45,8 @@ func ValidateGaugeWeights(w []GaugeWeight) error {
 		gaugeIDs[g.GaugeId] = struct{}{}
 		total = total.Add(g.Weight)
 	}
-	if total.GT(hundred) {
-		return ErrInvalidGaugeWeight.Wrapf("total weight must be less than 100, got %s", total)
+	if total.GT(MaxAllocationWeight) {
+		return ErrInvalidGaugeWeight.Wrapf("total weight must be less than 100 * 10^18, got %s", total)
 	}
 	return nil
 }
@@ -55,8 +55,8 @@ func (g GaugeWeight) Validate() error {
 	if !g.Weight.IsPositive() {
 		return ErrInvalidGaugeWeight.Wrapf("weight must be > 0, got %s", g.Weight)
 	}
-	if g.Weight.GT(hundred) {
-		return ErrInvalidGaugeWeight.Wrapf("weight must be <= 100, got %s", g.Weight)
+	if g.Weight.GT(MaxAllocationWeight) {
+		return ErrInvalidGaugeWeight.Wrapf("weight must be <= 100 * 10^18, got %s", g.Weight)
 	}
 	return nil
 }
@@ -71,7 +71,7 @@ func ApplyWeights(votingPower math.Int, weights []GaugeWeight) Distribution {
 	for _, weight := range weights {
 		gauges = append(gauges, Gauge{
 			GaugeId: weight.GetGaugeId(),
-			Power:   votingPower.Mul(weight.Weight).Quo(hundred),
+			Power:   votingPower.Mul(weight.Weight).Quo(MaxAllocationWeight),
 		})
 	}
 

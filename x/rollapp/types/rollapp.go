@@ -119,7 +119,7 @@ func (r GenesisInfo) Validate() error {
 		return errors.Join(ErrInvalidNativeDenom, err)
 	}
 
-	if r.InitialSupply.IsNil() {
+	if r.InitialSupply.IsNil() || !r.InitialSupply.IsPositive() {
 		return ErrInvalidInitialSupply
 	}
 

@@ -203,13 +203,13 @@ func TestValidateVoterInfo(t *testing.T) {
 			errorContains: "voter 'asdasd' must be a valid bech32 address",
 		},
 		{
-			name: "Invalid vote: weight > 100",
+			name: "Invalid vote: weight > 100 * 10^18",
 			input: types.VoterInfo{
 				Voter: addrs[0],
 				Vote: types.Vote{
 					VotingPower: math.NewInt(600),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(101)}, // <-- 101%
+						{GaugeId: 1, Weight: types.DYM.MulRaw(101)}, // <-- 101%
 					},
 				},
 				Validators: []types.ValidatorVotingPower{
@@ -218,7 +218,7 @@ func TestValidateVoterInfo(t *testing.T) {
 				},
 			},
 			errorIs:       types.ErrInvalidVoterInfo,
-			errorContains: "weight must be <= 100, got 101",
+			errorContains: "weight must be <= 100 * 10^18, got 101000000000000000000",
 		},
 		{
 			name: "Invalid validators: duplicated addresses",

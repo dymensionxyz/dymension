@@ -92,6 +92,7 @@ func parseGenesisInfo(cmd *cobra.Command) (types.GenesisInfo, error) {
 	}
 
 	if nativeDenomFlag != "" {
+		genesisInfo.NativeDenom = new(types.DenomMetadata)
 		if err = utils.ParseJsonFromFile(nativeDenomFlag, genesisInfo.NativeDenom); err != nil {
 			return types.GenesisInfo{}, err
 		}
