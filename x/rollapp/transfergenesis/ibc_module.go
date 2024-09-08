@@ -125,12 +125,14 @@ func (w IBCModule) OnRecvPacket(
 	ra := transfer.Rollapp
 	l = l.With("rollapp_id", ra.RollappId)
 
-	noMemo := false
+	// check if genesis transfer memo exists
+	// genesis transfer allowed only if IRO plan exists
+	// after transfers enabled, no genesis transfer allowed in any case
+	isGenesisTransfer := true
 	memo, err := getMemo(transfer.GetMemo())
 	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
-		noMemo = true
-	}
-	if err != nil && !noMemo {
+		isGenesisTransfer = false
+	} else if err != nil {
 		l.Error("Get memo.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "get memo"))
 	}
@@ -138,7 +140,7 @@ func (w IBCModule) OnRecvPacket(
 	// if already enabled, skip this middleware
 	// genesis transfer memo NOT allowed
 	if ra.GenesisState.TransfersEnabled {
-		if !noMemo {
+		if isGenesisTransfer {
 			l.Error("Genesis transfers already enabled.")
 			_ = w.handleDRSViolation(ctx, ra.RollappId)
 			return channeltypes.NewErrorAcknowledgement(ErrDisabled)
@@ -150,7 +152,7 @@ func (w IBCModule) OnRecvPacket(
 	plan, found := w.iroKeeper.GetPlanByRollapp(ctx, ra.RollappId)
 	if found {
 		// plan exists, genesis transfer required
-		if noMemo {
+		if !isGenesisTransfer {
 			l.Error("genesis transfer required for rollapp with IRO plan.")
 			return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(gerrc.ErrFailedPrecondition, "no memo found for rollapp with plan"))
 		}
@@ -176,7 +178,7 @@ func (w IBCModule) OnRecvPacket(
 		}
 	} else {
 		// no plan found, genesis transfer memo not allowed
-		if !noMemo {
+		if isGenesisTransfer {
 			l.Error("No plan found for rollapp. Genesis transfer memo not allowed.")
 			return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer not allowed"))
 		}
