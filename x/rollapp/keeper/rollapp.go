@@ -117,38 +117,18 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 	), []byte(rollapp.RollappId))
 }
 
-// IsRollappSealed returns true if the rollapp's genesis info is sealed
-func (k Keeper) IsGenesisSealed(ctx sdk.Context, rollappId string) bool {
-	rollapp, found := k.GetRollapp(ctx, rollappId)
-	if !found {
-		return false
-	}
-	return rollapp.GenesisInfo.Sealed
-}
-
 func (k Keeper) SetRollappAsLaunched(ctx sdk.Context, rollappId string) error {
-	rollapp, found := k.GetRollapp(ctx, rollappId)
-	if !found {
-		return gerrc.ErrNotFound
-	}
+	rollapp := k.MustGetRollapp(ctx, rollappId)
 
 	if !rollapp.AllImmutableFieldsAreSet() {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "launch with immutable fields not set")
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "immutable fields not set")
 	}
 
 	if rollapp.Launched {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp already launched")
 	}
 
-	// if genesis info is not sealed, seal it if possible
-	if !rollapp.GenesisInfo.Sealed {
-		// seal if available
-		if !rollapp.GenesisInfoFieldsAreSet() {
-			return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info fields not set")
-		}
-		rollapp.GenesisInfo.Sealed = true
-	}
-
+	rollapp.GenesisInfo.Sealed = true
 	rollapp.Launched = true
 	k.SetRollapp(ctx, rollapp)
 
@@ -156,17 +136,11 @@ func (k Keeper) SetRollappAsLaunched(ctx sdk.Context, rollappId string) error {
 }
 
 // UpdateRollappWithIROPlan seals the rollapp genesis info and sets it pre launch time according to the iro plan end time
-func (k Keeper) UpdateRollappWithIROPlan(ctx sdk.Context, rollappId string, preLaunchTime time.Time) error {
-	rollapp, found := k.GetRollapp(ctx, rollappId)
-	if !found {
-		return gerrc.ErrNotFound
-	}
-
+func (k Keeper) UpdateRollappWithIROPlanAndSeal(ctx sdk.Context, rollappId string, preLaunchTime time.Time) {
+	rollapp := k.MustGetRollapp(ctx, rollappId)
 	rollapp.GenesisInfo.Sealed = true
 	rollapp.PreLaunchTime = preLaunchTime
 	k.SetRollapp(ctx, rollapp)
-
-	return nil
 }
 
 // GetRollappByEIP155 returns a rollapp from its EIP155 id (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)

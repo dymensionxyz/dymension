@@ -200,7 +200,7 @@ func (w IBCModule) OnRecvPacket(
 
 // validate genesis transfer amount is the same as in the `iro` plan
 // validate the destAddr is the same as `x/iro` module account address
-func (w IBCModule) validateGenesisTransfer(plan irotypes.Plan, transfer rollapptypes.TransferData, rollappDenom banktypes.Metadata) error {
+func (w IBCModule) validateGenesisTransfer(plan irotypes.Plan, transfer rollapptypes.TransferData, genesisTransferDenomMetadata banktypes.Metadata) error {
 	if !plan.TotalAllocation.Amount.Equal(transfer.MustAmountInt()) {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer amount does not match plan amount")
 	}
@@ -211,13 +211,18 @@ func (w IBCModule) validateGenesisTransfer(plan irotypes.Plan, transfer rollappt
 	}
 
 	// validate the memo denom against the transfer denom
-	if rollappDenom.Base != transfer.FungibleTokenPacketData.Denom {
+	if genesisTransferDenomMetadata.Base != transfer.FungibleTokenPacketData.Denom {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp denom does not match transfer denom")
 	}
 
+	if genesisTransferDenomMetadata.Base != transfer.Rollapp.GenesisInfo.NativeDenom.Base {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp denom does not match genesis info denom")
+	}
+
 	correct := false
-	for _, unit := range rollappDenom.DenomUnits {
+	for _, unit := range genesisTransferDenomMetadata.DenomUnits {
 		if transfer.Rollapp.GenesisInfo.NativeDenom.Exponent == unit.Exponent {
+			// TODO: validate the symbol name as well?
 			correct = true
 			break
 		}

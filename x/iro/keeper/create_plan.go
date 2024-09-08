@@ -122,10 +122,8 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 	// Set the plan in the store
 	k.SetPlan(ctx, plan)
 
-	err = k.rk.UpdateRollappWithIROPlan(ctx, rollapp.RollappId, preLaunchTime)
-	if err != nil {
-		return "", err
-	}
+	// Update the rollapp with the IRO plan pre launch time. This will also seals the genesis info
+	k.rk.UpdateRollappWithIROPlanAndSeal(ctx, rollapp.RollappId, preLaunchTime)
 
 	return fmt.Sprintf("%d", plan.Id), nil
 }

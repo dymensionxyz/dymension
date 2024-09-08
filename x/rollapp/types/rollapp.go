@@ -92,7 +92,7 @@ func (r Rollapp) ValidateBasic() error {
 }
 
 func (r Rollapp) AllImmutableFieldsAreSet() bool {
-	return r.InitialSequencer != ""
+	return r.InitialSequencer != "" || !r.GenesisInfoFieldsAreSet()
 }
 
 func (r Rollapp) GenesisInfoFieldsAreSet() bool {

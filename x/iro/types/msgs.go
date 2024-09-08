@@ -18,6 +18,7 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid owner address: %s", err)
 	}
+	// wrapping MsgCreatePlan params into a Plan struct to use it's validation method
 	plan := NewPlan(1, m.RollappId, sdk.NewCoin("dummy", m.AllocatedAmount), m.BondingCurve, m.StartTime, m.PreLaunchTime, m.IncentivePlanParams)
 	return plan.ValidateBasic()
 }

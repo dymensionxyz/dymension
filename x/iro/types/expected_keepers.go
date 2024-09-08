@@ -52,6 +52,6 @@ type PoolManagerKeeper interface {
 // RollappKeeper defines the expected interface needed to retrieve account balances.
 type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (rollapp rollapptypes.Rollapp, found bool)
-	UpdateRollappWithIROPlan(ctx sdk.Context, rollappId string, preLaunchTime time.Time) error
+	UpdateRollappWithIROPlanAndSeal(ctx sdk.Context, rollappId string, preLaunchTime time.Time)
 	MustGetRollapp(ctx sdk.Context, rollappId string) rollapptypes.Rollapp
 }
