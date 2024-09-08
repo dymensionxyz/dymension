@@ -22,7 +22,7 @@ func (m msgServer) Buy(ctx context.Context, req *types.MsgBuy) (*types.MsgBuyRes
 		return nil, err
 	}
 
-	err = m.Keeper.Buy(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Amount.Amount, req.ExpectedOutAmount.Amount)
+	err = m.Keeper.Buy(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Amount, req.ExpectedOutAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (m msgServer) Sell(ctx context.Context, req *types.MsgSell) (*types.MsgSell
 	if err != nil {
 		return nil, err
 	}
-	err = m.Keeper.Sell(sdk.UnwrapSDKContext(ctx), req.PlanId, seller, req.Amount.Amount, req.ExpectedOutAmount.Amount)
+	err = m.Keeper.Sell(sdk.UnwrapSDKContext(ctx), req.PlanId, seller, req.Amount, req.ExpectedOutAmount)
 	if err != nil {
 		return nil, err
 	}

@@ -19,8 +19,16 @@ func TestGetTxCmd(t *testing.T) {
 
 	cmd = cli.CmdCreateIRO()
 	assert.NotNil(t, cmd)
-	assert.True(t, strings.HasPrefix(cmd.Use, "create-iro"))
+	assert.True(t, strings.HasPrefix(cmd.Use, "create"))
 	assert.True(t, cmd.Flags().HasFlags())
+
+	cmd = cli.CmdBuy()
+	assert.NotNil(t, cmd)
+	assert.True(t, strings.HasPrefix(cmd.Use, "buy"))
+
+	cmd = cli.CmdSell()
+	assert.NotNil(t, cmd)
+	assert.True(t, strings.HasPrefix(cmd.Use, "sell"))
 }
 
 func TestCmdCreateIRO(t *testing.T) {

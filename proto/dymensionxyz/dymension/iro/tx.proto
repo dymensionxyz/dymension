@@ -88,10 +88,16 @@ message MsgBuy {
   string plan_id = 2;
 
   // The amount of tokens to buy.
-  cosmos.base.v1beta1.Coin amount = 3;
+  string amount = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 
   // The expected output amount.
-  cosmos.base.v1beta1.Coin expected_out_amount = 4;
+  string expected_out_amount = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message MsgBuyResponse {}
@@ -106,10 +112,16 @@ message MsgSell {
   string plan_id = 2;
 
   // The amount of tokens to sell.
-  cosmos.base.v1beta1.Coin amount = 3;
+  string amount = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 
   // The expected output amount.
-  cosmos.base.v1beta1.Coin expected_out_amount = 4;
+  string expected_out_amount = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message MsgSellResponse {}

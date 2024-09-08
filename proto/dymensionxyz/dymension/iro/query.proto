@@ -23,28 +23,33 @@ service Query {
 
   // Plan returns the plan for the specified plan ID.
   rpc QueryPlan(QueryPlanRequest) returns (QueryPlanResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/iro/plans/{plan_id}";
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/iro/plans/{plan_id}";
   }
 
   // PlanByRollapp returns the plans for the specified rollapp ID.
-  rpc QueryPlanByRollapp(QueryPlanByRollappRequest) returns (QueryPlanByRollappResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/iro/plans_by_rollapp/{rollapp_id}";
+  rpc QueryPlanByRollapp(QueryPlanByRollappRequest)
+      returns (QueryPlanByRollappResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/iro/plans_by_rollapp/{rollapp_id}";
   }
 
   // Price returns the current price for 1 IRO token for the specified plan ID.
   rpc QueryPrice(QueryPriceRequest) returns (QueryPriceResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/iro/price/{plan_id}";
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/iro/price/{plan_id}";
   }
 
-  // Cost returns the expected cost for buying or selling the specified amount of shares.
+  // Cost returns the expected cost for buying or selling the specified amount
+  // of shares.
   rpc QueryCost(QueryCostRequest) returns (QueryCostResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/iro/cost/{plan_id}";
   }
 
-
   // Claimed returns the claimed amount thus far for the specified plan ID.
   rpc QueryClaimed(QueryClaimedRequest) returns (QueryClaimedResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/iro/claimed/{plan_id}";
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/iro/claimed/{plan_id}";
   }
 }
 
@@ -54,67 +59,57 @@ message QueryParamsRequest {}
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
   // params holds all the parameters of this module.
-  Params params = 1 [(gogoproto.nullable) = false];
+  Params params = 1 [ (gogoproto.nullable) = false ];
 }
-
 
 // QueryPlanRequest is the request type for the Query/QueryPlan RPC method.
-message QueryPlansRequest {
-}
+message QueryPlansRequest {}
 
 // QueryPlanResponse is the response type for the Query/QueryPlan RPC method.
 message QueryPlansResponse {
-  repeated Plan plans = 1 [(gogoproto.nullable) = false];
+  repeated Plan plans = 1 [ (gogoproto.nullable) = false ];
 }
 
 // QueryPlanRequest is the request type for the Query/QueryPlan RPC method.
-message QueryPlanRequest {
-  string plan_id = 1;
-}
+message QueryPlanRequest { string plan_id = 1; }
 
 // QueryPlanResponse is the response type for the Query/QueryPlan RPC method.
-message QueryPlanResponse {
-  Plan plan = 1;
-}
+message QueryPlanResponse { Plan plan = 1; }
 
-// QueryPlanByRollappRequest is the request type for the Query/QueryPlanByRollapp RPC method.
-message QueryPlanByRollappRequest {
-  string rollapp_id = 1;
-}
+// QueryPlanByRollappRequest is the request type for the
+// Query/QueryPlanByRollapp RPC method.
+message QueryPlanByRollappRequest { string rollapp_id = 1; }
 
-// QueryPlanByRollappResponse is the response type for the Query/QueryPlanByRollapp RPC method.
-message QueryPlanByRollappResponse {
-  Plan plan = 1;
-}
+// QueryPlanByRollappResponse is the response type for the
+// Query/QueryPlanByRollapp RPC method.
+message QueryPlanByRollappResponse { Plan plan = 1; }
 
 // QueryPriceRequest is the request type for the Query/QueryPrice RPC method.
-message QueryPriceRequest {
-  string plan_id = 1;
-}
+message QueryPriceRequest { string plan_id = 1; }
 
 // QueryPriceResponse is the response type for the Query/QueryPrice RPC method.
-message QueryPriceResponse {
-  cosmos.base.v1beta1.Coin price = 1;
-}
+message QueryPriceResponse { cosmos.base.v1beta1.Coin price = 1; }
 
 // QueryCostRequest is the request type for the Query/QueryCost RPC method.
 message QueryCostRequest {
   string plan_id = 1;
-  cosmos.base.v1beta1.Coin amt = 2;
+  string amt = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
   bool sell = 3;
 }
 
 // QueryCostResponse is the response type for the Query/QueryCost RPC method.
-message QueryCostResponse {
-  cosmos.base.v1beta1.Coin cost = 1;
-}
+message QueryCostResponse { cosmos.base.v1beta1.Coin cost = 1; }
 
-// QueryClaimedRequest is the request type for the Query/QueryClaimed RPC method.
-message QueryClaimedRequest {
-  string plan_id = 1;
-}
+// QueryClaimedRequest is the request type for the Query/QueryClaimed RPC
+// method.
+message QueryClaimedRequest { string plan_id = 1; }
 
-// QueryClaimedResponse is the response type for the Query/QueryClaimed RPC method.
+// QueryClaimedResponse is the response type for the Query/QueryClaimed RPC
+// method.
 message QueryClaimedResponse {
-  string claimed_amt = 1 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"];
+  string claimed_amt = 1
+      [ (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int" ];
 }

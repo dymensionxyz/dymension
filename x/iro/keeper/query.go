@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
@@ -53,7 +54,14 @@ func (k Keeper) QueryCost(goCtx context.Context, req *types.QueryCostRequest) (*
 		return nil, status.Error(codes.NotFound, "plan not found")
 	}
 
-	return &types.QueryCostResponse{Cost: &plan.TotalAllocation}, nil
+	var cost math.Int
+	if req.Sell {
+		cost = plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Sub(req.Amt))
+	} else {
+		cost = plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(req.Amt))
+	}
+	costCoin := sdk.NewCoin(appparams.BaseDenom, cost)
+	return &types.QueryCostResponse{Cost: &costCoin}, nil
 }
 
 // QueryPlan implements types.QueryServer.
@@ -92,10 +100,7 @@ func (k Keeper) QueryPlans(goCtx context.Context, req *types.QueryPlansRequest) 
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	plans := k.GetAllPlans(ctx)
-
-	return &types.QueryPlansResponse{Plans: plans}, nil
+	return &types.QueryPlansResponse{Plans: k.GetAllPlans(ctx)}, nil
 }
 
 // QueryPrice implements types.QueryServer.
