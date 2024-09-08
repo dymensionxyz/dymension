@@ -91,7 +91,7 @@ func (s *KeeperTestSuite) TestMintAllocation() {
 	k := s.App.IROKeeper
 
 	allocatedAmount := sdk.NewInt(10).MulRaw(1e18)
-	expectedBaseDenom := fmt.Sprintf("FUT_%s", rollappId)
+	expectedBaseDenom := fmt.Sprintf("%s_%s", types.IROTokenPrefix, rollappId)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
 	minted, err := k.MintAllocation(s.Ctx, allocatedAmount, rollapp.RollappId, rollapp.GenesisInfo.NativeDenom.Base, uint64(rollapp.GenesisInfo.NativeDenom.Exponent))

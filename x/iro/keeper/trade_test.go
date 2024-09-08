@@ -76,7 +76,7 @@ func (s *KeeperTestSuite) TestBuy() {
 	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, buyer)
 	s.Require().Equal(buyersFunds.AmountOf("adym").Sub(expectedCost).Sub(expectedCost2), balances.AmountOf("adym"))
 
-	expectedBaseDenom := fmt.Sprintf("FUT_%s", rollappId)
+	expectedBaseDenom := fmt.Sprintf("%s_%s", types.IROTokenPrefix, rollappId)
 	s.Require().Equal(amountTokensToBuy.MulRaw(2), balances.AmountOf(expectedBaseDenom))
 }
 

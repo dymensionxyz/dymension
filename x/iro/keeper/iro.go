@@ -86,3 +86,9 @@ func (k Keeper) GetLastPlanId(ctx sdk.Context) (lastPlanId uint64) {
 
 	return sdk.BigEndianToUint64(b)
 }
+
+func (k Keeper) GetNextPlanIdAndIncrement(ctx sdk.Context) uint64 {
+	lastPlanId := k.GetLastPlanId(ctx)
+	k.SetLastPlanId(ctx, lastPlanId+1)
+	return lastPlanId + 1
+}

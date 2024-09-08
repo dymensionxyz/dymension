@@ -10,6 +10,8 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
+const IROTokenPrefix = "future"
+
 func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurve, start time.Time, end time.Time, incentivesParams IncentivePlanParams) Plan {
 	plan := Plan{
 		Id:                  id,
@@ -74,7 +76,6 @@ func DefaultIncentivePlanParams() IncentivePlanParams {
 }
 
 func (i IncentivePlanParams) ValidateBasic() error {
-	// TODO: add stricter enforcement
 	if i.NumEpochsPaidOver == 0 {
 		return fmt.Errorf("number of epochs paid over cannot be zero")
 	}

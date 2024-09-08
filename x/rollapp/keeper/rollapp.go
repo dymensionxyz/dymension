@@ -155,7 +155,7 @@ func (k Keeper) SetRollappAsStarted(ctx sdk.Context, rollappId string) error {
 	return nil
 }
 
-// UpdateRollappWithIROPlan
+// UpdateRollappWithIROPlan seals the rollapp genesis info and sets it pre launch time according to the iro plan end time
 func (k Keeper) UpdateRollappWithIROPlan(ctx sdk.Context, rollappId string, preLaunchTime time.Time) error {
 	rollapp, found := k.GetRollapp(ctx, rollappId)
 	if !found {

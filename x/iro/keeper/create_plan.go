@@ -19,7 +19,11 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-// CreatePlan implements types.MsgServer.
+// This function is used to create a new plan for a rollapp.
+// Validations on the request:
+// - The rollapp must exist, with no IRO plan
+// - The rollapp must be owned by the creator of the plan
+// - The rollapp PreLaunchTime must be in the future
 func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (*types.MsgCreatePlanResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -53,12 +57,15 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 	}, nil
 }
 
+// ValidateRollappPreconditions validates the preconditions for creating a plan
+// - GenesisInfo fields must be set
+// - Rollapp must not be Launched
 func ValidateRollappPreconditions(rollapp rollapptypes.Rollapp) error {
 	if !rollapp.GenesisInfoFieldsAreSet() {
 		return types.ErrRollappGenesisInfoNotSet
 	}
 
-	// rollapp cannot be sealed when creating a plan
+	// rollapp cannot be launched when creating a plan
 	if rollapp.Launched {
 		return types.ErrRollappSealed
 	}
@@ -66,8 +73,8 @@ func ValidateRollappPreconditions(rollapp rollapptypes.Rollapp) error {
 	return nil
 }
 
+// CreatePlan creates a new IRO plan for a rollapp
 func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, preLaunchTime time.Time, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams) (string, error) {
-	// Validate rollapp preconditions
 	err := ValidateRollappPreconditions(rollapp)
 	if err != nil {
 		return "", errors.Join(gerrc.ErrFailedPrecondition, err)
@@ -78,14 +85,11 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 		return "", err
 	}
 
-	plan := types.NewPlan(k.GetLastPlanId(ctx)+1, rollapp.RollappId, allocation, curve, start, preLaunchTime, incentivesParams)
+	plan := types.NewPlan(k.GetNextPlanIdAndIncrement(ctx), rollapp.RollappId, allocation, curve, start, preLaunchTime, incentivesParams)
 	// Create a new module account for the IRO plan
-	moduleAccountI, err := k.CreateModuleAccountForPlan(ctx, plan)
+	_, err = k.CreateModuleAccountForPlan(ctx, plan)
 	if err != nil {
 		return "", err
-	}
-	if plan.ModuleAccAddress != moduleAccountI.GetAddress().String() {
-		return "", errorsmod.Wrap(gerrc.ErrInternal, "module account address mismatch")
 	}
 
 	// charge creation fee
@@ -97,7 +101,6 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 
 	// Set the plan in the store
 	k.SetPlan(ctx, plan)
-	k.SetLastPlanId(ctx, plan.Id)
 
 	err = k.rk.UpdateRollappWithIROPlan(ctx, rollapp.RollappId, preLaunchTime)
 	if err != nil {
@@ -118,9 +121,9 @@ func (k Keeper) CreateModuleAccountForPlan(ctx sdk.Context, plan types.Plan) (au
 }
 
 // MintAllocation mints the allocated amount and registers the denom in the bank denom metadata store
-func (k Keeper) MintAllocation(ctx sdk.Context, allocatedAmount math.Int, rollappId, rollappSymbolName string, exponent uint64) (sdk.Coin, error) {
-	baseDenom := fmt.Sprintf("FUT_%s", rollappId)
-	displayDenom := fmt.Sprintf("FUT_%s", rollappSymbolName)
+func (k Keeper) MintAllocation(ctx sdk.Context, allocatedAmount math.Int, rollappId, rollappTokenSymbol string, exponent uint64) (sdk.Coin, error) {
+	baseDenom := fmt.Sprintf("%s_%s", types.IROTokenPrefix, rollappId)
+	displayDenom := fmt.Sprintf("%s_%s", types.IROTokenPrefix, rollappTokenSymbol)
 	metadata := banktypes.Metadata{
 		Description: fmt.Sprintf("Future token for rollapp %s", rollappId),
 		DenomUnits: []*banktypes.DenomUnit{
@@ -141,10 +144,10 @@ func (k Keeper) MintAllocation(ctx sdk.Context, allocatedAmount math.Int, rollap
 	}
 	k.BK.SetDenomMetaData(ctx, metadata)
 
-	toMint := sdk.NewCoin(baseDenom, allocatedAmount)
-	err := k.BK.MintCoins(ctx, types.ModuleName, sdk.NewCoins(toMint))
+	minted := sdk.NewCoin(baseDenom, allocatedAmount)
+	err := k.BK.MintCoins(ctx, types.ModuleName, sdk.NewCoins(minted))
 	if err != nil {
 		return sdk.Coin{}, err
 	}
-	return toMint, nil
+	return minted, nil
 }

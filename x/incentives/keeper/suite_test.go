@@ -220,6 +220,7 @@ func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
 				Base:     "aden",
 				Exponent: 18,
 			},
+			InitialSupply: sdk.NewInt(1000),
 		},
 	}
 
