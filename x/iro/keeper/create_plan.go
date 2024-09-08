@@ -24,6 +24,8 @@ import (
 // - The rollapp must exist, with no IRO plan
 // - The rollapp must be owned by the creator of the plan
 // - The rollapp PreLaunchTime must be in the future
+// - The plan duration must be at least the minimum duration set in the module params
+// - The incentive plan params must be valid and meet the minimum requirements set in the module params
 func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (*types.MsgCreatePlanResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -38,6 +40,15 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 
 	// validate end time is in the future
 	if req.PreLaunchTime.Before(ctx.BlockTime()) {
+		return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrInvalidEndTime)
+	}
+
+	startTime := req.StartTime
+	if startTime.Before(ctx.BlockTime()) {
+		startTime = ctx.BlockTime()
+	}
+	// check minimal duration
+	if startTime.Add(m.Keeper.GetParams(ctx).MinPlanDuration).After(req.PreLaunchTime) {
 		return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrInvalidEndTime)
 	}
 
@@ -56,7 +67,7 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrPlanExists)
 	}
 
-	planId, err := m.Keeper.CreatePlan(ctx, req.AllocatedAmount, req.StartTime, req.PreLaunchTime, rollapp, req.BondingCurve, req.IncentivePlanParams)
+	planId, err := m.Keeper.CreatePlan(ctx, req.AllocatedAmount, startTime, req.PreLaunchTime, rollapp, req.BondingCurve, req.IncentivePlanParams)
 	if err != nil {
 		return nil, err
 	}

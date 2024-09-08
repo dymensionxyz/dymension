@@ -21,7 +21,15 @@ message Params {
     (gogoproto.nullable) = false
   ];
 
-  IncentivePlanParams incentive_plan_minimum_params = 3 [ (gogoproto.nullable) = false ];
+  // Minimum plan duration
+  // when creating a plan, the plan duration should be greater than or equal to this value
+  // plan duration is from the start time to the pre-launch time
+  google.protobuf.Duration min_plan_duration = 3
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+
+  // Incentive plan minimum parameters
+  // when creating a plan, the incentive plan parameters should be greater than or equal to this value
+  IncentivePlanParams incentive_plan_minimum_params = 4 [ (gogoproto.nullable) = false ];
 }
 
 // Bonding curve represents a bonding curve in the IRO module.
