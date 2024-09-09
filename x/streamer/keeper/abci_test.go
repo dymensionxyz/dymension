@@ -48,7 +48,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   1,
 					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 1, Weight: math.NewInt(50)},
 							{GaugeId: 2, Weight: math.NewInt(50)},
@@ -61,7 +61,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   2,
 					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 5, Weight: math.NewInt(50)},
 							{GaugeId: 6, Weight: math.NewInt(50)},
@@ -74,7 +74,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   3,
 					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 9, Weight: math.NewInt(50)},
 							{GaugeId: 10, Weight: math.NewInt(50)},
@@ -87,7 +87,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   4,
 					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 13, Weight: math.NewInt(50)},
 							{GaugeId: 14, Weight: math.NewInt(50)},
@@ -168,7 +168,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   1,
 					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 1, Weight: math.NewInt(50)},
 							{GaugeId: 2, Weight: math.NewInt(50)},
@@ -181,7 +181,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   2,
 					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 5, Weight: math.NewInt(50)},
 							{GaugeId: 6, Weight: math.NewInt(50)},
@@ -194,7 +194,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   3,
 					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 9, Weight: math.NewInt(50)},
 							{GaugeId: 10, Weight: math.NewInt(50)},
@@ -207,7 +207,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   4,
 					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 13, Weight: math.NewInt(50)},
 							{GaugeId: 14, Weight: math.NewInt(50)},
@@ -343,7 +343,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   1,
 					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 2)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 1, Weight: math.NewInt(1)},
 						},
@@ -353,7 +353,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   2,
 					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 2)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 2, Weight: math.NewInt(1)},
 						},
@@ -363,7 +363,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   3,
 					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 2)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 3, Weight: math.NewInt(1)},
 						},
@@ -373,7 +373,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   4,
 					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 2)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 4, Weight: math.NewInt(1)},
 						},
@@ -435,7 +435,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   1,
 					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 1, Weight: math.NewInt(50)},
 							{GaugeId: 2, Weight: math.NewInt(50)},
@@ -448,7 +448,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   2,
 					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 5, Weight: math.NewInt(50)},
 							{GaugeId: 6, Weight: math.NewInt(50)},
@@ -461,7 +461,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   3,
 					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 9, Weight: math.NewInt(50)},
 							{GaugeId: 10, Weight: math.NewInt(50)},
@@ -474,7 +474,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   4,
 					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 13, Weight: math.NewInt(50)},
 							{GaugeId: 14, Weight: math.NewInt(50)},
@@ -844,7 +844,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   1,
 					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 1, Weight: math.NewInt(50)},
 							{GaugeId: 2, Weight: math.NewInt(50)},
@@ -857,7 +857,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   2,
 					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 5, Weight: math.NewInt(50)},
 							{GaugeId: 6, Weight: math.NewInt(50)},
@@ -870,7 +870,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   3,
 					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 9, Weight: math.NewInt(50)},
 							{GaugeId: 10, Weight: math.NewInt(50)},
@@ -883,7 +883,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   4,
 					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 13, Weight: math.NewInt(50)},
 							{GaugeId: 14, Weight: math.NewInt(50)},
@@ -983,7 +983,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   1,
 					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 1, Weight: math.NewInt(50)},
 							{GaugeId: 2, Weight: math.NewInt(50)},
@@ -996,7 +996,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   2,
 					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 5, Weight: math.NewInt(50)},
 							{GaugeId: 6, Weight: math.NewInt(50)},
@@ -1009,7 +1009,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   3,
 					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 9, Weight: math.NewInt(50)},
 							{GaugeId: 10, Weight: math.NewInt(50)},
@@ -1022,7 +1022,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   4,
 					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 13, Weight: math.NewInt(50)},
 							{GaugeId: 14, Weight: math.NewInt(50)},
@@ -1165,7 +1165,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   1,
 					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 2)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 1, Weight: math.NewInt(1)},
 						},
@@ -1175,7 +1175,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   2,
 					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 2)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 2, Weight: math.NewInt(1)},
 						},
@@ -1185,7 +1185,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   3,
 					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 2)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 3, Weight: math.NewInt(1)},
 						},
@@ -1195,7 +1195,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   4,
 					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 2)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 4, Weight: math.NewInt(1)},
 						},
@@ -1259,7 +1259,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   1,
 					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 1, Weight: math.NewInt(50)},
 							{GaugeId: 2, Weight: math.NewInt(50)},
@@ -1272,7 +1272,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   2,
 					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 5, Weight: math.NewInt(50)},
 							{GaugeId: 6, Weight: math.NewInt(50)},
@@ -1285,7 +1285,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   3,
 					DistrEpochIdentifier: "day",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 9, Weight: math.NewInt(50)},
 							{GaugeId: 10, Weight: math.NewInt(50)},
@@ -1298,7 +1298,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 					Id:                   4,
 					DistrEpochIdentifier: "hour",
 					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
-					DistributeTo: &types.DistrInfo{
+					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 13, Weight: math.NewInt(50)},
 							{GaugeId: 14, Weight: math.NewInt(50)},

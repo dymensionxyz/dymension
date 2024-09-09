@@ -7,15 +7,15 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
-func (k Keeper) NewDistrInfo(ctx sdk.Context, records []types.DistrRecord) (*types.DistrInfo, error) {
+func (k Keeper) NewDistrInfo(ctx sdk.Context, records []types.DistrRecord) (types.DistrInfo, error) {
 	err := k.validateGauges(ctx, records)
 	if err != nil {
-		return nil, err
+		return types.DistrInfo{}, err
 	}
 
 	distrInfo, err := types.NewDistrInfo(records)
 	if err != nil {
-		return nil, err
+		return types.DistrInfo{}, err
 	}
 
 	return distrInfo, nil

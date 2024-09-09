@@ -9,7 +9,6 @@ import (
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 
 	ctypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
@@ -80,77 +79,45 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string) error 
 // AfterEpochEnd distributes rewards, updates streams, and saves the changes to the state after the epoch end.
 // It distributes rewards to streams that have the specified epoch identifier or aborts if there are no streams
 // in this epoch. After the distribution, it resets the epoch pointer to the very fist gauge.
-// The method uses three caches:
-//   - Stream cache for updating stream distributed coins
-//   - Gauge cache for updating gauge coins
-//   - Number of locks per denom to reduce the number of requests for x/lockup
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coins, error) {
-	toDistribute := k.GetActiveStreamsForEpoch(ctx, epochIdentifier)
-
-	if len(toDistribute) == 0 {
+	// Get active streams
+	activeStreams := k.GetActiveStreamsForEpoch(ctx, epochIdentifier)
+	if len(activeStreams) == 0 {
 		// Nothing to distribute
 		return sdk.Coins{}, nil
 	}
 
+	// Get epoch pointer for the current epoch
 	epochPointer, err := k.GetEpochPointer(ctx, epochIdentifier)
 	if err != nil {
 		return sdk.Coins{}, fmt.Errorf("get epoch pointer for epoch '%s': %w", epochIdentifier, err)
 	}
 
-	// Init helper caches
-	streamCache := newStreamInfo(toDistribute)
-	gaugeCache := newGaugeInfo()
-
-	// Cache specific for asset gauges. Helps reduce the number of x/lockup requests.
-	denomLockCache := incentivestypes.NewDenomLocksCache()
-
-	// Calculate rewards and fill caches
-	distrResult := k.CalculateRewards(ctx, epochPointer, types.IterationsNoLimit, streamCache, gaugeCache, denomLockCache)
-
-	// Send coins to distribute to the x/incentives module
-	err = k.bk.SendCoinsFromModuleToModule(ctx, types.ModuleName, incentivestypes.ModuleName, streamCache.totalDistr)
+	// Distribute rewards
+	const epochEnd = true
+	coins, iterations, err := k.Distribute(ctx, []types.EpochPointer{epochPointer}, activeStreams, types.IterationsNoLimit, epochEnd)
 	if err != nil {
-		return nil, fmt.Errorf("send coins: %w", err)
-	}
-
-	// Distribute the rewards
-	const EpochEnd = true
-	_, err = k.ik.Distribute(ctx, gaugeCache.getGauges(), denomLockCache, EpochEnd)
-	if err != nil {
-		return nil, fmt.Errorf("distribute: %w", err)
-	}
-
-	// Update streams with respect to a new epoch and save them
-	for _, s := range streamCache.getStreams() {
-		updated, err := k.UpdateStreamAtEpochEnd(ctx, s)
-		if err != nil {
-			return sdk.Coins{}, fmt.Errorf("update stream '%d' at epoch start: %w", s.Id, err)
-		}
-		// Save the stream
-		err = k.SetStream(ctx, &updated)
-		if err != nil {
-			return sdk.Coins{}, fmt.Errorf("set stream: %w", err)
-		}
+		return sdk.Coins{}, fmt.Errorf("distribute: %w", err)
 	}
 
 	// Reset the epoch pointer
-	distrResult.NewPointer.SetToFirstGauge()
-	err = k.SaveEpochPointer(ctx, distrResult.NewPointer)
+	epochPointer.SetToFirstGauge()
+	err = k.SaveEpochPointer(ctx, epochPointer)
 	if err != nil {
 		return sdk.Coins{}, fmt.Errorf("save epoch pointer: %w", err)
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventEpochEnd{
-		Iterations:  distrResult.Iterations,
-		Distributed: streamCache.totalDistr,
+	err = uevent.EmitTypedEvent(ctx, &types.EventEpochEnd{
+		Iterations:  iterations,
+		Distributed: coins,
 	})
 	if err != nil {
 		return sdk.Coins{}, fmt.Errorf("emit typed event: %w", err)
 	}
 
-	ctx.Logger().Info("Streamer distributed coins", "amount", streamCache.totalDistr.String())
+	ctx.Logger().Info("Streamer distributed coins", "amount", coins.String())
 
-	return streamCache.totalDistr, nil
+	return coins, nil
 }
 
 // BeforeEpochStart is the epoch start hook.

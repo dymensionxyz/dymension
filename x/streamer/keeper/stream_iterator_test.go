@@ -20,7 +20,7 @@ func TestStreamIterator(t *testing.T) {
 		}
 		return types.Stream{
 			Id:                   id,
-			DistributeTo:         &types.DistrInfo{Records: g},
+			DistributeTo:         types.DistrInfo{Records: g},
 			DistrEpochIdentifier: epochID,
 		}
 	}

@@ -78,7 +78,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.D
 		return 0, fmt.Errorf("all coins %s must be positive", coins)
 	}
 
-	var distrInfo *types.DistrInfo
+	var distrInfo types.DistrInfo
 	if sponsored {
 		distr, err := k.sk.GetDistribution(ctx)
 		if err != nil {

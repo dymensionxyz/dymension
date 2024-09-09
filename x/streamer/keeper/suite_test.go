@@ -226,7 +226,7 @@ func (suite *KeeperTestSuite) Delegate(delAddr sdk.AccAddress, valAddr sdk.ValAd
 	return del
 }
 
-func (suite *KeeperTestSuite) DistributeAllRewards(streams []types.Stream) sdk.Coins {
+func (suite *KeeperTestSuite) DistributeAllRewards() sdk.Coins {
 	// We must create at least one lock, otherwise distribution won't work
 	lockOwner := apptesting.CreateRandomAccounts(1)[0]
 	suite.LockTokens(lockOwner, sdk.NewCoins(sdk.NewInt64Coin("stake", 100)))
