@@ -56,34 +56,37 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 		return err
 	}
 
-	// validate we have enough tokens to sell
+	// validate the IRO have enough tokens to sell
 	// protocol will apply max limit (99.9%) to enforce initial token liquidity
 	maxSellAmt := plan.TotalAllocation.Amount.ToLegacyDec().Mul(AllocationSellLimit).TruncateInt()
 	if plan.SoldAmt.Add(amountTokensToBuy).GT(maxSellAmt) {
 		return types.ErrInsufficientTokens
 	}
 
-	// Calculate cost over fixed price curve
+	// Calculate cost for buying amountTokensToBuy over fixed price curve
 	cost := plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy))
-
-	// validate cost is positive
 	if !cost.IsPositive() {
 		return errorsmod.Wrapf(types.ErrInvalidCost, "cost: %s", cost.String())
 	}
 
+	totalCost, takerFeeCoin := k.AddTakerFee(sdk.NewCoin(appparams.BaseDenom, cost), k.GetParams(ctx).TakerFee)
+	if !totalCost.IsPositive() || !takerFeeCoin.IsPositive() {
+		return errorsmod.Wrapf(types.ErrInvalidCost, "totalCost: %s, takerFeeCoin: %s", totalCost.String(), takerFeeCoin.String())
+	}
+
 	// Validate expected out amount
-	if cost.GT(maxCost) {
+	if totalCost.Amount.GT(maxCost) {
 		return errorsmod.Wrapf(types.ErrInvalidExpectedOutAmount, "maxCost: %s, cost: %s", maxCost.String(), cost.String())
 	}
 
 	// Charge taker fee
-	costC, err := k.chargeTakerFee(ctx, sdk.NewCoin(appparams.BaseDenom, cost), buyer)
+	err = k.chargeTakerFee(ctx, takerFeeCoin, buyer)
 	if err != nil {
 		return err
 	}
 
 	// send DYM from buyer to the plan. DYM sent directly to the plan's module account
-	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(costC))
+	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(totalCost))
 	if err != nil {
 		return err
 	}
@@ -126,9 +129,21 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 
 	// Calculate cost over fixed price curve
 	cost := plan.BondingCurve.Cost(plan.SoldAmt.Sub(amountTokensToSell), plan.SoldAmt)
+
+	totalCost, takerFeeCoin := k.SubtractTakerFee(sdk.NewCoin(appparams.BaseDenom, cost), k.GetParams(ctx).TakerFee)
+	if !totalCost.IsPositive() || !takerFeeCoin.IsPositive() {
+		return errorsmod.Wrapf(types.ErrInvalidCost, "totalCost: %s, takerFeeCoin: %s", totalCost.String(), takerFeeCoin.String())
+	}
+
 	// Validate expected out amount
-	if cost.LT(minCost) {
-		return errorsmod.Wrapf(types.ErrInvalidMinCost, "minCost: %s, cost: %s", minCost.String(), cost.String())
+	if totalCost.Amount.LT(minCost) {
+		return errorsmod.Wrapf(types.ErrInvalidMinCost, "minCost: %s, cost: %s", minCost.String(), totalCost.String())
+	}
+
+	// Charge taker fee
+	err = k.chargeTakerFee(ctx, takerFeeCoin, seller)
+	if err != nil {
+		return err
 	}
 
 	// send allocated tokens from seller to the plan
@@ -137,14 +152,8 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 		return err
 	}
 
-	// Charge taker fee
-	costC, err := k.chargeTakerFee(ctx, sdk.NewCoin(appparams.BaseDenom, cost), seller)
-	if err != nil {
-		return err
-	}
-
 	// send DYM from the plan to the seller. DYM managed by the plan's module account
-	err = k.BK.SendCoins(ctx, plan.GetAddress(), seller, sdk.NewCoins(costC))
+	err = k.BK.SendCoins(ctx, plan.GetAddress(), seller, sdk.NewCoins(totalCost))
 	if err != nil {
 		return err
 	}
@@ -180,28 +189,22 @@ func (k Keeper) validateIROTradeable(ctx sdk.Context, plan types.Plan, trader st
 	return nil
 }
 
-func (k Keeper) chargeTakerFee(ctx sdk.Context, cost sdk.Coin, sender sdk.AccAddress) (sdk.Coin, error) {
-	newAmt, takerFeeCoin := k.calcTakerFee(cost, k.GetParams(ctx).TakerFee)
-	if newAmt.IsZero() {
-		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalidCost, "no tokens left after taker fee")
-	}
-
-	if takerFeeCoin.IsZero() {
-		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalidCost, "taker fee is zero")
-	}
-
-	err := k.BK.SendCoinsFromAccountToModule(ctx, sender, txfeestypes.ModuleName, sdk.NewCoins(takerFeeCoin))
-	if err != nil {
-		return sdk.Coin{}, err
-	}
-
-	return newAmt, nil
+func (k Keeper) chargeTakerFee(ctx sdk.Context, takerFee sdk.Coin, sender sdk.AccAddress) error {
+	return k.BK.SendCoinsFromAccountToModule(ctx, sender, txfeestypes.ModuleName, sdk.NewCoins(takerFee))
 }
 
-// Returns remaining amount in to swap, and takerFeeCoins.
+// AddTakerFee returns the remaining amount after subtracting the taker fee and the taker fee amount
+// returns (1 + takerFee) * tokenIn, takerFee * tokenIn
+func (k Keeper) AddTakerFee(amt sdk.Coin, takerFee sdk.Dec) (sdk.Coin, sdk.Coin) {
+	takerFeeAmt := math.LegacyNewDecFromInt(amt.Amount).Mul(takerFee).TruncateInt()
+	newAmt := amt.Amount.Add(takerFeeAmt)
+	return sdk.NewCoin(amt.Denom, newAmt), sdk.NewCoin(amt.Denom, takerFeeAmt)
+}
+
+// SubtractTakerFee returns the remaining amount after subtracting the taker fee and the taker fee amount
 // returns (1 - takerFee) * tokenIn, takerFee * tokenIn
-func (k Keeper) calcTakerFee(amt sdk.Coin, takerFee sdk.Dec) (sdk.Coin, sdk.Coin) {
-	newAmt := math.LegacyNewDecFromInt(amt.Amount).MulTruncate(sdk.OneDec().Sub(takerFee)).TruncateInt()
-	takerFeeAmt := amt.Amount.Sub(newAmt)
+func (k Keeper) SubtractTakerFee(amt sdk.Coin, takerFee sdk.Dec) (sdk.Coin, sdk.Coin) {
+	takerFeeAmt := math.LegacyNewDecFromInt(amt.Amount).Mul(takerFee).TruncateInt()
+	newAmt := amt.Amount.Sub(takerFeeAmt)
 	return sdk.NewCoin(amt.Denom, newAmt), sdk.NewCoin(amt.Denom, takerFeeAmt)
 }

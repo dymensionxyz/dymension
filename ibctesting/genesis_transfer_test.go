@@ -163,6 +163,7 @@ func (s *transferGenesisSuite) TestIRO() {
 	transfersEnabled = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
 	s.Require().False(transfersEnabled)
 
+	/* ------------------------------- happy case ------------------------------- */
 	// genesis transfer, should pass and enable bridge
 	msg = s.transferMsg(amt, denom, true)
 	res, err = s.rollappChain().SendMsgs(msg)
