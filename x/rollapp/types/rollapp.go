@@ -91,6 +91,10 @@ func (r Rollapp) ValidateBasic() error {
 	return nil
 }
 
+func (r Rollapp) IsGenesisTransferEnabled() bool {
+	return r.GenesisState.TransfersEnabled
+}
+
 func (r Rollapp) AllImmutableFieldsAreSet() bool {
 	return r.InitialSequencer != "" || !r.GenesisInfoFieldsAreSet()
 }

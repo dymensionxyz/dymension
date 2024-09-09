@@ -73,7 +73,7 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 	unallocatedTokens := plan.TotalAllocation.Amount.Sub(plan.SoldAmt)        // assumed > 0, as we enforce it in the Buy function
 	raisedDYM := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom) // assumed > 0, as we enforce it by IRO creation fee
 
-	// send the raised DYM to the iro module
+	// send the raised DYM to the iro module as it will be used as the pool creator
 	err := k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(raisedDYM))
 	if err != nil {
 		return err
