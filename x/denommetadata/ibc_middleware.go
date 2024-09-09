@@ -13,6 +13,8 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -57,7 +59,7 @@ func (im IBCModule) OnRecvPacket(
 
 	transferData, err := im.rollappKeeper.GetValidTransfer(ctx, packet.Data, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
+		return uevent.NewErrorAcknowledgement(ctx, err)
 	}
 
 	rollapp, packetData := transferData.Rollapp, transferData.FungibleTokenPacketData
@@ -76,16 +78,16 @@ func (im IBCModule) OnRecvPacket(
 	}
 
 	if err = dm.Validate(); err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
+		return uevent.NewErrorAcknowledgement(ctx, err)
 	}
 
 	if dm.Base != packetData.Denom {
-		return channeltypes.NewErrorAcknowledgement(gerrc.ErrInvalidArgument)
+		return uevent.NewErrorAcknowledgement(ctx, gerrc.ErrInvalidArgument)
 	}
 
 	// if denom metadata was found in the memo, it means we should have the rollapp record
 	if rollapp == nil {
-		return channeltypes.NewErrorAcknowledgement(gerrc.ErrNotFound)
+		return uevent.NewErrorAcknowledgement(ctx, gerrc.ErrNotFound)
 	}
 
 	dm.Base = ibcDenom
@@ -95,7 +97,7 @@ func (im IBCModule) OnRecvPacket(
 		if errorsmod.IsOf(err, gerrc.ErrAlreadyExists) {
 			return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 		}
-		return channeltypes.NewErrorAcknowledgement(err)
+		return uevent.NewErrorAcknowledgement(ctx, err)
 	}
 
 	return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
