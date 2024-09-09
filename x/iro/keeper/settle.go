@@ -133,18 +133,21 @@ func determineLimitingFactor(unsoldRATokens, raisedDYM math.Int, settledIROPrice
 	if raisedDYM.LT(requiredDYM) {
 		dym = raisedDYM
 		RATokens = raisedDYM.ToLegacyDec().Quo(settledIROPrice).TruncateInt()
-		return
+	} else {
+		// if raisedDYM is more than requiredDYM, than tokens are the limiting factor
+		// we use all the unsold tokens, and the corresponding amount of DYM
+		RATokens = unsoldRATokens
+		dym = requiredDYM
 	}
 
-	// if raisedDYM is more than requiredDYM, than tokens are the limiting factor
-	// we use all the unsold tokens, and the corresponding amount of DYM
-	RATokens = unsoldRATokens
-	dym = requiredDYM
-
-	// for the edge case where price is 0 (no tokens sold and initial price is 0)
-	// and required DYM is 0, we set the raised DYM as the limiting factor
-	if requiredDYM.IsZero() {
+	// for the extreme edge case where required liquidity truncated to 0
+	// we use what we have as it guaranteed to be more than 0
+	if dym.IsZero() {
 		dym = raisedDYM
 	}
+	if RATokens.IsZero() {
+		RATokens = unsoldRATokens
+	}
+
 	return
 }

@@ -13,6 +13,11 @@ with the following actions:
     The integral of y = m * x^N + c is (m / (N + 1)) * x^(N + 1) + c * x.
 */
 
+const (
+	MaxNValue    = 10
+	MaxPrecision = 2
+)
+
 func NewBondingCurve(m, n, c math.LegacyDec) BondingCurve {
 	return BondingCurve{
 		M: m,
@@ -38,10 +43,27 @@ func (lbc BondingCurve) ValidateBasic() error {
 	if !lbc.N.IsPositive() {
 		return errorsmod.Wrapf(ErrInvalidBondingCurve, "n: %d", lbc.N)
 	}
+	if lbc.N.GT(math.LegacyNewDec(MaxNValue)) {
+		return errorsmod.Wrapf(ErrInvalidBondingCurve, "n exceeds maximum value of %d: %s", MaxNValue, lbc.N)
+	}
+
 	if lbc.C.IsNegative() {
 		return errorsmod.Wrapf(ErrInvalidBondingCurve, "c: %s", lbc.C.String())
 	}
+
+	// Check precision for M, N, and C
+	if !checkPrecision(lbc.M) || !checkPrecision(lbc.N) || !checkPrecision(lbc.C) {
+		return errorsmod.Wrapf(ErrInvalidBondingCurve, "m, n, and c must have at most %d decimal places", MaxPrecision)
+	}
+
 	return nil
+}
+
+// checkPrecision checks if a math.LegacyDec has at most MaxPrecision decimal places
+func checkPrecision(d math.LegacyDec) bool {
+	// Multiply by 10^MaxPrecision and check if it's an integer
+	multiplied := d.Mul(math.LegacyNewDec(10).Power(uint64(MaxPrecision)))
+	return multiplied.IsInteger()
 }
 
 // SpotPrice returns the spot price at x
