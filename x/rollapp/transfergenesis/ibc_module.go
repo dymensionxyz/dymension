@@ -48,6 +48,7 @@ type TransferKeeper interface {
 }
 
 type IROKeeper interface {
+	MustGetPlanByRollapp(ctx sdk.Context, rollappID string) irotypes.Plan
 	GetPlanByRollapp(ctx sdk.Context, rollappID string) (irotypes.Plan, bool)
 	GetModuleAccountAddress() string
 }
@@ -164,7 +165,8 @@ func (w IBCModule) OnRecvPacket(
 	}
 
 	// handle genesis transfer by the IRO keeper
-	plan, _ := w.iroKeeper.GetPlanByRollapp(ctx, ra.RollappId)
+	plan := w.iroKeeper.MustGetPlanByRollapp(ctx, ra.RollappId)
+
 	// validate the transfer against the IRO plan
 	err = w.validateGenesisTransfer(plan, transfer, memo.Denom)
 	if err != nil {
@@ -182,11 +184,14 @@ func (w IBCModule) OnRecvPacket(
 	ack = w.IBCModule.OnRecvPacket(commontypes.SkipRollappMiddlewareContext(ctx), packet, relayer)
 	// if the ack is nil, we return an error as we expect immediate ack
 	if ack == nil {
+		l.Error("Expected immediate ack for genesis transfer.")
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(gerrc.ErrInternal, "transfer genesis: OnRecvPacket"))
 	}
-	l.Info("Received valid genesis transfer. Registered denom data.")
-
-	w.EnableTransfers(ctx, ra.RollappId, transfer.Denom)
+	err = w.EnableTransfers(ctx, ra.RollappId, transfer.Denom)
+	if err != nil {
+		l.Error("Enable transfers.", "err", err)
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "transfer genesis: enable transfers"))
+	}
 	return ack
 }
 

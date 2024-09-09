@@ -6,14 +6,16 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
+	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 )
 
 // FIXME: test trade after settled
 
-// FIXME: test taker fee
+// FIXME: test taker fee (+low values should fail)
 
 // FIXME: add sell test
 
@@ -30,18 +32,15 @@ func (s *KeeperTestSuite) TestBuy() {
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
 	planId, err := k.CreatePlan(s.Ctx, totalAllocation, startTime, startTime.Add(time.Hour), rollapp, curve, incentives)
 	s.Require().NoError(err)
+	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
 
 	buyer := sample.Acc()
 	buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(100_000)))
 	s.FundAcc(buyer, buyersFunds)
 
 	// buy before plan start - should fail
-	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(-time.Minute))
-	err = k.Buy(s.Ctx, planId, buyer, sdk.NewInt(1_000), maxAmt)
+	err = k.Buy(s.Ctx.WithBlockTime(startTime.Add(-time.Minute)), planId, buyer, sdk.NewInt(1_000), maxAmt)
 	s.Require().Error(err)
-
-	// plan start
-	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
 
 	// cost is higher than maxCost specified - should fail
 	err = k.Buy(s.Ctx, planId, buyer, sdk.NewInt(1_000), sdk.NewInt(10))
@@ -51,11 +50,14 @@ func (s *KeeperTestSuite) TestBuy() {
 	err = k.Buy(s.Ctx, planId, buyer, sdk.NewInt(900_000), maxAmt)
 	s.Require().Error(err)
 
-	// successful buy
+	// assert nothing sold
 	plan, _ := k.GetPlan(s.Ctx, planId)
 	s.Assert().Equal(sdk.NewInt(0), plan.SoldAmt)
+	buyerBalance := s.App.BankKeeper.GetAllBalances(s.Ctx, buyer).AmountOf("adym")
+	s.Assert().Equal(buyersFunds.AmountOf("adym"), buyerBalance)
 
-	amountTokensToBuy := sdk.NewInt(100)
+	// successful buy
+	amountTokensToBuy := sdk.NewInt(1_000)
 	expectedCost := curve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy))
 	err = k.Buy(s.Ctx, planId, buyer, amountTokensToBuy, maxAmt)
 	s.Require().NoError(err)
@@ -74,7 +76,9 @@ func (s *KeeperTestSuite) TestBuy() {
 
 	// assert balance
 	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, buyer)
-	s.Require().Equal(buyersFunds.AmountOf("adym").Sub(expectedCost).Sub(expectedCost2), balances.AmountOf("adym"))
+	takerFee := s.App.BankKeeper.GetAllBalances(s.Ctx, authtypes.NewModuleAddress(txfees.ModuleName))
+	expectedBalance := buyersFunds.AmountOf("adym").Sub(expectedCost).Sub(expectedCost2).Sub(takerFee.AmountOf("adym"))
+	s.Require().Equal(expectedBalance, balances.AmountOf("adym"))
 
 	expectedBaseDenom := fmt.Sprintf("%s_%s", types.IROTokenPrefix, rollappId)
 	s.Require().Equal(amountTokensToBuy.MulRaw(2), balances.AmountOf(expectedBaseDenom))

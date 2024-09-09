@@ -53,6 +53,16 @@ func (k Keeper) MustGetPlan(ctx sdk.Context, planId string) types.Plan {
 	return plan
 }
 
+// MustGetPlanByRollapp returns a plan from its rollapp ID
+// It will panic if the plan is not found
+func (k Keeper) MustGetPlanByRollapp(ctx sdk.Context, rollappId string) types.Plan {
+	plan, found := k.GetPlanByRollapp(ctx, rollappId)
+	if !found {
+		panic(fmt.Sprintf("plan not found for rollapp ID: %s", rollappId))
+	}
+	return plan
+}
+
 // GetAllPlans returns all plans
 func (k Keeper) GetAllPlans(ctx sdk.Context) (list []types.Plan) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PlanKeyPrefix)

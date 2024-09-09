@@ -68,8 +68,9 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 	if !cost.IsPositive() {
 		return errorsmod.Wrapf(types.ErrInvalidCost, "cost: %s", cost.String())
 	}
+	costCoin := sdk.NewCoin(appparams.BaseDenom, cost)
 
-	totalCost, takerFeeCoin := k.AddTakerFee(sdk.NewCoin(appparams.BaseDenom, cost), k.GetParams(ctx).TakerFee)
+	totalCost, takerFeeCoin := k.AddTakerFee(costCoin, k.GetParams(ctx).TakerFee)
 	if !totalCost.IsPositive() || !takerFeeCoin.IsPositive() {
 		return errorsmod.Wrapf(types.ErrInvalidCost, "totalCost: %s, takerFeeCoin: %s", totalCost.String(), takerFeeCoin.String())
 	}
@@ -86,7 +87,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 	}
 
 	// send DYM from buyer to the plan. DYM sent directly to the plan's module account
-	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(totalCost))
+	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(costCoin))
 	if err != nil {
 		return err
 	}
@@ -129,8 +130,12 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 
 	// Calculate cost over fixed price curve
 	cost := plan.BondingCurve.Cost(plan.SoldAmt.Sub(amountTokensToSell), plan.SoldAmt)
+	if !cost.IsPositive() {
+		return errorsmod.Wrapf(types.ErrInvalidCost, "cost: %s", cost.String())
+	}
+	costCoin := sdk.NewCoin(appparams.BaseDenom, cost)
 
-	totalCost, takerFeeCoin := k.SubtractTakerFee(sdk.NewCoin(appparams.BaseDenom, cost), k.GetParams(ctx).TakerFee)
+	totalCost, takerFeeCoin := k.SubtractTakerFee(costCoin, k.GetParams(ctx).TakerFee)
 	if !totalCost.IsPositive() || !takerFeeCoin.IsPositive() {
 		return errorsmod.Wrapf(types.ErrInvalidCost, "totalCost: %s, takerFeeCoin: %s", totalCost.String(), takerFeeCoin.String())
 	}
@@ -153,7 +158,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 	}
 
 	// send DYM from the plan to the seller. DYM managed by the plan's module account
-	err = k.BK.SendCoins(ctx, plan.GetAddress(), seller, sdk.NewCoins(totalCost))
+	err = k.BK.SendCoins(ctx, plan.GetAddress(), seller, sdk.NewCoins(costCoin))
 	if err != nil {
 		return err
 	}

@@ -45,14 +45,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.FundAcc(sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, funds)))
 }
 
-//	buyer := sample.Acc()
-//
-// buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(100_000)))
-// s.FundAcc(buyer, buyersFunds)
 // BuySomeTokens buys some tokens from the plan
 func (suite *KeeperTestSuite) BuySomeTokens(planId string, buyer sdk.AccAddress, amt math.Int) {
 	maxAmt := sdk.NewInt(1_000_000_000)
-	suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("adym", amt)))
+	suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("adym", amt.MulRaw(10)))) // 10 times the amount to buy, for buffer and fees
 	err := suite.App.IROKeeper.Buy(suite.Ctx, planId, buyer, amt, maxAmt)
 	suite.Require().NoError(err)
 }

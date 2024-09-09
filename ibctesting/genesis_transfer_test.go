@@ -108,7 +108,7 @@ func (s *transferGenesisSuite) TestIRO() {
 	apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.NewCoins(coin))
 
 	// create IRO plan
-	_, err := s.hubApp().IROKeeper.CreatePlan(s.hubCtx(), amt, time.Time{}, time.Time{}, rollapp, irotypes.DefaultBondingCurve(), irotypes.DefaultIncentivePlanParams())
+	_, err := s.hubApp().IROKeeper.CreatePlan(s.hubCtx(), amt, time.Now(), time.Now().Add(time.Hour), rollapp, irotypes.DefaultBondingCurve(), irotypes.DefaultIncentivePlanParams())
 	s.Require().NoError(err)
 
 	// non-genesis transfer should fail, as the bridge is not open

@@ -34,7 +34,7 @@ func (s *KeeperTestSuite) TestSettle() {
 
 	// buy some tokens
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
-	soldAmt := sdk.NewInt(100)
+	soldAmt := sdk.NewInt(1_000)
 	s.BuySomeTokens(planId, sample.Acc(), soldAmt)
 
 	// settle should fail as no rollappDenom balance available
@@ -79,7 +79,7 @@ func (s *KeeperTestSuite) TestClaim() {
 	claimer := sample.Acc()
 	// buy some tokens
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
-	soldAmt := sdk.NewInt(100)
+	soldAmt := sdk.NewInt(1_000)
 	s.BuySomeTokens(planId, claimer, soldAmt)
 
 	// claim should fail as not settled
