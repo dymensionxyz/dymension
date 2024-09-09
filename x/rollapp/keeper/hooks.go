@@ -1,15 +1,11 @@
 package keeper
 
 import (
-	"time"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 )
 
 var _ epochstypes.EpochHooks = epochHooks{}
-
-const defaultDeleteStateInfoTimestampThreshold = time.Hour * 24
 
 type epochHooks struct {
 	Keeper
@@ -29,8 +25,10 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, _ int
 	}
 
 	currentTimestamp := ctx.BlockTime()
+	// for the time being, we can assume that the sequencer unbonding time will not change, therefore
+	// we can assume that the number of resulting deletable state updates will remain constant
 	seqUnbondingTime := e.sequencerKeeper.UnbondingTime(ctx)
-	endTimestamp := currentTimestamp.Add(-seqUnbondingTime).Add(-defaultDeleteStateInfoTimestampThreshold) // add a threshold for good measure
+	endTimestamp := currentTimestamp.Add(-seqUnbondingTime)
 
 	e.DeleteStateInfoUntilTimestamp(ctx, endTimestamp)
 	return nil

@@ -99,18 +99,21 @@ func (k Keeper) DeleteStateInfoUntilTimestamp(ctx sdk.Context, endTimestampExcl 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateInfoKeyPrefix))
 	storeTS := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TimestampedStateInfoKeyPrefix))
 
-	// get all latest stateInfo and latest finalized stateInfo and add them to a map
-	latestIndexes := append(k.GetAllLatestStateInfoIndex(ctx), k.GetAllLatestFinalizedStateIndex(ctx)...)
-	skipStateInfoIndexesMap := make(map[string]uint64, len(latestIndexes))
+	// Note that for the active sequencer, the latest state info index will not be within the range of
+	// the state updates to be deleted, as it will be more recent.
+	// For a sequencer that is inactive for 21 days or more, it will be within range, furthermore
+	// the latest state info index and the latest finalized state info index will be the same.
+	latestIndexes := k.GetAllLatestStateInfoIndex(ctx)
+	skipStateInfoIndexes := make(map[string]uint64, len(latestIndexes))
 	for _, index := range latestIndexes {
-		skipStateInfoIndexesMap[index.RollappId] = index.Index
+		skipStateInfoIndexes[index.RollappId] = index.Index
 	}
 
 	k.IterateStateInfoWithTimestamp(storeTS, endTimestampExcl.UnixMicro(), func(keyTS []byte) bool {
 		key := keyTS[types.TimestampPrefixLen:] // remove the timestamp prefix
 		// skip latest stateInfo and latest finalized stateInfo
 		stateInfoIndex := types.StateInfoIndexFromKey(key)
-		index := skipStateInfoIndexesMap[stateInfoIndex.RollappId]
+		index := skipStateInfoIndexes[stateInfoIndex.RollappId]
 		if index == stateInfoIndex.Index {
 			return false
 		}
