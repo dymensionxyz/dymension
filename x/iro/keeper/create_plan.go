@@ -38,11 +38,6 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, sdkerrors.ErrUnauthorized
 	}
 
-	// validate end time is in the future
-	if req.PreLaunchTime.Before(ctx.BlockTime()) {
-		return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrInvalidEndTime)
-	}
-
 	startTime := req.StartTime
 	if startTime.Before(ctx.BlockTime()) {
 		startTime = ctx.BlockTime()
@@ -77,25 +72,9 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 	}, nil
 }
 
-// ValidateRollappPreconditions validates the preconditions for creating a plan
-// - GenesisInfo fields must be set
-// - Rollapp must not be Launched
-func ValidateRollappPreconditions(rollapp rollapptypes.Rollapp) error {
-	if !rollapp.GenesisInfoFieldsAreSet() {
-		return types.ErrRollappGenesisInfoNotSet
-	}
-
-	// rollapp cannot be launched when creating a plan
-	if rollapp.Launched {
-		return types.ErrRollappSealed
-	}
-
-	return nil
-}
-
 // CreatePlan creates a new IRO plan for a rollapp
 func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, preLaunchTime time.Time, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams) (string, error) {
-	err := ValidateRollappPreconditions(rollapp)
+	err := k.rk.SealGenesisInfoWithLaunchTime(ctx, &rollapp, preLaunchTime)
 	if err != nil {
 		return "", errors.Join(gerrc.ErrFailedPrecondition, err)
 	}
@@ -121,9 +100,6 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 
 	// Set the plan in the store
 	k.SetPlan(ctx, plan)
-
-	// Update the rollapp with the IRO plan pre launch time. This will also seals the genesis info
-	k.rk.UpdateRollappWithIROPlanAndSeal(ctx, rollapp.RollappId, preLaunchTime)
 
 	return fmt.Sprintf("%d", plan.Id), nil
 }

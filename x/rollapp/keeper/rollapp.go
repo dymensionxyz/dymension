@@ -117,30 +117,32 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 	), []byte(rollapp.RollappId))
 }
 
-func (k Keeper) SetRollappAsLaunched(ctx sdk.Context, rollappId string) error {
-	rollapp := k.MustGetRollapp(ctx, rollappId)
-
+func (k Keeper) SetRollappAsLaunched(ctx sdk.Context, rollapp *types.Rollapp) error {
 	if !rollapp.AllImmutableFieldsAreSet() {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "immutable fields not set")
 	}
 
-	if rollapp.Launched {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp already launched")
-	}
-
 	rollapp.GenesisInfo.Sealed = true
 	rollapp.Launched = true
-	k.SetRollapp(ctx, rollapp)
+	k.SetRollapp(ctx, *rollapp)
 
 	return nil
 }
 
 // UpdateRollappWithIROPlan seals the rollapp genesis info and sets it pre launch time according to the iro plan end time
-func (k Keeper) UpdateRollappWithIROPlanAndSeal(ctx sdk.Context, rollappId string, preLaunchTime time.Time) {
-	rollapp := k.MustGetRollapp(ctx, rollappId)
+// - GenesisInfo fields must be set
+// - Rollapp must not be Launched
+func (k Keeper) SealGenesisInfoWithLaunchTime(ctx sdk.Context, rollapp *types.Rollapp, preLaunchTime time.Time) error {
+	if rollapp.Launched {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp already launched")
+	}
+	if !rollapp.GenesisInfoFieldsAreSet() {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info not set")
+	}
 	rollapp.GenesisInfo.Sealed = true
 	rollapp.PreLaunchTime = preLaunchTime
-	k.SetRollapp(ctx, rollapp)
+	k.SetRollapp(ctx, *rollapp)
+	return nil
 }
 
 // GetRollappByEIP155 returns a rollapp from its EIP155 id (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)

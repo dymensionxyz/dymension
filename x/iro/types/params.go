@@ -49,8 +49,8 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if p.MinPlanDuration <= 0 {
-		return fmt.Errorf("minimum plan duration must be greater than 0: %s", p.MinPlanDuration)
+	if p.MinPlanDuration < 0 {
+		return fmt.Errorf("minimum plan duration must be non-negative: %s", p.MinPlanDuration)
 	}
 
 	if err := validateIncentivePlanParams(p.IncentivePlanMinimumParams); err != nil {

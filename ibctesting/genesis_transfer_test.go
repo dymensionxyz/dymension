@@ -101,12 +101,13 @@ func (s *transferGenesisSuite) TestNoIRO() {
 // regular transfers should fail until the genesis transfer is done
 func (s *transferGenesisSuite) TestIRO() {
 	amt := math.NewIntFromUint64(10000000000000000000)
-	denom := "foo"
+	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+
+	denom := rollapp.GenesisInfo.NativeDenom.Base
 	coin := sdk.NewCoin(denom, amt)
 	apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.NewCoins(coin))
 
 	// create IRO plan
-	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 	_, err := s.hubApp().IROKeeper.CreatePlan(s.hubCtx(), amt, time.Time{}, time.Time{}, rollapp, irotypes.DefaultBondingCurve(), irotypes.DefaultIncentivePlanParams())
 	s.Require().NoError(err)
 
@@ -126,10 +127,28 @@ func (s *transferGenesisSuite) TestIRO() {
 	transfersEnabled := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
 	s.Require().False(transfersEnabled)
 
-	// - TODO: wrong dest, wrong base denom, wrong decimals
-	// test invalid genesis transfers
+	// - TODO: wrong dest, wrong decimals
+	/* --------------------- test invalid genesis transfers --------------------- */
 	// - wrong amount
 	msg = s.transferMsg(amt.Sub(math.NewInt(100)), denom, true)
+	res, err = s.rollappChain().SendMsgs(msg)
+	s.Require().NoError(err)
+	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
+	s.Require().NoError(err)
+	err = s.path.RelayPacket(packet)
+	s.Require().NoError(err)
+
+	ack, found = s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	s.Require().True(found)
+	s.Require().NotEqual(successAck, ack) // assert for ack error
+
+	transfersEnabled = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
+	s.Require().False(transfersEnabled)
+
+	// - wrong denom
+	wrongCoin := sdk.NewCoin("bar", amt)
+	apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.NewCoins(wrongCoin))
+	msg = s.transferMsg(amt, "bar", true)
 	res, err = s.rollappChain().SendMsgs(msg)
 	s.Require().NoError(err)
 	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
