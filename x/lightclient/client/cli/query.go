@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/version"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
@@ -20,7 +22,48 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand(CmdGetLightClient())
+	cmd.AddCommand(
+		CmdGetExpectedClientState(),
+		CmdGetLightClient(),
+	)
+
+	return cmd
+}
+
+func CmdGetExpectedClientState() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "expected",
+		Short: "Query the expected client state - NOTE: not all returned fields are relevant",
+		Long: `Query the expected client state.
+Relevant fields:
+	trust level
+	trust period
+	unbonding period
+	max clock drift
+	frozen height
+	proof specs
+	upgrade path
+	
+The other fields can take any value`,
+		Example: fmt.Sprintf("%s query %s expected", version.AppName, ibcexported.ModuleName),
+		Args:    cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := &types.QueryExpectedClientStateRequest{}
+
+			clientStateRes, err := queryClient.ExpectedClientState(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(clientStateRes)
+		},
+	}
 
 	return cmd
 }
