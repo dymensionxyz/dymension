@@ -28,6 +28,7 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdUpdateSequencer())
 	cmd.AddCommand(CmdUnbond())
 	cmd.AddCommand(CmdIncreaseBond())
+	cmd.AddCommand(CmdDecreaseBond())
 
 	return cmd
 }
@@ -160,6 +161,37 @@ func CmdIncreaseBond() *cobra.Command {
 			}
 
 			msg := types.NewMsgIncreaseBond(
+				clientCtx.GetFromAddress().String(),
+				amountCoin,
+			)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdDecreaseBond() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "decrease-bond [amount]",
+		Short: "Decrease the bond of a sequencer",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			amount := args[0]
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			amountCoin, err := sdk.ParseCoinNormalized(amount)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDecreaseBond(
 				clientCtx.GetFromAddress().String(),
 				amountCoin,
 			)

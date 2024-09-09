@@ -32,16 +32,14 @@ message MsgCreateRollapp {
   // initial_sequencer takes one or more coma-separated bech32-encoded addresses of the
   // sequencer(s) that are allowed to initially serve this rollappId.
   string initial_sequencer = 11;
-  // the unique rollapp address bech32 prefix.
-  string bech32_prefix = 12;
   // alias is the chain alias used for display and namespace system
-  string alias = 13;
-  // checksum used to verify integrity of the genesis file
-  string genesis_checksum = 14;
+  string alias = 12;
   // metadata is the rollapp metadata
-  RollappMetadata metadata = 15;
+  RollappMetadata metadata = 13;
+  // genesis_info is the genesis information
+  GenesisInfo genesis_info = 14 [(gogoproto.nullable) = false ];
   // vm_type is the type of rollapp machine: EVM or WASM
-  Rollapp.VMType vm_type = 16;
+  Rollapp.VMType vm_type = 15;
 }
 
 message MsgCreateRollappResponse {
@@ -58,12 +56,10 @@ message MsgUpdateRollappInformation {
   // sequencer that are allowed to initially serve this rollappId.
   // wildcard '*' means any sequencer is allowed to be the first proposer.
   string initial_sequencer = 3;
-  // checksum used to verify integrity
-  string genesis_checksum = 4;
   // metadata is the rollapp metadata
   RollappMetadata metadata = 5 [(gogoproto.nullable) = true ];
-  // the unique rollapp address bech32 prefix.
-  string bech32_prefix = 6;
+  // genesis_info is the genesis information
+  GenesisInfo genesis_info = 6 [(gogoproto.nullable) = false ];
 }
 
 message MsgUpdateRollappInformationResponse {

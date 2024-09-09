@@ -86,7 +86,7 @@ func (suite *RollappTestSuite) TestLivenessFlow() {
 		tracker := newLivenessMockSequencerKeeper()
 		suite.keeper().SetSequencerKeeper(tracker)
 		for _, ra := range rollapps {
-			suite.keeper().SetRollapp(suite.Ctx, types.NewRollapp("", ra, "", "", "", types.Rollapp_Unspecified, nil, false))
+			suite.keeper().SetRollapp(suite.Ctx, types.NewRollapp("", ra, "", types.Rollapp_Unspecified, nil, types.GenesisInfo{}, false))
 		}
 
 		hLastUpdate := map[string]int64{}

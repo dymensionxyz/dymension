@@ -142,8 +142,8 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 			initialVote: sponsorshiptypes.MsgVote{
 				Voter: addrs[0].String(),
 				Weights: []sponsorshiptypes.GaugeWeight{
-					{GaugeId: 1, Weight: math.NewInt(50)},
-					{GaugeId: 2, Weight: math.NewInt(30)},
+					{GaugeId: 1, Weight: sponsorshiptypes.DYM.MulRaw(50)},
+					{GaugeId: 2, Weight: sponsorshiptypes.DYM.MulRaw(30)},
 				},
 			},
 			hasIntermediateDistr: false,
@@ -163,8 +163,8 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 			intermediateVote: sponsorshiptypes.MsgVote{
 				Voter: addrs[1].String(),
 				Weights: []sponsorshiptypes.GaugeWeight{
-					{GaugeId: 1, Weight: math.NewInt(10)},
-					{GaugeId: 2, Weight: math.NewInt(90)},
+					{GaugeId: 1, Weight: sponsorshiptypes.DYM.MulRaw(10)},
+					{GaugeId: 2, Weight: sponsorshiptypes.DYM.MulRaw(90)},
 				},
 			},
 			fillEpochs: true,
@@ -180,16 +180,16 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 			initialVote: sponsorshiptypes.MsgVote{
 				Voter: addrs[0].String(),
 				Weights: []sponsorshiptypes.GaugeWeight{
-					{GaugeId: 1, Weight: math.NewInt(70)},
-					{GaugeId: 2, Weight: math.NewInt(30)},
+					{GaugeId: 1, Weight: sponsorshiptypes.DYM.MulRaw(70)},
+					{GaugeId: 2, Weight: sponsorshiptypes.DYM.MulRaw(30)},
 				},
 			},
 			hasIntermediateDistr: true,
 			intermediateVote: sponsorshiptypes.MsgVote{
 				Voter: addrs[1].String(),
 				Weights: []sponsorshiptypes.GaugeWeight{
-					{GaugeId: 1, Weight: math.NewInt(10)},
-					{GaugeId: 2, Weight: math.NewInt(90)},
+					{GaugeId: 1, Weight: sponsorshiptypes.DYM.MulRaw(10)},
+					{GaugeId: 2, Weight: sponsorshiptypes.DYM.MulRaw(90)},
 				},
 			},
 			fillEpochs: true,
@@ -215,16 +215,16 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 			initialVote: sponsorshiptypes.MsgVote{
 				Voter: addrs[0].String(),
 				Weights: []sponsorshiptypes.GaugeWeight{
-					{GaugeId: 1, Weight: math.NewInt(70)},
-					{GaugeId: 2, Weight: math.NewInt(30)},
+					{GaugeId: 1, Weight: sponsorshiptypes.DYM.MulRaw(70)},
+					{GaugeId: 2, Weight: sponsorshiptypes.DYM.MulRaw(30)},
 				},
 			},
 			hasIntermediateDistr: true,
 			intermediateVote: sponsorshiptypes.MsgVote{
 				Voter: addrs[1].String(),
 				Weights: []sponsorshiptypes.GaugeWeight{
-					{GaugeId: 1, Weight: math.NewInt(10)},
-					{GaugeId: 2, Weight: math.NewInt(90)},
+					{GaugeId: 1, Weight: sponsorshiptypes.DYM.MulRaw(10)},
+					{GaugeId: 2, Weight: sponsorshiptypes.DYM.MulRaw(90)},
 				},
 			},
 			fillEpochs: true,
@@ -236,7 +236,7 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 
 			// Cast an initial vote
 			if tc.hasInitialDistr {
-				suite.Vote(tc.initialVote, math.NewInt(1_000_000))
+				suite.Vote(tc.initialVote, sponsorshiptypes.DYM)
 			}
 
 			// Create a stream
@@ -253,7 +253,7 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 
 			// Cast an intermediate vote
 			if tc.hasIntermediateDistr {
-				suite.Vote(tc.intermediateVote, math.NewInt(1_000_000))
+				suite.Vote(tc.intermediateVote, sponsorshiptypes.DYM)
 			}
 
 			// Distribute

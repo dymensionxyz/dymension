@@ -199,24 +199,31 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		Frozen:           oldRollapp.Frozen,
 		RegisteredDenoms: oldRollapp.RegisteredDenoms,
 		// TODO: regarding missing data - https://github.com/dymensionxyz/dymension/issues/986
-		Bech32Prefix:    oldRollapp.RollappId[:5],                            // placeholder data
-		GenesisChecksum: string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
-		VmType:          rollapptypes.Rollapp_EVM,                            // placeholder data
+		VmType: rollapptypes.Rollapp_EVM, // placeholder data
 		Metadata: &rollapptypes.RollappMetadata{
-			Website:         "",
-			Description:     "",
-			LogoUrl:         "",
-			Telegram:        "",
-			X:               "",
-			GenesisUrl:      "",
-			DisplayName:     "",
-			Tagline:         "",
-			TokenSymbol:     "",
-			FeeBaseDenom:    "",
-			NativeBaseDenom: "",
+			Website:     "",
+			Description: "",
+			LogoUrl:     "",
+			Telegram:    "",
+			X:           "",
+			GenesisUrl:  "",
+			DisplayName: "",
+			Tagline:     "",
+			FeeDenom:    nil,
+		},
+		GenesisInfo: rollapptypes.GenesisInfo{
+			Bech32Prefix:    oldRollapp.RollappId[:5],                            // placeholder data
+			GenesisChecksum: string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
+			NativeDenom: &rollapptypes.DenomMetadata{
+				Display:  "DEN",  // placeholder data
+				Base:     "aden", // placeholder data
+				Exponent: 6,      // placeholder data
+			},
+			InitialSupply: sdk.NewInt(100000), // placeholder data
+			Sealed:        true,
 		},
 		InitialSequencer: "*",
-		Sealed:           true,
+		Launched:         true,
 	}
 }
 

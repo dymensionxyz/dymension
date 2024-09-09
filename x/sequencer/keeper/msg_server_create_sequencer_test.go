@@ -115,17 +115,25 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 	// for 3 rollapps, test 10 sequencers creations
 	for j := 0; j < numRollapps; j++ {
 		rollapp := rollapptypes.Rollapp{
-			RollappId:       urand.RollappID(),
-			Owner:           alice,
-			Bech32Prefix:    bech32Prefix,
-			GenesisChecksum: "1234567890abcdefg",
-			Sealed:          true,
+			RollappId: urand.RollappID(),
+			Owner:     alice,
+			Launched:  true,
 			Metadata: &rollapptypes.RollappMetadata{
 				Website:     "https://dymension.xyz",
 				Description: "Sample description",
 				LogoUrl:     "https://dymension.xyz/logo.png",
 				Telegram:    "https://t.me/rolly",
 				X:           "https://x.dymension.xyz",
+			},
+			GenesisInfo: rollapptypes.GenesisInfo{
+				Bech32Prefix:    bech32Prefix,
+				GenesisChecksum: "1234567890abcdefg",
+				InitialSupply:   sdk.NewInt(1000),
+				NativeDenom: &rollapptypes.DenomMetadata{
+					Display:  "DEN",
+					Base:     "aden",
+					Exponent: 18,
+				},
 			},
 		}
 		suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
@@ -281,22 +289,22 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 			sequencers:        []sequencer{{creatorName: "bob", expProposer: true}, {creatorName: "steve", expProposer: false}},
 			rollappInitialSeq: "*",
 		}, {
-			name:              "success - any sequencer can be the first proposer, rollapp sealed",
+			name:              "success - any sequencer can be the first proposer, rollapp launched",
 			sequencers:        []sequencer{{creatorName: "bob", expProposer: false}},
 			rollappInitialSeq: alice,
 			malleate: func(rollappID string) {
 				r, _ := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
-				r.Sealed = true
+				r.Launched = true
 				suite.App.RollappKeeper.SetRollapp(suite.Ctx, r)
 			},
 			expErr: nil,
 		}, {
-			name:              "success - no initial sequencer, rollapp sealed",
+			name:              "success - no initial sequencer, rollapp launched",
 			sequencers:        []sequencer{{creatorName: "bob", expProposer: false}},
 			rollappInitialSeq: "*",
 			malleate: func(rollappID string) {
 				r, _ := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
-				r.Sealed = true
+				r.Launched = true
 				suite.App.RollappKeeper.SetRollapp(suite.Ctx, r)
 			},
 			expErr: nil,

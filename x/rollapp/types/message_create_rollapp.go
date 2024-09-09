@@ -12,21 +12,19 @@ func NewMsgCreateRollapp(
 	creator,
 	rollappId,
 	initSequencer,
-	bech32Prefix,
-	genesisChecksum,
 	alias string,
 	vmType Rollapp_VMType,
 	metadata *RollappMetadata,
+	genesisInfo GenesisInfo,
 ) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
 		Creator:          creator,
 		RollappId:        rollappId,
 		InitialSequencer: initSequencer,
-		Bech32Prefix:     bech32Prefix,
-		GenesisChecksum:  genesisChecksum,
 		Alias:            alias,
 		VmType:           vmType,
 		Metadata:         metadata,
+		GenesisInfo:      genesisInfo,
 	}
 }
 
@@ -56,10 +54,9 @@ func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
 		msg.Creator,
 		msg.RollappId,
 		msg.InitialSequencer,
-		msg.Bech32Prefix,
-		msg.GenesisChecksum,
 		msg.VmType,
 		msg.Metadata,
+		msg.GenesisInfo,
 		false,
 	)
 }

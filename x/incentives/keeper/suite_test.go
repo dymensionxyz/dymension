@@ -209,11 +209,18 @@ func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:          addr.String(),
 		RollappId:        urand.RollappID(),
-		Bech32Prefix:     strings.ToLower(tmrand.Str(3)),
-		GenesisChecksum:  "checksum",
 		InitialSequencer: addr.String(),
 		Alias:            strings.ToLower(tmrand.Str(7)),
 		VmType:           rollapptypes.Rollapp_EVM,
+		GenesisInfo: rollapptypes.GenesisInfo{
+			Bech32Prefix:    strings.ToLower(tmrand.Str(3)),
+			GenesisChecksum: "checksum",
+			NativeDenom: &rollapptypes.DenomMetadata{
+				Display:  "DEN",
+				Base:     "aden",
+				Exponent: 18,
+			},
+		},
 	}
 
 	suite.FundForAliasRegistration(msgCreateRollapp)

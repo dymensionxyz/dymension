@@ -18,12 +18,13 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 	)
 
 	tests := []struct {
-		name       string
-		update     *types.MsgUpdateRollappInformation
-		sealed     bool
-		frozen     bool
-		expError   error
-		expRollapp types.Rollapp
+		name            string
+		update          *types.MsgUpdateRollappInformation
+		rollappLaunched bool
+		genInfoSealed   bool
+		frozen          bool
+		expError        error
+		expRollapp      types.Rollapp
 	}{
 		{
 			name: "Update rollapp: success",
@@ -31,19 +32,35 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
-				GenesisChecksum:  "new_checksum",
 				Metadata:         &mockRollappMetadata,
-				Bech32Prefix:     "new",
+				GenesisInfo: types.GenesisInfo{
+					Bech32Prefix:    "new",
+					GenesisChecksum: "new_checksum",
+					InitialSupply:   sdk.NewInt(1000),
+					NativeDenom: &types.DenomMetadata{
+						Display:  "DEN",
+						Base:     "aden",
+						Exponent: 18,
+					},
+				},
 			},
 			expError: nil,
 			expRollapp: types.Rollapp{
 				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
-				Bech32Prefix:     "new",
-				GenesisChecksum:  "new_checksum",
 				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
+				GenesisInfo: types.GenesisInfo{
+					Bech32Prefix:    "new",
+					GenesisChecksum: "new_checksum",
+					InitialSupply:   sdk.NewInt(1000),
+					NativeDenom: &types.DenomMetadata{
+						Display:  "DEN",
+						Base:     "aden",
+						Exponent: 18,
+					},
+				},
 			},
 		}, {
 			name: "Update rollapp: fail - try to update a non-existing rollapp",
@@ -71,32 +88,64 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 			frozen:   true,
 			expError: types.ErrRollappFrozen,
 		}, {
-			name: "Update rollapp: fail - try to update InitialSequencer when sealed",
+			name: "Update rollapp: fail - try to update InitialSequencer when launched",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
 			},
-			sealed:   true,
-			expError: types.ErrImmutableFieldUpdateAfterSealed,
+			rollappLaunched: true,
+			expError:        types.ErrImmutableFieldUpdateAfterLaunched,
 		}, {
 			name: "Update rollapp: fail - try to update genesis checksum when sealed",
 			update: &types.MsgUpdateRollappInformation{
-				Owner:           alice,
-				RollappId:       rollappId,
-				GenesisChecksum: "new_checksum",
+				Owner:            alice,
+				RollappId:        rollappId,
+				InitialSequencer: "",
+				Metadata:         nil,
+				GenesisInfo: types.GenesisInfo{
+					GenesisChecksum: "new_checksum",
+				},
 			},
-			sealed:   true,
-			expError: types.ErrImmutableFieldUpdateAfterSealed,
+			genInfoSealed: true,
+			expError:      types.ErrGenesisInfoSealed,
 		}, {
-			name: "Update rollapp: fail - try to update bech 32 when sealed",
+			name: "Update rollapp: fail - try to update bech32 when sealed",
 			update: &types.MsgUpdateRollappInformation{
-				Owner:        alice,
-				RollappId:    rollappId,
-				Bech32Prefix: "new",
+				Owner:     alice,
+				RollappId: rollappId,
+				GenesisInfo: types.GenesisInfo{
+					Bech32Prefix: "new",
+				},
 			},
-			sealed:   true,
-			expError: types.ErrImmutableFieldUpdateAfterSealed,
+			genInfoSealed: true,
+			expError:      types.ErrGenesisInfoSealed,
+		}, {
+			name: "Update rollapp: fail - try to update native_denom when sealed",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
+				GenesisInfo: types.GenesisInfo{
+					NativeDenom: &types.DenomMetadata{
+						Display:  "DEN",
+						Base:     "aden",
+						Exponent: 18,
+					},
+				},
+			},
+			genInfoSealed: true,
+			expError:      types.ErrGenesisInfoSealed,
+		}, {
+			name: "Update rollapp: fail - try to update initial_supply when sealed",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
+				GenesisInfo: types.GenesisInfo{
+					InitialSupply: sdk.NewInt(1000),
+				},
+			},
+			genInfoSealed: true,
+			expError:      types.ErrGenesisInfoSealed,
 		}, {
 			name: "Update rollapp: success - update metadata when sealed",
 			update: &types.MsgUpdateRollappInformation{
@@ -104,8 +153,8 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				RollappId: rollappId,
 				Metadata:  &mockRollappMetadata,
 			},
-			sealed:   true,
-			expError: nil,
+			rollappLaunched: true,
+			expError:        nil,
 			expRollapp: types.Rollapp{
 				RollappId:        rollappId,
 				Owner:            alice,
@@ -113,11 +162,19 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				ChannelId:        "",
 				Frozen:           false,
 				RegisteredDenoms: nil,
-				Sealed:           true,
+				Launched:         true,
 				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
-				Bech32Prefix:     "old",
-				GenesisChecksum:  "old",
+				GenesisInfo: types.GenesisInfo{
+					Bech32Prefix:    "old",
+					GenesisChecksum: "old",
+					InitialSupply:   sdk.NewInt(1000),
+					NativeDenom: &types.DenomMetadata{
+						Display:  "OLD",
+						Base:     "aold",
+						Exponent: 18,
+					},
+				},
 			},
 		},
 	}
@@ -131,17 +188,26 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				InitialSequencer: "",
 				ChannelId:        "",
 				Frozen:           tc.frozen,
-				Sealed:           tc.sealed,
+				Launched:         tc.rollappLaunched,
 				RegisteredDenoms: nil,
 				VmType:           types.Rollapp_EVM,
-				Bech32Prefix:     "old",
-				GenesisChecksum:  "old",
 				Metadata: &types.RollappMetadata{
 					Website:     "",
 					Description: "",
 					LogoUrl:     "",
 					Telegram:    "",
 					X:           "",
+				},
+				GenesisInfo: types.GenesisInfo{
+					Bech32Prefix:    "old",
+					GenesisChecksum: "old",
+					InitialSupply:   sdk.NewInt(1000),
+					NativeDenom: &types.DenomMetadata{
+						Display:  "OLD",
+						Base:     "aold",
+						Exponent: 18,
+					},
+					Sealed: tc.genInfoSealed,
 				},
 			}
 
@@ -167,17 +233,25 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	msg := types.MsgCreateRollapp{
 		RollappId:        rollappId,
 		Creator:          alice,
-		GenesisChecksum:  "",
 		InitialSequencer: "",
 		Alias:            "default",
 		VmType:           types.Rollapp_EVM,
-		Bech32Prefix:     "rol",
+		GenesisInfo: types.GenesisInfo{
+			Bech32Prefix:    "rol",
+			GenesisChecksum: "checksum",
+			InitialSupply:   sdk.NewInt(1000),
+			NativeDenom: &types.DenomMetadata{
+				Display:  "DEN",
+				Base:     "aden",
+				Exponent: 18,
+			},
+		},
 	}
 	suite.FundForAliasRegistration(msg)
 	_, err := suite.msgServer.CreateRollapp(suite.Ctx, &msg)
 	suite.Require().NoError(err)
 
-	// 2. try to register sequencer (not initial) - should fail because rollapp is not sealed
+	// 2. try to register sequencer (not initial) - should fail because rollapp is not launched
 	err = suite.CreateSequencerByPubkey(suite.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 	suite.Require().ErrorIs(err, sequencertypes.ErrNotInitialSequencer)
 
@@ -189,12 +263,12 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		Owner:            alice,
 		RollappId:        rollappId,
 		InitialSequencer: addrInit,
-		GenesisChecksum:  "checksum1",
+		GenesisInfo:      types.GenesisInfo{GenesisChecksum: "checksum1"},
 	})
 	suite.Require().NoError(err)
 
-	// 4. register sequencer (initial) - should be proposer; rollapp should be sealed
-	// from this point on, the rollapp is sealed and immutable fields cannot be updated
+	// 4. register sequencer (initial) - should be proposer; rollapp should be launched
+	// from this point on, the rollapp is launched and immutable fields cannot be updated
 	err = suite.CreateSequencerByPubkey(suite.Ctx, rollappId, initSeqPubKey)
 	suite.Require().NoError(err)
 	initSeq, ok := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addrInit)
@@ -204,15 +278,15 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	suite.Require().Equal(initSeq, proposer)
 	rollapp, ok := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappId)
 	suite.Require().True(ok)
-	suite.Require().True(rollapp.Sealed)
+	suite.Require().True(rollapp.Launched)
 
-	// 5. try to update rollapp immutable fields - should fail because rollapp is sealed
+	// 5. try to update rollapp immutable fields - should fail because rollapp is launched
 	_, err = suite.msgServer.UpdateRollappInformation(suite.Ctx, &types.MsgUpdateRollappInformation{
-		Owner:           alice,
-		RollappId:       rollappId,
-		GenesisChecksum: "checksum2",
+		Owner:            alice,
+		RollappId:        rollappId,
+		InitialSequencer: "new",
 	})
-	suite.Require().ErrorIs(err, types.ErrImmutableFieldUpdateAfterSealed)
+	suite.Require().ErrorIs(err, types.ErrImmutableFieldUpdateAfterLaunched)
 
 	// 6. register another sequencer - should not be proposer
 	newSeqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)

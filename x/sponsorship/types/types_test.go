@@ -31,12 +31,12 @@ func TestValidateGaugeWeights(t *testing.T) {
 		{
 			name: "Weight > 100",
 			input: []types.GaugeWeight{
-				{GaugeId: 15, Weight: math.NewInt(101)},
-				{GaugeId: 10, Weight: math.NewInt(30)},
-				{GaugeId: 12, Weight: math.NewInt(10)},
+				{GaugeId: 15, Weight: types.DYM.MulRaw(101)},
+				{GaugeId: 10, Weight: types.DYM.MulRaw(30)},
+				{GaugeId: 12, Weight: types.DYM.MulRaw(10)},
 			},
 			errorIs:       types.ErrInvalidGaugeWeight,
-			errorContains: "weight must be <= 100",
+			errorContains: "weight must be <= 100 * 10^18, got 101000000000000000000",
 		},
 		{
 			name: "Weight < 0",
@@ -59,14 +59,14 @@ func TestValidateGaugeWeights(t *testing.T) {
 			errorContains: "weight must be > 0",
 		},
 		{
-			name: "Sum of weighs > 100",
+			name: "Sum of weighs > 100 * 10^18",
 			input: []types.GaugeWeight{
-				{GaugeId: 15, Weight: math.NewInt(60)},
-				{GaugeId: 10, Weight: math.NewInt(30)},
-				{GaugeId: 12, Weight: math.NewInt(20)},
+				{GaugeId: 15, Weight: types.DYM.MulRaw(60)},
+				{GaugeId: 10, Weight: types.DYM.MulRaw(30)},
+				{GaugeId: 12, Weight: types.DYM.MulRaw(20)},
 			},
 			errorIs:       types.ErrInvalidGaugeWeight,
-			errorContains: "total weight must be less than 100, got 110",
+			errorContains: "total weight must be less than 100 * 10^18, got 110000000000000000000",
 		},
 		{
 			name: "Valid, sum of weighs < 100",
@@ -212,17 +212,17 @@ func TestValidateVote(t *testing.T) {
 			errorContains: "",
 		},
 		{
-			name: "Invalid weights: weight > 100",
+			name: "Invalid weights: weight > 100 * 10^18",
 			input: types.Vote{
 				VotingPower: math.NewInt(1000),
 				Weights: []types.GaugeWeight{
-					{GaugeId: 15, Weight: math.NewInt(101)},
-					{GaugeId: 10, Weight: math.NewInt(30)},
-					{GaugeId: 12, Weight: math.NewInt(10)},
+					{GaugeId: 15, Weight: types.DYM.MulRaw(101)},
+					{GaugeId: 10, Weight: types.DYM.MulRaw(30)},
+					{GaugeId: 12, Weight: types.DYM.MulRaw(10)},
 				},
 			},
 			errorIs:       types.ErrInvalidVote,
-			errorContains: "weight must be <= 100",
+			errorContains: "weight must be <= 100 * 10^18",
 		},
 	}
 
@@ -251,12 +251,12 @@ func TestApplyWeights(t *testing.T) {
 		expected types.Distribution
 	}{
 		{
-			name:  "Positive power, sum weights == 1",
+			name:  "Positive power, sum weights == 100%",
 			power: math.NewInt(1000),
 			weights: []types.GaugeWeight{
-				{GaugeId: 15, Weight: math.NewInt(60)},
-				{GaugeId: 10, Weight: math.NewInt(30)},
-				{GaugeId: 12, Weight: math.NewInt(10)},
+				{GaugeId: 15, Weight: types.DYM.MulRaw(60)},
+				{GaugeId: 10, Weight: types.DYM.MulRaw(30)},
+				{GaugeId: 12, Weight: types.DYM.MulRaw(10)},
 			},
 			expected: types.Distribution{
 				VotingPower: math.NewInt(1000),
@@ -268,12 +268,12 @@ func TestApplyWeights(t *testing.T) {
 			},
 		},
 		{
-			name:  "Positive power, sum weights < 1",
+			name:  "Positive power, sum weights < 100%",
 			power: math.NewInt(1000),
 			weights: []types.GaugeWeight{
-				{GaugeId: 15, Weight: math.NewInt(30)},
-				{GaugeId: 10, Weight: math.NewInt(20)},
-				{GaugeId: 12, Weight: math.NewInt(10)},
+				{GaugeId: 15, Weight: types.DYM.MulRaw(30)},
+				{GaugeId: 10, Weight: types.DYM.MulRaw(20)},
+				{GaugeId: 12, Weight: types.DYM.MulRaw(10)},
 			},
 			expected: types.Distribution{
 				VotingPower: math.NewInt(1000),
@@ -285,12 +285,12 @@ func TestApplyWeights(t *testing.T) {
 			},
 		},
 		{
-			name:  "Negative power, sum weights == 1",
+			name:  "Negative power, sum weights == 100%",
 			power: math.NewInt(-1000),
 			weights: []types.GaugeWeight{
-				{GaugeId: 15, Weight: math.NewInt(60)},
-				{GaugeId: 10, Weight: math.NewInt(30)},
-				{GaugeId: 12, Weight: math.NewInt(10)},
+				{GaugeId: 15, Weight: types.DYM.MulRaw(60)},
+				{GaugeId: 10, Weight: types.DYM.MulRaw(30)},
+				{GaugeId: 12, Weight: types.DYM.MulRaw(10)},
 			},
 			expected: types.Distribution{
 				VotingPower: math.NewInt(-1000),

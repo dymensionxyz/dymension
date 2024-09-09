@@ -30,7 +30,7 @@ func (s *KeeperTestSuite) TestMsgVote() {
 	}{
 		{
 			name:      "Valid, 1 voter, empty initial",
-			params:    types.DefaultParams(),
+			params:    DefaultTestParams(),
 			numGauges: 2,
 			delegations: []delegation{
 				{
@@ -42,8 +42,8 @@ func (s *KeeperTestSuite) TestMsgVote() {
 				{
 					Voter: addr[0].String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(30)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(30)},
 					},
 				},
 			},
@@ -60,7 +60,7 @@ func (s *KeeperTestSuite) TestMsgVote() {
 		},
 		{
 			name:      "Valid, 1 voter, non-empty initial",
-			params:    types.DefaultParams(),
+			params:    DefaultTestParams(),
 			numGauges: 2,
 			delegations: []delegation{
 				{
@@ -72,8 +72,8 @@ func (s *KeeperTestSuite) TestMsgVote() {
 				{
 					Voter: addr[0].String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(30)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(30)},
 					},
 				},
 			},
@@ -96,7 +96,7 @@ func (s *KeeperTestSuite) TestMsgVote() {
 		},
 		{
 			name:      "Valid, 3 voters, non-empty initial",
-			params:    types.DefaultParams(),
+			params:    DefaultTestParams(),
 			numGauges: 3,
 			delegations: []delegation{
 				{
@@ -117,24 +117,24 @@ func (s *KeeperTestSuite) TestMsgVote() {
 				{
 					Voter: addr[0].String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 3, Weight: math.NewInt(40)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 3, Weight: types.DYM.MulRaw(40)},
 					},
 				},
 				// [gauge1,  0%] [gauge2, 30%] [gauge3, 20%] power = 1_000_000
 				{
 					Voter: addr[1].String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 2, Weight: math.NewInt(30)},
-						{GaugeId: 3, Weight: math.NewInt(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(30)},
+						{GaugeId: 3, Weight: types.DYM.MulRaw(20)},
 					},
 				},
 				// [gauge1, 40%] [gauge2, 20%] [gauge3,  0%] power = 1_000_000
 				{
 					Voter: addr[2].String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(40)},
-						{GaugeId: 2, Weight: math.NewInt(20)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(40)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(20)},
 					},
 				},
 			},
@@ -159,7 +159,7 @@ func (s *KeeperTestSuite) TestMsgVote() {
 		},
 		{
 			name:      "Voter re-votes",
-			params:    types.DefaultParams(),
+			params:    DefaultTestParams(),
 			numGauges: 2,
 			delegations: []delegation{
 				{
@@ -171,15 +171,15 @@ func (s *KeeperTestSuite) TestMsgVote() {
 				{
 					Voter: addr[0].String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(30)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(30)},
 					},
 				},
 				{
 					Voter: addr[0].String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(50)},
-						{GaugeId: 2, Weight: math.NewInt(40)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(50)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(40)},
 					},
 				},
 			},
@@ -202,7 +202,7 @@ func (s *KeeperTestSuite) TestMsgVote() {
 		},
 		{
 			name:      "Unknown gauge",
-			params:    types.DefaultParams(),
+			params:    DefaultTestParams(),
 			numGauges: 1,
 			delegations: []delegation{
 				{
@@ -214,8 +214,8 @@ func (s *KeeperTestSuite) TestMsgVote() {
 				{
 					Voter: addr[0].String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(30)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(30)},
 					},
 				},
 			},
@@ -237,7 +237,7 @@ func (s *KeeperTestSuite) TestMsgVote() {
 		{
 			name: "Weight is less than the min allocation",
 			params: types.Params{
-				MinAllocationWeight: math.NewInt(30),
+				MinAllocationWeight: types.DYM.MulRaw(30),
 				MinVotingPower:      types.DefaultMinVotingPower,
 			},
 			numGauges: 2,
@@ -251,8 +251,8 @@ func (s *KeeperTestSuite) TestMsgVote() {
 				{
 					Voter: addr[0].String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(30)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(30)},
 					},
 				},
 			},
@@ -271,7 +271,7 @@ func (s *KeeperTestSuite) TestMsgVote() {
 				},
 			},
 			expectErr:     true,
-			errorContains: "gauge weight '20' is less than min allocation weight '30'",
+			errorContains: "gauge weight '20000000000000000000' is less than min allocation weight '30000000000000000000'",
 		},
 		{
 			name: "Not enough voting power",
@@ -290,8 +290,8 @@ func (s *KeeperTestSuite) TestMsgVote() {
 				{
 					Voter: addr[0].String(),
 					Weights: []types.GaugeWeight{
-						{GaugeId: 1, Weight: math.NewInt(20)},
-						{GaugeId: 2, Weight: math.NewInt(30)},
+						{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+						{GaugeId: 2, Weight: types.DYM.MulRaw(30)},
 					},
 				},
 			},
@@ -403,8 +403,8 @@ func (s *KeeperTestSuite) TestMsgRevokeVote() {
 			vote: types.MsgVote{
 				Voter: addr[0].String(),
 				Weights: []types.GaugeWeight{
-					{GaugeId: 1, Weight: math.NewInt(20)},
-					{GaugeId: 2, Weight: math.NewInt(30)},
+					{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
+					{GaugeId: 2, Weight: types.DYM.MulRaw(30)},
 				},
 			},
 			expectErr:     false,
