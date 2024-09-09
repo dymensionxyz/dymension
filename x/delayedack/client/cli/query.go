@@ -1,16 +1,12 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
-	// "strings"
-
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cobra"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -41,11 +37,13 @@ func CmdQueryParams() *cobra.Command {
 		Short: "shows the parameters of the module",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
+			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -70,10 +68,6 @@ func CmdGetPacketsByRollapp() *cobra.Command {
 		packets rollapp1 PENDING RECV`,
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-
-			queryClient := types.NewQueryClient(clientCtx)
-
 			rollappId := args[0]
 
 			req := &types.QueryRollappPacketsRequest{
@@ -105,6 +99,12 @@ func CmdGetPacketsByRollapp() *cobra.Command {
 				req.Type = commontypes.RollappPacket_Type(dtype)
 			}
 
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
 			res, err := queryClient.GetPackets(cmd.Context(), req)
 			if err != nil {
 				return err
@@ -129,9 +129,6 @@ func CmdGetPacketsByStatus() *cobra.Command {
 		packets-by-status finalized recv`,
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewQueryClient(clientCtx)
-
 			statusStr := strings.ToUpper(args[0])
 			status, ok := commontypes.Status_value[statusStr]
 			if !ok {
@@ -154,6 +151,12 @@ func CmdGetPacketsByStatus() *cobra.Command {
 				}
 				req.Type = commontypes.RollappPacket_Type(dtype)
 			}
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.GetPackets(cmd.Context(), req)
 			if err != nil {
@@ -179,9 +182,6 @@ func CmdGetPacketsByType() *cobra.Command {
 		packets-by-type on_timeout`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewQueryClient(clientCtx)
-
 			typeStr := strings.ToUpper(args[0])
 
 			if !strings.HasPrefix(typeStr, "ON_") {
@@ -197,6 +197,12 @@ func CmdGetPacketsByType() *cobra.Command {
 				Type:   commontypes.RollappPacket_Type(dtype),
 				Status: commontypes.Status_PENDING, // get pending packets by default
 			}
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.GetPackets(cmd.Context(), req)
 			if err != nil {
