@@ -1,10 +1,12 @@
 package ante
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibcclienttypes.MsgUpdateClient) error {
@@ -23,9 +25,14 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	if canonicalClient != msg.ClientId {
 		return nil // The client is not a rollapp's canonical client. Continue with default behaviour.
 	}
+
 	clientMessage, err := ibcclienttypes.UnpackClientMessage(msg.ClientMessage)
 	if err != nil {
 		return nil
+	}
+	_, ok = clientMessage.(*ibctm.Misbehaviour)
+	if ok {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "misbehavior evidence is disabled for canonical clients")
 	}
 	header, ok := clientMessage.(*ibctm.Header)
 	if !ok {
