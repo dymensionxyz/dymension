@@ -8,32 +8,37 @@ type InsertionOrdered[K comparable, V any] struct {
 	data    *List[V]
 }
 
-func NewInsertionOrdered[K comparable, V any](key func(V) K) *InsertionOrdered[K, V] {
+func NewInsertionOrdered[K comparable, V any](key func(V) K, initial ...V) *InsertionOrdered[K, V] {
 	cache := &InsertionOrdered[K, V]{
 		dataIdx: make(map[K]*Node[V], 0),
 		key:     key,
 		data:    NewList[V](),
 	}
+	cache.AddMultiple(initial...)
 	return cache
 }
 
 func (c *InsertionOrdered[K, V]) Reset(values ...V) {
 	c.dataIdx = make(map[K]*Node[V], len(values))
 	c.data = NewList[V]()
-	c.add(values...)
+	c.AddMultiple(values...)
 }
 
-func (c *InsertionOrdered[K, V]) Add(values ...V) {
-	c.add(values...)
-}
-
-func (c *InsertionOrdered[K, V]) add(values ...V) {
-	for _, value := range values {
-		key := c.key(value)
-		if value, ok := c.dataIdx[key]; ok {
-			value.Delete()
-		}
+func (c *InsertionOrdered[K, V]) Add(value V) {
+	key := c.key(value)
+	v, ok := c.dataIdx[key]
+	if ok {
+		// if the value is present, just update it
+		v.elem = value
+	} else {
+		// otherwise, create a new one
 		c.dataIdx[key] = c.data.Insert(value)
+	}
+}
+
+func (c *InsertionOrdered[K, V]) AddMultiple(values ...V) {
+	for _, value := range values {
+		c.Add(value)
 	}
 }
 

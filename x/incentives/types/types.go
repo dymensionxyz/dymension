@@ -12,9 +12,8 @@ func NewDenomLocksCache() DenomLocksCache {
 	return make(DenomLocksCache)
 }
 
-func (g Gauge) AddCoins(coins sdk.Coins) Gauge {
+func (g *Gauge) AddCoins(coins sdk.Coins) {
 	g.Coins = g.Coins.Add(coins...)
-	return g
 }
 
 func (g Gauge) Key() uint64 {

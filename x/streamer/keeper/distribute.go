@@ -32,10 +32,11 @@ func (k Keeper) Distribute(
 
 	// Total iterations counter
 	totalIterations := uint64(0)
+	totalDistributed := sdk.NewCoins()
 
 	// Init helper caches
-	streamCache := cache.NewDistribution(streams, types.Stream.AddCoins, types.Stream.Key)
-	gaugeCache := cache.NewDistribution(nil, incentivestypes.Gauge.AddCoins, incentivestypes.Gauge.Key)
+	streamCache := cache.NewInsertionOrdered(types.Stream.Key, streams...)
+	gaugeCache := cache.NewInsertionOrdered(incentivestypes.Gauge.Key)
 
 	// Cache specific for asset gauges. Helps reduce the number of x/lockup requests.
 	denomLockCache := incentivestypes.NewDenomLocksCache()
@@ -48,9 +49,10 @@ func (k Keeper) Distribute(
 		remainIterations := maxIterations - totalIterations // always positive
 
 		// Calculate rewards and fill caches
-		newPointer, iters := k.CalculateRewards(ctx, p, remainIterations, streamCache, gaugeCache, denomLockCache)
+		distrCoins, newPointer, iters := k.CalculateRewards(ctx, p, remainIterations, streamCache, gaugeCache, denomLockCache)
 
 		totalIterations += iters
+		totalDistributed = totalDistributed.Add(distrCoins...)
 
 		err = k.SaveEpochPointer(ctx, newPointer)
 		if err != nil {
@@ -59,13 +61,13 @@ func (k Keeper) Distribute(
 	}
 
 	// Send coins to distribute to the x/incentives module
-	err = k.bk.SendCoinsFromModuleToModule(ctx, types.ModuleName, incentivestypes.ModuleName, streamCache.TotalDistrCoins())
+	err = k.bk.SendCoinsFromModuleToModule(ctx, types.ModuleName, incentivestypes.ModuleName, totalDistributed)
 	if err != nil {
 		return nil, 0, fmt.Errorf("send coins: %w", err)
 	}
 
 	// Distribute the rewards
-	_, err = k.ik.Distribute(ctx, gaugeCache.GetValues(), denomLockCache, epochEnd)
+	_, err = k.ik.Distribute(ctx, gaugeCache.GetAll(), denomLockCache, epochEnd)
 	if err != nil {
 		return nil, 0, fmt.Errorf("distribute: %w", err)
 	}
@@ -92,7 +94,7 @@ func (k Keeper) Distribute(
 		return nil, 0, rangeErr
 	}
 
-	return streamCache.TotalDistrCoins(), totalIterations, nil
+	return totalDistributed, totalIterations, nil
 }
 
 // CalculateGaugeRewards calculates the rewards to be distributed for a specific gauge based on the provided
@@ -135,23 +137,26 @@ func (k Keeper) CalculateGaugeRewards(ctx sdk.Context, coins sdk.Coins, record t
 
 // CalculateRewards calculates rewards for streams and corresponding gauges. Is starts processing gauges from
 // the specified pointer and considering the limit. This method doesn't have any state updates, it only
-// calculates rewards and fills respective caches. Returns a new pointer and the num of iterations done.
+// calculates rewards and fills respective caches.
+// Returns a new pointer, total distr coins, and the num of iterations.
 func (k Keeper) CalculateRewards(
 	ctx sdk.Context,
 	pointer types.EpochPointer,
 	limit uint64,
-	streamCache *cache.Distribution[uint64, types.Stream],
-	gaugeCache *cache.Distribution[uint64, incentivestypes.Gauge],
+	streamCache *cache.InsertionOrdered[uint64, types.Stream],
+	gaugeCache *cache.InsertionOrdered[uint64, incentivestypes.Gauge],
 	denomLocksCache incentivestypes.DenomLocksCache,
-) (newPointer types.EpochPointer, iterations uint64) {
-	return IterateEpochPointer(pointer, streamCache.GetValues(), limit, func(v StreamGauge) (stop bool, weight uint64) {
+) (distributedCoins sdk.Coins, newPointer types.EpochPointer, iterations uint64) {
+	distributedCoins = sdk.NewCoins()
+	pointer, iterations = IterateEpochPointer(pointer, streamCache.GetAll(), limit, func(v StreamGauge) (stop bool, weight uint64) {
+		// get stream from the cache since we need to use the last updated version
 		stream, found := streamCache.Get(v.Stream.Id)
 		if !found {
 			// this should never happen in practice since the initial cache contains all gauges we are iterating
 			panic(fmt.Errorf("internal contract error: stream '%d' not found in the cache!", stream.Id))
 		}
 
-		// first, check the gauge in the cache
+		// get gauge from the cache since we need to use the last updated version=
 		gauge, found := gaugeCache.Get(v.Gauge.GaugeId)
 		if !found {
 			// validate the gauge exists
@@ -182,14 +187,22 @@ func (k Keeper) CalculateRewards(
 			return false, 0 // continue, weight = 0, consider this operation as it is free
 		}
 
-		// Update distributed coins for the stream
-		streamCache.AddValueWithCoins(stream, rewards)
-		gauge = gaugeCache.AddValueWithCoins(gauge, rewards)
+		// update distributed coins for the stream
+		stream.AddDistributedCoins(rewards)
+		streamCache.Add(stream)
 
+		// update distributed coins for the gauge
+		gauge.AddCoins(rewards)
+		gaugeCache.Add(gauge)
+
+		// get gauge weight and update denomLocksCache under the hood
 		weight = k.getGaugeWeight(ctx, gauge, denomLocksCache)
+
+		distributedCoins = distributedCoins.Add(rewards...)
 
 		return false, weight
 	})
+	return distributedCoins, pointer, iterations
 }
 
 // getActiveGaugeByID returns the active gauge with the given ID from the keeper.

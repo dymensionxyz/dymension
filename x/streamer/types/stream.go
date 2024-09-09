@@ -41,9 +41,8 @@ func (stream Stream) IsFinishedStream(curTime time.Time) bool {
 	return !stream.IsUpcomingStream(curTime) && !stream.IsActiveStream(curTime)
 }
 
-func (stream Stream) AddCoins(coins sdk.Coins) Stream {
+func (stream *Stream) AddDistributedCoins(coins sdk.Coins) {
 	stream.DistributedCoins = stream.DistributedCoins.Add(coins...)
-	return stream
 }
 
 func (stream Stream) Key() uint64 {
