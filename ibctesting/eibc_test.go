@@ -10,6 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -419,7 +420,7 @@ func (s *eibcSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 				// 4. Finalize the rollapp state and validate the demand order fulfiller balance is updated with the amount.
 
 				// return an err ack
-				ack := channeltypes.NewErrorAcknowledgement(errors.New("foobar"))
+				ack := uevent.NewErrorAcknowledgement(s.hubCtx(), errors.New("foobar"))
 				err := rollappEndpoint.WriteAcknowledgement(ack, packet)
 				s.Require().NoError(err)
 				err = hubEndpoint.AcknowledgePacket(packet, ack.Acknowledgement())

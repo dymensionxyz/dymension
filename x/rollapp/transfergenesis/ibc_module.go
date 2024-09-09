@@ -5,26 +5,21 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	"github.com/dymensionxyz/sdk-utils/utils/uibc"
-
-	"github.com/cometbft/cometbft/libs/log"
-
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-
 	errorsmod "cosmossdk.io/errors"
-
+	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+	"github.com/dymensionxyz/sdk-utils/utils/uibc"
+
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
@@ -116,7 +111,7 @@ func (w IBCModule) OnRecvPacket(
 	transfer, err := w.rollappKeeper.GetValidTransfer(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
 	if err != nil {
 		l.Error("Get valid transfer from received packet", "err", err)
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "transfer genesis: get valid transfer"))
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: get valid transfer"))
 	}
 
 	if !transfer.IsRollapp() {
@@ -133,7 +128,7 @@ func (w IBCModule) OnRecvPacket(
 		isGenesisTransfer = false
 	} else if err != nil {
 		l.Error("Get memo.", "err", err)
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "get memo"))
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "get memo"))
 	}
 
 	// handle cases where genesis transfer is not expected (post genesis / no IRO plan)
@@ -142,7 +137,7 @@ func (w IBCModule) OnRecvPacket(
 		if isGenesisTransfer {
 			l.Error("Genesis transfer not expected.")
 			_ = w.handleDRSViolation(ctx, ra.RollappId)
-			return channeltypes.NewErrorAcknowledgement(ErrDisabled)
+			return uevent.NewErrorAcknowledgement(ctx, ErrDisabled)
 		}
 
 		// first transfer when genesis transfer is not required should enable transfers
@@ -150,7 +145,7 @@ func (w IBCModule) OnRecvPacket(
 			err := w.EnableTransfers(ctx, ra.RollappId, transfer.Denom)
 			if err != nil {
 				l.Error("Enable transfers.", "err", err)
-				return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "transfer genesis: enable transfers"))
+				return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: enable transfers"))
 			}
 		}
 
@@ -161,7 +156,7 @@ func (w IBCModule) OnRecvPacket(
 	/* ------------------------ genesis transfer required ----------------------- */
 	if !isGenesisTransfer {
 		l.Error("genesis transfer required.")
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer required"))
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer required"))
 	}
 
 	// handle genesis transfer by the IRO keeper
@@ -171,13 +166,13 @@ func (w IBCModule) OnRecvPacket(
 	err = w.validateGenesisTransfer(plan, transfer, memo.Denom)
 	if err != nil {
 		l.Error("Validate IRO plan.", "err", err)
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "validate IRO plan"))
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "validate IRO plan"))
 	}
 
 	err = w.registerDenomMetadata(ctx, ra.RollappId, ra.ChannelId, memo.Denom)
 	if err != nil {
 		l.Error("Register denom metadata.", "err", err)
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "transfer genesis: register denom metadata"))
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: register denom metadata"))
 	}
 
 	// set the ctx to skip delayedack etc because we want the transfer to happen immediately
@@ -185,12 +180,12 @@ func (w IBCModule) OnRecvPacket(
 	// if the ack is nil, we return an error as we expect immediate ack
 	if ack == nil {
 		l.Error("Expected immediate ack for genesis transfer.")
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(gerrc.ErrInternal, "transfer genesis: OnRecvPacket"))
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(gerrc.ErrInternal, "transfer genesis: OnRecvPacket"))
 	}
 	err = w.EnableTransfers(ctx, ra.RollappId, transfer.Denom)
 	if err != nil {
 		l.Error("Enable transfers.", "err", err)
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "transfer genesis: enable transfers"))
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: enable transfers"))
 	}
 	return ack
 }
