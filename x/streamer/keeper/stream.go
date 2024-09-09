@@ -4,11 +4,55 @@ import (
 	"fmt"
 	"sort"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
+
+// UpdateStreamAtEpochStart updates the stream for a new epoch: estimates coins that streamer will
+// distribute during this epoch and updates a sponsored distribution if needed.
+func (k Keeper) UpdateStreamAtEpochStart(ctx sdk.Context, stream types.Stream) (types.Stream, error) {
+	remainCoins := stream.Coins.Sub(stream.DistributedCoins...)
+	remainEpochs := stream.NumEpochsPaidOver - stream.FilledEpochs
+	epochCoins := remainCoins.QuoInt(math.NewIntFromUint64(remainEpochs))
+
+	// If the stream uses a sponsorship plan, query it and update stream distr info. The distribution
+	// might be empty and this is a valid scenario. In that case, we'll just skip without filling the epoch.
+	if stream.Sponsored {
+		distr, err := k.sk.GetDistribution(ctx)
+		if err != nil {
+			return types.Stream{}, fmt.Errorf("get sponsorship distribution: %w", err)
+		}
+		// Update stream distr info
+		stream.DistributeTo = types.DistrInfoFromDistribution(distr)
+	}
+
+	// Add coins to distribute during the next epoch
+	stream.EpochCoins = epochCoins
+
+	return stream, nil
+}
+
+// UpdateStreamAtEpochEnd updates the stream at the end of the epoch: increases the filled epoch number
+// and makes the stream finished if needed.
+func (k Keeper) UpdateStreamAtEpochEnd(ctx sdk.Context, stream types.Stream) (types.Stream, error) {
+	// Don't fill streams in which there's nothing to fill. This might happen when using sponsored streams.
+	if !stream.DistributeTo.TotalWeight.IsZero() {
+		stream.FilledEpochs += 1
+	}
+
+	// Check if stream has completed its distribution. This is a post factum check.
+	if stream.FilledEpochs >= stream.NumEpochsPaidOver {
+		err := k.moveActiveStreamToFinishedStream(ctx, stream)
+		if err != nil {
+			return types.Stream{}, fmt.Errorf("move active stream to finished stream: %w", err)
+		}
+	}
+
+	return stream, nil
+}
 
 // GetStreamByID returns stream from stream ID.
 func (k Keeper) GetStreamByID(ctx sdk.Context, streamID uint64) (*types.Stream, error) {

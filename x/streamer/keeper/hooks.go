@@ -97,8 +97,12 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coin
 
 	// Update streams with respect to a new epoch and save them
 	for _, s := range distrResult.FilledStreams {
+		updated, err := k.UpdateStreamAtEpochEnd(ctx, s)
+		if err != nil {
+			return sdk.Coins{}, fmt.Errorf("update stream '%d' at epoch start: %w", s.Id, err)
+		}
 		// Save the stream
-		err = k.SetStream(ctx, &s)
+		err = k.SetStream(ctx, &updated)
 		if err != nil {
 			return sdk.Coins{}, fmt.Errorf("set stream: %w", err)
 		}
