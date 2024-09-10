@@ -6,8 +6,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/spf13/cobra"
+
+	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
@@ -27,7 +28,10 @@ func CmdQueryDymName() *cobra.Command {
 				return fmt.Errorf("input is not a valid Dym-Name: %s", dymName)
 			}
 
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := dymnstypes.NewQueryClient(clientCtx)
 
 			res, err := queryClient.DymName(cmd.Context(), &dymnstypes.QueryDymNameRequest{

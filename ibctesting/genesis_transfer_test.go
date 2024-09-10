@@ -4,18 +4,19 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/stretchr/testify/suite"
-
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/stretchr/testify/suite"
+
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 type transferGenesisSuite struct {
@@ -110,7 +111,7 @@ func (s *transferGenesisSuite) TestCannotDoGenesisTransferAfterBridgeEnabled() {
 
 		if i == 2 {
 
-			expect := channeltypes.NewErrorAcknowledgement(transfergenesis.ErrDisabled)
+			expect := uevent.NewErrorAcknowledgement(s.hubCtx(), transfergenesis.ErrDisabled)
 			bz, _ := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			s.Require().Equal(channeltypes.CommitAcknowledgement(expect.Acknowledgement()), bz)
 		}

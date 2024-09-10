@@ -6,8 +6,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/spf13/cobra"
+
+	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
@@ -39,8 +40,6 @@ func CmdQuerySellOrder() *cobra.Command {
 				return fmt.Errorf("flag --%s is required", flagTargetType)
 			}
 
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := dymnstypes.NewQueryClient(clientCtx)
 			switch targetType {
 			case targetSellOrderAssetTypeDymName:
 				if !dymnsutils.IsValidDymName(input) {
@@ -53,6 +52,12 @@ func CmdQuerySellOrder() *cobra.Command {
 			default:
 				return fmt.Errorf("invalid target type: %s", targetType)
 			}
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := dymnstypes.NewQueryClient(clientCtx)
 
 			res, err := queryClient.SellOrder(cmd.Context(), &dymnstypes.QuerySellOrderRequest{
 				AssetId:   input,

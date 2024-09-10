@@ -3,14 +3,18 @@ package keeper
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 type Keeper struct {
@@ -123,4 +127,14 @@ func (k Keeper) LightClient(goCtx context.Context, req *types.QueryGetLightClien
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	id, _ := k.GetCanonicalClient(ctx, req.GetRollappId()) // if not found then empty
 	return &types.QueryGetLightClientResponse{ClientId: id}, nil
+}
+
+func (k Keeper) ExpectedClientState(goCtx context.Context, req *types.QueryExpectedClientStateRequest) (*types.QueryExpectedClientStateResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	c := k.expectedClient(ctx)
+	anyClient, err := ibcclienttypes.PackClientState(&c)
+	if err != nil {
+		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "pack client state")
+	}
+	return &types.QueryExpectedClientStateResponse{ClientState: anyClient}, nil
 }

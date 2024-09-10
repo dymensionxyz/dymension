@@ -255,7 +255,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.Int{},
+					InitialSupply:   sdk.NewInt(-1),
 				},
 			},
 			err: ErrInvalidInitialSupply,
