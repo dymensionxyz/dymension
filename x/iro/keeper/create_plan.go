@@ -48,11 +48,11 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 	}
 
 	// validate incentive plan params
-	incentivesMinParams := m.Keeper.GetParams(ctx).IncentivePlanMinimumParams
-	if req.IncentivePlanParams.NumEpochsPaidOver < incentivesMinParams.NumEpochsPaidOver {
+	params := m.Keeper.GetParams(ctx)
+	if req.IncentivePlanParams.NumEpochsPaidOver < params.IncentivesMinNumEpochsPaidOver {
 		return nil, errors.Join(gerrc.ErrFailedPrecondition, errorsmod.Wrap(types.ErrInvalidIncentivePlanParams, "num epochs paid over"))
 	}
-	if req.IncentivePlanParams.StartTimeAfterSettlement < incentivesMinParams.StartTimeAfterSettlement {
+	if req.IncentivePlanParams.StartTimeAfterSettlement < params.IncentivesMinStartTimeAfterSettlement {
 		return nil, errors.Join(gerrc.ErrFailedPrecondition, errorsmod.Wrap(types.ErrInvalidIncentivePlanParams, "start time after settlement"))
 	}
 

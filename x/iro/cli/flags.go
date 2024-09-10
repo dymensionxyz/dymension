@@ -27,7 +27,7 @@ const (
 )
 
 var (
-	defaultIncentivePlanParams_epochs = types.DefaultIncentivePlanMinimumParams.NumEpochsPaidOver
+	defaultIncentivePlanParams_epochs = types.DefaultIncentivePlanMinimumNumEpochsPaidOver
 	defaultIncentivePlanParams_start  = 7 * 24 * time.Hour
 )
 

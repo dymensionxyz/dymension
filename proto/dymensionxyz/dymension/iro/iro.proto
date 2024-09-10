@@ -22,14 +22,18 @@ message Params {
   ];
 
   // Minimum plan duration
-  // when creating a plan, the plan duration should be greater than or equal to this value
-  // plan duration is from the start time to the pre-launch time
+  // when creating a plan, the plan duration should be greater than or equal to
+  // this value plan duration is from the start time to the pre-launch time
   google.protobuf.Duration min_plan_duration = 3
       [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 
-  // Incentive plan minimum parameters
-  // when creating a plan, the incentive plan parameters should be greater than or equal to this value
-  IncentivePlanParams incentive_plan_minimum_params = 4 [ (gogoproto.nullable) = false ];
+  // The minimum time after settlement when the incentives distribution will
+  // start
+  google.protobuf.Duration incentives_min_start_time_after_settlement = 4
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+
+  // The minimum number of epochs over which the incentives will be paid
+  uint64 incentives_min_num_epochs_paid_over = 5;
 }
 
 // Bonding curve represents a bonding curve in the IRO module.
@@ -51,7 +55,6 @@ message BondingCurve {
   ];
 }
 
-
 // Plan represents a plan in the IRO module.
 message Plan {
   // The ID of the plan.
@@ -70,7 +73,8 @@ message Plan {
 
   BondingCurve bonding_curve = 5 [ (gogoproto.nullable) = false ];
 
-  // If set, the plan is settled, and the minted allocated tokens can be claimed for this settled_denom
+  // If set, the plan is settled, and the minted allocated tokens can be claimed
+  // for this settled_denom
   string settled_denom = 6;
 
   // The start time of the plan.
@@ -93,8 +97,10 @@ message Plan {
     (gogoproto.nullable) = false
   ];
 
-  // The incentive plan parameters for the tokens left after the plan is settled.
-  IncentivePlanParams incentive_plan_params = 11 [ (gogoproto.nullable) = false ];
+  // The incentive plan parameters for the tokens left after the plan is
+  // settled.
+  IncentivePlanParams incentive_plan_params = 11
+      [ (gogoproto.nullable) = false ];
 }
 
 message IncentivePlanParams {
