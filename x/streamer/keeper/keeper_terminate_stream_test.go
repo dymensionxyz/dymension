@@ -4,7 +4,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -108,17 +107,16 @@ func (suite *KeeperTestSuite) TestTerminateStream_ModuleDistributedCoins() {
 	coinUpcoming := sdk.NewInt64Coin("stake", 10000)
 	coinActive := coinUpcoming
 
-	err := suite.CreateGauge()
-	suite.Require().NoError(err)
-	err = suite.CreateGauge()
-	suite.Require().NoError(err)
+	suite.CreateGauges(2)
 
 	// create upcoming stream
 	id1, _ := suite.CreateStream(defaultDistrInfo, sdk.Coins{coinUpcoming}, time.Now().Add(10*time.Minute), "day", 30)
 
 	// create active stream
-	id2, stream2 := suite.CreateStream(defaultDistrInfo, sdk.Coins{coinActive}, time.Time{}, "day", 10)
-	err = suite.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream2)
+	id2, _ := suite.CreateStream(defaultDistrInfo, sdk.Coins{coinActive}, time.Time{}, "day", 10)
+
+	// simulate the epoch start: activate the stream
+	err := suite.App.StreamerKeeper.BeforeEpochStart(suite.Ctx, "day")
 	suite.Require().NoError(err)
 
 	toDist := suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
@@ -134,9 +132,10 @@ func (suite *KeeperTestSuite) TestTerminateStream_ModuleDistributedCoins() {
 	toDist = suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
 	suite.Require().Equal(sdk.ZeroInt(), toDist.AmountOf("stake"))
 
-	distributed, err := suite.App.StreamerKeeper.Distribute(suite.Ctx, []types.Stream{*stream2})
+	// simulate the epoch end
+	distributed, err := suite.App.StreamerKeeper.AfterEpochEnd(suite.Ctx, "day")
 	suite.Require().NoError(err)
-	suite.Require().True(distributed.AmountOf("stake").IsPositive())
+	suite.Require().Empty(distributed)
 
 	/* ---------------------- check ModuleDistributedCoins ---------------------- */
 	expectedDist := suite.App.StreamerKeeper.GetModuleDistributedCoins(suite.Ctx)
