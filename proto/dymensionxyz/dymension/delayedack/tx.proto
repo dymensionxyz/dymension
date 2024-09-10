@@ -1,10 +1,8 @@
 syntax = "proto3";
 package dymensionxyz.dymension.delayedack;
 
-import "gogoproto/gogo.proto";
-import "cosmos_proto/cosmos.proto";
 import "cosmos/msg/v1/msg.proto";
-import "dymensionxyz/dymension/sponsorship/sponsorship.proto";
+import "dymensionxyz/dymension/common/rollapp_packet.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
 
@@ -12,19 +10,43 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
 service Msg {
   option (cosmos.msg.v1.service) = true;
 
-  // FinalizePacket is used to finalize a packet.
+  // FinalizePacket finalizes a singe packet.
   rpc FinalizePacket(MsgFinalizePacket) returns (MsgFinalizePacketResponse);
+
+  // FinalizePacketsUntilHeight finalizes packets for the given rollapp until the given height.
+  rpc FinalizePacketsUntilHeight(MsgFinalizePacketsUntilHeight) returns (MsgFinalizePacketsUntilHeightResponse);
 }
 
-// MsgFinalizePacket is used to finalize a packet.
+// MsgFinalizePacket finalizes a single packet.
 message MsgFinalizePacket {
   option (cosmos.msg.v1.signer) = "sender";
 
+  // Sender is the signer of the message.
   string sender = 1;
+  // RollappID is the ID of the rollapp.
   string rollapp_id = 2;
-  string packet_type = 3;
-  string packet_src_channel = 4;
-  string packet_sequence = 5;
+  // PacketProofHeight is a height at which the proof was retrieved.
+  uint64 packet_proof_height = 3;
+  // PacketType is a type of the packet. Eg, RECV, ACK, TIMEOUT.
+  dymensionxyz.dymension.common.RollappPacket.Type packet_type = 4;
+  // PacketSrcChannel identifies the channel end on the sending chain.
+  string packet_src_channel = 5;
+  // PacketSequence is a sequence number of the packet.
+  uint64 packet_sequence = 6;
 }
 
 message MsgFinalizePacketResponse {}
+
+// MsgFinalizePacketsUntilHeight finalizes packets for the given rollapp until the given height.
+message MsgFinalizePacketsUntilHeight {
+  option (cosmos.msg.v1.signer) = "sender";
+
+  // Sender is the signer of the message.
+  string sender = 1;
+  // RollappID is the ID of the rollapp.
+  string rollapp_id = 2;
+  // Height is a height until which packets are to be finalized.
+  uint64 height = 3;
+}
+
+message MsgFinalizePacketsUntilHeightResponse {}

@@ -92,13 +92,13 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 	keeper keeper.Keeper
-	ibc    IBCMiddleware // x/delayedack IBC module
+	ibc    *IBCMiddleware // x/delayedack IBC module
 }
 
 func NewAppModule(
 	cdc codec.Codec,
 	keeper keeper.Keeper,
-	ibc IBCMiddleware,
+	ibc *IBCMiddleware,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),

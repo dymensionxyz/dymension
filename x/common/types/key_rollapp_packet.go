@@ -32,11 +32,30 @@ var (
 // AckPacket with sequence 1 (originated on the hub) and OnRecvPacket with sequence 1 (originated on the rollapp).
 // Adding the packet type guarantees uniqueness as the type differentiates the source.
 func RollappPacketKey(rollappPacket *RollappPacket) []byte {
+	return RollappPacketKey1(
+		rollappPacket.Status,
+		rollappPacket.RollappId,
+		rollappPacket.ProofHeight,
+		rollappPacket.Type,
+		rollappPacket.Packet.SourceChannel,
+		rollappPacket.Packet.Sequence,
+	)
+}
+
+// RollappPacketKey1 is an alternative override for RollappPacketKey.
+func RollappPacketKey1(
+	status Status,
+	rollappID string,
+	proofHeight uint64,
+	packetType RollappPacket_Type,
+	packetSrcChannel string,
+	packetSequence uint64,
+) []byte {
 	// Get the bytes rep
-	srppPrefix := RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappPacket.RollappId, rollappPacket.Status, rollappPacket.ProofHeight)
-	packetTypeBytes := []byte(rollappPacket.Type.String())
-	packetSequenceBytes := sdk.Uint64ToBigEndian(rollappPacket.Packet.Sequence)
-	packetSourceChannelBytes := []byte(rollappPacket.Packet.SourceChannel)
+	srppPrefix := RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappID, status, proofHeight)
+	packetTypeBytes := []byte(packetType.String())
+	packetSequenceBytes := sdk.Uint64ToBigEndian(packetSequence)
+	packetSourceChannelBytes := []byte(packetSrcChannel)
 	// Construct the key
 	result := append(srppPrefix, keySeparatorBytes...)
 	result = append(result, packetTypeBytes...)
@@ -44,7 +63,6 @@ func RollappPacketKey(rollappPacket *RollappPacket) []byte {
 	result = append(result, packetSourceChannelBytes...)
 	result = append(result, keySeparatorBytes...)
 	result = append(result, packetSequenceBytes...)
-
 	return result
 }
 

@@ -16,7 +16,7 @@ import (
 )
 
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is
-// the end height of the latest finalized state
+// the end height of the latest finalized state.
 func (k Keeper) FinalizeRollappPackets(ctx sdk.Context, ibc porttypes.IBCModule, rollappID string, stateEndHeight uint64) error {
 	rollappPendingPackets := k.ListRollappPackets(ctx, types.PendingByRollappIDByMaxHeight(rollappID, stateEndHeight))
 	if len(rollappPendingPackets) == 0 {
@@ -36,22 +36,34 @@ func (k Keeper) FinalizeRollappPackets(ctx sdk.Context, ibc porttypes.IBCModule,
 	return nil
 }
 
-func (k Keeper) FinalizeRollappPacket(ctx sdk.Context, ibc porttypes.IBCModule, rollappID string, stateEndHeight uint64) error {
-	rollappPendingPackets := k.ListRollappPackets(ctx, types.PendingByRollappIDByMaxHeight(rollappID, stateEndHeight))
-	if len(rollappPendingPackets) == 0 {
-		return nil
+// FinalizeRollappPacket finalizes a singe packet by its rollapp packet key.
+func (k Keeper) FinalizeRollappPacket(ctx sdk.Context, ibc porttypes.IBCModule, rollappID string, rollappPacketKey string) error {
+	packet, err := k.GetRollappPacket(ctx, rollappPacketKey)
+	if err != nil {
+		return fmt.Errorf("get rollapp packet: %w", err)
 	}
+
+	latestIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollappID)
+	if !found {
+		return fmt.Errorf("latest finalized state index for rollapp %s is not found", rollappID)
+	}
+
+	stateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollappID, latestIndex.Index)
+	if !found {
+		return fmt.Errorf("stateInfo for rollapp %s is not found", rollappID)
+	}
+
+	// Check the finalization height of the rollapp is higher than the packet proof.
+	if packet.ProofHeight > stateInfo.GetLatestHeight() {
+		return fmt.Errorf("packet height '%d' is not finalized yet, latest height '%d'", packet.ProofHeight, stateInfo.GetLatestHeight())
+	}
+
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
-	// Get the packets for the rollapp until height
-	logger.Debug("finalizing IBC rollapp packets",
-		"rollappID", rollappID,
-		"state end height", stateEndHeight,
-		"num packets", len(rollappPendingPackets))
-	for _, rollappPacket := range rollappPendingPackets {
-		if err := k.finalizeRollappPacket(ctx, ibc, rollappID, logger, rollappPacket); err != nil {
-			return fmt.Errorf("finalize rollapp packet: %w", err)
-		}
+	err = k.finalizeRollappPacket(ctx, ibc, rollappID, logger, *packet)
+	if err != nil {
+		return fmt.Errorf("finalize rollapp packet: %w", err)
 	}
+
 	return nil
 }
 
