@@ -14,17 +14,17 @@ func NewInsertionOrdered[K comparable, V any](key func(V) K, initial ...V) *Inse
 		key:     key,
 		data:    NewList[V](),
 	}
-	cache.AddMultiple(initial...)
+	cache.UpsertMultiple(initial...)
 	return cache
 }
 
 func (c *InsertionOrdered[K, V]) Reset(values ...V) {
 	c.dataIdx = make(map[K]*Node[V], len(values))
 	c.data = NewList[V]()
-	c.AddMultiple(values...)
+	c.UpsertMultiple(values...)
 }
 
-func (c *InsertionOrdered[K, V]) Add(value V) {
+func (c *InsertionOrdered[K, V]) Upsert(value V) {
 	key := c.key(value)
 	v, ok := c.dataIdx[key]
 	if ok {
@@ -36,9 +36,9 @@ func (c *InsertionOrdered[K, V]) Add(value V) {
 	}
 }
 
-func (c *InsertionOrdered[K, V]) AddMultiple(values ...V) {
+func (c *InsertionOrdered[K, V]) UpsertMultiple(values ...V) {
 	for _, value := range values {
-		c.Add(value)
+		c.Upsert(value)
 	}
 }
 

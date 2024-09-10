@@ -28,23 +28,23 @@ func TestOrdered(t *testing.T) {
 		t.Parallel()
 		c := cache.NewInsertionOrdered(itemKey)
 
-		c.Add(k3v1) // add one
+		c.Upsert(k3v1) // add one
 		require.Equal(t, []item{k3v1}, c.GetAll())
 		c.Reset()
 
-		c.AddMultiple(k3v1, k2v1) // add two different
+		c.UpsertMultiple(k3v1, k2v1) // add two different
 		require.Equal(t, []item{k3v1, k2v1}, c.GetAll())
 
-		c.Add(k2v2) // add existent
+		c.Upsert(k2v2) // add existent
 		require.Equal(t, []item{k3v1, k2v2}, c.GetAll())
 
-		c.Add(k3v1) // add existent
+		c.Upsert(k3v1) // add existent
 		require.Equal(t, []item{k3v1, k2v2}, c.GetAll())
 
-		c.Add(k2v1) // add existent, overwrite the value
+		c.Upsert(k2v1) // add existent, overwrite the value
 		require.Equal(t, []item{k3v1, k2v1}, c.GetAll())
 
-		c.Add(k1v1) // add one more
+		c.Upsert(k1v1) // add one more
 		require.Equal(t, []item{k3v1, k2v1, k1v1}, c.GetAll())
 
 		c.Reset()
@@ -54,7 +54,7 @@ func TestOrdered(t *testing.T) {
 		t.Parallel()
 		c := cache.NewInsertionOrdered(itemKey)
 
-		c.AddMultiple(k3v1, k1v1, k4v1, k2v1)
+		c.UpsertMultiple(k3v1, k1v1, k4v1, k2v1)
 		require.Equal(t, []item{k3v1, k1v1, k4v1, k2v1}, c.GetAll())
 
 		c.Delete(k1) // delete middle
@@ -63,7 +63,7 @@ func TestOrdered(t *testing.T) {
 		c.Delete(k2) // delete back
 		require.Equal(t, []item{k3v1, k4v1}, c.GetAll())
 
-		c.AddMultiple(k1v2, k4v1, k2v2)
+		c.UpsertMultiple(k1v2, k4v1, k2v2)
 		require.Equal(t, []item{k3v1, k4v1, k1v2, k2v2}, c.GetAll())
 
 		c.Delete(k1, k2) // delete several

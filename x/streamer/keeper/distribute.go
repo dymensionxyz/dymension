@@ -49,7 +49,7 @@ func (k Keeper) Distribute(
 		remainIterations := maxIterations - totalIterations // always positive
 
 		// Calculate rewards and fill caches
-		distrCoins, newPointer, iters := k.CalculateRewards(ctx, p, remainIterations, streamCache, gaugeCache, denomLockCache)
+		distrCoins, newPointer, iters := k.CalculateRewards(ctx, p, streams, remainIterations, streamCache, gaugeCache, denomLockCache)
 
 		totalIterations += iters
 		totalDistributed = totalDistributed.Add(distrCoins...)
@@ -142,13 +142,14 @@ func (k Keeper) CalculateGaugeRewards(ctx sdk.Context, coins sdk.Coins, record t
 func (k Keeper) CalculateRewards(
 	ctx sdk.Context,
 	pointer types.EpochPointer,
+	streams []types.Stream,
 	limit uint64,
 	streamCache *cache.InsertionOrdered[uint64, types.Stream],
 	gaugeCache *cache.InsertionOrdered[uint64, incentivestypes.Gauge],
 	denomLocksCache incentivestypes.DenomLocksCache,
 ) (distributedCoins sdk.Coins, newPointer types.EpochPointer, iterations uint64) {
 	distributedCoins = sdk.NewCoins()
-	pointer, iterations = IterateEpochPointer(pointer, streamCache.GetAll(), limit, func(v StreamGauge) (stop bool, weight uint64) {
+	pointer, iterations = IterateEpochPointer(pointer, streams, limit, func(v StreamGauge) (stop bool, weight uint64) {
 		// get stream from the cache since we need to use the last updated version
 		stream, found := streamCache.Get(v.Stream.Id)
 		if !found {
@@ -170,7 +171,7 @@ func (k Keeper) CalculateRewards(
 				return false, 0 // continue, weight = 0, consider this operation as it is free
 			}
 			// add a new gauge to the cache
-			gaugeCache.Add(gauge)
+			gaugeCache.Upsert(gauge)
 		}
 
 		rewards, err := k.CalculateGaugeRewards(
@@ -189,11 +190,11 @@ func (k Keeper) CalculateRewards(
 
 		// update distributed coins for the stream
 		stream.AddDistributedCoins(rewards)
-		streamCache.Add(stream)
+		streamCache.Upsert(stream)
 
 		// update distributed coins for the gauge
 		gauge.AddCoins(rewards)
-		gaugeCache.Add(gauge)
+		gaugeCache.Upsert(gauge)
 
 		// get gauge weight and update denomLocksCache under the hood
 		weight = k.getGaugeWeight(ctx, gauge, denomLocksCache)
