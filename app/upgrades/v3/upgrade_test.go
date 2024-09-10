@@ -101,7 +101,8 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 					return fmt.Errorf("sequencer parameters not set correctly")
 				}
 
-				// These fields are deleted in the next update
+				// These fields are deleted in the v4 update. Intentionally leave the commented code
+				// here for historical reference.
 				// Check Incentives parameters
 				//if !incentivestypes.CreateGaugeFee.Equal(expectCreateGaugeFee) || !incentivestypes.AddToGaugeFee.Equal(expectAddToGaugeFee) {
 				//	return fmt.Errorf("incentives parameters not set correctly")

@@ -181,6 +181,8 @@ func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {
 	defaultParams := incentivestypes.DefaultParams()
 	params.CreateGaugeFee = defaultParams.CreateGaugeFee
 	params.AddToGaugeFee = defaultParams.AddToGaugeFee
+	params.BaseGasFeeForCreateGauge = defaultParams.BaseGasFeeForCreateGauge
+	params.BaseGasFeeForAddRewardToGauge = defaultParams.BaseGasFeeForAddRewardToGauge
 	ik.SetParams(ctx, params)
 }
 
