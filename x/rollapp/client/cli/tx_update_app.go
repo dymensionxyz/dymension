@@ -15,8 +15,8 @@ func CmdUpdateApp() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update-app [id] [name] [rollapp-id] [description] [logo] [url] [order]",
 		Short:   "Update an app",
-		Example: "dymd tx app update-app 'app1' 'rollapp_1234-1' 1 'A description' '/logos/apps/app1.jpeg' 'https://app1.com/'",
-		Args:    cobra.ExactArgs(7),
+		Example: "dymd tx rollapp update-app 1 'app1' 'rollapp_1234-1' 'A description' '/logos/apps/app1.jpeg' 'https://app1.com/' 3",
+		Args:    cobra.MinimumNArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			var (
 				name              = args[1]
@@ -32,9 +32,11 @@ func CmdUpdateApp() *cobra.Command {
 				return err
 			}
 
-			order, err = strconv.ParseInt(args[6], 10, 32)
-			if err != nil {
-				return err
+			if len(args) == 7 {
+				order, err = strconv.ParseInt(args[6], 10, 32)
+				if err != nil {
+					return err
+				}
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
