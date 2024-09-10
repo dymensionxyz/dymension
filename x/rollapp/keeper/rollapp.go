@@ -141,6 +141,7 @@ func (k Keeper) SealGenesisInfoWithLaunchTime(ctx sdk.Context, rollapp *types.Ro
 	}
 	rollapp.GenesisInfo.Sealed = true
 	rollapp.PreLaunchTime = preLaunchTime
+	rollapp.GenesisState.TransfersEnabled = false
 	k.SetRollapp(ctx, *rollapp)
 	return nil
 }

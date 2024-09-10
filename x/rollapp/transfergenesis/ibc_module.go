@@ -10,7 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -20,38 +19,18 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
-	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
-
-var ErrDisabled = errorsmod.Wrap(gerrc.ErrFault, "genesis transfers are disabled")
 
 const (
 	memoNamespaceKey = "genesis_transfer"
 )
 
-type DenomMetadataKeeper interface {
-	CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error
-	HasDenomMetadata(ctx sdk.Context, base string) bool
-}
-
-type TransferKeeper interface {
-	SetDenomTrace(ctx sdk.Context, denomTrace transfertypes.DenomTrace)
-}
-
-type IROKeeper interface {
-	MustGetPlanByRollapp(ctx sdk.Context, rollappID string) irotypes.Plan
-	GetPlanByRollapp(ctx sdk.Context, rollappID string) (irotypes.Plan, bool)
-	GetModuleAccountAddress() string
-}
-
 type IBCModule struct {
 	porttypes.IBCModule // next one
-	delayedackKeeper    delayedackkeeper.Keeper
-	rollappKeeper       rollappkeeper.Keeper
+	rollappKeeper       RollappKeeper
 	transferKeeper      TransferKeeper
 	denomKeeper         DenomMetadataKeeper
 	iroKeeper           IROKeeper
@@ -59,19 +38,17 @@ type IBCModule struct {
 
 func NewIBCModule(
 	next porttypes.IBCModule,
-	delayedAckKeeper delayedackkeeper.Keeper,
-	rollappKeeper rollappkeeper.Keeper,
+	rollappKeeper RollappKeeper,
 	transferKeeper TransferKeeper,
 	denomKeeper DenomMetadataKeeper,
 	iroKeeper IROKeeper,
 ) IBCModule {
 	return IBCModule{
-		IBCModule:        next,
-		delayedackKeeper: delayedAckKeeper,
-		rollappKeeper:    rollappKeeper,
-		transferKeeper:   transferKeeper,
-		denomKeeper:      denomKeeper,
-		iroKeeper:        iroKeeper,
+		IBCModule:      next,
+		rollappKeeper:  rollappKeeper,
+		transferKeeper: transferKeeper,
+		denomKeeper:    denomKeeper,
+		iroKeeper:      iroKeeper,
 	}
 }
 
@@ -121,42 +98,17 @@ func (w IBCModule) OnRecvPacket(
 	ra := transfer.Rollapp
 	l = l.With("rollapp_id", ra.RollappId)
 
-	// extract genesis transfer memo if exists
-	isGenesisTransfer := true
-	memo, err := getMemo(transfer.GetMemo())
-	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
-		isGenesisTransfer = false
-	} else if err != nil {
-		l.Error("Get memo.", "err", err)
-		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "get memo"))
-	}
-
-	// handle cases where genesis transfer is not expected (post genesis / no IRO plan)
-	if !w.IsGenesisTransferExpected(ctx, ra) {
-		// genesis transfer not expected but present. handle DRS violation
-		if isGenesisTransfer {
-			l.Error("Genesis transfer not expected.")
-			_ = w.handleDRSViolation(ctx, ra.RollappId)
-			return uevent.NewErrorAcknowledgement(ctx, ErrDisabled)
-		}
-
-		// first transfer when genesis transfer is not required should enable transfers
-		if !ra.IsGenesisTransferEnabled() {
-			err := w.EnableTransfers(ctx, ra.RollappId, transfer.Denom)
-			if err != nil {
-				l.Error("Enable transfers.", "err", err)
-				return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: enable transfers"))
-			}
-		}
-
-		// post genesis case - continue with the normal IBC flow
+	// rollapp transfers already enabled. skip genesis transfer middleware
+	if ra.IsGenesisTransferEnabled() {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	/* ------------------------ genesis transfer required ----------------------- */
-	if !isGenesisTransfer {
-		l.Error("genesis transfer required.")
-		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer required"))
+	// extract genesis transfer memo if exists
+	memo, err := getMemo(transfer.GetMemo())
+	if err != nil {
+		l.Error("extract genesis transfer memo.", "err", err)
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "extract genesis transfer memo"))
 	}
 
 	// handle genesis transfer by the IRO keeper
@@ -187,21 +139,8 @@ func (w IBCModule) OnRecvPacket(
 		l.Error("Enable transfers.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: enable transfers"))
 	}
+
 	return ack
-}
-
-// IsGenesisTransferExpected checks if the genesis transfer is expected for the rollapp
-// if the prelaunch time is set, then genesis transfer is expected as we have IRO plan in place
-func (w IBCModule) IsGenesisTransferExpected(ctx sdk.Context, rollapp *rollapptypes.Rollapp) bool {
-	if rollapp.GenesisState.TransfersEnabled {
-		return false
-	}
-
-	// checking implicitly if IRO plan exists
-	if rollapp.PreLaunchTime.IsZero() {
-		return false
-	}
-	return true
 }
 
 // validate genesis transfer amount is the same as in the `iro` plan
@@ -236,12 +175,6 @@ func (w IBCModule) validateGenesisTransfer(plan irotypes.Plan, transfer rollappt
 	if !correct {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp denom missing correct exponent")
 	}
-	return nil
-}
-
-func (w IBCModule) handleDRSViolation(ctx sdk.Context, rollappID string) error {
-	// handleFraud : the rollapp has violated the DRS!
-	// TODO: finish implementing this method,  see https://github.com/dymensionxyz/dymension/issues/930
 	return nil
 }
 

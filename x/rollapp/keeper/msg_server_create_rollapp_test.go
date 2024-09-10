@@ -353,6 +353,8 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(
 		Metadata:         rollapp.GetMetadata(),
 		GenesisInfo:      rollapp.GetGenesisInfo(),
 	}
+	rollappExpect.GenesisState.TransfersEnabled = true
+
 	// create rollapp
 	createResponse, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	if expectedErr != nil {
