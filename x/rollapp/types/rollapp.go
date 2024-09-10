@@ -96,7 +96,7 @@ func (r Rollapp) IsGenesisTransferEnabled() bool {
 }
 
 func (r Rollapp) AllImmutableFieldsAreSet() bool {
-	return r.InitialSequencer != "" || !r.GenesisInfoFieldsAreSet()
+	return r.InitialSequencer != "" && r.GenesisInfoFieldsAreSet()
 }
 
 func (r Rollapp) GenesisInfoFieldsAreSet() bool {

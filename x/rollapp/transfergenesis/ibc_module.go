@@ -196,6 +196,8 @@ func (w IBCModule) IsGenesisTransferExpected(ctx sdk.Context, rollapp *rollappty
 	if rollapp.GenesisState.TransfersEnabled {
 		return false
 	}
+
+	// checking implicitly if IRO plan exists
 	if rollapp.PreLaunchTime.IsZero() {
 		return false
 	}
