@@ -23,9 +23,9 @@ func (k Keeper) DeleteApp(ctx sdk.Context, app types.App) {
 	store.Delete(key)
 }
 
-func (k Keeper) GetApp(ctx sdk.Context, name, rollappId string) (val types.App, found bool) {
+func (k Keeper) GetApp(ctx sdk.Context, id uint64, rollappId string) (val types.App, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AppKeyPrefix))
-	key := types.AppKey(types.App{Name: name, RollappId: rollappId})
+	key := types.AppKey(types.App{Id: id, RollappId: rollappId})
 	b := store.Get(key)
 	if b == nil {
 		return val, false
@@ -54,4 +54,23 @@ func (k Keeper) GetRollappApps(ctx sdk.Context, rollappId string) (list []*types
 	slices.SortFunc(list, func(a, b *types.App) int { return cmp.Compare(a.Order, b.Order) })
 
 	return list
+}
+
+// GetNextAppID increments and returns the next available App ID for a specific Rollapp.
+func (k Keeper) GetNextAppID(ctx sdk.Context, rollappID string) uint64 {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AppSequenceKeyPrefix))
+	sequenceKey := types.AppSequenceKey(rollappID)
+
+	bz := store.Get(sequenceKey)
+	var seq uint64
+	if bz == nil {
+		seq = 0
+	} else {
+		seq = sdk.BigEndianToUint64(bz)
+	}
+
+	seq++
+	store.Set(sequenceKey, sdk.Uint64ToBigEndian(seq))
+
+	return seq
 }

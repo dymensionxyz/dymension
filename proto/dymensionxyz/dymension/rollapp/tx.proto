@@ -133,18 +133,20 @@ message MsgUpdateApp {
   option (cosmos.msg.v1.signer) = "creator";
   // creator is the bech32-encoded address of the app owner
   string creator = 1;
+  // id is the unique App's id in the Rollapp
+  uint64 id = 2;
   // name is the unique App's name (immutable)
-  string name = 2;
+  string name = 3;
   // rollapp_id is the id of the Rollapp the App belongs to
-  string rollapp_id = 3;
+  string rollapp_id = 4;
   // description is the description of the App
-  string description = 4;
+  string description = 5;
   // image is the url to the App image
-  string image = 5;
+  string image = 6;
   // url is the URL to the App's website
-  string url = 6;
+  string url = 7;
   // order is the order of the App in the Rollapp
-  int32 order = 7;
+  int32 order = 8;
 }
 
 message MsgUpdateAppResponse {
@@ -155,8 +157,8 @@ message MsgRemoveApp {
   option (cosmos.msg.v1.signer) = "creator";
   // creator is the bech32-encoded address of the app owner
   string creator = 1;
-  // name is the unique App's name
-  string name = 2;
+  // id is the unique App's id in the Rollapp
+  uint64 id = 2;
   // rollapp_id is the id of the Rollapp the App belongs to
   string rollapp_id = 3;
 }
