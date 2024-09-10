@@ -74,7 +74,7 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 
 // CreatePlan creates a new IRO plan for a rollapp
 func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, preLaunchTime time.Time, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams) (string, error) {
-	err := k.rk.SealGenesisInfoWithLaunchTime(ctx, &rollapp, preLaunchTime)
+	err := k.rk.SetIROPlanToRollapp(ctx, &rollapp, preLaunchTime)
 	if err != nil {
 		return "", errors.Join(gerrc.ErrFailedPrecondition, err)
 	}

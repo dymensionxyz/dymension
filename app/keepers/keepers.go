@@ -525,7 +525,7 @@ func (a *AppKeepers) InitTransferStack() {
 		delayedackmodule.WithRollappKeeper(a.RollappKeeper),
 	)
 	a.TransferStack = a.delayedAckMiddleware
-	a.TransferStack = transfergenesis.NewIBCModule(a.TransferStack, a.DelayedAckKeeper, *a.RollappKeeper, a.TransferKeeper, a.DenomMetadataKeeper, a.IROKeeper)
+	a.TransferStack = transfergenesis.NewIBCModule(a.TransferStack, a.RollappKeeper, a.TransferKeeper, a.DenomMetadataKeeper, a.IROKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()

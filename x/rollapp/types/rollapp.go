@@ -91,7 +91,7 @@ func (r Rollapp) ValidateBasic() error {
 	return nil
 }
 
-func (r Rollapp) IsGenesisTransferEnabled() bool {
+func (r Rollapp) IsTransferEnabled() bool {
 	return r.GenesisState.TransfersEnabled
 }
 

@@ -99,7 +99,7 @@ func (w IBCModule) OnRecvPacket(
 	l = l.With("rollapp_id", ra.RollappId)
 
 	// rollapp transfers already enabled. skip genesis transfer middleware
-	if ra.IsGenesisTransferEnabled() {
+	if ra.IsTransferEnabled() {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 

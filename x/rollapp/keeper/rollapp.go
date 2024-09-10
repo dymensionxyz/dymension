@@ -129,10 +129,15 @@ func (k Keeper) SetRollappAsLaunched(ctx sdk.Context, rollapp *types.Rollapp) er
 	return nil
 }
 
-// SealGenesisInfoWithLaunchTime seals the rollapp genesis info and sets it pre launch time according to the iro plan end time
-// - GenesisInfo fields must be set
-// - Rollapp must not be Launched
-func (k Keeper) SealGenesisInfoWithLaunchTime(ctx sdk.Context, rollapp *types.Rollapp, preLaunchTime time.Time) error {
+// SetIROPlanToRollapp modifies the rollapp object due to IRO creation
+// This methods:
+// - seals the rollapp genesis info
+// - set the pre launch time according to the iro plan end time
+// - disables transfers (until the IRO is settled)
+// Validations:
+// - rollapp must not be launched
+// - genesis info must be set
+func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, preLaunchTime time.Time) error {
 	if rollapp.Launched {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp already launched")
 	}
