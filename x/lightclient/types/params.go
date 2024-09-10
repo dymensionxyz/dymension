@@ -18,6 +18,18 @@ func DefaultExpectedCanonicalClientParams() ibctm.ClientState {
 	return ExpectedCanonicalClientParams(sequencertypes.DefaultUnbondingTime)
 }
 
+const (
+	trustPeriodMultiplier = 65
+)
+
+// expectedTrustPeriod calculates an sensible trust period based on unbonding period
+// taking into account potential high skew between L1 and L2
+// See https://github.com/dymensionxyz/dymension/issues/1209
+func expectedTrustPeriod(unbondingPeriod time.Duration) time.Duration {
+	temp := unbondingPeriod / 100 * trustPeriodMultiplier
+	return temp.Truncate(time.Second)
+}
+
 // ExpectedCanonicalClientParams defines the expected parameters for a canonical IBC Tendermint client state
 // The ChainID is not included as that varies for each rollapp
 // The LatestHeight is not included as there is no condition on when a client can be registered as canonical
@@ -31,7 +43,7 @@ func ExpectedCanonicalClientParams(rollappUnbondingPeriod time.Duration) ibctm.C
 		TrustLevel: ibctm.NewFractionFromTm(math.Fraction{Numerator: 1, Denominator: 3}),
 		// TrustingPeriod is the duration of the period since the
 		// LatestTimestamp during which the submitted headers are valid for update.
-		TrustingPeriod: time.Hour * 24 * 10, // TODO: relate to unbonding period https://github.com/dymensionxyz/dymension/issues/1182
+		TrustingPeriod: expectedTrustPeriod(rollappUnbondingPeriod),
 		// Unbonding period is the duration of the sequencer unbonding period.
 		UnbondingPeriod: rollappUnbondingPeriod,
 		// MaxClockDrift defines how much new (untrusted) header's Time

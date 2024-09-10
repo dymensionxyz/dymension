@@ -9,6 +9,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -72,7 +73,7 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 	if err != nil {
 		l.Error("Get valid transfer.", "err", err)
 		err = errorsmod.Wrapf(err, "%s: get valid transfer", ModuleName)
-		return channeltypes.NewErrorAcknowledgement(err)
+		return uevent.NewErrorAcknowledgement(ctx, err)
 	}
 
 	if !transfer.IsRollapp() {

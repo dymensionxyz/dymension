@@ -8,6 +8,8 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -93,7 +95,7 @@ func (w IBCMiddleware) OnRecvPacket(
 	transfer, err := w.GetValidTransferWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_RECV)
 	if err != nil {
 		l.Error("Get valid rollapp and transfer.", "err", err)
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "delayed ack: get valid transfer with finalization info"))
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "delayed ack: get valid transfer with finalization info"))
 	}
 
 	if !transfer.IsRollapp() || transfer.Finalized {
@@ -104,7 +106,7 @@ func (w IBCMiddleware) OnRecvPacket(
 
 	err = w.EIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
 	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "delayed ack"))
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "delayed ack"))
 	}
 
 	return nil

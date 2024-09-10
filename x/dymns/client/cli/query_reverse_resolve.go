@@ -7,8 +7,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
-	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	"github.com/spf13/cobra"
+
+	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
 const (
@@ -33,7 +34,10 @@ func CmdQueryReverseResolveDymNameAddress() *cobra.Command {
 				return err
 			}
 
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := dymnstypes.NewQueryClient(clientCtx)
 
 			res, err := queryClient.ReverseResolveAddress(cmd.Context(), &dymnstypes.ReverseResolveAddressRequest{
