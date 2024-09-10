@@ -54,14 +54,14 @@ func (k Keeper) QueryCost(goCtx context.Context, req *types.QueryCostRequest) (*
 		return nil, status.Error(codes.NotFound, "plan not found")
 	}
 
-	var cost math.Int
+	var costAmt math.Int
 	if req.Sell {
-		cost = plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Sub(req.Amt))
+		costAmt = plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Sub(req.Amt))
 	} else {
-		cost = plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(req.Amt))
+		costAmt = plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(req.Amt))
 	}
-	costCoin := sdk.NewCoin(appparams.BaseDenom, cost)
-	return &types.QueryCostResponse{Cost: &costCoin}, nil
+	cost := sdk.NewCoin(appparams.BaseDenom, costAmt)
+	return &types.QueryCostResponse{Cost: &cost}, nil
 }
 
 // QueryPlan implements types.QueryServer.

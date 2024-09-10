@@ -1,6 +1,8 @@
 package types
 
 import (
+	"errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -18,9 +20,24 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid owner address: %s", err)
 	}
-	// wrapping MsgCreatePlan params into a Plan struct to use it's validation method
-	plan := NewPlan(1, m.RollappId, sdk.NewCoin("dummy", m.AllocatedAmount), m.BondingCurve, m.StartTime, m.PreLaunchTime, m.IncentivePlanParams)
-	return plan.ValidateBasic()
+
+	if !m.AllocatedAmount.IsPositive() {
+		return ErrInvalidAllocation
+	}
+
+	if err := m.BondingCurve.ValidateBasic(); err != nil {
+		return errors.Join(ErrInvalidBondingCurve, err)
+	}
+
+	if m.PreLaunchTime.Before(m.StartTime) {
+		return ErrInvalidEndTime
+	}
+
+	if err := m.IncentivePlanParams.ValidateBasic(); err != nil {
+		return errors.Join(ErrInvalidIncentivePlanParams, err)
+	}
+
+	return nil
 }
 
 func (m *MsgCreatePlan) GetSigners() []sdk.AccAddress {
