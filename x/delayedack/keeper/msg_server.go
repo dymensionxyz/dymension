@@ -11,13 +11,13 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
-var _ types.MsgServer = MsgServer{}
-
 // delayedAckIBCModule represents an IBC module for x/delayedack. We need to trigger _next_ IBC middlewares
 // after x/delayedack in order to process packet finalization requests.
 type delayedAckIBCModule interface {
 	NextIBCMiddleware() porttypes.IBCModule
 }
+
+var _ types.MsgServer = MsgServer{}
 
 type MsgServer struct {
 	k   Keeper
@@ -25,10 +25,7 @@ type MsgServer struct {
 }
 
 func NewMsgServer(k Keeper, ibc delayedAckIBCModule) MsgServer {
-	return MsgServer{
-		k:   k,
-		ibc: ibc,
-	}
+	return MsgServer{k: k, ibc: ibc}
 }
 
 func (m MsgServer) FinalizePacket(goCtx context.Context, msg *types.MsgFinalizePacket) (*types.MsgFinalizePacketResponse, error) {
@@ -67,15 +64,16 @@ func (m MsgServer) FinalizePacketsUntilHeight(goCtx context.Context, msg *types.
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	err = m.k.FinalizeRollappPackets(ctx, m.ibc.NextIBCMiddleware(), msg.RollappId, msg.Height)
+	finalized, err := m.k.FinalizeRollappPackets(ctx, m.ibc.NextIBCMiddleware(), msg.RollappId, msg.Height)
 	if err != nil {
 		return nil, err
 	}
 
 	err = uevent.EmitTypedEvent(ctx, &types.EventFinalizePacketsUntilHeight{
-		Sender:    msg.Sender,
-		RollappId: msg.RollappId,
-		Height:    msg.Height,
+		Sender:       msg.Sender,
+		RollappId:    msg.RollappId,
+		Height:       msg.Height,
+		FinalizedNum: uint64(finalized),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)

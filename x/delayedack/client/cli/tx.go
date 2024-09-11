@@ -31,10 +31,9 @@ func GetTxCmd() *cobra.Command {
 
 func CmdFinalizePacket() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "finalize-packet [rollapp-id] [proof-height] [packet-type] [packet-src-channel] [packet-sequence] --from <sender>",
-		Short:   "Finalize a specified packet",
-		Example: "", // TODO
-		Args:    cobra.ExactArgs(4),
+		Use:   "finalize-packet [rollapp-id] [proof-height] [packet-type] [packet-src-channel] [packet-sequence] --from <sender>",
+		Short: "Finalize a specified packet",
+		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -94,10 +93,9 @@ func parsePacketType(packetType string) (commontypes.RollappPacket_Type, error) 
 
 func CmdFinalizePacketsUntilHeight() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "finalize-packets-until-height [rollapp-id] [height] --from <sender>",
-		Short:   "Finalize packets for the given rollapp until the given height",
-		Example: "", // TODO
-		Args:    cobra.ExactArgs(2),
+		Use:   "finalize-packets-until-height [rollapp-id] [height] --from <sender>",
+		Short: "Finalize packets for the given rollapp until the given height",
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {

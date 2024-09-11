@@ -3,10 +3,13 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
 const (
@@ -27,4 +30,20 @@ func (suite *DelayedAckTestSuite) SetupTest() {
 
 	suite.App = app
 	suite.Ctx = ctx
+}
+
+func (suite *DelayedAckTestSuite) FinalizePacket(ctx sdk.Context, p commontypes.RollappPacket) {
+	suite.T().Helper()
+
+	handler := suite.App.MsgServiceRouter().Handler(new(types.MsgFinalizePacket))
+	resp, err := handler(ctx, &types.MsgFinalizePacket{
+		Sender:            apptesting.CreateRandomAccounts(1)[0].String(),
+		RollappId:         p.RollappId,
+		PacketProofHeight: p.ProofHeight,
+		PacketType:        p.Type,
+		PacketSrcChannel:  p.Packet.SourceChannel,
+		PacketSequence:    p.Packet.Sequence,
+	})
+	suite.Require().NoError(err)
+	suite.Require().NotNil(resp)
 }
