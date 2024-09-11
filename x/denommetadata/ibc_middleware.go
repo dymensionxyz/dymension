@@ -223,7 +223,7 @@ func (m *ICS4Wrapper) SendPacket(
 	// We need to handle both cases:
 	// 		1. We use the value of `packet.Denom` as the baseDenom
 	//		2. We parse the IBC denom trace into IBC denom hash and prepend it with "ibc/" to get the baseDenom
-	baseDenom := getBaseDenomFromTrace(packet.Denom)
+	baseDenom := transfertypes.ParseDenomTrace(packet.Denom).IBCDenom()
 
 	if Contains(rollapp.RegisteredDenoms, baseDenom) {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
@@ -246,12 +246,4 @@ func (m *ICS4Wrapper) SendPacket(
 	}
 
 	return m.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
-}
-
-func getBaseDenomFromTrace(denomTrace string) string {
-	denomTraceObj := transfertypes.ParseDenomTrace(denomTrace)
-	if denomTraceObj.Path == "" {
-		return denomTraceObj.BaseDenom
-	}
-	return "ibc/" + denomTraceObj.Hash().String()
 }
