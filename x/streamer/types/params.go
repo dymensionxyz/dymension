@@ -1,7 +1,13 @@
 package types
 
 import (
+	"fmt"
+
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+)
+
+const (
+	KeyMaxIterationsPerBlock = "MaxIterationsPerBlock"
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -12,18 +18,31 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams() Params {
-	return Params{}
+func NewParams(maxIterationsPerBlock uint64) Params {
+	return Params{
+		MaxIterationsPerBlock: maxIterationsPerBlock,
+	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams()
+	return NewParams(DefaultMaxIterationsPerBlock)
 }
 
 // ParamSetPairs get the params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{}
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair([]byte(KeyMaxIterationsPerBlock), &p.MaxIterationsPerBlock, validateMaxIterationsPerBlock),
+	}
+}
+
+// validateDisputePeriodInBlocks validates the DisputePeriodInBlocks param
+func validateMaxIterationsPerBlock(v interface{}) error {
+	_, ok := v.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+	return nil
 }
 
 // Validate validates the set of params

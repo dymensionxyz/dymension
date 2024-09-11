@@ -1,0 +1,31 @@
+syntax = "proto3";
+package dymensionxyz.dymension.streamer;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "dymensionxyz/dymension/streamer/streamer.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
+
+message EventEndBlock {
+  uint64 iterations = 1;
+  uint64 max_iterations = 2;
+  // Distributed is the total amount of coins that have been distributed
+  repeated cosmos.base.v1beta1.Coin distributed = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message EventEpochEnd {
+  uint64 iterations = 1;
+  // Distributed is the total amount of coins that have been distributed
+  repeated cosmos.base.v1beta1.Coin distributed = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message EventEpochStart {
+  uint64 active_streams_num = 1;
+}

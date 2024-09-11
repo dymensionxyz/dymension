@@ -22,7 +22,7 @@ func (k Keeper) ReplaceDistrRecords(ctx sdk.Context, streamId uint64, records []
 
 	stream.DistributeTo = distrInfo
 
-	err = k.setStream(ctx, stream)
+	err = k.SetStream(ctx, stream)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (k Keeper) UpdateDistrRecords(ctx sdk.Context, streamId uint64, records []t
 
 	stream.DistributeTo = distrInfo
 
-	err = k.setStream(ctx, stream)
+	err = k.SetStream(ctx, stream)
 	if err != nil {
 		return err
 	}
