@@ -217,7 +217,12 @@ func (m *ICS4Wrapper) SendPacket(
 	// At the first match, we assume that the rollapp already contains the metadata.
 	// It would be technically possible to have a race condition where the denom metadata is added to the rollapp
 	// from another packet before this packet is acknowledged.
-
+	// The value of `packet.Denom` here can be one of two things:
+	// 		1. Base denom (e.g. "adym") for the native token of the hub, and
+	// 		2. IBC trace (e.g. "transfer/channel-1/arax") for a third party token.
+	// We need to handle both cases:
+	// 		1. We use the value of `packet.Denom` as the baseDenom
+	//		2. We parse the IBC denom trace into IBC denom hash and prepend it with "ibc/" to get the baseDenom
 	baseDenom := getBaseDenomFromTrace(packet.Denom)
 
 	if Contains(rollapp.RegisteredDenoms, baseDenom) {
