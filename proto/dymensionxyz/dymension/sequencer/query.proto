@@ -56,6 +56,12 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/sequencer/next_proposer/{rollappId}";
   }
+
+  // Queries a list of proposers.
+  rpc Proposers(QueryProposersRequest) returns (QueryProposersResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/sequencer/proposer";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -113,4 +119,15 @@ message QueryGetNextProposerByRollappResponse {
   string nextProposerAddr = 1;
   // rotationInProgress is true if the proposer rotation is in progress.
   bool rotationInProgress = 2;
+}
+
+// Request type for the Proposers RPC method.
+message QueryProposersRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// Response type for the Proposers RPC method.
+message QueryProposersResponse {
+  repeated Sequencer proposers = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
