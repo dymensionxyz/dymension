@@ -101,3 +101,29 @@ func CmdGetNextProposerByRollapp() *cobra.Command {
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
+
+func CmdGetAllProposers() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list-proposer",
+		Short: "List all proposers",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			params := &types.QueryProposersRequest{}
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Proposers(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
