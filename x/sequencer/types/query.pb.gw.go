@@ -820,13 +820,13 @@ var (
 
 	pattern_Query_Sequencer_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"dymensionxyz", "dymension", "sequencer", "sequencerAddress"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Sequencers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 2}, []string{"dymensionxyz", "dymension", "sequencer"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Sequencers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "sequencer", "sequencers"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_SequencersByRollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "sequencer", "sequencers_by_rollapp", "rollappId"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_SequencersByRollappByStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"dymensionxyz", "dymension", "sequencer", "sequencers_by_rollapp", "rollappId", "status"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_GetProposerByRollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "sequencer", "proposer", "rollappId"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_GetProposerByRollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "sequencer", "proposers", "rollappId"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_GetNextProposerByRollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "sequencer", "next_proposer", "rollappId"}, "", runtime.AssumeColonVerbOpt(false)))
 

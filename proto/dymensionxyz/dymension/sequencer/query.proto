@@ -26,7 +26,7 @@ service Query {
   // Queries a list of Sequencer items.
   rpc Sequencers(QuerySequencersRequest) returns (QuerySequencersResponse) {
     option (google.api.http).get =
-        "/dymensionxyz/dymension/sequencer/sequencer";
+        "/dymensionxyz/dymension/sequencer/sequencers";
   }
 
   // Queries a SequencersByRollapp by rollappId.
@@ -47,7 +47,7 @@ service Query {
   rpc GetProposerByRollapp(QueryGetProposerByRollappRequest)
       returns (QueryGetProposerByRollappResponse) {
     option (google.api.http).get =
-        "/dymensionxyz/dymension/sequencer/proposer/{rollappId}";
+        "/dymensionxyz/dymension/sequencer/proposers/{rollappId}";
   }
 
   // Queries the next proposer by rollappId.
