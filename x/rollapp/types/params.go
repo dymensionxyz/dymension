@@ -32,8 +32,8 @@ var (
 	DYM                       = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
 	DefaultAppRegistrationFee = sdk.NewCoin(params.BaseDenom, DYM)
 
-	// KeyEpochIdentifier defines the key to store the epoch identifier
-	KeyEpochIdentifier = []byte("EpochIdentifier")
+	// KeyStateInfoDeletionEpochIdentifier defines the key to store the epoch identifier
+	KeyStateInfoDeletionEpochIdentifier = []byte("StateInfoDeletionEpochIdentifier")
 )
 
 const (
@@ -62,12 +62,12 @@ func NewParams(
 	epochIdentifier string,
 ) Params {
 	return Params{
-		DisputePeriodInBlocks: disputePeriodInBlocks,
-		LivenessSlashBlocks:   livenessSlashBlocks,
-		LivenessSlashInterval: livenessSlashInterval,
-		LivenessJailBlocks:    livenessJailBlocks,
-		AppRegistrationFee:    appRegistrationFee,
-		EpochIdentifier:       epochIdentifier,
+		DisputePeriodInBlocks:            disputePeriodInBlocks,
+		LivenessSlashBlocks:              livenessSlashBlocks,
+		LivenessSlashInterval:            livenessSlashInterval,
+		LivenessJailBlocks:               livenessJailBlocks,
+		AppRegistrationFee:               appRegistrationFee,
+		StateInfoDeletionEpochIdentifier: epochIdentifier,
 	}
 }
 
@@ -90,7 +90,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyLivenessSlashInterval, &p.LivenessSlashInterval, validateLivenessSlashInterval),
 		paramtypes.NewParamSetPair(KeyLivenessJailBlocks, &p.LivenessJailBlocks, validateLivenessJailBlocks),
 		paramtypes.NewParamSetPair(KeyAppRegistrationFee, &p.AppRegistrationFee, validateAppRegistrationFee),
-		paramtypes.NewParamSetPair(KeyEpochIdentifier, &p.EpochIdentifier, types.ValidateEpochIdentifierInterface),
+		paramtypes.NewParamSetPair(KeyStateInfoDeletionEpochIdentifier, &p.StateInfoDeletionEpochIdentifier, types.ValidateEpochIdentifierInterface),
 	}
 }
 

@@ -18,9 +18,9 @@ func (k Keeper) GetEpochHooks() epochstypes.EpochHooks {
 }
 
 // AfterEpochEnd is the epoch end hook.
-// We want to clean up the demand orders that are with underlying packet status which are finalized.
+// We want to clean up all the state info records that are older than the sequencer unbonding time.
 func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, _ int64) error {
-	if epochIdentifier != e.EpochIdentifier(ctx) {
+	if epochIdentifier != e.StateInfoDeletionEpochIdentifier(ctx) {
 		return nil
 	}
 

@@ -14,7 +14,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		k.LivenessSlashInterval(ctx),
 		k.LivenessJailBlocks(ctx),
 		k.AppRegistrationFee(ctx),
-		k.EpochIdentifier(ctx),
+		k.StateInfoDeletionEpochIdentifier(ctx),
 	)
 }
 
@@ -50,7 +50,7 @@ func (k Keeper) AppRegistrationFee(ctx sdk.Context) (res sdk.Coin) {
 	return
 }
 
-func (k Keeper) EpochIdentifier(ctx sdk.Context) (res string) {
-	k.paramstore.Get(ctx, types.KeyEpochIdentifier, &res)
+func (k Keeper) StateInfoDeletionEpochIdentifier(ctx sdk.Context) (res string) {
+	k.paramstore.Get(ctx, types.KeyStateInfoDeletionEpochIdentifier, &res)
 	return
 }

@@ -110,7 +110,7 @@ func (k Keeper) DeleteStateInfoUntilTimestamp(ctx sdk.Context, endTimestampExcl 
 	}
 
 	k.IterateStateInfoWithTimestamp(storeTS, endTimestampExcl.UnixMicro(), func(keyTS []byte) bool {
-		key := keyTS[types.TimestampPrefixLen:] // remove the timestamp prefix
+		key := types.StateInfoIndexKeyFromTimestampKey(keyTS)
 		// skip latest stateInfo and latest finalized stateInfo
 		stateInfoIndex := types.StateInfoIndexFromKey(key)
 		index := skipStateInfoIndexes[stateInfoIndex.RollappId]

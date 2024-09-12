@@ -31,6 +31,10 @@ func StateInfoKey(
 	return key
 }
 
+// StateInfoIndexFromKey returns the StateInfoIndex from a store key.
+// The value of StateInfoIndexKeyPartLength will always be shorter than the key itself,
+// because the key contains the rollappId and the BigEndian representation of the index,
+// which is always 8 bytes long.
 func StateInfoIndexFromKey(key []byte) StateInfoIndex {
 	l := len(key)
 	rollappId := string(key[:l-StateInfoIndexKeyPartLength])
@@ -38,4 +42,9 @@ func StateInfoIndexFromKey(key []byte) StateInfoIndex {
 		RollappId: rollappId,
 		Index:     sdk.BigEndianToUint64(key[len(rollappId)+1 : l-1]),
 	}
+}
+
+// StateInfoIndexKeyFromTimestampKey returns the StateInfoIndex key from a timestamp key by removing the timestamp prefix.
+func StateInfoIndexKeyFromTimestampKey(keyTS []byte) []byte {
+	return keyTS[TimestampPrefixLen:] // remove the timestamp prefix
 }
