@@ -110,6 +110,14 @@ func (k Keeper) CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddr
 		return 0, fmt.Errorf("denom does not exist: %s", distrTo.Denom)
 	}
 
+	// Charge fess based on the number of coins to add
+	// Fee = CreateGaugeBaseFee + AddDenomFee * NumDenoms
+	params := k.GetParams(ctx)
+	fee := params.CreateGaugeBaseFee.Add(params.AddDenomFee.MulRaw(int64(len(coins))))
+	if err := k.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, fee, coins); err != nil {
+		return 0, err
+	}
+
 	gauge := types.Gauge{
 		Id:                k.GetLastGaugeID(ctx) + 1,
 		IsPerpetual:       isPerpetual,
@@ -118,12 +126,6 @@ func (k Keeper) CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddr
 		StartTime:         startTime,
 		NumEpochsPaidOver: numEpochsPaidOver,
 	}
-
-	// Fixed gas consumption create gauge based on the number of coins to add
-	baseGasFee := k.GetParams(ctx).BaseGasFeeForCreateGauge
-	denoms := uint64(len(gauge.Coins))
-	// Both baseGasFee and denoms are relatively small, so their multiplication shouldn't lead to overflow in practice
-	ctx.GasMeter().ConsumeGas(baseGasFee*denoms, "scaling gas cost for creating gauge rewards")
 
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, gauge.Coins); err != nil {
 		return 0, err
@@ -156,13 +158,15 @@ func (k Keeper) AddToGaugeRewards(ctx sdk.Context, owner sdk.AccAddress, coins s
 		return types.UnexpectedFinishedGaugeError{GaugeId: gaugeID}
 	}
 
-	// Fixed gas consumption adding reward to gauges based on the number of coins to add
-	baseGasFee := k.GetParams(ctx).BaseGasFeeForAddRewardToGauge
-	denoms := uint64(len(coins) + len(gauge.Coins))
-	// Both baseGasFee and denoms are relatively small, so their multiplication shouldn't lead to overflow in practice
-	ctx.GasMeter().ConsumeGas(baseGasFee*denoms, "scaling gas cost for adding to gauge rewards")
+	// Charge fess based on the number of coins to add
+	// Fee = AddToGaugeBaseFee + AddDenomFee * (NumAddedDenoms + NumGaugeDenoms)
+	params := k.GetParams(ctx)
+	fee := params.AddToGaugeBaseFee.Add(params.AddDenomFee.MulRaw(int64(len(coins) + len(gauge.Coins))))
+	if err = k.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, fee, coins); err != nil {
+		return err
+	}
 
-	if err := k.bk.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, coins); err != nil {
+	if err = k.bk.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, coins); err != nil {
 		return err
 	}
 

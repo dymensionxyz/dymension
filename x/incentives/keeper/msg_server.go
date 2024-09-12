@@ -34,11 +34,6 @@ func (server msgServer) CreateGauge(goCtx context.Context, msg *types.MsgCreateG
 		return nil, err
 	}
 
-	createGaugeFee := server.keeper.GetParams(ctx).CreateGaugeFee
-	if err := server.keeper.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, createGaugeFee, msg.Coins); err != nil {
-		return nil, err
-	}
-
 	gaugeID, err := server.keeper.CreateGauge(ctx, msg.IsPerpetual, owner, msg.Coins, msg.DistributeTo, msg.StartTime, msg.NumEpochsPaidOver)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
@@ -63,10 +58,6 @@ func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGau
 		return nil, err
 	}
 
-	addToGaugeFee := server.keeper.GetParams(ctx).AddToGaugeFee
-	if err := server.keeper.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, addToGaugeFee, msg.Rewards); err != nil {
-		return nil, err
-	}
 	err = server.keeper.AddToGaugeRewards(ctx, owner, msg.Rewards, msg.GaugeId)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())

@@ -196,10 +196,9 @@ func migrateStreamer(ctx sdk.Context, sk streamerkeeper.Keeper, ek *epochskeeper
 func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {
 	params := ik.GetParams(ctx)
 	defaultParams := incentivestypes.DefaultParams()
-	params.CreateGaugeFee = defaultParams.CreateGaugeFee
-	params.AddToGaugeFee = defaultParams.AddToGaugeFee
-	params.BaseGasFeeForCreateGauge = defaultParams.BaseGasFeeForCreateGauge
-	params.BaseGasFeeForAddRewardToGauge = defaultParams.BaseGasFeeForAddRewardToGauge
+	params.CreateGaugeBaseFee = defaultParams.CreateGaugeBaseFee
+	params.AddToGaugeBaseFee = defaultParams.AddToGaugeBaseFee
+	params.AddDenomFee = defaultParams.AddDenomFee
 	ik.SetParams(ctx, params)
 }
 

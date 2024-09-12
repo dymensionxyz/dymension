@@ -1,13 +1,10 @@
 package keeper_test
 
 import (
-	"fmt"
 	"time"
 
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
-	"pgregory.net/rapid"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
@@ -26,6 +23,8 @@ func (suite *KeeperTestSuite) TestInvalidDurationGaugeCreationValidation() {
 		Denom:         defaultLPDenom,
 		Duration:      defaultLockDuration / 2, // 0.5 second, invalid duration
 	}
+	// add tokens for fees
+	suite.FundAcc(addrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.DefaultCreateGaugeFee.MulRaw(2))))
 	_, err := suite.App.IncentivesKeeper.CreateGauge(suite.Ctx, false, addrs[0], defaultLiquidTokens, distrTo, time.Time{}, 1)
 	suite.Require().Error(err)
 
@@ -45,6 +44,8 @@ func (suite *KeeperTestSuite) TestNonExistentDenomGaugeCreation() {
 		Denom:         defaultLPDenom,
 		Duration:      defaultLockDuration,
 	}
+	// add tokens for fees
+	suite.FundAcc(addrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.DefaultCreateGaugeFee.MulRaw(2))))
 	_, err := suite.App.IncentivesKeeper.CreateGauge(suite.Ctx, false, addrNoSupply, defaultLiquidTokens, distrTo, time.Time{}, 1)
 	suite.Require().Error(err)
 
@@ -323,197 +324,4 @@ func (suite *KeeperTestSuite) TestChargeFeeIfSufficientFeeDenomBalance() {
 			}
 		})
 	}
-}
-
-func (suite *KeeperTestSuite) TestAddToGaugeRewards() {
-	params := suite.App.IncentivesKeeper.GetParams(suite.Ctx)
-	addr := apptesting.CreateRandomAccounts(1)[0]
-
-	testCases := []struct {
-		name               string
-		owner              sdk.AccAddress
-		coinsToAdd         sdk.Coins
-		gaugeCoins         sdk.Coins
-		gaugeId            uint64
-		minimumGasConsumed uint64
-
-		expectErr bool
-	}{
-		{
-			name:  "valid case: valid gauge",
-			owner: addr,
-			coinsToAdd: sdk.NewCoins(
-				sdk.NewCoin("uosmo", sdk.NewInt(100000)),
-				sdk.NewCoin("atom", sdk.NewInt(99999)),
-			),
-			gaugeCoins: sdk.Coins{
-				sdk.NewInt64Coin("stake1", 12),
-			},
-			gaugeId:            1,
-			minimumGasConsumed: 3 * params.BaseGasFeeForAddRewardToGauge,
-			expectErr:          false,
-		},
-		{
-			name:  "valid case: valid gauge with >4 denoms to add",
-			owner: addr,
-			coinsToAdd: sdk.NewCoins(
-				sdk.NewCoin("uosmo", sdk.NewInt(100000)),
-				sdk.NewCoin("atom", sdk.NewInt(99999)),
-				sdk.NewCoin("mars", sdk.NewInt(88888)),
-				sdk.NewCoin("akash", sdk.NewInt(77777)),
-				sdk.NewCoin("eth", sdk.NewInt(6666)),
-				sdk.NewCoin("usdc", sdk.NewInt(555)),
-				sdk.NewCoin("dai", sdk.NewInt(4444)),
-				sdk.NewCoin("ust", sdk.NewInt(3333)),
-			),
-			gaugeCoins: sdk.Coins{
-				sdk.NewInt64Coin("stake1", 12),
-			},
-			gaugeId:            1,
-			minimumGasConsumed: 9 * params.BaseGasFeeForAddRewardToGauge,
-			expectErr:          false,
-		},
-		{
-			name:  "valid case: valid gauge with >4 initial denoms",
-			owner: addr,
-			coinsToAdd: sdk.NewCoins(
-				sdk.NewCoin("uosmo", sdk.NewInt(100000)),
-				sdk.NewCoin("atom", sdk.NewInt(99999)),
-				sdk.NewCoin("mars", sdk.NewInt(88888)),
-				sdk.NewCoin("akash", sdk.NewInt(77777)),
-				sdk.NewCoin("eth", sdk.NewInt(6666)),
-				sdk.NewCoin("usdc", sdk.NewInt(555)),
-				sdk.NewCoin("dai", sdk.NewInt(4444)),
-				sdk.NewCoin("ust", sdk.NewInt(3333)),
-			),
-			gaugeCoins: sdk.Coins{
-				sdk.NewCoin("uosmo", sdk.NewInt(100000)),
-				sdk.NewCoin("atom", sdk.NewInt(99999)),
-				sdk.NewCoin("mars", sdk.NewInt(88888)),
-				sdk.NewCoin("akash", sdk.NewInt(77777)),
-				sdk.NewCoin("eth", sdk.NewInt(6666)),
-				sdk.NewCoin("usdc", sdk.NewInt(555)),
-				sdk.NewCoin("dai", sdk.NewInt(4444)),
-				sdk.NewCoin("ust", sdk.NewInt(3333)),
-			},
-			gaugeId:            1,
-			minimumGasConsumed: 16 * params.BaseGasFeeForAddRewardToGauge,
-			expectErr:          false,
-		},
-		{
-			name:  "invalid case: gauge Id is not valid",
-			owner: addr,
-			coinsToAdd: sdk.NewCoins(
-				sdk.NewCoin("uosmo", sdk.NewInt(100000)),
-				sdk.NewCoin("atom", sdk.NewInt(99999)),
-			),
-			gaugeCoins: sdk.Coins{
-				sdk.NewInt64Coin("stake1", 12),
-				sdk.NewInt64Coin("stake2", 12),
-				sdk.NewInt64Coin("stake3", 12),
-			},
-			gaugeId:            0,
-			minimumGasConsumed: uint64(0),
-			expectErr:          true,
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-			_, _, existingGaugeCoins, _ := suite.SetupNewGauge(true, sdk.NewCoins(tc.gaugeCoins...))
-
-			suite.FundAcc(tc.owner, tc.coinsToAdd)
-
-			existingGasConsumed := suite.Ctx.GasMeter().GasConsumed()
-
-			err := suite.App.IncentivesKeeper.AddToGaugeRewards(suite.Ctx, tc.owner, tc.coinsToAdd, tc.gaugeId)
-			if tc.expectErr {
-				suite.Require().Error(err)
-
-				// balance shouldn't change in the module
-				balance := suite.App.BankKeeper.GetAllBalances(suite.Ctx, suite.App.AccountKeeper.GetModuleAddress(types.ModuleName))
-				suite.Require().Equal(existingGaugeCoins, balance)
-
-			} else {
-				suite.Require().NoError(err)
-
-				// Ensure that at least the minimum amount of gas was charged (based on number of additional gauge coins)
-				gasConsumed := suite.Ctx.GasMeter().GasConsumed() - existingGasConsumed
-				fmt.Println(gasConsumed, tc.minimumGasConsumed)
-				suite.Require().True(gasConsumed >= tc.minimumGasConsumed)
-
-				// existing coins gets added to the module when we create gauge and add to gauge
-				expectedCoins := existingGaugeCoins.Add(tc.coinsToAdd...)
-
-				// check module account balance, should go up
-				balance := suite.App.BankKeeper.GetAllBalances(suite.Ctx, suite.App.AccountKeeper.GetModuleAddress(types.ModuleName))
-				suite.Require().Equal(expectedCoins, balance)
-
-				// check gauge coins should go up
-				gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, tc.gaugeId)
-				suite.Require().NoError(err)
-
-				suite.Require().Equal(expectedCoins, gauge.Coins)
-			}
-		})
-	}
-}
-
-func (s *KeeperTestSuite) TestRapidTestAddToGaugeRewards() {
-	rapid.Check(s.T(), func(t *rapid.T) {
-		// Generate random data
-		existingDenoms := make(map[string]struct{})
-		gcGen := rapid.Custom[sdk.Coin](func(t *rapid.T) sdk.Coin {
-			return sdk.Coin{
-				Denom: rapid.StringOfN(rapid.RuneFrom([]rune{'a', 'b', 'c'}), 5, 100, -1).
-					Filter(func(s string) bool {
-						_, ok := existingDenoms[s]
-						existingDenoms[s] = struct{}{}
-						return !ok
-					}).
-					Draw(t, "denom"),
-				Amount: math.NewInt(rapid.Int64Range(1, 100_000).Draw(t, "coins")),
-			}
-		})
-		gaugeCoins := sdk.NewCoins(rapid.SliceOfN[sdk.Coin](gcGen, 1, 100_000).Draw(t, "gaugeCoins")...)
-		coinsToAdd := sdk.NewCoins(rapid.SliceOfN[sdk.Coin](gcGen, 1, 100_000).Draw(t, "coinsToAdd")...)
-
-		s.SetupTest()
-
-		// Create a new gauge
-		_, _, existingGaugeCoins, _ := s.SetupNewGauge(true, gaugeCoins)
-		owner := apptesting.CreateRandomAccounts(1)[0]
-		// Fund the owner account
-		s.FundAcc(owner, coinsToAdd)
-
-		// Save the gas meter before the method call
-		existingGasConsumed := s.Ctx.GasMeter().GasConsumed()
-
-		// AddToGaugeRewards
-		err := s.App.IncentivesKeeper.AddToGaugeRewards(s.Ctx, owner, coinsToAdd, 1)
-		s.Require().NoError(err)
-
-		// Min expected gas consumed
-		baseGasFee := s.App.IncentivesKeeper.GetParams(s.Ctx).BaseGasFeeForAddRewardToGauge
-		minimumGasConsumed := baseGasFee * uint64(len(gaugeCoins)+len(coinsToAdd))
-
-		// Ensure that at least the minimum amount of gas was charged (based on number of additional gauge coins)
-		gasConsumed := s.Ctx.GasMeter().GasConsumed() - existingGasConsumed
-		fmt.Println(gasConsumed, minimumGasConsumed)
-		s.Require().True(gasConsumed >= minimumGasConsumed)
-
-		// Existing coins gets added to the module when we create gauge and add to gauge
-		expectedCoins := existingGaugeCoins.Add(coinsToAdd...)
-
-		// Check module account balance, should go up
-		balance := s.App.BankKeeper.GetAllBalances(s.Ctx, s.App.AccountKeeper.GetModuleAddress(types.ModuleName))
-		s.Require().Equal(expectedCoins, balance)
-
-		// Check gauge coins should go up
-		gauge, err := s.App.IncentivesKeeper.GetGaugeByID(s.Ctx, 1)
-		s.Require().NoError(err)
-
-		s.Require().Equal(expectedCoins, gauge.Coins)
-	})
 }

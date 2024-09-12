@@ -12,11 +12,10 @@ import (
 
 // Incentives parameters key store.
 var (
-	KeyDistrEpochIdentifier          = []byte("DistrEpochIdentifier")
-	KeyCreateGaugeFee                = []byte("CreateGaugeFee")
-	KeyAddToGaugeFee                 = []byte("AddToGaugeFee")
-	KeyBaseGasFeeForCreateGauge      = []byte("BaseGasFeeForCreateGauge")
-	KeyBaseGasFeeForAddRewardToGauge = []byte("BaseGasFeeForAddRewardToGauge")
+	KeyDistrEpochIdentifier = []byte("DistrEpochIdentifier")
+	KeyCreateGaugeFee       = []byte("CreateGaugeFee")
+	KeyAddToGaugeFee        = []byte("AddToGaugeFee")
+	KeyAddDenomFee          = []byte("AddDenomFee")
 )
 
 // ParamKeyTable returns the key table for the incentive module's parameters.
@@ -25,28 +24,22 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams takes an epoch distribution identifier, then returns an incentives Params struct.
-func NewParams(
-	distrEpochIdentifier string,
-	createGaugeFee, addToGaugeFee math.Int,
-	baseGasFeeForCreateGauge, baseGasFeeForAddRewardToGauge uint64,
-) Params {
+func NewParams(distrEpochIdentifier string, createGaugeFee, addToGaugeFee, addDenomFee math.Int) Params {
 	return Params{
-		DistrEpochIdentifier:          distrEpochIdentifier,
-		CreateGaugeFee:                createGaugeFee,
-		AddToGaugeFee:                 addToGaugeFee,
-		BaseGasFeeForCreateGauge:      baseGasFeeForCreateGauge,
-		BaseGasFeeForAddRewardToGauge: baseGasFeeForAddRewardToGauge,
+		DistrEpochIdentifier: distrEpochIdentifier,
+		CreateGaugeBaseFee:   createGaugeFee,
+		AddToGaugeBaseFee:    addToGaugeFee,
+		AddDenomFee:          addDenomFee,
 	}
 }
 
 // DefaultParams returns the default incentives module parameters.
 func DefaultParams() Params {
 	return Params{
-		DistrEpochIdentifier:          DefaultDistrEpochIdentifier,
-		CreateGaugeFee:                DefaultCreateGaugeFee,
-		AddToGaugeFee:                 DefaultAddToGaugeFee,
-		BaseGasFeeForCreateGauge:      DefaultBaseGasFeeForCreateGauge,
-		BaseGasFeeForAddRewardToGauge: DefaultBaseGasFeeForAddRewardToGauge,
+		DistrEpochIdentifier: DefaultDistrEpochIdentifier,
+		CreateGaugeBaseFee:   DefaultCreateGaugeFee,
+		AddToGaugeBaseFee:    DefaultAddToGaugeFee,
+		AddDenomFee:          DefaultAddDenomFee,
 	}
 }
 
@@ -55,16 +48,13 @@ func (p Params) Validate() error {
 	if err := epochtypes.ValidateEpochIdentifierInterface(p.DistrEpochIdentifier); err != nil {
 		return err
 	}
-	if err := validateCreateGaugeFeeInterface(p.CreateGaugeFee); err != nil {
+	if err := validateCreateGaugeFeeInterface(p.CreateGaugeBaseFee); err != nil {
 		return err
 	}
-	if err := validateAddToGaugeFeeInterface(p.AddToGaugeFee); err != nil {
+	if err := validateAddToGaugeFeeInterface(p.AddToGaugeBaseFee); err != nil {
 		return err
 	}
-	if err := validateBaseGasFeeForCreateGauge(p.BaseGasFeeForCreateGauge); err != nil {
-		return err
-	}
-	if err := validateBaseGasFeeForAddRewardToGauge(p.BaseGasFeeForAddRewardToGauge); err != nil {
+	if err := validateAddDenomFee(p.AddDenomFee); err != nil {
 		return err
 	}
 	return nil
@@ -74,10 +64,9 @@ func (p Params) Validate() error {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyDistrEpochIdentifier, &p.DistrEpochIdentifier, epochtypes.ValidateEpochIdentifierInterface),
-		paramtypes.NewParamSetPair(KeyCreateGaugeFee, &p.CreateGaugeFee, validateCreateGaugeFeeInterface),
-		paramtypes.NewParamSetPair(KeyAddToGaugeFee, &p.AddToGaugeFee, validateAddToGaugeFeeInterface),
-		paramtypes.NewParamSetPair(KeyBaseGasFeeForCreateGauge, &p.BaseGasFeeForCreateGauge, validateBaseGasFeeForCreateGauge),
-		paramtypes.NewParamSetPair(KeyBaseGasFeeForAddRewardToGauge, &p.BaseGasFeeForAddRewardToGauge, validateBaseGasFeeForAddRewardToGauge),
+		paramtypes.NewParamSetPair(KeyCreateGaugeFee, &p.CreateGaugeBaseFee, validateCreateGaugeFeeInterface),
+		paramtypes.NewParamSetPair(KeyAddToGaugeFee, &p.AddToGaugeBaseFee, validateAddToGaugeFeeInterface),
+		paramtypes.NewParamSetPair(KeyAddDenomFee, &p.AddDenomFee, validateAddDenomFee),
 	}
 }
 
@@ -103,18 +92,13 @@ func validateAddToGaugeFeeInterface(i interface{}) error {
 	return nil
 }
 
-func validateBaseGasFeeForCreateGauge(i interface{}) error {
-	_, ok := i.(uint64)
+func validateAddDenomFee(i interface{}) error {
+	v, ok := i.(math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	return nil
-}
-
-func validateBaseGasFeeForAddRewardToGauge(i interface{}) error {
-	_, ok := i.(uint64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
+	if v.IsNegative() {
+		return gerrc.ErrInvalidArgument.Wrapf("must be >= 0, got %s", v)
 	}
 	return nil
 }

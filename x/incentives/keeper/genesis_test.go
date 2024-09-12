@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
@@ -27,7 +28,9 @@ func TestIncentivesExportGenesis(t *testing.T) {
 	// create an address and fund with coins
 	addr := sdk.AccAddress([]byte("addr1---------------"))
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10000)}
-	err := bankutil.FundAccount(app.BankKeeper, ctx, addr, coins)
+	// balance including fees
+	addrCoins := coins.Add(sdk.NewCoin("stake", types.DYM.MulRaw(1000)))
+	err := bankutil.FundAccount(app.BankKeeper, ctx, addr, addrCoins)
 	require.NoError(t, err)
 
 	// mints LP tokens and send to address created earlier
@@ -96,11 +99,10 @@ func TestIncentivesInitGenesis(t *testing.T) {
 	// initialize genesis with specified parameter, the gauge created earlier, and lockable durations
 	app.IncentivesKeeper.InitGenesis(ctx, types.GenesisState{
 		Params: types.Params{
-			DistrEpochIdentifier:          "week",
-			CreateGaugeFee:                sdk.ZeroInt(),
-			AddToGaugeFee:                 sdk.ZeroInt(),
-			BaseGasFeeForCreateGauge:      0,
-			BaseGasFeeForAddRewardToGauge: 0,
+			DistrEpochIdentifier: "week",
+			CreateGaugeBaseFee:   math.ZeroInt(),
+			AddToGaugeBaseFee:    math.ZeroInt(),
+			AddDenomFee:          math.ZeroInt(),
 		},
 		Gauges: []types.Gauge{gauge},
 		LockableDurations: []time.Duration{

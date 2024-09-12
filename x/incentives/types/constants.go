@@ -12,11 +12,8 @@ var (
 	DYM = math.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
 
 	DefaultCreateGaugeFee = DYM.Mul(sdk.NewInt(10))
-	DefaultAddToGaugeFee  = DYM
+	DefaultAddToGaugeFee  = math.ZeroInt()
+	DefaultAddDenomFee    = DYM
 )
 
-const (
-	DefaultDistrEpochIdentifier                 = "week"
-	DefaultBaseGasFeeForCreateGauge      uint64 = 10_000
-	DefaultBaseGasFeeForAddRewardToGauge uint64 = 10_000
-)
+const DefaultDistrEpochIdentifier = "week"
