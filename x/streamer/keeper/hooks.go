@@ -3,7 +3,6 @@ package keeper
 import (
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
@@ -11,6 +10,8 @@ import (
 	ctypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Hooks is the wrapper struct for the streamer keeper.
@@ -80,44 +81,51 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string) error 
 // It distributes rewards to streams that have the specified epoch identifier or aborts if there are no streams
 // in this epoch. After the distribution, it resets the epoch pointer to the very fist gauge.
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coins, error) {
-	// Get active streams
-	activeStreams := k.GetActiveStreamsForEpoch(ctx, epochIdentifier)
-	if len(activeStreams) == 0 {
+	toDistribute := k.GetActiveStreamsForEpoch(ctx, epochIdentifier)
+
+	if len(toDistribute) == 0 {
 		// Nothing to distribute
 		return sdk.Coins{}, nil
 	}
 
-	// Get epoch pointer for the current epoch
 	epochPointer, err := k.GetEpochPointer(ctx, epochIdentifier)
 	if err != nil {
 		return sdk.Coins{}, fmt.Errorf("get epoch pointer for epoch '%s': %w", epochIdentifier, err)
 	}
 
-	// Distribute rewards
-	const epochEnd = true
-	coins, iterations, err := k.Distribute(ctx, []types.EpochPointer{epochPointer}, activeStreams, types.IterationsNoLimit, epochEnd)
-	if err != nil {
-		return sdk.Coins{}, fmt.Errorf("distribute: %w", err)
+	distrResult := k.DistributeRewards(ctx, epochPointer, types.IterationsNoLimit, toDistribute)
+
+	// Update streams with respect to a new epoch and save them
+	for _, s := range distrResult.FilledStreams {
+		updated, err := k.UpdateStreamAtEpochEnd(ctx, s)
+		if err != nil {
+			return sdk.Coins{}, fmt.Errorf("update stream '%d' at epoch start: %w", s.Id, err)
+		}
+		// Save the stream
+		err = k.SetStream(ctx, &updated)
+		if err != nil {
+			return sdk.Coins{}, fmt.Errorf("set stream: %w", err)
+		}
 	}
 
 	// Reset the epoch pointer
-	epochPointer.SetToFirstGauge()
-	err = k.SaveEpochPointer(ctx, epochPointer)
+	distrResult.NewPointer.SetToFirstGauge()
+	err = k.SaveEpochPointer(ctx, distrResult.NewPointer)
 	if err != nil {
 		return sdk.Coins{}, fmt.Errorf("save epoch pointer: %w", err)
 	}
 
-	err = uevent.EmitTypedEvent(ctx, &types.EventEpochEnd{
-		Iterations:  iterations,
-		Distributed: coins,
+	err = ctx.EventManager().EmitTypedEvent(&types.EventEpochEnd{
+		Iterations:  distrResult.Iterations,
+		Distributed: distrResult.DistributedCoins,
 	})
 	if err != nil {
 		return sdk.Coins{}, fmt.Errorf("emit typed event: %w", err)
 	}
 
-	ctx.Logger().Info("Streamer distributed coins", "amount", coins.String())
+	ctx.Logger().Info("Streamer distributed coins", "amount", distrResult.DistributedCoins.String())
 
-	return coins, nil
+	return distrResult.DistributedCoins, nil
 }
 
 // BeforeEpochStart is the epoch start hook.

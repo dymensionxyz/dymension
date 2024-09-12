@@ -13,6 +13,8 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -57,7 +59,7 @@ func (im IBCModule) OnRecvPacket(
 
 	transferData, err := im.rollappKeeper.GetValidTransfer(ctx, packet.Data, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
+		return uevent.NewErrorAcknowledgement(ctx, err)
 	}
 
 	rollapp, packetData := transferData.Rollapp, transferData.FungibleTokenPacketData
@@ -76,16 +78,16 @@ func (im IBCModule) OnRecvPacket(
 	}
 
 	if err = dm.Validate(); err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
+		return uevent.NewErrorAcknowledgement(ctx, err)
 	}
 
 	if dm.Base != packetData.Denom {
-		return channeltypes.NewErrorAcknowledgement(gerrc.ErrInvalidArgument)
+		return uevent.NewErrorAcknowledgement(ctx, gerrc.ErrInvalidArgument)
 	}
 
 	// if denom metadata was found in the memo, it means we should have the rollapp record
 	if rollapp == nil {
-		return channeltypes.NewErrorAcknowledgement(gerrc.ErrNotFound)
+		return uevent.NewErrorAcknowledgement(ctx, gerrc.ErrNotFound)
 	}
 
 	dm.Base = ibcDenom
@@ -95,7 +97,7 @@ func (im IBCModule) OnRecvPacket(
 		if errorsmod.IsOf(err, gerrc.ErrAlreadyExists) {
 			return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 		}
-		return channeltypes.NewErrorAcknowledgement(err)
+		return uevent.NewErrorAcknowledgement(ctx, err)
 	}
 
 	return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
@@ -215,12 +217,20 @@ func (m *ICS4Wrapper) SendPacket(
 	// At the first match, we assume that the rollapp already contains the metadata.
 	// It would be technically possible to have a race condition where the denom metadata is added to the rollapp
 	// from another packet before this packet is acknowledged.
-	if Contains(rollapp.RegisteredDenoms, packet.Denom) {
+	// The value of `packet.Denom` here can be one of two things:
+	// 		1. Base denom (e.g. "adym") for the native token of the hub, and
+	// 		2. IBC trace (e.g. "transfer/channel-1/arax") for a third party token.
+	// We need to handle both cases:
+	// 		1. We use the value of `packet.Denom` as the baseDenom
+	//		2. We parse the IBC denom trace into IBC denom hash and prepend it with "ibc/" to get the baseDenom
+	baseDenom := transfertypes.ParseDenomTrace(packet.Denom).IBCDenom()
+
+	if Contains(rollapp.RegisteredDenoms, baseDenom) {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
 	// get the denom metadata from the bank keeper, if it doesn't exist, move on to the next middleware in the chain
-	denomMetadata, ok := m.bankKeeper.GetDenomMetaData(ctx, packet.Denom)
+	denomMetadata, ok := m.bankKeeper.GetDenomMetaData(ctx, baseDenom)
 	if !ok {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 	}

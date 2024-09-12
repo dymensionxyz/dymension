@@ -12,7 +12,7 @@ There are two kinds of `gauges`, perpetual and non-perpetual ones.
 
 - Non perpetual ones get removed from active queue after the distribution period finish but perpetual ones persist.
 - For non perpetual ones, they distribute the tokens equally per epoch during the `gauge` is in the active period.
-- For perpetual ones, it distribute all the tokens at a single time. Those gauges needs to be filled externally.
+- For perpetual ones, it distributes all the tokens at a single time. Those gauges need to be filled externally.
 
 ## Contents
 
@@ -230,7 +230,7 @@ The incentives module contains the following parameters:
 | -------------------- | ------ | -------- |
 | DistrEpochIdentifier | string | "weekly" |
 
-Note: DistrEpochIdentifier is a epoch identifier, and module distribute
+Note: DistrEpochIdentifier is an epoch identifier, and module distribute
 rewards at the end of epochs. As `epochs` module is handling multiple
 epochs, the identifier is required to check if distribution should be
 done at `AfterEpochEnd` hook

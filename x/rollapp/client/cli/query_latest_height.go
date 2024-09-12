@@ -5,8 +5,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func CmdShowLatestHeight() *cobra.Command {
@@ -14,9 +15,11 @@ func CmdShowLatestHeight() *cobra.Command {
 		Use:   "latest-height [rollapp-id]",
 		Short: "Query the last height of the last UpdateState associated with the specified rollapp-id.",
 		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := types.NewQueryClient(clientCtx)
 
 			argRollappId := args[0]

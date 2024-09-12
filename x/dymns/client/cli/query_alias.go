@@ -6,8 +6,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/spf13/cobra"
+
+	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
@@ -26,7 +27,10 @@ func CmdQueryAlias() *cobra.Command {
 				return fmt.Errorf("input is not a valid alias: %s", alias)
 			}
 
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := dymnstypes.NewQueryClient(clientCtx)
 
 			res, err := queryClient.Alias(cmd.Context(), &dymnstypes.QueryAliasRequest{
