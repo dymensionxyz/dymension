@@ -830,7 +830,7 @@ var (
 
 	pattern_Query_GetNextProposerByRollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "sequencer", "next_proposer", "rollappId"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Proposers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "sequencer", "proposer"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Proposers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "sequencer", "proposers"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (
