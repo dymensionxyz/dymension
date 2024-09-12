@@ -35,7 +35,7 @@ func (k msgServer) AddApp(goCtx context.Context, msg *types.MsgAddApp) (*types.M
 	}
 
 	app := msg.GetApp()
-	app.Id = k.GetNextAppID(ctx, app.RollappId)
+	app.Id = k.GenerateNextAppID(ctx, app.RollappId)
 
 	k.SetApp(ctx, app)
 

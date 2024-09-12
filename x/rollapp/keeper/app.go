@@ -56,8 +56,8 @@ func (k Keeper) GetRollappApps(ctx sdk.Context, rollappId string) (list []*types
 	return list
 }
 
-// GetNextAppID increments and returns the next available App ID for a specific Rollapp.
-func (k Keeper) GetNextAppID(ctx sdk.Context, rollappID string) uint64 {
+// GenerateNextAppID increments and returns the next available App ID for a specific Rollapp.
+func (k Keeper) GenerateNextAppID(ctx sdk.Context, rollappID string) uint64 {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AppSequenceKeyPrefix))
 	sequenceKey := types.AppSequenceKey(rollappID)
 
