@@ -28,9 +28,7 @@ func TestIncentivesExportGenesis(t *testing.T) {
 	// create an address and fund with coins
 	addr := sdk.AccAddress([]byte("addr1---------------"))
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10000)}
-	// balance including fees
-	addrCoins := coins.Add(sdk.NewCoin("stake", types.DYM.MulRaw(1000)))
-	err := bankutil.FundAccount(app.BankKeeper, ctx, addr, addrCoins)
+	err := bankutil.FundAccount(app.BankKeeper, ctx, addr, coins)
 	require.NoError(t, err)
 
 	// mints LP tokens and send to address created earlier

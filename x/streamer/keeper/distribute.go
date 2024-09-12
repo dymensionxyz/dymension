@@ -43,7 +43,7 @@ func (k Keeper) DistributeToGauge(ctx sdk.Context, coins sdk.Coins, record types
 		}
 
 		allocatedCoin := sdk.Coin{Denom: coin.Denom, Amount: allocatingAmount}
-		err = k.ik.AddToGaugeRewards(ctx, k.ak.GetModuleAddress(types.ModuleName), sdk.NewCoins(allocatedCoin), record.GaugeId)
+		err = k.ik.AddToGaugeRewardsByID(ctx, k.ak.GetModuleAddress(types.ModuleName), sdk.NewCoins(allocatedCoin), record.GaugeId)
 		if err != nil {
 			return sdk.Coins{}, fmt.Errorf("add rewards to gauge %d: %w", record.GaugeId, err)
 		}

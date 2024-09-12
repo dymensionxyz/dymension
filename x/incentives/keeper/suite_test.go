@@ -92,8 +92,7 @@ func (suite *KeeperTestSuite) SetupGauges(gaugeDescriptors []perpGaugeDesc, deno
 
 // CreateGauge creates a gauge struct given the required params.
 func (suite *KeeperTestSuite) CreateGauge(isPerpetual bool, addr sdk.AccAddress, coins sdk.Coins, distrTo lockuptypes.QueryCondition, startTime time.Time, numEpoch uint64) (uint64, *types.Gauge) {
-	addrCoins := coins.Add(sdk.NewCoin(sdk.DefaultBondDenom, types.DYM.MulRaw(10_000))) // create gauge fees
-	suite.FundAcc(addr, addrCoins)
+	suite.FundAcc(addr, coins)
 	gaugeID, err := suite.App.IncentivesKeeper.CreateGauge(suite.Ctx, isPerpetual, addr, coins, distrTo, startTime, numEpoch)
 	suite.Require().NoError(err)
 	gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID)
@@ -103,10 +102,11 @@ func (suite *KeeperTestSuite) CreateGauge(isPerpetual bool, addr sdk.AccAddress,
 
 // AddToGauge adds coins to the specified gauge.
 func (suite *KeeperTestSuite) AddToGauge(coins sdk.Coins, gaugeID uint64) uint64 {
+	gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID)
+	suite.Require().NoError(err)
 	addr := sdk.AccAddress([]byte("addrx---------------"))
-	addrCoins := coins.Add(sdk.NewCoin(sdk.DefaultBondDenom, types.DYM.MulRaw(10_000))) // add to gauge fees
-	suite.FundAcc(addr, addrCoins)
-	err := suite.App.IncentivesKeeper.AddToGaugeRewards(suite.Ctx, addr, coins, gaugeID)
+	suite.FundAcc(addr, coins)
+	err = suite.App.IncentivesKeeper.AddToGaugeRewards(suite.Ctx, addr, coins, gauge)
 	suite.Require().NoError(err)
 	return gaugeID
 }

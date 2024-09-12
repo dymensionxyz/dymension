@@ -23,8 +23,6 @@ func (suite *KeeperTestSuite) TestInvalidDurationGaugeCreationValidation() {
 		Denom:         defaultLPDenom,
 		Duration:      defaultLockDuration / 2, // 0.5 second, invalid duration
 	}
-	// add tokens for fees
-	suite.FundAcc(addrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.DefaultCreateGaugeFee.MulRaw(2))))
 	_, err := suite.App.IncentivesKeeper.CreateGauge(suite.Ctx, false, addrs[0], defaultLiquidTokens, distrTo, time.Time{}, 1)
 	suite.Require().Error(err)
 
@@ -44,8 +42,6 @@ func (suite *KeeperTestSuite) TestNonExistentDenomGaugeCreation() {
 		Denom:         defaultLPDenom,
 		Duration:      defaultLockDuration,
 	}
-	// add tokens for fees
-	suite.FundAcc(addrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.DefaultCreateGaugeFee.MulRaw(2))))
 	_, err := suite.App.IncentivesKeeper.CreateGauge(suite.Ctx, false, addrNoSupply, defaultLiquidTokens, distrTo, time.Time{}, 1)
 	suite.Require().Error(err)
 

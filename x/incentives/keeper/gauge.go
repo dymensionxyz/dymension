@@ -110,14 +110,6 @@ func (k Keeper) CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddr
 		return 0, fmt.Errorf("denom does not exist: %s", distrTo.Denom)
 	}
 
-	// Charge fess based on the number of coins to add
-	// Fee = CreateGaugeBaseFee + AddDenomFee * NumDenoms
-	params := k.GetParams(ctx)
-	fee := params.CreateGaugeBaseFee.Add(params.AddDenomFee.MulRaw(int64(len(coins))))
-	if err := k.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, fee, coins); err != nil {
-		return 0, err
-	}
-
 	gauge := types.Gauge{
 		Id:                k.GetLastGaugeID(ctx) + 1,
 		IsPerpetual:       isPerpetual,
@@ -149,34 +141,32 @@ func (k Keeper) CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddr
 }
 
 // AddToGaugeRewards adds coins to gauge.
-func (k Keeper) AddToGaugeRewards(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins, gaugeID uint64) error {
-	gauge, err := k.GetGaugeByID(ctx, gaugeID)
-	if err != nil {
-		return err
-	}
+func (k Keeper) AddToGaugeRewards(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins, gauge *types.Gauge) error {
 	if gauge.IsFinishedGauge(ctx.BlockTime()) {
-		return types.UnexpectedFinishedGaugeError{GaugeId: gaugeID}
+		return types.UnexpectedFinishedGaugeError{GaugeId: gauge.Id}
 	}
 
-	// Charge fess based on the number of coins to add
-	// Fee = AddToGaugeBaseFee + AddDenomFee * (NumAddedDenoms + NumGaugeDenoms)
-	params := k.GetParams(ctx)
-	fee := params.AddToGaugeBaseFee.Add(params.AddDenomFee.MulRaw(int64(len(coins) + len(gauge.Coins))))
-	if err = k.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, fee, coins); err != nil {
-		return err
-	}
-
-	if err = k.bk.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, coins); err != nil {
+	if err := k.bk.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, coins); err != nil {
 		return err
 	}
 
 	gauge.Coins = gauge.Coins.Add(coins...)
-	err = k.setGauge(ctx, gauge)
+	err := k.setGauge(ctx, gauge)
 	if err != nil {
 		return err
 	}
 	k.hooks.AfterAddToGauge(ctx, gauge.Id)
 	return nil
+}
+
+// AddToGaugeRewardsByID adds coins to gauge.
+// TODO: Used only in x/streamer. Delete after https://github.com/dymensionxyz/dymension/pull/1173 is merged!
+func (k Keeper) AddToGaugeRewardsByID(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins, gaugeID uint64) error {
+	gauge, err := k.GetGaugeByID(ctx, gaugeID)
+	if err != nil {
+		return err
+	}
+	return k.AddToGaugeRewards(ctx, owner, coins, gauge)
 }
 
 // GetGaugeByID returns gauge from gauge ID.
