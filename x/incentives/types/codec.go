@@ -16,7 +16,7 @@ var (
 // LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateGauge{}, "dymensionxyz/dymension/incentives/CreateGauge", nil)
-	cdc.RegisterConcrete(&MsgAddToGauge{}, "dymensionxyz/dymension/incentives/CalculateGaugeRewards", nil)
+	cdc.RegisterConcrete(&MsgAddToGauge{}, "dymensionxyz/dymension/incentives/AddToGauge", nil)
 }
 
 // RegisterInterfaces registers interfaces and implementations of the incentives module.
