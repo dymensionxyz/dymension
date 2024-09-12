@@ -44,6 +44,7 @@ func (msg *MsgAddApp) GetSignBytes() []byte {
 
 func (msg *MsgAddApp) GetApp() App {
 	return NewApp(
+		0,
 		msg.Name,
 		msg.RollappId,
 		msg.Description,
