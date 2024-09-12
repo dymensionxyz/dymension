@@ -21,6 +21,7 @@ type BankKeeper interface {
 // EpochKeeper defines the expected interface needed to retrieve epoch info.
 type EpochKeeper interface {
 	GetEpochInfo(ctx sdk.Context, identifier string) epochstypes.EpochInfo
+	AllEpochInfos(ctx sdk.Context) []epochstypes.EpochInfo
 }
 
 type AccountKeeper interface {

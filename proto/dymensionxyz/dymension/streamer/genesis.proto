@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 import "dymensionxyz/dymension/streamer/params.proto";
 import "dymensionxyz/dymension/streamer/stream.proto";
+import "dymensionxyz/dymension/streamer/streamer.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
 
@@ -19,4 +20,6 @@ message GenesisState {
   // last_stream_id is what the stream number will increment from when creating
   // the next stream after genesis
   uint64 last_stream_id = 3;
+  // EpochPointers are pointers to the last rewarded gauges
+  repeated EpochPointer epoch_pointers = 4 [ (gogoproto.nullable) = false ];
 }

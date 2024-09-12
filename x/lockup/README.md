@@ -4,7 +4,7 @@
 
 Lockup module provides an interface for users to lock tokens (also known as bonding) into the module to get incentives.
 
-After tokens have been added to a specific pool and turned into LP shares through the GAMM module, users can then lock these LP shares with a specific duration in order to begin earing rewards.
+After tokens have been added to a specific pool and turned into LP shares through the GAMM module, users can then lock these LP shares with a specific duration in order to begin earning rewards.
 
 To unlock these LP shares, users must trigger the unlock timer and wait for the unlock period that was set initially to be completed. After the unlock period is over, users can turn LP shares back into their respective share of tokens.
 
@@ -55,11 +55,11 @@ After the first day passes, they will only receive rewards for the 1 day and 1 w
 ### Locked coins management
 
 Locked coins are all stored in module account for `lockup` module which
-is called `LockPool`. When user lock coins within `lockup` module, it's
+is called `LockPool`. When user locks coins within `lockup` module, it's
 moved from user account to `LockPool` and a record (`PeriodLock` struct)
 is created.
 
-Once the period is over, user can withdraw it at anytime from
+Once the period is over, user can withdraw it at any time from
 `LockPool`. User can withdraw by PeriodLock ID or withdraw all
 `UnlockableCoins` at a time.
 
@@ -102,7 +102,7 @@ references. (`b_prefix_key`)
 3. `{KeyPrefixDenomLockDuration}{Denom}{Duration}`
 4. `{KeyPrefixAccountDenomLockDuration}{Owner}{Denom}{Duration}`
 
-If the lock is unlocking, it also stores the below referneces.
+If the lock is unlocking, it also stores the below references.
 
 1. `{KeyPrefixLockTimestamp}{LockEndTime}`
 2. `{KeyPrefixAccountLockTimestamp}{Owner}{LockEndTime}`
@@ -116,7 +116,7 @@ For end time keys, they are converted to sortable string by using
 stores accumulation store for efficient rewards distribution mechanism.
 
 For reference management, `addLockRefByKey` function is used a lot. Here
-key is the prefix key to be used for iteration. It is combination of two
+key is the prefix key to be used for iteration. It is a combination of two
 prefix keys.(`{a_prefix_key}{b_prefix_key}`)
 
 ``` {.go}
@@ -397,7 +397,7 @@ Lockup admin keeper provides god privilege functions to remove tokens
 from locks and create new locks.
 
 ```go
-// AdminKeeper defines a god priviledge keeper functions to remove tokens from locks and create new locks
+// AdminKeeper defines a god privilege keeper functions to remove tokens from locks and create new locks
 // For the governance system of token pools, we want a "ragequit" feature
 // So governance changes will take 1 week to go into effect
 // During that time, people can choose to "ragequit" which means they would leave the original pool
@@ -410,14 +410,14 @@ type AdminKeeper interface {
 
     // this unlock previous lockID and create a new lock with newCoins with same duration and endtime
     Relock(sdk.Context, lockID uint64, newCoins sdk.Coins) error
-    // this unlock without time check with an admin priviledge
+    // this unlock without time check with an admin privilege
     BreakLock(sdk.Context, lockID uint64) error
 }
 ```
 
 ## Hooks
 
-In this section we describe the "hooks" that `lockup` module provide for
+In this section we describe the "hooks" that `lockup` module provides for
 other modules.
 
 ### Tokens Locked

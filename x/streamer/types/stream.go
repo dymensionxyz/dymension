@@ -3,6 +3,7 @@ package types
 import (
 	time "time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -18,6 +19,7 @@ func NewStream(id uint64, distrTo *DistrInfo, coins sdk.Coins, startTime time.Ti
 		FilledEpochs:         0,
 		DistributedCoins:     sdk.Coins{},
 		Sponsored:            sponsored,
+		EpochCoins:           coins.QuoInt(math.NewIntFromUint64(numEpochsPaidOver)),
 	}
 }
 

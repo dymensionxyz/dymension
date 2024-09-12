@@ -4,8 +4,9 @@ import (
 	errorsmod "cosmossdk.io/errors"
 )
 
-func NewApp(name, rollappId, description, image, url string, order int32) App {
+func NewApp(id uint64, name, rollappId, description, image, url string, order int32) App {
 	return App{
+		Id:          id,
 		Name:        name,
 		RollappId:   rollappId,
 		Description: description,

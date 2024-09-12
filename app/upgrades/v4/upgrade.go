@@ -3,6 +3,7 @@ package v4
 import (
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	epochskeeper "github.com/osmosis-labs/osmosis/v15/x/epochs/keeper"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -35,6 +36,8 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	streamerkeeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
+	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v4
@@ -58,6 +61,9 @@ func CreateUpgradeHandler(
 
 		migrateSequencers(ctx, keepers.SequencerKeeper)
 		migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper)
+		if err := migrateStreamer(ctx, keepers.StreamerKeeper, keepers.EpochsKeeper); err != nil {
+			return nil, err
+		}
 		migrateIncentivesParams(ctx, keepers.IncentivesKeeper)
 
 		// TODO: create rollapp gauges for each existing rollapp (https://github.com/dymensionxyz/dymension/issues/1005)
@@ -174,6 +180,17 @@ func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Ke
 		// store the rollapp to canonical light client ID mapping
 		lightClientKeeper.SetCanonicalClient(ctx, rollapp.RollappId, clientID)
 	}
+}
+
+// migrateStreamer creates epoch pointers for all epoch infos.
+func migrateStreamer(ctx sdk.Context, sk streamerkeeper.Keeper, ek *epochskeeper.Keeper) error {
+	for _, epoch := range ek.AllEpochInfos(ctx) {
+		err := sk.SaveEpochPointer(ctx, streamertypes.NewEpochPointer(epoch.Identifier, epoch.Duration))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {

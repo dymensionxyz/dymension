@@ -9,10 +9,10 @@ const TypeMsgRemoveApp = "remove_app"
 
 var _ sdk.Msg = &MsgRemoveApp{}
 
-func NewMsgRemoveApp(creator, name, rollappId string) *MsgRemoveApp {
+func NewMsgRemoveApp(creator string, id uint64, rollappId string) *MsgRemoveApp {
 	return &MsgRemoveApp{
 		Creator:   creator,
-		Name:      name,
+		Id:        id,
 		RollappId: rollappId,
 	}
 }
@@ -40,7 +40,8 @@ func (msg *MsgRemoveApp) GetSignBytes() []byte {
 
 func (msg *MsgRemoveApp) GetApp() App {
 	return NewApp(
-		msg.Name,
+		msg.Id,
+		"",
 		msg.RollappId,
 		"",
 		"",
@@ -55,8 +56,8 @@ func (msg *MsgRemoveApp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidCreatorAddress, err.Error())
 	}
 
-	if len(msg.Name) == 0 {
-		return errorsmod.Wrap(ErrInvalidAppName, "App name cannot be empty")
+	if msg.Id == 0 {
+		return errorsmod.Wrap(ErrInvalidAppID, "App id cannot be zero")
 	}
 
 	if len(msg.RollappId) == 0 {

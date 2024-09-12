@@ -26,7 +26,7 @@ service Query {
   // Queries a list of Sequencer items.
   rpc Sequencers(QuerySequencersRequest) returns (QuerySequencersResponse) {
     option (google.api.http).get =
-        "/dymensionxyz/dymension/sequencer/sequencer";
+        "/dymensionxyz/dymension/sequencer/sequencers";
   }
 
   // Queries a SequencersByRollapp by rollappId.
@@ -39,15 +39,15 @@ service Query {
   // Queries a SequencersByRollappByStatus
   rpc SequencersByRollappByStatus(QueryGetSequencersByRollappByStatusRequest)
       returns (QueryGetSequencersByRollappByStatusResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/sequencer/"
-                                   "sequencers_by_rollapp/{rollappId}/{status}";
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/sequencer/sequencers_by_rollapp/{rollappId}/{status}";
   }
 
   // Queries the current proposer by rollappId.
   rpc GetProposerByRollapp(QueryGetProposerByRollappRequest)
       returns (QueryGetProposerByRollappResponse) {
     option (google.api.http).get =
-        "/dymensionxyz/dymension/sequencer/proposer/{rollappId}";
+        "/dymensionxyz/dymension/sequencer/proposers/{rollappId}";
   }
 
   // Queries the next proposer by rollappId.
@@ -55,6 +55,12 @@ service Query {
       returns (QueryGetNextProposerByRollappResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/sequencer/next_proposer/{rollappId}";
+  }
+
+  // Queries a list of proposers.
+  rpc Proposers(QueryProposersRequest) returns (QueryProposersResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/sequencer/proposers";
   }
 }
 
@@ -113,4 +119,15 @@ message QueryGetNextProposerByRollappResponse {
   string nextProposerAddr = 1;
   // rotationInProgress is true if the proposer rotation is in progress.
   bool rotationInProgress = 2;
+}
+
+// Request type for the Proposers RPC method.
+message QueryProposersRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// Response type for the Proposers RPC method.
+message QueryProposersResponse {
+  repeated Sequencer proposers = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

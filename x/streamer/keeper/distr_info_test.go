@@ -5,8 +5,9 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 func (suite *KeeperTestSuite) TestAllocateToGauges() {
@@ -49,18 +50,11 @@ func (suite *KeeperTestSuite) TestAllocateToGauges() {
 		},
 	}
 
-	for name, test := range tests {
+	for _, test := range tests {
 		suite.Run(test.name, func() {
 			var streams []types.Stream
 
-			err := suite.CreateGauge()
-			suite.Require().NoError(err)
-			err = suite.CreateGauge()
-			suite.Require().NoError(err)
-			err = suite.CreateGauge()
-			suite.Require().NoError(err)
-
-			keeper := suite.App.StreamerKeeper
+			suite.CreateGauges(3)
 
 			// create a stream
 			suite.CreateStream(test.testingDistrRecord, sdk.NewCoins(test.mintedCoins), time.Now(), "day", 1)
@@ -68,13 +62,8 @@ func (suite *KeeperTestSuite) TestAllocateToGauges() {
 			// move all created streams from upcoming to active
 			suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
 			streams = suite.App.StreamerKeeper.GetStreams(suite.Ctx)
-			for _, stream := range streams {
-				err := suite.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(suite.Ctx, stream)
-				suite.Require().NoError(err)
-			}
 
-			_, err = keeper.Distribute(suite.Ctx, streams)
-			suite.Require().NoError(err, name)
+			suite.DistributeAllRewards(streams)
 
 			for i := 0; i < len(test.testingDistrRecord); i++ {
 				if test.testingDistrRecord[i].GaugeId == 0 {
@@ -82,7 +71,7 @@ func (suite *KeeperTestSuite) TestAllocateToGauges() {
 				}
 				gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, test.testingDistrRecord[i].GaugeId)
 				suite.Require().NoError(err)
-				suite.Require().Equal(test.expectedGaugesBalances[i], gauge.Coins)
+				suite.Require().ElementsMatch(test.expectedGaugesBalances[i], gauge.Coins)
 			}
 		})
 	}
