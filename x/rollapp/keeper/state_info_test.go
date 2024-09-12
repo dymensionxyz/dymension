@@ -3,13 +3,16 @@ package keeper_test
 import (
 	"strconv"
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/stretchr/testify/require"
 )
 
 // Prevent strconv unused error
@@ -38,11 +41,11 @@ func createNStateInfo(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.St
 }
 
 func TestStateInfoGet(t *testing.T) {
-	keeper, ctx := keepertest.RollappKeeper(t)
-	items, _ := createNStateInfo(keeper, ctx, 10)
+	k, ctx := keepertest.RollappKeeper(t)
+	items, _ := createNStateInfo(k, ctx, 10)
 	for _, item := range items {
 		item := item
-		rst, found := keeper.GetStateInfo(ctx,
+		rst, found := k.GetStateInfo(ctx,
 			item.StateInfoIndex.RollappId,
 			item.StateInfoIndex.Index,
 		)
@@ -55,14 +58,14 @@ func TestStateInfoGet(t *testing.T) {
 }
 
 func TestStateInfoRemove(t *testing.T) {
-	keeper, ctx := keepertest.RollappKeeper(t)
-	items, _ := createNStateInfo(keeper, ctx, 10)
+	k, ctx := keepertest.RollappKeeper(t)
+	items, _ := createNStateInfo(k, ctx, 10)
 	for _, item := range items {
-		keeper.RemoveStateInfo(ctx,
+		k.RemoveStateInfo(ctx,
 			item.StateInfoIndex.RollappId,
 			item.StateInfoIndex.Index,
 		)
-		_, found := keeper.GetStateInfo(ctx,
+		_, found := k.GetStateInfo(ctx,
 			item.StateInfoIndex.RollappId,
 			item.StateInfoIndex.Index,
 		)
@@ -71,10 +74,76 @@ func TestStateInfoRemove(t *testing.T) {
 }
 
 func TestStateInfoGetAll(t *testing.T) {
-	keeper, ctx := keepertest.RollappKeeper(t)
-	items, _ := createNStateInfo(keeper, ctx, 10)
+	k, ctx := keepertest.RollappKeeper(t)
+	items, _ := createNStateInfo(k, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
-		nullify.Fill(keeper.GetAllStateInfo(ctx)),
+		nullify.Fill(k.GetAllStateInfo(ctx)),
 	)
+}
+
+func TestKeeper_DeleteStateInfoUntilTimestamp(t *testing.T) {
+	k, ctx := keepertest.RollappKeeper(t)
+
+	ts1 := time.Date(2020, time.May, 1, 10, 22, 0, 0, time.UTC)
+	ts2 := ts1.Add(9 * time.Second)
+	ts3 := ts2.Add(11 * time.Second)
+	ts4 := ts3.Add(13 * time.Second)
+
+	items := []types.StateInfo{
+		{CreatedAt: ts1},
+		{CreatedAt: ts2},
+		{CreatedAt: ts3},
+		{CreatedAt: ts4},
+	}
+	for i := range items {
+		items[i].StateInfoIndex.RollappId = strconv.Itoa(i + 1)
+		items[i].StateInfoIndex.Index = 1 + uint64(i)
+
+		k.SetStateInfo(ctx, items[i])
+	}
+
+	lastItem := items[len(items)-1]
+	latestStateInfoIndex := types.StateInfoIndex{
+		RollappId: lastItem.StateInfoIndex.RollappId,
+		Index:     lastItem.StateInfoIndex.Index,
+	}
+	k.SetLatestStateInfoIndex(ctx, latestStateInfoIndex)
+
+	// delete all before ts3: only ts3 and ts4 should be found
+	k.DeleteStateInfoUntilTimestamp(ctx, ts2.Add(time.Second))
+
+	for _, item := range items {
+		_, found := k.GetStateInfo(ctx,
+			item.StateInfoIndex.RollappId,
+			item.StateInfoIndex.Index,
+		)
+
+		foundTSKey := k.HasStateInfoTimestampKey(ctx, item)
+
+		if item.CreatedAt.After(ts2) {
+			assert.True(t, found)
+			assert.True(t, foundTSKey)
+			continue
+		}
+		assert.Falsef(t, found, "item %v", item)
+		assert.False(t, foundTSKey)
+	}
+
+	// delete all: only ts4 should be found, as it's the latest and has an index
+	k.DeleteStateInfoUntilTimestamp(ctx, ts4.Add(time.Second))
+
+	info3 := items[2]
+	_, found := k.GetStateInfo(ctx,
+		info3.StateInfoIndex.RollappId,
+		info3.StateInfoIndex.Index,
+	)
+	assert.False(t, found)
+
+	info4 := items[3]
+	_, found = k.GetStateInfo(ctx,
+		info4.StateInfoIndex.RollappId,
+		info4.StateInfoIndex.Index,
+	)
+	assert.True(t, found)
 }
