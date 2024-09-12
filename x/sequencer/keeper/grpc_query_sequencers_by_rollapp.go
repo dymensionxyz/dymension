@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -97,10 +96,9 @@ func (k Keeper) Proposers(c context.Context, req *types.QueryProposersRequest) (
 
 	pageRes, err := query.Paginate(sequencerStore, req.Pagination, func(key []byte, value []byte) error {
 		proposer, ok := k.GetSequencer(ctx, string(value))
-		if !ok {
-			return errorsmod.Wrap(types.ErrNoProposer, string(value))
+		if ok {
+			proposers = append(proposers, proposer)
 		}
-		proposers = append(proposers, proposer)
 		return nil
 	})
 	if err != nil {
