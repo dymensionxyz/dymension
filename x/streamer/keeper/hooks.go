@@ -81,51 +81,44 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string) error 
 // It distributes rewards to streams that have the specified epoch identifier or aborts if there are no streams
 // in this epoch. After the distribution, it resets the epoch pointer to the very fist gauge.
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coins, error) {
-	toDistribute := k.GetActiveStreamsForEpoch(ctx, epochIdentifier)
-
-	if len(toDistribute) == 0 {
+	// Get active streams
+	activeStreams := k.GetActiveStreamsForEpoch(ctx, epochIdentifier)
+	if len(activeStreams) == 0 {
 		// Nothing to distribute
 		return sdk.Coins{}, nil
 	}
 
+	// Get epoch pointer for the current epoch
 	epochPointer, err := k.GetEpochPointer(ctx, epochIdentifier)
 	if err != nil {
 		return sdk.Coins{}, fmt.Errorf("get epoch pointer for epoch '%s': %w", epochIdentifier, err)
 	}
 
-	distrResult := k.DistributeRewards(ctx, epochPointer, types.IterationsNoLimit, toDistribute)
-
-	// Update streams with respect to a new epoch and save them
-	for _, s := range distrResult.FilledStreams {
-		updated, err := k.UpdateStreamAtEpochEnd(ctx, s)
-		if err != nil {
-			return sdk.Coins{}, fmt.Errorf("update stream '%d' at epoch start: %w", s.Id, err)
-		}
-		// Save the stream
-		err = k.SetStream(ctx, &updated)
-		if err != nil {
-			return sdk.Coins{}, fmt.Errorf("set stream: %w", err)
-		}
+	// Distribute rewards
+	const epochEnd = true
+	coins, iterations, err := k.Distribute(ctx, []types.EpochPointer{epochPointer}, activeStreams, types.IterationsNoLimit, epochEnd)
+	if err != nil {
+		return sdk.Coins{}, fmt.Errorf("distribute: %w", err)
 	}
 
 	// Reset the epoch pointer
-	distrResult.NewPointer.SetToFirstGauge()
-	err = k.SaveEpochPointer(ctx, distrResult.NewPointer)
+	epochPointer.SetToFirstGauge()
+	err = k.SaveEpochPointer(ctx, epochPointer)
 	if err != nil {
 		return sdk.Coins{}, fmt.Errorf("save epoch pointer: %w", err)
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventEpochEnd{
-		Iterations:  distrResult.Iterations,
-		Distributed: distrResult.DistributedCoins,
+	err = uevent.EmitTypedEvent(ctx, &types.EventEpochEnd{
+		Iterations:  iterations,
+		Distributed: coins,
 	})
 	if err != nil {
 		return sdk.Coins{}, fmt.Errorf("emit typed event: %w", err)
 	}
 
-	ctx.Logger().Info("Streamer distributed coins", "amount", distrResult.DistributedCoins.String())
+	ctx.Logger().Info("Streamer distributed coins", "amount", coins.String())
 
-	return distrResult.DistributedCoins, nil
+	return coins, nil
 }
 
 // BeforeEpochStart is the epoch start hook.

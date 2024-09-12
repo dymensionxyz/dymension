@@ -154,7 +154,7 @@ func (k Keeper) CalculateRewards(
 		stream, found := streamCache.Get(v.Stream.Id)
 		if !found {
 			// this should never happen in practice since the initial cache contains all gauges we are iterating
-			panic(fmt.Errorf("internal contract error: stream '%d' not found in the cache!", stream.Id))
+			panic(fmt.Errorf("internal contract error: stream '%d' not found in the cache", stream.Id))
 		}
 
 		// get gauge from the cache since we need to use the last updated version=
