@@ -18,6 +18,7 @@ service Msg {
   rpc AddApp(MsgAddApp) returns (MsgAddAppResponse);
   rpc UpdateApp(MsgUpdateApp) returns (MsgUpdateAppResponse);
   rpc RemoveApp(MsgRemoveApp) returns (MsgRemoveAppResponse);
+  rpc FreezeVulnerableRollapps(MsgFreezeVulnerableRollapps) returns (MsgFreezeVulnerableRollappsResponse);
 }
 
 // MsgCreateRollapp creates a new rollapp chain on the hub.
@@ -87,6 +88,8 @@ message MsgUpdateState {
   BlockDescriptors BDs = 7 [(gogoproto.nullable) = false];
   // last is true if this is the last batch of the sequencer
   bool last = 8;
+  // DrsVersion is a DRS version used by the rollapp.
+  string drs_version = 9;
 }
 
 message MsgUpdateStateResponse {
@@ -165,3 +168,16 @@ message MsgRemoveApp {
 
 message MsgRemoveAppResponse {
 }
+
+// MsgFreezeVulnerableRollapps marks specified versions as vulnerable as well as
+// all corresponding rollapps. Must be called by the governance.
+message MsgFreezeVulnerableRollapps {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the authority address.
+  string authority = 1;
+  // DrsVersions is a list of DRS versions that will be marked vulnerable.
+  repeated string drs_versions = 2;
+}
+
+message MsgFreezeVulnerableRollappsResponse {}

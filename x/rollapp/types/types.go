@@ -12,3 +12,5 @@ func (md *RollappMetadata) IsEmpty() bool {
 	bz, _ := json.Marshal(md)
 	return string(bz) == "{}"
 }
+
+type DRSVersion string

@@ -16,3 +16,10 @@ message EventAppUpdated {
 message EventAppRemoved {
   App app = 1;
 }
+
+message EventFreezeVulnerableRollapps {
+  // VulnerableRollappNum is a number of rollapps that were marked as vulnerable.
+  uint64 vulnerable_rollapp_num = 1;
+  // DrsVersions is a list of DRS versions that were marked as vulnerable.
+  repeated string drs_versions = 2;
+}

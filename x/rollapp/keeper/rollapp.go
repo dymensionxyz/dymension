@@ -245,3 +245,27 @@ func (k Keeper) IsRollappStarted(ctx sdk.Context, rollappId string) bool {
 	_, found := k.GetLatestStateInfoIndex(ctx, rollappId)
 	return found
 }
+
+func (k Keeper) GetRollappDRSVersion(ctx sdk.Context, rollappId string) (types.DRSVersion, bool) {
+	info, found := k.GetLatestStateInfo(ctx, rollappId)
+	if !found {
+		return "", false
+	}
+	return types.DRSVersion(info.DrsVersion), true
+}
+
+func (k Keeper) MarkRollappAsVulnerable(ctx sdk.Context, rollappId string) bool {
+	r, found := k.GetRollapp(ctx, rollappId)
+	if !found {
+		return false
+	}
+	r.Frozen = true
+	k.SetRollapp(ctx, r)
+	return true
+}
+
+func (k Keeper) MustMarkRollappAsVulnerable(ctx sdk.Context, rollappId string) {
+	r := k.MustGetRollapp(ctx, rollappId)
+	r.Frozen = true
+	k.SetRollapp(ctx, r)
+}
