@@ -3,11 +3,16 @@ package types
 import (
 	"errors"
 	"fmt"
+	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
+	"github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	"gopkg.in/yaml.v2"
+
+	"github.com/dymensionxyz/dymension/v3/app/params"
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -19,6 +24,16 @@ var (
 	KeyLivenessSlashBlocks   = []byte("LivenessSlashBlocks")
 	KeyLivenessSlashInterval = []byte("LivenessSlashInterval")
 	KeyLivenessJailBlocks    = []byte("LivenessJailBlocks")
+
+	// KeyAppRegistrationFee defines the key to store the cost of the app
+	KeyAppRegistrationFee = []byte("AppRegistrationFee")
+
+	// DYM is 1dym
+	DYM                       = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
+	DefaultAppRegistrationFee = sdk.NewCoin(params.BaseDenom, DYM)
+
+	// KeyStateInfoDeletionEpochIdentifier defines the key to store the epoch identifier
+	KeyStateInfoDeletionEpochIdentifier = []byte("StateInfoDeletionEpochIdentifier")
 )
 
 const (
@@ -29,6 +44,7 @@ const (
 	DefaultLivenessSlashBlocks   = uint64(7200)  // 12 hours at 1 block per 6 seconds
 	DefaultLivenessSlashInterval = uint64(3600)  // 1 hour at 1 block per 6 seconds
 	DefaultLivenessJailBlocks    = uint64(28800) // 48 hours at 1 block per 6 seconds
+	defaultEpochIdentifier       = "hour"
 )
 
 // ParamKeyTable the param key table for launch module
@@ -42,12 +58,16 @@ func NewParams(
 	livenessSlashBlocks uint64,
 	livenessSlashInterval uint64,
 	livenessJailBlocks uint64,
+	appRegistrationFee sdk.Coin,
+	epochIdentifier string,
 ) Params {
 	return Params{
-		DisputePeriodInBlocks: disputePeriodInBlocks,
-		LivenessSlashBlocks:   livenessSlashBlocks,
-		LivenessSlashInterval: livenessSlashInterval,
-		LivenessJailBlocks:    livenessJailBlocks,
+		DisputePeriodInBlocks:            disputePeriodInBlocks,
+		LivenessSlashBlocks:              livenessSlashBlocks,
+		LivenessSlashInterval:            livenessSlashInterval,
+		LivenessJailBlocks:               livenessJailBlocks,
+		AppRegistrationFee:               appRegistrationFee,
+		StateInfoDeletionEpochIdentifier: epochIdentifier,
 	}
 }
 
@@ -57,6 +77,8 @@ func DefaultParams() Params {
 		DefaultLivenessSlashBlocks,
 		DefaultLivenessSlashInterval,
 		DefaultLivenessJailBlocks,
+		DefaultAppRegistrationFee,
+		defaultEpochIdentifier,
 	)
 }
 
@@ -67,6 +89,8 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyLivenessSlashBlocks, &p.LivenessSlashBlocks, validateLivenessSlashBlocks),
 		paramtypes.NewParamSetPair(KeyLivenessSlashInterval, &p.LivenessSlashInterval, validateLivenessSlashInterval),
 		paramtypes.NewParamSetPair(KeyLivenessJailBlocks, &p.LivenessJailBlocks, validateLivenessJailBlocks),
+		paramtypes.NewParamSetPair(KeyAppRegistrationFee, &p.AppRegistrationFee, validateAppRegistrationFee),
+		paramtypes.NewParamSetPair(KeyStateInfoDeletionEpochIdentifier, &p.StateInfoDeletionEpochIdentifier, types.ValidateEpochIdentifierInterface),
 	}
 }
 
@@ -106,6 +130,9 @@ func (p Params) Validate() error {
 		return errorsmod.Wrap(err, "liveness jail blocks")
 	}
 
+	if err := validateAppRegistrationFee(p.AppRegistrationFee); err != nil {
+		return errorsmod.Wrap(err, "app registration fee")
+	}
 	return nil
 }
 
@@ -136,6 +163,18 @@ func validateDisputePeriodInBlocks(v interface{}) error {
 
 	if disputePeriodInBlocks < MinDisputePeriodInBlocks {
 		return errors.New("dispute period cannot be lower than 1 block")
+	}
+
+	return nil
+}
+
+func validateAppRegistrationFee(i interface{}) error {
+	v, ok := i.(sdk.Coin)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if !v.IsValid() {
+		return fmt.Errorf("invalid app creation cost: %s", v)
 	}
 
 	return nil

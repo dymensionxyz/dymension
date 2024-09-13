@@ -8,16 +8,22 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/sponsorship/types";
 // Params is a module parameters.
 message Params {
   // MinAllocationWeight is a minimum portion of the user's voting power that
-  // one can allocate to a single gauge. The value must fall between 0 and 100,
-  // inclusively. For example, if this parameter is 20%, then the min allocation
-  // is 20%, and consequently, the user can vote on a max of 5 gauges (100 / 20
-  // = 5).
+  // one can allocate to a single gauge. The value is measured in percentages
+  // and must fall between 1 and 100 * 10^18, inclusive. The base unit is 10^-18%,
+  // so
+  //  * 1 --> 10^-18%
+  //  * 10^18 --> 1%
+  //  * 100 * 10^18 --> 100%.
+  //
+  // Example! If this parameter is 20 * 10^18, which implies 20%, then the min
+  // allocation is 20%, and consequently, one can vote on a max of 5 gauges:
+  // 100 / 20 = 5.
   string min_allocation_weight = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   // MinVotingPower is a minimum voting power a user must have in order to be
-  // able to vote.
+  // able to vote. Denominated in aDYM.
   string min_voting_power = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
@@ -106,9 +112,12 @@ message Vote {
 message GaugeWeight {
   // GaugeID is the ID of the gauge.
   uint64 gauge_id = 1;
-  // Weight is a portion of the voting power that is allocated for the given
-  // gauge. The value must fall between Params.MinAllocationWeight and 100,
-  // inclusive.
+  // Weight is a portion of the voting power that is allocated for the given gauge.
+  // The value is measured in percentages and must fall between 1 and 100 * 10^18,
+  // inclusive. The base unit is 10^-18%, so 
+  //	* 1 --> 10^-18%
+  //	* 10^18 --> 1%
+  //	* 100 * 10^18 --> 100%.
   string weight = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"

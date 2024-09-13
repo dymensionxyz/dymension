@@ -4,18 +4,19 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/stretchr/testify/suite"
-
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/stretchr/testify/suite"
+
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 type transferGenesisSuite struct {
@@ -31,10 +32,13 @@ func TestTransferGenesisTestSuite(t *testing.T) {
 func (s *transferGenesisSuite) SetupTest() {
 	s.utilSuite.SetupTest()
 	path := s.newTransferPath(s.hubChain(), s.rollappChain())
-	s.coordinator.Setup(path)
+	s.coordinator.SetupConnections(path)
 	s.createRollapp(false, nil) // genesis protocol is not finished yet
 	s.registerSequencer()
 	s.path = path
+	// set the canonical client before creating channels
+	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), rollappChainID(), s.path.EndpointA.ClientID)
+	s.coordinator.CreateChannels(path)
 
 	// set hooks to avoid actually creating VFC contract, as this places extra requirements on the test setup
 	// we assume that if the denom metadata was created (checked below), then the hooks ran correctly
@@ -107,7 +111,7 @@ func (s *transferGenesisSuite) TestCannotDoGenesisTransferAfterBridgeEnabled() {
 
 		if i == 2 {
 
-			expect := channeltypes.NewErrorAcknowledgement(transfergenesis.ErrDisabled)
+			expect := uevent.NewErrorAcknowledgement(s.hubCtx(), transfergenesis.ErrDisabled)
 			bz, _ := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			s.Require().Equal(channeltypes.CommitAcknowledgement(expect.Acknowledgement()), bz)
 		}

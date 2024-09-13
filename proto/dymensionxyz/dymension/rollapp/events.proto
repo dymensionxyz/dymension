@@ -1,0 +1,18 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+
+import "dymensionxyz/dymension/rollapp/app.proto";
+
+message EventAppAdded {
+  App app = 1;
+}
+
+message EventAppUpdated {
+  App app = 1;
+}
+
+message EventAppRemoved {
+  App app = 1;
+}

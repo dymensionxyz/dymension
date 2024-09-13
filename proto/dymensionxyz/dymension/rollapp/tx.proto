@@ -1,14 +1,12 @@
 syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
-// this line is used by starport scaffolding # proto/tx/import
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+
 import "cosmos/msg/v1/msg.proto";
 import "dymensionxyz/dymension/rollapp/block_descriptor.proto";
 import "dymensionxyz/dymension/rollapp/rollapp.proto";
 import "dymensionxyz/dymension/rollapp/metadata.proto";
-
-option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
-
 import "gogoproto/gogo.proto";
 
 // Msg defines the Msg service.
@@ -17,6 +15,9 @@ service Msg {
   rpc UpdateRollappInformation(MsgUpdateRollappInformation) returns (MsgUpdateRollappInformationResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
   rpc TransferOwnership(MsgTransferOwnership) returns (MsgTransferOwnershipResponse);
+  rpc AddApp(MsgAddApp) returns (MsgAddAppResponse);
+  rpc UpdateApp(MsgUpdateApp) returns (MsgUpdateAppResponse);
+  rpc RemoveApp(MsgRemoveApp) returns (MsgRemoveAppResponse);
 }
 
 // MsgCreateRollapp creates a new rollapp chain on the hub.
@@ -31,16 +32,14 @@ message MsgCreateRollapp {
   // initial_sequencer takes one or more coma-separated bech32-encoded addresses of the
   // sequencer(s) that are allowed to initially serve this rollappId.
   string initial_sequencer = 11;
-  // the unique rollapp address bech32 prefix.
-  string bech32_prefix = 12;
   // alias is the chain alias used for display and namespace system
-  string alias = 13;
-  // checksum used to verify integrity of the genesis file
-  string genesis_checksum = 14;
+  string alias = 12;
   // metadata is the rollapp metadata
-  RollappMetadata metadata = 15;
+  RollappMetadata metadata = 13;
+  // genesis_info is the genesis information
+  GenesisInfo genesis_info = 14 [(gogoproto.nullable) = false ];
   // vm_type is the type of rollapp machine: EVM or WASM
-  Rollapp.VMType vm_type = 16;
+  Rollapp.VMType vm_type = 15;
 }
 
 message MsgCreateRollappResponse {
@@ -57,12 +56,10 @@ message MsgUpdateRollappInformation {
   // sequencer that are allowed to initially serve this rollappId.
   // wildcard '*' means any sequencer is allowed to be the first proposer.
   string initial_sequencer = 3;
-  // checksum used to verify integrity
-  string genesis_checksum = 4;
   // metadata is the rollapp metadata
   RollappMetadata metadata = 5 [(gogoproto.nullable) = true ];
-  // the unique rollapp address bech32 prefix.
-  string bech32_prefix = 6;
+  // genesis_info is the genesis information
+  GenesisInfo genesis_info = 6 [(gogoproto.nullable) = false ];
 }
 
 message MsgUpdateRollappInformationResponse {
@@ -107,4 +104,64 @@ message MsgTransferOwnership {
 }
 
 message MsgTransferOwnershipResponse {
+}
+
+// MsgAddApp adds an app to the rollapp.
+message MsgAddApp {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the app creator
+  string creator = 1;
+  // name is the unique App's name
+  string name = 2;
+  // rollapp_id is the id of the Rollapp the App belongs to
+  string rollapp_id = 3;
+  // description is the description of the App
+  string description = 4;
+  // image is the url to the App image
+  string image = 5;
+  // url is the URL to the App's website
+  string url = 6;
+  // order is the order of the App in the Rollapp
+  int32 order = 7;
+}
+
+message MsgAddAppResponse {
+}
+
+// MsgUpdateApp updates the app information.
+message MsgUpdateApp {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the app owner
+  string creator = 1;
+  // id is the unique App's id in the Rollapp
+  uint64 id = 2;
+  // name is the unique App's name (immutable)
+  string name = 3;
+  // rollapp_id is the id of the Rollapp the App belongs to
+  string rollapp_id = 4;
+  // description is the description of the App
+  string description = 5;
+  // image is the url to the App image
+  string image = 6;
+  // url is the URL to the App's website
+  string url = 7;
+  // order is the order of the App in the Rollapp
+  int32 order = 8;
+}
+
+message MsgUpdateAppResponse {
+}
+
+// MsgRemoveApp removes an app from the rollapp.
+message MsgRemoveApp {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the app owner
+  string creator = 1;
+  // id is the unique App's id in the Rollapp
+  uint64 id = 2;
+  // rollapp_id is the id of the Rollapp the App belongs to
+  string rollapp_id = 3;
+}
+
+message MsgRemoveAppResponse {
 }

@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+	"time"
 
 	tmrand "github.com/cometbft/cometbft/libs/rand"
-
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cometbfttypes "github.com/cometbft/cometbft/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -126,17 +126,23 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		s.hubChain().SenderAccount.GetAddress().String(),
 		rollappChainID(),
 		s.hubChain().SenderAccount.GetAddress().String(),
-		"eth",
-		"somechecksum",
 		strings.ToLower(tmrand.Str(7)),
 		rollapptypes.Rollapp_EVM,
-
 		&rollapptypes.RollappMetadata{
 			Website:     "http://example.com",
 			Description: "Some description",
 			LogoUrl:     "https://dymension.xyz/logo.png",
 			Telegram:    "https://t.me/rolly",
 			X:           "https://x.dymension.xyz",
+		},
+		rollapptypes.GenesisInfo{
+			GenesisChecksum: "somechecksum",
+			Bech32Prefix:    "eth",
+			NativeDenom: &rollapptypes.DenomMetadata{
+				Display:  "DEN",
+				Base:     "aden",
+				Exponent: 18,
+			},
 		},
 	)
 
@@ -198,6 +204,7 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 		blockDescriptors.BD[i] = rollapptypes.BlockDescriptor{
 			Height:    startHeight + uint64(i),
 			StateRoot: bytes.Repeat([]byte{byte(startHeight) + byte(i)}, 32),
+			Timestamp: time.Now().UTC(),
 		}
 	}
 	// Update the state

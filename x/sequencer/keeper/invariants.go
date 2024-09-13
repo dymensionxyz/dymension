@@ -10,6 +10,7 @@ import (
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "sequencers-count", SequencersCountInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "sequencer-proposer-bonded", ProposerBondedInvariant(k))
+	ir.RegisterRoute(types.ModuleName, "sequencer-positive-balance-post-bond-reduction", SequencerPositiveBalancePostBondReduction(k))
 }
 
 // AllInvariants runs all invariants of the x/sequencer module.
@@ -91,6 +92,34 @@ func ProposerBondedInvariant(k Keeper) sdk.Invariant {
 
 		return sdk.FormatInvariant(
 			types.ModuleName, "sequencer-bonded",
+			msg,
+		), broken
+	}
+}
+
+// SequencerPositiveBalancePostBondReduction checks if the sequencer maintains a non-negative balance after all bond reductions are applied
+func SequencerPositiveBalancePostBondReduction(k Keeper) sdk.Invariant {
+	return func(ctx sdk.Context) (string, bool) {
+		var (
+			broken bool
+			msg    string
+		)
+		sequencers := k.GetAllSequencers(ctx)
+		for _, seq := range sequencers {
+			effectiveBond := seq.Tokens
+			if bondReductions := k.GetBondReductionsBySequencer(ctx, seq.Address); len(bondReductions) > 0 {
+				for _, bd := range bondReductions {
+					effectiveBond = effectiveBond.Sub(bd.DecreaseBondAmount)
+				}
+			}
+			if effectiveBond.IsAnyNegative() {
+				broken = true
+				msg += "sequencer will have negative balance after bond reduction " + seq.Address + "\n"
+			}
+		}
+
+		return sdk.FormatInvariant(
+			types.ModuleName, "sequencer-positive-balance-post-bond-reduction",
 			msg,
 		), broken
 	}

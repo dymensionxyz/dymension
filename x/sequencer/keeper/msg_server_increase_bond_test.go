@@ -65,14 +65,6 @@ func (suite *SequencerTestSuite) TestIncreaseBond() {
 			expectedErr: types.ErrInvalidSequencerStatus,
 		},
 		{
-			name: "jailed sequencer",
-			msg: types.MsgIncreaseBond{
-				Creator:   jailedSequencerAddress,
-				AddAmount: bondAmount,
-			},
-			expectedErr: types.ErrSequencerJailed,
-		},
-		{
 			name: "sequencer doesn't have enough balance",
 			msg: types.MsgIncreaseBond{
 				Creator:   defaultSequencerAddress,

@@ -22,16 +22,18 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
+
 	"github.com/dymensionxyz/dymension/v3/app/params"
 
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/suite"
+
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/stretchr/testify/suite"
 )
 
 func init() {
@@ -140,6 +142,7 @@ func (s *KeeperTestSuite) SetupTest() {
 			rollappStoreKey,
 			rollappParamsSubspace,
 			nil, nil, nil,
+			bk,
 		)
 
 		dk = dymnskeeper.NewKeeper(cdc,
@@ -273,9 +276,11 @@ func (s *KeeperTestSuite) moduleBalance2() sdkmath.Int {
 func (s *KeeperTestSuite) persistRollApp(ras ...rollapp) {
 	for _, ra := range ras {
 		s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
-			RollappId:    ra.rollAppId,
-			Owner:        ra.owner,
-			Bech32Prefix: ra.bech32,
+			RollappId: ra.rollAppId,
+			Owner:     ra.owner,
+			GenesisInfo: rollapptypes.GenesisInfo{
+				Bech32Prefix: ra.bech32,
+			},
 		})
 
 		if ra.alias != "" {

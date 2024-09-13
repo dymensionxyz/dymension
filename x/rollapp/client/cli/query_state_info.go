@@ -1,15 +1,15 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 const (
@@ -24,8 +24,6 @@ func CmdShowStateInfo() *cobra.Command {
 		Short: "Query the state associated with the specified rollapp-id and any other flags. If no flags are provided, return the latest state.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-
 			argRollappId := args[0]
 
 			flagSet := cmd.Flags()
@@ -52,10 +50,16 @@ func CmdShowStateInfo() *cobra.Command {
 				Height:    argHeight,
 				Finalized: argFinalized,
 			}
-			queryClient := types.NewQueryClient(clientCtx)
-			res, err := queryClient.StateInfo(context.Background(), params)
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.StateInfo(cmd.Context(), params)
+			if err != nil {
+				return fmt.Errorf("state info: %w", err)
 			}
 			return clientCtx.PrintProto(res)
 		},

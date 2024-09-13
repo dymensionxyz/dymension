@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"slices"
 	"testing"
 	"time"
 
@@ -10,10 +11,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
@@ -25,7 +26,7 @@ const (
 	NonSponsored = false
 )
 
-var defaultDistrInfo []types.DistrRecord = []types.DistrRecord{
+var defaultDistrInfo = []types.DistrRecord{
 	{
 		GaugeId: 1,
 		Weight:  math.NewInt(50),
@@ -75,8 +76,8 @@ func (suite *KeeperTestSuite) CreateGauge() error {
 }
 
 // CreateStream creates a non-sponsored stream struct given the required params.
-func (suite *KeeperTestSuite) CreateStream(distrTo []types.DistrRecord, coins sdk.Coins, startTime time.Time, epochIdetifier string, numEpoch uint64) (uint64, *types.Stream) {
-	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch, NonSponsored)
+func (suite *KeeperTestSuite) CreateStream(distrTo []types.DistrRecord, coins sdk.Coins, startTime time.Time, epochIdentifier string, numEpoch uint64) (uint64, *types.Stream) {
+	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdentifier, numEpoch, NonSponsored)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
@@ -100,15 +101,18 @@ func (suite *KeeperTestSuite) ExpectedDefaultStream(streamID uint64, starttime t
 	distInfo, err := types.NewDistrInfo(defaultDistrInfo)
 	suite.Require().NoError(err)
 
+	const numEpochsPaidOver = 30
 	return types.Stream{
 		Id:                   streamID,
 		DistributeTo:         distInfo,
 		Coins:                coins,
 		StartTime:            starttime,
 		DistrEpochIdentifier: "day",
-		NumEpochsPaidOver:    30,
+		NumEpochsPaidOver:    numEpochsPaidOver,
 		FilledEpochs:         0,
 		DistributedCoins:     sdk.Coins{},
+		Sponsored:            false,
+		EpochCoins:           coins.QuoInt(math.NewInt(numEpochsPaidOver)),
 	}
 }
 
@@ -116,6 +120,18 @@ func (suite *KeeperTestSuite) CreateGauges(num int) {
 	suite.T().Helper()
 
 	for i := 0; i < num; i++ {
+		err := suite.CreateGauge()
+		suite.Require().NoError(err)
+	}
+}
+
+func (suite *KeeperTestSuite) CreateGaugesUntil(num int) {
+	suite.T().Helper()
+
+	gauges := suite.App.IncentivesKeeper.GetGauges(suite.Ctx)
+	remain := num - len(gauges)
+
+	for i := 0; i < remain; i++ {
 		err := suite.CreateGauge()
 		suite.Require().NoError(err)
 	}
@@ -209,4 +225,23 @@ func (suite *KeeperTestSuite) Delegate(delAddr sdk.AccAddress, valAddr sdk.ValAd
 	suite.Require().True(found)
 
 	return del
+}
+
+func (suite *KeeperTestSuite) DistributeAllRewards(streams []types.Stream) sdk.Coins {
+	rewards := sdk.Coins{}
+	suite.Require().True(slices.IsSortedFunc(streams, keeper.CmpStreams))
+	for _, stream := range streams {
+		epoch := suite.App.EpochsKeeper.GetEpochInfo(suite.Ctx, stream.DistrEpochIdentifier)
+		res := suite.App.StreamerKeeper.DistributeRewards(
+			suite.Ctx,
+			types.NewEpochPointer(epoch.Identifier, epoch.Duration),
+			types.IterationsNoLimit,
+			[]types.Stream{stream},
+		)
+		suite.Require().Len(res.FilledStreams, 1)
+		err := suite.App.StreamerKeeper.SetStream(suite.Ctx, &res.FilledStreams[0])
+		suite.Require().NoError(err)
+		rewards = rewards.Add(res.DistributedCoins...)
+	}
+	return rewards
 }

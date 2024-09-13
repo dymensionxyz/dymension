@@ -3,6 +3,7 @@ package rollapp_test
 import (
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
@@ -15,6 +16,8 @@ func TestInitExportGenesis(t *testing.T) {
 	const (
 		rollappID1 = "rollapp_1234-1"
 		rollappID2 = "rollupp_1235-2"
+		appID1     = "app1"
+		appID2     = "app2"
 	)
 
 	genesisState := types.GenesisState{
@@ -23,9 +26,15 @@ func TestInitExportGenesis(t *testing.T) {
 		RollappList: []types.Rollapp{
 			{
 				RollappId: rollappID1,
+				GenesisInfo: types.GenesisInfo{
+					InitialSupply: sdk.NewInt(1000),
+				},
 			},
 			{
 				RollappId: rollappID2,
+				GenesisInfo: types.GenesisInfo{
+					InitialSupply: sdk.NewInt(1001),
+				},
 			},
 		},
 		StateInfoList: []types.StateInfo{
@@ -58,6 +67,16 @@ func TestInitExportGenesis(t *testing.T) {
 				CreationHeight: 1,
 			},
 		},
+		AppList: []types.App{
+			{
+				Name:      appID1,
+				RollappId: rollappID1,
+			},
+			{
+				Name:      appID2,
+				RollappId: rollappID2,
+			},
+		},
 	}
 
 	k, ctx := keepertest.RollappKeeper(t)
@@ -72,4 +91,5 @@ func TestInitExportGenesis(t *testing.T) {
 	require.ElementsMatch(t, genesisState.StateInfoList, got.StateInfoList)
 	require.ElementsMatch(t, genesisState.LatestStateInfoIndexList, got.LatestStateInfoIndexList)
 	require.ElementsMatch(t, genesisState.BlockHeightToFinalizationQueueList, got.BlockHeightToFinalizationQueueList)
+	require.ElementsMatch(t, genesisState.AppList, got.AppList)
 }

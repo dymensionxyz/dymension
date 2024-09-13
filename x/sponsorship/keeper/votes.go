@@ -41,7 +41,7 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 
 	// Validate that the user has min voting power
 	if vpBreakdown.TotalPower.LT(params.MinVotingPower) {
-		return types.Vote{}, types.Distribution{}, fmt.Errorf("voting power '%d' is less than min voting power expected '%d'", vpBreakdown.TotalPower.Int64(), params.MinVotingPower.Int64())
+		return types.Vote{}, types.Distribution{}, fmt.Errorf("voting power '%s' is less than min voting power expected '%s'", vpBreakdown.TotalPower, params.MinVotingPower)
 	}
 
 	// Apply the vote weights to the power -> get a distribution update in absolute values
@@ -111,7 +111,7 @@ func (k Keeper) revokeVote(ctx sdk.Context, voter sdk.AccAddress, vote types.Vot
 func (k Keeper) validateWeights(ctx sdk.Context, weights []types.GaugeWeight, minAllocationWeight math.Int) error {
 	for _, weight := range weights {
 		if weight.Weight.LT(minAllocationWeight) {
-			return fmt.Errorf("gauge weight '%d' is less than min allocation weight '%d'", weight.Weight.Int64(), minAllocationWeight.Int64())
+			return fmt.Errorf("gauge weight '%s' is less than min allocation weight '%s'", weight.Weight, minAllocationWeight)
 		}
 
 		gauge, err := k.incentivesKeeper.GetGaugeByID(ctx, weight.GaugeId)

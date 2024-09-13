@@ -11,13 +11,16 @@ import (
 func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBond) (*types.MsgDecreaseBondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	sequencer, err := k.bondUpdateAllowed(ctx, msg.GetCreator())
-	if err != nil {
-		return nil, err
+	sequencer, found := k.GetSequencer(ctx, msg.GetCreator())
+	if !found {
+		return nil, types.ErrUnknownSequencer
+	}
+	if !sequencer.IsBonded() {
+		return nil, types.ErrInvalidSequencerStatus
 	}
 
 	effectiveBond := sequencer.Tokens
-	if bds := k.getSequencerDecreasingBonds(ctx, msg.Creator); len(bds) > 0 {
+	if bds := k.GetBondReductionsBySequencer(ctx, msg.Creator); len(bds) > 0 {
 		for _, bd := range bds {
 			effectiveBond = effectiveBond.Sub(bd.DecreaseBondAmount)
 		}

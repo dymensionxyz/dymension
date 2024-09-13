@@ -1,0 +1,25 @@
+syntax = "proto3";
+package dymensionxyz.dymension.lightclient;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/lightclient/types";
+
+message GenesisState {
+    repeated CanonicalClient canonical_clients = 1 [ (gogoproto.nullable) = false ];
+    repeated ConsensusStateSigner consensus_state_signers = 2 [ (gogoproto.nullable) = false ];
+}
+
+message CanonicalClient {
+    string rollapp_id = 1;
+    string ibc_client_id = 2;
+}
+
+message ConsensusStateSigner {
+    // ibc_client_id is the canonical IBC client which has accepted a client update optimistically
+    string ibc_client_id = 1;
+    // height is the client height which was updated optimistically
+    uint64 height = 2;
+    // blockValHash is the valhash of the block which was updated optimistically
+    string blockValHash = 3;
+}

@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -35,13 +34,13 @@ func CmdQueryParams() *cobra.Command {
 		Use:   "params",
 		Short: "Get module params",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.Params(
-				context.Background(),
-				&types.QueryParamsRequest{},
-			)
+			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -60,13 +59,13 @@ func CmdQueryDistribution() *cobra.Command {
 		Use:   "distribution",
 		Short: "Get the current distribution plan",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.Distribution(
-				context.Background(),
-				&types.QueryDistributionRequest{},
-			)
+			res, err := queryClient.Distribution(cmd.Context(), &types.QueryDistributionRequest{})
 			if err != nil {
 				return err
 			}
@@ -86,13 +85,13 @@ func CmdQueryVote() *cobra.Command {
 		Short: "Get the vote by the voter address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.Vote(
-				context.Background(),
-				&types.QueryVoteRequest{Voter: args[0]},
-			)
+			res, err := queryClient.Vote(cmd.Context(), &types.QueryVoteRequest{Voter: args[0]})
 			if err != nil {
 				return err
 			}

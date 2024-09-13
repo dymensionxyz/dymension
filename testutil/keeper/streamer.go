@@ -38,6 +38,7 @@ func StreamerKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		"StreamerParams",
 	)
 	k := keeper.NewKeeper(
+		cdc,
 		storeKey,
 		paramsSubspace,
 		nil,

@@ -2,19 +2,16 @@ package types_test
 
 import (
 	"testing"
-	time "time"
+	"time"
 
 	"github.com/cometbft/cometbft/crypto/ed25519"
-	"github.com/stretchr/testify/require"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	appParams "github.com/dymensionxyz/dymension/v3/app/params"
-
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
 // TestMsgCreateGauge tests if valid/invalid create gauge messages are properly validated/invalidated

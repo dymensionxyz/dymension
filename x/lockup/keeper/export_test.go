@@ -1,0 +1,27 @@
+package keeper
+
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/dymensionxyz/dymension/v3/x/lockup/types"
+)
+
+func (k Keeper) AddLockRefByKey(ctx sdk.Context, key []byte, lockID uint64) error {
+	return k.addLockRefByKey(ctx, key, lockID)
+}
+
+func (k Keeper) DeleteLockRefByKey(ctx sdk.Context, key []byte, lockID uint64) {
+	k.deleteLockRefByKey(ctx, key, lockID)
+}
+
+func (k Keeper) GetLockRefs(ctx sdk.Context, key []byte) []uint64 {
+	return k.getLockRefs(ctx, key)
+}
+
+func (k Keeper) GetCoinsFromLocks(locks []types.PeriodLock) sdk.Coins {
+	return k.getCoinsFromLocks(locks)
+}
+
+func (k Keeper) Lock(ctx sdk.Context, lock types.PeriodLock, tokensToLock sdk.Coins) error {
+	return k.lock(ctx, lock, tokensToLock)
+}

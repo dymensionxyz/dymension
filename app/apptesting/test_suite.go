@@ -2,6 +2,7 @@ package apptesting
 
 import (
 	"strings"
+	"time"
 
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
@@ -53,10 +54,18 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 		Creator:          alice,
 		RollappId:        name,
 		InitialSequencer: "*",
-		Bech32Prefix:     strings.ToLower(rand.Str(3)),
-		GenesisChecksum:  "1234567890abcdefg",
 		Alias:            strings.ToLower(rand.Str(7)),
 		VmType:           rollapptypes.Rollapp_EVM,
+		GenesisInfo: rollapptypes.GenesisInfo{
+			Bech32Prefix:    strings.ToLower(rand.Str(3)),
+			GenesisChecksum: "1234567890abcdefg",
+			InitialSupply:   sdk.NewInt(1000),
+			NativeDenom: &rollapptypes.DenomMetadata{
+				Display:  "DEN",
+				Base:     "aden",
+				Exponent: 18,
+			},
+		},
 		Metadata: &rollapptypes.RollappMetadata{
 			Website:     "https://dymension.xyz",
 			Description: "Sample description",
@@ -109,7 +118,7 @@ func (s *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAddr s
 	var bds rollapptypes.BlockDescriptors
 	bds.BD = make([]rollapptypes.BlockDescriptor, numOfBlocks)
 	for k := 0; k < int(numOfBlocks); k++ {
-		bds.BD[k] = rollapptypes.BlockDescriptor{Height: startHeight + uint64(k)}
+		bds.BD[k] = rollapptypes.BlockDescriptor{Height: startHeight + uint64(k), Timestamp: time.Now().UTC()}
 	}
 
 	updateState := rollapptypes.MsgUpdateState{

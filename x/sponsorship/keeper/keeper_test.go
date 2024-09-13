@@ -11,10 +11,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
@@ -48,6 +48,8 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.Ctx = ctx
 	s.queryClient = queryClient
 	s.msgServer = msgServer
+
+	s.SetDefaultTestParams()
 }
 
 func (s *KeeperTestSuite) CreateGauge() uint64 {
@@ -287,4 +289,17 @@ func (s *KeeperTestSuite) AssertDelegatorValidator(delAddr sdk.AccAddress, valAd
 	vp, err := s.App.SponsorshipKeeper.GetDelegatorValidatorPower(s.Ctx, delAddr, valAddr)
 	s.Require().NoError(err)
 	s.Require().Equal(expectedPower, vp)
+}
+
+// SetDefaultTestParams sets module params with MinVotingPower = 1 for convenience.
+func (s *KeeperTestSuite) SetDefaultTestParams() {
+	err := s.App.SponsorshipKeeper.SetParams(s.Ctx, DefaultTestParams())
+	s.Require().NoError(err)
+}
+
+// DefaultTestParams returns module params with MinVotingPower = 1 for convenience.
+func DefaultTestParams() types.Params {
+	params := types.DefaultParams()
+	params.MinVotingPower = math.NewInt(1)
+	return params
 }

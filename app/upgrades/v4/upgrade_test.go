@@ -21,6 +21,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 // UpgradeTestSuite defines the structure for the upgrade test suite
@@ -65,17 +66,21 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			msg:         "Test that upgrade does not panic and sets correct parameters and migrates rollapp module",
 			numRollapps: 5,
 			preUpgrade: func(numRollapps int) error {
+				v4.LoadDeprecatedParamsSubspaces(&s.App.AppKeepers)
+
 				// Create and store rollapps
 				s.seedAndStoreRollapps(numRollapps)
 
 				// Create and store sequencers
 				s.seedAndStoreSequencers(numRollapps)
+
 				return nil
 			},
 			upgrade: func() {
 				// Run upgrade
 				s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight - 1)
 				plan := upgradetypes.Plan{Name: "v4", Height: dummyUpgradeHeight}
+
 				err := s.App.UpgradeKeeper.ScheduleUpgrade(s.Ctx, plan)
 				s.Require().NoError(err)
 				_, exists := s.App.UpgradeKeeper.GetUpgradePlan(s.Ctx)
@@ -115,6 +120,8 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				if err = s.validateSequencersMigration(numRollapps); err != nil {
 					return
 				}
+
+				s.validateStreamerMigration()
 
 				// TODO: check for rollapp gauges creation
 
@@ -222,6 +229,21 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 	}
 
 	return nil
+}
+
+func (s *UpgradeTestSuite) validateStreamerMigration() {
+	epochInfos := s.App.EpochsKeeper.AllEpochInfos(s.Ctx)
+
+	pointers, err := s.App.StreamerKeeper.GetAllEpochPointers(s.Ctx)
+	s.Require().NoError(err)
+
+	var expected []streamertypes.EpochPointer
+	for _, info := range epochInfos {
+		expected = append(expected, streamertypes.NewEpochPointer(info.Identifier, info.Duration))
+	}
+
+	// Equal also checks the order of pointers
+	s.Require().Equal(expected, pointers)
 }
 
 func (s *UpgradeTestSuite) seedAndStoreRollapps(numRollapps int) {

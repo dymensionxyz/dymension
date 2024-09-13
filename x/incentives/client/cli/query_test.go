@@ -30,11 +30,13 @@ func (suite *QueryTestSuite) CreateDefaultRollapp() string {
 	alice := sdk.AccAddress("addr1---------------")
 
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
-		Creator:      alice.String(),
-		RollappId:    urand.RollappID(),
-		Bech32Prefix: strings.ToLower(tmrand.Str(3)),
-		Alias:        strings.ToLower(tmrand.Str(7)),
-		VmType:       rollapptypes.Rollapp_EVM,
+		Creator:   alice.String(),
+		RollappId: urand.RollappID(),
+		Alias:     strings.ToLower(tmrand.Str(7)),
+		VmType:    rollapptypes.Rollapp_EVM,
+		GenesisInfo: rollapptypes.GenesisInfo{
+			Bech32Prefix: strings.ToLower(tmrand.Str(3)),
+		},
 	}
 
 	suite.FundForAliasRegistration(msgCreateRollapp)
