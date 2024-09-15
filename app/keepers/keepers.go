@@ -87,7 +87,6 @@ import (
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencermodulekeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -512,7 +511,9 @@ func (a *AppKeepers) InitTransferStack() {
 		delayedackmodule.WithRollappKeeper(a.RollappKeeper),
 	)
 	a.TransferStack = a.delayedAckMiddleware
-	a.TransferStack = transfergenesis.NewIBCModule(a.TransferStack, a.DelayedAckKeeper, *a.RollappKeeper, a.TransferKeeper, a.DenomMetadataKeeper)
+
+	// disabled until #1208 handled (https://github.com/dymensionxyz/dymension/issues/1208)
+	// a.TransferStack = transfergenesis.NewIBCModule(a.TransferStack, a.DelayedAckKeeper, *a.RollappKeeper, a.TransferKeeper, a.DenomMetadataKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
