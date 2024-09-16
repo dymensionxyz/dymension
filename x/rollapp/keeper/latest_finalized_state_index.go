@@ -3,6 +3,7 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -46,7 +47,7 @@ func (k Keeper) RemoveLatestFinalizedStateIndex(
 	))
 }
 
-// GetAllLatestFinalizedStateIndex returns all latestFinalizedStateIndex
+// GetAllLatestFinalizedStateIndex returns latestFinalizedStateIndex for all rollapps
 func (k Keeper) GetAllLatestFinalizedStateIndex(ctx sdk.Context) (list []types.StateInfoIndex) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LatestFinalizedStateIndexKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})

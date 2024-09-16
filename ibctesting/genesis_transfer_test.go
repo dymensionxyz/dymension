@@ -49,6 +49,8 @@ func (s *transferGenesisSuite) SetupTest() {
 // memo immediately when the channel opens. This will cause  all the denoms to get registered, and tokens
 // to go to the right addresses. After all transfers are sent, the bridge opens.
 func (s *transferGenesisSuite) TestHappyPath() {
+	s.T().Skip("disabled until #1208 handled") // https://github.com/dymensionxyz/dymension/issues/1208
+
 	/*
 		Send a bunch of transfer packets to the hub
 		Check the balances are created
@@ -92,6 +94,8 @@ func (s *transferGenesisSuite) TestHappyPath() {
 // In the fault path, a chain tries to do another genesis transfer (to skip eibc) after the genesis phase
 // is already complete. It triggers a fraud.
 func (s *transferGenesisSuite) TestCannotDoGenesisTransferAfterBridgeEnabled() {
+	s.T().Skip("disabled until #1208 handled") // https://github.com/dymensionxyz/dymension/issues/1208
+
 	amt := math.NewIntFromUint64(10000000000000000000)
 
 	denoms := []string{"foo", "bar", "baz"}

@@ -9,8 +9,9 @@ const TypeMsgUpdateApp = "update_app"
 
 var _ sdk.Msg = &MsgUpdateApp{}
 
-func NewMsgUpdateApp(creator, name, rollappId, description, image, url string, order int32) *MsgUpdateApp {
+func NewMsgUpdateApp(creator string, id uint64, name, rollappId, description, image, url string, order int32) *MsgUpdateApp {
 	return &MsgUpdateApp{
+		Id:          id,
 		Creator:     creator,
 		Name:        name,
 		RollappId:   rollappId,
@@ -44,6 +45,7 @@ func (msg *MsgUpdateApp) GetSignBytes() []byte {
 
 func (msg *MsgUpdateApp) GetApp() App {
 	return NewApp(
+		msg.Id,
 		msg.Name,
 		msg.RollappId,
 		msg.Description,
@@ -57,6 +59,10 @@ func (msg *MsgUpdateApp) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return errorsmod.Wrap(ErrInvalidCreatorAddress, err.Error())
+	}
+
+	if msg.Id == 0 {
+		return errorsmod.Wrap(ErrInvalidAppID, "App id cannot be zero")
 	}
 
 	app := msg.GetApp()

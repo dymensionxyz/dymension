@@ -40,6 +40,7 @@ var (
 	ErrSameOwner                         = errorsmod.Wrap(gerrc.ErrInvalidArgument, "same owner")
 	ErrInvalidRequest                    = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid request")
 	ErrInvalidVMType                     = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid vm type")
+	ErrInvalidAppID                      = errorsmod.Wrap(gerrc.ErrInvalidArgument, "app id")
 	ErrInvalidAppName                    = errorsmod.Wrap(gerrc.ErrInvalidArgument, "app name")
 	ErrInvalidAppImage                   = errorsmod.Wrap(gerrc.ErrInvalidArgument, "app image path")
 	ErrInvalidBlockDescriptorTimestamp   = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid block descriptor timestamp")
