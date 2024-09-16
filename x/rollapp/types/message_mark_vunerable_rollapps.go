@@ -6,9 +6,9 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-var _ sdk.Msg = new(MsgFreezeVulnerableRollapps)
+var _ sdk.Msg = new(MsgMarkVulnerableRollapps)
 
-func (m MsgFreezeVulnerableRollapps) ValidateBasic() error {
+func (m MsgMarkVulnerableRollapps) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Authority)
 	if err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf(
@@ -24,7 +24,7 @@ func (m MsgFreezeVulnerableRollapps) ValidateBasic() error {
 	return nil
 }
 
-func (m MsgFreezeVulnerableRollapps) GetSigners() []sdk.AccAddress {
+func (m MsgMarkVulnerableRollapps) GetSigners() []sdk.AccAddress {
 	signer, _ := sdk.AccAddressFromBech32(m.Authority)
 	return []sdk.AccAddress{signer}
 }

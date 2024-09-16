@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -32,6 +33,7 @@ type RollappTestSuite struct {
 	msgServer    types.MsgServer
 	seqMsgServer sequencertypes.MsgServer
 	queryClient  types.QueryClient
+	authority    string
 }
 
 func (suite *RollappTestSuite) SetupTest() {
@@ -52,11 +54,14 @@ func (suite *RollappTestSuite) SetupTest() {
 	types.RegisterQueryServer(queryHelper, app.RollappKeeper)
 	queryClient := types.NewQueryClient(queryHelper)
 
+	authority := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+
 	suite.App = app
 	suite.msgServer = keeper.NewMsgServerImpl(*app.RollappKeeper)
 	suite.seqMsgServer = sequencerkeeper.NewMsgServerImpl(app.SequencerKeeper)
 	suite.Ctx = ctx
 	suite.queryClient = queryClient
+	suite.authority = authority
 }
 
 func (suite *RollappTestSuite) keeper() *keeper.Keeper {

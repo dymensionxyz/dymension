@@ -246,12 +246,28 @@ func (k Keeper) IsRollappStarted(ctx sdk.Context, rollappId string) bool {
 	return found
 }
 
-func (k Keeper) GetRollappDRSVersion(ctx sdk.Context, rollappId string) (types.DRSVersion, bool) {
-	info, found := k.GetLatestStateInfo(ctx, rollappId)
-	if !found {
-		return "", false
+func (k Keeper) FilterRollapps(ctx sdk.Context, f func(types.Rollapp) bool) []types.Rollapp {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close() // nolint: errcheck
+
+	var result []types.Rollapp
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Rollapp
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if f(val) {
+			result = append(result, val)
+		}
 	}
-	return types.DRSVersion(info.DrsVersion), true
+	return result
+}
+
+func FilterNonVulnerable(b types.Rollapp) bool {
+	return !b.Frozen
+}
+
+func FilterVulnerable(b types.Rollapp) bool {
+	return b.Frozen
 }
 
 func (k Keeper) MarkRollappAsVulnerable(ctx sdk.Context, rollappId string) bool {
@@ -268,4 +284,16 @@ func (k Keeper) MustMarkRollappAsVulnerable(ctx sdk.Context, rollappId string) {
 	r := k.MustGetRollapp(ctx, rollappId)
 	r.Frozen = true
 	k.SetRollapp(ctx, r)
+}
+
+func (k Keeper) SetVulnerableDRSVersion(ctx sdk.Context, version string) error {
+	return k.vulnerableDRSVersions.Set(ctx, version)
+}
+
+func (k Keeper) GetAllVulnerableDRSVersions(ctx sdk.Context) ([]string, error) {
+	iter, err := k.vulnerableDRSVersions.Iterate(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	return iter.Keys()
 }

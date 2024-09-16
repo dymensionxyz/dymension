@@ -22,5 +22,5 @@ func KeyPrefix(p string) []byte {
 }
 
 const (
-	VulnerableDRSVersionsKeyPrefix = "VulnerableDRSVersions/value/"
+	VulnerableDRSVersionsKeyPrefix = "vulnerableDRSVersions/value/"
 )

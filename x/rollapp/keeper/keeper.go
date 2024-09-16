@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"cosmossdk.io/collections"
-	collcodec "cosmossdk.io/collections/codec"
 	"github.com/cometbft/cometbft/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -28,7 +27,7 @@ type Keeper struct {
 	sequencerKeeper types.SequencerKeeper
 	bankKeeper      types.BankKeeper
 
-	vulnerableDRSVersions collections.KeySet[types.DRSVersion]
+	vulnerableDRSVersions collections.KeySet[string]
 
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 }
@@ -66,7 +65,7 @@ func NewKeeper(
 			collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey)),
 			collections.NewPrefix(types.VulnerableDRSVersionsKeyPrefix),
 			"vulnerable_drs_versions",
-			collcodec.NewStringKeyCodec[types.DRSVersion](),
+			collections.StringKey,
 		),
 		finalizePending: nil,
 	}

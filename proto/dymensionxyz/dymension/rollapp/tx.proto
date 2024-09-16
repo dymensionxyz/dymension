@@ -18,7 +18,7 @@ service Msg {
   rpc AddApp(MsgAddApp) returns (MsgAddAppResponse);
   rpc UpdateApp(MsgUpdateApp) returns (MsgUpdateAppResponse);
   rpc RemoveApp(MsgRemoveApp) returns (MsgRemoveAppResponse);
-  rpc FreezeVulnerableRollapps(MsgFreezeVulnerableRollapps) returns (MsgFreezeVulnerableRollappsResponse);
+  rpc MarkVulnerableRollapps(MsgMarkVulnerableRollapps) returns (MsgMarkVulnerableRollappsResponse);
 }
 
 // MsgCreateRollapp creates a new rollapp chain on the hub.
@@ -169,9 +169,9 @@ message MsgRemoveApp {
 message MsgRemoveAppResponse {
 }
 
-// MsgFreezeVulnerableRollapps marks specified versions as vulnerable as well as
+// MsgMarkVulnerableRollapps marks specified versions as vulnerable as well as
 // all corresponding rollapps. Must be called by the governance.
-message MsgFreezeVulnerableRollapps {
+message MsgMarkVulnerableRollapps {
   option (cosmos.msg.v1.signer) = "authority";
 
   // Authority is the authority address.
@@ -180,4 +180,4 @@ message MsgFreezeVulnerableRollapps {
   repeated string drs_versions = 2;
 }
 
-message MsgFreezeVulnerableRollappsResponse {}
+message MsgMarkVulnerableRollappsResponse {}

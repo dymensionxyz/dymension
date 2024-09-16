@@ -87,6 +87,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		creationHeight,
 		msg.BDs,
 		blockTime,
+		msg.DrsVersion,
 	)
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
 	k.SetStateInfo(ctx, *stateInfo)
