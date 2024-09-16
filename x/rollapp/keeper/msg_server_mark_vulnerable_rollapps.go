@@ -23,9 +23,9 @@ func (k msgServer) MarkVulnerableRollapps(goCtx context.Context, msg *types.MsgM
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	vulnerableNum, err := k.Keeper.FreezeVulnerableRollapps(ctx, msg.DrsVersions)
+	vulnerableNum, err := k.Keeper.MarkVulnerableRollapps(ctx, msg.DrsVersions)
 	if err != nil {
-		return nil, fmt.Errorf("freeze vulnerable rollapps: %w", err)
+		return nil, fmt.Errorf("mark vulnerable rollapps: %w", err)
 	}
 
 	err = uevent.EmitTypedEvent(ctx, &types.EventMarkVulnerableRollapps{
@@ -39,7 +39,7 @@ func (k msgServer) MarkVulnerableRollapps(goCtx context.Context, msg *types.MsgM
 	return &types.MsgMarkVulnerableRollappsResponse{}, nil
 }
 
-func (k Keeper) FreezeVulnerableRollapps(ctx sdk.Context, drsVersions []string) (int, error) {
+func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []string) (int, error) {
 	vulnerableVersions := make(map[string]struct{})
 	for _, v := range drsVersions {
 		vulnerableVersions[v] = struct{}{}

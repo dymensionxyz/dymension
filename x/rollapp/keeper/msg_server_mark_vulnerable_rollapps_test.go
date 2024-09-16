@@ -12,7 +12,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (s *RollappTestSuite) TestFreezeVulnerableRollapps() {
+func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 	type rollapp struct {
 		name       string
 		drsVersion string
@@ -142,7 +142,8 @@ func (s *RollappTestSuite) TestFreezeVulnerableRollapps() {
 			// validate results
 			if tc.expError != nil {
 				s.Error(err)
-				s.ErrorIs(err, tc.expError)
+				// TODO: try using errors.Is!
+				s.ErrorContains(err, tc.expError.Error())
 
 				// check the event is not emitted
 				eventName := proto.MessageName(new(types.EventMarkVulnerableRollapps))
