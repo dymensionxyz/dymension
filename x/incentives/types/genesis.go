@@ -13,9 +13,7 @@ const DefaultIndex uint64 = 1
 // DefaultGenesis returns the incentive module's default genesis state.
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
-		Params: Params{
-			DistrEpochIdentifier: "week",
-		},
+		Params: DefaultParams(),
 		Gauges: []Gauge{},
 		LockableDurations: []time.Duration{
 			time.Second,

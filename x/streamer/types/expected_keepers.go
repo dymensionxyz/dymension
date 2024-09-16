@@ -37,7 +37,7 @@ type IncentivesKeeper interface {
 	GetLockableDurations(ctx sdk.Context) []time.Duration
 
 	GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*incentivestypes.Gauge, error)
-	AddToGaugeRewards(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins, gaugeID uint64) error
+	AddToGaugeRewardsByID(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins, gaugeID uint64) error
 }
 
 type SponsorshipKeeper interface {

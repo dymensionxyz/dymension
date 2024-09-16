@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
@@ -97,6 +98,9 @@ func TestIncentivesInitGenesis(t *testing.T) {
 	app.IncentivesKeeper.InitGenesis(ctx, types.GenesisState{
 		Params: types.Params{
 			DistrEpochIdentifier: "week",
+			CreateGaugeBaseFee:   math.ZeroInt(),
+			AddToGaugeBaseFee:    math.ZeroInt(),
+			AddDenomFee:          math.ZeroInt(),
 		},
 		Gauges: []types.Gauge{gauge},
 		LockableDurations: []time.Duration{

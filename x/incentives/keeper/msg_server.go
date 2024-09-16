@@ -3,13 +3,12 @@ package keeper
 import (
 	"context"
 
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
-
 	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+
+	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 )
 
 // msgServer provides a way to reference keeper pointer in the message server interface.
@@ -35,7 +34,11 @@ func (server msgServer) CreateGauge(goCtx context.Context, msg *types.MsgCreateG
 		return nil, err
 	}
 
-	if err := server.keeper.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, types.CreateGaugeFee, msg.Coins); err != nil {
+	// Charge fess based on the number of coins to add
+	// Fee = CreateGaugeBaseFee + AddDenomFee * NumDenoms
+	params := server.keeper.GetParams(ctx)
+	fee := params.CreateGaugeBaseFee.Add(params.AddDenomFee.MulRaw(int64(len(msg.Coins))))
+	if err = server.keeper.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, fee, msg.Coins); err != nil {
 		return nil, err
 	}
 
@@ -63,10 +66,20 @@ func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGau
 		return nil, err
 	}
 
-	if err := server.keeper.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, types.AddToGaugeFee, msg.Rewards); err != nil {
+	gauge, err := server.keeper.GetGaugeByID(ctx, msg.GaugeId)
+	if err != nil {
 		return nil, err
 	}
-	err = server.keeper.AddToGaugeRewards(ctx, owner, msg.Rewards, msg.GaugeId)
+
+	// Charge fess based on the number of coins to add
+	// Fee = AddToGaugeBaseFee + AddDenomFee * (NumAddedDenoms + NumGaugeDenoms)
+	params := server.keeper.GetParams(ctx)
+	fee := params.AddToGaugeBaseFee.Add(params.AddDenomFee.MulRaw(int64(len(msg.Rewards) + len(gauge.Coins))))
+	if err = server.keeper.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, fee, msg.Rewards); err != nil {
+		return nil, err
+	}
+
+	err = server.keeper.AddToGaugeRewards(ctx, owner, msg.Rewards, gauge)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
