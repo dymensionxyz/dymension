@@ -10,4 +10,23 @@ message Params {
   // (day, week, etc.)
   string distr_epoch_identifier = 1
       [ (gogoproto.moretags) = "yaml:\"distr_epoch_identifier\"" ];
+  // CreateGaugeBaseFee is a base fee required to create a new gauge. The final
+  // fee is calculated as
+  // Fee = CreateGaugeBaseFee + AddDenomFee * (len(Denoms) + len(GaugeDenoms)).
+  string create_gauge_base_fee = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  // AddToGaugeBaseFee is a base fee required to add to gauge. The final
+  // fee is calculated as
+  // Fee = AddToGaugeBaseFee + AddDenomFee * len(Denoms).
+  string add_to_gauge_base_fee = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  // AddDenomFee is a fee charged for adding every new denom to the gauge.
+  string add_denom_fee = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
 }
