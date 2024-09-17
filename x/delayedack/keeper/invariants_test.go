@@ -201,6 +201,25 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			},
 			true,
 		},
+		{
+			"wrong finalized packet check - packets for non-finalized heights are finalized",
+			false,
+			false,
+			false,
+			commontypes.RollappPacket{
+				RollappId:   rollapp,
+				Status:      commontypes.Status_FINALIZED,
+				ProofHeight: 5,
+				Packet:      getNewTestPacket(1),
+			},
+			commontypes.RollappPacket{
+				RollappId:   rollapp,
+				Status:      commontypes.Status_FINALIZED,
+				ProofHeight: 15,
+				Packet:      getNewTestPacket(2),
+			},
+			true,
+		},
 	}
 	for _, tc := range cases {
 		suite.Run(tc.name, func() {
