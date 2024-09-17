@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
@@ -86,7 +87,7 @@ func (suite *RollappTestSuite) TestLivenessFlow() {
 		tracker := newLivenessMockSequencerKeeper()
 		suite.keeper().SetSequencerKeeper(tracker)
 		for _, ra := range rollapps {
-			suite.keeper().SetRollapp(suite.Ctx, types.NewRollapp("", ra, "", "", "", types.Rollapp_Unspecified, nil, false))
+			suite.keeper().SetRollapp(suite.Ctx, types.NewRollapp("", ra, "", types.Rollapp_Unspecified, nil, types.GenesisInfo{}, false))
 		}
 
 		hLastUpdate := map[string]int64{}
@@ -145,6 +146,10 @@ func (suite *RollappTestSuite) TestLivenessFlow() {
 type livenessMockSequencerKeeper struct {
 	slashes map[string]int
 	jails   map[string]int
+}
+
+func (l livenessMockSequencerKeeper) UnbondingTime(sdk.Context) (res time.Duration) {
+	return time.Minute
 }
 
 func newLivenessMockSequencerKeeper() livenessMockSequencerKeeper {

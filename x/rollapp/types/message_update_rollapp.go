@@ -15,18 +15,16 @@ var _ sdk.Msg = &MsgUpdateRollappInformation{}
 func NewMsgUpdateRollappInformation(
 	creator,
 	rollappId,
-	initSequencer,
-	genesisChecksum string,
+	initSequencer string,
 	metadata *RollappMetadata,
-	bech32Prefix string,
+	genesisInfo GenesisInfo,
 ) *MsgUpdateRollappInformation {
 	return &MsgUpdateRollappInformation{
 		Owner:            creator,
 		RollappId:        rollappId,
 		InitialSequencer: initSequencer,
-		GenesisChecksum:  genesisChecksum,
 		Metadata:         metadata,
-		Bech32Prefix:     bech32Prefix,
+		GenesisInfo:      genesisInfo,
 	}
 }
 
@@ -59,23 +57,32 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 		}
 	}
 
-	if len(msg.GenesisChecksum) > maxGenesisChecksumLength {
+	if len(msg.GenesisInfo.GenesisChecksum) > maxGenesisChecksumLength {
 		return ErrInvalidGenesisChecksum
 	}
 
-	if msg.Bech32Prefix != "" {
-		if err := validateBech32Prefix(msg.Bech32Prefix); err != nil {
+	if msg.GenesisInfo.Bech32Prefix != "" {
+		if err := validateBech32Prefix(msg.GenesisInfo.Bech32Prefix); err != nil {
 			return errorsmod.Wrap(errors.Join(err, gerrc.ErrInvalidArgument), "bech32 prefix")
 		}
 	}
 
-	if err := validateMetadata(msg.Metadata); err != nil {
-		return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
+	if msg.Metadata != nil {
+		if err := msg.Metadata.Validate(); err != nil {
+			return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
+		}
 	}
 
 	return nil
 }
 
 func (msg *MsgUpdateRollappInformation) UpdatingImmutableValues() bool {
-	return msg.InitialSequencer != "" || msg.GenesisChecksum != "" || msg.Bech32Prefix != ""
+	return msg.InitialSequencer != ""
+}
+
+func (msg *MsgUpdateRollappInformation) UpdatingGenesisInfo() bool {
+	return msg.GenesisInfo.GenesisChecksum != "" ||
+		msg.GenesisInfo.Bech32Prefix != "" ||
+		msg.GenesisInfo.NativeDenom != nil ||
+		!msg.GenesisInfo.InitialSupply.IsNil()
 }

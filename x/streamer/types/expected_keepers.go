@@ -21,6 +21,7 @@ type BankKeeper interface {
 // EpochKeeper defines the expected interface needed to retrieve epoch info.
 type EpochKeeper interface {
 	GetEpochInfo(ctx sdk.Context, identifier string) epochstypes.EpochInfo
+	AllEpochInfos(ctx sdk.Context) []epochstypes.EpochInfo
 }
 
 type AccountKeeper interface {
@@ -36,7 +37,7 @@ type IncentivesKeeper interface {
 	GetLockableDurations(ctx sdk.Context) []time.Duration
 
 	GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*incentivestypes.Gauge, error)
-	AddToGaugeRewards(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins, gaugeID uint64) error
+	AddToGaugeRewardsByID(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins, gaugeID uint64) error
 }
 
 type SponsorshipKeeper interface {

@@ -22,18 +22,21 @@ import (
 
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+	epochskeeper "github.com/osmosis-labs/osmosis/v15/x/epochs/keeper"
 
-	// Ethermint modules
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	streamerkeeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
+	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v4
@@ -57,6 +60,10 @@ func CreateUpgradeHandler(
 
 		migrateSequencers(ctx, keepers.SequencerKeeper)
 		migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper)
+		if err := migrateStreamer(ctx, keepers.StreamerKeeper, keepers.EpochsKeeper); err != nil {
+			return nil, err
+		}
+		migrateIncentivesParams(ctx, keepers.IncentivesKeeper)
 
 		if err := migrateRollappGauges(ctx, keepers.RollappKeeper, keepers.IncentivesKeeper); err != nil {
 			return nil, err
@@ -188,6 +195,26 @@ func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Ke
 	}
 }
 
+// migrateStreamer creates epoch pointers for all epoch infos.
+func migrateStreamer(ctx sdk.Context, sk streamerkeeper.Keeper, ek *epochskeeper.Keeper) error {
+	for _, epoch := range ek.AllEpochInfos(ctx) {
+		err := sk.SaveEpochPointer(ctx, streamertypes.NewEpochPointer(epoch.Identifier, epoch.Duration))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {
+	params := ik.GetParams(ctx)
+	defaultParams := incentivestypes.DefaultParams()
+	params.CreateGaugeBaseFee = defaultParams.CreateGaugeBaseFee
+	params.AddToGaugeBaseFee = defaultParams.AddToGaugeBaseFee
+	params.AddDenomFee = defaultParams.AddDenomFee
+	ik.SetParams(ctx, params)
+}
+
 func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollapp {
 	return rollapptypes.Rollapp{
 		RollappId:        oldRollapp.RollappId,
@@ -197,24 +224,31 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		Frozen:           oldRollapp.Frozen,
 		RegisteredDenoms: oldRollapp.RegisteredDenoms,
 		// TODO: regarding missing data - https://github.com/dymensionxyz/dymension/issues/986
-		Bech32Prefix:    oldRollapp.RollappId[:5],                            // placeholder data
-		GenesisChecksum: string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
-		VmType:          rollapptypes.Rollapp_EVM,                            // placeholder data
+		VmType: rollapptypes.Rollapp_EVM, // placeholder data
 		Metadata: &rollapptypes.RollappMetadata{
-			Website:         "",
-			Description:     "",
-			LogoUrl:         "",
-			Telegram:        "",
-			X:               "",
-			GenesisUrl:      "",
-			DisplayName:     "",
-			Tagline:         "",
-			TokenSymbol:     "",
-			FeeBaseDenom:    "",
-			NativeBaseDenom: "",
+			Website:     "",
+			Description: "",
+			LogoUrl:     "",
+			Telegram:    "",
+			X:           "",
+			GenesisUrl:  "",
+			DisplayName: "",
+			Tagline:     "",
+			FeeDenom:    nil,
+		},
+		GenesisInfo: rollapptypes.GenesisInfo{
+			Bech32Prefix:    oldRollapp.RollappId[:5],                            // placeholder data
+			GenesisChecksum: string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
+			NativeDenom: &rollapptypes.DenomMetadata{
+				Display:  "DEN",  // placeholder data
+				Base:     "aden", // placeholder data
+				Exponent: 6,      // placeholder data
+			},
+			InitialSupply: sdk.NewInt(100000), // placeholder data
+			Sealed:        true,
 		},
 		InitialSequencer: "*",
-		Sealed:           true,
+		Launched:         true,
 	}
 }
 

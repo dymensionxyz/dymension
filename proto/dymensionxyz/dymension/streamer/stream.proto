@@ -53,4 +53,10 @@ message Stream {
 
   // Sponsored indicates if the stream is based on the sponsorship distribution.
   bool sponsored = 9;
+
+  // EpochCoins are coins that need to be distributed in this epoch.
+  repeated cosmos.base.v1beta1.Coin epoch_coins = 10 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }

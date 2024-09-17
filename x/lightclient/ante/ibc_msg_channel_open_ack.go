@@ -30,6 +30,7 @@ func (i IBCMessagesDecorator) HandleMsgChannelOpenAck(ctx sdk.Context, msg *ibcc
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "canonical channel already exists for the rollapp")
 	}
 	// Set this channel as the canonical channel for the rollapp
+	// TODO: emit event/log
 	rollapp.ChannelId = msg.ChannelId
 	i.rollappKeeper.SetRollapp(ctx, rollapp)
 

@@ -1,20 +1,11 @@
 package types
 
 import (
-	"math/big"
 	time "time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
-)
-
-var (
-	// DYM represents 1 DYM
-	DYM = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-
-	// CreateGaugeFee is the fee required to create a new gauge.
-	CreateGaugeFee = DYM.Mul(sdk.NewInt(10))
 )
 
 // NewAssetGauge creates a new asset gauge to stream rewards to some asset lockup conditions.

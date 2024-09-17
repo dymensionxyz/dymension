@@ -21,6 +21,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 // UpgradeTestSuite defines the structure for the upgrade test suite
@@ -124,6 +125,9 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				if err = s.validateRollappGaugesMigration(); err != nil {
 					return
 				}
+
+				s.validateStreamerMigration()
+
 				return
 			},
 			expPass: true,
@@ -261,6 +265,21 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 	}
 
 	return nil
+}
+
+func (s *UpgradeTestSuite) validateStreamerMigration() {
+	epochInfos := s.App.EpochsKeeper.AllEpochInfos(s.Ctx)
+
+	pointers, err := s.App.StreamerKeeper.GetAllEpochPointers(s.Ctx)
+	s.Require().NoError(err)
+
+	var expected []streamertypes.EpochPointer
+	for _, info := range epochInfos {
+		expected = append(expected, streamertypes.NewEpochPointer(info.Identifier, info.Duration))
+	}
+
+	// Equal also checks the order of pointers
+	s.Require().Equal(expected, pointers)
 }
 
 func (s *UpgradeTestSuite) seedAndStoreRollapps(numRollapps int) {

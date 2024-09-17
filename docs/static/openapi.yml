@@ -3411,12 +3411,6 @@ paths:
                     title: >-
                       registeredDenoms is a list of registered denom bases on
                       this rollapp
-                  bech32_prefix:
-                    type: string
-                    title: unique bech32 prefix
-                  genesis_checksum:
-                    type: string
-                    title: checksum used to verify integrity of the genesis file
                   metadata:
                     title: metadata is the rollapp metadata
                     type: object
@@ -3451,20 +3445,51 @@ paths:
                         description: >-
                           tagline is a non semantic tagline/catch-phrase. Size
                           limited.
-                      token_symbol:
-                        type: string
-                        title: token_symbol is the native token symbol
                       explorer_url:
                         type: string
                         title: explorer_url is the rollapp's block explorer link
-                      fee_base_denom:
+                      fee_denom:
+                        title: fee_denom is the base denom for fees
+                        type: object
+                        properties:
+                          display:
+                            type: string
+                          base:
+                            type: string
+                          exponent:
+                            type: integer
+                            format: int64
+                  genesis_info:
+                    title: genesis_info keeps immutable rollapp fields
+                    type: object
+                    properties:
+                      genesis_checksum:
                         type: string
-                        title: fee_base_denom is the base denom for fees
-                      native_base_denom:
+                        title: checksum used to verify integrity of the genesis file
+                      bech32_prefix:
+                        type: string
+                        title: unique bech32 prefix
+                      native_denom:
+                        title: native_denom is the base denom for the native token
+                        type: object
+                        properties:
+                          display:
+                            type: string
+                          base:
+                            type: string
+                          exponent:
+                            type: integer
+                            format: int64
+                      initial_supply:
                         type: string
                         title: >-
-                          native_base_denom is the base denom for the native
+                          initial_supply is the initial supply of the native
                           token
+                      sealed:
+                        type: boolean
+                        title: >-
+                          sealed indicates if the fields in this object are no
+                          longer updatable
                   initial_sequencer:
                     type: string
                     description: >-
@@ -3485,11 +3510,12 @@ paths:
                       - EVM
                       - WASM
                     default: Unspecified
-                  sealed:
+                  launched:
                     type: boolean
                     description: >-
-                      sealed is a boolean that indicates if the immutable fields
-                      are no longer updatable.
+                      launched is a boolean that indicates that the Rollapp has
+                      been launched and the immutable fields are no longer
+                      updatable.
                   liveness_event_height:
                     type: string
                     format: int64
@@ -3605,6 +3631,31 @@ paths:
                     type: string
                     format: uint64
                 title: Rollapp summary is a compact representation of Rollapp
+              apps:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      title: name is the unique App's name
+                    rollapp_id:
+                      type: string
+                      title: rollapp_id is the id of the Rollapp the App belongs to
+                    description:
+                      type: string
+                      title: description is the description of the App
+                    image_url:
+                      type: string
+                      title: image_url is the URL to the App's image
+                    url:
+                      type: string
+                      title: url is the URL to the App's website
+                    order:
+                      type: integer
+                      format: int32
+                      title: order is the order of the App in the Rollapp
+                title: apps is the list of (lazy-loaded) apps in the rollapp
         default:
           description: An unexpected error response.
           schema:
@@ -3633,6 +3684,13 @@ paths:
           required: true
           type: string
           format: uint64
+        - name: omit_apps
+          description: >-
+            omit_apps is an optional flag to omit the list of apps in the
+            response.
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   /dymensionxyz/dymension/rollapp/latest_height/{rollappId}:
@@ -3797,6 +3855,22 @@ paths:
                     title: >-
                       The time (num hub blocks) a sequencer can be down after
                       which he will be jailed rather than slashed
+                  app_registration_fee:
+                    title: app_registration_fee is the fee for registering an App
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -3894,14 +3968,6 @@ paths:
                           title: >-
                             registeredDenoms is a list of registered denom bases
                             on this rollapp
-                        bech32_prefix:
-                          type: string
-                          title: unique bech32 prefix
-                        genesis_checksum:
-                          type: string
-                          title: >-
-                            checksum used to verify integrity of the genesis
-                            file
                         metadata:
                           title: metadata is the rollapp metadata
                           type: object
@@ -3936,22 +4002,57 @@ paths:
                               description: >-
                                 tagline is a non semantic tagline/catch-phrase.
                                 Size limited.
-                            token_symbol:
-                              type: string
-                              title: token_symbol is the native token symbol
                             explorer_url:
                               type: string
                               title: >-
                                 explorer_url is the rollapp's block explorer
                                 link
-                            fee_base_denom:
-                              type: string
-                              title: fee_base_denom is the base denom for fees
-                            native_base_denom:
+                            fee_denom:
+                              title: fee_denom is the base denom for fees
+                              type: object
+                              properties:
+                                display:
+                                  type: string
+                                base:
+                                  type: string
+                                exponent:
+                                  type: integer
+                                  format: int64
+                        genesis_info:
+                          title: genesis_info keeps immutable rollapp fields
+                          type: object
+                          properties:
+                            genesis_checksum:
                               type: string
                               title: >-
-                                native_base_denom is the base denom for the
+                                checksum used to verify integrity of the genesis
+                                file
+                            bech32_prefix:
+                              type: string
+                              title: unique bech32 prefix
+                            native_denom:
+                              title: >-
+                                native_denom is the base denom for the native
+                                token
+                              type: object
+                              properties:
+                                display:
+                                  type: string
+                                base:
+                                  type: string
+                                exponent:
+                                  type: integer
+                                  format: int64
+                            initial_supply:
+                              type: string
+                              title: >-
+                                initial_supply is the initial supply of the
                                 native token
+                            sealed:
+                              type: boolean
+                              title: >-
+                                sealed indicates if the fields in this object
+                                are no longer updatable
                         initial_sequencer:
                           type: string
                           description: >-
@@ -3972,11 +4073,12 @@ paths:
                             - EVM
                             - WASM
                           default: Unspecified
-                        sealed:
+                        launched:
                           type: boolean
                           description: >-
-                            sealed is a boolean that indicates if the immutable
-                            fields are no longer updatable.
+                            launched is a boolean that indicates that the
+                            Rollapp has been launched and the immutable fields
+                            are no longer updatable.
                         liveness_event_height:
                           type: string
                           format: int64
@@ -4094,6 +4196,33 @@ paths:
                           type: string
                           format: uint64
                       title: Rollapp summary is a compact representation of Rollapp
+                    apps:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            title: name is the unique App's name
+                          rollapp_id:
+                            type: string
+                            title: >-
+                              rollapp_id is the id of the Rollapp the App
+                              belongs to
+                          description:
+                            type: string
+                            title: description is the description of the App
+                          image_url:
+                            type: string
+                            title: image_url is the URL to the App's image
+                          url:
+                            type: string
+                            title: url is the URL to the App's website
+                          order:
+                            type: integer
+                            format: int32
+                            title: order is the order of the App in the Rollapp
+                      title: apps is the list of (lazy-loaded) apps in the rollapp
               pagination:
                 type: object
                 properties:
@@ -4201,6 +4330,13 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: omit_apps
+          description: >-
+            omit_apps is an optional flag to omit the list of apps in the
+            response.
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   /dymensionxyz/dymension/rollapp/rollapp/{rollappId}:
@@ -4266,12 +4402,6 @@ paths:
                     title: >-
                       registeredDenoms is a list of registered denom bases on
                       this rollapp
-                  bech32_prefix:
-                    type: string
-                    title: unique bech32 prefix
-                  genesis_checksum:
-                    type: string
-                    title: checksum used to verify integrity of the genesis file
                   metadata:
                     title: metadata is the rollapp metadata
                     type: object
@@ -4306,20 +4436,51 @@ paths:
                         description: >-
                           tagline is a non semantic tagline/catch-phrase. Size
                           limited.
-                      token_symbol:
-                        type: string
-                        title: token_symbol is the native token symbol
                       explorer_url:
                         type: string
                         title: explorer_url is the rollapp's block explorer link
-                      fee_base_denom:
+                      fee_denom:
+                        title: fee_denom is the base denom for fees
+                        type: object
+                        properties:
+                          display:
+                            type: string
+                          base:
+                            type: string
+                          exponent:
+                            type: integer
+                            format: int64
+                  genesis_info:
+                    title: genesis_info keeps immutable rollapp fields
+                    type: object
+                    properties:
+                      genesis_checksum:
                         type: string
-                        title: fee_base_denom is the base denom for fees
-                      native_base_denom:
+                        title: checksum used to verify integrity of the genesis file
+                      bech32_prefix:
+                        type: string
+                        title: unique bech32 prefix
+                      native_denom:
+                        title: native_denom is the base denom for the native token
+                        type: object
+                        properties:
+                          display:
+                            type: string
+                          base:
+                            type: string
+                          exponent:
+                            type: integer
+                            format: int64
+                      initial_supply:
                         type: string
                         title: >-
-                          native_base_denom is the base denom for the native
+                          initial_supply is the initial supply of the native
                           token
+                      sealed:
+                        type: boolean
+                        title: >-
+                          sealed indicates if the fields in this object are no
+                          longer updatable
                   initial_sequencer:
                     type: string
                     description: >-
@@ -4340,11 +4501,12 @@ paths:
                       - EVM
                       - WASM
                     default: Unspecified
-                  sealed:
+                  launched:
                     type: boolean
                     description: >-
-                      sealed is a boolean that indicates if the immutable fields
-                      are no longer updatable.
+                      launched is a boolean that indicates that the Rollapp has
+                      been launched and the immutable fields are no longer
+                      updatable.
                   liveness_event_height:
                     type: string
                     format: int64
@@ -4460,6 +4622,31 @@ paths:
                     type: string
                     format: uint64
                 title: Rollapp summary is a compact representation of Rollapp
+              apps:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      title: name is the unique App's name
+                    rollapp_id:
+                      type: string
+                      title: rollapp_id is the id of the Rollapp the App belongs to
+                    description:
+                      type: string
+                      title: description is the description of the App
+                    image_url:
+                      type: string
+                      title: image_url is the URL to the App's image
+                    url:
+                      type: string
+                      title: url is the URL to the App's website
+                    order:
+                      type: integer
+                      format: int32
+                      title: order is the order of the App in the Rollapp
+                title: apps is the list of (lazy-loaded) apps in the rollapp
         default:
           description: An unexpected error response.
           schema:
@@ -4487,6 +4674,13 @@ paths:
           in: path
           required: true
           type: string
+        - name: omit_apps
+          description: >-
+            omit_apps is an optional flag to omit the list of apps in the
+            response.
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   /dymensionxyz/dymension/rollapp/state_info/{rollappId}/{index}:
@@ -4596,6 +4790,10 @@ paths:
                               title: >-
                                 stateRoot is a 32 byte array of the hash of the
                                 block (state root of the block)
+                            timestamp:
+                              type: string
+                              format: date-time
+                              title: timestamp is the time from the block header
                           description: >-
                             BlockDescriptor defines a single rollapp chain block
                             description.
@@ -5114,7 +5312,642 @@ paths:
                         }
       tags:
         - Query
-  /dymensionxyz/dymension/sequencer/proposer/{rollappId}:
+  /dymensionxyz/dymension/sequencer/proposers:
+    get:
+      summary: Queries a list of proposers.
+      operationId: Proposers
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              proposers:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    address:
+                      type: string
+                      description: >-
+                        address is the bech32-encoded address of the sequencer
+                        account which is the account that the message was sent
+                        from.
+                    dymintPubKey:
+                      type: object
+                      properties:
+                        type_url:
+                          type: string
+                          description: >-
+                            A URL/resource name that uniquely identifies the
+                            type of the serialized
+
+                            protocol buffer message. This string must contain at
+                            least
+
+                            one "/" character. The last segment of the URL's
+                            path must represent
+
+                            the fully qualified name of the type (as in
+
+                            `path/google.protobuf.Duration`). The name should be
+                            in a canonical form
+
+                            (e.g., leading "." is not accepted).
+
+
+                            In practice, teams usually precompile into the
+                            binary all types that they
+
+                            expect it to use in the context of Any. However, for
+                            URLs which use the
+
+                            scheme `http`, `https`, or no scheme, one can
+                            optionally set up a type
+
+                            server that maps type URLs to message definitions as
+                            follows:
+
+
+                            * If no scheme is provided, `https` is assumed.
+
+                            * An HTTP GET on the URL must yield a
+                            [google.protobuf.Type][]
+                              value in binary format, or produce an error.
+                            * Applications are allowed to cache lookup results
+                            based on the
+                              URL, or have them precompiled into a binary to avoid any
+                              lookup. Therefore, binary compatibility needs to be preserved
+                              on changes to types. (Use versioned type names to manage
+                              breaking changes.)
+
+                            Note: this functionality is not currently available
+                            in the official
+
+                            protobuf release, and it is not used for type URLs
+                            beginning with
+
+                            type.googleapis.com.
+
+
+                            Schemes other than `http`, `https` (or the empty
+                            scheme) might be
+
+                            used with implementation specific semantics.
+                        value:
+                          type: string
+                          format: byte
+                          description: >-
+                            Must be a valid serialized protocol buffer of the
+                            above specified type.
+                      description: >-
+                        `Any` contains an arbitrary serialized protocol buffer
+                        message along with a
+
+                        URL that describes the type of the serialized message.
+
+
+                        Protobuf library provides support to pack/unpack Any
+                        values in the form
+
+                        of utility functions or additional generated methods of
+                        the Any type.
+
+
+                        Example 1: Pack and unpack a message in C++.
+
+                            Foo foo = ...;
+                            Any any;
+                            any.PackFrom(foo);
+                            ...
+                            if (any.UnpackTo(&foo)) {
+                              ...
+                            }
+
+                        Example 2: Pack and unpack a message in Java.
+
+                            Foo foo = ...;
+                            Any any = Any.pack(foo);
+                            ...
+                            if (any.is(Foo.class)) {
+                              foo = any.unpack(Foo.class);
+                            }
+                            // or ...
+                            if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+                              foo = any.unpack(Foo.getDefaultInstance());
+                            }
+
+                        Example 3: Pack and unpack a message in Python.
+
+                            foo = Foo(...)
+                            any = Any()
+                            any.Pack(foo)
+                            ...
+                            if any.Is(Foo.DESCRIPTOR):
+                              any.Unpack(foo)
+                              ...
+
+                        Example 4: Pack and unpack a message in Go
+
+                             foo := &pb.Foo{...}
+                             any, err := anypb.New(foo)
+                             if err != nil {
+                               ...
+                             }
+                             ...
+                             foo := &pb.Foo{}
+                             if err := any.UnmarshalTo(foo); err != nil {
+                               ...
+                             }
+
+                        The pack methods provided by protobuf library will by
+                        default use
+
+                        'type.googleapis.com/full.type.name' as the type URL and
+                        the unpack
+
+                        methods only use the fully qualified type name after the
+                        last '/'
+
+                        in the type URL, for example "foo.bar.com/x/y.z" will
+                        yield type
+
+                        name "y.z".
+
+
+                        JSON
+
+
+                        The JSON representation of an `Any` value uses the
+                        regular
+
+                        representation of the deserialized, embedded message,
+                        with an
+
+                        additional field `@type` which contains the type URL.
+                        Example:
+
+                            package google.profile;
+                            message Person {
+                              string first_name = 1;
+                              string last_name = 2;
+                            }
+
+                            {
+                              "@type": "type.googleapis.com/google.profile.Person",
+                              "firstName": <string>,
+                              "lastName": <string>
+                            }
+
+                        If the embedded message type is well-known and has a
+                        custom JSON
+
+                        representation, that representation will be embedded
+                        adding a field
+
+                        `value` which holds the custom JSON in addition to the
+                        `@type`
+
+                        field. Example (for message
+                        [google.protobuf.Duration][]):
+
+                            {
+                              "@type": "type.googleapis.com/google.protobuf.Duration",
+                              "value": "1.212s"
+                            }
+                    rollappId:
+                      type: string
+                      description: >-
+                        rollappId defines the rollapp to which the sequencer
+                        belongs.
+                    metadata:
+                      description: >-
+                        metadata defines the extra information for the
+                        sequencer.
+                      type: object
+                      properties:
+                        moniker:
+                          type: string
+                          description: >-
+                            moniker defines a human-readable name for the
+                            sequencer.
+                        details:
+                          type: string
+                          description: details define other optional details.
+                        p2p_seeds:
+                          type: array
+                          items:
+                            type: string
+                          title: bootstrap nodes list
+                        rpcs:
+                          type: array
+                          items:
+                            type: string
+                          title: RPCs list
+                        evm_rpcs:
+                          type: array
+                          items:
+                            type: string
+                          title: evm RPCs list
+                        rest_api_urls:
+                          type: array
+                          items:
+                            type: string
+                          title: REST API URLs
+                        explorer_url:
+                          type: string
+                          title: block explorer URL
+                        genesis_urls:
+                          type: array
+                          items:
+                            type: string
+                          title: genesis URLs
+                        contact_details:
+                          title: contact details
+                          type: object
+                          properties:
+                            website:
+                              type: string
+                              title: website URL
+                            telegram:
+                              type: string
+                              title: telegram link
+                            x:
+                              type: string
+                              title: twitter link
+                        extra_data:
+                          type: string
+                          format: byte
+                          title: json dump the sequencer can add (limited by size)
+                        snapshots:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              snapshot_url:
+                                type: string
+                                title: the snapshot url
+                              height:
+                                type: string
+                                format: uint64
+                                title: The snapshot height
+                              checksum:
+                                type: string
+                                title: sha-256 checksum value for the snapshot file
+                          title: snapshots of the sequencer
+                        gas_price:
+                          type: string
+                          title: gas_price defines the value for each gas unit
+                    jailed:
+                      type: boolean
+                      description: >-
+                        jailed defined whether the sequencer has been jailed
+                        from bonded status or not.
+                    proposer:
+                      type: boolean
+                    status:
+                      description: >-
+                        status is the sequencer status
+                        (bonded/unbonding/unbonded).
+                      type: string
+                      enum:
+                        - OPERATING_STATUS_UNBONDED
+                        - OPERATING_STATUS_UNBONDING
+                        - OPERATING_STATUS_BONDED
+                      default: OPERATING_STATUS_UNBONDED
+                      title: >-
+                        OperatingStatus defines the operating status of a
+                        sequencer
+                    tokens:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          denom:
+                            type: string
+                          amount:
+                            type: string
+                        description: >-
+                          Coin defines a token with a denomination and an
+                          amount.
+
+
+                          NOTE: The amount field is an Int which implements the
+                          custom method
+
+                          signatures required by gogoproto.
+                      description: >-
+                        tokens define the delegated tokens (incl.
+                        self-delegation).
+                    unbond_request_height:
+                      type: string
+                      format: int64
+                      description: >-
+                        unbond_request_height stores the height at which this
+                        sequencer has
+
+                        requested to unbond.
+                    unbond_time:
+                      type: string
+                      format: date-time
+                      description: >-
+                        unbond_time defines the time when the sequencer will
+                        complete unbonding.
+                    notice_period_time:
+                      type: string
+                      format: date-time
+                      title: >-
+                        notice_period_time defines the time when the sequencer
+                        will finish it's notice period if started
+                  description: >-
+                    Sequencer defines a sequencer identified by its' address
+                    (sequencerAddress).
+
+                    The sequencer could be attached to only one rollapp
+                    (rollappId).
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+            description: Response type for the Proposers RPC method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                      description: >-
+                        A URL/resource name that uniquely identifies the type of
+                        the serialized
+
+                        protocol buffer message. This string must contain at
+                        least
+
+                        one "/" character. The last segment of the URL's path
+                        must represent
+
+                        the fully qualified name of the type (as in
+
+                        `path/google.protobuf.Duration`). The name should be in
+                        a canonical form
+
+                        (e.g., leading "." is not accepted).
+
+
+                        In practice, teams usually precompile into the binary
+                        all types that they
+
+                        expect it to use in the context of Any. However, for
+                        URLs which use the
+
+                        scheme `http`, `https`, or no scheme, one can optionally
+                        set up a type
+
+                        server that maps type URLs to message definitions as
+                        follows:
+
+
+                        * If no scheme is provided, `https` is assumed.
+
+                        * An HTTP GET on the URL must yield a
+                        [google.protobuf.Type][]
+                          value in binary format, or produce an error.
+                        * Applications are allowed to cache lookup results based
+                        on the
+                          URL, or have them precompiled into a binary to avoid any
+                          lookup. Therefore, binary compatibility needs to be preserved
+                          on changes to types. (Use versioned type names to manage
+                          breaking changes.)
+
+                        Note: this functionality is not currently available in
+                        the official
+
+                        protobuf release, and it is not used for type URLs
+                        beginning with
+
+                        type.googleapis.com.
+
+
+                        Schemes other than `http`, `https` (or the empty scheme)
+                        might be
+
+                        used with implementation specific semantics.
+                    value:
+                      type: string
+                      format: byte
+                      description: >-
+                        Must be a valid serialized protocol buffer of the above
+                        specified type.
+                  description: >-
+                    `Any` contains an arbitrary serialized protocol buffer
+                    message along with a
+
+                    URL that describes the type of the serialized message.
+
+
+                    Protobuf library provides support to pack/unpack Any values
+                    in the form
+
+                    of utility functions or additional generated methods of the
+                    Any type.
+
+
+                    Example 1: Pack and unpack a message in C++.
+
+                        Foo foo = ...;
+                        Any any;
+                        any.PackFrom(foo);
+                        ...
+                        if (any.UnpackTo(&foo)) {
+                          ...
+                        }
+
+                    Example 2: Pack and unpack a message in Java.
+
+                        Foo foo = ...;
+                        Any any = Any.pack(foo);
+                        ...
+                        if (any.is(Foo.class)) {
+                          foo = any.unpack(Foo.class);
+                        }
+                        // or ...
+                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+                          foo = any.unpack(Foo.getDefaultInstance());
+                        }
+
+                    Example 3: Pack and unpack a message in Python.
+
+                        foo = Foo(...)
+                        any = Any()
+                        any.Pack(foo)
+                        ...
+                        if any.Is(Foo.DESCRIPTOR):
+                          any.Unpack(foo)
+                          ...
+
+                    Example 4: Pack and unpack a message in Go
+
+                         foo := &pb.Foo{...}
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
+                         ...
+                         foo := &pb.Foo{}
+                         if err := any.UnmarshalTo(foo); err != nil {
+                           ...
+                         }
+
+                    The pack methods provided by protobuf library will by
+                    default use
+
+                    'type.googleapis.com/full.type.name' as the type URL and the
+                    unpack
+
+                    methods only use the fully qualified type name after the
+                    last '/'
+
+                    in the type URL, for example "foo.bar.com/x/y.z" will yield
+                    type
+
+                    name "y.z".
+
+
+                    JSON
+
+
+                    The JSON representation of an `Any` value uses the regular
+
+                    representation of the deserialized, embedded message, with
+                    an
+
+                    additional field `@type` which contains the type URL.
+                    Example:
+
+                        package google.profile;
+                        message Person {
+                          string first_name = 1;
+                          string last_name = 2;
+                        }
+
+                        {
+                          "@type": "type.googleapis.com/google.profile.Person",
+                          "firstName": <string>,
+                          "lastName": <string>
+                        }
+
+                    If the embedded message type is well-known and has a custom
+                    JSON
+
+                    representation, that representation will be embedded adding
+                    a field
+
+                    `value` which holds the custom JSON in addition to the
+                    `@type`
+
+                    field. Example (for message [google.protobuf.Duration][]):
+
+                        {
+                          "@type": "type.googleapis.com/google.protobuf.Duration",
+                          "value": "1.212s"
+                        }
+      parameters:
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  /dymensionxyz/dymension/sequencer/proposers/{rollappId}:
     get:
       summary: Queries the current proposer by rollappId.
       operationId: GetProposerByRollapp
@@ -5328,7 +6161,554 @@ paths:
           type: string
       tags:
         - Query
-  /dymensionxyz/dymension/sequencer/sequencer:
+  /dymensionxyz/dymension/sequencer/sequencer/{sequencerAddress}:
+    get:
+      summary: Queries a Sequencer by address.
+      operationId: Sequencer
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              sequencer:
+                type: object
+                properties:
+                  address:
+                    type: string
+                    description: >-
+                      address is the bech32-encoded address of the sequencer
+                      account which is the account that the message was sent
+                      from.
+                  dymintPubKey:
+                    type: object
+                    properties:
+                      type_url:
+                        type: string
+                        description: >-
+                          A URL/resource name that uniquely identifies the type
+                          of the serialized
+
+                          protocol buffer message. This string must contain at
+                          least
+
+                          one "/" character. The last segment of the URL's path
+                          must represent
+
+                          the fully qualified name of the type (as in
+
+                          `path/google.protobuf.Duration`). The name should be
+                          in a canonical form
+
+                          (e.g., leading "." is not accepted).
+
+
+                          In practice, teams usually precompile into the binary
+                          all types that they
+
+                          expect it to use in the context of Any. However, for
+                          URLs which use the
+
+                          scheme `http`, `https`, or no scheme, one can
+                          optionally set up a type
+
+                          server that maps type URLs to message definitions as
+                          follows:
+
+
+                          * If no scheme is provided, `https` is assumed.
+
+                          * An HTTP GET on the URL must yield a
+                          [google.protobuf.Type][]
+                            value in binary format, or produce an error.
+                          * Applications are allowed to cache lookup results
+                          based on the
+                            URL, or have them precompiled into a binary to avoid any
+                            lookup. Therefore, binary compatibility needs to be preserved
+                            on changes to types. (Use versioned type names to manage
+                            breaking changes.)
+
+                          Note: this functionality is not currently available in
+                          the official
+
+                          protobuf release, and it is not used for type URLs
+                          beginning with
+
+                          type.googleapis.com.
+
+
+                          Schemes other than `http`, `https` (or the empty
+                          scheme) might be
+
+                          used with implementation specific semantics.
+                      value:
+                        type: string
+                        format: byte
+                        description: >-
+                          Must be a valid serialized protocol buffer of the
+                          above specified type.
+                    description: >-
+                      `Any` contains an arbitrary serialized protocol buffer
+                      message along with a
+
+                      URL that describes the type of the serialized message.
+
+
+                      Protobuf library provides support to pack/unpack Any
+                      values in the form
+
+                      of utility functions or additional generated methods of
+                      the Any type.
+
+
+                      Example 1: Pack and unpack a message in C++.
+
+                          Foo foo = ...;
+                          Any any;
+                          any.PackFrom(foo);
+                          ...
+                          if (any.UnpackTo(&foo)) {
+                            ...
+                          }
+
+                      Example 2: Pack and unpack a message in Java.
+
+                          Foo foo = ...;
+                          Any any = Any.pack(foo);
+                          ...
+                          if (any.is(Foo.class)) {
+                            foo = any.unpack(Foo.class);
+                          }
+                          // or ...
+                          if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+                            foo = any.unpack(Foo.getDefaultInstance());
+                          }
+
+                      Example 3: Pack and unpack a message in Python.
+
+                          foo = Foo(...)
+                          any = Any()
+                          any.Pack(foo)
+                          ...
+                          if any.Is(Foo.DESCRIPTOR):
+                            any.Unpack(foo)
+                            ...
+
+                      Example 4: Pack and unpack a message in Go
+
+                           foo := &pb.Foo{...}
+                           any, err := anypb.New(foo)
+                           if err != nil {
+                             ...
+                           }
+                           ...
+                           foo := &pb.Foo{}
+                           if err := any.UnmarshalTo(foo); err != nil {
+                             ...
+                           }
+
+                      The pack methods provided by protobuf library will by
+                      default use
+
+                      'type.googleapis.com/full.type.name' as the type URL and
+                      the unpack
+
+                      methods only use the fully qualified type name after the
+                      last '/'
+
+                      in the type URL, for example "foo.bar.com/x/y.z" will
+                      yield type
+
+                      name "y.z".
+
+
+                      JSON
+
+
+                      The JSON representation of an `Any` value uses the regular
+
+                      representation of the deserialized, embedded message, with
+                      an
+
+                      additional field `@type` which contains the type URL.
+                      Example:
+
+                          package google.profile;
+                          message Person {
+                            string first_name = 1;
+                            string last_name = 2;
+                          }
+
+                          {
+                            "@type": "type.googleapis.com/google.profile.Person",
+                            "firstName": <string>,
+                            "lastName": <string>
+                          }
+
+                      If the embedded message type is well-known and has a
+                      custom JSON
+
+                      representation, that representation will be embedded
+                      adding a field
+
+                      `value` which holds the custom JSON in addition to the
+                      `@type`
+
+                      field. Example (for message [google.protobuf.Duration][]):
+
+                          {
+                            "@type": "type.googleapis.com/google.protobuf.Duration",
+                            "value": "1.212s"
+                          }
+                  rollappId:
+                    type: string
+                    description: >-
+                      rollappId defines the rollapp to which the sequencer
+                      belongs.
+                  metadata:
+                    description: metadata defines the extra information for the sequencer.
+                    type: object
+                    properties:
+                      moniker:
+                        type: string
+                        description: >-
+                          moniker defines a human-readable name for the
+                          sequencer.
+                      details:
+                        type: string
+                        description: details define other optional details.
+                      p2p_seeds:
+                        type: array
+                        items:
+                          type: string
+                        title: bootstrap nodes list
+                      rpcs:
+                        type: array
+                        items:
+                          type: string
+                        title: RPCs list
+                      evm_rpcs:
+                        type: array
+                        items:
+                          type: string
+                        title: evm RPCs list
+                      rest_api_urls:
+                        type: array
+                        items:
+                          type: string
+                        title: REST API URLs
+                      explorer_url:
+                        type: string
+                        title: block explorer URL
+                      genesis_urls:
+                        type: array
+                        items:
+                          type: string
+                        title: genesis URLs
+                      contact_details:
+                        title: contact details
+                        type: object
+                        properties:
+                          website:
+                            type: string
+                            title: website URL
+                          telegram:
+                            type: string
+                            title: telegram link
+                          x:
+                            type: string
+                            title: twitter link
+                      extra_data:
+                        type: string
+                        format: byte
+                        title: json dump the sequencer can add (limited by size)
+                      snapshots:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            snapshot_url:
+                              type: string
+                              title: the snapshot url
+                            height:
+                              type: string
+                              format: uint64
+                              title: The snapshot height
+                            checksum:
+                              type: string
+                              title: sha-256 checksum value for the snapshot file
+                        title: snapshots of the sequencer
+                      gas_price:
+                        type: string
+                        title: gas_price defines the value for each gas unit
+                  jailed:
+                    type: boolean
+                    description: >-
+                      jailed defined whether the sequencer has been jailed from
+                      bonded status or not.
+                  proposer:
+                    type: boolean
+                  status:
+                    description: >-
+                      status is the sequencer status
+                      (bonded/unbonding/unbonded).
+                    type: string
+                    enum:
+                      - OPERATING_STATUS_UNBONDED
+                      - OPERATING_STATUS_UNBONDING
+                      - OPERATING_STATUS_BONDED
+                    default: OPERATING_STATUS_UNBONDED
+                    title: >-
+                      OperatingStatus defines the operating status of a
+                      sequencer
+                  tokens:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                        amount:
+                          type: string
+                      description: >-
+                        Coin defines a token with a denomination and an amount.
+
+
+                        NOTE: The amount field is an Int which implements the
+                        custom method
+
+                        signatures required by gogoproto.
+                    description: >-
+                      tokens define the delegated tokens (incl.
+                      self-delegation).
+                  unbond_request_height:
+                    type: string
+                    format: int64
+                    description: >-
+                      unbond_request_height stores the height at which this
+                      sequencer has
+
+                      requested to unbond.
+                  unbond_time:
+                    type: string
+                    format: date-time
+                    description: >-
+                      unbond_time defines the time when the sequencer will
+                      complete unbonding.
+                  notice_period_time:
+                    type: string
+                    format: date-time
+                    title: >-
+                      notice_period_time defines the time when the sequencer
+                      will finish it's notice period if started
+                description: >-
+                  Sequencer defines a sequencer identified by its' address
+                  (sequencerAddress).
+
+                  The sequencer could be attached to only one rollapp
+                  (rollappId).
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                      description: >-
+                        A URL/resource name that uniquely identifies the type of
+                        the serialized
+
+                        protocol buffer message. This string must contain at
+                        least
+
+                        one "/" character. The last segment of the URL's path
+                        must represent
+
+                        the fully qualified name of the type (as in
+
+                        `path/google.protobuf.Duration`). The name should be in
+                        a canonical form
+
+                        (e.g., leading "." is not accepted).
+
+
+                        In practice, teams usually precompile into the binary
+                        all types that they
+
+                        expect it to use in the context of Any. However, for
+                        URLs which use the
+
+                        scheme `http`, `https`, or no scheme, one can optionally
+                        set up a type
+
+                        server that maps type URLs to message definitions as
+                        follows:
+
+
+                        * If no scheme is provided, `https` is assumed.
+
+                        * An HTTP GET on the URL must yield a
+                        [google.protobuf.Type][]
+                          value in binary format, or produce an error.
+                        * Applications are allowed to cache lookup results based
+                        on the
+                          URL, or have them precompiled into a binary to avoid any
+                          lookup. Therefore, binary compatibility needs to be preserved
+                          on changes to types. (Use versioned type names to manage
+                          breaking changes.)
+
+                        Note: this functionality is not currently available in
+                        the official
+
+                        protobuf release, and it is not used for type URLs
+                        beginning with
+
+                        type.googleapis.com.
+
+
+                        Schemes other than `http`, `https` (or the empty scheme)
+                        might be
+
+                        used with implementation specific semantics.
+                    value:
+                      type: string
+                      format: byte
+                      description: >-
+                        Must be a valid serialized protocol buffer of the above
+                        specified type.
+                  description: >-
+                    `Any` contains an arbitrary serialized protocol buffer
+                    message along with a
+
+                    URL that describes the type of the serialized message.
+
+
+                    Protobuf library provides support to pack/unpack Any values
+                    in the form
+
+                    of utility functions or additional generated methods of the
+                    Any type.
+
+
+                    Example 1: Pack and unpack a message in C++.
+
+                        Foo foo = ...;
+                        Any any;
+                        any.PackFrom(foo);
+                        ...
+                        if (any.UnpackTo(&foo)) {
+                          ...
+                        }
+
+                    Example 2: Pack and unpack a message in Java.
+
+                        Foo foo = ...;
+                        Any any = Any.pack(foo);
+                        ...
+                        if (any.is(Foo.class)) {
+                          foo = any.unpack(Foo.class);
+                        }
+                        // or ...
+                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+                          foo = any.unpack(Foo.getDefaultInstance());
+                        }
+
+                    Example 3: Pack and unpack a message in Python.
+
+                        foo = Foo(...)
+                        any = Any()
+                        any.Pack(foo)
+                        ...
+                        if any.Is(Foo.DESCRIPTOR):
+                          any.Unpack(foo)
+                          ...
+
+                    Example 4: Pack and unpack a message in Go
+
+                         foo := &pb.Foo{...}
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
+                         ...
+                         foo := &pb.Foo{}
+                         if err := any.UnmarshalTo(foo); err != nil {
+                           ...
+                         }
+
+                    The pack methods provided by protobuf library will by
+                    default use
+
+                    'type.googleapis.com/full.type.name' as the type URL and the
+                    unpack
+
+                    methods only use the fully qualified type name after the
+                    last '/'
+
+                    in the type URL, for example "foo.bar.com/x/y.z" will yield
+                    type
+
+                    name "y.z".
+
+
+                    JSON
+
+
+                    The JSON representation of an `Any` value uses the regular
+
+                    representation of the deserialized, embedded message, with
+                    an
+
+                    additional field `@type` which contains the type URL.
+                    Example:
+
+                        package google.profile;
+                        message Person {
+                          string first_name = 1;
+                          string last_name = 2;
+                        }
+
+                        {
+                          "@type": "type.googleapis.com/google.profile.Person",
+                          "firstName": <string>,
+                          "lastName": <string>
+                        }
+
+                    If the embedded message type is well-known and has a custom
+                    JSON
+
+                    representation, that representation will be embedded adding
+                    a field
+
+                    `value` which holds the custom JSON in addition to the
+                    `@type`
+
+                    field. Example (for message [google.protobuf.Duration][]):
+
+                        {
+                          "@type": "type.googleapis.com/google.protobuf.Duration",
+                          "value": "1.212s"
+                        }
+      parameters:
+        - name: sequencerAddress
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /dymensionxyz/dymension/sequencer/sequencers:
     get:
       summary: Queries a list of Sequencer items.
       operationId: Sequencers
@@ -5960,553 +7340,6 @@ paths:
           in: query
           required: false
           type: boolean
-      tags:
-        - Query
-  /dymensionxyz/dymension/sequencer/sequencer/{sequencerAddress}:
-    get:
-      summary: Queries a Sequencer by address.
-      operationId: Sequencer
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              sequencer:
-                type: object
-                properties:
-                  address:
-                    type: string
-                    description: >-
-                      address is the bech32-encoded address of the sequencer
-                      account which is the account that the message was sent
-                      from.
-                  dymintPubKey:
-                    type: object
-                    properties:
-                      type_url:
-                        type: string
-                        description: >-
-                          A URL/resource name that uniquely identifies the type
-                          of the serialized
-
-                          protocol buffer message. This string must contain at
-                          least
-
-                          one "/" character. The last segment of the URL's path
-                          must represent
-
-                          the fully qualified name of the type (as in
-
-                          `path/google.protobuf.Duration`). The name should be
-                          in a canonical form
-
-                          (e.g., leading "." is not accepted).
-
-
-                          In practice, teams usually precompile into the binary
-                          all types that they
-
-                          expect it to use in the context of Any. However, for
-                          URLs which use the
-
-                          scheme `http`, `https`, or no scheme, one can
-                          optionally set up a type
-
-                          server that maps type URLs to message definitions as
-                          follows:
-
-
-                          * If no scheme is provided, `https` is assumed.
-
-                          * An HTTP GET on the URL must yield a
-                          [google.protobuf.Type][]
-                            value in binary format, or produce an error.
-                          * Applications are allowed to cache lookup results
-                          based on the
-                            URL, or have them precompiled into a binary to avoid any
-                            lookup. Therefore, binary compatibility needs to be preserved
-                            on changes to types. (Use versioned type names to manage
-                            breaking changes.)
-
-                          Note: this functionality is not currently available in
-                          the official
-
-                          protobuf release, and it is not used for type URLs
-                          beginning with
-
-                          type.googleapis.com.
-
-
-                          Schemes other than `http`, `https` (or the empty
-                          scheme) might be
-
-                          used with implementation specific semantics.
-                      value:
-                        type: string
-                        format: byte
-                        description: >-
-                          Must be a valid serialized protocol buffer of the
-                          above specified type.
-                    description: >-
-                      `Any` contains an arbitrary serialized protocol buffer
-                      message along with a
-
-                      URL that describes the type of the serialized message.
-
-
-                      Protobuf library provides support to pack/unpack Any
-                      values in the form
-
-                      of utility functions or additional generated methods of
-                      the Any type.
-
-
-                      Example 1: Pack and unpack a message in C++.
-
-                          Foo foo = ...;
-                          Any any;
-                          any.PackFrom(foo);
-                          ...
-                          if (any.UnpackTo(&foo)) {
-                            ...
-                          }
-
-                      Example 2: Pack and unpack a message in Java.
-
-                          Foo foo = ...;
-                          Any any = Any.pack(foo);
-                          ...
-                          if (any.is(Foo.class)) {
-                            foo = any.unpack(Foo.class);
-                          }
-                          // or ...
-                          if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                            foo = any.unpack(Foo.getDefaultInstance());
-                          }
-
-                      Example 3: Pack and unpack a message in Python.
-
-                          foo = Foo(...)
-                          any = Any()
-                          any.Pack(foo)
-                          ...
-                          if any.Is(Foo.DESCRIPTOR):
-                            any.Unpack(foo)
-                            ...
-
-                      Example 4: Pack and unpack a message in Go
-
-                           foo := &pb.Foo{...}
-                           any, err := anypb.New(foo)
-                           if err != nil {
-                             ...
-                           }
-                           ...
-                           foo := &pb.Foo{}
-                           if err := any.UnmarshalTo(foo); err != nil {
-                             ...
-                           }
-
-                      The pack methods provided by protobuf library will by
-                      default use
-
-                      'type.googleapis.com/full.type.name' as the type URL and
-                      the unpack
-
-                      methods only use the fully qualified type name after the
-                      last '/'
-
-                      in the type URL, for example "foo.bar.com/x/y.z" will
-                      yield type
-
-                      name "y.z".
-
-
-                      JSON
-
-
-                      The JSON representation of an `Any` value uses the regular
-
-                      representation of the deserialized, embedded message, with
-                      an
-
-                      additional field `@type` which contains the type URL.
-                      Example:
-
-                          package google.profile;
-                          message Person {
-                            string first_name = 1;
-                            string last_name = 2;
-                          }
-
-                          {
-                            "@type": "type.googleapis.com/google.profile.Person",
-                            "firstName": <string>,
-                            "lastName": <string>
-                          }
-
-                      If the embedded message type is well-known and has a
-                      custom JSON
-
-                      representation, that representation will be embedded
-                      adding a field
-
-                      `value` which holds the custom JSON in addition to the
-                      `@type`
-
-                      field. Example (for message [google.protobuf.Duration][]):
-
-                          {
-                            "@type": "type.googleapis.com/google.protobuf.Duration",
-                            "value": "1.212s"
-                          }
-                  rollappId:
-                    type: string
-                    description: >-
-                      rollappId defines the rollapp to which the sequencer
-                      belongs.
-                  metadata:
-                    description: metadata defines the extra information for the sequencer.
-                    type: object
-                    properties:
-                      moniker:
-                        type: string
-                        description: >-
-                          moniker defines a human-readable name for the
-                          sequencer.
-                      details:
-                        type: string
-                        description: details define other optional details.
-                      p2p_seeds:
-                        type: array
-                        items:
-                          type: string
-                        title: bootstrap nodes list
-                      rpcs:
-                        type: array
-                        items:
-                          type: string
-                        title: RPCs list
-                      evm_rpcs:
-                        type: array
-                        items:
-                          type: string
-                        title: evm RPCs list
-                      rest_api_urls:
-                        type: array
-                        items:
-                          type: string
-                        title: REST API URLs
-                      explorer_url:
-                        type: string
-                        title: block explorer URL
-                      genesis_urls:
-                        type: array
-                        items:
-                          type: string
-                        title: genesis URLs
-                      contact_details:
-                        title: contact details
-                        type: object
-                        properties:
-                          website:
-                            type: string
-                            title: website URL
-                          telegram:
-                            type: string
-                            title: telegram link
-                          x:
-                            type: string
-                            title: twitter link
-                      extra_data:
-                        type: string
-                        format: byte
-                        title: json dump the sequencer can add (limited by size)
-                      snapshots:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            snapshot_url:
-                              type: string
-                              title: the snapshot url
-                            height:
-                              type: string
-                              format: uint64
-                              title: The snapshot height
-                            checksum:
-                              type: string
-                              title: sha-256 checksum value for the snapshot file
-                        title: snapshots of the sequencer
-                      gas_price:
-                        type: string
-                        title: gas_price defines the value for each gas unit
-                  jailed:
-                    type: boolean
-                    description: >-
-                      jailed defined whether the sequencer has been jailed from
-                      bonded status or not.
-                  proposer:
-                    type: boolean
-                  status:
-                    description: >-
-                      status is the sequencer status
-                      (bonded/unbonding/unbonded).
-                    type: string
-                    enum:
-                      - OPERATING_STATUS_UNBONDED
-                      - OPERATING_STATUS_UNBONDING
-                      - OPERATING_STATUS_BONDED
-                    default: OPERATING_STATUS_UNBONDED
-                    title: >-
-                      OperatingStatus defines the operating status of a
-                      sequencer
-                  tokens:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        denom:
-                          type: string
-                        amount:
-                          type: string
-                      description: >-
-                        Coin defines a token with a denomination and an amount.
-
-
-                        NOTE: The amount field is an Int which implements the
-                        custom method
-
-                        signatures required by gogoproto.
-                    description: >-
-                      tokens define the delegated tokens (incl.
-                      self-delegation).
-                  unbond_request_height:
-                    type: string
-                    format: int64
-                    description: >-
-                      unbond_request_height stores the height at which this
-                      sequencer has
-
-                      requested to unbond.
-                  unbond_time:
-                    type: string
-                    format: date-time
-                    description: >-
-                      unbond_time defines the time when the sequencer will
-                      complete unbonding.
-                  notice_period_time:
-                    type: string
-                    format: date-time
-                    title: >-
-                      notice_period_time defines the time when the sequencer
-                      will finish it's notice period if started
-                description: >-
-                  Sequencer defines a sequencer identified by its' address
-                  (sequencerAddress).
-
-                  The sequencer could be attached to only one rollapp
-                  (rollappId).
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                      description: >-
-                        A URL/resource name that uniquely identifies the type of
-                        the serialized
-
-                        protocol buffer message. This string must contain at
-                        least
-
-                        one "/" character. The last segment of the URL's path
-                        must represent
-
-                        the fully qualified name of the type (as in
-
-                        `path/google.protobuf.Duration`). The name should be in
-                        a canonical form
-
-                        (e.g., leading "." is not accepted).
-
-
-                        In practice, teams usually precompile into the binary
-                        all types that they
-
-                        expect it to use in the context of Any. However, for
-                        URLs which use the
-
-                        scheme `http`, `https`, or no scheme, one can optionally
-                        set up a type
-
-                        server that maps type URLs to message definitions as
-                        follows:
-
-
-                        * If no scheme is provided, `https` is assumed.
-
-                        * An HTTP GET on the URL must yield a
-                        [google.protobuf.Type][]
-                          value in binary format, or produce an error.
-                        * Applications are allowed to cache lookup results based
-                        on the
-                          URL, or have them precompiled into a binary to avoid any
-                          lookup. Therefore, binary compatibility needs to be preserved
-                          on changes to types. (Use versioned type names to manage
-                          breaking changes.)
-
-                        Note: this functionality is not currently available in
-                        the official
-
-                        protobuf release, and it is not used for type URLs
-                        beginning with
-
-                        type.googleapis.com.
-
-
-                        Schemes other than `http`, `https` (or the empty scheme)
-                        might be
-
-                        used with implementation specific semantics.
-                    value:
-                      type: string
-                      format: byte
-                      description: >-
-                        Must be a valid serialized protocol buffer of the above
-                        specified type.
-                  description: >-
-                    `Any` contains an arbitrary serialized protocol buffer
-                    message along with a
-
-                    URL that describes the type of the serialized message.
-
-
-                    Protobuf library provides support to pack/unpack Any values
-                    in the form
-
-                    of utility functions or additional generated methods of the
-                    Any type.
-
-
-                    Example 1: Pack and unpack a message in C++.
-
-                        Foo foo = ...;
-                        Any any;
-                        any.PackFrom(foo);
-                        ...
-                        if (any.UnpackTo(&foo)) {
-                          ...
-                        }
-
-                    Example 2: Pack and unpack a message in Java.
-
-                        Foo foo = ...;
-                        Any any = Any.pack(foo);
-                        ...
-                        if (any.is(Foo.class)) {
-                          foo = any.unpack(Foo.class);
-                        }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
-
-                    Example 3: Pack and unpack a message in Python.
-
-                        foo = Foo(...)
-                        any = Any()
-                        any.Pack(foo)
-                        ...
-                        if any.Is(Foo.DESCRIPTOR):
-                          any.Unpack(foo)
-                          ...
-
-                    Example 4: Pack and unpack a message in Go
-
-                         foo := &pb.Foo{...}
-                         any, err := anypb.New(foo)
-                         if err != nil {
-                           ...
-                         }
-                         ...
-                         foo := &pb.Foo{}
-                         if err := any.UnmarshalTo(foo); err != nil {
-                           ...
-                         }
-
-                    The pack methods provided by protobuf library will by
-                    default use
-
-                    'type.googleapis.com/full.type.name' as the type URL and the
-                    unpack
-
-                    methods only use the fully qualified type name after the
-                    last '/'
-
-                    in the type URL, for example "foo.bar.com/x/y.z" will yield
-                    type
-
-                    name "y.z".
-
-
-                    JSON
-
-
-                    The JSON representation of an `Any` value uses the regular
-
-                    representation of the deserialized, embedded message, with
-                    an
-
-                    additional field `@type` which contains the type URL.
-                    Example:
-
-                        package google.profile;
-                        message Person {
-                          string first_name = 1;
-                          string last_name = 2;
-                        }
-
-                        {
-                          "@type": "type.googleapis.com/google.profile.Person",
-                          "firstName": <string>,
-                          "lastName": <string>
-                        }
-
-                    If the embedded message type is well-known and has a custom
-                    JSON
-
-                    representation, that representation will be embedded adding
-                    a field
-
-                    `value` which holds the custom JSON in addition to the
-                    `@type`
-
-                    field. Example (for message [google.protobuf.Duration][]):
-
-                        {
-                          "@type": "type.googleapis.com/google.protobuf.Duration",
-                          "value": "1.212s"
-                        }
-      parameters:
-        - name: sequencerAddress
-          in: path
-          required: true
-          type: string
       tags:
         - Query
   /dymensionxyz/dymension/sequencer/sequencers_by_rollapp/{rollappId}:
@@ -7736,6 +8569,27 @@ paths:
                       description: >-
                         Sponsored indicates if the stream is based on the
                         sponsorship distribution.
+                    epoch_coins:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          denom:
+                            type: string
+                          amount:
+                            type: string
+                        description: >-
+                          Coin defines a token with a denomination and an
+                          amount.
+
+
+                          NOTE: The amount field is an Int which implements the
+                          custom method
+
+                          signatures required by gogoproto.
+                      description: >-
+                        EpochCoins are coins that need to be distributed in this
+                        epoch.
                   description: >-
                     Stream is an object that stores and distributes yields to
                     recipients who
@@ -8014,6 +8868,26 @@ paths:
                     description: >-
                       Sponsored indicates if the stream is based on the
                       sponsorship distribution.
+                  epoch_coins:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                        amount:
+                          type: string
+                      description: >-
+                        Coin defines a token with a denomination and an amount.
+
+
+                        NOTE: The amount field is an Int which implements the
+                        custom method
+
+                        signatures required by gogoproto.
+                    description: >-
+                      EpochCoins are coins that need to be distributed in this
+                      epoch.
                 description: >-
                   Stream is an object that stores and distributes yields to
                   recipients who
@@ -8165,6 +9039,27 @@ paths:
                       description: >-
                         Sponsored indicates if the stream is based on the
                         sponsorship distribution.
+                    epoch_coins:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          denom:
+                            type: string
+                          amount:
+                            type: string
+                        description: >-
+                          Coin defines a token with a denomination and an
+                          amount.
+
+
+                          NOTE: The amount field is an Int which implements the
+                          custom method
+
+                          signatures required by gogoproto.
+                      description: >-
+                        EpochCoins are coins that need to be distributed in this
+                        epoch.
                   description: >-
                     Stream is an object that stores and distributes yields to
                     recipients who
@@ -8395,6 +9290,27 @@ paths:
                       description: >-
                         Sponsored indicates if the stream is based on the
                         sponsorship distribution.
+                    epoch_coins:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          denom:
+                            type: string
+                          amount:
+                            type: string
+                        description: >-
+                          Coin defines a token with a denomination and an
+                          amount.
+
+
+                          NOTE: The amount field is an Int which implements the
+                          custom method
+
+                          signatures required by gogoproto.
+                      description: >-
+                        EpochCoins are coins that need to be distributed in this
+                        epoch.
                   description: >-
                     Stream is an object that stores and distributes yields to
                     recipients who
@@ -17569,12 +18485,7 @@ paths:
 
                         refilled, Intended for use with incentives that get
                         refilled daily.
-                    distribute_to:
-                      title: >-
-                        distribute_to is where the gauge rewards are distributed
-                        to.
-
-                        This is queried via lock duration or by timestamp
+                    asset:
                       type: object
                       properties:
                         lock_query_type:
@@ -17626,6 +18537,11 @@ paths:
                         depending on the
 
                         LockQueryType.
+                    rollapp:
+                      type: object
+                      properties:
+                        rollapp_id:
+                          type: string
                     coins:
                       type: array
                       items:
@@ -17845,12 +18761,7 @@ paths:
 
                         refilled, Intended for use with incentives that get
                         refilled daily.
-                    distribute_to:
-                      title: >-
-                        distribute_to is where the gauge rewards are distributed
-                        to.
-
-                        This is queried via lock duration or by timestamp
+                    asset:
                       type: object
                       properties:
                         lock_query_type:
@@ -17902,6 +18813,11 @@ paths:
                         depending on the
 
                         LockQueryType.
+                    rollapp:
+                      type: object
+                      properties:
+                        rollapp_id:
+                          type: string
                     coins:
                       type: array
                       items:
@@ -18124,12 +19040,7 @@ paths:
 
                       refilled, Intended for use with incentives that get
                       refilled daily.
-                  distribute_to:
-                    title: >-
-                      distribute_to is where the gauge rewards are distributed
-                      to.
-
-                      This is queried via lock duration or by timestamp
+                  asset:
                     type: object
                     properties:
                       lock_query_type:
@@ -18181,6 +19092,11 @@ paths:
                       depending on the
 
                       LockQueryType.
+                  rollapp:
+                    type: object
+                    properties:
+                      rollapp_id:
+                        type: string
                   coins:
                     type: array
                     items:
@@ -18319,12 +19235,7 @@ paths:
 
                         refilled, Intended for use with incentives that get
                         refilled daily.
-                    distribute_to:
-                      title: >-
-                        distribute_to is where the gauge rewards are distributed
-                        to.
-
-                        This is queried via lock duration or by timestamp
+                    asset:
                       type: object
                       properties:
                         lock_query_type:
@@ -18376,6 +19287,11 @@ paths:
                         depending on the
 
                         LockQueryType.
+                    rollapp:
+                      type: object
+                      properties:
+                        rollapp_id:
+                          type: string
                     coins:
                       type: array
                       items:
@@ -18656,44 +19572,26 @@ paths:
                       format: byte
       tags:
         - Query
-  /dymensionxyz/dymension/incentives/v1beta1/rewards_est/{owner}:
+  /dymensionxyz/dymension/incentives/v1beta1/params:
     get:
-      summary: >-
-        RewardsEst returns an estimate of the rewards from now until a specified
-
-        time in the future The querier either provides an address or a set of
-        locks
-
-        for which they want to find the associated rewards
-      operationId: RewardsEst
+      operationId: IncentivesParams
       responses:
         '200':
           description: A successful response.
           schema:
             type: object
             properties:
-              coins:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    denom:
-                      type: string
-                    amount:
-                      type: string
-                  description: >-
-                    Coin defines a token with a denomination and an amount.
+              params:
+                title: Params defines the set of incentive parameters
+                type: object
+                properties:
+                  distr_epoch_identifier:
+                    type: string
+                    title: >-
+                      distr_epoch_identifier is what epoch type distribution
+                      will be triggered by
 
-
-                    NOTE: The amount field is an Int which implements the custom
-                    method
-
-                    signatures required by gogoproto.
-                title: >-
-                  Estimated coin rewards that will be recieved at provided
-                  address
-
-                  from specified locks between current time and end epoch
+                      (day, week, etc.)
         default:
           description: An unexpected error response.
           schema:
@@ -18716,35 +19614,12 @@ paths:
                     value:
                       type: string
                       format: byte
-      parameters:
-        - name: owner
-          description: Address that is being queried for future estimated rewards
-          in: path
-          required: true
-          type: string
-        - name: lock_ids
-          description: Lock IDs included in future reward estimation.
-          in: query
-          required: false
-          type: array
-          items:
-            type: string
-            format: uint64
-          collectionFormat: multi
-        - name: end_epoch
-          description: |-
-            Upper time limit of reward estimation
-            Lower limit is current epoch.
-          in: query
-          required: false
-          type: string
-          format: int64
       tags:
         - Query
-  /dymensionxyz/dymension/incentives/v1beta1/upcoming_gauges:
+  /dymensionxyz/dymension/incentives/v1beta1/rollapp_gauges:
     get:
-      summary: Returns scheduled gauges that have not yet occured
-      operationId: UpcomingGauges
+      summary: RollappGauges returns both upcoming and active rollapp gauges
+      operationId: RollappGauges
       responses:
         '200':
           description: A successful response.
@@ -18777,12 +19652,7 @@ paths:
 
                         refilled, Intended for use with incentives that get
                         refilled daily.
-                    distribute_to:
-                      title: >-
-                        distribute_to is where the gauge rewards are distributed
-                        to.
-
-                        This is queried via lock duration or by timestamp
+                    asset:
                       type: object
                       properties:
                         lock_query_type:
@@ -18834,6 +19704,287 @@ paths:
                         depending on the
 
                         LockQueryType.
+                    rollapp:
+                      type: object
+                      properties:
+                        rollapp_id:
+                          type: string
+                    coins:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          denom:
+                            type: string
+                          amount:
+                            type: string
+                        description: >-
+                          Coin defines a token with a denomination and an
+                          amount.
+
+
+                          NOTE: The amount field is an Int which implements the
+                          custom method
+
+                          signatures required by gogoproto.
+                      title: >-
+                        coins is the total amount of coins that have been in the
+                        gauge
+
+                        Can distribute multiple coin denoms
+                    start_time:
+                      type: string
+                      format: date-time
+                      title: start_time is the distribution start time
+                    num_epochs_paid_over:
+                      type: string
+                      format: uint64
+                      title: >-
+                        num_epochs_paid_over is the number of total epochs
+                        distribution will be
+
+                        completed over
+                    filled_epochs:
+                      type: string
+                      format: uint64
+                      title: >-
+                        filled_epochs is the number of epochs distribution has
+                        been completed on
+
+                        already
+                    distributed_coins:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          denom:
+                            type: string
+                          amount:
+                            type: string
+                        description: >-
+                          Coin defines a token with a denomination and an
+                          amount.
+
+
+                          NOTE: The amount field is an Int which implements the
+                          custom method
+
+                          signatures required by gogoproto.
+                      title: >-
+                        distributed_coins are coins that have been distributed
+                        already
+                  description: >-
+                    Gauge is an object that stores and distributes yields to
+                    recipients who
+
+                    satisfy certain conditions. Currently gauges support
+                    conditions around the
+
+                    duration for which a given denom is locked.
+                title: Upcoming and active gauges
+              pagination:
+                title: Pagination defines pagination for the response
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  /dymensionxyz/dymension/incentives/v1beta1/upcoming_gauges:
+    get:
+      summary: Returns scheduled gauges that have not yet occured
+      operationId: UpcomingGauges
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uint64
+                      title: id is the unique ID of a Gauge
+                    is_perpetual:
+                      type: boolean
+                      description: >-
+                        is_perpetual is a flag to show if it's a perpetual or
+                        non-perpetual gauge
+
+                        Non-perpetual gauges distribute their tokens equally per
+                        epoch while the
+
+                        gauge is in the active period. Perpetual gauges
+                        distribute all their tokens
+
+                        at a single time and only distribute their tokens again
+                        once the gauge is
+
+                        refilled, Intended for use with incentives that get
+                        refilled daily.
+                    asset:
+                      type: object
+                      properties:
+                        lock_query_type:
+                          title: >-
+                            LockQueryType is a type of lock query,
+                            ByLockDuration | ByLockTime
+                          type: string
+                          enum:
+                            - ByDuration
+                            - ByTime
+                          default: ByDuration
+                          description: >-
+                            LockQueryType defines the type of the lock query
+                            that can
+
+                            either be by duration or start time of the lock.
+                        denom:
+                          type: string
+                          title: >-
+                            Denom represents the token denomination we are
+                            looking to lock up
+                        duration:
+                          type: string
+                          description: >-
+                            Duration is used to query locks with longer duration
+                            than the specified
+
+                            duration. Duration field must not be nil when the
+                            lock query type is
+
+                            `ByLockDuration`.
+                        timestamp:
+                          type: string
+                          format: date-time
+                          description: >-
+                            Timestamp is used by locks started before the
+                            specified duration.
+
+                            Timestamp field must not be nil when the lock query
+                            type is `ByLockTime`.
+
+                            Querying locks with timestamp is currently not
+                            implemented.
+                      description: >-
+                        QueryCondition is a struct used for querying locks upon
+                        different conditions.
+
+                        Duration field and timestamp fields could be optional,
+                        depending on the
+
+                        LockQueryType.
+                    rollapp:
+                      type: object
+                      properties:
+                        rollapp_id:
+                          type: string
                     coins:
                       type: array
                       items:
@@ -19057,12 +20208,7 @@ paths:
 
                         refilled, Intended for use with incentives that get
                         refilled daily.
-                    distribute_to:
-                      title: >-
-                        distribute_to is where the gauge rewards are distributed
-                        to.
-
-                        This is queried via lock duration or by timestamp
+                    asset:
                       type: object
                       properties:
                         lock_query_type:
@@ -19114,6 +20260,11 @@ paths:
                         depending on the
 
                         LockQueryType.
+                    rollapp:
+                      type: object
+                      properties:
+                        rollapp_id:
+                          type: string
                     coins:
                       type: array
                       items:
@@ -61068,6 +62219,28 @@ definitions:
           It has one element for asset type Alias, which is the rollapp_id to
           assigned for.
     description: SellOrderBid defines a bid placed by an account on a Sell-Order.
+  dymensionxyz.dymension.rollapp.App:
+    type: object
+    properties:
+      name:
+        type: string
+        title: name is the unique App's name
+      rollapp_id:
+        type: string
+        title: rollapp_id is the id of the Rollapp the App belongs to
+      description:
+        type: string
+        title: description is the description of the App
+      image_url:
+        type: string
+        title: image_url is the URL to the App's image
+      url:
+        type: string
+        title: url is the URL to the App's website
+      order:
+        type: integer
+        format: int32
+        title: order is the order of the App in the Rollapp
   dymensionxyz.dymension.rollapp.BlockDescriptor:
     type: object
     properties:
@@ -61081,6 +62254,10 @@ definitions:
         title: >-
           stateRoot is a 32 byte array of the hash of the block (state root of
           the block)
+      timestamp:
+        type: string
+        format: date-time
+        title: timestamp is the time from the block header
     description: BlockDescriptor defines a single rollapp chain block description.
   dymensionxyz.dymension.rollapp.BlockDescriptors:
     type: object
@@ -61100,8 +62277,48 @@ definitions:
               title: >-
                 stateRoot is a 32 byte array of the hash of the block (state
                 root of the block)
+            timestamp:
+              type: string
+              format: date-time
+              title: timestamp is the time from the block header
           description: BlockDescriptor defines a single rollapp chain block description.
     description: BlockDescriptors defines list of BlockDescriptor.
+  dymensionxyz.dymension.rollapp.DenomMetadata:
+    type: object
+    properties:
+      display:
+        type: string
+      base:
+        type: string
+      exponent:
+        type: integer
+        format: int64
+  dymensionxyz.dymension.rollapp.GenesisInfo:
+    type: object
+    properties:
+      genesis_checksum:
+        type: string
+        title: checksum used to verify integrity of the genesis file
+      bech32_prefix:
+        type: string
+        title: unique bech32 prefix
+      native_denom:
+        title: native_denom is the base denom for the native token
+        type: object
+        properties:
+          display:
+            type: string
+          base:
+            type: string
+          exponent:
+            type: integer
+            format: int64
+      initial_supply:
+        type: string
+        title: initial_supply is the initial supply of the native token
+      sealed:
+        type: boolean
+        title: sealed indicates if the fields in this object are no longer updatable
   dymensionxyz.dymension.rollapp.Params:
     type: object
     properties:
@@ -61130,6 +62347,19 @@ definitions:
         title: >-
           The time (num hub blocks) a sequencer can be down after which he will
           be jailed rather than slashed
+      app_registration_fee:
+        title: app_registration_fee is the fee for registering an App
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
     description: Params defines the parameters for the module.
   dymensionxyz.dymension.rollapp.QueryAllRollappResponse:
     type: object
@@ -61188,12 +62418,6 @@ definitions:
                   title: >-
                     registeredDenoms is a list of registered denom bases on this
                     rollapp
-                bech32_prefix:
-                  type: string
-                  title: unique bech32 prefix
-                genesis_checksum:
-                  type: string
-                  title: checksum used to verify integrity of the genesis file
                 metadata:
                   title: metadata is the rollapp metadata
                   type: object
@@ -61228,18 +62452,49 @@ definitions:
                       description: >-
                         tagline is a non semantic tagline/catch-phrase. Size
                         limited.
-                    token_symbol:
-                      type: string
-                      title: token_symbol is the native token symbol
                     explorer_url:
                       type: string
                       title: explorer_url is the rollapp's block explorer link
-                    fee_base_denom:
+                    fee_denom:
+                      title: fee_denom is the base denom for fees
+                      type: object
+                      properties:
+                        display:
+                          type: string
+                        base:
+                          type: string
+                        exponent:
+                          type: integer
+                          format: int64
+                genesis_info:
+                  title: genesis_info keeps immutable rollapp fields
+                  type: object
+                  properties:
+                    genesis_checksum:
                       type: string
-                      title: fee_base_denom is the base denom for fees
-                    native_base_denom:
+                      title: checksum used to verify integrity of the genesis file
+                    bech32_prefix:
                       type: string
-                      title: native_base_denom is the base denom for the native token
+                      title: unique bech32 prefix
+                    native_denom:
+                      title: native_denom is the base denom for the native token
+                      type: object
+                      properties:
+                        display:
+                          type: string
+                        base:
+                          type: string
+                        exponent:
+                          type: integer
+                          format: int64
+                    initial_supply:
+                      type: string
+                      title: initial_supply is the initial supply of the native token
+                    sealed:
+                      type: boolean
+                      title: >-
+                        sealed indicates if the fields in this object are no
+                        longer updatable
                 initial_sequencer:
                   type: string
                   description: >-
@@ -61260,11 +62515,12 @@ definitions:
                     - EVM
                     - WASM
                   default: Unspecified
-                sealed:
+                launched:
                   type: boolean
                   description: >-
-                    sealed is a boolean that indicates if the immutable fields
-                    are no longer updatable.
+                    launched is a boolean that indicates that the Rollapp has
+                    been launched and the immutable fields are no longer
+                    updatable.
                 liveness_event_height:
                   type: string
                   format: int64
@@ -61376,6 +62632,31 @@ definitions:
                   type: string
                   format: uint64
               title: Rollapp summary is a compact representation of Rollapp
+            apps:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    title: name is the unique App's name
+                  rollapp_id:
+                    type: string
+                    title: rollapp_id is the id of the Rollapp the App belongs to
+                  description:
+                    type: string
+                    title: description is the description of the App
+                  image_url:
+                    type: string
+                    title: image_url is the URL to the App's image
+                  url:
+                    type: string
+                    title: url is the URL to the App's website
+                  order:
+                    type: integer
+                    format: int32
+                    title: order is the order of the App in the Rollapp
+              title: apps is the list of (lazy-loaded) apps in the rollapp
       pagination:
         type: object
         properties:
@@ -61495,12 +62776,6 @@ definitions:
             title: >-
               registeredDenoms is a list of registered denom bases on this
               rollapp
-          bech32_prefix:
-            type: string
-            title: unique bech32 prefix
-          genesis_checksum:
-            type: string
-            title: checksum used to verify integrity of the genesis file
           metadata:
             title: metadata is the rollapp metadata
             type: object
@@ -61533,18 +62808,49 @@ definitions:
               tagline:
                 type: string
                 description: tagline is a non semantic tagline/catch-phrase. Size limited.
-              token_symbol:
-                type: string
-                title: token_symbol is the native token symbol
               explorer_url:
                 type: string
                 title: explorer_url is the rollapp's block explorer link
-              fee_base_denom:
+              fee_denom:
+                title: fee_denom is the base denom for fees
+                type: object
+                properties:
+                  display:
+                    type: string
+                  base:
+                    type: string
+                  exponent:
+                    type: integer
+                    format: int64
+          genesis_info:
+            title: genesis_info keeps immutable rollapp fields
+            type: object
+            properties:
+              genesis_checksum:
                 type: string
-                title: fee_base_denom is the base denom for fees
-              native_base_denom:
+                title: checksum used to verify integrity of the genesis file
+              bech32_prefix:
                 type: string
-                title: native_base_denom is the base denom for the native token
+                title: unique bech32 prefix
+              native_denom:
+                title: native_denom is the base denom for the native token
+                type: object
+                properties:
+                  display:
+                    type: string
+                  base:
+                    type: string
+                  exponent:
+                    type: integer
+                    format: int64
+              initial_supply:
+                type: string
+                title: initial_supply is the initial supply of the native token
+              sealed:
+                type: boolean
+                title: >-
+                  sealed indicates if the fields in this object are no longer
+                  updatable
           initial_sequencer:
             type: string
             description: >-
@@ -61565,11 +62871,11 @@ definitions:
               - EVM
               - WASM
             default: Unspecified
-          sealed:
+          launched:
             type: boolean
             description: >-
-              sealed is a boolean that indicates if the immutable fields are no
-              longer updatable.
+              launched is a boolean that indicates that the Rollapp has been
+              launched and the immutable fields are no longer updatable.
           liveness_event_height:
             type: string
             format: int64
@@ -61675,6 +62981,31 @@ definitions:
             type: string
             format: uint64
         title: Rollapp summary is a compact representation of Rollapp
+      apps:
+        type: array
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+              title: name is the unique App's name
+            rollapp_id:
+              type: string
+              title: rollapp_id is the id of the Rollapp the App belongs to
+            description:
+              type: string
+              title: description is the description of the App
+            image_url:
+              type: string
+              title: image_url is the URL to the App's image
+            url:
+              type: string
+              title: url is the URL to the App's website
+            order:
+              type: integer
+              format: int32
+              title: order is the order of the App in the Rollapp
+        title: apps is the list of (lazy-loaded) apps in the rollapp
   dymensionxyz.dymension.rollapp.QueryGetStateInfoResponse:
     type: object
     properties:
@@ -61765,6 +63096,10 @@ definitions:
                       title: >-
                         stateRoot is a 32 byte array of the hash of the block
                         (state root of the block)
+                    timestamp:
+                      type: string
+                      format: date-time
+                      title: timestamp is the time from the block header
                   description: >-
                     BlockDescriptor defines a single rollapp chain block
                     description.
@@ -61802,6 +63137,22 @@ definitions:
             title: >-
               The time (num hub blocks) a sequencer can be down after which he
               will be jailed rather than slashed
+          app_registration_fee:
+            title: app_registration_fee is the fee for registering an App
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   dymensionxyz.dymension.rollapp.Rollapp:
     type: object
@@ -61847,12 +63198,6 @@ definitions:
         items:
           type: string
         title: registeredDenoms is a list of registered denom bases on this rollapp
-      bech32_prefix:
-        type: string
-        title: unique bech32 prefix
-      genesis_checksum:
-        type: string
-        title: checksum used to verify integrity of the genesis file
       metadata:
         title: metadata is the rollapp metadata
         type: object
@@ -61885,18 +63230,49 @@ definitions:
           tagline:
             type: string
             description: tagline is a non semantic tagline/catch-phrase. Size limited.
-          token_symbol:
-            type: string
-            title: token_symbol is the native token symbol
           explorer_url:
             type: string
             title: explorer_url is the rollapp's block explorer link
-          fee_base_denom:
+          fee_denom:
+            title: fee_denom is the base denom for fees
+            type: object
+            properties:
+              display:
+                type: string
+              base:
+                type: string
+              exponent:
+                type: integer
+                format: int64
+      genesis_info:
+        title: genesis_info keeps immutable rollapp fields
+        type: object
+        properties:
+          genesis_checksum:
             type: string
-            title: fee_base_denom is the base denom for fees
-          native_base_denom:
+            title: checksum used to verify integrity of the genesis file
+          bech32_prefix:
             type: string
-            title: native_base_denom is the base denom for the native token
+            title: unique bech32 prefix
+          native_denom:
+            title: native_denom is the base denom for the native token
+            type: object
+            properties:
+              display:
+                type: string
+              base:
+                type: string
+              exponent:
+                type: integer
+                format: int64
+          initial_supply:
+            type: string
+            title: initial_supply is the initial supply of the native token
+          sealed:
+            type: boolean
+            title: >-
+              sealed indicates if the fields in this object are no longer
+              updatable
       initial_sequencer:
         type: string
         description: >-
@@ -61917,11 +63293,11 @@ definitions:
           - EVM
           - WASM
         default: Unspecified
-      sealed:
+      launched:
         type: boolean
         description: >-
-          sealed is a boolean that indicates if the immutable fields are no
-          longer updatable.
+          launched is a boolean that indicates that the Rollapp has been
+          launched and the immutable fields are no longer updatable.
       liveness_event_height:
         type: string
         format: int64
@@ -61999,18 +63375,20 @@ definitions:
       tagline:
         type: string
         description: tagline is a non semantic tagline/catch-phrase. Size limited.
-      token_symbol:
-        type: string
-        title: token_symbol is the native token symbol
       explorer_url:
         type: string
         title: explorer_url is the rollapp's block explorer link
-      fee_base_denom:
-        type: string
-        title: fee_base_denom is the base denom for fees
-      native_base_denom:
-        type: string
-        title: native_base_denom is the base denom for the native token
+      fee_denom:
+        title: fee_denom is the base denom for fees
+        type: object
+        properties:
+          display:
+            type: string
+          base:
+            type: string
+          exponent:
+            type: integer
+            format: int64
   dymensionxyz.dymension.rollapp.RollappSummary:
     type: object
     properties:
@@ -62181,6 +63559,10 @@ definitions:
                   title: >-
                     stateRoot is a 32 byte array of the hash of the block (state
                     root of the block)
+                timestamp:
+                  type: string
+                  format: date-time
+                  title: timestamp is the time from the block header
               description: >-
                 BlockDescriptor defines a single rollapp chain block
                 description.
@@ -63301,6 +64683,356 @@ definitions:
               LivenessSlashMultiplier multiplies with the tokens of the slashed
               sequencer to compute the burn amount.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+  dymensionxyz.dymension.sequencer.QueryProposersResponse:
+    type: object
+    properties:
+      proposers:
+        type: array
+        items:
+          type: object
+          properties:
+            address:
+              type: string
+              description: >-
+                address is the bech32-encoded address of the sequencer account
+                which is the account that the message was sent from.
+            dymintPubKey:
+              type: object
+              properties:
+                type_url:
+                  type: string
+                  description: >-
+                    A URL/resource name that uniquely identifies the type of the
+                    serialized
+
+                    protocol buffer message. This string must contain at least
+
+                    one "/" character. The last segment of the URL's path must
+                    represent
+
+                    the fully qualified name of the type (as in
+
+                    `path/google.protobuf.Duration`). The name should be in a
+                    canonical form
+
+                    (e.g., leading "." is not accepted).
+
+
+                    In practice, teams usually precompile into the binary all
+                    types that they
+
+                    expect it to use in the context of Any. However, for URLs
+                    which use the
+
+                    scheme `http`, `https`, or no scheme, one can optionally set
+                    up a type
+
+                    server that maps type URLs to message definitions as
+                    follows:
+
+
+                    * If no scheme is provided, `https` is assumed.
+
+                    * An HTTP GET on the URL must yield a
+                    [google.protobuf.Type][]
+                      value in binary format, or produce an error.
+                    * Applications are allowed to cache lookup results based on
+                    the
+                      URL, or have them precompiled into a binary to avoid any
+                      lookup. Therefore, binary compatibility needs to be preserved
+                      on changes to types. (Use versioned type names to manage
+                      breaking changes.)
+
+                    Note: this functionality is not currently available in the
+                    official
+
+                    protobuf release, and it is not used for type URLs beginning
+                    with
+
+                    type.googleapis.com.
+
+
+                    Schemes other than `http`, `https` (or the empty scheme)
+                    might be
+
+                    used with implementation specific semantics.
+                value:
+                  type: string
+                  format: byte
+                  description: >-
+                    Must be a valid serialized protocol buffer of the above
+                    specified type.
+              description: >-
+                `Any` contains an arbitrary serialized protocol buffer message
+                along with a
+
+                URL that describes the type of the serialized message.
+
+
+                Protobuf library provides support to pack/unpack Any values in
+                the form
+
+                of utility functions or additional generated methods of the Any
+                type.
+
+
+                Example 1: Pack and unpack a message in C++.
+
+                    Foo foo = ...;
+                    Any any;
+                    any.PackFrom(foo);
+                    ...
+                    if (any.UnpackTo(&foo)) {
+                      ...
+                    }
+
+                Example 2: Pack and unpack a message in Java.
+
+                    Foo foo = ...;
+                    Any any = Any.pack(foo);
+                    ...
+                    if (any.is(Foo.class)) {
+                      foo = any.unpack(Foo.class);
+                    }
+                    // or ...
+                    if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+                      foo = any.unpack(Foo.getDefaultInstance());
+                    }
+
+                Example 3: Pack and unpack a message in Python.
+
+                    foo = Foo(...)
+                    any = Any()
+                    any.Pack(foo)
+                    ...
+                    if any.Is(Foo.DESCRIPTOR):
+                      any.Unpack(foo)
+                      ...
+
+                Example 4: Pack and unpack a message in Go
+
+                     foo := &pb.Foo{...}
+                     any, err := anypb.New(foo)
+                     if err != nil {
+                       ...
+                     }
+                     ...
+                     foo := &pb.Foo{}
+                     if err := any.UnmarshalTo(foo); err != nil {
+                       ...
+                     }
+
+                The pack methods provided by protobuf library will by default
+                use
+
+                'type.googleapis.com/full.type.name' as the type URL and the
+                unpack
+
+                methods only use the fully qualified type name after the last
+                '/'
+
+                in the type URL, for example "foo.bar.com/x/y.z" will yield type
+
+                name "y.z".
+
+
+                JSON
+
+
+                The JSON representation of an `Any` value uses the regular
+
+                representation of the deserialized, embedded message, with an
+
+                additional field `@type` which contains the type URL. Example:
+
+                    package google.profile;
+                    message Person {
+                      string first_name = 1;
+                      string last_name = 2;
+                    }
+
+                    {
+                      "@type": "type.googleapis.com/google.profile.Person",
+                      "firstName": <string>,
+                      "lastName": <string>
+                    }
+
+                If the embedded message type is well-known and has a custom JSON
+
+                representation, that representation will be embedded adding a
+                field
+
+                `value` which holds the custom JSON in addition to the `@type`
+
+                field. Example (for message [google.protobuf.Duration][]):
+
+                    {
+                      "@type": "type.googleapis.com/google.protobuf.Duration",
+                      "value": "1.212s"
+                    }
+            rollappId:
+              type: string
+              description: rollappId defines the rollapp to which the sequencer belongs.
+            metadata:
+              description: metadata defines the extra information for the sequencer.
+              type: object
+              properties:
+                moniker:
+                  type: string
+                  description: moniker defines a human-readable name for the sequencer.
+                details:
+                  type: string
+                  description: details define other optional details.
+                p2p_seeds:
+                  type: array
+                  items:
+                    type: string
+                  title: bootstrap nodes list
+                rpcs:
+                  type: array
+                  items:
+                    type: string
+                  title: RPCs list
+                evm_rpcs:
+                  type: array
+                  items:
+                    type: string
+                  title: evm RPCs list
+                rest_api_urls:
+                  type: array
+                  items:
+                    type: string
+                  title: REST API URLs
+                explorer_url:
+                  type: string
+                  title: block explorer URL
+                genesis_urls:
+                  type: array
+                  items:
+                    type: string
+                  title: genesis URLs
+                contact_details:
+                  title: contact details
+                  type: object
+                  properties:
+                    website:
+                      type: string
+                      title: website URL
+                    telegram:
+                      type: string
+                      title: telegram link
+                    x:
+                      type: string
+                      title: twitter link
+                extra_data:
+                  type: string
+                  format: byte
+                  title: json dump the sequencer can add (limited by size)
+                snapshots:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      snapshot_url:
+                        type: string
+                        title: the snapshot url
+                      height:
+                        type: string
+                        format: uint64
+                        title: The snapshot height
+                      checksum:
+                        type: string
+                        title: sha-256 checksum value for the snapshot file
+                  title: snapshots of the sequencer
+                gas_price:
+                  type: string
+                  title: gas_price defines the value for each gas unit
+            jailed:
+              type: boolean
+              description: >-
+                jailed defined whether the sequencer has been jailed from bonded
+                status or not.
+            proposer:
+              type: boolean
+            status:
+              description: status is the sequencer status (bonded/unbonding/unbonded).
+              type: string
+              enum:
+                - OPERATING_STATUS_UNBONDED
+                - OPERATING_STATUS_UNBONDING
+                - OPERATING_STATUS_BONDED
+              default: OPERATING_STATUS_UNBONDED
+              title: OperatingStatus defines the operating status of a sequencer
+            tokens:
+              type: array
+              items:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+                description: >-
+                  Coin defines a token with a denomination and an amount.
+
+
+                  NOTE: The amount field is an Int which implements the custom
+                  method
+
+                  signatures required by gogoproto.
+              description: tokens define the delegated tokens (incl. self-delegation).
+            unbond_request_height:
+              type: string
+              format: int64
+              description: >-
+                unbond_request_height stores the height at which this sequencer
+                has
+
+                requested to unbond.
+            unbond_time:
+              type: string
+              format: date-time
+              description: >-
+                unbond_time defines the time when the sequencer will complete
+                unbonding.
+            notice_period_time:
+              type: string
+              format: date-time
+              title: >-
+                notice_period_time defines the time when the sequencer will
+                finish it's notice period if started
+          description: >-
+            Sequencer defines a sequencer identified by its' address
+            (sequencerAddress).
+
+            The sequencer could be attached to only one rollapp (rollappId).
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+    description: Response type for the Proposers RPC method.
   dymensionxyz.dymension.sequencer.QuerySequencersResponse:
     type: object
     properties:
@@ -64138,6 +65870,24 @@ definitions:
               description: >-
                 Sponsored indicates if the stream is based on the sponsorship
                 distribution.
+            epoch_coins:
+              type: array
+              items:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+                description: >-
+                  Coin defines a token with a denomination and an amount.
+
+
+                  NOTE: The amount field is an Int which implements the custom
+                  method
+
+                  signatures required by gogoproto.
+              description: EpochCoins are coins that need to be distributed in this epoch.
           description: >-
             Stream is an object that stores and distributes yields to recipients
             who
@@ -64302,6 +66052,21 @@ definitions:
         description: >-
           Sponsored indicates if the stream is based on the sponsorship
           distribution.
+      epoch_coins:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+        description: EpochCoins are coins that need to be distributed in this epoch.
     description: >-
       Stream is an object that stores and distributes yields to recipients who
 
@@ -64405,6 +66170,24 @@ definitions:
             description: >-
               Sponsored indicates if the stream is based on the sponsorship
               distribution.
+          epoch_coins:
+            type: array
+            items:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+            description: EpochCoins are coins that need to be distributed in this epoch.
         description: >-
           Stream is an object that stores and distributes yields to recipients
           who
@@ -64512,6 +66295,24 @@ definitions:
               description: >-
                 Sponsored indicates if the stream is based on the sponsorship
                 distribution.
+            epoch_coins:
+              type: array
+              items:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+                description: >-
+                  Coin defines a token with a denomination and an amount.
+
+
+                  NOTE: The amount field is an Int which implements the custom
+                  method
+
+                  signatures required by gogoproto.
+              description: EpochCoins are coins that need to be distributed in this epoch.
           description: >-
             Stream is an object that stores and distributes yields to recipients
             who
@@ -64646,6 +66447,24 @@ definitions:
               description: >-
                 Sponsored indicates if the stream is based on the sponsorship
                 distribution.
+            epoch_coins:
+              type: array
+              items:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+                description: >-
+                  Coin defines a token with a denomination and an amount.
+
+
+                  NOTE: The amount field is an Int which implements the custom
+                  method
+
+                  signatures required by gogoproto.
+              description: EpochCoins are coins that need to be distributed in this epoch.
           description: >-
             Stream is an object that stores and distributes yields to recipients
             who
@@ -67011,10 +68830,7 @@ definitions:
 
                 refilled, Intended for use with incentives that get refilled
                 daily.
-            distribute_to:
-              title: |-
-                distribute_to is where the gauge rewards are distributed to.
-                This is queried via lock duration or by timestamp
+            asset:
               type: object
               properties:
                 lock_query_type:
@@ -67063,6 +68879,11 @@ definitions:
                 on the
 
                 LockQueryType.
+            rollapp:
+              type: object
+              properties:
+                rollapp_id:
+                  type: string
             coins:
               type: array
               items:
@@ -67186,10 +69007,7 @@ definitions:
 
                 refilled, Intended for use with incentives that get refilled
                 daily.
-            distribute_to:
-              title: |-
-                distribute_to is where the gauge rewards are distributed to.
-                This is queried via lock duration or by timestamp
+            asset:
               type: object
               properties:
                 lock_query_type:
@@ -67238,6 +69056,11 @@ definitions:
                 on the
 
                 LockQueryType.
+            rollapp:
+              type: object
+              properties:
+                rollapp_id:
+                  type: string
             coins:
               type: array
               items:
@@ -67355,10 +69178,7 @@ definitions:
           is
 
           refilled, Intended for use with incentives that get refilled daily.
-      distribute_to:
-        title: |-
-          distribute_to is where the gauge rewards are distributed to.
-          This is queried via lock duration or by timestamp
+      asset:
         type: object
         properties:
           lock_query_type:
@@ -67402,6 +69222,11 @@ definitions:
           the
 
           LockQueryType.
+      rollapp:
+        type: object
+        properties:
+          rollapp_id:
+            type: string
       coins:
         type: array
         items:
@@ -67485,10 +69310,7 @@ definitions:
 
               refilled, Intended for use with incentives that get refilled
               daily.
-          distribute_to:
-            title: |-
-              distribute_to is where the gauge rewards are distributed to.
-              This is queried via lock duration or by timestamp
+          asset:
             type: object
             properties:
               lock_query_type:
@@ -67537,6 +69359,11 @@ definitions:
               on the
 
               LockQueryType.
+          rollapp:
+            type: object
+            properties:
+              rollapp_id:
+                type: string
           coins:
             type: array
             items:
@@ -67633,10 +69460,7 @@ definitions:
 
                 refilled, Intended for use with incentives that get refilled
                 daily.
-            distribute_to:
-              title: |-
-                distribute_to is where the gauge rewards are distributed to.
-                This is queried via lock duration or by timestamp
+            asset:
               type: object
               properties:
                 lock_query_type:
@@ -67685,6 +69509,11 @@ definitions:
                 on the
 
                 LockQueryType.
+            rollapp:
+              type: object
+              properties:
+                rollapp_id:
+                  type: string
             coins:
               type: array
               items:
@@ -67797,6 +69626,31 @@ definitions:
             NOTE: The amount field is an Int which implements the custom method
             signatures required by gogoproto.
         title: Coins that have yet to be distributed
+  dymensionxyz.dymension.incentives.Params:
+    type: object
+    properties:
+      distr_epoch_identifier:
+        type: string
+        title: >-
+          distr_epoch_identifier is what epoch type distribution will be
+          triggered by
+
+          (day, week, etc.)
+    title: Params holds parameters for the incentives module
+  dymensionxyz.dymension.incentives.ParamsResponse:
+    type: object
+    properties:
+      params:
+        title: Params defines the set of incentive parameters
+        type: object
+        properties:
+          distr_epoch_identifier:
+            type: string
+            title: >-
+              distr_epoch_identifier is what epoch type distribution will be
+              triggered by
+
+              (day, week, etc.)
   dymensionxyz.dymension.incentives.QueryLockableDurationsResponse:
     type: object
     properties:
@@ -67807,26 +69661,11 @@ definitions:
         title: >-
           Time durations that users can lock coins for in order to recieve
           rewards
-  dymensionxyz.dymension.incentives.RewardsEstResponse:
+  dymensionxyz.dymension.incentives.RollappGauge:
     type: object
     properties:
-      coins:
-        type: array
-        items:
-          type: object
-          properties:
-            denom:
-              type: string
-            amount:
-              type: string
-          description: |-
-            Coin defines a token with a denomination and an amount.
-
-            NOTE: The amount field is an Int which implements the custom method
-            signatures required by gogoproto.
-        title: |-
-          Estimated coin rewards that will be recieved at provided address
-          from specified locks between current time and end epoch
+      rollapp_id:
+        type: string
   dymensionxyz.dymension.incentives.UpcomingGaugesPerDenomResponse:
     type: object
     properties:
@@ -67856,10 +69695,7 @@ definitions:
 
                 refilled, Intended for use with incentives that get refilled
                 daily.
-            distribute_to:
-              title: |-
-                distribute_to is where the gauge rewards are distributed to.
-                This is queried via lock duration or by timestamp
+            asset:
               type: object
               properties:
                 lock_query_type:
@@ -67908,6 +69744,11 @@ definitions:
                 on the
 
                 LockQueryType.
+            rollapp:
+              type: object
+              properties:
+                rollapp_id:
+                  type: string
             coins:
               type: array
               items:
@@ -68031,10 +69872,7 @@ definitions:
 
                 refilled, Intended for use with incentives that get refilled
                 daily.
-            distribute_to:
-              title: |-
-                distribute_to is where the gauge rewards are distributed to.
-                This is queried via lock duration or by timestamp
+            asset:
               type: object
               properties:
                 lock_query_type:
@@ -68083,6 +69921,11 @@ definitions:
                 on the
 
                 LockQueryType.
+            rollapp:
+              type: object
+              properties:
+                rollapp_id:
+                  type: string
             coins:
               type: array
               items:

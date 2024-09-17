@@ -23,7 +23,10 @@ func CmdQueryResolveDymNameAddress() *cobra.Command {
 		),
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := dymnstypes.NewQueryClient(clientCtx)
 
 			res, err := queryClient.ResolveDymNameAddresses(cmd.Context(), &dymnstypes.ResolveDymNameAddressesRequest{

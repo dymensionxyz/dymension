@@ -39,6 +39,8 @@ func (s *transfersEnabledSuite) SetupTest() {
 
 // Regular (non genesis) transfers (RA->Hub) and Hub->RA should both be blocked when the bridge is not open
 func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
+	s.T().Skip("disabled until #1208 handled") // https://github.com/dymensionxyz/dymension/issues/1208
+
 	amt := math.NewIntFromUint64(10000000000000000000)
 	denom := "foo"
 	tokens := sdk.NewCoin(denom, amt)

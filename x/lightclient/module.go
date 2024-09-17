@@ -1,6 +1,7 @@
 package sequencer
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
+	"github.com/dymensionxyz/dymension/v3/x/lightclient/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
@@ -49,6 +51,7 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 // RegisterInterfaces registers the module's interface types
 func (a AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {
+	types.RegisterInterfaces(reg)
 }
 
 // DefaultGenesis returns the module's default genesis state.
@@ -72,6 +75,9 @@ func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Rout
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
 }
 
 // GetTxCmd returns the module's root tx command.
@@ -81,7 +87,7 @@ func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 
 // GetQueryCmd returns the module's root query command.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return nil
+	return cli.GetQueryCmd(types.StoreKey)
 }
 
 // ----------------------------------------------------------------------------
@@ -113,6 +119,7 @@ func (am AppModule) Name() string {
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
 // RegisterInvariants registers the module's invariants.

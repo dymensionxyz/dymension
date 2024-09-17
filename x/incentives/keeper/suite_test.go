@@ -102,9 +102,11 @@ func (suite *KeeperTestSuite) CreateGauge(isPerpetual bool, addr sdk.AccAddress,
 
 // AddToGauge adds coins to the specified gauge.
 func (suite *KeeperTestSuite) AddToGauge(coins sdk.Coins, gaugeID uint64) uint64 {
+	gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID)
+	suite.Require().NoError(err)
 	addr := sdk.AccAddress([]byte("addrx---------------"))
 	suite.FundAcc(addr, coins)
-	err := suite.App.IncentivesKeeper.AddToGaugeRewards(suite.Ctx, addr, coins, gaugeID)
+	err = suite.App.IncentivesKeeper.AddToGaugeRewards(suite.Ctx, addr, coins, gauge)
 	suite.Require().NoError(err)
 	return gaugeID
 }
@@ -209,11 +211,18 @@ func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:          addr.String(),
 		RollappId:        urand.RollappID(),
-		Bech32Prefix:     strings.ToLower(tmrand.Str(3)),
-		GenesisChecksum:  "checksum",
 		InitialSequencer: addr.String(),
 		Alias:            strings.ToLower(tmrand.Str(7)),
 		VmType:           rollapptypes.Rollapp_EVM,
+		GenesisInfo: rollapptypes.GenesisInfo{
+			Bech32Prefix:    strings.ToLower(tmrand.Str(3)),
+			GenesisChecksum: "checksum",
+			NativeDenom: &rollapptypes.DenomMetadata{
+				Display:  "DEN",
+				Base:     "aden",
+				Exponent: 18,
+			},
+		},
 	}
 
 	suite.FundForAliasRegistration(msgCreateRollapp)

@@ -42,6 +42,7 @@ func (suite *RollappTestSuite) createRollappWithApp() types.RollappSummary {
 	suite.Require().Nil(err)
 
 	appExpect := types.App{
+		Id:          1,
 		Name:        req.GetName(),
 		RollappId:   req.GetRollappId(),
 		Description: req.GetDescription(),
@@ -50,7 +51,7 @@ func (suite *RollappTestSuite) createRollappWithApp() types.RollappSummary {
 		Order:       req.GetOrder(),
 	}
 
-	app, ok := suite.App.RollappKeeper.GetApp(suite.Ctx, req.Name, res.RollappId)
+	app, ok := suite.App.RollappKeeper.GetApp(suite.Ctx, 1, res.RollappId)
 	suite.Require().True(ok)
 	suite.Require().EqualValues(&appExpect, &app)
 	suite.Require().Len(queryResponse.Apps, 1)
@@ -224,9 +225,18 @@ func (suite *RollappTestSuite) Test_msgServer_AddApp() {
 			}
 
 			for _, msg := range tt.msgs {
-				_, err := suite.msgServer.AddApp(goCtx, msg)
+				err := func() error {
+					err := msg.ValidateBasic()
+					if err != nil {
+						return err
+					}
+					_, err = suite.msgServer.AddApp(goCtx, msg)
+					return err
+				}()
 				if tt.wantErr != nil {
 					suite.Require().ErrorContains(err, tt.wantErr.Error())
+				} else {
+					suite.Require().NoError(err)
 				}
 			}
 
@@ -240,12 +250,20 @@ func (suite *RollappTestSuite) Test_msgServer_AddApp() {
 			suite.Require().NoError(err)
 			suite.Require().Len(rollapp.Apps, len(tt.msgs))
 
+			// check if the apps are ordered correctly
 			slices.SortFunc(tt.msgs, func(a, b *types.MsgAddApp) int {
 				return cmp.Compare(a.Order, b.Order)
 			})
-
 			for i, app := range rollapp.Apps {
 				suite.Require().Equal(tt.msgs[i].Order, app.Order)
+			}
+
+			// check if the app ids are sequenced correctly
+			slices.SortFunc(rollapp.Apps, func(a, b *types.App) int {
+				return int(a.Id) - int(b.Id)
+			})
+			for i, app := range rollapp.Apps {
+				suite.Require().Equal(uint64(i+1), app.Id)
 			}
 		})
 	}
@@ -264,6 +282,7 @@ func (suite *RollappTestSuite) Test_msgServer_UpdateApp() {
 			name: "success: update existing app",
 			msgs: []*types.MsgUpdateApp{
 				{
+					Id:          1,
 					Creator:     alice,
 					Name:        "app1",
 					RollappId:   rollappID,
@@ -275,6 +294,7 @@ func (suite *RollappTestSuite) Test_msgServer_UpdateApp() {
 			},
 			malleate: func() {
 				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Id:        1,
 					Name:      "app1",
 					RollappId: rollappID,
 					Order:     1,
@@ -284,6 +304,7 @@ func (suite *RollappTestSuite) Test_msgServer_UpdateApp() {
 			name: "fail: update non-existent app",
 			msgs: []*types.MsgUpdateApp{
 				{
+					Id:          1,
 					Creator:     alice,
 					Name:        "non_existent_app",
 					RollappId:   rollappID,
@@ -295,9 +316,25 @@ func (suite *RollappTestSuite) Test_msgServer_UpdateApp() {
 			},
 			wantErr: gerrc.ErrNotFound,
 		}, {
+			name: "fail: update app with ID 0",
+			msgs: []*types.MsgUpdateApp{
+				{
+					Id:          0,
+					Creator:     alice,
+					Name:        "app1",
+					RollappId:   rollappID,
+					Description: "Updated description",
+					Image:       "http://example.com/updated_image",
+					Url:         "http://example.com/updated_app",
+					Order:       2,
+				},
+			},
+			wantErr: types.ErrInvalidAppID,
+		}, {
 			name: "fail: update app with different creator",
 			msgs: []*types.MsgUpdateApp{
 				{
+					Id:          1,
 					Creator:     bob,
 					Name:        "app1",
 					RollappId:   rollappID,
@@ -309,6 +346,7 @@ func (suite *RollappTestSuite) Test_msgServer_UpdateApp() {
 			},
 			malleate: func() {
 				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Id:        1,
 					Name:      "app1",
 					RollappId: rollappID,
 					Order:     1,
@@ -319,6 +357,7 @@ func (suite *RollappTestSuite) Test_msgServer_UpdateApp() {
 			name: "success: update multiple apps",
 			msgs: []*types.MsgUpdateApp{
 				{
+					Id:          1,
 					Creator:     alice,
 					Name:        "app1",
 					RollappId:   rollappID,
@@ -327,6 +366,7 @@ func (suite *RollappTestSuite) Test_msgServer_UpdateApp() {
 					Url:         "http://example.com/updated_app1",
 					Order:       3,
 				}, {
+					Id:          2,
 					Creator:     alice,
 					Name:        "app2",
 					RollappId:   rollappID,
@@ -338,11 +378,13 @@ func (suite *RollappTestSuite) Test_msgServer_UpdateApp() {
 			},
 			malleate: func() {
 				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Id:        1,
 					Name:      "app1",
 					RollappId: rollappID,
 					Order:     2,
 				})
 				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Id:        2,
 					Name:      "app2",
 					RollappId: rollappID,
 					Order:     1,
@@ -352,6 +394,7 @@ func (suite *RollappTestSuite) Test_msgServer_UpdateApp() {
 			name: "fail: update app with different rollapp",
 			msgs: []*types.MsgUpdateApp{
 				{
+					Id:          1,
 					Creator:     alice,
 					Name:        "app1",
 					RollappId:   urand.RollappID(),
@@ -360,6 +403,16 @@ func (suite *RollappTestSuite) Test_msgServer_UpdateApp() {
 					Url:         "http://example.com/different_rollapp_app",
 					Order:       1,
 				},
+			},
+			malleate: func() {
+				otherRollappID := urand.RollappID()
+				suite.createRollappWithIDAndCreator(otherRollappID, alice)
+				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Id:        1,
+					Name:      "app1",
+					RollappId: otherRollappID,
+					Order:     1,
+				})
 			},
 			wantErr: types.ErrNotFound,
 		},
@@ -377,9 +430,18 @@ func (suite *RollappTestSuite) Test_msgServer_UpdateApp() {
 			}
 
 			for _, msg := range tt.msgs {
-				_, err := suite.msgServer.UpdateApp(goCtx, msg)
+				err := func() error {
+					err := msg.ValidateBasic()
+					if err != nil {
+						return err
+					}
+					_, err = suite.msgServer.UpdateApp(goCtx, msg)
+					return err
+				}()
 				if tt.wantErr != nil {
 					suite.Require().ErrorContains(err, tt.wantErr.Error())
+				} else {
+					suite.Require().NoError(err)
 				}
 			}
 
@@ -398,10 +460,10 @@ func (suite *RollappTestSuite) Test_msgServer_UpdateApp() {
 			})
 
 			for i, app := range rollapp.Apps {
-				suite.Require().Equal(tt.msgs[i].Order, app.Order)
-				suite.Require().Equal(tt.msgs[i].Description, app.Description)
-				suite.Require().Equal(tt.msgs[i].Image, app.ImageUrl)
-				suite.Require().Equal(tt.msgs[i].Url, app.Url)
+				suite.Assert().Equal(tt.msgs[i].Order, app.Order)
+				suite.Assert().Equal(tt.msgs[i].Description, app.Description)
+				suite.Assert().Equal(tt.msgs[i].Image, app.ImageUrl)
+				suite.Assert().Equal(tt.msgs[i].Url, app.Url)
 			}
 		})
 	}
@@ -421,12 +483,13 @@ func (suite *RollappTestSuite) Test_msgServer_RemoveApp() {
 			msgs: []*types.MsgRemoveApp{
 				{
 					Creator:   alice,
-					Name:      "app1",
+					Id:        1,
 					RollappId: rollappID,
 				},
 			},
 			malleate: func() {
 				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Id:        1,
 					Name:      "app1",
 					RollappId: rollappID,
 				})
@@ -436,7 +499,7 @@ func (suite *RollappTestSuite) Test_msgServer_RemoveApp() {
 			msgs: []*types.MsgRemoveApp{
 				{
 					Creator:   alice,
-					Name:      "non_existent_app",
+					Id:        144,
 					RollappId: rollappID,
 				},
 			},
@@ -446,12 +509,13 @@ func (suite *RollappTestSuite) Test_msgServer_RemoveApp() {
 			msgs: []*types.MsgRemoveApp{
 				{
 					Creator:   bob,
-					Name:      "app1",
+					Id:        1,
 					RollappId: rollappID,
 				},
 			},
 			malleate: func() {
 				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Id:        1,
 					Name:      "app1",
 					RollappId: rollappID,
 				})
@@ -462,12 +526,13 @@ func (suite *RollappTestSuite) Test_msgServer_RemoveApp() {
 			msgs: []*types.MsgRemoveApp{
 				{
 					Creator:   alice,
-					Name:      "app1",
+					Id:        1,
 					RollappId: urand.RollappID(),
 				},
 			},
 			malleate: func() {
 				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Id:        1,
 					Name:      "app1",
 					RollappId: rollappID,
 				})
@@ -478,20 +543,22 @@ func (suite *RollappTestSuite) Test_msgServer_RemoveApp() {
 			msgs: []*types.MsgRemoveApp{
 				{
 					Creator:   alice,
-					Name:      "app1",
+					Id:        1,
 					RollappId: rollappID,
 				}, {
 					Creator:   alice,
-					Name:      "app2",
+					Id:        2,
 					RollappId: rollappID,
 				},
 			},
 			malleate: func() {
 				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Id:        1,
 					Name:      "app1",
 					RollappId: rollappID,
 				})
 				suite.App.RollappKeeper.SetApp(suite.Ctx, types.App{
+					Id:        2,
 					Name:      "app2",
 					RollappId: rollappID,
 				})
@@ -517,9 +584,18 @@ func (suite *RollappTestSuite) Test_msgServer_RemoveApp() {
 			createdAppsCount := len(rollapp.Apps)
 
 			for _, msg := range tt.msgs {
-				_, err := suite.msgServer.RemoveApp(goCtx, msg)
+				err := func() error {
+					err := msg.ValidateBasic()
+					if err != nil {
+						return err
+					}
+					_, err = suite.msgServer.RemoveApp(goCtx, msg)
+					return err
+				}()
 				if tt.wantErr != nil {
 					suite.Require().ErrorContains(err, tt.wantErr.Error())
+				} else {
+					suite.Require().NoError(err)
 				}
 			}
 
@@ -536,7 +612,7 @@ func (suite *RollappTestSuite) Test_msgServer_RemoveApp() {
 			suite.Require().Len(rollapp.Apps, expectAppsCount)
 
 			for _, msg := range tt.msgs {
-				_, found := suite.App.RollappKeeper.GetApp(suite.Ctx, msg.Name, msg.RollappId)
+				_, found := suite.App.RollappKeeper.GetApp(suite.Ctx, msg.GetId(), msg.RollappId)
 				suite.Require().False(found)
 			}
 		})
@@ -548,10 +624,9 @@ func (suite *RollappTestSuite) createRollappWithIDAndCreator(rollappId string, c
 		Creator:          creator,
 		RollappId:        rollappId,
 		InitialSequencer: sample.AccAddress(),
-		Bech32Prefix:     "rol",
-		GenesisChecksum:  "checksum",
 		VmType:           types.Rollapp_EVM,
 		Metadata:         &mockRollappMetadata,
+		GenesisInfo:      mockGenesisInfo,
 	}
 	suite.FundForAliasRegistration(rollapp)
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp.GetRollapp())

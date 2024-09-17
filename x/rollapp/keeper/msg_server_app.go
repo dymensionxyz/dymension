@@ -35,6 +35,8 @@ func (k msgServer) AddApp(goCtx context.Context, msg *types.MsgAddApp) (*types.M
 	}
 
 	app := msg.GetApp()
+	app.Id = k.GenerateNextAppID(ctx, app.RollappId)
+
 	k.SetApp(ctx, app)
 
 	if err := ctx.EventManager().EmitTypedEvent(app.GetAddedEvent()); err != nil {
@@ -83,9 +85,10 @@ func (k msgServer) RemoveApp(goCtx context.Context, msg *types.MsgRemoveApp) (*t
 }
 
 func (k msgServer) checkInputs(ctx sdk.Context, msg appMsg) error {
-	rollapp, foundRollapp := k.GetRollapp(ctx, msg.GetRollappId())
+	app := msg.GetApp()
+	rollapp, foundRollapp := k.GetRollapp(ctx, app.GetRollappId())
 	if !foundRollapp {
-		return gerrc.ErrNotFound.Wrapf("rollappId: %s", msg.GetRollappId())
+		return gerrc.ErrNotFound.Wrapf("rollappId: %s", app.GetRollappId())
 	}
 
 	// check if the sender is the owner of the app
@@ -93,26 +96,43 @@ func (k msgServer) checkInputs(ctx sdk.Context, msg appMsg) error {
 		return gerrc.ErrPermissionDenied.Wrap("not the owner of the RollApp")
 	}
 
-	// check if the app already exists
-	_, foundApp := k.GetApp(ctx, msg.GetName(), msg.GetRollappId())
 	switch msg.(type) {
-	case *types.MsgAddApp:
-		if foundApp {
-			return gerrc.ErrAlreadyExists.Wrap("app already exists")
-		}
-	case *types.MsgUpdateApp, *types.MsgRemoveApp:
-		if !foundApp {
+	case *types.MsgRemoveApp, *types.MsgUpdateApp:
+		if idExists := k.appIDExists(ctx, app); !idExists {
 			return gerrc.ErrNotFound.Wrap("app not found")
+		}
+	}
+	switch msg.(type) {
+	case *types.MsgAddApp, *types.MsgUpdateApp:
+		apps := k.GetRollappApps(ctx, app.GetRollappId())
+		if nameExists := k.appNameExists(apps, app); nameExists {
+			return gerrc.ErrAlreadyExists.Wrap("app name already exists")
 		}
 	}
 
 	return nil
 }
 
+func (k msgServer) appNameExists(apps []*types.App, app types.App) bool {
+	for _, a := range apps {
+		// does name already exist:
+		// - id=0 means it is a new app
+		// - skip if the id is the same as the app being checked
+		if (app.GetId() == 0 || a.Id != app.GetId()) && a.Name == app.GetName() {
+			return true
+		}
+	}
+	return false
+}
+
+func (k msgServer) appIDExists(ctx sdk.Context, app types.App) bool {
+	_, foundApp := k.GetApp(ctx, app.GetId(), app.GetRollappId())
+	return foundApp
+}
+
 type appMsg interface {
-	GetName() string
-	GetRollappId() string
 	GetCreator() string
+	GetApp() types.App
 }
 
 var _ types.MsgServer = msgServer{}

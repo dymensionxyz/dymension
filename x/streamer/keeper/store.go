@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/cosmos/gogoproto/proto"
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
+
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 // GetLastStreamID returns the last used stream ID.
@@ -42,7 +42,7 @@ func (k Keeper) CreateStreamRefKeys(ctx sdk.Context, stream *types.Stream, combi
 // SetStreamWithRefKey takes a single stream and assigns a key.
 // Takes combinedKey (the keyPrefix for upcoming, active, or finished streams combined with stream start time) and adds a reference to the respective stream ID.
 func (k Keeper) SetStreamWithRefKey(ctx sdk.Context, stream *types.Stream) error {
-	err := k.setStream(ctx, stream)
+	err := k.SetStream(ctx, stream)
 	if err != nil {
 		return err
 	}
@@ -67,8 +67,8 @@ func streamStoreKey(ID uint64) []byte {
 	return combineKeys(types.KeyPrefixPeriodStream, sdk.Uint64ToBigEndian(ID))
 }
 
-// setStream set the stream inside store.
-func (k Keeper) setStream(ctx sdk.Context, stream *types.Stream) error {
+// SetStream set the stream inside store.
+func (k Keeper) SetStream(ctx sdk.Context, stream *types.Stream) error {
 	store := ctx.KVStore(k.storeKey)
 	bz, err := proto.Marshal(stream)
 	if err != nil {
@@ -126,4 +126,24 @@ func (k Keeper) deleteStreamRefByKey(ctx sdk.Context, key []byte, streamID uint6
 		store.Set(key, bz)
 	}
 	return nil
+}
+
+func (k Keeper) GetAllEpochPointers(ctx sdk.Context) ([]types.EpochPointer, error) {
+	iter, err := k.epochPointers.Iterate(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	return iter.Values()
+}
+
+func (k Keeper) GetEpochPointer(ctx sdk.Context, epochIdentifier string) (types.EpochPointer, error) {
+	return k.epochPointers.Get(ctx, epochIdentifier)
+}
+
+func (k Keeper) HasEpochPointer(ctx sdk.Context, epochIdentifier string) (bool, error) {
+	return k.epochPointers.Has(ctx, epochIdentifier)
+}
+
+func (k Keeper) SaveEpochPointer(ctx sdk.Context, p types.EpochPointer) error {
+	return k.epochPointers.Set(ctx, p.EpochIdentifier, p)
 }

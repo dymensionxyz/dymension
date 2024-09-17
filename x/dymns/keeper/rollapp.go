@@ -19,8 +19,8 @@ func (k Keeper) IsRollAppCreator(ctx sdk.Context, rollAppId, account string) boo
 // GetRollAppBech32Prefix returns the Bech32 prefix of the RollApp by the chain-id.
 func (k Keeper) GetRollAppBech32Prefix(ctx sdk.Context, chainId string) (bech32Prefix string, found bool) {
 	rollApp, found := k.rollappKeeper.GetRollapp(ctx, chainId)
-	if found && len(rollApp.Bech32Prefix) > 0 {
-		return rollApp.Bech32Prefix, true
+	if found && len(rollApp.GenesisInfo.Bech32Prefix) > 0 {
+		return rollApp.GenesisInfo.Bech32Prefix, true
 	}
 
 	return "", false
