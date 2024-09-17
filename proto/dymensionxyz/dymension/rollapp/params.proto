@@ -9,7 +9,7 @@ import "cosmos/base/v1beta1/coin.proto";
 // Params defines the parameters for the module.
 message Params {
   option (gogoproto.goproto_stringer) = false;
-  
+
   // dispute_period_in_blocks the number of blocks it takes
   // to change a status of a state from received to finalized.
   // during that period, any user could submit fraud proof
@@ -29,4 +29,7 @@ message Params {
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"app_registration_fee\""
   ];
+  // state_info_deletion_epoch_identifier is used to control the interval at which the state info records will be deleted.
+  string state_info_deletion_epoch_identifier = 8
+  [ (gogoproto.moretags) = "yaml:\"state_info_deletion_epoch_identifier\"" ];
 }

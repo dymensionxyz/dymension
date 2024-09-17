@@ -13,22 +13,27 @@ import (
 
 func CmdUpdateApp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "update-app [name] [rollapp-id] [description] [logo] [url] [order]",
+		Use:     "update-app [id] [name] [rollapp-id] [description] [logo] [url] [order]",
 		Short:   "Update an app",
-		Example: "dymd tx app update-app 'app1' 'rollapp_1234-1' 1 'A description' '/logos/apps/app1.jpeg' 'https://app1.com/'",
-		Args:    cobra.MinimumNArgs(1),
+		Example: "dymd tx rollapp update-app 1 'app1' 'rollapp_1234-1' 'A description' '/logos/apps/app1.jpeg' 'https://app1.com/' 3",
+		Args:    cobra.MinimumNArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			var (
-				name              = args[0]
-				rollappId         = args[1]
-				description       = args[2]
-				logo              = args[3]
-				url               = args[4]
+				name              = args[1]
+				rollappId         = args[2]
+				description       = args[3]
+				logo              = args[4]
+				url               = args[5]
 				order       int64 = -1
 			)
 
-			if len(args) == 6 {
-				order, err = strconv.ParseInt(args[5], 10, 32)
+			id, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			if len(args) == 7 {
+				order, err = strconv.ParseInt(args[6], 10, 32)
 				if err != nil {
 					return err
 				}
@@ -41,6 +46,7 @@ func CmdUpdateApp() *cobra.Command {
 
 			msg := types.NewMsgUpdateApp(
 				clientCtx.GetFromAddress().String(),
+				id,
 				name,
 				rollappId,
 				description,
