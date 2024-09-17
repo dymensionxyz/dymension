@@ -3,8 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
 func TestGenesisState_Validate(t *testing.T) {

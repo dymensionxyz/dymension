@@ -8,9 +8,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
-	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 )
 
 var AllocationSellLimit = math.LegacyNewDecWithPrec(999, 3) // 99.9%

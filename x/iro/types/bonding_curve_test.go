@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
 // y=mx^n+c

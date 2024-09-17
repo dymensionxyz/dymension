@@ -5,10 +5,11 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
-	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
+	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
 var _ types.QueryServer = Keeper{}

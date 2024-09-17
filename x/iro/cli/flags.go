@@ -3,8 +3,9 @@ package cli
 import (
 	"time"
 
-	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	flag "github.com/spf13/pflag"
+
+	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
 /*

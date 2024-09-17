@@ -6,10 +6,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
+
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

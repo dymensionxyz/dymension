@@ -4,12 +4,13 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
+
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
-	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 )
 
 func (s *KeeperTestSuite) TestSettle() {

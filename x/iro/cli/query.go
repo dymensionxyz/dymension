@@ -6,8 +6,9 @@ import (
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module

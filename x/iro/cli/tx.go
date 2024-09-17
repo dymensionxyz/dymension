@@ -4,8 +4,9 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
