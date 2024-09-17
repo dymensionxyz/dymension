@@ -87,7 +87,7 @@ func (k Keeper) Distribute(
 		if epochEnd {
 			stream, rangeErr = k.UpdateStreamAtEpochEnd(ctx, stream)
 			if rangeErr != nil {
-				rangeErr = fmt.Errorf("update stream '%d' at epoch start: %w", stream.Id, rangeErr)
+				rangeErr = fmt.Errorf("update stream at epoch start: stream %d: %w", stream.Id, rangeErr)
 				return true
 			}
 		}
@@ -132,7 +132,7 @@ func (k Keeper) CalculateGaugeRewards(ctx sdk.Context, coins sdk.Coins, record t
 
 		// when weight is too small and no amount is allocated, just skip this to avoid zero coin send issues
 		if !allocatingAmount.IsPositive() {
-			k.Logger(ctx).Info(fmt.Sprintf("allocating amount for gauge id '%d' with weight '%s' is not positive", record.GaugeId, record.Weight.String()))
+			k.Logger(ctx).Info(fmt.Sprintf("allocating amount for gauge is not positive: gauge '%d', weight %s", record.GaugeId, record.Weight.String()))
 			continue
 		}
 
@@ -218,7 +218,7 @@ func (k Keeper) getActiveGaugeByID(ctx sdk.Context, gaugeID uint64) (incentivest
 	// validate the gauge exists
 	gauge, err := k.ik.GetGaugeByID(ctx, gaugeID)
 	if err != nil {
-		return incentivestypes.Gauge{}, fmt.Errorf("get gauge by id '%d': %w", gaugeID, err)
+		return incentivestypes.Gauge{}, fmt.Errorf("get gauge: id %d: %w", gaugeID, err)
 	}
 	// validate the gauge is not finished
 	finished := gauge.IsFinishedGauge(ctx.BlockTime())

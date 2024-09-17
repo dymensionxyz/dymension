@@ -58,7 +58,7 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string) error 
 	for _, s := range toStart {
 		updated, err := k.UpdateStreamAtEpochStart(ctx, s)
 		if err != nil {
-			return fmt.Errorf("update stream '%d' at epoch start: %w", s.Id, err)
+			return fmt.Errorf("update stream at epoch start: stream %d: %w", s.Id, err)
 		}
 		// Save the stream
 		err = k.SetStream(ctx, &updated)
@@ -91,7 +91,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coin
 	// Get epoch pointer for the current epoch
 	epochPointer, err := k.GetEpochPointer(ctx, epochIdentifier)
 	if err != nil {
-		return sdk.Coins{}, fmt.Errorf("get epoch pointer for epoch '%s': %w", epochIdentifier, err)
+		return sdk.Coins{}, fmt.Errorf("get epoch pointer: epoch '%s': %w", epochIdentifier, err)
 	}
 
 	// Distribute rewards
@@ -125,7 +125,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string) (sdk.Coin
 func (h Hooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, _ int64) error {
 	err := h.k.BeforeEpochStart(ctx, epochIdentifier)
 	if err != nil {
-		return fmt.Errorf("x/streamer: before epoch '%s' start: %w", epochIdentifier, err)
+		return fmt.Errorf("x/streamer: before epoch start: epoch '%s': %w", epochIdentifier, err)
 	}
 	return nil
 }
@@ -134,7 +134,7 @@ func (h Hooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, _ int64
 func (h Hooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, _ int64) error {
 	_, err := h.k.AfterEpochEnd(ctx, epochIdentifier)
 	if err != nil {
-		return fmt.Errorf("x/streamer: after epoch '%s' end: %w", epochIdentifier, err)
+		return fmt.Errorf("x/streamer: epoch end: epoch '%s': %w", epochIdentifier, err)
 	}
 	return nil
 }
