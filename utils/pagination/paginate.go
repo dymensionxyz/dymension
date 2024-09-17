@@ -7,20 +7,22 @@ type Iterator[T any] interface {
 }
 
 // Paginate is a function that paginates over an iterator. The callback is executed for each iteration and if it
-// returns true, the pagination stops. The callback also returns the weight of the iteration. That is, one iteration
-// may be counted as multiple iterations. For example, in case if the called decides that the iteration is heavy
-// or time-consuming. The function returns the amount of iterations before stopping.
+// returns true, the pagination stops. The callback also returns the number of operations performed during the call.
+// That is, one iteration may be complex and thus return >1 operation num. For example, in case if the called decides
+// that the iteration is heavy or time-consuming. Paginate also allows to specify the maximum number of operations
+// that may be accumulated during the execution. If this number is exceeded, then Paginate exits.
+// The function returns the total number of operations performed before stopping.
 func Paginate[T any](
 	iter Iterator[T],
-	perPage uint64,
-	cb func(T) (stop bool, weight uint64),
+	maxOperations uint64,
+	cb func(T) (stop bool, operations uint64),
 ) uint64 {
-	iterations := uint64(0)
+	totalOperations := uint64(0)
 	stop := false
-	for ; !stop && iterations < perPage && iter.Valid(); iter.Next() {
-		var weight uint64
-		stop, weight = cb(iter.Value())
-		iterations += weight
+	for ; !stop && totalOperations < maxOperations && iter.Valid(); iter.Next() {
+		var operations uint64
+		stop, operations = cb(iter.Value())
+		totalOperations += operations
 	}
-	return iterations
+	return totalOperations
 }

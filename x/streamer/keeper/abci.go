@@ -19,8 +19,8 @@ func (k Keeper) EndBlock(ctx sdk.Context) error {
 	streams := k.GetActiveStreams(ctx)
 	maxIterations := k.GetParams(ctx).MaxIterationsPerBlock
 
-	const nonEpochEnd = false
-	coins, iterations, err := k.Distribute(ctx, epochPointers, streams, maxIterations, nonEpochEnd)
+	const epochEnd = false
+	coins, iterations, err := k.Distribute(ctx, epochPointers, streams, maxIterations, epochEnd)
 	if err != nil {
 		return fmt.Errorf("distribute: %w", err)
 	}
