@@ -4,11 +4,10 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
-
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 )
 
 // Distribute distributes coins from an array of gauges.

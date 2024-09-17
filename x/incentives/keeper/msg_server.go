@@ -40,7 +40,7 @@ func (server msgServer) CreateGauge(goCtx context.Context, msg *types.MsgCreateG
 	// Fee = CreateGaugeBaseFee + AddDenomFee * NumDenoms
 	params := server.keeper.GetParams(ctx)
 	fee := params.CreateGaugeBaseFee.Add(params.AddDenomFee.MulRaw(int64(len(msg.Coins))))
-	if err = server.keeper.chargeGaugesFee(ctx, owner, fee, msg.Coins); err != nil {
+	if err = server.keeper.ChargeGaugesFee(ctx, owner, fee, msg.Coins); err != nil {
 		return nil, err
 	}
 
@@ -77,7 +77,7 @@ func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGau
 	// Fee = AddToGaugeBaseFee + AddDenomFee * (NumAddedDenoms + NumGaugeDenoms)
 	params := server.keeper.GetParams(ctx)
 	fee := params.AddToGaugeBaseFee.Add(params.AddDenomFee.MulRaw(int64(len(msg.Rewards) + len(gauge.Coins))))
-	if err = server.keeper.chargeGaugesFee(ctx, owner, fee, msg.Rewards); err != nil {
+	if err = server.keeper.ChargeGaugesFee(ctx, owner, fee, msg.Rewards); err != nil {
 		return nil, err
 	}
 
@@ -96,11 +96,11 @@ func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGau
 	return &types.MsgAddToGaugeResponse{}, nil
 }
 
-// chargeGaugesFee charges fee in the base denom on the address if the address has
+// ChargeGaugesFee charges fee in the base denom on the address if the address has
 // balance that is less than fee + amount of the coin from gaugeCoins that is of base denom.
 // gaugeCoins might not have a coin of tx base denom. In that case, fee is only compared to balance.
 // The fee is sent to the txfees module, to be burned.
-func (k Keeper) chargeGaugesFee(ctx sdk.Context, address sdk.AccAddress, fee sdk.Int, gaugeCoins sdk.Coins) (err error) {
+func (k Keeper) ChargeGaugesFee(ctx sdk.Context, address sdk.AccAddress, fee sdk.Int, gaugeCoins sdk.Coins) (err error) {
 	var feeDenom string
 	if k.tk == nil {
 		feeDenom, err = sdk.GetBaseDenom()

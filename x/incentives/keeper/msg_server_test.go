@@ -8,10 +8,12 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/osmosis-labs/osmosis/v15/x/txfees"
+
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
-	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 )
 
 var _ = suite.TestingSuite(nil)
@@ -165,7 +167,7 @@ func (suite *KeeperTestSuite) TestCreateGauge() {
 				StartTime:         time.Now(),
 				NumEpochsPaidOver: 1,
 			}
-			txfeesBalanceBefore := bankKeeper.GetBalance(ctx, accountKeeper.GetModuleAddress(txfees.ModuleName), "adym")
+			txfeesBalanceBefore := bankKeeper.GetBalance(ctx, accountKeeper.GetModuleAddress(txfees.ModuleName), "stake")
 
 			// System under test.
 			_, err := msgServer.CreateGauge(sdk.WrapSDKContext(ctx), msg)
@@ -191,7 +193,7 @@ func (suite *KeeperTestSuite) TestCreateGauge() {
 				suite.Require().Equal(finalAccountBalance.String(), balanceAmount.String(), "test: %v", tc.name)
 
 				// test fee charged to txfees module account
-				txfeesBalanceAfter := bankKeeper.GetBalance(ctx, accountKeeper.GetModuleAddress(txfees.ModuleName), "adym")
+				txfeesBalanceAfter := bankKeeper.GetBalance(ctx, accountKeeper.GetModuleAddress(txfees.ModuleName), "stake")
 				suite.Require().Equal(txfeesBalanceBefore.Amount.Add(feeRaw), txfeesBalanceAfter.Amount, "test: %v", tc.name)
 			}
 		})
@@ -204,7 +206,6 @@ func (suite *KeeperTestSuite) TestAddToGauge() {
 		accountBalanceToFund sdk.Coins
 		gaugeAddition        sdk.Coins
 		isPerpetual          bool
-		nonexistentGauge     bool
 		isModuleAccount      bool
 		expectErr            bool
 	}{
@@ -334,9 +335,6 @@ func (suite *KeeperTestSuite) TestAddToGauge() {
 			// System under test.
 			coins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(500000000)))
 			gaugeID, gauge, _, _ := suite.SetupNewGauge(true, coins)
-			if tc.nonexistentGauge {
-				gaugeID = incentivesKeeper.GetLastGaugeID(ctx) + 1
-			}
 			msg := &types.MsgAddToGauge{
 				Owner:   testAccountAddress.String(),
 				GaugeId: gaugeID,
@@ -346,6 +344,8 @@ func (suite *KeeperTestSuite) TestAddToGauge() {
 			params := suite.querier.GetParams(suite.Ctx)
 			feeRaw := params.AddToGaugeBaseFee.Add(params.AddDenomFee.MulRaw(int64(len(tc.gaugeAddition) + len(gauge.Coins))))
 			suite.T().Log(feeRaw, params.AddToGaugeBaseFee, params.AddDenomFee)
+
+			txfeesBalanceBefore := bankKeeper.GetBalance(ctx, accountKeeper.GetModuleAddress(txfees.ModuleName), "stake")
 
 			_, err = msgServer.AddToGauge(sdk.WrapSDKContext(ctx), msg)
 
@@ -368,6 +368,106 @@ func (suite *KeeperTestSuite) TestAddToGauge() {
 				accountBalance := tc.accountBalanceToFund.Sub(tc.gaugeAddition...)
 				finalAccountBalance := accountBalance.Sub(fee...)
 				suite.Require().Equal(finalAccountBalance.String(), bal.String(), "test: %v", tc.name)
+
+				// test fee charged to txfees module account
+				txfeesBalanceAfter := bankKeeper.GetBalance(ctx, accountKeeper.GetModuleAddress(txfees.ModuleName), "stake")
+				suite.Require().Equal(txfeesBalanceBefore.Amount.Add(feeRaw), txfeesBalanceAfter.Amount, "test: %v", tc.name)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestChargeFeeIfSufficientFeeDenomBalance() {
+	const baseFee = int64(100)
+
+	testcases := map[string]struct {
+		accountBalanceToFund sdk.Coin
+		feeToCharge          int64
+		gaugeCoins           sdk.Coins
+
+		expectError bool
+	}{
+		"fee + base denom gauge coin == acount balance, success": {
+			accountBalanceToFund: sdk.NewCoin("adym", sdk.NewInt(baseFee)),
+			feeToCharge:          baseFee / 2,
+			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(baseFee/2))),
+		},
+		"fee + base denom gauge coin < acount balance, success": {
+			accountBalanceToFund: sdk.NewCoin("adym", sdk.NewInt(baseFee)),
+			feeToCharge:          baseFee/2 - 1,
+			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(baseFee/2))),
+		},
+		"fee + base denom gauge coin > acount balance, error": {
+			accountBalanceToFund: sdk.NewCoin("adym", sdk.NewInt(baseFee)),
+			feeToCharge:          baseFee/2 + 1,
+			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(baseFee/2))),
+			expectError:          true,
+		},
+		"fee + base denom gauge coin < acount balance, custom values, success": {
+			accountBalanceToFund: sdk.NewCoin("adym", sdk.NewInt(11793193112)),
+			feeToCharge:          55,
+			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(328812))),
+		},
+		"account funded with coins other than base denom, error": {
+			accountBalanceToFund: sdk.NewCoin("usdc", sdk.NewInt(baseFee)),
+			feeToCharge:          baseFee,
+			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(baseFee/2))),
+			expectError:          true,
+		},
+		"fee == account balance, no gauge coins, success": {
+			accountBalanceToFund: sdk.NewCoin("adym", sdk.NewInt(baseFee)),
+			feeToCharge:          baseFee,
+		},
+		"gauge coins == account balance, no fee, success": {
+			accountBalanceToFund: sdk.NewCoin("adym", sdk.NewInt(baseFee)),
+			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(baseFee))),
+		},
+		"fee == account balance, gauge coins in denom other than base, success": {
+			accountBalanceToFund: sdk.NewCoin("adym", sdk.NewInt(baseFee)),
+			feeToCharge:          baseFee,
+			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("usdc", sdk.NewInt(baseFee*2))),
+		},
+		"fee + gauge coins == account balance, multiple gauge coins, one in denom other than base, success": {
+			accountBalanceToFund: sdk.NewCoin("adym", sdk.NewInt(baseFee)),
+			feeToCharge:          baseFee / 2,
+			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("usdc", sdk.NewInt(baseFee*2)), sdk.NewCoin("adym", sdk.NewInt(baseFee/2))),
+		},
+	}
+
+	for name, tc := range testcases {
+		suite.Run(name, func() {
+			suite.SetupTest()
+
+			err := suite.App.TxFeesKeeper.SetBaseDenom(suite.Ctx, "adym")
+			suite.Require().NoError(err)
+
+			testAccount := apptesting.CreateRandomAccounts(1)[0]
+			ctx := suite.Ctx
+			incentivesKeepers := suite.App.IncentivesKeeper
+			bankKeeper := suite.App.BankKeeper
+
+			// Pre-fund account.
+			// suite.FundAcc(testAccount, testutil.DefaultAcctFunds)
+			suite.FundAcc(testAccount, sdk.NewCoins(tc.accountBalanceToFund))
+
+			oldBalanceAmount := bankKeeper.GetBalance(ctx, testAccount, "adym").Amount
+
+			// System under test.
+			err = incentivesKeepers.ChargeGaugesFee(ctx, testAccount, sdk.NewInt(tc.feeToCharge), tc.gaugeCoins)
+
+			// Assertions.
+			newBalanceAmount := bankKeeper.GetBalance(ctx, testAccount, "adym").Amount
+			if tc.expectError {
+				suite.Require().Error(err)
+
+				// check account balance unchanged
+				suite.Require().Equal(oldBalanceAmount, newBalanceAmount)
+			} else {
+				suite.Require().NoError(err)
+
+				// check account balance changed.
+				expectedNewBalanceAmount := oldBalanceAmount.Sub(sdk.NewInt(tc.feeToCharge))
+				suite.Require().Equal(expectedNewBalanceAmount.String(), newBalanceAmount.String())
 			}
 		})
 	}
