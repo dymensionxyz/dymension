@@ -102,9 +102,11 @@ func (suite *KeeperTestSuite) CreateGauge(isPerpetual bool, addr sdk.AccAddress,
 
 // AddToGauge adds coins to the specified gauge.
 func (suite *KeeperTestSuite) AddToGauge(coins sdk.Coins, gaugeID uint64) uint64 {
+	gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID)
+	suite.Require().NoError(err)
 	addr := sdk.AccAddress([]byte("addrx---------------"))
 	suite.FundAcc(addr, coins)
-	err := suite.App.IncentivesKeeper.AddToGaugeRewards(suite.Ctx, addr, coins, gaugeID)
+	err = suite.App.IncentivesKeeper.AddToGaugeRewards(suite.Ctx, addr, coins, gauge)
 	suite.Require().NoError(err)
 	return gaugeID
 }

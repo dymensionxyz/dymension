@@ -368,12 +368,12 @@ var InitGenesis = []string{
 	rollappmoduletypes.ModuleName,
 	sequencertypes.ModuleName,
 	sponsorshiptypes.ModuleName,
-	streamermoduletypes.ModuleName,
 	denommetadatamoduletypes.ModuleName, // must after `x/bank` to trigger hooks
 	delayedacktypes.ModuleName,
 	eibcmoduletypes.ModuleName,
 	dymnstypes.ModuleName,
 	epochstypes.ModuleName,
+	streamermoduletypes.ModuleName, // must be after x/epochs to fill epoch pointers
 	lockuptypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,

@@ -32,7 +32,10 @@ func CmdListRollapp() *cobra.Command {
 				OmitApps:   omitApps,
 			}
 
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.RollappAll(cmd.Context(), params)
@@ -69,7 +72,10 @@ func CmdShowRollapp() *cobra.Command {
 				OmitApps:  omitApps,
 			}
 
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.Rollapp(cmd.Context(), params)

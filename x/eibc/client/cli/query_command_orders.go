@@ -85,7 +85,10 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
 				return err
 			}
 
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.DemandOrdersByStatus(cmd.Context(), request)

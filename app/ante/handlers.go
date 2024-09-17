@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 	ethante "github.com/evmos/ethermint/app/ante"
 	txfeesante "github.com/osmosis-labs/osmosis/v15/x/txfees/ante"
 
@@ -13,6 +12,7 @@ import (
 
 	delayedack "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	lightclientante "github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 )
 
 func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
@@ -75,7 +75,6 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 		delayedack.NewIBCProofHeightDecorator(),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
-
 		transfergenesis.NewTransferEnabledDecorator(options.RollappKeeper.GetRollapp, options.IBCKeeper.ChannelKeeper),
 	)
 }
@@ -112,7 +111,6 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		lightclientante.NewIBCMessagesDecorator(*options.LightClientKeeper, options.IBCKeeper.ClientKeeper, options.IBCKeeper.ChannelKeeper, options.RollappKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
-
 		transfergenesis.NewTransferEnabledDecorator(options.RollappKeeper.GetRollapp, options.IBCKeeper.ChannelKeeper),
 	)
 }

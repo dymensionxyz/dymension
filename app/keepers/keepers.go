@@ -408,6 +408,7 @@ func (a *AppKeepers) InitKeepers(
 	)
 
 	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
+		appCodec,
 		a.keys[streamermoduletypes.StoreKey],
 		a.GetSubspace(streamermoduletypes.ModuleName),
 		a.BankKeeper,
@@ -582,6 +583,7 @@ func (a *AppKeepers) SetupHooks() {
 			a.TxFeesKeeper.Hooks(),
 			a.DelayedAckKeeper.GetEpochHooks(),
 			a.DymNSKeeper.GetEpochHooks(),
+			a.RollappKeeper.GetEpochHooks(),
 		),
 	)
 

@@ -81,7 +81,7 @@ builds:
       - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=dymension -X github.com/cosmos/cosmos-sdk/version.AppName=dymd -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
 
 archives:
-  - name_template: '{{ .ProjectName }}_{{ .Version }}_{{- title .Os }}_{{ .Arch }}'
+  - name_template: '{{ .ProjectName }}_{{- title .Os }}_{{ .Arch }}'
     format_overrides:
       - goos: windows
         format: zip
@@ -91,7 +91,7 @@ archives:
       - dymd-windows
       - dymd-linux
       - dymd-linux-arm64
-  
+
 checksum:
   name_template: 'checksums.txt'
 changelog:

@@ -15,18 +15,23 @@ var _ = strconv.Itoa(0)
 
 func CmdRemoveApp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "remove-app [name] [rollapp-id]",
+		Use:   "remove-app [app-id] [rollapp-id]",
 		Short: "Remove an app",
-		Args:  cobra.ExactArgs(6),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
+			appID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgRemoveApp(
 				clientCtx.GetFromAddress().String(),
-				args[0],
+				appID,
 				args[1],
 			)
 

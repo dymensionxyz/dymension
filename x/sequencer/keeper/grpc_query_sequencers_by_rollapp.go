@@ -4,9 +4,14 @@ import (
 	"context"
 	"errors"
 
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequencersByRollappRequest) (*types.QueryGetSequencersByRollappResponse, error) {
@@ -76,4 +81,29 @@ func (k Keeper) GetNextProposerByRollapp(c context.Context, req *types.QueryGetN
 		NextProposerAddr:   expectedNext.Address,
 		RotationInProgress: k.IsRotating(ctx, req.RollappId),
 	}, nil
+}
+
+func (k Keeper) Proposers(c context.Context, req *types.QueryProposersRequest) (*types.QueryProposersResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	var proposers []types.Sequencer
+	ctx := sdk.UnwrapSDKContext(c)
+
+	store := ctx.KVStore(k.storeKey)
+	sequencerStore := prefix.NewStore(store, types.ProposerByRollappKey(""))
+
+	pageRes, err := query.Paginate(sequencerStore, req.Pagination, func(key []byte, value []byte) error {
+		proposer, ok := k.GetSequencer(ctx, string(value))
+		if ok {
+			proposers = append(proposers, proposer)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryProposersResponse{Proposers: proposers, Pagination: pageRes}, nil
 }

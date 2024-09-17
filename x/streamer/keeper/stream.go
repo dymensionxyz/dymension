@@ -4,12 +4,55 @@ import (
 	"fmt"
 	"sort"
 
+	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+// UpdateStreamAtEpochStart updates the stream for a new epoch: estimates coins that streamer will
+// distribute during this epoch and updates a sponsored distribution if needed.
+func (k Keeper) UpdateStreamAtEpochStart(ctx sdk.Context, stream types.Stream) (types.Stream, error) {
+	remainCoins := stream.Coins.Sub(stream.DistributedCoins...)
+	remainEpochs := stream.NumEpochsPaidOver - stream.FilledEpochs
+	epochCoins := remainCoins.QuoInt(math.NewIntFromUint64(remainEpochs))
+
+	// If the stream uses a sponsorship plan, query it and update stream distr info. The distribution
+	// might be empty and this is a valid scenario. In that case, we'll just skip without filling the epoch.
+	if stream.Sponsored {
+		distr, err := k.sk.GetDistribution(ctx)
+		if err != nil {
+			return types.Stream{}, fmt.Errorf("get sponsorship distribution: %w", err)
+		}
+		// Update stream distr info
+		stream.DistributeTo = types.DistrInfoFromDistribution(distr)
+	}
+
+	// Add coins to distribute during the next epoch
+	stream.EpochCoins = epochCoins
+
+	return stream, nil
+}
+
+// UpdateStreamAtEpochEnd updates the stream at the end of the epoch: increases the filled epoch number
+// and makes the stream finished if needed.
+func (k Keeper) UpdateStreamAtEpochEnd(ctx sdk.Context, stream types.Stream) (types.Stream, error) {
+	// Don't fill streams in which there's nothing to fill. This might happen when using sponsored streams.
+	if !stream.DistributeTo.TotalWeight.IsZero() {
+		stream.FilledEpochs += 1
+	}
+
+	// Check if stream has completed its distribution. This is a post factum check.
+	if stream.FilledEpochs >= stream.NumEpochsPaidOver {
+		err := k.moveActiveStreamToFinishedStream(ctx, stream)
+		if err != nil {
+			return types.Stream{}, fmt.Errorf("move active stream to finished stream: %w", err)
+		}
+	}
+
+	return stream, nil
+}
 
 // GetStreamByID returns stream from stream ID.
 func (k Keeper) GetStreamByID(ctx sdk.Context, streamID uint64) (*types.Stream, error) {
@@ -24,19 +67,6 @@ func (k Keeper) GetStreamByID(ctx sdk.Context, streamID uint64) (*types.Stream, 
 		return nil, err
 	}
 	return &stream, nil
-}
-
-// GetStreamFromIDs returns multiple streams from a streamIDs array.
-func (k Keeper) GetStreamFromIDs(ctx sdk.Context, streamIDs []uint64) ([]types.Stream, error) {
-	streams := []types.Stream{}
-	for _, streamID := range streamIDs {
-		stream, err := k.GetStreamByID(ctx, streamID)
-		if err != nil {
-			return []types.Stream{}, err
-		}
-		streams = append(streams, *stream)
-	}
-	return streams, nil
 }
 
 // GetStreams returns upcoming, active, and finished streams.
@@ -57,6 +87,18 @@ func (k Keeper) GetNotFinishedStreams(ctx sdk.Context) []types.Stream {
 // GetActiveStreams returns active streams.
 func (k Keeper) GetActiveStreams(ctx sdk.Context) []types.Stream {
 	return k.getStreamsFromIterator(ctx, k.ActiveStreamsIterator(ctx))
+}
+
+// GetActiveStreamsForEpoch returns active streams with the specified epoch identifier.
+func (k Keeper) GetActiveStreamsForEpoch(ctx sdk.Context, epochIdentifier string) []types.Stream {
+	streams := k.getStreamsFromIterator(ctx, k.ActiveStreamsIterator(ctx))
+	activeStreams := make([]types.Stream, 0)
+	for _, stream := range streams {
+		if stream.DistrEpochIdentifier == epochIdentifier {
+			activeStreams = append(activeStreams, stream)
+		}
+	}
+	return activeStreams
 }
 
 // GetUpcomingStreams returns upcoming streams.

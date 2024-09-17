@@ -292,6 +292,42 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 				require.NoError(t, err)
 			},
 		},
+		{
+			name: "Client is not a known canonical client of a rollapp",
+			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
+				return testInput{
+					msg: &ibcclienttypes.MsgUpdateClient{
+						ClientId: "canon-client-id",
+					},
+				}
+			},
+			assert: func(ctx sdk.Context, k keeper.Keeper, err error) {
+				require.NoError(t, err)
+			},
+		},
+		{
+			name: "SubmitMisbehavior for a canonical chain",
+			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+				m := &ibctm.Misbehaviour{}
+				mAny, _ := ibcclienttypes.PackClientMessage(m)
+
+				return testInput{
+					msg: &ibcclienttypes.MsgUpdateClient{
+						ClientId:      "canon-client-id",
+						ClientMessage: mAny,
+					},
+					rollapps: map[string]rollapptypes.Rollapp{
+						"rollapp-has-canon-client": {
+							RollappId: "rollapp-has-canon-client",
+						},
+					},
+				}
+			},
+			assert: func(ctx sdk.Context, k keeper.Keeper, err error) {
+				require.Error(t, err)
+			},
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
