@@ -25,7 +25,7 @@ message EventFinalizePacketsUntilHeight {
   string sender = 1;
   // RollappID is the ID of the rollapp.
   string rollapp_id = 2;
-  // Height is a height until which packets are to be finalized.
+  // Height is a height until which packets are to be finalized. Height is inclusive.
   uint64 height = 3;
   // FinalizedNum is the number of finalized packets.
   uint64 finalized_num = 4;

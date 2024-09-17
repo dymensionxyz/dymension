@@ -42,7 +42,7 @@ func RollappPacketKey(rollappPacket *RollappPacket) []byte {
 	)
 }
 
-// RollappPacketKey1 is an alternative override for RollappPacketKey.
+// RollappPacketKey1 is an override for RollappPacketKey.
 func RollappPacketKey1(
 	status Status,
 	rollappID string,

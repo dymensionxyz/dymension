@@ -11,9 +11,9 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
-// delayedAckIBCModule represents an IBC module for x/delayedack. We need to trigger _next_ IBC middlewares
+// DelayedAckIBCModule represents an IBC module for x/delayedack. We need to trigger _next_ IBC middlewares
 // after x/delayedack in order to process packet finalization requests.
-type delayedAckIBCModule interface {
+type DelayedAckIBCModule interface {
 	NextIBCMiddleware() porttypes.IBCModule
 }
 
@@ -21,10 +21,10 @@ var _ types.MsgServer = MsgServer{}
 
 type MsgServer struct {
 	k   Keeper
-	ibc delayedAckIBCModule // x/delayedack IBC module
+	ibc DelayedAckIBCModule // x/delayedack IBC module
 }
 
-func NewMsgServer(k Keeper, ibc delayedAckIBCModule) MsgServer {
+func NewMsgServer(k Keeper, ibc DelayedAckIBCModule) MsgServer {
 	return MsgServer{k: k, ibc: ibc}
 }
 
@@ -64,7 +64,7 @@ func (m MsgServer) FinalizePacketsUntilHeight(goCtx context.Context, msg *types.
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	finalized, err := m.k.FinalizeRollappPackets(ctx, m.ibc.NextIBCMiddleware(), msg.RollappId, msg.Height)
+	finalized, err := m.k.FinalizeRollappPackets(ctx, m.ibc.NextIBCMiddleware(), msg.RollappId, msg.Height, msg.SrcChannel)
 	if err != nil {
 		return nil, err
 	}

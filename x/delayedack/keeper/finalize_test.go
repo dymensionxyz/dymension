@@ -51,7 +51,7 @@ func (s *DelayedAckTestSuite) TestFinalizePacket() {
 			},
 			rollappHeight: 10,
 			expectErr:     true,
-			errContains:   "packet height '15' is not finalized yet, latest height '10'",
+			errContains:   "packet height is not finalized yet: height '15', latest height '10'",
 		},
 	}
 

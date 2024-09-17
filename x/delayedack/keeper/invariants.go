@@ -17,7 +17,15 @@ const (
 
 // RegisterInvariants registers the delayedack module invariants
 func (k Keeper) RegisterInvariants(ir sdk.InvariantRegistry) {
+	ir.RegisterRoute(types.ModuleName, routeFinalizedPacket, k.PacketsFinalizationCorrespondsToFinalizationHeight)
 	ir.RegisterRoute(types.ModuleName, routeRevertedPacket, k.PacketsFromRevertedHeightsAreReverted)
+}
+
+// PacketsFinalizationCorrespondsToFinalizationHeight checks that all rollapp packets stored are set to
+// finalized status for all heights up to the latest height.
+// Skip the check if the rollapp is frozen
+func (k Keeper) PacketsFinalizationCorrespondsToFinalizationHeight(ctx sdk.Context) (string, bool) {
+	return k.packetsCorrespondsToStatusHeight(checkFinalizedPackets, false)(ctx)
 }
 
 // PacketsFromRevertedHeightsAreReverted checks that all rollapp packets stored are set to
@@ -72,6 +80,17 @@ func (k Keeper) checkRollapp(ctx sdk.Context, rollapp rtypes.Rollapp, checkPacke
 
 	latestFinalizedHeight = latestFinalizedStateInfo.GetLatestHeight()
 
+	return
+}
+
+// checkFinalizedPackets checks that all rollapp packets stored are set to finalized status for all heights up to the latest height
+func checkFinalizedPackets(packets []commontypes.RollappPacket, latestFinalizedHeight uint64) (_ string) {
+	for _, packet := range packets {
+		if packet.ProofHeight > latestFinalizedHeight && packet.Status == commontypes.Status_FINALIZED {
+			return fmt.Sprintf("rollapp packet for the height should not be in finalized status. height=%d, rollapp=%s, status=%s\n",
+				packet.ProofHeight, packet.RollappId, packet.Status)
+		}
+	}
 	return
 }
 

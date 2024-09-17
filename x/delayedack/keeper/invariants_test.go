@@ -75,7 +75,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 
 	// manually finalize packets for all rollapps
 	for rollapp := range seqPerRollapp {
-		packetsNum, err := suite.App.DelayedAckKeeper.FinalizeRollappPackets(suite.Ctx, transferStack.NextIBCMiddleware(), rollapp, rollappBlocks[rollapp])
+		packetsNum, err := suite.App.DelayedAckKeeper.FinalizeRollappPackets(suite.Ctx, transferStack.NextIBCMiddleware(), rollapp, rollappBlocks[rollapp], testSourceChannel)
 		suite.Require().NoError(err)
 		suite.Require().Equal(rollappBlocks[rollapp], uint64(packetsNum))
 	}
@@ -88,7 +88,9 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 	}
 
 	// check invariant
-	msg, fails := suite.App.DelayedAckKeeper.PacketsFromRevertedHeightsAreReverted(suite.Ctx)
+	msg, fails := suite.App.DelayedAckKeeper.PacketsFinalizationCorrespondsToFinalizationHeight(suite.Ctx)
+	suite.Require().False(fails, msg)
+	msg, fails = suite.App.DelayedAckKeeper.PacketsFromRevertedHeightsAreReverted(suite.Ctx)
 	suite.Require().False(fails, msg)
 }
 
@@ -180,6 +182,25 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			},
 			true,
 		},
+		{
+			"wrong finalized packet check - packets are finalized in non-finalized heights",
+			false,
+			false,
+			true,
+			commontypes.RollappPacket{
+				RollappId:   rollapp,
+				Status:      commontypes.Status_FINALIZED,
+				ProofHeight: 5,
+				Packet:      getNewTestPacket(1),
+			},
+			commontypes.RollappPacket{
+				RollappId:   rollapp,
+				Status:      commontypes.Status_PENDING,
+				ProofHeight: 15,
+				Packet:      getNewTestPacket(2),
+			},
+			true,
+		},
 	}
 	for _, tc := range cases {
 		suite.Run(tc.name, func() {
@@ -251,9 +272,10 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet2)
 
 			// check invariant
+			_, failsFinalize := suite.App.DelayedAckKeeper.PacketsFinalizationCorrespondsToFinalizationHeight(suite.Ctx)
 			_, failsRevert := suite.App.DelayedAckKeeper.PacketsFromRevertedHeightsAreReverted(suite.Ctx)
 
-			isBroken := failsRevert
+			isBroken := failsFinalize || failsRevert
 			suite.Require().Equal(tc.expectedIsBroken, isBroken)
 		})
 	}
@@ -262,7 +284,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 func getNewTestPacket(sequence uint64) *channeltypes.Packet {
 	return &channeltypes.Packet{
 		SourcePort:         "testSourcePort",
-		SourceChannel:      "testSourceChannel",
+		SourceChannel:      testSourceChannel,
 		DestinationPort:    "testDestinationPort",
 		DestinationChannel: "testDestinationChannel",
 		Data:               []byte("testData"),

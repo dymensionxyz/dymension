@@ -14,6 +14,7 @@ import (
 
 const (
 	delayedAckEventType = "delayedack"
+	testSourceChannel   = "testSourceChannel"
 )
 
 type DelayedAckTestSuite struct {

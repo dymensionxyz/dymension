@@ -118,7 +118,7 @@ type EventFinalizePacketsUntilHeight struct {
 	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 	// RollappID is the ID of the rollapp.
 	RollappId string `protobuf:"bytes,2,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
-	// Height is a height until which packets are to be finalized.
+	// Height is a height until which packets are to be finalized. Height is inclusive.
 	Height uint64 `protobuf:"varint,3,opt,name=height,proto3" json:"height,omitempty"`
 	// FinalizedNum is the number of finalized packets.
 	FinalizedNum uint64 `protobuf:"varint,4,opt,name=finalized_num,json=finalizedNum,proto3" json:"finalized_num,omitempty"`

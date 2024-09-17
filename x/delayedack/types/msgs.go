@@ -16,7 +16,7 @@ func (m MsgFinalizePacket) ValidateBasic() error {
 	if err != nil {
 		return errors.Join(
 			sdkerrors.ErrInvalidAddress,
-			errorsmod.Wrapf(err, "voter '%s' must be a valid bech32 address", m.Sender),
+			errorsmod.Wrapf(err, "sender must be a valid bech32 address: %s", m.Sender),
 		)
 	}
 	if len(m.RollappId) == 0 {
@@ -49,11 +49,14 @@ func (m MsgFinalizePacketsUntilHeight) ValidateBasic() error {
 	if err != nil {
 		return errors.Join(
 			sdkerrors.ErrInvalidAddress,
-			errorsmod.Wrapf(err, "voter '%s' must be a valid bech32 address", m.Sender),
+			errorsmod.Wrapf(err, "sender must be a valid bech32 address: %s", m.Sender),
 		)
 	}
 	if len(m.RollappId) == 0 {
 		return gerrc.ErrInvalidArgument.Wrap("rollappId must be non-empty")
+	}
+	if len(m.SrcChannel) == 0 {
+		return gerrc.ErrInvalidArgument.Wrap("srcChannel must be non-empty")
 	}
 	return nil
 }
