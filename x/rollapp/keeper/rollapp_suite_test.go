@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -33,7 +32,6 @@ type RollappTestSuite struct {
 	msgServer    types.MsgServer
 	seqMsgServer sequencertypes.MsgServer
 	queryClient  types.QueryClient
-	authority    string
 }
 
 func (suite *RollappTestSuite) SetupTest() {
@@ -54,14 +52,11 @@ func (suite *RollappTestSuite) SetupTest() {
 	types.RegisterQueryServer(queryHelper, app.RollappKeeper)
 	queryClient := types.NewQueryClient(queryHelper)
 
-	authority := authtypes.NewModuleAddress(govtypes.ModuleName).String()
-
 	suite.App = app
 	suite.msgServer = keeper.NewMsgServerImpl(*app.RollappKeeper)
 	suite.seqMsgServer = sequencerkeeper.NewMsgServerImpl(app.SequencerKeeper)
 	suite.Ctx = ctx
 	suite.queryClient = queryClient
-	suite.authority = authority
 }
 
 func (suite *RollappTestSuite) keeper() *keeper.Keeper {
@@ -75,4 +70,16 @@ func (suite *RollappTestSuite) nextBlock() {
 
 func TestRollappKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(RollappTestSuite))
+}
+
+func (suite *RollappTestSuite) IsRollappVulnerable(rollappID string) bool {
+	ra, ok := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
+	suite.Require().True(ok)
+	return ra.IsVulnerable()
+}
+
+func (suite *RollappTestSuite) GetRollappLastHeight(rollappID string) uint64 {
+	stateInfo, ok := suite.App.RollappKeeper.GetLatestStateInfo(suite.Ctx, rollappID)
+	suite.Require().True(ok)
+	return stateInfo.GetLatestHeight() + 1
 }

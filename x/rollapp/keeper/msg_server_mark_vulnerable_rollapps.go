@@ -51,23 +51,27 @@ func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []string) (i
 	}
 
 	var (
-		logger        = k.Logger(ctx)
-		nonVulnerable = k.FilterRollapps(ctx, FilterNonVulnerable)
-		vulnerableNum int
+		logger         = k.Logger(ctx)
+		activeRollapps = k.FilterRollapps(ctx, FilterActive)
+		vulnerableNum  int
 	)
-	for _, rollapp := range nonVulnerable {
+	for _, rollapp := range activeRollapps {
 		info, found := k.GetLatestStateInfo(ctx, rollapp.RollappId)
 		if !found {
-			logger.With("rollapp_id", rollapp.RollappId).Error("no latest state info for rollapp")
+			logger.With("rollapp_id", rollapp.RollappId).Info("no latest state info for rollapp")
 			continue
 		}
+		// TODO: this check may be deleted once empty DRS version is marked vulnerable
 		if info.DrsVersion == "" {
 			logger.With("rollapp_id", rollapp.RollappId).Error("no DRS version set for rollapp")
 		}
 
 		_, vulnerable := vulnerableVersions[info.DrsVersion]
 		if vulnerable {
-			k.MustMarkRollappAsVulnerable(ctx, rollapp.RollappId)
+			err := k.MarkRollappAsVulnerable(ctx, rollapp.RollappId)
+			if err != nil {
+				return 0, fmt.Errorf("freeze rollapp: %w", err)
+			}
 			vulnerableNum++
 		}
 	}

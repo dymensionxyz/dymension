@@ -246,6 +246,76 @@ func (k Keeper) IsRollappStarted(ctx sdk.Context, rollappId string) bool {
 	return found
 }
 
+func (k Keeper) MarkRollappAsVulnerable(ctx sdk.Context, rollappId string) error {
+	return k.FreezeRollapp(ctx, rollappId)
+}
+
+// FreezeRollapp marks the rollapp as frozen and reverts all pending states.
+func (k Keeper) FreezeRollapp(ctx sdk.Context, rollappID string) error {
+	rollapp, found := k.GetRollapp(ctx, rollappID)
+	if !found {
+		return gerrc.ErrNotFound
+	}
+
+	rollapp.Frozen = true
+
+	k.RevertPendingStates(ctx, rollappID)
+
+	if rollapp.ChannelId != "" {
+		clientID, _, err := k.channelKeeper.GetChannelClientState(ctx, "transfer", rollapp.ChannelId)
+		if err != nil {
+			return fmt.Errorf("get channel client state: %w", err)
+		}
+
+		err = k.freezeClientState(ctx, clientID)
+		if err != nil {
+			return fmt.Errorf("freeze client state: %w", err)
+		}
+	}
+
+	k.SetRollapp(ctx, rollapp)
+	return nil
+}
+
+func (k Keeper) verifyClientID(ctx sdk.Context, rollappID, clientID string) error {
+	rollapp, found := k.GetRollapp(ctx, rollappID)
+	if !found {
+		return gerrc.ErrNotFound
+	}
+
+	var (
+		emptyRollappChannelID = rollapp.ChannelId == ""
+		emptyClientID         = clientID == ""
+	)
+
+	switch {
+	// both channelID and clientID are empty
+	case emptyRollappChannelID && emptyClientID:
+		return nil // everything is fine, expected scenario
+
+	// channelID is empty while clientID is not
+	case emptyRollappChannelID:
+		return fmt.Errorf("rollapp does not have a channel: rollapp '%s'", rollappID)
+
+	// clientID is empty while channelID is not
+	case emptyClientID:
+		return fmt.Errorf("empty clientID while the rollapp channelID is not empty")
+
+	// both channelID and clientID are not empty
+	default:
+		// extract rollapp channelID
+		extractedClientId, _, err := k.channelKeeper.GetChannelClientState(ctx, "transfer", rollapp.ChannelId)
+		if err != nil {
+			return fmt.Errorf("get channel client state: %w", err)
+		}
+		// compare it with the passed clientID
+		if extractedClientId != clientID {
+			return fmt.Errorf("clientID does not match the one in the rollapp: clientID %s, rollapp clientID %s", clientID, extractedClientId)
+		}
+		return nil
+	}
+}
+
 func (k Keeper) FilterRollapps(ctx sdk.Context, f func(types.Rollapp) bool) []types.Rollapp {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
@@ -262,28 +332,12 @@ func (k Keeper) FilterRollapps(ctx sdk.Context, f func(types.Rollapp) bool) []ty
 	return result
 }
 
-func FilterNonVulnerable(b types.Rollapp) bool {
+func FilterActive(b types.Rollapp) bool {
 	return !b.Frozen
 }
 
-func FilterVulnerable(b types.Rollapp) bool {
-	return b.Frozen
-}
-
-func (k Keeper) MarkRollappAsVulnerable(ctx sdk.Context, rollappId string) bool {
-	r, found := k.GetRollapp(ctx, rollappId)
-	if !found {
-		return false
-	}
-	r.Frozen = true
-	k.SetRollapp(ctx, r)
-	return true
-}
-
-func (k Keeper) MustMarkRollappAsVulnerable(ctx sdk.Context, rollappId string) {
-	r := k.MustGetRollapp(ctx, rollappId)
-	r.Frozen = true
-	k.SetRollapp(ctx, r)
+func (k Keeper) IsDRSVersionVulnerable(ctx sdk.Context, version string) (bool, error) {
+	return k.vulnerableDRSVersions.Has(ctx, version)
 }
 
 func (k Keeper) SetVulnerableDRSVersion(ctx sdk.Context, version string) error {

@@ -97,6 +97,67 @@ func (suite *RollappTestSuite) TestUpdateState() {
 	}
 }
 
+func (s *RollappTestSuite) TestUpdateStateVulnerableRollapp() {
+	const (
+		raName               = "rollapptest_1-1"
+		nonVulnerableVersion = "non_vulnerable_version"
+		vulnerableVersion    = "vulnerable_version"
+	)
+
+	// create a rollapp
+	s.CreateRollappByName(raName)
+	// create a sequencer
+	proposer := s.CreateDefaultSequencer(s.Ctx, raName)
+
+	// create the initial state update with non-vulnerable version
+	expectedLastHeight, err := s.PostStateUpdateWithDRSVersion(s.Ctx, raName, proposer, 1, uint64(3), nonVulnerableVersion)
+	s.Require().Nil(err)
+
+	// check the rollapp's last height
+	actualLastHeight := s.GetRollappLastHeight(raName)
+	s.Require().Equal(expectedLastHeight, actualLastHeight)
+
+	// mark a DRS version as vulnerable. note that the last state update of the rollapp wasn't vulnerable
+	vulnNum, err := s.App.RollappKeeper.MarkVulnerableRollapps(s.Ctx, []string{vulnerableVersion})
+	s.Require().NoError(err)
+	s.Require().Equal(0, vulnNum)
+
+	// check the version is vulnerable
+	ok, err := s.App.RollappKeeper.IsDRSVersionVulnerable(s.Ctx, vulnerableVersion)
+	s.Require().NoError(err)
+	s.Require().True(ok)
+
+	// the rollapp is not vulnerable at this step
+	ok = s.IsRollappVulnerable(raName)
+	s.Require().False(ok)
+
+	// create a new update using the vulnerable version
+	_, err = s.PostStateUpdateWithDRSVersion(s.Ctx, raName, proposer, 1, uint64(3), vulnerableVersion)
+	s.Require().NoError(err)
+
+	// the rollapp now is vulnerable
+	ok = s.IsRollappVulnerable(raName)
+	s.Require().True(ok)
+
+	// the rollapp state is not updated
+	actualLastHeight = s.GetRollappLastHeight(raName)
+	s.Require().Equal(expectedLastHeight, actualLastHeight)
+
+	// create one more update using the vulnerable version. this time we expect an error.
+	_, err = s.PostStateUpdateWithDRSVersion(s.Ctx, raName, proposer, 1, uint64(3), vulnerableVersion)
+	s.Require().Error(err)
+	// TODO: try using errors.Is
+	s.Require().ErrorContains(err, "usage of vulnerable DRS version is not allowed for new rollapps, please update your DRS version")
+
+	// the rollapp is still vulnerable
+	ok = s.IsRollappVulnerable(raName)
+	s.Require().True(ok)
+
+	// the rollapp state is still not updated
+	actualLastHeight = s.GetRollappLastHeight(raName)
+	s.Require().Equal(expectedLastHeight, actualLastHeight)
+}
+
 func (suite *RollappTestSuite) TestUpdateStateUnknownRollappId() {
 	_, err := suite.PostStateUpdate(suite.Ctx, "unknown_rollapp", alice, 1, uint64(3))
 	suite.EqualError(err, types.ErrUnknownRollappID.Error())

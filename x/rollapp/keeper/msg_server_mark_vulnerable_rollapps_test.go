@@ -150,13 +150,13 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				s.AssertEventEmitted(s.Ctx, eventName, 0)
 
 				// check non-vulnerable rollapps: all rollapps are still non-vulnerable
-				nonVulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, keeper.FilterNonVulnerable)
+				nonVulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, keeper.FilterActive)
 				actualNonVulnRollappIDs := fpslices.Map(nonVulnRa, func(r types.Rollapp) string { return r.RollappId })
 				allRollapps := fpslices.Merge(expectedVulnRollappIDs, expectedNonVulnRollappIDs)
 				s.ElementsMatch(allRollapps, actualNonVulnRollappIDs)
 
 				// check vulnerable rollapps: no vulnerable rollapps
-				vulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, keeper.FilterVulnerable)
+				vulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterVulnerable)
 				s.Empty(vulnRa)
 
 				// check the vulnerable version set is empty
@@ -171,12 +171,12 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				s.AssertEventEmitted(s.Ctx, eventName, 1)
 
 				// check non-vulnerable rollapps
-				nonVulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, keeper.FilterNonVulnerable)
+				nonVulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, keeper.FilterActive)
 				actualNonVulnRollappIDs := fpslices.Map(nonVulnRa, func(r types.Rollapp) string { return r.RollappId })
 				s.ElementsMatch(expectedNonVulnRollappIDs, actualNonVulnRollappIDs)
 
 				// check vulnerable rollapps
-				vulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, keeper.FilterVulnerable)
+				vulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterVulnerable)
 				actualVulnRollappIDs := fpslices.Map(vulnRa, func(r types.Rollapp) string { return r.RollappId })
 				s.ElementsMatch(expectedVulnRollappIDs, actualVulnRollappIDs)
 
@@ -187,4 +187,8 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 			}
 		})
 	}
+}
+
+func FilterVulnerable(b types.Rollapp) bool {
+	return b.Frozen
 }
