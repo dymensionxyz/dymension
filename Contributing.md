@@ -7,7 +7,7 @@ Note: you should defer to the [Uber Go Style Guide](https://github.com/uber-go/g
 
 ### Errors
 
-80% of production code (especially in Go) is error handling, so doing errors well means 80% of the code is good.
+80% of production code (especially in Go) is error handling, so doing errors well means 80% of the code is good, which is a huge win.
 
 **Guidelines**
 
@@ -38,7 +38,7 @@ fmt.Errorf("failed to find foo")
 fmt.Errorf("find foo")
 ```
 
-4. Error strings should be for humans and logs. Do not embed huge amounts of data in strings. If the error needs to be handled programatically it should be a struct and details can be obtained with `errors.As`. Never parse errors strings. Avoid converting errors to strings with .Error(). This includes when testing errors.
+4. Error strings should be for humans and logs. Do not embed large amounts of data in strings. If the error needs to be handled programatically it should be a struct and details can be obtained with `errors.As`. Never parse errors strings. Avoid converting errors to strings with .Error(). This includes when testing errors.
 
 
 
@@ -94,22 +94,96 @@ func bar() error {
 }
 ```
 
-### Panicking
+8. Do not log and return an error. Do one or the other
 
-Do not write panics on chain unless the case is absolutely trivial. MustUnmarshal and similar in the SDK are examples of acceptable times to panic. Otherwise, return an error wrapping [gerrc.ErrInternal](https://pkg.go.dev/github.com/dymensionxyz/gerr-cosmos@v1.0.0/gerrc#pkg-variables).
+```go
+// bad
+func bar() error {
+    err := foo()
+    if err!=nil{
+        log.Error("something", err)
+    }
+    return err
+}
+// good - case 1: return
+func bar() error {
+    err := foo()
+    return err
+}
+// good - case 2: log
+func bar() error {
+    err := foo()
+    if err!=nil{
+        log.Error("something", err)
+    }
+    return nil
+}
+```
+
+Note: it may be acceptable to do both at **outer** API boundaries (e.g. just before returning http response), if it helps debugging.
+
+### Panics
+
+Do not write panics on chain unless the case is absolutely trivial. MustUnmarshal and similar in the SDK are examples of acceptable times to panic. In case of invariant breakage/logic bug return an error wrapping [gerrc.ErrInternal](https://pkg.go.dev/github.com/dymensionxyz/gerr-cosmos@v1.0.0/gerrc#pkg-variables).
+
+### Channels
+
+Avoid go channels which do not have size 0 or 1. A valid use case for another size is if the consumer is a worker pool with fixed resources and you are OK blocking the producer when the limit is reached.
+
+### Ctx
+
+1. Avoid putting ctx objects in structs. They should be passed as first argument to functions only.
 
 
+2. If putting a key in a ctx, use a private struct instance as the key (not a string).
 
-### SDK DoS Prevention
+### Micro-optimization
 
-**Guidelines**
+Don't (micro) optimize code unless it's a proven bottleneck. Favour terseness and readabilty.
+
+```go
+// bad
+if len(foos) == 0 {
+    return
+}
+for _, f := range foo {
+    // ..
+}
+// good
+for _, f := range foo {
+    // ..
+}
+```
+
+### Interfaces
+
+1. Interfaces should always be defined in the package of the API consumer. Ubiquitious interfaces likes std `Stringer` are exceptions.
 
 
-### SDK DoS Prevention
+2. Interfaces should be named with verbs, not with `*I` suffix.
 
-**Guidelines**
+### Package design
 
--
+1. Make small packages for specific things and abuse the naming convention in golang to your benefit.
+
+```go
+// bad
+.. = utils.WidgetToGadget(..)
+// better
+.. = widget.ToGadget(..)
+```
+
+2. Make use of `/internal` subdirectories in packages to prevent things being exported and to shrink namespaces
+
+### Utilies and shared code
+
+It's encouraged to add golang and cosmos utilities and shared code to [dymensionxyz/sdk-utils](https://github.com/dymensionxyz/sdk-utils). Such code should be genuinely general purpose, well tested and documented.
+
+### Proto and API definition
+
+1. All protobuf fields should have docstrings. 
+
+2. Do not reuse protobuf field numbers when updating protos. When in doubt, reserve the old number and use a new one.
 
 ### References
 
@@ -117,3 +191,4 @@ Do not write panics on chain unless the case is absolutely trivial. MustUnmarsha
 - https://github.com/dymensionxyz/gerr-cosmos : Dymension error library
 - https://cloud.google.com/apis/design/errors#error_codes : Google error handling guidelines
 - https://github.com/uber-go/guide/blob/master/style.md#errors : Uber Style Guide
+- https://100go.co/#error-management : 100 Go Mistakes
