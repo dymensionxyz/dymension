@@ -20,14 +20,11 @@ func (k Keeper) FinalizeRollappPackets(ctx sdk.Context, ibc porttypes.IBCModule,
 	// Verify the height is finalized
 	err := k.VerifyHeightFinalized(ctx, rollappID, stateEndHeight)
 	if err != nil {
-		return 0, fmt.Errorf("verify height is finalized: rollapp '%s': %w", rollappID, err)
+		return 0, fmt.Errorf("verify height is not finalized: rollapp '%s': %w", rollappID, err)
 	}
 
 	// Get all pending rollapp packets until the specified height
 	rollappPendingPackets := k.ListRollappPackets(ctx, types.PendingByRollappIDByMaxHeight(rollappID, stateEndHeight))
-	if len(rollappPendingPackets) == 0 {
-		return 0, nil
-	}
 
 	// Finalize the packets
 	for _, packet := range rollappPendingPackets {
@@ -167,7 +164,7 @@ func (k Keeper) VerifyHeightFinalized(ctx sdk.Context, rollappID string, height 
 	// Get the latest state info of the rollapp
 	latestIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollappID)
 	if !found {
-		return fmt.Errorf("latest finalized state index is not found")
+		return gerrc.ErrNotFound.Wrapf("latest finalized state index is not found")
 	}
 	stateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollappID, latestIndex.Index)
 	if !found {

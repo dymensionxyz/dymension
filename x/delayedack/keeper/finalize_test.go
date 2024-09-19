@@ -104,7 +104,7 @@ func (s *DelayedAckTestSuite) TestFinalizePacket() {
 				s.Require().NotNil(resp)
 
 				// verify that the corresponding finalized packet exists
-				packetKey := commontypes.RollappPacketKey1(
+				packetKey := commontypes.RollappPacketKey(
 					commontypes.Status_FINALIZED,
 					tc.packet.RollappId,
 					tc.packet.ProofHeight,

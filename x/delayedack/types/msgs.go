@@ -34,7 +34,7 @@ func (m MsgFinalizePacket) GetSigners() []sdk.AccAddress {
 }
 
 func (m MsgFinalizePacket) PendingPacketKey() []byte {
-	return commontypes.RollappPacketKey1(
+	return commontypes.RollappPacketKey(
 		commontypes.Status_PENDING,
 		m.RollappId,
 		m.PacketProofHeight,

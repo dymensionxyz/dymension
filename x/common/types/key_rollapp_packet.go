@@ -31,19 +31,18 @@ var (
 // Example would be, both rollapp and hub have channel-0 and we have at the same proof height of the rollapp
 // AckPacket with sequence 1 (originated on the hub) and OnRecvPacket with sequence 1 (originated on the rollapp).
 // Adding the packet type guarantees uniqueness as the type differentiates the source.
-func RollappPacketKey(rollappPacket *RollappPacket) []byte {
-	return RollappPacketKey1(
-		rollappPacket.Status,
-		rollappPacket.RollappId,
-		rollappPacket.ProofHeight,
-		rollappPacket.Type,
-		rollappPacket.Packet.SourceChannel,
-		rollappPacket.Packet.Sequence,
+func (p *RollappPacket) RollappPacketKey() []byte {
+	return RollappPacketKey(
+		p.Status,
+		p.RollappId,
+		p.ProofHeight,
+		p.Type,
+		p.Packet.SourceChannel,
+		p.Packet.Sequence,
 	)
 }
 
-// RollappPacketKey1 is an override for RollappPacketKey.
-func RollappPacketKey1(
+func RollappPacketKey(
 	status Status,
 	rollappID string,
 	proofHeight uint64,
