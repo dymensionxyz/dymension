@@ -1,13 +1,15 @@
 package keeper_test
 
 import (
+	"slices"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uslice"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	fpslices "github.com/dymensionxyz/dymension/v3/utils/fp/slices"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -109,7 +111,7 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 			s.SetupTest()
 
 			// prepare test data
-			vulnVersions := fpslices.ToKeySet(tc.vulnVersions)
+			vulnVersions := uslice.ToKeySet(tc.vulnVersions)
 			// list of expected vulnerable rollapps
 			expectedVulnRollappIDs := make([]string, 0, len(tc.vulnVersions))
 			// list of expected non-vulnerable rollapps
@@ -151,8 +153,8 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 
 				// check non-vulnerable rollapps: all rollapps are still non-vulnerable
 				nonVulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, keeper.FilterNonVulnerable)
-				actualNonVulnRollappIDs := fpslices.Map(nonVulnRa, func(r types.Rollapp) string { return r.RollappId })
-				allRollapps := fpslices.Merge(expectedVulnRollappIDs, expectedNonVulnRollappIDs)
+				actualNonVulnRollappIDs := uslice.Map(nonVulnRa, func(r types.Rollapp) string { return r.RollappId })
+				allRollapps := slices.Concat(expectedVulnRollappIDs, expectedNonVulnRollappIDs)
 				s.ElementsMatch(allRollapps, actualNonVulnRollappIDs)
 
 				// check vulnerable rollapps: no vulnerable rollapps
@@ -172,12 +174,12 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 
 				// check non-vulnerable rollapps
 				nonVulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, keeper.FilterNonVulnerable)
-				actualNonVulnRollappIDs := fpslices.Map(nonVulnRa, func(r types.Rollapp) string { return r.RollappId })
+				actualNonVulnRollappIDs := uslice.Map(nonVulnRa, func(r types.Rollapp) string { return r.RollappId })
 				s.ElementsMatch(expectedNonVulnRollappIDs, actualNonVulnRollappIDs)
 
 				// check vulnerable rollapps
 				vulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterVulnerable)
-				actualVulnRollappIDs := fpslices.Map(vulnRa, func(r types.Rollapp) string { return r.RollappId })
+				actualVulnRollappIDs := uslice.Map(vulnRa, func(r types.Rollapp) string { return r.RollappId })
 				s.ElementsMatch(expectedVulnRollappIDs, actualVulnRollappIDs)
 
 				// check the vulnerable version set
