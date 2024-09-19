@@ -43,16 +43,16 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientID string, fraudHe
 		return errors.Join(types.ErrWrongClientId, err)
 	}
 
-	// slash the sequencer, clean delayed packets
-	err = k.hooks.FraudSubmitted(ctx, rollappID, fraudHeight, seqAddr)
-	if err != nil {
-		return err
-	}
-
 	// freeze the rollapp and revert all pending states
 	err = k.FreezeRollapp(ctx, rollappID)
 	if err != nil {
 		return fmt.Errorf("freeze rollapp: %w", err)
+	}
+
+	// slash the sequencer, clean delayed packets
+	err = k.hooks.FraudSubmitted(ctx, rollappID, fraudHeight, seqAddr)
+	if err != nil {
+		return err
 	}
 
 	ctx.EventManager().EmitEvent(

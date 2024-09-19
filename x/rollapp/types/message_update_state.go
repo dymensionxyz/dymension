@@ -69,7 +69,7 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 	}
 
 	// TODO: add a validation for DrsVersion once empty DRS version is marked vulnerable
-	// if msg.DrsVersion == "" { return gerrc.ErrInvalidArgument.Wrap("DRS version must not be empty") }
+	//  https://github.com/dymensionxyz/dymension/issues/1233
 
 	// check that the blocks are sequential by height
 	for bdIndex := uint64(0); bdIndex < msg.NumBlocks; bdIndex += 1 {

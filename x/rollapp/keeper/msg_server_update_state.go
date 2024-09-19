@@ -20,17 +20,19 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		return nil, types.ErrUnknownRollappID
 	}
 
+	// verify the rollapp is not vulnerable
+	if rollapp.IsVulnerable() {
+		return nil, gerrc.ErrInvalidArgument.
+			Wrapf("usage of vulnerable DRS version is not allowed for new rollapps, please update your DRS version: version %s", msg.DrsVersion)
+	}
+
 	// verify the DRS version is not vulnerable
 	vulnerable, err := k.IsDRSVersionVulnerable(ctx, msg.DrsVersion)
 	if err != nil {
 		return nil, fmt.Errorf("verify the DRS version is not vulnerable: %w", err)
 	}
 	if vulnerable {
-		if rollapp.IsVulnerable() {
-			return nil, gerrc.ErrInvalidArgument.
-				Wrapf("usage of vulnerable DRS version is not allowed for new rollapps, please update your DRS version: version %s", msg.DrsVersion)
-		}
-		// if the rollapp is not marked as vulnerable yet, then mark it now
+		// the rollapp is not marked as vulnerable yet, mark it now
 		err = k.MarkRollappAsVulnerable(ctx, msg.RollappId)
 		if err != nil {
 			return nil, fmt.Errorf("mark rollapp vulnerable: %w", err)

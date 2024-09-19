@@ -225,19 +225,8 @@ func (k Keeper) RemoveRollapp(
 }
 
 // GetAllRollapps returns all rollapp
-func (k Keeper) GetAllRollapps(ctx sdk.Context) (list []types.Rollapp) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.Rollapp
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
-	}
-
-	return
+func (k Keeper) GetAllRollapps(ctx sdk.Context) []types.Rollapp {
+	return k.FilterRollapps(ctx, func(rollapp types.Rollapp) bool { return true })
 }
 
 // IsRollappStarted returns true if the rollapp is started
@@ -251,6 +240,7 @@ func (k Keeper) MarkRollappAsVulnerable(ctx sdk.Context, rollappId string) error
 }
 
 // FreezeRollapp marks the rollapp as frozen and reverts all pending states.
+// NB! This method is going to be changed as soon as the "Freezing" ADR is ready.
 func (k Keeper) FreezeRollapp(ctx sdk.Context, rollappID string) error {
 	rollapp, found := k.GetRollapp(ctx, rollappID)
 	if !found {
@@ -277,6 +267,12 @@ func (k Keeper) FreezeRollapp(ctx sdk.Context, rollappID string) error {
 	return nil
 }
 
+// verifyClientID verifies that the provided clientID is the same clientID used by the provided rollapp.
+// Possible scenarios:
+//  1. both channelID and clientID are empty -> okay
+//  2. channelID is empty while clientID is not -> error: rollapp does not have a channel
+//  3. clientID is empty while channelID is not -> error: rollapp does have a channel, but the provided clientID is empty
+//  4. both channelID and clientID are not empty -> okay: compare the provided channelID against the one from IBC
 func (k Keeper) verifyClientID(ctx sdk.Context, rollappID, clientID string) error {
 	rollapp, found := k.GetRollapp(ctx, rollappID)
 	if !found {
@@ -332,8 +328,8 @@ func (k Keeper) FilterRollapps(ctx sdk.Context, f func(types.Rollapp) bool) []ty
 	return result
 }
 
-func FilterActive(b types.Rollapp) bool {
-	return !b.Frozen
+func FilterNonVulnerable(b types.Rollapp) bool {
+	return !b.IsVulnerable()
 }
 
 func (k Keeper) IsDRSVersionVulnerable(ctx sdk.Context, version string) (bool, error) {

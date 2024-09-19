@@ -51,19 +51,20 @@ func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []string) (i
 	}
 
 	var (
-		logger         = k.Logger(ctx)
-		activeRollapps = k.FilterRollapps(ctx, FilterActive)
-		vulnerableNum  int
+		logger        = k.Logger(ctx)
+		nonVulnerable = k.FilterRollapps(ctx, FilterNonVulnerable)
+		vulnerableNum int
 	)
-	for _, rollapp := range activeRollapps {
+	for _, rollapp := range nonVulnerable {
 		info, found := k.GetLatestStateInfo(ctx, rollapp.RollappId)
 		if !found {
 			logger.With("rollapp_id", rollapp.RollappId).Info("no latest state info for rollapp")
 			continue
 		}
 		// TODO: this check may be deleted once empty DRS version is marked vulnerable
+		//  https://github.com/dymensionxyz/dymension/issues/1233
 		if info.DrsVersion == "" {
-			logger.With("rollapp_id", rollapp.RollappId).Error("no DRS version set for rollapp")
+			logger.With("rollapp_id", rollapp.RollappId).Info("no DRS version set for rollapp")
 		}
 
 		_, vulnerable := vulnerableVersions[info.DrsVersion]
