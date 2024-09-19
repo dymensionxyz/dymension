@@ -39,7 +39,6 @@ func (k Keeper) FinalizeRollappPacketsUntilHeight(ctx sdk.Context, ibc porttypes
 type FinalizeRollappPacketsBySenderResult struct {
 	latestFinalizedHeight uint64 // the latest finalized height of the rollup until which packets are finalized
 	finalizedNum          uint64 // the number of finalized packets
-
 }
 
 // FinalizeRollappPacketsByReceiver finalizes the rollapp packets from the specified sender until the latest finalized
