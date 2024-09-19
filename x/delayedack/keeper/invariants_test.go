@@ -75,7 +75,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 
 	// manually finalize packets for all rollapps
 	for rollapp := range seqPerRollapp {
-		packetsNum, err := suite.App.DelayedAckKeeper.FinalizeRollappPackets(suite.Ctx, transferStack.NextIBCMiddleware(), rollapp, rollappBlocks[rollapp], testSourceChannel)
+		packetsNum, err := suite.App.DelayedAckKeeper.FinalizeRollappPacketsUntilHeight(suite.Ctx, transferStack.NextIBCMiddleware(), rollapp, rollappBlocks[rollapp], testSourceChannel)
 		suite.Require().NoError(err)
 		suite.Require().Equal(rollappBlocks[rollapp], uint64(packetsNum))
 	}

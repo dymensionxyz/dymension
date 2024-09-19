@@ -64,7 +64,7 @@ func (m MsgServer) FinalizePacketsUntilHeight(goCtx context.Context, msg *types.
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	finalized, err := m.k.FinalizeRollappPackets(ctx, m.ibc.NextIBCMiddleware(), msg.RollappId, msg.Height, msg.SrcChannel)
+	finalized, err := m.k.FinalizeRollappPacketsUntilHeight(ctx, m.ibc.NextIBCMiddleware(), msg.RollappId, msg.Height, msg.SrcChannel)
 	if err != nil {
 		return nil, err
 	}
