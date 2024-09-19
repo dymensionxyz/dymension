@@ -30,3 +30,17 @@ message EventFinalizePacketsUntilHeight {
   // FinalizedNum is the number of finalized packets.
   uint64 finalized_num = 4;
 }
+
+message EventFinalizeRollappPacketsByReceiver {
+  // Sender is the signer of the message.
+  string sender = 1;
+  // RollappID is the ID of the rollapp.
+  string rollapp_id = 2;
+  // Receiver is the one who waits tokens after the finalization.
+  string receiver = 3;
+  // Height is a height until which packets are to be finalized.
+  uint64 height = 4;
+  // FinalizedNum is the number of finalized packets.
+  uint64 finalized_num = 5;
+
+}

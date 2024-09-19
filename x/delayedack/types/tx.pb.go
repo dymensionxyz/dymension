@@ -156,16 +156,14 @@ func (m *MsgFinalizePacketResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgFinalizePacketResponse proto.InternalMessageInfo
 
-// MsgFinalizePacketsUntilHeight finalizes packets for the given rollapp until the given height.
+// MsgFinalizePacketsUntilHeight finalizes packets for the given rollapp until the given height inclusively.
 type MsgFinalizePacketsUntilHeight struct {
 	// Sender is the signer of the message.
 	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	// SrcChannel identifies the channel end on the sending chain.
-	SrcChannel string `protobuf:"bytes,2,opt,name=src_channel,json=srcChannel,proto3" json:"src_channel,omitempty"`
 	// RollappID is the ID of the rollapp.
-	RollappId string `protobuf:"bytes,3,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
+	RollappId string `protobuf:"bytes,2,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
 	// Height is a height until which packets are to be finalized. Height is inclusive.
-	Height uint64 `protobuf:"varint,4,opt,name=height,proto3" json:"height,omitempty"`
+	Height uint64 `protobuf:"varint,3,opt,name=height,proto3" json:"height,omitempty"`
 }
 
 func (m *MsgFinalizePacketsUntilHeight) Reset()         { *m = MsgFinalizePacketsUntilHeight{} }
@@ -204,13 +202,6 @@ var xxx_messageInfo_MsgFinalizePacketsUntilHeight proto.InternalMessageInfo
 func (m *MsgFinalizePacketsUntilHeight) GetSender() string {
 	if m != nil {
 		return m.Sender
-	}
-	return ""
-}
-
-func (m *MsgFinalizePacketsUntilHeight) GetSrcChannel() string {
-	if m != nil {
-		return m.SrcChannel
 	}
 	return ""
 }
@@ -265,11 +256,118 @@ func (m *MsgFinalizePacketsUntilHeightResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgFinalizePacketsUntilHeightResponse proto.InternalMessageInfo
 
+// MsgFinalizeRollappPacketsByReceiver finalizes the rollapp packets for the specified receiver until the latest
+// finalized height inclusively.
+type MsgFinalizeRollappPacketsByReceiver struct {
+	// Sender is the signer of the message.
+	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	// RollappID is the ID of the rollapp.
+	RollappId string `protobuf:"bytes,2,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
+	// Receiver is the one who waits tokens after the finalization.
+	Receiver string `protobuf:"bytes,3,opt,name=receiver,proto3" json:"receiver,omitempty"`
+}
+
+func (m *MsgFinalizeRollappPacketsByReceiver) Reset()         { *m = MsgFinalizeRollappPacketsByReceiver{} }
+func (m *MsgFinalizeRollappPacketsByReceiver) String() string { return proto.CompactTextString(m) }
+func (*MsgFinalizeRollappPacketsByReceiver) ProtoMessage()    {}
+func (*MsgFinalizeRollappPacketsByReceiver) Descriptor() ([]byte, []int) {
+	return fileDescriptor_604a74c1ca57f5ed, []int{4}
+}
+func (m *MsgFinalizeRollappPacketsByReceiver) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgFinalizeRollappPacketsByReceiver) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgFinalizeRollappPacketsByReceiver.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgFinalizeRollappPacketsByReceiver) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgFinalizeRollappPacketsByReceiver.Merge(m, src)
+}
+func (m *MsgFinalizeRollappPacketsByReceiver) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgFinalizeRollappPacketsByReceiver) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgFinalizeRollappPacketsByReceiver.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgFinalizeRollappPacketsByReceiver proto.InternalMessageInfo
+
+func (m *MsgFinalizeRollappPacketsByReceiver) GetSender() string {
+	if m != nil {
+		return m.Sender
+	}
+	return ""
+}
+
+func (m *MsgFinalizeRollappPacketsByReceiver) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+func (m *MsgFinalizeRollappPacketsByReceiver) GetReceiver() string {
+	if m != nil {
+		return m.Receiver
+	}
+	return ""
+}
+
+type MsgFinalizeRollappPacketsByReceiverResponse struct {
+}
+
+func (m *MsgFinalizeRollappPacketsByReceiverResponse) Reset() {
+	*m = MsgFinalizeRollappPacketsByReceiverResponse{}
+}
+func (m *MsgFinalizeRollappPacketsByReceiverResponse) String() string {
+	return proto.CompactTextString(m)
+}
+func (*MsgFinalizeRollappPacketsByReceiverResponse) ProtoMessage() {}
+func (*MsgFinalizeRollappPacketsByReceiverResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_604a74c1ca57f5ed, []int{5}
+}
+func (m *MsgFinalizeRollappPacketsByReceiverResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgFinalizeRollappPacketsByReceiverResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgFinalizeRollappPacketsByReceiverResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgFinalizeRollappPacketsByReceiverResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgFinalizeRollappPacketsByReceiverResponse.Merge(m, src)
+}
+func (m *MsgFinalizeRollappPacketsByReceiverResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgFinalizeRollappPacketsByReceiverResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgFinalizeRollappPacketsByReceiverResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgFinalizeRollappPacketsByReceiverResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgFinalizePacket)(nil), "dymensionxyz.dymension.delayedack.MsgFinalizePacket")
 	proto.RegisterType((*MsgFinalizePacketResponse)(nil), "dymensionxyz.dymension.delayedack.MsgFinalizePacketResponse")
 	proto.RegisterType((*MsgFinalizePacketsUntilHeight)(nil), "dymensionxyz.dymension.delayedack.MsgFinalizePacketsUntilHeight")
 	proto.RegisterType((*MsgFinalizePacketsUntilHeightResponse)(nil), "dymensionxyz.dymension.delayedack.MsgFinalizePacketsUntilHeightResponse")
+	proto.RegisterType((*MsgFinalizeRollappPacketsByReceiver)(nil), "dymensionxyz.dymension.delayedack.MsgFinalizeRollappPacketsByReceiver")
+	proto.RegisterType((*MsgFinalizeRollappPacketsByReceiverResponse)(nil), "dymensionxyz.dymension.delayedack.MsgFinalizeRollappPacketsByReceiverResponse")
 }
 
 func init() {
@@ -277,38 +375,41 @@ func init() {
 }
 
 var fileDescriptor_604a74c1ca57f5ed = []byte{
-	// 493 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x54, 0x41, 0x6b, 0x13, 0x41,
-	0x14, 0xce, 0x24, 0x69, 0xa0, 0x2f, 0x10, 0xed, 0x08, 0x75, 0x5d, 0xe9, 0x1a, 0x03, 0xd2, 0x10,
-	0x64, 0x97, 0xa6, 0x82, 0x20, 0x1e, 0x44, 0x41, 0xea, 0xa1, 0x50, 0x57, 0xbd, 0x78, 0x09, 0xdb,
-	0xdd, 0xe7, 0x66, 0xe9, 0xee, 0xcc, 0xb8, 0xb3, 0x2d, 0xd9, 0x9e, 0x44, 0xfc, 0x01, 0xfe, 0x00,
-	0x7f, 0x80, 0xc7, 0xe2, 0x0f, 0xf0, 0xec, 0xb1, 0x47, 0x8f, 0x92, 0x1c, 0xfa, 0x37, 0x24, 0x3b,
-	0xb3, 0x6d, 0xd2, 0x90, 0x0a, 0xf5, 0x94, 0xbc, 0xf7, 0xbd, 0xf7, 0xbd, 0xef, 0x7d, 0xbc, 0x59,
-	0xe8, 0x05, 0x79, 0x82, 0x4c, 0x46, 0x9c, 0x8d, 0xf2, 0x63, 0xe7, 0x3c, 0x70, 0x02, 0x8c, 0xbd,
-	0x1c, 0x03, 0xcf, 0x3f, 0x70, 0xb2, 0x91, 0x2d, 0x52, 0x9e, 0x71, 0x7a, 0x7f, 0xb6, 0xd6, 0x3e,
-	0x0f, 0xec, 0x8b, 0x5a, 0xf3, 0xb6, 0xcf, 0x65, 0xc2, 0xa5, 0x93, 0xc8, 0xd0, 0x39, 0xda, 0x9a,
-	0xfe, 0xa8, 0x5e, 0xb3, 0xbf, 0x64, 0x8e, 0xcf, 0x93, 0x84, 0x33, 0x27, 0xe5, 0x71, 0xec, 0x09,
-	0x31, 0x10, 0x9e, 0x7f, 0x80, 0x99, 0xea, 0xe9, 0xfc, 0xa8, 0xc2, 0xda, 0xae, 0x0c, 0x5f, 0x46,
-	0xcc, 0x8b, 0xa3, 0x63, 0xdc, 0x2b, 0x30, 0xba, 0x0e, 0x0d, 0x89, 0x2c, 0xc0, 0xd4, 0x20, 0x6d,
-	0xd2, 0x5d, 0x75, 0x75, 0x44, 0x37, 0x00, 0x4a, 0x96, 0x28, 0x30, 0xaa, 0x05, 0xb6, 0xaa, 0x33,
-	0xaf, 0x02, 0x6a, 0xc3, 0x2d, 0x45, 0x3e, 0x10, 0x29, 0xe7, 0x1f, 0x06, 0x43, 0x8c, 0xc2, 0x61,
-	0x66, 0xd4, 0xda, 0xa4, 0x5b, 0x77, 0xd7, 0x14, 0xb4, 0x37, 0x45, 0x76, 0x0a, 0x80, 0xba, 0xd0,
-	0xd4, 0xf5, 0x59, 0x2e, 0xd0, 0xa8, 0xb7, 0x49, 0xb7, 0xd5, 0xdf, 0xb2, 0x97, 0x58, 0xa0, 0xd6,
-	0xb0, 0x5d, 0x35, 0x4e, 0x29, 0xb5, 0xdf, 0xe6, 0x02, 0x5d, 0x50, 0x2c, 0xd3, 0xff, 0xf4, 0x21,
-	0x50, 0xcd, 0x29, 0x53, 0x7f, 0xe0, 0x0f, 0x3d, 0xc6, 0x30, 0x36, 0x56, 0x0a, 0xa9, 0x37, 0x15,
-	0xf2, 0x26, 0xf5, 0x5f, 0xa8, 0x3c, 0xdd, 0x84, 0x1b, 0x65, 0x35, 0x7e, 0x3c, 0x44, 0xe6, 0xa3,
-	0xd1, 0x28, 0xd4, 0xb6, 0x74, 0xa9, 0xce, 0x3e, 0x69, 0x7e, 0x3e, 0x3b, 0xe9, 0x69, 0x1b, 0x3a,
-	0x77, 0xe1, 0xce, 0x82, 0x67, 0x2e, 0x4a, 0xc1, 0x99, 0xc4, 0xce, 0x37, 0x02, 0x1b, 0x0b, 0xa8,
-	0x7c, 0xc7, 0xb2, 0x28, 0xd6, 0x6b, 0x2f, 0x73, 0xf7, 0x1e, 0x34, 0x67, 0x35, 0x2b, 0x7b, 0x41,
-	0x5e, 0xa8, 0x9d, 0xb7, 0xbf, 0x76, 0xd9, 0xfe, 0x75, 0x68, 0x68, 0xc7, 0xeb, 0xc5, 0x0e, 0x3a,
-	0x9a, 0xd7, 0xbe, 0x09, 0x0f, 0xae, 0x54, 0x57, 0xee, 0xd1, 0xff, 0x59, 0x85, 0xda, 0xae, 0x0c,
-	0xe9, 0x17, 0x02, 0xad, 0x4b, 0xe7, 0xf1, 0xc8, 0xfe, 0xe7, 0x95, 0xda, 0x0b, 0x43, 0xcc, 0xa7,
-	0xd7, 0xe9, 0x2a, 0xe5, 0xd0, 0xef, 0x04, 0xcc, 0x2b, 0x3c, 0x7d, 0x76, 0x1d, 0xf2, 0x59, 0x06,
-	0x73, 0xe7, 0x7f, 0x19, 0x4a, 0xa9, 0xe6, 0xca, 0xa7, 0xb3, 0x93, 0x1e, 0x79, 0xfe, 0xfa, 0xd7,
-	0xd8, 0x22, 0xa7, 0x63, 0x8b, 0xfc, 0x19, 0x5b, 0xe4, 0xeb, 0xc4, 0xaa, 0x9c, 0x4e, 0xac, 0xca,
-	0xef, 0x89, 0x55, 0x79, 0xff, 0x38, 0x8c, 0xb2, 0xe1, 0xe1, 0xfe, 0xf4, 0xa2, 0x9d, 0x25, 0x6f,
-	0xf6, 0x68, 0xdb, 0x19, 0xcd, 0x7d, 0x20, 0x72, 0x81, 0x72, 0xbf, 0x51, 0x3c, 0xda, 0xed, 0xbf,
-	0x01, 0x00, 0x00, 0xff, 0xff, 0x79, 0xa1, 0x8f, 0xac, 0x52, 0x04, 0x00, 0x00,
+	// 531 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x94, 0x31, 0x6f, 0xd3, 0x40,
+	0x14, 0xc7, 0x73, 0x4d, 0x1b, 0x91, 0x57, 0x29, 0xd0, 0x43, 0x2a, 0xc6, 0xa8, 0x56, 0x08, 0x42,
+	0x8d, 0x02, 0xd8, 0x6a, 0x8a, 0x84, 0x84, 0x18, 0x50, 0x91, 0xaa, 0x32, 0x14, 0x15, 0x03, 0x0b,
+	0x4b, 0xe4, 0xda, 0x8f, 0xc4, 0xaa, 0x73, 0x67, 0x7c, 0x6e, 0x14, 0x97, 0x05, 0x21, 0xd8, 0xf9,
+	0x18, 0x8c, 0x15, 0x23, 0x9f, 0x80, 0xb1, 0x23, 0x23, 0x4a, 0x86, 0x7e, 0x08, 0x16, 0x14, 0xdf,
+	0xc5, 0xc4, 0x44, 0x69, 0x21, 0x30, 0xd9, 0xef, 0xde, 0xbb, 0xff, 0xfb, 0xdd, 0xff, 0xec, 0x07,
+	0x0d, 0x2f, 0xe9, 0x22, 0x13, 0x3e, 0x67, 0xfd, 0xe4, 0xc8, 0xca, 0x02, 0xcb, 0xc3, 0xc0, 0x49,
+	0xd0, 0x73, 0xdc, 0x03, 0x2b, 0xee, 0x9b, 0x61, 0xc4, 0x63, 0x4e, 0xaf, 0x4f, 0xd6, 0x9a, 0x59,
+	0x60, 0xfe, 0xaa, 0xd5, 0xaf, 0xb8, 0x5c, 0x74, 0xb9, 0xb0, 0xba, 0xa2, 0x6d, 0xf5, 0x36, 0x46,
+	0x0f, 0xb9, 0x57, 0x6f, 0xce, 0xe8, 0xe3, 0xf2, 0x6e, 0x97, 0x33, 0x2b, 0xe2, 0x41, 0xe0, 0x84,
+	0x61, 0x2b, 0x74, 0xdc, 0x03, 0x8c, 0xe5, 0x9e, 0xda, 0xe7, 0x05, 0x58, 0xd9, 0x15, 0xed, 0x6d,
+	0x9f, 0x39, 0x81, 0x7f, 0x84, 0x7b, 0x69, 0x8e, 0xae, 0x42, 0x49, 0x20, 0xf3, 0x30, 0xd2, 0x48,
+	0x95, 0xd4, 0xcb, 0xb6, 0x8a, 0xe8, 0x1a, 0xc0, 0x58, 0xc5, 0xf7, 0xb4, 0x85, 0x34, 0x57, 0x56,
+	0x2b, 0x8f, 0x3d, 0x6a, 0xc2, 0x65, 0x29, 0xde, 0x0a, 0x23, 0xce, 0x5f, 0xb5, 0x3a, 0xe8, 0xb7,
+	0x3b, 0xb1, 0x56, 0xac, 0x92, 0xfa, 0xa2, 0xbd, 0x22, 0x53, 0x7b, 0xa3, 0xcc, 0x4e, 0x9a, 0xa0,
+	0x36, 0x2c, 0xab, 0xfa, 0x38, 0x09, 0x51, 0x5b, 0xac, 0x92, 0x7a, 0xa5, 0xb9, 0x61, 0xce, 0xb0,
+	0x40, 0x1e, 0xc3, 0xb4, 0x65, 0x3b, 0x49, 0x6a, 0x3e, 0x4f, 0x42, 0xb4, 0x41, 0xaa, 0x8c, 0xde,
+	0xe9, 0x6d, 0xa0, 0x4a, 0x53, 0x44, 0x6e, 0xcb, 0xed, 0x38, 0x8c, 0x61, 0xa0, 0x2d, 0xa5, 0xa8,
+	0x97, 0x64, 0xe6, 0x59, 0xe4, 0x3e, 0x92, 0xeb, 0x74, 0x1d, 0x2e, 0x8e, 0xab, 0xf1, 0xf5, 0x21,
+	0x32, 0x17, 0xb5, 0x52, 0x4a, 0x5b, 0x51, 0xa5, 0x6a, 0xf5, 0xfe, 0xf2, 0xbb, 0xd3, 0xe3, 0x86,
+	0xb2, 0xa1, 0x76, 0x0d, 0xae, 0x4e, 0x79, 0x66, 0xa3, 0x08, 0x39, 0x13, 0x58, 0x7b, 0x03, 0x6b,
+	0x53, 0x49, 0xf1, 0x82, 0xc5, 0x7e, 0xa0, 0x4e, 0x3d, 0xa7, 0xb9, 0xab, 0x50, 0xca, 0xf9, 0xa9,
+	0xa2, 0x3c, 0xd9, 0x3a, 0xdc, 0x3c, 0xb3, 0x79, 0x46, 0xf9, 0x81, 0xc0, 0x8d, 0x89, 0xca, 0x9c,
+	0xa9, 0x62, 0x2b, 0xb1, 0xd1, 0x45, 0xbf, 0x87, 0xd1, 0xbc, 0xb0, 0x3a, 0x5c, 0x88, 0x94, 0x44,
+	0x8a, 0x5b, 0xb6, 0xb3, 0x38, 0x0f, 0x7c, 0x07, 0x6e, 0xfd, 0x01, 0xc6, 0x18, 0xbb, 0xf9, 0xa3,
+	0x08, 0xc5, 0x5d, 0xd1, 0xa6, 0xef, 0x09, 0x54, 0x7e, 0xfb, 0x66, 0xef, 0x9a, 0xe7, 0xfe, 0x3a,
+	0xe6, 0x94, 0x37, 0xfa, 0x83, 0x79, 0x76, 0x8d, 0x71, 0xe8, 0x27, 0x02, 0xfa, 0x19, 0x37, 0xfd,
+	0x70, 0x1e, 0xf1, 0x49, 0x05, 0x7d, 0xe7, 0x5f, 0x15, 0x32, 0xd4, 0x2f, 0x04, 0xaa, 0xe7, 0xde,
+	0xf6, 0xf6, 0xdf, 0xb5, 0x9b, 0xa5, 0xa3, 0x3f, 0xf9, 0x3f, 0x3a, 0x63, 0x78, 0x7d, 0xe9, 0xed,
+	0xe9, 0x71, 0x83, 0x6c, 0x3d, 0xfd, 0x3a, 0x30, 0xc8, 0xc9, 0xc0, 0x20, 0xdf, 0x07, 0x06, 0xf9,
+	0x38, 0x34, 0x0a, 0x27, 0x43, 0xa3, 0xf0, 0x6d, 0x68, 0x14, 0x5e, 0xde, 0x6b, 0xfb, 0x71, 0xe7,
+	0x70, 0x7f, 0x34, 0x23, 0xac, 0x19, 0x53, 0xb0, 0xb7, 0x69, 0xf5, 0x73, 0x23, 0x37, 0x09, 0x51,
+	0xec, 0x97, 0xd2, 0x31, 0xb8, 0xf9, 0x33, 0x00, 0x00, 0xff, 0xff, 0x16, 0xed, 0x0f, 0x08, 0xa4,
+	0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -325,8 +426,11 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	// FinalizePacket finalizes a singe packet.
 	FinalizePacket(ctx context.Context, in *MsgFinalizePacket, opts ...grpc.CallOption) (*MsgFinalizePacketResponse, error)
-	// FinalizePacketsUntilHeight finalizes packets for the given rollapp until the given height.
+	// FinalizePacketsUntilHeight finalizes the packets for the given rollapp until the given height inclusively.
 	FinalizePacketsUntilHeight(ctx context.Context, in *MsgFinalizePacketsUntilHeight, opts ...grpc.CallOption) (*MsgFinalizePacketsUntilHeightResponse, error)
+	// FinalizeRollappPacketsByReceiver finalizes the rollapp packets for the specified receiver until the latest
+	// finalized height inclusively.
+	FinalizeRollappPacketsByReceiver(ctx context.Context, in *MsgFinalizeRollappPacketsByReceiver, opts ...grpc.CallOption) (*MsgFinalizeRollappPacketsByReceiverResponse, error)
 }
 
 type msgClient struct {
@@ -355,12 +459,24 @@ func (c *msgClient) FinalizePacketsUntilHeight(ctx context.Context, in *MsgFinal
 	return out, nil
 }
 
+func (c *msgClient) FinalizeRollappPacketsByReceiver(ctx context.Context, in *MsgFinalizeRollappPacketsByReceiver, opts ...grpc.CallOption) (*MsgFinalizeRollappPacketsByReceiverResponse, error) {
+	out := new(MsgFinalizeRollappPacketsByReceiverResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.delayedack.Msg/FinalizeRollappPacketsByReceiver", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// FinalizePacket finalizes a singe packet.
 	FinalizePacket(context.Context, *MsgFinalizePacket) (*MsgFinalizePacketResponse, error)
-	// FinalizePacketsUntilHeight finalizes packets for the given rollapp until the given height.
+	// FinalizePacketsUntilHeight finalizes the packets for the given rollapp until the given height inclusively.
 	FinalizePacketsUntilHeight(context.Context, *MsgFinalizePacketsUntilHeight) (*MsgFinalizePacketsUntilHeightResponse, error)
+	// FinalizeRollappPacketsByReceiver finalizes the rollapp packets for the specified receiver until the latest
+	// finalized height inclusively.
+	FinalizeRollappPacketsByReceiver(context.Context, *MsgFinalizeRollappPacketsByReceiver) (*MsgFinalizeRollappPacketsByReceiverResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -372,6 +488,9 @@ func (*UnimplementedMsgServer) FinalizePacket(ctx context.Context, req *MsgFinal
 }
 func (*UnimplementedMsgServer) FinalizePacketsUntilHeight(ctx context.Context, req *MsgFinalizePacketsUntilHeight) (*MsgFinalizePacketsUntilHeightResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FinalizePacketsUntilHeight not implemented")
+}
+func (*UnimplementedMsgServer) FinalizeRollappPacketsByReceiver(ctx context.Context, req *MsgFinalizeRollappPacketsByReceiver) (*MsgFinalizeRollappPacketsByReceiverResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FinalizeRollappPacketsByReceiver not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -414,6 +533,24 @@ func _Msg_FinalizePacketsUntilHeight_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_FinalizeRollappPacketsByReceiver_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgFinalizeRollappPacketsByReceiver)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).FinalizeRollappPacketsByReceiver(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.delayedack.Msg/FinalizeRollappPacketsByReceiver",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).FinalizeRollappPacketsByReceiver(ctx, req.(*MsgFinalizeRollappPacketsByReceiver))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "dymensionxyz.dymension.delayedack.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -425,6 +562,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FinalizePacketsUntilHeight",
 			Handler:    _Msg_FinalizePacketsUntilHeight_Handler,
+		},
+		{
+			MethodName: "FinalizeRollappPacketsByReceiver",
+			Handler:    _Msg_FinalizeRollappPacketsByReceiver_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -536,19 +677,12 @@ func (m *MsgFinalizePacketsUntilHeight) MarshalToSizedBuffer(dAtA []byte) (int, 
 	if m.Height != 0 {
 		i = encodeVarintTx(dAtA, i, uint64(m.Height))
 		i--
-		dAtA[i] = 0x20
+		dAtA[i] = 0x18
 	}
 	if len(m.RollappId) > 0 {
 		i -= len(m.RollappId)
 		copy(dAtA[i:], m.RollappId)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.RollappId)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.SrcChannel) > 0 {
-		i -= len(m.SrcChannel)
-		copy(dAtA[i:], m.SrcChannel)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.SrcChannel)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -578,6 +712,73 @@ func (m *MsgFinalizePacketsUntilHeightResponse) MarshalTo(dAtA []byte) (int, err
 }
 
 func (m *MsgFinalizePacketsUntilHeightResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgFinalizeRollappPacketsByReceiver) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgFinalizeRollappPacketsByReceiver) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgFinalizeRollappPacketsByReceiver) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Receiver) > 0 {
+		i -= len(m.Receiver)
+		copy(dAtA[i:], m.Receiver)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Receiver)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Sender) > 0 {
+		i -= len(m.Sender)
+		copy(dAtA[i:], m.Sender)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgFinalizeRollappPacketsByReceiverResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgFinalizeRollappPacketsByReceiverResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgFinalizeRollappPacketsByReceiverResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -645,10 +846,6 @@ func (m *MsgFinalizePacketsUntilHeight) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.SrcChannel)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
 	l = len(m.RollappId)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
@@ -660,6 +857,36 @@ func (m *MsgFinalizePacketsUntilHeight) Size() (n int) {
 }
 
 func (m *MsgFinalizePacketsUntilHeightResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgFinalizeRollappPacketsByReceiver) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Sender)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Receiver)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgFinalizeRollappPacketsByReceiverResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -990,38 +1217,6 @@ func (m *MsgFinalizePacketsUntilHeight) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SrcChannel", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.SrcChannel = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
 			}
 			var stringLen uint64
@@ -1052,7 +1247,7 @@ func (m *MsgFinalizePacketsUntilHeight) Unmarshal(dAtA []byte) error {
 			}
 			m.RollappId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 3:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
 			}
@@ -1119,6 +1314,202 @@ func (m *MsgFinalizePacketsUntilHeightResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgFinalizePacketsUntilHeightResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgFinalizeRollappPacketsByReceiver) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgFinalizeRollappPacketsByReceiver: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgFinalizeRollappPacketsByReceiver: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Sender = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Receiver", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Receiver = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgFinalizeRollappPacketsByReceiverResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgFinalizeRollappPacketsByReceiverResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgFinalizeRollappPacketsByReceiverResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

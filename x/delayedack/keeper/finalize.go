@@ -14,9 +14,9 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
-// FinalizeRollappPacketsUntilHeight finalizes the packets for the given rollapp until the given height.
+// FinalizeRollappPacketsUntilHeight finalizes the packets for the given rollapp until the given height inclusively.
 // Returns the number of finalized packets. stateEndHeight is inclusive.
-func (k Keeper) FinalizeRollappPacketsUntilHeight(ctx sdk.Context, ibc porttypes.IBCModule, rollappID string, stateEndHeight uint64 string) (int, error) {
+func (k Keeper) FinalizeRollappPacketsUntilHeight(ctx sdk.Context, ibc porttypes.IBCModule, rollappID string, stateEndHeight uint64) (int, error) {
 	// Verify the height is finalized
 	err := k.VerifyHeightFinalized(ctx, rollappID, stateEndHeight)
 	if err != nil {
@@ -36,12 +36,19 @@ func (k Keeper) FinalizeRollappPacketsUntilHeight(ctx sdk.Context, ibc porttypes
 	return len(rollappPendingPackets), nil
 }
 
-// FinalizeRollappPacketsBySender finalizes the rollapp packets from the specified sender until the latest finalized
-// state inclusively. Returns the number of finalized packets.
-func (k Keeper) FinalizeRollappPacketsBySender(ctx sdk.Context, ibc porttypes.IBCModule, rollappID string, sender string) (int, error) {
+type FinalizeRollappPacketsBySenderResult struct {
+	latestFinalizedHeight uint64 // the latest finalized height of the rollup until which packets are finalized
+	finalizedNum          uint64 // the number of finalized packets
+
+}
+
+// FinalizeRollappPacketsByReceiver finalizes the rollapp packets from the specified sender until the latest finalized
+// height inclusively. Returns the number of finalized packets.
+func (k Keeper) FinalizeRollappPacketsByReceiver(ctx sdk.Context, ibc porttypes.IBCModule, rollappID string, receiver string) (FinalizeRollappPacketsBySenderResult, error) {
+	// Get rollapp's latest finalized height. All packets until this height with the specified receiver will be finalized.
 	latestFinalizedHeight, err := k.GetRollappLatestFinalizedHeight(ctx, rollappID)
 	if err != nil {
-		return 0, fmt.Errorf("get latest finalized height: rollapp '%s': %w", rollappID, err)
+		return FinalizeRollappPacketsBySenderResult{}, fmt.Errorf("get latest finalized height: rollapp '%s': %w", rollappID, err)
 	}
 
 	// Get all pending rollapp packets until the latest finalized height
@@ -49,18 +56,23 @@ func (k Keeper) FinalizeRollappPacketsBySender(ctx sdk.Context, ibc porttypes.IB
 
 	// Finalize the packets
 	for _, packet := range rollappPendingPackets {
+		// Get packet data
 		pd, err := packet.GetTransferPacketData()
 		if err != nil {
-			return 0, fmt.Errorf("get transfer packet data: rollapp '%s', packet: %w", rollappID, err)
+			return FinalizeRollappPacketsBySenderResult{}, fmt.Errorf("get transfer packet data: rollapp '%s', packet: %w", rollappID, err)
 		}
-		if pd.Sender == sender {
+		// Finalize a packet if its receiver matches the one specified
+		if pd.Receiver == receiver {
 			if err = k.finalizeRollappPacket(ctx, ibc, rollappID, packet); err != nil {
-				return 0, fmt.Errorf("finalize packet: rollapp '%s': %w", rollappID, err)
+				return FinalizeRollappPacketsBySenderResult{}, fmt.Errorf("finalize packet: rollapp '%s': %w", rollappID, err)
 			}
 		}
 	}
 
-	return len(rollappPendingPackets), nil
+	return FinalizeRollappPacketsBySenderResult{
+		latestFinalizedHeight: latestFinalizedHeight,
+		finalizedNum:          uint64(len(rollappPendingPackets)),
+	}, nil
 }
 
 // FinalizeRollappPacket finalizes a singe packet by its rollapp packet key.
