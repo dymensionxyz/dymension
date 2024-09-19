@@ -66,10 +66,10 @@ func (c *InsertionOrdered[K, V]) Get(key K) (zero V, found bool) {
 }
 
 // MustGet is Get that panics when the key is not found.
-func (c *InsertionOrdered[K, V]) MustGet(key K) (zero V) {
-	idx, ok := c.keyToIdx[key]
+func (c *InsertionOrdered[K, V]) MustGet(key K) V {
+	value, ok := c.Get(key)
 	if ok {
-		return c.idxToValue[idx]
+		return value
 	}
 	panic(fmt.Errorf("internal contract error: key is not found in the cache: %v", key))
 }
