@@ -60,10 +60,5 @@ func (k Keeper) distributeToRollappGauge(ctx sdk.Context, gauge types.Gauge) (to
 		return sdk.Coins{}, err
 	}
 
-	err = k.updateGaugePostDistribute(ctx, gauge, totalDistrCoins)
-	if err != nil {
-		return sdk.Coins{}, err
-	}
-
 	return totalDistrCoins, nil
 }
