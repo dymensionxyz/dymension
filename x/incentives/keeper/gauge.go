@@ -141,20 +141,17 @@ func (k Keeper) CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddr
 }
 
 // AddToGaugeRewards adds coins to gauge.
-func (k Keeper) AddToGaugeRewards(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins, gaugeID uint64) error {
-	gauge, err := k.GetGaugeByID(ctx, gaugeID)
-	if err != nil {
-		return err
-	}
+func (k Keeper) AddToGaugeRewards(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins, gauge *types.Gauge) error {
 	if gauge.IsFinishedGauge(ctx.BlockTime()) {
-		return types.UnexpectedFinishedGaugeError{GaugeId: gaugeID}
+		return types.UnexpectedFinishedGaugeError{GaugeId: gauge.Id}
 	}
+
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, coins); err != nil {
 		return err
 	}
 
 	gauge.Coins = gauge.Coins.Add(coins...)
-	err = k.setGauge(ctx, gauge)
+	err := k.setGauge(ctx, gauge)
 	if err != nil {
 		return err
 	}

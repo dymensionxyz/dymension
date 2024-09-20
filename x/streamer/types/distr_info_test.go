@@ -14,12 +14,12 @@ func TestDistrInfoFromDistribution(t *testing.T) {
 	testCases := []struct {
 		name     string
 		distr    sponsorshiptypes.Distribution
-		expDistr *types.DistrInfo
+		expDistr types.DistrInfo
 	}{
 		{
 			name:  "Empty distribution",
 			distr: sponsorshiptypes.NewDistribution(),
-			expDistr: &types.DistrInfo{
+			expDistr: types.DistrInfo{
 				TotalWeight: sdk.NewInt(0),
 				Records:     []types.DistrRecord{},
 			},
@@ -35,7 +35,7 @@ func TestDistrInfoFromDistribution(t *testing.T) {
 					},
 				},
 			},
-			expDistr: &types.DistrInfo{
+			expDistr: types.DistrInfo{
 				TotalWeight: sdk.NewInt(10),
 				Records: []types.DistrRecord{
 					{
@@ -60,7 +60,7 @@ func TestDistrInfoFromDistribution(t *testing.T) {
 					},
 				},
 			},
-			expDistr: &types.DistrInfo{
+			expDistr: types.DistrInfo{
 				TotalWeight: sdk.NewInt(30),
 				Records: []types.DistrRecord{
 					{
@@ -80,7 +80,7 @@ func TestDistrInfoFromDistribution(t *testing.T) {
 				VotingPower: sdk.NewInt(30),
 				Gauges:      []sponsorshiptypes.Gauge{},
 			},
-			expDistr: &types.DistrInfo{
+			expDistr: types.DistrInfo{
 				TotalWeight: sdk.ZeroInt(),
 				Records:     []types.DistrRecord{},
 			},
@@ -101,7 +101,7 @@ func TestDistrInfoFromDistribution(t *testing.T) {
 					},
 				},
 			},
-			expDistr: &types.DistrInfo{
+			expDistr: types.DistrInfo{
 				TotalWeight: sdk.NewInt(70),
 				Records: []types.DistrRecord{
 					// 30 is abstained

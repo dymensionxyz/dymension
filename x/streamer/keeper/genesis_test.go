@@ -107,7 +107,7 @@ func TestStreamerInitGenesis(t *testing.T) {
 
 	stream := types.Stream{
 		Id:                   1,
-		DistributeTo:         &distr,
+		DistributeTo:         distr,
 		Coins:                coins,
 		NumEpochsPaidOver:    2,
 		DistrEpochIdentifier: "day",
@@ -167,7 +167,7 @@ func TestStreamerOrder(t *testing.T) {
 
 	stream := types.Stream{
 		Id:                   1,
-		DistributeTo:         &distr,
+		DistributeTo:         distr,
 		Coins:                coins,
 		NumEpochsPaidOver:    2,
 		DistrEpochIdentifier: "day",
@@ -179,7 +179,7 @@ func TestStreamerOrder(t *testing.T) {
 
 	stream2 := types.Stream{
 		Id:                   2,
-		DistributeTo:         &distr,
+		DistributeTo:         distr,
 		Coins:                coins,
 		NumEpochsPaidOver:    2,
 		DistrEpochIdentifier: "day",
@@ -191,7 +191,7 @@ func TestStreamerOrder(t *testing.T) {
 
 	stream3 := types.Stream{
 		Id:                   3,
-		DistributeTo:         &distr,
+		DistributeTo:         distr,
 		Coins:                coins,
 		NumEpochsPaidOver:    2,
 		DistrEpochIdentifier: "day",

@@ -234,7 +234,7 @@ Open your browser and go to `http://localhost:1318/dymensionxyz/dymension/eibc/p
 
 ## Developer
 
-For support, join our [Discord](http://discord.gg/dymension) community and find us in the Developer section.
+For support, join our [Discord](http://discord.gg/dymension) community and find us in the Developer section. See [Contribution guidelines](./Contributing.md).
 
 ### Setup push hooks
 

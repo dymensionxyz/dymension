@@ -29,6 +29,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -62,6 +64,7 @@ func CreateUpgradeHandler(
 		if err := migrateStreamer(ctx, keepers.StreamerKeeper, keepers.EpochsKeeper); err != nil {
 			return nil, err
 		}
+		migrateIncentivesParams(ctx, keepers.IncentivesKeeper)
 
 		// TODO: create rollapp gauges for each existing rollapp (https://github.com/dymensionxyz/dymension/issues/1005)
 
@@ -188,6 +191,15 @@ func migrateStreamer(ctx sdk.Context, sk streamerkeeper.Keeper, ek *epochskeeper
 		}
 	}
 	return nil
+}
+
+func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {
+	params := ik.GetParams(ctx)
+	defaultParams := incentivestypes.DefaultParams()
+	params.CreateGaugeBaseFee = defaultParams.CreateGaugeBaseFee
+	params.AddToGaugeBaseFee = defaultParams.AddToGaugeBaseFee
+	params.AddDenomFee = defaultParams.AddDenomFee
+	ik.SetParams(ctx, params)
 }
 
 func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollapp {
