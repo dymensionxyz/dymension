@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/dymensionxyz/dymension/v3/utils/pagination"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
@@ -21,7 +20,7 @@ func TestStreamIterator(t *testing.T) {
 		}
 		return types.Stream{
 			Id:                   id,
-			DistributeTo:         &types.DistrInfo{Records: g},
+			DistributeTo:         types.DistrInfo{Records: g},
 			DistrEpochIdentifier: epochID,
 		}
 	}
@@ -1292,9 +1291,9 @@ func TestStreamIterator(t *testing.T) {
 			t.Parallel()
 
 			var traversal [][2]uint64
-			newPointer, iters := keeper.IterateEpochPointer(tc.pointer, tc.streams, tc.maxIters, func(v keeper.StreamGauge) pagination.Stop {
+			newPointer, iters := keeper.IterateEpochPointer(tc.pointer, tc.streams, tc.maxIters, func(v keeper.StreamGauge) (stop bool, weight uint64) {
 				traversal = append(traversal, [2]uint64{v.Stream.Id, v.Gauge.GaugeId})
-				return pagination.Continue
+				return false, 1
 			})
 
 			require.Equal(t, tc.expectedIters, iters)

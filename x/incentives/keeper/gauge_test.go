@@ -150,7 +150,7 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 		suite.Require().Len(gaugeIdsByDenom, 0)
 
 		// distribute coins to stakers
-		distrCoins, err := suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
+		distrCoins, err := suite.App.IncentivesKeeper.DistributeOnEpochEnd(suite.Ctx, []types.Gauge{*gauge})
 		suite.Require().NoError(err)
 		// We hardcoded 12 "stake" tokens when initializing gauge
 		suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("stake", int64(12/expectedNumEpochsPaidOver))}, distrCoins)
@@ -159,7 +159,7 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 			// distributing twice without adding more for perpetual gauge
 			gauge, err = suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID)
 			suite.Require().NoError(err)
-			distrCoins, err = suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
+			distrCoins, err = suite.App.IncentivesKeeper.DistributeOnEpochEnd(suite.Ctx, []types.Gauge{*gauge})
 			suite.Require().NoError(err)
 			suite.Require().True(distrCoins.Empty())
 
@@ -170,7 +170,7 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 			// distributing twice with adding more for perpetual gauge
 			gauge, err = suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID)
 			suite.Require().NoError(err)
-			distrCoins, err = suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
+			distrCoins, err = suite.App.IncentivesKeeper.DistributeOnEpochEnd(suite.Ctx, []types.Gauge{*gauge})
 			suite.Require().NoError(err)
 			suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("stake", 200)}, distrCoins)
 		} else {

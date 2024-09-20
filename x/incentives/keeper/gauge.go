@@ -159,16 +159,6 @@ func (k Keeper) AddToGaugeRewards(ctx sdk.Context, owner sdk.AccAddress, coins s
 	return nil
 }
 
-// AddToGaugeRewardsByID adds coins to gauge.
-// TODO: Used only in x/streamer. Delete after https://github.com/dymensionxyz/dymension/pull/1173 is merged!
-func (k Keeper) AddToGaugeRewardsByID(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins, gaugeID uint64) error {
-	gauge, err := k.GetGaugeByID(ctx, gaugeID)
-	if err != nil {
-		return err
-	}
-	return k.AddToGaugeRewards(ctx, owner, coins, gauge)
-}
-
 // GetGaugeByID returns gauge from gauge ID.
 func (k Keeper) GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*types.Gauge, error) {
 	gauge := types.Gauge{}

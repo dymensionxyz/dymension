@@ -4,13 +4,12 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var _ = suite.TestingSuite(nil)
@@ -59,13 +58,10 @@ func (suite *KeeperTestSuite) TestDistribute() {
 			suite.SetupTest()
 			// Setup streams and defined in the above tests, then distribute to them
 
-			var streams []types.Stream
 			gaugesExpectedRewards := make(map[uint64]sdk.Coins)
 			for _, stream := range tc.streams {
 				// Create a stream, move it from upcoming to active and update its parameters
 				_, newStream := suite.CreateStream(stream.distrInfo, stream.coins, time.Now().Add(-time.Minute), "day", stream.numOfEpochs)
-
-				streams = append(streams, *newStream)
 
 				// Calculate expected rewards
 				for _, coin := range stream.coins {
@@ -82,7 +78,7 @@ func (suite *KeeperTestSuite) TestDistribute() {
 			}
 
 			// Trigger the distribution
-			suite.DistributeAllRewards(streams)
+			suite.DistributeAllRewards()
 
 			// Check expected rewards against actual rewards received
 			gauges := suite.App.IncentivesKeeper.GetGauges(suite.Ctx)
@@ -234,6 +230,10 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
+			// We must create at least one lock, otherwise distribution won't work
+			lockOwner := apptesting.CreateRandomAccounts(1)[0]
+			suite.LockTokens(lockOwner, sdk.NewCoins(sdk.NewInt64Coin("stake", 100)))
+
 			// Cast an initial vote
 			if tc.hasInitialDistr {
 				suite.Vote(tc.initialVote, sponsorshiptypes.DYM)
@@ -336,10 +336,9 @@ func (suite *KeeperTestSuite) TestGetModuleToDistributeCoins() {
 
 	// move all created streams from upcoming to active
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
-	streams := suite.App.StreamerKeeper.GetStreams(suite.Ctx)
 
 	// distribute coins to stakers
-	distrCoins := suite.DistributeAllRewards(streams)
+	distrCoins := suite.DistributeAllRewards()
 	suite.Require().NoError(err)
 	suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("stake", 20000), sdk.NewInt64Coin("udym", 10000)}, distrCoins)
 

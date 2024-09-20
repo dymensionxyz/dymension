@@ -52,8 +52,6 @@ func (suite *KeeperTestSuite) TestAllocateToGauges() {
 
 	for _, test := range tests {
 		suite.Run(test.name, func() {
-			var streams []types.Stream
-
 			suite.CreateGauges(3)
 
 			// create a stream
@@ -61,9 +59,8 @@ func (suite *KeeperTestSuite) TestAllocateToGauges() {
 
 			// move all created streams from upcoming to active
 			suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
-			streams = suite.App.StreamerKeeper.GetStreams(suite.Ctx)
 
-			suite.DistributeAllRewards(streams)
+			suite.DistributeAllRewards()
 
 			for i := 0; i < len(test.testingDistrRecord); i++ {
 				if test.testingDistrRecord[i].GaugeId == 0 {
