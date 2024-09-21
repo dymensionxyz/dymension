@@ -202,7 +202,7 @@ func (a *AppKeepers) SetupModules(
 		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(sequencertypes.ModuleName)),
 		sponsorship.NewAppModule(a.SponsorshipKeeper),
 		streamermodule.NewAppModule(a.StreamerKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
-		delayedackmodule.NewAppModule(appCodec, a.DelayedAckKeeper),
+		delayedackmodule.NewAppModule(appCodec, a.DelayedAckKeeper, a.delayedAckMiddleware),
 		denommetadatamodule.NewAppModule(a.DenomMetadataKeeper, *a.EvmKeeper, a.BankKeeper),
 		eibcmodule.NewAppModule(appCodec, a.EIBCKeeper, a.AccountKeeper, a.BankKeeper),
 		dymnsmodule.NewAppModule(appCodec, a.DymNSKeeper),

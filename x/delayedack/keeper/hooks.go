@@ -87,7 +87,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 			})
 			if err != nil {
 				e.Logger(ctx).Error("Failed to delete rollapp packet",
-					"packet", commontypes.RollappPacketKey(&packet), "error", err)
+					"packet", packet.RollappPacketKey(), "error", err)
 			}
 		}
 

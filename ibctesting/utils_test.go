@@ -27,6 +27,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
+	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -345,4 +346,16 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 	coord.CommitBlock(chain)
 
 	return chain
+}
+
+func (s *utilSuite) finalizeRollappPacketsUntilHeight(height uint64) sdk.Events {
+	handler := s.hubApp().MsgServiceRouter().Handler(new(delayedacktypes.MsgFinalizePacketsUntilHeight))
+	resp, err := handler(s.hubCtx(), &delayedacktypes.MsgFinalizePacketsUntilHeight{
+		Sender:    s.rollappChain().SenderAccount.GetAddress().String(),
+		RollappId: rollappChainID(),
+		Height:    height,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+	return resp.GetEvents()
 }
