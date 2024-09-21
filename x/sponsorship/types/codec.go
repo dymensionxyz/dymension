@@ -27,16 +27,14 @@ func RegisterInterfaces(reg types.InterfaceRegistry) {
 	msgservice.RegisterMsgServiceDesc(reg, &_Msg_serviceDesc)
 }
 
-var (
-	amino = codec.NewLegacyAmino()
-)
+var Amino = codec.NewLegacyAmino()
 
 func init() {
-	RegisterCodec(amino)
+	RegisterCodec(Amino)
 	// Register all Amino interfaces and concrete types on the authz Amino codec so that this can later be
 	// used to properly serialize MsgGrant and MsgExec instances
-	sdk.RegisterLegacyAminoCodec(amino)
+	sdk.RegisterLegacyAminoCodec(Amino)
 	RegisterCodec(authzcodec.Amino)
 
-	amino.Seal()
+	Amino.Seal()
 }
