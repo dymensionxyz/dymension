@@ -16,7 +16,7 @@ import (
 // Price is the cost to a market maker to buy the option, (recipient receives straight away).
 // Fee is what the market maker gets in return.
 func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int, denom, recipient string) *DemandOrder {
-	rollappPacketKey := commontypes.RollappPacketKey(&rollappPacket)
+	rollappPacketKey := rollappPacket.RollappPacketKey()
 	return &DemandOrder{
 		Id:                   BuildDemandIDFromPacketKey(string(rollappPacketKey)),
 		TrackingPacketKey:    string(rollappPacketKey),

@@ -1,7 +1,5 @@
 package types
 
-import "github.com/dymensionxyz/dymension/v3/x/common/types"
-
 // DefaultGenesis returns the default genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
@@ -17,10 +15,10 @@ func (gs GenesisState) Validate() error {
 		if err := rollappPacket.ValidateBasic(); err != nil {
 			return err
 		}
-		if _, ok := rollappPacketMap[string(types.RollappPacketKey(&rollappPacket))]; ok {
+		if _, ok := rollappPacketMap[string(rollappPacket.RollappPacketKey())]; ok {
 			return ErrRollappPacketAlreadyExists
 		}
-		rollappPacketMap[string(types.RollappPacketKey(&rollappPacket))] = struct{}{}
+		rollappPacketMap[string(rollappPacket.RollappPacketKey())] = struct{}{}
 	}
 	return gs.Params.Validate()
 }

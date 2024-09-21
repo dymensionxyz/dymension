@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 )
 
-// RegisterCodec registers the necessary x/streamer interfaces and concrete types on the provided
+// RegisterCodec registers the necessary x/sponsorship interfaces and concrete types on the provided
 // LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgVote{}, "sponsorship/Vote", nil)
