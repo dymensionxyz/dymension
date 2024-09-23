@@ -26,13 +26,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	}
 
 	// verify the DRS version is not vulnerable
-	vulnerable, err := k.IsDRSVersionVulnerable(ctx, msg.DrsVersion)
-	if err != nil {
-		return nil, fmt.Errorf("verify the DRS version is not vulnerable: %w", err)
-	}
-	if vulnerable {
+	if k.IsDRSVersionVulnerable(ctx, msg.DrsVersion) {
 		// the rollapp is not marked as vulnerable yet, mark it now
-		err = k.MarkRollappAsVulnerable(ctx, msg.RollappId)
+		err := k.MarkRollappAsVulnerable(ctx, msg.RollappId)
 		if err != nil {
 			return nil, fmt.Errorf("mark rollapp vulnerable: %w", err)
 		}
@@ -46,7 +42,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// currently used by `x/sequencer` to:
 	// 1. validate the state update submitter
 	// 2. complete the rotation of the proposer if needed
-	err = k.hooks.BeforeUpdateState(ctx, msg.Creator, msg.RollappId, msg.Last)
+	err := k.hooks.BeforeUpdateState(ctx, msg.Creator, msg.RollappId, msg.Last)
 	if err != nil {
 		return nil, err
 	}

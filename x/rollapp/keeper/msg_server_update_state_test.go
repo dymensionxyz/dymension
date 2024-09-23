@@ -123,8 +123,7 @@ func (s *RollappTestSuite) TestUpdateStateVulnerableRollapp() {
 	s.Require().Equal(0, vulnNum)
 
 	// check the version is vulnerable
-	ok, err := s.App.RollappKeeper.IsDRSVersionVulnerable(s.Ctx, vulnerableVersion)
-	s.Require().NoError(err)
+	ok := s.App.RollappKeeper.IsDRSVersionVulnerable(s.Ctx, vulnerableVersion)
 	s.Require().True(ok)
 
 	// the rollapp is not vulnerable at this step
