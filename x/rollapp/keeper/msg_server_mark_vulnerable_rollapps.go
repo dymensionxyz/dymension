@@ -46,7 +46,7 @@ func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []string) (i
 		// this also saves in the state the vulnerable version
 		err := k.SetVulnerableDRSVersion(ctx, v)
 		if err != nil {
-			return 0, fmt.Errorf("set vulterable DRS version: %w", err)
+			return 0, fmt.Errorf("set vulnerable DRS version: %w", err)
 		}
 	}
 

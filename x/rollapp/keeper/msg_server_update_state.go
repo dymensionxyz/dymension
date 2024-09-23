@@ -20,10 +20,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		return nil, types.ErrUnknownRollappID
 	}
 
-	// verify the rollapp is not vulnerable
-	if rollapp.IsVulnerable() {
-		return nil, gerrc.ErrInvalidArgument.
-			Wrapf("usage of vulnerable DRS version is not allowed for new rollapps, please update your DRS version: version %s", msg.DrsVersion)
+	// verify the rollapp is not frozen
+	if rollapp.Frozen {
+		return nil, gerrc.ErrInvalidArgument.Wrap("rollapp is frozen")
 	}
 
 	// verify the DRS version is not vulnerable
