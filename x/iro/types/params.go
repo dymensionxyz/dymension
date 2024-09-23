@@ -58,7 +58,7 @@ func (p Params) Validate() error {
 	}
 
 	if p.IncentivesMinStartTimeAfterSettlement <= 0 {
-		return fmt.Errorf("incentive plan start time after settlement must be greater than 0: %s", p.IncentivesMinStartTimeAfterSettlement)
+		return fmt.Errorf("incentive plan start time after settlement must be greater than 0: %v", p.IncentivesMinStartTimeAfterSettlement)
 	}
 
 	return nil

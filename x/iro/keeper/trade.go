@@ -61,13 +61,13 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 
 	// Calculate cost for buying amountTokensToBuy over fixed price curve
 	cost := sdk.NewCoin(appparams.BaseDenom, plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy)))
-	costWithTakerFee, takerFee, err := k.ApplyTakerFee(cost, k.GetParams(ctx).TakerFee, true)
+	costPlusTakerFee, takerFee, err := k.ApplyTakerFee(cost, k.GetParams(ctx).TakerFee, true)
 	if err != nil {
 		return err
 	}
 
 	// Validate expected out amount
-	if costWithTakerFee.Amount.GT(maxCostAmt) {
+	if costPlusTakerFee.Amount.GT(maxCostAmt) {
 		return errorsmod.Wrapf(types.ErrInvalidExpectedOutAmount, "maxCost: %s, cost: %s, fee: %s", maxCostAmt.String(), cost.String(), takerFee.String())
 	}
 
@@ -116,13 +116,13 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 
 	// Calculate cost over fixed price curve
 	cost := sdk.NewCoin(appparams.BaseDenom, plan.BondingCurve.Cost(plan.SoldAmt.Sub(amountTokensToSell), plan.SoldAmt))
-	costWithTakerFee, takerFee, err := k.ApplyTakerFee(cost, k.GetParams(ctx).TakerFee, false)
+	costMinusTakerFee, takerFee, err := k.ApplyTakerFee(cost, k.GetParams(ctx).TakerFee, false)
 	if err != nil {
 		return err
 	}
 
 	// Validate expected out amount
-	if costWithTakerFee.Amount.LT(minCostAmt) {
+	if costMinusTakerFee.Amount.LT(minCostAmt) {
 		return errorsmod.Wrapf(types.ErrInvalidMinCost, "minCost: %s, cost: %s, fee: %s", minCostAmt.String(), cost.String(), takerFee.String())
 	}
 
