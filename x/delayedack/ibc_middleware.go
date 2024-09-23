@@ -7,7 +7,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -24,6 +23,10 @@ type IBCMiddleware struct {
 	keeper.Keeper // keeper is an ics4 wrapper
 	rollapptypes.StubRollappCreatedHooks
 	raKeeper rollappkeeper.Keeper
+}
+
+func (w IBCMiddleware) NextIBCMiddleware() porttypes.IBCModule {
+	return w.IBCModule
 }
 
 type option func(*IBCMiddleware)

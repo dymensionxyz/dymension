@@ -5,11 +5,10 @@ import (
 	"testing"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func TestCombineKeys(t *testing.T) {

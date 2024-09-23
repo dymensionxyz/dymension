@@ -1,0 +1,46 @@
+syntax = "proto3";
+package dymensionxyz.dymension.delayedack;
+
+import "dymensionxyz/dymension/common/rollapp_packet.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
+
+message EventFinalizePacket {
+  // Sender is the signer of the message.
+  string sender = 1;
+  // RollappID is the ID of the rollapp.
+  string rollapp_id = 2;
+  // PacketProofHeight height at which the proof was retrieved.
+  uint64 packet_proof_height = 3;
+  // PacketType is a type of the packet. Eg, RECV, ACK, TIMEOUT.
+  dymensionxyz.dymension.common.RollappPacket.Type packet_type = 4;
+  // PacketSrcChannel identifies the channel end on the sending chain.
+  string packet_src_channel = 5;
+  // PacketSequence is a sequence number of the packet.
+  uint64 packet_sequence = 6;
+}
+
+message EventFinalizePacketsUntilHeight {
+  // Sender is the signer of the message.
+  string sender = 1;
+  // RollappID is the ID of the rollapp.
+  string rollapp_id = 2;
+  // Height is a height until which packets are to be finalized. Height is inclusive.
+  uint64 height = 3;
+  // FinalizedNum is the number of finalized packets.
+  uint64 finalized_num = 4;
+}
+
+message EventFinalizeRollappPacketsByReceiver {
+  // Sender is the signer of the message.
+  string sender = 1;
+  // RollappID is the ID of the rollapp.
+  string rollapp_id = 2;
+  // Receiver is the one who waits tokens after the finalization.
+  string receiver = 3;
+  // Height is a height until which packets are to be finalized.
+  uint64 height = 4;
+  // FinalizedNum is the number of finalized packets.
+  uint64 finalized_num = 5;
+
+}

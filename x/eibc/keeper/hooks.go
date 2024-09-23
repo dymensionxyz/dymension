@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayeacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	types "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -61,7 +62,7 @@ func (d delayedAckHooks) AfterPacketDeleted(ctx sdk.Context, rollappPacket *comm
 	// Get the demand order from the packet key. The initial demand order was built when
 	// the packet was created, hence with PENDING status.
 	rollappPacket.Status = commontypes.Status_PENDING
-	packetKey := commontypes.RollappPacketKey(rollappPacket)
+	packetKey := rollappPacket.RollappPacketKey()
 	demandOrderID := types.BuildDemandIDFromPacketKey(string(packetKey))
 
 	// Check for demand order in both FINALIZED and REVERTED statuses

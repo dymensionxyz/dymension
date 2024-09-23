@@ -578,8 +578,8 @@ func (a *AppKeepers) SetupHooks() {
 	a.EpochsKeeper.SetHooks(
 		epochstypes.NewMultiEpochHooks(
 			// insert epochs hooks receivers here
+			a.StreamerKeeper.Hooks(), // x/streamer must be before x/incentives
 			a.IncentivesKeeper.Hooks(),
-			a.StreamerKeeper.Hooks(),
 			a.TxFeesKeeper.Hooks(),
 			a.DelayedAckKeeper.GetEpochHooks(),
 			a.DymNSKeeper.GetEpochHooks(),

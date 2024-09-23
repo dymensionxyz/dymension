@@ -7,13 +7,13 @@ import (
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
-func NewDistrInfo(records []DistrRecord) (*DistrInfo, error) {
+func NewDistrInfo(records []DistrRecord) (DistrInfo, error) {
 	distrInfo := DistrInfo{}
 	totalWeight := sdk.NewInt(0)
 
 	for _, record := range records {
 		if err := record.ValidateBasic(); err != nil {
-			return nil, err
+			return DistrInfo{}, err
 		}
 		totalWeight = totalWeight.Add(record.Weight)
 	}
@@ -22,10 +22,10 @@ func NewDistrInfo(records []DistrRecord) (*DistrInfo, error) {
 	distrInfo.TotalWeight = totalWeight
 
 	if !totalWeight.IsPositive() {
-		return nil, ErrDistrInfoNotPositiveWeight
+		return DistrInfo{}, ErrDistrInfoNotPositiveWeight
 	}
 
-	return &distrInfo, nil
+	return distrInfo, nil
 }
 
 // ValidateBasic is a basic validation test on recordd distribution gauges' weights.
@@ -54,7 +54,7 @@ func (r DistrRecord) ValidateBasic() error {
 //	Gauge2: 50% / 80% = 62.5% (in the new distribution)
 //
 // So, Gauge1 gets 37.5 DYM, and Gauge2 gets 62.5 DYM.
-func DistrInfoFromDistribution(d sponsorshiptypes.Distribution) *DistrInfo {
+func DistrInfoFromDistribution(d sponsorshiptypes.Distribution) DistrInfo {
 	totalWeight := math.ZeroInt()
 
 	records := make([]DistrRecord, 0, len(d.Gauges))
@@ -66,7 +66,7 @@ func DistrInfoFromDistribution(d sponsorshiptypes.Distribution) *DistrInfo {
 		totalWeight = totalWeight.Add(g.Power)
 	}
 
-	return &DistrInfo{
+	return DistrInfo{
 		TotalWeight: totalWeight,
 		Records:     records,
 	}

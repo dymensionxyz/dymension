@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rtypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -89,13 +90,7 @@ func checkFinalizedPackets(packets []commontypes.RollappPacket, latestFinalizedH
 			return fmt.Sprintf("rollapp packet for the height should not be in finalized status. height=%d, rollapp=%s, status=%s\n",
 				packet.ProofHeight, packet.RollappId, packet.Status)
 		}
-
-		if packet.ProofHeight <= latestFinalizedHeight && packet.Status != commontypes.Status_FINALIZED {
-			return fmt.Sprintf("rollapp packet for the height should be in finalized status. height=%d, rollapp=%s, status=%s\n",
-				packet.ProofHeight, packet.RollappId, packet.Status)
-		}
 	}
-
 	return
 }
 
