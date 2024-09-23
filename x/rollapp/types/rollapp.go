@@ -95,10 +95,14 @@ func (r Rollapp) GenesisInfoFieldsAreSet() bool {
 		!r.GenesisInfo.InitialSupply.IsNil()
 }
 
+func (r Rollapp) IsVulnerable() bool {
+	return r.Frozen
+}
+
 func (r GenesisInfo) Validate() error {
 	if r.Bech32Prefix != "" {
 		if err := validateBech32Prefix(r.Bech32Prefix); err != nil {
-			return gerrc.ErrInvalidArgument.Wrap("bech32")
+			return errors.Join(errorsmod.Wrap(gerrc.ErrInvalidArgument, "bech32"), err)
 		}
 	}
 
