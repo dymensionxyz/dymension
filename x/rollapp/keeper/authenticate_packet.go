@@ -6,7 +6,6 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	uibc "github.com/dymensionxyz/sdk-utils/utils/uibc"
 )
 
 /*
@@ -51,28 +50,38 @@ func (k Keeper) GetValidTransfer(
 
 var errRollappNotFound = errorsmod.Wrap(gerrc.ErrNotFound, "rollapp")
 
-// getRollappByPortChan returns the rollapp id that a packet came from, if we are certain
-// that the packet came from that rollapp. That means that the canonical channel
-// has already been set.
+// getRollappByPortChan will get the rollapp for a transfer
+// if the transfer did not original from a rollapp, will return rollapp not found error
+// if the transfer did originate from a rollapp, but on the wrong channel, returns error
+//
+// in order to allow rollapp and non rollapps to have the same chain ID, the (possible)
+// rollapp is looked up by light client ID rather than chain ID. That requires the canonical
+// light client for the rollapp to have been set. That should always be the case for
+// correctly operated rollapps.
 func (k Keeper) getRollappByPortChan(ctx sdk.Context,
 	raPortOnHub, raChanOnHub string,
 ) (*types.Rollapp, error) {
-	chainID, err := uibc.ChainIDFromPortChannel(ctx, k.channelKeeper, raPortOnHub, raChanOnHub)
+	clientID, _, err := k.channelKeeper.GetChannelClientState(ctx, raPortOnHub, raChanOnHub)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "chain id from port and channel")
+		return nil, errorsmod.Wrap(err, "get chan client state")
+	}
+	chainID, ok := k.canonicalClientKeeper.GetRollappForClientID(ctx, clientID)
+	if !ok {
+		// non rollapp case. Note, we cannot differentiate the case where the transfer is not from a rollapp, or it is from a rollapp
+		// but that rollapp has (incorrectly) not got a canonical client
+		return nil, errorsmod.Wrapf(errRollappNotFound, "client id: %s: port: %s: channel: %s", clientID, raPortOnHub, raChanOnHub)
 	}
 	rollapp, ok := k.GetRollapp(ctx, chainID)
 	if !ok {
-		return nil, errorsmod.Wrapf(errRollappNotFound, "chain id: %s: port: %s: channel: %s", chainID, raPortOnHub, raChanOnHub)
+		return nil, errorsmod.Wrap(gerrc.ErrInternal, "have canonical client id but rollapp not found")
 	}
 	if rollapp.ChannelId == "" {
-		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "rollapp canonical channel mapping has not been set: %s", chainID)
+		return nil, errorsmod.Wrap(gerrc.ErrInternal, "canonical client for rollapp is set, but canonical channel is missing")
 	}
-
 	if rollapp.ChannelId != raChanOnHub {
 		return nil, errorsmod.Wrapf(
 			gerrc.ErrInvalidArgument,
-			"packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, raChanOnHub,
+			"transfer from rollapp is not on canonical channel, packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, raChanOnHub,
 		)
 	}
 	return &rollapp, nil

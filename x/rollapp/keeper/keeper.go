@@ -19,10 +19,11 @@ type Keeper struct {
 	hooks      types.MultiRollappHooks
 	paramstore paramtypes.Subspace
 
-	ibcClientKeeper types.IBCClientKeeper
-	channelKeeper   types.ChannelKeeper
-	sequencerKeeper types.SequencerKeeper
-	bankKeeper      types.BankKeeper
+	ibcClientKeeper       types.IBCClientKeeper
+	canonicalClientKeeper types.CanonicalLightClientKeeper
+	channelKeeper         types.ChannelKeeper
+	sequencerKeeper       types.SequencerKeeper
+	bankKeeper            types.BankKeeper
 
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 }
