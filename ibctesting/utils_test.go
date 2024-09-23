@@ -236,7 +236,7 @@ func (s *utilSuite) finalizeRollappState(index uint64, endHeight uint64) (sdk.Ev
 	stateInfoIdx := rollapptypes.StateInfoIndex{RollappId: rollappChainID(), Index: index}
 	stateInfo, found := rollappKeeper.GetStateInfo(ctx, rollappChainID(), stateInfoIdx.Index)
 	s.Require().True(found)
-	stateInfo.BDs.BD = stateInfo.BDs.BD[:endHeight-stateInfo.StartHeight+2]
+	stateInfo.NumBlocks = endHeight - stateInfo.StartHeight + 1
 	stateInfo.Status = common.Status_FINALIZED
 	// update the status of the stateInfo
 	rollappKeeper.SetStateInfo(ctx, stateInfo)

@@ -37,9 +37,9 @@ func createNStateInfoAndIndex(keeper *keeper.Keeper, ctx sdk.Context, n int, rol
 				Index:     uint64(i + 1),
 			},
 			StartHeight: StartHeight,
-			BDs:         types.BlockDescriptors{BD: make([]types.BlockDescriptor, numBlocks)},
+			NumBlocks:   numBlocks,
 		}
-		StartHeight += stateInfo.NumBlocks()
+		StartHeight += stateInfo.NumBlocks
 
 		keeper.SetStateInfo(ctx, stateInfo)
 		keeper.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
