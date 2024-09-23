@@ -73,7 +73,6 @@ func parseGenesisInfo(cmd *cobra.Command) (types.GenesisInfo, error) {
 	var (
 		genesisInfo types.GenesisInfo
 		err         error
-		ok          bool
 	)
 
 	genesisInfo.GenesisChecksum, err = cmd.Flags().GetString(FlagGenesisChecksum)
@@ -104,10 +103,11 @@ func parseGenesisInfo(cmd *cobra.Command) (types.GenesisInfo, error) {
 	}
 
 	if initialSupplyFlag != "" {
-		genesisInfo.InitialSupply, ok = sdk.NewIntFromString(initialSupplyFlag)
+		initialSupply, ok := sdk.NewIntFromString(initialSupplyFlag)
 		if !ok {
 			return types.GenesisInfo{}, fmt.Errorf("invalid initial supply: %s", initialSupplyFlag)
 		}
+		genesisInfo.InitialSupply = &initialSupply
 	}
 
 	return genesisInfo, nil

@@ -7,6 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
@@ -32,7 +33,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				},
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
@@ -59,7 +60,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				},
 			},
 			err: ErrInvalidRollappID,
@@ -76,7 +77,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				},
 			},
 			err: ErrInvalidCreatorAddress,
@@ -93,7 +94,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				},
 			},
 		},
@@ -109,7 +110,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				},
 			},
 			err: ErrInvalidInitialSequencer,
@@ -126,7 +127,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				},
 			},
 			err: nil,
@@ -143,7 +144,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				},
 			},
 			err: nil,
@@ -162,7 +163,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				},
 			},
 			err: ErrInvalidInitialSequencer,
@@ -179,7 +180,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    "DYM",
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				},
 			},
 			err: gerrc.ErrInvalidArgument,
@@ -196,7 +197,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				},
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
@@ -218,7 +219,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: strings.Repeat("a", maxGenesisChecksumLength+1),
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				},
 			},
 			err: ErrInvalidGenesisChecksum,
@@ -235,7 +236,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				},
 				Metadata: &RollappMetadata{
 					ExplorerUrl: string(rune(0x7f)),
@@ -255,10 +256,38 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(-1),
+					InitialSupply:   uptr.To(sdk.NewInt(-1)),
 				},
 			},
 			err: ErrInvalidInitialSupply,
+		},
+		{
+			name: "no initial supply",
+			msg: MsgCreateRollapp{
+				Creator:          sample.AccAddress(),
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				Alias:            "alias",
+				VmType:           Rollapp_EVM,
+				GenesisInfo: GenesisInfo{
+					Bech32Prefix:    bech32Prefix,
+					GenesisChecksum: "checksum",
+					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					InitialSupply:   nil,
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "no genesis info",
+			msg: MsgCreateRollapp{
+				Creator:          sample.AccAddress(),
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				Alias:            "alias",
+				VmType:           Rollapp_EVM,
+			},
+			err: nil,
 		},
 	}
 	for _, tt := range tests {

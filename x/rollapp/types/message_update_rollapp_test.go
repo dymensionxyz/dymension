@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
@@ -26,7 +27,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				},
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
@@ -55,7 +56,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				},
 			},
 			err: ErrInvalidInitialSequencer,
@@ -70,7 +71,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				},
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
@@ -90,10 +91,34 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: strings.Repeat("a", maxGenesisChecksumLength+1),
 					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				},
 			},
 			err: ErrInvalidGenesisChecksum,
+		},
+		{
+			name: "no initial supply",
+			msg: MsgUpdateRollappInformation{
+				Owner:            sample.AccAddress(),
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				GenesisInfo: GenesisInfo{
+					Bech32Prefix:    bech32Prefix,
+					GenesisChecksum: "checksum",
+					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					InitialSupply:   nil,
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "no genesis info",
+			msg: MsgUpdateRollappInformation{
+				Owner:            sample.AccAddress(),
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+			},
+			err: nil,
 		},
 	}
 	for _, tt := range tests {

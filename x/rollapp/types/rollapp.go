@@ -92,7 +92,7 @@ func (r Rollapp) GenesisInfoFieldsAreSet() bool {
 		r.GenesisInfo.NativeDenom != nil &&
 		r.GenesisInfo.NativeDenom.Validate() == nil &&
 		r.GenesisInfo.Bech32Prefix != "" &&
-		!r.GenesisInfo.InitialSupply.IsNil()
+		(r.GenesisInfo.InitialSupply != nil && !r.GenesisInfo.InitialSupply.IsNil())
 }
 
 func (r GenesisInfo) Validate() error {
@@ -112,7 +112,7 @@ func (r GenesisInfo) Validate() error {
 		}
 	}
 
-	if !r.InitialSupply.IsNil() && r.InitialSupply.IsNegative() {
+	if r.InitialSupply != nil && !r.InitialSupply.IsNil() && r.InitialSupply.IsNegative() {
 		return errorsmod.Wrap(ErrInvalidInitialSupply, "InitialSupply")
 	}
 

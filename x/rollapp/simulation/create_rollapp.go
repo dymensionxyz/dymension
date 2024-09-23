@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	"github.com/dymensionxyz/dymension/v3/simulation"
 	simulationtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
@@ -49,7 +50,7 @@ func SimulateMsgCreateRollapp(ak simulationtypes.AccountKeeper, bk simulationtyp
 					Base:     "udym",
 					Exponent: 6,
 				},
-				InitialSupply: sdk.NewInt(1000000000),
+				InitialSupply: uptr.To(sdk.NewInt(1000000000)),
 			},
 		}
 

@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
@@ -128,7 +129,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			GenesisInfo: rollapptypes.GenesisInfo{
 				Bech32Prefix:    bech32Prefix,
 				GenesisChecksum: "1234567890abcdefg",
-				InitialSupply:   sdk.NewInt(1000),
+				InitialSupply:   uptr.To(sdk.NewInt(1000)),
 				NativeDenom: &rollapptypes.DenomMetadata{
 					Display:  "DEN",
 					Base:     "aden",

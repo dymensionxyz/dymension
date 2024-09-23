@@ -36,7 +36,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				GenesisInfo: types.GenesisInfo{
 					Bech32Prefix:    "new",
 					GenesisChecksum: "new_checksum",
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 					NativeDenom: &types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
@@ -54,7 +54,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				GenesisInfo: types.GenesisInfo{
 					Bech32Prefix:    "new",
 					GenesisChecksum: "new_checksum",
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 					NativeDenom: &types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
@@ -141,11 +141,70 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Owner:     alice,
 				RollappId: rollappId,
 				GenesisInfo: types.GenesisInfo{
-					InitialSupply: sdk.NewInt(1000),
+					InitialSupply: uptr.To(sdk.NewInt(1000)),
 				},
 			},
 			genInfoSealed: true,
 			expError:      types.ErrGenesisInfoSealed,
+		}, {
+			name: "Update rollapp: success - no genesis info, genesis info sealed",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
+			},
+			genInfoSealed: true,
+			expError:      nil,
+			expRollapp: types.Rollapp{
+				RollappId: rollappId,
+				Owner:     alice,
+				VmType:    types.Rollapp_EVM,
+				Metadata:  &types.RollappMetadata{},
+				GenesisInfo: types.GenesisInfo{
+					Bech32Prefix:    "old",
+					GenesisChecksum: "old",
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
+					NativeDenom: &types.DenomMetadata{
+						Display:  "OLD",
+						Base:     "aold",
+						Exponent: 18,
+					},
+					Sealed: true,
+				},
+			},
+		}, {
+			name: "Update rollapp: success - no initial supply, genesis info not sealed",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
+				GenesisInfo: types.GenesisInfo{
+					Bech32Prefix:    "old",
+					GenesisChecksum: "old",
+					InitialSupply:   nil,
+					NativeDenom: &types.DenomMetadata{
+						Display:  "OLD",
+						Base:     "aold",
+						Exponent: 18,
+					},
+				},
+			},
+			genInfoSealed: false,
+			expError:      nil,
+			expRollapp: types.Rollapp{
+				RollappId: rollappId,
+				Owner:     alice,
+				VmType:    types.Rollapp_EVM,
+				Metadata:  &types.RollappMetadata{},
+				GenesisInfo: types.GenesisInfo{
+					Bech32Prefix:    "old",
+					GenesisChecksum: "old",
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
+					NativeDenom: &types.DenomMetadata{
+						Display:  "OLD",
+						Base:     "aold",
+						Exponent: 18,
+					},
+				},
+			},
 		}, {
 			name: "Update rollapp: success - update metadata when sealed",
 			update: &types.MsgUpdateRollappInformation{
@@ -168,7 +227,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				GenesisInfo: types.GenesisInfo{
 					Bech32Prefix:    "old",
 					GenesisChecksum: "old",
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 					NativeDenom: &types.DenomMetadata{
 						Display:  "OLD",
 						Base:     "aold",
@@ -201,7 +260,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				GenesisInfo: types.GenesisInfo{
 					Bech32Prefix:    "old",
 					GenesisChecksum: "old",
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   uptr.To(sdk.NewInt(1000)),
 					NativeDenom: &types.DenomMetadata{
 						Display:  "OLD",
 						Base:     "aold",
@@ -239,7 +298,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		GenesisInfo: types.GenesisInfo{
 			Bech32Prefix:    "rol",
 			GenesisChecksum: "checksum",
-			InitialSupply:   sdk.NewInt(1000),
+			InitialSupply:   uptr.To(sdk.NewInt(1000)),
 			NativeDenom: &types.DenomMetadata{
 				Display:  "DEN",
 				Base:     "aden",

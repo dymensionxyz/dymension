@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	"github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -391,5 +392,5 @@ var mockGenesisInfo = types.GenesisInfo{
 		Base:     "aden",
 		Exponent: 18,
 	},
-	InitialSupply: sdk.NewInt(100000000),
+	InitialSupply: uptr.To(sdk.NewInt(100000000)),
 }

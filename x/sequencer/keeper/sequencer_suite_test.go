@@ -10,6 +10,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	"github.com/stretchr/testify/suite"
 
@@ -58,7 +59,7 @@ func (suite *SequencerTestSuite) CreateRollappWithInitialSequencer(initSeq strin
 			Bech32Prefix:    "rol",
 			GenesisChecksum: "checksum",
 			NativeDenom:     &rollapptypes.DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-			InitialSupply:   sdk.NewInt(1000),
+			InitialSupply:   uptr.To(sdk.NewInt(1000)),
 		},
 		InitialSequencer: initSeq,
 	}

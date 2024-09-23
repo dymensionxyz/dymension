@@ -5,6 +5,7 @@ import (
 	"time"
 
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -59,7 +60,7 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 		GenesisInfo: rollapptypes.GenesisInfo{
 			Bech32Prefix:    strings.ToLower(rand.Str(3)),
 			GenesisChecksum: "1234567890abcdefg",
-			InitialSupply:   sdk.NewInt(1000),
+			InitialSupply:   uptr.To(sdk.NewInt(1000)),
 			NativeDenom: &rollapptypes.DenomMetadata{
 				Display:  "DEN",
 				Base:     "aden",

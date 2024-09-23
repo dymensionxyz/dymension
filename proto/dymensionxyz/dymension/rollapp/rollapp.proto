@@ -74,7 +74,7 @@ message GenesisInfo {
   // initial_supply is the initial supply of the native token
   string initial_supply = 4 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
+    (gogoproto.nullable) = true
   ];
   // sealed indicates if the fields in this object are no longer updatable
   bool sealed = 5;

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 	"github.com/stretchr/testify/require"
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
@@ -27,13 +28,13 @@ func TestInitExportGenesis(t *testing.T) {
 			{
 				RollappId: rollappID1,
 				GenesisInfo: types.GenesisInfo{
-					InitialSupply: sdk.NewInt(1000),
+					InitialSupply: uptr.To(sdk.NewInt(1000)),
 				},
 			},
 			{
 				RollappId: rollappID2,
 				GenesisInfo: types.GenesisInfo{
-					InitialSupply: sdk.NewInt(1001),
+					InitialSupply: uptr.To(sdk.NewInt(1001)),
 				},
 			},
 		},

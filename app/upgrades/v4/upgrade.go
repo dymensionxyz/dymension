@@ -3,6 +3,7 @@ package v4
 import (
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 	epochskeeper "github.com/osmosis-labs/osmosis/v15/x/epochs/keeper"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -231,7 +232,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 				Base:     "aden", // placeholder data
 				Exponent: 6,      // placeholder data
 			},
-			InitialSupply: sdk.NewInt(100000), // placeholder data
+			InitialSupply: uptr.To(sdk.NewInt(100000)), // placeholder data
 			Sealed:        true,
 		},
 		InitialSequencer: "*",
