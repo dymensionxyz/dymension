@@ -9,7 +9,7 @@ import (
 )
 
 // NewAssetGauge creates a new asset gauge to stream rewards to some asset lockup conditions.
-func NewAssetGauge(id uint64, isPerpetual bool, distrTo lockuptypes.QueryCondition, coins sdk.Coins, startTime time.Time, numEpochsPaidOver uint64, filledEpochs uint64, distrCoins sdk.Coins) Gauge {
+func NewAssetGauge(id uint64, isPerpetual bool, distrTo lockuptypes.QueryCondition, coins sdk.Coins, startTime time.Time, numEpochsPaidOver uint64) Gauge {
 	return Gauge{
 		Id:                id,
 		IsPerpetual:       isPerpetual,
@@ -17,8 +17,8 @@ func NewAssetGauge(id uint64, isPerpetual bool, distrTo lockuptypes.QueryConditi
 		Coins:             coins,
 		StartTime:         startTime,
 		NumEpochsPaidOver: numEpochsPaidOver,
-		FilledEpochs:      filledEpochs,
-		DistributedCoins:  distrCoins,
+		FilledEpochs:      0,
+		DistributedCoins:  sdk.NewCoins(),
 	}
 }
 
@@ -26,7 +26,7 @@ func NewAssetGauge(id uint64, isPerpetual bool, distrTo lockuptypes.QueryConditi
 func NewRollappGauge(id uint64, rollappId string) Gauge {
 	return Gauge{
 		Id:                id,
-		IsPerpetual:       false,
+		IsPerpetual:       true,
 		DistributeTo:      &Gauge_Rollapp{Rollapp: &RollappGauge{RollappId: rollappId}},
 		Coins:             sdk.NewCoins(),
 		StartTime:         time.Time{},
