@@ -36,6 +36,12 @@ func (s *StateInfo) Finalize() {
 	s.Status = common.Status_FINALIZED
 }
 
+// WithNumBlocks is intended as utility in tests if a certain number of blocks need to be made, but the content is unimportant
+func (s StateInfo) WithNumBlocks(n uint64) StateInfo {
+	s.BDs = BlockDescriptors{BD: make([]BlockDescriptor, n)}
+	return s
+}
+
 func (s *StateInfo) GetIndex() StateInfoIndex {
 	return s.StateInfoIndex
 }

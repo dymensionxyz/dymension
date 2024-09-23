@@ -202,7 +202,7 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	stateInfo, found := rollappKeeper.GetStateInfo(s.hubCtx(), rollappChainID(), latestStateInfoIndex.Index)
 	startHeight := uint64(1)
 	if found {
-		startHeight = stateInfo.StartHeight + stateInfo.NumBlocks
+		startHeight = stateInfo.LastHeight() + 1
 	}
 	numBlocks := endHeight - startHeight + 1
 	// populate the block descriptors
