@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -18,7 +19,7 @@ func (m MsgMarkVulnerableRollapps) ValidateBasic() error {
 	}
 
 	if len(m.DrsVersions) == 0 {
-		return gerrc.ErrInvalidArgument.Wrap("at least one DRS version is required")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "at least one DRS version is required")
 	}
 
 	return nil

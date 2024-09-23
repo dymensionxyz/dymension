@@ -6,6 +6,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
@@ -145,8 +146,7 @@ func (s *RollappTestSuite) TestUpdateStateVulnerableRollapp() {
 	// create one more update using the vulnerable version. this time we expect an error.
 	_, err = s.PostStateUpdateWithDRSVersion(s.Ctx, raName, proposer, 1, uint64(3), vulnerableVersion)
 	s.Require().Error(err)
-	// TODO: try using errors.Is
-	s.Require().ErrorContains(err, "usage of vulnerable DRS version is not allowed for new rollapps, please update your DRS version")
+	s.Assert().ErrorIs(err, gerrc.ErrFailedPrecondition)
 
 	// the rollapp is still vulnerable
 	ok = s.IsRollappVulnerable(raName)

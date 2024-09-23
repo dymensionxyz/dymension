@@ -22,7 +22,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 	// verify the rollapp is not frozen
 	if rollapp.Frozen {
-		return nil, gerrc.ErrInvalidArgument.Wrap("rollapp is frozen")
+		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp is frozen")
 	}
 
 	// verify the DRS version is not vulnerable

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
@@ -18,7 +19,7 @@ func (k msgServer) MarkVulnerableRollapps(goCtx context.Context, msg *types.MsgM
 	}
 
 	if msg.Authority != k.authority {
-		return nil, gerrc.ErrInvalidArgument.Wrapf("only the gov module can mark vulnerable rollapps")
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "only the gov module can mark vulnerable rollapps")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)

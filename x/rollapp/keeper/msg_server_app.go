@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
@@ -88,25 +89,25 @@ func (k msgServer) checkInputs(ctx sdk.Context, msg appMsg) error {
 	app := msg.GetApp()
 	rollapp, foundRollapp := k.GetRollapp(ctx, app.GetRollappId())
 	if !foundRollapp {
-		return gerrc.ErrNotFound.Wrapf("rollappId: %s", app.GetRollappId())
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "rollappId: %s", app.GetRollappId())
 	}
 
 	// check if the sender is the owner of the app
 	if msg.GetCreator() != rollapp.Owner {
-		return gerrc.ErrPermissionDenied.Wrap("not the owner of the RollApp")
+		return errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the RollApp")
 	}
 
 	switch msg.(type) {
 	case *types.MsgRemoveApp, *types.MsgUpdateApp:
 		if idExists := k.appIDExists(ctx, app); !idExists {
-			return gerrc.ErrNotFound.Wrap("app not found")
+			return errorsmod.Wrap(gerrc.ErrNotFound, "app not found")
 		}
 	}
 	switch msg.(type) {
 	case *types.MsgAddApp, *types.MsgUpdateApp:
 		apps := k.GetRollappApps(ctx, app.GetRollappId())
 		if nameExists := k.appNameExists(apps, app); nameExists {
-			return gerrc.ErrAlreadyExists.Wrap("app name already exists")
+			return errorsmod.Wrap(gerrc.ErrAlreadyExists, "app name already exists")
 		}
 	}
 
