@@ -4,8 +4,9 @@ import (
 	"testing"
 	time "time"
 
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func TestBlockDescriptorsValidate(t *testing.T) {
