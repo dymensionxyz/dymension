@@ -378,7 +378,6 @@ func (a *AppKeepers) InitKeepers(
 		a.BankKeeper,
 		a.LockupKeeper,
 		a.EpochsKeeper,
-		a.DistrKeeper,
 		a.TxFeesKeeper,
 		a.RollappKeeper,
 	)

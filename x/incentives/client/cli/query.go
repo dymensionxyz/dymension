@@ -3,8 +3,9 @@ package cli
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils/osmocli"
+
+	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 )
 
 // GetQueryCmd returns the query commands for this module.
