@@ -19,6 +19,7 @@ func (i IBCMessagesDecorator) HandleMsgChannelOpenAck(ctx sdk.Context, msg *ibcc
 	}
 	rollappID, found := i.lightClientKeeper.GetRollappForClientID(ctx, connection.GetClientID())
 	if !found {
+		// channel is for non rollapp
 		return nil
 	}
 	// Check if canon channel already exists for rollapp, if yes, return err

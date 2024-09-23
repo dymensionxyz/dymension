@@ -57,18 +57,6 @@ var errRollappNotFound = errorsmod.Wrap(gerrc.ErrNotFound, "rollapp")
 func (k Keeper) getRollappByPortChan(ctx sdk.Context,
 	raPortOnHub, raChanOnHub string,
 ) (*types.Rollapp, error) {
-	/*
-		TODO:
-			There is an open issue of how we go about making sure that the packet really came from the rollapp, and once we know that it came
-			from the rollapp, also how we deal with fraud from the sequencer
-			See https://github.com/dymensionxyz/research/issues/242 for info
-			See
-				https://github.com/dymensionxyz/dymension/blob/8734e239483bb6290de6d01c196da35fa033e160/x/delayedack/keeper/authenticate_packet.go#L100-L204
-				https://github.com/dymensionxyz/dymension/blob/8734e239483bb6290de6d01c196da35fa033e160/x/delayedack/keeper/authenticate_packet.go#L100-L204
-				https://github.com/dymensionxyz/dymension/blob/a74ffb0cec00768bbb8dbe3fd6413e66388010d3/x/delayedack/keeper/keeper.go#L98-L107
-				https://github.com/dymensionxyz/dymension/blob/986d51ccd4807d514c91b3a147ac1b8ce5b590a1/x/delayedack/keeper/authenticate_packet.go#L47-L59
-				for the old implementations of checks
-	*/
 	chainID, err := uibc.ChainIDFromPortChannel(ctx, k.channelKeeper, raPortOnHub, raChanOnHub)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "chain id from port and channel")
