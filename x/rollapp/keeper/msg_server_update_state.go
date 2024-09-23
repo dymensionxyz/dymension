@@ -52,7 +52,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		}
 
 		// check to see if received height is the one we expected
-		expectedStartHeight := stateInfo.StartHeight + uint64(stateInfo.NumBlocks())
+		expectedStartHeight := stateInfo.StartHeight + stateInfo.NumBlocks()
 		if expectedStartHeight != msg.StartHeight {
 			return nil, errorsmod.Wrapf(types.ErrWrongBlockHeight,
 				"expected height (%d), but received (%d)",
