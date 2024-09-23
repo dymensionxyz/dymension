@@ -163,6 +163,12 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 	}
 }
 
+// necessary for tests which do not execute the entire light client flow, and just need to make transfers work
+// (all tests except the light client tests themselves)
+func (s *utilSuite) setRollappLightClientID(chainID, clientID string) {
+	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), chainID, clientID)
+}
+
 func (s *utilSuite) registerSequencer() {
 	bond := sequencertypes.DefaultParams().MinBond
 	// fund account

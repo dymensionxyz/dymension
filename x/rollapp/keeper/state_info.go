@@ -12,6 +12,7 @@ import (
 
 // SetStateInfo set a specific stateInfo in the store from its index
 func (k Keeper) SetStateInfo(ctx sdk.Context, stateInfo types.StateInfo) {
+	stateInfo.MustValidate()
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateInfoKeyPrefix))
 	b := k.cdc.MustMarshal(&stateInfo)
 	store.Set(types.StateInfoKey(

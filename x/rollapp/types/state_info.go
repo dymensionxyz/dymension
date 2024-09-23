@@ -4,7 +4,9 @@ import (
 	"strconv"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
@@ -55,12 +57,25 @@ func (s *StateInfo) GetBlockDescriptor(height uint64) (BlockDescriptor, bool) {
 	if !s.ContainsHeight(height) {
 		return BlockDescriptor{}, false
 	}
+	s.MustValidate()
 	return s.BDs.BD[height-s.StartHeight], true
 }
 
 func (s *StateInfo) GetLatestBlockDescriptor() BlockDescriptor {
-	// return s.BDs.BD[s.NumBlocks-1] // todo: should it be this? or the one below? using this breaks ibctesting tests
 	return s.BDs.BD[len(s.BDs.BD)-1]
+}
+
+func (s *StateInfo) Validate() error {
+	if uint64(len(s.BDs.BD)) != s.NumBlocks {
+		return errorsmod.Wrap(gerrc.ErrInternal, "len block descriptors not equal num blocks")
+	}
+	return nil
+}
+
+func (s *StateInfo) MustValidate() {
+	if err := s.Validate(); err != nil {
+		panic(errorsmod.Wrap(err, "validate state info"))
+	}
 }
 
 func (s *StateInfo) GetEvents() []sdk.Attribute {
