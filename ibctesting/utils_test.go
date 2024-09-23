@@ -236,7 +236,8 @@ func (s *utilSuite) finalizeRollappState(index uint64, endHeight uint64) (sdk.Ev
 	stateInfoIdx := rollapptypes.StateInfoIndex{RollappId: rollappChainID(), Index: index}
 	stateInfo, found := rollappKeeper.GetStateInfo(ctx, rollappChainID(), stateInfoIdx.Index)
 	s.Require().True(found)
-	stateInfo.BDs.BD = stateInfo.BDs.BD[:endHeight-stateInfo.StartHeight+2]
+	// this is a hack to increase the finalized height by modifying the last state info instead of submitting a new one
+	stateInfo = stateInfo.WithNumBlocks(endHeight - stateInfo.StartHeight + 1)
 	stateInfo.Status = common.Status_FINALIZED
 	// update the status of the stateInfo
 	rollappKeeper.SetStateInfo(ctx, stateInfo)
