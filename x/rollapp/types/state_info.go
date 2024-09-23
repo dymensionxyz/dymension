@@ -4,10 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
@@ -16,7 +13,6 @@ func NewStateInfo(
 	newIndex uint64,
 	creator string,
 	startHeight uint64,
-	numBlocks uint64,
 	daPath string,
 	height uint64,
 	BDs BlockDescriptors,
@@ -28,7 +24,6 @@ func NewStateInfo(
 		StateInfoIndex: stateInfoIndex,
 		Sequencer:      creator,
 		StartHeight:    startHeight,
-		NumBlocks:      numBlocks,
 		DAPath:         daPath,
 		CreationHeight: height,
 		Status:         status,
@@ -46,7 +41,7 @@ func (s *StateInfo) GetIndex() StateInfoIndex {
 }
 
 func (s *StateInfo) GetLatestHeight() uint64 {
-	return s.StartHeight + s.NumBlocks - 1
+	return s.StartHeight + uint64(s.NumBlocks()) - 1
 }
 
 func (s *StateInfo) ContainsHeight(height uint64) bool {
@@ -57,7 +52,6 @@ func (s *StateInfo) GetBlockDescriptor(height uint64) (BlockDescriptor, bool) {
 	if !s.ContainsHeight(height) {
 		return BlockDescriptor{}, false
 	}
-	s.MustValidate()
 	return s.BDs.BD[height-s.StartHeight], true
 }
 
@@ -65,17 +59,12 @@ func (s *StateInfo) GetLatestBlockDescriptor() BlockDescriptor {
 	return s.BDs.BD[len(s.BDs.BD)-1]
 }
 
-func (s *StateInfo) Validate() error {
-	if uint64(len(s.BDs.BD)) != s.NumBlocks {
-		return errorsmod.Wrap(gerrc.ErrInternal, "len block descriptors not equal num blocks")
-	}
-	return nil
+func (s *StateInfo) LastHeight() uint64 {
+	return s.GetLatestBlockDescriptor().Height
 }
 
-func (s *StateInfo) MustValidate() {
-	if err := s.Validate(); err != nil {
-		panic(errorsmod.Wrap(err, "validate state info"))
-	}
+func (s *StateInfo) NumBlocks() uint64 {
+	return uint64(len(s.BDs.BD))
 }
 
 func (s *StateInfo) GetEvents() []sdk.Attribute {
@@ -83,7 +72,7 @@ func (s *StateInfo) GetEvents() []sdk.Attribute {
 		sdk.NewAttribute(AttributeKeyRollappId, s.StateInfoIndex.RollappId),
 		sdk.NewAttribute(AttributeKeyStateInfoIndex, strconv.FormatUint(s.StateInfoIndex.Index, 10)),
 		sdk.NewAttribute(AttributeKeyStartHeight, strconv.FormatUint(s.StartHeight, 10)),
-		sdk.NewAttribute(AttributeKeyNumBlocks, strconv.FormatUint(s.NumBlocks, 10)),
+		sdk.NewAttribute(AttributeKeyNumBlocks, strconv.FormatUint(s.NumBlocks(), 10)),
 		sdk.NewAttribute(AttributeKeyDAPath, s.DAPath),
 		sdk.NewAttribute(AttributeKeyStatus, s.Status.String()),
 		sdk.NewAttribute(AttributeKeyCreatedAt, s.CreatedAt.Format(time.RFC3339)),
