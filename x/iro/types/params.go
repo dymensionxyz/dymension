@@ -50,7 +50,7 @@ func (p Params) Validate() error {
 	}
 
 	if p.MinPlanDuration < 0 {
-		return fmt.Errorf("minimum plan duration must be non-negative: %s", p.MinPlanDuration)
+		return fmt.Errorf("minimum plan duration must be non-negative: %v", p.MinPlanDuration)
 	}
 
 	if p.IncentivesMinNumEpochsPaidOver < 1 {

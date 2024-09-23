@@ -117,7 +117,6 @@ type AppKeepers struct {
 	ParamsKeeper                  paramskeeper.Keeper
 	IBCKeeper                     *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	TransferStack                 ibcporttypes.IBCModule
-	ICS4Wrapper                   ibcporttypes.ICS4Wrapper
 	delayedAckMiddleware          *delayedackmodule.IBCMiddleware
 	EvidenceKeeper                evidencekeeper.Keeper
 	TransferKeeper                ibctransferkeeper.Keeper

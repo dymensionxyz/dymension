@@ -58,29 +58,29 @@ func TestBondingCurve_Linear(t *testing.T) {
 	curve := types.NewBondingCurve(m, n, c)
 
 	// Test values
-	x1 := math.NewInt(0)
-	x2 := math.NewInt(10)
-	x3 := math.NewInt(100)
+	x1 := math.NewInt(0).MulRaw(1e18)
+	x2 := math.NewInt(10).MulRaw(1e18)
+	x3 := math.NewInt(100).MulRaw(1e18)
 
 	// Expected results
-	spotPrice1 := math.NewInt(0)   // 1*0^1 + 0
-	spotPrice2 := math.NewInt(10)  // 1*10^1 + 0
-	spotPrice3 := math.NewInt(100) // 1*100^1 + 0
+	spotPrice1 := math.NewInt(0).MulRaw(1e18)   // 1*0^1 + 0
+	spotPrice2 := math.NewInt(10).MulRaw(1e18)  // 1*10^1 + 0
+	spotPrice3 := math.NewInt(100).MulRaw(1e18) // 1*100^1 + 0
 
 	// y = 1/2*x^2
-	integral2 := math.NewInt(50)   // (1/2)*10^2
-	integral3 := math.NewInt(5000) // (1/2)*100^2
+	integral2 := math.NewInt(50).MulRaw(1e18)   // (1/2)*10^2
+	integral3 := math.NewInt(5000).MulRaw(1e18) // (1/2)*100^2
 
-	cost1to2 := math.NewInt(50)   // 50 - 0
-	cost2to3 := math.NewInt(4950) // 5000 - 50
+	cost1to2 := math.NewInt(50).MulRaw(1e18)   // 50 - 0
+	cost2to3 := math.NewInt(4950).MulRaw(1e18) // 5000 - 50
 
 	require.Equal(t, math.ZeroInt(), curve.Integral(x1))
 	require.Equal(t, integral2, curve.Integral(x2))
 	require.Equal(t, integral3, curve.Integral(x3))
 
-	require.Equal(t, spotPrice1, curve.SpotPrice(x1).TruncateInt())
-	require.Equal(t, spotPrice2, curve.SpotPrice(x2).TruncateInt())
-	require.Equal(t, spotPrice3, curve.SpotPrice(x3).TruncateInt())
+	require.Equal(t, spotPrice1, curve.SpotPrice(x1))
+	require.Equal(t, spotPrice2, curve.SpotPrice(x2))
+	require.Equal(t, spotPrice3, curve.SpotPrice(x3))
 
 	require.Equal(t, cost1to2, curve.Cost(x1, x2))
 	require.Equal(t, cost2to3, curve.Cost(x2, x3))
@@ -97,29 +97,29 @@ func TestBondingCurve_Quadratic(t *testing.T) {
 	curve := types.NewBondingCurve(m, n, c)
 
 	// Test values
-	x1 := math.NewInt(0)
-	x2 := math.NewInt(5)
-	x3 := math.NewInt(10)
+	x1 := math.NewInt(0).MulRaw(1e18)
+	x2 := math.NewInt(5).MulRaw(1e18)
+	x3 := math.NewInt(10).MulRaw(1e18)
 
 	// Expected results
-	spotPrice1 := math.NewInt(10)  // 2*0^2 + 10
-	spotPrice2 := math.NewInt(60)  // 2*5^2 + 10
-	spotPrice3 := math.NewInt(210) // 2*10^2 + 10
+	spotPrice1 := math.NewInt(10).MulRaw(1e18)  // 2*0^2 + 10
+	spotPrice2 := math.NewInt(60).MulRaw(1e18)  // 2*5^2 + 10
+	spotPrice3 := math.NewInt(210).MulRaw(1e18) // 2*10^2 + 10
 
-	integral1 := math.NewInt(0)   // (2/3)*0^3 + 10*0
-	integral2 := math.NewInt(133) // (2/3)*5^3 + 10*5
-	integral3 := math.NewInt(766) // (2/3)*10^3 + 10*10
+	integral1 := math.NewInt(0).MulRaw(1e18)   // (2/3)*0^3 + 10*0
+	integral2 := math.NewInt(133).MulRaw(1e18) // (2/3)*5^3 + 10*5
+	integral3 := math.NewInt(766).MulRaw(1e18) // (2/3)*10^3 + 10*10
 
 	cost1to2 := math.NewInt(133) // (2/3)*5^3 + 10*5 - (2/3)*0^3 - 10*0
 	cost2to3 := math.NewInt(633) // (2/3)*10^3 + 10*10 - (2/3)*5^3 - 10*5
 
-	require.Equal(t, integral1, curve.Integral(x1))
-	require.Equal(t, integral2, curve.Integral(x2))
-	require.Equal(t, integral3, curve.Integral(x3))
+	require.Equal(t, integral1, curve.Integral(x1), fmt.Sprintf("expected %s, got %s", integral1, curve.Integral(x1)))
+	require.Equal(t, integral2, curve.Integral(x2), fmt.Sprintf("expected %s, got %s", integral2, curve.Integral(x2)))
+	require.Equal(t, integral3, curve.Integral(x3), fmt.Sprintf("expected %s, got %s", integral3, curve.Integral(x3)))
 
-	require.Equal(t, spotPrice1, curve.SpotPrice(x1).TruncateInt())
-	require.Equal(t, spotPrice2, curve.SpotPrice(x2).TruncateInt())
-	require.Equal(t, spotPrice3, curve.SpotPrice(x3).TruncateInt())
+	require.Equal(t, spotPrice1, curve.SpotPrice(x1))
+	require.Equal(t, spotPrice2, curve.SpotPrice(x2))
+	require.Equal(t, spotPrice3, curve.SpotPrice(x3))
 
 	require.Equal(t, cost1to2, curve.Cost(x1, x2))
 	require.Equal(t, cost2to3, curve.Cost(x2, x3))
@@ -135,9 +135,9 @@ func TestBondingCurve_Cubic(t *testing.T) {
 	curve := types.NewBondingCurve(m, n, c)
 
 	// Test values
-	x1 := math.NewInt(0)
-	x2 := math.NewInt(100)
-	x3 := math.NewInt(1000)
+	x1 := math.NewInt(0).MulRaw(1e18)
+	x2 := math.NewInt(100).MulRaw(1e18)
+	x3 := math.NewInt(1000).MulRaw(1e18)
 
 	// Expected results
 	spotPrice1 := math.NewInt(1000)       // 3*0^3 + 1000
@@ -155,9 +155,9 @@ func TestBondingCurve_Cubic(t *testing.T) {
 	require.Equal(t, integral2, curve.Integral(x2))
 	require.Equal(t, integral3, curve.Integral(x3))
 
-	require.Equal(t, spotPrice1, curve.SpotPrice(x1).TruncateInt())
-	require.Equal(t, spotPrice2, curve.SpotPrice(x2).TruncateInt())
-	require.Equal(t, spotPrice3, curve.SpotPrice(x3).TruncateInt())
+	require.Equal(t, spotPrice1, curve.SpotPrice(x1))
+	require.Equal(t, spotPrice2, curve.SpotPrice(x2))
+	require.Equal(t, spotPrice3, curve.SpotPrice(x3))
 
 	require.Equal(t, cost1to2, curve.Cost(x1, x2))
 	require.Equal(t, cost2to3, curve.Cost(x2, x3))
@@ -174,9 +174,9 @@ func TestBondingCurve_HighExponent(t *testing.T) {
 	curve := types.NewBondingCurve(m, n, c)
 
 	// Test values
-	x1 := math.NewInt(0)
-	x2 := math.NewInt(2)
-	x3 := math.NewInt(10)
+	x1 := math.NewInt(0).MulRaw(1e18)
+	x2 := math.NewInt(2).MulRaw(1e18)
+	x3 := math.NewInt(10).MulRaw(1e18)
 
 	// Expected results
 	spotPrice1 := math.NewInt(100)    // 1*0^5 + 100
@@ -190,9 +190,9 @@ func TestBondingCurve_HighExponent(t *testing.T) {
 	cost1to2 := math.NewInt(210)    // 210 - 0
 	cost2to3 := math.NewInt(167456) // 167666 - 210
 
-	require.Equal(t, spotPrice1, curve.SpotPrice(x1).TruncateInt())
-	require.Equal(t, spotPrice2, curve.SpotPrice(x2).TruncateInt())
-	require.Equal(t, spotPrice3, curve.SpotPrice(x3).TruncateInt())
+	require.Equal(t, spotPrice1, curve.SpotPrice(x1))
+	require.Equal(t, spotPrice2, curve.SpotPrice(x2))
+	require.Equal(t, spotPrice3, curve.SpotPrice(x3))
 
 	require.Equal(t, integral1, curve.Integral(x1))
 	require.Equal(t, integral2, curve.Integral(x2))
@@ -214,9 +214,9 @@ func TestBondingCurve_SquareRoot(t *testing.T) {
 	curve := types.NewBondingCurve(m, n, c)
 
 	// Test values
-	x1 := math.NewInt(0)
-	x2 := math.NewInt(100)
-	x3 := math.NewInt(10000)
+	x1 := math.NewInt(0).MulRaw(1e18)
+	x2 := math.NewInt(100).MulRaw(1e18)
+	x3 := math.NewInt(10000).MulRaw(1e18)
 
 	// Expected results (rounded to nearest integer)
 	spotPrice1 := math.NewInt(11)  // 2.24345436*0^0.5 + 10.5443534 ≈ 11
@@ -234,10 +234,27 @@ func TestBondingCurve_SquareRoot(t *testing.T) {
 	require.Equal(t, integral2, curve.Integral(x2))
 	require.Equal(t, integral3, curve.Integral(x3))
 
-	require.Equal(t, spotPrice1, curve.SpotPrice(x1).TruncateInt())
-	require.Equal(t, spotPrice2, curve.SpotPrice(x2).TruncateInt())
-	require.Equal(t, spotPrice3, curve.SpotPrice(x3).TruncateInt())
+	require.Equal(t, spotPrice1, curve.SpotPrice(x1))
+	require.Equal(t, spotPrice2, curve.SpotPrice(x2))
+	require.Equal(t, spotPrice3, curve.SpotPrice(x3))
 
 	require.Equal(t, cost1to2, curve.Cost(x1, x2))
 	require.Equal(t, cost2to3, curve.Cost(x2, x3))
 }
+
+/*
+
+This function takes:
+val: The total value to be raised (VAL)
+z: The total number of tokens (Z)
+k: The exponent (K)
+It returns the calculated M value as a math.LegacyDec.
+
+
+func CalculateM(val, z math.LegacyDec, k int64) math.LegacyDec {
+    kPlusOne := math.LegacyNewDec(k + 1)
+    zPowKPlusOne := z.Power(uint64(k + 1))
+    return val.Mul(kPlusOne).Quo(zPowKPlusOne)
+}
+
+*/

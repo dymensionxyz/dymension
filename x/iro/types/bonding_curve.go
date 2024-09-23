@@ -16,6 +16,8 @@ with the following actions:
 const (
 	MaxNValue    = 10
 	MaxPrecision = 2
+	DecimalScale = 18 // TODO: allow to be set on creation
+	DYMScale     = 1e18
 )
 
 func NewBondingCurve(m, n, c math.LegacyDec) BondingCurve {
@@ -66,15 +68,23 @@ func checkPrecision(d math.LegacyDec) bool {
 	return multiplied.IsInteger()
 }
 
+// Scale x from it's base denomination to the decimal scale
+func scaleX(x math.Int) math.LegacyDec {
+	return math.LegacyNewDecFromIntWithPrec(x, DecimalScale)
+}
+
 // SpotPrice returns the spot price at x
-func (lbc BondingCurve) SpotPrice(x math.Int) math.LegacyDec {
+func (lbc BondingCurve) SpotPrice(x math.Int) math.Int {
 	// we use osmomath as it support Power function
-	xDec := osmomath.BigDecFromSDKDec(x.ToLegacyDec())
+	xDec := osmomath.BigDecFromSDKDec(scaleX(x))
 	nDec := osmomath.BigDecFromSDKDec(lbc.N)
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)
 
-	xPowN := xDec.Power(nDec)                  // Calculate x^N
-	return mDec.Mul(xPowN).SDKDec().Add(lbc.C) // M * x^N + C
+	xPowN := xDec.Power(nDec)                    // Calculate x^N
+	price := mDec.Mul(xPowN).SDKDec().Add(lbc.C) // M * x^N + C
+
+	priceMultiplier := math.NewInt(1e18)
+	return price.MulInt(priceMultiplier).TruncateInt()
 }
 
 // Cost returns the cost of buying x1 - x tokens
@@ -87,7 +97,7 @@ func (lbc BondingCurve) Cost(x, x1 math.Int) math.Int {
 //	(M / (N + 1)) * x^(N + 1) + C * x.
 func (lbc BondingCurve) Integral(x math.Int) math.Int {
 	// we use osmomath as it support Power function
-	xDec := osmomath.BigDecFromSDKDec(x.ToLegacyDec())
+	xDec := osmomath.BigDecFromSDKDec(scaleX(x))
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)
 	cDec := osmomath.BigDecFromSDKDec(lbc.C)
 	nPlusOne := osmomath.BigDecFromSDKDec(lbc.N.Add(math.LegacyNewDec(1)))
@@ -98,5 +108,6 @@ func (lbc BondingCurve) Integral(x math.Int) math.Int {
 
 	// Calculate the integral
 	integral := xPowNplusOne.Mul(mDivNPlusOne).Add(cx)
-	return integral.SDKDec().TruncateInt()
+	priceMultiplier := math.NewInt(1e18)
+	return integral.SDKDec().MulInt(priceMultiplier).TruncateInt()
 }

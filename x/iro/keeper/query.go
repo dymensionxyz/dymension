@@ -116,7 +116,7 @@ func (k Keeper) QueryPrice(goCtx context.Context, req *types.QueryPriceRequest) 
 		return nil, status.Error(codes.NotFound, "plan not found")
 	}
 
-	price := plan.BondingCurve.SpotPrice(plan.SoldAmt).TruncateInt()
+	price := plan.BondingCurve.SpotPrice(plan.SoldAmt)
 	coin := sdk.NewCoin(appparams.BaseDenom, price)
 
 	return &types.QueryPriceResponse{
