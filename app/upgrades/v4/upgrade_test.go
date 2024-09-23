@@ -121,9 +121,12 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 					return
 				}
 
-				s.validateStreamerMigration()
+				// Check rollapp gauges
+				if err = s.validateRollappGaugesMigration(); err != nil {
+					return
+				}
 
-				// TODO: check for rollapp gauges creation
+				s.validateStreamerMigration()
 
 				return
 			},
@@ -189,6 +192,39 @@ func (s *UpgradeTestSuite) validateRollappsMigration(numRoll int) error {
 	if !reflect.DeepEqual(rollapps, expectRollapps) {
 		return fmt.Errorf("rollapps do not match")
 	}
+	return nil
+}
+
+// validate rollapp gauges
+func (s *UpgradeTestSuite) validateRollappGaugesMigration() error {
+	rollappMap := make(map[string]bool) // Create a map to store rollappId<->gaugeCreated
+
+	rollapps := s.App.RollappKeeper.GetAllRollapps(s.Ctx)
+	for _, rollapp := range rollapps {
+		rollappMap[rollapp.RollappId] = false // false until gauge is validated
+	}
+
+	gauges := s.App.IncentivesKeeper.GetGauges(s.Ctx)
+	if len(gauges) != len(rollapps) {
+		return fmt.Errorf("rollapp gauges not created for all rollapps")
+	}
+
+	// Check that for each rollapp there exists a rollapp gauge
+	for _, gauge := range gauges {
+		if gauge.GetRollapp() != nil {
+			gaugeExists, ok := rollappMap[gauge.GetRollapp().RollappId]
+			if !ok {
+				return fmt.Errorf("rollapp gauge for unknown rollapp %s", gauge.GetRollapp().RollappId)
+			}
+
+			if gaugeExists {
+				return fmt.Errorf("rollapp gauge for rollapp %s already created", gauge.GetRollapp().RollappId)
+			}
+
+			rollappMap[gauge.GetRollapp().RollappId] = true
+		}
+	}
+
 	return nil
 }
 

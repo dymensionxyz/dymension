@@ -154,10 +154,65 @@ func (m *EventAppRemoved) GetApp() *App {
 	return nil
 }
 
+type EventMarkVulnerableRollapps struct {
+	// VulnerableRollappNum is a number of rollapps that were marked as vulnerable.
+	VulnerableRollappNum uint64 `protobuf:"varint,1,opt,name=vulnerable_rollapp_num,json=vulnerableRollappNum,proto3" json:"vulnerable_rollapp_num,omitempty"`
+	// DrsVersions is a list of DRS versions that were marked as vulnerable.
+	DrsVersions []string `protobuf:"bytes,2,rep,name=drs_versions,json=drsVersions,proto3" json:"drs_versions,omitempty"`
+}
+
+func (m *EventMarkVulnerableRollapps) Reset()         { *m = EventMarkVulnerableRollapps{} }
+func (m *EventMarkVulnerableRollapps) String() string { return proto.CompactTextString(m) }
+func (*EventMarkVulnerableRollapps) ProtoMessage()    {}
+func (*EventMarkVulnerableRollapps) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e0f74405c12dec3c, []int{3}
+}
+func (m *EventMarkVulnerableRollapps) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventMarkVulnerableRollapps) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventMarkVulnerableRollapps.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventMarkVulnerableRollapps) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventMarkVulnerableRollapps.Merge(m, src)
+}
+func (m *EventMarkVulnerableRollapps) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventMarkVulnerableRollapps) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventMarkVulnerableRollapps.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventMarkVulnerableRollapps proto.InternalMessageInfo
+
+func (m *EventMarkVulnerableRollapps) GetVulnerableRollappNum() uint64 {
+	if m != nil {
+		return m.VulnerableRollappNum
+	}
+	return 0
+}
+
+func (m *EventMarkVulnerableRollapps) GetDrsVersions() []string {
+	if m != nil {
+		return m.DrsVersions
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*EventAppAdded)(nil), "dymensionxyz.dymension.rollapp.EventAppAdded")
 	proto.RegisterType((*EventAppUpdated)(nil), "dymensionxyz.dymension.rollapp.EventAppUpdated")
 	proto.RegisterType((*EventAppRemoved)(nil), "dymensionxyz.dymension.rollapp.EventAppRemoved")
+	proto.RegisterType((*EventMarkVulnerableRollapps)(nil), "dymensionxyz.dymension.rollapp.EventMarkVulnerableRollapps")
 }
 
 func init() {
@@ -165,7 +220,7 @@ func init() {
 }
 
 var fileDescriptor_e0f74405c12dec3c = []byte{
-	// 203 bytes of a gzipped FileDescriptorProto
+	// 279 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xd2, 0x4e, 0xa9, 0xcc, 0x4d,
 	0xcd, 0x2b, 0xce, 0xcc, 0xcf, 0xab, 0xa8, 0xac, 0xd2, 0x87, 0x73, 0xf4, 0x8b, 0xf2, 0x73, 0x72,
 	0x12, 0x0b, 0x0a, 0xf4, 0x53, 0xcb, 0x52, 0xf3, 0x4a, 0x8a, 0xf5, 0x0a, 0x8a, 0xf2, 0x4b, 0xf2,
@@ -173,12 +228,17 @@ var fileDescriptor_e0f74405c12dec3c = []byte{
 	0x28, 0x80, 0x98, 0xa4, 0xe4, 0xc6, 0xc5, 0xeb, 0x0a, 0x32, 0xd9, 0xb1, 0xa0, 0xc0, 0x31, 0x25,
 	0x25, 0x35, 0x45, 0xc8, 0x94, 0x8b, 0x39, 0xb1, 0xa0, 0x40, 0x82, 0x51, 0x81, 0x51, 0x83, 0xdb,
 	0x48, 0x59, 0x0f, 0xbf, 0x45, 0x7a, 0x8e, 0x05, 0x05, 0x41, 0x20, 0xf5, 0x4a, 0x1e, 0x5c, 0xfc,
-	0x30, 0x73, 0x42, 0x0b, 0x52, 0x12, 0x4b, 0xa8, 0x62, 0x52, 0x50, 0x6a, 0x6e, 0x7e, 0x19, 0xd9,
-	0x26, 0x39, 0xf9, 0x9d, 0x78, 0x24, 0xc7, 0x78, 0xe1, 0x91, 0x1c, 0xe3, 0x83, 0x47, 0x72, 0x8c,
-	0x13, 0x1e, 0xcb, 0x31, 0x5c, 0x78, 0x2c, 0xc7, 0x70, 0xe3, 0xb1, 0x1c, 0x43, 0x94, 0x49, 0x7a,
-	0x66, 0x49, 0x46, 0x69, 0x92, 0x5e, 0x72, 0x7e, 0xae, 0x3e, 0x8e, 0xa0, 0x2a, 0x33, 0xd6, 0xaf,
-	0x80, 0x87, 0x57, 0x49, 0x65, 0x41, 0x6a, 0x71, 0x12, 0x1b, 0x38, 0xc8, 0x8c, 0x01, 0x01, 0x00,
-	0x00, 0xff, 0xff, 0x54, 0xfb, 0x35, 0xbb, 0xab, 0x01, 0x00, 0x00,
+	0x30, 0x73, 0x42, 0x0b, 0x52, 0x12, 0x4b, 0xa8, 0x62, 0x52, 0x50, 0x6a, 0x6e, 0x7e, 0x19, 0xf9,
+	0x26, 0x95, 0x71, 0x49, 0x83, 0x4d, 0xf2, 0x4d, 0x2c, 0xca, 0x0e, 0x2b, 0xcd, 0xc9, 0x4b, 0x2d,
+	0x4a, 0x4c, 0xca, 0x49, 0x0d, 0x82, 0x28, 0x2b, 0x16, 0x32, 0xe1, 0x12, 0x2b, 0x83, 0x8b, 0xc6,
+	0x43, 0x75, 0xc7, 0xe7, 0x95, 0xe6, 0x82, 0x2d, 0x62, 0x09, 0x12, 0x29, 0x43, 0xd7, 0xe3, 0x57,
+	0x9a, 0x2b, 0xa4, 0xc8, 0xc5, 0x93, 0x52, 0x54, 0x1c, 0x5f, 0x96, 0x5a, 0x04, 0xb2, 0xb4, 0x58,
+	0x82, 0x49, 0x81, 0x59, 0x83, 0x33, 0x88, 0x3b, 0xa5, 0xa8, 0x38, 0x0c, 0x2a, 0xe4, 0xe4, 0x77,
+	0xe2, 0x91, 0x1c, 0xe3, 0x85, 0x47, 0x72, 0x8c, 0x0f, 0x1e, 0xc9, 0x31, 0x4e, 0x78, 0x2c, 0xc7,
+	0x70, 0xe1, 0xb1, 0x1c, 0xc3, 0x8d, 0xc7, 0x72, 0x0c, 0x51, 0x26, 0xe9, 0x99, 0x25, 0x19, 0xa5,
+	0x49, 0x7a, 0xc9, 0xf9, 0xb9, 0xfa, 0x38, 0xa2, 0xa8, 0xcc, 0x58, 0xbf, 0x02, 0x1e, 0x4f, 0x25,
+	0x95, 0x05, 0xa9, 0xc5, 0x49, 0x6c, 0xe0, 0xa8, 0x32, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0xbc,
+	0x3d, 0xfa, 0x75, 0x23, 0x02, 0x00, 0x00,
 }
 
 func (m *EventAppAdded) Marshal() (dAtA []byte, err error) {
@@ -286,6 +346,43 @@ func (m *EventAppRemoved) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *EventMarkVulnerableRollapps) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventMarkVulnerableRollapps) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventMarkVulnerableRollapps) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.DrsVersions) > 0 {
+		for iNdEx := len(m.DrsVersions) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.DrsVersions[iNdEx])
+			copy(dAtA[i:], m.DrsVersions[iNdEx])
+			i = encodeVarintEvents(dAtA, i, uint64(len(m.DrsVersions[iNdEx])))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if m.VulnerableRollappNum != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.VulnerableRollappNum))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintEvents(dAtA []byte, offset int, v uint64) int {
 	offset -= sovEvents(v)
 	base := offset
@@ -332,6 +429,24 @@ func (m *EventAppRemoved) Size() (n int) {
 	if m.App != nil {
 		l = m.App.Size()
 		n += 1 + l + sovEvents(uint64(l))
+	}
+	return n
+}
+
+func (m *EventMarkVulnerableRollapps) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.VulnerableRollappNum != 0 {
+		n += 1 + sovEvents(uint64(m.VulnerableRollappNum))
+	}
+	if len(m.DrsVersions) > 0 {
+		for _, s := range m.DrsVersions {
+			l = len(s)
+			n += 1 + l + sovEvents(uint64(l))
+		}
 	}
 	return n
 }
@@ -578,6 +693,107 @@ func (m *EventAppRemoved) Unmarshal(dAtA []byte) error {
 			if err := m.App.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventMarkVulnerableRollapps) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventMarkVulnerableRollapps: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventMarkVulnerableRollapps: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VulnerableRollappNum", wireType)
+			}
+			m.VulnerableRollappNum = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.VulnerableRollappNum |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DrsVersions", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DrsVersions = append(m.DrsVersions, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

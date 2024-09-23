@@ -356,6 +356,7 @@ func (a *AppKeepers) InitKeepers(
 		a.IBCKeeper.ClientKeeper,
 		nil,
 		a.BankKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
@@ -382,7 +383,6 @@ func (a *AppKeepers) InitKeepers(
 		a.BankKeeper,
 		a.LockupKeeper,
 		a.EpochsKeeper,
-		a.DistrKeeper,
 		a.TxFeesKeeper,
 		a.RollappKeeper,
 	)

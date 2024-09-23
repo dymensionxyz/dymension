@@ -68,6 +68,9 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrWrongBlockHeight, "StartHeight must be greater than zero")
 	}
 
+	// TODO: add a validation for DrsVersion once empty DRS version is marked vulnerable
+	//  https://github.com/dymensionxyz/dymension/issues/1233
+
 	// check that the blocks are sequential by height
 	for bdIndex := uint64(0); bdIndex < msg.NumBlocks; bdIndex += 1 {
 		if msg.BDs.BD[bdIndex].Height != msg.StartHeight+bdIndex {
