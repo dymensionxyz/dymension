@@ -15,7 +15,7 @@ func NewMsgCreateRollapp(
 	alias string,
 	vmType Rollapp_VMType,
 	metadata *RollappMetadata,
-	genesisInfo GenesisInfo,
+	genesisInfo *GenesisInfo,
 ) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
 		Creator:          creator,

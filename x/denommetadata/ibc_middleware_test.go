@@ -596,7 +596,7 @@ func (m *mockIBCModule) OnRecvPacket(_ sdk.Context, p channeltypes.Packet, _ sdk
 	return emptyResult
 }
 
-func (m *mockIBCModule) OnAcknowledgementPacket(_ sdk.Context, _ channeltypes.Packet, ack []byte, _ sdk.AccAddress) error {
+func (m *mockIBCModule) OnAcknowledgementPacket(sdk.Context, channeltypes.Packet, []byte, sdk.AccAddress) error {
 	return nil
 }
 
@@ -604,7 +604,11 @@ type mockDenomMetadataKeeper struct {
 	hasDenomMetaData, created bool
 }
 
-func (m *mockDenomMetadataKeeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
+func (m *mockDenomMetadataKeeper) HasDenomMetadata(sdk.Context, string) bool {
+	return true
+}
+
+func (m *mockDenomMetadataKeeper) CreateDenomMetadata(sdk.Context, banktypes.Metadata) error {
 	m.created = true
 	return nil
 }

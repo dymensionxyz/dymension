@@ -383,7 +383,7 @@ var mockRollappMetadata = types.RollappMetadata{
 	X:           "https://x.dymension.xyz",
 }
 
-var mockGenesisInfo = types.GenesisInfo{
+var mockGenesisInfo = &types.GenesisInfo{
 	Bech32Prefix:    "rol",
 	GenesisChecksum: "checksum",
 	NativeDenom: &types.DenomMetadata{

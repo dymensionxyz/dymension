@@ -41,7 +41,7 @@ message Rollapp {
   // metadata is the rollapp metadata
   RollappMetadata metadata = 11;
   // genesis_info keeps immutable rollapp fields
-  GenesisInfo genesis_info = 12 [(gogoproto.nullable) = false];
+  GenesisInfo genesis_info = 12 [(gogoproto.nullable) = true];
   // initial_sequencer is an option to preset one or more coma-separated bech32-encoded addresses of the
   // sequencer(s) that are allowed to initially register and serve for this rollapp.
   // if left empty, no sequencer is allowed to register.

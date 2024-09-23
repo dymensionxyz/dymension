@@ -176,6 +176,37 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 					},
 				},
 			},
+		}, {
+			name: "Update rollapp: success - unsealed, update rollapp without genesis info",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
+			},
+			rollappLaunched: true,
+			genInfoSealed:   false,
+			expError:        nil,
+			expRollapp: types.Rollapp{
+				RollappId:        rollappId,
+				Owner:            alice,
+				InitialSequencer: "",
+				ChannelId:        "",
+				Frozen:           false,
+				RegisteredDenoms: nil,
+				Launched:         false,
+				VmType:           types.Rollapp_EVM,
+				Metadata:         &mockRollappMetadata,
+				GenesisInfo: &types.GenesisInfo{
+					Bech32Prefix:    "old",
+					GenesisChecksum: "old",
+					InitialSupply:   sdk.NewInt(1000),
+					NativeDenom: &types.DenomMetadata{
+						Display:  "OLD",
+						Base:     "aold",
+						Exponent: 18,
+					},
+					Sealed: false,
+				},
+			},
 		},
 	}
 

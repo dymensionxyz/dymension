@@ -278,7 +278,7 @@ func (s *KeeperTestSuite) persistRollApp(ras ...rollapp) {
 		s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
 			RollappId: ra.rollAppId,
 			Owner:     ra.owner,
-			GenesisInfo: rollapptypes.GenesisInfo{
+			GenesisInfo: &rollapptypes.GenesisInfo{
 				Bech32Prefix: ra.bech32,
 			},
 		})
