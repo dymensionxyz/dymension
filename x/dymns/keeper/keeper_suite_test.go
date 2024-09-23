@@ -142,7 +142,7 @@ func (s *KeeperTestSuite) SetupTest() {
 			rollappStoreKey,
 			rollappParamsSubspace,
 			nil, nil, nil,
-			bk,
+			bk, nil,
 		)
 
 		dk = dymnskeeper.NewKeeper(cdc,

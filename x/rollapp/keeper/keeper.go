@@ -36,6 +36,7 @@ func NewKeeper(
 	ibcclientKeeper types.IBCClientKeeper,
 	sequencerKeeper types.SequencerKeeper,
 	bankKeeper types.BankKeeper,
+	canonicalClientKeeper types.CanonicalLightClientKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -43,14 +44,15 @@ func NewKeeper(
 	}
 
 	k := &Keeper{
-		cdc:             cdc,
-		storeKey:        storeKey,
-		paramstore:      ps,
-		hooks:           nil,
-		channelKeeper:   channelKeeper,
-		ibcClientKeeper: ibcclientKeeper,
-		sequencerKeeper: sequencerKeeper,
-		bankKeeper:      bankKeeper,
+		cdc:                   cdc,
+		storeKey:              storeKey,
+		paramstore:            ps,
+		hooks:                 nil,
+		channelKeeper:         channelKeeper,
+		ibcClientKeeper:       ibcclientKeeper,
+		sequencerKeeper:       sequencerKeeper,
+		bankKeeper:            bankKeeper,
+		canonicalClientKeeper: canonicalClientKeeper,
 	}
 	k.SetFinalizePendingFn(k.finalizePendingState)
 	return k
@@ -66,6 +68,10 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k *Keeper) SetSequencerKeeper(sk types.SequencerKeeper) {
 	k.sequencerKeeper = sk
+}
+
+func (k *Keeper) SetCanonicalClientKeeper(kk types.CanonicalLightClientKeeper) {
+	k.canonicalClientKeeper = kk
 }
 
 /* -------------------------------------------------------------------------- */
