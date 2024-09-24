@@ -14,10 +14,13 @@ with the following actions:
 */
 
 const (
-	MaxNValue    = 10
+	MaxNValue    = 3
 	MaxPrecision = 2
-	DecimalScale = 18 // TODO: allow to be set on creation
-	DYMScale     = 1e18
+)
+
+var (
+	rollappTokenDecimals     = int64(18) // TODO: allow to be set on creation
+	DYMToBaseTokenMultiplier = math.NewInt(1e18)
 )
 
 func NewBondingCurve(m, n, c math.LegacyDec) BondingCurve {
@@ -68,9 +71,13 @@ func checkPrecision(d math.LegacyDec) bool {
 	return multiplied.IsInteger()
 }
 
-// Scale x from it's base denomination to the decimal scale
+// Scales x from it's base denomination to the decimal scale
 func scaleX(x math.Int) math.LegacyDec {
-	return math.LegacyNewDecFromIntWithPrec(x, DecimalScale)
+	return math.LegacyNewDecFromIntWithPrec(x, rollappTokenDecimals)
+}
+
+func scaleDYM(y math.LegacyDec) math.Int {
+	return y.MulInt(DYMToBaseTokenMultiplier).TruncateInt()
 }
 
 // SpotPrice returns the spot price at x
@@ -83,8 +90,7 @@ func (lbc BondingCurve) SpotPrice(x math.Int) math.Int {
 	xPowN := xDec.Power(nDec)                    // Calculate x^N
 	price := mDec.Mul(xPowN).SDKDec().Add(lbc.C) // M * x^N + C
 
-	priceMultiplier := math.NewInt(1e18)
-	return price.MulInt(priceMultiplier).TruncateInt()
+	return scaleDYM(price)
 }
 
 // Cost returns the cost of buying x1 - x tokens
@@ -108,6 +114,40 @@ func (lbc BondingCurve) Integral(x math.Int) math.Int {
 
 	// Calculate the integral
 	integral := xPowNplusOne.Mul(mDivNPlusOne).Add(cx)
-	priceMultiplier := math.NewInt(1e18)
-	return integral.SDKDec().MulInt(priceMultiplier).TruncateInt()
+	return scaleDYM(integral.SDKDec())
+}
+
+// CalculateM computes the M parameter for a bonding curve
+// val: total value to be raised
+// t: total number of tokens
+// n: curve exponent
+// c: constant term
+// M = (VAL - C * T) * (N + 1) / T^(N+1)
+func CalculateM(val, t, n, c math.LegacyDec) math.LegacyDec {
+	// Convert to osmomath.BigDec for more precise calculations
+	valBig := osmomath.BigDecFromSDKDec(val)
+	tBig := osmomath.BigDecFromSDKDec(t)
+	nBig := osmomath.BigDecFromSDKDec(n)
+	cBig := osmomath.BigDecFromSDKDec(c)
+
+	// Calculate N + 1
+	nPlusOne := nBig.Add(osmomath.OneDec())
+
+	// Calculate T^(N+1)
+	tPowNPlusOne := tBig.Power(nPlusOne)
+
+	// Calculate C * T
+	cTimesT := cBig.Mul(tBig)
+
+	// Calculate VAL - C * Z
+	numerator := valBig.Sub(cTimesT)
+
+	// Calculate (VAL - C * Z) * (N + 1)
+	numerator = numerator.Mul(nPlusOne)
+
+	// Calculate M = numerator / Z^(N+1)
+	m := numerator.Quo(tPowNPlusOne)
+
+	// Convert back to math.LegacyDec and return
+	return m.SDKDec()
 }
