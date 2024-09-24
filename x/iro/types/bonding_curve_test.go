@@ -14,14 +14,12 @@ var (
 	defaultTolerance = math.NewInt(1).MulRaw(1e9) // one millionth of a dym
 )
 
-// defaultApproxEqual
+// approxEqual checks if two math.Ints are approximately equal
 func approxEqual(t *testing.T, expected, actual math.Int) {
 	diff := expected.Sub(actual).Abs()
 	require.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
 }
 
-// y=mx^n+c
-// m >= 0, c > 0
 func TestBondingCurve_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -30,16 +28,15 @@ func TestBondingCurve_ValidateBasic(t *testing.T) {
 		c         float64
 		expectErr bool
 	}{
-		{"Valid bonding curve", 2, 2.23, 3, false},
-		{"Valid linear curve", 0.2, 0.88, 3.22, false},
-		{"Valid const price curve", 0, 1, 3, false},
+		{"Valid bonding curve", 1, 1, 0, false},
+		{"Valid linear curve", 0.000002, 1, 0.00022, false},
+		{"Valid power curve N>1", 0.1234, 1.23, 0.002, false},
+		{"Valid power curve N<1", 0.1234, 0.76, 0.002, false},
 		{"Invalid C value", 2, 1, -1, true},
 		{"Invalid M value", -2, 1, 3, true},
 		{"Invalid N value", 2, -1, 3, true},
 		{"Too high N value", 2, 11, 3, true},
-		{"Precision check M", 2.222, 1, 3, true},
 		{"Precision check N", 2, 1.2421, 3, true},
-		{"Precision check C", 2, 1, 3.321312, true},
 	}
 
 	for _, tt := range tests {
@@ -134,44 +131,6 @@ func TestBondingCurve_Quadratic(t *testing.T) {
 	approxEqual(t, cost2to3, curve.Cost(x2, x3))
 }
 
-// Scenario 3: Cubic Curve with Large Numbers
-func TestBondingCurve_Cubic(t *testing.T) {
-	// y=3x^3+1000
-	// integral of y = 3/4*x^4 + 1000*x
-	m := math.LegacyMustNewDecFromStr("3")
-	n := math.LegacyMustNewDecFromStr("3")
-	c := math.LegacyMustNewDecFromStr("1000")
-	curve := types.NewBondingCurve(m, n, c)
-
-	// Test values
-	x1 := math.NewInt(0).MulRaw(1e18)
-	x2 := math.NewInt(100).MulRaw(1e18)
-	x3 := math.NewInt(1000).MulRaw(1e18)
-
-	// Expected results
-	spotPrice1 := math.NewInt(1000).MulRaw(1e18)       // 3*0^3 + 1000
-	spotPrice2 := math.NewInt(3001000).MulRaw(1e18)    // 3*100^3 + 1000
-	spotPrice3 := math.NewInt(3000001000).MulRaw(1e18) // 3*1000^3 + 1000
-
-	integral1 := math.NewInt(0).MulRaw(1e18)            // (3/4)*0^4 + 1000*0
-	integral2 := math.NewInt(75100000).MulRaw(1e18)     // (3/4)*100^4 + 1000*100
-	integral3 := math.NewInt(750001000000).MulRaw(1e18) // (3/4)*1000^4 + 1000*1000
-
-	cost1to2 := math.NewInt(75100000).MulRaw(1e18)     // (3/4)*100^4 + 1000*100 - (3/4)*0^4 - 1000*0
-	cost2to3 := math.NewInt(749925900000).MulRaw(1e18) // (3/4)*1000^4 + 1000*1000 - (3/4)*100^4 - 1000*100
-
-	approxEqual(t, integral1, curve.Integral(x1))
-	approxEqual(t, integral2, curve.Integral(x2))
-	approxEqual(t, integral3, curve.Integral(x3))
-
-	approxEqual(t, spotPrice1, curve.SpotPrice(x1))
-	approxEqual(t, spotPrice2, curve.SpotPrice(x2))
-	approxEqual(t, spotPrice3, curve.SpotPrice(x3))
-
-	approxEqual(t, cost1to2, curve.Cost(x1, x2))
-	approxEqual(t, cost2to3, curve.Cost(x2, x3))
-}
-
 // Scenario: Square Root Curve
 func TestBondingCurve_SquareRoot(t *testing.T) {
 	// y = m*x^0.5 + c
@@ -211,23 +170,6 @@ func TestBondingCurve_SquareRoot(t *testing.T) {
 }
 
 /*
-
-This function takes:
-val: The total value to be raised (VAL)
-z: The total number of tokens (Z)
-k: The exponent (K)
-It returns the calculated M value as a math.LegacyDec.
-
-
-func CalculateM(val, z math.LegacyDec, k int64) math.LegacyDec {
-    kPlusOne := math.LegacyNewDec(k + 1)
-    zPowKPlusOne := z.Power(uint64(k + 1))
-    return val.Mul(kPlusOne).Quo(zPowKPlusOne)
-}
-
-*/
-
-/*
 Real world scenario:
 - A project wants to raise 100_000 DYM for 1_000_000 RA tokens
 - N = 1
@@ -235,7 +177,6 @@ Real world scenario:
 
 Expected M value: 0.000000198
 */
-
 func TestCalculateM(t *testing.T) {
 	// Test case parameters
 	val := math.LegacyNewDecFromInt(math.NewInt(100_000)) // 100,000 DYM to raise
@@ -244,7 +185,6 @@ func TestCalculateM(t *testing.T) {
 	c := math.LegacyNewDecWithPrec(1, 3)                  // C = 0.001 (1% of the average price)
 
 	// Expected M calculation:
-
 	expectedM := math.LegacyMustNewDecFromStr("0.000000198")
 
 	// Calculate M
@@ -256,4 +196,21 @@ func TestCalculateM(t *testing.T) {
 	// Verify that the integral of the curve at Z equals VAL
 	integral := curve.Integral(z.MulInt64(1e18).TruncateInt())
 	approxEqual(t, val.MulInt64(1e18).TruncateInt(), integral)
+
+	// verify that the cost early is lower than the cost later
+	// test for buying 1000 RA tokens
+	costA := curve.Cost(math.ZeroInt(), math.NewInt(1000).MulRaw(1e18))
+	costB := curve.Cost(math.NewInt(900_000).MulRaw(1e18), math.NewInt(901_000).MulRaw(1e18))
+	t.Log(costA, costB)
+
+	// Calculate the actual difference
+	costDifference := costB.Sub(costA)
+
+	// Define a threshold for the cost difference (e.g., 5% of costA)
+	threshold := costA.MulRaw(5).QuoRaw(100)
+	// Assert that the cost difference is greater than the threshold
+	require.True(t, costDifference.GT(threshold),
+		"Cost difference (%s) should be greater than threshold (%s)",
+		costDifference, threshold)
+
 }

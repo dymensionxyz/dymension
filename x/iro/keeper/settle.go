@@ -126,14 +126,14 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 	return nil
 }
 
-func determineLimitingFactor(unsoldRATokens, raisedDYM, settledIROPrice math.Int) (RATokens, dym math.Int) {
-	requiredDYM := unsoldRATokens.Mul(settledIROPrice)
+func determineLimitingFactor(unsoldRATokens, raisedDYM, settledTokenPrice math.Int) (RATokens, dym math.Int) {
+	requiredDYM := unsoldRATokens.Mul(settledTokenPrice)
 
 	// if raisedDYM is less than requiredDYM, than DYM is the limiting factor
 	// we use all the raisedDYM, and the corresponding amount of tokens
 	if raisedDYM.LT(requiredDYM) {
 		dym = raisedDYM
-		RATokens = raisedDYM.Quo(settledIROPrice)
+		RATokens = raisedDYM.Quo(settledTokenPrice)
 	} else {
 		// if raisedDYM is more than requiredDYM, than tokens are the limiting factor
 		// we use all the unsold tokens, and the corresponding amount of DYM

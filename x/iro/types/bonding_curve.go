@@ -14,13 +14,13 @@ with the following actions:
 */
 
 const (
-	MaxNValue    = 3
-	MaxPrecision = 2
+	MaxNValue     = 2
+	MaxNPrecision = 3
 )
 
 var (
-	rollappTokenDecimals     = int64(18) // TODO: allow to be set on creation
-	DYMToBaseTokenMultiplier = math.NewInt(1e18)
+	rollappTokenDefaultDecimals = int64(18) // TODO: allow to be set on creation
+	DYMToBaseTokenMultiplier    = math.NewInt(1e18)
 )
 
 func NewBondingCurve(m, n, c math.LegacyDec) BondingCurve {
@@ -56,9 +56,9 @@ func (lbc BondingCurve) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidBondingCurve, "c: %s", lbc.C.String())
 	}
 
-	// Check precision for M, N, and C
-	if !checkPrecision(lbc.M) || !checkPrecision(lbc.N) || !checkPrecision(lbc.C) {
-		return errorsmod.Wrapf(ErrInvalidBondingCurve, "m, n, and c must have at most %d decimal places", MaxPrecision)
+	// Check precision for N
+	if !checkPrecision(lbc.N) {
+		return errorsmod.Wrapf(ErrInvalidBondingCurve, "N must have at most %d decimal places", MaxNPrecision)
 	}
 
 	return nil
@@ -67,30 +67,31 @@ func (lbc BondingCurve) ValidateBasic() error {
 // checkPrecision checks if a math.LegacyDec has at most MaxPrecision decimal places
 func checkPrecision(d math.LegacyDec) bool {
 	// Multiply by 10^MaxPrecision and check if it's an integer
-	multiplied := d.Mul(math.LegacyNewDec(10).Power(uint64(MaxPrecision)))
+	multiplied := d.Mul(math.LegacyNewDec(10).Power(uint64(MaxNPrecision)))
 	return multiplied.IsInteger()
 }
 
 // Scales x from it's base denomination to the decimal scale
-func scaleX(x math.Int) math.LegacyDec {
-	return math.LegacyNewDecFromIntWithPrec(x, rollappTokenDecimals)
+func scaleXFromBase(x math.Int) math.LegacyDec {
+	return math.LegacyNewDecFromIntWithPrec(x, rollappTokenDefaultDecimals)
 }
 
-func scaleDYM(y math.LegacyDec) math.Int {
+// Scales y from the decimal scale to it's base denomination
+func scaleDYMToBase(y math.LegacyDec) math.Int {
 	return y.MulInt(DYMToBaseTokenMultiplier).TruncateInt()
 }
 
 // SpotPrice returns the spot price at x
 func (lbc BondingCurve) SpotPrice(x math.Int) math.Int {
 	// we use osmomath as it support Power function
-	xDec := osmomath.BigDecFromSDKDec(scaleX(x))
+	xDec := osmomath.BigDecFromSDKDec(scaleXFromBase(x))
 	nDec := osmomath.BigDecFromSDKDec(lbc.N)
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)
 
 	xPowN := xDec.Power(nDec)                    // Calculate x^N
 	price := mDec.Mul(xPowN).SDKDec().Add(lbc.C) // M * x^N + C
 
-	return scaleDYM(price)
+	return scaleDYMToBase(price)
 }
 
 // Cost returns the cost of buying x1 - x tokens
@@ -103,7 +104,7 @@ func (lbc BondingCurve) Cost(x, x1 math.Int) math.Int {
 //	(M / (N + 1)) * x^(N + 1) + C * x.
 func (lbc BondingCurve) Integral(x math.Int) math.Int {
 	// we use osmomath as it support Power function
-	xDec := osmomath.BigDecFromSDKDec(scaleX(x))
+	xDec := osmomath.BigDecFromSDKDec(scaleXFromBase(x))
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)
 	cDec := osmomath.BigDecFromSDKDec(lbc.C)
 	nPlusOne := osmomath.BigDecFromSDKDec(lbc.N.Add(math.LegacyNewDec(1)))
@@ -114,12 +115,13 @@ func (lbc BondingCurve) Integral(x math.Int) math.Int {
 
 	// Calculate the integral
 	integral := xPowNplusOne.Mul(mDivNPlusOne).Add(cx)
-	return scaleDYM(integral.SDKDec())
+	return scaleDYMToBase(integral.SDKDec())
 }
 
 // CalculateM computes the M parameter for a bonding curve
-// val: total value to be raised
-// t: total number of tokens
+// It's actually not used in the codebase, but it's here for reference and for testing purposes
+// val: total value to be raised (in DYM, not adym)
+// t: total number of tokens (rollapp's tokens in decimal scale, not base denomination)
 // n: curve exponent
 // c: constant term
 // M = (VAL - C * T) * (N + 1) / T^(N+1)
