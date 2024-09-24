@@ -31,7 +31,7 @@ func TestCmdCreateIRO(t *testing.T) {
 	// Create a temporary file for metadata
 	tempFile, err := os.CreateTemp("", "metadata*.json")
 	assert.NoError(t, err)
-	defer os.Remove(tempFile.Name()) // Clean up the file after the test // nolint:errcheck
+	defer os.Remove(tempFile.Name()) // nolint:errcheck
 
 	// Optionally write initial data to the file
 	_, err = tempFile.WriteString(`
