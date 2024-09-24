@@ -81,12 +81,15 @@ import (
 	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
+	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lightclientmodulekeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	lightclientmoduletypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencermodulekeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -121,6 +124,7 @@ type AppKeepers struct {
 	FeeGrantKeeper                feegrantkeeper.Keeper
 	PacketForwardMiddlewareKeeper *packetforwardkeeper.Keeper
 	ConsensusParamsKeeper         consensusparamkeeper.Keeper
+	IROKeeper                     *irokeeper.Keeper
 
 	// Ethermint keepers
 	EvmKeeper       *evmkeeper.Keeper
@@ -383,6 +387,17 @@ func (a *AppKeepers) InitKeepers(
 		a.RollappKeeper,
 	)
 
+	a.IROKeeper = irokeeper.NewKeeper(
+		appCodec,
+		a.keys[irotypes.StoreKey],
+		&a.AccountKeeper,
+		a.BankKeeper,
+		a.RollappKeeper,
+		a.GAMMKeeper,
+		a.IncentivesKeeper,
+		a.PoolManagerKeeper,
+	)
+
 	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
 		appCodec,
 		a.keys[sponsorshiptypes.StoreKey],
@@ -511,9 +526,7 @@ func (a *AppKeepers) InitTransferStack() {
 		delayedackmodule.WithRollappKeeper(a.RollappKeeper),
 	)
 	a.TransferStack = a.delayedAckMiddleware
-
-	// disabled until #1208 handled (https://github.com/dymensionxyz/dymension/issues/1208)
-	// a.TransferStack = transfergenesis.NewIBCModule(a.TransferStack, a.DelayedAckKeeper, *a.RollappKeeper, a.TransferKeeper, a.DenomMetadataKeeper)
+	a.TransferStack = transfergenesis.NewIBCModule(a.TransferStack, a.RollappKeeper, a.TransferKeeper, a.DenomMetadataKeeper, a.IROKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
@@ -589,6 +602,7 @@ func (a *AppKeepers) SetupHooks() {
 		a.StreamerKeeper.Hooks(),
 		a.DymNSKeeper.GetRollAppHooks(),
 		a.LightClientKeeper.RollappHooks(),
+		a.IROKeeper,
 	))
 }
 

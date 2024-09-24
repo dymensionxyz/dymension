@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -47,7 +48,7 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		current.GenesisInfo.Bech32Prefix = update.GenesisInfo.Bech32Prefix
 	}
 
-	if update.GenesisInfo.NativeDenom != nil {
+	if update.GenesisInfo.NativeDenom.Base != "" {
 		current.GenesisInfo.NativeDenom = update.GenesisInfo.NativeDenom
 	}
 
@@ -116,43 +117,37 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 	), []byte(rollapp.RollappId))
 }
 
-func (k Keeper) SealRollapp(ctx sdk.Context, rollappId string) error {
-	rollapp, found := k.GetRollapp(ctx, rollappId)
-	if !found {
-		return gerrc.ErrNotFound
-	}
-
-	if rollapp.Launched {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp already launched")
-	}
-
+func (k Keeper) SetRollappAsLaunched(ctx sdk.Context, rollapp *types.Rollapp) error {
 	if !rollapp.AllImmutableFieldsAreSet() {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "seal with immutable fields not set")
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "immutable fields not set")
 	}
 
+	rollapp.GenesisInfo.Sealed = true
 	rollapp.Launched = true
-	k.SetRollapp(ctx, rollapp)
+	k.SetRollapp(ctx, *rollapp)
 
 	return nil
 }
 
-func (k Keeper) SealRollappGenesisInfo(ctx sdk.Context, rollappId string) error {
-	rollapp, found := k.GetRollapp(ctx, rollappId)
-	if !found {
-		return gerrc.ErrNotFound
+// SetIROPlanToRollapp modifies the rollapp object due to IRO creation
+// This methods:
+// - seals the rollapp genesis info
+// - set the pre launch time according to the iro plan end time
+// - disables transfers (until the IRO is settled)
+// Validations:
+// - rollapp must not be launched
+// - genesis info must be set
+func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, preLaunchTime time.Time) error {
+	if rollapp.Launched {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp already launched")
 	}
-
-	if rollapp.GenesisInfo.Sealed {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info already sealed")
-	}
-
 	if !rollapp.GenesisInfoFieldsAreSet() {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info fields not set")
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info not set")
 	}
-
 	rollapp.GenesisInfo.Sealed = true
-	k.SetRollapp(ctx, rollapp)
-
+	rollapp.PreLaunchTime = preLaunchTime
+	rollapp.GenesisState.TransfersEnabled = false
+	k.SetRollapp(ctx, *rollapp)
 	return nil
 }
 
