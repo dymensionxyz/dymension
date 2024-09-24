@@ -15,25 +15,27 @@ func (s *KeeperTestSuite) TestValidateRollappPreconditions_MissingGenesisInfo() 
 	curve := types.DefaultBondingCurve()
 	incentives := types.DefaultIncentivePlanParams()
 
+	allocation := sdk.NewInt(100).MulRaw(1e18)
+
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
 
 	// test missing genesis checksum
 	rollapp.GenesisInfo.GenesisChecksum = ""
 	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
-	_, err := k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
+	_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
 	s.Require().Error(err)
 
 	// test already launched
 	rollapp.GenesisInfo.GenesisChecksum = "aaaaaa"
 	rollapp.Launched = true
 	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
-	_, err = k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
+	_, err = k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
 	s.Require().Error(err)
 	rollapp.Launched = false
 
 	// add check for happy path
 	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
-	_, err = k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
+	_, err = k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
 	s.Require().NoError(err)
 }
 
@@ -44,18 +46,19 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	k := s.App.IROKeeper
 	curve := types.DefaultBondingCurve()
 	incentives := types.DefaultIncentivePlanParams()
+	allocation := sdk.NewInt(100).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
+	planId, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
 	s.Require().NoError(err)
 
 	// creating a a plan for same rollapp should fail
-	_, err = k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
+	_, err = k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
 	s.Require().Error(err)
 
 	// create plan for different rollappID. test last planId increases
 	rollapp2, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId2)
-	planId2, err := k.CreatePlan(s.Ctx, sdk.NewInt(100), time.Now(), time.Now().Add(time.Hour), rollapp2, curve, incentives)
+	planId2, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp2, curve, incentives)
 	s.Require().NoError(err)
 	s.Require().Greater(planId2, planId)
 

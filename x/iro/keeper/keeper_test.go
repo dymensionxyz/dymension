@@ -48,7 +48,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 // BuySomeTokens buys some tokens from the plan
 func (suite *KeeperTestSuite) BuySomeTokens(planId string, buyer sdk.AccAddress, amt math.Int) {
-	maxAmt := sdk.NewInt(1_000_000_000)
+	maxAmt := sdk.NewInt(1_000_000_000).MulRaw(1e18)
 	suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("adym", amt.MulRaw(10)))) // 10 times the amount to buy, for buffer and fees
 	err := suite.App.IROKeeper.Buy(suite.Ctx, planId, buyer, amt, maxAmt)
 	suite.Require().NoError(err)

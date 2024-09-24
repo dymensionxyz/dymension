@@ -21,7 +21,7 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid owner address: %s", err)
 	}
 
-	if !m.AllocatedAmount.IsPositive() {
+	if !m.AllocatedAmount.QuoRaw(1e18).GT(MinTokenAllocation) {
 		return ErrInvalidAllocation
 	}
 

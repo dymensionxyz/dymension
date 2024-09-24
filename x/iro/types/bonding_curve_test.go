@@ -10,12 +10,9 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
-var (
-	defaultTolerance = math.NewInt(1).MulRaw(1e9) // one millionth of a dym
-)
-
 // approxEqual checks if two math.Ints are approximately equal
 func approxEqual(t *testing.T, expected, actual math.Int) {
+	defaultTolerance := math.NewInt(1).MulRaw(1e9) // one millionth of a dym
 	diff := expected.Sub(actual).Abs()
 	require.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
 }
@@ -169,6 +166,20 @@ func TestBondingCurve_SquareRoot(t *testing.T) {
 	approxEqual(t, cost2to3, curve.Cost(x2, x3))
 }
 
+// test very small x returns 0
+func TestBondingCurve_SmallX(t *testing.T) {
+	curve := types.DefaultBondingCurve()
+
+	// less than 1 token is not enough
+	require.True(t, curve.SpotPrice(math.NewInt(1_000_000)).IsZero())
+	require.True(t, curve.Integral(math.NewInt(1_000_000)).IsZero())
+	require.True(t, curve.Integral(math.NewInt(1).MulRaw(1e17)).IsZero())
+
+	// even 1 token is enough
+	require.False(t, curve.Integral(math.NewInt(1).MulRaw(1e18)).IsZero())
+	require.False(t, curve.SpotPrice(math.NewInt(1).MulRaw(1e18)).IsZero())
+}
+
 /*
 Real world scenario:
 - A project wants to raise 100_000 DYM for 1_000_000 RA tokens
@@ -177,7 +188,7 @@ Real world scenario:
 
 Expected M value: 0.000000198
 */
-func TestCalculateM(t *testing.T) {
+func TestUseCaseA(t *testing.T) {
 	// Test case parameters
 	val := math.LegacyNewDecFromInt(math.NewInt(100_000)) // 100,000 DYM to raise
 	z := math.LegacyNewDecFromInt(math.NewInt(1_000_000)) // 1,000,000 RA tokens
@@ -212,5 +223,4 @@ func TestCalculateM(t *testing.T) {
 	require.True(t, costDifference.GT(threshold),
 		"Cost difference (%s) should be greater than threshold (%s)",
 		costDifference, threshold)
-
 }

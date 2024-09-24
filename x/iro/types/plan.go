@@ -12,6 +12,8 @@ import (
 
 const IROTokenPrefix = "future"
 
+var MinTokenAllocation = math.NewInt(10)
+
 func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurve, start time.Time, end time.Time, incentivesParams IncentivePlanParams) Plan {
 	plan := Plan{
 		Id:                  id,
@@ -30,11 +32,13 @@ func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurv
 
 // ValidateBasic checks if the plan is valid
 func (p Plan) ValidateBasic() error {
-	if !p.TotalAllocation.IsPositive() {
-		return ErrInvalidAllocation
-	}
 	if err := p.BondingCurve.ValidateBasic(); err != nil {
 		return errors.Join(ErrInvalidBondingCurve, err)
+	}
+	// check that the allocation is greater than the minimum token allocation
+	// TODO: get the decimals from the curve
+	if !p.TotalAllocation.Amount.QuoRaw(1e18).GT(MinTokenAllocation) {
+		return ErrInvalidAllocation
 	}
 	if p.PreLaunchTime.Before(p.StartTime) {
 		return ErrInvalidEndTime

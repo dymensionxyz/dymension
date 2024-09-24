@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	rollappTokenDefaultDecimals = int64(18) // TODO: allow to be set on creation
+	rollappTokenDefaultDecimals = int64(18) // TODO: allow to be set on creation instead of using default
 	DYMToBaseTokenMultiplier    = math.NewInt(1e18)
 )
 
@@ -88,7 +88,12 @@ func (lbc BondingCurve) SpotPrice(x math.Int) math.Int {
 	nDec := osmomath.BigDecFromSDKDec(lbc.N)
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)
 
-	xPowN := xDec.Power(nDec)                    // Calculate x^N
+	var xPowN osmomath.BigDec
+	if xDec.LT(osmomath.OneDec()) {
+		xPowN = osmomath.ZeroDec()
+	} else {
+		xPowN = xDec.Power(nDec) // Calculate x^N
+	}
 	price := mDec.Mul(xPowN).SDKDec().Add(lbc.C) // M * x^N + C
 
 	return scaleDYMToBase(price)
@@ -109,7 +114,12 @@ func (lbc BondingCurve) Integral(x math.Int) math.Int {
 	cDec := osmomath.BigDecFromSDKDec(lbc.C)
 	nPlusOne := osmomath.BigDecFromSDKDec(lbc.N.Add(math.LegacyNewDec(1)))
 
-	xPowNplusOne := xDec.Power(nPlusOne)  // Calculate x^(N + 1)
+	var xPowNplusOne osmomath.BigDec
+	if xDec.LT(osmomath.OneDec()) {
+		xPowNplusOne = osmomath.ZeroDec()
+	} else {
+		xPowNplusOne = xDec.Power(nPlusOne) // Calculate x^(N + 1)
+	}
 	mDivNPlusOne := mDec.QuoMut(nPlusOne) // Calculate m / (N + 1)
 	cx := cDec.Mul(xDec)                  // Calculate C * x
 
