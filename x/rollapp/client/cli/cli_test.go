@@ -13,6 +13,27 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
+var (
+	metadata = `
+	{
+		"website": "https://dymension.xyz/",
+		"description": "This is a description of the Rollapp.",
+		"logo_data_uri": "data:image/jpeg;base64,/000",
+		"token_logo_uri": "data:image/jpeg;base64,/000",
+		"telegram": "https://t.me/example",
+		"x": "https://x.com/dymension"
+	}
+	`
+
+	nativeDenom = `
+	{
+		"display": "dummyDisplay",
+		"base": "dummyBase",
+		"exponent": 10
+	}
+	`
+)
+
 func TestGetTxCmd(t *testing.T) {
 	cmd := cli.GetTxCmd()
 	assert.NotNil(t, cmd)
@@ -29,21 +50,17 @@ func TestCmdCreateIRO(t *testing.T) {
 	addr := sdk.AccAddress("testAddress").String()
 
 	// Create a temporary file for metadata
-	tempFile, err := os.CreateTemp("", "metadata*.json")
+	metadataFile, err := os.CreateTemp("", "metadata*.json")
 	assert.NoError(t, err)
-	defer os.Remove(tempFile.Name()) // nolint:errcheck
+	defer os.Remove(metadataFile.Name()) // nolint:errcheck
+	_, err = metadataFile.WriteString(metadata)
+	assert.NoError(t, err)
 
-	// Optionally write initial data to the file
-	_, err = tempFile.WriteString(`
-	{
-		"website": "https://dymension.xyz/",
-		"description": "This is a description of the Rollapp.",
-		"logo_data_uri": "data:image/jpeg;base64,/000",
-		"token_logo_uri": "data:image/jpeg;base64,/000",
-		"telegram": "https://t.me/example",
-		"x": "https://x.com/dymension"
-	}
-	`)
+	// Create a temporary file for native denom
+	nativeDenomFile, err := os.CreateTemp("", "nativeDenom*.json")
+	assert.NoError(t, err)
+	defer os.Remove(nativeDenomFile.Name()) // nolint:errcheck
+	_, err = nativeDenomFile.WriteString(nativeDenom)
 	assert.NoError(t, err)
 
 	testCases := []struct {
@@ -57,8 +74,13 @@ func TestCmdCreateIRO(t *testing.T) {
 			"",
 		},
 		{
-			"valid args",
-			[]string{"testRollappId", "alias", "EVM", "--metadata", tempFile.Name(), "--from", addr},
+			"with metadata",
+			[]string{"testRollappId", "alias", "EVM", "--metadata", metadataFile.Name(), "--from", addr},
+			"",
+		},
+		{
+			"with native denom",
+			[]string{"testRollappId", "alias", "EVM", "--native-denom", nativeDenomFile.Name(), "--from", addr},
 			"",
 		},
 	}
