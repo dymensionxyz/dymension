@@ -118,12 +118,12 @@ func parseMetadata(cmd *cobra.Command) (*types.RollappMetadata, error) {
 		return nil, err
 	}
 
-	var metadata types.RollappMetadata
+	metadata := new(types.RollappMetadata)
 	if metadataFlag != "" {
 		if err = utils.ParseJsonFromFile(metadataFlag, metadata); err != nil {
 			return nil, err
 		}
 	}
 
-	return &metadata, nil
+	return metadata, nil
 }
