@@ -141,6 +141,7 @@ func determineLimitingFactor(unsoldRATokens, raisedDYM, settledTokenPrice math.I
 		dym = requiredDYM
 	}
 
+	// FIXME: handle the case where dym/tokens is very small
 	// for the extreme edge case where required liquidity truncated to 0
 	// we use what we have as it guaranteed to be more than 0
 	if dym.IsZero() {
