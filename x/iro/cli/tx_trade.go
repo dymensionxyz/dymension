@@ -42,32 +42,32 @@ func createBuySellCmd(use string, short string, isBuy bool) *cobra.Command {
 
 			planID := args[0]
 			argAmount := args[1]
-			argExpectedOutAmount := args[2]
+			argExpectedAmount := args[2]
 
 			amount, ok := math.NewIntFromString(argAmount)
 			if !ok {
 				return fmt.Errorf("invalid amount: %s", argAmount)
 			}
 
-			expectedOutAmount, ok := math.NewIntFromString(argExpectedOutAmount)
+			expectedAmount, ok := math.NewIntFromString(argExpectedAmount)
 			if !ok {
-				return fmt.Errorf("invalid expected out amount: %s", argExpectedOutAmount)
+				return fmt.Errorf("invalid expected out amount: %s", argExpectedAmount)
 			}
 
 			var msg sdk.Msg
 			if isBuy {
 				msg = &types.MsgBuy{
-					Buyer:             clientCtx.GetFromAddress().String(),
-					PlanId:            planID,
-					Amount:            amount,
-					ExpectedOutAmount: expectedOutAmount,
+					Buyer:         clientCtx.GetFromAddress().String(),
+					PlanId:        planID,
+					Amount:        amount,
+					MaxCostAmount: expectedAmount,
 				}
 			} else {
 				msg = &types.MsgSell{
-					Seller:            clientCtx.GetFromAddress().String(),
-					PlanId:            planID,
-					Amount:            amount,
-					ExpectedOutAmount: expectedOutAmount,
+					Seller:          clientCtx.GetFromAddress().String(),
+					PlanId:          planID,
+					Amount:          amount,
+					MinIncomeAmount: expectedAmount,
 				}
 			}
 

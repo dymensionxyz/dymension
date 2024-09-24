@@ -57,8 +57,8 @@ func (m *MsgBuy) ValidateBasic() error {
 		return sdkerrors.ErrInvalidRequest.Wrapf("amount %v must be positive", m.Amount)
 	}
 
-	if m.ExpectedOutAmount.IsNil() || !m.ExpectedOutAmount.IsPositive() {
-		return sdkerrors.ErrInvalidRequest.Wrapf("expected out amount %v must be positive", m.ExpectedOutAmount)
+	if m.MaxCostAmount.IsNil() || !m.MaxCostAmount.IsPositive() {
+		return sdkerrors.ErrInvalidRequest.Wrapf("expected out amount %v must be positive", m.MaxCostAmount)
 	}
 
 	return nil
@@ -81,8 +81,8 @@ func (m *MsgSell) ValidateBasic() error {
 		return sdkerrors.ErrInvalidRequest.Wrapf("amount %v must be positive", m.Amount)
 	}
 
-	if m.ExpectedOutAmount.IsNil() || !m.ExpectedOutAmount.IsPositive() {
-		return sdkerrors.ErrInvalidRequest.Wrapf("expected out amount %v must be positive", m.ExpectedOutAmount)
+	if m.MinIncomeAmount.IsNil() || !m.MinIncomeAmount.IsPositive() {
+		return sdkerrors.ErrInvalidRequest.Wrapf("expected out amount %v must be positive", m.MinIncomeAmount)
 	}
 
 	return nil
