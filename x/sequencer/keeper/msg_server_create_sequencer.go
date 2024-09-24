@@ -51,7 +51,14 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		if !isInitialOrAllAllowed {
 			return nil, types.ErrNotInitialSequencer
 		}
-		if err := k.rollappKeeper.SealRollapp(ctx, msg.RollappId); err != nil {
+
+		// check pre launch time.
+		// skipped if no pre launch time is set
+		if rollapp.PreLaunchTime.After(ctx.BlockTime()) {
+			return nil, types.ErrBeforePreLaunchTime
+		}
+
+		if err := k.rollappKeeper.SetRollappAsLaunched(ctx, &rollapp); err != nil {
 			return nil, err
 		}
 	}

@@ -25,7 +25,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				GenesisInfo: GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(1000),
 				},
 				Metadata: &RollappMetadata{
@@ -54,7 +54,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				GenesisInfo: GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(1000),
 				},
 			},
@@ -69,7 +69,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				GenesisInfo: GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(1000),
 				},
 				Metadata: &RollappMetadata{
@@ -89,7 +89,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				GenesisInfo: GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: strings.Repeat("a", maxGenesisChecksumLength+1),
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(1000),
 				},
 			},
