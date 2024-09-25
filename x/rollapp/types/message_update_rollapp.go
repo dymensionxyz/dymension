@@ -84,5 +84,5 @@ func (msg *MsgUpdateRollappInformation) UpdatingGenesisInfo() bool {
 	return msg.GenesisInfo.GenesisChecksum != "" ||
 		msg.GenesisInfo.Bech32Prefix != "" ||
 		msg.GenesisInfo.NativeDenom != nil ||
-		(msg.GenesisInfo.InitialSupply != nil && !msg.GenesisInfo.InitialSupply.IsNil())
+		(msg.GenesisInfo.InitialSupply != nil && !msg.GenesisInfo.InitialSupply.IsPositive())
 }
