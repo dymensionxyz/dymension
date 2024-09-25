@@ -139,11 +139,12 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		rollapptypes.GenesisInfo{
 			GenesisChecksum: "somechecksum",
 			Bech32Prefix:    "eth",
-			NativeDenom: &rollapptypes.DenomMetadata{
+			NativeDenom: rollapptypes.DenomMetadata{
 				Display:  "DEN",
 				Base:     "aden",
 				Exponent: 18,
 			},
+			InitialSupply: sdk.NewInt(1000),
 		},
 	)
 
@@ -207,9 +208,9 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	numBlocks := endHeight - startHeight + 1
 	// populate the block descriptors
 	blockDescriptors := &rollapptypes.BlockDescriptors{BD: make([]rollapptypes.BlockDescriptor, numBlocks)}
-	for i := 0; i < int(numBlocks); i++ {
+	for i := uint64(0); i < numBlocks; i++ {
 		blockDescriptors.BD[i] = rollapptypes.BlockDescriptor{
-			Height:    startHeight + uint64(i),
+			Height:    startHeight + i,
 			StateRoot: bytes.Repeat([]byte{byte(startHeight) + byte(i)}, 32),
 			Timestamp: time.Now().UTC(),
 		}

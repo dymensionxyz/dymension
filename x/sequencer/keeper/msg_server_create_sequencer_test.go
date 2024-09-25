@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -129,7 +130,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				Bech32Prefix:    bech32Prefix,
 				GenesisChecksum: "1234567890abcdefg",
 				InitialSupply:   sdk.NewInt(1000),
-				NativeDenom: &rollapptypes.DenomMetadata{
+				NativeDenom: rollapptypes.DenomMetadata{
 					Display:  "DEN",
 					Base:     "aden",
 					Exponent: 18,
@@ -377,6 +378,79 @@ func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.EqualError(err, types.ErrUnknownRollappID.Error())
+}
+
+// create sequencer before genesisInfo is set
+func (suite *SequencerTestSuite) TestCreateSequencerBeforeGenesisInfo() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+	rollappId, pk := suite.CreateDefaultRollapp()
+
+	// mess up the genesisInfo
+	rollapp := suite.App.RollappKeeper.MustGetRollapp(suite.Ctx, rollappId)
+	rollapp.GenesisInfo.Bech32Prefix = ""
+	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+
+	addr := sdk.AccAddress(pk.Address())
+	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	suite.Require().NoError(err)
+
+	pkAny, err := codectypes.NewAnyWithValue(pk)
+	suite.Require().Nil(err)
+	sequencerMsg := types.MsgCreateSequencer{
+		Creator:      addr.String(),
+		DymintPubKey: pkAny,
+		Bond:         bond,
+		RollappId:    rollappId,
+		Metadata: types.SequencerMetadata{
+			Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+		},
+	}
+
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+	suite.Require().Error(err)
+
+	// set the genesisInfo
+	rollapp.GenesisInfo.Bech32Prefix = "rol"
+	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+	suite.Require().NoError(err)
+}
+
+// create sequencer before prelaunch
+func (suite *SequencerTestSuite) TestCreateSequencerBeforePrelaunch() {
+	suite.SetupTest()
+	rollappId, pk := suite.CreateDefaultRollapp()
+
+	// set prelaunch time to the rollapp
+	preLaunchTime := time.Now()
+	rollapp := suite.App.RollappKeeper.MustGetRollapp(suite.Ctx, rollappId)
+	rollapp.PreLaunchTime = preLaunchTime
+	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+
+	addr := sdk.AccAddress(pk.Address())
+	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	suite.Require().NoError(err)
+
+	pkAny, err := codectypes.NewAnyWithValue(pk)
+	suite.Require().Nil(err)
+	sequencerMsg := types.MsgCreateSequencer{
+		Creator:      addr.String(),
+		DymintPubKey: pkAny,
+		Bond:         bond,
+		RollappId:    rollappId,
+		Metadata: types.SequencerMetadata{
+			Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+		},
+	}
+
+	_, err = suite.msgServer.CreateSequencer(sdk.WrapSDKContext(suite.Ctx), &sequencerMsg)
+	suite.Require().Error(err)
+
+	suite.Ctx = suite.Ctx.WithBlockTime(preLaunchTime.Add(time.Second))
+	_, err = suite.msgServer.CreateSequencer(sdk.WrapSDKContext(suite.Ctx), &sequencerMsg)
+	suite.Require().NoError(err)
 }
 
 // ---------------------------------------

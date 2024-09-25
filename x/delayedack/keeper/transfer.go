@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -29,7 +29,7 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 
 	data.TransferData, err = k.rollappKeeper.GetValidTransfer(ctx, packet.GetData(), port, channel)
 	if err != nil {
-		err = errors.Wrap(err, "get valid transfer data")
+		err = errorsmod.Wrap(err, "get valid transfer data")
 		return
 	}
 
@@ -37,7 +37,7 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 	height, ok := types.PacketProofHeightFromCtx(ctx, packetID)
 	if !ok {
 		// TODO: should probably be a panic
-		err = errors.Wrapf(gerrc.ErrNotFound, "get proof height from context: packetID: %s", packetID)
+		err = errorsmod.Wrapf(gerrc.ErrNotFound, "get proof height from context: packetID: %s", packetID)
 		return
 	}
 	data.ProofHeight = height.RevisionHeight
@@ -47,10 +47,10 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 	}
 
 	finalizedHeight, err := k.getRollappFinalizedHeight(ctx, data.Rollapp.RollappId)
-	if errors.IsOf(err, rollapptypes.ErrNoFinalizedStateYetForRollapp) {
+	if errorsmod.IsOf(err, rollapptypes.ErrNoFinalizedStateYetForRollapp) {
 		err = nil
 	} else if err != nil {
-		err = errors.Wrap(err, "get rollapp finalized height")
+		err = errorsmod.Wrap(err, "get rollapp finalized height")
 	} else {
 		data.Finalized = data.ProofHeight <= finalizedHeight
 	}

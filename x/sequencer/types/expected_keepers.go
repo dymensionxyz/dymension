@@ -12,7 +12,7 @@ type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
 	MustGetRollapp(ctx sdk.Context, rollappId string) rollapptypes.Rollapp
 	GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp)
-	SealRollapp(ctx sdk.Context, rollappId string) error
+	SetRollappAsLaunched(ctx sdk.Context, rollapp *rollapptypes.Rollapp) error
 	GetParams(ctx sdk.Context) rollapptypes.Params
 }
 

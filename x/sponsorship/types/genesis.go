@@ -1,6 +1,9 @@
 package types
 
 import (
+	"errors"
+
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -15,13 +18,13 @@ func DefaultGenesis() *GenesisState {
 func (g GenesisState) Validate() error {
 	err := g.Params.Validate()
 	if err != nil {
-		return ErrInvalidGenesis.Wrapf(err.Error())
+		return errors.Join(ErrInvalidGenesis, err)
 	}
 
 	for _, i := range g.VoterInfos {
 		err = i.Validate()
 		if err != nil {
-			return ErrInvalidGenesis.Wrapf(err.Error())
+			return errors.Join(ErrInvalidGenesis, err)
 		}
 	}
 
@@ -31,15 +34,14 @@ func (g GenesisState) Validate() error {
 func (v VoterInfo) Validate() error {
 	_, err := sdk.AccAddressFromBech32(v.Voter)
 	if err != nil {
-		return ErrInvalidVoterInfo.Wrapf(
-			"voter '%s' must be a valid bech32 address: %s",
-			v.Voter, err.Error(),
+		return errorsmod.Wrapf(errors.Join(ErrInvalidVoterInfo, err),
+			"voter '%s' must be a valid bech32 address", v.Voter,
 		)
 	}
 
 	err = v.Vote.Validate()
 	if err != nil {
-		return ErrInvalidVoterInfo.Wrapf(err.Error())
+		return errors.Join(ErrInvalidVoterInfo, err)
 	}
 
 	// Validate validators
