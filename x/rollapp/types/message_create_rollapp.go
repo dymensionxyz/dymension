@@ -50,13 +50,17 @@ func (msg *MsgCreateRollapp) GetSignBytes() []byte {
 }
 
 func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
+	genInfo := GenesisInfo{}
+	if msg.GenesisInfo != nil {
+		genInfo = *msg.GenesisInfo
+	}
 	return NewRollapp(
 		msg.Creator,
 		msg.RollappId,
 		msg.InitialSequencer,
 		msg.VmType,
 		msg.Metadata,
-		msg.GenesisInfo,
+		genInfo,
 		true,
 	)
 }

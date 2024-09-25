@@ -18,7 +18,7 @@ func NewRollapp(
 	initialSequencer string,
 	vmType Rollapp_VMType,
 	metadata *RollappMetadata,
-	genInfo *GenesisInfo,
+	genInfo GenesisInfo,
 	transfersEnabled bool,
 ) Rollapp {
 	return Rollapp{

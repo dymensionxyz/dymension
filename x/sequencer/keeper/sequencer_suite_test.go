@@ -54,7 +54,7 @@ func (suite *SequencerTestSuite) CreateRollappWithInitialSequencer(initSeq strin
 	rollapp := rollapptypes.Rollapp{
 		RollappId: urand.RollappID(),
 		Owner:     sample.AccAddress(),
-		GenesisInfo: &rollapptypes.GenesisInfo{
+		GenesisInfo: rollapptypes.GenesisInfo{
 			Bech32Prefix:    "rol",
 			GenesisChecksum: "checksum",
 			NativeDenom:     rollapptypes.DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},

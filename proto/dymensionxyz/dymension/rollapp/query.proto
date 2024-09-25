@@ -109,7 +109,7 @@ message QueryAllRollappRequest {
 
 message QueryAllRollappResponse {
   reserved 1;
-  repeated QueryGetRollappResponse rollapp = 3 [ (gogoproto.nullable) = true ];
+  repeated QueryGetRollappResponse rollapp = 3 [ (gogoproto.nullable) = false ];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 

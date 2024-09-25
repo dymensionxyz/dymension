@@ -351,7 +351,7 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(
 		InitialSequencer: rollapp.GetInitialSequencer(),
 		VmType:           types.Rollapp_EVM,
 		Metadata:         rollapp.GetMetadata(),
-		GenesisInfo:      rollapp.GetGenesisInfo(),
+		GenesisInfo:      *rollapp.GetGenesisInfo(),
 	}
 	rollappExpect.GenesisState.TransfersEnabled = true
 

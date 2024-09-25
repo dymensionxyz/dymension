@@ -236,7 +236,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 			Tagline:     "",
 			FeeDenom:    nil,
 		},
-		GenesisInfo: &rollapptypes.GenesisInfo{
+		GenesisInfo: rollapptypes.GenesisInfo{
 			Bech32Prefix:    oldRollapp.RollappId[:5],                            // placeholder data
 			GenesisChecksum: string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
 			NativeDenom: rollapptypes.DenomMetadata{

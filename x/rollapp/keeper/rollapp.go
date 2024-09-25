@@ -32,7 +32,7 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		return current, types.ErrImmutableFieldUpdateAfterLaunched
 	}
 
-	if update.UpdatingGenesisInfo() && current.GenesisInfo != nil && current.GenesisInfo.Sealed {
+	if update.UpdatingGenesisInfo() && current.GenesisInfo.Sealed {
 		return current, types.ErrGenesisInfoSealed
 	}
 

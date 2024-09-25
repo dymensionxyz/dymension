@@ -126,7 +126,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				Telegram:    "https://t.me/rolly",
 				X:           "https://x.dymension.xyz",
 			},
-			GenesisInfo: &rollapptypes.GenesisInfo{
+			GenesisInfo: rollapptypes.GenesisInfo{
 				Bech32Prefix:    bech32Prefix,
 				GenesisChecksum: "1234567890abcdefg",
 				InitialSupply:   sdk.NewInt(1000),

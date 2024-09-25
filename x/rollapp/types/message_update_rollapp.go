@@ -5,6 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 const TypeMsgUpdateRollappInformation = "update_rollapp"
@@ -61,9 +62,10 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 			return ErrInvalidGenesisChecksum
 		}
 
-	if msg.GenesisInfo.Bech32Prefix != "" {
-		if err := validateBech32Prefix(msg.GenesisInfo.Bech32Prefix); err != nil {
-			return errorsmod.Wrap(errors.Join(err, gerrc.ErrInvalidArgument), "bech32 prefix")
+		if msg.GenesisInfo.Bech32Prefix != "" {
+			if err := validateBech32Prefix(msg.GenesisInfo.Bech32Prefix); err != nil {
+				return errorsmod.Wrap(errors.Join(err, gerrc.ErrInvalidArgument), "bech32 prefix")
+			}
 		}
 	}
 

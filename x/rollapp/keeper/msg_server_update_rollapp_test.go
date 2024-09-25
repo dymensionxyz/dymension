@@ -33,7 +33,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
 				Metadata:         &mockRollappMetadata,
-				GenesisInfo: types.GenesisInfo{
+				GenesisInfo: &types.GenesisInfo{
 					Bech32Prefix:    "new",
 					GenesisChecksum: "new_checksum",
 					InitialSupply:   sdk.NewInt(1000),
@@ -103,7 +103,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				RollappId:        rollappId,
 				InitialSequencer: "",
 				Metadata:         nil,
-				GenesisInfo: types.GenesisInfo{
+				GenesisInfo: &types.GenesisInfo{
 					GenesisChecksum: "new_checksum",
 				},
 			},
@@ -114,7 +114,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 			update: &types.MsgUpdateRollappInformation{
 				Owner:     alice,
 				RollappId: rollappId,
-				GenesisInfo: types.GenesisInfo{
+				GenesisInfo: &types.GenesisInfo{
 					Bech32Prefix: "new",
 				},
 			},
@@ -125,7 +125,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 			update: &types.MsgUpdateRollappInformation{
 				Owner:     alice,
 				RollappId: rollappId,
-				GenesisInfo: types.GenesisInfo{
+				GenesisInfo: &types.GenesisInfo{
 					NativeDenom: types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
@@ -140,7 +140,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 			update: &types.MsgUpdateRollappInformation{
 				Owner:     alice,
 				RollappId: rollappId,
-				GenesisInfo: types.GenesisInfo{
+				GenesisInfo: &types.GenesisInfo{
 					InitialSupply: sdk.NewInt(1000),
 				},
 			},
@@ -183,8 +183,9 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 			update: &types.MsgUpdateRollappInformation{
 				Owner:     alice,
 				RollappId: rollappId,
+				Metadata:  &mockRollappMetadata,
 			},
-			rollappLaunched: true,
+			rollappLaunched: false,
 			genInfoSealed:   false,
 			expError:        nil,
 			expRollapp: types.Rollapp{
@@ -197,11 +198,11 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Launched:         false,
 				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
-				GenesisInfo: &types.GenesisInfo{
+				GenesisInfo: types.GenesisInfo{
 					Bech32Prefix:    "old",
 					GenesisChecksum: "old",
 					InitialSupply:   sdk.NewInt(1000),
-					NativeDenom: &types.DenomMetadata{
+					NativeDenom: types.DenomMetadata{
 						Display:  "OLD",
 						Base:     "aold",
 						Exponent: 18,
@@ -269,7 +270,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		InitialSequencer: "",
 		Alias:            "default",
 		VmType:           types.Rollapp_EVM,
-		GenesisInfo: types.GenesisInfo{
+		GenesisInfo: &types.GenesisInfo{
 			Bech32Prefix:    "rol",
 			GenesisChecksum: "checksum",
 			InitialSupply:   sdk.NewInt(1000),
@@ -296,7 +297,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		Owner:            alice,
 		RollappId:        rollappId,
 		InitialSequencer: addrInit,
-		GenesisInfo:      types.GenesisInfo{GenesisChecksum: "checksum1"},
+		GenesisInfo:      &types.GenesisInfo{GenesisChecksum: "checksum1"},
 	})
 	suite.Require().NoError(err)
 
