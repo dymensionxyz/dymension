@@ -52,7 +52,7 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		current.GenesisInfo.NativeDenom = update.GenesisInfo.NativeDenom
 	}
 
-	if update.GenesisInfo.InitialSupply != nil && !update.GenesisInfo.InitialSupply.IsPositive() {
+	if update.GenesisInfo.InitialSupply != nil && update.GenesisInfo.InitialSupply.IsPositive() {
 		current.GenesisInfo.InitialSupply = update.GenesisInfo.InitialSupply
 	}
 

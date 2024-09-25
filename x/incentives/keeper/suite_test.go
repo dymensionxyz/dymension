@@ -8,6 +8,7 @@ import (
 
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
@@ -222,7 +223,7 @@ func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
 				Base:     "aden",
 				Exponent: 18,
 			},
-			InitialSupply: sdk.NewInt(1000),
+			InitialSupply: uptr.To(sdk.NewInt(1000)),
 		},
 	}
 

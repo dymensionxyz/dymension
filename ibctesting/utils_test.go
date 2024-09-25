@@ -21,6 +21,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -144,7 +145,7 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 				Base:     "aden",
 				Exponent: 18,
 			},
-			InitialSupply: sdk.NewInt(1000),
+			InitialSupply: uptr.To(sdk.NewInt(1000)),
 		},
 	)
 

@@ -103,7 +103,7 @@ func (r Rollapp) GenesisInfoFieldsAreSet() bool {
 	return r.GenesisInfo.GenesisChecksum != "" &&
 		r.GenesisInfo.NativeDenom.Validate() == nil &&
 		r.GenesisInfo.Bech32Prefix != "" &&
-		(r.GenesisInfo.InitialSupply != nil && !r.GenesisInfo.InitialSupply.IsPositive())
+		(r.GenesisInfo.InitialSupply != nil && !r.GenesisInfo.InitialSupply.IsNil())
 }
 
 func (r Rollapp) IsVulnerable() bool {
