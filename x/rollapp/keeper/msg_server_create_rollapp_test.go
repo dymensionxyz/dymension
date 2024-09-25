@@ -351,7 +351,7 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(
 		InitialSequencer: rollapp.GetInitialSequencer(),
 		VmType:           types.Rollapp_EVM,
 		Metadata:         rollapp.GetMetadata(),
-		GenesisInfo:      rollapp.GetGenesisInfo(),
+		GenesisInfo:      *rollapp.GetGenesisInfo(),
 	}
 	// create rollapp
 	createResponse, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -383,7 +383,7 @@ var mockRollappMetadata = types.RollappMetadata{
 	X:           "https://x.dymension.xyz",
 }
 
-var mockGenesisInfo = types.GenesisInfo{
+var mockGenesisInfo = &types.GenesisInfo{
 	Bech32Prefix:    "rol",
 	GenesisChecksum: "checksum",
 	NativeDenom: &types.DenomMetadata{

@@ -37,7 +37,7 @@ message MsgCreateRollapp {
   // metadata is the rollapp metadata
   RollappMetadata metadata = 13;
   // genesis_info is the genesis information
-  GenesisInfo genesis_info = 14 [(gogoproto.nullable) = false ];
+  GenesisInfo genesis_info = 14 [(gogoproto.nullable) = true ];
   // vm_type is the type of rollapp machine: EVM or WASM
   Rollapp.VMType vm_type = 15;
 }
@@ -59,7 +59,7 @@ message MsgUpdateRollappInformation {
   // metadata is the rollapp metadata
   RollappMetadata metadata = 5 [(gogoproto.nullable) = true ];
   // genesis_info is the genesis information
-  GenesisInfo genesis_info = 6 [(gogoproto.nullable) = false ];
+  GenesisInfo genesis_info = 6 [(gogoproto.nullable) = true ];
 }
 
 message MsgUpdateRollappInformationResponse {

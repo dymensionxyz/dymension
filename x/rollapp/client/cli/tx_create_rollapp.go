@@ -69,44 +69,43 @@ func CmdCreateRollapp() *cobra.Command {
 	return cmd
 }
 
-func parseGenesisInfo(cmd *cobra.Command) (types.GenesisInfo, error) {
+func parseGenesisInfo(cmd *cobra.Command) (*types.GenesisInfo, error) {
 	var (
-		genesisInfo types.GenesisInfo
+		genesisInfo = &types.GenesisInfo{}
 		err         error
 		ok          bool
 	)
 
 	genesisInfo.GenesisChecksum, err = cmd.Flags().GetString(FlagGenesisChecksum)
 	if err != nil {
-		return types.GenesisInfo{}, err
+		return nil, err
 	}
 
 	genesisInfo.Bech32Prefix, err = cmd.Flags().GetString(FlagBech32Prefix)
 	if err != nil {
-		return types.GenesisInfo{}, err
+		return nil, err
 	}
 
 	nativeDenomFlag, err := cmd.Flags().GetString(FlagNativeDenom)
 	if err != nil {
-		return types.GenesisInfo{}, err
+		return nil, err
 	}
 
 	if nativeDenomFlag != "" {
-		genesisInfo.NativeDenom = new(types.DenomMetadata)
-		if err = utils.ParseJsonFromFile(nativeDenomFlag, genesisInfo.NativeDenom); err != nil {
-			return types.GenesisInfo{}, err
+		if err = utils.ParseJsonFromFile(nativeDenomFlag, &genesisInfo.NativeDenom); err != nil {
+			return nil, err
 		}
 	}
 
 	initialSupplyFlag, err := cmd.Flags().GetString(FlagInitialSupply)
 	if err != nil {
-		return types.GenesisInfo{}, err
+		return nil, err
 	}
 
 	if initialSupplyFlag != "" {
 		genesisInfo.InitialSupply, ok = sdk.NewIntFromString(initialSupplyFlag)
 		if !ok {
-			return types.GenesisInfo{}, fmt.Errorf("invalid initial supply: %s", initialSupplyFlag)
+			return nil, fmt.Errorf("invalid initial supply: %s", initialSupplyFlag)
 		}
 	}
 

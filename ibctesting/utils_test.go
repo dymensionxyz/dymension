@@ -135,7 +135,7 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 			Telegram:    "https://t.me/rolly",
 			X:           "https://x.dymension.xyz",
 		},
-		rollapptypes.GenesisInfo{
+		&rollapptypes.GenesisInfo{
 			GenesisChecksum: "somechecksum",
 			Bech32Prefix:    "eth",
 			NativeDenom: &rollapptypes.DenomMetadata{

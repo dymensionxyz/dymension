@@ -90,6 +90,10 @@ func (im IBCModule) OnRecvPacket(
 		return uevent.NewErrorAcknowledgement(ctx, gerrc.ErrNotFound)
 	}
 
+	if im.keeper.HasDenomMetadata(ctx, ibcDenom) {
+		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
+	}
+
 	dm.Base = ibcDenom
 	dm.DenomUnits[0].Denom = dm.Base
 

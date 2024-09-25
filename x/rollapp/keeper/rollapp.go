@@ -39,20 +39,22 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		current.InitialSequencer = update.InitialSequencer
 	}
 
-	if update.GenesisInfo.GenesisChecksum != "" {
-		current.GenesisInfo.GenesisChecksum = update.GenesisInfo.GenesisChecksum
-	}
+	if update.GenesisInfo != nil {
+		if update.GenesisInfo.GenesisChecksum != "" {
+			current.GenesisInfo.GenesisChecksum = update.GenesisInfo.GenesisChecksum
+		}
 
-	if update.GenesisInfo.Bech32Prefix != "" {
-		current.GenesisInfo.Bech32Prefix = update.GenesisInfo.Bech32Prefix
-	}
+		if update.GenesisInfo.Bech32Prefix != "" {
+			current.GenesisInfo.Bech32Prefix = update.GenesisInfo.Bech32Prefix
+		}
 
-	if update.GenesisInfo.NativeDenom != nil {
-		current.GenesisInfo.NativeDenom = update.GenesisInfo.NativeDenom
-	}
+		if update.GenesisInfo.NativeDenom != nil {
+			current.GenesisInfo.NativeDenom = update.GenesisInfo.NativeDenom
+		}
 
-	if !update.GenesisInfo.InitialSupply.IsNil() {
-		current.GenesisInfo.InitialSupply = update.GenesisInfo.InitialSupply
+		if !update.GenesisInfo.InitialSupply.IsNil() {
+			current.GenesisInfo.InitialSupply = update.GenesisInfo.InitialSupply
+		}
 	}
 
 	if update.Metadata != nil && !update.Metadata.IsEmpty() {

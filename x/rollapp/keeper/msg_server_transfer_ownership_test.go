@@ -25,7 +25,7 @@ func (suite *RollappTestSuite) TestTransferOwnership() {
 			expRollapp: types.Rollapp{
 				Owner:       bob,
 				RollappId:   rollappId,
-				GenesisInfo: mockGenesisInfo,
+				GenesisInfo: *mockGenesisInfo,
 			},
 		}, {
 			name: "Transfer rollapp ownership: failed, rollapp not found",

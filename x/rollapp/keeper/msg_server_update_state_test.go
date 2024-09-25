@@ -131,7 +131,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 		RollappId:        rollappID,
 		Owner:            alice,
 		InitialSequencer: sample.AccAddress(),
-		GenesisInfo:      mockGenesisInfo,
+		GenesisInfo:      *mockGenesisInfo,
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
