@@ -80,10 +80,8 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 		return err
 	}
 
-	// calculate last price
-	lastPrice := plan.BondingCurve.SpotPrice(plan.SoldAmt)
 	// find the tokens needed to bootstrap the pool, to fulfill last price
-	tokens, dym := determineLimitingFactor(unallocatedTokens, raisedDYM.Amount, lastPrice)
+	tokens, dym := determineLimitingFactor(unallocatedTokens, raisedDYM.Amount, plan.SpotPrice())
 	rollappLiquidityCoin := sdk.NewCoin(plan.SettledDenom, tokens)
 	dymLiquidityCoin := sdk.NewCoin(appparams.BaseDenom, dym)
 
@@ -126,14 +124,16 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 	return nil
 }
 
-func determineLimitingFactor(unsoldRATokens, raisedDYM, settledTokenPrice math.Int) (RATokens, dym math.Int) {
-	requiredDYM := unsoldRATokens.Mul(settledTokenPrice)
+func determineLimitingFactor(unsoldRATokens, raisedDYM math.Int, settledTokenPrice math.LegacyDec) (RATokens, dym math.Int) {
+	requiredDYM := settledTokenPrice.MulInt(unsoldRATokens).TruncateInt()
+
+	//FIXME: validate price is not zero
 
 	// if raisedDYM is less than requiredDYM, than DYM is the limiting factor
 	// we use all the raisedDYM, and the corresponding amount of tokens
 	if raisedDYM.LT(requiredDYM) {
 		dym = raisedDYM
-		RATokens = raisedDYM.Quo(settledTokenPrice)
+		RATokens = raisedDYM.ToLegacyDec().Quo(settledTokenPrice).TruncateInt()
 	} else {
 		// if raisedDYM is more than requiredDYM, than tokens are the limiting factor
 		// we use all the unsold tokens, and the corresponding amount of DYM

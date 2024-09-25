@@ -10,9 +10,16 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
-// approxEqual checks if two math.Ints are approximately equal
-func approxEqual(t *testing.T, expected, actual math.Int) {
+// approxEqualInt checks if two math.Ints are approximately equal
+func approxEqualInt(t *testing.T, expected, actual math.Int) {
 	defaultTolerance := math.NewInt(1).MulRaw(1e9) // one millionth of a dym
+	diff := expected.Sub(actual).Abs()
+	require.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
+}
+
+// approxEqualDec checks if two math.Decs are approximately equal
+func approxEqualDec(t *testing.T, expected, actual math.LegacyDec) {
+	defaultTolerance := math.LegacyNewDecWithPrec(1, 9) // one millionth of a dym
 	diff := expected.Sub(actual).Abs()
 	require.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
 }
@@ -67,9 +74,9 @@ func TestBondingCurve_Linear(t *testing.T) {
 	x3 := math.NewInt(100).MulRaw(1e18)
 
 	// Expected results
-	spotPrice1 := math.NewInt(0).MulRaw(1e18)   // 1*0^1 + 0
-	spotPrice2 := math.NewInt(10).MulRaw(1e18)  // 1*10^1 + 0
-	spotPrice3 := math.NewInt(100).MulRaw(1e18) // 1*100^1 + 0
+	spotPrice1 := math.LegacyNewDec(0)   // 1*0^1 + 0
+	spotPrice2 := math.LegacyNewDec(10)  // 1*10^1 + 0
+	spotPrice3 := math.LegacyNewDec(100) // 1*100^1 + 0
 
 	// y = 1/2*x^2
 	integral2 := math.NewInt(50).MulRaw(1e18)   // (1/2)*10^2
@@ -78,16 +85,16 @@ func TestBondingCurve_Linear(t *testing.T) {
 	cost1to2 := integral2                      // 50 - 0
 	cost2to3 := math.NewInt(4950).MulRaw(1e18) // 5000 - 50
 
-	approxEqual(t, math.ZeroInt(), curve.Integral(x1))
-	approxEqual(t, integral2, curve.Integral(x2))
-	approxEqual(t, integral3, curve.Integral(x3))
+	approxEqualInt(t, math.ZeroInt(), curve.Integral(x1))
+	approxEqualInt(t, integral2, curve.Integral(x2))
+	approxEqualInt(t, integral3, curve.Integral(x3))
 
-	approxEqual(t, spotPrice1, curve.SpotPrice(x1))
-	approxEqual(t, spotPrice2, curve.SpotPrice(x2))
-	approxEqual(t, spotPrice3, curve.SpotPrice(x3))
+	approxEqualDec(t, spotPrice1, curve.SpotPrice(x1))
+	approxEqualDec(t, spotPrice2, curve.SpotPrice(x2))
+	approxEqualDec(t, spotPrice3, curve.SpotPrice(x3))
 
-	approxEqual(t, cost1to2, curve.Cost(x1, x2))
-	approxEqual(t, cost2to3, curve.Cost(x2, x3))
+	approxEqualInt(t, cost1to2, curve.Cost(x1, x2))
+	approxEqualInt(t, cost2to3, curve.Cost(x2, x3))
 }
 
 // Scenario 2: Quadratic Curve with Offset
@@ -105,9 +112,9 @@ func TestBondingCurve_Quadratic(t *testing.T) {
 	x3 := math.NewInt(10).MulRaw(1e18)
 
 	// Expected results
-	spotPrice1 := math.NewInt(10).MulRaw(1e18)  // 2*0^2 + 10
-	spotPrice2 := math.NewInt(60).MulRaw(1e18)  // 2*5^2 + 10
-	spotPrice3 := math.NewInt(210).MulRaw(1e18) // 2*10^2 + 10
+	spotPrice1 := math.LegacyNewDec(10)  // 2*0^2 + 10
+	spotPrice2 := math.LegacyNewDec(60)  // 2*5^2 + 10
+	spotPrice3 := math.LegacyNewDec(210) // 2*10^2 + 10
 
 	integral1 := math.NewInt(0).MulRaw(1e18)                                                 // (2/3)*0^3 + 10*0
 	integral2 := math.LegacyMustNewDecFromStr("133.3333333333").MulInt64(1e18).TruncateInt() // (2/3)*5^3 + 10*5                                                     // (2/3)*10^3 + 10*10
@@ -116,16 +123,16 @@ func TestBondingCurve_Quadratic(t *testing.T) {
 	cost1to2 := integral2                                                                   // (2/3)*5^3 + 10*5 - (2/3)*0^3 - 10*0
 	cost2to3 := math.LegacyMustNewDecFromStr("633.3333333333").MulInt64(1e18).TruncateInt() // (2/3)*10^3 + 10*10 - (2/3)*5^3 - 10*5
 
-	approxEqual(t, integral1, curve.Integral(x1))
-	approxEqual(t, integral2, curve.Integral(x2))
-	approxEqual(t, integral3, curve.Integral(x3))
+	approxEqualInt(t, integral1, curve.Integral(x1))
+	approxEqualInt(t, integral2, curve.Integral(x2))
+	approxEqualInt(t, integral3, curve.Integral(x3))
 
-	approxEqual(t, spotPrice1, curve.SpotPrice(x1))
-	approxEqual(t, spotPrice2, curve.SpotPrice(x2))
-	approxEqual(t, spotPrice3, curve.SpotPrice(x3))
+	approxEqualDec(t, spotPrice1, curve.SpotPrice(x1))
+	approxEqualDec(t, spotPrice2, curve.SpotPrice(x2))
+	approxEqualDec(t, spotPrice3, curve.SpotPrice(x3))
 
-	approxEqual(t, cost1to2, curve.Cost(x1, x2))
-	approxEqual(t, cost2to3, curve.Cost(x2, x3))
+	approxEqualInt(t, cost1to2, curve.Cost(x1, x2))
+	approxEqualInt(t, cost2to3, curve.Cost(x2, x3))
 }
 
 // Scenario: Square Root Curve
@@ -143,9 +150,9 @@ func TestBondingCurve_SquareRoot(t *testing.T) {
 	x3 := math.NewInt(10000).MulRaw(1e18)
 
 	// Expected results (rounded to nearest integer)
-	spotPrice1 := math.LegacyMustNewDecFromStr("10.5443534").MulInt64(1e18).TruncateInt()  // 2.24345436*0^0.5 + 10.5443534 ≈ 11
-	spotPrice2 := math.LegacyMustNewDecFromStr("32.978897").MulInt64(1e18).TruncateInt()   // 2.24345436*100^0.5 + 10.5443534 ≈ 33
-	spotPrice3 := math.LegacyMustNewDecFromStr("234.8897894").MulInt64(1e18).TruncateInt() // 2.24345436*10000^0.5 + 10.5443534 ≈ 235
+	spotPrice1 := math.LegacyMustNewDecFromStr("10.5443534")  // 2.24345436*0^0.5 + 10.5443534 ≈ 11
+	spotPrice2 := math.LegacyMustNewDecFromStr("32.978897")   // 2.24345436*100^0.5 + 10.5443534 ≈ 33
+	spotPrice3 := math.LegacyMustNewDecFromStr("234.8897894") // 2.24345436*10000^0.5 + 10.5443534 ≈ 235
 
 	integral1 := math.LegacyMustNewDecFromStr("0").MulInt64(1e18).TruncateInt()           // (2/3)*2.24345436*0^1.5 + 10.5443534*0 = 0
 	integral2 := math.LegacyMustNewDecFromStr("2550.07158").MulInt64(1e18).TruncateInt()  // (2/3)*2.24345436*100^1.5 + 10.5443534*100 ≈ 2550
@@ -154,16 +161,16 @@ func TestBondingCurve_SquareRoot(t *testing.T) {
 	cost1to2 := integral2                                                                  // integral2 - integral1
 	cost2to3 := math.LegacyMustNewDecFromStr("1598529.70242").MulInt64(1e18).TruncateInt() // integral3 - integral2
 
-	approxEqual(t, integral1, curve.Integral(x1))
-	approxEqual(t, integral2, curve.Integral(x2))
-	approxEqual(t, integral3, curve.Integral(x3))
+	approxEqualInt(t, integral1, curve.Integral(x1))
+	approxEqualInt(t, integral2, curve.Integral(x2))
+	approxEqualInt(t, integral3, curve.Integral(x3))
 
-	approxEqual(t, spotPrice1, curve.SpotPrice(x1))
-	approxEqual(t, spotPrice2, curve.SpotPrice(x2))
-	approxEqual(t, spotPrice3, curve.SpotPrice(x3))
+	approxEqualDec(t, spotPrice1, curve.SpotPrice(x1))
+	approxEqualDec(t, spotPrice2, curve.SpotPrice(x2))
+	approxEqualDec(t, spotPrice3, curve.SpotPrice(x3))
 
-	approxEqual(t, cost1to2, curve.Cost(x1, x2))
-	approxEqual(t, cost2to3, curve.Cost(x2, x3))
+	approxEqualInt(t, cost1to2, curve.Cost(x1, x2))
+	approxEqualInt(t, cost2to3, curve.Cost(x2, x3))
 }
 
 // test very small x returns 0
@@ -206,7 +213,7 @@ func TestUseCaseA(t *testing.T) {
 
 	// Verify that the integral of the curve at Z equals VAL
 	integral := curve.Integral(z.MulInt64(1e18).TruncateInt())
-	approxEqual(t, val.MulInt64(1e18).TruncateInt(), integral)
+	approxEqualInt(t, val.MulInt64(1e18).TruncateInt(), integral)
 
 	// verify that the cost early is lower than the cost later
 	// test for buying 1000 RA tokens

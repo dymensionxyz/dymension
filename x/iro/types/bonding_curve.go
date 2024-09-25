@@ -82,7 +82,7 @@ func scaleDYMToBase(y math.LegacyDec) math.Int {
 }
 
 // SpotPrice returns the spot price at x
-func (lbc BondingCurve) SpotPrice(x math.Int) math.Int {
+func (lbc BondingCurve) SpotPrice(x math.Int) math.LegacyDec {
 	// we use osmomath as it support Power function
 	xDec := osmomath.BigDecFromSDKDec(scaleXFromBase(x))
 	nDec := osmomath.BigDecFromSDKDec(lbc.N)
@@ -95,8 +95,7 @@ func (lbc BondingCurve) SpotPrice(x math.Int) math.Int {
 		xPowN = xDec.Power(nDec) // Calculate x^N
 	}
 	price := mDec.Mul(xPowN).SDKDec().Add(lbc.C) // M * x^N + C
-
-	return scaleDYMToBase(price)
+	return price
 }
 
 // Cost returns the cost of buying x1 - x tokens

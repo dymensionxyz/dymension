@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 
@@ -109,8 +110,8 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 	s.Require().NoError(err)
 
 	plan = k.MustGetPlan(s.Ctx, planId)
-	lastPrice := plan.BondingCurve.SpotPrice(plan.SoldAmt)
-	s.Require().Equal(lastPrice, price.TruncateInt())
+	lastPrice := plan.SpotPrice()
+	s.Require().Equal(lastPrice, price)
 
 	// assert incentives
 	poolCoins := pool.GetTotalPoolLiquidity(s.Ctx)
@@ -180,16 +181,19 @@ func (s *KeeperTestSuite) TestSettleNothingSold() {
 }
 
 func (s *KeeperTestSuite) TestSettleAllSold() {
-	s.T().Skip("FIXME: This test not working as expected. Need to fix")
 	rollappId := s.CreateDefaultRollapp()
 	k := s.App.IROKeeper
-	// setting curve so prices will be cheap
-	curve := types.DefaultBondingCurve()
+	// setting curve with fixed price
+	curve := types.BondingCurve{
+		M: math.LegacyMustNewDecFromStr("0"),
+		N: math.LegacyMustNewDecFromStr("1"),
+		C: math.LegacyMustNewDecFromStr("0.00001"),
+	}
 	incentives := types.DefaultIncentivePlanParams()
 
 	startTime := time.Now()
 	endTime := startTime.Add(time.Hour)
-	amt := sdk.NewInt(10_000_000).MulRaw(1e18)
+	amt := sdk.NewInt(1_000_000).MulRaw(1e18)
 	rollappDenom := "rollapp_denom"
 
 	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)

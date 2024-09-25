@@ -60,6 +60,11 @@ func (p Plan) ValidateBasic() error {
 	return nil
 }
 
+// SpotPrice returns the spot price of the plan
+func (p Plan) SpotPrice() math.LegacyDec {
+	return p.BondingCurve.SpotPrice(p.SoldAmt)
+}
+
 func (p Plan) IsSettled() bool {
 	return p.SettledDenom != ""
 }

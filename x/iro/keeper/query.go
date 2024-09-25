@@ -104,8 +104,8 @@ func (k Keeper) QueryPlans(goCtx context.Context, req *types.QueryPlansRequest) 
 	return &types.QueryPlansResponse{Plans: k.GetAllPlans(ctx)}, nil
 }
 
-// QueryPrice implements types.QueryServer.
-func (k Keeper) QueryPrice(goCtx context.Context, req *types.QueryPriceRequest) (*types.QueryPriceResponse, error) {
+// QuerySpotPrice implements types.QueryServer.
+func (k Keeper) QuerySpotPrice(goCtx context.Context, req *types.QuerySpotPriceRequest) (*types.QuerySpotPriceResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -116,10 +116,7 @@ func (k Keeper) QueryPrice(goCtx context.Context, req *types.QueryPriceRequest) 
 		return nil, status.Error(codes.NotFound, "plan not found")
 	}
 
-	price := plan.BondingCurve.SpotPrice(plan.SoldAmt)
-	coin := sdk.NewCoin(appparams.BaseDenom, price)
-
-	return &types.QueryPriceResponse{
-		Price: &coin,
+	return &types.QuerySpotPriceResponse{
+		Price: plan.SpotPrice(),
 	}, nil
 }
