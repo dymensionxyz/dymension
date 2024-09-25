@@ -22,10 +22,11 @@ type Keeper struct {
 	paramstore paramtypes.Subspace
 	authority  string // authority is the x/gov module account
 
-	ibcClientKeeper types.IBCClientKeeper
-	channelKeeper   types.ChannelKeeper
-	sequencerKeeper types.SequencerKeeper
-	bankKeeper      types.BankKeeper
+	ibcClientKeeper       types.IBCClientKeeper
+	canonicalClientKeeper types.CanonicalLightClientKeeper
+	channelKeeper         types.ChannelKeeper
+	sequencerKeeper       types.SequencerKeeper
+	bankKeeper            types.BankKeeper
 
 	vulnerableDRSVersions collections.KeySet[string]
 
@@ -41,6 +42,7 @@ func NewKeeper(
 	sequencerKeeper types.SequencerKeeper,
 	bankKeeper types.BankKeeper,
 	authority string,
+	canonicalClientKeeper types.CanonicalLightClientKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -67,7 +69,8 @@ func NewKeeper(
 			"vulnerable_drs_versions",
 			collections.StringKey,
 		),
-		finalizePending: nil,
+		finalizePending:       nil,
+		canonicalClientKeeper: canonicalClientKeeper,
 	}
 	k.SetFinalizePendingFn(k.finalizePendingState)
 	return k
@@ -83,6 +86,10 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k *Keeper) SetSequencerKeeper(sk types.SequencerKeeper) {
 	k.sequencerKeeper = sk
+}
+
+func (k *Keeper) SetCanonicalClientKeeper(kk types.CanonicalLightClientKeeper) {
+	k.canonicalClientKeeper = kk
 }
 
 /* -------------------------------------------------------------------------- */

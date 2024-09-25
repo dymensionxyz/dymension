@@ -357,6 +357,7 @@ func (a *AppKeepers) InitKeepers(
 		nil,
 		a.BankKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		nil,
 	)
 
 	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
@@ -376,6 +377,7 @@ func (a *AppKeepers) InitKeepers(
 	)
 
 	a.RollappKeeper.SetSequencerKeeper(a.SequencerKeeper)
+	a.RollappKeeper.SetCanonicalClientKeeper(a.LightClientKeeper)
 
 	a.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		a.keys[incentivestypes.StoreKey],

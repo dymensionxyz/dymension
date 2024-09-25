@@ -236,20 +236,18 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 					Index:     1,
 				},
 				StartHeight: 1,
-				NumBlocks:   10,
 				Status:      commontypes.Status_FINALIZED,
 				Sequencer:   proposer,
-			}
+			}.WithNumBlocks(10)
 			stateInfo2 := rollapptypes.StateInfo{
 				StateInfoIndex: rollapptypes.StateInfoIndex{
 					RollappId: rollapp,
 					Index:     2,
 				},
 				StartHeight: 11,
-				NumBlocks:   10,
 				Status:      commontypes.Status_PENDING,
 				Sequencer:   proposer,
-			}
+			}.WithNumBlocks(10)
 
 			// if nothingFinalized true, all the state infos submitted should be pending
 			if tc.nothingFinalized {
