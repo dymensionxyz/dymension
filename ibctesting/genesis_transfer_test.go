@@ -80,7 +80,7 @@ func (s *transferGenesisSuite) TestNoIRO() {
 // In this case, the genesis transfer is required
 // regular transfers should fail until the genesis transfer is done
 func (s *transferGenesisSuite) TestIRO() {
-	amt := math.NewIntFromUint64(10000000000000000000)
+	amt := math.NewIntFromUint64(1_000_000).MulRaw(1e18)
 	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 
 	denom := rollapp.GenesisInfo.NativeDenom.Base

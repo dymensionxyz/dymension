@@ -15,6 +15,10 @@ var (
 	_ sdk.Msg = &MsgUpdateParams{}
 )
 
+// ValidateBasic performs basic validation checks on the MsgCreatePlan message.
+// It ensures that the owner address is valid, the bonding curve is valid, the allocated amount
+// is greater than the minimum token allocation, the pre-launch time is before the start time,
+// and the incentive plan parameters are valid.
 func (m *MsgCreatePlan) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {
