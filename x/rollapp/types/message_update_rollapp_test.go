@@ -22,7 +22,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				Owner:            sample.AccAddress(),
 				RollappId:        "dym_100-1",
 				InitialSequencer: sample.AccAddress(),
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
@@ -51,7 +51,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				Owner:            sample.AccAddress(),
 				InitialSequencer: "invalid_address",
 				RollappId:        "dym_100-1",
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
@@ -66,7 +66,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				Owner:            sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
 				RollappId:        "dym_100-1",
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
@@ -86,7 +86,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				Owner:            sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
 				RollappId:        "dym_100-1",
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: strings.Repeat("a", maxGenesisChecksumLength+1),
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
@@ -94,6 +94,16 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				},
 			},
 			err: ErrInvalidGenesisChecksum,
+		},
+		{
+			name: "valid: updating without genesis info",
+			msg: MsgUpdateRollappInformation{
+				Owner:            sample.AccAddress(),
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				GenesisInfo:      nil,
+			},
+			err: nil,
 		},
 	}
 	for _, tt := range tests {

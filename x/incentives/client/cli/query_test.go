@@ -34,7 +34,7 @@ func (suite *QueryTestSuite) CreateDefaultRollapp() string {
 		RollappId: urand.RollappID(),
 		Alias:     strings.ToLower(tmrand.Str(7)),
 		VmType:    rollapptypes.Rollapp_EVM,
-		GenesisInfo: rollapptypes.GenesisInfo{
+		GenesisInfo: &rollapptypes.GenesisInfo{
 			Bech32Prefix: strings.ToLower(tmrand.Str(3)),
 		},
 	}
