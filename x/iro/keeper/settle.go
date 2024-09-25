@@ -127,8 +127,6 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 func determineLimitingFactor(unsoldRATokens, raisedDYM math.Int, settledTokenPrice math.LegacyDec) (RATokens, dym math.Int) {
 	requiredDYM := settledTokenPrice.MulInt(unsoldRATokens).TruncateInt()
 
-	//FIXME: validate price is not zero
-
 	// if raisedDYM is less than requiredDYM, than DYM is the limiting factor
 	// we use all the raisedDYM, and the corresponding amount of tokens
 	if raisedDYM.LT(requiredDYM) {
@@ -141,7 +139,6 @@ func determineLimitingFactor(unsoldRATokens, raisedDYM math.Int, settledTokenPri
 		dym = requiredDYM
 	}
 
-	// FIXME: handle the case where dym/tokens is very small
 	// for the extreme edge case where required liquidity truncated to 0
 	// we use what we have as it guaranteed to be more than 0
 	if dym.IsZero() {

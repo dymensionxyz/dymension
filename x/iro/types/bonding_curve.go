@@ -35,17 +35,18 @@ we use scaling functions to convert between the decimal scale and the base denom
 
 // Scales x from it's base denomination to a decimal representation
 // This is used so the bonding curve
-func scaleXFromBase(x math.Int, precision int64) math.LegacyDec {
+func ScaleXFromBase(x math.Int, precision int64) math.LegacyDec {
 	return math.LegacyNewDecFromIntWithPrec(x, precision)
 }
 
 // Scales y from the decimal scale to it's base denomination
-func scaleDYMToBase(y math.LegacyDec) math.Int {
+func ScaleDYMToBase(y math.LegacyDec) math.Int {
 	return y.MulInt(math.NewInt(1e18)).TruncateInt()
 }
 
 func (lbc BondingCurve) SupplyDecimals() int64 {
-	rollappTokenDefaultDecimals := int64(18) // TODO: allow to be set on creation instead of using default
+	// TODO: allow to be set on creation instead of using default
+	rollappTokenDefaultDecimals := int64(18)
 	return rollappTokenDefaultDecimals
 }
 
@@ -99,7 +100,7 @@ func checkPrecision(d math.LegacyDec) bool {
 // SpotPrice returns the spot price at x
 func (lbc BondingCurve) SpotPrice(x math.Int) math.LegacyDec {
 	// we use osmomath as it support Power function
-	xDec := osmomath.BigDecFromSDKDec(scaleXFromBase(x, lbc.SupplyDecimals()))
+	xDec := osmomath.BigDecFromSDKDec(ScaleXFromBase(x, lbc.SupplyDecimals()))
 	nDec := osmomath.BigDecFromSDKDec(lbc.N)
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)
 
@@ -128,7 +129,7 @@ func (lbc BondingCurve) Cost(x, x1 math.Int) math.Int {
 //	Cost = (M / (N + 1)) * x^(N + 1) + C * x.
 func (lbc BondingCurve) Integral(x math.Int) math.Int {
 	// we use osmomath as it support Power function
-	xDec := osmomath.BigDecFromSDKDec(scaleXFromBase(x, lbc.SupplyDecimals()))
+	xDec := osmomath.BigDecFromSDKDec(ScaleXFromBase(x, lbc.SupplyDecimals()))
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)
 	cDec := osmomath.BigDecFromSDKDec(lbc.C)
 	nPlusOne := osmomath.BigDecFromSDKDec(lbc.N.Add(math.LegacyNewDec(1)))
@@ -144,7 +145,7 @@ func (lbc BondingCurve) Integral(x math.Int) math.Int {
 
 	// Calculate the integral
 	integral := xPowNplusOne.Mul(mDivNPlusOne).Add(cx)
-	return scaleDYMToBase(integral.SDKDec())
+	return ScaleDYMToBase(integral.SDKDec())
 }
 
 // CalculateM computes the M parameter for a bonding curve

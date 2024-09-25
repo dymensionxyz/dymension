@@ -21,12 +21,13 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid owner address: %s", err)
 	}
 
-	if !m.AllocatedAmount.QuoRaw(1e18).GT(MinTokenAllocation) {
-		return ErrInvalidAllocation
-	}
-
 	if err := m.BondingCurve.ValidateBasic(); err != nil {
 		return errors.Join(ErrInvalidBondingCurve, err)
+	}
+
+	allocationDec := ScaleXFromBase(m.AllocatedAmount, m.BondingCurve.SupplyDecimals())
+	if !allocationDec.GT(MinTokenAllocation) {
+		return ErrInvalidAllocation
 	}
 
 	if m.PreLaunchTime.Before(m.StartTime) {
