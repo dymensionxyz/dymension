@@ -28,7 +28,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				InitialSequencer: sample.AccAddress(),
 				Alias:            "Rollapp",
 				VmType:           Rollapp_EVM,
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
@@ -55,7 +55,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId:        " ",
 				Alias:            "Rollapp",
 				VmType:           Rollapp_EVM,
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
@@ -72,7 +72,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId:        "dym_100-1",
 				Alias:            "Rollapp",
 				VmType:           Rollapp_EVM,
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
@@ -89,7 +89,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId:        "dym_100-1",
 				Alias:            "Rollapp",
 				VmType:           Rollapp_EVM,
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
@@ -105,7 +105,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId:        "dym_100-1",
 				Alias:            "Rollapp",
 				VmType:           Rollapp_EVM,
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
@@ -122,7 +122,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId:        "dym_100-1",
 				Alias:            "Rollapp",
 				VmType:           Rollapp_WASM,
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
@@ -139,7 +139,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId:        "dym_100-1",
 				Alias:            "Rollapp",
 				VmType:           Rollapp_WASM,
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
@@ -158,7 +158,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId: "dym_100-1",
 				Alias:     "Rollapp",
 				VmType:    Rollapp_EVM,
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
@@ -175,7 +175,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId:        "dym_100-1",
 				Alias:            "Rollapp",
 				VmType:           Rollapp_EVM,
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    "DYM",
 					GenesisChecksum: "checksum",
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
@@ -192,7 +192,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId:        "dym_100-1",
 				Alias:            "alias",
 				VmType:           Rollapp_EVM,
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
@@ -214,7 +214,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId:        "dym_100-1",
 				Alias:            "alias",
 				VmType:           Rollapp_EVM,
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: strings.Repeat("a", maxGenesisChecksumLength+1),
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
@@ -231,7 +231,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId:        "dym_100-1",
 				Alias:            "alias",
 				VmType:           Rollapp_EVM,
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
@@ -251,7 +251,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId:        "dym_100-1",
 				Alias:            "alias",
 				VmType:           Rollapp_EVM,
-				GenesisInfo: GenesisInfo{
+				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
 					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},

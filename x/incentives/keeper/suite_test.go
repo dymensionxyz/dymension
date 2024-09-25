@@ -214,7 +214,7 @@ func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
 		InitialSequencer: addr.String(),
 		Alias:            strings.ToLower(tmrand.Str(7)),
 		VmType:           rollapptypes.Rollapp_EVM,
-		GenesisInfo: rollapptypes.GenesisInfo{
+		GenesisInfo: &rollapptypes.GenesisInfo{
 			Bech32Prefix:    strings.ToLower(tmrand.Str(3)),
 			GenesisChecksum: "checksum",
 			NativeDenom: rollapptypes.DenomMetadata{

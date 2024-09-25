@@ -40,20 +40,22 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		current.InitialSequencer = update.InitialSequencer
 	}
 
-	if update.GenesisInfo.GenesisChecksum != "" {
-		current.GenesisInfo.GenesisChecksum = update.GenesisInfo.GenesisChecksum
-	}
+	if update.GenesisInfo != nil {
+		if update.GenesisInfo.GenesisChecksum != "" {
+			current.GenesisInfo.GenesisChecksum = update.GenesisInfo.GenesisChecksum
+		}
 
-	if update.GenesisInfo.Bech32Prefix != "" {
-		current.GenesisInfo.Bech32Prefix = update.GenesisInfo.Bech32Prefix
-	}
+		if update.GenesisInfo.Bech32Prefix != "" {
+			current.GenesisInfo.Bech32Prefix = update.GenesisInfo.Bech32Prefix
+		}
 
-	if update.GenesisInfo.NativeDenom.Base != "" {
-		current.GenesisInfo.NativeDenom = update.GenesisInfo.NativeDenom
-	}
+		if update.GenesisInfo.NativeDenom.Base != "" {
+			current.GenesisInfo.NativeDenom = update.GenesisInfo.NativeDenom
+		}
 
-	if !update.GenesisInfo.InitialSupply.IsNil() {
-		current.GenesisInfo.InitialSupply = update.GenesisInfo.InitialSupply
+		if !update.GenesisInfo.InitialSupply.IsNil() {
+			current.GenesisInfo.InitialSupply = update.GenesisInfo.InitialSupply
+		}
 	}
 
 	if update.Metadata != nil && !update.Metadata.IsEmpty() {
@@ -141,6 +143,11 @@ func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, pre
 	if rollapp.Launched {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp already launched")
 	}
+
+	if rollapp.GenesisInfo.Sealed {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info already sealed")
+	}
+
 	if !rollapp.GenesisInfoFieldsAreSet() {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info not set")
 	}

@@ -15,7 +15,7 @@ func NewMsgCreateRollapp(
 	alias string,
 	vmType Rollapp_VMType,
 	metadata *RollappMetadata,
-	genesisInfo GenesisInfo,
+	genesisInfo *GenesisInfo,
 ) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
 		Creator:          creator,
@@ -50,13 +50,17 @@ func (msg *MsgCreateRollapp) GetSignBytes() []byte {
 }
 
 func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
+	genInfo := GenesisInfo{}
+	if msg.GenesisInfo != nil {
+		genInfo = *msg.GenesisInfo
+	}
 	return NewRollapp(
 		msg.Creator,
 		msg.RollappId,
 		msg.InitialSequencer,
 		msg.VmType,
 		msg.Metadata,
-		msg.GenesisInfo,
+		genInfo,
 		true,
 	)
 }
