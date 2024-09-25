@@ -7,21 +7,47 @@ import (
 )
 
 /*
-with the following actions:
-  - SpotPrice(x) = M*x^N + C
-  - Cost(x, x1) = integral(x1) - integral(x)
-    The integral of y = m * x^N + c is (m / (N + 1)) * x^(N + 1) + c * x.
+A bonding curve is a mathematical function that defines the relationship between the price and supply of a token.
+The general form of a bonding curve is typically expressed as P = M * x^N + C, where:
+- P is the price
+- X is the supply
+- M is a multiplier that affects the curve's steepness
+- N is the exponent that determines the curve's shape
+- C is a constant that sets the initial price
+
+The implications of these parameters are significant:
+M (multiplier) controls the overall steepness of the curve. A higher M value results in a steeper price increase as supply grows, potentially leading to more rapid value appreciation but also higher volatility.
+
+N (exponent) shapes the curve's trajectory. When N > 1, the curve becomes convex, accelerating price growth at higher supply levels, which can create strong incentives for early adoption. When 0 < N < 1, the curve is concave, slowing price growth as supply increases, which can promote more stable long-term growth.
+
+C (constant) sets the starting price when supply is zero, effectively establishing a price floor and influencing the token's initial accessibility.
 */
 
 const (
-	MaxNValue     = 2
-	MaxNPrecision = 3
+	MaxNValue     = 2 // Maximum allowed value for the N parameter
+	MaxNPrecision = 3 // Maximum allowed decimal precision for the N parameter
 )
 
-var (
-	rollappTokenDefaultDecimals = int64(18) // TODO: allow to be set on creation instead of using default
-	DYMToBaseTokenMultiplier    = math.NewInt(1e18)
-)
+/*
+The bonding curve implementation based on decimal representation of the X (rollapp's tokens) and Y (DYM) values.
+we use scaling functions to convert between the decimal scale and the base denomination.
+*/
+
+// Scales x from it's base denomination to a decimal representation
+// This is used so the bonding curve
+func scaleXFromBase(x math.Int, precision int64) math.LegacyDec {
+	return math.LegacyNewDecFromIntWithPrec(x, precision)
+}
+
+// Scales y from the decimal scale to it's base denomination
+func scaleDYMToBase(y math.LegacyDec) math.Int {
+	return y.MulInt(math.NewInt(1e18)).TruncateInt()
+}
+
+func (lbc BondingCurve) SupplyDecimals() int64 {
+	rollappTokenDefaultDecimals := int64(18) // TODO: allow to be set on creation instead of using default
+	return rollappTokenDefaultDecimals
+}
 
 func NewBondingCurve(m, n, c math.LegacyDec) BondingCurve {
 	return BondingCurve{
@@ -56,7 +82,6 @@ func (lbc BondingCurve) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidBondingCurve, "c: %s", lbc.C.String())
 	}
 
-	// Check precision for N
 	if !checkPrecision(lbc.N) {
 		return errorsmod.Wrapf(ErrInvalidBondingCurve, "N must have at most %d decimal places", MaxNPrecision)
 	}
@@ -71,20 +96,10 @@ func checkPrecision(d math.LegacyDec) bool {
 	return multiplied.IsInteger()
 }
 
-// Scales x from it's base denomination to the decimal scale
-func scaleXFromBase(x math.Int) math.LegacyDec {
-	return math.LegacyNewDecFromIntWithPrec(x, rollappTokenDefaultDecimals)
-}
-
-// Scales y from the decimal scale to it's base denomination
-func scaleDYMToBase(y math.LegacyDec) math.Int {
-	return y.MulInt(DYMToBaseTokenMultiplier).TruncateInt()
-}
-
 // SpotPrice returns the spot price at x
 func (lbc BondingCurve) SpotPrice(x math.Int) math.LegacyDec {
 	// we use osmomath as it support Power function
-	xDec := osmomath.BigDecFromSDKDec(scaleXFromBase(x))
+	xDec := osmomath.BigDecFromSDKDec(scaleXFromBase(x, lbc.SupplyDecimals()))
 	nDec := osmomath.BigDecFromSDKDec(lbc.N)
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)
 
@@ -98,17 +113,22 @@ func (lbc BondingCurve) SpotPrice(x math.Int) math.LegacyDec {
 	return price
 }
 
-// Cost returns the cost of buying x1 - x tokens
+/*
+The cost to purchase tokens from supply S1 to S2 is given by the definite integral of this function from S1 to S2. Mathematically, this is expressed as:
+Cost = ∫(S1 to S2) (M * S^N + C) dS
+Solving this integral yields:
+Cost = [M / (N + 1) * S^(N + 1) + C * S](S1 to S2)
+*/
 func (lbc BondingCurve) Cost(x, x1 math.Int) math.Int {
 	return lbc.Integral(x1).Sub(lbc.Integral(x))
 }
 
 // The Integral of y = M * x^N + C is:
 //
-//	(M / (N + 1)) * x^(N + 1) + C * x.
+//	Cost = (M / (N + 1)) * x^(N + 1) + C * x.
 func (lbc BondingCurve) Integral(x math.Int) math.Int {
 	// we use osmomath as it support Power function
-	xDec := osmomath.BigDecFromSDKDec(scaleXFromBase(x))
+	xDec := osmomath.BigDecFromSDKDec(scaleXFromBase(x, lbc.SupplyDecimals()))
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)
 	cDec := osmomath.BigDecFromSDKDec(lbc.C)
 	nPlusOne := osmomath.BigDecFromSDKDec(lbc.N.Add(math.LegacyNewDec(1)))
@@ -130,12 +150,11 @@ func (lbc BondingCurve) Integral(x math.Int) math.Int {
 // CalculateM computes the M parameter for a bonding curve
 // It's actually not used in the codebase, but it's here for reference and for testing purposes
 // val: total value to be raised (in DYM, not adym)
-// t: total number of tokens (rollapp's tokens in decimal scale, not base denomination)
+// t: total number of tokens (rollapp's tokens in decimal representation, not base denomination)
 // n: curve exponent
 // c: constant term
 // M = (VAL - C * T) * (N + 1) / T^(N+1)
 func CalculateM(val, t, n, c math.LegacyDec) math.LegacyDec {
-	// Convert to osmomath.BigDec for more precise calculations
 	valBig := osmomath.BigDecFromSDKDec(val)
 	tBig := osmomath.BigDecFromSDKDec(t)
 	nBig := osmomath.BigDecFromSDKDec(n)
