@@ -50,6 +50,7 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	s.fundSenderAccount()
 	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	s.registerSequencer()
+	s.setRollappLightClientID(s.rollappCtx().ChainID(), path.EndpointA.ClientID)
 
 	rollappEndpoint := path.EndpointB
 	rollappIBCKeeper := s.rollappChain().App.GetIBCKeeper()
@@ -94,6 +95,9 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	currentRollappBlockHeight = uint64(s.rollappCtx().BlockHeight())
 	_, err = s.finalizeRollappState(1, currentRollappBlockHeight)
 	s.Require().NoError(err)
+
+	// manually finalize packets through x/delayedack
+	s.finalizeRollappPacketsUntilHeight(currentRollappBlockHeight)
 
 	// check balance after finalization
 	expectedFee := s.hubApp().DelayedAckKeeper.BridgingFeeFromAmt(s.hubCtx(), transferredCoins.Amount)

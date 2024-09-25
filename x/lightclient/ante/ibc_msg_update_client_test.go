@@ -109,7 +109,6 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 									Index: 3,
 								},
 								StartHeight: 3,
-								NumBlocks:   1,
 								BDs: rollapptypes.BlockDescriptors{
 									BD: []rollapptypes.BlockDescriptor{
 										{
@@ -178,7 +177,6 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 									Index: 1,
 								},
 								StartHeight: 1,
-								NumBlocks:   1,
 								BDs: rollapptypes.BlockDescriptors{
 									BD: []rollapptypes.BlockDescriptor{
 										{
@@ -195,7 +193,6 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 									Index: 2,
 								},
 								StartHeight: 2,
-								NumBlocks:   1,
 								BDs: rollapptypes.BlockDescriptors{
 									BD: []rollapptypes.BlockDescriptor{
 										{
@@ -268,7 +265,6 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 									Index: 1,
 								},
 								StartHeight: 1,
-								NumBlocks:   2,
 								BDs: rollapptypes.BlockDescriptors{
 									BD: []rollapptypes.BlockDescriptor{
 										{

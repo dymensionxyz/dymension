@@ -60,7 +60,7 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 			Bech32Prefix:    strings.ToLower(rand.Str(3)),
 			GenesisChecksum: "1234567890abcdefg",
 			InitialSupply:   sdk.NewInt(1000),
-			NativeDenom: &rollapptypes.DenomMetadata{
+			NativeDenom: rollapptypes.DenomMetadata{
 				Display:  "DEN",
 				Base:     "aden",
 				Exponent: 18,
@@ -115,10 +115,14 @@ func (s *KeeperTestHelper) CreateSequencerByPubkey(ctx sdk.Context, rollappId st
 }
 
 func (s *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAddr string, startHeight, numOfBlocks uint64) (lastHeight uint64, err error) {
+	return s.PostStateUpdateWithDRSVersion(ctx, rollappId, seqAddr, startHeight, numOfBlocks, "")
+}
+
+func (s *KeeperTestHelper) PostStateUpdateWithDRSVersion(ctx sdk.Context, rollappId, seqAddr string, startHeight, numOfBlocks uint64, drsVersion string) (lastHeight uint64, err error) {
 	var bds rollapptypes.BlockDescriptors
 	bds.BD = make([]rollapptypes.BlockDescriptor, numOfBlocks)
-	for k := 0; k < int(numOfBlocks); k++ {
-		bds.BD[k] = rollapptypes.BlockDescriptor{Height: startHeight + uint64(k), Timestamp: time.Now().UTC()}
+	for k := uint64(0); k < numOfBlocks; k++ {
+		bds.BD[k] = rollapptypes.BlockDescriptor{Height: startHeight + k, Timestamp: time.Now().UTC()}
 	}
 
 	updateState := rollapptypes.MsgUpdateState{
@@ -128,6 +132,8 @@ func (s *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAddr s
 		NumBlocks:   numOfBlocks,
 		DAPath:      "",
 		BDs:         bds,
+		Last:        false,
+		DrsVersion:  drsVersion,
 	}
 	msgServer := rollappkeeper.NewMsgServerImpl(*s.App.RollappKeeper)
 	_, err = msgServer.UpdateState(ctx, &updateState)

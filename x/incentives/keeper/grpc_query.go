@@ -164,7 +164,7 @@ func (q Querier) LockableDurations(ctx context.Context, _ *types.QueryLockableDu
 }
 
 // getGaugeFromIDJsonBytes returns gauges from the json bytes of gaugeIDs.
-func (q Querier) getGaugeFromIDJsonBytes(ctx sdk.Context, refValue []byte) ([]types.Gauge, error) {
+func (k Keeper) getGaugeFromIDJsonBytes(ctx sdk.Context, refValue []byte) ([]types.Gauge, error) {
 	gauges := []types.Gauge{}
 	gaugeIDs := []uint64{}
 
@@ -174,7 +174,7 @@ func (q Querier) getGaugeFromIDJsonBytes(ctx sdk.Context, refValue []byte) ([]ty
 	}
 
 	for _, gaugeID := range gaugeIDs {
-		gauge, err := q.Keeper.GetGaugeByID(ctx, gaugeID)
+		gauge, err := k.GetGaugeByID(ctx, gaugeID)
 		if err != nil {
 			return []types.Gauge{}, err
 		}
@@ -186,15 +186,15 @@ func (q Querier) getGaugeFromIDJsonBytes(ctx sdk.Context, refValue []byte) ([]ty
 }
 
 // filterByPrefixAndDenom filters gauges based on a given key prefix and denom
-func (q Querier) filterByPrefixAndDenom(ctx sdk.Context, prefixType []byte, denom string, pagination *query.PageRequest) (*query.PageResponse, []types.Gauge, error) {
+func (k Keeper) filterByPrefixAndDenom(ctx sdk.Context, prefixType []byte, denom string, pagination *query.PageRequest) (*query.PageResponse, []types.Gauge, error) {
 	gauges := []types.Gauge{}
-	store := ctx.KVStore(q.Keeper.storeKey)
+	store := ctx.KVStore(k.storeKey)
 	valStore := prefix.NewStore(store, prefixType)
 
 	pageRes, err := query.FilteredPaginate(valStore, pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
 		// this may return multiple gauges at once if two gauges start at the same time.
 		// for now this is treated as an edge case that is not of importance
-		newGauges, err := q.getGaugeFromIDJsonBytes(ctx, value)
+		newGauges, err := k.getGaugeFromIDJsonBytes(ctx, value)
 		if err != nil {
 			return false, err
 		}
@@ -220,13 +220,13 @@ func (q Querier) filterByPrefixAndDenom(ctx sdk.Context, prefixType []byte, deno
 }
 
 // filterRollappGauges
-func (q Querier) filterRollappGauges(ctx sdk.Context, pagination *query.PageRequest) (*query.PageResponse, []types.Gauge, error) {
+func (k Keeper) filterRollappGauges(ctx sdk.Context, pagination *query.PageRequest) (*query.PageResponse, []types.Gauge, error) {
 	gauges := []types.Gauge{}
-	store := ctx.KVStore(q.Keeper.storeKey)
+	store := ctx.KVStore(k.storeKey)
 	valStore := prefix.NewStore(store, types.KeyPrefixGauges)
 
 	pageRes, err := query.FilteredPaginate(valStore, pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
-		newGauges, err := q.getGaugeFromIDJsonBytes(ctx, value)
+		newGauges, err := k.getGaugeFromIDJsonBytes(ctx, value)
 		if err != nil {
 			return false, err
 		}

@@ -217,11 +217,12 @@ func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
 		GenesisInfo: &rollapptypes.GenesisInfo{
 			Bech32Prefix:    strings.ToLower(tmrand.Str(3)),
 			GenesisChecksum: "checksum",
-			NativeDenom: &rollapptypes.DenomMetadata{
+			NativeDenom: rollapptypes.DenomMetadata{
 				Display:  "DEN",
 				Base:     "aden",
 				Exponent: 18,
 			},
+			InitialSupply: sdk.NewInt(1000),
 		},
 	}
 

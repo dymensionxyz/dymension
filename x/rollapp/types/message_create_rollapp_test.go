@@ -31,7 +31,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(1000),
 				},
 				Metadata: &RollappMetadata{
@@ -58,7 +58,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(1000),
 				},
 			},
@@ -75,7 +75,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(1000),
 				},
 			},
@@ -92,7 +92,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(1000),
 				},
 			},
@@ -108,7 +108,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(1000),
 				},
 			},
@@ -125,7 +125,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(1000),
 				},
 			},
@@ -142,7 +142,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(1000),
 				},
 			},
@@ -161,7 +161,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(1000),
 				},
 			},
@@ -178,7 +178,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    "DYM",
 					GenesisChecksum: "checksum",
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(1000),
 				},
 			},
@@ -195,7 +195,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(1000),
 				},
 				Metadata: &RollappMetadata{
@@ -217,7 +217,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: strings.Repeat("a", maxGenesisChecksumLength+1),
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(1000),
 				},
 			},
@@ -234,7 +234,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(1000),
 				},
 				Metadata: &RollappMetadata{
@@ -254,7 +254,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				GenesisInfo: &GenesisInfo{
 					Bech32Prefix:    bech32Prefix,
 					GenesisChecksum: "checksum",
-					NativeDenom:     &DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
 					InitialSupply:   sdk.NewInt(-1),
 				},
 			},
@@ -265,7 +265,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
-				require.ErrorContains(t, err, tt.err.Error(), "test %s failed", tt.name)
+				require.ErrorIs(t, err, tt.err, "test %s failed", tt.name)
 				return
 			}
 			require.NoError(t, err)

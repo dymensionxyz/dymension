@@ -3,7 +3,6 @@ package v4
 import (
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	epochskeeper "github.com/osmosis-labs/osmosis/v15/x/epochs/keeper"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -23,8 +22,8 @@ import (
 
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+	epochskeeper "github.com/osmosis-labs/osmosis/v15/x/epochs/keeper"
 
-	// Ethermint modules
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -66,7 +65,9 @@ func CreateUpgradeHandler(
 		}
 		migrateIncentivesParams(ctx, keepers.IncentivesKeeper)
 
-		// TODO: create rollapp gauges for each existing rollapp (https://github.com/dymensionxyz/dymension/issues/1005)
+		if err := migrateRollappGauges(ctx, keepers.RollappKeeper, keepers.IncentivesKeeper); err != nil {
+			return nil, err
+		}
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -137,6 +138,18 @@ func migrateRollappParams(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) 
 	params := rollapptypes.DefaultParams()
 	params.DisputePeriodInBlocks = rollappkeeper.DisputePeriodInBlocks(ctx)
 	rollappkeeper.SetParams(ctx, params)
+}
+
+// migrateRollappGauges creates a gauge for each rollapp in the store
+func migrateRollappGauges(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, incentivizeKeeper *incentiveskeeper.Keeper) error {
+	rollapps := rollappkeeper.GetAllRollapps(ctx)
+	for _, rollapp := range rollapps {
+		_, err := incentivizeKeeper.CreateRollappGauge(ctx, rollapp.RollappId)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) error {
@@ -226,10 +239,10 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		GenesisInfo: &rollapptypes.GenesisInfo{
 			Bech32Prefix:    oldRollapp.RollappId[:5],                            // placeholder data
 			GenesisChecksum: string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
-			NativeDenom: &rollapptypes.DenomMetadata{
+			NativeDenom: rollapptypes.DenomMetadata{
 				Display:  "DEN",  // placeholder data
 				Base:     "aden", // placeholder data
-				Exponent: 6,      // placeholder data
+				Exponent: 18,     // placeholder data
 			},
 			InitialSupply: sdk.NewInt(100000), // placeholder data
 			Sealed:        true,

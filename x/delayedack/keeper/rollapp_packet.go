@@ -13,7 +13,7 @@ import (
 // The key for the packet is generated using the rollappID, proofHeight and the packet itself.
 func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket commontypes.RollappPacket) {
 	store := ctx.KVStore(k.storeKey)
-	rollappPacketKey := commontypes.RollappPacketKey(&rollappPacket)
+	rollappPacketKey := rollappPacket.RollappPacketKey()
 	b := k.cdc.MustMarshal(&rollappPacket)
 	store.Set(rollappPacketKey, b)
 
@@ -97,7 +97,7 @@ func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket co
 	store := ctx.KVStore(k.storeKey)
 
 	// Delete the old rollapp packet
-	oldKey := commontypes.RollappPacketKey(&rollappPacket)
+	oldKey := rollappPacket.RollappPacketKey()
 	store.Delete(oldKey)
 	// Update the packet
 	rollappPacket.Status = newStatus
@@ -105,7 +105,7 @@ func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket co
 	k.SetRollappPacket(ctx, rollappPacket)
 
 	// Call hook subscribers
-	newKey := commontypes.RollappPacketKey(&rollappPacket)
+	newKey := rollappPacket.RollappPacketKey()
 	keeperHooks := k.GetHooks()
 	err := keeperHooks.AfterPacketStatusUpdated(ctx, &rollappPacket, string(oldKey), string(newKey))
 	if err != nil {
@@ -167,7 +167,7 @@ func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []commontypes.Rollap
 
 func (k Keeper) deleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) error {
 	store := ctx.KVStore(k.storeKey)
-	rollappPacketKey := commontypes.RollappPacketKey(rollappPacket)
+	rollappPacketKey := rollappPacket.RollappPacketKey()
 	store.Delete(rollappPacketKey)
 
 	keeperHooks := k.GetHooks()

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -48,7 +49,7 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 			current.GenesisInfo.Bech32Prefix = update.GenesisInfo.Bech32Prefix
 		}
 
-		if update.GenesisInfo.NativeDenom != nil {
+		if update.GenesisInfo.NativeDenom.Base != "" {
 			current.GenesisInfo.NativeDenom = update.GenesisInfo.NativeDenom
 		}
 
@@ -118,34 +119,29 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 	), []byte(rollapp.RollappId))
 }
 
-func (k Keeper) SealRollapp(ctx sdk.Context, rollappId string) error {
-	rollapp, found := k.GetRollapp(ctx, rollappId)
-	if !found {
-		return gerrc.ErrNotFound
-	}
-
-	if rollapp.Launched {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp already launched")
-	}
-
+func (k Keeper) SetRollappAsLaunched(ctx sdk.Context, rollapp *types.Rollapp) error {
 	if !rollapp.AllImmutableFieldsAreSet() {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "seal with immutable fields not set")
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "immutable fields not set")
 	}
 
+	rollapp.GenesisInfo.Sealed = true
 	rollapp.Launched = true
-	k.SetRollapp(ctx, rollapp)
+	k.SetRollapp(ctx, *rollapp)
 
 	return nil
 }
 
-func (k Keeper) SealRollappGenesisInfo(ctx sdk.Context, rollappId string) error {
-	rollapp, found := k.GetRollapp(ctx, rollappId)
-	if !found {
-		return gerrc.ErrNotFound
-	}
-
-	if rollapp.GenesisInfo == nil {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info not set")
+// SetIROPlanToRollapp modifies the rollapp object due to IRO creation
+// This methods:
+// - seals the rollapp genesis info
+// - set the pre launch time according to the iro plan end time
+// - disables transfers (until the IRO is settled)
+// Validations:
+// - rollapp must not be launched
+// - genesis info must be set
+func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, preLaunchTime time.Time) error {
+	if rollapp.Launched {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp already launched")
 	}
 
 	if rollapp.GenesisInfo.Sealed {
@@ -153,12 +149,12 @@ func (k Keeper) SealRollappGenesisInfo(ctx sdk.Context, rollappId string) error 
 	}
 
 	if !rollapp.GenesisInfoFieldsAreSet() {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info fields not set")
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info not set")
 	}
-
 	rollapp.GenesisInfo.Sealed = true
-	k.SetRollapp(ctx, rollapp)
-
+	rollapp.PreLaunchTime = preLaunchTime
+	rollapp.GenesisState.TransfersEnabled = false
+	k.SetRollapp(ctx, *rollapp)
 	return nil
 }
 
@@ -231,23 +227,129 @@ func (k Keeper) RemoveRollapp(
 }
 
 // GetAllRollapps returns all rollapp
-func (k Keeper) GetAllRollapps(ctx sdk.Context) (list []types.Rollapp) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.Rollapp
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
-	}
-
-	return
+func (k Keeper) GetAllRollapps(ctx sdk.Context) []types.Rollapp {
+	return k.FilterRollapps(ctx, func(rollapp types.Rollapp) bool { return true })
 }
 
 // IsRollappStarted returns true if the rollapp is started
 func (k Keeper) IsRollappStarted(ctx sdk.Context, rollappId string) bool {
 	_, found := k.GetLatestStateInfoIndex(ctx, rollappId)
 	return found
+}
+
+func (k Keeper) MarkRollappAsVulnerable(ctx sdk.Context, rollappId string) error {
+	return k.FreezeRollapp(ctx, rollappId)
+}
+
+// FreezeRollapp marks the rollapp as frozen and reverts all pending states.
+// NB! This method is going to be changed as soon as the "Freezing" ADR is ready.
+func (k Keeper) FreezeRollapp(ctx sdk.Context, rollappID string) error {
+	rollapp, found := k.GetRollapp(ctx, rollappID)
+	if !found {
+		return gerrc.ErrNotFound
+	}
+
+	rollapp.Frozen = true
+
+	k.RevertPendingStates(ctx, rollappID)
+
+	if rollapp.ChannelId != "" {
+		clientID, _, err := k.channelKeeper.GetChannelClientState(ctx, "transfer", rollapp.ChannelId)
+		if err != nil {
+			return fmt.Errorf("get channel client state: %w", err)
+		}
+
+		err = k.freezeClientState(ctx, clientID)
+		if err != nil {
+			return fmt.Errorf("freeze client state: %w", err)
+		}
+	}
+
+	k.SetRollapp(ctx, rollapp)
+	return nil
+}
+
+// verifyClientID verifies that the provided clientID is the same clientID used by the provided rollapp.
+// Possible scenarios:
+//  1. both channelID and clientID are empty -> okay
+//  2. channelID is empty while clientID is not -> error: rollapp does not have a channel
+//  3. clientID is empty while channelID is not -> error: rollapp does have a channel, but the provided clientID is empty
+//  4. both channelID and clientID are not empty -> okay: compare the provided channelID against the one from IBC
+func (k Keeper) verifyClientID(ctx sdk.Context, rollappID, clientID string) error {
+	rollapp, found := k.GetRollapp(ctx, rollappID)
+	if !found {
+		return gerrc.ErrNotFound
+	}
+
+	var (
+		emptyRollappChannelID = rollapp.ChannelId == ""
+		emptyClientID         = clientID == ""
+	)
+
+	switch {
+	// both channelID and clientID are empty
+	case emptyRollappChannelID && emptyClientID:
+		return nil // everything is fine, expected scenario
+
+	// channelID is empty while clientID is not
+	case emptyRollappChannelID:
+		return fmt.Errorf("rollapp does not have a channel: rollapp '%s'", rollappID)
+
+	// clientID is empty while channelID is not
+	case emptyClientID:
+		return fmt.Errorf("empty clientID while the rollapp channelID is not empty")
+
+	// both channelID and clientID are not empty
+	default:
+		// extract rollapp channelID
+		extractedClientId, _, err := k.channelKeeper.GetChannelClientState(ctx, "transfer", rollapp.ChannelId)
+		if err != nil {
+			return fmt.Errorf("get channel client state: %w", err)
+		}
+		// compare it with the passed clientID
+		if extractedClientId != clientID {
+			return fmt.Errorf("clientID does not match the one in the rollapp: clientID %s, rollapp clientID %s", clientID, extractedClientId)
+		}
+		return nil
+	}
+}
+
+func (k Keeper) FilterRollapps(ctx sdk.Context, f func(types.Rollapp) bool) []types.Rollapp {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close() // nolint: errcheck
+
+	var result []types.Rollapp
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Rollapp
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if f(val) {
+			result = append(result, val)
+		}
+	}
+	return result
+}
+
+func FilterNonVulnerable(b types.Rollapp) bool {
+	return !b.IsVulnerable()
+}
+
+func (k Keeper) IsDRSVersionVulnerable(ctx sdk.Context, version string) bool {
+	ok, err := k.vulnerableDRSVersions.Has(ctx, version)
+	if err != nil {
+		panic(fmt.Sprintf("checking if DRS version is vulnerable: %v", err))
+	}
+	return ok
+}
+
+func (k Keeper) SetVulnerableDRSVersion(ctx sdk.Context, version string) error {
+	return k.vulnerableDRSVersions.Set(ctx, version)
+}
+
+func (k Keeper) GetAllVulnerableDRSVersions(ctx sdk.Context) ([]string, error) {
+	iter, err := k.vulnerableDRSVersions.Iterate(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	return iter.Keys()
 }

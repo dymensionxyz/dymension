@@ -3,9 +3,9 @@ package keeper
 import (
 	"time"
 
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 // findIndex takes an array of IDs. Then return the index of a specific ID.

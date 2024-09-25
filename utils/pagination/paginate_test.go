@@ -31,53 +31,139 @@ func (t *testIterator) Valid() bool {
 
 func TestPaginate(t *testing.T) {
 	testCases := []struct {
-		name      string
-		iterator  pagination.Iterator[int]
-		perPage   uint64
-		stopValue int
-		expected  uint64
+		name               string
+		iterator           pagination.Iterator[int]
+		maxIterations      uint64
+		stopValue          int
+		expectedIterations uint64
+		iterationWeight    uint64
 	}{
 		{
-			name:      "Empty iterator",
-			iterator:  newTestIterator([]int{}),
-			perPage:   5,
-			stopValue: -1,
-			expected:  0,
+			name:               "Empty iterator",
+			iterator:           newTestIterator([]int{}),
+			maxIterations:      5,
+			stopValue:          -1,
+			expectedIterations: 0,
+			iterationWeight:    1,
 		},
 		{
-			name:      "Non-Empty iterator less than perPage",
-			iterator:  newTestIterator([]int{1, 2, 3}),
-			perPage:   10,
-			stopValue: -1,
-			expected:  3,
+			name:               "Non-Empty iterator less than maxIterations",
+			iterator:           newTestIterator([]int{1, 2, 3}),
+			maxIterations:      10,
+			stopValue:          -1,
+			expectedIterations: 3,
+			iterationWeight:    1,
 		},
 		{
-			name:      "Non-empty iterator greater than perPage",
-			iterator:  newTestIterator([]int{1, 2, 3, 4, 5, 6, 7}),
-			perPage:   5,
-			stopValue: -1,
-			expected:  5,
+			name:               "Non-empty iterator greater than maxIterations",
+			iterator:           newTestIterator([]int{1, 2, 3, 4, 5, 6, 7}),
+			maxIterations:      5,
+			stopValue:          -1,
+			expectedIterations: 5,
+			iterationWeight:    1,
 		},
 		{
-			name:      "Zero perPage",
-			iterator:  newTestIterator([]int{1, 2, 3, 4, 5, 6, 7}),
-			perPage:   0,
-			stopValue: 6,
-			expected:  0,
+			name:               "Zero maxIterations",
+			iterator:           newTestIterator([]int{1, 2, 3, 4, 5, 6, 7}),
+			maxIterations:      0,
+			stopValue:          6,
+			expectedIterations: 0,
+			iterationWeight:    1,
 		},
 		{
-			name:      "Non-Empty iterator with stop condition",
-			iterator:  newTestIterator([]int{1, 2, 3, 4, 5, 6, 7}),
-			perPage:   10,
-			stopValue: 3,
-			expected:  3,
+			name:               "Non-Empty iterator with stop condition",
+			iterator:           newTestIterator([]int{1, 2, 3, 4, 5, 6, 7}),
+			maxIterations:      10,
+			stopValue:          3,
+			expectedIterations: 3,
+			iterationWeight:    1,
+		},
+		{
+			name:               "Empty iterator, >1 iteration weight",
+			iterator:           newTestIterator([]int{}),
+			maxIterations:      5,
+			stopValue:          -1,
+			expectedIterations: 0,
+			iterationWeight:    3,
+		},
+		{
+			name:               "Non-Empty iterator less than maxIterations, >1 iteration weight",
+			iterator:           newTestIterator([]int{1, 2, 3}),
+			maxIterations:      10,
+			stopValue:          -1,
+			expectedIterations: 9,
+			iterationWeight:    3,
+		},
+		{
+			name:               "Non-empty iterator greater than maxIterations, >1 iteration weight",
+			iterator:           newTestIterator([]int{1, 2, 3, 4, 5, 6, 7}),
+			maxIterations:      5,
+			stopValue:          -1,
+			expectedIterations: 6,
+			iterationWeight:    3,
+		},
+		{
+			name:               "Zero maxIterations, >1 iteration weight",
+			iterator:           newTestIterator([]int{1, 2, 3, 4, 5, 6, 7}),
+			maxIterations:      0,
+			stopValue:          6,
+			expectedIterations: 0,
+			iterationWeight:    3,
+		},
+		{
+			name:               "Non-Empty iterator with stop condition, >1 iteration weight",
+			iterator:           newTestIterator([]int{1, 2, 3, 4, 5, 6, 7}),
+			maxIterations:      10,
+			stopValue:          3,
+			expectedIterations: 9,
+			iterationWeight:    3,
+		},
+		{
+			name:               "Empty iterator, 0 iteration weight",
+			iterator:           newTestIterator([]int{}),
+			maxIterations:      5,
+			stopValue:          -1,
+			expectedIterations: 0,
+			iterationWeight:    0,
+		},
+		{
+			name:               "Non-Empty iterator less than maxIterations, 0 iteration weight",
+			iterator:           newTestIterator([]int{1, 2, 3}),
+			maxIterations:      10,
+			stopValue:          -1,
+			expectedIterations: 0,
+			iterationWeight:    0,
+		},
+		{
+			name:               "Non-empty iterator greater than maxIterations, 0 iteration weight",
+			iterator:           newTestIterator([]int{1, 2, 3, 4, 5, 6, 7}),
+			maxIterations:      5,
+			stopValue:          -1,
+			expectedIterations: 0,
+			iterationWeight:    0,
+		},
+		{
+			name:               "Zero maxIterations, 0 iteration weight",
+			iterator:           newTestIterator([]int{1, 2, 3, 4, 5, 6, 7}),
+			maxIterations:      0,
+			stopValue:          6,
+			expectedIterations: 0,
+			iterationWeight:    0,
+		},
+		{
+			name:               "Non-Empty iterator with stop condition, 0 iteration weight",
+			iterator:           newTestIterator([]int{1, 2, 3, 4, 5, 6, 7}),
+			maxIterations:      10,
+			stopValue:          3,
+			expectedIterations: 0,
+			iterationWeight:    0,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result := pagination.Paginate(tc.iterator, tc.perPage, func(i int) pagination.Stop { return i == tc.stopValue })
-			require.Equal(t, tc.expected, result)
+			result := pagination.Paginate(tc.iterator, tc.maxIterations, func(i int) (bool, uint64) { return i == tc.stopValue, tc.iterationWeight })
+			require.Equal(t, tc.expectedIterations, result)
 		})
 	}
 }

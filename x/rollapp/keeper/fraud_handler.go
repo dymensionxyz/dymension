@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -15,13 +16,7 @@ import (
 )
 
 // HandleFraud handles the fraud evidence submitted by the user.
-func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHeight uint64, seqAddr string) error {
-	// Get the rollapp from the store
-	rollapp, found := k.GetRollapp(ctx, rollappID)
-	if !found {
-		return errorsmod.Wrapf(types.ErrInvalidRollappID, "rollapp with ID %s not found", rollappID)
-	}
-
+func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientID string, fraudHeight uint64, seqAddr string) error {
 	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, fraudHeight)
 	if err != nil {
 		return err
@@ -42,34 +37,22 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHe
 		return errorsmod.Wrapf(types.ErrWrongProposerAddr, "sequencer address %s does not match the one in the state info", seqAddr)
 	}
 
+	// check that the clientID is correct
+	err = k.verifyClientID(ctx, rollappID, clientID)
+	if err != nil {
+		return errors.Join(types.ErrWrongClientId, err)
+	}
+
+	// freeze the rollapp and revert all pending states
+	err = k.FreezeRollapp(ctx, rollappID)
+	if err != nil {
+		return fmt.Errorf("freeze rollapp: %w", err)
+	}
+
 	// slash the sequencer, clean delayed packets
 	err = k.hooks.FraudSubmitted(ctx, rollappID, fraudHeight, seqAddr)
 	if err != nil {
 		return err
-	}
-
-	// mark the rollapp as frozen. revert all pending states to finalized
-	rollapp.Frozen = true
-	k.SetRollapp(ctx, rollapp)
-
-	k.RevertPendingStates(ctx, rollappID)
-
-	if rollapp.ChannelId != "" {
-		extractedClientId, _, err := k.channelKeeper.GetChannelClientState(ctx, "transfer", rollapp.ChannelId)
-		if err != nil {
-			return err
-		}
-
-		if extractedClientId != clientId {
-			return errorsmod.Wrapf(types.ErrWrongClientId, "clientID %s does not match the one in the rollapp (%s)", clientId, extractedClientId)
-		}
-
-		err = k.freezeClientState(ctx, clientId)
-		if err != nil {
-			return err
-		}
-	} else if clientId != "" {
-		return errorsmod.Wrapf(types.ErrWrongClientId, "rollapp with ID %s does not have a channel", rollappID)
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -78,7 +61,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHe
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollappID),
 			sdk.NewAttribute(types.AttributeKeyFraudHeight, fmt.Sprint(fraudHeight)),
 			sdk.NewAttribute(types.AttributeKeyFraudSequencer, seqAddr),
-			sdk.NewAttribute(types.AttributeKeyClientID, clientId),
+			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 		),
 	)
 

@@ -9,10 +9,11 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
+
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/dymensionxyz/sdk-utils/utils/urand"
 )
 
 // Prevent strconv unused error
@@ -89,18 +90,15 @@ func TestFindStateInfoByHeight(t *testing.T) {
 	keeper.SetStateInfo(ctx, types.StateInfo{
 		StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 1},
 		StartHeight:    1,
-		NumBlocks:      2,
-	})
+	}.WithNumBlocks(2))
 	keeper.SetStateInfo(ctx, types.StateInfo{
 		StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 2},
 		StartHeight:    3,
-		NumBlocks:      3,
-	})
+	}.WithNumBlocks(3))
 	keeper.SetStateInfo(ctx, types.StateInfo{
 		StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 3},
 		StartHeight:    6,
-		NumBlocks:      4,
-	})
+	}.WithNumBlocks(4))
 	keeper.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
 		RollappId: rollappID,
 		Index:     3,

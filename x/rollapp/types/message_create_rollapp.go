@@ -57,7 +57,7 @@ func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
 		msg.VmType,
 		msg.Metadata,
 		msg.GenesisInfo,
-		false,
+		true,
 	)
 }
 

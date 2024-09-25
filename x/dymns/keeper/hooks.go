@@ -298,6 +298,10 @@ func (h rollappHooks) FraudSubmitted(_ sdk.Context, _ string, _ uint64, _ string
 	return nil
 }
 
+func (h rollappHooks) AfterTransfersEnabled(_ sdk.Context, _, _ string) error {
+	return nil
+}
+
 // FutureRollappHooks is temporary added to handle future hooks that not available yet.
 type FutureRollappHooks interface {
 	// OnRollAppIdChanged is called when a RollApp's ID is changed, typically due to fraud submission.

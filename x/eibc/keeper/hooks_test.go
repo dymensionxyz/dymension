@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -25,7 +26,7 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketUpdated() {
 	updatedDemandOrder, err := suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, commontypes.Status_FINALIZED, demandOrder.Id)
 	suite.Require().NoError(err)
 	suite.Require().Equal(commontypes.Status_FINALIZED, updatedDemandOrder.TrackingPacketStatus)
-	rollappPacketKey := commontypes.RollappPacketKey(&updatedRollappPacket)
+	rollappPacketKey := updatedRollappPacket.RollappPacketKey()
 	suite.Require().NoError(err)
 	suite.Require().Equal(string(rollappPacketKey), updatedDemandOrder.TrackingPacketKey)
 }

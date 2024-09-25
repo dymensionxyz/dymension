@@ -5,11 +5,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/stretchr/testify/suite"
 )
 
 const (
@@ -98,6 +97,7 @@ func (s *delayedAckSuite) TestTransferRollappToHubNotFinalized() {
 	hubIBCKeeper := s.hubChain().App.GetIBCKeeper()
 
 	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
+	s.setRollappLightClientID(s.rollappCtx().ChainID(), path.EndpointA.ClientID)
 	s.registerSequencer()
 	s.updateRollappState(uint64(s.rollappCtx().BlockHeight()))
 
@@ -140,6 +140,7 @@ func (s *delayedAckSuite) TestTransferRollappToHubFinalization() {
 	rollappIBCKeeper := s.rollappChain().App.GetIBCKeeper()
 
 	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
+	s.setRollappLightClientID(s.rollappCtx().ChainID(), path.EndpointA.ClientID)
 	s.registerSequencer()
 
 	// Update rollapp state
@@ -174,6 +175,9 @@ func (s *delayedAckSuite) TestTransferRollappToHubFinalization() {
 	_, err = s.finalizeRollappState(1, currentRollappBlockHeight)
 	s.Require().NoError(err)
 
+	// manually finalize packets through x/delayedack
+	s.finalizeRollappPacketsUntilHeight(currentRollappBlockHeight)
+
 	// Validate ack is found
 	found = hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().True(found)
@@ -189,6 +193,7 @@ func (s *delayedAckSuite) TestHubToRollappTimeout() {
 	hubIBCKeeper := s.hubChain().App.GetIBCKeeper()
 	// Create rollapp and update its initial state
 	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
+	s.setRollappLightClientID(s.rollappCtx().ChainID(), path.EndpointA.ClientID)
 	s.registerSequencer()
 	s.updateRollappState(uint64(s.rollappCtx().BlockHeight()))
 	// Set the timeout height
@@ -226,6 +231,8 @@ func (s *delayedAckSuite) TestHubToRollappTimeout() {
 	currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight())
 	_, err = s.finalizeRollappState(1, currentRollappBlockHeight)
 	s.Require().NoError(err)
+	// manually finalize packets through x/delayedack
+	s.finalizeRollappPacketsUntilHeight(currentRollappBlockHeight)
 	// Validate funds are returned to the sender
 	postFinalizeBalance := bankKeeper.GetBalance(s.hubCtx(), senderAccount, sdk.DefaultBondDenom)
 	s.Require().Equal(preSendBalance.Amount, postFinalizeBalance.Amount)

@@ -31,7 +31,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 
 		// distribute due to epoch event
 		gauges = k.GetActiveGauges(ctx)
-		_, err := k.Distribute(ctx, gauges)
+		_, err := k.DistributeOnEpochEnd(ctx, gauges)
 		if err != nil {
 			return err
 		}

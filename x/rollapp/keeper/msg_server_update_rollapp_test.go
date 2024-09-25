@@ -37,7 +37,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 					Bech32Prefix:    "new",
 					GenesisChecksum: "new_checksum",
 					InitialSupply:   sdk.NewInt(1000),
-					NativeDenom: &types.DenomMetadata{
+					NativeDenom: types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
 						Exponent: 18,
@@ -55,7 +55,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 					Bech32Prefix:    "new",
 					GenesisChecksum: "new_checksum",
 					InitialSupply:   sdk.NewInt(1000),
-					NativeDenom: &types.DenomMetadata{
+					NativeDenom: types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
 						Exponent: 18,
@@ -126,7 +126,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Owner:     alice,
 				RollappId: rollappId,
 				GenesisInfo: types.GenesisInfo{
-					NativeDenom: &types.DenomMetadata{
+					NativeDenom: types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
 						Exponent: 18,
@@ -154,6 +154,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Metadata:  &mockRollappMetadata,
 			},
 			rollappLaunched: true,
+			genInfoSealed:   true,
 			expError:        nil,
 			expRollapp: types.Rollapp{
 				RollappId:        rollappId,
@@ -169,11 +170,12 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 					Bech32Prefix:    "old",
 					GenesisChecksum: "old",
 					InitialSupply:   sdk.NewInt(1000),
-					NativeDenom: &types.DenomMetadata{
+					NativeDenom: types.DenomMetadata{
 						Display:  "OLD",
 						Base:     "aold",
 						Exponent: 18,
 					},
+					Sealed: true,
 				},
 			},
 		}, {
@@ -233,7 +235,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 					Bech32Prefix:    "old",
 					GenesisChecksum: "old",
 					InitialSupply:   sdk.NewInt(1000),
-					NativeDenom: &types.DenomMetadata{
+					NativeDenom: types.DenomMetadata{
 						Display:  "OLD",
 						Base:     "aold",
 						Exponent: 18,
@@ -271,7 +273,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 			Bech32Prefix:    "rol",
 			GenesisChecksum: "checksum",
 			InitialSupply:   sdk.NewInt(1000),
-			NativeDenom: &types.DenomMetadata{
+			NativeDenom: types.DenomMetadata{
 				Display:  "DEN",
 				Base:     "aden",
 				Exponent: 18,

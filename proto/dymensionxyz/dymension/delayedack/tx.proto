@@ -1,0 +1,71 @@
+syntax = "proto3";
+package dymensionxyz.dymension.delayedack;
+
+import "cosmos/msg/v1/msg.proto";
+import "dymensionxyz/dymension/common/rollapp_packet.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
+
+// Msg defines the Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  // FinalizePacket finalizes a singe packet.
+  rpc FinalizePacket(MsgFinalizePacket) returns (MsgFinalizePacketResponse);
+
+  // FinalizePacketsUntilHeight finalizes the packets for the given rollapp until the given height inclusively.
+  rpc FinalizePacketsUntilHeight(MsgFinalizePacketsUntilHeight) returns (MsgFinalizePacketsUntilHeightResponse);
+
+  // FinalizeRollappPacketsByReceiver finalizes the rollapp packets for the specified receiver until the latest
+  // finalized height inclusively.
+  rpc FinalizeRollappPacketsByReceiver(MsgFinalizeRollappPacketsByReceiver) returns (MsgFinalizeRollappPacketsByReceiverResponse);
+}
+
+// MsgFinalizePacket finalizes a single packet.
+message MsgFinalizePacket {
+  option (cosmos.msg.v1.signer) = "sender";
+
+  // Sender is the signer of the message.
+  string sender = 1;
+  // RollappID is the ID of the rollapp.
+  string rollapp_id = 2;
+  // PacketProofHeight is a height at which the proof was retrieved.
+  uint64 packet_proof_height = 3;
+  // PacketType is a type of the packet. Eg, RECV, ACK, TIMEOUT.
+  dymensionxyz.dymension.common.RollappPacket.Type packet_type = 4;
+  // PacketSrcChannel identifies the channel end on the sending chain.
+  string packet_src_channel = 5;
+  // PacketSequence is a sequence number of the packet.
+  uint64 packet_sequence = 6;
+}
+
+message MsgFinalizePacketResponse {}
+
+// MsgFinalizePacketsUntilHeight finalizes packets for the given rollapp until the given height inclusively.
+message MsgFinalizePacketsUntilHeight {
+  option (cosmos.msg.v1.signer) = "sender";
+
+  // Sender is the signer of the message.
+  string sender = 1;
+  // RollappID is the ID of the rollapp.
+  string rollapp_id = 2;
+  // Height is a height until which packets are to be finalized. Height is inclusive.
+  uint64 height = 3;
+}
+
+message MsgFinalizePacketsUntilHeightResponse {}
+
+// MsgFinalizeRollappPacketsByReceiver finalizes the rollapp packets for the specified receiver until the latest
+// finalized height inclusively.
+message MsgFinalizeRollappPacketsByReceiver {
+  option (cosmos.msg.v1.signer) = "sender";
+
+  // Sender is the signer of the message.
+  string sender = 1;
+  // RollappID is the ID of the rollapp.
+  string rollapp_id = 2;
+  // Receiver is the one who waits tokens after the finalization.
+  string receiver = 3;
+}
+
+message MsgFinalizeRollappPacketsByReceiverResponse {}

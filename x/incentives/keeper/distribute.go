@@ -4,16 +4,35 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
-
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 )
 
-// Distribute distributes coins from an array of gauges.
+// DistributeOnEpochEnd distributes coins from an array of gauges.
 // It is called at the end of each epoch to distribute coins to the gauges that are active at that time.
-func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge) (sdk.Coins, error) {
+func (k Keeper) DistributeOnEpochEnd(ctx sdk.Context, gauges []types.Gauge) (sdk.Coins, error) {
+	cache := types.NewDenomLocksCache()
+
+	const EpochEnd = true
+	totalDistributedCoins, err := k.Distribute(ctx, gauges, cache, EpochEnd)
+	if err != nil {
+		return nil, fmt.Errorf("distribute gauges: %w", err)
+	}
+
+	// call post distribution hooks
+	k.hooks.AfterEpochDistribution(ctx)
+
+	k.checkFinishedGauges(ctx, gauges)
+
+	return totalDistributedCoins, nil
+}
+
+// Distribute distributes coins from an array of gauges. It may be called either at the end or at the middle of
+// the epoch. If it's called at the end, then the FilledEpochs field for every gauge is increased. Also, it uses
+// a cache specific for asset gauges that helps reduce the number of x/lockup requests.
+func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge, cache types.DenomLocksCache, epochEnd bool) (sdk.Coins, error) {
 	lockHolders := newDistributionInfo()
 
 	totalDistributedCoins := sdk.Coins{}
@@ -24,7 +43,8 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge) (sdk.Coins, er
 		)
 		switch gauge.DistributeTo.(type) {
 		case *types.Gauge_Asset:
-			gaugeDistributedCoins, err = k.distributeToAssetGauge(ctx, gauge, &lockHolders)
+			filteredLocks := k.GetDistributeToBaseLocks(ctx, gauge, cache)
+			gaugeDistributedCoins, err = k.distributeToAssetGauge(ctx, gauge, filteredLocks, &lockHolders)
 		case *types.Gauge_Rollapp:
 			gaugeDistributedCoins, err = k.distributeToRollappGauge(ctx, gauge)
 		default:
@@ -34,7 +54,13 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge) (sdk.Coins, er
 			return nil, err
 		}
 
-		totalDistributedCoins = totalDistributedCoins.Add(gaugeDistributedCoins...)
+		if !gaugeDistributedCoins.Empty() {
+			err = k.updateGaugePostDistribute(ctx, gauge, gaugeDistributedCoins, epochEnd)
+			if err != nil {
+				return nil, err
+			}
+			totalDistributedCoins = totalDistributedCoins.Add(gaugeDistributedCoins...)
+		}
 	}
 
 	// apply the distribution to asset gauges
@@ -43,10 +69,6 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge) (sdk.Coins, er
 		return nil, err
 	}
 
-	// call post distribution hooks
-	k.hooks.AfterEpochDistribution(ctx)
-
-	k.checkFinishedGauges(ctx, gauges)
 	return totalDistributedCoins, nil
 }
 
@@ -88,8 +110,10 @@ func (k Keeper) getToDistributeCoinsFromGauges(gauges []types.Gauge) sdk.Coins {
 
 // updateGaugePostDistribute increments the gauge's filled epochs field.
 // Also adds the coins that were just distributed to the gauge's distributed coins field.
-func (k Keeper) updateGaugePostDistribute(ctx sdk.Context, gauge types.Gauge, newlyDistributedCoins sdk.Coins) error {
-	gauge.FilledEpochs += 1
+func (k Keeper) updateGaugePostDistribute(ctx sdk.Context, gauge types.Gauge, newlyDistributedCoins sdk.Coins, epochEnd bool) error {
+	if epochEnd {
+		gauge.FilledEpochs += 1
+	}
 	gauge.DistributedCoins = gauge.DistributedCoins.Add(newlyDistributedCoins...)
 	if err := k.setGauge(ctx, &gauge); err != nil {
 		return err
