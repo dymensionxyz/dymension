@@ -34,7 +34,7 @@ func (s *transfersEnabledSuite) SetupTest() {
 	s.createRollapp(false, nil)
 	s.registerSequencer()
 	s.path = path
-	s.Require().False(s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled)
+	s.Require().True(s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled)
 }
 
 // Regular (non genesis) transfers (RA->Hub) and Hub->RA should both be blocked when the bridge is not open

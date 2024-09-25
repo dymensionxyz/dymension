@@ -200,7 +200,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 					Bech32Prefix:    "old",
 					GenesisChecksum: "old",
 					InitialSupply:   sdk.NewInt(1000),
-					NativeDenom: types.DenomMetadata{
+					NativeDenom: &types.DenomMetadata{
 						Display:  "OLD",
 						Base:     "aold",
 						Exponent: 18,

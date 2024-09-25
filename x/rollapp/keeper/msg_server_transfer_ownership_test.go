@@ -75,7 +75,7 @@ func (suite *RollappTestSuite) TestTransferOwnership() {
 			rollapp := types.Rollapp{
 				RollappId:   rollappId,
 				Owner:       alice,
-				GenesisInfo: mockGenesisInfo,
+				GenesisInfo: *mockGenesisInfo,
 				Frozen:      false,
 				Launched:    false,
 			}

@@ -352,6 +352,7 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(
 		VmType:           types.Rollapp_EVM,
 		Metadata:         rollapp.GetMetadata(),
 		GenesisInfo:      *rollapp.GetGenesisInfo(),
+		GenesisState:     types.RollappGenesisState{TransfersEnabled: true},
 	}
 	// create rollapp
 	createResponse, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
