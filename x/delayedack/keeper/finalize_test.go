@@ -71,10 +71,9 @@ func (s *DelayedAckTestSuite) TestFinalizePacket() {
 					Index:     1,
 				},
 				StartHeight: 1,
-				NumBlocks:   tc.rollappHeight,
 				Status:      commontypes.Status_FINALIZED,
 				Sequencer:   proposer,
-			}
+			}.WithNumBlocks(tc.rollappHeight)
 
 			// save state info
 			s.App.RollappKeeper.SetStateInfo(s.Ctx, stateInfo)
@@ -197,10 +196,9 @@ func (s *DelayedAckTestSuite) TestFinalizeRollappPacketsByReceiver() {
 					Index:     1,
 				},
 				StartHeight: 1,
-				NumBlocks:   tc.rollappHeight,
 				Status:      commontypes.Status_FINALIZED,
 				Sequencer:   proposer,
-			}
+			}.WithNumBlocks(tc.rollappHeight)
 
 			// save state info
 			s.App.RollappKeeper.SetStateInfo(s.Ctx, stateInfo)

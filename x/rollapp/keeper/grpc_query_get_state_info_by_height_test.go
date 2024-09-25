@@ -37,9 +37,8 @@ func createNStateInfoAndIndex(keeper *keeper.Keeper, ctx sdk.Context, n int, rol
 				Index:     uint64(i + 1),
 			},
 			StartHeight: StartHeight,
-			NumBlocks:   numBlocks,
-		}
-		StartHeight += stateInfo.NumBlocks
+		}.WithNumBlocks(numBlocks)
+		StartHeight += stateInfo.NumBlocks()
 
 		keeper.SetStateInfo(ctx, stateInfo)
 		keeper.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
@@ -113,8 +112,7 @@ func TestStateInfoByHeightMissingStateInfo1(t *testing.T) {
 	k.SetStateInfo(ctx, types.StateInfo{
 		StateInfoIndex: types.StateInfoIndex{RollappId: rollappId, Index: 60},
 		StartHeight:    71,
-		NumBlocks:      1,
-	})
+	}.WithNumBlocks(1))
 	_, err := k.StateInfo(wctx, request)
 	errIndex := 1 + (60-1)/2 // Using binary search, the middle index is lookedup first and is missing.
 	require.EqualError(t, err, errorsmod.Wrapf(types.ErrNotFound,
@@ -142,8 +140,7 @@ func TestStateInfoByHeightErr(t *testing.T) {
 			response: &types.QueryGetStateInfoResponse{StateInfo: types.StateInfo{
 				StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 4},
 				StartHeight:    msgs[3].StartHeight,
-				NumBlocks:      msgs[3].NumBlocks,
-			}},
+			}.WithNumBlocks(msgs[3].NumBlocks())},
 		},
 		{
 			desc: "StateInfoByHeight_firstBlockInBatch",
@@ -154,20 +151,18 @@ func TestStateInfoByHeightErr(t *testing.T) {
 			response: &types.QueryGetStateInfoResponse{StateInfo: types.StateInfo{
 				StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 3},
 				StartHeight:    msgs[2].StartHeight,
-				NumBlocks:      msgs[2].NumBlocks,
-			}},
+			}.WithNumBlocks(msgs[2].NumBlocks())},
 		},
 		{
 			desc: "StateInfoByHeight_lastBlockInBatch",
 			request: &types.QueryGetStateInfoRequest{
 				RollappId: rollappID,
-				Height:    msgs[2].StartHeight + msgs[2].NumBlocks - 1,
+				Height:    msgs[2].LastHeight(),
 			},
 			response: &types.QueryGetStateInfoResponse{StateInfo: types.StateInfo{
 				StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 3},
 				StartHeight:    msgs[2].StartHeight,
-				NumBlocks:      msgs[2].NumBlocks,
-			}},
+			}.WithNumBlocks(msgs[2].NumBlocks())},
 		},
 		{
 			desc: "StateInfoByHeight_unknownRollappId",
@@ -209,7 +204,7 @@ func TestStateInfoByHeightValidIncreasingBlockBatches(t *testing.T) {
 	msgs := createNStateInfoAndIndex(k, ctx, numOfMsg, rollappID)
 
 	for i := 0; i < numOfMsg; i += 1 {
-		for height := msgs[i].StartHeight; height < msgs[i].StartHeight+msgs[i].NumBlocks; height += 1 {
+		for height := msgs[i].StartHeight; height <= msgs[i].LastHeight(); height += 1 {
 			request := &types.QueryGetStateInfoRequest{
 				RollappId: rollappID,
 				Height:    height,
@@ -232,7 +227,7 @@ func TestStateInfoByHeightValidDecreasingBlockBatches(t *testing.T) {
 	msgs := createNStateInfoAndIndex(k, ctx, numOfMsg, rollappID)
 
 	for i := 0; i < numOfMsg; i += 1 {
-		for height := msgs[i].StartHeight; height < msgs[i].StartHeight+msgs[i].NumBlocks; height += 1 {
+		for height := msgs[i].StartHeight; height < msgs[i].LastHeight(); height += 1 {
 			request := &types.QueryGetStateInfoRequest{
 				RollappId: rollappID,
 				Height:    height,

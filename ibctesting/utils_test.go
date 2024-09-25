@@ -164,6 +164,12 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 	}
 }
 
+// necessary for tests which do not execute the entire light client flow, and just need to make transfers work
+// (all tests except the light client tests themselves)
+func (s *utilSuite) setRollappLightClientID(chainID, clientID string) {
+	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), chainID, clientID)
+}
+
 func (s *utilSuite) registerSequencer() {
 	bond := sequencertypes.DefaultParams().MinBond
 	// fund account
@@ -197,7 +203,7 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	stateInfo, found := rollappKeeper.GetStateInfo(s.hubCtx(), rollappChainID(), latestStateInfoIndex.Index)
 	startHeight := uint64(1)
 	if found {
-		startHeight = stateInfo.StartHeight + stateInfo.NumBlocks
+		startHeight = stateInfo.LastHeight() + 1
 	}
 	numBlocks := endHeight - startHeight + 1
 	// populate the block descriptors
@@ -231,7 +237,8 @@ func (s *utilSuite) finalizeRollappState(index uint64, endHeight uint64) (sdk.Ev
 	stateInfoIdx := rollapptypes.StateInfoIndex{RollappId: rollappChainID(), Index: index}
 	stateInfo, found := rollappKeeper.GetStateInfo(ctx, rollappChainID(), stateInfoIdx.Index)
 	s.Require().True(found)
-	stateInfo.NumBlocks = endHeight - stateInfo.StartHeight + 1
+	// this is a hack to increase the finalized height by modifying the last state info instead of submitting a new one
+	stateInfo = stateInfo.WithNumBlocks(endHeight - stateInfo.StartHeight + 1)
 	stateInfo.Status = common.Status_FINALIZED
 	// update the status of the stateInfo
 	rollappKeeper.SetStateInfo(ctx, stateInfo)

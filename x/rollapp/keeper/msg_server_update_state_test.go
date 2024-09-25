@@ -73,7 +73,7 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		}, "finalization queue", "i", i)
 
 		// update state
-		_, err := suite.PostStateUpdate(suite.Ctx, rollappId, proposer, expectedStateInfo.StartHeight+expectedStateInfo.NumBlocks, uint64(2))
+		_, err := suite.PostStateUpdate(suite.Ctx, rollappId, proposer, expectedStateInfo.LastHeight()+1, uint64(2))
 		suite.Require().Nil(err)
 
 		// end block
@@ -174,10 +174,10 @@ func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
 	suite.SetupTest()
 
 	rollappId, _ := suite.CreateDefaultRollappAndProposer()
-	_, seq_2 := suite.CreateDefaultRollappAndProposer()
+	_, seq2 := suite.CreateDefaultRollappAndProposer()
 
 	// update state from proposer of rollapp2
-	_, err := suite.PostStateUpdate(suite.Ctx, rollappId, seq_2, 1, uint64(3))
+	_, err := suite.PostStateUpdate(suite.Ctx, rollappId, seq2, 1, uint64(3))
 	suite.ErrorIs(err, sequencertypes.ErrNotActiveSequencer)
 }
 
@@ -237,7 +237,6 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 		StateInfoIndex: types.StateInfoIndex{RollappId: rollappId, Index: 1},
 		Sequencer:      proposer,
 		StartHeight:    1,
-		NumBlocks:      3,
 		Status:         common.Status_PENDING,
 		BDs:            types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
@@ -299,7 +298,6 @@ func (suite *RollappTestSuite) TestUpdateStateDowngradeTimestamp() {
 		StateInfoIndex: types.StateInfoIndex{RollappId: rollappId, Index: 1},
 		Sequencer:      proposer,
 		StartHeight:    1,
-		NumBlocks:      1,
 		DAPath:         "",
 		BDs:            types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}}},
 	}
