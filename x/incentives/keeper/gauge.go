@@ -110,14 +110,7 @@ func (k Keeper) CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddr
 		return 0, fmt.Errorf("denom does not exist: %s", distrTo.Denom)
 	}
 
-	gauge := types.Gauge{
-		Id:                k.GetLastGaugeID(ctx) + 1,
-		IsPerpetual:       isPerpetual,
-		DistributeTo:      &types.Gauge_Asset{Asset: &distrTo},
-		Coins:             coins,
-		StartTime:         startTime,
-		NumEpochsPaidOver: numEpochsPaidOver,
-	}
+	gauge := types.NewAssetGauge(k.GetLastGaugeID(ctx)+1, isPerpetual, distrTo, coins, startTime, numEpochsPaidOver)
 
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, gauge.Coins); err != nil {
 		return 0, err
@@ -172,6 +165,17 @@ func (k Keeper) GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*types.Gauge, err
 		return nil, err
 	}
 	return &gauge, nil
+}
+
+// GetGaugesForDenom returns the gauge for a given denom.
+// ActiveGaugesPerDenom returns all active gauges for the specified denom.
+func (k Keeper) GetGaugesForDenom(ctx sdk.Context, denom string) ([]types.Gauge, error) {
+	_, gauges, err := k.filterByPrefixAndDenom(ctx, types.KeyPrefixGauges, denom, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return gauges, nil
 }
 
 // GetGaugeFromIDs returns multiple gauges from a gaugeIDs array.

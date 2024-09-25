@@ -95,7 +95,7 @@ func (q Querier) UpcomingStreams(goCtx context.Context, req *types.UpcomingStrea
 }
 
 // getStreamFromIDJsonBytes returns streams from the json bytes of streamIDs.
-func (q Querier) getStreamFromIDJsonBytes(ctx sdk.Context, refValue []byte) ([]types.Stream, error) {
+func (k Keeper) getStreamFromIDJsonBytes(ctx sdk.Context, refValue []byte) ([]types.Stream, error) {
 	streams := []types.Stream{}
 	streamIDs := []uint64{}
 
@@ -105,7 +105,7 @@ func (q Querier) getStreamFromIDJsonBytes(ctx sdk.Context, refValue []byte) ([]t
 	}
 
 	for _, streamID := range streamIDs {
-		stream, err := q.Keeper.GetStreamByID(ctx, streamID)
+		stream, err := k.GetStreamByID(ctx, streamID)
 		if err != nil {
 			return []types.Stream{}, err
 		}
@@ -117,15 +117,15 @@ func (q Querier) getStreamFromIDJsonBytes(ctx sdk.Context, refValue []byte) ([]t
 }
 
 // filterByPrefixAndDenom filters streams based on a given key prefix and denom
-func (q Querier) filterByPrefixAndDenom(ctx sdk.Context, prefixType []byte, denom string, pagination *query.PageRequest) (*query.PageResponse, []types.Stream, error) {
+func (k Keeper) filterByPrefixAndDenom(ctx sdk.Context, prefixType []byte, denom string, pagination *query.PageRequest) (*query.PageResponse, []types.Stream, error) {
 	streams := []types.Stream{}
-	store := ctx.KVStore(q.Keeper.storeKey)
+	store := ctx.KVStore(k.storeKey)
 	valStore := prefix.NewStore(store, prefixType)
 
 	pageRes, err := query.FilteredPaginate(valStore, pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
 		// this may return multiple streams at once if two streams start at the same time.
 		// for now this is treated as an edge case that is not of importance
-		newStreams, err := q.getStreamFromIDJsonBytes(ctx, value)
+		newStreams, err := k.getStreamFromIDJsonBytes(ctx, value)
 		if err != nil {
 			return false, err
 		}

@@ -16,14 +16,7 @@ func (k Keeper) CreateRollappGauge(ctx sdk.Context, rollappId string) (uint64, e
 		return 0, fmt.Errorf("rollapp %s not found", rollappId)
 	}
 
-	gauge := types.Gauge{
-		Id:          k.GetLastGaugeID(ctx) + 1,
-		IsPerpetual: true,
-		DistributeTo: &types.Gauge_Rollapp{
-			Rollapp: &types.RollappGauge{RollappId: rollappId},
-		},
-		NumEpochsPaidOver: 1,
-	}
+	gauge := types.NewRollappGauge(k.GetLastGaugeID(ctx)+1, rollappId)
 
 	err := k.setGauge(ctx, &gauge)
 	if err != nil {

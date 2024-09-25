@@ -3,9 +3,7 @@ package types
 import (
 	"errors"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 const TypeMsgUpdateRollappInformation = "update_rollapp"
@@ -53,7 +51,7 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 	if msg.InitialSequencer != "" && msg.InitialSequencer != "*" {
 		_, err := sdk.AccAddressFromBech32(msg.InitialSequencer)
 		if err != nil {
-			return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
+			return errors.Join(ErrInvalidInitialSequencer, err)
 		}
 	}
 
@@ -63,13 +61,13 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 
 	if msg.GenesisInfo.Bech32Prefix != "" {
 		if err := validateBech32Prefix(msg.GenesisInfo.Bech32Prefix); err != nil {
-			return errorsmod.Wrap(errors.Join(err, gerrc.ErrInvalidArgument), "bech32 prefix")
+			return errors.Join(ErrInvalidBech32Prefix, err)
 		}
 	}
 
 	if msg.Metadata != nil {
 		if err := msg.Metadata.Validate(); err != nil {
-			return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
+			return errors.Join(ErrInvalidMetadata, err)
 		}
 	}
 
@@ -83,6 +81,6 @@ func (msg *MsgUpdateRollappInformation) UpdatingImmutableValues() bool {
 func (msg *MsgUpdateRollappInformation) UpdatingGenesisInfo() bool {
 	return msg.GenesisInfo.GenesisChecksum != "" ||
 		msg.GenesisInfo.Bech32Prefix != "" ||
-		msg.GenesisInfo.NativeDenom != nil ||
+		msg.GenesisInfo.NativeDenom.Base != "" ||
 		(msg.GenesisInfo.InitialSupply != nil && !msg.GenesisInfo.InitialSupply.IsPositive())
 }
