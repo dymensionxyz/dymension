@@ -590,7 +590,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			},
 		},
 		{
-			name: "pass - remove record if new resolve to empty, single-config, not match any",
+			name: "fail - should reject when remove record, single-config, not match any",
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
@@ -614,7 +614,8 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 				SubName:    "non-exists",
 				Controller: controllerAcc.bech32(),
 			},
-			wantErr: false,
+			wantErr:         true,
+			wantErrContains: "config: not found",
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
@@ -737,7 +738,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			},
 		},
 		{
-			name: "pass - remove record if new resolve to empty, multi-config, not any of existing",
+			name: "fail - should reject when remove record, multi-config, not any of existing",
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
@@ -766,7 +767,8 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 				SubName:    "non-exists",
 				Controller: controllerAcc.bech32(),
 			},
-			wantErr: false,
+			wantErr:         true,
+			wantErrContains: "config: not found",
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
