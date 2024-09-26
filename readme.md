@@ -159,7 +159,7 @@ validate with:
 ```sh
 dymd q incentives active-gauges
 
-# alternatively, watch the outpup - you will see the "amount" change every minute
+# alternatively, watch the output - you will see the "amount" change every minute
 #  watch -n1 -d "dymd q incentives active-gauges --output json | jq '.data[] | { "id": .id, "coins": .coins } '"
 ```
 
