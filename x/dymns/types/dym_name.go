@@ -128,21 +128,6 @@ func (m *DymNameConfig) Validate() error {
 	return nil
 }
 
-// Validate checks if the ReverseLookupDymNames record is valid.
-func (m *ReverseLookupDymNames) Validate() error {
-	if m == nil {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "reverse lookup record is nil")
-	}
-
-	for _, name := range m.DymNames {
-		if !dymnsutils.IsValidDymName(name) {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid dym name: %s", name)
-		}
-	}
-
-	return nil
-}
-
 // IsExpiredAtCtx returns true if the Dym-Name is expired at the given context.
 // It compares the expiry with the block time in context.
 func (m DymName) IsExpiredAtCtx(ctx sdk.Context) bool {
