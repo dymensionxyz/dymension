@@ -71,9 +71,10 @@ func DefaultPriceParams() PriceParams {
 			sdk.NewInt(5 /* DYM */).MulRaw(1e18),    // 10+ letters
 		},
 
-		PriceExtends:  sdk.NewInt(5 /* DYM */).MulRaw(1e18),
-		PriceDenom:    params.BaseDenom,
-		MinOfferPrice: sdk.NewInt(10 /* DYM */).MulRaw(1e18),
+		PriceExtends:           sdk.NewInt(5 /* DYM */).MulRaw(1e18),
+		PriceDenom:             params.BaseDenom,
+		MinOfferPrice:          sdk.NewInt(10 /* DYM */).MulRaw(1e18),
+		MinBidIncrementPercent: 1,
 	}
 }
 
@@ -270,6 +271,11 @@ func validatePriceParams(i interface{}) error {
 
 	if m.MinOfferPrice.IsNil() || m.MinOfferPrice.LT(MinPriceValue) {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "min-offer-price is must be at least %s%s", MinPriceValue, m.PriceDenom)
+	}
+
+	const maxMinBidIncrementPercent = 10
+	if m.MinBidIncrementPercent > maxMinBidIncrementPercent {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "min-bid-increment-percent cannot be more than %d: %d", maxMinBidIncrementPercent, m.MinBidIncrementPercent)
 	}
 
 	return nil

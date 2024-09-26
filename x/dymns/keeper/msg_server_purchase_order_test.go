@@ -51,23 +51,24 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_DymName() {
 	const previousBidderOriginalBalance int64 = 400
 	const minPrice int64 = 100
 	tests := []struct {
-		name                           string
-		withoutDymName                 bool
-		withoutSellOrder               bool
-		expiredSellOrder               bool
-		sellPrice                      int64
-		previousBid                    int64
-		skipPreMintModuleAccount       bool
-		overrideBuyerOriginalBalance   int64
-		customBuyer                    string
-		newBid                         int64
-		customBidDenom                 string
-		wantOwnershipChanged           bool
-		wantErr                        bool
-		wantErrContains                string
-		wantOwnerBalanceLater          int64
-		wantBuyerBalanceLater          int64
-		wantPreviousBidderBalanceLater int64
+		name                             string
+		withoutDymName                   bool
+		withoutSellOrder                 bool
+		expiredSellOrder                 bool
+		sellPrice                        int64
+		previousBid                      int64
+		skipPreMintModuleAccount         bool
+		overrideBuyerOriginalBalance     int64
+		customBuyer                      string
+		newBid                           int64
+		customBidDenom                   string
+		customMinimumBidIncrementPercent uint32
+		wantOwnershipChanged             bool
+		wantErr                          bool
+		wantErrContains                  string
+		wantOwnerBalanceLater            int64
+		wantBuyerBalanceLater            int64
+		wantPreviousBidderBalanceLater   int64
 	}{
 		{
 			name:                           "fail - Dym-Name does not exists, SO does not exists",
@@ -203,6 +204,19 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_DymName() {
 			wantOwnerBalanceLater:          ownerOriginalBalance,
 			wantBuyerBalanceLater:          buyerOriginalBalance,
 			wantPreviousBidderBalanceLater: previousBidderOriginalBalance,
+		},
+		{
+			name:                             "fail - purchase order, not expired, fail because minimum increment not met",
+			expiredSellOrder:                 false,
+			sellPrice:                        300,
+			previousBid:                      200,
+			newBid:                           201,
+			customMinimumBidIncrementPercent: 10,
+			wantErr:                          true,
+			wantErrContains:                  "new offer must be higher than current highest bid at least",
+			wantOwnerBalanceLater:            ownerOriginalBalance,
+			wantBuyerBalanceLater:            buyerOriginalBalance,
+			wantPreviousBidderBalanceLater:   previousBidderOriginalBalance,
 		},
 		{
 			name:                           "fail - purchase a completed order, expired, bid equals to previous bid",
@@ -372,6 +386,18 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_DymName() {
 			wantPreviousBidderBalanceLater: previousBidderOriginalBalance + minPrice, // refund
 		},
 		{
+			name:                             "pass - place bid, ignore minimum threshold if wanted amount greater than sell price",
+			expiredSellOrder:                 false,
+			sellPrice:                        300,
+			previousBid:                      300 - 2,
+			newBid:                           300 - 1,
+			customMinimumBidIncrementPercent: 10,
+			wantOwnershipChanged:             false,
+			wantOwnerBalanceLater:            ownerOriginalBalance,
+			wantBuyerBalanceLater:            buyerOriginalBalance - (300 - 1),
+			wantPreviousBidderBalanceLater:   previousBidderOriginalBalance + 300 - 2, // refund
+		},
+		{
 			name:                           "pass - place bid, greater than previous bid, equals sell price, transfer ownership",
 			expiredSellOrder:               false,
 			sellPrice:                      300,
@@ -396,6 +422,13 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_DymName() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			s.RefreshContext()
+
+			if tt.customMinimumBidIncrementPercent > 0 {
+				s.updateModuleParams(func(d dymnstypes.Params) dymnstypes.Params {
+					d.Price.MinBidIncrementPercent = tt.customMinimumBidIncrementPercent
+					return d
+				})
+			}
 
 			useOwnerOriginalBalance := ownerOriginalBalance
 			useBuyerOriginalBalance := buyerOriginalBalance
@@ -933,6 +966,27 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 			wantErrContains: "new offer must be higher than current highest bid",
 		},
 		{
+			name:     "fail - purchase order, not expired, fail because minimum bid increment not met",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byAnotherBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithSellPrice(300).
+				WithAliasBid(creator_3_asAnotherBuyer, 200, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 201,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(d dymnstypes.Params) dymnstypes.Params {
+					d.Price.MinBidIncrementPercent = 10
+					return d
+				})
+			},
+			wantErr:         true,
+			wantErrContains: "new offer must be higher than current highest bid at least",
+		},
+		{
 			name:     "fail - purchase a completed order, expired, bid equals to previous bid",
 			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst, rollApp_3_byAnotherBuyer_asDst},
 			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
@@ -1118,6 +1172,30 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 			wantLaterBalanceCreator3: originalBalanceCreator3 + minPrice, // refund
 		},
 		{
+			name:     "pass - place bid, ignore minimum threshold because wanted greater than sell price, new bid under sell price",
+			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
+			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+				WithMinPrice(minPrice).
+				WithSellPrice(300).
+				WithAliasBid(creator_3_asAnotherBuyer, 300-2, rollApp_3_byAnotherBuyer_asDst.rollAppId).
+				BuildP(),
+			msg: msg(
+				creator_2_asBuyer, 300-1,
+				rollApp_1_byOwner_asSrc.alias, rollApp_2_byBuyer_asDst.rollAppId,
+			),
+			preRunFunc: func(s *KeeperTestSuite) {
+				s.updateModuleParams(func(d dymnstypes.Params) dymnstypes.Params {
+					d.Price.MinBidIncrementPercent = 10
+					return d
+				})
+			},
+			wantErr:                  false,
+			wantCompleted:            false,
+			wantLaterBalanceCreator1: originalBalanceCreator1,
+			wantLaterBalanceCreator2: originalBalanceCreator2 - (300 - 1), // charge bid
+			wantLaterBalanceCreator3: originalBalanceCreator3 + (300 - 2), // refund
+		},
+		{
 			name:     "pass - place bid, greater than previous bid, equals sell price, transfer ownership",
 			rollApps: []rollapp{rollApp_1_byOwner_asSrc, rollApp_2_byBuyer_asDst},
 			sellOrder: s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
@@ -1214,6 +1292,7 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 				s.Zero(tt.wantLaterBalanceCreator2, "bad setup, won't check balance on error")
 				s.Zero(tt.wantLaterBalanceCreator3, "bad setup, won't check balance on error")
 			} else {
+				s.Require().NoError(errPurchaseName)
 				s.NotNil(resp)
 				s.GreaterOrEqual(
 					s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceBidOnSellOrder,

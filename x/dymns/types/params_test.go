@@ -68,6 +68,12 @@ func TestDefaultPriceParams(t *testing.T) {
 			require.Fail(t, "price should be at least 1 DYM")
 		}
 	})
+
+	t.Run("ensure min-bid-increment-percent can not be greater than 100%", func(t *testing.T) {
+		priceParams := DefaultPriceParams()
+		priceParams.MinBidIncrementPercent = 101
+		require.ErrorContains(t, priceParams.Validate(), "min-bid-increment-percent cannot be more than")
+	})
 }
 
 func TestDefaultChainsParams(t *testing.T) {
@@ -243,6 +249,16 @@ func TestPriceParams_Validate(t *testing.T) {
 		require.ErrorContains(
 			t, defaultPriceParams.Validate(),
 			"Dym-Name price step for the first year must be greater or equals to the yearly extends price",
+		)
+	})
+
+	t.Run("fail - min_bid_increment_percent can not be greater than 100", func(t *testing.T) {
+		defaultPriceParams := DefaultPriceParams()
+		defaultPriceParams.MinBidIncrementPercent = 101
+
+		require.ErrorContains(
+			t, defaultPriceParams.Validate(),
+			"min-bid-increment-percent cannot be more than",
 		)
 	})
 
