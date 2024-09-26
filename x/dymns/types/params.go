@@ -91,7 +91,7 @@ func DefaultChainsParams() ChainsParams {
 			},
 			{
 				ChainId: "cosmoshub-4",
-				Aliases: []string{"cosmos"},
+				Aliases: []string{"cosmos", "cosmoshub"},
 			},
 			{
 				ChainId: "osmosis-1",
