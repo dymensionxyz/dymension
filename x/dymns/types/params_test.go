@@ -489,6 +489,15 @@ func TestMiscParams_Validate(t *testing.T) {
 			wantErrContains: "Sell Orders duration can not be zero",
 		},
 		{
+			name: "fail - days SO duration can not be greater than 7 days",
+			modifier: func(p MiscParams) MiscParams {
+				p.SellOrderDuration = 7*24*time.Hour + time.Second
+				return p
+			},
+			wantErr:         true,
+			wantErrContains: "Sell Orders duration cannot be more than",
+		},
+		{
 			name: "fail - days SO duration can not be negative",
 			modifier: func(p MiscParams) MiscParams {
 				p.SellOrderDuration = -1 * time.Nanosecond
