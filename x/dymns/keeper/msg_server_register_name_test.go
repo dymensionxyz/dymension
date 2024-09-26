@@ -566,6 +566,12 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 				err := s.dymNsKeeper.SetDymName(s.ctx, *tt.existingDymName)
 				s.Require().NoError(err)
 
+				err = s.dymNsKeeper.AfterDymNameOwnerChanged(s.ctx, tt.existingDymName.Name)
+				s.Require().NoError(err)
+
+				err = s.dymNsKeeper.AfterDymNameConfigChanged(s.ctx, tt.existingDymName.Name)
+				s.Require().NoError(err)
+
 				if tt.setupActiveSellOrder {
 					so := dymnstypes.SellOrder{
 						AssetId:   useRecordName,

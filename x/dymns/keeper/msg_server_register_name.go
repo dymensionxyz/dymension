@@ -31,10 +31,13 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 	firstYearPrice := priceParams.GetFirstYearDymNamePrice(msg.Name)
 
 	var prunePreviousDymNameRecord bool
+	var ownershipChanged, configChanged bool
 	var totalCost sdk.Coin
 	if dymName == nil {
 		// register new
 		prunePreviousDymNameRecord = true
+		ownershipChanged = true
+		configChanged = true
 
 		dymName = &dymnstypes.DymName{
 			Name:       msg.Name,
@@ -71,6 +74,8 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 		} else {
 			// extends
 			prunePreviousDymNameRecord = false
+			ownershipChanged = false
+			configChanged = false
 
 			// just add duration, no need to change any existing configuration
 			dymName.ExpireAt += addDurationInSeconds
@@ -90,6 +95,8 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 	} else {
 		// take over
 		prunePreviousDymNameRecord = true
+		ownershipChanged = true
+		configChanged = true // existing configuration will be pruned
 
 		dymName = &dymnstypes.DymName{
 			Name:       msg.Name,
@@ -148,12 +155,16 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 		return nil, err
 	}
 
-	if err := k.AfterDymNameOwnerChanged(ctx, dymName.Name); err != nil {
-		return nil, err
+	if ownershipChanged || prunePreviousDymNameRecord {
+		if err := k.AfterDymNameOwnerChanged(ctx, dymName.Name); err != nil {
+			return nil, err
+		}
 	}
 
-	if err := k.AfterDymNameConfigChanged(ctx, dymName.Name); err != nil {
-		return nil, err
+	if configChanged || prunePreviousDymNameRecord {
+		if err := k.AfterDymNameConfigChanged(ctx, dymName.Name); err != nil {
+			return nil, err
+		}
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
