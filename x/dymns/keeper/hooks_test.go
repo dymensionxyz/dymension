@@ -2,7 +2,8 @@ package keeper_test
 
 import (
 	"fmt"
-	"math"
+	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"testing"
 	"time"
 
@@ -1607,35 +1608,99 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 	}
 }
 
-func BenchmarkAfterEpochEnd(b *testing.B) {
+const mainnetBlockGas = 400_000_000
+const mainnetBlockTime = 5
+const endEpochInterval = 3_600 * time.Second // 1 hrs
+const soExpiration = 3 * 24 * time.Hour      // 3 days
+
+var maxNumSoExecPerEpoch = int(endEpochInterval.Seconds()) / mainnetBlockTime * (mainnetBlockGas/int(dymnstypes.OpGasPlaceSellOrder) - 1) /*max num of txs per block*/
+var maxNumSoCoExists = int(soExpiration.Seconds()) / mainnetBlockTime * (mainnetBlockGas/int(dymnstypes.OpGasPlaceSellOrder) - 1)         /*max num of txs per block*/
+
+func BenchmarkAfterEpochEnd_PureExpiredSO(b *testing.B) {
 	b.StopTimer()
 	b.ReportAllocs()
 
-	// 2024-09-26: 0.366s for processing a list of 10800 SOs
-	// BenchmarkAfterEpochEnd-8 | 3m50s | 3 | 366280806 ns/op | 106489520 B/op | 1299593 allocs/op
+	// 2024-09-26: 0.375s for processing a list of 10800 SOs
+	// BenchmarkAfterEpochEnd_PureExpiredSO-8 | 41s | 3 | 375790791 ns/op | 106493930 B/op | 1299616 allocs/op
+
+	fmt.Println("SO count", maxNumSoExecPerEpoch)
 
 	for l := 1; l <= b.N; l++ {
-		benchmarkAfterEpochEnd(b, false)
+		benchmarkAfterEpochEnd(b, false, 0, func(b *testing.B, ctx sdk.Context, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, rk rollappkeeper.Keeper) {
+			aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
+			require.Empty(b, aSoe.Records, "all SO should be processed")
+		})
 	}
 }
 
-func benchmarkAfterEpochEnd(b *testing.B, bid bool) {
+func BenchmarkAfterEpochEnd_PureExpiredSO_WithVeryLongActiveSellOrderExpirationList(b *testing.B) {
+	b.StopTimer()
+	b.ReportAllocs()
+
+	// 2024-09-26: 25.7s for processing a list of 10800 SOs among 777.6k active SOs
+	// BenchmarkAfterEpochEnd_PureExpiredSO_WithVeryLongActiveSellOrderExpirationList-8 | 32s | 1 | 25696229374 ns/op | 295823328 B/op | 2095476 allocs/op
+
+	fmt.Println("SO count", maxNumSoExecPerEpoch)
+	fmt.Println("Active SO count", maxNumSoCoExists)
+
+	for l := 1; l <= b.N; l++ {
+		benchmarkAfterEpochEnd(b, false, maxNumSoCoExists, func(b *testing.B, ctx sdk.Context, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, rk rollappkeeper.Keeper) {
+			aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
+			require.Len(b, aSoe.Records, maxNumSoCoExists-maxNumSoExecPerEpoch)
+		})
+	}
+}
+
+func BenchmarkAfterEpochEnd_FinishedWithBidSO(b *testing.B) {
+	b.StopTimer()
+	b.ReportAllocs()
+
+	// 2024-09-26: 15s for processing a list of 10800 finished SOs
+	// BenchmarkAfterEpochEnd_FinishedWithBidSO-8 | 21s | 1 | 15090783041 ns/op | 31615932200 B/op | 357165289 allocs/op
+
+	fmt.Println("SO count", maxNumSoExecPerEpoch)
+
+	for l := 1; l <= b.N; l++ {
+		benchmarkAfterEpochEnd(b, true, 0, func(b *testing.B, ctx sdk.Context, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, rk rollappkeeper.Keeper) {
+			aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
+			require.Empty(b, aSoe.Records, "all SO should be processed")
+		})
+	}
+}
+
+func BenchmarkAfterEpochEnd_FinishedWithBidSO_WithVeryLongActiveSellOrderExpirationList(b *testing.B) {
+	b.StopTimer()
+	b.ReportAllocs()
+
+	// 2024-09-26: 36.5s for processing a list of 10800 finished SOs among 777.6k active SOs
+	// BenchmarkAfterEpochEnd_FinishedWithBidSO_WithVeryLongActiveSellOrderExpirationList-8 | 43s | 1 | 36483112916 ns/op | 31769746256 B/op | 357952743 allocs/op
+
+	fmt.Println("SO count", maxNumSoExecPerEpoch)
+
+	for l := 1; l <= b.N; l++ {
+		benchmarkAfterEpochEnd(b, true, maxNumSoCoExists, func(b *testing.B, ctx sdk.Context, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, rk rollappkeeper.Keeper) {
+			aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
+			require.Len(b, aSoe.Records, maxNumSoCoExists-maxNumSoExecPerEpoch)
+		})
+	}
+}
+
+func benchmarkAfterEpochEnd(b *testing.B, bid bool, aSoeSize int, testFunc func(b *testing.B, ctx sdk.Context, dk dymnskeeper.Keeper, bk dymnstypes.BankKeeper, rk rollappkeeper.Keeper)) {
 	now := time.Now()
 	nowS := now.Unix()
-
 	ownerA := testAddr(1).bech32()
-	buyerA := testAddr(math.MaxUint64).bech32()
+	buyerA := testAddr(2).bech32()
 
-	dk, bk, _, ctx := testkeeper.DymNSKeeper(b)
+	const minPrice = 1
+	const bidAmount = minPrice + 1
+
+	dk, bk, rk, ctx := testkeeper.DymNSKeeper(b)
 	ctx = ctx.WithBlockTime(now)
 
 	// setup
-	const sampleCount = 3_600 /*epoch interval*/ / 5 /*block time*/ * (400_000_000/int(dymnstypes.OpGasPlaceSellOrder) - 1) /*max num of txs per block*/
-	fmt.Println("SO count", sampleCount)
-	const bidAmount = 2
 	aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
-	aSoe.Records = make([]dymnstypes.ActiveSellOrdersExpirationRecord, sampleCount)
-	for j := 0; j < sampleCount; j++ {
+	aSoe.Records = make([]dymnstypes.ActiveSellOrdersExpirationRecord, maxNumSoExecPerEpoch)
+	for j := 0; j < maxNumSoExecPerEpoch; j++ {
 		dymName := dymnstypes.DymName{
 			Name:       fmt.Sprintf("name-%d", j),
 			Owner:      ownerA,
@@ -1655,7 +1720,7 @@ func benchmarkAfterEpochEnd(b *testing.B, bid bool) {
 			AssetId:    dymName.Name,
 			AssetType:  dymnstypes.TypeName,
 			ExpireAt:   nowS - 1,
-			MinPrice:   sdk.NewInt64Coin(params.BaseDenom, bidAmount),
+			MinPrice:   sdk.NewInt64Coin(params.BaseDenom, minPrice),
 			HighestBid: nil,
 		}
 		if bid {
@@ -1675,25 +1740,41 @@ func benchmarkAfterEpochEnd(b *testing.B, bid bool) {
 		}
 	}
 
+	if len(aSoe.Records) < aSoeSize {
+		additionalAsoeRecords := make([]dymnstypes.ActiveSellOrdersExpirationRecord, aSoeSize-len(aSoe.Records))
+		for i := 0; i < len(additionalAsoeRecords); i++ {
+			additionalAsoeRecords[i] = dymnstypes.ActiveSellOrdersExpirationRecord{
+				AssetId:  fmt.Sprintf("name-%d", i+len(additionalAsoeRecords)+1),
+				ExpireAt: nowS + 100,
+			}
+		}
+		aSoe.Records = append(additionalAsoeRecords, aSoe.Records...)
+	}
+
 	err := dk.SetActiveSellOrdersExpiration(ctx, aSoe, dymnstypes.TypeName)
 	require.NoError(b, err)
 
-	err = bk.MintCoins(ctx, dymnstypes.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(params.BaseDenom, int64(sampleCount*bidAmount))))
-	require.NoError(b, err)
+	if bid {
+		err = bk.MintCoins(ctx, dymnstypes.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(params.BaseDenom, int64(maxNumSoExecPerEpoch*bidAmount))))
+		require.NoError(b, err)
+	}
 
 	moduleParams := dk.GetParams(ctx)
 	hooks := dk.GetEpochHooks()
 
 	// test
-	func() {
+	err = func() error {
+		ctx.GasMeter().RefundGas(ctx.GasMeter().GasConsumed(), "reset")
 		b.StartTimer()
 		defer b.StopTimer()
-		err = hooks.AfterEpochEnd(ctx, moduleParams.Misc.EndEpochHookIdentifier, 1)
-		require.NoError(b, err)
+		return hooks.AfterEpochEnd(ctx, moduleParams.Misc.EndEpochHookIdentifier, 1)
 	}()
+	require.NoError(b, err)
+	fmt.Println("Gas consumed", ctx.GasMeter().GasConsumed())
 
-	aSoe = dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
-	require.Empty(b, aSoe.Records, "all SO should be processed")
+	if testFunc != nil {
+		testFunc(b, ctx, dk, bk, rk)
+	}
 }
 
 func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
