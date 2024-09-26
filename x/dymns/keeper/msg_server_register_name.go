@@ -24,7 +24,9 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 
 	priceParams := k.PriceParams(ctx)
 
-	addDurationInSeconds := 86400 * 365 * msg.Duration
+	addDurationInSeconds := 86400 * // number of seconds per day
+		365 * // number of days per year
+		msg.Duration // number of registration years
 
 	firstYearPrice := priceParams.GetFirstYearDymNamePrice(msg.Name)
 
