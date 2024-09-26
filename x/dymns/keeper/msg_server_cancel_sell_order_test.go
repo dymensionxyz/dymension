@@ -214,6 +214,9 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 	})
 
 	s.Run("can cancel if satisfied conditions", func() {
+		const previousRunGasConsumed = 100_000_000
+		s.ctx.GasMeter().ConsumeGas(previousRunGasConsumed, "simulate previous run")
+
 		moduleParams := s.dymNsKeeper.GetParams(s.ctx)
 		moduleParams.Misc.EnableTradingName = false // allowed to cancel even if trading is disabled
 		s.Require().NoError(s.dymNsKeeper.SetParams(s.ctx, moduleParams))
@@ -255,6 +258,10 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 		s.GreaterOrEqual(
 			s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasCloseSellOrder,
 			"should consume params gas",
+		)
+		s.GreaterOrEqual(
+			s.ctx.GasMeter().GasConsumed(), previousRunGasConsumed+dymnstypes.OpGasCloseSellOrder,
+			"gas consumption should be stacked with previous run",
 		)
 	})
 }
@@ -438,6 +445,9 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_Alias() {
 	})
 
 	s.Run("can cancel if satisfied conditions", func() {
+		const previousRunGasConsumed = 100_000_000
+		s.ctx.GasMeter().ConsumeGas(previousRunGasConsumed, "simulate previous run")
+
 		moduleParams := s.dymNsKeeper.GetParams(s.ctx)
 		moduleParams.Misc.EnableTradingAlias = false // allowed to cancel even if trading is disabled
 		s.Require().NoError(s.dymNsKeeper.SetParams(s.ctx, moduleParams))
@@ -479,6 +489,10 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_Alias() {
 		s.GreaterOrEqual(
 			s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasCloseSellOrder,
 			"should consume params gas",
+		)
+		s.GreaterOrEqual(
+			s.ctx.GasMeter().GasConsumed(), previousRunGasConsumed+dymnstypes.OpGasCloseSellOrder,
+			"gas consumption should be stacked with previous run",
 		)
 
 		s.requireAlias(rollapp_1_ofOwner.alias).LinkedToRollApp(rollapp_1_ofOwner.rollAppId)

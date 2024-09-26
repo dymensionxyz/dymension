@@ -14,6 +14,7 @@ import (
 // handles creating a Sell-Order that advertise a Dym-Name/Alias is for sale, performed by the owner.
 func (k msgServer) PlaceSellOrder(goCtx context.Context, msg *dymnstypes.MsgPlaceSellOrder) (*dymnstypes.MsgPlaceSellOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	originalConsumedGas := ctx.GasMeter().GasConsumed()
 
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
@@ -40,7 +41,7 @@ func (k msgServer) PlaceSellOrder(goCtx context.Context, msg *dymnstypes.MsgPlac
 
 	// Charge protocol fee.
 	// The protocol fee mechanism is used to prevent spamming to the network.
-	consumeMinimumGas(ctx, dymnstypes.OpGasPlaceSellOrder, "PlaceSellOrder")
+	consumeMinimumGas(ctx, dymnstypes.OpGasPlaceSellOrder, originalConsumedGas, "PlaceSellOrder")
 
 	return resp, nil
 }

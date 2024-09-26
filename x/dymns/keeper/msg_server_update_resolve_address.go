@@ -17,6 +17,7 @@ import (
 // handles updating Dym-Name-Address resolution configuration, performed by the controller.
 func (k msgServer) UpdateResolveAddress(goCtx context.Context, msg *dymnstypes.MsgUpdateResolveAddress) (*dymnstypes.MsgUpdateResolveAddressResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	originalConsumedGas := ctx.GasMeter().GasConsumed()
 
 	dymName, err := k.validateUpdateResolveAddress(ctx, msg)
 	if err != nil {
@@ -96,7 +97,7 @@ func (k msgServer) UpdateResolveAddress(goCtx context.Context, msg *dymnstypes.M
 
 	// Charge protocol fee.
 	// The protocol fee mechanism is used to prevent spamming to the network.
-	consumeMinimumGas(ctx, minimumTxGasRequired, "UpdateResolveAddress")
+	consumeMinimumGas(ctx, minimumTxGasRequired, originalConsumedGas, "UpdateResolveAddress")
 
 	return &dymnstypes.MsgUpdateResolveAddressResponse{}, nil
 }

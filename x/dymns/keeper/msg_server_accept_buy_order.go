@@ -16,6 +16,7 @@ import (
 // performed by the owner of the asset.
 func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcceptBuyOrder) (*dymnstypes.MsgAcceptBuyOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	originalConsumedGas := ctx.GasMeter().GasConsumed()
 
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
@@ -47,7 +48,7 @@ func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcce
 	}
 
 	// charge protocol fee
-	consumeMinimumGas(ctx, dymnstypes.OpGasUpdateBuyOrder, "AcceptBuyOrder")
+	consumeMinimumGas(ctx, dymnstypes.OpGasUpdateBuyOrder, originalConsumedGas, "AcceptBuyOrder")
 
 	return resp, nil
 }

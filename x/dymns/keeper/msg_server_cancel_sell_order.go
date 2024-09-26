@@ -16,6 +16,7 @@ import (
 // Can only be performed if no one has placed a bid on the asset.
 func (k msgServer) CancelSellOrder(goCtx context.Context, msg *dymnstypes.MsgCancelSellOrder) (*dymnstypes.MsgCancelSellOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	originalConsumedGas := ctx.GasMeter().GasConsumed()
 
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
@@ -38,7 +39,7 @@ func (k msgServer) CancelSellOrder(goCtx context.Context, msg *dymnstypes.MsgCan
 	}
 
 	// charge protocol fee
-	consumeMinimumGas(ctx, dymnstypes.OpGasCloseSellOrder, "CancelSellOrder")
+	consumeMinimumGas(ctx, dymnstypes.OpGasCloseSellOrder, originalConsumedGas, "CancelSellOrder")
 
 	return resp, nil
 }

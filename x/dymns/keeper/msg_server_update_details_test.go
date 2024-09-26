@@ -594,6 +594,31 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateDetails() {
 				s.requireFallbackAddress(controllerAcc.fallback()).notMappedToAnyDymName()
 			},
 		},
+		{
+			name: "pass - independently charge gas",
+			dymName: &dymnstypes.DymName{
+				Owner:      ownerA,
+				Controller: controllerA,
+				ExpireAt:   s.now.Unix() + 100,
+				Contact:    "old-contact@example.com",
+			},
+			preTestFunc: func(s *KeeperTestSuite) {
+				s.ctx.GasMeter().ConsumeGas(100_000_000, "simulate previous run")
+			},
+			msg: &dymnstypes.MsgUpdateDetails{
+				Contact:    "new-contact@example.com",
+				Controller: controllerA,
+			},
+			wantErr: false,
+			wantDymName: &dymnstypes.DymName{
+				Owner:      ownerA,
+				Controller: controllerA,
+				ExpireAt:   s.now.Unix() + 100,
+				Contact:    "new-contact@example.com",
+			},
+			wantMinGasConsumed: 100_000_000 + dymnstypes.OpGasUpdateContact,
+			postTestFunc:       func(*KeeperTestSuite) {},
+		},
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {

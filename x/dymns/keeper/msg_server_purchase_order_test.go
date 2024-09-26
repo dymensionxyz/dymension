@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
@@ -566,6 +567,35 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_DymName() {
 			Buyer:     buyerA,
 		})
 		s.Require().ErrorContains(err, "unmet precondition")
+	})
+
+	s.Run("independently charge gas", func() {
+		s.RefreshContext()
+
+		s.ctx.GasMeter().ConsumeGas(100_000_000, "simulate previous run")
+
+		s.setDymNameWithFunctionsAfter(dymName)
+		so := dymnstypes.SellOrder{
+			AssetId:   dymName.Name,
+			AssetType: dymnstypes.TypeName,
+			MinPrice:  s.coin(minPrice),
+			ExpireAt:  s.now.Add(time.Second).Unix(),
+		}
+		err := s.dymNsKeeper.SetSellOrder(s.ctx, so)
+		s.Require().NoError(err)
+		s.mintToAccount(buyerA, minPrice)
+
+		_, err = dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &dymnstypes.MsgPurchaseOrder{
+			AssetId:   "my-name",
+			AssetType: dymnstypes.TypeName,
+			Offer:     s.coin(minPrice),
+			Buyer:     buyerA,
+		})
+		s.Require().NoError(err)
+		s.Require().GreaterOrEqual(
+			s.ctx.GasMeter().GasConsumed(), 100_000_000+dymnstypes.OpGasPlaceBidOnSellOrder,
+			"should consume params gas",
+		)
 	})
 }
 
@@ -1242,5 +1272,35 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_Alias() {
 			Buyer:     creator_2_asBuyer,
 		})
 		s.Require().ErrorContains(err, "trading of Alias is disabled")
+	})
+
+	s.Run("independently charge gas", func() {
+		s.RefreshContext()
+
+		s.ctx.GasMeter().ConsumeGas(100_000_000, "simulate previous run")
+
+		s.persistRollApp(rollApp_1_byOwner_asSrc)
+		s.persistRollApp(rollApp_2_byBuyer_asDst)
+		so := s.newAliasSellOrder(rollApp_1_byOwner_asSrc.alias).
+			WithMinPrice(minPrice).
+			WithSellPrice(300).
+			BuildP()
+		err := s.dymNsKeeper.SetSellOrder(s.ctx, *so)
+		s.Require().NoError(err)
+		s.mintToAccount(creator_2_asBuyer, 100)
+
+		_, err = dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &dymnstypes.MsgPurchaseOrder{
+			AssetId:   "alias",
+			AssetType: dymnstypes.TypeAlias,
+			Params:    []string{rollApp_2_byBuyer_asDst.rollAppId},
+			Offer:     s.coin(minPrice),
+			Buyer:     creator_2_asBuyer,
+		})
+		s.Require().NoError(err)
+
+		s.Require().GreaterOrEqual(
+			s.ctx.GasMeter().GasConsumed(), 100_000_000+dymnstypes.OpGasPlaceBidOnSellOrder,
+			"gas consumption should be stacked",
+		)
 	})
 }

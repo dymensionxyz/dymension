@@ -14,6 +14,7 @@ import (
 // handles purchasing a Dym-Name/Alias from a Sell-Order, performed by the buyer.
 func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurchaseOrder) (*dymnstypes.MsgPurchaseOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	originalConsumedGas := ctx.GasMeter().GasConsumed()
 
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
@@ -38,7 +39,7 @@ func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurch
 	}
 
 	// charge protocol fee
-	consumeMinimumGas(ctx, dymnstypes.OpGasPlaceBidOnSellOrder, "PurchaseOrder")
+	consumeMinimumGas(ctx, dymnstypes.OpGasPlaceBidOnSellOrder, originalConsumedGas, "PurchaseOrder")
 
 	return resp, nil
 }

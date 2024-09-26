@@ -14,6 +14,7 @@ import (
 // handles creating an offer to buy a Dym-Name/Alias, performed by the buyer.
 func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlaceBuyOrder) (*dymnstypes.MsgPlaceBuyOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	originalConsumedGas := ctx.GasMeter().GasConsumed()
 
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
@@ -45,7 +46,7 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 	} else {
 		minimumTxGasRequired = dymnstypes.OpGasPutBuyOrder
 	}
-	consumeMinimumGas(ctx, minimumTxGasRequired, "PlaceBuyOrder")
+	consumeMinimumGas(ctx, minimumTxGasRequired, originalConsumedGas, "PlaceBuyOrder")
 
 	return resp, nil
 }

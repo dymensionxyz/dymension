@@ -52,6 +52,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 		preRunSetup             func(*KeeperTestSuite)
 		wantErr                 bool
 		wantErrContains         string
+		afterRunFunc            func(*KeeperTestSuite)
 	}{
 		{
 			name:            "fail - Dym-Name does not exists",
@@ -186,6 +187,21 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 			wantErr:         true,
 			wantErrContains: "trading of Dym-Name is disabled",
 		},
+		{
+			name:                    "pass - independently charge gas",
+			dymNameExpiryOffsetDays: 9999,
+			minPrice:                coin100,
+			sellPrice:               nil,
+			preRunSetup: func(s *KeeperTestSuite) {
+				s.ctx.GasMeter().ConsumeGas(100_000_000, "simulate previous run")
+			},
+			afterRunFunc: func(s *KeeperTestSuite) {
+				s.Require().GreaterOrEqual(
+					s.ctx.GasMeter().GasConsumed(), 100_000_000+dymnstypes.OpGasPlaceSellOrder,
+					"gas consumption should be stacked",
+				)
+			},
+		},
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
@@ -249,6 +265,12 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 					Controller: useDymNameOwner,
 					ExpireAt:   useDymNameExpiry,
 				}, *laterDymName, "Dym-Name record should not be changed in any case")
+			}()
+
+			defer func() {
+				if tt.afterRunFunc != nil {
+					tt.afterRunFunc(s)
+				}
 			}()
 
 			if tt.wantErr {
@@ -349,6 +371,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_Alias() {
 		preRunSetup        func(*KeeperTestSuite)
 		wantErr            bool
 		wantErrContains    string
+		afterRunFunc       func(*KeeperTestSuite)
 	}{
 		{
 			name:            "fail - alias does not exists",
@@ -480,6 +503,20 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_Alias() {
 			wantErr:         true,
 			wantErrContains: "trading of Alias is disabled",
 		},
+		{
+			name:      "pass - independently charge gas",
+			minPrice:  coin100,
+			sellPrice: nil,
+			preRunSetup: func(s *KeeperTestSuite) {
+				s.ctx.GasMeter().ConsumeGas(100_000_000, "simulate previous run")
+			},
+			afterRunFunc: func(s *KeeperTestSuite) {
+				s.Require().GreaterOrEqual(
+					s.ctx.GasMeter().GasConsumed(), 100_000_000+dymnstypes.OpGasPlaceSellOrder,
+					"gas consumption should be stacked",
+				)
+			},
+		},
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
@@ -530,6 +567,12 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_Alias() {
 					s.requireRollApp(srcRollAppId).HasNoAlias()
 				} else {
 					s.requireAlias(alias).LinkedToRollApp(srcRollAppId)
+				}
+			}()
+
+			defer func() {
+				if tt.afterRunFunc != nil {
+					tt.afterRunFunc(s)
 				}
 			}()
 
