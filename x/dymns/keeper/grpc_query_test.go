@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -3460,4 +3463,35 @@ func (s *KeeperTestSuite) Test_queryServer_Aliases() {
 		s.Require().Nil(resp)
 		s.Require().Contains(err.Error(), "invalid request")
 	})
+}
+
+func Benchmark_queryServer_Aliases(b *testing.B) {
+	b.StopTimer()
+
+	s := new(KeeperTestSuite)
+	s.SetT(&testing.T{})
+	s.SetupTest()
+
+	// restore params which was previously cleared by test suite setup
+	err := s.dymNsKeeper.SetParams(s.ctx, dymnstypes.DefaultParams())
+	require.NoError(b, err)
+
+	// create large amount of RollApps
+	const rollAppCounts = 100_000
+	for id := 1; id <= rollAppCounts; id++ {
+		rollApp := newRollApp(fmt.Sprintf("rollapp_%d-1", id)).WithOwner(testAddr(1).bech32()).WithAlias(fmt.Sprintf("alias%d", id))
+		s.persistRollApp(*rollApp)
+	}
+
+	// benchmark
+	for i := 0; i < b.N; i++ {
+		resp, err := func() (*dymnstypes.QueryAliasesResponse, error) {
+			b.StartTimer()
+			defer b.StopTimer()
+			return dymnskeeper.NewQueryServerImpl(s.dymNsKeeper).Aliases(sdk.WrapSDKContext(s.ctx), &dymnstypes.QueryAliasesRequest{})
+		}()
+		require.NoError(b, err)
+		require.NotNil(b, resp)
+		require.GreaterOrEqual(b, len(resp.AliasesByChainId), rollAppCounts)
+	}
 }
