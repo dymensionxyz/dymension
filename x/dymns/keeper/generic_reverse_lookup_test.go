@@ -2,10 +2,13 @@ package keeper_test
 
 import (
 	"fmt"
+	"math/rand"
 	"sort"
+	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
+	"github.com/stretchr/testify/require"
 )
 
 var keyTestReverseLookup = []byte("test-reverse-lookup")
@@ -279,5 +282,112 @@ func (s *KeeperTestSuite) TestKeeper_GenericAddGetRemoveReverseLookupRecord() {
 			branchedCtx3, _ := s.ctx.CacheContext()
 			tt.testFunc(boIdsTE, branchedCtx3, s)
 		})
+	}
+}
+
+func Benchmark_GenericAddReverseLookupRecord(b *testing.B) {
+	b.StopTimer()
+	b.ReportAllocs()
+
+	// 2024-09-26: 0.43s for appending into a list of existing 1m elements
+	// Benchmark_GenericAddReverseLookupRecord-8 | 3s154ms | 3 | 431924139 ns/op | 272465408 B/op | 1038262 allocs/op
+
+	s := new(KeeperTestSuite)
+	s.SetT(&testing.T{})
+	s.SetupTest()
+	codec := s.cdc
+
+	const elementsCount = 1_000_000
+
+	{
+		// prepare existing data
+		existingData := make([]string, elementsCount)
+		for e := 1; e <= elementsCount; e++ {
+			v := fmt.Sprintf("test%d", rand.Uint64())
+			existingData = append(existingData, v)
+		}
+		bz := codec.MustMarshal(&dymnstypes.ReverseLookupDymNames{
+			DymNames: existingData,
+		})
+		s.ctx.KVStore(s.dymNsStoreKey).Set(keyTestReverseLookup, bz)
+	}
+
+	for r := 1; r <= b.N; r++ {
+		// add new element to force the most hardcore computation
+		v := fmt.Sprintf("test%d", rand.Uint64())
+		err := func() error {
+			b.StartTimer()
+			defer b.StopTimer()
+			return s.dymNsKeeper.GenericAddReverseLookupRecord(
+				s.ctx,
+				keyTestReverseLookup, v,
+				func(list []string) []byte {
+					return codec.MustMarshal(&dymnstypes.ReverseLookupDymNames{
+						DymNames: list,
+					})
+				}, func(bz []byte) []string {
+					var record dymnstypes.ReverseLookupDymNames
+					codec.MustUnmarshal(bz, &record)
+					return record.DymNames
+				},
+			)
+		}()
+		require.NoError(b, err)
+	}
+}
+
+func Benchmark_GenericRemoveReverseLookupRecord(b *testing.B) {
+	b.StopTimer()
+	b.ReportAllocs()
+
+	// 2024-09-26: 0.44s for removing from a list of existing 1m elements
+	// Benchmark_GenericRemoveReverseLookupRecord-8 | 3s471ms | 3 | 440934042 ns/op | 293803210 B/op | 1038246 allocs/op
+
+	s := new(KeeperTestSuite)
+	s.SetT(&testing.T{})
+	s.SetupTest()
+	codec := s.cdc
+
+	const elementsCount = 1_000_000
+
+	{
+		// prepare existing data
+		existingData := make([]string, elementsCount)
+		for e := 1; e <= elementsCount; e++ {
+			v := fmt.Sprintf("test%d", rand.Uint64())
+			existingData = append(existingData, v)
+		}
+		bz := codec.MustMarshal(&dymnstypes.ReverseLookupDymNames{
+			DymNames: existingData,
+		})
+		s.ctx.KVStore(s.dymNsStoreKey).Set(keyTestReverseLookup, bz)
+	}
+
+	for r := 1; r <= b.N; r++ {
+		existingElements := s.dymNsKeeper.GenericGetReverseLookupRecord(s.ctx, keyTestReverseLookup, func(bz []byte) []string {
+			var record dymnstypes.ReverseLookupDymNames
+			codec.MustUnmarshal(bz, &record)
+			return record.DymNames
+		})
+		// delete the last element to force the most hardcore computation
+		lastElement := existingElements[len(existingElements)-1]
+		err := func() error {
+			b.StartTimer()
+			defer b.StopTimer()
+			return s.dymNsKeeper.GenericRemoveReverseLookupRecord(
+				s.ctx,
+				keyTestReverseLookup, lastElement,
+				func(list []string) []byte {
+					return codec.MustMarshal(&dymnstypes.ReverseLookupDymNames{
+						DymNames: list,
+					})
+				}, func(bz []byte) []string {
+					var record dymnstypes.ReverseLookupDymNames
+					codec.MustUnmarshal(bz, &record)
+					return record.DymNames
+				},
+			)
+		}()
+		require.NoError(b, err)
 	}
 }

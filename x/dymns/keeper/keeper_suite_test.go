@@ -55,6 +55,7 @@ type KeeperTestSuite struct {
 	rollAppKeeper rollappkeeper.Keeper
 	bankKeeper    dymnstypes.BankKeeper
 
+	dymNsStoreKey   storetypes.StoreKey
 	rollappStoreKey storetypes.StoreKey
 }
 
@@ -74,11 +75,11 @@ func (s *KeeperTestSuite) SetupTest() {
 	var bk dymnstypes.BankKeeper
 	var rk *rollappkeeper.Keeper
 
-	var rollappStoreKey storetypes.StoreKey
+	var dymNsStoreKey, rollappStoreKey storetypes.StoreKey
 
 	{
 		// initialization
-		dymNsStoreKey := sdk.NewKVStoreKey(dymnstypes.StoreKey)
+		dymNsStoreKey = sdk.NewKVStoreKey(dymnstypes.StoreKey)
 		dymNsMemStoreKey := storetypes.NewMemoryStoreKey(dymnstypes.MemStoreKey)
 
 		authStoreKey := sdk.NewKVStoreKey(authtypes.StoreKey)
@@ -171,6 +172,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.dymNsKeeper = dk
 	s.rollAppKeeper = *rk
 	s.bankKeeper = bk
+	s.dymNsStoreKey = dymNsStoreKey
 	s.rollappStoreKey = rollappStoreKey
 
 	// custom

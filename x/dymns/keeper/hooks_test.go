@@ -1,7 +1,14 @@
 package keeper_test
 
 import (
+	"fmt"
+	"math"
+	"testing"
 	"time"
+
+	"github.com/dymensionxyz/dymension/v3/app/params"
+	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
+	"github.com/stretchr/testify/require"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -1598,6 +1605,95 @@ func (s *KeeperTestSuite) Test_epochHooks_AfterEpochEnd_processActiveAliasSellOr
 			s.Require().NoError(err)
 		})
 	}
+}
+
+func BenchmarkAfterEpochEnd(b *testing.B) {
+	b.StopTimer()
+	b.ReportAllocs()
+
+	// 2024-09-26: 0.366s for processing a list of 10800 SOs
+	// BenchmarkAfterEpochEnd-8 | 3m50s | 3 | 366280806 ns/op | 106489520 B/op | 1299593 allocs/op
+
+	for l := 1; l <= b.N; l++ {
+		benchmarkAfterEpochEnd(b, false)
+	}
+}
+
+func benchmarkAfterEpochEnd(b *testing.B, bid bool) {
+	now := time.Now()
+	nowS := now.Unix()
+
+	ownerA := testAddr(1).bech32()
+	buyerA := testAddr(math.MaxUint64).bech32()
+
+	dk, bk, _, ctx := testkeeper.DymNSKeeper(b)
+	ctx = ctx.WithBlockTime(now)
+
+	// setup
+	const sampleCount = 3_600 /*epoch interval*/ / 5 /*block time*/ * (400_000_000/int(dymnstypes.OpGasPlaceSellOrder) - 1) /*max num of txs per block*/
+	fmt.Println("SO count", sampleCount)
+	const bidAmount = 2
+	aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
+	aSoe.Records = make([]dymnstypes.ActiveSellOrdersExpirationRecord, sampleCount)
+	for j := 0; j < sampleCount; j++ {
+		dymName := dymnstypes.DymName{
+			Name:       fmt.Sprintf("name-%d", j),
+			Owner:      ownerA,
+			Controller: ownerA,
+			ExpireAt:   nowS + 100,
+		}
+		err := dk.SetDymName(ctx, dymName)
+		require.NoError(b, err)
+
+		err = dk.AfterDymNameOwnerChanged(ctx, dymName.Name)
+		require.NoError(b, err)
+
+		err = dk.AfterDymNameConfigChanged(ctx, dymName.Name)
+		require.NoError(b, err)
+
+		so := dymnstypes.SellOrder{
+			AssetId:    dymName.Name,
+			AssetType:  dymnstypes.TypeName,
+			ExpireAt:   nowS - 1,
+			MinPrice:   sdk.NewInt64Coin(params.BaseDenom, bidAmount),
+			HighestBid: nil,
+		}
+		if bid {
+			so.HighestBid = &dymnstypes.SellOrderBid{
+				Bidder: buyerA,
+				Price:  sdk.NewInt64Coin(params.BaseDenom, bidAmount),
+				Params: nil,
+			}
+		}
+
+		err = dk.SetSellOrder(ctx, so)
+		require.NoError(b, err)
+
+		aSoe.Records[j] = dymnstypes.ActiveSellOrdersExpirationRecord{
+			AssetId:  so.AssetId,
+			ExpireAt: so.ExpireAt,
+		}
+	}
+
+	err := dk.SetActiveSellOrdersExpiration(ctx, aSoe, dymnstypes.TypeName)
+	require.NoError(b, err)
+
+	err = bk.MintCoins(ctx, dymnstypes.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(params.BaseDenom, int64(sampleCount*bidAmount))))
+	require.NoError(b, err)
+
+	moduleParams := dk.GetParams(ctx)
+	hooks := dk.GetEpochHooks()
+
+	// test
+	func() {
+		b.StartTimer()
+		defer b.StopTimer()
+		err = hooks.AfterEpochEnd(ctx, moduleParams.Misc.EndEpochHookIdentifier, 1)
+		require.NoError(b, err)
+	}()
+
+	aSoe = dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
+	require.Empty(b, aSoe.Records, "all SO should be processed")
 }
 
 func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {

@@ -3467,6 +3467,10 @@ func (s *KeeperTestSuite) Test_queryServer_Aliases() {
 
 func Benchmark_queryServer_Aliases(b *testing.B) {
 	b.StopTimer()
+	b.ReportAllocs()
+
+	// 2024-09-26: 0.46s for querying a list of ~100015 elements
+	// Benchmark_queryServer_Aliases-8 | 5s279ms | 25 | 46316678 ns/op | 46003582 B/op | 521381 allocs/op
 
 	s := new(KeeperTestSuite)
 	s.SetT(&testing.T{})

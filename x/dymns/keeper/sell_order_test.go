@@ -3,7 +3,12 @@ package keeper_test
 import (
 	cryptorand "crypto/rand"
 	"fmt"
+	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
+	"github.com/stretchr/testify/require"
 	"math/big"
+	"math/rand"
+	"testing"
+	"time"
 
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
@@ -432,6 +437,40 @@ func (s *KeeperTestSuite) TestKeeper_GetSetActiveSellOrdersExpiration() {
 		s.Require().Equal("asset", listAlias.Records[0].AssetId)
 		s.Require().Equal(int64(2), listAlias.Records[0].ExpireAt)
 	})
+}
+
+func Benchmark_SetActiveSellOrdersExpiration(b *testing.B) {
+	b.StopTimer()
+	b.ReportAllocs()
+
+	// 2024-09-26: 0.356s for setting a list of 777600 elements
+	// Benchmark_SetActiveSellOrdersExpiration-8 | 2s563ms | 3 | 356593625 ns/op | 85929664 B/op | 29837 allocs/op
+
+	for r := 1; r <= b.N; r++ {
+		now := time.Now().Unix()
+		dk, _, _, ctx := testkeeper.DymNSKeeper(b)
+		aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
+
+		const sampleCount = 3 * 86400 /*max live SO*/ / 5 /*block time*/ * (400_000_000/int(dymnstypes.OpGasPlaceSellOrder) - 1) /*max num of txs per block*/
+		fmt.Println("Elements count", sampleCount)
+
+		aSoe.Records = make([]dymnstypes.ActiveSellOrdersExpirationRecord, sampleCount)
+
+		for j := 0; j < sampleCount; j++ {
+			dymName := fmt.Sprintf("name-%d", j+rand.Int())
+			aSoe.Records[j] = dymnstypes.ActiveSellOrdersExpirationRecord{
+				AssetId:  dymName,
+				ExpireAt: now + int64(j)*2,
+			}
+		}
+
+		err := func() error {
+			b.StartTimer()
+			defer b.StopTimer()
+			return dk.SetActiveSellOrdersExpiration(ctx, aSoe, dymnstypes.TypeName)
+		}()
+		require.NoError(b, err)
+	}
 }
 
 func (s *KeeperTestSuite) TestKeeper_GetAllSellOrders() {
