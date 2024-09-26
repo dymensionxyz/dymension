@@ -80,6 +80,8 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, logger log.L
 	logger.Info("processing finished SOs.", "count", len(finishedSOs))
 
 	for _, so := range finishedSOs {
+		// the execution order should be guaranteed because activeSellOrdersExpiration is sorted
+
 		// each order should be processed in a branched context, if error, discard the state change
 		// and process next order, to prevent chain reaction when an individual order failed to process
 		errApplyStateChange := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
@@ -132,6 +134,8 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, logger log.Log
 	prohibitedToTradeAliases := e.GetAllAliasAndChainIdInParams(ctx)
 
 	for _, so := range finishedSOs {
+		// the execution order should be guaranteed because activeSellOrdersExpiration is sorted
+
 		// each order should be processed in a branched context, if error, discard the state change
 		// and process next order, to prevent chain reaction when an individual order failed to process
 		errApplyStateChange := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {

@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -272,34 +271,4 @@ func (m *DymName) GetAddressesForReverseMapping() (
 	}
 
 	return
-}
-
-// Distinct returns a new list of dym names with duplicates removed.
-// Result will be sorted.
-func (m ReverseLookupDymNames) Distinct() (distinct ReverseLookupDymNames) {
-	return ReverseLookupDymNames{
-		DymNames: StringList(m.DymNames).Distinct(),
-	}
-}
-
-// Combine merges the dym names from the current list and the other list.
-// Result will be sorted distinct.
-func (m ReverseLookupDymNames) Combine(other ReverseLookupDymNames) ReverseLookupDymNames {
-	return ReverseLookupDymNames{
-		DymNames: StringList(m.DymNames).Combine(other.DymNames),
-	}.Distinct()
-}
-
-// Exclude removes the dym names from the current list that are in the toBeExcluded list.
-// Result will be sorted distinct.
-func (m ReverseLookupDymNames) Exclude(toBeExcluded ReverseLookupDymNames) (afterExcluded ReverseLookupDymNames) {
-	return ReverseLookupDymNames{
-		DymNames: StringList(m.DymNames).Exclude(toBeExcluded.DymNames),
-	}.Distinct()
-}
-
-// Sort sorts the dym names in the list.
-func (m ReverseLookupDymNames) Sort() ReverseLookupDymNames {
-	sort.Strings(m.DymNames)
-	return m
 }

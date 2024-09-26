@@ -3,12 +3,13 @@ package keeper_test
 import (
 	cryptorand "crypto/rand"
 	"fmt"
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	"github.com/stretchr/testify/require"
 	"math/big"
 	"math/rand"
 	"testing"
 	"time"
+
+	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
+	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
