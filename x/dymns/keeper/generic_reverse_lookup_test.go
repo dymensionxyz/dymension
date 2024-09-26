@@ -1,8 +1,9 @@
 package keeper_test
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"sort"
 	"testing"
 
@@ -287,12 +288,16 @@ func Benchmark_GenericAddReverseLookupRecord(b *testing.B) {
 	codec := s.cdc
 
 	const elementsCount = 1_000_000
+	upperRand := new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil)
 
 	{
+
 		// prepare existing data
 		existingData := make([]string, elementsCount)
 		for e := 1; e <= elementsCount; e++ {
-			v := fmt.Sprintf("test%d", rand.Uint64())
+			bi, err := rand.Int(rand.Reader, upperRand)
+			require.NoError(b, err)
+			v := fmt.Sprintf("test%s", bi)
 			existingData = append(existingData, v)
 		}
 		bz := codec.MustMarshal(&dymnstypes.ReverseLookupDymNames{
@@ -303,8 +308,10 @@ func Benchmark_GenericAddReverseLookupRecord(b *testing.B) {
 
 	for r := 1; r <= b.N; r++ {
 		// add new element to force the most hardcore computation
-		v := fmt.Sprintf("test%d", rand.Uint64())
-		err := func() error {
+		bi, err := rand.Int(rand.Reader, upperRand)
+		require.NoError(b, err)
+		v := fmt.Sprintf("test%s", bi)
+		err = func() error {
 			b.StartTimer()
 			defer b.StopTimer()
 			return s.dymNsKeeper.GenericAddReverseLookupRecord(
@@ -342,12 +349,15 @@ func Benchmark_GenericRemoveReverseLookupRecord(b *testing.B) {
 	codec := s.cdc
 
 	const elementsCount = 1_000_000
+	upperRand := new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil)
 
 	{
 		// prepare existing data
 		existingData := make([]string, elementsCount)
 		for e := 1; e <= elementsCount; e++ {
-			v := fmt.Sprintf("test%d", rand.Uint64())
+			bi, err := rand.Int(rand.Reader, upperRand)
+			require.NoError(b, err)
+			v := fmt.Sprintf("test%s", bi)
 			existingData = append(existingData, v)
 		}
 		bz := codec.MustMarshal(&dymnstypes.ReverseLookupDymNames{
