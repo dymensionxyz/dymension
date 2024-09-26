@@ -17,7 +17,7 @@ const (
 	MinDymNamePriceStepsCount = 4
 
 	// MinAliasPriceStepsCount is the minimum number of price steps required for Alias price.
-	MinAliasPriceStepsCount
+	MinAliasPriceStepsCount = 4
 )
 
 // MinPriceValue is the minimum value allowed for price configuration.
