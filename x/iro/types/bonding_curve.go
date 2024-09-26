@@ -34,7 +34,7 @@ we use scaling functions to convert between the decimal scale and the base denom
 */
 
 // Scales x from it's base denomination to a decimal representation
-// This is used so the bonding curve
+// This is used to scale X before passing it to the bonding curve functions
 func ScaleXFromBase(x math.Int, precision int64) math.LegacyDec {
 	return math.LegacyNewDecFromIntWithPrec(x, precision)
 }
