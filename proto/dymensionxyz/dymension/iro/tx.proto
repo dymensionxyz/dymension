@@ -93,8 +93,8 @@ message MsgBuy {
     (gogoproto.nullable) = false
   ];
 
-  // The expected output amount.
-  string expected_out_amount = 4 [
+  // The maximum cost this buy action can incur.
+  string max_cost_amount = 4 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
@@ -117,8 +117,8 @@ message MsgSell {
     (gogoproto.nullable) = false
   ];
 
-  // The expected output amount.
-  string expected_out_amount = 4 [
+  // The minimum income this sell action can incur.
+  string min_income_amount = 4 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];

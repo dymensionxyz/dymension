@@ -21,7 +21,8 @@ import (
 )
 
 // This function is used to create a new plan for a rollapp.
-// Validations on the request:
+// Non stateful validation happens on the req.ValidateBasic() method
+// Stateful validations on the request:
 // - The rollapp must exist, with no IRO plan
 // - The rollapp must be owned by the creator of the plan
 // - The rollapp PreLaunchTime must be in the future
@@ -74,6 +75,13 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 }
 
 // CreatePlan creates a new IRO plan for a rollapp
+// This function performs the following steps:
+// 1. Sets the IRO plan to the rollapp with the specified pre-launch time.
+// 2. Mints the allocated amount of tokens for the rollapp.
+// 3. Creates a new plan with the provided parameters and validates it.
+// 4. Creates a new module account for the IRO plan.
+// 5. Charges the creation fee from the rollapp owner to the plan's module account.
+// 6. Stores the plan in the keeper.
 func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, preLaunchTime time.Time, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams) (string, error) {
 	err := k.rk.SetIROPlanToRollapp(ctx, &rollapp, preLaunchTime)
 	if err != nil {
@@ -86,6 +94,10 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 	}
 
 	plan := types.NewPlan(k.GetNextPlanIdAndIncrement(ctx), rollapp.RollappId, allocation, curve, start, preLaunchTime, incentivesParams)
+	if err := plan.ValidateBasic(); err != nil {
+		return "", errors.Join(gerrc.ErrInvalidArgument, err)
+	}
+
 	// Create a new module account for the IRO plan
 	_, err = k.CreateModuleAccountForPlan(ctx, plan)
 	if err != nil {

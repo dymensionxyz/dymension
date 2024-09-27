@@ -20,6 +20,9 @@ func (m msgServer) Claim(ctx context.Context, req *types.MsgClaim) (*types.MsgCl
 }
 
 // Claim claims the FUT token for the real RA token
+//
+// This function allows a user to claim their RA tokens by burning their FUT tokens.
+// It burns *all* the FUT tokens the claimer has, and sends the equivalent amount of RA tokens to the claimer.
 func (k Keeper) Claim(ctx sdk.Context, planId string, claimer sdk.AccAddress) error {
 	plan, found := k.GetPlan(ctx, planId)
 	if !found {

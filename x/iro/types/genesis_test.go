@@ -19,8 +19,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: types.DefaultGenesis(),
 			valid:    true,
 		},
-		// TODO: add more test cases (test params validation, test plan validation)
-		// TODO: test duplicates,
+		// TODO: add more test cases (test params validation, test plan validation), test duplicates,
 	}
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
