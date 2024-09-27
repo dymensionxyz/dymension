@@ -24,12 +24,14 @@ const (
 var MinPriceValue = sdkmath.NewInt(1e18)
 
 const (
-	// OpGasPlaceSellOrder is the gas consumed when a Dym-Name owner creates a Sell-Order for selling Dym-Name.
+	// OpGasPlaceSellOrder is the gas consumed when an asset owner creates a Sell-Order for selling the asset.
 	OpGasPlaceSellOrder sdk.Gas = 25_000_000
-	// OpGasCloseSellOrder is the gas consumed when Dym-Name owner closes Sell-Order.
+	// OpGasCloseSellOrder is the gas consumed when asset owner closes the Sell-Order.
 	OpGasCloseSellOrder sdk.Gas = 5_000_000
+	// OpGasCompleteSellOrder is the gas consumed when Sell-Order participant completes it.
+	OpGasCompleteSellOrder sdk.Gas = 5_000_000
 
-	// OpGasPlaceBidOnSellOrder is the gas consumed when a buyer bids on a Dym-Name Sell-Order.
+	// OpGasPlaceBidOnSellOrder is the gas consumed when a buyer bids on a Sell-Order.
 	OpGasPlaceBidOnSellOrder sdk.Gas = 20_000_000
 
 	// OpGasConfig is the gas consumed when Dym-Name controller updating Dym-Name configuration,
@@ -42,15 +44,14 @@ const (
 	// We do not charge this fee on clear Contact operation.
 	OpGasUpdateContact sdk.Gas = 1_000_000
 
-	// OpGasPutBuyOrder is the gas consumed when a buyer placing a buy order, offer to buy Dym-Name.
+	// OpGasPutBuyOrder is the gas consumed when a buyer placing a buy order, offer to buy an asset.
 	OpGasPutBuyOrder sdk.Gas = 25_000_000
 
 	// OpGasUpdateBuyOrder is the gas consumed when the buyer who placed the buy order,
-	// updating the offer to buy Dym-Name.
+	// updating the existing offer.
 	OpGasUpdateBuyOrder sdk.Gas = 20_000_000
 
-	// OpGasCloseBuyOrder is the gas consumed when the buyer who placed the buy order,
-	// closing the offer to buy Dym-Name.
+	// OpGasCloseBuyOrder is the gas consumed when the buyer who placed the buy order, closing it.
 	OpGasCloseBuyOrder sdk.Gas = 5_000_000
 )
 

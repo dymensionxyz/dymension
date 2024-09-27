@@ -786,6 +786,13 @@ func (m reqDymNameS) ownerChangedTo(newOwner string) reqDymNameS {
 	return m
 }
 
+func (m reqDymNameS) ownerIs(expectedOwner string) reqDymNameS {
+	dymName := m.s.dymNsKeeper.GetDymName(m.s.ctx, m.dymName)
+	m.s.Require().NotNil(dymName)
+	m.s.Require().Equal(expectedOwner, dymName.Owner)
+	return m
+}
+
 func (m reqDymNameS) expiryEquals(expiry int64) reqDymNameS {
 	dymName := m.s.dymNsKeeper.GetDymName(m.s.ctx, m.dymName)
 	m.s.Require().NotNil(dymName)
