@@ -54,6 +54,9 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 	})
 
 	const originalModuleBalance int64 = 88
+	const soMinPrice int64 = 1
+	const soSellPrice int64 = 2
+	const soBidAmount int64 = 2
 
 	tests := []struct {
 		name                 string
@@ -71,6 +74,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 		wantErrContains      string
 		wantLaterBalance     int64
 		wantPruneSellOrder   bool
+		offsetModuleBalLater int64
 	}{
 		{
 			name:            "pass - can register, new Dym-Name",
@@ -427,8 +431,9 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 				ExpireAt:   s.now.Unix() + 86400*365*2,
 				Configs:    nil,
 			},
-			wantLaterBalance:   3,
-			wantPruneSellOrder: true,
+			wantLaterBalance:     3,
+			wantPruneSellOrder:   true,
+			offsetModuleBalLater: -soBidAmount, // because refunding the highest bid of the active SO
 		},
 		{
 			name:            "pass - when renew previously-owned expired Dym-Name, reset config, update contact if provided",
@@ -454,8 +459,9 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 				Configs:    nil,
 				Contact:    "new-contact@example.com",
 			},
-			wantLaterBalance:   3,
-			wantPruneSellOrder: true,
+			wantLaterBalance:     3,
+			wantPruneSellOrder:   true,
+			offsetModuleBalLater: -soBidAmount, // because refunding the highest bid of the active SO
 		},
 		{
 			name:            "pass - can take over an expired Dym-Name after grace period has passed",
@@ -577,11 +583,11 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 						AssetId:   useRecordName,
 						AssetType: dymnstypes.TypeName,
 						ExpireAt:  tt.existingDymName.ExpireAt - 1,
-						MinPrice:  s.coin(1),
-						SellPrice: uptr.To(s.coin(2)),
+						MinPrice:  s.coin(soMinPrice),
+						SellPrice: uptr.To(s.coin(soSellPrice)),
 						HighestBid: &dymnstypes.SellOrderBid{
 							Bidder: anotherA,
-							Price:  s.coin(2),
+							Price:  s.coin(soBidAmount),
 						},
 					}
 					err = s.dymNsKeeper.SetSellOrder(s.ctx, so)
@@ -652,7 +658,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			defer func() {
 				laterModuleBalance := s.moduleBalance2()
 				s.Equal(
-					sdk.NewInt(originalModuleBalance).Mul(priceMultiplier).String(), laterModuleBalance.String(),
+					sdk.NewInt(originalModuleBalance).Mul(priceMultiplier).AddRaw(tt.offsetModuleBalLater).String(), laterModuleBalance.String(),
 					"token should be burned",
 				)
 			}()
