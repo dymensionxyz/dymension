@@ -33,21 +33,6 @@ message SellOrder {
   SellOrderBid highest_bid = 6;
 }
 
-// DEPRECATED: ActiveSellOrdersExpiration contains list of active SOs, store expiration date mapped by asset identity.
-// Used by hook to find out expired SO instead of iterating through all records.
-message ActiveSellOrdersExpiration {
-  repeated ActiveSellOrdersExpirationRecord records = 1 [(gogoproto.nullable) = false];
-}
-
-// DEPRECATED: ActiveSellOrdersExpirationRecord contains the expiration date of an active Sell-Order.
-message ActiveSellOrdersExpirationRecord {
-  // asset_id is the Dym-Name/Alias being opened to be sold.
-  string asset_id = 1;
-
-  // expire_at is the last effective date of this Sell-Order.
-  int64 expire_at = 2;
-}
-
 // SellOrderBid defines a bid placed by an account on a Sell-Order.
 message SellOrderBid {
   // bidder is the account address of the account which placed the bid.

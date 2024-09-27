@@ -77,12 +77,6 @@ func (k msgServer) processPlaceSellOrderWithAssetTypeDymName(
 		return nil, err
 	}
 
-	aSoe := k.GetActiveSellOrdersExpiration(ctx, so.AssetType)
-	aSoe.Add(so.AssetId, so.ExpireAt)
-	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, so.AssetType); err != nil {
-		return nil, err
-	}
-
 	return &dymnstypes.MsgPlaceSellOrderResponse{}, nil
 }
 
@@ -147,12 +141,6 @@ func (k msgServer) processPlaceSellOrderWithAssetTypeAlias(
 	}
 
 	if err := k.SetSellOrder(ctx, so); err != nil {
-		return nil, err
-	}
-
-	aSoe := k.GetActiveSellOrdersExpiration(ctx, so.AssetType)
-	aSoe.Add(so.AssetId, so.ExpireAt)
-	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, so.AssetType); err != nil {
 		return nil, err
 	}
 

@@ -54,12 +54,6 @@ func (k msgServer) processCancelSellOrderWithAssetTypeDymName(
 
 	k.DeleteSellOrder(ctx, msg.AssetId, msg.AssetType)
 
-	aSoe := k.GetActiveSellOrdersExpiration(ctx, msg.AssetType)
-	aSoe.Remove(msg.AssetId)
-	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, msg.AssetType); err != nil {
-		return nil, err
-	}
-
 	return &dymnstypes.MsgCancelSellOrderResponse{}, nil
 }
 
@@ -101,12 +95,6 @@ func (k msgServer) processCancelSellOrderWithAssetTypeAlias(
 	}
 
 	k.DeleteSellOrder(ctx, msg.AssetId, msg.AssetType)
-
-	aSoe := k.GetActiveSellOrdersExpiration(ctx, msg.AssetType)
-	aSoe.Remove(msg.AssetId)
-	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, msg.AssetType); err != nil {
-		return nil, err
-	}
 
 	return &dymnstypes.MsgCancelSellOrderResponse{}, nil
 }

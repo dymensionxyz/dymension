@@ -83,16 +83,8 @@ var (
 	KeyPrefixRvlAliasToRollAppId = []byte{prefixRvlAliasToRollAppId}
 )
 
-var (
-	// DEPRECATED: KeyActiveSellOrdersExpirationOfDymName
-	KeyActiveSellOrdersExpirationOfDymName = []byte{prefixActiveSellOrdersExpiration, partialStoreAssetTypeDymName}
-
-	// DEPRECATED: KeyActiveSellOrdersExpirationOfAlias
-	KeyActiveSellOrdersExpirationOfAlias = []byte{prefixActiveSellOrdersExpiration, partialStoreAssetTypeAlias}
-
-	// KeyCountBuyOrders is the key for the count of all-time buy orders
-	KeyCountBuyOrders = []byte{prefixCountBuyOrders}
-)
+// KeyCountBuyOrders is the key for the count of all-time buy orders
+var KeyCountBuyOrders = []byte{prefixCountBuyOrders}
 
 // DymNameKey returns a key for specific Dym-Name
 func DymNameKey(name string) []byte {

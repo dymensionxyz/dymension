@@ -2,8 +2,6 @@ package types
 
 import (
 	"fmt"
-	"slices"
-	"sort"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -179,77 +177,4 @@ func (m SellOrder) GetSdkEvent(actionName string) sdk.Event {
 		attrHighestBidPrice,
 		sdk.NewAttribute(AttributeKeySoActionName, actionName),
 	)
-}
-
-// DEPRECATED: Validate
-func (m ActiveSellOrdersExpiration) Validate() error {
-	if len(m.Records) > 0 {
-		uniqueName := make(map[string]bool)
-		// Describe usage of Go Map: only used for validation
-		allNames := make([]string, len(m.Records))
-
-		for i, record := range m.Records {
-			if record.ExpireAt < 1 {
-				return errorsmod.Wrap(gerrc.ErrInvalidArgument, "active SO expiry is empty")
-			}
-
-			if _, duplicated := uniqueName[record.AssetId]; duplicated {
-				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "active SO is not unique: %s", record.AssetId)
-			}
-
-			uniqueName[record.AssetId] = true
-			allNames[i] = record.AssetId
-		}
-
-		if !sort.StringsAreSorted(allNames) {
-			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "active SO names are not sorted")
-		}
-	}
-
-	return nil
-}
-
-// DEPRECATED: Validate
-func (m *ActiveSellOrdersExpiration) Sort() {
-	if len(m.Records) < 2 {
-		return
-	}
-
-	sort.Slice(m.Records, func(i, j int) bool {
-		return m.Records[i].AssetId < m.Records[j].AssetId
-	})
-}
-
-// DEPRECATED: Validate
-func (m *ActiveSellOrdersExpiration) Add(assetId string, expiry int64) {
-	newRecord := ActiveSellOrdersExpirationRecord{AssetId: assetId, ExpireAt: expiry}
-
-	if len(m.Records) < 1 {
-		m.Records = []ActiveSellOrdersExpirationRecord{newRecord}
-		return
-	}
-
-	foundAtIdx := -1
-
-	for i, record := range m.Records {
-		if record.AssetId == assetId {
-			foundAtIdx = i
-			break
-		}
-	}
-
-	if foundAtIdx > -1 {
-		m.Records[foundAtIdx].ExpireAt = expiry
-	} else {
-		m.Records = append(m.Records, newRecord)
-	}
-
-	m.Sort()
-}
-
-// DEPRECATED: Validate
-func (m *ActiveSellOrdersExpiration) Remove(assetId string) {
-	m.Records = slices.DeleteFunc(m.Records, func(r ActiveSellOrdersExpirationRecord) bool {
-		return r.AssetId == assetId
-	})
 }

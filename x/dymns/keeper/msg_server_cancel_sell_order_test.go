@@ -162,57 +162,6 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 		s.Require().Contains(err.Error(), "cannot cancel once bid placed")
 	})
 
-	s.Run("can will remove the active SO expiration mapping record", func() {
-		aSoe := s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, dymnstypes.TypeName)
-
-		so11 := dymnstypes.SellOrder{
-			AssetId:   dymName1.Name,
-			AssetType: dymnstypes.TypeName,
-			ExpireAt:  s.now.Unix() + 100,
-			MinPrice:  s.coin(100),
-		}
-		err = s.dymNsKeeper.SetSellOrder(s.ctx, so11)
-		s.Require().NoError(err)
-		aSoe.Add(so11.AssetId, so11.ExpireAt)
-
-		so12 := dymnstypes.SellOrder{
-			AssetId:   dymName2.Name,
-			AssetType: dymnstypes.TypeName,
-			ExpireAt:  s.now.Unix() + 100,
-			MinPrice:  s.coin(100),
-		}
-		err = s.dymNsKeeper.SetSellOrder(s.ctx, so12)
-		s.Require().NoError(err)
-		aSoe.Add(so12.AssetId, so12.ExpireAt)
-
-		err = s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, aSoe, dymnstypes.TypeName)
-		s.Require().NoError(err)
-
-		defer func() {
-			s.dymNsKeeper.DeleteSellOrder(s.ctx, so11.AssetId, dymnstypes.TypeName)
-			s.dymNsKeeper.DeleteSellOrder(s.ctx, so12.AssetId, dymnstypes.TypeName)
-		}()
-
-		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(s.ctx), &dymnstypes.MsgCancelSellOrder{
-			AssetId:   so11.AssetId,
-			AssetType: dymnstypes.TypeName,
-			Owner:     ownerA,
-		})
-		s.Require().NoError(err)
-		s.Require().NotNil(resp)
-
-		s.Require().Nil(s.dymNsKeeper.GetSellOrder(s.ctx, so11.AssetId, dymnstypes.TypeName), "SO should be removed from active")
-
-		aSoe = s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, dymnstypes.TypeName)
-
-		allNames := make(map[string]bool)
-		for _, record := range aSoe.Records {
-			allNames[record.AssetId] = true
-		}
-		s.Require().NotContains(allNames, so11.AssetId)
-		s.Require().Contains(allNames, so12.AssetId)
-	})
-
 	s.Run("can cancel if satisfied conditions", func() {
 		const previousRunGasConsumed = 100_000_000
 		s.ctx.GasMeter().ConsumeGas(previousRunGasConsumed, "simulate previous run")
@@ -391,57 +340,6 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_Alias() {
 		s.Require().Error(err)
 		s.Require().Nil(resp)
 		s.Require().Contains(err.Error(), "cannot cancel once bid placed")
-	})
-
-	s.Run("cancellation will remove the active SO expiration mapping record", func() {
-		aSoe := s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, dymnstypes.TypeAlias)
-
-		so11 := dymnstypes.SellOrder{
-			AssetId:   rollapp_1_ofOwner.alias,
-			AssetType: dymnstypes.TypeAlias,
-			ExpireAt:  s.now.Unix() + 100,
-			MinPrice:  s.coin(100),
-		}
-		err := s.dymNsKeeper.SetSellOrder(s.ctx, so11)
-		s.Require().NoError(err)
-		aSoe.Add(so11.AssetId, so11.ExpireAt)
-
-		so12 := dymnstypes.SellOrder{
-			AssetId:   rollapp_2_ofOwner.alias,
-			AssetType: dymnstypes.TypeAlias,
-			ExpireAt:  s.now.Unix() + 100,
-			MinPrice:  s.coin(100),
-		}
-		err = s.dymNsKeeper.SetSellOrder(s.ctx, so12)
-		s.Require().NoError(err)
-		aSoe.Add(so12.AssetId, so12.ExpireAt)
-
-		err = s.dymNsKeeper.SetActiveSellOrdersExpiration(s.ctx, aSoe, dymnstypes.TypeAlias)
-		s.Require().NoError(err)
-
-		defer func() {
-			s.dymNsKeeper.DeleteSellOrder(s.ctx, so11.AssetId, dymnstypes.TypeAlias)
-			s.dymNsKeeper.DeleteSellOrder(s.ctx, so12.AssetId, dymnstypes.TypeAlias)
-		}()
-
-		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(s.ctx), &dymnstypes.MsgCancelSellOrder{
-			AssetId:   so11.AssetId,
-			AssetType: dymnstypes.TypeAlias,
-			Owner:     ownerA,
-		})
-		s.Require().NoError(err)
-		s.Require().NotNil(resp)
-
-		s.Require().Nil(s.dymNsKeeper.GetSellOrder(s.ctx, so11.AssetId, dymnstypes.TypeAlias), "SO should be removed from active")
-
-		aSoe = s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, dymnstypes.TypeAlias)
-
-		allAliases := make(map[string]bool)
-		for _, record := range aSoe.Records {
-			allAliases[record.AssetId] = true
-		}
-		s.Require().NotContains(allAliases, so11.AssetId)
-		s.Require().Contains(allAliases, so12.AssetId)
 	})
 
 	s.Run("can cancel if satisfied conditions", func() {

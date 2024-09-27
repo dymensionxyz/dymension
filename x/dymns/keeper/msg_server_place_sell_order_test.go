@@ -313,27 +313,14 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 				expectedSo.SellPrice = nil
 			}
 
-			s.Require().Nil(so.HighestBid, "highest bid should not be set")
+			s.Nil(so.HighestBid, "highest bid should not be set")
 
-			s.Require().Equal(expectedSo, *so)
+			s.Equal(expectedSo, *so)
 
-			s.Require().GreaterOrEqual(
+			s.GreaterOrEqual(
 				s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceSellOrder,
 				"should consume params gas",
 			)
-
-			aSoe := s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, dymnstypes.TypeName)
-
-			var found bool
-			for _, record := range aSoe.Records {
-				if record.AssetId == name {
-					found = true
-					s.Require().Equal(expectedSo.ExpireAt, record.ExpireAt)
-					break
-				}
-			}
-
-			s.Require().True(found)
 		})
 	}
 }
@@ -616,27 +603,14 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_Alias() {
 				expectedSo.SellPrice = nil
 			}
 
-			s.Require().Nil(so.HighestBid, "highest bid should not be set")
+			s.Nil(so.HighestBid, "highest bid should not be set")
 
-			s.Require().Equal(expectedSo, *so)
+			s.Equal(expectedSo, *so)
 
-			s.Require().GreaterOrEqual(
+			s.GreaterOrEqual(
 				s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceSellOrder,
 				"should consume params gas",
 			)
-
-			aSoe := s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, dymnstypes.TypeAlias)
-
-			var found bool
-			for _, record := range aSoe.Records {
-				if record.AssetId == alias {
-					found = true
-					s.Require().Equal(expectedSo.ExpireAt, record.ExpireAt)
-					break
-				}
-			}
-
-			s.Require().True(found)
 		})
 	}
 }
