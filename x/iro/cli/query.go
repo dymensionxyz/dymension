@@ -26,7 +26,7 @@ func GetQueryCmd() *cobra.Command {
 		CmdQueryPlans(),
 		CmdQueryPlan(),
 		CmdQueryPlanByRollapp(),
-		CmdQueryPrice(),
+		CmdQuerySpotPrice(),
 		CmdQueryCost(),
 		CmdQueryClaimed(),
 	)
@@ -109,7 +109,7 @@ func CmdQueryPlanByRollapp() *cobra.Command {
 	return cmd
 }
 
-func CmdQueryPrice() *cobra.Command {
+func CmdQuerySpotPrice() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "price [plan-id]",
 		Short: "Query the current price for 1 IRO token for a specific IRO plan",
@@ -121,7 +121,7 @@ func CmdQueryPrice() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.QueryPrice(cmd.Context(), &types.QueryPriceRequest{PlanId: args[0]})
+			res, err := queryClient.QuerySpotPrice(cmd.Context(), &types.QuerySpotPriceRequest{PlanId: args[0]})
 			if err != nil {
 				return err
 			}

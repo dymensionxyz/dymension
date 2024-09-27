@@ -23,6 +23,12 @@ func (k Keeper) AfterTransfersEnabled(ctx sdk.Context, rollappId, rollappIBCDeno
 }
 
 // Settle settles the iro plan with the given rollappId
+//
+// This function performs the following steps:
+// - Validates that the "TotalAllocation.Amount" of the RA token are available in the module account.
+// - Burns any unsold FUT tokens in the module account.
+// - Marks the plan as settled, allowing users to claim tokens.
+// - Uses the raised DYM and unsold tokens to bootstrap the rollapp's liquidity pool.
 func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error {
 	plan, found := k.GetPlanByRollapp(ctx, rollappId)
 	if !found {
@@ -69,7 +75,13 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 	return nil
 }
 
-// Bootstrap liquidity pool with the raised DYM and unsold tokens
+// bootstrapLiquidityPool bootstraps the liquidity pool with the raised DYM and unsold tokens.
+//
+// This function performs the following steps:
+// - Sends the raised DYM to the IRO module to be used as the pool creator.
+// - Determines the required pool liquidity amounts to fulfill the last price.
+// - Creates a balancer pool with the determined tokens and DYM.
+// - Uses leftover tokens as incentives to the pool LP token holders.
 func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 	unallocatedTokens := plan.TotalAllocation.Amount.Sub(plan.SoldAmt)        // assumed > 0, as we enforce it in the Buy function
 	raisedDYM := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom) // assumed > 0, as we enforce it by IRO creation fee
@@ -80,10 +92,8 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 		return err
 	}
 
-	// calculate last price
-	lastPrice := plan.BondingCurve.SpotPrice(plan.SoldAmt)
 	// find the tokens needed to bootstrap the pool, to fulfill last price
-	tokens, dym := determineLimitingFactor(unallocatedTokens, raisedDYM.Amount, lastPrice)
+	tokens, dym := calcLiquidityPoolTokens(unallocatedTokens, raisedDYM.Amount, plan.SpotPrice())
 	rollappLiquidityCoin := sdk.NewCoin(plan.SettledDenom, tokens)
 	dymLiquidityCoin := sdk.NewCoin(appparams.BaseDenom, dym)
 
@@ -126,14 +136,18 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 	return nil
 }
 
-func determineLimitingFactor(unsoldRATokens, raisedDYM math.Int, settledIROPrice math.LegacyDec) (RATokens, dym math.Int) {
-	requiredDYM := unsoldRATokens.ToLegacyDec().Mul(settledIROPrice).TruncateInt()
+// calcLiquidityPoolTokens determines the tokens and DYM to be used for bootstrapping the liquidity pool.
+//
+// This function calculates the required DYM based on the settled token price and compares it with the raised DYM.
+// It returns the amount of RA tokens and DYM to be used for bootstrapping the liquidity pool so it fulfills the last price.
+func calcLiquidityPoolTokens(unsoldRATokens, raisedDYM math.Int, settledTokenPrice math.LegacyDec) (RATokens, dym math.Int) {
+	requiredDYM := settledTokenPrice.MulInt(unsoldRATokens).TruncateInt()
 
 	// if raisedDYM is less than requiredDYM, than DYM is the limiting factor
 	// we use all the raisedDYM, and the corresponding amount of tokens
 	if raisedDYM.LT(requiredDYM) {
 		dym = raisedDYM
-		RATokens = raisedDYM.ToLegacyDec().Quo(settledIROPrice).TruncateInt()
+		RATokens = raisedDYM.ToLegacyDec().Quo(settledTokenPrice).TruncateInt()
 	} else {
 		// if raisedDYM is more than requiredDYM, than tokens are the limiting factor
 		// we use all the unsold tokens, and the corresponding amount of DYM
@@ -141,7 +155,7 @@ func determineLimitingFactor(unsoldRATokens, raisedDYM math.Int, settledIROPrice
 		dym = requiredDYM
 	}
 
-	// for the extreme edge case where required liquidity truncated to 0
+	// for the edge cases where required liquidity truncated to 0
 	// we use what we have as it guaranteed to be more than 0
 	if dym.IsZero() {
 		dym = raisedDYM

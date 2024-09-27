@@ -15,18 +15,23 @@ var (
 	_ sdk.Msg = &MsgUpdateParams{}
 )
 
+// ValidateBasic performs basic validation checks on the MsgCreatePlan message.
+// It ensures that the owner address is valid, the bonding curve is valid, the allocated amount
+// is greater than the minimum token allocation, the pre-launch time is before the start time,
+// and the incentive plan parameters are valid.
 func (m *MsgCreatePlan) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid owner address: %s", err)
 	}
 
-	if !m.AllocatedAmount.IsPositive() {
-		return ErrInvalidAllocation
-	}
-
 	if err := m.BondingCurve.ValidateBasic(); err != nil {
 		return errors.Join(ErrInvalidBondingCurve, err)
+	}
+
+	allocationDec := ScaleXFromBase(m.AllocatedAmount, m.BondingCurve.SupplyDecimals())
+	if !allocationDec.GT(MinTokenAllocation) {
+		return ErrInvalidAllocation
 	}
 
 	if m.PreLaunchTime.Before(m.StartTime) {
@@ -57,8 +62,8 @@ func (m *MsgBuy) ValidateBasic() error {
 		return sdkerrors.ErrInvalidRequest.Wrapf("amount %v must be positive", m.Amount)
 	}
 
-	if m.ExpectedOutAmount.IsNil() || !m.ExpectedOutAmount.IsPositive() {
-		return sdkerrors.ErrInvalidRequest.Wrapf("expected out amount %v must be positive", m.ExpectedOutAmount)
+	if m.MaxCostAmount.IsNil() || !m.MaxCostAmount.IsPositive() {
+		return sdkerrors.ErrInvalidRequest.Wrapf("expected out amount %v must be positive", m.MaxCostAmount)
 	}
 
 	return nil
@@ -81,8 +86,8 @@ func (m *MsgSell) ValidateBasic() error {
 		return sdkerrors.ErrInvalidRequest.Wrapf("amount %v must be positive", m.Amount)
 	}
 
-	if m.ExpectedOutAmount.IsNil() || !m.ExpectedOutAmount.IsPositive() {
-		return sdkerrors.ErrInvalidRequest.Wrapf("expected out amount %v must be positive", m.ExpectedOutAmount)
+	if m.MinIncomeAmount.IsNil() || !m.MinIncomeAmount.IsPositive() {
+		return sdkerrors.ErrInvalidRequest.Wrapf("expected out amount %v must be positive", m.MinIncomeAmount)
 	}
 
 	return nil

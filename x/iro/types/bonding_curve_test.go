@@ -10,8 +10,20 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
-// y=mx^n+c
-// m >= 0, c > 0
+// approxEqualInt checks if two math.Ints are approximately equal
+func approxEqualInt(t *testing.T, expected, actual math.Int) {
+	defaultTolerance := math.NewInt(1).MulRaw(1e9) // one millionth of a dym
+	diff := expected.Sub(actual).Abs()
+	require.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
+}
+
+// approxEqualDec checks if two math.Decs are approximately equal
+func approxEqualDec(t *testing.T, expected, actual math.LegacyDec) {
+	defaultTolerance := math.LegacyNewDecWithPrec(1, 9) // one millionth of a dym
+	diff := expected.Sub(actual).Abs()
+	require.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
+}
+
 func TestBondingCurve_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -20,16 +32,15 @@ func TestBondingCurve_ValidateBasic(t *testing.T) {
 		c         float64
 		expectErr bool
 	}{
-		{"Valid bonding curve", 2, 2.23, 3, false},
-		{"Valid linear curve", 0.2, 0.88, 3.22, false},
-		{"Valid const price curve", 0, 1, 3, false},
+		{"Valid bonding curve", 1, 1, 0, false},
+		{"Valid linear curve", 0.000002, 1, 0.00022, false},
+		{"Valid power curve N>1", 0.1234, 1.23, 0.002, false},
+		{"Valid power curve N<1", 0.1234, 0.76, 0.002, false},
 		{"Invalid C value", 2, 1, -1, true},
 		{"Invalid M value", -2, 1, 3, true},
 		{"Invalid N value", 2, -1, 3, true},
 		{"Too high N value", 2, 11, 3, true},
-		{"Precision check M", 2.222, 1, 3, true},
 		{"Precision check N", 2, 1.2421, 3, true},
-		{"Precision check C", 2, 1, 3.321312, true},
 	}
 
 	for _, tt := range tests {
@@ -58,186 +69,165 @@ func TestBondingCurve_Linear(t *testing.T) {
 	curve := types.NewBondingCurve(m, n, c)
 
 	// Test values
-	x1 := math.NewInt(0)
-	x2 := math.NewInt(10)
-	x3 := math.NewInt(100)
+	x1 := math.NewInt(0).MulRaw(1e18)
+	x2 := math.NewInt(10).MulRaw(1e18)
+	x3 := math.NewInt(100).MulRaw(1e18)
 
 	// Expected results
-	spotPrice1 := math.NewInt(0)   // 1*0^1 + 0
-	spotPrice2 := math.NewInt(10)  // 1*10^1 + 0
-	spotPrice3 := math.NewInt(100) // 1*100^1 + 0
+	spotPrice1 := math.LegacyNewDec(0)   // 1*0^1 + 0
+	spotPrice2 := math.LegacyNewDec(10)  // 1*10^1 + 0
+	spotPrice3 := math.LegacyNewDec(100) // 1*100^1 + 0
 
 	// y = 1/2*x^2
-	integral2 := math.NewInt(50)   // (1/2)*10^2
-	integral3 := math.NewInt(5000) // (1/2)*100^2
+	integral2 := math.NewInt(50).MulRaw(1e18)   // (1/2)*10^2
+	integral3 := math.NewInt(5000).MulRaw(1e18) // (1/2)*100^2
 
-	cost1to2 := math.NewInt(50)   // 50 - 0
-	cost2to3 := math.NewInt(4950) // 5000 - 50
+	cost1to2 := integral2                      // 50 - 0
+	cost2to3 := math.NewInt(4950).MulRaw(1e18) // 5000 - 50
 
-	require.Equal(t, math.ZeroInt(), curve.Integral(x1))
-	require.Equal(t, integral2, curve.Integral(x2))
-	require.Equal(t, integral3, curve.Integral(x3))
+	approxEqualInt(t, math.ZeroInt(), curve.Integral(x1))
+	approxEqualInt(t, integral2, curve.Integral(x2))
+	approxEqualInt(t, integral3, curve.Integral(x3))
 
-	require.Equal(t, spotPrice1, curve.SpotPrice(x1).TruncateInt())
-	require.Equal(t, spotPrice2, curve.SpotPrice(x2).TruncateInt())
-	require.Equal(t, spotPrice3, curve.SpotPrice(x3).TruncateInt())
+	approxEqualDec(t, spotPrice1, curve.SpotPrice(x1))
+	approxEqualDec(t, spotPrice2, curve.SpotPrice(x2))
+	approxEqualDec(t, spotPrice3, curve.SpotPrice(x3))
 
-	require.Equal(t, cost1to2, curve.Cost(x1, x2))
-	require.Equal(t, cost2to3, curve.Cost(x2, x3))
+	approxEqualInt(t, cost1to2, curve.Cost(x1, x2))
+	approxEqualInt(t, cost2to3, curve.Cost(x2, x3))
 }
 
 // Scenario 2: Quadratic Curve with Offset
 func TestBondingCurve_Quadratic(t *testing.T) {
 	// y=2x^2+10
 	// integral of y = 2/3*x^3 + 10*x
-	// m := math.NewInt(2)
 	m := math.LegacyMustNewDecFromStr("2")
 	n := math.LegacyMustNewDecFromStr("2")
 	c := math.LegacyMustNewDecFromStr("10")
 	curve := types.NewBondingCurve(m, n, c)
 
 	// Test values
-	x1 := math.NewInt(0)
-	x2 := math.NewInt(5)
-	x3 := math.NewInt(10)
+	x1 := math.NewInt(0).MulRaw(1e18)
+	x2 := math.NewInt(5).MulRaw(1e18)
+	x3 := math.NewInt(10).MulRaw(1e18)
 
 	// Expected results
-	spotPrice1 := math.NewInt(10)  // 2*0^2 + 10
-	spotPrice2 := math.NewInt(60)  // 2*5^2 + 10
-	spotPrice3 := math.NewInt(210) // 2*10^2 + 10
+	spotPrice1 := math.LegacyNewDec(10)  // 2*0^2 + 10
+	spotPrice2 := math.LegacyNewDec(60)  // 2*5^2 + 10
+	spotPrice3 := math.LegacyNewDec(210) // 2*10^2 + 10
 
-	integral1 := math.NewInt(0)   // (2/3)*0^3 + 10*0
-	integral2 := math.NewInt(133) // (2/3)*5^3 + 10*5
-	integral3 := math.NewInt(766) // (2/3)*10^3 + 10*10
+	integral1 := math.NewInt(0).MulRaw(1e18)                                                 // (2/3)*0^3 + 10*0
+	integral2 := math.LegacyMustNewDecFromStr("133.3333333333").MulInt64(1e18).TruncateInt() // (2/3)*5^3 + 10*5                                                     // (2/3)*10^3 + 10*10
+	integral3 := math.LegacyMustNewDecFromStr("766.6666666666").MulInt64(1e18).TruncateInt() // (2/3)*10^3 + 10*10
 
-	cost1to2 := math.NewInt(133) // (2/3)*5^3 + 10*5 - (2/3)*0^3 - 10*0
-	cost2to3 := math.NewInt(633) // (2/3)*10^3 + 10*10 - (2/3)*5^3 - 10*5
+	cost1to2 := integral2                                                                   // (2/3)*5^3 + 10*5 - (2/3)*0^3 - 10*0
+	cost2to3 := math.LegacyMustNewDecFromStr("633.3333333333").MulInt64(1e18).TruncateInt() // (2/3)*10^3 + 10*10 - (2/3)*5^3 - 10*5
 
-	require.Equal(t, integral1, curve.Integral(x1))
-	require.Equal(t, integral2, curve.Integral(x2))
-	require.Equal(t, integral3, curve.Integral(x3))
+	approxEqualInt(t, integral1, curve.Integral(x1))
+	approxEqualInt(t, integral2, curve.Integral(x2))
+	approxEqualInt(t, integral3, curve.Integral(x3))
 
-	require.Equal(t, spotPrice1, curve.SpotPrice(x1).TruncateInt())
-	require.Equal(t, spotPrice2, curve.SpotPrice(x2).TruncateInt())
-	require.Equal(t, spotPrice3, curve.SpotPrice(x3).TruncateInt())
+	approxEqualDec(t, spotPrice1, curve.SpotPrice(x1))
+	approxEqualDec(t, spotPrice2, curve.SpotPrice(x2))
+	approxEqualDec(t, spotPrice3, curve.SpotPrice(x3))
 
-	require.Equal(t, cost1to2, curve.Cost(x1, x2))
-	require.Equal(t, cost2to3, curve.Cost(x2, x3))
-}
-
-// Scenario 3: Cubic Curve with Large Numbers
-func TestBondingCurve_Cubic(t *testing.T) {
-	// y=3x^3+1000
-	// integral of y = 3/4*x^4 + 1000*x
-	m := math.LegacyMustNewDecFromStr("3")
-	n := math.LegacyMustNewDecFromStr("3")
-	c := math.LegacyMustNewDecFromStr("1000")
-	curve := types.NewBondingCurve(m, n, c)
-
-	// Test values
-	x1 := math.NewInt(0)
-	x2 := math.NewInt(100)
-	x3 := math.NewInt(1000)
-
-	// Expected results
-	spotPrice1 := math.NewInt(1000)       // 3*0^3 + 1000
-	spotPrice2 := math.NewInt(3001000)    // 3*100^3 + 1000
-	spotPrice3 := math.NewInt(3000001000) // 3*1000^3 + 1000
-
-	integral1 := math.NewInt(0)            // (3/4)*0^4 + 1000*0
-	integral2 := math.NewInt(75100000)     // (3/4)*100^4 + 1000*100
-	integral3 := math.NewInt(750001000000) // (3/4)*1000^4 + 1000*1000
-
-	cost1to2 := math.NewInt(75100000)     // (3/4)*100^4 + 1000*100 - (3/4)*0^4 - 1000*0
-	cost2to3 := math.NewInt(749925900000) // (3/4)*1000^4 + 1000*1000 - (3/4)*100^4 - 1000*100
-
-	require.Equal(t, integral1, curve.Integral(x1))
-	require.Equal(t, integral2, curve.Integral(x2))
-	require.Equal(t, integral3, curve.Integral(x3))
-
-	require.Equal(t, spotPrice1, curve.SpotPrice(x1).TruncateInt())
-	require.Equal(t, spotPrice2, curve.SpotPrice(x2).TruncateInt())
-	require.Equal(t, spotPrice3, curve.SpotPrice(x3).TruncateInt())
-
-	require.Equal(t, cost1to2, curve.Cost(x1, x2))
-	require.Equal(t, cost2to3, curve.Cost(x2, x3))
-}
-
-// Scenario 4: High Exponent Curve
-func TestBondingCurve_HighExponent(t *testing.T) {
-	// y=x^5+100
-	// integral of y = 1/6*x^6 + 100*x
-
-	m := math.LegacyMustNewDecFromStr("1")
-	n := math.LegacyMustNewDecFromStr("5")
-	c := math.LegacyMustNewDecFromStr("100")
-	curve := types.NewBondingCurve(m, n, c)
-
-	// Test values
-	x1 := math.NewInt(0)
-	x2 := math.NewInt(2)
-	x3 := math.NewInt(10)
-
-	// Expected results
-	spotPrice1 := math.NewInt(100)    // 1*0^5 + 100
-	spotPrice2 := math.NewInt(132)    // 1*2^5 + 100
-	spotPrice3 := math.NewInt(100100) // 1*10^5 + 100
-
-	integral1 := math.NewInt(0)      // (1/6)*0^6 + 100*0
-	integral2 := math.NewInt(210)    // (1/6)*2^6 + 100*2
-	integral3 := math.NewInt(167666) // (1/6)*10^6 + 100*10
-
-	cost1to2 := math.NewInt(210)    // 210 - 0
-	cost2to3 := math.NewInt(167456) // 167666 - 210
-
-	require.Equal(t, spotPrice1, curve.SpotPrice(x1).TruncateInt())
-	require.Equal(t, spotPrice2, curve.SpotPrice(x2).TruncateInt())
-	require.Equal(t, spotPrice3, curve.SpotPrice(x3).TruncateInt())
-
-	require.Equal(t, integral1, curve.Integral(x1))
-	require.Equal(t, integral2, curve.Integral(x2))
-	require.Equal(t, integral3, curve.Integral(x3))
-
-	require.Equal(t, cost1to2, curve.Cost(x1, x2))
-	require.Equal(t, cost2to3, curve.Cost(x2, x3))
+	approxEqualInt(t, cost1to2, curve.Cost(x1, x2))
+	approxEqualInt(t, cost2to3, curve.Cost(x2, x3))
 }
 
 // Scenario: Square Root Curve
-// FIXME: allow approx equal for test to pass
 func TestBondingCurve_SquareRoot(t *testing.T) {
-	t.Skip("TODO: add approx equal for test to pass")
 	// y = m*x^0.5 + c
-	// integral of y = (3/4)*m*x^1.5 + c*x
+	// integral of y = (2/3)*m*x^1.5 + c*x
 	m := math.LegacyMustNewDecFromStr("2.24345436")
 	n := math.LegacyMustNewDecFromStr("0.5")
 	c := math.LegacyMustNewDecFromStr("10.5443534")
 	curve := types.NewBondingCurve(m, n, c)
 
 	// Test values
-	x1 := math.NewInt(0)
-	x2 := math.NewInt(100)
-	x3 := math.NewInt(10000)
+	x1 := math.NewInt(0).MulRaw(1e18)
+	x2 := math.NewInt(100).MulRaw(1e18)
+	x3 := math.NewInt(10000).MulRaw(1e18)
 
 	// Expected results (rounded to nearest integer)
-	spotPrice1 := math.NewInt(11)  // 2.24345436*0^0.5 + 10.5443534 ≈ 11
-	spotPrice2 := math.NewInt(33)  // 2.24345436*100^0.5 + 10.5443534 ≈ 33
-	spotPrice3 := math.NewInt(235) // 2.24345436*10000^0.5 + 10.5443534 ≈ 235
+	spotPrice1 := math.LegacyMustNewDecFromStr("10.5443534")  // 2.24345436*0^0.5 + 10.5443534 ≈ 11
+	spotPrice2 := math.LegacyMustNewDecFromStr("32.978897")   // 2.24345436*100^0.5 + 10.5443534 ≈ 33
+	spotPrice3 := math.LegacyMustNewDecFromStr("234.8897894") // 2.24345436*10000^0.5 + 10.5443534 ≈ 235
 
-	integral1 := math.NewInt(0)       // (2/3)*2.24345436*0^1.5 + 10.5443534*0 = 0
-	integral2 := math.NewInt(2550)    // (2/3)*2.24345436*100^1.5 + 10.5443534*100 ≈ 2550
-	integral3 := math.NewInt(1598850) // (2/3)*2.24345436*10000^1.5 + 10.5443534*10000 ≈ 1598850
+	integral1 := math.LegacyMustNewDecFromStr("0").MulInt64(1e18).TruncateInt()           // (2/3)*2.24345436*0^1.5 + 10.5443534*0 = 0
+	integral2 := math.LegacyMustNewDecFromStr("2550.07158").MulInt64(1e18).TruncateInt()  // (2/3)*2.24345436*100^1.5 + 10.5443534*100 ≈ 2550
+	integral3 := math.LegacyMustNewDecFromStr("1601079.774").MulInt64(1e18).TruncateInt() // (2/3)*2.24345436*10000^1.5 + 10.5443534*10000 ≈ 1598850
 
-	cost1to2 := math.NewInt(2550)    // integral2 - integral1
-	cost2to3 := math.NewInt(1596300) // integral3 - integral2
+	cost1to2 := integral2                                                                  // integral2 - integral1
+	cost2to3 := math.LegacyMustNewDecFromStr("1598529.70242").MulInt64(1e18).TruncateInt() // integral3 - integral2
 
-	require.Equal(t, integral1, curve.Integral(x1))
-	require.Equal(t, integral2, curve.Integral(x2))
-	require.Equal(t, integral3, curve.Integral(x3))
+	approxEqualInt(t, integral1, curve.Integral(x1))
+	approxEqualInt(t, integral2, curve.Integral(x2))
+	approxEqualInt(t, integral3, curve.Integral(x3))
 
-	require.Equal(t, spotPrice1, curve.SpotPrice(x1).TruncateInt())
-	require.Equal(t, spotPrice2, curve.SpotPrice(x2).TruncateInt())
-	require.Equal(t, spotPrice3, curve.SpotPrice(x3).TruncateInt())
+	approxEqualDec(t, spotPrice1, curve.SpotPrice(x1))
+	approxEqualDec(t, spotPrice2, curve.SpotPrice(x2))
+	approxEqualDec(t, spotPrice3, curve.SpotPrice(x3))
 
-	require.Equal(t, cost1to2, curve.Cost(x1, x2))
-	require.Equal(t, cost2to3, curve.Cost(x2, x3))
+	approxEqualInt(t, cost1to2, curve.Cost(x1, x2))
+	approxEqualInt(t, cost2to3, curve.Cost(x2, x3))
+}
+
+// test very small x returns 0
+func TestBondingCurve_SmallX(t *testing.T) {
+	curve := types.DefaultBondingCurve()
+
+	// less than 1 token is not enough
+	require.True(t, curve.SpotPrice(math.NewInt(1_000_000)).IsZero())
+	require.True(t, curve.Integral(math.NewInt(1_000_000)).IsZero())
+	require.True(t, curve.Integral(math.NewInt(1).MulRaw(1e17)).IsZero())
+
+	// even 1 token is enough
+	require.False(t, curve.Integral(math.NewInt(1).MulRaw(1e18)).IsZero())
+	require.False(t, curve.SpotPrice(math.NewInt(1).MulRaw(1e18)).IsZero())
+}
+
+/*
+Real world scenario:
+- A project wants to raise 100_000 DYM for 1_000_000 RA tokens
+- N = 1
+- C = 0.001 (1% of the average price)
+
+Expected M value: 0.000000198
+*/
+func TestUseCaseA(t *testing.T) {
+	// Test case parameters
+	val := math.LegacyNewDecFromInt(math.NewInt(100_000)) // 100,000 DYM to raise
+	z := math.LegacyNewDecFromInt(math.NewInt(1_000_000)) // 1,000,000 RA tokens
+	n := math.LegacyNewDec(1)                             // N = 1 (linear curve)
+	c := math.LegacyNewDecWithPrec(1, 3)                  // C = 0.001 (1% of the average price)
+
+	// Expected M calculation:
+	expectedM := math.LegacyMustNewDecFromStr("0.000000198")
+
+	// Calculate M
+	m := types.CalculateM(val, z, n, c)
+	require.Equal(t, expectedM, m)
+
+	curve := types.NewBondingCurve(m, n, c)
+
+	// Verify that the integral of the curve at Z equals VAL
+	integral := curve.Integral(z.MulInt64(1e18).TruncateInt())
+	approxEqualInt(t, val.MulInt64(1e18).TruncateInt(), integral)
+
+	// verify that the cost early is lower than the cost later
+	// test for buying 1000 RA tokens
+	costA := curve.Cost(math.ZeroInt(), math.NewInt(1000).MulRaw(1e18))
+	costB := curve.Cost(math.NewInt(900_000).MulRaw(1e18), math.NewInt(901_000).MulRaw(1e18))
+	t.Log(costA, costB)
+
+	// Calculate the actual difference
+	costDifference := costB.Sub(costA)
+
+	// Define a threshold for the cost difference (e.g., 5% of costA)
+	threshold := costA.MulRaw(5).QuoRaw(100)
+	// Assert that the cost difference is greater than the threshold
+	require.True(t, costDifference.GT(threshold),
+		"Cost difference (%s) should be greater than threshold (%s)",
+		costDifference, threshold)
 }

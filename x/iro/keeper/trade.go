@@ -23,7 +23,7 @@ func (m msgServer) Buy(ctx context.Context, req *types.MsgBuy) (*types.MsgBuyRes
 		return nil, err
 	}
 
-	err = m.Keeper.Buy(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Amount, req.ExpectedOutAmount)
+	err = m.Keeper.Buy(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Amount, req.MaxCostAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (m msgServer) Sell(ctx context.Context, req *types.MsgSell) (*types.MsgSell
 	if err != nil {
 		return nil, err
 	}
-	err = m.Keeper.Sell(sdk.UnwrapSDKContext(ctx), req.PlanId, seller, req.Amount, req.ExpectedOutAmount)
+	err = m.Keeper.Sell(sdk.UnwrapSDKContext(ctx), req.PlanId, seller, req.Amount, req.MinIncomeAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 }
 
 // Sell sells allocation with price according to the price curve
-func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amountTokensToSell, minCostAmt math.Int) error {
+func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amountTokensToSell, minIncomeAmt math.Int) error {
 	plan, err := k.GetTradeableIRO(ctx, planId, seller.String())
 	if err != nil {
 		return err
@@ -122,8 +122,8 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 	}
 
 	// Validate expected out amount
-	if costMinusTakerFee.Amount.LT(minCostAmt) {
-		return errorsmod.Wrapf(types.ErrInvalidMinCost, "minCost: %s, cost: %s, fee: %s", minCostAmt.String(), cost.String(), takerFee.String())
+	if costMinusTakerFee.Amount.LT(minIncomeAmt) {
+		return errorsmod.Wrapf(types.ErrInvalidMinCost, "minCost: %s, cost: %s, fee: %s", minIncomeAmt.String(), cost.String(), takerFee.String())
 	}
 
 	// Charge taker fee
