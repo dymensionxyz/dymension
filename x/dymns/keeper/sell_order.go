@@ -83,7 +83,7 @@ func (k Keeper) GetAllSellOrders(ctx sdk.Context) (list []dymnstypes.SellOrder) 
 	return list
 }
 
-// SetActiveSellOrdersExpiration stores the expiration of the active Sell-Orders records into the KVStore.
+// DEPRECATED: SetActiveSellOrdersExpiration stores the expiration of the active Sell-Orders records into the KVStore.
 // When a Sell-Order is created, it has an expiration time, later be processed by the batch processing in `x/epochs` hooks,
 // instead of iterating through all the Sell-Orders records in store, we store the expiration of the active Sell-Orders,
 // so that we can easily find the expired Sell-Orders and conditionally load them to process.
@@ -115,7 +115,7 @@ func (k Keeper) SetActiveSellOrdersExpiration(ctx sdk.Context,
 	return nil
 }
 
-// GetActiveSellOrdersExpiration retrieves the expiration of the active Sell-Orders records
+// DEPRECATED: GetActiveSellOrdersExpiration retrieves the expiration of the active Sell-Orders records
 // of the corresponding asset type.
 // For more information, see SetActiveSellOrdersExpiration.
 func (k Keeper) GetActiveSellOrdersExpiration(ctx sdk.Context,

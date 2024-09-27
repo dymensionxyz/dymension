@@ -56,8 +56,8 @@ func (AssetType) EnumDescriptor() ([]byte, []int) {
 // SellOrder defines a sell order, placed by owner, to sell a Dym-Name/Alias.
 // Sell-Order has an expiry date.
 // After expiry date, if no one has placed a bid, this Sell-Order will be closed, no change.
-// If there is a bid, the highest bid will win, and the Dym-Name/Alias ownership will be transferred to the winner.
-// If the bid matches the sell price, the Dym-Name/Alias ownership will be transferred to the bidder immediately.
+//   - If there is a bid, the highest bid will win, and the Dym-Name/Alias ownership will be transferred to the winner.
+//   - If the bid matches the sell price, the Dym-Name/Alias ownership will be transferred to the bidder immediately.
 type SellOrder struct {
 	// asset_id is the Dym-Name/Alias being opened to be sold.
 	AssetId string `protobuf:"bytes,1,opt,name=asset_id,json=assetId,proto3" json:"asset_id,omitempty"`
@@ -150,7 +150,7 @@ func (m *SellOrder) GetHighestBid() *SellOrderBid {
 	return nil
 }
 
-// ActiveSellOrdersExpiration contains list of active SOs, store expiration date mapped by asset identity.
+// DEPRECATED: ActiveSellOrdersExpiration contains list of active SOs, store expiration date mapped by asset identity.
 // Used by hook to find out expired SO instead of iterating through all records.
 type ActiveSellOrdersExpiration struct {
 	Records []ActiveSellOrdersExpirationRecord `protobuf:"bytes,1,rep,name=records,proto3" json:"records"`
@@ -196,7 +196,7 @@ func (m *ActiveSellOrdersExpiration) GetRecords() []ActiveSellOrdersExpirationRe
 	return nil
 }
 
-// ActiveSellOrdersExpirationRecord contains the expiration date of an active Sell-Order.
+// DEPRECATED: ActiveSellOrdersExpirationRecord contains the expiration date of an active Sell-Order.
 type ActiveSellOrdersExpirationRecord struct {
 	// asset_id is the Dym-Name/Alias being opened to be sold.
 	AssetId string `protobuf:"bytes,1,opt,name=asset_id,json=assetId,proto3" json:"asset_id,omitempty"`

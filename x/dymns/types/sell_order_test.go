@@ -11,21 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSellOrder_GetIdentity(t *testing.T) {
-	nameSo := &SellOrder{
-		AssetId:   "my-name",
-		AssetType: TypeName,
-		ExpireAt:  1234,
-	}
-	require.Equal(t, "my-name|1|1234", nameSo.GetIdentity())
-	aliasSo := &SellOrder{
-		AssetId:   "alias",
-		AssetType: TypeAlias,
-		ExpireAt:  1234,
-	}
-	require.Equal(t, "alias|2|1234", aliasSo.GetIdentity())
-}
-
 func TestSellOrder_HasSetSellPrice(t *testing.T) {
 	require.False(t, (&SellOrder{
 		SellPrice: nil,

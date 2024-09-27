@@ -25,11 +25,12 @@ import (
 
 var _ epochstypes.EpochHooks = epochHooks{}
 
+// DEPRECATED: epochHooks
 type epochHooks struct {
 	Keeper
 }
 
-// GetEpochHooks returns the epoch hooks for the module.
+// DEPRECATED: GetEpochHooks returns the epoch hooks for the module.
 func (k Keeper) GetEpochHooks() epochstypes.EpochHooks {
 	return epochHooks{
 		Keeper: k,
@@ -66,7 +67,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 	return nil
 }
 
-// processActiveDymNameSellOrders process the finished Dym-Name Sell-Orders.
+// DEPRECATED: processActiveDymNameSellOrders process the finished Dym-Name Sell-Orders.
 // Sell-Order will be deleted. If the Sell-Order has a winner, the Dym-Name ownership will be transferred.
 func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, logger log.Logger) error {
 	activeSellOrdersExpiration := e.Keeper.GetActiveSellOrdersExpiration(ctx, dymnstypes.TypeName)
@@ -115,7 +116,7 @@ func (e epochHooks) processActiveDymNameSellOrders(ctx sdk.Context, logger log.L
 	return nil
 }
 
-// processActiveAliasSellOrders process the finished Alias Sell-Orders.
+// DEPRECATED: processActiveAliasSellOrders process the finished Alias Sell-Orders.
 // Sell-Order will be deleted.
 // If the Sell-Order has a winner, the Alias linking will be updated.
 // Sell-Orders for the aliases that are prohibited to trade will be force cancelled,
@@ -197,7 +198,7 @@ func (e epochHooks) processActiveAliasSellOrders(ctx sdk.Context, logger log.Log
 	return nil
 }
 
-// getFinishedSellOrders returns the finished Sell-Orders for the asset type.
+// DEPRECATED: getFinishedSellOrders returns the finished Sell-Orders for the asset type.
 // Finished Sell-Orders are the Sell-Orders that have expired.
 // Expired sell-orders can either have a bid or not. In both cases we consider them as `finished`.
 func (e epochHooks) getFinishedSellOrders(

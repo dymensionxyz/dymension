@@ -13,11 +13,6 @@ import (
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
-// GetIdentity returns the unique identity of the SO
-func (m *SellOrder) GetIdentity() string {
-	return fmt.Sprintf("%s|%d|%d", m.AssetId, m.AssetType, m.ExpireAt)
-}
-
 // HasSetSellPrice returns true if the sell price is set
 func (m *SellOrder) HasSetSellPrice() bool {
 	return m.SellPrice != nil && !m.SellPrice.Amount.IsNil() && !m.SellPrice.IsZero()
@@ -186,6 +181,7 @@ func (m SellOrder) GetSdkEvent(actionName string) sdk.Event {
 	)
 }
 
+// DEPRECATED: Validate
 func (m ActiveSellOrdersExpiration) Validate() error {
 	if len(m.Records) > 0 {
 		uniqueName := make(map[string]bool)
@@ -213,6 +209,7 @@ func (m ActiveSellOrdersExpiration) Validate() error {
 	return nil
 }
 
+// DEPRECATED: Validate
 func (m *ActiveSellOrdersExpiration) Sort() {
 	if len(m.Records) < 2 {
 		return
@@ -223,6 +220,7 @@ func (m *ActiveSellOrdersExpiration) Sort() {
 	})
 }
 
+// DEPRECATED: Validate
 func (m *ActiveSellOrdersExpiration) Add(assetId string, expiry int64) {
 	newRecord := ActiveSellOrdersExpirationRecord{AssetId: assetId, ExpireAt: expiry}
 
@@ -249,6 +247,7 @@ func (m *ActiveSellOrdersExpiration) Add(assetId string, expiry int64) {
 	m.Sort()
 }
 
+// DEPRECATED: Validate
 func (m *ActiveSellOrdersExpiration) Remove(assetId string) {
 	m.Records = slices.DeleteFunc(m.Records, func(r ActiveSellOrdersExpirationRecord) bool {
 		return r.AssetId == assetId

@@ -114,6 +114,7 @@ type PriceParams struct {
 	// so the value should not be so low.
 	MinOfferPrice github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=min_offer_price,json=minOfferPrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"min_offer_price" yaml:"min_offer_price"`
 	// min_bid_increment_percent is the minimum percent raised compare to previous bid of a Sell-Order.
+	// The valid range from 0% to 100%, but capped at 10%.
 	MinBidIncrementPercent uint32 `protobuf:"varint,6,opt,name=min_bid_increment_percent,json=minBidIncrementPercent,proto3" json:"min_bid_increment_percent,omitempty" yaml:"min_bid_increment_percent"`
 }
 
@@ -283,8 +284,7 @@ type MiscParams struct {
 	// To be used to stop trading of Dym-Name when needed.
 	EnableTradingName bool `protobuf:"varint,4,opt,name=enable_trading_name,json=enableTradingName,proto3" json:"enable_trading_name,omitempty"`
 	// enable_trading_alias is the flag to enable trading of Alias.
-	// To be used in the future when Alias trading implementation is ready
-	// or disable trading of Alias when needed.
+	// To be used to stop trading of Alias when needed.
 	EnableTradingAlias bool `protobuf:"varint,5,opt,name=enable_trading_alias,json=enableTradingAlias,proto3" json:"enable_trading_alias,omitempty"`
 }
 

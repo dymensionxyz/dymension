@@ -25,7 +25,7 @@ const (
 	prefixRvlConfiguredAddressToDymNamesInclude // reverse lookup store
 	prefixRvlFallbackAddressToDymNamesInclude   // reverse lookup store
 	prefixSellOrder
-	prefixActiveSellOrdersExpiration
+	prefixActiveSellOrdersExpiration // deprecated
 	prefixCountBuyOrders
 	prefixBuyOrder
 	prefixRvlBuyerToBuyOrderIds   // reverse lookup store
@@ -84,8 +84,10 @@ var (
 )
 
 var (
+	// DEPRECATED: KeyActiveSellOrdersExpirationOfDymName
 	KeyActiveSellOrdersExpirationOfDymName = []byte{prefixActiveSellOrdersExpiration, partialStoreAssetTypeDymName}
 
+	// DEPRECATED: KeyActiveSellOrdersExpirationOfAlias
 	KeyActiveSellOrdersExpirationOfAlias = []byte{prefixActiveSellOrdersExpiration, partialStoreAssetTypeAlias}
 
 	// KeyCountBuyOrders is the key for the count of all-time buy orders

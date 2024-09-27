@@ -8,15 +8,15 @@ import (
 )
 
 const (
-	sellOrderExpirationInvariantName = "sell-order-expiration"
+	sellOrderExpirationInvariantName = "sell-order-expiration" // deprecated
 )
 
-// RegisterInvariants registers the DymNS module invariants
+// DEPRECATED: RegisterInvariants registers the DymNS module invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(dymnstypes.ModuleName, sellOrderExpirationInvariantName, SellOrderExpirationInvariant(k))
 }
 
-// SellOrderExpirationInvariant checks that the records in the `ActiveSellOrdersExpiration` records are valid.
+// DEPRECATED: SellOrderExpirationInvariant checks that the records in the `ActiveSellOrdersExpiration` records are valid.
 // The `ActiveSellOrdersExpiration` is used in hook and records are fetch from the store frequently,
 // so we need to make sure the records are correct.
 func SellOrderExpirationInvariant(k Keeper) sdk.Invariant {
