@@ -75,10 +75,6 @@ func (k msgServer) validateCancelSellOrderWithAssetTypeDymName(
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.AssetId)
 	}
 
-	if so.HasExpiredAtCtx(ctx) {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "cannot cancel an expired order")
-	}
-
 	if so.HighestBid != nil {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "cannot cancel once bid placed")
 	}
@@ -115,10 +111,6 @@ func (k msgServer) validateCancelSellOrderWithAssetTypeAlias(
 	so := k.GetSellOrder(ctx, msg.AssetId, msg.AssetType)
 	if so == nil {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.AssetId)
-	}
-
-	if so.HasExpiredAtCtx(ctx) {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "cannot cancel an expired order")
 	}
 
 	if so.HighestBid != nil {
