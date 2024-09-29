@@ -39,9 +39,9 @@ service Msg {
     // Can only be performed if no one has placed a bid on the asset.
     rpc CancelSellOrder(MsgCancelSellOrder) returns (MsgCancelSellOrderResponse) {}
     // CompleteSellOrder is message handler,
-    // handles Sell-Order completion, performed by either asset owner or the person who placed the highest bid.
+    // handles Sell-Order completion action, can be performed by either asset owner or the person who placed the highest bid.
     // Can only be performed when Sell-Order expired and has a bid placed.
-    // If the asset was expired or prohibited trading, bid will be returned to the buyer.
+    // If the asset was expired or prohibited trading, bid placed will be force to return to the bidder, ownership will not be transferred.
     rpc CompleteSellOrder(MsgCompleteSellOrder) returns (MsgCompleteSellOrderResponse) {}
     // PurchaseOrder is message handler,
     // handles purchasing a Dym-Name/Alias from a Sell-Order, performed by the buyer.
@@ -228,7 +228,7 @@ message MsgCancelSellOrderResponse {}
 message MsgCompleteSellOrder {
     option (cosmos.msg.v1.signer) = "participant";
 
-    // asset_id is the Dym-Name/Alias to cancel selling.
+    // asset_id is the Dym-Name/Alias about to perform Sell Order completion action.
     string asset_id = 1;
 
     // asset_type is the type of the asset of the order, is Dym-Name/Alias.

@@ -11,9 +11,9 @@ import (
 )
 
 // CompleteSellOrder is message handler,
-// handles Sell-Order completion, performed by either asset owner or the person who placed the highest bid.
+// handles Sell-Order completion action, can be performed by either asset owner or the person who placed the highest bid.
 // Can only be performed when Sell-Order expired and has a bid placed.
-// If the asset was expired or prohibited trading, bid will be returned to the buyer.
+// If the asset was expired or prohibited trading, bid placed will be force to return to the bidder, ownership will not be transferred.
 func (k msgServer) CompleteSellOrder(goCtx context.Context, msg *dymnstypes.MsgCompleteSellOrder) (*dymnstypes.MsgCompleteSellOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	originalConsumedGas := ctx.GasMeter().GasConsumed()

@@ -918,7 +918,7 @@ var xxx_messageInfo_MsgCancelSellOrderResponse proto.InternalMessageInfo
 
 // MsgCompleteSellOrder defines the message used for user to complete a Sell-Order.
 type MsgCompleteSellOrder struct {
-	// asset_id is the Dym-Name/Alias to cancel selling.
+	// asset_id is the Dym-Name/Alias about to perform Sell Order completion action.
 	AssetId string `protobuf:"bytes,1,opt,name=asset_id,json=assetId,proto3" json:"asset_id,omitempty"`
 	// asset_type is the type of the asset of the order, is Dym-Name/Alias.
 	AssetType AssetType `protobuf:"varint,2,opt,name=asset_type,json=assetType,proto3,enum=dymensionxyz.dymension.dymns.AssetType" json:"asset_type,omitempty"`
@@ -1755,8 +1755,9 @@ type MsgClient interface {
 	// Can only be performed if no one has placed a bid on the asset.
 	CancelSellOrder(ctx context.Context, in *MsgCancelSellOrder, opts ...grpc.CallOption) (*MsgCancelSellOrderResponse, error)
 	// CompleteSellOrder is message handler,
-	// handles Sell-Order completion, performed by either asset owner or the person who placed the highest bid.
+	// handles Sell-Order completion action, can be performed by either asset owner or the person who placed the highest bid.
 	// Can only be performed when Sell-Order expired and has a bid placed.
+	// If the asset was expired or prohibited trading, bid placed will be force to return to the bidder, ownership will not be transferred.
 	CompleteSellOrder(ctx context.Context, in *MsgCompleteSellOrder, opts ...grpc.CallOption) (*MsgCompleteSellOrderResponse, error)
 	// PurchaseOrder is message handler,
 	// handles purchasing a Dym-Name/Alias from a Sell-Order, performed by the buyer.
@@ -1937,8 +1938,9 @@ type MsgServer interface {
 	// Can only be performed if no one has placed a bid on the asset.
 	CancelSellOrder(context.Context, *MsgCancelSellOrder) (*MsgCancelSellOrderResponse, error)
 	// CompleteSellOrder is message handler,
-	// handles Sell-Order completion, performed by either asset owner or the person who placed the highest bid.
+	// handles Sell-Order completion action, can be performed by either asset owner or the person who placed the highest bid.
 	// Can only be performed when Sell-Order expired and has a bid placed.
+	// If the asset was expired or prohibited trading, bid placed will be force to return to the bidder, ownership will not be transferred.
 	CompleteSellOrder(context.Context, *MsgCompleteSellOrder) (*MsgCompleteSellOrderResponse, error)
 	// PurchaseOrder is message handler,
 	// handles purchasing a Dym-Name/Alias from a Sell-Order, performed by the buyer.
