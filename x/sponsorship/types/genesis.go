@@ -21,7 +21,15 @@ func (g GenesisState) Validate() error {
 		return errors.Join(ErrInvalidGenesis, err)
 	}
 
+	voters := make(map[string]struct{}, len(g.VoterInfos)) // this map helps check for duplicates
 	for _, i := range g.VoterInfos {
+		// validate all voters are unique
+		if _, ok := voters[i.Voter]; ok {
+			return ErrInvalidGenesis.Wrapf("duplicated voters: %s", i.Voter)
+		}
+		voters[i.Voter] = struct{}{}
+
+		// validate voter info
 		err = i.Validate()
 		if err != nil {
 			return errors.Join(ErrInvalidGenesis, err)
