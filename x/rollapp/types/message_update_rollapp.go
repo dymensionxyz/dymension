@@ -53,7 +53,7 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 	if msg.InitialSequencer != "" && msg.InitialSequencer != "*" {
 		_, err := sdk.AccAddressFromBech32(msg.InitialSequencer)
 		if err != nil {
-			return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
+			return errors.Join(ErrInvalidInitialSequencer, err)
 		}
 	}
 
@@ -71,7 +71,7 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 
 	if msg.Metadata != nil {
 		if err := msg.Metadata.Validate(); err != nil {
-			return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
+			return errors.Join(ErrInvalidMetadata, err)
 		}
 	}
 
@@ -88,6 +88,6 @@ func (msg *MsgUpdateRollappInformation) UpdatingGenesisInfo() bool {
 	}
 	return msg.GenesisInfo.GenesisChecksum != "" ||
 		msg.GenesisInfo.Bech32Prefix != "" ||
-		msg.GenesisInfo.NativeDenom != nil ||
+		msg.GenesisInfo.NativeDenom.Base != "" ||
 		!msg.GenesisInfo.InitialSupply.IsNil()
 }

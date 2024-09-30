@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"github.com/cometbft/cometbft/libs/rand"
-
 	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
@@ -39,37 +38,47 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 		}
 		seqPerRollapp[rollapp] = seqaddr
 		rollappBlocks[rollapp] = 0
-
 	}
 
 	sequence := uint64(0)
 	for j := 0; j < numOfStates; j++ {
 		numOfBlocks := uint64(rand.Intn(10) + 1)
 		for rollapp, sequencer := range seqPerRollapp {
-
 			_, err := suite.PostStateUpdate(suite.Ctx, rollapp, sequencer, rollappBlocks[rollapp]+uint64(1), numOfBlocks)
 			suite.Require().NoError(err)
+
 			for k := uint64(1); k <= numOfBlocks; k++ {
 				// calculating a different proof height incrementing a block height for each new packet
 				proofHeight := rollappBlocks[rollapp] + k
-				rollappPacket := &commontypes.RollappPacket{
+				rollappPacket := commontypes.RollappPacket{
 					RollappId:   rollapp,
 					Packet:      getNewTestPacket(sequence),
 					Status:      commontypes.Status_PENDING,
 					ProofHeight: proofHeight,
 				}
-				suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
+				suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, rollappPacket)
 
 				sequence++
 			}
+
 			rollappBlocks[rollapp] = rollappBlocks[rollapp] + numOfBlocks
 		}
-
 		suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
 	}
 
+	// skip a dispute period
+	disputePeriod := int64(suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx))
+	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + disputePeriod)
+
 	// progress finalization queue
 	suite.App.RollappKeeper.FinalizeRollappStates(suite.Ctx)
+
+	// manually finalize packets for all rollapps
+	for rollapp := range seqPerRollapp {
+		packetsNum, err := suite.App.DelayedAckKeeper.FinalizeRollappPacketsUntilHeight(suite.Ctx, transferStack.NextIBCMiddleware(), rollapp, rollappBlocks[rollapp])
+		suite.Require().NoError(err)
+		suite.Require().Equal(rollappBlocks[rollapp], uint64(packetsNum))
+	}
 
 	// test fraud
 	for rollapp := range seqPerRollapp {
@@ -155,25 +164,6 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			false,
 		},
 		{
-			"error non-finalized packet - packets for finalized heights are not finalized",
-			false,
-			true,
-			false,
-			commontypes.RollappPacket{
-				RollappId:   rollapp,
-				Status:      commontypes.Status_FINALIZED,
-				ProofHeight: 5,
-				Packet:      getNewTestPacket(1),
-			},
-			commontypes.RollappPacket{
-				RollappId:   rollapp,
-				Status:      commontypes.Status_PENDING,
-				ProofHeight: 15,
-				Packet:      getNewTestPacket(2),
-			},
-			true,
-		},
-		{
 			"wrong invariant revert check - packets for frozen rollapps in non-finalized heights are not reverted",
 			true,
 			false,
@@ -246,20 +236,18 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 					Index:     1,
 				},
 				StartHeight: 1,
-				NumBlocks:   10,
 				Status:      commontypes.Status_FINALIZED,
 				Sequencer:   proposer,
-			}
+			}.WithNumBlocks(10)
 			stateInfo2 := rollapptypes.StateInfo{
 				StateInfoIndex: rollapptypes.StateInfoIndex{
 					RollappId: rollapp,
 					Index:     2,
 				},
 				StartHeight: 11,
-				NumBlocks:   10,
 				Status:      commontypes.Status_PENDING,
 				Sequencer:   proposer,
-			}
+			}.WithNumBlocks(10)
 
 			// if nothingFinalized true, all the state infos submitted should be pending
 			if tc.nothingFinalized {
@@ -313,7 +301,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 func getNewTestPacket(sequence uint64) *channeltypes.Packet {
 	return &channeltypes.Packet{
 		SourcePort:         "testSourcePort",
-		SourceChannel:      "testSourceChannel",
+		SourceChannel:      testSourceChannel,
 		DestinationPort:    "testDestinationPort",
 		DestinationChannel: "testDestinationChannel",
 		Data:               []byte("testData"),

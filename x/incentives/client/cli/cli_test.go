@@ -5,9 +5,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
+	"github.com/osmosis-labs/osmosis/v15/osmoutils/osmocli"
+
 	"github.com/dymensionxyz/dymension/v3/x/incentives/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils/osmocli"
 )
 
 func TestGetCmdGauges(t *testing.T) {

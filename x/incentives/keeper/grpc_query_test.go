@@ -354,7 +354,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	suite.Require().Equal(res.Coins, coins)
 
 	// distribute coins to stakers
-	distrCoins, err := suite.querier.Distribute(suite.Ctx, gauges)
+	distrCoins, err := suite.querier.DistributeOnEpochEnd(suite.Ctx, gauges)
 	suite.Require().NoError(err)
 	suite.Require().Equal(distrCoins, sdk.Coins{sdk.NewInt64Coin("stake", 4)})
 
@@ -379,7 +379,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	suite.Require().Equal(res.Coins, coins.Sub(distrCoins...))
 
 	// distribute second round to stakers
-	distrCoins, err = suite.querier.Distribute(suite.Ctx, gauges)
+	distrCoins, err = suite.querier.DistributeOnEpochEnd(suite.Ctx, gauges)
 	suite.Require().NoError(err)
 	suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("stake", 6)}, distrCoins)
 
@@ -411,7 +411,7 @@ func (suite *KeeperTestSuite) TestGRPCDistributedCoins() {
 	suite.Require().NoError(err)
 
 	// distribute coins to stakers
-	distrCoins, err := suite.querier.Distribute(suite.Ctx, gauges)
+	distrCoins, err := suite.querier.DistributeOnEpochEnd(suite.Ctx, gauges)
 	suite.Require().NoError(err)
 	suite.Require().Equal(distrCoins, sdk.Coins{sdk.NewInt64Coin("stake", 4)})
 
@@ -426,7 +426,7 @@ func (suite *KeeperTestSuite) TestGRPCDistributedCoins() {
 	gauges = []types.Gauge{*gauge}
 
 	// distribute second round to stakers
-	distrCoins, err = suite.querier.Distribute(suite.Ctx, gauges)
+	distrCoins, err = suite.querier.DistributeOnEpochEnd(suite.Ctx, gauges)
 	suite.Require().NoError(err)
 	suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("stake", 6)}, distrCoins)
 }

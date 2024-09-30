@@ -26,6 +26,7 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdVote())
+	cmd.AddCommand(CmdRevokeVote())
 
 	return cmd
 }
@@ -66,7 +67,7 @@ func CmdRevokeVote() *cobra.Command {
 		Use:     "revoke-vote --from <voter>",
 		Short:   "Revoke a previously submitted vote for gauges",
 		Example: "dymd tx sponsorship revoke-vote --from my_validator",
-		Args:    cobra.ExactArgs(1),
+		Args:    cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {

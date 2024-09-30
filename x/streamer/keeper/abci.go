@@ -9,52 +9,26 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
+// EndBlock iterates over the epoch pointers, calculates rewards, distributes them, and updates the streams.
 func (k Keeper) EndBlock(ctx sdk.Context) error {
-	streams := k.GetActiveStreams(ctx)
-
 	epochPointers, err := k.GetAllEpochPointers(ctx)
 	if err != nil {
 		return fmt.Errorf("get all epoch pointers: %w", err)
 	}
 
-	// Sort epoch pointers to distribute to shorter epochs first
-	types.SortEpochPointers(epochPointers)
-
+	streams := k.GetActiveStreams(ctx)
 	maxIterations := k.GetParams(ctx).MaxIterationsPerBlock
-	totalIterations := uint64(0)
-	totalDistributed := sdk.NewCoins()
 
-	for _, p := range epochPointers {
-		remainIterations := maxIterations - totalIterations
-
-		if remainIterations <= 0 {
-			break // no more iterations available for this block
-		}
-
-		result := k.DistributeRewards(ctx, p, remainIterations, streams)
-
-		totalIterations += result.Iterations
-		totalDistributed = totalDistributed.Add(result.DistributedCoins...)
-		streams = result.FilledStreams
-
-		err = k.SaveEpochPointer(ctx, result.NewPointer)
-		if err != nil {
-			return fmt.Errorf("save epoch pointer: %w", err)
-		}
-	}
-
-	// Save stream updates
-	for _, stream := range streams {
-		err = k.SetStream(ctx, &stream)
-		if err != nil {
-			return fmt.Errorf("set stream: %w", err)
-		}
+	const epochEnd = false
+	coins, iterations, err := k.Distribute(ctx, epochPointers, streams, maxIterations, epochEnd)
+	if err != nil {
+		return fmt.Errorf("distribute: %w", err)
 	}
 
 	err = uevent.EmitTypedEvent(ctx, &types.EventEndBlock{
-		Iterations:    totalIterations,
+		Iterations:    iterations,
 		MaxIterations: maxIterations,
-		Distributed:   totalDistributed,
+		Distributed:   coins,
 	})
 	if err != nil {
 		return fmt.Errorf("emit typed event: %w", err)

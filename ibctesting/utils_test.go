@@ -27,6 +27,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
+	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -138,11 +139,12 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		&rollapptypes.GenesisInfo{
 			GenesisChecksum: "somechecksum",
 			Bech32Prefix:    "eth",
-			NativeDenom: &rollapptypes.DenomMetadata{
+			NativeDenom: rollapptypes.DenomMetadata{
 				Display:  "DEN",
 				Base:     "aden",
 				Exponent: 18,
 			},
+			InitialSupply: sdk.NewInt(1000),
 		},
 	)
 
@@ -160,6 +162,12 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		ra.GenesisState.TransfersEnabled = transfersEnabled
 		a.RollappKeeper.SetRollapp(s.hubCtx(), ra)
 	}
+}
+
+// necessary for tests which do not execute the entire light client flow, and just need to make transfers work
+// (all tests except the light client tests themselves)
+func (s *utilSuite) setRollappLightClientID(chainID, clientID string) {
+	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), chainID, clientID)
 }
 
 func (s *utilSuite) registerSequencer() {
@@ -195,14 +203,14 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	stateInfo, found := rollappKeeper.GetStateInfo(s.hubCtx(), rollappChainID(), latestStateInfoIndex.Index)
 	startHeight := uint64(1)
 	if found {
-		startHeight = stateInfo.StartHeight + stateInfo.NumBlocks
+		startHeight = stateInfo.LastHeight() + 1
 	}
 	numBlocks := endHeight - startHeight + 1
 	// populate the block descriptors
 	blockDescriptors := &rollapptypes.BlockDescriptors{BD: make([]rollapptypes.BlockDescriptor, numBlocks)}
-	for i := 0; i < int(numBlocks); i++ {
+	for i := uint64(0); i < numBlocks; i++ {
 		blockDescriptors.BD[i] = rollapptypes.BlockDescriptor{
-			Height:    startHeight + uint64(i),
+			Height:    startHeight + i,
 			StateRoot: bytes.Repeat([]byte{byte(startHeight) + byte(i)}, 32),
 			Timestamp: time.Now().UTC(),
 		}
@@ -229,7 +237,8 @@ func (s *utilSuite) finalizeRollappState(index uint64, endHeight uint64) (sdk.Ev
 	stateInfoIdx := rollapptypes.StateInfoIndex{RollappId: rollappChainID(), Index: index}
 	stateInfo, found := rollappKeeper.GetStateInfo(ctx, rollappChainID(), stateInfoIdx.Index)
 	s.Require().True(found)
-	stateInfo.NumBlocks = endHeight - stateInfo.StartHeight + 1
+	// this is a hack to increase the finalized height by modifying the last state info instead of submitting a new one
+	stateInfo = stateInfo.WithNumBlocks(endHeight - stateInfo.StartHeight + 1)
 	stateInfo.Status = common.Status_FINALIZED
 	// update the status of the stateInfo
 	rollappKeeper.SetStateInfo(ctx, stateInfo)
@@ -345,4 +354,16 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 	coord.CommitBlock(chain)
 
 	return chain
+}
+
+func (s *utilSuite) finalizeRollappPacketsUntilHeight(height uint64) sdk.Events {
+	handler := s.hubApp().MsgServiceRouter().Handler(new(delayedacktypes.MsgFinalizePacketsUntilHeight))
+	resp, err := handler(s.hubCtx(), &delayedacktypes.MsgFinalizePacketsUntilHeight{
+		Sender:    s.rollappChain().SenderAccount.GetAddress().String(),
+		RollappId: rollappChainID(),
+		Height:    height,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+	return resp.GetEvents()
 }

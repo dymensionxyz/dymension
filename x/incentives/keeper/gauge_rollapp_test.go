@@ -52,7 +52,7 @@ func (suite *KeeperTestSuite) TestDistributeToRollappGauges() {
 			suite.Require().NoError(err)
 
 			// Distribute to the rollapp owner
-			_, err = suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
+			_, err = suite.App.IncentivesKeeper.DistributeOnEpochEnd(suite.Ctx, []types.Gauge{*gauge})
 			suite.Require().NoError(err)
 
 			// Check expected rewards against actual rewards received
@@ -116,7 +116,7 @@ func (suite *KeeperTestSuite) TestDistributeToRollappGaugesAfterOwnerChange() {
 				gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeId)
 				suite.Require().NoError(err)
 
-				_, err = suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
+				_, err = suite.App.IncentivesKeeper.DistributeOnEpochEnd(suite.Ctx, []types.Gauge{*gauge})
 				suite.Require().NoError(err)
 			}
 
@@ -132,7 +132,7 @@ func (suite *KeeperTestSuite) TestDistributeToRollappGaugesAfterOwnerChange() {
 				gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeId)
 				suite.Require().NoError(err)
 
-				_, err = suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
+				_, err = suite.App.IncentivesKeeper.DistributeOnEpochEnd(suite.Ctx, []types.Gauge{*gauge})
 				suite.Require().NoError(err)
 			}
 

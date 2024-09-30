@@ -44,7 +44,6 @@ func TestAfterUpdateState(t *testing.T) {
 					stateInfo: &rollapptypes.StateInfo{
 						Sequencer:   keepertest.Alice,
 						StartHeight: 1,
-						NumBlocks:   1,
 						BDs: rollapptypes.BlockDescriptors{
 							BD: []rollapptypes.BlockDescriptor{
 								{
@@ -71,7 +70,6 @@ func TestAfterUpdateState(t *testing.T) {
 					stateInfo: &rollapptypes.StateInfo{
 						Sequencer:   keepertest.Alice,
 						StartHeight: 1,
-						NumBlocks:   3,
 						BDs: rollapptypes.BlockDescriptors{
 							BD: []rollapptypes.BlockDescriptor{
 								{
@@ -108,7 +106,6 @@ func TestAfterUpdateState(t *testing.T) {
 					stateInfo: &rollapptypes.StateInfo{
 						Sequencer:   keepertest.Alice,
 						StartHeight: 1,
-						NumBlocks:   3,
 						BDs: rollapptypes.BlockDescriptors{
 							BD: []rollapptypes.BlockDescriptor{
 								{

@@ -1,7 +1,6 @@
 package types
 
 import (
-	"math/big"
 	time "time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,18 +8,8 @@ import (
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
-var (
-	// DYM represents 1 DYM
-	DYM = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-
-	// CreateGaugeFee is the fee required to create a new gauge.
-	CreateGaugeFee = DYM.Mul(sdk.NewInt(10))
-	// AddToGaugeFee is the fee required to add to gauge.
-	AddToGaugeFee = sdk.ZeroInt()
-)
-
 // NewAssetGauge creates a new asset gauge to stream rewards to some asset lockup conditions.
-func NewAssetGauge(id uint64, isPerpetual bool, distrTo lockuptypes.QueryCondition, coins sdk.Coins, startTime time.Time, numEpochsPaidOver uint64, filledEpochs uint64, distrCoins sdk.Coins) Gauge {
+func NewAssetGauge(id uint64, isPerpetual bool, distrTo lockuptypes.QueryCondition, coins sdk.Coins, startTime time.Time, numEpochsPaidOver uint64) Gauge {
 	return Gauge{
 		Id:                id,
 		IsPerpetual:       isPerpetual,
@@ -28,8 +17,8 @@ func NewAssetGauge(id uint64, isPerpetual bool, distrTo lockuptypes.QueryConditi
 		Coins:             coins,
 		StartTime:         startTime,
 		NumEpochsPaidOver: numEpochsPaidOver,
-		FilledEpochs:      filledEpochs,
-		DistributedCoins:  distrCoins,
+		FilledEpochs:      0,
+		DistributedCoins:  sdk.NewCoins(),
 	}
 }
 
@@ -37,7 +26,7 @@ func NewAssetGauge(id uint64, isPerpetual bool, distrTo lockuptypes.QueryConditi
 func NewRollappGauge(id uint64, rollappId string) Gauge {
 	return Gauge{
 		Id:                id,
-		IsPerpetual:       false,
+		IsPerpetual:       true,
 		DistributeTo:      &Gauge_Rollapp{Rollapp: &RollappGauge{RollappId: rollappId}},
 		Coins:             sdk.NewCoins(),
 		StartTime:         time.Time{},

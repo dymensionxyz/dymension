@@ -34,13 +34,15 @@ func (s *transfersEnabledSuite) SetupTest() {
 	s.createRollapp(false, nil)
 	s.registerSequencer()
 	s.path = path
-	s.Require().True(s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled)
+
+	// manually set the rollapp to have transfers disabled by default
+	ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+	ra.GenesisState.TransfersEnabled = false
+	s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), ra)
 }
 
 // Regular (non genesis) transfers (RA->Hub) and Hub->RA should both be blocked when the bridge is not open
 func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
-	s.T().Skip("disabled until #1208 handled") // https://github.com/dymensionxyz/dymension/issues/1208
-
 	amt := math.NewIntFromUint64(10000000000000000000)
 	denom := "foo"
 	tokens := sdk.NewCoin(denom, amt)
@@ -83,8 +85,8 @@ func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 			s.Require().True(errorsmod.IsOf(err, gerrc.ErrFailedPrecondition))
 			ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 			ra.ChannelId = s.path.EndpointA.ChannelID
+			ra.GenesisState.TransfersEnabled = true
 			s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), ra)
-			s.hubApp().RollappKeeper.EnableTransfers(s.hubCtx(), ra.RollappId)
 		} else {
 			s.Require().NoError(err)
 		}

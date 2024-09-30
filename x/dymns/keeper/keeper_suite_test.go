@@ -143,6 +143,8 @@ func (s *KeeperTestSuite) SetupTest() {
 			rollappParamsSubspace,
 			nil, nil, nil,
 			bk,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			nil,
 		)
 
 		dk = dymnskeeper.NewKeeper(cdc,
