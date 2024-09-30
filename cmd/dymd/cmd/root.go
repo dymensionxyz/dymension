@@ -5,11 +5,13 @@ import (
 	"io"
 	"os"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
+	"github.com/cosmos/cosmos-sdk/types/mempool"
 
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -234,6 +236,11 @@ func (a appCreator) newApp(
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
 	baseappOptions := server.DefaultBaseappOptions(appOpts)
+
+	// Use No-Op mempool as default app mempool can't decode evm txs signer
+	baseappOptions = append(baseappOptions, func(bapp *baseapp.BaseApp) {
+		bapp.SetMempool(mempool.NoOpMempool{})
+	})
 
 	skipUpgradeHeights := make(map[int64]bool)
 	for _, h := range cast.ToIntSlice(appOpts.Get(sdkserver.FlagUnsafeSkipUpgrades)) {
