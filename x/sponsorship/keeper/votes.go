@@ -7,30 +7,34 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
 func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.GaugeWeight) (types.Vote, types.Distribution, error) {
-	voted, err := k.Voted(ctx, voter)
-	if err != nil {
-		return types.Vote{}, types.Distribution{}, fmt.Errorf("cannot verify if the voter has already voted: %w", err)
-	}
-
-	if voted {
-		_, err := k.RevokeVote(ctx, voter)
-		if err != nil {
-			return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to revoke previous vote: %w", err)
-		}
-	}
-
+	// Get module params
 	params, err := k.GetParams(ctx)
 	if err != nil {
 		return types.Vote{}, types.Distribution{}, fmt.Errorf("cannot get module params: %w", err)
 	}
 
+	// Validate specified weights
 	err = k.validateWeights(ctx, weights, params.MinAllocationWeight)
 	if err != nil {
 		return types.Vote{}, types.Distribution{}, fmt.Errorf("error validating weights: %w", err)
+	}
+
+	// Check if the user's voted. If they have, revoke the previous vote to place a new one.
+	voted, err := k.Voted(ctx, voter)
+	if err != nil {
+		return types.Vote{}, types.Distribution{}, fmt.Errorf("cannot verify if the voter has already voted: %w", err)
+	}
+	if voted {
+		_, err := k.RevokeVote(ctx, voter)
+		if err != nil {
+			return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to revoke previous vote: %w", err)
+		}
 	}
 
 	// Get the user’s total voting power from the x/staking
@@ -107,21 +111,43 @@ func (k Keeper) revokeVote(ctx sdk.Context, voter sdk.AccAddress, vote types.Vot
 	return d, nil
 }
 
-// validateWeights validates that no gauge got less than MinAllocationWeight and all of them are perpetual
+// validateWeights validates that
+//   - No gauge get less than MinAllocationWeight
+//   - All gauges exist
+//   - All gauges are perpetual
+//   - Rollapp gauges have at least one bonded sequencer
 func (k Keeper) validateWeights(ctx sdk.Context, weights []types.GaugeWeight, minAllocationWeight math.Int) error {
 	for _, weight := range weights {
+		// No gauge get less than MinAllocationWeight
 		if weight.Weight.LT(minAllocationWeight) {
-			return fmt.Errorf("gauge weight '%s' is less than min allocation weight '%s'", weight.Weight, minAllocationWeight)
+			return fmt.Errorf("gauge weight is less than min allocation weight: gauge weight %s, min allocation %s", weight.Weight, minAllocationWeight)
 		}
 
+		// All gauges exist
 		gauge, err := k.incentivesKeeper.GetGaugeByID(ctx, weight.GaugeId)
 		if err != nil {
-			return fmt.Errorf("failed to get gauge by id '%d': %w", weight.GaugeId, err)
+			return fmt.Errorf("failed to get gauge by id: %d: %w", weight.GaugeId, err)
 		}
 
+		// All gauges are perpetual
 		if !gauge.IsPerpetual {
-			return fmt.Errorf("gauge '%d' is not perpetual", weight.GaugeId)
+			return fmt.Errorf("gauge is not perpetual: %d", weight.GaugeId)
 		}
+
+		// Rollapp gauges have at least one bonded sequencer
+		switch distrTo := gauge.DistributeTo.(type) {
+		case *incentivestypes.Gauge_Asset:
+			// no additional restrictions for asset gauges
+		case *incentivestypes.Gauge_Rollapp:
+			// we allow sponsoring only rollapps with bonded sequencers
+			bondedSequencers := k.sequencerKeeper.GetSequencersByRollappByStatus(ctx, distrTo.Rollapp.RollappId, sequencertypes.Bonded)
+			if len(bondedSequencers) == 0 {
+				return fmt.Errorf("rollapp has no bonded sequencers: %s'", distrTo.Rollapp.RollappId)
+			}
+		default:
+			return fmt.Errorf("gauge has an unsupported distribution type: gauge id %d, type %T", gauge.Id, distrTo)
+		}
+
 	}
 	return nil
 }
