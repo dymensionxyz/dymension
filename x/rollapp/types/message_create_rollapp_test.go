@@ -244,6 +244,16 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			err: ErrInvalidURL,
 		},
 		{
+			name: "no genesisInfo",
+			msg: MsgCreateRollapp{
+				Creator:          sample.AccAddress(),
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				Alias:            "alias",
+				VmType:           Rollapp_EVM,
+			},
+		},
+		{
 			name: "invalid initial supply",
 			msg: MsgCreateRollapp{
 				Creator:          sample.AccAddress(),
