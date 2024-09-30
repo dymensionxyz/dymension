@@ -64,6 +64,40 @@ func TestValidateGenesis(t *testing.T) {
 			errorContains: "",
 		},
 		{
+			name: "Invalid voters info: duplicated voters",
+			input: &types.GenesisState{
+				Params: types.DefaultParams(),
+				VoterInfos: []types.VoterInfo{
+					{
+						Voter: addrs[0],
+						Vote: types.Vote{
+							VotingPower: math.NewInt(600),
+							Weights: []types.GaugeWeight{
+								{GaugeId: 1, Weight: math.NewInt(100)},
+							},
+						},
+						Validators: []types.ValidatorVotingPower{
+							{Validator: valAddrs[0], Power: math.NewInt(600)},
+						},
+					},
+					{
+						Voter: addrs[0], // the same address as in the previous voter info
+						Vote: types.Vote{
+							VotingPower: math.NewInt(400),
+							Weights: []types.GaugeWeight{
+								{GaugeId: 2, Weight: math.NewInt(100)},
+							},
+						},
+						Validators: []types.ValidatorVotingPower{
+							{Validator: valAddrs[0], Power: math.NewInt(400)},
+						},
+					},
+				},
+			},
+			errorIs:       types.ErrInvalidGenesis,
+			errorContains: "duplicated voters",
+		},
+		{
 			name: "Invalid params: MinAllocationWeight < 0",
 			input: &types.GenesisState{
 				Params: types.Params{
