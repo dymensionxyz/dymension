@@ -101,7 +101,7 @@ func (r Rollapp) AllImmutableFieldsAreSet() bool {
 
 func (r Rollapp) GenesisInfoFieldsAreSet() bool {
 	return r.GenesisInfo.GenesisChecksum != "" &&
-		r.GenesisInfo.NativeDenom.Validate() == nil &&
+		r.GenesisInfo.NativeDenom.IsSet() &&
 		r.GenesisInfo.Bech32Prefix != "" &&
 		!r.GenesisInfo.InitialSupply.IsNil()
 }
@@ -121,12 +121,16 @@ func (r GenesisInfo) Validate() error {
 		return ErrInvalidGenesisChecksum
 	}
 
-	if err := r.NativeDenom.Validate(); err != nil {
-		return errors.Join(ErrInvalidNativeDenom, err)
+	if r.NativeDenom.IsSet() {
+		if err := r.NativeDenom.Validate(); err != nil {
+			return errorsmod.Wrap(ErrInvalidNativeDenom, err.Error())
+		}
 	}
 
-	if r.InitialSupply.IsNil() || !r.InitialSupply.IsPositive() {
-		return ErrInvalidInitialSupply
+	if !r.InitialSupply.IsNil() {
+		if !r.InitialSupply.IsPositive() {
+			return ErrInvalidInitialSupply
+		}
 	}
 
 	return nil
@@ -169,6 +173,10 @@ func validateBech32Prefix(prefix string) error {
 		return err
 	}
 	return nil
+}
+
+func (dm DenomMetadata) IsSet() bool {
+	return dm != DenomMetadata{}
 }
 
 func (dm DenomMetadata) Validate() error {
