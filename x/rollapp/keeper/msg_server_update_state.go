@@ -72,7 +72,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		}
 
 		// check to see if received height is the one we expected
-		expectedStartHeight := stateInfo.LastHeight() + 1
+		expectedStartHeight := stateInfo.StartHeight + stateInfo.NumBlocks
 		if expectedStartHeight != msg.StartHeight {
 			return nil, errorsmod.Wrapf(types.ErrWrongBlockHeight,
 				"expected height (%d), but received (%d)",
@@ -102,6 +102,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		newIndex,
 		msg.Creator,
 		msg.StartHeight,
+		msg.NumBlocks,
 		msg.DAPath,
 		creationHeight,
 		msg.BDs,

@@ -144,7 +144,6 @@ func (s *KeeperTestSuite) SetupTest() {
 			nil, nil, nil,
 			bk,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-			nil,
 		)
 
 		dk = dymnskeeper.NewKeeper(cdc,

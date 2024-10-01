@@ -50,7 +50,6 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	s.fundSenderAccount()
 	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	s.registerSequencer()
-	s.setRollappLightClientID(s.rollappCtx().ChainID(), path.EndpointA.ClientID)
 
 	rollappEndpoint := path.EndpointB
 	rollappIBCKeeper := s.rollappChain().App.GetIBCKeeper()

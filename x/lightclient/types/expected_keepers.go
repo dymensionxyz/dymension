@@ -21,6 +21,7 @@ type SequencerKeeperExpected interface {
 type RollappKeeperExpected interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
 	FindStateInfoByHeight(ctx sdk.Context, rollappId string, height uint64) (*rollapptypes.StateInfo, error)
+	GetStateInfo(ctx sdk.Context, rollappId string, index uint64) (val rollapptypes.StateInfo, found bool)
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
 	HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHeight uint64, seqAddr string) error
 }

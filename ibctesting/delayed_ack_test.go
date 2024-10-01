@@ -97,7 +97,6 @@ func (s *delayedAckSuite) TestTransferRollappToHubNotFinalized() {
 	hubIBCKeeper := s.hubChain().App.GetIBCKeeper()
 
 	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
-	s.setRollappLightClientID(s.rollappCtx().ChainID(), path.EndpointA.ClientID)
 	s.registerSequencer()
 	s.updateRollappState(uint64(s.rollappCtx().BlockHeight()))
 
@@ -140,7 +139,6 @@ func (s *delayedAckSuite) TestTransferRollappToHubFinalization() {
 	rollappIBCKeeper := s.rollappChain().App.GetIBCKeeper()
 
 	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
-	s.setRollappLightClientID(s.rollappCtx().ChainID(), path.EndpointA.ClientID)
 	s.registerSequencer()
 
 	// Update rollapp state
@@ -193,7 +191,6 @@ func (s *delayedAckSuite) TestHubToRollappTimeout() {
 	hubIBCKeeper := s.hubChain().App.GetIBCKeeper()
 	// Create rollapp and update its initial state
 	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
-	s.setRollappLightClientID(s.rollappCtx().ChainID(), path.EndpointA.ClientID)
 	s.registerSequencer()
 	s.updateRollappState(uint64(s.rollappCtx().BlockHeight()))
 	// Set the timeout height

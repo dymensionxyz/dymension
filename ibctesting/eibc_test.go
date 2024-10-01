@@ -58,7 +58,6 @@ func (s *eibcSuite) SetupTest() {
 	// Register sequencer
 	s.registerSequencer()
 	s.path = path
-	s.setRollappLightClientID(s.rollappChain().ChainID, path.EndpointA.ClientID)
 }
 
 func (s *eibcSuite) TestEIBCDemandOrderCreation() {
