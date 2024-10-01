@@ -89,8 +89,11 @@ message GenesisInfo {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+
   // sealed indicates if the fields in this object are no longer updatable
   bool sealed = 5;
+
+  repeated GenesisAccount genesis_accounts = 6 [ (gogoproto.nullable) = false ];
 }
 
 // Rollapp summary is a compact representation of Rollapp
@@ -104,4 +107,17 @@ message RollappSummary {
   StateInfoIndex latestFinalizedStateIndex = 3;
   uint64 latestHeight = 4;          // TODO:
   uint64 latestFinalizedHeight = 5; // TODO:
+}
+
+
+
+// GenesisAccount is a struct for the genesis account for the rollapp
+message GenesisAccount {
+  // amount of coins to be sent to the genesis address
+  string amount = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // address is a bech-32 address of the genesis account
+  string address = 2;
 }

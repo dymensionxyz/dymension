@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func NewRollapp(
@@ -133,6 +134,22 @@ func (r GenesisInfo) Validate() error {
 		}
 	}
 
+	for _, a := range r.GenesisAccounts {
+		if err := a.ValidateBasic(); err != nil {
+			return errors.Join(gerrc.ErrInvalidArgument, err)
+		}
+	}
+	return nil
+}
+
+func (a GenesisAccount) ValidateBasic() error {
+	if !a.Amount.IsPositive() {
+		return fmt.Errorf("invalid amount: %s %s", a.Address, a.Amount)
+	}
+
+	if _, err := sdk.AccAddressFromBech32(a.Address); err != nil {
+		return err
+	}
 	return nil
 }
 

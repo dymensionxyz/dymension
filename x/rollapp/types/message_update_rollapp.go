@@ -64,7 +64,13 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 
 		if msg.GenesisInfo.Bech32Prefix != "" {
 			if err := validateBech32Prefix(msg.GenesisInfo.Bech32Prefix); err != nil {
-				return errorsmod.Wrap(errors.Join(err, gerrc.ErrInvalidArgument), "bech32 prefix")
+				return errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "bech32 prefix")
+			}
+		}
+
+		for _, acc := range msg.GenesisInfo.GenesisAccounts {
+			if err := acc.ValidateBasic(); err != nil {
+				return errorsmod.Wrapf(errors.Join(gerrc.ErrInvalidArgument, err), "genesis account: %v", acc)
 			}
 		}
 	}
@@ -89,5 +95,6 @@ func (msg *MsgUpdateRollappInformation) UpdatingGenesisInfo() bool {
 	return msg.GenesisInfo.GenesisChecksum != "" ||
 		msg.GenesisInfo.Bech32Prefix != "" ||
 		msg.GenesisInfo.NativeDenom.Base != "" ||
-		!msg.GenesisInfo.InitialSupply.IsNil()
+		!msg.GenesisInfo.InitialSupply.IsNil() ||
+		len(msg.GenesisInfo.GenesisAccounts) > 0
 }
