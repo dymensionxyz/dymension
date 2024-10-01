@@ -96,6 +96,7 @@ func DymNSKeeper(t testing.TB) (dymnskeeper.Keeper, dymnstypes.BankKeeper, rolla
 		nil, nil, nil,
 		bankKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		nil,
 	)
 
 	k := dymnskeeper.NewKeeper(cdc,
