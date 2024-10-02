@@ -16,7 +16,7 @@ import (
 func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUpdateRollappInformation) (types.Rollapp, error) {
 	current, found := k.GetRollapp(ctx, update.RollappId)
 	if !found {
-		return current, errRollappNotFound
+		return current, types.ErrRollappNotFound
 	}
 
 	if update.Owner != current.Owner {
@@ -55,6 +55,10 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 
 		if !update.GenesisInfo.InitialSupply.IsNil() {
 			current.GenesisInfo.InitialSupply = update.GenesisInfo.InitialSupply
+		}
+
+		if len(update.GenesisInfo.GenesisAccounts) > 0 {
+			current.GenesisInfo.GenesisAccounts = update.GenesisInfo.GenesisAccounts
 		}
 	}
 
@@ -153,7 +157,7 @@ func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, pre
 	}
 	rollapp.GenesisInfo.Sealed = true
 	rollapp.PreLaunchTime = preLaunchTime
-	rollapp.GenesisState.TransfersEnabled = false
+	// FIXME: add to genesis accounts
 	k.SetRollapp(ctx, *rollapp)
 	return nil
 }

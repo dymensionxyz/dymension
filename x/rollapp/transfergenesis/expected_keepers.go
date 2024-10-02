@@ -10,7 +10,7 @@ import (
 )
 
 type RollappKeeper interface {
-	GetValidTransfer(ctx sdk.Context, packetData []byte, raPortOnHub, raChanOnHub string) (data rollapptypes.TransferData, err error)
+	GetRollappByPortChan(ctx sdk.Context, raPortOnHub, raChanOnHub string) (*rollapptypes.Rollapp, error)
 	MustGetRollapp(ctx sdk.Context, rollappId string) rollapptypes.Rollapp
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
 	GetHooks() rollapptypes.MultiRollappHooks

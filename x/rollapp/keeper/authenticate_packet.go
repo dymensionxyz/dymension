@@ -32,8 +32,8 @@ func (k Keeper) GetValidTransfer(
 		return
 	}
 
-	ra, err := k.getRollappByPortChan(ctx, raPortOnHub, raChanOnHub)
-	if errorsmod.IsOf(err, errRollappNotFound) {
+	ra, err := k.GetRollappByPortChan(ctx, raPortOnHub, raChanOnHub)
+	if errorsmod.IsOf(err, ErrRollappNotFound) {
 		// no problem, it corresponds to a regular non-rollapp chain
 		err = nil
 		return
@@ -48,9 +48,7 @@ func (k Keeper) GetValidTransfer(
 	return
 }
 
-var errRollappNotFound = errorsmod.Wrap(gerrc.ErrNotFound, "rollapp")
-
-// getRollappByPortChan will get the rollapp for a transfer
+// GetRollappByPortChan will get the rollapp for a transfer
 // if the transfer did not original from a rollapp, will return rollapp not found error
 // if the transfer did originate from a rollapp, but on the wrong channel, returns error
 //
@@ -58,7 +56,7 @@ var errRollappNotFound = errorsmod.Wrap(gerrc.ErrNotFound, "rollapp")
 // rollapp is looked up by light client ID rather than chain ID. That requires the canonical
 // light client for the rollapp to have been set. That should always be the case for
 // correctly operated rollapps.
-func (k Keeper) getRollappByPortChan(ctx sdk.Context,
+func (k Keeper) GetRollappByPortChan(ctx sdk.Context,
 	raPortOnHub, raChanOnHub string,
 ) (*types.Rollapp, error) {
 	clientID, _, err := k.channelKeeper.GetChannelClientState(ctx, raPortOnHub, raChanOnHub)
@@ -69,7 +67,7 @@ func (k Keeper) getRollappByPortChan(ctx sdk.Context,
 	if !ok {
 		// non rollapp case. Note, we cannot differentiate the case where the transfer is not from a rollapp, or it is from a rollapp
 		// but that rollapp has (incorrectly) not got a canonical client
-		return nil, errorsmod.Wrapf(errRollappNotFound, "client id: %s: port: %s: channel: %s", clientID, raPortOnHub, raChanOnHub)
+		return nil, errorsmod.Wrapf(ErrRollappNotFound, "client id: %s: port: %s: channel: %s", clientID, raPortOnHub, raChanOnHub)
 	}
 	rollapp, ok := k.GetRollapp(ctx, chainID)
 	if !ok {
