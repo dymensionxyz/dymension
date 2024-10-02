@@ -260,6 +260,22 @@ func TestDymName_Validate(t *testing.T) {
 			wantErrContains: "dym name config is not unique",
 		},
 		{
+			name:       "pass - valid EIP-155 chain-id in config (indicate RollApp)",
+			dymName:    "my-name",
+			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			expireAt:   time.Now().Unix(),
+			configs: []DymNameConfig{
+				{
+					Type:    DymNameConfigType_DCT_NAME,
+					ChainId: "155",
+					Path:    "",
+					Value:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+				},
+			},
+			contact: "contact@example.com",
+		},
+		{
 			name:       "pass - contact is optional, provided",
 			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",

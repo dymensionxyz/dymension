@@ -80,6 +80,8 @@ func (m *DymNameConfig) Validate() error {
 
 	if m.ChainId == "" {
 		// ok to be empty
+	} else if dymnsutils.IsValidEIP155ChainId(m.ChainId) {
+		// accepted format, indicate this is a RollApp chain id
 	} else if !dymnsutils.IsValidChainIdFormat(m.ChainId) {
 		return errorsmod.Wrap(
 			gerrc.ErrInvalidArgument,
