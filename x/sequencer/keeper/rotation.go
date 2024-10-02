@@ -4,7 +4,7 @@ import (
 	"sort"
 	"time"
 
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -111,11 +111,11 @@ func (k Keeper) startRotation(ctx sdk.Context, rollappId string) {
 func (k Keeper) CompleteRotation(ctx sdk.Context, rollappId string) error {
 	proposer, ok := k.GetProposer(ctx, rollappId)
 	if !ok {
-		return errors.Wrapf(gerrc.ErrInternal, "proposer not set for rollapp %s", rollappId)
+		return errorsmod.Wrapf(gerrc.ErrInternal, "proposer not set for rollapp %s", rollappId)
 	}
 	nextProposer, ok := k.GetNextProposer(ctx, rollappId)
 	if !ok {
-		return errors.Wrapf(gerrc.ErrInternal, "next proposer not set for rollapp %s", rollappId)
+		return errorsmod.Wrapf(gerrc.ErrInternal, "next proposer not set for rollapp %s", rollappId)
 	}
 
 	// start unbonding the current proposer

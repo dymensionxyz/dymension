@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"cosmossdk.io/errors"
-
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -43,14 +42,14 @@ func NewUpdateResolveDymNameAddressTxCmd() *cobra.Command {
 
 			subName, dymName, chainIdOrAlias, err := dymnskeeper.ParseDymNameAddress(dymNameAddress)
 			if err != nil {
-				return errors.Wrap(err, "failed to parse input Dym-Name-Address")
+				return errorsmod.Wrap(err, "failed to parse input Dym-Name-Address")
 			}
 
 			respTranslateChainId, err := queryClient.TranslateAliasOrChainIdToChainId(cmd.Context(), &dymnstypes.QueryTranslateAliasOrChainIdToChainIdRequest{
 				AliasOrChainId: chainIdOrAlias,
 			})
 			if err != nil || respTranslateChainId.ChainId == "" {
-				return errors.Wrapf(err, "failed to translate alias to chain-id: %s", chainIdOrAlias)
+				return errorsmod.Wrapf(err, "failed to translate alias to chain-id: %s", chainIdOrAlias)
 			}
 
 			chainId := respTranslateChainId.ChainId
