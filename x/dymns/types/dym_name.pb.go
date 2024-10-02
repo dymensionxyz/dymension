@@ -157,7 +157,10 @@ type DymNameConfig struct {
 	// type is the type of the Dym-Name configuration (equals to Type in DNS).
 	Type DymNameConfigType `protobuf:"varint,1,opt,name=type,proto3,enum=dymensionxyz.dymension.dymns.DymNameConfigType" json:"type,omitempty"`
 	// chain_id is the chain-id of the Dym-Name configuration (equals to top-level-domain).
-	// If empty, the configuration is for host chain (Dymension Hub).
+	// There are 3 format types:
+	//   - If empty, the configuration is for host chain (Dymension Hub).
+	//   - If not empty and numeric only, then it is EIP-155 chain-id of RollApp.
+	//   - Otherwise, it's external chains.
 	ChainId string `protobuf:"bytes,2,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
 	// path of the Dym-Name configuration (equals to Host in DNS).
 	// If the type of this config record is Name, it is the Sub-Name of the Dym-Name Address.

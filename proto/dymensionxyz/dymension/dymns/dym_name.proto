@@ -50,7 +50,10 @@ message DymNameConfig {
   DymNameConfigType type = 1;
 
   // chain_id is the chain-id of the Dym-Name configuration (equals to top-level-domain).
-  // If empty, the configuration is for host chain (Dymension Hub).
+  // There are 3 format types:
+  //  - If empty, the configuration is for host chain (Dymension Hub).
+  //  - If not empty and numeric only, then it is EIP-155 chain-id of RollApp.
+  //  - Otherwise, it's external chains.
   string chain_id = 2;
 
   // path of the Dym-Name configuration (equals to Host in DNS).
