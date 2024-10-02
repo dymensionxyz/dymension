@@ -443,12 +443,12 @@ func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
-							ChainId: "rollapp_1-1",
+							ChainId: "1",
 							Value:   dymNameOwnerAcc.bech32(),
 						},
 						{
 							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
-							ChainId: "rollapp_1-1",
+							ChainId: "1",
 							Path:    "sub",
 							Value:   anotherAcc.bech32(),
 						},

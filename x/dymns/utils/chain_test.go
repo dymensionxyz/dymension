@@ -152,3 +152,39 @@ func TestIsValidEIP155ChainId(t *testing.T) {
 		})
 	}
 }
+
+func TestMustGetEIP155ChainIdFromRollAppId(t *testing.T) {
+	tests := []struct {
+		name           string
+		rollAppChainId string
+		want           string
+		wantPanic      bool
+	}{
+		{
+			name:           "pass",
+			rollAppChainId: "rollapp_1-1",
+			want:           "1",
+		},
+		{
+			name:           "pass",
+			rollAppChainId: "rollapp_9999-1",
+			want:           "9999",
+		},
+		{
+			name:           "fail - panic when invalid format",
+			rollAppChainId: "rollapp_-1",
+			wantPanic:      true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.wantPanic {
+				require.Panics(t, func() {
+					_ = MustGetEIP155ChainIdFromRollAppId(tt.rollAppChainId)
+				})
+				return
+			}
+			require.Equal(t, tt.want, MustGetEIP155ChainIdFromRollAppId(tt.rollAppChainId))
+		})
+	}
+}

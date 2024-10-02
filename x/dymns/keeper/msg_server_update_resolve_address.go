@@ -25,12 +25,17 @@ func (k msgServer) UpdateResolveAddress(goCtx context.Context, msg *dymnstypes.M
 	}
 
 	_, newConfig := msg.GetDymNameConfig()
+	var isRollAppChainId bool
 	if newConfig.ChainId == ctx.ChainID() {
 		newConfig.ChainId = ""
+	} else if k.IsRollAppId(ctx, newConfig.ChainId) {
+		// use EIP-155 chain id only
+		newConfig.ChainId = dymnsutils.MustGetEIP155ChainIdFromRollAppId(newConfig.ChainId)
+		isRollAppChainId = true
 	}
 	newConfigIdentity := newConfig.GetIdentity()
 
-	if newConfig.ChainId == "" || k.IsRollAppId(ctx, newConfig.ChainId) {
+	if newConfig.ChainId == "" || isRollAppChainId {
 		// guarantee of case-insensitive on host and RollApps,
 		// so we do normalize input
 		newConfig.Value = strings.ToLower(newConfig.Value)

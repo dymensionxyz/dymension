@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+	"strconv"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -297,6 +299,9 @@ func (k Keeper) ResolveByDymNameAddress(ctx sdk.Context, dymNameAddress string) 
 		if lookupChainIdConfig == ctx.ChainID() {
 			// Dym-Name configuration in store does not persist the chain-id if it is the host chain
 			lookupChainIdConfig = ""
+		} else if k.IsRollAppId(ctx, lookupChainIdConfig) {
+			// Dym-Name configuration in store only persist EIP-155 chain id for RollApp
+			lookupChainIdConfig = dymnsutils.MustGetEIP155ChainIdFromRollAppId(lookupChainIdConfig)
 		}
 
 		// do filter
@@ -721,6 +726,7 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 		ctx,
 		inputAddress,
 		workingChainId,
+		workingChainIdIsRollApp,
 	)
 	if err != nil {
 		return nil, err
@@ -765,11 +771,7 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 
 // reverseResolveDymNameAddressUsingConfiguredAddress resolves the input address into a Dym-Name-Address
 // which points to it.
-func (k Keeper) reverseResolveDymNameAddressUsingConfiguredAddress(
-	ctx sdk.Context,
-	inputAddress,
-	workingChainId string,
-) (outputDymNameAddresses dymnstypes.ReverseResolvedDymNameAddresses, err error) {
+func (k Keeper) reverseResolveDymNameAddressUsingConfiguredAddress(ctx sdk.Context, inputAddress, workingChainId string, workingChainIdIsRollApp bool) (outputDymNameAddresses dymnstypes.ReverseResolvedDymNameAddresses, err error) {
 	// find all the Dym-Names those contain the input address in configuration,
 	// iterate through the configuration records to find out the Dym-Name-Address
 	dymNames, err1 := k.GetDymNamesContainsConfiguredAddress(ctx, inputAddress)
@@ -777,11 +779,19 @@ func (k Keeper) reverseResolveDymNameAddressUsingConfiguredAddress(
 		return nil, err1
 	}
 
+	var eip155WorkingChainId string // only available if is RollApp
+	if workingChainIdIsRollApp {
+		eip155WorkingChainId = dymnsutils.MustGetEIP155ChainIdFromRollAppId(workingChainId)
+	}
+
 	for _, dymName := range dymNames {
 		configuredAddresses, _ := dymName.GetAddressesForReverseMapping()
 		configs := configuredAddresses[inputAddress]
 		outputDymNameAddresses = outputDymNameAddresses.AppendConfigs(ctx, dymName,
 			configs, func(address dymnstypes.ReverseResolvedDymNameAddress) bool {
+				if workingChainIdIsRollApp {
+					return address.ChainIdOrAlias == eip155WorkingChainId
+				}
 				return address.ChainIdOrAlias == workingChainId
 			},
 		)
@@ -829,11 +839,19 @@ func (k Keeper) reverseResolveDymNameAddressUsingHexAddress(
 			return nil, err1
 		}
 
+		var eip155WorkingChainId string // only available if is RollApp
+		if workingChainIdIsRollApp {
+			eip155WorkingChainId = dymnsutils.MustGetEIP155ChainIdFromRollAppId(workingChainId)
+		}
+
 		for _, dymName := range dymNames {
 			configuredAddresses, _ := dymName.GetAddressesForReverseMapping()
 			configs := configuredAddresses[lookupKey]
 			outputDymNameAddresses = outputDymNameAddresses.AppendConfigs(ctx, dymName,
 				configs, func(address dymnstypes.ReverseResolvedDymNameAddress) bool {
+					if workingChainIdIsRollApp {
+						return address.ChainIdOrAlias == eip155WorkingChainId
+					}
 					return address.ChainIdOrAlias == workingChainId
 				},
 			)
@@ -909,6 +927,8 @@ func (k Keeper) ReplaceChainIdWithAliasIfPossible(ctx sdk.Context, reverseResolv
 
 	resolvedCache := make(map[string]string)
 	// Describe usage of Go Map: used for caching purpose, no iteration.
+	eip155ToRollAppIdCache := make(map[string]string)
+	// Describe usage of Go Map: used for caching purpose, no iteration.
 
 	for i, reverseResolvedRecord := range reverseResolvedRecords {
 		chainIdOrAlias := reverseResolvedRecord.ChainIdOrAlias
@@ -918,6 +938,21 @@ func (k Keeper) ReplaceChainIdWithAliasIfPossible(ctx sdk.Context, reverseResolv
 			// so the chain-id information might be empty if it for the host chain,
 			// then at this place, we put it back
 			chainIdOrAlias = ctx.ChainID()
+			reverseResolvedRecords[i].ChainIdOrAlias = chainIdOrAlias
+		} else if dymnsutils.IsValidEIP155ChainId(chainIdOrAlias) {
+			fullRollAppId, found := eip155ToRollAppIdCache[chainIdOrAlias]
+			if !found {
+				rollAppEip155ChainId, _ := strconv.ParseUint(chainIdOrAlias, 10, 64)
+				rollApp, foundRA := k.rollappKeeper.GetRollappByEIP155(ctx, rollAppEip155ChainId)
+				if !foundRA {
+					// this should not happen because we have checked the existence of RollApp before
+					panic(fmt.Sprintf("RollApp by EIP-155 not found"))
+				}
+				fullRollAppId = rollApp.RollappId
+				eip155ToRollAppIdCache[chainIdOrAlias] = fullRollAppId // cache result
+			}
+
+			chainIdOrAlias = fullRollAppId
 			reverseResolvedRecords[i].ChainIdOrAlias = chainIdOrAlias
 		}
 

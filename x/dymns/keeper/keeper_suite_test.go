@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
+
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	tmdb "github.com/cometbft/cometbft-db"
@@ -427,6 +429,16 @@ func (m *dymNameBuilder) cfgN(chainId, subName, resolveTo string) *dymNameBuilde
 	m.configs = append(m.configs, dymnstypes.DymNameConfig{
 		Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 		ChainId: chainId,
+		Path:    subName,
+		Value:   resolveTo,
+	})
+	return m
+}
+
+func (m *dymNameBuilder) cfgNForRollApp(chainId, subName, resolveTo string) *dymNameBuilder {
+	m.configs = append(m.configs, dymnstypes.DymNameConfig{
+		Type:    dymnstypes.DymNameConfigType_DCT_NAME,
+		ChainId: dymnsutils.MustGetEIP155ChainIdFromRollAppId(chainId),
 		Path:    subName,
 		Value:   resolveTo,
 	})

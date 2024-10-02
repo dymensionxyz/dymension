@@ -101,6 +101,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 	const recordName = "my-name"
 
 	const rollAppId = "ra_9999-1"
+	const rollAppIdEip155 = "9999"
 
 	//goland:noinspection SpellCheckingInspection
 	nonBech32NonHexUpperCaseA := strings.ToUpper("X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5")
@@ -425,7 +426,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
-						ChainId: rollAppId,
+						ChainId: rollAppIdEip155,
 						Path:    "",
 						Value:   anotherAcc.bech32C("rol"),
 					},
@@ -475,6 +476,41 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			postTestFunc: func(s *KeeperTestSuite) {
 				s.requireConfiguredAddress(nonBech32NonHexUpperCaseA).mappedDymNames(recordName)
 			},
+		},
+		{
+			name: "pass - if chain-id is RollApp ID, use EIP-155 in config instead of full provided chain-id",
+			dymName: &dymnstypes.DymName{
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   s.now.Unix() + 100,
+			},
+			preTestFunc: func(s *KeeperTestSuite) {
+				s.rollAppKeeper.SetRollapp(s.ctx, rollapptypes.Rollapp{
+					RollappId: rollAppId,
+					Owner:     anotherAcc.bech32(),
+				})
+			},
+			msg: &dymnstypes.MsgUpdateResolveAddress{
+				ChainId:    rollAppId,                                  // <= full chain-id
+				ResolveTo:  strings.ToUpper(anotherAcc.bech32C("rol")), // upper-cased
+				Controller: controllerAcc.bech32(),
+			},
+			wantErr: false,
+			wantDymName: &dymnstypes.DymName{
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   s.now.Unix() + 100,
+				Configs: []dymnstypes.DymNameConfig{
+					{
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
+						ChainId: rollAppIdEip155, // <= here
+						Path:    "",
+						Value:   anotherAcc.bech32C("rol"),
+					},
+				},
+			},
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
+			postTestFunc:       func(s *KeeperTestSuite) {},
 		},
 		{
 			name: "pass - add new record if not exists",
@@ -1462,7 +1498,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
-						ChainId: "nim_1122-1",
+						ChainId: "1122",
 						Path:    "a",
 						Value:   ownerAcc.bech32C("nim"),
 					},
@@ -2042,6 +2078,8 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress_ReverseMapping() {
 				}
 				if tt.hostChain {
 					wantDymName.Configs[0].ChainId = ""
+				} else if tt.rollapp {
+					wantDymName.Configs[0].ChainId = dymnsutils.MustGetEIP155ChainIdFromRollAppId(msg.ChainId)
 				}
 				s.Require().Equal(wantDymName, *laterDymName)
 			}

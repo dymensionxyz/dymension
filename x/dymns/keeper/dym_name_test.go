@@ -607,6 +607,31 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 			wantOutputAddress: addr3a,
 		},
 		{
+			name: "success, RollApp chain-ID",
+			dymName: &dymnstypes.DymName{
+				Name:       "a",
+				Owner:      addr1a,
+				Controller: addr2a,
+				ExpireAt:   s.now.Unix() + 100,
+				Configs: []dymnstypes.DymNameConfig{{
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
+					ChainId: "1122",
+					Value:   addr2Acc.bech32C("nim"),
+				}, {
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
+					ChainId: "1122",
+					Path:    "b",
+					Value:   addr2Acc.bech32C("nim"),
+				}},
+			},
+			preSetup: func(s *KeeperTestSuite) {
+				s.persistRollApp(*newRollApp("nim_1122-1"))
+			},
+			dymNameAddress:    "a@nim_1122-1",
+			wantOutputAddress: addr2Acc.bech32C("nim"),
+			postTest:          func(s *KeeperTestSuite) {},
+		},
+		{
 			name: "success, no sub name, alias",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
@@ -850,11 +875,11 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 				ExpireAt:   s.now.Unix() + 100,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
-					ChainId: "nim_1122-1",
+					ChainId: "1122",
 					Value:   addr2Acc.bech32C("nim"),
 				}, {
 					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
-					ChainId: "nim_1122-1",
+					ChainId: "1122",
 					Path:    "b",
 					Value:   addr2Acc.bech32C("nim"),
 				}},
@@ -2419,7 +2444,7 @@ func (s *KeeperTestSuite) TestKeeper_ReverseResolveDymNameAddress() {
 			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(s.now, +1).
 				cfgN("", "b", ownerAcc.bech32()).
-				cfgN(rollAppId1, "ica", icaAcc.bech32()).
+				cfgNForRollApp(rollAppId1, "ica", icaAcc.bech32()).
 				buildSlice(),
 			additionalSetup: nil,
 			inputAddress:    icaAcc.bech32(),
@@ -2458,7 +2483,7 @@ func (s *KeeperTestSuite) TestKeeper_ReverseResolveDymNameAddress() {
 			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(s.now, +1).
 				cfgN("", "b", ownerAcc.bech32()).
-				cfgN(rollAppId1, "ica", icaAcc.bech32()).
+				cfgNForRollApp(rollAppId1, "ica", icaAcc.bech32()).
 				buildSlice(),
 			additionalSetup: nil,
 			inputAddress:    swapCase(icaAcc.bech32()),
@@ -2661,7 +2686,7 @@ func (s *KeeperTestSuite) TestKeeper_ReverseResolveDymNameAddress() {
 				exp(s.now, +1).
 				cfgN("", "b", ownerAcc.bech32()).
 				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
-				cfgN(rollAppId1, "ra", anotherAcc.bech32C(rollApp1Bech32)).
+				cfgNForRollApp(rollAppId1, "ra", anotherAcc.bech32C(rollApp1Bech32)).
 				buildSlice(),
 			inputAddress:   anotherAcc.hexStr(),
 			workingChainId: rollAppId1,
@@ -2702,11 +2727,47 @@ func (s *KeeperTestSuite) TestKeeper_ReverseResolveDymNameAddress() {
 				exp(s.now, +1).
 				cfgN("", "b", ownerAcc.bech32()).
 				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
-				cfgN(rollAppId1, "ra", ownerAcc.bech32C(rollApp1Bech32)).
+				cfgNForRollApp(rollAppId1, "ra", ownerAcc.bech32C(rollApp1Bech32)).
 				buildSlice(),
 			inputAddress:   ownerAcc.hexStr(),
 			workingChainId: rollAppId1,
 			wantErr:        false,
+			want: dymnstypes.ReverseResolvedDymNameAddresses{
+				{
+					// when bech32 found from mapped by chain-id,
+					// we convert the hex address into bech32
+					// and perform lookup, so we should find out
+					// the existing configuration
+					SubName:        "ra",
+					Name:           "a",
+					ChainIdOrAlias: rollAppId1,
+				},
+			},
+		},
+		{
+			name: "pass - lookup by hex on RollApp with bech32 prefix mapped, find out the matching configuration, even tho Chain-ID of RollApp in config is EIP-155 part only",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(s.now, +1).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
+				cfgNForRollApp(rollAppId1, "ra", ownerAcc.bech32C(rollApp1Bech32)).
+				buildSlice(),
+			inputAddress:   ownerAcc.hexStr(),
+			workingChainId: rollAppId1,
+			additionalSetup: func(s *KeeperTestSuite) {
+				dymName := s.dymNsKeeper.GetDymName(s.ctx, "a")
+				s.Require().Len(dymName.Configs, 3)
+
+				var found bool
+				for _, cfg := range dymName.Configs {
+					if cfg.ChainId == "1" /*EIP-155*/ && cfg.Path == "ra" {
+						found = true
+						break
+					}
+				}
+				s.Require().True(found, "expected to find the configuration with Chain-ID is EIP-155 part")
+			},
+			wantErr: false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
 				{
 					// when bech32 found from mapped by chain-id,
@@ -3103,8 +3164,8 @@ func (s *KeeperTestSuite) TestKeeper_ReverseResolveDymNameAddress() {
 				exp(s.now, +1).
 				cfgN("", "b", ownerAcc.bech32()).
 				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
-				cfgN(rollAppId2, "", ownerAcc.bech32C(rollApp2Bech32)).
-				cfgN(rollAppId2, "b", ownerAcc.bech32C(rollApp2Bech32)).
+				cfgNForRollApp(rollAppId2, "", ownerAcc.bech32C(rollApp2Bech32)).
+				cfgNForRollApp(rollAppId2, "b", ownerAcc.bech32C(rollApp2Bech32)).
 				buildSlice(),
 			additionalSetup: func(s *KeeperTestSuite) {
 			},
@@ -3130,7 +3191,7 @@ func (s *KeeperTestSuite) TestKeeper_ReverseResolveDymNameAddress() {
 				exp(s.now, +1).
 				cfgN("", "b", ownerAcc.bech32()).
 				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
-				cfgN(rollAppId2, "", ownerAcc.bech32C(rollApp2Bech32)).
+				cfgNForRollApp(rollAppId2, "", ownerAcc.bech32C(rollApp2Bech32)).
 				buildSlice(),
 			additionalSetup: func(s *KeeperTestSuite) {
 				moduleParams := s.dymNsKeeper.GetParams(s.ctx)
@@ -3164,10 +3225,42 @@ func (s *KeeperTestSuite) TestKeeper_ReverseResolveDymNameAddress() {
 				exp(s.now, +1).
 				cfgN("", "b", ownerAcc.bech32()).
 				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
-				cfgN(rollAppId2, "", ownerAcc.bech32C(rollApp2Bech32)).
-				cfgN(rollAppId2, "b", ownerAcc.bech32C(rollApp2Bech32)).
+				cfgNForRollApp(rollAppId2, "", ownerAcc.bech32C(rollApp2Bech32)).
+				cfgNForRollApp(rollAppId2, "b", ownerAcc.bech32C(rollApp2Bech32)).
 				buildSlice(),
 			additionalSetup: func(s *KeeperTestSuite) {
+			},
+			inputAddress:   ownerAcc.hexStr(),
+			workingChainId: rollAppId2,
+			wantErr:        false,
+			want: dymnstypes.ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "",
+					Name:           "a",
+					ChainIdOrAlias: rollApp2Alias, // alias is used instead of chain-id
+				},
+				{
+					SubName:        "b",
+					Name:           "a",
+					ChainIdOrAlias: rollApp2Alias,
+				},
+			},
+		},
+		{
+			name: "pass - RollApp ID detected when config is EIP-155, alias is used if available",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(s.now, +1).
+				cfgNForRollApp(rollAppId2, "", ownerAcc.bech32C(rollApp2Bech32)).
+				cfgNForRollApp(rollAppId2, "b", ownerAcc.bech32C(rollApp2Bech32)).
+				buildSlice(),
+			additionalSetup: func(s *KeeperTestSuite) {
+				dymName := s.dymNsKeeper.GetDymName(s.ctx, "a")
+				s.Require().Len(dymName.Configs, 2)
+
+				const eip155Id = "2"
+				for _, cfg := range dymName.Configs {
+					s.Require().Equal(eip155Id, cfg.ChainId)
+				}
 			},
 			inputAddress:   ownerAcc.hexStr(),
 			workingChainId: rollAppId2,
@@ -3362,6 +3455,42 @@ func (s *KeeperTestSuite) TestKeeper_ReplaceChainIdWithAliasIfPossible() {
 			{
 				Name:           "b",
 				ChainIdOrAlias: "rollapp_3-3",
+			},
+		}
+		s.Require().Equal(
+			[]dymnstypes.ReverseResolvedDymNameAddress{
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "ra1",
+				},
+				{
+					Name:           "a",
+					ChainIdOrAlias: "rollapp_2-2",
+				},
+				{
+					Name:           "b",
+					ChainIdOrAlias: "rollapp_3-3",
+				},
+			},
+			s.dymNsKeeper.ReplaceChainIdWithAliasIfPossible(s.ctx, input),
+		)
+	})
+
+	s.Run("mapping correct EIP-155 part to RollApp ID and alias", func() {
+		input := []dymnstypes.ReverseResolvedDymNameAddress{
+			{
+				SubName:        "a",
+				Name:           "b",
+				ChainIdOrAlias: "1",
+			},
+			{
+				Name:           "a",
+				ChainIdOrAlias: "2",
+			},
+			{
+				Name:           "b",
+				ChainIdOrAlias: "3",
 			},
 		}
 		s.Require().Equal(

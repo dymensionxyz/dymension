@@ -17,5 +17,6 @@ type BankKeeper interface {
 // RollAppKeeper defines the expected x/rollapp keeper
 type RollAppKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
+	GetRollappByEIP155(ctx sdk.Context, eip155 uint64) (val rollapptypes.Rollapp, found bool)
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
 }

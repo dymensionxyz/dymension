@@ -1,8 +1,11 @@
 package utils
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
+
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	cometbfttypes "github.com/cometbft/cometbft/types"
 )
@@ -39,4 +42,11 @@ func IsValidEIP155ChainId(eip155ChainId string) bool {
 	}
 
 	return true
+}
+
+// MustGetEIP155ChainIdFromRollAppId returns the EIP155 chain id from the given rollapp chain id.
+// It panics if the given rollapp chain id is invalid.
+func MustGetEIP155ChainIdFromRollAppId(rollAppChainId string) string {
+	rollAppId := rollapptypes.MustNewChainID(rollAppChainId)
+	return fmt.Sprintf("%d", rollAppId.GetEIP155ID())
 }

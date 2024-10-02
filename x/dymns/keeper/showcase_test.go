@@ -275,6 +275,7 @@ func (s *KeeperTestSuite) TestKeeper_DymNameConfiguration() {
 		save()
 
 	const rollAppId = "rollapp_1-1"
+	const rollAppEip155ChainId = "1"
 	const rollAppBech32Prefix = "rol"
 	_ = sc.
 		newRollApp(rollAppId).
@@ -322,7 +323,7 @@ func (s *KeeperTestSuite) TestKeeper_DymNameConfiguration() {
 	})
 	/// account 5
 	anotherUser5 := sc.newTestAccount()
-	updateDymName(dymName).resolveTo(anotherUser5.bech32C(rollAppBech32Prefix)).onChain(rollAppId).add()
+	updateDymName(dymName).resolveTo(anotherUser5.bech32C(rollAppBech32Prefix)).onRollApp(rollAppId).add()
 	sc.addLaterTest(func() {
 		sc.requireResolveDymNameAddress("my-name@" + rollAppId).Equals(anotherUser5.bech32C(rollAppBech32Prefix))
 		// on RollApp, configured address is case-insensitive
@@ -339,7 +340,7 @@ func (s *KeeperTestSuite) TestKeeper_DymNameConfiguration() {
 	})
 	/// account 6
 	anotherUser6 := sc.newTestAccount()
-	updateDymName(dymName).resolveTo(anotherUser6.bech32C(rollAppBech32Prefix)).withSubName("sub-rol").onChain(rollAppId).add()
+	updateDymName(dymName).resolveTo(anotherUser6.bech32C(rollAppBech32Prefix)).withSubName("sub-rol").onRollApp(rollAppId).add()
 	sc.addLaterTest(func() {
 		sc.requireResolveDymNameAddress("sub-rol.my-name@" + rollAppId).Equals(anotherUser6.bech32C(rollAppBech32Prefix))
 		sc.requireReverseResolve(anotherUser6.bech32C(rollAppBech32Prefix)).forChainId(rollAppId).equals("sub-rol.my-name@" + rollAppId)
@@ -412,13 +413,13 @@ func (s *KeeperTestSuite) TestKeeper_DymNameConfiguration() {
 					},
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
-						ChainId: rollAppId,
+						ChainId: rollAppEip155ChainId, // for RollApps, only EIP-155 chain-id is persisted
 						Path:    "",
 						Value:   anotherUser5.bech32C(rollAppBech32Prefix), // account 5
 					},
 					{
 						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
-						ChainId: rollAppId,
+						ChainId: rollAppEip155ChainId, // for RollApps, only EIP-155 chain-id is persisted
 						Path:    "sub-rol",
 						Value:   anotherUser6.bech32C(rollAppBech32Prefix), // account 6
 					},
@@ -1106,6 +1107,11 @@ type udtDymNameConfigResolveTo struct {
 
 func (m *udtDymNameConfigResolveTo) onChain(chainId string) *udtDymNameConfigResolveTo {
 	m.chainId = chainId
+	return m
+}
+
+func (m *udtDymNameConfigResolveTo) onRollApp(chainId string) *udtDymNameConfigResolveTo {
+	m.chainId = dymnsutils.MustGetEIP155ChainIdFromRollAppId(chainId)
 	return m
 }
 
