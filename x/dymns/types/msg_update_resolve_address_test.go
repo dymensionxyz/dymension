@@ -84,6 +84,16 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 			wantErrContains: "dym name config chain id must be a valid chain id format",
 		},
 		{
+			name:            "fail - reject EIP-155 chain-id, MsgServer should handle the business logic",
+			dymName:         "a",
+			chainId:         "1100",
+			subName:         "abc",
+			resolveTo:       "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			controller:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			wantErr:         true,
+			wantErrContains: "chain-id cannot be numeric-only",
+		},
+		{
 			name:            "fail - bad sub-name",
 			dymName:         "a",
 			chainId:         "",

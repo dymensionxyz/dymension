@@ -33,6 +33,11 @@ func (m *MsgUpdateResolveAddress) ValidateBasic() error {
 				)
 			}
 		}
+	} else if dymnsutils.IsValidEIP155ChainId(m.ChainId) {
+		return errorsmod.Wrap(
+			gerrc.ErrInvalidArgument,
+			"chain-id cannot be numeric-only",
+		)
 	}
 
 	if !dymnsutils.IsValidBech32AccountAddress(m.Controller, true) {

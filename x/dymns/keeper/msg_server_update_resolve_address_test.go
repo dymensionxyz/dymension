@@ -326,6 +326,38 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 			},
 		},
 		{
+			name: "fail - reject if config ChainID is EIP-155 format",
+			dymName: &dymnstypes.DymName{
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   s.now.Unix() + 100,
+			},
+			msg: &dymnstypes.MsgUpdateResolveAddress{
+				ResolveTo:  ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ChainId:    "155",
+			},
+			preTestFunc: func(s *KeeperTestSuite) {
+				s.requireConfiguredAddress(ownerAcc.bech32()).mappedDymNames(recordName)
+				s.requireConfiguredAddress(controllerAcc.bech32()).notMappedToAnyDymName()
+				s.requireFallbackAddress(ownerAcc.fallback()).mappedDymNames(recordName)
+				s.requireFallbackAddress(controllerAcc.fallback()).notMappedToAnyDymName()
+			},
+			wantErr:         true,
+			wantErrContains: "chain-id cannot be numeric-only",
+			wantDymName: &dymnstypes.DymName{
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   s.now.Unix() + 100,
+			},
+			postTestFunc: func(s *KeeperTestSuite) {
+				s.requireConfiguredAddress(ownerAcc.bech32()).mappedDymNames(recordName)
+				s.requireConfiguredAddress(controllerAcc.bech32()).notMappedToAnyDymName()
+				s.requireFallbackAddress(ownerAcc.fallback()).mappedDymNames(recordName)
+				s.requireFallbackAddress(controllerAcc.fallback()).notMappedToAnyDymName()
+			},
+		},
+		{
 			name: "pass - can update",
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
