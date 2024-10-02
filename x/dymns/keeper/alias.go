@@ -1,7 +1,11 @@
 package keeper
 
 import (
+	"fmt"
 	"slices"
+	"strconv"
+
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,10 +21,17 @@ func (k Keeper) GetRollAppIdByAlias(ctx sdk.Context, alias string) (rollAppId st
 	}()
 
 	store := ctx.KVStore(k.storeKey)
-	key := dymnstypes.AliasToRollAppIdRvlKey(alias)
+	key := dymnstypes.AliasToRollAppEip155IdRvlKey(alias)
 	bz := store.Get(key)
 	if bz != nil {
-		rollAppId = string(bz)
+		rollAppEip155Id := string(bz)
+		eip155, _ := strconv.ParseUint(rollAppEip155Id, 10, 64)
+		rollApp, foundRollApp := k.rollappKeeper.GetRollappByEIP155(ctx, eip155)
+		if !foundRollApp {
+			// this should not happen as validated before
+			panic(fmt.Sprintf("rollapp not found by EIP155 of alias '%s': %s", alias, rollAppEip155Id))
+		}
+		rollAppId = rollApp.RollappId
 	}
 
 	return
@@ -59,23 +70,25 @@ func (k Keeper) SetAliasForRollAppId(ctx sdk.Context, rollAppId, alias string) e
 	}
 
 	store := ctx.KVStore(k.storeKey)
-	keyR2A := dymnstypes.RollAppIdToAliasesKey(rollAppId)
-	keyA2R := dymnstypes.AliasToRollAppIdRvlKey(alias)
+	keyRE155toA := dymnstypes.RollAppIdToAliasesKey(rollAppId)
+	keyAtoRE155 := dymnstypes.AliasToRollAppEip155IdRvlKey(alias)
 
 	// ensure the alias is not being used by another RollApp
-	if bz := store.Get(keyA2R); bz != nil {
-		return errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias currently being in used by: %s", string(bz))
+	if bz := store.Get(keyAtoRE155); bz != nil {
+		eip155, _ := strconv.ParseUint(string(bz), 10, 64)
+		rollApp, _ := k.rollappKeeper.GetRollappByEIP155(ctx, eip155)
+		return errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias currently being in used by: %s", rollApp.RollappId)
 	}
 
 	// one RollApp can have multiple aliases, append to the existing list
 	var multipleAliases dymnstypes.MultipleAliases
-	if bz := store.Get(keyR2A); bz != nil {
+	if bz := store.Get(keyRE155toA); bz != nil {
 		k.cdc.MustUnmarshal(bz, &multipleAliases)
 	}
 	multipleAliases.Aliases = append(multipleAliases.Aliases, alias)
 
-	store.Set(keyR2A, k.cdc.MustMarshal(&multipleAliases))
-	store.Set(keyA2R, []byte(rollAppId))
+	store.Set(keyRE155toA, k.cdc.MustMarshal(&multipleAliases))
+	store.Set(keyAtoRE155, []byte(dymnsutils.MustGetEIP155ChainIdFromRollAppId(rollAppId)))
 
 	return nil
 }
@@ -136,20 +149,24 @@ func (k Keeper) RemoveAliasFromRollAppId(ctx sdk.Context, rollAppId, alias strin
 	}
 
 	store := ctx.KVStore(k.storeKey)
-	keyR2A := dymnstypes.RollAppIdToAliasesKey(rollAppId)
-	keyA2R := dymnstypes.AliasToRollAppIdRvlKey(alias)
+	keyRE155toA := dymnstypes.RollAppIdToAliasesKey(rollAppId)
+	keyAtoRE155 := dymnstypes.AliasToRollAppEip155IdRvlKey(alias)
 
 	// ensure the alias is being used by the RollApp
-	bzRollAppId := store.Get(keyA2R)
-	if bzRollAppId == nil {
+	bzRollAppEip155Id := store.Get(keyAtoRE155)
+	if bzRollAppEip155Id == nil {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "alias not found: %s", alias)
-	} else if string(bzRollAppId) != rollAppId {
-		return errorsmod.Wrapf(gerrc.ErrPermissionDenied, "alias currently being in used by: %s", string(bzRollAppId))
+	}
+
+	if string(bzRollAppEip155Id) != dymnsutils.MustGetEIP155ChainIdFromRollAppId(rollAppId) {
+		eip155, _ := strconv.ParseUint(string(bzRollAppEip155Id), 10, 64)
+		rollApp, _ := k.rollappKeeper.GetRollappByEIP155(ctx, eip155)
+		return errorsmod.Wrapf(gerrc.ErrPermissionDenied, "alias currently being in used by: %s", rollApp.RollappId)
 	}
 
 	// load the existing aliases of the RollApp
 	var multipleAliases dymnstypes.MultipleAliases
-	if bz := store.Get(keyR2A); bz != nil {
+	if bz := store.Get(keyRE155toA); bz != nil {
 		k.cdc.MustUnmarshal(bz, &multipleAliases)
 	}
 
@@ -166,13 +183,13 @@ func (k Keeper) RemoveAliasFromRollAppId(ctx sdk.Context, rollAppId, alias strin
 
 	// if no alias left, remove the key, otherwise update new list
 	if len(multipleAliases.Aliases) == 0 {
-		store.Delete(keyR2A)
+		store.Delete(keyRE155toA)
 	} else {
-		store.Set(keyR2A, k.cdc.MustMarshal(&multipleAliases))
+		store.Set(keyRE155toA, k.cdc.MustMarshal(&multipleAliases))
 	}
 
 	// remove the alias to RollAppId mapping
-	store.Delete(keyA2R)
+	store.Delete(keyAtoRE155)
 
 	return nil
 }
@@ -235,6 +252,10 @@ func (k Keeper) IsAliasPresentsInParamsAsAliasOrChainId(ctx sdk.Context, alias s
 
 // SetDefaultAliasForRollApp move the alias into the first place, so it can be used as default alias in resolution.
 func (k Keeper) SetDefaultAliasForRollApp(ctx sdk.Context, rollAppId, alias string) error {
+	if _, err := rollapptypes.NewChainID(rollAppId); err != nil {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid RollApp chain-id: %s", rollAppId)
+	}
+
 	// load the existing aliases of the RollApp from store
 	existingAliases := k.GetAliasesOfRollAppId(ctx, rollAppId)
 
@@ -260,8 +281,8 @@ func (k Keeper) SetDefaultAliasForRollApp(ctx sdk.Context, rollAppId, alias stri
 	// update the new list into store
 
 	store := ctx.KVStore(k.storeKey)
-	keyR2A := dymnstypes.RollAppIdToAliasesKey(rollAppId)
-	store.Set(keyR2A, k.cdc.MustMarshal(&dymnstypes.MultipleAliases{Aliases: existingAliases}))
+	keyRE155toA := dymnstypes.RollAppIdToAliasesKey(rollAppId)
+	store.Set(keyRE155toA, k.cdc.MustMarshal(&dymnstypes.MultipleAliases{Aliases: existingAliases}))
 
 	return nil
 }
@@ -270,16 +291,35 @@ func (k Keeper) SetDefaultAliasForRollApp(ctx sdk.Context, rollAppId, alias stri
 func (k Keeper) GetAllRollAppsWithAliases(ctx sdk.Context) (list []dymnstypes.AliasesOfChainId) {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixRollAppIdToAliases)
+	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixRollAppEip155IdToAliases)
 	defer func() {
 		_ = iterator.Close()
 	}()
 
+	eip155ToRollAppIdCache := make(map[string]string)
+	// Describe usage of Go Map: used for caching purpose, no iteration.
+
 	for ; iterator.Valid(); iterator.Next() {
 		var multipleAliases dymnstypes.MultipleAliases
 		k.cdc.MustUnmarshal(iterator.Value(), &multipleAliases)
+
+		var rollAppId string
+		eip155Id := string(iterator.Key()[len(dymnstypes.KeyPrefixRollAppEip155IdToAliases):])
+		if cachedRollAppId, found := eip155ToRollAppIdCache[eip155Id]; found {
+			rollAppId = cachedRollAppId
+		} else {
+			eip155, _ := strconv.ParseUint(eip155Id, 10, 64)
+			rollApp, foundRollApp := k.rollappKeeper.GetRollappByEIP155(ctx, eip155)
+			if !foundRollApp {
+				// this should not happen as validated before
+				panic(fmt.Sprintf("rollapp not found by EIP155: %s", eip155Id))
+			}
+			rollAppId = rollApp.RollappId
+			eip155ToRollAppIdCache[eip155Id] = rollAppId // cache the result
+		}
+
 		list = append(list, dymnstypes.AliasesOfChainId{
-			ChainId: string(iterator.Key()[len(dymnstypes.KeyPrefixRollAppIdToAliases):]),
+			ChainId: rollAppId,
 			Aliases: multipleAliases.Aliases,
 		})
 	}

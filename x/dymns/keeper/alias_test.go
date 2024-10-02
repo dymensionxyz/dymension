@@ -988,7 +988,7 @@ func (s *KeeperTestSuite) TestKeeper_SetDefaultAliasForRollApp() {
 			existingAliases:  nil,
 			moveAlias:        "default",
 			wantErr:          true,
-			wantErrContains:  "alias is not linked to the RollApp",
+			wantErrContains:  "invalid RollApp chain-id",
 			wantAliases:      nil,
 		},
 		{
@@ -1043,6 +1043,9 @@ func (s *KeeperTestSuite) TestKeeper_SetDefaultAliasForRollApp() {
 
 			defer func() {
 				if tt.rollAppId == "" || s.T().Failed() {
+					return
+				}
+				if _, err := rollapptypes.NewChainID(tt.rollAppId); err != nil {
 					return
 				}
 				aliasesAfter := s.dymNsKeeper.GetAliasesOfRollAppId(s.ctx, tt.rollAppId)

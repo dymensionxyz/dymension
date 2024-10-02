@@ -20,8 +20,8 @@ func TestStorePrefixes(t *testing.T) {
 		require.Equal(t, []byte{0x09}, KeyPrefixRvlBuyerToBuyOrderIds, "do not change it, will break the app")
 		require.Equal(t, []byte{0x0A, partialStoreAssetTypeDymName}, KeyPrefixRvlDymNameToBuyOrderIds, "do not change it, will break the app")
 		require.Equal(t, []byte{0x0A, partialStoreAssetTypeAlias}, KeyPrefixRvlAliasToBuyOrderIds, "do not change it, will break the app")
-		require.Equal(t, []byte{0x0B}, KeyPrefixRollAppIdToAliases, "do not change it, will break the app")
-		require.Equal(t, []byte{0x0C}, KeyPrefixRvlAliasToRollAppId, "do not change it, will break the app")
+		require.Equal(t, []byte{0x0B}, KeyPrefixRollAppEip155IdToAliases, "do not change it, will break the app")
+		require.Equal(t, []byte{0x0C}, KeyPrefixRvlAliasToRollAppEip155Id, "do not change it, will break the app")
 	})
 
 	t.Run("ensure keys are not mistakenly modified", func(t *testing.T) {
@@ -72,7 +72,7 @@ func TestKeys(t *testing.T) {
 	} {
 		t.Run(input, func(t *testing.T) {
 			require.Equal(t, append(KeyPrefixBuyOrder, []byte(input)...), BuyOrderKey(input))
-			require.Equal(t, append(KeyPrefixRvlAliasToRollAppId, []byte(input)...), AliasToRollAppIdRvlKey(input))
+			require.Equal(t, append(KeyPrefixRvlAliasToRollAppEip155Id, []byte(input)...), AliasToRollAppEip155IdRvlKey(input))
 		})
 	}
 

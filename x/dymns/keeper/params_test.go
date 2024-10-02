@@ -3,8 +3,6 @@ package keeper_test
 import (
 	"time"
 
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
@@ -206,6 +204,7 @@ func (s *KeeperTestSuite) TestKeeper_CanUseAliasForNewRegistration() {
 			},
 			want: false,
 		},
+		/* // This test is not applicable anymore because cannot extract EIP-155 part from RollApp-ID
 		{
 			name:  "pass - returns as NOT free if it is a RollApp-ID",
 			alias: "bridge",
@@ -219,6 +218,7 @@ func (s *KeeperTestSuite) TestKeeper_CanUseAliasForNewRegistration() {
 			},
 			want: false,
 		},
+		*/
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {

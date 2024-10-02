@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
 const (
@@ -30,8 +31,8 @@ const (
 	prefixBuyOrder
 	prefixRvlBuyerToBuyOrderIds   // reverse lookup store
 	prefixRvlAssetIdToBuyOrderIds // reverse lookup store
-	prefixRollAppIdToAliases
-	prefixRvlAliasToRollAppId // reverse lookup store
+	prefixRollAppEip155IdToAliases
+	prefixRvlAliasToRollAppEip155Id // reverse lookup store
 )
 
 const (
@@ -76,11 +77,11 @@ var (
 	// KeyPrefixRvlAliasToBuyOrderIds is the key prefix for the reverse lookup for BuyOrder IDs by the Alias
 	KeyPrefixRvlAliasToBuyOrderIds = []byte{prefixRvlAssetIdToBuyOrderIds, partialStoreAssetTypeAlias}
 
-	// KeyPrefixRollAppIdToAliases is the key prefix for the Roll-App ID to Alias records
-	KeyPrefixRollAppIdToAliases = []byte{prefixRollAppIdToAliases}
+	// KeyPrefixRollAppEip155IdToAliases is the key prefix for the Roll-App EIP-155 ID to Alias records
+	KeyPrefixRollAppEip155IdToAliases = []byte{prefixRollAppEip155IdToAliases}
 
-	// KeyPrefixRvlAliasToRollAppId is the key prefix for the reverse lookup for Alias to Roll-App ID records
-	KeyPrefixRvlAliasToRollAppId = []byte{prefixRvlAliasToRollAppId}
+	// KeyPrefixRvlAliasToRollAppEip155Id is the key prefix for the reverse lookup for Alias to Roll-App EIP-155 ID records
+	KeyPrefixRvlAliasToRollAppEip155Id = []byte{prefixRvlAliasToRollAppEip155Id}
 )
 
 // KeyCountBuyOrders is the key for the count of all-time buy orders
@@ -138,12 +139,14 @@ func AliasToBuyOrderIdsRvlKey(alias string) []byte {
 	return append(KeyPrefixRvlAliasToBuyOrderIds, []byte(alias)...)
 }
 
-// RollAppIdToAliasesKey returns a key for the Roll-App ID to list of alias records
+// RollAppIdToAliasesKey returns a key for the Roll-App ID to list of alias records.
+// Note: the input RollApp ID must be full-chain-id, not EIP-155 only part.
 func RollAppIdToAliasesKey(rollAppId string) []byte {
-	return append(KeyPrefixRollAppIdToAliases, []byte(rollAppId)...)
+	eip155 := dymnsutils.MustGetEIP155ChainIdFromRollAppId(rollAppId)
+	return append(KeyPrefixRollAppEip155IdToAliases, []byte(eip155)...)
 }
 
-// AliasToRollAppIdRvlKey returns a key for reverse lookup for Alias to Roll-App ID records
-func AliasToRollAppIdRvlKey(alias string) []byte {
-	return append(KeyPrefixRvlAliasToRollAppId, []byte(alias)...)
+// AliasToRollAppEip155IdRvlKey returns a key for reverse lookup for Alias to Roll-App EIP-155 ID records
+func AliasToRollAppEip155IdRvlKey(alias string) []byte {
+	return append(KeyPrefixRvlAliasToRollAppEip155Id, []byte(alias)...)
 }
