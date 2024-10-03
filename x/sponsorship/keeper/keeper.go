@@ -23,6 +23,7 @@ type Keeper struct {
 
 	stakingKeeper    types.StakingKeeper
 	incentivesKeeper types.IncentivesKeeper
+	sequencerKeeper  types.SequencerKeeper
 }
 
 // NewKeeper returns a new instance of the x/sponsorship keeper.
@@ -32,6 +33,7 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	sk types.StakingKeeper,
 	ik types.IncentivesKeeper,
+	sqk types.SequencerKeeper,
 	authority string,
 ) Keeper {
 	// ensure the module account is set
@@ -53,12 +55,6 @@ func NewKeeper(
 			"params",
 			collcompat.ProtoValue[types.Params](cdc),
 		),
-		distribution: collections.NewItem(
-			sb,
-			types.DistributionPrefix(),
-			"distribution",
-			collcompat.ProtoValue[types.Distribution](cdc),
-		),
 		delegatorValidatorPower: collections.NewMap(
 			sb,
 			types.DelegatorValidatorPrefix(),
@@ -69,6 +65,12 @@ func NewKeeper(
 			),
 			collcompat.IntValue,
 		),
+		distribution: collections.NewItem(
+			sb,
+			types.DistributionPrefix(),
+			"distribution",
+			collcompat.ProtoValue[types.Distribution](cdc),
+		),
 		votes: collections.NewMap(
 			sb,
 			types.VotePrefix(),
@@ -78,5 +80,6 @@ func NewKeeper(
 		),
 		stakingKeeper:    sk,
 		incentivesKeeper: ik,
+		sequencerKeeper:  sqk,
 	}
 }
