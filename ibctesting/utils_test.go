@@ -203,7 +203,7 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	stateInfo, found := rollappKeeper.GetStateInfo(s.hubCtx(), rollappChainID(), latestStateInfoIndex.Index)
 	startHeight := uint64(1)
 	if found {
-		startHeight = stateInfo.LastHeight() + 1
+		startHeight = stateInfo.StartHeight + stateInfo.NumBlocks
 	}
 	numBlocks := endHeight - startHeight + 1
 	// populate the block descriptors
@@ -238,7 +238,8 @@ func (s *utilSuite) finalizeRollappState(index uint64, endHeight uint64) (sdk.Ev
 	stateInfo, found := rollappKeeper.GetStateInfo(ctx, rollappChainID(), stateInfoIdx.Index)
 	s.Require().True(found)
 	// this is a hack to increase the finalized height by modifying the last state info instead of submitting a new one
-	stateInfo = stateInfo.WithNumBlocks(endHeight - stateInfo.StartHeight + 1)
+	stateInfo.NumBlocks = endHeight - stateInfo.StartHeight + 1
+	stateInfo.BDs.BD = make([]rollapptypes.BlockDescriptor, stateInfo.NumBlocks)
 	stateInfo.Status = common.Status_FINALIZED
 	// update the status of the stateInfo
 	rollappKeeper.SetStateInfo(ctx, stateInfo)

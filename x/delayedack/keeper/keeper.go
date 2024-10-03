@@ -63,7 +63,7 @@ func (k Keeper) getRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint
 	}
 
 	stateInfo := k.rollappKeeper.MustGetStateInfo(ctx, chainID, latestFinalizedStateIndex.Index)
-	return stateInfo.GetLatestHeight(), nil
+	return stateInfo.StartHeight + stateInfo.NumBlocks - 1, nil
 }
 
 /* -------------------------------------------------------------------------- */
