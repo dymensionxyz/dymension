@@ -5,6 +5,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // AccountKeeper defines the contract required for account APIs.
@@ -20,4 +21,8 @@ type StakingKeeper interface {
 
 type IncentivesKeeper interface {
 	GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*incentivestypes.Gauge, error)
+}
+
+type SequencerKeeper interface {
+	GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string, status sequencertypes.OperatingStatus) []sequencertypes.Sequencer
 }
