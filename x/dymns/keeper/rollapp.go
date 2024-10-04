@@ -6,8 +6,7 @@ import (
 
 // IsRollAppId checks if the chain-id is a RollApp-Id.
 func (k Keeper) IsRollAppId(ctx sdk.Context, chainId string) bool {
-	_, found := k.rollappKeeper.GetRollapp(ctx, chainId)
-	return found
+	return k.rollappKeeper.IsRollAppExists(ctx, chainId)
 }
 
 // IsRollAppCreator returns true if the input bech32 address is the creator of the RollApp.

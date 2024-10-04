@@ -943,12 +943,12 @@ func (k Keeper) ReplaceChainIdWithAliasIfPossible(ctx sdk.Context, reverseResolv
 			fullRollAppId, found := eip155ToRollAppIdCache[chainIdOrAlias]
 			if !found {
 				rollAppEip155ChainId, _ := strconv.ParseUint(chainIdOrAlias, 10, 64)
-				rollApp, foundRA := k.rollappKeeper.GetRollappByEIP155(ctx, rollAppEip155ChainId)
+				var foundRA bool
+				fullRollAppId, foundRA = k.rollappKeeper.GetRollAppIdByEIP155(ctx, rollAppEip155ChainId)
 				if !foundRA {
 					// this should not happen because we have checked the existence of RollApp before
 					panic(fmt.Sprintf("RollApp by EIP-155 not found"))
 				}
-				fullRollAppId = rollApp.RollappId
 				eip155ToRollAppIdCache[chainIdOrAlias] = fullRollAppId // cache result
 			}
 

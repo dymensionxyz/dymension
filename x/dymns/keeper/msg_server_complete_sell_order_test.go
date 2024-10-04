@@ -448,7 +448,6 @@ func (s *KeeperTestSuite) Test_msgServer_CompleteSellOrder_Alias() {
 		preRunFunc      func(s *KeeperTestSuite)
 		wantErr         bool
 		wantErrContains string
-		wantPanic       bool
 		postRunFunc     func(s *KeeperTestSuite)
 	}{
 		{
@@ -712,7 +711,8 @@ func (s *KeeperTestSuite) Test_msgServer_CompleteSellOrder_Alias() {
 			preRunFunc: func(s *KeeperTestSuite) {
 				s.rollAppKeeper.RemoveRollapp(s.ctx, rollApp_1_byOwner_asSrc.rollAppId)
 			},
-			wantPanic: true,
+			wantErr:         true,
+			wantErrContains: "not found",
 		},
 		{
 			name:        "fail - can not complete when the RollApp which should be linked to, does not exists (deleted)",
@@ -745,23 +745,6 @@ func (s *KeeperTestSuite) Test_msgServer_CompleteSellOrder_Alias() {
 			}
 
 			// test
-
-			if tt.wantPanic {
-				defer func() {
-					if tt.postRunFunc != nil {
-						tt.postRunFunc(s)
-					}
-				}()
-
-				s.Require().Panics(func() {
-					_, _ = dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).CompleteSellOrder(s.ctx, &dymnstypes.MsgCompleteSellOrder{
-						AssetId:     expiredSO.AssetId,
-						AssetType:   dymnstypes.TypeAlias,
-						Participant: tt.participant,
-					})
-				})
-				return
-			}
 
 			resp, errCompleteSO := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).CompleteSellOrder(s.ctx, &dymnstypes.MsgCompleteSellOrder{
 				AssetId:     expiredSO.AssetId,

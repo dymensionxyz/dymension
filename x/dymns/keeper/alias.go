@@ -26,12 +26,12 @@ func (k Keeper) GetRollAppIdByAlias(ctx sdk.Context, alias string) (rollAppId st
 	if bz != nil {
 		rollAppEip155Id := string(bz)
 		eip155, _ := strconv.ParseUint(rollAppEip155Id, 10, 64)
-		rollApp, foundRollApp := k.rollappKeeper.GetRollappByEIP155(ctx, eip155)
+		var foundRollApp bool
+		rollAppId, foundRollApp = k.rollappKeeper.GetRollAppIdByEIP155(ctx, eip155)
 		if !foundRollApp {
 			// this should not happen as validated before
 			panic(fmt.Sprintf("rollapp not found by EIP155 of alias '%s': %s", alias, rollAppEip155Id))
 		}
-		rollAppId = rollApp.RollappId
 	}
 
 	return
@@ -76,8 +76,8 @@ func (k Keeper) SetAliasForRollAppId(ctx sdk.Context, rollAppId, alias string) e
 	// ensure the alias is not being used by another RollApp
 	if bz := store.Get(keyAtoRE155); bz != nil {
 		eip155, _ := strconv.ParseUint(string(bz), 10, 64)
-		rollApp, _ := k.rollappKeeper.GetRollappByEIP155(ctx, eip155)
-		return errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias currently being in used by: %s", rollApp.RollappId)
+		usedByRollAppId, _ := k.rollappKeeper.GetRollAppIdByEIP155(ctx, eip155)
+		return errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias currently being in used by: %s", usedByRollAppId)
 	}
 
 	// one RollApp can have multiple aliases, append to the existing list
@@ -160,8 +160,8 @@ func (k Keeper) RemoveAliasFromRollAppId(ctx sdk.Context, rollAppId, alias strin
 
 	if string(bzRollAppEip155Id) != dymnsutils.MustGetEIP155ChainIdFromRollAppId(rollAppId) {
 		eip155, _ := strconv.ParseUint(string(bzRollAppEip155Id), 10, 64)
-		rollApp, _ := k.rollappKeeper.GetRollappByEIP155(ctx, eip155)
-		return errorsmod.Wrapf(gerrc.ErrPermissionDenied, "alias currently being in used by: %s", rollApp.RollappId)
+		usedByRollAppId, _ := k.rollappKeeper.GetRollAppIdByEIP155(ctx, eip155)
+		return errorsmod.Wrapf(gerrc.ErrPermissionDenied, "alias currently being in used by: %s", usedByRollAppId)
 	}
 
 	// load the existing aliases of the RollApp
@@ -309,12 +309,12 @@ func (k Keeper) GetAllRollAppsWithAliases(ctx sdk.Context) (list []dymnstypes.Al
 			rollAppId = cachedRollAppId
 		} else {
 			eip155, _ := strconv.ParseUint(eip155Id, 10, 64)
-			rollApp, foundRollApp := k.rollappKeeper.GetRollappByEIP155(ctx, eip155)
+			var foundRollApp bool
+			rollAppId, foundRollApp = k.rollappKeeper.GetRollAppIdByEIP155(ctx, eip155)
 			if !foundRollApp {
 				// this should not happen as validated before
 				panic(fmt.Sprintf("rollapp not found by EIP155: %s", eip155Id))
 			}
-			rollAppId = rollApp.RollappId
 			eip155ToRollAppIdCache[eip155Id] = rollAppId // cache the result
 		}
 
