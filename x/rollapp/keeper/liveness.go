@@ -30,7 +30,7 @@ func NextSlashOrJailHeight(
 	down := uint64(heightHub - heightLastRollappUpdate)
 	// when should we schedule the next slash/jail, in terms of down time duration?
 	targetInterval := blocksSlashNoUpdate
-	if blocksSlashNoUpdate < down {
+	if blocksSlashNoUpdate <= down {
 		// round up to next slash interval
 		targetInterval += ((down-blocksSlashNoUpdate)/blocksSlashInterval + 1) * blocksSlashInterval
 	}
