@@ -25,8 +25,6 @@ func TestStorePrefixes(t *testing.T) {
 	})
 
 	t.Run("ensure keys are not mistakenly modified", func(t *testing.T) {
-		require.Equal(t, []byte{0x06, partialStoreAssetTypeDymName}, KeyActiveSellOrdersExpirationOfDymName, "do not change it, will break the app")
-		require.Equal(t, []byte{0x06, partialStoreAssetTypeAlias}, KeyActiveSellOrdersExpirationOfAlias, "do not change it, will break the app")
 		require.Equal(t, []byte{0x07}, KeyCountBuyOrders, "do not change it, will break the app")
 	})
 

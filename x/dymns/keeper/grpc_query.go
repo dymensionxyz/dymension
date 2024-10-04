@@ -483,7 +483,7 @@ func (q queryServer) Aliases(goCtx context.Context, req *dymnstypes.QueryAliases
 			aliases := rollAppWithAliases.Aliases
 
 			// Remove the preserved aliases from record.
-			// Please read the `processActiveAliasSellOrders` method (hooks.go) for more information.
+			// Please read the `processCompleteSellOrderWithAssetTypeAlias` method (msg_server_complete_sell_order.go) for more information.
 			aliases = slices.DeleteFunc(aliases, func(a string) bool {
 				_, found := reservedAliases[a]
 				return found
@@ -520,7 +520,7 @@ func (q queryServer) BuyOrdersByAlias(goCtx context.Context, req *dymnstypes.Que
 	var buyOrders []dymnstypes.BuyOrder
 	if !q.IsAliasPresentsInParamsAsAliasOrChainId(ctx, req.Alias) {
 		// We ignore the aliases which presents in the params because they are prohibited from trading.
-		// Please read the `processActiveAliasSellOrders` method (hooks.go) for more information.
+		// Please read the `processCompleteSellOrderWithAssetTypeAlias` method (msg_server_complete_sell_order.go) for more information.
 
 		var err error
 		buyOrders, err = q.GetBuyOrdersOfAlias(ctx, req.Alias)
@@ -556,7 +556,7 @@ func (q queryServer) BuyOrdersOfAliasesLinkedToRollApp(goCtx context.Context, re
 	for _, alias := range aliases {
 		if q.IsAliasPresentsInParamsAsAliasOrChainId(ctx, alias) {
 			// ignore
-			// Please read the `processActiveAliasSellOrders` method (hooks.go) for more information.
+			// Please read the `processCompleteSellOrderWithAssetTypeAlias` method (msg_server_complete_sell_order.go) for more information.
 			continue
 		}
 

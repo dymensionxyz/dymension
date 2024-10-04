@@ -114,6 +114,26 @@ func TestGenesisState_Validate(t *testing.T) {
 		}).Validate())
 	})
 
+	t.Run("fail - duplicated dym names", func(t *testing.T) {
+		require.Error(t, (GenesisState{
+			Params: DefaultParams(),
+			DymNames: []DymName{
+				{
+					Name:       "my-name",
+					Owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+					Controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+					ExpireAt:   time.Now().Unix(),
+				},
+				{
+					Name:       "my-name",
+					Owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+					Controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+					ExpireAt:   time.Now().Unix(),
+				},
+			},
+		}).Validate())
+	})
+
 	t.Run("fail - invalid bid", func(t *testing.T) {
 		require.Error(t, (GenesisState{
 			Params: DefaultParams(),

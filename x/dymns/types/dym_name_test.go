@@ -581,57 +581,6 @@ func TestDymNameConfig_Validate(t *testing.T) {
 	}
 }
 
-func TestReverseLookupDymNames_Validate(t *testing.T) {
-	t.Run("nil obj", func(t *testing.T) {
-		m := (*ReverseLookupDymNames)(nil)
-		require.Error(t, m.Validate())
-	})
-
-	tests := []struct {
-		name            string
-		DymNames        []string
-		wantErr         bool
-		wantErrContains string
-	}{
-		{
-			name:     "pass - valid reverse lookup record",
-			DymNames: []string{"my-name", "not-bonded-pool"},
-		},
-		{
-			name:     "pass - allow empty",
-			DymNames: []string{},
-		},
-		{
-			name:            "fail - bad dym name",
-			DymNames:        []string{"my-name", "-not-bonded-pool"},
-			wantErr:         true,
-			wantErrContains: "invalid dym name:",
-		},
-		{
-			name:            "fail - bad dym name",
-			DymNames:        []string{"-a"},
-			wantErr:         true,
-			wantErrContains: "invalid dym name:",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			m := &ReverseLookupDymNames{
-				DymNames: tt.DymNames,
-			}
-
-			err := m.Validate()
-			if tt.wantErr {
-				require.NotEmpty(t, tt.wantErrContains, "mis-configured test")
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
-			} else {
-				require.NoError(t, err)
-			}
-		})
-	}
-}
-
 func TestDymName_IsExpiredAt(t *testing.T) {
 	now := time.Now()
 	tests := []struct {

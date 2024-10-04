@@ -19,6 +19,8 @@ const (
 	TypeMsgPlaceSellOrder = "place_sell_order"
 	// TypeMsgCancelSellOrder is type for MsgCancelSellOrder.
 	TypeMsgCancelSellOrder = "cancel_sell_order"
+	// TypeMsgCompleteSellOrder is type for MsgCompleteSellOrder.
+	TypeMsgCompleteSellOrder = "complete_sell_order"
 	// TypeMsgPurchaseOrder is type for MsgPurchaseOrder.
 	TypeMsgPurchaseOrder = "purchase_order"
 
