@@ -14,28 +14,34 @@ It will trigger slash/jail operations through the x/sequencers module, at interv
 See ADR for more info https://www.notion.so/dymension/ADR-x-Sequencer-Liveness-Slash-Phase-1-5131b4d557e34f4498855831f439d218
 */
 
+/*
+Think clearly
+
+*/
+
 // NextSlashOrJailHeight returns the next height on the HUB to slash or jail the rollapp
 // It will respect all parameters passed in.
+// Assumes that if current hub height is already a slash height, then to schedule for the next one.
 func NextSlashOrJailHeight(
 	blocksSlashNoUpdate uint64, // time until first slash if not updating
 	blocksSlashInterval uint64, // gap between slash if still not updating
 	blocksJail uint64, // time until jail if not updating
-	heightHub int64, // current hub height
+	heightHub int64, // current height on the hub
 	heightLastRollappUpdate int64, // when was the rollapp last updated
 ) (
 	heightEvent int64, // hub height to schedule event
 	isJail bool, // is it a jail event? (false -> slash)
 ) {
-	// how long has the rollapp been down already?
+	// how long has the rollapp been down ?
 	down := uint64(heightHub - heightLastRollappUpdate)
 	// when should we schedule the next slash/jail, in terms of down time duration?
-	targetInterval := blocksSlashNoUpdate
+	interval := blocksSlashNoUpdate
 	if blocksSlashNoUpdate <= down {
 		// round up to next slash interval
-		targetInterval += ((down-blocksSlashNoUpdate)/blocksSlashInterval + 1) * blocksSlashInterval
+		interval += ((down-blocksSlashNoUpdate)/blocksSlashInterval + 1) * blocksSlashInterval
 	}
-	heightEvent = heightLastRollappUpdate + int64(targetInterval)
-	isJail = blocksJail <= targetInterval
+	heightEvent = heightLastRollappUpdate + int64(interval)
+	isJail = blocksJail <= interval
 	return
 }
 
@@ -103,7 +109,6 @@ func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
 		ctx.BlockHeight(),
 		ra.LastStateUpdateHeight,
 	)
-	nextH = max(nextH, ctx.BlockHeight()+1)
 	ra.LivenessEventHeight = nextH
 	k.PutLivenessEvent(ctx, types.LivenessEvent{
 		RollappId: ra.RollappId,

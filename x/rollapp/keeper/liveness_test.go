@@ -17,28 +17,46 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-// There was a bug where the event would be scheduled for the current block
-// if the down time was exactly blocksSlashNoUpdate amt.
-func TestLivenessRegression(t *testing.T) {
+func TestLivenessArithmetic(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
 		hEvent, _ := keeper.NextSlashOrJailHeight(
 			8,
 			4,
 			1000,
-			5,
+			0,
 			0,
 		)
 		require.Equal(t, 8, int(hEvent))
 	})
-	t.Run("simple case", func(t *testing.T) {
-		hEvent, _ = keeper.NextSlashOrJailHeight(
+	t.Run("almost at the interval", func(t *testing.T) {
+		hEvent, _ := keeper.NextSlashOrJailHeight(
+			8,
+			4,
+			1000,
+			7,
+			0,
+		)
+		require.Equal(t, 8, int(hEvent))
+	})
+	t.Run("do not schedule for next height", func(t *testing.T) {
+		hEvent, _ := keeper.NextSlashOrJailHeight(
 			8,
 			4,
 			1000,
 			8,
-			8,
+			0,
 		)
 		require.Equal(t, 12, int(hEvent))
+	})
+	t.Run("do not schedule for next height", func(t *testing.T) {
+		hEvent, _ := keeper.NextSlashOrJailHeight(
+			8,
+			4,
+			1000,
+			12,
+			0,
+		)
+		require.Equal(t, 16, int(hEvent))
 	})
 }
 
