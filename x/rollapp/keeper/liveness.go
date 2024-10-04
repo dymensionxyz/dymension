@@ -14,11 +14,6 @@ It will trigger slash/jail operations through the x/sequencers module, at interv
 See ADR for more info https://www.notion.so/dymension/ADR-x-Sequencer-Liveness-Slash-Phase-1-5131b4d557e34f4498855831f439d218
 */
 
-/*
-Think clearly
-
-*/
-
 // NextSlashOrJailHeight returns the next height on the HUB to slash or jail the rollapp
 // It will respect all parameters passed in.
 // Assumes that if current hub height is already a slash height, then to schedule for the next one.
