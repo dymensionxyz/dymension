@@ -20,22 +20,26 @@ import (
 // There was a bug where the event would be scheduled for the current block
 // if the down time was exactly blocksSlashNoUpdate amt.
 func TestLivenessRegression(t *testing.T) {
-	hEvent, _ := keeper.NextSlashOrJailHeight(
-		8,
-		4,
-		1000,
-		7,
-		8,
-	)
-	require.Equal(t, 8, int(hEvent))
-	hEvent, _ = keeper.NextSlashOrJailHeight(
-		8,
-		4,
-		1000,
-		8,
-		0,
-	)
-	require.Equal(t, 12, int(hEvent))
+	t.Run("simple case", func(t *testing.T) {
+		hEvent, _ := keeper.NextSlashOrJailHeight(
+			8,
+			4,
+			1000,
+			5,
+			0,
+		)
+		require.Equal(t, 8, int(hEvent))
+	})
+	t.Run("simple case", func(t *testing.T) {
+		hEvent, _ = keeper.NextSlashOrJailHeight(
+			8,
+			4,
+			1000,
+			8,
+			8,
+		)
+		require.Equal(t, 12, int(hEvent))
+	})
 }
 
 // Storage and query operations work for the event queue
