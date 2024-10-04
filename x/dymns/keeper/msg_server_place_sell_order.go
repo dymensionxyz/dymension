@@ -14,6 +14,7 @@ import (
 // handles creating a Sell-Order that advertise a Dym-Name/Alias is for sale, performed by the owner.
 func (k msgServer) PlaceSellOrder(goCtx context.Context, msg *dymnstypes.MsgPlaceSellOrder) (*dymnstypes.MsgPlaceSellOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	originalConsumedGas := ctx.GasMeter().GasConsumed()
 
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
@@ -40,7 +41,7 @@ func (k msgServer) PlaceSellOrder(goCtx context.Context, msg *dymnstypes.MsgPlac
 
 	// Charge protocol fee.
 	// The protocol fee mechanism is used to prevent spamming to the network.
-	consumeMinimumGas(ctx, dymnstypes.OpGasPlaceSellOrder, "PlaceSellOrder")
+	consumeMinimumGas(ctx, dymnstypes.OpGasPlaceSellOrder, originalConsumedGas, "PlaceSellOrder")
 
 	return resp, nil
 }
@@ -73,12 +74,6 @@ func (k msgServer) processPlaceSellOrderWithAssetTypeDymName(
 	}
 
 	if err := k.SetSellOrder(ctx, so); err != nil {
-		return nil, err
-	}
-
-	aSoe := k.GetActiveSellOrdersExpiration(ctx, so.AssetType)
-	aSoe.Add(so.AssetId, so.ExpireAt)
-	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, so.AssetType); err != nil {
 		return nil, err
 	}
 
@@ -149,12 +144,6 @@ func (k msgServer) processPlaceSellOrderWithAssetTypeAlias(
 		return nil, err
 	}
 
-	aSoe := k.GetActiveSellOrdersExpiration(ctx, so.AssetType)
-	aSoe.Add(so.AssetId, so.ExpireAt)
-	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, so.AssetType); err != nil {
-		return nil, err
-	}
-
 	return &dymnstypes.MsgPlaceSellOrderResponse{}, nil
 }
 
@@ -166,7 +155,7 @@ func (k msgServer) validatePlaceSellOrderWithAssetTypeAlias(
 	alias := msg.AssetId
 
 	if k.IsAliasPresentsInParamsAsAliasOrChainId(ctx, msg.AssetId) {
-		// Please read the `processActiveAliasSellOrders` method (hooks.go) for more information.
+		// Please read the `processCompleteSellOrderWithAssetTypeAlias` method (msg_server_complete_sell_order.go) for more information.
 		return errorsmod.Wrapf(gerrc.ErrPermissionDenied,
 			"prohibited to trade aliases which is reserved for chain-id or alias in module params: %s", msg.AssetId,
 		)

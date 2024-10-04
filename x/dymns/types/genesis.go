@@ -21,10 +21,15 @@ func (m GenesisState) Validate() error {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "params: %v", err)
 	}
 
+	uniqueNames := make(map[string]struct{})
 	for _, dymName := range m.DymNames {
 		if err := dymName.Validate(); err != nil {
 			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Dym-Name '%s': %v", dymName.Name, err)
 		}
+		if _, duplicated := uniqueNames[dymName.Name]; duplicated {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Dym-Name '%s': duplicate name", dymName.Name)
+		}
+		uniqueNames[dymName.Name] = struct{}{}
 	}
 
 	for _, soBid := range m.SellOrderBids {

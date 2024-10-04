@@ -52,6 +52,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 		preRunSetup             func(*KeeperTestSuite)
 		wantErr                 bool
 		wantErrContains         string
+		afterRunFunc            func(*KeeperTestSuite)
 	}{
 		{
 			name:            "fail - Dym-Name does not exists",
@@ -186,6 +187,21 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 			wantErr:         true,
 			wantErrContains: "trading of Dym-Name is disabled",
 		},
+		{
+			name:                    "pass - independently charge gas",
+			dymNameExpiryOffsetDays: 9999,
+			minPrice:                coin100,
+			sellPrice:               nil,
+			preRunSetup: func(s *KeeperTestSuite) {
+				s.ctx.GasMeter().ConsumeGas(100_000_000, "simulate previous run")
+			},
+			afterRunFunc: func(s *KeeperTestSuite) {
+				s.Require().GreaterOrEqual(
+					s.ctx.GasMeter().GasConsumed(), 100_000_000+dymnstypes.OpGasPlaceSellOrder,
+					"gas consumption should be stacked",
+				)
+			},
+		},
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
@@ -251,6 +267,12 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 				}, *laterDymName, "Dym-Name record should not be changed in any case")
 			}()
 
+			defer func() {
+				if tt.afterRunFunc != nil {
+					tt.afterRunFunc(s)
+				}
+			}()
+
 			if tt.wantErr {
 				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
 				s.Require().Error(err)
@@ -291,27 +313,14 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 				expectedSo.SellPrice = nil
 			}
 
-			s.Require().Nil(so.HighestBid, "highest bid should not be set")
+			s.Nil(so.HighestBid, "highest bid should not be set")
 
-			s.Require().Equal(expectedSo, *so)
+			s.Equal(expectedSo, *so)
 
-			s.Require().GreaterOrEqual(
+			s.GreaterOrEqual(
 				s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceSellOrder,
 				"should consume params gas",
 			)
-
-			aSoe := s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, dymnstypes.TypeName)
-
-			var found bool
-			for _, record := range aSoe.Records {
-				if record.AssetId == name {
-					found = true
-					s.Require().Equal(expectedSo.ExpireAt, record.ExpireAt)
-					break
-				}
-			}
-
-			s.Require().True(found)
 		})
 	}
 }
@@ -349,6 +358,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_Alias() {
 		preRunSetup        func(*KeeperTestSuite)
 		wantErr            bool
 		wantErrContains    string
+		afterRunFunc       func(*KeeperTestSuite)
 	}{
 		{
 			name:            "fail - alias does not exists",
@@ -480,6 +490,20 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_Alias() {
 			wantErr:         true,
 			wantErrContains: "trading of Alias is disabled",
 		},
+		{
+			name:      "pass - independently charge gas",
+			minPrice:  coin100,
+			sellPrice: nil,
+			preRunSetup: func(s *KeeperTestSuite) {
+				s.ctx.GasMeter().ConsumeGas(100_000_000, "simulate previous run")
+			},
+			afterRunFunc: func(s *KeeperTestSuite) {
+				s.Require().GreaterOrEqual(
+					s.ctx.GasMeter().GasConsumed(), 100_000_000+dymnstypes.OpGasPlaceSellOrder,
+					"gas consumption should be stacked",
+				)
+			},
+		},
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
@@ -533,6 +557,12 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_Alias() {
 				}
 			}()
 
+			defer func() {
+				if tt.afterRunFunc != nil {
+					tt.afterRunFunc(s)
+				}
+			}()
+
 			if tt.wantErr {
 				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
 				s.Require().Error(err)
@@ -573,27 +603,14 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_Alias() {
 				expectedSo.SellPrice = nil
 			}
 
-			s.Require().Nil(so.HighestBid, "highest bid should not be set")
+			s.Nil(so.HighestBid, "highest bid should not be set")
 
-			s.Require().Equal(expectedSo, *so)
+			s.Equal(expectedSo, *so)
 
-			s.Require().GreaterOrEqual(
+			s.GreaterOrEqual(
 				s.ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceSellOrder,
 				"should consume params gas",
 			)
-
-			aSoe := s.dymNsKeeper.GetActiveSellOrdersExpiration(s.ctx, dymnstypes.TypeAlias)
-
-			var found bool
-			for _, record := range aSoe.Records {
-				if record.AssetId == alias {
-					found = true
-					s.Require().Equal(expectedSo.ExpireAt, record.ExpireAt)
-					break
-				}
-			}
-
-			s.Require().True(found)
 		})
 	}
 }

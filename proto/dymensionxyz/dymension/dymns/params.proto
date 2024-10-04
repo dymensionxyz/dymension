@@ -71,6 +71,12 @@ message PriceParams {
     (gogoproto.moretags) = "yaml:\"min_offer_price\"",
     (gogoproto.nullable) = false
   ];
+
+  // min_bid_increment_percent is the minimum percent raised compare to previous bid of a Sell-Order.
+  // The valid range from 0% to 100%, but capped at 10%.
+  uint32 min_bid_increment_percent = 6 [
+    (gogoproto.moretags) = "yaml:\"min_bid_increment_percent\""
+  ];
 }
 
 // ChainsParams defines setting for prioritized aliases mapping.
@@ -127,7 +133,6 @@ message MiscParams {
   bool enable_trading_name = 4;
 
   // enable_trading_alias is the flag to enable trading of Alias.
-  // To be used in the future when Alias trading implementation is ready
-  // or disable trading of Alias when needed.
+  // To be used to stop trading of Alias when needed.
   bool enable_trading_alias = 5;
 }

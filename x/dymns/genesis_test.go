@@ -272,7 +272,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	// Init genesis state
 
 	genState.Params.Misc.EndEpochHookIdentifier = "week" // Change the epoch identifier to test if it is imported correctly
-	genState.Params.Misc.SellOrderDuration = 9999 * time.Hour
+	genState.Params.Misc.SellOrderDuration = 6 * 24 * time.Hour
 
 	newDymNsKeeper, newBankKeeper, newRollAppKeeper, newCtx := testkeeper.DymNSKeeper(t)
 	newCtx = newCtx.WithBlockTime(now)
@@ -290,7 +290,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		importedParams := newDymNsKeeper.GetParams(newCtx)
 		require.Equal(t, genState.Params, importedParams)
 		require.Equal(t, "week", importedParams.Misc.EndEpochHookIdentifier)
-		require.Equal(t, 9999*time.Hour, importedParams.Misc.SellOrderDuration)
+		require.Equal(t, 6*24*time.Hour, importedParams.Misc.SellOrderDuration)
 	})
 
 	t.Run("Dym-Names should be imported correctly", func(t *testing.T) {

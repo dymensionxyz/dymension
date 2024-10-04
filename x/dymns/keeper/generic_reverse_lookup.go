@@ -1,8 +1,10 @@
 package keeper
 
 import (
+	"slices"
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
 // GenericAddReverseLookupRecord is a utility method that help to add a reverse lookup record.
@@ -12,26 +14,22 @@ func (k Keeper) GenericAddReverseLookupRecord(
 	marshaller func([]string) []byte,
 	unMarshaller func([]byte) []string,
 ) error {
-	modifiedRecord := dymnstypes.StringList{
-		newElement,
-	}
+	var modifiedRecord []string
 
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(key)
 	if bz != nil {
 		existingRecord := unMarshaller(bz)
 
-		modifiedRecord = dymnstypes.StringList(existingRecord).Combine(
-			modifiedRecord,
-		)
-
-		if len(modifiedRecord) == len(existingRecord) {
-			// no new mapping to add
+		if slices.Contains(existingRecord, newElement) {
+			// already exist
 			return nil
 		}
-	}
 
-	modifiedRecord = modifiedRecord.Sort()
+		modifiedRecord = append(existingRecord, newElement)
+	} else {
+		modifiedRecord = []string{newElement}
+	}
 
 	bz = marshaller(modifiedRecord)
 	store.Set(key, bz)
@@ -69,8 +67,14 @@ func (k Keeper) GenericRemoveReverseLookupRecord(
 	}
 
 	existingRecord := unMarshaller(bz)
+	modifiedRecord := slices.DeleteFunc(existingRecord, func(r string) bool {
+		return r == elementToRemove
+	})
 
-	modifiedRecord := dymnstypes.StringList(existingRecord).Exclude([]string{elementToRemove})
+	if len(existingRecord) == len(modifiedRecord) {
+		// not found
+		return nil
+	}
 
 	if len(modifiedRecord) == 0 {
 		// no more, remove record
@@ -78,7 +82,10 @@ func (k Keeper) GenericRemoveReverseLookupRecord(
 		return nil
 	}
 
-	modifiedRecord = modifiedRecord.Sort()
+	// just for safety, sort the records
+	slices.SortFunc(modifiedRecord, func(a, b string) int {
+		return strings.Compare(a, b)
+	})
 
 	bz = marshaller(modifiedRecord)
 	store.Set(key, bz)

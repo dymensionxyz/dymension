@@ -16,6 +16,7 @@ import (
 // Can only be performed if no one has placed a bid on the asset.
 func (k msgServer) CancelSellOrder(goCtx context.Context, msg *dymnstypes.MsgCancelSellOrder) (*dymnstypes.MsgCancelSellOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	originalConsumedGas := ctx.GasMeter().GasConsumed()
 
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
@@ -38,7 +39,7 @@ func (k msgServer) CancelSellOrder(goCtx context.Context, msg *dymnstypes.MsgCan
 	}
 
 	// charge protocol fee
-	consumeMinimumGas(ctx, dymnstypes.OpGasCloseSellOrder, "CancelSellOrder")
+	consumeMinimumGas(ctx, dymnstypes.OpGasCloseSellOrder, originalConsumedGas, "CancelSellOrder")
 
 	return resp, nil
 }
@@ -52,12 +53,6 @@ func (k msgServer) processCancelSellOrderWithAssetTypeDymName(
 	}
 
 	k.DeleteSellOrder(ctx, msg.AssetId, msg.AssetType)
-
-	aSoe := k.GetActiveSellOrdersExpiration(ctx, msg.AssetType)
-	aSoe.Remove(msg.AssetId)
-	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, msg.AssetType); err != nil {
-		return nil, err
-	}
 
 	return &dymnstypes.MsgCancelSellOrderResponse{}, nil
 }
@@ -80,10 +75,6 @@ func (k msgServer) validateCancelSellOrderWithAssetTypeDymName(
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.AssetId)
 	}
 
-	if so.HasExpiredAtCtx(ctx) {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "cannot cancel an expired order")
-	}
-
 	if so.HighestBid != nil {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "cannot cancel once bid placed")
 	}
@@ -100,12 +91,6 @@ func (k msgServer) processCancelSellOrderWithAssetTypeAlias(
 	}
 
 	k.DeleteSellOrder(ctx, msg.AssetId, msg.AssetType)
-
-	aSoe := k.GetActiveSellOrdersExpiration(ctx, msg.AssetType)
-	aSoe.Remove(msg.AssetId)
-	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, msg.AssetType); err != nil {
-		return nil, err
-	}
 
 	return &dymnstypes.MsgCancelSellOrderResponse{}, nil
 }
@@ -126,10 +111,6 @@ func (k msgServer) validateCancelSellOrderWithAssetTypeAlias(
 	so := k.GetSellOrder(ctx, msg.AssetId, msg.AssetType)
 	if so == nil {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.AssetId)
-	}
-
-	if so.HasExpiredAtCtx(ctx) {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "cannot cancel an expired order")
 	}
 
 	if so.HighestBid != nil {

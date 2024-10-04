@@ -237,6 +237,23 @@ func (s *KeeperTestSuite) Test_msgServer_CancelBuyOrder_DymName() {
 			wantLaterBuyerBalance:  sdk.NewInt(2),
 			wantMinConsumeGas:      1,
 		},
+		{
+			name:                  "pass - independently charge gas",
+			existingDymName:       dymName,
+			existingOffer:         offer,
+			buyOrderId:            offer.Id,
+			buyer:                 offer.Buyer,
+			originalModuleBalance: offer.OfferPrice.Amount,
+			originalBuyerBalance:  sdk.NewInt(0),
+			preRunSetupFunc: func(s *KeeperTestSuite) {
+				s.ctx.GasMeter().ConsumeGas(100_000_000, "simulate previous run")
+			},
+			wantErr:                false,
+			wantLaterOffer:         nil,
+			wantLaterModuleBalance: sdk.NewInt(0),
+			wantLaterBuyerBalance:  offer.OfferPrice.Amount,
+			wantMinConsumeGas:      100_000_000 + dymnstypes.OpGasCloseBuyOrder,
+		},
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
@@ -614,6 +631,23 @@ func (s *KeeperTestSuite) Test_msgServer_CancelBuyOrder_Alias() {
 			wantLaterModuleBalance: sdk.NewInt(0),
 			wantLaterBuyerBalance:  sdk.NewInt(2),
 			wantMinConsumeGas:      1,
+		},
+		{
+			name:                  "pass - independently charge gas",
+			existingRollApps:      []rollapp{rollApp_One_By1, rollApp_Two_By2},
+			existingOffer:         offerAliasOfRollAppOne,
+			buyOrderId:            offerAliasOfRollAppOne.Id,
+			buyer:                 offerAliasOfRollAppOne.Buyer,
+			originalModuleBalance: offerAliasOfRollAppOne.OfferPrice.Amount,
+			originalBuyerBalance:  sdk.NewInt(0),
+			preRunSetupFunc: func(s *KeeperTestSuite) {
+				s.ctx.GasMeter().ConsumeGas(100_000_000, "simulate previous run")
+			},
+			wantErr:                false,
+			wantLaterOffer:         nil,
+			wantLaterModuleBalance: sdk.NewInt(0),
+			wantLaterBuyerBalance:  offerAliasOfRollAppOne.OfferPrice.Amount,
+			wantMinConsumeGas:      100_000_000 + dymnstypes.OpGasCloseBuyOrder,
 		},
 	}
 	for _, tt := range tests {

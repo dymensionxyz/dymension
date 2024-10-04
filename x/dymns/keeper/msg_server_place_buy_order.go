@@ -14,6 +14,7 @@ import (
 // handles creating an offer to buy a Dym-Name/Alias, performed by the buyer.
 func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlaceBuyOrder) (*dymnstypes.MsgPlaceBuyOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	originalConsumedGas := ctx.GasMeter().GasConsumed()
 
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
@@ -45,7 +46,7 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 	} else {
 		minimumTxGasRequired = dymnstypes.OpGasPutBuyOrder
 	}
-	consumeMinimumGas(ctx, minimumTxGasRequired, "PlaceBuyOrder")
+	consumeMinimumGas(ctx, minimumTxGasRequired, originalConsumedGas, "PlaceBuyOrder")
 
 	return resp, nil
 }
@@ -278,7 +279,7 @@ func (k msgServer) validatePlaceBuyOrderWithAssetTypeAlias(
 	}
 
 	if k.IsAliasPresentsInParamsAsAliasOrChainId(ctx, msg.AssetId) {
-		// Please read the `processActiveAliasSellOrders` method (hooks.go) for more information.
+		// Please read the `processCompleteSellOrderWithAssetTypeAlias` method (msg_server_complete_sell_order.go) for more information.
 		err = errorsmod.Wrapf(gerrc.ErrPermissionDenied,
 			"prohibited to trade aliases which is reserved for chain-id or alias in module params: %s", msg.AssetId,
 		)

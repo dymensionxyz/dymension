@@ -36,6 +36,9 @@ func TestMsgs_Signers(t *testing.T) {
 			&MsgCancelSellOrder{
 				Owner: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			},
+			&MsgCompleteSellOrder{
+				Participant: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			},
 			&MsgPurchaseOrder{
 				Buyer: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			},
@@ -65,6 +68,7 @@ func TestMsgs_Signers(t *testing.T) {
 			&MsgUpdateDetails{},
 			&MsgPlaceSellOrder{},
 			&MsgCancelSellOrder{},
+			&MsgCompleteSellOrder{},
 			&MsgPurchaseOrder{},
 			&MsgPlaceBuyOrder{},
 			&MsgCancelBuyOrder{},
@@ -90,6 +94,7 @@ func TestMsgs_ImplementLegacyMsg(t *testing.T) {
 		&MsgUpdateDetails{},
 		&MsgPlaceSellOrder{},
 		&MsgCancelSellOrder{},
+		&MsgCompleteSellOrder{},
 		&MsgPurchaseOrder{},
 		&MsgPlaceBuyOrder{},
 		&MsgCancelBuyOrder{},
@@ -112,6 +117,7 @@ func TestMsgs_Type(t *testing.T) {
 	require.Equal(t, "update_details", (&MsgUpdateDetails{}).Type())
 	require.Equal(t, "place_sell_order", (&MsgPlaceSellOrder{}).Type())
 	require.Equal(t, "cancel_sell_order", (&MsgCancelSellOrder{}).Type())
+	require.Equal(t, "complete_sell_order", (&MsgCompleteSellOrder{}).Type())
 	require.Equal(t, "purchase_order", (&MsgPurchaseOrder{}).Type())
 	require.Equal(t, "place_buy_order", (&MsgPlaceBuyOrder{}).Type())
 	require.Equal(t, "cancel_buy_order", (&MsgCancelBuyOrder{}).Type())
