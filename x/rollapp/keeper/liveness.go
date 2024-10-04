@@ -49,6 +49,7 @@ func (k Keeper) CheckLiveness(ctx sdk.Context) {
 			return k.HandleLivenessEvent(ctx, e)
 		})
 		if err != nil {
+			// We intentionally do not reschedule the event. It's not MVP. Also, if it failed once, why would it succeed second time?
 			k.Logger(ctx).Error(
 				"Check liveness event",
 				"event", e,
