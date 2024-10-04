@@ -353,3 +353,24 @@ func (k Keeper) GetAllVulnerableDRSVersions(ctx sdk.Context) ([]string, error) {
 	}
 	return iter.Keys()
 }
+
+func (k Keeper) IsRollAppExists(ctx sdk.Context, rollappId string) bool {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
+
+	return store.Has(types.RollappKey(
+		rollappId,
+	))
+}
+
+func (k Keeper) GetRollAppIdByEIP155(ctx sdk.Context, eip155 uint64) (rollAppId string, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
+	id := store.Get(types.RollappByEIP155Key(
+		eip155,
+	))
+	if id == nil {
+		return "", false
+	}
+	rollAppId = string(id)
+	found = rollAppId != ""
+	return
+}

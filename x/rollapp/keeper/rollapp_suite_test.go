@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -82,4 +83,69 @@ func (suite *RollappTestSuite) GetRollappLastHeight(rollappID string) uint64 {
 	stateInfo, ok := suite.App.RollappKeeper.GetLatestStateInfo(suite.Ctx, rollappID)
 	suite.Require().True(ok)
 	return stateInfo.GetLatestHeight() + 1
+}
+
+func (suite *RollappTestSuite) TestIsRollAppExists() {
+	suite.Run("pass - rollapp does not exists", func() {
+		gotExists := suite.App.RollappKeeper.IsRollAppExists(suite.Ctx, "void")
+		suite.Require().False(gotExists)
+	})
+
+	suite.Run("pass - rollapp exists", func() {
+		const rollAppId = "rollapp_9630-9630"
+		suite.Require().False(suite.App.RollappKeeper.IsRollAppExists(suite.Ctx, rollAppId))
+
+		goCtx := sdk.WrapSDKContext(suite.Ctx)
+		rollappMsg := types.MsgCreateRollapp{
+			Creator:          alice,
+			RollappId:        rollAppId,
+			InitialSequencer: sample.AccAddress(),
+			Alias:            "rollapp9630",
+			VmType:           types.Rollapp_EVM,
+			Metadata:         &mockRollappMetadata,
+			GenesisInfo:      mockGenesisInfo,
+		}
+
+		suite.FundForAliasRegistration(rollappMsg)
+
+		_, err := suite.msgServer.CreateRollapp(goCtx, &rollappMsg)
+		suite.Require().NoError(err)
+
+		gotExists := suite.App.RollappKeeper.IsRollAppExists(suite.Ctx, rollAppId)
+		suite.Require().True(gotExists)
+	})
+}
+
+func (suite *RollappTestSuite) TestGetRollAppIdByEIP155() {
+	const rollAppId = "rollapp_9631-9630"
+	const rollAppEip155Id uint64 = 9631
+	suite.Run("pass - when rollapp does not exists", func() {
+		_, gotFound := suite.App.RollappKeeper.GetRollAppIdByEIP155(suite.Ctx, rollAppEip155Id)
+		suite.Require().False(gotFound)
+	})
+
+	suite.Run("pass - rollapp exists", func() {
+		_, gotFound := suite.App.RollappKeeper.GetRollAppIdByEIP155(suite.Ctx, rollAppEip155Id)
+		suite.Require().False(gotFound)
+
+		goCtx := sdk.WrapSDKContext(suite.Ctx)
+		rollappMsg := types.MsgCreateRollapp{
+			Creator:          alice,
+			RollappId:        rollAppId,
+			InitialSequencer: sample.AccAddress(),
+			Alias:            "rollapp9630",
+			VmType:           types.Rollapp_EVM,
+			Metadata:         &mockRollappMetadata,
+			GenesisInfo:      mockGenesisInfo,
+		}
+
+		suite.FundForAliasRegistration(rollappMsg)
+
+		_, err := suite.msgServer.CreateRollapp(goCtx, &rollappMsg)
+		suite.Require().NoError(err)
+
+		gotRollAppId, gotFound := suite.App.RollappKeeper.GetRollAppIdByEIP155(suite.Ctx, rollAppEip155Id)
+		suite.Require().True(gotFound)
+		suite.Require().Equal(rollAppId, gotRollAppId)
+	})
 }
