@@ -28,7 +28,7 @@ message GenesisBridgeInfo {
   // unique bech32 prefix
   string bech32_prefix = 2;
   // native_denom is the base denom for the native token
-  DenomMetadata native_denom = 3;
+  DenomMetadata native_denom = 3 [ (gogoproto.nullable) = false ];
   // initial_supply is the initial supply of the native token
   string initial_supply = 4 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
