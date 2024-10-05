@@ -1,6 +1,8 @@
 package types
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -58,7 +60,7 @@ func (msg *MsgUpdateApp) GetApp() App {
 func (msg *MsgUpdateApp) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return errorsmod.Wrap(ErrInvalidCreatorAddress, err.Error())
+		return errors.Join(ErrInvalidCreatorAddress, err)
 	}
 
 	if msg.Id == 0 {
