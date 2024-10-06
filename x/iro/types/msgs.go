@@ -2,6 +2,7 @@ package types
 
 import (
 	"errors"
+
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
