@@ -138,7 +138,7 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		},
 		&rollapptypes.GenesisInfo{
 			GenesisChecksum: "somechecksum",
-			Bech32Prefix:    "eth",
+			Bech32Prefix:    "ethm",
 			NativeDenom: rollapptypes.DenomMetadata{
 				Display:  "DEN",
 				Base:     "aden",
@@ -162,6 +162,15 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		ra.GenesisState.TransfersEnabled = transfersEnabled
 		a.RollappKeeper.SetRollapp(s.hubCtx(), ra)
 	}
+}
+
+// method to update the rollapp genesis info
+func (s *transferGenesisSuite) addGenesisAccounts(genesisAccounts []rollapptypes.GenesisAccount) {
+	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+	s.Require().False(rollapp.GenesisInfo.Sealed)
+
+	rollapp.GenesisInfo.GenesisAccounts = append(rollapp.GenesisInfo.GenesisAccounts, genesisAccounts...)
+	s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), rollapp)
 }
 
 // necessary for tests which do not execute the entire light client flow, and just need to make transfers work

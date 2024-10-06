@@ -37,11 +37,6 @@ func (w IBCModule) handleGenesisTransfer(ctx sdk.Context, ra types.Rollapp, pack
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "receiver mismatch")
 	}
 
-	// validate the genesis transfer denom
-	if ra.GenesisInfo.NativeDenom.Base != gTransfer.Denom {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "denom mismatch")
-	}
-
 	// validate that the transfer amount matches the expected amount, which is the sum of all genesis accounts
 	expectedAmount := ra.GenesisInfo.GenesisTransferAmount()
 	if expectedAmount.String() != gTransfer.Amount {

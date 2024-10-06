@@ -4,7 +4,9 @@ import (
 	fmt "fmt"
 
 	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	types "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // ValidateBasic performs basic validation checks on the GenesisBridgeData.
@@ -24,6 +26,7 @@ func (data GenesisBridgeData) ValidateBasic() error {
 	if data.NativeDenom.Base != data.GenesisInfo.NativeDenom.Base {
 		return fmt.Errorf("metadata denom does not match genesis info denom")
 	}
+
 	// validate the decimals of the display denom
 	valid := false
 	for _, unit := range data.NativeDenom.DenomUnits {
@@ -42,6 +45,11 @@ func (data GenesisBridgeData) ValidateBasic() error {
 	if data.GenesisTransfer != nil {
 		if err := data.GenesisTransfer.ValidateBasic(); err != nil {
 			return errors.Wrap(err, "invalid genesis transfer")
+		}
+
+		// validate the genesis transfer denom
+		if data.GenesisInfo.NativeDenom.Base != data.GenesisTransfer.Denom {
+			return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "denom mismatch")
 		}
 	}
 

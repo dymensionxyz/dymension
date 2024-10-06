@@ -1,7 +1,6 @@
 package genesisbridge
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -102,7 +101,7 @@ func (w IBCModule) OnRecvPacket(
 
 	// parse the genesis bridge data
 	var genesisBridgeData GenesisBridgeData
-	if err := json.Unmarshal(packet.GetData(), &genesisBridgeData); err != nil {
+	if err := genesisBridgeData.Unmarshal(packet.GetData()); err != nil {
 		l.Error("Unmarshal genesis bridge data.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "unmarshal genesis bridge data"))
 	}
@@ -167,7 +166,7 @@ func (w IBCModule) ValidateGenesisBridge(ctx sdk.Context, ra *types.Rollapp, dat
 		return fmt.Errorf("native denom mismatch: expected: %v, got: %v", raInfo.NativeDenom, data.NativeDenom)
 	}
 
-	if data.InitialSupply != raInfo.InitialSupply {
+	if !data.InitialSupply.Equal(raInfo.InitialSupply) {
 		return fmt.Errorf("initial supply mismatch: expected: %v, got: %v", raInfo.InitialSupply, data.InitialSupply)
 	}
 
