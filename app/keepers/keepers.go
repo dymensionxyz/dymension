@@ -405,6 +405,7 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.StakingKeeper,
 		a.IncentivesKeeper,
+		a.SequencerKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -583,7 +584,6 @@ func (a *AppKeepers) SetupHooks() {
 			a.IncentivesKeeper.Hooks(),
 			a.TxFeesKeeper.Hooks(),
 			a.DelayedAckKeeper.GetEpochHooks(),
-			a.DymNSKeeper.GetEpochHooks(),
 			a.RollappKeeper.GetEpochHooks(),
 		),
 	)

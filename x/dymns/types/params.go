@@ -71,9 +71,10 @@ func DefaultPriceParams() PriceParams {
 			sdk.NewInt(5 /* DYM */).MulRaw(1e18),    // 10+ letters
 		},
 
-		PriceExtends:  sdk.NewInt(5 /* DYM */).MulRaw(1e18),
-		PriceDenom:    params.BaseDenom,
-		MinOfferPrice: sdk.NewInt(10 /* DYM */).MulRaw(1e18),
+		PriceExtends:           sdk.NewInt(5 /* DYM */).MulRaw(1e18),
+		PriceDenom:             params.BaseDenom,
+		MinOfferPrice:          sdk.NewInt(10 /* DYM */).MulRaw(1e18),
+		MinBidIncrementPercent: 1,
 	}
 }
 
@@ -91,7 +92,7 @@ func DefaultChainsParams() ChainsParams {
 			},
 			{
 				ChainId: "cosmoshub-4",
-				Aliases: []string{"cosmos"},
+				Aliases: []string{"cosmos", "cosmoshub"},
 			},
 			{
 				ChainId: "osmosis-1",
@@ -272,6 +273,11 @@ func validatePriceParams(i interface{}) error {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "min-offer-price is must be at least %s%s", MinPriceValue, m.PriceDenom)
 	}
 
+	const maxMinBidIncrementPercent = 10
+	if m.MinBidIncrementPercent > maxMinBidIncrementPercent {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "min-bid-increment-percent cannot be more than %d: %d", maxMinBidIncrementPercent, m.MinBidIncrementPercent)
+	}
+
 	return nil
 }
 
@@ -415,13 +421,19 @@ func validateMiscParams(i interface{}) error {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "end epoch hook identifier: %v", err)
 	}
 
-	const minGracePeriodDuration = 30 * 24 * time.Hour
+	const minGracePeriodDuration = 30 * // number of days
+		24 * time.Hour // hours per day
 	if m.GracePeriodDuration < minGracePeriodDuration {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "grace period duration cannot be less than: %s", minGracePeriodDuration)
 	}
 
+	const maxSellOrderDuration = 7 * // number of days
+		24 * time.Hour // hours per day
 	if m.SellOrderDuration <= 0 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Sell Orders duration can not be zero")
+	} else if m.SellOrderDuration > maxSellOrderDuration {
+		// Sell Order duration cannot be too high because in increase the store size, potential causing DDoS
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Sell Orders duration cannot be more than: %s", maxSellOrderDuration)
 	}
 
 	return nil

@@ -34,7 +34,8 @@ message StateInfo {
     string sequencer = 2;
     // startHeight is the block height of the first block in the batch
     uint64 startHeight = 3;
-    reserved 4; // used to be num blocks, deprecating in favour of counting len of BDs
+    // numBlocks is the number of blocks included in this batch update
+    uint64 numBlocks = 4;
     // DAPath is the description of the location on the DA layer
     string DAPath = 5;
 

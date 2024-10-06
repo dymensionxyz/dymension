@@ -14,6 +14,7 @@ import (
 // handles canceling a Buy-Order, performed by the buyer who placed the offer.
 func (k msgServer) CancelBuyOrder(goCtx context.Context, msg *dymnstypes.MsgCancelBuyOrder) (*dymnstypes.MsgCancelBuyOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	originalConsumedGas := ctx.GasMeter().GasConsumed()
 
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
@@ -41,7 +42,7 @@ func (k msgServer) CancelBuyOrder(goCtx context.Context, msg *dymnstypes.MsgCanc
 	}
 
 	// charge protocol fee
-	consumeMinimumGas(ctx, dymnstypes.OpGasCloseBuyOrder, "CancelBuyOrder")
+	consumeMinimumGas(ctx, dymnstypes.OpGasCloseBuyOrder, originalConsumedGas, "CancelBuyOrder")
 
 	return resp, nil
 }
