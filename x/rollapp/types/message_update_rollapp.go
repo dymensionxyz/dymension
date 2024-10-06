@@ -2,6 +2,7 @@ package types
 
 import (
 	"errors"
+	fmt "fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -66,6 +67,11 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 			if err := validateBech32Prefix(msg.GenesisInfo.Bech32Prefix); err != nil {
 				return errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "bech32 prefix")
 			}
+		}
+
+		// validate max limit of genesis accounts
+		if len(msg.GenesisInfo.GenesisAccounts) > maxAllowedGenesisAccounts {
+			return fmt.Errorf("too many genesis accounts: %d", len(msg.GenesisInfo.GenesisAccounts))
 		}
 
 		for _, acc := range msg.GenesisInfo.GenesisAccounts {
