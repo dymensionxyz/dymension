@@ -1,4 +1,4 @@
-package transfergenesis
+package genesisbridge
 
 import (
 	errorsmod "cosmossdk.io/errors"
@@ -19,7 +19,7 @@ type ChannelKeeper interface {
 }
 
 // TransferEnabledDecorator only allows ibc transfers to a rollapp if that rollapp has finished
-// the transfer genesis protocol.
+// the genesis bridge protocol.
 type TransferEnabledDecorator struct {
 	getRollapp            GetRollapp
 	getChannelClientState ChannelKeeper

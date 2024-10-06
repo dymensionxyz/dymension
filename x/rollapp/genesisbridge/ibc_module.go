@@ -1,4 +1,4 @@
-package transfergenesis
+package genesisbridge
 
 import (
 	"encoding/json"
@@ -21,12 +21,23 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
+// GenesisBridge IBC module is responsible for handling the genesis bridge protocol.
+// (ADR: https://www.notion.so/dymension/ADR-x-Genesis-Bridge-109a4a51f86a80ba8b50db454bee04a7?pvs=4)
+//
+// It validated the genesis info registered on the hub, is the same as the rollapp's genesis info.
+// It registers the denom metadata for the native denom.
+// It handles the genesis transfer.
+//
+// Before the genesis bridge protocol completes, no transfers are allowed to the rollapp.
+// The Hub will block transfers Hub->RA to enforce this.
+//
+// Important: it is now WRONG to open an ibc connection in the Rollapp->Hub direction.
+// Connections should be opened in the Hub->Rollapp direction only
 type IBCModule struct {
 	porttypes.IBCModule // next one
 	rollappKeeper       RollappKeeper
 	transferKeeper      TransferKeeper
 	denomKeeper         DenomMetadataKeeper
-	iroKeeper           IROKeeper
 }
 
 func NewIBCModule(
@@ -34,14 +45,12 @@ func NewIBCModule(
 	rollappKeeper RollappKeeper,
 	transferKeeper TransferKeeper,
 	denomKeeper DenomMetadataKeeper,
-	iroKeeper IROKeeper,
 ) IBCModule {
 	return IBCModule{
 		IBCModule:      next,
 		rollappKeeper:  rollappKeeper,
 		transferKeeper: transferKeeper,
 		denomKeeper:    denomKeeper,
-		iroKeeper:      iroKeeper,
 	}
 }
 
@@ -50,11 +59,10 @@ func (w IBCModule) logger(
 	packet channeltypes.Packet,
 ) log.Logger {
 	return ctx.Logger().With(
-		"module", "transferGenesis",
+		"module", "genesisbridge",
 		"packet_source_port", packet.SourcePort,
 		"packet_destination_port", packet.DestinationPort,
 		"packet_sequence", packet.Sequence,
-		"method", "OnRecvPacket",
 	)
 }
 
@@ -130,9 +138,9 @@ func (w IBCModule) OnRecvPacket(
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: enable transfers"))
 	}
 
+	// FIXME: add more data (denom, amount, etc). move events to proto
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeTransferGenesisTransfersEnabled,
 		sdk.NewAttribute(types.AttributeKeyRollappId, ra.RollappId),
-		// FIXME: add more data (denom, amount, etc)
 	))
 
 	// return success ack

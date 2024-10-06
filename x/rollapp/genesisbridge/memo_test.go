@@ -1,4 +1,4 @@
-package transfergenesis
+package genesisbridge
 
 import (
 	"testing"
