@@ -65,15 +65,18 @@ func (w IBCModule) logger(
 	)
 }
 
-// OnRecvPacket will,
-// if iro plan exists for this rollapp:
-//	    check it's a valid genesis transfer.
-// 		If it is, then pass the packet, register the denom and settle the plan.
-// In any case, mark the transfers enabled.
-// This marks the end of the genesis phase.
+// OnRecvPacket will handle the genesis bridge packet in case needed.
+// no-op for non-rollapp chains and rollapps with transfers enabled.
+//
+// The genesis bridge packet is a special packet that is sent from the rollapp to the hub on channel creation.
+// The hub will receive this packet and:
+// - validated the genesis info registered on the hub, is the same as the rollapp's genesis info.
+// - registers the denom metadata for the native denom.
+// - handles the genesis transfer.
 
-// NOTE: we assume that by this point the canonical channel ID has already been set
-// for the rollapp, in a secure way.
+// On success, it will mark the IBC channel for this rollapp as enabled. This marks the end of the genesis phase.
+//
+// NOTE: we assume that by this point the canonical channel ID has already been set for the rollapp, in a secure way.
 func (w IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -148,17 +151,38 @@ func (w IBCModule) OnRecvPacket(
 	return successAck
 }
 
-// TODO: make it prettier?
 func (w IBCModule) ValidateGenesisBridge(ctx sdk.Context, ra *types.Rollapp, data GenesisBridgeInfo) error {
-	raGenesisInfo := GenesisBridgeInfo{
-		GenesisChecksum: ra.GenesisInfo.GenesisChecksum,
-		Bech32Prefix:    ra.GenesisInfo.Bech32Prefix,
-		NativeDenom:     ra.GenesisInfo.NativeDenom,
-		InitialSupply:   ra.GenesisInfo.InitialSupply,
+	raInfo := ra.GenesisInfo
+
+	// TODO: validate genesis checksum
+	// if data.GenesisChecksum != raInfo.GenesisChecksum {
+	// 	return fmt.Errorf("genesis checksum mismatch: expected: %v, got: %v", raInfo.GenesisChecksum, data.GenesisChecksum)
+	// }
+
+	if data.Bech32Prefix != raInfo.Bech32Prefix {
+		return fmt.Errorf("bech32 prefix mismatch: expected: %v, got: %v", raInfo.Bech32Prefix, data.Bech32Prefix)
 	}
 
-	if raGenesisInfo != data {
-		return fmt.Errorf("genesis info mismatch: expected: %v, got: %v", raGenesisInfo, data)
+	if data.NativeDenom != raInfo.NativeDenom {
+		return fmt.Errorf("native denom mismatch: expected: %v, got: %v", raInfo.NativeDenom, data.NativeDenom)
+	}
+
+	if data.InitialSupply != raInfo.InitialSupply {
+		return fmt.Errorf("initial supply mismatch: expected: %v, got: %v", raInfo.InitialSupply, data.InitialSupply)
+	}
+
+	if len(data.GenesisAccounts) != len(raInfo.GenesisAccounts) {
+		return fmt.Errorf("genesis accounts length mismatch: expected: %v, got: %v", len(raInfo.GenesisAccounts), len(data.GenesisAccounts))
+	}
+
+	// FIXME: make it order insensitive
+	for i, acc := range raInfo.GenesisAccounts {
+		if data.GenesisAccounts[i].Address != acc.Address {
+			return fmt.Errorf("genesis account address mismatch: expected: %v, got: %v", acc.Address, data.GenesisAccounts[i].Address)
+		}
+		if data.GenesisAccounts[i].Amount != acc.Amount {
+			return fmt.Errorf("genesis account amount mismatch: expected: %v, got: %v", acc.Amount, data.GenesisAccounts[i].Amount)
+		}
 	}
 
 	return nil
