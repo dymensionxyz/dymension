@@ -7,6 +7,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+const TypeMsgCreatePlan = "create_plan"
+
 var (
 	_ sdk.Msg = &MsgCreatePlan{}
 	_ sdk.Msg = &MsgBuy{}
@@ -45,9 +47,22 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 	return nil
 }
 
+func (m *MsgCreatePlan) Route() string {
+	return RouterKey
+}
+
+func (m *MsgCreatePlan) Type() string {
+	return TypeMsgCreatePlan
+}
+
 func (m *MsgCreatePlan) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Owner)
 	return []sdk.AccAddress{addr}
+}
+
+func (m *MsgCreatePlan) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
 }
 
 func (m *MsgBuy) ValidateBasic() error {
