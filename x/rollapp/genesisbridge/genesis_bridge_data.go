@@ -19,7 +19,24 @@ func (data GenesisBridgeData) ValidateBasic() error {
 		return errors.Wrap(err, "invalid metadata")
 	}
 
-	// FIXME: validate metadata corresponding to the genesis info denom
+	// validate metadata corresponding to the genesis info denom
+	// check the base denom, display unit and decimals
+	if data.NativeDenom.Base != data.GenesisInfo.NativeDenom.Base {
+		return fmt.Errorf("metadata denom does not match genesis info denom")
+	}
+	// validate the decimals of the display denom
+	valid := false
+	for _, unit := range data.NativeDenom.DenomUnits {
+		if unit.Denom == data.GenesisInfo.NativeDenom.Display {
+			if unit.Exponent == data.GenesisInfo.NativeDenom.Exponent {
+				valid = true
+				break
+			}
+		}
+	}
+	if !valid {
+		return fmt.Errorf("denom metadata does not contain display unit with the correct exponent")
+	}
 
 	// Validate genesis transfers
 	if data.GenesisTransfer != nil {
@@ -31,20 +48,16 @@ func (data GenesisBridgeData) ValidateBasic() error {
 	return nil
 }
 
-// helper function to convert GenesisBridgeInfo to GenesisInfo
-func (info GenesisBridgeInfo) ToRAGenesisInfo() types.GenesisInfo {
-	return types.GenesisInfo{
+// ValidateBasic performs basic validation checks on the GenesisInfo.
+func (info GenesisBridgeInfo) ValidateBasic() error {
+	// wrap the genesis info in a GenesisInfo struct, to reuse the validation logic
+	raGenesisInfo := types.GenesisInfo{
 		GenesisChecksum: info.GenesisChecksum,
 		Bech32Prefix:    info.Bech32Prefix,
 		NativeDenom:     info.NativeDenom,
 		InitialSupply:   info.InitialSupply,
 		GenesisAccounts: info.GenesisAccounts,
 	}
-}
-
-// ValidateBasic performs basic validation checks on the GenesisInfo.
-func (info GenesisBridgeInfo) ValidateBasic() error {
-	raGenesisInfo := info.ToRAGenesisInfo()
 
 	if !raGenesisInfo.AllSet() {
 		return fmt.Errorf("missing fields in genesis info")
