@@ -2,6 +2,7 @@ package types
 
 import (
 	"errors"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -10,11 +11,12 @@ import (
 const TypeMsgCreatePlan = "create_plan"
 
 var (
-	_ sdk.Msg = &MsgCreatePlan{}
-	_ sdk.Msg = &MsgBuy{}
-	_ sdk.Msg = &MsgSell{}
-	_ sdk.Msg = &MsgClaim{}
-	_ sdk.Msg = &MsgUpdateParams{}
+	_ sdk.Msg            = &MsgCreatePlan{}
+	_ sdk.Msg            = &MsgBuy{}
+	_ sdk.Msg            = &MsgSell{}
+	_ sdk.Msg            = &MsgClaim{}
+	_ sdk.Msg            = &MsgUpdateParams{}
+	_ legacytx.LegacyMsg = &MsgCreatePlan{}
 )
 
 // ValidateBasic performs basic validation checks on the MsgCreatePlan message.
