@@ -7,6 +7,10 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
+type AccountKeeper interface {
+	GetModuleAddress(name string) sdk.AccAddress
+}
+
 type IBCClientKeeper interface {
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
 	SetClientState(ctx sdk.Context, clientID string, clientState exported.ClientState)

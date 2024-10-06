@@ -141,7 +141,7 @@ func (s *KeeperTestSuite) SetupTest() {
 			cdc,
 			rollappStoreKey,
 			rollappParamsSubspace,
-			nil, nil, nil,
+			nil, nil, nil, nil,
 			bk,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 			nil,

@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -10,6 +9,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
+	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -137,13 +137,13 @@ func (k Keeper) SetRollappAsLaunched(ctx sdk.Context, rollapp *types.Rollapp) er
 
 // SetIROPlanToRollapp modifies the rollapp object due to IRO creation
 // This methods:
+// - adds the x/iro to the genesis accounts
 // - seals the rollapp genesis info
 // - set the pre launch time according to the iro plan end time
-// - disables transfers (until the IRO is settled)
 // Validations:
 // - rollapp must not be launched
 // - genesis info must be set
-func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, preLaunchTime time.Time) error {
+func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, iro irotypes.Plan) error {
 	if rollapp.Launched {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp already launched")
 	}
@@ -155,9 +155,19 @@ func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, pre
 	if !rollapp.GenesisInfoFieldsAreSet() {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info not set")
 	}
+
+	// add to genesis accounts
+	iroGenesisAccount := types.GenesisAccount{
+		Amount:  iro.TotalAllocation.Amount,
+		Address: string(k.accKeeper.GetModuleAddress(irotypes.ModuleName)),
+	}
+	rollapp.GenesisInfo.GenesisAccounts = append(rollapp.GenesisInfo.GenesisAccounts, iroGenesisAccount)
+
+	// seal genesis info
 	rollapp.GenesisInfo.Sealed = true
-	rollapp.PreLaunchTime = preLaunchTime
-	// FIXME: add to genesis accounts
+
+	// set pre launch time
+	rollapp.PreLaunchTime = iro.PreLaunchTime
 	k.SetRollapp(ctx, *rollapp)
 	return nil
 }

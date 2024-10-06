@@ -351,6 +351,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[rollappmoduletypes.StoreKey],
 		a.GetSubspace(rollappmoduletypes.ModuleName),
+		a.AccountKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ClientKeeper,
 		nil,
