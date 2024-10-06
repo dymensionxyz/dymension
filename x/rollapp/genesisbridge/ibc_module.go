@@ -18,7 +18,6 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // GenesisBridge IBC module is responsible for handling the genesis bridge protocol.
@@ -99,7 +98,7 @@ func (w IBCModule) OnRecvPacket(
 	l := w.logger(ctx, packet).With("rollapp_id", ra.RollappId)
 
 	// parse the genesis bridge data
-	var genesisBridgeData rollapptypes.GenesisBridgeData
+	var genesisBridgeData GenesisBridgeData
 	if err := json.Unmarshal(packet.GetData(), &genesisBridgeData); err != nil {
 		l.Error("Unmarshal genesis bridge data.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "unmarshal genesis bridge data"))
@@ -150,11 +149,11 @@ func (w IBCModule) OnRecvPacket(
 }
 
 // TODO: make it prettier?
-func (w IBCModule) ValidateGenesisBridge(ctx sdk.Context, ra *types.Rollapp, data rollapptypes.GenesisBridgeInfo) error {
-	raGenesisInfo := types.GenesisBridgeInfo{
+func (w IBCModule) ValidateGenesisBridge(ctx sdk.Context, ra *types.Rollapp, data GenesisBridgeInfo) error {
+	raGenesisInfo := GenesisBridgeInfo{
 		GenesisChecksum: ra.GenesisInfo.GenesisChecksum,
 		Bech32Prefix:    ra.GenesisInfo.Bech32Prefix,
-		NativeDenom:     &ra.GenesisInfo.NativeDenom,
+		NativeDenom:     ra.GenesisInfo.NativeDenom,
 		InitialSupply:   ra.GenesisInfo.InitialSupply,
 	}
 

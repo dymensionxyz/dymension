@@ -7,11 +7,9 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 const (
@@ -28,8 +26,6 @@ type AllowedDecimals uint32
 const (
 	Decimals18 AllowedDecimals = 18
 )
-
-/* ----------------------------- Rollapp methods ---------------------------- */
 
 func NewRollapp(
 	creator,
@@ -109,64 +105,6 @@ func (r Rollapp) GenesisInfoFieldsAreSet() bool {
 
 func (r Rollapp) IsVulnerable() bool {
 	return r.Frozen
-}
-
-/* -------------------------- Genesis Info methods -------------------------- */
-func (gi GenesisInfo) GenesisTransferAmount() math.Int {
-	total := math.ZeroInt()
-	for _, a := range gi.GenesisAccounts {
-		total = total.Add(a.Amount)
-	}
-	return total
-}
-
-func (gi GenesisInfo) AllSet() bool {
-	return gi.GenesisChecksum != "" &&
-		gi.NativeDenom.IsSet() &&
-		gi.Bech32Prefix != "" &&
-		!gi.InitialSupply.IsNil()
-}
-
-func (gi GenesisInfo) Validate() error {
-	if gi.Bech32Prefix != "" {
-		if err := validateBech32Prefix(gi.Bech32Prefix); err != nil {
-			return errors.Join(ErrInvalidBech32Prefix, err)
-		}
-	}
-
-	if len(gi.GenesisChecksum) > maxGenesisChecksumLength {
-		return ErrInvalidGenesisChecksum
-	}
-
-	if gi.NativeDenom.IsSet() {
-		if err := gi.NativeDenom.Validate(); err != nil {
-			return errorsmod.Wrap(ErrInvalidNativeDenom, err.Error())
-		}
-	}
-
-	if !gi.InitialSupply.IsNil() {
-		if !gi.InitialSupply.IsPositive() {
-			return ErrInvalidInitialSupply
-		}
-	}
-
-	for _, a := range gi.GenesisAccounts {
-		if err := a.ValidateBasic(); err != nil {
-			return errors.Join(gerrc.ErrInvalidArgument, err)
-		}
-	}
-	return nil
-}
-
-func (a GenesisAccount) ValidateBasic() error {
-	if !a.Amount.IsPositive() {
-		return fmt.Errorf("invalid amount: %s %s", a.Address, a.Amount)
-	}
-
-	if _, err := sdk.AccAddressFromBech32(a.Address); err != nil {
-		return err
-	}
-	return nil
 }
 
 func validateInitialSequencer(initialSequencer string) error {

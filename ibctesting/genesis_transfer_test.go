@@ -8,7 +8,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -211,11 +210,8 @@ func (s *transferGenesisSuite) transferMsg(amt math.Int, denom string, isGenesis
 	)
 
 	if isGenesis {
-		msg.Memo = rollapptypes.GenesisTransferMemo{
-			Denom: meta,
-		}.Namespaced().MustString()
-
-		msg.Receiver = s.hubApp().IROKeeper.GetModuleAccountAddress()
+		_ = 0
+		// FIXME: make genesis bridge packet
 	}
 
 	return msg

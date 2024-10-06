@@ -7,7 +7,6 @@ import "gogoproto/gogo.proto";
 import "dymensionxyz/dymension/rollapp/params.proto";
 import "dymensionxyz/dymension/rollapp/rollapp.proto";
 import "dymensionxyz/dymension/rollapp/state_info.proto";
-import "dymensionxyz/dymension/rollapp/genesis_transfer.proto";
 import "dymensionxyz/dymension/rollapp/liveness.proto";
 import "dymensionxyz/dymension/rollapp/app.proto";
 

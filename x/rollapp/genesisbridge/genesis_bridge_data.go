@@ -1,9 +1,10 @@
-package types
+package genesisbridge
 
 import (
 	fmt "fmt"
 
 	"cosmossdk.io/errors"
+	types "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // ValidateBasic performs basic validation checks on the GenesisBridgeData.
@@ -31,12 +32,13 @@ func (data GenesisBridgeData) ValidateBasic() error {
 }
 
 // helper function to convert GenesisBridgeInfo to GenesisInfo
-func (info GenesisBridgeInfo) ToRAGenesisInfo() GenesisInfo {
-	return GenesisInfo{
+func (info GenesisBridgeInfo) ToRAGenesisInfo() types.GenesisInfo {
+	return types.GenesisInfo{
 		GenesisChecksum: info.GenesisChecksum,
 		Bech32Prefix:    info.Bech32Prefix,
-		NativeDenom:     *info.NativeDenom,
+		NativeDenom:     info.NativeDenom,
 		InitialSupply:   info.InitialSupply,
+		GenesisAccounts: info.GenesisAccounts,
 	}
 }
 

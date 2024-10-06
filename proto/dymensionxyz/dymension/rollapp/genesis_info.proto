@@ -1,0 +1,40 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos/msg/v1/msg.proto";
+
+import "dymensionxyz/dymension/rollapp/metadata.proto";
+
+message GenesisInfo {
+  // checksum used to verify integrity of the genesis file
+  string genesis_checksum = 1;
+  // unique bech32 prefix
+  string bech32_prefix = 2;
+  // native_denom is the base denom for the native token
+  DenomMetadata native_denom = 3 [ (gogoproto.nullable) = false ];
+  // initial_supply is the initial supply of the native token
+  string initial_supply = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // sealed indicates if the fields in this object are no longer updatable
+  bool sealed = 5;
+
+  repeated GenesisAccount genesis_accounts = 6 [ (gogoproto.nullable) = false ];
+}
+
+// GenesisAccount is a struct for the genesis account for the rollapp
+message GenesisAccount {
+  // amount of coins to be sent to the genesis address
+  string amount = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // address is a bech-32 address of the genesis account
+  string address = 2;
+}
