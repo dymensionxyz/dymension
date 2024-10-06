@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	// hubRecipient is the address of `x/rollapp` module's account on the hub chain.
-	hubRecipient = "dym1mk7pw34ypusacm29m92zshgxee3yreums8avur"
+	// HubRecipient is the address of `x/rollapp` module's account on the hub chain.
+	HubRecipient = "dym1mk7pw34ypusacm29m92zshgxee3yreums8avur"
 )
 
 // HandleGenesisTransfer handles the genesis transfer packet, if present, and expected.
@@ -33,7 +33,7 @@ func (w IBCModule) handleGenesisTransfer(ctx sdk.Context, ra types.Rollapp, pack
 	}
 
 	// validate the receiver
-	if gTransfer.Receiver != hubRecipient {
+	if gTransfer.Receiver != HubRecipient {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "receiver mismatch")
 	}
 
@@ -47,10 +47,10 @@ func (w IBCModule) handleGenesisTransfer(ctx sdk.Context, ra types.Rollapp, pack
 	for _, acc := range ra.GenesisInfo.GenesisAccounts {
 		// create a new packet for each account
 		data := transfertypes.NewFungibleTokenPacketData(
-			gTransfer.Sender,
-			acc.Address,
 			gTransfer.Denom,
 			acc.Amount.String(),
+			gTransfer.Sender,
+			acc.Address,
 			"",
 		)
 

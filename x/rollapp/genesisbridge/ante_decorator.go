@@ -12,6 +12,9 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
+// FIXME: refactor this to use the ibc module's channel keeper
+// (https://github.com/dymensionxyz/dymension/issues/957)
+
 type GetRollapp func(ctx sdk.Context, rollappId string) (val types.Rollapp, found bool)
 
 type ChannelKeeper interface {

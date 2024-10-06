@@ -104,6 +104,9 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	// assert that genesis info is sealed
 	rollapp, _ = s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
 	s.Require().True(rollapp.GenesisInfo.Sealed)
+
+	// assert that the iro is added to the genesis accounts
+	s.Require().Equal(1, len(rollapp.GenesisInfo.GenesisAccounts))
 }
 
 func (s *KeeperTestSuite) TestMintAllocation() {

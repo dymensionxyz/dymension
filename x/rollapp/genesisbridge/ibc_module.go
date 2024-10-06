@@ -179,7 +179,7 @@ func (w IBCModule) ValidateGenesisBridge(ctx sdk.Context, ra *types.Rollapp, dat
 		if data.GenesisAccounts[i].Address != acc.Address {
 			return fmt.Errorf("genesis account address mismatch: expected: %v, got: %v", acc.Address, data.GenesisAccounts[i].Address)
 		}
-		if data.GenesisAccounts[i].Amount != acc.Amount {
+		if !data.GenesisAccounts[i].Amount.Equal(acc.Amount) {
 			return fmt.Errorf("genesis account amount mismatch: expected: %v, got: %v", acc.Amount, data.GenesisAccounts[i].Amount)
 		}
 	}

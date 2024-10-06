@@ -159,7 +159,7 @@ func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, iro
 	// add to genesis accounts
 	iroGenesisAccount := types.GenesisAccount{
 		Amount:  iro.TotalAllocation.Amount,
-		Address: string(k.accKeeper.GetModuleAddress(irotypes.ModuleName)),
+		Address: k.accKeeper.GetModuleAddress(irotypes.ModuleName).String(),
 	}
 	rollapp.GenesisInfo.GenesisAccounts = append(rollapp.GenesisInfo.GenesisAccounts, iroGenesisAccount)
 

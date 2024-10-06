@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/math"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge"
@@ -59,10 +60,9 @@ func (s *transferGenesisSuite) SetupTest() {
 
 // TestHappyPath_NoGenesisAccounts tests a valid genesis info with no genesis accounts
 func (s *transferGenesisSuite) TestHappyPath_NoGenesisAccounts() {
-	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
-
 	// create the expected genesis bridge packet
-	packet := s.genesisBridgePacket(rollapp.GenesisInfo.NativeDenom.Base, rollapp.GenesisInfo.NativeDenom.Display, rollapp.GenesisInfo.InitialSupply, nil)
+	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+	packet := s.genesisBridgePacket(rollapp.GenesisInfo)
 
 	// send the packet on the rollapp chain
 	seq, err := s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
@@ -77,25 +77,64 @@ func (s *transferGenesisSuite) TestHappyPath_NoGenesisAccounts() {
 	s.Require().True(found)
 	s.Require().Equal(successAck, ack)
 
-	// assert the transfers are enabled
 	rollapp = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+	// assert the transfers are enabled
 	s.Require().True(rollapp.GenesisState.TransfersEnabled)
+
+	// assert denom registered
+	expectedIBCdenom := types.ParseDenomTrace(types.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, rollapp.GenesisInfo.NativeDenom.Base)).IBCDenom()
+	metadata, found := s.hubApp().BankKeeper.GetDenomMetaData(s.hubCtx(), expectedIBCdenom)
+	s.Require().True(found)
+	s.Require().Equal(rollapp.GenesisInfo.NativeDenom.Display, metadata.Display)
 }
 
 // TestHappyPath_GenesisAccounts tests a valid genesis info with genesis accounts
 func (s *transferGenesisSuite) TestHappyPath_GenesisAccounts() {
-	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
-
+	gAddr := s.rollappChain().SenderAccount.GetAddress()
 	gAccounts := []rollapptypes.GenesisAccount{
 		{
-			Address: s.rollappChain().SenderAccount.GetAddress().String(),
+			Address: gAddr.String(),
 			Amount:  math.NewIntFromUint64(10000000000000000000),
 		},
 	}
 	s.addGenesisAccounts(gAccounts)
 
 	// create the expected genesis bridge packet
-	packet := s.genesisBridgePacket(rollapp.GenesisInfo.NativeDenom.Base, rollapp.GenesisInfo.NativeDenom.Display, rollapp.GenesisInfo.InitialSupply, gAccounts)
+	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+	packet := s.genesisBridgePacket(rollapp.GenesisInfo)
+
+	// send the packet on the rollapp chain
+	seq, err := s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
+	s.Require().NoError(err)
+	packet.Sequence = seq
+
+	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
+	s.Require().NoError(err)
+
+	// assert the ack succeeded
+	ack, found := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	s.Require().True(found)
+	s.Require().Equal(successAck, ack)
+
+	// assert the genesis accounts were funded
+	ibcDenom := types.ParseDenomTrace(types.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, rollapp.GenesisInfo.NativeDenom.Base)).IBCDenom()
+	balance := s.hubApp().BankKeeper.GetBalance(s.hubCtx(), gAddr, ibcDenom)
+	s.Require().Equal(gAccounts[0].Amount, balance.Amount)
+}
+
+// TestHappyPath_GenesisAccounts_IRO tests a valid genesis info with genesis accounts, including IRO plan
+// We expect the IRO plan to be settled once the genesis bridge is completed
+func (s *transferGenesisSuite) TestIRO() {
+	amt := math.NewIntFromUint64(1_000_000).MulRaw(1e18)
+	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+
+	// create IRO plan
+	_, err := s.hubApp().IROKeeper.CreatePlan(s.hubCtx(), amt, time.Now(), time.Now().Add(time.Hour), rollapp, irotypes.DefaultBondingCurve(), irotypes.DefaultIncentivePlanParams())
+	s.Require().NoError(err)
+
+	// create the expected genesis bridge packet
+	rollapp = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+	packet := s.genesisBridgePacket(rollapp.GenesisInfo)
 
 	// send the packet on the rollapp chain
 	seq, err := s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
@@ -114,45 +153,18 @@ func (s *transferGenesisSuite) TestHappyPath_GenesisAccounts() {
 	rollapp = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 	s.Require().True(rollapp.GenesisState.TransfersEnabled)
 
-	// FIXME: assert the genesis accounts were funded
-
+	// the iro plan should be settled
+	plan, found := s.hubApp().IROKeeper.GetPlanByRollapp(s.hubCtx(), rollappChainID())
+	s.Require().True(found)
+	expectedIBCdenom := types.ParseDenomTrace(types.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, rollapp.GenesisInfo.NativeDenom.Base)).IBCDenom()
+	s.Require().Equal(plan.SettledDenom, expectedIBCdenom)
 }
 
-// TestIRO tests the case where the rollapp has an IRO plan.
-// In this case, the genesis transfer is required
-// regular transfers should fail until the genesis transfer is done
+// TestInvalidGenesisInfo tests an invalid genesis info
+// FIXME: TODO
+/*
+// - TODO: wrong dest, wrong decimals
 
-// TestHappyPath_GenesisAccounts_IRO tests a valid genesis info with genesis accounts, including IRO plan
-func (s *transferGenesisSuite) TestIRO() {
-	amt := math.NewIntFromUint64(1_000_000).MulRaw(1e18)
-	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
-
-	denom := rollapp.GenesisInfo.NativeDenom.Base
-	coin := sdk.NewCoin(denom, amt)
-	apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.NewCoins(coin))
-
-	// create IRO plan
-	_, err := s.hubApp().IROKeeper.CreatePlan(s.hubCtx(), amt, time.Now(), time.Now().Add(time.Hour), rollapp, irotypes.DefaultBondingCurve(), irotypes.DefaultIncentivePlanParams())
-	s.Require().NoError(err)
-
-	// non-genesis transfer should fail, as the bridge is not open
-	msg := s.transferMsg(amt, denom)
-	res, err := s.rollappChain().SendMsgs(msg)
-	s.Require().NoError(err)
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
-	s.Require().NoError(err)
-	err = s.path.RelayPacket(packet)
-	s.Require().NoError(err)
-
-	ack, found := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	s.Require().True(found)
-	s.Require().NotEqual(successAck, ack) // assert for ack error
-
-	transfersEnabled := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
-	s.Require().False(transfersEnabled)
-
-	// - TODO: wrong dest, wrong decimals
-	/* --------------------- test invalid genesis transfers --------------------- */
 	// - wrong amount
 	msg = s.transferMsg(amt.Sub(math.NewInt(100)), denom)
 	res, err = s.rollappChain().SendMsgs(msg)
@@ -187,39 +199,7 @@ func (s *transferGenesisSuite) TestIRO() {
 	transfersEnabled = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
 	s.Require().False(transfersEnabled)
 
-	/* ------------------------------- happy case ------------------------------- */
-	// genesis transfer, should pass and enable bridge
-	msg = s.transferMsg(amt, denom)
-	res, err = s.rollappChain().SendMsgs(msg)
-	s.Require().NoError(err)
-	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
-	s.Require().NoError(err)
-	err = s.path.RelayPacket(packet)
-	s.Require().NoError(err)
-
-	// assert the ack succeeded
-	bz, found := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	s.Require().True(found)
-	s.Require().Equal(successAck, bz) // assert for ack success
-
-	// assert the transfers are enabled
-	transfersEnabled = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
-	s.Require().True(transfersEnabled, "transfers enabled check")
-
-	// has the denom?
-	ibcDenom := types.ParseDenomTrace(types.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, denom)).IBCDenom()
-	metadata, found := s.hubApp().BankKeeper.GetDenomMetaData(s.hubCtx(), ibcDenom)
-	s.Require().True(found, "missing denom metadata for rollapps taking token", "denom", ibcDenom)
-	s.Require().Equal(ibcDenom, metadata.Base)
-
-	// the iro plan should be settled
-	plan, found := s.hubApp().IROKeeper.GetPlanByRollapp(s.hubCtx(), rollappChainID())
-	s.Require().True(found)
-	s.Require().Equal(plan.SettledDenom, ibcDenom)
-}
-
-// TestInvalidGenesisInfo tests an invalid genesis info
-// FIXME: TODO
+*/
 
 // TestBridgeDisabledEnabled tests that the bridge is disabled until the genesis bridge is completed
 // after the genesis bridge is completed, the bridge should be enabled
@@ -244,7 +224,7 @@ func (s *transferGenesisSuite) TestBridgeDisabledEnabled() {
 
 	// create the expected genesis bridge packet
 	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
-	packet = s.genesisBridgePacket(rollapp.GenesisInfo.NativeDenom.Base, rollapp.GenesisInfo.NativeDenom.Display, rollapp.GenesisInfo.InitialSupply, nil)
+	packet = s.genesisBridgePacket(rollapp.GenesisInfo)
 
 	// send the packet on the rollapp chain
 	seq, err := s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
@@ -274,8 +254,14 @@ func (s *transferGenesisSuite) TestBridgeDisabledEnabled() {
 	s.Require().Error(err) // expecting error as no AcknowledgePacket expected to return
 }
 
-// TestBridgeEnabled tests that the bridge is enabled after the genesis bridge is completed
-func (s *transferGenesisSuite) genesisBridgePacket(denom, display string, initialSupply math.Int, gAccounts []rollapptypes.GenesisAccount) channeltypes.Packet {
+/* ---------------------------------- utils --------------------------------- */
+// genesisBridgePacket creates a genesis bridge packet with the given parameters
+func (s *transferGenesisSuite) genesisBridgePacket(raGenesisInfo rollapptypes.GenesisInfo) channeltypes.Packet {
+	denom := raGenesisInfo.NativeDenom.Base
+	display := raGenesisInfo.NativeDenom.Display
+	initialSupply := raGenesisInfo.InitialSupply
+	gAccounts := raGenesisInfo.GenesisAccounts
+
 	var gb genesisbridge.GenesisBridgeData
 
 	meta := banktypes.Metadata{
@@ -308,7 +294,22 @@ func (s *transferGenesisSuite) genesisBridgePacket(denom, display string, initia
 	}
 	gb.NativeDenom = meta
 
-	// FIXME: add genesis transfer
+	// add genesis transfer if needed
+	if len(gAccounts) > 0 {
+		total := math.ZeroInt()
+		for _, acc := range gAccounts {
+			total = total.Add(acc.Amount)
+		}
+
+		gTransfer := transfertypes.NewFungibleTokenPacketData(
+			denom,
+			total.String(),
+			s.rollappChain().SenderAccount.GetAddress().String(),
+			genesisbridge.HubRecipient,
+			"",
+		)
+		gb.GenesisTransfer = &gTransfer
+	}
 
 	bz, err := gb.Marshal()
 	s.Require().NoError(err)
