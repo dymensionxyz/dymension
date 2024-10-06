@@ -25,6 +25,8 @@ func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
 	}
 
 	validMetadata := banktypes.Metadata{
+		Name:    "name",
+		Symbol:  "symbol",
 		Base:    "base",
 		Display: "display",
 		DenomUnits: []*banktypes.DenomUnit{
@@ -83,9 +85,17 @@ func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
 					InitialSupply:   math.NewInt(1000),
 					GenesisAccounts: []types.GenesisAccount{},
 				},
+				NativeDenom: validMetadata,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid metadata",
+			data: genesisbridge.GenesisBridgeData{
+				GenesisInfo: validGenInfo,
 				NativeDenom: banktypes.Metadata{
 					Base:    "base",
-					Display: "display",
+					Display: "", // missing display is not valid
 					DenomUnits: []*banktypes.DenomUnit{
 						{
 							Denom:    "base",
@@ -97,24 +107,6 @@ func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
 						},
 					},
 				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid metadata",
-			data: genesisbridge.GenesisBridgeData{
-				GenesisInfo: genesisbridge.GenesisBridgeInfo{
-					GenesisChecksum: "checksum",
-					Bech32Prefix:    "prefix",
-					NativeDenom: types.DenomMetadata{
-						Base:     "base",
-						Display:  "display",
-						Exponent: 18,
-					},
-					InitialSupply:   math.NewInt(1000),
-					GenesisAccounts: []types.GenesisAccount{},
-				},
-				NativeDenom: validMetadata,
 			},
 			wantErr: true,
 		},
@@ -133,10 +125,42 @@ func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
 			},
 			wantErr: true,
 		},
-
-		// FIXME: metadata not matching genesis info denom
-
-		// FIXME: genesis transfer denom is wrong
+		{
+			name: "metadata not matching genesis info denom",
+			data: genesisbridge.GenesisBridgeData{
+				GenesisInfo: validGenInfo,
+				NativeDenom: banktypes.Metadata{
+					Base:    "base",
+					Display: "NONdisplay",
+					DenomUnits: []*banktypes.DenomUnit{
+						{
+							Denom:    "base",
+							Exponent: 0,
+						},
+						{
+							Denom:    "NONdisplay",
+							Exponent: 18,
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "genesis transfer denom is wrong",
+			data: genesisbridge.GenesisBridgeData{
+				GenesisInfo: validGenInfo,
+				NativeDenom: validMetadata,
+				GenesisTransfer: &transfertypes.FungibleTokenPacketData{
+					Denom:    "NONbase",
+					Amount:   "1000",
+					Sender:   "sender",
+					Receiver: "receiver",
+					Memo:     "",
+				},
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {

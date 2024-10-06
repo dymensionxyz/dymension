@@ -8,6 +8,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -161,45 +162,138 @@ func (s *transferGenesisSuite) TestIRO() {
 }
 
 // TestInvalidGenesisInfo tests an invalid genesis info
-// FIXME: TODO
-/*
-// - TODO: wrong dest, wrong decimals
+func (s *transferGenesisSuite) TestInvalidGenesisInfo() {
+	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 
-	// - wrong amount
-	msg = s.transferMsg(amt.Sub(math.NewInt(100)), denom)
-	res, err = s.rollappChain().SendMsgs(msg)
-	s.Require().NoError(err)
-	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
-	s.Require().NoError(err)
-	err = s.path.RelayPacket(packet)
-	s.Require().NoError(err)
+	// invalid native denom
+	gInfoCopy := rollapp.GenesisInfo
+	gInfoCopy.NativeDenom.Base = "wrong"
+	packet := s.genesisBridgePacket(gInfoCopy)
 
+	// send the packet on the rollapp chain and assert the ack failed
+	seq, err := s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
+	s.Require().NoError(err)
+	packet.Sequence = seq
+	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
+	s.Require().NoError(err)
+	ack, found := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	s.Require().True(found)
+	s.Require().NotEqual(successAck, ack)
+
+	// invalid initial supply
+	gInfoCopy = rollapp.GenesisInfo
+	gInfoCopy.InitialSupply = math.NewInt(53453)
+	packet = s.genesisBridgePacket(gInfoCopy)
+
+	// send the packet on the rollapp chain and assert the ack failed
+	seq, err = s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
+	s.Require().NoError(err)
+	packet.Sequence = seq
+	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
+	s.Require().NoError(err)
 	ack, found = s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().True(found)
-	s.Require().NotEqual(successAck, ack) // assert for ack error
+	s.Require().NotEqual(successAck, ack)
 
-	transfersEnabled = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
-	s.Require().False(transfersEnabled)
+	// wrong GenesisAccounts
+	gInfoCopy = rollapp.GenesisInfo
+	gInfoCopy.GenesisAccounts = []rollapptypes.GenesisAccount{
+		{
+			Address: sample.AccAddress(),
+			Amount:  math.NewIntFromUint64(10000000000000000000),
+		},
+	}
+	packet = s.genesisBridgePacket(gInfoCopy)
 
-	// - wrong denom
-	wrongCoin := sdk.NewCoin("bar", amt)
-	apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.NewCoins(wrongCoin))
-	msg = s.transferMsg(amt, "bar")
-	res, err = s.rollappChain().SendMsgs(msg)
+	// send the packet on the rollapp chain and assert the ack failed
+	seq, err = s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
 	s.Require().NoError(err)
-	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
+	packet.Sequence = seq
+	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
-	err = s.path.RelayPacket(packet)
-	s.Require().NoError(err)
-
 	ack, found = s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().True(found)
-	s.Require().NotEqual(successAck, ack) // assert for ack error
+	s.Require().NotEqual(successAck, ack)
+}
 
-	transfersEnabled = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
-	s.Require().False(transfersEnabled)
+// TestInvalidGenesisDenomMetadata tests an invalid genesis denom metadata
+func (s *transferGenesisSuite) TestInvalidGenesisDenomMetadata() {
+	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 
-*/
+	packet := s.genesisBridgePacket(rollapp.GenesisInfo)
+	var gb genesisbridge.GenesisBridgeData
+	err := gb.Unmarshal(packet.Data)
+	s.Require().NoError(err)
+
+	// change the base denom in the metadata
+	gb.NativeDenom.Base = "wrong"
+	gb.NativeDenom.DenomUnits[0].Denom = "wrong"
+	packet.Data, err = gb.Marshal()
+	s.Require().NoError(err)
+
+	// send the packet on the rollapp chain and assert the ack failed
+	seq, err := s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
+	s.Require().NoError(err)
+	packet.Sequence = seq
+	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
+	s.Require().NoError(err)
+	ack, found := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	s.Require().True(found)
+	s.Require().NotEqual(successAck, ack)
+
+	// assert the original packet does work
+	packet = s.genesisBridgePacket(rollapp.GenesisInfo)
+	seq, err = s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
+	s.Require().NoError(err)
+	packet.Sequence = seq
+	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
+	s.Require().NoError(err)
+	ack, found = s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	s.Require().True(found)
+	s.Require().Equal(successAck, ack)
+}
+
+// TestInvalidGenesisTransfer tests an invalid genesis transfer
+func (s *transferGenesisSuite) TestInvalidGenesisTransfer() {
+	s.addGenesisAccounts([]rollapptypes.GenesisAccount{
+		{
+			Address: sample.AccAddress(),
+			Amount:  math.NewIntFromUint64(10000000000000000000),
+		},
+	})
+	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+
+	packet := s.genesisBridgePacket(rollapp.GenesisInfo)
+
+	// change the amount in the genesis transfer
+	var gb genesisbridge.GenesisBridgeData
+	err := gb.Unmarshal(packet.Data)
+	s.Require().NoError(err)
+	gb.GenesisTransfer.Amount = "1242353645"
+	packet.Data, err = gb.Marshal()
+	s.Require().NoError(err)
+
+	// send the packet on the rollapp chain and assert the ack failed
+	seq, err := s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
+	s.Require().NoError(err)
+	packet.Sequence = seq
+	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
+	s.Require().NoError(err)
+	ack, found := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	s.Require().True(found)
+	s.Require().NotEqual(successAck, ack)
+
+	// assert the original packet does work
+	packet = s.genesisBridgePacket(rollapp.GenesisInfo)
+	seq, err = s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
+	s.Require().NoError(err)
+	packet.Sequence = seq
+	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
+	s.Require().NoError(err)
+	ack, found = s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	s.Require().True(found)
+	s.Require().Equal(successAck, ack)
+}
 
 // TestBridgeDisabledEnabled tests that the bridge is disabled until the genesis bridge is completed
 // after the genesis bridge is completed, the bridge should be enabled
@@ -282,7 +376,7 @@ func (s *transferGenesisSuite) genesisBridgePacket(raGenesisInfo rollapptypes.Ge
 	s.Require().NoError(meta.Validate()) // sanity check the test is written correctly
 
 	gb.GenesisInfo = genesisbridge.GenesisBridgeInfo{
-		GenesisChecksum: "TODO", // FIXME
+		GenesisChecksum: "checksum",
 		Bech32Prefix:    "ethm",
 		NativeDenom: rollapptypes.DenomMetadata{
 			Base:     meta.Base,
