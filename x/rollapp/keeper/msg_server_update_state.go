@@ -25,6 +25,15 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp is frozen")
 	}
 
+	// call the before-update-state hook
+	// currently used by `x/sequencer` to:
+	// 1. validate the state update submitter
+	// 2. complete the rotation of the proposer if needed
+	err := k.hooks.BeforeUpdateState(ctx, msg.Creator, msg.RollappId, msg.Last)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "before update state")
+	}
+
 	// verify the DRS version is not vulnerable
 	if k.IsDRSVersionVulnerable(ctx, msg.DrsVersion) {
 		// the rollapp is not marked as vulnerable yet, mark it now
@@ -36,15 +45,6 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 			Info("non-frozen rollapp tried to submit MsgUpdateState with the vulnerable DRS version, mark the rollapp as vulnerable")
 		// we must return non-error if we want the changes to be saved
 		return &types.MsgUpdateStateResponse{}, nil
-	}
-
-	// call the before-update-state hook
-	// currently used by `x/sequencer` to:
-	// 1. validate the state update submitter
-	// 2. complete the rotation of the proposer if needed
-	err := k.hooks.BeforeUpdateState(ctx, msg.Creator, msg.RollappId, msg.Last)
-	if err != nil {
-		return nil, err
 	}
 
 	// retrieve last updating index
@@ -72,7 +72,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		}
 
 		// check to see if received height is the one we expected
-		expectedStartHeight := stateInfo.LastHeight() + 1
+		expectedStartHeight := stateInfo.StartHeight + stateInfo.NumBlocks
 		if expectedStartHeight != msg.StartHeight {
 			return nil, errorsmod.Wrapf(types.ErrWrongBlockHeight,
 				"expected height (%d), but received (%d)",
@@ -102,6 +102,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		newIndex,
 		msg.Creator,
 		msg.StartHeight,
+		msg.NumBlocks,
 		msg.DAPath,
 		creationHeight,
 		msg.BDs,

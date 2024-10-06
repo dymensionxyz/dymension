@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"google.golang.org/grpc/codes"
@@ -42,7 +43,7 @@ func (q Querier) AccountUnlockableCoins(goCtx context.Context, req *types.Accoun
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	if len(req.Owner) == 0 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -61,7 +62,7 @@ func (q Querier) AccountUnlockingCoins(goCtx context.Context, req *types.Account
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	if len(req.Owner) == 0 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -80,7 +81,7 @@ func (q Querier) AccountLockedCoins(goCtx context.Context, req *types.AccountLoc
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	if len(req.Owner) == 0 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -99,7 +100,7 @@ func (q Querier) AccountLockedPastTime(goCtx context.Context, req *types.Account
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	if len(req.Owner) == 0 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -118,7 +119,7 @@ func (q Querier) AccountUnlockedBeforeTime(goCtx context.Context, req *types.Acc
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	if len(req.Owner) == 0 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -138,7 +139,7 @@ func (q Querier) AccountLockedPastTimeDenom(goCtx context.Context, req *types.Ac
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	if len(req.Owner) == 0 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -181,7 +182,7 @@ func (q Querier) AccountLockedLongerDuration(goCtx context.Context, req *types.A
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	if len(req.Owner) == 0 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -201,7 +202,7 @@ func (q Querier) AccountLockedLongerDurationDenom(goCtx context.Context, req *ty
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	if len(req.Owner) == 0 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -221,7 +222,7 @@ func (q Querier) AccountLockedDuration(goCtx context.Context, req *types.Account
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	if len(req.Owner) == 0 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -242,7 +243,7 @@ func (q Querier) AccountLockedPastTimeNotUnlockingOnly(goCtx context.Context, re
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	if len(req.Owner) == 0 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -262,7 +263,7 @@ func (q Querier) AccountLockedLongerDurationNotUnlockingOnly(goCtx context.Conte
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	if len(req.Owner) == 0 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -281,7 +282,7 @@ func (q Querier) LockedDenom(goCtx context.Context, req *types.LockedDenomReques
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	if len(req.Denom) == 0 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty denom")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty denom")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)

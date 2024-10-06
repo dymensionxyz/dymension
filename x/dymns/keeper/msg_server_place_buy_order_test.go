@@ -797,6 +797,32 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceBuyOrder_DymName() {
 				s.Equal([]string{"102", "103"}, orderIds.OrderIds)
 			},
 		},
+		{
+			name:                  "pass - independently charge gas",
+			existingDymName:       dymName,
+			existingOffer:         nil,
+			dymName:               dymName.Name,
+			buyer:                 buyerA,
+			offer:                 minOfferPriceCoin,
+			existingBuyOrderId:    "",
+			originalModuleBalance: sdk.NewInt(5),
+			originalBuyerBalance:  minOfferPriceCoin.Amount.AddRaw(2),
+			preRunSetupFunc: func(s *KeeperTestSuite) {
+				s.ctx.GasMeter().ConsumeGas(100_000_000, "simulate previous run")
+			},
+			wantErr:        false,
+			wantBuyOrderId: "101",
+			wantLaterOffer: &dymnstypes.BuyOrder{
+				Id:         "101",
+				AssetId:    dymName.Name,
+				AssetType:  dymnstypes.TypeName,
+				Buyer:      buyerA,
+				OfferPrice: minOfferPriceCoin,
+			},
+			wantLaterModuleBalance: minOfferPriceCoin.Amount.AddRaw(5),
+			wantLaterBuyerBalance:  sdk.NewInt(2),
+			wantMinConsumeGas:      100_000_000 + dymnstypes.OpGasPutBuyOrder,
+		},
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
@@ -1855,6 +1881,34 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceBuyOrder_Alias() {
 				orderIds = s.dymNsKeeper.GenericGetReverseLookupBuyOrderIdsRecord(s.ctx, key)
 				s.Equal([]string{"202", "203"}, orderIds.OrderIds)
 			},
+		},
+		{
+			name:                  "pass - independently charge gas",
+			existingRollApps:      []rollapp{rollApp_1_by1_asSrc, rollApp_2_by2_asDest},
+			existingOffer:         nil,
+			alias:                 rollApp_1_by1_asSrc.alias,
+			buyer:                 rollApp_2_by2_asDest.creator,
+			dstRollAppId:          rollApp_2_by2_asDest.rollAppID,
+			offer:                 minOfferPriceCoin,
+			existingBuyOrderId:    "",
+			originalModuleBalance: sdk.NewInt(5),
+			originalBuyerBalance:  minOfferPriceCoin.Amount.AddRaw(2),
+			preRunSetupFunc: func(s *KeeperTestSuite) {
+				s.ctx.GasMeter().ConsumeGas(100_000_000, "simulate previous run")
+			},
+			wantErr:        false,
+			wantBuyOrderId: "201",
+			wantLaterOffer: &dymnstypes.BuyOrder{
+				Id:         "201",
+				AssetId:    rollApp_1_by1_asSrc.alias,
+				AssetType:  dymnstypes.TypeAlias,
+				Params:     []string{rollApp_2_by2_asDest.rollAppID},
+				Buyer:      rollApp_2_by2_asDest.creator,
+				OfferPrice: minOfferPriceCoin,
+			},
+			wantLaterModuleBalance: minOfferPriceCoin.Amount.AddRaw(5),
+			wantLaterBuyerBalance:  sdk.NewInt(2),
+			wantMinConsumeGas:      100_000_000 + dymnstypes.OpGasPutBuyOrder,
 		},
 	}
 	for _, tt := range tests {

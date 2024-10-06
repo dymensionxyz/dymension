@@ -1,11 +1,15 @@
 package keeper_test
 
 import (
+	"crypto/rand"
 	"fmt"
+	"math/big"
 	"sort"
+	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
+	"github.com/stretchr/testify/require"
 )
 
 var keyTestReverseLookup = []byte("test-reverse-lookup")
@@ -126,21 +130,6 @@ func (s *KeeperTestSuite) TestKeeper_GenericAddGetRemoveReverseLookupRecord() {
 			},
 		},
 		{
-			name: "add - list must be sorted before persist",
-			testFunc: func(te testEntity, ctx sdk.Context, s *KeeperTestSuite) {
-				te.adder(ctx, keyTestReverseLookup, "test3", s)
-				te.adder(ctx, keyTestReverseLookup, "test", s)
-
-				records := te.getter(ctx, keyTestReverseLookup, s)
-				s.Equal([]string{"test", "test3"}, records)
-
-				te.adder(ctx, keyTestReverseLookup, "test2", s)
-
-				records = te.getter(ctx, keyTestReverseLookup, s)
-				s.Equal([]string{"test", "test2", "test3"}, records)
-			},
-		},
-		{
 			name: "get - returns empty when getting non-exist record",
 			testFunc: func(te testEntity, ctx sdk.Context, s *KeeperTestSuite) {
 				records := te.getter(ctx, keyTestReverseLookup, s)
@@ -155,18 +144,18 @@ func (s *KeeperTestSuite) TestKeeper_GenericAddGetRemoveReverseLookupRecord() {
 				te.adder(ctx, keyTestReverseLookup, "test1", s)
 
 				records := te.getter(ctx, keyTestReverseLookup, s)
-				s.Equal([]string{"test1", "test2", "test3"}, records)
+				s.Equal([]string{"test3", "test2", "test1"}, records)
 			},
 		},
 		{
-			name: "get - result is ordered",
+			name: "get - result is kept as persist order",
 			testFunc: func(te testEntity, ctx sdk.Context, s *KeeperTestSuite) {
 				te.adder(ctx, keyTestReverseLookup, "test3", s)
 				te.adder(ctx, keyTestReverseLookup, "test2", s)
 				te.adder(ctx, keyTestReverseLookup, "test1", s)
 
 				records := te.getter(ctx, keyTestReverseLookup, s)
-				s.Equal([]string{"test1", "test2", "test3"}, records)
+				s.Equal([]string{"test3", "test2", "test1"}, records)
 			},
 		},
 		{
@@ -279,5 +268,129 @@ func (s *KeeperTestSuite) TestKeeper_GenericAddGetRemoveReverseLookupRecord() {
 			branchedCtx3, _ := s.ctx.CacheContext()
 			tt.testFunc(boIdsTE, branchedCtx3, s)
 		})
+	}
+}
+
+func Benchmark_GenericAddReverseLookupRecord(b *testing.B) {
+	b.StopTimer()
+	b.ReportAllocs()
+
+	// 2024-09-26: 0.43s for appending into a list of existing 1m elements
+	// Benchmark_GenericAddReverseLookupRecord-8 | 3s154ms | 3 | 431924139 ns/op | 272465408 B/op | 1038262 allocs/op
+
+	// 2024-09-26: 0.062s for appending into a list of existing 1m elements
+	// Benchmark_GenericAddReverseLookupRecord-8 | 2s619ms | 18 | 62825618 ns/op | 224076049 B/op | 1000054 allocs/op
+	// => After improve slice operations, the time needed per op reduced from 430ms to 62ms
+
+	s := new(KeeperTestSuite)
+	s.SetT(&testing.T{})
+	s.SetupTest()
+	codec := s.cdc
+
+	const elementsCount = 1_000_000
+	upperRand := new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil)
+
+	{
+
+		// prepare existing data
+		existingData := make([]string, elementsCount)
+		for e := 1; e <= elementsCount; e++ {
+			bi, err := rand.Int(rand.Reader, upperRand)
+			require.NoError(b, err)
+			v := fmt.Sprintf("test%s", bi)
+			existingData = append(existingData, v)
+		}
+		bz := codec.MustMarshal(&dymnstypes.ReverseLookupDymNames{
+			DymNames: existingData,
+		})
+		s.ctx.KVStore(s.dymNsStoreKey).Set(keyTestReverseLookup, bz)
+	}
+
+	for r := 1; r <= b.N; r++ {
+		// add new element to force the most hardcore computation
+		bi, err := rand.Int(rand.Reader, upperRand)
+		require.NoError(b, err)
+		v := fmt.Sprintf("test%s", bi)
+		err = func() error {
+			b.StartTimer()
+			defer b.StopTimer()
+			return s.dymNsKeeper.GenericAddReverseLookupRecord(
+				s.ctx,
+				keyTestReverseLookup, v,
+				func(list []string) []byte {
+					return codec.MustMarshal(&dymnstypes.ReverseLookupDymNames{
+						DymNames: list,
+					})
+				}, func(bz []byte) []string {
+					var record dymnstypes.ReverseLookupDymNames
+					codec.MustUnmarshal(bz, &record)
+					return record.DymNames
+				},
+			)
+		}()
+		require.NoError(b, err)
+	}
+}
+
+func Benchmark_GenericRemoveReverseLookupRecord(b *testing.B) {
+	b.StopTimer()
+	b.ReportAllocs()
+
+	// 2024-09-26: 0.44s for removing from a list of existing 1m elements
+	// Benchmark_GenericRemoveReverseLookupRecord-8 | 3s471ms | 3 | 440934042 ns/op | 293803210 B/op | 1038246 allocs/op
+
+	// 2024-09-26: 0.1s for removing from a list of existing 1m elements
+	// Benchmark_GenericRemoveReverseLookupRecord-8 | 7s638ms | 12 | 102355965 ns/op | 224075756 B/op | 1000041 allocs/op
+	// => After improve slice operations, the time needed per op reduced from 430ms to 62ms
+
+	s := new(KeeperTestSuite)
+	s.SetT(&testing.T{})
+	s.SetupTest()
+	codec := s.cdc
+
+	const elementsCount = 1_000_000
+	upperRand := new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil)
+
+	{
+		// prepare existing data
+		existingData := make([]string, elementsCount)
+		for e := 1; e <= elementsCount; e++ {
+			bi, err := rand.Int(rand.Reader, upperRand)
+			require.NoError(b, err)
+			v := fmt.Sprintf("test%s", bi)
+			existingData = append(existingData, v)
+		}
+		bz := codec.MustMarshal(&dymnstypes.ReverseLookupDymNames{
+			DymNames: existingData,
+		})
+		s.ctx.KVStore(s.dymNsStoreKey).Set(keyTestReverseLookup, bz)
+	}
+
+	for r := 1; r <= b.N; r++ {
+		existingElements := s.dymNsKeeper.GenericGetReverseLookupRecord(s.ctx, keyTestReverseLookup, func(bz []byte) []string {
+			var record dymnstypes.ReverseLookupDymNames
+			codec.MustUnmarshal(bz, &record)
+			return record.DymNames
+		})
+		// delete the last element to force the most hardcore computation
+		lastElement := existingElements[len(existingElements)-1]
+		err := func() error {
+			b.StartTimer()
+			defer b.StopTimer()
+			return s.dymNsKeeper.GenericRemoveReverseLookupRecord(
+				s.ctx,
+				keyTestReverseLookup, lastElement,
+				func(list []string) []byte {
+					return codec.MustMarshal(&dymnstypes.ReverseLookupDymNames{
+						DymNames: list,
+					})
+				}, func(bz []byte) []string {
+					var record dymnstypes.ReverseLookupDymNames
+					codec.MustUnmarshal(bz, &record)
+					return record.DymNames
+				},
+			)
+		}()
+		require.NoError(b, err)
 	}
 }

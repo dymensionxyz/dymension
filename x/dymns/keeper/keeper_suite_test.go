@@ -55,6 +55,7 @@ type KeeperTestSuite struct {
 	rollAppKeeper rollappkeeper.Keeper
 	bankKeeper    dymnstypes.BankKeeper
 
+	dymNsStoreKey   storetypes.StoreKey
 	rollappStoreKey storetypes.StoreKey
 }
 
@@ -74,11 +75,11 @@ func (s *KeeperTestSuite) SetupTest() {
 	var bk dymnstypes.BankKeeper
 	var rk *rollappkeeper.Keeper
 
-	var rollappStoreKey storetypes.StoreKey
+	var dymNsStoreKey, rollappStoreKey storetypes.StoreKey
 
 	{
 		// initialization
-		dymNsStoreKey := sdk.NewKVStoreKey(dymnstypes.StoreKey)
+		dymNsStoreKey = sdk.NewKVStoreKey(dymnstypes.StoreKey)
 		dymNsMemStoreKey := storetypes.NewMemoryStoreKey(dymnstypes.MemStoreKey)
 
 		authStoreKey := sdk.NewKVStoreKey(authtypes.StoreKey)
@@ -171,6 +172,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.dymNsKeeper = dk
 	s.rollAppKeeper = *rk
 	s.bankKeeper = bk
+	s.dymNsStoreKey = dymNsStoreKey
 	s.rollappStoreKey = rollappStoreKey
 
 	// custom
@@ -768,13 +770,6 @@ func (m reqDymNameS) noActiveSO() reqDymNameS {
 	return m
 }
 
-func (m reqDymNameS) mustEquals(another dymnstypes.DymName) reqDymNameS {
-	dymName := m.s.dymNsKeeper.GetDymName(m.s.ctx, m.dymName)
-	m.s.Require().NotNil(dymName)
-	m.s.Require().Equal(another, *dymName)
-	return m
-}
-
 func (m reqDymNameS) ownerChangedTo(newOwner string) reqDymNameS {
 	dymName := m.s.dymNsKeeper.GetDymName(m.s.ctx, m.dymName)
 	m.s.Require().NotNil(dymName)
@@ -784,9 +779,9 @@ func (m reqDymNameS) ownerChangedTo(newOwner string) reqDymNameS {
 	return m
 }
 
-func (m reqDymNameS) expiryEquals(expiry int64) reqDymNameS {
+func (m reqDymNameS) ownerIs(expectedOwner string) reqDymNameS {
 	dymName := m.s.dymNsKeeper.GetDymName(m.s.ctx, m.dymName)
 	m.s.Require().NotNil(dymName)
-	m.s.Require().Equal(expiry, dymName.ExpireAt)
+	m.s.Require().Equal(expectedOwner, dymName.Owner)
 	return m
 }

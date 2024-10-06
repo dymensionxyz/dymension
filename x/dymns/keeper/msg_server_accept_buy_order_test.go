@@ -677,6 +677,30 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
+		{
+			name:                  "pass - independently charge gas",
+			existingDymName:       dymName,
+			existingOffer:         offer,
+			buyOrderId:            offer.Id,
+			owner:                 dymName.Owner,
+			minAccept:             offer.OfferPrice,
+			originalModuleBalance: offer.OfferPrice.Amount,
+			originalOwnerBalance:  sdk.NewInt(0),
+			preRunSetupFunc: func(s *KeeperTestSuite) {
+				s.ctx.GasMeter().ConsumeGas(100_000_000, "simulate previous run")
+			},
+			wantErr:        false,
+			wantLaterOffer: nil,
+			wantLaterDymName: &dymnstypes.DymName{
+				Name:       dymName.Name,
+				Owner:      offer.Buyer,
+				Controller: offer.Buyer,
+				ExpireAt:   dymName.ExpireAt,
+			},
+			wantLaterModuleBalance: sdkmath.ZeroInt(),
+			wantLaterOwnerBalance:  offer.OfferPrice.Amount,
+			wantMinConsumeGas:      100_000_000 + dymnstypes.OpGasUpdateBuyOrder,
+		},
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
@@ -1452,6 +1476,34 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_Alias() {
 			wantLaterModuleBalance: sdk.NewInt(1),
 			wantLaterOwnerBalance:  sdk.NewInt(2),
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
+		},
+		{
+			name:                  "pass - independently charge gas",
+			existingRollApps:      []rollapp{rollApp_One_By1_SingleAlias, rollApp_Two_By2_SingleAlias},
+			existingOffer:         offerAliasOfRollAppOne,
+			buyOrderId:            offerAliasOfRollAppOne.Id,
+			owner:                 rollApp_One_By1_SingleAlias.owner,
+			minAccept:             offerAliasOfRollAppOne.OfferPrice,
+			originalModuleBalance: offerAliasOfRollAppOne.OfferPrice.Amount,
+			originalOwnerBalance:  sdk.NewInt(0),
+			preRunSetupFunc: func(s *KeeperTestSuite) {
+				s.ctx.GasMeter().ConsumeGas(100_000_000, "simulate previous run")
+			},
+			wantErr:        false,
+			wantLaterOffer: nil,
+			wantLaterRollApps: []rollapp{
+				{
+					rollAppId: rollApp_One_By1_SingleAlias.rollAppId,
+					aliases:   []string{},
+				},
+				{
+					rollAppId: rollApp_Two_By2_SingleAlias.rollAppId,
+					aliases:   append(rollApp_Two_By2_SingleAlias.aliases, offerAliasOfRollAppOne.AssetId),
+				},
+			},
+			wantLaterModuleBalance: sdk.NewInt(0),
+			wantLaterOwnerBalance:  offerAliasOfRollAppOne.OfferPrice.Amount,
+			wantMinConsumeGas:      100_000_000 + dymnstypes.OpGasUpdateBuyOrder,
 		},
 	}
 	for _, tt := range tests {

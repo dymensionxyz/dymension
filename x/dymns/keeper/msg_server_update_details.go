@@ -14,6 +14,7 @@ import (
 // handles updating Dym-Name details, performed by the controller.
 func (k msgServer) UpdateDetails(goCtx context.Context, msg *dymnstypes.MsgUpdateDetails) (*dymnstypes.MsgUpdateDetailsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	originalConsumedGas := ctx.GasMeter().GasConsumed()
 
 	dymName, err := k.validateUpdateDetails(ctx, msg)
 	if err != nil {
@@ -56,7 +57,7 @@ func (k msgServer) UpdateDetails(goCtx context.Context, msg *dymnstypes.MsgUpdat
 	}
 
 	// charge protocol fee
-	consumeMinimumGas(ctx, minimumTxGasRequired, "UpdateDetails")
+	consumeMinimumGas(ctx, minimumTxGasRequired, originalConsumedGas, "UpdateDetails")
 
 	return &dymnstypes.MsgUpdateDetailsResponse{}, nil
 }

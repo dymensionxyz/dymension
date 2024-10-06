@@ -90,15 +90,18 @@ func TestFindStateInfoByHeight(t *testing.T) {
 	keeper.SetStateInfo(ctx, types.StateInfo{
 		StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 1},
 		StartHeight:    1,
-	}.WithNumBlocks(2))
+		NumBlocks:      2,
+	})
 	keeper.SetStateInfo(ctx, types.StateInfo{
 		StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 2},
 		StartHeight:    3,
-	}.WithNumBlocks(3))
+		NumBlocks:      3,
+	})
 	keeper.SetStateInfo(ctx, types.StateInfo{
 		StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 3},
 		StartHeight:    6,
-	}.WithNumBlocks(4))
+		NumBlocks:      4,
+	})
 	keeper.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
 		RollappId: rollappID,
 		Index:     3,
