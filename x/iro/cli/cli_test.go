@@ -42,52 +42,52 @@ func TestCmdCreateIRO(t *testing.T) {
 	}{
 		{
 			"valid args",
-			[]string{"testRollappId", "1000000", "2006-01-02T15:04:05Z", "--curve", "1.2,0.4,0", "--from", addr},
+			[]string{"testRollappId", "1000000", "24h", "--curve", "1.2,0.4,0", "--from", addr},
 			"",
 		},
 		{
 			"valid args with incentives",
-			[]string{"testRollappId", "1000000", "2006-01-02T15:04:05Z", "--curve", "1.2,0.4,0", "--from", addr, "--" + cli.FlagIncentivesEpochs, "10", "--" + cli.FlagIncentivesStartDurationAfterSettlement, "1h"},
+			[]string{"testRollappId", "1000000", "24h", "--curve", "1.2,0.4,0", "--from", addr, "--" + cli.FlagIncentivesEpochs, "10", "--" + cli.FlagIncentivesStartDurationAfterSettlement, "1h"},
 			"",
 		},
 		{
 			"missing rollappId",
-			[]string{"1000000", "2006-01-02T15:04:05Z", "--curve", "1.2,0.4,0", "--from", addr},
+			[]string{"1000000", "24h", "--curve", "1.2,0.4,0", "--from", addr},
 			"accepts 3 arg",
 		},
 		{
 			"missing allocation",
-			[]string{"testRollappId", "1630000000", "--curve", "1.2,0.4,0", "--from", addr},
+			[]string{"testRollappId", "24h", "--curve", "1.2,0.4,0", "--from", addr},
 			"accepts 3 arg",
 		},
 		{
 			"missing curve",
-			[]string{"testRollappId", "1000000", "1630000000", "--from", addr},
+			[]string{"testRollappId", "1000000", "24h", "--from", addr},
 			"curve",
 		},
 		{
 			"invalid allocation",
-			[]string{"testRollappId", "invalid", "1630000000", "--curve", "1.2,0.4,0", "--from", addr},
+			[]string{"testRollappId", "invalid", "24h", "--curve", "1.2,0.4,0", "--from", addr},
 			"allocation amount",
 		},
 		{
 			"invalid pre-launch time",
 			[]string{"testRollappId", "1000000", "invalid", "--curve", "1.2,0.4,0", "--from", addr},
-			"start time",
+			"invalid duration",
 		},
 		{
 			"invalid curve",
-			[]string{"testRollappId", "1000000", "1630000000", "--curve", "s,s,s", "--from", addr},
+			[]string{"testRollappId", "1000000", "24h", "--curve", "s,s,s", "--from", addr},
 			"curve",
 		},
 		{
 			"invalid incentives params - start",
-			[]string{"testRollappId", "1000000", "1630000000", "--curve", "1.2,0.4,0", "--incentives-start", "invalid", "--from", addr},
+			[]string{"testRollappId", "1000000", "24h", "--curve", "1.2,0.4,0", "--incentives-start", "invalid", "--from", addr},
 			"incentives-start",
 		},
 		{
 			"invalid incentives params - epochs",
-			[]string{"testRollappId", "1000000", "1630000000", "--curve", "1.2,0.4,0", "--incentives-epochs", "-1", "--from", addr},
+			[]string{"testRollappId", "1000000", "24h", "--curve", "1.2,0.4,0", "--incentives-epochs", "-1", "--from", addr},
 			"incentives-epochs",
 		},
 	}
