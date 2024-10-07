@@ -54,7 +54,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 
 		// check pre launch time.
 		// skipped if no pre launch time is set
-		if rollapp.PreLaunchTime.After(ctx.BlockTime()) {
+		if rollapp.PreLaunchTime != nil && rollapp.PreLaunchTime.After(ctx.BlockTime()) {
 			return nil, types.ErrBeforePreLaunchTime
 		}
 
