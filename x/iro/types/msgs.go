@@ -9,10 +9,12 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const TypeMsgCreatePlan = "create_plan"
-const TypeMsgBuy = "buy"
-const TypeMsgSell = "sell"
-const TypeMsgClaim = "claim"
+const (
+	TypeMsgCreatePlan = "create_plan"
+	TypeMsgBuy        = "buy"
+	TypeMsgSell       = "sell"
+	TypeMsgClaim      = "claim"
+)
 
 var (
 	_ sdk.Msg            = &MsgCreatePlan{}
