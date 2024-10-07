@@ -19,7 +19,7 @@ func CmdUpdateState() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-state [rollapp-id] [start-height] [num-blocks] [da-path] [bds]",
 		Short: "Update rollapp state",
-		Args:  cobra.ExactArgs(6),
+		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappId := args[0]
 			argStartHeight, err := cast.ToUint64E(args[1])
@@ -32,7 +32,7 @@ func CmdUpdateState() *cobra.Command {
 			}
 			argDAPath := args[3]
 			argBDs := new(types.BlockDescriptors)
-			err = json.Unmarshal([]byte(args[5]), argBDs)
+			err = json.Unmarshal([]byte(args[4]), argBDs)
 			if err != nil {
 				return err
 			}
