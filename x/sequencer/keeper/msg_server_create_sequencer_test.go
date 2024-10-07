@@ -426,7 +426,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerBeforePrelaunch() {
 	// set prelaunch time to the rollapp
 	preLaunchTime := time.Now()
 	rollapp := suite.App.RollappKeeper.MustGetRollapp(suite.Ctx, rollappId)
-	rollapp.PreLaunchTime = preLaunchTime
+	rollapp.PreLaunchTime = &preLaunchTime
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
 	addr := sdk.AccAddress(pk.Address())

@@ -152,7 +152,7 @@ func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, pre
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info not set")
 	}
 	rollapp.GenesisInfo.Sealed = true
-	rollapp.PreLaunchTime = preLaunchTime
+	rollapp.PreLaunchTime = &preLaunchTime
 	rollapp.GenesisState.TransfersEnabled = false
 	k.SetRollapp(ctx, *rollapp)
 	return nil

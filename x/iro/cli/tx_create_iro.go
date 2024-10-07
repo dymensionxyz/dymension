@@ -19,14 +19,14 @@ import (
 
 func CmdCreateIRO() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-iro [rollapp-id] [allocation] [pre-launch-time]",
+		Use:   "create-iro [rollapp-id] [allocation] [duration]",
 		Short: "Create a new Initial RollApp Offering (IRO) plan",
 		Long: `Create a new Initial RollApp Offering (IRO) plan for a specific RollApp.
 
 Parameters:
-  [rollapp-id]      : The unique identifier of the RollApp for which the IRO is being created.
-  [allocation]      : The total amount of tokens to be allocated for the IRO.
-  [pre-launch-time] : The time before which the IRO cannot be launched. Can be in Unix timestamp or RFC3339 format.
+  [rollapp-id]  : The unique identifier of the RollApp for which the IRO is being created.
+  [allocation]  : The total amount of tokens to be allocated for the IRO.
+  [duration] 	: The duration of the IRO plan in seconds.
 
 Required Flags:
   --curve           : The bonding curve parameters in the format "M,N,C" where the curve is defined as p(x) = M * x^N + C.
@@ -37,29 +37,24 @@ Optional Flags:
   --incentives-epochs: The number of epochs over which incentives will be distributed. (1 minute epoch)
 
 Examples:
-  dymd tx iro create-iro myrollapp1 1000000000 1630000000 --curve "1.2,0.4,0" --from mykey
-  dymd tx iro create-iro myrollapp2 500000000 "2023-09-15T14:00:00Z" --curve "1.5,0.5,100" --start-time "2023-10-01T00:00:00Z" --incentives-start 24h --incentives-epochs 3000 --from mykey
+  dymd tx iro create-iro myrollapp1 1000000000 24h --curve "1.2,0.4,0" --from mykey
+  dymd tx iro create-iro myrollapp2 500000000 30m --curve "1.5,0.5,100" --start-time "2023-10-01T00:00:00Z" --incentives-start 24h --incentives-epochs 3000 --from mykey
 `,
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappId := args[0]
 			argAllocation := args[1]
-			argPreLaunchTimeStr := args[2]
+			argDurationStr := args[2]
 
 			allocationAmt, ok := math.NewIntFromString(argAllocation)
 			if !ok {
 				return fmt.Errorf("invalid allocation amount: %s", argAllocation)
 			}
 
-			var preLaunchTime time.Time
-			if argPreLaunchTimeStr == "" {
-				return errors.New("pre-launch time cannot be empty")
-			} else if timeUnix, err := strconv.ParseInt(argPreLaunchTimeStr, 10, 64); err == nil { // unix time
-				preLaunchTime = time.Unix(timeUnix, 0)
-			} else if timeRFC, err := time.Parse(time.RFC3339, argPreLaunchTimeStr); err == nil { // RFC time
-				preLaunchTime = timeRFC
-			} else { // invalid input
-				return errors.New("invalid start time format")
+			// Parse the string into a time.Duration
+			planDuration, err := time.ParseDuration(argDurationStr)
+			if err != nil {
+				return err
 			}
 
 			// Parse curve flag
@@ -109,7 +104,7 @@ Examples:
 				AllocatedAmount: allocationAmt,
 				BondingCurve:    curve,
 				StartTime:       startTime,
-				PreLaunchTime:   preLaunchTime,
+				IroPlanDuration: planDuration,
 				IncentivePlanParams: types.IncentivePlanParams{
 					StartTimeAfterSettlement: incentivesStart,
 					NumEpochsPaidOver:        incentivesEpochs,

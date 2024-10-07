@@ -45,9 +45,10 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		startTime = ctx.BlockTime()
 	}
 	// check minimal duration
-	if startTime.Add(m.Keeper.GetParams(ctx).MinPlanDuration).After(req.PreLaunchTime) {
+	if req.IroPlanDuration < m.Keeper.GetParams(ctx).MinPlanDuration {
 		return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrInvalidEndTime)
 	}
+	preLaunchTime := startTime.Add(req.IroPlanDuration)
 
 	// validate incentive plan params
 	params := m.Keeper.GetParams(ctx)
@@ -64,7 +65,7 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrPlanExists)
 	}
 
-	planId, err := m.Keeper.CreatePlan(ctx, req.AllocatedAmount, startTime, req.PreLaunchTime, rollapp, req.BondingCurve, req.IncentivePlanParams)
+	planId, err := m.Keeper.CreatePlan(ctx, req.AllocatedAmount, startTime, preLaunchTime, rollapp, req.BondingCurve, req.IncentivePlanParams)
 	if err != nil {
 		return nil, err
 	}

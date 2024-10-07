@@ -2,6 +2,7 @@ package types
 
 import (
 	"errors"
+
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,7 +39,7 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 		return ErrInvalidAllocation
 	}
 
-	if m.PreLaunchTime.Before(m.StartTime) {
+	if m.IroPlanDuration < 0 {
 		return ErrInvalidEndTime
 	}
 
