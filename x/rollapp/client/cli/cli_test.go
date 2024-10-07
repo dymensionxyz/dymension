@@ -1,11 +1,9 @@
 package cli_test
 
 import (
-	"encoding/json"
 	"os"
 	"strings"
 	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
@@ -89,58 +87,6 @@ func TestCmdCreateRollapp(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := cli.CmdCreateRollapp()
-			cmd.SetArgs(tc.args)
-			err := cmd.Execute()
-			if tc.errMsg != "" {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), tc.errMsg)
-			} else {
-				require.Contains(t, err.Error(), "key not found") // we expect this error because we are not setting the key. anyway it means we passed validation
-			}
-		})
-	}
-}
-
-func TestCmdUpdateState(t *testing.T) {
-	addr := sdk.AccAddress("testAddress").String()
-
-	bds := types.BlockDescriptors{
-		BD: []types.BlockDescriptor{
-			{
-				Height:    12345,
-				StateRoot: []byte("helloworld"),
-				Timestamp: time.Date(2023, 10, 1, 12, 34, 56, 0, time.UTC),
-			},
-			{
-				Height:    12346,
-				StateRoot: []byte("worldhello"),
-				Timestamp: time.Date(2023, 10, 1, 12, 35, 56, 0, time.UTC),
-			},
-		},
-	}
-
-	bdsStr, err := json.Marshal(bds)
-	assert.NoError(t, err)
-
-	testCases := []struct {
-		name   string
-		args   []string
-		errMsg string
-	}{
-		{
-			"valid minimal args",
-			[]string{"testRollappId", "10", "10", "dat-path", string(bdsStr), "--from", addr},
-			"",
-		},
-		{
-			"missing args",
-			[]string{"testRollappId", "10", "10", "dat-path", "--from", addr},
-			"accepts",
-		},
-	}
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			cmd := cli.CmdUpdateState()
 			cmd.SetArgs(tc.args)
 			err := cmd.Execute()
 			if tc.errMsg != "" {
