@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/msg/v1/msg.proto";
 import "dymensionxyz/dymension/iro/iro.proto";
+import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
@@ -64,9 +65,9 @@ message MsgCreatePlan {
   google.protobuf.Timestamp start_time = 5
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
-  // The time before which the rollapp cannot be started.
-  google.protobuf.Timestamp pre_launch_time = 6
-      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  // The duration of the plan.
+  google.protobuf.Duration iro_plan_duration = 6
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 
   // The incentive plan parameters for the tokens left after the plan is settled.
   IncentivePlanParams incentive_plan_params = 7 [ (gogoproto.nullable) = false ];
