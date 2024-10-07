@@ -62,7 +62,7 @@ func validateMinBond(i interface{}) error {
 	}
 
 	if v.IsNil() || v.IsZero() {
-		return nil
+		return fmt.Errorf("min bond must be positive: %s", v)
 	}
 
 	if !v.IsValid() {
