@@ -127,6 +127,17 @@ func (s *transferGenesisSuite) TestHappyPath_GenesisAccounts() {
 // We expect the IRO plan to be settled once the genesis bridge is completed
 func (s *transferGenesisSuite) TestIRO() {
 	amt := math.NewIntFromUint64(1_000_000).MulRaw(1e18)
+
+	// Add the iro module to the genesis accounts
+	gAddr := s.hubApp().IROKeeper.GetModuleAccountAddress()
+	gAccounts := []rollapptypes.GenesisAccount{
+		{
+			Address: gAddr,
+			Amount:  amt,
+		},
+	}
+	s.addGenesisAccounts(gAccounts)
+
 	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 
 	// create IRO plan
