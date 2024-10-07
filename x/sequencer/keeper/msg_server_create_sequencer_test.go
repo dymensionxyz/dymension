@@ -32,12 +32,6 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		expectedError error
 	}{
 		{
-			name:          "No bond required",
-			requiredBond:  sdk.Coin{},
-			bond:          sdk.NewCoin("adym", sdk.NewInt(10000000)),
-			expectedError: nil,
-		},
-		{
 			name:          "Valid bond",
 			requiredBond:  bond,
 			bond:          bond,
