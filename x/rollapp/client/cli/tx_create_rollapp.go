@@ -16,10 +16,19 @@ import (
 
 func CmdCreateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "create-rollapp [rollapp-id] [alias] [vm-type]",
-		Short:   "Create a new rollapp",
-		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID Rollapp EVM --init-sequencer '<seq_address1>,<seq_address2>' --genesis-checksum <genesis_checksum> --initial-supply 1000arax --native-denom native_denom.json --metadata metadata.json",
-		Args:    cobra.MinimumNArgs(3),
+		Use:   "create-rollapp [rollapp-id] [alias] [vm-type]",
+		Short: "Create a new rollapp",
+		Example: `
+		dymd tx rollapp create-rollapp myrollapp_12345-1 RollappAlias EVM 
+		// optional flags:
+		--init-sequencer '<seq_address1>,<seq_address2>'
+		--genesis-checksum <genesis_checksum>
+		--initial-supply 1000000
+		--native-denom native_denom.json
+		--genesis-accounts '<acc1>:1000000,<acc2>:1000000'
+		--metadata metadata.json
+		`,
+		Args: cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// nolint:gofumpt
 			argRollappId, alias, vmTypeStr := args[0], args[1], args[2]
@@ -106,6 +115,35 @@ func parseGenesisInfo(cmd *cobra.Command) (*types.GenesisInfo, error) {
 		genesisInfo.InitialSupply, ok = sdk.NewIntFromString(initialSupplyFlag)
 		if !ok {
 			return nil, fmt.Errorf("invalid initial supply: %s", initialSupplyFlag)
+		}
+	}
+
+	// Parsing genesis accounts
+	genesisAccountsFlag, err := cmd.Flags().GetString(FlagGenesisAccounts)
+	if err != nil {
+		return nil, err
+	}
+
+	if genesisAccountsFlag != "" {
+		// split the string by comma
+		genesisAccounts := strings.Split(genesisAccountsFlag, ",")
+		for _, acc := range genesisAccounts {
+			// split the account by colon
+			accParts := strings.Split(acc, ":")
+			if len(accParts) != 2 {
+				return nil, fmt.Errorf("invalid genesis account: %s", acc)
+			}
+
+			accAddr, accAmt := accParts[0], accParts[1]
+			amt, ok := sdk.NewIntFromString(accAmt)
+			if !ok {
+				return nil, fmt.Errorf("invalid genesis account amount: %s", accAmt)
+			}
+
+			genesisInfo.GenesisAccounts = append(genesisInfo.GenesisAccounts, types.GenesisAccount{
+				Address: accAddr,
+				Amount:  amt,
+			})
 		}
 	}
 
