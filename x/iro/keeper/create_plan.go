@@ -64,6 +64,21 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrPlanExists)
 	}
 
+	// validate the IRO funding genesis transfer is expected in rollapp's genesis info
+	found = false
+	for _, gAcc := range rollapp.GenesisInfo.GenesisAccounts {
+		if gAcc.Address == m.Keeper.GetModuleAccountAddress() {
+			if !gAcc.Amount.Equal(req.AllocatedAmount) {
+				return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "allocated amount mismatch")
+			}
+			found = true
+			break
+		}
+	}
+	if !found {
+		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer not found for IRO")
+	}
+
 	planId, err := m.Keeper.CreatePlan(ctx, req.AllocatedAmount, startTime, req.PreLaunchTime, rollapp, req.BondingCurve, req.IncentivePlanParams)
 	if err != nil {
 		return nil, err

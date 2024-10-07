@@ -53,6 +53,7 @@ message MsgCreatePlan {
   string rollapp_id = 2;
 
   // The amount of tokens allocated for the plan.
+  // NOTE: This amount is expected to be defined on the rollapp genesis info
   string allocated_amount = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false

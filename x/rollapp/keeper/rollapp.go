@@ -137,12 +137,12 @@ func (k Keeper) SetRollappAsLaunched(ctx sdk.Context, rollapp *types.Rollapp) er
 
 // SetIROPlanToRollapp modifies the rollapp object due to IRO creation
 // This methods:
-// - adds the x/iro to the genesis accounts
 // - seals the rollapp genesis info
 // - set the pre launch time according to the iro plan end time
 // Validations:
 // - rollapp must not be launched
 // - genesis info must be set
+// NOTE: we already validated that a genesis account exists for the IRO plan
 func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, iro irotypes.Plan) error {
 	if rollapp.Launched {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp already launched")
@@ -155,13 +155,6 @@ func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, iro
 	if !rollapp.GenesisInfoFieldsAreSet() {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info not set")
 	}
-
-	// add to genesis accounts
-	iroGenesisAccount := types.GenesisAccount{
-		Amount:  iro.TotalAllocation.Amount,
-		Address: k.accKeeper.GetModuleAddress(irotypes.ModuleName).String(),
-	}
-	rollapp.GenesisInfo.GenesisAccounts = append(rollapp.GenesisInfo.GenesisAccounts, iroGenesisAccount)
 
 	// seal genesis info
 	rollapp.GenesisInfo.Sealed = true
