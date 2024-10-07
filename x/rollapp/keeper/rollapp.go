@@ -160,7 +160,8 @@ func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, iro
 	rollapp.GenesisInfo.Sealed = true
 
 	// set pre launch time
-	rollapp.PreLaunchTime = iro.PreLaunchTime
+	rollapp.PreLaunchTime = &iro.PreLaunchTime
+
 	k.SetRollapp(ctx, *rollapp)
 	return nil
 }

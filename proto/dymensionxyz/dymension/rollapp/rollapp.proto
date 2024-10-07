@@ -68,8 +68,7 @@ message Rollapp {
   // pre_launch_time is the timestamp indicating the time before which the
   // rollapp cannot be started.
   // Set when creating IRO plan for the rollapp
-  google.protobuf.Timestamp pre_launch_time = 16
-      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  google.protobuf.Timestamp pre_launch_time = 16 [ (gogoproto.stdtime) = true];
   // LivenessEventHeight is the height of an upcoming liveness event (slash or
   // jail) 0 means not set
   int64 liveness_event_height = 17;

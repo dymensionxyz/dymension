@@ -39,7 +39,7 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 		return ErrInvalidAllocation
 	}
 
-	if m.PreLaunchTime.Before(m.StartTime) {
+	if m.IroPlanDuration < 0 {
 		return ErrInvalidEndTime
 	}
 
