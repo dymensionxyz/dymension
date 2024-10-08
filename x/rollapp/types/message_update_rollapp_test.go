@@ -37,6 +37,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 					X:           "https://x.dymension.xyz",
 				},
 			},
+			err: nil,
 		},
 		{
 			name: "valid - set initial sequencer to *",
@@ -45,6 +46,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				RollappId:        "dym_100-1",
 				InitialSequencer: "*",
 			},
+			err: nil,
 		},
 		{
 			name: "invalid owner address",
@@ -136,8 +138,13 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				InitialSequencer: sample.AccAddress(),
 				RollappId:        "dym_100-1",
 				GenesisInfo: &GenesisInfo{
-					GenesisAccounts: []GenesisAccount{
-						{Address: "invalid_address", Amount: sdk.NewInt(100)},
+					GenesisAccounts: &GenesisAccounts{
+						Accounts: []GenesisAccount{
+							{
+								Address: "invalid_address",
+								Amount:  sdk.NewInt(100),
+							},
+						},
 					},
 				},
 			},
@@ -169,7 +176,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 	}
 }
 
-func createManyGenesisAccounts(n int) []GenesisAccount {
+func createManyGenesisAccounts(n int) *GenesisAccounts {
 	accounts := make([]GenesisAccount, n)
 	for i := 0; i < n; i++ {
 		accounts[i] = GenesisAccount{
@@ -177,5 +184,5 @@ func createManyGenesisAccounts(n int) []GenesisAccount {
 			Amount:  sdk.NewInt(100),
 		}
 	}
-	return accounts
+	return &GenesisAccounts{Accounts: accounts}
 }

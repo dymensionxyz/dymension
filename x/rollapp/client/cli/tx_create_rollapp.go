@@ -125,6 +125,7 @@ func parseGenesisInfo(cmd *cobra.Command) (*types.GenesisInfo, error) {
 	}
 
 	if genesisAccountsFlag != "" {
+		accounts := []types.GenesisAccount{}
 		// split the string by comma
 		genesisAccounts := strings.Split(genesisAccountsFlag, ",")
 		for _, acc := range genesisAccounts {
@@ -140,10 +141,13 @@ func parseGenesisInfo(cmd *cobra.Command) (*types.GenesisInfo, error) {
 				return nil, fmt.Errorf("invalid genesis account amount: %s", accAmt)
 			}
 
-			genesisInfo.GenesisAccounts = append(genesisInfo.GenesisAccounts, types.GenesisAccount{
+			accounts = append(accounts, types.GenesisAccount{
 				Address: accAddr,
 				Amount:  amt,
 			})
+		}
+		genesisInfo.GenesisAccounts = &types.GenesisAccounts{
+			Accounts: accounts,
 		}
 	}
 

@@ -57,7 +57,7 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 			current.GenesisInfo.InitialSupply = update.GenesisInfo.InitialSupply
 		}
 
-		if len(update.GenesisInfo.GenesisAccounts) > 0 {
+		if update.GenesisInfo.GenesisAccounts != nil {
 			current.GenesisInfo.GenesisAccounts = update.GenesisInfo.GenesisAccounts
 		}
 	}

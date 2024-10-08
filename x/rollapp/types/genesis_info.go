@@ -15,7 +15,10 @@ const maxAllowedGenesisAccounts = 100
 
 func (gi GenesisInfo) GenesisTransferAmount() math.Int {
 	total := math.ZeroInt()
-	for _, a := range gi.GenesisAccounts {
+	if gi.GenesisAccounts == nil {
+		return total
+	}
+	for _, a := range gi.GenesisAccounts.Accounts {
 		total = total.Add(a.Amount)
 	}
 	return total
@@ -52,13 +55,15 @@ func (gi GenesisInfo) Validate() error {
 	}
 
 	// validate max limit of genesis accounts
-	if len(gi.GenesisAccounts) > maxAllowedGenesisAccounts {
-		return fmt.Errorf("too many genesis accounts: %d", len(gi.GenesisAccounts))
-	}
+	if gi.GenesisAccounts != nil {
+		if len(gi.GenesisAccounts.Accounts) > maxAllowedGenesisAccounts {
+			return fmt.Errorf("too many genesis accounts: %d", len(gi.GenesisAccounts.Accounts))
+		}
 
-	for _, a := range gi.GenesisAccounts {
-		if err := a.ValidateBasic(); err != nil {
-			return errors.Join(gerrc.ErrInvalidArgument, err)
+		for _, a := range gi.GenesisAccounts.Accounts {
+			if err := a.ValidateBasic(); err != nil {
+				return errors.Join(gerrc.ErrInvalidArgument, err)
+			}
 		}
 	}
 	return nil

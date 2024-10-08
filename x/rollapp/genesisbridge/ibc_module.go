@@ -179,12 +179,19 @@ func (w IBCModule) ValidateGenesisBridge(ctx sdk.Context, ra *types.Rollapp, dat
 	return nil
 }
 
-func compareGenesisAccounts(raCommitted, gbData []types.GenesisAccount) error {
-	if len(raCommitted) != len(gbData) {
-		return fmt.Errorf("genesis accounts length mismatch: expected %d, got %d", len(raCommitted), len(gbData))
+func compareGenesisAccounts(raCommitted *types.GenesisAccounts, gbData []types.GenesisAccount) error {
+	if raCommitted == nil {
+		if len(gbData) == 0 {
+			return nil
+		}
+		return fmt.Errorf("genesis accounts length mismatch: expected 0, got %d", len(gbData))
 	}
 
-	for _, acc := range raCommitted {
+	if len(raCommitted.Accounts) != len(gbData) {
+		return fmt.Errorf("genesis accounts length mismatch: expected %d, got %d", len(raCommitted.Accounts), len(gbData))
+	}
+
+	for _, acc := range raCommitted.Accounts {
 		found := slices.ContainsFunc(gbData, func(dataAcc types.GenesisAccount) bool {
 			return dataAcc.Address == acc.Address && dataAcc.Amount.Equal(acc.Amount)
 		})

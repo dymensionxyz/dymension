@@ -25,8 +25,13 @@ message GenesisInfo {
   // sealed indicates if the fields in this object are no longer updatable
   bool sealed = 5;
 
-  repeated GenesisAccount genesis_accounts = 6 [ (gogoproto.nullable) = false ];
+  GenesisAccounts genesis_accounts = 6 [ (gogoproto.nullable) = true ];
 }
+
+message GenesisAccounts {
+  repeated GenesisAccount accounts = 1 [ (gogoproto.nullable) = false ];
+}
+
 
 // GenesisAccount is a struct for the genesis account for the rollapp
 message GenesisAccount {

@@ -208,10 +208,12 @@ func (s *transferGenesisSuite) TestInvalidGenesisInfo() {
 
 	// wrong GenesisAccounts
 	gInfoCopy = rollapp.GenesisInfo
-	gInfoCopy.GenesisAccounts = []rollapptypes.GenesisAccount{
-		{
-			Address: sample.AccAddress(),
-			Amount:  math.NewIntFromUint64(10000000000000000000),
+	gInfoCopy.GenesisAccounts = &rollapptypes.GenesisAccounts{
+		Accounts: []rollapptypes.GenesisAccount{
+			{
+				Address: sample.AccAddress(),
+				Amount:  math.NewIntFromUint64(10000000000000000000),
+			},
 		},
 	}
 	packet = s.genesisBridgePacket(gInfoCopy)
@@ -365,7 +367,6 @@ func (s *transferGenesisSuite) genesisBridgePacket(raGenesisInfo rollapptypes.Ge
 	denom := raGenesisInfo.NativeDenom.Base
 	display := raGenesisInfo.NativeDenom.Display
 	initialSupply := raGenesisInfo.InitialSupply
-	gAccounts := raGenesisInfo.GenesisAccounts
 
 	var gb genesisbridge.GenesisBridgeData
 
@@ -395,14 +396,14 @@ func (s *transferGenesisSuite) genesisBridgePacket(raGenesisInfo rollapptypes.Ge
 			Exponent: meta.DenomUnits[1].Exponent,
 		},
 		InitialSupply:   initialSupply,
-		GenesisAccounts: gAccounts,
+		GenesisAccounts: []rollapptypes.GenesisAccount{},
 	}
 	gb.NativeDenom = meta
 
 	// add genesis transfer if needed
-	if len(gAccounts) > 0 {
+	if raGenesisInfo.GenesisAccounts != nil {
 		total := math.ZeroInt()
-		for _, acc := range gAccounts {
+		for _, acc := range raGenesisInfo.GenesisAccounts.Accounts {
 			total = total.Add(acc.Amount)
 		}
 
@@ -414,6 +415,7 @@ func (s *transferGenesisSuite) genesisBridgePacket(raGenesisInfo rollapptypes.Ge
 			"",
 		)
 		gb.GenesisTransfer = &gTransfer
+		gb.GenesisInfo.GenesisAccounts = raGenesisInfo.GenesisAccounts.Accounts
 	}
 
 	bz, err := gb.Marshal()

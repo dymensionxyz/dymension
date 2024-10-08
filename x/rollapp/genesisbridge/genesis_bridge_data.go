@@ -64,7 +64,11 @@ func (info GenesisBridgeInfo) ValidateBasic() error {
 		Bech32Prefix:    info.Bech32Prefix,
 		NativeDenom:     info.NativeDenom,
 		InitialSupply:   info.InitialSupply,
-		GenesisAccounts: info.GenesisAccounts,
+	}
+	if len(info.GenesisAccounts) > 0 {
+		raGenesisInfo.GenesisAccounts = &types.GenesisAccounts{
+			Accounts: info.GenesisAccounts,
+		}
 	}
 
 	if !raGenesisInfo.AllSet() {
