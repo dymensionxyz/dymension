@@ -392,6 +392,7 @@ func (a *AppKeepers) InitKeepers(
 	a.IROKeeper = irokeeper.NewKeeper(
 		appCodec,
 		a.keys[irotypes.StoreKey],
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		&a.AccountKeeper,
 		a.BankKeeper,
 		a.RollappKeeper,
