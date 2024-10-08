@@ -3,6 +3,7 @@ package genesisbridge
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
@@ -139,9 +140,9 @@ func (w IBCModule) OnRecvPacket(
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: enable transfers"))
 	}
 
-	// FIXME: add more data (denom, amount, etc). move events to proto
-	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeTransferGenesisTransfersEnabled,
+	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeTransfersEnabled,
 		sdk.NewAttribute(types.AttributeKeyRollappId, ra.RollappId),
+		sdk.NewAttribute(types.AttributeRollappIBCdenom, raBaseDenom),
 	))
 
 	// return success ack
