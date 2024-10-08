@@ -75,26 +75,26 @@ func (k Keeper) FinalizeRollappPacketsByReceiver(ctx sdk.Context, ibc porttypes.
 }
 
 // FinalizeRollappPacket finalizes a singe packet by its rollapp packet key.
-func (k Keeper) FinalizeRollappPacket(ctx sdk.Context, ibc porttypes.IBCModule, rollappID string, rollappPacketKey string) error {
+func (k Keeper) FinalizeRollappPacket(ctx sdk.Context, ibc porttypes.IBCModule, rollappPacketKey string) (*commontypes.RollappPacket, error) {
 	// Get a rollapp packet
 	packet, err := k.GetRollappPacket(ctx, rollappPacketKey)
 	if err != nil {
-		return fmt.Errorf("get rollapp packet: %w", err)
+		return nil, fmt.Errorf("get rollapp packet: %w", err)
 	}
 
 	// Verify the height is finalized
-	err = k.VerifyHeightFinalized(ctx, rollappID, packet.ProofHeight)
+	err = k.VerifyHeightFinalized(ctx, packet.RollappId, packet.ProofHeight)
 	if err != nil {
-		return fmt.Errorf("verify height is finalized: rollapp '%s': %w", rollappID, err)
+		return packet, fmt.Errorf("verify height is finalized: rollapp '%s': %w", packet.RollappId, err)
 	}
 
 	// Finalize the packet
-	err = k.finalizeRollappPacket(ctx, ibc, rollappID, *packet)
+	err = k.finalizeRollappPacket(ctx, ibc, packet.RollappId, *packet)
 	if err != nil {
-		return fmt.Errorf("finalize rollapp packet: %w", err)
+		return packet, fmt.Errorf("finalize rollapp packet: %w", err)
 	}
 
-	return nil
+	return packet, nil
 }
 
 type wrappedFunc func(ctx sdk.Context) error

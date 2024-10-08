@@ -2,6 +2,7 @@ package types
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 
 	"cosmossdk.io/math"
@@ -70,17 +71,19 @@ func (m *DemandOrder) Validate() error {
 	return nil
 }
 
-func (m *DemandOrder) GetCreatedEvent() *EventDemandOrderCreated {
+func (m *DemandOrder) GetCreatedEvent(blockHeight uint64) *EventDemandOrderCreated {
+	packetKey := base64.StdEncoding.EncodeToString([]byte(m.TrackingPacketKey))
 	return &EventDemandOrderCreated{
 		OrderId:      m.Id,
 		Price:        m.Price.String(),
 		Fee:          m.Fee.String(),
 		IsFulfilled:  m.IsFulfilled(),
 		PacketStatus: m.TrackingPacketStatus.String(),
-		PacketKey:    m.TrackingPacketKey,
+		PacketKey:    packetKey,
 		RollappId:    m.RollappId,
 		Recipient:    m.Recipient,
 		PacketType:   m.Type.String(),
+		BlockHeight:  blockHeight,
 	}
 }
 

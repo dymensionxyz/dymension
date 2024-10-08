@@ -13,6 +13,8 @@ service Msg {
   // FinalizePacket finalizes a singe packet.
   rpc FinalizePacket(MsgFinalizePacket) returns (MsgFinalizePacketResponse);
 
+  rpc FinalizePacketByPacketKey(MsgFinalizePacketByPacketKey) returns (MsgFinalizePacketByPacketKeyResponse);
+
   // FinalizePacketsUntilHeight finalizes the packets for the given rollapp until the given height inclusively.
   rpc FinalizePacketsUntilHeight(MsgFinalizePacketsUntilHeight) returns (MsgFinalizePacketsUntilHeightResponse);
 
@@ -40,6 +42,18 @@ message MsgFinalizePacket {
 }
 
 message MsgFinalizePacketResponse {}
+
+// MsgFinalizePacketByPacketKey finalizes a single packet by the packet key.
+message MsgFinalizePacketByPacketKey {
+  option (cosmos.msg.v1.signer) = "sender";
+
+  // Sender is the signer of the message.
+  string sender = 1;
+  // PacketKey is a key of the packet.
+  string packet_key = 2;
+}
+
+message MsgFinalizePacketByPacketKeyResponse {}
 
 // MsgFinalizePacketsUntilHeight finalizes packets for the given rollapp until the given height inclusively.
 message MsgFinalizePacketsUntilHeight {

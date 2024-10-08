@@ -36,7 +36,7 @@ func (m MsgServer) FinalizePacket(goCtx context.Context, msg *types.MsgFinalizeP
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	err = m.k.FinalizeRollappPacket(ctx, m.ibc.NextIBCMiddleware(), msg.RollappId, string(msg.PendingPacketKey()))
+	_, err = m.k.FinalizeRollappPacket(ctx, m.ibc.NextIBCMiddleware(), string(msg.PendingPacketKey()))
 	if err != nil {
 		return nil, err
 	}
@@ -54,6 +54,45 @@ func (m MsgServer) FinalizePacket(goCtx context.Context, msg *types.MsgFinalizeP
 	}
 
 	return &types.MsgFinalizePacketResponse{}, nil
+}
+
+func (m MsgServer) FinalizePacketByPacketKey(goCtx context.Context, msg *types.MsgFinalizePacketByPacketKey) (*types.MsgFinalizePacketByPacketKeyResponse, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	packetKey := string(msg.MustDecodePacketKey())
+	packet, err := m.k.FinalizeRollappPacket(ctx, m.ibc.NextIBCMiddleware(), packetKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		sourceChannel string
+		sequence      uint64
+	)
+
+	if packet.Packet != nil {
+		sourceChannel = packet.Packet.SourceChannel
+		sequence = packet.Packet.Sequence
+	}
+
+	err = uevent.EmitTypedEvent(ctx, &types.EventFinalizePacket{
+		Sender:            msg.Sender,
+		RollappId:         packet.RollappId,
+		PacketProofHeight: packet.ProofHeight,
+		PacketType:        packet.Type,
+		PacketSrcChannel:  sourceChannel,
+		PacketSequence:    sequence,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("emit event: %w", err)
+	}
+
+	return &types.MsgFinalizePacketByPacketKeyResponse{}, nil
 }
 
 func (m MsgServer) FinalizePacketsUntilHeight(goCtx context.Context, msg *types.MsgFinalizePacketsUntilHeight) (*types.MsgFinalizePacketsUntilHeightResponse, error) {
