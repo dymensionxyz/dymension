@@ -48,6 +48,7 @@ var (
 	ErrInvalidFeeDenom                   = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid fee denom")
 	ErrInvalidInitialSupply              = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid initial supply")
 	ErrInvalidBech32Prefix               = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid bech32 prefix")
+	ErrRollappNotFound                   = errorsmod.Wrap(gerrc.ErrNotFound, "rollapp")
 
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")

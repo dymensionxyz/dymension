@@ -1,0 +1,41 @@
+syntax = "proto3";
+package dymensionxyz.dymension.genesisbridge;
+
+import "gogoproto/gogo.proto";
+import "cosmos/bank/v1beta1/bank.proto";
+import "ibc/applications/transfer/v2/packet.proto";
+import "dymensionxyz/dymension/rollapp/metadata.proto";
+import "dymensionxyz/dymension/rollapp/genesis_info.proto";
+
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge";
+
+// GenesisBridgeData is the data struct that is passed to the hub for the
+// genesis bridge flow
+message GenesisBridgeData {
+  // genesis_info is the genesis info of the rollapp. used for hub validation
+  GenesisBridgeInfo genesis_info = 1 [ (gogoproto.nullable) = false ];
+  // native_denom is the native denom of the rollapp. registered on the hub
+  cosmos.bank.v1beta1.Metadata native_denom = 2
+      [ (gogoproto.nullable) = false ];
+  // optional genesis transfer packet data
+  ibc.applications.transfer.v2.FungibleTokenPacketData genesis_transfer = 3;
+}
+
+// The genesis info of the rollapp, that is passed to the hub for validation.
+// it's populated on the InitGenesis of the rollapp
+message GenesisBridgeInfo {
+  // checksum used to verify integrity of the genesis file. currently unused
+  string genesis_checksum = 1;
+  // unique bech32 prefix
+  string bech32_prefix = 2;
+  // native_denom is the base denom for the native token
+  rollapp.DenomMetadata native_denom = 3 [ (gogoproto.nullable) = false ];
+  // initial_supply is the initial supply of the native token
+  string initial_supply = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // accounts on the Hub to fund with some bootstrapping transfers
+  repeated rollapp.GenesisAccount genesis_accounts = 5 [ (gogoproto.nullable) = false ];
+}

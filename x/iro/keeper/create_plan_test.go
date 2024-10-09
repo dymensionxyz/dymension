@@ -9,34 +9,51 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
-func (s *KeeperTestSuite) TestValidateRollappPreconditions_MissingGenesisInfo() {
-	rollappId := s.CreateDefaultRollapp()
-	k := s.App.IROKeeper
+func (s *KeeperTestSuite) TestValidateRollappPreconditions() {
 	curve := types.DefaultBondingCurve()
 	incentives := types.DefaultIncentivePlanParams()
-
 	allocation := sdk.NewInt(100).MulRaw(1e18)
 
-	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+	s.Run("MissingGenesisChecksum", func() {
+		s.SetupTest()
+		rollappId := s.CreateDefaultRollapp()
+		k := s.App.IROKeeper
 
-	// test missing genesis checksum
-	rollapp.GenesisInfo.GenesisChecksum = ""
-	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
-	_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
-	s.Require().Error(err)
+		rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+		rollapp.GenesisInfo.GenesisChecksum = ""
+		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 
-	// test already launched
-	rollapp.GenesisInfo.GenesisChecksum = "aaaaaa"
-	rollapp.Launched = true
-	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
-	_, err = k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
-	s.Require().Error(err)
-	rollapp.Launched = false
+		_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
+		s.Require().Error(err)
+	})
 
-	// add check for happy path
-	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
-	_, err = k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
-	s.Require().NoError(err)
+	s.Run("AlreadyLaunched", func() {
+		s.SetupTest()
+		rollappId := s.CreateDefaultRollapp()
+		k := s.App.IROKeeper
+
+		rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+		rollapp.GenesisInfo.GenesisChecksum = "aaaaaa"
+		rollapp.Launched = true
+		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+
+		_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
+		s.Require().Error(err)
+	})
+
+	s.Run("HappyPath", func() {
+		s.SetupTest()
+		rollappId := s.CreateDefaultRollapp()
+		k := s.App.IROKeeper
+
+		rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+		rollapp.GenesisInfo.GenesisChecksum = "aaaaaa"
+		rollapp.Launched = false
+		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+
+		_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
+		s.Require().NoError(err)
+	})
 }
 
 func (s *KeeperTestSuite) TestCreatePlan() {

@@ -12,6 +12,21 @@ import (
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
 
+const (
+	maxAppNameLength         = 32
+	maxDescriptionLength     = 512
+	maxDisplayNameLength     = 32
+	maxTaglineLength         = 64
+	maxURLLength             = 256
+	maxGenesisChecksumLength = 64
+)
+
+type AllowedDecimals uint32
+
+const (
+	Decimals18 AllowedDecimals = 18
+)
+
 func NewRollapp(
 	creator,
 	rollappId,
@@ -33,21 +48,6 @@ func NewRollapp(
 		},
 	}
 }
-
-const (
-	maxAppNameLength         = 32
-	maxDescriptionLength     = 512
-	maxDisplayNameLength     = 32
-	maxTaglineLength         = 64
-	maxURLLength             = 256
-	maxGenesisChecksumLength = 64
-)
-
-type AllowedDecimals uint32
-
-const (
-	Decimals18 AllowedDecimals = 18
-)
 
 func (r Rollapp) LastStateUpdateHeightIsSet() bool {
 	return r.LastStateUpdateHeight != 0
@@ -100,40 +100,11 @@ func (r Rollapp) AllImmutableFieldsAreSet() bool {
 }
 
 func (r Rollapp) GenesisInfoFieldsAreSet() bool {
-	return r.GenesisInfo.GenesisChecksum != "" &&
-		r.GenesisInfo.NativeDenom.IsSet() &&
-		r.GenesisInfo.Bech32Prefix != "" &&
-		!r.GenesisInfo.InitialSupply.IsNil()
+	return r.GenesisInfo.AllSet()
 }
 
 func (r Rollapp) IsVulnerable() bool {
 	return r.Frozen
-}
-
-func (r GenesisInfo) Validate() error {
-	if r.Bech32Prefix != "" {
-		if err := validateBech32Prefix(r.Bech32Prefix); err != nil {
-			return errors.Join(ErrInvalidBech32Prefix, err)
-		}
-	}
-
-	if len(r.GenesisChecksum) > maxGenesisChecksumLength {
-		return ErrInvalidGenesisChecksum
-	}
-
-	if r.NativeDenom.IsSet() {
-		if err := r.NativeDenom.Validate(); err != nil {
-			return errorsmod.Wrap(ErrInvalidNativeDenom, err.Error())
-		}
-	}
-
-	if !r.InitialSupply.IsNil() {
-		if !r.InitialSupply.IsPositive() {
-			return ErrInvalidInitialSupply
-		}
-	}
-
-	return nil
 }
 
 func validateInitialSequencer(initialSequencer string) error {
