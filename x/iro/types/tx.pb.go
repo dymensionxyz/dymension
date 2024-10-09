@@ -135,6 +135,7 @@ type MsgCreatePlan struct {
 	// The ID of the rollapp.
 	RollappId string `protobuf:"bytes,2,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
 	// The amount of tokens allocated for the plan.
+	// NOTE: This amount is expected to be defined on the rollapp genesis info
 	AllocatedAmount github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=allocated_amount,json=allocatedAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"allocated_amount"`
 	BondingCurve    BondingCurve                           `protobuf:"bytes,4,opt,name=bonding_curve,json=bondingCurve,proto3" json:"bonding_curve"`
 	// The start time of the plan.

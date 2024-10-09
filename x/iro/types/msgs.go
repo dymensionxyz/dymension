@@ -9,7 +9,12 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const TypeMsgCreatePlan = "create_plan"
+const (
+	TypeMsgCreatePlan = "create_plan"
+	TypeMsgBuy        = "buy"
+	TypeMsgSell       = "sell"
+	TypeMsgClaim      = "claim"
+)
 
 var (
 	_ sdk.Msg            = &MsgCreatePlan{}
@@ -18,6 +23,9 @@ var (
 	_ sdk.Msg            = &MsgClaim{}
 	_ sdk.Msg            = &MsgUpdateParams{}
 	_ legacytx.LegacyMsg = &MsgCreatePlan{}
+	_ legacytx.LegacyMsg = &MsgBuy{}
+	_ legacytx.LegacyMsg = &MsgSell{}
+	_ legacytx.LegacyMsg = &MsgClaim{}
 )
 
 // ValidateBasic performs basic validation checks on the MsgCreatePlan message.
@@ -54,8 +62,32 @@ func (m *MsgCreatePlan) Route() string {
 	return RouterKey
 }
 
+func (m *MsgBuy) Route() string {
+	return RouterKey
+}
+
+func (m *MsgSell) Route() string {
+	return RouterKey
+}
+
+func (m *MsgClaim) Route() string {
+	return RouterKey
+}
+
 func (m *MsgCreatePlan) Type() string {
 	return TypeMsgCreatePlan
+}
+
+func (m *MsgBuy) Type() string {
+	return TypeMsgBuy
+}
+
+func (m *MsgSell) Type() string {
+	return TypeMsgSell
+}
+
+func (m *MsgClaim) Type() string {
+	return TypeMsgClaim
 }
 
 func (m *MsgCreatePlan) GetSigners() []sdk.AccAddress {
@@ -64,6 +96,21 @@ func (m *MsgCreatePlan) GetSigners() []sdk.AccAddress {
 }
 
 func (m *MsgCreatePlan) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgBuy) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgSell) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgClaim) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)
 }

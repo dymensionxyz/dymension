@@ -7,6 +7,7 @@ import "cosmos/msg/v1/msg.proto";
 import "dymensionxyz/dymension/rollapp/block_descriptor.proto";
 import "dymensionxyz/dymension/rollapp/rollapp.proto";
 import "dymensionxyz/dymension/rollapp/metadata.proto";
+import "dymensionxyz/dymension/rollapp/genesis_info.proto";
 import "gogoproto/gogo.proto";
 
 // Msg defines the Msg service.

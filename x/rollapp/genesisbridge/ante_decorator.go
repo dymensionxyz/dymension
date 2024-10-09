@@ -1,4 +1,4 @@
-package transfergenesis
+package genesisbridge
 
 import (
 	errorsmod "cosmossdk.io/errors"
@@ -12,6 +12,9 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
+// TODO: refactor this to use ICS4 wrapper similar to the RDK
+// (https://github.com/dymensionxyz/dymension/issues/957)
+
 type GetRollapp func(ctx sdk.Context, rollappId string) (val types.Rollapp, found bool)
 
 type ChannelKeeper interface {
@@ -19,7 +22,7 @@ type ChannelKeeper interface {
 }
 
 // TransferEnabledDecorator only allows ibc transfers to a rollapp if that rollapp has finished
-// the transfer genesis protocol.
+// the genesis bridge protocol.
 type TransferEnabledDecorator struct {
 	getRollapp            GetRollapp
 	getChannelClientState ChannelKeeper

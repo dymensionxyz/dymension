@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -10,13 +9,14 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
+	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUpdateRollappInformation) (types.Rollapp, error) {
 	current, found := k.GetRollapp(ctx, update.RollappId)
 	if !found {
-		return current, errRollappNotFound
+		return current, types.ErrRollappNotFound
 	}
 
 	if update.Owner != current.Owner {
@@ -55,6 +55,10 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 
 		if !update.GenesisInfo.InitialSupply.IsNil() {
 			current.GenesisInfo.InitialSupply = update.GenesisInfo.InitialSupply
+		}
+
+		if update.GenesisInfo.GenesisAccounts != nil {
+			current.GenesisInfo.GenesisAccounts = update.GenesisInfo.GenesisAccounts
 		}
 	}
 
@@ -135,11 +139,11 @@ func (k Keeper) SetRollappAsLaunched(ctx sdk.Context, rollapp *types.Rollapp) er
 // This methods:
 // - seals the rollapp genesis info
 // - set the pre launch time according to the iro plan end time
-// - disables transfers (until the IRO is settled)
 // Validations:
 // - rollapp must not be launched
 // - genesis info must be set
-func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, preLaunchTime time.Time) error {
+// NOTE: we already validated that a genesis account exists for the IRO plan
+func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, iro irotypes.Plan) error {
 	if rollapp.Launched {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp already launched")
 	}
@@ -151,9 +155,13 @@ func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, pre
 	if !rollapp.GenesisInfoFieldsAreSet() {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info not set")
 	}
+
+	// seal genesis info
 	rollapp.GenesisInfo.Sealed = true
-	rollapp.PreLaunchTime = &preLaunchTime
-	rollapp.GenesisState.TransfersEnabled = false
+
+	// set pre launch time
+	rollapp.PreLaunchTime = &iro.PreLaunchTime
+
 	k.SetRollapp(ctx, *rollapp)
 	return nil
 }

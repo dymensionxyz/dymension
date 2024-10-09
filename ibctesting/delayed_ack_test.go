@@ -124,8 +124,7 @@ func (s *delayedAckSuite) TestTransferRollappToHubNotFinalized() {
 
 	// relay send
 	err = path.RelayPacket(packet)
-	// expecting error as no AcknowledgePacket expected
-	s.Require().Error(err) // relay committed
+	s.Require().Error(err) // expecting error as no AcknowledgePacket expected
 	found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().False(found)
 }
@@ -164,8 +163,7 @@ func (s *delayedAckSuite) TestTransferRollappToHubFinalization() {
 
 	// relay send
 	err = path.RelayPacket(packet)
-	// expecting error as no AcknowledgePacket expected to return
-	s.Require().Error(err) // relay committed
+	s.Require().Error(err) // expecting error as no AcknowledgePacket expected to return
 
 	found = hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().False(found)

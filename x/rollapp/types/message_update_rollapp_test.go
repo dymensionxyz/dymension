@@ -1,6 +1,7 @@
 package types
 
 import (
+	fmt "fmt"
 	"strings"
 	"testing"
 
@@ -36,6 +37,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 					X:           "https://x.dymension.xyz",
 				},
 			},
+			err: nil,
 		},
 		{
 			name: "valid - set initial sequencer to *",
@@ -44,6 +46,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				RollappId:        "dym_100-1",
 				InitialSequencer: "*",
 			},
+			err: nil,
 		},
 		{
 			name: "invalid owner address",
@@ -114,6 +117,52 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 			},
 			err: nil,
 		},
+		// valid - updating genesis accounts
+		{
+			name: "valid: updating genesis accounts",
+			msg: MsgUpdateRollappInformation{
+				Owner:            sample.AccAddress(),
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				GenesisInfo: &GenesisInfo{
+					GenesisAccounts: createManyGenesisAccounts(100),
+				},
+			},
+			err: nil,
+		},
+		// invalid - updating genesis accounts: invalid address
+		{
+			name: "invalid: updating genesis accounts: invalid address",
+			msg: MsgUpdateRollappInformation{
+				Owner:            sample.AccAddress(),
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				GenesisInfo: &GenesisInfo{
+					GenesisAccounts: &GenesisAccounts{
+						Accounts: []GenesisAccount{
+							{
+								Address: "invalid_address",
+								Amount:  sdk.NewInt(100),
+							},
+						},
+					},
+				},
+			},
+			err: fmt.Errorf("invalid"),
+		},
+		// invalid - too many genesis accounts
+		{
+			name: "invalid: too many genesis accounts",
+			msg: MsgUpdateRollappInformation{
+				Owner:            sample.AccAddress(),
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				GenesisInfo: &GenesisInfo{
+					GenesisAccounts: createManyGenesisAccounts(101),
+				},
+			},
+			err: fmt.Errorf("too many genesis accounts"),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -125,4 +174,15 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
+}
+
+func createManyGenesisAccounts(n int) *GenesisAccounts {
+	accounts := make([]GenesisAccount, n)
+	for i := 0; i < n; i++ {
+		accounts[i] = GenesisAccount{
+			Address: sample.AccAddress(),
+			Amount:  sdk.NewInt(100),
+		}
+	}
+	return &GenesisAccounts{Accounts: accounts}
 }

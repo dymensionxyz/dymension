@@ -30,6 +30,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
+	authority string,
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	rk types.RollappKeeper,
@@ -38,14 +39,15 @@ func NewKeeper(
 	pm types.PoolManagerKeeper,
 ) *Keeper {
 	return &Keeper{
-		cdc:      cdc,
-		storeKey: storeKey,
-		AK:       ak,
-		BK:       bk,
-		rk:       rk,
-		gk:       gk,
-		ik:       ik,
-		pm:       pm,
+		cdc:       cdc,
+		storeKey:  storeKey,
+		authority: authority,
+		AK:        ak,
+		BK:        bk,
+		rk:        rk,
+		gk:        gk,
+		ik:        ik,
+		pm:        pm,
 	}
 }
 

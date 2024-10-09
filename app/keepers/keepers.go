@@ -88,8 +88,8 @@ import (
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencermodulekeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -351,6 +351,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[rollappmoduletypes.StoreKey],
 		a.GetSubspace(rollappmoduletypes.ModuleName),
+		a.AccountKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ClientKeeper,
 		nil,
@@ -391,6 +392,7 @@ func (a *AppKeepers) InitKeepers(
 	a.IROKeeper = irokeeper.NewKeeper(
 		appCodec,
 		a.keys[irotypes.StoreKey],
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		&a.AccountKeeper,
 		a.BankKeeper,
 		a.RollappKeeper,
@@ -528,7 +530,7 @@ func (a *AppKeepers) InitTransferStack() {
 		delayedackmodule.WithRollappKeeper(a.RollappKeeper),
 	)
 	a.TransferStack = a.delayedAckMiddleware
-	a.TransferStack = transfergenesis.NewIBCModule(a.TransferStack, a.RollappKeeper, a.TransferKeeper, a.DenomMetadataKeeper, a.IROKeeper)
+	a.TransferStack = genesisbridge.NewIBCModule(a.TransferStack, a.RollappKeeper, a.TransferKeeper, a.DenomMetadataKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
