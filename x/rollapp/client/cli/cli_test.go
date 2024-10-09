@@ -46,7 +46,7 @@ func TestGetTxCmd(t *testing.T) {
 	assert.True(t, cmd.Flags().HasFlags())
 }
 
-func TestCmdCreateIRO(t *testing.T) {
+func TestCmdCreateRollapp(t *testing.T) {
 	addr := sdk.AccAddress("testAddress").String()
 
 	// Create a temporary file for metadata
