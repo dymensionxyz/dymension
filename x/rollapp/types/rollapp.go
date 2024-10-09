@@ -56,7 +56,7 @@ func (r Rollapp) LastStateUpdateHeightIsSet() bool {
 func (r Rollapp) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(r.Owner)
 	if err != nil {
-		return errorsmod.Wrap(ErrInvalidCreatorAddress, err.Error())
+		return errors.Join(ErrInvalidCreatorAddress, err)
 	}
 
 	// validate rollappId

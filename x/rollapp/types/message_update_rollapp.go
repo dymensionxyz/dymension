@@ -53,7 +53,7 @@ func (msg *MsgUpdateRollappInformation) GetSignBytes() []byte {
 func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
-		return errorsmod.Wrap(ErrInvalidCreatorAddress, err.Error())
+		return errors.Join(ErrInvalidCreatorAddress, err)
 	}
 
 	if msg.InitialSequencer != "" && msg.InitialSequencer != "*" {
