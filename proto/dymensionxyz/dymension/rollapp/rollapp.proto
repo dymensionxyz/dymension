@@ -69,8 +69,8 @@ message Rollapp {
   // rollapp cannot be started.
   // Set when creating IRO plan for the rollapp
   google.protobuf.Timestamp pre_launch_time = 16 [ (gogoproto.stdtime) = true];
-  // LivenessEventHeight is the height of an upcoming liveness event (slash or
-  // jail) 0 means not set
+  // LivenessEventHeight is the height on the HUB of an upcoming liveness event (slash or
+  // jail against the rollapp). 0 means not set
   int64 liveness_event_height = 17;
   // The LastStateUpdateHeight HUB height when the last state update was
   // received

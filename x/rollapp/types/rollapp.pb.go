@@ -145,8 +145,8 @@ type Rollapp struct {
 	// rollapp cannot be started.
 	// Set when creating IRO plan for the rollapp
 	PreLaunchTime *time.Time `protobuf:"bytes,16,opt,name=pre_launch_time,json=preLaunchTime,proto3,stdtime" json:"pre_launch_time,omitempty"`
-	// LivenessEventHeight is the height of an upcoming liveness event (slash or
-	// jail) 0 means not set
+	// LivenessEventHeight is the height on the HUB of an upcoming liveness event (slash or
+	// jail against the rollapp). 0 means not set
 	LivenessEventHeight int64 `protobuf:"varint,17,opt,name=liveness_event_height,json=livenessEventHeight,proto3" json:"liveness_event_height,omitempty"`
 	// The LastStateUpdateHeight HUB height when the last state update was
 	// received
