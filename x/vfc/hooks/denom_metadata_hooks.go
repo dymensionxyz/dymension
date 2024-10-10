@@ -11,8 +11,6 @@ import (
 
 var _ denommetadatamoduletypes.DenomMetadataHooks = VirtualFrontierBankContractRegistrationHook{}
 
-const ibcDenomPrefix = "ibc/"
-
 type VirtualFrontierBankContractRegistrationHook struct {
 	evmKeeper evmkeeper.Keeper
 }
