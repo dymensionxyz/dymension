@@ -156,6 +156,97 @@ func (m *MsgFinalizePacketResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgFinalizePacketResponse proto.InternalMessageInfo
 
+// MsgFinalizePacketByPacketKey finalizes a single packet by the packet key.
+type MsgFinalizePacketByPacketKey struct {
+	// Sender is the signer of the message.
+	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	// PacketKey is a key of the packet.
+	PacketKey string `protobuf:"bytes,2,opt,name=packet_key,json=packetKey,proto3" json:"packet_key,omitempty"`
+}
+
+func (m *MsgFinalizePacketByPacketKey) Reset()         { *m = MsgFinalizePacketByPacketKey{} }
+func (m *MsgFinalizePacketByPacketKey) String() string { return proto.CompactTextString(m) }
+func (*MsgFinalizePacketByPacketKey) ProtoMessage()    {}
+func (*MsgFinalizePacketByPacketKey) Descriptor() ([]byte, []int) {
+	return fileDescriptor_604a74c1ca57f5ed, []int{2}
+}
+func (m *MsgFinalizePacketByPacketKey) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgFinalizePacketByPacketKey) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgFinalizePacketByPacketKey.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgFinalizePacketByPacketKey) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgFinalizePacketByPacketKey.Merge(m, src)
+}
+func (m *MsgFinalizePacketByPacketKey) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgFinalizePacketByPacketKey) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgFinalizePacketByPacketKey.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgFinalizePacketByPacketKey proto.InternalMessageInfo
+
+func (m *MsgFinalizePacketByPacketKey) GetSender() string {
+	if m != nil {
+		return m.Sender
+	}
+	return ""
+}
+
+func (m *MsgFinalizePacketByPacketKey) GetPacketKey() string {
+	if m != nil {
+		return m.PacketKey
+	}
+	return ""
+}
+
+type MsgFinalizePacketByPacketKeyResponse struct {
+}
+
+func (m *MsgFinalizePacketByPacketKeyResponse) Reset()         { *m = MsgFinalizePacketByPacketKeyResponse{} }
+func (m *MsgFinalizePacketByPacketKeyResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgFinalizePacketByPacketKeyResponse) ProtoMessage()    {}
+func (*MsgFinalizePacketByPacketKeyResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_604a74c1ca57f5ed, []int{3}
+}
+func (m *MsgFinalizePacketByPacketKeyResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgFinalizePacketByPacketKeyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgFinalizePacketByPacketKeyResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgFinalizePacketByPacketKeyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgFinalizePacketByPacketKeyResponse.Merge(m, src)
+}
+func (m *MsgFinalizePacketByPacketKeyResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgFinalizePacketByPacketKeyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgFinalizePacketByPacketKeyResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgFinalizePacketByPacketKeyResponse proto.InternalMessageInfo
+
 // MsgFinalizePacketsUntilHeight finalizes packets for the given rollapp until the given height inclusively.
 type MsgFinalizePacketsUntilHeight struct {
 	// Sender is the signer of the message.
@@ -170,7 +261,7 @@ func (m *MsgFinalizePacketsUntilHeight) Reset()         { *m = MsgFinalizePacket
 func (m *MsgFinalizePacketsUntilHeight) String() string { return proto.CompactTextString(m) }
 func (*MsgFinalizePacketsUntilHeight) ProtoMessage()    {}
 func (*MsgFinalizePacketsUntilHeight) Descriptor() ([]byte, []int) {
-	return fileDescriptor_604a74c1ca57f5ed, []int{2}
+	return fileDescriptor_604a74c1ca57f5ed, []int{4}
 }
 func (m *MsgFinalizePacketsUntilHeight) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -227,7 +318,7 @@ func (m *MsgFinalizePacketsUntilHeightResponse) Reset()         { *m = MsgFinali
 func (m *MsgFinalizePacketsUntilHeightResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgFinalizePacketsUntilHeightResponse) ProtoMessage()    {}
 func (*MsgFinalizePacketsUntilHeightResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_604a74c1ca57f5ed, []int{3}
+	return fileDescriptor_604a74c1ca57f5ed, []int{5}
 }
 func (m *MsgFinalizePacketsUntilHeightResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -271,7 +362,7 @@ func (m *MsgFinalizeRollappPacketsByReceiver) Reset()         { *m = MsgFinalize
 func (m *MsgFinalizeRollappPacketsByReceiver) String() string { return proto.CompactTextString(m) }
 func (*MsgFinalizeRollappPacketsByReceiver) ProtoMessage()    {}
 func (*MsgFinalizeRollappPacketsByReceiver) Descriptor() ([]byte, []int) {
-	return fileDescriptor_604a74c1ca57f5ed, []int{4}
+	return fileDescriptor_604a74c1ca57f5ed, []int{6}
 }
 func (m *MsgFinalizeRollappPacketsByReceiver) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -332,7 +423,7 @@ func (m *MsgFinalizeRollappPacketsByReceiverResponse) String() string {
 }
 func (*MsgFinalizeRollappPacketsByReceiverResponse) ProtoMessage() {}
 func (*MsgFinalizeRollappPacketsByReceiverResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_604a74c1ca57f5ed, []int{5}
+	return fileDescriptor_604a74c1ca57f5ed, []int{7}
 }
 func (m *MsgFinalizeRollappPacketsByReceiverResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -364,6 +455,8 @@ var xxx_messageInfo_MsgFinalizeRollappPacketsByReceiverResponse proto.InternalMe
 func init() {
 	proto.RegisterType((*MsgFinalizePacket)(nil), "dymensionxyz.dymension.delayedack.MsgFinalizePacket")
 	proto.RegisterType((*MsgFinalizePacketResponse)(nil), "dymensionxyz.dymension.delayedack.MsgFinalizePacketResponse")
+	proto.RegisterType((*MsgFinalizePacketByPacketKey)(nil), "dymensionxyz.dymension.delayedack.MsgFinalizePacketByPacketKey")
+	proto.RegisterType((*MsgFinalizePacketByPacketKeyResponse)(nil), "dymensionxyz.dymension.delayedack.MsgFinalizePacketByPacketKeyResponse")
 	proto.RegisterType((*MsgFinalizePacketsUntilHeight)(nil), "dymensionxyz.dymension.delayedack.MsgFinalizePacketsUntilHeight")
 	proto.RegisterType((*MsgFinalizePacketsUntilHeightResponse)(nil), "dymensionxyz.dymension.delayedack.MsgFinalizePacketsUntilHeightResponse")
 	proto.RegisterType((*MsgFinalizeRollappPacketsByReceiver)(nil), "dymensionxyz.dymension.delayedack.MsgFinalizeRollappPacketsByReceiver")
@@ -375,41 +468,44 @@ func init() {
 }
 
 var fileDescriptor_604a74c1ca57f5ed = []byte{
-	// 531 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x94, 0x31, 0x6f, 0xd3, 0x40,
-	0x14, 0xc7, 0x73, 0x4d, 0x1b, 0x91, 0x57, 0x29, 0xd0, 0x43, 0x2a, 0xc6, 0xa8, 0x56, 0x08, 0x42,
-	0x8d, 0x02, 0xd8, 0x6a, 0x8a, 0x84, 0x84, 0x18, 0x50, 0x91, 0xaa, 0x32, 0x14, 0x15, 0x03, 0x0b,
-	0x4b, 0xe4, 0xda, 0x8f, 0xc4, 0xaa, 0x73, 0x67, 0x7c, 0x6e, 0x14, 0x97, 0x05, 0x21, 0xd8, 0xf9,
-	0x18, 0x8c, 0x15, 0x23, 0x9f, 0x80, 0xb1, 0x23, 0x23, 0x4a, 0x86, 0x7e, 0x08, 0x16, 0x14, 0xdf,
-	0xc5, 0xc4, 0x44, 0x69, 0x21, 0x30, 0xd9, 0xef, 0xde, 0xbb, 0xff, 0xfb, 0xdd, 0xff, 0xec, 0x07,
-	0x0d, 0x2f, 0xe9, 0x22, 0x13, 0x3e, 0x67, 0xfd, 0xe4, 0xc8, 0xca, 0x02, 0xcb, 0xc3, 0xc0, 0x49,
-	0xd0, 0x73, 0xdc, 0x03, 0x2b, 0xee, 0x9b, 0x61, 0xc4, 0x63, 0x4e, 0xaf, 0x4f, 0xd6, 0x9a, 0x59,
-	0x60, 0xfe, 0xaa, 0xd5, 0xaf, 0xb8, 0x5c, 0x74, 0xb9, 0xb0, 0xba, 0xa2, 0x6d, 0xf5, 0x36, 0x46,
-	0x0f, 0xb9, 0x57, 0x6f, 0xce, 0xe8, 0xe3, 0xf2, 0x6e, 0x97, 0x33, 0x2b, 0xe2, 0x41, 0xe0, 0x84,
-	0x61, 0x2b, 0x74, 0xdc, 0x03, 0x8c, 0xe5, 0x9e, 0xda, 0xe7, 0x05, 0x58, 0xd9, 0x15, 0xed, 0x6d,
-	0x9f, 0x39, 0x81, 0x7f, 0x84, 0x7b, 0x69, 0x8e, 0xae, 0x42, 0x49, 0x20, 0xf3, 0x30, 0xd2, 0x48,
-	0x95, 0xd4, 0xcb, 0xb6, 0x8a, 0xe8, 0x1a, 0xc0, 0x58, 0xc5, 0xf7, 0xb4, 0x85, 0x34, 0x57, 0x56,
-	0x2b, 0x8f, 0x3d, 0x6a, 0xc2, 0x65, 0x29, 0xde, 0x0a, 0x23, 0xce, 0x5f, 0xb5, 0x3a, 0xe8, 0xb7,
-	0x3b, 0xb1, 0x56, 0xac, 0x92, 0xfa, 0xa2, 0xbd, 0x22, 0x53, 0x7b, 0xa3, 0xcc, 0x4e, 0x9a, 0xa0,
-	0x36, 0x2c, 0xab, 0xfa, 0x38, 0x09, 0x51, 0x5b, 0xac, 0x92, 0x7a, 0xa5, 0xb9, 0x61, 0xce, 0xb0,
-	0x40, 0x1e, 0xc3, 0xb4, 0x65, 0x3b, 0x49, 0x6a, 0x3e, 0x4f, 0x42, 0xb4, 0x41, 0xaa, 0x8c, 0xde,
-	0xe9, 0x6d, 0xa0, 0x4a, 0x53, 0x44, 0x6e, 0xcb, 0xed, 0x38, 0x8c, 0x61, 0xa0, 0x2d, 0xa5, 0xa8,
-	0x97, 0x64, 0xe6, 0x59, 0xe4, 0x3e, 0x92, 0xeb, 0x74, 0x1d, 0x2e, 0x8e, 0xab, 0xf1, 0xf5, 0x21,
-	0x32, 0x17, 0xb5, 0x52, 0x4a, 0x5b, 0x51, 0xa5, 0x6a, 0xf5, 0xfe, 0xf2, 0xbb, 0xd3, 0xe3, 0x86,
-	0xb2, 0xa1, 0x76, 0x0d, 0xae, 0x4e, 0x79, 0x66, 0xa3, 0x08, 0x39, 0x13, 0x58, 0x7b, 0x03, 0x6b,
-	0x53, 0x49, 0xf1, 0x82, 0xc5, 0x7e, 0xa0, 0x4e, 0x3d, 0xa7, 0xb9, 0xab, 0x50, 0xca, 0xf9, 0xa9,
-	0xa2, 0x3c, 0xd9, 0x3a, 0xdc, 0x3c, 0xb3, 0x79, 0x46, 0xf9, 0x81, 0xc0, 0x8d, 0x89, 0xca, 0x9c,
-	0xa9, 0x62, 0x2b, 0xb1, 0xd1, 0x45, 0xbf, 0x87, 0xd1, 0xbc, 0xb0, 0x3a, 0x5c, 0x88, 0x94, 0x44,
-	0x8a, 0x5b, 0xb6, 0xb3, 0x38, 0x0f, 0x7c, 0x07, 0x6e, 0xfd, 0x01, 0xc6, 0x18, 0xbb, 0xf9, 0xa3,
-	0x08, 0xc5, 0x5d, 0xd1, 0xa6, 0xef, 0x09, 0x54, 0x7e, 0xfb, 0x66, 0xef, 0x9a, 0xe7, 0xfe, 0x3a,
-	0xe6, 0x94, 0x37, 0xfa, 0x83, 0x79, 0x76, 0x8d, 0x71, 0xe8, 0x27, 0x02, 0xfa, 0x19, 0x37, 0xfd,
-	0x70, 0x1e, 0xf1, 0x49, 0x05, 0x7d, 0xe7, 0x5f, 0x15, 0x32, 0xd4, 0x2f, 0x04, 0xaa, 0xe7, 0xde,
-	0xf6, 0xf6, 0xdf, 0xb5, 0x9b, 0xa5, 0xa3, 0x3f, 0xf9, 0x3f, 0x3a, 0x63, 0x78, 0x7d, 0xe9, 0xed,
-	0xe9, 0x71, 0x83, 0x6c, 0x3d, 0xfd, 0x3a, 0x30, 0xc8, 0xc9, 0xc0, 0x20, 0xdf, 0x07, 0x06, 0xf9,
-	0x38, 0x34, 0x0a, 0x27, 0x43, 0xa3, 0xf0, 0x6d, 0x68, 0x14, 0x5e, 0xde, 0x6b, 0xfb, 0x71, 0xe7,
-	0x70, 0x7f, 0x34, 0x23, 0xac, 0x19, 0x53, 0xb0, 0xb7, 0x69, 0xf5, 0x73, 0x23, 0x37, 0x09, 0x51,
-	0xec, 0x97, 0xd2, 0x31, 0xb8, 0xf9, 0x33, 0x00, 0x00, 0xff, 0xff, 0x16, 0xed, 0x0f, 0x08, 0xa4,
-	0x05, 0x00, 0x00,
+	// 584 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x95, 0x4d, 0x6f, 0xd3, 0x4c,
+	0x10, 0xc7, 0xbb, 0x7d, 0x89, 0x9e, 0x4c, 0xa5, 0x3c, 0xd4, 0x48, 0xc5, 0x35, 0xd4, 0x0a, 0xe1,
+	0xa5, 0x51, 0x00, 0x5b, 0x4d, 0x91, 0x90, 0x10, 0x12, 0x28, 0x48, 0xa5, 0x08, 0x15, 0x15, 0x03,
+	0x17, 0x2e, 0x91, 0x63, 0x0f, 0x89, 0x15, 0xc7, 0x6b, 0xbc, 0x6e, 0x14, 0x97, 0x0b, 0x42, 0x70,
+	0xe7, 0x3b, 0x20, 0x24, 0x8e, 0x15, 0x47, 0x3e, 0x01, 0xc7, 0x1e, 0x39, 0xa2, 0xe4, 0xd0, 0xaf,
+	0x81, 0xe2, 0x5d, 0x9b, 0x98, 0x28, 0x29, 0xa4, 0x9c, 0x36, 0xb3, 0x33, 0xf3, 0x9f, 0x5f, 0x66,
+	0x76, 0xbd, 0x50, 0xb1, 0xa3, 0x0e, 0x7a, 0xcc, 0xa1, 0x5e, 0x2f, 0x3a, 0xd0, 0x53, 0x43, 0xb7,
+	0xd1, 0x35, 0x23, 0xb4, 0x4d, 0xab, 0xad, 0x87, 0x3d, 0xcd, 0x0f, 0x68, 0x48, 0xa5, 0x8b, 0xa3,
+	0xb1, 0x5a, 0x6a, 0x68, 0xbf, 0x62, 0x95, 0x73, 0x16, 0x65, 0x1d, 0xca, 0xf4, 0x0e, 0x6b, 0xea,
+	0xdd, 0xcd, 0xe1, 0xc2, 0x73, 0x95, 0xea, 0x84, 0x3a, 0x16, 0xed, 0x74, 0xa8, 0xa7, 0x07, 0xd4,
+	0x75, 0x4d, 0xdf, 0xaf, 0xfb, 0xa6, 0xd5, 0xc6, 0x90, 0xe7, 0x94, 0xbe, 0xcc, 0xc3, 0xca, 0x2e,
+	0x6b, 0x6e, 0x3b, 0x9e, 0xe9, 0x3a, 0x07, 0xb8, 0x17, 0xfb, 0xa4, 0x55, 0xc8, 0x31, 0xf4, 0x6c,
+	0x0c, 0x64, 0x52, 0x24, 0xe5, 0xbc, 0x21, 0x2c, 0x69, 0x1d, 0x20, 0x51, 0x71, 0x6c, 0x79, 0x3e,
+	0xf6, 0xe5, 0xc5, 0xce, 0x43, 0x5b, 0xd2, 0xe0, 0x2c, 0x17, 0xaf, 0xfb, 0x01, 0xa5, 0x2f, 0xeb,
+	0x2d, 0x74, 0x9a, 0xad, 0x50, 0x5e, 0x28, 0x92, 0xf2, 0xa2, 0xb1, 0xc2, 0x5d, 0x7b, 0x43, 0xcf,
+	0x4e, 0xec, 0x90, 0x0c, 0x58, 0x16, 0xf1, 0x61, 0xe4, 0xa3, 0xbc, 0x58, 0x24, 0xe5, 0x42, 0x75,
+	0x53, 0x9b, 0xd0, 0x02, 0xfe, 0x37, 0x34, 0x83, 0x97, 0xe3, 0xa4, 0xda, 0xb3, 0xc8, 0x47, 0x03,
+	0xb8, 0xca, 0xf0, 0xb7, 0x74, 0x1d, 0x24, 0xa1, 0xc9, 0x02, 0xab, 0x6e, 0xb5, 0x4c, 0xcf, 0x43,
+	0x57, 0x5e, 0x8a, 0x51, 0xcf, 0x70, 0xcf, 0xd3, 0xc0, 0xba, 0xcf, 0xf7, 0xa5, 0x0d, 0xf8, 0x3f,
+	0x89, 0xc6, 0x57, 0xfb, 0xe8, 0x59, 0x28, 0xe7, 0x62, 0xda, 0x82, 0x08, 0x15, 0xbb, 0xb7, 0x97,
+	0xdf, 0x1e, 0x1f, 0x56, 0x44, 0x1b, 0x4a, 0xe7, 0x61, 0x6d, 0xac, 0x67, 0x06, 0x32, 0x9f, 0x7a,
+	0x0c, 0x4b, 0x0d, 0xb8, 0x30, 0xe6, 0xac, 0x45, 0x7c, 0x7d, 0x84, 0xd1, 0xb4, 0xde, 0x0a, 0x94,
+	0x36, 0x46, 0x49, 0x6f, 0xfd, 0x24, 0x2d, 0x0b, 0x70, 0x15, 0x2e, 0x4f, 0xab, 0x91, 0xb2, 0xbc,
+	0x86, 0xf5, 0xb1, 0x38, 0xf6, 0xdc, 0x0b, 0x1d, 0x57, 0x4c, 0x60, 0xc6, 0x41, 0xaf, 0x42, 0x2e,
+	0x33, 0x5b, 0x61, 0x65, 0x21, 0x37, 0xe0, 0xca, 0xd4, 0xe2, 0x29, 0xe5, 0x7b, 0x02, 0x97, 0x46,
+	0x22, 0x33, 0x03, 0x66, 0xb5, 0xc8, 0x40, 0x0b, 0x9d, 0x2e, 0x06, 0xb3, 0xc2, 0x2a, 0xf0, 0x5f,
+	0x20, 0x24, 0x62, 0xdc, 0xbc, 0x91, 0xda, 0x59, 0xe0, 0x1b, 0x70, 0xed, 0x0f, 0x30, 0x12, 0xec,
+	0xea, 0xc7, 0x25, 0x58, 0xd8, 0x65, 0x4d, 0xe9, 0x1d, 0x81, 0xc2, 0x6f, 0xf7, 0xe7, 0xa6, 0x76,
+	0xe2, 0x35, 0xd6, 0xc6, 0x7a, 0xa3, 0xdc, 0x99, 0x25, 0x2b, 0xc1, 0x91, 0x3e, 0x11, 0x58, 0x9b,
+	0x7c, 0xea, 0xee, 0xce, 0xa2, 0x3d, 0x22, 0xa0, 0x3c, 0x38, 0xa5, 0x40, 0xca, 0xf9, 0x99, 0x80,
+	0x32, 0xe5, 0x44, 0xde, 0x9b, 0xa5, 0xce, 0xa8, 0x82, 0xb2, 0x73, 0x5a, 0x85, 0x14, 0xf5, 0x2b,
+	0x81, 0xe2, 0x89, 0xa7, 0x72, 0xfb, 0xef, 0xca, 0x4d, 0xd2, 0x51, 0x1e, 0xff, 0x1b, 0x9d, 0x04,
+	0x5e, 0x59, 0x7a, 0x73, 0x7c, 0x58, 0x21, 0xb5, 0x27, 0xdf, 0xfa, 0x2a, 0x39, 0xea, 0xab, 0xe4,
+	0x47, 0x5f, 0x25, 0x1f, 0x06, 0xea, 0xdc, 0xd1, 0x40, 0x9d, 0xfb, 0x3e, 0x50, 0xe7, 0x5e, 0xdc,
+	0x6a, 0x3a, 0x61, 0x6b, 0xbf, 0x31, 0xfc, 0xae, 0xea, 0x13, 0x5e, 0x8e, 0xee, 0x96, 0xde, 0xcb,
+	0x3c, 0x53, 0x91, 0x8f, 0xac, 0x91, 0x8b, 0x9f, 0x8e, 0xad, 0x9f, 0x01, 0x00, 0x00, 0xff, 0xff,
+	0xe1, 0xca, 0x2c, 0xf7, 0xd8, 0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -426,6 +522,7 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	// FinalizePacket finalizes a singe packet.
 	FinalizePacket(ctx context.Context, in *MsgFinalizePacket, opts ...grpc.CallOption) (*MsgFinalizePacketResponse, error)
+	FinalizePacketByPacketKey(ctx context.Context, in *MsgFinalizePacketByPacketKey, opts ...grpc.CallOption) (*MsgFinalizePacketByPacketKeyResponse, error)
 	// FinalizePacketsUntilHeight finalizes the packets for the given rollapp until the given height inclusively.
 	FinalizePacketsUntilHeight(ctx context.Context, in *MsgFinalizePacketsUntilHeight, opts ...grpc.CallOption) (*MsgFinalizePacketsUntilHeightResponse, error)
 	// FinalizeRollappPacketsByReceiver finalizes the rollapp packets for the specified receiver until the latest
@@ -444,6 +541,15 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 func (c *msgClient) FinalizePacket(ctx context.Context, in *MsgFinalizePacket, opts ...grpc.CallOption) (*MsgFinalizePacketResponse, error) {
 	out := new(MsgFinalizePacketResponse)
 	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.delayedack.Msg/FinalizePacket", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) FinalizePacketByPacketKey(ctx context.Context, in *MsgFinalizePacketByPacketKey, opts ...grpc.CallOption) (*MsgFinalizePacketByPacketKeyResponse, error) {
+	out := new(MsgFinalizePacketByPacketKeyResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.delayedack.Msg/FinalizePacketByPacketKey", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -472,6 +578,7 @@ func (c *msgClient) FinalizeRollappPacketsByReceiver(ctx context.Context, in *Ms
 type MsgServer interface {
 	// FinalizePacket finalizes a singe packet.
 	FinalizePacket(context.Context, *MsgFinalizePacket) (*MsgFinalizePacketResponse, error)
+	FinalizePacketByPacketKey(context.Context, *MsgFinalizePacketByPacketKey) (*MsgFinalizePacketByPacketKeyResponse, error)
 	// FinalizePacketsUntilHeight finalizes the packets for the given rollapp until the given height inclusively.
 	FinalizePacketsUntilHeight(context.Context, *MsgFinalizePacketsUntilHeight) (*MsgFinalizePacketsUntilHeightResponse, error)
 	// FinalizeRollappPacketsByReceiver finalizes the rollapp packets for the specified receiver until the latest
@@ -485,6 +592,9 @@ type UnimplementedMsgServer struct {
 
 func (*UnimplementedMsgServer) FinalizePacket(ctx context.Context, req *MsgFinalizePacket) (*MsgFinalizePacketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FinalizePacket not implemented")
+}
+func (*UnimplementedMsgServer) FinalizePacketByPacketKey(ctx context.Context, req *MsgFinalizePacketByPacketKey) (*MsgFinalizePacketByPacketKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FinalizePacketByPacketKey not implemented")
 }
 func (*UnimplementedMsgServer) FinalizePacketsUntilHeight(ctx context.Context, req *MsgFinalizePacketsUntilHeight) (*MsgFinalizePacketsUntilHeightResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FinalizePacketsUntilHeight not implemented")
@@ -511,6 +621,24 @@ func _Msg_FinalizePacket_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).FinalizePacket(ctx, req.(*MsgFinalizePacket))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_FinalizePacketByPacketKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgFinalizePacketByPacketKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).FinalizePacketByPacketKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.delayedack.Msg/FinalizePacketByPacketKey",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).FinalizePacketByPacketKey(ctx, req.(*MsgFinalizePacketByPacketKey))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -558,6 +686,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FinalizePacket",
 			Handler:    _Msg_FinalizePacket_Handler,
+		},
+		{
+			MethodName: "FinalizePacketByPacketKey",
+			Handler:    _Msg_FinalizePacketByPacketKey_Handler,
 		},
 		{
 			MethodName: "FinalizePacketsUntilHeight",
@@ -647,6 +779,66 @@ func (m *MsgFinalizePacketResponse) MarshalTo(dAtA []byte) (int, error) {
 }
 
 func (m *MsgFinalizePacketResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgFinalizePacketByPacketKey) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgFinalizePacketByPacketKey) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgFinalizePacketByPacketKey) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.PacketKey) > 0 {
+		i -= len(m.PacketKey)
+		copy(dAtA[i:], m.PacketKey)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.PacketKey)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Sender) > 0 {
+		i -= len(m.Sender)
+		copy(dAtA[i:], m.Sender)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgFinalizePacketByPacketKeyResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgFinalizePacketByPacketKeyResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgFinalizePacketByPacketKeyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -828,6 +1020,32 @@ func (m *MsgFinalizePacket) Size() (n int) {
 }
 
 func (m *MsgFinalizePacketResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgFinalizePacketByPacketKey) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Sender)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.PacketKey)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgFinalizePacketByPacketKeyResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1131,6 +1349,170 @@ func (m *MsgFinalizePacketResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgFinalizePacketResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgFinalizePacketByPacketKey) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgFinalizePacketByPacketKey: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgFinalizePacketByPacketKey: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Sender = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PacketKey", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PacketKey = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgFinalizePacketByPacketKeyResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgFinalizePacketByPacketKeyResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgFinalizePacketByPacketKeyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
