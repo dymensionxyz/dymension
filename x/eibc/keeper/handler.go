@@ -53,7 +53,7 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 		return fmt.Errorf("set eibc demand order: %w", err)
 	}
 
-	if err = uevent.EmitTypedEvent(ctx, eibcDemandOrder.GetCreatedEvent(uint64(ctx.BlockHeight()))); err != nil {
+	if err = uevent.EmitTypedEvent(ctx, eibcDemandOrder.GetCreatedEvent(rollappPacket.ProofHeight)); err != nil {
 		return fmt.Errorf("emit event: %w", err)
 	}
 

@@ -71,7 +71,7 @@ func (m *DemandOrder) Validate() error {
 	return nil
 }
 
-func (m *DemandOrder) GetCreatedEvent(blockHeight uint64) *EventDemandOrderCreated {
+func (m *DemandOrder) GetCreatedEvent(proofHeight uint64) *EventDemandOrderCreated {
 	packetKey := base64.StdEncoding.EncodeToString([]byte(m.TrackingPacketKey))
 	return &EventDemandOrderCreated{
 		OrderId:      m.Id,
@@ -83,7 +83,7 @@ func (m *DemandOrder) GetCreatedEvent(blockHeight uint64) *EventDemandOrderCreat
 		RollappId:    m.RollappId,
 		Recipient:    m.Recipient,
 		PacketType:   m.Type.String(),
-		BlockHeight:  blockHeight,
+		ProofHeight:  proofHeight,
 	}
 }
 

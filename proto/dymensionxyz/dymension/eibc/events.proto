@@ -28,8 +28,8 @@ message EventDemandOrderCreated {
   string recipient = 8;
   // packet_type is the type of the packet.
   string packet_type = 9;
-  // block_height is the height of the block.
-  uint64 block_height = 10;
+  // proof_height is the height of the block when order was created.
+  uint64 proof_height = 10;
 }
 
 // EventDemandOrderPacketStatusUpdate is emitted when the status of the related packet is updated.
