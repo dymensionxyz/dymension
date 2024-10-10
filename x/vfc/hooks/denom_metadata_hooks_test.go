@@ -43,14 +43,16 @@ func (suite *HooksTestSuite) TestHookOperation_AfterDenomMetadataCreation() {
 		wantErr       bool
 	}{
 		{
-			name:          "ignored - Deploy for non-IBC",
+			name:          "accepted - Deploy for non-IBC",
 			denomMetadata: denomAdym,
-			wantNotFound:  []string{denomAdym.Base, denomWei.Base, denomIbcAtom.Base, denomIbcOsmo.Base, denomMixedCaseIbcTia.Base},
+			wantFound:     []string{denomAdym.Base},
+			wantNotFound:  []string{denomWei.Base, denomIbcAtom.Base, denomIbcOsmo.Base, denomMixedCaseIbcTia.Base},
 		},
 		{
-			name:          "ignored - Only deploy the denom which passed into the hook (case non-IBC)",
+			name:          "accepted - Only deploy the denom which passed into the hook (case non-IBC)",
 			denomMetadata: denomWei,
-			wantNotFound:  []string{denomAdym.Base, denomWei.Base, denomIbcAtom.Base, denomIbcOsmo.Base, denomMixedCaseIbcTia.Base},
+			wantFound:     []string{denomWei.Base},
+			wantNotFound:  []string{denomAdym.Base, denomIbcAtom.Base, denomIbcOsmo.Base, denomMixedCaseIbcTia.Base},
 		},
 		{
 			name:          "accepted - Only deploy the denom which passed into the hook (case IBC)",
