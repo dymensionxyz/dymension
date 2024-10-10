@@ -29,6 +29,11 @@ func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBon
 		return nil, err
 	}
 
+	// validate the addition amt is of same denom of existing bond
+	if found, _ := sequencer.Tokens.Find(msg.AddAmount.Denom); !found {
+		return nil, types.ErrInvalidCoinDenom
+	}
+
 	// update the sequencers bond amount in state
 	sequencer.Tokens = sequencer.Tokens.Add(msg.AddAmount)
 	k.UpdateSequencer(ctx, &sequencer, sequencer.Status)

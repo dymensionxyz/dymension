@@ -100,7 +100,7 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
 	}
 
-	if !msg.Bond.IsValid() {
+	if !msg.Bond.IsValid() || msg.Bond.IsZero() {
 		return errorsmod.Wrapf(ErrInvalidCoins, "invalid bond amount: %s", msg.Bond.String())
 	}
 

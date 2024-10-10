@@ -63,28 +63,22 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		}
 	}
 
-	bond := sdk.Coins{}
-	if minBond := k.GetParams(ctx).MinBond; !(minBond.IsNil() || minBond.IsZero()) {
-		if msg.Bond.Denom != minBond.Denom {
-			return nil, errorsmod.Wrapf(
-				types.ErrInvalidCoinDenom, "got %s, expected %s", msg.Bond.Denom, minBond.Denom,
-			)
-		}
-
-		if msg.Bond.Amount.LT(minBond.Amount) {
-			return nil, errorsmod.Wrapf(
-				types.ErrInsufficientBond, "got %s, expected %s", msg.Bond.Amount, minBond,
-			)
-		}
-
-		seqAcc := sdk.MustAccAddressFromBech32(msg.Creator)
-		err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.Bond))
-		if err != nil {
-			return nil, err
-		}
-		bond = sdk.NewCoins(msg.Bond)
+	// validate bond requirement
+	minBond := k.GetParams(ctx).MinBond
+	if !msg.Bond.IsGTE(minBond) {
+		return nil, errorsmod.Wrapf(
+			types.ErrInsufficientBond, "got %s, expected %s", msg.Bond, minBond,
+		)
 	}
 
+	// send bond to module account
+	seqAcc := sdk.MustAccAddressFromBech32(msg.Creator)
+	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.Bond))
+	if err != nil {
+		return nil, err
+	}
+
+	bond := sdk.NewCoins(msg.Bond)
 	sequencer := types.Sequencer{
 		Address:      msg.Creator,
 		DymintPubKey: msg.DymintPubKey,
