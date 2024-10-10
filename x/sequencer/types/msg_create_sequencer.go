@@ -1,6 +1,8 @@
 package types
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -97,7 +99,7 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 	}
 
 	if err = msg.Metadata.Validate(); err != nil {
-		return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
+		return errors.Join(ErrInvalidMetadata, err)
 	}
 
 	if !msg.Bond.IsValid() {
