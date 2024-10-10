@@ -22,7 +22,7 @@ func NewVirtualFrontierBankContractRegistrationHook(evmKeeper evmkeeper.Keeper) 
 	}
 }
 
-// Deploy the virtual frontier bank contract for the denom.
+// AfterDenomMetadataCreation triggers virtual frontier bank contract deployment for the given denom.
 // Error, if any, no state transition will be made.
 func (v VirtualFrontierBankContractRegistrationHook) AfterDenomMetadataCreation(ctx sdk.Context, newDenomMetadata banktypes.Metadata) error {
 	if err := v.evmKeeper.DeployVirtualFrontierBankContractForBankDenomMetadataRecord(ctx, newDenomMetadata.Base); err != nil {
