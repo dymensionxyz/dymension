@@ -127,7 +127,6 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
 	am.bankKeeper.IterateAllDenomMetaData(ctx, func(metadata banktypes.Metadata) bool {
 		// run hooks for each denom metadata, thus `x/denommetadata` genesis init order must be after `x/bank` genesis init
-
 		err := am.keeper.GetHooks().AfterDenomMetadataCreation(ctx, metadata)
 		if err != nil {
 			panic(err) // error at genesis level should be reported by panic
