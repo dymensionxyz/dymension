@@ -205,18 +205,12 @@ func compareGenesisAccounts(raCommitted *types.GenesisAccounts, gbData []types.G
 }
 
 func (w IBCModule) registerDenomMetadata(ctx sdk.Context, rollappID, channelID string, m banktypes.Metadata) (string, error) {
+	// Set the trace for the ibc denom
 	trace := uibc.GetForeignDenomTrace(channelID, m.Base)
-	m.Base = trace.IBCDenom()
-
-	if w.denomKeeper.HasDenomMetadata(ctx, m.GetBase()) {
-		return "", fmt.Errorf("denom metadata already exists for base: %s", m.GetBase())
-	}
-
 	w.transferKeeper.SetDenomTrace(ctx, trace)
 
-	/*
-	   Change the base to the ibc denom, and add an alias to the original
-	*/
+	// Change the base to the ibc denom, and add an alias to the original
+	m.Base = trace.IBCDenom()
 	m.Description = fmt.Sprintf("auto-generated ibc denom for rollapp: base: %s: rollapp: %s", m.GetBase(), rollappID)
 	for i, u := range m.DenomUnits {
 		if u.Exponent == 0 {
@@ -229,7 +223,7 @@ func (w IBCModule) registerDenomMetadata(ctx sdk.Context, rollappID, channelID s
 		return "", errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "metadata validate")
 	}
 
-	// We go by the denom keeper instead of calling bank directly, as something might happen in-between
+	// We go by the denom keeper instead of calling bank directly, so denom creation hooks are called
 	err := w.denomKeeper.CreateDenomMetadata(ctx, m)
 	if err != nil {
 		return "", errorsmod.Wrap(err, "create denom metadata")
