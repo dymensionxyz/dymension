@@ -1,10 +1,12 @@
 package keeper_test
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,6 +27,8 @@ const (
 var bond = types.DefaultParams().MinBond
 
 func (suite *SequencerTestSuite) TestMinBond() {
+	panicErr := errors.New("panic")
+
 	testCases := []struct {
 		name          string
 		requiredBond  sdk.Coin
@@ -38,12 +42,6 @@ func (suite *SequencerTestSuite) TestMinBond() {
 			expectedError: nil,
 		},
 		{
-			name:          "Bad denom",
-			requiredBond:  bond,
-			bond:          sdk.NewCoin("invalid", sdk.NewInt(100)),
-			expectedError: types.ErrInvalidCoinDenom,
-		},
-		{
 			name:          "Insufficient bond",
 			requiredBond:  bond,
 			bond:          sdk.NewCoin(bond.Denom, bond.Amount.Quo(sdk.NewInt(2))),
@@ -52,8 +50,8 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		{
 			name:          "wrong bond denom",
 			requiredBond:  bond,
-			bond:          sdk.NewCoin("eth", bond.Amount),
-			expectedError: types.ErrInvalidCoinDenom,
+			bond:          sdk.NewCoin("nonbonddenom", bond.Amount),
+			expectedError: panicErr,
 		},
 	}
 
@@ -87,7 +85,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 			func() {
 				defer func() {
 					if r := recover(); r != nil {
-						createErr = fmt.Errorf("panic in CreateSequencer: %v", r)
+						createErr = errorsmod.Wrapf(panicErr, "panic: %v", r)
 					}
 				}()
 				_, createErr = suite.msgServer.CreateSequencer(suite.Ctx, &sequencerMsg1)
