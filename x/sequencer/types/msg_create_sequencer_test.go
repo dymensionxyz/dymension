@@ -199,8 +199,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				WhitelistedRelayers: []string{"invalid"},
 			},
 			err: gerrc.ErrInvalidArgument,
-		},
-		{
+		}, {
 			name: "valid whitelisted relayers",
 			msg: MsgCreateSequencer{
 				Creator:      sample.AccAddress(),
