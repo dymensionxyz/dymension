@@ -5,7 +5,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
 func (i IBCMessagesDecorator) HandleMsgChannelOpenAck(ctx sdk.Context, msg *ibcchanneltypes.MsgChannelOpenAck) error {
@@ -31,9 +33,15 @@ func (i IBCMessagesDecorator) HandleMsgChannelOpenAck(ctx sdk.Context, msg *ibcc
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "canonical channel already exists for the rollapp")
 	}
 	// Set this channel as the canonical channel for the rollapp
-	// TODO: emit event/log
 	rollapp.ChannelId = msg.ChannelId
 	i.rollappKeeper.SetRollapp(ctx, rollapp)
+
+	if err := uevent.EmitTypedEvent(ctx, &types.EventSetCanonicalChannel{
+		RollappId: rollappID,
+		ChannelId: rollapp.ChannelId,
+	}); err != nil {
+		return errorsmod.Wrap(err, "emit typed event")
+	}
 
 	return nil
 }

@@ -1,0 +1,12 @@
+syntax = "proto3";
+package dymensionxyz.dymension.lightclient;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/lightclient/types";
+
+// EventSetCanonicalChannel : when the canonical channel of the rollapp is set
+message EventSetCanonicalChannel {
+    string rollapp_id = 1;
+    string channel_id = 2;
+}
