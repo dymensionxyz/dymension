@@ -80,6 +80,7 @@ func (seq Sequencer) getCosmosPubKey() (cryptotypes.PubKey, error) {
 	err := protoCodec.UnpackAny(seq.DymintPubKey, &pubKey)
 	return pubKey, err
 }
+
 func (seq *Sequencer) SetWhitelistedRelayers(relayers []string) {
 	slices.Sort(relayers)
 	seq.WhitelistedRelayers = relayers

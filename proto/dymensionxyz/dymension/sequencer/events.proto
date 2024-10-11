@@ -26,8 +26,8 @@ message EventRotationStarted {
     string next_proposer_addr = 2;
     // RewardAddr is a bech32-encoded address of the sequencer's reward address.
     string reward_addr = 3;
-    // Relayers is a list of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
-    repeated string relayers = 4;
+    // WhitelistedRelayers is a list of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
+    repeated string whitelisted_relayers = 4;
 }
 
 message EventUpdateRewardAddress {
