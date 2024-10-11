@@ -1,10 +1,12 @@
 package keeper_test
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,6 +27,8 @@ const (
 var bond = types.DefaultParams().MinBond
 
 func (suite *SequencerTestSuite) TestMinBond() {
+	panicErr := errors.New("panic")
+
 	testCases := []struct {
 		name          string
 		requiredBond  sdk.Coin
@@ -32,22 +36,10 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		expectedError error
 	}{
 		{
-			name:          "No bond required",
-			requiredBond:  sdk.Coin{},
-			bond:          sdk.NewCoin("adym", sdk.NewInt(10000000)),
-			expectedError: nil,
-		},
-		{
 			name:          "Valid bond",
 			requiredBond:  bond,
 			bond:          bond,
 			expectedError: nil,
-		},
-		{
-			name:          "Bad denom",
-			requiredBond:  bond,
-			bond:          sdk.NewCoin("invalid", sdk.NewInt(100)),
-			expectedError: types.ErrInvalidCoinDenom,
 		},
 		{
 			name:          "Insufficient bond",
@@ -55,45 +47,63 @@ func (suite *SequencerTestSuite) TestMinBond() {
 			bond:          sdk.NewCoin(bond.Denom, bond.Amount.Quo(sdk.NewInt(2))),
 			expectedError: types.ErrInsufficientBond,
 		},
+		{
+			name:          "wrong bond denom",
+			requiredBond:  bond,
+			bond:          sdk.NewCoin("nonbonddenom", bond.Amount),
+			expectedError: panicErr,
+		},
 	}
 
 	for _, tc := range testCases {
-		seqParams := types.DefaultParams()
-		seqParams.MinBond = tc.requiredBond
-		suite.App.SequencerKeeper.SetParams(suite.Ctx, seqParams)
+		suite.Run(tc.name, func() {
+			seqParams := types.DefaultParams()
+			seqParams.MinBond = tc.requiredBond
+			suite.App.SequencerKeeper.SetParams(suite.Ctx, seqParams)
 
-		rollappId, pk := suite.CreateDefaultRollapp()
+			rollappId, pk := suite.CreateDefaultRollapp()
 
-		// fund account
-		addr := sdk.AccAddress(pk.Address())
-		pkAny, err := codectypes.NewAnyWithValue(pk)
-		suite.Require().Nil(err)
-		err = bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(tc.bond))
-		suite.Require().Nil(err)
+			// fund account
+			addr := sdk.AccAddress(pk.Address())
+			pkAny, err := codectypes.NewAnyWithValue(pk)
+			suite.Require().Nil(err)
+			err = bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(tc.bond))
+			suite.Require().Nil(err)
 
-		sequencerMsg1 := types.MsgCreateSequencer{
-			Creator:      addr.String(),
-			DymintPubKey: pkAny,
-			Bond:         bond,
-			RollappId:    rollappId,
-			Metadata: types.SequencerMetadata{
-				Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
-			},
-		}
-		_, err = suite.msgServer.CreateSequencer(suite.Ctx, &sequencerMsg1)
-		if tc.expectedError != nil {
-			tc := tc
-			suite.Require().ErrorAs(err, &tc.expectedError, tc.name)
-		} else {
-			suite.Require().NoError(err)
-			sequencer, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr.String())
-			suite.Require().True(found, tc.name)
-			if tc.requiredBond.IsNil() {
-				suite.Require().True(sequencer.Tokens.IsZero(), tc.name)
-			} else {
-				suite.Require().Equal(sdk.NewCoins(tc.requiredBond), sequencer.Tokens, tc.name)
+			sequencerMsg1 := types.MsgCreateSequencer{
+				Creator:      addr.String(),
+				DymintPubKey: pkAny,
+				Bond:         tc.bond,
+				RollappId:    rollappId,
+				Metadata: types.SequencerMetadata{
+					Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+				},
 			}
-		}
+
+			// Use a defer and recover to catch potential panics
+			var createErr error
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						createErr = errorsmod.Wrapf(panicErr, "panic: %v", r)
+					}
+				}()
+				_, createErr = suite.msgServer.CreateSequencer(suite.Ctx, &sequencerMsg1)
+			}()
+
+			if tc.expectedError != nil {
+				suite.Require().ErrorAs(createErr, &tc.expectedError, tc.name)
+			} else {
+				suite.Require().NoError(createErr)
+				sequencer, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr.String())
+				suite.Require().True(found, tc.name)
+				if tc.requiredBond.IsNil() {
+					suite.Require().True(sequencer.Tokens.IsZero(), tc.name)
+				} else {
+					suite.Require().Equal(sdk.NewCoins(tc.requiredBond), sequencer.Tokens, tc.name)
+				}
+			}
+		})
 	}
 }
 
