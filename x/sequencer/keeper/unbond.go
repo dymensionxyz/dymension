@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -72,6 +73,9 @@ func (k Keeper) InstantUnbondAllSequencers(ctx sdk.Context, rollappID string) er
 func (k Keeper) reduceSequencerBond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coins, burn bool) error {
 	if amt.IsZero() {
 		return nil
+	}
+	if !seq.Tokens.IsAllGTE(amt) {
+		return fmt.Errorf("sequencer does not have enough bond: got %s, reducing by %s", seq.Tokens.String(), amt.String())
 	}
 	if burn {
 		err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, amt)

@@ -107,6 +107,13 @@ func SequencerPositiveBalancePostBondReduction(k Keeper) sdk.Invariant {
 		sequencers := k.GetAllSequencers(ctx)
 		for _, seq := range sequencers {
 			effectiveBond := seq.Tokens
+
+			// assert single denom for bond
+			if effectiveBond.Len() != 1 {
+				broken = true
+				msg += "sequencer has multiple denoms " + seq.Address + "\n"
+			}
+
 			if bondReductions := k.GetBondReductionsBySequencer(ctx, seq.Address); len(bondReductions) > 0 {
 				for _, bd := range bondReductions {
 					effectiveBond = effectiveBond.Sub(bd.DecreaseBondAmount)
