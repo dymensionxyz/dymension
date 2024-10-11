@@ -1,6 +1,8 @@
 package types
 
 import (
+	"slices"
+
 	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	cometbfttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -77,4 +79,8 @@ func (seq Sequencer) getCosmosPubKey() (cryptotypes.PubKey, error) {
 	var pubKey cryptotypes.PubKey
 	err := protoCodec.UnpackAny(seq.DymintPubKey, &pubKey)
 	return pubKey, err
+}
+func (seq *Sequencer) SetWhitelistedRelayers(relayers []string) {
+	slices.Sort(relayers)
+	seq.WhitelistedRelayers = relayers
 }

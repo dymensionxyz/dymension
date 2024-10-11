@@ -6,8 +6,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
@@ -96,13 +98,17 @@ func (k Keeper) startRotation(ctx sdk.Context, rollappId string) {
 
 	k.Logger(ctx).Info("rotation started", "rollappId", rollappId, "nextProposer", nextProposer.Address)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeRotationStarted,
-			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
-			sdk.NewAttribute(types.AttributeKeyNextProposer, nextProposer.Address),
-		),
-	)
+	err := uevent.EmitTypedEvent(ctx, &types.EventRotationStarted{
+		RollappId:        rollappId,
+		NextProposerAddr: nextProposer.Address,
+		RewardAddr:       nextProposer.RewardAddr,
+		Relayers:         nextProposer.WhitelistedRelayers,
+	})
+	if err != nil {
+		k.Logger(ctx).
+			With("err", err.Error(), "rollapp_id", rollappId, "next_proposer_addr", nextProposer.Address).
+			Error("Can't emit proposer rotation started event")
+	}
 }
 
 // CompleteRotation completes the sequencer rotation flow.

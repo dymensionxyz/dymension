@@ -21,6 +21,10 @@ service Msg {
   rpc CreateSequencer (MsgCreateSequencer) returns (MsgCreateSequencerResponse);
   // UpdateSequencerInformation defines a method for updating the sequencer's metadata.
   rpc UpdateSequencerInformation (MsgUpdateSequencerInformation) returns (MsgUpdateSequencerInformationResponse);
+  // UpdateRewardAddress defines a method for updating the sequencer's reward address.
+  rpc UpdateRewardAddress(MsgUpdateRewardAddress) returns (MsgUpdateRewardAddressResponse);
+  // UpdateWhitelistedRelayers defines a method for updating the sequencer's whitelisted relater list.
+  rpc UpdateWhitelistedRelayers(MsgUpdateWhitelistedRelayers) returns (MsgUpdateWhitelistedRelayersResponse);
   // Unbond defines a method for removing coins from sequencer's bond
   rpc Unbond (MsgUnbond) returns (MsgUnbondResponse);
   // IncreaseBond defines a method for increasing a sequencer's bond amount
@@ -63,6 +67,11 @@ message MsgCreateSequencer {
   SequencerMetadata metadata = 4 [(gogoproto.nullable) = false];
   // entry bond for the sequencer.
   cosmos.base.v1beta1.Coin bond = 5 [(gogoproto.nullable) = false];
+  // RewardAddr is the bech32-encoded sequencer's reward address. Empty is valid.
+  // If empty, the creator address is used.
+  string reward_addr = 6;
+  // WhitelistedRelayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
+  repeated string whitelisted_relayers = 7;
 }
 
 message MsgCreateSequencerResponse {}
@@ -76,6 +85,26 @@ message MsgUpdateSequencerInformation {
 }
 
 message MsgUpdateSequencerInformationResponse {}
+
+message MsgUpdateRewardAddress {
+  option (cosmos.msg.v1.signer) = "creator";
+  // Creator is the bech32-encoded address of the actor sending the update
+  string creator = 1;
+  // RewardAddr is a bech32 encoded sdk acc address
+  string reward_addr = 2;
+}
+
+message MsgUpdateRewardAddressResponse {}
+
+message MsgUpdateWhitelistedRelayers {
+  option (cosmos.msg.v1.signer) = "creator";
+  // Creator is the bech32-encoded address of the actor sending the update
+  string creator = 1;
+  // Relayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
+  repeated string relayers = 2;
+}
+
+message MsgUpdateWhitelistedRelayersResponse {}
 
 // MsgUnbond defines a SDK message for performing an undelegation from a
 // bond and a sequencer.

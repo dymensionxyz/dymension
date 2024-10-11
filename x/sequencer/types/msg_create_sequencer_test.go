@@ -8,6 +8,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -169,6 +170,50 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Bond:         bond,
 			},
 			err: ErrInvalidPubKey,
+		}, {
+			name: "invalid reward address",
+			msg: MsgCreateSequencer{
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkAny,
+				Bond:         bond,
+				Metadata: SequencerMetadata{
+					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs:     []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
+				},
+				RewardAddr: "invalid",
+			},
+			err: gerrc.ErrInvalidArgument,
+		}, {
+			name: "invalid whitelisted relayers",
+			msg: MsgCreateSequencer{
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkAny,
+				Bond:         bond,
+				RewardAddr:   sample.AccAddress(),
+				Metadata: SequencerMetadata{
+					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs:     []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
+				},
+				WhitelistedRelayers: []string{"invalid"},
+			},
+			err: gerrc.ErrInvalidArgument,
+		},
+		{
+			name: "valid whitelisted relayers",
+			msg: MsgCreateSequencer{
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkAny,
+				Bond:         bond,
+				RewardAddr:   sample.AccAddress(),
+				Metadata: SequencerMetadata{
+					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs:     []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
+				},
+				WhitelistedRelayers: []string{sample.AccAddress()},
+			},
 		},
 	}
 	for _, tt := range tests {

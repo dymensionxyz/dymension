@@ -9,6 +9,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -78,6 +79,12 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, err
 	}
 
+	// set a reward address. if empty, use a creator address.
+	rewardAddr := msg.RewardAddr
+	if msg.RewardAddr == "" {
+		rewardAddr = msg.Creator
+	}
+
 	bond := sdk.NewCoins(msg.Bond)
 	sequencer := types.Sequencer{
 		Address:      msg.Creator,
@@ -86,7 +93,9 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		Metadata:     msg.Metadata,
 		Status:       types.Bonded,
 		Tokens:       bond,
+		RewardAddr:   rewardAddr,
 	}
+	sequencer.SetWhitelistedRelayers(msg.WhitelistedRelayers)
 
 	// we currently only support setting next proposer (or empty one) before the rotation started. This is in order to
 	// avoid handling the case a potential next proposer bonds in the middle of a rotation.
@@ -114,6 +123,11 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			sdk.NewAttribute(types.AttributeKeyProposer, strconv.FormatBool(!proposerExists)),
 		),
 	)
+
+	uevent.EmitTypedEvent(ctx, &types.EventUpdateRewardAddress{
+		Creator:    msg.Creator,
+		RewardAddr: msg.RewardAddr,
+	})
 
 	return &types.MsgCreateSequencerResponse{}, nil
 }

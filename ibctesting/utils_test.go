@@ -202,6 +202,8 @@ func (s *utilSuite) registerSequencer() {
 			RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
 		},
 		bond,
+		s.hubChain().SenderAccount.GetAddress().String(),
+		[]string{},
 	)
 	s.Require().NoError(err) // message committed
 	_, err = s.hubChain().SendMsgs(msgCreateSequencer)

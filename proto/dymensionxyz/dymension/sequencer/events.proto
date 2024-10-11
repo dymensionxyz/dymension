@@ -5,7 +5,6 @@ package dymensionxyz.dymension.sequencer;
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
-import "cosmos/msg/v1/msg.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
 
@@ -17,4 +16,30 @@ message EventIncreasedBond {
     cosmos.base.v1beta1.Coin added_amount = 2 [(gogoproto.nullable) = false];
     // bond is the new active bond amount of the sequencer
     repeated cosmos.base.v1beta1.Coin bond = 3 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+}
+
+message EventRotationStarted {
+    // RollappId defines the rollapp to which the sequencer belongs.
+    string rollapp_id = 1;
+    // NextProposerAddr is the bech32-encoded address of the next proposer.
+    // can be empty if no sequencer is available to be the next proposer.
+    string next_proposer_addr = 2;
+    // RewardAddr is a bech32-encoded address of the sequencer's reward address.
+    string reward_addr = 3;
+    // Relayers is a list of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
+    repeated string relayers = 4;
+}
+
+message EventUpdateRewardAddress {
+    // Operator is the bech32-encoded address of the actor sending the update
+    string creator = 1;
+    // RewardAddr is a bech32 encoded sdk acc address
+    string reward_addr = 2;
+}
+
+message EventUpdateWhitelistedRelayers {
+    // Operator is the bech32-encoded address of the actor sending the update
+    string creator = 1;
+    // Relayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
+    repeated string relayers = 2;
 }

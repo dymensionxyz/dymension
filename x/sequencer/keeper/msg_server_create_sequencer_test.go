@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"slices"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -155,6 +156,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		for i := 0; i < 10; i++ {
 			pubkey := ed25519.GenPrivKey().PubKey()
 			addr := sdk.AccAddress(pubkey.Address())
+			addr1 := sdk.AccAddress(pubkey.Address())
 			err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
 			suite.Require().NoError(err)
 			pkAny, err := codectypes.NewAnyWithValue(pubkey)
@@ -169,15 +171,19 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				Metadata: types.SequencerMetadata{
 					Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
 				},
+				RewardAddr:          addr1.String(),
+				WhitelistedRelayers: []string{addr.String()},
 			}
 			// sequencerExpect is the expected result of creating a sequencer
 			sequencerExpect := types.Sequencer{
-				Address:      sequencerMsg.GetCreator(),
-				DymintPubKey: sequencerMsg.GetDymintPubKey(),
-				Status:       types.Bonded,
-				RollappId:    rollappId,
-				Tokens:       sdk.NewCoins(bond),
-				Metadata:     sequencerMsg.GetMetadata(),
+				Address:             sequencerMsg.GetCreator(),
+				DymintPubKey:        sequencerMsg.GetDymintPubKey(),
+				Status:              types.Bonded,
+				RollappId:           rollappId,
+				Tokens:              sdk.NewCoins(bond),
+				Metadata:            sequencerMsg.GetMetadata(),
+				RewardAddr:          addr1.String(),
+				WhitelistedRelayers: []string{addr.String()},
 			}
 
 			// create sequencer
@@ -348,8 +354,9 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 					Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
 				},
 			}
-			_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+			resp, err := suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 			suite.Require().ErrorIs(err, tc.expErr, tc.name)
+			_ = resp
 
 			if tc.expErr != nil {
 				return
@@ -517,6 +524,7 @@ func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 
 // equalSequencer receives two sequencers and compares them. If they are not equal, fails the test
 func (suite *SequencerTestSuite) equalSequencer(s1 *types.Sequencer, s2 *types.Sequencer) {
+	suite.T().Helper()
 	eq := compareSequencers(s1, s2)
 	suite.Require().True(eq, "expected: %v\nfound: %v", *s1, *s2)
 }
@@ -556,6 +564,12 @@ func compareSequencers(s1, s2 *types.Sequencer) bool {
 		return false
 	}
 	if !reflect.DeepEqual(s1.Metadata, s2.Metadata) {
+		return false
+	}
+	if s1.RewardAddr != s2.RewardAddr {
+		return false
+	}
+	if !slices.Equal(s1.WhitelistedRelayers, s2.WhitelistedRelayers) {
 		return false
 	}
 	return true
