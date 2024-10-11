@@ -9,7 +9,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -123,11 +122,6 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			sdk.NewAttribute(types.AttributeKeyProposer, strconv.FormatBool(!proposerExists)),
 		),
 	)
-
-	uevent.EmitTypedEvent(ctx, &types.EventUpdateRewardAddress{
-		Creator:    msg.Creator,
-		RewardAddr: msg.RewardAddr,
-	})
 
 	return &types.MsgCreateSequencerResponse{}, nil
 }

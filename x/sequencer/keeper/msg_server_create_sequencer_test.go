@@ -354,9 +354,8 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 					Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
 				},
 			}
-			resp, err := suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+			_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 			suite.Require().ErrorIs(err, tc.expErr, tc.name)
-			_ = resp
 
 			if tc.expErr != nil {
 				return
