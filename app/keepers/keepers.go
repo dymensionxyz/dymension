@@ -586,7 +586,6 @@ func (a *AppKeepers) SetupHooks() {
 			a.IncentivesKeeper.Hooks(),
 			a.TxFeesKeeper.Hooks(),
 			a.DelayedAckKeeper.GetEpochHooks(),
-			a.RollappKeeper.GetEpochHooks(),
 		),
 	)
 
