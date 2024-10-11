@@ -77,6 +77,7 @@ func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []string) (i
 					return 0, fmt.Errorf("freeze rollapp: %w", err)
 				}
 				vulnerableNum++
+				break
 			}
 		}
 	}
