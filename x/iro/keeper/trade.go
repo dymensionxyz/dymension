@@ -99,6 +99,8 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 		PlanId:    planId,
 		RollappId: plan.RollappId,
 		Amount:    amountTokensToBuy,
+		Cost:      cost.Amount,
+		TakerFee:  takerFee.Amount,
 	})
 	if err != nil {
 		return err
@@ -154,6 +156,8 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 		PlanId:    planId,
 		RollappId: plan.RollappId,
 		Amount:    amountTokensToSell,
+		Revenue:   cost.Amount,
+		TakerFee:  takerFee.Amount,
 	})
 	if err != nil {
 		return err

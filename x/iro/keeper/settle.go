@@ -58,15 +58,18 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 	k.SetPlan(ctx, plan)
 
 	// uses the raised DYM and unsold tokens to bootstrap the rollapp's liquidity pool
-	err = k.bootstrapLiquidityPool(ctx, plan)
+	poolID, gaugeID, err := k.bootstrapLiquidityPool(ctx, plan)
 	if err != nil {
 		return errors.Join(types.ErrFailedBootstrapLiquidityPool, err)
 	}
 
 	// Emit event
 	err = ctx.EventManager().EmitTypedEvent(&types.EventSettle{
-		RollappId: rollappId,
 		PlanId:    fmt.Sprintf("%d", plan.Id),
+		RollappId: rollappId,
+		IBCDenom:  rollappIBCDenom,
+		PoolId:    poolID,
+		GaugeId:   gaugeID,
 	})
 	if err != nil {
 		return err
@@ -82,14 +85,14 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 // - Determines the required pool liquidity amounts to fulfill the last price.
 // - Creates a balancer pool with the determined tokens and DYM.
 // - Uses leftover tokens as incentives to the pool LP token holders.
-func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
+func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) (poolID, gaugeID uint64, err error) {
 	unallocatedTokens := plan.TotalAllocation.Amount.Sub(plan.SoldAmt)        // assumed > 0, as we enforce it in the Buy function
 	raisedDYM := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom) // assumed > 0, as we enforce it by IRO creation fee
 
 	// send the raised DYM to the iro module as it will be used as the pool creator
-	err := k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(raisedDYM))
+	err = k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(raisedDYM))
 	if err != nil {
-		return err
+		return 0, 0, err
 	}
 
 	// find the tokens needed to bootstrap the pool, to fulfill last price
@@ -114,7 +117,7 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 	// we call the pool manager directly, instead of the gamm keeper, to avoid the pool creation fee
 	poolId, err := k.pm.CreatePool(ctx, balancerPool)
 	if err != nil {
-		return err
+		return 0, 0, err
 	}
 
 	// Add incentives
@@ -128,12 +131,12 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) error {
 		Denom:         poolDenom,
 		Duration:      k.ik.GetLockableDurations(ctx)[0],
 	}
-	_, err = k.ik.CreateGauge(ctx, false, k.AK.GetModuleAddress(types.ModuleName), incentives, distrTo, ctx.BlockTime().Add(plan.IncentivePlanParams.StartTimeAfterSettlement), plan.IncentivePlanParams.NumEpochsPaidOver)
+	gaugeID, err = k.ik.CreateGauge(ctx, false, k.AK.GetModuleAddress(types.ModuleName), incentives, distrTo, ctx.BlockTime().Add(plan.IncentivePlanParams.StartTimeAfterSettlement), plan.IncentivePlanParams.NumEpochsPaidOver)
 	if err != nil {
-		return err
+		return 0, 0, err
 	}
 
-	return nil
+	return poolID, gaugeID, nil
 }
 
 // calcLiquidityPoolTokens determines the tokens and DYM to be used for bootstrapping the liquidity pool.
