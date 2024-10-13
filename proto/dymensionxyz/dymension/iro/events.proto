@@ -75,6 +75,7 @@ message EventClaim {
 message EventSettle {
   string plan_id = 1;
   string rollapp_id = 2;
-  uint64 pool_id = 3;
-  uint64 gauge_id = 4;
+  string IBC_denom = 3;
+  uint64 pool_id = 4;
+  uint64 gauge_id = 5;
 }

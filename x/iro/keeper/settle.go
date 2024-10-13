@@ -67,6 +67,7 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 	err = ctx.EventManager().EmitTypedEvent(&types.EventSettle{
 		PlanId:    fmt.Sprintf("%d", plan.Id),
 		RollappId: rollappId,
+		IBCDenom:  rollappIBCDenom,
 		PoolId:    poolID,
 		GaugeId:   gaugeID,
 	})
