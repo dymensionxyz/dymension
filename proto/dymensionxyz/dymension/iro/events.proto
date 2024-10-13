@@ -14,27 +14,25 @@ message EventUpdateParams {
   Params old_params = 3 [ (gogoproto.nullable) = false ];
 }
 
-
 message EventNewIROPlan {
   string creator = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string plan_id = 2;
   string rollapp_id = 3;
 }
 
-
 message EventBuy {
   string buyer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string plan_id = 2;
   string rollapp_id = 3;
-  string amount = 4[
+  string amount = 4 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  string cost = 5[
+  string cost = 5 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  string taker_fee = 6[
+  string taker_fee = 6 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
@@ -44,17 +42,17 @@ message EventSell {
   string seller = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string plan_id = 2;
   string rollapp_id = 3;
-  string amount = 4[
+  string amount = 4 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
 
-  string revenue = 5[
+  string revenue = 5 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
 
-  string taker_fee = 6[
+  string taker_fee = 6 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
@@ -64,13 +62,11 @@ message EventClaim {
   string claimer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string plan_id = 2;
   string rollapp_id = 3;
-  string amount = 4[
+  string amount = 4 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
 }
-
-
 
 message EventSettle {
   string plan_id = 1;
