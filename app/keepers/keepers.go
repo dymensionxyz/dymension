@@ -395,6 +395,7 @@ func (a *AppKeepers) InitKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		&a.AccountKeeper,
 		a.BankKeeper,
+		a.DenomMetadataKeeper,
 		a.RollappKeeper,
 		a.GAMMKeeper,
 		a.IncentivesKeeper,
