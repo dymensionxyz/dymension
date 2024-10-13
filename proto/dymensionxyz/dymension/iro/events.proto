@@ -18,7 +18,7 @@ message EventUpdateParams {
 message EventNewIROPlan {
   string creator = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string plan_id = 2;
-  Plan plan = 3;
+  string rollapp_id = 3;
 }
 
 
@@ -40,7 +40,6 @@ message EventSell {
   string seller = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string plan_id = 2;
   string rollapp_id = 3;
-
   string amount = 4[
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
@@ -67,5 +66,6 @@ message EventClaim {
 message EventSettle {
   string plan_id = 1;
   string rollapp_id = 2;
-  //FIXME: Add more fields, probably liquidity related
+  uint64 pool_id = 3;
+  uint64 gauge_id = 4;
 }
