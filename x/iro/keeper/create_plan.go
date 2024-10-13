@@ -132,6 +132,16 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 	// Set the plan in the store
 	k.SetPlan(ctx, plan)
 
+	// Emit event
+	err = ctx.EventManager().EmitTypedEvent(&types.EventNewIROPlan{
+		Creator:   rollapp.Owner,
+		PlanId:    fmt.Sprintf("%d", plan.Id),
+		RollappId: rollapp.RollappId,
+	})
+	if err != nil {
+		return "", err
+	}
+
 	return fmt.Sprintf("%d", plan.Id), nil
 }
 
