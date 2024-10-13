@@ -164,13 +164,13 @@ func (k Keeper) MintAllocation(ctx sdk.Context, allocatedAmount math.Int, rollap
 		return sdk.Coin{}, errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), fmt.Sprintf("metadata: %v", metadata))
 	}
 
-	if k.BK.HasDenomMetaData(ctx, baseDenom) {
-		return sdk.Coin{}, errors.New("denom already exists")
+	err := k.dk.CreateDenomMetadata(ctx, metadata)
+	if err != nil {
+		return sdk.Coin{}, errorsmod.Wrap(err, "create denom metadata")
 	}
-	k.BK.SetDenomMetaData(ctx, metadata)
 
 	minted := sdk.NewCoin(baseDenom, allocatedAmount)
-	err := k.BK.MintCoins(ctx, types.ModuleName, sdk.NewCoins(minted))
+	err = k.BK.MintCoins(ctx, types.ModuleName, sdk.NewCoins(minted))
 	if err != nil {
 		return sdk.Coin{}, err
 	}
