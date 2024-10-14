@@ -2,7 +2,6 @@ package types
 
 import (
 	"strconv"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -18,7 +17,6 @@ func NewStateInfo(
 	daPath string,
 	height uint64,
 	BDs BlockDescriptors,
-	createdAt time.Time,
 	drsVersion string,
 ) *StateInfo {
 	stateInfoIndex := StateInfoIndex{RollappId: rollappId, Index: newIndex}
@@ -32,7 +30,6 @@ func NewStateInfo(
 		CreationHeight: height,
 		Status:         status,
 		BDs:            BDs,
-		CreatedAt:      createdAt,
 		DrsVersion:     drsVersion,
 	}
 }
@@ -73,7 +70,6 @@ func (s *StateInfo) GetEvents() []sdk.Attribute {
 		sdk.NewAttribute(AttributeKeyNumBlocks, strconv.FormatUint(s.NumBlocks, 10)),
 		sdk.NewAttribute(AttributeKeyDAPath, s.DAPath),
 		sdk.NewAttribute(AttributeKeyStatus, s.Status.String()),
-		sdk.NewAttribute(AttributeKeyCreatedAt, s.CreatedAt.Format(time.RFC3339)),
 	}
 	return eventAttributes
 }
