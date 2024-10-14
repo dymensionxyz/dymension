@@ -31,6 +31,21 @@ func (m msgServer) Buy(ctx context.Context, req *types.MsgBuy) (*types.MsgBuyRes
 	return &types.MsgBuyResponse{}, nil
 }
 
+// BuyExactSpend implements types.MsgServer.
+func (m msgServer) BuyExactSpend(ctx context.Context, req *types.MsgBuyExactSpend) (*types.MsgBuyResponse, error) {
+	buyer, err := sdk.AccAddressFromBech32(req.Buyer)
+	if err != nil {
+		return nil, err
+	}
+
+	err = m.Keeper.BuyExactSpend(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Spend, req.MinOutTokensAmount)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgBuyResponse{}, nil
+}
+
 // Sell implements types.MsgServer.
 func (m msgServer) Sell(ctx context.Context, req *types.MsgSell) (*types.MsgSellResponse, error) {
 	seller, err := sdk.AccAddressFromBech32(req.Seller)
@@ -60,25 +75,28 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 	}
 
 	// Calculate cost for buying amountTokensToBuy over fixed price curve
-	cost := sdk.NewCoin(appparams.BaseDenom, plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy)))
-	costPlusTakerFee, takerFee, err := k.ApplyTakerFee(cost, k.GetParams(ctx).TakerFee, true)
+	// cost := sdk.NewCoin(appparams.BaseDenom, plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy)))
+	cost := plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy))
+	costPlusTakerFee, takerFee, err := k.ApplyTakerFee2(cost, k.GetParams(ctx).TakerFee, true)
 	if err != nil {
 		return err
 	}
 
 	// Validate expected out amount
-	if costPlusTakerFee.Amount.GT(maxCostAmt) {
+	if costPlusTakerFee.GT(maxCostAmt) {
 		return errorsmod.Wrapf(types.ErrInvalidExpectedOutAmount, "maxCost: %s, cost: %s, fee: %s", maxCostAmt.String(), cost.String(), takerFee.String())
 	}
 
 	// Charge taker fee
-	err = k.chargeTakerFee(ctx, takerFee, buyer)
+	takerFeeC := sdk.NewCoin(appparams.BaseDenom, takerFee)
+	err = k.chargeTakerFee(ctx, takerFeeC, buyer)
 	if err != nil {
 		return err
 	}
 
 	// send DYM from buyer to the plan. DYM sent directly to the plan's module account
-	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(cost))
+	costC := sdk.NewCoin(appparams.BaseDenom, cost)
+	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(costC))
 	if err != nil {
 		return err
 	}
@@ -99,8 +117,75 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 		PlanId:    planId,
 		RollappId: plan.RollappId,
 		Amount:    amountTokensToBuy,
-		Cost:      cost.Amount,
-		TakerFee:  takerFee.Amount,
+		Cost:      cost,
+		TakerFee:  takerFee,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// BuyExactSpend buys allocation with price according to the price curve
+func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddress, amountToSpend, minTokensAmt math.Int) error {
+	plan, err := k.GetTradeableIRO(ctx, planId, buyer.String())
+	if err != nil {
+		return err
+	}
+
+	// Calculate cost for buying amountTokensToBuy over fixed price curve
+	toSpendLessTakerFee, takerFee, err := k.ApplyTakerFee2(amountToSpend, k.GetParams(ctx).TakerFee, false)
+	if err != nil {
+		return err
+	}
+	tokensOutAmt := plan.BondingCurve.TokensForDYM(plan.SoldAmt, toSpendLessTakerFee)
+	// FIXME: use cost func anyway
+
+	// Validate expected out amount
+	if tokensOutAmt.LT(minTokensAmt) {
+		return errorsmod.Wrapf(types.ErrInvalidMinCost, "minTokens: %s, tokens: %s, fee: %s", minTokensAmt.String(), tokensOutAmt.String(), takerFee.String())
+	}
+
+	// validate the IRO have enough tokens to sell
+	// protocol will apply max limit (99.9%) to enforce initial token liquidity
+	maxSellAmt := plan.TotalAllocation.Amount.ToLegacyDec().Mul(AllocationSellLimit).TruncateInt()
+	if plan.SoldAmt.Add(tokensOutAmt).GT(maxSellAmt) {
+		return types.ErrInsufficientTokens
+	}
+
+	// Charge taker fee
+	takerFeeC := sdk.NewCoin(appparams.BaseDenom, takerFee)
+	err = k.chargeTakerFee(ctx, takerFeeC, buyer)
+	if err != nil {
+		return err
+	}
+
+	// send DYM from buyer to the plan. DYM sent directly to the plan's module account
+	costC := sdk.NewCoin(appparams.BaseDenom, toSpendLessTakerFee)
+	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(costC))
+	if err != nil {
+		return err
+	}
+
+	// send allocated tokens from the plan to the buyer
+	err = k.BK.SendCoinsFromModuleToAccount(ctx, types.ModuleName, buyer, sdk.NewCoins(sdk.NewCoin(plan.TotalAllocation.Denom, tokensOutAmt)))
+	if err != nil {
+		return err
+	}
+
+	// Update plan
+	plan.SoldAmt = plan.SoldAmt.Add(tokensOutAmt)
+	k.SetPlan(ctx, *plan)
+
+	// Emit event
+	err = ctx.EventManager().EmitTypedEvent(&types.EventBuy{
+		Buyer:     buyer.String(),
+		PlanId:    planId,
+		RollappId: plan.RollappId,
+		Amount:    tokensOutAmt,
+		Cost:      toSpendLessTakerFee,
+		TakerFee:  takerFee,
 	})
 	if err != nil {
 		return err
@@ -117,19 +202,20 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 	}
 
 	// Calculate cost over fixed price curve
-	cost := sdk.NewCoin(appparams.BaseDenom, plan.BondingCurve.Cost(plan.SoldAmt.Sub(amountTokensToSell), plan.SoldAmt))
-	costMinusTakerFee, takerFee, err := k.ApplyTakerFee(cost, k.GetParams(ctx).TakerFee, false)
+	cost := plan.BondingCurve.Cost(plan.SoldAmt.Sub(amountTokensToSell), plan.SoldAmt)
+	costMinusTakerFee, takerFee, err := k.ApplyTakerFee2(cost, k.GetParams(ctx).TakerFee, false)
 	if err != nil {
 		return err
 	}
 
 	// Validate expected out amount
-	if costMinusTakerFee.Amount.LT(minIncomeAmt) {
+	if costMinusTakerFee.LT(minIncomeAmt) {
 		return errorsmod.Wrapf(types.ErrInvalidMinCost, "minCost: %s, cost: %s, fee: %s", minIncomeAmt.String(), cost.String(), takerFee.String())
 	}
 
 	// Charge taker fee
-	err = k.chargeTakerFee(ctx, takerFee, seller)
+	takerFeeC := sdk.NewCoin(appparams.BaseDenom, takerFee)
+	err = k.chargeTakerFee(ctx, takerFeeC, seller)
 	if err != nil {
 		return err
 	}
@@ -141,7 +227,8 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 	}
 
 	// send DYM from the plan to the seller. DYM managed by the plan's module account
-	err = k.BK.SendCoins(ctx, plan.GetAddress(), seller, sdk.NewCoins(cost))
+	costC := sdk.NewCoin(appparams.BaseDenom, cost)
+	err = k.BK.SendCoins(ctx, plan.GetAddress(), seller, sdk.NewCoins(costC))
 	if err != nil {
 		return err
 	}
@@ -156,8 +243,8 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 		PlanId:    planId,
 		RollappId: plan.RollappId,
 		Amount:    amountTokensToSell,
-		Revenue:   cost.Amount,
-		TakerFee:  takerFee.Amount,
+		Revenue:   cost,
+		TakerFee:  takerFee,
 	})
 	if err != nil {
 		return err
@@ -217,4 +304,26 @@ func (k Keeper) ApplyTakerFee(cost sdk.Coin, takerFee sdk.Dec, isAdd bool) (sdk.
 	}
 
 	return sdk.NewCoin(cost.Denom, newAmt), fee, nil
+}
+
+// FIXME: merge ApplyTakerFee and ApplyTakerFee2
+func (k Keeper) ApplyTakerFee2(amount math.Int, takerFee math.LegacyDec, isAdd bool) (totalAmt, takerFeeAmt math.Int, err error) {
+	if !amount.IsPositive() {
+		return math.Int{}, math.Int{}, errorsmod.Wrapf(types.ErrInvalidCost, "amt: %s", amount.String())
+	}
+
+	feeAmt := math.LegacyNewDecFromInt(amount).Mul(takerFee).TruncateInt()
+
+	var newAmt math.Int
+	if isAdd {
+		newAmt = amount.Add(feeAmt)
+	} else {
+		newAmt = amount.Sub(feeAmt)
+	}
+
+	if !newAmt.IsPositive() || !feeAmt.IsPositive() {
+		return math.Int{}, math.Int{}, errorsmod.Wrapf(types.ErrInvalidCost, "taking fee resulted in negative amount: %s, fee: %s", newAmt.String(), feeAmt.String())
+	}
+
+	return newAmt, feeAmt, nil
 }
