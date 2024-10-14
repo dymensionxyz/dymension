@@ -12,14 +12,14 @@ import (
 
 // approxEqualInt checks if two math.Ints are approximately equal
 func approxEqualInt(t *testing.T, expected, actual math.Int) {
-	defaultTolerance := math.NewInt(1).MulRaw(1e9) // one millionth of a dym
+	defaultTolerance := math.NewInt(1).MulRaw(1e12) // one hundred-millionth of a dym
 	diff := expected.Sub(actual).Abs()
 	require.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
 }
 
 // approxEqualDec checks if two math.Decs are approximately equal
 func approxEqualDec(t *testing.T, expected, actual math.LegacyDec) {
-	defaultTolerance := math.LegacyNewDecWithPrec(1, 9) // one millionth of a dym
+	defaultTolerance := math.LegacyNewDecWithPrec(1, 12) // one hundred-millionth of a dym
 	diff := expected.Sub(actual).Abs()
 	require.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
 }

@@ -42,7 +42,7 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 		return errors.Join(ErrInvalidBondingCurve, err)
 	}
 
-	allocationDec := ScaleXFromBase(m.AllocatedAmount, m.BondingCurve.SupplyDecimals())
+	allocationDec := ScaleFromBase(m.AllocatedAmount, m.BondingCurve.SupplyDecimals())
 	if !allocationDec.GT(MinTokenAllocation) {
 		return ErrInvalidAllocation
 	}

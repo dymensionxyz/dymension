@@ -3,6 +3,7 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/osmomath"
 )
 
@@ -24,31 +25,19 @@ C (constant) sets the starting price when supply is zero, effectively establishi
 */
 
 const (
+	DYMDecimals = 18 // Decimal precision for DYM to adym conversion
+
 	MaxNValue     = 2 // Maximum allowed value for the N parameter
 	MaxNPrecision = 3 // Maximum allowed decimal precision for the N parameter
+
+	maxIterations = 100 // maximum number of iterations for Newton-Raphson approximation
+	epsilon       = 12  // approximation error decimal places (10^12)
 )
 
 /*
 The bonding curve implementation based on decimal representation of the X (rollapp's tokens) and Y (DYM) values.
 we use scaling functions to convert between the decimal scale and the base denomination.
 */
-
-// Scales x from it's base denomination to a decimal representation
-// This is used to scale X before passing it to the bonding curve functions
-func ScaleXFromBase(x math.Int, precision int64) math.LegacyDec {
-	return math.LegacyNewDecFromIntWithPrec(x, precision)
-}
-
-// Scales y from the decimal scale to it's base denomination
-func ScaleDYMToBase(y math.LegacyDec) math.Int {
-	return y.MulInt(math.NewInt(1e18)).TruncateInt()
-}
-
-func (lbc BondingCurve) SupplyDecimals() int64 {
-	// TODO: allow to be set on creation instead of using default
-	rollappTokenDefaultDecimals := int64(18)
-	return rollappTokenDefaultDecimals
-}
 
 func NewBondingCurve(m, n, c math.LegacyDec) BondingCurve {
 	return BondingCurve{
@@ -65,6 +54,12 @@ func DefaultBondingCurve() BondingCurve {
 		N: math.LegacyOneDec(),
 		C: math.LegacyZeroDec(),
 	}
+}
+
+func (lbc BondingCurve) SupplyDecimals() int64 {
+	// TODO: allow to be set on creation instead of using default
+	rollappTokenDefaultDecimals := int64(18)
+	return rollappTokenDefaultDecimals
 }
 
 // validateBasic checks if the bonding curve is valid
@@ -90,17 +85,10 @@ func (lbc BondingCurve) ValidateBasic() error {
 	return nil
 }
 
-// checkPrecision checks if a math.LegacyDec has at most MaxPrecision decimal places
-func checkPrecision(d math.LegacyDec) bool {
-	// Multiply by 10^MaxPrecision and check if it's an integer
-	multiplied := d.Mul(math.LegacyNewDec(10).Power(uint64(MaxNPrecision)))
-	return multiplied.IsInteger()
-}
-
 // SpotPrice returns the spot price at x
 func (lbc BondingCurve) SpotPrice(x math.Int) math.LegacyDec {
 	// we use osmomath as it support Power function
-	xDec := osmomath.BigDecFromSDKDec(ScaleXFromBase(x, lbc.SupplyDecimals()))
+	xDec := osmomath.BigDecFromSDKDec(ScaleFromBase(x, lbc.SupplyDecimals()))
 	nDec := osmomath.BigDecFromSDKDec(lbc.N)
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)
 
@@ -129,7 +117,7 @@ func (lbc BondingCurve) Cost(x, x1 math.Int) math.Int {
 //	Cost = (M / (N + 1)) * x^(N + 1) + C * x.
 func (lbc BondingCurve) Integral(x math.Int) math.Int {
 	// we use osmomath as it support Power function
-	xDec := osmomath.BigDecFromSDKDec(ScaleXFromBase(x, lbc.SupplyDecimals()))
+	xDec := osmomath.BigDecFromSDKDec(ScaleFromBase(x, lbc.SupplyDecimals()))
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)
 	cDec := osmomath.BigDecFromSDKDec(lbc.C)
 	nPlusOne := osmomath.BigDecFromSDKDec(lbc.N.Add(math.LegacyNewDec(1)))
@@ -181,4 +169,24 @@ func CalculateM(val, t, n, c math.LegacyDec) math.LegacyDec {
 
 	// Convert back to math.LegacyDec and return
 	return m.SDKDec()
+}
+
+/* ---------------------------- helper functions ---------------------------- */
+// Scales x from it's base denomination to a decimal representation (e.g 1500000000000000 to 1.5)
+// This is used to scale X before passing it to the bonding curve functions
+func ScaleFromBase(x math.Int, precision int64) math.LegacyDec {
+	return math.LegacyNewDecFromIntWithPrec(x, precision)
+}
+
+// Scales x from the decimal scale to it's base denomination (e.g 1.5 to 1500000000000000)
+func ScaleToBase(x math.LegacyDec, precision int) math.Int {
+	scaleFactor := math.NewIntWithDecimal(1, precision)
+	return x.MulInt(scaleFactor).TruncateInt()
+}
+
+// checkPrecision checks if a math.LegacyDec has at most MaxPrecision decimal places
+func checkPrecision(d math.LegacyDec) bool {
+	// Multiply by 10^MaxPrecision and check if it's an integer
+	multiplied := d.Mul(math.LegacyNewDec(10).Power(uint64(MaxNPrecision)))
+	return multiplied.IsInteger()
 }
