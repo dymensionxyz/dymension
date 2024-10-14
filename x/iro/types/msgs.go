@@ -3,15 +3,15 @@ package types
 import (
 	"errors"
 
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const (
 	TypeMsgCreatePlan = "create_plan"
 	TypeMsgBuy        = "buy"
+	TypeMsgExactSpend = "buy_exact_spend"
 	TypeMsgSell       = "sell"
 	TypeMsgClaim      = "claim"
 )
@@ -19,11 +19,13 @@ const (
 var (
 	_ sdk.Msg            = &MsgCreatePlan{}
 	_ sdk.Msg            = &MsgBuy{}
+	_ sdk.Msg            = &MsgBuyExactSpend{}
 	_ sdk.Msg            = &MsgSell{}
 	_ sdk.Msg            = &MsgClaim{}
 	_ sdk.Msg            = &MsgUpdateParams{}
 	_ legacytx.LegacyMsg = &MsgCreatePlan{}
 	_ legacytx.LegacyMsg = &MsgBuy{}
+	_ legacytx.LegacyMsg = &MsgBuyExactSpend{}
 	_ legacytx.LegacyMsg = &MsgSell{}
 	_ legacytx.LegacyMsg = &MsgClaim{}
 )
@@ -74,6 +76,10 @@ func (m *MsgClaim) Route() string {
 	return RouterKey
 }
 
+func (m *MsgBuyExactSpend) Route() string {
+	return RouterKey
+}
+
 func (m *MsgCreatePlan) Type() string {
 	return TypeMsgCreatePlan
 }
@@ -90,6 +96,10 @@ func (m *MsgClaim) Type() string {
 	return TypeMsgClaim
 }
 
+func (m *MsgBuyExactSpend) Type() string {
+	return TypeMsgExactSpend
+}
+
 func (m *MsgCreatePlan) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Owner)
 	return []sdk.AccAddress{addr}
@@ -101,6 +111,11 @@ func (m *MsgCreatePlan) GetSignBytes() []byte {
 }
 
 func (m *MsgBuy) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgBuyExactSpend) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)
 }
@@ -197,5 +212,31 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 
 func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Authority)
+	return []sdk.AccAddress{addr}
+}
+
+// ValidateBasic implements types.Msg.
+func (m *MsgBuyExactSpend) ValidateBasic() error {
+	// buyer bech32
+	_, err := sdk.AccAddressFromBech32(m.Buyer)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid buyer address: %s", err)
+	}
+
+	// coin exist and valid
+	if m.Spend.IsNil() || !m.Spend.IsPositive() {
+		return sdkerrors.ErrInvalidRequest.Wrapf("amount %v must be positive", m.Spend)
+	}
+
+	if m.MinOutTokensAmount.IsNil() || !m.MinOutTokensAmount.IsPositive() {
+		return sdkerrors.ErrInvalidRequest.Wrapf("expected out amount %v must be positive", m.MinOutTokensAmount)
+	}
+
+	return nil
+}
+
+// GetSigners implements types.Msg.
+func (m *MsgBuyExactSpend) GetSigners() []sdk.AccAddress {
+	addr := sdk.MustAccAddressFromBech32(m.Buyer)
 	return []sdk.AccAddress{addr}
 }
