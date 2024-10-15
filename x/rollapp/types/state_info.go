@@ -2,6 +2,7 @@ package types
 
 import (
 	"strconv"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -17,6 +18,7 @@ func NewStateInfo(
 	daPath string,
 	height uint64,
 	BDs BlockDescriptors,
+	createdAt time.Time,
 	drsVersion string,
 ) *StateInfo {
 	stateInfoIndex := StateInfoIndex{RollappId: rollappId, Index: newIndex}
@@ -30,6 +32,7 @@ func NewStateInfo(
 		CreationHeight: height,
 		Status:         status,
 		BDs:            BDs,
+		CreatedAt:      createdAt,
 		DrsVersion:     drsVersion,
 	}
 }
