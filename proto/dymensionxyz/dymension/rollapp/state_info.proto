@@ -47,8 +47,14 @@ message StateInfo {
     // BDs is a list of block description objects (one per block)
     // the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
     BlockDescriptors BDs = 9 [(gogoproto.nullable) = false];
+    // created_at is the timestamp at which the StateInfo was created
+    google.protobuf.Timestamp created_at = 10 [
+        (gogoproto.stdtime) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.moretags) = "yaml:\"created_at\""
+    ];
     // DrsVersion is a DRS version used by the rollapp.
-    string drs_version = 10;
+    string drs_version = 11;
 }
 
 // StateInfoSummary is a compact representation of StateInfo
