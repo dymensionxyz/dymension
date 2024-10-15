@@ -175,7 +175,6 @@ func (lbc BondingCurve) TokensForExactDYM(currX, spendAmt math.Int) math.Int {
 
 // SpotPrice returns the spot price at x
 func (lbc BondingCurve) spotPriceInternal(x sdk.Dec) sdk.Dec {
-	// fmt.Printf("SpotPrice, x: %s\n", x.String())
 	xDec := osmomath.BigDecFromSDKDec(x)
 	nDec := osmomath.BigDecFromSDKDec(lbc.N)
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)
@@ -194,7 +193,6 @@ func (lbc BondingCurve) spotPriceInternal(x sdk.Dec) sdk.Dec {
 //
 //	Cost = (M / (N + 1)) * x^(N + 1) + C * x.
 func (lbc BondingCurve) integral(x math.LegacyDec) math.LegacyDec {
-	// fmt.Printf("Integral, x: %s\n", x.String())
 	xDec := osmomath.BigDecFromSDKDec(x)
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)
 	cDec := osmomath.BigDecFromSDKDec(lbc.C)

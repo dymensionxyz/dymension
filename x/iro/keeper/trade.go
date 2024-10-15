@@ -60,7 +60,7 @@ func (m msgServer) Sell(ctx context.Context, req *types.MsgSell) (*types.MsgSell
 	return &types.MsgSellResponse{}, nil
 }
 
-// Buy buys allocation with price according to the price curve
+// Buy buys fixed amount of allocation with price according to the price curve
 func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amountTokensToBuy, maxCostAmt math.Int) error {
 	plan, err := k.GetTradeableIRO(ctx, planId, buyer.String())
 	if err != nil {
@@ -74,10 +74,9 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 		return types.ErrInsufficientTokens
 	}
 
-	// Calculate cost for buying amountTokensToBuy over fixed price curve
-	// cost := sdk.NewCoin(appparams.BaseDenom, plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy)))
+	// Calculate cost for buying amountTokensToBuy over the price curve
 	cost := plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy))
-	costPlusTakerFee, takerFee, err := k.ApplyTakerFee2(cost, k.GetParams(ctx).TakerFee, true)
+	costPlusTakerFee, takerFee, err := k.ApplyTakerFee(cost, k.GetParams(ctx).TakerFee, true)
 	if err != nil {
 		return err
 	}
@@ -127,20 +126,21 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 	return nil
 }
 
-// BuyExactSpend buys allocation with price according to the price curve
+// BuyExactSpend uses fixed amount of DYM to buy as many tokens as possible
 func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddress, amountToSpend, minTokensAmt math.Int) error {
 	plan, err := k.GetTradeableIRO(ctx, planId, buyer.String())
 	if err != nil {
 		return err
 	}
 
-	// Calculate cost for buying amountTokensToBuy over fixed price curve
-	toSpendLessTakerFee, takerFee, err := k.ApplyTakerFee2(amountToSpend, k.GetParams(ctx).TakerFee, false)
+	// deduct taker fee from the amount to spend
+	toSpendLessTakerFee, takerFee, err := k.ApplyTakerFee(amountToSpend, k.GetParams(ctx).TakerFee, false)
 	if err != nil {
 		return err
 	}
-	tokensOutAmt := plan.BondingCurve.TokensForDYM(plan.SoldAmt, toSpendLessTakerFee)
-	// FIXME: use cost func anyway
+
+	// calculate the amount of tokens possible to buy with the amount to spend
+	tokensOutAmt := plan.BondingCurve.TokensForExactDYM(plan.SoldAmt, toSpendLessTakerFee)
 
 	// Validate expected out amount
 	if tokensOutAmt.LT(minTokensAmt) {
@@ -201,9 +201,9 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 		return err
 	}
 
-	// Calculate cost over fixed price curve
+	// Calculate the value of the tokens to sell according to the price curve
 	cost := plan.BondingCurve.Cost(plan.SoldAmt.Sub(amountTokensToSell), plan.SoldAmt)
-	costMinusTakerFee, takerFee, err := k.ApplyTakerFee2(cost, k.GetParams(ctx).TakerFee, false)
+	costMinusTakerFee, takerFee, err := k.ApplyTakerFee(cost, k.GetParams(ctx).TakerFee, false)
 	if err != nil {
 		return err
 	}
@@ -284,30 +284,7 @@ func (k Keeper) chargeTakerFee(ctx sdk.Context, takerFee sdk.Coin, sender sdk.Ac
 // ApplyTakerFee applies taker fee to the cost
 // isAdd: true if adding fee to the cost, false if subtracting fee from the cost
 // returns new cost and fee. both must be positive
-func (k Keeper) ApplyTakerFee(cost sdk.Coin, takerFee sdk.Dec, isAdd bool) (sdk.Coin, sdk.Coin, error) {
-	if !cost.Amount.IsPositive() {
-		return sdk.Coin{}, sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalidCost, "amt: %s", cost.String())
-	}
-
-	feeAmt := math.LegacyNewDecFromInt(cost.Amount).Mul(takerFee).TruncateInt()
-	fee := sdk.NewCoin(cost.Denom, feeAmt)
-
-	var newAmt math.Int
-	if isAdd {
-		newAmt = cost.Amount.Add(feeAmt)
-	} else {
-		newAmt = cost.Amount.Sub(feeAmt)
-	}
-
-	if !newAmt.IsPositive() || !fee.IsPositive() {
-		return sdk.Coin{}, sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalidCost, "taking fee resulted in negative amount: %s, fee: %s", newAmt.String(), fee.String())
-	}
-
-	return sdk.NewCoin(cost.Denom, newAmt), fee, nil
-}
-
-// FIXME: merge ApplyTakerFee and ApplyTakerFee2
-func (k Keeper) ApplyTakerFee2(amount math.Int, takerFee math.LegacyDec, isAdd bool) (totalAmt, takerFeeAmt math.Int, err error) {
+func (k Keeper) ApplyTakerFee(amount math.Int, takerFee math.LegacyDec, isAdd bool) (totalAmt, takerFeeAmt math.Int, err error) {
 	if !amount.IsPositive() {
 		return math.Int{}, math.Int{}, errorsmod.Wrapf(types.ErrInvalidCost, "amt: %s", amount.String())
 	}
