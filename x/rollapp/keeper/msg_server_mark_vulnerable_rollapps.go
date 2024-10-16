@@ -62,19 +62,31 @@ func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []string) (i
 			logger.With("rollapp_id", rollapp.RollappId).Info("no latest state info for rollapp")
 			continue
 		}
-		// TODO: this check may be deleted once empty DRS version is marked vulnerable
-		//  https://github.com/dymensionxyz/dymension/issues/1233
-		if info.DrsVersion == "" {
-			logger.With("rollapp_id", rollapp.RollappId).Info("no DRS version set for rollapp")
-		}
 
-		_, vulnerable := vulnerableVersions[info.DrsVersion]
-		if vulnerable {
-			err := k.MarkRollappAsVulnerable(ctx, rollapp.RollappId)
-			if err != nil {
-				return 0, fmt.Errorf("freeze rollapp: %w", err)
+		// We only check first and last BD to avoid DoS attack related to iterating big number of BDs (taking into account a state update can be submitted with any numblock value)
+		// It is assumed there cannot be two upgrades in the same state update (since it requires gov proposal), if this happens it will be a fraud caught by Rollapp validators.
+		// Therefore checking first and last BD for deprecated DRS version should be enough.
+		var bdsToCheck []*types.BlockDescriptor
+		bdsToCheck = append(bdsToCheck, &info.BDs.BD[0])
+		if info.NumBlocks > 1 {
+			bdsToCheck = append(bdsToCheck, &info.BDs.BD[len(info.BDs.BD)-1])
+		}
+		for _, bd := range bdsToCheck {
+			// TODO: this check may be deleted once empty DRS version is marked vulnerable
+			//  https://github.com/dymensionxyz/dymension/issues/1233
+			if bd.DrsVersion == "" {
+				logger.With("rollapp_id", rollapp.RollappId).Info("no DRS version set for rollapp")
 			}
-			vulnerableNum++
+
+			_, vulnerable := vulnerableVersions[bd.DrsVersion]
+			if vulnerable {
+				err := k.MarkRollappAsVulnerable(ctx, rollapp.RollappId)
+				if err != nil {
+					return 0, fmt.Errorf("freeze rollapp: %w", err)
+				}
+				vulnerableNum++
+				break
+			}
 		}
 	}
 
