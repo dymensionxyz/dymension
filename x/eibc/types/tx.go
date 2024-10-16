@@ -44,16 +44,98 @@ func (msg *MsgFulfillOrder) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (m *MsgFulfillOrder) ValidateBasic() error {
-	err := validateCommon(m.OrderId, m.FulfillerAddress, m.ExpectedFee)
+func (msg *MsgFulfillOrder) ValidateBasic() error {
+	err := validateCommon(msg.OrderId, msg.FulfillerAddress, msg.ExpectedFee)
 	if err != nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 	return nil
 }
 
-func (m *MsgFulfillOrder) GetFulfillerBech32Address() []byte {
-	return sdk.MustAccAddressFromBech32(m.FulfillerAddress)
+func (msg *MsgFulfillOrder) GetFulfillerBech32Address() []byte {
+	return sdk.MustAccAddressFromBech32(msg.FulfillerAddress)
+}
+
+func NewMsgFulfillOrderAuthorized(
+	orderId,
+	rollappId,
+	granterAddress,
+	fulfillerAddress,
+	operatorAddress,
+	expectedFee string,
+	price sdk.Coins,
+	fulfillerFeePart sdk.DecProto,
+	settlementValidated bool,
+) *MsgFulfillOrderAuthorized {
+	return &MsgFulfillOrderAuthorized{
+		OrderId:             orderId,
+		RollappId:           rollappId,
+		FulfillerAddress:    fulfillerAddress,
+		GranterAddress:      granterAddress,
+		OperatorAddress:     operatorAddress,
+		ExpectedFee:         expectedFee,
+		Price:               price,
+		FulfillerFeePart:    fulfillerFeePart,
+		SettlementValidated: settlementValidated,
+	}
+}
+
+func (msg *MsgFulfillOrderAuthorized) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgFulfillOrderAuthorized) Type() string {
+	return sdk.MsgTypeURL(msg)
+}
+
+func (msg *MsgFulfillOrderAuthorized) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.GranterAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (msg *MsgFulfillOrderAuthorized) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgFulfillOrderAuthorized) ValidateBasic() error {
+	if msg.RollappId == "" {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "rollapp id cannot be empty")
+	}
+
+	err := validateCommon(msg.OrderId, msg.ExpectedFee, msg.FulfillerAddress, msg.GranterAddress, msg.OperatorAddress)
+	if err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+	}
+
+	if msg.Price.IsAnyNegative() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "price cannot be negative")
+	}
+
+	if msg.FulfillerFeePart.Dec.IsNegative() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "fulfiller fee part cannot be negative")
+	}
+
+	if msg.FulfillerFeePart.Dec.GT(sdk.OneDec()) {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "fulfiller fee part cannot be greater than 1")
+	}
+
+	return nil
+}
+
+func (msg *MsgFulfillOrderAuthorized) GetFulfillerBech32Address() []byte {
+	return sdk.MustAccAddressFromBech32(msg.FulfillerAddress)
+}
+
+func (msg *MsgFulfillOrderAuthorized) GetGranterBech32Address() []byte {
+	return sdk.MustAccAddressFromBech32(msg.GranterAddress)
+}
+
+func (msg *MsgFulfillOrderAuthorized) GetOperatorBech32Address() []byte {
+	return sdk.MustAccAddressFromBech32(msg.OperatorAddress)
 }
 
 func NewMsgUpdateDemandOrder(ownerAddr, orderId, newFee string) *MsgUpdateDemandOrder {
@@ -73,7 +155,7 @@ func (m *MsgUpdateDemandOrder) GetSigners() []sdk.AccAddress {
 }
 
 func (m *MsgUpdateDemandOrder) ValidateBasic() error {
-	err := validateCommon(m.OrderId, m.OwnerAddress, m.NewFee)
+	err := validateCommon(m.OrderId, m.NewFee, m.OwnerAddress)
 	if err != nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
@@ -95,13 +177,16 @@ func isValidOrderId(orderId string) bool {
 	return len(hashBytes) == 32
 }
 
-func validateCommon(orderId, address, fee string) error {
+func validateCommon(orderId, fee string, address ...string) error {
 	if !isValidOrderId(orderId) {
 		return fmt.Errorf("%w: %s", ErrInvalidOrderID, orderId)
 	}
-	_, err := sdk.AccAddressFromBech32(address)
-	if err != nil {
-		return err
+
+	for _, addr := range address {
+		_, err := sdk.AccAddressFromBech32(addr)
+		if err != nil {
+			return err
+		}
 	}
 
 	feeInt, ok := sdk.NewIntFromString(fee)

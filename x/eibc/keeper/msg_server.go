@@ -61,7 +61,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	}
 
 	// Fulfill the order by updating the order status and underlying packet recipient
-	if err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, fulfillerAccount.GetAddress()); err != nil {
+	if err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, fulfillerAccount.GetAddress(), nil); err != nil {
 		return nil, err
 	}
 
@@ -70,6 +70,125 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	}
 
 	return &types.MsgFulfillOrderResponse{}, nil
+}
+
+func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgFulfillOrderAuthorized) (*types.MsgFulfillOrderAuthorizedResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	logger := ctx.Logger()
+
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, err
+	}
+
+	demandOrder, err := m.GetOutstandingOrder(ctx, msg.OrderId)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := m.validateOrder(demandOrder, msg, ctx); err != nil {
+		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, err.Error())
+	}
+
+	granterAccount := m.ak.GetAccount(ctx, msg.GetGranterBech32Address())
+	if granterAccount == nil {
+		return nil, types.ErrGranterAddressDoesNotExist
+	}
+
+	// Send the funds from the granterAccount to the eibc packet original recipient
+	err = m.bk.SendCoins(ctx, granterAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), demandOrder.Price)
+	if err != nil {
+		logger.Error("Failed to send price to recipient", "error", err)
+		return nil, err
+	}
+
+	fulfillerAccount := m.ak.GetAccount(ctx, msg.GetFulfillerBech32Address())
+	if fulfillerAccount == nil {
+		return nil, types.ErrFulfillerAddressDoesNotExist
+	}
+
+	feePartReceiver := fulfillerAccount
+	if msg.OperatorAddress != "" {
+		operatorAccount := m.ak.GetAccount(ctx, msg.GetOperatorBech32Address())
+		if operatorAccount == nil {
+			return nil, types.ErrOperatorAddressDoesNotExist
+		}
+		feePartReceiver = operatorAccount
+	}
+
+	fee, _ := sdk.NewDecFromStr(msg.ExpectedFee)
+	fulfillerFee := msg.FulfillerFeePart
+	feePart := fee.Mul(fulfillerFee.Dec).TruncateInt()
+
+	// Send the fee part to the fulfiller/operator
+	err = m.bk.SendCoins(ctx, granterAccount.GetAddress(), feePartReceiver.GetAddress(), sdk.NewCoins(sdk.NewCoin(demandOrder.Price[0].Denom, feePart)))
+	if err != nil {
+		logger.Error("Failed to send fee part to fulfiller", "error", err)
+		return nil, err
+	}
+
+	if err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, fulfillerAccount.GetAddress(), granterAccount.GetAddress()); err != nil {
+		return nil, err
+	}
+
+	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetFulfilledEvent()); err != nil {
+		return nil, fmt.Errorf("emit event: %w", err)
+	}
+
+	return &types.MsgFulfillOrderAuthorizedResponse{}, nil
+}
+
+func (m msgServer) validateOrder(demandOrder *types.DemandOrder, msg *types.MsgFulfillOrderAuthorized, ctx sdk.Context) error {
+	if demandOrder.RollappId != msg.RollappId {
+		return types.ErrRollappIdMismatch
+	}
+
+	if !demandOrder.Price.IsEqual(msg.Price) {
+		return types.ErrPriceMismatch
+	}
+
+	// Check that the fulfiller expected fee is equal to the demand order fee
+	expectedFee, _ := sdk.NewIntFromString(msg.ExpectedFee)
+	orderFee := demandOrder.GetFeeAmount()
+	if !orderFee.Equal(expectedFee) {
+		return types.ErrExpectedFeeNotMet
+	}
+
+	if msg.SettlementValidated {
+		validated, err := m.checkIfSettlementValidated(ctx, demandOrder)
+		if err != nil {
+			return fmt.Errorf("check if settlement validated: %w", err)
+		}
+
+		if !validated {
+			return types.ErrOrderNotSettlementValidated
+		}
+	}
+	return nil
+}
+
+func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *types.DemandOrder) (bool, error) {
+	raPacket, err := m.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
+	if err != nil {
+		return false, fmt.Errorf("get rollapp packet: %w", err)
+	}
+
+	stateInfo, ok := m.rk.GetLatestStateInfo(ctx, demandOrder.RollappId)
+	if !ok {
+		return false, types.ErrRollappStateInfoNotFound
+	}
+
+	if len(stateInfo.BDs.BD) == 0 {
+		return false, types.ErrRollappStateInfoNotFound
+	}
+
+	lastHeight := stateInfo.BDs.BD[len(stateInfo.BDs.BD)-1].Height
+
+	if lastHeight < raPacket.ProofHeight {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // UpdateDemandOrder implements types.MsgServer.

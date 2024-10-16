@@ -2,12 +2,16 @@ syntax = "proto3";
 package dymensionxyz.dymension.eibc;
 
 import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
 // Msg defines the Msg service.
 service Msg {
     rpc FulfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
+    rpc FulfillOrderAuthorized(MsgFulfillOrderAuthorized) returns (MsgFulfillOrderAuthorizedResponse) {}
     rpc UpdateDemandOrder(MsgUpdateDemandOrder) returns (MsgUpdateDemandOrderResponse) {}
 }
 
@@ -24,6 +28,39 @@ message MsgFulfillOrder {
 
 // MsgFulfillOrderResponse defines the FulfillOrder response type.
 message MsgFulfillOrderResponse {}
+
+// MsgFulfillOrderAuthorized defines the FulfillOrderAuthorized request type.
+message MsgFulfillOrderAuthorized {
+    option (cosmos.msg.v1.signer) = "granter_address";
+    // order_id is the unique identifier of the order to be fulfilled.
+    string order_id = 1;
+    // rollapp_id is the unique identifier of the rollapp that the order is associated with.
+    string rollapp_id = 2;
+    // price is the price of the demand order
+    repeated cosmos.base.v1beta1.Coin price = 3 [
+        (gogoproto.nullable)     = false,
+        (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+    ];
+    // fulfiller_address is the bech32-encoded address of the account which the message was sent from.
+    string fulfiller_address = 4;
+    // granter_address is the bech32-encoded address of the account which the authorization was granted from.
+    string granter_address = 5;
+    // operator_address is an optional bech32-encoded address of an account that would collect the fulfiller_fee_part
+    // if it's empty, the fulfiller_fee_part will go to the fulfiller_address
+    string operator_address = 6;
+    // expected_fee is the nominal fee set in the order.
+    string expected_fee = 7;
+    // fulfiller_fee_part is the part of the fee earnings that goes to the fulfiller
+    // it will be deduced from the total amount of the demand order and paid immediately to the fulfiller
+    cosmos.base.v1beta1.DecProto fulfiller_fee_part = 8 [
+        (gogoproto.nullable)     = false,
+        (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecProto"
+    ];
+    // settlement_validated signals if the block behind the demand order needs to be "settlement validated" or not
+    bool settlement_validated = 9;
+}
+
+message MsgFulfillOrderAuthorizedResponse {}
 
 message MsgUpdateDemandOrder {
     option (cosmos.msg.v1.signer) = "owner_address";
