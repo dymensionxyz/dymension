@@ -1,11 +1,14 @@
 package types
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/decred/dcrd/dcrec/edwards"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -26,7 +29,16 @@ func (msg MsgCreateSequencer) UnpackInterfaces(unpacker codectypes.AnyUnpacker) 
 }
 
 /* --------------------------- MsgCreateSequencer --------------------------- */
-func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId string, metadata *SequencerMetadata, bond sdk.Coin) (*MsgCreateSequencer, error) {
+
+func NewMsgCreateSequencer(
+	creator string,
+	pubkey cryptotypes.PubKey,
+	rollappId string,
+	metadata *SequencerMetadata,
+	bond sdk.Coin,
+	rewardAddr string,
+	whitelistedRelayers []string,
+) (*MsgCreateSequencer, error) {
 	if metadata == nil {
 		return nil, ErrInvalidRequest
 	}
@@ -39,11 +51,13 @@ func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId 
 	}
 
 	return &MsgCreateSequencer{
-		Creator:      creator,
-		DymintPubKey: pkAny,
-		RollappId:    rollappId,
-		Metadata:     *metadata,
-		Bond:         bond,
+		Creator:             creator,
+		DymintPubKey:        pkAny,
+		RollappId:           rollappId,
+		Metadata:            *metadata,
+		Bond:                bond,
+		RewardAddr:          rewardAddr,
+		WhitelistedRelayers: whitelistedRelayers,
 	}, nil
 }
 
@@ -102,6 +116,18 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 
 	if !msg.Bond.IsValid() || msg.Bond.IsZero() {
 		return errorsmod.Wrapf(ErrInvalidCoins, "invalid bond amount: %s", msg.Bond.String())
+	}
+
+	if msg.RewardAddr != "" {
+		_, err = sdk.AccAddressFromBech32(msg.RewardAddr)
+		if err != nil {
+			return errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "get reward addr from bech32")
+		}
+	}
+
+	err = ValidateWhitelistedRelayers(msg.WhitelistedRelayers)
+	if err != nil {
+		return errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "validate whitelisted relayers")
 	}
 
 	return nil
