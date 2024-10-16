@@ -36,7 +36,7 @@ func (p Plan) ValidateBasic() error {
 		return errors.Join(ErrInvalidBondingCurve, err)
 	}
 	// check that the allocation is greater than the minimal allowed token allocation
-	allocationDec := ScaleXFromBase(p.TotalAllocation.Amount, p.BondingCurve.SupplyDecimals())
+	allocationDec := ScaleFromBase(p.TotalAllocation.Amount, p.BondingCurve.SupplyDecimals())
 	if !allocationDec.GT(MinTokenAllocation) {
 		return ErrInvalidAllocation
 	}
