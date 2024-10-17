@@ -13,6 +13,7 @@ import (
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -21,13 +22,14 @@ import (
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+
+	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 
@@ -135,4 +137,5 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	incentivestypes.StoreKey,
 	txfeestypes.StoreKey,
 	lightcliendmoduletypes.StoreKey,
+	grouptypes.StoreKey,
 )
