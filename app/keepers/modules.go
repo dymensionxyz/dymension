@@ -30,6 +30,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/gov/client"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
+	groupmodule "github.com/cosmos/cosmos-sdk/x/group/module"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
@@ -156,6 +158,7 @@ var ModuleBasics = module.NewBasicManager(
 	eibc.AppModuleBasic{},
 	dymnsmodule.AppModuleBasic{},
 	lightclientmodule.AppModuleBasic{},
+	groupmodule.AppModuleBasic{},
 
 	// Ethermint modules
 	evm.AppModuleBasic{},
@@ -210,6 +213,7 @@ func (a *AppKeepers) SetupModules(
 		eibcmodule.NewAppModule(appCodec, a.EIBCKeeper, a.AccountKeeper, a.BankKeeper),
 		dymnsmodule.NewAppModule(appCodec, a.DymNSKeeper),
 		lightclientmodule.NewAppModule(appCodec, a.LightClientKeeper),
+		groupmodule.NewAppModule(appCodec, a.GroupKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
 
 		// Ethermint app modules
 		evm.NewAppModule(a.EvmKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),
@@ -254,6 +258,7 @@ var maccPerms = map[string][]string{
 	streamermoduletypes.ModuleName:                     nil,
 	evmtypes.ModuleName:                                {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account.
 	evmtypes.ModuleVirtualFrontierContractDeployerName: nil,                                  // used for deploying virtual frontier bank contract.
+	grouptypes.ModuleName:                              nil,
 	gammtypes.ModuleName:                               {authtypes.Minter, authtypes.Burner},
 	lockuptypes.ModuleName:                             {authtypes.Minter, authtypes.Burner},
 	incentivestypes.ModuleName:                         {authtypes.Minter, authtypes.Burner},
@@ -301,6 +306,7 @@ var BeginBlockers = []string{
 	consensusparamtypes.ModuleName,
 	irotypes.ModuleName,
 	lightclientmoduletypes.ModuleName,
+	grouptypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -342,6 +348,7 @@ var EndBlockers = []string{
 	irotypes.ModuleName,
 	lightclientmoduletypes.ModuleName,
 	crisistypes.ModuleName,
+	grouptypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -383,4 +390,5 @@ var InitGenesis = []string{
 	irotypes.ModuleName,
 	lightclientmoduletypes.ModuleName,
 	crisistypes.ModuleName,
+	grouptypes.ModuleName,
 }
