@@ -430,7 +430,8 @@ func (a *AppKeepers) InitKeepers(
 		a.GetSubspace(eibcmoduletypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
-		nil,
+		a.DelayedAckKeeper,
+		a.RollappKeeper,
 	)
 
 	a.DymNSKeeper = dymnskeeper.NewKeeper(
