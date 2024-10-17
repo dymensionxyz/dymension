@@ -90,7 +90,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, err.Error())
 	}
 
-	granterAccount := m.ak.GetAccount(ctx, msg.GetGranterBech32Address())
+	granterAccount := m.ak.GetAccount(ctx, msg.GetLPBech32Address())
 	if granterAccount == nil {
 		return nil, types.ErrGranterAddressDoesNotExist
 	}
@@ -102,29 +102,33 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		return nil, err
 	}
 
-	fulfillerAccount := m.ak.GetAccount(ctx, msg.GetFulfillerBech32Address())
+	// TODO: will this work for Policy address?
+	fulfillerAccount := m.ak.GetAccount(ctx, msg.GetOperatorBech32Address())
 	if fulfillerAccount == nil {
 		return nil, types.ErrFulfillerAddressDoesNotExist
 	}
 
+	// by default, the operator account receives the operator share
 	feePartReceiver := fulfillerAccount
-	if msg.OperatorAddress != "" {
-		operatorAccount := m.ak.GetAccount(ctx, msg.GetOperatorBech32Address())
-		if operatorAccount == nil {
+	// if the operator fee address is provided, the operator fee share is sent to that address
+	if msg.OperatorFeeAddress != "" {
+		operatorFeeAccount := m.ak.GetAccount(ctx, msg.GetOperatorFeeBech32Address())
+		if operatorFeeAccount == nil {
 			return nil, types.ErrOperatorAddressDoesNotExist
 		}
-		feePartReceiver = operatorAccount
+		feePartReceiver = operatorFeeAccount
 	}
 
-	fee, _ := sdk.NewDecFromStr(msg.ExpectedFee)
-	fulfillerFee := msg.FulfillerFeePart
-	feePart := fee.Mul(fulfillerFee.Dec).TruncateInt()
+	fee, _ := sdk.NewDecFromStr(demandOrder.Fee.String())
+	feePart := fee.Mul(msg.OperatorFeeShare.Dec).TruncateInt()
 
-	// Send the fee part to the fulfiller/operator
-	err = m.bk.SendCoins(ctx, granterAccount.GetAddress(), feePartReceiver.GetAddress(), sdk.NewCoins(sdk.NewCoin(demandOrder.Price[0].Denom, feePart)))
-	if err != nil {
-		logger.Error("Failed to send fee part to fulfiller", "error", err)
-		return nil, err
+	if feePart.IsPositive() {
+		// Send the fee part to the fulfiller/operator
+		err = m.bk.SendCoins(ctx, granterAccount.GetAddress(), feePartReceiver.GetAddress(), sdk.NewCoins(sdk.NewCoin(demandOrder.Price[0].Denom, feePart)))
+		if err != nil {
+			logger.Error("Failed to send fee part to fulfiller", "error", err)
+			return nil, err
+		}
 	}
 
 	if err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, fulfillerAccount.GetAddress(), granterAccount.GetAddress()); err != nil {
@@ -147,7 +151,7 @@ func (m msgServer) validateOrder(demandOrder *types.DemandOrder, msg *types.MsgF
 		return types.ErrPriceMismatch
 	}
 
-	// Check that the fulfiller expected fee is equal to the demand order fee
+	// Check that the expected fee is equal to the demand order fee
 	expectedFee, _ := sdk.NewIntFromString(msg.ExpectedFee)
 	orderFee := demandOrder.GetFeeAmount()
 	if !orderFee.Equal(expectedFee) {
@@ -173,16 +177,14 @@ func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *type
 		return false, fmt.Errorf("get rollapp packet: %w", err)
 	}
 
+	// as it is not currently possible to make IBC transfers without a canonical client,
+	// we can assume that there has to exist at least one state info record for the rollapp
 	stateInfo, ok := m.rk.GetLatestStateInfo(ctx, demandOrder.RollappId)
 	if !ok {
 		return false, types.ErrRollappStateInfoNotFound
 	}
 
-	if len(stateInfo.BDs.BD) == 0 {
-		return false, types.ErrRollappStateInfoNotFound
-	}
-
-	lastHeight := stateInfo.BDs.BD[len(stateInfo.BDs.BD)-1].Height
+	lastHeight := stateInfo.GetLatestHeight()
 
 	if lastHeight < raPacket.ProofHeight {
 		return false, nil

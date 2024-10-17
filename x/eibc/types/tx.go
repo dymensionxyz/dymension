@@ -60,8 +60,8 @@ func NewMsgFulfillOrderAuthorized(
 	orderId,
 	rollappId,
 	granterAddress,
-	fulfillerAddress,
 	operatorAddress,
+	operatorFeeAddress,
 	expectedFee string,
 	price sdk.Coins,
 	fulfillerFeePart sdk.DecProto,
@@ -70,12 +70,12 @@ func NewMsgFulfillOrderAuthorized(
 	return &MsgFulfillOrderAuthorized{
 		OrderId:             orderId,
 		RollappId:           rollappId,
-		FulfillerAddress:    fulfillerAddress,
-		GranterAddress:      granterAddress,
 		OperatorAddress:     operatorAddress,
+		LpAddress:           granterAddress,
+		OperatorFeeAddress:  operatorFeeAddress,
 		ExpectedFee:         expectedFee,
 		Price:               price,
-		FulfillerFeePart:    fulfillerFeePart,
+		OperatorFeeShare:    fulfillerFeePart,
 		SettlementValidated: settlementValidated,
 	}
 }
@@ -89,7 +89,7 @@ func (msg *MsgFulfillOrderAuthorized) Type() string {
 }
 
 func (msg *MsgFulfillOrderAuthorized) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.GranterAddress)
+	creator, err := sdk.AccAddressFromBech32(msg.LpAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -106,7 +106,7 @@ func (msg *MsgFulfillOrderAuthorized) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "rollapp id cannot be empty")
 	}
 
-	err := validateCommon(msg.OrderId, msg.ExpectedFee, msg.FulfillerAddress, msg.GranterAddress, msg.OperatorAddress)
+	err := validateCommon(msg.OrderId, msg.ExpectedFee, msg.OperatorAddress, msg.LpAddress, msg.OperatorAddress)
 	if err != nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
@@ -115,27 +115,27 @@ func (msg *MsgFulfillOrderAuthorized) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "price cannot be negative")
 	}
 
-	if msg.FulfillerFeePart.Dec.IsNegative() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "fulfiller fee part cannot be negative")
+	if msg.OperatorFeeShare.Dec.IsNegative() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "operator fee share cannot be negative")
 	}
 
-	if msg.FulfillerFeePart.Dec.GT(sdk.OneDec()) {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "fulfiller fee part cannot be greater than 1")
+	if msg.OperatorFeeShare.Dec.GT(sdk.OneDec()) {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "operator fee share cannot be greater than 1")
 	}
 
 	return nil
 }
 
-func (msg *MsgFulfillOrderAuthorized) GetFulfillerBech32Address() []byte {
-	return sdk.MustAccAddressFromBech32(msg.FulfillerAddress)
-}
-
-func (msg *MsgFulfillOrderAuthorized) GetGranterBech32Address() []byte {
-	return sdk.MustAccAddressFromBech32(msg.GranterAddress)
-}
-
 func (msg *MsgFulfillOrderAuthorized) GetOperatorBech32Address() []byte {
 	return sdk.MustAccAddressFromBech32(msg.OperatorAddress)
+}
+
+func (msg *MsgFulfillOrderAuthorized) GetLPBech32Address() []byte {
+	return sdk.MustAccAddressFromBech32(msg.LpAddress)
+}
+
+func (msg *MsgFulfillOrderAuthorized) GetOperatorFeeBech32Address() []byte {
+	return sdk.MustAccAddressFromBech32(msg.OperatorFeeAddress)
 }
 
 func NewMsgUpdateDemandOrder(ownerAddr, orderId, newFee string) *MsgUpdateDemandOrder {

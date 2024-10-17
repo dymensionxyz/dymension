@@ -24,7 +24,7 @@ func NewFulfillOrderAuthorization(
 		Denoms:              denoms,
 		MinFee:              minFee,
 		MaxPrice:            maxPrice,
-		FulfillerFeePart:    fulfillerFeePart,
+		OperatorFeeShare:    fulfillerFeePart,
 		SettlementValidated: settlementValidated,
 		SpendLimit:          spendLimit,
 	}
@@ -55,7 +55,7 @@ func (a FulfillOrderAuthorization) Accept(
 	}
 
 	// Check if the fulfiller fee part matches
-	if !a.FulfillerFeePart.Dec.Equal(mFulfill.FulfillerFeePart.Dec) {
+	if !a.OperatorFeeShare.Dec.Equal(mFulfill.OperatorFeeShare.Dec) {
 		return authz.AcceptResponse{},
 			errorsmod.Wrapf(errors.ErrUnauthorized, "fulfiller fee part mismatch")
 	}
@@ -137,9 +137,9 @@ func (a FulfillOrderAuthorization) ValidateBasic() error {
 			"min_fee cannot be negative")
 	}
 
-	// Validate FulfillerFeePart
-	if a.FulfillerFeePart.Dec.IsNegative() ||
-		a.FulfillerFeePart.Dec.GT(sdk.OneDec()) {
+	// Validate OperatorFeeShare
+	if a.OperatorFeeShare.Dec.IsNegative() ||
+		a.OperatorFeeShare.Dec.GT(sdk.OneDec()) {
 		return errorsmod.Wrapf(errors.ErrInvalidRequest,
 			"fulfiller_fee_part must be between 0 and 1")
 	}

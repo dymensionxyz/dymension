@@ -30,8 +30,8 @@ message FulfillOrderAuthorization {
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 
-  // fulfiller_fee_part is the part of the fee earnings willing to give to the fulfiller
-  cosmos.base.v1beta1.DecProto fulfiller_fee_part = 5 [
+  // operator_fee_share is the share of the fee earnings willing to give to the operator
+  cosmos.base.v1beta1.DecProto operator_fee_share = 5 [
     (gogoproto.nullable)     = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecProto"
   ];

@@ -41,18 +41,19 @@ message MsgFulfillOrderAuthorized {
         (gogoproto.nullable)     = false,
         (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
     ];
-    // fulfiller_address is the bech32-encoded address of the account which the message was sent from.
-    string fulfiller_address = 4;
-    // granter_address is the bech32-encoded address of the account which the authorization was granted from.
-    string granter_address = 5;
-    // operator_address is an optional bech32-encoded address of an account that would collect the fulfiller_fee_part
-    // if it's empty, the fulfiller_fee_part will go to the fulfiller_address
-    string operator_address = 6;
+    // operator_address is the bech32-encoded address of the account which is authorized to fulfill the demand order.
+    string operator_address = 4;
+    // lp_address is the bech32-encoded address of the account which the authorization was granted from.
+    // This account will receive the price amount at the finalization phase.
+    string lp_address = 5;
+    // operator_fee_address is an optional bech32-encoded address of an account that would collect the operator_fee_part
+    // if it's empty, the operator_fee_part will go to the operator_address
+    string operator_fee_address = 6;
     // expected_fee is the nominal fee set in the order.
     string expected_fee = 7;
-    // fulfiller_fee_part is the part of the fee earnings that goes to the fulfiller
-    // it will be deduced from the total amount of the demand order and paid immediately to the fulfiller
-    cosmos.base.v1beta1.DecProto fulfiller_fee_part = 8 [
+    // operator_fee_share is the share of the fee earnings that goes to the operator
+    // it will be deduced from the fee of the demand order and paid out immediately
+    cosmos.base.v1beta1.DecProto operator_fee_share = 8 [
         (gogoproto.nullable)     = false,
         (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecProto"
     ];
