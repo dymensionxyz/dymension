@@ -2,12 +2,16 @@ syntax = "proto3";
 package dymensionxyz.dymension.eibc;
 
 import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
 // Msg defines the Msg service.
 service Msg {
     rpc FulfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
+    rpc FulfillOrderAuthorized(MsgFulfillOrderAuthorized) returns (MsgFulfillOrderAuthorizedResponse) {}
     rpc UpdateDemandOrder(MsgUpdateDemandOrder) returns (MsgUpdateDemandOrderResponse) {}
 }
 
@@ -24,6 +28,40 @@ message MsgFulfillOrder {
 
 // MsgFulfillOrderResponse defines the FulfillOrder response type.
 message MsgFulfillOrderResponse {}
+
+// MsgFulfillOrderAuthorized defines the FulfillOrderAuthorized request type.
+message MsgFulfillOrderAuthorized {
+    option (cosmos.msg.v1.signer) = "lp_address";
+    // order_id is the unique identifier of the order to be fulfilled.
+    string order_id = 1;
+    // rollapp_id is the unique identifier of the rollapp that the order is associated with.
+    string rollapp_id = 2;
+    // price is the price of the demand order
+    repeated cosmos.base.v1beta1.Coin price = 3 [
+        (gogoproto.nullable)     = false,
+        (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+    ];
+    // operator_address is the bech32-encoded address of the account which is authorized to fulfill the demand order.
+    string operator_address = 4;
+    // lp_address is the bech32-encoded address of the account which the authorization was granted from.
+    // This account will receive the price amount at the finalization phase.
+    string lp_address = 5;
+    // operator_fee_address is an optional bech32-encoded address of an account that would collect the operator_fee_part
+    // if it's empty, the operator_fee_part will go to the operator_address
+    string operator_fee_address = 6;
+    // expected_fee is the nominal fee set in the order.
+    string expected_fee = 7;
+    // operator_fee_share is the share of the fee earnings that goes to the operator
+    // it will be deduced from the fee of the demand order and paid out immediately
+    cosmos.base.v1beta1.DecProto operator_fee_share = 8 [
+        (gogoproto.nullable)     = false,
+        (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecProto"
+    ];
+    // settlement_validated signals if the block behind the demand order needs to be "settlement validated" or not
+    bool settlement_validated = 9;
+}
+
+message MsgFulfillOrderAuthorizedResponse {}
 
 message MsgUpdateDemandOrder {
     option (cosmos.msg.v1.signer) = "owner_address";
