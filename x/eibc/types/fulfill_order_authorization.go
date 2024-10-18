@@ -13,7 +13,7 @@ import (
 func NewFulfillOrderAuthorization(
 	rollapps []string,
 	denoms []string,
-	minFee sdk.IntProto,
+	minLPFeePercentage sdk.DecProto,
 	maxPrice sdk.Coins,
 	fulfillerFeePart sdk.DecProto,
 	settlementValidated bool,
@@ -22,7 +22,7 @@ func NewFulfillOrderAuthorization(
 	return &FulfillOrderAuthorization{
 		Rollapps:            rollapps,
 		Denoms:              denoms,
-		MinFee:              minFee,
+		MinLpFeePercentage:  minLPFeePercentage,
 		MaxPrice:            maxPrice,
 		OperatorFeeShare:    fulfillerFeePart,
 		SettlementValidated: settlementValidated,
@@ -37,7 +37,7 @@ func (a FulfillOrderAuthorization) MsgTypeURL() string {
 
 // Accept implements Authorization.Accept.
 func (a FulfillOrderAuthorization) Accept(
-	ctx sdk.Context,
+	_ sdk.Context,
 	msg sdk.Msg,
 ) (authz.AcceptResponse, error) {
 	mFulfill, ok := msg.(*MsgFulfillOrderAuthorized)
@@ -77,16 +77,22 @@ func (a FulfillOrderAuthorization) Accept(
 	}
 
 	// Check if the order fee meets the minimum fee
-	orderFee, ok := sdk.NewIntFromString(mFulfill.ExpectedFee)
-	if !ok {
+	orderFeeDec, err := sdk.NewDecFromStr(mFulfill.ExpectedFee)
+	if err != nil {
 		return authz.AcceptResponse{},
-			errorsmod.Wrapf(errors.ErrInvalidCoins, "invalid fee amount")
+			errorsmod.Wrapf(errors.ErrInvalidCoins, "invalid fee amount: %s", err)
 	}
-	if orderFee.LT(a.MinFee.Int) {
+
+	operatorFee := orderFeeDec.Mul(a.OperatorFeeShare.Dec)
+	amountDec := mFulfill.Price[0].Amount.Add(orderFeeDec.RoundInt()).ToLegacyDec()
+	minLPFee := amountDec.Mul(a.MinLpFeePercentage.Dec)
+	lpFee := orderFeeDec.Sub(operatorFee)
+
+	if lpFee.LT(minLPFee) {
 		return authz.AcceptResponse{},
 			errorsmod.Wrapf(errors.ErrUnauthorized,
-				"order fee %s is less than minimum fee %s",
-				orderFee.String(), a.MinFee.String())
+				"order lp fee %s is less than minimum lp fee %s",
+				lpFee.String(), minLPFee.String())
 	}
 
 	// Check if the order price does not exceed the max price
@@ -132,16 +138,16 @@ func (a FulfillOrderAuthorization) Accept(
 // ValidateBasic implements Authorization.ValidateBasic.
 func (a FulfillOrderAuthorization) ValidateBasic() error {
 	// Validate MinFee
-	if a.MinFee.Int.IsNegative() {
+	if a.MinLpFeePercentage.Dec.IsNegative() {
 		return errorsmod.Wrapf(errors.ErrInvalidRequest,
-			"min_fee cannot be negative")
+			"min_lp_fee cannot be negative")
 	}
 
 	// Validate OperatorFeeShare
 	if a.OperatorFeeShare.Dec.IsNegative() ||
 		a.OperatorFeeShare.Dec.GT(sdk.OneDec()) {
 		return errorsmod.Wrapf(errors.ErrInvalidRequest,
-			"fulfiller_fee_part must be between 0 and 1")
+			"operator_fee_share must be between 0 and 1")
 	}
 
 	// Validate SpendLimit

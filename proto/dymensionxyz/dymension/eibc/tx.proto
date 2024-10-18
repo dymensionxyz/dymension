@@ -31,7 +31,7 @@ message MsgFulfillOrderResponse {}
 
 // MsgFulfillOrderAuthorized defines the FulfillOrderAuthorized request type.
 message MsgFulfillOrderAuthorized {
-    option (cosmos.msg.v1.signer) = "granter_address";
+    option (cosmos.msg.v1.signer) = "lp_address";
     // order_id is the unique identifier of the order to be fulfilled.
     string order_id = 1;
     // rollapp_id is the unique identifier of the rollapp that the order is associated with.

@@ -18,10 +18,10 @@ message FulfillOrderAuthorization {
   // denoms is an optional list of denoms that the grantee can fulfill demand orders for
   repeated string denoms = 2;
 
-  // min_fee is the minimum fee earning willing to get from a demand order
-  cosmos.base.v1beta1.IntProto min_fee = 3 [
+  // min_lp_fee_percentage is the minimum fee earning percentage the LP is willing to get from a demand order
+  cosmos.base.v1beta1.DecProto min_lp_fee_percentage = 3 [
     (gogoproto.nullable)     = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.IntProto"
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecProto"
   ];
 
   // max_price is the optional maximum order price acceptable to the granter
