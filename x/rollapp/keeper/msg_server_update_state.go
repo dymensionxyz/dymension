@@ -34,15 +34,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		return nil, errorsmod.Wrap(err, "before update state")
 	}
 
-	// We only check first and last BD to avoid DoS attack related to iterating big number of BDs (taking into account a state update can be submitted with any numblock value)
-	// It is assumed there cannot be two upgrades in the same state update (since it requires gov proposal), if this happens it will be a fraud caught by Rollapp validators.
-	// Therefore checking first and last BD for deprecated DRS version should be enough.
-	var bdsToCheck []*types.BlockDescriptor
-	bdsToCheck = append(bdsToCheck, &msg.BDs.BD[0])
-	if msg.NumBlocks > 1 {
-		bdsToCheck = append(bdsToCheck, &msg.BDs.BD[len(msg.BDs.BD)-1])
-	}
-	for _, bd := range bdsToCheck {
+	for _, bd := range msg.BDs.BD {
 		// verify the DRS version is not vulnerable
 		if k.IsDRSVersionVulnerable(ctx, bd.DrsVersion) {
 			// the rollapp is not marked as vulnerable yet, mark it now
