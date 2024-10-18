@@ -21,9 +21,9 @@ const (
 	FlagExpiration          = "expiration"
 	FlagRollapps            = "rollapps"
 	FlagDenoms              = "denoms"
-	FlagMinFee              = "min-fee"
+	FlagMinLPFeePercentage  = "min-lp-fee-percentage"
 	FlagMaxPrice            = "max-price"
-	FlagFulfillerFeePart    = "fulfiller-fee-part"
+	FlagOperatorFeePart     = "operator-fee-part"
 	FlagSettlementValidated = "settlement-validated"
 )
 
@@ -59,16 +59,16 @@ Examples:
 				return fmt.Errorf("failed to get denoms: %w", err)
 			}
 
-			minFeeStr, err := cmd.Flags().GetString(FlagMinFee)
+			minFeeStr, err := cmd.Flags().GetString(FlagMinLPFeePercentage)
 			if err != nil {
 				return fmt.Errorf("failed to get min fee: %w", err)
 			}
 
-			minFeeInt, ok := sdk.NewIntFromString(minFeeStr)
-			if !ok {
-				return fmt.Errorf("invalid min fee: %s", minFeeStr)
+			minFeePercDec, err := sdk.NewDecFromStr(minFeeStr)
+			if err != nil {
+				return fmt.Errorf("invalid min lp fee percentage: %w", err)
 			}
-			minFee := sdk.IntProto{Int: minFeeInt}
+			minLPFeePercent := sdk.DecProto{Dec: minFeePercDec}
 
 			maxPriceStr, err := cmd.Flags().GetString(FlagMaxPrice)
 			if err != nil {
@@ -80,7 +80,7 @@ Examples:
 				return fmt.Errorf("failed to parse max price: %w", err)
 			}
 
-			fulfillerFeePartStr, err := cmd.Flags().GetString(FlagFulfillerFeePart)
+			fulfillerFeePartStr, err := cmd.Flags().GetString(FlagOperatorFeePart)
 			if err != nil {
 				return fmt.Errorf("failed to get fulfiller fee part: %w", err)
 			}
@@ -101,16 +101,27 @@ Examples:
 				return fmt.Errorf("failed to get spend limit: %w", err)
 			}
 
-			spendLimit, err := sdk.ParseCoinsNormalized(limit)
-			if err != nil {
-				return fmt.Errorf("failed to parse spend limit: %w", err)
+			var spendLimit sdk.Coins
+			if limit != "" {
+				spendLimit, err = sdk.ParseCoinsNormalized(limit)
+				if err != nil {
+					return fmt.Errorf("failed to parse spend limit: %w", err)
+				}
+
+				if !spendLimit.IsAllPositive() {
+					return fmt.Errorf("spend-limit should be greater than zero")
+				}
 			}
 
-			if !spendLimit.IsAllPositive() {
-				return fmt.Errorf("spend-limit should be greater than zero")
-			}
-
-			authorization := types.NewFulfillOrderAuthorization(rollapps, denoms, minFee, maxPrice, fulfillerFeePart, settlementValidated, spendLimit)
+			authorization := types.NewFulfillOrderAuthorization(
+				rollapps,
+				denoms,
+				minLPFeePercent,
+				maxPrice,
+				fulfillerFeePart,
+				settlementValidated,
+				spendLimit,
+			)
 
 			expire, err := getExpireTime(cmd)
 			if err != nil {
@@ -131,9 +142,9 @@ Examples:
 	cmd.Flags().StringSlice(FlagDenoms, []string{}, "An array of denoms allowed to use")
 	cmd.Flags().String(FlagSpendLimit, "", "An array of Coins allowed to spend")
 	cmd.Flags().Bool(FlagSettlementValidated, false, "Settlement validated flag")
-	cmd.Flags().String(FlagMinFee, "", "Minimum fee")
+	cmd.Flags().String(FlagMinLPFeePercentage, "", "Minimum fee")
 	cmd.Flags().String(FlagMaxPrice, "", "Maximum price")
-	cmd.Flags().String(FlagFulfillerFeePart, "", "Fulfiller fee part")
+	cmd.Flags().String(FlagOperatorFeePart, "", "Fulfiller fee part")
 	cmd.Flags().Int64(FlagExpiration, 0, "Expire time as Unix timestamp. Set zero (0) for no expiry. Default is 0.")
 	return cmd
 }

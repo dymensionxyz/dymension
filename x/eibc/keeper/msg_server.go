@@ -120,13 +120,13 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 	}
 
 	fee, _ := sdk.NewDecFromStr(demandOrder.Fee.String())
-	feePart := fee.Mul(msg.OperatorFeeShare.Dec).TruncateInt()
+	operatorFee := fee.Mul(msg.OperatorFeeShare.Dec).TruncateInt()
 
-	if feePart.IsPositive() {
+	if operatorFee.IsPositive() {
 		// Send the fee part to the fulfiller/operator
-		err = m.bk.SendCoins(ctx, granterAccount.GetAddress(), feePartReceiver.GetAddress(), sdk.NewCoins(sdk.NewCoin(demandOrder.Price[0].Denom, feePart)))
+		err = m.bk.SendCoins(ctx, granterAccount.GetAddress(), feePartReceiver.GetAddress(), sdk.NewCoins(sdk.NewCoin(demandOrder.Price[0].Denom, operatorFee)))
 		if err != nil {
-			logger.Error("Failed to send fee part to fulfiller", "error", err)
+			logger.Error("Failed to send fee part to operator", "error", err)
 			return nil, err
 		}
 	}
