@@ -106,6 +106,7 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 	if err != nil {
 		return "", err
 	}
+
 	plan := types.NewPlan(k.GetNextPlanIdAndIncrement(ctx), rollapp.RollappId, allocation, curve, start, preLaunchTime, incentivesParams)
 	if err := plan.ValidateBasic(); err != nil {
 		return "", errors.Join(gerrc.ErrInvalidArgument, err)
@@ -128,6 +129,11 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 	if err != nil {
 		return "", err
 	}
+
+	// 1 reserved token amount
+	// FIXME: make const
+	reserve := math.NewIntWithDecimal(1, int(rollapp.GenesisInfo.NativeDenom.Exponent))
+	plan.SoldAmt = reserve
 
 	// Set the plan in the store
 	k.SetPlan(ctx, plan)

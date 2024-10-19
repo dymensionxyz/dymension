@@ -11,7 +11,6 @@ import (
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	keeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
@@ -80,6 +79,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 	apptesting.FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, k.GetParams(s.Ctx).CreationFee)))
 	planId, err := k.CreatePlan(s.Ctx, allocation, startTime, startTime.Add(time.Hour), rollapp, curve, incentives)
 	s.Require().NoError(err)
+	reservedTokens := k.MustGetPlan(s.Ctx, planId).SoldAmt
 
 	// buy some tokens
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
@@ -92,7 +92,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 
 	plan := k.MustGetPlan(s.Ctx, planId)
 	raisedDYM := k.BK.GetBalance(s.Ctx, plan.GetAddress(), appparams.BaseDenom)
-	preSettleCoins := sdk.NewCoins(raisedDYM, sdk.NewCoin(rollappDenom, allocation.Sub(plan.SoldAmt)))
+	preSettleCoins := sdk.NewCoins(raisedDYM, sdk.NewCoin(rollappDenom, allocation.Sub(plan.SoldAmt).Add(reservedTokens)))
 
 	// settle should succeed after fund
 	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, allocation)))
@@ -130,7 +130,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 
 	// expected tokens for incentives:
 	// 		raisedDYM - poolCoins
-	// 		totalAllocation - soldAmt - poolCoins
+	// 		totalAllocation - (soldAmt - reservedTokens) - poolCoins
 	expectedIncentives := preSettleCoins.Sub(poolCoins...)
 	s.Assert().Equal(expectedIncentives, gauge.Coins)
 }
@@ -199,11 +199,12 @@ func (s *KeeperTestSuite) TestSettleAllSold() {
 	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
 	planId, err := k.CreatePlan(s.Ctx, amt, startTime, endTime, rollapp, curve, incentives)
 	s.Require().NoError(err)
+	reservedTokens := k.MustGetPlan(s.Ctx, planId).SoldAmt
 
 	// Buy all possible tokens
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
 	buyer := sample.Acc()
-	buyAmt := amt.ToLegacyDec().Mul(keeper.AllocationSellLimit).TruncateInt()
+	buyAmt := amt.Sub(reservedTokens)
 	s.BuySomeTokens(planId, buyer, buyAmt)
 
 	// Settle

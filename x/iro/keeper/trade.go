@@ -14,8 +14,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
-var AllocationSellLimit = math.LegacyNewDecWithPrec(999, 3) // 99.9%
-
 // Buy implements types.MsgServer.
 func (m msgServer) Buy(ctx context.Context, req *types.MsgBuy) (*types.MsgBuyResponse, error) {
 	buyer, err := sdk.AccAddressFromBech32(req.Buyer)
@@ -68,9 +66,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 	}
 
 	// validate the IRO have enough tokens to sell
-	// protocol will apply max limit (99.9%) to enforce initial token liquidity
-	maxSellAmt := plan.TotalAllocation.Amount.ToLegacyDec().Mul(AllocationSellLimit).TruncateInt()
-	if plan.SoldAmt.Add(amountTokensToBuy).GT(maxSellAmt) {
+	if plan.SoldAmt.Add(amountTokensToBuy).GT(plan.TotalAllocation.Amount) {
 		return types.ErrInsufficientTokens
 	}
 
@@ -148,9 +144,7 @@ func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddre
 	}
 
 	// validate the IRO have enough tokens to sell
-	// protocol will apply max limit (99.9%) to enforce initial token liquidity
-	maxSellAmt := plan.TotalAllocation.Amount.ToLegacyDec().Mul(AllocationSellLimit).TruncateInt()
-	if plan.SoldAmt.Add(tokensOutAmt).GT(maxSellAmt) {
+	if plan.SoldAmt.Add(tokensOutAmt).GT(plan.TotalAllocation.Amount) {
 		return types.ErrInsufficientTokens
 	}
 
