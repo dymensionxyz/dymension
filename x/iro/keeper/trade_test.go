@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"time"
 
 	"cosmossdk.io/math"
@@ -77,9 +76,7 @@ func (s *KeeperTestSuite) TestBuy() {
 	takerFee := s.App.BankKeeper.GetAllBalances(s.Ctx, authtypes.NewModuleAddress(txfees.ModuleName))
 	expectedBalance := buyersFunds.AmountOf("adym").Sub(expectedCost).Sub(takerFee.AmountOf("adym"))
 	s.Require().Equal(expectedBalance, buyerFinalBalance.AmountOf("adym"))
-
-	expectedBaseDenom := fmt.Sprintf("%s_%s", types.IROTokenPrefix, rollappId)
-	s.Require().Equal(buyAmt, buyerFinalBalance.AmountOf(expectedBaseDenom))
+	s.Require().Equal(buyAmt, buyerFinalBalance.AmountOf(plan.GetIRODenom()))
 }
 
 func (s *KeeperTestSuite) TestTradeAfterSettled() {
@@ -191,8 +188,7 @@ func (s *KeeperTestSuite) TestSell() {
 
 	// Check balances after sell
 	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, buyer)
-	expectedBaseDenom := fmt.Sprintf("%s_%s", types.IROTokenPrefix, rollappId)
-	s.Require().Equal(buyAmt.Sub(sellAmt), balances.AmountOf(expectedBaseDenom))
+	s.Require().Equal(buyAmt.Sub(sellAmt), balances.AmountOf(k.MustGetPlan(s.Ctx, planId).GetIRODenom()))
 
 	// Attempt to sell more than owned - should fail
 	err = k.Sell(s.Ctx, planId, buyer, buyAmt, minReceive)

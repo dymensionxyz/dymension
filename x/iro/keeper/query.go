@@ -65,6 +65,28 @@ func (k Keeper) QueryCost(goCtx context.Context, req *types.QueryCostRequest) (*
 	return &types.QueryCostResponse{Cost: &cost}, nil
 }
 
+// QueryTokensForDYM implements types.QueryServer.
+func (k Keeper) QueryTokensForDYM(goCtx context.Context, req *types.QueryTokensForDYMRequest) (*types.QueryTokensForDYMResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	plan, found := k.GetPlan(ctx, req.PlanId)
+	if !found {
+		return nil, status.Error(codes.NotFound, "plan not found")
+	}
+
+	tokensAmt, err := plan.BondingCurve.TokensForExactDYM(plan.SoldAmt, req.Amt)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	tokens := sdk.NewCoin(plan.GetIRODenom(), tokensAmt)
+	return &types.QueryTokensForDYMResponse{Tokens: &tokens}, nil
+
+}
+
 // QueryPlan implements types.QueryServer.
 func (k Keeper) QueryPlan(goCtx context.Context, req *types.QueryPlanRequest) (*types.QueryPlanResponse, error) {
 	if req == nil {
