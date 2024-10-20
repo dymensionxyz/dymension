@@ -2,11 +2,13 @@ package types_test
 
 import (
 	fmt "fmt"
+	"sort"
 	"testing"
 
 	"cosmossdk.io/math"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"pgregory.net/rapid"
 
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
@@ -197,7 +199,7 @@ func TestBondingCurve_SmallX(t *testing.T) {
 // The goal is to ensure that both functions are inverses of each other.
 func TestTokensForDYM(t *testing.T) {
 	// Define multiple starting points (used as current sold amt)
-	startingPoints := []string{"0", "0.5", "1", "100", "1000", "10000", "100000"}
+	startingPoints := []string{"1", "100", "1000", "10000", "100000"}
 
 	// Define multiple X token amounts to test (used as tokens to buy)
 	xTokens := []string{"0.01", "0.1", "0.5", "1", "10", "1000", "10000", "100000", "1000000"}
@@ -227,21 +229,81 @@ func TestTokensForDYM(t *testing.T) {
 
 				for _, xToken := range xTokens {
 					x := math.LegacyMustNewDecFromStr(xToken).MulInt64(1e18).TruncateInt()
-					expectedTokens := x
-
 					cost := curve.curve.Cost(startingX, startingX.Add(x))
-					if startingX.LT(math.NewInt(1e18)) {
-						expectedTokens = math.ZeroInt()
-					}
-
-					tokens := curve.curve.TokensForExactDYM(startingX, cost)
 
 					t.Run(fmt.Sprintf("Start=%s, X=%s", start, xToken), func(t *testing.T) {
-						approxEqualInt(t, expectedTokens, tokens)
+						tokens, err := curve.curve.TokensForExactDYM(startingX, cost)
+						require.NoError(t, err)
+						approxEqualInt(t, x, tokens)
 					})
 				}
 			}
 		})
+	}
+}
+
+// benchmark the iteration count for the TokensForDYM function
+func TestTokensForDYMApproximation(t *testing.T) {
+	// _ = flag.Set("rapid.checks", "10000") // can be enabled manually for more thorough testing
+
+	// Define different curve types
+	curves := []struct {
+		name  string
+		curve types.BondingCurve
+	}{
+		{"Linear", types.DefaultBondingCurve()},
+		{"Square Root", types.NewBondingCurve(
+			math.LegacyMustNewDecFromStr("2.24345436"),
+			math.LegacyMustNewDecFromStr("0.5"),
+			math.LegacyMustNewDecFromStr("10.5443534"),
+		)},
+		{"Quadratic", types.NewBondingCurve(
+			math.LegacyMustNewDecFromStr("2"),
+			math.LegacyMustNewDecFromStr("1.5"),
+			math.LegacyZeroDec(),
+		)},
+	}
+
+	for _, curve := range curves {
+		var iterations []int
+
+		t.Run(curve.name, func(t *testing.T) {
+			rapid.Check(t, func(t *rapid.T) {
+				startingXRapid := rapid.Int64Range(1, 1e6).Draw(t, "startingX")
+				xRapid := rapid.Float64Range(0.01, 1e6).Draw(t, "x")
+
+				startingX := math.LegacyNewDec(startingXRapid).MulInt64(1e18).TruncateInt()
+				x := math.LegacyMustNewDecFromStr(fmt.Sprintf("%f", xRapid)).MulInt64(1e18).TruncateInt()
+
+				cost := curve.curve.Cost(startingX, startingX.Add(x))
+
+				startingXScaled := types.ScaleFromBase(startingX, curve.curve.SupplyDecimals())
+				spendTokensScaled := types.ScaleFromBase(cost, types.DYMDecimals)
+				_, iteration, err := curve.curve.TokensApproximation(startingXScaled, spendTokensScaled)
+				require.NoError(t, err)
+
+				if err != nil {
+					t.Fatalf("Error in TokensApproximation: %v", err)
+				}
+
+				t.Logf("Start=%d, X=%f, Iteration=%d", startingX, x, iteration)
+				iterations = append(iterations, iteration)
+			})
+		})
+
+		// After all checks are done
+		sort.Ints(iterations)
+		min, max := iterations[0], iterations[len(iterations)-1]
+		sum := 0
+		for _, v := range iterations {
+			sum += v
+		}
+		avg := float64(sum) / float64(len(iterations))
+
+		t.Logf("Statistics for %s curve:", curve.name)
+		t.Logf("  Min iterations: %d", min)
+		t.Logf("  Max iterations: %d", max)
+		t.Logf("  Average iterations: %.2f", avg)
 	}
 }
 

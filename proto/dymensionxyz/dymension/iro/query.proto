@@ -46,6 +46,10 @@ service Query {
     option (google.api.http).get = "/dymensionxyz/dymension/iro/cost/{plan_id}";
   }
 
+  rpc QueryTokensForDYM(QueryTokensForDYMRequest) returns (QueryTokensForDYMResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/iro/tokens_for_dym/{plan_id}";
+  }
+
   // QueryClaimed retrieves the claimed amount thus far for the specified plan ID.
   rpc QueryClaimed(QueryClaimedRequest) returns (QueryClaimedResponse) {
     option (google.api.http).get =
@@ -107,6 +111,20 @@ message QueryCostRequest {
 
 // QueryCostResponse is the response type for the Query/QueryCost RPC method.
 message QueryCostResponse { cosmos.base.v1beta1.Coin cost = 1; }
+
+
+// QueryTokensForDYMRequest is the request type for the Query/QueryTokensForDYM RPC method.
+message QueryTokensForDYMRequest {
+  string plan_id = 1;
+  string amt = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// QueryTokensForDYMResponse is the response type for the Query/QueryTokensForDYM RPC method.
+message QueryTokensForDYMResponse { cosmos.base.v1beta1.Coin tokens = 1; }
+
 
 // QueryClaimedRequest is the request type for the Query/QueryClaimed RPC
 // method.
