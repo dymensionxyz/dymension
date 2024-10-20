@@ -127,6 +127,11 @@ func (lbc BondingCurve) TokensForExactDYM(currX, spendAmt math.Int) math.Int {
 		return math.ZeroInt()
 	}
 
+	// If the spend amount is not positive, return 0
+	if !spendAmt.IsPositive() {
+		return math.ZeroInt()
+	}
+
 	// Define the function we're trying to solve: f(x) = Integral(startingX + x) - Integral(startingX) - spendAmt
 	f := func(x math.LegacyDec) math.LegacyDec {
 		newX := startingX.Add(x)
@@ -139,11 +144,9 @@ func (lbc BondingCurve) TokensForExactDYM(currX, spendAmt math.Int) math.Int {
 		return lbc.spotPriceInternal(newX)
 	}
 
-	// Initial guess using current spot price, assuming linear curve
-	x := startingX.Add(spendTokens).QuoInt64(2)
-	if x.LT(math.LegacyOneDec()) {
-		x = math.LegacyOneDec()
-	}
+	// Initial guess for the solution to the bonding curve equation
+	// assuming 1 DYM = 1 token for the initial guess
+	x := spendTokens
 
 	// Newton-Raphson iteration
 	epsilonDec := math.LegacyNewDecWithPrec(1, epsilonPrecision)
@@ -155,6 +158,9 @@ func (lbc BondingCurve) TokensForExactDYM(currX, spendAmt math.Int) math.Int {
 		}
 		prevX := x
 		fPrimex := fPrime(x)
+
+		// defensive check to avoid division by zero
+		// not supposed to happen, as spotPriceInternal should never return 0
 		if fPrimex.IsZero() {
 			return math.ZeroInt()
 		}

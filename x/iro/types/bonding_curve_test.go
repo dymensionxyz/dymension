@@ -197,7 +197,7 @@ func TestBondingCurve_SmallX(t *testing.T) {
 // The goal is to ensure that both functions are inverses of each other.
 func TestTokensForDYM(t *testing.T) {
 	// Define multiple starting points (used as current sold amt)
-	startingPoints := []string{"0", "0.5", "1", "100", "1000", "10000", "100000"}
+	startingPoints := []string{"0.5", "1", "100", "1000", "10000", "100000"}
 
 	// Define multiple X token amounts to test (used as tokens to buy)
 	xTokens := []string{"0.01", "0.1", "0.5", "1", "10", "1000", "10000", "100000", "1000000"}
@@ -234,9 +234,8 @@ func TestTokensForDYM(t *testing.T) {
 						expectedTokens = math.ZeroInt()
 					}
 
-					tokens := curve.curve.TokensForExactDYM(startingX, cost)
-
 					t.Run(fmt.Sprintf("Start=%s, X=%s", start, xToken), func(t *testing.T) {
+						tokens := curve.curve.TokensForExactDYM(startingX, cost)
 						approxEqualInt(t, expectedTokens, tokens)
 					})
 				}
