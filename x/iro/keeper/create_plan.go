@@ -130,10 +130,9 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 		return "", err
 	}
 
-	// 1 reserved token amount
-	// FIXME: make const
-	reserve := math.NewIntWithDecimal(1, int(rollapp.GenesisInfo.NativeDenom.Exponent))
-	plan.SoldAmt = reserve
+	// charge rollapp token creation fee. Same as DYM creation fee, will be used to open the pool.
+	tokenFee := math.NewIntWithDecimal(types.TokenCreationFee, int(rollapp.GenesisInfo.NativeDenom.Exponent))
+	plan.SoldAmt = tokenFee
 
 	// Set the plan in the store
 	k.SetPlan(ctx, plan)
