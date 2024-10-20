@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -114,19 +116,35 @@ func (lbc BondingCurve) Cost(x, x1 math.Int) math.Int {
 
 // Calculate the number of tokens that can be bought with a given amount of DYM
 // As the integral of the bonding curve function is not invertible, we use the Newton-Raphson method to approximate the solution
-// In case the solution does not converge, the function returns 0
 // - currX: the current supply, in the base denomination
 // - spendAmt: the amount of DYM to spend, in adym
 // - returns: the number of tokens that can be bought with spendAmt, in the base denomination
-func (lbc BondingCurve) TokensForExactDYM(currX, spendAmt math.Int) math.Int {
+func (lbc BondingCurve) TokensForExactDYM(currX, spendAmt math.Int) (math.Int, error) {
 	startingX := ScaleFromBase(currX, lbc.SupplyDecimals())
 	spendTokens := ScaleFromBase(spendAmt, DYMDecimals)
 
 	// If the current supply is less than 1, return 0
 	if startingX.LT(math.LegacyOneDec()) {
-		return math.ZeroInt()
+		return math.ZeroInt(), fmt.Errorf("current supply is less than 1")
 	}
 
+	// If the spend amount is not positive, return 0
+	if !spendAmt.IsPositive() {
+		return math.ZeroInt(), fmt.Errorf("spend amount is not positive")
+	}
+
+	tokens, _, err := lbc.TokensApproximation(startingX, spendTokens)
+	if err != nil {
+		return math.ZeroInt(), err
+	}
+
+	return ScaleToBase(tokens, DYMDecimals), nil
+}
+
+/* --------------------------- internal functions --------------------------- */
+// Calculate the number of tokens that can be bought with a given amount of DYM
+// inputs validated and scaled by caller
+func (lbc BondingCurve) TokensApproximation(startingX, spendTokens math.LegacyDec) (math.LegacyDec, int, error) {
 	// Define the function we're trying to solve: f(x) = Integral(startingX + x) - Integral(startingX) - spendAmt
 	f := func(x math.LegacyDec) math.LegacyDec {
 		newX := startingX.Add(x)
@@ -139,11 +157,9 @@ func (lbc BondingCurve) TokensForExactDYM(currX, spendAmt math.Int) math.Int {
 		return lbc.spotPriceInternal(newX)
 	}
 
-	// Initial guess using current spot price, assuming linear curve
-	x := startingX.Add(spendTokens).QuoInt64(2)
-	if x.LT(math.LegacyOneDec()) {
-		x = math.LegacyOneDec()
-	}
+	// Initial guess for the solution to the bonding curve equation
+	// assuming 1 DYM = 1 token for the initial guess
+	x := spendTokens
 
 	// Newton-Raphson iteration
 	epsilonDec := math.LegacyNewDecWithPrec(1, epsilonPrecision)
@@ -151,18 +167,21 @@ func (lbc BondingCurve) TokensForExactDYM(currX, spendAmt math.Int) math.Int {
 		fx := f(x)
 		// If the function converges, return the result
 		if fx.Abs().LT(epsilonDec) {
-			return ScaleToBase(x, DYMDecimals)
+			return x, i, nil
 		}
 		prevX := x
 		fPrimex := fPrime(x)
+
+		// defensive check to avoid division by zero
+		// not supposed to happen, as spotPriceInternal should never return 0
 		if fPrimex.IsZero() {
-			return math.ZeroInt()
+			return math.LegacyDec{}, i, fmt.Errorf("division by zero")
 		}
 		x = x.Sub(fx.Quo(fPrimex))
 
 		// If the change in x is less than epsilon * x, return the result
 		if x.Sub(prevX).Abs().LT(epsilonDec.Mul(x.Abs())) {
-			return ScaleToBase(x, DYMDecimals)
+			return x, i, nil
 		}
 
 		// we can't allow newX to be less than 1
@@ -170,7 +189,7 @@ func (lbc BondingCurve) TokensForExactDYM(currX, spendAmt math.Int) math.Int {
 			x = math.LegacyOneDec()
 		}
 	}
-	return math.ZeroInt()
+	return math.LegacyDec{}, maxIterations, fmt.Errorf("solution did not converge")
 }
 
 // SpotPrice returns the spot price at x
@@ -257,8 +276,8 @@ func ScaleFromBase(x math.Int, precision int64) math.LegacyDec {
 }
 
 // Scales x from the decimal scale to it's base denomination (e.g 1.5 to 1500000000000000)
-func ScaleToBase(x math.LegacyDec, precision int) math.Int {
-	scaleFactor := math.NewIntWithDecimal(1, precision)
+func ScaleToBase(x math.LegacyDec, precision int64) math.Int {
+	scaleFactor := math.NewIntWithDecimal(1, int(precision))
 	return x.MulInt(scaleFactor).TruncateInt()
 }
 

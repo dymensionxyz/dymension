@@ -78,6 +78,11 @@ func (p Plan) GetAddress() sdk.AccAddress {
 	return addr
 }
 
+// get IRO token's denom
+func (p Plan) GetIRODenom() string {
+	return fmt.Sprintf("%s_%s", IROTokenPrefix, p.RollappId)
+}
+
 func DefaultIncentivePlanParams() IncentivePlanParams {
 	return IncentivePlanParams{
 		NumEpochsPaidOver: 43200, // 1 month in minute epoch
