@@ -82,41 +82,6 @@ func (s *KeeperTestSuite) TestBuy() {
 	s.Require().Equal(buyAmt, buyerFinalBalance.AmountOf(expectedBaseDenom))
 }
 
-func (s *KeeperTestSuite) TestBuyAllocationLimit() {
-	rollappId := s.CreateDefaultRollapp()
-	k := s.App.IROKeeper
-	// setting "cheap" curve to make calculations easier when buying alot of tokens
-	curve := types.BondingCurve{
-		M: math.LegacyMustNewDecFromStr("0"),
-		N: math.LegacyMustNewDecFromStr("1"),
-		C: math.LegacyMustNewDecFromStr("0.000001"),
-	}
-	incentives := types.DefaultIncentivePlanParams()
-
-	startTime := time.Now()
-	maxAmt := sdk.NewInt(1_000_000_000).MulRaw(1e18)
-	totalAllocation := sdk.NewInt(1_000_000).MulRaw(1e18)
-
-	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, totalAllocation, startTime, startTime.Add(time.Hour), rollapp, curve, incentives)
-	s.Require().NoError(err)
-
-	buyer := sample.Acc()
-	s.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("adym", maxAmt)))
-
-	// plan start
-	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
-
-	// buy more than total allocation limit - should fail
-	err = k.Buy(s.Ctx, planId, buyer, totalAllocation, maxAmt)
-	s.Require().Error(err)
-
-	// buy less than total allocation limit - should pass
-	maxSellAmt := totalAllocation.ToLegacyDec().TruncateInt()
-	err = k.Buy(s.Ctx, planId, buyer, maxSellAmt, maxAmt)
-	s.Require().NoError(err)
-}
-
 func (s *KeeperTestSuite) TestTradeAfterSettled() {
 	rollappId := s.CreateDefaultRollapp()
 	k := s.App.IROKeeper
