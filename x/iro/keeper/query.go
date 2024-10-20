@@ -84,7 +84,6 @@ func (k Keeper) QueryTokensForDYM(goCtx context.Context, req *types.QueryTokensF
 
 	tokens := sdk.NewCoin(plan.GetIRODenom(), tokensAmt)
 	return &types.QueryTokensForDYMResponse{Tokens: &tokens}, nil
-
 }
 
 // QueryPlan implements types.QueryServer.
