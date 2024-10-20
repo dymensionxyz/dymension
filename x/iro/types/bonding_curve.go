@@ -133,8 +133,7 @@ func (lbc BondingCurve) TokensForExactDYM(currX, spendAmt math.Int) (math.Int, e
 		return math.ZeroInt(), fmt.Errorf("spend amount is not positive")
 	}
 
-	// lbc.tokensApproximation(startingX, spendTokens)
-	tokens, _, err := lbc.tokensApproximation(startingX, spendTokens)
+	tokens, _, err := lbc.TokensApproximation(startingX, spendTokens)
 	if err != nil {
 		return math.ZeroInt(), err
 	}
@@ -145,7 +144,7 @@ func (lbc BondingCurve) TokensForExactDYM(currX, spendAmt math.Int) (math.Int, e
 /* --------------------------- internal functions --------------------------- */
 // Calculate the number of tokens that can be bought with a given amount of DYM
 // inputs validated and scaled by caller
-func (lbc BondingCurve) tokensApproximation(startingX, spendTokens math.LegacyDec) (math.LegacyDec, int, error) {
+func (lbc BondingCurve) TokensApproximation(startingX, spendTokens math.LegacyDec) (math.LegacyDec, int, error) {
 	// Define the function we're trying to solve: f(x) = Integral(startingX + x) - Integral(startingX) - spendAmt
 	f := func(x math.LegacyDec) math.LegacyDec {
 		newX := startingX.Add(x)

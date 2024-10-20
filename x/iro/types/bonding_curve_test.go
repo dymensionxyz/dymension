@@ -2,6 +2,7 @@ package types_test
 
 import (
 	fmt "fmt"
+	"sort"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -227,17 +228,81 @@ func TestTokensForDYM(t *testing.T) {
 
 				for _, xToken := range xTokens {
 					x := math.LegacyMustNewDecFromStr(xToken).MulInt64(1e18).TruncateInt()
-					expectedTokens := x
-
 					cost := curve.curve.Cost(startingX, startingX.Add(x))
 
 					t.Run(fmt.Sprintf("Start=%s, X=%s", start, xToken), func(t *testing.T) {
 						tokens, err := curve.curve.TokensForExactDYM(startingX, cost)
 						require.NoError(t, err)
-						approxEqualInt(t, expectedTokens, tokens)
+						approxEqualInt(t, x, tokens)
 					})
 				}
 			}
+		})
+	}
+}
+
+// benchmark the iteration count for the TokensForDYM function
+func TestTokensForDYMApproximation(t *testing.T) {
+	// Define multiple starting points (used as current sold amt)
+	startingPoints := []string{"1", "100", "1000", "10000", "100000"}
+
+	// Define multiple X token amounts to test (used as tokens to buy)
+	xTokens := []string{"0.01", "0.1", "0.5", "1", "10", "1000", "10000", "100000", "1000000"}
+
+	// Define different curve types
+	curves := []struct {
+		name  string
+		curve types.BondingCurve
+	}{
+		{"Linear", types.DefaultBondingCurve()},
+		{"Square Root", types.NewBondingCurve(
+			math.LegacyMustNewDecFromStr("2.24345436"),
+			math.LegacyMustNewDecFromStr("0.5"),
+			math.LegacyMustNewDecFromStr("10.5443534"),
+		)},
+		{"Quadratic", types.NewBondingCurve(
+			math.LegacyMustNewDecFromStr("2"),
+			math.LegacyMustNewDecFromStr("1.5"),
+			math.LegacyZeroDec(),
+		)},
+	}
+
+	for _, curve := range curves {
+		var iterations []int
+
+		t.Run(curve.name, func(t *testing.T) {
+			for _, start := range startingPoints {
+				startingX := math.LegacyMustNewDecFromStr(start).MulInt64(1e18).TruncateInt()
+
+				for _, xToken := range xTokens {
+					x := math.LegacyMustNewDecFromStr(xToken).MulInt64(1e18).TruncateInt()
+					cost := curve.curve.Cost(startingX, startingX.Add(x))
+
+					startingXScaled := types.ScaleFromBase(startingX, curve.curve.SupplyDecimals())
+					spendTokensScaled := types.ScaleFromBase(cost, types.DYMDecimals)
+					_, iteration, err := curve.curve.TokensApproximation(startingXScaled, spendTokensScaled)
+					require.NoError(t, err)
+
+					// t.Logf("Start=%s, X=%s, Iteration=%d", start, xToken, iteration)
+					iterations = append(iterations, iteration)
+				}
+			}
+
+			// Sort the iterations slice
+			sort.Ints(iterations)
+
+			// Calculate statistics
+			min, max := iterations[0], iterations[len(iterations)-1]
+			sum := 0
+			for _, v := range iterations {
+				sum += v
+			}
+			avg := float64(sum) / float64(len(iterations))
+
+			t.Logf("Statistics for %s curve:", curve.name)
+			t.Logf("  Min iterations: %d", min)
+			t.Logf("  Max iterations: %d", max)
+			t.Logf("  Average iterations: %.2f", avg)
 		})
 	}
 }
