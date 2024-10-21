@@ -510,6 +510,8 @@ github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20240820121212-c0e21fa21e43 h1:ugb
 github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20240820121212-c0e21fa21e43/go.mod h1:2rsnXAdjYfXtyEw0mNwAdOiAccALYjAPvINGUf9Qg7Y=
 github.com/dymensionxyz/sdk-utils v0.2.9 h1:uokHmBjaygJKXQMI0EBhvjsIIYRCIa4Ndpq8tmMwoH8=
 github.com/dymensionxyz/sdk-utils v0.2.9/go.mod h1:it9owYOpnIe17+ftTATQNDN4z+mBQx20/2Jm8SK15Rk=
+github.com/dymensionxyz/sdk-utils v0.2.10 h1:dvUVzIpsdWGr5Ex+ltl/x1Abi+7sliwsGM1xAx/0p0k=
+github.com/dymensionxyz/sdk-utils v0.2.10/go.mod h1:it9owYOpnIe17+ftTATQNDN4z+mBQx20/2Jm8SK15Rk=
 github.com/eapache/go-resiliency v1.1.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5mFgVsvEsIPBvNs=
 github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1:+020luEh2TKB4/GOp8oxxtq0Daoen/Cii55CzbTV6DU=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
