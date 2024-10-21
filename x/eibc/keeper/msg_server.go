@@ -61,7 +61,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	}
 
 	// Fulfill the order by updating the order status and underlying packet recipient
-	if err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, fulfillerAccount.GetAddress()); err != nil {
+	if err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, fulfillerAccount.GetAddress(), nil); err != nil {
 		return nil, err
 	}
 
@@ -70,6 +70,115 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	}
 
 	return &types.MsgFulfillOrderResponse{}, nil
+}
+
+func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgFulfillOrderAuthorized) (*types.MsgFulfillOrderAuthorizedResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	logger := ctx.Logger()
+
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, err
+	}
+
+	demandOrder, err := m.GetOutstandingOrder(ctx, msg.OrderId)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := m.validateOrder(demandOrder, msg, ctx); err != nil {
+		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, err.Error())
+	}
+
+	lpAccount := m.ak.GetAccount(ctx, msg.GetLPBech32Address())
+	if lpAccount == nil {
+		return nil, types.ErrLPAccountDoesNotExist
+	}
+
+	// Send the funds from the lpAccount to the eibc packet original recipient
+	err = m.bk.SendCoins(ctx, lpAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), demandOrder.Price)
+	if err != nil {
+		logger.Error("Failed to send price to recipient", "error", err)
+		return nil, err
+	}
+
+	operatorAccount := m.ak.GetAccount(ctx, msg.GetOperatorFeeBech32Address())
+	if operatorAccount == nil {
+		return nil, types.ErrOperatorFeeAccountDoesNotExist
+	}
+
+	fee := sdk.NewDecFromInt(demandOrder.GetFeeAmount())
+	operatorFee := fee.Mul(msg.OperatorFeeShare.Dec).TruncateInt()
+
+	if operatorFee.IsPositive() {
+		// Send the fee part to the fulfiller/operator
+		err = m.bk.SendCoins(ctx, lpAccount.GetAddress(), operatorAccount.GetAddress(), sdk.NewCoins(sdk.NewCoin(demandOrder.Price[0].Denom, operatorFee)))
+		if err != nil {
+			logger.Error("Failed to send fee part to operator", "error", err)
+			return nil, err
+		}
+	}
+
+	if err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, operatorAccount.GetAddress(), lpAccount.GetAddress()); err != nil {
+		return nil, err
+	}
+
+	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetFulfilledEvent()); err != nil {
+		return nil, fmt.Errorf("emit event: %w", err)
+	}
+
+	return &types.MsgFulfillOrderAuthorizedResponse{}, nil
+}
+
+func (m msgServer) validateOrder(demandOrder *types.DemandOrder, msg *types.MsgFulfillOrderAuthorized, ctx sdk.Context) error {
+	if demandOrder.RollappId != msg.RollappId {
+		return types.ErrRollappIdMismatch
+	}
+
+	if !demandOrder.Price.IsEqual(msg.Price) {
+		return types.ErrPriceMismatch
+	}
+
+	// Check that the expected fee is equal to the demand order fee
+	expectedFee, _ := sdk.NewIntFromString(msg.ExpectedFee)
+	orderFee := demandOrder.GetFeeAmount()
+	if !orderFee.Equal(expectedFee) {
+		return types.ErrExpectedFeeNotMet
+	}
+
+	if msg.SettlementValidated {
+		validated, err := m.checkIfSettlementValidated(ctx, demandOrder)
+		if err != nil {
+			return fmt.Errorf("check if settlement validated: %w", err)
+		}
+
+		if !validated {
+			return types.ErrOrderNotSettlementValidated
+		}
+	}
+	return nil
+}
+
+func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *types.DemandOrder) (bool, error) {
+	raPacket, err := m.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
+	if err != nil {
+		return false, fmt.Errorf("get rollapp packet: %w", err)
+	}
+
+	// as it is not currently possible to make IBC transfers without a canonical client,
+	// we can assume that there has to exist at least one state info record for the rollapp
+	stateInfo, ok := m.rk.GetLatestStateInfo(ctx, demandOrder.RollappId)
+	if !ok {
+		return false, types.ErrRollappStateInfoNotFound
+	}
+
+	lastHeight := stateInfo.GetLatestHeight()
+
+	if lastHeight < raPacket.ProofHeight {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // UpdateDemandOrder implements types.MsgServer.
