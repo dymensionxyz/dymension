@@ -45,7 +45,7 @@ func (msg *MsgFulfillOrder) GetSignBytes() []byte {
 }
 
 func (msg *MsgFulfillOrder) ValidateBasic() error {
-	err := validateCommon(msg.OrderId, msg.FulfillerAddress, msg.ExpectedFee)
+	err := validateCommon(msg.OrderId, msg.ExpectedFee, msg.FulfillerAddress)
 	if err != nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}

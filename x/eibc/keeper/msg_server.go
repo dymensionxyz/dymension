@@ -119,7 +119,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		feePartReceiver = operatorFeeAccount
 	}
 
-	fee, _ := sdk.NewDecFromStr(demandOrder.Fee.String())
+	fee := sdk.NewDecFromInt(demandOrder.GetFeeAmount())
 	operatorFee := fee.Mul(msg.OperatorFeeShare.Dec).TruncateInt()
 
 	if operatorFee.IsPositive() {
