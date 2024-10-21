@@ -90,26 +90,26 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, err.Error())
 	}
 
-	granterAccount := m.ak.GetAccount(ctx, msg.GetLPBech32Address())
-	if granterAccount == nil {
+	lpAccount := m.ak.GetAccount(ctx, msg.GetLPBech32Address())
+	if lpAccount == nil {
 		return nil, types.ErrGranterAddressDoesNotExist
 	}
 
-	// Send the funds from the granterAccount to the eibc packet original recipient
-	err = m.bk.SendCoins(ctx, granterAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), demandOrder.Price)
+	// Send the funds from the lpAccount to the eibc packet original recipient
+	err = m.bk.SendCoins(ctx, lpAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), demandOrder.Price)
 	if err != nil {
 		logger.Error("Failed to send price to recipient", "error", err)
 		return nil, err
 	}
 
 	// TODO: will this work for Policy address?
-	fulfillerAccount := m.ak.GetAccount(ctx, msg.GetOperatorBech32Address())
-	if fulfillerAccount == nil {
+	operatorAccount := m.ak.GetAccount(ctx, msg.GetOperatorBech32Address())
+	if operatorAccount == nil {
 		return nil, types.ErrFulfillerAddressDoesNotExist
 	}
 
 	// by default, the operator account receives the operator share
-	feePartReceiver := fulfillerAccount
+	feePartReceiver := operatorAccount
 	// if the operator fee address is provided, the operator fee share is sent to that address
 	if msg.OperatorFeeAddress != "" {
 		operatorFeeAccount := m.ak.GetAccount(ctx, msg.GetOperatorFeeBech32Address())
@@ -124,14 +124,14 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 
 	if operatorFee.IsPositive() {
 		// Send the fee part to the fulfiller/operator
-		err = m.bk.SendCoins(ctx, granterAccount.GetAddress(), feePartReceiver.GetAddress(), sdk.NewCoins(sdk.NewCoin(demandOrder.Price[0].Denom, operatorFee)))
+		err = m.bk.SendCoins(ctx, lpAccount.GetAddress(), feePartReceiver.GetAddress(), sdk.NewCoins(sdk.NewCoin(demandOrder.Price[0].Denom, operatorFee)))
 		if err != nil {
 			logger.Error("Failed to send fee part to operator", "error", err)
 			return nil, err
 		}
 	}
 
-	if err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, fulfillerAccount.GetAddress(), granterAccount.GetAddress()); err != nil {
+	if err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, operatorAccount.GetAddress(), lpAccount.GetAddress()); err != nil {
 		return nil, err
 	}
 
