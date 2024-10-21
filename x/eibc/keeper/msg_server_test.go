@@ -4,10 +4,13 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	dacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -140,6 +143,220 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 				afterFulfillmentDemandAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, sdk.DefaultBondDenom)
 				suite.Require().Equal(eibcSupplyAddrBalance.Add(sdk.NewCoin(sdk.DefaultBondDenom, math.NewIntFromUint64(tc.demandOrderPrice))), afterFulfillmentSupplyAddrBalance)
 				suite.Require().Equal(eibcDemandAddrBalance.Sub(sdk.NewCoin(sdk.DefaultBondDenom, math.NewIntFromUint64(tc.demandOrderPrice))), afterFulfillmentDemandAddrBalance)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
+	tests := []struct {
+		name                              string
+		orderPrice                        sdk.Coin
+		orderFee                          sdk.Int
+		orderRecipient                    string
+		msg                               *types.MsgFulfillOrderAuthorized
+		lpAccountBalance                  sdk.Coins
+		operatorFeeAccountBalance         sdk.Coins
+		expectError                       error
+		expectOrderFulfilled              bool
+		expectedLPAccountBalance          sdk.Coins
+		expectedOperatorFeeAccountBalance sdk.Coins
+	}{
+		{
+			name:           "Successful fulfillment",
+			orderPrice:     sdk.NewInt64Coin("adym", 90),
+			orderFee:       sdk.NewInt(10),
+			orderRecipient: sample.AccAddress(),
+			msg: &types.MsgFulfillOrderAuthorized{
+				RollappId:           rollappPacket.RollappId,
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 90)),
+				ExpectedFee:         "10",
+				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeAddress:  sample.AccAddress(),
+				LpAddress:           sample.AccAddress(),
+				SettlementValidated: false,
+			},
+			lpAccountBalance:                  sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
+			operatorFeeAccountBalance:         sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
+			expectError:                       nil,
+			expectOrderFulfilled:              true,
+			expectedLPAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 108)), // 200 - 90 (price) - 2 (operator fee)
+			expectedOperatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 52)),  // 50 + 2 (operator fee)
+		},
+		{
+			name:           "Failure due to mismatched rollapp ID",
+			orderPrice:     sdk.NewInt64Coin("adym", 100),
+			orderFee:       sdk.NewInt(10),
+			orderRecipient: sample.AccAddress(),
+			msg: &types.MsgFulfillOrderAuthorized{
+				RollappId:           "rollapp2", // Mismatched Rollapp ID
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
+				ExpectedFee:         "10",
+				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeAddress:  sample.AccAddress(),
+				LpAddress:           sample.AccAddress(),
+				SettlementValidated: false,
+			},
+			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
+			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
+			expectError:               types.ErrRollappIdMismatch,
+			expectOrderFulfilled:      false,
+			expectedLPAccountBalance:  sdk.NewCoins(sdk.NewInt64Coin("adym", 200)), // Unchanged
+		},
+		{
+			name:           "Failure due to mismatched price",
+			orderPrice:     sdk.NewInt64Coin("adym", 100),
+			orderFee:       sdk.NewInt(10),
+			orderRecipient: sample.AccAddress(),
+			msg: &types.MsgFulfillOrderAuthorized{
+				RollappId:           rollappPacket.RollappId,
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 110)), // Mismatched Price
+				ExpectedFee:         "10",
+				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeAddress:  sample.AccAddress(),
+				LpAddress:           sample.AccAddress(),
+				SettlementValidated: false,
+			},
+			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
+			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
+			expectError:               types.ErrPriceMismatch,
+			expectOrderFulfilled:      false,
+			expectedLPAccountBalance:  sdk.NewCoins(sdk.NewInt64Coin("adym", 200)), // Unchanged
+		},
+		{
+			name:           "Failure due to mismatched expected fee",
+			orderPrice:     sdk.NewInt64Coin("adym", 100),
+			orderFee:       sdk.NewInt(10),
+			orderRecipient: sample.AccAddress(),
+			msg: &types.MsgFulfillOrderAuthorized{
+				RollappId:           rollappPacket.RollappId,
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
+				ExpectedFee:         "15",                                        // Mismatched Expected Fee
+				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeAddress:  sample.AccAddress(),
+				LpAddress:           sample.AccAddress(),
+				SettlementValidated: false,
+			},
+			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
+			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
+			expectError:               types.ErrExpectedFeeNotMet,
+			expectOrderFulfilled:      false,
+			expectedLPAccountBalance:  sdk.NewCoins(sdk.NewInt64Coin("adym", 200)), // Unchanged
+		},
+		{
+			name:           "Failure due to LP account not existing",
+			orderPrice:     sdk.NewInt64Coin("adym", 100),
+			orderFee:       sdk.NewInt(10),
+			orderRecipient: sample.AccAddress(),
+			msg: &types.MsgFulfillOrderAuthorized{
+				RollappId:           rollappPacket.RollappId,
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
+				ExpectedFee:         "10",
+				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeAddress:  sample.AccAddress(),
+				LpAddress:           sample.AccAddress(), // Non-existent LP account
+				SettlementValidated: false,
+			},
+			lpAccountBalance:          nil, // Account does not exist
+			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
+			expectError:               types.ErrLPAccountDoesNotExist,
+			expectOrderFulfilled:      false,
+		},
+		{
+			name:           "Failure due to operator fee account not existing",
+			orderPrice:     sdk.NewInt64Coin("adym", 100),
+			orderFee:       sdk.NewInt(10),
+			orderRecipient: sample.AccAddress(),
+			msg: &types.MsgFulfillOrderAuthorized{
+				RollappId:           rollappPacket.RollappId,
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
+				ExpectedFee:         "10",
+				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeAddress:  sample.AccAddress(),                         // Non-existent operator account
+				LpAddress:           sample.AccAddress(),
+				SettlementValidated: false,
+			},
+			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
+			operatorFeeAccountBalance: nil, // Account does not exist
+			expectError:               types.ErrOperatorFeeAccountDoesNotExist,
+			expectOrderFulfilled:      false,
+			expectedLPAccountBalance:  sdk.NewCoins(sdk.NewInt64Coin("adym", 200)), // Unchanged
+		},
+		{
+			name:           "Failure due to insufficient funds in LP account",
+			orderPrice:     sdk.NewInt64Coin("adym", 100),
+			orderFee:       sdk.NewInt(10),
+			orderRecipient: sample.AccAddress(),
+			msg: &types.MsgFulfillOrderAuthorized{
+				RollappId:           rollappPacket.RollappId,
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
+				ExpectedFee:         "10",
+				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeAddress:  sample.AccAddress(),
+				LpAddress:           sample.AccAddress(),
+				SettlementValidated: false,
+			},
+			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 90)), // Insufficient funds
+			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
+			expectError:               sdkerrors.ErrInsufficientFunds,
+			expectOrderFulfilled:      false,
+			expectedLPAccountBalance:  sdk.NewCoins(sdk.NewInt64Coin("adym", 90)), // Unchanged
+		},
+	}
+
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			// Set up initial state
+			suite.SetupTest() // Reset the context and keepers before each test
+
+			// Create accounts
+			var lpAccount, operatorFeeAccount sdk.AccAddress
+
+			// LP Account
+			if tc.lpAccountBalance != nil {
+				lpAccount = sdk.MustAccAddressFromBech32(tc.msg.LpAddress)
+				err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, lpAccount, tc.lpAccountBalance)
+				require.NoError(suite.T(), err, "Failed to fund LP account")
+			}
+
+			// Operator Account
+			if tc.operatorFeeAccountBalance != nil {
+				operatorFeeAccount = sdk.MustAccAddressFromBech32(tc.msg.OperatorFeeAddress)
+				err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, operatorFeeAccount, tc.operatorFeeAccountBalance)
+				require.NoError(suite.T(), err, "Failed to fund operator account")
+			}
+
+			suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
+			demandOrder := types.NewDemandOrder(*rollappPacket, tc.orderPrice.Amount, tc.orderFee, tc.orderPrice.Denom, tc.orderRecipient)
+			err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
+			suite.Require().NoError(err)
+
+			tc.msg.OrderId = demandOrder.Id
+
+			// Execute the handler
+			_, err = suite.msgServer.FulfillOrderAuthorized(sdk.WrapSDKContext(suite.Ctx), tc.msg)
+
+			// Check for expected errors
+			if tc.expectError != nil {
+				suite.Require().Error(err, tc.name)
+				suite.Require().ErrorContains(err, tc.expectError.Error(), tc.name)
+			} else {
+				suite.Require().NoError(err, tc.name)
+			}
+
+			// Check if the demand order is fulfilled
+			gotOrder, _ := suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, commontypes.Status_PENDING, demandOrder.Id)
+			suite.Require().Equal(tc.expectOrderFulfilled, gotOrder.IsFulfilled(), tc.name)
+
+			// Check account balances if no error expected
+			if tc.expectError == nil {
+				// LP Account Balance
+				lpBalance := suite.App.BankKeeper.GetAllBalances(suite.Ctx, lpAccount)
+				suite.Require().Equal(tc.expectedLPAccountBalance, lpBalance, "LP account balance mismatch")
+
+				// Operator Fee Account Balance (if applicable)
+				operatorFeeBalance := suite.App.BankKeeper.GetAllBalances(suite.Ctx, operatorFeeAccount)
+				suite.Require().Equal(tc.expectedOperatorFeeAccountBalance, operatorFeeBalance, "Operator fee account balance mismatch")
 			}
 		})
 	}

@@ -6,7 +6,11 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	_ "github.com/cosmos/cosmos-proto"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
+	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
 	grpc "google.golang.org/grpc"
@@ -129,6 +133,163 @@ func (m *MsgFulfillOrderResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgFulfillOrderResponse proto.InternalMessageInfo
 
+// MsgFulfillOrderAuthorized defines the FulfillOrderAuthorized request type.
+type MsgFulfillOrderAuthorized struct {
+	// order_id is the unique identifier of the order to be fulfilled.
+	OrderId string `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	// rollapp_id is the unique identifier of the rollapp that the order is associated with.
+	RollappId string `protobuf:"bytes,2,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
+	// price is the price of the demand order
+	Price github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=price,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"price"`
+	// operator_address is the bech32-encoded address of the account which is authorized to fulfill the demand order.
+	OperatorAddress string `protobuf:"bytes,4,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+	// lp_address is the bech32-encoded address of the account which the authorization was granted from.
+	// This account will receive the price amount at the finalization phase.
+	LpAddress string `protobuf:"bytes,5,opt,name=lp_address,json=lpAddress,proto3" json:"lp_address,omitempty"`
+	// operator_fee_address is an optional bech32-encoded address of an account that would collect the operator_fee_part
+	// if it's empty, the operator_fee_part will go to the operator_address
+	OperatorFeeAddress string `protobuf:"bytes,6,opt,name=operator_fee_address,json=operatorFeeAddress,proto3" json:"operator_fee_address,omitempty"`
+	// expected_fee is the nominal fee set in the order.
+	ExpectedFee string `protobuf:"bytes,7,opt,name=expected_fee,json=expectedFee,proto3" json:"expected_fee,omitempty"`
+	// operator_fee_share is the share of the fee earnings that goes to the operator
+	// it will be deduced from the fee of the demand order and paid out immediately
+	OperatorFeeShare types.DecProto `protobuf:"bytes,8,opt,name=operator_fee_share,json=operatorFeeShare,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.DecProto" json:"operator_fee_share"`
+	// settlement_validated signals if the block behind the demand order needs to be "settlement validated" or not
+	SettlementValidated bool `protobuf:"varint,9,opt,name=settlement_validated,json=settlementValidated,proto3" json:"settlement_validated,omitempty"`
+}
+
+func (m *MsgFulfillOrderAuthorized) Reset()         { *m = MsgFulfillOrderAuthorized{} }
+func (m *MsgFulfillOrderAuthorized) String() string { return proto.CompactTextString(m) }
+func (*MsgFulfillOrderAuthorized) ProtoMessage()    {}
+func (*MsgFulfillOrderAuthorized) Descriptor() ([]byte, []int) {
+	return fileDescriptor_47537f11f512b254, []int{2}
+}
+func (m *MsgFulfillOrderAuthorized) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgFulfillOrderAuthorized) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgFulfillOrderAuthorized.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgFulfillOrderAuthorized) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgFulfillOrderAuthorized.Merge(m, src)
+}
+func (m *MsgFulfillOrderAuthorized) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgFulfillOrderAuthorized) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgFulfillOrderAuthorized.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgFulfillOrderAuthorized proto.InternalMessageInfo
+
+func (m *MsgFulfillOrderAuthorized) GetOrderId() string {
+	if m != nil {
+		return m.OrderId
+	}
+	return ""
+}
+
+func (m *MsgFulfillOrderAuthorized) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+func (m *MsgFulfillOrderAuthorized) GetPrice() github_com_cosmos_cosmos_sdk_types.Coins {
+	if m != nil {
+		return m.Price
+	}
+	return nil
+}
+
+func (m *MsgFulfillOrderAuthorized) GetOperatorAddress() string {
+	if m != nil {
+		return m.OperatorAddress
+	}
+	return ""
+}
+
+func (m *MsgFulfillOrderAuthorized) GetLpAddress() string {
+	if m != nil {
+		return m.LpAddress
+	}
+	return ""
+}
+
+func (m *MsgFulfillOrderAuthorized) GetOperatorFeeAddress() string {
+	if m != nil {
+		return m.OperatorFeeAddress
+	}
+	return ""
+}
+
+func (m *MsgFulfillOrderAuthorized) GetExpectedFee() string {
+	if m != nil {
+		return m.ExpectedFee
+	}
+	return ""
+}
+
+func (m *MsgFulfillOrderAuthorized) GetOperatorFeeShare() types.DecProto {
+	if m != nil {
+		return m.OperatorFeeShare
+	}
+	return types.DecProto{}
+}
+
+func (m *MsgFulfillOrderAuthorized) GetSettlementValidated() bool {
+	if m != nil {
+		return m.SettlementValidated
+	}
+	return false
+}
+
+type MsgFulfillOrderAuthorizedResponse struct {
+}
+
+func (m *MsgFulfillOrderAuthorizedResponse) Reset()         { *m = MsgFulfillOrderAuthorizedResponse{} }
+func (m *MsgFulfillOrderAuthorizedResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgFulfillOrderAuthorizedResponse) ProtoMessage()    {}
+func (*MsgFulfillOrderAuthorizedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_47537f11f512b254, []int{3}
+}
+func (m *MsgFulfillOrderAuthorizedResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgFulfillOrderAuthorizedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgFulfillOrderAuthorizedResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgFulfillOrderAuthorizedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgFulfillOrderAuthorizedResponse.Merge(m, src)
+}
+func (m *MsgFulfillOrderAuthorizedResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgFulfillOrderAuthorizedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgFulfillOrderAuthorizedResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgFulfillOrderAuthorizedResponse proto.InternalMessageInfo
+
 type MsgUpdateDemandOrder struct {
 	// owner_address is the bech32-encoded address of the account owns the order.
 	// This is expected to be the address of the order recipient.
@@ -143,7 +304,7 @@ func (m *MsgUpdateDemandOrder) Reset()         { *m = MsgUpdateDemandOrder{} }
 func (m *MsgUpdateDemandOrder) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateDemandOrder) ProtoMessage()    {}
 func (*MsgUpdateDemandOrder) Descriptor() ([]byte, []int) {
-	return fileDescriptor_47537f11f512b254, []int{2}
+	return fileDescriptor_47537f11f512b254, []int{4}
 }
 func (m *MsgUpdateDemandOrder) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -200,7 +361,7 @@ func (m *MsgUpdateDemandOrderResponse) Reset()         { *m = MsgUpdateDemandOrd
 func (m *MsgUpdateDemandOrderResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateDemandOrderResponse) ProtoMessage()    {}
 func (*MsgUpdateDemandOrderResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_47537f11f512b254, []int{3}
+	return fileDescriptor_47537f11f512b254, []int{5}
 }
 func (m *MsgUpdateDemandOrderResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -232,6 +393,8 @@ var xxx_messageInfo_MsgUpdateDemandOrderResponse proto.InternalMessageInfo
 func init() {
 	proto.RegisterType((*MsgFulfillOrder)(nil), "dymensionxyz.dymension.eibc.MsgFulfillOrder")
 	proto.RegisterType((*MsgFulfillOrderResponse)(nil), "dymensionxyz.dymension.eibc.MsgFulfillOrderResponse")
+	proto.RegisterType((*MsgFulfillOrderAuthorized)(nil), "dymensionxyz.dymension.eibc.MsgFulfillOrderAuthorized")
+	proto.RegisterType((*MsgFulfillOrderAuthorizedResponse)(nil), "dymensionxyz.dymension.eibc.MsgFulfillOrderAuthorizedResponse")
 	proto.RegisterType((*MsgUpdateDemandOrder)(nil), "dymensionxyz.dymension.eibc.MsgUpdateDemandOrder")
 	proto.RegisterType((*MsgUpdateDemandOrderResponse)(nil), "dymensionxyz.dymension.eibc.MsgUpdateDemandOrderResponse")
 }
@@ -241,31 +404,50 @@ func init() {
 }
 
 var fileDescriptor_47537f11f512b254 = []byte{
-	// 374 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x49, 0xa9, 0xcc, 0x4d,
-	0xcd, 0x2b, 0xce, 0xcc, 0xcf, 0xab, 0xa8, 0xac, 0xd2, 0x87, 0x73, 0xf4, 0x53, 0x33, 0x93, 0x92,
-	0xf5, 0x4b, 0x2a, 0xf4, 0x0a, 0x8a, 0xf2, 0x4b, 0xf2, 0x85, 0xa4, 0x91, 0x55, 0xe9, 0xc1, 0x39,
-	0x7a, 0x20, 0x55, 0x52, 0xe2, 0xc9, 0xf9, 0xc5, 0xb9, 0xf9, 0xc5, 0xfa, 0xb9, 0xc5, 0xe9, 0xfa,
-	0x65, 0x86, 0x20, 0x0a, 0xa2, 0x4b, 0x69, 0x0a, 0x23, 0x17, 0xbf, 0x6f, 0x71, 0xba, 0x5b, 0x69,
-	0x4e, 0x5a, 0x66, 0x4e, 0x8e, 0x7f, 0x51, 0x4a, 0x6a, 0x91, 0x90, 0x36, 0x97, 0x60, 0x1a, 0x84,
-	0x9f, 0x5a, 0x14, 0x9f, 0x98, 0x92, 0x52, 0x94, 0x5a, 0x5c, 0x2c, 0xc1, 0xa8, 0xc0, 0xa8, 0xc1,
-	0x19, 0x24, 0x00, 0x97, 0x70, 0x84, 0x88, 0x0b, 0x49, 0x72, 0x71, 0xe4, 0x83, 0x74, 0xc5, 0x67,
-	0xa6, 0x48, 0x30, 0x81, 0xd5, 0xb0, 0x83, 0xf9, 0x9e, 0x29, 0x42, 0x8a, 0x5c, 0x3c, 0xa9, 0x15,
-	0x05, 0xa9, 0xc9, 0x25, 0xa9, 0x29, 0xf1, 0x69, 0xa9, 0xa9, 0x12, 0xcc, 0x60, 0x69, 0x6e, 0x98,
-	0x98, 0x5b, 0x6a, 0xaa, 0x95, 0x58, 0xd3, 0xf3, 0x0d, 0x5a, 0x98, 0xb6, 0x29, 0x49, 0x72, 0x89,
-	0xa3, 0xb9, 0x2a, 0x28, 0xb5, 0xb8, 0x20, 0x3f, 0xaf, 0x38, 0x55, 0xa9, 0x99, 0x91, 0x4b, 0xc4,
-	0xb7, 0x38, 0x3d, 0xb4, 0x20, 0x25, 0xb1, 0x24, 0xd5, 0x25, 0x35, 0x37, 0x31, 0x2f, 0x05, 0xe2,
-	0x6c, 0x65, 0x2e, 0xde, 0xfc, 0xf2, 0x3c, 0x0c, 0x27, 0xf3, 0x80, 0x05, 0x89, 0x70, 0xae, 0x38,
-	0x17, 0x7b, 0x5e, 0x6a, 0x39, 0x92, 0x4b, 0xd9, 0xf2, 0x52, 0xcb, 0x41, 0x8e, 0x14, 0x02, 0x39,
-	0x12, 0xd5, 0x6c, 0x25, 0x39, 0x2e, 0x19, 0x6c, 0x8e, 0x80, 0xb9, 0xd2, 0xa8, 0x91, 0x89, 0x8b,
-	0xd9, 0xb7, 0x38, 0x5d, 0xa8, 0x84, 0x8b, 0x07, 0x25, 0x6c, 0x75, 0xf4, 0xf0, 0x44, 0x93, 0x1e,
-	0x9a, 0x9f, 0xa5, 0x4c, 0x48, 0x51, 0x0d, 0x0f, 0x21, 0x06, 0xa1, 0x66, 0x46, 0x2e, 0x41, 0xcc,
-	0x00, 0x32, 0x24, 0x64, 0x1a, 0x86, 0x16, 0x29, 0x4b, 0x92, 0xb5, 0x20, 0x5c, 0xe1, 0xe4, 0x7d,
-	0xe2, 0x91, 0x1c, 0xe3, 0x85, 0x47, 0x72, 0x8c, 0x0f, 0x1e, 0xc9, 0x31, 0x4e, 0x78, 0x2c, 0xc7,
-	0x70, 0xe1, 0xb1, 0x1c, 0xc3, 0x8d, 0xc7, 0x72, 0x0c, 0x51, 0x86, 0xe9, 0x99, 0x25, 0x19, 0xa5,
-	0x49, 0x7a, 0xc9, 0xf9, 0xb9, 0xfa, 0x38, 0x12, 0x77, 0x99, 0xb1, 0x7e, 0x05, 0x34, 0x85, 0x57,
-	0x16, 0xa4, 0x16, 0x27, 0xb1, 0x81, 0xd3, 0xab, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0xc8, 0x69,
-	0xa9, 0xa4, 0x0d, 0x03, 0x00, 0x00,
+	// 673 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x55, 0x4d, 0x4f, 0x13, 0x5d,
+	0x14, 0xee, 0x7d, 0xcb, 0xe7, 0x81, 0x37, 0xc0, 0x7d, 0x1b, 0x68, 0xfb, 0xbe, 0x0c, 0x50, 0xde,
+	0x45, 0x15, 0x9d, 0xa1, 0x60, 0x4c, 0x64, 0x61, 0x02, 0x12, 0x12, 0x62, 0x88, 0xa6, 0x46, 0x17,
+	0x6e, 0x9a, 0xe9, 0xdc, 0xd3, 0x61, 0xe2, 0x74, 0xee, 0x64, 0xee, 0xa5, 0x14, 0x56, 0x46, 0xfe,
+	0x80, 0x31, 0xc6, 0xa5, 0x3f, 0xc0, 0x95, 0x3f, 0x83, 0x25, 0x4b, 0x57, 0x6a, 0x60, 0xe1, 0xdf,
+	0x30, 0x77, 0xbe, 0xfa, 0x05, 0x0a, 0xae, 0xa6, 0xe7, 0x3c, 0xe7, 0x9c, 0x79, 0xfa, 0xdc, 0xe7,
+	0xcc, 0x85, 0xff, 0xd9, 0x51, 0x13, 0x3d, 0xe1, 0x70, 0xaf, 0x7d, 0x74, 0x6c, 0xa4, 0x81, 0x81,
+	0x4e, 0xdd, 0x32, 0x64, 0x5b, 0xf7, 0x03, 0x2e, 0x39, 0xfd, 0xb7, 0xbb, 0x4a, 0x4f, 0x03, 0x5d,
+	0x55, 0x15, 0xe7, 0x2c, 0x2e, 0x9a, 0x5c, 0x18, 0x4d, 0x61, 0x1b, 0xad, 0x8a, 0x7a, 0x44, 0x5d,
+	0xc5, 0x42, 0x04, 0xd4, 0xc2, 0xc8, 0x88, 0x82, 0x18, 0xca, 0xd9, 0xdc, 0xe6, 0x51, 0x5e, 0xfd,
+	0x8a, 0xb3, 0x5a, 0x3c, 0xa9, 0x6e, 0x0a, 0x34, 0x5a, 0x95, 0x3a, 0x4a, 0xb3, 0x62, 0x58, 0xdc,
+	0xf1, 0x22, 0xbc, 0xf4, 0x9e, 0xc0, 0xd4, 0x9e, 0xb0, 0x77, 0x0e, 0xdc, 0x86, 0xe3, 0xba, 0x4f,
+	0x02, 0x86, 0x01, 0x5d, 0x81, 0x99, 0x46, 0x14, 0x63, 0x50, 0x33, 0x19, 0x0b, 0x50, 0x88, 0x3c,
+	0x59, 0x24, 0xe5, 0xf1, 0xea, 0x74, 0x0a, 0x6c, 0x46, 0x79, 0x5a, 0x80, 0x31, 0xae, 0xba, 0x6a,
+	0x0e, 0xcb, 0xff, 0x15, 0xd6, 0x8c, 0x86, 0xf1, 0x2e, 0xa3, 0x4b, 0x30, 0x89, 0x6d, 0x1f, 0x2d,
+	0x89, 0xac, 0xd6, 0x40, 0xcc, 0x67, 0x43, 0x78, 0x22, 0xc9, 0xed, 0x20, 0x6e, 0xcc, 0xbe, 0xf9,
+	0xf1, 0xf9, 0xf6, 0xe0, 0xdb, 0x4a, 0x05, 0x98, 0xeb, 0x63, 0x55, 0x45, 0xe1, 0x73, 0x4f, 0x60,
+	0xe9, 0xe3, 0x10, 0x14, 0xfa, 0xb0, 0xcd, 0x03, 0xb9, 0xcf, 0x03, 0xe7, 0x18, 0x59, 0x0f, 0x1d,
+	0xd2, 0x4b, 0x67, 0x1e, 0x20, 0xe0, 0xae, 0x6b, 0xfa, 0x7e, 0x87, 0xeb, 0x78, 0x9c, 0xd9, 0x65,
+	0xd4, 0x84, 0x61, 0x3f, 0x70, 0x2c, 0x45, 0x33, 0x5b, 0x9e, 0x58, 0x2b, 0xe8, 0xb1, 0xba, 0x4a,
+	0x39, 0x3d, 0x56, 0x4e, 0x7f, 0xc4, 0x1d, 0x6f, 0x6b, 0xf5, 0xf4, 0xeb, 0x42, 0xe6, 0xd3, 0xb7,
+	0x85, 0xb2, 0xed, 0xc8, 0xfd, 0x83, 0xba, 0x6e, 0xf1, 0x66, 0x7c, 0x14, 0xf1, 0xe3, 0xae, 0x60,
+	0xaf, 0x0c, 0x79, 0xe4, 0xa3, 0x08, 0x1b, 0x44, 0x35, 0x9a, 0x4c, 0x6f, 0xc1, 0x34, 0xf7, 0x31,
+	0x30, 0x25, 0xef, 0xe8, 0x3a, 0x14, 0xf2, 0x98, 0x4a, 0xf2, 0x89, 0xac, 0xf3, 0x00, 0xae, 0x9f,
+	0x16, 0x0d, 0x47, 0x64, 0x5d, 0x3f, 0x81, 0x57, 0x21, 0x97, 0x4e, 0x6a, 0x20, 0xa6, 0x85, 0x23,
+	0x61, 0x21, 0x4d, 0xb0, 0x1d, 0xc4, 0xa4, 0xa3, 0xff, 0x30, 0x46, 0x07, 0x0e, 0x83, 0xbe, 0x26,
+	0x40, 0x7b, 0xa6, 0x8a, 0x7d, 0x33, 0xc0, 0xfc, 0xd8, 0x22, 0x29, 0x4f, 0xac, 0xcd, 0x5f, 0xaa,
+	0xc7, 0x36, 0x5a, 0x4f, 0x95, 0x8f, 0xb6, 0xd6, 0x63, 0x4d, 0x56, 0xae, 0xa1, 0x49, 0xd2, 0x54,
+	0x9d, 0xee, 0xe2, 0xf9, 0x4c, 0xbd, 0x8b, 0x56, 0x20, 0x27, 0x50, 0x4a, 0x17, 0x9b, 0xe8, 0xc9,
+	0x5a, 0xcb, 0x74, 0x1d, 0x66, 0x4a, 0x64, 0xf9, 0xf1, 0x45, 0x52, 0x1e, 0xab, 0xfe, 0xd3, 0xc1,
+	0x5e, 0x24, 0xd0, 0xc6, 0x94, 0xb2, 0x50, 0x97, 0x58, 0xa5, 0x65, 0x58, 0xba, 0xd2, 0x1f, 0xa9,
+	0x8b, 0x4e, 0x08, 0xe4, 0xf6, 0x84, 0xfd, 0xdc, 0x57, 0x43, 0xb6, 0xb1, 0x69, 0x7a, 0x2c, 0x32,
+	0xff, 0x32, 0xfc, 0xcd, 0x0f, 0xbd, 0x01, 0xe3, 0x4f, 0x86, 0xc9, 0x6b, 0x98, 0x7e, 0x0e, 0x46,
+	0x3d, 0x3c, 0xec, 0xf2, 0xfb, 0x88, 0x87, 0x87, 0xca, 0xea, 0x54, 0xf1, 0xec, 0x9d, 0x5d, 0xd2,
+	0xe0, 0xbf, 0xcb, 0x48, 0x24, 0x2c, 0xd7, 0x3e, 0x64, 0x21, 0xbb, 0x27, 0x6c, 0x2a, 0x61, 0xb2,
+	0x67, 0x43, 0xef, 0xe8, 0xbf, 0xf8, 0x7a, 0xe8, 0x7d, 0xff, 0xbe, 0x78, 0xef, 0x26, 0xd5, 0xa9,
+	0x42, 0x19, 0xfa, 0x8e, 0xc0, 0xec, 0x15, 0x6b, 0x76, 0xff, 0x26, 0x23, 0x3b, 0x7d, 0xc5, 0x87,
+	0x7f, 0xd6, 0xd7, 0x45, 0xea, 0x84, 0xc0, 0xcc, 0xe0, 0xa9, 0x55, 0x7e, 0x37, 0x77, 0xa0, 0xa5,
+	0xf8, 0xe0, 0xc6, 0x2d, 0x1d, 0x16, 0x5b, 0x8f, 0x4f, 0xcf, 0x35, 0x72, 0x76, 0xae, 0x91, 0xef,
+	0xe7, 0x1a, 0x79, 0x7b, 0xa1, 0x65, 0xce, 0x2e, 0xb4, 0xcc, 0x97, 0x0b, 0x2d, 0xf3, 0xb2, 0xd2,
+	0xb5, 0x00, 0x57, 0x5c, 0x04, 0xad, 0x75, 0xa3, 0x1d, 0xdf, 0x06, 0x6a, 0x1f, 0xea, 0x23, 0xe1,
+	0xa7, 0x78, 0xfd, 0x67, 0x00, 0x00, 0x00, 0xff, 0xff, 0xf4, 0x19, 0xaf, 0x5d, 0x39, 0x06, 0x00,
+	0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -281,6 +463,7 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
 	FulfillOrder(ctx context.Context, in *MsgFulfillOrder, opts ...grpc.CallOption) (*MsgFulfillOrderResponse, error)
+	FulfillOrderAuthorized(ctx context.Context, in *MsgFulfillOrderAuthorized, opts ...grpc.CallOption) (*MsgFulfillOrderAuthorizedResponse, error)
 	UpdateDemandOrder(ctx context.Context, in *MsgUpdateDemandOrder, opts ...grpc.CallOption) (*MsgUpdateDemandOrderResponse, error)
 }
 
@@ -301,6 +484,15 @@ func (c *msgClient) FulfillOrder(ctx context.Context, in *MsgFulfillOrder, opts 
 	return out, nil
 }
 
+func (c *msgClient) FulfillOrderAuthorized(ctx context.Context, in *MsgFulfillOrderAuthorized, opts ...grpc.CallOption) (*MsgFulfillOrderAuthorizedResponse, error) {
+	out := new(MsgFulfillOrderAuthorizedResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.eibc.Msg/FulfillOrderAuthorized", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) UpdateDemandOrder(ctx context.Context, in *MsgUpdateDemandOrder, opts ...grpc.CallOption) (*MsgUpdateDemandOrderResponse, error) {
 	out := new(MsgUpdateDemandOrderResponse)
 	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.eibc.Msg/UpdateDemandOrder", in, out, opts...)
@@ -313,6 +505,7 @@ func (c *msgClient) UpdateDemandOrder(ctx context.Context, in *MsgUpdateDemandOr
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	FulfillOrder(context.Context, *MsgFulfillOrder) (*MsgFulfillOrderResponse, error)
+	FulfillOrderAuthorized(context.Context, *MsgFulfillOrderAuthorized) (*MsgFulfillOrderAuthorizedResponse, error)
 	UpdateDemandOrder(context.Context, *MsgUpdateDemandOrder) (*MsgUpdateDemandOrderResponse, error)
 }
 
@@ -322,6 +515,9 @@ type UnimplementedMsgServer struct {
 
 func (*UnimplementedMsgServer) FulfillOrder(ctx context.Context, req *MsgFulfillOrder) (*MsgFulfillOrderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FulfillOrder not implemented")
+}
+func (*UnimplementedMsgServer) FulfillOrderAuthorized(ctx context.Context, req *MsgFulfillOrderAuthorized) (*MsgFulfillOrderAuthorizedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FulfillOrderAuthorized not implemented")
 }
 func (*UnimplementedMsgServer) UpdateDemandOrder(ctx context.Context, req *MsgUpdateDemandOrder) (*MsgUpdateDemandOrderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDemandOrder not implemented")
@@ -345,6 +541,24 @@ func _Msg_FulfillOrder_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).FulfillOrder(ctx, req.(*MsgFulfillOrder))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_FulfillOrderAuthorized_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgFulfillOrderAuthorized)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).FulfillOrderAuthorized(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.eibc.Msg/FulfillOrderAuthorized",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).FulfillOrderAuthorized(ctx, req.(*MsgFulfillOrderAuthorized))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -374,6 +588,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FulfillOrder",
 			Handler:    _Msg_FulfillOrder_Handler,
+		},
+		{
+			MethodName: "FulfillOrderAuthorized",
+			Handler:    _Msg_FulfillOrderAuthorized_Handler,
 		},
 		{
 			MethodName: "UpdateDemandOrder",
@@ -444,6 +662,128 @@ func (m *MsgFulfillOrderResponse) MarshalTo(dAtA []byte) (int, error) {
 }
 
 func (m *MsgFulfillOrderResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgFulfillOrderAuthorized) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgFulfillOrderAuthorized) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgFulfillOrderAuthorized) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.SettlementValidated {
+		i--
+		if m.SettlementValidated {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x48
+	}
+	{
+		size, err := m.OperatorFeeShare.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x42
+	if len(m.ExpectedFee) > 0 {
+		i -= len(m.ExpectedFee)
+		copy(dAtA[i:], m.ExpectedFee)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ExpectedFee)))
+		i--
+		dAtA[i] = 0x3a
+	}
+	if len(m.OperatorFeeAddress) > 0 {
+		i -= len(m.OperatorFeeAddress)
+		copy(dAtA[i:], m.OperatorFeeAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OperatorFeeAddress)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.LpAddress) > 0 {
+		i -= len(m.LpAddress)
+		copy(dAtA[i:], m.LpAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.LpAddress)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.OperatorAddress) > 0 {
+		i -= len(m.OperatorAddress)
+		copy(dAtA[i:], m.OperatorAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OperatorAddress)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.Price) > 0 {
+		for iNdEx := len(m.Price) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Price[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTx(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.OrderId) > 0 {
+		i -= len(m.OrderId)
+		copy(dAtA[i:], m.OrderId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OrderId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgFulfillOrderAuthorizedResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgFulfillOrderAuthorizedResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgFulfillOrderAuthorizedResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -551,6 +891,59 @@ func (m *MsgFulfillOrder) Size() (n int) {
 }
 
 func (m *MsgFulfillOrderResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgFulfillOrderAuthorized) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.OrderId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.Price) > 0 {
+		for _, e := range m.Price {
+			l = e.Size()
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	l = len(m.OperatorAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.LpAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.OperatorFeeAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.ExpectedFee)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = m.OperatorFeeShare.Size()
+	n += 1 + l + sovTx(uint64(l))
+	if m.SettlementValidated {
+		n += 2
+	}
+	return n
+}
+
+func (m *MsgFulfillOrderAuthorizedResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -768,6 +1161,385 @@ func (m *MsgFulfillOrderResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgFulfillOrderResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgFulfillOrderAuthorized) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgFulfillOrderAuthorized: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgFulfillOrderAuthorized: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OrderId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OrderId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Price", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Price = append(m.Price, types.Coin{})
+			if err := m.Price[len(m.Price)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LpAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.LpAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OperatorFeeAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OperatorFeeAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExpectedFee", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExpectedFee = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OperatorFeeShare", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.OperatorFeeShare.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 9:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SettlementValidated", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.SettlementValidated = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgFulfillOrderAuthorizedResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgFulfillOrderAuthorizedResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgFulfillOrderAuthorizedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
