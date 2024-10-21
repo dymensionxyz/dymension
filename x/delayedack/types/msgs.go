@@ -1,8 +1,6 @@
 package types
 
 import (
-	"bytes"
-	"encoding/base64"
 	"errors"
 	"fmt"
 
@@ -59,7 +57,7 @@ func (m MsgFinalizePacketByPacketKey) ValidateBasic() error {
 		return gerrc.ErrInvalidArgument.Wrap("rollappId must be non-empty")
 	}
 
-	if _, err := m.DecodePacketKey(); err != nil {
+	if _, err := commontypes.DecodePacketKey(m.PacketKey); err != nil {
 		return gerrc.ErrInvalidArgument.Wrap("packet key must be a valid base64 encoded string")
 	}
 	return nil
@@ -70,64 +68,10 @@ func (m MsgFinalizePacketByPacketKey) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-func (m MsgFinalizePacketByPacketKey) DecodePacketKey() ([]byte, error) {
-	// decode base64
-	rollappPacketKeyBytes := make([]byte, base64.StdEncoding.DecodedLen(len(m.PacketKey)))
-	_, err := base64.StdEncoding.Decode(rollappPacketKeyBytes, []byte(m.PacketKey))
-	if err != nil {
-		return nil, err
-	}
-
-	rollappPacketKeyBytes = bytes.TrimRight(rollappPacketKeyBytes, "\x00") // remove padding
-	return rollappPacketKeyBytes, nil
-}
-
 func (m MsgFinalizePacketByPacketKey) MustDecodePacketKey() []byte {
-	packetKey, err := m.DecodePacketKey()
+	packetKey, err := commontypes.DecodePacketKey(m.PacketKey)
 	if err != nil {
 		panic(fmt.Errorf("failed to decode base64 packet key: %w", err))
 	}
-
 	return packetKey
-}
-
-func (m MsgFinalizePacketsUntilHeight) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(m.Sender)
-	if err != nil {
-		return errors.Join(
-			sdkerrors.ErrInvalidAddress,
-			errorsmod.Wrapf(err, "sender must be a valid bech32 address: %s", m.Sender),
-		)
-	}
-	if len(m.RollappId) == 0 {
-		return gerrc.ErrInvalidArgument.Wrap("rollappId must be non-empty")
-	}
-	return nil
-}
-
-func (m MsgFinalizePacketsUntilHeight) GetSigners() []sdk.AccAddress {
-	signer, _ := sdk.AccAddressFromBech32(m.Sender)
-	return []sdk.AccAddress{signer}
-}
-
-func (m MsgFinalizeRollappPacketsByReceiver) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(m.Sender)
-	if err != nil {
-		return errors.Join(
-			sdkerrors.ErrInvalidAddress,
-			errorsmod.Wrapf(err, "sender must be a valid bech32 address: %s", m.Sender),
-		)
-	}
-	if len(m.RollappId) == 0 {
-		return gerrc.ErrInvalidArgument.Wrap("rollappId must be non-empty")
-	}
-	if len(m.Receiver) == 0 {
-		return gerrc.ErrInvalidArgument.Wrap("receiver must be non-empty")
-	}
-	return nil
-}
-
-func (m MsgFinalizeRollappPacketsByReceiver) GetSigners() []sdk.AccAddress {
-	signer, _ := sdk.AccAddressFromBech32(m.Sender)
-	return []sdk.AccAddress{signer}
 }
