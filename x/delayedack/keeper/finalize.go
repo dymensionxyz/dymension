@@ -201,7 +201,7 @@ func (k Keeper) GetRollappLatestFinalizedHeight(ctx sdk.Context, rollappID strin
 }
 
 func (k Keeper) GetPendingPacketsUntilLatestHeight(ctx sdk.Context, rollappID string) ([]commontypes.RollappPacket, uint64, error) {
-	// Get rollapp's latest finalized height. All packets until this height with the specified receiver will be finalized.
+	// Get rollapp's latest finalized height
 	latestFinalizedHeight, err := k.GetRollappLatestFinalizedHeight(ctx, rollappID)
 	if err != nil {
 		return nil, 0, fmt.Errorf("get latest finalized height: rollapp '%s': %w", rollappID, err)
