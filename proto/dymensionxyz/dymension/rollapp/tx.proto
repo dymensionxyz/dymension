@@ -89,8 +89,6 @@ message MsgUpdateState {
   BlockDescriptors BDs = 7 [(gogoproto.nullable) = false];
   // last is true if this is the last batch of the sequencer
   bool last = 8;
-  // DrsVersion is a DRS version used by the rollapp.
-  string drs_version = 9;
 }
 
 message MsgUpdateStateResponse {
