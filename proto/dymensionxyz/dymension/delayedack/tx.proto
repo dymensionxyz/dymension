@@ -14,10 +14,6 @@ service Msg {
   rpc FinalizePacket(MsgFinalizePacket) returns (MsgFinalizePacketResponse);
 
   rpc FinalizePacketByPacketKey(MsgFinalizePacketByPacketKey) returns (MsgFinalizePacketByPacketKeyResponse);
-
-  // FinalizeRollappPacketsByReceiver finalizes the rollapp packets for the specified receiver until the latest
-  // finalized height inclusively.
-  rpc FinalizeRollappPacketsByReceiver(MsgFinalizeRollappPacketsByReceiver) returns (MsgFinalizeRollappPacketsByReceiverResponse);
 }
 
 // MsgFinalizePacket finalizes a single packet.
@@ -51,18 +47,3 @@ message MsgFinalizePacketByPacketKey {
 }
 
 message MsgFinalizePacketByPacketKeyResponse {}
-
-// MsgFinalizeRollappPacketsByReceiver finalizes the rollapp packets for the specified receiver until the latest
-// finalized height inclusively.
-message MsgFinalizeRollappPacketsByReceiver {
-  option (cosmos.msg.v1.signer) = "sender";
-
-  // Sender is the signer of the message.
-  string sender = 1;
-  // RollappID is the ID of the rollapp.
-  string rollapp_id = 2;
-  // Receiver is the one who waits tokens after the finalization.
-  string receiver = 3;
-}
-
-message MsgFinalizeRollappPacketsByReceiverResponse {}

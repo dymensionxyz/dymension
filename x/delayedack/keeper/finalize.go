@@ -14,47 +14,12 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
-type FinalizeRollappPacketsBySenderResult struct {
-	LatestFinalizedHeight uint64 // the latest finalized height of the rollup until which packets are finalized
-	FinalizedNum          uint64 // the number of finalized packets
-}
-
-// FinalizeRollappPacketsByReceiver finalizes the rollapp packets from the specified sender until the latest finalized
-// height inclusively. Returns the number of finalized packets.
-func (k Keeper) FinalizeRollappPacketsByReceiver(ctx sdk.Context, ibc porttypes.IBCModule, rollappID string, receiver string) (FinalizeRollappPacketsBySenderResult, error) {
-	// Get all pending rollapp packets until the latest finalized height
-	rollappPendingPackets, latestFinalizedHeight, err := k.GetPendingPacketsUntilLatestHeight(ctx, rollappID)
-	if err != nil {
-		return FinalizeRollappPacketsBySenderResult{}, fmt.Errorf("get pending rollapp packets until the latest finalized height: rollapp '%s': %w", rollappID, err)
-	}
-
-	// Finalize the packets
-	for _, packet := range rollappPendingPackets {
-		// Get packet data
-		pd, err := packet.GetTransferPacketData()
-		if err != nil {
-			return FinalizeRollappPacketsBySenderResult{}, fmt.Errorf("get transfer packet data: rollapp '%s': %w", rollappID, err)
-		}
-		// Finalize a packet if its receiver matches the one specified
-		if pd.Receiver == receiver {
-			if err = k.finalizeRollappPacket(ctx, ibc, rollappID, packet); err != nil {
-				return FinalizeRollappPacketsBySenderResult{}, fmt.Errorf("finalize packet: rollapp '%s': %w", rollappID, err)
-			}
-		}
-	}
-
-	return FinalizeRollappPacketsBySenderResult{
-		LatestFinalizedHeight: latestFinalizedHeight,
-		FinalizedNum:          uint64(len(rollappPendingPackets)),
-	}, nil
-}
-
 // FinalizeRollappPacket finalizes a singe packet by its rollapp packet key.
 func (k Keeper) FinalizeRollappPacket(ctx sdk.Context, ibc porttypes.IBCModule, rollappPacketKey string) (*commontypes.RollappPacket, error) {
 	// Get a rollapp packet
 	packet, err := k.GetRollappPacket(ctx, rollappPacketKey)
 	if err != nil {
-		return nil, fmt.Errorf("get rollapp packet: %w", err)
+		return nil, fmt.Errorf("get rollapp packet: %s: %w", rollappPacketKey, err)
 	}
 
 	// Verify the height is finalized

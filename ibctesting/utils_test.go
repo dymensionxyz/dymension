@@ -16,6 +16,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -27,6 +28,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
+	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
@@ -370,13 +372,26 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 }
 
 func (s *utilSuite) finalizeRollappPacketsByReceiver(receiver string) sdk.Events {
-	handler := s.hubApp().MsgServiceRouter().Handler(new(delayedacktypes.MsgFinalizeRollappPacketsByReceiver))
-	resp, err := handler(s.hubCtx(), &delayedacktypes.MsgFinalizeRollappPacketsByReceiver{
-		Sender:    s.rollappChain().SenderAccount.GetAddress().String(),
+	s.T().Helper()
+	// Query all pending packets by receiver
+	querier := delayedackkeeper.NewQuerier(s.hubApp().DelayedAckKeeper)
+	resp, err := querier.GetPendingPacketsByReceiver(s.hubCtx(), &delayedacktypes.QueryPendingPacketsByReceiverRequest{
 		RollappId: rollappChainID(),
 		Receiver:  receiver,
 	})
 	s.Require().NoError(err)
-	s.Require().NotNil(resp)
-	return resp.GetEvents()
+	// Finalize all packets are collect events
+	events := make(sdk.Events, 0)
+	for _, packet := range resp.RollappPackets {
+		k := common.EncodePacketKey(packet.RollappPacketKey())
+		handler := s.hubApp().MsgServiceRouter().Handler(new(delayedacktypes.MsgFinalizePacketByPacketKey))
+		resp, err := handler(s.hubCtx(), &delayedacktypes.MsgFinalizePacketByPacketKey{
+			Sender:    authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			PacketKey: k,
+		})
+		s.Require().NoError(err)
+		s.Require().NotNil(resp)
+		events = append(events, resp.GetEvents()...)
+	}
+	return events
 }

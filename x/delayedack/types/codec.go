@@ -17,7 +17,6 @@ var (
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgFinalizePacket{}, "delayedack/FinalizePacket", nil)
 	cdc.RegisterConcrete(&MsgFinalizePacketByPacketKey{}, "delayedack/MsgFinalizePacketByPacketKey", nil)
-	cdc.RegisterConcrete(&MsgFinalizeRollappPacketsByReceiver{}, "delayedack/MsgFinalizeRollappPacketsByReceiver", nil)
 }
 
 // RegisterInterfaces registers interfaces types with the interface registry.
@@ -26,7 +25,6 @@ func RegisterInterfaces(reg types.InterfaceRegistry) {
 		(*sdk.Msg)(nil),
 		&MsgFinalizePacket{},
 		&MsgFinalizePacketByPacketKey{},
-		&MsgFinalizeRollappPacketsByReceiver{},
 	)
 	msgservice.RegisterMsgServiceDesc(reg, &_Msg_serviceDesc)
 }

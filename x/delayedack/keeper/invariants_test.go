@@ -76,9 +76,8 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 
 	// manually finalize packets for all rollapps
 	for rollapp := range seqPerRollapp {
-		result, err := suite.App.DelayedAckKeeper.FinalizeRollappPacketsByReceiver(suite.Ctx, transferStack.NextIBCMiddleware(), rollapp, testPacketReceiver)
-		suite.Require().NoError(err)
-		suite.Require().Equal(rollappBlocks[rollapp], result.FinalizedNum)
+		finalizedNum := suite.FinalizeAllPendingPackets(rollapp, testPacketReceiver)
+		suite.Require().Equal(rollappBlocks[rollapp], uint64(finalizedNum))
 	}
 
 	// test fraud

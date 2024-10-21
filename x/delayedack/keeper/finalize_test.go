@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -121,14 +119,12 @@ func (s *DelayedAckTestSuite) TestFinalizePacket() {
 	}
 }
 
-func (s *DelayedAckTestSuite) TestFinalizeRollappPacketsByReceiver() {
+func (s *DelayedAckTestSuite) TestFinalizePacketByPacketKey() {
 	rollapp := "rollapp_1234-1"
 
 	cases := []struct {
 		name                 string
 		packet               commontypes.RollappPacket
-		packetData           transfertypes.FungibleTokenPacketData
-		packerReceiver       string
 		rollappHeight        uint64
 		expectedPacketStatus commontypes.Status
 		expectFinalize       bool
@@ -141,45 +137,9 @@ func (s *DelayedAckTestSuite) TestFinalizeRollappPacketsByReceiver() {
 				ProofHeight: 8,
 				Packet:      s.getNewTestPacket(2),
 			},
-			packetData: transfertypes.FungibleTokenPacketData{
-				Receiver: "test_receiver",
-			},
-			packerReceiver:       "test_receiver",
 			rollappHeight:        10,
 			expectedPacketStatus: commontypes.Status_FINALIZED,
 			expectFinalize:       true,
-		},
-		{
-			name: "nothing to finalize: mismatching packet receiver",
-			packet: commontypes.RollappPacket{
-				RollappId:   rollapp,
-				Status:      commontypes.Status_PENDING,
-				ProofHeight: 8,
-				Packet:      s.getNewTestPacket(2),
-			},
-			packetData: transfertypes.FungibleTokenPacketData{
-				Receiver: "test_receiver",
-			},
-			packerReceiver:       "test_receiver_123",
-			rollappHeight:        10,
-			expectedPacketStatus: commontypes.Status_PENDING,
-			expectFinalize:       false,
-		},
-		{
-			name: "nothing to finalize: no pending packets",
-			packet: commontypes.RollappPacket{
-				RollappId:   rollapp,
-				Status:      commontypes.Status_FINALIZED,
-				ProofHeight: 8,
-				Packet:      s.getNewTestPacket(2),
-			},
-			packetData: transfertypes.FungibleTokenPacketData{
-				Receiver: "test_receiver",
-			},
-			packerReceiver:       "test_receiver",
-			rollappHeight:        10,
-			expectedPacketStatus: commontypes.Status_FINALIZED,
-			expectFinalize:       false,
 		},
 	}
 
@@ -209,18 +169,13 @@ func (s *DelayedAckTestSuite) TestFinalizeRollappPacketsByReceiver() {
 				Index:     stateInfo.GetIndex().Index,
 			})
 
-			// save rollapp packets with the provided transfer data
-			pd, err := transfertypes.ModuleCdc.MarshalJSON(&tc.packetData)
-			s.Require().NoError(err)
-			tc.packet.Packet.Data = pd
 			s.App.DelayedAckKeeper.SetRollappPacket(s.Ctx, tc.packet)
 
 			// try to finalize a packet
-			handler := s.App.MsgServiceRouter().Handler(new(types.MsgFinalizeRollappPacketsByReceiver))
-			resp, err := handler(s.Ctx, &types.MsgFinalizeRollappPacketsByReceiver{
+			handler := s.App.MsgServiceRouter().Handler(new(types.MsgFinalizePacketByPacketKey))
+			resp, err := handler(s.Ctx, &types.MsgFinalizePacketByPacketKey{
 				Sender:    apptesting.CreateRandomAccounts(1)[0].String(),
-				RollappId: tc.packet.RollappId,
-				Receiver:  tc.packerReceiver,
+				PacketKey: commontypes.EncodePacketKey(tc.packet.RollappPacketKey()),
 			})
 			s.Require().NoError(err)
 			s.Require().NotNil(resp)
