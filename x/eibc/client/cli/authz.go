@@ -23,7 +23,7 @@ const (
 	FlagDenoms              = "denoms"
 	FlagMinLPFeePercentage  = "min-lp-fee-percentage"
 	FlagMaxPrice            = "max-price"
-	FlagOperatorFeePart     = "operator-fee-part"
+	FlagOperatorFeeShare    = "operator-fee-share"
 	FlagSettlementValidated = "settlement-validated"
 )
 
@@ -80,7 +80,7 @@ Examples:
 				return fmt.Errorf("failed to parse max price: %w", err)
 			}
 
-			fulfillerFeePartStr, err := cmd.Flags().GetString(FlagOperatorFeePart)
+			fulfillerFeePartStr, err := cmd.Flags().GetString(FlagOperatorFeeShare)
 			if err != nil {
 				return fmt.Errorf("failed to get fulfiller fee part: %w", err)
 			}
@@ -104,6 +104,10 @@ Examples:
 			var spendLimit sdk.Coins
 			if limit != "" {
 				spendLimit, err = sdk.ParseCoinsNormalized(limit)
+				if err != nil {
+					return fmt.Errorf("failed to parse spend limit: %w", err)
+				}
+				spendLimit, err := sdk.ParseCoinsNormalized(limit)
 				if err != nil {
 					return fmt.Errorf("failed to parse spend limit: %w", err)
 				}
@@ -144,7 +148,7 @@ Examples:
 	cmd.Flags().Bool(FlagSettlementValidated, false, "Settlement validated flag")
 	cmd.Flags().String(FlagMinLPFeePercentage, "", "Minimum fee")
 	cmd.Flags().String(FlagMaxPrice, "", "Maximum price")
-	cmd.Flags().String(FlagOperatorFeePart, "", "Fulfiller fee part")
+	cmd.Flags().String(FlagOperatorFeeShare, "", "Fulfiller fee part")
 	cmd.Flags().Int64(FlagExpiration, 0, "Expire time as Unix timestamp. Set zero (0) for no expiry. Default is 0.")
 	return cmd
 }
