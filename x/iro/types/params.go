@@ -17,6 +17,10 @@ var (
 	DefaultIncentivePlanMinimumStartTimeAfterSettlement = 60 * time.Minute             // default: min 1 hour after settlement
 )
 
+const (
+	TokenCreationFee = 1 // 1 IRO token is reserved from the allocation as a creation fee
+)
+
 // NewParams creates a new Params object
 func NewParams(takerFee math.LegacyDec, creationFee math.Int, minPlanDuration time.Duration, minIncentivePlanParams IncentivePlanParams) Params {
 	return Params{

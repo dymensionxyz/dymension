@@ -1,6 +1,7 @@
 package genesisbridge
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -102,7 +103,7 @@ func (w IBCModule) OnRecvPacket(
 
 	// parse the genesis bridge data
 	var genesisBridgeData GenesisBridgeData
-	if err := genesisBridgeData.Unmarshal(packet.GetData()); err != nil {
+	if err := json.Unmarshal(packet.GetData(), &genesisBridgeData); err != nil {
 		l.Error("Unmarshal genesis bridge data.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "unmarshal genesis bridge data"))
 	}

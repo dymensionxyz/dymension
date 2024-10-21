@@ -45,7 +45,7 @@ func (msg *MsgFulfillOrder) GetSignBytes() []byte {
 }
 
 func (msg *MsgFulfillOrder) ValidateBasic() error {
-	err := validateCommon(msg.OrderId, msg.FulfillerAddress, msg.ExpectedFee)
+	err := validateCommon(msg.OrderId, msg.ExpectedFee, msg.FulfillerAddress)
 	if err != nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
@@ -106,7 +106,7 @@ func (msg *MsgFulfillOrderAuthorized) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "rollapp id cannot be empty")
 	}
 
-	err := validateCommon(msg.OrderId, msg.ExpectedFee, msg.OperatorAddress, msg.LpAddress, msg.OperatorAddress)
+	err := validateCommon(msg.OrderId, msg.ExpectedFee, msg.OperatorFeeAddress, msg.LpAddress)
 	if err != nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
@@ -124,10 +124,6 @@ func (msg *MsgFulfillOrderAuthorized) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-func (msg *MsgFulfillOrderAuthorized) GetOperatorBech32Address() []byte {
-	return sdk.MustAccAddressFromBech32(msg.OperatorAddress)
 }
 
 func (msg *MsgFulfillOrderAuthorized) GetLPBech32Address() []byte {

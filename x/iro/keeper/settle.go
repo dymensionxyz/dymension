@@ -86,8 +86,9 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 // - Creates a balancer pool with the determined tokens and DYM.
 // - Uses leftover tokens as incentives to the pool LP token holders.
 func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) (poolID, gaugeID uint64, err error) {
-	unallocatedTokens := plan.TotalAllocation.Amount.Sub(plan.SoldAmt)        // assumed > 0, as we enforce it in the Buy function
-	raisedDYM := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom) // assumed > 0, as we enforce it by IRO creation fee
+	tokenFee := math.NewIntWithDecimal(types.TokenCreationFee, int(plan.BondingCurve.SupplyDecimals()))
+	unallocatedTokens := plan.TotalAllocation.Amount.Sub(plan.SoldAmt.Sub(tokenFee)) // at least "reserve" amount of tokens (>0)
+	raisedDYM := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom)        // at least IRO creation fee (>0)
 
 	// send the raised DYM to the iro module as it will be used as the pool creator
 	err = k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(raisedDYM))
