@@ -10,9 +10,13 @@ import (
 )
 
 type RollappKeeper interface {
-	GetRollappByPortChan(ctx sdk.Context, raPortOnHub, raChanOnHub string) (*rollapptypes.Rollapp, error)
+	RollappKeeperMinimal
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
 	GetHooks() rollapptypes.MultiRollappHooks
+}
+
+type RollappKeeperMinimal interface {
+	GetRollappByPortChan(ctx sdk.Context, raPortOnHub, raChanOnHub string) (*rollapptypes.Rollapp, error)
 }
 
 type DenomMetadataKeeper interface {

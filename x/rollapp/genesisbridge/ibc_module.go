@@ -21,7 +21,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-// GenesisBridge IBC module is responsible for handling the genesis bridge protocol.
+// IBCModule GenesisBridge is responsible for handling the genesis bridge protocol.
 // (ADR: https://www.notion.so/dymension/ADR-x-Genesis-Bridge-109a4a51f86a80ba8b50db454bee04a7?pvs=4)
 //
 // It validated the genesis info registered on the hub, is the same as the rollapp's genesis info.
@@ -74,7 +74,6 @@ func (w IBCModule) logger(
 // - validated the genesis info registered on the hub, is the same as the rollapp's genesis info.
 // - registers the denom metadata for the native denom.
 // - handles the genesis transfer.
-
 // On success, it will mark the IBC channel for this rollapp as enabled. This marks the end of the genesis phase.
 //
 // NOTE: we assume that by this point the canonical channel ID has already been set for the rollapp, in a secure way.
