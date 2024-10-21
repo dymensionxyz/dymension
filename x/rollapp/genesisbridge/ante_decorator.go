@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transferTypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -18,11 +19,11 @@ type ChannelKeeper interface {
 // TransferEnabledDecorator only allows ibc transfers to a rollapp if that rollapp has finished
 // the genesis bridge protocol.
 type TransferEnabledDecorator struct {
-	rollappK              RollappKeeper
+	rollappK              RollappKeeperMinimal
 	getChannelClientState ChannelKeeper
 }
 
-func NewTransferEnabledDecorator(rollappK RollappKeeper, getChannelClientState ChannelKeeper) *TransferEnabledDecorator {
+func NewTransferEnabledDecorator(rollappK RollappKeeperMinimal, getChannelClientState ChannelKeeper) *TransferEnabledDecorator {
 	return &TransferEnabledDecorator{
 		rollappK:              rollappK,
 		getChannelClientState: getChannelClientState,
@@ -31,10 +32,20 @@ func NewTransferEnabledDecorator(rollappK RollappKeeper, getChannelClientState C
 
 func (h TransferEnabledDecorator) transfersEnabled(ctx sdk.Context, transfer *transferTypes.MsgTransfer) (bool, error) {
 	ra, err := h.rollappK.GetRollappByPortChan(ctx, transfer.SourcePort, transfer.SourceChannel)
-	if err != nil && !errorsmod.IsOf(err, gerrc.ErrNotFound) {
+	if err != nil {
+		if errorsmod.IsOf(err, types.ErrRollappNotFound) {
+			// Two cases
+			// 1. Non rollapp
+			//    Transfers are enabled
+			// 2. It is for rollapp but the light client of this transfer is not yet canonical or will never
+			//    be marked canonical: for a correct rollapp the transfer channel is only created after it's
+			//    marked canonical, so this transfer corresponds to a not-relevant channel.
+			//    Note: IBC prevents sending to a channel which is not OPEN, which prevents making the transfer
+			//    for a channel before it is marked canonical in the onOpenAck hook.
+			return true, nil
+		}
 		return false, errorsmod.Wrap(err, "rollapp by port chan")
 	}
-	// TODO: finish
 	return ra.GenesisState.TransfersEnabled, nil
 }
 
