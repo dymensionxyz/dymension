@@ -124,7 +124,7 @@ func (s *KeeperTestHelper) PostStateUpdateWithDRSVersion(ctx sdk.Context, rollap
 	var bds rollapptypes.BlockDescriptors
 	bds.BD = make([]rollapptypes.BlockDescriptor, numOfBlocks)
 	for k := uint64(0); k < numOfBlocks; k++ {
-		bds.BD[k] = rollapptypes.BlockDescriptor{Height: startHeight + k, Timestamp: time.Now().UTC()}
+		bds.BD[k] = rollapptypes.BlockDescriptor{Height: startHeight + k, Timestamp: time.Now().UTC(), DrsVersion: drsVersion}
 	}
 
 	updateState := rollapptypes.MsgUpdateState{
@@ -135,7 +135,6 @@ func (s *KeeperTestHelper) PostStateUpdateWithDRSVersion(ctx sdk.Context, rollap
 		DAPath:      "",
 		BDs:         bds,
 		Last:        false,
-		DrsVersion:  drsVersion,
 	}
 	msgServer := rollappkeeper.NewMsgServerImpl(*s.App.RollappKeeper)
 	_, err = msgServer.UpdateState(ctx, &updateState)
