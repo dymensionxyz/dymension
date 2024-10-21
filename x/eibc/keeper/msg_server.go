@@ -92,7 +92,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 
 	lpAccount := m.ak.GetAccount(ctx, msg.GetLPBech32Address())
 	if lpAccount == nil {
-		return nil, types.ErrGranterAddressDoesNotExist
+		return nil, types.ErrLPAccountDoesNotExist
 	}
 
 	// Send the funds from the lpAccount to the eibc packet original recipient
@@ -102,21 +102,9 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		return nil, err
 	}
 
-	// TODO: will this work for Policy address?
-	operatorAccount := m.ak.GetAccount(ctx, msg.GetOperatorBech32Address())
+	operatorAccount := m.ak.GetAccount(ctx, msg.GetOperatorFeeBech32Address())
 	if operatorAccount == nil {
-		return nil, types.ErrFulfillerAddressDoesNotExist
-	}
-
-	// by default, the operator account receives the operator share
-	feePartReceiver := operatorAccount
-	// if the operator fee address is provided, the operator fee share is sent to that address
-	if msg.OperatorFeeAddress != "" {
-		operatorFeeAccount := m.ak.GetAccount(ctx, msg.GetOperatorFeeBech32Address())
-		if operatorFeeAccount == nil {
-			return nil, types.ErrOperatorAddressDoesNotExist
-		}
-		feePartReceiver = operatorFeeAccount
+		return nil, types.ErrOperatorFeeAccountDoesNotExist
 	}
 
 	fee := sdk.NewDecFromInt(demandOrder.GetFeeAmount())
@@ -124,7 +112,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 
 	if operatorFee.IsPositive() {
 		// Send the fee part to the fulfiller/operator
-		err = m.bk.SendCoins(ctx, lpAccount.GetAddress(), feePartReceiver.GetAddress(), sdk.NewCoins(sdk.NewCoin(demandOrder.Price[0].Denom, operatorFee)))
+		err = m.bk.SendCoins(ctx, lpAccount.GetAddress(), operatorAccount.GetAddress(), sdk.NewCoins(sdk.NewCoin(demandOrder.Price[0].Denom, operatorFee)))
 		if err != nil {
 			logger.Error("Failed to send fee part to operator", "error", err)
 			return nil, err
