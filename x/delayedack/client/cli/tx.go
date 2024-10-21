@@ -24,7 +24,6 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdFinalizePacket())
-	cmd.AddCommand(CmdFinalizePacketsUntilHeight())
 	cmd.AddCommand(CmdFinalizePacketsByReceiver())
 
 	return cmd
@@ -90,37 +89,6 @@ func parsePacketType(packetType string) (commontypes.RollappPacket_Type, error) 
 			commontypes.RollappPacket_ON_TIMEOUT.String(),
 		)
 	}
-}
-
-func CmdFinalizePacketsUntilHeight() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "finalize-packets-until-height [rollapp-id] [height] --from <sender>",
-		Short: "Finalize packets for the given rollapp until the given height inclusively",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			height, err := strconv.Atoi(args[1])
-			if err != nil {
-				return err
-			}
-
-			msg := types.MsgFinalizePacketsUntilHeight{
-				Sender:    clientCtx.GetFromAddress().String(),
-				RollappId: args[0],
-				Height:    uint64(height),
-			}
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
 }
 
 func CmdFinalizePacketsByReceiver() *cobra.Command {

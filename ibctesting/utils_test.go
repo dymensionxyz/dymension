@@ -369,12 +369,12 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 	return chain
 }
 
-func (s *utilSuite) finalizeRollappPacketsUntilHeight(height uint64) sdk.Events {
-	handler := s.hubApp().MsgServiceRouter().Handler(new(delayedacktypes.MsgFinalizePacketsUntilHeight))
-	resp, err := handler(s.hubCtx(), &delayedacktypes.MsgFinalizePacketsUntilHeight{
+func (s *utilSuite) finalizeRollappPacketsByReceiver(receiver string) sdk.Events {
+	handler := s.hubApp().MsgServiceRouter().Handler(new(delayedacktypes.MsgFinalizeRollappPacketsByReceiver))
+	resp, err := handler(s.hubCtx(), &delayedacktypes.MsgFinalizeRollappPacketsByReceiver{
 		Sender:    s.rollappChain().SenderAccount.GetAddress().String(),
 		RollappId: rollappChainID(),
-		Height:    height,
+		Receiver:  receiver,
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)

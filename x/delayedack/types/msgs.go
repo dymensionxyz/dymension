@@ -91,25 +91,6 @@ func (m MsgFinalizePacketByPacketKey) MustDecodePacketKey() []byte {
 	return packetKey
 }
 
-func (m MsgFinalizePacketsUntilHeight) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(m.Sender)
-	if err != nil {
-		return errors.Join(
-			sdkerrors.ErrInvalidAddress,
-			errorsmod.Wrapf(err, "sender must be a valid bech32 address: %s", m.Sender),
-		)
-	}
-	if len(m.RollappId) == 0 {
-		return gerrc.ErrInvalidArgument.Wrap("rollappId must be non-empty")
-	}
-	return nil
-}
-
-func (m MsgFinalizePacketsUntilHeight) GetSigners() []sdk.AccAddress {
-	signer, _ := sdk.AccAddressFromBech32(m.Sender)
-	return []sdk.AccAddress{signer}
-}
-
 func (m MsgFinalizeRollappPacketsByReceiver) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Sender)
 	if err != nil {

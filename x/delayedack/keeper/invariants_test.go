@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"github.com/cometbft/cometbft/libs/rand"
 	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -52,7 +53,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 				proofHeight := rollappBlocks[rollapp] + k
 				rollappPacket := commontypes.RollappPacket{
 					RollappId:   rollapp,
-					Packet:      getNewTestPacket(sequence),
+					Packet:      suite.getNewTestPacket(sequence),
 					Status:      commontypes.Status_PENDING,
 					ProofHeight: proofHeight,
 				}
@@ -75,9 +76,9 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 
 	// manually finalize packets for all rollapps
 	for rollapp := range seqPerRollapp {
-		packetsNum, err := suite.App.DelayedAckKeeper.FinalizeRollappPacketsUntilHeight(suite.Ctx, transferStack.NextIBCMiddleware(), rollapp, rollappBlocks[rollapp])
+		result, err := suite.App.DelayedAckKeeper.FinalizeRollappPacketsByReceiver(suite.Ctx, transferStack.NextIBCMiddleware(), rollapp, testPacketReceiver)
 		suite.Require().NoError(err)
-		suite.Require().Equal(rollappBlocks[rollapp], uint64(packetsNum))
+		suite.Require().Equal(rollappBlocks[rollapp], result.FinalizedNum)
 	}
 
 	// test fraud
@@ -115,13 +116,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				RollappId:   rollapp,
 				Status:      commontypes.Status_FINALIZED,
 				ProofHeight: 5,
-				Packet:      getNewTestPacket(1),
+				Packet:      suite.getNewTestPacket(1),
 			},
 			commontypes.RollappPacket{
 				RollappId:   rollapp,
 				Status:      commontypes.Status_PENDING,
 				ProofHeight: 15,
-				Packet:      getNewTestPacket(2),
+				Packet:      suite.getNewTestPacket(2),
 			},
 			false,
 		},
@@ -134,13 +135,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				RollappId:   rollapp,
 				Status:      commontypes.Status_FINALIZED,
 				ProofHeight: 5,
-				Packet:      getNewTestPacket(1),
+				Packet:      suite.getNewTestPacket(1),
 			},
 			commontypes.RollappPacket{
 				RollappId:   rollapp,
 				Status:      commontypes.Status_REVERTED,
 				ProofHeight: 15,
-				Packet:      getNewTestPacket(2),
+				Packet:      suite.getNewTestPacket(2),
 			},
 			false,
 		},
@@ -153,13 +154,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				RollappId:   rollapp,
 				Status:      commontypes.Status_PENDING,
 				ProofHeight: 5,
-				Packet:      getNewTestPacket(1),
+				Packet:      suite.getNewTestPacket(1),
 			},
 			commontypes.RollappPacket{
 				RollappId:   rollapp,
 				Status:      commontypes.Status_PENDING,
 				ProofHeight: 15,
-				Packet:      getNewTestPacket(2),
+				Packet:      suite.getNewTestPacket(2),
 			},
 			false,
 		},
@@ -172,13 +173,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				RollappId:   rollapp,
 				Status:      commontypes.Status_FINALIZED,
 				ProofHeight: 5,
-				Packet:      getNewTestPacket(1),
+				Packet:      suite.getNewTestPacket(1),
 			},
 			commontypes.RollappPacket{
 				RollappId:   rollapp,
 				Status:      commontypes.Status_PENDING,
 				ProofHeight: 15,
-				Packet:      getNewTestPacket(2),
+				Packet:      suite.getNewTestPacket(2),
 			},
 			true,
 		},
@@ -191,13 +192,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				RollappId:   rollapp,
 				Status:      commontypes.Status_FINALIZED,
 				ProofHeight: 5,
-				Packet:      getNewTestPacket(1),
+				Packet:      suite.getNewTestPacket(1),
 			},
 			commontypes.RollappPacket{
 				RollappId:   rollapp,
 				Status:      commontypes.Status_PENDING,
 				ProofHeight: 15,
-				Packet:      getNewTestPacket(2),
+				Packet:      suite.getNewTestPacket(2),
 			},
 			true,
 		},
@@ -210,13 +211,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				RollappId:   rollapp,
 				Status:      commontypes.Status_FINALIZED,
 				ProofHeight: 5,
-				Packet:      getNewTestPacket(1),
+				Packet:      suite.getNewTestPacket(1),
 			},
 			commontypes.RollappPacket{
 				RollappId:   rollapp,
 				Status:      commontypes.Status_FINALIZED,
 				ProofHeight: 15,
-				Packet:      getNewTestPacket(2),
+				Packet:      suite.getNewTestPacket(2),
 			},
 			true,
 		},
@@ -300,13 +301,21 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 	}
 }
 
-func getNewTestPacket(sequence uint64) *channeltypes.Packet {
+const testPacketReceiver = "testReceiver"
+
+func (s *DelayedAckTestSuite) getNewTestPacket(sequence uint64) *channeltypes.Packet {
+	data := &transfertypes.FungibleTokenPacketData{
+		Receiver: testPacketReceiver,
+	}
+	pd, err := transfertypes.ModuleCdc.MarshalJSON(data)
+	s.Require().NoError(err)
+
 	return &channeltypes.Packet{
 		SourcePort:         "testSourcePort",
 		SourceChannel:      testSourceChannel,
 		DestinationPort:    "testDestinationPort",
 		DestinationChannel: "testDestinationChannel",
-		Data:               []byte("testData"),
+		Data:               pd,
 		Sequence:           sequence,
 	}
 }

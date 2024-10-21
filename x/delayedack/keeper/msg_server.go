@@ -95,32 +95,6 @@ func (m MsgServer) FinalizePacketByPacketKey(goCtx context.Context, msg *types.M
 	return &types.MsgFinalizePacketByPacketKeyResponse{}, nil
 }
 
-func (m MsgServer) FinalizePacketsUntilHeight(goCtx context.Context, msg *types.MsgFinalizePacketsUntilHeight) (*types.MsgFinalizePacketsUntilHeightResponse, error) {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return nil, err
-	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	finalized, err := m.k.FinalizeRollappPacketsUntilHeight(ctx, m.ibc.NextIBCMiddleware(), msg.RollappId, msg.Height)
-	if err != nil {
-		return nil, err
-	}
-
-	err = uevent.EmitTypedEvent(ctx, &types.EventFinalizePacketsUntilHeight{
-		Sender:       msg.Sender,
-		RollappId:    msg.RollappId,
-		Height:       msg.Height,
-		FinalizedNum: uint64(finalized),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("emit event: %w", err)
-	}
-
-	return &types.MsgFinalizePacketsUntilHeightResponse{}, nil
-}
-
 func (m MsgServer) FinalizeRollappPacketsByReceiver(goCtx context.Context, msg *types.MsgFinalizeRollappPacketsByReceiver) (*types.MsgFinalizeRollappPacketsByReceiverResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -138,8 +112,8 @@ func (m MsgServer) FinalizeRollappPacketsByReceiver(goCtx context.Context, msg *
 		Sender:       msg.Sender,
 		RollappId:    msg.RollappId,
 		Receiver:     msg.Receiver,
-		Height:       result.latestFinalizedHeight,
-		FinalizedNum: result.finalizedNum,
+		Height:       result.LatestFinalizedHeight,
+		FinalizedNum: result.FinalizedNum,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
