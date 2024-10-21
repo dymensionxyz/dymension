@@ -67,7 +67,6 @@ func NewFulfillOrderTxCmd() *cobra.Command {
 }
 
 const (
-	FlagOperatorAddress    = "operator-address"
 	FlagOperatorFeeAddress = "operator-fee-address"
 	FlagRollappId          = "rollapp-id"
 	FlagPrice              = "price"
@@ -95,14 +94,9 @@ func NewFulfillOrderAuthorizedTxCmd() *cobra.Command {
 				return fmt.Errorf("rollapp ID is required")
 			}
 
-			fulfillerAddress, err := cmd.Flags().GetString(FlagOperatorAddress)
+			operatorFeeAddress, err := cmd.Flags().GetString(FlagOperatorFeeAddress)
 			if err != nil {
-				return fmt.Errorf("fulfiller address is required")
-			}
-
-			operatorAddress, err := cmd.Flags().GetString(FlagOperatorFeeAddress)
-			if err != nil {
-				return fmt.Errorf("operator address is required")
+				return fmt.Errorf("operator fee address is required")
 			}
 
 			priceStr, err := cmd.Flags().GetString(FlagPrice)
@@ -115,15 +109,15 @@ func NewFulfillOrderAuthorizedTxCmd() *cobra.Command {
 				return fmt.Errorf("invalid price: %w", err)
 			}
 
-			fulfillerFeePartStr, err := cmd.Flags().GetString(FlagOperatorFeePart)
+			oepratorFeeShareStr, err := cmd.Flags().GetString(FlagOperatorFeeShare)
 			if err != nil {
 				return fmt.Errorf("fulfiller fee part is required")
 			}
-			fulfillerFeePartDec, err := sdk.NewDecFromStr(fulfillerFeePartStr)
+			operatorFeeShareDec, err := sdk.NewDecFromStr(oepratorFeeShareStr)
 			if err != nil {
 				return fmt.Errorf("invalid fulfiller fee part: %w", err)
 			}
-			fulfillerFeePart := sdk.DecProto{Dec: fulfillerFeePartDec}
+			operatorFeeShare := sdk.DecProto{Dec: operatorFeeShareDec}
 
 			settlementValidated, err := cmd.Flags().GetBool(FlagSettlementValidated)
 			if err != nil {
@@ -134,11 +128,10 @@ func NewFulfillOrderAuthorizedTxCmd() *cobra.Command {
 				orderId,
 				rollappId,
 				clientCtx.GetFromAddress().String(),
-				fulfillerAddress,
-				operatorAddress,
+				operatorFeeAddress,
 				fee,
 				price,
-				fulfillerFeePart,
+				operatorFeeShare,
 				settlementValidated,
 			)
 
@@ -153,8 +146,7 @@ func NewFulfillOrderAuthorizedTxCmd() *cobra.Command {
 	cmd.Flags().Bool(FlagSettlementValidated, false, "Settlement validated flag")
 	cmd.Flags().String(FlagRollappId, "", "Rollapp ID")
 	cmd.Flags().String(FlagPrice, "", "Maximum price")
-	cmd.Flags().String(FlagOperatorFeePart, "", "Operator fee part")
-	cmd.Flags().String(FlagOperatorAddress, "", "Operator address")
+	cmd.Flags().String(FlagOperatorFeeShare, "", "Operator fee share")
 	cmd.Flags().String(FlagOperatorFeeAddress, "", "Operator fee address")
 	return cmd
 }

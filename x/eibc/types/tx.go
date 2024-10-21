@@ -60,7 +60,6 @@ func NewMsgFulfillOrderAuthorized(
 	orderId,
 	rollappId,
 	granterAddress,
-	operatorAddress,
 	operatorFeeAddress,
 	expectedFee string,
 	price sdk.Coins,
@@ -70,7 +69,6 @@ func NewMsgFulfillOrderAuthorized(
 	return &MsgFulfillOrderAuthorized{
 		OrderId:             orderId,
 		RollappId:           rollappId,
-		OperatorAddress:     operatorAddress,
 		LpAddress:           granterAddress,
 		OperatorFeeAddress:  operatorFeeAddress,
 		ExpectedFee:         expectedFee,
