@@ -1,6 +1,8 @@
 package types
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/binary"
 	fmt "fmt"
 
@@ -103,4 +105,22 @@ func MustGetStatusBytes(status Status) []byte {
 	default:
 		panic(fmt.Sprintf("invalid packet status: %s", status))
 	}
+}
+
+// DecodePacketKey decodes packet key from base64 to bytes.
+func DecodePacketKey(packetKey string) ([]byte, error) {
+	rollappPacketKeyBytes := make([]byte, base64.StdEncoding.DecodedLen(len(packetKey)))
+	_, err := base64.StdEncoding.Decode(rollappPacketKeyBytes, []byte(packetKey))
+	if err != nil {
+		return nil, err
+	}
+	rollappPacketKeyBytes = bytes.TrimRight(rollappPacketKeyBytes, "\x00") // remove padding
+	return rollappPacketKeyBytes, nil
+}
+
+// EncodePacketKey encodes packet key from bytes to base 64.
+func EncodePacketKey(packetKey []byte) string {
+	rollappPacketKeyBytes := make([]byte, base64.StdEncoding.EncodedLen(len(packetKey)))
+	base64.StdEncoding.Encode(rollappPacketKeyBytes, packetKey)
+	return string(rollappPacketKeyBytes)
 }

@@ -97,7 +97,7 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	s.Require().NoError(err)
 
 	// manually finalize packets through x/delayedack
-	s.finalizeRollappPacketsUntilHeight(currentRollappBlockHeight)
+	s.finalizeRollappPacketsByReceiver(s.hubChain().SenderAccount.GetAddress().String())
 
 	// check balance after finalization
 	expectedFee := s.hubApp().DelayedAckKeeper.BridgingFeeFromAmt(s.hubCtx(), transferredCoins.Amount)
