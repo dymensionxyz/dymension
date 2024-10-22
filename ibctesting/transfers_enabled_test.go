@@ -36,9 +36,12 @@ func (s *transfersEnabledSuite) SetupTest() {
 	s.path = path
 
 	// manually set the rollapp to have transfers disabled by default
+	// (rollapp is setup correctly, meaning transfer channel is canonical)
 	ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 	ra.GenesisState.TransfersEnabled = false
+	ra.ChannelId = s.path.EndpointA.ChannelID
 	s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), ra)
+	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), rollappChainID(), s.path.EndpointA.ClientID)
 }
 
 // Regular (non genesis) transfers (RA->Hub) and Hub->RA should both be blocked when the bridge is not open
