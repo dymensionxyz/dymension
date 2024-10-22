@@ -282,7 +282,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 
 			// if frozenRollapp true, we should freeze the rollapp and revert pending states
 			if tc.frozenRollapp {
-				err := suite.App.RollappKeeper.HandleFraud(ctx, rollapp, "", 11, proposer)
+				err := suite.App.RollappKeeper.HardFork(ctx, rollapp, "", 11, proposer)
 				suite.Require().NoError(err)
 			}
 

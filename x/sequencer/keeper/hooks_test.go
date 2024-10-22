@@ -40,7 +40,7 @@ func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
 	bds := keeper.GetMatureDecreasingBondIDs(suite.Ctx, resp.GetCompletionTime())
 	suite.Require().Len(bds, 1)
 
-	err = keeper.RollappHooks().FraudSubmitted(suite.Ctx, rollappId, 0, proposer)
+	err = keeper.RollappHooks().OnHardFork(suite.Ctx, rollappId, 0, proposer)
 	suite.Require().NoError(err)
 
 	// check if proposer is slashed

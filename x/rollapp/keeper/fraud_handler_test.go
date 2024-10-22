@@ -11,7 +11,7 @@ import (
 // - reverted states
 // - cleared queue
 
-func (suite *RollappTestSuite) TestHandleFraud() {
+func (suite *RollappTestSuite) TestHardFork() {
 	var err error
 
 	ctx := &suite.Ctx
@@ -52,14 +52,14 @@ func (suite *RollappTestSuite) TestHandleFraud() {
 	// assert before fraud submission
 	suite.assertBeforeFraud(rollapp, fraudHeight)
 
-	err = keeper.HandleFraud(*ctx, rollapp, "", fraudHeight, proposer)
+	err = keeper.HardFork(*ctx, rollapp, "", fraudHeight, proposer)
 	suite.Require().Nil(err)
 
 	suite.assertFraudHandled(rollapp)
 }
 
 // Fail - Invalid rollapp
-func (suite *RollappTestSuite) TestHandleFraud_InvalidRollapp() {
+func (suite *RollappTestSuite) TestHardFork_InvalidRollapp() {
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
@@ -67,12 +67,12 @@ func (suite *RollappTestSuite) TestHandleFraud_InvalidRollapp() {
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
-	err = keeper.HandleFraud(*ctx, "invalidRollapp", "", 2, proposer)
+	err = keeper.HardFork(*ctx, "invalidRollapp", "", 2, proposer)
 	suite.Require().NotNil(err)
 }
 
 // Fail - Wrong height
-func (suite *RollappTestSuite) TestHandleFraud_WrongHeight() {
+func (suite *RollappTestSuite) TestHardFork_WrongHeight() {
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
@@ -80,12 +80,12 @@ func (suite *RollappTestSuite) TestHandleFraud_WrongHeight() {
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
-	err = keeper.HandleFraud(*ctx, rollapp, "", 100, proposer)
+	err = keeper.HardFork(*ctx, rollapp, "", 100, proposer)
 	suite.Require().NotNil(err)
 }
 
 // Fail - Wrong sequencer address
-func (suite *RollappTestSuite) TestHandleFraud_WrongSequencer() {
+func (suite *RollappTestSuite) TestHardFork_WrongSequencer() {
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
@@ -93,12 +93,12 @@ func (suite *RollappTestSuite) TestHandleFraud_WrongSequencer() {
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
-	err = keeper.HandleFraud(*ctx, rollapp, "", 2, "wrongSequencer")
+	err = keeper.HardFork(*ctx, rollapp, "", 2, "wrongSequencer")
 	suite.Require().NotNil(err)
 }
 
 // Fail - Wrong channel-ID
-func (suite *RollappTestSuite) TestHandleFraud_WrongChannelID() {
+func (suite *RollappTestSuite) TestHardFork_WrongChannelID() {
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
@@ -106,12 +106,12 @@ func (suite *RollappTestSuite) TestHandleFraud_WrongChannelID() {
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
-	err = keeper.HandleFraud(*ctx, rollapp, "wrongChannelID", 2, proposer)
+	err = keeper.HardFork(*ctx, rollapp, "wrongChannelID", 2, proposer)
 	suite.Require().NotNil(err)
 }
 
 // Fail - Disputing already reverted state
-func (suite *RollappTestSuite) TestHandleFraud_AlreadyReverted() {
+func (suite *RollappTestSuite) TestHardFork_AlreadyReverted() {
 	var err error
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
@@ -132,15 +132,15 @@ func (suite *RollappTestSuite) TestHandleFraud_AlreadyReverted() {
 		suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
 	}
 
-	err = keeper.HandleFraud(*ctx, rollapp, "", 11, proposer)
+	err = keeper.HardFork(*ctx, rollapp, "", 11, proposer)
 	suite.Require().Nil(err)
 
-	err = keeper.HandleFraud(*ctx, rollapp, "", 1, proposer)
+	err = keeper.HardFork(*ctx, rollapp, "", 1, proposer)
 	suite.Require().NotNil(err)
 }
 
 // Fail - Disputing already finalized state
-func (suite *RollappTestSuite) TestHandleFraud_AlreadyFinalized() {
+func (suite *RollappTestSuite) TestHardFork_AlreadyFinalized() {
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
@@ -155,7 +155,7 @@ func (suite *RollappTestSuite) TestHandleFraud_AlreadyFinalized() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(common.Status_FINALIZED, stateInfo.Status)
 
-	err = keeper.HandleFraud(*ctx, rollapp, "", 2, proposer)
+	err = keeper.HardFork(*ctx, rollapp, "", 2, proposer)
 	suite.Require().NotNil(err)
 }
 

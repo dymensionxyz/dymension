@@ -48,9 +48,9 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 	return nil
 }
 
-// FraudSubmitted implements the RollappHooks interface
+// OnHardFork implements the RollappHooks interface
 // It slashes the sequencer and unbonds all other bonded sequencers
-func (hook rollappHook) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
+func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
 	err := hook.k.JailSequencerOnFraud(ctx, seqAddr)
 	if err != nil {
 		return err

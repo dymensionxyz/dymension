@@ -23,7 +23,7 @@ func NewRollappProposalHandler(k *keeper.Keeper) govtypes.Handler {
 }
 
 func HandleSubmitFraudProposal(ctx sdk.Context, k *keeper.Keeper, p *types.SubmitFraudProposal) error {
-	err := k.HandleFraud(ctx, p.RollappId, p.IbcClientId, p.FraudelentHeight, p.FraudelentSequencerAddress)
+	err := k.HardFork(ctx, p.RollappId, p.IbcClientId, p.FraudelentHeight, p.FraudelentSequencerAddress)
 	if err != nil {
 		return err
 	}

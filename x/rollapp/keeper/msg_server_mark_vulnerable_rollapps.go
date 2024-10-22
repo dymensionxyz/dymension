@@ -75,6 +75,7 @@ func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []string) (i
 		if vulnerable {
 			err := k.MarkRollappAsVulnerable(ctx, rollapp.RollappId)
 			if err != nil {
+				// FIXME: should continue to other rollapps if one fails
 				return 0, fmt.Errorf("freeze rollapp: %w", err)
 			}
 			vulnerableNum++

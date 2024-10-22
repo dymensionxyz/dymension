@@ -95,7 +95,7 @@ func (hook rollappHook) checkStateForHeight(ctx sdk.Context, rollappId string, b
 		if err != nil {
 			return err
 		}
-		err = hook.k.rollappKeeper.HandleFraud(ctx, rollappId, canonicalClient, bd.GetHeight(), sequencerAddress)
+		err = hook.k.rollappKeeper.HardFork(ctx, rollappId, canonicalClient, bd.GetHeight(), sequencerAddress)
 		if err != nil {
 			return err
 		}

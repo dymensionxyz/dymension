@@ -53,7 +53,7 @@ func (m *MockRollappKeeper) GetStateInfo(ctx sdk.Context, rollappId string, inde
 	return val, found
 }
 
-func (m *MockRollappKeeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHeight uint64, seqAddr string) error {
+func (m *MockRollappKeeper) HardFork(ctx sdk.Context, rollappID, clientId string, fraudHeight uint64, seqAddr string) error {
 	return nil
 }
 
