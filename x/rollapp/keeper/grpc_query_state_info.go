@@ -5,11 +5,11 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func (k Keeper) StateInfo(c context.Context, req *types.QueryGetStateInfoRequest) (*types.QueryGetStateInfoResponse, error) {
@@ -68,20 +68,22 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 		return nil, types.ErrUnknownRollappID
 	}
 
-	stateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollappId)
-	if !found {
-		return nil, errorsmod.Wrapf(types.ErrNotFound,
+	// check that height is already committed
+	ss, found := k.GetLatestStateInfo(ctx, rollappId)
+	if !found || height > ss.GetLatestHeight() {
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound,
 			"LatestStateInfoIndex wasn't found for rollappId=%s",
 			rollappId)
 	}
+
 	// initial interval to search in
-	startInfoIndex := uint64(1)
-	endInfoIndex := stateInfoIndex.Index
+	startInfoIndex := uint64(1) // TODO: startInfo should start at least with last unpruned hight (https://github.com/dymensionxyz/dymension/issues/1307)
+	endInfoIndex := ss.StateInfoIndex.Index
 	for startInfoIndex <= endInfoIndex {
 		midIndex := startInfoIndex + (endInfoIndex-startInfoIndex)/2
 		state, ok := k.GetStateInfo(ctx, rollappId, midIndex)
 		if !ok {
-			return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "StateInfo wasn't found for rollappId=%s, index=%d", rollappId, midIndex)
+			return nil, errorsmod.Wrapf(types.ErrStateNotExists, "StateInfo wasn't found for rollappId=%s, index=%d", rollappId, midIndex)
 		}
 		if state.ContainsHeight(height) {
 			return &state, nil

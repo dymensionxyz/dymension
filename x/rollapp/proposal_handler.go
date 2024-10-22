@@ -23,7 +23,9 @@ func NewRollappProposalHandler(k *keeper.Keeper) govtypes.Handler {
 }
 
 func HandleSubmitFraudProposal(ctx sdk.Context, k *keeper.Keeper, p *types.SubmitFraudProposal) error {
-	err := k.HardFork(ctx, p.RollappId, p.IbcClientId, p.FraudelentHeight, p.FraudelentSequencerAddress)
+	// FIXME: jail the sequencer
+
+	err := k.HardFork(ctx, p.RollappId, p.FraudelentHeight)
 	if err != nil {
 		return err
 	}

@@ -180,6 +180,6 @@ func (m *MockRollappKeeper) GetStateInfo(ctx sdk.Context, rollappId string, inde
 func (m *MockRollappKeeper) SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp) {
 }
 
-func (m *MockRollappKeeper) HardFork(ctx sdk.Context, rollappID, clientId string, fraudHeight uint64, seqAddr string) error {
+func (m *MockRollappKeeper) HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) error {
 	return nil
 }

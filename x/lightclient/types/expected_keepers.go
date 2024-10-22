@@ -23,7 +23,7 @@ type RollappKeeperExpected interface {
 	FindStateInfoByHeight(ctx sdk.Context, rollappId string, height uint64) (*rollapptypes.StateInfo, error)
 	GetStateInfo(ctx sdk.Context, rollappId string, index uint64) (val rollapptypes.StateInfo, found bool)
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
-	HardFork(ctx sdk.Context, rollappID, clientId string, fraudHeight uint64, seqAddr string) error
+	HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) error
 }
 
 type IBCClientKeeperExpected interface {

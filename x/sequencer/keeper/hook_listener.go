@@ -50,17 +50,21 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 
 // OnHardFork implements the RollappHooks interface
 // It slashes the sequencer and unbonds all other bonded sequencers
-func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
-	err := hook.k.JailSequencerOnFraud(ctx, seqAddr)
-	if err != nil {
-		return err
-	}
+func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappID string, height uint64) error {
 
-	// unbond all other other rollapp sequencers
-	err = hook.k.InstantUnbondAllSequencers(ctx, rollappID)
-	if err != nil {
-		return err
-	}
+	// FIXME: probably need to validate we have active proposer
+	/*
+		err := hook.k.JailSequencerOnFraud(ctx, seqAddr)
+		if err != nil {
+			return err
+		}
+
+		// unbond all other other rollapp sequencers
+		err = hook.k.InstantUnbondAllSequencers(ctx, rollappID)
+		if err != nil {
+			return err
+		}
+	*/
 
 	return nil
 }

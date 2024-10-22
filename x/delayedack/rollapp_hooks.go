@@ -8,6 +8,6 @@ import (
 
 var _ rollapptypes.RollappHooks = &IBCMiddleware{}
 
-func (w IBCMiddleware) OnHardFork(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
+func (w IBCMiddleware) OnHardFork(ctx sdk.Context, rollappID string, height uint64) error {
 	return w.HandleFraud(ctx, rollappID, w.IBCModule)
 }

@@ -246,7 +246,7 @@ func (k Keeper) IsRollappStarted(ctx sdk.Context, rollappId string) bool {
 }
 
 func (k Keeper) MarkRollappAsVulnerable(ctx sdk.Context, rollappId string) error {
-	return k.HardFork(ctx, rollappId, "vulnerability", 0, "") // FIXME: use a proper hard fork version
+	return k.HardFork(ctx, rollappId, 0) // FIXME: use a proper hard fork version
 }
 
 func (k Keeper) FilterRollapps(ctx sdk.Context, f func(types.Rollapp) bool) []types.Rollapp {
