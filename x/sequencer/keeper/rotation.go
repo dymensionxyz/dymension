@@ -2,12 +2,14 @@ package keeper
 
 import (
 	"sort"
+	"strings"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
@@ -96,11 +98,14 @@ func (k Keeper) startRotation(ctx sdk.Context, rollappId string) {
 
 	k.Logger(ctx).Info("rotation started", "rollappId", rollappId, "nextProposer", nextProposer.Address)
 
+	// TODO: use corresponding typed event
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeRotationStarted,
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
 			sdk.NewAttribute(types.AttributeKeyNextProposer, nextProposer.Address),
+			sdk.NewAttribute(types.AttributeKeyRewardAddr, nextProposer.RewardAddr),
+			sdk.NewAttribute(types.AttributeKeyWhitelistedRelayers, strings.Join(nextProposer.WhitelistedRelayers, ",")),
 		),
 	)
 }

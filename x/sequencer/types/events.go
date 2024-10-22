@@ -14,6 +14,8 @@ const (
 	// Attributes:
 	// - AttributeKeyRollappId
 	// - AttributeKeyNextProposer
+	// - AttributeKeyRewardAddr
+	// - AttributeKeyWhitelistedRelayers
 	EventTypeRotationStarted = "proposer_rotation_started"
 
 	// EventTypeProposerRotated is emitted when a proposer is rotated
@@ -43,10 +45,12 @@ const (
 	// EventTypeBondIncreased is emitted when a sequencer's bond is increased
 	EventTypeBondIncreased = "bond_increased"
 
-	AttributeKeyRollappId      = "rollapp_id"
-	AttributeKeySequencer      = "sequencer"
-	AttributeKeyBond           = "bond"
-	AttributeKeyProposer       = "proposer"
-	AttributeKeyNextProposer   = "next_proposer"
-	AttributeKeyCompletionTime = "completion_time"
+	AttributeKeyRollappId           = "rollapp_id"
+	AttributeKeySequencer           = "sequencer"
+	AttributeKeyBond                = "bond"
+	AttributeKeyProposer            = "proposer"
+	AttributeKeyNextProposer        = "next_proposer"
+	AttributeKeyRewardAddr          = "reward_addr"
+	AttributeKeyWhitelistedRelayers = "whitelisted_relayers"
+	AttributeKeyCompletionTime      = "completion_time"
 )
