@@ -103,10 +103,6 @@ func (r Rollapp) GenesisInfoFieldsAreSet() bool {
 	return r.GenesisInfo.AllSet()
 }
 
-func (r Rollapp) IsVulnerable() bool {
-	return r.Frozen
-}
-
 func validateInitialSequencer(initialSequencer string) error {
 	if initialSequencer == "" || initialSequencer == "*" {
 		return nil

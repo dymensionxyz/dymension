@@ -24,11 +24,6 @@ func (k msgServer) UpdateSequencerInformation(goCtx context.Context, msg *types.
 	}
 
 	rollapp := k.rollappKeeper.MustGetRollapp(ctx, sequencer.RollappId)
-
-	if rollapp.Frozen {
-		return nil, types.ErrRollappFrozen
-	}
-
 	if err := msg.VMSpecificValidate(rollapp.VmType); err != nil {
 		return nil, err
 	}

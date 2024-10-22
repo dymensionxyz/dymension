@@ -96,7 +96,7 @@ func (hook rollappHook) checkStateForHeight(ctx sdk.Context, rollappId string, b
 			return err
 		}
 		// FIXME: punish the sequencer
-		hook.k.sequencerKeeper.JailSequencer(ctx, sequencerAddress)
+		hook.k.sequencerKeeper.JailSequencerOnFraud(ctx, sequencerAddress)
 
 		err = hook.k.rollappKeeper.HardFork(ctx, rollappId, bd.GetHeight())
 		if err != nil {

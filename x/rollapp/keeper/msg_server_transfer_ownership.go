@@ -27,10 +27,6 @@ func (k msgServer) TransferOwnership(goCtx context.Context, msg *types.MsgTransf
 		return nil, types.ErrUnauthorizedSigner
 	}
 
-	if rollapp.Frozen {
-		return nil, types.ErrRollappFrozen
-	}
-
 	if rollapp.Owner == msg.NewOwner {
 		return nil, types.ErrSameOwner
 	}

@@ -53,10 +53,9 @@ func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []string) (i
 
 	var (
 		logger        = k.Logger(ctx)
-		nonVulnerable = k.FilterRollapps(ctx, FilterNonVulnerable)
 		vulnerableNum int
 	)
-	for _, rollapp := range nonVulnerable {
+	for _, rollapp := range k.GetAllRollapps(ctx) {
 		info, found := k.GetLatestStateInfo(ctx, rollapp.RollappId)
 		if !found {
 			logger.With("rollapp_id", rollapp.RollappId).Info("no latest state info for rollapp")

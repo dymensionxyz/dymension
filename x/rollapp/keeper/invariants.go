@@ -96,9 +96,6 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 				continue
 			}
 
-			if rollapp.GetFrozen() {
-				continue
-			}
 			latestStateIdx, _ := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
 			latestFinalizedStateIdx, _ := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
 

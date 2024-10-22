@@ -46,16 +46,6 @@ func (suite *RollappTestSuite) TestTransferOwnership() {
 			),
 			expError: types.ErrUnauthorizedSigner,
 		}, {
-			name: "Transfer rollapp ownership: failed, frozen rollapp",
-			request: types.NewMsgTransferOwnership(
-				alice, bob, rollappId,
-			),
-			malleate: func(rollapp types.Rollapp) types.Rollapp {
-				rollapp.Frozen = true
-				return rollapp
-			},
-			expError: types.ErrRollappFrozen,
-		}, {
 			name: "Transfer rollapp ownership: failed, invalid current owner address",
 			request: types.NewMsgTransferOwnership(
 				"invalid_address", bob, rollappId,

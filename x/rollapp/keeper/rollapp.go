@@ -23,10 +23,6 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		return current, sdkerrors.ErrUnauthorized
 	}
 
-	if current.Frozen {
-		return current, types.ErrRollappFrozen
-	}
-
 	// immutable values cannot be updated when the rollapp is launched
 	if update.UpdatingImmutableValues() && current.Launched {
 		return current, types.ErrImmutableFieldUpdateAfterLaunched
@@ -81,28 +77,14 @@ func (k Keeper) CheckIfRollappExists(ctx sdk.Context, rollappId types.ChainID) e
 		return types.ErrRollappExists
 	}
 
-	existingRollapp, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID())
-	// allow replacing EIP155 only when forking (previous rollapp is frozen)
-	if !isFound {
-		// if not forking, check to see if the Rollapp has been registered before with same name
-		if _, isFound = k.GetRollappByName(ctx, rollappId.GetName()); isFound {
-			return types.ErrRollappExists
-		}
-		return nil
-	}
-	if !existingRollapp.Frozen {
+	if _, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID()); isFound {
 		return types.ErrRollappExists
 	}
-	existingRollappChainId := types.MustNewChainID(existingRollapp.RollappId)
 
-	if rollappId.GetName() != existingRollappChainId.GetName() {
-		return errorsmod.Wrapf(types.ErrInvalidRollappID, "rollapp name should be %s", existingRollappChainId.GetName())
+	if _, isFound := k.GetRollappByName(ctx, rollappId.GetName()); isFound {
+		return types.ErrRollappExists
 	}
 
-	nextRevisionNumber := existingRollappChainId.GetRevisionNumber() + 1
-	if rollappId.GetRevisionNumber() != nextRevisionNumber {
-		return errorsmod.Wrapf(types.ErrInvalidRollappID, "revision number should be %d", nextRevisionNumber)
-	}
 	return nil
 }
 
@@ -263,10 +245,6 @@ func (k Keeper) FilterRollapps(ctx sdk.Context, f func(types.Rollapp) bool) []ty
 		}
 	}
 	return result
-}
-
-func FilterNonVulnerable(b types.Rollapp) bool {
-	return !b.IsVulnerable()
 }
 
 func (k Keeper) IsDRSVersionVulnerable(ctx sdk.Context, version string) bool {

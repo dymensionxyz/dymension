@@ -347,5 +347,7 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_NotCompat
 	s.False(found)
 	// Ensuring that the rollapp is now frozen as part of fraud handling
 	rollapp, _ := s.hubApp().RollappKeeper.GetRollapp(s.hubCtx(), s.rollappChain().ChainID)
-	s.True(rollapp.Frozen)
+	s.Equal(2, rollapp.RevisionNumber)
+
+	// FIXME: better test for fraud handling
 }

@@ -25,10 +25,8 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) 
 	}
 
 	// update revision number
-	// rollapp.RevisionNumber += 1
+	rollapp.RevisionNumber += 1
 	// fixme: set liveness height
-
-	rollapp.Frozen = true
 	k.SetRollapp(ctx, rollapp)
 
 	// slash the sequencer, clean delayed packets

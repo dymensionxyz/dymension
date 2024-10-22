@@ -221,7 +221,6 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		Owner:            oldRollapp.Owner,
 		GenesisState:     oldRollapp.GenesisState,
 		ChannelId:        oldRollapp.ChannelId,
-		Frozen:           oldRollapp.Frozen,
 		RegisteredDenoms: oldRollapp.RegisteredDenoms,
 		// TODO: regarding missing data - https://github.com/dymensionxyz/dymension/issues/986
 		VmType: rollapptypes.Rollapp_EVM, // placeholder data
@@ -249,6 +248,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		},
 		InitialSequencer: "*",
 		Launched:         true,
+		RevisionNumber:   1,
 	}
 }
 

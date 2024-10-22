@@ -23,10 +23,6 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, types.ErrUnknownRollappID
 	}
 
-	if rollapp.Frozen {
-		return nil, types.ErrRollappFrozen
-	}
-
 	if err := msg.VMSpecificValidate(rollapp.VmType); err != nil {
 		return nil, errors.Join(types.ErrInvalidRequest, err)
 	}

@@ -16,6 +16,7 @@ type SequencerKeeperExpected interface {
 	GetSequencer(ctx sdk.Context, sequencerAddress string) (val sequencertypes.Sequencer, found bool)
 	GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list []sequencertypes.Sequencer)
 	UnbondingTime(ctx sdk.Context) (res time.Duration)
+	JailSequencerOnFraud(ctx sdk.Context, sequencerAddress string) error
 }
 
 type RollappKeeperExpected interface {

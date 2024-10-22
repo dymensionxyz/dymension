@@ -159,6 +159,10 @@ func (m *MockSequencerKeeper) GetSequencersByRollapp(ctx sdk.Context, rollappId 
 	return seqs
 }
 
+func (m *MockSequencerKeeper) JailSequencerOnFraud(ctx sdk.Context, seqAddr string) error {
+	return nil
+}
+
 type MockRollappKeeper struct{}
 
 func NewMockRollappKeeper() *MockRollappKeeper {

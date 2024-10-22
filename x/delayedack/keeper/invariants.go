@@ -25,23 +25,23 @@ func (k Keeper) RegisterInvariants(ir sdk.InvariantRegistry) {
 // finalized status for all heights up to the latest height.
 // Skip the check if the rollapp is frozen
 func (k Keeper) PacketsFinalizationCorrespondsToFinalizationHeight(ctx sdk.Context) (string, bool) {
-	return k.packetsCorrespondsToStatusHeight(checkFinalizedPackets, false)(ctx)
+	return k.packetsCorrespondsToStatusHeight(checkFinalizedPackets)(ctx)
 }
 
 // PacketsFromRevertedHeightsAreReverted checks that all rollapp packets stored are set to
 // reverted status for all heights up to the latest height
 // Check if the rollapp is frozen
 func (k Keeper) PacketsFromRevertedHeightsAreReverted(ctx sdk.Context) (string, bool) {
-	return k.packetsCorrespondsToStatusHeight(checkRevertedPackets, true)(ctx)
+	return k.packetsCorrespondsToStatusHeight(checkRevertedPackets)(ctx)
 }
 
 type checkPacketsFn func(packets []commontypes.RollappPacket, latestFinalizedHeight uint64) string
 
 // packetsCorrespondsToStatusHeight checks that all rollapp packets stored are set to adequate status for all heights up to the latest height
-func (k Keeper) packetsCorrespondsToStatusHeight(checkPackets checkPacketsFn, checkRollappFrozen bool) sdk.Invariant {
+func (k Keeper) packetsCorrespondsToStatusHeight(checkPackets checkPacketsFn) sdk.Invariant {
 	return func(ctx sdk.Context) (msg string, stop bool) {
 		for _, rollapp := range k.rollappKeeper.GetAllRollapps(ctx) {
-			msg = k.checkRollapp(ctx, rollapp, checkPackets, checkRollappFrozen)
+			msg = k.checkRollapp(ctx, rollapp, checkPackets)
 			if stop = msg != ""; stop {
 				break
 			}
@@ -51,11 +51,7 @@ func (k Keeper) packetsCorrespondsToStatusHeight(checkPackets checkPacketsFn, ch
 	}
 }
 
-func (k Keeper) checkRollapp(ctx sdk.Context, rollapp rtypes.Rollapp, checkPackets checkPacketsFn, checkFrozen bool) (msg string) {
-	if checkFrozen && !rollapp.Frozen {
-		return
-	}
-
+func (k Keeper) checkRollapp(ctx sdk.Context, rollapp rtypes.Rollapp, checkPackets checkPacketsFn) (msg string) {
 	// will stay 0 if no state is found
 	// but will still check packets
 	var latestFinalizedHeight uint64

@@ -6,7 +6,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -18,11 +17,6 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	rollapp, isFound := k.GetRollapp(ctx, msg.RollappId)
 	if !isFound {
 		return nil, types.ErrUnknownRollappID
-	}
-
-	// verify the rollapp is not frozen
-	if rollapp.Frozen {
-		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp is frozen")
 	}
 
 	// call the before-update-state hook
