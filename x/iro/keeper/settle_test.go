@@ -79,26 +79,27 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 		expectedTokens math.Int
 	}{
 		// for small purchases, the raised dym is the limiting factor:
-		// - the expected DYM in the pool is the buy amount * 0.1 (fixed price) + 10 DYM creation fee
-		// for large purchases, the left tokens are the limiting factor:
-		// - the expected DYM in the pool is the left tokens / 0.1 (fixed price)
+		// - the expected DYM in the pool is the buy amount * 0.1 (fixed price) + 1 DYM creation fee
+		// - the expected tokens in the pool is expected DYM / 0.1 (fixed price)
 		{
 			name:           "Small purchase",
 			buyAmt:         math.NewInt(1_000).MulRaw(1e18),
-			expectedDYM:    math.NewInt(110).MulRaw(1e18),
-			expectedTokens: math.NewInt(1_100).MulRaw(1e18),
+			expectedDYM:    math.NewInt(101).MulRaw(1e18),
+			expectedTokens: math.NewInt(1_010).MulRaw(1e18),
 		},
+		{
+			name:           "Nothing sold - pool contains only creation fee",
+			buyAmt:         math.NewInt(0),
+			expectedDYM:    math.NewInt(1).MulRaw(1e18), // creation fee
+			expectedTokens: math.NewInt(10).MulRaw(1e18),
+		},
+		// for large purchases, the left tokens are the limiting factor:
+		// - the expected DYM in the pool is the left tokens / 0.1 (fixed price)
 		{
 			name:           "Large purchase - left tokens are limiting factor",
 			buyAmt:         math.NewInt(800_000).MulRaw(1e18),
 			expectedDYM:    math.NewInt(20_000).MulRaw(1e18),
 			expectedTokens: math.NewInt(200_000).MulRaw(1e18),
-		},
-		{
-			name:           "Nothing sold - pool contains only creation fee",
-			buyAmt:         math.NewInt(0),
-			expectedDYM:    math.NewInt(10).MulRaw(1e18), // creation fee
-			expectedTokens: math.NewInt(100).MulRaw(1e18),
 		},
 		{
 			name:           "All sold - pool contains only reserved tokens",
