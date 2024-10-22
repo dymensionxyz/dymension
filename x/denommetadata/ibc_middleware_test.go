@@ -265,7 +265,7 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 				ICS4Wrapper: &mockICS4Wrapper{},
 				rollappKeeper: &mockRollappKeeper{
 					returnRollapp: &rollapptypes.Rollapp{
-						RegisteredDenoms: []string{"adym"},
+						RegisteredDenoms: map[string]*rollapptypes.Empty{"adym": {}},
 					},
 				},
 			},
@@ -357,7 +357,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				acknowledgement: okAck(),
 			},
 			wantRollapp: &rollapptypes.Rollapp{
-				RegisteredDenoms: []string{validDenomMetadata.Base},
+				RegisteredDenoms: map[string]*rollapptypes.Empty{validDenomMetadata.Base: {}},
 			},
 		}, {
 			name: "success: added token metadata to rollapp with user memo",
@@ -375,7 +375,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				acknowledgement: okAck(),
 			},
 			wantRollapp: &rollapptypes.Rollapp{
-				RegisteredDenoms: []string{validDenomMetadata.Base},
+				RegisteredDenoms: map[string]*rollapptypes.Empty{validDenomMetadata.Base: {}},
 			},
 		}, {
 			name: "return early: error acknowledgement",
@@ -468,7 +468,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				IBCModule: &mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{
 					returnRollapp: &rollapptypes.Rollapp{
-						RegisteredDenoms: []string{validDenomMetadata.Base},
+						RegisteredDenoms: map[string]*rollapptypes.Empty{validDenomMetadata.Base: {}},
 					},
 				},
 			},
@@ -480,7 +480,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				acknowledgement: okAck(),
 			},
 			wantRollapp: &rollapptypes.Rollapp{
-				RegisteredDenoms: []string{validDenomMetadata.Base},
+				RegisteredDenoms: map[string]*rollapptypes.Empty{validDenomMetadata.Base: {}},
 			},
 		},
 	}

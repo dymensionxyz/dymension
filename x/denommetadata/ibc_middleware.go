@@ -1,8 +1,6 @@
 package denommetadata
 
 import (
-	. "slices"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -13,12 +11,12 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 var _ porttypes.IBCModule = &IBCModule{}
@@ -148,10 +146,12 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return gerrc.ErrNotFound
 	}
 
-	if !Contains(rollapp.RegisteredDenoms, dm.Base) {
-		// add the new token denom base to the list of rollapp's registered denoms
-		rollapp.RegisteredDenoms = append(rollapp.RegisteredDenoms, dm.Base)
-
+	if _, ok := rollapp.RegisteredDenoms[dm.Base]; !ok {
+		// add the new token denom base to the map of rollapp's registered denoms
+		if rollapp.RegisteredDenoms == nil {
+			rollapp.RegisteredDenoms = make(map[string]*rollapptypes.Empty)
+		}
+		rollapp.RegisteredDenoms[dm.Base] = &rollapptypes.Empty{}
 		im.rollappKeeper.SetRollapp(ctx, *rollapp)
 	}
 
@@ -229,7 +229,7 @@ func (m *ICS4Wrapper) SendPacket(
 	//		2. We parse the IBC denom trace into IBC denom hash and prepend it with "ibc/" to get the baseDenom
 	baseDenom := transfertypes.ParseDenomTrace(packet.Denom).IBCDenom()
 
-	if Contains(rollapp.RegisteredDenoms, baseDenom) {
+	if _, ok := rollapp.RegisteredDenoms[baseDenom]; ok {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 

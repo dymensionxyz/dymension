@@ -43,8 +43,8 @@ message Rollapp {
   string channel_id = 8;
   // frozen is a boolean that indicates if the rollapp is frozen.
   bool frozen = 9;
-  // registeredDenoms is a list of registered denom bases on this rollapp
-  repeated string registeredDenoms = 10;
+  // registeredDenoms is a set of registered denom bases on this rollapp
+  map<string, Empty> registered_denoms = 10;
   // metadata is the rollapp metadata
   RollappMetadata metadata = 11;
   // genesis_info keeps immutable rollapp fields
@@ -76,6 +76,8 @@ message Rollapp {
   // received
   int64 last_state_update_height = 18;
 }
+
+message Empty {}
 
 // Rollapp summary is a compact representation of Rollapp
 message RollappSummary {

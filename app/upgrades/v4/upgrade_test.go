@@ -297,7 +297,7 @@ func (s *UpgradeTestSuite) seedRollapps(numRollapps int) []rollapptypes.Rollapp 
 			Owner:            sample.AccAddressFromSecret(rollappID),
 			GenesisState:     rollapptypes.RollappGenesisState{},
 			ChannelId:        fmt.Sprintf("channel-%d", i),
-			RegisteredDenoms: []string{"denom1", "denom2"},
+			RegisteredDenoms: map[string]*rollapptypes.Empty{"denom1": {}, "denom2": {}},
 		}
 		rollapps[i] = rollapp
 	}
