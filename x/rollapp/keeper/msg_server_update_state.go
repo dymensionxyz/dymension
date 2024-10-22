@@ -97,9 +97,16 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		Index:     newIndex,
 	})
 
-	val, found := k.sequencerKeeper.GetProposer(ctx, msg.RollappId)
-	if !found {
-		return nil, types.ErrNextSequencerNotFound
+	var nextSequencerAddress string
+	if msg.Last {
+		// it takes the actual proposer because the next one have already been set
+		// by the sequencer rotation in k.hooks.BeforeUpdateState
+		val, found := k.sequencerKeeper.GetProposer(ctx, msg.RollappId)
+		if !found {
+			return nil, types.ErrNextSequencerNotFound
+		}
+
+		nextSequencerAddress = val.Address
 	}
 
 	creationHeight := uint64(ctx.BlockHeight())
@@ -114,7 +121,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		creationHeight,
 		msg.BDs,
 		blockTime,
-		val.Address,
+		nextSequencerAddress,
 	)
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
 	k.SetStateInfo(ctx, *stateInfo)
@@ -146,18 +153,19 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 	events := stateInfo.GetEvents()
 
-	if msg.Last {
-		// it takes the actual proposer because the next one have already been set
-		// by the sequencer rotation in k.hooks.BeforeUpdateState
-		val, found := k.sequencerKeeper.GetProposer(ctx, msg.RollappId)
-		if !found {
-			return nil, types.ErrNextSequencerNotFound
-		}
-
-		events = append(events,
-			sdk.NewAttribute(types.AttributeNextProposerAddress, val.Address),
-		)
-	}
+	//Maybe not used
+	//if msg.Last {
+	//	// it takes the actual proposer because the next one have already been set
+	//	// by the sequencer rotation in k.hooks.BeforeUpdateState
+	//	val, found := k.sequencerKeeper.GetProposer(ctx, msg.RollappId)
+	//	if !found {
+	//		return nil, types.ErrNextSequencerNotFound
+	//	}
+	//
+	//	events = append(events,
+	//		sdk.NewAttribute(types.AttributeNextProposerAddress, val.Address),
+	//	)
+	//}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeStateUpdate,
