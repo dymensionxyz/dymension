@@ -53,6 +53,10 @@ message StateInfo {
         (gogoproto.nullable) = false,
         (gogoproto.moretags) = "yaml:\"created_at\""
     ];
+
+    // next sequencer is the bech32-encoded address of the next sequencer after the current sequencer
+    // if empty, it means there is no change in the sequencer
+    string nextProposer = 11;
 }
 
 // StateInfoSummary is a compact representation of StateInfo

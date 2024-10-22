@@ -1,8 +1,9 @@
-package types
+package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 type AccountKeeper interface {
@@ -21,6 +22,7 @@ type ChannelKeeper interface {
 type SequencerKeeper interface {
 	SlashLiveness(ctx sdk.Context, rollappID string) error
 	JailLiveness(ctx sdk.Context, rollappID string) error
+	GetProposer(ctx sdk.Context, rollappId string) (val types.Sequencer, found bool)
 }
 
 // BankKeeper defines the expected interface needed to retrieve account balances.
