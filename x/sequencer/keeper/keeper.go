@@ -19,7 +19,7 @@ type Keeper struct {
 	storeKey         storetypes.StoreKey
 	bankKeeper       types.BankKeeper
 	rollappKeeper    types.RollappKeeper
-	unbondConditions []UnbondCondition
+	unbondConditions []UnbondCondition // TODO: populate
 }
 
 func NewKeeper(
