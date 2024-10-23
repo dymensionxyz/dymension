@@ -31,8 +31,8 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 // The next proposer is set to the next bonded sequencer
 // The hub will expect a "last state update" from the sequencer to start unbonding
 // In the middle of rotation, the next proposer required a notice period as well.
-func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.Time) {
-	seqs := k.GetMatureNoticePeriodSequencers(ctx, currTime)
+func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, now time.Time) {
+	seqs := k.GetMatureNoticePeriodSequencers(ctx, now)
 	for _, seq := range seqs {
 		if !k.IsSuccessor(ctx, seq) {
 			// next proposer cannot mature it's notice period until the current proposer has finished rotation
@@ -45,6 +45,24 @@ func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.
 }
 
 func (k Keeper) AwaitProposerLastBlock(ctx sdk.Context, rollapp string) error {
+	if err := k.ChooseSuccessor(ctx, rollapp); err != nil {
+		return errorsmod.Wrap(err, "choose successor")
+	}
+	successor := k.GetSuccessor(ctx, rollapp)
+
+	// TODO: update event
+	k.Logger(ctx).Info("rotation started", "rollappId", rollapp, "nextProposer", successor.Address)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeRotationStarted,
+			sdk.NewAttribute(types.AttributeKeyRollappId, rollapp),
+			sdk.NewAttribute(types.AttributeKeyNextProposer, successor.Address),
+		),
+	)
+}
+
+func (k Keeper) onProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) error {
 	if err := k.ChooseSuccessor(ctx, rollapp); err != nil {
 		return errorsmod.Wrap(err, "choose successor")
 	}
