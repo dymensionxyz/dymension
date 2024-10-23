@@ -17,7 +17,6 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	tokens := seq.TokensCoin()
 	tokensMul := ucoin.MulDec(mul, tokens)
 	amt := ucoin.SimpleMin(tokens, ucoin.SimpleMax(abs, tokensMul[0]))
-	// TODO: make sure to be correct wrt. min bond, see https://github.com/dymensionxyz/dymension/issues/1019
 	return errorsmod.Wrap(k.slash(ctx, seq, amt, sdk.ZeroDec(), nil), "slash")
 }
 

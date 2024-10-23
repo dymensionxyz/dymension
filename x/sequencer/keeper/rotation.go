@@ -1,11 +1,11 @@
 package keeper
 
 import (
-	"sort"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	types2 "github.com/dymensionxyz/dymension-rdk/x/sequencers/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
@@ -64,33 +64,6 @@ func (k Keeper) RequiresNoticePeriod(ctx sdk.Context, seq types.Sequencer) bool 
 	return k.IsProposerOrSuccessor(ctx, seq)
 }
 
-// ExpectedNextProposer returns the next proposer for a rollapp
-// it selects the next proposer from the bonded sequencers by bond amount
-// if there are no bonded sequencers, it returns an empty sequencer
-func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) types.Sequencer {
-	// if nextProposer is set, were in the middle of rotation. The expected next proposer cannot change
-	seq, ok := k.GetNextProposer(ctx, rollappId)
-	if ok {
-		return seq
-	}
-
-	// take the next bonded sequencer to be the proposer. sorted by bond
-	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
-	sort.SliceStable(seqs, func(i, j int) bool {
-		return seqs[i].Tokens.IsAllGT(seqs[j].Tokens)
-	})
-
-	// return the first sequencer that is not the proposer
-	proposer, _ := k.GetProposerLegacy(ctx, rollappId)
-	for _, s := range seqs {
-		if s.Address != proposer.Address {
-			return s
-		}
-	}
-
-	return types.Sequencer{}
-}
-
 // startRotation sets the nextSequencer for the rollapp.
 // This function will not clear the current proposer
 // This function called when the sequencer has finished its notice period
@@ -130,7 +103,7 @@ func (k Keeper) CompleteRotation(ctx sdk.Context, rollappId string) error {
 	k.removeNextProposer(ctx, rollappId)
 	k.SetProposer(ctx, rollappId, nextProposer.Address)
 
-	if nextProposer.Address == SentinelSeqAddr {
+	if nextProposer.Address == types2.SentinelSeqAddr {
 		k.Logger(ctx).Info("Rollapp left with no proposer.", "RollappID", rollappId)
 	}
 

@@ -10,6 +10,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const (
+	SentinelSequencer = "sentinel"
+)
+
 // ValidateBasic performs basic validation of the sequencer object
 func (seq Sequencer) ValidateBasic() error {
 	if seq.Status == Unbonding && (seq.UnbondRequestHeight == 0 || seq.UnbondTime.IsZero()) {
@@ -25,7 +29,12 @@ func (seq Sequencer) ValidateBasic() error {
 }
 
 func (seq Sequencer) IsEmpty() bool {
+	// TODO: think it should be sentinel
 	return seq.Address == ""
+}
+
+func (seq Sequencer) Sentinel() bool {
+	return seq.Address == SentinelSequencer
 }
 
 func (seq Sequencer) Bonded() bool {

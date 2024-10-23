@@ -10,9 +10,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// SentinelSeqAddr : indicate that no sequencer is available for a proposer / next proposer role
-const SentinelSeqAddr = "sentinel"
-
 // SetSequencer set a specific sequencer in the store from its index
 func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
@@ -114,41 +111,6 @@ func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string
 }
 
 /* -------------------------------------------------------------------------- */
-/*                               Unbonding queue                              */
-/* -------------------------------------------------------------------------- */
-
-// GetMatureUnbondingSequencers returns all unbonding sequencers
-func (k Keeper) GetMatureUnbondingSequencers(ctx sdk.Context, endTime time.Time) (list []types.Sequencer) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := store.Iterator(types.UnbondingQueueKey, sdk.PrefixEndBytes(types.UnbondingQueueByTimeKey(endTime)))
-
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.Sequencer
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
-	}
-
-	return
-}
-
-func (k Keeper) AddSequencerToUnbondingQueue(ctx sdk.Context, sequencer *types.Sequencer) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshal(sequencer)
-
-	unbondingQueueKey := types.UnbondingSequencerKey(sequencer.Address, sequencer.UnbondTime)
-	store.Set(unbondingQueueKey, b)
-}
-
-// remove unbonding sequencer from the queue
-func (k Keeper) removeUnbondingSequencer(ctx sdk.Context, sequencer types.Sequencer) {
-	store := ctx.KVStore(k.storeKey)
-	unbondingQueueKey := types.UnbondingSequencerKey(sequencer.Address, sequencer.UnbondTime)
-	store.Delete(unbondingQueueKey)
-}
-
-/* -------------------------------------------------------------------------- */
 /*                                notice period                               */
 /* -------------------------------------------------------------------------- */
 
@@ -212,9 +174,9 @@ func (k Keeper) SetProposer(ctx sdk.Context, rollapp, seqAddr string) {
 func (k Keeper) GetProposer(ctx sdk.Context, rollappId string) (types.Sequencer, error) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.ProposerByRollappKey(rollappId))
-	if len(b) == 0 || string(b) == SentinelSeqAddr {
+	if len(b) == 0 || string(b) == types2.SentinelSeqAddr {
 		return types.Sequencer{
-			Address:   SentinelSeqAddr,
+			Address:   types2.SentinelSeqAddr,
 			RollappId: rollappId,
 			// TODO: bonded status, other things?
 		}, nil
@@ -230,7 +192,7 @@ func (k Keeper) GetProposer(ctx sdk.Context, rollappId string) (types.Sequencer,
 func (k Keeper) GetProposerLegacy(ctx sdk.Context, rollappId string) (val types.Sequencer, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.ProposerByRollappKey(rollappId))
-	if len(b) == 0 || string(b) == SentinelSeqAddr {
+	if len(b) == 0 || string(b) == types2.SentinelSeqAddr {
 		return val, false
 	}
 
@@ -238,7 +200,7 @@ func (k Keeper) GetProposerLegacy(ctx sdk.Context, rollappId string) (val types.
 }
 
 func (k Keeper) removeProposer(ctx sdk.Context, rollappId string) {
-	k.SetProposer(ctx, rollappId, SentinelSeqAddr)
+	k.SetProposer(ctx, rollappId, types2.SentinelSeqAddr)
 }
 
 func (k Keeper) isProposer(ctx sdk.Context, seq types.Sequencer) bool {
@@ -266,7 +228,7 @@ func (k Keeper) GetNextProposer(ctx sdk.Context, rollappId string) (val types.Se
 	}
 
 	address := string(b)
-	if address == SentinelSeqAddr {
+	if address == types2.SentinelSeqAddr {
 		return val, true
 	}
 	return k.GetSequencer(ctx, address)
