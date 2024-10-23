@@ -12,7 +12,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 
 	// Set all the sequencer
 	for _, elem := range genState.SequencerList {
-		k.SetSequencerLeg(ctx, elem)
+		k.SetSequencer(ctx, elem)
 
 		// Set the unbonding queue for the sequencer
 		if elem.Status == types.Unbonding {

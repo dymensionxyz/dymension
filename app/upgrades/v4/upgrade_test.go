@@ -306,7 +306,7 @@ func (s *UpgradeTestSuite) seedRollapps(numRollapps int) []rollapptypes.Rollapp 
 
 func (s *UpgradeTestSuite) seedAndStoreSequencers(numRollapps int) {
 	for _, sequencer := range s.seedSequencers(numRollapps) {
-		s.App.SequencerKeeper.SetSequencerLeg(s.Ctx, sequencer)
+		s.App.SequencerKeeper.SetSequencer(s.Ctx, sequencer)
 	}
 }
 

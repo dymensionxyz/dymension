@@ -100,7 +100,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		k.SetProposer(ctx, sequencer.RollappId, sequencer.Address)
 	}
 
-	k.SetSequencerLeg(ctx, sequencer)
+	k.SetSequencer(ctx, sequencer)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

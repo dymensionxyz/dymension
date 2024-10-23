@@ -27,7 +27,7 @@ func (k msgServer) UpdateSequencerInformation(goCtx context.Context, msg *types.
 
 	sequencer.Metadata = msg.Metadata
 
-	k.SetSequencerLeg(ctx, sequencer)
+	k.SetSequencer(ctx, sequencer)
 
 	if err := uevent.EmitTypedEvent(ctx, &sequencer); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)

@@ -1,89 +1,10 @@
 package keeper
 
 import (
-	"time"
-
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
-
-func (k Keeper) startNoticePeriodForSequencerLeg(ctx sdk.Context, seq *types.Sequencer) time.Time {
-	completionTime := ctx.BlockTime().Add(k.NoticePeriod(ctx))
-	seq.NoticePeriodTime = completionTime
-
-	k.UpdateSequencerLeg(ctx, seq)
-	k.AddSequencerToNoticePeriodQueue(ctx, seq)
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeNoticePeriodStarted,
-			sdk.NewAttribute(types.AttributeKeyRollappId, seq.RollappId),
-			sdk.NewAttribute(types.AttributeKeySequencer, seq.Address),
-			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.String()),
-		),
-	)
-
-	return completionTime
-}
-
-// MatureSequencersWithNoticePeriod start rotation flow for all sequencers that have finished their notice period
-// The next proposer is set to the next bonded sequencer
-// The hub will expect a "last state update" from the sequencer to start unbonding
-// In the middle of rotation, the next proposer required a notice period as well.
-func (k Keeper) MatureSequencersWithNoticePeriodLeg(ctx sdk.Context, currTime time.Time) {
-	seqs := k.GetMatureNoticePeriodSequencers(ctx, currTime)
-	for _, seq := range seqs {
-		if k.isProposerLeg(ctx, seq.RollappId, seq.Address) {
-			k.startRotationLeg(ctx, seq.RollappId)
-			k.removeNoticePeriodSequencer(ctx, seq)
-		}
-		// next proposer cannot mature it's notice period until the current proposer has finished rotation
-		// minor effect as notice_period >>> rotation time
-	}
-}
-
-// isRotatingLeg returns true if the rollapp is currently in the process of rotation.
-// A process of rotation is defined by the existence of a next proposer. The next proposer can also be a "dummy" sequencer (i.e empty) in case no sequencer came. This is still considered rotation
-// as the sequencer is rotating to an empty one (i.e gracefully leaving the rollapp).
-// The next proposer can only be set after the notice period is over. The rotation period is over after the proposer sends his last batch.
-func (k Keeper) isRotatingLeg(ctx sdk.Context, rollappId string) bool {
-	return k.isNextProposerSet(ctx, rollappId)
-}
-
-// startRotationLeg sets the nextSequencer for the rollapp.
-// This function will not clear the current proposer
-// This function called when the sequencer has finished its notice period
-func (k Keeper) startRotationLeg(ctx sdk.Context, rollappId string) {
-	// next proposer can be empty if there are no bonded sequencers available
-	nextProposer := k.ExpectedNextProposer(ctx, rollappId)
-	k.setNextProposer(ctx, rollappId, nextProposer.Address)
-}
-
-// completeRotationLeg completes the sequencer rotation flow.
-// It's called when a last state update is received from the active, rotating sequencer.
-// it will start unbonding the current proposer, and sets the nextProposer as the proposer.
-func (k Keeper) completeRotationLeg(ctx sdk.Context, rollappId string) error {
-	proposer, ok := k.GetProposerLegacy(ctx, rollappId)
-	if !ok {
-		return errorsmod.Wrapf(gerrc.ErrInternal, "proposer not set for rollapp %s", rollappId)
-	}
-	nextProposer, ok := k.GetNextProposer(ctx, rollappId)
-	if !ok {
-		return errorsmod.Wrapf(gerrc.ErrInternal, "next proposer not set for rollapp %s", rollappId)
-	}
-
-	// start unbonding the current proposer
-	k.startUnbondingPeriodForSequencer(ctx, &proposer)
-
-	// change the proposer
-	k.removeNextProposer(ctx, rollappId)
-	k.SetProposer(ctx, rollappId, nextProposer.Address)
-
-	return nil
-}
 
 // unbond unbonds a sequencer
 // if jail is true, the sequencer is jailed as well (cannot be bonded again)
@@ -168,33 +89,6 @@ func (k Keeper) unbondLegacy(ctx sdk.Context, seqAddr string, jail bool) error {
 	return nil
 }
 
-// SetSequencerLeg set a specific sequencer in the store from its index
-func (k Keeper) SetSequencerLeg(ctx sdk.Context, sequencer types.Sequencer) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshal(&sequencer)
-	store.Set(types.SequencerKey(
-		sequencer.Address,
-	), b)
-
-	seqByRollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.Address, sequencer.Status)
-	store.Set(seqByRollappKey, b)
-}
-
-// UpdateSequencerLeg updates the state of a sequencer in the keeper.
-// Parameters:
-//   - sequencer: The sequencer object to be updated.
-//   - oldStatus: An optional parameter representing the old status of the sequencer.
-//     Needs to be provided if the status of the sequencer has changed (e.g from Bonded to Unbonding).
-func (k Keeper) UpdateSequencerLeg(ctx sdk.Context, sequencer *types.Sequencer, oldStatus ...types.OperatingStatus) {
-	k.SetSequencerLeg(ctx, *sequencer)
-
-	// status changed, need to remove old status key
-	if len(oldStatus) > 0 && sequencer.Status != oldStatus[0] {
-		oldKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.Address, oldStatus[0])
-		ctx.KVStore(k.storeKey).Delete(oldKey)
-	}
-}
-
 // GetSequencer returns a sequencer from its index
 func (k Keeper) GetSequencerLegacy(ctx sdk.Context, sequencerAddress string) (val types.Sequencer, found bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -220,21 +114,6 @@ func (k Keeper) MustGetSequencerLeg(ctx sdk.Context, sequencerAddress string) ty
 }
 
 /* ------------------------- proposer/next proposer ------------------------- */
-
-// GetAllProposers returns all proposers for all rollapps
-func (k Keeper) GetAllProposers(ctx sdk.Context) (list []types.Sequencer) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ProposerByRollappKey(""))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		address := string(iterator.Value())
-		seq := k.MustGetSequencerLeg(ctx, address)
-		list = append(list, seq)
-	}
-
-	return
-}
 
 // GetProposerLegacy returns the proposer for a rollapp
 func (k Keeper) GetProposerLegacy(ctx sdk.Context, rollappId string) (val types.Sequencer, found bool) {

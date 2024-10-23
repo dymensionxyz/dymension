@@ -201,7 +201,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 		RollappId: rollappID,
 		Status:    sequencertypes.Bonded,
 	}
-	suite.App.SequencerKeeper.SetSequencerLeg(suite.Ctx, sequencer)
+	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 	suite.App.SequencerKeeper.SetProposer(suite.Ctx, rollappID, sequencer.Address)
 
 	// update state
