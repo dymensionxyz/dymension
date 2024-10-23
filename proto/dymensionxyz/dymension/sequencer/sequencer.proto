@@ -24,8 +24,7 @@ message Sequencer {
   string rollappId = 3;
   // metadata defines the extra information for the sequencer.
   SequencerMetadata metadata = 4 [(gogoproto.nullable) = false];
-  // jailed defined whether the sequencer has been jailed from bonded status or not.
-  bool jailed = 5;
+  reserved 5,9,10;
   
   bool proposer = 6 [deprecated = true];
   
@@ -37,24 +36,10 @@ message Sequencer {
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 
-  // unbond_request_height stores the height at which this sequencer has
-  // requested to unbond.
-  int64 unbond_request_height = 9;
-  // unbond_time defines the time when the sequencer will complete unbonding.
-  google.protobuf.Timestamp unbond_time = 10
-      [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+
 
   // notice_period_time defines the time when the sequencer will finish it's notice period if started
   google.protobuf.Timestamp notice_period_time = 11
       [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
 }
 
-// BondReduction defines an object which holds the information about the sequencer and its queued unbonding amount
-message BondReduction {
-  // sequencer_address is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
-  string sequencer_address = 1;
-  // decrease_bond_amount is the amount of tokens to be unbonded.
-  cosmos.base.v1beta1.Coin decrease_bond_amount = 2 [(gogoproto.nullable) = false];
-  // decrease_bond_time defines, if unbonding, the min time for the sequencer to complete unbonding.
-  google.protobuf.Timestamp decrease_bond_time = 3 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
-}

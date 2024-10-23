@@ -21,6 +21,7 @@ service Msg {
   rpc CreateSequencer (MsgCreateSequencer) returns (MsgCreateSequencerResponse);
   // UpdateSequencerInformation defines a method for updating the sequencer's metadata.
   rpc UpdateSequencerInformation (MsgUpdateSequencerInformation) returns (MsgUpdateSequencerInformationResponse);
+  rpc KickProposer (MsgCreateSequencer) returns (MsgCreateSequencerResponse);
   // Unbond defines a method for removing coins from sequencer's bond
   rpc Unbond (MsgUnbond) returns (MsgUnbondResponse);
   // IncreaseBond defines a method for increasing a sequencer's bond amount
@@ -65,6 +66,13 @@ message MsgCreateSequencer {
   cosmos.base.v1beta1.Coin bond = 5 [(gogoproto.nullable) = false];
 }
 
+// Try to kick the current proposer whose bond is below kick threshold
+message MsgKickProposer {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+  string creator = 1;
+}
+
 message MsgCreateSequencerResponse {}
 
 message MsgUpdateSequencerInformation {
@@ -87,11 +95,9 @@ message MsgUnbond {
 
 // MsgUnbondResponse defines the Msg/Unbond response type.
 message MsgUnbondResponse {
-  // completion_time defines the time at which the unbonding will be completed.
   // If unbonding the proposer, the completion time is the time at which the notice period will be completed.
-  oneof completion_time {
-    // unbonding_completion_time is the time at which the unbonding will be completed.
-    google.protobuf.Timestamp unbonding_completion_time = 1 [ (gogoproto.stdtime) = true];
+  reserved 1;
+  oneof completion_time { // NOTE: oneof for legacy reasons.
     // notice_period_completion_time is the time at which the notice period will be completed.
     google.protobuf.Timestamp notice_period_completion_time = 2 [ (gogoproto.stdtime) = true];
   }
@@ -122,5 +128,5 @@ message MsgDecreaseBond {
 
 // MsgDecreaseBondResponse defines the Msg/DecreaseBond response type.
 message MsgDecreaseBondResponse {
-  google.protobuf.Timestamp completion_time = 1 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  reserved 1;
 }
