@@ -43,17 +43,15 @@ message Rollapp {
   string channel_id = 8;
   // frozen is a boolean that indicates if the rollapp is frozen.
   bool frozen = 9;
-  // registeredDenoms is a list of registered denom bases on this rollapp
-  repeated string registeredDenoms = 10;
   // metadata is the rollapp metadata
-  RollappMetadata metadata = 11;
+  RollappMetadata metadata = 10;
   // genesis_info keeps immutable rollapp fields
-  GenesisInfo genesis_info = 12 [ (gogoproto.nullable) = false ];
+  GenesisInfo genesis_info = 11 [ (gogoproto.nullable) = false ];
   // initial_sequencer is an option to preset one or more coma-separated
   // bech32-encoded addresses of the sequencer(s) that are allowed to initially
   // register and serve for this rollapp. if left empty, no sequencer is allowed
   // to register. if set to "*" any sequencer can register.
-  string initial_sequencer = 13;
+  string initial_sequencer = 12;
 
   enum VMType {
     Unspecified = 0;
@@ -61,20 +59,20 @@ message Rollapp {
     WASM = 2;
   }
   // vm_type is the type of rollapp machine: EVM or WASM
-  VMType vm_type = 14;
+  VMType vm_type = 13;
   // launched is a boolean that indicates that the Rollapp has been launched and
   // the immutable fields are no longer updatable.
-  bool launched = 15;
+  bool launched = 14;
   // pre_launch_time is the timestamp indicating the time before which the
   // rollapp cannot be started.
   // Set when creating IRO plan for the rollapp
-  google.protobuf.Timestamp pre_launch_time = 16 [ (gogoproto.stdtime) = true];
+  google.protobuf.Timestamp pre_launch_time = 15 [ (gogoproto.stdtime) = true];
   // LivenessEventHeight is the height on the HUB of an upcoming liveness event (slash or
   // jail against the rollapp). 0 means not set
-  int64 liveness_event_height = 17;
+  int64 liveness_event_height = 16;
   // The LastStateUpdateHeight HUB height when the last state update was
   // received
-  int64 last_state_update_height = 18;
+  int64 last_state_update_height = 17;
 }
 
 // Rollapp summary is a compact representation of Rollapp

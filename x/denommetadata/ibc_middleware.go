@@ -1,8 +1,6 @@
 package denommetadata
 
 import (
-	. "slices"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -148,11 +146,9 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return gerrc.ErrNotFound
 	}
 
-	if !Contains(rollapp.RegisteredDenoms, dm.Base) {
+	if !im.rollappKeeper.HasRegisteredDenom(ctx, rollapp.RollappId, dm.Base) {
 		// add the new token denom base to the list of rollapp's registered denoms
-		rollapp.RegisteredDenoms = append(rollapp.RegisteredDenoms, dm.Base)
-
-		im.rollappKeeper.SetRollapp(ctx, *rollapp)
+		im.rollappKeeper.SetRegisteredDenom(ctx, rollapp.RollappId, dm.Base)
 	}
 
 	return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
@@ -229,7 +225,7 @@ func (m *ICS4Wrapper) SendPacket(
 	//		2. We parse the IBC denom trace into IBC denom hash and prepend it with "ibc/" to get the baseDenom
 	baseDenom := transfertypes.ParseDenomTrace(packet.Denom).IBCDenom()
 
-	if Contains(rollapp.RegisteredDenoms, baseDenom) {
+	if m.rollappKeeper.HasRegisteredDenom(ctx, rollapp.RollappId, baseDenom) {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
