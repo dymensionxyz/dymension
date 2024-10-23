@@ -41,7 +41,7 @@ func (k Keeper) IterateRegisteredDenoms(ctx sdk.Context, rollappID string, cb fu
 	if err != nil {
 		return fmt.Errorf("iterate registered denoms: %w", err)
 	}
-	defer iter.Close()
+	defer iter.Close() // nolint: errcheck
 
 	for iter.Valid() {
 		key, err := iter.Key()
