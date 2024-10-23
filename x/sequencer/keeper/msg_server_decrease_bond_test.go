@@ -36,7 +36,7 @@ func (suite *SequencerTestSuite) TestDecreaseBond() {
 				Creator:        "invalid_address",
 				DecreaseAmount: sdk.NewInt64Coin(bondDenom, 10),
 			},
-			expectedErr: types.ErrUnknownSequencer,
+			expectedErr: types.ErrSequencerNotFound,
 		},
 		{
 			name: "sequencer is not bonded",

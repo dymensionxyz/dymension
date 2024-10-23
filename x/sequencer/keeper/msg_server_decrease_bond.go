@@ -5,48 +5,16 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 )
 
 // DecreaseBond implements types.MsgServer.
 func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBond) (*types.MsgDecreaseBondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	sequencer, found := k.GetSequencer(ctx, msg.GetCreator())
+	seq, found := k.GetSequencer(ctx, msg.GetCreator())
 	if !found {
-		return nil, types.ErrUnknownSequencer
+		return nil, types.ErrSequencerNotFound
 	}
-	if !sequencer.IsBonded() {
-		return nil, types.ErrInvalidSequencerStatus
-	}
-
-	effectiveBond := sequencer.Tokens
-	if bds := k.GetBondReductionsBySequencer(ctx, msg.Creator); len(bds) > 0 {
-		for _, bd := range bds {
-			effectiveBond = effectiveBond.Sub(bd.DecreaseBondAmount)
-		}
-	}
-
-	// Check if the sequencer has enough bond to decrease
-	if !effectiveBond.IsZero() && effectiveBond.IsAllLTE(sdk.NewCoins(msg.DecreaseAmount)) {
-		return nil, types.ErrInsufficientBond
-	}
-
-	// Check if the bond reduction will make the sequencer's bond less than the minimum bond value
-	minBondValue := k.GetParams(ctx).MinBond
-	if !minBondValue.IsNil() && !minBondValue.IsZero() {
-		decreasedBondValue := effectiveBond.Sub(msg.DecreaseAmount)
-		if decreasedBondValue.IsAllLT(sdk.NewCoins(minBondValue)) {
-			return nil, types.ErrInsufficientBond
-		}
-	}
-	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
-	k.SetDecreasingBondQueue(ctx, types.BondReduction{
-		SequencerAddress:   msg.Creator,
-		DecreaseBondAmount: msg.DecreaseAmount,
-		DecreaseBondTime:   completionTime,
-	})
-
-	return &types.MsgDecreaseBondResponse{
-		CompletionTime: completionTime,
-	}, nil
+	return &types.MsgDecreaseBondResponse{}, k.TryUnbond(ctx, seq, uptr.To(msg.GetDecreaseAmount()))
 }

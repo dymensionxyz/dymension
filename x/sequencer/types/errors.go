@@ -9,9 +9,10 @@ import (
 
 // x/sequencer module sentinel errors
 var (
-	ErrSequencerExists        = errorsmod.Register(ModuleName, 1000, "sequencer already exist for this address; must use new sequencer address")
+	ErrSequencerExists        = gerrc.ErrAlreadyExists.Wrap("must use new sequencer address")
 	ErrRollappNotFound        = gerrc.ErrNotFound.Wrap("rollapp")
-	ErrUnknownSequencer       = errorsmod.Register(ModuleName, 1005, "sequencer was not registered")
+	ErrSequencerNotFound      = gerrc.ErrNotFound.Wrap("sequencer")
+	ErrUnbondProposerOrNext   = gerrc.ErrFailedPrecondition.Wrap("unbond proposer or next proposer")
 	ErrNotActiveSequencer     = errorsmod.Register(ModuleName, 1007, "sequencer is not active")
 	ErrInvalidSequencerStatus = errorsmod.Register(ModuleName, 1008, "invalid sequencer status")
 	ErrInvalidCoinDenom       = errorsmod.Register(ModuleName, 1010, "invalid coin denomination")

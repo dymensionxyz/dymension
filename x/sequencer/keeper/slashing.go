@@ -10,7 +10,7 @@ import (
 func (k Keeper) JailSequencerOnFraud(ctx sdk.Context, seqAddr string) error {
 	seq, found := k.GetSequencer(ctx, seqAddr)
 	if !found {
-		return types.ErrUnknownSequencer
+		return types.ErrSequencerNotFound
 	}
 
 	if err := k.Jail(ctx, seq); err != nil {

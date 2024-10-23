@@ -16,18 +16,10 @@ func (k msgServer) UpdateSequencerInformation(goCtx context.Context, msg *types.
 
 	sequencer, found := k.GetSequencer(ctx, msg.Creator)
 	if !found {
-		return nil, types.ErrUnknownSequencer
-	}
-
-	if sequencer.Jailed {
-		return nil, types.ErrSequencerJailed
+		return nil, types.ErrSequencerNotFound
 	}
 
 	rollapp := k.rollappKeeper.MustGetRollapp(ctx, sequencer.RollappId)
-
-	if rollapp.Frozen {
-		return nil, types.ErrRollappFrozen
-	}
 
 	if err := msg.VMSpecificValidate(rollapp.VmType); err != nil {
 		return nil, err

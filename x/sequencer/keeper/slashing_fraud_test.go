@@ -13,7 +13,7 @@ func (suite *SequencerTestSuite) TestJailUnknownSequencer() {
 	keeper := suite.App.SequencerKeeper
 
 	err := keeper.JailSequencerOnFraud(suite.Ctx, "unknown_sequencer")
-	suite.ErrorIs(err, types.ErrUnknownSequencer)
+	suite.ErrorIs(err, types.ErrSequencerNotFound)
 }
 
 func (suite *SequencerTestSuite) TestJailUnbondedSequencer() {

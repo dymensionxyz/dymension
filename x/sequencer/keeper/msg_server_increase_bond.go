@@ -16,10 +16,7 @@ func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBon
 
 	sequencer, found := k.GetSequencer(ctx, msg.GetCreator())
 	if !found {
-		return nil, types.ErrUnknownSequencer
-	}
-	if !sequencer.IsBonded() {
-		return nil, types.ErrInvalidSequencerStatus
+		return nil, types.ErrSequencerNotFound
 	}
 
 	// transfer the bond from the sequencer to the module account

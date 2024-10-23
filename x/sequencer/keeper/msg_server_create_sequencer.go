@@ -93,6 +93,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, types.ErrRotationInProgress
 	}
 
+	// TODO: choose proposer
 	// if no proposer set for he rollapp, set this sequencer as the proposer
 	_, proposerExists := k.GetProposer(ctx, msg.RollappId)
 	if !proposerExists {

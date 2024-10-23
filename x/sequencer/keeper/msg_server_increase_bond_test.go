@@ -54,7 +54,7 @@ func (suite *SequencerTestSuite) TestIncreaseBond() {
 				Creator:   sample.AccAddress(), // a random address which is not a registered sequencer
 				AddAmount: bondAmount,
 			},
-			expectedErr: types.ErrUnknownSequencer,
+			expectedErr: types.ErrSequencerNotFound,
 		},
 		{
 			name: "invalid sequencer status",

@@ -11,6 +11,14 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
+func (k Keeper) TryUnbond(ctx sdk.Context, seq types.Sequencer, amt *sdk.Coin) error {
+	if k.isNoticePeriodRequired(ctx, seq) {
+		return types.ErrUnbondProposerOrNext
+	}
+}
+
+/// ~~~~~~~~~~
+
 // startUnbondingPeriodForSequencer sets the sequencer to unbonding status
 // can be called after notice period or directly if notice period is not required
 // caller is responsible for updating the proposer for the rollapp if needed
@@ -109,7 +117,7 @@ func (k Keeper) unbondSequencer(ctx sdk.Context, seqAddr string) error {
 func (k Keeper) unbond(ctx sdk.Context, seqAddr string, jail bool) error {
 	seq, found := k.GetSequencer(ctx, seqAddr)
 	if !found {
-		return types.ErrUnknownSequencer
+		return types.ErrSequencerNotFound
 	}
 
 	if seq.Status == types.Unbonded {
