@@ -3,7 +3,7 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	types2 "github.com/dymensionxyz/dymension-rdk/x/sequencers/types"
+	types "github.com/dymensionxyz/dymension-rdk/x/sequencers/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
@@ -53,7 +53,7 @@ func (k Keeper) unbond(ctx sdk.Context, seq types.Sequencer) error {
 	}
 	seq.Status = types.Unbonded
 	if k.isProposer(ctx, seq) {
-		k.SetProposer(ctx, seq.RollappId, types2.SentinelSeqAddr)
+		k.SetProposer(ctx, seq.RollappId, types.SentinelSeqAddr)
 	}
 	return nil
 }

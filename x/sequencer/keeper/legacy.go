@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"sort"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -9,6 +10,33 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
+
+// ExpectedNextProposer returns the next proposer for a rollapp
+// it selects the next proposer from the bonded sequencers by bond amount
+// if there are no bonded sequencers, it returns an empty sequencer
+func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) types.Sequencer {
+	// if nextProposer is set, were in the middle of rotation. The expected next proposer cannot change
+	seq, ok := k.GetNextProposer(ctx, rollappId)
+	if ok {
+		return seq
+	}
+
+	// take the next bonded sequencer to be the proposer. sorted by bond
+	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
+	sort.SliceStable(seqs, func(i, j int) bool {
+		return seqs[i].Tokens.IsAllGT(seqs[j].Tokens)
+	})
+
+	// return the first sequencer that is not the proposer
+	proposer, _ := k.GetProposerLegacy(ctx, rollappId)
+	for _, s := range seqs {
+		if s.Address != proposer.Address {
+			return s
+		}
+	}
+
+	return types.Sequencer{}
+}
 
 func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
 	completionTime := ctx.BlockTime().Add(k.NoticePeriod(ctx))
@@ -103,7 +131,7 @@ func (k Keeper) CompleteRotation(ctx sdk.Context, rollappId string) error {
 	k.removeNextProposer(ctx, rollappId)
 	k.SetProposer(ctx, rollappId, nextProposer.Address)
 
-	if nextProposer.Address == types2.SentinelSeqAddr {
+	if nextProposer.Address == types.SentinelSeqAddr {
 		k.Logger(ctx).Info("Rollapp left with no proposer.", "RollappID", rollappId)
 	}
 
@@ -229,7 +257,7 @@ func (k Keeper) UpdateSequencer(ctx sdk.Context, sequencer *types.Sequencer, old
 }
 
 // GetSequencer returns a sequencer from its index
-func (k Keeper) GetSequencer(ctx sdk.Context, sequencerAddress string) (val types.Sequencer, found bool) {
+func (k Keeper) GetSequencerLegacy(ctx sdk.Context, sequencerAddress string) (val types.Sequencer, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.SequencerKey(
 		sequencerAddress,
@@ -362,28 +390,11 @@ func (k Keeper) SetProposer(ctx sdk.Context, rollapp, seqAddr string) {
 	store.Set(activeKey, addressBytes)
 }
 
-func (k Keeper) GetProposer(ctx sdk.Context, rollappId string) (types.Sequencer, error) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.ProposerByRollappKey(rollappId))
-	if len(b) == 0 || string(b) == types2.SentinelSeqAddr {
-		return types.Sequencer{
-			Address:   types2.SentinelSeqAddr,
-			RollappId: rollappId,
-			// TODO: bonded status, other things?
-		}, nil
-	}
-	s, ok := k.GetSequencer(ctx, string(b))
-	if !ok {
-		return types.Sequencer{}, gerrc.ErrInternal.Wrap("get sequencer")
-	}
-	return s, nil
-}
-
 // GetProposerLegacy returns the proposer for a rollapp
 func (k Keeper) GetProposerLegacy(ctx sdk.Context, rollappId string) (val types.Sequencer, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.ProposerByRollappKey(rollappId))
-	if len(b) == 0 || string(b) == types2.SentinelSeqAddr {
+	if len(b) == 0 || string(b) == types.SentinelSeqAddr {
 		return val, false
 	}
 
@@ -391,7 +402,7 @@ func (k Keeper) GetProposerLegacy(ctx sdk.Context, rollappId string) (val types.
 }
 
 func (k Keeper) removeProposer(ctx sdk.Context, rollappId string) {
-	k.SetProposer(ctx, rollappId, types2.SentinelSeqAddr)
+	k.SetProposer(ctx, rollappId, types.SentinelSeqAddr)
 }
 
 func (k Keeper) isProposer(ctx sdk.Context, seq types.Sequencer) bool {
@@ -411,7 +422,7 @@ func (k Keeper) setNextProposer(ctx sdk.Context, rollappId, seqAddr string) {
 // GetNextProposer returns the next proposer for a rollapp
 // It will return found=false if the next proposer is not set
 // It will return found=true if the next proposer is set, even if it's empty
-func (k Keeper) GetNextProposer(ctx sdk.Context, rollappId string) (val types.Sequencer, found bool) {
+func (k Keeper) GetNextProposerLegacy(ctx sdk.Context, rollappId string) (val types.Sequencer, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.NextProposerByRollappKey(rollappId))
 	if b == nil {
@@ -419,7 +430,7 @@ func (k Keeper) GetNextProposer(ctx sdk.Context, rollappId string) (val types.Se
 	}
 
 	address := string(b)
-	if address == types2.SentinelSeqAddr {
+	if address == types.SentinelSeqAddr {
 		return val, true
 	}
 	return k.GetSequencer(ctx, address)

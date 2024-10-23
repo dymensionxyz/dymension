@@ -11,8 +11,16 @@ import (
 )
 
 const (
-	SentinelSequencer = "sentinel"
+	SentinelSequencerAddr = "sentinel"
 )
+
+func SentinelSequencer(rollapp string) Sequencer{
+	return Sequencer{
+		RollappId: rollapp,
+		Address:   SentinelSequencerAddr,
+		Status:    Bonded,
+	}
+}
 
 // ValidateBasic performs basic validation of the sequencer object
 func (seq Sequencer) ValidateBasic() error {
@@ -34,7 +42,7 @@ func (seq Sequencer) IsEmpty() bool {
 }
 
 func (seq Sequencer) Sentinel() bool {
-	return seq.Address == SentinelSequencer
+	return seq.Address == SentinelSequencerAddr
 }
 
 func (seq Sequencer) Bonded() bool {

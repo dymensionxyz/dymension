@@ -1,10 +1,9 @@
 package keeper
 
 import (
-	"sort"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -18,32 +17,38 @@ func (k Keeper) ChooseProposer(ctx sdk.Context, rollappId string) error {
 			return gerrc.ErrInternal.Wrap("proposer is unbonded")
 		}
 	}
-	successor := k.GetNextProposer()
+	successor := k.GetProposer(ctx, rollappId)
 }
 
-// ExpectedNextProposer returns the next proposer for a rollapp
-// it selects the next proposer from the bonded sequencers by bond amount
-// if there are no bonded sequencers, it returns an empty sequencer
-func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) types.Sequencer {
-	// if nextProposer is set, were in the middle of rotation. The expected next proposer cannot change
-	seq, ok := k.GetNextProposer(ctx, rollappId)
-	if ok {
-		return seq
+func (k Keeper) GetProposer(ctx sdk.Context, rollappId string) types.Sequencer {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ProposerByRollappKey(rollappId))
+	if bz == nil {
+		return k.GetSequencer(ctx, rollappId, types.SentinelSequencerAddr)
 	}
+	return k.GetSequencer(ctx, rollappId, string(bz))
+}
 
-	// take the next bonded sequencer to be the proposer. sorted by bond
-	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
-	sort.SliceStable(seqs, func(i, j int) bool {
-		return seqs[i].Tokens.IsAllGT(seqs[j].Tokens)
-	})
-
-	// return the first sequencer that is not the proposer
-	proposer, _ := k.GetProposerLegacy(ctx, rollappId)
-	for _, s := range seqs {
-		if s.Address != proposer.Address {
-			return s
-		}
+func (k Keeper) GetSuccessor(ctx sdk.Context, rollapp string) types.Sequencer {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.NextProposerByRollappKey(rollapp))
+	if bz == nil {
+		return k.GetSequencer(ctx, rollapp, types.SentinelSequencerAddr)
 	}
+	return k.GetSequencer(ctx, rollapp, string(bz))
+}
 
-	return types.Sequencer{}
+func (k Keeper) GetSequencer(ctx sdk.Context, rollapp, addr string) types.Sequencer {
+	if addr == types.SentinelSequencerAddr {
+		return types.SentinelSequencer(rollapp)
+	}
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.SequencerKey(addr))
+	if b == nil {
+		// TODO: possible case?
+		return k.GetSequencer(ctx, rollapp, types.SentinelSequencerAddr)
+	}
+	ret := types.Sequencer{}
+	k.cdc.MustUnmarshal(b, &ret)
+	return ret
 }
