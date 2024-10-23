@@ -76,7 +76,7 @@ func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) types.Se
 	})
 
 	// return the first sequencer that is not the proposer
-	proposer, _ := k.GetProposer(ctx, rollappId)
+	proposer, _ := k.GetProposerLegacy(ctx, rollappId)
 	for _, s := range seqs {
 		if s.Address != proposer.Address {
 			return s
@@ -109,7 +109,7 @@ func (k Keeper) startRotation(ctx sdk.Context, rollappId string) {
 // It's called when a last state update is received from the active, rotating sequencer.
 // it will start unbonding the current proposer, and sets the nextProposer as the proposer.
 func (k Keeper) CompleteRotation(ctx sdk.Context, rollappId string) error {
-	proposer, ok := k.GetProposer(ctx, rollappId)
+	proposer, ok := k.GetProposerLegacy(ctx, rollappId)
 	if !ok {
 		return errorsmod.Wrapf(gerrc.ErrInternal, "proposer not set for rollapp %s", rollappId)
 	}
@@ -125,7 +125,7 @@ func (k Keeper) CompleteRotation(ctx sdk.Context, rollappId string) error {
 	k.removeNextProposer(ctx, rollappId)
 	k.SetProposer(ctx, rollappId, nextProposer.Address)
 
-	if nextProposer.Address == NoSequencerAvailable {
+	if nextProposer.Address == SentinelSeqAddr {
 		k.Logger(ctx).Info("Rollapp left with no proposer.", "RollappID", rollappId)
 	}
 

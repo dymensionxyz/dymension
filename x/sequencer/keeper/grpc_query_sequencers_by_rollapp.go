@@ -58,7 +58,7 @@ func (k Keeper) GetProposerByRollapp(c context.Context, req *types.QueryGetPropo
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	seq, ok := k.GetProposer(ctx, req.RollappId)
+	seq, ok := k.GetProposerLegacy(ctx, req.RollappId)
 	if !ok {
 		return nil, types.ErrNoProposer
 	}

@@ -260,7 +260,7 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 
 	// check proposer
 	for _, rollapp := range s.App.RollappKeeper.GetAllRollapps(s.Ctx) {
-		_, found := s.App.SequencerKeeper.GetProposer(s.Ctx, rollapp.RollappId)
+		_, found := s.App.SequencerKeeper.GetProposerLegacy(s.Ctx, rollapp.RollappId)
 		s.Assert().True(found)
 	}
 

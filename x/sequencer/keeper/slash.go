@@ -8,11 +8,10 @@ import (
 )
 
 func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
-	seq, err := k.LivenessLiableSequencer(ctx, rollappID)
+	seq, err := k.GetProposer(ctx, rollappID)
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "get proposer")
 	}
-	if
 	mul := k.GetParams(ctx).LivenessSlashMinMultiplier
 	abs := k.GetParams(ctx).LivenessSlashMinAbsolute
 	tokens := seq.TokensCoin()

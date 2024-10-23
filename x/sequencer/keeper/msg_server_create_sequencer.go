@@ -95,7 +95,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 
 	// TODO: choose proposer
 	// if no proposer set for he rollapp, set this sequencer as the proposer
-	_, proposerExists := k.GetProposer(ctx, msg.RollappId)
+	_, proposerExists := k.GetProposerLegacy(ctx, msg.RollappId)
 	if !proposerExists {
 		k.SetProposer(ctx, sequencer.RollappId, sequencer.Address)
 	}

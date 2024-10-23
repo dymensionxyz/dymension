@@ -60,7 +60,7 @@ func (suite *SequencerTestSuite) TestStartRotation() {
 	suite.Require().NoError(err)
 
 	// check proposer still bonded and notice period started
-	p, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	p, ok := suite.App.SequencerKeeper.GetProposerLegacy(suite.Ctx, rollappId)
 	suite.Require().True(ok)
 	suite.Equal(addr1, p.Address)
 	suite.Equal(suite.Ctx.BlockHeight(), p.UnbondRequestHeight)
@@ -77,7 +77,7 @@ func (suite *SequencerTestSuite) TestStartRotation() {
 	suite.Require().NotEmpty(n.Address)
 
 	// validate proposer not changed
-	p, _ = suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	p, _ = suite.App.SequencerKeeper.GetProposerLegacy(suite.Ctx, rollappId)
 	suite.Equal(addr1, p.Address)
 }
 
@@ -101,7 +101,7 @@ func (suite *SequencerTestSuite) TestRotateProposer() {
 	suite.Require().NoError(err)
 
 	// assert addr2 is now proposer
-	p, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	p, ok := suite.App.SequencerKeeper.GetProposerLegacy(suite.Ctx, rollappId)
 	suite.Require().True(ok)
 	suite.Equal(addr2, p.Address)
 	// assert addr1 is unbonding
@@ -127,7 +127,7 @@ func (suite *SequencerTestSuite) TestRotateProposerNoNextProposer() {
 	err = suite.App.SequencerKeeper.CompleteRotation(suite.Ctx, rollappId)
 	suite.Require().NoError(err)
 
-	_, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	_, ok := suite.App.SequencerKeeper.GetProposerLegacy(suite.Ctx, rollappId)
 	suite.Require().False(ok)
 
 	_, ok = suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
@@ -147,7 +147,7 @@ func (suite *SequencerTestSuite) TestStartRotationTwice() {
 	_, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
 
-	p, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	p, ok := suite.App.SequencerKeeper.GetProposerLegacy(suite.Ctx, rollappId)
 	suite.Require().True(ok)
 	suite.Equal(addr1, p.Address)
 	suite.Equal(suite.Ctx.BlockHeight(), p.UnbondRequestHeight)
@@ -176,7 +176,7 @@ func (suite *SequencerTestSuite) TestStartRotationTwice() {
 	suite.Require().NoError(err)
 
 	// validate addr2 is now proposer and still with notice period
-	p, _ = suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	p, _ = suite.App.SequencerKeeper.GetProposerLegacy(suite.Ctx, rollappId)
 	suite.Equal(addr2, p.Address)
 	suite.Require().True(p.IsNoticePeriodInProgress())
 

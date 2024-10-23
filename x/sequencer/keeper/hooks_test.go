@@ -29,7 +29,7 @@ func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
 	}
 
 	proposer := seqAddrs[0]
-	p, found := keeper.GetProposer(suite.Ctx, rollappId)
+	p, found := keeper.GetProposerLegacy(suite.Ctx, rollappId)
 	suite.Require().True(found)
 	suite.Require().Equal(proposer, p.Address)
 
@@ -57,7 +57,7 @@ func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
 	}
 
 	// check no proposer is set for the rollapp after fraud
-	_, ok := keeper.GetProposer(suite.Ctx, rollappId)
+	_, ok := keeper.GetProposerLegacy(suite.Ctx, rollappId)
 	suite.Require().False(ok)
 	// check if bond reduction queue is pruned
 	bds = keeper.GetMatureDecreasingBondIDs(suite.Ctx, resp.GetCompletionTime())

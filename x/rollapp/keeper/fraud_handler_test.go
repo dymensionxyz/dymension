@@ -205,7 +205,7 @@ func (suite *RollappTestSuite) assertFraudHandled(rollappId string) {
 	// check sequencers
 	sequencers := suite.App.SequencerKeeper.GetSequencersByRollappByStatus(suite.Ctx, rollappId, types.Bonded)
 	suite.Require().Equal(0, len(sequencers))
-	_, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	_, ok := suite.App.SequencerKeeper.GetProposerLegacy(suite.Ctx, rollappId)
 	suite.Require().False(ok)
 	seq := suite.App.SequencerKeeper.ExpectedNextProposer(suite.Ctx, rollappId)
 	suite.Require().Empty(seq.Address)

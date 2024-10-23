@@ -27,7 +27,7 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 // performs a rotation of the proposer.
 // Returns an error if any of the checks fail, otherwise returns nil.
 func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, lastStateUpdateBySequencer bool) error {
-	proposer, ok := hook.k.GetProposer(ctx, rollappId)
+	proposer, ok := hook.k.GetProposerLegacy(ctx, rollappId)
 	if !ok {
 		return types.ErrNoProposer
 	}

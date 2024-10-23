@@ -72,7 +72,7 @@ func (suite *SequencerTestSuite) TestJailProposerSequencer() {
 	suite.NoError(err)
 	suite.assertJailed(proposer)
 
-	_, found := keeper.GetProposer(suite.Ctx, rollappId)
+	_, found := keeper.GetProposerLegacy(suite.Ctx, rollappId)
 	suite.Require().False(found)
 }
 

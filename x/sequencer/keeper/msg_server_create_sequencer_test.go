@@ -356,7 +356,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 			}
 
 			// check that the sequencer is the proposer
-			proposer, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+			proposer, ok := suite.App.SequencerKeeper.GetProposerLegacy(suite.Ctx, rollappId)
 			suite.Require().True(ok)
 			if seq.expProposer {
 				suite.Require().Equal(addr.String(), proposer.Address, tc.name)

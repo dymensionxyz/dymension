@@ -14,7 +14,7 @@ func (suite *SequencerTestSuite) TestUnbondingNonProposer() {
 	bondedAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 	suite.Require().NotEqual(proposerAddr, bondedAddr)
 
-	proposer, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	proposer, ok := suite.App.SequencerKeeper.GetProposerLegacy(suite.Ctx, rollappId)
 	suite.Require().True(ok)
 	suite.Equal(proposerAddr, proposer.Address)
 
@@ -38,7 +38,7 @@ func (suite *SequencerTestSuite) TestUnbondingNonProposer() {
 	suite.Equal(types.Unbonded, bondedSeq.Status)
 
 	// check proposer not changed
-	proposer, ok = suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	proposer, ok = suite.App.SequencerKeeper.GetProposerLegacy(suite.Ctx, rollappId)
 	suite.Require().True(ok)
 	suite.Equal(proposerAddr, proposer.Address)
 
@@ -59,7 +59,7 @@ func (suite *SequencerTestSuite) TestUnbondingProposer() {
 	suite.Require().NoError(err)
 
 	// check proposer still bonded and notice period started
-	p, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	p, ok := suite.App.SequencerKeeper.GetProposerLegacy(suite.Ctx, rollappId)
 	suite.Require().True(ok)
 	suite.Equal(proposerAddr, p.Address)
 	suite.Equal(suite.Ctx.BlockHeight(), p.UnbondRequestHeight)
