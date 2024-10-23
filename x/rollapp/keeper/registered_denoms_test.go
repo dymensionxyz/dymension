@@ -15,13 +15,15 @@ func (suite *RollappTestSuite) TestKeeper_SetRegisteredDenom() {
 		rollappIDs = append(rollappIDs, rollappID)
 
 		for _, d := range denoms {
-			suite.App.RollappKeeper.SetRegisteredDenom(suite.Ctx, rollappID, d)
+			err := suite.App.RollappKeeper.SetRegisteredDenom(suite.Ctx, rollappID, d)
+			suite.Require().NoError(err)
 			suite.Require().True(suite.App.RollappKeeper.HasRegisteredDenom(suite.Ctx, rollappID, d))
 		}
 	}
 
 	for _, rollappId := range rollappIDs {
-		gotDenoms := suite.App.RollappKeeper.GetAllRegisteredDenoms(suite.Ctx, rollappId)
+		gotDenoms, err := suite.App.RollappKeeper.GetAllRegisteredDenoms(suite.Ctx, rollappId)
+		suite.Require().NoError(err)
 		suite.Require().ElementsMatch(denoms, gotDenoms)
 	}
 }

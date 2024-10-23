@@ -15,7 +15,12 @@ func (k Keeper) RegisteredDenoms(c context.Context, req *types.QueryRegisteredDe
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
+	denoms, err := k.GetAllRegisteredDenoms(sdk.UnwrapSDKContext(c), req.RollappId)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
 	return &types.QueryRegisteredDenomsResponse{
-		Denoms: k.GetAllRegisteredDenoms(sdk.UnwrapSDKContext(c), req.RollappId),
+		Denoms: denoms,
 	}, nil
 }
