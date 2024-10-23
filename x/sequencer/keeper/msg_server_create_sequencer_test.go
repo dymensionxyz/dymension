@@ -387,7 +387,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 	}
 
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-	suite.EqualError(err, types.ErrUnknownRollappID.Error())
+	suite.EqualError(err, types.ErrRollappNotFound.Error())
 }
 
 // create sequencer before genesisInfo is set

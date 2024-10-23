@@ -65,7 +65,7 @@ func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
 			request: &types.QueryGetSequencersByRollappRequest{
 				RollappId: strconv.Itoa(100000),
 			},
-			err: types.ErrUnknownRollappID,
+			err: types.ErrRollappNotFound,
 		},
 		{
 			desc: "InvalidRequest",
@@ -149,7 +149,7 @@ func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 			request: &types.QueryGetSequencersByRollappByStatusRequest{
 				RollappId: strconv.Itoa(100000),
 			},
-			err: types.ErrUnknownRollappID,
+			err: types.ErrRollappNotFound,
 		},
 		{
 			desc: "InvalidRequest",

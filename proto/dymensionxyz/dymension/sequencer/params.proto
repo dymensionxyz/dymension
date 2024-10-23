@@ -37,4 +37,9 @@ message Params {
     (gogoproto.moretags) = "yaml:\"liveness_slash_multiplier\"",
     (gogoproto.nullable) = false
   ];
+  // liveness_slash_min_absolute is the absolute minimum to slash for liveness
+  cosmos.base.v1beta1.Coin liveness_slash_min_absolute = 6 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "kick_threshold,omitempty"
+  ];
 }

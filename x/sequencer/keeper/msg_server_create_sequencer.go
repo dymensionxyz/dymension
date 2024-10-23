@@ -20,11 +20,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	// check to see if the rollapp has been registered before
 	rollapp, found := k.rollappKeeper.GetRollapp(ctx, msg.RollappId)
 	if !found {
-		return nil, types.ErrUnknownRollappID
-	}
-
-	if rollapp.Frozen {
-		return nil, types.ErrRollappFrozen
+		return nil, types.ErrRollappNotFound
 	}
 
 	if err := msg.VMSpecificValidate(rollapp.VmType); err != nil {

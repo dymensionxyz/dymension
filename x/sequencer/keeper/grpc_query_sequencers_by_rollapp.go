@@ -21,7 +21,7 @@ func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequen
 	ctx := sdk.UnwrapSDKContext(c)
 
 	if _, ok := k.rollappKeeper.GetRollapp(ctx, req.RollappId); !ok {
-		return nil, errors.Join(gerrc.ErrNotFound, types.ErrUnknownRollappID)
+		return nil, errors.Join(gerrc.ErrNotFound, types.ErrRollappNotFound)
 	}
 
 	sequencers := k.GetSequencersByRollapp(ctx, req.RollappId)
@@ -37,7 +37,7 @@ func (k Keeper) SequencersByRollappByStatus(c context.Context, req *types.QueryG
 	ctx := sdk.UnwrapSDKContext(c)
 
 	if _, ok := k.rollappKeeper.GetRollapp(ctx, req.RollappId); !ok {
-		return nil, errors.Join(gerrc.ErrNotFound, types.ErrUnknownRollappID)
+		return nil, errors.Join(gerrc.ErrNotFound, types.ErrRollappNotFound)
 	}
 
 	sequencers := k.GetSequencersByRollappByStatus(
