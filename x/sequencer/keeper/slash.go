@@ -12,6 +12,7 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	if err != nil {
 		return err
 	}
+	if
 	mul := k.GetParams(ctx).LivenessSlashMinMultiplier
 	abs := k.GetParams(ctx).LivenessSlashMinAbsolute
 	tokens := seq.TokensCoin()

@@ -9,8 +9,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// used to indicate that no sequencer is available for a proposer / next proposer role
-const NO_SEQUENCER_AVAILABLE = ""
+// NoSequencerAvailable : indicate that no sequencer is available for a proposer / next proposer role
+const NoSequencerAvailable = "sentinel"
 
 // SetSequencer set a specific sequencer in the store from its index
 func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
@@ -200,11 +200,11 @@ func (k Keeper) GetAllProposers(ctx sdk.Context) (list []types.Sequencer) {
 	return
 }
 
-func (k Keeper) SetProposer(ctx sdk.Context, seq types.Sequencer) {
+func (k Keeper) SetProposer(ctx sdk.Context, rollapp, seqAddr string) {
 	store := ctx.KVStore(k.storeKey)
-	addressBytes := []byte(seq.Address)
+	addressBytes := []byte(seqAddr)
 
-	activeKey := types.ProposerByRollappKey(seq.RollappId)
+	activeKey := types.ProposerByRollappKey(rollapp)
 	store.Set(activeKey, addressBytes)
 }
 
@@ -212,7 +212,7 @@ func (k Keeper) SetProposer(ctx sdk.Context, seq types.Sequencer) {
 func (k Keeper) GetProposer(ctx sdk.Context, rollappId string) (val types.Sequencer, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.ProposerByRollappKey(rollappId))
-	if len(b) == 0 || string(b) == NO_SEQUENCER_AVAILABLE {
+	if len(b) == 0 || string(b) == NoSequencerAvailable {
 		return val, false
 	}
 
@@ -220,7 +220,7 @@ func (k Keeper) GetProposer(ctx sdk.Context, rollappId string) (val types.Sequen
 }
 
 func (k Keeper) removeProposer(ctx sdk.Context, rollappId string) {
-	k.SetProposer(ctx, rollappId, NO_SEQUENCER_AVAILABLE)
+	k.SetProposer(ctx, rollappId, NoSequencerAvailable)
 }
 
 func (k Keeper) isProposer(ctx sdk.Context, seq types.Sequencer) bool {
@@ -248,7 +248,7 @@ func (k Keeper) GetNextProposer(ctx sdk.Context, rollappId string) (val types.Se
 	}
 
 	address := string(b)
-	if address == NO_SEQUENCER_AVAILABLE {
+	if address == NoSequencerAvailable {
 		return val, true
 	}
 	return k.GetSequencer(ctx, address)

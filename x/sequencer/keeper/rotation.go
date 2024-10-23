@@ -125,7 +125,7 @@ func (k Keeper) CompleteRotation(ctx sdk.Context, rollappId string) error {
 	k.removeNextProposer(ctx, rollappId)
 	k.SetProposer(ctx, rollappId, nextProposer.Address)
 
-	if nextProposer.Address == NO_SEQUENCER_AVAILABLE {
+	if nextProposer.Address == NoSequencerAvailable {
 		k.Logger(ctx).Info("Rollapp left with no proposer.", "RollappID", rollappId)
 	}
 
