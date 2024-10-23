@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
@@ -64,23 +65,13 @@ func (k Keeper) AwaitProposerLastBlock(ctx sdk.Context, rollapp string) error {
 }
 
 func (k Keeper) onProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) error {
+	allowLastBlock := proposer.NoticeElapsed(ctx.BlockTime())
+	if !allowLastBlock {
+		return errorsmod.Wrap(gerrc.ErrFault, "sequencer has submitted last block without finishing notice period")
+	}
 	k.SetProposer(ctx, proposer.RollappId, types.SentinelSequencerAddr)
 	k.ChooseProposer(ctx, proposer.RollappId)
-	proposer = k.GetProposer(ctx, proposer.RollappId)
-
-	if
-
-	if nextProposer.Address == types.SentinelSeqAddr {
-		k.Logger(ctx).Info("Rollapp left with no proposer.", "RollappID", rollappId)
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeProposerRotated,
-			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
-			sdk.NewAttribute(types.AttributeKeySequencer, nextProposer.Address),
-		),
-	)
+	return nil
 }
 
 /* -------------------------------------------------------------------------- */

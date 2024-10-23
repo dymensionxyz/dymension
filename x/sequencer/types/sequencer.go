@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	cometbfttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -14,7 +16,7 @@ const (
 	SentinelSequencerAddr = "sentinel"
 )
 
-func SentinelSequencer(rollapp string) Sequencer{
+func SentinelSequencer(rollapp string) Sequencer {
 	return Sequencer{
 		RollappId: rollapp,
 		Address:   SentinelSequencerAddr,
@@ -62,8 +64,17 @@ func (seq Sequencer) SetTokensCoin(c sdk.Coin) {
 }
 
 // IsNoticePeriodInProgress returns true if the sequencer is bonded and has an unbond request
-func () IsNoticePeriodInProgress() bool {
-	return seq.Status == Bonded && seq.UnbondRequestHeight != 0
+func (seq Sequencer) IsNoticePeriodInProgress(now time.Time) bool {
+	return seq.NoticePopulated() && !seq.NoticeElapsed(now)
+}
+
+// NoticeElapsed returns true iff notice period time is populated and strictly before now
+func (seq Sequencer) NoticeElapsed(now time.Time) bool {
+	return seq.NoticePeriodTime != time.Time{} && seq.NoticePeriodTime.Before(now)
+}
+
+func (seq Sequencer) NoticePopulated() bool {
+	return seq.NoticePeriodTime != time.Time{}
 }
 
 // GetDymintPubKeyHash returns the hash of the sequencer
