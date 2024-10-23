@@ -1,23 +1,40 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
+	"sort"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-func (k Keeper) ChooseProposer(ctx sdk.Context, rollappId string) error {
-	proposer, err := k.GetProposer(ctx, rollappId)
-	if err != nil {
-		return errorsmod.Wrap(err, "get proposer")
-	}
+func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
+	proposer := k.GetProposer(ctx, rollapp)
 	if !proposer.Sentinel() {
 		if !proposer.Bonded() {
-			return gerrc.ErrInternal.Wrap("proposer is unbonded")
+			return gerrc.ErrInternal.Wrap("proposer is unbonded - invariant broken")
 		}
 	}
-	successor := k.GetProposer(ctx, rollappId)
+	successor := k.GetSuccessor(ctx, rollapp)
+	k.SetProposer(ctx, rollapp, successor.Address)
+	k.SetSuccessor(ctx, rollapp, types.SentinelSequencerAddr)
+	if k.GetProposer(ctx, rollapp).Sentinel() {
+		seqs := k.GetRollappBondedSequencers(ctx, rollapp)
+		// TODO: exclude last? thats what the legacy code does
+		proposer := k.proposerChoiceAlgo(ctx, rollapp, seqs)
+		k.SetProposer(ctx, rollapp, proposer.Address)
+	}
+	return nil
+}
+
+func (k Keeper) proposerChoiceAlgo(ctx sdk.Context, rollapp string, seqs []types.Sequencer) types.Sequencer {
+	if len(seqs) == 0 {
+		return types.SentinelSequencer(rollapp)
+	}
+	sort.SliceStable(seqs, func(i, j int) bool {
+		return seqs[i].TokensCoin().IsGTE(seqs[j].TokensCoin())
+	})
+	return seqs[0]
 }
 
 func (k Keeper) GetProposer(ctx sdk.Context, rollappId string) types.Sequencer {
@@ -36,6 +53,21 @@ func (k Keeper) GetSuccessor(ctx sdk.Context, rollapp string) types.Sequencer {
 		return k.GetSequencer(ctx, rollapp, types.SentinelSequencerAddr)
 	}
 	return k.GetSequencer(ctx, rollapp, string(bz))
+}
+
+func (k Keeper) SetProposer(ctx sdk.Context, rollapp, seqAddr string) {
+	store := ctx.KVStore(k.storeKey)
+	addressBytes := []byte(seqAddr)
+
+	activeKey := types.ProposerByRollappKey(rollapp)
+	store.Set(activeKey, addressBytes)
+}
+
+func (k Keeper) SetSuccessor(ctx sdk.Context, rollapp, seqAddr string) {
+	store := ctx.KVStore(k.storeKey)
+	addressBytes := []byte(seqAddr)
+	nextProposerKey := types.NextProposerByRollappKey(rollapp)
+	store.Set(nextProposerKey, addressBytes)
 }
 
 func (k Keeper) GetSequencer(ctx sdk.Context, rollapp, addr string) types.Sequencer {

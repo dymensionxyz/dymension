@@ -312,6 +312,10 @@ func (k Keeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list 
 	return
 }
 
+func (k Keeper) GetRollappBondedSequencers(ctx sdk.Context, rollappId string) []types.Sequencer {
+	return k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
+}
+
 // GetSequencersByRollappByStatus returns a sequencersByRollapp from its index
 func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string, status types.OperatingStatus) (list []types.Sequencer) {
 	prefixKey := types.SequencersByRollappByStatusKey(rollappId, status)
@@ -380,14 +384,6 @@ func (k Keeper) GetAllProposers(ctx sdk.Context) (list []types.Sequencer) {
 	}
 
 	return
-}
-
-func (k Keeper) SetProposer(ctx sdk.Context, rollapp, seqAddr string) {
-	store := ctx.KVStore(k.storeKey)
-	addressBytes := []byte(seqAddr)
-
-	activeKey := types.ProposerByRollappKey(rollapp)
-	store.Set(activeKey, addressBytes)
 }
 
 // GetProposerLegacy returns the proposer for a rollapp
