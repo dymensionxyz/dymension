@@ -501,8 +501,8 @@ github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkp
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/dvsekhvalnov/jose2go v1.6.0 h1:Y9gnSnP4qEI0+/uQkHvFXeD2PLPJeXEL+ySMEA2EjTY=
 github.com/dvsekhvalnov/jose2go v1.6.0/go.mod h1:QsHjhyTlD/lAVqn/NSbVZmSCGeDehTB/mPZadG+mhXU=
-github.com/dymensionxyz/dymension-rdk v1.6.1 h1:UufeE6Wy8RRW7iyyDkl56/OSee/ByRqLCUrXK3QAHtI=
-github.com/dymensionxyz/dymension-rdk v1.6.1/go.mod h1:WxJQLPL8HXg00qNY4P1XVZDbIHoNVQT2eQTrIPZYWtg=
+github.com/dymensionxyz/dymension-rdk v1.6.0 h1:NmJwSchWhrNVSnV1bD6ZL3gV9NSjukmusVQX4SxKpfM=
+github.com/dymensionxyz/dymension-rdk v1.6.0/go.mod h1:FRuzA4rZPwehMTQdF2ZRefJElKh9CHkhtCsD9Q1p8VI=
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20241013112411-5ef491708a2d h1:UiPbek/78Cr0hUKJmCCtVt0VkfGop5zV39tnF08I6Qk=
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20241013112411-5ef491708a2d/go.mod h1:aokD0im7cUMMtR/khzNsmcGtINtxCpBfcgRvJdmLymA=
 github.com/dymensionxyz/gerr-cosmos v1.1.0 h1:IW/P7HCB/iP9kgk3VXaWUoMoyx3vD76YO6p1fnubHVc=
