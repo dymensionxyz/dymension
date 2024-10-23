@@ -36,31 +36,24 @@ func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, now time.Time)
 	seqs := k.GetMatureNoticePeriodSequencers(ctx, now)
 	for _, seq := range seqs {
 		if !k.IsSuccessor(ctx, seq) {
-			// next proposer cannot mature it's notice period until the current proposer has finished rotation
+			// next proposer cannot mature its notice period until the current proposer has finished rotation
 			// minor effect as notice_period >>> rotation time
 			k.removeNoticePeriodSequencer(ctx, seq)
-			k.startRotationLeg(ctx, seq.RollappId)
-
+			if err := k.chooseSuccessor(ctx, seq.RollappId); err != nil {
+				k.Logger(ctx).Error("Choose successor.", "err", err)
+				continue
+			}
+			successor := k.GetSuccessor(ctx, seq.RollappId)
+			// TODO: event cleanup
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeRotationStarted,
+					sdk.NewAttribute(types.AttributeKeyRollappId, seq.RollappId),
+					sdk.NewAttribute(types.AttributeKeyNextProposer, successor.Address),
+				),
+			)
 		}
 	}
-}
-
-func (k Keeper) AwaitProposerLastBlock(ctx sdk.Context, rollapp string) error {
-	if err := k.ChooseSuccessor(ctx, rollapp); err != nil {
-		return errorsmod.Wrap(err, "choose successor")
-	}
-	successor := k.GetSuccessor(ctx, rollapp)
-
-	// TODO: update event
-	k.Logger(ctx).Info("rotation started", "rollappId", rollapp, "nextProposer", successor.Address)
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeRotationStarted,
-			sdk.NewAttribute(types.AttributeKeyRollappId, rollapp),
-			sdk.NewAttribute(types.AttributeKeyNextProposer, successor.Address),
-		),
-	)
 }
 
 func (k Keeper) onProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) error {
