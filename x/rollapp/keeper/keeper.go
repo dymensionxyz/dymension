@@ -30,7 +30,7 @@ type Keeper struct {
 	bankKeeper            types.BankKeeper
 
 	vulnerableDRSVersions   collections.KeySet[string]
-	registeredRollappDenoms collections.KeySet[[]byte]
+	registeredRollappDenoms collections.KeySet[collections.Pair[string, string]]
 
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 }
@@ -73,11 +73,11 @@ func NewKeeper(
 			"vulnerable_drs_versions",
 			collections.StringKey,
 		),
-		registeredRollappDenoms: collections.NewKeySet[[]byte](
+		registeredRollappDenoms: collections.NewKeySet[collections.Pair[string, string]](
 			collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey)),
 			collections.NewPrefix(types.KeyRegisteredDenomPrefix),
 			"registered_rollapp_denoms",
-			collections.BytesKey,
+			collections.PairKeyCodec(collections.StringKey, collections.StringKey),
 		),
 		finalizePending:       nil,
 		canonicalClientKeeper: canonicalClientKeeper,

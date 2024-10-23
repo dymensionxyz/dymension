@@ -5,12 +5,10 @@ import (
 
 	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func (k Keeper) SetRegisteredDenom(ctx sdk.Context, rollappID, denom string) error {
-	key := types.KeyRegisteredDenom(rollappID, denom)
+	key := collections.Join(rollappID, denom)
 	if err := k.registeredRollappDenoms.Set(ctx, key); err != nil {
 		return fmt.Errorf("set registered denom: %w", err)
 	}
@@ -18,7 +16,7 @@ func (k Keeper) SetRegisteredDenom(ctx sdk.Context, rollappID, denom string) err
 }
 
 func (k Keeper) HasRegisteredDenom(ctx sdk.Context, rollappID, denom string) (bool, error) {
-	key := types.KeyRegisteredDenom(rollappID, denom)
+	key := collections.Join(rollappID, denom)
 	ok, err := k.registeredRollappDenoms.Has(ctx, key)
 	if err != nil {
 		return false, fmt.Errorf("has registered denom: %w", err)
@@ -38,8 +36,8 @@ func (k Keeper) GetAllRegisteredDenoms(ctx sdk.Context, rollappID string) ([]str
 }
 
 func (k Keeper) IterateRegisteredDenoms(ctx sdk.Context, rollappID string, cb func(denom string) (bool, error)) error {
-	pref := types.RegisteredDenomPrefix(rollappID)
-	iter, err := k.registeredRollappDenoms.Iterate(ctx, new(collections.Range[[]byte]).Prefix(pref))
+	pref := collections.PairPrefix[string, string](rollappID)
+	iter, err := k.registeredRollappDenoms.Iterate(ctx, new(collections.Range[collections.Pair[string, string]]).Prefix(pref))
 	if err != nil {
 		return fmt.Errorf("iterate registered denoms: %w", err)
 	}
@@ -50,7 +48,7 @@ func (k Keeper) IterateRegisteredDenoms(ctx sdk.Context, rollappID string, cb fu
 		if err != nil {
 			return fmt.Errorf("get key: %w", err)
 		}
-		denom := string(key[len(pref):])
+		denom := key.K2()
 		stop, err := cb(denom)
 		if err != nil {
 			return err

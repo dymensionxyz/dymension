@@ -505,7 +505,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				IBCModule: &mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{
 					registeredDenoms: map[string]struct{}{
-						string(rollapptypes.KeyRegisteredDenom("rollapp1", validDenomMetadata.Base)): {},
+						fmt.Sprintf("%s/%s", "rollapp1", validDenomMetadata.Base): {},
 					},
 					returnRollapp: &rollapptypes.Rollapp{
 						RollappId: "rollapp1",
@@ -543,7 +543,8 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 
 			registeredDenoms := make([]string, 0, len(tt.fields.rollappKeeper.registeredDenoms))
 			if tt.fields.rollappKeeper.returnRollapp != nil {
-				registeredDenoms = tt.fields.rollappKeeper.GetAllRegisteredDenoms(sdk.Context{}, tt.fields.rollappKeeper.returnRollapp.RollappId)
+				registeredDenoms, err = tt.fields.rollappKeeper.GetAllRegisteredDenoms(sdk.Context{}, tt.fields.rollappKeeper.returnRollapp.RollappId)
+				require.NoError(t, err)
 			}
 			require.ElementsMatch(t, tt.wantRegisteredDenoms, registeredDenoms)
 		})
@@ -706,25 +707,26 @@ func (m *mockRollappKeeper) GetValidTransfer(sdk.Context, []byte, string, string
 	}, m.err
 }
 
-func (m *mockRollappKeeper) SetRegisteredDenom(_ sdk.Context, rollappID, denom string) {
-	key := rollapptypes.KeyRegisteredDenom(rollappID, denom)
-	m.registeredDenoms[string(key)] = struct{}{}
+func (m *mockRollappKeeper) SetRegisteredDenom(_ sdk.Context, rollappID, denom string) error {
+	key := fmt.Sprintf("%s/%s", rollappID, denom)
+	m.registeredDenoms[key] = struct{}{}
+	return m.err
 }
 
-func (m *mockRollappKeeper) HasRegisteredDenom(_ sdk.Context, rollappID, denom string) bool {
-	key := rollapptypes.KeyRegisteredDenom(rollappID, denom)
-	_, ok := m.registeredDenoms[string(key)]
-	return ok
+func (m *mockRollappKeeper) HasRegisteredDenom(_ sdk.Context, rollappID, denom string) (bool, error) {
+	key := fmt.Sprintf("%s/%s", rollappID, denom)
+	_, ok := m.registeredDenoms[key]
+	return ok, m.err
 }
 
-func (m *mockRollappKeeper) GetAllRegisteredDenoms(_ sdk.Context, rollappID string) []string {
+func (m *mockRollappKeeper) GetAllRegisteredDenoms(_ sdk.Context, rollappID string) ([]string, error) {
 	var denoms []string
 	for k := range m.registeredDenoms {
-		prefix := string(rollapptypes.RegisteredDenomPrefix(rollappID))
+		prefix := rollappID + "/"
 		denom := strings.TrimPrefix(k, prefix)
 		denoms = append(denoms, denom)
 	}
-	return denoms
+	return denoms, m.err
 }
 
 type mockBankKeeper struct {
