@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"slices"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -36,6 +38,14 @@ func (k Keeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list 
 	}
 
 	return
+}
+
+func (k Keeper) GetRollappPotentialProposers(ctx sdk.Context, rollappId string) []types.Sequencer {
+	seqs := k.GetRollappBondedSequencers(ctx, rollappId)
+	slices.DeleteFunc(seqs, func(s types.Sequencer) bool {
+		return !s.OptedIn
+	})
+	return seqs
 }
 
 func (k Keeper) GetRollappBondedSequencers(ctx sdk.Context, rollappId string) []types.Sequencer {

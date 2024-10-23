@@ -11,6 +11,7 @@ import (
 func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
 	completionTime := ctx.BlockTime().Add(k.NoticePeriod(ctx))
 	seq.NoticePeriodTime = completionTime
+	seq.OptedIn = false
 
 	k.UpdateSequencerLeg(ctx, seq)
 	k.AddSequencerToNoticePeriodQueue(ctx, *seq)
@@ -63,19 +64,21 @@ func (k Keeper) AwaitProposerLastBlock(ctx sdk.Context, rollapp string) error {
 }
 
 func (k Keeper) onProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) error {
-	if err := k.ChooseSuccessor(ctx, rollapp); err != nil {
-		return errorsmod.Wrap(err, "choose successor")
-	}
-	successor := k.GetSuccessor(ctx, rollapp)
+	k.SetProposer(ctx, proposer.RollappId, types.SentinelSequencerAddr)
+	k.ChooseProposer(ctx, proposer.RollappId)
+	proposer = k.GetProposer(ctx, proposer.RollappId)
 
-	// TODO: update event
-	k.Logger(ctx).Info("rotation started", "rollappId", rollapp, "nextProposer", successor.Address)
+	if
+
+	if nextProposer.Address == types.SentinelSeqAddr {
+		k.Logger(ctx).Info("Rollapp left with no proposer.", "RollappID", rollappId)
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeRotationStarted,
-			sdk.NewAttribute(types.AttributeKeyRollappId, rollapp),
-			sdk.NewAttribute(types.AttributeKeyNextProposer, successor.Address),
+			types.EventTypeProposerRotated,
+			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
+			sdk.NewAttribute(types.AttributeKeySequencer, nextProposer.Address),
 		),
 	)
 }

@@ -82,18 +82,6 @@ func (k Keeper) completeRotationLeg(ctx sdk.Context, rollappId string) error {
 	k.removeNextProposer(ctx, rollappId)
 	k.SetProposer(ctx, rollappId, nextProposer.Address)
 
-	if nextProposer.Address == types.SentinelSeqAddr {
-		k.Logger(ctx).Info("Rollapp left with no proposer.", "RollappID", rollappId)
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeProposerRotated,
-			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
-			sdk.NewAttribute(types.AttributeKeySequencer, nextProposer.Address),
-		),
-	)
-
 	return nil
 }
 

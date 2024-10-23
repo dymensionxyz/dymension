@@ -9,11 +9,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string, excludedAddr ...string) error {
-	excluded := map[string]struct{}{}
-	for _, addr := range excludedAddr {
-		excluded[addr] = struct{}{}
-	}
+func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 	proposer := k.GetProposer(ctx, rollapp)
 	if !proposer.Sentinel() {
 		if !proposer.Bonded() {
@@ -21,16 +17,10 @@ func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string, excludedAddr ...
 		}
 	}
 	successor := k.GetSuccessor(ctx, rollapp)
-	if _, ok := excluded[proposer.Address]; ok {
-		return gerrc.ErrInternal.Wrap("contract broken - do not pass current proposer as exclusion")
-	}
-	if _, ok := excluded[successor.Address]; ok {
-		return gerrc.ErrInternal.Wrap("contract broken - do not pass successor as exclusion")
-	}
 	k.SetProposer(ctx, rollapp, successor.Address)
 	k.SetSuccessor(ctx, rollapp, types.SentinelSequencerAddr)
 	if k.GetProposer(ctx, rollapp).Sentinel() {
-		seqs := k.GetRollappBondedSequencers(ctx, rollapp)
+		seqs := k.GetRollappPotentialProposers(ctx, rollapp)
 		slices.DeleteFunc(seqs, func(s types.Sequencer) bool { // Not efficient, could optimize.
 			return s.Address == proposer.Address
 		})
@@ -48,7 +38,7 @@ func (k Keeper) ChooseSuccessor(ctx sdk.Context, rollapp string) error {
 	}
 	successor := k.GetSuccessor(ctx, rollapp)
 	if successor.Sentinel() {
-		seqs := k.GetRollappBondedSequencers(ctx, rollapp)
+		seqs := k.GetRollappPotentialProposers(ctx, rollapp)
 		slices.DeleteFunc(seqs, func(s types.Sequencer) bool { // Not efficient, could optimize.
 			return s.Address == proposer.Address
 		})
