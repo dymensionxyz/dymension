@@ -36,6 +36,10 @@ func (seq Sequencer) TokensCoin() sdk.Coin {
 	return seq.Tokens[0]
 }
 
+func (seq Sequencer) AccAddr() sdk.AccAddress {
+	return sdk.MustAccAddressFromBech32(seq.Address)
+}
+
 func (seq Sequencer) SetTokensCoin(c sdk.Coin) {
 	seq.Tokens = sdk.Coins{c}
 }

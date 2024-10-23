@@ -1,21 +1,49 @@
 package keeper
 
 import (
-	"fmt"
-	"time"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
-
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 )
 
+// UnbondCondition defines an unbond condition implementer.
+// It is implemented by modules.
+// Returning false means the sequencer will not be allowed to unbond, it should also
+// contain the unbond reason.
+type UnbondCondition interface {
+	CanUnbond(ctx sdk.Context, sequencer types.Sequencer) error
+}
+
 func (k Keeper) tryUnbond(ctx sdk.Context, seq types.Sequencer, amt *sdk.Coin) error {
-	if k.isNoticePeriodRequired(ctx, seq) {
-		return types.ErrUnbondProposerOrNext
+	if k.IsProposerOrSuccessor(ctx, seq) {
+		return types.ErrUnbondProposerOrSuccessor
 	}
+	for _, c := range k.unbondConditions {
+		if err := c.CanUnbond(ctx, seq); err != nil {
+			return errorsmod.Wrap(err, "other module can unbond")
+		}
+	}
+	if amt != nil {
+		// partial refund
+		bond := seq.TokensCoin()
+		minBond := k.GetParams(ctx).MinBond
+		maxReduction, _ := bond.SafeSub(minBond)
+		if maxReduction.IsLT(*amt) {
+			return errorsmod.Wrapf(types.ErrUnbondNotAllowed,
+				"attempted reduction: %s, max reduction: %s",
+				*amt, ucoin.NonNegative(maxReduction),
+			)
+		}
+		return errorsmod.Wrap(k.refundTokens(ctx, seq, *amt), "refund")
+	}
+	// total refund + unbond
+	if err := k.refundTokens(ctx, seq, seq.TokensCoin()); err != nil {
+		return errorsmod.Wrap(err, "refund")
+	}
+	return errorsmod.Wrap(k.unbond(ctx, seq), "unbond")
 }
 
 func (k Keeper) unbond(ctx sdk.Context, seq types.Sequencer) error {
@@ -24,108 +52,36 @@ func (k Keeper) unbond(ctx sdk.Context, seq types.Sequencer) error {
 	}
 	seq.Status = types.Unbonded
 	if k.isProposer(ctx, seq) {
-		k.SetProposer(ctx, seq)
+		k.SetProposer(ctx, seq.RollappId, SentinelSeqAddr)
 	}
-}
-
-/// ~~~~~~~~~~
-
-// startUnbondingPeriodForSequencer sets the sequencer to unbonding status
-// can be called after notice period or directly if notice period is not required
-// caller is responsible for updating the proposer for the rollapp if needed
-func (k Keeper) startUnbondingPeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
-	completionTime := ctx.BlockTime().Add(k.UnbondingTime(ctx))
-	seq.UnbondTime = completionTime
-
-	seq.Status = types.Unbonding
-	k.UpdateSequencer(ctx, seq, types.Bonded)
-	k.AddSequencerToUnbondingQueue(ctx, seq)
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeUnbonding,
-			sdk.NewAttribute(types.AttributeKeySequencer, seq.Address),
-			sdk.NewAttribute(types.AttributeKeyBond, seq.Tokens.String()),
-			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.String()),
-		),
-	)
-
-	return completionTime
-}
-
-// UnbondAllMatureSequencers unbonds all the mature unbonding sequencers that
-// have finished their unbonding period.
-func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {
-	sequencers := k.GetMatureUnbondingSequencers(ctx, currTime)
-	for _, seq := range sequencers {
-		wrapFn := func(ctx sdk.Context) error {
-			return k.unbondSequencer(ctx, seq.Address)
-		}
-		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
-		if err != nil {
-			k.Logger(ctx).Error("unbond sequencer", "error", err, "sequencer", seq.Address)
-			continue
-		}
-	}
-}
-
-// InstantUnbondAllSequencers unbonds all sequencers for a rollapp
-// This is called when there is a fraud
-func (k Keeper) InstantUnbondAllSequencers(ctx sdk.Context, rollappID string) error {
-	// unbond all bonded/unbonding sequencers
-	bonded := k.GetSequencersByRollappByStatus(ctx, rollappID, types.Bonded)
-	unbonding := k.GetSequencersByRollappByStatus(ctx, rollappID, types.Unbonding)
-	for _, sequencer := range append(bonded, unbonding...) {
-		err := k.unbondSequencer(ctx, sequencer.Address)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
-// reduceSequencerBond reduces the bond of a sequencer
-// if burn is true, the tokens are burned, otherwise they are refunded
-// returns an error if the sequencer does not have enough bond
-// method updates the sequencer object. doesn't update the store
-func (k Keeper) reduceSequencerBond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coins, burn bool) error {
-	if amt.IsZero() {
-		return nil
-	}
-	if !seq.Tokens.IsAllGTE(amt) {
-		return fmt.Errorf("sequencer does not have enough bond: got %s, reducing by %s", seq.Tokens.String(), amt.String())
-	}
-	if burn {
-		err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, amt)
+func (k Keeper) refundTokens(ctx sdk.Context, seq types.Sequencer, amt sdk.Coin) error {
+	return errorsmod.Wrap(k.moveTokens(ctx, seq, amt, uptr.To(seq.AccAddr())), "move tokens")
+}
+
+func (k Keeper) moveTokens(ctx sdk.Context, seq types.Sequencer, amt sdk.Coin, recipient *sdk.AccAddress) error {
+	amts := sdk.NewCoins(amt)
+	if recipient != nil {
+		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, *recipient, amts)
 		if err != nil {
-			return err
+			return errorsmod.Wrap(err, "bank send")
 		}
 	} else {
-		// refund
-		seqAcc := sdk.MustAccAddressFromBech32(seq.Address)
-		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, seqAcc, amt)
+		err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, amts)
 		if err != nil {
-			return err
+			return errorsmod.Wrap(err, "burn")
 		}
 	}
-
-	seq.Tokens = seq.Tokens.Sub(amt...)
+	// TODO: write object
 	return nil
-}
-
-func (k Keeper) unbondSequencerAndJail(ctx sdk.Context, seqAddr string) error {
-	return k.unbond(ctx, seqAddr, true)
-}
-
-func (k Keeper) unbondSequencer(ctx sdk.Context, seqAddr string) error {
-	return k.unbond(ctx, seqAddr, false)
 }
 
 // unbond unbonds a sequencer
 // if jail is true, the sequencer is jailed as well (cannot be bonded again)
 // bonded tokens are refunded by default, unless jail is true
-func (k Keeper) unbond(ctx sdk.Context, seqAddr string, jail bool) error {
+func (k Keeper) unbondLegacy(ctx sdk.Context, seqAddr string, jail bool) error {
 	seq, found := k.GetSequencer(ctx, seqAddr)
 	if !found {
 		return types.ErrSequencerNotFound

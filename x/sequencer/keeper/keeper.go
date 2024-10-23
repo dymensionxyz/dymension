@@ -15,10 +15,11 @@ import (
 type Keeper struct {
 	authority string // authority is the x/gov module account
 
-	cdc           codec.BinaryCodec
-	storeKey      storetypes.StoreKey
-	bankKeeper    types.BankKeeper
-	rollappKeeper types.RollappKeeper
+	cdc              codec.BinaryCodec
+	storeKey         storetypes.StoreKey
+	bankKeeper       types.BankKeeper
+	rollappKeeper    types.RollappKeeper
+	unbondConditions []UnbondCondition
 }
 
 func NewKeeper(

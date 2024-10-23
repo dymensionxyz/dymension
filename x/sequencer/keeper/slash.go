@@ -36,10 +36,13 @@ func (k Keeper) HandleFraud(ctx sdk.Context, seq types.Sequencer, rewardee *sdk.
 }
 
 func (k Keeper) slash(ctx sdk.Context, seq types.Sequencer, amt sdk.Coin, rewardMul sdk.Dec, rewardee sdk.AccAddress) error {
-	seq.Tokens = seq.Tokens.Sub(amt)
 	rewardCoin := ucoin.MulDec(rewardMul, amt)[0]
 	if !rewardCoin.IsZero() {
-		_ = rewardCoin // TODO: send to rewardee
+		err := k.moveTokens(ctx, seq, rewardCoin, &rewardee)
+		if err != nil {
+			return errorsmod.Wrap(err, "move tokens")
+		}
 	}
-	return nil
+	remainder := amt.Sub(rewardCoin)
+	return errorsmod.Wrap(k.moveTokens(ctx, seq, remainder, nil), "move tokens")
 }
