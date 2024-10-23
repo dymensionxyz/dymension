@@ -39,7 +39,7 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 		// last state update received by sequencer
 		// it's expected that the sequencer produced a last block which handovers the proposer role on the L2
 		// any divergence from this is considered fraud
-		err := hook.k.CompleteRotation(ctx, rollappId)
+		err := hook.k.completeRotationLeg(ctx, rollappId)
 		if err != nil {
 			return err
 		}

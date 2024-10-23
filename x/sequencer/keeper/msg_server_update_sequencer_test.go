@@ -96,7 +96,7 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 				Creator: addr.String(),
 			},
 			malleate: func(sequencer *types.Sequencer) {
-				suite.App.SequencerKeeper.SetSequencer(suite.Ctx, types.Sequencer{
+				suite.App.SequencerKeeper.SetSequencerLeg(suite.Ctx, types.Sequencer{
 					Address:   addr.String(),
 					RollappId: rollappID,
 					Jailed:    true,
@@ -145,7 +145,7 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 			}
 
 			suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
-			suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
+			suite.App.SequencerKeeper.SetSequencerLeg(suite.Ctx, sequencer)
 
 			if tc.malleate != nil {
 				tc.malleate(&sequencer)

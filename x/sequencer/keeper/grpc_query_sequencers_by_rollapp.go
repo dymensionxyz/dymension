@@ -79,7 +79,7 @@ func (k Keeper) GetNextProposerByRollapp(c context.Context, req *types.QueryGetN
 	expectedNext := k.ExpectedNextProposer(ctx, req.RollappId)
 	return &types.QueryGetNextProposerByRollappResponse{
 		NextProposerAddr:   expectedNext.Address,
-		RotationInProgress: k.IsRotating(ctx, req.RollappId),
+		RotationInProgress: k.isRotatingLeg(ctx, req.RollappId),
 	}, nil
 }
 

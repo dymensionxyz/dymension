@@ -14,7 +14,7 @@ func (k Keeper) startNoticePeriodForSequencerLeg(ctx sdk.Context, seq *types.Seq
 	completionTime := ctx.BlockTime().Add(k.NoticePeriod(ctx))
 	seq.NoticePeriodTime = completionTime
 
-	k.UpdateSequencer(ctx, seq)
+	k.UpdateSequencerLeg(ctx, seq)
 	k.AddSequencerToNoticePeriodQueue(ctx, seq)
 
 	ctx.EventManager().EmitEvent(
@@ -37,7 +37,7 @@ func (k Keeper) MatureSequencersWithNoticePeriodLeg(ctx sdk.Context, currTime ti
 	seqs := k.GetMatureNoticePeriodSequencers(ctx, currTime)
 	for _, seq := range seqs {
 		if k.isProposerLeg(ctx, seq.RollappId, seq.Address) {
-			k.startRotation(ctx, seq.RollappId)
+			k.startRotationLeg(ctx, seq.RollappId)
 			k.removeNoticePeriodSequencer(ctx, seq)
 		}
 		// next proposer cannot mature it's notice period until the current proposer has finished rotation
@@ -45,48 +45,27 @@ func (k Keeper) MatureSequencersWithNoticePeriodLeg(ctx sdk.Context, currTime ti
 	}
 }
 
-// IsRotating returns true if the rollapp is currently in the process of rotation.
+// isRotatingLeg returns true if the rollapp is currently in the process of rotation.
 // A process of rotation is defined by the existence of a next proposer. The next proposer can also be a "dummy" sequencer (i.e empty) in case no sequencer came. This is still considered rotation
 // as the sequencer is rotating to an empty one (i.e gracefully leaving the rollapp).
 // The next proposer can only be set after the notice period is over. The rotation period is over after the proposer sends his last batch.
-func (k Keeper) IsRotating(ctx sdk.Context, rollappId string) bool {
+func (k Keeper) isRotatingLeg(ctx sdk.Context, rollappId string) bool {
 	return k.isNextProposerSet(ctx, rollappId)
 }
 
-// IsProposerOrSuccessor returns true if the sequencer requires a notice period before unbonding
-// Both the proposer and the next proposer require a notice period
-func (k Keeper) IsProposerOrSuccessor(ctx sdk.Context, seq types.Sequencer) bool {
-	return k.isProposerLeg(ctx, seq) || k.isNextProposer(ctx, seq)
-}
-
-// RequiresNoticePeriod returns true iff the sequencer requires a notice period before unbonding
-func (k Keeper) RequiresNoticePeriod(ctx sdk.Context, seq types.Sequencer) bool {
-	return k.IsProposerOrSuccessor(ctx, seq)
-}
-
-// startRotation sets the nextSequencer for the rollapp.
+// startRotationLeg sets the nextSequencer for the rollapp.
 // This function will not clear the current proposer
 // This function called when the sequencer has finished its notice period
-func (k Keeper) startRotation(ctx sdk.Context, rollappId string) {
+func (k Keeper) startRotationLeg(ctx sdk.Context, rollappId string) {
 	// next proposer can be empty if there are no bonded sequencers available
 	nextProposer := k.ExpectedNextProposer(ctx, rollappId)
 	k.setNextProposer(ctx, rollappId, nextProposer.Address)
-
-	k.Logger(ctx).Info("rotation started", "rollappId", rollappId, "nextProposer", nextProposer.Address)
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeRotationStarted,
-			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
-			sdk.NewAttribute(types.AttributeKeyNextProposer, nextProposer.Address),
-		),
-	)
 }
 
-// CompleteRotation completes the sequencer rotation flow.
+// completeRotationLeg completes the sequencer rotation flow.
 // It's called when a last state update is received from the active, rotating sequencer.
 // it will start unbonding the current proposer, and sets the nextProposer as the proposer.
-func (k Keeper) CompleteRotation(ctx sdk.Context, rollappId string) error {
+func (k Keeper) completeRotationLeg(ctx sdk.Context, rollappId string) error {
 	proposer, ok := k.GetProposerLegacy(ctx, rollappId)
 	if !ok {
 		return errorsmod.Wrapf(gerrc.ErrInternal, "proposer not set for rollapp %s", rollappId)
@@ -189,7 +168,7 @@ func (k Keeper) unbondLegacy(ctx sdk.Context, seqAddr string, jail bool) error {
 
 	// update the sequencer in store
 	seq.Status = types.Unbonded
-	k.UpdateSequencer(ctx, &seq, oldStatus)
+	k.UpdateSequencerLeg(ctx, &seq, oldStatus)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -201,8 +180,8 @@ func (k Keeper) unbondLegacy(ctx sdk.Context, seqAddr string, jail bool) error {
 	return nil
 }
 
-// SetSequencer set a specific sequencer in the store from its index
-func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
+// SetSequencerLeg set a specific sequencer in the store from its index
+func (k Keeper) SetSequencerLeg(ctx sdk.Context, sequencer types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&sequencer)
 	store.Set(types.SequencerKey(
@@ -213,13 +192,13 @@ func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 	store.Set(seqByRollappKey, b)
 }
 
-// UpdateSequencer updates the state of a sequencer in the keeper.
+// UpdateSequencerLeg updates the state of a sequencer in the keeper.
 // Parameters:
 //   - sequencer: The sequencer object to be updated.
 //   - oldStatus: An optional parameter representing the old status of the sequencer.
 //     Needs to be provided if the status of the sequencer has changed (e.g from Bonded to Unbonding).
-func (k Keeper) UpdateSequencer(ctx sdk.Context, sequencer *types.Sequencer, oldStatus ...types.OperatingStatus) {
-	k.SetSequencer(ctx, *sequencer)
+func (k Keeper) UpdateSequencerLeg(ctx sdk.Context, sequencer *types.Sequencer, oldStatus ...types.OperatingStatus) {
+	k.SetSequencerLeg(ctx, *sequencer)
 
 	// status changed, need to remove old status key
 	if len(oldStatus) > 0 && sequencer.Status != oldStatus[0] {
@@ -242,67 +221,14 @@ func (k Keeper) GetSequencerLegacy(ctx sdk.Context, sequencerAddress string) (va
 	return val, true
 }
 
-// MustGetSequencer returns a sequencer from its index
+// MustGetSequencerLeg returns a sequencer from its index
 // It will panic if the sequencer is not found
-func (k Keeper) MustGetSequencer(ctx sdk.Context, sequencerAddress string) types.Sequencer {
+func (k Keeper) MustGetSequencerLeg(ctx sdk.Context, sequencerAddress string) types.Sequencer {
 	seq, found := k.GetSequencer(ctx, sequencerAddress)
 	if !found {
 		panic("sequencer not found")
 	}
 	return seq
-}
-
-// GetAllSequencers returns all sequencer
-func (k Keeper) GetAllSequencers(ctx sdk.Context) (list []types.Sequencer) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SequencersKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.Sequencer
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
-	}
-
-	return
-}
-
-// GetSequencersByRollapp returns a sequencersByRollapp from its index
-func (k Keeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list []types.Sequencer) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SequencersByRollappKey(rollappId))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.Sequencer
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
-	}
-
-	return
-}
-
-func (k Keeper) GetRollappBondedSequencers(ctx sdk.Context, rollappId string) []types.Sequencer {
-	return k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
-}
-
-// GetSequencersByRollappByStatus returns a sequencersByRollapp from its index
-func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string, status types.OperatingStatus) (list []types.Sequencer) {
-	prefixKey := types.SequencersByRollappByStatusKey(rollappId, status)
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), prefixKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.Sequencer
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
-	}
-
-	return
 }
 
 /* ------------------------- proposer/next proposer ------------------------- */
@@ -315,7 +241,7 @@ func (k Keeper) GetAllProposers(ctx sdk.Context) (list []types.Sequencer) {
 
 	for ; iterator.Valid(); iterator.Next() {
 		address := string(iterator.Value())
-		seq := k.MustGetSequencer(ctx, address)
+		seq := k.MustGetSequencerLeg(ctx, address)
 		list = append(list, seq)
 	}
 

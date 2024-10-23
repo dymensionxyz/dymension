@@ -3,6 +3,7 @@ package keeper
 import (
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -11,8 +12,8 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 	completionTime := ctx.BlockTime().Add(k.NoticePeriod(ctx))
 	seq.NoticePeriodTime = completionTime
 
-	k.UpdateSequencer(ctx, seq)
-	k.AddSequencerToNoticePeriodQueue(ctx, seq)
+	k.UpdateSequencerLeg(ctx, seq)
+	k.AddSequencerToNoticePeriodQueue(ctx, *seq)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -37,10 +38,28 @@ func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.
 			// next proposer cannot mature it's notice period until the current proposer has finished rotation
 			// minor effect as notice_period >>> rotation time
 			k.removeNoticePeriodSequencer(ctx, seq)
-			k.startRotation(ctx, seq.RollappId)
+			k.startRotationLeg(ctx, seq.RollappId)
 
 		}
 	}
+}
+
+func (k Keeper) AwaitProposerLastBlock(ctx sdk.Context, rollapp string) error {
+	if err := k.ChooseSuccessor(ctx, rollapp); err != nil {
+		return errorsmod.Wrap(err, "choose successor")
+	}
+	successor := k.GetSuccessor(ctx, rollapp)
+
+	// TODO: update event
+	k.Logger(ctx).Info("rotation started", "rollappId", rollapp, "nextProposer", successor.Address)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeRotationStarted,
+			sdk.NewAttribute(types.AttributeKeyRollappId, rollapp),
+			sdk.NewAttribute(types.AttributeKeyNextProposer, successor.Address),
+		),
+	)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -77,4 +96,15 @@ func (k Keeper) removeNoticePeriodSequencer(ctx sdk.Context, sequencer types.Seq
 	store := ctx.KVStore(k.storeKey)
 	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.Address, sequencer.NoticePeriodTime)
 	store.Delete(noticePeriodKey)
+}
+
+// IsProposerOrSuccessor returns true if the sequencer requires a notice period before unbonding
+// Both the proposer and the next proposer require a notice period
+func (k Keeper) IsProposerOrSuccessor(ctx sdk.Context, seq types.Sequencer) bool {
+	return k.isProposerLeg(ctx, seq) || k.isNextProposer(ctx, seq)
+}
+
+// RequiresNoticePeriod returns true iff the sequencer requires a notice period before unbonding
+func (k Keeper) RequiresNoticePeriod(ctx sdk.Context, seq types.Sequencer) bool {
+	return k.IsProposerOrSuccessor(ctx, seq)
 }

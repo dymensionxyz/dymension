@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"slices"
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,13 +22,31 @@ func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 	if k.GetProposer(ctx, rollapp).Sentinel() {
 		seqs := k.GetRollappBondedSequencers(ctx, rollapp)
 		// TODO: exclude last? thats what the legacy code does
-		proposer := k.proposerChoiceAlgo(ctx, rollapp, seqs)
+		proposer := proposerChoiceAlgo(rollapp, seqs)
 		k.SetProposer(ctx, rollapp, proposer.Address)
 	}
 	return nil
 }
 
-func (k Keeper) proposerChoiceAlgo(ctx sdk.Context, rollapp string, seqs []types.Sequencer) types.Sequencer {
+func (k Keeper) ChooseSuccessor(ctx sdk.Context, rollapp string) error {
+	proposer := k.GetProposer(ctx, rollapp)
+	if proposer.Sentinel() {
+		return gerrc.ErrInternal.Wrap("can not choose successor if proposer is sentinel")
+	}
+	successor := k.GetSuccessor(ctx, rollapp)
+	if successor.Sentinel() {
+		seqs := k.GetRollappBondedSequencers(ctx, rollapp)
+		slices.DeleteFunc(seqs, func(s types.Sequencer) bool { // Not efficient, could optimize.
+			return s.Address == proposer.Address
+		})
+		successor := proposerChoiceAlgo(rollapp, seqs)
+		k.SetSuccessor(ctx, rollapp, successor.Address)
+
+	}
+	return nil
+}
+
+func proposerChoiceAlgo(rollapp string, seqs []types.Sequencer) types.Sequencer {
 	if len(seqs) == 0 {
 		return types.SentinelSequencer(rollapp)
 	}

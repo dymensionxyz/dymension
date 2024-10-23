@@ -25,7 +25,7 @@ func createNSequencer(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Seq
 		}
 		items[i] = seq
 
-		keeper.SetSequencer(ctx, items[i])
+		keeper.SetSequencerLeg(ctx, items[i])
 	}
 	return items
 }
