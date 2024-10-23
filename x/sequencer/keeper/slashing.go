@@ -25,7 +25,7 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	if err != nil {
 		return err
 	}
-	mul := k.GetParams(ctx).LivenessSlashMultiplier
+	mul := k.GetParams(ctx).LivenessSlashMinMultiplier
 	tokens := seq.Tokens
 	amt := ucoin.MulDec(mul, tokens...)
 	// TODO: make sure to be correct wrt. min bond, see https://github.com/dymensionxyz/dymension/issues/1019
