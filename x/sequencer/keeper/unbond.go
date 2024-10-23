@@ -52,7 +52,7 @@ func (k Keeper) unbond(ctx sdk.Context, seq types.Sequencer) error {
 		return gerrc.ErrInternal.Wrap("unbond next proposer")
 	}
 	seq.Status = types.Unbonded
-	if k.isProposer(ctx, seq) {
+	if k.isProposerLeg(ctx, seq) {
 		k.SetProposer(ctx, seq.RollappId, types.SentinelSeqAddr)
 	}
 	return nil

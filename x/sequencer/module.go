@@ -174,11 +174,5 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 	// start unbonding period for sequencers after notice period
 	am.keeper.MatureSequencersWithNoticePeriod(ctx, ctx.BlockTime())
 
-	// Unbond all mature sequencers
-	am.keeper.UnbondAllMatureSequencers(ctx, ctx.BlockTime())
-
-	// Handle bond reduction
-	am.keeper.HandleBondReduction(ctx, ctx.BlockTime())
-
 	return []abci.ValidatorUpdate{}
 }

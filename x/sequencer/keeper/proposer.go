@@ -70,6 +70,23 @@ func (k Keeper) SetSuccessor(ctx sdk.Context, rollapp, seqAddr string) {
 	store.Set(nextProposerKey, addressBytes)
 }
 
+func (k Keeper) IsSuccessor(ctx sdk.Context, seq types.Sequencer) bool {
+	return seq.Address == k.GetSuccessor(ctx, seq.RollappId).Address
+}
+
+func (k Keeper) TryGetSequencer(ctx sdk.Context, addr string) (types.Sequencer, error) {
+	if addr == types.SentinelSequencerAddr {
+		return types.Sequencer{}, gerrc.ErrInternal.Wrap("try get sequencer only to be used on external arguments")
+	}
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.SequencerKey(addr))
+	if b == nil {
+		return types.Sequencer{}, types.ErrSequencerNotFound
+	}
+	// rollapp arg not needed since it's only needed to create sentinel seq, which we definitely won't do
+	return k.GetSequencer(ctx, "", addr), nil
+}
+
 func (k Keeper) GetSequencer(ctx sdk.Context, rollapp, addr string) types.Sequencer {
 	if addr == types.SentinelSequencerAddr {
 		return types.SentinelSequencer(rollapp)

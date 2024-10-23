@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"sort"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -11,34 +10,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-// ExpectedNextProposer returns the next proposer for a rollapp
-// it selects the next proposer from the bonded sequencers by bond amount
-// if there are no bonded sequencers, it returns an empty sequencer
-func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) types.Sequencer {
-	// if nextProposer is set, were in the middle of rotation. The expected next proposer cannot change
-	seq, ok := k.GetNextProposer(ctx, rollappId)
-	if ok {
-		return seq
-	}
-
-	// take the next bonded sequencer to be the proposer. sorted by bond
-	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
-	sort.SliceStable(seqs, func(i, j int) bool {
-		return seqs[i].Tokens.IsAllGT(seqs[j].Tokens)
-	})
-
-	// return the first sequencer that is not the proposer
-	proposer, _ := k.GetProposerLegacy(ctx, rollappId)
-	for _, s := range seqs {
-		if s.Address != proposer.Address {
-			return s
-		}
-	}
-
-	return types.Sequencer{}
-}
-
-func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
+func (k Keeper) startNoticePeriodForSequencerLeg(ctx sdk.Context, seq *types.Sequencer) time.Time {
 	completionTime := ctx.BlockTime().Add(k.NoticePeriod(ctx))
 	seq.NoticePeriodTime = completionTime
 
@@ -61,10 +33,10 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 // The next proposer is set to the next bonded sequencer
 // The hub will expect a "last state update" from the sequencer to start unbonding
 // In the middle of rotation, the next proposer required a notice period as well.
-func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.Time) {
+func (k Keeper) MatureSequencersWithNoticePeriodLeg(ctx sdk.Context, currTime time.Time) {
 	seqs := k.GetMatureNoticePeriodSequencers(ctx, currTime)
 	for _, seq := range seqs {
-		if k.isProposer(ctx, seq.RollappId, seq.Address) {
+		if k.isProposerLeg(ctx, seq.RollappId, seq.Address) {
 			k.startRotation(ctx, seq.RollappId)
 			k.removeNoticePeriodSequencer(ctx, seq)
 		}
@@ -84,7 +56,7 @@ func (k Keeper) IsRotating(ctx sdk.Context, rollappId string) bool {
 // IsProposerOrSuccessor returns true if the sequencer requires a notice period before unbonding
 // Both the proposer and the next proposer require a notice period
 func (k Keeper) IsProposerOrSuccessor(ctx sdk.Context, seq types.Sequencer) bool {
-	return k.isProposer(ctx, seq) || k.isNextProposer(ctx, seq)
+	return k.isProposerLeg(ctx, seq) || k.isNextProposer(ctx, seq)
 }
 
 // RequiresNoticePeriod returns true iff the sequencer requires a notice period before unbonding
@@ -182,7 +154,7 @@ func (k Keeper) unbondLegacy(ctx sdk.Context, seqAddr string, jail bool) error {
 
 		// if we unbond the proposer, remove it
 		// the caller should rotate the proposer
-		if k.isProposer(ctx, seq.RollappId, seqAddr) {
+		if k.isProposerLeg(ctx, seq.RollappId, seqAddr) {
 			k.removeProposer(ctx, seq.RollappId)
 		}
 
@@ -333,42 +305,6 @@ func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string
 	return
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                notice period                               */
-/* -------------------------------------------------------------------------- */
-
-// GetMatureNoticePeriodSequencers returns all sequencers that have finished their notice period
-func (k Keeper) GetMatureNoticePeriodSequencers(ctx sdk.Context, endTime time.Time) (list []types.Sequencer) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := store.Iterator(types.NoticePeriodQueueKey, sdk.PrefixEndBytes(types.NoticePeriodQueueByTimeKey(endTime)))
-
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.Sequencer
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
-	}
-
-	return
-}
-
-// AddSequencerToNoticePeriodQueue set sequencer in notice period queue
-func (k Keeper) AddSequencerToNoticePeriodQueue(ctx sdk.Context, sequencer *types.Sequencer) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshal(sequencer)
-
-	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.Address, sequencer.NoticePeriodTime)
-	store.Set(noticePeriodKey, b)
-}
-
-// remove sequencer from notice period queue
-func (k Keeper) removeNoticePeriodSequencer(ctx sdk.Context, sequencer types.Sequencer) {
-	store := ctx.KVStore(k.storeKey)
-	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.Address, sequencer.NoticePeriodTime)
-	store.Delete(noticePeriodKey)
-}
-
 /* ------------------------- proposer/next proposer ------------------------- */
 
 // GetAllProposers returns all proposers for all rollapps
@@ -401,7 +337,7 @@ func (k Keeper) removeProposer(ctx sdk.Context, rollappId string) {
 	k.SetProposer(ctx, rollappId, types.SentinelSeqAddr)
 }
 
-func (k Keeper) isProposer(ctx sdk.Context, seq types.Sequencer) bool {
+func (k Keeper) isProposerLeg(ctx sdk.Context, seq types.Sequencer) bool {
 	proposer, ok := k.GetProposerLegacy(ctx, seq.RollappId)
 	return ok && proposer.Address == seq.Address
 }
