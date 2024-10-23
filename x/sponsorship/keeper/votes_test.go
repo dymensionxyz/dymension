@@ -398,7 +398,7 @@ func (s *KeeperTestSuite) TestMsgVoteRollAppGaugeBondedSequencer() {
 	// verify the sequencer is bonded
 	seq, found := s.App.SequencerKeeper.GetSequencer(s.Ctx, proposer)
 	s.Require().True(found)
-	s.Require().True(seq.IsBonded())
+	s.Require().True(seq.Bonded())
 
 	// create a validator and a delegator
 	initial := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000))

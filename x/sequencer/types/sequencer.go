@@ -28,7 +28,7 @@ func (seq Sequencer) IsEmpty() bool {
 	return seq.Address == ""
 }
 
-func (seq Sequencer) IsBonded() bool {
+func (seq Sequencer) Bonded() bool {
 	return seq.Status == Bonded
 }
 
