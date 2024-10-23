@@ -7,6 +7,11 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
+func (k Keeper) MustGetNonSentinelSequencer(ctx sdk.Context, addr string) types.Sequencer {
+	s, _ := k.TryGetSequencer(ctx, addr)
+	return s
+}
+
 func (k Keeper) GetSequencer(ctx sdk.Context, rollapp, addr string) types.Sequencer {
 	if addr == types.SentinelSequencerAddr {
 		return types.SentinelSequencer(rollapp)
@@ -31,8 +36,9 @@ func (k Keeper) TryGetSequencer(ctx sdk.Context, addr string) (types.Sequencer, 
 	if b == nil {
 		return types.Sequencer{}, types.ErrSequencerNotFound
 	}
-	// rollapp arg not needed since it's only needed to create sentinel seq, which we definitely won't do
-	return k.GetSequencer(ctx, "", addr), nil
+	ret := types.Sequencer{}
+	k.cdc.MustUnmarshal(b, &ret)
+	return ret, nil
 }
 
 // SetSequencer set a specific sequencer in the store from its index
@@ -63,6 +69,7 @@ func (k Keeper) UpdateSequencerLeg(ctx sdk.Context, sequencer *types.Sequencer, 
 }
 
 // GetAllProposers returns all proposers for all rollapps
+// TODO: doesn't include sentinel
 func (k Keeper) GetAllProposers(ctx sdk.Context) (list []types.Sequencer) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ProposerByRollappKey(""))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
@@ -70,7 +77,7 @@ func (k Keeper) GetAllProposers(ctx sdk.Context) (list []types.Sequencer) {
 
 	for ; iterator.Valid(); iterator.Next() {
 		address := string(iterator.Value())
-		seq := k.MustGetSequencerLeg(ctx, address)
+		seq := k.MustGetNonSentinelSequencer(ctx, address)
 		list = append(list, seq)
 	}
 
