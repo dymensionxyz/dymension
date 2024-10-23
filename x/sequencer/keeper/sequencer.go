@@ -200,11 +200,11 @@ func (k Keeper) GetAllProposers(ctx sdk.Context) (list []types.Sequencer) {
 	return
 }
 
-func (k Keeper) SetProposer(ctx sdk.Context, rollappId, sequencerAddr string) {
+func (k Keeper) SetProposer(ctx sdk.Context, seq types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
-	addressBytes := []byte(sequencerAddr)
+	addressBytes := []byte(seq.Address)
 
-	activeKey := types.ProposerByRollappKey(rollappId)
+	activeKey := types.ProposerByRollappKey(seq.RollappId)
 	store.Set(activeKey, addressBytes)
 }
 
@@ -223,9 +223,9 @@ func (k Keeper) removeProposer(ctx sdk.Context, rollappId string) {
 	k.SetProposer(ctx, rollappId, NO_SEQUENCER_AVAILABLE)
 }
 
-func (k Keeper) isProposer(ctx sdk.Context, rollappId, seqAddr string) bool {
-	proposer, ok := k.GetProposer(ctx, rollappId)
-	return ok && proposer.Address == seqAddr
+func (k Keeper) isProposer(ctx sdk.Context, seq types.Sequencer) bool {
+	proposer, ok := k.GetProposer(ctx, seq.RollappId)
+	return ok && proposer.Address == seq.Address
 }
 
 // SetNextProposer sets the next proposer for a rollapp

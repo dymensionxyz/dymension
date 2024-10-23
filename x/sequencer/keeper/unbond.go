@@ -6,6 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -18,7 +19,13 @@ func (k Keeper) tryUnbond(ctx sdk.Context, seq types.Sequencer, amt *sdk.Coin) e
 }
 
 func (k Keeper) unbond(ctx sdk.Context, seq types.Sequencer) error {
-	if k.isNextProposer(ctx, s)
+	if k.isNextProposer(ctx, seq) {
+		return gerrc.ErrInternal.Wrap("unbond next proposer")
+	}
+	seq.Status = types.Unbonded
+	if k.isProposer(ctx, seq) {
+		k.SetProposer(ctx, seq)
+	}
 }
 
 /// ~~~~~~~~~~
