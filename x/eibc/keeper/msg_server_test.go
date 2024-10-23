@@ -14,6 +14,7 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	dacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
@@ -157,6 +158,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 		msg                               *types.MsgFulfillOrderAuthorized
 		lpAccountBalance                  sdk.Coins
 		operatorFeeAccountBalance         sdk.Coins
+		malleate                          func()
 		expectError                       error
 		expectOrderFulfilled              bool
 		expectedLPAccountBalance          sdk.Coins
@@ -178,6 +180,42 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			},
 			lpAccountBalance:                  sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
 			operatorFeeAccountBalance:         sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
+			expectError:                       nil,
+			expectOrderFulfilled:              true,
+			expectedLPAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 108)), // 200 - 90 (price) - 2 (operator fee)
+			expectedOperatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 52)),  // 50 + 2 (operator fee)
+		},
+		{
+			name:           "Successful fulfillment with settlement",
+			orderPrice:     sdk.NewInt64Coin("adym", 90),
+			orderFee:       sdk.NewInt(10),
+			orderRecipient: sample.AccAddress(),
+			msg: &types.MsgFulfillOrderAuthorized{
+				RollappId:           rollappPacket.RollappId,
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 90)),
+				ExpectedFee:         "10",
+				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeAddress:  sample.AccAddress(),
+				LpAddress:           sample.AccAddress(),
+				SettlementValidated: true,
+			},
+			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
+			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
+			malleate: func() {
+				rollappPacket.ProofHeight = 1
+				siIndex := rollapptypes.StateInfoIndex{
+					RollappId: rollappPacket.RollappId,
+					Index:     1,
+				}
+				suite.App.RollappKeeper.SetLatestStateInfoIndex(suite.Ctx, siIndex)
+				suite.App.RollappKeeper.SetStateInfo(suite.Ctx, rollapptypes.StateInfo{
+					StateInfoIndex: siIndex,
+					StartHeight:    1,
+					NumBlocks:      1,
+					Status:         commontypes.Status_PENDING,
+				})
+
+			},
 			expectError:                       nil,
 			expectOrderFulfilled:              true,
 			expectedLPAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 108)), // 200 - 90 (price) - 2 (operator fee)
@@ -302,12 +340,52 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			expectOrderFulfilled:      false,
 			expectedLPAccountBalance:  sdk.NewCoins(sdk.NewInt64Coin("adym", 90)), // Unchanged
 		},
+		{
+			name:           "Failure due to not settlement validated",
+			orderPrice:     sdk.NewInt64Coin("adym", 100),
+			orderFee:       sdk.NewInt(10),
+			orderRecipient: sample.AccAddress(),
+			msg: &types.MsgFulfillOrderAuthorized{
+				RollappId:           rollappPacket.RollappId,
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
+				ExpectedFee:         "10",
+				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeAddress:  sample.AccAddress(),
+				LpAddress:           sample.AccAddress(),
+				SettlementValidated: true,
+			},
+			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
+			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
+			malleate: func() {
+				rollappPacket.ProofHeight = 10
+				siIndex := rollapptypes.StateInfoIndex{
+					RollappId: rollappPacket.RollappId,
+					Index:     1,
+				}
+				suite.App.RollappKeeper.SetLatestStateInfoIndex(suite.Ctx, siIndex)
+				suite.App.RollappKeeper.SetStateInfo(suite.Ctx, rollapptypes.StateInfo{
+					StateInfoIndex: siIndex,
+					StartHeight:    1,
+					NumBlocks:      1,
+					Status:         commontypes.Status_PENDING,
+				})
+
+			},
+			expectError:              types.ErrOrderNotSettlementValidated,
+			expectOrderFulfilled:     false,
+			expectedLPAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 200)), // Unchanged
+		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			// Set up initial state
 			suite.SetupTest() // Reset the context and keepers before each test
+
+			// Malleate the test state
+			if tc.malleate != nil {
+				tc.malleate()
+			}
 
 			// Create accounts
 			var lpAccount, operatorFeeAccount sdk.AccAddress
