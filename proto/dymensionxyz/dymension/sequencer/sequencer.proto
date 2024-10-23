@@ -28,8 +28,12 @@ message Sequencer {
   
   bool proposer = 6 [deprecated = true];
   
-  // status is the sequencer status (bonded/unbonding/unbonded).
+  // status is the sequencer status (bonded/unbonded).
   OperatingStatus status = 7;
+
+  // OptedIn : when true and bonded, the sequencer can be chosen as proposer or successor
+  bool opted_in = 12;
+
   // tokens define the delegated tokens (incl. self-delegation).
   repeated cosmos.base.v1beta1.Coin tokens = 8 [
     (gogoproto.nullable) = false,
