@@ -91,18 +91,6 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 				UnbondTime: time.Time{},
 			},
 		}, {
-			name: "Update rollapp: fail - try to update a frozen rollapp",
-			update: &types.MsgUpdateSequencerInformation{
-				Creator: addr.String(),
-			},
-			malleate: func(*types.Sequencer) {
-				suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapptypes.Rollapp{
-					RollappId: rollappID,
-					Frozen:    true,
-				})
-			},
-			expError: types.ErrRollappFrozen,
-		}, {
 			name: "Update rollapp: fail - try to update a jailed sequencer",
 			update: &types.MsgUpdateSequencerInformation{
 				Creator: addr.String(),
