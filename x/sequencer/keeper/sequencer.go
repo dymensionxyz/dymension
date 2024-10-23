@@ -259,9 +259,9 @@ func (k Keeper) isNextProposerSet(ctx sdk.Context, rollappId string) bool {
 	return store.Has(types.NextProposerByRollappKey(rollappId))
 }
 
-func (k Keeper) isNextProposer(ctx sdk.Context, rollappId, seqAddr string) bool {
-	nextProposer, ok := k.GetNextProposer(ctx, rollappId)
-	return ok && nextProposer.Address == seqAddr
+func (k Keeper) isNextProposer(ctx sdk.Context, seq types.Sequencer) bool {
+	nextProposer, ok := k.GetNextProposer(ctx, seq.RollappId)
+	return ok && nextProposer.Address == seq.Address
 }
 
 // removeNextProposer removes the next proposer for a rollapp

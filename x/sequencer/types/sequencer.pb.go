@@ -5,6 +5,11 @@ package types
 
 import (
 	fmt "fmt"
+	io "io"
+	math "math"
+	math_bits "math/bits"
+	time "time"
+
 	_ "github.com/cosmos/cosmos-proto"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
@@ -14,17 +19,15 @@ import (
 	proto "github.com/cosmos/gogoproto/proto"
 	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
 	_ "google.golang.org/protobuf/types/known/timestamppb"
-	io "io"
-	math "math"
-	math_bits "math/bits"
-	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
-var _ = proto.Marshal
-var _ = fmt.Errorf
-var _ = math.Inf
-var _ = time.Kitchen
+var (
+	_ = proto.Marshal
+	_ = fmt.Errorf
+	_ = math.Inf
+	_ = time.Kitchen
+)
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -46,7 +49,7 @@ type Sequencer struct {
 	Proposer bool              `protobuf:"varint,6,opt,name=proposer,proto3" json:"proposer,omitempty"` // Deprecated: Do not use.
 	// status is the sequencer status (bonded/unbonding/unbonded).
 	Status OperatingStatus `protobuf:"varint,7,opt,name=status,proto3,enum=dymensionxyz.dymension.sequencer.OperatingStatus" json:"status,omitempty"`
-	// tokens define the delegated tokens (incl. self-delegation).
+	// tokens at stake (using Coins plural for legacy reasons)
 	Tokens github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,8,rep,name=tokens,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"tokens"`
 	// notice_period_time defines the time when the sequencer will finish it's notice period if started
 	NoticePeriodTime time.Time `protobuf:"bytes,11,opt,name=notice_period_time,json=noticePeriodTime,proto3,stdtime" json:"notice_period_time"`
@@ -58,9 +61,11 @@ func (*Sequencer) ProtoMessage()    {}
 func (*Sequencer) Descriptor() ([]byte, []int) {
 	return fileDescriptor_997b8663a5fc0f58, []int{0}
 }
+
 func (m *Sequencer) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Sequencer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_Sequencer.Marshal(b, m, deterministic)
@@ -73,12 +78,15 @@ func (m *Sequencer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
+
 func (m *Sequencer) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Sequencer.Merge(m, src)
 }
+
 func (m *Sequencer) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Sequencer) XXX_DiscardUnknown() {
 	xxx_messageInfo_Sequencer.DiscardUnknown(m)
 }
@@ -295,6 +303,7 @@ func encodeVarintSequencer(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+
 func (m *Sequencer) Size() (n int) {
 	if m == nil {
 		return 0
@@ -335,9 +344,11 @@ func (m *Sequencer) Size() (n int) {
 func sovSequencer(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
+
 func sozSequencer(x uint64) (n int) {
 	return sovSequencer(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
+
 func (m *Sequencer) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -627,6 +638,7 @@ func (m *Sequencer) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func skipSequencer(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0

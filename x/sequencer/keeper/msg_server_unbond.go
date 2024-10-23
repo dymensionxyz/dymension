@@ -16,7 +16,7 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 	if !found {
 		return nil, types.ErrSequencerNotFound
 	}
-	err := k.TryUnbond(ctx, seq, nil)
+	err := k.tryUnbond(ctx, seq, nil)
 	if errorsmod.IsOf(types.ErrUnbondProposerOrNext) {
 		completionTime := k.startNoticePeriodForSequencer(ctx, &seq)
 		return &types.MsgUnbondResponse{

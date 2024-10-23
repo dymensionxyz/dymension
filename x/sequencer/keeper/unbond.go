@@ -11,10 +11,14 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-func (k Keeper) TryUnbond(ctx sdk.Context, seq types.Sequencer, amt *sdk.Coin) error {
+func (k Keeper) tryUnbond(ctx sdk.Context, seq types.Sequencer, amt *sdk.Coin) error {
 	if k.isNoticePeriodRequired(ctx, seq) {
 		return types.ErrUnbondProposerOrNext
 	}
+}
+
+func (k Keeper) unbond(ctx sdk.Context, seq types.Sequencer) error {
+	if k.isNextProposer(ctx, s)
 }
 
 /// ~~~~~~~~~~

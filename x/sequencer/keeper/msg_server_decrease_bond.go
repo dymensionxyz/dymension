@@ -16,5 +16,5 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 	if !found {
 		return nil, types.ErrSequencerNotFound
 	}
-	return &types.MsgDecreaseBondResponse{}, k.TryUnbond(ctx, seq, uptr.To(msg.GetDecreaseAmount()))
+	return &types.MsgDecreaseBondResponse{}, k.tryUnbond(ctx, seq, uptr.To(msg.GetDecreaseAmount()))
 }

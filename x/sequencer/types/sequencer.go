@@ -7,6 +7,7 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // ValidateBasic performs basic validation of the sequencer object
@@ -31,8 +32,16 @@ func (seq Sequencer) IsBonded() bool {
 	return seq.Status == Bonded
 }
 
+func (seq Sequencer) TokensCoin() sdk.Coin {
+	return seq.Tokens[0]
+}
+
+func (seq Sequencer) SetTokensCoin(c sdk.Coin) {
+	seq.Tokens = sdk.Coins{c}
+}
+
 // IsNoticePeriodInProgress returns true if the sequencer is bonded and has an unbond request
-func (seq Sequencer) IsNoticePeriodInProgress() bool {
+func () IsNoticePeriodInProgress() bool {
 	return seq.Status == Bonded && seq.UnbondRequestHeight != 0
 }
 
