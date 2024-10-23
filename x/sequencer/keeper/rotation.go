@@ -10,8 +10,7 @@ import (
 )
 
 func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
-	completionTime := ctx.BlockTime().Add(k.NoticePeriod(ctx))
-	seq.NoticePeriodTime = completionTime
+	seq.NoticePeriodTime = ctx.BlockTime().Add(k.NoticePeriod(ctx))
 	seq.OptedIn = false
 
 	k.UpdateSequencerLeg(ctx, seq)
@@ -22,11 +21,11 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 			types.EventTypeNoticePeriodStarted,
 			sdk.NewAttribute(types.AttributeKeyRollappId, seq.RollappId),
 			sdk.NewAttribute(types.AttributeKeySequencer, seq.Address),
-			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.String()),
+			sdk.NewAttribute(types.AttributeKeyCompletionTime, seq.NoticePeriodTime.String()),
 		),
 	)
 
-	return completionTime
+	return seq.NoticePeriodTime
 }
 
 // MatureSequencersWithNoticePeriod start rotation flow for all sequencers that have finished their notice period
