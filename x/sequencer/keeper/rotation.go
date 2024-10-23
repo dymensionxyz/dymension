@@ -101,14 +101,3 @@ func (k Keeper) removeNoticePeriodSequencer(ctx sdk.Context, sequencer types.Seq
 	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.Address, sequencer.NoticePeriodTime)
 	store.Delete(noticePeriodKey)
 }
-
-// IsProposerOrSuccessor returns true if the sequencer requires a notice period before unbonding
-// Both the proposer and the next proposer require a notice period
-func (k Keeper) IsProposerOrSuccessor(ctx sdk.Context, seq types.Sequencer) bool {
-	return k.isProposerLeg(ctx, seq) || k.isNextProposer(ctx, seq)
-}
-
-// RequiresNoticePeriod returns true iff the sequencer requires a notice period before unbonding
-func (k Keeper) RequiresNoticePeriod(ctx sdk.Context, seq types.Sequencer) bool {
-	return k.IsProposerOrSuccessor(ctx, seq)
-}

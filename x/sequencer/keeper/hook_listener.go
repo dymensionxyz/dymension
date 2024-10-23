@@ -10,13 +10,11 @@ import (
 
 var _ rollapptypes.RollappHooks = rollappHook{}
 
-// Hooks wrapper struct for rollapp keeper.
 type rollappHook struct {
 	rollapptypes.StubRollappCreatedHooks
 	k Keeper
 }
 
-// RollappHooks returns the wrapper struct.
 func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 	return rollappHook{k: k}
 }

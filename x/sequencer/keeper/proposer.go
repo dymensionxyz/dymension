@@ -66,3 +66,14 @@ func (k Keeper) IsProposer(ctx sdk.Context, seq types.Sequencer) bool {
 func (k Keeper) IsSuccessor(ctx sdk.Context, seq types.Sequencer) bool {
 	return seq.Address == k.GetSuccessor(ctx, seq.RollappId).Address
 }
+
+// IsProposerOrSuccessor returns true if the sequencer requires a notice period before unbonding
+// Both the proposer and the next proposer require a notice period
+func (k Keeper) IsProposerOrSuccessor(ctx sdk.Context, seq types.Sequencer) bool {
+	return k.IsProposer(ctx, seq) || k.IsSuccessor(ctx, seq)
+}
+
+// RequiresNoticePeriod returns true iff the sequencer requires a notice period before unbonding
+func (k Keeper) RequiresNoticePeriod(ctx sdk.Context, seq types.Sequencer) bool {
+	return k.IsProposerOrSuccessor(ctx, seq)
+}
