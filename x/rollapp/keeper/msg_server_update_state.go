@@ -153,20 +153,6 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 	events := stateInfo.GetEvents()
 
-	//Maybe not used
-	//if msg.Last {
-	//	// it takes the actual proposer because the next one have already been set
-	//	// by the sequencer rotation in k.hooks.BeforeUpdateState
-	//	val, found := k.sequencerKeeper.GetProposer(ctx, msg.RollappId)
-	//	if !found {
-	//		return nil, types.ErrNextSequencerNotFound
-	//	}
-	//
-	//	events = append(events,
-	//		sdk.NewAttribute(types.AttributeNextProposerAddress, val.Address),
-	//	)
-	//}
-
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeStateUpdate,
 			events...,
