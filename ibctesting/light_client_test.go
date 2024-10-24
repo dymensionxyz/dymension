@@ -2,6 +2,7 @@ package ibctesting_test
 
 import (
 	"testing"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,14 +13,13 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/stretchr/testify/suite"
 )
 
 var canonicalClientConfig = ibctesting.TendermintConfig{
 	TrustLevel:      types.DefaultExpectedCanonicalClientParams().TrustLevel,
 	TrustingPeriod:  types.DefaultExpectedCanonicalClientParams().TrustingPeriod,
-	UnbondingPeriod: sequencertypes.DefaultUnbondingTime,
+	UnbondingPeriod: time.Hour, // TODO:
 	MaxClockDrift:   types.DefaultExpectedCanonicalClientParams().MaxClockDrift,
 }
 
