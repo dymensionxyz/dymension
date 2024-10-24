@@ -13,56 +13,14 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
-
-func TestSequencerGet(t *testing.T) {
-	k, ctx := keepertest.SequencerKeeper(t)
-	items := createNSequencer(k, ctx, 10)
-	for _, item := range items {
-		item := item
-		rst, found := k.GetSequencer(ctx,
-			item.Address,
-		)
-		require.True(t, found)
-		require.Equal(t,
-			nullify.Fill(&item),
-			nullify.Fill(&rst),
-		)
-	}
-}
-
-func TestSequencerGetAll(t *testing.T) {
-	k, ctx := keepertest.SequencerKeeper(t)
-	items := createNSequencer(k, ctx, 10)
-	require.ElementsMatch(t,
-		nullify.Fill(items),
-		nullify.Fill(k.GetAllSequencers(ctx)),
-	)
-}
-
-func TestSequencersByRollappGet(t *testing.T) {
-	k, ctx := keepertest.SequencerKeeper(t)
-	items := createNSequencer(k, ctx, 10)
-	rst := k.RollappSequencers(ctx,
-		items[0].RollappId,
-	)
-
-	require.Equal(t, len(rst), len(items))
-	require.ElementsMatch(t,
-		nullify.Fill(items),
-		nullify.Fill(rst),
-	)
-}
 
 // Prevent strconv unused error
 var _ = strconv.IntSize
@@ -153,17 +111,4 @@ func (s *SequencerTestSuite) CreateSequencerWithBond(ctx sdk.Context, rollappId 
 	_, err = s.msgServer.CreateSequencer(ctx, &sequencerMsg1)
 	s.Require().NoError(err)
 	return addr.String()
-}
-
-func (s *SequencerTestSuite) assertJailed(seqAddr string) {
-	seq, found := s.App.SequencerKeeper.GetSequencer(s.Ctx, seqAddr)
-	s.Require().True(found)
-	s.True(seq.Jailed)
-	s.Equal(types.Unbonded, seq.Status)
-	s.Equal(sdk.Coins(nil), seq.Tokens)
-
-	sequencers := s.App.SequencerKeeper.GetMatureUnbondingSequencers(s.Ctx, s.Ctx.BlockTime())
-	for _, s := range sequencers {
-		s.NotEqual(s.Address, seqAddr)
-	}
 }

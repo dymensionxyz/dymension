@@ -5,13 +5,13 @@ import (
 	"reflect"
 	"time"
 
-	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
+	"github.com/dymensionxyz/sdk-utils/utils/utest"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -77,23 +77,14 @@ func (s *SequencerTestSuite) TestMinBond() {
 				},
 			}
 
-			// Use a defer and recover to catch potential panics
-			var createErr error
-			func() {
-				defer func() {
-					if r := recover(); r != nil {
-						createErr = errorsmod.Wrapf(panicErr, "panic: %v", r)
-					}
-				}()
-				_, createErr = s.msgServer.CreateSequencer(s.Ctx, &sequencerMsg1)
-			}()
+			_, createErr := s.msgServer.CreateSequencer(s.Ctx, &sequencerMsg1)
 
 			if tc.expectedError != nil {
 				s.Require().ErrorAs(createErr, &tc.expectedError, tc.name)
 			} else {
 				s.Require().NoError(createErr)
-				sequencer, found := s.App.SequencerKeeper.GetSequencer(s.Ctx, addr.String())
-				s.Require().True(found, tc.name)
+				sequencer, err := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, addr.String())
+				s.Require().NoError(err)
 				if tc.requiredBond.IsNil() {
 					s.Require().True(sequencer.Tokens.IsZero(), tc.name)
 				} else {
@@ -353,8 +344,7 @@ func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer() {
 			}
 
 			// check that the sequencer is the proposer
-			proposer, ok := s.App.SequencerKeeper.GetProposerLegacy(s.Ctx, rollappId)
-			s.Require().True(ok)
+			proposer := s.App.SequencerKeeper.GetProposer(s.Ctx, rollappId)
 			if seq.expProposer {
 				s.Require().Equal(addr.String(), proposer.Address, tc.name)
 			} else {
@@ -384,7 +374,7 @@ func (s *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 	}
 
 	_, err = s.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-	s.EqualError(err, types.ErrRollappNotFound.Error())
+	utest.IsErr(s.Require(), rollapptypes.ErrRollappNotFound, err)
 }
 
 // create sequencer before genesisInfo is set
@@ -532,9 +522,6 @@ func compareSequencers(s1, s2 *types.Sequencer) bool {
 		return false
 	}
 
-	if s1.Jailed != s2.Jailed {
-		return false
-	}
 	if s1.Status != s2.Status {
 		return false
 	}
@@ -543,12 +530,6 @@ func compareSequencers(s1, s2 *types.Sequencer) bool {
 		return false
 	}
 
-	if s1.UnbondRequestHeight != s2.UnbondRequestHeight {
-		return false
-	}
-	if !s1.UnbondTime.Equal(s2.UnbondTime) {
-		return false
-	}
 	if !s1.NoticePeriodTime.Equal(s2.NoticePeriodTime) {
 		return false
 	}
