@@ -82,7 +82,6 @@ func (k Keeper) GetNoticeElapsedSequencers(ctx sdk.Context, endTime time.Time) (
 func (k Keeper) AddToNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&seq)
-
 	noticePeriodKey := types.NoticePeriodSequencerKey(seq.Address, seq.NoticePeriodTime)
 	store.Set(noticePeriodKey, b)
 }
