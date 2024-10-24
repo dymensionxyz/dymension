@@ -13,9 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFoo(t *testing.T) {
-}
-
 var (
 	sequencerPubKey = ed25519.GenPrivKey().PubKey()
 	tmPk, _         = cryptocodec.ToTmProtoPublicKey(sequencerPubKey)
