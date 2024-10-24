@@ -3,6 +3,7 @@ package denommetadata_test
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 
 	cometbft "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -38,7 +39,10 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 			name:   "valid packet data with packet metadata",
 			keeper: &mockDenomMetadataKeeper{},
 			rollappKeeper: &mockRollappKeeper{
-				returnRollapp: &rollapptypes.Rollapp{},
+				registeredDenoms: make(map[string]struct{}),
+				returnRollapp: &rollapptypes.Rollapp{
+					RollappId: "rollapp1",
+				},
 			},
 			memoData:         validMemoData,
 			wantAck:          emptyResult,
@@ -48,7 +52,10 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 			name:   "valid packet data with packet metadata and user memo",
 			keeper: &mockDenomMetadataKeeper{},
 			rollappKeeper: &mockRollappKeeper{
-				returnRollapp: &rollapptypes.Rollapp{},
+				registeredDenoms: make(map[string]struct{}),
+				returnRollapp: &rollapptypes.Rollapp{
+					RollappId: "rollapp1",
+				},
 			},
 			memoData:         validMemoDataWithUserMemo,
 			wantAck:          emptyResult,
@@ -58,7 +65,7 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 			name:   "no memo",
 			keeper: &mockDenomMetadataKeeper{},
 			rollappKeeper: &mockRollappKeeper{
-				returnRollapp: &rollapptypes.Rollapp{},
+				registeredDenoms: make(map[string]struct{}),
 			},
 			memoData:         nil,
 			wantAck:          emptyResult,
@@ -68,7 +75,7 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 			name:   "custom memo",
 			keeper: &mockDenomMetadataKeeper{},
 			rollappKeeper: &mockRollappKeeper{
-				returnRollapp: &rollapptypes.Rollapp{},
+				registeredDenoms: make(map[string]struct{}),
 			},
 			memoData:         validUserMemo,
 			wantAck:          emptyResult,
@@ -78,7 +85,7 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 			name:   "memo has empty denom metadata",
 			keeper: &mockDenomMetadataKeeper{},
 			rollappKeeper: &mockRollappKeeper{
-				returnRollapp: &rollapptypes.Rollapp{},
+				registeredDenoms: make(map[string]struct{}),
 			},
 			memoData:         invalidMemoDataNoDenomMetadata,
 			wantAck:          emptyResult,
@@ -88,7 +95,10 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 			name:   "denom metadata already exists in keeper",
 			keeper: &mockDenomMetadataKeeper{hasDenomMetaData: true},
 			rollappKeeper: &mockRollappKeeper{
-				returnRollapp: &rollapptypes.Rollapp{},
+				registeredDenoms: make(map[string]struct{}),
+				returnRollapp: &rollapptypes.Rollapp{
+					RollappId: "rollapp1",
+				},
 			},
 			memoData:         validMemoData,
 			wantAck:          emptyResult,
@@ -148,7 +158,10 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 			fields: fields{
 				ICS4Wrapper: &mockICS4Wrapper{},
 				rollappKeeper: &mockRollappKeeper{
-					returnRollapp: &rollapptypes.Rollapp{},
+					registeredDenoms: make(map[string]struct{}),
+					returnRollapp: &rollapptypes.Rollapp{
+						RollappId: "rollapp1",
+					},
 				},
 				bankKeeper: mockBankKeeper{
 					returnMetadata: validDenomMetadata,
@@ -170,7 +183,10 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 			fields: fields{
 				ICS4Wrapper: &mockICS4Wrapper{},
 				rollappKeeper: &mockRollappKeeper{
-					returnRollapp: &rollapptypes.Rollapp{},
+					registeredDenoms: make(map[string]struct{}),
+					returnRollapp: &rollapptypes.Rollapp{
+						RollappId: "rollapp1",
+					},
 				},
 				bankKeeper: mockBankKeeper{
 					returnMetadata: validDenomMetadata,
@@ -243,7 +259,7 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 			fields: fields{
 				ICS4Wrapper: &mockICS4Wrapper{},
 				rollappKeeper: &mockRollappKeeper{
-					returnRollapp: &rollapptypes.Rollapp{},
+					registeredDenoms: make(map[string]struct{}),
 				},
 				bankKeeper: mockBankKeeper{
 					returnMetadata: validDenomMetadata,
@@ -264,8 +280,8 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 			fields: fields{
 				ICS4Wrapper: &mockICS4Wrapper{},
 				rollappKeeper: &mockRollappKeeper{
-					returnRollapp: &rollapptypes.Rollapp{
-						RegisteredDenoms: []string{"adym"},
+					registeredDenoms: map[string]struct{}{
+						"adym": {},
 					},
 				},
 			},
@@ -284,7 +300,7 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 			fields: fields{
 				ICS4Wrapper: &mockICS4Wrapper{},
 				rollappKeeper: &mockRollappKeeper{
-					returnRollapp: &rollapptypes.Rollapp{},
+					registeredDenoms: make(map[string]struct{}),
 				},
 				bankKeeper: mockBankKeeper{},
 			},
@@ -335,18 +351,21 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 		acknowledgement []byte
 	}
 	tests := []struct {
-		name        string
-		fields      fields
-		args        args
-		wantRollapp *rollapptypes.Rollapp
-		wantErr     error
+		name                 string
+		fields               fields
+		args                 args
+		wantRegisteredDenoms []string
+		wantErr              error
 	}{
 		{
 			name: "success: added token metadata to rollapp",
 			fields: fields{
 				IBCModule: &mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{
-					returnRollapp: &rollapptypes.Rollapp{},
+					registeredDenoms: make(map[string]struct{}),
+					returnRollapp: &rollapptypes.Rollapp{
+						RollappId: "rollapp1",
+					},
 				},
 			},
 			args: args{
@@ -356,15 +375,35 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				},
 				acknowledgement: okAck(),
 			},
-			wantRollapp: &rollapptypes.Rollapp{
-				RegisteredDenoms: []string{validDenomMetadata.Base},
+			wantRegisteredDenoms: []string{validDenomMetadata.Base},
+		}, {
+			name: "success: added IBC token metadata to rollapp",
+			fields: fields{
+				IBCModule: &mockIBCModule{},
+				rollappKeeper: &mockRollappKeeper{
+					registeredDenoms: make(map[string]struct{}),
+					returnRollapp: &rollapptypes.Rollapp{
+						RollappId: "rollapp1",
+					},
+				},
 			},
+			args: args{
+				packetData: &transfertypes.FungibleTokenPacketData{
+					Denom: "ibc/0429A217F7AFD21E67CABA80049DD56BB0380B77E9C58C831366D6626D42F399",
+					Memo:  addDenomMetadataToPacketData("", validIBCDenomMetadata),
+				},
+				acknowledgement: okAck(),
+			},
+			wantRegisteredDenoms: []string{validIBCDenomMetadata.Base},
 		}, {
 			name: "success: added token metadata to rollapp with user memo",
 			fields: fields{
 				IBCModule: &mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{
-					returnRollapp: &rollapptypes.Rollapp{},
+					registeredDenoms: make(map[string]struct{}),
+					returnRollapp: &rollapptypes.Rollapp{
+						RollappId: "rollapp1",
+					},
 				},
 			},
 			args: args{
@@ -374,9 +413,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				},
 				acknowledgement: okAck(),
 			},
-			wantRollapp: &rollapptypes.Rollapp{
-				RegisteredDenoms: []string{validDenomMetadata.Base},
-			},
+			wantRegisteredDenoms: []string{validDenomMetadata.Base},
 		}, {
 			name: "return early: error acknowledgement",
 			fields: fields{
@@ -386,12 +423,12 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 			args: args{
 				acknowledgement: badAck(),
 			},
-			wantRollapp: nil,
+			wantRegisteredDenoms: nil,
 		}, {
 			name: "return early: no memo",
 			fields: fields{
 				rollappKeeper: &mockRollappKeeper{
-					returnRollapp: &rollapptypes.Rollapp{},
+					registeredDenoms: make(map[string]struct{}),
 				},
 				IBCModule: &mockIBCModule{},
 			},
@@ -401,7 +438,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				},
 				acknowledgement: okAck(),
 			},
-			wantRollapp: &rollapptypes.Rollapp{},
+			wantRegisteredDenoms: nil,
 		}, {
 			name: "return early: no packet metadata in memo",
 			fields: fields{
@@ -415,7 +452,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				},
 				acknowledgement: okAck(),
 			},
-			wantRollapp: nil,
+			wantRegisteredDenoms: nil,
 		}, {
 			name: "return early: no denom metadata in memo",
 			fields: fields{
@@ -429,7 +466,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				},
 				acknowledgement: okAck(),
 			},
-			wantRollapp: nil,
+			wantRegisteredDenoms: nil,
 		}, {
 			name: "error: extract rollapp from channel",
 			fields: fields{
@@ -445,8 +482,8 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				},
 				acknowledgement: okAck(),
 			},
-			wantRollapp: nil,
-			wantErr:     errortypes.ErrInvalidRequest,
+			wantRegisteredDenoms: nil,
+			wantErr:              errortypes.ErrInvalidRequest,
 		}, {
 			name: "error: rollapp not found",
 			fields: fields{
@@ -460,15 +497,18 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				},
 				acknowledgement: okAck(),
 			},
-			wantRollapp: nil,
-			wantErr:     gerrc.ErrNotFound,
+			wantRegisteredDenoms: nil,
+			wantErr:              gerrc.ErrNotFound,
 		}, {
 			name: "return early: rollapp already has token metadata",
 			fields: fields{
 				IBCModule: &mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{
+					registeredDenoms: map[string]struct{}{
+						fmt.Sprintf("%s/%s", "rollapp1", validDenomMetadata.Base): {},
+					},
 					returnRollapp: &rollapptypes.Rollapp{
-						RegisteredDenoms: []string{validDenomMetadata.Base},
+						RollappId: "rollapp1",
 					},
 				},
 			},
@@ -479,9 +519,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				},
 				acknowledgement: okAck(),
 			},
-			wantRollapp: &rollapptypes.Rollapp{
-				RegisteredDenoms: []string{validDenomMetadata.Base},
-			},
+			wantRegisteredDenoms: []string{validDenomMetadata.Base},
 		},
 	}
 	for _, tt := range tests {
@@ -503,7 +541,12 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				require.ErrorIs(t, err, tt.wantErr)
 			}
 
-			require.Equal(t, tt.wantRollapp, tt.fields.rollappKeeper.returnRollapp)
+			registeredDenoms := make([]string, 0, len(tt.fields.rollappKeeper.registeredDenoms))
+			if tt.fields.rollappKeeper.returnRollapp != nil {
+				registeredDenoms, err = tt.fields.rollappKeeper.GetAllRegisteredDenoms(sdk.Context{}, tt.fields.rollappKeeper.returnRollapp.RollappId)
+				require.NoError(t, err)
+			}
+			require.ElementsMatch(t, tt.wantRegisteredDenoms, registeredDenoms)
 		})
 	}
 }
@@ -538,6 +581,22 @@ var (
 				Exponent: 0,
 			}, {
 				Denom:    "DYM",
+				Exponent: 18,
+			},
+		},
+	}
+	validIBCDenomMetadata = banktypes.Metadata{
+		Description: "The native staking and governance token of the Osmosis chain",
+		Base:        "ibc/0429A217F7AFD21E67CABA80049DD56BB0380B77E9C58C831366D6626D42F399",
+		Display:     "OSMO",
+		Name:        "Osmo",
+		Symbol:      "OSMO",
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    "ibc/0429A217F7AFD21E67CABA80049DD56BB0380B77E9C58C831366D6626D42F399",
+				Exponent: 0,
+			}, {
+				Denom:    "OSMO",
 				Exponent: 18,
 			},
 		},
@@ -631,9 +690,10 @@ func (m *mockICS4Wrapper) SendPacket(
 }
 
 type mockRollappKeeper struct {
-	returnRollapp *rollapptypes.Rollapp
-	packetData    transfertypes.FungibleTokenPacketData
-	err           error
+	returnRollapp    *rollapptypes.Rollapp
+	registeredDenoms map[string]struct{}
+	packetData       transfertypes.FungibleTokenPacketData
+	err              error
 }
 
 func (m *mockRollappKeeper) SetRollapp(_ sdk.Context, rollapp rollapptypes.Rollapp) {
@@ -645,6 +705,28 @@ func (m *mockRollappKeeper) GetValidTransfer(sdk.Context, []byte, string, string
 		Rollapp:                 m.returnRollapp,
 		FungibleTokenPacketData: m.packetData,
 	}, m.err
+}
+
+func (m *mockRollappKeeper) SetRegisteredDenom(_ sdk.Context, rollappID, denom string) error {
+	key := fmt.Sprintf("%s/%s", rollappID, denom)
+	m.registeredDenoms[key] = struct{}{}
+	return m.err
+}
+
+func (m *mockRollappKeeper) HasRegisteredDenom(_ sdk.Context, rollappID, denom string) (bool, error) {
+	key := fmt.Sprintf("%s/%s", rollappID, denom)
+	_, ok := m.registeredDenoms[key]
+	return ok, m.err
+}
+
+func (m *mockRollappKeeper) GetAllRegisteredDenoms(_ sdk.Context, rollappID string) ([]string, error) {
+	var denoms []string
+	for k := range m.registeredDenoms {
+		prefix := rollappID + "/"
+		denom := strings.TrimPrefix(k, prefix)
+		denoms = append(denoms, denom)
+	}
+	return denoms, m.err
 }
 
 type mockBankKeeper struct {
