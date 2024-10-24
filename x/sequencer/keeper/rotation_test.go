@@ -60,7 +60,7 @@ func (s *SequencerTestSuite) TestStartRotation() {
 	s.Require().NoError(err)
 
 	// check proposer still bonded and notice period started
-	p, ok := s.App.SequencerKeeper.GetProposerLegacy(s.Ctx, rollappId)
+	p := s.App.SequencerKeeper.GetProposer(s.Ctx, rollappId)
 	s.Require().True(ok)
 	s.Equal(addr1, p.Address)
 	s.Equal(s.Ctx.BlockHeight(), p.UnbondRequestHeight)
@@ -101,7 +101,7 @@ func (s *SequencerTestSuite) TestRotateProposer() {
 	s.Require().NoError(err)
 
 	// assert addr2 is now proposer
-	p, ok := s.App.SequencerKeeper.GetProposerLegacy(s.Ctx, rollappId)
+	p := s.App.SequencerKeeper.GetProposer(s.Ctx, rollappId)
 	s.Require().True(ok)
 	s.Equal(addr2, p.Address)
 	// assert addr1 is unbonding
@@ -127,7 +127,7 @@ func (s *SequencerTestSuite) TestRotateProposerNoNextProposer() {
 	err = s.App.SequencerKeeper.completeRotationLeg(s.Ctx, rollappId)
 	s.Require().NoError(err)
 
-	_, ok := s.App.SequencerKeeper.GetProposerLegacy(s.Ctx, rollappId)
+	_ := s.App.SequencerKeeper.GetProposer(s.Ctx, rollappId)
 	s.Require().False(ok)
 
 	_, ok = s.App.SequencerKeeper.GetNextProposer(s.Ctx, rollappId)
@@ -147,7 +147,7 @@ func (s *SequencerTestSuite) TestStartRotationTwice() {
 	_, err := s.msgServer.Unbond(s.Ctx, &unbondMsg)
 	s.Require().NoError(err)
 
-	p, ok := s.App.SequencerKeeper.GetProposerLegacy(s.Ctx, rollappId)
+	p := s.App.SequencerKeeper.GetProposer(s.Ctx, rollappId)
 	s.Require().True(ok)
 	s.Equal(addr1, p.Address)
 	s.Equal(s.Ctx.BlockHeight(), p.UnbondRequestHeight)

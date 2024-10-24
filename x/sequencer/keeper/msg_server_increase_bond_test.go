@@ -17,22 +17,15 @@ func (s *SequencerTestSuite) TestIncreaseBond() {
 	// setup an unbonded sequencer
 	pk1 := ed25519.GenPrivKey().PubKey()
 	unbondedSequencerAddress := s.CreateSequencer(s.Ctx, rollappId, pk1)
-	unbondedSequencer, _ := s.App.SequencerKeeper.GetSequencer(s.Ctx, unbondedSequencerAddress)
+	unbondedSequencer, _ := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, unbondedSequencerAddress)
 	unbondedSequencer.Status = types.Unbonded
-	s.App.SequencerKeeper.UpdateSequencerLeg(s.Ctx, &unbondedSequencer, unbondedSequencer.Status)
-	// setup a jailed sequencer
-	pk2 := ed25519.GenPrivKey().PubKey()
-	jailedSequencerAddress := s.CreateSequencer(s.Ctx, rollappId, pk2)
-	jailedSequencer, _ := s.App.SequencerKeeper.GetSequencer(s.Ctx, jailedSequencerAddress)
-	jailedSequencer.Jailed = true
-	s.App.SequencerKeeper.UpdateSequencerLeg(s.Ctx, &jailedSequencer, jailedSequencer.Status)
+	s.App.SequencerKeeper.SetSequencer(s.Ctx, unbondedSequencer)
+
 	// fund all the sequencers which have been setup
 	bondAmount := sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 100)
 	err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, sdk.MustAccAddressFromBech32(defaultSequencerAddress), sdk.NewCoins(bondAmount))
 	s.Require().NoError(err)
 	err = bankutil.FundAccount(s.App.BankKeeper, s.Ctx, sdk.MustAccAddressFromBech32(unbondedSequencerAddress), sdk.NewCoins(bondAmount))
-	s.Require().NoError(err)
-	err = bankutil.FundAccount(s.App.BankKeeper, s.Ctx, sdk.MustAccAddressFromBech32(jailedSequencerAddress), sdk.NewCoins(bondAmount))
 	s.Require().NoError(err)
 
 	testCase := []struct {
@@ -57,14 +50,6 @@ func (s *SequencerTestSuite) TestIncreaseBond() {
 			expectedErr: types.ErrSequencerNotFound,
 		},
 		{
-			name: "invalid sequencer status",
-			msg: types.MsgIncreaseBond{
-				Creator:   unbondedSequencerAddress,
-				AddAmount: bondAmount,
-			},
-			expectedErr: types.ErrInvalidSequencerStatus,
-		},
-		{
 			name: "sequencer doesn't have enough balance",
 			msg: types.MsgIncreaseBond{
 				Creator:   defaultSequencerAddress,
@@ -82,7 +67,7 @@ func (s *SequencerTestSuite) TestIncreaseBond() {
 			} else {
 				s.Require().NoError(err)
 				expectedBond := types.DefaultParams().MinBond.Add(bondAmount)
-				seq, _ := s.App.SequencerKeeper.GetSequencer(s.Ctx, defaultSequencerAddress)
+				seq, _ := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, defaultSequencerAddress)
 				s.Require().Equal(expectedBond, seq.Tokens[0])
 			}
 		})

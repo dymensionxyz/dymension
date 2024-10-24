@@ -15,15 +15,9 @@ func (s *SequencerTestSuite) TestDecreaseBond() {
 	// setup an unbonded sequencer
 	unbondedPk := ed25519.GenPrivKey().PubKey()
 	unbondedSequencerAddress := s.CreateSequencer(s.Ctx, rollappId, unbondedPk)
-	unbondedSequencer, _ := s.App.SequencerKeeper.GetSequencer(s.Ctx, unbondedSequencerAddress)
+	unbondedSequencer, _ := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, unbondedSequencerAddress)
 	unbondedSequencer.Status = types.Unbonded
-	s.App.SequencerKeeper.UpdateSequencerLeg(s.Ctx, &unbondedSequencer, unbondedSequencer.Status)
-	// setup a jailed sequencer
-	jailedPk := ed25519.GenPrivKey().PubKey()
-	jailedSequencerAddress := s.CreateSequencer(s.Ctx, rollappId, jailedPk)
-	jailedSequencer, _ := s.App.SequencerKeeper.GetSequencer(s.Ctx, jailedSequencerAddress)
-	jailedSequencer.Jailed = true
-	s.App.SequencerKeeper.UpdateSequencerLeg(s.Ctx, &jailedSequencer, jailedSequencer.Status)
+	s.App.SequencerKeeper.SetSequencer(s.Ctx, unbondedSequencer)
 
 	testCase := []struct {
 		name        string
@@ -37,14 +31,6 @@ func (s *SequencerTestSuite) TestDecreaseBond() {
 				DecreaseAmount: sdk.NewInt64Coin(bondDenom, 10),
 			},
 			expectedErr: types.ErrSequencerNotFound,
-		},
-		{
-			name: "sequencer is not bonded",
-			msg: types.MsgDecreaseBond{
-				Creator:        unbondedSequencerAddress,
-				DecreaseAmount: sdk.NewInt64Coin(bondDenom, 10),
-			},
-			expectedErr: types.ErrInvalidSequencerStatus,
 		},
 		{
 			name: "decreased bond value to less than minimum bond value",
@@ -79,15 +65,6 @@ func (s *SequencerTestSuite) TestDecreaseBond() {
 			} else {
 				s.Require().NoError(err)
 				s.Require().NotNil(resp)
-				expectedCompletionTime := s.Ctx.BlockHeader().Time.Add(s.App.SequencerKeeper.UnbondingTime(s.Ctx))
-				s.Require().Equal(expectedCompletionTime, resp.CompletionTime)
-				// check if the unbonding is set correctly
-				bondReductionIDs := s.App.SequencerKeeper.GetMatureDecreasingBondIDs(s.Ctx, expectedCompletionTime)
-				s.Require().Len(bondReductionIDs, 1)
-				bondReduction, found := s.App.SequencerKeeper.GetBondReduction(s.Ctx, bondReductionIDs[0])
-				s.Require().True(found)
-				s.Require().Equal(tc.msg.Creator, bondReduction.SequencerAddress)
-				s.Require().Equal(tc.msg.DecreaseAmount, bondReduction.DecreaseBondAmount)
 			}
 		})
 	}

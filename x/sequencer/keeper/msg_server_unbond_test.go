@@ -14,7 +14,7 @@ func (s *SequencerTestSuite) TestUnbondingNonProposer() {
 	bondedAddr := s.CreateDefaultSequencer(s.Ctx, rollappId)
 	s.Require().NotEqual(proposerAddr, bondedAddr)
 
-	proposer, ok := s.App.SequencerKeeper.GetProposerLegacy(s.Ctx, rollappId)
+	proposer := s.App.SequencerKeeper.GetProposer(s.Ctx, rollappId)
 	s.Require().True(ok)
 	s.Equal(proposerAddr, proposer.Address)
 
@@ -28,12 +28,12 @@ func (s *SequencerTestSuite) TestUnbondingNonProposer() {
 	s.Require().NoError(err)
 
 	// check sequencer operating status
-	bondedSeq, found = s.App.SequencerKeeper.GetSequencer(s.Ctx, bondedAddr)
+	bondedSeq, err = s.App.SequencerKeeper.GetRealSequencer(s.Ctx, bondedAddr)
 	s.Require().True(found)
 	s.Equal(types.Unbonding, bondedSeq.Status)
 
 	s.App.SequencerKeeper.UnbondAllMatureSequencers(s.Ctx, bondedSeq.UnbondTime.Add(10*time.Second))
-	bondedSeq, found = s.App.SequencerKeeper.GetSequencer(s.Ctx, bondedAddr)
+	bondedSeq, err = s.App.SequencerKeeper.GetRealSequencer(s.Ctx, bondedAddr)
 	s.Require().True(found)
 	s.Equal(types.Unbonded, bondedSeq.Status)
 
@@ -59,7 +59,7 @@ func (s *SequencerTestSuite) TestUnbondingProposer() {
 	s.Require().NoError(err)
 
 	// check proposer still bonded and notice period started
-	p, ok := s.App.SequencerKeeper.GetProposerLegacy(s.Ctx, rollappId)
+	p := s.App.SequencerKeeper.GetProposer(s.Ctx, rollappId)
 	s.Require().True(ok)
 	s.Equal(proposerAddr, p.Address)
 	s.Equal(s.Ctx.BlockHeight(), p.UnbondRequestHeight)
@@ -73,8 +73,10 @@ func (s *SequencerTestSuite) TestUnbondingProposer() {
 	s.Require().False(ok)
 
 	// check notice period queue
-	m := s.App.SequencerKeeper.GetMatureNoticePeriodSequencers(s.Ctx, p.NoticePeriodTime.Add(-1*time.Second))
+	m, err := s.App.SequencerKeeper.NoticeElapsedSequencers(s.Ctx, p.NoticePeriodTime.Add(-1*time.Second))
+	s.Require().NoError(err)
 	s.Require().Len(m, 0)
-	m = s.App.SequencerKeeper.GetMatureNoticePeriodSequencers(s.Ctx, p.NoticePeriodTime.Add(1*time.Second))
+	m, err = s.App.SequencerKeeper.NoticeElapsedSequencers(s.Ctx, p.NoticePeriodTime.Add(1*time.Second))
+	s.Require().NoError(err)
 	s.Require().Len(m, 1)
 }
