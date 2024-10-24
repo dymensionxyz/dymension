@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"strings"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -48,29 +46,6 @@ func (k Keeper) GetValidTransfer(
 	data.Rollapp = ra
 
 	return
-}
-
-func (k Keeper) GetRollappByDenom(ctx sdk.Context, denom string) (*types.Rollapp, error) {
-	// by future token
-	if rollappID, ok := udenom.FutureRollappID(denom); ok {
-		return k.GetRollapp(ctx, rollappID), nil
-	}
-	// by ibc token
-	hash, err := transfertypes.ParseHexHash(strings.TrimPrefix(denom, "ibc/"))
-	// handle err...
-	var trace transfertypes.DenomTrace
-	trace, ok := k.transferKeeper.GetDenomTrace(ctx, hash)
-
-	var port string
-	var channel string
-	strings.Split(trace.Path, "/") // set port,channel
-	return k.GetRollappByPortChan(ctx, port, channel)
-}
-
-func (k Keeper) GetRollappOwnerByDenom(ctx sdk.Context, denom string) (sdk.AccAddress, error) {
-	ra, err := k.GetRollappByDenom(ctx, denom)
-	// handle err
-	return ra.OwnerAddr()
 }
 
 // GetRollappByPortChan will get the rollapp for a transfer
