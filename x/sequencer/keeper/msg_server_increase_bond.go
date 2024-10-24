@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
@@ -10,42 +9,30 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// IncreaseBond implements types.MsgServer.
 func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBond) (*types.MsgIncreaseBondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	sequencer, found := k.GetSequencer(ctx, msg.GetCreator())
-	if !found {
-		return nil, types.ErrSequencerNotFound
+	if err := k.validateBondDenom(ctx, msg.AddAmount); err != nil {
+		return nil, err
 	}
 
-	// transfer the bond from the sequencer to the module account
-	seqAcc := sdk.MustAccAddressFromBech32(msg.Creator)
-	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.AddAmount))
+	seq, err := k.tryGetSequencer(ctx, msg.GetCreator())
 	if err != nil {
 		return nil, err
 	}
 
-	// validate the addition amt is of same denom of existing bond
-	if found, _ := sequencer.Tokens.Find(msg.AddAmount.Denom); !found {
-		return nil, types.ErrInvalidCoinDenom
+	if err := k.sendToModule(ctx, &seq, msg.AddAmount); err != nil {
+		return nil, err
 	}
 
-	// update the sequencers bond amount in state
-	sequencer.Tokens = sequencer.Tokens.Add(msg.AddAmount)
-	k.UpdateSequencerLeg(ctx, &sequencer, sequencer.Status)
+	// TODO: write seq
 
 	// emit a typed event which includes the added amount and the active bond amount
-	err = uevent.EmitTypedEvent(ctx,
+	return &types.MsgIncreaseBondResponse{}, uevent.EmitTypedEvent(ctx,
 		&types.EventIncreasedBond{
 			Sequencer:   msg.Creator,
-			Bond:        sequencer.Tokens,
+			Bond:        seq.Tokens,
 			AddedAmount: msg.AddAmount,
 		},
 	)
-	if err != nil {
-		return nil, fmt.Errorf("emit event: %w", err)
-	}
-
-	return &types.MsgIncreaseBondResponse{}, nil
 }

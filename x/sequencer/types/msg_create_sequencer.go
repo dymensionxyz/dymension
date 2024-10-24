@@ -26,6 +26,7 @@ func (msg MsgCreateSequencer) UnpackInterfaces(unpacker codectypes.AnyUnpacker) 
 }
 
 /* --------------------------- MsgCreateSequencer --------------------------- */
+
 func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId string, metadata *SequencerMetadata, bond sdk.Coin) (*MsgCreateSequencer, error) {
 	if metadata == nil {
 		return nil, ErrInvalidRequest

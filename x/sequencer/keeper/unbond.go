@@ -14,7 +14,7 @@ type UnbondChecker interface {
 }
 
 func (k Keeper) tryUnbond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) error {
-	if k.IsProposerOrSuccessor(ctx, *seq) {
+	if k.isProposerOrSuccessor(ctx, *seq) {
 		return types.ErrUnbondProposerOrSuccessor
 	}
 	for _, c := range k.unbondConditions {
@@ -32,7 +32,7 @@ func (k Keeper) tryUnbond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) e
 			amt, ucoin.NonNegative(maxReduction),
 		)
 	}
-	if err := k.refundTokens(ctx, seq, amt); err != nil {
+	if err := k.refund(ctx, seq, amt); err != nil {
 		return errorsmod.Wrap(err, "refund")
 	}
 	if seq.Tokens.IsZero() {
@@ -50,18 +50,4 @@ func (k Keeper) unbond(ctx sdk.Context, seq *types.Sequencer) error {
 		k.SetProposer(ctx, seq.RollappId, types.SentinelSeqAddr)
 	}
 	return nil
-}
-
-func (k Keeper) burnTokens(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) error {
-	seq.SetTokensCoin(seq.TokensCoin().Sub(amt))
-	return k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(amt))
-}
-
-func (k Keeper) refundTokens(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) error {
-	return errorsmod.Wrap(k.sendTokens(ctx, seq, amt, seq.AccAddr()), "send tokens")
-}
-
-func (k Keeper) sendTokens(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin, recipient sdk.AccAddress) error {
-	seq.SetTokensCoin(seq.TokensCoin().Sub(amt))
-	return k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, sdk.NewCoins(amt))
 }

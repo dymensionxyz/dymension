@@ -256,7 +256,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	suite.Require().Nil(err)
 
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-	suite.EqualError(err, types.ErrSequencerExists.Error())
+	suite.EqualError(err, types.ErrSequencerAlreadyExists.Error())
 
 	// unbond the sequencer
 	unbondMsg := types.MsgUnbond{Creator: addr.String()}
@@ -265,7 +265,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 
 	// create the sequencer again, expect to fail anyway
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-	suite.EqualError(err, types.ErrSequencerExists.Error())
+	suite.EqualError(err, types.ErrSequencerAlreadyExists.Error())
 }
 
 func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer() {

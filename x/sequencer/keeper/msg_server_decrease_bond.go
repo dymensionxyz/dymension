@@ -3,18 +3,21 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 )
 
-// DecreaseBond implements types.MsgServer.
 func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBond) (*types.MsgDecreaseBondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	seq, found := k.GetSequencer(ctx, msg.GetCreator())
-	if !found {
-		return nil, types.ErrSequencerNotFound
+	seq, err := k.tryGetSequencer(ctx, msg.GetCreator())
+	if err != nil {
+		return nil, err
 	}
-	return &types.MsgDecreaseBondResponse{}, k.tryUnbond(ctx, seq, uptr.To(msg.GetDecreaseAmount()))
+	if err := k.tryUnbond(ctx, &seq, msg.GetDecreaseAmount()); err != nil {
+		return nil, errorsmod.Wrap(err, "try unbond")
+	}
+	// TODO: write object
+	return &types.MsgDecreaseBondResponse{}, nil
 }

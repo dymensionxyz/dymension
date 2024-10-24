@@ -12,7 +12,7 @@ import (
 // Unbond defines a method for removing coins from sequencer's bond
 func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.MsgUnbondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	seq, err := k.TryGetSequencer(ctx, msg.Creator)
+	seq, err := k.tryGetSequencer(ctx, msg.Creator)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "try get seq")
 	}

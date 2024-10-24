@@ -35,7 +35,7 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, now time.Time) {
 	seqs := k.GetMatureNoticePeriodSequencers(ctx, now)
 	for _, seq := range seqs {
-		if !k.IsSuccessor(ctx, seq) {
+		if !k.isSuccessor(ctx, seq) {
 			// next proposer cannot mature its notice period until the current proposer has finished rotation
 			// minor effect as notice_period >>> rotation time
 			k.removeNoticePeriodSequencer(ctx, seq)
