@@ -12,6 +12,7 @@ var (
 	ErrInvalidMetadata                                 = errorsmod.Wrap(gerrc.ErrInvalidArgument, "metadata")
 	ErrInvalidVMTypeUpdate                             = errorsmod.Wrap(gerrc.ErrInvalidArgument, "vm type update")
 	ErrBeforePreLaunchTime                             = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "before pre-launch time")
+	ErrNotProposer                                     = gerrc.ErrInvalidArgument.Wrap("sequencer is not proposer")
 	ErrSequencerAlreadyExists                          = gerrc.ErrAlreadyExists.Wrap("sequencer")
 	ErrSequencerNotFound                               = gerrc.ErrNotFound.Wrap("sequencer")
 	ErrUnbondNotAllowed                                = gerrc.ErrFailedPrecondition.Wrap("unbond not allowed")

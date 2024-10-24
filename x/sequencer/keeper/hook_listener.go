@@ -3,9 +3,8 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 var _ rollapptypes.RollappHooks = rollappHook{}
@@ -28,7 +27,7 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, lastStateUpdateBySequencer bool) error {
 	proposer := hook.k.GetProposer(ctx, rollappId)
 	if seqAddr != proposer.Address {
-		return gerrc.ErrInternal.Wrap("got state update from non-proposer")
+		return types.ErrNotProposer
 	}
 
 	if lastStateUpdateBySequencer {
