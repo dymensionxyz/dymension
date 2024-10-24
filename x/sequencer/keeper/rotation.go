@@ -9,7 +9,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
+func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) {
 	seq.NoticePeriodTime = ctx.BlockTime().Add(k.NoticePeriod(ctx))
 
 	k.AddToNoticeQueue(ctx, *seq)
@@ -22,20 +22,16 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, seq.NoticePeriodTime.String()),
 		),
 	)
-
-	return seq.NoticePeriodTime
 }
 
-// MatureSequencersWithNoticePeriod start rotation flow for all sequencers that have finished their notice period
-// The next proposer is set to the next bonded sequencer
-// The hub will expect a "last state update" from the sequencer to start unbonding
-// In the middle of rotation, the next proposer required a notice period as well.
-func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, now time.Time) {
-	seqs := k.GetNoticeElapsedSequencers(ctx, now)
+func (k Keeper) ChooseNewProposerForFinishedNoticePeriods(ctx sdk.Context, now time.Time) error {
+	seqs, err := k.NoticeElapsedSequencers(ctx, now)
+	if err != nil {
+		return errorsmod.Wrap(err, "get notice elapsed sequencers")
+	}
 	for _, seq := range seqs {
+		// Successor cannot finish notice. The proposer must finish first and then rotate to the successor.
 		if !k.isSuccessor(ctx, seq) {
-			// next proposer cannot mature its notice period until the current proposer has finished rotation
-			// minor effect as notice_period >>> rotation time
 			k.removeFromNoticeQueue(ctx, seq)
 			if err := k.chooseSuccessor(ctx, seq.RollappId); err != nil {
 				k.Logger(ctx).Error("Choose successor.", "err", err)
@@ -52,6 +48,7 @@ func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, now time.Time)
 			)
 		}
 	}
+	return nil
 }
 
 func (k Keeper) onProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) error {
@@ -60,34 +57,36 @@ func (k Keeper) onProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) e
 		return errorsmod.Wrap(gerrc.ErrFault, "sequencer has submitted last block without finishing notice period")
 	}
 	k.SetProposer(ctx, proposer.RollappId, types.SentinelSeqAddr)
-	k.chooseProposer(ctx, proposer.RollappId)
-	return nil
+	return errorsmod.Wrap(k.chooseProposer(ctx, proposer.RollappId), "choose proposer")
 }
 
-func (k Keeper) GetNoticeElapsedSequencers(ctx sdk.Context, endTime time.Time) (list []types.Sequencer) {
+func (k Keeper) NoticeElapsedSequencers(ctx sdk.Context, endTime time.Time) ([]types.Sequencer, error) {
+	ret := []types.Sequencer{}
 	store := ctx.KVStore(k.storeKey)
-	iterator := store.Iterator(types.NoticePeriodQueueKey, sdk.PrefixEndBytes(types.NoticePeriodQueueByTimeKey(endTime)))
+	iterator := store.Iterator(types.NoticePeriodQueueKey, sdk.PrefixEndBytes(types.NoticeQueueByTimeKey(endTime)))
 
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.Sequencer
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
+		addr := string(iterator.Value())
+		seq, err := k.tryGetSequencer(ctx, string(iterator.Value()))
+		if err != nil {
+			return nil, gerrc.ErrInternal.Wrapf("sequencer in notice queue but missing sequencer object: addr: %s", addr)
+		}
+		ret = append(ret, seq)
 	}
 
-	return
+	return ret, nil
 }
 
 func (k Keeper) AddToNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshal(&seq)
-	noticePeriodKey := types.NoticePeriodSequencerKey(seq.Address, seq.NoticePeriodTime)
-	store.Set(noticePeriodKey, b)
+	noticePeriodKey := types.NoticeQueueBySeqTimeKey(seq.Address, seq.NoticePeriodTime)
+	store.Set(noticePeriodKey, []byte(seq.Address))
 }
 
 func (k Keeper) removeFromNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
-	noticePeriodKey := types.NoticePeriodSequencerKey(seq.Address, seq.NoticePeriodTime)
+	noticePeriodKey := types.NoticeQueueBySeqTimeKey(seq.Address, seq.NoticePeriodTime)
 	store.Delete(noticePeriodKey)
 }

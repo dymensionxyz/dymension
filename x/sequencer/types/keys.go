@@ -98,12 +98,12 @@ func SequencersByRollappByStatusKey(rollappId string, status OperatingStatus) []
 
 /* --------------------------  queues keys -------------------------- */
 
-func NoticePeriodQueueByTimeKey(endTime time.Time) []byte {
+func NoticeQueueByTimeKey(endTime time.Time) []byte {
 	return utils.EncodeTimeToKey(NoticePeriodQueueKey, endTime)
 }
 
-func NoticePeriodSequencerKey(sequencerAddress string, endTime time.Time) []byte {
-	key := NoticePeriodQueueByTimeKey(endTime)
+func NoticeQueueBySeqTimeKey(sequencerAddress string, endTime time.Time) []byte {
+	key := NoticeQueueByTimeKey(endTime)
 	key = append(key, KeySeparator...)
 	key = append(key, []byte(sequencerAddress)...)
 	return key
@@ -115,6 +115,6 @@ func ProposerByRollappKey(rollappId string) []byte {
 	return []byte(fmt.Sprintf("%s%s%s", ProposerKeyPrefix, KeySeparator, []byte(rollappId)))
 }
 
-func NextProposerByRollappKey(rollappId string) []byte {
+func SuccessorByRollappKey(rollappId string) []byte {
 	return []byte(fmt.Sprintf("%s%s%s", NextProposerKeyPrefix, KeySeparator, []byte(rollappId)))
 }

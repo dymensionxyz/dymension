@@ -150,7 +150,7 @@ func (k Keeper) SetProposer(ctx sdk.Context, rollapp, seqAddr string) {
 
 func (k Keeper) GetSuccessor(ctx sdk.Context, rollapp string) types.Sequencer {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.NextProposerByRollappKey(rollapp))
+	bz := store.Get(types.SuccessorByRollappKey(rollapp))
 	if bz == nil {
 		return k.GetSequencer(ctx, rollapp, types.SentinelSeqAddr)
 	}
@@ -160,6 +160,6 @@ func (k Keeper) GetSuccessor(ctx sdk.Context, rollapp string) types.Sequencer {
 func (k Keeper) SetSuccessor(ctx sdk.Context, rollapp, seqAddr string) {
 	store := ctx.KVStore(k.storeKey)
 	addressBytes := []byte(seqAddr)
-	nextProposerKey := types.NextProposerByRollappKey(rollapp)
+	nextProposerKey := types.SuccessorByRollappKey(rollapp)
 	store.Set(nextProposerKey, addressBytes)
 }
