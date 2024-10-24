@@ -14,17 +14,16 @@ It will trigger slash/jail operations through the x/sequencers module, at interv
 See ADR for more info https://www.notion.so/dymension/ADR-x-Sequencer-Liveness-Slash-Phase-1-5131b4d557e34f4498855831f439d218
 */
 
-// NextSlashOrJailHeight returns the next height on the HUB to slash or jail the rollapp
+// NextSlashHeight returns the next height on the HUB to slash or jail the rollapp
 // It will respect all parameters passed in.
 // Assumes that if current hub height is already a slash height, then to schedule for the next one.
-func NextSlashOrJailHeight(
+func NextSlashHeight(
 	blocksSlashNoUpdate uint64, // time until first slash if not updating
 	blocksSlashInterval uint64, // gap between slash if still not updating
 	heightHub int64, // current height on the hub
 	heightLastRollappUpdate int64, // when was the rollapp last updated
 ) (
 	heightEvent int64, // hub height to schedule event
-	isJail bool, // is it a jail event? (false -> slash)
 ) {
 	// how long has the rollapp been down ?
 	down := uint64(heightHub - heightLastRollappUpdate)
@@ -88,7 +87,7 @@ func (k Keeper) RescheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
 // Modifies the passed-in rollapp object.
 func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
 	params := k.GetParams(ctx)
-	nextH, isJail := NextSlashOrJailHeight(
+	nextH := NextSlashHeight(
 		params.LivenessSlashBlocks,
 		params.LivenessSlashInterval,
 		ctx.BlockHeight(),
@@ -98,7 +97,6 @@ func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
 	k.PutLivenessEvent(ctx, types.LivenessEvent{
 		RollappId: ra.RollappId,
 		HubHeight: nextH,
-		IsJail:    isJail,
 	})
 }
 
@@ -133,13 +131,10 @@ func (k Keeper) PutLivenessEvent(ctx sdk.Context, e types.LivenessEvent) {
 
 // DelLivenessEvents deletes all liveness events for the rollapp from the queue
 func (k Keeper) DelLivenessEvents(ctx sdk.Context, height int64, rollappID string) {
-	for _, jail := range []bool{true, false} {
-		k.DelLivenessEvent(ctx, types.LivenessEvent{
-			RollappId: rollappID,
-			HubHeight: height,
-			IsJail:    jail,
-		})
-	}
+	k.DelLivenessEvent(ctx, types.LivenessEvent{
+		RollappId: rollappID,
+		HubHeight: height,
+	})
 }
 
 // DelLivenessEvent deletes all liveness events for the rollapp from the queue

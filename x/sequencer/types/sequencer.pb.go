@@ -35,22 +35,22 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // Sequencer defines a sequencer identified by its' address (sequencerAddress).
 // The sequencer could be attached to only one rollapp (rollappId).
 type Sequencer struct {
-	// address is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+	// Address is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
 	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	// pubkey is the public key of the sequencers' dymint client, as a Protobuf Any.
+	// DymintPubKey is the public key of the sequencers' dymint client, as a Protobuf Any.
 	DymintPubKey *types.Any `protobuf:"bytes,2,opt,name=dymintPubKey,proto3" json:"dymintPubKey,omitempty"`
-	// rollappId defines the rollapp to which the sequencer belongs.
+	// RollappId defines the rollapp to which the sequencer belongs.
 	RollappId string `protobuf:"bytes,3,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
-	// metadata defines the extra information for the sequencer.
+	// SequencerMetadata defines the extra information for the sequencer.
 	Metadata SequencerMetadata `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata"`
 	Proposer bool              `protobuf:"varint,6,opt,name=proposer,proto3" json:"proposer,omitempty"` // Deprecated: Do not use.
-	// status is the sequencer status (bonded/unbonded).
+	// OperatingStatus is the sequencer status (bonded/unbonded).
 	Status OperatingStatus `protobuf:"varint,7,opt,name=status,proto3,enum=dymensionxyz.dymension.sequencer.OperatingStatus" json:"status,omitempty"`
 	// OptedIn : when true and bonded, the sequencer can be chosen as proposer or successor
 	OptedIn bool `protobuf:"varint,12,opt,name=opted_in,json=optedIn,proto3" json:"opted_in,omitempty"`
-	// tokens define the delegated tokens (incl. self-delegation).
+	// Tokens: A coins which should always be one dym coin. It's the amount of tokens the sequencer has given to the module.
 	Tokens github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,8,rep,name=tokens,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"tokens"`
-	// notice_period_time defines the time when the sequencer will finish it's notice period if started
+	// NoticePeriodTime defines the time when the sequencer will finish it's notice period. Zero means not started.
 	NoticePeriodTime time.Time `protobuf:"bytes,11,opt,name=notice_period_time,json=noticePeriodTime,proto3,stdtime" json:"notice_period_time"`
 }
 

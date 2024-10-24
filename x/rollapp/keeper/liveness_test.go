@@ -18,7 +18,7 @@ import (
 
 func TestLivenessArithmetic(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		hEvent, _ := keeper.NextSlashOrJailHeight(
+		hEvent, _ := keeper.NextSlashHeight(
 			8,
 			4,
 			1000,
@@ -28,7 +28,7 @@ func TestLivenessArithmetic(t *testing.T) {
 		require.Equal(t, 8, int(hEvent))
 	})
 	t.Run("almost at the interval", func(t *testing.T) {
-		hEvent, _ := keeper.NextSlashOrJailHeight(
+		hEvent, _ := keeper.NextSlashHeight(
 			8,
 			4,
 			1000,
@@ -38,7 +38,7 @@ func TestLivenessArithmetic(t *testing.T) {
 		require.Equal(t, 8, int(hEvent))
 	})
 	t.Run("do not schedule for next height", func(t *testing.T) {
-		hEvent, _ := keeper.NextSlashOrJailHeight(
+		hEvent, _ := keeper.NextSlashHeight(
 			8,
 			4,
 			1000,
@@ -48,7 +48,7 @@ func TestLivenessArithmetic(t *testing.T) {
 		require.Equal(t, 12, int(hEvent))
 	})
 	t.Run("do not schedule for next height", func(t *testing.T) {
-		hEvent, _ := keeper.NextSlashOrJailHeight(
+		hEvent, _ := keeper.NextSlashHeight(
 			8,
 			4,
 			1000,
