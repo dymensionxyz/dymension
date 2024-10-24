@@ -72,7 +72,7 @@ func (msg *MsgCreateSequencer) GetSignBytes() []byte {
 func (msg *MsgCreateSequencer) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(ErrInvalidAddr, "invalid creator address (%s)", err)
 	}
 
 	// public key also checked by the application logic

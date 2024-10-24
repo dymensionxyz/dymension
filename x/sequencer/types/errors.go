@@ -17,10 +17,14 @@ var (
 	ErrSequencerNotFound                               = gerrc.ErrNotFound.Wrap("sequencer")
 	ErrUnbondNotAllowed                                = gerrc.ErrFailedPrecondition.Wrap("unbond not allowed")
 	ErrUnbondProposerOrSuccessor                       = errorsmod.Wrap(ErrUnbondNotAllowed, "proposer or successor")
-	ErrInvalidDenom                                    = gerrc.ErrInvalidArgument.Wrap("denom")
+	ErrInvalidCoins                                    = gerrc.ErrInvalidArgument.Wrap("coin or coins")
+	ErrInvalidDenom                                    = errorsmod.Wrap(ErrInvalidCoins, "denom")
+	ErrInvalidCoinAmount                               = errorsmod.Wrap(ErrInvalidCoins, "amount")
 	ErrInsufficientBond                                = gerrc.ErrOutOfRange.Wrap("bond")
 	ErrRegisterSequencerWhileAwaitingLastProposerBlock = gerrc.ErrFailedPrecondition.Wrap("register sequencer while awaiting last proposer block")
 	ErrNotInitialSequencer                             = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "not the initial sequencer")
+	ErrInvalidAddr                                     = gerrc.ErrInvalidArgument.Wrap("address")
+	ErrInvalidPubKey                                   = gerrc.ErrInvalidArgument.Wrap("pubkey")
 
 	// ErrNotActiveSequencer ..
 	// Deprecated: ..
@@ -31,9 +35,8 @@ var (
 	// ErrInvalidCoinDenom ..
 	// Deprecated: ..
 	ErrInvalidCoinDenom = errorsmod.Register(ModuleName, 1010, "invalid coin denomination")
-	// ErrInvalidAddress ..
+	// ErrInvalidAddr ..
 	// Deprecated: ..
-	ErrInvalidAddress = errorsmod.Register(ModuleName, 1013, "invalid address")
 	// ErrInvalidPubKey ..
 	// Deprecated: ..
 	ErrInvalidPubKey = errorsmod.Register(ModuleName, 1014, "invalid pubkey")

@@ -26,7 +26,7 @@ const (
 
 var bond = types.DefaultParams().MinBond
 
-func (suite *SequencerTestSuite) TestMinBond() {
+func (s *SequencerTestSuite) TestMinBond() {
 	panicErr := errors.New("panic")
 
 	testCases := []struct {
@@ -56,19 +56,19 @@ func (suite *SequencerTestSuite) TestMinBond() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			seqParams := types.DefaultParams()
 			seqParams.MinBond = tc.requiredBond
-			suite.App.SequencerKeeper.SetParams(suite.Ctx, seqParams)
+			s.App.SequencerKeeper.SetParams(s.Ctx, seqParams)
 
-			rollappId, pk := suite.CreateDefaultRollapp()
+			rollappId, pk := s.CreateDefaultRollapp()
 
 			// fund account
 			addr := sdk.AccAddress(pk.Address())
 			pkAny, err := codectypes.NewAnyWithValue(pk)
-			suite.Require().Nil(err)
-			err = bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(tc.bond))
-			suite.Require().Nil(err)
+			s.Require().Nil(err)
+			err = bankutil.FundAccount(s.App.BankKeeper, s.Ctx, addr, sdk.NewCoins(tc.bond))
+			s.Require().Nil(err)
 
 			sequencerMsg1 := types.MsgCreateSequencer{
 				Creator:      addr.String(),
@@ -88,28 +88,28 @@ func (suite *SequencerTestSuite) TestMinBond() {
 						createErr = errorsmod.Wrapf(panicErr, "panic: %v", r)
 					}
 				}()
-				_, createErr = suite.msgServer.CreateSequencer(suite.Ctx, &sequencerMsg1)
+				_, createErr = s.msgServer.CreateSequencer(s.Ctx, &sequencerMsg1)
 			}()
 
 			if tc.expectedError != nil {
-				suite.Require().ErrorAs(createErr, &tc.expectedError, tc.name)
+				s.Require().ErrorAs(createErr, &tc.expectedError, tc.name)
 			} else {
-				suite.Require().NoError(createErr)
-				sequencer, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr.String())
-				suite.Require().True(found, tc.name)
+				s.Require().NoError(createErr)
+				sequencer, found := s.App.SequencerKeeper.GetSequencer(s.Ctx, addr.String())
+				s.Require().True(found, tc.name)
 				if tc.requiredBond.IsNil() {
-					suite.Require().True(sequencer.Tokens.IsZero(), tc.name)
+					s.Require().True(sequencer.Tokens.IsZero(), tc.name)
 				} else {
-					suite.Require().Equal(sdk.NewCoins(tc.requiredBond), sequencer.Tokens, tc.name)
+					s.Require().Equal(sdk.NewCoins(tc.requiredBond), sequencer.Tokens, tc.name)
 				}
 			}
 		})
 	}
 }
 
-func (suite *SequencerTestSuite) TestCreateSequencer() {
-	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
+func (s *SequencerTestSuite) TestCreateSequencer() {
+	s.SetupTest()
+	goCtx := sdk.WrapSDKContext(s.Ctx)
 
 	// sequencersExpect is the expected result of query all
 	sequencersExpect := []*types.Sequencer{}
@@ -147,7 +147,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				},
 			},
 		}
-		suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 
 		rollappId := rollapp.GetRollappId()
 		rollappIDs[j] = rollappId
@@ -155,10 +155,10 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		for i := 0; i < 10; i++ {
 			pubkey := ed25519.GenPrivKey().PubKey()
 			addr := sdk.AccAddress(pubkey.Address())
-			err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
-			suite.Require().NoError(err)
+			err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, addr, sdk.NewCoins(bond))
+			s.Require().NoError(err)
 			pkAny, err := codectypes.NewAnyWithValue(pubkey)
-			suite.Require().Nil(err)
+			s.Require().Nil(err)
 
 			// sequencer is the sequencer to create
 			sequencerMsg := types.MsgCreateSequencer{
@@ -181,16 +181,16 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			}
 
 			// create sequencer
-			createResponse, err := suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-			suite.Require().Nil(err)
-			suite.Require().EqualValues(types.MsgCreateSequencerResponse{}, *createResponse)
+			createResponse, err := s.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+			s.Require().Nil(err)
+			s.Require().EqualValues(types.MsgCreateSequencerResponse{}, *createResponse)
 
 			// query the specific sequencer
-			queryResponse, err := suite.queryClient.Sequencer(goCtx, &types.QueryGetSequencerRequest{
+			queryResponse, err := s.queryClient.Sequencer(goCtx, &types.QueryGetSequencerRequest{
 				SequencerAddress: sequencerMsg.GetCreator(),
 			})
-			suite.Require().Nil(err)
-			suite.equalSequencer(&sequencerExpect, &queryResponse.Sequencer)
+			s.Require().Nil(err)
+			s.equalSequencer(&sequencerExpect, &queryResponse.Sequencer)
 
 			// add the sequencer to the list of get all expected list
 			sequencersExpect = append(sequencersExpect, &sequencerExpect)
@@ -199,10 +199,10 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				rollappExpectedProposers[rollappId] = sequencerExpect.Address
 			}
 
-			sequencersRes, totalRes := getAll(suite)
-			suite.Require().EqualValues(len(sequencersExpect), totalRes)
+			sequencersRes, totalRes := getAll(s)
+			s.Require().EqualValues(len(sequencersExpect), totalRes)
 			// verify that query all contains all the sequencers that were created
-			suite.verifyAll(sequencersExpect, sequencersRes)
+			s.verifyAll(sequencersExpect, sequencersRes)
 
 			// add the sequencer to the list of specific rollapp
 			rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencerExpect.Address}] = sequencerExpect.Address
@@ -213,36 +213,36 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 	// check query by rollapp
 	for i := 0; i < numRollapps; i++ {
 		rollappId := rollappIDs[i]
-		queryAllResponse, err := suite.queryClient.SequencersByRollapp(goCtx,
+		queryAllResponse, err := s.queryClient.SequencersByRollapp(goCtx,
 			&types.QueryGetSequencersByRollappRequest{RollappId: rollappId})
-		suite.Require().Nil(err)
+		s.Require().Nil(err)
 		// verify that all the addresses of the rollapp are found
 		for _, sequencer := range queryAllResponse.Sequencers {
-			suite.Require().EqualValues(rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencer.Address}],
+			s.Require().EqualValues(rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencer.Address}],
 				sequencer.Address)
 		}
 		totalFound += len(queryAllResponse.Sequencers)
 
 		// check that the first sequencer created is the active sequencer
-		proposer, err := suite.queryClient.GetProposerByRollapp(goCtx,
+		proposer, err := s.queryClient.GetProposerByRollapp(goCtx,
 			&types.QueryGetProposerByRollappRequest{RollappId: rollappId})
-		suite.Require().Nil(err)
-		suite.Require().EqualValues(proposer.ProposerAddr, rollappExpectedProposers[rollappId])
+		s.Require().Nil(err)
+		s.Require().EqualValues(proposer.ProposerAddr, rollappExpectedProposers[rollappId])
 	}
-	suite.Require().EqualValues(totalFound, len(rollappSequencersExpect))
+	s.Require().EqualValues(totalFound, len(rollappSequencersExpect))
 }
 
-func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
-	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
+func (s *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
+	s.SetupTest()
+	goCtx := sdk.WrapSDKContext(s.Ctx)
 
-	rollappId, pk := suite.CreateDefaultRollapp()
+	rollappId, pk := s.CreateDefaultRollapp()
 	addr := sdk.AccAddress(pk.Address())
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
-	suite.Require().NoError(err)
+	err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, addr, sdk.NewCoins(bond))
+	s.Require().NoError(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pk)
-	suite.Require().Nil(err)
+	s.Require().Nil(err)
 	sequencerMsg := types.MsgCreateSequencer{
 		Creator:      addr.String(),
 		DymintPubKey: pkAny,
@@ -252,23 +252,23 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 			Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
 		},
 	}
-	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-	suite.Require().Nil(err)
+	_, err = s.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+	s.Require().Nil(err)
 
-	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-	suite.EqualError(err, types.ErrSequencerAlreadyExists.Error())
+	_, err = s.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+	s.EqualError(err, types.ErrSequencerAlreadyExists.Error())
 
 	// unbond the sequencer
 	unbondMsg := types.MsgUnbond{Creator: addr.String()}
-	_, err = suite.msgServer.Unbond(goCtx, &unbondMsg)
-	suite.Require().NoError(err)
+	_, err = s.msgServer.Unbond(goCtx, &unbondMsg)
+	s.Require().NoError(err)
 
 	// create the sequencer again, expect to fail anyway
-	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-	suite.EqualError(err, types.ErrSequencerAlreadyExists.Error())
+	_, err = s.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+	s.EqualError(err, types.ErrSequencerAlreadyExists.Error())
 }
 
-func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer() {
+func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer() {
 	const alex = "dym1te3lcav5c2jn8tdcrhnyl8aden6lglw266kcdd"
 
 	type sequencer struct {
@@ -304,9 +304,9 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 			sequencers:        []sequencer{{creatorName: "bob", expProposer: false}},
 			rollappInitialSeq: alice,
 			malleate: func(rollappID string) {
-				r, _ := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
+				r, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappID)
 				r.Launched = true
-				suite.App.RollappKeeper.SetRollapp(suite.Ctx, r)
+				s.App.RollappKeeper.SetRollapp(s.Ctx, r)
 			},
 			expErr: nil,
 		}, {
@@ -314,19 +314,19 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 			sequencers:        []sequencer{{creatorName: "bob", expProposer: false}},
 			rollappInitialSeq: "*",
 			malleate: func(rollappID string) {
-				r, _ := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
+				r, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappID)
 				r.Launched = true
-				suite.App.RollappKeeper.SetRollapp(suite.Ctx, r)
+				s.App.RollappKeeper.SetRollapp(s.Ctx, r)
 			},
 			expErr: nil,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.SetupTest()
+		s.SetupTest()
 
-		goCtx := sdk.WrapSDKContext(suite.Ctx)
-		rollappId := suite.CreateRollappWithInitialSequencer(tc.rollappInitialSeq)
+		goCtx := sdk.WrapSDKContext(s.Ctx)
+		rollappId := s.CreateRollappWithInitialSequencer(tc.rollappInitialSeq)
 
 		if tc.malleate != nil {
 			tc.malleate(rollappId)
@@ -336,8 +336,8 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 			addr, pk := sample.AccFromSecret(seq.creatorName)
 			pkAny, _ := codectypes.NewAnyWithValue(pk)
 
-			err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
-			suite.Require().NoError(err)
+			err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, addr, sdk.NewCoins(bond))
+			s.Require().NoError(err)
 
 			sequencerMsg := types.MsgCreateSequencer{
 				Creator:      addr.String(),
@@ -348,36 +348,36 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer()
 					Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
 				},
 			}
-			_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-			suite.Require().ErrorIs(err, tc.expErr, tc.name)
+			_, err = s.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+			s.Require().ErrorIs(err, tc.expErr, tc.name)
 
 			if tc.expErr != nil {
 				return
 			}
 
 			// check that the sequencer is the proposer
-			proposer, ok := suite.App.SequencerKeeper.GetProposerLegacy(suite.Ctx, rollappId)
-			suite.Require().True(ok)
+			proposer, ok := s.App.SequencerKeeper.GetProposerLegacy(s.Ctx, rollappId)
+			s.Require().True(ok)
 			if seq.expProposer {
-				suite.Require().Equal(addr.String(), proposer.Address, tc.name)
+				s.Require().Equal(addr.String(), proposer.Address, tc.name)
 			} else {
-				suite.Require().NotEqual(addr.String(), proposer.Address, tc.name)
+				s.Require().NotEqual(addr.String(), proposer.Address, tc.name)
 			}
 		}
 	}
 }
 
-func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
-	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
+func (s *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
+	s.SetupTest()
+	goCtx := sdk.WrapSDKContext(s.Ctx)
 
 	pubkey := ed25519.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
-	suite.Require().NoError(err)
+	err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, addr, sdk.NewCoins(bond))
+	s.Require().NoError(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
-	suite.Require().Nil(err)
+	s.Require().Nil(err)
 	sequencerMsg := types.MsgCreateSequencer{
 		Creator:      addr.String(),
 		DymintPubKey: pkAny,
@@ -386,27 +386,27 @@ func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 		Metadata:     types.SequencerMetadata{},
 	}
 
-	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-	suite.EqualError(err, types.ErrRollappNotFound.Error())
+	_, err = s.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+	s.EqualError(err, types.ErrRollappNotFound.Error())
 }
 
 // create sequencer before genesisInfo is set
-func (suite *SequencerTestSuite) TestCreateSequencerBeforeGenesisInfo() {
-	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
-	rollappId, pk := suite.CreateDefaultRollapp()
+func (s *SequencerTestSuite) TestCreateSequencerBeforeGenesisInfo() {
+	s.SetupTest()
+	goCtx := sdk.WrapSDKContext(s.Ctx)
+	rollappId, pk := s.CreateDefaultRollapp()
 
 	// mess up the genesisInfo
-	rollapp := suite.App.RollappKeeper.MustGetRollapp(suite.Ctx, rollappId)
+	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
 	rollapp.GenesisInfo.Bech32Prefix = ""
-	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 
 	addr := sdk.AccAddress(pk.Address())
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
-	suite.Require().NoError(err)
+	err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, addr, sdk.NewCoins(bond))
+	s.Require().NoError(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pk)
-	suite.Require().Nil(err)
+	s.Require().Nil(err)
 	sequencerMsg := types.MsgCreateSequencer{
 		Creator:      addr.String(),
 		DymintPubKey: pkAny,
@@ -417,34 +417,34 @@ func (suite *SequencerTestSuite) TestCreateSequencerBeforeGenesisInfo() {
 		},
 	}
 
-	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-	suite.Require().Error(err)
+	_, err = s.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+	s.Require().Error(err)
 
 	// set the genesisInfo
 	rollapp.GenesisInfo.Bech32Prefix = "rol"
-	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 
-	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-	suite.Require().NoError(err)
+	_, err = s.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+	s.Require().NoError(err)
 }
 
 // create sequencer before prelaunch
-func (suite *SequencerTestSuite) TestCreateSequencerBeforePrelaunch() {
-	suite.SetupTest()
-	rollappId, pk := suite.CreateDefaultRollapp()
+func (s *SequencerTestSuite) TestCreateSequencerBeforePrelaunch() {
+	s.SetupTest()
+	rollappId, pk := s.CreateDefaultRollapp()
 
 	// set prelaunch time to the rollapp
 	preLaunchTime := time.Now()
-	rollapp := suite.App.RollappKeeper.MustGetRollapp(suite.Ctx, rollappId)
+	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
 	rollapp.PreLaunchTime = &preLaunchTime
-	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 
 	addr := sdk.AccAddress(pk.Address())
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
-	suite.Require().NoError(err)
+	err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, addr, sdk.NewCoins(bond))
+	s.Require().NoError(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pk)
-	suite.Require().Nil(err)
+	s.Require().Nil(err)
 	sequencerMsg := types.MsgCreateSequencer{
 		Creator:      addr.String(),
 		DymintPubKey: pkAny,
@@ -455,24 +455,24 @@ func (suite *SequencerTestSuite) TestCreateSequencerBeforePrelaunch() {
 		},
 	}
 
-	_, err = suite.msgServer.CreateSequencer(sdk.WrapSDKContext(suite.Ctx), &sequencerMsg)
-	suite.Require().Error(err)
+	_, err = s.msgServer.CreateSequencer(sdk.WrapSDKContext(s.Ctx), &sequencerMsg)
+	s.Require().Error(err)
 
-	suite.Ctx = suite.Ctx.WithBlockTime(preLaunchTime.Add(time.Second))
-	_, err = suite.msgServer.CreateSequencer(sdk.WrapSDKContext(suite.Ctx), &sequencerMsg)
-	suite.Require().NoError(err)
+	s.Ctx = s.Ctx.WithBlockTime(preLaunchTime.Add(time.Second))
+	_, err = s.msgServer.CreateSequencer(sdk.WrapSDKContext(s.Ctx), &sequencerMsg)
+	s.Require().NoError(err)
 }
 
 // ---------------------------------------
 // verifyAll receives a list of expected results and a map of sequencerAddress->sequencer
 // the function verifies that the map contains all the sequencers that are in the list and only them
-func (suite *SequencerTestSuite) verifyAll(sequencersExpect []*types.Sequencer, sequencersRes map[string]*types.Sequencer) {
+func (s *SequencerTestSuite) verifyAll(sequencersExpect []*types.Sequencer, sequencersRes map[string]*types.Sequencer) {
 	// check number of items are equal
-	suite.Require().EqualValues(len(sequencersExpect), len(sequencersRes))
+	s.Require().EqualValues(len(sequencersExpect), len(sequencersRes))
 	for i := 0; i < len(sequencersExpect); i++ {
 		sequencerExpect := sequencersExpect[i]
 		sequencerRes := sequencersRes[sequencerExpect.GetAddress()]
-		suite.equalSequencer(sequencerExpect, sequencerRes)
+		s.equalSequencer(sequencerExpect, sequencerRes)
 	}
 }
 
@@ -516,9 +516,9 @@ func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 }
 
 // equalSequencer receives two sequencers and compares them. If they are not equal, fails the test
-func (suite *SequencerTestSuite) equalSequencer(s1 *types.Sequencer, s2 *types.Sequencer) {
+func (s *SequencerTestSuite) equalSequencer(s1 *types.Sequencer, s2 *types.Sequencer) {
 	eq := compareSequencers(s1, s2)
-	suite.Require().True(eq, "expected: %v\nfound: %v", *s1, *s2)
+	s.Require().True(eq, "expected: %v\nfound: %v", *s1, *s2)
 }
 
 func compareSequencers(s1, s2 *types.Sequencer) bool {

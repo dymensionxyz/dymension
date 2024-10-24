@@ -20,7 +20,7 @@ func NewMsgIncreaseBond(creator string, addAmount sdk.Coin) *MsgIncreaseBond {
 func (msg *MsgIncreaseBond) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(ErrInvalidAddr, "invalid creator address (%s)", err)
 	}
 
 	if !(msg.AddAmount.IsValid() && msg.AddAmount.IsPositive()) {
@@ -48,7 +48,7 @@ func NewMsgDecreaseBond(creator string, decreaseBond sdk.Coin) *MsgDecreaseBond 
 func (msg *MsgDecreaseBond) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(ErrInvalidAddr, "invalid creator address (%s)", err)
 	}
 
 	if !(msg.DecreaseAmount.IsValid() && msg.DecreaseAmount.IsPositive()) {

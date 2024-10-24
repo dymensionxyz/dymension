@@ -9,57 +9,57 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
-	suite.Ctx = suite.Ctx.WithBlockHeight(10)
-	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
+func (s *SequencerTestSuite) TestFraudSubmittedHook() {
+	s.Ctx = s.Ctx.WithBlockHeight(10)
+	s.Ctx = s.Ctx.WithBlockTime(time.Now())
 
-	keeper := suite.App.SequencerKeeper
+	keeper := s.App.SequencerKeeper
 
-	rollappId, pk := suite.CreateDefaultRollapp()
+	rollappId, pk := s.CreateDefaultRollapp()
 
 	numOfSequencers := 5
 
 	// create 5 sequencers for rollapp1
 	seqAddrs := make([]string, numOfSequencers)
-	seqAddrs[0] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)), pk)
+	seqAddrs[0] = s.CreateSequencerWithBond(s.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)), pk)
 
 	for i := 1; i < numOfSequencers; i++ {
 		pki := ed25519.GenPrivKey().PubKey()
-		seqAddrs[i] = suite.CreateSequencer(suite.Ctx, rollappId, pki)
+		seqAddrs[i] = s.CreateSequencer(s.Ctx, rollappId, pki)
 	}
 
 	proposer := seqAddrs[0]
-	p, found := keeper.GetProposerLegacy(suite.Ctx, rollappId)
-	suite.Require().True(found)
-	suite.Require().Equal(proposer, p.Address)
+	p, found := keeper.GetProposerLegacy(s.Ctx, rollappId)
+	s.Require().True(found)
+	s.Require().Equal(proposer, p.Address)
 
 	// queue the third sequencer to reduce bond
 	decreaseBondMsg := types.MsgDecreaseBond{Creator: seqAddrs[0], DecreaseAmount: sdk.NewInt64Coin(bond.Denom, 10)}
-	resp, err := suite.msgServer.DecreaseBond(suite.Ctx, &decreaseBondMsg)
-	suite.Require().NoError(err)
-	bds := keeper.GetMatureDecreasingBondIDs(suite.Ctx, resp.GetCompletionTime())
-	suite.Require().Len(bds, 1)
+	resp, err := s.msgServer.DecreaseBond(s.Ctx, &decreaseBondMsg)
+	s.Require().NoError(err)
+	bds := keeper.GetMatureDecreasingBondIDs(s.Ctx, resp.GetCompletionTime())
+	s.Require().Len(bds, 1)
 
-	err = keeper.RollappHooks().FraudSubmitted(suite.Ctx, rollappId, 0, proposer)
-	suite.Require().NoError(err)
+	err = keeper.RollappHooks().FraudSubmitted(s.Ctx, rollappId, 0, proposer)
+	s.Require().NoError(err)
 
 	// check if proposer is slashed
-	sequencer, found := keeper.GetSequencer(suite.Ctx, proposer)
-	suite.Require().True(found)
-	suite.Require().True(sequencer.Jailed)
-	suite.Require().Equal(sequencer.Status, types.Unbonded)
+	sequencer, found := keeper.GetSequencer(s.Ctx, proposer)
+	s.Require().True(found)
+	s.Require().True(sequencer.Jailed)
+	s.Require().Equal(sequencer.Status, types.Unbonded)
 
 	// check if other sequencers are unbonded
 	for i := 1; i < numOfSequencers; i++ {
-		sequencer, found := keeper.GetSequencer(suite.Ctx, seqAddrs[i])
-		suite.Require().True(found)
-		suite.Require().Equal(sequencer.Status, types.Unbonded)
+		sequencer, found := keeper.GetSequencer(s.Ctx, seqAddrs[i])
+		s.Require().True(found)
+		s.Require().Equal(sequencer.Status, types.Unbonded)
 	}
 
 	// check no proposer is set for the rollapp after fraud
-	_, ok := keeper.GetProposerLegacy(suite.Ctx, rollappId)
-	suite.Require().False(ok)
+	_, ok := keeper.GetProposerLegacy(s.Ctx, rollappId)
+	s.Require().False(ok)
 	// check if bond reduction queue is pruned
-	bds = keeper.GetMatureDecreasingBondIDs(suite.Ctx, resp.GetCompletionTime())
-	suite.Require().Len(bds, 0)
+	bds = keeper.GetMatureDecreasingBondIDs(s.Ctx, resp.GetCompletionTime())
+	s.Require().Len(bds, 0)
 }

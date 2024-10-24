@@ -6,24 +6,24 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-func (suite *SequencerTestSuite) TestDecreaseBond() {
-	suite.SetupTest()
+func (s *SequencerTestSuite) TestDecreaseBond() {
+	s.SetupTest()
 	bondDenom := types.DefaultParams().MinBond.Denom
-	rollappId, pk := suite.CreateDefaultRollapp()
+	rollappId, pk := s.CreateDefaultRollapp()
 	// setup a default sequencer with has minBond + 20token
-	defaultSequencerAddress := suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)), pk)
+	defaultSequencerAddress := s.CreateSequencerWithBond(s.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)), pk)
 	// setup an unbonded sequencer
 	unbondedPk := ed25519.GenPrivKey().PubKey()
-	unbondedSequencerAddress := suite.CreateSequencer(suite.Ctx, rollappId, unbondedPk)
-	unbondedSequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, unbondedSequencerAddress)
+	unbondedSequencerAddress := s.CreateSequencer(s.Ctx, rollappId, unbondedPk)
+	unbondedSequencer, _ := s.App.SequencerKeeper.GetSequencer(s.Ctx, unbondedSequencerAddress)
 	unbondedSequencer.Status = types.Unbonded
-	suite.App.SequencerKeeper.UpdateSequencerLeg(suite.Ctx, &unbondedSequencer, unbondedSequencer.Status)
+	s.App.SequencerKeeper.UpdateSequencerLeg(s.Ctx, &unbondedSequencer, unbondedSequencer.Status)
 	// setup a jailed sequencer
 	jailedPk := ed25519.GenPrivKey().PubKey()
-	jailedSequencerAddress := suite.CreateSequencer(suite.Ctx, rollappId, jailedPk)
-	jailedSequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, jailedSequencerAddress)
+	jailedSequencerAddress := s.CreateSequencer(s.Ctx, rollappId, jailedPk)
+	jailedSequencer, _ := s.App.SequencerKeeper.GetSequencer(s.Ctx, jailedSequencerAddress)
 	jailedSequencer.Jailed = true
-	suite.App.SequencerKeeper.UpdateSequencerLeg(suite.Ctx, &jailedSequencer, jailedSequencer.Status)
+	s.App.SequencerKeeper.UpdateSequencerLeg(s.Ctx, &jailedSequencer, jailedSequencer.Status)
 
 	testCase := []struct {
 		name        string
@@ -72,51 +72,51 @@ func (suite *SequencerTestSuite) TestDecreaseBond() {
 	}
 
 	for _, tc := range testCase {
-		suite.Run(tc.name, func() {
-			resp, err := suite.msgServer.DecreaseBond(suite.Ctx, &tc.msg)
+		s.Run(tc.name, func() {
+			resp, err := s.msgServer.DecreaseBond(s.Ctx, &tc.msg)
 			if tc.expectedErr != nil {
-				suite.Require().ErrorIs(err, tc.expectedErr)
+				s.Require().ErrorIs(err, tc.expectedErr)
 			} else {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(resp)
-				expectedCompletionTime := suite.Ctx.BlockHeader().Time.Add(suite.App.SequencerKeeper.UnbondingTime(suite.Ctx))
-				suite.Require().Equal(expectedCompletionTime, resp.CompletionTime)
+				s.Require().NoError(err)
+				s.Require().NotNil(resp)
+				expectedCompletionTime := s.Ctx.BlockHeader().Time.Add(s.App.SequencerKeeper.UnbondingTime(s.Ctx))
+				s.Require().Equal(expectedCompletionTime, resp.CompletionTime)
 				// check if the unbonding is set correctly
-				bondReductionIDs := suite.App.SequencerKeeper.GetMatureDecreasingBondIDs(suite.Ctx, expectedCompletionTime)
-				suite.Require().Len(bondReductionIDs, 1)
-				bondReduction, found := suite.App.SequencerKeeper.GetBondReduction(suite.Ctx, bondReductionIDs[0])
-				suite.Require().True(found)
-				suite.Require().Equal(tc.msg.Creator, bondReduction.SequencerAddress)
-				suite.Require().Equal(tc.msg.DecreaseAmount, bondReduction.DecreaseBondAmount)
+				bondReductionIDs := s.App.SequencerKeeper.GetMatureDecreasingBondIDs(s.Ctx, expectedCompletionTime)
+				s.Require().Len(bondReductionIDs, 1)
+				bondReduction, found := s.App.SequencerKeeper.GetBondReduction(s.Ctx, bondReductionIDs[0])
+				s.Require().True(found)
+				s.Require().Equal(tc.msg.Creator, bondReduction.SequencerAddress)
+				s.Require().Equal(tc.msg.DecreaseAmount, bondReduction.DecreaseBondAmount)
 			}
 		})
 	}
 }
 
-func (suite *SequencerTestSuite) TestDecreaseBond_BondDecreaseInProgress() {
-	suite.SetupTest()
+func (s *SequencerTestSuite) TestDecreaseBond_BondDecreaseInProgress() {
+	s.SetupTest()
 	bondDenom := types.DefaultParams().MinBond.Denom
-	rollappId, pk := suite.CreateDefaultRollapp()
+	rollappId, pk := s.CreateDefaultRollapp()
 	// setup a default sequencer with has minBond + 20token
-	defaultSequencerAddress := suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)), pk)
+	defaultSequencerAddress := s.CreateSequencerWithBond(s.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)), pk)
 	// decrease the bond of the sequencer
-	_, err := suite.msgServer.DecreaseBond(suite.Ctx, &types.MsgDecreaseBond{
+	_, err := s.msgServer.DecreaseBond(s.Ctx, &types.MsgDecreaseBond{
 		Creator:        defaultSequencerAddress,
 		DecreaseAmount: sdk.NewInt64Coin(bondDenom, 10),
 	})
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 	// try to decrease the bond again - should be fine as still not below minbond
-	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1).WithBlockTime(suite.Ctx.BlockTime().Add(10))
-	_, err = suite.msgServer.DecreaseBond(suite.Ctx, &types.MsgDecreaseBond{
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1).WithBlockTime(s.Ctx.BlockTime().Add(10))
+	_, err = s.msgServer.DecreaseBond(s.Ctx, &types.MsgDecreaseBond{
 		Creator:        defaultSequencerAddress,
 		DecreaseAmount: sdk.NewInt64Coin(bondDenom, 10),
 	})
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 	// try to decrease the bond again - should err as below minbond
-	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1).WithBlockTime(suite.Ctx.BlockTime().Add(10))
-	_, err = suite.msgServer.DecreaseBond(suite.Ctx, &types.MsgDecreaseBond{
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1).WithBlockTime(s.Ctx.BlockTime().Add(10))
+	_, err = s.msgServer.DecreaseBond(s.Ctx, &types.MsgDecreaseBond{
 		Creator:        defaultSequencerAddress,
 		DecreaseAmount: sdk.NewInt64Coin(bondDenom, 10),
 	})
-	suite.Require().ErrorIs(err, types.ErrInsufficientBond)
+	s.Require().ErrorIs(err, types.ErrInsufficientBond)
 }

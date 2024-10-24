@@ -15,92 +15,92 @@ func (s *SequencerTestSuite) TestSlashBasic() {
 	})
 }
 
-func (suite *SequencerTestSuite) TestJailUnknownSequencer() {
-	suite.CreateDefaultRollapp()
-	keeper := suite.App.SequencerKeeper
+func (s *SequencerTestSuite) TestJailUnknownSequencer() {
+	s.CreateDefaultRollapp()
+	keeper := s.App.SequencerKeeper
 
-	err := keeper.JailSequencerOnFraud(suite.Ctx, "unknown_sequencer")
-	suite.ErrorIs(err, types.ErrSequencerNotFound)
+	err := keeper.JailSequencerOnFraud(s.Ctx, "unknown_sequencer")
+	s.ErrorIs(err, types.ErrSequencerNotFound)
 }
 
-func (suite *SequencerTestSuite) TestJailUnbondedSequencer() {
-	keeper := suite.App.SequencerKeeper
-	suite.Ctx = suite.Ctx.WithBlockHeight(20)
-	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
+func (s *SequencerTestSuite) TestJailUnbondedSequencer() {
+	keeper := s.App.SequencerKeeper
+	s.Ctx = s.Ctx.WithBlockHeight(20)
+	s.Ctx = s.Ctx.WithBlockTime(time.Now())
 
-	rollappId, _ := suite.CreateDefaultRollappAndProposer()
-	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId) // bonded non proposer
+	rollappId, _ := s.CreateDefaultRollappAndProposer()
+	seqAddr := s.CreateDefaultSequencer(s.Ctx, rollappId) // bonded non proposer
 
 	// unbond the non-proposer
 	unbondMsg := types.MsgUnbond{Creator: seqAddr}
-	res, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
-	suite.Require().NoError(err)
+	res, err := s.msgServer.Unbond(s.Ctx, &unbondMsg)
+	s.Require().NoError(err)
 	unbondTime := res.GetUnbondingCompletionTime()
-	keeper.UnbondAllMatureSequencers(suite.Ctx, unbondTime.Add(1*time.Second))
-	seq, found := keeper.GetSequencer(suite.Ctx, seqAddr)
-	suite.Require().True(found)
-	suite.Equal(seq.Address, seqAddr)
-	suite.Equal(seq.Status, types.Unbonded)
+	keeper.UnbondAllMatureSequencers(s.Ctx, unbondTime.Add(1*time.Second))
+	seq, found := keeper.GetSequencer(s.Ctx, seqAddr)
+	s.Require().True(found)
+	s.Equal(seq.Address, seqAddr)
+	s.Equal(seq.Status, types.Unbonded)
 
 	// jail the unbonded sequencer
-	err = keeper.JailSequencerOnFraud(suite.Ctx, seqAddr)
-	suite.ErrorIs(err, types.ErrInvalidSequencerStatus)
+	err = keeper.JailSequencerOnFraud(s.Ctx, seqAddr)
+	s.ErrorIs(err, types.ErrInvalidSequencerStatus)
 }
 
-func (suite *SequencerTestSuite) TestJailUnbondingSequencer() {
-	keeper := suite.App.SequencerKeeper
-	suite.Ctx = suite.Ctx.WithBlockHeight(20)
-	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
+func (s *SequencerTestSuite) TestJailUnbondingSequencer() {
+	keeper := s.App.SequencerKeeper
+	s.Ctx = s.Ctx.WithBlockHeight(20)
+	s.Ctx = s.Ctx.WithBlockTime(time.Now())
 
-	rollappId, _ := suite.CreateDefaultRollappAndProposer()
-	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId) // bonded non proposer
+	rollappId, _ := s.CreateDefaultRollappAndProposer()
+	seqAddr := s.CreateDefaultSequencer(s.Ctx, rollappId) // bonded non proposer
 
 	// unbond the non-proposer
 	unbondMsg := types.MsgUnbond{Creator: seqAddr}
-	_, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
-	suite.Require().NoError(err)
-	seq, ok := keeper.GetSequencer(suite.Ctx, seqAddr)
-	suite.Require().True(ok)
-	suite.Equal(seq.Status, types.Unbonding)
+	_, err := s.msgServer.Unbond(s.Ctx, &unbondMsg)
+	s.Require().NoError(err)
+	seq, ok := keeper.GetSequencer(s.Ctx, seqAddr)
+	s.Require().True(ok)
+	s.Equal(seq.Status, types.Unbonding)
 
 	// jail the unbonding sequencer
-	err = keeper.JailSequencerOnFraud(suite.Ctx, seqAddr)
-	suite.NoError(err)
-	suite.assertJailed(seqAddr)
+	err = keeper.JailSequencerOnFraud(s.Ctx, seqAddr)
+	s.NoError(err)
+	s.assertJailed(seqAddr)
 }
 
-func (suite *SequencerTestSuite) TestJailProposerSequencer() {
-	keeper := suite.App.SequencerKeeper
-	suite.Ctx = suite.Ctx.WithBlockHeight(20)
-	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
+func (s *SequencerTestSuite) TestJailProposerSequencer() {
+	keeper := s.App.SequencerKeeper
+	s.Ctx = s.Ctx.WithBlockHeight(20)
+	s.Ctx = s.Ctx.WithBlockTime(time.Now())
 
-	rollappId, proposer := suite.CreateDefaultRollappAndProposer()
-	err := keeper.JailSequencerOnFraud(suite.Ctx, proposer)
-	suite.NoError(err)
-	suite.assertJailed(proposer)
+	rollappId, proposer := s.CreateDefaultRollappAndProposer()
+	err := keeper.JailSequencerOnFraud(s.Ctx, proposer)
+	s.NoError(err)
+	s.assertJailed(proposer)
 
-	_, found := keeper.GetProposerLegacy(suite.Ctx, rollappId)
-	suite.Require().False(found)
+	_, found := keeper.GetProposerLegacy(s.Ctx, rollappId)
+	s.Require().False(found)
 }
 
-func (suite *SequencerTestSuite) TestJailBondReducingSequencer() {
-	keeper := suite.App.SequencerKeeper
-	suite.Ctx = suite.Ctx.WithBlockHeight(20)
-	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
+func (s *SequencerTestSuite) TestJailBondReducingSequencer() {
+	keeper := s.App.SequencerKeeper
+	s.Ctx = s.Ctx.WithBlockHeight(20)
+	s.Ctx = s.Ctx.WithBlockTime(time.Now())
 
-	rollappId, pk := suite.CreateDefaultRollapp()
-	seqAddr := suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)), pk)
+	rollappId, pk := s.CreateDefaultRollapp()
+	seqAddr := s.CreateSequencerWithBond(s.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)), pk)
 
 	reduceBondMsg := types.MsgDecreaseBond{Creator: seqAddr, DecreaseAmount: sdk.NewInt64Coin(bond.Denom, 10)}
-	resp, err := suite.msgServer.DecreaseBond(suite.Ctx, &reduceBondMsg)
-	suite.Require().NoError(err)
-	bondReductions := keeper.GetMatureDecreasingBondIDs(suite.Ctx, resp.GetCompletionTime())
-	suite.Require().Len(bondReductions, 1)
+	resp, err := s.msgServer.DecreaseBond(s.Ctx, &reduceBondMsg)
+	s.Require().NoError(err)
+	bondReductions := keeper.GetMatureDecreasingBondIDs(s.Ctx, resp.GetCompletionTime())
+	s.Require().Len(bondReductions, 1)
 
-	err = keeper.JailSequencerOnFraud(suite.Ctx, seqAddr)
-	suite.NoError(err)
+	err = keeper.JailSequencerOnFraud(s.Ctx, seqAddr)
+	s.NoError(err)
 
-	bondReductions = keeper.GetMatureDecreasingBondIDs(suite.Ctx, resp.GetCompletionTime())
-	suite.Require().Len(bondReductions, 0)
-	suite.assertJailed(seqAddr)
+	bondReductions = keeper.GetMatureDecreasingBondIDs(s.Ctx, resp.GetCompletionTime())
+	s.Require().Len(bondReductions, 0)
+	s.assertJailed(seqAddr)
 }

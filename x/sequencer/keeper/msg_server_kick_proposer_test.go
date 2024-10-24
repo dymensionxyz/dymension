@@ -1,4 +1,4 @@
 package keeper_test
 
-func (suite *SequencerTestSuite) TestFoo() {
+func (s *SequencerTestSuite) TestFoo() {
 }

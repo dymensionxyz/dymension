@@ -13,29 +13,29 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
-	rollappId, pk11 := suite.CreateDefaultRollapp()
+func (s *SequencerTestSuite) TestSequencersByRollappQuery3() {
+	rollappId, pk11 := s.CreateDefaultRollapp()
 	pk12 := ed25519.GenPrivKey().PubKey()
-	rollappId2, pk21 := suite.CreateDefaultRollapp()
+	rollappId2, pk21 := s.CreateDefaultRollapp()
 	pk22 := ed25519.GenPrivKey().PubKey()
 
 	// create 2 sequencer
-	addr11 := suite.CreateSequencer(suite.Ctx, rollappId, pk11)
-	addr21 := suite.CreateSequencer(suite.Ctx, rollappId, pk12)
-	seq1, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr11)
-	require.True(suite.T(), found)
-	seq2, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr21)
-	require.True(suite.T(), found)
+	addr11 := s.CreateSequencer(s.Ctx, rollappId, pk11)
+	addr21 := s.CreateSequencer(s.Ctx, rollappId, pk12)
+	seq1, found := s.App.SequencerKeeper.GetSequencer(s.Ctx, addr11)
+	require.True(s.T(), found)
+	seq2, found := s.App.SequencerKeeper.GetSequencer(s.Ctx, addr21)
+	require.True(s.T(), found)
 	seq1Response := types.QueryGetSequencersByRollappResponse{
 		Sequencers: []types.Sequencer{seq1, seq2},
 	}
 
-	addr12 := suite.CreateSequencer(suite.Ctx, rollappId2, pk21)
-	addr22 := suite.CreateSequencer(suite.Ctx, rollappId2, pk22)
-	seq3, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr12)
-	require.True(suite.T(), found)
-	seq4, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr22)
-	require.True(suite.T(), found)
+	addr12 := s.CreateSequencer(s.Ctx, rollappId2, pk21)
+	addr22 := s.CreateSequencer(s.Ctx, rollappId2, pk22)
+	seq3, found := s.App.SequencerKeeper.GetSequencer(s.Ctx, addr12)
+	require.True(s.T(), found)
+	seq4, found := s.App.SequencerKeeper.GetSequencer(s.Ctx, addr22)
+	require.True(s.T(), found)
 	seq2Response := types.QueryGetSequencersByRollappResponse{
 		Sequencers: []types.Sequencer{seq3, seq4},
 	}
@@ -72,8 +72,8 @@ func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
 			err:  gerrc.ErrInvalidArgument,
 		},
 	} {
-		suite.T().Run(tc.desc, func(t *testing.T) {
-			response, err := suite.App.SequencerKeeper.SequencersByRollapp(suite.Ctx, tc.request)
+		s.T().Run(tc.desc, func(t *testing.T) {
+			response, err := s.App.SequencerKeeper.SequencersByRollapp(s.Ctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {
@@ -87,24 +87,24 @@ func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
 	}
 }
 
-func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
-	msgserver := keeper.NewMsgServerImpl(suite.App.SequencerKeeper)
+func (s *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
+	msgserver := keeper.NewMsgServerImpl(s.App.SequencerKeeper)
 
-	rollappId, pk11 := suite.CreateDefaultRollapp()
+	rollappId, pk11 := s.CreateDefaultRollapp()
 	pk12 := ed25519.GenPrivKey().PubKey()
 	// create 2 sequencers on rollapp1
-	addr11 := suite.CreateSequencer(suite.Ctx, rollappId, pk11)
-	addr21 := suite.CreateSequencer(suite.Ctx, rollappId, pk12)
-	_, err := msgserver.Unbond(suite.Ctx, &types.MsgUnbond{
+	addr11 := s.CreateSequencer(s.Ctx, rollappId, pk11)
+	addr21 := s.CreateSequencer(s.Ctx, rollappId, pk12)
+	_, err := msgserver.Unbond(s.Ctx, &types.MsgUnbond{
 		Creator: addr21,
 	})
-	require.NoError(suite.T(), err)
+	require.NoError(s.T(), err)
 
 	// create 2 sequencers on rollapp2
-	rollappId2, pk21 := suite.CreateDefaultRollapp()
+	rollappId2, pk21 := s.CreateDefaultRollapp()
 	pk22 := ed25519.GenPrivKey().PubKey()
-	addr12 := suite.CreateSequencer(suite.Ctx, rollappId2, pk21)
-	addr22 := suite.CreateSequencer(suite.Ctx, rollappId2, pk22)
+	addr12 := s.CreateSequencer(s.Ctx, rollappId2, pk21)
+	addr22 := s.CreateSequencer(s.Ctx, rollappId2, pk22)
 
 	for _, tc := range []struct {
 		desc          string
@@ -156,8 +156,8 @@ func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 			err:  gerrc.ErrInvalidArgument,
 		},
 	} {
-		suite.T().Run(tc.desc, func(t *testing.T) {
-			response, err := suite.App.SequencerKeeper.SequencersByRollappByStatus(suite.Ctx, tc.request)
+		s.T().Run(tc.desc, func(t *testing.T) {
+			response, err := s.App.SequencerKeeper.SequencersByRollappByStatus(s.Ctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {
@@ -165,7 +165,7 @@ func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 				require.Len(t, response.Sequencers, len(tc.response_addr))
 
 				for _, seqAddr := range tc.response_addr {
-					seq, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddr)
+					seq, found := s.App.SequencerKeeper.GetSequencer(s.Ctx, seqAddr)
 					require.True(t, found)
 					require.Contains(t, response.Sequencers, seq)
 				}

@@ -12,11 +12,11 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-func (suite *SequencerTestSuite) TestUpdateSequencer() {
+func (s *SequencerTestSuite) TestUpdateSequencer() {
 	pubkey := ed25519.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
-	suite.Require().Nil(err)
+	s.Require().Nil(err)
 
 	const rollappID = "rollapp_1234-1"
 
@@ -96,7 +96,7 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 				Creator: addr.String(),
 			},
 			malleate: func(sequencer *types.Sequencer) {
-				suite.App.SequencerKeeper.SetSequencer(suite.Ctx, types.Sequencer{
+				s.App.SequencerKeeper.SetSequencer(s.Ctx, types.Sequencer{
 					Address:   addr.String(),
 					RollappId: rollappID,
 					Jailed:    true,
@@ -112,7 +112,7 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 				},
 			},
 			malleate: func(*types.Sequencer) {
-				suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapptypes.Rollapp{
+				s.App.RollappKeeper.SetRollapp(s.Ctx, rollapptypes.Rollapp{
 					RollappId: rollappID,
 					VmType:    rollapptypes.Rollapp_WASM,
 				})
@@ -122,8 +122,8 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 	}
 
 	for _, tc := range tests {
-		suite.Run(tc.name, func() {
-			goCtx := sdk.WrapSDKContext(suite.Ctx)
+		s.Run(tc.name, func() {
+			goCtx := sdk.WrapSDKContext(s.Ctx)
 			rollapp := rollapptypes.Rollapp{
 				RollappId:        rollappID,
 				VmType:           rollapptypes.Rollapp_EVM,
@@ -131,7 +131,7 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 				InitialSequencer: addr.String(),
 			}
 
-			suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+			s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 
 			sequencer := types.Sequencer{
 				Address:      addr.String(),
@@ -144,21 +144,21 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 				UnbondTime:   time.Time{},
 			}
 
-			suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
-			suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
+			s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+			s.App.SequencerKeeper.SetSequencer(s.Ctx, sequencer)
 
 			if tc.malleate != nil {
 				tc.malleate(&sequencer)
 			}
 
-			_, err = suite.msgServer.UpdateSequencerInformation(goCtx, tc.update)
+			_, err = s.msgServer.UpdateSequencerInformation(goCtx, tc.update)
 			if tc.expError == nil {
-				suite.Require().NoError(err)
-				resp, err := suite.queryClient.Sequencer(goCtx, &types.QueryGetSequencerRequest{SequencerAddress: tc.update.Creator})
-				suite.Require().NoError(err)
-				suite.equalSequencer(&tc.expSequencer, &resp.Sequencer)
+				s.Require().NoError(err)
+				resp, err := s.queryClient.Sequencer(goCtx, &types.QueryGetSequencerRequest{SequencerAddress: tc.update.Creator})
+				s.Require().NoError(err)
+				s.equalSequencer(&tc.expSequencer, &resp.Sequencer)
 			} else {
-				suite.ErrorIs(err, tc.expError)
+				s.ErrorIs(err, tc.expError)
 			}
 		})
 	}
