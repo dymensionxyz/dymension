@@ -8,7 +8,7 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 )
 
-type UnbondChecker interface {
+type UnbondBlocker interface {
 	// CanUnbond should return a types.UnbondNotAllowed error with a reason, or nil (or another error)
 	CanUnbond(ctx sdk.Context, sequencer types.Sequencer) error
 }
@@ -17,7 +17,7 @@ func (k Keeper) tryUnbond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) e
 	if k.isProposerOrSuccessor(ctx, *seq) {
 		return types.ErrUnbondProposerOrSuccessor
 	}
-	for _, c := range k.unbondConditions {
+	for _, c := range k.unbondBlockers {
 		if err := c.CanUnbond(ctx, *seq); err != nil {
 			return errorsmod.Wrap(err, "other module")
 		}
