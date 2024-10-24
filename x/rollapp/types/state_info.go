@@ -19,6 +19,7 @@ func NewStateInfo(
 	height uint64,
 	BDs BlockDescriptors,
 	createdAt time.Time,
+	nextProposer string,
 ) *StateInfo {
 	stateInfoIndex := StateInfoIndex{RollappId: rollappId, Index: newIndex}
 	status := common.Status_PENDING
@@ -32,6 +33,7 @@ func NewStateInfo(
 		Status:         status,
 		BDs:            BDs,
 		CreatedAt:      createdAt,
+		NextProposer:   nextProposer,
 	}
 }
 

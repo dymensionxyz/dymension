@@ -29,6 +29,7 @@ var (
 	ErrNotFound                      = errorsmod.Register(ModuleName, 1037, "not found")
 	ErrLogic                         = errorsmod.Register(ModuleName, 1038, "internal logic error")
 	ErrInvalidAddress                = errorsmod.Register(ModuleName, 1040, "invalid address")
+	ErrNextSequencerNotFound         = errorsmod.Register(ModuleName, 1041, "next sequencer not found")
 
 	ErrInvalidAlias                      = errorsmod.Wrap(gerrc.ErrInvalidArgument, "alias")
 	ErrInvalidURL                        = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid url")
