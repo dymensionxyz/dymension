@@ -20,7 +20,6 @@ See ADR for more info https://www.notion.so/dymension/ADR-x-Sequencer-Liveness-S
 func NextSlashOrJailHeight(
 	blocksSlashNoUpdate uint64, // time until first slash if not updating
 	blocksSlashInterval uint64, // gap between slash if still not updating
-	blocksJail uint64, // time until jail if not updating
 	heightHub int64, // current height on the hub
 	heightLastRollappUpdate int64, // when was the rollapp last updated
 ) (
@@ -36,7 +35,6 @@ func NextSlashOrJailHeight(
 		interval += ((down-blocksSlashNoUpdate)/blocksSlashInterval + 1) * blocksSlashInterval
 	}
 	heightEvent = heightLastRollappUpdate + int64(interval)
-	isJail = blocksJail <= interval
 	return
 }
 
@@ -100,7 +98,6 @@ func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
 	nextH, isJail := NextSlashOrJailHeight(
 		params.LivenessSlashBlocks,
 		params.LivenessSlashInterval,
-		params.LivenessJailBlocks,
 		ctx.BlockHeight(),
 		ra.LastStateUpdateHeight,
 	)
