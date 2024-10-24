@@ -10,6 +10,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	"github.com/stretchr/testify/require"
@@ -19,31 +20,17 @@ import (
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
 
-// Prevent strconv unused error
-var _ = strconv.IntSize
-
-func createNSequencer(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Sequencer {
-	items := make([]types.Sequencer, n)
-	for i := range items {
-		seq := types.Sequencer{
-			Address: strconv.Itoa(i),
-			Status:  types.Bonded,
-		}
-		items[i] = seq
-
-		keeper.SetSequencer(ctx, items[i])
-	}
-	return items
-}
-
 func TestSequencerGet(t *testing.T) {
-	keeper, ctx := keepertest.SequencerKeeper(t)
-	items := createNSequencer(keeper, ctx, 10)
+	k, ctx := keepertest.SequencerKeeper(t)
+	items := createNSequencer(k, ctx, 10)
 	for _, item := range items {
 		item := item
-		rst, found := keeper.GetSequencer(ctx,
+		rst, found := k.GetSequencer(ctx,
 			item.Address,
 		)
 		require.True(t, found)
@@ -77,27 +64,22 @@ func TestSequencersByRollappGet(t *testing.T) {
 	)
 }
 
-package keeper_test
+// Prevent strconv unused error
+var _ = strconv.IntSize
 
-import (
-"testing"
+func createNSequencer(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Sequencer {
+	items := make([]types.Sequencer, n)
+	for i := range items {
+		seq := types.Sequencer{
+			Address: strconv.Itoa(i),
+			Status:  types.Bonded,
+		}
+		items[i] = seq
 
-cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-"github.com/cosmos/cosmos-sdk/baseapp"
-codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-sdk "github.com/cosmos/cosmos-sdk/types"
-bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
-"github.com/dymensionxyz/sdk-utils/utils/urand"
-"github.com/stretchr/testify/suite"
-
-"github.com/dymensionxyz/dymension/v3/app/apptesting"
-"github.com/dymensionxyz/dymension/v3/testutil/sample"
-rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
-"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-)
+		keeper.SetSequencer(ctx, items[i])
+	}
+	return items
+}
 
 type SequencerTestSuite struct {
 	apptesting.KeeperTestHelper
@@ -185,4 +167,3 @@ func (s *SequencerTestSuite) assertJailed(seqAddr string) {
 		s.NotEqual(s.Address, seqAddr)
 	}
 }
-

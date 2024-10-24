@@ -2,11 +2,11 @@ package keeper
 
 import (
 	"context"
-	"errors"
 	"slices"
 	"strconv"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
@@ -42,7 +42,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 
 	if err := msg.VMSpecificValidate(rollapp.VmType); err != nil {
-		return nil, errors.Join(types.ErrInvalidRequest, err)
+		return nil, errorsmod.Wrap(err, "vm specific validate")
 	}
 
 	// In case InitialSequencer is set to one or more bech32 addresses, only one of them can be the first to register,

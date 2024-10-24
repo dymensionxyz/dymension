@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"time"
@@ -27,8 +26,6 @@ const (
 var bond = types.DefaultParams().MinBond
 
 func (s *SequencerTestSuite) TestMinBond() {
-	panicErr := errors.New("panic")
-
 	testCases := []struct {
 		name          string
 		requiredBond  sdk.Coin
@@ -51,7 +48,7 @@ func (s *SequencerTestSuite) TestMinBond() {
 			name:          "wrong bond denom",
 			requiredBond:  bond,
 			bond:          sdk.NewCoin("nonbonddenom", bond.Amount),
-			expectedError: panicErr,
+			expectedError: types.ErrInvalidDenom,
 		},
 	}
 
