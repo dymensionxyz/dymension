@@ -9,19 +9,28 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-func (k Keeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list []types.Sequencer) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SequencersByRollappKey(rollappId))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+func (k Keeper) RollappSequencers(ctx sdk.Context, rollappId string) []types.Sequencer {
+	return k.prefixSequencers(ctx, types.SequencersByRollappKey(rollappId))
+}
 
-	defer iterator.Close() // nolint: errcheck
+func (k Keeper) RollappSequencersByStatus(ctx sdk.Context, rollappId string, status types.OperatingStatus) []types.Sequencer {
+	return k.prefixSequencers(ctx, types.SequencersByRollappByStatusKey(rollappId, status))
+}
 
-	for ; iterator.Valid(); iterator.Next() {
+func (k Keeper) prefixSequencers(ctx sdk.Context, prefixKey []byte) []types.Sequencer {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), prefixKey)
+	it := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer it.Close() // nolint: errcheck
+
+	ret := []types.Sequencer{}
+	for ; it.Valid(); it.Next() {
 		var val types.Sequencer
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
+		k.cdc.MustUnmarshal(it.Value(), &val)
+		ret = append(ret, val)
 	}
 
-	return
+	return ret
 }
 
 func (k Keeper) GetRollappPotentialProposers(ctx sdk.Context, rollappId string) []types.Sequencer {
@@ -34,22 +43,6 @@ func (k Keeper) GetRollappPotentialProposers(ctx sdk.Context, rollappId string) 
 
 func (k Keeper) GetRollappBondedSequencers(ctx sdk.Context, rollappId string) []types.Sequencer {
 	return k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
-}
-
-func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string, status types.OperatingStatus) (list []types.Sequencer) {
-	prefixKey := types.SequencersByRollappByStatusKey(rollappId, status)
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), prefixKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.Sequencer
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
-	}
-
-	return
 }
 
 func (k Keeper) GetAllSequencers(ctx sdk.Context) (list []types.Sequencer) {
@@ -131,13 +124,13 @@ func (k Keeper) GetAllProposers(ctx sdk.Context) (list []types.Sequencer) {
 	return
 }
 
-func (k Keeper) GetProposer(ctx sdk.Context, rollappId string) types.Sequencer {
+func (k Keeper) GetProposer(ctx sdk.Context, rollapp string) types.Sequencer {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.ProposerByRollappKey(rollappId))
+	bz := store.Get(types.ProposerByRollappKey(rollapp))
 	if bz == nil {
-		return k.GetSequencer(ctx, rollappId, types.SentinelSeqAddr)
+		return k.GetSequencer(ctx, rollapp, types.SentinelSeqAddr)
 	}
-	return k.GetSequencer(ctx, rollappId, string(bz))
+	return k.GetSequencer(ctx, rollapp, string(bz))
 }
 
 func (k Keeper) SetProposer(ctx sdk.Context, rollapp, seqAddr string) {

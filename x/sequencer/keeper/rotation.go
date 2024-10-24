@@ -9,6 +9,11 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
+func (k Keeper) awaitingLastProposerBlock(ctx sdk.Context, rollapp string) bool {
+	proposer := k.GetProposer(ctx, rollapp)
+	return proposer.NoticeElapsed(ctx.BlockTime())
+}
+
 func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) {
 	seq.NoticePeriodTime = ctx.BlockTime().Add(k.NoticePeriod(ctx))
 

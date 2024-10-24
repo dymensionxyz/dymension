@@ -42,7 +42,7 @@ func SequencersCountInvariant(k Keeper) sdk.Invariant {
 
 		totalCount := 0
 		for _, rollapp := range rollapps {
-			seqByRollapp := k.GetSequencersByRollapp(ctx, rollapp.RollappId)
+			seqByRollapp := k.RollappSequencers(ctx, rollapp.RollappId)
 			bonded := k.GetSequencersByRollappByStatus(ctx, rollapp.RollappId, types.Bonded)
 			unbonding := k.GetSequencersByRollappByStatus(ctx, rollapp.RollappId, types.Unbonding)
 			unbonded := k.GetSequencersByRollappByStatus(ctx, rollapp.RollappId, types.Unbonded)

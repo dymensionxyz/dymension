@@ -170,7 +170,7 @@ func (suite *RollappTestSuite) assertBeforeFraud(rollappId string, height uint64
 	suite.Require().False(rollapp.Frozen)
 
 	// check sequencers
-	sequencers := suite.App.SequencerKeeper.GetSequencersByRollapp(suite.Ctx, rollappId)
+	sequencers := suite.App.SequencerKeeper.RollappSequencers(suite.Ctx, rollappId)
 	for _, sequencer := range sequencers {
 		suite.Require().Equal(types.Bonded, sequencer.Status)
 	}

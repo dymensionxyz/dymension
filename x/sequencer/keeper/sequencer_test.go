@@ -66,7 +66,7 @@ func TestSequencerGetAll(t *testing.T) {
 func TestSequencersByRollappGet(t *testing.T) {
 	k, ctx := keepertest.SequencerKeeper(t)
 	items := createNSequencer(k, ctx, 10)
-	rst := k.GetSequencersByRollapp(ctx,
+	rst := k.RollappSequencers(ctx,
 		items[0].RollappId,
 	)
 
