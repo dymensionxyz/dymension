@@ -9,7 +9,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
+func (k Keeper) chooseProposer(ctx sdk.Context, rollapp string) error {
 	proposer := k.GetProposer(ctx, rollapp)
 	if !proposer.Sentinel() {
 		if !proposer.Bonded() {
@@ -19,7 +19,7 @@ func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 	}
 	successor := k.GetSuccessor(ctx, rollapp)
 	k.SetProposer(ctx, rollapp, successor.Address)
-	k.SetSuccessor(ctx, rollapp, types.SentinelSequencerAddr)
+	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr)
 	if k.GetProposer(ctx, rollapp).Sentinel() {
 		seqs := k.GetRollappPotentialProposers(ctx, rollapp)
 		slices.DeleteFunc(seqs, func(s types.Sequencer) bool { // Not efficient, could optimize.

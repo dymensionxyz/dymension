@@ -13,13 +13,13 @@ import (
 )
 
 const (
-	SentinelSequencerAddr = "sentinel"
+	SentinelSeqAddr = "sentinel"
 )
 
 func SentinelSequencer(rollapp string) Sequencer {
 	return Sequencer{
 		RollappId: rollapp,
-		Address:   SentinelSequencerAddr,
+		Address:   SentinelSeqAddr,
 		Status:    Bonded,
 	}
 }
@@ -44,7 +44,7 @@ func (seq Sequencer) IsEmpty() bool {
 }
 
 func (seq Sequencer) Sentinel() bool {
-	return seq.Address == SentinelSequencerAddr
+	return seq.Address == SentinelSeqAddr
 }
 
 func (seq Sequencer) Bonded() bool {

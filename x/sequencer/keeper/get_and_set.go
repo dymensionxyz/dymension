@@ -75,14 +75,14 @@ func (k Keeper) MustGetNonSentinelSequencer(ctx sdk.Context, addr string) types.
 }
 
 func (k Keeper) GetSequencer(ctx sdk.Context, rollapp, addr string) types.Sequencer {
-	if addr == types.SentinelSequencerAddr {
+	if addr == types.SentinelSeqAddr {
 		return types.SentinelSequencer(rollapp)
 	}
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.SequencerKey(addr))
 	if b == nil {
 		// TODO: possible case?
-		return k.GetSequencer(ctx, rollapp, types.SentinelSequencerAddr)
+		return k.GetSequencer(ctx, rollapp, types.SentinelSeqAddr)
 	}
 	ret := types.Sequencer{}
 	k.cdc.MustUnmarshal(b, &ret)
@@ -90,7 +90,7 @@ func (k Keeper) GetSequencer(ctx sdk.Context, rollapp, addr string) types.Sequen
 }
 
 func (k Keeper) tryGetSequencer(ctx sdk.Context, addr string) (types.Sequencer, error) {
-	if addr == types.SentinelSequencerAddr {
+	if addr == types.SentinelSeqAddr {
 		return types.Sequencer{}, gerrc.ErrInternal.Wrap("try get sequencer only to be used on external arguments")
 	}
 	store := ctx.KVStore(k.storeKey)
@@ -150,7 +150,7 @@ func (k Keeper) GetProposer(ctx sdk.Context, rollappId string) types.Sequencer {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.ProposerByRollappKey(rollappId))
 	if bz == nil {
-		return k.GetSequencer(ctx, rollappId, types.SentinelSequencerAddr)
+		return k.GetSequencer(ctx, rollappId, types.SentinelSeqAddr)
 	}
 	return k.GetSequencer(ctx, rollappId, string(bz))
 }
@@ -167,7 +167,7 @@ func (k Keeper) GetSuccessor(ctx sdk.Context, rollapp string) types.Sequencer {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.NextProposerByRollappKey(rollapp))
 	if bz == nil {
-		return k.GetSequencer(ctx, rollapp, types.SentinelSequencerAddr)
+		return k.GetSequencer(ctx, rollapp, types.SentinelSeqAddr)
 	}
 	return k.GetSequencer(ctx, rollapp, string(bz))
 }

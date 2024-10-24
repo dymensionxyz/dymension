@@ -12,24 +12,26 @@ import (
 func (k msgServer) KickProposer(goCtx context.Context, msg *types.MsgKickProposer) (*types.MsgKickProposerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	seq, ok := k.GetSequencer(ctx, msg.Creator)
-	if !ok {
-		return nil, types.ErrSequencerNotFound
+	seq, err := k.tryGetSequencer(ctx, msg.GetCreator())
+	if err != nil {
+		return nil, err
 	}
 
 	if !seq.Bonded() {
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "must be bonded to kick")
 	}
 
-	proposer, err := k.GetProposer(ctx, seq.RollappId)
-	if err != nil {
-		return nil, err
-	}
+	proposer := k.GetProposer(ctx, seq.RollappId)
 	kickThreshold := k.GetParams(ctx).KickThreshold
-	if proposer.TokensCoin().IsLT(kickThreshold) {
-		k.unbond(ctx, proposer)
-		k.chooseProposer(ctx)
+	// TODO: can you ever actually have a situation where the proposer is sentinel and there is a bonded sequencer?
+	if !proposer.Sentinel() && proposer.TokensCoin().IsLT(kickThreshold) {
+		if err := k.unbond(ctx, &proposer); err != nil {
+			return nil, errorsmod.Wrap(err, "unbond")
+		}
 		// TODO: also hard fork
+	}
+	if err := k.chooseProposer(ctx, seq.RollappId); err != nil {
+		return nil, errorsmod.Wrap(err, "choose proposer")
 	}
 	return &types.MsgKickProposerResponse{}, nil
 }

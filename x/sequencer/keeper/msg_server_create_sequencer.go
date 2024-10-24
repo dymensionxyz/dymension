@@ -84,7 +84,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		because the proposer might already have produced the last block, which would turn out to be wrong
 	*/
 
-	if err := k.ChooseProposer(ctx, msg.RollappId); err != nil {
+	if err := k.chooseProposer(ctx, msg.RollappId); err != nil {
 		return nil, err
 	}
 
