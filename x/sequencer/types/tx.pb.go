@@ -6,6 +6,11 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	io "io"
+	math "math"
+	math_bits "math/bits"
+	time "time"
+
 	_ "github.com/cosmos/cosmos-proto"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	types1 "github.com/cosmos/cosmos-sdk/types"
@@ -18,17 +23,15 @@ import (
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	_ "google.golang.org/protobuf/types/known/timestamppb"
-	io "io"
-	math "math"
-	math_bits "math/bits"
-	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
-var _ = proto.Marshal
-var _ = fmt.Errorf
-var _ = math.Inf
-var _ = time.Kitchen
+var (
+	_ = proto.Marshal
+	_ = fmt.Errorf
+	_ = math.Inf
+	_ = time.Kitchen
+)
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -51,9 +54,11 @@ func (*MsgUpdateParams) ProtoMessage()    {}
 func (*MsgUpdateParams) Descriptor() ([]byte, []int) {
 	return fileDescriptor_02cdd6b9ffa005b4, []int{0}
 }
+
 func (m *MsgUpdateParams) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgUpdateParams) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgUpdateParams.Marshal(b, m, deterministic)
@@ -66,12 +71,15 @@ func (m *MsgUpdateParams) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
+
 func (m *MsgUpdateParams) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgUpdateParams.Merge(m, src)
 }
+
 func (m *MsgUpdateParams) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgUpdateParams) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgUpdateParams.DiscardUnknown(m)
 }
@@ -96,8 +104,7 @@ func (m *MsgUpdateParams) GetParams() Params {
 // MsgUpdateParams message.
 //
 // Since: cosmos-sdk 0.47
-type MsgUpdateParamsResponse struct {
-}
+type MsgUpdateParamsResponse struct{}
 
 func (m *MsgUpdateParamsResponse) Reset()         { *m = MsgUpdateParamsResponse{} }
 func (m *MsgUpdateParamsResponse) String() string { return proto.CompactTextString(m) }
@@ -105,9 +112,11 @@ func (*MsgUpdateParamsResponse) ProtoMessage()    {}
 func (*MsgUpdateParamsResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_02cdd6b9ffa005b4, []int{1}
 }
+
 func (m *MsgUpdateParamsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgUpdateParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgUpdateParamsResponse.Marshal(b, m, deterministic)
@@ -120,12 +129,15 @@ func (m *MsgUpdateParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
+
 func (m *MsgUpdateParamsResponse) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgUpdateParamsResponse.Merge(m, src)
 }
+
 func (m *MsgUpdateParamsResponse) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgUpdateParamsResponse) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgUpdateParamsResponse.DiscardUnknown(m)
 }
@@ -151,9 +163,11 @@ func (*MsgCreateSequencer) ProtoMessage()    {}
 func (*MsgCreateSequencer) Descriptor() ([]byte, []int) {
 	return fileDescriptor_02cdd6b9ffa005b4, []int{2}
 }
+
 func (m *MsgCreateSequencer) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgCreateSequencer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgCreateSequencer.Marshal(b, m, deterministic)
@@ -166,12 +180,15 @@ func (m *MsgCreateSequencer) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
+
 func (m *MsgCreateSequencer) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgCreateSequencer.Merge(m, src)
 }
+
 func (m *MsgCreateSequencer) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgCreateSequencer) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgCreateSequencer.DiscardUnknown(m)
 }
@@ -213,8 +230,7 @@ func (m *MsgCreateSequencer) GetBond() types1.Coin {
 	return types1.Coin{}
 }
 
-type MsgCreateSequencerResponse struct {
-}
+type MsgCreateSequencerResponse struct{}
 
 func (m *MsgCreateSequencerResponse) Reset()         { *m = MsgCreateSequencerResponse{} }
 func (m *MsgCreateSequencerResponse) String() string { return proto.CompactTextString(m) }
@@ -222,9 +238,11 @@ func (*MsgCreateSequencerResponse) ProtoMessage()    {}
 func (*MsgCreateSequencerResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_02cdd6b9ffa005b4, []int{3}
 }
+
 func (m *MsgCreateSequencerResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgCreateSequencerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgCreateSequencerResponse.Marshal(b, m, deterministic)
@@ -237,17 +255,111 @@ func (m *MsgCreateSequencerResponse) XXX_Marshal(b []byte, deterministic bool) (
 		return b[:n], nil
 	}
 }
+
 func (m *MsgCreateSequencerResponse) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgCreateSequencerResponse.Merge(m, src)
 }
+
 func (m *MsgCreateSequencerResponse) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgCreateSequencerResponse) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgCreateSequencerResponse.DiscardUnknown(m)
 }
 
 var xxx_messageInfo_MsgCreateSequencerResponse proto.InternalMessageInfo
+
+// Try to kick the current proposer whose bond is below kick threshold
+type MsgKickProposer struct {
+	// creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+}
+
+func (m *MsgKickProposer) Reset()         { *m = MsgKickProposer{} }
+func (m *MsgKickProposer) String() string { return proto.CompactTextString(m) }
+func (*MsgKickProposer) ProtoMessage()    {}
+func (*MsgKickProposer) Descriptor() ([]byte, []int) {
+	return fileDescriptor_02cdd6b9ffa005b4, []int{4}
+}
+
+func (m *MsgKickProposer) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+
+func (m *MsgKickProposer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgKickProposer.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+
+func (m *MsgKickProposer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgKickProposer.Merge(m, src)
+}
+
+func (m *MsgKickProposer) XXX_Size() int {
+	return m.Size()
+}
+
+func (m *MsgKickProposer) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgKickProposer.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgKickProposer proto.InternalMessageInfo
+
+func (m *MsgKickProposer) GetCreator() string {
+	if m != nil {
+		return m.Creator
+	}
+	return ""
+}
+
+type MsgKickProposerResponse struct{}
+
+func (m *MsgKickProposerResponse) Reset()         { *m = MsgKickProposerResponse{} }
+func (m *MsgKickProposerResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgKickProposerResponse) ProtoMessage()    {}
+func (*MsgKickProposerResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_02cdd6b9ffa005b4, []int{5}
+}
+
+func (m *MsgKickProposerResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+
+func (m *MsgKickProposerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgKickProposerResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+
+func (m *MsgKickProposerResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgKickProposerResponse.Merge(m, src)
+}
+
+func (m *MsgKickProposerResponse) XXX_Size() int {
+	return m.Size()
+}
+
+func (m *MsgKickProposerResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgKickProposerResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgKickProposerResponse proto.InternalMessageInfo
 
 type MsgUpdateSequencerInformation struct {
 	// creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
@@ -260,11 +372,13 @@ func (m *MsgUpdateSequencerInformation) Reset()         { *m = MsgUpdateSequence
 func (m *MsgUpdateSequencerInformation) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateSequencerInformation) ProtoMessage()    {}
 func (*MsgUpdateSequencerInformation) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{4}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{6}
 }
+
 func (m *MsgUpdateSequencerInformation) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgUpdateSequencerInformation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgUpdateSequencerInformation.Marshal(b, m, deterministic)
@@ -277,12 +391,15 @@ func (m *MsgUpdateSequencerInformation) XXX_Marshal(b []byte, deterministic bool
 		return b[:n], nil
 	}
 }
+
 func (m *MsgUpdateSequencerInformation) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgUpdateSequencerInformation.Merge(m, src)
 }
+
 func (m *MsgUpdateSequencerInformation) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgUpdateSequencerInformation) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgUpdateSequencerInformation.DiscardUnknown(m)
 }
@@ -303,18 +420,19 @@ func (m *MsgUpdateSequencerInformation) GetMetadata() SequencerMetadata {
 	return SequencerMetadata{}
 }
 
-type MsgUpdateSequencerInformationResponse struct {
-}
+type MsgUpdateSequencerInformationResponse struct{}
 
 func (m *MsgUpdateSequencerInformationResponse) Reset()         { *m = MsgUpdateSequencerInformationResponse{} }
 func (m *MsgUpdateSequencerInformationResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateSequencerInformationResponse) ProtoMessage()    {}
 func (*MsgUpdateSequencerInformationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{5}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{7}
 }
+
 func (m *MsgUpdateSequencerInformationResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgUpdateSequencerInformationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgUpdateSequencerInformationResponse.Marshal(b, m, deterministic)
@@ -327,12 +445,15 @@ func (m *MsgUpdateSequencerInformationResponse) XXX_Marshal(b []byte, determinis
 		return b[:n], nil
 	}
 }
+
 func (m *MsgUpdateSequencerInformationResponse) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgUpdateSequencerInformationResponse.Merge(m, src)
 }
+
 func (m *MsgUpdateSequencerInformationResponse) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgUpdateSequencerInformationResponse) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgUpdateSequencerInformationResponse.DiscardUnknown(m)
 }
@@ -349,11 +470,13 @@ func (m *MsgUnbond) Reset()         { *m = MsgUnbond{} }
 func (m *MsgUnbond) String() string { return proto.CompactTextString(m) }
 func (*MsgUnbond) ProtoMessage()    {}
 func (*MsgUnbond) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{6}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{8}
 }
+
 func (m *MsgUnbond) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgUnbond) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgUnbond.Marshal(b, m, deterministic)
@@ -366,12 +489,15 @@ func (m *MsgUnbond) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
+
 func (m *MsgUnbond) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgUnbond.Merge(m, src)
 }
+
 func (m *MsgUnbond) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgUnbond) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgUnbond.DiscardUnknown(m)
 }
@@ -387,11 +513,7 @@ func (m *MsgUnbond) GetCreator() string {
 
 // MsgUnbondResponse defines the Msg/Unbond response type.
 type MsgUnbondResponse struct {
-	// completion_time defines the time at which the unbonding will be completed.
-	// If unbonding the proposer, the completion time is the time at which the notice period will be completed.
-	//
 	// Types that are valid to be assigned to CompletionTime:
-	//	*MsgUnbondResponse_UnbondingCompletionTime
 	//	*MsgUnbondResponse_NoticePeriodCompletionTime
 	CompletionTime isMsgUnbondResponse_CompletionTime `protobuf_oneof:"completion_time"`
 }
@@ -400,11 +522,13 @@ func (m *MsgUnbondResponse) Reset()         { *m = MsgUnbondResponse{} }
 func (m *MsgUnbondResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUnbondResponse) ProtoMessage()    {}
 func (*MsgUnbondResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{7}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{9}
 }
+
 func (m *MsgUnbondResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgUnbondResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgUnbondResponse.Marshal(b, m, deterministic)
@@ -417,12 +541,15 @@ func (m *MsgUnbondResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
+
 func (m *MsgUnbondResponse) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgUnbondResponse.Merge(m, src)
 }
+
 func (m *MsgUnbondResponse) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgUnbondResponse) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgUnbondResponse.DiscardUnknown(m)
 }
@@ -435,26 +562,15 @@ type isMsgUnbondResponse_CompletionTime interface {
 	Size() int
 }
 
-type MsgUnbondResponse_UnbondingCompletionTime struct {
-	UnbondingCompletionTime *time.Time `protobuf:"bytes,1,opt,name=unbonding_completion_time,json=unbondingCompletionTime,proto3,oneof,stdtime" json:"unbonding_completion_time,omitempty"`
-}
 type MsgUnbondResponse_NoticePeriodCompletionTime struct {
 	NoticePeriodCompletionTime *time.Time `protobuf:"bytes,2,opt,name=notice_period_completion_time,json=noticePeriodCompletionTime,proto3,oneof,stdtime" json:"notice_period_completion_time,omitempty"`
 }
 
-func (*MsgUnbondResponse_UnbondingCompletionTime) isMsgUnbondResponse_CompletionTime()    {}
 func (*MsgUnbondResponse_NoticePeriodCompletionTime) isMsgUnbondResponse_CompletionTime() {}
 
 func (m *MsgUnbondResponse) GetCompletionTime() isMsgUnbondResponse_CompletionTime {
 	if m != nil {
 		return m.CompletionTime
-	}
-	return nil
-}
-
-func (m *MsgUnbondResponse) GetUnbondingCompletionTime() *time.Time {
-	if x, ok := m.GetCompletionTime().(*MsgUnbondResponse_UnbondingCompletionTime); ok {
-		return x.UnbondingCompletionTime
 	}
 	return nil
 }
@@ -469,7 +585,6 @@ func (m *MsgUnbondResponse) GetNoticePeriodCompletionTime() *time.Time {
 // XXX_OneofWrappers is for the internal use of the proto package.
 func (*MsgUnbondResponse) XXX_OneofWrappers() []interface{} {
 	return []interface{}{
-		(*MsgUnbondResponse_UnbondingCompletionTime)(nil),
 		(*MsgUnbondResponse_NoticePeriodCompletionTime)(nil),
 	}
 }
@@ -486,11 +601,13 @@ func (m *MsgIncreaseBond) Reset()         { *m = MsgIncreaseBond{} }
 func (m *MsgIncreaseBond) String() string { return proto.CompactTextString(m) }
 func (*MsgIncreaseBond) ProtoMessage()    {}
 func (*MsgIncreaseBond) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{8}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{10}
 }
+
 func (m *MsgIncreaseBond) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgIncreaseBond) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgIncreaseBond.Marshal(b, m, deterministic)
@@ -503,12 +620,15 @@ func (m *MsgIncreaseBond) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
+
 func (m *MsgIncreaseBond) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgIncreaseBond.Merge(m, src)
 }
+
 func (m *MsgIncreaseBond) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgIncreaseBond) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgIncreaseBond.DiscardUnknown(m)
 }
@@ -530,18 +650,19 @@ func (m *MsgIncreaseBond) GetAddAmount() types1.Coin {
 }
 
 // MsgIncreaseBondResponse defines the Msg/IncreaseBond response type.
-type MsgIncreaseBondResponse struct {
-}
+type MsgIncreaseBondResponse struct{}
 
 func (m *MsgIncreaseBondResponse) Reset()         { *m = MsgIncreaseBondResponse{} }
 func (m *MsgIncreaseBondResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgIncreaseBondResponse) ProtoMessage()    {}
 func (*MsgIncreaseBondResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{9}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{11}
 }
+
 func (m *MsgIncreaseBondResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgIncreaseBondResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgIncreaseBondResponse.Marshal(b, m, deterministic)
@@ -554,12 +675,15 @@ func (m *MsgIncreaseBondResponse) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
+
 func (m *MsgIncreaseBondResponse) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgIncreaseBondResponse.Merge(m, src)
 }
+
 func (m *MsgIncreaseBondResponse) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgIncreaseBondResponse) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgIncreaseBondResponse.DiscardUnknown(m)
 }
@@ -578,11 +702,13 @@ func (m *MsgDecreaseBond) Reset()         { *m = MsgDecreaseBond{} }
 func (m *MsgDecreaseBond) String() string { return proto.CompactTextString(m) }
 func (*MsgDecreaseBond) ProtoMessage()    {}
 func (*MsgDecreaseBond) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{10}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{12}
 }
+
 func (m *MsgDecreaseBond) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgDecreaseBond) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgDecreaseBond.Marshal(b, m, deterministic)
@@ -595,12 +721,15 @@ func (m *MsgDecreaseBond) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
+
 func (m *MsgDecreaseBond) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgDecreaseBond.Merge(m, src)
 }
+
 func (m *MsgDecreaseBond) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgDecreaseBond) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgDecreaseBond.DiscardUnknown(m)
 }
@@ -622,19 +751,19 @@ func (m *MsgDecreaseBond) GetDecreaseAmount() types1.Coin {
 }
 
 // MsgDecreaseBondResponse defines the Msg/DecreaseBond response type.
-type MsgDecreaseBondResponse struct {
-	CompletionTime time.Time `protobuf:"bytes,1,opt,name=completion_time,json=completionTime,proto3,stdtime" json:"completion_time"`
-}
+type MsgDecreaseBondResponse struct{}
 
 func (m *MsgDecreaseBondResponse) Reset()         { *m = MsgDecreaseBondResponse{} }
 func (m *MsgDecreaseBondResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgDecreaseBondResponse) ProtoMessage()    {}
 func (*MsgDecreaseBondResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{11}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{13}
 }
+
 func (m *MsgDecreaseBondResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgDecreaseBondResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgDecreaseBondResponse.Marshal(b, m, deterministic)
@@ -647,30 +776,28 @@ func (m *MsgDecreaseBondResponse) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
+
 func (m *MsgDecreaseBondResponse) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgDecreaseBondResponse.Merge(m, src)
 }
+
 func (m *MsgDecreaseBondResponse) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgDecreaseBondResponse) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgDecreaseBondResponse.DiscardUnknown(m)
 }
 
 var xxx_messageInfo_MsgDecreaseBondResponse proto.InternalMessageInfo
 
-func (m *MsgDecreaseBondResponse) GetCompletionTime() time.Time {
-	if m != nil {
-		return m.CompletionTime
-	}
-	return time.Time{}
-}
-
 func init() {
 	proto.RegisterType((*MsgUpdateParams)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateParams")
 	proto.RegisterType((*MsgUpdateParamsResponse)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateParamsResponse")
 	proto.RegisterType((*MsgCreateSequencer)(nil), "dymensionxyz.dymension.sequencer.MsgCreateSequencer")
 	proto.RegisterType((*MsgCreateSequencerResponse)(nil), "dymensionxyz.dymension.sequencer.MsgCreateSequencerResponse")
+	proto.RegisterType((*MsgKickProposer)(nil), "dymensionxyz.dymension.sequencer.MsgKickProposer")
+	proto.RegisterType((*MsgKickProposerResponse)(nil), "dymensionxyz.dymension.sequencer.MsgKickProposerResponse")
 	proto.RegisterType((*MsgUpdateSequencerInformation)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateSequencerInformation")
 	proto.RegisterType((*MsgUpdateSequencerInformationResponse)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateSequencerInformationResponse")
 	proto.RegisterType((*MsgUnbond)(nil), "dymensionxyz.dymension.sequencer.MsgUnbond")
@@ -687,66 +814,68 @@ func init() {
 
 var fileDescriptor_02cdd6b9ffa005b4 = []byte{
 	// 873 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0x41, 0x6f, 0xe3, 0x44,
-	0x14, 0x8e, 0xb3, 0xd9, 0xb0, 0x99, 0x8d, 0x1a, 0xd6, 0xaa, 0x54, 0xc7, 0xa2, 0x49, 0x15, 0x09,
-	0x51, 0x16, 0xad, 0xad, 0x24, 0xa8, 0x12, 0x15, 0x02, 0x35, 0x45, 0xd0, 0x0a, 0x45, 0x0a, 0x2e,
-	0xbd, 0x70, 0x20, 0x9a, 0xd8, 0x53, 0xd7, 0x28, 0x9e, 0x31, 0x9e, 0x49, 0x55, 0xa3, 0x1e, 0x10,
-	0x12, 0xf7, 0x4a, 0x9c, 0x41, 0x20, 0x24, 0xce, 0x3d, 0x70, 0xe3, 0x0f, 0x54, 0x9c, 0x2a, 0x4e,
-	0x9c, 0x00, 0xb5, 0x87, 0x72, 0xe1, 0x3f, 0x20, 0xdb, 0xe3, 0xa9, 0x93, 0xb4, 0x89, 0xd3, 0xee,
-	0x29, 0x99, 0xf1, 0x7b, 0xdf, 0xf7, 0xcd, 0xf7, 0xde, 0x3c, 0x0d, 0x78, 0xd3, 0x0a, 0x5c, 0x84,
-	0xa9, 0x43, 0xf0, 0x71, 0xf0, 0x95, 0x2e, 0x16, 0x3a, 0x45, 0x5f, 0x8e, 0x10, 0x36, 0x91, 0xaf,
-	0xb3, 0x63, 0xcd, 0xf3, 0x09, 0x23, 0xf2, 0x5a, 0x3a, 0x54, 0x13, 0x0b, 0x4d, 0x84, 0xaa, 0x55,
-	0x9b, 0x10, 0x7b, 0x88, 0xf4, 0x28, 0x7e, 0x30, 0x3a, 0xd0, 0x21, 0x0e, 0xe2, 0x64, 0xb5, 0x6a,
-	0x12, 0xea, 0x12, 0xda, 0x8f, 0x56, 0x7a, 0xbc, 0xe0, 0x9f, 0x96, 0x6d, 0x62, 0x93, 0x78, 0x3f,
-	0xfc, 0xc7, 0x77, 0x6b, 0x71, 0x8c, 0x3e, 0x80, 0x14, 0xe9, 0x47, 0xcd, 0x01, 0x62, 0xb0, 0xa9,
-	0x9b, 0xc4, 0xc1, 0xfc, 0x7b, 0x7d, 0x92, 0x8b, 0x39, 0x2e, 0xa2, 0x0c, 0xba, 0x1e, 0x0f, 0x58,
-	0xe1, 0x00, 0x2e, 0xb5, 0xf5, 0xa3, 0x66, 0xf8, 0xc3, 0x3f, 0xbc, 0x98, 0x7b, 0x64, 0x0f, 0xfa,
-	0xd0, 0x4d, 0xe4, 0xe9, 0x73, 0xc3, 0x5d, 0xc4, 0xa0, 0x05, 0x19, 0x8c, 0x13, 0x1a, 0x3f, 0x49,
-	0xa0, 0xd2, 0xa5, 0xf6, 0xbe, 0x67, 0x41, 0x86, 0x7a, 0x11, 0x94, 0xbc, 0x01, 0x4a, 0x70, 0xc4,
-	0x0e, 0x89, 0xef, 0xb0, 0x40, 0x91, 0xd6, 0xa4, 0xf5, 0x52, 0x47, 0xf9, 0xe3, 0xd7, 0x17, 0xcb,
-	0xdc, 0x88, 0x2d, 0xcb, 0xf2, 0x11, 0xa5, 0x7b, 0xcc, 0x77, 0xb0, 0x6d, 0xdc, 0x84, 0xca, 0x1f,
-	0x82, 0x62, 0x2c, 0x46, 0xc9, 0xaf, 0x49, 0xeb, 0x4f, 0x5b, 0xeb, 0xda, 0xbc, 0x22, 0x68, 0x31,
-	0x63, 0xa7, 0x70, 0xfe, 0x57, 0x3d, 0x67, 0xf0, 0xec, 0xcd, 0xa5, 0x6f, 0xae, 0xcf, 0x9e, 0xdf,
-	0xe0, 0x36, 0xaa, 0x60, 0x65, 0x42, 0xa2, 0x81, 0xa8, 0x47, 0x30, 0x45, 0x8d, 0xdf, 0xf2, 0x40,
-	0xee, 0x52, 0x7b, 0xdb, 0x47, 0x90, 0xa1, 0xbd, 0x04, 0x56, 0x56, 0xc0, 0x2b, 0x66, 0xb8, 0x45,
-	0xfc, 0x58, 0xbf, 0x91, 0x2c, 0x65, 0x03, 0x94, 0xad, 0xc0, 0x75, 0x30, 0xeb, 0x8d, 0x06, 0x1f,
-	0xa3, 0x80, 0x2b, 0x5d, 0xd6, 0xe2, 0x02, 0x69, 0x49, 0x81, 0xb4, 0x2d, 0x1c, 0x74, 0x94, 0xdf,
-	0x6f, 0x0e, 0x6d, 0xfa, 0x81, 0xc7, 0x88, 0x16, 0x67, 0x19, 0x63, 0x18, 0xf2, 0x2a, 0x00, 0x3e,
-	0x19, 0x0e, 0xa1, 0xe7, 0xf5, 0x1d, 0x4b, 0x79, 0x14, 0x11, 0x96, 0xf8, 0xce, 0xae, 0x25, 0xef,
-	0x83, 0x27, 0x89, 0xe9, 0x4a, 0x21, 0xa2, 0x6b, 0xcf, 0x37, 0x46, 0x9c, 0xa5, 0xcb, 0x53, 0xb9,
-	0x47, 0x02, 0x4a, 0x6e, 0x83, 0xc2, 0x80, 0x60, 0x4b, 0x79, 0x1c, 0x41, 0x56, 0x35, 0x2e, 0x34,
-	0x6c, 0x41, 0x8d, 0xb7, 0xa0, 0xb6, 0x4d, 0x1c, 0xcc, 0x13, 0xa3, 0xe0, 0xcd, 0x72, 0x68, 0x6d,
-	0x62, 0x46, 0xe3, 0x35, 0xa0, 0x4e, 0x9b, 0x27, 0xbc, 0xfd, 0x41, 0x02, 0xab, 0xc2, 0x77, 0xf1,
-	0x79, 0x17, 0x1f, 0x10, 0xdf, 0x85, 0xcc, 0x21, 0x78, 0x86, 0xcd, 0xe9, 0x33, 0xe7, 0x5f, 0xda,
-	0x99, 0x27, 0xe4, 0xbf, 0x01, 0x5e, 0x9f, 0xa9, 0x4f, 0x9c, 0xe4, 0x13, 0x50, 0x0a, 0x03, 0x71,
-	0x68, 0x81, 0xdc, 0x9a, 0x10, 0x3d, 0xa3, 0xb7, 0x93, 0xc0, 0xcd, 0x57, 0xff, 0xfd, 0xb1, 0x9e,
-	0x1b, 0xe3, 0xfe, 0x4f, 0x02, 0xcf, 0x04, 0x66, 0x42, 0x24, 0x7f, 0x0e, 0xaa, 0xa3, 0x68, 0xc7,
-	0xc1, 0x76, 0xdf, 0x24, 0xae, 0x37, 0x44, 0xa1, 0x90, 0x7e, 0x78, 0xdd, 0x23, 0xb6, 0xa7, 0x2d,
-	0x75, 0xaa, 0xd5, 0x3e, 0x4d, 0x66, 0x41, 0xa7, 0x70, 0xfa, 0x77, 0x5d, 0xda, 0xc9, 0x19, 0x2b,
-	0x02, 0x64, 0x5b, 0x60, 0x84, 0x51, 0x32, 0x02, 0xab, 0x98, 0x30, 0xc7, 0x44, 0x7d, 0x0f, 0xf9,
-	0x0e, 0xb1, 0xa6, 0x38, 0xf2, 0x99, 0x39, 0xd4, 0x18, 0xa8, 0x17, 0xe1, 0x8c, 0xd3, 0x74, 0x9e,
-	0x81, 0xca, 0x04, 0x70, 0xe3, 0xbb, 0x78, 0x4e, 0xec, 0xe2, 0xd0, 0x00, 0x8a, 0x3a, 0xf7, 0x74,
-	0x52, 0x7e, 0x0f, 0x00, 0x68, 0x59, 0x7d, 0xe8, 0x92, 0x11, 0x66, 0x5c, 0xee, 0xdc, 0xde, 0x2d,
-	0x41, 0xcb, 0xda, 0x8a, 0x32, 0x26, 0x3a, 0x20, 0x9e, 0x0c, 0x69, 0x51, 0xa2, 0xe6, 0xdf, 0xc7,
-	0x82, 0x3f, 0x40, 0x0f, 0x14, 0xbc, 0x03, 0x2a, 0x16, 0xc7, 0x58, 0x50, 0xf5, 0x52, 0x92, 0x77,
-	0xab, 0xf4, 0xc3, 0x48, 0x7a, 0x5a, 0x9e, 0xe8, 0xa2, 0xee, 0x94, 0xfd, 0x19, 0x7a, 0xe7, 0x49,
-	0xc8, 0x19, 0xd6, 0xd6, 0x58, 0x32, 0xc7, 0xaa, 0xd9, 0xfa, 0xb9, 0x08, 0x1e, 0x75, 0xa9, 0x2d,
-	0x7f, 0x2b, 0x81, 0xca, 0xe4, 0xa0, 0x7c, 0x7b, 0xfe, 0xad, 0x9c, 0x9e, 0x10, 0xea, 0xbb, 0xf7,
-	0xc9, 0x12, 0xc7, 0xfb, 0x45, 0x02, 0xea, 0x8c, 0xa1, 0xf2, 0x7e, 0x26, 0xf0, 0xbb, 0x01, 0xd4,
-	0x8f, 0x1e, 0x08, 0x20, 0x84, 0x7e, 0x01, 0x8a, 0x7c, 0x66, 0xbc, 0x95, 0x0d, 0x32, 0x0a, 0x56,
-	0xdb, 0x0b, 0x04, 0x0b, 0xae, 0x13, 0x50, 0x1e, 0xbb, 0x5b, 0xcd, 0x4c, 0x20, 0xe9, 0x14, 0xf5,
-	0x9d, 0x85, 0x53, 0xd2, 0xec, 0x63, 0x17, 0x25, 0x1b, 0x7b, 0x3a, 0x25, 0x23, 0xfb, 0xad, 0xfd,
-	0x7e, 0x02, 0xca, 0x63, 0xef, 0x8f, 0xe6, 0x02, 0x05, 0x8c, 0x53, 0x32, 0xb2, 0xdf, 0xf6, 0x84,
-	0x50, 0x1f, 0x7f, 0x7d, 0x7d, 0xf6, 0x5c, 0xea, 0xf4, 0xce, 0x2f, 0x6b, 0xd2, 0xc5, 0x65, 0x4d,
-	0xfa, 0xe7, 0xb2, 0x26, 0x9d, 0x5e, 0xd5, 0x72, 0x17, 0x57, 0xb5, 0xdc, 0x9f, 0x57, 0xb5, 0xdc,
-	0x67, 0x1b, 0xb6, 0xc3, 0x0e, 0x47, 0x03, 0xcd, 0x24, 0xee, 0x5d, 0xcf, 0xab, 0xa3, 0xb6, 0x7e,
-	0x9c, 0x7e, 0x85, 0x06, 0x1e, 0xa2, 0x83, 0x62, 0x74, 0x4b, 0xdb, 0xff, 0x07, 0x00, 0x00, 0xff,
-	0xff, 0x06, 0xf9, 0x66, 0x0e, 0xb6, 0x0a, 0x00, 0x00,
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0x4f, 0x4f, 0x3b, 0x45,
+	0x18, 0xee, 0xf6, 0x57, 0xfe, 0x74, 0x24, 0x14, 0x36, 0x24, 0x6c, 0x37, 0xd2, 0x92, 0x26, 0x46,
+	0xc4, 0xb0, 0x9b, 0x52, 0x43, 0x02, 0x31, 0x1a, 0x8a, 0x51, 0x90, 0x34, 0xa9, 0x45, 0x2e, 0x5e,
+	0x9a, 0xe9, 0xee, 0xb0, 0xac, 0x76, 0x67, 0xd6, 0x9d, 0x29, 0x61, 0x8d, 0x07, 0x63, 0xe2, 0x9d,
+	0xc4, 0xb3, 0x46, 0x2e, 0x9e, 0x39, 0x78, 0xf3, 0x0b, 0x10, 0x4f, 0xc4, 0x93, 0x27, 0x35, 0x70,
+	0xc0, 0x8f, 0x61, 0x76, 0x77, 0x76, 0xd8, 0x96, 0xd2, 0x6e, 0xe1, 0x77, 0x6a, 0x67, 0xf6, 0x7d,
+	0x9e, 0xf7, 0x79, 0x9f, 0x79, 0xdf, 0xc9, 0x80, 0x77, 0x4c, 0xdf, 0x41, 0x98, 0xda, 0x04, 0x9f,
+	0xfb, 0xdf, 0xe8, 0x62, 0xa1, 0x53, 0xf4, 0x75, 0x0f, 0x61, 0x03, 0x79, 0x3a, 0x3b, 0xd7, 0x5c,
+	0x8f, 0x30, 0x22, 0xaf, 0x26, 0x43, 0x35, 0xb1, 0xd0, 0x44, 0xa8, 0x5a, 0xb4, 0x08, 0xb1, 0xba,
+	0x48, 0x0f, 0xe3, 0x3b, 0xbd, 0x13, 0x1d, 0x62, 0x3f, 0x02, 0xab, 0x45, 0x83, 0x50, 0x87, 0xd0,
+	0x76, 0xb8, 0xd2, 0xa3, 0x05, 0xff, 0xb4, 0x64, 0x11, 0x8b, 0x44, 0xfb, 0xc1, 0x3f, 0xbe, 0x5b,
+	0x8a, 0x62, 0xf4, 0x0e, 0xa4, 0x48, 0x3f, 0xab, 0x76, 0x10, 0x83, 0x55, 0xdd, 0x20, 0x36, 0xe6,
+	0xdf, 0xcb, 0x83, 0xb9, 0x98, 0xed, 0x20, 0xca, 0xa0, 0xe3, 0xf2, 0x80, 0x65, 0x4e, 0xe0, 0x50,
+	0x4b, 0x3f, 0xab, 0x06, 0x3f, 0xfc, 0xc3, 0xc6, 0xd8, 0x92, 0x5d, 0xe8, 0x41, 0x27, 0x96, 0xa7,
+	0x8f, 0x0d, 0x77, 0x10, 0x83, 0x26, 0x64, 0x30, 0x02, 0x54, 0x2e, 0x25, 0x50, 0x68, 0x50, 0xeb,
+	0xd8, 0x35, 0x21, 0x43, 0xcd, 0x90, 0x4a, 0xde, 0x02, 0x79, 0xd8, 0x63, 0xa7, 0xc4, 0xb3, 0x99,
+	0xaf, 0x48, 0xab, 0xd2, 0x5a, 0xbe, 0xae, 0xfc, 0xf9, 0xdb, 0xc6, 0x12, 0x37, 0x62, 0xd7, 0x34,
+	0x3d, 0x44, 0xe9, 0x11, 0xf3, 0x6c, 0x6c, 0xb5, 0x1e, 0x42, 0xe5, 0x8f, 0xc1, 0x74, 0x24, 0x46,
+	0xc9, 0xae, 0x4a, 0x6b, 0x6f, 0x6c, 0xae, 0x69, 0xe3, 0x0e, 0x41, 0x8b, 0x32, 0xd6, 0x73, 0xd7,
+	0x7f, 0x97, 0x33, 0x2d, 0x8e, 0xde, 0x99, 0xff, 0xfe, 0xfe, 0x6a, 0xfd, 0x81, 0xb7, 0x52, 0x04,
+	0xcb, 0x03, 0x12, 0x5b, 0x88, 0xba, 0x04, 0x53, 0x54, 0xf9, 0x3d, 0x0b, 0xe4, 0x06, 0xb5, 0xf6,
+	0x3c, 0x04, 0x19, 0x3a, 0x8a, 0x69, 0x65, 0x05, 0xcc, 0x18, 0xc1, 0x16, 0xf1, 0x22, 0xfd, 0xad,
+	0x78, 0x29, 0xb7, 0xc0, 0x9c, 0xe9, 0x3b, 0x36, 0x66, 0xcd, 0x5e, 0xe7, 0x10, 0xf9, 0x5c, 0xe9,
+	0x92, 0x16, 0x1d, 0x90, 0x16, 0x1f, 0x90, 0xb6, 0x8b, 0xfd, 0xba, 0xf2, 0xc7, 0x43, 0xd1, 0x86,
+	0xe7, 0xbb, 0x8c, 0x68, 0x11, 0xaa, 0xd5, 0xc7, 0x21, 0xaf, 0x00, 0xe0, 0x91, 0x6e, 0x17, 0xba,
+	0x6e, 0xdb, 0x36, 0x95, 0x57, 0x61, 0xc2, 0x3c, 0xdf, 0x39, 0x30, 0xe5, 0x63, 0x30, 0x1b, 0x9b,
+	0xae, 0xe4, 0xc2, 0x74, 0xb5, 0xf1, 0xc6, 0x88, 0x5a, 0x1a, 0x1c, 0xca, 0x3d, 0x12, 0x54, 0x72,
+	0x0d, 0xe4, 0x3a, 0x04, 0x9b, 0xca, 0x54, 0x48, 0x59, 0xd4, 0xb8, 0xd0, 0xa0, 0x05, 0x35, 0xde,
+	0x82, 0xda, 0x1e, 0xb1, 0x31, 0x07, 0x86, 0xc1, 0x3b, 0x73, 0x81, 0xb5, 0xb1, 0x19, 0x95, 0x37,
+	0x81, 0xfa, 0xd8, 0x3c, 0xe1, 0xed, 0x76, 0xd8, 0x19, 0x87, 0xb6, 0xf1, 0x55, 0xd3, 0x23, 0x2e,
+	0xa1, 0xa3, 0x7c, 0x1d, 0x20, 0x8e, 0x4e, 0x2c, 0x09, 0x15, 0xac, 0x3f, 0x4b, 0x60, 0x45, 0x9c,
+	0xa6, 0x48, 0x7a, 0x80, 0x4f, 0x88, 0xe7, 0x40, 0x66, 0x13, 0x3c, 0xe2, 0xf0, 0x92, 0x4e, 0x66,
+	0x5f, 0x9b, 0x93, 0x03, 0xda, 0xdf, 0x06, 0x6f, 0x8d, 0xd4, 0x27, 0x2a, 0xf9, 0x0c, 0xe4, 0x83,
+	0x40, 0x1c, 0x18, 0x2b, 0x6f, 0x0e, 0x88, 0x1e, 0x31, 0x31, 0xc2, 0xb3, 0x85, 0xff, 0x7e, 0x29,
+	0x67, 0xfa, 0x72, 0xff, 0x28, 0x81, 0x45, 0xc1, 0x19, 0x27, 0x92, 0x11, 0x58, 0xc1, 0x84, 0xd9,
+	0x06, 0x6a, 0xbb, 0xc8, 0xb3, 0x89, 0xd9, 0x36, 0x88, 0xe3, 0x76, 0x51, 0x20, 0xa6, 0x1d, 0x5c,
+	0x24, 0xdc, 0x0b, 0xf5, 0x51, 0x13, 0x7f, 0x1e, 0xdf, 0x32, 0xf5, 0xdc, 0xc5, 0x3f, 0x65, 0x69,
+	0x3f, 0xd3, 0x52, 0x23, 0xa2, 0x66, 0xc8, 0xb3, 0x27, 0x68, 0x82, 0xc0, 0xfa, 0x22, 0x28, 0x0c,
+	0x10, 0x7f, 0x9a, 0x9b, 0x95, 0x16, 0xb2, 0x81, 0xaa, 0xa0, 0x13, 0x0e, 0x70, 0x20, 0x93, 0xa2,
+	0xfa, 0x33, 0xeb, 0x95, 0x3f, 0x00, 0x00, 0x9a, 0x66, 0x1b, 0x3a, 0xa4, 0x87, 0x19, 0x17, 0x3d,
+	0xb6, 0x6f, 0xf3, 0xd0, 0x34, 0x77, 0x43, 0xc4, 0xd0, 0x1e, 0x4b, 0x8a, 0x12, 0x27, 0xf3, 0x53,
+	0x24, 0xf8, 0x23, 0xf4, 0x42, 0xc1, 0xfb, 0xa0, 0x60, 0x72, 0x8e, 0x09, 0x55, 0xcf, 0xc7, 0xb8,
+	0xa1, 0xd2, 0xcb, 0xa1, 0xf4, 0xa4, 0xbc, 0x58, 0x7a, 0xe4, 0xf8, 0xe6, 0xe5, 0x0c, 0x78, 0xd5,
+	0xa0, 0x96, 0xfc, 0x83, 0x04, 0x0a, 0x83, 0x77, 0xdb, 0x7b, 0xe3, 0x5b, 0xfe, 0xf1, 0x50, 0xab,
+	0xef, 0x3f, 0x07, 0x25, 0x3a, 0xf0, 0x57, 0x09, 0xa8, 0x23, 0x26, 0xf6, 0xc3, 0x54, 0xe4, 0x4f,
+	0x13, 0xa8, 0x9f, 0xbc, 0x90, 0x40, 0x08, 0xfd, 0x16, 0xcc, 0xf5, 0x5d, 0x58, 0xd5, 0x54, 0xc4,
+	0x49, 0x88, 0xba, 0x3d, 0x31, 0x44, 0x64, 0xff, 0x12, 0x4c, 0xf3, 0xeb, 0xe0, 0xdd, 0x74, 0x05,
+	0x85, 0xc1, 0x6a, 0x6d, 0x82, 0xe0, 0x64, 0xa5, 0x7d, 0x03, 0x99, 0xae, 0xd2, 0x24, 0x24, 0x65,
+	0xa5, 0xc3, 0x26, 0x2c, 0xc8, 0xde, 0x37, 0x5d, 0xe9, 0xb2, 0x27, 0x21, 0x29, 0xb3, 0x0f, 0x1b,
+	0x92, 0x20, 0x7b, 0xdf, 0x83, 0xa5, 0x3a, 0x41, 0xfb, 0x44, 0x90, 0x94, 0xd9, 0x87, 0xbd, 0x39,
+	0xd4, 0xa9, 0xef, 0xee, 0xaf, 0xd6, 0xa5, 0x7a, 0xf3, 0xfa, 0xb6, 0x24, 0xdd, 0xdc, 0x96, 0xa4,
+	0x7f, 0x6f, 0x4b, 0xd2, 0xc5, 0x5d, 0x29, 0x73, 0x73, 0x57, 0xca, 0xfc, 0x75, 0x57, 0xca, 0x7c,
+	0xb1, 0x65, 0xd9, 0xec, 0xb4, 0xd7, 0xd1, 0x0c, 0xe2, 0x3c, 0xf5, 0x1e, 0x3b, 0xab, 0xe9, 0xe7,
+	0xc9, 0x67, 0xab, 0xef, 0x22, 0xda, 0x99, 0x0e, 0x2f, 0xee, 0xda, 0xff, 0x01, 0x00, 0x00, 0xff,
+	0xff, 0xf4, 0x07, 0xfd, 0x05, 0xe7, 0x0a, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConn
+var (
+	_ context.Context
+	_ grpc.ClientConn
+)
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
@@ -760,6 +889,7 @@ type MsgClient interface {
 	CreateSequencer(ctx context.Context, in *MsgCreateSequencer, opts ...grpc.CallOption) (*MsgCreateSequencerResponse, error)
 	// UpdateSequencerInformation defines a method for updating the sequencer's metadata.
 	UpdateSequencerInformation(ctx context.Context, in *MsgUpdateSequencerInformation, opts ...grpc.CallOption) (*MsgUpdateSequencerInformationResponse, error)
+	KickProposer(ctx context.Context, in *MsgKickProposer, opts ...grpc.CallOption) (*MsgKickProposerResponse, error)
 	// Unbond defines a method for removing coins from sequencer's bond
 	Unbond(ctx context.Context, in *MsgUnbond, opts ...grpc.CallOption) (*MsgUnbondResponse, error)
 	// IncreaseBond defines a method for increasing a sequencer's bond amount
@@ -791,6 +921,15 @@ func (c *msgClient) CreateSequencer(ctx context.Context, in *MsgCreateSequencer,
 func (c *msgClient) UpdateSequencerInformation(ctx context.Context, in *MsgUpdateSequencerInformation, opts ...grpc.CallOption) (*MsgUpdateSequencerInformationResponse, error) {
 	out := new(MsgUpdateSequencerInformationResponse)
 	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Msg/UpdateSequencerInformation", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) KickProposer(ctx context.Context, in *MsgKickProposer, opts ...grpc.CallOption) (*MsgKickProposerResponse, error) {
+	out := new(MsgKickProposerResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Msg/KickProposer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -839,6 +978,7 @@ type MsgServer interface {
 	CreateSequencer(context.Context, *MsgCreateSequencer) (*MsgCreateSequencerResponse, error)
 	// UpdateSequencerInformation defines a method for updating the sequencer's metadata.
 	UpdateSequencerInformation(context.Context, *MsgUpdateSequencerInformation) (*MsgUpdateSequencerInformationResponse, error)
+	KickProposer(context.Context, *MsgKickProposer) (*MsgKickProposerResponse, error)
 	// Unbond defines a method for removing coins from sequencer's bond
 	Unbond(context.Context, *MsgUnbond) (*MsgUnbondResponse, error)
 	// IncreaseBond defines a method for increasing a sequencer's bond amount
@@ -851,24 +991,32 @@ type MsgServer interface {
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
-type UnimplementedMsgServer struct {
-}
+type UnimplementedMsgServer struct{}
 
 func (*UnimplementedMsgServer) CreateSequencer(ctx context.Context, req *MsgCreateSequencer) (*MsgCreateSequencerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSequencer not implemented")
 }
+
 func (*UnimplementedMsgServer) UpdateSequencerInformation(ctx context.Context, req *MsgUpdateSequencerInformation) (*MsgUpdateSequencerInformationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSequencerInformation not implemented")
 }
+
+func (*UnimplementedMsgServer) KickProposer(ctx context.Context, req *MsgKickProposer) (*MsgKickProposerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method KickProposer not implemented")
+}
+
 func (*UnimplementedMsgServer) Unbond(ctx context.Context, req *MsgUnbond) (*MsgUnbondResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Unbond not implemented")
 }
+
 func (*UnimplementedMsgServer) IncreaseBond(ctx context.Context, req *MsgIncreaseBond) (*MsgIncreaseBondResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IncreaseBond not implemented")
 }
+
 func (*UnimplementedMsgServer) DecreaseBond(ctx context.Context, req *MsgDecreaseBond) (*MsgDecreaseBondResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DecreaseBond not implemented")
 }
+
 func (*UnimplementedMsgServer) UpdateParams(ctx context.Context, req *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
 }
@@ -909,6 +1057,24 @@ func _Msg_UpdateSequencerInformation_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).UpdateSequencerInformation(ctx, req.(*MsgUpdateSequencerInformation))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_KickProposer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgKickProposer)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).KickProposer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.sequencer.Msg/KickProposer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).KickProposer(ctx, req.(*MsgKickProposer))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -996,6 +1162,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateSequencerInformation",
 			Handler:    _Msg_UpdateSequencerInformation_Handler,
+		},
+		{
+			MethodName: "KickProposer",
+			Handler:    _Msg_KickProposer_Handler,
 		},
 		{
 			MethodName: "Unbond",
@@ -1173,6 +1343,59 @@ func (m *MsgCreateSequencerResponse) MarshalToSizedBuffer(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgKickProposer) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgKickProposer) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgKickProposer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Creator) > 0 {
+		i -= len(m.Creator)
+		copy(dAtA[i:], m.Creator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgKickProposerResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgKickProposerResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgKickProposerResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func (m *MsgUpdateSequencerInformation) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1298,25 +1521,6 @@ func (m *MsgUnbondResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgUnbondResponse_UnbondingCompletionTime) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgUnbondResponse_UnbondingCompletionTime) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.UnbondingCompletionTime != nil {
-		n6, err6 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(*m.UnbondingCompletionTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(*m.UnbondingCompletionTime):])
-		if err6 != nil {
-			return 0, err6
-		}
-		i -= n6
-		i = encodeVarintTx(dAtA, i, uint64(n6))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
 func (m *MsgUnbondResponse_NoticePeriodCompletionTime) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
@@ -1325,17 +1529,18 @@ func (m *MsgUnbondResponse_NoticePeriodCompletionTime) MarshalTo(dAtA []byte) (i
 func (m *MsgUnbondResponse_NoticePeriodCompletionTime) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	if m.NoticePeriodCompletionTime != nil {
-		n7, err7 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(*m.NoticePeriodCompletionTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(*m.NoticePeriodCompletionTime):])
-		if err7 != nil {
-			return 0, err7
+		n6, err6 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(*m.NoticePeriodCompletionTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(*m.NoticePeriodCompletionTime):])
+		if err6 != nil {
+			return 0, err6
 		}
-		i -= n7
-		i = encodeVarintTx(dAtA, i, uint64(n7))
+		i -= n6
+		i = encodeVarintTx(dAtA, i, uint64(n6))
 		i--
 		dAtA[i] = 0x12
 	}
 	return len(dAtA) - i, nil
 }
+
 func (m *MsgIncreaseBond) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1459,14 +1664,6 @@ func (m *MsgDecreaseBondResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	_ = i
 	var l int
 	_ = l
-	n10, err10 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.CompletionTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.CompletionTime):])
-	if err10 != nil {
-		return 0, err10
-	}
-	i -= n10
-	i = encodeVarintTx(dAtA, i, uint64(n10))
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -1481,6 +1678,7 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+
 func (m *MsgUpdateParams) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1539,6 +1737,28 @@ func (m *MsgCreateSequencerResponse) Size() (n int) {
 	return n
 }
 
+func (m *MsgKickProposer) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Creator)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgKickProposerResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
 func (m *MsgUpdateSequencerInformation) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1588,18 +1808,6 @@ func (m *MsgUnbondResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgUnbondResponse_UnbondingCompletionTime) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.UnbondingCompletionTime != nil {
-		l = github_com_cosmos_gogoproto_types.SizeOfStdTime(*m.UnbondingCompletionTime)
-		n += 1 + l + sovTx(uint64(l))
-	}
-	return n
-}
 func (m *MsgUnbondResponse_NoticePeriodCompletionTime) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1612,6 +1820,7 @@ func (m *MsgUnbondResponse_NoticePeriodCompletionTime) Size() (n int) {
 	}
 	return n
 }
+
 func (m *MsgIncreaseBond) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1657,17 +1866,17 @@ func (m *MsgDecreaseBondResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.CompletionTime)
-	n += 1 + l + sovTx(uint64(l))
 	return n
 }
 
 func sovTx(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
+
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
+
 func (m *MsgUpdateParams) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1783,6 +1992,7 @@ func (m *MsgUpdateParams) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgUpdateParamsResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1833,6 +2043,7 @@ func (m *MsgUpdateParamsResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgCreateSequencer) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2049,6 +2260,7 @@ func (m *MsgCreateSequencer) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgCreateSequencerResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2099,6 +2311,141 @@ func (m *MsgCreateSequencerResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
+func (m *MsgKickProposer) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgKickProposer: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgKickProposer: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Creator = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *MsgKickProposerResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgKickProposerResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgKickProposerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
 func (m *MsgUpdateSequencerInformation) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2214,6 +2561,7 @@ func (m *MsgUpdateSequencerInformation) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgUpdateSequencerInformationResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2264,6 +2612,7 @@ func (m *MsgUpdateSequencerInformationResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgUnbond) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2346,6 +2695,7 @@ func (m *MsgUnbond) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgUnbondResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2375,41 +2725,6 @@ func (m *MsgUnbondResponse) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: MsgUnbondResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UnbondingCompletionTime", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := new(time.Time)
-			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(v, dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.CompletionTime = &MsgUnbondResponse_UnbondingCompletionTime{v}
-			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field NoticePeriodCompletionTime", wireType)
@@ -2466,6 +2781,7 @@ func (m *MsgUnbondResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgIncreaseBond) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2581,6 +2897,7 @@ func (m *MsgIncreaseBond) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgIncreaseBondResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2631,6 +2948,7 @@ func (m *MsgIncreaseBondResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgDecreaseBond) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2746,6 +3064,7 @@ func (m *MsgDecreaseBond) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgDecreaseBondResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2775,39 +3094,6 @@ func (m *MsgDecreaseBondResponse) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: MsgDecreaseBondResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CompletionTime", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.CompletionTime, dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
@@ -2829,6 +3115,7 @@ func (m *MsgDecreaseBondResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func skipTx(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0

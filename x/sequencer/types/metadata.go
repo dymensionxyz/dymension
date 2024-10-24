@@ -6,6 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cockroachdb/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // constant for maximum string length of the SequencerMetadata fields
@@ -64,7 +65,7 @@ func (cd ContactDetails) Validate() error {
 // ValidateURLs validates the URLs of a sequencer's metadata.
 func validateURLs(urls []string) error {
 	if len(urls) == 0 {
-		return errorsmod.Wrap(ErrInvalidRequest, "urls cannot be empty")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "urls cannot be empty")
 	}
 
 	for _, u := range urls {
@@ -78,7 +79,7 @@ func validateURLs(urls []string) error {
 
 func validateURL(urlStr string) error {
 	if urlStr == "" {
-		return errorsmod.Wrap(ErrInvalidRequest, "url cannot be empty")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "url cannot be empty")
 	}
 
 	if len(urlStr) > maxURLLength {

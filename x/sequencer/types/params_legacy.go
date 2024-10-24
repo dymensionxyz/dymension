@@ -13,7 +13,6 @@ var _ paramtypes.ParamSet = &Params{}
 
 var (
 	KeyMinBond                 = []byte("MinBond")
-	KeyUnbondingTime           = []byte("UnbondingTime")
 	KeyNoticePeriod            = []byte("NoticePeriod")
 	KeyLivenessSlashMultiplier = []byte("LivenessSlashMultiplier")
 )
@@ -28,8 +27,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyMinBond, &p.MinBond, validateMinBond),
-		paramtypes.NewParamSetPair(KeyUnbondingTime, &p.UnbondingTime, validateTime),
 		paramtypes.NewParamSetPair(KeyNoticePeriod, &p.NoticePeriod, validateTime),
-		paramtypes.NewParamSetPair(KeyLivenessSlashMultiplier, &p.LivenessSlashMultiplier, validateLivenessSlashMultiplier),
+		paramtypes.NewParamSetPair(KeyLivenessSlashMultiplier, &p.LivenessSlashMinMultiplier, validateLivenessSlashMultiplier),
 	}
 }

@@ -12,21 +12,20 @@ import (
 var (
 	// DefaultMinBond is the minimum bond required to be a validator
 	DefaultMinBond uint64 = 1000000
-	// DefaultUnbondingTime is the time duration for unbonding
-	DefaultUnbondingTime time.Duration = time.Hour * 24 * 7 * 2 // 2 weeks
 	// DefaultNoticePeriod is the time duration for notice period
-	DefaultNoticePeriod time.Duration = time.Hour * 24 * 7 // 1 week
+	DefaultNoticePeriod = time.Hour * 24 * 7 // 1 week
 	// DefaultLivenessSlashMultiplier gives the amount of tokens to slash if the sequencer is liable for a liveness failure
-	DefaultLivenessSlashMultiplier sdk.Dec = sdk.MustNewDecFromStr("0.01907") // leaves 50% of original funds remaining after 48 slashes
+	DefaultLivenessSlashMultiplier           = sdk.MustNewDecFromStr("0.01")
+	DefaultLivenessSlashMinAbsolute sdk.Coin = sdk.Coin{Amount: sdk.OneInt(), Denom: "dym"} // TODO: parameterize + validate
 )
 
 // NewParams creates a new Params instance
-func NewParams(minBond sdk.Coin, unbondingPeriod, noticePeriod time.Duration, livenessSlashMul sdk.Dec) Params {
+func NewParams(minBond sdk.Coin, noticePeriod time.Duration, livenessSlashMul sdk.Dec, livenessSlashAbs sdk.Coin) Params {
 	return Params{
-		MinBond:                 minBond,
-		UnbondingTime:           unbondingPeriod,
-		NoticePeriod:            noticePeriod,
-		LivenessSlashMultiplier: livenessSlashMul,
+		MinBond:                    minBond,
+		NoticePeriod:               noticePeriod,
+		LivenessSlashMinMultiplier: livenessSlashMul,
+		LivenessSlashMinAbsolute:   livenessSlashAbs,
 	}
 }
 
@@ -38,7 +37,7 @@ func DefaultParams() Params {
 	}
 	minBond := sdk.NewCoin(denom, sdk.NewIntFromUint64(DefaultMinBond))
 	return NewParams(
-		minBond, DefaultUnbondingTime, DefaultNoticePeriod, DefaultLivenessSlashMultiplier,
+		minBond, DefaultNoticePeriod, DefaultLivenessSlashMultiplier, DefaultLivenessSlashMinAbsolute,
 	)
 }
 
@@ -81,15 +80,11 @@ func (p Params) ValidateBasic() error {
 		return err
 	}
 
-	if err := validateTime(p.UnbondingTime); err != nil {
-		return err
-	}
-
 	if err := validateTime(p.NoticePeriod); err != nil {
 		return err
 	}
 
-	if err := validateLivenessSlashMultiplier(p.LivenessSlashMultiplier); err != nil {
+	if err := validateLivenessSlashMultiplier(p.LivenessSlashMinMultiplier); err != nil {
 		return err
 	}
 

@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"sort"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -10,132 +9,89 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
-	completionTime := ctx.BlockTime().Add(k.NoticePeriod(ctx))
-	seq.NoticePeriodTime = completionTime
+func (k Keeper) awaitingLastProposerBlock(ctx sdk.Context, rollapp string) bool {
+	proposer := k.GetProposer(ctx, rollapp)
+	return proposer.NoticeElapsed(ctx.BlockTime())
+}
 
-	k.UpdateSequencer(ctx, seq)
-	k.AddSequencerToNoticePeriodQueue(ctx, seq)
+func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) {
+	seq.NoticePeriodTime = ctx.BlockTime().Add(k.NoticePeriod(ctx))
+
+	k.AddToNoticeQueue(ctx, *seq)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeNoticePeriodStarted,
 			sdk.NewAttribute(types.AttributeKeyRollappId, seq.RollappId),
 			sdk.NewAttribute(types.AttributeKeySequencer, seq.Address),
-			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.String()),
+			sdk.NewAttribute(types.AttributeKeyCompletionTime, seq.NoticePeriodTime.String()),
 		),
 	)
-
-	return completionTime
 }
 
-// MatureSequencersWithNoticePeriod start rotation flow for all sequencers that have finished their notice period
-// The next proposer is set to the next bonded sequencer
-// The hub will expect a "last state update" from the sequencer to start unbonding
-// In the middle of rotation, the next proposer required a notice period as well.
-func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.Time) {
-	seqs := k.GetMatureNoticePeriodSequencers(ctx, currTime)
+func (k Keeper) ChooseNewProposerForFinishedNoticePeriods(ctx sdk.Context, now time.Time) error {
+	seqs, err := k.NoticeElapsedSequencers(ctx, now)
+	if err != nil {
+		return errorsmod.Wrap(err, "get notice elapsed sequencers")
+	}
 	for _, seq := range seqs {
-		if k.isProposer(ctx, seq.RollappId, seq.Address) {
-			k.startRotation(ctx, seq.RollappId)
-			k.removeNoticePeriodSequencer(ctx, seq)
-		}
-		// next proposer cannot mature it's notice period until the current proposer has finished rotation
-		// minor effect as notice_period >>> rotation time
-	}
-}
-
-// IsRotating returns true if the rollapp is currently in the process of rotation.
-// A process of rotation is defined by the existence of a next proposer. The next proposer can also be a "dummy" sequencer (i.e empty) in case no sequencer came. This is still considered rotation
-// as the sequencer is rotating to an empty one (i.e gracefully leaving the rollapp).
-// The next proposer can only be set after the notice period is over. The rotation period is over after the proposer sends his last batch.
-func (k Keeper) IsRotating(ctx sdk.Context, rollappId string) bool {
-	return k.isNextProposerSet(ctx, rollappId)
-}
-
-// isNoticePeriodRequired returns true if the sequencer requires a notice period before unbonding
-// Both the proposer and the next proposer require a notice period
-func (k Keeper) isNoticePeriodRequired(ctx sdk.Context, seq types.Sequencer) bool {
-	return k.isProposer(ctx, seq.RollappId, seq.Address) || k.isNextProposer(ctx, seq.RollappId, seq.Address)
-}
-
-// ExpectedNextProposer returns the next proposer for a rollapp
-// it selects the next proposer from the bonded sequencers by bond amount
-// if there are no bonded sequencers, it returns an empty sequencer
-func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) types.Sequencer {
-	// if nextProposer is set, were in the middle of rotation. The expected next proposer cannot change
-	seq, ok := k.GetNextProposer(ctx, rollappId)
-	if ok {
-		return seq
-	}
-
-	// take the next bonded sequencer to be the proposer. sorted by bond
-	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
-	sort.SliceStable(seqs, func(i, j int) bool {
-		return seqs[i].Tokens.IsAllGT(seqs[j].Tokens)
-	})
-
-	// return the first sequencer that is not the proposer
-	proposer, _ := k.GetProposer(ctx, rollappId)
-	for _, s := range seqs {
-		if s.Address != proposer.Address {
-			return s
+		// Successor cannot finish notice. The proposer must finish first and then rotate to the successor.
+		if !k.isSuccessor(ctx, seq) {
+			k.removeFromNoticeQueue(ctx, seq)
+			if err := k.chooseSuccessor(ctx, seq.RollappId); err != nil {
+				k.Logger(ctx).Error("Choose successor.", "err", err)
+				continue
+			}
+			successor := k.GetSuccessor(ctx, seq.RollappId)
+			// TODO: event cleanup
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeRotationStarted,
+					sdk.NewAttribute(types.AttributeKeyRollappId, seq.RollappId),
+					sdk.NewAttribute(types.AttributeKeyNextProposer, successor.Address),
+				),
+			)
 		}
 	}
-
-	return types.Sequencer{}
-}
-
-// startRotation sets the nextSequencer for the rollapp.
-// This function will not clear the current proposer
-// This function called when the sequencer has finished its notice period
-func (k Keeper) startRotation(ctx sdk.Context, rollappId string) {
-	// next proposer can be empty if there are no bonded sequencers available
-	nextProposer := k.ExpectedNextProposer(ctx, rollappId)
-	k.setNextProposer(ctx, rollappId, nextProposer.Address)
-
-	k.Logger(ctx).Info("rotation started", "rollappId", rollappId, "nextProposer", nextProposer.Address)
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeRotationStarted,
-			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
-			sdk.NewAttribute(types.AttributeKeyNextProposer, nextProposer.Address),
-		),
-	)
-}
-
-// CompleteRotation completes the sequencer rotation flow.
-// It's called when a last state update is received from the active, rotating sequencer.
-// it will start unbonding the current proposer, and sets the nextProposer as the proposer.
-func (k Keeper) CompleteRotation(ctx sdk.Context, rollappId string) error {
-	proposer, ok := k.GetProposer(ctx, rollappId)
-	if !ok {
-		return errorsmod.Wrapf(gerrc.ErrInternal, "proposer not set for rollapp %s", rollappId)
-	}
-	nextProposer, ok := k.GetNextProposer(ctx, rollappId)
-	if !ok {
-		return errorsmod.Wrapf(gerrc.ErrInternal, "next proposer not set for rollapp %s", rollappId)
-	}
-
-	// start unbonding the current proposer
-	k.startUnbondingPeriodForSequencer(ctx, &proposer)
-
-	// change the proposer
-	k.removeNextProposer(ctx, rollappId)
-	k.SetProposer(ctx, rollappId, nextProposer.Address)
-
-	if nextProposer.Address == NO_SEQUENCER_AVAILABLE {
-		k.Logger(ctx).Info("Rollapp left with no proposer.", "RollappID", rollappId)
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeProposerRotated,
-			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
-			sdk.NewAttribute(types.AttributeKeySequencer, nextProposer.Address),
-		),
-	)
-
 	return nil
+}
+
+func (k Keeper) onProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) error {
+	allowLastBlock := proposer.NoticeElapsed(ctx.BlockTime())
+	if !allowLastBlock {
+		return errorsmod.Wrap(gerrc.ErrFault, "sequencer has submitted last block without finishing notice period")
+	}
+	k.SetProposer(ctx, proposer.RollappId, types.SentinelSeqAddr)
+	return errorsmod.Wrap(k.chooseProposer(ctx, proposer.RollappId), "choose proposer")
+}
+
+func (k Keeper) NoticeElapsedSequencers(ctx sdk.Context, endTime time.Time) ([]types.Sequencer, error) {
+	ret := []types.Sequencer{}
+	store := ctx.KVStore(k.storeKey)
+	iterator := store.Iterator(types.NoticePeriodQueueKey, sdk.PrefixEndBytes(types.NoticeQueueByTimeKey(endTime)))
+
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		addr := string(iterator.Value())
+		seq, err := k.GetRealSequencer(ctx, string(iterator.Value()))
+		if err != nil {
+			return nil, gerrc.ErrInternal.Wrapf("sequencer in notice queue but missing sequencer object: addr: %s", addr)
+		}
+		ret = append(ret, seq)
+	}
+
+	return ret, nil
+}
+
+func (k Keeper) AddToNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
+	store := ctx.KVStore(k.storeKey)
+	noticePeriodKey := types.NoticeQueueBySeqTimeKey(seq.Address, seq.NoticePeriodTime)
+	store.Set(noticePeriodKey, []byte(seq.Address))
+}
+
+func (k Keeper) removeFromNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
+	store := ctx.KVStore(k.storeKey)
+	noticePeriodKey := types.NoticeQueueBySeqTimeKey(seq.Address, seq.NoticePeriodTime)
+	store.Delete(noticePeriodKey)
 }

@@ -4,6 +4,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -15,7 +16,7 @@ var (
 
 func NewMsgUpdateSequencerInformation(creator string, metadata *SequencerMetadata) (*MsgUpdateSequencerInformation, error) {
 	if metadata == nil {
-		return nil, ErrInvalidRequest
+		return nil, gerrc.ErrInvalidArgument
 	}
 	return &MsgUpdateSequencerInformation{
 		Creator:  creator,

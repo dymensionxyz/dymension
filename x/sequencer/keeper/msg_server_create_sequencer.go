@@ -2,13 +2,13 @@ package keeper
 
 import (
 	"context"
-	"errors"
 	"slices"
 	"strconv"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -20,34 +20,44 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	// check to see if the rollapp has been registered before
 	rollapp, found := k.rollappKeeper.GetRollapp(ctx, msg.RollappId)
 	if !found {
-		return nil, types.ErrUnknownRollappID
+		return nil, rollapptypes.ErrRollappNotFound
 	}
 
-	if rollapp.Frozen {
-		return nil, types.ErrRollappFrozen
+	// check to see if the seq has been registered before
+	if _, err := k.GetRealSequencer(ctx, msg.Creator); err == nil {
+		return nil, types.ErrSequencerAlreadyExists
+	}
+
+	/*
+		If we are awaiting the last block from the proposer we stop new sequencer registrations, because
+		we don't want to set a new successor while the last block from the proposer is in flight.
+		TODO: possible to simplify?
+	*/
+	if k.awaitingLastProposerBlock(ctx, msg.RollappId) {
+		return nil, types.ErrRegisterSequencerWhileAwaitingLastProposerBlock
+	}
+
+	if err := k.sufficientBond(ctx, msg.Bond); err != nil {
+		return nil, err
 	}
 
 	if err := msg.VMSpecificValidate(rollapp.VmType); err != nil {
-		return nil, errors.Join(types.ErrInvalidRequest, err)
-	}
-
-	// check to see if the sequencer has been registered before
-	if _, found = k.GetSequencer(ctx, msg.Creator); found {
-		return nil, types.ErrSequencerExists
+		return nil, errorsmod.Wrap(err, "vm specific validate")
 	}
 
 	// In case InitialSequencer is set to one or more bech32 addresses, only one of them can be the first to register,
 	// and is automatically selected as the first proposer, allowing the Rollapp to be set to 'launched'
 	// (provided that all the immutable fields are set in the Rollapp).
 	// This limitation prevents scenarios such as:
-	// a) any unintended initial sequencer getting registered before the immutable fields are set in the Rollapp.
-	// b) situation when sequencer "X" is registered prior to the initial sequencer,
-	// after which the initial sequencer's address is set to sequencer X's address, effectively preventing:
-	// 	1. the initial sequencer from getting selected as the first proposer,
+	// a) any unintended initial seq getting registered before the immutable fields are set in the Rollapp.
+	// b) situation when seq "X" is registered prior to the initial seq,
+	// after which the initial seq's address is set to seq X's address, effectively preventing:
+	// 	1. the initial seq from getting selected as the first proposer,
 	// 	2. the rollapp from getting launched again
-	// In case the InitialSequencer is set to the "*" wildcard, any sequencer can be the first to register.
+	// In case the InitialSequencer is set to the "*" wildcard, any seq can be the first to register.
 	if !rollapp.Launched {
-		isInitialOrAllAllowed := slices.Contains(strings.Split(rollapp.InitialSequencer, ","), msg.Creator) || rollapp.InitialSequencer == "*"
+		isInitialOrAllAllowed := slices.Contains(strings.Split(rollapp.InitialSequencer, ","), msg.Creator) ||
+			rollapp.InitialSequencer == "*"
 		if !isInitialOrAllAllowed {
 			return nil, types.ErrNotInitialSequencer
 		}
@@ -63,47 +73,22 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		}
 	}
 
-	// validate bond requirement
-	minBond := k.GetParams(ctx).MinBond
-	if !msg.Bond.IsGTE(minBond) {
-		return nil, errorsmod.Wrapf(
-			types.ErrInsufficientBond, "got %s, expected %s", msg.Bond, minBond,
-		)
-	}
+	seq := k.NewSequencer(ctx, msg.RollappId)
+	seq.DymintPubKey = msg.DymintPubKey
+	seq.Address = msg.Creator
+	seq.Status = types.Bonded
+	seq.Metadata = msg.Metadata
+	seq.OptedIn = true
 
-	// send bond to module account
-	seqAcc := sdk.MustAccAddressFromBech32(msg.Creator)
-	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.Bond))
-	if err != nil {
+	if err := k.sendToModule(ctx, seq, msg.Bond); err != nil {
 		return nil, err
 	}
 
-	bond := sdk.NewCoins(msg.Bond)
-	sequencer := types.Sequencer{
-		Address:      msg.Creator,
-		DymintPubKey: msg.DymintPubKey,
-		RollappId:    msg.RollappId,
-		Metadata:     msg.Metadata,
-		Status:       types.Bonded,
-		Tokens:       bond,
-	}
+	k.SetSequencer(ctx, *seq)
 
-	// we currently only support setting next proposer (or empty one) before the rotation started. This is in order to
-	// avoid handling the case a potential next proposer bonds in the middle of a rotation.
-	// This will be handled in next iteration.
-	nextProposer, ok := k.GetNextProposer(ctx, msg.RollappId)
-	if ok && nextProposer.IsEmpty() {
-		k.Logger(ctx).Info("rotation in progress. sequencer registration disabled", "rollappId", sequencer.RollappId)
-		return nil, types.ErrRotationInProgress
+	if err := k.chooseProposer(ctx, msg.RollappId); err != nil {
+		return nil, err
 	}
-
-	// if no proposer set for he rollapp, set this sequencer as the proposer
-	_, proposerExists := k.GetProposer(ctx, msg.RollappId)
-	if !proposerExists {
-		k.SetProposer(ctx, sequencer.RollappId, sequencer.Address)
-	}
-
-	k.SetSequencer(ctx, sequencer)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -111,7 +96,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			sdk.NewAttribute(types.AttributeKeyRollappId, msg.RollappId),
 			sdk.NewAttribute(types.AttributeKeySequencer, msg.Creator),
 			sdk.NewAttribute(types.AttributeKeyBond, msg.Bond.String()),
-			sdk.NewAttribute(types.AttributeKeyProposer, strconv.FormatBool(!proposerExists)),
+			sdk.NewAttribute(types.AttributeKeyProposer, strconv.FormatBool(k.isProposer(ctx, *seq))),
 		),
 	)
 

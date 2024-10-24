@@ -44,7 +44,6 @@ func (s *KeeperTestHelper) CreateDefaultRollappAndProposer() (string, string) {
 	return rollappId, proposer
 }
 
-// creates a rollapp and return its rollappID
 func (s *KeeperTestHelper) CreateDefaultRollapp() string {
 	rollappId := urand.RollappID()
 	s.CreateRollappByName(rollappId)

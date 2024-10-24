@@ -60,7 +60,7 @@ func (k Keeper) GetAllCanonicalClients(ctx sdk.Context) (clients []types.Canonic
 }
 
 func (k Keeper) expectedClient(ctx sdk.Context) ibctm.ClientState {
-	return types.ExpectedCanonicalClientParams(k.sequencerKeeper.UnbondingTime(ctx))
+	return types.DefaultExpectedCanonicalClientParams() // TODO: adjust
 }
 
 func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.ClientState, rollappId string, maxHeight uint64) error {

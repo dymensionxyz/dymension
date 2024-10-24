@@ -16,9 +16,7 @@ func TestMigrate2to3(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
 
 	// create legacy subspace
-	testValue := 555555 * time.Second // random value for testing
 	params := types.DefaultParams()
-	params.UnbondingTime = testValue
 
 	seqSubspace, ok := app.AppKeepers.ParamsKeeper.GetSubspace(types.ModuleName)
 	if !ok {
@@ -43,7 +41,4 @@ func TestMigrate2to3(t *testing.T) {
 
 	// Check if the value was migrated correctly
 	params = app.SequencerKeeper.GetParams(ctx)
-	if params.UnbondingTime != testValue {
-		t.Errorf("UnbondingTime not migrated correctly: got %v, expected %v", params.UnbondingTime, testValue)
-	}
 }

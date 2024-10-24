@@ -16,7 +16,7 @@ func NewMsgUnbond(creator string) *MsgUnbond {
 func (msg *MsgUnbond) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(ErrInvalidAddr, "invalid creator address (%s)", err)
 	}
 
 	return nil

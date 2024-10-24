@@ -1,21 +1,17 @@
 package types
 
 import (
-	"bytes"
 	"encoding/binary"
 )
 
 var (
 	LivenessEventQueueKeyPrefix = []byte("LivenessEventQueue")
 	LivenessEventQueueSlash     = []byte("s")
-	LivenessEventQueueJail      = []byte("j")
 )
 
 func LivenessEventQueueKey(e LivenessEvent) []byte {
 	v := LivenessEventQueueSlash
-	if e.IsJail {
-		v = LivenessEventQueueJail
-	}
+
 	ret := LivenessEventQueueIterHeightKey(e.HubHeight)
 	ret = append(ret, []byte("/")...)
 	ret = append(ret, v...)
@@ -46,9 +42,6 @@ func LivenessEventQueueKeyToEvent(k []byte) LivenessEvent {
 	j := i + 8 + 1 // 8 is from big endian, 1 is from '/'
 	l := j + 1 + 1 // kind is 1 character and the other 1 is from '/'
 	ret.HubHeight = int64(binary.BigEndian.Uint64(k[i : i+8]))
-	if bytes.Equal(k[j:j+1], LivenessEventQueueJail) {
-		ret.IsJail = true
-	}
 	ret.RollappId = string(k[l:])
 	return ret
 }

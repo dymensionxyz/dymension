@@ -109,17 +109,6 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid: false,
 		},
 		{
-			desc: "invalid LivenessJailBlocks",
-			genState: &types.GenesisState{
-				Params:                             types.DefaultParams().WithLivenessJailBlocks(0),
-				RollappList:                        []types.Rollapp{{RollappId: "0"}},
-				StateInfoList:                      []types.StateInfo{},
-				LatestStateInfoIndexList:           []types.StateInfoIndex{},
-				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
-			},
-			valid: false,
-		},
-		{
 			desc: "duplicated stateInfo",
 			genState: &types.GenesisState{
 				Params:                             types.DefaultParams(),

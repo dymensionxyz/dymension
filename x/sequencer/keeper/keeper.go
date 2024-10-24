@@ -15,10 +15,11 @@ import (
 type Keeper struct {
 	authority string // authority is the x/gov module account
 
-	cdc           codec.BinaryCodec
-	storeKey      storetypes.StoreKey
-	bankKeeper    types.BankKeeper
-	rollappKeeper types.RollappKeeper
+	cdc            codec.BinaryCodec
+	storeKey       storetypes.StoreKey
+	bankKeeper     types.BankKeeper
+	rollappKeeper  types.RollappKeeper
+	unbondBlockers []UnbondBlocker // TODO: populate
 }
 
 func NewKeeper(
@@ -44,4 +45,8 @@ func NewKeeper(
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+func (k Keeper) SetUnbondBlockers(ubs []UnbondBlocker) {
+	k.unbondBlockers = ubs
 }
