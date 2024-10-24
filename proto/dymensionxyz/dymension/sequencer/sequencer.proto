@@ -16,25 +16,26 @@ import "dymensionxyz/dymension/sequencer/operating_status.proto";
 // Sequencer defines a sequencer identified by its' address (sequencerAddress).
 // The sequencer could be attached to only one rollapp (rollappId).
 message Sequencer {
-  // address is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
-  string address = 1;
-  // pubkey is the public key of the sequencers' dymint client, as a Protobuf Any.
-  google.protobuf.Any dymintPubKey = 2 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
-  // rollappId defines the rollapp to which the sequencer belongs.
-  string rollappId = 3;
-  // metadata defines the extra information for the sequencer.
-  SequencerMetadata metadata = 4 [(gogoproto.nullable) = false];
   reserved 5,9,10;
-  
+
+  // Address is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+  string address = 1;
+  // DymintPubKey is the public key of the sequencers' dymint client, as a Protobuf Any.
+  google.protobuf.Any dymintPubKey = 2 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+  // RollappId defines the rollapp to which the sequencer belongs.
+  string rollappId = 3;
+  // SequencerMetadata defines the extra information for the sequencer.
+  SequencerMetadata metadata = 4 [(gogoproto.nullable) = false];
+
   bool proposer = 6 [deprecated = true];
   
-  // status is the sequencer status (bonded/unbonded).
+  // OperatingStatus is the sequencer status (bonded/unbonded).
   OperatingStatus status = 7;
 
   // OptedIn : when true and bonded, the sequencer can be chosen as proposer or successor
   bool opted_in = 12;
 
-  // tokens define the delegated tokens (incl. self-delegation).
+  // Tokens: A coins which should always be one dym coin. It's the amount of tokens the sequencer has given to the module.
   repeated cosmos.base.v1beta1.Coin tokens = 8 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
@@ -42,7 +43,7 @@ message Sequencer {
 
 
 
-  // notice_period_time defines the time when the sequencer will finish it's notice period if started
+  // NoticePeriodTime defines the time when the sequencer will finish it's notice period. Zero means not started.
   google.protobuf.Timestamp notice_period_time = 11
       [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
 }

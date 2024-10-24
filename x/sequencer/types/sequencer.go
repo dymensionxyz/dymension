@@ -10,6 +10,7 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 const (
@@ -26,21 +27,10 @@ func SentinelSequencer(rollapp string) Sequencer {
 
 // ValidateBasic performs basic validation of the sequencer object
 func (seq Sequencer) ValidateBasic() error {
-	if seq.Status == Unbonding && (seq.UnbondRequestHeight == 0 || seq.UnbondTime.IsZero()) {
-		return ErrInvalidSequencerStatus
+	if seq.Tokens.Len() != 1 {
+		return gerrc.ErrInvalidArgument.Wrap("expect one coin")
 	}
-
-	// validate notice period
-	if seq.IsNoticePeriodInProgress() && seq.NoticePeriodTime.IsZero() {
-		return ErrInvalidSequencerStatus
-	}
-
 	return nil
-}
-
-func (seq Sequencer) IsEmpty() bool {
-	// TODO: think it should be sentinel
-	return seq.Address == ""
 }
 
 func (seq Sequencer) Sentinel() bool {
@@ -55,32 +45,30 @@ func (seq Sequencer) TokensCoin() sdk.Coin {
 	return seq.Tokens[0]
 }
 
-func (seq Sequencer) AccAddr() sdk.AccAddress {
-	return sdk.MustAccAddressFromBech32(seq.Address)
-}
-
 func (seq Sequencer) SetTokensCoin(c sdk.Coin) {
 	seq.Tokens = sdk.Coins{c}
 }
 
-// IsNoticePeriodInProgress returns true if the sequencer is bonded and has an unbond request
-func (seq Sequencer) IsNoticePeriodInProgress(now time.Time) bool {
-	return seq.NoticePopulated() && !seq.NoticeElapsed(now)
+func (seq Sequencer) AccAddr() sdk.AccAddress {
+	return sdk.MustAccAddressFromBech32(seq.Address)
 }
 
-// NoticeElapsed returns true iff notice period time is populated and strictly before now
+func (seq Sequencer) NoticeInProgress(now time.Time) bool {
+	return seq.NoticeStarted() && !seq.NoticeElapsed(now)
+}
+
 func (seq Sequencer) NoticeElapsed(now time.Time) bool {
-	return seq.NoticePeriodTime != time.Time{} && seq.NoticePeriodTime.Before(now)
+	return seq.NoticeStarted() && seq.NoticePeriodTime.Before(now)
 }
 
-func (seq Sequencer) NoticePopulated() bool {
+func (seq Sequencer) NoticeStarted() bool {
 	return seq.NoticePeriodTime != time.Time{}
 }
 
 // GetDymintPubKeyHash returns the hash of the sequencer
 // as expected to be written on the rollapp ibc client headers
 func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {
-	pubKey, err := seq.getCosmosPubKey()
+	pubKey, err := seq.cosmosPubKey()
 	if err != nil {
 		return nil, err
 	}
@@ -98,9 +86,9 @@ func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {
 	return tmValidatorSet.Hash(), nil
 }
 
-// GetCometPubKey returns the bytes of the sequencer's dymint pubkey
-func (seq Sequencer) GetCometPubKey() (tmprotocrypto.PublicKey, error) {
-	pubKey, err := seq.getCosmosPubKey()
+// CometPubKey returns the bytes of the sequencer's dymint pubkey
+func (seq Sequencer) CometPubKey() (tmprotocrypto.PublicKey, error) {
+	pubKey, err := seq.cosmosPubKey()
 	if err != nil {
 		return tmprotocrypto.PublicKey{}, err
 	}
@@ -110,7 +98,7 @@ func (seq Sequencer) GetCometPubKey() (tmprotocrypto.PublicKey, error) {
 	return tmPubKey, err
 }
 
-func (seq Sequencer) getCosmosPubKey() (cryptotypes.PubKey, error) {
+func (seq Sequencer) cosmosPubKey() (cryptotypes.PubKey, error) {
 	interfaceRegistry := cdctypes.NewInterfaceRegistry()
 	cryptocodec.RegisterInterfaces(interfaceRegistry)
 	protoCodec := codec.NewProtoCodec(interfaceRegistry)

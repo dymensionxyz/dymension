@@ -10,7 +10,6 @@ var (
 	_ sdk.Msg = &MsgDecreaseBond{}
 )
 
-/* ---------------------------- MsgIncreaseBond ---------------------------- */
 func NewMsgIncreaseBond(creator string, addAmount sdk.Coin) *MsgIncreaseBond {
 	return &MsgIncreaseBond{
 		Creator:   creator,
@@ -39,7 +38,6 @@ func (msg *MsgIncreaseBond) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{creator}
 }
 
-/* ---------------------------- MsgDecreaseBond ---------------------------- */
 func NewMsgDecreaseBond(creator string, decreaseBond sdk.Coin) *MsgDecreaseBond {
 	return &MsgDecreaseBond{
 		Creator:        creator,

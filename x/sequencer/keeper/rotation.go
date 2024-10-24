@@ -11,10 +11,8 @@ import (
 
 func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
 	seq.NoticePeriodTime = ctx.BlockTime().Add(k.NoticePeriod(ctx))
-	seq.OptedIn = false
 
-	k.UpdateSequencerLeg(ctx, seq)
-	k.AddSequencerToNoticePeriodQueue(ctx, *seq)
+	k.AddToNoticeQueue(ctx, *seq)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -33,12 +31,12 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 // The hub will expect a "last state update" from the sequencer to start unbonding
 // In the middle of rotation, the next proposer required a notice period as well.
 func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, now time.Time) {
-	seqs := k.GetMatureNoticePeriodSequencers(ctx, now)
+	seqs := k.GetNoticeElapsedSequencers(ctx, now)
 	for _, seq := range seqs {
 		if !k.isSuccessor(ctx, seq) {
 			// next proposer cannot mature its notice period until the current proposer has finished rotation
 			// minor effect as notice_period >>> rotation time
-			k.removeNoticePeriodSequencer(ctx, seq)
+			k.removeFromNoticeQueue(ctx, seq)
 			if err := k.chooseSuccessor(ctx, seq.RollappId); err != nil {
 				k.Logger(ctx).Error("Choose successor.", "err", err)
 				continue
@@ -66,12 +64,7 @@ func (k Keeper) onProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) e
 	return nil
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                notice period                               */
-/* -------------------------------------------------------------------------- */
-
-// GetMatureNoticePeriodSequencers returns all sequencers that have finished their notice period
-func (k Keeper) GetMatureNoticePeriodSequencers(ctx sdk.Context, endTime time.Time) (list []types.Sequencer) {
+func (k Keeper) GetNoticeElapsedSequencers(ctx sdk.Context, endTime time.Time) (list []types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := store.Iterator(types.NoticePeriodQueueKey, sdk.PrefixEndBytes(types.NoticePeriodQueueByTimeKey(endTime)))
 
@@ -86,8 +79,7 @@ func (k Keeper) GetMatureNoticePeriodSequencers(ctx sdk.Context, endTime time.Ti
 	return
 }
 
-// AddSequencerToNoticePeriodQueue set sequencer in notice period queue
-func (k Keeper) AddSequencerToNoticePeriodQueue(ctx sdk.Context, seq types.Sequencer) {
+func (k Keeper) AddToNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&seq)
 
@@ -95,8 +87,7 @@ func (k Keeper) AddSequencerToNoticePeriodQueue(ctx sdk.Context, seq types.Seque
 	store.Set(noticePeriodKey, b)
 }
 
-// remove sequencer from notice period queue
-func (k Keeper) removeNoticePeriodSequencer(ctx sdk.Context, seq types.Sequencer) {
+func (k Keeper) removeFromNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
 	noticePeriodKey := types.NoticePeriodSequencerKey(seq.Address, seq.NoticePeriodTime)
 	store.Delete(noticePeriodKey)

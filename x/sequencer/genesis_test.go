@@ -103,7 +103,7 @@ func TestInitGenesis(t *testing.T) {
 	k, ctx := keepertest.SequencerKeeper(t)
 	sequencer.InitGenesis(ctx, *k, genesisState)
 
-	require.Len(t, k.GetMatureNoticePeriodSequencers(ctx, timeToTest), 1)
+	require.Len(t, k.GetNoticeElapsedSequencers(ctx, timeToTest), 1)
 	require.Len(t, k.GetMatureUnbondingSequencers(ctx, timeToTest), 2)
 	require.Len(t, k.GetAllProposers(ctx), 2)
 	require.Len(t, k.GetAllBondReductions(ctx), 1)

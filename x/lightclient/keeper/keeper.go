@@ -56,7 +56,7 @@ func (k Keeper) GetSequencerPubKey(ctx sdk.Context, sequencerAddr string) (tmpro
 	if !found {
 		return tmprotocrypto.PublicKey{}, fmt.Errorf("sequencer not found")
 	}
-	return seq.GetCometPubKey()
+	return seq.CometPubKey()
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
