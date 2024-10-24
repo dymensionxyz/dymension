@@ -19,7 +19,7 @@ func (s *SequencerTestSuite) TestUnbondingNonProposer() {
 	s.Equal(proposerAddr, proposer.Address)
 
 	/* ------------------------- unbond non proposer sequencer ------------------------ */
-	bondedSeq, found := s.App.SequencerKeeper.GetSequencer(s.Ctx, bondedAddr)
+	bondedSeq, err := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, bondedAddr)
 	s.Require().True(found)
 	s.Equal(types.Bonded, bondedSeq.Status)
 

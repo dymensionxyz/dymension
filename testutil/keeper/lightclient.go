@@ -19,6 +19,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	cometbftdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
@@ -137,13 +138,20 @@ type MockSequencerKeeper struct {
 }
 
 func (m *MockSequencerKeeper) GetRealSequencer(ctx sdk.Context, addr string) (sequencertypes.Sequencer, error) {
-	// TODO implement me
-	panic("implement me")
+	seq, ok := m.sequencers[addr]
+	var err error
+	if !ok {
+		err = gerrc.ErrNotFound
+	}
+	return seq, err
 }
 
 func (m *MockSequencerKeeper) RollappSequencers(ctx sdk.Context, rollappId string) (list []sequencertypes.Sequencer) {
-	// TODO implement me
-	panic("implement me")
+	seqs := make([]sequencertypes.Sequencer, 0, len(m.sequencers))
+	for _, seq := range m.sequencers {
+		seqs = append(seqs, seq)
+	}
+	return seqs
 }
 
 func (m *MockSequencerKeeper) UnbondingTime(ctx sdk.Context) (res time.Duration) {
@@ -154,19 +162,6 @@ func NewMockSequencerKeeper(sequencers map[string]sequencertypes.Sequencer) *Moc
 	return &MockSequencerKeeper{
 		sequencers: sequencers,
 	}
-}
-
-func (m *MockSequencerKeeper) GetSequencer(ctx sdk.Context, seqAddr string) (sequencertypes.Sequencer, bool) {
-	seq, ok := m.sequencers[seqAddr]
-	return seq, ok
-}
-
-func (m *MockSequencerKeeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list []sequencertypes.Sequencer) {
-	seqs := make([]sequencertypes.Sequencer, 0, len(m.sequencers))
-	for _, seq := range m.sequencers {
-		seqs = append(seqs, seq)
-	}
-	return seqs
 }
 
 type MockRollappKeeper struct{}

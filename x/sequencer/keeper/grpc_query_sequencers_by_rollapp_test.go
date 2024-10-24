@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
@@ -22,20 +23,20 @@ func (s *SequencerTestSuite) TestSequencersByRollappQuery3() {
 	// create 2 sequencer
 	addr11 := s.CreateSequencer(s.Ctx, rollappId, pk11)
 	addr21 := s.CreateSequencer(s.Ctx, rollappId, pk12)
-	seq1, found := s.App.SequencerKeeper.GetSequencer(s.Ctx, addr11)
-	require.True(s.T(), found)
-	seq2, found := s.App.SequencerKeeper.GetSequencer(s.Ctx, addr21)
-	require.True(s.T(), found)
+	seq1, err := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, addr11)
+	require.NoError(s.T(), err)
+	seq2, err := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, addr21)
+	require.NoError(s.T(), err)
 	seq1Response := types.QueryGetSequencersByRollappResponse{
 		Sequencers: []types.Sequencer{seq1, seq2},
 	}
 
 	addr12 := s.CreateSequencer(s.Ctx, rollappId2, pk21)
 	addr22 := s.CreateSequencer(s.Ctx, rollappId2, pk22)
-	seq3, found := s.App.SequencerKeeper.GetSequencer(s.Ctx, addr12)
-	require.True(s.T(), found)
-	seq4, found := s.App.SequencerKeeper.GetSequencer(s.Ctx, addr22)
-	require.True(s.T(), found)
+	seq3, err := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, addr12)
+	require.NoError(s.T(), err)
+	seq4, err := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, addr22)
+	require.NoError(s.T(), err)
 	seq2Response := types.QueryGetSequencersByRollappResponse{
 		Sequencers: []types.Sequencer{seq3, seq4},
 	}
@@ -65,7 +66,7 @@ func (s *SequencerTestSuite) TestSequencersByRollappQuery3() {
 			request: &types.QueryGetSequencersByRollappRequest{
 				RollappId: strconv.Itoa(100000),
 			},
-			err: types.ErrRollappNotFound,
+			err: rollapptypes.ErrRollappNotFound,
 		},
 		{
 			desc: "InvalidRequest",
@@ -149,7 +150,7 @@ func (s *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 			request: &types.QueryGetSequencersByRollappByStatusRequest{
 				RollappId: strconv.Itoa(100000),
 			},
-			err: types.ErrRollappNotFound,
+			err: rollapptypes.ErrRollappNotFound,
 		},
 		{
 			desc: "InvalidRequest",
@@ -165,8 +166,8 @@ func (s *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 				require.Len(t, response.Sequencers, len(tc.response_addr))
 
 				for _, seqAddr := range tc.response_addr {
-					seq, found := s.App.SequencerKeeper.GetSequencer(s.Ctx, seqAddr)
-					require.True(t, found)
+					seq, err := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, seqAddr)
+					require.NoError(t, err)
 					require.Contains(t, response.Sequencers, seq)
 				}
 			}

@@ -2,7 +2,6 @@ package types
 
 import (
 	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -24,27 +23,24 @@ func TestValidateBasic(t *testing.T) {
 		{
 			"invalid min bond",
 			Params{
-				MinBond:                 sdk.Coin{Denom: "testdenom", Amount: sdk.NewInt(-5)},
-				UnbondingTime:           params.UnbondingTime,
-				LivenessSlashMultiplier: params.LivenessSlashMultiplier,
+				MinBond:                    sdk.Coin{Denom: "testdenom", Amount: sdk.NewInt(-5)},
+				LivenessSlashMinMultiplier: params.LivenessSlashMinMultiplier,
 			},
 			true,
 		},
 		{
 			"invalid unbonding time",
 			Params{
-				MinBond:                 params.MinBond,
-				UnbondingTime:           -time.Second,
-				LivenessSlashMultiplier: params.LivenessSlashMultiplier,
+				MinBond:                    params.MinBond,
+				LivenessSlashMinMultiplier: params.LivenessSlashMinMultiplier,
 			},
 			true,
 		},
 		{
 			"invalid liveness slash multiplier",
 			Params{
-				MinBond:                 params.MinBond,
-				UnbondingTime:           params.UnbondingTime,
-				LivenessSlashMultiplier: sdk.NewDec(-1),
+				MinBond:                    params.MinBond,
+				LivenessSlashMinMultiplier: sdk.NewDec(-1),
 			},
 			true,
 		},
