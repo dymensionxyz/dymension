@@ -42,7 +42,7 @@ func (k Keeper) GetRollappPotentialProposers(ctx sdk.Context, rollappId string) 
 }
 
 func (k Keeper) GetRollappBondedSequencers(ctx sdk.Context, rollappId string) []types.Sequencer {
-	return k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
+	return k.RollappSequencersByStatus(ctx, rollappId, types.Bonded)
 }
 
 func (k Keeper) GetAllSequencers(ctx sdk.Context) (list []types.Sequencer) {
