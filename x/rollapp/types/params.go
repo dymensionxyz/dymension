@@ -22,7 +22,6 @@ var (
 
 	KeyLivenessSlashBlocks   = []byte("LivenessSlashBlocks")
 	KeyLivenessSlashInterval = []byte("LivenessSlashInterval")
-	KeyLivenessJailBlocks    = []byte("LivenessJailBlocks")
 
 	// KeyAppRegistrationFee defines the key to store the cost of the app
 	KeyAppRegistrationFee = []byte("AppRegistrationFee")
