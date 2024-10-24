@@ -64,7 +64,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k Keeper) GetSequencerFromValHash(ctx sdk.Context, rollappID string, blockValHash []byte) (string, error) {
-	sequencerList := k.sequencerKeeper.GetSequencersByRollapp(ctx, rollappID)
+	sequencerList := k.sequencerKeeper.RollappSequencers(ctx, rollappID)
 	for _, seq := range sequencerList {
 		seqHash, err := seq.GetDymintPubKeyHash()
 		if err != nil {

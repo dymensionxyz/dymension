@@ -2,7 +2,6 @@ package types
 
 import (
 	"context"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -14,8 +13,7 @@ import (
 
 type SequencerKeeperExpected interface {
 	GetSequencer(ctx sdk.Context, sequencerAddress string) (val sequencertypes.Sequencer, found bool)
-	GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list []sequencertypes.Sequencer)
-	UnbondingTime(ctx sdk.Context) (res time.Duration)
+	RollappSequencers(ctx sdk.Context, rollappId string) (list []sequencertypes.Sequencer)
 }
 
 type RollappKeeperExpected interface {
