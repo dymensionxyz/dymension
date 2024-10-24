@@ -6,47 +6,43 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
-	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 )
 
-// UnbondCondition defines an unbond condition implementer.
-// It is implemented by modules.
-// Returning false means the sequencer will not be allowed to unbond, it should also
-// contain the unbond reason.
-type UnbondCondition interface {
+type UnbondChecker interface {
+	// CanUnbond can return a types.UnbondNotAllowed error with a reason, or nil
 	CanUnbond(ctx sdk.Context, sequencer types.Sequencer) error
 }
 
-func (k Keeper) tryUnbond(ctx sdk.Context, seq types.Sequencer, amt *sdk.Coin) error {
-	if k.IsProposerOrSuccessor(ctx, seq) {
+func (k Keeper) tryUnbond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) error {
+	if k.IsProposerOrSuccessor(ctx, *seq) {
 		return types.ErrUnbondProposerOrSuccessor
 	}
 	for _, c := range k.unbondConditions {
-		if err := c.CanUnbond(ctx, seq); err != nil {
-			return errorsmod.Wrap(err, "other module can unbond")
+		if err := c.CanUnbond(ctx, *seq); err != nil {
+			return errorsmod.Wrap(err, "other module")
 		}
 	}
-	if amt != nil {
-		// partial refund
-		bond := seq.TokensCoin()
-		minBond := k.GetParams(ctx).MinBond
-		maxReduction, _ := bond.SafeSub(minBond)
-		if maxReduction.IsLT(*amt) {
-			return errorsmod.Wrapf(types.ErrUnbondNotAllowed,
-				"attempted reduction: %s, max reduction: %s",
-				*amt, ucoin.NonNegative(maxReduction),
-			)
-		}
-		return errorsmod.Wrap(k.refundTokens(ctx, seq, *amt), "refund")
+	// partial refund
+	bond := seq.TokensCoin()
+	minBond := k.GetParams(ctx).MinBond
+	maxReduction, _ := bond.SafeSub(minBond)
+	isPartial := !amt.IsEqual(bond)
+	if isPartial && maxReduction.IsLT(amt) {
+		return errorsmod.Wrapf(types.ErrUnbondNotAllowed,
+			"attempted reduction: %s, max reduction: %s",
+			amt, ucoin.NonNegative(maxReduction),
+		)
 	}
-	// total refund + unbond
-	if err := k.refundTokens(ctx, seq, seq.TokensCoin()); err != nil {
+	if err := k.refundTokens(ctx, seq, amt); err != nil {
 		return errorsmod.Wrap(err, "refund")
 	}
-	return errorsmod.Wrap(k.unbond(ctx, seq), "unbond")
+	if !isPartial {
+		return errorsmod.Wrap(k.unbond(ctx, seq), "unbond")
+	}
+	return nil
 }
 
-func (k Keeper) unbond(ctx sdk.Context, seq types.Sequencer) error {
+func (k Keeper) unbond(ctx sdk.Context, seq *types.Sequencer) error {
 	if k.isNextProposer(ctx, seq) {
 		return gerrc.ErrInternal.Wrap("unbond next proposer")
 	}
@@ -57,23 +53,16 @@ func (k Keeper) unbond(ctx sdk.Context, seq types.Sequencer) error {
 	return nil
 }
 
-func (k Keeper) refundTokens(ctx sdk.Context, seq types.Sequencer, amt sdk.Coin) error {
-	return errorsmod.Wrap(k.moveTokens(ctx, seq, amt, uptr.To(seq.AccAddr())), "move tokens")
+func (k Keeper) burnTokens(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) error {
+	seq.SetTokensCoin(seq.TokensCoin().Sub(amt))
+	return k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(amt))
 }
 
-func (k Keeper) moveTokens(ctx sdk.Context, seq types.Sequencer, amt sdk.Coin, recipient *sdk.AccAddress) error {
-	amts := sdk.NewCoins(amt)
-	if recipient != nil {
-		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, *recipient, amts)
-		if err != nil {
-			return errorsmod.Wrap(err, "bank send")
-		}
-	} else {
-		err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, amts)
-		if err != nil {
-			return errorsmod.Wrap(err, "burn")
-		}
-	}
-	// TODO: write object
-	return nil
+func (k Keeper) refundTokens(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) error {
+	return errorsmod.Wrap(k.sendTokens(ctx, seq, amt, seq.AccAddr()), "send tokens")
+}
+
+func (k Keeper) sendTokens(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin, recipient sdk.AccAddress) error {
+	seq.SetTokensCoin(seq.TokensCoin().Sub(amt))
+	return k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, sdk.NewCoins(amt))
 }

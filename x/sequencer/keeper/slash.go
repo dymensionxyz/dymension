@@ -8,10 +8,7 @@ import (
 )
 
 func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
-	seq, err := k.GetProposer(ctx, rollappID)
-	if err != nil {
-		return errorsmod.Wrap(err, "get proposer")
-	}
+	seq := k.GetProposer(ctx, rollappID)
 	mul := k.GetParams(ctx).LivenessSlashMinMultiplier
 	abs := k.GetParams(ctx).LivenessSlashMinAbsolute
 	tokens := seq.TokensCoin()
@@ -37,11 +34,11 @@ func (k Keeper) HandleFraud(ctx sdk.Context, seq types.Sequencer, rewardee *sdk.
 func (k Keeper) slash(ctx sdk.Context, seq types.Sequencer, amt sdk.Coin, rewardMul sdk.Dec, rewardee sdk.AccAddress) error {
 	rewardCoin := ucoin.MulDec(rewardMul, amt)[0]
 	if !rewardCoin.IsZero() {
-		err := k.moveTokens(ctx, seq, rewardCoin, &rewardee)
+		err := k.sendTokens(ctx, &seq, rewardCoin, rewardee)
 		if err != nil {
-			return errorsmod.Wrap(err, "move tokens")
+			return errorsmod.Wrap(err, "send")
 		}
 	}
 	remainder := amt.Sub(rewardCoin)
-	return errorsmod.Wrap(k.moveTokens(ctx, seq, remainder, nil), "move tokens")
+	return errorsmod.Wrap(k.burnTokens(ctx, &seq, remainder), "burn")
 }
