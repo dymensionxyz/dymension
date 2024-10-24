@@ -15,6 +15,6 @@ func (k Keeper) SentinelSequencer(ctx sdk.Context, rollapp string) types.Sequenc
 func (k Keeper) NewSequencer(ctx sdk.Context, rollapp string) *types.Sequencer {
 	return &types.Sequencer{
 		RollappId: rollapp,
-		Tokens:    sdk.NewCoins(sdk.NewCoin(k.bondDenom(ctx), sdk.NewInt(0))),
+		Tokens:    sdk.Coins{sdk.NewCoin(k.bondDenom(ctx), sdk.NewInt(0))},
 	}
 }
