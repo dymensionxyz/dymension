@@ -9,7 +9,7 @@ import (
 )
 
 type UnbondChecker interface {
-	// CanUnbond can return a types.UnbondNotAllowed error with a reason, or nil
+	// CanUnbond should return a types.UnbondNotAllowed error with a reason, or nil (or another error)
 	CanUnbond(ctx sdk.Context, sequencer types.Sequencer) error
 }
 
@@ -22,7 +22,6 @@ func (k Keeper) tryUnbond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) e
 			return errorsmod.Wrap(err, "other module")
 		}
 	}
-	// partial refund
 	bond := seq.TokensCoin()
 	minBond := k.GetParams(ctx).MinBond
 	maxReduction, _ := bond.SafeSub(minBond)
@@ -36,7 +35,7 @@ func (k Keeper) tryUnbond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) e
 	if err := k.refundTokens(ctx, seq, amt); err != nil {
 		return errorsmod.Wrap(err, "refund")
 	}
-	if !isPartial {
+	if seq.Tokens.IsZero() {
 		return errorsmod.Wrap(k.unbond(ctx, seq), "unbond")
 	}
 	return nil
