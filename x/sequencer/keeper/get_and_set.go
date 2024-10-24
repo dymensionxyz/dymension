@@ -9,7 +9,6 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-// GetSequencersByRollapp returns a sequencersByRollapp from its index
 func (k Keeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list []types.Sequencer) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SequencersByRollappKey(rollappId))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
@@ -37,7 +36,6 @@ func (k Keeper) GetRollappBondedSequencers(ctx sdk.Context, rollappId string) []
 	return k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
 }
 
-// GetSequencersByRollappByStatus returns a sequencersByRollapp from its index
 func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string, status types.OperatingStatus) (list []types.Sequencer) {
 	prefixKey := types.SequencersByRollappByStatusKey(rollappId, status)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), prefixKey)
@@ -103,31 +101,18 @@ func (k Keeper) tryGetSequencer(ctx sdk.Context, addr string) (types.Sequencer, 
 	return ret, nil
 }
 
-// SetSequencer set a specific sequencer in the store from its index
-func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
+func (k Keeper) SetSequencer(ctx sdk.Context, seq types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshal(&sequencer)
-	store.Set(types.SequencerKey(
-		sequencer.Address,
-	), b)
+	b := k.cdc.MustMarshal(&seq)
+	store.Set(types.SequencerKey(seq.Address), b)
 
-	seqByRollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.Address, sequencer.Status)
-	store.Set(seqByRollappKey, b)
-}
-
-// UpdateSequencerLeg updates the state of a sequencer in the keeper.
-// Parameters:
-//   - sequencer: The sequencer object to be updated.
-//   - oldStatus: An optional parameter representing the old status of the sequencer.
-//     Needs to be provided if the status of the sequencer has changed (e.g from Bonded to Unbonding).
-func (k Keeper) UpdateSequencerLeg(ctx sdk.Context, sequencer *types.Sequencer, oldStatus *types.OperatingStatus) {
-	k.SetSequencer(ctx, *sequencer)
-
-	// status changed, need to remove old status key
-	if oldStatus != nil {
-		oldKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.Address, *oldStatus)
+	for _, status := range types.AllStatus {
+		oldKey := types.SequencerByRollappByStatusKey(seq.RollappId, seq.Address, status)
 		ctx.KVStore(k.storeKey).Delete(oldKey)
 	}
+
+	seqByRollappKey := types.SequencerByRollappByStatusKey(seq.RollappId, seq.Address, seq.Status)
+	store.Set(seqByRollappKey, b)
 }
 
 // GetAllProposers returns all proposers for all rollapps

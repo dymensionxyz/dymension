@@ -87,17 +87,17 @@ func (k Keeper) GetMatureNoticePeriodSequencers(ctx sdk.Context, endTime time.Ti
 }
 
 // AddSequencerToNoticePeriodQueue set sequencer in notice period queue
-func (k Keeper) AddSequencerToNoticePeriodQueue(ctx sdk.Context, sequencer types.Sequencer) {
+func (k Keeper) AddSequencerToNoticePeriodQueue(ctx sdk.Context, seq types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshal(&sequencer)
+	b := k.cdc.MustMarshal(&seq)
 
-	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.Address, sequencer.NoticePeriodTime)
+	noticePeriodKey := types.NoticePeriodSequencerKey(seq.Address, seq.NoticePeriodTime)
 	store.Set(noticePeriodKey, b)
 }
 
 // remove sequencer from notice period queue
-func (k Keeper) removeNoticePeriodSequencer(ctx sdk.Context, sequencer types.Sequencer) {
+func (k Keeper) removeNoticePeriodSequencer(ctx sdk.Context, seq types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
-	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.Address, sequencer.NoticePeriodTime)
+	noticePeriodKey := types.NoticePeriodSequencerKey(seq.Address, seq.NoticePeriodTime)
 	store.Delete(noticePeriodKey)
 }
