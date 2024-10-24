@@ -67,7 +67,7 @@ func (k Keeper) MustGetNonSentinelSequencer(ctx sdk.Context, addr string) types.
 
 func (k Keeper) GetSequencer(ctx sdk.Context, rollapp, addr string) types.Sequencer {
 	if addr == types.SentinelSeqAddr {
-		return types.SentinelSequencer(rollapp)
+		return k.SentinelSequencer(ctx, rollapp)
 	}
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.SequencerKey(addr))

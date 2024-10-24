@@ -17,14 +17,6 @@ const (
 	SentinelSeqAddr = "sentinel"
 )
 
-func SentinelSequencer(rollapp string) Sequencer {
-	return Sequencer{
-		RollappId: rollapp,
-		Address:   SentinelSeqAddr,
-		Status:    Bonded,
-	}
-}
-
 // ValidateBasic performs basic validation of the sequencer object
 func (seq Sequencer) ValidateBasic() error {
 	if seq.Tokens.Len() != 1 {

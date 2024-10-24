@@ -25,7 +25,7 @@ func (k Keeper) chooseProposer(ctx sdk.Context, rollapp string) error {
 		slices.DeleteFunc(seqs, func(s types.Sequencer) bool { // Not efficient, could optimize.
 			return s.Address == proposer.Address
 		})
-		proposer := proposerChoiceAlgo(rollapp, seqs)
+		proposer := k.proposerChoiceAlgo(ctx, rollapp, seqs)
 		k.SetProposer(ctx, rollapp, proposer.Address)
 	}
 	return nil
@@ -42,16 +42,16 @@ func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) error {
 		slices.DeleteFunc(seqs, func(s types.Sequencer) bool { // Not efficient, could optimize.
 			return s.Address == proposer.Address
 		})
-		successor := proposerChoiceAlgo(rollapp, seqs)
+		successor := k.proposerChoiceAlgo(ctx, rollapp, seqs)
 		k.SetSuccessor(ctx, rollapp, successor.Address)
 
 	}
 	return nil
 }
 
-func proposerChoiceAlgo(rollapp string, seqs []types.Sequencer) types.Sequencer {
+func (k Keeper) proposerChoiceAlgo(ctx sdk.Context, rollapp string, seqs []types.Sequencer) types.Sequencer {
 	if len(seqs) == 0 {
-		return types.SentinelSequencer(rollapp)
+		return k.SentinelSequencer(ctx, rollapp)
 	}
 	sort.SliceStable(seqs, func(i, j int) bool {
 		return seqs[i].TokensCoin().IsGTE(seqs[j].TokensCoin())
