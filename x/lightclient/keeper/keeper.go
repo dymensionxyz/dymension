@@ -43,18 +43,18 @@ func NewKeeper(
 }
 
 // GetSequencerHash returns the sequencer's tendermint public key hash
-func (k Keeper) GetSequencerHash(ctx sdk.Context, sequencerAddr string) ([]byte, error) {
-	seq, found := k.sequencerKeeper.GetSequencer(ctx, sequencerAddr)
-	if !found {
-		return nil, fmt.Errorf("sequencer not found")
+func (k Keeper) GetSequencerHash(ctx sdk.Context, addr string) ([]byte, error) {
+	seq, err := k.sequencerKeeper.GetRealSequencer(ctx, addr)
+	if err != nil {
+		return nil, err
 	}
 	return seq.GetDymintPubKeyHash()
 }
 
-func (k Keeper) GetSequencerPubKey(ctx sdk.Context, sequencerAddr string) (tmprotocrypto.PublicKey, error) {
-	seq, found := k.sequencerKeeper.GetSequencer(ctx, sequencerAddr)
-	if !found {
-		return tmprotocrypto.PublicKey{}, fmt.Errorf("sequencer not found")
+func (k Keeper) GetSequencerPubKey(ctx sdk.Context, addr string) (tmprotocrypto.PublicKey, error) {
+	seq, err := k.sequencerKeeper.GetRealSequencer(ctx, addr)
+	if err != nil {
+		return tmprotocrypto.PublicKey{}, err
 	}
 	return seq.CometPubKey()
 }

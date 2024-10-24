@@ -12,7 +12,7 @@ import (
 func (k msgServer) KickProposer(goCtx context.Context, msg *types.MsgKickProposer) (*types.MsgKickProposerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	seq, err := k.tryGetSequencer(ctx, msg.GetCreator())
+	seq, err := k.GetRealSequencer(ctx, msg.GetCreator())
 	if err != nil {
 		return nil, err
 	}

@@ -17,7 +17,7 @@ func (k msgServer) UpdateSequencerInformation(
 ) (*types.MsgUpdateSequencerInformationResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	seq, err := k.tryGetSequencer(ctx, msg.Creator)
+	seq, err := k.GetRealSequencer(ctx, msg.Creator)
 	if err != nil {
 		return nil, err
 	}

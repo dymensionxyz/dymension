@@ -60,16 +60,9 @@ func (k Keeper) CheckLiveness(ctx sdk.Context) {
 
 // HandleLivenessEvent will slash or jail and then schedule a new event in the future.
 func (k Keeper) HandleLivenessEvent(ctx sdk.Context, e types.LivenessEvent) error {
-	if e.IsJail {
-		err := k.sequencerKeeper.JailLiveness(ctx, e.RollappId)
-		if err != nil {
-			return errorsmod.Wrap(err, "jail liveness")
-		}
-	} else {
-		err := k.sequencerKeeper.SlashLiveness(ctx, e.RollappId)
-		if err != nil {
-			return errorsmod.Wrap(err, "slash liveness")
-		}
+	err := k.sequencerKeeper.SlashLiveness(ctx, e.RollappId)
+	if err != nil {
+		return errorsmod.Wrap(err, "slash liveness")
 	}
 
 	ra := k.MustGetRollapp(ctx, e.RollappId)

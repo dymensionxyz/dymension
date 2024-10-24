@@ -11,7 +11,7 @@ import (
 
 func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.MsgUnbondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	seq, err := k.tryGetSequencer(ctx, msg.Creator)
+	seq, err := k.GetRealSequencer(ctx, msg.Creator)
 	if err != nil {
 		return nil, err
 	}

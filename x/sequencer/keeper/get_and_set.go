@@ -61,7 +61,7 @@ func (k Keeper) GetAllSequencers(ctx sdk.Context) (list []types.Sequencer) {
 }
 
 func (k Keeper) MustGetNonSentinelSequencer(ctx sdk.Context, addr string) types.Sequencer {
-	s, _ := k.tryGetSequencer(ctx, addr)
+	s, _ := k.GetRealSequencer(ctx, addr)
 	return s
 }
 
@@ -80,7 +80,7 @@ func (k Keeper) GetSequencer(ctx sdk.Context, rollapp, addr string) types.Sequen
 	return ret
 }
 
-func (k Keeper) tryGetSequencer(ctx sdk.Context, addr string) (types.Sequencer, error) {
+func (k Keeper) GetRealSequencer(ctx sdk.Context, addr string) (types.Sequencer, error) {
 	if addr == types.SentinelSeqAddr {
 		return types.Sequencer{}, gerrc.ErrInternal.Wrap("try get sequencer only to be used on external arguments")
 	}

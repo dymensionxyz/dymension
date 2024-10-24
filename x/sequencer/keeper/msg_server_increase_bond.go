@@ -16,7 +16,7 @@ func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBon
 		return nil, err
 	}
 
-	seq, err := k.tryGetSequencer(ctx, msg.GetCreator())
+	seq, err := k.GetRealSequencer(ctx, msg.GetCreator())
 	if err != nil {
 		return nil, err
 	}

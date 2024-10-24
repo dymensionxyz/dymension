@@ -74,7 +74,7 @@ func (k Keeper) NoticeElapsedSequencers(ctx sdk.Context, endTime time.Time) ([]t
 
 	for ; iterator.Valid(); iterator.Next() {
 		addr := string(iterator.Value())
-		seq, err := k.tryGetSequencer(ctx, string(iterator.Value()))
+		seq, err := k.GetRealSequencer(ctx, string(iterator.Value()))
 		if err != nil {
 			return nil, gerrc.ErrInternal.Wrapf("sequencer in notice queue but missing sequencer object: addr: %s", addr)
 		}

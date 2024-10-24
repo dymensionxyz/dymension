@@ -11,7 +11,7 @@ import (
 func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBond) (*types.MsgDecreaseBondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	seq, err := k.tryGetSequencer(ctx, msg.GetCreator())
+	seq, err := k.GetRealSequencer(ctx, msg.GetCreator())
 	if err != nil {
 		return nil, err
 	}

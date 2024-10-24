@@ -27,7 +27,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 
 	// check to see if the seq has been registered before
-	if _, err := k.tryGetSequencer(ctx, msg.Creator); err == nil {
+	if _, err := k.GetRealSequencer(ctx, msg.Creator); err == nil {
 		return nil, types.ErrSequencerAlreadyExists
 	}
 

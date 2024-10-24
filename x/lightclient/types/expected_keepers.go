@@ -12,7 +12,7 @@ import (
 )
 
 type SequencerKeeperExpected interface {
-	GetSequencer(ctx sdk.Context, sequencerAddress string) (val sequencertypes.Sequencer, found bool)
+	GetRealSequencer(ctx sdk.Context, addr string) (sequencertypes.Sequencer, error)
 	RollappSequencers(ctx sdk.Context, rollappId string) (list []sequencertypes.Sequencer)
 }
 

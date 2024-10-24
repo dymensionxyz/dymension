@@ -136,6 +136,16 @@ type MockSequencerKeeper struct {
 	sequencers map[string]sequencertypes.Sequencer
 }
 
+func (m *MockSequencerKeeper) GetRealSequencer(ctx sdk.Context, addr string) (sequencertypes.Sequencer, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (m *MockSequencerKeeper) RollappSequencers(ctx sdk.Context, rollappId string) (list []sequencertypes.Sequencer) {
+	// TODO implement me
+	panic("implement me")
+}
+
 func (m *MockSequencerKeeper) UnbondingTime(ctx sdk.Context) (res time.Duration) {
 	return types.DefaultExpectedCanonicalClientParams().UnbondingPeriod
 }
