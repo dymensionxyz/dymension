@@ -162,7 +162,6 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				InitialSequencer: "",
 				ChannelId:        "",
 				Frozen:           false,
-				RegisteredDenoms: nil,
 				Launched:         true,
 				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
@@ -194,7 +193,6 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				InitialSequencer: "",
 				ChannelId:        "",
 				Frozen:           false,
-				RegisteredDenoms: nil,
 				Launched:         false,
 				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
@@ -223,7 +221,6 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				ChannelId:        "",
 				Frozen:           tc.frozen,
 				Launched:         tc.rollappLaunched,
-				RegisteredDenoms: nil,
 				VmType:           types.Rollapp_EVM,
 				Metadata: &types.RollappMetadata{
 					Website:     "",
