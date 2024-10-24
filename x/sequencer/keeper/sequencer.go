@@ -9,12 +9,14 @@ func (k Keeper) SentinelSequencer(ctx sdk.Context, rollapp string) types.Sequenc
 	s := k.NewSequencer(ctx, rollapp)
 	s.Status = types.Bonded
 	s.Address = types.SentinelSeqAddr
+	s.OptedIn = true
 	return *s
 }
 
 func (k Keeper) NewSequencer(ctx sdk.Context, rollapp string) *types.Sequencer {
 	return &types.Sequencer{
 		RollappId: rollapp,
-		Tokens:    sdk.Coins{sdk.NewCoin(k.bondDenom(ctx), sdk.NewInt(0))},
+		// DO NOT USE NEW COINS! IT WILL REMOVE ZERO COIN
+		Tokens: sdk.Coins{sdk.NewCoin(k.bondDenom(ctx), sdk.NewInt(0))},
 	}
 }

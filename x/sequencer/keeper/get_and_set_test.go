@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
+	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/stretchr/testify/require"
 )
 
@@ -12,10 +13,10 @@ func TestSequencerGet(t *testing.T) {
 	items := createNSequencer(k, ctx, 10)
 	for _, item := range items {
 		item := item
-		rst, found := k.GetSequencer(ctx,
+		rst, err := k.GetRealSequencer(ctx,
 			item.Address,
 		)
-		require.True(t, found)
+		require.NoError(t, err)
 		require.Equal(t,
 			nullify.Fill(&item),
 			nullify.Fill(&rst),

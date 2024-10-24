@@ -78,16 +78,17 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	seq.Address = msg.Creator
 	seq.Status = types.Bonded
 	seq.Metadata = msg.Metadata
+	seq.OptedIn = true
 
 	if err := k.sendToModule(ctx, seq, msg.Bond); err != nil {
 		return nil, err
 	}
 
+	k.SetSequencer(ctx, *seq)
+
 	if err := k.chooseProposer(ctx, msg.RollappId); err != nil {
 		return nil, err
 	}
-
-	k.SetSequencer(ctx, *seq)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

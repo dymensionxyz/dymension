@@ -22,9 +22,6 @@ func (k Keeper) chooseProposer(ctx sdk.Context, rollapp string) error {
 	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr)
 	if k.GetProposer(ctx, rollapp).Sentinel() {
 		seqs := k.GetRollappPotentialProposers(ctx, rollapp)
-		slices.DeleteFunc(seqs, func(s types.Sequencer) bool { // Not efficient, could optimize.
-			return s.Address == proposer.Address
-		})
 		proposer := k.proposerChoiceAlgo(ctx, rollapp, seqs)
 		k.SetProposer(ctx, rollapp, proposer.Address)
 	}
