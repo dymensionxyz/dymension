@@ -6,7 +6,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-func (k Keeper) validateBondDenom(ctx sdk.Context, c sdk.Coin) error {
+func (k Keeper) validBondDenom(ctx sdk.Context, c sdk.Coin) error {
 	minBond := k.GetParams(ctx).MinBond
 	if c.Denom != minBond.Denom {
 		return errorsmod.Wrapf(types.ErrInvalidDenom, "expect: %s", minBond.Denom)
@@ -15,11 +15,11 @@ func (k Keeper) validateBondDenom(ctx sdk.Context, c sdk.Coin) error {
 }
 
 func (k Keeper) sufficientBond(ctx sdk.Context, c sdk.Coin) error {
-	if err := k.validateBondDenom(ctx, c); err != nil {
+	if err := k.validBondDenom(ctx, c); err != nil {
 		return err
 	}
 	minBond := k.GetParams(ctx).MinBond
-	if !minBond.IsLTE(c) {
+	if c.IsLT(minBond) {
 		return errorsmod.Wrapf(types.ErrInsufficientBond, "min: %s", minBond.Amount)
 	}
 	return nil

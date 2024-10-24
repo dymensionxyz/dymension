@@ -11,25 +11,28 @@ import (
 )
 
 // UpdateSequencerInformation defines a method for updating a sequencer
-func (k msgServer) UpdateSequencerInformation(goCtx context.Context, msg *types.MsgUpdateSequencerInformation) (*types.MsgUpdateSequencerInformationResponse, error) {
+func (k msgServer) UpdateSequencerInformation(
+	goCtx context.Context,
+	msg *types.MsgUpdateSequencerInformation,
+) (*types.MsgUpdateSequencerInformationResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	sequencer, found := k.GetSequencer(ctx, msg.Creator)
-	if !found {
-		return nil, types.ErrSequencerNotFound
+	seq, err := k.tryGetSequencer(ctx, msg.Creator)
+	if err != nil {
+		return nil, err
 	}
 
-	rollapp := k.rollappKeeper.MustGetRollapp(ctx, sequencer.RollappId)
+	rollapp := k.rollappKeeper.MustGetRollapp(ctx, seq.RollappId)
 
 	if err := msg.VMSpecificValidate(rollapp.VmType); err != nil {
 		return nil, err
 	}
 
-	sequencer.Metadata = msg.Metadata
+	seq.Metadata = msg.Metadata
 
-	k.SetSequencer(ctx, sequencer)
+	k.SetSequencer(ctx, seq)
 
-	if err := uevent.EmitTypedEvent(ctx, &sequencer); err != nil {
+	if err := uevent.EmitTypedEvent(ctx, &seq); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 

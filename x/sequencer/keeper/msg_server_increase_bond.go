@@ -12,7 +12,7 @@ import (
 func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBond) (*types.MsgIncreaseBondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := k.validateBondDenom(ctx, msg.AddAmount); err != nil {
+	if err := k.validBondDenom(ctx, msg.AddAmount); err != nil {
 		return nil, err
 	}
 
