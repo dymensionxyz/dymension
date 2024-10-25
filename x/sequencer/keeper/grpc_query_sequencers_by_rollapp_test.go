@@ -15,9 +15,9 @@ import (
 )
 
 func (s *SequencerTestSuite) TestSequencersByRollappQuery3() {
-	rollappId, pk11 := s.createRollapp()
+	rollappId, pk11 := s.createRollappWithInitialSequencer()
 	pk12 := ed25519.GenPrivKey().PubKey()
-	rollappId2, pk21 := s.createRollapp()
+	rollappId2, pk21 := s.createRollappWithInitialSequencer()
 	pk22 := ed25519.GenPrivKey().PubKey()
 
 	// create 2 sequencer
@@ -91,7 +91,7 @@ func (s *SequencerTestSuite) TestSequencersByRollappQuery3() {
 func (s *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 	msgserver := keeper.NewMsgServerImpl(s.App.SequencerKeeper)
 
-	rollappId, pk11 := s.createRollapp()
+	rollappId, pk11 := s.createRollappWithInitialSequencer()
 	pk12 := ed25519.GenPrivKey().PubKey()
 	// create 2 sequencers on rollapp1
 	addr11 := s.createSequencerWithPk(s.Ctx, rollappId, pk11)
@@ -102,7 +102,7 @@ func (s *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 	require.NoError(s.T(), err)
 
 	// create 2 sequencers on rollapp2
-	rollappId2, pk21 := s.createRollapp()
+	rollappId2, pk21 := s.createRollappWithInitialSequencer()
 	pk22 := ed25519.GenPrivKey().PubKey()
 	addr12 := s.createSequencerWithPk(s.Ctx, rollappId2, pk21)
 	addr22 := s.createSequencerWithPk(s.Ctx, rollappId2, pk22)

@@ -49,7 +49,7 @@ func (s *SequencerTestSuite) TestMinBond() {
 			seqParams.MinBond = tc.requiredBond
 			s.k().SetParams(s.Ctx, seqParams)
 
-			rollappId, pk := s.createRollapp()
+			rollappId, pk := s.createRollappWithInitialSequencer()
 
 			// fund account
 			addr := sdk.AccAddress(pk.Address())
@@ -213,7 +213,7 @@ func (s *SequencerTestSuite) TestCreateSequencer() {
 func (s *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	goCtx := sdk.WrapSDKContext(s.Ctx)
 
-	rollappId, pk := s.createRollapp()
+	rollappId, pk := s.createRollappWithInitialSequencer()
 	addr := sdk.AccAddress(pk.Address())
 	err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, addr, sdk.NewCoins(bond))
 	s.Require().NoError(err)
@@ -302,7 +302,7 @@ func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer() {
 	for _, tc := range testCases {
 
 		goCtx := sdk.WrapSDKContext(s.Ctx)
-		rollappId := s.createRollappWithInitialSeq(tc.rollappInitialSeq)
+		rollappId := s.createRollapp(tc.rollappInitialSeq)
 
 		if tc.malleate != nil {
 			tc.malleate(rollappId)
@@ -367,7 +367,7 @@ func (s *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 // create sequencer before genesisInfo is set
 func (s *SequencerTestSuite) TestCreateSequencerBeforeGenesisInfo() {
 	goCtx := sdk.WrapSDKContext(s.Ctx)
-	rollappId, pk := s.createRollapp()
+	rollappId, pk := s.createRollappWithInitialSequencer()
 
 	// mess up the genesisInfo
 	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
@@ -403,7 +403,7 @@ func (s *SequencerTestSuite) TestCreateSequencerBeforeGenesisInfo() {
 
 // create sequencer before prelaunch
 func (s *SequencerTestSuite) TestCreateSequencerBeforePrelaunch() {
-	rollappId, pk := s.createRollapp()
+	rollappId, pk := s.createRollappWithInitialSequencer()
 
 	// set prelaunch time to the rollapp
 	preLaunchTime := time.Now()

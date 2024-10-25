@@ -4,7 +4,7 @@ func (s *SequencerTestSuite) TestSlashBasic() {
 	s.Run("slash at zero does not error", func() {
 		// There shouldn't be an error if the sequencer has no tokens
 		k := s.App.SequencerKeeper
-		rollappId, pk := s.createRollapp()
+		rollappId, pk := s.createRollappWithInitialSequencer()
 		seqAddr := s.createSequencerWithPk(s.Ctx, rollappId, pk)
 		seq, found := k.GetSequencer(s.Ctx, seqAddr)
 		s.Require().True(found)
@@ -16,7 +16,7 @@ func (s *SequencerTestSuite) TestSlashBasic() {
 }
 
 func (s *SequencerTestSuite) TestJailUnknownSequencer() {
-	s.createRollapp()
+	s.createRollappWithInitialSequencer()
 	keeper := s.App.SequencerKeeper
 
 	err := keeper.JailSequencerOnFraud(s.Ctx, "unknown_sequencer")
@@ -88,7 +88,7 @@ func (s *SequencerTestSuite) TestJailBondReducingSequencer() {
 	s.Ctx = s.Ctx.WithBlockHeight(20)
 	s.Ctx = s.Ctx.WithBlockTime(time.Now())
 
-	rollappId, pk := s.createRollapp()
+	rollappId, pk := s.createRollappWithInitialSequencer()
 	seqAddr := s.createSequencerWithBond(s.Ctx, rollappId, pk, bond.AddAmount(sdk.NewInt(20)))
 
 	reduceBondMsg := types.MsgDecreaseBond{Creator: seqAddr, DecreaseAmount: sdk.NewInt64Coin(bond.Denom, 10)}

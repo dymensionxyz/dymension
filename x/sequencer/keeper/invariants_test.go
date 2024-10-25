@@ -15,7 +15,7 @@ func (s *SequencerTestSuite) TestInvariants() {
 
 	// create rollapps and sequencers
 	for i := 0; i < numOfRollapps; i++ {
-		rollapp, pk := s.createRollapp()
+		rollapp, pk := s.createRollappWithInitialSequencer()
 
 		// create sequencers
 		seqAddr := make([]string, numOfSequencers)
@@ -40,7 +40,7 @@ func (s *SequencerTestSuite) TestInvariants() {
 		s.T().Fatal("Test setup failed")
 	}
 	// additional rollapp with no sequencers
-	s.createRollapp()
+	s.createRollappWithInitialSequencer()
 
 	msg, ok := keeper.AllInvariants(s.App.SequencerKeeper)(s.Ctx)
 	s.Require().False(ok, msg)

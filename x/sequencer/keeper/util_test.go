@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	"github.com/stretchr/testify/suite"
@@ -62,6 +63,10 @@ func (s *SequencerTestSuite) k() keeper.Keeper {
 	return s.App.SequencerKeeper
 }
 
+func (s *SequencerTestSuite) raK() *rollappkeeper.Keeper {
+	return s.App.RollappKeeper
+}
+
 func (s *SequencerTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
@@ -76,13 +81,13 @@ func (s *SequencerTestSuite) SetupTest() {
 	s.queryClient = queryClient
 }
 
-func (s *SequencerTestSuite) createRollapp() (string, cryptotypes.PubKey) {
-	pubkey := ed25519.GenPrivKey().PubKey()
-	addr := sdk.AccAddress(pubkey.Address())
-	return s.createRollappWithInitialSeq(addr.String()), pubkey
+func (s *SequencerTestSuite) createRollapp() rollapptypes.Rollapp {
+	rollapp := s.createRollappInner("*")
+	return s.raK().MustGetRollapp(s.Ctx, rollapp)
 }
 
-func (s *SequencerTestSuite) createRollappWithInitialSeq(initSeq string) string {
+// init seq is an addr or empty or *
+func (s *SequencerTestSuite) createRollappInner(initSeq string) string {
 	rollapp := rollapptypes.Rollapp{
 		RollappId: urand.RollappID(),
 		Owner:     sample.AccAddress(),
@@ -98,15 +103,25 @@ func (s *SequencerTestSuite) createRollappWithInitialSeq(initSeq string) string 
 	return rollapp.GetRollappId()
 }
 
+// Deprecated
+func (s *SequencerTestSuite) createRollappWithInitialSequencer() (string, cryptotypes.PubKey) {
+	pubkey := ed25519.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pubkey.Address())
+	return s.createRollapp(addr.String()), pubkey
+}
+
+// Deprecated
 func (s *SequencerTestSuite) createSequencer(ctx sdk.Context, rollappId string) string {
 	pk := ed25519.GenPrivKey().PubKey()
 	return s.createSequencerWithBond(ctx, rollappId, pk, bond)
 }
 
+// Deprecated
 func (s *SequencerTestSuite) createSequencerWithPk(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey) string {
 	return s.createSequencerWithBond(ctx, rollappId, pk, bond)
 }
 
+// Deprecated
 func (s *SequencerTestSuite) createSequencerWithBond(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey, bond sdk.Coin) string {
 	pkAny, err := codectypes.NewAnyWithValue(pk)
 	s.Require().Nil(err)

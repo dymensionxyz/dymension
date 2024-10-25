@@ -22,7 +22,7 @@ func (s *SequencerTestSuite) TestExpectedNextProposer() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			rollappId, pk := s.createRollapp()
+			rollappId, pk := s.createRollappWithInitialSequencer()
 			_ = s.createSequencerWithBond(s.Ctx, rollappId, pk, bond) // proposer, with highest bond
 
 			seqAddrs := make([]string, tc.numSeqAddrs)
@@ -46,7 +46,7 @@ func (s *SequencerTestSuite) TestExpectedNextProposer() {
 
 // TestStartRotation tests the StartRotation function which is called when a sequencer has finished its notice period
 func (s *SequencerTestSuite) TestStartRotation() {
-	rollappId, pk := s.createRollapp()
+	rollappId, pk := s.createRollappWithInitialSequencer()
 	addr1 := s.createSequencerWithPk(s.Ctx, rollappId, pk)
 
 	_ = s.CreateDefaultSequencer(s.Ctx, rollappId)
@@ -80,7 +80,7 @@ func (s *SequencerTestSuite) TestStartRotation() {
 }
 
 func (s *SequencerTestSuite) TestRotateProposer() {
-	rollappId, pk := s.createRollapp()
+	rollappId, pk := s.createRollappWithInitialSequencer()
 	addr1 := s.createSequencerWithPk(s.Ctx, rollappId, pk)
 	addr2 := s.createSequencerWithPk(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 
@@ -111,7 +111,7 @@ func (s *SequencerTestSuite) TestRotateProposer() {
 }
 
 func (s *SequencerTestSuite) TestRotateProposerNoNextProposer() {
-	rollappId, pk := s.createRollapp()
+	rollappId, pk := s.createRollappWithInitialSequencer()
 	addr1 := s.createSequencerWithPk(s.Ctx, rollappId, pk)
 
 	/* ----------------------------- unbond proposer ---------------------------- */
@@ -136,7 +136,7 @@ func (s *SequencerTestSuite) TestRotateProposerNoNextProposer() {
 func (s *SequencerTestSuite) TestStartRotationTwice() {
 	s.Ctx = s.Ctx.WithBlockHeight(10)
 
-	rollappId, pk := s.createRollapp()
+	rollappId, pk := s.createRollappWithInitialSequencer()
 	addr1 := s.createSequencerWithPk(s.Ctx, rollappId, pk)
 	addr2 := s.createSequencerWithPk(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 

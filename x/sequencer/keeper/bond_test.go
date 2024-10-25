@@ -15,8 +15,8 @@ func (s *SequencerTestSuite) TestUnbondingMultiple() {
 
 	keeper := s.App.SequencerKeeper
 
-	rollappId, pk1 := s.createRollapp()
-	rollappId2, pk2 := s.createRollapp()
+	rollappId, pk1 := s.createRollappWithInitialSequencer()
+	rollappId2, pk2 := s.createRollappWithInitialSequencer()
 
 	numOfSequencers := 4
 	numOfSequencers2 := 3
@@ -69,7 +69,7 @@ func (s *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	blockheight := 20
 	var err error
 
-	rollappId, pk := s.createRollapp()
+	rollappId, pk := s.createRollappWithInitialSequencer()
 	_ = s.createSequencerWithPk(s.Ctx, rollappId, pk)
 
 	pk1 := ed25519.GenPrivKey().PubKey()
