@@ -17,14 +17,14 @@ func (s *SequencerTestSuite) TestInvariants() {
 
 	// create rollapps and sequencers
 	for i := 0; i < numOfRollapps; i++ {
-		rollapp, pk := s.CreateDefaultRollapp()
+		rollapp, pk := s.createRollapp()
 
 		// create sequencers
 		seqAddr := make([]string, numOfSequencers)
-		seqAddr[0] = s.CreateSequencer(s.Ctx, rollapp, pk)
+		seqAddr[0] = s.createSequencer(s.Ctx, rollapp, pk)
 		for j := 1; j < numOfSequencers; j++ {
 			pki := ed25519.GenPrivKey().PubKey()
-			seqAddr[j] = s.CreateSequencer(s.Ctx, rollapp, pki)
+			seqAddr[j] = s.createSequencer(s.Ctx, rollapp, pki)
 		}
 
 	}
@@ -42,7 +42,7 @@ func (s *SequencerTestSuite) TestInvariants() {
 		s.T().Fatal("Test setup failed")
 	}
 	// additional rollapp with no sequencers
-	s.CreateDefaultRollapp()
+	s.createRollapp()
 
 	msg, ok := keeper.AllInvariants(s.App.SequencerKeeper)(s.Ctx)
 	s.Require().False(ok, msg)

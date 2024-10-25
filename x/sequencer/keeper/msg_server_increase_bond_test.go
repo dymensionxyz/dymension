@@ -11,12 +11,12 @@ import (
 )
 
 func (s *SequencerTestSuite) TestIncreaseBond() {
-	rollappId, pk := s.CreateDefaultRollapp()
+	rollappId, pk := s.createRollapp()
 	// setup a default sequencer
-	defaultSequencerAddress := s.CreateSequencer(s.Ctx, rollappId, pk)
+	defaultSequencerAddress := s.createSequencer(s.Ctx, rollappId, pk)
 	// setup an unbonded sequencer
 	pk1 := ed25519.GenPrivKey().PubKey()
-	unbondedSequencerAddress := s.CreateSequencer(s.Ctx, rollappId, pk1)
+	unbondedSequencerAddress := s.createSequencer(s.Ctx, rollappId, pk1)
 	unbondedSequencer, _ := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, unbondedSequencerAddress)
 	unbondedSequencer.Status = types.Unbonded
 	s.App.SequencerKeeper.SetSequencer(s.Ctx, unbondedSequencer)

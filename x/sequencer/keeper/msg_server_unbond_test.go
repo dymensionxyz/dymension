@@ -8,8 +8,8 @@ import (
 )
 
 func (s *SequencerTestSuite) TestUnbondingNonProposer() {
-	rollappId, pk := s.CreateDefaultRollapp()
-	proposerAddr := s.CreateSequencer(s.Ctx, rollappId, pk)
+	rollappId, pk := s.createRollapp()
+	proposerAddr := s.createSequencer(s.Ctx, rollappId, pk)
 
 	bondedAddr := s.CreateDefaultSequencer(s.Ctx, rollappId)
 	s.Require().NotEqual(proposerAddr, bondedAddr)
@@ -51,7 +51,7 @@ func (s *SequencerTestSuite) TestUnbondingProposer() {
 	s.Ctx = s.Ctx.WithBlockHeight(10)
 
 	rollappId, proposerAddr := s.CreateDefaultRollappAndProposer()
-	_ = s.CreateSequencer(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
+	_ = s.createSequencer(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	unbondMsg := types.MsgUnbond{Creator: proposerAddr}

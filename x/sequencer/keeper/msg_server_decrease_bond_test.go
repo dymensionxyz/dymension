@@ -9,12 +9,12 @@ import (
 func (s *SequencerTestSuite) TestDecreaseBond() {
 	s.SetupTest()
 	bondDenom := types.DefaultParams().MinBond.Denom
-	rollappId, pk := s.CreateDefaultRollapp()
+	rollappId, pk := s.createRollapp()
 	// setup a default sequencer with has minBond + 20token
-	defaultSequencerAddress := s.CreateSequencerWithBond(s.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)), pk)
+	defaultSequencerAddress := s.createSequencerWithBond(s.Ctx, rollappId, pk, bond.AddAmount(sdk.NewInt(20)))
 	// setup an unbonded sequencer
 	unbondedPk := ed25519.GenPrivKey().PubKey()
-	unbondedSequencerAddress := s.CreateSequencer(s.Ctx, rollappId, unbondedPk)
+	unbondedSequencerAddress := s.createSequencer(s.Ctx, rollappId, unbondedPk)
 	unbondedSequencer, _ := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, unbondedSequencerAddress)
 	unbondedSequencer.Status = types.Unbonded
 	s.App.SequencerKeeper.SetSequencer(s.Ctx, unbondedSequencer)
@@ -73,9 +73,9 @@ func (s *SequencerTestSuite) TestDecreaseBond() {
 func (s *SequencerTestSuite) TestDecreaseBond_BondDecreaseInProgress() {
 	s.SetupTest()
 	bondDenom := types.DefaultParams().MinBond.Denom
-	rollappId, pk := s.CreateDefaultRollapp()
+	rollappId, pk := s.createRollapp()
 	// setup a default sequencer with has minBond + 20token
-	defaultSequencerAddress := s.CreateSequencerWithBond(s.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)), pk)
+	defaultSequencerAddress := s.createSequencerWithBond(s.Ctx, rollappId, pk, bond.AddAmount(sdk.NewInt(20)))
 	// decrease the bond of the sequencer
 	_, err := s.msgServer.DecreaseBond(s.Ctx, &types.MsgDecreaseBond{
 		Creator:        defaultSequencerAddress,

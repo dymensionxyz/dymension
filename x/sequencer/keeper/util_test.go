@@ -58,6 +58,10 @@ func TestSequencerKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(SequencerTestSuite))
 }
 
+func (s *SequencerTestSuite) k() keeper.Keeper {
+	return s.App.SequencerKeeper
+}
+
 func (s *SequencerTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
@@ -72,13 +76,13 @@ func (s *SequencerTestSuite) SetupTest() {
 	s.queryClient = queryClient
 }
 
-func (s *SequencerTestSuite) CreateDefaultRollapp() (string, cryptotypes.PubKey) {
+func (s *SequencerTestSuite) createRollapp() (string, cryptotypes.PubKey) {
 	pubkey := ed25519.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	return s.CreateRollappWithInitialSequencer(addr.String()), pubkey
+	return s.createRollappWithInitialSeq(addr.String()), pubkey
 }
 
-func (s *SequencerTestSuite) CreateRollappWithInitialSequencer(initSeq string) string {
+func (s *SequencerTestSuite) createRollappWithInitialSeq(initSeq string) string {
 	rollapp := rollapptypes.Rollapp{
 		RollappId: urand.RollappID(),
 		Owner:     sample.AccAddress(),
@@ -94,11 +98,11 @@ func (s *SequencerTestSuite) CreateRollappWithInitialSequencer(initSeq string) s
 	return rollapp.GetRollappId()
 }
 
-func (s *SequencerTestSuite) CreateSequencer(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey) string {
-	return s.CreateSequencerWithBond(ctx, rollappId, bond, pk)
+func (s *SequencerTestSuite) createSequencer(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey) string {
+	return s.createSequencerWithBond(ctx, rollappId, pk, bond)
 }
 
-func (s *SequencerTestSuite) CreateSequencerWithBond(ctx sdk.Context, rollappId string, bond sdk.Coin, pk cryptotypes.PubKey) string {
+func (s *SequencerTestSuite) createSequencerWithBond(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey, bond sdk.Coin) string {
 	pkAny, err := codectypes.NewAnyWithValue(pk)
 	s.Require().Nil(err)
 
@@ -177,7 +181,7 @@ func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 // equalSequencer receives two sequencers and compares them. If they are not equal, fails the test
 func (s *SequencerTestSuite) equalSequencer(s1 *types.Sequencer, s2 *types.Sequencer) {
 	eq := compareSequencers(s1, s2)
-	s.Require().True(eq, "expected: %v\nfound: %v", *s1, *s2)
+	s.Require().True(eq, "expected: %+v\nfound: %+v", *s1, *s2)
 }
 
 func compareSequencers(s1, s2 *types.Sequencer) bool {

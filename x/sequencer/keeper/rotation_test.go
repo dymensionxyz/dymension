@@ -24,15 +24,15 @@ func (s *SequencerTestSuite) TestExpectedNextProposer() {
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
-			rollappId, pk := s.CreateDefaultRollapp()
-			_ = s.CreateSequencerWithBond(s.Ctx, rollappId, bond, pk) // proposer, with highest bond
+			rollappId, pk := s.createRollapp()
+			_ = s.createSequencerWithBond(s.Ctx, rollappId, pk, bond) // proposer, with highest bond
 
 			seqAddrs := make([]string, tc.numSeqAddrs)
 			currBond := sdk.NewCoin(bond.Denom, bond.Amount.Quo(sdk.NewInt(10)))
 			for i := 0; i < len(seqAddrs); i++ {
 				currBond = currBond.AddAmount(bond.Amount)
 				pubkey := ed25519.GenPrivKey().PubKey()
-				seqAddrs[i] = s.CreateSequencerWithBond(s.Ctx, rollappId, currBond, pubkey)
+				seqAddrs[i] = s.createSequencerWithBond(s.Ctx, rollappId, pubkey, currBond)
 			}
 			next := s.App.SequencerKeeper.ExpectedNextProposer(s.Ctx, rollappId)
 			if tc.expectEmptyNextProposer {
@@ -48,8 +48,8 @@ func (s *SequencerTestSuite) TestExpectedNextProposer() {
 
 // TestStartRotation tests the StartRotation function which is called when a sequencer has finished its notice period
 func (s *SequencerTestSuite) TestStartRotation() {
-	rollappId, pk := s.CreateDefaultRollapp()
-	addr1 := s.CreateSequencer(s.Ctx, rollappId, pk)
+	rollappId, pk := s.createRollapp()
+	addr1 := s.createSequencer(s.Ctx, rollappId, pk)
 
 	_ = s.CreateDefaultSequencer(s.Ctx, rollappId)
 	_ = s.CreateDefaultSequencer(s.Ctx, rollappId)
@@ -82,9 +82,9 @@ func (s *SequencerTestSuite) TestStartRotation() {
 }
 
 func (s *SequencerTestSuite) TestRotateProposer() {
-	rollappId, pk := s.CreateDefaultRollapp()
-	addr1 := s.CreateSequencer(s.Ctx, rollappId, pk)
-	addr2 := s.CreateSequencer(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
+	rollappId, pk := s.createRollapp()
+	addr1 := s.createSequencer(s.Ctx, rollappId, pk)
+	addr2 := s.createSequencer(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	unbondMsg := types.MsgUnbond{Creator: addr1}
@@ -113,8 +113,8 @@ func (s *SequencerTestSuite) TestRotateProposer() {
 }
 
 func (s *SequencerTestSuite) TestRotateProposerNoNextProposer() {
-	rollappId, pk := s.CreateDefaultRollapp()
-	addr1 := s.CreateSequencer(s.Ctx, rollappId, pk)
+	rollappId, pk := s.createRollapp()
+	addr1 := s.createSequencer(s.Ctx, rollappId, pk)
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	unbondMsg := types.MsgUnbond{Creator: addr1}
@@ -138,9 +138,9 @@ func (s *SequencerTestSuite) TestRotateProposerNoNextProposer() {
 func (s *SequencerTestSuite) TestStartRotationTwice() {
 	s.Ctx = s.Ctx.WithBlockHeight(10)
 
-	rollappId, pk := s.CreateDefaultRollapp()
-	addr1 := s.CreateSequencer(s.Ctx, rollappId, pk)
-	addr2 := s.CreateSequencer(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
+	rollappId, pk := s.createRollapp()
+	addr1 := s.createSequencer(s.Ctx, rollappId, pk)
+	addr2 := s.createSequencer(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 
 	// unbond proposer
 	unbondMsg := types.MsgUnbond{Creator: addr1}
