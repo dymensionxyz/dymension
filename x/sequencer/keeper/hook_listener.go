@@ -18,12 +18,6 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 	return rollappHook{k: k}
 }
 
-// BeforeUpdateState checks various conditions before updating the state.
-// It verifies if the sequencer has been registered, if the rollappId matches the one of the sequencer,
-// if there is a proposer for the given rollappId, and if the sequencer is the active one.
-// If the lastStateUpdateBySequencer flag is true, it also checks if the rollappId is rotating and
-// performs a rotation of the proposer.
-// Returns an error if any of the checks fail, otherwise returns nil.
 func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, lastStateUpdateBySequencer bool) error {
 	proposer := hook.k.GetProposer(ctx, rollappId)
 	if seqAddr != proposer.Address {
