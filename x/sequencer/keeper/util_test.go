@@ -33,21 +33,18 @@ const (
 var (
 	bond = types.DefaultParams().MinBond
 	pks  = []cryptotypes.PubKey{
-		ed25519.GenPrivKey().PubKey(),
-		ed25519.GenPrivKey().PubKey(),
-		ed25519.GenPrivKey().PubKey(),
-		ed25519.GenPrivKey().PubKey(),
-		ed25519.GenPrivKey().PubKey(),
-		ed25519.GenPrivKey().PubKey(),
-		ed25519.GenPrivKey().PubKey(),
-		ed25519.GenPrivKey().PubKey(),
-		ed25519.GenPrivKey().PubKey(),
-		ed25519.GenPrivKey().PubKey(),
+		randPK(),
+		randPK(),
+		randPK(),
 	}
 	alice   = pks[0]
 	bob     = pks[1]
 	charlie = pks[2]
 )
+
+func randPK() cryptotypes.PubKey {
+	return ed25519.GenPrivKey().PubKey()
+}
 
 func pkAddr(pk cryptotypes.PubKey) string {
 	return pkAccAddr(pk).String()
