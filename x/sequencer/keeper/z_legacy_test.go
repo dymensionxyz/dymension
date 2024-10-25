@@ -125,7 +125,7 @@ func (s *SequencerTestSuite) TestCreateSequencerL() {
 				},
 			},
 		}
-		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+		s.raK().SetRollapp(s.Ctx, rollapp)
 
 		rollappId := rollapp.GetRollappId()
 		rollappIDs[j] = rollappId
@@ -281,9 +281,9 @@ func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposerL() {
 			sequencers:        []sequencer{{creatorName: "bob", expProposer: false}},
 			rollappInitialSeq: alice,
 			malleate: func(rollappID string) {
-				r, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappID)
+				r, _ := s.raK().GetRollapp(s.Ctx, rollappID)
 				r.Launched = true
-				s.App.RollappKeeper.SetRollapp(s.Ctx, r)
+				s.raK().SetRollapp(s.Ctx, r)
 			},
 			expErr: nil,
 		}, {
@@ -291,9 +291,9 @@ func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposerL() {
 			sequencers:        []sequencer{{creatorName: "bob", expProposer: false}},
 			rollappInitialSeq: "*",
 			malleate: func(rollappID string) {
-				r, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappID)
+				r, _ := s.raK().GetRollapp(s.Ctx, rollappID)
 				r.Launched = true
-				s.App.RollappKeeper.SetRollapp(s.Ctx, r)
+				s.raK().SetRollapp(s.Ctx, r)
 			},
 			expErr: nil,
 		},
@@ -370,9 +370,9 @@ func (s *SequencerTestSuite) TestCreateSequencerBeforeGenesisInfoL() {
 	rollappId, pk := s.createRollappWithInitialSequencer()
 
 	// mess up the genesisInfo
-	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
+	rollapp := s.raK().MustGetRollapp(s.Ctx, rollappId)
 	rollapp.GenesisInfo.Bech32Prefix = ""
-	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+	s.raK().SetRollapp(s.Ctx, rollapp)
 
 	addr := types.AccAddress(pk.Address())
 	err := testutil.FundAccount(s.App.BankKeeper, s.Ctx, addr, types.NewCoins(bond))
@@ -395,7 +395,7 @@ func (s *SequencerTestSuite) TestCreateSequencerBeforeGenesisInfoL() {
 
 	// set the genesisInfo
 	rollapp.GenesisInfo.Bech32Prefix = "rol"
-	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+	s.raK().SetRollapp(s.Ctx, rollapp)
 
 	_, err = s.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	s.Require().NoError(err)
@@ -407,9 +407,9 @@ func (s *SequencerTestSuite) TestCreateSequencerBeforePrelaunchL() {
 
 	// set prelaunch time to the rollapp
 	preLaunchTime := time.Now()
-	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
+	rollapp := s.raK().MustGetRollapp(s.Ctx, rollappId)
 	rollapp.PreLaunchTime = &preLaunchTime
-	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+	s.raK().SetRollapp(s.Ctx, rollapp)
 
 	addr := types.AccAddress(pk.Address())
 	err := testutil.FundAccount(s.App.BankKeeper, s.Ctx, addr, types.NewCoins(bond))

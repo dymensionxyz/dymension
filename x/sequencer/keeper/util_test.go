@@ -85,7 +85,7 @@ func (s *SequencerTestSuite) createRollappInner(initSeq string) string {
 		},
 		InitialSequencer: initSeq,
 	}
-	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+	s.raK().SetRollapp(s.Ctx, rollapp)
 	return rollapp.GetRollappId()
 }
 

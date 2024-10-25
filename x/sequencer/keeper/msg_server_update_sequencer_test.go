@@ -95,7 +95,7 @@ func (s *SequencerTestSuite) TestUpdateSequencer() {
 				},
 			},
 			malleate: func(*types.Sequencer) {
-				s.App.RollappKeeper.SetRollapp(s.Ctx, rollapptypes.Rollapp{
+				s.raK().SetRollapp(s.Ctx, rollapptypes.Rollapp{
 					RollappId: rollappID,
 					VmType:    rollapptypes.Rollapp_WASM,
 				})
@@ -114,7 +114,7 @@ func (s *SequencerTestSuite) TestUpdateSequencer() {
 				InitialSequencer: addr.String(),
 			}
 
-			s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+			s.raK().SetRollapp(s.Ctx, rollapp)
 
 			sequencer := types.Sequencer{
 				Address:      addr.String(),
@@ -125,7 +125,7 @@ func (s *SequencerTestSuite) TestUpdateSequencer() {
 				Tokens:       nil,
 			}
 
-			s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+			s.raK().SetRollapp(s.Ctx, rollapp)
 			s.k().SetSequencer(s.Ctx, sequencer)
 
 			if tc.malleate != nil {
