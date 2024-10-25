@@ -19,7 +19,7 @@ type Keeper struct {
 	storeKey       storetypes.StoreKey
 	bankKeeper     types.BankKeeper
 	rollappKeeper  types.RollappKeeper
-	unbondBlockers []UnbondBlocker // TODO: populate
+	unbondBlockers []UnbondBlocker
 }
 
 func NewKeeper(
@@ -35,11 +35,12 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:           cdc,
-		storeKey:      storeKey,
-		bankKeeper:    bankKeeper,
-		rollappKeeper: rollappKeeper,
-		authority:     authority,
+		cdc:            cdc,
+		storeKey:       storeKey,
+		bankKeeper:     bankKeeper,
+		rollappKeeper:  rollappKeeper,
+		authority:      authority,
+		unbondBlockers: []UnbondBlocker{},
 	}
 }
 
@@ -47,6 +48,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) SetUnbondBlockers(ubs []UnbondBlocker) {
-	k.unbondBlockers = ubs
+func (k *Keeper) AddUnbondBlockers(ubs ...UnbondBlocker) {
+	k.unbondBlockers = append(k.unbondBlockers, ubs...)
 }

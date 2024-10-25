@@ -13,7 +13,7 @@ type UnbondBlocker interface {
 	CanUnbond(ctx sdk.Context, sequencer types.Sequencer) error
 }
 
-func (k Keeper) tryUnbond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) error {
+func (k Keeper) TryUnbond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) error {
 	if k.isProposerOrSuccessor(ctx, *seq) {
 		return types.ErrUnbondProposerOrSuccessor
 	}

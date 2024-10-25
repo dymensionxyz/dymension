@@ -70,8 +70,8 @@ type SequencerTestSuite struct {
 	queryClient types.QueryClient
 }
 
-func (s *SequencerTestSuite) k() keeper.Keeper {
-	return s.App.SequencerKeeper
+func (s *SequencerTestSuite) k() *keeper.Keeper {
+	return &s.App.SequencerKeeper
 }
 
 func (s *SequencerTestSuite) raK() *rollappkeeper.Keeper {

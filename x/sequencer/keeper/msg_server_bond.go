@@ -49,7 +49,7 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 		k.SetSequencer(ctx, seq)
 	}()
 
-	if err := k.tryUnbond(ctx, &seq, msg.GetDecreaseAmount()); err != nil {
+	if err := k.TryUnbond(ctx, &seq, msg.GetDecreaseAmount()); err != nil {
 		return nil, errorsmod.Wrap(err, "try unbond")
 	}
 
@@ -67,7 +67,7 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 	}()
 
 	seq.OptedIn = false
-	err = k.tryUnbond(ctx, &seq, seq.TokensCoin())
+	err = k.TryUnbond(ctx, &seq, seq.TokensCoin())
 	if errorsmod.IsOf(err, types.ErrUnbondProposerOrSuccessor) {
 		k.startNoticePeriodForSequencer(ctx, &seq)
 		return &types.MsgUnbondResponse{
