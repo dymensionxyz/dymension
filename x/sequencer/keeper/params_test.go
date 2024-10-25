@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -24,8 +23,6 @@ func TestGetParams(t *testing.T) {
 // test ValidateParams
 func (s *SequencerTestSuite) TestValidateParams() {
 	k := s.App.SequencerKeeper
-	disputeInBlocks := s.App.RollappKeeper.GetParams(s.Ctx).DisputePeriodInBlocks
-	defaultDisputeDuration := time.Duration(disputeInBlocks*6) * time.Second
 
 	tests := []struct {
 		name    string
@@ -38,15 +35,6 @@ func (s *SequencerTestSuite) TestValidateParams() {
 				return types.DefaultParams()
 			},
 			false,
-		},
-		{
-			"stateful validation: unbonding time less than dispute period",
-			func() types.Params {
-				params := types.DefaultParams()
-				params.UnbondingTime = defaultDisputeDuration - time.Second
-				return params
-			},
-			true,
 		},
 		{
 			"stateful validation: min bond denom not equal to base denom",

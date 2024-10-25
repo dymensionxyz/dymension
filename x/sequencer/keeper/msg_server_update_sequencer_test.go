@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"time"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -85,24 +83,9 @@ func (s *SequencerTestSuite) TestUpdateSequencer() {
 					},
 					GasPrice: uptr.To(sdk.NewInt(100)),
 				},
-				Jailed:     false,
-				Status:     0,
-				Tokens:     nil,
-				UnbondTime: time.Time{},
+				Status: 0,
+				Tokens: nil,
 			},
-		}, {
-			name: "Update rollapp: fail - try to update a jailed sequencer",
-			update: &types.MsgUpdateSequencerInformation{
-				Creator: addr.String(),
-			},
-			malleate: func(sequencer *types.Sequencer) {
-				s.k().SetSequencer(s.Ctx, types.Sequencer{
-					Address:   addr.String(),
-					RollappId: rollappID,
-					Jailed:    true,
-				})
-			},
-			expError: types.ErrSequencerJailed,
 		}, {
 			name: "Update rollapp: fail - try to update wrong VM type fields",
 			update: &types.MsgUpdateSequencerInformation{
@@ -138,10 +121,8 @@ func (s *SequencerTestSuite) TestUpdateSequencer() {
 				DymintPubKey: pkAny,
 				RollappId:    rollappID,
 				Metadata:     types.SequencerMetadata{},
-				Jailed:       false,
 				Status:       0,
 				Tokens:       nil,
-				UnbondTime:   time.Time{},
 			}
 
 			s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
