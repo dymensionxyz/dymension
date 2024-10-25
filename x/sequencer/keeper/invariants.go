@@ -43,12 +43,11 @@ func SequencersCountInvariant(k Keeper) sdk.Invariant {
 		for _, rollapp := range rollapps {
 			seqByRollapp := k.RollappSequencers(ctx, rollapp.RollappId)
 			bonded := k.RollappSequencersByStatus(ctx, rollapp.RollappId, types.Bonded)
-			unbonding := k.RollappSequencersByStatus(ctx, rollapp.RollappId, types.Unbonding)
 			unbonded := k.RollappSequencersByStatus(ctx, rollapp.RollappId, types.Unbonded)
 
-			if len(seqByRollapp) != len(bonded)+len(unbonding)+len(unbonded) {
+			if len(seqByRollapp) != len(bonded)+len(unbonded) {
 				broken = true
-				msg += "sequencer by rollapp length is not equal to sum of bonded, unbonding and unbonded " + rollapp.RollappId + "\n"
+				msg += "sequencer by rollapp length is not equal to sum of bonded, and unbonded " + rollapp.RollappId + "\n"
 			}
 
 			totalCount += len(seqByRollapp)

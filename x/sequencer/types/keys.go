@@ -47,11 +47,9 @@ var (
 
 	// Prefixes for the different sequencer statuses
 
-	BondedSequencersKeyPrefix    = []byte{0xa1}
-	UnbondedSequencersKeyPrefix  = []byte{0xa2}
-	UnbondingSequencersKeyPrefix = []byte{0xa3}
+	BondedSequencersKeyPrefix   = []byte{0xa1}
+	UnbondedSequencersKeyPrefix = []byte{0xa2}
 
-	UnbondingQueueKey    = []byte{0x41} // prefix for the timestamps in unbonding queue
 	NoticePeriodQueueKey = []byte{0x42} // prefix for the timestamps in notice period queue
 
 )
@@ -89,8 +87,6 @@ func SequencersByRollappByStatusKey(rollappId string, status OperatingStatus) []
 		prefix = BondedSequencersKeyPrefix
 	case Unbonded:
 		prefix = UnbondedSequencersKeyPrefix
-	case Unbonding: // TODO: remove?
-		prefix = UnbondingSequencersKeyPrefix
 	}
 
 	return []byte(fmt.Sprintf("%s%s%s", SequencersByRollappKey(rollappId), KeySeparator, prefix))
