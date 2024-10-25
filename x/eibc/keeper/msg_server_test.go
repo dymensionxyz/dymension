@@ -214,7 +214,6 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 					NumBlocks:      1,
 					Status:         commontypes.Status_PENDING,
 				})
-
 			},
 			expectError:                       nil,
 			expectOrderFulfilled:              true,
@@ -369,7 +368,6 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 					NumBlocks:      1,
 					Status:         commontypes.Status_PENDING,
 				})
-
 			},
 			expectError:              types.ErrOrderNotSettlementValidated,
 			expectOrderFulfilled:     false,
