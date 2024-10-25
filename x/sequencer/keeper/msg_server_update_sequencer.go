@@ -10,17 +10,18 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// UpdateSequencerInformation defines a method for updating a sequencer
 func (k msgServer) UpdateSequencerInformation(
 	goCtx context.Context,
 	msg *types.MsgUpdateSequencerInformation,
 ) (*types.MsgUpdateSequencerInformationResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
 	seq, err := k.GetRealSequencer(ctx, msg.Creator)
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		k.SetSequencer(ctx, seq)
+	}()
 
 	rollapp := k.rollappKeeper.MustGetRollapp(ctx, seq.RollappId)
 
@@ -29,8 +30,6 @@ func (k msgServer) UpdateSequencerInformation(
 	}
 
 	seq.Metadata = msg.Metadata
-
-	k.SetSequencer(ctx, seq)
 
 	if err := uevent.EmitTypedEvent(ctx, &seq); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)

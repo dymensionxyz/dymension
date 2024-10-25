@@ -13,7 +13,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// CreateSequencer defines a method for creating a new sequencer
 func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSequencer) (*types.MsgCreateSequencerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -86,7 +85,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 
 	k.SetSequencer(ctx, *seq)
 
-	if err := k.chooseProposer(ctx, msg.RollappId); err != nil {
+	if err := k.ChooseProposer(ctx, msg.RollappId); err != nil {
 		return nil, err
 	}
 

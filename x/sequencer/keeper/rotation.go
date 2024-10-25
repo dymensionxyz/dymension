@@ -92,5 +92,5 @@ func (k Keeper) OnProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) e
 		return errorsmod.Wrap(gerrc.ErrFault, "sequencer has submitted last block without finishing notice period")
 	}
 	k.SetProposer(ctx, proposer.RollappId, types.SentinelSeqAddr)
-	return errorsmod.Wrap(k.chooseProposer(ctx, proposer.RollappId), "choose proposer")
+	return errorsmod.Wrap(k.ChooseProposer(ctx, proposer.RollappId), "choose proposer")
 }

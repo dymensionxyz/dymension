@@ -9,7 +9,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-func (k Keeper) chooseProposer(ctx sdk.Context, rollapp string) error {
+func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 	proposer := k.GetProposer(ctx, rollapp)
 	if !proposer.Sentinel() {
 		if !proposer.Bonded() {

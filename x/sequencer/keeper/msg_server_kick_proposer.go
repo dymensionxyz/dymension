@@ -36,7 +36,7 @@ func (k msgServer) KickProposer(goCtx context.Context, msg *types.MsgKickPropose
 		}
 		// TODO: also hard fork
 	}
-	if err := k.chooseProposer(ctx, seq.RollappId); err != nil {
+	if err := k.ChooseProposer(ctx, seq.RollappId); err != nil {
 		return nil, errorsmod.Wrap(err, "choose proposer")
 	}
 	return &types.MsgKickProposerResponse{}, nil
