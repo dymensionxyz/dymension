@@ -31,7 +31,7 @@ func (k Keeper) chooseProposer(ctx sdk.Context, rollapp string) error {
 func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) error {
 	proposer := k.GetProposer(ctx, rollapp)
 	if proposer.Sentinel() {
-		return gerrc.ErrInternal.Wrap("can not choose successor if proposer is sentinel")
+		return gerrc.ErrInternal.Wrap("should not choose successor if proposer is sentinel")
 	}
 	successor := k.GetSuccessor(ctx, rollapp)
 	if successor.Sentinel() {
