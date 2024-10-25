@@ -49,7 +49,7 @@ func (s *SequencerTestSuite) TestExpectedNextProposer() {
 // TestStartRotation tests the StartRotation function which is called when a sequencer has finished its notice period
 func (s *SequencerTestSuite) TestStartRotation() {
 	rollappId, pk := s.createRollapp()
-	addr1 := s.createSequencer(s.Ctx, rollappId, pk)
+	addr1 := s.createSequencerWithPk(s.Ctx, rollappId, pk)
 
 	_ = s.CreateDefaultSequencer(s.Ctx, rollappId)
 	_ = s.CreateDefaultSequencer(s.Ctx, rollappId)
@@ -83,8 +83,8 @@ func (s *SequencerTestSuite) TestStartRotation() {
 
 func (s *SequencerTestSuite) TestRotateProposer() {
 	rollappId, pk := s.createRollapp()
-	addr1 := s.createSequencer(s.Ctx, rollappId, pk)
-	addr2 := s.createSequencer(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
+	addr1 := s.createSequencerWithPk(s.Ctx, rollappId, pk)
+	addr2 := s.createSequencerWithPk(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	unbondMsg := types.MsgUnbond{Creator: addr1}
@@ -114,7 +114,7 @@ func (s *SequencerTestSuite) TestRotateProposer() {
 
 func (s *SequencerTestSuite) TestRotateProposerNoNextProposer() {
 	rollappId, pk := s.createRollapp()
-	addr1 := s.createSequencer(s.Ctx, rollappId, pk)
+	addr1 := s.createSequencerWithPk(s.Ctx, rollappId, pk)
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	unbondMsg := types.MsgUnbond{Creator: addr1}
@@ -139,8 +139,8 @@ func (s *SequencerTestSuite) TestStartRotationTwice() {
 	s.Ctx = s.Ctx.WithBlockHeight(10)
 
 	rollappId, pk := s.createRollapp()
-	addr1 := s.createSequencer(s.Ctx, rollappId, pk)
-	addr2 := s.createSequencer(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
+	addr1 := s.createSequencerWithPk(s.Ctx, rollappId, pk)
+	addr2 := s.createSequencerWithPk(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 
 	// unbond proposer
 	unbondMsg := types.MsgUnbond{Creator: addr1}

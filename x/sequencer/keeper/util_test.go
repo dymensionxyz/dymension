@@ -98,7 +98,12 @@ func (s *SequencerTestSuite) createRollappWithInitialSeq(initSeq string) string 
 	return rollapp.GetRollappId()
 }
 
-func (s *SequencerTestSuite) createSequencer(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey) string {
+func (s *SequencerTestSuite) createSequencer(ctx sdk.Context, rollappId string) string {
+	pk := ed25519.GenPrivKey().PubKey()
+	return s.createSequencerWithBond(ctx, rollappId, pk, bond)
+}
+
+func (s *SequencerTestSuite) createSequencerWithPk(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey) string {
 	return s.createSequencerWithBond(ctx, rollappId, pk, bond)
 }
 

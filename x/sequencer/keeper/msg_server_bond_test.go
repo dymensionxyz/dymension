@@ -12,10 +12,10 @@ import (
 func (s *SequencerTestSuite) TestIncreaseBond() {
 	rollappId, pk := s.createRollapp()
 	// setup a default sequencer
-	defaultSequencerAddress := s.createSequencer(s.Ctx, rollappId, pk)
+	defaultSequencerAddress := s.createSequencerWithPk(s.Ctx, rollappId, pk)
 	// setup an unbonded sequencer
 	pk1 := ed25519.GenPrivKey().PubKey()
-	unbondedSequencerAddress := s.createSequencer(s.Ctx, rollappId, pk1)
+	unbondedSequencerAddress := s.createSequencerWithPk(s.Ctx, rollappId, pk1)
 	unbondedSequencer, _ := s.k().GetRealSequencer(s.Ctx, unbondedSequencerAddress)
 	unbondedSequencer.Status = types.Unbonded
 	s.k().SetSequencer(s.Ctx, unbondedSequencer)
@@ -81,7 +81,7 @@ func (s *SequencerTestSuite) TestDecreaseBond() {
 	defaultSequencerAddress := s.createSequencerWithBond(s.Ctx, rollappId, pk, bond.AddAmount(sdk.NewInt(20)))
 	// setup an unbonded sequencer
 	unbondedPk := ed25519.GenPrivKey().PubKey()
-	unbondedSequencerAddress := s.createSequencer(s.Ctx, rollappId, unbondedPk)
+	unbondedSequencerAddress := s.createSequencerWithPk(s.Ctx, rollappId, unbondedPk)
 	unbondedSequencer, _ := s.k().GetRealSequencer(s.Ctx, unbondedSequencerAddress)
 	unbondedSequencer.Status = types.Unbonded
 	s.k().SetSequencer(s.Ctx, unbondedSequencer)
@@ -167,7 +167,7 @@ func (s *SequencerTestSuite) TestDecreaseBond_BondDecreaseInProgress() {
 
 func (s *SequencerTestSuite) TestUnbondingNonProposer() {
 	rollappId, pk := s.createRollapp()
-	proposerAddr := s.createSequencer(s.Ctx, rollappId, pk)
+	proposerAddr := s.createSequencerWithPk(s.Ctx, rollappId, pk)
 
 	bondedAddr := s.CreateDefaultSequencer(s.Ctx, rollappId)
 	s.Require().NotEqual(proposerAddr, bondedAddr)
@@ -209,7 +209,7 @@ func (s *SequencerTestSuite) TestUnbondingProposer() {
 	s.Ctx = s.Ctx.WithBlockHeight(10)
 
 	rollappId, proposerAddr := s.CreateDefaultRollappAndProposer()
-	_ = s.createSequencer(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
+	_ = s.createSequencerWithPk(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	unbondMsg := types.MsgUnbond{Creator: proposerAddr}

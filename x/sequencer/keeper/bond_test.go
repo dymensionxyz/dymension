@@ -26,15 +26,15 @@ func (s *SequencerTestSuite) TestUnbondingMultiple() {
 	seqAddr2 := make([]string, numOfSequencers2)
 
 	// create 5 sequencers for rollapp1
-	seqAddr1[0] = s.createSequencer(s.Ctx, rollappId, pk1)
+	seqAddr1[0] = s.createSequencerWithPk(s.Ctx, rollappId, pk1)
 	for i := 1; i < numOfSequencers; i++ {
-		seqAddr1[i] = s.createSequencer(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
+		seqAddr1[i] = s.createSequencerWithPk(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 	}
 
 	// create 3 sequencers for rollapp2
-	seqAddr2[0] = s.createSequencer(s.Ctx, rollappId2, pk2)
+	seqAddr2[0] = s.createSequencerWithPk(s.Ctx, rollappId2, pk2)
 	for i := 1; i < numOfSequencers2; i++ {
-		seqAddr2[i] = s.createSequencer(s.Ctx, rollappId2, ed25519.GenPrivKey().PubKey())
+		seqAddr2[i] = s.createSequencerWithPk(s.Ctx, rollappId2, ed25519.GenPrivKey().PubKey())
 	}
 
 	// start unbonding for 2 sequencers in each rollapp
@@ -70,16 +70,16 @@ func (s *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	var err error
 
 	rollappId, pk := s.createRollapp()
-	_ = s.createSequencer(s.Ctx, rollappId, pk)
+	_ = s.createSequencerWithPk(s.Ctx, rollappId, pk)
 
 	pk1 := ed25519.GenPrivKey().PubKey()
-	addr1 := s.createSequencer(s.Ctx, rollappId, pk1)
+	addr1 := s.createSequencerWithPk(s.Ctx, rollappId, pk1)
 	sequencer1, _ := s.k().GetSequencer(s.Ctx, addr1)
 	s.Require().True(sequencer1.Status == types.Bonded)
 	s.Require().False(sequencer1.Tokens.IsZero())
 
 	pk2 := ed25519.GenPrivKey().PubKey()
-	addr2 := s.createSequencer(s.Ctx, rollappId, pk2)
+	addr2 := s.createSequencerWithPk(s.Ctx, rollappId, pk2)
 	sequencer2, _ := s.k().GetSequencer(s.Ctx, addr2)
 	s.Require().True(sequencer2.Status == types.Bonded)
 	s.Require().False(sequencer2.Tokens.IsZero())

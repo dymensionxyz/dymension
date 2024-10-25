@@ -25,7 +25,7 @@ func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBon
 		return nil, err
 	}
 
-	// TODO: write seq
+	k.SetSequencer(ctx, seq)
 
 	// emit a typed event which includes the added amount and the active bond amount
 	return &types.MsgIncreaseBondResponse{}, uevent.EmitTypedEvent(ctx,
@@ -47,7 +47,8 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 	if err := k.tryUnbond(ctx, &seq, msg.GetDecreaseAmount()); err != nil {
 		return nil, errorsmod.Wrap(err, "try unbond")
 	}
-	// TODO: write object
+	k.SetSequencer(ctx, seq)
+
 	return &types.MsgDecreaseBondResponse{}, nil
 }
 
@@ -70,6 +71,7 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "try unbond")
 	}
-	// TODO: write seq
+	k.SetSequencer(ctx, seq)
+
 	return &types.MsgUnbondResponse{}, nil
 }

@@ -5,7 +5,7 @@ func (s *SequencerTestSuite) TestSlashBasic() {
 		// There shouldn't be an error if the sequencer has no tokens
 		k := s.App.SequencerKeeper
 		rollappId, pk := s.createRollapp()
-		seqAddr := s.createSequencer(s.Ctx, rollappId, pk)
+		seqAddr := s.createSequencerWithPk(s.Ctx, rollappId, pk)
 		seq, found := k.GetSequencer(s.Ctx, seqAddr)
 		s.Require().True(found)
 		err := k.Slash(s.Ctx, &seq, seq.Tokens)

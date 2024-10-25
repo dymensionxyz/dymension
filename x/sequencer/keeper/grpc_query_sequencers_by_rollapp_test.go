@@ -21,8 +21,8 @@ func (s *SequencerTestSuite) TestSequencersByRollappQuery3() {
 	pk22 := ed25519.GenPrivKey().PubKey()
 
 	// create 2 sequencer
-	addr11 := s.createSequencer(s.Ctx, rollappId, pk11)
-	addr21 := s.createSequencer(s.Ctx, rollappId, pk12)
+	addr11 := s.createSequencerWithPk(s.Ctx, rollappId, pk11)
+	addr21 := s.createSequencerWithPk(s.Ctx, rollappId, pk12)
 	seq1, err := s.k().GetRealSequencer(s.Ctx, addr11)
 	require.NoError(s.T(), err)
 	seq2, err := s.k().GetRealSequencer(s.Ctx, addr21)
@@ -31,8 +31,8 @@ func (s *SequencerTestSuite) TestSequencersByRollappQuery3() {
 		Sequencers: []types.Sequencer{seq1, seq2},
 	}
 
-	addr12 := s.createSequencer(s.Ctx, rollappId2, pk21)
-	addr22 := s.createSequencer(s.Ctx, rollappId2, pk22)
+	addr12 := s.createSequencerWithPk(s.Ctx, rollappId2, pk21)
+	addr22 := s.createSequencerWithPk(s.Ctx, rollappId2, pk22)
 	seq3, err := s.k().GetRealSequencer(s.Ctx, addr12)
 	require.NoError(s.T(), err)
 	seq4, err := s.k().GetRealSequencer(s.Ctx, addr22)
@@ -94,8 +94,8 @@ func (s *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 	rollappId, pk11 := s.createRollapp()
 	pk12 := ed25519.GenPrivKey().PubKey()
 	// create 2 sequencers on rollapp1
-	addr11 := s.createSequencer(s.Ctx, rollappId, pk11)
-	addr21 := s.createSequencer(s.Ctx, rollappId, pk12)
+	addr11 := s.createSequencerWithPk(s.Ctx, rollappId, pk11)
+	addr21 := s.createSequencerWithPk(s.Ctx, rollappId, pk12)
 	_, err := msgserver.Unbond(s.Ctx, &types.MsgUnbond{
 		Creator: addr21,
 	})
@@ -104,8 +104,8 @@ func (s *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 	// create 2 sequencers on rollapp2
 	rollappId2, pk21 := s.createRollapp()
 	pk22 := ed25519.GenPrivKey().PubKey()
-	addr12 := s.createSequencer(s.Ctx, rollappId2, pk21)
-	addr22 := s.createSequencer(s.Ctx, rollappId2, pk22)
+	addr12 := s.createSequencerWithPk(s.Ctx, rollappId2, pk21)
+	addr22 := s.createSequencerWithPk(s.Ctx, rollappId2, pk22)
 
 	for _, tc := range []struct {
 		desc          string

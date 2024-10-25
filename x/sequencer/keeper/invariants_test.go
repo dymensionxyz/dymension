@@ -21,10 +21,10 @@ func (s *SequencerTestSuite) TestInvariants() {
 
 		// create sequencers
 		seqAddr := make([]string, numOfSequencers)
-		seqAddr[0] = s.createSequencer(s.Ctx, rollapp, pk)
+		seqAddr[0] = s.createSequencerWithPk(s.Ctx, rollapp, pk)
 		for j := 1; j < numOfSequencers; j++ {
 			pki := ed25519.GenPrivKey().PubKey()
-			seqAddr[j] = s.createSequencer(s.Ctx, rollapp, pki)
+			seqAddr[j] = s.createSequencerWithPk(s.Ctx, rollapp, pki)
 		}
 
 	}
