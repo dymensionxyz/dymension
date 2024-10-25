@@ -69,7 +69,6 @@ func (k Keeper) ChooseSuccessorForFinishedNotices(ctx sdk.Context, now time.Time
 				continue
 			}
 			successor := k.GetSuccessor(ctx, seq.RollappId)
-			// TODO: event cleanup
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
 					types.EventTypeRotationStarted,

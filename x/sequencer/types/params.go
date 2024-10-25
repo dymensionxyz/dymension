@@ -19,7 +19,7 @@ var (
 	// DefaultLivenessSlashMultiplier gives the amount of tokens to slash if the sequencer is liable for a liveness failure
 	DefaultLivenessSlashMultiplier = sdk.MustNewDecFromStr("0.01")
 	// DefaultLivenessSlashMinAbsolute will be slashed if the multiplier amount is too small
-	DefaultLivenessSlashMinAbsolute sdk.Coin = sdk.Coin{Amount: sdk.OneInt(), Denom: "dym"} // TODO: parameterize + validate
+	DefaultLivenessSlashMinAbsolute sdk.Coin = sdk.Coin{Amount: sdk.OneInt(), Denom: "adym"} // TODO: parameterize + validate
 )
 
 // NewParams creates a new Params instance

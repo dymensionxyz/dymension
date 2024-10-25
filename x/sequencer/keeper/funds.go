@@ -29,6 +29,11 @@ func (k Keeper) sufficientBond(ctx sdk.Context, c sdk.Coin) error {
 	return nil
 }
 
+func (k Keeper) Kickable(ctx sdk.Context, proposer types.Sequencer) bool {
+	kickThreshold := k.GetParams(ctx).KickThreshold
+	return proposer.TokensCoin().IsLTE(kickThreshold)
+}
+
 func (k Keeper) burn(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) error {
 	seq.SetTokensCoin(seq.TokensCoin().Sub(amt))
 	return k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(amt))
