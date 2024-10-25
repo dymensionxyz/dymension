@@ -35,28 +35,10 @@ var bond = types.DefaultParams().MinBond
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func createNSequencer(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Sequencer {
-	items := make([]types.Sequencer, n)
-	for i := range items {
-		seq := types.Sequencer{
-			Address: strconv.Itoa(i),
-			Status:  types.Bonded,
-		}
-		items[i] = seq
-
-		keeper.SetSequencer(ctx, items[i])
-	}
-	return items
-}
-
 type SequencerTestSuite struct {
 	apptesting.KeeperTestHelper
 	msgServer   types.MsgServer
 	queryClient types.QueryClient
-}
-
-func TestSequencerKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(SequencerTestSuite))
 }
 
 func (s *SequencerTestSuite) k() keeper.Keeper {
@@ -65,6 +47,10 @@ func (s *SequencerTestSuite) k() keeper.Keeper {
 
 func (s *SequencerTestSuite) raK() *rollappkeeper.Keeper {
 	return s.App.RollappKeeper
+}
+
+func TestSequencerKeeperTestSuite(t *testing.T) {
+	suite.Run(t, new(SequencerTestSuite))
 }
 
 func (s *SequencerTestSuite) SetupTest() {
@@ -146,9 +132,25 @@ func (s *SequencerTestSuite) createSequencerWithBond(ctx sdk.Context, rollappId 
 	return addr.String()
 }
 
+// Deprecated
+func createNSequencer(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Sequencer {
+	items := make([]types.Sequencer, n)
+	for i := range items {
+		seq := types.Sequencer{
+			Address: strconv.Itoa(i),
+			Status:  types.Bonded,
+		}
+		items[i] = seq
+
+		keeper.SetSequencer(ctx, items[i])
+	}
+	return items
+}
+
 // ---------------------------------------
 // verifyAll receives a list of expected results and a map of sequencerAddress->sequencer
 // the function verifies that the map contains all the sequencers that are in the list and only them
+// Deprecated
 func (s *SequencerTestSuite) verifyAll(sequencersExpect []*types.Sequencer, sequencersRes map[string]*types.Sequencer) {
 	// check number of items are equal
 	s.Require().EqualValues(len(sequencersExpect), len(sequencersRes))
@@ -160,6 +162,7 @@ func (s *SequencerTestSuite) verifyAll(sequencersExpect []*types.Sequencer, sequ
 }
 
 // getAll quires for all existing sequencers and returns a map of sequencerId->sequencer
+// Deprecated
 func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 	totalChecked := 0
@@ -199,11 +202,13 @@ func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 }
 
 // equalSequencer receives two sequencers and compares them. If they are not equal, fails the test
+// Deprecated
 func (s *SequencerTestSuite) equalSequencer(s1 *types.Sequencer, s2 *types.Sequencer) {
 	eq := compareSequencers(s1, s2)
 	s.Require().True(eq, "expected: %+v\nfound: %+v", *s1, *s2)
 }
 
+// Deprecated
 func compareSequencers(s1, s2 *types.Sequencer) bool {
 	if s1.Address != s2.Address {
 		return false

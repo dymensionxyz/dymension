@@ -16,7 +16,7 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/utest"
 )
 
-func (s *SequencerTestSuite) TestMinBond() {
+func (s *SequencerTestSuite) TestMinBondL() {
 	testCases := []struct {
 		name          string
 		requiredBond  types.Coin
@@ -86,7 +86,7 @@ func (s *SequencerTestSuite) TestMinBond() {
 	}
 }
 
-func (s *SequencerTestSuite) TestCreateSequencer() {
+func (s *SequencerTestSuite) TestCreateSequencerL() {
 	goCtx := types.WrapSDKContext(s.Ctx)
 
 	// sequencersExpect is the expected result of query all
@@ -210,7 +210,7 @@ func (s *SequencerTestSuite) TestCreateSequencer() {
 	s.Require().EqualValues(totalFound, len(rollappSequencersExpect))
 }
 
-func (s *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
+func (s *SequencerTestSuite) TestCreateSequencerAlreadyExistsL() {
 	goCtx := types.WrapSDKContext(s.Ctx)
 
 	rollappId, pk := s.createRollappWithInitialSequencer()
@@ -245,7 +245,7 @@ func (s *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	s.EqualError(err, types2.ErrSequencerAlreadyExists.Error())
 }
 
-func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer() {
+func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposerL() {
 	const alex = "dym1te3lcav5c2jn8tdcrhnyl8aden6lglw266kcdd"
 
 	type sequencer struct {
@@ -342,7 +342,7 @@ func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer() {
 	}
 }
 
-func (s *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
+func (s *SequencerTestSuite) TestCreateSequencerUnknownRollappIdL() {
 	goCtx := types.WrapSDKContext(s.Ctx)
 
 	pubkey := ed25519.GenPrivKey().PubKey()
@@ -365,7 +365,7 @@ func (s *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 }
 
 // create sequencer before genesisInfo is set
-func (s *SequencerTestSuite) TestCreateSequencerBeforeGenesisInfo() {
+func (s *SequencerTestSuite) TestCreateSequencerBeforeGenesisInfoL() {
 	goCtx := types.WrapSDKContext(s.Ctx)
 	rollappId, pk := s.createRollappWithInitialSequencer()
 
@@ -402,7 +402,7 @@ func (s *SequencerTestSuite) TestCreateSequencerBeforeGenesisInfo() {
 }
 
 // create sequencer before prelaunch
-func (s *SequencerTestSuite) TestCreateSequencerBeforePrelaunch() {
+func (s *SequencerTestSuite) TestCreateSequencerBeforePrelaunchL() {
 	rollappId, pk := s.createRollappWithInitialSequencer()
 
 	// set prelaunch time to the rollapp
@@ -435,7 +435,7 @@ func (s *SequencerTestSuite) TestCreateSequencerBeforePrelaunch() {
 	s.Require().NoError(err)
 }
 
-func (s *SequencerTestSuite) TestIncreaseBond() {
+func (s *SequencerTestSuite) TestIncreaseBondL() {
 	rollappId, pk0 := s.createRollappWithInitialSequencer()
 	// setup a default sequencer
 	defaultSequencerAddress := s.createSequencerWithPk(s.Ctx, rollappId, pk0)
@@ -499,7 +499,7 @@ func (s *SequencerTestSuite) TestIncreaseBond() {
 	}
 }
 
-func (s *SequencerTestSuite) TestDecreaseBond() {
+func (s *SequencerTestSuite) TestDecreaseBondL() {
 	bondDenom := types2.DefaultParams().MinBond.Denom
 	rollappId, pk := s.createRollappWithInitialSequencer()
 	// setup a default sequencer with has minBond + 20token
@@ -562,7 +562,7 @@ func (s *SequencerTestSuite) TestDecreaseBond() {
 	}
 }
 
-func (s *SequencerTestSuite) TestDecreaseBond_BondDecreaseInProgress() {
+func (s *SequencerTestSuite) TestDecreaseBond_BondDecreaseInProgressL() {
 	bondDenom := types2.DefaultParams().MinBond.Denom
 	rollappId, pk := s.createRollappWithInitialSequencer()
 	// setup a default sequencer with has minBond + 20token
@@ -589,7 +589,7 @@ func (s *SequencerTestSuite) TestDecreaseBond_BondDecreaseInProgress() {
 	s.Require().ErrorIs(err, types2.ErrInsufficientBond)
 }
 
-func (s *SequencerTestSuite) TestUnbondingNonProposer() {
+func (s *SequencerTestSuite) TestUnbondingNonProposerL() {
 	rollappId, pk := s.createRollappWithInitialSequencer()
 	proposerAddr := s.createSequencerWithPk(s.Ctx, rollappId, pk)
 
@@ -629,7 +629,7 @@ func (s *SequencerTestSuite) TestUnbondingNonProposer() {
 	s.Require().Error(err)
 }
 
-func (s *SequencerTestSuite) TestUnbondingProposer() {
+func (s *SequencerTestSuite) TestUnbondingProposerL() {
 	s.Ctx = s.Ctx.WithBlockHeight(10)
 
 	rollappId, proposerAddr := s.CreateDefaultRollappAndProposer()
@@ -663,7 +663,7 @@ func (s *SequencerTestSuite) TestUnbondingProposer() {
 	s.Require().Len(m, 1)
 }
 
-func (s *SequencerTestSuite) TestExpectedNextProposer() {
+func (s *SequencerTestSuite) TestExpectedNextProposerL() {
 	type testCase struct {
 		name                    string
 		numSeqAddrs             int
@@ -700,7 +700,7 @@ func (s *SequencerTestSuite) TestExpectedNextProposer() {
 }
 
 // TestStartRotation tests the StartRotation function which is called when a sequencer has finished its notice period
-func (s *SequencerTestSuite) TestStartRotation() {
+func (s *SequencerTestSuite) TestStartRotationL() {
 	rollappId, pk := s.createRollappWithInitialSequencer()
 	addr1 := s.createSequencerWithPk(s.Ctx, rollappId, pk)
 
@@ -734,7 +734,7 @@ func (s *SequencerTestSuite) TestStartRotation() {
 	s.Equal(addr1, p.Address)
 }
 
-func (s *SequencerTestSuite) TestRotateProposer() {
+func (s *SequencerTestSuite) TestRotateProposerL() {
 	rollappId, pk := s.createRollappWithInitialSequencer()
 	addr1 := s.createSequencerWithPk(s.Ctx, rollappId, pk)
 	addr2 := s.createSequencerWithPk(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
@@ -765,7 +765,7 @@ func (s *SequencerTestSuite) TestRotateProposer() {
 	s.Require().False(ok)
 }
 
-func (s *SequencerTestSuite) TestRotateProposerNoNextProposer() {
+func (s *SequencerTestSuite) TestRotateProposerNoNextProposerL() {
 	rollappId, pk := s.createRollappWithInitialSequencer()
 	addr1 := s.createSequencerWithPk(s.Ctx, rollappId, pk)
 
@@ -788,7 +788,7 @@ func (s *SequencerTestSuite) TestRotateProposerNoNextProposer() {
 }
 
 // Both the proposer and nextProposer tries to unbond
-func (s *SequencerTestSuite) TestStartRotationTwice() {
+func (s *SequencerTestSuite) TestStartRotationTwiceL() {
 	s.Ctx = s.Ctx.WithBlockHeight(10)
 
 	rollappId, pk := s.createRollappWithInitialSequencer()
