@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
@@ -59,7 +60,7 @@ func (k Keeper) Claim(ctx sdk.Context, planId string, claimer sdk.AccAddress) er
 	k.SetPlan(ctx, plan)
 
 	// Emit event
-	err = ctx.EventManager().EmitTypedEvent(&types.EventClaim{
+	err = uevent.EmitTypedEvent(ctx, &types.EventClaim{
 		Claimer:   claimer.String(),
 		PlanId:    planId,
 		RollappId: plan.RollappId,
