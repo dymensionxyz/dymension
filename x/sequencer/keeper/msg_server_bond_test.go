@@ -1,20 +1,22 @@
 package keeper_test
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 	"github.com/dymensionxyz/sdk-utils/utils/utest"
 )
 
 func (s *SequencerTestSuite) TestIncreaseBondBasic() {
 	ra := s.createRollapp()
-	seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
+	expect := bond
+	seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, expect)
 	m := &types.MsgIncreaseBond{
 		Creator:   seq.Address,
 		AddAmount: bond,
 	}
-	expect := bond
 	for range 2 {
 		s.fundSequencer(seq.MustPubKey(), m.AddAmount)
 		_, err := s.msgServer.IncreaseBond(s.Ctx, m)
@@ -57,5 +59,70 @@ func (s *SequencerTestSuite) TestIncreaseBondRestrictions() {
 		// do not fund
 		_, err := s.msgServer.IncreaseBond(s.Ctx, m)
 		utest.IsErr(s.Require(), err, sdkerrors.ErrInsufficientFunds)
+	})
+}
+
+func (s *SequencerTestSuite) TestDecreaseBondBasic() {
+	ra := s.createRollapp()
+	expect := ucoin.SimpleMul(bond, 10) // plenty
+	seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, expect)
+	m := &types.MsgDecreaseBond{
+		Creator:        seq.Address,
+		DecreaseAmount: bond,
+	}
+	s.k().SetProposer(s.Ctx, ra.RollappId, pkAddr(randPK())) // make not proposer so it's allowed
+	for range 2 {
+		_, err := s.msgServer.DecreaseBond(s.Ctx, m)
+		s.Require().NoError(err)
+		expect = expect.Sub(bond)
+		seq = s.k().GetSequencer(s.Ctx, seq.Address)
+		s.Require().True(expect.Equal(seq.TokensCoin()))
+		s.Require().True(expect.Equal(s.moduleBalance()))
+	}
+}
+
+func (s *SequencerTestSuite) TestDecreaseBondRestrictions() {
+	ra := s.createRollapp()
+
+	s.Run("sequencer not found", func() {
+		// do not create sequencer
+		m := &types.MsgDecreaseBond{
+			Creator:        pkAddr(alice),
+			DecreaseAmount: bond,
+		}
+		_, err := s.msgServer.DecreaseBond(s.Ctx, m)
+		utest.IsErr(s.Require(), err, gerrc.ErrNotFound)
+	})
+	s.Run("proposer", func() {
+		currBond := ucoin.SimpleMul(bond, 3)
+		seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, bob, currBond)
+		s.k().SetProposer(s.Ctx, ra.RollappId, seq.Address)
+		m := &types.MsgDecreaseBond{
+			Creator:        seq.Address,
+			DecreaseAmount: bond,
+		}
+		_, err := s.msgServer.DecreaseBond(s.Ctx, m)
+		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
+	})
+	s.Run("successor", func() {
+		currBond := ucoin.SimpleMul(bond, 3)
+		seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, charlie, currBond)
+		s.k().SetSuccessor(s.Ctx, ra.RollappId, seq.Address)
+		m := &types.MsgDecreaseBond{
+			Creator:        seq.Address,
+			DecreaseAmount: bond,
+		}
+		_, err := s.msgServer.DecreaseBond(s.Ctx, m)
+		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
+	})
+	s.Run("fall below min", func() {
+		currBond := ucoin.MulDec(sdk.MustNewDecFromStr("1.5"), bond)[0]
+		seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, pks[3], currBond)
+		m := &types.MsgDecreaseBond{
+			Creator:        seq.Address,
+			DecreaseAmount: bond, // too much
+		}
+		_, err := s.msgServer.DecreaseBond(s.Ctx, m)
+		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
 	})
 }

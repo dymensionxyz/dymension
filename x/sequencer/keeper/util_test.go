@@ -36,6 +36,12 @@ var (
 		randPK(),
 		randPK(),
 		randPK(),
+		randPK(),
+		randPK(),
+		randPK(),
+		randPK(),
+		randPK(),
+		randPK(),
 	}
 	alice   = pks[0]
 	bob     = pks[1]
