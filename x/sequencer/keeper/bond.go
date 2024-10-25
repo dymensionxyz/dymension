@@ -43,7 +43,8 @@ func (k Keeper) TryUnbond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) e
 
 func (k Keeper) unbond(ctx sdk.Context, seq *types.Sequencer) error {
 	if k.IsSuccessor(ctx, *seq) {
-		return gerrc.ErrInternal.Wrap("unbond next proposer")
+		return gerrc.ErrInternal.Wrap(`unbond next proposer: it shouldnt be possible because
+they cannot do frauds and they cannot unbond gracefully`)
 	}
 	seq.Status = types.Unbonded
 	if k.IsProposer(ctx, *seq) {

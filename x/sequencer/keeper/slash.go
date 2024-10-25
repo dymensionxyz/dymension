@@ -22,7 +22,7 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 func (k Keeper) HandleFraud(ctx sdk.Context, seq types.Sequencer, rewardee *sdk.AccAddress) error {
 	var err error
 	if rewardee != nil {
-		rewardMul := sdk.MustNewDecFromStr("0.5")
+		rewardMul := sdk.MustNewDecFromStr("0.5") // TODO: parameterise
 		err = k.slash(ctx, seq, seq.TokensCoin(), rewardMul, *rewardee)
 	} else {
 		err = k.slash(ctx, seq, seq.TokensCoin(), sdk.ZeroDec(), nil)
@@ -30,7 +30,9 @@ func (k Keeper) HandleFraud(ctx sdk.Context, seq types.Sequencer, rewardee *sdk.
 	if err != nil {
 		return errorsmod.Wrap(err, "slash")
 	}
-	return errorsmod.Wrap(k.unbond(ctx, &seq), "unbond")
+	err = errorsmod.Wrap(k.unbond(ctx, &seq), "unbond")
+	k.SetSequencer(ctx, seq)
+	return err
 }
 
 func (k Keeper) slash(ctx sdk.Context, seq types.Sequencer, amt sdk.Coin, rewardMul sdk.Dec, rewardee sdk.AccAddress) error {
