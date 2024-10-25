@@ -18,7 +18,7 @@ message Params {
     (gogoproto.jsontag) = "min_bond,omitempty"
   ];
 
-  // amt where the active sequencer can be kicked if he has less bond
+  // amt where the active sequencer can be kicked if he has less or equal bond
   cosmos.base.v1beta1.Coin kick_threshold = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "kick_threshold,omitempty"

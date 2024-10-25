@@ -12,20 +12,24 @@ import (
 var (
 	// DefaultMinBond is the minimum bond required to be a validator
 	DefaultMinBond uint64 = 1000000
+	// DefaultKickThreshold is the minimum bond required to be a validator
+	DefaultKickThreshold uint64 = 10
 	// DefaultNoticePeriod is the time duration for notice period
 	DefaultNoticePeriod = time.Hour * 24 * 7 // 1 week
 	// DefaultLivenessSlashMultiplier gives the amount of tokens to slash if the sequencer is liable for a liveness failure
-	DefaultLivenessSlashMultiplier           = sdk.MustNewDecFromStr("0.01")
+	DefaultLivenessSlashMultiplier = sdk.MustNewDecFromStr("0.01")
+	// DefaultLivenessSlashMinAbsolute will be slashed if the multiplier amount is too small
 	DefaultLivenessSlashMinAbsolute sdk.Coin = sdk.Coin{Amount: sdk.OneInt(), Denom: "dym"} // TODO: parameterize + validate
 )
 
 // NewParams creates a new Params instance
-func NewParams(minBond sdk.Coin, noticePeriod time.Duration, livenessSlashMul sdk.Dec, livenessSlashAbs sdk.Coin) Params {
+func NewParams(minBond sdk.Coin, noticePeriod time.Duration, livenessSlashMul sdk.Dec, livenessSlashAbs sdk.Coin, kickThreshold sdk.Coin) Params {
 	return Params{
 		MinBond:                    minBond,
 		NoticePeriod:               noticePeriod,
 		LivenessSlashMinMultiplier: livenessSlashMul,
 		LivenessSlashMinAbsolute:   livenessSlashAbs,
+		KickThreshold:              kickThreshold,
 	}
 }
 
@@ -36,8 +40,10 @@ func DefaultParams() Params {
 		panic(err)
 	}
 	minBond := sdk.NewCoin(denom, sdk.NewIntFromUint64(DefaultMinBond))
+	kick := sdk.NewCoin(denom, sdk.NewIntFromUint64(DefaultKickThreshold))
 	return NewParams(
 		minBond, DefaultNoticePeriod, DefaultLivenessSlashMultiplier, DefaultLivenessSlashMinAbsolute,
+		kick,
 	)
 }
 

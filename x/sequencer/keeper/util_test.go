@@ -32,6 +32,7 @@ const (
 
 var (
 	bond = types.DefaultParams().MinBond
+	kick = types.DefaultParams().KickThreshold
 	pks  = []cryptotypes.PubKey{
 		randPK(),
 		randPK(),

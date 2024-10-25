@@ -16,15 +16,22 @@ func (k msgServer) KickProposer(goCtx context.Context, msg *types.MsgKickPropose
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		k.SetSequencer(ctx, seq)
+	}()
 
 	if !seq.Bonded() {
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "must be bonded to kick")
 	}
 
 	proposer := k.GetProposer(ctx, seq.RollappId)
+	defer func() {
+		k.SetSequencer(ctx, proposer)
+	}()
+
 	kickThreshold := k.GetParams(ctx).KickThreshold
 	// TODO: can you ever actually have a situation where the proposer is sentinel and there is a bonded sequencer?
-	if !proposer.Sentinel() && proposer.TokensCoin().IsLT(kickThreshold) {
+	if !proposer.Sentinel() && proposer.TokensCoin().IsLTE(kickThreshold) {
 		if err := k.unbond(ctx, &proposer); err != nil {
 			return nil, errorsmod.Wrap(err, "unbond")
 		}
