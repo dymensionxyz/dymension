@@ -18,11 +18,6 @@ func (k msgServer) AddApp(goCtx context.Context, msg *types.MsgAddApp) (*types.M
 		return nil, err
 	}
 
-	// If order is not set by the client, all order will get -1 which will make it random.
-	if msg.Order == 0 {
-		msg.Order = -1
-	}
-
 	// charge the app registration fee
 	creator := sdk.MustAccAddressFromBech32(msg.Creator)
 	appFee := sdk.NewCoins(k.AppRegistrationFee(ctx))
@@ -105,6 +100,13 @@ func (k msgServer) checkInputs(ctx sdk.Context, msg appMsg) error {
 	}
 	switch msg.(type) {
 	case *types.MsgAddApp, *types.MsgUpdateApp:
+		// If order is not set by the client, all order will get -1 which will make it random.
+		if orderMsg, ok := msg.(appOrderMsg); ok {
+			if orderMsg.GetOrder() == 0 {
+				orderMsg.SetOrder(-1)
+			}
+		}
+
 		apps := k.GetRollappApps(ctx, app.GetRollappId())
 		if nameExists := k.appNameExists(apps, app); nameExists {
 			return errorsmod.Wrap(gerrc.ErrAlreadyExists, "app name already exists")
@@ -134,6 +136,11 @@ func (k msgServer) appIDExists(ctx sdk.Context, app types.App) bool {
 type appMsg interface {
 	GetCreator() string
 	GetApp() types.App
+}
+
+type appOrderMsg interface {
+	GetOrder() int32
+	SetOrder(int32)
 }
 
 var _ types.MsgServer = msgServer{}
