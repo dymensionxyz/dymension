@@ -42,11 +42,11 @@ func (k Keeper) tryUnbond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) e
 }
 
 func (k Keeper) unbond(ctx sdk.Context, seq *types.Sequencer) error {
-	if k.isSuccessor(ctx, *seq) {
+	if k.IsSuccessor(ctx, *seq) {
 		return gerrc.ErrInternal.Wrap("unbond next proposer")
 	}
 	seq.Status = types.Unbonded
-	if k.isProposer(ctx, *seq) {
+	if k.IsProposer(ctx, *seq) {
 		k.SetProposer(ctx, seq.RollappId, types.SentinelSeqAddr)
 	}
 	return nil

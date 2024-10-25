@@ -166,7 +166,7 @@ func (s *SequencerTestSuite) TestUnbondRestrictions() {
 		s.Require().False(res.GetNoticePeriodCompletionTime().IsZero())
 		seq = s.k().GetSequencer(s.Ctx, seq.Address)
 		s.Require().True(seq.NoticeInProgress(s.Ctx.BlockTime()))
-		s.Require().True(s.k().GetProposer(s.Ctx, ra.RollappId).Address == seq.Address)
+		s.Require().True(s.k().IsProposer(s.Ctx, seq))
 		s.Require().False(seq.OptedIn)
 	})
 	s.Run("successor - start notice", func() {
@@ -180,7 +180,7 @@ func (s *SequencerTestSuite) TestUnbondRestrictions() {
 		s.Require().False(res.GetNoticePeriodCompletionTime().IsZero())
 		seq = s.k().GetSequencer(s.Ctx, seq.Address)
 		s.Require().True(seq.NoticeInProgress(s.Ctx.BlockTime()))
-		s.Require().True(s.k().GetSuccessor(s.Ctx, ra.RollappId).Address == seq.Address)
+		s.Require().True(s.k().IsSuccessor(s.Ctx, seq))
 		s.Require().False(seq.OptedIn)
 	})
 }

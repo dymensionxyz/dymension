@@ -56,18 +56,18 @@ func (k Keeper) proposerChoiceAlgo(ctx sdk.Context, rollapp string, seqs []types
 	return seqs[0]
 }
 
-func (k Keeper) isProposer(ctx sdk.Context, seq types.Sequencer) bool {
+func (k Keeper) IsProposer(ctx sdk.Context, seq types.Sequencer) bool {
 	return seq.Address == k.GetProposer(ctx, seq.RollappId).Address
 }
 
-func (k Keeper) isSuccessor(ctx sdk.Context, seq types.Sequencer) bool {
+func (k Keeper) IsSuccessor(ctx sdk.Context, seq types.Sequencer) bool {
 	return seq.Address == k.GetSuccessor(ctx, seq.RollappId).Address
 }
 
 // isProposerOrSuccessor returns true if the sequencer requires a notice period before unbonding
 // Both the proposer and the next proposer require a notice period
 func (k Keeper) isProposerOrSuccessor(ctx sdk.Context, seq types.Sequencer) bool {
-	return k.isProposer(ctx, seq) || k.isSuccessor(ctx, seq)
+	return k.IsProposer(ctx, seq) || k.IsSuccessor(ctx, seq)
 }
 
 // requiresNoticePeriod returns true iff the sequencer requires a notice period before unbonding
