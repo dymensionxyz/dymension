@@ -49,13 +49,7 @@ func TestInitGenesis(t *testing.T) {
 				Status:    types.Bonded,
 				Tokens:    sdk.Coins(nil),
 			},
-			// unbonding
-			{
-				Address:   "rollapp2_addr2",
-				RollappId: "rollapp2",
-				Status:    types.Unbonding,
-				Tokens:    sdk.Coins(nil),
-			},
+
 			// rollapp 3
 			// proposer with notice period
 			{

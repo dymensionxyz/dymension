@@ -1050,4 +1050,41 @@ func (s *SequencerTestSuite) TestJailBondReducingSequencer() {
 	s.assertJailed(seqAddr)
 }
 
+func (s *SequencerTestSuite) TestInvariants() {
+	numOfRollapps := 5
+	numOfSequencers := 5
+
+	var rollappToTest string
+
+	// create rollapps and sequencers
+	for i := 0; i < numOfRollapps; i++ {
+		rollapp, pk := s.createRollappWithInitialSequencer()
+
+		// create sequencers
+		seqAddr := make([]string, numOfSequencers)
+		seqAddr[0] = s.createSequencerWithPk(s.Ctx, rollapp, pk)
+		for j := 1; j < numOfSequencers; j++ {
+			pki := ed25519.GenPrivKey().PubKey()
+			seqAddr[j] = s.createSequencerWithPk(s.Ctx, rollapp, pki)
+		}
+
+	}
+
+	rollappid := rollappToTest
+
+	// Test the test: make sure all status have entries
+	seqBonded := s.k().RollappSequencersByStatus(s.Ctx, rollappid, types.Bonded)
+	seqUnbonded := s.k().RollappSequencersByStatus(s.Ctx, rollappid, types.Unbonded)
+
+	if len(seqBonded) == 0 || len(seqUnbonded) == 0 {
+		s.T().Fatal("Test setup failed")
+	}
+	// additional rollapp with no sequencers
+	s.createRollappWithInitialSequencer()
+
+	msg, ok := keeper.AllInvariants(s.App.SequencerKeeper)(s.Ctx)
+	s.Require().False(ok, msg)
+}
+
+
 */
