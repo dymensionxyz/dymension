@@ -82,6 +82,7 @@ func (s *SequencerTestSuite) TestRotationProposerAndSuccessorBothUnbond() {
 	ra := s.createRollapp()
 	s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
 	s.createSequencerWithBond(s.Ctx, ra.RollappId, bob, bond)
+	s.createSequencerWithBond(s.Ctx, ra.RollappId, charlie, bond)
 	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(alice)))
 	s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
 
@@ -118,11 +119,12 @@ func (s *SequencerTestSuite) TestRotationProposerAndSuccessorBothUnbond() {
 	// notice period for original successor (bob) has now elapsed too
 	err = s.k().ChooseSuccessorForFinishedNotices(s.Ctx, s.Ctx.BlockTime())
 	s.Require().NoError(err)
-	s.Require().False(s.k().IsProposer(s.Ctx, s.seq(bob)))
+	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(bob)))
+	s.Require().True(s.k().IsSuccessor(s.Ctx, s.seq(charlie)))
 
-	/*
-		What is the problem?
-		A can submit last, which will set B to proposer
-		so B can potentially submit last before we have chosen his successor
-	*/
+	// proposer can submit last
+	err = s.k().OnProposerLastBlock(s.Ctx, s.seq(bob))
+	s.Require().NoError(err)
+	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(charlie)))
+	s.Require().True(s.k().IsSuccessor(s.Ctx, s.k().SentinelSequencer(s.Ctx)))
 }
