@@ -48,7 +48,7 @@ func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) error {
 
 func (k Keeper) proposerChoiceAlgo(ctx sdk.Context, rollapp string, seqs []types.Sequencer) types.Sequencer {
 	if len(seqs) == 0 {
-		return k.SentinelSequencer(ctx, rollapp)
+		return k.SentinelSequencer(ctx)
 	}
 	sort.SliceStable(seqs, func(i, j int) bool {
 		return seqs[i].TokensCoin().IsGTE(seqs[j].TokensCoin())
