@@ -6,6 +6,7 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
 
 // OperatingStatus defines the operating status of a sequencer
 enum OperatingStatus {
+  reserved 1;
   option (gogoproto.goproto_enum_prefix) = false;
   // OPERATING_STATUS_UNBONDED defines a sequencer that is not active and won't
   // be scheduled
@@ -13,5 +14,5 @@ enum OperatingStatus {
       [ (gogoproto.enumvalue_customname) = "Unbonded" ];
   // OPERATING_STATUS_BONDED defines a sequencer that is bonded and can be
   // scheduled
-  OPERATING_STATUS_BONDED = 1 [ (gogoproto.enumvalue_customname) = "Bonded" ];
+  OPERATING_STATUS_BONDED = 2 [ (gogoproto.enumvalue_customname) = "Bonded" ];
 }
