@@ -105,7 +105,7 @@ func (s *SequencerTestSuite) TestCreateSequencerL() {
 	for j := 0; j < numRollapps; j++ {
 		rollapp := types4.Rollapp{
 			RollappId: urand.RollappID(),
-			Owner:     alice,
+			Owner:     aliceAddr,
 			Launched:  true,
 			Metadata: &types4.RollappMetadata{
 				Website:     "https://dymension.xyz",
@@ -266,11 +266,11 @@ func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposerL() {
 		}, {
 			name:              "Two sequencers - one is the proposer",
 			sequencers:        []sequencer{{creatorName: "alex", expProposer: true}, {creatorName: "bob", expProposer: false}},
-			rollappInitialSeq: fmt.Sprintf("%s,%s", alice, alex),
+			rollappInitialSeq: fmt.Sprintf("%s,%s", aliceAddr, alex),
 		}, {
 			name:              "One sequencer - failed because no initial sequencer",
 			sequencers:        []sequencer{{creatorName: "bob", expProposer: false}},
-			rollappInitialSeq: alice,
+			rollappInitialSeq: aliceAddr,
 			expErr:            types2.ErrNotInitialSequencer,
 		}, {
 			name:              "Any sequencer can be the first proposer",
@@ -279,7 +279,7 @@ func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposerL() {
 		}, {
 			name:              "success - any sequencer can be the first proposer, rollapp launched",
 			sequencers:        []sequencer{{creatorName: "bob", expProposer: false}},
-			rollappInitialSeq: alice,
+			rollappInitialSeq: aliceAddr,
 			malleate: func(rollappID string) {
 				r, _ := s.raK().GetRollapp(s.Ctx, rollappID)
 				r.Launched = true
@@ -843,4 +843,118 @@ func (s *SequencerTestSuite) TestStartRotationTwiceL() {
 	n, ok = s.k().GetNextProposer(s.Ctx, rollappId)
 	s.Require().True(ok)
 	s.Require().Empty(n.Address)
+}
+
+func (s *SequencerTestSuite) TestUnbondingMultiple() {
+	s.Ctx = s.Ctx.WithBlockHeight(10)
+	s.Ctx = s.Ctx.WithBlockTime(time.Now())
+
+	keeper := s.App.SequencerKeeper
+
+	rollappId, pk1 := s.createRollappWithInitialSequencer()
+	rollappId2, pk2 := s.createRollappWithInitialSequencer()
+
+	numOfSequencers := 4
+	numOfSequencers2 := 3
+	unbodingSeq := 2
+
+	seqAddr1 := make([]string, numOfSequencers)
+	seqAddr2 := make([]string, numOfSequencers2)
+
+	// create 5 sequencers for rollapp1
+	seqAddr1[0] = s.createSequencerWithPk(s.Ctx, rollappId, pk1)
+	for i := 1; i < numOfSequencers; i++ {
+		seqAddr1[i] = s.createSequencerWithPk(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
+	}
+
+	// create 3 sequencers for rollapp2
+	seqAddr2[0] = s.createSequencerWithPk(s.Ctx, rollappId2, pk2)
+	for i := 1; i < numOfSequencers2; i++ {
+		seqAddr2[i] = s.createSequencerWithPk(s.Ctx, rollappId2, ed25519.GenPrivKey().PubKey())
+	}
+
+	// start unbonding for 2 sequencers in each rollapp
+	s.Ctx = s.Ctx.WithBlockHeight(20)
+	now := time.Now()
+	unbondTime := now.Add(keeper.GetParams(s.Ctx).UnbondingTime)
+	s.Ctx = s.Ctx.WithBlockTime(now)
+	for i := 1; i < unbodingSeq+1; i++ {
+		unbondMsg := types2.MsgUnbond{Creator: seqAddr1[i]}
+		_, err := s.msgServer.Unbond(s.Ctx, &unbondMsg)
+		s.Require().NoError(err)
+
+		unbondMsg = types2.MsgUnbond{Creator: seqAddr2[i]}
+		_, err = s.msgServer.Unbond(s.Ctx, &unbondMsg)
+		s.Require().NoError(err)
+	}
+
+	// before unbonding time reached
+	sequencers := keeper.GetMatureUnbondingSequencers(s.Ctx, now)
+	s.Require().Len(sequencers, 0)
+
+	sequencers = keeper.GetMatureUnbondingSequencers(s.Ctx, unbondTime.Add(-1*time.Second))
+	s.Require().Len(sequencers, 0)
+
+	// past unbonding time
+	sequencers = keeper.GetMatureUnbondingSequencers(s.Ctx, unbondTime.Add(1*time.Second))
+	s.Require().Len(sequencers, 4)
+}
+
+func (s *SequencerTestSuite) TestTokensRefundOnUnbond() {
+	denom := bond.Denom
+	blockheight := 20
+	var err error
+
+	rollappId, pk := s.createRollappWithInitialSequencer()
+	_ = s.createSequencerWithPk(s.Ctx, rollappId, pk)
+
+	pk1 := ed25519.GenPrivKey().PubKey()
+	addr1 := s.createSequencerWithPk(s.Ctx, rollappId, pk1)
+	sequencer1, _ := s.k().GetSequencer(s.Ctx, addr1)
+	s.Require().True(sequencer1.Status == types2.Bonded)
+	s.Require().False(sequencer1.Tokens.IsZero())
+
+	pk2 := ed25519.GenPrivKey().PubKey()
+	addr2 := s.createSequencerWithPk(s.Ctx, rollappId, pk2)
+	sequencer2, _ := s.k().GetSequencer(s.Ctx, addr2)
+	s.Require().True(sequencer2.Status == types2.Bonded)
+	s.Require().False(sequencer2.Tokens.IsZero())
+
+	s.Ctx = s.Ctx.WithBlockHeight(int64(blockheight))
+	s.Ctx = s.Ctx.WithBlockTime(time.Now())
+
+	// start the 1st unbond
+	unbondMsg := types2.MsgUnbond{Creator: addr1}
+	_, err = s.msgServer.Unbond(s.Ctx, &unbondMsg)
+	s.Require().NoError(err)
+	sequencer1, _ = s.k().GetSequencer(s.Ctx, addr1)
+	s.Require().True(sequencer1.Status == types2.Unbonding)
+	s.Require().Equal(sequencer1.UnbondRequestHeight, int64(blockheight))
+	s.Require().False(sequencer1.Tokens.IsZero())
+
+	// start the 2nd unbond later
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
+	s.Ctx = s.Ctx.WithBlockTime(s.Ctx.BlockTime().Add(5 * time.Minute))
+	unbondMsg = types2.MsgUnbond{Creator: addr2}
+	_, err = s.msgServer.Unbond(s.Ctx, &unbondMsg)
+	s.Require().NoError(err)
+	sequencer2, _ = s.k().GetSequencer(s.Ctx, addr2)
+	s.Require().True(sequencer2.Status == types2.Unbonding)
+	s.Require().False(sequencer2.Tokens.IsZero())
+
+	/* -------------------------- check the unbond phase ------------------------- */
+	balanceBefore := s.App.BankKeeper.GetBalance(s.Ctx, types.MustAccAddressFromBech32(addr1), denom)
+	s.k().UnbondAllMatureSequencers(s.Ctx, sequencer1.UnbondTime.Add(1*time.Second))
+	balanceAfter := s.App.BankKeeper.GetBalance(s.Ctx, types.MustAccAddressFromBech32(addr1), denom)
+
+	// Check stake refunded
+	sequencer1, _ = s.k().GetSequencer(s.Ctx, addr1)
+	s.Equal(types2.Unbonded, sequencer1.Status)
+	s.True(sequencer1.Tokens.IsZero())
+	s.True(balanceBefore.Add(bond).IsEqual(balanceAfter), "expected %s, got %s", balanceBefore.Add(bond), balanceAfter)
+
+	// check the 2nd unbond still not happened
+	sequencer2, _ = s.k().GetSequencer(s.Ctx, addr2)
+	s.Equal(types2.Unbonding, sequencer2.Status)
+	s.False(sequencer2.Tokens.IsZero())
 }
