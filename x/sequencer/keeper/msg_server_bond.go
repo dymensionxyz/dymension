@@ -12,20 +12,21 @@ import (
 func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBond) (*types.MsgIncreaseBondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := k.validBondDenom(ctx, msg.AddAmount); err != nil {
-		return nil, err
-	}
-
 	seq, err := k.GetRealSequencer(ctx, msg.GetCreator())
 	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		k.SetSequencer(ctx, seq)
+	}()
+
+	if err := k.validBondDenom(ctx, msg.AddAmount); err != nil {
 		return nil, err
 	}
 
 	if err := k.sendToModule(ctx, &seq, msg.AddAmount); err != nil {
 		return nil, err
 	}
-
-	k.SetSequencer(ctx, seq)
 
 	// emit a typed event which includes the added amount and the active bond amount
 	return &types.MsgIncreaseBondResponse{}, uevent.EmitTypedEvent(ctx,
@@ -44,10 +45,13 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		k.SetSequencer(ctx, seq)
+	}()
+
 	if err := k.tryUnbond(ctx, &seq, msg.GetDecreaseAmount()); err != nil {
 		return nil, errorsmod.Wrap(err, "try unbond")
 	}
-	k.SetSequencer(ctx, seq)
 
 	return &types.MsgDecreaseBondResponse{}, nil
 }
@@ -58,6 +62,10 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		k.SetSequencer(ctx, seq)
+	}()
+
 	seq.OptedIn = false
 	err = k.tryUnbond(ctx, &seq, seq.TokensCoin())
 	if errorsmod.IsOf(err, types.ErrUnbondProposerOrSuccessor) {
@@ -71,7 +79,6 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "try unbond")
 	}
-	k.SetSequencer(ctx, seq)
 
 	return &types.MsgUnbondResponse{}, nil
 }

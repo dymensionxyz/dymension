@@ -102,14 +102,9 @@ func (seq Sequencer) PubKey() (cryptotypes.PubKey, error) {
 
 // MustPubKey is intended for tests
 func (seq Sequencer) MustPubKey() cryptotypes.PubKey {
-	interfaceRegistry := cdctypes.NewInterfaceRegistry()
-	cryptocodec.RegisterInterfaces(interfaceRegistry)
-	protoCodec := codec.NewProtoCodec(interfaceRegistry)
-
-	var pubKey cryptotypes.PubKey
-	err := protoCodec.UnpackAny(seq.DymintPubKey, &pubKey)
+	ret, err := seq.PubKey()
 	if err != nil {
 		panic(err)
 	}
-	return pubKey
+	return ret
 }
