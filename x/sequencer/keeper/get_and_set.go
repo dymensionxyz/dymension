@@ -6,7 +6,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func (k Keeper) RollappSequencers(ctx sdk.Context, rollappId string) []types.Sequencer {
@@ -65,33 +64,25 @@ func (k Keeper) MustGetNonSentinelSequencer(ctx sdk.Context, addr string) types.
 	return s
 }
 
-func (k Keeper) GetSequencer(ctx sdk.Context, rollapp, addr string) types.Sequencer {
-	if addr == types.SentinelSeqAddr {
-		return k.SentinelSequencer(ctx, rollapp)
-	}
+func (k Keeper) GetSequencer(ctx sdk.Context, addr string) types.Sequencer {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.SequencerKey(addr))
 	if b == nil {
 		// TODO: possible case?
-		return k.GetSequencer(ctx, rollapp, types.SentinelSeqAddr)
+		return k.SentinelSequencer(ctx)
 	}
 	ret := types.Sequencer{}
 	k.cdc.MustUnmarshal(b, &ret)
 	return ret
 }
 
+// TODO: could change to OK api
 func (k Keeper) GetRealSequencer(ctx sdk.Context, addr string) (types.Sequencer, error) {
-	if addr == types.SentinelSeqAddr {
-		return types.Sequencer{}, gerrc.ErrInternal.Wrap("try get sequencer only to be used on external arguments")
-	}
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.SequencerKey(addr))
-	if b == nil {
+	s := k.GetSequencer(ctx, addr)
+	if s.Sentinel() {
 		return types.Sequencer{}, types.ErrSequencerNotFound
 	}
-	ret := types.Sequencer{}
-	k.cdc.MustUnmarshal(b, &ret)
-	return ret, nil
+	return s, nil
 }
 
 func (k Keeper) SetSequencer(ctx sdk.Context, seq types.Sequencer) {
@@ -128,9 +119,9 @@ func (k Keeper) GetProposer(ctx sdk.Context, rollapp string) types.Sequencer {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.ProposerByRollappKey(rollapp))
 	if bz == nil {
-		return k.GetSequencer(ctx, rollapp, types.SentinelSeqAddr)
+		return k.GetSequencer(ctx, types.SentinelSeqAddr)
 	}
-	return k.GetSequencer(ctx, rollapp, string(bz))
+	return k.GetSequencer(ctx, string(bz))
 }
 
 func (k Keeper) SetProposer(ctx sdk.Context, rollapp, seqAddr string) {
@@ -145,9 +136,9 @@ func (k Keeper) GetSuccessor(ctx sdk.Context, rollapp string) types.Sequencer {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.SuccessorByRollappKey(rollapp))
 	if bz == nil {
-		return k.GetSequencer(ctx, rollapp, types.SentinelSeqAddr)
+		return k.GetSequencer(ctx, types.SentinelSeqAddr)
 	}
-	return k.GetSequencer(ctx, rollapp, string(bz))
+	return k.GetSequencer(ctx, string(bz))
 }
 
 func (k Keeper) SetSuccessor(ctx sdk.Context, rollapp, seqAddr string) {

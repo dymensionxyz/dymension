@@ -5,8 +5,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-func (k Keeper) SentinelSequencer(ctx sdk.Context, rollapp string) types.Sequencer {
-	s := k.NewSequencer(ctx, rollapp)
+func (k Keeper) SentinelSequencer(ctx sdk.Context) types.Sequencer {
+	s := k.NewSequencer(ctx, "")
 	s.Status = types.Bonded
 	s.Address = types.SentinelSeqAddr
 	s.OptedIn = true
