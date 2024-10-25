@@ -74,7 +74,6 @@ func (s *SequencerTestSuite) TestIncreaseBond() {
 }
 
 func (s *SequencerTestSuite) TestDecreaseBond() {
-	s.SetupTest()
 	bondDenom := types.DefaultParams().MinBond.Denom
 	rollappId, pk := s.createRollapp()
 	// setup a default sequencer with has minBond + 20token
@@ -138,7 +137,6 @@ func (s *SequencerTestSuite) TestDecreaseBond() {
 }
 
 func (s *SequencerTestSuite) TestDecreaseBond_BondDecreaseInProgress() {
-	s.SetupTest()
 	bondDenom := types.DefaultParams().MinBond.Denom
 	rollappId, pk := s.createRollapp()
 	// setup a default sequencer with has minBond + 20token

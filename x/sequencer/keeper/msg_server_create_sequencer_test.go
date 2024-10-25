@@ -87,7 +87,6 @@ func (s *SequencerTestSuite) TestMinBond() {
 }
 
 func (s *SequencerTestSuite) TestCreateSequencer() {
-	s.SetupTest()
 	goCtx := sdk.WrapSDKContext(s.Ctx)
 
 	// sequencersExpect is the expected result of query all
@@ -212,7 +211,6 @@ func (s *SequencerTestSuite) TestCreateSequencer() {
 }
 
 func (s *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
-	s.SetupTest()
 	goCtx := sdk.WrapSDKContext(s.Ctx)
 
 	rollappId, pk := s.createRollapp()
@@ -302,7 +300,6 @@ func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer() {
 	}
 
 	for _, tc := range testCases {
-		s.SetupTest()
 
 		goCtx := sdk.WrapSDKContext(s.Ctx)
 		rollappId := s.createRollappWithInitialSeq(tc.rollappInitialSeq)
@@ -346,7 +343,6 @@ func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer() {
 }
 
 func (s *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
-	s.SetupTest()
 	goCtx := sdk.WrapSDKContext(s.Ctx)
 
 	pubkey := ed25519.GenPrivKey().PubKey()
@@ -370,7 +366,6 @@ func (s *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 
 // create sequencer before genesisInfo is set
 func (s *SequencerTestSuite) TestCreateSequencerBeforeGenesisInfo() {
-	s.SetupTest()
 	goCtx := sdk.WrapSDKContext(s.Ctx)
 	rollappId, pk := s.createRollapp()
 
@@ -408,7 +403,6 @@ func (s *SequencerTestSuite) TestCreateSequencerBeforeGenesisInfo() {
 
 // create sequencer before prelaunch
 func (s *SequencerTestSuite) TestCreateSequencerBeforePrelaunch() {
-	s.SetupTest()
 	rollappId, pk := s.createRollapp()
 
 	// set prelaunch time to the rollapp

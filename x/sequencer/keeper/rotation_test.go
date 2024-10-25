@@ -22,8 +22,6 @@ func (s *SequencerTestSuite) TestExpectedNextProposer() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			s.SetupTest()
-
 			rollappId, pk := s.createRollapp()
 			_ = s.createSequencerWithBond(s.Ctx, rollappId, pk, bond) // proposer, with highest bond
 

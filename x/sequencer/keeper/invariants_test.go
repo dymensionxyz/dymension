@@ -8,8 +8,6 @@ import (
 )
 
 func (s *SequencerTestSuite) TestInvariants() {
-	s.SetupTest()
-
 	numOfRollapps := 5
 	numOfSequencers := 5
 

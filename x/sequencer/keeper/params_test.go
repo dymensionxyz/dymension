@@ -23,7 +23,6 @@ func TestGetParams(t *testing.T) {
 
 // test ValidateParams
 func (s *SequencerTestSuite) TestValidateParams() {
-	s.SetupTest()
 	k := s.App.SequencerKeeper
 	disputeInBlocks := s.App.RollappKeeper.GetParams(s.Ctx).DisputePeriodInBlocks
 	defaultDisputeDuration := time.Duration(disputeInBlocks*6) * time.Second
