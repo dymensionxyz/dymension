@@ -30,13 +30,13 @@ func (s *SequencerTestSuite) TestInvariants() {
 	}
 
 	rollappid := rollappToTest
-	seqUnbonding := s.App.SequencerKeeper.RollappSequencersByStatus(s.Ctx, rollappid, types.Unbonding)
+	seqUnbonding := s.k().RollappSequencersByStatus(s.Ctx, rollappid, types.Unbonding)
 	s.Require().True(len(seqUnbonding) > 0)
 
 	// Test the test: make sure all status have entries
-	seqBonded := s.App.SequencerKeeper.RollappSequencersByStatus(s.Ctx, rollappid, types.Bonded)
-	seqUnbonding = s.App.SequencerKeeper.RollappSequencersByStatus(s.Ctx, rollappid, types.Unbonding)
-	seqUnbonded := s.App.SequencerKeeper.RollappSequencersByStatus(s.Ctx, rollappid, types.Unbonded)
+	seqBonded := s.k().RollappSequencersByStatus(s.Ctx, rollappid, types.Bonded)
+	seqUnbonding = s.k().RollappSequencersByStatus(s.Ctx, rollappid, types.Unbonding)
+	seqUnbonded := s.k().RollappSequencersByStatus(s.Ctx, rollappid, types.Unbonded)
 
 	if len(seqBonded) == 0 || len(seqUnbonding) == 0 || len(seqUnbonded) == 0 {
 		s.T().Fatal("Test setup failed")

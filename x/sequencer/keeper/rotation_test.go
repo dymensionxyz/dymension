@@ -34,7 +34,7 @@ func (s *SequencerTestSuite) TestExpectedNextProposer() {
 				pubkey := ed25519.GenPrivKey().PubKey()
 				seqAddrs[i] = s.createSequencerWithBond(s.Ctx, rollappId, pubkey, currBond)
 			}
-			next := s.App.SequencerKeeper.ExpectedNextProposer(s.Ctx, rollappId)
+			next := s.k().ExpectedNextProposer(s.Ctx, rollappId)
 			if tc.expectEmptyNextProposer {
 				s.Require().Empty(next.Address)
 				return
@@ -60,24 +60,24 @@ func (s *SequencerTestSuite) TestStartRotation() {
 	s.Require().NoError(err)
 
 	// check proposer still bonded and notice period started
-	p := s.App.SequencerKeeper.GetProposer(s.Ctx, rollappId)
+	p := s.k().GetProposer(s.Ctx, rollappId)
 	s.Require().True(ok)
 	s.Equal(addr1, p.Address)
 	s.Equal(s.Ctx.BlockHeight(), p.UnbondRequestHeight)
 
-	m := s.App.SequencerKeeper.GetMatureNoticePeriodSequencers(s.Ctx, p.NoticePeriodTime.Add(-10*time.Second))
+	m := s.k().GetMatureNoticePeriodSequencers(s.Ctx, p.NoticePeriodTime.Add(-10*time.Second))
 	s.Require().Len(m, 0)
-	m = s.App.SequencerKeeper.GetMatureNoticePeriodSequencers(s.Ctx, p.NoticePeriodTime.Add(10*time.Second))
+	m = s.k().GetMatureNoticePeriodSequencers(s.Ctx, p.NoticePeriodTime.Add(10*time.Second))
 	s.Require().Len(m, 1)
-	s.App.SequencerKeeper.MatureSequencersWithNoticePeriod(s.Ctx, p.NoticePeriodTime.Add(10*time.Second))
+	s.k().MatureSequencersWithNoticePeriod(s.Ctx, p.NoticePeriodTime.Add(10*time.Second))
 
 	// validate nextProposer is set
-	n, ok := s.App.SequencerKeeper.GetNextProposer(s.Ctx, rollappId)
+	n, ok := s.k().GetNextProposer(s.Ctx, rollappId)
 	s.Require().True(ok)
 	s.Require().NotEmpty(n.Address)
 
 	// validate proposer not changed
-	p, _ = s.App.SequencerKeeper.GetProposerLegacy(s.Ctx, rollappId)
+	p, _ = s.k().GetProposerLegacy(s.Ctx, rollappId)
 	s.Equal(addr1, p.Address)
 }
 
@@ -92,23 +92,23 @@ func (s *SequencerTestSuite) TestRotateProposer() {
 	s.Require().NoError(err)
 
 	// mature notice period
-	s.App.SequencerKeeper.MatureSequencersWithNoticePeriod(s.Ctx, res.GetNoticePeriodCompletionTime().Add(10*time.Second))
-	_, ok := s.App.SequencerKeeper.GetNextProposer(s.Ctx, rollappId)
+	s.k().MatureSequencersWithNoticePeriod(s.Ctx, res.GetNoticePeriodCompletionTime().Add(10*time.Second))
+	_, ok := s.k().GetNextProposer(s.Ctx, rollappId)
 	s.Require().True(ok)
 
 	// simulate lastBlock received
-	err = s.App.SequencerKeeper.completeRotationLeg(s.Ctx, rollappId)
+	err = s.k().completeRotationLeg(s.Ctx, rollappId)
 	s.Require().NoError(err)
 
 	// assert addr2 is now proposer
-	p := s.App.SequencerKeeper.GetProposer(s.Ctx, rollappId)
+	p := s.k().GetProposer(s.Ctx, rollappId)
 	s.Require().True(ok)
 	s.Equal(addr2, p.Address)
 	// assert addr1 is unbonding
-	u, _ := s.App.SequencerKeeper.GetSequencer(s.Ctx, addr1)
+	u, _ := s.k().GetSequencer(s.Ctx, addr1)
 	s.Equal(types.Unbonding, u.Status)
 	// assert nextProposer is nil
-	_, ok = s.App.SequencerKeeper.GetNextProposer(s.Ctx, rollappId)
+	_, ok = s.k().GetNextProposer(s.Ctx, rollappId)
 	s.Require().False(ok)
 }
 
@@ -122,15 +122,15 @@ func (s *SequencerTestSuite) TestRotateProposerNoNextProposer() {
 	s.Require().NoError(err)
 
 	// mature notice period
-	s.App.SequencerKeeper.MatureSequencersWithNoticePeriod(s.Ctx, res.GetNoticePeriodCompletionTime().Add(10*time.Second))
+	s.k().MatureSequencersWithNoticePeriod(s.Ctx, res.GetNoticePeriodCompletionTime().Add(10*time.Second))
 	// simulate lastBlock received
-	err = s.App.SequencerKeeper.completeRotationLeg(s.Ctx, rollappId)
+	err = s.k().completeRotationLeg(s.Ctx, rollappId)
 	s.Require().NoError(err)
 
-	_ := s.App.SequencerKeeper.GetProposer(s.Ctx, rollappId)
+	_ := s.k().GetProposer(s.Ctx, rollappId)
 	s.Require().False(ok)
 
-	_, ok = s.App.SequencerKeeper.GetNextProposer(s.Ctx, rollappId)
+	_, ok = s.k().GetNextProposer(s.Ctx, rollappId)
 	s.Require().False(ok)
 }
 
@@ -147,15 +147,15 @@ func (s *SequencerTestSuite) TestStartRotationTwice() {
 	_, err := s.msgServer.Unbond(s.Ctx, &unbondMsg)
 	s.Require().NoError(err)
 
-	p := s.App.SequencerKeeper.GetProposer(s.Ctx, rollappId)
+	p := s.k().GetProposer(s.Ctx, rollappId)
 	s.Require().True(ok)
 	s.Equal(addr1, p.Address)
 	s.Equal(s.Ctx.BlockHeight(), p.UnbondRequestHeight)
 
-	s.App.SequencerKeeper.MatureSequencersWithNoticePeriod(s.Ctx, p.NoticePeriodTime.Add(10*time.Second))
-	s.Require().True(s.App.SequencerKeeper.isRotatingLeg(s.Ctx, rollappId))
+	s.k().MatureSequencersWithNoticePeriod(s.Ctx, p.NoticePeriodTime.Add(10*time.Second))
+	s.Require().True(s.k().isRotatingLeg(s.Ctx, rollappId))
 
-	n, ok := s.App.SequencerKeeper.GetNextProposer(s.Ctx, rollappId)
+	n, ok := s.k().GetNextProposer(s.Ctx, rollappId)
 	s.Require().True(ok)
 	s.Equal(addr2, n.Address)
 
@@ -166,28 +166,28 @@ func (s *SequencerTestSuite) TestStartRotationTwice() {
 	s.Require().NoError(err)
 
 	// check nextProposer is still the nextProposer and notice period started
-	n, ok = s.App.SequencerKeeper.GetNextProposer(s.Ctx, rollappId)
+	n, ok = s.k().GetNextProposer(s.Ctx, rollappId)
 	s.Require().True(ok)
 	s.Equal(addr2, n.Address)
 	s.Require().True(n.IsNoticePeriodInProgress())
 
 	// rotation completes before notice period ends for addr2 (the nextProposer)
-	err = s.App.SequencerKeeper.completeRotationLeg(s.Ctx, rollappId) // simulate lastBlock received
+	err = s.k().completeRotationLeg(s.Ctx, rollappId) // simulate lastBlock received
 	s.Require().NoError(err)
 
 	// validate addr2 is now proposer and still with notice period
-	p, _ = s.App.SequencerKeeper.GetProposerLegacy(s.Ctx, rollappId)
+	p, _ = s.k().GetProposerLegacy(s.Ctx, rollappId)
 	s.Equal(addr2, p.Address)
 	s.Require().True(p.IsNoticePeriodInProgress())
 
 	// validate nextProposer is unset after rotation completes
-	n, ok = s.App.SequencerKeeper.GetNextProposer(s.Ctx, rollappId)
+	n, ok = s.k().GetNextProposer(s.Ctx, rollappId)
 	s.Require().False(ok)
 
 	// mature notice period for addr2
-	s.App.SequencerKeeper.MatureSequencersWithNoticePeriod(s.Ctx, p.NoticePeriodTime.Add(10*time.Second))
+	s.k().MatureSequencersWithNoticePeriod(s.Ctx, p.NoticePeriodTime.Add(10*time.Second))
 	// validate nextProposer is set
-	n, ok = s.App.SequencerKeeper.GetNextProposer(s.Ctx, rollappId)
+	n, ok = s.k().GetNextProposer(s.Ctx, rollappId)
 	s.Require().True(ok)
 	s.Require().Empty(n.Address)
 }

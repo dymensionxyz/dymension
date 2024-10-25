@@ -23,9 +23,9 @@ func (s *SequencerTestSuite) TestSequencersByRollappQuery3() {
 	// create 2 sequencer
 	addr11 := s.createSequencer(s.Ctx, rollappId, pk11)
 	addr21 := s.createSequencer(s.Ctx, rollappId, pk12)
-	seq1, err := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, addr11)
+	seq1, err := s.k().GetRealSequencer(s.Ctx, addr11)
 	require.NoError(s.T(), err)
-	seq2, err := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, addr21)
+	seq2, err := s.k().GetRealSequencer(s.Ctx, addr21)
 	require.NoError(s.T(), err)
 	seq1Response := types.QueryGetSequencersByRollappResponse{
 		Sequencers: []types.Sequencer{seq1, seq2},
@@ -33,9 +33,9 @@ func (s *SequencerTestSuite) TestSequencersByRollappQuery3() {
 
 	addr12 := s.createSequencer(s.Ctx, rollappId2, pk21)
 	addr22 := s.createSequencer(s.Ctx, rollappId2, pk22)
-	seq3, err := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, addr12)
+	seq3, err := s.k().GetRealSequencer(s.Ctx, addr12)
 	require.NoError(s.T(), err)
-	seq4, err := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, addr22)
+	seq4, err := s.k().GetRealSequencer(s.Ctx, addr22)
 	require.NoError(s.T(), err)
 	seq2Response := types.QueryGetSequencersByRollappResponse{
 		Sequencers: []types.Sequencer{seq3, seq4},
@@ -74,7 +74,7 @@ func (s *SequencerTestSuite) TestSequencersByRollappQuery3() {
 		},
 	} {
 		s.T().Run(tc.desc, func(t *testing.T) {
-			response, err := s.App.SequencerKeeper.SequencersByRollapp(s.Ctx, tc.request)
+			response, err := s.k().SequencersByRollapp(s.Ctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {
@@ -158,7 +158,7 @@ func (s *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 		},
 	} {
 		s.T().Run(tc.desc, func(t *testing.T) {
-			response, err := s.App.SequencerKeeper.SequencersByRollappByStatus(s.Ctx, tc.request)
+			response, err := s.k().SequencersByRollappByStatus(s.Ctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {
@@ -166,7 +166,7 @@ func (s *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 				require.Len(t, response.Sequencers, len(tc.response_addr))
 
 				for _, seqAddr := range tc.response_addr {
-					seq, err := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, seqAddr)
+					seq, err := s.k().GetRealSequencer(s.Ctx, seqAddr)
 					require.NoError(t, err)
 					require.Contains(t, response.Sequencers, seq)
 				}

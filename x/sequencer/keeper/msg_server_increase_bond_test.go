@@ -17,9 +17,9 @@ func (s *SequencerTestSuite) TestIncreaseBond() {
 	// setup an unbonded sequencer
 	pk1 := ed25519.GenPrivKey().PubKey()
 	unbondedSequencerAddress := s.createSequencer(s.Ctx, rollappId, pk1)
-	unbondedSequencer, _ := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, unbondedSequencerAddress)
+	unbondedSequencer, _ := s.k().GetRealSequencer(s.Ctx, unbondedSequencerAddress)
 	unbondedSequencer.Status = types.Unbonded
-	s.App.SequencerKeeper.SetSequencer(s.Ctx, unbondedSequencer)
+	s.k().SetSequencer(s.Ctx, unbondedSequencer)
 
 	// fund all the sequencers which have been setup
 	bondAmount := sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 100)
@@ -67,7 +67,7 @@ func (s *SequencerTestSuite) TestIncreaseBond() {
 			} else {
 				s.Require().NoError(err)
 				expectedBond := types.DefaultParams().MinBond.Add(bondAmount)
-				seq, _ := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, defaultSequencerAddress)
+				seq, _ := s.k().GetRealSequencer(s.Ctx, defaultSequencerAddress)
 				s.Require().Equal(expectedBond, seq.Tokens[0])
 			}
 		})

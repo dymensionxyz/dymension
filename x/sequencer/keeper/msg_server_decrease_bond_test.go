@@ -15,9 +15,9 @@ func (s *SequencerTestSuite) TestDecreaseBond() {
 	// setup an unbonded sequencer
 	unbondedPk := ed25519.GenPrivKey().PubKey()
 	unbondedSequencerAddress := s.createSequencer(s.Ctx, rollappId, unbondedPk)
-	unbondedSequencer, _ := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, unbondedSequencerAddress)
+	unbondedSequencer, _ := s.k().GetRealSequencer(s.Ctx, unbondedSequencerAddress)
 	unbondedSequencer.Status = types.Unbonded
-	s.App.SequencerKeeper.SetSequencer(s.Ctx, unbondedSequencer)
+	s.k().SetSequencer(s.Ctx, unbondedSequencer)
 
 	testCase := []struct {
 		name        string

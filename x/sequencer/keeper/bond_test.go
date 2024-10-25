@@ -74,13 +74,13 @@ func (s *SequencerTestSuite) TestTokensRefundOnUnbond() {
 
 	pk1 := ed25519.GenPrivKey().PubKey()
 	addr1 := s.createSequencer(s.Ctx, rollappId, pk1)
-	sequencer1, _ := s.App.SequencerKeeper.GetSequencer(s.Ctx, addr1)
+	sequencer1, _ := s.k().GetSequencer(s.Ctx, addr1)
 	s.Require().True(sequencer1.Status == types.Bonded)
 	s.Require().False(sequencer1.Tokens.IsZero())
 
 	pk2 := ed25519.GenPrivKey().PubKey()
 	addr2 := s.createSequencer(s.Ctx, rollappId, pk2)
-	sequencer2, _ := s.App.SequencerKeeper.GetSequencer(s.Ctx, addr2)
+	sequencer2, _ := s.k().GetSequencer(s.Ctx, addr2)
 	s.Require().True(sequencer2.Status == types.Bonded)
 	s.Require().False(sequencer2.Tokens.IsZero())
 
@@ -91,7 +91,7 @@ func (s *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	unbondMsg := types.MsgUnbond{Creator: addr1}
 	_, err = s.msgServer.Unbond(s.Ctx, &unbondMsg)
 	s.Require().NoError(err)
-	sequencer1, _ = s.App.SequencerKeeper.GetSequencer(s.Ctx, addr1)
+	sequencer1, _ = s.k().GetSequencer(s.Ctx, addr1)
 	s.Require().True(sequencer1.Status == types.Unbonding)
 	s.Require().Equal(sequencer1.UnbondRequestHeight, int64(blockheight))
 	s.Require().False(sequencer1.Tokens.IsZero())
@@ -102,23 +102,23 @@ func (s *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	unbondMsg = types.MsgUnbond{Creator: addr2}
 	_, err = s.msgServer.Unbond(s.Ctx, &unbondMsg)
 	s.Require().NoError(err)
-	sequencer2, _ = s.App.SequencerKeeper.GetSequencer(s.Ctx, addr2)
+	sequencer2, _ = s.k().GetSequencer(s.Ctx, addr2)
 	s.Require().True(sequencer2.Status == types.Unbonding)
 	s.Require().False(sequencer2.Tokens.IsZero())
 
 	/* -------------------------- check the unbond phase ------------------------- */
 	balanceBefore := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(addr1), denom)
-	s.App.SequencerKeeper.UnbondAllMatureSequencers(s.Ctx, sequencer1.UnbondTime.Add(1*time.Second))
+	s.k().UnbondAllMatureSequencers(s.Ctx, sequencer1.UnbondTime.Add(1*time.Second))
 	balanceAfter := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(addr1), denom)
 
 	// Check stake refunded
-	sequencer1, _ = s.App.SequencerKeeper.GetSequencer(s.Ctx, addr1)
+	sequencer1, _ = s.k().GetSequencer(s.Ctx, addr1)
 	s.Equal(types.Unbonded, sequencer1.Status)
 	s.True(sequencer1.Tokens.IsZero())
 	s.True(balanceBefore.Add(bond).IsEqual(balanceAfter), "expected %s, got %s", balanceBefore.Add(bond), balanceAfter)
 
 	// check the 2nd unbond still not happened
-	sequencer2, _ = s.App.SequencerKeeper.GetSequencer(s.Ctx, addr2)
+	sequencer2, _ = s.k().GetSequencer(s.Ctx, addr2)
 	s.Equal(types.Unbonding, sequencer2.Status)
 	s.False(sequencer2.Tokens.IsZero())
 }

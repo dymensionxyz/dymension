@@ -47,7 +47,7 @@ func (s *SequencerTestSuite) TestMinBond() {
 		s.Run(tc.name, func() {
 			seqParams := types.DefaultParams()
 			seqParams.MinBond = tc.requiredBond
-			s.App.SequencerKeeper.SetParams(s.Ctx, seqParams)
+			s.k().SetParams(s.Ctx, seqParams)
 
 			rollappId, pk := s.createRollapp()
 
@@ -74,7 +74,7 @@ func (s *SequencerTestSuite) TestMinBond() {
 				s.Require().ErrorAs(createErr, &tc.expectedError, tc.name)
 			} else {
 				s.Require().NoError(createErr)
-				sequencer, err := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, addr.String())
+				sequencer, err := s.k().GetRealSequencer(s.Ctx, addr.String())
 				s.Require().NoError(err)
 				if tc.requiredBond.IsNil() {
 					s.Require().True(sequencer.Tokens.IsZero(), tc.name)
@@ -335,7 +335,7 @@ func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposer() {
 			}
 
 			// check that the sequencer is the proposer
-			proposer := s.App.SequencerKeeper.GetProposer(s.Ctx, rollappId)
+			proposer := s.k().GetProposer(s.Ctx, rollappId)
 			if seq.expProposer {
 				s.Require().Equal(addr.String(), proposer.Address, tc.name)
 			} else {
