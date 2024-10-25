@@ -29,6 +29,7 @@ const (
 	// be scheduled
 	Unbonded OperatingStatus = 0
 	// UNBONDING defines a sequencer that is currently unbonding.
+	// Deprecated
 	Unbonding OperatingStatus = 1 // Deprecated: Do not use.
 	// OPERATING_STATUS_BONDED defines a sequencer that is bonded and can be
 	// scheduled

@@ -33,7 +33,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type Params struct {
 	// minimum amt that must be put up for stake to be sequencer
 	MinBond types.Coin `protobuf:"bytes,1,opt,name=min_bond,json=minBond,proto3" json:"min_bond,omitempty"`
-	// amt where the active sequencer can be kicked if he has less bond
+	// amt where the active sequencer can be kicked if he has less or equal bond
 	KickThreshold types.Coin `protobuf:"bytes,5,opt,name=kick_threshold,json=kickThreshold,proto3" json:"kick_threshold,omitempty"`
 	// notice_period is the time duration of notice period.
 	// notice period is the duration between the unbond request and the actual
