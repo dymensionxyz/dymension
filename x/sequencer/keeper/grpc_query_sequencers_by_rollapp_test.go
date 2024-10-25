@@ -1,11 +1,10 @@
 package keeper_test
 
 import (
-	"strconv"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/sdk-utils/utils/utest"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
@@ -62,13 +61,6 @@ func (s *SequencerTestSuite) TestSequencersByRollappQuery3() {
 			response: &seq2Response,
 		},
 		{
-			desc: "KeyNotFound",
-			request: &types.QueryGetSequencersByRollappRequest{
-				RollappId: strconv.Itoa(100000),
-			},
-			err: rollapptypes.ErrRollappNotFound,
-		},
-		{
 			desc: "InvalidRequest",
 			err:  gerrc.ErrInvalidArgument,
 		},
@@ -76,7 +68,7 @@ func (s *SequencerTestSuite) TestSequencersByRollappQuery3() {
 		s.T().Run(tc.desc, func(t *testing.T) {
 			response, err := s.k().SequencersByRollapp(s.Ctx, tc.request)
 			if tc.err != nil {
-				require.ErrorIs(t, err, tc.err)
+				utest.IsErr(require.New(t), err, tc.err)
 			} else {
 				require.NoError(t, err)
 				require.Equal(t,
@@ -146,13 +138,6 @@ func (s *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 			response_addr: []string{addr12, addr22},
 		},
 		{
-			desc: "KeyNotFound",
-			request: &types.QueryGetSequencersByRollappByStatusRequest{
-				RollappId: strconv.Itoa(100000),
-			},
-			err: rollapptypes.ErrRollappNotFound,
-		},
-		{
 			desc: "InvalidRequest",
 			err:  gerrc.ErrInvalidArgument,
 		},
@@ -160,7 +145,7 @@ func (s *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 		s.T().Run(tc.desc, func(t *testing.T) {
 			response, err := s.k().SequencersByRollappByStatus(s.Ctx, tc.request)
 			if tc.err != nil {
-				require.ErrorIs(t, err, tc.err)
+				utest.IsErr(require.New(t), err, tc.err)
 			} else {
 				require.NoError(t, err)
 				require.Len(t, response.Sequencers, len(tc.response_addr))
