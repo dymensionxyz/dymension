@@ -9,11 +9,6 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-func (k Keeper) awaitingLastProposerBlock(ctx sdk.Context, rollapp string) bool {
-	proposer := k.GetProposer(ctx, rollapp)
-	return proposer.NoticeElapsed(ctx.BlockTime())
-}
-
 func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) {
 	seq.NoticePeriodTime = ctx.BlockTime().Add(k.GetParams(ctx).NoticePeriod)
 
@@ -27,6 +22,37 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, seq.NoticePeriodTime.String()),
 		),
 	)
+}
+
+func (k Keeper) AddToNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
+	store := ctx.KVStore(k.storeKey)
+	noticePeriodKey := types.NoticeQueueBySeqTimeKey(seq.Address, seq.NoticePeriodTime)
+	store.Set(noticePeriodKey, []byte(seq.Address))
+}
+
+func (k Keeper) removeFromNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
+	store := ctx.KVStore(k.storeKey)
+	noticePeriodKey := types.NoticeQueueBySeqTimeKey(seq.Address, seq.NoticePeriodTime)
+	store.Delete(noticePeriodKey)
+}
+
+func (k Keeper) NoticeElapsedSequencers(ctx sdk.Context, endTime time.Time) ([]types.Sequencer, error) {
+	ret := []types.Sequencer{}
+	store := ctx.KVStore(k.storeKey)
+	iterator := store.Iterator(types.NoticePeriodQueueKey, sdk.PrefixEndBytes(types.NoticeQueueByTimeKey(endTime)))
+
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		addr := string(iterator.Value())
+		seq, err := k.GetRealSequencer(ctx, string(iterator.Value()))
+		if err != nil {
+			return nil, gerrc.ErrInternal.Wrapf("sequencer in notice queue but missing sequencer object: addr: %s", addr)
+		}
+		ret = append(ret, seq)
+	}
+
+	return ret, nil
 }
 
 func (k Keeper) ChooseNewProposerForFinishedNoticePeriods(ctx sdk.Context, now time.Time) error {
@@ -56,6 +82,11 @@ func (k Keeper) ChooseNewProposerForFinishedNoticePeriods(ctx sdk.Context, now t
 	return nil
 }
 
+func (k Keeper) awaitingLastProposerBlock(ctx sdk.Context, rollapp string) bool {
+	proposer := k.GetProposer(ctx, rollapp)
+	return proposer.NoticeElapsed(ctx.BlockTime())
+}
+
 func (k Keeper) onProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) error {
 	allowLastBlock := proposer.NoticeElapsed(ctx.BlockTime())
 	if !allowLastBlock {
@@ -63,35 +94,4 @@ func (k Keeper) onProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) e
 	}
 	k.SetProposer(ctx, proposer.RollappId, types.SentinelSeqAddr)
 	return errorsmod.Wrap(k.chooseProposer(ctx, proposer.RollappId), "choose proposer")
-}
-
-func (k Keeper) NoticeElapsedSequencers(ctx sdk.Context, endTime time.Time) ([]types.Sequencer, error) {
-	ret := []types.Sequencer{}
-	store := ctx.KVStore(k.storeKey)
-	iterator := store.Iterator(types.NoticePeriodQueueKey, sdk.PrefixEndBytes(types.NoticeQueueByTimeKey(endTime)))
-
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		addr := string(iterator.Value())
-		seq, err := k.GetRealSequencer(ctx, string(iterator.Value()))
-		if err != nil {
-			return nil, gerrc.ErrInternal.Wrapf("sequencer in notice queue but missing sequencer object: addr: %s", addr)
-		}
-		ret = append(ret, seq)
-	}
-
-	return ret, nil
-}
-
-func (k Keeper) AddToNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
-	store := ctx.KVStore(k.storeKey)
-	noticePeriodKey := types.NoticeQueueBySeqTimeKey(seq.Address, seq.NoticePeriodTime)
-	store.Set(noticePeriodKey, []byte(seq.Address))
-}
-
-func (k Keeper) removeFromNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
-	store := ctx.KVStore(k.storeKey)
-	noticePeriodKey := types.NoticeQueueBySeqTimeKey(seq.Address, seq.NoticePeriodTime)
-	store.Delete(noticePeriodKey)
 }
