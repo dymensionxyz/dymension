@@ -8,16 +8,6 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 )
 
-func (k Keeper) bondChange(ctx sdk.Context, seqAddr string, amt sdk.Coin) error {
-	seq, err := k.GetRealSequencer(ctx, msg.GetCreator())
-	if err != nil {
-		return nil, err
-	}
-	if err := k.tryUnbond(ctx, &seq, msg.GetDecreaseAmount()); err != nil {
-		return nil, errorsmod.Wrap(err, "try unbond")
-	}
-}
-
 type UnbondBlocker interface {
 	// CanUnbond should return a types.UnbondNotAllowed error with a reason, or nil (or another error)
 	CanUnbond(ctx sdk.Context, sequencer types.Sequencer) error
