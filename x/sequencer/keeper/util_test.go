@@ -98,7 +98,12 @@ func (s *SequencerTestSuite) SetupTest() {
 func (s *SequencerTestSuite) moduleBalance() sdk.Coin {
 	acc := s.App.AccountKeeper.GetModuleAccount(s.Ctx, types.ModuleName)
 	cs := s.App.BankKeeper.GetAllBalances(s.Ctx, acc.GetAddress())
-	s.Require().Len(cs, 1)
+	if cs.Len() == 0 {
+		// coins will be zerod
+		ret := bond
+		ret.Amount = sdk.ZeroInt()
+		return ret
+	}
 	return cs[0]
 }
 

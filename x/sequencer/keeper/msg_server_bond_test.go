@@ -126,3 +126,57 @@ func (s *SequencerTestSuite) TestDecreaseBondRestrictions() {
 		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
 	})
 }
+
+func (s *SequencerTestSuite) TestUnbondBasic() {
+	ra := s.createRollapp()
+	expect := bond
+	seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, expect)
+	s.k().SetProposer(s.Ctx, ra.RollappId, pkAddr(randPK())) // make not proposer so it's allowed
+	m := &types.MsgUnbond{
+		Creator: seq.Address,
+	}
+	_, err := s.msgServer.Unbond(s.Ctx, m)
+	s.Require().NoError(err)
+	expect = expect.Sub(bond)
+	seq = s.k().GetSequencer(s.Ctx, seq.Address)
+	s.Require().Equal(types.Unbonded, seq.Status)
+	s.Require().True(s.moduleBalance().IsZero())
+	s.Require().True(seq.TokensCoin().IsZero())
+}
+
+func (s *SequencerTestSuite) TestUnbondRestrictions() {
+	ra := s.createRollapp()
+
+	s.Run("sequencer not found", func() {
+		// do not create sequencer
+		m := &types.MsgUnbond{
+			Creator: pkAddr(alice),
+		}
+		_, err := s.msgServer.Unbond(s.Ctx, m)
+		utest.IsErr(s.Require(), err, gerrc.ErrNotFound)
+	})
+	s.Run("proposer - start notice", func() {
+		seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, bob, bond)
+		s.k().SetProposer(s.Ctx, ra.RollappId, seq.Address)
+		m := &types.MsgUnbond{
+			Creator: seq.Address,
+		}
+		res, err := s.msgServer.Unbond(s.Ctx, m)
+		s.Require().NoError(err)
+		s.Require().False(res.GetNoticePeriodCompletionTime().IsZero())
+		seq = s.k().GetSequencer(s.Ctx, seq.Address)
+		s.Require().True(s.k().GetProposer(s.Ctx, ra.RollappId).Address == seq.Address)
+	})
+	s.Run("successor - start notice", func() {
+		seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, charlie, bond)
+		s.k().SetSuccessor(s.Ctx, ra.RollappId, seq.Address)
+		m := &types.MsgUnbond{
+			Creator: seq.Address,
+		}
+		res, err := s.msgServer.Unbond(s.Ctx, m)
+		s.Require().NoError(err)
+		s.Require().False(res.GetNoticePeriodCompletionTime().IsZero())
+		seq = s.k().GetSequencer(s.Ctx, seq.Address)
+		s.Require().True(s.k().GetSuccessor(s.Ctx, ra.RollappId).Address == seq.Address)
+	})
+}
