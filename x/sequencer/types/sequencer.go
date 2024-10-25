@@ -38,7 +38,7 @@ func (seq Sequencer) TokensCoin() sdk.Coin {
 }
 
 func (seq Sequencer) SetTokensCoin(c sdk.Coin) {
-	seq.Tokens = sdk.Coins{c}
+	seq.Tokens[0] = c
 }
 
 func (seq Sequencer) AccAddr() sdk.AccAddress {

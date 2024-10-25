@@ -38,13 +38,22 @@ var (
 		ed25519.GenPrivKey().PubKey(),
 		ed25519.GenPrivKey().PubKey(),
 		ed25519.GenPrivKey().PubKey(),
+		ed25519.GenPrivKey().PubKey(),
+		ed25519.GenPrivKey().PubKey(),
+		ed25519.GenPrivKey().PubKey(),
+		ed25519.GenPrivKey().PubKey(),
+		ed25519.GenPrivKey().PubKey(),
 	}
 	alice   = pks[0]
 	bob     = pks[1]
 	charlie = pks[2]
 )
 
-func pkAddr(pk cryptotypes.PubKey) sdk.AccAddress {
+func pkAddr(pk cryptotypes.PubKey) string {
+	return pkAccAddr(pk).String()
+}
+
+func pkAccAddr(pk cryptotypes.PubKey) sdk.AccAddress {
 	return sdk.AccAddress(pk.Address())
 }
 
@@ -112,7 +121,7 @@ func createSequencerMsg(rollapp string, pk cryptotypes.PubKey) types.MsgCreateSe
 	}
 
 	return types.MsgCreateSequencer{
-		Creator:      pkAddr(pk).String(),
+		Creator:      pkAddr(pk),
 		DymintPubKey: pkAny,
 		// Bond not included
 		RollappId: rollapp,
@@ -124,8 +133,17 @@ func createSequencerMsg(rollapp string, pk cryptotypes.PubKey) types.MsgCreateSe
 }
 
 func (s *SequencerTestSuite) fundSequencer(pk cryptotypes.PubKey, amt sdk.Coin) {
-	err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, pkAddr(pk), sdk.NewCoins(amt))
+	err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, pkAccAddr(pk), sdk.NewCoins(amt))
 	s.Require().NoError(err)
+}
+
+func (s *SequencerTestSuite) createSequencerWithBond(ctx sdk.Context, rollapp string, pk cryptotypes.PubKey, bond sdk.Coin) types.Sequencer {
+	s.fundSequencer(pk, bond)
+	msg := createSequencerMsg(rollapp, pk)
+	msg.Bond = bond
+	_, err := s.msgServer.CreateSequencer(ctx, &msg)
+	s.Require().NoError(err)
+	return s.k().GetSequencer(ctx, pkAddr(pk))
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BELOW HERE IS LEGACY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -133,23 +151,23 @@ func (s *SequencerTestSuite) fundSequencer(pk cryptotypes.PubKey, amt sdk.Coin) 
 // Deprecated
 func (s *SequencerTestSuite) createSequencer(ctx sdk.Context, rollappId string) string {
 	pk := ed25519.GenPrivKey().PubKey()
-	return s.createSequencerWithBond(ctx, rollappId, pk, bond)
+	return s.createSequencerWithBondL(ctx, rollappId, pk, bond)
 }
 
 // Deprecated
 func (s *SequencerTestSuite) createRollappWithInitialSequencer() (string, cryptotypes.PubKey) {
 	pubkey := ed25519.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	return s.createRollapp(addr.String()), pubkey
+	return s.createRollappInner(addr.String()), pubkey
 }
 
 // Deprecated
 func (s *SequencerTestSuite) createSequencerWithPk(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey) string {
-	return s.createSequencerWithBond(ctx, rollappId, pk, bond)
+	return s.createSequencerWithBondL(ctx, rollappId, pk, bond)
 }
 
 // Deprecated
-func (s *SequencerTestSuite) createSequencerWithBond(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey, bond sdk.Coin) string {
+func (s *SequencerTestSuite) createSequencerWithBondL(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey, bond sdk.Coin) string {
 	pkAny, err := codectypes.NewAnyWithValue(pk)
 	s.Require().Nil(err)
 
