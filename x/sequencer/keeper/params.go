@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"time"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -24,6 +22,9 @@ func (k Keeper) ValidateParams(ctx sdk.Context, params types.Params) error {
 	if params.MinBond.Denom != denom {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "min bond denom must be equal to base denom")
 	}
+	if params.KickThreshold.Denom != denom {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "kick threshold denom must be equal to base denom")
+	}
 	return nil
 }
 
@@ -43,8 +44,4 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 	}
 	k.cdc.MustUnmarshal(bz, &params)
 	return params
-}
-
-func (k Keeper) NoticePeriod(ctx sdk.Context) (res time.Duration) {
-	return k.GetParams(ctx).NoticePeriod
 }

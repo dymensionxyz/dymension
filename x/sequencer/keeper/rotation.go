@@ -15,7 +15,8 @@ func (k Keeper) awaitingLastProposerBlock(ctx sdk.Context, rollapp string) bool 
 }
 
 func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) {
-	seq.NoticePeriodTime = ctx.BlockTime().Add(k.NoticePeriod(ctx))
+	var res time.Duration
+	seq.NoticePeriodTime = ctx.BlockTime().Add(k.GetParams(ctx).NoticePeriod)
 
 	k.AddToNoticeQueue(ctx, *seq)
 
