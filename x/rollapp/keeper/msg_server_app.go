@@ -101,9 +101,10 @@ func (k msgServer) checkInputs(ctx sdk.Context, msg appMsg) error {
 	switch msg.(type) {
 	case *types.MsgAddApp, *types.MsgUpdateApp:
 		// If order is not set by the client, all order will get -1 which will make it random.
-		orderMsg := msg.(appOrderMsg)
-		if orderMsg.GetOrder() == 0 {
-			orderMsg.SetOrder(-1)
+		if orderMsg, ok := msg.(appOrderMsg); ok {
+			if orderMsg.GetOrder() == 0 {
+				orderMsg.SetOrder(-1)
+			}
 		}
 
 		apps := k.GetRollappApps(ctx, app.GetRollappId())
