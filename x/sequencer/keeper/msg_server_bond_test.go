@@ -5,14 +5,16 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func (s *SequencerTestSuite) TestIncreaseBond() {
-	rollappId, pk := s.createRollapp()
+	rollappId, pk0 := s.createRollapp()
 	// setup a default sequencer
-	defaultSequencerAddress := s.createSequencerWithPk(s.Ctx, rollappId, pk)
+	defaultSequencerAddress := s.createSequencerWithPk(s.Ctx, rollappId, pk0)
 	// setup an unbonded sequencer
 	pk1 := ed25519.GenPrivKey().PubKey()
 	unbondedSequencerAddress := s.createSequencerWithPk(s.Ctx, rollappId, pk1)
