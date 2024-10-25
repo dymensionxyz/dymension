@@ -433,11 +433,6 @@ func (s *KeeperTestSuite) TestMsgVoteRollAppGaugeNonBondedSequencer() {
 
 	// create a rollapp, subsequently the rollapp gauge must be created
 	s.CreateRollappByName(raName)
-	// create a bonded sequencer
-	proposer := s.CreateDefaultSequencer(s.Ctx, raName)
-
-	// TODO: what to do here?
-	_ = proposer
 
 	// create a validator and a delegator
 	initial := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000))

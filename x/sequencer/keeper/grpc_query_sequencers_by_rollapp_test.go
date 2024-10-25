@@ -8,12 +8,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-func (s *SequencerTestSuite) TestSequencersByRollappQuery3() {
+func (s *SequencerTestSuite) TestSequencersByRollappQuery() {
 	rollappId, pk11 := s.createRollappWithInitialSequencer()
 	pk12 := ed25519.GenPrivKey().PubKey()
 	rollappId2, pk21 := s.createRollappWithInitialSequencer()
@@ -81,14 +80,12 @@ func (s *SequencerTestSuite) TestSequencersByRollappQuery3() {
 }
 
 func (s *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
-	msgserver := keeper.NewMsgServerImpl(s.App.SequencerKeeper)
-
 	rollappId, pk11 := s.createRollappWithInitialSequencer()
 	pk12 := ed25519.GenPrivKey().PubKey()
 	// create 2 sequencers on rollapp1
 	addr11 := s.createSequencerWithPk(s.Ctx, rollappId, pk11)
 	addr21 := s.createSequencerWithPk(s.Ctx, rollappId, pk12)
-	_, err := msgserver.Unbond(s.Ctx, &types.MsgUnbond{
+	_, err := s.msgServer.Unbond(s.Ctx, &types.MsgUnbond{
 		Creator: addr21,
 	})
 	require.NoError(s.T(), err)
@@ -114,20 +111,12 @@ func (s *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 			response_addr: []string{addr11},
 		},
 		{
-			desc: "First - Unbonding",
-			request: &types.QueryGetSequencersByRollappByStatusRequest{
-				RollappId: rollappId,
-				Status:    types.Unbonding,
-			},
-			response_addr: []string{addr21},
-		},
-		{
 			desc: "First - Unbonded",
 			request: &types.QueryGetSequencersByRollappByStatusRequest{
 				RollappId: rollappId,
 				Status:    types.Unbonded,
 			},
-			response_addr: []string{},
+			response_addr: []string{addr21},
 		},
 		{
 			desc: "Second",

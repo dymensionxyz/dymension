@@ -12,6 +12,7 @@ enum OperatingStatus {
   OPERATING_STATUS_UNBONDED = 0
       [ (gogoproto.enumvalue_customname) = "Unbonded" ];
   // UNBONDING defines a sequencer that is currently unbonding.
+  // Deprecated
   OPERATING_STATUS_UNBONDING = 1
       [deprecated=true, (gogoproto.enumvalue_customname) = "Unbonding" ];
   // OPERATING_STATUS_BONDED defines a sequencer that is bonded and can be
