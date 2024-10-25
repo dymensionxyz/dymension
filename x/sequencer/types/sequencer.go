@@ -50,7 +50,7 @@ func (seq Sequencer) NoticeInProgress(now time.Time) bool {
 }
 
 func (seq Sequencer) NoticeElapsed(now time.Time) bool {
-	return seq.NoticeStarted() && seq.NoticePeriodTime.Before(now)
+	return seq.NoticeStarted() && !now.Before(seq.NoticePeriodTime)
 }
 
 func (seq Sequencer) NoticeStarted() bool {

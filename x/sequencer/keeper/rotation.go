@@ -55,7 +55,7 @@ func (k Keeper) NoticeElapsedSequencers(ctx sdk.Context, endTime time.Time) ([]t
 	return ret, nil
 }
 
-func (k Keeper) ChooseNewProposerForFinishedNoticePeriods(ctx sdk.Context, now time.Time) error {
+func (k Keeper) ChooseSuccessorForFinishedNotices(ctx sdk.Context, now time.Time) error {
 	seqs, err := k.NoticeElapsedSequencers(ctx, now)
 	if err != nil {
 		return errorsmod.Wrap(err, "get notice elapsed sequencers")
@@ -87,7 +87,7 @@ func (k Keeper) awaitingLastProposerBlock(ctx sdk.Context, rollapp string) bool 
 	return proposer.NoticeElapsed(ctx.BlockTime())
 }
 
-func (k Keeper) onProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) error {
+func (k Keeper) OnProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) error {
 	allowLastBlock := proposer.NoticeElapsed(ctx.BlockTime())
 	if !allowLastBlock {
 		return errorsmod.Wrap(gerrc.ErrFault, "sequencer has submitted last block without finishing notice period")

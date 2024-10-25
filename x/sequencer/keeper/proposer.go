@@ -36,7 +36,7 @@ func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) error {
 	successor := k.GetSuccessor(ctx, rollapp)
 	if successor.Sentinel() {
 		seqs := k.GetRollappPotentialProposers(ctx, rollapp)
-		slices.DeleteFunc(seqs, func(s types.Sequencer) bool { // Not efficient, could optimize.
+		seqs = slices.DeleteFunc(seqs, func(s types.Sequencer) bool { // Not efficient, could optimize.
 			return s.Address == proposer.Address
 		})
 		successor := k.proposerChoiceAlgo(ctx, rollapp, seqs)

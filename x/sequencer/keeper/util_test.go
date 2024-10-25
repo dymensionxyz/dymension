@@ -96,6 +96,10 @@ func (s *SequencerTestSuite) SetupTest() {
 	s.queryClient = queryClient
 }
 
+func (s *SequencerTestSuite) seq(pk cryptotypes.PubKey) types.Sequencer {
+	return s.k().GetSequencer(s.Ctx, pkAddr(pk))
+}
+
 func (s *SequencerTestSuite) moduleBalance() sdk.Coin {
 	acc := s.App.AccountKeeper.GetModuleAccount(s.Ctx, types.ModuleName)
 	cs := s.App.BankKeeper.GetAllBalances(s.Ctx, acc.GetAddress())

@@ -25,7 +25,7 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 	}
 
 	if lastStateUpdateBySequencer {
-		return errorsmod.Wrap(hook.k.onProposerLastBlock(ctx, proposer), "on proposer last block")
+		return errorsmod.Wrap(hook.k.OnProposerLastBlock(ctx, proposer), "on proposer last block")
 	}
 
 	return nil

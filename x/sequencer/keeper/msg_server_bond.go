@@ -69,7 +69,9 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 	seq.OptedIn = false
 	err = k.TryUnbond(ctx, &seq, seq.TokensCoin())
 	if errorsmod.IsOf(err, types.ErrUnbondProposerOrSuccessor) {
-		k.startNoticePeriodForSequencer(ctx, &seq)
+		if !seq.NoticeInProgress(ctx.BlockTime()) {
+			k.startNoticePeriodForSequencer(ctx, &seq)
+		}
 		return &types.MsgUnbondResponse{
 			CompletionTime: &types.MsgUnbondResponse_NoticePeriodCompletionTime{
 				NoticePeriodCompletionTime: &seq.NoticePeriodTime,
