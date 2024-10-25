@@ -81,6 +81,10 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 				suite.App.RollappKeeper.SetRollapp(suite.Ctx, r)
 			},
 			expErr: nil,
+		}, {
+			name:      "different rollapp, revision not 1",
+			rollappId: "trollapp_2345-2",
+			expErr:    types.ErrInvalidRollappID,
 		},
 	}
 	for _, test := range tests {
@@ -152,7 +156,7 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 		},
 		{
 			name:      "invalid revision",
-			rollappId: "rollapp-1-1",
+			rollappId: "rollapp_1234-x",
 			expErr:    types.ErrInvalidRollappID,
 		},
 	}

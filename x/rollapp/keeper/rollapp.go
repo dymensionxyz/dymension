@@ -88,6 +88,10 @@ func (k Keeper) CheckIfRollappExists(ctx sdk.Context, rollappId types.ChainID) e
 		if _, isFound = k.GetRollappByName(ctx, rollappId.GetName()); isFound {
 			return types.ErrRollappExists
 		}
+		// when creating a new Rollapp, the revision number should always be 1
+		if rollappId.GetRevisionNumber() != 1 {
+			return errorsmod.Wrapf(types.ErrInvalidRollappID, "revision number should be 1, got: %d", rollappId.GetRevisionNumber())
+		}
 		return nil
 	}
 	if !existingRollapp.Frozen {
