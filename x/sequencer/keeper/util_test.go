@@ -89,6 +89,13 @@ func (s *SequencerTestSuite) SetupTest() {
 	s.queryClient = queryClient
 }
 
+func (s *SequencerTestSuite) moduleBalance() sdk.Coin {
+	acc := s.App.AccountKeeper.GetModuleAccount(s.Ctx, types.ModuleName)
+	cs := s.App.BankKeeper.GetAllBalances(s.Ctx, acc.GetAddress())
+	s.Require().Len(cs, 1)
+	return cs[0]
+}
+
 func (s *SequencerTestSuite) createRollapp() rollapptypes.Rollapp {
 	rollapp := s.createRollappInner("*")
 	return s.raK().MustGetRollapp(s.Ctx, rollapp)

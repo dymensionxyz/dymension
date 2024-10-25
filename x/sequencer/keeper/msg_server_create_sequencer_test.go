@@ -19,7 +19,7 @@ func (s *SequencerTestSuite) TestCreateSequencerBasic() {
 	s.Require().NoError(err)
 	s.Require().Equal(seq.Address, pkAddr(alice))
 	s.Require().True(bond.Equal(seq.TokensCoin()))
-	// TODO: check balance is reduced
+	s.Require().Equal(s.moduleBalance(), bond)
 }
 
 // There are several reasons to reject creation

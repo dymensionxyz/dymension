@@ -60,7 +60,7 @@ func (seq Sequencer) NoticeStarted() bool {
 // GetDymintPubKeyHash returns the hash of the sequencer
 // as expected to be written on the rollapp ibc client headers
 func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {
-	pubKey, err := seq.cosmosPubKey()
+	pubKey, err := seq.PubKey()
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {
 
 // CometPubKey returns the bytes of the sequencer's dymint pubkey
 func (seq Sequencer) CometPubKey() (tmprotocrypto.PublicKey, error) {
-	pubKey, err := seq.cosmosPubKey()
+	pubKey, err := seq.PubKey()
 	if err != nil {
 		return tmprotocrypto.PublicKey{}, err
 	}
@@ -90,7 +90,7 @@ func (seq Sequencer) CometPubKey() (tmprotocrypto.PublicKey, error) {
 	return tmPubKey, err
 }
 
-func (seq Sequencer) cosmosPubKey() (cryptotypes.PubKey, error) {
+func (seq Sequencer) PubKey() (cryptotypes.PubKey, error) {
 	interfaceRegistry := cdctypes.NewInterfaceRegistry()
 	cryptocodec.RegisterInterfaces(interfaceRegistry)
 	protoCodec := codec.NewProtoCodec(interfaceRegistry)
@@ -98,4 +98,18 @@ func (seq Sequencer) cosmosPubKey() (cryptotypes.PubKey, error) {
 	var pubKey cryptotypes.PubKey
 	err := protoCodec.UnpackAny(seq.DymintPubKey, &pubKey)
 	return pubKey, err
+}
+
+// MustPubKey is intended for tests
+func (seq Sequencer) MustPubKey() cryptotypes.PubKey {
+	interfaceRegistry := cdctypes.NewInterfaceRegistry()
+	cryptocodec.RegisterInterfaces(interfaceRegistry)
+	protoCodec := codec.NewProtoCodec(interfaceRegistry)
+
+	var pubKey cryptotypes.PubKey
+	err := protoCodec.UnpackAny(seq.DymintPubKey, &pubKey)
+	if err != nil {
+		panic(err)
+	}
+	return pubKey
 }
