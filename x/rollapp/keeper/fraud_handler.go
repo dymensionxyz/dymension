@@ -50,8 +50,6 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) 
 func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeight uint64) error {
 	// find the affected state info index
 	// skip if not found (fraud height is not committed yet)
-
-	// FIXME: can we hard fork over uncommitted height??
 	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, fraudHeight)
 	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
 		return nil

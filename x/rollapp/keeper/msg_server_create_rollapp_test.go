@@ -58,7 +58,6 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 		name      string
 		rollappId string
 		expErr    error
-		malleate  func()
 	}{
 		{
 			name:      "same ID",
@@ -72,18 +71,6 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 			name:      "same name, different EIP155",
 			rollappId: "rollapp_2345-1",
 			expErr:    types.ErrRollappExists,
-		}, {
-			name:      "same ID, forked",
-			rollappId: "rollapp_1234-2",
-			malleate: func() {
-				r := rollapp.GetRollapp()
-				suite.App.RollappKeeper.SetRollapp(suite.Ctx, r)
-			},
-			expErr: types.ErrRollappExists,
-		}, {
-			name:      "different rollapp, revision not 1",
-			rollappId: "trollapp_2345-2",
-			expErr:    types.ErrInvalidRollappID,
 		},
 	}
 	for _, test := range tests {
@@ -94,10 +81,6 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 				VmType:      types.Rollapp_EVM,
 				Alias:       strings.ToLower(rand.Str(7)),
 				GenesisInfo: mockGenesisInfo,
-			}
-
-			if test.malleate != nil {
-				test.malleate()
 			}
 
 			suite.FundForAliasRegistration(newRollapp)
@@ -158,83 +141,17 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 			rollappId: "rollapp_1234-x",
 			expErr:    types.ErrInvalidRollappID,
 		},
+		{
+			name:      "non 1 revision",
+			rollappId: "rollapp_1234-2",
+			expErr:    types.ErrInvalidRollappID,
+		},
 	}
 	for _, test := range tests {
 		suite.Run(test.name, func() {
 			id, err := types.NewChainID(test.rollappId)
 			suite.Require().ErrorIs(err, test.expErr)
 			suite.Require().Equal(test.revision, id.GetRevisionNumber())
-		})
-	}
-}
-
-func (suite *RollappTestSuite) TestForkChainId() {
-	tests := []struct {
-		name         string
-		rollappId    string
-		newRollappId string
-		valid        bool
-	}{
-		{
-			name:         "valid eip155 id",
-			rollappId:    "rollapp_1234-1",
-			newRollappId: "rollapp_1234-2",
-			valid:        true,
-		},
-		{
-			name:         "non-valid eip155 id",
-			rollappId:    "rollapp_1234-1",
-			newRollappId: "rollapp_1234-5",
-			valid:        false,
-		},
-		{
-			name:         "same eip155 but different name",
-			rollappId:    "rollapp_1234-1",
-			newRollappId: "rollapy_1234-2",
-			valid:        false,
-		},
-	}
-	for _, test := range tests {
-		suite.Run(test.name, func() {
-			suite.SetupTest()
-			goCtx := sdk.WrapSDKContext(suite.Ctx)
-			rollappMsg := types.MsgCreateRollapp{
-				Creator:          alice,
-				RollappId:        test.rollappId,
-				InitialSequencer: sample.AccAddress(),
-				Alias:            "rollapp1",
-				VmType:           types.Rollapp_EVM,
-				Metadata:         &mockRollappMetadata,
-				GenesisInfo:      mockGenesisInfo,
-			}
-
-			suite.FundForAliasRegistration(rollappMsg)
-
-			_, err := suite.msgServer.CreateRollapp(goCtx, &rollappMsg)
-			suite.Require().NoError(err)
-
-			genesisInfo := mockGenesisInfo
-			genesisInfo.GenesisChecksum = "checksum1"
-			rollappMsg2 := types.MsgCreateRollapp{
-				Creator:          alice,
-				RollappId:        test.newRollappId,
-				InitialSequencer: sample.AccAddress(),
-				Alias:            "rollapp2",
-				VmType:           types.Rollapp_EVM,
-				Metadata:         &mockRollappMetadata,
-				GenesisInfo:      genesisInfo,
-			}
-
-			suite.FundForAliasRegistration(rollappMsg2)
-
-			_, err = suite.msgServer.CreateRollapp(goCtx, &rollappMsg2)
-			if test.valid {
-				suite.Require().NoError(err)
-				_, found := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappMsg2.RollappId)
-				suite.Require().True(found)
-			} else {
-				suite.Require().ErrorIs(err, types.ErrInvalidRollappID)
-			}
 		})
 	}
 }

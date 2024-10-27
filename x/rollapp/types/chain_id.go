@@ -59,6 +59,11 @@ func NewChainID(id string) (ChainID, error) {
 		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "parse revision number: error: %v", err)
 	}
 
+	// when creating a new Rollapp, the revision number should always be 1
+	if revision != 1 {
+		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "revision number should be 1, got: %d", revision)
+	}
+
 	return ChainID{
 		chainID:  chainID,
 		eip155ID: chainIDInt,

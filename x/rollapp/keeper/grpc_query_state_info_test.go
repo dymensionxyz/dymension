@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
@@ -164,7 +165,7 @@ func TestFindStateInfoByHeight(t *testing.T) {
 				rollappId: rollappID,
 				height:    10,
 			},
-			err: types.ErrStateNotExists,
+			err: gerrc.ErrNotFound,
 		},
 	}
 	for _, tc := range testCase {

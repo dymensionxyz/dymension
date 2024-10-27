@@ -44,6 +44,15 @@ func (suite *RollappTestSuite) TestHardFork() {
 
 			// unrelated rollapp just to validate it's unaffected
 			rollapp2, proposer2 := suite.CreateDefaultRollappAndProposer()
+			var (
+				err        error
+				lastHeight uint64 = 1
+			)
+			for i := uint64(0); i < numOfStates; i++ {
+				suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialHeight + i))
+				lastHeight, err = suite.PostStateUpdate(suite.Ctx, rollapp2, proposer2, lastHeight, numOfBlocks)
+				suite.Require().NoError(err)
+			}
 
 			// create rollapp and sequencers before fraud evidence
 			rollappId, proposer := suite.CreateDefaultRollappAndProposer()
@@ -52,15 +61,11 @@ func (suite *RollappTestSuite) TestHardFork() {
 			}
 
 			// send state updates
-			var lastHeight uint64 = 1
+			lastHeight = 1
 			for i := uint64(0); i < tc.statesCommitted; i++ {
-				_, err := suite.PostStateUpdate(suite.Ctx, rollappId, proposer, lastHeight, numOfBlocks)
+				suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialHeight + i))
+				lastHeight, err = suite.PostStateUpdate(suite.Ctx, rollappId, proposer, lastHeight, numOfBlocks)
 				suite.Require().NoError(err)
-
-				lastHeight, err = suite.PostStateUpdate(suite.Ctx, rollapp2, proposer2, lastHeight, numOfBlocks)
-				suite.Require().NoError(err)
-
-				suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
 			}
 
 			// Assert initial stats (revision 0, states pending)
@@ -69,13 +74,13 @@ func (suite *RollappTestSuite) TestHardFork() {
 			suite.Require().Zero(rollapp.RevisionNumber)
 
 			// check queue
-			queue := suite.App.RollappKeeper.GetAllFinalizationQueueUntilHeightInclusive(suite.Ctx, initialHeight+tc.statesCommitted+suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx)+110000000)
-			suite.Require().Len(queue, int(tc.statesCommitted))
+			queue := suite.App.RollappKeeper.GetAllFinalizationQueueUntilHeightInclusive(suite.Ctx, initialHeight+numOfStates+suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx))
+			suite.Require().Len(queue, int(numOfStates))
 
 			// finalize some of the states
 			suite.App.RollappKeeper.FinalizeRollappStates(suite.Ctx.WithBlockHeight(int64(initialHeight + tc.statesFinalized)))
 
-			err := suite.App.RollappKeeper.HardFork(suite.Ctx, rollappId, tc.fraudHeight)
+			err = suite.App.RollappKeeper.HardFork(suite.Ctx, rollappId, tc.fraudHeight)
 			if tc.expectError {
 				suite.Require().Error(err)
 			} else {
@@ -125,12 +130,11 @@ func (suite *RollappTestSuite) assertFraudHandled(rollappId string, height uint6
 	suite.Require().True(found)
 	suite.Require().Equal(uint64(1), rollapp.RevisionNumber)
 
-	// check states
-	// finalIdx, _ := suite.App.RollappKeeper.GetLatestFinalizedStateIndex(suite.Ctx, rollappId)
-	// startIdx := finalIdx.Index + 1
+	// check states were deleted
+	// the last state should have height less than the fraud height
 	lastestStateInfo, ok := suite.App.RollappKeeper.GetLatestStateInfo(suite.Ctx, rollappId)
 	if ok {
-		suite.Require().Equal(height-1, lastestStateInfo.GetLatestHeight())
+		suite.Require().Less(lastestStateInfo.GetLatestHeight(), height)
 	}
 
 	// check queue
