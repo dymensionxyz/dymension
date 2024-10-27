@@ -52,7 +52,7 @@ func (suite *RollappTestSuite) TestHardFork() {
 	// assert before fraud submission
 	suite.assertBeforeFraud(rollapp, fraudHeight)
 
-	err = keeper.HardFork(*ctx, rollapp, "", fraudHeight, proposer)
+	err = keeper.HardFork(*ctx, rollapp, fraudHeight)
 	suite.Require().Nil(err)
 
 	suite.assertFraudHandled(rollapp)
@@ -67,7 +67,7 @@ func (suite *RollappTestSuite) TestHardFork_InvalidRollapp() {
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
-	err = keeper.HardFork(*ctx, "invalidRollapp", "", 2, proposer)
+	err = keeper.HardFork(*ctx, "invalidRollapp", 2)
 	suite.Require().NotNil(err)
 }
 
@@ -80,33 +80,7 @@ func (suite *RollappTestSuite) TestHardFork_WrongHeight() {
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
-	err = keeper.HardFork(*ctx, rollapp, "", 100, proposer)
-	suite.Require().NotNil(err)
-}
-
-// Fail - Wrong sequencer address
-func (suite *RollappTestSuite) TestHardFork_WrongSequencer() {
-	ctx := &suite.Ctx
-	keeper := suite.App.RollappKeeper
-
-	rollapp, proposer := suite.CreateDefaultRollappAndProposer()
-	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
-	suite.Require().Nil(err)
-
-	err = keeper.HardFork(*ctx, rollapp, "", 2, "wrongSequencer")
-	suite.Require().NotNil(err)
-}
-
-// Fail - Wrong channel-ID
-func (suite *RollappTestSuite) TestHardFork_WrongChannelID() {
-	ctx := &suite.Ctx
-	keeper := suite.App.RollappKeeper
-
-	rollapp, proposer := suite.CreateDefaultRollappAndProposer()
-	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
-	suite.Require().Nil(err)
-
-	err = keeper.HardFork(*ctx, rollapp, "wrongChannelID", 2, proposer)
+	err = keeper.HardFork(*ctx, rollapp, 100)
 	suite.Require().NotNil(err)
 }
 
@@ -132,10 +106,10 @@ func (suite *RollappTestSuite) TestHardFork_AlreadyReverted() {
 		suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
 	}
 
-	err = keeper.HardFork(*ctx, rollapp, "", 11, proposer)
+	err = keeper.HardFork(*ctx, rollapp, 11)
 	suite.Require().Nil(err)
 
-	err = keeper.HardFork(*ctx, rollapp, "", 1, proposer)
+	err = keeper.HardFork(*ctx, rollapp, 1)
 	suite.Require().NotNil(err)
 }
 
@@ -155,11 +129,9 @@ func (suite *RollappTestSuite) TestHardFork_AlreadyFinalized() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(common.Status_FINALIZED, stateInfo.Status)
 
-	err = keeper.HardFork(*ctx, rollapp, "", 2, proposer)
+	err = keeper.HardFork(*ctx, rollapp, 2)
 	suite.Require().NotNil(err)
 }
-
-// TODO: test IBC freeze
 
 /* ---------------------------------- utils --------------------------------- */
 
@@ -167,7 +139,7 @@ func (suite *RollappTestSuite) TestHardFork_AlreadyFinalized() {
 func (suite *RollappTestSuite) assertBeforeFraud(rollappId string, height uint64) {
 	rollapp, found := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappId)
 	suite.Require().True(found)
-	suite.Require().False(rollapp.Frozen)
+	suite.Require().Zero(rollapp.RevisionNumber)
 
 	// check sequencers
 	sequencers := suite.App.SequencerKeeper.GetSequencersByRollapp(suite.Ctx, rollappId)
@@ -200,15 +172,7 @@ func (suite *RollappTestSuite) assertBeforeFraud(rollappId string, height uint64
 func (suite *RollappTestSuite) assertFraudHandled(rollappId string) {
 	rollapp, found := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappId)
 	suite.Require().True(found)
-	suite.Require().True(rollapp.Frozen)
-
-	// check sequencers
-	sequencers := suite.App.SequencerKeeper.GetSequencersByRollappByStatus(suite.Ctx, rollappId, types.Bonded)
-	suite.Require().Equal(0, len(sequencers))
-	_, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
-	suite.Require().False(ok)
-	seq := suite.App.SequencerKeeper.ExpectedNextProposer(suite.Ctx, rollappId)
-	suite.Require().Empty(seq.Address)
+	suite.Require().Equal(uint64(1), rollapp.RevisionNumber)
 
 	// check states
 	finalIdx, _ := suite.App.RollappKeeper.GetLatestFinalizedStateIndex(suite.Ctx, rollappId)

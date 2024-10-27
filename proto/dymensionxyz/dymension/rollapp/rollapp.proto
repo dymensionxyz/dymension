@@ -76,7 +76,7 @@ message Rollapp {
   // received
   int64 last_state_update_height = 18;
 
-  // The revision number of the rollapp. starts always from 1
+  // The revision number of the rollapp. starts always with 0 revision
   int64 revision_number = 19;
 }
 

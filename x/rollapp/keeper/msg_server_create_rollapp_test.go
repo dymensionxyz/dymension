@@ -77,10 +77,9 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 			rollappId: "rollapp_1234-2",
 			malleate: func() {
 				r := rollapp.GetRollapp()
-				r.Frozen = true
 				suite.App.RollappKeeper.SetRollapp(suite.Ctx, r)
 			},
-			expErr: nil,
+			expErr: types.ErrRollappExists,
 		}, {
 			name:      "different rollapp, revision not 1",
 			rollappId: "trollapp_2345-2",
@@ -213,14 +212,9 @@ func (suite *RollappTestSuite) TestForkChainId() {
 
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollappMsg)
 			suite.Require().NoError(err)
-			rollapp, found := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappMsg.RollappId)
-			suite.Require().True(found)
-			rollapp.Frozen = true
-			suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
 			genesisInfo := mockGenesisInfo
 			genesisInfo.GenesisChecksum = "checksum1"
-
 			rollappMsg2 := types.MsgCreateRollapp{
 				Creator:          alice,
 				RollappId:        test.newRollappId,
@@ -236,7 +230,7 @@ func (suite *RollappTestSuite) TestForkChainId() {
 			_, err = suite.msgServer.CreateRollapp(goCtx, &rollappMsg2)
 			if test.valid {
 				suite.Require().NoError(err)
-				_, found = suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappMsg2.RollappId)
+				_, found := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappMsg2.RollappId)
 				suite.Require().True(found)
 			} else {
 				suite.Require().ErrorIs(err, types.ErrInvalidRollappID)

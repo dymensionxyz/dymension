@@ -75,7 +75,7 @@ func TestRollappKeeperTestSuite(t *testing.T) {
 func (suite *RollappTestSuite) IsRollappVulnerable(rollappID string) bool {
 	ra, ok := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
 	suite.Require().True(ok)
-	return ra.IsVulnerable()
+	return ra.RevisionNumber > 0
 }
 
 func (suite *RollappTestSuite) GetRollappLastHeight(rollappID string) uint64 {

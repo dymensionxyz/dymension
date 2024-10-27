@@ -10,9 +10,10 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uslice"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
+
+// FIXME: validate mark vulnerable causes hard fork
 
 func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 	type rollapp struct {
@@ -152,7 +153,7 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				s.AssertEventEmitted(s.Ctx, eventName, 0)
 
 				// check non-vulnerable rollapps: all rollapps are still non-vulnerable
-				nonVulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, keeper.FilterNonVulnerable)
+				nonVulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterNonVulnerable)
 				actualNonVulnRollappIDs := uslice.Map(nonVulnRa, func(r types.Rollapp) string { return r.RollappId })
 				allRollapps := slices.Concat(expectedVulnRollappIDs, expectedNonVulnRollappIDs)
 				s.ElementsMatch(allRollapps, actualNonVulnRollappIDs)
@@ -173,7 +174,7 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				s.AssertEventEmitted(s.Ctx, eventName, 1)
 
 				// check non-vulnerable rollapps
-				nonVulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, keeper.FilterNonVulnerable)
+				nonVulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterNonVulnerable)
 				actualNonVulnRollappIDs := uslice.Map(nonVulnRa, func(r types.Rollapp) string { return r.RollappId })
 				s.ElementsMatch(expectedNonVulnRollappIDs, actualNonVulnRollappIDs)
 
@@ -192,5 +193,9 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 }
 
 func FilterVulnerable(b types.Rollapp) bool {
-	return b.Frozen
+	return b.RevisionNumber > 0
+}
+
+func FilterNonVulnerable(b types.Rollapp) bool {
+	return b.RevisionNumber == 0
 }
