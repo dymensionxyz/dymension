@@ -11,6 +11,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 )
 
+// FIXME: refactor the proposal handler to support different types of proposals
+
 func NewRollappProposalHandler(k *keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		switch c := content.(type) {
