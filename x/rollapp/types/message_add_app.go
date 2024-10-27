@@ -55,6 +55,10 @@ func (msg *MsgAddApp) GetApp() App {
 	)
 }
 
+func (msg *MsgAddApp) SetOrder(o int32) {
+	msg.Order = o
+}
+
 func (msg *MsgAddApp) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {

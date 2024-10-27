@@ -217,11 +217,10 @@ func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {
 
 func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollapp {
 	return rollapptypes.Rollapp{
-		RollappId:        oldRollapp.RollappId,
-		Owner:            oldRollapp.Owner,
-		GenesisState:     oldRollapp.GenesisState,
-		ChannelId:        oldRollapp.ChannelId,
-		RegisteredDenoms: oldRollapp.RegisteredDenoms,
+		RollappId:    oldRollapp.RollappId,
+		Owner:        oldRollapp.Owner,
+		GenesisState: oldRollapp.GenesisState,
+		ChannelId:    oldRollapp.ChannelId,
 		// TODO: regarding missing data - https://github.com/dymensionxyz/dymension/issues/986
 		VmType: rollapptypes.Rollapp_EVM, // placeholder data
 		Metadata: &rollapptypes.RollappMetadata{
