@@ -26,5 +26,5 @@ message GenesisState {
 
 message RollappRegisteredDenoms {
   string rollapp_id = 1;
-  repeated string denoms = 2 [(gogoproto.nullable) = false];
+  repeated string denoms = 2;
 }
