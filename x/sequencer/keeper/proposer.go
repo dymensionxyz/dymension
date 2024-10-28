@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"slices"
-	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -50,8 +49,17 @@ func (k Keeper) proposerChoiceAlgo(ctx sdk.Context, rollapp string, seqs []types
 	if len(seqs) == 0 {
 		return k.SentinelSequencer(ctx)
 	}
-	sort.SliceStable(seqs, func(i, j int) bool {
-		return seqs[i].TokensCoin().IsGTE(seqs[j].TokensCoin())
+	// slices package is recommended over sort package
+	slices.SortStableFunc(seqs, func(a, b types.Sequencer) int {
+		ca := a.TokensCoin()
+		cb := b.TokensCoin()
+		if ca.IsEqual(cb) {
+			return 0
+		}
+		if ca.IsLT(cb) {
+			return -1
+		}
+		return 1
 	})
 	return seqs[0]
 }
