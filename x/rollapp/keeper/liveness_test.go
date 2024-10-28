@@ -160,7 +160,7 @@ func (suite *RollappTestSuite) TestLivenessFlow() {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
 				if !rollappIsDown[raID] {
 					ra := suite.keeper().MustGetRollapp(suite.Ctx, raID)
-					suite.keeper().IndicateLiveness(suite.Ctx, &ra)
+					suite.keeper().RestartLivenessClock(suite.Ctx, &ra)
 					hLastUpdate[raID] = suite.Ctx.BlockHeight()
 					tracker.clear(raID)
 				}

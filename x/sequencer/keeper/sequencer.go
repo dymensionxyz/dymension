@@ -5,6 +5,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
+// SentinelSequencer is a convenient placeholder for the empty-sequencer case
+// Note: does not populate rollappID by default
 func (k Keeper) SentinelSequencer(ctx sdk.Context) types.Sequencer {
 	s := k.NewSequencer(ctx, "")
 	s.Status = types.Bonded

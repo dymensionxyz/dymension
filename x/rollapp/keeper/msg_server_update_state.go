@@ -136,7 +136,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 	// TODO: enforce `final_state_update_timeout` if sequencer rotation is in progress
 	// https://github.com/dymensionxyz/dymension/issues/1085
-	k.IndicateLiveness(ctx, &rollapp)
+	k.RestartLivenessClock(ctx, &rollapp)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeStateUpdate,

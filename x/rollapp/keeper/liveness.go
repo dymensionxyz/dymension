@@ -69,11 +69,34 @@ func (k Keeper) HandleLivenessEvent(ctx sdk.Context, e types.LivenessEvent) erro
 	return nil
 }
 
-// IndicateLiveness will reschedule pending liveness events to a later block height.
+// RestartLivenessClock will reschedule pending liveness events to a later block height.
 // Modifies the passed-in rollapp object.
-func (k Keeper) IndicateLiveness(ctx sdk.Context, ra *types.Rollapp) {
+func (k Keeper) RestartLivenessClock(ctx sdk.Context, ra *types.Rollapp) {
+	// TODO: tech debt, rename: https://github.com/dymensionxyz/dymension/issues/1356
 	ra.LastStateUpdateHeight = ctx.BlockHeight()
+	k.StopLivenessClock(ctx, ra)
 	k.RescheduleLivenessEvent(ctx, ra)
+}
+
+func (k Keeper) StopLivenessClock(ctx sdk.Context, rollapp string) {
+	ra := k.MustGetRollapp(ctx, rollapp)
+	k.DelLivenessEvent(ctx, ra.LivenessEventHeight, rollapp)
+	ra.LivenessEventHeight = 0
+	k.SetRollapp(ctx, ra)
+}
+
+func (k Keeper) StartLivenessClock(ctx sdk.Context, rollapp string) {
+	ra := k.MustGetRollapp(ctx, rollapp)
+	k.DelLivenessEvent(ctx, ra.LivenessEventHeight, rollapp)
+	ra.LastStateUpdateHeight = ctx.BlockHeight()
+
+	k.SetRollapp(ctx, ra)
+}
+
+func (k Keeper) DelLivenessEvents(ctx sdk.Context, rollapp string) {
+	ra := k.MustGetRollapp(ctx, rollapp)
+	k.DelLivenessEvent(ctx, ra.LivenessEventHeight, rollapp)
+	k.SetRollapp(ctx, *ra)
 }
 
 func (k Keeper) RescheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
@@ -129,17 +152,12 @@ func (k Keeper) PutLivenessEvent(ctx sdk.Context, e types.LivenessEvent) {
 	store.Set(key, []byte{})
 }
 
-// DelLivenessEvents deletes all liveness events for the rollapp from the queue
-func (k Keeper) DelLivenessEvents(ctx sdk.Context, height int64, rollappID string) {
-	k.DelLivenessEvent(ctx, types.LivenessEvent{
-		RollappId: rollappID,
+// DelLivenessEvent deletes all liveness events for the rollapp from the queue
+func (k Keeper) DelLivenessEvent(ctx sdk.Context, height int64, rollapp string) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.LivenessEventQueueKey(types.LivenessEvent{
+		RollappId: rollapp,
 		HubHeight: height,
 	})
-}
-
-// DelLivenessEvent deletes all liveness events for the rollapp from the queue
-func (k Keeper) DelLivenessEvent(ctx sdk.Context, e types.LivenessEvent) {
-	store := ctx.KVStore(k.storeKey)
-	key := types.LivenessEventQueueKey(e)
 	store.Delete(key)
 }
