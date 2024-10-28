@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	"github.com/dymensionxyz/sdk-utils/utils/utest"
 )
@@ -25,6 +26,7 @@ func (s *SequencerTestSuite) TestCreateSequencerBasic() {
 	s.Require().True(bond.Equal(seq.TokensCoin()))
 	s.Require().Equal(s.moduleBalance(), bond)
 	s.Require().True(s.k().IsProposer(s.Ctx, seq))
+	s.Require().True(equalSequencers(uptr.To(expectedSequencer(&msg)), &seq))
 }
 
 func (s *SequencerTestSuite) TestCreateSequencerSeveral() {
@@ -56,32 +58,18 @@ func (s *SequencerTestSuite) TestCreateSequencerSeveral() {
 	s.compareAllSequencersResponse(getOneRes, allRes)
 }
 
-// On success, we should get back an object with all the right info
-func (s *SequencerTestSuite) TestCreateSequencerProposer() {
-	s.Run("first is proposer", func() {
-		ra := s.createRollapp()
-		seqA := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
-		seqB := s.createSequencerWithBond(s.Ctx, ra.RollappId, bob, bond)
-		s.Require().True(s.k().IsProposer(s.Ctx, seqA))
-		s.Require().False(s.k().IsProposer(s.Ctx, seqB))
-	})
-	// behaviors
-	// initial constraint
-	// not iniital
-}
-
 // There are several reasons to reject creation
 func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 	ra := s.createRollapp()
 
-	s.Run("no rollapp", func() {
+	s.Run("not allowed - no rollapp", func() {
 		s.fundSequencer(alice, bond)
 		msg := createSequencerMsg(urand.RollappID(), alice)
 		msg.Bond = bond
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrNotFound)
 	})
-	s.Run("already exist", func() {
+	s.Run("not allowed - already exist", func() {
 		pk := randPK()
 		s.fundSequencer(pk, bond)
 		msg := createSequencerMsg(ra.RollappId, pk)
@@ -91,9 +79,9 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		_, err = s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrAlreadyExists)
 	})
-	s.Run("TODO: awaitingLastProposerBlock", func() {
+	s.Run("not allowed - TODO: awaitingLastProposerBlock", func() {
 	})
-	s.Run("insufficient bond", func() {
+	s.Run("not allowed - insufficient bond", func() {
 		s.fundSequencer(alice, bond)
 		msg := createSequencerMsg(ra.RollappId, alice)
 		msg.Bond = bond
@@ -101,7 +89,7 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrOutOfRange)
 	})
-	s.Run("wrong denom", func() {
+	s.Run("not allowed - wrong denom", func() {
 		s.fundSequencer(alice, bond)
 		msg := createSequencerMsg(ra.RollappId, alice)
 		msg.Bond = bond
@@ -109,7 +97,44 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrInvalidArgument)
 	})
-	s.Run("TODO: vm", func() {
+	s.Run("not allowed - vm", func() {
+	})
+
+	s.Run("not allowed - not launched and not initial", func() {
+		ra := s.createRollappWithInitialSeqConstraint("")
+		launched := s.raK().MustGetRollapp(s.Ctx, ra).Launched
+		s.Require().False(launched)
+
+		s.fundSequencer(alice, bond)
+		msg := createSequencerMsg(ra, alice)
+		msg.Bond = bond
+		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
+		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
+	})
+	s.Run("allowed - launched", func() {
+		seq := alice
+		ra := s.createRollappWithInitialSeqConstraint("")
+		rollapp := s.raK().MustGetRollapp(s.Ctx, ra)
+		rollapp.Launched = true
+		s.raK().SetRollapp(s.Ctx, rollapp)
+
+		s.fundSequencer(seq, bond)
+		msg := createSequencerMsg(ra, seq)
+		msg.Bond = bond
+		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
+		s.Require().NoError(err)
+	})
+	s.Run("allowed - initial", func() {
+		seq := bob
+		ra := s.createRollappWithInitialSeqConstraint(pkAddr(bob))
+		launched := s.raK().MustGetRollapp(s.Ctx, ra).Launched
+		s.Require().False(launched)
+
+		s.fundSequencer(seq, bond)
+		msg := createSequencerMsg(ra, seq)
+		msg.Bond = bond
+		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
+		s.Require().NoError(err)
 	})
 }
 
