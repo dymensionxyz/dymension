@@ -82,7 +82,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 
 	// test fraud
 	for rollapp := range seqPerRollapp {
-		err := suite.App.DelayedAckKeeper.HandleFraud(suite.Ctx, rollapp, transferStack)
+		err := suite.App.DelayedAckKeeper.HandleHardFork(suite.Ctx, rollapp, transferStack)
 		suite.Require().NoError(err)
 		break
 	}

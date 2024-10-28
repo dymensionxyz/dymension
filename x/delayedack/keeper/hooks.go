@@ -83,7 +83,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 
 		for _, packet := range toDeletePackets {
 			err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-				return e.deleteRollappPacket(ctx, &packet)
+				return e.DeleteRollappPacket(ctx, &packet)
 			})
 			if err != nil {
 				e.Logger(ctx).Error("Failed to delete rollapp packet",

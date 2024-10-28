@@ -9,14 +9,11 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
-func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, ibc porttypes.IBCModule) error {
-	// Get all the pending packets
-	rollappPendingPackets := k.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappID, commontypes.Status_PENDING))
-	if len(rollappPendingPackets) == 0 {
-		return nil
-	}
+func (k Keeper) HandleHardFork(ctx sdk.Context, rollappID string, height uint64, ibc porttypes.IBCModule) error {
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
-	logger.Info("reverting IBC rollapp packets", "rollappID", rollappID)
+
+	// Get all the pending packets
+	rollappPendingPackets := k.ListRollappPackets(ctx, types.PendingByRollappIDFromHeight(rollappID, height))
 
 	// Iterate over all the pending packets and revert them
 	for _, rollappPacket := range rollappPendingPackets {
@@ -28,22 +25,25 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, ibc porttypes.IBC
 			"sequence", rollappPacket.Packet.Sequence,
 		}
 
+		// refund all pending outgoing packets
 		if rollappPacket.Type == commontypes.RollappPacket_ON_ACK || rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
-			// refund all pending outgoing packets
 			// we don't have access directly to `refundPacketToken` function, so we'll use the `OnTimeoutPacket` function
 			err := ibc.OnTimeoutPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 			if err != nil {
 				logger.Error("failed to refund reverted packet", append(logContext, "error", err.Error())...)
 			}
-		}
-		// Update status to reverted
-		_, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_REVERTED)
-		if err != nil {
-			logger.Error("error reverting IBC rollapp packet", append(logContext, "error", err.Error())...)
-			return err
+		} else {
+			// for incoming packets, we need to reset the packet receipt
+			ibcPacket := rollappPacket.Packet
+			k.channelKeeper.SetPacketReceipt(ctx, ibcPacket.GetDestPort(), ibcPacket.GetDestChannel(), ibcPacket.GetSequence())
 		}
 
+		// delete the packet
+		k.DeleteRollappPacket(ctx, &rollappPacket)
 		logger.Debug("reverted IBC rollapp packet", logContext...)
 	}
+
+	logger.Info("reverting IBC rollapp packets", "rollappID", rollappID, "numPackets", len(rollappPendingPackets))
+
 	return nil
 }

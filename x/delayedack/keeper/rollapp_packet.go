@@ -165,7 +165,7 @@ func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []commontypes.Rollap
 	return list
 }
 
-func (k Keeper) deleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) error {
+func (k Keeper) DeleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) error {
 	store := ctx.KVStore(k.storeKey)
 	rollappPacketKey := rollappPacket.RollappPacketKey()
 	store.Delete(rollappPacketKey)

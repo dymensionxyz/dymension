@@ -13,6 +13,7 @@ import (
 // ChannelKeeper defines the expected IBC channel keeper
 type ChannelKeeper interface {
 	LookupModuleByChannel(ctx sdk.Context, portID, channelID string) (string, *capabilitytypes.Capability, error)
+	SetPacketReceipt(ctx sdk.Context, portID, channelID string, sequence uint64)
 }
 
 type RollappKeeper interface {
