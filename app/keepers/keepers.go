@@ -27,6 +27,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
+	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
@@ -147,6 +149,7 @@ type AppKeepers struct {
 	StreamerKeeper    streamermodulekeeper.Keeper
 	EIBCKeeper        eibckeeper.Keeper
 	LightClientKeeper lightclientmodulekeeper.Keeper
+	GroupKeeper       groupkeeper.Keeper
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
@@ -376,6 +379,19 @@ func (a *AppKeepers) InitKeepers(
 		a.RollappKeeper,
 	)
 
+	groupConfig := grouptypes.Config{
+		MaxExecutionPeriod: 0,
+		MaxMetadataLen:     0,
+	}
+
+	a.GroupKeeper = groupkeeper.NewKeeper(
+		a.keys[grouptypes.StoreKey],
+		appCodec,
+		bApp.MsgServiceRouter(),
+		a.AccountKeeper,
+		groupConfig,
+	)
+
 	a.RollappKeeper.SetSequencerKeeper(a.SequencerKeeper)
 	a.RollappKeeper.SetCanonicalClientKeeper(a.LightClientKeeper)
 
@@ -395,6 +411,7 @@ func (a *AppKeepers) InitKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		&a.AccountKeeper,
 		a.BankKeeper,
+		a.DenomMetadataKeeper,
 		a.RollappKeeper,
 		a.GAMMKeeper,
 		a.IncentivesKeeper,
@@ -429,7 +446,8 @@ func (a *AppKeepers) InitKeepers(
 		a.GetSubspace(eibcmoduletypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
-		nil,
+		a.DelayedAckKeeper,
+		a.RollappKeeper,
 	)
 
 	a.DymNSKeeper = dymnskeeper.NewKeeper(
@@ -586,7 +604,6 @@ func (a *AppKeepers) SetupHooks() {
 			a.IncentivesKeeper.Hooks(),
 			a.TxFeesKeeper.Hooks(),
 			a.DelayedAckKeeper.GetEpochHooks(),
-			a.RollappKeeper.GetEpochHooks(),
 		),
 	)
 
@@ -647,6 +664,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(delayedacktypes.ModuleName)
 	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
 	paramsKeeper.Subspace(dymnstypes.ModuleName)
+	paramsKeeper.Subspace(grouptypes.ModuleName)
 
 	// ethermint subspaces
 	paramsKeeper.Subspace(evmtypes.ModuleName)

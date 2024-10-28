@@ -21,6 +21,7 @@ type Keeper struct {
 
 	AK types.AccountKeeper
 	BK types.BankKeeper
+	dk types.DenomMetadataKeeper
 	rk types.RollappKeeper
 	gk types.GammKeeper
 	pm types.PoolManagerKeeper
@@ -33,6 +34,7 @@ func NewKeeper(
 	authority string,
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
+	dk types.DenomMetadataKeeper,
 	rk types.RollappKeeper,
 	gk types.GammKeeper,
 	ik types.IncentivesKeeper,
@@ -44,6 +46,7 @@ func NewKeeper(
 		authority: authority,
 		AK:        ak,
 		BK:        bk,
+		dk:        dk,
 		rk:        rk,
 		gk:        gk,
 		ik:        ik,

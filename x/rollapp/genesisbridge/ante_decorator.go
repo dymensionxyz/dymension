@@ -3,19 +3,14 @@ package genesisbridge
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/dymensionxyz/sdk-utils/utils/uibc"
-
 	transferTypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // TODO: refactor this to use ICS4 wrapper similar to the RDK
 // (https://github.com/dymensionxyz/dymension/issues/957)
-
-type GetRollapp func(ctx sdk.Context, rollappId string) (val types.Rollapp, found bool)
 
 type ChannelKeeper interface {
 	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error) // implemented by ibc channel keeper
@@ -24,25 +19,32 @@ type ChannelKeeper interface {
 // TransferEnabledDecorator only allows ibc transfers to a rollapp if that rollapp has finished
 // the genesis bridge protocol.
 type TransferEnabledDecorator struct {
-	getRollapp            GetRollapp
+	rollappK              RollappKeeperMinimal
 	getChannelClientState ChannelKeeper
 }
 
-func NewTransferEnabledDecorator(getRollapp GetRollapp, getChannelClientState ChannelKeeper) *TransferEnabledDecorator {
+func NewTransferEnabledDecorator(rollappK RollappKeeperMinimal, getChannelClientState ChannelKeeper) *TransferEnabledDecorator {
 	return &TransferEnabledDecorator{
-		getRollapp:            getRollapp,
+		rollappK:              rollappK,
 		getChannelClientState: getChannelClientState,
 	}
 }
 
 func (h TransferEnabledDecorator) transfersEnabled(ctx sdk.Context, transfer *transferTypes.MsgTransfer) (bool, error) {
-	chainID, err := uibc.ChainIDFromPortChannel(ctx, h.getChannelClientState, transfer.SourcePort, transfer.SourceChannel)
+	ra, err := h.rollappK.GetRollappByPortChan(ctx, transfer.SourcePort, transfer.SourceChannel)
 	if err != nil {
-		return false, errorsmod.Wrap(err, "chain id from port channel")
-	}
-	ra, ok := h.getRollapp(ctx, chainID)
-	if !ok {
-		return true, nil
+		if errorsmod.IsOf(err, types.ErrRollappNotFound) {
+			// Two cases
+			// 1. Non rollapp
+			//    Transfers are enabled
+			// 2. It is for rollapp but the light client of this transfer is not yet canonical or will never
+			//    be marked canonical: for a correct rollapp the transfer channel is only created after it's
+			//    marked canonical, so this transfer corresponds to a not-relevant channel.
+			//    Note: IBC prevents sending to a channel which is not OPEN, which prevents making the transfer
+			//    for a channel before it is marked canonical in the onOpenAck hook.
+			return true, nil
+		}
+		return false, errorsmod.Wrap(err, "rollapp by port chan")
 	}
 	return ra.GenesisState.TransfersEnabled, nil
 }

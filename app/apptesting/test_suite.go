@@ -4,21 +4,23 @@ import (
 	"strings"
 	"time"
 
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-
-	"github.com/dymensionxyz/dymension/v3/app/params"
-	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-
 	"github.com/cometbft/cometbft/libs/rand"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app"
+	"github.com/dymensionxyz/dymension/v3/app/params"
+	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
+	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -122,7 +124,7 @@ func (s *KeeperTestHelper) PostStateUpdateWithDRSVersion(ctx sdk.Context, rollap
 	var bds rollapptypes.BlockDescriptors
 	bds.BD = make([]rollapptypes.BlockDescriptor, numOfBlocks)
 	for k := uint64(0); k < numOfBlocks; k++ {
-		bds.BD[k] = rollapptypes.BlockDescriptor{Height: startHeight + k, Timestamp: time.Now().UTC()}
+		bds.BD[k] = rollapptypes.BlockDescriptor{Height: startHeight + k, Timestamp: time.Now().UTC(), DrsVersion: drsVersion}
 	}
 
 	updateState := rollapptypes.MsgUpdateState{
@@ -133,7 +135,6 @@ func (s *KeeperTestHelper) PostStateUpdateWithDRSVersion(ctx sdk.Context, rollap
 		DAPath:      "",
 		BDs:         bds,
 		Last:        false,
-		DrsVersion:  drsVersion,
 	}
 	msgServer := rollappkeeper.NewMsgServerImpl(*s.App.RollappKeeper)
 	_, err = msgServer.UpdateState(ctx, &updateState)
@@ -180,4 +181,30 @@ func FundForAliasRegistration(
 	return bankutil.FundAccount(
 		bankKeeper, ctx, sdk.MustAccAddressFromBech32(msgCreateRollApp.Creator), aliasRegistrationCost,
 	)
+}
+
+func (s *KeeperTestHelper) FinalizeAllPendingPackets(rollappID, receiver string) int {
+	s.T().Helper()
+	// Query all pending packets by receiver
+	querier := delayedackkeeper.NewQuerier(s.App.DelayedAckKeeper)
+	resp, err := querier.GetPendingPacketsByReceiver(s.Ctx, &delayedacktypes.QueryPendingPacketsByReceiverRequest{
+		RollappId: rollappID,
+		Receiver:  receiver,
+	})
+	s.Require().NoError(err)
+	// Finalize all packets and return the num of finalized
+	for _, packet := range resp.RollappPackets {
+		handler := s.App.MsgServiceRouter().Handler(new(delayedacktypes.MsgFinalizePacket))
+		resp, err := handler(s.Ctx, &delayedacktypes.MsgFinalizePacket{
+			Sender:            authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			RollappId:         packet.RollappId,
+			PacketProofHeight: packet.ProofHeight,
+			PacketType:        packet.Type,
+			PacketSrcChannel:  packet.Packet.SourceChannel,
+			PacketSequence:    packet.Packet.Sequence,
+		})
+		s.Require().NoError(err)
+		s.Require().NotNil(resp)
+	}
+	return len(resp.RollappPackets)
 }

@@ -2,24 +2,27 @@ package types_test
 
 import (
 	fmt "fmt"
+	"sort"
 	"testing"
 
 	"cosmossdk.io/math"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"pgregory.net/rapid"
 
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
 // approxEqualInt checks if two math.Ints are approximately equal
 func approxEqualInt(t *testing.T, expected, actual math.Int) {
-	defaultTolerance := math.NewInt(1).MulRaw(1e9) // one millionth of a dym
+	defaultTolerance := math.NewInt(1e12) // one hundred-billionth of a dym
 	diff := expected.Sub(actual).Abs()
 	require.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
 }
 
 // approxEqualDec checks if two math.Decs are approximately equal
 func approxEqualDec(t *testing.T, expected, actual math.LegacyDec) {
-	defaultTolerance := math.LegacyNewDecWithPrec(1, 9) // one millionth of a dym
+	defaultTolerance := math.LegacyNewDecWithPrec(1, 12) // one hundred-billionth of a dym
 	diff := expected.Sub(actual).Abs()
 	require.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
 }
@@ -85,9 +88,11 @@ func TestBondingCurve_Linear(t *testing.T) {
 	cost1to2 := integral2                      // 50 - 0
 	cost2to3 := math.NewInt(4950).MulRaw(1e18) // 5000 - 50
 
-	approxEqualInt(t, math.ZeroInt(), curve.Integral(x1))
-	approxEqualInt(t, integral2, curve.Integral(x2))
-	approxEqualInt(t, integral3, curve.Integral(x3))
+	approxEqualInt(t, math.ZeroInt(), curve.Cost(math.ZeroInt(), x1))
+	approxEqualInt(t, math.ZeroInt(), curve.Cost(math.ZeroInt(), x1))
+	approxEqualInt(t, integral2, curve.Cost(math.ZeroInt(), x2))
+	approxEqualInt(t, integral2, curve.Cost(math.ZeroInt(), x2))
+	approxEqualInt(t, integral3, curve.Cost(math.ZeroInt(), x3))
 
 	approxEqualDec(t, spotPrice1, curve.SpotPrice(x1))
 	approxEqualDec(t, spotPrice2, curve.SpotPrice(x2))
@@ -123,9 +128,9 @@ func TestBondingCurve_Quadratic(t *testing.T) {
 	cost1to2 := integral2                                                                   // (2/3)*5^3 + 10*5 - (2/3)*0^3 - 10*0
 	cost2to3 := math.LegacyMustNewDecFromStr("633.3333333333").MulInt64(1e18).TruncateInt() // (2/3)*10^3 + 10*10 - (2/3)*5^3 - 10*5
 
-	approxEqualInt(t, integral1, curve.Integral(x1))
-	approxEqualInt(t, integral2, curve.Integral(x2))
-	approxEqualInt(t, integral3, curve.Integral(x3))
+	approxEqualInt(t, integral1, curve.Cost(math.ZeroInt(), x1))
+	approxEqualInt(t, integral2, curve.Cost(math.ZeroInt(), x2))
+	approxEqualInt(t, integral3, curve.Cost(math.ZeroInt(), x3))
 
 	approxEqualDec(t, spotPrice1, curve.SpotPrice(x1))
 	approxEqualDec(t, spotPrice2, curve.SpotPrice(x2))
@@ -161,9 +166,9 @@ func TestBondingCurve_SquareRoot(t *testing.T) {
 	cost1to2 := integral2                                                                  // integral2 - integral1
 	cost2to3 := math.LegacyMustNewDecFromStr("1598529.70242").MulInt64(1e18).TruncateInt() // integral3 - integral2
 
-	approxEqualInt(t, integral1, curve.Integral(x1))
-	approxEqualInt(t, integral2, curve.Integral(x2))
-	approxEqualInt(t, integral3, curve.Integral(x3))
+	approxEqualInt(t, integral1, curve.Cost(math.ZeroInt(), x1))
+	approxEqualInt(t, integral2, curve.Cost(math.ZeroInt(), x2))
+	approxEqualInt(t, integral3, curve.Cost(math.ZeroInt(), x3))
 
 	approxEqualDec(t, spotPrice1, curve.SpotPrice(x1))
 	approxEqualDec(t, spotPrice2, curve.SpotPrice(x2))
@@ -179,12 +184,127 @@ func TestBondingCurve_SmallX(t *testing.T) {
 
 	// less than 1 token is not enough
 	require.True(t, curve.SpotPrice(math.NewInt(1_000_000)).IsZero())
-	require.True(t, curve.Integral(math.NewInt(1_000_000)).IsZero())
-	require.True(t, curve.Integral(math.NewInt(1).MulRaw(1e17)).IsZero())
+	require.True(t, curve.Cost(math.ZeroInt(), math.NewInt(1_000_000)).IsZero())
+	require.True(t, curve.Cost(math.ZeroInt(), math.NewInt(1).MulRaw(1e17)).IsZero())
 
 	// even 1 token is enough
-	require.False(t, curve.Integral(math.NewInt(1).MulRaw(1e18)).IsZero())
+	require.False(t, curve.Cost(math.ZeroInt(), math.NewInt(1).MulRaw(1e18)).IsZero())
 	require.False(t, curve.SpotPrice(math.NewInt(1).MulRaw(1e18)).IsZero())
+}
+
+// TestTokensForDYM tests the TokensForDYM function.
+// This test suite performs the following steps for each test case:
+// 1. Calculate the cost of buying a specified number of tokens using the classic Cost function.
+// 2. Calculate the number of tokens that can be bought with the calculated cost.
+// The goal is to ensure that both functions are inverses of each other.
+func TestTokensForDYM(t *testing.T) {
+	// Define multiple starting points (used as current sold amt)
+	startingPoints := []string{"1", "100", "1000", "10000", "100000"}
+
+	// Define multiple X token amounts to test (used as tokens to buy)
+	xTokens := []string{"0.01", "0.1", "0.5", "1", "10", "1000", "10000", "100000", "1000000"}
+
+	// Define different curve types
+	curves := []struct {
+		name  string
+		curve types.BondingCurve
+	}{
+		{"Linear", types.DefaultBondingCurve()},
+		{"Square Root", types.NewBondingCurve(
+			math.LegacyMustNewDecFromStr("2.24345436"),
+			math.LegacyMustNewDecFromStr("0.5"),
+			math.LegacyMustNewDecFromStr("10.5443534"),
+		)},
+		{"Quadratic", types.NewBondingCurve(
+			math.LegacyMustNewDecFromStr("2"),
+			math.LegacyMustNewDecFromStr("1.5"),
+			math.LegacyZeroDec(),
+		)},
+	}
+
+	for _, curve := range curves {
+		t.Run(curve.name, func(t *testing.T) {
+			for _, start := range startingPoints {
+				startingX := math.LegacyMustNewDecFromStr(start).MulInt64(1e18).TruncateInt()
+
+				for _, xToken := range xTokens {
+					x := math.LegacyMustNewDecFromStr(xToken).MulInt64(1e18).TruncateInt()
+					cost := curve.curve.Cost(startingX, startingX.Add(x))
+
+					t.Run(fmt.Sprintf("Start=%s, X=%s", start, xToken), func(t *testing.T) {
+						tokens, err := curve.curve.TokensForExactDYM(startingX, cost)
+						require.NoError(t, err)
+						approxEqualInt(t, x, tokens)
+					})
+				}
+			}
+		})
+	}
+}
+
+// benchmark the iteration count for the TokensForDYM function
+func TestTokensForDYMApproximation(t *testing.T) {
+	// _ = flag.Set("rapid.checks", "10000") // can be enabled manually for more thorough testing
+
+	// Define different curve types
+	curves := []struct {
+		name  string
+		curve types.BondingCurve
+	}{
+		{"Linear", types.DefaultBondingCurve()},
+		{"Square Root", types.NewBondingCurve(
+			math.LegacyMustNewDecFromStr("2.24345436"),
+			math.LegacyMustNewDecFromStr("0.5"),
+			math.LegacyMustNewDecFromStr("10.5443534"),
+		)},
+		{"Quadratic", types.NewBondingCurve(
+			math.LegacyMustNewDecFromStr("2"),
+			math.LegacyMustNewDecFromStr("1.5"),
+			math.LegacyZeroDec(),
+		)},
+	}
+
+	for _, curve := range curves {
+		var iterations []int
+
+		t.Run(curve.name, func(t *testing.T) {
+			rapid.Check(t, func(t *rapid.T) {
+				startingXRapid := rapid.Int64Range(1, 1e6).Draw(t, "startingX")
+				xRapid := rapid.Float64Range(0.01, 1e6).Draw(t, "x")
+
+				startingX := math.LegacyNewDec(startingXRapid).MulInt64(1e18).TruncateInt()
+				x := math.LegacyMustNewDecFromStr(fmt.Sprintf("%f", xRapid)).MulInt64(1e18).TruncateInt()
+
+				cost := curve.curve.Cost(startingX, startingX.Add(x))
+
+				startingXScaled := types.ScaleFromBase(startingX, curve.curve.SupplyDecimals())
+				spendTokensScaled := types.ScaleFromBase(cost, types.DYMDecimals)
+				_, iteration, err := curve.curve.TokensApproximation(startingXScaled, spendTokensScaled)
+				require.NoError(t, err)
+
+				if err != nil {
+					t.Fatalf("Error in TokensApproximation: %v", err)
+				}
+
+				t.Logf("Start=%d, X=%f, Iteration=%d", startingX, x, iteration)
+				iterations = append(iterations, iteration)
+			})
+		})
+
+		// After all checks are done
+		sort.Ints(iterations)
+		min, max := iterations[0], iterations[len(iterations)-1]
+		sum := 0
+		for _, v := range iterations {
+			sum += v
+		}
+		avg := float64(sum) / float64(len(iterations))
+
+		t.Logf("Statistics for %s curve:", curve.name)
+		t.Logf("  Min iterations: %d", min)
+		t.Logf("  Max iterations: %d", max)
+		t.Logf("  Average iterations: %.2f", avg)
+	}
 }
 
 /*
@@ -197,37 +317,87 @@ Expected M value: 0.000000198
 */
 func TestUseCaseA(t *testing.T) {
 	// Test case parameters
-	val := math.LegacyNewDecFromInt(math.NewInt(100_000)) // 100,000 DYM to raise
-	z := math.LegacyNewDecFromInt(math.NewInt(1_000_000)) // 1,000,000 RA tokens
-	n := math.LegacyNewDec(1)                             // N = 1 (linear curve)
-	c := math.LegacyNewDecWithPrec(1, 3)                  // C = 0.001 (1% of the average price)
+	val := math.NewInt(100_000)          // 100,000 DYM to raise
+	z := math.NewInt(1_000_000)          // 1,000,000 RA tokens
+	n := math.LegacyNewDec(1)            // N = 1 (linear curve)
+	c := math.LegacyNewDecWithPrec(1, 3) // C = 0.001 (1% of the average price)
 
 	// Expected M calculation:
 	expectedM := math.LegacyMustNewDecFromStr("0.000000198")
 
 	// Calculate M
-	m := types.CalculateM(val, z, n, c)
+	m := types.CalculateM(math.LegacyNewDecFromInt(val), math.LegacyNewDecFromInt(z), n, c)
 	require.Equal(t, expectedM, m)
 
 	curve := types.NewBondingCurve(m, n, c)
 
-	// Verify that the integral of the curve at Z equals VAL
-	integral := curve.Integral(z.MulInt64(1e18).TruncateInt())
-	approxEqualInt(t, val.MulInt64(1e18).TruncateInt(), integral)
+	// Verify that the cost of the curve at Z equals VAL
+	cost := curve.Cost(math.LegacyZeroDec().RoundInt(), z.MulRaw(1e18))
+	approxEqualInt(t, val.MulRaw(1e18), cost)
 
 	// verify that the cost early is lower than the cost later
 	// test for buying 1000 RA tokens
+	averagePrice := math.LegacyNewDecFromInt(val).QuoInt(z)
 	costA := curve.Cost(math.ZeroInt(), math.NewInt(1000).MulRaw(1e18))
 	costB := curve.Cost(math.NewInt(900_000).MulRaw(1e18), math.NewInt(901_000).MulRaw(1e18))
-	t.Log(costA, costB)
-
-	// Calculate the actual difference
-	costDifference := costB.Sub(costA)
-
+	t.Logf(
+		"Average Price: %s DYM\nCost for 1k Tokens:\n  Yearly: %s DYM\n  90%%: %s DYM",
+		averagePrice,
+		costA.QuoRaw(1e18),
+		costB.QuoRaw(1e18),
+	)
 	// Define a threshold for the cost difference (e.g., 5% of costA)
 	threshold := costA.MulRaw(5).QuoRaw(100)
+
 	// Assert that the cost difference is greater than the threshold
+	costDifference := costB.Sub(costA)
 	require.True(t, costDifference.GT(threshold),
 		"Cost difference (%s) should be greater than threshold (%s)",
 		costDifference, threshold)
+}
+
+func TestSpotPrice(t *testing.T) {
+	t.Run("Constant Price Curve", func(t *testing.T) {
+		// Test simplest case: y = 0.1 (constant price)
+		m := math.LegacyZeroDec()
+		n := math.LegacyZeroDec()
+		c := math.LegacyMustNewDecFromStr("0.1")
+
+		curve := types.NewBondingCurve(m, n, c)
+
+		testCases := []struct {
+			x    math.Int
+			want math.LegacyDec
+		}{
+			{math.NewInt(0).MulRaw(1e18), c},    // expected price is 0.1
+			{math.NewInt(1000).MulRaw(1e18), c}, // expected price is 0.1
+		}
+
+		for _, tc := range testCases {
+			got := curve.SpotPrice(tc.x)
+			assert.Equal(t, tc.want, got, "SpotPrice(%v) = %v, want %v", tc.x, got, tc.want)
+		}
+	})
+
+	t.Run("Linear Price Curve", func(t *testing.T) {
+		// Test linear case: y = 0.001x + 0.1
+		m := math.LegacyMustNewDecFromStr("0.001")
+		n := math.LegacyOneDec()
+		c := math.LegacyMustNewDecFromStr("0.1")
+
+		curve := types.NewBondingCurve(m, n, c)
+
+		testCases := []struct {
+			x    math.Int
+			want math.LegacyDec
+		}{
+			{math.NewInt(0).MulRaw(1e18), math.LegacyMustNewDecFromStr("0.1")},
+			{math.NewInt(1000).MulRaw(1e18), math.LegacyMustNewDecFromStr("1.1")},
+		}
+
+		for _, tc := range testCases {
+			got := curve.SpotPrice(tc.x)
+			assert.Equal(t, tc.want, got, "SpotPrice(%v) = %v, want %v", tc.x, got, tc.want)
+		}
+	})
 }

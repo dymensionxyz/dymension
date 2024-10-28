@@ -1,0 +1,47 @@
+syntax = "proto3";
+package dymensionxyz.dymension.eibc;
+
+import "gogoproto/gogo.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
+
+// FulfillOrderAuthorization allows the grantee to fulfill eIBC demand orders from the granter's account.
+message FulfillOrderAuthorization {
+  option (cosmos_proto.implements_interface) = "cosmos.authz.v1beta1.Authorization";
+
+  // rollapps is an optional list of rollapp IDs that the grantee can fulfill demand orders from
+  repeated string rollapps = 1;
+
+  // denoms is an optional list of denoms that the grantee can fulfill demand orders for
+  repeated string denoms = 2;
+
+  // min_lp_fee_percentage is the minimum fee earning percentage the LP is willing to get from a demand order
+  cosmos.base.v1beta1.DecProto min_lp_fee_percentage = 3 [
+    (gogoproto.nullable)     = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecProto"
+  ];
+
+  // max_price is the optional maximum order price acceptable to the granter
+  repeated cosmos.base.v1beta1.Coin max_price = 4 [
+    (gogoproto.nullable)     = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+
+  // operator_fee_share is the share of the fee earnings willing to give to the operator
+  cosmos.base.v1beta1.DecProto operator_fee_share = 5 [
+    (gogoproto.nullable)     = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecProto"
+  ];
+
+  // settlement_validated is the flag to only fulfill demand orders that have been settlement validated
+  bool settlement_validated = 6;
+
+  // spend_limit is the optional maximum amount of coins that can be spent by the grantee
+  repeated cosmos.base.v1beta1.Coin spend_limit = 7 [
+    (gogoproto.nullable)     = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}

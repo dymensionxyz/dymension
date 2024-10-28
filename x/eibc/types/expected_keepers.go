@@ -3,7 +3,9 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
@@ -22,4 +24,8 @@ type DelayedAckKeeper interface {
 	GetRollappPacket(ctx sdk.Context, rollappPacketKey string) (*commontypes.RollappPacket, error)
 	BridgingFeeFromAmt(ctx sdk.Context, amt sdk.Int) (res sdk.Int)
 	BridgingFee(ctx sdk.Context) (res sdk.Dec)
+}
+
+type RollappKeeper interface {
+	GetLatestStateInfo(ctx sdk.Context, rollappId string) (rollapptypes.StateInfo, bool)
 }

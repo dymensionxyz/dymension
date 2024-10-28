@@ -1,8 +1,11 @@
 package types
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/osmomath"
 )
 
@@ -24,31 +27,19 @@ C (constant) sets the starting price when supply is zero, effectively establishi
 */
 
 const (
+	DYMDecimals = 18 // Decimal precision for DYM to adym conversion
+
 	MaxNValue     = 2 // Maximum allowed value for the N parameter
 	MaxNPrecision = 3 // Maximum allowed decimal precision for the N parameter
+
+	maxIterations    = 100 // maximum number of iterations for Newton-Raphson approximation
+	epsilonPrecision = 12  // approximation precision decimal places (10^12)
 )
 
 /*
 The bonding curve implementation based on decimal representation of the X (rollapp's tokens) and Y (DYM) values.
 we use scaling functions to convert between the decimal scale and the base denomination.
 */
-
-// Scales x from it's base denomination to a decimal representation
-// This is used to scale X before passing it to the bonding curve functions
-func ScaleXFromBase(x math.Int, precision int64) math.LegacyDec {
-	return math.LegacyNewDecFromIntWithPrec(x, precision)
-}
-
-// Scales y from the decimal scale to it's base denomination
-func ScaleDYMToBase(y math.LegacyDec) math.Int {
-	return y.MulInt(math.NewInt(1e18)).TruncateInt()
-}
-
-func (lbc BondingCurve) SupplyDecimals() int64 {
-	// TODO: allow to be set on creation instead of using default
-	rollappTokenDefaultDecimals := int64(18)
-	return rollappTokenDefaultDecimals
-}
 
 func NewBondingCurve(m, n, c math.LegacyDec) BondingCurve {
 	return BondingCurve{
@@ -65,6 +56,12 @@ func DefaultBondingCurve() BondingCurve {
 		N: math.LegacyOneDec(),
 		C: math.LegacyZeroDec(),
 	}
+}
+
+func (lbc BondingCurve) SupplyDecimals() int64 {
+	// TODO: allow to be set on creation instead of using default
+	rollappTokenDefaultDecimals := int64(18)
+	return rollappTokenDefaultDecimals
 }
 
 // validateBasic checks if the bonding curve is valid
@@ -90,17 +87,114 @@ func (lbc BondingCurve) ValidateBasic() error {
 	return nil
 }
 
-// checkPrecision checks if a math.LegacyDec has at most MaxPrecision decimal places
-func checkPrecision(d math.LegacyDec) bool {
-	// Multiply by 10^MaxPrecision and check if it's an integer
-	multiplied := d.Mul(math.LegacyNewDec(10).Power(uint64(MaxNPrecision)))
-	return multiplied.IsInteger()
+/* ---------------------------------- APIs ---------------------------------- */
+// APIs provide a way to interact with the bonding curve
+// The inputs are provided in the base denomination
+
+// SpotPrice returns the spot price at x
+// - x: the current supply, in the base denomination
+// - returns: the spot price at x, as price per token (e.g 0.1 DYM per token)
+func (lbc BondingCurve) SpotPrice(x math.Int) math.LegacyDec {
+	return lbc.spotPriceInternal(ScaleFromBase(x, lbc.SupplyDecimals()))
+}
+
+/*
+The cost to purchase tokens from supply S1 to S2 is given by the definite integral of this function from S1 to S2. Mathematically, this is expressed as:
+Cost = ∫(S1 to S2) (M * S^N + C) dS
+Solving this integral yields:
+Cost = [M / (N + 1) * S^(N + 1) + C * S](S1 to S2)
+
+// - x: the current supply, in the base denomination
+// - x1: the new supply, in the base denomination
+// - returns: the cost to purchase tokens from x to x1, in adym
+*/
+func (lbc BondingCurve) Cost(x, x1 math.Int) math.Int {
+	cost := lbc.integral(ScaleFromBase(x1, lbc.SupplyDecimals())).
+		Sub(lbc.integral(ScaleFromBase(x, lbc.SupplyDecimals())))
+	return ScaleToBase(cost, DYMDecimals)
+}
+
+// Calculate the number of tokens that can be bought with a given amount of DYM
+// As the integral of the bonding curve function is not invertible, we use the Newton-Raphson method to approximate the solution
+// - currX: the current supply, in the base denomination
+// - spendAmt: the amount of DYM to spend, in adym
+// - returns: the number of tokens that can be bought with spendAmt, in the base denomination
+func (lbc BondingCurve) TokensForExactDYM(currX, spendAmt math.Int) (math.Int, error) {
+	startingX := ScaleFromBase(currX, lbc.SupplyDecimals())
+	spendTokens := ScaleFromBase(spendAmt, DYMDecimals)
+
+	// If the current supply is less than 1, return 0
+	if startingX.LT(math.LegacyOneDec()) {
+		return math.ZeroInt(), fmt.Errorf("current supply is less than 1")
+	}
+
+	// If the spend amount is not positive, return 0
+	if !spendAmt.IsPositive() {
+		return math.ZeroInt(), fmt.Errorf("spend amount is not positive")
+	}
+
+	tokens, _, err := lbc.TokensApproximation(startingX, spendTokens)
+	if err != nil {
+		return math.ZeroInt(), err
+	}
+
+	return ScaleToBase(tokens, DYMDecimals), nil
+}
+
+/* --------------------------- internal functions --------------------------- */
+// Calculate the number of tokens that can be bought with a given amount of DYM
+// inputs validated and scaled by caller
+func (lbc BondingCurve) TokensApproximation(startingX, spendTokens math.LegacyDec) (math.LegacyDec, int, error) {
+	// Define the function we're trying to solve: f(x) = Integral(startingX + x) - Integral(startingX) - spendAmt
+	f := func(x math.LegacyDec) math.LegacyDec {
+		newX := startingX.Add(x)
+		return lbc.integral(newX).Sub(lbc.integral(startingX)).Sub(spendTokens)
+	}
+
+	// Define the derivative of the function: f'(x) = SpotPrice(startingX + x)
+	fPrime := func(x math.LegacyDec) math.LegacyDec {
+		newX := startingX.Add(x)
+		return lbc.spotPriceInternal(newX)
+	}
+
+	// Initial guess for the solution to the bonding curve equation
+	// assuming 1 DYM = 1 token for the initial guess
+	x := spendTokens
+
+	// Newton-Raphson iteration
+	epsilonDec := math.LegacyNewDecWithPrec(1, epsilonPrecision)
+	for i := 0; i < maxIterations; i++ {
+		fx := f(x)
+		// If the function converges, return the result
+		if fx.Abs().LT(epsilonDec) {
+			return x, i, nil
+		}
+		prevX := x
+		fPrimex := fPrime(x)
+
+		// defensive check to avoid division by zero
+		// not supposed to happen, as spotPriceInternal should never return 0
+		if fPrimex.IsZero() {
+			return math.LegacyDec{}, i, fmt.Errorf("division by zero")
+		}
+		x = x.Sub(fx.Quo(fPrimex))
+
+		// If the change in x is less than epsilon * x, return the result
+		if x.Sub(prevX).Abs().LT(epsilonDec.Mul(x.Abs())) {
+			return x, i, nil
+		}
+
+		// we can't allow newX to be less than 1
+		if startingX.Add(x).LT(math.LegacyOneDec()) {
+			x = math.LegacyOneDec()
+		}
+	}
+	return math.LegacyDec{}, maxIterations, fmt.Errorf("solution did not converge")
 }
 
 // SpotPrice returns the spot price at x
-func (lbc BondingCurve) SpotPrice(x math.Int) math.LegacyDec {
-	// we use osmomath as it support Power function
-	xDec := osmomath.BigDecFromSDKDec(ScaleXFromBase(x, lbc.SupplyDecimals()))
+func (lbc BondingCurve) spotPriceInternal(x sdk.Dec) sdk.Dec {
+	xDec := osmomath.BigDecFromSDKDec(x)
 	nDec := osmomath.BigDecFromSDKDec(lbc.N)
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)
 
@@ -114,24 +208,14 @@ func (lbc BondingCurve) SpotPrice(x math.Int) math.LegacyDec {
 	return price
 }
 
-/*
-The cost to purchase tokens from supply S1 to S2 is given by the definite integral of this function from S1 to S2. Mathematically, this is expressed as:
-Cost = ∫(S1 to S2) (M * S^N + C) dS
-Solving this integral yields:
-Cost = [M / (N + 1) * S^(N + 1) + C * S](S1 to S2)
-*/
-func (lbc BondingCurve) Cost(x, x1 math.Int) math.Int {
-	return lbc.Integral(x1).Sub(lbc.Integral(x))
-}
-
-// The Integral of y = M * x^N + C is:
+// The integral of y = M * x^N + C is:
 //
 //	Cost = (M / (N + 1)) * x^(N + 1) + C * x.
-func (lbc BondingCurve) Integral(x math.Int) math.Int {
-	// we use osmomath as it support Power function
-	xDec := osmomath.BigDecFromSDKDec(ScaleXFromBase(x, lbc.SupplyDecimals()))
+func (lbc BondingCurve) integral(x math.LegacyDec) math.LegacyDec {
+	xDec := osmomath.BigDecFromSDKDec(x)
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)
 	cDec := osmomath.BigDecFromSDKDec(lbc.C)
+
 	nPlusOne := osmomath.BigDecFromSDKDec(lbc.N.Add(math.LegacyNewDec(1)))
 
 	var xPowNplusOne osmomath.BigDec
@@ -140,12 +224,13 @@ func (lbc BondingCurve) Integral(x math.Int) math.Int {
 	} else {
 		xPowNplusOne = xDec.Power(nPlusOne) // Calculate x^(N + 1)
 	}
+
 	mDivNPlusOne := mDec.QuoMut(nPlusOne) // Calculate m / (N + 1)
 	cx := cDec.Mul(xDec)                  // Calculate C * x
 
 	// Calculate the integral
-	integral := xPowNplusOne.Mul(mDivNPlusOne).Add(cx)
-	return ScaleDYMToBase(integral.SDKDec())
+	integral := xPowNplusOne.Mul(mDivNPlusOne).Add(cx).SDKDec()
+	return integral
 }
 
 // CalculateM computes the M parameter for a bonding curve
@@ -181,4 +266,24 @@ func CalculateM(val, t, n, c math.LegacyDec) math.LegacyDec {
 
 	// Convert back to math.LegacyDec and return
 	return m.SDKDec()
+}
+
+/* ---------------------------- helper functions ---------------------------- */
+// Scales x from it's base denomination to a decimal representation (e.g 1500000000000000 to 1.5)
+// This is used to scale X before passing it to the bonding curve functions
+func ScaleFromBase(x math.Int, precision int64) math.LegacyDec {
+	return math.LegacyNewDecFromIntWithPrec(x, precision)
+}
+
+// Scales x from the decimal scale to it's base denomination (e.g 1.5 to 1500000000000000)
+func ScaleToBase(x math.LegacyDec, precision int64) math.Int {
+	scaleFactor := math.NewIntWithDecimal(1, int(precision))
+	return x.MulInt(scaleFactor).TruncateInt()
+}
+
+// checkPrecision checks if a math.LegacyDec has at most MaxPrecision decimal places
+func checkPrecision(d math.LegacyDec) bool {
+	// Multiply by 10^MaxPrecision and check if it's an integer
+	multiplied := d.Mul(math.LegacyNewDec(10).Power(uint64(MaxNPrecision)))
+	return multiplied.IsInteger()
 }

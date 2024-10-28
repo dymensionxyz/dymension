@@ -12,8 +12,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
@@ -106,6 +106,7 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 	if err != nil {
 		return "", err
 	}
+
 	plan := types.NewPlan(k.GetNextPlanIdAndIncrement(ctx), rollapp.RollappId, allocation, curve, start, preLaunchTime, incentivesParams)
 	if err := plan.ValidateBasic(); err != nil {
 		return "", errors.Join(gerrc.ErrInvalidArgument, err)
@@ -129,8 +130,22 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 		return "", err
 	}
 
+	// charge rollapp token creation fee. Same as DYM creation fee, will be used to open the pool.
+	tokenFee := math.NewIntWithDecimal(types.TokenCreationFee, int(rollapp.GenesisInfo.NativeDenom.Exponent))
+	plan.SoldAmt = tokenFee
+
 	// Set the plan in the store
 	k.SetPlan(ctx, plan)
+
+	// Emit event
+	err = uevent.EmitTypedEvent(ctx, &types.EventNewIROPlan{
+		Creator:   rollapp.Owner,
+		PlanId:    fmt.Sprintf("%d", plan.Id),
+		RollappId: rollapp.RollappId,
+	})
+	if err != nil {
+		return "", err
+	}
 
 	return fmt.Sprintf("%d", plan.Id), nil
 }
@@ -164,13 +179,13 @@ func (k Keeper) MintAllocation(ctx sdk.Context, allocatedAmount math.Int, rollap
 		return sdk.Coin{}, errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), fmt.Sprintf("metadata: %v", metadata))
 	}
 
-	if k.BK.HasDenomMetaData(ctx, baseDenom) {
-		return sdk.Coin{}, errors.New("denom already exists")
+	err := k.dk.CreateDenomMetadata(ctx, metadata)
+	if err != nil {
+		return sdk.Coin{}, errorsmod.Wrap(err, "create denom metadata")
 	}
-	k.BK.SetDenomMetaData(ctx, metadata)
 
 	minted := sdk.NewCoin(baseDenom, allocatedAmount)
-	err := k.BK.MintCoins(ctx, types.ModuleName, sdk.NewCoins(minted))
+	err = k.BK.MintCoins(ctx, types.ModuleName, sdk.NewCoins(minted))
 	if err != nil {
 		return sdk.Coin{}, err
 	}

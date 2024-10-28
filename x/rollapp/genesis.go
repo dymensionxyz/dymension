@@ -36,6 +36,14 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.AppList {
 		k.SetApp(ctx, elem)
 	}
+	// Set rollapp registered denoms
+	for _, elem := range genState.RegisteredDenoms {
+		for _, denom := range elem.Denoms {
+			if err := k.SetRegisteredDenom(ctx, elem.RollappId, denom); err != nil {
+				panic(err)
+			}
+		}
+	}
 
 	k.SetParams(ctx, genState.Params)
 }
@@ -57,6 +65,19 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		appList = append(appList, *app)
 	}
 	genesis.AppList = appList
+
+	var registeredRollappDenoms []types.RollappRegisteredDenoms
+	for _, rollapp := range genesis.RollappList {
+		denoms, err := k.GetAllRegisteredDenoms(ctx, rollapp.RollappId)
+		if err != nil {
+			panic(err)
+		}
+		registeredRollappDenoms = append(registeredRollappDenoms, types.RollappRegisteredDenoms{
+			RollappId: rollapp.RollappId,
+			Denoms:    denoms,
+		})
+	}
+	genesis.RegisteredDenoms = registeredRollappDenoms
 
 	return genesis
 }

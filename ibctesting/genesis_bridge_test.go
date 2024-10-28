@@ -1,6 +1,7 @@
 package ibctesting_test
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -235,7 +236,7 @@ func (s *transferGenesisSuite) TestInvalidGenesisDenomMetadata() {
 
 	packet := s.genesisBridgePacket(rollapp.GenesisInfo)
 	var gb genesisbridge.GenesisBridgeData
-	err := gb.Unmarshal(packet.Data)
+	err := json.Unmarshal(packet.Data, &gb)
 	s.Require().NoError(err)
 
 	// change the base denom in the metadata
@@ -280,7 +281,7 @@ func (s *transferGenesisSuite) TestInvalidGenesisTransfer() {
 
 	// change the amount in the genesis transfer
 	var gb genesisbridge.GenesisBridgeData
-	err := gb.Unmarshal(packet.Data)
+	err := json.Unmarshal(packet.Data, &gb)
 	s.Require().NoError(err)
 	gb.GenesisTransfer.Amount = "1242353645"
 	packet.Data, err = gb.Marshal()
@@ -418,7 +419,7 @@ func (s *transferGenesisSuite) genesisBridgePacket(raGenesisInfo rollapptypes.Ge
 		gb.GenesisInfo.GenesisAccounts = raGenesisInfo.GenesisAccounts.Accounts
 	}
 
-	bz, err := gb.Marshal()
+	bz, err := json.Marshal(gb)
 	s.Require().NoError(err)
 
 	msg := channeltypes.NewPacket(

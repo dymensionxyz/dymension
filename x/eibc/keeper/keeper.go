@@ -25,6 +25,7 @@ type (
 		ak         types.AccountKeeper
 		bk         types.BankKeeper
 		dack       types.DelayedAckKeeper
+		rk         types.RollappKeeper
 	}
 )
 
@@ -36,6 +37,7 @@ func NewKeeper(
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	delayedAckKeeper types.DelayedAckKeeper,
+	rk types.RollappKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -50,6 +52,7 @@ func NewKeeper(
 		ak:         accountKeeper,
 		bk:         bankKeeper,
 		dack:       delayedAckKeeper,
+		rk:         rk,
 	}
 }
 
@@ -104,14 +107,25 @@ func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types
 }
 
 // SetOrderFulfilled should be called only at most once per order.
-func (k Keeper) SetOrderFulfilled(ctx sdk.Context, order *types.DemandOrder, fulfillerAddress sdk.AccAddress) error {
+func (k Keeper) SetOrderFulfilled(
+	ctx sdk.Context,
+	order *types.DemandOrder,
+	fulfillerAddress sdk.AccAddress,
+	collectorAddress sdk.AccAddress,
+) error {
 	order.FulfillerAddress = fulfillerAddress.String()
 	err := k.SetDemandOrder(ctx, order)
 	if err != nil {
 		return err
 	}
+	// if the collector address is not nil, then the receiver address should be the collector address.
+	// Otherwise, the receiver address should be the fulfiller address.
+	receiverAddress := fulfillerAddress
+	if collectorAddress != nil {
+		receiverAddress = collectorAddress
+	}
 	// Call hooks if fulfilled. This hook should be called only once per fulfillment.
-	err = k.hooks.AfterDemandOrderFulfilled(ctx, order, fulfillerAddress.String())
+	err = k.hooks.AfterDemandOrderFulfilled(ctx, order, receiverAddress.String())
 	if err != nil {
 		return err
 	}

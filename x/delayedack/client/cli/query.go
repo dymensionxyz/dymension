@@ -27,6 +27,7 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(CmdGetPacketsByRollapp())
 	cmd.AddCommand(CmdGetPacketsByStatus())
 	cmd.AddCommand(CmdGetPacketsByType())
+	cmd.AddCommand(CmdGetPendingPacketsByReceiver())
 
 	return cmd
 }
@@ -205,6 +206,36 @@ func CmdGetPacketsByType() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.GetPackets(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdGetPendingPacketsByReceiver() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pending-packets-by-receiver [rollapp-id] [receiver]",
+		Short: "Get pending packets by receiver",
+		Args:  cobra.MinimumNArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.GetPendingPacketsByReceiver(cmd.Context(), &types.QueryPendingPacketsByReceiverRequest{
+				RollappId:  args[0],
+				Receiver:   args[1],
+				Pagination: nil, // TODO: handle pagination
+			})
 			if err != nil {
 				return err
 			}

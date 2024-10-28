@@ -36,7 +36,7 @@ func (p Plan) ValidateBasic() error {
 		return errors.Join(ErrInvalidBondingCurve, err)
 	}
 	// check that the allocation is greater than the minimal allowed token allocation
-	allocationDec := ScaleXFromBase(p.TotalAllocation.Amount, p.BondingCurve.SupplyDecimals())
+	allocationDec := ScaleFromBase(p.TotalAllocation.Amount, p.BondingCurve.SupplyDecimals())
 	if !allocationDec.GT(MinTokenAllocation) {
 		return ErrInvalidAllocation
 	}
@@ -76,6 +76,11 @@ func (p Plan) ModuleAccName() string {
 func (p Plan) GetAddress() sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(p.ModuleAccAddress)
 	return addr
+}
+
+// get IRO token's denom
+func (p Plan) GetIRODenom() string {
+	return fmt.Sprintf("%s_%s", IROTokenPrefix, p.RollappId)
 }
 
 func DefaultIncentivePlanParams() IncentivePlanParams {

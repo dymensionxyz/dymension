@@ -11,7 +11,6 @@ const (
 	AttributeKeyNumBlocks      = "num_blocks"
 	AttributeKeyDAPath         = "da_path"
 	AttributeKeyStatus         = "status"
-	AttributeKeyCreatedAt      = "created_at"
 
 	// EventTypeFraud is emitted when a fraud evidence is submitted
 	EventTypeFraud             = "fraud_proposal"

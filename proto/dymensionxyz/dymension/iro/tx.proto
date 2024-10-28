@@ -24,6 +24,8 @@ service Msg {
   // Buy is used to buy allocation.
   rpc Buy(MsgBuy) returns (MsgBuyResponse);
 
+  rpc BuyExactSpend(MsgBuyExactSpend) returns (MsgBuyResponse);
+
   // Sell is used to sell allocation.
   rpc Sell(MsgSell) returns (MsgSellResponse);
 
@@ -97,6 +99,27 @@ message MsgBuy {
 
   // The maximum cost this buy action can incur.
   string max_cost_amount = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message MsgBuyExactSpend {
+  option (cosmos.msg.v1.signer) = "buyer";
+
+  string buyer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // The ID of the plan.
+  string plan_id = 2;
+
+  // The amount of DYM to spend.
+  string spend = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // The minimum tokens this buy action can provide.
+  string min_out_tokens_amount = 4 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];

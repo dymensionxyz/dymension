@@ -122,6 +122,10 @@ func (s *KeeperTestSuite) TestMintAllocation() {
 	_, found := s.App.BankKeeper.GetDenomMetaData(s.Ctx, expectedBaseDenom)
 	s.Require().True(found)
 
+	// assert virtual frontier bank contract created
+	found = s.App.EvmKeeper.HasVirtualFrontierBankContractByDenom(s.Ctx, expectedBaseDenom)
+	s.Require().True(found)
+
 	// assert coins minted
 	s.Assert().True(allocatedAmount.Equal(minted.Amount))
 	coins := s.App.BankKeeper.GetSupply(s.Ctx, expectedBaseDenom)

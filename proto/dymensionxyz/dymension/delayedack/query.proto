@@ -21,6 +21,11 @@ service Query {
 	rpc GetPackets(QueryRollappPacketsRequest) returns (QueryRollappPacketListResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/delayedack/packets/{rollappId}/{status}";
 	}
+
+	// Queries a list of pending RollappPacket items by rollappID and receiver.
+	rpc GetPendingPacketsByReceiver(QueryPendingPacketsByReceiverRequest) returns (QueryPendingPacketByReceiverListResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/delayedack/pending-receiver-packets/{rollappId}/{receiver}";
+	}
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -40,6 +45,17 @@ message QueryRollappPacketsRequest {
 }
 
 message QueryRollappPacketListResponse {
+	repeated common.RollappPacket rollappPackets = 1 [(gogoproto.nullable) = false];
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryPendingPacketsByReceiverRequest {
+	string rollappId = 1;
+	string receiver = 2;
+	cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+message QueryPendingPacketByReceiverListResponse {
 	repeated common.RollappPacket rollappPackets = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
