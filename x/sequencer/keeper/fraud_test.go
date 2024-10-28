@@ -9,6 +9,7 @@ func (s *SequencerTestSuite) TestSlashLivenessFlow() {
 
 	s.Require().False(s.k().Kickable(s.Ctx, seq))
 	ok := false
+	last := seq.TokensCoin()
 	for range 100000000 {
 		err := s.k().SlashLiveness(s.Ctx, ra.RollappId)
 		s.Require().NoError(err)
@@ -16,6 +17,7 @@ func (s *SequencerTestSuite) TestSlashLivenessFlow() {
 		seq = s.seq(alice)
 		mod := s.moduleBalance()
 		s.Require().True(mod.Equal(seq.TokensCoin()))
+		s.Require().True(seq.TokensCoin().IsLT(last))
 		if s.k().Kickable(s.Ctx, seq) {
 			ok = true
 			break
