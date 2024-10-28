@@ -101,11 +101,8 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	if msg.Last {
 		// it takes the actual proposer because the next one have already been set
 		// by the sequencer rotation in k.hooks.BeforeUpdateState
-		val, found := k.sequencerKeeper.GetProposer(ctx, msg.RollappId)
-		if !found {
-			return nil, types.ErrNextSequencerNotFound
-		}
-
+		val, _ := k.sequencerKeeper.GetProposer(ctx, msg.RollappId)
+		// if the proposer is not found, the address is Empty
 		nextSequencerAddress = val.Address
 	}
 
