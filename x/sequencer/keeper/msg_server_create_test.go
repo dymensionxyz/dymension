@@ -223,7 +223,6 @@ func getAllSequencersMap(suite *SequencerTestSuite) (map[string]*types.Sequencer
 	return sequencersRes, totalRes
 }
 
-// ---------------------------------------
 // verifyAll receives a list of expected results and a map of sequencerAddress->sequencer
 // the function verifies that the map contains all the sequencers that are in the list and only them
 func (s *SequencerTestSuite) compareAllSequencersResponse(
