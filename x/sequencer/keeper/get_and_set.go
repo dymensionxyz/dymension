@@ -16,6 +16,10 @@ func (k Keeper) RollappSequencersByStatus(ctx sdk.Context, rollappId string, sta
 	return k.prefixSequencers(ctx, types.SequencersByRollappByStatusKey(rollappId, status))
 }
 
+func (k Keeper) GetRollappBondedSequencers(ctx sdk.Context, rollappId string) []types.Sequencer {
+	return k.RollappSequencersByStatus(ctx, rollappId, types.Bonded)
+}
+
 func (k Keeper) prefixSequencers(ctx sdk.Context, prefixKey []byte) []types.Sequencer {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), prefixKey)
 	it := sdk.KVStorePrefixIterator(store, []byte{})
@@ -35,13 +39,9 @@ func (k Keeper) prefixSequencers(ctx sdk.Context, prefixKey []byte) []types.Sequ
 func (k Keeper) GetRollappPotentialProposers(ctx sdk.Context, rollappId string) []types.Sequencer {
 	seqs := k.GetRollappBondedSequencers(ctx, rollappId)
 	seqs = slices.DeleteFunc(seqs, func(s types.Sequencer) bool {
-		return !s.OptedIn || s.Sentinel()
+		return !s.OptedIn || s.Sentinel() // TODO: sentinel check necessary?
 	})
 	return seqs
-}
-
-func (k Keeper) GetRollappBondedSequencers(ctx sdk.Context, rollappId string) []types.Sequencer {
-	return k.RollappSequencersByStatus(ctx, rollappId, types.Bonded)
 }
 
 func (k Keeper) GetAllSequencers(ctx sdk.Context) (list []types.Sequencer) {
