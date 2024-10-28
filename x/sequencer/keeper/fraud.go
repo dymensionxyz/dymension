@@ -4,8 +4,32 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 )
+
+func (k Keeper) KickProposer(ctx sdk.Context, kicker types.Sequencer) error {
+	if !kicker.IsPotentialProposer() {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "not ready to propose")
+	}
+
+	ra := kicker.RollappId
+
+	proposer := k.GetProposer(ctx, ra)
+
+	if k.Kickable(ctx, proposer) {
+		if err := k.unbond(ctx, &proposer); err != nil {
+			return errorsmod.Wrap(err, "unbond")
+		}
+		k.SetSequencer(ctx, proposer)
+		k.optOutAllSequencers(ctx, ra, kicker.Address)
+		// TODO: also hard fork
+	}
+	if err := k.ChooseProposer(ctx, ra); err != nil {
+		return errorsmod.Wrap(err, "choose proposer")
+	}
+	return nil
+}
 
 func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	seq := k.GetProposer(ctx, rollappID)
