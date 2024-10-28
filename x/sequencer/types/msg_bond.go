@@ -65,3 +65,28 @@ func (msg *MsgDecreaseBond) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{creator}
 }
+
+var _ sdk.Msg = &MsgUnbond{}
+
+func NewMsgUnbond(creator string) *MsgUnbond {
+	return &MsgUnbond{
+		Creator: creator,
+	}
+}
+
+func (msg *MsgUnbond) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return errorsmod.Wrapf(ErrInvalidAddr, "invalid creator address (%s)", err)
+	}
+
+	return nil
+}
+
+func (msg *MsgUnbond) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}

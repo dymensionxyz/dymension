@@ -11,6 +11,7 @@ import (
 
 var (
 	_ sdk.Msg                            = &MsgUpdateSequencerInformation{}
+	_ sdk.Msg                            = &MsgUpdateOptInStatus{}
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateSequencerInformation)(nil)
 )
 
@@ -64,3 +65,16 @@ func (msg *MsgUpdateSequencerInformation) VMSpecificValidate(vmType types.Rollap
 }
 
 func (msg *MsgUpdateSequencerInformation) UnpackInterfaces(codectypes.AnyUnpacker) error { return nil }
+
+func (m *MsgUpdateOptInStatus) ValidateBasic() error {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (m *MsgUpdateOptInStatus) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(m.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
