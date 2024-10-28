@@ -97,14 +97,10 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		Index:     newIndex,
 	})
 
-	var nextSequencerAddress string
-	if msg.Last {
-		// it takes the actual proposer because the next one have already been set
-		// by the sequencer rotation in k.hooks.BeforeUpdateState
-		val, _ := k.sequencerKeeper.GetProposer(ctx, msg.RollappId)
-		// if the proposer is not found, the address is Empty
-		nextSequencerAddress = val.Address
-	}
+	// it takes the actual proposer because the next one have already been set
+	// by the sequencer rotation in k.hooks.BeforeUpdateState
+	// the proposer we get is the one that will propose the next block.
+	val, _ := k.sequencerKeeper.GetProposer(ctx, msg.RollappId)
 
 	creationHeight := uint64(ctx.BlockHeight())
 	blockTime := ctx.BlockTime()
@@ -118,7 +114,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		creationHeight,
 		msg.BDs,
 		blockTime,
-		nextSequencerAddress,
+		val.Address,
 	)
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
 	k.SetStateInfo(ctx, *stateInfo)
