@@ -90,17 +90,6 @@ func TestByRollappIDByStatus(t *testing.T) {
 				},
 			},
 		}, {
-			name: "Test with rollappID 1 and status REVERTED",
-			args: args{
-				rollappID: "testRollappID1",
-				status:    []commontypes.Status{commontypes.Status_REVERTED},
-			},
-			want: []types.Prefix{
-				{
-					Start: []uint8{0x00, 0x03, 0x2f, 0x74, 0x65, 0x73, 0x74, 0x52, 0x6f, 0x6c, 0x6c, 0x61, 0x70, 0x70, 0x49, 0x44, 0x31, 0x2f},
-				},
-			},
-		}, {
 			name: "Test with rollappID 1 and status PENDING, FINALIZED",
 			args: args{
 				rollappID: "testRollappID1",
@@ -161,16 +150,6 @@ func TestByStatus(t *testing.T) {
 			want: []types.Prefix{
 				{
 					Start: []uint8{0x00, 0x02, 0x2f},
-				},
-			},
-		}, {
-			name: "Test with status REVERTED",
-			args: args{
-				status: []commontypes.Status{commontypes.Status_REVERTED},
-			},
-			want: []types.Prefix{
-				{
-					Start: []uint8{0x00, 0x03, 0x2f},
 				},
 			},
 		},

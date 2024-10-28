@@ -72,7 +72,6 @@ func ByRollappID(rollappID string) RollappPacketListFilter {
 	return ByRollappIDByStatus(rollappID,
 		commontypes.Status_PENDING,
 		commontypes.Status_FINALIZED,
-		commontypes.Status_REVERTED,
 	)
 }
 

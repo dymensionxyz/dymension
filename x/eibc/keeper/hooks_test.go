@@ -42,11 +42,6 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketDeleted() {
 			packetStatus:  commontypes.Status_FINALIZED,
 			expectedError: types.ErrDemandOrderDoesNotExist,
 		},
-		{
-			name:          "Reverted packet",
-			packetStatus:  commontypes.Status_REVERTED,
-			expectedError: types.ErrDemandOrderDoesNotExist,
-		},
 	}
 
 	for _, tc := range testCases {

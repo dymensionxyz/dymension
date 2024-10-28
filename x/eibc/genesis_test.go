@@ -33,7 +33,7 @@ func TestInitGenesis(t *testing.T) {
 				Fee:                  sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(150)}},
 				Recipient:            "dym15saxgqw6kvhv6k5sg6r45kmdf4sf88kfw2adcw",
 				FulfillerAddress:     "dym19pas0pqwje540u5ptwnffjxeamdxc9tajmdrfa",
-				TrackingPacketStatus: commontypes.Status_REVERTED,
+				TrackingPacketStatus: commontypes.Status_FINALIZED,
 			},
 		},
 	}
