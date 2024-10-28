@@ -137,7 +137,7 @@ func (s *SequencerTestSuite) TestUpdateSequencer() {
 				s.Require().NoError(err)
 				resp, err := s.queryClient.Sequencer(goCtx, &types.QueryGetSequencerRequest{SequencerAddress: tc.update.Creator})
 				s.Require().NoError(err)
-				s.equalSequencer(&tc.expSequencer, &resp.Sequencer)
+				s.equalSequencers(&tc.expSequencer, &resp.Sequencer)
 			} else {
 				s.ErrorIs(err, tc.expError)
 			}

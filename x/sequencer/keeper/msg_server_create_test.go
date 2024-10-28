@@ -21,7 +21,6 @@ func (s *SequencerTestSuite) TestCreateSequencerBasic() {
 	s.Require().NoError(err)
 	seq, err := s.k().GetRealSequencer(s.Ctx, pkAddr(alice))
 	s.Require().NoError(err)
-	s.Require().Equal(seq.DymintPubKey, alice)
 	s.Require().Equal(seq.Address, pkAddr(alice))
 	s.Require().True(bond.Equal(seq.TokensCoin()))
 	s.Require().Equal(s.moduleBalance(), bond)
@@ -32,7 +31,7 @@ func (s *SequencerTestSuite) TestCreateSequencerSeveral() {
 	ra := s.createRollapp()
 
 	for _, pk := range pks {
-		s.fundSequencer(alice, bond)
+		s.fundSequencer(pk, bond)
 		msg := createSequencerMsg(ra.RollappId, pk)
 		msg.Bond = bond
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)

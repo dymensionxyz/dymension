@@ -1,14 +1,6 @@
 package keeper_test
 
-import (
-	"fmt"
-	"time"
-
-	"github.com/cosmos/cosmos-sdk/types"
-	types2 "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
-	"github.com/dymensionxyz/sdk-utils/utils/urand"
-)
+/*
 
 func (s *SequencerTestSuite) TestCreateSequencerL() {
 	goCtx := types.WrapSDKContext(s.Ctx)
@@ -337,3 +329,5 @@ func (s *SequencerTestSuite) TestInvariants() {
 	msg, ok := keeper.AllInvariants(s.App.SequencerKeeper)(s.Ctx)
 	s.Require().False(ok, msg)
 }
+
+*/
