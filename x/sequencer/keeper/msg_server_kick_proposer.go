@@ -34,6 +34,7 @@ func (k msgServer) KickProposer(goCtx context.Context, msg *types.MsgKickPropose
 		if err := k.unbond(ctx, &proposer); err != nil {
 			return nil, errorsmod.Wrap(err, "unbond")
 		}
+		if
 		// TODO: also hard fork
 	}
 	if err := k.ChooseProposer(ctx, seq.RollappId); err != nil {

@@ -8,6 +8,20 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
+func (k Keeper) optOutSequencers(ctx sdk.Context, rollapp string, excl ...string) {
+	seqs := k.RollappSequencers(ctx, rollapp)
+	exclMap := make(map[string]struct{}, len(excl))
+	for _, addr := range excl {
+		exclMap[addr] = struct{}{}
+	}
+	for _, seq := range seqs {
+		if _, ok := exclMap[seq.Address]; !ok {
+			seq.OptedIn = false
+			k.SetSequencer(ctx, seq)
+		}
+	}
+}
+
 func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 	proposer := k.GetProposer(ctx, rollapp)
 	if !proposer.Sentinel() {
