@@ -16,7 +16,7 @@ const (
 
 // RegisterInvariants registers the delayedack module invariants
 func (k Keeper) RegisterInvariants(ir sdk.InvariantRegistry) {
-	ir.RegisterRoute(types.ModuleName, routeFinalizedPacket, PacketsFinalizationCorrespondsToFinalizationHeight(k))
+	// INVARIANTS DISABLED SINCE LAZY FINALIZATION FEATURE
 }
 
 // PacketsFinalizationCorrespondsToFinalizationHeight checks that all rollapp packets stored are set to

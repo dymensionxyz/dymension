@@ -13,7 +13,7 @@ import (
 )
 
 func (suite *DelayedAckTestSuite) TestInvariants() {
-	suite.SetupTest()
+	suite.T().Skip("skipping TestInvariants as it's not supported with lazy finalization feature")
 
 	transferStack := damodule.NewIBCMiddleware(
 		damodule.WithIBCModule(ibctransfer.NewIBCModule(suite.App.TransferKeeper)),
@@ -97,8 +97,9 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 // - state1 with blocks 1-10 which is finalized
 // - state2 with blocks 11-20 which is pending
 func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
-	rollapp := "rollapp_1234-1"
+	suite.T().Skip("skipping TestRollappPacketsCasesInvariant as it's not supported with lazy finalization feature")
 
+	rollapp := "rollapp_1234-1"
 	cases := []struct {
 		name             string
 		nothingFinalized bool
