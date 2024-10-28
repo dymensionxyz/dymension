@@ -11,17 +11,18 @@ type SequencerHooks struct {
 	*Keeper
 }
 
-func (s SequencerHooks) AfterChooseNewProposer(ctx sdk.Context, rollapp string, before, after sequencertypes.Sequencer) {
-	// if after is not sentinel, reschedule
-	s.DelLivenessEvents(ctx, rollapp)
+func (k SequencerHooks) AfterChooseNewProposer(ctx sdk.Context, rollapp string, before, after sequencertypes.Sequencer) {
+	// Start the liveness clock from zero
+	// NOTE: it could make more sense if liveness was a property of the sequencer rather than the rollapp
+	// TODO: tech debt https://github.com/dymensionxyz/dymension/issues/1357
+	ra := k.MustGetRollapp(ctx, rollapp)
+	k.ResetLivenessClock(ctx, &ra)
 	if !after.Sentinel() {
-		s.RestartLivenessClock(ctx)
+		k.ScheduleLivenessEvent(ctx, &ra)
 	}
-	// TODO implement me
-	panic("implement me")
+	k.SetRollapp(ctx, ra)
 }
 
 func (s SequencerHooks) AfterKickProposer(ctx sdk.Context, kicked sequencertypes.Sequencer) {
-	// TODO implement me
-	panic("implement me")
+	// TODO: trigger a hard fork
 }
