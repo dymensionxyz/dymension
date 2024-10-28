@@ -235,3 +235,5 @@ func (s *delayedAckSuite) TestHubToRollappTimeout() {
 	postFinalizeBalance := bankKeeper.GetBalance(s.hubCtx(), senderAccount, sdk.DefaultBondDenom)
 	s.Require().Equal(preSendBalance.Amount, postFinalizeBalance.Amount)
 }
+
+// FIXME: test refunds due to hard fork + receipt deletion
