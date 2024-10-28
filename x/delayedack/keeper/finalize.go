@@ -24,7 +24,7 @@ func (k Keeper) FinalizeRollappPacket(ctx sdk.Context, ibc porttypes.IBCModule, 
 	// Verify the height is finalized
 	err = k.VerifyHeightFinalized(ctx, packet.RollappId, packet.ProofHeight)
 	if err != nil {
-		return packet, fmt.Errorf("verify height is finalized: rollapp '%s': %w", packet.RollappId, err)
+		return packet, fmt.Errorf("verify height: rollapp '%s': %w", packet.RollappId, err)
 	}
 
 	// Finalize the packet
