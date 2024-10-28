@@ -31,9 +31,14 @@ func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 		// a valid proposer is already set so there's no need to do anything
 		return nil
 	}
-	seqs := k.GetRollappPotentialProposers(ctx, rollapp)
-	proposer = k.proposerChoiceAlgo(ctx, rollapp, seqs)
-	k.SetProposer(ctx, rollapp, proposer.Address)
+	successor := k.GetSuccessor(ctx, rollapp)
+	k.SetProposer(ctx, rollapp, successor.Address)
+	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr)
+	if k.GetProposer(ctx, rollapp).Sentinel() {
+		seqs := k.GetRollappPotentialProposers(ctx, rollapp)
+		proposer := k.proposerChoiceAlgo(ctx, rollapp, seqs)
+		k.SetProposer(ctx, rollapp, proposer.Address)
+	}
 	return nil
 }
 
