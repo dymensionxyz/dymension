@@ -111,6 +111,23 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
 	})
 
+	s.Run("not allowed - pre launch", func() {
+		ra := s.createRollappWithInitialSeqConstraint("*")
+		s.Require().False(ra.Launched)
+		ra.PreLaunchTime = uptr.To(s.Ctx.BlockTime().Add(time.Hour))
+		s.raK().SetRollapp(s.Ctx, ra)
+
+		seq := david
+		s.fundSequencer(seq, bond)
+		msg := createSequencerMsg(ra.RollappId, seq)
+		msg.Bond = bond
+		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
+		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
+
+		_, err = s.msgServer.CreateSequencer(s.Ctx.WithBlockTime(*ra.PreLaunchTime), &msg)
+		s.Require().NoError(err)
+	})
+
 	s.Run("allowed - launched", func() {
 		seq := alice
 		ra := s.createRollappWithInitialSeqConstraint("")
@@ -123,7 +140,7 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		s.Require().NoError(err)
 	})
-	s.Run("allowed - initial", func() {
+	s.Run("allowed - pre launch and is initial", func() {
 		seq := bob
 		ra := s.createRollappWithInitialSeqConstraint(pkAddr(bob))
 		s.Require().False(ra.Launched)

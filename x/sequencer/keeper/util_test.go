@@ -46,6 +46,11 @@ var (
 	alice   = pks[0]
 	bob     = pks[1]
 	charlie = pks[2]
+	david   = pks[3]
+	eve     = pks[4]
+	faythe  = pks[5]
+	grace   = pks[6]
+	heidi   = pks[7]
 )
 
 func randPK() cryptotypes.PubKey {
