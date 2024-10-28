@@ -210,46 +210,7 @@ func equalSequencers(s1, s2 *types.Sequencer) bool {
 	return true
 }
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BELOW HERE IS LEGACY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-// Deprecated
-func (s *SequencerTestSuite) createRollappWithInitialSequencer() (string, cryptotypes.PubKey) {
-	pubkey := ed25519.GenPrivKey().PubKey()
-	addr := sdk.AccAddress(pubkey.Address())
-	return s.createRollappWithInitialSeqConstraint(addr.String()).RollappId, pubkey
-}
-
-// Deprecated
-func (s *SequencerTestSuite) createSequencerWithPk(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey) string {
-	return s.createSequencerWithBondL(ctx, rollappId, pk, bond)
-}
-
-// Deprecated
-func (s *SequencerTestSuite) createSequencerWithBondL(ctx sdk.Context, rollappId string, pk cryptotypes.PubKey, bond sdk.Coin) string {
-	pkAny, err := codectypes.NewAnyWithValue(pk)
-	s.Require().Nil(err)
-
-	addr := sdk.AccAddress(pk.Address())
-	err = bankutil.FundAccount(s.App.BankKeeper, ctx, addr, sdk.NewCoins(bond))
-	s.Require().Nil(err)
-
-	sequencerMsg1 := types.MsgCreateSequencer{
-		Creator:      addr.String(),
-		DymintPubKey: pkAny,
-		Bond:         bond,
-		RollappId:    rollappId,
-		Metadata: types.SequencerMetadata{
-			Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
-			EvmRpcs: []string{"https://rpc.evm.rollapp.noisnemyd.xyz:443"},
-		},
-	}
-	_, err = s.msgServer.CreateSequencer(ctx, &sequencerMsg1)
-	s.Require().NoError(err)
-	return addr.String()
-}
-
-// Deprecated
-func createNSequencer(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Sequencer {
+func createNSequencers(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Sequencer {
 	items := make([]types.Sequencer, n)
 	for i := range items {
 		seq := types.Sequencer{
@@ -262,6 +223,3 @@ func createNSequencer(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Seq
 	}
 	return items
 }
-
-// getAll quires for all existing sequencers and returns a map of sequencerId->sequencer
-// Deprecated

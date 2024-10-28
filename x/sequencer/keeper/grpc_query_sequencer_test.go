@@ -17,7 +17,7 @@ import (
 func TestSequencerQuerySingle(t *testing.T) {
 	keeper, ctx := keepertest.SequencerKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	sequencers := createNSequencer(keeper, ctx, 2)
+	sequencers := createNSequencers(keeper, ctx, 2)
 	for _, tc := range []struct {
 		desc     string
 		request  *types.QueryGetSequencerRequest
@@ -72,7 +72,7 @@ func TestSequencerQuerySingle(t *testing.T) {
 func TestSequencersQueryPaginated(t *testing.T) {
 	keeper, ctx := keepertest.SequencerKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	sequencers := createNSequencer(keeper, ctx, 5)
+	sequencers := createNSequencers(keeper, ctx, 5)
 
 	request := func(next []byte, offset, limit uint64, total bool) *types.QuerySequencersRequest {
 		return &types.QuerySequencersRequest{

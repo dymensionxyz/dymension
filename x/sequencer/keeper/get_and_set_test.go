@@ -10,7 +10,7 @@ import (
 
 func TestSequencerGet(t *testing.T) {
 	k, ctx := keepertest.SequencerKeeper(t)
-	items := createNSequencer(k, ctx, 10)
+	items := createNSequencers(k, ctx, 10)
 	for _, item := range items {
 		item := item
 		rst, err := k.GetRealSequencer(ctx,
@@ -26,7 +26,7 @@ func TestSequencerGet(t *testing.T) {
 
 func TestSequencerGetAll(t *testing.T) {
 	k, ctx := keepertest.SequencerKeeper(t)
-	items := createNSequencer(k, ctx, 10)
+	items := createNSequencers(k, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
 		nullify.Fill(k.GetAllSequencers(ctx)),
@@ -35,7 +35,7 @@ func TestSequencerGetAll(t *testing.T) {
 
 func TestSequencersByRollappGet(t *testing.T) {
 	k, ctx := keepertest.SequencerKeeper(t)
-	items := createNSequencer(k, ctx, 10)
+	items := createNSequencers(k, ctx, 10)
 	rst := k.RollappSequencers(ctx,
 		items[0].RollappId,
 	)
