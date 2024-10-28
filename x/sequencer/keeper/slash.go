@@ -32,7 +32,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, seq types.Sequencer, rewardee *sdk.
 	}
 	err = errorsmod.Wrap(k.unbond(ctx, &seq), "unbond")
 	k.SetSequencer(ctx, seq)
-	k.optOutSequencers(ctx, seq.RollappId)
+	k.optOutAllSequencers(ctx, seq.RollappId)
 	return err
 }
 

@@ -8,7 +8,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-func (k Keeper) optOutSequencers(ctx sdk.Context, rollapp string, excl ...string) {
+func (k Keeper) optOutAllSequencers(ctx sdk.Context, rollapp string, excl ...string) {
 	seqs := k.RollappSequencers(ctx, rollapp)
 	exclMap := make(map[string]struct{}, len(excl))
 	for _, addr := range excl {

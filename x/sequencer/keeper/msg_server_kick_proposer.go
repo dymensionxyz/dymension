@@ -28,7 +28,7 @@ func (k msgServer) KickProposer(goCtx context.Context, msg *types.MsgKickPropose
 			return nil, errorsmod.Wrap(err, "unbond")
 		}
 		k.SetSequencer(ctx, proposer)
-		k.optOutSequencers(ctx, seq.RollappId, seq.Address)
+		k.optOutAllSequencers(ctx, seq.RollappId, seq.Address)
 		// TODO: also hard fork
 	}
 	if err := k.ChooseProposer(ctx, seq.RollappId); err != nil {
