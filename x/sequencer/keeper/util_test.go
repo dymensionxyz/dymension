@@ -213,12 +213,6 @@ func equalSequencers(s1, s2 *types.Sequencer) bool {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BELOW HERE IS LEGACY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Deprecated
-func (s *SequencerTestSuite) createSequencer(ctx sdk.Context, rollappId string) string {
-	pk := ed25519.GenPrivKey().PubKey()
-	return s.createSequencerWithBondL(ctx, rollappId, pk, bond)
-}
-
-// Deprecated
 func (s *SequencerTestSuite) createRollappWithInitialSequencer() (string, cryptotypes.PubKey) {
 	pubkey := ed25519.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())

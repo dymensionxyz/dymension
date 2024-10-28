@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/dymensionxyz/sdk-utils/utils/utest"
 	"github.com/stretchr/testify/require"
 
@@ -13,28 +12,21 @@ import (
 )
 
 func (s *SequencerTestSuite) TestSequencersByRollappQuery() {
-	rollappId, pk11 := s.createRollappWithInitialSequencer()
-	pk12 := ed25519.GenPrivKey().PubKey()
-	rollappId2, pk21 := s.createRollappWithInitialSequencer()
-	pk22 := ed25519.GenPrivKey().PubKey()
+	ra1 := s.createRollapp()
+	ra2 := s.createRollapp()
+	pk11 := pks[0]
+	pk12 := pks[1]
+	pk21 := pks[2]
+	pk22 := pks[3]
+	seq1 := s.createSequencerWithBond(s.Ctx, ra1.RollappId, pk11, bond)
+	seq2 := s.createSequencerWithBond(s.Ctx, ra1.RollappId, pk12, bond)
+	seq3 := s.createSequencerWithBond(s.Ctx, ra2.RollappId, pk21, bond)
+	seq4 := s.createSequencerWithBond(s.Ctx, ra2.RollappId, pk22, bond)
 
-	// create 2 sequencer
-	addr11 := s.createSequencerWithPk(s.Ctx, rollappId, pk11)
-	addr21 := s.createSequencerWithPk(s.Ctx, rollappId, pk12)
-	seq1, err := s.k().GetRealSequencer(s.Ctx, addr11)
-	require.NoError(s.T(), err)
-	seq2, err := s.k().GetRealSequencer(s.Ctx, addr21)
-	require.NoError(s.T(), err)
 	seq1Response := types.QueryGetSequencersByRollappResponse{
 		Sequencers: []types.Sequencer{seq1, seq2},
 	}
 
-	addr12 := s.createSequencerWithPk(s.Ctx, rollappId2, pk21)
-	addr22 := s.createSequencerWithPk(s.Ctx, rollappId2, pk22)
-	seq3, err := s.k().GetRealSequencer(s.Ctx, addr12)
-	require.NoError(s.T(), err)
-	seq4, err := s.k().GetRealSequencer(s.Ctx, addr22)
-	require.NoError(s.T(), err)
 	seq2Response := types.QueryGetSequencersByRollappResponse{
 		Sequencers: []types.Sequencer{seq3, seq4},
 	}
@@ -48,14 +40,14 @@ func (s *SequencerTestSuite) TestSequencersByRollappQuery() {
 		{
 			desc: "First",
 			request: &types.QueryGetSequencersByRollappRequest{
-				RollappId: rollappId,
+				RollappId: ra1.RollappId,
 			},
 			response: &seq1Response,
 		},
 		{
 			desc: "Second",
 			request: &types.QueryGetSequencersByRollappRequest{
-				RollappId: rollappId2,
+				RollappId: ra2.RollappId,
 			},
 			response: &seq2Response,
 		},
@@ -80,51 +72,49 @@ func (s *SequencerTestSuite) TestSequencersByRollappQuery() {
 }
 
 func (s *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
-	rollappId, pk11 := s.createRollappWithInitialSequencer()
-	pk12 := ed25519.GenPrivKey().PubKey()
-	// create 2 sequencers on rollapp1
-	addr11 := s.createSequencerWithPk(s.Ctx, rollappId, pk11)
-	addr21 := s.createSequencerWithPk(s.Ctx, rollappId, pk12)
-	_, err := s.msgServer.Unbond(s.Ctx, &types.MsgUnbond{
-		Creator: addr21,
-	})
-	require.NoError(s.T(), err)
+	ra1 := s.createRollapp()
+	ra2 := s.createRollapp()
+	pk11 := pks[0]
+	pk12 := pks[1]
+	pk21 := pks[2]
+	pk22 := pks[3]
+	addr11 := s.createSequencerWithBond(s.Ctx, ra1.RollappId, pk11, bond).Address
+	addr12 := s.createSequencerWithBond(s.Ctx, ra1.RollappId, pk12, bond).Address
+	addr21 := s.createSequencerWithBond(s.Ctx, ra2.RollappId, pk21, bond).Address
+	addr22 := s.createSequencerWithBond(s.Ctx, ra2.RollappId, pk22, bond).Address
 
-	// create 2 sequencers on rollapp2
-	rollappId2, pk21 := s.createRollappWithInitialSequencer()
-	pk22 := ed25519.GenPrivKey().PubKey()
-	addr12 := s.createSequencerWithPk(s.Ctx, rollappId2, pk21)
-	addr22 := s.createSequencerWithPk(s.Ctx, rollappId2, pk22)
+	_, err := s.msgServer.Unbond(s.Ctx, &types.MsgUnbond{Creator: addr12})
+	s.Require().NoError(err)
 
 	for _, tc := range []struct {
-		desc          string
-		request       *types.QueryGetSequencersByRollappByStatusRequest
-		response_addr []string
-		err           error
+		desc         string
+		request      *types.QueryGetSequencersByRollappByStatusRequest
+		responseAddr []string
+		err          error
 	}{
 		{
 			desc: "First - Bonded",
 			request: &types.QueryGetSequencersByRollappByStatusRequest{
-				RollappId: rollappId,
+				RollappId: ra1.RollappId,
 				Status:    types.Bonded,
 			},
-			response_addr: []string{addr11},
+			responseAddr: []string{addr11},
 		},
 		{
 			desc: "First - Unbonded",
 			request: &types.QueryGetSequencersByRollappByStatusRequest{
-				RollappId: rollappId,
+				RollappId: ra1.RollappId,
 				Status:    types.Unbonded,
 			},
-			response_addr: []string{addr21},
+			responseAddr: []string{addr12},
 		},
 		{
 			desc: "Second",
 			request: &types.QueryGetSequencersByRollappByStatusRequest{
-				RollappId: rollappId2,
+				RollappId: ra2.RollappId,
 				Status:    types.Bonded,
 			},
-			response_addr: []string{addr12, addr22},
+			responseAddr: []string{addr21, addr22},
 		},
 		{
 			desc: "InvalidRequest",
@@ -137,9 +127,9 @@ func (s *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 				utest.IsErr(require.New(t), err, tc.err)
 			} else {
 				require.NoError(t, err)
-				require.Len(t, response.Sequencers, len(tc.response_addr))
+				require.Len(t, response.Sequencers, len(tc.responseAddr))
 
-				for _, seqAddr := range tc.response_addr {
+				for _, seqAddr := range tc.responseAddr {
 					seq, err := s.k().GetRealSequencer(s.Ctx, seqAddr)
 					require.NoError(t, err)
 					require.Contains(t, response.Sequencers, seq)
