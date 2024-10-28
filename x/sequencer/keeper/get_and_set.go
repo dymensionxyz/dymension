@@ -38,8 +38,8 @@ func (k Keeper) prefixSequencers(ctx sdk.Context, prefixKey []byte) []types.Sequ
 
 func (k Keeper) GetRollappPotentialProposers(ctx sdk.Context, rollappId string) []types.Sequencer {
 	seqs := k.GetRollappBondedSequencers(ctx, rollappId)
-	seqs = slices.DeleteFunc(seqs, func(s types.Sequencer) bool {
-		return !s.OptedIn || s.Sentinel() // TODO: sentinel check necessary?
+	seqs = slices.DeleteFunc(seqs, func(seq types.Sequencer) bool {
+		return k.isPotentialProposer(ctx, seq)
 	})
 	return seqs
 }

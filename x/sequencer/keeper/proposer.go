@@ -45,6 +45,10 @@ func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) error {
 	return nil
 }
 
+func (k Keeper) isPotentialProposer(ctx sdk.Context, seq types.Sequencer) bool {
+	return seq.Bonded() && seq.OptedIn
+}
+
 func (k Keeper) proposerChoiceAlgo(ctx sdk.Context, rollapp string, seqs []types.Sequencer) types.Sequencer {
 	if len(seqs) == 0 {
 		return k.SentinelSequencer(ctx)

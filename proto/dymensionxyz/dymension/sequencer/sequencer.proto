@@ -33,6 +33,7 @@ message Sequencer {
   OperatingStatus status = 7;
 
   // OptedIn : when true and bonded, the sequencer can be chosen as proposer or successor
+  // has no effect if already proposer or successor
   bool opted_in = 12;
 
   // Tokens: A coins which should always be one dym coin. It's the amount of tokens the sequencer has given to the module.

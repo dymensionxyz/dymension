@@ -33,6 +33,10 @@ func (seq Sequencer) Bonded() bool {
 	return seq.Status == Bonded
 }
 
+func (seq Sequencer) IsPotentialProposer() bool {
+	return seq.Bonded() && seq.OptedIn
+}
+
 func (seq Sequencer) TokensCoin() sdk.Coin {
 	return seq.Tokens[0]
 }
