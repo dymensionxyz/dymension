@@ -28,34 +28,31 @@ func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 		if !proposer.Bonded() {
 			return gerrc.ErrInternal.Wrap("proposer is unbonded - invariant broken")
 		}
+		// a valid proposer is already set so there's no need to do anything
 		return nil
 	}
-	successor := k.GetSuccessor(ctx, rollapp)
-	k.SetProposer(ctx, rollapp, successor.Address)
-	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr)
-	if k.GetProposer(ctx, rollapp).Sentinel() {
-		seqs := k.GetRollappPotentialProposers(ctx, rollapp)
-		proposer := k.proposerChoiceAlgo(ctx, rollapp, seqs)
-		k.SetProposer(ctx, rollapp, proposer.Address)
-	}
+	seqs := k.GetRollappPotentialProposers(ctx, rollapp)
+	proposer = k.proposerChoiceAlgo(ctx, rollapp, seqs)
+	k.SetProposer(ctx, rollapp, proposer.Address)
 	return nil
 }
 
 func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) error {
+	successor := k.GetSuccessor(ctx, rollapp)
+	if !successor.Sentinel() {
+		// a valid successor is already set so there's no need to do anything
+		return nil
+	}
 	proposer := k.GetProposer(ctx, rollapp)
 	if proposer.Sentinel() {
 		return gerrc.ErrInternal.Wrap("should not choose successor if proposer is sentinel")
 	}
-	successor := k.GetSuccessor(ctx, rollapp)
-	if successor.Sentinel() {
-		seqs := k.GetRollappPotentialProposers(ctx, rollapp)
-		seqs = slices.DeleteFunc(seqs, func(s types.Sequencer) bool { // Not efficient, could optimize.
-			return s.Address == proposer.Address
-		})
-		successor := k.proposerChoiceAlgo(ctx, rollapp, seqs)
-		k.SetSuccessor(ctx, rollapp, successor.Address)
-
-	}
+	seqs := k.GetRollappPotentialProposers(ctx, rollapp)
+	seqs = slices.DeleteFunc(seqs, func(s types.Sequencer) bool { // Not efficient, could optimize.
+		return s.Address == proposer.Address
+	})
+	successor = k.proposerChoiceAlgo(ctx, rollapp, seqs)
+	k.SetSuccessor(ctx, rollapp, successor.Address)
 	return nil
 }
 
