@@ -20,6 +20,7 @@ type Keeper struct {
 	bankKeeper     types.BankKeeper
 	rollappKeeper  types.RollappKeeper
 	unbondBlockers []UnbondBlocker
+	hooks          types.Hooks
 }
 
 func NewKeeper(

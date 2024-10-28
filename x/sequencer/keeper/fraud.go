@@ -23,8 +23,10 @@ func (k Keeper) KickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 		}
 		k.SetSequencer(ctx, proposer)
 		k.optOutAllSequencers(ctx, ra, kicker.Address)
+		k.hooks.
 		// TODO: also hard fork
 	}
+
 	if err := k.ChooseProposer(ctx, ra); err != nil {
 		return errorsmod.Wrap(err, "choose proposer")
 	}
