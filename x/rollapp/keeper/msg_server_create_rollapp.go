@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
@@ -15,6 +16,11 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 
 	// Already validated chain id in ValidateBasic, so we assume it's valid
 	rollappId := types.MustNewChainID(msg.RollappId)
+
+	// when creating a new Rollapp, the revision number should always be 1
+	if rollappId.GetRevisionNumber() != 1 {
+		return nil, errorsmod.Wrapf(types.ErrInvalidRollappID, "revision number should be 1, got: %d", rollappId.GetRevisionNumber())
+	}
 
 	if err := k.CheckIfRollappExists(ctx, rollappId); err != nil {
 		return nil, err

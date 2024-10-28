@@ -114,9 +114,9 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 			// prepare test data
 			vulnVersions := uslice.ToKeySet(tc.vulnVersions)
 			// list of expected vulnerable rollapps
-			expectedVulnRollappIDs := make([]string, 0, len(tc.vulnVersions))
+			expectedVulnRollappIDs := make([]string, 0, len(tc.rollapps))
 			// list of expected non-vulnerable rollapps
-			expectedNonVulnRollappIDs := make([]string, 0, len(tc.vulnVersions))
+			expectedNonVulnRollappIDs := make([]string, 0, len(tc.rollapps))
 			// create rollapps for every rollapp record from the test case
 			for _, ra := range tc.rollapps {
 				// create a rollapp
