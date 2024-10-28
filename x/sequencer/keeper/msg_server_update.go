@@ -37,3 +37,21 @@ func (k msgServer) UpdateSequencerInformation(
 
 	return &types.MsgUpdateSequencerInformationResponse{}, nil
 }
+
+// UpdateOptInStatus : if false, then the sequencer will not be chosen as proposer or successor.
+// If already chosen as proposer or successor, the change has no effect.
+func (k msgServer) UpdateOptInStatus(goCtx context.Context, msg *types.MsgUpdateOptInStatus) (*types.MsgUpdateOptInStatus, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	seq, err := k.GetRealSequencer(ctx, msg.Creator)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		k.SetSequencer(ctx, seq)
+	}()
+	seq.OptedIn = msg.OptedIn
+	if err := uevent.EmitTypedEvent(ctx, &seq); err != nil {
+		return nil, fmt.Errorf("emit event: %w", err)
+	}
+	return &types.MsgUpdateOptInStatus{}, nil
+}
