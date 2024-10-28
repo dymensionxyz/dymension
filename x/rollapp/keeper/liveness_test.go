@@ -160,7 +160,8 @@ func (suite *RollappTestSuite) TestLivenessFlow() {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
 				if !rollappIsDown[raID] {
 					ra := suite.keeper().MustGetRollapp(suite.Ctx, raID)
-					suite.keeper().RestartLivenessClock(suite.Ctx, &ra)
+					suite.keeper().IndicateLiveness(suite.Ctx, &ra)
+					suite.keeper().SetRollapp(suite.Ctx, ra)
 					hLastUpdate[raID] = suite.Ctx.BlockHeight()
 					tracker.clear(raID)
 				}
@@ -176,12 +177,10 @@ func (suite *RollappTestSuite) TestLivenessFlow() {
 
 type livenessMockSequencerKeeper struct {
 	slashes map[string]int
-	jails   map[string]int
 }
 
 func newLivenessMockSequencerKeeper() livenessMockSequencerKeeper {
 	return livenessMockSequencerKeeper{
-		make(map[string]int),
 		make(map[string]int),
 	}
 }
@@ -191,12 +190,6 @@ func (l livenessMockSequencerKeeper) SlashLiveness(ctx sdk.Context, rollappID st
 	return nil
 }
 
-func (l livenessMockSequencerKeeper) JailLiveness(ctx sdk.Context, rollappID string) error {
-	l.jails[rollappID]++
-	return nil
-}
-
 func (l livenessMockSequencerKeeper) clear(rollappID string) {
 	delete(l.slashes, rollappID)
-	delete(l.jails, rollappID)
 }

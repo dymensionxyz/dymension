@@ -70,6 +70,11 @@ func (k Keeper) HandleLivenessEvent(ctx sdk.Context, e types.LivenessEvent) erro
 	return nil
 }
 
+func (k Keeper) IndicateLiveness(ctx sdk.Context, ra *types.Rollapp) {
+	k.ResetLivenessClock(ctx, ra)
+	k.ScheduleLivenessEvent(ctx, ra)
+}
+
 // ResetLivenessClock will reschedule pending liveness events to a later block height.
 // Modifies the passed-in rollapp object.
 func (k Keeper) ResetLivenessClock(ctx sdk.Context, ra *types.Rollapp) {
@@ -127,15 +132,10 @@ func (k Keeper) PutLivenessEvent(ctx sdk.Context, e types.LivenessEvent) {
 
 // DelLivenessEvents deletes all liveness events for the rollapp from the queue
 func (k Keeper) DelLivenessEvents(ctx sdk.Context, height int64, rollappID string) {
-	k.DelLivenessEvent(ctx, types.LivenessEvent{
+	store := ctx.KVStore(k.storeKey)
+	key := types.LivenessEventQueueKey(types.LivenessEvent{
 		RollappId: rollappID,
 		HubHeight: height,
 	})
-}
-
-// DelLivenessEvent deletes all liveness events for the rollapp from the queue
-func (k Keeper) DelLivenessEvent(ctx sdk.Context, e types.LivenessEvent) {
-	store := ctx.KVStore(k.storeKey)
-	key := types.LivenessEventQueueKey(e)
 	store.Delete(key)
 }

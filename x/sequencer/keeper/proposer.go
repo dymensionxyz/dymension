@@ -44,7 +44,7 @@ func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 
 	after := k.GetProposer(ctx, rollapp)
 	if before.Address != after.Address {
-		k.hooks.AfterChooseNewProposer(ctx, before, after)
+		k.hooks.AfterChooseNewProposer(ctx, rollapp, before, after)
 	}
 	return nil
 }
