@@ -42,6 +42,7 @@ func NewKeeper(
 		rollappKeeper:  rollappKeeper,
 		authority:      authority,
 		unbondBlockers: []UnbondBlocker{},
+		hooks:          types.NoOpHooks{},
 	}
 }
 
@@ -51,4 +52,8 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k *Keeper) AddUnbondBlockers(ubs ...UnbondBlocker) {
 	k.unbondBlockers = append(k.unbondBlockers, ubs...)
+}
+
+func (k *Keeper) SetHooks(h types.Hooks) {
+	k.hooks = h
 }

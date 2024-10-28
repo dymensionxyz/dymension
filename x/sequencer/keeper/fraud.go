@@ -23,7 +23,7 @@ func (k Keeper) KickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 		}
 		k.SetSequencer(ctx, proposer)
 		k.optOutAllSequencers(ctx, ra, kicker.Address)
-		k.hooks.
+		k.hooks.AfterKickProposer(ctx, proposer)
 		// TODO: also hard fork
 	}
 

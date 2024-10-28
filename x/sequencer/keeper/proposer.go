@@ -24,6 +24,8 @@ func (k Keeper) optOutAllSequencers(ctx sdk.Context, rollapp string, excl ...str
 
 func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 	proposer := k.GetProposer(ctx, rollapp)
+	before := proposer
+
 	if !proposer.Sentinel() {
 		if !proposer.Bonded() {
 			return gerrc.ErrInternal.Wrap("proposer is unbonded - invariant broken")
@@ -38,6 +40,11 @@ func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 		seqs := k.GetRollappPotentialProposers(ctx, rollapp)
 		proposer := ProposerChoiceAlgo(seqs)
 		k.SetProposer(ctx, rollapp, proposer.Address)
+	}
+
+	after := k.GetProposer(ctx, rollapp)
+	if before.Address != after.Address {
+		k.hooks.AfterChooseNewProposer(ctx, before, after)
 	}
 	return nil
 }
