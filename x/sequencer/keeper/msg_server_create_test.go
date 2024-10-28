@@ -102,24 +102,23 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 
 	s.Run("not allowed - not launched and not initial", func() {
 		ra := s.createRollappWithInitialSeqConstraint("")
-		launched := s.raK().MustGetRollapp(s.Ctx, ra).Launched
-		s.Require().False(launched)
+		s.Require().False(ra.Launched)
 
 		s.fundSequencer(alice, bond)
-		msg := createSequencerMsg(ra, alice)
+		msg := createSequencerMsg(ra.RollappId, alice)
 		msg.Bond = bond
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
 	})
+
 	s.Run("allowed - launched", func() {
 		seq := alice
 		ra := s.createRollappWithInitialSeqConstraint("")
-		rollapp := s.raK().MustGetRollapp(s.Ctx, ra)
-		rollapp.Launched = true
-		s.raK().SetRollapp(s.Ctx, rollapp)
+		ra.Launched = true
+		s.raK().SetRollapp(s.Ctx, ra)
 
 		s.fundSequencer(seq, bond)
-		msg := createSequencerMsg(ra, seq)
+		msg := createSequencerMsg(ra.RollappId, seq)
 		msg.Bond = bond
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		s.Require().NoError(err)
@@ -127,13 +126,30 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 	s.Run("allowed - initial", func() {
 		seq := bob
 		ra := s.createRollappWithInitialSeqConstraint(pkAddr(bob))
-		launched := s.raK().MustGetRollapp(s.Ctx, ra).Launched
-		s.Require().False(launched)
+		s.Require().False(ra.Launched)
 
 		s.fundSequencer(seq, bond)
-		msg := createSequencerMsg(ra, seq)
+		msg := createSequencerMsg(ra.RollappId, seq)
 		msg.Bond = bond
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
+		s.Require().NoError(err)
+	})
+	s.Run("not allowed - genesis info broken", func() {
+		seq := charlie
+		ra := s.createRollapp()
+		ra.GenesisInfo.Bech32Prefix = ""
+		s.raK().SetRollapp(s.Ctx, ra)
+
+		s.fundSequencer(seq, bond)
+		msg := createSequencerMsg(ra.RollappId, seq)
+		msg.Bond = bond
+		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
+		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
+
+		ra.GenesisInfo.Bech32Prefix = "eth"
+		s.raK().SetRollapp(s.Ctx, ra)
+
+		_, err = s.msgServer.CreateSequencer(s.Ctx, &msg)
 		s.Require().NoError(err)
 	})
 }
@@ -144,7 +160,6 @@ func expectedSequencer(m *types.MsgCreateSequencer) types.Sequencer {
 		DymintPubKey:     m.DymintPubKey,
 		RollappId:        m.RollappId,
 		Metadata:         m.Metadata,
-		Proposer:         false,
 		Status:           types.Bonded,
 		OptedIn:          true,
 		Tokens:           sdk.NewCoins(m.Bond),

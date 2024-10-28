@@ -112,12 +112,11 @@ func (s *SequencerTestSuite) moduleBalance() sdk.Coin {
 }
 
 func (s *SequencerTestSuite) createRollapp() rollapptypes.Rollapp {
-	rollapp := s.createRollappWithInitialSeqConstraint("*")
-	return s.raK().MustGetRollapp(s.Ctx, rollapp)
+	return s.createRollappWithInitialSeqConstraint("*")
 }
 
 // init seq is an addr or empty or *
-func (s *SequencerTestSuite) createRollappWithInitialSeqConstraint(initSeq string) string {
+func (s *SequencerTestSuite) createRollappWithInitialSeqConstraint(initSeq string) rollapptypes.Rollapp {
 	rollapp := rollapptypes.Rollapp{
 		RollappId: urand.RollappID(),
 		Owner:     sample.AccAddress(),
@@ -130,7 +129,7 @@ func (s *SequencerTestSuite) createRollappWithInitialSeqConstraint(initSeq strin
 		InitialSequencer: initSeq,
 	}
 	s.raK().SetRollapp(s.Ctx, rollapp)
-	return rollapp.GetRollappId()
+	return rollapp
 }
 
 func createSequencerMsg(rollapp string, pk cryptotypes.PubKey) types.MsgCreateSequencer {
@@ -218,7 +217,7 @@ func (s *SequencerTestSuite) createSequencer(ctx sdk.Context, rollappId string) 
 func (s *SequencerTestSuite) createRollappWithInitialSequencer() (string, cryptotypes.PubKey) {
 	pubkey := ed25519.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	return s.createRollappWithInitialSeqConstraint(addr.String()), pubkey
+	return s.createRollappWithInitialSeqConstraint(addr.String()).RollappId, pubkey
 }
 
 // Deprecated
