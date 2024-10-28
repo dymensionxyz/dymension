@@ -55,9 +55,9 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	// 	2. the rollapp from getting launched again
 	// In case the InitialSequencer is set to the "*" wildcard, any seq can be the first to register.
 	if !rollapp.Launched {
-		isInitialOrAllAllowed := slices.Contains(strings.Split(rollapp.InitialSequencer, ","), msg.Creator) ||
-			rollapp.InitialSequencer == "*"
-		if !isInitialOrAllAllowed {
+		isInitialSeq := slices.Contains(strings.Split(rollapp.InitialSequencer, ","), msg.Creator)
+		anyAllowed := rollapp.InitialSequencer == "*"
+		if !anyAllowed && !isInitialSeq {
 			return nil, types.ErrNotInitialSequencer
 		}
 

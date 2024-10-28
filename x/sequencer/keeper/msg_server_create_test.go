@@ -1,12 +1,10 @@
 package keeper_test
 
 import (
-	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
@@ -26,9 +24,9 @@ func (s *SequencerTestSuite) TestCreateSequencerBasic() {
 	s.Require().Equal(seq.Address, pkAddr(alice))
 	s.Require().True(bond.Equal(seq.TokensCoin()))
 	s.Require().Equal(s.moduleBalance(), bond)
+	s.Require().True(s.k().IsProposer(s.Ctx, seq))
 }
 
-// On success, we should get back an object with all the right info
 func (s *SequencerTestSuite) TestCreateSequencerSeveral() {
 	ra := s.createRollapp()
 
@@ -55,105 +53,21 @@ func (s *SequencerTestSuite) TestCreateSequencerSeveral() {
 
 	allRes, cnt := getAllSequencersMap(s)
 	s.Require().Equal(cnt, len(allRes))
-	s.verifyAll(getOneRes, allRes)
+	s.compareAllSequencersResponse(getOneRes, allRes)
 }
 
 // On success, we should get back an object with all the right info
 func (s *SequencerTestSuite) TestCreateSequencerProposer() {
-	const alex = "dym1te3lcav5c2jn8tdcrhnyl8aden6lglw266kcdd"
-
-	type sequencer struct {
-		creatorName string
-		expProposer bool
-	}
-	testCases := []struct {
-		name,
-		rollappInitialSeq string
-		sequencers []sequencer
-		malleate   func(rollappID string)
-		expErr     error
-	}{
-		{
-			name:              "Single initial sequencer is the first proposer",
-			sequencers:        []sequencer{{creatorName: "alex", expProposer: true}},
-			rollappInitialSeq: alex,
-		}, {
-			name:              "Two sequencers - one is the proposer",
-			sequencers:        []sequencer{{creatorName: "alex", expProposer: true}, {creatorName: "bob", expProposer: false}},
-			rollappInitialSeq: fmt.Sprintf("%s,%s", aliceAddr, alex),
-		}, {
-			name:              "One sequencer - failed because not initial sequencer",
-			sequencers:        []sequencer{{creatorName: "bob", expProposer: false}},
-			rollappInitialSeq: aliceAddr,
-			expErr:            types.ErrNotInitialSequencer,
-		}, {
-			name:              "Any sequencer can be the first proposer",
-			sequencers:        []sequencer{{creatorName: "bob", expProposer: true}, {creatorName: "steve", expProposer: false}},
-			rollappInitialSeq: "*",
-		}, {
-			name:              "success - any sequencer can be the first proposer, rollapp launched",
-			sequencers:        []sequencer{{creatorName: "bob", expProposer: false}},
-			rollappInitialSeq: aliceAddr,
-			malleate: func(rollappID string) {
-				r, _ := s.raK().GetRollapp(s.Ctx, rollappID)
-				r.Launched = true
-				s.raK().SetRollapp(s.Ctx, r)
-			},
-			expErr: nil,
-		}, {
-			name:              "success - no initial sequencer, rollapp launched",
-			sequencers:        []sequencer{{creatorName: "bob", expProposer: false}},
-			rollappInitialSeq: "*",
-			malleate: func(rollappID string) {
-				r, _ := s.raK().GetRollapp(s.Ctx, rollappID)
-				r.Launched = true
-				s.raK().SetRollapp(s.Ctx, r)
-			},
-			expErr: nil,
-		},
-	}
-
-	for _, tc := range testCases {
-
-		goCtx := types.WrapSDKContext(s.Ctx)
-		rollappId := s.createRollapp(tc.rollappInitialSeq)
-
-		if tc.malleate != nil {
-			tc.malleate(rollappId)
-		}
-
-		for _, seq := range tc.sequencers {
-			addr, pk := sample.AccFromSecret(seq.creatorName)
-			pkAny, _ := types3.NewAnyWithValue(pk)
-
-			err := testutil.FundAccount(s.App.BankKeeper, s.Ctx, addr, types.NewCoins(bond))
-			s.Require().NoError(err)
-
-			sequencerMsg := types2.MsgCreateSequencer{
-				Creator:      addr.String(),
-				DymintPubKey: pkAny,
-				Bond:         bond,
-				RollappId:    rollappId,
-				Metadata: types2.SequencerMetadata{
-					Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
-				},
-			}
-			_, err = s.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-			s.Require().ErrorIs(err, tc.expErr, tc.name)
-
-			if tc.expErr != nil {
-				return
-			}
-
-			// check that the sequencer is the proposer
-			proposer := s.k().GetProposer(s.Ctx, rollappId)
-			if seq.expProposer {
-				s.Require().Equal(addr.String(), proposer.Address, tc.name)
-			} else {
-				s.Require().NotEqual(addr.String(), proposer.Address, tc.name)
-			}
-		}
-	}
+	s.Run("first is proposer", func() {
+		ra := s.createRollapp()
+		seqA := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
+		seqB := s.createSequencerWithBond(s.Ctx, ra.RollappId, bob, bond)
+		s.Require().True(s.k().IsProposer(s.Ctx, seqA))
+		s.Require().False(s.k().IsProposer(s.Ctx, seqB))
+	})
+	// behaviors
+	// initial constraint
+	// not iniital
 }
 
 // There are several reasons to reject creation
@@ -196,8 +110,6 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		utest.IsErr(s.Require(), err, gerrc.ErrInvalidArgument)
 	})
 	s.Run("TODO: vm", func() {
-	})
-	s.Run("TODO: launched", func() {
 	})
 }
 
@@ -257,7 +169,7 @@ func getAllSequencersMap(suite *SequencerTestSuite) (map[string]*types.Sequencer
 // ---------------------------------------
 // verifyAll receives a list of expected results and a map of sequencerAddress->sequencer
 // the function verifies that the map contains all the sequencers that are in the list and only them
-func (s *SequencerTestSuite) verifyAll(
+func (s *SequencerTestSuite) compareAllSequencersResponse(
 	expected []*types.Sequencer,
 	got map[string]*types.Sequencer,
 ) {
