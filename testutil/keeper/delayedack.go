@@ -28,6 +28,11 @@ import (
 
 type ChannelKeeperStub struct{}
 
+// SetPacketReceipt implements types.ChannelKeeper.
+func (c ChannelKeeperStub) SetPacketReceipt(ctx sdk.Context, portID string, channelID string, sequence uint64) {
+	return
+}
+
 func (ChannelKeeperStub) LookupModuleByChannel(ctx sdk.Context, portID, channelID string) (string, *capabilitytypes.Capability, error) {
 	return "", nil, nil
 }

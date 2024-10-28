@@ -1,11 +1,14 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // SetRollappPacket stores a rollapp packet in the KVStore.
@@ -177,4 +180,25 @@ func (k Keeper) DeleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.
 	}
 
 	return nil
+}
+
+func (k Keeper) GetPendingPacketsUntilLatestHeight(ctx sdk.Context, rollappID string) ([]commontypes.RollappPacket, uint64, error) {
+	// Get rollapp's latest finalized height
+	latestFinalizedHeight, err := k.GetRollappLatestFinalizedHeight(ctx, rollappID)
+	if err != nil {
+		return nil, 0, fmt.Errorf("get latest finalized height: rollapp '%s': %w", rollappID, err)
+	}
+
+	// Get all pending rollapp packets until the latest finalized height
+	return k.ListRollappPackets(ctx, types.PendingByRollappIDByMaxHeight(rollappID, latestFinalizedHeight)), latestFinalizedHeight, nil
+}
+
+func (k Keeper) GetRollappLatestFinalizedHeight(ctx sdk.Context, rollappID string) (uint64, error) {
+	latestIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollappID)
+	if !found {
+		return 0, gerrc.ErrNotFound.Wrapf("latest finalized state index is not found")
+	}
+
+	stateInfo := k.rollappKeeper.MustGetStateInfo(ctx, rollappID, latestIndex.Index)
+	return stateInfo.GetLatestHeight(), nil
 }

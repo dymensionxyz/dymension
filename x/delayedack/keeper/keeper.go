@@ -12,7 +12,6 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 type Keeper struct {
@@ -53,17 +52,6 @@ func NewKeeper(
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
-}
-
-func (k Keeper) getRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint64, error) {
-	// GetLatestFinalizedStateIndex
-	latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, chainID)
-	if !found {
-		return 0, rollapptypes.ErrNoFinalizedStateYetForRollapp
-	}
-
-	stateInfo := k.rollappKeeper.MustGetStateInfo(ctx, chainID, latestFinalizedStateIndex.Index)
-	return stateInfo.StartHeight + stateInfo.NumBlocks - 1, nil
 }
 
 /* -------------------------------------------------------------------------- */
