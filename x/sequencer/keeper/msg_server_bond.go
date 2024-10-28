@@ -64,9 +64,9 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 	}
 	defer func() {
 		k.SetSequencer(ctx, seq)
-		k.optOutAllSequencers(ctx, seq.RollappId)
 	}()
 
+	seq.OptedIn = false
 	err = k.TryUnbond(ctx, &seq, seq.TokensCoin())
 	if errorsmod.IsOf(err, types.ErrUnbondProposerOrSuccessor) {
 		if !seq.NoticeInProgress(ctx.BlockTime()) {
