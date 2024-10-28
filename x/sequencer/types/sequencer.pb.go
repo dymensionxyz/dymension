@@ -47,6 +47,7 @@ type Sequencer struct {
 	// OperatingStatus is the sequencer status (bonded/unbonded).
 	Status OperatingStatus `protobuf:"varint,7,opt,name=status,proto3,enum=dymensionxyz.dymension.sequencer.OperatingStatus" json:"status,omitempty"`
 	// OptedIn : when true and bonded, the sequencer can be chosen as proposer or successor
+	// has no effect if already proposer or successor
 	OptedIn bool `protobuf:"varint,12,opt,name=opted_in,json=optedIn,proto3" json:"opted_in,omitempty"`
 	// Tokens: A coins which should always be one dym coin. It's the amount of tokens the sequencer has given to the module.
 	Tokens github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,8,rep,name=tokens,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"tokens"`
