@@ -10,7 +10,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
@@ -166,6 +165,47 @@ func (s *SequencerTestSuite) createSequencerWithBond(ctx sdk.Context, rollapp st
 	return s.k().GetSequencer(ctx, pkAddr(pk))
 }
 
+func (s *SequencerTestSuite) equalSequencers(s1 *types.Sequencer, s2 *types.Sequencer) {
+	eq := equalSequencers(s1, s2)
+	s.Require().True(eq, "expected: %+v\nfound: %+v", *s1, *s2)
+}
+
+func equalSequencers(s1, s2 *types.Sequencer) bool {
+	if s1.Address != s2.Address {
+		return false
+	}
+
+	s1Pubkey := s1.DymintPubKey
+	s2Pubkey := s2.DymintPubKey
+	if !s1Pubkey.Equal(s2Pubkey) {
+		return false
+	}
+	if s1.RollappId != s2.RollappId {
+		return false
+	}
+	if !reflect.DeepEqual(s1.Metadata, s2.Metadata) {
+		return false
+	}
+
+	if s1.Status != s2.Status {
+		return false
+	}
+
+	if s1.OptedIn != s2.OptedIn {
+		return false
+	}
+
+	if !s1.Tokens.IsEqual(s2.Tokens) {
+		return false
+	}
+
+	if !s1.NoticePeriodTime.Equal(s2.NoticePeriodTime) {
+		return false
+	}
+
+	return true
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BELOW HERE IS LEGACY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // Deprecated
@@ -225,95 +265,5 @@ func createNSequencer(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Seq
 	return items
 }
 
-// ---------------------------------------
-// verifyAll receives a list of expected results and a map of sequencerAddress->sequencer
-// the function verifies that the map contains all the sequencers that are in the list and only them
-// Deprecated
-func (s *SequencerTestSuite) verifyAll(sequencersExpect []*types.Sequencer, sequencersRes map[string]*types.Sequencer) {
-	// check number of items are equal
-	s.Require().EqualValues(len(sequencersExpect), len(sequencersRes))
-	for i := 0; i < len(sequencersExpect); i++ {
-		sequencerExpect := sequencersExpect[i]
-		sequencerRes := sequencersRes[sequencerExpect.GetAddress()]
-		s.equalSequencer(sequencerExpect, sequencerRes)
-	}
-}
-
 // getAll quires for all existing sequencers and returns a map of sequencerId->sequencer
 // Deprecated
-func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
-	totalChecked := 0
-	totalRes := 0
-	nextKey := []byte{}
-	sequencersRes := make(map[string]*types.Sequencer)
-	for {
-		queryAllResponse, err := suite.queryClient.Sequencers(goCtx,
-			&types.QuerySequencersRequest{
-				Pagination: &query.PageRequest{
-					Key:        nextKey,
-					Offset:     0,
-					Limit:      0,
-					CountTotal: true,
-					Reverse:    false,
-				},
-			})
-		suite.Require().Nil(err)
-
-		if totalRes == 0 {
-			totalRes = int(queryAllResponse.GetPagination().GetTotal())
-		}
-
-		for i := 0; i < len(queryAllResponse.Sequencers); i++ {
-			sequencerRes := queryAllResponse.Sequencers[i]
-			sequencersRes[sequencerRes.GetAddress()] = &sequencerRes
-		}
-		totalChecked += len(queryAllResponse.Sequencers)
-		nextKey = queryAllResponse.GetPagination().GetNextKey()
-
-		if nextKey == nil {
-			break
-		}
-	}
-
-	return sequencersRes, totalRes
-}
-
-// equalSequencer receives two sequencers and compares them. If they are not equal, fails the test
-// Deprecated
-func (s *SequencerTestSuite) equalSequencer(s1 *types.Sequencer, s2 *types.Sequencer) {
-	eq := compareSequencers(s1, s2)
-	s.Require().True(eq, "expected: %+v\nfound: %+v", *s1, *s2)
-}
-
-// Deprecated
-func compareSequencers(s1, s2 *types.Sequencer) bool {
-	if s1.Address != s2.Address {
-		return false
-	}
-
-	s1Pubkey := s1.DymintPubKey
-	s2Pubkey := s2.DymintPubKey
-	if !s1Pubkey.Equal(s2Pubkey) {
-		return false
-	}
-	if s1.RollappId != s2.RollappId {
-		return false
-	}
-
-	if s1.Status != s2.Status {
-		return false
-	}
-
-	if !s1.Tokens.IsEqual(s2.Tokens) {
-		return false
-	}
-
-	if !s1.NoticePeriodTime.Equal(s2.NoticePeriodTime) {
-		return false
-	}
-	if !reflect.DeepEqual(s1.Metadata, s2.Metadata) {
-		return false
-	}
-	return true
-}

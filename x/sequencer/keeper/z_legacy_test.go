@@ -1,6 +1,15 @@
 package keeper_test
 
-/*
+import (
+	"fmt"
+	"time"
+
+	"github.com/cosmos/cosmos-sdk/types"
+	types2 "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
+)
+
 func (s *SequencerTestSuite) TestCreateSequencerL() {
 	goCtx := types.WrapSDKContext(s.Ctx)
 
@@ -92,7 +101,7 @@ func (s *SequencerTestSuite) TestCreateSequencerL() {
 				rollappExpectedProposers[rollappId] = sequencerExpect.Address
 			}
 
-			sequencersRes, totalRes := getAll(s)
+			sequencersRes, totalRes := getAllSequencersMap(s)
 			s.Require().EqualValues(len(sequencersExpect), totalRes)
 			// verify that query all contains all the sequencers that were created
 			s.verifyAll(sequencersExpect, sequencersRes)
@@ -124,8 +133,6 @@ func (s *SequencerTestSuite) TestCreateSequencerL() {
 	}
 	s.Require().EqualValues(totalFound, len(rollappSequencersExpect))
 }
-
-
 
 func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposerL() {
 	const alex = "dym1te3lcav5c2jn8tdcrhnyl8aden6lglw266kcdd"
@@ -224,8 +231,6 @@ func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposerL() {
 	}
 }
 
-
-
 // create sequencer before genesisInfo is set
 func (s *SequencerTestSuite) TestCreateSequencerBeforeGenesisInfoL() {
 	goCtx := types.WrapSDKContext(s.Ctx)
@@ -297,7 +302,6 @@ func (s *SequencerTestSuite) TestCreateSequencerBeforePrelaunchL() {
 	s.Require().NoError(err)
 }
 
-
 func (s *SequencerTestSuite) TestInvariants() {
 	numOfRollapps := 5
 	numOfSequencers := 5
@@ -333,6 +337,3 @@ func (s *SequencerTestSuite) TestInvariants() {
 	msg, ok := keeper.AllInvariants(s.App.SequencerKeeper)(s.Ctx)
 	s.Require().False(ok, msg)
 }
-
-
-*/
