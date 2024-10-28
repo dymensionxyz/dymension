@@ -16,25 +16,19 @@ func (k msgServer) KickProposer(goCtx context.Context, msg *types.MsgKickPropose
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		k.SetSequencer(ctx, seq)
-	}()
 
-	if !seq.Bonded() {
-		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "must be bonded to kick")
+	if !seq.IsPotentialProposer() {
+		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "not ready to propose")
 	}
 
 	proposer := k.GetProposer(ctx, seq.RollappId)
-	defer func() {
-		k.SetSequencer(ctx, proposer)
-	}()
 
-	// TODO: can you ever actually have a situation where the proposer is sentinel and there is a bonded sequencer?
 	if !proposer.Sentinel() && k.Kickable(ctx, proposer) {
 		if err := k.unbond(ctx, &proposer); err != nil {
 			return nil, errorsmod.Wrap(err, "unbond")
 		}
-		if
+		k.SetSequencer(ctx, proposer)
+		k.optOutSequencers(ctx, seq.RollappId, seq.Address)
 		// TODO: also hard fork
 	}
 	if err := k.ChooseProposer(ctx, seq.RollappId); err != nil {

@@ -49,6 +49,7 @@ they cannot do frauds and they cannot unbond gracefully`)
 	seq.Status = types.Unbonded
 	if k.IsProposer(ctx, *seq) {
 		k.SetProposer(ctx, seq.RollappId, types.SentinelSeqAddr)
+		k.SetSuccessor(ctx, seq.RollappId, types.SentinelSeqAddr)
 	}
 	return nil
 }
