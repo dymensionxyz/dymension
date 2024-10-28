@@ -1,130 +1,11 @@
 package keeper_test
 
-/*
+import (
+	"fmt"
 
-func (s *SequencerTestSuite) TestCreateSequencerL() {
-	goCtx := types.WrapSDKContext(s.Ctx)
-
-	// sequencersExpect is the expected result of query all
-	sequencersExpect := []*types2.Sequencer{}
-
-	// rollappSequencersExpect is a map from rollappId to a map of sequencer addresses list
-	type rollappSequencersExpectKey struct {
-		rollappId, sequencerAddress string
-	}
-	rollappSequencersExpect := make(map[rollappSequencersExpectKey]string)
-	rollappExpectedProposers := make(map[string]string)
-
-	const numRollapps = 3
-	rollappIDs := make([]string, numRollapps)
-	// for 3 rollapps, test 10 sequencers creations
-	for j := 0; j < numRollapps; j++ {
-		rollapp := types4.Rollapp{
-			RollappId: urand.RollappID(),
-			Owner:     aliceAddr,
-			Launched:  true,
-			Metadata: &types4.RollappMetadata{
-				Website:     "https://dymension.xyz",
-				Description: "Sample description",
-				LogoUrl:     "https://dymension.xyz/logo.png",
-				Telegram:    "https://t.me/rolly",
-				X:           "https://x.dymension.xyz",
-			},
-			GenesisInfo: types4.GenesisInfo{
-				Bech32Prefix:    bech32Prefix,
-				GenesisChecksum: "1234567890abcdefg",
-				InitialSupply:   types.NewInt(1000),
-				NativeDenom: types4.DenomMetadata{
-					Display:  "DEN",
-					Base:     "aden",
-					Exponent: 18,
-				},
-			},
-		}
-		s.raK().SetRollapp(s.Ctx, rollapp)
-
-		rollappId := rollapp.GetRollappId()
-		rollappIDs[j] = rollappId
-
-		for i := 0; i < 10; i++ {
-			pubkey := ed25519.GenPrivKey().PubKey()
-			addr := types.AccAddress(pubkey.Address())
-			err := testutil.FundAccount(s.App.BankKeeper, s.Ctx, addr, types.NewCoins(bond))
-			s.Require().NoError(err)
-			pkAny, err := types3.NewAnyWithValue(pubkey)
-			s.Require().Nil(err)
-
-			// sequencer is the sequencer to create
-			sequencerMsg := types2.MsgCreateSequencer{
-				Creator:      addr.String(),
-				DymintPubKey: pkAny,
-				Bond:         bond,
-				RollappId:    rollappId,
-				Metadata: types2.SequencerMetadata{
-					Rpcs: []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
-				},
-			}
-			// sequencerExpect is the expected result of creating a sequencer
-			sequencerExpect := types2.Sequencer{
-				Address:      sequencerMsg.GetCreator(),
-				DymintPubKey: sequencerMsg.GetDymintPubKey(),
-				Status:       types2.Bonded,
-				RollappId:    rollappId,
-				Tokens:       types.NewCoins(bond),
-				Metadata:     sequencerMsg.GetMetadata(),
-			}
-
-			// create sequencer
-			createResponse, err := s.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-			s.Require().Nil(err)
-			s.Require().EqualValues(types2.MsgCreateSequencerResponse{}, *createResponse)
-
-			// query the specific sequencer
-			queryResponse, err := s.queryClient.Sequencer(goCtx, &types2.QueryGetSequencerRequest{
-				SequencerAddress: sequencerMsg.GetCreator(),
-			})
-			s.Require().Nil(err)
-			s.equalSequencer(&sequencerExpect, &queryResponse.Sequencer)
-
-			// add the sequencer to the list of get all expected list
-			sequencersExpect = append(sequencersExpect, &sequencerExpect)
-
-			if i == 0 {
-				rollappExpectedProposers[rollappId] = sequencerExpect.Address
-			}
-
-			sequencersRes, totalRes := getAllSequencersMap(s)
-			s.Require().EqualValues(len(sequencersExpect), totalRes)
-			// verify that query all contains all the sequencers that were created
-			s.verifyAll(sequencersExpect, sequencersRes)
-
-			// add the sequencer to the list of specific rollapp
-			rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencerExpect.Address}] = sequencerExpect.Address
-		}
-	}
-
-	totalFound := 0
-	// check query by rollapp
-	for i := 0; i < numRollapps; i++ {
-		rollappId := rollappIDs[i]
-		queryAllResponse, err := s.queryClient.SequencersByRollapp(goCtx,
-			&types2.QueryGetSequencersByRollappRequest{RollappId: rollappId})
-		s.Require().Nil(err)
-		// verify that all the addresses of the rollapp are found
-		for _, sequencer := range queryAllResponse.Sequencers {
-			s.Require().EqualValues(rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencer.Address}],
-				sequencer.Address)
-		}
-		totalFound += len(queryAllResponse.Sequencers)
-
-		// check that the first sequencer created is the active sequencer
-		proposer, err := s.queryClient.GetProposerByRollapp(goCtx,
-			&types2.QueryGetProposerByRollappRequest{RollappId: rollappId})
-		s.Require().Nil(err)
-		s.Require().EqualValues(proposer.ProposerAddr, rollappExpectedProposers[rollappId])
-	}
-	s.Require().EqualValues(totalFound, len(rollappSequencersExpect))
-}
+	"github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+)
 
 func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposerL() {
 	const alex = "dym1te3lcav5c2jn8tdcrhnyl8aden6lglw266kcdd"
@@ -222,6 +103,10 @@ func (s *SequencerTestSuite) TestCreateSequencerInitialSequencerAsProposerL() {
 		}
 	}
 }
+
+/*
+
+
 
 // create sequencer before genesisInfo is set
 func (s *SequencerTestSuite) TestCreateSequencerBeforeGenesisInfoL() {
