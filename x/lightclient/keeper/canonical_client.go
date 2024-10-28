@@ -77,6 +77,8 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.Client
 	if err := types.IsCanonicalClientParamsValid(tmClientState, &expClient); err != nil {
 		return errorsmod.Wrap(err, "params")
 	}
+
+	// FIXME: can be refactored using iterators
 	res, err := k.ibcClientKeeper.ConsensusStateHeights(ctx, &ibcclienttypes.QueryConsensusStateHeightsRequest{
 		ClientId:   clientID,
 		Pagination: &query.PageRequest{Limit: maxHeight},

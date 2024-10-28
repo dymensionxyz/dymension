@@ -95,6 +95,11 @@ type MockIBCCLientKeeper struct {
 	clientStates         map[string]exported.ClientState
 }
 
+// ClientStore implements types.IBCClientKeeperExpected.
+func (m *MockIBCCLientKeeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore {
+	panic("unimplemented")
+}
+
 func NewMockIBCClientKeeper(
 	clientCS map[string]map[uint64]exported.ConsensusState,
 	genesisClients map[string]exported.ClientState,

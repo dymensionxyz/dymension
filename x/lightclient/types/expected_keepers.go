@@ -32,6 +32,7 @@ type IBCClientKeeperExpected interface {
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
 	IterateClientStates(ctx sdk.Context, prefix []byte, cb func(clientID string, cs exported.ClientState) bool)
 	ConsensusStateHeights(c context.Context, req *ibcclienttypes.QueryConsensusStateHeightsRequest) (*ibcclienttypes.QueryConsensusStateHeightsResponse, error)
+	ClientStore(ctx sdk.Context, clientID string) sdk.KVStore
 }
 
 type IBCChannelKeeperExpected interface {

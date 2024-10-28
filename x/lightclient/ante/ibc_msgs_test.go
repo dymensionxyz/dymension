@@ -3,6 +3,7 @@ package ante_test
 import (
 	"context"
 
+	"github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
@@ -59,6 +60,11 @@ func (m *MockRollappKeeper) HardFork(ctx sdk.Context, rollappID string, fraudHei
 
 type MockIBCClientKeeper struct {
 	clientStates map[string]exported.ClientState
+}
+
+// ClientStore implements types.IBCClientKeeperExpected.
+func (m *MockIBCClientKeeper) ClientStore(ctx sdk.Context, clientID string) types.KVStore {
+	panic("unimplemented")
 }
 
 func NewMockIBCClientKeeper(cs map[string]exported.ClientState) *MockIBCClientKeeper {
