@@ -41,7 +41,7 @@ func (k Keeper) GetRollappPotentialProposers(ctx sdk.Context, rollappId string) 
 	seqs = slices.DeleteFunc(seqs, func(seq types.Sequencer) bool {
 		return !k.isPotentialProposer(ctx, seq)
 	})
-	return seqs
+	return append(seqs, k.SentinelSequencer(ctx))
 }
 
 func (k Keeper) GetAllSequencers(ctx sdk.Context) (list []types.Sequencer) {

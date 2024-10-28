@@ -36,38 +36,37 @@ func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr)
 	if k.GetProposer(ctx, rollapp).Sentinel() {
 		seqs := k.GetRollappPotentialProposers(ctx, rollapp)
-		proposer := k.proposerChoiceAlgo(ctx, rollapp, seqs)
+		proposer := ProposerChoiceAlgo(seqs)
 		k.SetProposer(ctx, rollapp, proposer.Address)
 	}
 	return nil
 }
 
-func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) error {
+func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) {
 	successor := k.GetSuccessor(ctx, rollapp)
 	if !successor.Sentinel() {
 		// a valid successor is already set so there's no need to do anything
-		return nil
+		// TODO: a necessary check?
+		return
 	}
 	proposer := k.GetProposer(ctx, rollapp)
 	if proposer.Sentinel() {
-		return gerrc.ErrInternal.Wrap("should not choose successor if proposer is sentinel")
+		return
 	}
 	seqs := k.GetRollappPotentialProposers(ctx, rollapp)
-	seqs = slices.DeleteFunc(seqs, func(s types.Sequencer) bool { // Not efficient, could optimize.
-		return s.Address == proposer.Address
-	})
-	successor = k.proposerChoiceAlgo(ctx, rollapp, seqs)
+	successor = ProposerChoiceAlgo(seqs)
 	k.SetSuccessor(ctx, rollapp, successor.Address)
-	return nil
+	return
 }
 
+// note: will be true for sentinel
 func (k Keeper) isPotentialProposer(ctx sdk.Context, seq types.Sequencer) bool {
 	return seq.Bonded() && seq.OptedIn
 }
 
-func (k Keeper) proposerChoiceAlgo(ctx sdk.Context, rollapp string, seqs []types.Sequencer) types.Sequencer {
+func ProposerChoiceAlgo(seqs []types.Sequencer) types.Sequencer {
 	if len(seqs) == 0 {
-		return k.SentinelSequencer(ctx)
+		panic("must at least include sentinel")
 	}
 	// slices package is recommended over sort package
 	slices.SortStableFunc(seqs, func(a, b types.Sequencer) int {
@@ -76,10 +75,12 @@ func (k Keeper) proposerChoiceAlgo(ctx sdk.Context, rollapp string, seqs []types
 		if ca.IsEqual(cb) {
 			return 0
 		}
+
+		// flipped to sort decreasing
 		if ca.IsLT(cb) {
-			return -1
+			return 1
 		}
-		return 1
+		return -1
 	})
 	return seqs[0]
 }

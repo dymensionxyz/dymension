@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 	"github.com/dymensionxyz/sdk-utils/utils/utest"
 )
 
@@ -80,9 +81,9 @@ func (s *SequencerTestSuite) TestRotationNoSuccessor() {
 func (s *SequencerTestSuite) TestRotationProposerAndSuccessorBothUnbond() {
 	// init
 	ra := s.createRollapp()
-	s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
-	s.createSequencerWithBond(s.Ctx, ra.RollappId, bob, bond)
-	s.createSequencerWithBond(s.Ctx, ra.RollappId, charlie, bond)
+	s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, ucoin.SimpleMul(bond, 3))
+	s.createSequencerWithBond(s.Ctx, ra.RollappId, bob, ucoin.SimpleMul(bond, 2)) // bob has prio over charlie
+	s.createSequencerWithBond(s.Ctx, ra.RollappId, charlie, ucoin.SimpleMul(bond, 1))
 	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(alice)))
 	s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
 
@@ -98,7 +99,7 @@ func (s *SequencerTestSuite) TestRotationProposerAndSuccessorBothUnbond() {
 	// notice period has now elapsed
 	err = s.k().ChooseSuccessorForFinishedNotices(s.Ctx, s.Ctx.BlockTime())
 	s.Require().NoError(err)
-	s.Require().True(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
+	s.Require().True(s.k().IsSuccessor(s.Ctx, s.seq(bob)), "successor", s.k().GetSuccessor(s.Ctx, ra.RollappId).Address)
 
 	// successor tries to unbond
 	mUnbond = &types.MsgUnbond{Creator: pkAddr(bob)}
