@@ -6,6 +6,12 @@ import (
 
 var _ sdk.Msg = &MsgKickProposer{}
 
+func NewMsgKickProposer(creator string) *MsgKickProposer {
+	return &MsgKickProposer{
+		Creator: creator,
+	}
+}
+
 func (m *MsgKickProposer) ValidateBasic() error {
 	// TODO implement me
 	return nil //

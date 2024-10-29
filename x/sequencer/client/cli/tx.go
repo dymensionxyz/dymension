@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/sdk-utils/utils/ucli"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/dymension/v3/utils"
@@ -29,6 +30,8 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdUnbond())
 	cmd.AddCommand(CmdIncreaseBond())
 	cmd.AddCommand(CmdDecreaseBond())
+	cmd.AddCommand(CmdKickProposer())
+	cmd.AddCommand(CmdUpdateOptInStatus())
 
 	return cmd
 }
@@ -119,10 +122,10 @@ func CmdUpdateSequencer() *cobra.Command {
 	return cmd
 }
 
-func CmdUnbond() *cobra.Command {
+func CmdKickProposer() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "unbond",
-		Short: "Unbond the sequencer",
+		Use:   "kick",
+		Short: "Try to kick the current proposer",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -130,9 +133,51 @@ func CmdUnbond() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgUnbond(
-				clientCtx.GetFromAddress().String(),
-			)
+			msg := types.NewMsgKickProposer(clientCtx.GetFromAddress().String())
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdUpdateOptInStatus() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "opt-in [bool]",
+		Short: "Opt in or out of becoming selected as proposer or successor",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUpdateOptInStatus(clientCtx.GetFromAddress().String(), ucli.Affirmative(args[0]))
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdUnbond() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "unbond",
+		Short: "Try to unbond the sequencer totally",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUnbond(clientCtx.GetFromAddress().String())
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

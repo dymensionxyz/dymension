@@ -78,3 +78,10 @@ func (m *MsgUpdateOptInStatus) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{creator}
 }
+
+func NewMsgUpdateOptInStatus(creator string, optIn bool) *MsgUpdateOptInStatus {
+	return &MsgUpdateOptInStatus{
+		Creator: creator,
+		OptedIn: optIn,
+	}
+}
