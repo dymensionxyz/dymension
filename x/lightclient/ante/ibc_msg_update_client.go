@@ -80,8 +80,7 @@ func (i IBCMessagesDecorator) getSequencer(ctx sdk.Context, header *ibctm.Header
 	if !bytes.Equal(proposerBySignature, proposerByData) {
 		return sequencertypes.Sequencer{}, errProposerMismatch
 	}
-	addr := sdk.AccAddress(proposerByData).String()
-	return i.sequencerKeeper.GetRealSequencer(ctx, addr)
+	return i.sequencerKeeper.SequencerByDymintAddr(ctx, proposerByData)
 }
 
 func getHeader(msg *ibcclienttypes.MsgUpdateClient) (*ibctm.Header, error) {

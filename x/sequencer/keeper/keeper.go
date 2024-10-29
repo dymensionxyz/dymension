@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/collections"
 	"github.com/cometbft/cometbft/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -21,6 +22,8 @@ type Keeper struct {
 	rollappKeeper  types.RollappKeeper
 	unbondBlockers []UnbondBlocker
 	hooks          types.Hooks
+
+	dymintProposerAddrToAccAddr collections.Map[[]byte, string]
 }
 
 func NewKeeper(

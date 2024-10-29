@@ -9,6 +9,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -25,6 +26,15 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	// check to see if the seq has been registered before
 	if _, err := k.GetRealSequencer(ctx, msg.Creator); err == nil {
 		return nil, types.ErrSequencerAlreadyExists
+	}
+
+	pk, err := types.PubKey(msg.DymintPubKey)
+	if err != nil {
+		return nil, gerrc.ErrInvalidArgument.Wrap("pub key")
+	}
+	pkAddr := pk.Address()
+	if _, err := k.SequencerByDymintAddr(ctx, pkAddr); err == nil { // TODO: write a test for it
+		return nil, gerrc.ErrAlreadyExists.Wrap("pub key in use")
 	}
 
 	/*
@@ -84,6 +94,9 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 
 	k.SetSequencer(ctx, *seq)
+	if err := k.SetSequencerByDymintAddr(ctx, pkAddr, seq.Address); err != nil {
+		return nil, err
+	}
 
 	if err := k.ChooseProposer(ctx, msg.RollappId); err != nil {
 		return nil, err

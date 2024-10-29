@@ -28,7 +28,7 @@ func NewTestSequencer(
 		panic(err)
 	}
 	return Sequencer{
-		Address:      sdk.AccAddress(pk.Address()).String(),
+		Address:      pk.Address().String(),
 		DymintPubKey: pkAny,
 	}
 
@@ -101,7 +101,7 @@ func (seq Sequencer) MustValsetHash() []byte {
 }
 
 func (seq Sequencer) ValsetHash() ([]byte, error) {
-	pubKey, err := seq.PubKey()
+	pubKey, err := PubKey(seq.DymintPubKey)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "pub key")
 	}
@@ -126,7 +126,7 @@ func (seq Sequencer) ValsetHash() ([]byte, error) {
 // GetDymintPubKeyHash returns the hash of the sequencer
 // as expected to be written on the rollapp ibc client headers
 func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {
-	pubKey, err := seq.PubKey()
+	pubKey, err := PubKey(seq.DymintPubKey)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +146,7 @@ func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {
 
 // CometPubKey returns the bytes of the sequencer's dymint pubkey
 func (seq Sequencer) CometPubKey() (tmprotocrypto.PublicKey, error) {
-	pubKey, err := seq.PubKey()
+	pubKey, err := PubKey(seq.DymintPubKey)
 	if err != nil {
 		return tmprotocrypto.PublicKey{}, err
 	}
@@ -156,19 +156,20 @@ func (seq Sequencer) CometPubKey() (tmprotocrypto.PublicKey, error) {
 	return tmPubKey, err
 }
 
-func (seq Sequencer) PubKey() (cryptotypes.PubKey, error) {
+func PubKey(pk *codectypes.Any) (cryptotypes.PubKey, error) {
+	// TODO: this look wrong to me
 	interfaceRegistry := cdctypes.NewInterfaceRegistry()
 	cryptocodec.RegisterInterfaces(interfaceRegistry)
 	protoCodec := codec.NewProtoCodec(interfaceRegistry)
 
 	var pubKey cryptotypes.PubKey
-	err := protoCodec.UnpackAny(seq.DymintPubKey, &pubKey)
+	err := protoCodec.UnpackAny(pk, &pubKey)
 	return pubKey, err
 }
 
 // MustPubKey is intended for tests
 func (seq Sequencer) MustPubKey() cryptotypes.PubKey {
-	ret, err := seq.PubKey()
+	ret, err := PubKey(seq.DymintPubKey)
 	if err != nil {
 		panic(err)
 	}

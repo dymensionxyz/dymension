@@ -3,6 +3,7 @@ package keeper
 import (
 	"slices"
 
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -97,6 +98,18 @@ func (k Keeper) SetSequencer(ctx sdk.Context, seq types.Sequencer) {
 
 	seqByRollappKey := types.SequencerByRollappByStatusKey(seq.RollappId, seq.Address, seq.Status)
 	store.Set(seqByRollappKey, b)
+}
+
+func (k Keeper) SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address) (types.Sequencer, error) {
+	accAddr, err := k.dymintProposerAddrToAccAddr.Get(ctx, addr)
+	if err != nil {
+		return types.Sequencer{}, err
+	}
+	return k.GetRealSequencer(ctx, accAddr)
+}
+
+func (k Keeper) SetSequencerByDymintAddr(ctx sdk.Context, dymint cryptotypes.Address, hub string) error {
+	return k.dymintProposerAddrToAccAddr.Set(ctx, dymint, hub)
 }
 
 // AllProposers returns all proposers for all rollapps
