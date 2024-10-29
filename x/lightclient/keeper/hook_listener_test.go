@@ -42,7 +42,7 @@ func TestAfterUpdateState(t *testing.T) {
 				return testInput{
 					rollappId: "rollapp-has-canon-client-but-no-state",
 					stateInfo: &rollapptypes.StateInfo{
-						Sequencer:   keepertest.Alice,
+						Sequencer:   keepertest.AliceAddr,
 						StartHeight: 1,
 						NumBlocks:   1,
 						BDs: rollapptypes.BlockDescriptors{
@@ -63,13 +63,13 @@ func TestAfterUpdateState(t *testing.T) {
 			name: "both states are not compatible - slash the sequencer who signed",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				seqValHash, err := k.GetSequencerHash(ctx, keepertest.Alice)
+				seqValHash, err := k.GetSequencerHash(ctx, keepertest.AliceAddr)
 				require.NoError(t, err)
 				k.SetConsensusStateValHash(ctx, "canon-client-id", 2, seqValHash)
 				return testInput{
 					rollappId: "rollapp-has-canon-client",
 					stateInfo: &rollapptypes.StateInfo{
-						Sequencer:   keepertest.Alice,
+						Sequencer:   keepertest.AliceAddr,
 						StartHeight: 1,
 						NumBlocks:   3,
 						BDs: rollapptypes.BlockDescriptors{
@@ -100,13 +100,13 @@ func TestAfterUpdateState(t *testing.T) {
 			name: "state is compatible",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				seqValHash, err := k.GetSequencerHash(ctx, keepertest.Alice)
+				seqValHash, err := k.GetSequencerHash(ctx, keepertest.AliceAddr)
 				require.NoError(t, err)
 				k.SetConsensusStateValHash(ctx, "canon-client-id", 2, seqValHash)
 				return testInput{
 					rollappId: "rollapp-has-canon-client",
 					stateInfo: &rollapptypes.StateInfo{
-						Sequencer:   keepertest.Alice,
+						Sequencer:   keepertest.AliceAddr,
 						StartHeight: 1,
 						NumBlocks:   3,
 						BDs: rollapptypes.BlockDescriptors{

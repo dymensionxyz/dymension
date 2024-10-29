@@ -72,7 +72,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 			name: "Could not find state info for height - ensure optimistically accepted and signer stored in state",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				seqValHash, err := k.GetSequencerHash(ctx, keepertest.Alice)
+				seqValHash, err := k.GetSequencerHash(ctx, keepertest.AliceAddr)
 				require.NoError(t, err)
 				var valSet, trustedVals *cmtproto.ValidatorSet
 				signedHeader := &cmtproto.SignedHeader{
@@ -104,7 +104,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
 						"rollapp-has-canon-client": {
 							3: {
-								Sequencer: keepertest.Alice,
+								Sequencer: keepertest.AliceAddr,
 								StateInfoIndex: rollapptypes.StateInfoIndex{
 									Index: 3,
 								},
@@ -130,7 +130,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 				require.True(t, found)
 				seq, err := k.GetSequencerFromValHash(ctx, "rollapp-has-canon-client", seqValHash)
 				require.NoError(t, err)
-				require.Equal(t, keepertest.Alice, seq)
+				require.Equal(t, keepertest.AliceAddr, seq)
 			},
 		},
 		{
@@ -173,7 +173,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
 						"rollapp-has-canon-client": {
 							1: {
-								Sequencer: keepertest.Alice,
+								Sequencer: keepertest.AliceAddr,
 								StateInfoIndex: rollapptypes.StateInfoIndex{
 									Index: 1,
 								},
@@ -190,7 +190,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 								},
 							},
 							2: {
-								Sequencer: keepertest.Alice,
+								Sequencer: keepertest.AliceAddr,
 								StateInfoIndex: rollapptypes.StateInfoIndex{
 									Index: 2,
 								},
@@ -217,7 +217,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 		{
 			name: "Ensure state is compatible - happy path",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
-				sequencer := keepertest.Alice
+				sequencer := keepertest.AliceAddr
 				proposerAddr, err := k.GetSequencerPubKey(ctx, sequencer)
 				require.NoError(t, err)
 				proposerAddrBytes, err := proposerAddr.Marshal()
@@ -263,7 +263,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
 						"rollapp-has-canon-client": {
 							1: {
-								Sequencer: keepertest.Alice,
+								Sequencer: keepertest.AliceAddr,
 								StateInfoIndex: rollapptypes.StateInfoIndex{
 									Index: 1,
 								},

@@ -28,8 +28,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	Alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
+var (
+	Alice     = sequencertypes.NewTestSequencer(ed25519.GenPrivKey().PubKey())
+	AliceAddr = Alice.Address
 )
 
 func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
@@ -49,13 +50,13 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	require.NoError(t, err)
 
 	testSequencer := sequencertypes.Sequencer{
-		Address:      Alice,
+		Address:      AliceAddr,
 		DymintPubKey: tmPk,
 	}
 	nextValHash, err := testSequencer.GetDymintPubKeyHash()
 	require.NoError(t, err)
 	testSequencers := map[string]sequencertypes.Sequencer{
-		Alice: testSequencer,
+		AliceAddr: testSequencer,
 	}
 	testConsensusStates := map[string]map[uint64]exported.ConsensusState{
 		"canon-client-id": {
