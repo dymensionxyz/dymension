@@ -8,11 +8,16 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 )
 
+// UnbondBlocker allows vetoing unbond attempts
 type UnbondBlocker interface {
 	// CanUnbond should return a types.UnbondNotAllowed error with a reason, or nil (or another error)
 	CanUnbond(ctx sdk.Context, sequencer types.Sequencer) error
 }
 
+// TryUnbond will try to either partially or totally unbond a sequencer.
+// The sequencer may not be allowed to unbond, based on certain conditions.
+// A partial unbonding refunds tokens, but doesn't allow the remaining bond to fall below a threshold.
+// A total unbond refunds all tokens and changes status to unbonded.
 func (k Keeper) TryUnbond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) error {
 	if k.isProposerOrSuccessor(ctx, *seq) {
 		return types.ErrUnbondProposerOrSuccessor
@@ -41,6 +46,7 @@ func (k Keeper) TryUnbond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) e
 	return nil
 }
 
+// set unbonded status and clear proposer/successor if necessary
 func (k Keeper) unbond(ctx sdk.Context, seq *types.Sequencer) error {
 	if k.IsSuccessor(ctx, *seq) {
 		return gerrc.ErrInternal.Wrap(`unbond next proposer: it shouldnt be possible because

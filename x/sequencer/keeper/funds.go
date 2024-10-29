@@ -39,6 +39,7 @@ func (k Keeper) burn(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) error 
 	return k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(amt))
 }
 
+// Refund reduces the sequencer token balance by amt and refunds amt to the addr
 func (k Keeper) refund(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) error {
 	return errorsmod.Wrap(k.sendFromModule(ctx, seq, amt, seq.AccAddr()), "send tokens")
 }
