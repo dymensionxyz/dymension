@@ -50,6 +50,10 @@ func NewKeeper(
 }
 
 func (k Keeper) SaveUpdater(ctx sdk.Context, seq sequencertypes.Sequencer, client string, h uint64) error {
+	return errors.Join(
+		k.headerSigners.Set(ctx, collections.Join3(seq.Address, client, h)),
+		k.clientHeightToSigner.Set(ctx, collections.Join(client, h), seq.Address),
+	)
 }
 
 // GetSequencerHash returns the sequencer's tendermint public key hash
