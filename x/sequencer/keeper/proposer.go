@@ -3,12 +3,14 @@ package keeper
 import (
 	"slices"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
-func (k Keeper) optOutAllSequencers(ctx sdk.Context, rollapp string, excl ...string) {
+func (k Keeper) optOutAllSequencers(ctx sdk.Context, rollapp string, excl ...string) error {
 	seqs := k.RollappSequencers(ctx, rollapp)
 	exclMap := make(map[string]struct{}, len(excl))
 	for _, addr := range excl {
@@ -16,10 +18,13 @@ func (k Keeper) optOutAllSequencers(ctx sdk.Context, rollapp string, excl ...str
 	}
 	for _, seq := range seqs {
 		if _, ok := exclMap[seq.Address]; !ok {
-			seq.OptedIn = false
+			if err := seq.SetOptedIn(ctx, false); err != nil {
+				return errorsmod.Wrap(err, "set opted in")
+			}
 			k.SetSequencer(ctx, seq)
 		}
 	}
+	return nil
 }
 
 func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
@@ -45,6 +50,13 @@ func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 	after := k.GetProposer(ctx, rollapp)
 	if before.Address != after.Address {
 		k.hooks.AfterChooseNewProposer(ctx, rollapp, before, after)
+
+		if err := uevent.EmitTypedEvent(ctx, &types.EventProposerChange{
+			Before: before.Address,
+			After:  after.Address,
+		}); err != nil {
+			return err
+		}
 	}
 	return nil
 }

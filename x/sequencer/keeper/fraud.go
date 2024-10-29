@@ -6,6 +6,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
 func (k Keeper) KickProposer(ctx sdk.Context, kicker types.Sequencer) error {
@@ -22,13 +23,23 @@ func (k Keeper) KickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 			return errorsmod.Wrap(err, "unbond")
 		}
 		k.SetSequencer(ctx, proposer)
-		k.optOutAllSequencers(ctx, ra, kicker.Address)
+		if err := k.optOutAllSequencers(ctx, ra, kicker.Address); err != nil {
+			return errorsmod.Wrap(err, "opt out all seqs")
+		}
 		k.hooks.AfterKickProposer(ctx, proposer)
+
+		if err := uevent.EmitTypedEvent(ctx, &types.EventKickedProposer{
+			Kicker:   kicker.Address,
+			Proposer: proposer.Address,
+		}); err != nil {
+			return err
+		}
 	}
 
 	if err := k.ChooseProposer(ctx, ra); err != nil {
 		return errorsmod.Wrap(err, "choose proposer")
 	}
+
 	return nil
 }
 
@@ -60,7 +71,9 @@ func (k Keeper) HandleFraud(ctx sdk.Context, seq types.Sequencer, rewardee *sdk.
 	}
 	err = errorsmod.Wrap(k.unbond(ctx, &seq), "unbond")
 	k.SetSequencer(ctx, seq)
-	k.optOutAllSequencers(ctx, seq.RollappId)
+	if err := k.optOutAllSequencers(ctx, seq.RollappId); err != nil {
+		return errorsmod.Wrap(err, "opt out all seqs")
+	}
 	return err
 }
 

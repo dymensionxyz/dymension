@@ -51,7 +51,10 @@ func (k msgServer) UpdateOptInStatus(goCtx context.Context,
 	defer func() {
 		k.SetSequencer(ctx, seq)
 	}()
-	seq.OptedIn = msg.OptedIn
+
+	if err := seq.SetOptedIn(ctx, msg.OptedIn); err != nil {
+		return nil, err
+	}
 	// TODO: choose proposer?
 	if err := uevent.EmitTypedEvent(ctx, &seq); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)

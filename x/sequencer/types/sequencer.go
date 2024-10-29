@@ -11,6 +11,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
 const (
@@ -22,6 +23,19 @@ func (seq Sequencer) ValidateBasic() error {
 	if seq.Tokens.Len() != 1 {
 		return gerrc.ErrInvalidArgument.Wrap("expect one coin")
 	}
+	return nil
+}
+
+func (seq *Sequencer) SetOptedIn(ctx sdk.Context, x bool) error {
+	if err := uevent.EmitTypedEvent(ctx, &EventOptInStatusChange{
+		seq.RollappId,
+		seq.Address,
+		seq.OptedIn,
+		x,
+	}); err != nil {
+		return err
+	}
+	seq.OptedIn = x
 	return nil
 }
 
