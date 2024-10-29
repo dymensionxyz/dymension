@@ -234,7 +234,7 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 	for i, sequencer := range testSeqs {
 		expectSequencers[i] = v4.ConvertOldSequencerToNew(sequencer)
 	}
-	sequencers := s.App.SequencerKeeper.GetAllSequencers(s.Ctx)
+	sequencers := s.App.SequencerKeeper.AllSequencers(s.Ctx)
 	s.Require().Len(sequencers, len(expectSequencers))
 
 	sort.Slice(sequencers, func(i, j int) bool {

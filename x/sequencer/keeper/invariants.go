@@ -36,7 +36,7 @@ func SequencersCountInvariant(k Keeper) sdk.Invariant {
 			msg    string
 		)
 
-		sequencers := k.GetAllSequencers(ctx)
+		sequencers := k.AllSequencers(ctx)
 		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
 
 		totalCount := 0

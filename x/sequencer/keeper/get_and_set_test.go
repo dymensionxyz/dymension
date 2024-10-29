@@ -29,7 +29,7 @@ func TestSequencerGetAll(t *testing.T) {
 	items := createNSequencers(k, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
-		nullify.Fill(k.GetAllSequencers(ctx)),
+		nullify.Fill(k.AllSequencers(ctx)),
 	)
 }
 

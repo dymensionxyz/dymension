@@ -10,6 +10,8 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
+// OptOutAllSequencers : change every sequencer of the rollapp to be opted out.
+// Can optionally pass a list of exclusions: those sequencers won't be modified.
 func (k Keeper) optOutAllSequencers(ctx sdk.Context, rollapp string, excl ...string) error {
 	seqs := k.RollappSequencers(ctx, rollapp)
 	exclMap := make(map[string]struct{}, len(excl))
@@ -27,6 +29,10 @@ func (k Keeper) optOutAllSequencers(ctx sdk.Context, rollapp string, excl ...str
 	return nil
 }
 
+// ChooseProposer will assign a proposer to the rollapp. It won't replace the incumbent proposer
+// if they are not sentinel. Otherwise it will prioritise a non sentinel successor. Finally, it
+// choose one based on an algorithm.
+// The result can be the sentinel sequencer.
 func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 	proposer := k.GetProposer(ctx, rollapp)
 	before := proposer
@@ -42,7 +48,7 @@ func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 	k.SetProposer(ctx, rollapp, successor.Address)
 	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr)
 	if k.GetProposer(ctx, rollapp).Sentinel() {
-		seqs := k.GetRollappPotentialProposers(ctx, rollapp)
+		seqs := k.RollappPotentialProposers(ctx, rollapp)
 		proposer := ProposerChoiceAlgo(seqs)
 		k.SetProposer(ctx, rollapp, proposer.Address)
 	}
@@ -62,6 +68,8 @@ func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 	return nil
 }
 
+// ChooseSuccesor will assign a successor. It won't replace an existing one.
+// It will prioritise non sentinel
 func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) {
 	successor := k.GetSuccessor(ctx, rollapp)
 	if !successor.Sentinel() {
@@ -73,17 +81,20 @@ func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) {
 	if proposer.Sentinel() {
 		return
 	}
-	seqs := k.GetRollappPotentialProposers(ctx, rollapp)
+	seqs := k.RollappPotentialProposers(ctx, rollapp)
 	successor = ProposerChoiceAlgo(seqs)
 	k.SetSuccessor(ctx, rollapp, successor.Address)
 	return
 }
 
+// isPotentialProposer says if a sequencer can potentially be allowed to propose
 // note: will be true for sentinel
 func (k Keeper) isPotentialProposer(ctx sdk.Context, seq types.Sequencer) bool {
 	return seq.Bonded() && seq.OptedIn
 }
 
+// ProposerChoiceAlgo : choose the one with most bond
+// Requires sentinel to be passed in, as last resort.
 func ProposerChoiceAlgo(seqs []types.Sequencer) types.Sequencer {
 	if len(seqs) == 0 {
 		panic("seqs must at least include sentinel")
@@ -113,8 +124,6 @@ func (k Keeper) IsSuccessor(ctx sdk.Context, seq types.Sequencer) bool {
 	return seq.Address == k.GetSuccessor(ctx, seq.RollappId).Address
 }
 
-// isProposerOrSuccessor returns true if the sequencer requires a notice period before unbonding
-// Both the proposer and the next proposer require a notice period
 func (k Keeper) isProposerOrSuccessor(ctx sdk.Context, seq types.Sequencer) bool {
 	return k.IsProposer(ctx, seq) || k.IsSuccessor(ctx, seq)
 }

@@ -83,7 +83,7 @@ func TestInitGenesis(t *testing.T) {
 	noticeElapsed, err := k.NoticeElapsedSequencers(ctx, timeToTest)
 	require.NoError(t, err)
 	require.Len(t, noticeElapsed, 1)
-	require.Len(t, k.GetAllProposers(ctx), 2)
+	require.Len(t, k.AllProposers(ctx), 2)
 
 	got := sequencer.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)

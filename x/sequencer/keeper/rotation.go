@@ -9,6 +9,9 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
+// StartNoticePeriodForSequencer defines a period of time for the sequencer where
+// they cannot yet unbond, nor submit their last block. Adds to a queue for later
+// processing.
 func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) {
 	seq.NoticePeriodTime = ctx.BlockTime().Add(k.GetParams(ctx).NoticePeriod)
 
@@ -36,6 +39,8 @@ func (k Keeper) removeFromNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
 	store.Delete(noticePeriodKey)
 }
 
+// NoticeElapsedSequencers gets all sequencers across all rollapps whose notice period
+// has passed/elapsed.
 func (k Keeper) NoticeElapsedSequencers(ctx sdk.Context, endTime time.Time) ([]types.Sequencer, error) {
 	ret := []types.Sequencer{}
 	store := ctx.KVStore(k.storeKey)
@@ -55,6 +60,8 @@ func (k Keeper) NoticeElapsedSequencers(ctx sdk.Context, endTime time.Time) ([]t
 	return ret, nil
 }
 
+// ChooseSuccessorForFinishedNotices goes through all sequencers whose notice periods have elapsed.
+// For each proposer, it chooses a successor proposer for their rollapp.
 func (k Keeper) ChooseSuccessorForFinishedNotices(ctx sdk.Context, now time.Time) error {
 	seqs, err := k.NoticeElapsedSequencers(ctx, now)
 	if err != nil {
@@ -83,6 +90,7 @@ func (k Keeper) awaitingLastProposerBlock(ctx sdk.Context, rollapp string) bool 
 	return proposer.NoticeElapsed(ctx.BlockTime())
 }
 
+// OnProposerLastBlock : it will assign the successor to be the proposer.
 func (k Keeper) OnProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) error {
 	allowLastBlock := proposer.NoticeElapsed(ctx.BlockTime())
 	if !allowLastBlock {
