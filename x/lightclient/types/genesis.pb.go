@@ -24,8 +24,7 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type GenesisState struct {
-	CanonicalClients      []CanonicalClient      `protobuf:"bytes,1,rep,name=canonical_clients,json=canonicalClients,proto3" json:"canonical_clients"`
-	ConsensusStateSigners []ConsensusStateSigner `protobuf:"bytes,2,rep,name=consensus_state_signers,json=consensusStateSigners,proto3" json:"consensus_state_signers"`
+	CanonicalClients []CanonicalClient `protobuf:"bytes,1,rep,name=canonical_clients,json=canonicalClients,proto3" json:"canonical_clients"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -64,13 +63,6 @@ var xxx_messageInfo_GenesisState proto.InternalMessageInfo
 func (m *GenesisState) GetCanonicalClients() []CanonicalClient {
 	if m != nil {
 		return m.CanonicalClients
-	}
-	return nil
-}
-
-func (m *GenesisState) GetConsensusStateSigners() []ConsensusStateSigner {
-	if m != nil {
-		return m.ConsensusStateSigners
 	}
 	return nil
 }
@@ -127,73 +119,9 @@ func (m *CanonicalClient) GetIbcClientId() string {
 	return ""
 }
 
-type ConsensusStateSigner struct {
-	// ibc_client_id is the canonical IBC client which has accepted a client update optimistically
-	IbcClientId string `protobuf:"bytes,1,opt,name=ibc_client_id,json=ibcClientId,proto3" json:"ibc_client_id,omitempty"`
-	// height is the client height which was updated optimistically
-	Height uint64 `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
-	// blockValHash is the valhash of the block which was updated optimistically
-	BlockValHash string `protobuf:"bytes,3,opt,name=blockValHash,proto3" json:"blockValHash,omitempty"`
-}
-
-func (m *ConsensusStateSigner) Reset()         { *m = ConsensusStateSigner{} }
-func (m *ConsensusStateSigner) String() string { return proto.CompactTextString(m) }
-func (*ConsensusStateSigner) ProtoMessage()    {}
-func (*ConsensusStateSigner) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5520440548912168, []int{2}
-}
-func (m *ConsensusStateSigner) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ConsensusStateSigner) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ConsensusStateSigner.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *ConsensusStateSigner) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ConsensusStateSigner.Merge(m, src)
-}
-func (m *ConsensusStateSigner) XXX_Size() int {
-	return m.Size()
-}
-func (m *ConsensusStateSigner) XXX_DiscardUnknown() {
-	xxx_messageInfo_ConsensusStateSigner.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ConsensusStateSigner proto.InternalMessageInfo
-
-func (m *ConsensusStateSigner) GetIbcClientId() string {
-	if m != nil {
-		return m.IbcClientId
-	}
-	return ""
-}
-
-func (m *ConsensusStateSigner) GetHeight() uint64 {
-	if m != nil {
-		return m.Height
-	}
-	return 0
-}
-
-func (m *ConsensusStateSigner) GetBlockValHash() string {
-	if m != nil {
-		return m.BlockValHash
-	}
-	return ""
-}
-
 func init() {
 	proto.RegisterType((*GenesisState)(nil), "dymensionxyz.dymension.lightclient.GenesisState")
 	proto.RegisterType((*CanonicalClient)(nil), "dymensionxyz.dymension.lightclient.CanonicalClient")
-	proto.RegisterType((*ConsensusStateSigner)(nil), "dymensionxyz.dymension.lightclient.ConsensusStateSigner")
 }
 
 func init() {
@@ -201,30 +129,24 @@ func init() {
 }
 
 var fileDescriptor_5520440548912168 = []byte{
-	// 354 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x92, 0xc1, 0x4e, 0xea, 0x40,
-	0x14, 0x86, 0x3b, 0x40, 0x48, 0x18, 0xb8, 0xb9, 0xf7, 0x36, 0xa8, 0x8d, 0x89, 0x95, 0x74, 0xc5,
-	0xaa, 0x35, 0xb2, 0x61, 0x0d, 0x0b, 0x65, 0x5b, 0x8c, 0x0b, 0x37, 0x4d, 0x3b, 0x1d, 0xdb, 0x89,
-	0x65, 0xa6, 0xe1, 0x0c, 0x04, 0x7c, 0x0a, 0x1f, 0x8b, 0x25, 0x4b, 0x57, 0xc6, 0xc0, 0xde, 0x67,
-	0x30, 0x9d, 0x16, 0x02, 0x82, 0xd1, 0xdd, 0xfc, 0x67, 0xce, 0xf7, 0xff, 0x67, 0x26, 0x07, 0x5f,
-	0x85, 0xf3, 0x11, 0xe5, 0xc0, 0x04, 0x9f, 0xcd, 0x9f, 0x9d, 0xad, 0x70, 0x12, 0x16, 0xc5, 0x92,
-	0x24, 0x8c, 0x72, 0xe9, 0x44, 0x94, 0x53, 0x60, 0x60, 0xa7, 0x63, 0x21, 0x85, 0x6e, 0xed, 0x12,
-	0xf6, 0x56, 0xd8, 0x3b, 0xc4, 0x79, 0x33, 0x12, 0x91, 0x50, 0xed, 0x4e, 0x76, 0xca, 0x49, 0xeb,
-	0x03, 0xe1, 0xc6, 0x4d, 0xee, 0x35, 0x94, 0xbe, 0xa4, 0xfa, 0x23, 0xfe, 0x4f, 0x7c, 0x2e, 0x38,
-	0x23, 0x7e, 0xe2, 0xe5, 0x28, 0x18, 0xa8, 0x55, 0x6e, 0xd7, 0xaf, 0x3b, 0xf6, 0xcf, 0x31, 0x76,
-	0x7f, 0x03, 0xf7, 0x95, 0xee, 0x55, 0x16, 0x6f, 0x97, 0x9a, 0xfb, 0x8f, 0xec, 0x97, 0x41, 0x9f,
-	0xe2, 0x33, 0x22, 0x38, 0x50, 0x0e, 0x13, 0xf0, 0x20, 0x8b, 0xf6, 0x80, 0x45, 0x9c, 0x8e, 0xc1,
-	0x28, 0xa9, 0xb4, 0xee, 0xaf, 0xd2, 0x36, 0x16, 0x6a, 0xf8, 0xa1, 0x32, 0x28, 0x22, 0x4f, 0xc8,
-	0x91, 0x3b, 0xb0, 0xee, 0xf0, 0xdf, 0x2f, 0x23, 0xea, 0x17, 0x18, 0x8f, 0x45, 0x92, 0xf8, 0x69,
-	0xea, 0xb1, 0xd0, 0x40, 0x2d, 0xd4, 0xae, 0xb9, 0xb5, 0xa2, 0x32, 0x08, 0x75, 0x0b, 0xff, 0x61,
-	0x01, 0x29, 0xfe, 0x22, 0xeb, 0x28, 0xa9, 0x8e, 0x3a, 0x0b, 0x48, 0x6e, 0x30, 0x08, 0xad, 0x29,
-	0x6e, 0x1e, 0x1b, 0xe5, 0x90, 0x45, 0x07, 0xac, 0x7e, 0x8a, 0xab, 0x31, 0xcd, 0xde, 0xa4, 0x8c,
-	0x2b, 0x6e, 0xa1, 0x74, 0x0b, 0x37, 0x82, 0x44, 0x90, 0xa7, 0x7b, 0x3f, 0xb9, 0xf5, 0x21, 0x36,
-	0xca, 0x0a, 0xdd, 0xab, 0xf5, 0xdc, 0xc5, 0xca, 0x44, 0xcb, 0x95, 0x89, 0xde, 0x57, 0x26, 0x7a,
-	0x59, 0x9b, 0xda, 0x72, 0x6d, 0x6a, 0xaf, 0x6b, 0x53, 0x7b, 0xe8, 0x46, 0x4c, 0xc6, 0x93, 0xc0,
-	0x26, 0x62, 0xe4, 0x7c, 0xb3, 0x4f, 0xd3, 0x8e, 0x33, 0xdb, 0x5b, 0x2a, 0x39, 0x4f, 0x29, 0x04,
-	0x55, 0xb5, 0x19, 0x9d, 0xcf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x49, 0x76, 0xae, 0x91, 0x87, 0x02,
-	0x00, 0x00,
+	// 263 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x32, 0x48, 0xa9, 0xcc, 0x4d,
+	0xcd, 0x2b, 0xce, 0xcc, 0xcf, 0xab, 0xa8, 0xac, 0xd2, 0x87, 0x73, 0xf4, 0x73, 0x32, 0xd3, 0x33,
+	0x4a, 0x92, 0x73, 0x32, 0x53, 0xf3, 0x4a, 0xf4, 0xd3, 0x53, 0xf3, 0x52, 0x8b, 0x33, 0x8b, 0xf5,
+	0x0a, 0x8a, 0xf2, 0x4b, 0xf2, 0x85, 0x94, 0x90, 0x75, 0xe8, 0xc1, 0x39, 0x7a, 0x48, 0x3a, 0xa4,
+	0x44, 0xd2, 0xf3, 0xd3, 0xf3, 0xc1, 0xca, 0xf5, 0x41, 0x2c, 0x88, 0x4e, 0xa5, 0x32, 0x2e, 0x1e,
+	0x77, 0x88, 0x51, 0xc1, 0x25, 0x89, 0x25, 0xa9, 0x42, 0x69, 0x5c, 0x82, 0xc9, 0x89, 0x79, 0xf9,
+	0x79, 0x99, 0xc9, 0x89, 0x39, 0xf1, 0x10, 0x9d, 0xc5, 0x12, 0x8c, 0x0a, 0xcc, 0x1a, 0xdc, 0x46,
+	0xc6, 0x7a, 0x84, 0x6d, 0xd1, 0x73, 0x86, 0x69, 0x76, 0x06, 0xf3, 0x9d, 0x58, 0x4e, 0xdc, 0x93,
+	0x67, 0x08, 0x12, 0x48, 0x46, 0x15, 0x2e, 0x56, 0x0a, 0xe1, 0xe2, 0x47, 0x53, 0x2a, 0x24, 0xcb,
+	0xc5, 0x55, 0x94, 0x9f, 0x93, 0x93, 0x58, 0x50, 0x10, 0x9f, 0x99, 0x22, 0xc1, 0xa8, 0xc0, 0xa8,
+	0xc1, 0x19, 0xc4, 0x09, 0x15, 0xf1, 0x4c, 0x11, 0x52, 0xe2, 0xe2, 0xcd, 0x4c, 0x4a, 0x86, 0xba,
+	0x09, 0xa4, 0x82, 0x09, 0xac, 0x82, 0x3b, 0x33, 0x29, 0x19, 0x62, 0x80, 0x67, 0x8a, 0x53, 0xd0,
+	0x89, 0x47, 0x72, 0x8c, 0x17, 0x1e, 0xc9, 0x31, 0x3e, 0x78, 0x24, 0xc7, 0x38, 0xe1, 0xb1, 0x1c,
+	0xc3, 0x85, 0xc7, 0x72, 0x0c, 0x37, 0x1e, 0xcb, 0x31, 0x44, 0x59, 0xa4, 0x67, 0x96, 0x64, 0x94,
+	0x26, 0xe9, 0x25, 0xe7, 0xe7, 0xea, 0xe3, 0x08, 0xde, 0x32, 0x63, 0xfd, 0x0a, 0x94, 0x30, 0x2e,
+	0xa9, 0x2c, 0x48, 0x2d, 0x4e, 0x62, 0x03, 0x07, 0x94, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0x44,
+	0x9d, 0xe4, 0x4d, 0x96, 0x01, 0x00, 0x00,
 }
 
 func (m *GenesisState) Marshal() (dAtA []byte, err error) {
@@ -247,20 +169,6 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.ConsensusStateSigners) > 0 {
-		for iNdEx := len(m.ConsensusStateSigners) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.ConsensusStateSigners[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintGenesis(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x12
-		}
-	}
 	if len(m.CanonicalClients) > 0 {
 		for iNdEx := len(m.CanonicalClients) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -315,48 +223,6 @@ func (m *CanonicalClient) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *ConsensusStateSigner) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ConsensusStateSigner) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ConsensusStateSigner) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.BlockValHash) > 0 {
-		i -= len(m.BlockValHash)
-		copy(dAtA[i:], m.BlockValHash)
-		i = encodeVarintGenesis(dAtA, i, uint64(len(m.BlockValHash)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if m.Height != 0 {
-		i = encodeVarintGenesis(dAtA, i, uint64(m.Height))
-		i--
-		dAtA[i] = 0x10
-	}
-	if len(m.IbcClientId) > 0 {
-		i -= len(m.IbcClientId)
-		copy(dAtA[i:], m.IbcClientId)
-		i = encodeVarintGenesis(dAtA, i, uint64(len(m.IbcClientId)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
 func encodeVarintGenesis(dAtA []byte, offset int, v uint64) int {
 	offset -= sovGenesis(v)
 	base := offset
@@ -380,12 +246,6 @@ func (m *GenesisState) Size() (n int) {
 			n += 1 + l + sovGenesis(uint64(l))
 		}
 	}
-	if len(m.ConsensusStateSigners) > 0 {
-		for _, e := range m.ConsensusStateSigners {
-			l = e.Size()
-			n += 1 + l + sovGenesis(uint64(l))
-		}
-	}
 	return n
 }
 
@@ -400,26 +260,6 @@ func (m *CanonicalClient) Size() (n int) {
 		n += 1 + l + sovGenesis(uint64(l))
 	}
 	l = len(m.IbcClientId)
-	if l > 0 {
-		n += 1 + l + sovGenesis(uint64(l))
-	}
-	return n
-}
-
-func (m *ConsensusStateSigner) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.IbcClientId)
-	if l > 0 {
-		n += 1 + l + sovGenesis(uint64(l))
-	}
-	if m.Height != 0 {
-		n += 1 + sovGenesis(uint64(m.Height))
-	}
-	l = len(m.BlockValHash)
 	if l > 0 {
 		n += 1 + l + sovGenesis(uint64(l))
 	}
@@ -492,40 +332,6 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			}
 			m.CanonicalClients = append(m.CanonicalClients, CanonicalClient{})
 			if err := m.CanonicalClients[len(m.CanonicalClients)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ConsensusStateSigners", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowGenesis
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ConsensusStateSigners = append(m.ConsensusStateSigners, ConsensusStateSigner{})
-			if err := m.ConsensusStateSigners[len(m.ConsensusStateSigners)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -642,139 +448,6 @@ func (m *CanonicalClient) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.IbcClientId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipGenesis(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ConsensusStateSigner) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowGenesis
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ConsensusStateSigner: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ConsensusStateSigner: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IbcClientId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowGenesis
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.IbcClientId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
-			}
-			m.Height = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowGenesis
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Height |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BlockValHash", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowGenesis
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.BlockValHash = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
