@@ -1,11 +1,11 @@
 package keeper
 
 import (
-	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -43,10 +43,6 @@ func (hook rollappHook) AfterUpdateState(
 	if err != nil {
 		return err
 	}
-	sequencerPk, err := hook.k.GetSequencerPubKey(ctx, stateInfo.Sequencer)
-	if err != nil {
-		return err
-	}
 	latestHeight := stateInfo.GetLatestHeight()
 	// We check from latestHeight-1 downwards, as the nextValHash for latestHeight will not be available until next stateupdate
 	for h := latestHeight - 1; h >= stateInfo.StartHeight; h-- {
@@ -56,7 +52,7 @@ func (hook rollappHook) AfterUpdateState(
 		if !found {
 			continue
 		}
-		err := hook.checkStateForHeight(ctx, rollappId, bd, client, sequencerPk, blockValHash)
+		err := hook.checkStateForHeight(ctx, rollappId, bd, client, seq, blockValHash)
 		if err != nil {
 			return err
 		}
@@ -69,7 +65,7 @@ func (hook rollappHook) AfterUpdateState(
 			return err
 		}
 		bd, _ := previousStateInfo.GetBlockDescriptor(stateInfo.StartHeight - 1)
-		err = hook.checkStateForHeight(ctx, rollappId, bd, client, sequencerPk, blockValHash)
+		err = hook.checkStateForHeight(ctx, rollappId, bd, client, seq, blockValHash)
 		if err != nil {
 			return err
 		}
@@ -81,7 +77,7 @@ func (hook rollappHook) checkStateForHeight(ctx sdk.Context,
 	rollappId string,
 	bd rollapptypes.BlockDescriptor,
 	canonicalClient string,
-	sequencerPk tmprotocrypto.PublicKey,
+	seq sequencertypes.Sequencer,
 	blockValHash []byte,
 ) error {
 	cs, _ := hook.k.ibcClientKeeper.GetClientState(ctx, canonicalClient)
@@ -94,17 +90,18 @@ func (hook rollappHook) checkStateForHeight(ctx sdk.Context,
 	}
 	rollappState := types.RollappState{
 		BlockDescriptor:    bd,
-		NextBlockSequencer: sequencerPk,
+		NextBlockSequencer: seq,
 	}
-	err := types.CheckCompatibility(*tmConsensusState, rollappState)
+	sequencerAddress, err := hook.k.GetSigner(ctx, canonicalClient, bd.GetHeight())
+	if err != nil {
+		return err
+	}
+	err = types.CheckCompatibility(*tmConsensusState, rollappState)
 	if err != nil {
 		// If the state is not compatible,
 		// Take this state update as source of truth over the IBC update
 		// Punish the block proposer of the IBC signed header
-		sequencerAddress, err := hook.k.GetSigner(ctx, canonicalClient, bd.GetHeight())
-		if err != nil {
-			return err
-		}
+
 		err = hook.k.rollappKeeper.HandleFraud(ctx, rollappId, canonicalClient, bd.GetHeight(), sequencerAddress)
 		if err != nil {
 			return err
