@@ -98,8 +98,8 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		utest.IsErr(s.Require(), err, gerrc.ErrInvalidArgument)
 	})
 	s.Run("not allowed - vm", func() {
+		// TODO: check existing test
 	})
-
 	s.Run("not allowed - not launched and not initial", func() {
 		ra := s.createRollappWithInitialSeqConstraint("")
 		s.Require().False(ra.Launched)
