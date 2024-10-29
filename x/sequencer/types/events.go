@@ -42,4 +42,6 @@ const (
 	AttributeKeyProposer       = "proposer"
 	AttributeKeyNextProposer   = "next_proposer"
 	AttributeKeyCompletionTime = "completion_time"
+	AttributeKeyAmt            = "amt"
+	AttributeKeyRemainingAmt   = "remaining_amt"
 )
