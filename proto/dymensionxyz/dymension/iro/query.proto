@@ -67,7 +67,10 @@ message QueryParamsResponse {
 }
 
 // QueryPlanRequest is the request type for the Query/QueryPlan RPC method.
-message QueryPlansRequest {}
+message QueryPlansRequest {
+  // tradable_only is an optional flag to filter out plans that have not started yet, and that are not settled.
+  bool tradable_only = 1;
+}
 
 // QueryPlanResponse is the response type for the Query/QueryPlan RPC method.
 message QueryPlansResponse {
