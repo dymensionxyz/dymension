@@ -91,27 +91,26 @@ func (m *EventIncreasedBond) GetBond() github_com_cosmos_cosmos_sdk_types.Coins 
 	return nil
 }
 
-type Slash struct {
-	// sequencer is the bech32-encoded address of the sequencer
-	Sequencer string `protobuf:"bytes,1,opt,name=sequencer,proto3" json:"sequencer,omitempty"`
-	// amt is the amount of coins subtracted
-	Amt types.Coin `protobuf:"bytes,2,opt,name=amt,proto3" json:"amt"`
-	// bond is the new bond amount of the sequencer ('after')
-	Bond github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=bond,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"bond"`
+// On a sequencer kicking the incumbent proposer
+type EventKickedProposer struct {
+	// Kicker is the bech32-encoded address of the sequencer who triggered the kick
+	Kicker string `protobuf:"bytes,1,opt,name=kicker,proto3" json:"kicker,omitempty"`
+	// Proposer is the bech32-encoded address of the proposer who was kicked
+	Proposer string `protobuf:"bytes,2,opt,name=proposer,proto3" json:"proposer,omitempty"`
 }
 
-func (m *Slash) Reset()         { *m = Slash{} }
-func (m *Slash) String() string { return proto.CompactTextString(m) }
-func (*Slash) ProtoMessage()    {}
-func (*Slash) Descriptor() ([]byte, []int) {
+func (m *EventKickedProposer) Reset()         { *m = EventKickedProposer{} }
+func (m *EventKickedProposer) String() string { return proto.CompactTextString(m) }
+func (*EventKickedProposer) ProtoMessage()    {}
+func (*EventKickedProposer) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1f8a63d7e7167eb3, []int{1}
 }
-func (m *Slash) XXX_Unmarshal(b []byte) error {
+func (m *EventKickedProposer) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *Slash) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *EventKickedProposer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_Slash.Marshal(b, m, deterministic)
+		return xxx_messageInfo_EventKickedProposer.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -121,42 +120,145 @@ func (m *Slash) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (m *Slash) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Slash.Merge(m, src)
+func (m *EventKickedProposer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventKickedProposer.Merge(m, src)
 }
-func (m *Slash) XXX_Size() int {
+func (m *EventKickedProposer) XXX_Size() int {
 	return m.Size()
 }
-func (m *Slash) XXX_DiscardUnknown() {
-	xxx_messageInfo_Slash.DiscardUnknown(m)
+func (m *EventKickedProposer) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventKickedProposer.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_Slash proto.InternalMessageInfo
+var xxx_messageInfo_EventKickedProposer proto.InternalMessageInfo
 
-func (m *Slash) GetSequencer() string {
+func (m *EventKickedProposer) GetKicker() string {
 	if m != nil {
-		return m.Sequencer
+		return m.Kicker
 	}
 	return ""
 }
 
-func (m *Slash) GetAmt() types.Coin {
+func (m *EventKickedProposer) GetProposer() string {
 	if m != nil {
-		return m.Amt
+		return m.Proposer
 	}
-	return types.Coin{}
+	return ""
 }
 
-func (m *Slash) GetBond() github_com_cosmos_cosmos_sdk_types.Coins {
-	if m != nil {
-		return m.Bond
+// Whenever the proposer changes to a new proposer
+type EventProposerChange struct {
+	// Before is the bech32-encoded address of the old proposer
+	Before string `protobuf:"bytes,1,opt,name=before,proto3" json:"before,omitempty"`
+	// After is the bech32-encoded address of the new proposer
+	After string `protobuf:"bytes,2,opt,name=after,proto3" json:"after,omitempty"`
+}
+
+func (m *EventProposerChange) Reset()         { *m = EventProposerChange{} }
+func (m *EventProposerChange) String() string { return proto.CompactTextString(m) }
+func (*EventProposerChange) ProtoMessage()    {}
+func (*EventProposerChange) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1f8a63d7e7167eb3, []int{2}
+}
+func (m *EventProposerChange) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventProposerChange) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventProposerChange.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
 	}
-	return nil
+}
+func (m *EventProposerChange) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventProposerChange.Merge(m, src)
+}
+func (m *EventProposerChange) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventProposerChange) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventProposerChange.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventProposerChange proto.InternalMessageInfo
+
+func (m *EventProposerChange) GetBefore() string {
+	if m != nil {
+		return m.Before
+	}
+	return ""
+}
+
+func (m *EventProposerChange) GetAfter() string {
+	if m != nil {
+		return m.After
+	}
+	return ""
+}
+
+// When a sequencer opt-in status changes
+type OptInStatusChange struct {
+	Before bool `protobuf:"varint,1,opt,name=before,proto3" json:"before,omitempty"`
+	After  bool `protobuf:"varint,2,opt,name=after,proto3" json:"after,omitempty"`
+}
+
+func (m *OptInStatusChange) Reset()         { *m = OptInStatusChange{} }
+func (m *OptInStatusChange) String() string { return proto.CompactTextString(m) }
+func (*OptInStatusChange) ProtoMessage()    {}
+func (*OptInStatusChange) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1f8a63d7e7167eb3, []int{3}
+}
+func (m *OptInStatusChange) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *OptInStatusChange) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_OptInStatusChange.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *OptInStatusChange) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_OptInStatusChange.Merge(m, src)
+}
+func (m *OptInStatusChange) XXX_Size() int {
+	return m.Size()
+}
+func (m *OptInStatusChange) XXX_DiscardUnknown() {
+	xxx_messageInfo_OptInStatusChange.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_OptInStatusChange proto.InternalMessageInfo
+
+func (m *OptInStatusChange) GetBefore() bool {
+	if m != nil {
+		return m.Before
+	}
+	return false
+}
+
+func (m *OptInStatusChange) GetAfter() bool {
+	if m != nil {
+		return m.After
+	}
+	return false
 }
 
 func init() {
 	proto.RegisterType((*EventIncreasedBond)(nil), "dymensionxyz.dymension.sequencer.EventIncreasedBond")
-	proto.RegisterType((*Slash)(nil), "dymensionxyz.dymension.sequencer.Slash")
+	proto.RegisterType((*EventKickedProposer)(nil), "dymensionxyz.dymension.sequencer.EventKickedProposer")
+	proto.RegisterType((*EventProposerChange)(nil), "dymensionxyz.dymension.sequencer.EventProposerChange")
+	proto.RegisterType((*OptInStatusChange)(nil), "dymensionxyz.dymension.sequencer.OptInStatusChange")
 }
 
 func init() {
@@ -164,30 +266,35 @@ func init() {
 }
 
 var fileDescriptor_1f8a63d7e7167eb3 = []byte{
-	// 366 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x92, 0xb1, 0x4e, 0xe3, 0x40,
-	0x10, 0x86, 0xbd, 0x97, 0xdc, 0x49, 0x71, 0xae, 0xb2, 0x22, 0x9d, 0x93, 0xc2, 0xb1, 0x52, 0xa5,
-	0x89, 0xf7, 0x4c, 0xa4, 0xf4, 0x31, 0xa2, 0xa0, 0x43, 0x49, 0x47, 0x13, 0xad, 0xbd, 0x2b, 0xc7,
-	0x02, 0xef, 0x06, 0xcf, 0xc6, 0x4a, 0x78, 0x0a, 0x9e, 0x83, 0x9a, 0x87, 0x48, 0x19, 0x41, 0x43,
-	0x05, 0x28, 0x79, 0x02, 0xde, 0x00, 0x79, 0xbd, 0x32, 0x69, 0x40, 0x08, 0x89, 0x6a, 0x76, 0x66,
-	0xfe, 0x6f, 0xf4, 0xcf, 0x6a, 0xcc, 0x01, 0x5d, 0xa7, 0x8c, 0x43, 0x22, 0xf8, 0x6a, 0x7d, 0x8d,
-	0xab, 0x04, 0x03, 0xbb, 0x5a, 0x32, 0x1e, 0xb1, 0x0c, 0xb3, 0x9c, 0x71, 0x09, 0xde, 0x22, 0x13,
-	0x52, 0x58, 0xee, 0xa1, 0xdc, 0xab, 0x12, 0xaf, 0x92, 0x77, 0xda, 0x91, 0x80, 0x54, 0xc0, 0x4c,
-	0xe9, 0x71, 0x99, 0x94, 0x70, 0xa7, 0x15, 0x8b, 0x58, 0x94, 0xf5, 0xe2, 0xa5, 0xab, 0x4e, 0xa9,
-	0xc1, 0x21, 0x01, 0x86, 0x73, 0x3f, 0x64, 0x92, 0xf8, 0x38, 0x12, 0x09, 0xd7, 0xfd, 0x7f, 0xba,
-	0x9f, 0x42, 0x8c, 0x73, 0xbf, 0x08, 0x65, 0xa3, 0xf7, 0x8a, 0x4c, 0xeb, 0xa4, 0x30, 0x77, 0xca,
-	0xa3, 0x8c, 0x11, 0x60, 0x34, 0x10, 0x9c, 0x5a, 0x23, 0xb3, 0x51, 0xb9, 0xb1, 0x91, 0x8b, 0xfa,
-	0x8d, 0xc0, 0xbe, 0xbf, 0x1b, 0xb4, 0xb4, 0x95, 0x31, 0xa5, 0x19, 0x03, 0x98, 0xca, 0x2c, 0xe1,
-	0xf1, 0xe4, 0x5d, 0x6a, 0x05, 0xe6, 0x5f, 0x42, 0x29, 0xa3, 0x33, 0x92, 0x8a, 0x25, 0x97, 0xf6,
-	0x2f, 0x17, 0xf5, 0x9b, 0x47, 0x6d, 0x4f, 0x73, 0x85, 0x3d, 0x4f, 0xdb, 0xf3, 0x8e, 0x45, 0xc2,
-	0x83, 0xfa, 0xe6, 0xa9, 0x6b, 0x4c, 0x9a, 0x0a, 0x1a, 0x2b, 0xc6, 0x9a, 0x99, 0xf5, 0x50, 0x70,
-	0x6a, 0xd7, 0xdc, 0xda, 0xe7, 0xec, 0xff, 0x82, 0xbd, 0x7d, 0xee, 0xf6, 0xe3, 0x44, 0xce, 0x97,
-	0xa1, 0x17, 0x89, 0x54, 0xff, 0x95, 0x0e, 0x03, 0xa0, 0x17, 0x58, 0xae, 0x17, 0x0c, 0x14, 0x00,
-	0x13, 0x35, 0xb8, 0xf7, 0x80, 0xcc, 0xdf, 0xd3, 0x4b, 0x02, 0xf3, 0x6f, 0xaf, 0xe9, 0x9b, 0x35,
-	0x92, 0x7e, 0x79, 0xbb, 0x42, 0xfb, 0xe3, 0x5b, 0x05, 0x67, 0x9b, 0x9d, 0x83, 0xb6, 0x3b, 0x07,
-	0xbd, 0xec, 0x1c, 0x74, 0xb3, 0x77, 0x8c, 0xed, 0xde, 0x31, 0x1e, 0xf7, 0x8e, 0x71, 0x3e, 0x3a,
-	0x98, 0xf4, 0xc1, 0xa5, 0xe6, 0x43, 0xbc, 0x3a, 0x38, 0x57, 0x35, 0x3d, 0xfc, 0xa3, 0x4e, 0x64,
-	0xf8, 0x16, 0x00, 0x00, 0xff, 0xff, 0x87, 0xd3, 0x49, 0x47, 0xdf, 0x02, 0x00, 0x00,
+	// 441 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x53, 0xb1, 0x72, 0xd3, 0x40,
+	0x10, 0xb5, 0x48, 0xc8, 0x38, 0x17, 0x1a, 0x0e, 0x0f, 0x38, 0x29, 0x14, 0x8f, 0x2b, 0x37, 0xbe,
+	0x8b, 0x09, 0x93, 0xde, 0xca, 0x50, 0x64, 0x28, 0xc8, 0x38, 0x1d, 0x8d, 0xe7, 0xa4, 0xdb, 0x28,
+	0x1a, 0x8f, 0x6e, 0xc5, 0xdd, 0x59, 0xc4, 0xcc, 0xf0, 0x0f, 0x7c, 0x07, 0x35, 0x1f, 0x91, 0x32,
+	0x43, 0x45, 0x05, 0x8c, 0xfd, 0x05, 0xfc, 0x01, 0xa3, 0xd3, 0x21, 0x44, 0x41, 0x42, 0x75, 0xda,
+	0xdd, 0xf7, 0xf6, 0xbd, 0xd5, 0xdd, 0x92, 0xb1, 0x5c, 0xe5, 0xa0, 0x4c, 0x86, 0xea, 0x7a, 0xf5,
+	0x9e, 0x37, 0x01, 0x37, 0xf0, 0x76, 0x09, 0x2a, 0x01, 0xcd, 0xa1, 0x04, 0x65, 0x0d, 0x2b, 0x34,
+	0x5a, 0xa4, 0x83, 0x36, 0x9c, 0x35, 0x01, 0x6b, 0xe0, 0x07, 0xfb, 0x09, 0x9a, 0x1c, 0xcd, 0xdc,
+	0xe1, 0x79, 0x1d, 0xd4, 0xe4, 0x83, 0x5e, 0x8a, 0x29, 0xd6, 0xf9, 0xea, 0xcb, 0x67, 0xc3, 0x1a,
+	0xc3, 0x63, 0x61, 0x80, 0x97, 0x93, 0x18, 0xac, 0x98, 0xf0, 0x04, 0x33, 0xe5, 0xeb, 0xcf, 0x7c,
+	0x3d, 0x37, 0x29, 0x2f, 0x27, 0xd5, 0x51, 0x17, 0x86, 0x3f, 0x03, 0x42, 0x5f, 0x56, 0xe6, 0xce,
+	0x54, 0xa2, 0x41, 0x18, 0x90, 0x11, 0x2a, 0x49, 0x4f, 0xc8, 0x6e, 0xe3, 0xa6, 0x1f, 0x0c, 0x82,
+	0xd1, 0x6e, 0xd4, 0xff, 0xf2, 0x79, 0xdc, 0xf3, 0x56, 0xa6, 0x52, 0x6a, 0x30, 0xe6, 0xc2, 0xea,
+	0x4c, 0xa5, 0xb3, 0x3f, 0x50, 0x1a, 0x91, 0x47, 0x42, 0x4a, 0x90, 0x73, 0x91, 0xe3, 0x52, 0xd9,
+	0xfe, 0x83, 0x41, 0x30, 0xda, 0x7b, 0xbe, 0xcf, 0x3c, 0xaf, 0xb2, 0xc7, 0xbc, 0x3d, 0x76, 0x8a,
+	0x99, 0x8a, 0xb6, 0x6f, 0xbe, 0x1d, 0x76, 0x66, 0x7b, 0x8e, 0x34, 0x75, 0x1c, 0x3a, 0x27, 0xdb,
+	0x31, 0x2a, 0xd9, 0xdf, 0x1a, 0x6c, 0xdd, 0xcd, 0x3d, 0xaa, 0xb8, 0x9f, 0xbe, 0x1f, 0x8e, 0xd2,
+	0xcc, 0x5e, 0x2d, 0x63, 0x96, 0x60, 0xee, 0xff, 0x95, 0x3f, 0xc6, 0x46, 0x2e, 0xb8, 0x5d, 0x15,
+	0x60, 0x1c, 0xc1, 0xcc, 0x5c, 0xe3, 0xe1, 0x07, 0xf2, 0xc4, 0x8d, 0xfc, 0x2a, 0x4b, 0x16, 0x20,
+	0xcf, 0x35, 0x16, 0x68, 0x40, 0xd3, 0x23, 0xb2, 0xb3, 0xa8, 0x32, 0xf7, 0x0f, 0xec, 0x71, 0xf4,
+	0x05, 0xe9, 0x16, 0x9e, 0xed, 0x26, 0xbd, 0x8b, 0xd3, 0x20, 0x87, 0xef, 0xbc, 0xfc, 0x6f, 0xe1,
+	0xd3, 0x2b, 0xa1, 0x52, 0xa8, 0xe4, 0x63, 0xb8, 0x44, 0x0d, 0xf7, 0xcb, 0xd7, 0x38, 0xca, 0xc8,
+	0x43, 0x71, 0x69, 0xff, 0x43, 0xbb, 0x86, 0x0d, 0xa7, 0xe4, 0xf1, 0xeb, 0xc2, 0x9e, 0xa9, 0x0b,
+	0x2b, 0xec, 0xd2, 0x78, 0xd9, 0xa7, 0x7f, 0xc9, 0x76, 0x9b, 0xe6, 0xbd, 0x76, 0xf3, 0xae, 0x6f,
+	0x11, 0x9d, 0xdf, 0xac, 0xc3, 0xe0, 0x76, 0x1d, 0x06, 0x3f, 0xd6, 0x61, 0xf0, 0x71, 0x13, 0x76,
+	0x6e, 0x37, 0x61, 0xe7, 0xeb, 0x26, 0xec, 0xbc, 0x39, 0x69, 0x5d, 0xc2, 0x3f, 0xd6, 0xa1, 0x3c,
+	0xe6, 0xd7, 0xad, 0x9d, 0x70, 0x17, 0x13, 0xef, 0xb8, 0x77, 0x78, 0xfc, 0x2b, 0x00, 0x00, 0xff,
+	0xff, 0x2c, 0xa4, 0xdb, 0xc3, 0x44, 0x03, 0x00, 0x00,
 }
 
 func (m *EventIncreasedBond) Marshal() (dAtA []byte, err error) {
@@ -244,7 +351,7 @@ func (m *EventIncreasedBond) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *Slash) Marshal() (dAtA []byte, err error) {
+func (m *EventKickedProposer) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -254,46 +361,109 @@ func (m *Slash) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *Slash) MarshalTo(dAtA []byte) (int, error) {
+func (m *EventKickedProposer) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *Slash) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *EventKickedProposer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.Bond) > 0 {
-		for iNdEx := len(m.Bond) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Bond[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintEvents(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x1a
-		}
+	if len(m.Proposer) > 0 {
+		i -= len(m.Proposer)
+		copy(dAtA[i:], m.Proposer)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Proposer)))
+		i--
+		dAtA[i] = 0x12
 	}
-	{
-		size, err := m.Amt.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintEvents(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0x12
-	if len(m.Sequencer) > 0 {
-		i -= len(m.Sequencer)
-		copy(dAtA[i:], m.Sequencer)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.Sequencer)))
+	if len(m.Kicker) > 0 {
+		i -= len(m.Kicker)
+		copy(dAtA[i:], m.Kicker)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Kicker)))
 		i--
 		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventProposerChange) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventProposerChange) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventProposerChange) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.After) > 0 {
+		i -= len(m.After)
+		copy(dAtA[i:], m.After)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.After)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Before) > 0 {
+		i -= len(m.Before)
+		copy(dAtA[i:], m.Before)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Before)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *OptInStatusChange) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *OptInStatusChange) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *OptInStatusChange) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.After {
+		i--
+		if m.After {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Before {
+		i--
+		if m.Before {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -330,23 +500,51 @@ func (m *EventIncreasedBond) Size() (n int) {
 	return n
 }
 
-func (m *Slash) Size() (n int) {
+func (m *EventKickedProposer) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Sequencer)
+	l = len(m.Kicker)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	l = m.Amt.Size()
-	n += 1 + l + sovEvents(uint64(l))
-	if len(m.Bond) > 0 {
-		for _, e := range m.Bond {
-			l = e.Size()
-			n += 1 + l + sovEvents(uint64(l))
-		}
+	l = len(m.Proposer)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	return n
+}
+
+func (m *EventProposerChange) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Before)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.After)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	return n
+}
+
+func (m *OptInStatusChange) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Before {
+		n += 2
+	}
+	if m.After {
+		n += 2
 	}
 	return n
 }
@@ -506,7 +704,7 @@ func (m *EventIncreasedBond) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *Slash) Unmarshal(dAtA []byte) error {
+func (m *EventKickedProposer) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -529,15 +727,15 @@ func (m *Slash) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: Slash: wiretype end group for non-group")
+			return fmt.Errorf("proto: EventKickedProposer: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Slash: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: EventKickedProposer: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sequencer", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Kicker", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -565,13 +763,13 @@ func (m *Slash) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Sequencer = string(dAtA[iNdEx:postIndex])
+			m.Kicker = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Amt", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Proposer", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvents
@@ -581,30 +779,79 @@ func (m *Slash) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvents
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvents
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Amt.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.Proposer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
 				return err
 			}
-			iNdEx = postIndex
-		case 3:
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventProposerChange) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventProposerChange: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventProposerChange: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Bond", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Before", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvents
@@ -614,26 +861,146 @@ func (m *Slash) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvents
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvents
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Bond = append(m.Bond, types.Coin{})
-			if err := m.Bond[len(m.Bond)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.Before = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field After", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.After = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
 				return err
 			}
-			iNdEx = postIndex
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *OptInStatusChange) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: OptInStatusChange: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: OptInStatusChange: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Before", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Before = bool(v != 0)
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field After", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.After = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])
