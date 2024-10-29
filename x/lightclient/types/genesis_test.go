@@ -20,10 +20,6 @@ func TestGenesisValidate(t *testing.T) {
 					{RollappId: "rollapp-1", IbcClientId: "client-1"},
 					{RollappId: "rollapp-2", IbcClientId: "client-2"},
 				},
-				ConsensusStateSigners: []types.ConsensusStateSigner{
-					{IbcClientId: "client-1", Height: 1, BlockValHash: "signer-1"},
-					{IbcClientId: "client-1", Height: 2, BlockValHash: "signer-1"},
-				},
 			},
 			valid: true,
 		},
@@ -46,21 +42,13 @@ func TestGenesisValidate(t *testing.T) {
 			valid: false,
 		},
 		{
-			name: "invalid height",
-			g: types.GenesisState{
-				ConsensusStateSigners: []types.ConsensusStateSigner{
-					{IbcClientId: "client-1", Height: 0, BlockValHash: "signer-1"},
-				},
-			},
+			name:  "invalid height",
+			g:     types.GenesisState{},
 			valid: false,
 		},
 		{
-			name: "invalid blockvalhash",
-			g: types.GenesisState{
-				ConsensusStateSigners: []types.ConsensusStateSigner{
-					{IbcClientId: "client-1", Height: 1, BlockValHash: ""},
-				},
-			},
+			name:  "invalid blockvalhash",
+			g:     types.GenesisState{},
 			valid: false,
 		},
 		{

@@ -81,7 +81,7 @@ func (i IBCMessagesDecorator) getSequencer(ctx sdk.Context, header *ibctm.Header
 		return sequencertypes.Sequencer{}, errProposerMismatch
 	}
 	addr := sdk.AccAddress(proposerByData).String()
-	return i.rollappKeeper.GetRealSequencer(ctx, addr)
+	return i.sequencerKeeper.GetRealSequencer(ctx, addr)
 }
 
 func getHeader(msg *ibcclienttypes.MsgUpdateClient) (*ibctm.Header, error) {
