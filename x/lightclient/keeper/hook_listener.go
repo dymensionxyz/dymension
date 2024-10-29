@@ -39,6 +39,10 @@ func (hook rollappHook) AfterUpdateState(
 		}
 		return nil
 	}
+	seq, err := hook.k.sequencerKeeper.GetRealSequencer(ctx, stateInfo.Sequencer)
+	if err != nil {
+		return err
+	}
 	sequencerPk, err := hook.k.GetSequencerPubKey(ctx, stateInfo.Sequencer)
 	if err != nil {
 		return err

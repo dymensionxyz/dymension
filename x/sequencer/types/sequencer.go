@@ -3,6 +3,7 @@ package types
 import (
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	cometbfttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -73,6 +74,29 @@ func (seq Sequencer) NoticeElapsed(now time.Time) bool {
 
 func (seq Sequencer) NoticeStarted() bool {
 	return seq.NoticePeriodTime != time.Time{}
+}
+
+func (seq Sequencer) ValsetHash() ([]byte, error) {
+	pubKey, err := seq.PubKey()
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "pub key")
+	}
+
+	// convert the pubkey to tmPubKey
+	tmPubKey, err := cryptocodec.ToTmPubKeyInterface(pubKey)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "tm pub key")
+	}
+
+	val := cometbfttypes.NewValidator(tmPubKey, 1)
+
+	valset, err := cometbfttypes.ValidatorSetFromExistingValidators([]*cometbfttypes.Validator{
+		val,
+	})
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "validator set")
+	}
+	return valset.Hash(), nil
 }
 
 // GetDymintPubKeyHash returns the hash of the sequencer
