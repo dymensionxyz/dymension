@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -9,7 +8,6 @@ import (
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
-	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,6 +16,10 @@ import (
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
+
+func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
 
 type Keeper struct {
 	cdc             codec.BinaryCodec
@@ -113,77 +115,12 @@ func (k Keeper) RemoveSigner(ctx sdk.Context, seqAddr string, client string, h u
 	)
 }
 
-// GetSequencerHash returns the sequencer's tendermint public key hash
-func (k Keeper) GetSequencerHash(ctx sdk.Context, addr string) ([]byte, error) {
-	seq, err := k.sequencerKeeper.GetRealSequencer(ctx, addr)
-	if err != nil {
-		return nil, err
+func (k Keeper) IsRollappClient(ctx sdk.Context, clientID, chainID string) bool {
+	ra, ok := k.GetRollappForClientID(ctx, clientID)
+	if !ok {
+		return false
 	}
-	return seq.GetDymintPubKeyHash()
-}
-
-func (k Keeper) GetSequencerPubKey(ctx sdk.Context, addr string) (tmprotocrypto.PublicKey, error) {
-	seq, err := k.sequencerKeeper.GetRealSequencer(ctx, addr)
-	if err != nil {
-		return tmprotocrypto.PublicKey{}, err
-	}
-	return seq.CometPubKey()
-}
-
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
-}
-
-func (k Keeper) GetSequencerFromValHash(ctx sdk.Context, rollappID string, blockValHash []byte) (string, error) {
-	sequencerList := k.sequencerKeeper.RollappSequencers(ctx, rollappID)
-	for _, seq := range sequencerList {
-		seqHash, err := seq.GetDymintPubKeyHash()
-		if err != nil {
-			return "", err
-		}
-		if bytes.Equal(seqHash, blockValHash) {
-			return seq.Address, nil
-		}
-	}
-	return "", types.ErrSequencerNotFound
-}
-
-// SetConsensusStateValHash sets block valHash for the given height of the client
-// Deprecated
-func (k Keeper) SetConsensusStateValHash(ctx sdk.Context, clientID string, height uint64, blockValHash []byte) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.ConsensusStateValhashKeyByClientID(clientID, height), blockValHash)
-}
-
-func (k Keeper) RemoveConsensusStateValHash(ctx sdk.Context, clientID string, height uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.ConsensusStateValhashKeyByClientID(clientID, height))
-}
-
-// GetConsensusStateValHash returns the block valHash for the given height of the client
-func (k Keeper) GetConsensusStateValHash(ctx sdk.Context, clientID string, height uint64) ([]byte, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.ConsensusStateValhashKeyByClientID(clientID, height))
-	if bz == nil {
-		return nil, false
-	}
-	return bz, true
-}
-
-func (k Keeper) GetAllConsensusStateSigners(ctx sdk.Context) (signers []types.ConsensusStateSigner) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ConsensusStateValhashKey)
-	defer iterator.Close() // nolint: errcheck
-	for ; iterator.Valid(); iterator.Next() {
-		key := iterator.Key()
-		clientID, height := types.ParseConsensusStateValhashKey(key)
-		signers = append(signers, types.ConsensusStateSigner{
-			IbcClientId:  clientID,
-			Height:       height,
-			BlockValHash: string(iterator.Value()),
-		})
-	}
-	return
+	return ra == chainID
 }
 
 func (k Keeper) GetRollappForClientID(ctx sdk.Context, clientID string) (string, bool) {

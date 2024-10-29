@@ -89,9 +89,10 @@ func (i IBCMessagesDecorator) getSequencer(ctx sdk.Context, header *ibctm.Header
 	return i.rollappKeeper.GetRealSequencer(ctx, addr)
 }
 
-func (i IBCMessagesDecorator) isCanonical(ctx sdk.Context, msg *ibcclienttypes.MsgUpdateClient, chainID string) bool {
+func (i IBCMessagesDecorator) isCanonical(ctx sdk.Context, clientID, chainID string) bool {
+	return
 	canonicalID, _ := i.lightClientKeeper.GetCanonicalClient(ctx, chainID)
-	return msg.ClientId == canonicalID
+	return clientID == canonicalID
 }
 
 func getHeader(msg *ibcclienttypes.MsgUpdateClient) (*ibctm.Header, error) {
