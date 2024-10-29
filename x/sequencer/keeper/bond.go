@@ -47,6 +47,13 @@ func (k Keeper) unbond(ctx sdk.Context, seq *types.Sequencer) error {
 they cannot do frauds and they cannot unbond gracefully`)
 	}
 	seq.Status = types.Unbonded
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeUnbonded,
+			sdk.NewAttribute(types.AttributeKeySequencer, seq.Address),
+		),
+	)
 	if k.IsProposer(ctx, *seq) {
 		k.SetProposer(ctx, seq.RollappId, types.SentinelSeqAddr)
 		k.SetSuccessor(ctx, seq.RollappId, types.SentinelSeqAddr)

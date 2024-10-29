@@ -88,6 +88,18 @@ func (k Keeper) OnProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) e
 	if !allowLastBlock {
 		return errorsmod.Wrap(gerrc.ErrFault, "sequencer has submitted last block without finishing notice period")
 	}
+
 	k.SetProposer(ctx, proposer.RollappId, types.SentinelSeqAddr)
-	return errorsmod.Wrap(k.ChooseProposer(ctx, proposer.RollappId), "choose proposer")
+	if err := k.ChooseProposer(ctx, proposer.RollappId); err != nil {
+		return errorsmod.Wrap(err, "choose proposer")
+	}
+	after := k.GetProposer(ctx, proposer.RollappId)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeProposerRotated,
+			sdk.NewAttribute(types.AttributeKeyRollappId, proposer.RollappId),
+			sdk.NewAttribute(types.AttributeKeySequencer, after.Address),
+		),
+	)
+	return nil
 }
