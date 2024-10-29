@@ -8,11 +8,32 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
+
+func (k Keeper) CanUnbond(ctx sdk.Context, seq sequencertypes.Sequencer) error {
+	rng := collections.NewPrefixedPairRange[string, uint64](seq.Address)
+	return k.seqToUnfinalizedHeight.Walk(ctx, rng, func(key collections.Pair[string, uint64]) (stop bool, err error) {
+		// we found one!
+		return true, errorsmod.Wrapf(sequencertypes.ErrUnbondNotAllowed, "unfinalized height: h: %d", key.K2())
+	})
+}
+
+// PruneSequencerHeights removes bookkeeping for all heights ABOVE h for given sequencers
+// On rollback, this should be called passing all sequencers who sequenced a rolled back block
+func (k Keeper) PruneSequencerHeights(ctx sdk.Context, sequencers []string, h uint64) error {
+	for _, seqAddr := range sequencers {
+		rng := collections.NewPrefixedPairRange[string, uint64](seqAddr).StartExclusive(h)
+		if err := k.seqToUnfinalizedHeight.Clear(ctx, rng); err != nil {
+			return errorsmod.Wrapf(err, "seq: %s", seqAddr)
+		}
+	}
+	return nil
+}
 
 func (k Keeper) SaveSequencerHeight(ctx sdk.Context, seqAddr string, height uint64) error {
 	return k.seqToUnfinalizedHeight.Set(ctx, collections.Join(seqAddr, height))
