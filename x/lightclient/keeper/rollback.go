@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
@@ -13,10 +12,11 @@ import (
 )
 
 func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappId string, height uint64) error {
-	return hook.k.RollbackClient(ctx, rollappId, height)
+	hook.k.RollbackClient(ctx, rollappId, height)
+	return nil
 }
 
-func (k Keeper) RollbackClient(ctx sdk.Context, client string, height uint64) error {
+func (k Keeper) RollbackClient(ctx sdk.Context, client string, height uint64) {
 	cs := k.ibcClientKeeper.ClientStore(ctx, client)
 
 	// iterate over all consensus states and metadata in the client store
@@ -33,27 +33,22 @@ func (k Keeper) RollbackClient(ctx sdk.Context, client string, height uint64) er
 		// clean the optimistic updates valset
 		k.RemoveConsensusStateValHash(ctx, client, height)
 
-		// FIXME: marks the hardfork height
-		// k.markHardForkHeight(ctx, targetHeight)
 		return false
 	})
+	// marks that hard fork is in progress
+	k.setHardForkInProgress(ctx, client)
 
 	// freeze the client
 	// it will be released after the hardfork is resolved (on the next state update)
-	err := k.freezeClient(cs, height)
-	if err != nil {
-		return errorsmod.Wrap(err, "failed to reset client to last valid state")
-	}
-
-	return nil
+	k.freezeClient(cs, height)
 }
 
 // set latest IBC consensus state nextValHash to the current proposing sequencer.
 func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) {
 	clientStore := k.ibcClientKeeper.ClientStore(ctx, rollappID)
+
 	stateinfo, _ := k.rollappKeeper.GetLatestStateInfo(ctx, rollappID)
 	height := stateinfo.GetLatestHeight()
-
 	bd := stateinfo.GetLatestBlockDescriptor()
 
 	// unfreeze the client and set the latest height
@@ -61,45 +56,37 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) {
 
 	// add consensus states based on the block descriptors
 	valHash := k.getValidatorHashForHeight(ctx, rollappID, height)
-	cs2 := ibctm.ConsensusState{
+	cs := ibctm.ConsensusState{
 		Timestamp:          bd.Timestamp,
 		Root:               commitmenttypes.NewMerkleRoot(bd.StateRoot),
 		NextValidatorsHash: valHash,
 	}
 
-	setConsensusState(clientStore, k.cdc, clienttypes.NewHeight(1, height), &cs2)
+	setConsensusState(clientStore, k.cdc, clienttypes.NewHeight(1, height), &cs)
+
+	k.setHardForkResolved(ctx, rollappID)
 }
 
 // freezeClient freezes the client by setting the frozen height to the current height
-func (k Keeper) freezeClient(clientStore sdk.KVStore, height uint64) error {
+func (k Keeper) freezeClient(clientStore sdk.KVStore, height uint64) {
 	c := getClientState(clientStore, k.cdc)
-	tmClientState, ok := c.(*ibctm.ClientState)
-	if !ok {
-		return types.ErrorInvalidClientType
-	}
+	tmClientState := c.(*ibctm.ClientState)
 
 	// freeze the client
 	tmClientState.FrozenHeight = clienttypes.NewHeight(1, height)
-
 	setClientState(clientStore, k.cdc, tmClientState)
-	return nil
 }
 
 // freezeClient freezes the client by setting the frozen height to the current height
-func (k Keeper) resetClientToValidState(clientStore sdk.KVStore, height uint64) error {
+func (k Keeper) resetClientToValidState(clientStore sdk.KVStore, height uint64) {
 	c := getClientState(clientStore, k.cdc)
+	tmClientState := c.(*ibctm.ClientState)
 
-	// Cast client state to tendermint client state
-	tmClientState, ok := c.(*ibctm.ClientState)
-	if !ok {
-		return types.ErrorInvalidClientType
-	}
-	// unfreeze the client
+	// unfreeze the client and set the latest height
 	tmClientState.FrozenHeight = clienttypes.ZeroHeight()
 	tmClientState.LatestHeight = clienttypes.NewHeight(1, height)
 
 	setClientState(clientStore, k.cdc, tmClientState)
-	return nil
 }
 
 // FIXME: assure there's no case with no proposer
