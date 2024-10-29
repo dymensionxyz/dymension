@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"slices"
 
+	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
@@ -11,6 +13,14 @@ import (
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
+
+func (k Keeper) SaveSequencerHeight(ctx sdk.Context, seqAddr string, height uint64) error {
+	return k.seqToUnfinalizedHeight.Set(ctx, collections.Join(seqAddr, height))
+}
+
+func (k Keeper) DelSequencerHeight(ctx sdk.Context, seqAddr string, height uint64) error {
+	return k.seqToUnfinalizedHeight.Remove(ctx, collections.Join(seqAddr, height))
+}
 
 // FinalizeRollappStates is called every block to finalize states when their dispute period over.
 func (k Keeper) FinalizeRollappStates(ctx sdk.Context) {
@@ -78,6 +88,13 @@ func (k *Keeper) finalizePendingState(ctx sdk.Context, stateInfoIndex types.Stat
 	k.SetStateInfo(ctx, stateInfo)
 	// update the LatestStateInfoIndex of the rollapp
 	k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
+
+	for _, bd := range stateInfo.BDs.BD {
+		if err := k.DelSequencerHeight(ctx, stateInfo.Sequencer, bd.Height); err != nil {
+			return errorsmod.Wrap(err, "del sequencer height")
+		}
+	}
+
 	// call the after-update-state hook
 	err := k.GetHooks().AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
 	if err != nil {

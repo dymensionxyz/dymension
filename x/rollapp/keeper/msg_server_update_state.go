@@ -134,6 +134,12 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		FinalizationQueue: newFinalizationQueue,
 	})
 
+	for _, bd := range msg.BDs.BD {
+		if err := k.SaveSequencerHeight(ctx, stateInfo.Sequencer, bd.Height); err != nil {
+			return nil, errorsmod.Wrap(err, "save sequencer height")
+		}
+	}
+
 	// TODO: enforce `final_state_update_timeout` if sequencer rotation is in progress
 	// https://github.com/dymensionxyz/dymension/issues/1085
 	k.IndicateLiveness(ctx, &rollapp)

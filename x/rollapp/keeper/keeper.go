@@ -31,7 +31,8 @@ type Keeper struct {
 
 	vulnerableDRSVersions collections.KeySet[string]
 
-	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
+	finalizePending        func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
+	seqToUnfinalizedHeight collections.KeySet[collections.Pair[string, uint64]]
 }
 
 func NewKeeper(
