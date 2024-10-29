@@ -8,6 +8,7 @@ import (
 	cometbfttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,6 +19,20 @@ import (
 const (
 	SentinelSeqAddr = "sentinel"
 )
+
+func NewTestSequencer(
+	pk cryptotypes.PubKey,
+) Sequencer {
+	pkAny, err := codectypes.NewAnyWithValue(pk)
+	if err != nil {
+		panic(err)
+	}
+	return Sequencer{
+		Address:      sdk.AccAddress(pk.Address()).String(),
+		DymintPubKey: pkAny,
+	}
+
+}
 
 // ValidateBasic performs basic validation of the sequencer object
 func (seq Sequencer) ValidateBasic() error {
@@ -74,6 +89,15 @@ func (seq Sequencer) NoticeElapsed(now time.Time) bool {
 
 func (seq Sequencer) NoticeStarted() bool {
 	return seq.NoticePeriodTime != time.Time{}
+}
+
+// MustValsetHash : intended for tests
+func (seq Sequencer) MustValsetHash() []byte {
+	x, err := seq.ValsetHash()
+	if err != nil {
+		panic(err)
+	}
+	return x
 }
 
 func (seq Sequencer) ValsetHash() ([]byte, error) {
