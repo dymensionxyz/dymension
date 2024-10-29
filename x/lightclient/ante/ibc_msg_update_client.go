@@ -71,7 +71,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	}
 
 	// the header is optimistic: the state update has not yet been received, so we save optimistically
-	return errorsmod.Wrap(i.lightClientKeeper.SaveUpdater(ctx, seq, msg.ClientId, h), "save updater")
+	return errorsmod.Wrap(i.lightClientKeeper.SaveSigner(ctx, seq, msg.ClientId, h), "save updater")
 }
 
 var (
