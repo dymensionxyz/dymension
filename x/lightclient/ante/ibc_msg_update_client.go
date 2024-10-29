@@ -1,6 +1,8 @@
 package ante
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -14,6 +16,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	if !found {
 		return nil
 	}
+
 	// Cast client state to tendermint client state - we need this to get the chain id(rollapp id)
 	tmClientState, ok := clientState.(*ibctm.ClientState)
 	if !ok {
@@ -24,6 +27,11 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	canonicalClient, _ := i.lightClientKeeper.GetCanonicalClient(ctx, rollappID)
 	if canonicalClient != msg.ClientId {
 		return nil // The client is not a rollapp's canonical client. Continue with default behaviour.
+	}
+
+	// cannot update the LC unless fork is resolved (after receiving state updates of HF height +1 & HF height +2
+	if i.lightClientKeeper.IsHardForkingInProgress(ctx, rollappID) {
+		return fmt.Errorf("cannot update light client until forking is finished")
 	}
 
 	clientMessage, err := ibcclienttypes.UnpackClientMessage(msg.ClientMessage)
@@ -38,6 +46,15 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	if !ok {
 		return nil
 	}
+
+	// FIXME: enable later on
+	/*
+		// this disallows LC updates from previous revisions but should be fine since new state roots can be used to prove
+		// state older than the one in the current state root.
+		if header.Header.Version.App != i.rollappKeeper.GetRevision(ctx, rollappID) {
+			return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "client is not compatible with the rollapp")
+		}
+	*/
 
 	// Check if there are existing block descriptors for the given height of client state
 	height := uint64(header.Header.Height)

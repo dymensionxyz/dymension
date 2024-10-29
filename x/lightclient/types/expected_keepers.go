@@ -17,12 +17,15 @@ type SequencerKeeperExpected interface {
 	GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list []sequencertypes.Sequencer)
 	UnbondingTime(ctx sdk.Context) (res time.Duration)
 	JailSequencerOnFraud(ctx sdk.Context, sequencerAddress string) error
+
+	GetProposer(ctx sdk.Context, rollappId string) (val sequencertypes.Sequencer, found bool)
 }
 
 type RollappKeeperExpected interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
 	FindStateInfoByHeight(ctx sdk.Context, rollappId string, height uint64) (*rollapptypes.StateInfo, error)
 	GetStateInfo(ctx sdk.Context, rollappId string, index uint64) (val rollapptypes.StateInfo, found bool)
+	GetLatestStateInfo(ctx sdk.Context, rollappId string) (rollapptypes.StateInfo, bool)
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
 	HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) error
 }

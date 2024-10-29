@@ -1,17 +1,13 @@
 package keeper
 
 import (
-	"encoding/binary"
-
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
@@ -42,8 +38,9 @@ func (k Keeper) RollbackClient(ctx sdk.Context, client string, height uint64) er
 		return false
 	})
 
-	// reset IBC client
-	err := k.resetClientToLastValidState(ctx, client)
+	// freeze the client
+	// it will be released after the hardfork is resolved (on the next state update)
+	err := k.freezeClient(cs, height)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to reset client to last valid state")
 	}
@@ -51,86 +48,78 @@ func (k Keeper) RollbackClient(ctx sdk.Context, client string, height uint64) er
 	return nil
 }
 
-// deleteConsensusMetadata deletes the metadata stored for a particular consensus state.
-func deleteConsensusMetadata(clientStore sdk.KVStore, height exported.Height) {
-	deleteProcessedTime(clientStore, height)
-	deleteProcessedHeight(clientStore, height)
-	deleteIterationKey(clientStore, height)
-}
+// set latest IBC consensus state nextValHash to the current proposing sequencer.
+func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) {
+	clientStore := k.ibcClientKeeper.ClientStore(ctx, rollappID)
+	stateinfo, _ := k.rollappKeeper.GetLatestStateInfo(ctx, rollappID)
+	height := stateinfo.GetLatestHeight()
 
-// deleteConsensusState deletes the consensus state at the given height
-func deleteConsensusState(clientStore sdk.KVStore, height exported.Height) {
-	key := host.ConsensusStateKey(height)
-	clientStore.Delete(key)
-}
+	bd := stateinfo.GetLatestBlockDescriptor()
 
-// deleteProcessedTime deletes the processedTime for a given height
-func deleteProcessedTime(clientStore sdk.KVStore, height exported.Height) {
-	key := ibctm.ProcessedTimeKey(height)
-	clientStore.Delete(key)
-}
+	// unfreeze the client and set the latest height
+	k.resetClientToValidState(clientStore, height)
 
-// deleteProcessedHeight deletes the processedHeight for a given height
-func deleteProcessedHeight(clientStore sdk.KVStore, height exported.Height) {
-	key := ibctm.ProcessedHeightKey(height)
-	clientStore.Delete(key)
-}
-
-// deleteIterationKey deletes the iteration key for a given height
-func deleteIterationKey(clientStore sdk.KVStore, height exported.Height) {
-	key := ibctm.IterationKey(height)
-	clientStore.Delete(key)
-}
-
-func (k Keeper) resetClientToLastValidState(ctx sdk.Context, client string) error {
-	c, ok := k.ibcClientKeeper.GetClientState(ctx, client)
-	if !ok {
-		return types.ErrorMissingClientState
+	// add consensus states based on the block descriptors
+	valHash := k.getValidatorHashForHeight(ctx, rollappID, height)
+	cs2 := ibctm.ConsensusState{
+		Timestamp:          bd.Timestamp,
+		Root:               commitmenttypes.NewMerkleRoot(bd.StateRoot),
+		NextValidatorsHash: valHash,
 	}
+
+	setConsensusState(clientStore, k.cdc, clienttypes.NewHeight(1, height), &cs2)
+}
+
+// freezeClient freezes the client by setting the frozen height to the current height
+func (k Keeper) freezeClient(clientStore sdk.KVStore, height uint64) error {
+	c := getClientState(clientStore, k.cdc)
+	tmClientState, ok := c.(*ibctm.ClientState)
+	if !ok {
+		return types.ErrorInvalidClientType
+	}
+
+	// freeze the client
+	tmClientState.FrozenHeight = clienttypes.NewHeight(1, height)
+
+	setClientState(clientStore, k.cdc, tmClientState)
+	return nil
+}
+
+// freezeClient freezes the client by setting the frozen height to the current height
+func (k Keeper) resetClientToValidState(clientStore sdk.KVStore, height uint64) error {
+	c := getClientState(clientStore, k.cdc)
 
 	// Cast client state to tendermint client state
 	tmClientState, ok := c.(*ibctm.ClientState)
 	if !ok {
 		return types.ErrorInvalidClientType
 	}
+	// unfreeze the client
+	tmClientState.FrozenHeight = clienttypes.ZeroHeight()
+	tmClientState.LatestHeight = clienttypes.NewHeight(1, height)
 
-	// update the height of the client to the last valid height
-	prevHeight, found := GetPreviousConsensusStateHeight(k.ibcClientKeeper.ClientStore(ctx, client), k.cdc, tmClientState.LatestHeight)
-	if !found {
-		// if no previous height is found, set the height to 0
-		prevHeight = clienttypes.Height{RevisionNumber: 0, RevisionHeight: 0}
-	}
-
-	// set the client state to the previous state
-	tmClientState.LatestHeight = prevHeight.(clienttypes.Height)
-	setClientState(k.ibcClientKeeper.ClientStore(ctx, client), k.cdc, tmClientState)
-
+	setClientState(clientStore, k.cdc, tmClientState)
 	return nil
 }
 
-func GetPreviousConsensusStateHeight(clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (exported.Height, bool) {
-	iterateStore := prefix.NewStore(clientStore, []byte(ibctm.KeyIterateConsensusStatePrefix))
-	iterator := iterateStore.ReverseIterator(nil, bigEndianHeightBytes(height))
-	defer iterator.Close()
+// FIXME: assure there's no case with no proposer
+func (k Keeper) getValidatorHashForHeight(ctx sdk.Context, rollappId string, height uint64) []byte {
+	proposer, _ := k.sequencerKeeper.GetProposer(ctx, rollappId)
+	proposerHash, _ := proposer.GetDymintPubKeyHash()
 
-	if !iterator.Valid() {
-		return nil, false
-	}
-
-	prevHeight := ibctm.GetHeightFromIterationKey(iterator.Key())
-	return prevHeight, true
+	return proposerHash
 }
 
-// setClientState stores the client state
-func setClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState exported.ClientState) {
-	key := host.ClientStateKey()
-	val := clienttypes.MustMarshalClientState(cdc, clientState)
-	clientStore.Set(key, val)
+func (k Keeper) setHardForkInProgress(ctx sdk.Context, rollappID string) {
+	ctx.KVStore(k.storeKey).Set(types.HardForkKey(rollappID), []byte{0x01})
 }
 
-func bigEndianHeightBytes(height exported.Height) []byte {
-	heightBytes := make([]byte, 16)
-	binary.BigEndian.PutUint64(heightBytes, height.GetRevisionNumber())
-	binary.BigEndian.PutUint64(heightBytes[8:], height.GetRevisionHeight())
-	return heightBytes
+// remove the hardfork key from the store
+func (k Keeper) setHardForkResolved(ctx sdk.Context, rollappID string) {
+	ctx.KVStore(k.storeKey).Delete(types.HardForkKey(rollappID))
+}
+
+// checks if rollapp is hard forking
+func (k Keeper) IsHardForkingInProgress(ctx sdk.Context, rollappID string) bool {
+	return ctx.KVStore(k.storeKey).Has(types.HardForkKey(rollappID))
 }
