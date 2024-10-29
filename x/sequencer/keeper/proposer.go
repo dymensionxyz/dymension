@@ -52,8 +52,9 @@ func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 		k.hooks.AfterChooseNewProposer(ctx, rollapp, before, after)
 
 		if err := uevent.EmitTypedEvent(ctx, &types.EventProposerChange{
-			Before: before.Address,
-			After:  after.Address,
+			Rollapp: rollapp,
+			Before:  before.Address,
+			After:   after.Address,
 		}); err != nil {
 			return err
 		}

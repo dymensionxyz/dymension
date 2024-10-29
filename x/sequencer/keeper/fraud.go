@@ -29,6 +29,7 @@ func (k Keeper) KickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 		k.hooks.AfterKickProposer(ctx, proposer)
 
 		if err := uevent.EmitTypedEvent(ctx, &types.EventKickedProposer{
+			Rollapp:  ra,
 			Kicker:   kicker.Address,
 			Proposer: proposer.Address,
 		}); err != nil {
