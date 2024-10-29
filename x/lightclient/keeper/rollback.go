@@ -12,11 +12,16 @@ import (
 )
 
 func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappId string, height uint64) error {
-	hook.k.RollbackClient(ctx, rollappId, height)
+	hook.k.RollbackCanonicalClient(ctx, rollappId, height)
 	return nil
 }
 
-func (k Keeper) RollbackClient(ctx sdk.Context, client string, height uint64) {
+func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, height uint64) {
+	client, found := k.GetCanonicalClient(ctx, rollappId)
+	if !found {
+		k.Logger(ctx).Error("Canonical client not found", "rollappId", rollappId)
+		return
+	}
 	cs := k.ibcClientKeeper.ClientStore(ctx, client)
 
 	// iterate over all consensus states and metadata in the client store

@@ -345,10 +345,17 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_NotCompat
 
 	// Assert that hard fork was triggered
 	rollapp, _ := s.hubApp().RollappKeeper.GetRollapp(s.hubCtx(), s.rollappChain().ChainID)
-	s.Equal(2, rollapp.RevisionNumber)
+	s.Equal(uint64(1), rollapp.RevisionNumber)
 
 	// The optimistic update valhash should be removed as part of fraud handling
 	_, found = s.hubApp().LightClientKeeper.GetConsensusStateValHash(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
 	s.False(found)
-	// FIXME: test for fraud handling in the `x/lightclient`
 }
+
+// FIXME: test rollback
+// - do some client updates
+// - trigger rollback
+// - check if the client is frozen, and IsHardForkingInProgress returns true
+// - validate client updates are blocked
+// - validate future consensus states are cleared
+// test resolve hard fork
