@@ -15,6 +15,7 @@ type IBCMessagesDecorator struct {
 	ibcClientKeeper   types.IBCClientKeeperExpected
 	ibcChannelKeeper  types.IBCChannelKeeperExpected
 	rollappKeeper     types.RollappKeeperExpected
+	sequencerKeeper   types.SequencerKeeperExpected
 	lightClientKeeper keeper.Keeper
 }
 
@@ -30,6 +31,7 @@ func NewIBCMessagesDecorator(k keeper.Keeper, ibcClient types.IBCClientKeeperExp
 func (i IBCMessagesDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	msgs := tx.GetMsgs()
 	for _, m := range msgs {
+		// TODO: need to handle authz etc
 		switch msg := m.(type) {
 		case *ibcclienttypes.MsgSubmitMisbehaviour:
 			if err := i.HandleMsgSubmitMisbehaviour(ctx, msg); err != nil {

@@ -115,14 +115,6 @@ func (k Keeper) RemoveSigner(ctx sdk.Context, seqAddr string, client string, h u
 	)
 }
 
-func (k Keeper) IsRollappClient(ctx sdk.Context, clientID, chainID string) bool {
-	ra, ok := k.GetRollappForClientID(ctx, clientID)
-	if !ok {
-		return false
-	}
-	return ra == chainID
-}
-
 func (k Keeper) GetRollappForClientID(ctx sdk.Context, clientID string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.CanonicalClientKey(clientID))

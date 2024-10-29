@@ -101,9 +101,10 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.Client
 			return errorsmod.Wrap(err, "find state info by height h+1")
 		}
 		bd, _ := stateInfoH.GetBlockDescriptor(h)
-		oldSequencer, err := k.GetSequencerPubKey(ctx, stateInfoHplus1.Sequencer)
+
+		oldSequencer, err := k.rollappKeeper.GetRealSequencer(ctx, stateInfoHplus1.Sequencer)
 		if err != nil {
-			return errorsmod.Wrap(err, "get sequencer pubkey")
+			return errorsmod.Wrap(err, "get sequencer")
 		}
 		rollappState := types.RollappState{
 			BlockDescriptor:    bd,

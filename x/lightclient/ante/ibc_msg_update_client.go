@@ -66,7 +66,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	}
 
 	// the header is optimistic: the state update has not yet been received, so we save optimistically
-	return errorsmod.Wrap(i.lightClientKeeper.SaveSigner(ctx, seq, msg.ClientId, h), "save updater")
+	return errorsmod.Wrap(i.lightClientKeeper.SaveSigner(ctx, seq.Address, msg.ClientId, h), "save updater")
 }
 
 var (
@@ -131,9 +131,9 @@ func (i IBCMessagesDecorator) getStateInfos(ctx sdk.Context, rollapp string, h u
 
 func (i IBCMessagesDecorator) validateUpdatePessimistically(ctx sdk.Context, infos stateInfos, consState *ibctm.ConsensusState, h uint64) error {
 	bd, _ := infos.containingH.GetBlockDescriptor(h)
-	seq, err := i.lightClientKeeper.GetSequencerPubKey(ctx, infos.containingHPlus1.Sequencer)
+	seq, err := i.sequencerKeeper.GetRealSequencer(ctx, infos.containingHPlus1.Sequencer)
 	if err != nil {
-		return errorsmod.Wrap(err, "get sequencer pub key")
+		return gerrc.ErrInternal.Wrap("get sequencer of state info")
 	}
 	rollappState := types.RollappState{
 		BlockDescriptor:    bd,
