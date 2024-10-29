@@ -24,11 +24,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
 
-const (
-	aliceAddr    = "cosmos1jmjfq0tplp9tmx4v9uemw72y4d2wa5nr3xn9d3"
-	bech32Prefix = "eth"
-)
-
 var (
 	bond = types.DefaultParams().MinBond
 	kick = types.DefaultParams().KickThreshold
