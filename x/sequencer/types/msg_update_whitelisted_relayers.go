@@ -10,6 +10,8 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
+const maxWhitelistedRelayers = 10
+
 var _ sdk.Msg = new(MsgUpdateWhitelistedRelayers)
 
 func (m *MsgUpdateWhitelistedRelayers) ValidateBasic() error {
@@ -25,6 +27,9 @@ func (m *MsgUpdateWhitelistedRelayers) ValidateBasic() error {
 }
 
 func ValidateWhitelistedRelayers(wr []string) error {
+	if len(wr) > maxWhitelistedRelayers {
+		return fmt.Errorf("maximum allowed relayers is %d", maxWhitelistedRelayers)
+	}
 	relayers := make(map[string]struct{}, len(wr))
 	for _, r := range wr {
 		if _, ok := relayers[r]; ok {

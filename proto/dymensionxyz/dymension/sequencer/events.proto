@@ -18,18 +18,6 @@ message EventIncreasedBond {
     repeated cosmos.base.v1beta1.Coin bond = 3 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }
 
-message EventRotationStarted {
-    // RollappId defines the rollapp to which the sequencer belongs.
-    string rollapp_id = 1;
-    // NextProposerAddr is the bech32-encoded address of the next proposer.
-    // can be empty if no sequencer is available to be the next proposer.
-    string next_proposer_addr = 2;
-    // RewardAddr is a bech32-encoded address of the sequencer's reward address.
-    string reward_addr = 3;
-    // WhitelistedRelayers is a list of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
-    repeated string whitelisted_relayers = 4;
-}
-
 message EventUpdateRewardAddress {
     // Operator is the bech32-encoded address of the actor sending the update
     string creator = 1;
