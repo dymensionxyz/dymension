@@ -14,12 +14,7 @@ import (
 )
 
 func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibcclienttypes.MsgUpdateClient) error {
-	chainID, ok := i.getChainID(ctx, msg)
-	if !ok {
-		// not relevant
-		return nil
-	}
-	canonical := i.isCanonical(ctx, msg, chainID)
+	_, canonical := i.lightClientKeeper.GetRollappForClientID(ctx, msg.ClientId)
 	header, err := getHeader(msg)
 	if !canonical && errorsmod.IsOf(err, errIsMisbehaviour) {
 		// We don't want to block misbehavior submission for non rollapps
@@ -89,12 +84,6 @@ func (i IBCMessagesDecorator) getSequencer(ctx sdk.Context, header *ibctm.Header
 	return i.rollappKeeper.GetRealSequencer(ctx, addr)
 }
 
-func (i IBCMessagesDecorator) isCanonical(ctx sdk.Context, clientID, chainID string) bool {
-	return
-	canonicalID, _ := i.lightClientKeeper.GetCanonicalClient(ctx, chainID)
-	return clientID == canonicalID
-}
-
 func getHeader(msg *ibcclienttypes.MsgUpdateClient) (*ibctm.Header, error) {
 	clientMessage, err := ibcclienttypes.UnpackClientMessage(msg.ClientMessage)
 	if err != nil {
@@ -109,18 +98,6 @@ func getHeader(msg *ibcclienttypes.MsgUpdateClient) (*ibctm.Header, error) {
 		return nil, nil
 	}
 	return header, nil
-}
-
-func (i IBCMessagesDecorator) getChainID(ctx sdk.Context, msg *ibcclienttypes.MsgUpdateClient) (string, bool) {
-	clientState, ok := i.ibcClientKeeper.GetClientState(ctx, msg.ClientId)
-	if !ok {
-		return "", false
-	}
-	tmClientState, ok := clientState.(*ibctm.ClientState)
-	if !ok {
-		return "", false
-	}
-	return tmClientState.ChainId, true
 }
 
 // if containingHPlus1 is not nil then containingH also guaranteed to not be nil
