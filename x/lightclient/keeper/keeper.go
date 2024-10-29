@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
@@ -14,6 +15,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -23,6 +25,11 @@ type Keeper struct {
 	ibcClientKeeper types.IBCClientKeeperExpected
 	sequencerKeeper types.SequencerKeeperExpected
 	rollappKeeper   types.RollappKeeperExpected
+
+	// <sequencer addr,client ID, height>
+	headerSigners collections.KeySet[collections.Triple[string, string, uint64]]
+	// <client ID, height> -> <sequencer addr>
+	clientHeightToSigner collections.Map[collections.Pair[string, uint64], string]
 }
 
 func NewKeeper(
@@ -40,6 +47,9 @@ func NewKeeper(
 		rollappKeeper:   rollappKeeper,
 	}
 	return k
+}
+
+func (k Keeper) SaveUpdater(ctx sdk.Context, seq sequencertypes.Sequencer, client string, h uint64) error {
 }
 
 // GetSequencerHash returns the sequencer's tendermint public key hash
@@ -78,6 +88,7 @@ func (k Keeper) GetSequencerFromValHash(ctx sdk.Context, rollappID string, block
 }
 
 // SetConsensusStateValHash sets block valHash for the given height of the client
+// Deprecated
 func (k Keeper) SetConsensusStateValHash(ctx sdk.Context, clientID string, height uint64, blockValHash []byte) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.ConsensusStateValhashKeyByClientID(clientID, height), blockValHash)

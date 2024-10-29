@@ -67,12 +67,11 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 
 	if stateInfos.containingHPlus1 != nil {
 		// the header is pessimistic: the state update has already been received, so we check the header doesn't mismatch
-		return i.validateUpdatePessimistically(ctx, stateInfos, header.ConsensusState(), h)
+		return errorsmod.Wrap(i.validateUpdatePessimistically(ctx, stateInfos, header.ConsensusState(), h), "validate pessimistic")
 	}
 
 	// the header is optimistic: the state update has not yet been received, so we save optimistically
-	i.acceptUpdateOptimistically(ctx, seq, msg.ClientId, h)
-	return nil
+	return errorsmod.Wrap(i.lightClientKeeper.SaveUpdater(ctx, seq, msg.ClientId, h), "save updater")
 }
 
 var (
@@ -163,12 +162,4 @@ func (i IBCMessagesDecorator) validateUpdatePessimistically(ctx sdk.Context, inf
 		NextBlockSequencer: seq,
 	}
 	return errorsmod.Wrap(types.CheckCompatibility(*consState, rollappState), "check compatability")
-}
-
-func (i IBCMessagesDecorator) acceptUpdateOptimistically(ctx sdk.Context, seq sequencertypes.Sequencer, client string, height uint64) {
-	i.lightClientKeeper.SetConsensusStateValHash(ctx, clientID, uint64(header.Header.Height), header.Header.ValidatorsHash)
-}
-
-func (i IBCMessagesDecorator) acceptUpdateOptimisticallyLegacy(ctx sdk.Context, clientID string, header *ibctm.Header) {
-	i.lightClientKeeper.SetConsensusStateValHash(ctx, clientID, uint64(header.Header.Height), header.Header.ValidatorsHash)
 }
