@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -12,7 +13,7 @@ import (
 )
 
 type SequencerKeeperExpected interface {
-	SequencerByDymintAddr(ctx sdk.Context, addr string) (sequencertypes.Sequencer, error)
+	SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address) (sequencertypes.Sequencer, error)
 	GetRealSequencer(ctx sdk.Context, addr string) (sequencertypes.Sequencer, error)
 	RollappSequencers(ctx sdk.Context, rollappId string) (list []sequencertypes.Sequencer)
 }
