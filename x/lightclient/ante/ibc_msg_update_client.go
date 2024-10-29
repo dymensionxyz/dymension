@@ -20,7 +20,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 		return nil
 	}
 	canonical := i.isCanonical(ctx, msg, chainID)
-	header, err := i.getHeader(ctx, msg)
+	header, err := getHeader(msg)
 	if !canonical && errorsmod.IsOf(err, errIsMisbehaviour) {
 		// We don't want to block misbehavior submission for non rollapps
 		return nil
@@ -58,9 +58,8 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 		return gerrc.ErrInternal.Wrap("get rollapp from sequencer")
 	}
 
-	// now we check if the rollapp has already comm
-	h := header.GetHeight().GetRevisionHeight()
 	// TODO: in hard fork will need to also use revision to make sure not from old revision
+	h := header.GetHeight().GetRevisionHeight()
 	stateInfos, err := i.getStateInfos(ctx, rollapp.RollappId, h)
 	if err != nil {
 		return errorsmod.Wrap(err, "get state infos")
@@ -68,7 +67,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 
 	if stateInfos.containingHPlus1 != nil {
 		// the header is pessimistic: the state update has already been received, so we check the header doesn't mismatch
-		return i.validateUpdatePessimistically(ctx, stateInfos, header.ConsensusState())
+		return i.validateUpdatePessimistically(ctx, stateInfos, header.ConsensusState(), h)
 	}
 
 	// the header is optimistic: the state update has not yet been received, so we save optimistically
@@ -96,7 +95,7 @@ func (i IBCMessagesDecorator) isCanonical(ctx sdk.Context, msg *ibcclienttypes.M
 	return msg.ClientId == canonicalID
 }
 
-func (i IBCMessagesDecorator) getHeader(ctx sdk.Context, msg *ibcclienttypes.MsgUpdateClient) (*ibctm.Header, error) {
+func getHeader(msg *ibcclienttypes.MsgUpdateClient) (*ibctm.Header, error) {
 	clientMessage, err := ibcclienttypes.UnpackClientMessage(msg.ClientMessage)
 	if err != nil {
 		return nil, err
@@ -172,58 +171,4 @@ func (i IBCMessagesDecorator) acceptUpdateOptimistically(ctx sdk.Context, seq se
 
 func (i IBCMessagesDecorator) acceptUpdateOptimisticallyLegacy(ctx sdk.Context, clientID string, header *ibctm.Header) {
 	i.lightClientKeeper.SetConsensusStateValHash(ctx, clientID, uint64(header.Header.Height), header.Header.ValidatorsHash)
-}
-
-func (i IBCMessagesDecorator) HandleMsgUpdateClientLegacy(ctx sdk.Context, msg *ibcclienttypes.MsgUpdateClient) error {
-	clientState, found := i.ibcClientKeeper.GetClientState(ctx, msg.ClientId)
-	if !found {
-		return nil
-	}
-	// Cast client state to tendermint client state - we need this to get the chain id(rollapp id)
-	tmClientState, ok := clientState.(*ibctm.ClientState)
-	if !ok {
-		return nil
-	}
-	// Check if the client is the canonical client for the rollapp
-	rollappID := tmClientState.ChainId
-	canonicalClient, _ := i.lightClientKeeper.GetCanonicalClient(ctx, rollappID)
-	if canonicalClient != msg.ClientId {
-		return nil // The client is not a rollapp's canonical client. Continue with default behaviour.
-	}
-
-	clientMessage, err := ibcclienttypes.UnpackClientMessage(msg.ClientMessage)
-	if err != nil {
-		return nil
-	}
-	_, ok = clientMessage.(*ibctm.Misbehaviour)
-	if ok {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "misbehavior evidence is disabled for canonical clients")
-	}
-	header, ok := clientMessage.(*ibctm.Header)
-	if !ok {
-		return nil
-	}
-
-	h := header.GetHeight().GetRevisionHeight()
-	s0, s1, err := i.getStateInfos(ctx, rollappID, h)
-	if err != nil {
-		return errorsmod.Wrap(err, "get state infos")
-	}
-	bd, _ := s0.GetBlockDescriptor(h)
-	sequencerPubKey, err := i.lightClientKeeper.GetSequencerPubKey(ctx, s1.Sequencer)
-	if err != nil {
-		return err
-	}
-	rollappState := types.RollappState{
-		BlockDescriptor:    bd,
-		NextBlockSequencer: sequencerPubKey,
-	}
-	// Ensure that the ibc header is compatible with the existing rollapp state
-	// If it's not, we error and prevent the MsgUpdateClient from being processed
-	err = types.CheckCompatibility(*header.ConsensusState(), rollappState)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
