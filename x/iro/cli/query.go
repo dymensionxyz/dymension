@@ -63,7 +63,7 @@ func CmdQueryPlans() *cobra.Command {
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
-	cmd.Flags().BoolP(FlagTradableOnly, "a", false, "Query only tradable plans")
+	cmd.Flags().BoolP(FlagTradableOnly, "t", false, "Query only tradable plans")
 	return cmd
 }
 
