@@ -55,7 +55,6 @@ message StateInfo {
     ];
 
     // next sequencer is the bech32-encoded address of the next sequencer after the current sequencer
-    // if empty, it means there is no change in the sequencer
     string nextProposer = 11;
 }
 
