@@ -49,22 +49,67 @@ func NewKeeper(
 	return k
 }
 
+func (k Keeper) CanUnbond(ctx sdk.Context, seq sequencertypes.Sequencer) error {
+	client, ok := k.GetCanonicalClient(ctx, seq.RollappId)
+	if !ok {
+		return errorsmod.Wrap(sequencertypes.ErrUnbondNotAllowed, "no canonical client")
+	}
+	rng := collections.NewSuperPrefixedTripleRange[string, string, uint64](seq.Address, client)
+	return k.headerSigners.Walk(ctx, rng, func(key collections.Triple[string, string, uint64]) (stop bool, err error) {
+		return true, errorsmod.Wrapf(sequencertypes.ErrUnbondNotAllowed, "unverified header: h: %d", key.K3())
+	})
+}
+
+// PruneSigners removes bookkeeping for all heights ABOVE h for given rollapp
+// This should only be called after canonical client set
+// TODO: plug into hard fork
+func (k Keeper) PruneSigners(ctx sdk.Context, rollapp string, h uint64) error {
+	client, ok := k.GetCanonicalClient(ctx, rollapp)
+	if !ok {
+		return gerrc.ErrInternal.Wrap(`
+prune light client signers for rollapp before canonical client is set
+this suggests fork happened prior to genesis bridge completion, which
+shouldnt be allowed
+`)
+	}
+	rng := collections.NewPrefixedPairRange[string, uint64](client).StartExclusive(h)
+
+	seqs := make([]string, 0)
+	heights := make([]uint64, 0)
+
+	// collect first to avoid del while iterating
+	if err := k.clientHeightToSigner.Walk(ctx, rng, func(key collections.Pair[string, uint64], value string) (stop bool, err error) {
+		seqs = append(seqs, value)
+		heights = append(heights, key.K2())
+		return false, nil
+	}); err != nil {
+		return errorsmod.Wrap(err, "walk signers")
+	}
+
+	for i := 0; i < len(seqs); i++ {
+		if err := k.RemoveSigner(ctx, seqs[i], client, heights[i]); err != nil {
+			return errorsmod.Wrap(err, "remove signer")
+		}
+	}
+	return nil
+}
+
 // GetSigner returns the sequencer address who signed the header in the update
 func (k Keeper) GetSigner(ctx sdk.Context, client string, h uint64) (string, error) {
 	return k.clientHeightToSigner.Get(ctx, collections.Join(client, h))
 }
 
-func (k Keeper) SaveSigner(ctx sdk.Context, seq sequencertypes.Sequencer, client string, h uint64) error {
+func (k Keeper) SaveSigner(ctx sdk.Context, seqAddr string, client string, h uint64) error {
 	return errors.Join(
-		k.headerSigners.Set(ctx, collections.Join3(seq.Address, client, h)),
-		k.clientHeightToSigner.Set(ctx, collections.Join(client, h), seq.Address),
+		k.headerSigners.Set(ctx, collections.Join3(seqAddr, client, h)),
+		k.clientHeightToSigner.Set(ctx, collections.Join(client, h), seqAddr),
 	)
 }
 
-func (k Keeper) RemoveSigner(ctx sdk.Context, seq sequencertypes.Sequencer, client string, h uint64) error {
+func (k Keeper) RemoveSigner(ctx sdk.Context, seqAddr string, client string, h uint64) error {
 	return errors.Join(
-		k.headerSigners.Set(ctx, collections.Join3(seq.Address, client, h)),
-		k.clientHeightToSigner.Set(ctx, collections.Join(client, h), seq.Address),
+		k.headerSigners.Set(ctx, collections.Join3(seqAddr, client, h)),
+		k.clientHeightToSigner.Set(ctx, collections.Join(client, h), seqAddr),
 	)
 }
 
