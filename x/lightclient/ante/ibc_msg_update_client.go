@@ -19,8 +19,8 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 		// not relevant
 		return nil
 	}
-	header, err := i.getHeader(ctx, msg)
 	canonical := i.isCanonical(ctx, msg, chainID)
+	header, err := i.getHeader(ctx, msg)
 	if !canonical && errorsmod.IsOf(err, errIsMisbehaviour) {
 		// We don't want to block misbehavior submission for non rollapps
 		return nil
@@ -43,6 +43,37 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	if err != nil {
 		return err
 	}
+
+	// ~~~~~
+	// now we know that the msg is a header, and it was produced by a sequencer
+	// ~~~~~
+
+	if !seq.Bonded() {
+		// we assume here that sequencers will not propose blocks on other chains connected to the hub except for their rollapp
+		return gerrc.ErrInvalidArgument.Wrap("header is from unbonded sequencer")
+	}
+
+	rollapp, ok := i.rollappKeeper.GetRollapp(ctx, seq.RollappId)
+	if !ok {
+		return gerrc.ErrInternal.Wrap("get rollapp from sequencer")
+	}
+
+	// now we check if the rollapp has already comm
+	h := header.GetHeight().GetRevisionHeight()
+	// TODO: in hard fork will need to also use revision to make sure not from old revision
+	stateInfos, err := i.getStateInfos(ctx, rollapp.RollappId, h)
+	if err != nil {
+		return errorsmod.Wrap(err, "get state infos")
+	}
+
+	if stateInfos.containingHPlus1 != nil {
+		// the header is pessimistic: the state update has already been received, so we check the header doesn't mismatch
+		return i.validateUpdatePessimistically(ctx, stateInfos, header.ConsensusState())
+	}
+
+	// the header is optimistic: the state update has not yet been received, so we save optimistically
+	i.acceptUpdateOptimistically(ctx, seq, msg.ClientId, h)
+	return nil
 }
 
 var (
@@ -91,6 +122,56 @@ func (i IBCMessagesDecorator) getChainID(ctx sdk.Context, msg *ibcclienttypes.Ms
 		return "", false
 	}
 	return tmClientState.ChainId, true
+}
+
+// if containingHPlus1 is not nil then containingH also guaranteed to not be nil
+type stateInfos struct {
+	containingH      *rollapptypes.StateInfo
+	containingHPlus1 *rollapptypes.StateInfo
+}
+
+// getStateInfos gets state infos for h and h+1
+func (i IBCMessagesDecorator) getStateInfos(ctx sdk.Context, rollapp string, h uint64) (stateInfos, error) {
+	// Check if there are existing block descriptors for the given height of client state
+	s0, err := i.rollappKeeper.FindStateInfoByHeight(ctx, rollapp, h)
+	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
+		return stateInfos{}, nil
+	}
+	if err != nil {
+		return stateInfos{}, err
+	}
+	s1 := s0
+	if !s1.ContainsHeight(h) {
+		s1, err = i.rollappKeeper.FindStateInfoByHeight(ctx, rollapp, h+1)
+		if errorsmod.IsOf(err, gerrc.ErrNotFound) {
+			return stateInfos{s0, nil}, nil
+		}
+		if err != nil {
+			return stateInfos{}, err
+		}
+	}
+	return stateInfos{s0, s1}, nil
+}
+
+func (i IBCMessagesDecorator) validateUpdatePessimistically(ctx sdk.Context, infos stateInfos, consState *ibctm.ConsensusState, h uint64) error {
+	bd, _ := infos.containingH.GetBlockDescriptor(h)
+	seq, err := i.lightClientKeeper.GetSequencerPubKey(ctx, infos.containingHPlus1.Sequencer)
+	if err != nil {
+		return errorsmod.Wrap(err, "get sequencer pub key")
+	}
+	rollappState := types.RollappState{
+		BlockDescriptor:    bd,
+		NextBlockSequencer: seq,
+	}
+	return errorsmod.Wrap(types.CheckCompatibility(*consState, rollappState), "check compatability")
+}
+
+func (i IBCMessagesDecorator) acceptUpdateOptimistically(ctx sdk.Context, seq sequencertypes.Sequencer, client string, height uint64) {
+	i.lightClientKeeper.SetConsensusStateValHash(ctx, clientID, uint64(header.Header.Height), header.Header.ValidatorsHash)
+}
+
+func (i IBCMessagesDecorator) acceptUpdateOptimisticallyLegacy(ctx sdk.Context, clientID string, header *ibctm.Header) {
+	i.lightClientKeeper.SetConsensusStateValHash(ctx, clientID, uint64(header.Header.Height), header.Header.ValidatorsHash)
 }
 
 func (i IBCMessagesDecorator) HandleMsgUpdateClientLegacy(ctx sdk.Context, msg *ibcclienttypes.MsgUpdateClient) error {
@@ -145,31 +226,4 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClientLegacy(ctx sdk.Context, msg *
 	}
 
 	return nil
-}
-
-// getStateInfos gets state infos for h and h+1
-func (i IBCMessagesDecorator) getStateInfos(ctx sdk.Context, rollapp string, h uint64) (*rollapptypes.StateInfo, *rollapptypes.StateInfo, error) {
-	// Check if there are existing block descriptors for the given height of client state
-	s0, err := i.rollappKeeper.FindStateInfoByHeight(ctx, rollapp, h)
-	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
-		return nil, nil, nil
-	}
-	if err != nil {
-		return nil, nil, err
-	}
-	s1 := s0
-	if !s1.ContainsHeight(h) {
-		s1, err = i.rollappKeeper.FindStateInfoByHeight(ctx, rollapp, h+1)
-		if errorsmod.IsOf(err, gerrc.ErrNotFound) {
-			return nil, nil, nil
-		}
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-	return s0, s1, nil
-}
-
-func (i IBCMessagesDecorator) acceptUpdateOptimistically(ctx sdk.Context, clientID string, header *ibctm.Header) {
-	i.lightClientKeeper.SetConsensusStateValHash(ctx, clientID, uint64(header.Header.Height), header.Header.ValidatorsHash)
 }
