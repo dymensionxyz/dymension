@@ -73,7 +73,7 @@ func (k Keeper) isPotentialProposer(ctx sdk.Context, seq types.Sequencer) bool {
 
 func ProposerChoiceAlgo(seqs []types.Sequencer) types.Sequencer {
 	if len(seqs) == 0 {
-		panic("must at least include sentinel")
+		panic("seqs must at least include sentinel")
 	}
 	// slices package is recommended over sort package
 	slices.SortStableFunc(seqs, func(a, b types.Sequencer) int {
