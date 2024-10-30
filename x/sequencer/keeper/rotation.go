@@ -12,7 +12,7 @@ import (
 // StartNoticePeriodForSequencer defines a period of time for the sequencer where
 // they cannot yet unbond, nor submit their last block. Adds to a queue for later
 // processing.
-func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) {
+func (k Keeper) StartNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) {
 	seq.NoticePeriodTime = ctx.BlockTime().Add(k.GetParams(ctx).NoticePeriod)
 
 	k.AddToNoticeQueue(ctx, *seq)

@@ -92,7 +92,27 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		_, err = s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrAlreadyExists)
 	})
-	s.Run("not allowed - TODO: awaitingLastProposerBlock", func() {
+	s.Run("not allowed - awaitingLastProposerBlock", func() {
+
+		// create one proposer and finish their notice
+		pk := randomTMPubKey()
+		s.fundSequencer(pk, bond)
+		msg := createSequencerMsgOnePubkey(ra.RollappId, pk)
+		msg.Bond = bond
+		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
+		s.Require().NoError(err)
+		seq := s.k().GetSequencer(s.Ctx, pkAddr(pk))
+		s.k().StartNoticePeriodForSequencer(s.Ctx, &seq)
+
+		// try to create another one
+		s.Ctx = s.Ctx.WithBlockTime(seq.NoticePeriodTime)
+		s.fundSequencer(alice, bond)
+		msg = createSequencerMsgOnePubkey(ra.RollappId, alice)
+		msg.Bond = bond
+		msg.Bond.Amount = msg.Bond.Amount.Sub(sdk.OneInt())
+		_, err = s.msgServer.CreateSequencer(s.Ctx, &msg)
+		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
+
 	})
 	s.Run("not allowed - insufficient bond", func() {
 		s.fundSequencer(alice, bond)
@@ -106,12 +126,16 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		s.fundSequencer(alice, bond)
 		msg := createSequencerMsgOnePubkey(ra.RollappId, alice)
 		msg.Bond = bond
-		msg.Bond.Denom = "foo"
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrInvalidArgument)
 	})
 	s.Run("not allowed - vm", func() {
-		// TODO: check existing test
+		s.fundSequencer(alice, bond)
+		msg := createSequencerMsgOnePubkey(ra.RollappId, alice)
+		msg.Bond = bond
+		msg.Metadata.EvmRpcs = msg.Metadata.EvmRpcs[:0]
+		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
+		utest.IsErr(s.Require(), err, gerrc.ErrInvalidArgument)
 	})
 	s.Run("not allowed - not launched and not initial", func() {
 		ra := s.createRollappWithInitialSeqConstraint("")
