@@ -4,9 +4,6 @@ import (
 	"bytes"
 
 	errorsmod "cosmossdk.io/errors"
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
-	cmttypes "github.com/cometbft/cometbft/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -36,21 +33,6 @@ func CheckCompatibility(ibcState ibctm.ConsensusState, raState RollappState) err
 		return errorsmod.Wrap(ErrTimestampMismatch, "block descriptor timestamp does not match tendermint header timestamp")
 	}
 	return nil
-}
-
-// GetValHashForSequencer creates a dummy tendermint validatorset to
-// calculate the nextValHash for the sequencer and returns it
-func GetValHashForSequencer(sequencerTmPubKey tmprotocrypto.PublicKey) ([]byte, error) {
-	var nextValSet cmttypes.ValidatorSet
-	updates, err := cmttypes.PB2TM.ValidatorUpdates([]abci.ValidatorUpdate{{Power: 1, PubKey: sequencerTmPubKey}})
-	if err != nil {
-		return nil, err
-	}
-	err = nextValSet.UpdateWithChangeSet(updates)
-	if err != nil {
-		return nil, err
-	}
-	return nextValSet.Hash(), nil
 }
 
 type RollappState struct {
