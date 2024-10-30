@@ -8,7 +8,7 @@ import (
 )
 
 func (i IBCMessagesDecorator) HandleMsgSubmitMisbehaviour(ctx sdk.Context, msg *ibcclienttypes.MsgSubmitMisbehaviour) error {
-	_, ok := i.lightClientKeeper.GetRollappForClientID(ctx, msg.ClientId)
+	_, ok := i.k.GetRollappForClientID(ctx, msg.ClientId)
 	if ok {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "cannot submit misbehavour for a canonical client")
 	}

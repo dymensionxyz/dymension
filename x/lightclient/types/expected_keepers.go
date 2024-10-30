@@ -15,7 +15,6 @@ import (
 type SequencerKeeperExpected interface {
 	SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address) (sequencertypes.Sequencer, error)
 	GetRealSequencer(ctx sdk.Context, addr string) (sequencertypes.Sequencer, error)
-	RollappSequencers(ctx sdk.Context, rollappId string) (list []sequencertypes.Sequencer)
 }
 
 type RollappKeeperExpected interface {

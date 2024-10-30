@@ -14,7 +14,7 @@ import (
 )
 
 func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibcclienttypes.MsgUpdateClient) error {
-	_, canonical := i.lightClientKeeper.GetRollappForClientID(ctx, msg.ClientId)
+	_, canonical := i.k.GetRollappForClientID(ctx, msg.ClientId)
 	header, err := getHeader(msg)
 	if !canonical && errorsmod.IsOf(err, errIsMisbehaviour) {
 		// We don't want to block misbehavior submission for non rollapps
@@ -48,7 +48,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 		return gerrc.ErrInvalidArgument.Wrap("header is from unbonded sequencer")
 	}
 
-	rollapp, ok := i.rollappKeeper.GetRollapp(ctx, seq.RollappId)
+	rollapp, ok := i.raK.GetRollapp(ctx, seq.RollappId)
 	if !ok {
 		return gerrc.ErrInternal.Wrap("get rollapp from sequencer")
 	}
@@ -66,7 +66,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	}
 
 	// the header is optimistic: the state update has not yet been received, so we save optimistically
-	return errorsmod.Wrap(i.lightClientKeeper.SaveSigner(ctx, seq.Address, msg.ClientId, h), "save updater")
+	return errorsmod.Wrap(i.k.SaveSigner(ctx, seq.Address, msg.ClientId, h), "save updater")
 }
 
 var (
@@ -80,7 +80,7 @@ func (i IBCMessagesDecorator) getSequencer(ctx sdk.Context, header *ibctm.Header
 	if !bytes.Equal(proposerBySignature, proposerByData) {
 		return sequencertypes.Sequencer{}, errProposerMismatch
 	}
-	return i.sequencerKeeper.SequencerByDymintAddr(ctx, proposerByData)
+	return i.seqK.SequencerByDymintAddr(ctx, proposerByData)
 }
 
 func getHeader(msg *ibcclienttypes.MsgUpdateClient) (*ibctm.Header, error) {
@@ -108,7 +108,7 @@ type stateInfos struct {
 // getStateInfos gets state infos for h and h+1
 func (i IBCMessagesDecorator) getStateInfos(ctx sdk.Context, rollapp string, h uint64) (stateInfos, error) {
 	// Check if there are existing block descriptors for the given height of client state
-	s0, err := i.rollappKeeper.FindStateInfoByHeight(ctx, rollapp, h)
+	s0, err := i.raK.FindStateInfoByHeight(ctx, rollapp, h)
 	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
 		return stateInfos{}, nil
 	}
@@ -117,7 +117,7 @@ func (i IBCMessagesDecorator) getStateInfos(ctx sdk.Context, rollapp string, h u
 	}
 	s1 := s0
 	if !s1.ContainsHeight(h) {
-		s1, err = i.rollappKeeper.FindStateInfoByHeight(ctx, rollapp, h+1)
+		s1, err = i.raK.FindStateInfoByHeight(ctx, rollapp, h+1)
 		if errorsmod.IsOf(err, gerrc.ErrNotFound) {
 			return stateInfos{s0, nil}, nil
 		}
@@ -130,7 +130,7 @@ func (i IBCMessagesDecorator) getStateInfos(ctx sdk.Context, rollapp string, h u
 
 func (i IBCMessagesDecorator) validateUpdatePessimistically(ctx sdk.Context, infos stateInfos, consState *ibctm.ConsensusState, h uint64) error {
 	bd, _ := infos.containingH.GetBlockDescriptor(h)
-	seq, err := i.sequencerKeeper.GetRealSequencer(ctx, infos.containingHPlus1.Sequencer)
+	seq, err := i.seqK.GetRealSequencer(ctx, infos.containingHPlus1.Sequencer)
 	if err != nil {
 		return gerrc.ErrInternal.Wrap("get sequencer of state info")
 	}

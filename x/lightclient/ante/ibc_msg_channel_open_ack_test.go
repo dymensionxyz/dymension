@@ -38,6 +38,7 @@ func TestHandleMsgChannelOpenAck(t *testing.T) {
 	rollappKeeper := NewMockRollappKeeper(testRollapps, nil)
 	ibcclientKeeper := NewMockIBCClientKeeper(nil)
 	ibcchannelKeeper := NewMockIBCChannelKeeper(testConnections)
+	seqK := NewMockIBCClientKeeper()
 	keeper.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
 	keeper.SetCanonicalClient(ctx, "rollapp-no-canon-channel", "canon-client-id-2")
 	ibcMsgDecorator := ante.NewIBCMessagesDecorator(*keeper, ibcclientKeeper, ibcchannelKeeper, rollappKeeper)

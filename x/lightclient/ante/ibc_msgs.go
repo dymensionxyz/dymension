@@ -12,19 +12,20 @@ import (
 var _ sdk.AnteDecorator = IBCMessagesDecorator{}
 
 type IBCMessagesDecorator struct {
-	ibcClientKeeper   types.IBCClientKeeperExpected
-	ibcChannelKeeper  types.IBCChannelKeeperExpected
-	rollappKeeper     types.RollappKeeperExpected
-	sequencerKeeper   types.SequencerKeeperExpected
-	lightClientKeeper keeper.Keeper
+	ibcClientKeeper  types.IBCClientKeeperExpected
+	ibcChannelKeeper types.IBCChannelKeeperExpected
+	raK              types.RollappKeeperExpected
+	seqK             types.SequencerKeeperExpected
+	k                keeper.Keeper
 }
 
-func NewIBCMessagesDecorator(k keeper.Keeper, ibcClient types.IBCClientKeeperExpected, ibcChannel types.IBCChannelKeeperExpected, rk types.RollappKeeperExpected) IBCMessagesDecorator {
+func NewIBCMessagesDecorator(k keeper.Keeper, ibcClient types.IBCClientKeeperExpected, ibcChannel types.IBCChannelKeeperExpected, rk types.RollappKeeperExpected, seqK types.SequencerKeeperExpected) IBCMessagesDecorator {
 	return IBCMessagesDecorator{
-		ibcClientKeeper:   ibcClient,
-		ibcChannelKeeper:  ibcChannel,
-		rollappKeeper:     rk,
-		lightClientKeeper: k,
+		ibcClientKeeper:  ibcClient,
+		ibcChannelKeeper: ibcChannel,
+		raK:              rk,
+		k:                k,
+		seqK:             seqK,
 	}
 }
 
