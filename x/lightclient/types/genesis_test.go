@@ -41,16 +41,7 @@ func TestGenesisValidate(t *testing.T) {
 			},
 			valid: false,
 		},
-		{
-			name:  "invalid height",
-			g:     types.GenesisState{},
-			valid: false,
-		},
-		{
-			name:  "invalid blockvalhash",
-			g:     types.GenesisState{},
-			valid: false,
-		},
+
 		{
 			name:  "empty",
 			g:     types.GenesisState{},
