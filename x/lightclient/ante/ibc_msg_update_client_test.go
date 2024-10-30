@@ -129,7 +129,6 @@ func TestHandleMsgUpdateClientGood(t *testing.T) {
 	ibcchannelKeeper := NewMockIBCChannelKeeper(nil)
 	rollappKeeper := NewMockRollappKeeper(rollapps, stateInfos)
 	ibcMsgDecorator := ante.NewIBCMessagesDecorator(*k, ibcclientKeeper, ibcchannelKeeper, rollappKeeper)
-
 	clientMsg, err := ibcclienttypes.PackClientMessage(&header)
 	require.NoError(t, err)
 	msg := &ibcclienttypes.MsgUpdateClient{
