@@ -33,7 +33,7 @@ func TestGenesis(t *testing.T) {
 	iro.InitGenesis(ctx, *k, genesisState)
 
 	// assertions
-	require.Len(t, k.GetAllPlans(ctx), 2)
+	require.Len(t, k.GetAllPlans(ctx, false), 2)
 	_, found := k.GetPlanByRollapp(ctx, "rollapp1")
 	require.True(t, found)
 	lastPlanId := k.GetLastPlanId(ctx)
