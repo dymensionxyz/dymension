@@ -18,23 +18,105 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func basicHeader() ibctm.Header {
+	blocktimestamp := time.Unix(1724392989, 0)
+	var (
+		valSet      *cmtproto.ValidatorSet
+		trustedVals *cmtproto.ValidatorSet
+	)
+	signedHeader := &cmtproto.SignedHeader{
+		Header: &cmtproto.Header{
+			AppHash:            []byte("appHash"),
+			ProposerAddress:    keepertest.Alice.MustProposerAddr(),
+			Time:               blocktimestamp,
+			ValidatorsHash:     keepertest.Alice.MustValsetHash(),
+			NextValidatorsHash: keepertest.Alice.MustValsetHash(),
+			Height:             1,
+		},
+		Commit: &cmtproto.Commit{},
+	}
+	header := ibctm.Header{
+		SignedHeader:      signedHeader,
+		ValidatorSet:      valSet,
+		TrustedHeight:     ibcclienttypes.MustParseHeight("1-1"),
+		TrustedValidators: trustedVals,
+	}
+	return header
+}
+
 func TestHandleMsgUpdateClient(t *testing.T) {
 	type testInput struct {
 		msg        *ibcclienttypes.MsgUpdateClient
 		rollapps   map[string]rollapptypes.Rollapp
 		stateInfos map[string]map[uint64]rollapptypes.StateInfo
 	}
+
 	testCases := []struct {
 		name    string
 		prepare func(ctx sdk.Context, k keeper.Keeper) testInput
 		assert  func(ctx sdk.Context, k keeper.Keeper, err error)
 	}{
 		{
-			name: "Could not find a client with given client id",
+			name: "Ensure state is compatible - happy path",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+
+				header := basicHeader()
+				clientMsg, err := ibcclienttypes.PackClientMessage(&header)
+				require.NoError(t, err)
 				return testInput{
 					msg: &ibcclienttypes.MsgUpdateClient{
-						ClientId: "non-existent-client",
+						ClientId:      "canon-client-id",
+						ClientMessage: clientMsg,
+						Signer:        "relayerAddr",
+					},
+					rollapps: map[string]rollapptypes.Rollapp{
+						"rollapp-has-canon-client": {
+							RollappId: "rollapp-has-canon-client",
+						},
+					},
+					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
+						"rollapp-has-canon-client": {
+							1: {
+								Sequencer: keepertest.AliceAddr,
+								StateInfoIndex: rollapptypes.StateInfoIndex{
+									Index: 1,
+								},
+								StartHeight: 1,
+								NumBlocks:   2,
+								BDs: rollapptypes.BlockDescriptors{
+									BD: []rollapptypes.BlockDescriptor{
+										{
+											Height:    1,
+											StateRoot: []byte("appHash"),
+											Timestamp: header.SignedHeader.Header.Time,
+										},
+										{
+											Height:    2,
+											StateRoot: []byte("appHash2"),
+											Timestamp: header.SignedHeader.Header.Time.Add(1),
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+			},
+			assert: func(ctx sdk.Context, k keeper.Keeper, err error) {
+				require.NoError(t, err)
+			},
+		},
+		{
+			name: "Could not find a client with given client id",
+			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
+				header := basicHeader()
+				clientMsg, err := ibcclienttypes.PackClientMessage(&header)
+				require.NoError(t, err)
+				return testInput{
+					msg: &ibcclienttypes.MsgUpdateClient{
+						ClientId:      "non-existent-client",
+						ClientMessage: clientMsg,
 					},
 				}
 			},
@@ -210,77 +292,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 				require.ErrorIs(t, err, types.ErrStateRootsMismatch)
 			},
 		},
-		{
-			name: "Ensure state is compatible - happy path",
-			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
-				blocktimestamp := time.Unix(1724392989, 0)
-				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				var (
-					valSet      *cmtproto.ValidatorSet
-					trustedVals *cmtproto.ValidatorSet
-				)
-				signedHeader := &cmtproto.SignedHeader{
-					Header: &cmtproto.Header{
-						AppHash:            []byte("appHash"),
-						ProposerAddress:    keepertest.Alice.MustProposerAddr(),
-						Time:               blocktimestamp,
-						ValidatorsHash:     keepertest.Alice.MustValsetHash(),
-						NextValidatorsHash: keepertest.Alice.MustValsetHash(),
-						Height:             1,
-					},
-					Commit: &cmtproto.Commit{},
-				}
-				header := ibctm.Header{
-					SignedHeader:      signedHeader,
-					ValidatorSet:      valSet,
-					TrustedHeight:     ibcclienttypes.MustParseHeight("1-1"),
-					TrustedValidators: trustedVals,
-				}
-				clientMsg, err := ibcclienttypes.PackClientMessage(&header)
-				require.NoError(t, err)
-				return testInput{
-					msg: &ibcclienttypes.MsgUpdateClient{
-						ClientId:      "canon-client-id",
-						ClientMessage: clientMsg,
-						Signer:        "relayerAddr",
-					},
-					rollapps: map[string]rollapptypes.Rollapp{
-						"rollapp-has-canon-client": {
-							RollappId: "rollapp-has-canon-client",
-						},
-					},
-					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
-						"rollapp-has-canon-client": {
-							1: {
-								Sequencer: keepertest.AliceAddr,
-								StateInfoIndex: rollapptypes.StateInfoIndex{
-									Index: 1,
-								},
-								StartHeight: 1,
-								NumBlocks:   2,
-								BDs: rollapptypes.BlockDescriptors{
-									BD: []rollapptypes.BlockDescriptor{
-										{
-											Height:    1,
-											StateRoot: []byte("appHash"),
-											Timestamp: blocktimestamp,
-										},
-										{
-											Height:    2,
-											StateRoot: []byte("appHash2"),
-											Timestamp: blocktimestamp.Add(1),
-										},
-									},
-								},
-							},
-						},
-					},
-				}
-			},
-			assert: func(ctx sdk.Context, k keeper.Keeper, err error) {
-				require.NoError(t, err)
-			},
-		},
+
 		{
 			name: "Client is not a known canonical client of a rollapp",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
