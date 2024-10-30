@@ -7,9 +7,9 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-func (suite *SequencerTestSuite) TestUpdateWhitelistedRelayers() {
-	rollappId, pk := suite.CreateDefaultRollapp()
-	defaultSequencerAddress := suite.CreateSequencer(suite.Ctx, rollappId, pk)
+func (s *SequencerTestSuite) TestUpdateWhitelistedRelayers() {
+	ra := s.createRollapp()
+	seqAlice := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
 	relayers := []string{sample.AccAddress(), sample.AccAddress()}
 
 	testCase := []struct {
@@ -20,7 +20,7 @@ func (suite *SequencerTestSuite) TestUpdateWhitelistedRelayers() {
 		{
 			name: "valid",
 			msg: types.MsgUpdateWhitelistedRelayers{
-				Creator:  defaultSequencerAddress,
+				Creator:  seqAlice.Address,
 				Relayers: relayers,
 			},
 			expectedErr: nil,
@@ -28,15 +28,15 @@ func (suite *SequencerTestSuite) TestUpdateWhitelistedRelayers() {
 	}
 
 	for _, tc := range testCase {
-		suite.Run(tc.name, func() {
-			_, err := suite.msgServer.UpdateWhitelistedRelayers(suite.Ctx, &tc.msg)
+		s.Run(tc.name, func() {
+			_, err := s.msgServer.UpdateWhitelistedRelayers(s.Ctx, &tc.msg)
 			if tc.expectedErr != nil {
-				suite.Require().ErrorIs(err, tc.expectedErr)
+				s.Require().ErrorIs(err, tc.expectedErr)
 			} else {
-				suite.Require().NoError(err)
-				seq, _ := suite.App.SequencerKeeper.GetRealSequencer(suite.Ctx, tc.msg.Creator)
+				s.Require().NoError(err)
+				seq, _ := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, tc.msg.Creator)
 				slices.Sort(tc.msg.Relayers)
-				suite.Require().Equal(tc.msg.Relayers, seq.WhitelistedRelayers)
+				s.Require().Equal(tc.msg.Relayers, seq.WhitelistedRelayers)
 			}
 		})
 	}

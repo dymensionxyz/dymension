@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"sort"
 	"strings"
 	"time"
 
