@@ -38,7 +38,7 @@ func TestAfterUpdateState(t *testing.T) {
 		{
 			name: "canonical client exists but consensus state is not found for given height",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
-				k.SetCanonicalClient(ctx, "rollapp-has-canon-client-but-no-state", "canon-client-id-no-state")
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client-but-no-state", "keepertest.CanonClientID-no-state")
 				return testInput{
 					rollappId: "rollapp-has-canon-client-but-no-state",
 					stateInfo: &rollapptypes.StateInfo{
@@ -62,8 +62,8 @@ func TestAfterUpdateState(t *testing.T) {
 		{
 			name: "both states are not compatible - slash the sequencer who signed",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
-				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				err := k.SaveSigner(ctx, keepertest.Alice.Address, "canon-client-id", 2)
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", keepertest.CanonClientID)
+				err := k.SaveSigner(ctx, keepertest.Alice.Address, keepertest.CanonClientID, 2)
 				require.NoError(t, err)
 				return testInput{
 					rollappId: "rollapp-has-canon-client",
@@ -98,8 +98,8 @@ func TestAfterUpdateState(t *testing.T) {
 		{
 			name: "state is compatible",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
-				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				err := k.SaveSigner(ctx, keepertest.Alice.Address, "canon-client-id", 2)
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", keepertest.CanonClientID)
+				err := k.SaveSigner(ctx, keepertest.Alice.Address, keepertest.CanonClientID, 2)
 				require.NoError(t, err)
 
 				return testInput{

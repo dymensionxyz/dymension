@@ -19,13 +19,13 @@ func TestHandleMsgSubmitMisbehaviour(t *testing.T) {
 	rollappKeeper := NewMockRollappKeeper(nil, nil)
 	testClientStates := map[string]exported.ClientState{
 		"non-tm-client-id": &ibcsolomachine.ClientState{},
-		"canon-client-id": &ibctm.ClientState{
+		keepertest.CanonClientID: &ibctm.ClientState{
 			ChainId: "rollapp-has-canon-client",
 		},
 	}
 	ibcclientKeeper := NewMockIBCClientKeeper(testClientStates)
 	ibcchannelKeeper := NewMockIBCChannelKeeper(nil)
-	keeper.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+	keeper.SetCanonicalClient(ctx, "rollapp-has-canon-client", keepertest.CanonClientID)
 	ibcMsgDecorator := ante.NewIBCMessagesDecorator(*keeper, ibcclientKeeper, ibcchannelKeeper, rollappKeeper)
 	testCases := []struct {
 		name     string
@@ -43,7 +43,7 @@ func TestHandleMsgSubmitMisbehaviour(t *testing.T) {
 		{
 			name: "Client is a known canonical client for a rollapp",
 			inputMsg: ibcclienttypes.MsgSubmitMisbehaviour{
-				ClientId:     "canon-client-id",
+				ClientId:     keepertest.CanonClientID,
 				Misbehaviour: nil,
 			},
 			err: gerrc.ErrInvalidArgument,

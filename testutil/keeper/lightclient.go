@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	"testing"
 	"time"
@@ -29,6 +30,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	CanonClientID = "canon"
+)
+
 var (
 	Alice = sequencertypes.NewTestSequencer(ed25519.GenPrivKey().PubKey())
 )
@@ -45,25 +50,16 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
-	sequencerPubKey := ed25519.GenPrivKey().PubKey()
-	tmPk, err := codectypes.NewAnyWithValue(sequencerPubKey)
-	require.NoError(t, err)
 
-	testSequencer := sequencertypes.Sequencer{
-		Address:      Alice.Address,
-		DymintPubKey: tmPk,
+	seqs := map[string]sequencertypes.Sequencer{
+		Alice.Address: Alice,
 	}
-	nextValHash, err := testSequencer.ValsetHash()
-	require.NoError(t, err)
-	testSequencers := map[string]sequencertypes.Sequencer{
-		Alice.Address: testSequencer,
-	}
-	testConsensusStates := map[string]map[uint64]exported.ConsensusState{
-		"canon-client-id": {
+	consStates := map[string]map[uint64]exported.ConsensusState{
+		CanonClientID: {
 			2: &ibctm.ConsensusState{
 				Timestamp:          time.Unix(1724392989, 0),
 				Root:               commitmenttypes.NewMerkleRoot([]byte("test2")),
-				NextValidatorsHash: nextValHash,
+				NextValidatorsHash: Alice.MustValsetHash(),
 			},
 		},
 	}
@@ -72,12 +68,12 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		time.Hour*24*7*2, time.Hour*24*7*3, time.Minute*10,
 		ibcclienttypes.MustParseHeight("1-2"), commitmenttypes.GetSDKSpecs(), []string{},
 	)
-	testGenesisClients := map[string]exported.ClientState{
-		"canon-client-id": cs,
+	genesisClients := map[string]exported.ClientState{
+		CanonClientID: cs,
 	}
 
-	mockIBCKeeper := NewMockIBCClientKeeper(testConsensusStates, testGenesisClients)
-	mockSequencerKeeper := NewMockSequencerKeeper(testSequencers)
+	mockIBCKeeper := NewMockIBCClientKeeper(consStates, genesisClients)
+	mockSequencerKeeper := NewMockSequencerKeeper(seqs)
 	mockRollappKeeper := NewMockRollappKeeper()
 	k := keeper.NewKeeper(
 		cdc,
@@ -139,8 +135,12 @@ type MockSequencerKeeper struct {
 }
 
 func (m *MockSequencerKeeper) SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address) (sequencertypes.Sequencer, error) {
-	//TODO implement me
-	panic("implement me: SequencerByDymintAddr")
+	for _, s := range m.sequencers {
+		if bytes.Equal(s.MustProposerAddr(), addr) {
+			return s, nil
+		}
+	}
+	return sequencertypes.Sequencer{}, gerrc.ErrNotFound
 }
 
 func (m *MockSequencerKeeper) GetRealSequencer(ctx sdk.Context, addr string) (sequencertypes.Sequencer, error) {

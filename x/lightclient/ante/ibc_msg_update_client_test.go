@@ -5,6 +5,9 @@ import (
 	"time"
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometprototypes "github.com/cometbft/cometbft/proto/tendermint/types"
+	comettypes "github.com/cometbft/cometbft/types"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -18,18 +21,58 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func ConvertValidator(src comettypes.Validator) *cometprototypes.Validator {
+	// TODO: surely this must already exist somewhere
+
+	dst := &cometprototypes.Validator{}
+	pk, err := cryptocodec.FromTmPubKeyInterface(src.PubKey)
+	if err != nil {
+		panic(err)
+	}
+	pkP, err := cryptocodec.ToTmProtoPublicKey(pk)
+	if err != nil {
+		panic(err)
+	}
+	dst = &cometprototypes.Validator{
+		Address:          src.Address,
+		VotingPower:      src.VotingPower,
+		ProposerPriority: src.ProposerPriority,
+		PubKey:           pkP,
+	}
+	return dst
+}
+
+func ConvertValidatorSet(src *comettypes.ValidatorSet) *cometprototypes.ValidatorSet {
+	// TODO: surely this must already exist somewhere
+
+	if src == nil {
+		return nil
+	}
+
+	dst := &cometprototypes.ValidatorSet{
+		Validators: make([]*cometprototypes.Validator, len(src.Validators)),
+	}
+
+	for i, validator := range src.Validators {
+		dst.Validators[i] = ConvertValidator(*validator)
+	}
+	dst.TotalVotingPower = src.TotalVotingPower()
+	dst.Proposer = ConvertValidator(*src.Proposer)
+
+	return dst
+}
+
 func TestHandleMsgUpdateClient(t *testing.T) {
 	k, ctx := keepertest.LightClientKeeper(t)
 	testClientStates := map[string]exported.ClientState{
 		"non-tm-client-id": &ibcsolomachine.ClientState{},
-		"canon-client-id": &ibctm.ClientState{
-			ChainId: "rollapp-has-canon-client",
-		},
+	}
+	testClientStates[keepertest.CanonClientID] = &ibctm.ClientState{
+		ChainId: "rollapp-has-canon-client",
 	}
 
 	blocktimestamp := time.Unix(1724392989, 0)
 	var (
-		valSet      *cmtproto.ValidatorSet
 		trustedVals *cmtproto.ValidatorSet
 	)
 	signedHeader := &cmtproto.SignedHeader{
@@ -45,7 +88,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 	}
 	header := ibctm.Header{
 		SignedHeader:      signedHeader,
-		ValidatorSet:      valSet,
+		ValidatorSet:      ConvertValidatorSet(keepertest.Alice.MustValset()),
 		TrustedHeight:     ibcclienttypes.MustParseHeight("1-1"),
 		TrustedValidators: trustedVals,
 	}
@@ -90,7 +133,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 	clientMsg, err := ibcclienttypes.PackClientMessage(&header)
 	require.NoError(t, err)
 	msg := &ibcclienttypes.MsgUpdateClient{
-		ClientId:      "canon-client-id",
+		ClientId:      keepertest.CanonClientID,
 		ClientMessage: clientMsg,
 		Signer:        "relayerAddr",
 	}
@@ -139,14 +182,14 @@ func TestHandleMsgUpdateClientLegacy(t *testing.T) {
 		{
 			name: "Ensure state is compatible - happy path",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
-				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", keepertest.CanonClientID)
 
 				header := basicheaderLeagacy()
 				clientMsg, err := ibcclienttypes.PackClientMessage(&header)
 				require.NoError(t, err)
 				return testInput{
 					msg: &ibcclienttypes.MsgUpdateClient{
-						ClientId:      "canon-client-id",
+						ClientId:      keepertest.CanonClientID,
 						ClientMessage: clientMsg,
 						Signer:        "relayerAddr",
 					},
@@ -222,7 +265,7 @@ func TestHandleMsgUpdateClientLegacy(t *testing.T) {
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
 				return testInput{
 					msg: &ibcclienttypes.MsgUpdateClient{
-						ClientId: "canon-client-id",
+						ClientId: keepertest.CanonClientID,
 					},
 				}
 			},
@@ -233,7 +276,7 @@ func TestHandleMsgUpdateClientLegacy(t *testing.T) {
 		{
 			name: "Could not find state info for height - ensure optimistically accepted and signer stored in state",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
-				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", keepertest.CanonClientID)
 				var valSet, trustedVals *cmtproto.ValidatorSet
 				signedHeader := &cmtproto.SignedHeader{
 					Header: &cmtproto.Header{
@@ -252,7 +295,7 @@ func TestHandleMsgUpdateClientLegacy(t *testing.T) {
 				require.NoError(t, err)
 				return testInput{
 					msg: &ibcclienttypes.MsgUpdateClient{
-						ClientId:      "canon-client-id",
+						ClientId:      keepertest.CanonClientID,
 						ClientMessage: clientMsg,
 						Signer:        "relayerAddr",
 					},
@@ -286,7 +329,7 @@ func TestHandleMsgUpdateClientLegacy(t *testing.T) {
 			},
 			assert: func(ctx sdk.Context, k keeper.Keeper, err error) {
 				require.NoError(t, err)
-				seq, err := k.GetSigner(ctx, "canon-client-id", 1)
+				seq, err := k.GetSigner(ctx, keepertest.CanonClientID, 1)
 				require.NoError(t, err)
 				require.Equal(t, keepertest.Alice.Address, seq)
 			},
@@ -294,7 +337,7 @@ func TestHandleMsgUpdateClientLegacy(t *testing.T) {
 		{
 			name: "State is incompatible - do not accept",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
-				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", keepertest.CanonClientID)
 				var (
 					valSet      *cmtproto.ValidatorSet
 					trustedVals *cmtproto.ValidatorSet
@@ -319,7 +362,7 @@ func TestHandleMsgUpdateClientLegacy(t *testing.T) {
 				require.NoError(t, err)
 				return testInput{
 					msg: &ibcclienttypes.MsgUpdateClient{
-						ClientId:      "canon-client-id",
+						ClientId:      keepertest.CanonClientID,
 						ClientMessage: clientMsg,
 						Signer:        "sequencerAddr",
 					},
@@ -378,7 +421,7 @@ func TestHandleMsgUpdateClientLegacy(t *testing.T) {
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
 				return testInput{
 					msg: &ibcclienttypes.MsgUpdateClient{
-						ClientId: "canon-client-id",
+						ClientId: keepertest.CanonClientID,
 					},
 				}
 			},
@@ -389,13 +432,13 @@ func TestHandleMsgUpdateClientLegacy(t *testing.T) {
 		{
 			name: "SubmitMisbehavior for a canonical chain",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
-				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", keepertest.CanonClientID)
 				m := &ibctm.Misbehaviour{}
 				mAny, _ := ibcclienttypes.PackClientMessage(m)
 
 				return testInput{
 					msg: &ibcclienttypes.MsgUpdateClient{
-						ClientId:      "canon-client-id",
+						ClientId:      keepertest.CanonClientID,
 						ClientMessage: mAny,
 					},
 					rollapps: map[string]rollapptypes.Rollapp{
@@ -415,7 +458,7 @@ func TestHandleMsgUpdateClientLegacy(t *testing.T) {
 			keeper, ctx := keepertest.LightClientKeeper(t)
 			testClientStates := map[string]exported.ClientState{
 				"non-tm-client-id": &ibcsolomachine.ClientState{},
-				"canon-client-id": &ibctm.ClientState{
+				keepertest.CanonClientID: &ibctm.ClientState{
 					ChainId: "rollapp-has-canon-client",
 				},
 			}

@@ -26,20 +26,20 @@ func TestHandleMsgChannelOpenAck(t *testing.T) {
 	}
 	testConnections := map[string]ibcconnectiontypes.ConnectionEnd{
 		"new-channel-on-canon-client": {
-			ClientId: "canon-client-id",
+			ClientId: keepertest.CanonClientID,
 		},
 		"first-channel-on-canon-client": {
-			ClientId: "canon-client-id-2",
+			ClientId: "keepertest.CanonClientID-2",
 		},
 		"non-canon-channel-id": {
-			ClientId: "non-canon-client-id",
+			ClientId: "non-keepertest.CanonClientID",
 		},
 	}
 	rollappKeeper := NewMockRollappKeeper(testRollapps, nil)
 	ibcclientKeeper := NewMockIBCClientKeeper(nil)
 	ibcchannelKeeper := NewMockIBCChannelKeeper(testConnections)
-	keeper.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-	keeper.SetCanonicalClient(ctx, "rollapp-no-canon-channel", "canon-client-id-2")
+	keeper.SetCanonicalClient(ctx, "rollapp-has-canon-client", keepertest.CanonClientID)
+	keeper.SetCanonicalClient(ctx, "rollapp-no-canon-channel", "keepertest.CanonClientID-2")
 	ibcMsgDecorator := ante.NewIBCMessagesDecorator(*keeper, ibcclientKeeper, ibcchannelKeeper, rollappKeeper)
 	testCases := []struct {
 		name            string
