@@ -80,10 +80,14 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		utest.IsErr(s.Require(), err, gerrc.ErrAlreadyExists)
 	})
 	s.Run("not allowed - pub key in use", func() {
-		err := s.k().SetSequencerByDymintAddr(s.Ctx, bob.Address(), "")
+		pk := randomTMPubKey()
+		s.fundSequencer(pk, bond)
+		msg := createSequencerMsgOnePubkey(ra.RollappId, pk)
+		msg.Bond = bond
+		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		s.Require().NoError(err)
 		s.fundSequencer(alice, bond)
-		msg := createSequencerMsg(ra.RollappId, alice, bob)
+		msg = createSequencerMsg(ra.RollappId, alice, pk)
 		msg.Bond = bond
 		_, err = s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrAlreadyExists)
