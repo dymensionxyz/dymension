@@ -197,7 +197,6 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 func (s *SequencerTestSuite) TestCreateSequencerRestrictions2() {
 	ra := s.createRollapp()
 	s.Run("not allowed - awaitingLastProposerBlock", func() {
-
 		// create one proposer and finish their notice
 		pk := randomTMPubKey()
 		s.fundSequencer(pk, bond)
@@ -216,7 +215,6 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions2() {
 		msg.Bond = bond
 		_, err = s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
-
 	})
 }
 

@@ -69,9 +69,7 @@ func TestHandleMsgUpdateClientGood(t *testing.T) {
 	}
 
 	blocktimestamp := time.Unix(1724392989, 0)
-	var (
-		trustedVals *cmtproto.ValidatorSet
-	)
+	var trustedVals *cmtproto.ValidatorSet
 	signedHeader := &cmtproto.SignedHeader{
 		Header: &cmtproto.Header{
 			AppHash:            []byte("appHash"),

@@ -46,7 +46,6 @@ type Keeper struct {
 
 func (k Keeper) Enabled() bool {
 	return k.enabled.enabled
-
 }
 
 func (k Keeper) SetEnabled(b bool) {

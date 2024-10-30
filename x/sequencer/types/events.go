@@ -46,6 +46,6 @@ const (
 	AttributeKeyRewardAddr          = "reward_addr"
 	AttributeKeyWhitelistedRelayers = "whitelisted_relayers"
 	AttributeKeyCompletionTime      = "completion_time"
-	AttributeKeyAmt            = "amt"
-	AttributeKeyRemainingAmt   = "remaining_amt"
+	AttributeKeyAmt                 = "amt"
+	AttributeKeyRemainingAmt        = "remaining_amt"
 )

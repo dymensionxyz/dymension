@@ -116,7 +116,8 @@ func (hook rollappHook) validateOptimisticUpdate(
 func (hook rollappHook) getBlockDescriptor(ctx sdk.Context,
 	rollapp string,
 	cache *rollapptypes.StateInfo,
-	h uint64) (rollapptypes.BlockDescriptor, error) {
+	h uint64,
+) (rollapptypes.BlockDescriptor, error) {
 	stateInfo := cache
 	if !stateInfo.ContainsHeight(h) {
 		var err error
@@ -131,7 +132,8 @@ func (hook rollappHook) getBlockDescriptor(ctx sdk.Context,
 
 func (hook rollappHook) getConsensusState(ctx sdk.Context,
 	client string,
-	h uint64) (*ibctm.ConsensusState, bool) {
+	h uint64,
+) (*ibctm.ConsensusState, bool) {
 	cs, _ := hook.k.ibcClientKeeper.GetClientState(ctx, client)
 	height := ibcclienttypes.NewHeight(cs.GetLatestHeight().GetRevisionNumber(), h)
 	consensusState, ok := hook.k.ibcClientKeeper.GetClientConsensusState(ctx, client, height)
@@ -143,5 +145,4 @@ func (hook rollappHook) getConsensusState(ctx sdk.Context,
 		return nil, false
 	}
 	return tmConsensusState, true
-
 }

@@ -35,14 +35,12 @@ const (
 	DefaultRollapp = "default"
 )
 
-var (
-	Alice = func() sequencertypes.Sequencer {
-		ret := sequencertypes.NewTestSequencer(ed25519.GenPrivKey().PubKey())
-		ret.Status = sequencertypes.Bonded
-		ret.RollappId = DefaultRollapp
-		return ret
-	}()
-)
+var Alice = func() sequencertypes.Sequencer {
+	ret := sequencertypes.NewTestSequencer(ed25519.GenPrivKey().PubKey())
+	ret.Status = sequencertypes.Bonded
+	ret.RollappId = DefaultRollapp
+	return ret
+}()
 
 func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)

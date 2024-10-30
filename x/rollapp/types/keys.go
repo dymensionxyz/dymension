@@ -29,6 +29,4 @@ const (
 	KeyRegisteredDenomPrefix = "RegisteredDenom/value/"
 )
 
-var (
-	SeqToUnfinalizedHeightKeyPrefix = collections.NewPrefix("seqToFinalizeHeight/")
-)
+var SeqToUnfinalizedHeightKeyPrefix = collections.NewPrefix("seqToFinalizeHeight/")

@@ -1,11 +1,11 @@
 package types
 
 import (
+	"slices"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	comettypes "github.com/cometbft/cometbft/types"
-	"slices"
 
 	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	cometbfttypes "github.com/cometbft/cometbft/types"
@@ -34,7 +34,6 @@ func NewTestSequencer(
 		Address:      pk.Address().String(),
 		DymintPubKey: pkAny,
 	}
-
 }
 
 // ValidateBasic performs basic validation of the sequencer object

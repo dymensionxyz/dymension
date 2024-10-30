@@ -25,7 +25,6 @@ func TestInitGenesis(t *testing.T) {
 	ibc, found = keeper.GetCanonicalClient(ctx, "rollapp-2")
 	require.True(t, found)
 	require.Equal(t, "client-2", ibc)
-
 }
 
 func TestExportGenesis(t *testing.T) {
@@ -41,5 +40,4 @@ func TestExportGenesis(t *testing.T) {
 	require.Equal(t, "client-2", genesis.CanonicalClients[1].IbcClientId)
 	require.Equal(t, "rollapp-1", genesis.CanonicalClients[0].RollappId)
 	require.Equal(t, "rollapp-2", genesis.CanonicalClients[1].RollappId)
-
 }

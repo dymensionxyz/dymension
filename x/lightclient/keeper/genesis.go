@@ -14,7 +14,6 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genesisState types.GenesisState) {
 	for _, client := range genesisState.GetCanonicalClients() {
 		k.SetCanonicalClient(ctx, client.RollappId, client.IbcClientId)
 	}
-
 }
 
 func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
