@@ -12,23 +12,6 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "sequencer-proposer-bonded", ProposerBondedInvariant(k))
 }
 
-// AllInvariants runs all invariants of the x/sequencer module.
-func AllInvariants(k Keeper) sdk.Invariant {
-	return func(ctx sdk.Context) (string, bool) {
-		res, stop := SequencersCountInvariant(k)(ctx)
-		if stop {
-			return res, stop
-		}
-
-		res, stop = ProposerBondedInvariant(k)(ctx)
-		if stop {
-			return res, stop
-		}
-
-		return "", false
-	}
-}
-
 func SequencersCountInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
