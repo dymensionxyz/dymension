@@ -40,8 +40,8 @@ func (k msgServer) MarkVulnerableRollapps(goCtx context.Context, msg *types.MsgM
 	return &types.MsgMarkVulnerableRollappsResponse{}, nil
 }
 
-func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []string) (int, error) {
-	vulnerableVersions := make(map[string]struct{})
+func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []uint64) (int, error) {
+	vulnerableVersions := make(map[uint64]struct{})
 	for _, v := range drsVersions {
 		vulnerableVersions[v] = struct{}{}
 		// this also saves in the state the vulnerable version
@@ -65,11 +65,6 @@ func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []string) (i
 
 		// check only last block descriptor DRS, since if that last is not vulnerable it means the rollapp already upgraded and is not vulnerable anymore
 		bd := info.BDs.BD[len(info.BDs.BD)-1]
-		// TODO: this check may be deleted once empty DRS version is marked vulnerable
-		//  https://github.com/dymensionxyz/dymension/issues/1233
-		if bd.DrsVersion == "" {
-			logger.With("rollapp_id", rollapp.RollappId).Info("no DRS version set for rollapp")
-		}
 
 		_, vulnerable := vulnerableVersions[bd.DrsVersion]
 		if vulnerable {

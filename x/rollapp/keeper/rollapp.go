@@ -346,7 +346,7 @@ func FilterNonVulnerable(b types.Rollapp) bool {
 	return !b.IsVulnerable()
 }
 
-func (k Keeper) IsDRSVersionVulnerable(ctx sdk.Context, version string) bool {
+func (k Keeper) IsDRSVersionVulnerable(ctx sdk.Context, version uint64) bool {
 	ok, err := k.vulnerableDRSVersions.Has(ctx, version)
 	if err != nil {
 		panic(fmt.Sprintf("checking if DRS version is vulnerable: %v", err))
@@ -354,11 +354,11 @@ func (k Keeper) IsDRSVersionVulnerable(ctx sdk.Context, version string) bool {
 	return ok
 }
 
-func (k Keeper) SetVulnerableDRSVersion(ctx sdk.Context, version string) error {
+func (k Keeper) SetVulnerableDRSVersion(ctx sdk.Context, version uint64) error {
 	return k.vulnerableDRSVersions.Set(ctx, version)
 }
 
-func (k Keeper) GetAllVulnerableDRSVersions(ctx sdk.Context) ([]string, error) {
+func (k Keeper) GetAllVulnerableDRSVersions(ctx sdk.Context) ([]uint64, error) {
 	iter, err := k.vulnerableDRSVersions.Iterate(ctx, nil)
 	if err != nil {
 		return nil, err
