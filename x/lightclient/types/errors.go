@@ -12,4 +12,5 @@ var (
 	ErrSequencerNotFound     = errorsmod.Wrap(gerrc.ErrNotFound, "sequencer for given valhash not found")
 	ErrorMissingClientState  = errorsmod.Wrap(gerrc.ErrInternal, "client state was expected, but not found")
 	ErrorInvalidClientType   = errorsmod.Wrap(gerrc.ErrInternal, "client state is not a tendermint client")
+	ErrorHardForkInProgress  = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "cannot update light client until forking is finished")
 )

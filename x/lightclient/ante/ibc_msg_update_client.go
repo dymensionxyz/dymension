@@ -1,8 +1,6 @@
 package ante
 
 import (
-	"fmt"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -31,7 +29,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 
 	// cannot update the LC unless fork is resolved (after receiving state updates of HF height +1 & HF height +2
 	if i.lightClientKeeper.IsHardForkingInProgress(ctx, rollappID) {
-		return fmt.Errorf("cannot update light client until forking is finished")
+		return types.ErrorHardForkInProgress
 	}
 
 	clientMessage, err := ibcclienttypes.UnpackClientMessage(msg.ClientMessage)

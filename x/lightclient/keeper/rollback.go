@@ -41,7 +41,7 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, heigh
 		return false
 	})
 	// marks that hard fork is in progress
-	k.setHardForkInProgress(ctx, client)
+	k.setHardForkInProgress(ctx, rollappId)
 
 	// freeze the client
 	// it will be released after the hardfork is resolved (on the next state update)
@@ -50,7 +50,8 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, heigh
 
 // set latest IBC consensus state nextValHash to the current proposing sequencer.
 func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) {
-	clientStore := k.ibcClientKeeper.ClientStore(ctx, rollappID)
+	client, _ := k.GetCanonicalClient(ctx, rollappID)
+	clientStore := k.ibcClientKeeper.ClientStore(ctx, client)
 
 	stateinfo, _ := k.rollappKeeper.GetLatestStateInfo(ctx, rollappID)
 	height := stateinfo.GetLatestHeight()
