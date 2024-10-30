@@ -100,7 +100,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// it takes the actual proposer because the next one have already been set
 	// by the sequencer rotation in k.hooks.BeforeUpdateState
 	// the proposer we get is the one that will propose the next block.
-	val, _ := k.sequencerKeeper.GetProposer(ctx, msg.RollappId)
+	val := k.sequencerKeeper.GetProposer(ctx, msg.RollappId)
 
 	creationHeight := uint64(ctx.BlockHeight())
 	blockTime := ctx.BlockTime()

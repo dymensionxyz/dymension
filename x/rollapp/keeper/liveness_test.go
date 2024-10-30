@@ -191,8 +191,8 @@ func (l livenessMockSequencerKeeper) SlashLiveness(ctx sdk.Context, rollappID st
 	return nil
 }
 
-func (l livenessMockSequencerKeeper) GetProposer(ctx sdk.Context, rollappId string) (val seqtypes.Sequencer, found bool) {
-	return seqtypes.Sequencer{}, false
+func (l livenessMockSequencerKeeper) GetProposer(ctx sdk.Context, rollappId string) seqtypes.Sequencer {
+	return seqtypes.Sequencer{}
 }
 
 func (l livenessMockSequencerKeeper) clear(rollappID string) {
