@@ -108,8 +108,8 @@ func (k Keeper) SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address)
 	return k.GetRealSequencer(ctx, accAddr)
 }
 
-func (k Keeper) SetSequencerByDymintAddr(ctx sdk.Context, dymint cryptotypes.Address, hub string) error {
-	return k.dymintProposerAddrToAccAddr.Set(ctx, dymint, hub)
+func (k Keeper) SetSequencerByDymintAddr(ctx sdk.Context, dymint cryptotypes.Address, addr string) error {
+	return k.dymintProposerAddrToAccAddr.Set(ctx, dymint, addr)
 }
 
 // AllProposers returns all proposers for all rollapps

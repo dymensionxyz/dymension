@@ -25,6 +25,11 @@ import (
 )
 
 var (
+
+	// NOTE: these utils don't use the pub key strictly correctly
+	// because we use the ed25519 (tendermint) key for both
+	// the dymint pub key and the cosmos pub key
+
 	bond = types.DefaultParams().MinBond
 	kick = types.DefaultParams().KickThreshold
 	pks  = []cryptotypes.PubKey{
@@ -132,14 +137,20 @@ func (s *SequencerTestSuite) createRollappWithInitialSeqConstraint(initSeq strin
 	return rollapp
 }
 
-func createSequencerMsg(rollapp string, pk cryptotypes.PubKey) types.MsgCreateSequencer {
-	pkAny, err := codectypes.NewAnyWithValue(pk)
+// Note: this method doesn't really mimic real usage
+func createSequencerMsgOnePubkey(rollapp string, pk cryptotypes.PubKey) types.MsgCreateSequencer {
+	return createSequencerMsg(rollapp, pk, pk)
+}
+
+// mimics real usage because two different keys will be used
+func createSequencerMsg(rollapp string, pkCosmos, pkDymint cryptotypes.PubKey) types.MsgCreateSequencer {
+	pkAny, err := codectypes.NewAnyWithValue(pkDymint)
 	if err != nil {
 		panic(err)
 	}
 
 	return types.MsgCreateSequencer{
-		Creator:      pkAddr(pk),
+		Creator:      pkAddr(pkCosmos),
 		DymintPubKey: pkAny,
 		// Bond not included
 		RollappId: rollapp,
@@ -157,7 +168,7 @@ func (s *SequencerTestSuite) fundSequencer(pk cryptotypes.PubKey, amt sdk.Coin) 
 
 func (s *SequencerTestSuite) createSequencerWithBond(ctx sdk.Context, rollapp string, pk cryptotypes.PubKey, bond sdk.Coin) types.Sequencer {
 	s.fundSequencer(pk, bond)
-	msg := createSequencerMsg(rollapp, pk)
+	msg := createSequencerMsgOnePubkey(rollapp, pk)
 	msg.Bond = bond
 	_, err := s.msgServer.CreateSequencer(ctx, &msg)
 	s.Require().NoError(err)

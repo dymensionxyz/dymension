@@ -16,7 +16,7 @@ import (
 func (s *SequencerTestSuite) TestCreateSequencerBasic() {
 	ra := s.createRollapp()
 	s.fundSequencer(alice, bond)
-	msg := createSequencerMsg(ra.RollappId, alice)
+	msg := createSequencerMsgOnePubkey(ra.RollappId, alice)
 	msg.Bond = bond
 	_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 	s.Require().NoError(err)
@@ -34,7 +34,7 @@ func (s *SequencerTestSuite) TestCreateSequencerSeveral() {
 
 	for _, pk := range pks {
 		s.fundSequencer(pk, bond)
-		msg := createSequencerMsg(ra.RollappId, pk)
+		msg := createSequencerMsgOnePubkey(ra.RollappId, pk)
 		msg.Bond = bond
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		s.Require().NoError(err)
@@ -64,7 +64,7 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 
 	s.Run("not allowed - no rollapp", func() {
 		s.fundSequencer(alice, bond)
-		msg := createSequencerMsg(urand.RollappID(), alice)
+		msg := createSequencerMsgOnePubkey(urand.RollappID(), alice)
 		msg.Bond = bond
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrNotFound)
@@ -72,18 +72,27 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 	s.Run("not allowed - already exist", func() {
 		pk := randPK()
 		s.fundSequencer(pk, bond)
-		msg := createSequencerMsg(ra.RollappId, pk)
+		msg := createSequencerMsgOnePubkey(ra.RollappId, pk)
 		msg.Bond = bond
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		s.Require().NoError(err)
 		_, err = s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrAlreadyExists)
 	})
+	s.Run("not allowed - pub key in use", func() {
+		pk, _ := types.PubKey(alice)
+		s.k().SetSequencerByDymintAddr(alice.Address())
+		s.fundSequencer(pk, bond)
+		msg := createSequencerMsgOnePubkey(ra.RollappId, pk)
+		msg.Bond = bond
+		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
+		utest.IsErr(s.Require(), err, gerrc.ErrAlreadyExists)
+	})
 	s.Run("not allowed - TODO: awaitingLastProposerBlock", func() {
 	})
 	s.Run("not allowed - insufficient bond", func() {
 		s.fundSequencer(alice, bond)
-		msg := createSequencerMsg(ra.RollappId, alice)
+		msg := createSequencerMsgOnePubkey(ra.RollappId, alice)
 		msg.Bond = bond
 		msg.Bond.Amount = msg.Bond.Amount.Sub(sdk.OneInt())
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
@@ -91,7 +100,7 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 	})
 	s.Run("not allowed - wrong denom", func() {
 		s.fundSequencer(alice, bond)
-		msg := createSequencerMsg(ra.RollappId, alice)
+		msg := createSequencerMsgOnePubkey(ra.RollappId, alice)
 		msg.Bond = bond
 		msg.Bond.Denom = "foo"
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
@@ -105,7 +114,7 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		s.Require().False(ra.Launched)
 
 		s.fundSequencer(alice, bond)
-		msg := createSequencerMsg(ra.RollappId, alice)
+		msg := createSequencerMsgOnePubkey(ra.RollappId, alice)
 		msg.Bond = bond
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
@@ -119,7 +128,7 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 
 		seq := david
 		s.fundSequencer(seq, bond)
-		msg := createSequencerMsg(ra.RollappId, seq)
+		msg := createSequencerMsgOnePubkey(ra.RollappId, seq)
 		msg.Bond = bond
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
@@ -135,7 +144,7 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		s.raK().SetRollapp(s.Ctx, ra)
 
 		s.fundSequencer(seq, bond)
-		msg := createSequencerMsg(ra.RollappId, seq)
+		msg := createSequencerMsgOnePubkey(ra.RollappId, seq)
 		msg.Bond = bond
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		s.Require().NoError(err)
@@ -146,7 +155,7 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		s.Require().False(ra.Launched)
 
 		s.fundSequencer(seq, bond)
-		msg := createSequencerMsg(ra.RollappId, seq)
+		msg := createSequencerMsgOnePubkey(ra.RollappId, seq)
 		msg.Bond = bond
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		s.Require().NoError(err)
@@ -158,7 +167,7 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		s.raK().SetRollapp(s.Ctx, ra)
 
 		s.fundSequencer(seq, bond)
-		msg := createSequencerMsg(ra.RollappId, seq)
+		msg := createSequencerMsgOnePubkey(ra.RollappId, seq)
 		msg.Bond = bond
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
