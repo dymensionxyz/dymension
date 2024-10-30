@@ -56,7 +56,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 
 	rollapp, ok := i.raK.GetRollapp(ctx, seq.RollappId)
 	if !ok {
-		return gerrc.ErrInternal.Wrap("get rollapp from sequencer")
+		return gerrc.ErrInternal.Wrapf("get rollapp from sequencer: rollapp: %s", seq.RollappId)
 	}
 
 	// TODO: in hard fork will need to also use revision to make sure not from old revision

@@ -20,12 +20,12 @@ func TestHandleMsgSubmitMisbehaviour(t *testing.T) {
 	testClientStates := map[string]exported.ClientState{
 		"non-tm-client-id": &ibcsolomachine.ClientState{},
 		keepertest.CanonClientID: &ibctm.ClientState{
-			ChainId: "rollapp-has-canon-client",
+			ChainId: keepertest.DefaultRollapp,
 		},
 	}
 	ibcclientKeeper := NewMockIBCClientKeeper(testClientStates)
 	ibcchannelKeeper := NewMockIBCChannelKeeper(nil)
-	keeper.SetCanonicalClient(ctx, "rollapp-has-canon-client", keepertest.CanonClientID)
+	keeper.SetCanonicalClient(ctx, keepertest.DefaultRollapp, keepertest.CanonClientID)
 	ibcMsgDecorator := ante.NewIBCMessagesDecorator(*keeper, ibcclientKeeper, ibcchannelKeeper, rollappKeeper)
 	testCases := []struct {
 		name     string

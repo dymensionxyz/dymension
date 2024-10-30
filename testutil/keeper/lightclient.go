@@ -31,13 +31,15 @@ import (
 )
 
 const (
-	CanonClientID = "canon"
+	CanonClientID  = "canon"
+	DefaultRollapp = "default"
 )
 
 var (
 	Alice = func() sequencertypes.Sequencer {
 		ret := sequencertypes.NewTestSequencer(ed25519.GenPrivKey().PubKey())
 		ret.Status = sequencertypes.Bonded
+		ret.RollappId = DefaultRollapp
 		return ret
 	}()
 )

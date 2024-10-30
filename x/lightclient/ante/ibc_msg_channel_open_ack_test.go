@@ -15,8 +15,8 @@ import (
 func TestHandleMsgChannelOpenAck(t *testing.T) {
 	keeper, ctx := keepertest.LightClientKeeper(t)
 	testRollapps := map[string]rollapptypes.Rollapp{
-		"rollapp-has-canon-client": {
-			RollappId: "rollapp-has-canon-client",
+		keepertest.DefaultRollapp: {
+			RollappId: keepertest.DefaultRollapp,
 			ChannelId: "channel-on-canon-client",
 		},
 		"rollapp-no-canon-channel": {
@@ -38,7 +38,7 @@ func TestHandleMsgChannelOpenAck(t *testing.T) {
 	rollappKeeper := NewMockRollappKeeper(testRollapps, nil)
 	ibcclientKeeper := NewMockIBCClientKeeper(nil)
 	ibcchannelKeeper := NewMockIBCChannelKeeper(testConnections)
-	keeper.SetCanonicalClient(ctx, "rollapp-has-canon-client", keepertest.CanonClientID)
+	keeper.SetCanonicalClient(ctx, keepertest.DefaultRollapp, keepertest.CanonClientID)
 	keeper.SetCanonicalClient(ctx, "rollapp-no-canon-channel", "keepertest.CanonClientID-2")
 	ibcMsgDecorator := ante.NewIBCMessagesDecorator(*keeper, ibcclientKeeper, ibcchannelKeeper, rollappKeeper)
 	testCases := []struct {
