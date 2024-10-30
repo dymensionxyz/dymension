@@ -70,7 +70,7 @@ func (s *SequencerTestSuite) TestDecreaseBondBasic() {
 		Creator:        seq.Address,
 		DecreaseAmount: bond,
 	}
-	s.k().SetProposer(s.Ctx, ra.RollappId, pkAddr(randPK())) // make not proposer so it's allowed
+	s.k().SetProposer(s.Ctx, ra.RollappId, pkAddr(randomTMPubKey())) // make not proposer so it's allowed
 	for range 2 {
 		_, err := s.msgServer.DecreaseBond(s.Ctx, m)
 		s.Require().NoError(err)
@@ -131,7 +131,7 @@ func (s *SequencerTestSuite) TestUnbondBasic() {
 	ra := s.createRollapp()
 	expect := bond
 	seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, expect)
-	s.k().SetProposer(s.Ctx, ra.RollappId, pkAddr(randPK())) // make not proposer so it's allowed
+	s.k().SetProposer(s.Ctx, ra.RollappId, pkAddr(randomTMPubKey())) // make not proposer so it's allowed
 	m := &types.MsgUnbond{
 		Creator: seq.Address,
 	}

@@ -26,22 +26,20 @@ import (
 
 var (
 
-	// NOTE: these utils don't use the pub key strictly correctly
-	// because we use the ed25519 (tendermint) key for both
-	// the dymint pub key and the cosmos pub key
+	// TODO: use separate cosmos/dymint pubkeys in tests https://github.com/dymensionxyz/dymension/issues/1360
 
 	bond = types.DefaultParams().MinBond
 	kick = types.DefaultParams().KickThreshold
 	pks  = []cryptotypes.PubKey{
-		randPK(),
-		randPK(),
-		randPK(),
-		randPK(),
-		randPK(),
-		randPK(),
-		randPK(),
-		randPK(),
-		randPK(),
+		randomTMPubKey(),
+		randomTMPubKey(),
+		randomTMPubKey(),
+		randomTMPubKey(),
+		randomTMPubKey(),
+		randomTMPubKey(),
+		randomTMPubKey(),
+		randomTMPubKey(),
+		randomTMPubKey(),
 	}
 	alice   = pks[0]
 	bob     = pks[1]
@@ -53,16 +51,16 @@ var (
 	heidi   = pks[7]
 )
 
-func randPK() cryptotypes.PubKey {
+func randomTMPubKey() cryptotypes.PubKey {
 	return ed25519.GenPrivKey().PubKey()
 }
 
-func pkAddr(pk cryptotypes.PubKey) string {
-	return pkAccAddr(pk).String()
+func pkAcc(pk cryptotypes.PubKey) sdk.AccAddress {
+	return sdk.AccAddress(pk.Address())
 }
 
-func pkAccAddr(pk cryptotypes.PubKey) sdk.AccAddress {
-	return sdk.AccAddress(pk.Address())
+func pkAddr(pk cryptotypes.PubKey) string {
+	return pkAcc(pk).String()
 }
 
 // Prevent strconv unused error
@@ -162,7 +160,7 @@ func createSequencerMsg(rollapp string, pkCosmos, pkDymint cryptotypes.PubKey) t
 }
 
 func (s *SequencerTestSuite) fundSequencer(pk cryptotypes.PubKey, amt sdk.Coin) {
-	err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, pkAccAddr(pk), sdk.NewCoins(amt))
+	err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, pkAcc(pk), sdk.NewCoins(amt))
 	s.Require().NoError(err)
 }
 

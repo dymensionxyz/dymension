@@ -58,7 +58,7 @@ func (s *SequencerTestSuite) TestFraud() {
 	s.Run("with rewardee", func() {
 		s.createSequencerWithBond(s.Ctx, ra.RollappId, charlie, bond)
 		seq := s.seq(charlie)
-		rewardee := pkAccAddr(randPK())
+		rewardee := pkAcc(randomTMPubKey())
 		rewardeeBalBefore := s.App.BankKeeper.GetAllBalances(s.Ctx, rewardee)
 
 		s.k().SetProposer(s.Ctx, ra.RollappId, seq.Address)
