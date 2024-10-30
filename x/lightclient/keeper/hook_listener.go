@@ -44,7 +44,7 @@ func (hook rollappHook) AfterUpdateState(
 		return nil
 	}
 
-	seq, err := hook.k.sequencerKeeper.GetRealSequencer(ctx, stateInfo.Sequencer)
+	seq, err := hook.k.SeqK.GetRealSequencer(ctx, stateInfo.Sequencer)
 	if err != nil {
 		return gerrc.ErrInternal.Wrap("get sequencer for state info")
 	}
@@ -87,7 +87,7 @@ func (hook rollappHook) validateOptimisticUpdate(
 	if err != nil {
 		return gerrc.ErrInternal.Wrap("got cons state but no signer addr")
 	}
-	signer, err := hook.k.sequencerKeeper.GetRealSequencer(ctx, signerAddr)
+	signer, err := hook.k.SeqK.GetRealSequencer(ctx, signerAddr)
 	if err != nil {
 		return gerrc.ErrInternal.Wrap("got cons state but no signer seq")
 	}

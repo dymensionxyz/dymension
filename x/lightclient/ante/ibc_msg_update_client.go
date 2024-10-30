@@ -80,7 +80,7 @@ func (i IBCMessagesDecorator) getSequencer(ctx sdk.Context, header *ibctm.Header
 	if !bytes.Equal(proposerBySignature, proposerByData) {
 		return sequencertypes.Sequencer{}, errProposerMismatch
 	}
-	return i.seqK.SequencerByDymintAddr(ctx, proposerByData)
+	return i.k.SeqK.SequencerByDymintAddr(ctx, proposerByData)
 }
 
 func getHeader(msg *ibcclienttypes.MsgUpdateClient) (*ibctm.Header, error) {
@@ -130,7 +130,7 @@ func (i IBCMessagesDecorator) getStateInfos(ctx sdk.Context, rollapp string, h u
 
 func (i IBCMessagesDecorator) validateUpdatePessimistically(ctx sdk.Context, infos stateInfos, consState *ibctm.ConsensusState, h uint64) error {
 	bd, _ := infos.containingH.GetBlockDescriptor(h)
-	seq, err := i.seqK.GetRealSequencer(ctx, infos.containingHPlus1.Sequencer)
+	seq, err := i.k.SeqK.GetRealSequencer(ctx, infos.containingHPlus1.Sequencer)
 	if err != nil {
 		return gerrc.ErrInternal.Wrap("get sequencer of state info")
 	}

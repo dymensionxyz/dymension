@@ -102,7 +102,7 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.Client
 		}
 		bd, _ := stateInfoH.GetBlockDescriptor(h)
 
-		oldSequencer, err := k.sequencerKeeper.GetRealSequencer(ctx, stateInfoHplus1.Sequencer)
+		oldSequencer, err := k.SeqK.GetRealSequencer(ctx, stateInfoHplus1.Sequencer)
 		if err != nil {
 			return errorsmod.Wrap(err, "get sequencer")
 		}

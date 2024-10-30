@@ -15,17 +15,19 @@ type IBCMessagesDecorator struct {
 	ibcClientKeeper  types.IBCClientKeeperExpected
 	ibcChannelKeeper types.IBCChannelKeeperExpected
 	raK              types.RollappKeeperExpected
-	seqK             types.SequencerKeeperExpected
 	k                keeper.Keeper
 }
 
-func NewIBCMessagesDecorator(k keeper.Keeper, ibcClient types.IBCClientKeeperExpected, ibcChannel types.IBCChannelKeeperExpected, rk types.RollappKeeperExpected, seqK types.SequencerKeeperExpected) IBCMessagesDecorator {
+func NewIBCMessagesDecorator(k keeper.Keeper,
+	ibcClient types.IBCClientKeeperExpected,
+	ibcChannel types.IBCChannelKeeperExpected,
+	rk types.RollappKeeperExpected,
+) IBCMessagesDecorator {
 	return IBCMessagesDecorator{
 		ibcClientKeeper:  ibcClient,
 		ibcChannelKeeper: ibcChannel,
 		raK:              rk,
 		k:                k,
-		seqK:             seqK,
 	}
 }
 

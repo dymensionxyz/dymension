@@ -25,7 +25,7 @@ type Keeper struct {
 	cdc             codec.BinaryCodec
 	storeKey        storetypes.StoreKey
 	ibcClientKeeper types.IBCClientKeeperExpected
-	sequencerKeeper types.SequencerKeeperExpected
+	SeqK            types.SequencerKeeperExpected
 	rollappKeeper   types.RollappKeeperExpected
 
 	// <sequencer addr,client ID, height>
@@ -45,7 +45,7 @@ func NewKeeper(
 		cdc:             cdc,
 		storeKey:        storeKey,
 		ibcClientKeeper: ibcKeeper,
-		sequencerKeeper: sequencerKeeper,
+		SeqK:            sequencerKeeper,
 		rollappKeeper:   rollappKeeper,
 	}
 	return k

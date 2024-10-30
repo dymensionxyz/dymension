@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -136,6 +137,11 @@ func (m *MockIBCCLientKeeper) ConsensusStateHeights(c context.Context, req *ibcc
 
 type MockSequencerKeeper struct {
 	sequencers map[string]sequencertypes.Sequencer
+}
+
+func (m *MockSequencerKeeper) SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address) (sequencertypes.Sequencer, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (m *MockSequencerKeeper) GetRealSequencer(ctx sdk.Context, addr string) (sequencertypes.Sequencer, error) {
