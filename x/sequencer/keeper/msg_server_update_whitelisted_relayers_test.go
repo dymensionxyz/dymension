@@ -34,7 +34,7 @@ func (suite *SequencerTestSuite) TestUpdateWhitelistedRelayers() {
 				suite.Require().ErrorIs(err, tc.expectedErr)
 			} else {
 				suite.Require().NoError(err)
-				seq, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, tc.msg.Creator)
+				seq, _ := suite.App.SequencerKeeper.GetRealSequencer(suite.Ctx, tc.msg.Creator)
 				slices.Sort(tc.msg.Relayers)
 				suite.Require().Equal(tc.msg.Relayers, seq.WhitelistedRelayers)
 			}

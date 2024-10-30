@@ -7,8 +7,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	comettypes "github.com/cometbft/cometbft/types"
 
-	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
-	cometbfttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
