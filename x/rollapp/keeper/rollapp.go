@@ -2,11 +2,13 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
@@ -217,6 +219,30 @@ func (k Keeper) GetRollappByName(
 
 	k.cdc.MustUnmarshal(iterator.Value(), &val)
 	return val, true
+}
+
+func (k Keeper) GetRollappByDenom(ctx sdk.Context, denom string) (*types.Rollapp, error) {
+	// by future token
+	if rollappID, ok := denom.IRODenom(rollappId); ok {
+		return k.GetRollapp(ctx, rollappID), nil
+	}
+	// by ibc token
+	hash, err := transfertypes.ParseHexHash(strings.TrimPrefix(denom, "ibc/"))
+	// handle err...
+	var trace transfertypes.DenomTrace
+	trace, ok := k.transferKeeper.GetDenomTrace(ctx, hash)
+	// handle err...
+
+	var port string
+	var channel string
+	strings.Split(trace.Path, "/")                    // set port,channel
+	return k.GetRollappByPortChan(ctx, port, channel) // exists already
+}
+
+func (k Keeper) GetRollappOwnerByDenom(ctx sdk.Context, denom string) (sdk.AccAddress, error) {
+	ra, err := k.GetRollappByDenom(ctx, denom)
+	// handle err
+	return ra.OwnerAddr()
 }
 
 func (k Keeper) MustGetRollapp(ctx sdk.Context, rollappId string) types.Rollapp {

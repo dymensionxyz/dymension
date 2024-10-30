@@ -8,9 +8,11 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	"github.com/dymensionxyz/dymension/v3/utils/denom"
 )
 
-const IROTokenPrefix = "future"
+const IROTokenPrefix = "future_"
 
 var MinTokenAllocation = math.LegacyNewDec(10) // min allocation in decimal representation
 
@@ -78,9 +80,9 @@ func (p Plan) GetAddress() sdk.AccAddress {
 	return addr
 }
 
-// get IRO token's denom
+// GetIRODenom returns IRO token's denom
 func (p Plan) GetIRODenom() string {
-	return fmt.Sprintf("%s_%s", IROTokenPrefix, p.RollappId)
+	return denom.IRODenom(p.RollappId)
 }
 
 func DefaultIncentivePlanParams() IncentivePlanParams {
