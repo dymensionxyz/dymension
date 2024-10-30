@@ -110,12 +110,13 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 
 	// Emit event
 	err = uevent.EmitTypedEvent(ctx, &types.EventBuy{
-		Buyer:     buyer.String(),
-		PlanId:    planId,
-		RollappId: plan.RollappId,
-		Amount:    amountTokensToBuy,
-		Cost:      costAmt,
-		TakerFee:  takerFeeAmt,
+		Buyer:        buyer.String(),
+		PlanId:       planId,
+		RollappId:    plan.RollappId,
+		Amount:       amountTokensToBuy,
+		Cost:         costAmt,
+		TakerFee:     takerFeeAmt,
+		ClosingPrice: plan.SpotPrice(),
 	})
 	if err != nil {
 		return err
@@ -179,12 +180,13 @@ func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddre
 
 	// Emit event
 	err = uevent.EmitTypedEvent(ctx, &types.EventBuy{
-		Buyer:     buyer.String(),
-		PlanId:    planId,
-		RollappId: plan.RollappId,
-		Amount:    tokensOutAmt,
-		Cost:      toSpendMinusTakerFeeAmt,
-		TakerFee:  takerFeeAmt,
+		Buyer:        buyer.String(),
+		PlanId:       planId,
+		RollappId:    plan.RollappId,
+		Amount:       tokensOutAmt,
+		Cost:         toSpendMinusTakerFeeAmt,
+		TakerFee:     takerFeeAmt,
+		ClosingPrice: plan.SpotPrice(),
 	})
 	if err != nil {
 		return err
@@ -238,12 +240,13 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 
 	// Emit event
 	err = uevent.EmitTypedEvent(ctx, &types.EventSell{
-		Seller:    seller.String(),
-		PlanId:    planId,
-		RollappId: plan.RollappId,
-		Amount:    amountTokensToSell,
-		Revenue:   costAmt,
-		TakerFee:  takerFeeAmt,
+		Seller:       seller.String(),
+		PlanId:       planId,
+		RollappId:    plan.RollappId,
+		Amount:       amountTokensToSell,
+		Revenue:      costAmt,
+		TakerFee:     takerFeeAmt,
+		ClosingPrice: plan.SpotPrice(),
 	})
 	if err != nil {
 		return err
