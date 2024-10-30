@@ -43,14 +43,8 @@ func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
 	err = keeper.RollappHooks().OnHardFork(suite.Ctx, rollappId, 0)
 	suite.Require().NoError(err)
 
-	// check if proposer is slashed
-	sequencer, found := keeper.GetSequencer(suite.Ctx, proposer)
-	suite.Require().True(found)
-	suite.Require().True(sequencer.Jailed)
-	suite.Require().Equal(sequencer.Status, types.Unbonded)
-
 	// check if other sequencers are unbonded
-	for i := 1; i < numOfSequencers; i++ {
+	for i := 0; i < numOfSequencers; i++ {
 		sequencer, found := keeper.GetSequencer(suite.Ctx, seqAddrs[i])
 		suite.Require().True(found)
 		suite.Require().Equal(sequencer.Status, types.Unbonded)

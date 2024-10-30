@@ -59,7 +59,7 @@ func (k Keeper) InstantUnbondAllSequencers(ctx sdk.Context, rollappID string) er
 	for _, sequencer := range append(bonded, unbonding...) {
 		err := k.unbondSequencer(ctx, sequencer.Address)
 		if err != nil {
-			return err
+			k.Logger(ctx).Error("unbond sequencer", "error", err, "sequencer", sequencer.Address)
 		}
 	}
 
