@@ -5,6 +5,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	comettypes "github.com/cometbft/cometbft/types"
+	"slices"
+
+	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
+	cometbfttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -161,6 +165,11 @@ func PubKey(pk *codectypes.Any) (cryptotypes.PubKey, error) {
 	var pubKey cryptotypes.PubKey
 	err := protoCodec.UnpackAny(pk, &pubKey)
 	return pubKey, err
+}
+
+func (seq *Sequencer) SetWhitelistedRelayers(relayers []string) {
+	slices.Sort(relayers)
+	seq.WhitelistedRelayers = relayers
 }
 
 func Valset(pubKey cryptotypes.PubKey) (*comettypes.ValidatorSet, error) {

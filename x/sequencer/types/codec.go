@@ -12,6 +12,8 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUnbond{}, "sequencer/Unbond", nil)
 	cdc.RegisterConcrete(&MsgIncreaseBond{}, "sequencer/IncreaseBond", nil)
 	cdc.RegisterConcrete(&MsgDecreaseBond{}, "sequencer/DecreaseBond", nil)
+	cdc.RegisterConcrete(&MsgUpdateRewardAddress{}, "sequencer/UpdateRewardAddress", nil)
+	cdc.RegisterConcrete(&MsgUpdateWhitelistedRelayers{}, "sequencer/UpdateWhitelistedRelayers", nil)
 	cdc.RegisterConcrete(&MsgKickProposer{}, "sequencer/KickProposer", nil)
 	cdc.RegisterConcrete(&MsgUpdateOptInStatus{}, "sequencer/UpdateOtpInStatus", nil)
 }
@@ -24,6 +26,8 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgIncreaseBond{},
 		&MsgKickProposer{},
 		&MsgUpdateOptInStatus{},
+		&MsgUpdateRewardAddress{},
+		&MsgUpdateWhitelistedRelayers{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

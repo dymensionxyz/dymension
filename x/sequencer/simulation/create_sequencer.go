@@ -38,10 +38,12 @@ func SimulateMsgCreateSequencer(
 		}
 
 		msg := &types.MsgCreateSequencer{
-			Creator:      seqAddress,
-			DymintPubKey: pkAny,
-			RollappId:    rollappId,
-			Metadata:     types.SequencerMetadata{},
+			Creator:             seqAddress,
+			DymintPubKey:        pkAny,
+			RollappId:           rollappId,
+			Metadata:            types.SequencerMetadata{},
+			RewardAddr:          seqAddress,
+			WhitelistedRelayers: []string{},
 		}
 
 		bExpectedError := bFailNoRollapp

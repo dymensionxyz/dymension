@@ -25,4 +25,6 @@ type RollappKeeper interface {
 		packetData []byte,
 		raPortOnHub, raChanOnHub string,
 	) (data rollapptypes.TransferData, err error)
+	SetRegisteredDenom(ctx sdk.Context, rollappID, denom string) error
+	HasRegisteredDenom(ctx sdk.Context, rollappID, denom string) (bool, error)
 }

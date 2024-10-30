@@ -1,12 +1,15 @@
 package keeper
 
 import (
+	"sort"
+	"strings"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // StartNoticePeriodForSequencer defines a period of time for the sequencer where
@@ -78,6 +81,8 @@ func (k Keeper) ChooseSuccessorForFinishedNotices(ctx sdk.Context, now time.Time
 					types.EventTypeRotationStarted,
 					sdk.NewAttribute(types.AttributeKeyRollappId, seq.RollappId),
 					sdk.NewAttribute(types.AttributeKeyNextProposer, successor.Address),
+					sdk.NewAttribute(types.AttributeKeyRewardAddr, successor.RewardAddr),
+					sdk.NewAttribute(types.AttributeKeyWhitelistedRelayers, strings.Join(successor.WhitelistedRelayers, ",")),
 				),
 			)
 		}

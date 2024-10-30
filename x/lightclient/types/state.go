@@ -27,7 +27,7 @@ func CheckCompatibility(ibcState ibctm.ConsensusState, raState RollappState) err
 		return gerrc.ErrInternal.Wrap("val set hash")
 	}
 	if !bytes.Equal(ibcState.NextValidatorsHash, hash) {
-		return errorsmod.Wrap(ErrValidatorHashMismatch, "next validator hash does not match the sequencer for h+1")
+		return errorsmod.Wrap(ErrValidatorHashMismatch, "cons state next validator hash does not match the state info hash for sequencer for h+1")
 	}
 	if !raState.BlockDescriptor.Timestamp.IsZero() && !ibcState.Timestamp.Equal(raState.BlockDescriptor.Timestamp) {
 		return errorsmod.Wrap(ErrTimestampMismatch, "block descriptor timestamp does not match tendermint header timestamp")

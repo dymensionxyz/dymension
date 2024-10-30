@@ -21,6 +21,10 @@ service Msg {
   rpc CreateSequencer (MsgCreateSequencer) returns (MsgCreateSequencerResponse);
   // UpdateSequencerInformation defines a method for updating the sequencer's metadata.
   rpc UpdateSequencerInformation (MsgUpdateSequencerInformation) returns (MsgUpdateSequencerInformationResponse);
+  // UpdateRewardAddress defines a method for updating the sequencer's reward address.
+  rpc UpdateRewardAddress(MsgUpdateRewardAddress) returns (MsgUpdateRewardAddressResponse);
+  // UpdateWhitelistedRelayers defines a method for updating the sequencer's whitelisted relater list.
+  rpc UpdateWhitelistedRelayers(MsgUpdateWhitelistedRelayers) returns (MsgUpdateWhitelistedRelayersResponse);
   // UpdateOptInStatus allows toggling optedIn bool
   // NOTE: arguably should have just used UpdateSequencerInformation instead of having a new message, but want to avoid changing
   // frontends last minute.
@@ -68,6 +72,11 @@ message MsgCreateSequencer {
   SequencerMetadata metadata = 4 [(gogoproto.nullable) = false];
   // entry bond for the sequencer.
   cosmos.base.v1beta1.Coin bond = 5 [(gogoproto.nullable) = false];
+  // RewardAddr is the bech32-encoded sequencer's reward address. Empty is valid.
+  // If empty, the creator address is used.
+  string reward_addr = 6;
+  // WhitelistedRelayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
+  repeated string whitelisted_relayers = 7;
 }
 
 message MsgCreateSequencerResponse {}
@@ -90,6 +99,26 @@ message MsgUpdateSequencerInformation {
 }
 
 message MsgUpdateSequencerInformationResponse {}
+
+message MsgUpdateRewardAddress {
+  option (cosmos.msg.v1.signer) = "creator";
+  // Creator is the bech32-encoded address of the actor sending the update
+  string creator = 1;
+  // RewardAddr is a bech32 encoded sdk acc address
+  string reward_addr = 2;
+}
+
+message MsgUpdateRewardAddressResponse {}
+
+message MsgUpdateWhitelistedRelayers {
+  option (cosmos.msg.v1.signer) = "creator";
+  // Creator is the bech32-encoded address of the actor sending the update
+  string creator = 1;
+  // Relayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
+  repeated string relayers = 2;
+}
+
+message MsgUpdateWhitelistedRelayersResponse {}
 
 message MsgUpdateOptInStatus {
   option (cosmos.msg.v1.signer) = "creator";

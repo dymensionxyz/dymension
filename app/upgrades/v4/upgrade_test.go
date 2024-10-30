@@ -293,11 +293,10 @@ func (s *UpgradeTestSuite) seedRollapps(numRollapps int) []rollapptypes.Rollapp 
 	for i := range numRollapps {
 		rollappID := rollappIDFromIdx(i)
 		rollapp := rollapptypes.Rollapp{
-			RollappId:        rollappID,
-			Owner:            sample.AccAddressFromSecret(rollappID),
-			GenesisState:     rollapptypes.RollappGenesisState{},
-			ChannelId:        fmt.Sprintf("channel-%d", i),
-			RegisteredDenoms: []string{"denom1", "denom2"},
+			RollappId:    rollappID,
+			Owner:        sample.AccAddressFromSecret(rollappID),
+			GenesisState: rollapptypes.RollappGenesisState{},
+			ChannelId:    fmt.Sprintf("channel-%d", i),
 		}
 		rollapps[i] = rollapp
 	}

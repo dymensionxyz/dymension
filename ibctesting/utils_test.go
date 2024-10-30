@@ -37,11 +37,10 @@ import (
 )
 
 // chainIDPrefix defines the default chain ID prefix for Evmos test chains
-var chainIDPrefix = "evmos_9000-"
+var chainIDPrefix = "evmos_9000"
 
 func init() {
 	ibctesting.ChainIDPrefix = chainIDPrefix
-	ibctesting.ChainIDSuffix = ""
 	ibctesting.DefaultTestingAppInit = func() (ibctesting.TestingApp, map[string]json.RawMessage) {
 		return apptesting.SetupTestingApp()
 	}
@@ -205,6 +204,8 @@ func (s *utilSuite) registerSequencer() {
 			RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
 		},
 		bond,
+		s.hubChain().SenderAccount.GetAddress().String(),
+		[]string{},
 	)
 	s.Require().NoError(err) // message committed
 	_, err = s.hubChain().SendMsgs(msgCreateSequencer)

@@ -65,7 +65,7 @@ func (k Keeper) MustGetPlanByRollapp(ctx sdk.Context, rollappId string) types.Pl
 }
 
 // GetAllPlans returns all plans
-func (k Keeper) GetAllPlans(ctx sdk.Context) (list []types.Plan) {
+func (k Keeper) GetAllPlans(ctx sdk.Context, tradableOnly bool) (list []types.Plan) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PlanKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
@@ -74,6 +74,9 @@ func (k Keeper) GetAllPlans(ctx sdk.Context) (list []types.Plan) {
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Plan
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if tradableOnly && !val.IsSettled() && !val.StartTime.After(ctx.BlockTime()) {
+			continue
+		}
 		list = append(list, val)
 	}
 

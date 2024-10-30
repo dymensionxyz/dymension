@@ -21,4 +21,10 @@ message GenesisState {
   // LivenessEvents are scheduled upcoming liveness events
   repeated LivenessEvent livenessEvents = 7 [(gogoproto.nullable) = false];
   repeated App appList = 8 [(gogoproto.nullable) = false];
+  repeated RollappRegisteredDenoms registeredDenoms = 9 [(gogoproto.nullable) = false];
+}
+
+message RollappRegisteredDenoms {
+  string rollapp_id = 1;
+  repeated string denoms = 2 [(gogoproto.nullable) = false];
 }

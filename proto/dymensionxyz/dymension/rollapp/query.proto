@@ -54,6 +54,11 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{index}";
   }
+
+  // Queries a list of registered denoms for the rollapp.
+  rpc RegisteredDenoms(QueryRegisteredDenomsRequest) returns (QueryRegisteredDenomsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/rollapp/registered_denoms";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -122,4 +127,12 @@ message QueryGetStateInfoRequest {
 
 message QueryGetStateInfoResponse {
   StateInfo stateInfo = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryRegisteredDenomsRequest {
+  string rollappId = 1;
+}
+
+message QueryRegisteredDenomsResponse {
+  repeated string denoms = 1;
 }

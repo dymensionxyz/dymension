@@ -14,6 +14,7 @@ import (
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	seqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func TestLivenessArithmetic(t *testing.T) {
@@ -188,6 +189,12 @@ func newLivenessMockSequencerKeeper() livenessMockSequencerKeeper {
 func (l livenessMockSequencerKeeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	l.slashes[rollappID]++
 	return nil
+}
+
+
+
+func (l livenessMockSequencerKeeper) GetProposer(ctx sdk.Context, rollappId string) (val seqtypes.Sequencer, found bool) {
+	return seqtypes.Sequencer{}, false
 }
 
 func (l livenessMockSequencerKeeper) clear(rollappID string) {
