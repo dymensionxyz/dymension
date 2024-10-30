@@ -12,9 +12,9 @@ import (
 var _ paramtypes.ParamSet = &Params{}
 
 var (
-	KeyMinBond                 = []byte("MinBond")
-	KeyNoticePeriod            = []byte("NoticePeriod")
-	KeyLivenessSlashMultiplier = []byte("LivenessSlashMultiplier")
+	KeyMinBond                    = []byte("MinBond")
+	KeyNoticePeriod               = []byte("NoticePeriod")
+	keyLivenessSlashMinMultiplier = []byte("LivenessSlashMultiplier")
 )
 
 // Deprecated: ParamKeyTable for module
@@ -28,6 +28,6 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyMinBond, &p.MinBond, validateMinBond),
 		paramtypes.NewParamSetPair(KeyNoticePeriod, &p.NoticePeriod, validateTime),
-		paramtypes.NewParamSetPair(KeyLivenessSlashMultiplier, &p.LivenessSlashMinMultiplier, validateLivenessSlashMultiplier),
+		paramtypes.NewParamSetPair(keyLivenessSlashMinMultiplier, &p.LivenessSlashMinMultiplier, validateLivenessSlashMultiplier),
 	}
 }
