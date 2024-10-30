@@ -475,6 +475,7 @@ func (a *AppKeepers) InitKeepers(
 	a.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
 		appCodec,
 		a.keys[delayedacktypes.StoreKey],
+		a.keys[ibcexported.StoreKey],
 		a.GetSubspace(delayedacktypes.ModuleName),
 		a.RollappKeeper,
 		a.IBCKeeper.ChannelKeeper,
