@@ -54,7 +54,7 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		Address:      AliceAddr,
 		DymintPubKey: tmPk,
 	}
-	nextValHash, err := testSequencer.GetDymintPubKeyHash()
+	nextValHash, err := testSequencer.ValsetHash()
 	require.NoError(t, err)
 	testSequencers := map[string]sequencertypes.Sequencer{
 		AliceAddr: testSequencer,

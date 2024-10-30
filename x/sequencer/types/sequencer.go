@@ -4,7 +4,6 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
-	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	cometbfttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -123,50 +122,6 @@ func (seq Sequencer) ValsetHash() ([]byte, error) {
 	return valset.Hash(), nil
 }
 
-// GetDymintPubKeyHash returns the hash of the sequencer
-// as expected to be written on the rollapp ibc client headers
-func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {
-	pubKey, err := PubKey(seq.DymintPubKey)
-	if err != nil {
-		return nil, err
-	}
-
-	// convert the pubkey to tmPubKey
-	tmPubKey, err := cryptocodec.ToTmPubKeyInterface(pubKey)
-	if err != nil {
-		return nil, err
-	}
-	// Create a new tmValidator with fixed voting power of 1
-	// TODO: Make sure the voting power is a param coming from hub and
-	// not being set independently in dymint and hub
-	tmValidator := cometbfttypes.NewValidator(tmPubKey, 1)
-	tmValidatorSet := cometbfttypes.NewValidatorSet([]*cometbfttypes.Validator{tmValidator})
-	return tmValidatorSet.Hash(), nil
-}
-
-// CometPubKey returns the bytes of the sequencer's dymint pubkey
-func (seq Sequencer) CometPubKey() (tmprotocrypto.PublicKey, error) {
-	pubKey, err := PubKey(seq.DymintPubKey)
-	if err != nil {
-		return tmprotocrypto.PublicKey{}, err
-	}
-
-	// convert the pubkey to tmPubKey
-	tmPubKey, err := cryptocodec.ToTmProtoPublicKey(pubKey)
-	return tmPubKey, err
-}
-
-func PubKey(pk *codectypes.Any) (cryptotypes.PubKey, error) {
-	// TODO: this look wrong to me
-	interfaceRegistry := cdctypes.NewInterfaceRegistry()
-	cryptocodec.RegisterInterfaces(interfaceRegistry)
-	protoCodec := codec.NewProtoCodec(interfaceRegistry)
-
-	var pubKey cryptotypes.PubKey
-	err := protoCodec.UnpackAny(pk, &pubKey)
-	return pubKey, err
-}
-
 // MustPubKey is intended for tests
 func (seq Sequencer) MustPubKey() cryptotypes.PubKey {
 	ret, err := PubKey(seq.DymintPubKey)
@@ -174,4 +129,15 @@ func (seq Sequencer) MustPubKey() cryptotypes.PubKey {
 		panic(err)
 	}
 	return ret
+}
+
+func PubKey(pk *codectypes.Any) (cryptotypes.PubKey, error) {
+	// TODO: this look wrong
+	interfaceRegistry := cdctypes.NewInterfaceRegistry()
+	cryptocodec.RegisterInterfaces(interfaceRegistry)
+	protoCodec := codec.NewProtoCodec(interfaceRegistry)
+
+	var pubKey cryptotypes.PubKey
+	err := protoCodec.UnpackAny(pk, &pubKey)
+	return pubKey, err
 }

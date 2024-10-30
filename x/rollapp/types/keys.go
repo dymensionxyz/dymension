@@ -24,6 +24,9 @@ func KeyPrefix(p string) []byte {
 }
 
 const (
-	VulnerableDRSVersionsKeyPrefix  = "vulnerableDRSVersions/value/"
+	VulnerableDRSVersionsKeyPrefix = "vulnerableDRSVersions/value/"
+)
+
+var (
 	SeqToUnfinalizedHeightKeyPrefix = collections.NewPrefix("seqToFinalizeHeight/")
 )
