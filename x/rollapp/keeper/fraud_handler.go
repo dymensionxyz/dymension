@@ -19,6 +19,14 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) 
 		return gerrc.ErrNotFound
 	}
 
+	// FIXME: enable later on
+	/*
+		// enforce the assumption that genesis transfer is completed before hard fork
+		if !rollapp.IsTransferEnabled() {
+			return errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "can't hard fork before transfer is enabled")
+		}
+	*/
+
 	err := k.RevertPendingStates(ctx, rollappID, fraudHeight)
 	if err != nil {
 		return errorsmod.Wrap(err, "revert pending states")
@@ -62,10 +70,14 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 		return errorsmod.Wrapf(types.ErrDisputeAlreadyFinalized, "state info for height %d is already finalized", fraudHeight)
 	}
 
+	lastStateIdxToKeep := stateInfo.StateInfoIndex.Index
 	// trunc the state info if needed
-	lastStateIdxToKeep, err := k.TruncStateInfo(ctx, stateInfo, fraudHeight)
-	if err != nil {
-		return errorsmod.Wrap(err, "trunc state info")
+	if stateInfo.StartHeight == fraudHeight {
+		// If fraud height is at the beginning of the state info, return the previous index to keep
+		lastStateIdxToKeep -= 1
+	} else {
+		// otherwise, truncate the state info
+		k.TruncStateInfo(ctx, stateInfo, fraudHeight)
 	}
 
 	// clear state info
@@ -80,10 +92,11 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 		Index:     lastStateIdxToKeep,
 	})
 
-	// TODO (#631): Prefix store by rollappID for efficient querying
-	queuePerHeight := k.GetAllBlockHeightToFinalizationQueue(ctx)
-
-	revertedQueueCount := 0
+	// remove all the pending states from the finalization queue
+	// we iterate over the queue,
+	// - skipping the states that are not related to the rollapp
+	// - skipping the states that are less than the rollback index
+	queuePerHeight := k.GetAllBlockHeightToFinalizationQueue(ctx) // FIXME (#631): Prefix store by rollappID for efficient querying
 	for _, queue := range queuePerHeight {
 		leftPendingStates := []types.StateInfoIndex{}
 		for _, stateInfoIndex := range queue.FinalizationQueue {
@@ -98,9 +111,6 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 				leftPendingStates = append(leftPendingStates, stateInfoIndex)
 				continue
 			}
-
-			// remove the state info index from the queue
-			revertedQueueCount++
 		}
 
 		// no change in the queue
@@ -121,11 +131,6 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 		})
 	}
 
-	// FIXME: remove. this is probably more invariant check
-	if revertedQueueCount != revertedStatesCount {
-		return fmt.Errorf("reverted state updates count mismatch: states: %d, queue: %d", revertedStatesCount, revertedQueueCount)
-	}
-
 	ctx.Logger().Info(fmt.Sprintf("Reverted state updates for rollapp: %s, count: %d", rollappID, revertedStatesCount))
 
 	return nil
@@ -133,23 +138,9 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 
 // TruncStateInfo truncates the state info to the last valid block before the fraud height.
 // It returns the index of the last state info to keep.
-func (k Keeper) TruncStateInfo(ctx sdk.Context, stateInfo *types.StateInfo, fraudHeight uint64) (uint64, error) {
-	// If fraud height is at the beginning of the state info, return the previous index to keep
-	if stateInfo.StartHeight == fraudHeight {
-		return stateInfo.StateInfoIndex.Index - 1, nil
-	}
-
-	// Otherwise, create a new state info with the truncated height
-	heightToKeep := fraudHeight - 1
-
+func (k Keeper) TruncStateInfo(ctx sdk.Context, stateInfo *types.StateInfo, fraudHeight uint64) {
 	// Remove block descriptors until the one we need to rollback to
-	var truncatedBDs []types.BlockDescriptor
-	for i, bd := range stateInfo.BDs.BD {
-		if bd.Height > heightToKeep {
-			truncatedBDs = stateInfo.BDs.BD[:i]
-			break
-		}
-	}
+	truncatedBDs := stateInfo.BDs.BD[:fraudHeight-stateInfo.StartHeight]
 
 	// Update the state info to reflect truncated data
 	stateInfo.NumBlocks = uint64(len(truncatedBDs))
@@ -157,6 +148,4 @@ func (k Keeper) TruncStateInfo(ctx sdk.Context, stateInfo *types.StateInfo, frau
 
 	// Update the state info in the keeper
 	k.SetStateInfo(ctx, *stateInfo)
-
-	return stateInfo.StateInfoIndex.Index, nil
 }
