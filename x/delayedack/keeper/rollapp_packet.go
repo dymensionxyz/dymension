@@ -182,9 +182,10 @@ func (k Keeper) DeleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.
 	return nil
 }
 
-func (k Keeper) GetPendingPacketsUntilLatestHeight(ctx sdk.Context, rollappID string) ([]commontypes.RollappPacket, uint64, error) {
+// GetPendingPacketsUntilFinalizedHeight returns all pending rollapp packets until the latest finalized height.
+func (k Keeper) GetPendingPacketsUntilFinalizedHeight(ctx sdk.Context, rollappID string) ([]commontypes.RollappPacket, uint64, error) {
 	// Get rollapp's latest finalized height
-	latestFinalizedHeight, err := k.GetRollappLatestFinalizedHeight(ctx, rollappID)
+	latestFinalizedHeight, err := k.getRollappLatestFinalizedHeight(ctx, rollappID)
 	if err != nil {
 		return nil, 0, fmt.Errorf("get latest finalized height: rollapp '%s': %w", rollappID, err)
 	}
@@ -193,7 +194,7 @@ func (k Keeper) GetPendingPacketsUntilLatestHeight(ctx sdk.Context, rollappID st
 	return k.ListRollappPackets(ctx, types.PendingByRollappIDByMaxHeight(rollappID, latestFinalizedHeight)), latestFinalizedHeight, nil
 }
 
-func (k Keeper) GetRollappLatestFinalizedHeight(ctx sdk.Context, rollappID string) (uint64, error) {
+func (k Keeper) getRollappLatestFinalizedHeight(ctx sdk.Context, rollappID string) (uint64, error) {
 	latestIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollappID)
 	if !found {
 		return 0, gerrc.ErrNotFound.Wrapf("latest finalized state index is not found")

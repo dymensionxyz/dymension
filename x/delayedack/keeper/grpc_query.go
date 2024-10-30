@@ -63,7 +63,7 @@ func (q Querier) GetPendingPacketsByReceiver(goCtx context.Context, req *types.Q
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Get all pending rollapp packets until the latest finalized height
-	rollappPendingPackets, _, err := q.GetPendingPacketsUntilLatestHeight(ctx, req.RollappId)
+	rollappPendingPackets, _, err := q.GetPendingPacketsUntilFinalizedHeight(ctx, req.RollappId)
 	if err != nil {
 		return nil, fmt.Errorf("get pending rollapp packets until the latest finalized height: rollapp '%s': %w", req.RollappId, err)
 	}

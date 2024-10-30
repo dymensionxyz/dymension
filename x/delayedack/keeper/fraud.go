@@ -12,7 +12,7 @@ import (
 func (k Keeper) HandleHardFork(ctx sdk.Context, rollappID string, height uint64, ibc porttypes.IBCModule) error {
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
-	// Get all the pending packets
+	// Get all the pending packets from fork height inclusive
 	rollappPendingPackets := k.ListRollappPackets(ctx, types.PendingByRollappIDFromHeight(rollappID, height))
 
 	// Iterate over all the pending packets and revert them
