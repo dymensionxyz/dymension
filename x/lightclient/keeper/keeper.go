@@ -12,6 +12,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -41,12 +42,27 @@ func NewKeeper(
 	sequencerKeeper types.SequencerKeeperExpected,
 	rollappKeeper types.RollappKeeperExpected,
 ) *Keeper {
+	service := collcompat.NewKVStoreService(storeKey)
+	sb := collections.NewSchemaBuilder(service)
 	k := &Keeper{
 		cdc:             cdc,
 		storeKey:        storeKey,
 		ibcClientKeeper: ibcKeeper,
 		SeqK:            sequencerKeeper,
 		rollappKeeper:   rollappKeeper,
+		headerSigners: collections.NewKeySet(
+			sb,
+			types.HeaderSignersPrefixKey,
+			"header_signers",
+			collections.TripleKeyCodec(collections.StringKey, collections.StringKey, collections.Uint64Key),
+		),
+		clientHeightToSigner: collections.NewMap(
+			sb,
+			types.ClientHeightToSigner,
+			"client_height_to_signer",
+			collections.PairKeyCodec(collections.StringKey, collections.Uint64Key),
+			collections.StringValue,
+		),
 	}
 	return k
 }

@@ -5,6 +5,7 @@ import (
 
 	"cosmossdk.io/collections"
 	"github.com/cometbft/cometbft/libs/log"
+	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -37,6 +38,8 @@ func NewKeeper(
 	if err != nil {
 		panic(fmt.Errorf("invalid x/sequencer authority address: %w", err))
 	}
+	service := collcompat.NewKVStoreService(storeKey)
+	sb := collections.NewSchemaBuilder(service)
 
 	return &Keeper{
 		cdc:            cdc,
@@ -46,6 +49,13 @@ func NewKeeper(
 		authority:      authority,
 		unbondBlockers: []UnbondBlocker{},
 		hooks:          types.NoOpHooks{},
+		dymintProposerAddrToAccAddr: collections.NewMap(
+			sb,
+			types.DymintProposerAddrToAccAddrKeyPrefix,
+			"dymintProposerAddrToAccAddr",
+			collections.BytesKey,
+			collections.StringValue,
+		),
 	}
 }
 

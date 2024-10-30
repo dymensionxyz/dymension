@@ -56,6 +56,9 @@ func NewKeeper(
 		panic(fmt.Errorf("invalid x/rollapp authority address: %w", err))
 	}
 
+	service := collcompat.NewKVStoreService(storeKey)
+	sb := collections.NewSchemaBuilder(service)
+
 	k := &Keeper{
 		cdc:             cdc,
 		storeKey:        storeKey,
@@ -68,13 +71,19 @@ func NewKeeper(
 		sequencerKeeper: sequencerKeeper,
 		bankKeeper:      bankKeeper,
 		vulnerableDRSVersions: collections.NewKeySet(
-			collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey)),
+			sb,
 			collections.NewPrefix(types.VulnerableDRSVersionsKeyPrefix),
 			"vulnerable_drs_versions",
 			collections.StringKey,
 		),
 		finalizePending:       nil,
 		canonicalClientKeeper: canonicalClientKeeper,
+		seqToUnfinalizedHeight: collections.NewKeySet(
+			sb,
+			types.SeqToUnfinalizedHeightKeyPrefix,
+			"seq_to_unfinalized_height",
+			collections.PairKeyCodec(collections.StringKey, collections.Uint64Key),
+		),
 	}
 	k.SetFinalizePendingFn(k.finalizePendingState)
 	return k

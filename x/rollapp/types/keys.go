@@ -1,5 +1,7 @@
 package types
 
+import "cosmossdk.io/collections"
+
 const (
 	// ModuleName defines the module name
 	ModuleName = "rollapp"
@@ -22,5 +24,6 @@ func KeyPrefix(p string) []byte {
 }
 
 const (
-	VulnerableDRSVersionsKeyPrefix = "vulnerableDRSVersions/value/"
+	VulnerableDRSVersionsKeyPrefix  = "vulnerableDRSVersions/value/"
+	SeqToUnfinalizedHeightKeyPrefix = collections.NewPrefix("seqToFinalizeHeight/")
 )

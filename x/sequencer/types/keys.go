@@ -5,6 +5,7 @@ import (
 	fmt "fmt"
 	"time"
 
+	"cosmossdk.io/collections"
 	"github.com/dymensionxyz/dymension/v3/utils"
 )
 
@@ -52,6 +53,7 @@ var (
 
 	NoticePeriodQueueKey = []byte{0x42} // prefix for the timestamps in notice period queue
 
+	DymintProposerAddrToAccAddrKeyPrefix = collections.NewPrefix([]byte{0x43})
 )
 
 /* --------------------- specific sequencer address keys -------------------- */
