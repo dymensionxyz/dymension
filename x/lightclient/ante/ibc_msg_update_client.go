@@ -15,6 +15,9 @@ import (
 )
 
 func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibcclienttypes.MsgUpdateClient) error {
+	if !i.k.Enabled() {
+		return nil
+	}
 	_, canonical := i.k.GetRollappForClientID(ctx, msg.ClientId)
 	header, err := getHeader(msg)
 	if !canonical && errorsmod.IsOf(err, errIsMisbehaviour) {

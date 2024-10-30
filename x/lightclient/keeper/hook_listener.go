@@ -35,6 +35,10 @@ func (hook rollappHook) AfterUpdateState(
 	rollappId string,
 	stateInfo *rollapptypes.StateInfo,
 ) error {
+	if !hook.k.Enabled() {
+		return nil
+	}
+
 	client, ok := hook.k.GetCanonicalClient(ctx, rollappId)
 	if !ok {
 		client, ok = hook.k.GetProspectiveCanonicalClient(ctx, rollappId, stateInfo.GetLatestHeight()-1)

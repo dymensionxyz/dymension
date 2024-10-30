@@ -22,7 +22,15 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
+type enabled struct {
+	enabled bool
+}
+
 type Keeper struct {
+	// if false, will not run the msg update client ante handler. Very hacky
+	// use to avoid problems in ibctesting.
+	enabled *enabled
+
 	cdc             codec.BinaryCodec
 	storeKey        storetypes.StoreKey
 	ibcClientKeeper types.IBCClientKeeperExpected
@@ -35,6 +43,15 @@ type Keeper struct {
 	clientHeightToSigner collections.Map[collections.Pair[string, uint64], string]
 }
 
+func (k Keeper) Enabled() bool {
+	return k.enabled.enabled
+
+}
+
+func (k Keeper) SetEnabled(b bool) {
+	k.enabled.enabled = b
+}
+
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
@@ -45,6 +62,7 @@ func NewKeeper(
 	service := collcompat.NewKVStoreService(storeKey)
 	sb := collections.NewSchemaBuilder(service)
 	k := &Keeper{
+		enabled:         &enabled{true},
 		cdc:             cdc,
 		storeKey:        storeKey,
 		ibcClientKeeper: ibcKeeper,
