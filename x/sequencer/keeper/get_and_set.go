@@ -21,6 +21,10 @@ func (k Keeper) RollappBondedSequencers(ctx sdk.Context, rollappId string) []typ
 	return k.RollappSequencersByStatus(ctx, rollappId, types.Bonded)
 }
 
+func (k Keeper) AllSequencers(ctx sdk.Context) (list []types.Sequencer) {
+	return k.prefixSequencers(ctx, types.SequencersKeyPrefix)
+}
+
 func (k Keeper) prefixSequencers(ctx sdk.Context, prefixKey []byte) []types.Sequencer {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), prefixKey)
 	it := sdk.KVStorePrefixIterator(store, []byte{})
@@ -43,21 +47,6 @@ func (k Keeper) RollappPotentialProposers(ctx sdk.Context, rollappId string) []t
 		return !k.isPotentialProposer(ctx, seq)
 	})
 	return append(seqs, k.SentinelSequencer(ctx))
-}
-
-func (k Keeper) AllSequencers(ctx sdk.Context) (list []types.Sequencer) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SequencersKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.Sequencer
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
-	}
-
-	return
 }
 
 func (k Keeper) MustGetNonSentinelSequencer(ctx sdk.Context, addr string) types.Sequencer {
