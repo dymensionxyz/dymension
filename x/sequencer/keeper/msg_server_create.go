@@ -83,11 +83,20 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 
 	seq := k.NewSequencer(ctx, msg.RollappId)
+
+	// set a reward address. if empty, use a creator address.
+	rewardAddr := msg.RewardAddr
+	if msg.RewardAddr == "" {
+		rewardAddr = msg.Creator
+	}
+
+	seq.RewardAddr = rewardAddr
 	seq.DymintPubKey = msg.DymintPubKey
 	seq.Address = msg.Creator
 	seq.Status = types.Bonded
 	seq.Metadata = msg.Metadata
 	seq.OptedIn = true
+	seq.SetWhitelistedRelayers(msg.WhitelistedRelayers)
 
 	if err := k.sendToModule(ctx, seq, msg.Bond); err != nil {
 		return nil, err
