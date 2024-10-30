@@ -119,7 +119,7 @@ func (s *RollappTestSuite) TestUpdateStateVulnerableRollapp() {
 	s.Require().Equal(expectedLastHeight, actualLastHeight)
 
 	// mark a DRS version as vulnerable. note that the last state update of the rollapp wasn't vulnerable
-	vulnNum, err := s.App.RollappKeeper.MarkVulnerableRollapps(s.Ctx, []uint64{vulnerableVersion})
+	vulnNum, err := s.App.RollappKeeper.MarkVulnerableRollapps(s.Ctx, []uint32{vulnerableVersion})
 	s.Require().NoError(err)
 	s.Require().Equal(0, vulnNum)
 

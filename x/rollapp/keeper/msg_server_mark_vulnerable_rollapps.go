@@ -40,8 +40,8 @@ func (k msgServer) MarkVulnerableRollapps(goCtx context.Context, msg *types.MsgM
 	return &types.MsgMarkVulnerableRollappsResponse{}, nil
 }
 
-func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []uint64) (int, error) {
-	vulnerableVersions := make(map[uint64]struct{})
+func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []uint32) (int, error) {
+	vulnerableVersions := make(map[uint32]struct{})
 	for _, v := range drsVersions {
 		vulnerableVersions[v] = struct{}{}
 		// this also saves in the state the vulnerable version

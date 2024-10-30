@@ -17,7 +17,7 @@ import (
 func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 	type rollapp struct {
 		name       string
-		drsVersion uint64
+		drsVersion uint32
 	}
 	govModule := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -25,7 +25,7 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 		name         string
 		authority    string
 		rollapps     []rollapp
-		vulnVersions []uint64
+		vulnVersions []uint32
 		expError     error
 	}{
 		{
@@ -39,7 +39,7 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				{name: "rollappe_5-1", drsVersion: 1},
 				{name: "rollappf_6-1", drsVersion: 2},
 			},
-			vulnVersions: []uint64{
+			vulnVersions: []uint32{
 				1,
 				2,
 			},
@@ -52,7 +52,7 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				{name: "rollappa_1-1", drsVersion: 2},
 				{name: "rollappd_2-1", drsVersion: 1},
 			},
-			vulnVersions: []uint64{
+			vulnVersions: []uint32{
 				1,
 			},
 			expError: nil,
@@ -68,7 +68,7 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				{name: "rollappe_5-1", drsVersion: 0},
 				{name: "rollappf_6-1", drsVersion: 2},
 			},
-			vulnVersions: []uint64{
+			vulnVersions: []uint32{
 				1,
 				2,
 			},
@@ -85,7 +85,7 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				{name: "rollappe_5-1", drsVersion: 0},
 				{name: "rollappf_6-1", drsVersion: 1},
 			},
-			vulnVersions: []uint64{
+			vulnVersions: []uint32{
 				0,
 				1,
 				2,
@@ -99,7 +99,7 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				{name: "rollappa_1-1", drsVersion: 2},
 				{name: "rollappe_2-1", drsVersion: 1},
 			},
-			vulnVersions: []uint64{
+			vulnVersions: []uint32{
 				1,
 			},
 			expError: gerrc.ErrInvalidArgument,

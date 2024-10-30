@@ -120,7 +120,7 @@ func (s *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAddr s
 	return s.PostStateUpdateWithDRSVersion(ctx, rollappId, seqAddr, startHeight, numOfBlocks, 1)
 }
 
-func (s *KeeperTestHelper) PostStateUpdateWithDRSVersion(ctx sdk.Context, rollappId, seqAddr string, startHeight, numOfBlocks uint64, drsVersion uint64) (lastHeight uint64, err error) {
+func (s *KeeperTestHelper) PostStateUpdateWithDRSVersion(ctx sdk.Context, rollappId, seqAddr string, startHeight, numOfBlocks uint64, drsVersion uint32) (lastHeight uint64, err error) {
 	var bds rollapptypes.BlockDescriptors
 	bds.BD = make([]rollapptypes.BlockDescriptor, numOfBlocks)
 	for k := uint64(0); k < numOfBlocks; k++ {
