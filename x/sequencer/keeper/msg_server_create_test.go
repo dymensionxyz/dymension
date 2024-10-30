@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
@@ -103,13 +104,13 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		s.Require().NoError(err)
 		seq := s.k().GetSequencer(s.Ctx, pkAddr(pk))
 		s.k().StartNoticePeriodForSequencer(s.Ctx, &seq)
+		s.k().SetSequencer(s.Ctx, seq)
 
 		// try to create another one
 		s.Ctx = s.Ctx.WithBlockTime(seq.NoticePeriodTime)
 		s.fundSequencer(alice, bond)
 		msg = createSequencerMsgOnePubkey(ra.RollappId, alice)
 		msg.Bond = bond
-		msg.Bond.Amount = msg.Bond.Amount.Sub(sdk.OneInt())
 		_, err = s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
 
@@ -126,10 +127,14 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		s.fundSequencer(alice, bond)
 		msg := createSequencerMsgOnePubkey(ra.RollappId, alice)
 		msg.Bond = bond
+		msg.Bond.Denom = "foo"
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrInvalidArgument)
 	})
 	s.Run("not allowed - vm", func() {
+		ra := s.createRollapp()
+		ra.VmType = rollapptypes.Rollapp_EVM
+		s.raK().SetRollapp(s.Ctx, ra)
 		s.fundSequencer(alice, bond)
 		msg := createSequencerMsgOnePubkey(ra.RollappId, alice)
 		msg.Bond = bond
