@@ -2,6 +2,7 @@ package ante
 
 import (
 	"bytes"
+	"errors"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,10 +21,15 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 		// We don't want to block misbehavior submission for non rollapps
 		return nil
 	}
+	if errorsmod.IsOf(err, errNoHeader) {
+		// it doesn't concern us
+		return nil
+	}
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "get header")
 	}
 	seq, err := i.getSequencer(ctx, header)
+	err = errorsmod.Wrap(err, "get sequencer")
 	if errorsmod.IsOf(err, errProposerMismatch) {
 		// this should not occur on any chain, regardless of being a rollapp or not
 		return err
@@ -71,12 +77,14 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 
 var (
 	errIsMisbehaviour   = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "misbehavior evidence is disabled for canonical clients")
+	errNoHeader         = errors.New("message does not contain header")
 	errProposerMismatch = errorsmod.Wrap(gerrc.ErrInvalidArgument, "validator set proposer not equal header proposer field")
 )
 
 func (i IBCMessagesDecorator) getSequencer(ctx sdk.Context, header *ibctm.Header) (sequencertypes.Sequencer, error) {
-	proposerBySignature := header.ValidatorSet.Proposer.GetAddress() // TODO: does ibc already guarantee this equal to header.ProposerAddr?
+	proposerBySignature := header.ValidatorSet.Proposer.GetAddress()
 	proposerByData := header.Header.ProposerAddress
+	// Does ibc already guarantee this equal to header.ProposerAddr? I don't think so
 	if !bytes.Equal(proposerBySignature, proposerByData) {
 		return sequencertypes.Sequencer{}, errProposerMismatch
 	}
@@ -86,7 +94,7 @@ func (i IBCMessagesDecorator) getSequencer(ctx sdk.Context, header *ibctm.Header
 func getHeader(msg *ibcclienttypes.MsgUpdateClient) (*ibctm.Header, error) {
 	clientMessage, err := ibcclienttypes.UnpackClientMessage(msg.ClientMessage)
 	if err != nil {
-		return nil, err
+		return nil, errorsmod.Wrap(err, "unpack client message")
 	}
 	_, ok := clientMessage.(*ibctm.Misbehaviour)
 	if ok {
@@ -94,7 +102,7 @@ func getHeader(msg *ibcclienttypes.MsgUpdateClient) (*ibctm.Header, error) {
 	}
 	header, ok := clientMessage.(*ibctm.Header)
 	if !ok {
-		return nil, nil
+		return nil, errNoHeader
 	}
 	return header, nil
 }

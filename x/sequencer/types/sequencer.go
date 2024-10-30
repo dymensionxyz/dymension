@@ -104,6 +104,11 @@ func (seq Sequencer) ValsetHash() ([]byte, error) {
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "pub key")
 	}
+	return ValsetHash(pubKey)
+}
+
+// TODO: move to a more suitable package
+func ValsetHash(pubKey cryptotypes.PubKey) ([]byte, error) {
 
 	// convert the pubkey to tmPubKey
 	tmPubKey, err := cryptocodec.ToTmPubKeyInterface(pubKey)
@@ -120,6 +125,23 @@ func (seq Sequencer) ValsetHash() ([]byte, error) {
 		return nil, errorsmod.Wrap(err, "validator set")
 	}
 	return valset.Hash(), nil
+}
+
+func (seq Sequencer) ProposerAddr() ([]byte, error) {
+	pubKey, err := PubKey(seq.DymintPubKey)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "pub key")
+	}
+	return pubKey.Address(), nil
+}
+
+// MustProposerAddr : intended for tests
+func (seq Sequencer) MustProposerAddr() []byte {
+	ret, err := seq.ProposerAddr()
+	if err != nil {
+		panic(err)
+	}
+	return ret
 }
 
 // MustPubKey is intended for tests

@@ -63,9 +63,8 @@ func TestAfterUpdateState(t *testing.T) {
 			name: "both states are not compatible - slash the sequencer who signed",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				seqValHash, err := k.GetSequencerHash(ctx, keepertest.AliceAddr)
+				err := k.SaveSigner(ctx, keepertest.AliceAddr, "canon-client-id", 2)
 				require.NoError(t, err)
-				k.SetConsensusStateValHash(ctx, "canon-client-id", 2, seqValHash)
 				return testInput{
 					rollappId: "rollapp-has-canon-client",
 					stateInfo: &rollapptypes.StateInfo{
@@ -100,9 +99,9 @@ func TestAfterUpdateState(t *testing.T) {
 			name: "state is compatible",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				seqValHash, err := k.GetSequencerHash(ctx, keepertest.AliceAddr)
+				err := k.SaveSigner(ctx, keepertest.AliceAddr, "canon-client-id", 2)
 				require.NoError(t, err)
-				k.SetConsensusStateValHash(ctx, "canon-client-id", 2, seqValHash)
+
 				return testInput{
 					rollappId: "rollapp-has-canon-client",
 					stateInfo: &rollapptypes.StateInfo{

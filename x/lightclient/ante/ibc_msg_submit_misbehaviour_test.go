@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibcsolomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
@@ -45,7 +46,7 @@ func TestHandleMsgSubmitMisbehaviour(t *testing.T) {
 				ClientId:     "canon-client-id",
 				Misbehaviour: nil,
 			},
-			err: ibcclienttypes.ErrInvalidClient,
+			err: gerrc.ErrInvalidArgument,
 		},
 		{
 			name: "Client is not a known canonical client",

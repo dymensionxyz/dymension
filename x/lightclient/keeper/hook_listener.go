@@ -56,7 +56,7 @@ func (hook rollappHook) AfterUpdateState(
 				// TODO: should double check this flow when implementing hard fork
 				break
 			}
-			return err
+			return errorsmod.Wrap(err, "validate optimistic")
 		}
 	}
 	return nil
@@ -85,11 +85,11 @@ func (hook rollappHook) validateOptimisticUpdate(
 	}
 	signerAddr, err := hook.k.GetSigner(ctx, client, h)
 	if err != nil {
-		return gerrc.ErrInternal.Wrap("got cons state but no signer addr")
+		return gerrc.ErrInternal.Wrapf("got cons state but no signer addr: client: %s: h: %d", client, h)
 	}
 	signer, err := hook.k.SeqK.GetRealSequencer(ctx, signerAddr)
 	if err != nil {
-		return gerrc.ErrInternal.Wrap("got cons state but no signer seq")
+		return gerrc.ErrInternal.Wrapf("got cons state but no signer seq: client: %s: h: %d: signer addr: %s", client, h, signerAddr)
 	}
 	// remove to allow unbond
 	err = hook.k.RemoveSigner(ctx, signer.Address, client, h)

@@ -115,7 +115,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 	err = k.hooks.AfterUpdateState(ctx, msg.RollappId, stateInfo)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "after update state")
+		return nil, errorsmod.Wrap(err, "hook: after update state")
 	}
 
 	stateInfoIndex := stateInfo.GetIndex()

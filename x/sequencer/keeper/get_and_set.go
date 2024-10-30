@@ -3,10 +3,13 @@ package keeper
 import (
 	"slices"
 
+	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func (k Keeper) RollappSequencers(ctx sdk.Context, rollappId string) []types.Sequencer {
@@ -92,6 +95,9 @@ func (k Keeper) SetSequencer(ctx sdk.Context, seq types.Sequencer) {
 func (k Keeper) SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address) (types.Sequencer, error) {
 	accAddr, err := k.dymintProposerAddrToAccAddr.Get(ctx, addr)
 	if err != nil {
+		if errorsmod.IsOf(err, collections.ErrNotFound) {
+			return types.Sequencer{}, gerrc.ErrNotFound
+		}
 		return types.Sequencer{}, err
 	}
 	return k.GetRealSequencer(ctx, accAddr)

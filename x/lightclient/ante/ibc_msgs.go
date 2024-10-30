@@ -18,7 +18,8 @@ type IBCMessagesDecorator struct {
 	k                keeper.Keeper
 }
 
-func NewIBCMessagesDecorator(k keeper.Keeper,
+func NewIBCMessagesDecorator(
+	k keeper.Keeper,
 	ibcClient types.IBCClientKeeperExpected,
 	ibcChannel types.IBCChannelKeeperExpected,
 	rk types.RollappKeeperExpected,
@@ -38,15 +39,15 @@ func (i IBCMessagesDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		switch msg := m.(type) {
 		case *ibcclienttypes.MsgSubmitMisbehaviour:
 			if err := i.HandleMsgSubmitMisbehaviour(ctx, msg); err != nil {
-				return ctx, errorsmod.Wrap(err, "failed to handle MsgSubmitMisbehaviour")
+				return ctx, errorsmod.Wrap(err, "handle MsgSubmitMisbehaviour")
 			}
 		case *ibcclienttypes.MsgUpdateClient:
 			if err := i.HandleMsgUpdateClient(ctx, msg); err != nil {
-				return ctx, errorsmod.Wrap(err, "failed to handle MsgUpdateClient")
+				return ctx, errorsmod.Wrap(err, "handle MsgUpdateClient")
 			}
 		case *ibcchanneltypes.MsgChannelOpenAck:
 			if err := i.HandleMsgChannelOpenAck(ctx, msg); err != nil {
-				return ctx, errorsmod.Wrap(err, "failed to handle MsgChannelOpenAck")
+				return ctx, errorsmod.Wrap(err, "handle MsgChannelOpenAck")
 			}
 		default:
 			continue

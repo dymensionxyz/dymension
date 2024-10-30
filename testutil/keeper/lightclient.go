@@ -141,7 +141,7 @@ type MockSequencerKeeper struct {
 
 func (m *MockSequencerKeeper) SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address) (sequencertypes.Sequencer, error) {
 	//TODO implement me
-	panic("implement me")
+	panic("implement me: SequencerByDymintAddr")
 }
 
 func (m *MockSequencerKeeper) GetRealSequencer(ctx sdk.Context, addr string) (sequencertypes.Sequencer, error) {

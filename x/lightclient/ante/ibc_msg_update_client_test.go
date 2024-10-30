@@ -72,12 +72,10 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 			name: "Could not find state info for height - ensure optimistically accepted and signer stored in state",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				seqValHash, err := k.GetSequencerHash(ctx, keepertest.AliceAddr)
-				require.NoError(t, err)
 				var valSet, trustedVals *cmtproto.ValidatorSet
 				signedHeader := &cmtproto.SignedHeader{
 					Header: &cmtproto.Header{
-						ValidatorsHash: seqValHash,
+						ValidatorsHash: keepertest.Alice.MustValsetHash(),
 						Height:         1,
 					},
 					Commit: &cmtproto.Commit{},
@@ -126,9 +124,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 			},
 			assert: func(ctx sdk.Context, k keeper.Keeper, err error) {
 				require.NoError(t, err)
-				seqValHash, found := k.GetConsensusStateValHash(ctx, "canon-client-id", 1)
-				require.True(t, found)
-				seq, err := k.GetSequencerFromValHash(ctx, "rollapp-has-canon-client", seqValHash)
+				seq, err := k.GetSigner(ctx, "canon-client-id", 1)
 				require.NoError(t, err)
 				require.Equal(t, keepertest.AliceAddr, seq)
 			},
@@ -217,26 +213,19 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 		{
 			name: "Ensure state is compatible - happy path",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
-				sequencer := keepertest.AliceAddr
-				proposerAddr, err := k.GetSequencerPubKey(ctx, sequencer)
-				require.NoError(t, err)
-				proposerAddrBytes, err := proposerAddr.Marshal()
-				require.NoError(t, err)
 				blocktimestamp := time.Unix(1724392989, 0)
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
 				var (
 					valSet      *cmtproto.ValidatorSet
 					trustedVals *cmtproto.ValidatorSet
 				)
-				nextValsHash, err := k.GetSequencerHash(ctx, sequencer)
-				require.NoError(t, err)
 				signedHeader := &cmtproto.SignedHeader{
 					Header: &cmtproto.Header{
 						AppHash:            []byte("appHash"),
-						ProposerAddress:    proposerAddrBytes,
+						ProposerAddress:    keepertest.Alice.MustProposerAddr(),
 						Time:               blocktimestamp,
-						ValidatorsHash:     nextValsHash,
-						NextValidatorsHash: nextValsHash,
+						ValidatorsHash:     keepertest.Alice.MustValsetHash(),
+						NextValidatorsHash: keepertest.Alice.MustValsetHash(),
 						Height:             1,
 					},
 					Commit: &cmtproto.Commit{},
