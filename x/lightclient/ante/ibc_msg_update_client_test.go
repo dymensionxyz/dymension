@@ -18,7 +18,87 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func basicHeader() ibctm.Header {
+func TestHandleMsgUpdateClient(t *testing.T) {
+	k, ctx := keepertest.LightClientKeeper(t)
+	testClientStates := map[string]exported.ClientState{
+		"non-tm-client-id": &ibcsolomachine.ClientState{},
+		"canon-client-id": &ibctm.ClientState{
+			ChainId: "rollapp-has-canon-client",
+		},
+	}
+
+	blocktimestamp := time.Unix(1724392989, 0)
+	var (
+		valSet      *cmtproto.ValidatorSet
+		trustedVals *cmtproto.ValidatorSet
+	)
+	signedHeader := &cmtproto.SignedHeader{
+		Header: &cmtproto.Header{
+			AppHash:            []byte("appHash"),
+			ProposerAddress:    keepertest.Alice.MustProposerAddr(),
+			Time:               blocktimestamp,
+			ValidatorsHash:     keepertest.Alice.MustValsetHash(),
+			NextValidatorsHash: keepertest.Alice.MustValsetHash(),
+			Height:             1,
+		},
+		Commit: &cmtproto.Commit{},
+	}
+	header := ibctm.Header{
+		SignedHeader:      signedHeader,
+		ValidatorSet:      valSet,
+		TrustedHeight:     ibcclienttypes.MustParseHeight("1-1"),
+		TrustedValidators: trustedVals,
+	}
+
+	rollapps := map[string]rollapptypes.Rollapp{
+		"rollapp-has-canon-client": {
+			RollappId: "rollapp-has-canon-client",
+		},
+	}
+	stateInfos := map[string]map[uint64]rollapptypes.StateInfo{
+		"rollapp-has-canon-client": {
+			1: {
+				Sequencer: keepertest.AliceAddr,
+				StateInfoIndex: rollapptypes.StateInfoIndex{
+					Index: 1,
+				},
+				StartHeight: 1,
+				NumBlocks:   2,
+				BDs: rollapptypes.BlockDescriptors{
+					BD: []rollapptypes.BlockDescriptor{
+						{
+							Height:    1,
+							StateRoot: []byte("appHash"),
+							Timestamp: header.SignedHeader.Header.Time,
+						},
+						{
+							Height:    2,
+							StateRoot: []byte("appHash2"),
+							Timestamp: header.SignedHeader.Header.Time.Add(1),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	ibcclientKeeper := NewMockIBCClientKeeper(testClientStates)
+	ibcchannelKeeper := NewMockIBCChannelKeeper(nil)
+	rollappKeeper := NewMockRollappKeeper(rollapps, stateInfos)
+	ibcMsgDecorator := ante.NewIBCMessagesDecorator(*k, ibcclientKeeper, ibcchannelKeeper, rollappKeeper)
+
+	clientMsg, err := ibcclienttypes.PackClientMessage(&header)
+	require.NoError(t, err)
+	msg := &ibcclienttypes.MsgUpdateClient{
+		ClientId:      "canon-client-id",
+		ClientMessage: clientMsg,
+		Signer:        "relayerAddr",
+	}
+	err = ibcMsgDecorator.HandleMsgUpdateClient(ctx, msg)
+	require.NoError(t, err)
+}
+
+func basicheaderLeagacy() ibctm.Header {
 	blocktimestamp := time.Unix(1724392989, 0)
 	var (
 		valSet      *cmtproto.ValidatorSet
@@ -44,7 +124,7 @@ func basicHeader() ibctm.Header {
 	return header
 }
 
-func TestHandleMsgUpdateClient(t *testing.T) {
+func TestHandleMsgUpdateClientLegacy(t *testing.T) {
 	type testInput struct {
 		msg        *ibcclienttypes.MsgUpdateClient
 		rollapps   map[string]rollapptypes.Rollapp
@@ -61,7 +141,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
 				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
 
-				header := basicHeader()
+				header := basicheaderLeagacy()
 				clientMsg, err := ibcclienttypes.PackClientMessage(&header)
 				require.NoError(t, err)
 				return testInput{
@@ -110,7 +190,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 		{
 			name: "Could not find a client with given client id",
 			prepare: func(ctx sdk.Context, k keeper.Keeper) testInput {
-				header := basicHeader()
+				header := basicheaderLeagacy()
 				clientMsg, err := ibcclienttypes.PackClientMessage(&header)
 				require.NoError(t, err)
 				return testInput{

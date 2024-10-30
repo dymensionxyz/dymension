@@ -4,7 +4,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
-	cometbfttypes "github.com/cometbft/cometbft/types"
+	comettypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -90,43 +90,6 @@ func (seq Sequencer) NoticeStarted() bool {
 	return seq.NoticePeriodTime != time.Time{}
 }
 
-// MustValsetHash : intended for tests
-func (seq Sequencer) MustValsetHash() []byte {
-	x, err := seq.ValsetHash()
-	if err != nil {
-		panic(err)
-	}
-	return x
-}
-
-func (seq Sequencer) ValsetHash() ([]byte, error) {
-	pubKey, err := PubKey(seq.DymintPubKey)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "pub key")
-	}
-	return ValsetHash(pubKey)
-}
-
-// TODO: move to a more suitable package
-func ValsetHash(pubKey cryptotypes.PubKey) ([]byte, error) {
-
-	// convert the pubkey to tmPubKey
-	tmPubKey, err := cryptocodec.ToTmPubKeyInterface(pubKey)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "tm pub key")
-	}
-
-	val := cometbfttypes.NewValidator(tmPubKey, 1)
-
-	valset, err := cometbfttypes.ValidatorSetFromExistingValidators([]*cometbfttypes.Validator{
-		val,
-	})
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "validator set")
-	}
-	return valset.Hash(), nil
-}
-
 func (seq Sequencer) ProposerAddr() ([]byte, error) {
 	pubKey, err := PubKey(seq.DymintPubKey)
 	if err != nil {
@@ -146,12 +109,48 @@ func (seq Sequencer) MustProposerAddr() []byte {
 
 // MustPubKey is intended for tests
 func (seq Sequencer) MustPubKey() cryptotypes.PubKey {
-	ret, err := PubKey(seq.DymintPubKey)
+	x, err := PubKey(seq.DymintPubKey)
 	if err != nil {
 		panic(err)
 	}
-	return ret
+	return x
 }
+
+func (seq Sequencer) Valset() (*comettypes.ValidatorSet, error) {
+	pubKey, err := PubKey(seq.DymintPubKey)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "pub key")
+	}
+	return Valset(pubKey)
+}
+
+func (seq Sequencer) ValsetHash() ([]byte, error) {
+	pubKey, err := PubKey(seq.DymintPubKey)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "pub key")
+	}
+	return ValsetHash(pubKey)
+}
+
+// MustValset : intended for tests
+func (seq Sequencer) MustValset() *comettypes.ValidatorSet {
+	x, err := seq.Valset()
+	if err != nil {
+		panic(err)
+	}
+	return x
+}
+
+// MustValsetHash : intended for tests
+func (seq Sequencer) MustValsetHash() []byte {
+	x, err := seq.ValsetHash()
+	if err != nil {
+		panic(err)
+	}
+	return x
+}
+
+// TODO: move these utils to a more suitable package
 
 func PubKey(pk *codectypes.Any) (cryptotypes.PubKey, error) {
 	// TODO: this look wrong
@@ -162,4 +161,26 @@ func PubKey(pk *codectypes.Any) (cryptotypes.PubKey, error) {
 	var pubKey cryptotypes.PubKey
 	err := protoCodec.UnpackAny(pk, &pubKey)
 	return pubKey, err
+}
+
+func Valset(pubKey cryptotypes.PubKey) (*comettypes.ValidatorSet, error) {
+	// convert the pubkey to tmPubKey
+	tmPubKey, err := cryptocodec.ToTmPubKeyInterface(pubKey)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "tm pub key")
+	}
+
+	val := comettypes.NewValidator(tmPubKey, 1)
+
+	return comettypes.ValidatorSetFromExistingValidators([]*comettypes.Validator{
+		val,
+	})
+}
+
+func ValsetHash(pubKey cryptotypes.PubKey) ([]byte, error) {
+	vs, err := Valset(pubKey)
+	if err != nil {
+		return nil, err
+	}
+	return vs.Hash(), nil
 }
