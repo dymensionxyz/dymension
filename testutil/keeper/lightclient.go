@@ -30,8 +30,7 @@ import (
 )
 
 var (
-	Alice     = sequencertypes.NewTestSequencer(ed25519.GenPrivKey().PubKey())
-	AliceAddr = Alice.Address
+	Alice = sequencertypes.NewTestSequencer(ed25519.GenPrivKey().PubKey())
 )
 
 func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
@@ -51,13 +50,13 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	require.NoError(t, err)
 
 	testSequencer := sequencertypes.Sequencer{
-		Address:      AliceAddr,
+		Address:      Alice.Address,
 		DymintPubKey: tmPk,
 	}
 	nextValHash, err := testSequencer.ValsetHash()
 	require.NoError(t, err)
 	testSequencers := map[string]sequencertypes.Sequencer{
-		AliceAddr: testSequencer,
+		Alice.Address: testSequencer,
 	}
 	testConsensusStates := map[string]map[uint64]exported.ConsensusState{
 		"canon-client-id": {

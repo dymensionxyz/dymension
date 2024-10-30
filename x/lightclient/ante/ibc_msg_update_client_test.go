@@ -58,7 +58,7 @@ func TestHandleMsgUpdateClient(t *testing.T) {
 	stateInfos := map[string]map[uint64]rollapptypes.StateInfo{
 		"rollapp-has-canon-client": {
 			1: {
-				Sequencer: keepertest.AliceAddr,
+				Sequencer: keepertest.Alice.Address,
 				StateInfoIndex: rollapptypes.StateInfoIndex{
 					Index: 1,
 				},
@@ -158,7 +158,7 @@ func TestHandleMsgUpdateClientLegacy(t *testing.T) {
 					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
 						"rollapp-has-canon-client": {
 							1: {
-								Sequencer: keepertest.AliceAddr,
+								Sequencer: keepertest.Alice.Address,
 								StateInfoIndex: rollapptypes.StateInfoIndex{
 									Index: 1,
 								},
@@ -264,7 +264,7 @@ func TestHandleMsgUpdateClientLegacy(t *testing.T) {
 					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
 						"rollapp-has-canon-client": {
 							3: {
-								Sequencer: keepertest.AliceAddr,
+								Sequencer: keepertest.Alice.Address,
 								StateInfoIndex: rollapptypes.StateInfoIndex{
 									Index: 3,
 								},
@@ -288,7 +288,7 @@ func TestHandleMsgUpdateClientLegacy(t *testing.T) {
 				require.NoError(t, err)
 				seq, err := k.GetSigner(ctx, "canon-client-id", 1)
 				require.NoError(t, err)
-				require.Equal(t, keepertest.AliceAddr, seq)
+				require.Equal(t, keepertest.Alice.Address, seq)
 			},
 		},
 		{
@@ -331,7 +331,7 @@ func TestHandleMsgUpdateClientLegacy(t *testing.T) {
 					stateInfos: map[string]map[uint64]rollapptypes.StateInfo{
 						"rollapp-has-canon-client": {
 							1: {
-								Sequencer: keepertest.AliceAddr,
+								Sequencer: keepertest.Alice.Address,
 								StateInfoIndex: rollapptypes.StateInfoIndex{
 									Index: 1,
 								},
@@ -348,7 +348,7 @@ func TestHandleMsgUpdateClientLegacy(t *testing.T) {
 								},
 							},
 							2: {
-								Sequencer: keepertest.AliceAddr,
+								Sequencer: keepertest.Alice.Address,
 								StateInfoIndex: rollapptypes.StateInfoIndex{
 									Index: 2,
 								},
