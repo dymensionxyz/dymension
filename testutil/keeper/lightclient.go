@@ -35,7 +35,11 @@ const (
 )
 
 var (
-	Alice = sequencertypes.NewTestSequencer(ed25519.GenPrivKey().PubKey())
+	Alice = func() sequencertypes.Sequencer {
+		ret := sequencertypes.NewTestSequencer(ed25519.GenPrivKey().PubKey())
+		ret.Status = sequencertypes.Bonded
+		return ret
+	}()
 )
 
 func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
@@ -51,8 +55,8 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
 
-	seqs := map[string]sequencertypes.Sequencer{
-		Alice.Address: Alice,
+	seqs := map[string]*sequencertypes.Sequencer{
+		Alice.Address: &Alice,
 	}
 	consStates := map[string]map[uint64]exported.ConsensusState{
 		CanonClientID: {
@@ -131,13 +135,13 @@ func (m *MockIBCCLientKeeper) ConsensusStateHeights(c context.Context, req *ibcc
 }
 
 type MockSequencerKeeper struct {
-	sequencers map[string]sequencertypes.Sequencer
+	sequencers map[string]*sequencertypes.Sequencer
 }
 
 func (m *MockSequencerKeeper) SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address) (sequencertypes.Sequencer, error) {
 	for _, s := range m.sequencers {
 		if bytes.Equal(s.MustProposerAddr(), addr) {
-			return s, nil
+			return *s, nil
 		}
 	}
 	return sequencertypes.Sequencer{}, gerrc.ErrNotFound
@@ -149,13 +153,13 @@ func (m *MockSequencerKeeper) GetRealSequencer(ctx sdk.Context, addr string) (se
 	if !ok {
 		err = gerrc.ErrNotFound
 	}
-	return seq, err
+	return *seq, err
 }
 
 func (m *MockSequencerKeeper) RollappSequencers(ctx sdk.Context, rollappId string) (list []sequencertypes.Sequencer) {
 	seqs := make([]sequencertypes.Sequencer, 0, len(m.sequencers))
 	for _, seq := range m.sequencers {
-		seqs = append(seqs, seq)
+		seqs = append(seqs, *seq)
 	}
 	return seqs
 }
@@ -164,7 +168,7 @@ func (m *MockSequencerKeeper) UnbondingTime(ctx sdk.Context) (res time.Duration)
 	return types.DefaultExpectedCanonicalClientParams().UnbondingPeriod
 }
 
-func NewMockSequencerKeeper(sequencers map[string]sequencertypes.Sequencer) *MockSequencerKeeper {
+func NewMockSequencerKeeper(sequencers map[string]*sequencertypes.Sequencer) *MockSequencerKeeper {
 	return &MockSequencerKeeper{
 		sequencers: sequencers,
 	}
