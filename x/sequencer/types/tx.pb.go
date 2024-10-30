@@ -143,6 +143,11 @@ type MsgCreateSequencer struct {
 	Metadata SequencerMetadata `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata"`
 	// entry bond for the sequencer.
 	Bond types1.Coin `protobuf:"bytes,5,opt,name=bond,proto3" json:"bond"`
+	// RewardAddr is the bech32-encoded sequencer's reward address. Empty is valid.
+	// If empty, the creator address is used.
+	RewardAddr string `protobuf:"bytes,6,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
+	// WhitelistedRelayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
+	WhitelistedRelayers []string `protobuf:"bytes,7,rep,name=whitelisted_relayers,json=whitelistedRelayers,proto3" json:"whitelisted_relayers,omitempty"`
 }
 
 func (m *MsgCreateSequencer) Reset()         { *m = MsgCreateSequencer{} }
@@ -211,6 +216,20 @@ func (m *MsgCreateSequencer) GetBond() types1.Coin {
 		return m.Bond
 	}
 	return types1.Coin{}
+}
+
+func (m *MsgCreateSequencer) GetRewardAddr() string {
+	if m != nil {
+		return m.RewardAddr
+	}
+	return ""
+}
+
+func (m *MsgCreateSequencer) GetWhitelistedRelayers() []string {
+	if m != nil {
+		return m.WhitelistedRelayers
+	}
+	return nil
 }
 
 type MsgCreateSequencerResponse struct {
@@ -421,6 +440,186 @@ func (m *MsgUpdateSequencerInformationResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateSequencerInformationResponse proto.InternalMessageInfo
 
+type MsgUpdateRewardAddress struct {
+	// Creator is the bech32-encoded address of the actor sending the update
+	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	// RewardAddr is a bech32 encoded sdk acc address
+	RewardAddr string `protobuf:"bytes,2,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
+}
+
+func (m *MsgUpdateRewardAddress) Reset()         { *m = MsgUpdateRewardAddress{} }
+func (m *MsgUpdateRewardAddress) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateRewardAddress) ProtoMessage()    {}
+func (*MsgUpdateRewardAddress) Descriptor() ([]byte, []int) {
+	return fileDescriptor_02cdd6b9ffa005b4, []int{8}
+}
+func (m *MsgUpdateRewardAddress) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateRewardAddress) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateRewardAddress.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateRewardAddress) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateRewardAddress.Merge(m, src)
+}
+func (m *MsgUpdateRewardAddress) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateRewardAddress) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateRewardAddress.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateRewardAddress proto.InternalMessageInfo
+
+func (m *MsgUpdateRewardAddress) GetCreator() string {
+	if m != nil {
+		return m.Creator
+	}
+	return ""
+}
+
+func (m *MsgUpdateRewardAddress) GetRewardAddr() string {
+	if m != nil {
+		return m.RewardAddr
+	}
+	return ""
+}
+
+type MsgUpdateRewardAddressResponse struct {
+}
+
+func (m *MsgUpdateRewardAddressResponse) Reset()         { *m = MsgUpdateRewardAddressResponse{} }
+func (m *MsgUpdateRewardAddressResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateRewardAddressResponse) ProtoMessage()    {}
+func (*MsgUpdateRewardAddressResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_02cdd6b9ffa005b4, []int{9}
+}
+func (m *MsgUpdateRewardAddressResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateRewardAddressResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateRewardAddressResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateRewardAddressResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateRewardAddressResponse.Merge(m, src)
+}
+func (m *MsgUpdateRewardAddressResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateRewardAddressResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateRewardAddressResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateRewardAddressResponse proto.InternalMessageInfo
+
+type MsgUpdateWhitelistedRelayers struct {
+	// Creator is the bech32-encoded address of the actor sending the update
+	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	// Relayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
+	Relayers []string `protobuf:"bytes,2,rep,name=relayers,proto3" json:"relayers,omitempty"`
+}
+
+func (m *MsgUpdateWhitelistedRelayers) Reset()         { *m = MsgUpdateWhitelistedRelayers{} }
+func (m *MsgUpdateWhitelistedRelayers) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateWhitelistedRelayers) ProtoMessage()    {}
+func (*MsgUpdateWhitelistedRelayers) Descriptor() ([]byte, []int) {
+	return fileDescriptor_02cdd6b9ffa005b4, []int{10}
+}
+func (m *MsgUpdateWhitelistedRelayers) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateWhitelistedRelayers) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateWhitelistedRelayers.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateWhitelistedRelayers) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateWhitelistedRelayers.Merge(m, src)
+}
+func (m *MsgUpdateWhitelistedRelayers) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateWhitelistedRelayers) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateWhitelistedRelayers.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateWhitelistedRelayers proto.InternalMessageInfo
+
+func (m *MsgUpdateWhitelistedRelayers) GetCreator() string {
+	if m != nil {
+		return m.Creator
+	}
+	return ""
+}
+
+func (m *MsgUpdateWhitelistedRelayers) GetRelayers() []string {
+	if m != nil {
+		return m.Relayers
+	}
+	return nil
+}
+
+type MsgUpdateWhitelistedRelayersResponse struct {
+}
+
+func (m *MsgUpdateWhitelistedRelayersResponse) Reset()         { *m = MsgUpdateWhitelistedRelayersResponse{} }
+func (m *MsgUpdateWhitelistedRelayersResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateWhitelistedRelayersResponse) ProtoMessage()    {}
+func (*MsgUpdateWhitelistedRelayersResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_02cdd6b9ffa005b4, []int{11}
+}
+func (m *MsgUpdateWhitelistedRelayersResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateWhitelistedRelayersResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateWhitelistedRelayersResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateWhitelistedRelayersResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateWhitelistedRelayersResponse.Merge(m, src)
+}
+func (m *MsgUpdateWhitelistedRelayersResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateWhitelistedRelayersResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateWhitelistedRelayersResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateWhitelistedRelayersResponse proto.InternalMessageInfo
+
 type MsgUpdateOptInStatus struct {
 	// creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
@@ -432,7 +631,7 @@ func (m *MsgUpdateOptInStatus) Reset()         { *m = MsgUpdateOptInStatus{} }
 func (m *MsgUpdateOptInStatus) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateOptInStatus) ProtoMessage()    {}
 func (*MsgUpdateOptInStatus) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{8}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{12}
 }
 func (m *MsgUpdateOptInStatus) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -482,7 +681,7 @@ func (m *MsgUpdateOptInStatusResponse) Reset()         { *m = MsgUpdateOptInStat
 func (m *MsgUpdateOptInStatusResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateOptInStatusResponse) ProtoMessage()    {}
 func (*MsgUpdateOptInStatusResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{9}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{13}
 }
 func (m *MsgUpdateOptInStatusResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -521,7 +720,7 @@ func (m *MsgUnbond) Reset()         { *m = MsgUnbond{} }
 func (m *MsgUnbond) String() string { return proto.CompactTextString(m) }
 func (*MsgUnbond) ProtoMessage()    {}
 func (*MsgUnbond) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{10}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{14}
 }
 func (m *MsgUnbond) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -560,6 +759,7 @@ func (m *MsgUnbond) GetCreator() string {
 // MsgUnbondResponse defines the Msg/Unbond response type.
 type MsgUnbondResponse struct {
 	// Types that are valid to be assigned to CompletionTime:
+	//
 	//	*MsgUnbondResponse_NoticePeriodCompletionTime
 	CompletionTime isMsgUnbondResponse_CompletionTime `protobuf_oneof:"completion_time"`
 }
@@ -568,7 +768,7 @@ func (m *MsgUnbondResponse) Reset()         { *m = MsgUnbondResponse{} }
 func (m *MsgUnbondResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUnbondResponse) ProtoMessage()    {}
 func (*MsgUnbondResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{11}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{15}
 }
 func (m *MsgUnbondResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -642,7 +842,7 @@ func (m *MsgIncreaseBond) Reset()         { *m = MsgIncreaseBond{} }
 func (m *MsgIncreaseBond) String() string { return proto.CompactTextString(m) }
 func (*MsgIncreaseBond) ProtoMessage()    {}
 func (*MsgIncreaseBond) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{12}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{16}
 }
 func (m *MsgIncreaseBond) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -693,7 +893,7 @@ func (m *MsgIncreaseBondResponse) Reset()         { *m = MsgIncreaseBondResponse
 func (m *MsgIncreaseBondResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgIncreaseBondResponse) ProtoMessage()    {}
 func (*MsgIncreaseBondResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{13}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{17}
 }
 func (m *MsgIncreaseBondResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -734,7 +934,7 @@ func (m *MsgDecreaseBond) Reset()         { *m = MsgDecreaseBond{} }
 func (m *MsgDecreaseBond) String() string { return proto.CompactTextString(m) }
 func (*MsgDecreaseBond) ProtoMessage()    {}
 func (*MsgDecreaseBond) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{14}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{18}
 }
 func (m *MsgDecreaseBond) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -785,7 +985,7 @@ func (m *MsgDecreaseBondResponse) Reset()         { *m = MsgDecreaseBondResponse
 func (m *MsgDecreaseBondResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgDecreaseBondResponse) ProtoMessage()    {}
 func (*MsgDecreaseBondResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{15}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{19}
 }
 func (m *MsgDecreaseBondResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -823,6 +1023,10 @@ func init() {
 	proto.RegisterType((*MsgKickProposerResponse)(nil), "dymensionxyz.dymension.sequencer.MsgKickProposerResponse")
 	proto.RegisterType((*MsgUpdateSequencerInformation)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateSequencerInformation")
 	proto.RegisterType((*MsgUpdateSequencerInformationResponse)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateSequencerInformationResponse")
+	proto.RegisterType((*MsgUpdateRewardAddress)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateRewardAddress")
+	proto.RegisterType((*MsgUpdateRewardAddressResponse)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateRewardAddressResponse")
+	proto.RegisterType((*MsgUpdateWhitelistedRelayers)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateWhitelistedRelayers")
+	proto.RegisterType((*MsgUpdateWhitelistedRelayersResponse)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateWhitelistedRelayersResponse")
 	proto.RegisterType((*MsgUpdateOptInStatus)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateOptInStatus")
 	proto.RegisterType((*MsgUpdateOptInStatusResponse)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateOptInStatusResponse")
 	proto.RegisterType((*MsgUnbond)(nil), "dymensionxyz.dymension.sequencer.MsgUnbond")
@@ -838,66 +1042,75 @@ func init() {
 }
 
 var fileDescriptor_02cdd6b9ffa005b4 = []byte{
-	// 935 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0x4f, 0x6f, 0x1b, 0x45,
-	0x14, 0xf7, 0xa6, 0x6e, 0x6a, 0x3f, 0xa2, 0xa6, 0x59, 0x45, 0xaa, 0xbd, 0x6a, 0xec, 0x28, 0x12,
-	0x22, 0x14, 0x75, 0x57, 0x8e, 0x51, 0xa4, 0x56, 0x08, 0x14, 0x07, 0x41, 0x4d, 0x15, 0x61, 0x1c,
-	0x7a, 0x80, 0x8b, 0x35, 0xde, 0x99, 0x6e, 0x17, 0xb2, 0x33, 0xcb, 0xce, 0x38, 0xca, 0xa2, 0x1e,
-	0x10, 0x88, 0x7b, 0x25, 0xce, 0x20, 0xb8, 0xc0, 0xb5, 0x07, 0x6e, 0x7c, 0x81, 0x8a, 0x53, 0xc5,
-	0x89, 0x13, 0xa0, 0xe4, 0x50, 0x3e, 0x06, 0xda, 0xdd, 0xd9, 0xc9, 0x7a, 0xed, 0xda, 0xeb, 0x94,
-	0x53, 0x32, 0x3b, 0xef, 0xf7, 0x67, 0xde, 0x9b, 0xf7, 0x3c, 0xf0, 0x3a, 0x0e, 0x3d, 0x42, 0xb9,
-	0xcb, 0xe8, 0x49, 0xf8, 0xa5, 0xa5, 0x16, 0x16, 0x27, 0x5f, 0x8c, 0x08, 0xb5, 0x49, 0x60, 0x89,
-	0x13, 0xd3, 0x0f, 0x98, 0x60, 0xfa, 0x66, 0x36, 0xd4, 0x54, 0x0b, 0x53, 0x85, 0x1a, 0x75, 0x87,
-	0x31, 0xe7, 0x88, 0x58, 0x71, 0xfc, 0x70, 0xf4, 0xc0, 0x42, 0x34, 0x4c, 0xc0, 0x46, 0xdd, 0x66,
-	0xdc, 0x63, 0x7c, 0x10, 0xaf, 0xac, 0x64, 0x21, 0xb7, 0xd6, 0x1d, 0xe6, 0xb0, 0xe4, 0x7b, 0xf4,
-	0x9f, 0xfc, 0xda, 0x48, 0x62, 0xac, 0x21, 0xe2, 0xc4, 0x3a, 0x6e, 0x0d, 0x89, 0x40, 0x2d, 0xcb,
-	0x66, 0x2e, 0x95, 0xfb, 0xcd, 0xbc, 0x96, 0x70, 0x3d, 0xc2, 0x05, 0xf2, 0x7c, 0x19, 0x70, 0x5d,
-	0x12, 0x78, 0xdc, 0xb1, 0x8e, 0x5b, 0xd1, 0x1f, 0xb9, 0x71, 0x6b, 0xee, 0x91, 0x7d, 0x14, 0x20,
-	0x2f, 0xb5, 0x67, 0xcd, 0x0d, 0xf7, 0x88, 0x40, 0x18, 0x09, 0x94, 0x00, 0xb6, 0x7e, 0xd2, 0x60,
-	0xf5, 0x80, 0x3b, 0xf7, 0x7d, 0x8c, 0x04, 0xe9, 0xc5, 0x54, 0xfa, 0x2e, 0x54, 0xd1, 0x48, 0x3c,
-	0x64, 0x81, 0x2b, 0xc2, 0x9a, 0xb6, 0xa9, 0x6d, 0x57, 0x3b, 0xb5, 0x3f, 0x7e, 0xbd, 0xb5, 0x2e,
-	0x13, 0xb1, 0x87, 0x71, 0x40, 0x38, 0x3f, 0x14, 0x81, 0x4b, 0x9d, 0xfe, 0x79, 0xa8, 0xfe, 0x1e,
-	0x2c, 0x27, 0x66, 0x6a, 0x4b, 0x9b, 0xda, 0xf6, 0x2b, 0x3b, 0xdb, 0xe6, 0xbc, 0x22, 0x98, 0x89,
-	0x62, 0xa7, 0xfc, 0xf4, 0xaf, 0x66, 0xa9, 0x2f, 0xd1, 0x77, 0xae, 0x7e, 0xfd, 0xfc, 0xc9, 0xcd,
-	0x73, 0xde, 0xad, 0x3a, 0x5c, 0xcf, 0x59, 0xec, 0x13, 0xee, 0x33, 0xca, 0xc9, 0xd6, 0x6f, 0x4b,
-	0xa0, 0x1f, 0x70, 0x67, 0x3f, 0x20, 0x48, 0x90, 0xc3, 0x94, 0x56, 0xaf, 0xc1, 0x15, 0x3b, 0xfa,
-	0xc4, 0x82, 0xc4, 0x7f, 0x3f, 0x5d, 0xea, 0x7d, 0x58, 0xc1, 0xa1, 0xe7, 0x52, 0xd1, 0x1b, 0x0d,
-	0xef, 0x91, 0x50, 0x3a, 0x5d, 0x37, 0x93, 0x02, 0x99, 0x69, 0x81, 0xcc, 0x3d, 0x1a, 0x76, 0x6a,
-	0xbf, 0x9f, 0x1f, 0xda, 0x0e, 0x42, 0x5f, 0x30, 0x33, 0x41, 0xf5, 0xc7, 0x38, 0xf4, 0x0d, 0x80,
-	0x80, 0x1d, 0x1d, 0x21, 0xdf, 0x1f, 0xb8, 0xb8, 0x76, 0x29, 0x16, 0xac, 0xca, 0x2f, 0x5d, 0xac,
-	0xdf, 0x87, 0x4a, 0x9a, 0xf4, 0x5a, 0x39, 0x96, 0x6b, 0xcf, 0x4f, 0x8c, 0x3a, 0xcb, 0x81, 0x84,
-	0xca, 0x1c, 0x29, 0x2a, 0xbd, 0x0d, 0xe5, 0x21, 0xa3, 0xb8, 0x76, 0x39, 0xa6, 0xac, 0x9b, 0xd2,
-	0x68, 0x74, 0x05, 0x4d, 0x79, 0x05, 0xcd, 0x7d, 0xe6, 0x52, 0x09, 0x8c, 0x83, 0xef, 0xac, 0x44,
-	0xa9, 0x4d, 0x93, 0xb1, 0x75, 0x03, 0x8c, 0xc9, 0xe4, 0xa9, 0xdc, 0xde, 0x8e, 0x6f, 0xc6, 0x3d,
-	0xd7, 0xfe, 0xbc, 0x17, 0x30, 0x9f, 0xf1, 0x59, 0x79, 0xcd, 0x11, 0x27, 0x15, 0xcb, 0x42, 0x15,
-	0xeb, 0x0f, 0x1a, 0x6c, 0xa8, 0x6a, 0x2a, 0xd1, 0x2e, 0x7d, 0xc0, 0x02, 0x0f, 0x09, 0x97, 0xd1,
-	0x19, 0xc5, 0xcb, 0x66, 0x72, 0xe9, 0x7f, 0xcb, 0x64, 0xce, 0xfb, 0x6b, 0xf0, 0xea, 0x4c, 0x7f,
-	0xea, 0x24, 0x9f, 0xc0, 0xba, 0x0a, 0xfc, 0xd0, 0x17, 0x5d, 0x7a, 0x28, 0x90, 0x18, 0xf1, 0x19,
-	0xfe, 0xeb, 0x50, 0x61, 0xbe, 0x20, 0x78, 0xe0, 0xd2, 0xd8, 0x7f, 0xa5, 0x7f, 0x25, 0x5e, 0x77,
-	0x69, 0xce, 0x43, 0x03, 0x6e, 0x4c, 0xa3, 0x56, 0xd2, 0x1f, 0x41, 0x35, 0xda, 0xa7, 0x51, 0x4d,
-	0xf5, 0x9d, 0x9c, 0xde, 0x8c, 0x66, 0x55, 0xe5, 0xba, 0xf6, 0xef, 0x8f, 0xcd, 0xd2, 0x98, 0xe4,
-	0x77, 0x1a, 0xac, 0x29, 0xce, 0x54, 0x48, 0x27, 0xb0, 0x41, 0x99, 0x70, 0x6d, 0x32, 0xf0, 0x49,
-	0xe0, 0x32, 0x3c, 0xb0, 0x99, 0xe7, 0x1f, 0x91, 0x28, 0x0f, 0x83, 0x68, 0x86, 0xc9, 0x32, 0x18,
-	0x13, 0xfd, 0xf3, 0x71, 0x3a, 0xe0, 0x3a, 0xe5, 0xc7, 0x7f, 0x37, 0xb5, 0xbb, 0xa5, 0xbe, 0x91,
-	0x10, 0xf5, 0x62, 0x9e, 0x7d, 0x45, 0x13, 0x05, 0x76, 0xd6, 0x60, 0x35, 0x47, 0xfc, 0x41, 0xb9,
-	0xa2, 0x5d, 0x5b, 0x8a, 0x5c, 0x45, 0x97, 0xb0, 0x4b, 0x23, 0x9b, 0x9c, 0x74, 0x2e, 0x78, 0x5e,
-	0xfd, 0x6d, 0x00, 0x84, 0xf1, 0x00, 0x79, 0x6c, 0x44, 0x85, 0x34, 0x3d, 0xb7, 0x65, 0xaa, 0x08,
-	0xe3, 0xbd, 0x18, 0x31, 0xf5, 0x7a, 0x67, 0x4d, 0xa9, 0xca, 0x7c, 0x9f, 0x18, 0x7e, 0x97, 0xbc,
-	0xa4, 0xe1, 0xbb, 0xb0, 0x8a, 0x25, 0xc7, 0x82, 0xae, 0xaf, 0xa6, 0xb8, 0xa9, 0xd6, 0x9b, 0xb1,
-	0xf5, 0xac, 0xbd, 0xd4, 0x7a, 0x92, 0xf1, 0x9d, 0x5f, 0x2a, 0x70, 0xe9, 0x80, 0x3b, 0xfa, 0xb7,
-	0x1a, 0xac, 0xe6, 0xc7, 0xea, 0x9b, 0xf3, 0xbb, 0x6d, 0x72, 0x9e, 0x18, 0x6f, 0x5d, 0x04, 0xa5,
-	0x6e, 0xe0, 0xcf, 0x1a, 0x18, 0x33, 0x86, 0xc5, 0x3b, 0x85, 0xc8, 0x5f, 0x4c, 0x60, 0xbc, 0xff,
-	0x92, 0x04, 0xca, 0xe8, 0x37, 0x1a, 0xac, 0x4d, 0x0e, 0x83, 0xdd, 0x05, 0xe8, 0x33, 0x38, 0xe3,
-	0x82, 0x38, 0xfd, 0x11, 0xac, 0x8c, 0x4d, 0xec, 0x56, 0x21, 0x9e, 0x2c, 0xc4, 0xb8, 0xbd, 0x30,
-	0x44, 0xe5, 0xe0, 0x33, 0x58, 0x96, 0x43, 0xe9, 0x8d, 0x62, 0xfe, 0xe3, 0x60, 0xa3, 0xbd, 0x40,
-	0xb0, 0xd2, 0x7a, 0x04, 0x2b, 0x63, 0x63, 0xa1, 0xd8, 0x49, 0xb3, 0x90, 0x82, 0x27, 0x9d, 0xd6,
-	0xe7, 0x91, 0xfa, 0x58, 0x8f, 0x17, 0x53, 0xcf, 0x42, 0x0a, 0xaa, 0x4f, 0x6b, 0xd5, 0x48, 0x7d,
-	0xec, 0xc5, 0xd6, 0x5a, 0xe0, 0xb6, 0x24, 0x90, 0x82, 0xea, 0xd3, 0x1e, 0x5d, 0xc6, 0xe5, 0xaf,
-	0x9e, 0x3f, 0xb9, 0xa9, 0x75, 0x7a, 0x4f, 0x4f, 0x1b, 0xda, 0xb3, 0xd3, 0x86, 0xf6, 0xcf, 0x69,
-	0x43, 0x7b, 0x7c, 0xd6, 0x28, 0x3d, 0x3b, 0x6b, 0x94, 0xfe, 0x3c, 0x6b, 0x94, 0x3e, 0xdd, 0x75,
-	0x5c, 0xf1, 0x70, 0x34, 0x34, 0x6d, 0xe6, 0xbd, 0xe8, 0x41, 0x7a, 0xdc, 0xb6, 0x4e, 0xb2, 0xef,
-	0xf6, 0xd0, 0x27, 0x7c, 0xb8, 0x1c, 0xff, 0x7c, 0xb4, 0xff, 0x0b, 0x00, 0x00, 0xff, 0xff, 0x71,
-	0x22, 0x82, 0x5a, 0xe8, 0x0b, 0x00, 0x00,
+	// 1076 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x57, 0xcf, 0x6f, 0xdc, 0xc4,
+	0x17, 0x5f, 0x27, 0x69, 0x92, 0x7d, 0x8d, 0x9a, 0xc6, 0x8d, 0xbe, 0xf5, 0x5a, 0xcd, 0x6e, 0x14,
+	0x7d, 0x81, 0x50, 0x54, 0x5b, 0x9b, 0xa0, 0x88, 0x56, 0xa8, 0x90, 0x0d, 0x2a, 0x5d, 0xaa, 0x88,
+	0xc5, 0xa1, 0x42, 0x70, 0x59, 0xcd, 0xae, 0xa7, 0x8e, 0x61, 0x3d, 0x63, 0x3c, 0xb3, 0x69, 0x8c,
+	0x7a, 0x40, 0x20, 0xce, 0x14, 0x71, 0x06, 0x81, 0x90, 0x38, 0xf7, 0xc0, 0x1f, 0x51, 0x71, 0xaa,
+	0x38, 0x71, 0xe2, 0x47, 0x72, 0x28, 0x7f, 0x06, 0xb2, 0x3d, 0x9e, 0x78, 0xbd, 0x9b, 0xfd, 0x91,
+	0x70, 0x4a, 0x66, 0xe6, 0x7d, 0x7e, 0xbc, 0x79, 0x6f, 0xdf, 0xc8, 0xf0, 0xb2, 0x1d, 0x7a, 0x98,
+	0x30, 0x97, 0x92, 0xc3, 0xf0, 0x33, 0x53, 0x2e, 0x4c, 0x86, 0x3f, 0xed, 0x62, 0xd2, 0xc6, 0x81,
+	0xc9, 0x0f, 0x0d, 0x3f, 0xa0, 0x9c, 0xaa, 0xab, 0xd9, 0x50, 0x43, 0x2e, 0x0c, 0x19, 0xaa, 0x97,
+	0x1c, 0x4a, 0x9d, 0x0e, 0x36, 0xe3, 0xf8, 0x56, 0xf7, 0x81, 0x89, 0x48, 0x98, 0x80, 0xf5, 0x52,
+	0x9b, 0x32, 0x8f, 0xb2, 0x66, 0xbc, 0x32, 0x93, 0x85, 0x38, 0x5a, 0x76, 0xa8, 0x43, 0x93, 0xfd,
+	0xe8, 0x3f, 0xb1, 0x5b, 0x4e, 0x62, 0xcc, 0x16, 0x62, 0xd8, 0x3c, 0xa8, 0xb6, 0x30, 0x47, 0x55,
+	0xb3, 0x4d, 0x5d, 0x22, 0xce, 0x2b, 0x79, 0x2d, 0xee, 0x7a, 0x98, 0x71, 0xe4, 0xf9, 0x22, 0xe0,
+	0xaa, 0x20, 0xf0, 0x98, 0x63, 0x1e, 0x54, 0xa3, 0x3f, 0xe2, 0xe0, 0xc6, 0xc8, 0x94, 0x7d, 0x14,
+	0x20, 0x2f, 0xb5, 0x67, 0x8e, 0x0c, 0xf7, 0x30, 0x47, 0x36, 0xe2, 0x28, 0x01, 0xac, 0xfd, 0xa8,
+	0xc0, 0xe2, 0x2e, 0x73, 0xee, 0xfb, 0x36, 0xe2, 0xb8, 0x11, 0x53, 0xa9, 0x5b, 0x50, 0x44, 0x5d,
+	0xbe, 0x4f, 0x03, 0x97, 0x87, 0x9a, 0xb2, 0xaa, 0xac, 0x17, 0x6b, 0xda, 0x6f, 0xbf, 0xdc, 0x58,
+	0x16, 0x17, 0xb1, 0x6d, 0xdb, 0x01, 0x66, 0x6c, 0x8f, 0x07, 0x2e, 0x71, 0xac, 0x93, 0x50, 0xf5,
+	0x0e, 0xcc, 0x26, 0x66, 0xb4, 0xa9, 0x55, 0x65, 0xfd, 0xe2, 0xc6, 0xba, 0x31, 0xaa, 0x08, 0x46,
+	0xa2, 0x58, 0x9b, 0x79, 0xfa, 0x47, 0xa5, 0x60, 0x09, 0xf4, 0xad, 0x4b, 0x5f, 0x3c, 0x7f, 0x72,
+	0xfd, 0x84, 0x77, 0xad, 0x04, 0x57, 0x73, 0x16, 0x2d, 0xcc, 0x7c, 0x4a, 0x18, 0x5e, 0xfb, 0x7a,
+	0x1a, 0xd4, 0x5d, 0xe6, 0xec, 0x04, 0x18, 0x71, 0xbc, 0x97, 0xd2, 0xaa, 0x1a, 0xcc, 0xb5, 0xa3,
+	0x2d, 0x1a, 0x24, 0xfe, 0xad, 0x74, 0xa9, 0x5a, 0xb0, 0x60, 0x87, 0x9e, 0x4b, 0x78, 0xa3, 0xdb,
+	0xba, 0x87, 0x43, 0xe1, 0x74, 0xd9, 0x48, 0x0a, 0x64, 0xa4, 0x05, 0x32, 0xb6, 0x49, 0x58, 0xd3,
+	0x7e, 0x3d, 0x49, 0xba, 0x1d, 0x84, 0x3e, 0xa7, 0x46, 0x82, 0xb2, 0x7a, 0x38, 0xd4, 0x15, 0x80,
+	0x80, 0x76, 0x3a, 0xc8, 0xf7, 0x9b, 0xae, 0xad, 0x4d, 0xc7, 0x82, 0x45, 0xb1, 0x53, 0xb7, 0xd5,
+	0xfb, 0x30, 0x9f, 0x5e, 0xba, 0x36, 0x13, 0xcb, 0x6d, 0x8e, 0xbe, 0x18, 0x99, 0xcb, 0xae, 0x80,
+	0x8a, 0x3b, 0x92, 0x54, 0xea, 0x26, 0xcc, 0xb4, 0x28, 0xb1, 0xb5, 0x0b, 0x31, 0x65, 0xc9, 0x10,
+	0x46, 0xa3, 0x16, 0x34, 0x44, 0x0b, 0x1a, 0x3b, 0xd4, 0x25, 0x02, 0x18, 0x07, 0xab, 0x15, 0xb8,
+	0x18, 0xe0, 0x87, 0x28, 0xb0, 0x9b, 0xc8, 0xb6, 0x03, 0x6d, 0x36, 0xf6, 0x0a, 0xc9, 0x56, 0x54,
+	0x57, 0xb5, 0x0a, 0xcb, 0x0f, 0xf7, 0x5d, 0x8e, 0x3b, 0x2e, 0xe3, 0xd8, 0x6e, 0x06, 0xb8, 0x83,
+	0x42, 0x1c, 0x30, 0x6d, 0x6e, 0x75, 0x7a, 0xbd, 0x68, 0x5d, 0xc9, 0x9c, 0x59, 0xe2, 0xe8, 0xd6,
+	0x42, 0x54, 0xae, 0xf4, 0x82, 0xd7, 0xae, 0x81, 0xde, 0x5f, 0x10, 0x59, 0xaf, 0x9b, 0x71, 0xb7,
+	0xdd, 0x73, 0xdb, 0x9f, 0x34, 0x02, 0xea, 0x53, 0x36, 0xac, 0x56, 0x39, 0xe2, 0xa4, 0x0b, 0xb2,
+	0x50, 0xc9, 0xfa, 0xbd, 0x02, 0x2b, 0xb2, 0x43, 0xa4, 0x68, 0x9d, 0x3c, 0xa0, 0x81, 0x87, 0xb8,
+	0x4b, 0xc9, 0x90, 0x86, 0xc8, 0x56, 0x67, 0xea, 0x3f, 0xab, 0x4e, 0xce, 0xfb, 0x4b, 0xf0, 0xc2,
+	0x50, 0x7f, 0x32, 0x13, 0x04, 0xff, 0x93, 0x81, 0x96, 0xac, 0x0a, 0x66, 0x6c, 0x48, 0x06, 0xb9,
+	0x9a, 0x4e, 0xe5, 0x6b, 0x9a, 0xf3, 0xb2, 0x0a, 0xe5, 0xc1, 0x12, 0xd2, 0x44, 0x0b, 0xae, 0xc9,
+	0x88, 0x0f, 0xfa, 0x0b, 0x3e, 0xc4, 0x8a, 0x0e, 0xf3, 0xb2, 0x63, 0xa6, 0xe2, 0x8e, 0x91, 0xeb,
+	0x9c, 0x8b, 0x17, 0xe1, 0xff, 0xc3, 0x34, 0xa4, 0x97, 0x0f, 0x61, 0x59, 0xc6, 0xbd, 0xeb, 0xf3,
+	0x3a, 0xd9, 0xe3, 0x88, 0x77, 0x87, 0x79, 0x28, 0xc1, 0x3c, 0xf5, 0xa3, 0xde, 0x75, 0x49, 0x7c,
+	0x17, 0xf3, 0xd6, 0x5c, 0xbc, 0xae, 0x93, 0x9c, 0x85, 0x72, 0x26, 0xcd, 0x0c, 0xb5, 0x94, 0x7e,
+	0x0f, 0x8a, 0xd1, 0x39, 0x89, 0x7f, 0x38, 0x1b, 0x39, 0xbd, 0x21, 0x13, 0x51, 0xf6, 0xef, 0xe5,
+	0x7f, 0x7e, 0xa8, 0x14, 0x7a, 0x24, 0xbf, 0x55, 0x60, 0x49, 0x72, 0xa6, 0x42, 0x2a, 0x86, 0x15,
+	0x42, 0xb9, 0xdb, 0xc6, 0x4d, 0x1f, 0x07, 0x2e, 0xb5, 0x9b, 0x6d, 0xea, 0xf9, 0x1d, 0x1c, 0x35,
+	0x46, 0x33, 0x7a, 0x28, 0x44, 0x5f, 0xea, 0x7d, 0x43, 0xea, 0xfd, 0xf4, 0x15, 0xa9, 0xcd, 0x3c,
+	0xfe, 0xb3, 0xa2, 0xdc, 0x2d, 0x58, 0x7a, 0x42, 0xd4, 0x88, 0x79, 0x76, 0x24, 0x4d, 0x14, 0x58,
+	0x5b, 0x82, 0xc5, 0x1c, 0xf1, 0x3b, 0x33, 0xf3, 0xca, 0xe5, 0xa9, 0xc8, 0x55, 0xf4, 0xab, 0xac,
+	0x93, 0xc8, 0x26, 0xc3, 0xb5, 0x33, 0xe6, 0xab, 0xde, 0x06, 0x40, 0xb6, 0xdd, 0x44, 0x1e, 0xed,
+	0x12, 0x2e, 0x4c, 0x8f, 0x9c, 0x4b, 0x45, 0x64, 0xdb, 0xdb, 0x31, 0x62, 0xe0, 0xef, 0x3d, 0x6b,
+	0x4a, 0x56, 0xe6, 0xbb, 0xc4, 0xf0, 0x5b, 0xf8, 0x9c, 0x86, 0xef, 0xc2, 0xa2, 0x2d, 0x38, 0x26,
+	0x74, 0x7d, 0x29, 0xc5, 0x0d, 0xb4, 0x5e, 0x89, 0xad, 0x67, 0xed, 0xa5, 0xd6, 0x93, 0x1b, 0xdf,
+	0xf8, 0x1b, 0x60, 0x7a, 0x97, 0x39, 0xea, 0x57, 0x0a, 0x2c, 0xe6, 0xdf, 0xae, 0x57, 0x47, 0x8f,
+	0x9f, 0xfe, 0x01, 0xab, 0xbf, 0x7e, 0x16, 0x94, 0xec, 0xc0, 0x9f, 0x15, 0xd0, 0x87, 0x4c, 0xcf,
+	0x37, 0xc6, 0x22, 0x3f, 0x9d, 0x40, 0x7f, 0xfb, 0x9c, 0x04, 0xd2, 0xe8, 0x37, 0x0a, 0x5c, 0x19,
+	0x34, 0x1d, 0x5f, 0x9b, 0x40, 0xa0, 0x07, 0xa9, 0xbf, 0x79, 0x56, 0xa4, 0xf4, 0xf4, 0x93, 0x02,
+	0xa5, 0xd3, 0x87, 0xe5, 0xed, 0x09, 0xf8, 0x07, 0xe0, 0xf5, 0x3b, 0xe7, 0xc3, 0x4b, 0x97, 0x5f,
+	0x2a, 0xb0, 0xd4, 0x3f, 0x46, 0xb7, 0x26, 0x60, 0xcf, 0xe0, 0xf4, 0x33, 0xe2, 0xd4, 0x47, 0xb0,
+	0xd0, 0xf3, 0xf8, 0x57, 0xc7, 0xe2, 0xc9, 0x42, 0xf4, 0x9b, 0x13, 0x43, 0xe4, 0x1d, 0x7c, 0x0c,
+	0xb3, 0x62, 0x9c, 0xbf, 0x32, 0x9e, 0xff, 0x38, 0x58, 0xdf, 0x9c, 0x20, 0x58, 0x6a, 0x3d, 0x82,
+	0x85, 0x9e, 0x81, 0x3a, 0x5e, 0xa6, 0x59, 0xc8, 0x98, 0x99, 0x0e, 0x9a, 0x90, 0x91, 0x7a, 0xcf,
+	0x74, 0x1c, 0x4f, 0x3d, 0x0b, 0x19, 0x53, 0x7d, 0xd0, 0x90, 0x8b, 0xd4, 0x7b, 0x3e, 0x28, 0xaa,
+	0x13, 0x74, 0x4b, 0x02, 0x19, 0x53, 0x7d, 0xd0, 0x37, 0x81, 0x7e, 0xe1, 0xf3, 0xe7, 0x4f, 0xae,
+	0x2b, 0xb5, 0xc6, 0xd3, 0xa3, 0xb2, 0xf2, 0xec, 0xa8, 0xac, 0xfc, 0x75, 0x54, 0x56, 0x1e, 0x1f,
+	0x97, 0x0b, 0xcf, 0x8e, 0xcb, 0x85, 0xdf, 0x8f, 0xcb, 0x85, 0x8f, 0xb6, 0x1c, 0x97, 0xef, 0x77,
+	0x5b, 0x46, 0x9b, 0x7a, 0xa7, 0x7d, 0x2f, 0x1d, 0x6c, 0x9a, 0x87, 0xd9, 0xcf, 0xca, 0xd0, 0xc7,
+	0xac, 0x35, 0x1b, 0x3f, 0xbc, 0x9b, 0xff, 0x06, 0x00, 0x00, 0xff, 0xff, 0x1a, 0x95, 0xd6, 0xb8,
+	0x87, 0x0e, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -916,6 +1129,10 @@ type MsgClient interface {
 	CreateSequencer(ctx context.Context, in *MsgCreateSequencer, opts ...grpc.CallOption) (*MsgCreateSequencerResponse, error)
 	// UpdateSequencerInformation defines a method for updating the sequencer's metadata.
 	UpdateSequencerInformation(ctx context.Context, in *MsgUpdateSequencerInformation, opts ...grpc.CallOption) (*MsgUpdateSequencerInformationResponse, error)
+	// UpdateRewardAddress defines a method for updating the sequencer's reward address.
+	UpdateRewardAddress(ctx context.Context, in *MsgUpdateRewardAddress, opts ...grpc.CallOption) (*MsgUpdateRewardAddressResponse, error)
+	// UpdateWhitelistedRelayers defines a method for updating the sequencer's whitelisted relater list.
+	UpdateWhitelistedRelayers(ctx context.Context, in *MsgUpdateWhitelistedRelayers, opts ...grpc.CallOption) (*MsgUpdateWhitelistedRelayersResponse, error)
 	// UpdateOptInStatus allows toggling optedIn bool
 	// NOTE: arguably should have just used UpdateSequencerInformation instead of having a new message, but want to avoid changing
 	// frontends last minute.
@@ -952,6 +1169,24 @@ func (c *msgClient) CreateSequencer(ctx context.Context, in *MsgCreateSequencer,
 func (c *msgClient) UpdateSequencerInformation(ctx context.Context, in *MsgUpdateSequencerInformation, opts ...grpc.CallOption) (*MsgUpdateSequencerInformationResponse, error) {
 	out := new(MsgUpdateSequencerInformationResponse)
 	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Msg/UpdateSequencerInformation", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) UpdateRewardAddress(ctx context.Context, in *MsgUpdateRewardAddress, opts ...grpc.CallOption) (*MsgUpdateRewardAddressResponse, error) {
+	out := new(MsgUpdateRewardAddressResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Msg/UpdateRewardAddress", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) UpdateWhitelistedRelayers(ctx context.Context, in *MsgUpdateWhitelistedRelayers, opts ...grpc.CallOption) (*MsgUpdateWhitelistedRelayersResponse, error) {
+	out := new(MsgUpdateWhitelistedRelayersResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Msg/UpdateWhitelistedRelayers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1018,6 +1253,10 @@ type MsgServer interface {
 	CreateSequencer(context.Context, *MsgCreateSequencer) (*MsgCreateSequencerResponse, error)
 	// UpdateSequencerInformation defines a method for updating the sequencer's metadata.
 	UpdateSequencerInformation(context.Context, *MsgUpdateSequencerInformation) (*MsgUpdateSequencerInformationResponse, error)
+	// UpdateRewardAddress defines a method for updating the sequencer's reward address.
+	UpdateRewardAddress(context.Context, *MsgUpdateRewardAddress) (*MsgUpdateRewardAddressResponse, error)
+	// UpdateWhitelistedRelayers defines a method for updating the sequencer's whitelisted relater list.
+	UpdateWhitelistedRelayers(context.Context, *MsgUpdateWhitelistedRelayers) (*MsgUpdateWhitelistedRelayersResponse, error)
 	// UpdateOptInStatus allows toggling optedIn bool
 	// NOTE: arguably should have just used UpdateSequencerInformation instead of having a new message, but want to avoid changing
 	// frontends last minute.
@@ -1043,6 +1282,12 @@ func (*UnimplementedMsgServer) CreateSequencer(ctx context.Context, req *MsgCrea
 }
 func (*UnimplementedMsgServer) UpdateSequencerInformation(ctx context.Context, req *MsgUpdateSequencerInformation) (*MsgUpdateSequencerInformationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSequencerInformation not implemented")
+}
+func (*UnimplementedMsgServer) UpdateRewardAddress(ctx context.Context, req *MsgUpdateRewardAddress) (*MsgUpdateRewardAddressResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateRewardAddress not implemented")
+}
+func (*UnimplementedMsgServer) UpdateWhitelistedRelayers(ctx context.Context, req *MsgUpdateWhitelistedRelayers) (*MsgUpdateWhitelistedRelayersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateWhitelistedRelayers not implemented")
 }
 func (*UnimplementedMsgServer) UpdateOptInStatus(ctx context.Context, req *MsgUpdateOptInStatus) (*MsgUpdateOptInStatus, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateOptInStatus not implemented")
@@ -1099,6 +1344,42 @@ func _Msg_UpdateSequencerInformation_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).UpdateSequencerInformation(ctx, req.(*MsgUpdateSequencerInformation))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UpdateRewardAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateRewardAddress)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateRewardAddress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.sequencer.Msg/UpdateRewardAddress",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateRewardAddress(ctx, req.(*MsgUpdateRewardAddress))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UpdateWhitelistedRelayers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateWhitelistedRelayers)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateWhitelistedRelayers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.sequencer.Msg/UpdateWhitelistedRelayers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateWhitelistedRelayers(ctx, req.(*MsgUpdateWhitelistedRelayers))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1224,6 +1505,14 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_UpdateSequencerInformation_Handler,
 		},
 		{
+			MethodName: "UpdateRewardAddress",
+			Handler:    _Msg_UpdateRewardAddress_Handler,
+		},
+		{
+			MethodName: "UpdateWhitelistedRelayers",
+			Handler:    _Msg_UpdateWhitelistedRelayers_Handler,
+		},
+		{
 			MethodName: "UpdateOptInStatus",
 			Handler:    _Msg_UpdateOptInStatus_Handler,
 		},
@@ -1335,6 +1624,22 @@ func (m *MsgCreateSequencer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.WhitelistedRelayers) > 0 {
+		for iNdEx := len(m.WhitelistedRelayers) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.WhitelistedRelayers[iNdEx])
+			copy(dAtA[i:], m.WhitelistedRelayers[iNdEx])
+			i = encodeVarintTx(dAtA, i, uint64(len(m.WhitelistedRelayers[iNdEx])))
+			i--
+			dAtA[i] = 0x3a
+		}
+	}
+	if len(m.RewardAddr) > 0 {
+		i -= len(m.RewardAddr)
+		copy(dAtA[i:], m.RewardAddr)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.RewardAddr)))
+		i--
+		dAtA[i] = 0x32
+	}
 	{
 		size, err := m.Bond.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
@@ -1516,6 +1821,128 @@ func (m *MsgUpdateSequencerInformationResponse) MarshalTo(dAtA []byte) (int, err
 }
 
 func (m *MsgUpdateSequencerInformationResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateRewardAddress) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateRewardAddress) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateRewardAddress) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.RewardAddr) > 0 {
+		i -= len(m.RewardAddr)
+		copy(dAtA[i:], m.RewardAddr)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.RewardAddr)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Creator) > 0 {
+		i -= len(m.Creator)
+		copy(dAtA[i:], m.Creator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateRewardAddressResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateRewardAddressResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateRewardAddressResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateWhitelistedRelayers) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateWhitelistedRelayers) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateWhitelistedRelayers) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Relayers) > 0 {
+		for iNdEx := len(m.Relayers) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Relayers[iNdEx])
+			copy(dAtA[i:], m.Relayers[iNdEx])
+			i = encodeVarintTx(dAtA, i, uint64(len(m.Relayers[iNdEx])))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Creator) > 0 {
+		i -= len(m.Creator)
+		copy(dAtA[i:], m.Creator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateWhitelistedRelayersResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateWhitelistedRelayersResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateWhitelistedRelayersResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1850,6 +2277,16 @@ func (m *MsgCreateSequencer) Size() (n int) {
 	n += 1 + l + sovTx(uint64(l))
 	l = m.Bond.Size()
 	n += 1 + l + sovTx(uint64(l))
+	l = len(m.RewardAddr)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.WhitelistedRelayers) > 0 {
+		for _, s := range m.WhitelistedRelayers {
+			l = len(s)
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
 	return n
 }
 
@@ -1900,6 +2337,60 @@ func (m *MsgUpdateSequencerInformation) Size() (n int) {
 }
 
 func (m *MsgUpdateSequencerInformationResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgUpdateRewardAddress) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Creator)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.RewardAddr)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgUpdateRewardAddressResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgUpdateWhitelistedRelayers) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Creator)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.Relayers) > 0 {
+		for _, s := range m.Relayers {
+			l = len(s)
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *MsgUpdateWhitelistedRelayersResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2384,6 +2875,70 @@ func (m *MsgCreateSequencer) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RewardAddr", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RewardAddr = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field WhitelistedRelayers", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.WhitelistedRelayers = append(m.WhitelistedRelayers, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
@@ -2729,6 +3284,334 @@ func (m *MsgUpdateSequencerInformationResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgUpdateSequencerInformationResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateRewardAddress) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateRewardAddress: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateRewardAddress: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Creator = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RewardAddr", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RewardAddr = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateRewardAddressResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateRewardAddressResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateRewardAddressResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateWhitelistedRelayers) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateWhitelistedRelayers: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateWhitelistedRelayers: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Creator = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Relayers", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Relayers = append(m.Relayers, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateWhitelistedRelayersResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateWhitelistedRelayersResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateWhitelistedRelayersResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
