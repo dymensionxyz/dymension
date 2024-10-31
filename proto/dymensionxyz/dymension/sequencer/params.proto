@@ -40,6 +40,6 @@ message Params {
   // liveness_slash_min_absolute is the absolute minimum to slash for liveness
   cosmos.base.v1beta1.Coin liveness_slash_min_absolute = 6 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "kick_threshold,omitempty"
+    (gogoproto.jsontag) = "liveness_slash_min_absolute,omitempty"
   ];
 }
