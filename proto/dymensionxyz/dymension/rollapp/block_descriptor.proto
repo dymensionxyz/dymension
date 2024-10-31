@@ -16,7 +16,7 @@ message BlockDescriptor {
   // timestamp is the time from the block header
   google.protobuf.Timestamp timestamp = 3 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
   // DrsVersion is a DRS version used by the rollapp.
-  string drs_version = 4;
+  uint32 drs_version = 4;
 }
 
 // BlockDescriptors defines list of BlockDescriptor.

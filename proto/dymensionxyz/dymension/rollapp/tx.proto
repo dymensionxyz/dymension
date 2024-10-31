@@ -176,7 +176,7 @@ message MsgMarkVulnerableRollapps {
   // Authority is the authority address.
   string authority = 1;
   // DrsVersions is a list of DRS versions that will be marked vulnerable.
-  repeated string drs_versions = 2;
+  repeated uint32 drs_versions = 2;
 }
 
 message MsgMarkVulnerableRollappsResponse {}
