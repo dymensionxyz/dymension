@@ -142,9 +142,7 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 
 			// validate results
 			if tc.expError != nil {
-				s.Error(err)
-				// TODO: try using errors.Is!
-				s.ErrorContains(err, tc.expError.Error())
+				s.ErrorIs(err, tc.expError)
 
 				// check the event is not emitted
 				eventName := proto.MessageName(new(types.EventMarkVulnerableRollapps))

@@ -28,21 +28,6 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		return nil, errorsmod.Wrap(err, "before update state")
 	}
 
-	// verify the DRS version is not vulnerable
-	// check only last block descriptor DRS, since if that last is not vulnerable it means the rollapp already upgraded and is not vulnerable anymore
-	bd := msg.BDs.BD[len(msg.BDs.BD)-1]
-	if k.IsDRSVersionVulnerable(ctx, bd.DrsVersion) {
-		// Rollapp is using a vulnerable DRS version, hard fork it
-		err := k.HardForkObsoleteDRSVersion(ctx, msg.RollappId)
-		if err != nil {
-			return nil, fmt.Errorf("mark rollapp vulnerable: %w", err)
-		}
-		k.Logger(ctx).With("rollapp_id", msg.RollappId, "drs_version", bd.DrsVersion).
-			Info("rollapp tried to submit MsgUpdateState with the vulnerable DRS version, mark the rollapp as vulnerable")
-		// we must return non-error if we want the changes to be saved
-		return &types.MsgUpdateStateResponse{}, nil
-	}
-
 	// retrieve last updating index
 	var newIndex, lastIndex uint64
 	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, msg.RollappId)
@@ -85,12 +70,6 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	}
 	newIndex = lastIndex + 1
 
-	// Write new index information to the store
-	k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
-		RollappId: msg.RollappId,
-		Index:     newIndex,
-	})
-
 	creationHeight := uint64(ctx.BlockHeight())
 	blockTime := ctx.BlockTime()
 	stateInfo := types.NewStateInfo(
@@ -104,6 +83,27 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		msg.BDs,
 		blockTime,
 	)
+
+	// verify the DRS version is not vulnerable
+	// check only last block descriptor DRS, since if that last is not vulnerable it means the rollapp already upgraded and is not vulnerable anymore
+	// Rollapp is using a vulnerable DRS version, hard fork it
+	// we must return non-error if we want the changes to be saved
+	if k.IsStateUpdateVulnerable(ctx, stateInfo) {
+		err := k.HardForkObsoleteDRSVersion(ctx, msg.RollappId)
+		if err != nil {
+			return nil, fmt.Errorf("mark rollapp vulnerable: %w", err)
+		}
+		k.Logger(ctx).With("rollapp_id", msg.RollappId, "drs_version", stateInfo.GetLatestBlockDescriptor().DrsVersion).
+			Info("rollapp tried to submit MsgUpdateState with the vulnerable DRS version, mark the rollapp as vulnerable")
+
+		return &types.MsgUpdateStateResponse{}, nil
+	}
+
+	// Write new index information to the store
+	k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
+		RollappId: msg.RollappId,
+		Index:     newIndex,
+	})
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
 	k.SetStateInfo(ctx, *stateInfo)
 
@@ -139,4 +139,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	)
 
 	return &types.MsgUpdateStateResponse{}, nil
+}
+
+// IsStateUpdateVulnerable checks if the given DRS version is vulnerable
+func (k msgServer) IsStateUpdateVulnerable(ctx sdk.Context, stateInfo *types.StateInfo) bool {
+	return k.IsDRSVersionVulnerable(ctx, stateInfo.GetLatestBlockDescriptor().DrsVersion)
 }

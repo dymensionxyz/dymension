@@ -69,11 +69,7 @@ func (suite *RollappTestSuite) TestHardFork() {
 			}
 
 			// Assert initial stats (revision 0, states pending)
-			rollapp, found := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappId)
-			suite.Require().True(found)
-			suite.Require().Zero(rollapp.RevisionNumber)
-
-			// assert queue has pending states
+			suite.assertNotForked(rollappId)
 			queue := suite.App.RollappKeeper.GetAllFinalizationQueueUntilHeightInclusive(suite.Ctx, initialHeight+numOfStates+suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx))
 			suite.Require().Len(queue, int(numOfStates))
 

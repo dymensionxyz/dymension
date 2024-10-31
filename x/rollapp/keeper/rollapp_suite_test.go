@@ -77,15 +77,8 @@ func (suite *RollappTestSuite) assertNotForked(rollappID string) {
 	suite.Zero(rollapp.RevisionNumber)
 }
 
-// FIXME: rename
-func (suite *RollappTestSuite) IsRollappVulnerable(rollappID string) bool {
-	ra, ok := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
-	suite.Require().True(ok)
-	return ra.RevisionNumber > 0
-}
-
 func (suite *RollappTestSuite) GetRollappLastHeight(rollappID string) uint64 {
 	stateInfo, ok := suite.App.RollappKeeper.GetLatestStateInfo(suite.Ctx, rollappID)
 	suite.Require().True(ok)
-	return stateInfo.GetLatestHeight() + 1
+	return stateInfo.GetLatestHeight()
 }
