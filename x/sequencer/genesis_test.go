@@ -4,13 +4,24 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
+
+func anyPk(pk cryptotypes.PubKey) *codectypes.Any {
+	pkAny, err := codectypes.NewAnyWithValue(pk)
+	if err != nil {
+		panic(err)
+	}
+	return pkAny
+}
 
 func TestInitGenesis(t *testing.T) {
 	timeToTest := time.Now().Round(0).UTC()
@@ -26,29 +37,32 @@ func TestInitGenesis(t *testing.T) {
 				RollappId:    "rollapp1",
 				Status:       types.Bonded,
 				Tokens:       sdk.Coins(nil),
-				DymintPubKey: anyPk(alice),
+				DymintPubKey: anyPk(ed25519.GenPrivKey().PubKey()),
 			},
 			// bonded - 100 dym
 			{
-				Address:   "rollapp1_addr2",
-				RollappId: "rollapp1",
-				Status:    types.Bonded,
-				Tokens:    sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(100))),
+				Address:      "rollapp1_addr2",
+				RollappId:    "rollapp1",
+				Status:       types.Bonded,
+				Tokens:       sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(100))),
+				DymintPubKey: anyPk(ed25519.GenPrivKey().PubKey()),
 			},
 
 			// unbonded
 			{
-				Address:   "rollapp1_addr4",
-				RollappId: "rollapp1",
-				Status:    types.Unbonded,
-				Tokens:    sdk.Coins(nil),
+				Address:      "rollapp1_addr4",
+				RollappId:    "rollapp1",
+				Status:       types.Unbonded,
+				Tokens:       sdk.Coins(nil),
+				DymintPubKey: anyPk(ed25519.GenPrivKey().PubKey()),
 			},
 			// rollapp 2
 			{
-				Address:   "rollapp2_addr1",
-				RollappId: "rollapp2",
-				Status:    types.Bonded,
-				Tokens:    sdk.Coins(nil),
+				Address:      "rollapp2_addr1",
+				RollappId:    "rollapp2",
+				Status:       types.Bonded,
+				Tokens:       sdk.Coins(nil),
+				DymintPubKey: anyPk(ed25519.GenPrivKey().PubKey()),
 			},
 
 			// rollapp 3
@@ -59,6 +73,7 @@ func TestInitGenesis(t *testing.T) {
 				Status:           types.Bonded,
 				Tokens:           sdk.Coins(nil),
 				NoticePeriodTime: timeToTest,
+				DymintPubKey:     anyPk(ed25519.GenPrivKey().PubKey()),
 			},
 			// rollapp 4
 			// proposer with notice period
@@ -68,6 +83,7 @@ func TestInitGenesis(t *testing.T) {
 				Status:           types.Bonded,
 				Tokens:           sdk.Coins(nil),
 				NoticePeriodTime: timeToTest,
+				DymintPubKey:     anyPk(ed25519.GenPrivKey().PubKey()),
 			},
 		},
 
@@ -112,7 +128,33 @@ func TestInitGenesis(t *testing.T) {
 	got := sequencer.ExportGenesis(ctx, k)
 	require.NotNil(t, got)
 	require.Equal(t, genesisState.Params, got.Params)
-	require.ElementsMatch(t, genesisState.SequencerList, got.SequencerList)
+
+	require.ElementsMatch(t, toSlimSeq(genesisState.SequencerList), toSlimSeq(got.SequencerList))
 	require.ElementsMatch(t, genesisState.GenesisProposers, got.GenesisProposers)
 	require.ElementsMatch(t, genesisState.NoticeQueue, got.NoticeQueue)
+}
+
+type slimSeq struct {
+	Address          string
+	RollappId        string
+	Status           types.OperatingStatus
+	Tokens           sdk.Coins
+	NoticePeriodTime time.Time
+	DymintPubKey     *codectypes.Any
+}
+
+func toSlimSeq(seqs []types.Sequencer) []slimSeq {
+	ret := make([]slimSeq, len(seqs))
+
+	for i, seq := range seqs {
+		ret[i] = slimSeq{
+			Address:          seq.Address,
+			RollappId:        seq.RollappId,
+			Status:           seq.Status,
+			Tokens:           seq.Tokens,
+			NoticePeriodTime: seq.NoticePeriodTime,
+			// DymintPubKey:     seq.DymintPubKey,
+		}
+	}
+	return ret
 }

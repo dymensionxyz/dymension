@@ -64,14 +64,6 @@ func pkAddr(pk cryptotypes.PubKey) string {
 	return pkAcc(pk).String()
 }
 
-func AnyPk(pk cryptotypes.PubKey) *codectypes.Any {
-	pkAny, err := codectypes.NewAnyWithValue(pk)
-	if err != nil {
-		panic(err)
-	}
-	return pkAny
-}
-
 // Prevent strconv unused error
 var _ = strconv.IntSize
 

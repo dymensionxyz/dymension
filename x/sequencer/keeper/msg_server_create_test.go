@@ -28,6 +28,9 @@ func (s *SequencerTestSuite) TestCreateSequencerBasic() {
 	s.Require().Equal(s.moduleBalance(), bond)
 	s.Require().True(s.k().IsProposer(s.Ctx, seq))
 	s.Require().True(equalSequencers(uptr.To(expectedSequencer(&msg)), &seq))
+	accAddr, err := s.k().SequencerByDymintAddr(s.Ctx, seq.MustProposerAddr())
+	s.Require().NoError(err)
+	s.Require().Equal(accAddr, seq.Address)
 }
 
 func (s *SequencerTestSuite) TestCreateSequencerSeveral() {
