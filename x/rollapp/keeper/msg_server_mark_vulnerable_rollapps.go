@@ -72,7 +72,7 @@ func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []string) (i
 
 		_, vulnerable := vulnerableVersions[bd.DrsVersion]
 		if vulnerable {
-			err := k.HardForkObsoleteDRSVersion(ctx, rollapp.RollappId)
+			err := k.HardForkToLatest(ctx, rollapp.RollappId)
 			if err != nil {
 				logger.With("rollapp_id", rollapp.RollappId).Error("mark rollapp as vulnerable", "error", err)
 			}

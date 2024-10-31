@@ -190,6 +190,11 @@ type livenessMockSequencerKeeper struct {
 	jails   map[string]int
 }
 
+// JailByAddr implements types.SequencerKeeper.
+func (l livenessMockSequencerKeeper) JailByAddr(ctx sdk.Context, seqAddr string) error {
+	panic("unimplemented")
+}
+
 func newLivenessMockSequencerKeeper() livenessMockSequencerKeeper {
 	return livenessMockSequencerKeeper{
 		make(map[string]int),

@@ -3,6 +3,7 @@ package dymensionxyz.dymension.rollapp;
 
 
 import "gogoproto/gogo.proto";
+import "cosmos/msg/v1/msg.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
@@ -24,3 +25,27 @@ message SubmitFraudProposal {
   // The address of the fraudelent sequencer
   string fraudelent_sequencer_address = 6;
 }
+
+
+message MsgRollappFraudProposal {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the authority address.
+  string authority = 1;
+
+  // RollappID is the rollapp id.
+	string rollapp_id = 2;
+  // rollapp revision. used to verify the rollapp revision is the same as the one in the fraud proposal
+  uint64 rollapp_revision = 3;
+
+  // The height of the fraudelent block
+	uint64 fraud_height = 4;
+
+  // hard fork required?
+  bool hard_fork = 5;
+
+  // sequencer address to jail. optional
+  string slash_sequencer_address = 6;
+}
+
+// TODO: add slashing  only proposal?
