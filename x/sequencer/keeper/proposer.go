@@ -29,6 +29,14 @@ func (k Keeper) optOutAllSequencers(ctx sdk.Context, rollapp string, excl ...str
 	return nil
 }
 
+func (k Keeper) RollappPotentialProposers(ctx sdk.Context, rollappId string) []types.Sequencer {
+	seqs := k.RollappBondedSequencers(ctx, rollappId)
+	seqs = slices.DeleteFunc(seqs, func(seq types.Sequencer) bool {
+		return !k.isPotentialProposer(ctx, seq)
+	})
+	return append(seqs, k.SentinelSequencer(ctx))
+}
+
 // ChooseProposer will assign a proposer to the rollapp. It won't replace the incumbent proposer
 // if they are not sentinel. Otherwise it will prioritise a non sentinel successor. Finally, it
 // choose one based on an algorithm.

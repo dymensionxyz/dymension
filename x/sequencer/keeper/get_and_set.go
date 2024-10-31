@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"slices"
 	"time"
 
 	"cosmossdk.io/collections"
@@ -45,19 +44,13 @@ func (k Keeper) prefixSequencers(ctx sdk.Context, prefixKey []byte) []types.Sequ
 	return ret
 }
 
-func (k Keeper) RollappPotentialProposers(ctx sdk.Context, rollappId string) []types.Sequencer {
-	seqs := k.RollappBondedSequencers(ctx, rollappId)
-	seqs = slices.DeleteFunc(seqs, func(seq types.Sequencer) bool {
-		return !k.isPotentialProposer(ctx, seq)
-	})
-	return append(seqs, k.SentinelSequencer(ctx))
-}
-
 func (k Keeper) MustGetNonSentinelSequencer(ctx sdk.Context, addr string) types.Sequencer {
 	s, _ := k.GetRealSequencer(ctx, addr)
 	return s
 }
 
+// GetSequencer returns the sentinel sequencer if not found. Use GetRealSequencer if expecting
+// to get a real sequencer.
 func (k Keeper) GetSequencer(ctx sdk.Context, addr string) types.Sequencer {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.SequencerKey(addr))
@@ -70,7 +63,7 @@ func (k Keeper) GetSequencer(ctx sdk.Context, addr string) types.Sequencer {
 	return ret
 }
 
-// TODO: could change to OK api
+// GetRealSequencer tries to get a real (non sentinel) sequencer.
 func (k Keeper) GetRealSequencer(ctx sdk.Context, addr string) (types.Sequencer, error) {
 	s := k.GetSequencer(ctx, addr)
 	if s.Sentinel() {
@@ -109,7 +102,6 @@ func (k Keeper) SetSequencerByDymintAddr(ctx sdk.Context, dymint cryptotypes.Add
 }
 
 // AllProposers returns all proposers for all rollapps
-// TODO: check sentinel
 func (k Keeper) AllProposers(ctx sdk.Context) (list []types.Sequencer) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ProposerByRollappKey(""))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
@@ -117,7 +109,7 @@ func (k Keeper) AllProposers(ctx sdk.Context) (list []types.Sequencer) {
 
 	for ; iterator.Valid(); iterator.Next() {
 		address := string(iterator.Value())
-		seq := k.MustGetNonSentinelSequencer(ctx, address)
+		seq := k.GetSequencer(ctx, address)
 		list = append(list, seq)
 	}
 

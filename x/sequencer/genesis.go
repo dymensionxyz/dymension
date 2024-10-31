@@ -21,6 +21,9 @@ func InitGenesis(ctx sdk.Context, k *keeper.Keeper, genState types.GenesisState)
 	for _, elem := range genState.GenesisProposers {
 		k.SetProposer(ctx, elem.RollappId, elem.Address)
 	}
+	for _, elem := range genState.GenesisSuccessors {
+		k.SetSuccessor(ctx, elem.RollappId, elem.Address)
+	}
 }
 
 func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) *types.GenesisState {
@@ -35,6 +38,14 @@ func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) *types.GenesisState {
 			Address:   proposer.Address,
 		})
 	}
+
+	proposers := k.AllSuccessors(ctx)
+	for _, proposer := range proposers {
+		genesis.GenesisProposers = append(genesis.GenesisProposers, types.GenesisProposer{
+			RollappId: proposer.RollappId,
+			Address:   proposer.Address,
+		})
+	
 
 	notice, err := k.NoticeQueue(ctx, nil)
 	if err != nil {
