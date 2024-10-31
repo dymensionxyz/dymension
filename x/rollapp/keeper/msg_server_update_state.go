@@ -28,6 +28,13 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		return nil, errorsmod.Wrap(err, "before update state")
 	}
 
+	// validate correct rollapp revision number
+	if rollapp.RevisionNumber != msg.RollappRevision {
+		return nil, errorsmod.Wrapf(types.ErrWrongRollappRevision,
+			"expected revision number (%d), but received (%d)",
+			rollapp.RevisionNumber, msg.RollappRevision)
+	}
+
 	// retrieve last updating index
 	var newIndex, lastIndex uint64
 	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, msg.RollappId)
@@ -107,6 +114,8 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
 	k.SetStateInfo(ctx, *stateInfo)
 
+	// call the after-update-state hook
+	// currently used by `x/lightclient` to validate the state update in regards to the light client
 	err = k.hooks.AfterUpdateState(ctx, msg.RollappId, stateInfo)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "after update state")

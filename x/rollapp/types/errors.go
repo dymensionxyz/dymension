@@ -55,4 +55,5 @@ var (
 	ErrWrongClientId           = errorsmod.Register(ModuleName, 2002, "client id does not match the rollapp")
 	ErrWrongProposerAddr       = errorsmod.Register(ModuleName, 2003, "wrong proposer address")
 	ErrInvalidDRSVersion       = errorsmod.Register(ModuleName, 2004, "wrong DRS version")
+	ErrWrongRollappRevision    = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "wrong rollapp revision")
 )
