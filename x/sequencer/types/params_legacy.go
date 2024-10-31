@@ -7,14 +7,17 @@ package types
 
 import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uparam"
 )
 
 var _ paramtypes.ParamSet = &Params{}
 
 var (
 	KeyMinBond                    = []byte("MinBond")
+	KeyKickThreshold              = []byte("KickThreshold")
 	KeyNoticePeriod               = []byte("NoticePeriod")
 	keyLivenessSlashMinMultiplier = []byte("LivenessSlashMultiplier")
+	KeyLivenessSlashMinAbsolute   = []byte("LivenessSlashMinAbsolute")
 )
 
 // Deprecated: ParamKeyTable for module
@@ -27,7 +30,9 @@ func ParamKeyTable() paramtypes.KeyTable {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyMinBond, &p.MinBond, validateMinBond),
+		paramtypes.NewParamSetPair(KeyKickThreshold, &p.KickThreshold, uparam.ValidateCoin),
 		paramtypes.NewParamSetPair(KeyNoticePeriod, &p.NoticePeriod, validateTime),
 		paramtypes.NewParamSetPair(keyLivenessSlashMinMultiplier, &p.LivenessSlashMinMultiplier, validateLivenessSlashMultiplier),
+		paramtypes.NewParamSetPair(KeyLivenessSlashMinAbsolute, &p.LivenessSlashMinAbsolute, uparam.ValidateCoin),
 	}
 }

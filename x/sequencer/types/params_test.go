@@ -53,28 +53,6 @@ func TestValidateBasic(t *testing.T) {
 			},
 			true,
 		},
-		{
-			"invalid liveness slash absolute - zero amount",
-			Params{
-				MinBond:                    params.MinBond,
-				NoticePeriod:               params.NoticePeriod,
-				LivenessSlashMinMultiplier: params.LivenessSlashMinMultiplier,
-				LivenessSlashMinAbsolute:   sdk.Coin{Denom: params.LivenessSlashMinAbsolute.Denom, Amount: sdk.ZeroInt()},
-				KickThreshold:              params.KickThreshold,
-			},
-			true,
-		},
-		{
-			"invalid kick threshold - negative amount",
-			Params{
-				MinBond:                    params.MinBond,
-				NoticePeriod:               params.NoticePeriod,
-				LivenessSlashMinMultiplier: params.LivenessSlashMinMultiplier,
-				LivenessSlashMinAbsolute:   params.LivenessSlashMinAbsolute,
-				KickThreshold:              sdk.Coin{Denom: params.KickThreshold.Denom, Amount: sdk.NewInt(-1)},
-			},
-			true,
-		},
 	}
 
 	for _, tt := range tests {

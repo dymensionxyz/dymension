@@ -5,7 +5,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
 	"gopkg.in/yaml.v2"
 )
@@ -96,12 +95,12 @@ func (p Params) ValidateBasic() error {
 		return err
 	}
 
-	if p.KickThreshold.IsNil() {
-		return gerrc.ErrInvalidArgument.Wrap("nil kick threshold")
+	if err := uparam.ValidateCoin(p.LivenessSlashMinAbsolute); err != nil {
+		return err
 	}
 
-	if p.LivenessSlashMinAbsolute.IsNil() {
-		return gerrc.ErrInvalidArgument.Wrap("nil kick threshold")
+	if err := uparam.ValidateCoin(p.KickThreshold); err != nil {
+		return err
 	}
 
 	return nil
