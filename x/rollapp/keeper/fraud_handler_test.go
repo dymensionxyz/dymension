@@ -73,7 +73,7 @@ func (suite *RollappTestSuite) TestHardFork() {
 			suite.Require().True(found)
 			suite.Require().Zero(rollapp.RevisionNumber)
 
-			// check queue
+			// assert queue has pending states
 			queue := suite.App.RollappKeeper.GetAllFinalizationQueueUntilHeightInclusive(suite.Ctx, initialHeight+numOfStates+suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx))
 			suite.Require().Len(queue, int(numOfStates))
 

@@ -13,8 +13,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-// FIXME: validate mark vulnerable causes hard fork
-
 func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 	type rollapp struct {
 		name       string
@@ -153,13 +151,13 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				s.AssertEventEmitted(s.Ctx, eventName, 0)
 
 				// check non-vulnerable rollapps: all rollapps are still non-vulnerable
-				nonVulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterNonVulnerable)
+				nonVulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterNonForked)
 				actualNonVulnRollappIDs := uslice.Map(nonVulnRa, func(r types.Rollapp) string { return r.RollappId })
 				allRollapps := slices.Concat(expectedVulnRollappIDs, expectedNonVulnRollappIDs)
 				s.ElementsMatch(allRollapps, actualNonVulnRollappIDs)
 
 				// check vulnerable rollapps: no vulnerable rollapps
-				vulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterVulnerable)
+				vulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterForked)
 				s.Empty(vulnRa)
 
 				// check the vulnerable version set is empty
@@ -174,12 +172,12 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				s.AssertEventEmitted(s.Ctx, eventName, 1)
 
 				// check non-vulnerable rollapps
-				nonVulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterNonVulnerable)
+				nonVulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterNonForked)
 				actualNonVulnRollappIDs := uslice.Map(nonVulnRa, func(r types.Rollapp) string { return r.RollappId })
 				s.ElementsMatch(expectedNonVulnRollappIDs, actualNonVulnRollappIDs)
 
 				// check vulnerable rollapps
-				vulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterVulnerable)
+				vulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterForked)
 				actualVulnRollappIDs := uslice.Map(vulnRa, func(r types.Rollapp) string { return r.RollappId })
 				s.ElementsMatch(expectedVulnRollappIDs, actualVulnRollappIDs)
 
@@ -192,10 +190,10 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 	}
 }
 
-func FilterVulnerable(b types.Rollapp) bool {
+func FilterForked(b types.Rollapp) bool {
 	return b.RevisionNumber > 0
 }
 
-func FilterNonVulnerable(b types.Rollapp) bool {
+func FilterNonForked(b types.Rollapp) bool {
 	return b.RevisionNumber == 0
 }

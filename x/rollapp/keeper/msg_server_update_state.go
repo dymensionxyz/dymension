@@ -28,19 +28,19 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		return nil, errorsmod.Wrap(err, "before update state")
 	}
 
-	for _, bd := range msg.BDs.BD {
-		// verify the DRS version is not vulnerable
-		if k.IsDRSVersionVulnerable(ctx, bd.DrsVersion) {
-			// the rollapp is not marked as vulnerable yet, mark it now
-			err := k.MarkRollappAsVulnerable(ctx, msg.RollappId)
-			if err != nil {
-				return nil, fmt.Errorf("mark rollapp vulnerable: %w", err)
-			}
-			k.Logger(ctx).With("rollapp_id", msg.RollappId, "drs_version", bd.DrsVersion).
-				Info("non-frozen rollapp tried to submit MsgUpdateState with the vulnerable DRS version, mark the rollapp as vulnerable")
-			// we must return non-error if we want the changes to be saved
-			return &types.MsgUpdateStateResponse{}, nil
+	// verify the DRS version is not vulnerable
+	// check only last block descriptor DRS, since if that last is not vulnerable it means the rollapp already upgraded and is not vulnerable anymore
+	bd := msg.BDs.BD[len(msg.BDs.BD)-1]
+	if k.IsDRSVersionVulnerable(ctx, bd.DrsVersion) {
+		// Rollapp is using a vulnerable DRS version, hard fork it
+		err := k.HardForkObsoleteDRSVersion(ctx, msg.RollappId)
+		if err != nil {
+			return nil, fmt.Errorf("mark rollapp vulnerable: %w", err)
 		}
+		k.Logger(ctx).With("rollapp_id", msg.RollappId, "drs_version", bd.DrsVersion).
+			Info("rollapp tried to submit MsgUpdateState with the vulnerable DRS version, mark the rollapp as vulnerable")
+		// we must return non-error if we want the changes to be saved
+		return &types.MsgUpdateStateResponse{}, nil
 	}
 
 	// retrieve last updating index

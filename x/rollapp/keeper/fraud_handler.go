@@ -149,3 +149,13 @@ func (k Keeper) TruncStateInfo(ctx sdk.Context, stateInfo *types.StateInfo, frau
 	// Update the state info in the keeper
 	k.SetStateInfo(ctx, *stateInfo)
 }
+
+func (k Keeper) HardForkObsoleteDRSVersion(ctx sdk.Context, rollappID string) error {
+	lastBatch, ok := k.GetLatestStateInfo(ctx, rollappID)
+	if !ok {
+		return errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "can't hard fork before the first state info is created")
+	}
+
+	// we invoke a hard fork on the last posted batch without reverting any states
+	return k.HardFork(ctx, rollappID, lastBatch.GetLatestHeight()+1)
+}

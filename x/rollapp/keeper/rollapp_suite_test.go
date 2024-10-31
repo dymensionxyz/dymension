@@ -72,6 +72,12 @@ func TestRollappKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(RollappTestSuite))
 }
 
+func (suite *RollappTestSuite) assertNotForked(rollappID string) {
+	rollapp, _ := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
+	suite.Zero(rollapp.RevisionNumber)
+}
+
+// FIXME: rename
 func (suite *RollappTestSuite) IsRollappVulnerable(rollappID string) bool {
 	ra, ok := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
 	suite.Require().True(ok)

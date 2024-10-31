@@ -227,10 +227,6 @@ func (k Keeper) IsRollappStarted(ctx sdk.Context, rollappId string) bool {
 	return found
 }
 
-func (k Keeper) MarkRollappAsVulnerable(ctx sdk.Context, rollappId string) error {
-	return k.HardFork(ctx, rollappId, 0) // FIXME: use a proper hard fork height
-}
-
 func (k Keeper) FilterRollapps(ctx sdk.Context, f func(types.Rollapp) bool) []types.Rollapp {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
