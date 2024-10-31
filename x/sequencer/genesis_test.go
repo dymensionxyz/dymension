@@ -59,6 +59,15 @@ func TestInitGenesis(t *testing.T) {
 				Tokens:           sdk.Coins(nil),
 				NoticePeriodTime: timeToTest,
 			},
+			// rollapp 4
+			// proposer with notice period
+			{
+				Address:          "rollapp4_addr1",
+				RollappId:        "rollapp4",
+				Status:           types.Bonded,
+				Tokens:           sdk.Coins(nil),
+				NoticePeriodTime: timeToTest,
+			},
 		},
 
 		GenesisProposers: []types.GenesisProposer{
@@ -72,6 +81,8 @@ func TestInitGenesis(t *testing.T) {
 			},
 			// rollapp2 has no proposer
 		},
+
+		NoticeQueue: []string{"rollapp3_addr1", "rollapp4_addr1"},
 	}
 
 	// change the params for assertion
@@ -82,7 +93,7 @@ func TestInitGenesis(t *testing.T) {
 
 	noticeElapsed, err := k.NoticeElapsedSequencers(ctx, timeToTest)
 	require.NoError(t, err)
-	require.Len(t, noticeElapsed, 1)
+	require.Len(t, noticeElapsed, 2)
 	require.Len(t, k.AllProposers(ctx), 2)
 
 	got := sequencer.ExportGenesis(ctx, k)
@@ -90,4 +101,5 @@ func TestInitGenesis(t *testing.T) {
 	require.Equal(t, genesisState.Params, got.Params)
 	require.ElementsMatch(t, genesisState.SequencerList, got.SequencerList)
 	require.ElementsMatch(t, genesisState.GenesisProposers, got.GenesisProposers)
+	require.ElementsMatch(t, genesisState.NoticeQueue, got.NoticeQueue)
 }

@@ -44,22 +44,7 @@ func (k Keeper) removeFromNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
 // NoticeElapsedSequencers gets all sequencers across all rollapps whose notice period
 // has passed/elapsed.
 func (k Keeper) NoticeElapsedSequencers(ctx sdk.Context, endTime time.Time) ([]types.Sequencer, error) {
-	ret := []types.Sequencer{}
-	store := ctx.KVStore(k.storeKey)
-	iterator := store.Iterator(types.NoticePeriodQueueKey, sdk.PrefixEndBytes(types.NoticeQueueByTimeKey(endTime)))
-
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		addr := string(iterator.Value())
-		seq, err := k.GetRealSequencer(ctx, string(iterator.Value()))
-		if err != nil {
-			return nil, gerrc.ErrInternal.Wrapf("sequencer in notice queue but missing sequencer object: addr: %s", addr)
-		}
-		ret = append(ret, seq)
-	}
-
-	return ret, nil
+	return k.NoticeQueue(ctx, &endTime)
 }
 
 // ChooseSuccessorForFinishedNotices goes through all sequencers whose notice periods have elapsed.

@@ -16,6 +16,9 @@ message GenesisState {
   // genesisProposers is a list of the defined genesis proposers
   repeated GenesisProposer genesisProposers = 3
       [ (gogoproto.nullable) = false ];
+  // genesisSuccessor is a list of the defined genesis proposers
+  repeated GenesisProposer genesisSuccessors = 5
+      [ (gogoproto.nullable) = false ];
   // list of sequencers in the notice queue
   repeated string noticeQueue = 4 [ (gogoproto.nullable) = false ];
 }
@@ -24,3 +27,4 @@ message GenesisProposer {
   string address = 1;
   string rollappId = 2;
 }
+

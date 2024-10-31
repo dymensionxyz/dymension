@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"slices"
+	"time"
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
@@ -154,4 +155,28 @@ func (k Keeper) SetSuccessor(ctx sdk.Context, rollapp, seqAddr string) {
 	addressBytes := []byte(seqAddr)
 	nextProposerKey := types.SuccessorByRollappKey(rollapp)
 	store.Set(nextProposerKey, addressBytes)
+}
+
+// NoticeQueue - the entire notice queue
+func (k Keeper) NoticeQueue(ctx sdk.Context, endTime *time.Time) ([]types.Sequencer, error) {
+	ret := []types.Sequencer{}
+	store := ctx.KVStore(k.storeKey)
+	prefix := types.NoticePeriodQueueKey
+	if endTime != nil {
+		prefix = types.NoticeQueueByTimeKey(*endTime)
+	}
+	iterator := store.Iterator(types.NoticePeriodQueueKey, sdk.PrefixEndBytes(prefix))
+
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		addr := string(iterator.Value())
+		seq, err := k.GetRealSequencer(ctx, string(iterator.Value()))
+		if err != nil {
+			return nil, gerrc.ErrInternal.Wrapf("sequencer in notice queue but missing sequencer object: addr: %s", addr)
+		}
+		ret = append(ret, seq)
+	}
+
+	return ret, nil
 }

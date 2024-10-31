@@ -36,5 +36,13 @@ func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) *types.GenesisState {
 		})
 	}
 
+	notice, err := k.NoticeQueue(ctx, nil)
+	if err != nil {
+		panic(err)
+	}
+	for _, seq := range notice {
+		genesis.NoticeQueue = append(genesis.NoticeQueue, seq.Address)
+	}
+
 	return &genesis
 }
