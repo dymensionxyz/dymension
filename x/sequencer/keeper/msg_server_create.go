@@ -33,7 +33,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, gerrc.ErrInvalidArgument.Wrap("pub key")
 	}
 	pkAddr := pk.Address()
-	if _, err := k.SequencerByDymintAddr(ctx, pkAddr); err == nil { // TODO: write a test for it
+	if _, err := k.SequencerByDymintAddr(ctx, pkAddr); err == nil {
 		return nil, gerrc.ErrAlreadyExists.Wrap("pub key in use")
 	}
 

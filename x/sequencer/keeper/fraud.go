@@ -9,9 +9,9 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
-// KickProposer tries to remove the incumbent proposer. It requires the incumbent
+// TryKickProposer tries to remove the incumbent proposer. It requires the incumbent
 // proposer to be below a threshold of bond. The caller must also be bonded and opted in.
-func (k Keeper) KickProposer(ctx sdk.Context, kicker types.Sequencer) error {
+func (k Keeper) TryKickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 	if !kicker.IsPotentialProposer() {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "not ready to propose")
 	}
@@ -39,6 +39,8 @@ func (k Keeper) KickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 		}
 	}
 
+	// this will choose kicker as next proposer, since he is the only opted in and bonded
+	// sequencer remaining.
 	if err := k.ChooseProposer(ctx, ra); err != nil {
 		return errorsmod.Wrap(err, "choose proposer")
 	}
@@ -51,6 +53,9 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	if seq.Sentinel() {
 		return nil
 	}
+
+	// correct formula is e.g. min(sequencer tokens, max(1, sequencer tokens * 0.01 ))
+
 	mul := k.GetParams(ctx).LivenessSlashMinMultiplier
 	abs := k.GetParams(ctx).LivenessSlashMinAbsolute
 	tokens := seq.TokensCoin()

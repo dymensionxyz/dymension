@@ -14,6 +14,7 @@ func (b *DummyBlocker) CanUnbond(ctx sdk.Context, sequencer types.Sequencer) err
 	return nil
 }
 
+// simple check that blocker is wired in
 func (s *SequencerTestSuite) TestBondBlockers() {
 	ra := s.createRollapp()
 	seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)

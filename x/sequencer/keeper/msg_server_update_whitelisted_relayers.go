@@ -23,8 +23,6 @@ func (k msgServer) UpdateWhitelistedRelayers(goCtx context.Context, msg *types.M
 
 	seq.SetWhitelistedRelayers(msg.Relayers)
 
-	k.SetSequencer(ctx, seq)
-
 	err = uevent.EmitTypedEvent(ctx, &types.EventUpdateWhitelistedRelayers{
 		Creator:  msg.Creator,
 		Relayers: msg.Relayers,

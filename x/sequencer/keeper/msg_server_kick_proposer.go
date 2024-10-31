@@ -15,7 +15,7 @@ func (k msgServer) KickProposer(goCtx context.Context, msg *types.MsgKickPropose
 		return nil, err
 	}
 
-	if err := k.Keeper.KickProposer(ctx, seq); err != nil {
+	if err := k.Keeper.TryKickProposer(ctx, seq); err != nil {
 		return nil, err
 	}
 

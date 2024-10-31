@@ -23,8 +23,6 @@ func (k msgServer) UpdateRewardAddress(goCtx context.Context, msg *types.MsgUpda
 
 	seq.RewardAddr = msg.RewardAddr
 
-	k.SetSequencer(ctx, seq)
-
 	err = uevent.EmitTypedEvent(ctx, &types.EventUpdateRewardAddress{
 		Creator:    msg.Creator,
 		RewardAddr: msg.RewardAddr,

@@ -66,11 +66,15 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 		k.SetSequencer(ctx, seq)
 	}()
 
-	seq.OptedIn = false
+	seq.OptedIn = false // ensures they will not get chosen as their own successor!
 	err = k.TryUnbond(ctx, &seq, seq.TokensCoin())
 	if errorsmod.IsOf(err, types.ErrUnbondProposerOrSuccessor) {
+		// not allowed to unbond immediately, need to serve a notice to allow the rollapp community to organise
+
 		if !seq.NoticeInProgress(ctx.BlockTime()) {
-			k.StartNoticePeriodForSequencer(ctx, &seq)
+			if !(k.IsProposer(ctx, seq) && k.awaitingLastProposerBlock(ctx, seq.RollappId)) {
+				k.StartNoticePeriodForSequencer(ctx, &seq)
+			}
 		}
 		return &types.MsgUnbondResponse{
 			CompletionTime: &types.MsgUnbondResponse_NoticePeriodCompletionTime{

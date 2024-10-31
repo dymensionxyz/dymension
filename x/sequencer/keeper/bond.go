@@ -19,7 +19,7 @@ type UnbondBlocker interface {
 // A partial unbonding refunds tokens, but doesn't allow the remaining bond to fall below a threshold.
 // A total unbond refunds all tokens and changes status to unbonded.
 func (k Keeper) TryUnbond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) error {
-	if k.isProposerOrSuccessor(ctx, *seq) {
+	if k.IsProposer(ctx, *seq) || k.IsSuccessor(ctx, *seq) {
 		return types.ErrUnbondProposerOrSuccessor
 	}
 	for _, c := range k.unbondBlockers {
@@ -62,6 +62,7 @@ they cannot do frauds and they cannot unbond gracefully`)
 	)
 	if k.IsProposer(ctx, *seq) {
 		k.SetProposer(ctx, seq.RollappId, types.SentinelSeqAddr)
+		// we assume the current successor will not be happy if the proposer suddenly unbonds
 		k.SetSuccessor(ctx, seq.RollappId, types.SentinelSeqAddr)
 	}
 	return nil

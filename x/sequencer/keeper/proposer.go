@@ -68,7 +68,7 @@ func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 	return nil
 }
 
-// ChooseSuccesor will assign a successor. It won't replace an existing one.
+// ChooseSuccessor will assign a successor. It won't replace an existing one.
 // It will prioritise non sentinel
 func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) {
 	successor := k.GetSuccessor(ctx, rollapp)
@@ -121,8 +121,4 @@ func (k Keeper) IsProposer(ctx sdk.Context, seq types.Sequencer) bool {
 
 func (k Keeper) IsSuccessor(ctx sdk.Context, seq types.Sequencer) bool {
 	return seq.Address == k.GetSuccessor(ctx, seq.RollappId).Address
-}
-
-func (k Keeper) isProposerOrSuccessor(ctx sdk.Context, seq types.Sequencer) bool {
-	return k.IsProposer(ctx, seq) || k.IsSuccessor(ctx, seq)
 }
