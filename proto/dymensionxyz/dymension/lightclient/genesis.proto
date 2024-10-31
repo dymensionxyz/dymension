@@ -5,8 +5,24 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/lightclient/types";
 
+message HeaderSigner {
+    // acc addr
+    string sequencer_address = 1;
+    string client_id = 2;
+    uint64 height = 3;
+}
+
+message ClientHeightToSigner {
+    string client_id = 1;
+    uint64 height = 2;
+    // acc addr
+    string sequencer_address = 3;
+}
+
 message GenesisState {
     repeated CanonicalClient canonical_clients = 1 [ (gogoproto.nullable) = false ];
+    repeated HeaderSigner header_signers = 2 [ (gogoproto.nullable) = false ];
+    repeated ClientHeightToSigner client_height_to_signers = 3 [ (gogoproto.nullable) = false ];
 }
 
 message CanonicalClient {
