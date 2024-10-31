@@ -41,27 +41,33 @@ func (s *TestSuite) TestUnbondConditionFlow() {
 
 	s.k().SetCanonicalClient(s.Ctx, seq.RollappId, client)
 
+	// allowed!
 	err := s.k().CanUnbond(s.Ctx, seq)
 	s.Require().NoError(err)
 
+	// add some unverified headers
 	for h := range 10 {
 		err := s.k().SaveSigner(s.Ctx, seq.Address, client, uint64(h))
 		s.Require().NoError(err)
 	}
 
+	// not allowed!
 	err = s.k().CanUnbond(s.Ctx, seq)
 	utest.IsErr(s.Require(), err, sequencertypes.ErrUnbondNotAllowed)
 
+	// we prune some, but still not allowed
 	s.k().PruneSigners(s.Ctx, seq.RollappId, 6)
 
 	err = s.k().CanUnbond(s.Ctx, seq)
 	utest.IsErr(s.Require(), err, sequencertypes.ErrUnbondNotAllowed)
 
+	// the rest are verified
 	for h := range 7 {
 		err := s.k().RemoveSigner(s.Ctx, seq.Address, client, uint64(h))
 		s.Require().NoError(err)
 	}
 
+	// allowed!
 	err = s.k().CanUnbond(s.Ctx, seq)
 	s.Require().NoError(err)
 }

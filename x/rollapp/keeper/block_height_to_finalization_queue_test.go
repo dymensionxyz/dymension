@@ -18,7 +18,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/sdk-utils/utils/utest"
 )
 
 // Prevent strconv unused error
@@ -658,7 +657,7 @@ func (m mockRollappHooks) AfterStateFinalized(_ sdk.Context, _ string, stateInfo
 	return
 }
 
-func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
+func TestUnbondConditionFlow(t *testing.T) {
 	k, ctx := keepertest.RollappKeeper(t)
 
 	seq := keepertest.Alice
@@ -674,16 +673,16 @@ func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
 	err = k.CanUnbond(ctx, seq)
 	require.True(t, errorsmod.IsOf(err, sequencertypes.ErrUnbondNotAllowed))
 
-	s.k().PruneSigners(s.Ctx, seq.RollappId, 6)
+	k.PruneSequencerHeights(ctx, []string{seq.Address}, 6)
 
-	err = s.k().CanUnbond(s.Ctx, seq)
-	utest.IsErr(s.Require(), err, sequencertypes.ErrUnbondNotAllowed)
+	err = k.CanUnbond(ctx, seq)
+	require.True(t, errorsmod.IsOf(err, sequencertypes.ErrUnbondNotAllowed))
 
 	for h := range 7 {
-		err := s.k().RemoveSigner(s.Ctx, seq.Address, client, uint64(h))
-		s.Require().NoError(err)
+		err := k.DelSequencerHeight(ctx, seq.Address, uint64(h))
+		require.NoError(t, err)
 	}
 
-	err = s.k().CanUnbond(s.Ctx, seq)
-	s.Require().NoError(err)
+	err = k.CanUnbond(ctx, seq)
+	require.NoError(t, err)
 }
