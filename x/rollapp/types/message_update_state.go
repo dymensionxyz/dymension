@@ -76,7 +76,7 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 
 		// TODO: by now DRS version can be empty, but it will be deprecated
 		//  https://github.com/dymensionxyz/dymension/issues/1233
-		if msg.BDs.BD[bdIndex].DrsVersion != "" && len(msg.BDs.BD[bdIndex].DrsVersion) != DRSVersionLength {
+		if msg.BDs.BD[bdIndex].DrsVersion <= 0 {
 			return ErrInvalidDRSVersion
 		}
 		if msg.BDs.BD[bdIndex].Height != msg.StartHeight+bdIndex {

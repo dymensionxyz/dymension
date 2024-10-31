@@ -17,7 +17,7 @@ import (
 func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 	type rollapp struct {
 		name       string
-		drsVersion string
+		drsVersion uint32
 	}
 	govModule := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -25,23 +25,23 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 		name         string
 		authority    string
 		rollapps     []rollapp
-		vulnVersions []string
+		vulnVersions []uint32
 		expError     error
 	}{
 		{
 			name:      "happy path 1",
 			authority: govModule,
 			rollapps: []rollapp{
-				{name: "rollappa_1-1", drsVersion: "drs_non_vuln_1"},
-				{name: "rollappb_2-1", drsVersion: "drs_non_vuln_1"},
-				{name: "rollappc_3-1", drsVersion: "drs_non_vuln_2"},
-				{name: "rollappd_4-1", drsVersion: "drs_vuln_1"},
-				{name: "rollappe_5-1", drsVersion: "drs_vuln_1"},
-				{name: "rollappf_6-1", drsVersion: "drs_vuln_2"},
+				{name: "rollappa_1-1", drsVersion: 3},
+				{name: "rollappb_2-1", drsVersion: 3},
+				{name: "rollappc_3-1", drsVersion: 4},
+				{name: "rollappd_4-1", drsVersion: 1},
+				{name: "rollappe_5-1", drsVersion: 1},
+				{name: "rollappf_6-1", drsVersion: 2},
 			},
-			vulnVersions: []string{
-				"drs_vuln_1",
-				"drs_vuln_2",
+			vulnVersions: []uint32{
+				1,
+				2,
 			},
 			expError: nil,
 		},
@@ -49,11 +49,11 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 			name:      "happy path 2",
 			authority: govModule,
 			rollapps: []rollapp{
-				{name: "rollappa_1-1", drsVersion: "drs_non_vuln_1"},
-				{name: "rollappd_2-1", drsVersion: "drs_vuln_1"},
+				{name: "rollappa_1-1", drsVersion: 2},
+				{name: "rollappd_2-1", drsVersion: 1},
 			},
-			vulnVersions: []string{
-				"drs_vuln_1",
+			vulnVersions: []uint32{
+				1,
 			},
 			expError: nil,
 		},
@@ -61,16 +61,16 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 			name:      "some legacy rollapps don't have a DRS version",
 			authority: govModule,
 			rollapps: []rollapp{
-				{name: "rollappa_1-1", drsVersion: "drs_non_vuln_1"},
-				{name: "rollappb_2-1", drsVersion: ""},
-				{name: "rollappc_3-1", drsVersion: "drs_non_vuln_2"},
-				{name: "rollappd_4-1", drsVersion: "drs_vuln_1"},
-				{name: "rollappe_5-1", drsVersion: ""},
-				{name: "rollappf_6-1", drsVersion: "drs_vuln_2"},
+				{name: "rollappa_1-1", drsVersion: 2},
+				{name: "rollappb_2-1", drsVersion: 0},
+				{name: "rollappc_3-1", drsVersion: 3},
+				{name: "rollappd_4-1", drsVersion: 1},
+				{name: "rollappe_5-1", drsVersion: 0},
+				{name: "rollappf_6-1", drsVersion: 2},
 			},
-			vulnVersions: []string{
-				"drs_vuln_1",
-				"drs_vuln_2",
+			vulnVersions: []uint32{
+				1,
+				2,
 			},
 			expError: nil,
 		},
@@ -78,17 +78,17 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 			name:      "empty DRS version is also vulnerable",
 			authority: govModule,
 			rollapps: []rollapp{
-				{name: "rollappa_1-1", drsVersion: "drs_non_vuln_1"},
-				{name: "rollappb_2-1", drsVersion: ""},
-				{name: "rollappc_3-1", drsVersion: "drs_non_vuln_2"},
-				{name: "rollappd_4-1", drsVersion: "drs_vuln_1"},
-				{name: "rollappe_5-1", drsVersion: ""},
-				{name: "rollappf_6-1", drsVersion: "drs_vuln_2"},
+				{name: "rollappa_1-1", drsVersion: 3},
+				{name: "rollappb_2-1", drsVersion: 0},
+				{name: "rollappc_3-1", drsVersion: 4},
+				{name: "rollappd_4-1", drsVersion: 1},
+				{name: "rollappe_5-1", drsVersion: 0},
+				{name: "rollappf_6-1", drsVersion: 1},
 			},
-			vulnVersions: []string{
-				"",
-				"drs_vuln_1",
-				"drs_vuln_2",
+			vulnVersions: []uint32{
+				0,
+				1,
+				2,
 			},
 			expError: nil,
 		},
@@ -96,11 +96,11 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 			name:      "invalid authority",
 			authority: apptesting.CreateRandomAccounts(1)[0].String(),
 			rollapps: []rollapp{
-				{name: "rollappa_1-1", drsVersion: "drs_non_vuln_1"},
-				{name: "rollappe_2-1", drsVersion: "drs_vuln_1"},
+				{name: "rollappa_1-1", drsVersion: 2},
+				{name: "rollappe_2-1", drsVersion: 1},
 			},
-			vulnVersions: []string{
-				"drs_vuln_1",
+			vulnVersions: []uint32{
+				1,
 			},
 			expError: gerrc.ErrInvalidArgument,
 		},

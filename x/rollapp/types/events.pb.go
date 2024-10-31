@@ -158,7 +158,7 @@ type EventMarkVulnerableRollapps struct {
 	// VulnerableRollappNum is a number of rollapps that were marked as vulnerable.
 	VulnerableRollappNum uint64 `protobuf:"varint,1,opt,name=vulnerable_rollapp_num,json=vulnerableRollappNum,proto3" json:"vulnerable_rollapp_num,omitempty"`
 	// DrsVersions is a list of DRS versions that were marked as vulnerable.
-	DrsVersions []string `protobuf:"bytes,2,rep,name=drs_versions,json=drsVersions,proto3" json:"drs_versions,omitempty"`
+	DrsVersions []uint32 `protobuf:"varint,2,rep,packed,name=drs_versions,json=drsVersions,proto3" json:"drs_versions,omitempty"`
 }
 
 func (m *EventMarkVulnerableRollapps) Reset()         { *m = EventMarkVulnerableRollapps{} }
@@ -201,7 +201,7 @@ func (m *EventMarkVulnerableRollapps) GetVulnerableRollappNum() uint64 {
 	return 0
 }
 
-func (m *EventMarkVulnerableRollapps) GetDrsVersions() []string {
+func (m *EventMarkVulnerableRollapps) GetDrsVersions() []uint32 {
 	if m != nil {
 		return m.DrsVersions
 	}
@@ -233,12 +233,12 @@ var fileDescriptor_e0f74405c12dec3c = []byte{
 	0x4a, 0x4c, 0xca, 0x49, 0x0d, 0x82, 0x28, 0x2b, 0x16, 0x32, 0xe1, 0x12, 0x2b, 0x83, 0x8b, 0xc6,
 	0x43, 0x75, 0xc7, 0xe7, 0x95, 0xe6, 0x82, 0x2d, 0x62, 0x09, 0x12, 0x29, 0x43, 0xd7, 0xe3, 0x57,
 	0x9a, 0x2b, 0xa4, 0xc8, 0xc5, 0x93, 0x52, 0x54, 0x1c, 0x5f, 0x96, 0x5a, 0x04, 0xb2, 0xb4, 0x58,
-	0x82, 0x49, 0x81, 0x59, 0x83, 0x33, 0x88, 0x3b, 0xa5, 0xa8, 0x38, 0x0c, 0x2a, 0xe4, 0xe4, 0x77,
+	0x82, 0x49, 0x81, 0x59, 0x83, 0x37, 0x88, 0x3b, 0xa5, 0xa8, 0x38, 0x0c, 0x2a, 0xe4, 0xe4, 0x77,
 	0xe2, 0x91, 0x1c, 0xe3, 0x85, 0x47, 0x72, 0x8c, 0x0f, 0x1e, 0xc9, 0x31, 0x4e, 0x78, 0x2c, 0xc7,
 	0x70, 0xe1, 0xb1, 0x1c, 0xc3, 0x8d, 0xc7, 0x72, 0x0c, 0x51, 0x26, 0xe9, 0x99, 0x25, 0x19, 0xa5,
 	0x49, 0x7a, 0xc9, 0xf9, 0xb9, 0xfa, 0x38, 0xa2, 0xa8, 0xcc, 0x58, 0xbf, 0x02, 0x1e, 0x4f, 0x25,
-	0x95, 0x05, 0xa9, 0xc5, 0x49, 0x6c, 0xe0, 0xa8, 0x32, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0xbc,
-	0x3d, 0xfa, 0x75, 0x23, 0x02, 0x00, 0x00,
+	0x95, 0x05, 0xa9, 0xc5, 0x49, 0x6c, 0xe0, 0xa8, 0x32, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0x4b,
+	0xae, 0xca, 0xc3, 0x23, 0x02, 0x00, 0x00,
 }
 
 func (m *EventAppAdded) Marshal() (dAtA []byte, err error) {
@@ -367,13 +367,22 @@ func (m *EventMarkVulnerableRollapps) MarshalToSizedBuffer(dAtA []byte) (int, er
 	var l int
 	_ = l
 	if len(m.DrsVersions) > 0 {
-		for iNdEx := len(m.DrsVersions) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.DrsVersions[iNdEx])
-			copy(dAtA[i:], m.DrsVersions[iNdEx])
-			i = encodeVarintEvents(dAtA, i, uint64(len(m.DrsVersions[iNdEx])))
-			i--
-			dAtA[i] = 0x12
+		dAtA5 := make([]byte, len(m.DrsVersions)*10)
+		var j4 int
+		for _, num := range m.DrsVersions {
+			for num >= 1<<7 {
+				dAtA5[j4] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j4++
+			}
+			dAtA5[j4] = uint8(num)
+			j4++
 		}
+		i -= j4
+		copy(dAtA[i:], dAtA5[:j4])
+		i = encodeVarintEvents(dAtA, i, uint64(j4))
+		i--
+		dAtA[i] = 0x12
 	}
 	if m.VulnerableRollappNum != 0 {
 		i = encodeVarintEvents(dAtA, i, uint64(m.VulnerableRollappNum))
@@ -443,10 +452,11 @@ func (m *EventMarkVulnerableRollapps) Size() (n int) {
 		n += 1 + sovEvents(uint64(m.VulnerableRollappNum))
 	}
 	if len(m.DrsVersions) > 0 {
-		for _, s := range m.DrsVersions {
-			l = len(s)
-			n += 1 + l + sovEvents(uint64(l))
+		l = 0
+		for _, e := range m.DrsVersions {
+			l += sovEvents(uint64(e))
 		}
+		n += 1 + sovEvents(uint64(l)) + l
 	}
 	return n
 }
@@ -764,37 +774,81 @@ func (m *EventMarkVulnerableRollapps) Unmarshal(dAtA []byte) error {
 				}
 			}
 		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DrsVersions", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvents
+			if wireType == 0 {
+				var v uint32
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowEvents
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint32(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
 				}
-				if iNdEx >= l {
+				m.DrsVersions = append(m.DrsVersions, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowEvents
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthEvents
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthEvents
+				}
+				if postIndex > l {
 					return io.ErrUnexpectedEOF
 				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
 				}
+				elementCount = count
+				if elementCount != 0 && len(m.DrsVersions) == 0 {
+					m.DrsVersions = make([]uint32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowEvents
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint32(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.DrsVersions = append(m.DrsVersions, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field DrsVersions", wireType)
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.DrsVersions = append(m.DrsVersions, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])
