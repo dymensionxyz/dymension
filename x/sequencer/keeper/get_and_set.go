@@ -97,7 +97,7 @@ func (k Keeper) SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address)
 }
 
 func (k Keeper) SetSequencerByDymintAddr(ctx sdk.Context, dymint cryptotypes.Address, addr string) error {
-	// TODO: could move this inside SetSequencer but it would require propogating error up a lot
+	// could move this inside SetSequencer but it would require propogating error up a lot
 	return k.dymintProposerAddrToAccAddr.Set(ctx, dymint, addr)
 }
 

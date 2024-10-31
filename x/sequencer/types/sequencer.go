@@ -92,11 +92,7 @@ func (seq Sequencer) NoticeStarted() bool {
 }
 
 func (seq Sequencer) ProposerAddr() ([]byte, error) {
-	pubKey, err := PubKey(seq.DymintPubKey)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "pub key")
-	}
-	return pubKey.Address(), nil
+	return PubKeyAddr(seq.DymintPubKey)
 }
 
 // MustProposerAddr : intended for tests
@@ -162,6 +158,14 @@ func PubKey(pk *codectypes.Any) (cryptotypes.PubKey, error) {
 	var pubKey cryptotypes.PubKey
 	err := protoCodec.UnpackAny(pk, &pubKey)
 	return pubKey, err
+}
+
+func PubKeyAddr(pkA *codectypes.Any) ([]byte, error) {
+	pk, err := PubKey(pkA)
+	if err != nil {
+		return nil, err
+	}
+	return pk.Address(), nil
 }
 
 func (seq *Sequencer) SetWhitelistedRelayers(relayers []string) {

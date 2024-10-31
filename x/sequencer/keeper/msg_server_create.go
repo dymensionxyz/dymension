@@ -28,11 +28,10 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, types.ErrSequencerAlreadyExists
 	}
 
-	pk, err := types.PubKey(msg.DymintPubKey)
+	pkAddr, err := types.PubKeyAddr(msg.DymintPubKey)
 	if err != nil {
-		return nil, gerrc.ErrInvalidArgument.Wrap("pub key")
+		return nil, errorsmod.Wrap(err, "pub key addr")
 	}
-	pkAddr := pk.Address()
 	if _, err := k.SequencerByDymintAddr(ctx, pkAddr); err == nil {
 		return nil, gerrc.ErrAlreadyExists.Wrap("pub key in use")
 	}
