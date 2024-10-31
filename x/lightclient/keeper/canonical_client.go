@@ -63,7 +63,7 @@ func (k Keeper) GetAllCanonicalClients(ctx sdk.Context) (clients []types.Canonic
 }
 
 func (k Keeper) expectedClient(ctx sdk.Context) ibctm.ClientState {
-	return types.DefaultExpectedCanonicalClientParams() // TODO: adjust
+	return types.DefaultExpectedCanonicalClientParams()
 }
 
 var errChainIDMismatch = errors.New("chain id mismatch")
