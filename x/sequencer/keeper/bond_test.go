@@ -20,7 +20,7 @@ func (s *SequencerTestSuite) TestBondBlockers() {
 	seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
 	s.k().SetProposer(s.Ctx, ra.RollappId, pkAddr(bob)) // ensure alice is not proposer
 	db := DummyBlocker{}
-	s.k().SetUnbondBlockers()
+	s.k().SetUnbondBlockers(&db)
 	_ = s.k().TryUnbond(s.Ctx, &seq, seq.TokensCoin())
 	s.Require().True(db.called)
 }

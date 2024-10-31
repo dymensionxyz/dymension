@@ -78,14 +78,14 @@ func TestInitGenesis(t *testing.T) {
 	genesisState.Params.NoticePeriod = 100
 
 	k, ctx := keepertest.SequencerKeeper(t)
-	sequencer.InitGenesis(ctx, *k, genesisState)
+	sequencer.InitGenesis(ctx, k, genesisState)
 
 	noticeElapsed, err := k.NoticeElapsedSequencers(ctx, timeToTest)
 	require.NoError(t, err)
 	require.Len(t, noticeElapsed, 1)
 	require.Len(t, k.AllProposers(ctx), 2)
 
-	got := sequencer.ExportGenesis(ctx, *k)
+	got := sequencer.ExportGenesis(ctx, k)
 	require.NotNil(t, got)
 	require.Equal(t, genesisState.Params, got.Params)
 	require.ElementsMatch(t, genesisState.SequencerList, got.SequencerList)

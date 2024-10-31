@@ -74,7 +74,7 @@ type SequencerTestSuite struct {
 }
 
 func (s *SequencerTestSuite) k() *keeper.Keeper {
-	return &s.App.SequencerKeeper
+	return s.App.SequencerKeeper
 }
 
 func (s *SequencerTestSuite) raK() *rollappkeeper.Keeper {
