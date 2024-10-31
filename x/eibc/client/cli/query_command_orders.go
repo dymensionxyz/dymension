@@ -18,7 +18,7 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-demand-orders status [rollapp] [recipient] [type] [denom] [fulfilled] [fulfiller] [limit]",
 		Short: "List all demand orders with a specific status",
-		Long: `Query demand orders filtered by status. Examples of status include "pending", "finalized", and "reverted".
+		Long: `Query demand orders filtered by status. Status can "pending" or "finalized".
 				Optional arguments include rollapp_id, type (recv, timeout, ack), and limit.`,
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

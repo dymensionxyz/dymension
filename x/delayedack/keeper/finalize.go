@@ -11,7 +11,6 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
 // FinalizeRollappPacket finalizes a singe packet by its rollapp packet key.
@@ -25,7 +24,7 @@ func (k Keeper) FinalizeRollappPacket(ctx sdk.Context, ibc porttypes.IBCModule, 
 	// Verify the height is finalized
 	err = k.VerifyHeightFinalized(ctx, packet.RollappId, packet.ProofHeight)
 	if err != nil {
-		return packet, fmt.Errorf("verify height is finalized: rollapp '%s': %w", packet.RollappId, err)
+		return packet, fmt.Errorf("verify height: rollapp '%s': %w", packet.RollappId, err)
 	}
 
 	// Finalize the packet
@@ -137,41 +136,14 @@ func (k Keeper) onTimeoutPacket(rollappPacket commontypes.RollappPacket, ibc por
 }
 
 func (k Keeper) VerifyHeightFinalized(ctx sdk.Context, rollappID string, height uint64) error {
-	// Get the latest state info of the rollapp
-	latestIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollappID)
-	if !found {
-		return gerrc.ErrNotFound.Wrapf("latest finalized state index is not found")
+	latestFinalizedHeight, err := k.getRollappLatestFinalizedHeight(ctx, rollappID)
+	if err != nil {
+		return err
 	}
-	stateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollappID, latestIndex.Index)
-	if !found {
-		return gerrc.ErrNotFound.Wrapf("state info is not found")
-	}
+
 	// Check the latest finalized height of the rollapp is higher than the height specified
-	if height > stateInfo.GetLatestHeight() {
-		return gerrc.ErrInvalidArgument.Wrapf("packet height is not finalized yet: height '%d', latest height '%d'", height, stateInfo.GetLatestHeight())
+	if height > latestFinalizedHeight {
+		return gerrc.ErrInvalidArgument.Wrapf("packet height is not finalized yet: height '%d', latest finalized height '%d'", height, latestFinalizedHeight)
 	}
 	return nil
-}
-
-func (k Keeper) GetRollappLatestFinalizedHeight(ctx sdk.Context, rollappID string) (uint64, error) {
-	latestIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollappID)
-	if !found {
-		return 0, gerrc.ErrNotFound.Wrapf("latest finalized state index is not found")
-	}
-	stateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollappID, latestIndex.Index)
-	if !found {
-		return 0, gerrc.ErrNotFound.Wrapf("state info is not found")
-	}
-	return stateInfo.GetLatestHeight(), nil
-}
-
-func (k Keeper) GetPendingPacketsUntilLatestHeight(ctx sdk.Context, rollappID string) ([]commontypes.RollappPacket, uint64, error) {
-	// Get rollapp's latest finalized height
-	latestFinalizedHeight, err := k.GetRollappLatestFinalizedHeight(ctx, rollappID)
-	if err != nil {
-		return nil, 0, fmt.Errorf("get latest finalized height: rollapp '%s': %w", rollappID, err)
-	}
-
-	// Get all pending rollapp packets until the latest finalized height
-	return k.ListRollappPackets(ctx, types.PendingByRollappIDByMaxHeight(rollappID, latestFinalizedHeight)), latestFinalizedHeight, nil
 }

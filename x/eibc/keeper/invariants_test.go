@@ -18,12 +18,10 @@ func (suite *KeeperTestSuite) TestInvariants() {
 	// Create and set some demand orders with status pending
 	for i := 0; i < demandOrdersNum; i++ {
 		var status commontypes.Status
-		switch i % 3 {
+		switch i % 2 {
 		case 0:
 			status = commontypes.Status_PENDING
 		case 1:
-			status = commontypes.Status_REVERTED
-		case 2:
 			status = commontypes.Status_FINALIZED
 		}
 		rollappPacket := &commontypes.RollappPacket{

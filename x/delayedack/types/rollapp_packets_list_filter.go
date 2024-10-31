@@ -1,6 +1,8 @@
 package types
 
 import (
+	math "math"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
@@ -33,6 +35,18 @@ func PendingByRollappIDByMaxHeight(
 	}
 }
 
+func PendingByRollappIDFromHeight(rollappID string, fromHeight uint64) RollappPacketListFilter {
+	return RollappPacketListFilter{
+		Prefixes: []Prefix{
+			{
+				Start: commontypes.RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappID, commontypes.Status_PENDING, fromHeight),
+				End:   commontypes.RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappID, commontypes.Status_PENDING, math.MaxUint64),
+			},
+		},
+		FilterFunc: bypassFilter,
+	}
+}
+
 func ByRollappIDByStatus(rollappID string, status ...commontypes.Status) RollappPacketListFilter {
 	prefixes := make([]Prefix, len(status))
 	for i, s := range status {
@@ -58,7 +72,6 @@ func ByRollappID(rollappID string) RollappPacketListFilter {
 	return ByRollappIDByStatus(rollappID,
 		commontypes.Status_PENDING,
 		commontypes.Status_FINALIZED,
-		commontypes.Status_REVERTED,
 	)
 }
 

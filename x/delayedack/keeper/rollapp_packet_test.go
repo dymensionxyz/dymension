@@ -82,6 +82,10 @@ func (suite *DelayedAckTestSuite) TestRollappPacketEvents() {
 	}
 }
 
+// TestListRollappPackets tests the ListRollappPackets function
+// we have 3 rollapps
+// 2 pending packets, 3 finalized packets
+// 2 onRecv packets, 2 onAck packets, 1 onTimeout packets
 func (suite *DelayedAckTestSuite) TestListRollappPackets() {
 	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
 	rollappIDs := []string{"testRollappID1", "testRollappID2", "testRollappID3"}
@@ -89,7 +93,6 @@ func (suite *DelayedAckTestSuite) TestListRollappPackets() {
 	sm := map[int]commontypes.Status{
 		0: commontypes.Status_PENDING,
 		1: commontypes.Status_FINALIZED,
-		2: commontypes.Status_REVERTED,
 	}
 
 	var packetsToSet []commontypes.RollappPacket
@@ -106,7 +109,7 @@ func (suite *DelayedAckTestSuite) TestListRollappPackets() {
 					Data:               []byte("testData"),
 					Sequence:           uint64(i),
 				},
-				Status:      sm[i%3],
+				Status:      sm[i%2],
 				Type:        commontypes.RollappPacket_Type(i % 3),
 				ProofHeight: uint64(6 - i),
 			}
@@ -123,50 +126,52 @@ func (suite *DelayedAckTestSuite) TestListRollappPackets() {
 	packets := keeper.ListRollappPackets(ctx, types.ByRollappID(rollappIDs[0]))
 	suite.Require().Equal(5, len(packets))
 
-	expectPendingLength := 3
+	expectPendingLength := 6
 	pendingPackets := keeper.ListRollappPackets(ctx, types.ByStatus(commontypes.Status_PENDING))
 	suite.Require().Equal(expectPendingLength, len(pendingPackets))
 
-	expectFinalizedLength := 6
+	expectFinalizedLength := 9
 	finalizedPackets := keeper.ListRollappPackets(ctx, types.ByStatus(commontypes.Status_FINALIZED))
 	suite.Require().Equal(expectFinalizedLength, len(finalizedPackets))
 
-	expectRevertedLength := 6
-	revertedPackets := keeper.ListRollappPackets(ctx, types.ByStatus(commontypes.Status_REVERTED))
-	suite.Require().Equal(expectRevertedLength, len(revertedPackets))
+	expectFinalizedLengthLimit := 4
+	finalizedPacketsLimit := keeper.ListRollappPackets(ctx, types.ByStatus(commontypes.Status_FINALIZED).Take(4))
+	suite.Require().Equal(expectFinalizedLengthLimit, len(finalizedPacketsLimit))
 
-	expectRevertedLengthLimit := 4
-	revertedPacketsLimit := keeper.ListRollappPackets(ctx, types.ByStatus(commontypes.Status_REVERTED).Take(4))
-	suite.Require().Equal(expectRevertedLengthLimit, len(revertedPacketsLimit))
-
-	suite.Require().Equal(totalLength, len(pendingPackets)+len(finalizedPackets)+len(revertedPackets))
+	suite.Require().Equal(totalLength, len(pendingPackets)+len(finalizedPackets))
 
 	rollappPacket1Finalized := keeper.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappIDs[0], commontypes.Status_FINALIZED))
 	rollappPacket2Pending := keeper.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappIDs[1], commontypes.Status_PENDING))
-	rollappPacket3Reverted := keeper.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappIDs[2], commontypes.Status_REVERTED))
-	suite.Require().Equal(2, len(rollappPacket1Finalized))
-	suite.Require().Equal(1, len(rollappPacket2Pending))
-	suite.Require().Equal(2, len(rollappPacket3Reverted))
+	suite.Require().Equal(3, len(rollappPacket1Finalized))
+	suite.Require().Equal(2, len(rollappPacket2Pending))
 
 	rollappPacket1MaxHeight4 := keeper.ListRollappPackets(ctx, types.PendingByRollappIDByMaxHeight(rollappIDs[0], 4))
-	suite.Require().Equal(1, len(rollappPacket1MaxHeight4))
+	suite.Require().Equal(2, len(rollappPacket1MaxHeight4))
 
 	rollappPacket2MaxHeight3 := keeper.ListRollappPackets(ctx, types.PendingByRollappIDByMaxHeight(rollappIDs[1], 3))
 	suite.Require().Equal(1, len(rollappPacket2MaxHeight3))
 
-	expectOnRecvLength := 3
+	expectOnRecvLength := 0 // i % 2 == 0 AND i % 3 == 0
 	onRecvPackets := keeper.ListRollappPackets(ctx, types.ByTypeByStatus(commontypes.RollappPacket_ON_RECV, commontypes.Status_PENDING))
 	suite.Equal(expectOnRecvLength, len(onRecvPackets))
 
-	expectOnAckLength := 6
+	expectOnAckLength := 3 // i % 2 == 1 AND i % 3 == 1 (per rollapp)
 	onAckPackets := keeper.ListRollappPackets(ctx, types.ByTypeByStatus(commontypes.RollappPacket_ON_ACK, commontypes.Status_FINALIZED))
 	suite.Equal(expectOnAckLength, len(onAckPackets))
 
-	expectOnTimeoutLength := 6
-	onTimeoutPackets := keeper.ListRollappPackets(ctx, types.ByTypeByStatus(commontypes.RollappPacket_ON_TIMEOUT, commontypes.Status_REVERTED))
+	expectOnTimeoutLength := 3 // i % 2 == 1 AND i % 3 == 2 (per rollapp)
+	onTimeoutPackets := keeper.ListRollappPackets(ctx, types.ByTypeByStatus(commontypes.RollappPacket_ON_TIMEOUT, commontypes.Status_FINALIZED))
 	suite.Equal(expectOnTimeoutLength, len(onTimeoutPackets))
 
-	suite.Require().Equal(totalLength, len(onRecvPackets)+len(onAckPackets)+len(onTimeoutPackets))
+	var totalCount int
+	for _, status := range sm {
+		onRecvPackets = keeper.ListRollappPackets(ctx, types.ByTypeByStatus(commontypes.RollappPacket_ON_RECV, status))
+		onAckPackets = keeper.ListRollappPackets(ctx, types.ByTypeByStatus(commontypes.RollappPacket_ON_ACK, status))
+		onTimeoutPackets = keeper.ListRollappPackets(ctx, types.ByTypeByStatus(commontypes.RollappPacket_ON_TIMEOUT, status))
+		totalCount += len(onRecvPackets) + len(onAckPackets) + len(onTimeoutPackets)
+	}
+
+	suite.Require().Equal(totalLength, totalCount)
 }
 
 func (suite *DelayedAckTestSuite) TestUpdateRollappPacketWithStatus() {

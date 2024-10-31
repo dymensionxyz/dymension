@@ -178,8 +178,6 @@ func (k Keeper) ListDemandOrdersByStatus(ctx sdk.Context, status commontypes.Sta
 		statusPrefix = types.PendingDemandOrderKeyPrefix
 	case commontypes.Status_FINALIZED:
 		statusPrefix = types.FinalizedDemandOrderKeyPrefix
-	case commontypes.Status_REVERTED:
-		statusPrefix = types.RevertedDemandOrderKeyPrefix
 	default:
 		return nil, fmt.Errorf("invalid packet status: %s", status)
 	}
