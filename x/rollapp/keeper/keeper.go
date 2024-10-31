@@ -28,6 +28,7 @@ type Keeper struct {
 	channelKeeper         ChannelKeeper
 	sequencerKeeper       SequencerKeeper
 	bankKeeper            BankKeeper
+	transferKeeper        TransferKeeper
 
 	vulnerableDRSVersions   collections.KeySet[string]
 	registeredRollappDenoms collections.KeySet[collections.Pair[string, string]]
@@ -44,6 +45,7 @@ func NewKeeper(
 	ibcclientKeeper IBCClientKeeper,
 	sequencerKeeper SequencerKeeper,
 	bankKeeper BankKeeper,
+	transferKeeper TransferKeeper,
 	authority string,
 	canonicalClientKeeper CanonicalLightClientKeeper,
 ) *Keeper {
@@ -67,6 +69,7 @@ func NewKeeper(
 		ibcClientKeeper: ibcclientKeeper,
 		sequencerKeeper: sequencerKeeper,
 		bankKeeper:      bankKeeper,
+		transferKeeper:  transferKeeper,
 		vulnerableDRSVersions: collections.NewKeySet(
 			collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey)),
 			collections.NewPrefix(types.VulnerableDRSVersionsKeyPrefix),

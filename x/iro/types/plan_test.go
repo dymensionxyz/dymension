@@ -1,12 +1,10 @@
-package denom
+package types
 
 import (
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
 func FuzzIRODenom(f *testing.F) {
@@ -24,10 +22,10 @@ func FuzzIRODenom(f *testing.F) {
 }
 
 func FuzzRollappIDFromIRODenom(f *testing.F) {
-	f.Add(types.IROTokenPrefix + "exampleRollappID")
-	f.Add(types.IROTokenPrefix)
+	f.Add(IROTokenPrefix + "exampleRollappID")
+	f.Add(IROTokenPrefix)
 	f.Add("notfuture_prefix")
-	f.Add(types.IROTokenPrefix + "🚀🌕")
+	f.Add(IROTokenPrefix + "🚀🌕")
 
 	f.Fuzz(func(t *testing.T, denom string) {
 		rollappID, ok := RollappIDFromIRODenom(denom)
@@ -37,7 +35,7 @@ func FuzzRollappIDFromIRODenom(f *testing.F) {
 			require.Equal(t, denom, reconstructedDenom)
 		} else {
 			// Denom do not have the prefix
-			require.False(t, strings.HasPrefix(denom, types.IROTokenPrefix))
+			require.False(t, strings.HasPrefix(denom, IROTokenPrefix))
 		}
 	})
 }

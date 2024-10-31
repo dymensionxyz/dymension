@@ -16,7 +16,6 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
-	"github.com/dymensionxyz/dymension/v3/utils/denom"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -163,8 +162,8 @@ func (k Keeper) CreateModuleAccountForPlan(ctx sdk.Context, plan types.Plan) (au
 
 // MintAllocation mints the allocated amount and registers the denom in the bank denom metadata store
 func (k Keeper) MintAllocation(ctx sdk.Context, allocatedAmount math.Int, rollappId, rollappTokenSymbol string, exponent uint64) (sdk.Coin, error) {
-	baseDenom := denom.IRODenom(rollappId)
-	displayDenom := denom.IRODenom(rollappTokenSymbol)
+	baseDenom := types.IRODenom(rollappId)
+	displayDenom := types.IRODenom(rollappTokenSymbol)
 	metadata := banktypes.Metadata{
 		Description: fmt.Sprintf("Future token for rollapp %s", rollappId),
 		DenomUnits: []*banktypes.DenomUnit{

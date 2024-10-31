@@ -359,6 +359,7 @@ func (a *AppKeepers) InitKeepers(
 		a.IBCKeeper.ClientKeeper,
 		nil,
 		a.BankKeeper,
+		a.TransferKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		nil,
 	)

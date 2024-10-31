@@ -3,16 +3,23 @@ package types
 import (
 	"errors"
 	fmt "fmt"
+	"strings"
 	time "time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	"github.com/dymensionxyz/dymension/v3/utils/denom"
 )
 
 const IROTokenPrefix = "future_"
+
+func IRODenom(rollappID string) string {
+	return fmt.Sprintf("%s%s", IROTokenPrefix, rollappID)
+}
+
+func RollappIDFromIRODenom(denom string) (string, bool) {
+	return strings.CutPrefix(denom, IROTokenPrefix)
+}
 
 var MinTokenAllocation = math.LegacyNewDec(10) // min allocation in decimal representation
 
@@ -82,7 +89,7 @@ func (p Plan) GetAddress() sdk.AccAddress {
 
 // GetIRODenom returns IRO token's denom
 func (p Plan) GetIRODenom() string {
-	return denom.IRODenom(p.RollappId)
+	return IRODenom(p.RollappId)
 }
 
 func DefaultIncentivePlanParams() IncentivePlanParams {
