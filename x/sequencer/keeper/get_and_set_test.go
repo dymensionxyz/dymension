@@ -46,3 +46,11 @@ func TestSequencersByRollappGet(t *testing.T) {
 		nullify.Fill(rst),
 	)
 }
+
+func (s *SequencerTestSuite) TestByProposerAddr() {
+	ra := s.createRollapp()
+	seqExp := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
+	seqGot, err := s.k().SequencerByDymintAddr(s.Ctx, seqExp.MustProposerAddr())
+	s.Require().NoError(err)
+	s.Require().Equal(seqExp.Address, seqGot)
+}

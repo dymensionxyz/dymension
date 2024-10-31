@@ -7,8 +7,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	comettypes "github.com/cometbft/cometbft/types"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -150,13 +148,9 @@ func (seq Sequencer) MustValsetHash() []byte {
 // TODO: move these utils to a more suitable package
 
 func PubKey(pk *codectypes.Any) (cryptotypes.PubKey, error) {
-	// TODO: this look wrong
-	interfaceRegistry := cdctypes.NewInterfaceRegistry()
-	cryptocodec.RegisterInterfaces(interfaceRegistry)
-	protoCodec := codec.NewProtoCodec(interfaceRegistry)
-
+	cdc := ModuleCdc
 	var pubKey cryptotypes.PubKey
-	err := protoCodec.UnpackAny(pk, &pubKey)
+	err := cdc.UnpackAny(pk, &pubKey)
 	return pubKey, err
 }
 
