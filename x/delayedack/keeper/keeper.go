@@ -15,10 +15,11 @@ import (
 )
 
 type Keeper struct {
-	cdc        codec.BinaryCodec
-	storeKey   storetypes.StoreKey
-	hooks      types.MultiDelayedAckHooks
-	paramstore paramtypes.Subspace
+	cdc                   codec.BinaryCodec
+	storeKey              storetypes.StoreKey
+	channelKeeperStoreKey storetypes.StoreKey // we need direct access to the IBC channel store
+	hooks                 types.MultiDelayedAckHooks
+	paramstore            paramtypes.Subspace
 
 	rollappKeeper types.RollappKeeper
 	porttypes.ICS4Wrapper
@@ -29,6 +30,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
+	channelKeeperStoreKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	rollappKeeper types.RollappKeeper,
 	ics4Wrapper porttypes.ICS4Wrapper,
@@ -40,13 +42,14 @@ func NewKeeper(
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 	return &Keeper{
-		cdc:           cdc,
-		storeKey:      storeKey,
-		paramstore:    ps,
-		rollappKeeper: rollappKeeper,
-		ICS4Wrapper:   ics4Wrapper,
-		channelKeeper: channelKeeper,
-		EIBCKeeper:    eibcKeeper,
+		cdc:                   cdc,
+		storeKey:              storeKey,
+		channelKeeperStoreKey: channelKeeperStoreKey,
+		paramstore:            ps,
+		rollappKeeper:         rollappKeeper,
+		ICS4Wrapper:           ics4Wrapper,
+		channelKeeper:         channelKeeper,
+		EIBCKeeper:            eibcKeeper,
 	}
 }
 

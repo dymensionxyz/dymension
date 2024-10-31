@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
@@ -12,7 +13,7 @@ import (
 func (k Keeper) HandleHardFork(ctx sdk.Context, rollappID string, height uint64, ibc porttypes.IBCModule) error {
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
-	// Get all the pending packets
+	// Get all the pending packets from fork height inclusive
 	rollappPendingPackets := k.ListRollappPackets(ctx, types.PendingByRollappIDFromHeight(rollappID, height))
 
 	// Iterate over all the pending packets and revert them
@@ -35,7 +36,7 @@ func (k Keeper) HandleHardFork(ctx sdk.Context, rollappID string, height uint64,
 		} else {
 			// for incoming packets, we need to reset the packet receipt
 			ibcPacket := rollappPacket.Packet
-			k.channelKeeper.SetPacketReceipt(ctx, ibcPacket.GetDestPort(), ibcPacket.GetDestChannel(), ibcPacket.GetSequence())
+			k.deletePacketReceipt(ctx, ibcPacket.GetDestPort(), ibcPacket.GetDestChannel(), ibcPacket.GetSequence())
 		}
 
 		// delete the packet
@@ -46,4 +47,10 @@ func (k Keeper) HandleHardFork(ctx sdk.Context, rollappID string, height uint64,
 	logger.Info("reverting IBC rollapp packets", "rollappID", rollappID, "numPackets", len(rollappPendingPackets))
 
 	return nil
+}
+
+// DeleteRollappPacket deletes a packet receipt from the store
+func (k Keeper) deletePacketReceipt(ctx sdk.Context, portID, channelID string, sequence uint64) {
+	store := ctx.KVStore(k.channelKeeperStoreKey)
+	store.Delete(host.PacketReceiptKey(portID, channelID, sequence))
 }

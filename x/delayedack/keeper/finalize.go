@@ -136,7 +136,7 @@ func (k Keeper) onTimeoutPacket(rollappPacket commontypes.RollappPacket, ibc por
 }
 
 func (k Keeper) VerifyHeightFinalized(ctx sdk.Context, rollappID string, height uint64) error {
-	latestFinalizedHeight, err := k.GetRollappLatestFinalizedHeight(ctx, rollappID)
+	latestFinalizedHeight, err := k.getRollappLatestFinalizedHeight(ctx, rollappID)
 	if err != nil {
 		return err
 	}

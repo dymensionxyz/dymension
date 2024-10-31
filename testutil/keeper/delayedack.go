@@ -142,6 +142,7 @@ func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 	k := keeper.NewKeeper(cdc,
 		storeKey,
+		nil,
 		paramsSubspace,
 		RollappKeeperStub{},
 		ICS4WrapperStub{},
