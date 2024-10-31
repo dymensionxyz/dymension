@@ -228,6 +228,7 @@ func expectedSequencer(m *types.MsgCreateSequencer) types.Sequencer {
 		OptedIn:          true,
 		Tokens:           sdk.NewCoins(m.Bond),
 		NoticePeriodTime: time.Time{},
+		RewardAddr:       m.Creator,
 	}
 }
 
