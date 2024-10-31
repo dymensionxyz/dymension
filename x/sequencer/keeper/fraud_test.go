@@ -26,6 +26,7 @@ func (s *SequencerTestSuite) TestSlashLivenessFlow() {
 	s.Require().True(ok)
 }
 
+// check the basic properties and that funds are allocated to the right place
 func (s *SequencerTestSuite) TestFraud() {
 	ra := s.createRollapp()
 
@@ -72,4 +73,9 @@ func (s *SequencerTestSuite) TestFraud() {
 		rewardeeBalAfter := s.App.BankKeeper.GetAllBalances(s.Ctx, rewardee)
 		s.Require().False(rewardeeBalAfter.IsEqual(rewardeeBalBefore))
 	})
+}
+
+// a full flow 'e2e' to make sure things are sensible
+func (s *SequencerTestSuite) TestFraudFullFlowDuringRotation() {
+	ra := s.createRollapp()
 }
