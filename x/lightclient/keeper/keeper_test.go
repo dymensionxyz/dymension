@@ -33,9 +33,33 @@ func TestSequencerKeeperTestSuite(t *testing.T) {
 }
 
 func (s *TestSuite) TestUnbondConditionBasicFlow() {
-	// What should the test be like?
-	// first there are
+	seq := keepertest.Alice
 
+	client := keepertest.CanonClientID
+
+	s.k().SetCanonicalClient(s.Ctx, seq.RollappId, client)
+
+	err := s.k().CanUnbond(s.Ctx, seq)
+	s.Require().NoError(err)
+
+	for h := range 10 {
+		err := s.k().SaveSigner(s.Ctx, seq.Address, client, uint64(h))
+		s.Require().NoError(err)
+	}
+
+	err = s.k().CanUnbond(s.Ctx, seq)
+	utest.IsErr(s.Require(), err, sequencertypes.ErrUnbondNotAllowed)
+
+	for h := range 10 {
+		err := s.k().RemoveSigner(s.Ctx, seq.Address, client, uint64(h))
+		s.Require().NoError(err)
+	}
+
+	err = s.k().CanUnbond(s.Ctx, seq)
+	s.Require().NoError(err)
+}
+
+func (s *TestSuite) TestUnbondConditionPrune() {
 	seq := keepertest.Alice
 
 	client := keepertest.CanonClientID

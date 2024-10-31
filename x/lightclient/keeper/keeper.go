@@ -86,9 +86,6 @@ func NewKeeper(
 }
 
 func (k Keeper) CanUnbond(ctx sdk.Context, seq sequencertypes.Sequencer) error {
-	// Suppose we did not enforce this, we would have to iterate all headers for the sequencer
-	// besides the canonical one, and since client creation is permissionless, it would
-	// let anyone attack a sequencer by creating a parallel client and submitting headers
 	client, ok := k.GetCanonicalClient(ctx, seq.RollappId)
 	if !ok {
 		return errorsmod.Wrap(sequencertypes.ErrUnbondNotAllowed, "no canonical client")
