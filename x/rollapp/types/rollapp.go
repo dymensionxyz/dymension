@@ -46,7 +46,8 @@ func NewRollapp(
 		GenesisState: RollappGenesisState{
 			TransfersEnabled: transfersEnabled,
 		},
-		RevisionNumber: 0,
+		RevisionNumber:      0,
+		RevisionStartHeight: 0,
 	}
 }
 

@@ -78,6 +78,7 @@ message Rollapp {
 
   // The revision number of the rollapp. starts always with 0 revision
   uint64 revision_number = 19;
+  uint64 revision_start_height = 20;
 }
 
 // Rollapp summary is a compact representation of Rollapp

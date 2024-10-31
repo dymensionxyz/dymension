@@ -27,14 +27,14 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) 
 		}
 	*/
 
-	err := k.RevertPendingStates(ctx, rollappID, fraudHeight)
+	lastCommittedHeight, err := k.RevertPendingStates(ctx, rollappID, fraudHeight)
 	if err != nil {
 		return errorsmod.Wrap(err, "revert pending states")
 	}
 
 	// update revision number
 	rollapp.RevisionNumber += 1
-	// FIXME: set liveness height
+	rollapp.RevisionStartHeight = lastCommittedHeight + 1
 	k.SetRollapp(ctx, rollapp)
 
 	// handle the sequencers, clean delayed packets, handle light client
@@ -55,19 +55,21 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) 
 }
 
 // removes state updates until the one specified and included
-func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeight uint64) error {
+// returns the latest height of the state info
+func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeight uint64) (uint64, error) {
 	// find the affected state info index
 	// skip if not found (fraud height is not committed yet)
 	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, fraudHeight)
 	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
-		return nil
+		sinfo, _ := k.GetLatestStateInfo(ctx, rollappID)
+		return sinfo.GetLatestHeight(), nil
 	} else if err != nil {
-		return err
+		return 0, err
 	}
 
 	// check height is not finalized
 	if stateInfo.Status == common.Status_FINALIZED {
-		return errorsmod.Wrapf(types.ErrDisputeAlreadyFinalized, "state info for height %d is already finalized", fraudHeight)
+		return 0, errorsmod.Wrapf(types.ErrDisputeAlreadyFinalized, "state info for height %d is already finalized", fraudHeight)
 	}
 
 	lastStateIdxToKeep := stateInfo.StateInfoIndex.Index
@@ -133,7 +135,7 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 
 	ctx.Logger().Info(fmt.Sprintf("Reverted state updates for rollapp: %s, count: %d", rollappID, revertedStatesCount))
 
-	return nil
+	return fraudHeight - 1, nil
 }
 
 // TruncStateInfo truncates the state info to the last valid block before the fraud height.
