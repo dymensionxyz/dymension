@@ -32,7 +32,9 @@ func TestSequencerKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(TestSuite))
 }
 
-func (s *TestSuite) TestUnbondConditionBasicFlow() {
+// Basic flow should prevent unbonding at appropriate times, and
+// handle pruning.
+func (s *TestSuite) TestUnbondConditionFlow() {
 	seq := keepertest.Alice
 
 	client := keepertest.CanonClientID
@@ -50,34 +52,12 @@ func (s *TestSuite) TestUnbondConditionBasicFlow() {
 	err = s.k().CanUnbond(s.Ctx, seq)
 	utest.IsErr(s.Require(), err, sequencertypes.ErrUnbondNotAllowed)
 
-	for h := range 10 {
-		err := s.k().RemoveSigner(s.Ctx, seq.Address, client, uint64(h))
-		s.Require().NoError(err)
-	}
-
-	err = s.k().CanUnbond(s.Ctx, seq)
-	s.Require().NoError(err)
-}
-
-func (s *TestSuite) TestUnbondConditionPrune() {
-	seq := keepertest.Alice
-
-	client := keepertest.CanonClientID
-
-	s.k().SetCanonicalClient(s.Ctx, seq.RollappId, client)
-
-	err := s.k().CanUnbond(s.Ctx, seq)
-	s.Require().NoError(err)
-
-	for h := range 10 {
-		err := s.k().SaveSigner(s.Ctx, seq.Address, client, uint64(h))
-		s.Require().NoError(err)
-	}
+	s.k().PruneSigners(s.Ctx, seq.RollappId, 6)
 
 	err = s.k().CanUnbond(s.Ctx, seq)
 	utest.IsErr(s.Require(), err, sequencertypes.ErrUnbondNotAllowed)
 
-	for h := range 10 {
+	for h := range 7 {
 		err := s.k().RemoveSigner(s.Ctx, seq.Address, client, uint64(h))
 		s.Require().NoError(err)
 	}
