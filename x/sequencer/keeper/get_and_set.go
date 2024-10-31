@@ -55,7 +55,6 @@ func (k Keeper) GetSequencer(ctx sdk.Context, addr string) types.Sequencer {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.SequencerKey(addr))
 	if b == nil {
-		// TODO: possible case?
 		return k.SentinelSequencer(ctx)
 	}
 	ret := types.Sequencer{}
@@ -98,12 +97,27 @@ func (k Keeper) SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address)
 }
 
 func (k Keeper) SetSequencerByDymintAddr(ctx sdk.Context, dymint cryptotypes.Address, addr string) error {
+	// TODO: could move this inside SetSequencer but it would require propogating error up a lot
 	return k.dymintProposerAddrToAccAddr.Set(ctx, dymint, addr)
 }
 
 // AllProposers returns all proposers for all rollapps
 func (k Keeper) AllProposers(ctx sdk.Context) (list []types.Sequencer) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ProposerByRollappKey(""))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		address := string(iterator.Value())
+		seq := k.GetSequencer(ctx, address)
+		list = append(list, seq)
+	}
+
+	return
+}
+
+func (k Keeper) AllSuccessors(ctx sdk.Context) (list []types.Sequencer) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SuccessorByRollappKey(""))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
 

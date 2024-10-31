@@ -11,6 +11,7 @@ func InitGenesis(ctx sdk.Context, k *keeper.Keeper, genState types.GenesisState)
 
 	for _, elem := range genState.SequencerList {
 		k.SetSequencer(ctx, elem)
+		k.SetSequencerByDymintAddr(ctx, elem.MustProposerAddr(), elem.Address)
 	}
 
 	for _, s := range genState.NoticeQueue {
@@ -39,13 +40,13 @@ func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) *types.GenesisState {
 		})
 	}
 
-	proposers := k.AllSuccessors(ctx)
-	for _, proposer := range proposers {
-		genesis.GenesisProposers = append(genesis.GenesisProposers, types.GenesisProposer{
-			RollappId: proposer.RollappId,
-			Address:   proposer.Address,
+	elems := k.AllSuccessors(ctx)
+	for _, elem := range elems {
+		genesis.GenesisSuccessors = append(genesis.GenesisSuccessors, types.GenesisProposer{
+			RollappId: elem.RollappId,
+			Address:   elem.Address,
 		})
-	
+	}
 
 	notice, err := k.NoticeQueue(ctx, nil)
 	if err != nil {

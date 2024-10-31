@@ -22,10 +22,11 @@ func TestInitGenesis(t *testing.T) {
 			// rollapp 1
 			// bonded - no tokens
 			{
-				Address:   "rollapp1_addr1",
-				RollappId: "rollapp1",
-				Status:    types.Bonded,
-				Tokens:    sdk.Coins(nil),
+				Address:      "rollapp1_addr1",
+				RollappId:    "rollapp1",
+				Status:       types.Bonded,
+				Tokens:       sdk.Coins(nil),
+				DymintPubKey: anyPk(alice),
 			},
 			// bonded - 100 dym
 			{
@@ -71,6 +72,18 @@ func TestInitGenesis(t *testing.T) {
 		},
 
 		GenesisProposers: []types.GenesisProposer{
+			{
+				Address:   "rollapp1_addr1",
+				RollappId: "rollapp1",
+			},
+			{
+				Address:   "rollapp3_addr1",
+				RollappId: "rollapp3",
+			},
+			// rollapp2 has no proposer
+		},
+
+		GenesisSuccessors: []types.GenesisProposer{
 			{
 				Address:   "rollapp1_addr1",
 				RollappId: "rollapp1",
