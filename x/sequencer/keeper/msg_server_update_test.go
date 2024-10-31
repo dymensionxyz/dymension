@@ -144,3 +144,20 @@ func (s *SequencerTestSuite) TestUpdateSequencer() {
 		})
 	}
 }
+
+func (s *SequencerTestSuite) TestChangeOptInStatusBasicFlow() {
+	ra := s.createRollapp()
+	seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
+
+	m := &types.MsgUpdateOptInStatus{Creator: seq.Address, OptedIn: false}
+	_, err := s.msgServer.UpdateOptInStatus(s.Ctx, m)
+	s.Require().NoError(err)
+	seq = s.k().GetSequencer(s.Ctx, seq.Address)
+	s.Require().False(seq.OptedIn)
+
+	m = &types.MsgUpdateOptInStatus{Creator: seq.Address, OptedIn: true}
+	_, err = s.msgServer.UpdateOptInStatus(s.Ctx, m)
+	s.Require().NoError(err)
+	seq = s.k().GetSequencer(s.Ctx, seq.Address)
+	s.Require().True(seq.OptedIn)
+}
