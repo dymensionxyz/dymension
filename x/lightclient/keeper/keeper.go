@@ -86,6 +86,9 @@ func NewKeeper(
 }
 
 func (k Keeper) CanUnbond(ctx sdk.Context, seq sequencertypes.Sequencer) error {
+	// Suppose we did not enforce this, we would have to iterate all headers for the sequencer
+	// besides the canonical one, and since client creation is permissionless, it would
+	// let anyone attack a sequencer by creating a parallel client and submitting headers
 	client, ok := k.GetCanonicalClient(ctx, seq.RollappId)
 	if !ok {
 		return errorsmod.Wrap(sequencertypes.ErrUnbondNotAllowed, "no canonical client")
@@ -144,8 +147,8 @@ func (k Keeper) SaveSigner(ctx sdk.Context, seqAddr string, client string, h uin
 
 func (k Keeper) RemoveSigner(ctx sdk.Context, seqAddr string, client string, h uint64) error {
 	return errors.Join(
-		k.headerSigners.Set(ctx, collections.Join3(seqAddr, client, h)),
-		k.clientHeightToSigner.Set(ctx, collections.Join(client, h), seqAddr),
+		k.headerSigners.Remove(ctx, collections.Join3(seqAddr, client, h)),
+		k.clientHeightToSigner.Remove(ctx, collections.Join(client, h)),
 	)
 }
 
