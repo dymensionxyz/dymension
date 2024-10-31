@@ -10,4 +10,7 @@ var (
 	ErrValidatorHashMismatch = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "next validator hash does not match the sequencer for h+1")
 	ErrTimestampMismatch     = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "block descriptor timestamp does not match tendermint header timestamp")
 	ErrSequencerNotFound     = errorsmod.Wrap(gerrc.ErrNotFound, "sequencer for given valhash not found")
+	ErrorMissingClientState  = errorsmod.Wrap(gerrc.ErrInternal, "client state was expected, but not found")
+	ErrorInvalidClientType   = errorsmod.Wrap(gerrc.ErrInternal, "client state is not a tendermint client")
+	ErrorHardForkInProgress  = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "cannot update light client until forking is finished")
 )
