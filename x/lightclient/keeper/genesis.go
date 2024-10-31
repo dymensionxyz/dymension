@@ -1,11 +1,10 @@
 package keeper
 
 import (
+	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
-
-// TODO: add signer bookkeeping to genesis and do import/export
 
 func (k Keeper) InitGenesis(ctx sdk.Context, genesisState types.GenesisState) {
 	if err := genesisState.Validate(); err != nil {
@@ -14,11 +13,26 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genesisState types.GenesisState) {
 	for _, client := range genesisState.GetCanonicalClients() {
 		k.SetCanonicalClient(ctx, client.RollappId, client.IbcClientId)
 	}
+	for _, signer := range genesisState.HeaderSigners {
+		k.SaveSigner(ctx, signer.SequencerAddress, signer.ClientId, signer.Height)
+	}
 }
 
 func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 	clients := k.GetAllCanonicalClients(ctx)
-	return types.GenesisState{
+
+	ret := types.GenesisState{
 		CanonicalClients: clients,
 	}
+
+	k.headerSigners.Walk(ctx, nil,
+		func(key collections.Triple[string, string, uint64]) (stop bool, err error) {
+			ret.HeaderSigners = append(ret.HeaderSigners, types.HeaderSignerEntry{
+				SequencerAddress: key.K1(),
+				ClientId:         key.K2(),
+				Height:           key.K3(),
+			})
+			return false, nil
+		})
+	return ret
 }

@@ -23,25 +23,26 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type HeaderSigner struct {
+// Used for genesis import/export only
+type HeaderSignerEntry struct {
 	// acc addr
 	SequencerAddress string `protobuf:"bytes,1,opt,name=sequencer_address,json=sequencerAddress,proto3" json:"sequencer_address,omitempty"`
 	ClientId         string `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	Height           uint64 `protobuf:"varint,3,opt,name=height,proto3" json:"height,omitempty"`
 }
 
-func (m *HeaderSigner) Reset()         { *m = HeaderSigner{} }
-func (m *HeaderSigner) String() string { return proto.CompactTextString(m) }
-func (*HeaderSigner) ProtoMessage()    {}
-func (*HeaderSigner) Descriptor() ([]byte, []int) {
+func (m *HeaderSignerEntry) Reset()         { *m = HeaderSignerEntry{} }
+func (m *HeaderSignerEntry) String() string { return proto.CompactTextString(m) }
+func (*HeaderSignerEntry) ProtoMessage()    {}
+func (*HeaderSignerEntry) Descriptor() ([]byte, []int) {
 	return fileDescriptor_5520440548912168, []int{0}
 }
-func (m *HeaderSigner) XXX_Unmarshal(b []byte) error {
+func (m *HeaderSignerEntry) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *HeaderSigner) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *HeaderSignerEntry) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_HeaderSigner.Marshal(b, m, deterministic)
+		return xxx_messageInfo_HeaderSignerEntry.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -51,111 +52,49 @@ func (m *HeaderSigner) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 		return b[:n], nil
 	}
 }
-func (m *HeaderSigner) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_HeaderSigner.Merge(m, src)
+func (m *HeaderSignerEntry) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HeaderSignerEntry.Merge(m, src)
 }
-func (m *HeaderSigner) XXX_Size() int {
+func (m *HeaderSignerEntry) XXX_Size() int {
 	return m.Size()
 }
-func (m *HeaderSigner) XXX_DiscardUnknown() {
-	xxx_messageInfo_HeaderSigner.DiscardUnknown(m)
+func (m *HeaderSignerEntry) XXX_DiscardUnknown() {
+	xxx_messageInfo_HeaderSignerEntry.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_HeaderSigner proto.InternalMessageInfo
+var xxx_messageInfo_HeaderSignerEntry proto.InternalMessageInfo
 
-func (m *HeaderSigner) GetSequencerAddress() string {
+func (m *HeaderSignerEntry) GetSequencerAddress() string {
 	if m != nil {
 		return m.SequencerAddress
 	}
 	return ""
 }
 
-func (m *HeaderSigner) GetClientId() string {
+func (m *HeaderSignerEntry) GetClientId() string {
 	if m != nil {
 		return m.ClientId
 	}
 	return ""
 }
 
-func (m *HeaderSigner) GetHeight() uint64 {
+func (m *HeaderSignerEntry) GetHeight() uint64 {
 	if m != nil {
 		return m.Height
 	}
 	return 0
-}
-
-type ClientHeightToSigner struct {
-	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
-	Height   uint64 `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
-	// acc addr
-	SequencerAddress string `protobuf:"bytes,3,opt,name=sequencer_address,json=sequencerAddress,proto3" json:"sequencer_address,omitempty"`
-}
-
-func (m *ClientHeightToSigner) Reset()         { *m = ClientHeightToSigner{} }
-func (m *ClientHeightToSigner) String() string { return proto.CompactTextString(m) }
-func (*ClientHeightToSigner) ProtoMessage()    {}
-func (*ClientHeightToSigner) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5520440548912168, []int{1}
-}
-func (m *ClientHeightToSigner) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ClientHeightToSigner) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ClientHeightToSigner.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *ClientHeightToSigner) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ClientHeightToSigner.Merge(m, src)
-}
-func (m *ClientHeightToSigner) XXX_Size() int {
-	return m.Size()
-}
-func (m *ClientHeightToSigner) XXX_DiscardUnknown() {
-	xxx_messageInfo_ClientHeightToSigner.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ClientHeightToSigner proto.InternalMessageInfo
-
-func (m *ClientHeightToSigner) GetClientId() string {
-	if m != nil {
-		return m.ClientId
-	}
-	return ""
-}
-
-func (m *ClientHeightToSigner) GetHeight() uint64 {
-	if m != nil {
-		return m.Height
-	}
-	return 0
-}
-
-func (m *ClientHeightToSigner) GetSequencerAddress() string {
-	if m != nil {
-		return m.SequencerAddress
-	}
-	return ""
 }
 
 type GenesisState struct {
-	CanonicalClients      []CanonicalClient      `protobuf:"bytes,1,rep,name=canonical_clients,json=canonicalClients,proto3" json:"canonical_clients"`
-	HeaderSigners         []HeaderSigner         `protobuf:"bytes,2,rep,name=header_signers,json=headerSigners,proto3" json:"header_signers"`
-	ClientHeightToSigners []ClientHeightToSigner `protobuf:"bytes,3,rep,name=client_height_to_signers,json=clientHeightToSigners,proto3" json:"client_height_to_signers"`
+	CanonicalClients []CanonicalClient   `protobuf:"bytes,1,rep,name=canonical_clients,json=canonicalClients,proto3" json:"canonical_clients"`
+	HeaderSigners    []HeaderSignerEntry `protobuf:"bytes,3,rep,name=header_signers,json=headerSigners,proto3" json:"header_signers"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
 func (m *GenesisState) String() string { return proto.CompactTextString(m) }
 func (*GenesisState) ProtoMessage()    {}
 func (*GenesisState) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5520440548912168, []int{2}
+	return fileDescriptor_5520440548912168, []int{1}
 }
 func (m *GenesisState) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -191,16 +130,9 @@ func (m *GenesisState) GetCanonicalClients() []CanonicalClient {
 	return nil
 }
 
-func (m *GenesisState) GetHeaderSigners() []HeaderSigner {
+func (m *GenesisState) GetHeaderSigners() []HeaderSignerEntry {
 	if m != nil {
 		return m.HeaderSigners
-	}
-	return nil
-}
-
-func (m *GenesisState) GetClientHeightToSigners() []ClientHeightToSigner {
-	if m != nil {
-		return m.ClientHeightToSigners
 	}
 	return nil
 }
@@ -214,7 +146,7 @@ func (m *CanonicalClient) Reset()         { *m = CanonicalClient{} }
 func (m *CanonicalClient) String() string { return proto.CompactTextString(m) }
 func (*CanonicalClient) ProtoMessage()    {}
 func (*CanonicalClient) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5520440548912168, []int{3}
+	return fileDescriptor_5520440548912168, []int{2}
 }
 func (m *CanonicalClient) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -258,8 +190,7 @@ func (m *CanonicalClient) GetIbcClientId() string {
 }
 
 func init() {
-	proto.RegisterType((*HeaderSigner)(nil), "dymensionxyz.dymension.lightclient.HeaderSigner")
-	proto.RegisterType((*ClientHeightToSigner)(nil), "dymensionxyz.dymension.lightclient.ClientHeightToSigner")
+	proto.RegisterType((*HeaderSignerEntry)(nil), "dymensionxyz.dymension.lightclient.HeaderSignerEntry")
 	proto.RegisterType((*GenesisState)(nil), "dymensionxyz.dymension.lightclient.GenesisState")
 	proto.RegisterType((*CanonicalClient)(nil), "dymensionxyz.dymension.lightclient.CanonicalClient")
 }
@@ -269,36 +200,33 @@ func init() {
 }
 
 var fileDescriptor_5520440548912168 = []byte{
-	// 415 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x93, 0xcf, 0xae, 0xd2, 0x40,
-	0x14, 0xc6, 0xfb, 0xe7, 0xe6, 0x46, 0xe6, 0xde, 0xab, 0x30, 0x41, 0xd3, 0x68, 0xac, 0xa4, 0x2b,
-	0x12, 0x93, 0x96, 0xc8, 0x86, 0xad, 0xb0, 0x10, 0xb6, 0x85, 0x95, 0x89, 0x69, 0xda, 0xe9, 0xd8,
-	0x4e, 0x52, 0x66, 0x6a, 0x67, 0x50, 0xf0, 0x29, 0x7c, 0x2c, 0x56, 0x86, 0xa5, 0x2b, 0x63, 0xe0,
-	0x45, 0x0c, 0x33, 0xb5, 0x16, 0x52, 0x72, 0xd9, 0xf5, 0x7c, 0x3d, 0xe7, 0xfc, 0xe6, 0x7c, 0x67,
-	0x06, 0x0c, 0xe2, 0xcd, 0x12, 0x53, 0x4e, 0x18, 0x5d, 0x6f, 0xbe, 0x7b, 0x55, 0xe0, 0x65, 0x24,
-	0x49, 0x05, 0xca, 0x08, 0xa6, 0xc2, 0x4b, 0x30, 0xc5, 0x9c, 0x70, 0x37, 0x2f, 0x98, 0x60, 0xd0,
-	0xa9, 0x57, 0xb8, 0x55, 0xe0, 0xd6, 0x2a, 0x5e, 0x76, 0x13, 0x96, 0x30, 0x99, 0xee, 0x1d, 0xbf,
-	0x54, 0xa5, 0x93, 0x83, 0xfb, 0x29, 0x0e, 0x63, 0x5c, 0xcc, 0x49, 0x42, 0x71, 0x01, 0xdf, 0x82,
-	0x0e, 0xc7, 0x5f, 0x56, 0x98, 0x22, 0x5c, 0x04, 0x61, 0x1c, 0x17, 0x98, 0x73, 0x4b, 0xef, 0xe9,
-	0xfd, 0x96, 0xdf, 0xae, 0x7e, 0xbc, 0x57, 0x3a, 0x7c, 0x05, 0x5a, 0xaa, 0x79, 0x40, 0x62, 0xcb,
-	0x90, 0x49, 0x4f, 0x94, 0x30, 0x8b, 0xe1, 0x0b, 0x70, 0x9b, 0xe2, 0x23, 0xdf, 0x32, 0x7b, 0x7a,
-	0xff, 0xc6, 0x2f, 0x23, 0x67, 0x0d, 0xba, 0x13, 0x99, 0x33, 0x95, 0xf1, 0x82, 0x95, 0xe4, 0x93,
-	0x66, 0xfa, 0xc5, 0x66, 0x46, 0xbd, 0x59, 0xf3, 0x71, 0xcd, 0xe6, 0xe3, 0x3a, 0x3f, 0x0d, 0x70,
-	0xff, 0x41, 0xf9, 0x36, 0x17, 0xa1, 0xc0, 0xf0, 0x33, 0xe8, 0xa0, 0x90, 0x32, 0x4a, 0x50, 0x98,
-	0x05, 0x8a, 0x75, 0x1c, 0xd6, 0xec, 0xdf, 0xbd, 0x1b, 0xba, 0x8f, 0x5b, 0xea, 0x4e, 0xfe, 0x15,
-	0xab, 0x81, 0xc6, 0x37, 0xdb, 0xdf, 0x6f, 0x34, 0xbf, 0x8d, 0x4e, 0x65, 0x0e, 0x3f, 0x81, 0xa7,
-	0xa9, 0x34, 0x39, 0xe0, 0x72, 0x56, 0x6e, 0x19, 0x12, 0x32, 0xb8, 0x06, 0x52, 0x5f, 0x4f, 0x49,
-	0x78, 0x48, 0x6b, 0x1a, 0x87, 0xdf, 0x80, 0x55, 0x3a, 0xa7, 0x5c, 0x09, 0x04, 0xab, 0x40, 0xa6,
-	0x04, 0x8d, 0xae, 0x9a, 0xa6, 0x61, 0x2b, 0x25, 0xf0, 0x39, 0x6a, 0xf8, 0xc7, 0x9d, 0x05, 0x78,
-	0x76, 0x66, 0x01, 0x7c, 0x0d, 0x40, 0xc1, 0xb2, 0x2c, 0xcc, 0xf3, 0xff, 0x6b, 0x6c, 0x95, 0xca,
-	0x2c, 0x86, 0x0e, 0x78, 0x20, 0x11, 0x0a, 0xce, 0x6f, 0xcd, 0x1d, 0x89, 0xd0, 0xa4, 0xdc, 0xf5,
-	0xd8, 0xdf, 0xee, 0x6d, 0x7d, 0xb7, 0xb7, 0xf5, 0x3f, 0x7b, 0x5b, 0xff, 0x71, 0xb0, 0xb5, 0xdd,
-	0xc1, 0xd6, 0x7e, 0x1d, 0x6c, 0xed, 0xe3, 0x28, 0x21, 0x22, 0x5d, 0x45, 0x2e, 0x62, 0x4b, 0xef,
-	0xc2, 0x1b, 0xf9, 0x3a, 0xf4, 0xd6, 0x27, 0x0f, 0x45, 0x6c, 0x72, 0xcc, 0xa3, 0x5b, 0x79, 0xdb,
-	0x87, 0x7f, 0x03, 0x00, 0x00, 0xff, 0xff, 0xd1, 0x63, 0xe6, 0x41, 0x5b, 0x03, 0x00, 0x00,
+	// 363 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x52, 0x4f, 0x4b, 0xfb, 0x40,
+	0x14, 0x4c, 0x7e, 0x2d, 0xe5, 0xd7, 0xad, 0xd5, 0x76, 0x11, 0x09, 0x8a, 0xb1, 0xe4, 0x54, 0x10,
+	0x12, 0xb1, 0x08, 0x5e, 0x6d, 0x11, 0xed, 0x35, 0xf5, 0xe4, 0x25, 0x24, 0x9b, 0x67, 0xb2, 0x90,
+	0xee, 0xc6, 0xec, 0x56, 0x1a, 0x3f, 0x85, 0x1f, 0xab, 0xc7, 0x1e, 0xc5, 0x83, 0x48, 0xfb, 0x45,
+	0x24, 0x7f, 0x2c, 0x6d, 0x45, 0xf4, 0xb6, 0x33, 0xfb, 0x86, 0x79, 0x33, 0x3c, 0x74, 0xe6, 0xa7,
+	0x63, 0x60, 0x82, 0x72, 0x36, 0x4d, 0x9f, 0xad, 0x15, 0xb0, 0x22, 0x1a, 0x84, 0x92, 0x44, 0x14,
+	0x98, 0xb4, 0x02, 0x60, 0x20, 0xa8, 0x30, 0xe3, 0x84, 0x4b, 0x8e, 0x8d, 0x75, 0x85, 0xb9, 0x02,
+	0xe6, 0x9a, 0xe2, 0x70, 0x3f, 0xe0, 0x01, 0xcf, 0xc7, 0xad, 0xec, 0x55, 0x28, 0x8d, 0x09, 0x6a,
+	0xdf, 0x82, 0xeb, 0x43, 0x32, 0xa2, 0x01, 0x83, 0xe4, 0x9a, 0xc9, 0x24, 0xc5, 0xa7, 0xa8, 0x2d,
+	0xe0, 0x71, 0x02, 0x8c, 0x40, 0xe2, 0xb8, 0xbe, 0x9f, 0x80, 0x10, 0x9a, 0xda, 0x51, 0xbb, 0x75,
+	0xbb, 0xb5, 0xfa, 0xb8, 0x2a, 0x78, 0x7c, 0x84, 0xea, 0x85, 0x83, 0x43, 0x7d, 0xed, 0x5f, 0x3e,
+	0xf4, 0xbf, 0x20, 0x86, 0x3e, 0x3e, 0x40, 0xb5, 0x10, 0xb2, 0x25, 0xb4, 0x4a, 0x47, 0xed, 0x56,
+	0xed, 0x12, 0x19, 0x6f, 0x2a, 0xda, 0xb9, 0x29, 0x22, 0x8c, 0xa4, 0x2b, 0x01, 0x3f, 0xa0, 0x36,
+	0x71, 0x19, 0x67, 0x94, 0xb8, 0x91, 0x53, 0xc8, 0x33, 0xcb, 0x4a, 0xb7, 0x71, 0xde, 0x33, 0x7f,
+	0x4f, 0x67, 0x0e, 0xbe, 0xc4, 0x83, 0x1c, 0xf7, 0xab, 0xb3, 0xf7, 0x13, 0xc5, 0x6e, 0x91, 0x4d,
+	0x5a, 0x60, 0x0f, 0xed, 0x86, 0x79, 0x5e, 0x47, 0xe4, 0x81, 0x85, 0x56, 0xc9, 0x4d, 0x2e, 0xfe,
+	0x62, 0xf2, 0xad, 0xa9, 0xd2, 0xa6, 0x19, 0xae, 0x7d, 0x08, 0xe3, 0x0e, 0xed, 0x6d, 0xad, 0x83,
+	0x8f, 0x11, 0x4a, 0x78, 0x14, 0xb9, 0x71, 0x9c, 0xb5, 0x54, 0x54, 0x59, 0x2f, 0x99, 0xa1, 0x8f,
+	0x0d, 0xd4, 0xa4, 0x1e, 0x71, 0xb6, 0x7b, 0x6c, 0x50, 0x8f, 0x0c, 0xca, 0x2a, 0xfb, 0xf6, 0x6c,
+	0xa1, 0xab, 0xf3, 0x85, 0xae, 0x7e, 0x2c, 0x74, 0xf5, 0x65, 0xa9, 0x2b, 0xf3, 0xa5, 0xae, 0xbc,
+	0x2e, 0x75, 0xe5, 0xfe, 0x32, 0xa0, 0x32, 0x9c, 0x78, 0x26, 0xe1, 0x63, 0xeb, 0x87, 0xd3, 0x79,
+	0xea, 0x59, 0xd3, 0x8d, 0xfb, 0x91, 0x69, 0x0c, 0xc2, 0xab, 0xe5, 0x47, 0xd0, 0xfb, 0x0c, 0x00,
+	0x00, 0xff, 0xff, 0xb7, 0x25, 0x65, 0x00, 0x72, 0x02, 0x00, 0x00,
 }
 
-func (m *HeaderSigner) Marshal() (dAtA []byte, err error) {
+func (m *HeaderSignerEntry) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -308,12 +236,12 @@ func (m *HeaderSigner) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *HeaderSigner) MarshalTo(dAtA []byte) (int, error) {
+func (m *HeaderSignerEntry) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *HeaderSigner) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *HeaderSignerEntry) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -340,48 +268,6 @@ func (m *HeaderSigner) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *ClientHeightToSigner) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ClientHeightToSigner) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ClientHeightToSigner) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.SequencerAddress) > 0 {
-		i -= len(m.SequencerAddress)
-		copy(dAtA[i:], m.SequencerAddress)
-		i = encodeVarintGenesis(dAtA, i, uint64(len(m.SequencerAddress)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if m.Height != 0 {
-		i = encodeVarintGenesis(dAtA, i, uint64(m.Height))
-		i--
-		dAtA[i] = 0x10
-	}
-	if len(m.ClientId) > 0 {
-		i -= len(m.ClientId)
-		copy(dAtA[i:], m.ClientId)
-		i = encodeVarintGenesis(dAtA, i, uint64(len(m.ClientId)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
 func (m *GenesisState) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -402,20 +288,6 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.ClientHeightToSigners) > 0 {
-		for iNdEx := len(m.ClientHeightToSigners) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.ClientHeightToSigners[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintGenesis(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x1a
-		}
-	}
 	if len(m.HeaderSigners) > 0 {
 		for iNdEx := len(m.HeaderSigners) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -427,7 +299,7 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 				i = encodeVarintGenesis(dAtA, i, uint64(size))
 			}
 			i--
-			dAtA[i] = 0x12
+			dAtA[i] = 0x1a
 		}
 	}
 	if len(m.CanonicalClients) > 0 {
@@ -495,7 +367,7 @@ func encodeVarintGenesis(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *HeaderSigner) Size() (n int) {
+func (m *HeaderSignerEntry) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -511,26 +383,6 @@ func (m *HeaderSigner) Size() (n int) {
 	}
 	if m.Height != 0 {
 		n += 1 + sovGenesis(uint64(m.Height))
-	}
-	return n
-}
-
-func (m *ClientHeightToSigner) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.ClientId)
-	if l > 0 {
-		n += 1 + l + sovGenesis(uint64(l))
-	}
-	if m.Height != 0 {
-		n += 1 + sovGenesis(uint64(m.Height))
-	}
-	l = len(m.SequencerAddress)
-	if l > 0 {
-		n += 1 + l + sovGenesis(uint64(l))
 	}
 	return n
 }
@@ -549,12 +401,6 @@ func (m *GenesisState) Size() (n int) {
 	}
 	if len(m.HeaderSigners) > 0 {
 		for _, e := range m.HeaderSigners {
-			l = e.Size()
-			n += 1 + l + sovGenesis(uint64(l))
-		}
-	}
-	if len(m.ClientHeightToSigners) > 0 {
-		for _, e := range m.ClientHeightToSigners {
 			l = e.Size()
 			n += 1 + l + sovGenesis(uint64(l))
 		}
@@ -585,7 +431,7 @@ func sovGenesis(x uint64) (n int) {
 func sozGenesis(x uint64) (n int) {
 	return sovGenesis(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *HeaderSigner) Unmarshal(dAtA []byte) error {
+func (m *HeaderSignerEntry) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -608,10 +454,10 @@ func (m *HeaderSigner) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: HeaderSigner: wiretype end group for non-group")
+			return fmt.Errorf("proto: HeaderSignerEntry: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: HeaderSigner: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: HeaderSignerEntry: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -697,139 +543,6 @@ func (m *HeaderSigner) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipGenesis(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ClientHeightToSigner) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowGenesis
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ClientHeightToSigner: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ClientHeightToSigner: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ClientId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowGenesis
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ClientId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
-			}
-			m.Height = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowGenesis
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Height |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SequencerAddress", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowGenesis
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.SequencerAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipGenesis(dAtA[iNdEx:])
@@ -914,7 +627,7 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field HeaderSigners", wireType)
 			}
@@ -943,42 +656,8 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.HeaderSigners = append(m.HeaderSigners, HeaderSigner{})
+			m.HeaderSigners = append(m.HeaderSigners, HeaderSignerEntry{})
 			if err := m.HeaderSigners[len(m.HeaderSigners)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ClientHeightToSigners", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowGenesis
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthGenesis
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ClientHeightToSigners = append(m.ClientHeightToSigners, ClientHeightToSigner{})
-			if err := m.ClientHeightToSigners[len(m.ClientHeightToSigners)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
