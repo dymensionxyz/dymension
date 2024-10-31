@@ -22,6 +22,7 @@ var (
 	RollappClientKey         = []byte{0x01}
 	ConsensusStateValhashKey = []byte{0x03}
 	canonicalClientKey       = []byte{0x04}
+	hardForkKey              = []byte{0x05}
 )
 
 func GetRollappClientKey(rollappId string) []byte {
@@ -50,4 +51,10 @@ func ParseConsensusStateValhashKey(key []byte) (clientID string, height uint64) 
 	clientID = string(parts[0])
 	height = sdk.BigEndianToUint64(parts[1])
 	return
+}
+
+func HardForkKey(rollappID string) []byte {
+	key := hardForkKey
+	key = append(key, []byte(rollappID)...)
+	return key
 }
