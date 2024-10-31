@@ -379,6 +379,8 @@ func (a *AppKeepers) InitKeepers(
 		a.RollappKeeper,
 	)
 
+	a.SequencerKeeper.SetUnbondBlockers(a.RollappKeeper, a.LightClientKeeper)
+
 	groupConfig := grouptypes.Config{
 		MaxExecutionPeriod: 0,
 		MaxMetadataLen:     0,

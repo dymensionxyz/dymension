@@ -63,8 +63,9 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k *Keeper) AddUnbondBlockers(ubs ...UnbondBlocker) {
-	k.unbondBlockers = append(k.unbondBlockers, ubs...)
+func (k *Keeper) SetUnbondBlockers(ubs ...UnbondBlocker) {
+	k.unbondBlockers = ubs
+	fmt.Printf("addr: %p", k)
 }
 
 func (k *Keeper) SetHooks(h types.Hooks) {

@@ -97,6 +97,10 @@ func (s *SequencerTestSuite) SetupTest() {
 	s.msgServer = keeper.NewMsgServerImpl(app.SequencerKeeper)
 	s.Ctx = ctx
 	s.queryClient = queryClient
+
+	// Overwrite to exclude any unblockers set by default in apptesting, to ensure
+	// we are only testing our logic.
+	s.k().SetUnbondBlockers()
 }
 
 func (s *SequencerTestSuite) seq(pk cryptotypes.PubKey) types.Sequencer {
