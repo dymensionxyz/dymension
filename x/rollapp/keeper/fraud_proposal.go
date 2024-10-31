@@ -15,6 +15,10 @@ func (k Keeper) FraudProposalHandler(ctx sdk.Context, msg types.MsgRollappFraudP
 		return errorsmod.Wrap(gerrc.ErrUnauthenticated, "only the gov module can submit fraud proposals")
 	}
 
+	if err := msg.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid msg")
+	}
+
 	rollapp, found := k.GetRollapp(ctx, msg.RollappId)
 	if !found {
 		return errorsmod.Wrap(gerrc.ErrNotFound, "rollapp not found")
@@ -24,8 +28,14 @@ func (k Keeper) FraudProposalHandler(ctx sdk.Context, msg types.MsgRollappFraudP
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "revision number mismatch")
 	}
 
+	// validate the fraud height is already committed
+	sinfo, found := k.GetLatestStateInfo(ctx, msg.RollappId)
+	if !found || sinfo.GetLatestHeight() < msg.FraudHeight {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "fraud height not committed")
+	}
+
 	// check wether the fraud height is already finalized
-	sinfo, found := k.GetLatestFinalizedStateInfo(ctx, msg.RollappId)
+	sinfo, found = k.GetLatestFinalizedStateInfo(ctx, msg.RollappId)
 	if found && sinfo.GetLatestHeight() >= msg.FraudHeight {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "fraud height already finalized")
 	}
@@ -37,11 +47,5 @@ func (k Keeper) FraudProposalHandler(ctx sdk.Context, msg types.MsgRollappFraudP
 			return errorsmod.Wrap(err, "jail sequencer")
 		}
 	}
-
-	// check wether hard fork required
-	if msg.HardFork {
-		return k.HardFork(ctx, msg.RollappId, msg.FraudHeight)
-	}
-
-	return nil
+	return k.HardFork(ctx, msg.RollappId, msg.FraudHeight)
 }
