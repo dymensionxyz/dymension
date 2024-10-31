@@ -51,7 +51,7 @@ func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
 	demandOrderAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, demandOrdersNum, math.NewInt(1000))
 
 	// Define statuses to test
-	statuses := []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_REVERTED, commontypes.Status_FINALIZED}
+	statuses := []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_FINALIZED}
 
 	// Create and set demand orders for each status
 	for i, status := range statuses {

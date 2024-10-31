@@ -18,66 +18,45 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 	)
 
 	rollappId := "testRollappId"
-	pkts := generatePackets(rollappId, 5)
+	pkts := generatePackets(rollappId, 10)
 	rollappId2 := "testRollappId2"
-	pkts2 := generatePackets(rollappId2, 5)
+	pkts2 := generatePackets(rollappId2, 10)
 	prefixPending1 := types.ByRollappIDByStatus(rollappId, commontypes.Status_PENDING)
 	prefixPending2 := types.ByRollappIDByStatus(rollappId2, commontypes.Status_PENDING)
-	prefixReverted := types.ByRollappIDByStatus(rollappId, commontypes.Status_REVERTED)
-	prefixFinalized := types.ByRollappIDByStatus(rollappId, commontypes.Status_FINALIZED)
+	prefixFinalized1 := types.ByRollappIDByStatus(rollappId, commontypes.Status_FINALIZED)
 	prefixFinalized2 := types.ByRollappIDByStatus(rollappId, commontypes.Status_FINALIZED)
 
 	for _, pkt := range append(pkts, pkts2...) {
 		keeper.SetRollappPacket(ctx, pkt)
 	}
 
-	suite.Require().Equal(5, len(keeper.ListRollappPackets(ctx, prefixPending1)))
-	suite.Require().Equal(5, len(keeper.ListRollappPackets(ctx, prefixPending2)))
+	suite.Require().Equal(10, len(keeper.ListRollappPackets(ctx, prefixPending1)))
+	suite.Require().Equal(10, len(keeper.ListRollappPackets(ctx, prefixPending2)))
 
-	// finalize some packets
+	// finalize one packet
 	_, err := keeper.UpdateRollappPacketWithStatus(ctx, pkts[0], commontypes.Status_FINALIZED)
 	suite.Require().Nil(err)
 	_, err = keeper.UpdateRollappPacketWithStatus(ctx, pkts2[0], commontypes.Status_FINALIZED)
 	suite.Require().Nil(err)
 
-	err = keeper.HandleFraud(ctx, rollappId, transferStack)
+	// call fraud on the 4 packet
+	err = keeper.HandleHardFork(ctx, rollappId, 4, transferStack)
 	suite.Require().Nil(err)
 
-	suite.Require().Equal(0, len(keeper.ListRollappPackets(ctx, prefixPending1)))
-	suite.Require().Equal(4, len(keeper.ListRollappPackets(ctx, prefixPending2)))
-	suite.Require().Equal(4, len(keeper.ListRollappPackets(ctx, prefixReverted)))
-	suite.Require().Equal(1, len(keeper.ListRollappPackets(ctx, prefixFinalized)))
+	// expected result:
+	// rollappId:
+	// - packet 1 are finalized
+	// - packet 2-3 are still pending
+	// - packets 4-10 are deleted
+	// rollappId2:
+	// - packet 1 are finalized
+	// - packets 2-10 are still pending
+
+	suite.Require().Equal(1, len(keeper.ListRollappPackets(ctx, prefixFinalized1)))
+	suite.Require().Equal(2, len(keeper.ListRollappPackets(ctx, prefixPending1)))
+
 	suite.Require().Equal(1, len(keeper.ListRollappPackets(ctx, prefixFinalized2)))
-}
-
-func (suite *DelayedAckTestSuite) TestDeletionOfRevertedPackets() {
-	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
-	transferStack := damodule.NewIBCMiddleware(
-		damodule.WithIBCModule(ibctransfer.NewIBCModule(suite.App.TransferKeeper)),
-		damodule.WithKeeper(keeper),
-		damodule.WithRollappKeeper(suite.App.RollappKeeper),
-	)
-
-	rollappId := "testRollappId"
-	pkts := generatePackets(rollappId, 5)
-	rollappId2 := "testRollappId2"
-	pkts2 := generatePackets(rollappId2, 5)
-
-	for _, pkt := range append(pkts, pkts2...) {
-		keeper.SetRollappPacket(ctx, pkt)
-	}
-
-	err := keeper.HandleFraud(ctx, rollappId, transferStack)
-	suite.Require().Nil(err)
-
-	suite.Require().Equal(10, len(keeper.GetAllRollappPackets(ctx)))
-
-	keeper.SetParams(ctx, types.Params{EpochIdentifier: "minute", BridgingFee: keeper.BridgingFee(ctx)})
-	epochHooks := keeper.GetEpochHooks()
-	err = epochHooks.AfterEpochEnd(ctx, "minute", 1)
-	suite.Require().NoError(err)
-
-	suite.Require().Equal(5, len(keeper.GetAllRollappPackets(ctx)))
+	suite.Require().Equal(9, len(keeper.ListRollappPackets(ctx, prefixPending2)))
 }
 
 // TODO: test refunds of pending packets
@@ -86,7 +65,7 @@ func (suite *DelayedAckTestSuite) TestDeletionOfRevertedPackets() {
 
 func generatePackets(rollappId string, num uint64) []commontypes.RollappPacket {
 	var packets []commontypes.RollappPacket
-	for i := uint64(0); i < num; i++ {
+	for i := uint64(1); i <= num; i++ {
 		packets = append(packets, commontypes.RollappPacket{
 			RollappId: rollappId,
 			Packet: &channeltypes.Packet{

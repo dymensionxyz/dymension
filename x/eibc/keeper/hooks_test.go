@@ -38,13 +38,13 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketDeleted() {
 		expectedError error
 	}{
 		{
-			name:          "Finalized packet",
-			packetStatus:  commontypes.Status_FINALIZED,
+			name:          "Pending packet",
+			packetStatus:  commontypes.Status_PENDING,
 			expectedError: types.ErrDemandOrderDoesNotExist,
 		},
 		{
-			name:          "Reverted packet",
-			packetStatus:  commontypes.Status_REVERTED,
+			name:          "Finalized packet",
+			packetStatus:  commontypes.Status_FINALIZED,
 			expectedError: types.ErrDemandOrderDoesNotExist,
 		},
 	}
@@ -64,13 +64,8 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketDeleted() {
 			_, err = suite.App.DelayedAckKeeper.UpdateRollappPacketWithStatus(suite.Ctx, *rollappPacket, tc.packetStatus)
 			suite.Require().NoError(err)
 
-			// Trigger the delayed ack hook which should delete the rollapp packet and the demand order
-			epochIdentifier := "minute"
-			defParams := delayedacktypes.DefaultParams()
-			defParams.EpochIdentifier = epochIdentifier
-			suite.App.DelayedAckKeeper.SetParams(suite.Ctx, defParams)
-			hooks := suite.App.DelayedAckKeeper.GetEpochHooks()
-			err = hooks.AfterEpochEnd(suite.Ctx, epochIdentifier, 1)
+			// delete the rollapp packet
+			err = suite.App.DelayedAckKeeper.DeleteRollappPacket(suite.Ctx, rollappPacket)
 			suite.Require().NoError(err)
 
 			// Verify that the rollapp packet and demand order are deleted

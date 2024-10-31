@@ -62,7 +62,7 @@ func CmdGetPacketsByRollapp() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "packets-by-rollapp rollapp-id [status] [type]",
 		Short: "Get packets by rollapp-id",
-		Long: `Get packets by rollapp-id. Can filter by status (pending/finalized/reverted) and by type (recv/ack/timeout)
+		Long: `Get packets by rollapp-id. Can filter by status (pending/finalized) and by type (recv/ack/timeout)
 		Example:
 		packets rollapp1
 		packets rollapp1 PENDING
@@ -124,7 +124,7 @@ func CmdGetPacketsByStatus() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "packets-by-status status [type]",
 		Short: "Get packets by status",
-		Long: `Get packets by status (pending/finalized/reverted). Can filter by type (recv/ack/timeout)
+		Long: `Get packets by status (pending/finalized). Can filter by type (recv/ack/timeout)
 		Example:
 		packets-by-status pending
 		packets-by-status finalized recv`,

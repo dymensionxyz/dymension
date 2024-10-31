@@ -6,7 +6,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -46,8 +45,8 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 		return
 	}
 
-	finalizedHeight, err := k.getRollappFinalizedHeight(ctx, data.Rollapp.RollappId)
-	if errorsmod.IsOf(err, rollapptypes.ErrNoFinalizedStateYetForRollapp) {
+	finalizedHeight, err := k.getRollappLatestFinalizedHeight(ctx, data.Rollapp.RollappId)
+	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
 		err = nil
 	} else if err != nil {
 		err = errorsmod.Wrap(err, "get rollapp finalized height")
