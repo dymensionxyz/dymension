@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"cosmossdk.io/math"
+
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
@@ -33,7 +34,7 @@ func (suite *KeeperTestSuite) TestInvariants() {
 			Packet:      &packet,
 		}
 		suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
-		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", demandOrderAddresses[i].String())
+		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", demandOrderAddresses[i].String(), 1)
 		err := keeper.SetDemandOrder(ctx, demandOrder)
 		suite.Require().NoError(err)
 	}
