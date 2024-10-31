@@ -247,7 +247,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		},
 		InitialSequencer: "*",
 		Launched:         true,
-		RevisionNumber:   1,
+		RevisionNumber:   0,
 	}
 }
 
