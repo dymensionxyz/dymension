@@ -5,6 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
 	"gopkg.in/yaml.v2"
 )
@@ -19,7 +20,7 @@ var (
 	// DefaultLivenessSlashMultiplier gives the amount of tokens to slash if the sequencer is liable for a liveness failure
 	DefaultLivenessSlashMultiplier = sdk.MustNewDecFromStr("0.01")
 	// DefaultLivenessSlashMinAbsolute will be slashed if the multiplier amount is too small
-	DefaultLivenessSlashMinAbsolute sdk.Coin = sdk.Coin{Amount: sdk.OneInt(), Denom: "adym"} // TODO: parameterize + validate
+	DefaultLivenessSlashMinAbsolute sdk.Coin = sdk.Coin{Amount: sdk.OneInt(), Denom: params.BaseDenom}
 )
 
 // NewParams creates a new Params instance
@@ -80,6 +81,27 @@ func validateLivenessSlashMultiplier(i interface{}) error {
 	return uparam.ValidateZeroToOneDec(i)
 }
 
+func validateCoin(i interface{}, name string) error {
+	v, ok := i.(sdk.Coin)
+	if !ok {
+		return fmt.Errorf("invalid parameter type for %s: %T", name, i)
+	}
+
+	if v.IsNil() {
+		return fmt.Errorf("%s cannot be nil", name)
+	}
+
+	if !v.IsValid() {
+		return fmt.Errorf("invalid %s: %s", name, v)
+	}
+
+	if v.Amount.IsNegative() {
+		return fmt.Errorf("%s amount must be non-negative: %s", name, v)
+	}
+
+	return nil
+}
+
 // ValidateBasic validates the set of params
 func (p Params) ValidateBasic() error {
 	if err := validateMinBond(p.MinBond); err != nil {
@@ -91,6 +113,14 @@ func (p Params) ValidateBasic() error {
 	}
 
 	if err := validateLivenessSlashMultiplier(p.LivenessSlashMinMultiplier); err != nil {
+		return err
+	}
+
+	if err := validateCoin(p.LivenessSlashMinAbsolute, "liveness slash min absolute"); err != nil {
+		return err
+	}
+
+	if err := validateCoin(p.KickThreshold, "kick threshold"); err != nil {
 		return err
 	}
 
