@@ -15,6 +15,7 @@ func (k SequencerHooks) AfterChooseNewProposer(ctx sdk.Context, rollapp string, 
 	// Start the liveness clock from zero
 	// NOTE: it could make more sense if liveness was a property of the sequencer rather than the rollapp
 	// TODO: tech debt https://github.com/dymensionxyz/dymension/issues/1357
+
 	ra := k.MustGetRollapp(ctx, rollapp)
 	k.ResetLivenessClock(ctx, &ra)
 	if !after.Sentinel() {

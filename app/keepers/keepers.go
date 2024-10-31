@@ -380,6 +380,7 @@ func (a *AppKeepers) InitKeepers(
 	)
 
 	a.SequencerKeeper.SetUnbondBlockers(a.RollappKeeper, a.LightClientKeeper)
+	a.SequencerKeeper.SetHooks(sequencermoduletypes.MultiHooks{rollappmodulekeeper.SequencerHooks{a.RollappKeeper}})
 
 	groupConfig := grouptypes.Config{
 		MaxExecutionPeriod: 0,
