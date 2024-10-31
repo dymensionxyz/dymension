@@ -1,7 +1,11 @@
 package types
 
 import (
+	"errors"
+
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var _ sdk.Msg = &MsgKickProposer{}
@@ -13,8 +17,11 @@ func NewMsgKickProposer(creator string) *MsgKickProposer {
 }
 
 func (m *MsgKickProposer) ValidateBasic() error {
-	// TODO implement me
-	return nil //
+	_, err := sdk.ValAddressFromBech32(m.Creator)
+	if err != nil {
+		return errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "get creator addr from bech32")
+	}
+	return nil
 }
 
 func (m *MsgKickProposer) GetSigners() []sdk.AccAddress {

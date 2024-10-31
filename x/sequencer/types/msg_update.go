@@ -1,6 +1,8 @@
 package types
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -67,8 +69,11 @@ func (msg *MsgUpdateSequencerInformation) VMSpecificValidate(vmType types.Rollap
 func (msg *MsgUpdateSequencerInformation) UnpackInterfaces(codectypes.AnyUnpacker) error { return nil }
 
 func (m *MsgUpdateOptInStatus) ValidateBasic() error {
-	// TODO implement me
-	panic("implement me")
+	_, err := sdk.ValAddressFromBech32(m.Creator)
+	if err != nil {
+		return errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "get creator addr from bech32")
+	}
+	return nil
 }
 
 func (m *MsgUpdateOptInStatus) GetSigners() []sdk.AccAddress {
