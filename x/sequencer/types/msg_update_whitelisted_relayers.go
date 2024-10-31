@@ -15,7 +15,7 @@ const maxWhitelistedRelayers = 10
 var _ sdk.Msg = new(MsgUpdateWhitelistedRelayers)
 
 func (m *MsgUpdateWhitelistedRelayers) ValidateBasic() error {
-	_, err := sdk.ValAddressFromBech32(m.Creator)
+	_, err := sdk.AccAddressFromBech32(m.Creator)
 	if err != nil {
 		return errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "get creator addr from bech32")
 	}
@@ -60,6 +60,6 @@ func Bech32ToAddr[T sdk.AccAddress | sdk.ValAddress](addr string) (T, error) {
 }
 
 func (m *MsgUpdateWhitelistedRelayers) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.ValAddressFromBech32(m.Creator)
+	addr, _ := sdk.AccAddressFromBech32(m.Creator)
 	return []sdk.AccAddress{sdk.AccAddress(addr)}
 }

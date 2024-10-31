@@ -17,7 +17,7 @@ func NewMsgKickProposer(creator string) *MsgKickProposer {
 }
 
 func (m *MsgKickProposer) ValidateBasic() error {
-	_, err := sdk.ValAddressFromBech32(m.Creator)
+	_, err := sdk.AccAddressFromBech32(m.Creator)
 	if err != nil {
 		return errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "get creator addr from bech32")
 	}
