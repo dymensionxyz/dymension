@@ -1,5 +1,10 @@
 package keeper_test
 
+import (
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
+)
+
 // Can eventually slash to below kickable threshold
 func (s *SequencerTestSuite) TestSlashLivenessFlow() {
 	ra := s.createRollapp()
@@ -76,6 +81,48 @@ func (s *SequencerTestSuite) TestFraud() {
 }
 
 // a full flow 'e2e' to make sure things are sensible
+// There are many many different scenarious that could be tested
+// Here pick one which might be typical/realistic
+// 1. Sequencer is active
+// 2. Sequencer is does notice and starts to rotate
+// 3. Sequencer does a fraud
+// 4. Another sequencer opts in and becomes proposer
 func (s *SequencerTestSuite) TestFraudFullFlowDuringRotation() {
 	ra := s.createRollapp()
+	s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, ucoin.SimpleMul(bond, 3))
+	s.createSequencerWithBond(s.Ctx, ra.RollappId, bob, ucoin.SimpleMul(bond, 2))
+	s.createSequencerWithBond(s.Ctx, ra.RollappId, charlie, ucoin.SimpleMul(bond, 1))
+	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(alice)))
+	s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
+
+	// proposer tries to unbond
+	mUnbond := &types.MsgUnbond{Creator: pkAddr(alice)}
+	res, err := s.msgServer.Unbond(s.Ctx, mUnbond)
+	s.Require().NoError(err)
+
+	// advance clock past notice
+	s.Require().True(res.GetNoticePeriodCompletionTime().After(s.Ctx.BlockTime()))
+	s.Ctx = s.Ctx.WithBlockTime(*res.GetNoticePeriodCompletionTime())
+
+	// notice period has now elapsed
+	err = s.k().ChooseSuccessorForFinishedNotices(s.Ctx, s.Ctx.BlockTime())
+	s.Require().NoError(err)
+	s.Require().True(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
+
+	// instead of submitting last, proposer does a fraud
+	s.k().HandleFraud(s.Ctx, s.seq(alice), nil)
+	s.Require().False(s.k().IsProposer(s.Ctx, s.seq(alice)))
+	s.Require().False(s.k().IsProposer(s.Ctx, s.seq(bob)))
+	s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
+	s.Require().False(s.k().IsProposer(s.Ctx, s.seq(charlie)))
+	s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(charlie)))
+	s.Require().False(s.seq(bob).OptedIn)
+	s.Require().False(s.seq(charlie).OptedIn)
+
+	mOptIn := &types.MsgUpdateOptInStatus{Creator: pkAddr(bob), OptedIn: true}
+	_, err = s.msgServer.UpdateOptInStatus(s.Ctx, mOptIn)
+	s.Require().NoError(err)
+	s.Require().True(s.seq(bob).OptedIn)
+
+	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(bob)))
 }

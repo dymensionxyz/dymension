@@ -65,7 +65,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k *Keeper) SetUnbondBlockers(ubs ...UnbondBlocker) {
 	k.unbondBlockers = ubs
-	fmt.Printf("addr: %p", k)
 }
 
 func (k *Keeper) SetHooks(h types.Hooks) {
