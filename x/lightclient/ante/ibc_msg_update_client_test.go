@@ -21,7 +21,6 @@ import (
 func ConvertValidator(src comettypes.Validator) *cometprototypes.Validator {
 	// TODO: surely this must already exist somewhere
 
-	dst := &cometprototypes.Validator{}
 	pk, err := cryptocodec.FromTmPubKeyInterface(src.PubKey)
 	if err != nil {
 		panic(err)
@@ -30,7 +29,7 @@ func ConvertValidator(src comettypes.Validator) *cometprototypes.Validator {
 	if err != nil {
 		panic(err)
 	}
-	dst = &cometprototypes.Validator{
+	dst := &cometprototypes.Validator{
 		Address:          src.Address,
 		VotingPower:      src.VotingPower,
 		ProposerPriority: src.ProposerPriority,

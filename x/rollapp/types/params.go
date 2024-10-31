@@ -127,10 +127,6 @@ func validateLivenessSlashInterval(i interface{}) error {
 	return uparam.ValidatePositiveUint64(i)
 }
 
-func validateLivenessJailBlocks(i interface{}) error {
-	return uparam.ValidatePositiveUint64(i)
-}
-
 // validateDisputePeriodInBlocks validates the DisputePeriodInBlocks param
 func validateDisputePeriodInBlocks(v interface{}) error {
 	disputePeriodInBlocks, ok := v.(uint64)

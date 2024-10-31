@@ -137,7 +137,6 @@ func (s *SequencerTestSuite) TestUnbondBasic() {
 	}
 	_, err := s.msgServer.Unbond(s.Ctx, m)
 	s.Require().NoError(err)
-	expect = expect.Sub(bond)
 	seq = s.k().GetSequencer(s.Ctx, seq.Address)
 	s.Require().Equal(types.Unbonded, seq.Status)
 	s.Require().True(s.moduleBalance().IsZero())

@@ -84,7 +84,6 @@ func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) {
 	seqs := k.RollappPotentialProposers(ctx, rollapp)
 	successor = ProposerChoiceAlgo(seqs)
 	k.SetSuccessor(ctx, rollapp, successor.Address)
-	return
 }
 
 // isPotentialProposer says if a sequencer can potentially be allowed to propose
@@ -126,9 +125,4 @@ func (k Keeper) IsSuccessor(ctx sdk.Context, seq types.Sequencer) bool {
 
 func (k Keeper) isProposerOrSuccessor(ctx sdk.Context, seq types.Sequencer) bool {
 	return k.IsProposer(ctx, seq) || k.IsSuccessor(ctx, seq)
-}
-
-// requiresNoticePeriod returns true iff the sequencer requires a notice period before unbonding
-func (k Keeper) requiresNoticePeriod(ctx sdk.Context, seq types.Sequencer) bool {
-	return k.isProposerOrSuccessor(ctx, seq)
 }

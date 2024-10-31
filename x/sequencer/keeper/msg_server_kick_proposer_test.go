@@ -30,6 +30,7 @@ func (s *SequencerTestSuite) TestKickProposerBasicFlow() {
 	seqBob.Status = types.Bonded
 	s.k().SetSequencer(s.Ctx, seqBob)
 	_, err = s.msgServer.KickProposer(s.Ctx, m)
+	s.Require().NoError(err)
 	s.Require().True(s.k().IsProposer(s.Ctx, seqAlice))
 	s.Require().False(s.k().IsProposer(s.Ctx, seqBob))
 
@@ -37,6 +38,7 @@ func (s *SequencerTestSuite) TestKickProposerBasicFlow() {
 	seqAlice.SetTokensCoin(kick)
 	s.k().SetSequencer(s.Ctx, seqAlice)
 	_, err = s.msgServer.KickProposer(s.Ctx, m)
+	s.Require().NoError(err)
 	s.Require().False(s.k().IsProposer(s.Ctx, seqAlice))
 
 	// bob is now proposer

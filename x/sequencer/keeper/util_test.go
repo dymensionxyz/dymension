@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"reflect"
+	"slices"
 	"strconv"
 	"testing"
 
@@ -47,8 +48,8 @@ var (
 	david   = pks[3]
 	eve     = pks[4]
 	faythe  = pks[5]
-	grace   = pks[6]
-	heidi   = pks[7]
+	_       = eve
+	_       = faythe
 )
 
 func randomTMPubKey() cryptotypes.PubKey {
@@ -208,6 +209,13 @@ func equalSequencers(s1, s2 *types.Sequencer) bool {
 	}
 
 	if !s1.NoticePeriodTime.Equal(s2.NoticePeriodTime) {
+		return false
+	}
+
+	if s1.RewardAddr != s2.RewardAddr {
+		return false
+	}
+	if !slices.Equal(s1.WhitelistedRelayers, s2.WhitelistedRelayers) {
 		return false
 	}
 

@@ -149,5 +149,5 @@ func (i IBCMessagesDecorator) validateUpdatePessimistically(ctx sdk.Context, inf
 		BlockDescriptor:    bd,
 		NextBlockSequencer: seq,
 	}
-	return errorsmod.Wrap(types.CheckCompatibility(*consState, rollappState), "check compatability")
+	return errorsmod.Wrap(types.CheckCompatibility(*consState, rollappState), "check compatibility")
 }
