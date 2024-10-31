@@ -8,6 +8,7 @@ func DefaultGenesis() *GenesisState {
 		SequencerList:    []Sequencer{},
 		GenesisProposers: []GenesisProposer{},
 		Params:           DefaultParams(),
+		NoticeQueue:      []string{},
 	}
 }
 
@@ -39,6 +40,12 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("proposer %s does not have a sequencer", rollappId)
 		}
 		proposerIndexMap[rollappId] = struct{}{}
+	}
+
+	for _, s := range gs.NoticeQueue {
+		if _, ok := sequencerIndexMap[s]; !ok {
+			return fmt.Errorf("notice queue contains non-existent sequencer")
+		}
 	}
 
 	return gs.Params.ValidateBasic()

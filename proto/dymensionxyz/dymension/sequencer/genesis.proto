@@ -7,7 +7,6 @@ import "dymensionxyz/dymension/sequencer/sequencer.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
 
-// TODO: where is the notice queue, loads of stuff missing?
 
 // GenesisState defines the sequencer module's genesis state.
 message GenesisState {
@@ -17,6 +16,8 @@ message GenesisState {
   // genesisProposers is a list of the defined genesis proposers
   repeated GenesisProposer genesisProposers = 3
       [ (gogoproto.nullable) = false ];
+  // list of sequencers in the notice queue
+  repeated string noticeQueue = 4 [ (gogoproto.nullable) = false ];
 }
 
 message GenesisProposer {

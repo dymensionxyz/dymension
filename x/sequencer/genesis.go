@@ -11,9 +11,11 @@ func InitGenesis(ctx sdk.Context, k *keeper.Keeper, genState types.GenesisState)
 
 	for _, elem := range genState.SequencerList {
 		k.SetSequencer(ctx, elem)
-		if elem.NoticeInProgress(ctx.BlockTime()) {
-			k.AddToNoticeQueue(ctx, elem)
-		}
+	}
+
+	for _, s := range genState.NoticeQueue {
+		seq := k.GetSequencer(ctx, s)
+		k.AddToNoticeQueue(ctx, seq)
 	}
 
 	for _, elem := range genState.GenesisProposers {
