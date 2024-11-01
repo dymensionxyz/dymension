@@ -24,9 +24,6 @@ func anyPk(pk cryptotypes.PubKey) *codectypes.Any {
 }
 
 func TestInitGenesis(t *testing.T) {
-	// interfaceRegistry := codectypes.NewInterfaceRegistry()
-	// cryptocodec.RegisterInterfaces(interfaceRegistry)
-
 	timeToTest := time.Now().Round(0).UTC()
 
 	genesisState := types.GenesisState{
@@ -123,41 +120,12 @@ func TestInitGenesis(t *testing.T) {
 	k, ctx := keepertest.SequencerKeeper(t)
 	sequencer.InitGenesis(ctx, k, genesisState)
 
-	noticeElapsed, err := k.NoticeElapsedSequencers(ctx, timeToTest)
-	require.NoError(t, err)
-	require.Len(t, noticeElapsed, 2)
-	require.Len(t, k.AllProposers(ctx), 2)
-
 	got := sequencer.ExportGenesis(ctx, k)
 	require.NotNil(t, got)
+
 	require.Equal(t, genesisState.Params, got.Params)
-
-	require.ElementsMatch(t, toSlimSeq(genesisState.SequencerList), toSlimSeq(got.SequencerList))
+	require.ElementsMatch(t, genesisState.SequencerList, got.SequencerList)
 	require.ElementsMatch(t, genesisState.GenesisProposers, got.GenesisProposers)
+	require.ElementsMatch(t, genesisState.GenesisSuccessors, got.GenesisSuccessors)
 	require.ElementsMatch(t, genesisState.NoticeQueue, got.NoticeQueue)
-}
-
-type slimSeq struct {
-	Address          string
-	RollappId        string
-	Status           types.OperatingStatus
-	Tokens           sdk.Coins
-	NoticePeriodTime time.Time
-	DymintPubKey     *codectypes.Any
-}
-
-func toSlimSeq(seqs []types.Sequencer) []slimSeq {
-	ret := make([]slimSeq, len(seqs))
-
-	for i, seq := range seqs {
-		ret[i] = slimSeq{
-			Address:          seq.Address,
-			RollappId:        seq.RollappId,
-			Status:           seq.Status,
-			Tokens:           seq.Tokens,
-			NoticePeriodTime: seq.NoticePeriodTime,
-			DymintPubKey:     seq.DymintPubKey,
-		}
-	}
-	return ret
 }
