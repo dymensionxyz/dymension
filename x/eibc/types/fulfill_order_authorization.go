@@ -11,22 +11,30 @@ import (
 
 // NewFulfillOrderAuthorization creates a new FulfillOrderAuthorization object.
 func NewFulfillOrderAuthorization(
-	rollapps []string,
+	rollapps []*RollappCriteria,
+	spendLimit sdk.Coins,
+) *FulfillOrderAuthorization {
+	return &FulfillOrderAuthorization{
+		Rollapps:   rollapps,
+		SpendLimit: spendLimit,
+	}
+}
+
+func NewRollappCriteria(
+	rollappID string,
 	denoms []string,
 	minLPFeePercentage sdk.DecProto,
 	maxPrice sdk.Coins,
 	fulfillerFeePart sdk.DecProto,
 	settlementValidated bool,
-	spendLimit sdk.Coins,
-) *FulfillOrderAuthorization {
-	return &FulfillOrderAuthorization{
-		Rollapps:            rollapps,
+) *RollappCriteria {
+	return &RollappCriteria{
+		RollappId:           rollappID,
 		Denoms:              denoms,
 		MinLpFeePercentage:  minLPFeePercentage,
 		MaxPrice:            maxPrice,
 		OperatorFeeShare:    fulfillerFeePart,
 		SettlementValidated: settlementValidated,
-		SpendLimit:          spendLimit,
 	}
 }
 
@@ -48,64 +56,72 @@ func (a FulfillOrderAuthorization) Accept(
 				&MsgFulfillOrderAuthorized{}, msg)
 	}
 
-	// Check if the settlement validation flag matches
-	if a.SettlementValidated != mFulfill.SettlementValidated {
-		return authz.AcceptResponse{},
-			errorsmod.Wrapf(errors.ErrUnauthorized, "settlement validation flag mismatch")
+	// Find the RollappCriteria matching the msg.RollappId
+	var matchedCriteria *RollappCriteria
+	for i, criteria := range a.Rollapps {
+		if criteria.RollappId == mFulfill.RollappId {
+			matchedCriteria = a.Rollapps[i] // Use pointer to modify if needed
+			break
+		}
 	}
 
-	// Check if the fulfiller fee part matches
-	if !a.OperatorFeeShare.Dec.Equal(mFulfill.OperatorFeeShare.Dec) {
-		return authz.AcceptResponse{},
-			errorsmod.Wrapf(errors.ErrUnauthorized, "fulfiller fee part mismatch")
-	}
-
-	// Check if the rollapp is allowed
-	if len(a.Rollapps) > 0 && !slices.Contains(a.Rollapps, mFulfill.RollappId) {
+	if matchedCriteria == nil {
 		return authz.AcceptResponse{},
 			errorsmod.Wrapf(errors.ErrUnauthorized, "rollapp %s is not authorized", mFulfill.RollappId)
 	}
 
-	// Check if the denom is allowed
-	if len(a.Denoms) > 0 {
+	// Check settlement_validated flag
+	if matchedCriteria.SettlementValidated != mFulfill.SettlementValidated {
+		return authz.AcceptResponse{},
+			errorsmod.Wrapf(errors.ErrUnauthorized, "settlement validation flag mismatch")
+	}
+
+	// Check operator_fee_share
+	if !matchedCriteria.OperatorFeeShare.Dec.Equal(mFulfill.OperatorFeeShare.Dec) {
+		return authz.AcceptResponse{},
+			errorsmod.Wrapf(errors.ErrUnauthorized, "operator fee share mismatch")
+	}
+
+	// Check denoms
+	if len(matchedCriteria.Denoms) > 0 {
 		for _, orderDenom := range mFulfill.Price.Denoms() {
-			if !slices.Contains(a.Denoms, orderDenom) {
+			if !slices.Contains(matchedCriteria.Denoms, orderDenom) {
 				return authz.AcceptResponse{},
 					errorsmod.Wrapf(errors.ErrUnauthorized, "denom %s is not authorized", orderDenom)
 			}
 		}
 	}
 
-	// Check if the order fee meets the minimum fee
+	// Check if the order fee meets the minimum LP fee percentage
 	orderFeeDec, err := sdk.NewDecFromStr(mFulfill.ExpectedFee)
 	if err != nil {
 		return authz.AcceptResponse{},
 			errorsmod.Wrapf(errors.ErrInvalidCoins, "invalid fee amount: %s", err)
 	}
 
-	operatorFee := orderFeeDec.Mul(a.OperatorFeeShare.Dec)
+	operatorFee := orderFeeDec.Mul(matchedCriteria.OperatorFeeShare.Dec)
 	amountDec := mFulfill.Price[0].Amount.Add(orderFeeDec.RoundInt()).ToLegacyDec()
-	minLPFee := amountDec.Mul(a.MinLpFeePercentage.Dec)
+	minLPFee := amountDec.Mul(matchedCriteria.MinLpFeePercentage.Dec)
 	lpFee := orderFeeDec.Sub(operatorFee)
 
 	if lpFee.LT(minLPFee) {
 		return authz.AcceptResponse{},
 			errorsmod.Wrapf(errors.ErrUnauthorized,
-				"order lp fee %s is less than minimum lp fee %s",
+				"order LP fee %s is less than minimum LP fee %s",
 				lpFee.String(), minLPFee.String())
 	}
 
 	// Check if the order price does not exceed the max price
-	if !a.MaxPrice.IsZero() {
+	if !matchedCriteria.MaxPrice.IsZero() {
 		orderPrice := mFulfill.Price
-		if exceedsMaxPrice(orderPrice, a.MaxPrice) {
+		if exceedsMaxPrice(orderPrice, matchedCriteria.MaxPrice) {
 			return authz.AcceptResponse{},
 				errorsmod.Wrapf(errors.ErrUnauthorized,
 					"order price exceeds max price")
 		}
 	}
 
-	// Check if spend limit is exhausted
+	// Check if spend limit is exhausted (spend_limit is at the top level)
 	if !a.SpendLimit.IsZero() {
 		spendLeft, isNegative := a.SpendLimit.SafeSub(mFulfill.Price...)
 		if isNegative {
@@ -137,33 +153,45 @@ func (a FulfillOrderAuthorization) Accept(
 
 // ValidateBasic implements Authorization.ValidateBasic.
 func (a FulfillOrderAuthorization) ValidateBasic() error {
-	// Validate MinFee
-	if a.MinLpFeePercentage.Dec.IsNegative() {
-		return errorsmod.Wrapf(errors.ErrInvalidRequest,
-			"min_lp_fee cannot be negative")
-	}
-
-	// Validate OperatorFeeShare
-	if a.OperatorFeeShare.Dec.IsNegative() ||
-		a.OperatorFeeShare.Dec.GT(sdk.OneDec()) {
-		return errorsmod.Wrapf(errors.ErrInvalidRequest,
-			"operator_fee_share must be between 0 and 1")
-	}
-
 	// Validate SpendLimit
 	if a.SpendLimit != nil && !a.SpendLimit.IsValid() {
-		return errorsmod.Wrapf(errors.ErrInvalidCoins,
-			"spend_limit is invalid")
+		return errorsmod.Wrapf(errors.ErrInvalidCoins, "spend_limit is invalid")
 	}
 
-	// Check for duplicate entries in Rollapps and Denoms
-	if hasDuplicates(a.Rollapps) {
-		return errorsmod.Wrapf(errors.ErrInvalidRequest,
-			"duplicate rollapps in the list")
-	}
-	if hasDuplicates(a.Denoms) {
-		return errorsmod.Wrapf(errors.ErrInvalidRequest,
-			"duplicate denoms in the list")
+	// Create a set to check for duplicate rollapp_ids
+	rollappIDSet := make(map[string]struct{})
+
+	for _, criteria := range a.Rollapps {
+		// Validate that rollapp_id is not empty
+		if len(criteria.RollappId) == 0 {
+			return errorsmod.Wrapf(errors.ErrInvalidRequest, "rollapp_id cannot be empty")
+		}
+
+		// Check for duplicate rollapp_ids
+		if _, exists := rollappIDSet[criteria.RollappId]; exists {
+			return errorsmod.Wrapf(errors.ErrInvalidRequest, "duplicate rollapp_id %s in rollapps", criteria.RollappId)
+		}
+		rollappIDSet[criteria.RollappId] = struct{}{}
+
+		// Validate MinLpFeePercentage
+		if criteria.MinLpFeePercentage.Dec.IsNegative() {
+			return errorsmod.Wrapf(errors.ErrInvalidRequest, "min_lp_fee_percentage cannot be negative for rollapp_id %s", criteria.RollappId)
+		}
+
+		// Validate OperatorFeeShare
+		if criteria.OperatorFeeShare.Dec.IsNegative() || criteria.OperatorFeeShare.Dec.GT(sdk.OneDec()) {
+			return errorsmod.Wrapf(errors.ErrInvalidRequest, "operator_fee_share must be between 0 and 1 for rollapp_id %s", criteria.RollappId)
+		}
+
+		// Validate MaxPrice (if provided)
+		if criteria.MaxPrice != nil && !criteria.MaxPrice.IsValid() {
+			return errorsmod.Wrapf(errors.ErrInvalidCoins, "max_price is invalid for rollapp_id %s", criteria.RollappId)
+		}
+
+		// Check for duplicates in Denoms
+		if hasDuplicates(criteria.Denoms) {
+			return errorsmod.Wrapf(errors.ErrInvalidRequest, "duplicate denoms in the list for rollapp_id %s", criteria.RollappId)
+		}
 	}
 
 	return nil
