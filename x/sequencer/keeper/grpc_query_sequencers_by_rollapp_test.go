@@ -130,7 +130,7 @@ func (s *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 				require.Len(t, response.Sequencers, len(tc.responseAddr))
 
 				for _, seqAddr := range tc.responseAddr {
-					seq, err := s.k().GetRealSequencer(s.Ctx, seqAddr)
+					seq, err := s.k().RealSequencer(s.Ctx, seqAddr)
 					require.NoError(t, err)
 					require.Contains(t, response.Sequencers, seq)
 				}

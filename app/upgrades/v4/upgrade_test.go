@@ -247,7 +247,7 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 
 	for i, sequencer := range sequencers {
 		// check that the sequencer can be retrieved by address
-		_, err := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, sequencer.Address)
+		_, err := s.App.SequencerKeeper.RealSequencer(s.Ctx, sequencer.Address)
 		if err != nil {
 			return err
 		}

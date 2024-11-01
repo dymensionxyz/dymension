@@ -302,7 +302,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	// from this point on, the rollapp is launched and immutable fields cannot be updated
 	err = suite.CreateSequencerByPubkey(suite.Ctx, rollappId, initSeqPubKey)
 	suite.Require().NoError(err)
-	initSeq, err := suite.App.SequencerKeeper.GetRealSequencer(suite.Ctx, addrInit)
+	initSeq, err := suite.App.SequencerKeeper.RealSequencer(suite.Ctx, addrInit)
 	suite.Require().NoError(err)
 	proposer := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
 	suite.Require().Equal(initSeq, proposer)
@@ -359,7 +359,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		Metadata: metadata,
 	})
 	suite.Require().NoError(err)
-	initSeq, err = suite.App.SequencerKeeper.GetRealSequencer(suite.Ctx, addrInit)
+	initSeq, err = suite.App.SequencerKeeper.RealSequencer(suite.Ctx, addrInit)
 	suite.Require().NoError(err)
 	suite.Require().Equal(metadata, initSeq.Metadata)
 }

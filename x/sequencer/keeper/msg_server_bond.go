@@ -12,7 +12,7 @@ import (
 func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBond) (*types.MsgIncreaseBondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	seq, err := k.GetRealSequencer(ctx, msg.GetCreator())
+	seq, err := k.RealSequencer(ctx, msg.GetCreator())
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBon
 func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBond) (*types.MsgDecreaseBondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	seq, err := k.GetRealSequencer(ctx, msg.GetCreator())
+	seq, err := k.RealSequencer(ctx, msg.GetCreator())
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 
 func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.MsgUnbondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	seq, err := k.GetRealSequencer(ctx, msg.Creator)
+	seq, err := k.RealSequencer(ctx, msg.Creator)
 	if err != nil {
 		return nil, err
 	}

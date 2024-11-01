@@ -14,7 +14,7 @@ func TestSequencerGet(t *testing.T) {
 	items := createNSequencers(k, ctx, 10)
 	for _, item := range items {
 		item := item
-		rst, err := k.GetRealSequencer(ctx,
+		rst, err := k.RealSequencer(ctx,
 			item.Address,
 		)
 		require.NoError(t, err)

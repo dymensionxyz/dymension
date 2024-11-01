@@ -76,8 +76,8 @@ func (k Keeper) GetSequencer(ctx sdk.Context, addr string) types.Sequencer {
 	return ret
 }
 
-// GetRealSequencer tries to get a real (non sentinel) sequencer.
-func (k Keeper) GetRealSequencer(ctx sdk.Context, addr string) (types.Sequencer, error) {
+// RealSequencer tries to get a real (non sentinel) sequencer.
+func (k Keeper) RealSequencer(ctx sdk.Context, addr string) (types.Sequencer, error) {
 	s := k.GetSequencer(ctx, addr)
 	if s.Sentinel() {
 		return types.Sequencer{}, types.ErrSequencerNotFound
@@ -93,36 +93,28 @@ func (k Keeper) SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address)
 		}
 		return types.Sequencer{}, err
 	}
-	return k.GetRealSequencer(ctx, accAddr)
+	return k.RealSequencer(ctx, accAddr)
 }
 
-// AllProposers returns all proposers for all rollapps
 func (k Keeper) AllProposers(ctx sdk.Context) (list []types.Sequencer) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ProposerByRollappKey(""))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		address := string(iterator.Value())
-		seq := k.GetSequencer(ctx, address)
-		list = append(list, seq)
-	}
-
-	return
+	return k.prefixSequencerAddrs(ctx, types.ProposerByRollappKey(""))
 }
 
-func (k Keeper) AllSuccessors(ctx sdk.Context) (list []types.Sequencer) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SuccessorByRollappKey(""))
+func (k Keeper) AllSuccessors(ctx sdk.Context) []types.Sequencer {
+	return k.prefixSequencerAddrs(ctx, types.SuccessorByRollappKey(""))
+}
+
+func (k Keeper) prefixSequencerAddrs(ctx sdk.Context, pref []byte) []types.Sequencer {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), pref)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
-
+	ret := []types.Sequencer{}
 	for ; iterator.Valid(); iterator.Next() {
 		address := string(iterator.Value())
 		seq := k.GetSequencer(ctx, address)
-		list = append(list, seq)
+		ret = append(ret, seq)
 	}
-
-	return
+	return ret
 }
 
 func (k Keeper) GetProposer(ctx sdk.Context, rollapp string) types.Sequencer {
@@ -137,7 +129,6 @@ func (k Keeper) GetProposer(ctx sdk.Context, rollapp string) types.Sequencer {
 func (k Keeper) SetProposer(ctx sdk.Context, rollapp, seqAddr string) {
 	store := ctx.KVStore(k.storeKey)
 	addressBytes := []byte(seqAddr)
-
 	activeKey := types.ProposerByRollappKey(rollapp)
 	store.Set(activeKey, addressBytes)
 }
@@ -172,7 +163,7 @@ func (k Keeper) NoticeQueue(ctx sdk.Context, endTime *time.Time) ([]types.Sequen
 
 	for ; iterator.Valid(); iterator.Next() {
 		addr := string(iterator.Value())
-		seq, err := k.GetRealSequencer(ctx, string(iterator.Value()))
+		seq, err := k.RealSequencer(ctx, string(iterator.Value()))
 		if err != nil {
 			return nil, gerrc.ErrInternal.Wrapf("sequencer in notice queue but missing sequencer object: addr: %s", addr)
 		}

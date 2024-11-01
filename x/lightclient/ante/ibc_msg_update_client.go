@@ -141,7 +141,7 @@ func (i IBCMessagesDecorator) getStateInfos(ctx sdk.Context, rollapp string, h u
 
 func (i IBCMessagesDecorator) validateUpdatePessimistically(ctx sdk.Context, infos stateInfos, consState *ibctm.ConsensusState, h uint64) error {
 	bd, _ := infos.containingH.GetBlockDescriptor(h)
-	seq, err := i.k.SeqK.GetRealSequencer(ctx, infos.containingHPlus1.Sequencer)
+	seq, err := i.k.SeqK.RealSequencer(ctx, infos.containingHPlus1.Sequencer)
 	if err != nil {
 		return gerrc.ErrInternal.Wrap("get sequencer of state info")
 	}

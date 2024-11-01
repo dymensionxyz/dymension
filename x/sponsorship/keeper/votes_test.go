@@ -396,7 +396,7 @@ func (s *KeeperTestSuite) TestMsgVoteRollAppGaugeBondedSequencer() {
 	proposer := s.CreateDefaultSequencer(s.Ctx, raName)
 
 	// verify the sequencer is bonded
-	seq, err := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, proposer)
+	seq, err := s.App.SequencerKeeper.RealSequencer(s.Ctx, proposer)
 	s.Require().NoError(err)
 	s.Require().True(seq.Bonded())
 

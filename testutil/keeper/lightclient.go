@@ -147,7 +147,7 @@ func (m *MockSequencerKeeper) SequencerByDymintAddr(ctx sdk.Context, addr crypto
 	return sequencertypes.Sequencer{}, gerrc.ErrNotFound
 }
 
-func (m *MockSequencerKeeper) GetRealSequencer(ctx sdk.Context, addr string) (sequencertypes.Sequencer, error) {
+func (m *MockSequencerKeeper) RealSequencer(ctx sdk.Context, addr string) (sequencertypes.Sequencer, error) {
 	seq, ok := m.sequencers[addr]
 	var err error
 	if !ok {

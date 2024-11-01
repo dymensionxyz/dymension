@@ -16,7 +16,7 @@ func (k msgServer) UpdateSequencerInformation(
 	msg *types.MsgUpdateSequencerInformation,
 ) (*types.MsgUpdateSequencerInformationResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	seq, err := k.GetRealSequencer(ctx, msg.Creator)
+	seq, err := k.RealSequencer(ctx, msg.Creator)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (k msgServer) UpdateOptInStatus(goCtx context.Context,
 	msg *types.MsgUpdateOptInStatus,
 ) (*types.MsgUpdateOptInStatus, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	seq, err := k.GetRealSequencer(ctx, msg.Creator)
+	seq, err := k.RealSequencer(ctx, msg.Creator)
 	if err != nil {
 		return nil, err
 	}

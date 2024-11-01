@@ -13,7 +13,7 @@ import (
 // UpdateWhitelistedRelayers defines a method for updating the sequencer's whitelisted relater list.
 func (k msgServer) UpdateWhitelistedRelayers(goCtx context.Context, msg *types.MsgUpdateWhitelistedRelayers) (*types.MsgUpdateWhitelistedRelayersResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	seq, err := k.GetRealSequencer(ctx, msg.Creator)
+	seq, err := k.RealSequencer(ctx, msg.Creator)
 	if err != nil {
 		return nil, err
 	}

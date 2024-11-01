@@ -32,7 +32,7 @@ func (s *SequencerTestSuite) TestUpdateRewardAddress() {
 				s.Require().ErrorIs(err, tc.expectedErr)
 			} else {
 				s.Require().NoError(err)
-				seq, _ := s.App.SequencerKeeper.GetRealSequencer(s.Ctx, tc.msg.Creator)
+				seq, _ := s.App.SequencerKeeper.RealSequencer(s.Ctx, tc.msg.Creator)
 				s.Require().Equal(tc.msg.RewardAddr, seq.RewardAddr)
 			}
 		})

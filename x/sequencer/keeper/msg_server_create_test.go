@@ -21,7 +21,7 @@ func (s *SequencerTestSuite) TestCreateSequencerBasic() {
 	msg.Bond = bond
 	_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 	s.Require().NoError(err)
-	seq, err := s.k().GetRealSequencer(s.Ctx, pkAddr(alice))
+	seq, err := s.k().RealSequencer(s.Ctx, pkAddr(alice))
 	s.Require().NoError(err)
 	s.Require().Equal(seq.Address, pkAddr(alice))
 	s.Require().True(bond.Equal(seq.TokensCoin()))

@@ -13,7 +13,7 @@ import (
 // UpdateRewardAddress defines a method for updating the sequencer's reward address.
 func (k msgServer) UpdateRewardAddress(goCtx context.Context, msg *types.MsgUpdateRewardAddress) (*types.MsgUpdateRewardAddressResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	seq, err := k.GetRealSequencer(ctx, msg.Creator)
+	seq, err := k.RealSequencer(ctx, msg.Creator)
 	if err != nil {
 		return nil, err
 	}

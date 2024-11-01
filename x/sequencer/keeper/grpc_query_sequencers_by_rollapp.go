@@ -70,7 +70,7 @@ func (k Keeper) Proposers(c context.Context, req *types.QueryProposersRequest) (
 	sequencerStore := prefix.NewStore(store, types.ProposerByRollappKey(""))
 
 	pageRes, err := query.Paginate(sequencerStore, req.Pagination, func(key []byte, value []byte) error {
-		proposer, err := k.GetRealSequencer(ctx, string(value))
+		proposer, err := k.RealSequencer(ctx, string(value))
 		if err != nil {
 			return err
 		}

@@ -42,7 +42,7 @@ func (k Keeper) Sequencer(c context.Context, req *types.QueryGetSequencerRequest
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	seq, err := k.GetRealSequencer(ctx, req.SequencerAddress)
+	seq, err := k.RealSequencer(ctx, req.SequencerAddress)
 	if err != nil {
 		return nil, err
 	}
