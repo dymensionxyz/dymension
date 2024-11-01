@@ -10,6 +10,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -98,15 +99,10 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 		fee = sdk.ZeroInt()
 	} else {
 		// Charge the fee from the txfees module account: construct the IBC denom and use it for the fee coin.
-		// The IBC denom construction is inherited from here:
-		// https://github.com/cosmos/ibc-go/blob/v7.5.1/modules/apps/transfer/keeper/relay.go#L244-L259
-		var (
-			sourcePrefix  = transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel())
-			prefixedDenom = sourcePrefix + feeData.Denom
-			denomTrace    = transfertypes.ParseDenomTrace(prefixedDenom)
-			feeCoin       = sdk.NewCoin(denomTrace.IBCDenom(), fee)
-		)
-		err = w.txFeesKeeper.ChargeFeesFromModuleAcc(ctx, feeCoin)
+		denomTrace := uibc.GetForeignDenomTrace(packet.GetDestChannel(), feeData.Denom)
+		feeCoin := sdk.NewCoin(denomTrace.IBCDenom(), fee)
+
+		err = w.txFeesKeeper.ChargeFees(ctx, feeCoin, nil, transfer.Receiver)
 		if err != nil {
 			// We continue as we don't want the fee charge to fail the transfer in any case.
 			// Also, the fee was already successfully sent to x/txfees and charging will be retried at the epoch end.

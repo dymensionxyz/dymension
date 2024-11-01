@@ -192,9 +192,9 @@ func (suite *KeeperTestSuite) TestCreateGauge() {
 				finalAccountBalance := accountBalance.Sub(fee...)
 				suite.Require().Equal(finalAccountBalance.String(), balanceAmount.String(), "test: %v", tc.name)
 
-				// test fee charged to txfees module account
+				// test fee charged to txfees module account and burned
 				txfeesBalanceAfter := bankKeeper.GetBalance(ctx, accountKeeper.GetModuleAddress(txfees.ModuleName), "stake")
-				suite.Require().Equal(txfeesBalanceBefore.Amount.Add(feeRaw), txfeesBalanceAfter.Amount, "test: %v", tc.name)
+				suite.Require().Equal(txfeesBalanceBefore.Amount, txfeesBalanceAfter.Amount, "test: %v", tc.name)
 			}
 		})
 	}
@@ -369,9 +369,9 @@ func (suite *KeeperTestSuite) TestAddToGauge() {
 				finalAccountBalance := accountBalance.Sub(fee...)
 				suite.Require().Equal(finalAccountBalance.String(), bal.String(), "test: %v", tc.name)
 
-				// test fee charged to txfees module account
+				// test fee charged to txfees module account and burned
 				txfeesBalanceAfter := bankKeeper.GetBalance(ctx, accountKeeper.GetModuleAddress(txfees.ModuleName), "stake")
-				suite.Require().Equal(txfeesBalanceBefore.Amount.Add(feeRaw), txfeesBalanceAfter.Amount, "test: %v", tc.name)
+				suite.Require().Equal(txfeesBalanceBefore.Amount, txfeesBalanceAfter.Amount, "test: %v", tc.name)
 			}
 		})
 	}

@@ -281,7 +281,7 @@ func (k Keeper) GetTradeableIRO(ctx sdk.Context, planId string, trader sdk.AccAd
 // chargeTakerFee charges taker fee from the sender.
 // The fee is sent to the txfees module and the beneficiary if presented.
 func (k Keeper) chargeTakerFee(ctx sdk.Context, takerFeeCoin sdk.Coin, sender sdk.AccAddress, beneficiary *sdk.AccAddress) error {
-	err := k.tk.ChargeFees(ctx, sender, takerFeeCoin, beneficiary)
+	err := k.tk.ChargeFeesFromPayer(ctx, sender, takerFeeCoin, beneficiary)
 	if err != nil {
 		return fmt.Errorf("charge fees: sender: %s: fee: %s: %w", sender, takerFeeCoin, err)
 	}

@@ -60,5 +60,5 @@ type RollappKeeper interface {
 }
 
 type TxFeesKeeper interface {
-	ChargeFees(ctx sdk.Context, sender sdk.AccAddress, takerFeeCoin sdk.Coin, beneficiary *sdk.AccAddress) error
+	ChargeFeesFromPayer(ctx sdk.Context, payer sdk.AccAddress, takerFeeCoin sdk.Coin, beneficiary *sdk.AccAddress) error
 }

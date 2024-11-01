@@ -313,7 +313,6 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.DistrKeeper,
-		a.RollappKeeper,
 	)
 	a.GAMMKeeper = &gammKeeper
 
@@ -365,6 +364,8 @@ func (a *AppKeepers) InitKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		nil,
 	)
+
+	a.GAMMKeeper.SetRollapp(a.RollappKeeper)
 
 	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
 		appCodec,
