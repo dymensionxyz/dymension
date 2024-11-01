@@ -11,7 +11,9 @@ func InitGenesis(ctx sdk.Context, k *keeper.Keeper, genState types.GenesisState)
 
 	for _, elem := range genState.SequencerList {
 		k.SetSequencer(ctx, elem)
-		k.SetSequencerByDymintAddr(ctx, elem.MustProposerAddr(), elem.Address)
+		if err := k.SetSequencerByDymintAddr(ctx, elem.MustProposerAddr(), elem.Address); err != nil {
+			panic(err)
+		}
 	}
 
 	for _, s := range genState.NoticeQueue {
