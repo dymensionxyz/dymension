@@ -12,6 +12,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
+// SetSequencer : write to store indexed by address, and also by status
 func (k Keeper) SetSequencer(ctx sdk.Context, seq types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&seq)
@@ -26,9 +27,38 @@ func (k Keeper) SetSequencer(ctx sdk.Context, seq types.Sequencer) {
 	store.Set(seqByRollappKey, b)
 }
 
+// SetSequencerByDymintAddr : allows reverse lookup of sequencer by dymint address
 func (k Keeper) SetSequencerByDymintAddr(ctx sdk.Context, dymint cryptotypes.Address, addr string) error {
 	// could move this inside SetSequencer but it would require propogating error up a lot
 	return k.dymintProposerAddrToAccAddr.Set(ctx, dymint, addr)
+}
+
+// SetProposer : passing sentinel is allowed
+func (k Keeper) SetProposer(ctx sdk.Context, rollapp, seqAddr string) {
+	store := ctx.KVStore(k.storeKey)
+	addressBytes := []byte(seqAddr)
+	activeKey := types.ProposerByRollappKey(rollapp)
+	store.Set(activeKey, addressBytes)
+}
+
+// SetSuccessor : passing sentinel is allowed
+func (k Keeper) SetSuccessor(ctx sdk.Context, rollapp, seqAddr string) {
+	store := ctx.KVStore(k.storeKey)
+	addressBytes := []byte(seqAddr)
+	nextProposerKey := types.SuccessorByRollappKey(rollapp)
+	store.Set(nextProposerKey, addressBytes)
+}
+
+func (k Keeper) AddToNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
+	store := ctx.KVStore(k.storeKey)
+	noticePeriodKey := types.NoticeQueueBySeqTimeKey(seq.Address, seq.NoticePeriodTime)
+	store.Set(noticePeriodKey, []byte(seq.Address))
+}
+
+func (k Keeper) removeFromNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
+	store := ctx.KVStore(k.storeKey)
+	noticePeriodKey := types.NoticeQueueBySeqTimeKey(seq.Address, seq.NoticePeriodTime)
+	store.Delete(noticePeriodKey)
 }
 
 func (k Keeper) RollappSequencers(ctx sdk.Context, rollappId string) []types.Sequencer {
@@ -126,13 +156,6 @@ func (k Keeper) GetProposer(ctx sdk.Context, rollapp string) types.Sequencer {
 	return k.GetSequencer(ctx, string(bz))
 }
 
-func (k Keeper) SetProposer(ctx sdk.Context, rollapp, seqAddr string) {
-	store := ctx.KVStore(k.storeKey)
-	addressBytes := []byte(seqAddr)
-	activeKey := types.ProposerByRollappKey(rollapp)
-	store.Set(activeKey, addressBytes)
-}
-
 func (k Keeper) GetSuccessor(ctx sdk.Context, rollapp string) types.Sequencer {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.SuccessorByRollappKey(rollapp))
@@ -140,13 +163,6 @@ func (k Keeper) GetSuccessor(ctx sdk.Context, rollapp string) types.Sequencer {
 		return k.GetSequencer(ctx, types.SentinelSeqAddr)
 	}
 	return k.GetSequencer(ctx, string(bz))
-}
-
-func (k Keeper) SetSuccessor(ctx sdk.Context, rollapp, seqAddr string) {
-	store := ctx.KVStore(k.storeKey)
-	addressBytes := []byte(seqAddr)
-	nextProposerKey := types.SuccessorByRollappKey(rollapp)
-	store.Set(nextProposerKey, addressBytes)
 }
 
 // NoticeQueue - the entire notice queue
@@ -171,16 +187,4 @@ func (k Keeper) NoticeQueue(ctx sdk.Context, endTime *time.Time) ([]types.Sequen
 	}
 
 	return ret, nil
-}
-
-func (k Keeper) AddToNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
-	store := ctx.KVStore(k.storeKey)
-	noticePeriodKey := types.NoticeQueueBySeqTimeKey(seq.Address, seq.NoticePeriodTime)
-	store.Set(noticePeriodKey, []byte(seq.Address))
-}
-
-func (k Keeper) removeFromNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
-	store := ctx.KVStore(k.storeKey)
-	noticePeriodKey := types.NoticeQueueBySeqTimeKey(seq.Address, seq.NoticePeriodTime)
-	store.Delete(noticePeriodKey)
 }
