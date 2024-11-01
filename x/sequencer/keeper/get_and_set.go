@@ -96,23 +96,23 @@ func (k Keeper) prefixSequencers(ctx sdk.Context, prefixKey []byte) []types.Sequ
 // GetSequencer returns the sentinel sequencer if not found. Use GetRealSequencer if expecting
 // to get a real sequencer.
 func (k Keeper) GetSequencer(ctx sdk.Context, addr string) types.Sequencer {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.SequencerKey(addr))
-	if b == nil {
+	seq, err := k.RealSequencer(ctx, addr)
+	if err != nil {
 		return k.SentinelSequencer(ctx)
 	}
-	ret := types.Sequencer{}
-	k.cdc.MustUnmarshal(b, &ret)
-	return ret
+	return seq
 }
 
 // RealSequencer tries to get a real (non sentinel) sequencer.
 func (k Keeper) RealSequencer(ctx sdk.Context, addr string) (types.Sequencer, error) {
-	s := k.GetSequencer(ctx, addr)
-	if s.Sentinel() {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.SequencerKey(addr))
+	if b == nil {
 		return types.Sequencer{}, types.ErrSequencerNotFound
 	}
-	return s, nil
+	ret := types.Sequencer{}
+	k.cdc.MustUnmarshal(b, &ret)
+	return ret, nil
 }
 
 func (k Keeper) SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address) (types.Sequencer, error) {
