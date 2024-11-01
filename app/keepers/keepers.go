@@ -311,7 +311,9 @@ func (a *AppKeepers) InitKeepers(
 		appCodec, a.keys[gammtypes.StoreKey],
 		a.GetSubspace(gammtypes.ModuleName),
 		a.AccountKeeper,
-		a.BankKeeper, a.DistrKeeper,
+		a.BankKeeper,
+		a.DistrKeeper,
+		a.RollappKeeper,
 	)
 	a.GAMMKeeper = &gammKeeper
 
@@ -417,6 +419,7 @@ func (a *AppKeepers) InitKeepers(
 		a.GAMMKeeper,
 		a.IncentivesKeeper,
 		a.PoolManagerKeeper,
+		a.TxFeesKeeper,
 	)
 
 	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
@@ -528,10 +531,11 @@ func (a *AppKeepers) InitTransferStack() {
 	a.TransferStack = ibctransfer.NewIBCModule(a.TransferKeeper)
 	a.TransferStack = bridgingfee.NewIBCModule(
 		a.TransferStack.(ibctransfer.IBCModule),
+		*a.RollappKeeper,
 		a.DelayedAckKeeper,
 		a.TransferKeeper,
+		*a.TxFeesKeeper,
 		a.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName),
-		*a.RollappKeeper,
 	)
 	a.TransferStack = packetforwardmiddleware.NewIBCMiddleware(
 		a.TransferStack,

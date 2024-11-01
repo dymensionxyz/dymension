@@ -274,6 +274,11 @@ func (k Keeper) GetRollappOwnerByDenom(ctx sdk.Context, denom string) (sdk.AccAd
 	return owner, nil
 }
 
+func (k Keeper) MustGetRollappOwner(ctx sdk.Context, rollappID string) sdk.AccAddress {
+	ra := k.MustGetRollapp(ctx, rollappID)
+	return sdk.MustAccAddressFromBech32(ra.Owner)
+}
+
 func (k Keeper) MustGetRollapp(ctx sdk.Context, rollappId string) types.Rollapp {
 	ret, found := k.GetRollapp(ctx, rollappId)
 	if !found {
