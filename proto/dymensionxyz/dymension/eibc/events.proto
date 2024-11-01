@@ -67,3 +67,25 @@ message EventDemandOrderFulfilled {
   // packet_type is the type of the packet.
   string packet_type = 10;
 }
+
+// EventDemandOrderFulfilledAuthorized is emitted when the demand order is fulfilled from an authorization.
+message EventDemandOrderFulfilledAuthorized {
+  // order_id is the unique identifier of the demand order.
+  string order_id = 1;
+  // fulfillment_id is the unique identifier of the fulfillment.
+  string price = 2;
+  // fulfillment_amount is the amount of the fulfillment.
+  string fee = 3;
+  // is_fulfilled is the flag indicating whether the order is fulfilled.
+  bool is_fulfilled = 4;
+  // packet_status is the status of the packet.
+  string packet_status = 5;
+  // fulfiller is the address of the fulfiller.
+  string fulfiller = 9;
+  // packet_type is the type of the packet.
+  string packet_type = 10;
+  // creation_height is the height of the block when order was created.
+  uint64 creation_height = 11;
+  // lp_address is the address of the LP.
+  string lp_address = 12;
+}

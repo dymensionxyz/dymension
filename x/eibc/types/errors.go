@@ -27,4 +27,5 @@ var (
 	ErrOrderNotSettlementValidated    = errorsmod.Register(ModuleName, 20, "Demand order not settlement validated")
 	ErrRollappIdMismatch              = errorsmod.Register(ModuleName, 21, "Rollapp ID mismatch")
 	ErrPriceMismatch                  = errorsmod.Register(ModuleName, 22, "Price mismatch")
+	ErrInvalidCreationHeight          = errorsmod.Register(ModuleName, 23, "Invalid creation height")
 )

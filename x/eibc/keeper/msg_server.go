@@ -123,7 +123,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		return nil, err
 	}
 
-	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetFulfilledEvent()); err != nil {
+	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetFulfilledAuthorizedEvent(demandOrder.CreationHeight, msg.LpAddress)); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
