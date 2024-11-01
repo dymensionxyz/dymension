@@ -29,18 +29,6 @@ func (k Keeper) StartNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 	)
 }
 
-func (k Keeper) AddToNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
-	store := ctx.KVStore(k.storeKey)
-	noticePeriodKey := types.NoticeQueueBySeqTimeKey(seq.Address, seq.NoticePeriodTime)
-	store.Set(noticePeriodKey, []byte(seq.Address))
-}
-
-func (k Keeper) removeFromNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
-	store := ctx.KVStore(k.storeKey)
-	noticePeriodKey := types.NoticeQueueBySeqTimeKey(seq.Address, seq.NoticePeriodTime)
-	store.Delete(noticePeriodKey)
-}
-
 // NoticeElapsedSequencers gets all sequencers across all rollapps whose notice period
 // has passed/elapsed.
 func (k Keeper) NoticeElapsedSequencers(ctx sdk.Context, endTime time.Time) ([]types.Sequencer, error) {
