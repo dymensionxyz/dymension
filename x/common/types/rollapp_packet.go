@@ -6,6 +6,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 func (r RollappPacket) LogString() string {
@@ -38,6 +40,21 @@ func (r RollappPacket) ValidateBasic() error {
 }
 
 func (r RollappPacket) GetEvents() []sdk.Attribute {
+	var pd transfertypes.FungibleTokenPacketData
+	if len(r.Packet.Data) != 0 {
+		// It's okay if we can't get packet data
+		pd, _ = r.GetTransferPacketData()
+	}
+
+	var isAck bool
+	if len(r.Acknowledgement) != 0 {
+		ack, err := r.GetAck()
+		// It's okay if we can't get acknowledgement
+		if err == nil {
+			isAck = ack.Success()
+		}
+	}
+
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(AttributeKeyRollappId, r.RollappId),
 		sdk.NewAttribute(AttributeKeyPacketStatus, r.Status.String()),
@@ -46,6 +63,14 @@ func (r RollappPacket) GetEvents() []sdk.Attribute {
 		sdk.NewAttribute(AttributeKeyPacketDestinationPort, r.Packet.DestinationPort),
 		sdk.NewAttribute(AttributeKeyPacketDestinationChannel, r.Packet.DestinationChannel),
 		sdk.NewAttribute(AttributeKeyPacketSequence, strconv.FormatUint(r.Packet.Sequence, 10)),
+		sdk.NewAttribute(AttributeKeyPacketProofHeight, strconv.FormatUint(r.ProofHeight, 10)),
+		sdk.NewAttribute(AttributeKeyPacketType, r.Type.String()),
+		sdk.NewAttribute(AttributeKeyPacketAcknowledgement, strconv.FormatBool(isAck)),
+		sdk.NewAttribute(AttributeKeyPacketDataDenom, pd.Denom),
+		sdk.NewAttribute(AttributeKeyPacketDataAmount, pd.Amount),
+		sdk.NewAttribute(AttributeKeyPacketDataSender, pd.Sender),
+		sdk.NewAttribute(AttributeKeyPacketDataReceiver, pd.Receiver),
+		sdk.NewAttribute(AttributeKeyPacketDataMemo, pd.Memo),
 	}
 	if r.Error != "" {
 		eventAttributes = append(eventAttributes, sdk.NewAttribute(AttributeKeyPacketError, r.Error))
@@ -60,6 +85,14 @@ func (r RollappPacket) GetTransferPacketData() (transfertypes.FungibleTokenPacke
 		return transfertypes.FungibleTokenPacketData{}, err
 	}
 	return data, nil
+}
+
+func (r RollappPacket) GetAck() (exported.Acknowledgement, error) {
+	var ack channeltypes.Acknowledgement
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(r.Acknowledgement, &ack); err != nil {
+		return nil, err
+	}
+	return ack, nil
 }
 
 func (r RollappPacket) RestoreOriginalTransferTarget() (RollappPacket, error) {
