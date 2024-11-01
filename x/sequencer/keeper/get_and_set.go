@@ -12,6 +12,25 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
+func (k Keeper) SetSequencer(ctx sdk.Context, seq types.Sequencer) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshal(&seq)
+	store.Set(types.SequencerKey(seq.Address), b)
+
+	for _, status := range types.AllStatus {
+		oldKey := types.SequencerByRollappByStatusKey(seq.RollappId, seq.Address, status)
+		ctx.KVStore(k.storeKey).Delete(oldKey)
+	}
+
+	seqByRollappKey := types.SequencerByRollappByStatusKey(seq.RollappId, seq.Address, seq.Status)
+	store.Set(seqByRollappKey, b)
+}
+
+func (k Keeper) SetSequencerByDymintAddr(ctx sdk.Context, dymint cryptotypes.Address, addr string) error {
+	// could move this inside SetSequencer but it would require propogating error up a lot
+	return k.dymintProposerAddrToAccAddr.Set(ctx, dymint, addr)
+}
+
 func (k Keeper) RollappSequencers(ctx sdk.Context, rollappId string) []types.Sequencer {
 	return k.prefixSequencers(ctx, types.SequencersByRollappKey(rollappId))
 }
@@ -44,11 +63,6 @@ func (k Keeper) prefixSequencers(ctx sdk.Context, prefixKey []byte) []types.Sequ
 	return ret
 }
 
-func (k Keeper) MustGetNonSentinelSequencer(ctx sdk.Context, addr string) types.Sequencer {
-	s, _ := k.GetRealSequencer(ctx, addr)
-	return s
-}
-
 // GetSequencer returns the sentinel sequencer if not found. Use GetRealSequencer if expecting
 // to get a real sequencer.
 func (k Keeper) GetSequencer(ctx sdk.Context, addr string) types.Sequencer {
@@ -71,20 +85,6 @@ func (k Keeper) GetRealSequencer(ctx sdk.Context, addr string) (types.Sequencer,
 	return s, nil
 }
 
-func (k Keeper) SetSequencer(ctx sdk.Context, seq types.Sequencer) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshal(&seq)
-	store.Set(types.SequencerKey(seq.Address), b)
-
-	for _, status := range types.AllStatus {
-		oldKey := types.SequencerByRollappByStatusKey(seq.RollappId, seq.Address, status)
-		ctx.KVStore(k.storeKey).Delete(oldKey)
-	}
-
-	seqByRollappKey := types.SequencerByRollappByStatusKey(seq.RollappId, seq.Address, seq.Status)
-	store.Set(seqByRollappKey, b)
-}
-
 func (k Keeper) SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address) (types.Sequencer, error) {
 	accAddr, err := k.dymintProposerAddrToAccAddr.Get(ctx, addr)
 	if err != nil {
@@ -94,11 +94,6 @@ func (k Keeper) SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address)
 		return types.Sequencer{}, err
 	}
 	return k.GetRealSequencer(ctx, accAddr)
-}
-
-func (k Keeper) SetSequencerByDymintAddr(ctx sdk.Context, dymint cryptotypes.Address, addr string) error {
-	// could move this inside SetSequencer but it would require propogating error up a lot
-	return k.dymintProposerAddrToAccAddr.Set(ctx, dymint, addr)
 }
 
 // AllProposers returns all proposers for all rollapps
@@ -185,4 +180,16 @@ func (k Keeper) NoticeQueue(ctx sdk.Context, endTime *time.Time) ([]types.Sequen
 	}
 
 	return ret, nil
+}
+
+func (k Keeper) AddToNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
+	store := ctx.KVStore(k.storeKey)
+	noticePeriodKey := types.NoticeQueueBySeqTimeKey(seq.Address, seq.NoticePeriodTime)
+	store.Set(noticePeriodKey, []byte(seq.Address))
+}
+
+func (k Keeper) removeFromNoticeQueue(ctx sdk.Context, seq types.Sequencer) {
+	store := ctx.KVStore(k.storeKey)
+	noticePeriodKey := types.NoticeQueueBySeqTimeKey(seq.Address, seq.NoticePeriodTime)
+	store.Delete(noticePeriodKey)
 }
