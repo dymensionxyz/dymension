@@ -174,12 +174,12 @@ func (a FulfillOrderAuthorization) ValidateBasic() error {
 		rollappIDSet[criteria.RollappId] = struct{}{}
 
 		// Validate MinLpFeePercentage
-		if criteria.MinLpFeePercentage.Dec.IsNegative() {
+		if !criteria.MinLpFeePercentage.Dec.IsNil() && criteria.MinLpFeePercentage.Dec.IsNegative() {
 			return errorsmod.Wrapf(errors.ErrInvalidRequest, "min_lp_fee_percentage cannot be negative for rollapp_id %s", criteria.RollappId)
 		}
 
 		// Validate OperatorFeeShare
-		if criteria.OperatorFeeShare.Dec.IsNegative() || criteria.OperatorFeeShare.Dec.GT(sdk.OneDec()) {
+		if !criteria.OperatorFeeShare.Dec.IsNil() && (criteria.OperatorFeeShare.Dec.IsNegative() || criteria.OperatorFeeShare.Dec.GT(sdk.OneDec())) {
 			return errorsmod.Wrapf(errors.ErrInvalidRequest, "operator_fee_share must be between 0 and 1 for rollapp_id %s", criteria.RollappId)
 		}
 
