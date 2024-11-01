@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer"
@@ -25,8 +24,8 @@ func anyPk(pk cryptotypes.PubKey) *codectypes.Any {
 }
 
 func TestInitGenesis(t *testing.T) {
-	interfaceRegistry := codectypes.NewInterfaceRegistry()
-	cryptocodec.RegisterInterfaces(interfaceRegistry)
+	// interfaceRegistry := codectypes.NewInterfaceRegistry()
+	// cryptocodec.RegisterInterfaces(interfaceRegistry)
 
 	timeToTest := time.Now().Round(0).UTC()
 
@@ -157,7 +156,7 @@ func toSlimSeq(seqs []types.Sequencer) []slimSeq {
 			Status:           seq.Status,
 			Tokens:           seq.Tokens,
 			NoticePeriodTime: seq.NoticePeriodTime,
-			// DymintPubKey:     seq.DymintPubKey,
+			DymintPubKey:     seq.DymintPubKey,
 		}
 	}
 	return ret
