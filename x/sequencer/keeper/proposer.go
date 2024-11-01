@@ -32,7 +32,7 @@ func (k Keeper) optOutAllSequencers(ctx sdk.Context, rollapp string, excl ...str
 func (k Keeper) RollappPotentialProposers(ctx sdk.Context, rollappId string) []types.Sequencer {
 	seqs := k.RollappBondedSequencers(ctx, rollappId)
 	seqs = slices.DeleteFunc(seqs, func(seq types.Sequencer) bool {
-		return !k.isPotentialProposer(ctx, seq)
+		return !seq.IsPotentialProposer()
 	})
 	return append(seqs, k.SentinelSequencer(ctx))
 }
@@ -92,12 +92,6 @@ func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) {
 	seqs := k.RollappPotentialProposers(ctx, rollapp)
 	successor = ProposerChoiceAlgo(seqs)
 	k.SetSuccessor(ctx, rollapp, successor.Address)
-}
-
-// isPotentialProposer says if a sequencer can potentially be allowed to propose
-// note: will be true for sentinel
-func (k Keeper) isPotentialProposer(ctx sdk.Context, seq types.Sequencer) bool {
-	return seq.Bonded() && seq.OptedIn
 }
 
 // ProposerChoiceAlgo : choose the one with most bond

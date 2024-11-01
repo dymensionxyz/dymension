@@ -93,6 +93,11 @@ func (seq Sequencer) ProposerAddr() ([]byte, error) {
 	return PubKeyAddr(seq.DymintPubKey)
 }
 
+func (seq *Sequencer) SetWhitelistedRelayers(relayers []string) {
+	slices.Sort(relayers)
+	seq.WhitelistedRelayers = relayers
+}
+
 // MustProposerAddr : intended for tests
 func (seq Sequencer) MustProposerAddr() []byte {
 	ret, err := seq.ProposerAddr()
@@ -160,11 +165,6 @@ func PubKeyAddr(pkA *codectypes.Any) ([]byte, error) {
 		return nil, err
 	}
 	return pk.Address(), nil
-}
-
-func (seq *Sequencer) SetWhitelistedRelayers(relayers []string) {
-	slices.Sort(relayers)
-	seq.WhitelistedRelayers = relayers
 }
 
 func Valset(pubKey cryptotypes.PubKey) (*comettypes.ValidatorSet, error) {

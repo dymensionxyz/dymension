@@ -70,11 +70,3 @@ func (k *Keeper) SetUnbondBlockers(ubs ...UnbondBlocker) {
 func (k *Keeper) SetHooks(h types.Hooks) {
 	k.hooks = h
 }
-
-// func PubKey(cdc codec.BinaryCodec, pk *codectypes.Any) (cryptotypes.PubKey, error) {
-// 	// TODO: this look wrong
-
-// 	var pubKey cryptotypes.PubKey
-// 	err := protoCodec.UnpackAny(pk, &pubKey)
-// 	return pubKey, err
-// }
