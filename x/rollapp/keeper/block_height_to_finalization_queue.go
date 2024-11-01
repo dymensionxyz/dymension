@@ -44,6 +44,15 @@ func (k Keeper) DelSequencerHeight(ctx sdk.Context, seqAddr string, height uint6
 	return k.seqToUnfinalizedHeight.Remove(ctx, collections.Join(seqAddr, height))
 }
 
+func (k Keeper) AllSequencerHeightPairs(ctx sdk.Context) ([]types.SequencerHeightPair, error) {
+	ret := make([]types.SequencerHeightPair, 0)
+	err := k.seqToUnfinalizedHeight.Walk(ctx, nil, func(key collections.Pair[string, uint64]) (stop bool, err error) {
+		ret = append(ret, types.SequencerHeightPair{Sequencer: key.K1(), Height: key.K2()})
+		return false, nil
+	})
+	return ret, err
+}
+
 // FinalizeRollappStates is called every block to finalize states when their dispute period over.
 func (k Keeper) FinalizeRollappStates(ctx sdk.Context) {
 	if uint64(ctx.BlockHeight()) < k.DisputePeriodInBlocks(ctx) {
