@@ -29,20 +29,10 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // FulfillOrderAuthorization allows the grantee to fulfill eIBC demand orders from the granter's account.
 type FulfillOrderAuthorization struct {
-	// rollapps is an optional list of rollapp IDs that the grantee can fulfill demand orders from
-	Rollapps []string `protobuf:"bytes,1,rep,name=rollapps,proto3" json:"rollapps,omitempty"`
-	// denoms is an optional list of denoms that the grantee can fulfill demand orders for
-	Denoms []string `protobuf:"bytes,2,rep,name=denoms,proto3" json:"denoms,omitempty"`
-	// min_lp_fee_percentage is the minimum fee earning percentage the LP is willing to get from a demand order
-	MinLpFeePercentage types.DecProto `protobuf:"bytes,3,opt,name=min_lp_fee_percentage,json=minLpFeePercentage,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.DecProto" json:"min_lp_fee_percentage"`
-	// max_price is the optional maximum order price acceptable to the granter
-	MaxPrice github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,4,rep,name=max_price,json=maxPrice,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"max_price"`
-	// operator_fee_share is the share of the fee earnings willing to give to the operator
-	OperatorFeeShare types.DecProto `protobuf:"bytes,5,opt,name=operator_fee_share,json=operatorFeeShare,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.DecProto" json:"operator_fee_share"`
-	// settlement_validated is the flag to only fulfill demand orders that have been settlement validated
-	SettlementValidated bool `protobuf:"varint,6,opt,name=settlement_validated,json=settlementValidated,proto3" json:"settlement_validated,omitempty"`
+	// rollapps is an optional list of rollapp criteria that the grantee can fulfill demand orders from
+	Rollapps []*RollappCriteria `protobuf:"bytes,1,rep,name=rollapps,proto3" json:"rollapps,omitempty"`
 	// spend_limit is the optional maximum amount of coins that can be spent by the grantee
-	SpendLimit github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,7,rep,name=spend_limit,json=spendLimit,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"spend_limit"`
+	SpendLimit github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=spend_limit,json=spendLimit,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"spend_limit"`
 }
 
 func (m *FulfillOrderAuthorization) Reset()         { *m = FulfillOrderAuthorization{} }
@@ -78,46 +68,11 @@ func (m *FulfillOrderAuthorization) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_FulfillOrderAuthorization proto.InternalMessageInfo
 
-func (m *FulfillOrderAuthorization) GetRollapps() []string {
+func (m *FulfillOrderAuthorization) GetRollapps() []*RollappCriteria {
 	if m != nil {
 		return m.Rollapps
 	}
 	return nil
-}
-
-func (m *FulfillOrderAuthorization) GetDenoms() []string {
-	if m != nil {
-		return m.Denoms
-	}
-	return nil
-}
-
-func (m *FulfillOrderAuthorization) GetMinLpFeePercentage() types.DecProto {
-	if m != nil {
-		return m.MinLpFeePercentage
-	}
-	return types.DecProto{}
-}
-
-func (m *FulfillOrderAuthorization) GetMaxPrice() github_com_cosmos_cosmos_sdk_types.Coins {
-	if m != nil {
-		return m.MaxPrice
-	}
-	return nil
-}
-
-func (m *FulfillOrderAuthorization) GetOperatorFeeShare() types.DecProto {
-	if m != nil {
-		return m.OperatorFeeShare
-	}
-	return types.DecProto{}
-}
-
-func (m *FulfillOrderAuthorization) GetSettlementValidated() bool {
-	if m != nil {
-		return m.SettlementValidated
-	}
-	return false
 }
 
 func (m *FulfillOrderAuthorization) GetSpendLimit() github_com_cosmos_cosmos_sdk_types.Coins {
@@ -127,8 +82,99 @@ func (m *FulfillOrderAuthorization) GetSpendLimit() github_com_cosmos_cosmos_sdk
 	return nil
 }
 
+type RollappCriteria struct {
+	// rollapp_id is the unique identifier of the rollapp that the grantee can fulfill demand orders from
+	RollappId string `protobuf:"bytes,1,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
+	// denoms is an optional list of denoms that the grantee can fulfill demand orders for
+	Denoms []string `protobuf:"bytes,2,rep,name=denoms,proto3" json:"denoms,omitempty"`
+	// max_price is the optional maximum order price acceptable to the granter
+	MaxPrice github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=max_price,json=maxPrice,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"max_price"`
+	// min_lp_fee_percentage is the minimum fee earning percentage the LP is willing to get from a demand order
+	MinLpFeePercentage types.DecProto `protobuf:"bytes,4,opt,name=min_lp_fee_percentage,json=minLpFeePercentage,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.DecProto" json:"min_lp_fee_percentage"`
+	// operator_fee_share is the share of the fee earnings willing to give to the operator
+	OperatorFeeShare types.DecProto `protobuf:"bytes,5,opt,name=operator_fee_share,json=operatorFeeShare,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.DecProto" json:"operator_fee_share"`
+	// settlement_validated is the flag to only fulfill demand orders that have been settlement validated
+	SettlementValidated bool `protobuf:"varint,6,opt,name=settlement_validated,json=settlementValidated,proto3" json:"settlement_validated,omitempty"`
+}
+
+func (m *RollappCriteria) Reset()         { *m = RollappCriteria{} }
+func (m *RollappCriteria) String() string { return proto.CompactTextString(m) }
+func (*RollappCriteria) ProtoMessage()    {}
+func (*RollappCriteria) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b67acbbd9757b985, []int{1}
+}
+func (m *RollappCriteria) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RollappCriteria) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RollappCriteria.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RollappCriteria) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RollappCriteria.Merge(m, src)
+}
+func (m *RollappCriteria) XXX_Size() int {
+	return m.Size()
+}
+func (m *RollappCriteria) XXX_DiscardUnknown() {
+	xxx_messageInfo_RollappCriteria.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RollappCriteria proto.InternalMessageInfo
+
+func (m *RollappCriteria) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+func (m *RollappCriteria) GetDenoms() []string {
+	if m != nil {
+		return m.Denoms
+	}
+	return nil
+}
+
+func (m *RollappCriteria) GetMaxPrice() github_com_cosmos_cosmos_sdk_types.Coins {
+	if m != nil {
+		return m.MaxPrice
+	}
+	return nil
+}
+
+func (m *RollappCriteria) GetMinLpFeePercentage() types.DecProto {
+	if m != nil {
+		return m.MinLpFeePercentage
+	}
+	return types.DecProto{}
+}
+
+func (m *RollappCriteria) GetOperatorFeeShare() types.DecProto {
+	if m != nil {
+		return m.OperatorFeeShare
+	}
+	return types.DecProto{}
+}
+
+func (m *RollappCriteria) GetSettlementValidated() bool {
+	if m != nil {
+		return m.SettlementValidated
+	}
+	return false
+}
+
 func init() {
 	proto.RegisterType((*FulfillOrderAuthorization)(nil), "dymensionxyz.dymension.eibc.FulfillOrderAuthorization")
+	proto.RegisterType((*RollappCriteria)(nil), "dymensionxyz.dymension.eibc.RollappCriteria")
 }
 
 func init() {
@@ -136,37 +182,40 @@ func init() {
 }
 
 var fileDescriptor_b67acbbd9757b985 = []byte{
-	// 478 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x53, 0x3d, 0x8f, 0x12, 0x41,
-	0x18, 0x66, 0xc5, 0x43, 0x6e, 0x68, 0xcc, 0x78, 0xea, 0x82, 0x71, 0x8f, 0x5c, 0xa1, 0x24, 0xe6,
-	0x76, 0xe4, 0xe8, 0xec, 0x44, 0x43, 0xe3, 0x25, 0x12, 0x4c, 0x2c, 0x6c, 0x36, 0xc3, 0xee, 0x7b,
-	0x30, 0x71, 0xbe, 0x32, 0x33, 0x10, 0xa0, 0xb2, 0xb1, 0x34, 0xf1, 0x77, 0x58, 0xfb, 0x23, 0x2e,
-	0x56, 0x57, 0x5a, 0xa9, 0x81, 0x3f, 0x62, 0x76, 0x77, 0xc0, 0x33, 0xd1, 0xc4, 0xc2, 0xab, 0x66,
-	0x9f, 0x3c, 0xf3, 0x7c, 0xbc, 0x9b, 0x79, 0xd1, 0xc3, 0x6c, 0x29, 0x40, 0x5a, 0xa6, 0xe4, 0x62,
-	0xb9, 0x22, 0x3b, 0x40, 0x80, 0x8d, 0x53, 0x42, 0x67, 0x6e, 0xba, 0x8a, 0xb5, 0x51, 0x4e, 0xe1,
-	0x7b, 0x97, 0x2f, 0xc6, 0x3b, 0x10, 0xe7, 0x17, 0x5b, 0x07, 0x13, 0x35, 0x51, 0xc5, 0x3d, 0x92,
-	0x7f, 0x95, 0x92, 0xd6, 0xdd, 0x54, 0x59, 0xa1, 0x2c, 0x11, 0x76, 0x42, 0xe6, 0xdd, 0xfc, 0xf0,
-	0x44, 0xb3, 0x24, 0x92, 0x52, 0x51, 0x02, 0x4f, 0x45, 0x5e, 0x33, 0xa6, 0x16, 0xc8, 0xbc, 0x3b,
-	0x06, 0x47, 0xbb, 0x24, 0x55, 0x4c, 0x96, 0xfc, 0xd1, 0x87, 0x3d, 0xd4, 0x1c, 0xcc, 0xf8, 0x19,
-	0xe3, 0xfc, 0xa5, 0xc9, 0xc0, 0x3c, 0x9d, 0xb9, 0xa9, 0x32, 0x6c, 0x45, 0x1d, 0x53, 0x12, 0xb7,
-	0x50, 0xdd, 0x28, 0xce, 0xa9, 0xd6, 0x36, 0x0c, 0xda, 0xd5, 0xce, 0xfe, 0x68, 0x87, 0xf1, 0x1d,
-	0x54, 0xcb, 0x40, 0x2a, 0x61, 0xc3, 0x6b, 0x05, 0xe3, 0x11, 0x7e, 0x1f, 0xa0, 0xdb, 0x82, 0xc9,
-	0x84, 0xeb, 0xe4, 0x0c, 0x20, 0xd1, 0x60, 0x52, 0x90, 0x8e, 0x4e, 0x20, 0xac, 0xb6, 0x83, 0x4e,
-	0xe3, 0xe4, 0x7e, 0xec, 0x0b, 0xe6, 0x95, 0x62, 0x5f, 0x29, 0x7e, 0x0e, 0xe9, 0x30, 0x2f, 0xd4,
-	0xef, 0x9d, 0x7f, 0x3b, 0xac, 0x7c, 0xfa, 0x7e, 0xf8, 0x68, 0xc2, 0xdc, 0x74, 0x36, 0x8e, 0x53,
-	0x25, 0xfc, 0x44, 0xfe, 0x38, 0xb6, 0xd9, 0x5b, 0xe2, 0x96, 0x1a, 0xec, 0x4e, 0x34, 0xc2, 0x82,
-	0xc9, 0x53, 0x3d, 0x00, 0x18, 0xee, 0xd2, 0xf0, 0x14, 0xed, 0x0b, 0xba, 0x48, 0xb4, 0x61, 0x29,
-	0x84, 0xd7, 0xdb, 0xd5, 0x4e, 0xe3, 0xa4, 0xf9, 0xc7, 0xe8, 0x67, 0x8a, 0xc9, 0xfe, 0x63, 0x1f,
-	0xdb, 0xf9, 0x87, 0xd8, 0x5c, 0x60, 0x47, 0x75, 0x41, 0x17, 0xc3, 0xdc, 0x1c, 0xbf, 0x0b, 0x10,
-	0x56, 0x1a, 0x0c, 0x75, 0xca, 0x14, 0x33, 0xdb, 0x29, 0x35, 0x10, 0xee, 0x5d, 0xd9, 0xb8, 0x37,
-	0xb7, 0x69, 0x03, 0x80, 0x57, 0x79, 0x16, 0xee, 0xa2, 0x03, 0x0b, 0xce, 0x71, 0x10, 0x20, 0x5d,
-	0x32, 0xa7, 0x9c, 0x65, 0xd4, 0x41, 0x16, 0xd6, 0xda, 0x41, 0xa7, 0x3e, 0xba, 0xf5, 0x8b, 0x7b,
-	0xbd, 0xa5, 0x30, 0x47, 0x0d, 0xab, 0x41, 0x66, 0x09, 0x67, 0x82, 0xb9, 0xf0, 0xc6, 0xff, 0xff,
-	0x43, 0xa8, 0xf0, 0x3f, 0xcd, 0xed, 0x9f, 0x3c, 0xf8, 0xf2, 0xf9, 0xf8, 0xc8, 0x7b, 0x97, 0x6b,
-	0xb0, 0x35, 0xff, 0xed, 0xc5, 0xf5, 0x5f, 0x9c, 0xaf, 0xa3, 0xe0, 0x62, 0x1d, 0x05, 0x3f, 0xd6,
-	0x51, 0xf0, 0x71, 0x13, 0x55, 0x2e, 0x36, 0x51, 0xe5, 0xeb, 0x26, 0xaa, 0xbc, 0xe9, 0x5e, 0xca,
-	0xfd, 0xcb, 0x92, 0xcd, 0x7b, 0x64, 0x51, 0x6e, 0x5a, 0x51, 0x63, 0x5c, 0x2b, 0xde, 0x78, 0xef,
-	0x67, 0x00, 0x00, 0x00, 0xff, 0xff, 0xea, 0x55, 0xd3, 0x96, 0x95, 0x03, 0x00, 0x00,
+	// 516 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x53, 0x3f, 0x6f, 0xd3, 0x40,
+	0x14, 0xcf, 0x11, 0x88, 0x92, 0xcb, 0x00, 0x3a, 0x0a, 0x38, 0x45, 0x75, 0xa3, 0x0c, 0x10, 0x09,
+	0x6a, 0x93, 0x66, 0x63, 0x23, 0x45, 0x11, 0x88, 0x4a, 0x44, 0x46, 0x62, 0x60, 0xb1, 0x2e, 0xf6,
+	0x6b, 0x7c, 0xc2, 0x77, 0x67, 0xdd, 0x5d, 0xa2, 0x24, 0x13, 0x0b, 0x3b, 0x9f, 0x83, 0x99, 0x0f,
+	0x51, 0x31, 0x75, 0x64, 0x02, 0x94, 0x7c, 0x01, 0x76, 0x16, 0x64, 0xfb, 0x12, 0x0a, 0x02, 0xc4,
+	0x00, 0xd3, 0xf3, 0xf3, 0xef, 0xfd, 0xfe, 0x3c, 0x5b, 0x0f, 0xdf, 0x8e, 0x17, 0x1c, 0x84, 0x66,
+	0x52, 0xcc, 0x17, 0x4b, 0x7f, 0xdb, 0xf8, 0xc0, 0xc6, 0x91, 0x4f, 0xa7, 0x26, 0x59, 0x7a, 0x99,
+	0x92, 0x46, 0x92, 0x9b, 0xe7, 0x07, 0xbd, 0x6d, 0xe3, 0xe5, 0x83, 0xbb, 0x3b, 0x13, 0x39, 0x91,
+	0xc5, 0x9c, 0x9f, 0x3f, 0x95, 0x94, 0xdd, 0x1b, 0x91, 0xd4, 0x5c, 0x6a, 0x9f, 0xeb, 0x89, 0x3f,
+	0xeb, 0xe5, 0xc5, 0x02, 0xad, 0x12, 0x08, 0x4b, 0x46, 0xd9, 0x58, 0xc8, 0xb5, 0x9c, 0x31, 0xd5,
+	0xe0, 0xcf, 0x7a, 0x63, 0x30, 0xb4, 0xe7, 0x47, 0x92, 0x89, 0x12, 0xef, 0x7c, 0x45, 0xb8, 0x35,
+	0x9c, 0xa6, 0x27, 0x2c, 0x4d, 0x9f, 0xaa, 0x18, 0xd4, 0x83, 0xa9, 0x49, 0xa4, 0x62, 0x4b, 0x6a,
+	0x98, 0x14, 0xe4, 0x11, 0xae, 0x2b, 0x99, 0xa6, 0x34, 0xcb, 0xb4, 0x83, 0xda, 0xd5, 0x6e, 0xf3,
+	0xf0, 0xae, 0xf7, 0x87, 0xdc, 0x5e, 0x50, 0x0e, 0x1f, 0x29, 0x66, 0x40, 0x31, 0x1a, 0x6c, 0xd9,
+	0x24, 0xc5, 0x4d, 0x9d, 0x81, 0x88, 0xc3, 0x94, 0x71, 0x66, 0x9c, 0x0b, 0x85, 0x58, 0xcb, 0xb3,
+	0x59, 0xf3, 0x74, 0x9e, 0x4d, 0xe7, 0x1d, 0x49, 0x26, 0x06, 0xf7, 0x4e, 0x3f, 0xee, 0x57, 0xde,
+	0x7e, 0xda, 0xef, 0x4e, 0x98, 0x49, 0xa6, 0x63, 0x2f, 0x92, 0xdc, 0x2e, 0x66, 0xcb, 0x81, 0x8e,
+	0x5f, 0xfa, 0x66, 0x91, 0x81, 0x2e, 0x08, 0x3a, 0xc0, 0x85, 0xfe, 0x71, 0x2e, 0x7f, 0xff, 0xd6,
+	0xfb, 0x77, 0x07, 0x1d, 0xab, 0x5d, 0x7e, 0xf4, 0x8d, 0xf8, 0x0f, 0xfb, 0x75, 0xbe, 0x54, 0xf1,
+	0xe5, 0x9f, 0x32, 0x93, 0x3d, 0x8c, 0x6d, 0xea, 0x90, 0xc5, 0x0e, 0x6a, 0xa3, 0x6e, 0x23, 0x68,
+	0xd8, 0x37, 0x8f, 0x63, 0x72, 0x1d, 0xd7, 0x62, 0x10, 0x92, 0xeb, 0x62, 0x87, 0x46, 0x60, 0x3b,
+	0x92, 0xe0, 0x06, 0xa7, 0xf3, 0x30, 0x53, 0x2c, 0x02, 0xa7, 0xfa, 0xef, 0xd7, 0xab, 0x73, 0x3a,
+	0x1f, 0xe5, 0xe2, 0xe4, 0x35, 0xc2, 0xd7, 0x38, 0x13, 0x61, 0x9a, 0x85, 0x27, 0x00, 0x61, 0x06,
+	0x2a, 0x02, 0x61, 0xe8, 0x04, 0x9c, 0x8b, 0x6d, 0xd4, 0x6d, 0x1e, 0xee, 0xfd, 0xd2, 0xf6, 0x21,
+	0x44, 0xa3, 0xfc, 0x8f, 0x0f, 0xfa, 0xd6, 0xfa, 0xce, 0x5f, 0x58, 0x6f, 0x48, 0x01, 0xe1, 0x4c,
+	0x1c, 0x67, 0x43, 0x80, 0xd1, 0xd6, 0x8d, 0xbc, 0x42, 0x98, 0xc8, 0x0c, 0x14, 0x35, 0x52, 0x15,
+	0x49, 0x74, 0x42, 0x15, 0x38, 0x97, 0xfe, 0x5b, 0x88, 0x2b, 0x1b, 0xb7, 0x21, 0xc0, 0xb3, 0xdc,
+	0x8b, 0xf4, 0xf0, 0x8e, 0x06, 0x63, 0x52, 0xe0, 0x20, 0x4c, 0x38, 0xa3, 0x29, 0x8b, 0xa9, 0x81,
+	0xd8, 0xa9, 0xb5, 0x51, 0xb7, 0x1e, 0x5c, 0xfd, 0x8e, 0x3d, 0xdf, 0x40, 0x83, 0x27, 0xa7, 0x2b,
+	0x17, 0x9d, 0xad, 0x5c, 0xf4, 0x79, 0xe5, 0xa2, 0x37, 0x6b, 0xb7, 0x72, 0xb6, 0x76, 0x2b, 0x1f,
+	0xd6, 0x6e, 0xe5, 0x45, 0xef, 0x5c, 0x96, 0xdf, 0x5c, 0xf1, 0xac, 0xef, 0xcf, 0xcb, 0x53, 0x2e,
+	0xa2, 0x8d, 0x6b, 0xc5, 0x11, 0xf5, 0xbf, 0x05, 0x00, 0x00, 0xff, 0xff, 0x8b, 0x1c, 0x1a, 0xeb,
+	0xf6, 0x03, 0x00, 0x00,
 }
 
 func (m *FulfillOrderAuthorization) Marshal() (dAtA []byte, err error) {
@@ -200,9 +249,46 @@ func (m *FulfillOrderAuthorization) MarshalToSizedBuffer(dAtA []byte) (int, erro
 				i = encodeVarintAuthz(dAtA, i, uint64(size))
 			}
 			i--
-			dAtA[i] = 0x3a
+			dAtA[i] = 0x12
 		}
 	}
+	if len(m.Rollapps) > 0 {
+		for iNdEx := len(m.Rollapps) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Rollapps[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintAuthz(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *RollappCriteria) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RollappCriteria) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *RollappCriteria) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
 	if m.SettlementValidated {
 		i--
 		if m.SettlementValidated {
@@ -223,6 +309,16 @@ func (m *FulfillOrderAuthorization) MarshalToSizedBuffer(dAtA []byte) (int, erro
 	}
 	i--
 	dAtA[i] = 0x2a
+	{
+		size, err := m.MinLpFeePercentage.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintAuthz(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
 	if len(m.MaxPrice) > 0 {
 		for iNdEx := len(m.MaxPrice) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -234,19 +330,9 @@ func (m *FulfillOrderAuthorization) MarshalToSizedBuffer(dAtA []byte) (int, erro
 				i = encodeVarintAuthz(dAtA, i, uint64(size))
 			}
 			i--
-			dAtA[i] = 0x22
+			dAtA[i] = 0x1a
 		}
 	}
-	{
-		size, err := m.MinLpFeePercentage.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintAuthz(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0x1a
 	if len(m.Denoms) > 0 {
 		for iNdEx := len(m.Denoms) - 1; iNdEx >= 0; iNdEx-- {
 			i -= len(m.Denoms[iNdEx])
@@ -256,14 +342,12 @@ func (m *FulfillOrderAuthorization) MarshalToSizedBuffer(dAtA []byte) (int, erro
 			dAtA[i] = 0x12
 		}
 	}
-	if len(m.Rollapps) > 0 {
-		for iNdEx := len(m.Rollapps) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.Rollapps[iNdEx])
-			copy(dAtA[i:], m.Rollapps[iNdEx])
-			i = encodeVarintAuthz(dAtA, i, uint64(len(m.Rollapps[iNdEx])))
-			i--
-			dAtA[i] = 0xa
-		}
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintAuthz(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -286,10 +370,29 @@ func (m *FulfillOrderAuthorization) Size() (n int) {
 	var l int
 	_ = l
 	if len(m.Rollapps) > 0 {
-		for _, s := range m.Rollapps {
-			l = len(s)
+		for _, e := range m.Rollapps {
+			l = e.Size()
 			n += 1 + l + sovAuthz(uint64(l))
 		}
+	}
+	if len(m.SpendLimit) > 0 {
+		for _, e := range m.SpendLimit {
+			l = e.Size()
+			n += 1 + l + sovAuthz(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *RollappCriteria) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovAuthz(uint64(l))
 	}
 	if len(m.Denoms) > 0 {
 		for _, s := range m.Denoms {
@@ -297,24 +400,18 @@ func (m *FulfillOrderAuthorization) Size() (n int) {
 			n += 1 + l + sovAuthz(uint64(l))
 		}
 	}
-	l = m.MinLpFeePercentage.Size()
-	n += 1 + l + sovAuthz(uint64(l))
 	if len(m.MaxPrice) > 0 {
 		for _, e := range m.MaxPrice {
 			l = e.Size()
 			n += 1 + l + sovAuthz(uint64(l))
 		}
 	}
+	l = m.MinLpFeePercentage.Size()
+	n += 1 + l + sovAuthz(uint64(l))
 	l = m.OperatorFeeShare.Size()
 	n += 1 + l + sovAuthz(uint64(l))
 	if m.SettlementValidated {
 		n += 2
-	}
-	if len(m.SpendLimit) > 0 {
-		for _, e := range m.SpendLimit {
-			l = e.Size()
-			n += 1 + l + sovAuthz(uint64(l))
-		}
 	}
 	return n
 }
@@ -358,6 +455,124 @@ func (m *FulfillOrderAuthorization) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Rollapps", wireType)
 			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAuthz
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthAuthz
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthAuthz
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Rollapps = append(m.Rollapps, &RollappCriteria{})
+			if err := m.Rollapps[len(m.Rollapps)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpendLimit", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAuthz
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthAuthz
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthAuthz
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SpendLimit = append(m.SpendLimit, types.Coin{})
+			if err := m.SpendLimit[len(m.SpendLimit)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipAuthz(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthAuthz
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RollappCriteria) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowAuthz
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RollappCriteria: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RollappCriteria: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
@@ -384,7 +599,7 @@ func (m *FulfillOrderAuthorization) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Rollapps = append(m.Rollapps, string(dAtA[iNdEx:postIndex]))
+			m.RollappId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -420,39 +635,6 @@ func (m *FulfillOrderAuthorization) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MinLpFeePercentage", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAuthz
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthAuthz
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthAuthz
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.MinLpFeePercentage.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field MaxPrice", wireType)
 			}
 			var msglen int
@@ -482,6 +664,39 @@ func (m *FulfillOrderAuthorization) Unmarshal(dAtA []byte) error {
 			}
 			m.MaxPrice = append(m.MaxPrice, types.Coin{})
 			if err := m.MaxPrice[len(m.MaxPrice)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MinLpFeePercentage", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAuthz
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthAuthz
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthAuthz
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MinLpFeePercentage.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -538,40 +753,6 @@ func (m *FulfillOrderAuthorization) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.SettlementValidated = bool(v != 0)
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SpendLimit", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAuthz
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthAuthz
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthAuthz
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.SpendLimit = append(m.SpendLimit, types.Coin{})
-			if err := m.SpendLimit[len(m.SpendLimit)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipAuthz(dAtA[iNdEx:])
