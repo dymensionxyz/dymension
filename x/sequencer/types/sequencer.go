@@ -150,6 +150,14 @@ func (seq Sequencer) MustValsetHash() []byte {
 	return x
 }
 
+var _ codectypes.UnpackInterfacesMessage = (*Sequencer)(nil)
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (s Sequencer) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(s.DymintPubKey, &pubKey)
+}
+
 // TODO: move these utils to a more suitable package
 
 func PubKey(pk *codectypes.Any) (cryptotypes.PubKey, error) {

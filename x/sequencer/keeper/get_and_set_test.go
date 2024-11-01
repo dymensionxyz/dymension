@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	_ "github.com/cosmos/cosmos-sdk/crypto/codec"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/stretchr/testify/require"
@@ -52,5 +53,5 @@ func (s *SequencerTestSuite) TestByProposerAddr() {
 	seqExp := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
 	seqGot, err := s.k().SequencerByDymintAddr(s.Ctx, seqExp.MustProposerAddr())
 	s.Require().NoError(err)
-	s.Require().Equal(seqExp.Address, seqGot)
+	s.Require().Equal(seqExp.Address, seqGot.Address)
 }
