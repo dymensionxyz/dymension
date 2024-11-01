@@ -14,7 +14,9 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genesisState types.GenesisState) {
 		k.SetCanonicalClient(ctx, client.RollappId, client.IbcClientId)
 	}
 	for _, signer := range genesisState.HeaderSigners {
-		k.SaveSigner(ctx, signer.SequencerAddress, signer.ClientId, signer.Height)
+		if err := k.SaveSigner(ctx, signer.SequencerAddress, signer.ClientId, signer.Height); err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -25,7 +27,7 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 		CanonicalClients: clients,
 	}
 
-	k.headerSigners.Walk(ctx, nil,
+	if err := k.headerSigners.Walk(ctx, nil,
 		func(key collections.Triple[string, string, uint64]) (stop bool, err error) {
 			ret.HeaderSigners = append(ret.HeaderSigners, types.HeaderSignerEntry{
 				SequencerAddress: key.K1(),
@@ -33,6 +35,8 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 				Height:           key.K3(),
 			})
 			return false, nil
-		})
+		}); err != nil {
+		panic(err)
+	}
 	return ret
 }

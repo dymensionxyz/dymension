@@ -673,7 +673,8 @@ func TestUnbondConditionFlow(t *testing.T) {
 	err = k.CanUnbond(ctx, seq)
 	require.True(t, errorsmod.IsOf(err, sequencertypes.ErrUnbondNotAllowed))
 
-	k.PruneSequencerHeights(ctx, []string{seq.Address}, 6)
+	err = k.PruneSequencerHeights(ctx, []string{seq.Address}, 6)
+	require.NoError(t, err)
 
 	err = k.CanUnbond(ctx, seq)
 	require.True(t, errorsmod.IsOf(err, sequencertypes.ErrUnbondNotAllowed))

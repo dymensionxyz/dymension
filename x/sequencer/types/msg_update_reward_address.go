@@ -24,5 +24,5 @@ func (m *MsgUpdateRewardAddress) ValidateBasic() error {
 
 func (m *MsgUpdateRewardAddress) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(m.Creator)
-	return []sdk.AccAddress{sdk.AccAddress(addr)}
+	return []sdk.AccAddress{addr}
 }

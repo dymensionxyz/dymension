@@ -81,7 +81,7 @@ func (s *SequencerTestSuite) TestFraud() {
 }
 
 // a full flow 'e2e' to make sure things are sensible
-// There are many many different scenarious that could be tested
+// There are many many different scenarios that could be tested
 // Here pick one which might be typical/realistic
 // 1. Sequencer is active
 // 2. Sequencer is does notice and starts to rotate
@@ -110,7 +110,8 @@ func (s *SequencerTestSuite) TestFraudFullFlowDuringRotation() {
 	s.Require().True(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
 
 	// instead of submitting last, proposer does a fraud
-	s.k().HandleFraud(s.Ctx, s.seq(alice), nil)
+	err = s.k().HandleFraud(s.Ctx, s.seq(alice), nil)
+	s.Require().NoError(err)
 	s.Require().False(s.k().IsProposer(s.Ctx, s.seq(alice)))
 	s.Require().False(s.k().IsProposer(s.Ctx, s.seq(bob)))
 	s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(bob)))

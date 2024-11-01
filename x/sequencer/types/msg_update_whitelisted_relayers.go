@@ -61,5 +61,5 @@ func Bech32ToAddr[T sdk.AccAddress | sdk.ValAddress](addr string) (T, error) {
 
 func (m *MsgUpdateWhitelistedRelayers) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(m.Creator)
-	return []sdk.AccAddress{sdk.AccAddress(addr)}
+	return []sdk.AccAddress{addr}
 }

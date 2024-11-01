@@ -56,7 +56,8 @@ func (s *TestSuite) TestUnbondConditionFlow() {
 	utest.IsErr(s.Require(), err, sequencertypes.ErrUnbondNotAllowed)
 
 	// we prune some, but still not allowed
-	s.k().PruneSigners(s.Ctx, seq.RollappId, 6)
+	err = s.k().PruneSigners(s.Ctx, seq.RollappId, 6)
+	s.Require().NoError(err)
 
 	err = s.k().CanUnbond(s.Ctx, seq)
 	utest.IsErr(s.Require(), err, sequencertypes.ErrUnbondNotAllowed)
