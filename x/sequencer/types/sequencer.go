@@ -166,6 +166,7 @@ func PubKey(pk *codectypes.Any) (cryptotypes.PubKey, error) {
 	return pubKey, err
 }
 
+// PubKeyAddr returns comet/dymint 'proposer address' if pkA is an ed25519 pubkey
 func PubKeyAddr(pkA *codectypes.Any) ([]byte, error) {
 	pk, err := PubKey(pkA)
 	if err != nil {
