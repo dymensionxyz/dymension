@@ -92,8 +92,9 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 
 	demandOrderDenom := k.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
 	demandOrderRecipient := fungibleTokenPacketData.Receiver // who we tried to send to
+	creationHeight := uint64(ctx.BlockHeight())
 
-	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight)
 	return order, nil
 }
 
@@ -123,8 +124,9 @@ func (k Keeper) CreateDemandOrderOnErrAckOrTimeout(ctx sdk.Context, fungibleToke
 	trace := transfertypes.ParseDenomTrace(fungibleTokenPacketData.Denom)
 	demandOrderDenom := trace.IBCDenom()
 	demandOrderRecipient := fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
+	creationHeight := uint64(ctx.BlockHeight())
 
-	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight)
 	return order, nil
 }
 

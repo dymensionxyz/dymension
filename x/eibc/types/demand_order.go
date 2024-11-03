@@ -16,7 +16,7 @@ import (
 // NewDemandOrder creates a new demand order.
 // Price is the cost to a market maker to buy the option, (recipient receives straight away).
 // Fee is what the market maker gets in return.
-func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int, denom, recipient string) *DemandOrder {
+func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int, denom, recipient string, creationHeight uint64) *DemandOrder {
 	rollappPacketKey := rollappPacket.RollappPacketKey()
 	return &DemandOrder{
 		Id:                   BuildDemandIDFromPacketKey(string(rollappPacketKey)),
@@ -27,6 +27,7 @@ func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int
 		TrackingPacketStatus: commontypes.Status_PENDING,
 		RollappId:            rollappPacket.RollappId,
 		Type:                 rollappPacket.Type,
+		CreationHeight:       creationHeight,
 	}
 }
 
@@ -59,6 +60,10 @@ func (m *DemandOrder) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Recipient)
 	if err != nil {
 		return ErrInvalidRecipientAddress
+	}
+
+	if m.CreationHeight == 0 {
+		return ErrInvalidCreationHeight
 	}
 
 	return nil
@@ -96,6 +101,20 @@ func (m *DemandOrder) GetFulfilledEvent() *EventDemandOrderFulfilled {
 		PacketStatus: m.TrackingPacketStatus.String(),
 		Fulfiller:    m.FulfillerAddress,
 		PacketType:   m.Type.String(),
+	}
+}
+
+func (m *DemandOrder) GetFulfilledAuthorizedEvent(creationHeight uint64, lpAddress string) *EventDemandOrderFulfilledAuthorized {
+	return &EventDemandOrderFulfilledAuthorized{
+		OrderId:        m.Id,
+		Price:          m.Price.String(),
+		Fee:            m.Fee.String(),
+		IsFulfilled:    true,
+		PacketStatus:   m.TrackingPacketStatus.String(),
+		Fulfiller:      m.FulfillerAddress,
+		PacketType:     m.Type.String(),
+		CreationHeight: creationHeight,
+		LpAddress:      lpAddress,
 	}
 }
 
