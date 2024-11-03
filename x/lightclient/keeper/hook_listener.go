@@ -71,9 +71,14 @@ func (hook rollappHook) validateOptimisticUpdate(
 	rollapp string,
 	client string,
 	nextSequencer sequencertypes.Sequencer,
-	cache *rollapptypes.StateInfo,
+	cache *rollapptypes.StateInfo, // a place to look up the BD for a height
 	h uint64,
 ) error {
+	got, ok := hook.getConsensusState(ctx, client, h)
+	if !ok {
+		// done, nothing to validate
+		return nil
+	}
 	expectBD, err := hook.getBlockDescriptor(ctx, rollapp, cache, h)
 	if err != nil {
 		return err
@@ -81,11 +86,6 @@ func (hook rollappHook) validateOptimisticUpdate(
 	expect := types.RollappState{
 		BlockDescriptor:    expectBD,
 		NextBlockSequencer: nextSequencer,
-	}
-	got, ok := hook.getConsensusState(ctx, client, h)
-	if !ok {
-		// done, nothing to validate
-		return nil
 	}
 	signerAddr, err := hook.k.GetSigner(ctx, client, h)
 	if err != nil {
