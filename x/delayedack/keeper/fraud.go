@@ -41,7 +41,10 @@ func (k Keeper) HandleHardFork(ctx sdk.Context, rollappID string, height uint64,
 		}
 
 		// delete the packet
-		k.DeleteRollappPacket(ctx, &rollappPacket) // nolint: errcheck
+		err := k.DeleteRollappPacket(ctx, &rollappPacket)
+		if err != nil {
+			logger.Error("failed to delete reverted packet", append(logContext, "error", err.Error())...)
+		}
 		logger.Debug("reverted IBC rollapp packet", logContext...)
 	}
 
