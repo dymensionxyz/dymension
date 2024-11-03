@@ -28,6 +28,9 @@ import (
 
 type ChannelKeeperStub struct{}
 
+func (c ChannelKeeperStub) SetPacketCommitment(ctx sdk.Context, portID string, channelID string, sequence uint64, commitmentHash []byte) {
+}
+
 func (c ChannelKeeperStub) SetPacketReceipt(ctx sdk.Context, portID string, channelID string, sequence uint64) {
 }
 

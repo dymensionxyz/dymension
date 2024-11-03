@@ -2,24 +2,16 @@ package keeper_test
 
 import (
 	"github.com/cometbft/cometbft/libs/rand"
-	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	damodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	dakeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func (suite *DelayedAckTestSuite) TestInvariants() {
 	suite.T().Skip("skipping TestInvariants as it's not supported with lazy finalization feature")
-
-	transferStack := damodule.NewIBCMiddleware(
-		damodule.WithIBCModule(ibctransfer.NewIBCModule(suite.App.TransferKeeper)),
-		damodule.WithKeeper(suite.App.DelayedAckKeeper),
-		damodule.WithRollappKeeper(suite.App.RollappKeeper),
-	)
 
 	initialHeight := int64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(initialHeight)
@@ -82,7 +74,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 
 	// test fraud
 	for rollapp := range seqPerRollapp {
-		err := suite.App.DelayedAckKeeper.HandleHardFork(suite.Ctx, rollapp, uint64(suite.Ctx.BlockHeight()), transferStack)
+		err := suite.App.DelayedAckKeeper.OnHardFork(suite.Ctx, rollapp, uint64(suite.Ctx.BlockHeight()))
 		suite.Require().NoError(err)
 		break
 	}

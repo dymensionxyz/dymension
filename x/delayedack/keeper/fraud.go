@@ -4,17 +4,20 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (k Keeper) HandleHardFork(ctx sdk.Context, rollappID string, height uint64, ibc porttypes.IBCModule) error {
+var _ rollapptypes.RollappHooks = &Keeper{}
+
+func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) error {
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
 	// Get all the pending packets from fork height inclusive
-	rollappPendingPackets := k.ListRollappPackets(ctx, types.PendingByRollappIDFromHeight(rollappID, height))
+	rollappPendingPackets := k.ListRollappPackets(ctx, types.PendingByRollappIDFromHeight(rollappID, fraudHeight))
 
 	// Iterate over all the pending packets and revert them
 	for _, rollappPacket := range rollappPendingPackets {
@@ -26,14 +29,11 @@ func (k Keeper) HandleHardFork(ctx sdk.Context, rollappID string, height uint64,
 			"sequence", rollappPacket.Packet.Sequence,
 		}
 
-		// refund all pending outgoing packets
 		if rollappPacket.Type == commontypes.RollappPacket_ON_ACK || rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
-			// FIXME: #1380 create packet commitments instead
-			// we don't have access directly to `refundPacketToken` function, so we'll use the `OnTimeoutPacket` function
-			err := ibc.OnTimeoutPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
-			if err != nil {
-				logger.Error("failed to refund reverted packet", append(logContext, "error", err.Error())...)
-			}
+			// for sent packets, we restore the packet commitment
+			// the packet will be handled over the new rollapp revision
+			commitment := channeltypes.CommitPacket(k.cdc, rollappPacket.Packet)
+			k.channelKeeper.SetPacketCommitment(ctx, rollappPacket.Packet.SourcePort, rollappPacket.Packet.SourceChannel, rollappPacket.Packet.Sequence, commitment)
 		} else {
 			// for incoming packets, we need to reset the packet receipt
 			ibcPacket := rollappPacket.Packet

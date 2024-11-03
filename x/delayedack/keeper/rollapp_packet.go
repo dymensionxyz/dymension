@@ -174,6 +174,7 @@ func (k Keeper) DeleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.
 	store.Delete(rollappPacketKey)
 
 	keeperHooks := k.GetHooks()
+	// TODO: can call eIBC directly. shouldn't return error anyway
 	err := keeperHooks.AfterPacketDeleted(ctx, rollappPacket)
 	if err != nil {
 		return err
