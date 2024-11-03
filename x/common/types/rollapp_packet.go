@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 func (r RollappPacket) LogString() string {
@@ -46,12 +45,17 @@ func (r RollappPacket) GetEvents() []sdk.Attribute {
 		pd, _ = r.GetTransferPacketData()
 	}
 
-	var isAck bool
+	var acknowledgement = "none"
 	if len(r.Acknowledgement) != 0 {
 		ack, err := r.GetAck()
 		// It's okay if we can't get acknowledgement
 		if err == nil {
-			isAck = ack.Success()
+			switch ack.GetResponse().(type) {
+			case *channeltypes.Acknowledgement_Result:
+				acknowledgement = "success"
+			case *channeltypes.Acknowledgement_Error:
+				acknowledgement = "error"
+			}
 		}
 	}
 
@@ -65,7 +69,7 @@ func (r RollappPacket) GetEvents() []sdk.Attribute {
 		sdk.NewAttribute(AttributeKeyPacketSequence, strconv.FormatUint(r.Packet.Sequence, 10)),
 		sdk.NewAttribute(AttributeKeyPacketProofHeight, strconv.FormatUint(r.ProofHeight, 10)),
 		sdk.NewAttribute(AttributeKeyPacketType, r.Type.String()),
-		sdk.NewAttribute(AttributeKeyPacketAcknowledgement, strconv.FormatBool(isAck)),
+		sdk.NewAttribute(AttributeKeyPacketAcknowledgement, acknowledgement),
 		sdk.NewAttribute(AttributeKeyPacketDataDenom, pd.Denom),
 		sdk.NewAttribute(AttributeKeyPacketDataAmount, pd.Amount),
 		sdk.NewAttribute(AttributeKeyPacketDataSender, pd.Sender),
@@ -87,10 +91,10 @@ func (r RollappPacket) GetTransferPacketData() (transfertypes.FungibleTokenPacke
 	return data, nil
 }
 
-func (r RollappPacket) GetAck() (exported.Acknowledgement, error) {
+func (r RollappPacket) GetAck() (channeltypes.Acknowledgement, error) {
 	var ack channeltypes.Acknowledgement
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(r.Acknowledgement, &ack); err != nil {
-		return nil, err
+		return channeltypes.Acknowledgement{}, err
 	}
 	return ack, nil
 }
