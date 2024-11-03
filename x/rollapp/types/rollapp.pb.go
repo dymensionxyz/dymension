@@ -148,7 +148,8 @@ type Rollapp struct {
 	// received
 	LastStateUpdateHeight int64 `protobuf:"varint,18,opt,name=last_state_update_height,json=lastStateUpdateHeight,proto3" json:"last_state_update_height,omitempty"`
 	// The revision number of the rollapp. starts always with 0 revision
-	RevisionNumber      uint64 `protobuf:"varint,19,opt,name=revision_number,json=revisionNumber,proto3" json:"revision_number,omitempty"`
+	RevisionNumber uint64 `protobuf:"varint,19,opt,name=revision_number,json=revisionNumber,proto3" json:"revision_number,omitempty"`
+	// The first height of the rollapp when the revision started
 	RevisionStartHeight uint64 `protobuf:"varint,20,opt,name=revision_start_height,json=revisionStartHeight,proto3" json:"revision_start_height,omitempty"`
 }
 

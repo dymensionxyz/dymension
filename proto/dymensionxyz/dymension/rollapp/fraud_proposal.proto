@@ -29,4 +29,4 @@ message MsgRollappFraudProposal {
   string slash_sequencer_address = 6;
 }
 
-// TODO: add slashing  only proposal?
+// TODO: add slashing only proposal (e.g for double signing)

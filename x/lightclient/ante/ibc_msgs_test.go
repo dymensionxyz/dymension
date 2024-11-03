@@ -19,7 +19,7 @@ type MockRollappKeeper struct {
 
 // GetLatestStateInfo implements types.RollappKeeperExpected.
 func (m *MockRollappKeeper) GetLatestStateInfo(ctx sdk.Context, rollappId string) (rollapptypes.StateInfo, bool) {
-	panic("unimplemented")
+	return rollapptypes.StateInfo{}, false
 }
 
 func NewMockRollappKeeper(rollapps map[string]rollapptypes.Rollapp, stateInfos map[string]map[uint64]rollapptypes.StateInfo) *MockRollappKeeper {

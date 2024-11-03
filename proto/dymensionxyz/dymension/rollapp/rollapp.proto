@@ -42,8 +42,7 @@ message Rollapp {
   // channel_id will be set to the canonical IBC channel of the rollapp.
   string channel_id = 8;
 
-  reserved 9;
-  reserved 10;
+  reserved 9,10;
   
   // metadata is the rollapp metadata
   RollappMetadata metadata = 11;
@@ -78,6 +77,7 @@ message Rollapp {
 
   // The revision number of the rollapp. starts always with 0 revision
   uint64 revision_number = 19;
+  // The first height of the rollapp when the revision started
   uint64 revision_start_height = 20;
 }
 

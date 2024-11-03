@@ -28,6 +28,7 @@ func (k Keeper) HandleHardFork(ctx sdk.Context, rollappID string, height uint64,
 
 		// refund all pending outgoing packets
 		if rollappPacket.Type == commontypes.RollappPacket_ON_ACK || rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
+			// FIXME: #1380 create packet commitments instead
 			// we don't have access directly to `refundPacketToken` function, so we'll use the `OnTimeoutPacket` function
 			err := ibc.OnTimeoutPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 			if err != nil {

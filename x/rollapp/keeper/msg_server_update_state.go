@@ -94,7 +94,6 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// verify the DRS version is not vulnerable
 	// check only last block descriptor DRS, since if that last is not vulnerable it means the rollapp already upgraded and is not vulnerable anymore
 	// Rollapp is using a vulnerable DRS version, hard fork it
-	// we must return non-error if we want the changes to be saved
 	if k.IsStateUpdateVulnerable(ctx, stateInfo) {
 		err := k.HardForkToLatest(ctx, msg.RollappId)
 		if err != nil {
@@ -103,6 +102,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		k.Logger(ctx).With("rollapp_id", msg.RollappId, "drs_version", stateInfo.GetLatestBlockDescriptor().DrsVersion).
 			Info("rollapp tried to submit MsgUpdateState with the vulnerable DRS version, mark the rollapp as vulnerable")
 
+		// we must return non-error if we want the changes to be saved
 		return &types.MsgUpdateStateResponse{}, nil
 	}
 
