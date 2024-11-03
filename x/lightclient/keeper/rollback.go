@@ -11,12 +11,12 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
-func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappId string, height uint64) error {
-	hook.k.RollbackCanonicalClient(ctx, rollappId, height)
+func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappId string, fraudHeight uint64) error {
+	hook.k.RollbackCanonicalClient(ctx, rollappId, fraudHeight)
 	return nil
 }
 
-func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, height uint64) {
+func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, fraudHeight uint64) {
 	client, found := k.GetCanonicalClient(ctx, rollappId)
 	if !found {
 		k.Logger(ctx).Error("Canonical client not found", "rollappId", rollappId)
@@ -25,9 +25,10 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, heigh
 	cs := k.ibcClientKeeper.ClientStore(ctx, client)
 
 	// iterate over all consensus states and metadata in the client store
+	// FIXME: iterate descending
 	ibctm.IterateConsensusStateAscending(cs, func(h exported.Height) bool {
 		// if the height is lower than the target height, continue
-		if h.GetRevisionHeight() < height {
+		if h.GetRevisionHeight() < fraudHeight {
 			return false
 		}
 
@@ -36,7 +37,7 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, heigh
 		deleteConsensusMetadata(cs, h)
 
 		// clean the optimistic updates valset
-		k.RemoveConsensusStateValHash(ctx, client, height)
+		k.RemoveConsensusStateValHash(ctx, client, h.GetRevisionHeight())
 
 		return false
 	})
@@ -45,7 +46,7 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, heigh
 
 	// freeze the client
 	// it will be released after the hardfork is resolved (on the next state update)
-	k.freezeClient(cs, height)
+	k.freezeClient(cs, fraudHeight)
 }
 
 // set latest IBC consensus state nextValHash to the current proposing sequencer.
@@ -57,11 +58,13 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) {
 	height := stateinfo.GetLatestHeight()
 	bd := stateinfo.GetLatestBlockDescriptor()
 
+	// get the valHash of this sequencer
+	proposer, _ := k.sequencerKeeper.GetSequencer(ctx, stateinfo.Sequencer)
+	valHash, _ := proposer.GetDymintPubKeyHash()
+
 	// unfreeze the client and set the latest height
 	k.resetClientToValidState(clientStore, height)
-
 	// add consensus states based on the block descriptors
-	valHash := k.getValidatorHashForHeight(ctx, rollappID, height)
 	cs := ibctm.ConsensusState{
 		Timestamp:          bd.Timestamp,
 		Root:               commitmenttypes.NewMerkleRoot(bd.StateRoot),
@@ -76,7 +79,7 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) {
 // freezeClient freezes the client by setting the frozen height to the current height
 func (k Keeper) freezeClient(clientStore sdk.KVStore, height uint64) {
 	c := getClientState(clientStore, k.cdc)
-	tmClientState := c.(*ibctm.ClientState)
+	tmClientState, _ := c.(*ibctm.ClientState)
 
 	// freeze the client
 	tmClientState.FrozenHeight = clienttypes.NewHeight(1, height)
@@ -86,21 +89,13 @@ func (k Keeper) freezeClient(clientStore sdk.KVStore, height uint64) {
 // freezeClient freezes the client by setting the frozen height to the current height
 func (k Keeper) resetClientToValidState(clientStore sdk.KVStore, height uint64) {
 	c := getClientState(clientStore, k.cdc)
-	tmClientState := c.(*ibctm.ClientState)
+	tmClientState, _ := c.(*ibctm.ClientState)
 
 	// unfreeze the client and set the latest height
 	tmClientState.FrozenHeight = clienttypes.ZeroHeight()
 	tmClientState.LatestHeight = clienttypes.NewHeight(1, height)
 
 	setClientState(clientStore, k.cdc, tmClientState)
-}
-
-// FIXME: assure there's no case with no proposer
-func (k Keeper) getValidatorHashForHeight(ctx sdk.Context, rollappId string, height uint64) []byte {
-	proposer, _ := k.sequencerKeeper.GetProposer(ctx, rollappId)
-	proposerHash, _ := proposer.GetDymintPubKeyHash()
-
-	return proposerHash
 }
 
 func (k Keeper) setHardForkInProgress(ctx sdk.Context, rollappID string) {

@@ -95,20 +95,7 @@ func (hook rollappHook) checkStateForHeight(ctx sdk.Context, rollappId string, b
 	}
 	err := types.CheckCompatibility(*tmConsensusState, rollappState)
 	if err != nil {
-		// If the state is not compatible,
-		// Take this state update as source of truth over the IBC update
-		// Punish the block proposer of the IBC signed header
-		sequencerAddress, err := hook.k.GetSequencerFromValHash(ctx, rollappId, blockValHash)
-		if err != nil {
-			return err
-		}
-		// FIXME: punish the sequencer
-		hook.k.sequencerKeeper.JailSequencerOnFraud(ctx, sequencerAddress)
-
-		err = hook.k.rollappKeeper.HardFork(ctx, rollappId, bd.GetHeight())
-		if err != nil {
-			return err
-		}
+		return err
 	}
 	hook.k.RemoveConsensusStateValHash(ctx, canonicalClient, bd.GetHeight())
 	return nil

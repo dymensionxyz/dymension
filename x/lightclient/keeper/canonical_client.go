@@ -83,7 +83,7 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.Client
 		return errorsmod.Wrap(err, "params")
 	}
 
-	// FIXME: can be refactored using iterators
+	// FIXME: No need to get all consensus states. should iterate over the consensus states in reverse order
 	res, err := k.ibcClientKeeper.ConsensusStateHeights(ctx, &ibcclienttypes.QueryConsensusStateHeightsRequest{
 		ClientId:   clientID,
 		Pagination: &query.PageRequest{Limit: maxHeight},
