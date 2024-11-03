@@ -4,13 +4,15 @@ import (
 	"encoding/binary"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
+
+// functions here copied from ibc-go/modules/core/02-client/keeper/
+// as we need direct access to the client store
 
 // getClientState returns the client state for a particular client
 func getClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec) exported.ClientState {
@@ -33,26 +35,6 @@ func setConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, height ex
 	key := host.ConsensusStateKey(height)
 	val := clienttypes.MustMarshalConsensusState(cdc, cs)
 	clientStore.Set(key, val)
-}
-
-func GetPreviousConsensusStateHeight(clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (exported.Height, bool) {
-	iterateStore := prefix.NewStore(clientStore, []byte(ibctm.KeyIterateConsensusStatePrefix))
-	iterator := iterateStore.ReverseIterator(nil, bigEndianHeightBytes(height))
-	defer iterator.Close()
-
-	if !iterator.Valid() {
-		return nil, false
-	}
-
-	prevHeight := ibctm.GetHeightFromIterationKey(iterator.Key())
-	return prevHeight, true
-}
-
-func bigEndianHeightBytes(height exported.Height) []byte {
-	heightBytes := make([]byte, 16)
-	binary.BigEndian.PutUint64(heightBytes, height.GetRevisionNumber())
-	binary.BigEndian.PutUint64(heightBytes[8:], height.GetRevisionHeight())
-	return heightBytes
 }
 
 // deleteConsensusMetadata deletes the metadata stored for a particular consensus state.
@@ -84,4 +66,11 @@ func deleteProcessedHeight(clientStore sdk.KVStore, height exported.Height) {
 func deleteIterationKey(clientStore sdk.KVStore, height exported.Height) {
 	key := ibctm.IterationKey(height)
 	clientStore.Delete(key)
+}
+
+func bigEndianHeightBytes(height exported.Height) []byte {
+	heightBytes := make([]byte, 16)
+	binary.BigEndian.PutUint64(heightBytes, height.GetRevisionNumber())
+	binary.BigEndian.PutUint64(heightBytes[8:], height.GetRevisionHeight())
+	return heightBytes
 }

@@ -1,9 +1,10 @@
 package keeper
 
 import (
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -25,11 +26,10 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, fraud
 	cs := k.ibcClientKeeper.ClientStore(ctx, client)
 
 	// iterate over all consensus states and metadata in the client store
-	// FIXME: iterate descending
-	ibctm.IterateConsensusStateAscending(cs, func(h exported.Height) bool {
-		// if the height is lower than the target height, continue
+	IterateConsensusStateDescending(cs, func(h exported.Height) bool {
+		// iterate until we pass the fraud height
 		if h.GetRevisionHeight() < fraudHeight {
-			return false
+			return true
 		}
 
 		// delete consensus state and metadata
@@ -98,16 +98,30 @@ func (k Keeper) resetClientToValidState(clientStore sdk.KVStore, height uint64) 
 	setClientState(clientStore, k.cdc, tmClientState)
 }
 
-func (k Keeper) setHardForkInProgress(ctx sdk.Context, rollappID string) {
-	ctx.KVStore(k.storeKey).Set(types.HardForkKey(rollappID), []byte{0x01})
+func GetPreviousConsensusStateHeight(clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (exported.Height, bool) {
+	iterateStore := prefix.NewStore(clientStore, []byte(ibctm.KeyIterateConsensusStatePrefix))
+	iterator := iterateStore.ReverseIterator(nil, bigEndianHeightBytes(height))
+	defer iterator.Close() // nolint: errcheck
+
+	if !iterator.Valid() {
+		return nil, false
+	}
+
+	prevHeight := ibctm.GetHeightFromIterationKey(iterator.Key())
+	return prevHeight, true
 }
 
-// remove the hardfork key from the store
-func (k Keeper) setHardForkResolved(ctx sdk.Context, rollappID string) {
-	ctx.KVStore(k.storeKey).Delete(types.HardForkKey(rollappID))
-}
+// IterateConsensusStateDescending iterates through all consensus states in descending order
+// until cb returns true.
+func IterateConsensusStateDescending(clientStore sdk.KVStore, cb func(height exported.Height) (stop bool)) {
+	iterator := sdk.KVStoreReversePrefixIterator(clientStore, []byte(ibctm.KeyIterateConsensusStatePrefix))
+	defer iterator.Close() // nolint: errcheck
 
-// checks if rollapp is hard forking
-func (k Keeper) IsHardForkingInProgress(ctx sdk.Context, rollappID string) bool {
-	return ctx.KVStore(k.storeKey).Has(types.HardForkKey(rollappID))
+	for ; iterator.Valid(); iterator.Next() {
+		iterKey := iterator.Key()
+		height := ibctm.GetHeightFromIterationKey(iterKey)
+		if cb(height) {
+			break
+		}
+	}
 }

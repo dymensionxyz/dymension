@@ -138,3 +138,17 @@ func (k Keeper) ExpectedClientState(goCtx context.Context, req *types.QueryExpec
 	}
 	return &types.QueryExpectedClientStateResponse{ClientState: anyClient}, nil
 }
+
+func (k Keeper) setHardForkInProgress(ctx sdk.Context, rollappID string) {
+	ctx.KVStore(k.storeKey).Set(types.HardForkKey(rollappID), []byte{0x01})
+}
+
+// remove the hardfork key from the store
+func (k Keeper) setHardForkResolved(ctx sdk.Context, rollappID string) {
+	ctx.KVStore(k.storeKey).Delete(types.HardForkKey(rollappID))
+}
+
+// checks if rollapp is hard forking
+func (k Keeper) IsHardForkingInProgress(ctx sdk.Context, rollappID string) bool {
+	return ctx.KVStore(k.storeKey).Has(types.HardForkKey(rollappID))
+}
