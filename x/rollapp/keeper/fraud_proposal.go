@@ -28,6 +28,11 @@ func (k Keeper) FraudProposalHandler(ctx sdk.Context, msg types.MsgRollappFraudP
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "revision number mismatch")
 	}
 
+	// validate the rollapp is past it's genesis bridge phase
+	if !rollapp.IsTransferEnabled() {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp is not past genesis bridge phase")
+	}
+
 	// validate the fraud height is already committed
 	sinfo, found := k.GetLatestStateInfo(ctx, msg.RollappId)
 	if !found || sinfo.GetLatestHeight() < msg.FraudHeight {

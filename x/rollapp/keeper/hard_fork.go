@@ -19,14 +19,6 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) 
 		return gerrc.ErrNotFound
 	}
 
-	// FIXME: enable later on
-	/*
-		// enforce the assumption that genesis transfer is completed before hard fork
-		if !rollapp.IsTransferEnabled() {
-			return errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "can't hard fork before transfer is enabled")
-		}
-	*/
-
 	lastCommittedHeight, err := k.RevertPendingStates(ctx, rollappID, fraudHeight)
 	if err != nil {
 		return errorsmod.Wrap(err, "revert pending states")
