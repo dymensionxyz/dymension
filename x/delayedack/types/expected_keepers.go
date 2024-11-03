@@ -14,6 +14,7 @@ import (
 type ChannelKeeper interface {
 	LookupModuleByChannel(ctx sdk.Context, portID, channelID string) (string, *capabilitytypes.Capability, error)
 	SetPacketReceipt(ctx sdk.Context, portID, channelID string, sequence uint64)
+	SetPacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64, commitmentHash []byte)
 }
 
 type RollappKeeper interface {

@@ -12,9 +12,12 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 type Keeper struct {
+	rollapptypes.StubRollappCreatedHooks
+
 	cdc                   codec.BinaryCodec
 	storeKey              storetypes.StoreKey
 	channelKeeperStoreKey storetypes.StoreKey // we need direct access to the IBC channel store

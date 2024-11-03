@@ -7,7 +7,12 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibcmerkle "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -236,4 +241,109 @@ func (s *delayedAckSuite) TestHubToRollappTimeout() {
 	s.Require().Equal(preSendBalance.Amount, postFinalizeBalance.Amount)
 }
 
-// FIXME: test refunds due to hard fork + receipt deletion
+// TestHardFork tests the hard fork handling for outgoing packets from the hub to the rollapp.
+// we assert the packets commitments are restored and the pending packets are ackable after the hard fork.
+func (s *delayedAckSuite) TestHardFork_HubToRollapp() {
+	path := s.newTransferPath(s.hubChain(), s.rollappChain())
+	s.coordinator.Setup(path)
+
+	// Setup endpoints
+	var (
+		hubEndpoint     = path.EndpointA
+		hubIBCKeeper    = s.hubChain().App.GetIBCKeeper()
+		senderAccount   = s.hubChain().SenderAccount.GetAddress()
+		receiverAccount = s.rollappChain().SenderAccount.GetAddress()
+
+		amount, _     = sdk.NewIntFromString("1000000000000000000") // 1DYM
+		coinToSendToB = sdk.NewCoin(sdk.DefaultBondDenom, amount)
+		timeoutHeight = clienttypes.Height{RevisionNumber: 1, RevisionHeight: 50}
+	)
+
+	// Create rollapp and update its initial state
+	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
+	s.setRollappLightClientID(s.rollappCtx().ChainID(), path.EndpointA.ClientID)
+	s.registerSequencer()
+	s.updateRollappState(uint64(s.rollappCtx().BlockHeight()))
+
+	// send from hubChain to rollappChain
+	balanceBefore := s.hubApp().BankKeeper.GetBalance(s.hubCtx(), senderAccount, sdk.DefaultBondDenom)
+	msg := types.NewMsgTransfer(hubEndpoint.ChannelConfig.PortID, hubEndpoint.ChannelID, coinToSendToB, senderAccount.String(), receiverAccount.String(), timeoutHeight, disabledTimeoutTimestamp, "")
+	res, err := s.hubChain().SendMsgs(msg)
+	s.Require().NoError(err)
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	s.Require().NoError(err)
+
+	// assert commitments are created
+	found := hubIBCKeeper.ChannelKeeper.HasPacketCommitment(s.hubCtx(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	s.Require().True(found)
+
+	// Update the client
+	err = hubEndpoint.UpdateClient()
+	s.Require().NoError(err)
+
+	err = path.RelayPacket(packet)
+	s.Require().NoError(err) // expecting error as no AcknowledgePacket expected to return
+
+	// progress the rollapp chain
+	s.coordinator.CommitNBlocks(s.rollappChain(), 110)
+
+	// Update the client
+	err = hubEndpoint.UpdateClient()
+	s.Require().NoError(err)
+
+	// write ack optimistically
+	err = path.EndpointA.AcknowledgePacket(packet, []byte{0x1})
+	s.Require().NoError(err)
+
+	// assert commitments are no longer available
+	found = hubIBCKeeper.ChannelKeeper.HasPacketCommitment(s.hubCtx(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	s.Require().False(found)
+
+	// timeout the packet, can't check for error (ErrNoOp). we assert the balance refund
+	err = path.EndpointA.TimeoutPacket(packet)
+	s.Require().NoError(err)
+	balanceAfter := s.hubApp().BankKeeper.GetBalance(s.hubCtx(), senderAccount, sdk.DefaultBondDenom)
+	s.Require().NotEqual(balanceBefore.String(), balanceAfter.String())
+
+	// hard fork
+	err = s.hubApp().DelayedAckKeeper.OnHardFork(s.hubCtx(), s.rollappCtx().ChainID(), 5)
+	s.Require().NoError(err)
+
+	// assert commitments are created again
+	found = hubIBCKeeper.ChannelKeeper.HasPacketCommitment(s.hubCtx(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	s.Require().True(found)
+
+	// Update the client
+	err = hubEndpoint.UpdateClient()
+	s.Require().NoError(err)
+
+	// timeout the packet. we expect for verification error
+	timeoutMsg := getTimeOutPacket(hubEndpoint, packet)
+	_, _, err = simapp.SignAndDeliver(
+		path.EndpointA.Chain.T,
+		path.EndpointA.Chain.TxConfig,
+		path.EndpointA.Chain.App.GetBaseApp(),
+		path.EndpointA.Chain.GetContext().BlockHeader(),
+		[]sdk.Msg{timeoutMsg},
+		path.EndpointA.Chain.ChainID,
+		[]uint64{path.EndpointA.Chain.SenderAccount.GetAccountNumber()},
+		[]uint64{path.EndpointA.Chain.SenderAccount.GetSequence()},
+		true, false, path.EndpointA.Chain.SenderPrivKey,
+	)
+	s.Require().ErrorIs(err, ibcmerkle.ErrInvalidProof)
+}
+
+func getTimeOutPacket(endpoint *ibctesting.Endpoint, packet channeltypes.Packet) *channeltypes.MsgTimeout {
+	packetKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	counterparty := endpoint.Counterparty
+	proof, proofHeight := counterparty.QueryProof(packetKey)
+	nextSeqRecv, found := counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(counterparty.Chain.GetContext(), counterparty.ChannelConfig.PortID, counterparty.ChannelID)
+	require.True(endpoint.Chain.T, found)
+
+	timeoutMsg := channeltypes.NewMsgTimeout(
+		packet, nextSeqRecv,
+		proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	return timeoutMsg
+}

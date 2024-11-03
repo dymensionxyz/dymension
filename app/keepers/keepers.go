@@ -617,7 +617,7 @@ func (a *AppKeepers) SetupHooks() {
 	a.RollappKeeper.SetHooks(rollappmoduletypes.NewMultiRollappHooks(
 		// insert rollapp hooks receivers here
 		a.SequencerKeeper.RollappHooks(),
-		a.delayedAckMiddleware,
+		a.DelayedAckKeeper,
 		a.StreamerKeeper.Hooks(),
 		a.DymNSKeeper.GetRollAppHooks(),
 		a.LightClientKeeper.RollappHooks(),

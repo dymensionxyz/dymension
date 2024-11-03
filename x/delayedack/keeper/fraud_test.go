@@ -1,22 +1,14 @@
 package keeper_test
 
 import (
-	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	damodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
 func (suite *DelayedAckTestSuite) TestHandleFraud() {
 	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
-	transferStack := damodule.NewIBCMiddleware(
-		damodule.WithIBCModule(ibctransfer.NewIBCModule(suite.App.TransferKeeper)),
-		damodule.WithKeeper(keeper),
-		damodule.WithRollappKeeper(suite.App.RollappKeeper),
-	)
-
 	rollappId := "testRollappId"
 	pkts := generatePackets(rollappId, 10)
 	rollappId2 := "testRollappId2"
@@ -40,7 +32,7 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 	suite.Require().Nil(err)
 
 	// call fraud on the 4 packet
-	err = keeper.HandleHardFork(ctx, rollappId, 4, transferStack)
+	err = keeper.OnHardFork(ctx, rollappId, 4)
 	suite.Require().Nil(err)
 
 	// expected result:
@@ -58,8 +50,6 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 	suite.Require().Equal(1, len(keeper.ListRollappPackets(ctx, prefixFinalized2)))
 	suite.Require().Equal(9, len(keeper.ListRollappPackets(ctx, prefixPending2)))
 }
-
-// TODO: test refunds of pending packets
 
 /* ---------------------------------- utils --------------------------------- */
 
