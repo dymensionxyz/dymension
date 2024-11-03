@@ -45,14 +45,16 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 		return nil
 	}
 
-	// FIXME: enable later on
-	/*
-		// this disallows LC updates from previous revisions but should be fine since new state roots can be used to prove
-		// state older than the one in the current state root.
-		if header.Header.Version.App != i.rollappKeeper.GetRevision(ctx, rollappID) {
-			return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "client is not compatible with the rollapp")
-		}
-	*/
+	ra, ok := i.rollappKeeper.GetRollapp(ctx, rollappID)
+	if !ok {
+		return errorsmod.Wrap(gerrc.ErrInternal, "rollapp not found")
+	}
+
+	// this disallows LC updates from previous revisions but should be fine since new state roots can be used to prove
+	// state older than the one in the current state root.
+	if header.Header.Version.App != ra.RevisionNumber {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "client update revision mismatch")
+	}
 
 	// Check if there are existing block descriptors for the given height of client state
 	height := uint64(header.Header.Height)

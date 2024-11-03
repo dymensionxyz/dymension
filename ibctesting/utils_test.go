@@ -22,6 +22,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -109,6 +110,8 @@ func (s *utilSuite) rollappMsgServer() rollapptypes.MsgServer {
 
 // SetupTest creates a coordinator with 2 test chains.
 func (s *utilSuite) SetupTest() {
+	simapp.DefaultAppVersion = 0
+
 	s.coordinator = ibctesting.NewCoordinator(s.T(), 2) // initializes test chains
 	s.coordinator.Chains[rollappChainID()] = s.newTestChainWithSingleValidator(s.T(), s.coordinator, rollappChainID())
 }
