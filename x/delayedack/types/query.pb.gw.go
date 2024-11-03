@@ -153,7 +153,7 @@ func local_request_Query_GetPackets_0(ctx context.Context, marshaler runtime.Mar
 }
 
 var (
-	filter_Query_GetPendingPacketsByReceiver_0 = &utilities.DoubleArray{Encoding: map[string]int{"rollappId": 0, "receiver": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
+	filter_Query_GetPendingPacketsByReceiver_0 = &utilities.DoubleArray{Encoding: map[string]int{"receiver": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_Query_GetPendingPacketsByReceiver_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -166,17 +166,6 @@ func request_Query_GetPendingPacketsByReceiver_0(ctx context.Context, marshaler 
 		err error
 		_   = err
 	)
-
-	val, ok = pathParams["rollappId"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "rollappId")
-	}
-
-	protoReq.RollappId, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "rollappId", err)
-	}
 
 	val, ok = pathParams["receiver"]
 	if !ok {
@@ -211,17 +200,6 @@ func local_request_Query_GetPendingPacketsByReceiver_0(ctx context.Context, mars
 		err error
 		_   = err
 	)
-
-	val, ok = pathParams["rollappId"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "rollappId")
-	}
-
-	protoReq.RollappId, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "rollappId", err)
-	}
 
 	val, ok = pathParams["receiver"]
 	if !ok {
@@ -430,7 +408,7 @@ var (
 
 	pattern_Query_GetPackets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"dymensionxyz", "dymension", "delayedack", "packets", "rollappId", "status"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_GetPendingPacketsByReceiver_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"dymensionxyz", "dymension", "delayedack", "pending-receiver-packets", "rollappId", "receiver"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_GetPendingPacketsByReceiver_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "delayedack", "pending-receiver-packets", "receiver"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

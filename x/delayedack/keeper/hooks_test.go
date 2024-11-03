@@ -52,7 +52,7 @@ func (suite *DelayedAckTestSuite) TestAfterEpochEnd() {
 						SourceChannel:      "testSourceChannel",
 						DestinationPort:    "testDestinationPort",
 						DestinationChannel: "testDestinationChannel",
-						Data:               []byte("testData"),
+						Data:               suite.GenerateTestPacketData(),
 						Sequence:           uint64(i),
 					},
 					Status:      commontypes.Status_PENDING,

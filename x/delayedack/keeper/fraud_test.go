@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	damodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
@@ -18,9 +17,9 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 	)
 
 	rollappId := "testRollappId"
-	pkts := generatePackets(rollappId, 5)
+	pkts := suite.GeneratePackets(rollappId, 5)
 	rollappId2 := "testRollappId2"
-	pkts2 := generatePackets(rollappId2, 5)
+	pkts2 := suite.GeneratePackets(rollappId2, 5)
 	prefixPending1 := types.ByRollappIDByStatus(rollappId, commontypes.Status_PENDING)
 	prefixPending2 := types.ByRollappIDByStatus(rollappId2, commontypes.Status_PENDING)
 	prefixReverted := types.ByRollappIDByStatus(rollappId, commontypes.Status_REVERTED)
@@ -59,9 +58,9 @@ func (suite *DelayedAckTestSuite) TestDeletionOfRevertedPackets() {
 	)
 
 	rollappId := "testRollappId"
-	pkts := generatePackets(rollappId, 5)
+	pkts := suite.GeneratePackets(rollappId, 5)
 	rollappId2 := "testRollappId2"
-	pkts2 := generatePackets(rollappId2, 5)
+	pkts2 := suite.GeneratePackets(rollappId2, 5)
 
 	for _, pkt := range append(pkts, pkts2...) {
 		keeper.SetRollappPacket(ctx, pkt)
@@ -81,25 +80,3 @@ func (suite *DelayedAckTestSuite) TestDeletionOfRevertedPackets() {
 }
 
 // TODO: test refunds of pending packets
-
-/* ---------------------------------- utils --------------------------------- */
-
-func generatePackets(rollappId string, num uint64) []commontypes.RollappPacket {
-	var packets []commontypes.RollappPacket
-	for i := uint64(0); i < num; i++ {
-		packets = append(packets, commontypes.RollappPacket{
-			RollappId: rollappId,
-			Packet: &channeltypes.Packet{
-				SourcePort:         "testSourcePort",
-				SourceChannel:      "testSourceChannel",
-				DestinationPort:    "testDestinationPort",
-				DestinationChannel: "testDestinationChannel",
-				Data:               []byte("testData"),
-				Sequence:           i,
-			},
-			Status:      commontypes.Status_PENDING,
-			ProofHeight: i,
-		})
-	}
-	return packets
-}

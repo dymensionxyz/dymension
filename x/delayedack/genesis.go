@@ -2,6 +2,7 @@ package delayedack
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
@@ -10,6 +11,14 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	k.SetParams(ctx, genState.Params)
 	for _, packet := range genState.RollappPackets {
+		transferPacketData, err := packet.GetTransferPacketData()
+		if err != nil {
+			panic(err)
+		}
+		err = k.SetPendingPacketByReceiver(ctx, transferPacketData.Receiver, packet.RollappPacketKey())
+		if err != nil {
+			panic(err)
+		}
 		k.SetRollappPacket(ctx, packet)
 	}
 }

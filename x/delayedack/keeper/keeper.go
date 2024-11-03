@@ -3,6 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/collections"
+	collcodec "cosmossdk.io/collections/codec"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -11,6 +13,7 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 
+	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -20,6 +23,8 @@ type Keeper struct {
 	storeKey   storetypes.StoreKey
 	hooks      types.MultiDelayedAckHooks
 	paramstore paramtypes.Subspace
+
+	pendingPacketsByReceiver collections.KeySet[collections.Pair[string, []byte]] // key: receiver + packet key
 
 	rollappKeeper types.RollappKeeper
 	porttypes.ICS4Wrapper
@@ -41,9 +46,15 @@ func NewKeeper(
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 	return &Keeper{
-		cdc:           cdc,
-		storeKey:      storeKey,
-		paramstore:    ps,
+		cdc:        cdc,
+		storeKey:   storeKey,
+		paramstore: ps,
+		pendingPacketsByReceiver: collections.NewKeySet(
+			collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey)),
+			collections.NewPrefix(types.PendingPacketsByReceiverKeyPrefix),
+			"pending_packets_by_receiver",
+			collections.PairKeyCodec(collections.StringKey, collcodec.NewBytesKey[[]byte]()),
+		),
 		rollappKeeper: rollappKeeper,
 		ICS4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,

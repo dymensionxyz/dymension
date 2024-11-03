@@ -1,6 +1,8 @@
 package delayedack
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -101,7 +103,10 @@ func (w IBCMiddleware) OnRecvPacket(
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	rollappPacket := w.savePacket(ctx, packet, transfer, relayer, commontypes.RollappPacket_ON_RECV, nil)
+	rollappPacket, err := w.savePacket(ctx, packet, transfer, relayer, commontypes.RollappPacket_ON_RECV, nil)
+	if err != nil {
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "delayed ack: save packet"))
+	}
 
 	err = w.EIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
 	if err != nil {
@@ -145,7 +150,10 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	rollappPacket := w.savePacket(ctx, packet, transfer, relayer, commontypes.RollappPacket_ON_ACK, acknowledgement)
+	rollappPacket, err := w.savePacket(ctx, packet, transfer, relayer, commontypes.RollappPacket_ON_ACK, acknowledgement)
+	if err != nil {
+		return fmt.Errorf("save packet: %w", err)
+	}
 
 	switch ack.Response.(type) {
 	// Only if the acknowledgement is an error, we want to create an order
@@ -183,13 +191,16 @@ func (w IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 
-	rollappPacket := w.savePacket(ctx, packet, transfer, relayer, commontypes.RollappPacket_ON_TIMEOUT, nil)
+	rollappPacket, err := w.savePacket(ctx, packet, transfer, relayer, commontypes.RollappPacket_ON_TIMEOUT, nil)
+	if err != nil {
+		return fmt.Errorf("save packet: %w", err)
+	}
 
 	return w.EIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
 }
 
 // savePacket the packet to the store for later processing and returns it
-func (w IBCMiddleware) savePacket(ctx sdk.Context, packet channeltypes.Packet, transfer types.TransferDataWithFinalization, relayer sdk.AccAddress, packetType commontypes.RollappPacket_Type, ack []byte) commontypes.RollappPacket {
+func (w IBCMiddleware) savePacket(ctx sdk.Context, packet channeltypes.Packet, transfer types.TransferDataWithFinalization, relayer sdk.AccAddress, packetType commontypes.RollappPacket_Type, ack []byte) (commontypes.RollappPacket, error) {
 	p := commontypes.RollappPacket{
 		RollappId:       transfer.Rollapp.RollappId,
 		Packet:          &packet,
@@ -200,7 +211,11 @@ func (w IBCMiddleware) savePacket(ctx sdk.Context, packet channeltypes.Packet, t
 		Type:            packetType,
 	}
 
+	err := w.SetPendingPacketByReceiver(ctx, transfer.FungibleTokenPacketData.Receiver, p.RollappPacketKey())
+	if err != nil {
+		return commontypes.RollappPacket{}, err
+	}
 	w.Keeper.SetRollappPacket(ctx, p)
 
-	return p
+	return p, nil
 }

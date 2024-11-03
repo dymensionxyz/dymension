@@ -183,13 +183,12 @@ func FundForAliasRegistration(
 	)
 }
 
-func (s *KeeperTestHelper) FinalizeAllPendingPackets(rollappID, receiver string) int {
+func (s *KeeperTestHelper) FinalizeAllPendingPackets(receiver string) int {
 	s.T().Helper()
 	// Query all pending packets by receiver
 	querier := delayedackkeeper.NewQuerier(s.App.DelayedAckKeeper)
 	resp, err := querier.GetPendingPacketsByReceiver(s.Ctx, &delayedacktypes.QueryPendingPacketsByReceiverRequest{
-		RollappId: rollappID,
-		Receiver:  receiver,
+		Receiver: receiver,
 	})
 	s.Require().NoError(err)
 	// Finalize all packets and return the num of finalized
