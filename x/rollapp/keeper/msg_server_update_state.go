@@ -96,7 +96,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// Rollapp is using a vulnerable DRS version, hard fork it
 	// we must return non-error if we want the changes to be saved
 	if k.IsStateUpdateVulnerable(ctx, stateInfo) {
-		err := k.HardForkObsoleteDRSVersion(ctx, msg.RollappId)
+		err := k.HardForkToLatest(ctx, msg.RollappId)
 		if err != nil {
 			return nil, fmt.Errorf("mark rollapp vulnerable: %w", err)
 		}

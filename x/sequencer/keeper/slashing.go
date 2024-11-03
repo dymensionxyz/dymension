@@ -90,3 +90,20 @@ func (k Keeper) Jail(ctx sdk.Context, seq types.Sequencer) error {
 
 	return nil
 }
+
+// Jail sets the sequencer status to Jailed and unbonds the sequencer
+func (k Keeper) JailByAddr(ctx sdk.Context, seqAddr string) error {
+	err := k.unbondSequencerAndJail(ctx, seqAddr)
+	if err != nil {
+		return errorsmod.Wrap(err, "unbond and jail")
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeJailed,
+			sdk.NewAttribute(types.AttributeKeySequencer, seqAddr),
+		),
+	)
+
+	return nil
+}

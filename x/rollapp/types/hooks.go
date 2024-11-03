@@ -18,7 +18,6 @@ type RollappHooks interface {
 	AfterTransfersEnabled(ctx sdk.Context, rollappID, rollappIBCDenom string) error
 
 	OnHardFork(ctx sdk.Context, rollappID string, height uint64) error
-	// OnHardFork(ctx, rollappID string, newValidHeight uint64, revisionNumber uint64) error
 }
 
 var _ RollappHooks = MultiRollappHooks{}
