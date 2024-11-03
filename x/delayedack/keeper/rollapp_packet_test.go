@@ -244,6 +244,7 @@ func (suite *DelayedAckTestSuite) TestUpdateRollappPacketTransferAddress() {
 	// Update the packet receiver
 	const newReceiver = "newReceiver"
 	err = keeper.UpdateRollappPacketTransferAddress(ctx, string(packet.RollappPacketKey()), newReceiver)
+	suite.Require().NoError(err)
 
 	// Check the state
 	packets := keeper.GetAllRollappPackets(ctx)

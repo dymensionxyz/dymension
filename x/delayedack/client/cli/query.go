@@ -223,7 +223,7 @@ func CmdGetPendingPacketsByReceiver() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pending-packets-by-receiver [receiver]",
 		Short: "Get pending packets by receiver",
-		Args:  cobra.MinimumNArgs(2),
+		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
