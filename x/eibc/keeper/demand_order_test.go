@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestListDemandOrdersByStatus() {
 			ProofHeight: 2,
 			Packet:      &packet,
 		}
-		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", demandOrderAddresses[i].String())
+		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", demandOrderAddresses[i].String(), 1)
 		err := keeper.SetDemandOrder(ctx, demandOrder)
 		suite.Require().NoError(err)
 	}

@@ -19,7 +19,7 @@ import (
 const (
 	FlagSpendLimit          = "spend-limit"
 	FlagExpiration          = "expiration"
-	FlagRollapps            = "rollapps"
+	FlagRollapp             = "rollapp"
 	FlagDenoms              = "denoms"
 	FlagMinLPFeePercentage  = "min-lp-fee-percentage"
 	FlagMaxPrice            = "max-price"
@@ -50,7 +50,7 @@ Examples:
 				return fmt.Errorf("failed to parse grantee address: %w", err)
 			}
 
-			rollapps, err := cmd.Flags().GetStringSlice(FlagRollapps)
+			rollappID, err := cmd.Flags().GetString(FlagRollapp)
 			if err != nil {
 				return fmt.Errorf("failed to get rollapps: %w", err)
 			}
@@ -117,13 +117,17 @@ Examples:
 				}
 			}
 
-			authorization := types.NewFulfillOrderAuthorization(
-				rollapps,
+			rollappCriteria := types.NewRollappCriteria(
+				rollappID,
 				denoms,
 				minLPFeePercent,
 				maxPrice,
 				fulfillerFeePart,
 				settlementValidated,
+			)
+
+			authorization := types.NewFulfillOrderAuthorization(
+				[]*types.RollappCriteria{rollappCriteria},
 				spendLimit,
 			)
 
@@ -142,7 +146,7 @@ Examples:
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
-	cmd.Flags().StringSlice(FlagRollapps, []string{}, "An array of Rollapp IDs allowed")
+	cmd.Flags().StringSlice(FlagRollapp, []string{}, "An array of Rollapp IDs allowed")
 	cmd.Flags().StringSlice(FlagDenoms, []string{}, "An array of denoms allowed to use")
 	cmd.Flags().String(FlagSpendLimit, "", "An array of Coins allowed to spend")
 	cmd.Flags().Bool(FlagSettlementValidated, false, "Settlement validated flag")

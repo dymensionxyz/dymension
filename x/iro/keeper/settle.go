@@ -8,7 +8,8 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	balancer "github.com/osmosis-labs/osmosis/v15/x/gamm/pool-models/balancer"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+	"github.com/osmosis-labs/osmosis/v15/x/gamm/pool-models/balancer"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
@@ -64,7 +65,7 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 	}
 
 	// Emit event
-	err = ctx.EventManager().EmitTypedEvent(&types.EventSettle{
+	err = uevent.EmitTypedEvent(ctx, &types.EventSettle{
 		PlanId:    fmt.Sprintf("%d", plan.Id),
 		RollappId: rollappId,
 		IBCDenom:  rollappIBCDenom,

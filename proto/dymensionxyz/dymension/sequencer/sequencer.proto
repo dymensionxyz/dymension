@@ -47,6 +47,11 @@ message Sequencer {
   // notice_period_time defines the time when the sequencer will finish it's notice period if started
   google.protobuf.Timestamp notice_period_time = 11
       [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+
+  // RewardAddr is a bech32 encoded sdk acc address
+  string reward_addr = 12;
+  // WhitelistedRelayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
+  repeated string whitelisted_relayers = 13;
 }
 
 // BondReduction defines an object which holds the information about the sequencer and its queued unbonding amount

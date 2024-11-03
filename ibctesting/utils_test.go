@@ -203,6 +203,8 @@ func (s *utilSuite) registerSequencer() {
 			RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
 		},
 		bond,
+		s.hubChain().SenderAccount.GetAddress().String(),
+		[]string{},
 	)
 	s.Require().NoError(err) // message committed
 	_, err = s.hubChain().SendMsgs(msgCreateSequencer)
@@ -223,9 +225,10 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	blockDescriptors := &rollapptypes.BlockDescriptors{BD: make([]rollapptypes.BlockDescriptor, numBlocks)}
 	for i := uint64(0); i < numBlocks; i++ {
 		blockDescriptors.BD[i] = rollapptypes.BlockDescriptor{
-			Height:    startHeight + i,
-			StateRoot: bytes.Repeat([]byte{byte(startHeight) + byte(i)}, 32),
-			Timestamp: time.Now().UTC(),
+			Height:     startHeight + i,
+			StateRoot:  bytes.Repeat([]byte{byte(startHeight) + byte(i)}, 32),
+			Timestamp:  time.Now().UTC(),
+			DrsVersion: 1,
 		}
 	}
 	// Update the state

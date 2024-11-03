@@ -100,8 +100,8 @@ func (suite *RollappTestSuite) TestUpdateState() {
 func (s *RollappTestSuite) TestUpdateStateVulnerableRollapp() {
 	const (
 		raName               = "rollapptest_1-1"
-		nonVulnerableVersion = "non_vulnerable_version"
-		vulnerableVersion    = "vulnerable_version"
+		nonVulnerableVersion = 2
+		vulnerableVersion    = 1
 	)
 
 	// create a rollapp

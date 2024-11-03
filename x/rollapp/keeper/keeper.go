@@ -22,14 +22,14 @@ type Keeper struct {
 	paramstore paramtypes.Subspace
 	authority  string // authority is the x/gov module account
 
-	accKeeper             types.AccountKeeper
-	ibcClientKeeper       types.IBCClientKeeper
-	canonicalClientKeeper types.CanonicalLightClientKeeper
-	channelKeeper         types.ChannelKeeper
-	sequencerKeeper       types.SequencerKeeper
-	bankKeeper            types.BankKeeper
+	accKeeper             AccountKeeper
+	ibcClientKeeper       IBCClientKeeper
+	canonicalClientKeeper CanonicalLightClientKeeper
+	channelKeeper         ChannelKeeper
+	sequencerKeeper       SequencerKeeper
+	bankKeeper            BankKeeper
 
-	vulnerableDRSVersions   collections.KeySet[string]
+	vulnerableDRSVersions   collections.KeySet[uint32]
 	registeredRollappDenoms collections.KeySet[collections.Pair[string, string]]
 
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
@@ -39,13 +39,13 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
-	ak types.AccountKeeper,
-	channelKeeper types.ChannelKeeper,
-	ibcclientKeeper types.IBCClientKeeper,
-	sequencerKeeper types.SequencerKeeper,
-	bankKeeper types.BankKeeper,
+	ak AccountKeeper,
+	channelKeeper ChannelKeeper,
+	ibcclientKeeper IBCClientKeeper,
+	sequencerKeeper SequencerKeeper,
+	bankKeeper BankKeeper,
 	authority string,
-	canonicalClientKeeper types.CanonicalLightClientKeeper,
+	canonicalClientKeeper CanonicalLightClientKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -71,7 +71,7 @@ func NewKeeper(
 			collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey)),
 			collections.NewPrefix(types.VulnerableDRSVersionsKeyPrefix),
 			"vulnerable_drs_versions",
-			collections.StringKey,
+			collections.Uint32Key,
 		),
 		registeredRollappDenoms: collections.NewKeySet[collections.Pair[string, string]](
 			collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey)),
@@ -94,11 +94,11 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k *Keeper) SetSequencerKeeper(sk types.SequencerKeeper) {
+func (k *Keeper) SetSequencerKeeper(sk SequencerKeeper) {
 	k.sequencerKeeper = sk
 }
 
-func (k *Keeper) SetCanonicalClientKeeper(kk types.CanonicalLightClientKeeper) {
+func (k *Keeper) SetCanonicalClientKeeper(kk CanonicalLightClientKeeper) {
 	k.canonicalClientKeeper = kk
 }
 

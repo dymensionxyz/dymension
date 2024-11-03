@@ -122,7 +122,7 @@ func (k Keeper) QueryPlans(goCtx context.Context, req *types.QueryPlansRequest) 
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	return &types.QueryPlansResponse{Plans: k.GetAllPlans(ctx)}, nil
+	return &types.QueryPlansResponse{Plans: k.GetAllPlans(ctx, req.TradableOnly)}, nil
 }
 
 // QuerySpotPrice implements types.QueryServer.

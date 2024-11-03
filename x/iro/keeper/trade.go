@@ -10,6 +10,8 @@ import (
 
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
@@ -107,13 +109,14 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 	k.SetPlan(ctx, *plan)
 
 	// Emit event
-	err = ctx.EventManager().EmitTypedEvent(&types.EventBuy{
-		Buyer:     buyer.String(),
-		PlanId:    planId,
-		RollappId: plan.RollappId,
-		Amount:    amountTokensToBuy,
-		Cost:      costAmt,
-		TakerFee:  takerFeeAmt,
+	err = uevent.EmitTypedEvent(ctx, &types.EventBuy{
+		Buyer:        buyer.String(),
+		PlanId:       planId,
+		RollappId:    plan.RollappId,
+		Amount:       amountTokensToBuy,
+		Cost:         costAmt,
+		TakerFee:     takerFeeAmt,
+		ClosingPrice: plan.SpotPrice(),
 	})
 	if err != nil {
 		return err
@@ -176,13 +179,14 @@ func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddre
 	k.SetPlan(ctx, *plan)
 
 	// Emit event
-	err = ctx.EventManager().EmitTypedEvent(&types.EventBuy{
-		Buyer:     buyer.String(),
-		PlanId:    planId,
-		RollappId: plan.RollappId,
-		Amount:    tokensOutAmt,
-		Cost:      toSpendMinusTakerFeeAmt,
-		TakerFee:  takerFeeAmt,
+	err = uevent.EmitTypedEvent(ctx, &types.EventBuy{
+		Buyer:        buyer.String(),
+		PlanId:       planId,
+		RollappId:    plan.RollappId,
+		Amount:       tokensOutAmt,
+		Cost:         toSpendMinusTakerFeeAmt,
+		TakerFee:     takerFeeAmt,
+		ClosingPrice: plan.SpotPrice(),
 	})
 	if err != nil {
 		return err
@@ -235,13 +239,14 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 	k.SetPlan(ctx, *plan)
 
 	// Emit event
-	err = ctx.EventManager().EmitTypedEvent(&types.EventSell{
-		Seller:    seller.String(),
-		PlanId:    planId,
-		RollappId: plan.RollappId,
-		Amount:    amountTokensToSell,
-		Revenue:   costAmt,
-		TakerFee:  takerFeeAmt,
+	err = uevent.EmitTypedEvent(ctx, &types.EventSell{
+		Seller:       seller.String(),
+		PlanId:       planId,
+		RollappId:    plan.RollappId,
+		Amount:       amountTokensToSell,
+		Revenue:      costAmt,
+		TakerFee:     takerFeeAmt,
+		ClosingPrice: plan.SpotPrice(),
 	})
 	if err != nil {
 		return err

@@ -46,7 +46,14 @@ func CmdQueryPlans() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.QueryPlans(cmd.Context(), &types.QueryPlansRequest{})
+			tradableOnly, err := cmd.Flags().GetBool(FlagTradableOnly)
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.QueryPlans(cmd.Context(), &types.QueryPlansRequest{
+				TradableOnly: tradableOnly,
+			})
 			if err != nil {
 				return err
 			}
@@ -56,6 +63,7 @@ func CmdQueryPlans() *cobra.Command {
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
+	cmd.Flags().BoolP(FlagTradableOnly, "t", false, "Query only tradable plans")
 	return cmd
 }
 

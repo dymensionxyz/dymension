@@ -25,6 +25,7 @@ const (
 	FlagBondingCurve                           = "curve"
 	FlagIncentivesStartDurationAfterSettlement = "incentives-start"
 	FlagIncentivesEpochs                       = "incentives-epochs"
+	FlagTradableOnly                           = "tradable-only"
 )
 
 var (

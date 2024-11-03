@@ -74,6 +74,12 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, err
 	}
 
+	// set a reward address. if empty, use a creator address.
+	rewardAddr := msg.RewardAddr
+	if msg.RewardAddr == "" {
+		rewardAddr = msg.Creator
+	}
+
 	bond := sdk.NewCoins(msg.Bond)
 	sequencer := types.Sequencer{
 		Address:      msg.Creator,
@@ -82,7 +88,9 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		Metadata:     msg.Metadata,
 		Status:       types.Bonded,
 		Tokens:       bond,
+		RewardAddr:   rewardAddr,
 	}
+	sequencer.SetWhitelistedRelayers(msg.WhitelistedRelayers)
 
 	// we currently only support setting next proposer (or empty one) before the rotation started. This is in order to
 	// avoid handling the case a potential next proposer bonds in the middle of a rotation.
