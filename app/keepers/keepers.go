@@ -331,6 +331,7 @@ func (a *AppKeepers) InitKeepers(
 		a.BankKeeper,
 		a.PoolManagerKeeper,
 		a.GAMMKeeper,
+		a.DistrKeeper,
 	)
 	a.TxFeesKeeper = &txFeesKeeper
 

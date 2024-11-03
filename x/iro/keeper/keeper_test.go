@@ -44,6 +44,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	rollapp := suite.App.RollappKeeper.MustGetRollapp(suite.Ctx, rollappId)
 	funds := suite.App.IROKeeper.GetParams(suite.Ctx).CreationFee.Mul(math.NewInt(10)) // 10 times the creation fee
 	suite.FundAcc(sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, funds)))
+
+	// set txfees basedenom
+	err := suite.App.TxFeesKeeper.SetBaseDenom(suite.Ctx, "adym")
+	suite.Require().NoError(err)
 }
 
 // BuySomeTokens buys some tokens from the plan
