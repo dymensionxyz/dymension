@@ -46,7 +46,9 @@ func (k Keeper) ChooseSuccessorForFinishedNotices(ctx sdk.Context, now time.Time
 		// Successor cannot finish notice. The proposer must finish first and then rotate to the successor.
 		if !k.IsSuccessor(ctx, seq) {
 			k.removeFromNoticeQueue(ctx, seq)
-			k.chooseSuccessor(ctx, seq.RollappId)
+			if err := k.chooseSuccessor(ctx, seq.RollappId); err != nil {
+				return errorsmod.Wrap(err, "choose successor")
+			}
 			successor := k.GetSuccessor(ctx, seq.RollappId)
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(

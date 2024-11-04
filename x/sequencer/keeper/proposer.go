@@ -57,7 +57,10 @@ func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr)
 	if k.GetProposer(ctx, rollapp).Sentinel() {
 		seqs := k.RollappPotentialProposers(ctx, rollapp)
-		proposer := ProposerChoiceAlgo(seqs)
+		proposer, err := ProposerChoiceAlgo(seqs)
+		if err != nil {
+			return err
+		}
 		k.SetProposer(ctx, rollapp, proposer.Address)
 	}
 
@@ -78,26 +81,30 @@ func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
 
 // ChooseSuccessor will assign a successor. It won't replace an existing one.
 // It will prioritise non sentinel
-func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) {
+func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) error {
 	successor := k.GetSuccessor(ctx, rollapp)
 	if !successor.Sentinel() {
 		// a valid successor is already set so there's no need to do anything
-		return
+		return nil
 	}
 	proposer := k.GetProposer(ctx, rollapp)
 	if proposer.Sentinel() {
-		return
+		return nil
 	}
 	seqs := k.RollappPotentialProposers(ctx, rollapp)
-	successor = ProposerChoiceAlgo(seqs)
+	successor, err := ProposerChoiceAlgo(seqs)
+	if err != nil {
+		return err
+	}
 	k.SetSuccessor(ctx, rollapp, successor.Address)
+	return nil
 }
 
 // ProposerChoiceAlgo : choose the one with most bond
 // Requires sentinel to be passed in, as last resort.
-func ProposerChoiceAlgo(seqs []types.Sequencer) types.Sequencer {
+func ProposerChoiceAlgo(seqs []types.Sequencer) (types.Sequencer, error) {
 	if len(seqs) == 0 {
-		panic("seqs must at least include sentinel")
+		return types.Sequencer{}, gerrc.ErrInternal.Wrap("seqs must at least include sentinel")
 	}
 	// slices package is recommended over sort package
 	slices.SortStableFunc(seqs, func(a, b types.Sequencer) int {
@@ -113,7 +120,7 @@ func ProposerChoiceAlgo(seqs []types.Sequencer) types.Sequencer {
 		}
 		return -1
 	})
-	return seqs[0]
+	return seqs[0], nil
 }
 
 func (k Keeper) IsProposer(ctx sdk.Context, seq types.Sequencer) bool {
