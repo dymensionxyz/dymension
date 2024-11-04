@@ -138,7 +138,7 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 			X:           "https://x.dymension.xyz",
 		},
 		&rollapptypes.GenesisInfo{
-			GenesisChecksum: "somechecksum",
+			GenesisChecksum: "checksum",
 			Bech32Prefix:    "ethm",
 			NativeDenom: rollapptypes.DenomMetadata{
 				Display:  "DEN",
