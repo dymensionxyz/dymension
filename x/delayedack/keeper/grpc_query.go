@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	"google.golang.org/grpc/codes"
@@ -55,7 +54,7 @@ func (q Querier) GetPackets(goCtx context.Context, req *types.QueryRollappPacket
 	return res, nil
 }
 
-func (q Querier) GetPendingPacketsByReceiver(goCtx context.Context, req *types.QueryPendingPacketsByReceiverRequest) (*types.QueryPendingPacketByReceiverListResponse, error) {
+func (q Querier) GetPendingPacketsByAddress(goCtx context.Context, req *types.QueryPendingPacketsByAddressRequest) (*types.QueryPendingPacketByAddressListResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -63,27 +62,13 @@ func (q Querier) GetPendingPacketsByReceiver(goCtx context.Context, req *types.Q
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Get all pending rollapp packets until the latest finalized height
-	rollappPendingPackets, _, err := q.GetPendingPacketsUntilLatestHeight(ctx, req.RollappId)
+	p, err := q.Keeper.GetPendingPacketsByAddress(ctx, req.Address)
 	if err != nil {
-		return nil, fmt.Errorf("get pending rollapp packets until the latest finalized height: rollapp '%s': %w", req.RollappId, err)
+		return nil, fmt.Errorf("get pending packets by receiver %s: %w", req.Address, err)
 	}
 
-	// Filter packets by receiver
-	result := make([]commontypes.RollappPacket, 0)
-	for _, packet := range rollappPendingPackets {
-		// Get packet data
-		pd, err := packet.GetTransferPacketData()
-		if err != nil {
-			return nil, fmt.Errorf("get transfer packet data: rollapp '%s': %w", req.RollappId, err)
-		}
-		// Return a packet if its receiver matches the one specified
-		if pd.Receiver == req.Receiver {
-			result = append(result, packet)
-		}
-	}
-
-	return &types.QueryPendingPacketByReceiverListResponse{
-		RollappPackets: result,
+	return &types.QueryPendingPacketByAddressListResponse{
+		RollappPackets: p,
 		Pagination:     nil, // TODO: handle pagination
 	}, nil
 }

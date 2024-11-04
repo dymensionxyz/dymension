@@ -19,13 +19,13 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibcchannelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
-
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	epochskeeper "github.com/osmosis-labs/osmosis/v15/x/epochs/keeper"
 
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
@@ -66,6 +66,10 @@ func CreateUpgradeHandler(
 		migrateIncentivesParams(ctx, keepers.IncentivesKeeper)
 
 		if err := migrateRollappGauges(ctx, keepers.RollappKeeper, keepers.IncentivesKeeper); err != nil {
+			return nil, err
+		}
+
+		if err := migrateDelayedAckPacketIndex(ctx, keepers.DelayedAckKeeper); err != nil {
 			return nil, err
 		}
 
@@ -213,6 +217,24 @@ func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {
 	params.AddToGaugeBaseFee = defaultParams.AddToGaugeBaseFee
 	params.AddDenomFee = defaultParams.AddDenomFee
 	ik.SetParams(ctx, params)
+}
+
+func migrateDelayedAckPacketIndex(ctx sdk.Context, dk delayedackkeeper.Keeper) error {
+	pendingPackets := dk.ListRollappPackets(ctx, delayedacktypes.ByStatus(commontypes.Status_PENDING))
+	for _, packet := range pendingPackets {
+		pd, err := packet.GetTransferPacketData()
+		if err != nil {
+			return err
+		}
+
+		switch packet.Type {
+		case commontypes.RollappPacket_ON_RECV:
+			dk.MustSetPendingPacketByAddress(ctx, pd.Receiver, packet.RollappPacketKey())
+		case commontypes.RollappPacket_ON_ACK, commontypes.RollappPacket_ON_TIMEOUT:
+			dk.MustSetPendingPacketByAddress(ctx, pd.Sender, packet.RollappPacketKey())
+		}
+	}
+	return nil
 }
 
 func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollapp {
