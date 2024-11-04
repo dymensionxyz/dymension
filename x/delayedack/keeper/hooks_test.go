@@ -3,6 +3,7 @@ package keeper_test
 import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
@@ -52,7 +53,7 @@ func (suite *DelayedAckTestSuite) TestAfterEpochEnd() {
 						SourceChannel:      "testSourceChannel",
 						DestinationPort:    "testDestinationPort",
 						DestinationChannel: "testDestinationChannel",
-						Data:               suite.GenerateTestPacketData(),
+						Data:               apptesting.GenerateTestPacketData(suite.T()),
 						Sequence:           uint64(i),
 					},
 					Status:      commontypes.Status_PENDING,

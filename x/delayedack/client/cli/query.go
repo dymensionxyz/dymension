@@ -231,8 +231,8 @@ func CmdGetPendingPacketsByReceiver() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.GetPendingPacketsByReceiver(cmd.Context(), &types.QueryPendingPacketsByReceiverRequest{
-				Receiver:   args[0],
+			res, err := queryClient.GetPendingPacketsByAddress(cmd.Context(), &types.QueryPendingPacketsByAddressRequest{
+				Address:    args[0],
 				Pagination: nil, // TODO: handle pagination
 			})
 			if err != nil {

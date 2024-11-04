@@ -3,6 +3,7 @@ package keeper_test
 import (
 	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	damodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -17,9 +18,9 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 	)
 
 	rollappId := "testRollappId"
-	pkts := suite.GeneratePackets(rollappId, 5)
+	pkts := apptesting.GenerateRollappPackets(suite.T(), rollappId, 5)
 	rollappId2 := "testRollappId2"
-	pkts2 := suite.GeneratePackets(rollappId2, 5)
+	pkts2 := apptesting.GenerateRollappPackets(suite.T(), rollappId2, 5)
 	prefixPending1 := types.ByRollappIDByStatus(rollappId, commontypes.Status_PENDING)
 	prefixPending2 := types.ByRollappIDByStatus(rollappId2, commontypes.Status_PENDING)
 	prefixReverted := types.ByRollappIDByStatus(rollappId, commontypes.Status_REVERTED)
@@ -58,9 +59,9 @@ func (suite *DelayedAckTestSuite) TestDeletionOfRevertedPackets() {
 	)
 
 	rollappId := "testRollappId"
-	pkts := suite.GeneratePackets(rollappId, 5)
+	pkts := apptesting.GenerateRollappPackets(suite.T(), rollappId, 5)
 	rollappId2 := "testRollappId2"
-	pkts2 := suite.GeneratePackets(rollappId2, 5)
+	pkts2 := apptesting.GenerateRollappPackets(suite.T(), rollappId2, 5)
 
 	for _, pkt := range append(pkts, pkts2...) {
 		keeper.SetRollappPacket(ctx, pkt)

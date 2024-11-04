@@ -373,12 +373,12 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 	return chain
 }
 
-func (s *utilSuite) finalizeRollappPacketsByReceiver(receiver string) sdk.Events {
+func (s *utilSuite) finalizeRollappPacketsByAddress(address string) sdk.Events {
 	s.T().Helper()
-	// Query all pending packets by receiver
+	// Query all pending packets by address
 	querier := delayedackkeeper.NewQuerier(s.hubApp().DelayedAckKeeper)
-	resp, err := querier.GetPendingPacketsByReceiver(s.hubCtx(), &delayedacktypes.QueryPendingPacketsByReceiverRequest{
-		Receiver: receiver,
+	resp, err := querier.GetPendingPacketsByAddress(s.hubCtx(), &delayedacktypes.QueryPendingPacketsByAddressRequest{
+		Address: address,
 	})
 	s.Require().NoError(err)
 	// Finalize all packets and collect events

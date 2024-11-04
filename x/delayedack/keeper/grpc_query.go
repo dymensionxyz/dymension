@@ -54,7 +54,7 @@ func (q Querier) GetPackets(goCtx context.Context, req *types.QueryRollappPacket
 	return res, nil
 }
 
-func (q Querier) GetPendingPacketsByReceiver(goCtx context.Context, req *types.QueryPendingPacketsByReceiverRequest) (*types.QueryPendingPacketByReceiverListResponse, error) {
+func (q Querier) GetPendingPacketsByAddress(goCtx context.Context, req *types.QueryPendingPacketsByAddressRequest) (*types.QueryPendingPacketByAddressListResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -62,12 +62,12 @@ func (q Querier) GetPendingPacketsByReceiver(goCtx context.Context, req *types.Q
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Get all pending rollapp packets until the latest finalized height
-	p, err := q.GetPendingPackestByReceiver(ctx, req.Receiver)
+	p, err := q.Keeper.GetPendingPacketsByAddress(ctx, req.Address)
 	if err != nil {
-		return nil, fmt.Errorf("get pending packets by receiver %s: %w", req.Receiver, err)
+		return nil, fmt.Errorf("get pending packets by receiver %s: %w", req.Address, err)
 	}
 
-	return &types.QueryPendingPacketByReceiverListResponse{
+	return &types.QueryPendingPacketByAddressListResponse{
 		RollappPackets: p,
 		Pagination:     nil, // TODO: handle pagination
 	}, nil

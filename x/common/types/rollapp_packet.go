@@ -62,6 +62,14 @@ func (r RollappPacket) GetTransferPacketData() (transfertypes.FungibleTokenPacke
 	return data, nil
 }
 
+func (r RollappPacket) MustGetTransferPacketData() transfertypes.FungibleTokenPacketData {
+	data, err := r.GetTransferPacketData()
+	if err != nil {
+		panic(err)
+	}
+	return data
+}
+
 func (r RollappPacket) RestoreOriginalTransferTarget() (RollappPacket, error) {
 	transferPacketData, err := r.GetTransferPacketData()
 	if err != nil {
