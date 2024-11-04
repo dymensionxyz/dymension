@@ -53,8 +53,11 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 	// skip if not found (fraud height is not committed yet)
 	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, fraudHeight)
 	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
-		sinfo, _ := k.GetLatestStateInfo(ctx, rollappID)
-		return sinfo.GetLatestHeight(), nil
+		s, ok := k.GetLatestStateInfo(ctx, rollappID)
+		if !ok {
+			return 0, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "no state info found for rollapp: %s", rollappID)
+		}
+		stateInfo = &s
 	} else if err != nil {
 		return 0, err
 	}
@@ -64,14 +67,12 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 		return 0, errorsmod.Wrapf(types.ErrDisputeAlreadyFinalized, "state info for height %d is already finalized", fraudHeight)
 	}
 
-	lastStateIdxToKeep := stateInfo.StateInfoIndex.Index
-	// trunc the state info if needed
-	if stateInfo.StartHeight == fraudHeight {
-		// If fraud height is at the beginning of the state info, return the previous index to keep
-		lastStateIdxToKeep -= 1
-	} else {
-		// otherwise, truncate the state info
-		k.TruncStateInfo(ctx, stateInfo, fraudHeight)
+	// update the last state info before the fraud height
+	// it removes all block descriptors after the fraud height
+	// and sets the next proposer to the empty string
+	lastStateIdxToKeep, err := k.UpdateLastStateInfo(ctx, stateInfo, fraudHeight)
+	if err != nil {
+		return 0, errorsmod.Wrap(err, "update last state info")
 	}
 
 	// clear state info
@@ -130,18 +131,31 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 	return fraudHeight - 1, nil
 }
 
-// TruncStateInfo truncates the state info to the last valid block before the fraud height.
+// UpdateLastStateInfo truncates the state info to the last valid block before the fraud height.
 // It returns the index of the last state info to keep.
-func (k Keeper) TruncStateInfo(ctx sdk.Context, stateInfo *types.StateInfo, fraudHeight uint64) {
-	// Remove block descriptors until the one we need to rollback to
-	truncatedBDs := stateInfo.BDs.BD[:fraudHeight-stateInfo.StartHeight]
+func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo, fraudHeight uint64) (uint64, error) {
+	if stateInfo.StartHeight == fraudHeight {
+		// If fraud height is at the beginning of the state info, return the previous index to keep
+		var ok bool
+		*stateInfo, ok = k.GetStateInfo(ctx, stateInfo.StateInfoIndex.RollappId, stateInfo.StateInfoIndex.Index-1)
+		if !ok {
+			return 0, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "no state info found for rollapp: %s", stateInfo.StateInfoIndex.RollappId)
+		}
+	} else if stateInfo.GetLatestHeight() > fraudHeight {
+		// Remove block descriptors until the one we need to rollback to
+		truncatedBDs := stateInfo.BDs.BD[:fraudHeight-stateInfo.StartHeight]
 
-	// Update the state info to reflect truncated data
-	stateInfo.NumBlocks = uint64(len(truncatedBDs))
-	stateInfo.BDs.BD = truncatedBDs
+		// Update the state info to reflect truncated data
+		stateInfo.NumBlocks = uint64(len(truncatedBDs))
+		stateInfo.BDs.BD = truncatedBDs
+	} else {
+		return 0, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "state info start height is greater than fraud height")
+	}
 
 	// Update the state info in the keeper
+	stateInfo.NextProposer = ""
 	k.SetStateInfo(ctx, *stateInfo)
+	return stateInfo.StateInfoIndex.Index, nil
 }
 
 func (k Keeper) HardForkToLatest(ctx sdk.Context, rollappID string) error {

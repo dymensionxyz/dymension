@@ -105,6 +105,14 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	_, proposerExists := k.GetProposer(ctx, msg.RollappId)
 	if !proposerExists {
 		k.SetProposer(ctx, sequencer.RollappId, sequencer.Address)
+
+		// recover from hard fork
+		// if the rollapp has a state info, set the next proposer to this sequencer
+		sInfo, ok := k.rollappKeeper.GetLatestStateInfo(ctx, sequencer.RollappId)
+		if ok {
+			sInfo.NextProposer = sequencer.Address
+			k.rollappKeeper.SetStateInfo(ctx, sInfo)
+		}
 	}
 
 	k.SetSequencer(ctx, sequencer)
