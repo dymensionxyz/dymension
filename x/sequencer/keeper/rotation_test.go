@@ -103,7 +103,7 @@ func (s *SequencerTestSuite) TestRotationProposerAndSuccessorBothUnbond() {
 
 	// successor tries to unbond, but it fails
 	mUnbond = &types.MsgUnbond{Creator: pkAddr(bob)}
-	res, err = s.msgServer.Unbond(s.Ctx, mUnbond)
+	_, err = s.msgServer.Unbond(s.Ctx, mUnbond)
 	utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
 
 	// proposer can submit last
@@ -115,6 +115,6 @@ func (s *SequencerTestSuite) TestRotationProposerAndSuccessorBothUnbond() {
 
 	// successor tries to unbond this time it works
 	mUnbond = &types.MsgUnbond{Creator: pkAddr(bob)}
-	res, err = s.msgServer.Unbond(s.Ctx, mUnbond)
+	_, err = s.msgServer.Unbond(s.Ctx, mUnbond)
 	s.Require().NoError(err)
 }
