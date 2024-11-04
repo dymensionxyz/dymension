@@ -19,6 +19,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	v4 "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -74,6 +76,8 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				// Create and store sequencers
 				s.seedAndStoreSequencers(numRollapps)
 
+				s.seedPendingRollappPackets()
+
 				return nil
 			},
 			upgrade: func() {
@@ -123,6 +127,11 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 				// Check rollapp gauges
 				if err = s.validateRollappGaugesMigration(); err != nil {
+					return
+				}
+
+				// Check rollapp packets
+				if err = s.validateDelayedAckIndexMigration(); err != nil {
 					return
 				}
 
@@ -282,6 +291,14 @@ func (s *UpgradeTestSuite) validateStreamerMigration() {
 	s.Require().Equal(expected, pointers)
 }
 
+func (s *UpgradeTestSuite) validateDelayedAckIndexMigration() error {
+	packets := s.App.DelayedAckKeeper.ListRollappPackets(s.Ctx, delayedacktypes.ByStatus(commontypes.Status_PENDING))
+	actual, err := s.App.DelayedAckKeeper.GetPendingPacketsByAddress(s.Ctx, apptesting.TestPacketReceiver)
+	s.Require().NoError(err)
+	s.Require().Equal(len(packets), len(actual))
+	return nil
+}
+
 func (s *UpgradeTestSuite) seedAndStoreRollapps(numRollapps int) {
 	for _, rollapp := range s.seedRollapps(numRollapps) {
 		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
@@ -339,4 +356,11 @@ func (s *UpgradeTestSuite) seedSequencers(numRollapps int) []sequencertypes.Sequ
 
 func rollappIDFromIdx(idx int) string {
 	return fmt.Sprintf("roll%spp_123%d-1", string(rune(idx+'a')), idx+1)
+}
+
+func (s *UpgradeTestSuite) seedPendingRollappPackets() {
+	packets := apptesting.GenerateRollappPackets(s.T(), "testrollappid_1-1", 20)
+	for _, packet := range packets {
+		s.App.DelayedAckKeeper.SetRollappPacket(s.Ctx, packet)
+	}
 }

@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"errors"
+
+	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
@@ -23,6 +26,53 @@ func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket commontypes.Roll
 			rollappPacket.GetEvents()...,
 		),
 	)
+}
+
+// SetPendingPacketByAddress stores a rollapp packet in the KVStore by its receiver.
+// Helper index to query all packets by receiver.
+func (k Keeper) SetPendingPacketByAddress(ctx sdk.Context, receiver string, rollappPacketKey []byte) error {
+	return k.pendingPacketsByAddress.Set(ctx, collections.Join(receiver, rollappPacketKey))
+}
+
+// MustSetPendingPacketByAddress stores a rollapp packet in the KVStore by its receiver.
+// Helper index to query all packets by receiver. Panics on encoding errors.
+func (k Keeper) MustSetPendingPacketByAddress(ctx sdk.Context, receiver string, rollappPacketKey []byte) {
+	err := k.SetPendingPacketByAddress(ctx, receiver, rollappPacketKey)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// DeletePendingPacketByAddress deletes a rollapp packet from the KVStore by its receiver.
+func (k Keeper) DeletePendingPacketByAddress(ctx sdk.Context, receiver string, rollappPacketKey []byte) error {
+	return k.pendingPacketsByAddress.Remove(ctx, collections.Join(receiver, rollappPacketKey))
+}
+
+// MustDeletePendingPacketByAddress deletes a rollapp packet from the KVStore by its receiver.
+// Panics on encoding error. Do not panic if the key is not found.
+func (k Keeper) MustDeletePendingPacketByAddress(ctx sdk.Context, receiver string, rollappPacketKey []byte) {
+	err := k.DeletePendingPacketByAddress(ctx, receiver, rollappPacketKey)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// GetPendingPacketsByAddress retrieves rollapp packets from the KVStore by their receiver.
+func (k Keeper) GetPendingPacketsByAddress(ctx sdk.Context, receiver string) ([]commontypes.RollappPacket, error) {
+	var packets []commontypes.RollappPacket
+	rng := collections.NewPrefixedPairRange[string, []byte](receiver)
+	err := k.pendingPacketsByAddress.Walk(ctx, rng, func(key collections.Pair[string, []byte]) (stop bool, err error) {
+		packet, err := k.GetRollappPacket(ctx, string(key.K2()))
+		if err != nil {
+			return true, err
+		}
+		packets = append(packets, *packet)
+		return false, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return packets, nil
 }
 
 // GetRollappPacket retrieves a rollapp packet from the KVStore.
@@ -54,23 +104,27 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 	if rollappPacket.Status != commontypes.Status_PENDING {
 		return types.ErrCanOnlyUpdatePendingPacket
 	}
+
 	transferPacketData, err := rollappPacket.GetTransferPacketData()
 	if err != nil {
 		return err
 	}
+
 	// Set the recipient and sender based on the rollapp packet type
-	recipient, sender := transferPacketData.Receiver, transferPacketData.Sender
-	var originalTransferTarget string
+	var (
+		recipient              = transferPacketData.Receiver
+		sender                 = transferPacketData.Sender
+		originalTransferTarget string
+	)
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
 		originalTransferTarget = recipient
 		recipient = address
-	case commontypes.RollappPacket_ON_TIMEOUT:
-		fallthrough
-	case commontypes.RollappPacket_ON_ACK:
+	case commontypes.RollappPacket_ON_ACK, commontypes.RollappPacket_ON_TIMEOUT:
 		originalTransferTarget = sender
 		sender = address
 	}
+
 	// Create a new packet data with the updated recipient and sender
 	newPacketData := transfertypes.NewFungibleTokenPacketData(
 		transferPacketData.Denom,
@@ -79,14 +133,21 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 		recipient,
 		transferPacketData.Memo,
 	)
+
 	// Marshall to binary and update the packet with this data
-	packetBytes := newPacketData.GetBytes()
 	packet := rollappPacket.Packet
-	packet.Data = packetBytes
+	packet.Data = newPacketData.GetBytes()
 	// Update rollapp packet with the new updated packet and save in the store
 	rollappPacket.Packet = packet
 	rollappPacket.OriginalTransferTarget = originalTransferTarget
+
+	// Update index: delete the old packet and save the new one
+	k.MustDeletePendingPacketByAddress(ctx, originalTransferTarget, []byte(rollappPacketKey))
+	k.MustSetPendingPacketByAddress(ctx, address, rollappPacket.RollappPacketKey())
+
+	// Save updated rollapp packet
 	k.SetRollappPacket(ctx, *rollappPacket)
+
 	return nil
 }
 
@@ -94,20 +155,42 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 // Updating the status should be called only with this method as it effects the key of the packet.
 // The assumption is that the passed rollapp packet status field is not updated directly.
 func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket commontypes.RollappPacket, newStatus commontypes.Status) (commontypes.RollappPacket, error) {
-	store := ctx.KVStore(k.storeKey)
+	if rollappPacket.Status != commontypes.Status_PENDING {
+		return commontypes.RollappPacket{}, types.ErrCanOnlyUpdatePendingPacket
+	}
+	if newStatus == commontypes.Status_PENDING {
+		return commontypes.RollappPacket{}, errors.New("cannot update packet to pending status")
+	}
+
+	transferPacketData, err := rollappPacket.GetTransferPacketData()
+	if err != nil {
+		return commontypes.RollappPacket{}, err
+	}
+
+	oldKey := rollappPacket.RollappPacketKey()
+
+	// Delete the old packet from the pending packets index depending on the packet type
+	switch rollappPacket.Type {
+	case commontypes.RollappPacket_ON_RECV:
+		k.MustDeletePendingPacketByAddress(ctx, transferPacketData.Receiver, oldKey)
+	case commontypes.RollappPacket_ON_ACK, commontypes.RollappPacket_ON_TIMEOUT:
+		k.MustDeletePendingPacketByAddress(ctx, transferPacketData.Sender, oldKey)
+	}
 
 	// Delete the old rollapp packet
-	oldKey := rollappPacket.RollappPacketKey()
+	store := ctx.KVStore(k.storeKey)
 	store.Delete(oldKey)
+
 	// Update the packet
 	rollappPacket.Status = newStatus
 	// Create a new rollapp packet with the updated status
 	k.SetRollappPacket(ctx, rollappPacket)
 
-	// Call hook subscribers
 	newKey := rollappPacket.RollappPacketKey()
+
+	// Call hook subscribers
 	keeperHooks := k.GetHooks()
-	err := keeperHooks.AfterPacketStatusUpdated(ctx, &rollappPacket, string(oldKey), string(newKey))
+	err = keeperHooks.AfterPacketStatusUpdated(ctx, &rollappPacket, string(oldKey), string(newKey))
 	if err != nil {
 		return rollappPacket, err
 	}

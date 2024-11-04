@@ -14,6 +14,4 @@ const (
 	MemStoreKey = "mem_delayedack"
 )
 
-func KeyPrefix(p string) []byte {
-	return []byte(p)
-}
+var PendingPacketsByAddressKeyPrefix = []byte{0x01}

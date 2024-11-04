@@ -91,6 +91,14 @@ func (r RollappPacket) GetTransferPacketData() (transfertypes.FungibleTokenPacke
 	return data, nil
 }
 
+func (r RollappPacket) MustGetTransferPacketData() transfertypes.FungibleTokenPacketData {
+	data, err := r.GetTransferPacketData()
+	if err != nil {
+		panic(err)
+	}
+	return data
+}
+
 func (r RollappPacket) GetAck() (channeltypes.Acknowledgement, error) {
 	var ack channeltypes.Acknowledgement
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(r.Acknowledgement, &ack); err != nil {
