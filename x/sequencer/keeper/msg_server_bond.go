@@ -70,6 +70,8 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 	err = k.TryUnbond(ctx, &seq, seq.TokensCoin())
 	if errorsmod.IsOf(err, types.ErrUnbondProposerOrSuccessor) {
 		// not allowed to unbond immediately, need to serve a notice to allow the rollapp community to organise
+		// Also, if they already requested to unbond, we don't want to start another notice period, regardless
+		// of if their notice already elapsed or not.
 
 		if !seq.NoticeInProgress(ctx.BlockTime()) {
 			if !(k.IsProposer(ctx, seq) && k.awaitingLastProposerBlock(ctx, seq.RollappId)) {
