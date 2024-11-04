@@ -27,7 +27,7 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(CmdGetPacketsByRollapp())
 	cmd.AddCommand(CmdGetPacketsByStatus())
 	cmd.AddCommand(CmdGetPacketsByType())
-	cmd.AddCommand(CmdGetPendingPacketsByReceiver())
+	cmd.AddCommand(CmdGetPendingPacketsByAddress())
 
 	return cmd
 }
@@ -219,7 +219,7 @@ func CmdGetPacketsByType() *cobra.Command {
 	return cmd
 }
 
-func CmdGetPendingPacketsByReceiver() *cobra.Command {
+func CmdGetPendingPacketsByAddress() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pending-packets-by-address [address]",
 		Short: "Get pending packets by address",

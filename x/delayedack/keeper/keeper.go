@@ -55,7 +55,7 @@ func NewKeeper(
 		paramstore: ps,
 		pendingPacketsByAddress: collections.NewKeySet(
 			collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey)),
-			collections.NewPrefix(types.PendingPacketsByReceiverKeyPrefix),
+			collections.NewPrefix(types.PendingPacketsByAddressKeyPrefix),
 			"pending_packets_by_receiver",
 			collections.PairKeyCodec(collections.StringKey, collcodec.NewBytesKey[[]byte]()),
 		),
