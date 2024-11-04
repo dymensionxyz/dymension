@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
@@ -75,11 +76,12 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 		// not allowed to unbond immediately, need to serve a notice to allow the rollapp community to organise
 		// Also, if they already requested to unbond, we don't want to start another notice period, regardless
 		// of if their notice already elapsed or not.
-
-		if !seq.NoticeInProgress(ctx.BlockTime()) {
-			if !(k.IsProposer(ctx, seq) && k.awaitingLastProposerBlock(ctx, seq.RollappId)) {
-				k.StartNoticePeriodForSequencer(ctx, &seq)
-			}
+		if k.IsSuccessor(ctx, seq) {
+			return nil, gerrc.ErrFailedPrecondition.Wrap("successor cannot unbond or start notice")
+		}
+		// now we know they are proposer
+		if !seq.NoticeInProgress(ctx.BlockTime()) && !k.awaitingLastProposerBlock(ctx, seq.RollappId) {
+			k.StartNoticePeriodForSequencer(ctx, &seq)
 		}
 		return &types.MsgUnbondResponse{
 			CompletionTime: &types.MsgUnbondResponse_NoticePeriodCompletionTime{
