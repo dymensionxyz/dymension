@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 
+	"cosmossdk.io/collections"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
@@ -110,6 +111,26 @@ func (k Keeper) updateQueueForHeight(ctx sdk.Context, blockHeightToFinalizationQ
 		})
 	// save the current queue with "leftover" rollapp's state changes
 	k.SetBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue)
+}
+
+// SetFinalizationQueue set types.FinalizationQueue for a specific height and rollappID
+func (k Keeper) SetFinalizationQueue(ctx sdk.Context, height uint64, rollappID string, queue types.BlockHeightToFinalizationQueue) error {
+	return k.finalizationQueue.Set(ctx, collections.Join(height, rollappID), queue)
+}
+
+// GetFinalizationQueue gets types.FinalizationQueue for a specific height and rollappID
+func (k Keeper) GetFinalizationQueue(ctx sdk.Context, height uint64, rollappID string) (types.BlockHeightToFinalizationQueue, error) {
+	return k.finalizationQueue.Get(ctx, collections.Join(height, rollappID))
+}
+
+// SetFinalizationQueue set types.FinalizationQueue for a specific height and rollappID
+func (k Keeper) SetFinalizationQueue(ctx sdk.Context, height uint64, rollappID string, queue types.BlockHeightToFinalizationQueue) error {
+	return k.finalizationQueue.Set(ctx, collections.Join(height, rollappID), queue)
+}
+
+// GetFinalizationQueue gets types.FinalizationQueue for a specific height and rollappID
+func (k Keeper) GetFinalizationQueue(ctx sdk.Context, height uint64, rollappID string) (types.BlockHeightToFinalizationQueue, error) {
+	return k.finalizationQueue.Get(ctx, collections.Join(height, rollappID))
 }
 
 // SetBlockHeightToFinalizationQueue set a specific blockHeightToFinalizationQueue in the store from its index

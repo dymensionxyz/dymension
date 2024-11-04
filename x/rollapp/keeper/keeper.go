@@ -31,6 +31,9 @@ type Keeper struct {
 
 	vulnerableDRSVersions   collections.KeySet[uint32]
 	registeredRollappDenoms collections.KeySet[collections.Pair[string, string]]
+	// finalizationQueue is a map from creation height and rollapp to the finalization queue.
+	// Key: (creation height, rollappID), Value: state indexes to finalize.
+	finalizationQueue collections.Map[collections.Pair[uint64, string], types.BlockHeightToFinalizationQueue]
 
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 }
@@ -56,6 +59,8 @@ func NewKeeper(
 		panic(fmt.Errorf("invalid x/rollapp authority address: %w", err))
 	}
 
+	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
+
 	k := &Keeper{
 		cdc:             cdc,
 		storeKey:        storeKey,
@@ -68,16 +73,23 @@ func NewKeeper(
 		sequencerKeeper: sequencerKeeper,
 		bankKeeper:      bankKeeper,
 		vulnerableDRSVersions: collections.NewKeySet(
-			collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey)),
+			sb,
 			collections.NewPrefix(types.VulnerableDRSVersionsKeyPrefix),
 			"vulnerable_drs_versions",
 			collections.Uint32Key,
 		),
 		registeredRollappDenoms: collections.NewKeySet[collections.Pair[string, string]](
-			collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey)),
+			sb,
 			collections.NewPrefix(types.KeyRegisteredDenomPrefix),
 			"registered_rollapp_denoms",
 			collections.PairKeyCodec(collections.StringKey, collections.StringKey),
+		),
+		finalizationQueue: collections.NewMap(
+			sb,
+			collections.NewPrefix(types.HeightRollappToFinalizationQueueKeyPrefix),
+			"height_rollapp_to_finalization_queue",
+			collections.PairKeyCodec(collections.Uint64Key, collections.StringKey),
+			collcompat.ProtoValue[types.BlockHeightToFinalizationQueue](cdc),
 		),
 		finalizePending:       nil,
 		canonicalClientKeeper: canonicalClientKeeper,

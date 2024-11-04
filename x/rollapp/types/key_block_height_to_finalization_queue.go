@@ -7,6 +7,9 @@ var _ binary.ByteOrder
 const (
 	// BlockHeightToFinalizationQueueKeyPrefix is the prefix to retrieve all BlockHeightToFinalizationQueue
 	BlockHeightToFinalizationQueueKeyPrefix = "BlockHeightToFinalizationQueue/value/"
+
+	// HeightRollappToFinalizationQueueKeyPrefix is the prefix to retrieve all FinalizationQueue
+	HeightRollappToFinalizationQueueKeyPrefix = "HeightRollappToFinalizationQueue/value/"
 )
 
 // BlockHeightToFinalizationQueueKey returns the store key to retrieve a BlockHeightToFinalizationQueue from the index fields
