@@ -66,7 +66,10 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 		k.SetSequencer(ctx, seq)
 	}()
 
-	seq.OptedIn = false // ensures they will not get chosen as their own successor!
+	// ensures they will not get chosen as their own successor!
+	if err := seq.SetOptedIn(ctx, false); err != nil {
+		return nil, err
+	}
 	err = k.TryUnbond(ctx, &seq, seq.TokensCoin())
 	if errorsmod.IsOf(err, types.ErrUnbondProposerOrSuccessor) {
 		// not allowed to unbond immediately, need to serve a notice to allow the rollapp community to organise
