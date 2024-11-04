@@ -41,7 +41,6 @@ func (k Keeper) MustSetPendingPacketByAddress(ctx sdk.Context, receiver string, 
 	if err != nil {
 		panic(err)
 	}
-	return
 }
 
 // DeletePendingPacketByAddress deletes a rollapp packet from the KVStore by its receiver.
@@ -56,7 +55,6 @@ func (k Keeper) MustDeletePendingPacketByAddress(ctx sdk.Context, receiver strin
 	if err != nil {
 		panic(err)
 	}
-	return
 }
 
 // GetPendingPacketsByAddress retrieves rollapp packets from the KVStore by their receiver.
