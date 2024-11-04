@@ -45,7 +45,7 @@ func (r RollappPacket) GetEvents() []sdk.Attribute {
 		pd, _ = r.GetTransferPacketData()
 	}
 
-	var acknowledgement = "none"
+	acknowledgement := "none"
 	if len(r.Acknowledgement) != 0 {
 		ack, err := r.GetAck()
 		// It's okay if we can't get acknowledgement
