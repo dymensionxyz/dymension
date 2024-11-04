@@ -15,7 +15,7 @@ import (
 
 func DefaultExpectedCanonicalClientParams() ibctm.ClientState {
 	// Note: need to be very sure that this is the same value that the
-	// relaye gets when it queries the rollapp (x/sequencers)
+	// relayer gets when it queries the rollapp (x/sequencers)
 	unbondingTime := time.Hour * 24 * 7 * 3
 
 	return ExpectedCanonicalClientParams(unbondingTime)
