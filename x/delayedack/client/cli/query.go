@@ -221,8 +221,8 @@ func CmdGetPacketsByType() *cobra.Command {
 
 func CmdGetPendingPacketsByReceiver() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "pending-packets-by-receiver [receiver]",
-		Short: "Get pending packets by receiver",
+		Use:   "pending-packets-by-address [address]",
+		Short: "Get pending packets by address",
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
