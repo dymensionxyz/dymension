@@ -101,14 +101,10 @@ func (s *SequencerTestSuite) TestRotationProposerAndSuccessorBothUnbond() {
 	s.Require().NoError(err)
 	s.Require().True(s.k().IsSuccessor(s.Ctx, s.seq(bob)), "successor", s.k().GetSuccessor(s.Ctx, ra.RollappId).Address)
 
-	// successor tries to unbond
+	// successor tries to unbond, but it fails
 	mUnbond = &types.MsgUnbond{Creator: pkAddr(bob)}
 	res, err = s.msgServer.Unbond(s.Ctx, mUnbond)
-	s.Require().NoError(err)
-
-	// advance clock past successor notice
-	s.Require().True(res.GetNoticePeriodCompletionTime().After(s.Ctx.BlockTime()))
-	s.Ctx = s.Ctx.WithBlockTime(*res.GetNoticePeriodCompletionTime())
+	utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
 
 	// proposer can submit last
 	err = s.k().OnProposerLastBlock(s.Ctx, s.seq(alice))
@@ -117,15 +113,8 @@ func (s *SequencerTestSuite) TestRotationProposerAndSuccessorBothUnbond() {
 	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(bob)))
 	s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
 
-	// notice period for original successor (bob) has now elapsed too
-	err = s.k().ChooseSuccessorForFinishedNotices(s.Ctx, s.Ctx.BlockTime())
+	// successor tries to unbond this time it works
+	mUnbond = &types.MsgUnbond{Creator: pkAddr(bob)}
+	res, err = s.msgServer.Unbond(s.Ctx, mUnbond)
 	s.Require().NoError(err)
-	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(bob)))
-	s.Require().True(s.k().IsSuccessor(s.Ctx, s.seq(charlie)))
-
-	// proposer can submit last
-	err = s.k().OnProposerLastBlock(s.Ctx, s.seq(bob))
-	s.Require().NoError(err)
-	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(charlie)))
-	s.Require().True(s.k().IsSuccessor(s.Ctx, s.k().SentinelSequencer(s.Ctx)))
 }

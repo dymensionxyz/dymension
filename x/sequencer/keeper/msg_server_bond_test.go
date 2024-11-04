@@ -168,18 +168,13 @@ func (s *SequencerTestSuite) TestUnbondRestrictions() {
 		s.Require().True(s.k().IsProposer(s.Ctx, seq))
 		s.Require().False(seq.OptedIn)
 	})
-	s.Run("successor - start notice", func() {
+	s.Run("successor - not allowed", func() {
 		seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, charlie, bond)
 		s.k().SetSuccessor(s.Ctx, ra.RollappId, seq.Address)
 		m := &types.MsgUnbond{
 			Creator: seq.Address,
 		}
-		res, err := s.msgServer.Unbond(s.Ctx, m)
-		s.Require().NoError(err)
-		s.Require().False(res.GetNoticePeriodCompletionTime().IsZero())
-		seq = s.k().GetSequencer(s.Ctx, seq.Address)
-		s.Require().True(seq.NoticeInProgress(s.Ctx.BlockTime()))
-		s.Require().True(s.k().IsSuccessor(s.Ctx, seq))
-		s.Require().False(seq.OptedIn)
+		_, err := s.msgServer.Unbond(s.Ctx, m)
+		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
 	})
 }
