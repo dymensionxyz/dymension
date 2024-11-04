@@ -8,6 +8,10 @@ import "cosmos/msg/v1/msg.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
 
+service ProposalMsg {
+  rpc SubmitRollappFraud(MsgRollappFraudProposal) returns (MsgRollappFraudProposalResponse);
+}
+
 message MsgRollappFraudProposal {
   option (cosmos.msg.v1.signer) = "authority";
 
@@ -27,6 +31,9 @@ message MsgRollappFraudProposal {
 
   // sequencer address to jail. optional
   string slash_sequencer_address = 6;
+}
+
+message MsgRollappFraudProposalResponse {
 }
 
 // TODO: add slashing only proposal (e.g for double signing)
