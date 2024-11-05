@@ -22,7 +22,7 @@ func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
 		sdk.MsgTypeURL(&types.MsgDelegate{}),
 	}
 
-	decorator := ante.NewRejectMessagesDecorator(suite.app.AppCodec(), &suite.app.GroupKeeper, disabledMsgTypes...)
+	decorator := ante.NewRejectMessagesDecorator(suite.app.AppCodec(), disabledMsgTypes...)
 
 	testCases := []struct {
 		name          string

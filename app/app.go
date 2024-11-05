@@ -219,7 +219,6 @@ func New(
 		ExtensionOptionChecker: nil, // uses default
 		RollappKeeper:          *app.RollappKeeper,
 		LightClientKeeper:      &app.LightClientKeeper,
-		GroupKeeper:            &app.GroupKeeper,
 	})
 	if err != nil {
 		panic(err)

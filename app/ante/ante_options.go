@@ -6,7 +6,6 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
 
@@ -32,7 +31,6 @@ type HandlerOptions struct {
 	ExtensionOptionChecker ante.ExtensionOptionChecker
 	RollappKeeper          rollappkeeper.Keeper
 	LightClientKeeper      *lightclientkeeper.Keeper
-	GroupKeeper            *groupkeeper.Keeper
 }
 
 func (options HandlerOptions) validate() error {
@@ -59,9 +57,6 @@ func (options HandlerOptions) validate() error {
 	}
 	if options.LightClientKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "light client keeper is required for AnteHandler")
-	}
-	if options.GroupKeeper == nil {
-		return errorsmod.Wrap(errortypes.ErrLogic, "group keeper is required for AnteHandler")
 	}
 	return nil
 }
