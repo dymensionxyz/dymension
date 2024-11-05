@@ -4,8 +4,6 @@ import (
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
-// FIXME: Liveness????
-
 // TestHardFork - Test the HardFork function
 // - deleted states
 // - pending queue is cleared up to the fraud height

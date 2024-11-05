@@ -20,29 +20,35 @@ func (k Keeper) TryKickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 
 	proposer := k.GetProposer(ctx, ra)
 
-	if k.Kickable(ctx, proposer) {
-		// FIXME: slash remaining funds?
-		if err := k.unbond(ctx, &proposer); err != nil {
-			return errorsmod.Wrap(err, "unbond")
-		}
-		k.SetSequencer(ctx, proposer)
-		if err := k.optOutAllSequencers(ctx, ra, kicker.Address); err != nil {
-			return errorsmod.Wrap(err, "opt out all seqs")
-		}
-		k.hooks.AfterKickProposer(ctx, proposer)
+	if !k.Kickable(ctx, proposer) {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "not kickable")
+	}
+	// FIXME: slash remaining funds if any?
+	if err := k.unbond(ctx, &proposer); err != nil {
+		return errorsmod.Wrap(err, "unbond")
+	}
+	k.SetSequencer(ctx, proposer)
 
-		if err := uevent.EmitTypedEvent(ctx, &types.EventKickedProposer{
-			Rollapp:  ra,
-			Kicker:   kicker.Address,
-			Proposer: proposer.Address,
-		}); err != nil {
-			return err
-		}
+	// This will call hard fork on the rollapp, which will also optOut all sequencers
+	k.hooks.AfterKickProposer(ctx, proposer)
+
+	// optIn the kicker
+	if err := kicker.SetOptedIn(ctx, true); err != nil {
+		return errorsmod.Wrap(err, "set opted in")
+	}
+	k.SetSequencer(ctx, kicker)
+
+	if err := uevent.EmitTypedEvent(ctx, &types.EventKickedProposer{
+		Rollapp:  ra,
+		Kicker:   kicker.Address,
+		Proposer: proposer.Address,
+	}); err != nil {
+		return err
 	}
 
 	// this will choose kicker as next proposer, since he is the only opted in and bonded
 	// sequencer remaining.
-	if err := k.ChooseProposer(ctx, ra); err != nil {
+	if err := k.UpdateProposerIfNeeded(ctx, ra); err != nil {
 		return errorsmod.Wrap(err, "choose proposer")
 	}
 

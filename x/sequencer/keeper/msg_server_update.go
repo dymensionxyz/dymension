@@ -56,7 +56,7 @@ func (k msgServer) UpdateOptInStatus(goCtx context.Context,
 	k.SetSequencer(ctx, seq)
 
 	// maybe set as proposer if one is needed
-	if err := k.ChooseProposer(ctx, seq.RollappId); err != nil {
+	if err := k.UpdateProposerIfNeeded(ctx, seq.RollappId); err != nil {
 		return nil, errorsmod.Wrap(err, "choose proposer")
 	}
 	return &types.MsgUpdateOptInStatus{}, nil

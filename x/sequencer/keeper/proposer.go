@@ -34,14 +34,15 @@ func (k Keeper) RollappPotentialProposers(ctx sdk.Context, rollappId string) []t
 	seqs = slices.DeleteFunc(seqs, func(seq types.Sequencer) bool {
 		return !seq.IsPotentialProposer()
 	})
+	// FIXME: sentinel should be added in no sequencers are bonded
 	return append(seqs, k.SentinelSequencer(ctx))
 }
 
-// ChooseProposer will assign a proposer to the rollapp. It won't replace the incumbent proposer
+// UpdateProposerIfNeeded will assign a proposer to the rollapp. It won't replace the incumbent proposer
 // if they are not sentinel. Otherwise it will prioritise a non sentinel successor. Finally, it
 // choose one based on an algorithm.
 // The result can be the sentinel sequencer.
-func (k Keeper) ChooseProposer(ctx sdk.Context, rollapp string) error {
+func (k Keeper) UpdateProposerIfNeeded(ctx sdk.Context, rollapp string) error {
 	proposer := k.GetProposer(ctx, rollapp)
 	before := proposer
 

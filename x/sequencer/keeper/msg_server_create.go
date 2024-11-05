@@ -106,19 +106,9 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, err
 	}
 
-	if err := k.ChooseProposer(ctx, msg.RollappId); err != nil {
+	if err := k.UpdateProposerIfNeeded(ctx, msg.RollappId); err != nil {
 		return nil, err
 	}
-
-	// FIXME: // recover from hard fork
-	/*
-		// if the rollapp has a state info, set the next proposer to this sequencer
-		sInfo, ok := k.rollappKeeper.GetLatestStateInfo(ctx, sequencer.RollappId)
-		if ok {
-			sInfo.NextProposer = sequencer.Address
-			k.rollappKeeper.SetStateInfo(ctx, sInfo)
-		}
-	*/
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

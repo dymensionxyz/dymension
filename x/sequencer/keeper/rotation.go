@@ -81,7 +81,7 @@ func (k Keeper) OnProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) e
 	}
 
 	k.SetProposer(ctx, proposer.RollappId, types.SentinelSeqAddr)
-	if err := k.ChooseProposer(ctx, proposer.RollappId); err != nil {
+	if err := k.UpdateProposerIfNeeded(ctx, proposer.RollappId); err != nil {
 		return errorsmod.Wrap(err, "choose proposer")
 	}
 	after := k.GetProposer(ctx, proposer.RollappId)
