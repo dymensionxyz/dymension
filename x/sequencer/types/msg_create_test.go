@@ -47,7 +47,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				DymintPubKey: pkAny,
 				Bond:         bond,
 			},
-			err: ErrInvalidAddress,
+			err: ErrInvalidAddr,
 		}, {
 			name: "valid address",
 			msg: MsgCreateSequencer{
@@ -239,7 +239,7 @@ func TestNewMsgIncreaseBond_ValidateBasic(t *testing.T) {
 				Creator:   "invalid_address",
 				AddAmount: sdk.NewInt64Coin("stake", 100),
 			},
-			err: ErrInvalidAddress,
+			err: ErrInvalidAddr,
 		},
 		{
 			name: "invalid bond amount",
@@ -281,7 +281,7 @@ func TestNewMsgDecreaseBond_ValidateBasic(t *testing.T) {
 				Creator:        "invalid_address",
 				DecreaseAmount: sdk.NewInt64Coin("stake", 100),
 			},
-			err: ErrInvalidAddress,
+			err: ErrInvalidAddr,
 		},
 		{
 			name: "invalid bond amount",

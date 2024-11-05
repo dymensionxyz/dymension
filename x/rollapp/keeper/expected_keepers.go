@@ -24,8 +24,7 @@ type ChannelKeeper interface {
 
 type SequencerKeeper interface {
 	SlashLiveness(ctx sdk.Context, rollappID string) error
-	JailLiveness(ctx sdk.Context, rollappID string) error
-	GetProposer(ctx sdk.Context, rollappId string) (val types.Sequencer, found bool)
+	GetProposer(ctx sdk.Context, rollappId string) types.Sequencer
 }
 
 // BankKeeper defines the expected interface needed to retrieve account balances.

@@ -19,13 +19,13 @@ func (i IBCMessagesDecorator) HandleMsgChannelOpenAck(ctx sdk.Context, msg *ibcc
 	if err != nil {
 		return err
 	}
-	rollappID, found := i.lightClientKeeper.GetRollappForClientID(ctx, connection.GetClientID())
+	rollappID, found := i.k.GetRollappForClientID(ctx, connection.GetClientID())
 	if !found {
 		// channel is for non rollapp
 		return nil
 	}
 	// Check if canon channel already exists for rollapp, if yes, return err
-	rollapp, found := i.rollappKeeper.GetRollapp(ctx, rollappID)
+	rollapp, found := i.raK.GetRollapp(ctx, rollappID)
 	if !found {
 		return errorsmod.Wrap(gerrc.ErrInternal, "rollapp not found")
 	}
@@ -34,7 +34,7 @@ func (i IBCMessagesDecorator) HandleMsgChannelOpenAck(ctx sdk.Context, msg *ibcc
 	}
 	// Set this channel as the canonical channel for the rollapp
 	rollapp.ChannelId = msg.ChannelId
-	i.rollappKeeper.SetRollapp(ctx, rollapp)
+	i.raK.SetRollapp(ctx, rollapp)
 
 	if err := uevent.EmitTypedEvent(ctx, &types.EventSetCanonicalChannel{
 		RollappId: rollappID,

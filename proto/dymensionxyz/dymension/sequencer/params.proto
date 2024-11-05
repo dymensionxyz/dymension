@@ -12,14 +12,18 @@ message Params {
   option (gogoproto.equal) = true;
   option (gogoproto.goproto_stringer) = false;
 
+  // minimum amt that must be put up for stake to be sequencer
   cosmos.base.v1beta1.Coin min_bond = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "min_bond,omitempty"
   ];
 
-  // unbonding_time is the time duration of unbonding.
-  google.protobuf.Duration unbonding_time = 2
-      [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true ];
+  // amt where the active sequencer can be kicked if he has less or equal bond
+  cosmos.base.v1beta1.Coin kick_threshold = 5 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "kick_threshold,omitempty"
+  ];
+  reserved 2;
 
   // notice_period is the time duration of notice period.
   // notice period is the duration between the unbond request and the actual
@@ -27,10 +31,15 @@ message Params {
   google.protobuf.Duration notice_period = 3
       [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true ];
       
-  // LivenessSlashMultiplier multiplies with the tokens of the slashed sequencer to compute the burn amount.
-  string liveness_slash_multiplier = 4 [
+  // liveness_slash_min_multiplier multiplies with the tokens of the slashed sequencer to compute the burn amount.
+  string liveness_slash_min_multiplier = 4 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.moretags) = "yaml:\"liveness_slash_multiplier\"",
     (gogoproto.nullable) = false
+  ];
+  // liveness_slash_min_absolute is the absolute minimum to slash for liveness
+  cosmos.base.v1beta1.Coin liveness_slash_min_absolute = 6 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "liveness_slash_min_absolute,omitempty"
   ];
 }
