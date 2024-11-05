@@ -90,7 +90,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	}
 	genesis.RegisteredDenoms = registeredRollappDenoms
 
-	var err error
 	genesis.SequencerHeightPairs, err = k.AllSequencerHeightPairs(ctx)
 	if err != nil {
 		panic(err)

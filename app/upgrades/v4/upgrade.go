@@ -75,6 +75,8 @@ func CreateUpgradeHandler(
 		if err := migrateDelayedAckPacketIndex(ctx, keepers.DelayedAckKeeper); err != nil {
 			return nil, err
 		}
+		
+		migrateRollappFinalizationQueue(ctx, keepers.RollappKeeper)
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
