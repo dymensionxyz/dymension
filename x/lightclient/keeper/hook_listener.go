@@ -45,6 +45,8 @@ func (hook rollappHook) AfterUpdateState(
 		if ok {
 			hook.k.SetCanonicalClient(ctx, rollappId, client)
 		}
+	}
+	if !ok {
 		return nil
 	}
 
