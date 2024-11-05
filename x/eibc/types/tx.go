@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/hex"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	errorsmod "cosmossdk.io/errors"
