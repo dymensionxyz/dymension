@@ -96,10 +96,10 @@ func (k Keeper) CanUnbond(ctx sdk.Context, seq sequencertypes.Sequencer) error {
 	})
 }
 
-// PruneSigners removes bookkeeping for all heights ABOVE h for given rollapp
+// PruneSignersAbove removes bookkeeping for all heights ABOVE h for given rollapp
 // This should only be called after canonical client set
 // TODO: plug into hard fork
-func (k Keeper) PruneSigners(ctx sdk.Context, rollapp string, h uint64) error {
+func (k Keeper) PruneSignersAbove(ctx sdk.Context, rollapp string, h uint64) error {
 	client, ok := k.GetCanonicalClient(ctx, rollapp)
 	if !ok {
 		return gerrc.ErrInternal.Wrap(`
@@ -130,10 +130,7 @@ shouldnt be allowed
 	return nil
 }
 
-// func (p *PairRange[K1, K2])
-type Foo[K1, K2 any] func(p *collections.PairRange[K1, K2], k2 K2) *collections.PairRange[K1, K2]
-
-// PruneSignersBelow PruneSigners removes bookkeeping for all heights BELOW h for given rollapp
+// PruneSignersBelow removes bookkeeping for all heights BELOW h for given rollapp
 // This should only be called after canonical client set
 func (k Keeper) PruneSignersBelow(ctx sdk.Context, rollapp string, h uint64) error {
 	client, ok := k.GetCanonicalClient(ctx, rollapp)
@@ -145,40 +142,6 @@ shouldnt be allowed
 `)
 	}
 	rng := collections.NewPrefixedPairRange[string, uint64](client).EndExclusive(h)
-
-	seqs := make([]string, 0)
-	heights := make([]uint64, 0)
-
-	// collect first to avoid del while iterating
-	if err := k.clientHeightToSigner.Walk(ctx, rng, func(key collections.Pair[string, uint64], value string) (stop bool, err error) {
-		seqs = append(seqs, value)
-		heights = append(heights, key.K2())
-		return false, nil
-	}); err != nil {
-		return errorsmod.Wrap(err, "walk signers")
-	}
-
-	for i := 0; i < len(seqs); i++ {
-		if err := k.RemoveSigner(ctx, seqs[i], client, heights[i]); err != nil {
-			return errorsmod.Wrap(err, "remove signer")
-		}
-	}
-	return nil
-}
-
-// PruneSignersBelow PruneSigners removes bookkeeping for all heights BELOW h for given rollapp
-// This should only be called after canonical client set
-func (k Keeper) PruneGeneric(ctx sdk.Context, rollapp string, h uint64, f Foo[string, uint64]) error {
-	client, ok := k.GetCanonicalClient(ctx, rollapp)
-	if !ok {
-		return gerrc.ErrInternal.Wrap(`
-prune light client signers for rollapp before canonical client is set
-this suggests fork happened prior to genesis bridge completion, which
-shouldnt be allowed
-`)
-	}
-	//rng := collections.NewPrefixedPairRange[string, uint64](client)
-	rng := f(collections.NewPrefixedPairRange[string, uint64](client), h)
 
 	seqs := make([]string, 0)
 	heights := make([]uint64, 0)
