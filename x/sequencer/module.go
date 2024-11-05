@@ -166,16 +166,16 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 func (AppModule) ConsensusVersion() uint64 { return 3 }
 
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
+func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
+	// Must be in begin block to make sure successor is set before allowing last block from proposer
+	err := am.keeper.ChooseSuccessorForFinishedNotices(ctx, ctx.BlockTime())
+	if err != nil {
+		ctx.Logger().Error("ChooseNewProposerForFinishedNoticePeriods", "err", err)
+	}
 }
 
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	// Must be in begin block to avoid
-	err := am.keeper.ChooseSuccessorForFinishedNotices(ctx, ctx.BlockTime())
-	if err != nil {
-		ctx.Logger().Error("ChooseNewProposerForFinishedNoticePeriods", "err", err)
-	}
 	return []abci.ValidatorUpdate{}
 }

@@ -80,8 +80,9 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 			return nil, gerrc.ErrFailedPrecondition.Wrap("successor cannot unbond or start notice")
 		}
 		// now we know they are proposer
-		if !seq.NoticeInProgress(ctx.BlockTime()) && !k.awaitingLastProposerBlock(ctx, seq.RollappId) {
-			k.StartNoticePeriodForSequencer(ctx, &seq)
+		// avoid starting another notice unnecessarily
+		if !k.RotationInProgress(ctx, seq.RollappId) {
+			k.StartNoticePeriod(ctx, &seq)
 		}
 		return &types.MsgUnbondResponse{
 			CompletionTime: &types.MsgUnbondResponse_NoticePeriodCompletionTime{

@@ -11,57 +11,59 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// StartNoticePeriodForSequencer defines a period of time for the sequencer where
+// StartNoticePeriod defines a period of time for the proposer where
 // they cannot yet unbond, nor submit their last block. Adds to a queue for later
 // processing.
-func (k Keeper) StartNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) {
-	seq.NoticePeriodTime = ctx.BlockTime().Add(k.GetParams(ctx).NoticePeriod)
+func (k Keeper) StartNoticePeriod(ctx sdk.Context, prop *types.Sequencer) {
+	prop.NoticePeriodTime = ctx.BlockTime().Add(k.GetParams(ctx).NoticePeriod)
 
-	k.AddToNoticeQueue(ctx, *seq)
+	k.AddToNoticeQueue(ctx, *prop)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeNoticePeriodStarted,
-			sdk.NewAttribute(types.AttributeKeyRollappId, seq.RollappId),
-			sdk.NewAttribute(types.AttributeKeySequencer, seq.Address),
-			sdk.NewAttribute(types.AttributeKeyCompletionTime, seq.NoticePeriodTime.String()),
+			sdk.NewAttribute(types.AttributeKeyRollappId, prop.RollappId),
+			sdk.NewAttribute(types.AttributeKeySequencer, prop.Address),
+			sdk.NewAttribute(types.AttributeKeyCompletionTime, prop.NoticePeriodTime.String()),
 		),
 	)
 }
 
-// NoticeElapsedSequencers gets all sequencers across all rollapps whose notice period
+// NoticeElapsedProposers gets all sequencers across all rollapps whose notice period
 // has passed/elapsed.
-func (k Keeper) NoticeElapsedSequencers(ctx sdk.Context, endTime time.Time) ([]types.Sequencer, error) {
+func (k Keeper) NoticeElapsedProposers(ctx sdk.Context, endTime time.Time) ([]types.Sequencer, error) {
 	return k.NoticeQueue(ctx, &endTime)
 }
 
 // ChooseSuccessorForFinishedNotices goes through all sequencers whose notice periods have elapsed.
 // For each proposer, it chooses a successor proposer for their rollapp.
 func (k Keeper) ChooseSuccessorForFinishedNotices(ctx sdk.Context, now time.Time) error {
-	seqs, err := k.NoticeElapsedSequencers(ctx, now)
+	seqs, err := k.NoticeElapsedProposers(ctx, now)
 	if err != nil {
 		return errorsmod.Wrap(err, "get notice elapsed sequencers")
 	}
 	for _, seq := range seqs {
-		// Successor cannot finish notice. The proposer must finish first and then rotate to the successor.
-		if !k.IsSuccessor(ctx, seq) {
-			k.removeFromNoticeQueue(ctx, seq)
-			if err := k.chooseSuccessor(ctx, seq.RollappId); err != nil {
-				return errorsmod.Wrap(err, "choose successor")
-			}
-			successor := k.GetSuccessor(ctx, seq.RollappId)
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EventTypeRotationStarted,
-					sdk.NewAttribute(types.AttributeKeyRollappId, seq.RollappId),
-					sdk.NewAttribute(types.AttributeKeyNextProposer, successor.Address),
-					sdk.NewAttribute(types.AttributeKeyRewardAddr, successor.RewardAddr),
-					sdk.NewAttribute(types.AttributeKeyWhitelistedRelayers, strings.Join(successor.WhitelistedRelayers, ",")),
-				),
-			)
+		k.removeFromNoticeQueue(ctx, seq)
+		if err := k.chooseSuccessor(ctx, seq.RollappId); err != nil {
+			return errorsmod.Wrap(err, "choose successor")
 		}
+		successor := k.GetSuccessor(ctx, seq.RollappId)
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeRotationStarted,
+				sdk.NewAttribute(types.AttributeKeyRollappId, seq.RollappId),
+				sdk.NewAttribute(types.AttributeKeyNextProposer, successor.Address),
+				sdk.NewAttribute(types.AttributeKeyRewardAddr, successor.RewardAddr),
+				sdk.NewAttribute(types.AttributeKeyWhitelistedRelayers, strings.Join(successor.WhitelistedRelayers, ",")),
+			),
+		)
 	}
 	return nil
+}
+
+func (k Keeper) RotationInProgress(ctx sdk.Context, rollapp string) bool {
+	prop := k.GetProposer(ctx, rollapp)
+	return prop.NoticeInProgress(ctx.BlockTime()) || k.awaitingLastProposerBlock(ctx, rollapp)
 }
 
 func (k Keeper) awaitingLastProposerBlock(ctx sdk.Context, rollapp string) bool {

@@ -205,7 +205,7 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions2() {
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		s.Require().NoError(err)
 		seq := s.k().GetSequencer(s.Ctx, pkAddr(pk))
-		s.k().StartNoticePeriodForSequencer(s.Ctx, &seq)
+		s.k().StartNoticePeriod(s.Ctx, &seq)
 		s.k().SetSequencer(s.Ctx, seq)
 
 		// try to create another one
