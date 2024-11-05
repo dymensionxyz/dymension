@@ -10,7 +10,6 @@ var (
 	_ sdk.Msg = &MsgDecreaseBond{}
 )
 
-/* ---------------------------- MsgIncreaseBond ---------------------------- */
 func NewMsgIncreaseBond(creator string, addAmount sdk.Coin) *MsgIncreaseBond {
 	return &MsgIncreaseBond{
 		Creator:   creator,
@@ -21,7 +20,7 @@ func NewMsgIncreaseBond(creator string, addAmount sdk.Coin) *MsgIncreaseBond {
 func (msg *MsgIncreaseBond) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(ErrInvalidAddr, "invalid creator address (%s)", err)
 	}
 
 	if !(msg.AddAmount.IsValid() && msg.AddAmount.IsPositive()) {
@@ -39,7 +38,6 @@ func (msg *MsgIncreaseBond) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{creator}
 }
 
-/* ---------------------------- MsgDecreaseBond ---------------------------- */
 func NewMsgDecreaseBond(creator string, decreaseBond sdk.Coin) *MsgDecreaseBond {
 	return &MsgDecreaseBond{
 		Creator:        creator,
@@ -50,7 +48,7 @@ func NewMsgDecreaseBond(creator string, decreaseBond sdk.Coin) *MsgDecreaseBond 
 func (msg *MsgDecreaseBond) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(ErrInvalidAddr, "invalid creator address (%s)", err)
 	}
 
 	if !(msg.DecreaseAmount.IsValid() && msg.DecreaseAmount.IsPositive()) {
@@ -61,6 +59,31 @@ func (msg *MsgDecreaseBond) ValidateBasic() error {
 }
 
 func (msg *MsgDecreaseBond) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+var _ sdk.Msg = &MsgUnbond{}
+
+func NewMsgUnbond(creator string) *MsgUnbond {
+	return &MsgUnbond{
+		Creator: creator,
+	}
+}
+
+func (msg *MsgUnbond) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return errorsmod.Wrapf(ErrInvalidAddr, "invalid creator address (%s)", err)
+	}
+
+	return nil
+}
+
+func (msg *MsgUnbond) GetSigners() []sdk.AccAddress {
 	creator, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		panic(err)

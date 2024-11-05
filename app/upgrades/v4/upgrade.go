@@ -168,8 +168,8 @@ func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) error
 	return nil
 }
 
-func migrateSequencers(ctx sdk.Context, sequencerkeeper sequencerkeeper.Keeper) {
-	list := sequencerkeeper.GetAllSequencers(ctx)
+func migrateSequencers(ctx sdk.Context, sequencerkeeper *sequencerkeeper.Keeper) {
+	list := sequencerkeeper.AllSequencers(ctx)
 	for _, oldSequencer := range list {
 		newSequencer := ConvertOldSequencerToNew(oldSequencer)
 		sequencerkeeper.SetSequencer(ctx, newSequencer)
