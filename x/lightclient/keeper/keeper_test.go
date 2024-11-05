@@ -72,3 +72,44 @@ func (s *TestSuite) TestUnbondConditionFlow() {
 	err = s.k().CanUnbond(s.Ctx, seq)
 	s.Require().NoError(err)
 }
+
+// Basic flow should prevent unbonding at appropriate times, and
+// handle pruning.
+func (s *TestSuite) TestPruneBelow() {
+	seq := keepertest.Alice
+
+	client := keepertest.CanonClientID
+
+	s.k().SetCanonicalClient(s.Ctx, seq.RollappId, client)
+
+	// allowed!
+	err := s.k().CanUnbond(s.Ctx, seq)
+	s.Require().NoError(err)
+
+	// add some unverified headers
+	for h := range 10 {
+		err := s.k().SaveSigner(s.Ctx, seq.Address, client, uint64(h))
+		s.Require().NoError(err)
+	}
+
+	// not allowed!
+	err = s.k().CanUnbond(s.Ctx, seq)
+	utest.IsErr(s.Require(), err, sequencertypes.ErrUnbondNotAllowed)
+
+	// we prune some, but still not allowed
+	err = s.k().PruneSignersBelow(s.Ctx, seq.RollappId, 6)
+	s.Require().NoError(err)
+
+	err = s.k().CanUnbond(s.Ctx, seq)
+	utest.IsErr(s.Require(), err, sequencertypes.ErrUnbondNotAllowed)
+
+	// the rest are verified
+	for h := 6; h < 10; h++ {
+		err := s.k().RemoveSigner(s.Ctx, seq.Address, client, uint64(h))
+		s.Require().NoError(err)
+	}
+
+	// allowed!
+	err = s.k().CanUnbond(s.Ctx, seq)
+	s.Require().NoError(err)
+}
