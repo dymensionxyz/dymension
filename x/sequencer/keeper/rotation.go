@@ -37,6 +37,7 @@ func (k Keeper) NoticeElapsedProposers(ctx sdk.Context, endTime time.Time) ([]ty
 
 // ChooseSuccessorForFinishedNotices goes through all sequencers whose notice periods have elapsed.
 // For each proposer, it chooses a successor proposer for their rollapp.
+// Contract: must be called before OnProposerLastBlock for a given block time
 func (k Keeper) ChooseSuccessorForFinishedNotices(ctx sdk.Context, now time.Time) error {
 	seqs, err := k.NoticeElapsedProposers(ctx, now)
 	if err != nil {
@@ -63,15 +64,16 @@ func (k Keeper) ChooseSuccessorForFinishedNotices(ctx sdk.Context, now time.Time
 
 func (k Keeper) RotationInProgress(ctx sdk.Context, rollapp string) bool {
 	prop := k.GetProposer(ctx, rollapp)
-	return prop.NoticeInProgress(ctx.BlockTime()) || k.awaitingLastProposerBlock(ctx, rollapp)
+	return prop.NoticeInProgress(ctx.BlockTime()) || k.AwaitingLastProposerBlock(ctx, rollapp)
 }
 
-func (k Keeper) awaitingLastProposerBlock(ctx sdk.Context, rollapp string) bool {
+func (k Keeper) AwaitingLastProposerBlock(ctx sdk.Context, rollapp string) bool {
 	proposer := k.GetProposer(ctx, rollapp)
 	return proposer.NoticeElapsed(ctx.BlockTime())
 }
 
 // OnProposerLastBlock : it will assign the successor to be the proposer.
+// Contract: must be called after ChooseSuccessorForFinishedNotices for a given block time
 func (k Keeper) OnProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) error {
 	allowLastBlock := proposer.NoticeElapsed(ctx.BlockTime())
 	if !allowLastBlock {

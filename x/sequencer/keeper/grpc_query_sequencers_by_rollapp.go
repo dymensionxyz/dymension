@@ -50,7 +50,7 @@ func (k Keeper) GetNextProposerByRollapp(c context.Context, req *types.QueryGetN
 	ctx := sdk.UnwrapSDKContext(c)
 
 	successor := k.GetSuccessor(ctx, req.RollappId)
-	inProgress := k.awaitingLastProposerBlock(ctx, req.RollappId)
+	inProgress := k.AwaitingLastProposerBlock(ctx, req.RollappId)
 
 	return &types.QueryGetNextProposerByRollappResponse{
 		NextProposerAddr:   successor.Address,

@@ -41,7 +41,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		we don't want to set a new successor while the last block from the proposer is in flight.
 		TODO: possible to simplify?
 	*/
-	if k.awaitingLastProposerBlock(ctx, msg.RollappId) {
+	if k.AwaitingLastProposerBlock(ctx, msg.RollappId) {
 		return nil, types.ErrRegisterSequencerWhileAwaitingLastProposerBlock
 	}
 
