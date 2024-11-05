@@ -127,7 +127,7 @@ func (i IBCMessagesDecorator) getStateInfos(ctx sdk.Context, rollapp string, h u
 		return stateInfos{}, err
 	}
 	s1 := s0
-	if !s1.ContainsHeight(h) {
+	if !s1.ContainsHeight(h + 1) {
 		s1, err = i.raK.FindStateInfoByHeight(ctx, rollapp, h+1)
 		if errorsmod.IsOf(err, gerrc.ErrNotFound) {
 			return stateInfos{s0, nil}, nil
@@ -143,7 +143,7 @@ func (i IBCMessagesDecorator) validateUpdatePessimistically(ctx sdk.Context, inf
 	bd, _ := infos.containingH.GetBlockDescriptor(h)
 	seq, err := i.k.SeqK.RealSequencer(ctx, infos.containingHPlus1.Sequencer)
 	if err != nil {
-		return gerrc.ErrInternal.Wrap("get sequencer of state info")
+		return errorsmod.Wrap(errors.Join(err, gerrc.ErrInternal), "get sequencer of state info")
 	}
 	rollappState := types.RollappState{
 		BlockDescriptor:    bd,

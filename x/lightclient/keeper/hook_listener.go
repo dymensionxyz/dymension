@@ -50,11 +50,11 @@ func (hook rollappHook) AfterUpdateState(
 
 	seq, err := hook.k.SeqK.RealSequencer(ctx, stateInfo.Sequencer)
 	if err != nil {
-		return gerrc.ErrInternal.Wrap("get sequencer for state info")
+		return errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "get sequencer for state info")
 	}
 
-	// [h-1..,h) is correct because we compare against a next validators hash
-	for h := stateInfo.GetLatestHeight() - 1; h < stateInfo.GetLatestHeight(); h++ {
+	// [hStart-1..,hEnd) is correct because we compare against a next validators hash
+	for h := stateInfo.GetStartHeight() - 1; h < stateInfo.GetLatestHeight(); h++ {
 		if err := hook.validateOptimisticUpdate(ctx, rollappId, client, seq, stateInfo, h); err != nil {
 			if errorsmod.IsOf(err, gerrc.ErrFault) {
 				// TODO: should double check this flow when implementing hard fork

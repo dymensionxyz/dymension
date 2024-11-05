@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"errors"
 
 	errorsmod "cosmossdk.io/errors"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
@@ -24,7 +25,7 @@ func CheckCompatibility(ibcState ibctm.ConsensusState, raState RollappState) err
 	// Check if the nextValidatorHash matches for the sequencer for h+1 block descriptor
 	hash, err := raState.NextBlockSequencer.ValsetHash()
 	if err != nil {
-		return gerrc.ErrInternal.Wrap("val set hash")
+		return errors.Join(err, gerrc.ErrInternal.Wrap("val set hash"))
 	}
 	if !bytes.Equal(ibcState.NextValidatorsHash, hash) {
 		return errorsmod.Wrap(ErrValidatorHashMismatch, "cons state next validator hash does not match the state info hash for sequencer for h+1")
