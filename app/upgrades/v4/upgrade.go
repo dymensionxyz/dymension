@@ -6,7 +6,6 @@ import (
 
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -75,7 +74,7 @@ func CreateUpgradeHandler(
 		if err := migrateDelayedAckPacketIndex(ctx, keepers.DelayedAckKeeper); err != nil {
 			return nil, err
 		}
-		
+
 		migrateRollappFinalizationQueue(ctx, keepers.RollappKeeper)
 
 		// Start running the module migrations

@@ -9,8 +9,9 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -256,13 +257,6 @@ func (k Keeper) RemoveBlockHeightToFinalizationQueue(
 	store.Delete(types.BlockHeightToFinalizationQueueKey(
 		creationHeight,
 	))
-}
-
-// GetAllFinalizationQueueUntilHeightInclusive returns all the blockHeightToFinalizationQueues with creation height equal or less to the input height
-// Deprecated: use GetFinalizationQueueUntilHeightInclusive instead. Only used in state migrations.
-func (k Keeper) GetAllFinalizationQueueUntilHeightInclusive(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
-	height++
-	return k.getFinalizationQueue(ctx, &height)
 }
 
 // GetAllBlockHeightToFinalizationQueue returns all blockHeightToFinalizationQueue

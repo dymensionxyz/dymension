@@ -6,6 +6,7 @@ var _ binary.ByteOrder
 
 const (
 	// BlockHeightToFinalizationQueueKeyPrefix is the prefix to retrieve all BlockHeightToFinalizationQueue
+	// Deprecated: HeightRollappToFinalizationQueueKeyPrefix and RollappHeightToFinalizationQueueKeyPrefix are used instead
 	BlockHeightToFinalizationQueueKeyPrefix = "BlockHeightToFinalizationQueue/value/"
 
 	// HeightRollappToFinalizationQueueKeyPrefix is the prefix to retrieve all FinalizationQueue by (height, rollappID)
@@ -15,6 +16,7 @@ const (
 )
 
 // BlockHeightToFinalizationQueueKey returns the store key to retrieve a BlockHeightToFinalizationQueue from the index fields
+// Deprecated: HeightRollappToFinalizationQueueKeyPrefix and RollappHeightToFinalizationQueueKeyPrefix are used instead
 func BlockHeightToFinalizationQueueKey(
 	creationHeight uint64,
 ) []byte {

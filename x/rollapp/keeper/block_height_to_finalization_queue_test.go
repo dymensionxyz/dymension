@@ -563,8 +563,7 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 						{RollappId: "rollappa_2345-1", Index: 2},
 					},
 					RollappId: "rollappa_2345-1",
-				},
-				{
+				}, {
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollappe_3456-1", Index: 1},

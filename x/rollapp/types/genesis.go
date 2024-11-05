@@ -64,10 +64,10 @@ func (gs GenesisState) Validate() error {
 		latestFinalizedStateIndexIndexMap[index] = struct{}{}
 	}
 	// Check for duplicated index in blockHeightToFinalizationQueue
-	blockHeightToFinalizationQueueIndexMap := make(map[string]struct{})
+	blockHeightToFinalizationQueueIndexMap := make(map[uint64]struct{})
 
 	for _, elem := range gs.BlockHeightToFinalizationQueueList {
-		index := string(BlockHeightToFinalizationQueueKey(elem.CreationHeight))
+		index := elem.CreationHeight
 		if _, ok := blockHeightToFinalizationQueueIndexMap[index]; ok {
 			return errors.New("duplicated index for blockHeightToFinalizationQueue")
 		}
