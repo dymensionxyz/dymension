@@ -13,6 +13,7 @@ import (
 )
 
 // SetSequencer : write to store indexed by address, and also by status
+// Note: do not call with sentinel sequencer
 func (k Keeper) SetSequencer(ctx sdk.Context, seq types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&seq)
@@ -151,7 +152,7 @@ func (k Keeper) GetProposer(ctx sdk.Context, rollapp string) types.Sequencer {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.ProposerByRollappKey(rollapp))
 	if bz == nil {
-		return k.GetSequencer(ctx, types.SentinelSeqAddr)
+		return k.SentinelSequencer(ctx)
 	}
 	return k.GetSequencer(ctx, string(bz))
 }
@@ -160,7 +161,7 @@ func (k Keeper) GetSuccessor(ctx sdk.Context, rollapp string) types.Sequencer {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.SuccessorByRollappKey(rollapp))
 	if bz == nil {
-		return k.GetSequencer(ctx, types.SentinelSeqAddr)
+		return k.SentinelSequencer(ctx)
 	}
 	return k.GetSequencer(ctx, string(bz))
 }
