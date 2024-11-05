@@ -19,7 +19,7 @@ import (
 )
 
 type Keeper struct {
-	cdc        codec.BinaryCodec
+	cdc        codec.Codec
 	storeKey   storetypes.StoreKey
 	hooks      types.MultiDelayedAckHooks
 	paramstore paramtypes.Subspace
@@ -37,7 +37,7 @@ type Keeper struct {
 }
 
 func NewKeeper(
-	cdc codec.BinaryCodec,
+	cdc codec.Codec,
 	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	rollappKeeper types.RollappKeeper,
@@ -68,6 +68,11 @@ func NewKeeper(
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+// expose codec to be used by the delayedack middleware
+func (k Keeper) Cdc() codec.Codec {
+	return k.cdc
 }
 
 func (k Keeper) getRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint64, error) {
