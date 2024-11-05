@@ -5,6 +5,7 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
 )
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
@@ -16,18 +17,20 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUpdateWhitelistedRelayers{}, "sequencer/UpdateWhitelistedRelayers", nil)
 	cdc.RegisterConcrete(&MsgKickProposer{}, "sequencer/KickProposer", nil)
 	cdc.RegisterConcrete(&MsgUpdateOptInStatus{}, "sequencer/UpdateOtpInStatus", nil)
+	cdc.RegisterConcrete(&MsgUpdateParams{}, "sequencer/UpdateParams", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCreateSequencer{},
-		&MsgDecreaseBond{},
 		&MsgUnbond{},
 		&MsgIncreaseBond{},
-		&MsgKickProposer{},
-		&MsgUpdateOptInStatus{},
+		&MsgDecreaseBond{},
 		&MsgUpdateRewardAddress{},
 		&MsgUpdateWhitelistedRelayers{},
+		&MsgKickProposer{},
+		&MsgUpdateOptInStatus{},
+		&MsgUpdateParams{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
@@ -38,3 +41,11 @@ var (
 	InterfaceReg = cdctypes.NewInterfaceRegistry()
 	ModuleCdc    = codec.NewProtoCodec(InterfaceReg)
 )
+
+func init() {
+	RegisterCodec(Amino)
+	sdk.RegisterLegacyAminoCodec(Amino)
+	RegisterCodec(authzcodec.Amino)
+
+	Amino.Seal()
+}

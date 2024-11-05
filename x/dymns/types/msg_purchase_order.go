@@ -3,11 +3,16 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
-var _ sdk.Msg = &MsgPurchaseOrder{}
+var (
+	_ sdk.Msg            = &MsgPurchaseOrder{}
+	_ legacytx.LegacyMsg = &MsgPurchaseOrder{}
+)
 
 // ValidateBasic performs basic validation for the MsgPurchaseOrder.
 func (m *MsgPurchaseOrder) ValidateBasic() error {

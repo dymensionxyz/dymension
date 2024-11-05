@@ -4,20 +4,20 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
-
 	errorsmod "cosmossdk.io/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var (
-	_ = sdk.Msg(&MsgFulfillOrder{})
-	_ = sdk.Msg(&MsgUpdateDemandOrder{})
-
+	_ sdk.Msg            = &MsgFulfillOrder{}
+	_ sdk.Msg            = &MsgFulfillOrderAuthorized{}
+	_ sdk.Msg            = &MsgUpdateDemandOrder{}
 	_ legacytx.LegacyMsg = &MsgFulfillOrder{}
 	_ legacytx.LegacyMsg = &MsgFulfillOrderAuthorized{}
+	_ legacytx.LegacyMsg = &MsgUpdateDemandOrder{}
 )
 
 func NewMsgFulfillOrder(fulfillerAddress, orderId, expectedFee string) *MsgFulfillOrder {
@@ -166,6 +166,18 @@ func (m *MsgUpdateDemandOrder) GetSignerAddr() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.OwnerAddress)
 }
 
+func (m *MsgUpdateDemandOrder) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgUpdateDemandOrder) Route() string {
+	return RouterKey
+}
+
+func (m *MsgUpdateDemandOrder) Type() string {
+	return sdk.MsgTypeURL(m)
+}
 func isValidOrderId(orderId string) bool {
 	hashBytes, err := hex.DecodeString(orderId)
 	if err != nil {

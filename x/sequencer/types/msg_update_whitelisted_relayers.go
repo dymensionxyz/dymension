@@ -7,12 +7,20 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-const maxWhitelistedRelayers = 10
+const (
+	maxWhitelistedRelayers = 10
 
-var _ sdk.Msg = new(MsgUpdateWhitelistedRelayers)
+	TypeMsgUpdateWhitelistedRelayers = "update_whitelisted_relayers"
+)
+
+var (
+	_ sdk.Msg            = new(MsgUpdateWhitelistedRelayers)
+	_ legacytx.LegacyMsg = new(MsgUpdateWhitelistedRelayers)
+)
 
 func (m *MsgUpdateWhitelistedRelayers) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Creator)
@@ -62,4 +70,17 @@ func Bech32ToAddr[T sdk.AccAddress | sdk.ValAddress](addr string) (T, error) {
 func (m *MsgUpdateWhitelistedRelayers) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(m.Creator)
 	return []sdk.AccAddress{addr}
+}
+
+func (m *MsgUpdateWhitelistedRelayers) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgUpdateWhitelistedRelayers) Route() string {
+	return RouterKey
+}
+
+func (m *MsgUpdateWhitelistedRelayers) Type() string {
+	return TypeMsgUpdateWhitelistedRelayers
 }

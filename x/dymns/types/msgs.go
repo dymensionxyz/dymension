@@ -14,6 +14,8 @@ const (
 	TypeMsgUpdateResolveAddress = "update_resolve_address"
 	// TypeMsgUpdateDetails is type for MsgUpdateDetails.
 	TypeMsgUpdateDetails = "update_details"
+	// TypeMsgUpdateParams is type for MsgUpdateParams.
+	TypeMsgUpdateParams = "update_params"
 
 	// TypeMsgPlaceSellOrder is type for MsgPlaceSellOrder.
 	TypeMsgPlaceSellOrder = "place_sell_order"

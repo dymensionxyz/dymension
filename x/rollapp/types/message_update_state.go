@@ -5,14 +5,17 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const (
 	TypeMsgUpdateState = "update_state"
-	DRSVersionLength   = 40
 )
 
-var _ sdk.Msg = &MsgUpdateState{}
+var (
+	_ sdk.Msg            = &MsgUpdateState{}
+	_ legacytx.LegacyMsg = &MsgUpdateState{}
+)
 
 func NewMsgUpdateState(creator, rollappId, dAPath string, startHeight, numBlocks uint64, bDs *BlockDescriptors) *MsgUpdateState {
 	return &MsgUpdateState{

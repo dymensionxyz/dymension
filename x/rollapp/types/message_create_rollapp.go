@@ -2,11 +2,15 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const TypeMsgCreateRollapp = "create_rollapp"
 
-var _ sdk.Msg = &MsgCreateRollapp{}
+var (
+	_ sdk.Msg            = &MsgCreateRollapp{}
+	_ legacytx.LegacyMsg = &MsgCreateRollapp{}
+)
 
 func NewMsgCreateRollapp(
 	creator,

@@ -4,13 +4,17 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
-var _ sdk.Msg = &MsgTransferDymNameOwnership{}
+var (
+	_ sdk.Msg            = &MsgTransferDymNameOwnership{}
+	_ legacytx.LegacyMsg = &MsgTransferDymNameOwnership{}
+)
 
 // ValidateBasic performs basic validation for the MsgTransferDymNameOwnership.
 func (m *MsgTransferDymNameOwnership) ValidateBasic() error {
