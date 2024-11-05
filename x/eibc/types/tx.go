@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -13,6 +14,9 @@ import (
 var (
 	_ = sdk.Msg(&MsgFulfillOrder{})
 	_ = sdk.Msg(&MsgUpdateDemandOrder{})
+
+	_ legacytx.LegacyMsg = &MsgFulfillOrder{}
+	_ legacytx.LegacyMsg = &MsgFulfillOrderAuthorized{}
 )
 
 func NewMsgFulfillOrder(fulfillerAddress, orderId, expectedFee string) *MsgFulfillOrder {
