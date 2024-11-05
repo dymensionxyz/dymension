@@ -5,8 +5,7 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/osmosis-labs/osmosis/v15/x/txfees"
+	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
@@ -25,6 +24,7 @@ func (s *KeeperTestSuite) TestBuy() {
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
 	planId, err := k.CreatePlan(s.Ctx, totalAllocation, startTime, startTime.Add(time.Hour), rollapp, curve, incentives)
 	s.Require().NoError(err)
+	initialOwnerBalance := s.App.BankKeeper.GetAllBalances(s.Ctx, s.App.RollappKeeper.MustGetRollappOwner(s.Ctx, rollappId))
 
 	plan := k.MustGetPlan(s.Ctx, planId)
 	reservedTokens := plan.SoldAmt
@@ -71,12 +71,20 @@ func (s *KeeperTestSuite) TestBuy() {
 	s.Require().NoError(err)
 	s.Assert().True(expectedCost2.GT(expectedCost))
 
+	// extract taker fee from buy event
+	takerFeeAmt := s.TakerFeeAmtAfterBuy()
+
 	// assert balance
 	buyerFinalBalance := s.App.BankKeeper.GetAllBalances(s.Ctx, buyer)
-	takerFee := s.App.BankKeeper.GetAllBalances(s.Ctx, authtypes.NewModuleAddress(txfees.ModuleName))
-	expectedBalance := buyersFunds.AmountOf("adym").Sub(expectedCost).Sub(takerFee.AmountOf("adym"))
+	expectedBalance := buyersFunds.AmountOf("adym").Sub(expectedCost).Sub(takerFeeAmt)
 	s.Require().Equal(expectedBalance, buyerFinalBalance.AmountOf("adym"))
 	s.Require().Equal(buyAmt, buyerFinalBalance.AmountOf(plan.GetIRODenom()))
+
+	// assert owner is incentivized: it must get 50% of taker fee
+	currentOwnerBalance := s.App.BankKeeper.GetAllBalances(s.Ctx, s.App.RollappKeeper.MustGetRollappOwner(s.Ctx, rollappId))
+	ownerBalanceChange := currentOwnerBalance.Sub(initialOwnerBalance...)
+	ownerRevenue := takerFeeAmt.QuoRaw(2)
+	s.Require().Equal(ownerRevenue, ownerBalanceChange.AmountOf("adym"))
 }
 
 func (s *KeeperTestSuite) TestTradeAfterSettled() {
@@ -150,9 +158,11 @@ func (s *KeeperTestSuite) TestTakerFee() {
 	err = k.Buy(s.Ctx, planId, buyer, buyAmt, buyAmt.Add(expectedTakerFee))
 	s.Require().NoError(err)
 
+	// Extract taker fee from buy event
+	takerFeeAmtBuy := s.TakerFeeAmtAfterBuy()
+
 	// Check taker fee
-	takerFee := s.App.BankKeeper.GetAllBalances(s.Ctx, authtypes.NewModuleAddress(txfees.ModuleName))
-	s.Require().Equal(expectedTakerFee, takerFee.AmountOf("adym"))
+	s.Require().Equal(expectedTakerFee, takerFeeAmtBuy)
 }
 
 func (s *KeeperTestSuite) TestSell() {
@@ -168,6 +178,7 @@ func (s *KeeperTestSuite) TestSell() {
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
 	planId, err := k.CreatePlan(s.Ctx, totalAllocation, startTime, startTime.Add(time.Hour), rollapp, curve, incentives)
 	s.Require().NoError(err)
+	initialOwnerBalance := s.App.BankKeeper.GetAllBalances(s.Ctx, s.App.RollappKeeper.MustGetRollappOwner(s.Ctx, rollappId))
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
 
 	buyer := sample.Acc()
@@ -180,15 +191,28 @@ func (s *KeeperTestSuite) TestSell() {
 	err = k.Buy(s.Ctx, planId, buyer, buyAmt, maxAmt)
 	s.Require().NoError(err)
 
+	// Extract taker fee from buy event
+	takerFeeAmtBuy := s.TakerFeeAmtAfterBuy()
+
 	// Sell tokens
 	sellAmt := sdk.NewInt(500).MulRaw(1e18)
 	minReceive := sdk.NewInt(1) // Set a very low minReceive for testing purposes
 	err = k.Sell(s.Ctx, planId, buyer, sellAmt, minReceive)
 	s.Require().NoError(err)
 
+	// Extract taker fee from sell event
+	takerFeeAmtSell := s.TakerFeeAmtAfterSell()
+
 	// Check balances after sell
 	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, buyer)
 	s.Require().Equal(buyAmt.Sub(sellAmt), balances.AmountOf(k.MustGetPlan(s.Ctx, planId).GetIRODenom()))
+
+	// Assert owner is incentivized: it must get 50% of taker fee
+	currentOwnerBalance := s.App.BankKeeper.GetAllBalances(s.Ctx, s.App.RollappKeeper.MustGetRollappOwner(s.Ctx, rollappId))
+	ownerBalanceChange := currentOwnerBalance.Sub(initialOwnerBalance...)
+	// ownerRevenue = (takerFeeBuy + takerFeeSell) / 2
+	ownerRevenue := takerFeeAmtBuy.Add(takerFeeAmtSell).QuoRaw(2)
+	s.Require().Equal(ownerRevenue, ownerBalanceChange.AmountOf("adym"))
 
 	// Attempt to sell more than owned - should fail
 	err = k.Sell(s.Ctx, planId, buyer, buyAmt, minReceive)
@@ -198,4 +222,36 @@ func (s *KeeperTestSuite) TestSell() {
 	highMinReceive := maxAmt
 	err = k.Sell(s.Ctx, planId, buyer, sellAmt, highMinReceive)
 	s.Require().Error(err)
+}
+
+func (s *KeeperTestSuite) TakerFeeAmtAfterSell() sdk.Int {
+	// Extract taker fee from event
+	eventName := proto.MessageName(new(types.EventSell))
+	takerFeeAmt, found := s.ExtractTakerFeeAmtFromEvents(s.Ctx.EventManager().Events(), eventName)
+	s.Require().True(found)
+	return takerFeeAmt
+}
+
+func (s *KeeperTestSuite) TakerFeeAmtAfterBuy() sdk.Int {
+	// Extract taker fee from event
+	eventName := proto.MessageName(new(types.EventBuy))
+	takerFeeAmt, found := s.ExtractTakerFeeAmtFromEvents(s.Ctx.EventManager().Events(), eventName)
+	s.Require().True(found)
+	return takerFeeAmt
+}
+
+func (s *KeeperTestSuite) ExtractTakerFeeAmtFromEvents(events []sdk.Event, eventName string) (sdk.Int, bool) {
+	event, found := s.FindLastEventOfType(events, eventName)
+	if !found {
+		return sdk.Int{}, false
+	}
+	attrs := s.ExtractAttributes(event)
+	for key, value := range attrs {
+		if key == "taker_fee" {
+			fee, ok := sdk.NewIntFromString(value)
+			s.Require().True(ok)
+			return fee, true
+		}
+	}
+	return sdk.ZeroInt(), false
 }

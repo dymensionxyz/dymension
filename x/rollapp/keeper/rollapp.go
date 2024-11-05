@@ -1,14 +1,17 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	transferTypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
+	udenom "github.com/dymensionxyz/dymension/v3/utils/denom"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -217,6 +220,63 @@ func (k Keeper) GetRollappByName(
 
 	k.cdc.MustUnmarshal(iterator.Value(), &val)
 	return val, true
+}
+
+// GetRollappByDenom tries to extract a rollapp ID from the provided denom and returns a rollapp object if found.
+// Denom may be either IRO token or IBC token.
+func (k Keeper) GetRollappByDenom(ctx sdk.Context, denom string) (*types.Rollapp, error) {
+	// by IRO token
+	// try to get the rollapp ID from the denom
+	rollappID, ok := irotypes.RollappIDFromIRODenom(denom)
+	if ok {
+		ra, ok := k.GetRollapp(ctx, rollappID)
+		if ok {
+			return &ra, nil
+		}
+		return nil, types.ErrUnknownRollappID
+	}
+
+	// by IBC token
+	// first, validate that the denom is IBC
+	hexHash, ok := udenom.ValidateIBCDenom(denom)
+	if !ok {
+		return nil, errors.New("denom is neither IRO nor IBC")
+	}
+
+	// parse IBC denom hash string
+	hash, err := transferTypes.ParseHexHash(hexHash)
+	if err != nil {
+		return nil, fmt.Errorf("parse IBC hex hash: %w", err)
+	}
+	// get IBC denom trace
+	trace, ok := k.transferKeeper.GetDenomTrace(ctx, hash)
+	if !ok {
+		return nil, errors.New("denom trace not found")
+	}
+	// try to get source port and channel from the trace
+	sourcePort, sourceChan, ok := udenom.SourcePortChanFromTracePath(trace.Path)
+	if !ok {
+		return nil, errors.New("invalid denom trace path")
+	}
+
+	return k.GetRollappByPortChan(ctx, sourcePort, sourceChan)
+}
+
+func (k Keeper) GetRollappOwnerByDenom(ctx sdk.Context, denom string) (sdk.AccAddress, error) {
+	ra, err := k.GetRollappByDenom(ctx, denom)
+	if err != nil {
+		return nil, fmt.Errorf("get rollapp by denom: %w", err)
+	}
+	owner, err := sdk.AccAddressFromBech32(ra.Owner)
+	if err != nil {
+		return nil, fmt.Errorf("owner account address: %w", err)
+	}
+	return owner, nil
+}
+
+func (k Keeper) MustGetRollappOwner(ctx sdk.Context, rollappID string) sdk.AccAddress {
+	ra := k.MustGetRollapp(ctx, rollappID)
+	return sdk.MustAccAddressFromBech32(ra.Owner)
 }
 
 func (k Keeper) MustGetRollapp(ctx sdk.Context, rollappId string) types.Rollapp {
