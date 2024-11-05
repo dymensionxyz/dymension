@@ -11,7 +11,7 @@ import (
 func TestRegisterCodec(t *testing.T) {
 	t.Run("can register codec", func(t *testing.T) {
 		require.NotPanics(t, func() {
-			RegisterLegacyAminoCodec(codec.NewLegacyAmino())
+			RegisterCodec(codec.NewLegacyAmino())
 		})
 	})
 }
