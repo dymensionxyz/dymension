@@ -302,10 +302,9 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	// from this point on, the rollapp is launched and immutable fields cannot be updated
 	err = suite.CreateSequencerByPubkey(suite.Ctx, rollappId, initSeqPubKey)
 	suite.Require().NoError(err)
-	initSeq, ok := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addrInit)
-	suite.Require().True(ok)
-	proposer, found := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
-	suite.Require().True(found)
+	initSeq, err := suite.App.SequencerKeeper.RealSequencer(suite.Ctx, addrInit)
+	suite.Require().NoError(err)
+	proposer := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
 	suite.Require().Equal(initSeq, proposer)
 	rollapp, ok := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappId)
 	suite.Require().True(ok)
@@ -321,8 +320,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 
 	// 6. register another sequencer - should not be proposer
 	newSeqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	proposer, found = suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
-	suite.Require().True(found)
+	proposer = suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
 	suite.Require().NotEqual(proposer, newSeqAddr)
 
 	// 7. create state update
@@ -361,7 +359,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		Metadata: metadata,
 	})
 	suite.Require().NoError(err)
-	initSeq, ok = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addrInit)
-	suite.Require().True(ok)
+	initSeq, err = suite.App.SequencerKeeper.RealSequencer(suite.Ctx, addrInit)
+	suite.Require().NoError(err)
 	suite.Require().Equal(metadata, initSeq.Metadata)
 }

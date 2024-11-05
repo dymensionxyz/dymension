@@ -11,7 +11,7 @@ import (
 var _ sdk.Msg = (*MsgUpdateRewardAddress)(nil)
 
 func (m *MsgUpdateRewardAddress) ValidateBasic() error {
-	_, err := sdk.ValAddressFromBech32(m.Creator)
+	_, err := sdk.AccAddressFromBech32(m.Creator)
 	if err != nil {
 		return errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "get creator addr from bech32")
 	}
@@ -23,6 +23,6 @@ func (m *MsgUpdateRewardAddress) ValidateBasic() error {
 }
 
 func (m *MsgUpdateRewardAddress) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.ValAddressFromBech32(m.Creator)
-	return []sdk.AccAddress{sdk.AccAddress(addr)}
+	addr, _ := sdk.AccAddressFromBech32(m.Creator)
+	return []sdk.AccAddress{addr}
 }

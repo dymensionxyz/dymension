@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
-	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 )
@@ -41,7 +40,7 @@ func (server msgServer) CreateGauge(goCtx context.Context, msg *types.MsgCreateG
 	params := server.keeper.GetParams(ctx)
 	fee := params.CreateGaugeBaseFee.Add(params.AddDenomFee.MulRaw(int64(len(msg.Coins))))
 	if err = server.keeper.ChargeGaugesFee(ctx, owner, fee, msg.Coins); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("charge gauge fee: %w", err)
 	}
 
 	gaugeID, err := server.keeper.CreateGauge(ctx, msg.IsPerpetual, owner, msg.Coins, msg.DistributeTo, msg.StartTime, msg.NumEpochsPaidOver)
@@ -78,7 +77,7 @@ func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGau
 	params := server.keeper.GetParams(ctx)
 	fee := params.AddToGaugeBaseFee.Add(params.AddDenomFee.MulRaw(int64(len(msg.Rewards) + len(gauge.Coins))))
 	if err = server.keeper.ChargeGaugesFee(ctx, owner, fee, msg.Rewards); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("charge gauge fee: %w", err)
 	}
 
 	err = server.keeper.AddToGaugeRewards(ctx, owner, msg.Rewards, gauge)
@@ -100,7 +99,7 @@ func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGau
 // balance that is less than fee + amount of the coin from gaugeCoins that is of base denom.
 // gaugeCoins might not have a coin of tx base denom. In that case, fee is only compared to balance.
 // The fee is sent to the txfees module, to be burned.
-func (k Keeper) ChargeGaugesFee(ctx sdk.Context, address sdk.AccAddress, fee sdk.Int, gaugeCoins sdk.Coins) (err error) {
+func (k Keeper) ChargeGaugesFee(ctx sdk.Context, payer sdk.AccAddress, fee sdk.Int, gaugeCoins sdk.Coins) (err error) {
 	var feeDenom string
 	if k.tk == nil {
 		feeDenom, err = sdk.GetBaseDenom()
@@ -112,11 +111,11 @@ func (k Keeper) ChargeGaugesFee(ctx sdk.Context, address sdk.AccAddress, fee sdk
 	}
 
 	totalCost := gaugeCoins.AmountOf(feeDenom).Add(fee)
-	accountBalance := k.bk.GetBalance(ctx, address, feeDenom).Amount
+	accountBalance := k.bk.GetBalance(ctx, payer, feeDenom).Amount
 
 	if accountBalance.LT(totalCost) {
 		return errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "account's balance is less than the total cost of the message. Balance: %s %s, Total Cost: %s", feeDenom, accountBalance, totalCost)
 	}
 
-	return k.bk.SendCoinsFromAccountToModule(ctx, address, txfeestypes.ModuleName, sdk.NewCoins(sdk.NewCoin(feeDenom, fee)))
+	return k.tk.ChargeFeesFromPayer(ctx, payer, sdk.NewCoin(feeDenom, fee), nil)
 }

@@ -162,8 +162,8 @@ func (k Keeper) CreateModuleAccountForPlan(ctx sdk.Context, plan types.Plan) (au
 
 // MintAllocation mints the allocated amount and registers the denom in the bank denom metadata store
 func (k Keeper) MintAllocation(ctx sdk.Context, allocatedAmount math.Int, rollappId, rollappTokenSymbol string, exponent uint64) (sdk.Coin, error) {
-	baseDenom := fmt.Sprintf("%s_%s", types.IROTokenPrefix, rollappId)
-	displayDenom := fmt.Sprintf("%s_%s", types.IROTokenPrefix, rollappTokenSymbol)
+	baseDenom := types.IRODenom(rollappId)
+	displayDenom := types.IRODenom(rollappTokenSymbol)
 	metadata := banktypes.Metadata{
 		Description: fmt.Sprintf("Future token for rollapp %s", rollappId),
 		DenomUnits: []*banktypes.DenomUnit{

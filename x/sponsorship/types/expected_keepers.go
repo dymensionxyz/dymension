@@ -24,5 +24,5 @@ type IncentivesKeeper interface {
 }
 
 type SequencerKeeper interface {
-	GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string, status sequencertypes.OperatingStatus) []sequencertypes.Sequencer
+	RollappSequencersByStatus(ctx sdk.Context, rollappId string, status sequencertypes.OperatingStatus) []sequencertypes.Sequencer
 }

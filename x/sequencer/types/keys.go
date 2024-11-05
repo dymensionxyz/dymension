@@ -5,8 +5,7 @@ import (
 	fmt "fmt"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	"cosmossdk.io/collections"
 	"github.com/dymensionxyz/dymension/v3/utils"
 )
 
@@ -48,20 +47,17 @@ var (
 	NextProposerKeyPrefix = []byte{0x03} // prefix/rollappId
 
 	// Prefixes for the different sequencer statuses
-	BondedSequencersKeyPrefix    = []byte{0xa1}
-	UnbondedSequencersKeyPrefix  = []byte{0xa2}
-	UnbondingSequencersKeyPrefix = []byte{0xa3}
 
-	UnbondingQueueKey    = []byte{0x41} // prefix for the timestamps in unbonding queue
+	BondedSequencersKeyPrefix   = []byte{0xa1}
+	UnbondedSequencersKeyPrefix = []byte{0xa2}
+
 	NoticePeriodQueueKey = []byte{0x42} // prefix for the timestamps in notice period queue
 
-	DecreasingBondQueueKey     = []byte{0x43} // prefix for the timestamps in decreasing bond queue
-	DecreasingBondIndexKey     = []byte{0x44} // prefix for the index count for bond reductions
-	DecreasingBondSequencerKey = []byte{0x45} // prefix for the decreasing bond queue by sequencer
-	DecreasingBondIDKey        = []byte{0x46} // prefix for the decreasing bond count - used to generate ID
+	DymintProposerAddrToAccAddrKeyPrefix = collections.NewPrefix([]byte{0x43})
 )
 
 /* --------------------- specific sequencer address keys -------------------- */
+
 func SequencerKey(sequencerAddress string) []byte {
 	sequencerAddrBytes := []byte(sequencerAddress)
 	return []byte(fmt.Sprintf("%s%s%s", SequencersKeyPrefix, KeySeparator, sequencerAddrBytes))
@@ -73,6 +69,7 @@ func SequencerByRollappByStatusKey(rollappId, seqAddr string, status OperatingSt
 }
 
 /* ------------------------- multiple sequencers keys ------------------------ */
+
 func SequencersKey() []byte {
 	return SequencersKeyPrefix
 }
@@ -92,8 +89,6 @@ func SequencersByRollappByStatusKey(rollappId string, status OperatingStatus) []
 		prefix = BondedSequencersKeyPrefix
 	case Unbonded:
 		prefix = UnbondedSequencersKeyPrefix
-	case Unbonding:
-		prefix = UnbondingSequencersKeyPrefix
 	}
 
 	return []byte(fmt.Sprintf("%s%s%s", SequencersByRollappKey(rollappId), KeySeparator, prefix))
@@ -101,64 +96,23 @@ func SequencersByRollappByStatusKey(rollappId string, status OperatingStatus) []
 
 /* --------------------------  queues keys -------------------------- */
 
-func UnbondingQueueByTimeKey(endTime time.Time) []byte {
-	return utils.EncodeTimeToKey(UnbondingQueueKey, endTime)
-}
-
-func NoticePeriodQueueByTimeKey(endTime time.Time) []byte {
+func NoticeQueueByTimeKey(endTime time.Time) []byte {
 	return utils.EncodeTimeToKey(NoticePeriodQueueKey, endTime)
 }
 
-func UnbondingSequencerKey(sequencerAddress string, endTime time.Time) []byte {
-	key := UnbondingQueueByTimeKey(endTime)
+func NoticeQueueBySeqTimeKey(sequencerAddress string, endTime time.Time) []byte {
+	key := NoticeQueueByTimeKey(endTime)
 	key = append(key, KeySeparator...)
 	key = append(key, []byte(sequencerAddress)...)
 	return key
 }
 
-func NoticePeriodSequencerKey(sequencerAddress string, endTime time.Time) []byte {
-	key := NoticePeriodQueueByTimeKey(endTime)
-	key = append(key, KeySeparator...)
-	key = append(key, []byte(sequencerAddress)...)
-	return key
-}
+/* --------------------- proposer and successor keys --------------------- */
 
-/* -------------------------- decreasing bond queue keys -------------------------- */
-func DecreasingBondQueueByTimeKey(endTime time.Time) []byte {
-	return utils.EncodeTimeToKey(DecreasingBondQueueKey, endTime)
-}
-
-func GetDecreasingBondQueueKey(sequencerAddress string, endTime time.Time) []byte {
-	key := DecreasingBondQueueByTimeKey(endTime)
-	key = append(key, KeySeparator...)
-	key = append(key, []byte(sequencerAddress)...)
-	return key
-}
-
-func GetDecreasingBondIndexKey(bondReductionID uint64) []byte {
-	key := DecreasingBondIndexKey
-	key = append(key, KeySeparator...)
-	key = append(key, sdk.Uint64ToBigEndian(bondReductionID)...)
-	return key
-}
-
-func GetDecreasingBondIDKey() []byte {
-	return DecreasingBondIDKey
-}
-
-func GetDecreasingBondSequencerKey(sequencerAddress string) []byte {
-	key := DecreasingBondSequencerKey
-	key = append(key, KeySeparator...)
-	key = append(key, []byte(sequencerAddress)...)
-	key = append(key, KeySeparator...)
-	return key
-}
-
-/* --------------------- active and next sequencer keys --------------------- */
 func ProposerByRollappKey(rollappId string) []byte {
 	return []byte(fmt.Sprintf("%s%s%s", ProposerKeyPrefix, KeySeparator, []byte(rollappId)))
 }
 
-func NextProposerByRollappKey(rollappId string) []byte {
+func SuccessorByRollappKey(rollappId string) []byte {
 	return []byte(fmt.Sprintf("%s%s%s", NextProposerKeyPrefix, KeySeparator, []byte(rollappId)))
 }

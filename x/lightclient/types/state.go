@@ -5,10 +5,9 @@ import (
 	"errors"
 
 	errorsmod "cosmossdk.io/errors"
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
-	cmttypes "github.com/cometbft/cometbft/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -24,11 +23,11 @@ func CheckCompatibility(ibcState ibctm.ConsensusState, raState RollappState) err
 		return errorsmod.Wrap(ErrStateRootsMismatch, "block descriptor state root does not match tendermint header app hash")
 	}
 	// Check if the nextValidatorHash matches for the sequencer for h+1 block descriptor
-	nextValHashFromStateInfo, err := GetValHashForSequencer(raState.NextBlockSequencer)
+	hash, err := raState.NextBlockSequencer.ValsetHash()
 	if err != nil {
-		return errors.Join(ErrValidatorHashMismatch, err)
+		return errors.Join(err, gerrc.ErrInternal.Wrap("val set hash"))
 	}
-	if !bytes.Equal(ibcState.NextValidatorsHash, nextValHashFromStateInfo) {
+	if !bytes.Equal(ibcState.NextValidatorsHash, hash) {
 		return errorsmod.Wrap(ErrValidatorHashMismatch, "cons state next validator hash does not match the state info hash for sequencer for h+1")
 	}
 	if !raState.BlockDescriptor.Timestamp.IsZero() && !ibcState.Timestamp.Equal(raState.BlockDescriptor.Timestamp) {
@@ -37,24 +36,7 @@ func CheckCompatibility(ibcState ibctm.ConsensusState, raState RollappState) err
 	return nil
 }
 
-// GetValHashForSequencer creates a dummy tendermint validatorset to
-// calculate the nextValHash for the sequencer and returns it
-func GetValHashForSequencer(sequencerTmPubKey tmprotocrypto.PublicKey) ([]byte, error) {
-	var nextValSet cmttypes.ValidatorSet
-	updates, err := cmttypes.PB2TM.ValidatorUpdates([]abci.ValidatorUpdate{{Power: 1, PubKey: sequencerTmPubKey}})
-	if err != nil {
-		return nil, err
-	}
-	err = nextValSet.UpdateWithChangeSet(updates)
-	if err != nil {
-		return nil, err
-	}
-	return nextValSet.Hash(), nil
-}
-
 type RollappState struct {
-	// BlockDescriptor is the block descriptor for the required height
-	BlockDescriptor rollapptypes.BlockDescriptor
-	// NextBlockSequencer is the tendermint pubkey of the sequencer who submitted the block descriptor for the next height (h+1)
-	NextBlockSequencer tmprotocrypto.PublicKey
+	BlockDescriptor    rollapptypes.BlockDescriptor
+	NextBlockSequencer sequencertypes.Sequencer
 }

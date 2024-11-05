@@ -12,21 +12,24 @@ import (
 var (
 	// DefaultMinBond is the minimum bond required to be a validator
 	DefaultMinBond uint64 = 1000000
-	// DefaultUnbondingTime is the time duration for unbonding
-	DefaultUnbondingTime time.Duration = time.Hour * 24 * 7 * 2 // 2 weeks
+	// DefaultKickThreshold is the minimum bond required to be a validator
+	DefaultKickThreshold uint64 = 10
 	// DefaultNoticePeriod is the time duration for notice period
-	DefaultNoticePeriod time.Duration = time.Hour * 24 * 7 // 1 week
+	DefaultNoticePeriod = time.Hour * 24 * 7 // 1 week
 	// DefaultLivenessSlashMultiplier gives the amount of tokens to slash if the sequencer is liable for a liveness failure
-	DefaultLivenessSlashMultiplier sdk.Dec = sdk.MustNewDecFromStr("0.01907") // leaves 50% of original funds remaining after 48 slashes
+	DefaultLivenessSlashMultiplier = sdk.MustNewDecFromStr("0.01")
+	// DefaultLivenessSlashMinAbsolute will be slashed if the multiplier amount is too small
+	DefaultLivenessSlashMinAbsolute uint64 = 1
 )
 
 // NewParams creates a new Params instance
-func NewParams(minBond sdk.Coin, unbondingPeriod, noticePeriod time.Duration, livenessSlashMul sdk.Dec) Params {
+func NewParams(minBond sdk.Coin, noticePeriod time.Duration, livenessSlashMul sdk.Dec, livenessSlashAbs sdk.Coin, kickThreshold sdk.Coin) Params {
 	return Params{
-		MinBond:                 minBond,
-		UnbondingTime:           unbondingPeriod,
-		NoticePeriod:            noticePeriod,
-		LivenessSlashMultiplier: livenessSlashMul,
+		MinBond:                    minBond,
+		NoticePeriod:               noticePeriod,
+		LivenessSlashMinMultiplier: livenessSlashMul,
+		LivenessSlashMinAbsolute:   livenessSlashAbs,
+		KickThreshold:              kickThreshold,
 	}
 }
 
@@ -37,8 +40,11 @@ func DefaultParams() Params {
 		panic(err)
 	}
 	minBond := sdk.NewCoin(denom, sdk.NewIntFromUint64(DefaultMinBond))
+	kick := sdk.NewCoin(denom, sdk.NewIntFromUint64(DefaultKickThreshold))
+	slashAbs := sdk.NewCoin(denom, sdk.NewIntFromUint64(DefaultLivenessSlashMinAbsolute))
 	return NewParams(
-		minBond, DefaultUnbondingTime, DefaultNoticePeriod, DefaultLivenessSlashMultiplier,
+		minBond, DefaultNoticePeriod, DefaultLivenessSlashMultiplier, slashAbs,
+		kick,
 	)
 }
 
@@ -81,15 +87,19 @@ func (p Params) ValidateBasic() error {
 		return err
 	}
 
-	if err := validateTime(p.UnbondingTime); err != nil {
-		return err
-	}
-
 	if err := validateTime(p.NoticePeriod); err != nil {
 		return err
 	}
 
-	if err := validateLivenessSlashMultiplier(p.LivenessSlashMultiplier); err != nil {
+	if err := validateLivenessSlashMultiplier(p.LivenessSlashMinMultiplier); err != nil {
+		return err
+	}
+
+	if err := uparam.ValidateCoin(p.LivenessSlashMinAbsolute); err != nil {
+		return err
+	}
+
+	if err := uparam.ValidateCoin(p.KickThreshold); err != nil {
 		return err
 	}
 

@@ -28,11 +28,13 @@ type Keeper struct {
 	channelKeeper         ChannelKeeper
 	sequencerKeeper       SequencerKeeper
 	bankKeeper            BankKeeper
+	transferKeeper        TransferKeeper
 
 	vulnerableDRSVersions   collections.KeySet[uint32]
 	registeredRollappDenoms collections.KeySet[collections.Pair[string, string]]
 
-	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
+	finalizePending        func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
+	seqToUnfinalizedHeight collections.KeySet[collections.Pair[string, uint64]]
 }
 
 func NewKeeper(
@@ -44,6 +46,7 @@ func NewKeeper(
 	ibcclientKeeper IBCClientKeeper,
 	sequencerKeeper SequencerKeeper,
 	bankKeeper BankKeeper,
+	transferKeeper TransferKeeper,
 	authority string,
 	canonicalClientKeeper CanonicalLightClientKeeper,
 ) *Keeper {
@@ -56,6 +59,9 @@ func NewKeeper(
 		panic(fmt.Errorf("invalid x/rollapp authority address: %w", err))
 	}
 
+	service := collcompat.NewKVStoreService(storeKey)
+	sb := collections.NewSchemaBuilder(service)
+
 	k := &Keeper{
 		cdc:             cdc,
 		storeKey:        storeKey,
@@ -67,8 +73,9 @@ func NewKeeper(
 		ibcClientKeeper: ibcclientKeeper,
 		sequencerKeeper: sequencerKeeper,
 		bankKeeper:      bankKeeper,
+		transferKeeper:  transferKeeper,
 		vulnerableDRSVersions: collections.NewKeySet(
-			collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey)),
+			sb,
 			collections.NewPrefix(types.VulnerableDRSVersionsKeyPrefix),
 			"vulnerable_drs_versions",
 			collections.Uint32Key,
@@ -81,6 +88,12 @@ func NewKeeper(
 		),
 		finalizePending:       nil,
 		canonicalClientKeeper: canonicalClientKeeper,
+		seqToUnfinalizedHeight: collections.NewKeySet(
+			sb,
+			types.SeqToUnfinalizedHeightKeyPrefix,
+			"seq_to_unfinalized_height",
+			collections.PairKeyCodec(collections.StringKey, collections.Uint64Key),
+		),
 	}
 	k.SetFinalizePendingFn(k.finalizePendingState)
 	return k

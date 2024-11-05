@@ -28,7 +28,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // EventIncreasedBond is an event emitted when a sequencer's bond is increased.
 type EventIncreasedBond struct {
-	// sequencer is the bech32-encoded address of the sequencer which increased its bond
+	// sequencer is the bech32-encoded address of the sequencer
 	Sequencer string `protobuf:"bytes,1,opt,name=sequencer,proto3" json:"sequencer,omitempty"`
 	// added_amount is the amount of coins added to the sequencer's bond
 	AddedAmount types.Coin `protobuf:"bytes,2,opt,name=added_amount,json=addedAmount,proto3" json:"added_amount"`
@@ -198,10 +198,209 @@ func (m *EventUpdateWhitelistedRelayers) GetRelayers() []string {
 	return nil
 }
 
+// On a sequencer kicking the incumbent proposer
+type EventKickedProposer struct {
+	Rollapp string `protobuf:"bytes,3,opt,name=rollapp,proto3" json:"rollapp,omitempty"`
+	// Kicker is the bech32-encoded address of the sequencer who triggered the kick
+	Kicker string `protobuf:"bytes,1,opt,name=kicker,proto3" json:"kicker,omitempty"`
+	// Proposer is the bech32-encoded address of the proposer who was kicked
+	Proposer string `protobuf:"bytes,2,opt,name=proposer,proto3" json:"proposer,omitempty"`
+}
+
+func (m *EventKickedProposer) Reset()         { *m = EventKickedProposer{} }
+func (m *EventKickedProposer) String() string { return proto.CompactTextString(m) }
+func (*EventKickedProposer) ProtoMessage()    {}
+func (*EventKickedProposer) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1f8a63d7e7167eb3, []int{3}
+}
+func (m *EventKickedProposer) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventKickedProposer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventKickedProposer.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventKickedProposer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventKickedProposer.Merge(m, src)
+}
+func (m *EventKickedProposer) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventKickedProposer) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventKickedProposer.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventKickedProposer proto.InternalMessageInfo
+
+func (m *EventKickedProposer) GetRollapp() string {
+	if m != nil {
+		return m.Rollapp
+	}
+	return ""
+}
+
+func (m *EventKickedProposer) GetKicker() string {
+	if m != nil {
+		return m.Kicker
+	}
+	return ""
+}
+
+func (m *EventKickedProposer) GetProposer() string {
+	if m != nil {
+		return m.Proposer
+	}
+	return ""
+}
+
+// Whenever the proposer changes to a new proposer
+type EventProposerChange struct {
+	Rollapp string `protobuf:"bytes,3,opt,name=rollapp,proto3" json:"rollapp,omitempty"`
+	// Before is the bech32-encoded address of the old proposer
+	Before string `protobuf:"bytes,1,opt,name=before,proto3" json:"before,omitempty"`
+	// After is the bech32-encoded address of the new proposer
+	After string `protobuf:"bytes,2,opt,name=after,proto3" json:"after,omitempty"`
+}
+
+func (m *EventProposerChange) Reset()         { *m = EventProposerChange{} }
+func (m *EventProposerChange) String() string { return proto.CompactTextString(m) }
+func (*EventProposerChange) ProtoMessage()    {}
+func (*EventProposerChange) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1f8a63d7e7167eb3, []int{4}
+}
+func (m *EventProposerChange) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventProposerChange) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventProposerChange.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventProposerChange) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventProposerChange.Merge(m, src)
+}
+func (m *EventProposerChange) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventProposerChange) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventProposerChange.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventProposerChange proto.InternalMessageInfo
+
+func (m *EventProposerChange) GetRollapp() string {
+	if m != nil {
+		return m.Rollapp
+	}
+	return ""
+}
+
+func (m *EventProposerChange) GetBefore() string {
+	if m != nil {
+		return m.Before
+	}
+	return ""
+}
+
+func (m *EventProposerChange) GetAfter() string {
+	if m != nil {
+		return m.After
+	}
+	return ""
+}
+
+// When a sequencer opt-in status changes
+type EventOptInStatusChange struct {
+	Rollapp string `protobuf:"bytes,3,opt,name=rollapp,proto3" json:"rollapp,omitempty"`
+	// Sequencer is the bech32-encoded address of the old proposer
+	Sequencer string `protobuf:"bytes,1,opt,name=sequencer,proto3" json:"sequencer,omitempty"`
+	Before    bool   `protobuf:"varint,2,opt,name=before,proto3" json:"before,omitempty"`
+	After     bool   `protobuf:"varint,4,opt,name=after,proto3" json:"after,omitempty"`
+}
+
+func (m *EventOptInStatusChange) Reset()         { *m = EventOptInStatusChange{} }
+func (m *EventOptInStatusChange) String() string { return proto.CompactTextString(m) }
+func (*EventOptInStatusChange) ProtoMessage()    {}
+func (*EventOptInStatusChange) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1f8a63d7e7167eb3, []int{5}
+}
+func (m *EventOptInStatusChange) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventOptInStatusChange) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventOptInStatusChange.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventOptInStatusChange) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventOptInStatusChange.Merge(m, src)
+}
+func (m *EventOptInStatusChange) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventOptInStatusChange) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventOptInStatusChange.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventOptInStatusChange proto.InternalMessageInfo
+
+func (m *EventOptInStatusChange) GetRollapp() string {
+	if m != nil {
+		return m.Rollapp
+	}
+	return ""
+}
+
+func (m *EventOptInStatusChange) GetSequencer() string {
+	if m != nil {
+		return m.Sequencer
+	}
+	return ""
+}
+
+func (m *EventOptInStatusChange) GetBefore() bool {
+	if m != nil {
+		return m.Before
+	}
+	return false
+}
+
+func (m *EventOptInStatusChange) GetAfter() bool {
+	if m != nil {
+		return m.After
+	}
+	return false
+}
+
 func init() {
 	proto.RegisterType((*EventIncreasedBond)(nil), "dymensionxyz.dymension.sequencer.EventIncreasedBond")
 	proto.RegisterType((*EventUpdateRewardAddress)(nil), "dymensionxyz.dymension.sequencer.EventUpdateRewardAddress")
 	proto.RegisterType((*EventUpdateWhitelistedRelayers)(nil), "dymensionxyz.dymension.sequencer.EventUpdateWhitelistedRelayers")
+	proto.RegisterType((*EventKickedProposer)(nil), "dymensionxyz.dymension.sequencer.EventKickedProposer")
+	proto.RegisterType((*EventProposerChange)(nil), "dymensionxyz.dymension.sequencer.EventProposerChange")
+	proto.RegisterType((*EventOptInStatusChange)(nil), "dymensionxyz.dymension.sequencer.EventOptInStatusChange")
 }
 
 func init() {
@@ -209,33 +408,41 @@ func init() {
 }
 
 var fileDescriptor_1f8a63d7e7167eb3 = []byte{
-	// 409 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x92, 0xb1, 0x8e, 0xd3, 0x30,
-	0x18, 0xc7, 0x93, 0xeb, 0x09, 0x88, 0xcb, 0x14, 0xdd, 0x90, 0xeb, 0xe0, 0x46, 0x9d, 0xb2, 0x34,
-	0xe6, 0x38, 0xe9, 0xf6, 0x0b, 0x62, 0x60, 0x43, 0x46, 0x07, 0x12, 0x4b, 0xe4, 0xc4, 0x9f, 0x72,
-	0x11, 0x17, 0xbb, 0xd8, 0x6e, 0xb9, 0xf0, 0x14, 0x3c, 0x07, 0x33, 0x0f, 0xd1, 0xb1, 0x62, 0x62,
-	0x02, 0xd4, 0x3e, 0x01, 0x6f, 0x80, 0xe2, 0x98, 0x90, 0xe5, 0x3a, 0x25, 0x7f, 0xe7, 0xff, 0xfb,
-	0xfc, 0xfd, 0xbf, 0x7c, 0x68, 0xc9, 0xdb, 0x06, 0x84, 0xae, 0xa5, 0xb8, 0x6f, 0x3f, 0x93, 0x41,
-	0x10, 0x0d, 0x1f, 0xd7, 0x20, 0x4a, 0x50, 0x04, 0x36, 0x20, 0x8c, 0x4e, 0x57, 0x4a, 0x1a, 0x19,
-	0xc6, 0x63, 0x7b, 0x3a, 0x88, 0x74, 0xb0, 0xcf, 0xce, 0x4b, 0xa9, 0x1b, 0xa9, 0x73, 0xeb, 0x27,
-	0xbd, 0xe8, 0xe1, 0xd9, 0x59, 0x25, 0x2b, 0xd9, 0x9f, 0x77, 0x6f, 0xee, 0x14, 0xf7, 0x1e, 0x52,
-	0x30, 0x0d, 0x64, 0x73, 0x51, 0x80, 0x61, 0x17, 0xa4, 0x94, 0xb5, 0xe8, 0xbf, 0x2f, 0xfe, 0xf8,
-	0x28, 0x7c, 0xd9, 0xf5, 0xf0, 0x4a, 0x94, 0x0a, 0x98, 0x06, 0x9e, 0x49, 0xc1, 0xc3, 0x2b, 0x14,
-	0x0c, 0x97, 0x46, 0x7e, 0xec, 0x27, 0x41, 0x16, 0x7d, 0xff, 0xb6, 0x3c, 0x73, 0x37, 0x5e, 0x73,
-	0xae, 0x40, 0xeb, 0x37, 0x46, 0xd5, 0xa2, 0xa2, 0xff, 0xad, 0x61, 0x86, 0x9e, 0x32, 0xce, 0x81,
-	0xe7, 0xac, 0x91, 0x6b, 0x61, 0xa2, 0x93, 0xd8, 0x4f, 0xa6, 0xcf, 0xcf, 0x53, 0xc7, 0x75, 0x5d,
-	0xa4, 0xae, 0x8b, 0xf4, 0x85, 0xac, 0x45, 0x76, 0xba, 0xfd, 0x39, 0xf7, 0xe8, 0xd4, 0x42, 0xd7,
-	0x96, 0x09, 0x73, 0x74, 0x5a, 0x48, 0xc1, 0xa3, 0x49, 0x3c, 0x39, 0xce, 0x3e, 0xeb, 0xd8, 0xaf,
-	0xbf, 0xe6, 0x49, 0x55, 0x9b, 0xdb, 0x75, 0x91, 0x96, 0xb2, 0x71, 0x23, 0x71, 0x8f, 0xa5, 0xe6,
-	0x1f, 0x88, 0x69, 0x57, 0xa0, 0x2d, 0xa0, 0xa9, 0x2d, 0xbc, 0xb8, 0x41, 0x91, 0x8d, 0x7c, 0xb3,
-	0xe2, 0xcc, 0x00, 0x85, 0x4f, 0x4c, 0x71, 0x97, 0x28, 0x8c, 0xd0, 0xe3, 0x6e, 0x0e, 0x46, 0xba,
-	0xd8, 0xf4, 0x9f, 0x0c, 0xe7, 0x68, 0xaa, 0xac, 0x35, 0x67, 0x9c, 0x2b, 0x9b, 0x2c, 0xa0, 0x48,
-	0x0d, 0xf4, 0xe2, 0x2d, 0xc2, 0xa3, 0xb2, 0xef, 0x6e, 0x6b, 0x03, 0x77, 0xb5, 0x36, 0xc0, 0x29,
-	0xdc, 0xb1, 0x16, 0xd4, 0xb1, 0xe2, 0x33, 0xf4, 0x44, 0x39, 0x57, 0x74, 0x12, 0x4f, 0x92, 0x80,
-	0x0e, 0x3a, 0x7b, 0xbd, 0xdd, 0x63, 0x7f, 0xb7, 0xc7, 0xfe, 0xef, 0x3d, 0xf6, 0xbf, 0x1c, 0xb0,
-	0xb7, 0x3b, 0x60, 0xef, 0xc7, 0x01, 0x7b, 0xef, 0xaf, 0x46, 0xc1, 0x1f, 0xd8, 0xb4, 0xcd, 0x25,
-	0xb9, 0x1f, 0xad, 0x9b, 0x1d, 0x46, 0xf1, 0xc8, 0xfe, 0xfb, 0xcb, 0xbf, 0x01, 0x00, 0x00, 0xff,
-	0xff, 0xe1, 0x33, 0x1f, 0x07, 0x9f, 0x02, 0x00, 0x00,
+	// 531 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x94, 0xc1, 0x6e, 0xd3, 0x30,
+	0x1c, 0xc6, 0x9b, 0xb5, 0x8c, 0xd6, 0xe5, 0x64, 0xaa, 0x29, 0xeb, 0x21, 0xad, 0x72, 0xea, 0xa5,
+	0xc9, 0xc6, 0xd0, 0xee, 0xeb, 0xc4, 0x61, 0xe2, 0xc0, 0x94, 0x69, 0x20, 0x71, 0xa9, 0x9c, 0xf8,
+	0xbf, 0x34, 0x6a, 0x6b, 0x07, 0xdb, 0x2d, 0x2b, 0x4f, 0x01, 0x27, 0x78, 0x06, 0xce, 0x3c, 0xc4,
+	0x8e, 0x13, 0x27, 0x4e, 0x80, 0xda, 0x27, 0xe0, 0x0d, 0x50, 0x6c, 0x37, 0xf4, 0x42, 0x8b, 0x38,
+	0xb5, 0x9f, 0xfb, 0x7d, 0x5f, 0x7e, 0x7f, 0xd7, 0x31, 0xea, 0xd3, 0xc5, 0x14, 0x98, 0xcc, 0x38,
+	0xbb, 0x5d, 0xbc, 0x0b, 0x4b, 0x11, 0x4a, 0x78, 0x33, 0x03, 0x96, 0x80, 0x08, 0x61, 0x0e, 0x4c,
+	0xc9, 0x20, 0x17, 0x5c, 0x71, 0xdc, 0xdd, 0xb4, 0x07, 0xa5, 0x08, 0x4a, 0x7b, 0xfb, 0x30, 0xe1,
+	0x72, 0xca, 0xe5, 0x50, 0xfb, 0x43, 0x23, 0x4c, 0xb8, 0xdd, 0x4a, 0x79, 0xca, 0xcd, 0x7a, 0xf1,
+	0xcd, 0xae, 0x7a, 0xc6, 0x13, 0xc6, 0x44, 0x42, 0x38, 0x3f, 0x8e, 0x41, 0x91, 0xe3, 0x30, 0xe1,
+	0x19, 0x33, 0xbf, 0xfb, 0xbf, 0x1c, 0x84, 0x9f, 0x15, 0x0c, 0x17, 0x2c, 0x11, 0x40, 0x24, 0xd0,
+	0x01, 0x67, 0x14, 0x9f, 0xa2, 0x46, 0xf9, 0x50, 0xd7, 0xe9, 0x3a, 0xbd, 0xc6, 0xc0, 0xfd, 0xfa,
+	0xa5, 0xdf, 0xb2, 0x4f, 0x3c, 0xa3, 0x54, 0x80, 0x94, 0x57, 0x4a, 0x64, 0x2c, 0x8d, 0xfe, 0x58,
+	0xf1, 0x00, 0x3d, 0x22, 0x94, 0x02, 0x1d, 0x92, 0x29, 0x9f, 0x31, 0xe5, 0xee, 0x75, 0x9d, 0x5e,
+	0xf3, 0xc9, 0x61, 0x60, 0x73, 0x05, 0x45, 0x60, 0x29, 0x82, 0x73, 0x9e, 0xb1, 0x41, 0xed, 0xee,
+	0x7b, 0xa7, 0x12, 0x35, 0x75, 0xe8, 0x4c, 0x67, 0xf0, 0x10, 0xd5, 0x62, 0xce, 0xa8, 0x5b, 0xed,
+	0x56, 0xb7, 0x67, 0x8f, 0x8a, 0xec, 0xe7, 0x1f, 0x9d, 0x5e, 0x9a, 0xa9, 0xd1, 0x2c, 0x0e, 0x12,
+	0x3e, 0xb5, 0x5b, 0x62, 0x3f, 0xfa, 0x92, 0x8e, 0x43, 0xb5, 0xc8, 0x41, 0xea, 0x80, 0x8c, 0x74,
+	0xb1, 0x7f, 0x8d, 0x5c, 0x3d, 0xf2, 0x75, 0x4e, 0x89, 0x82, 0x08, 0xde, 0x12, 0x41, 0xed, 0x44,
+	0xd8, 0x45, 0x0f, 0x8b, 0x7d, 0x50, 0xdc, 0x8e, 0x1d, 0xad, 0x25, 0xee, 0xa0, 0xa6, 0xd0, 0xd6,
+	0x21, 0xa1, 0x54, 0xe8, 0xc9, 0x1a, 0x11, 0x12, 0x65, 0xda, 0x7f, 0x89, 0xbc, 0x8d, 0xda, 0x57,
+	0xa3, 0x4c, 0xc1, 0x24, 0x93, 0x0a, 0x68, 0x04, 0x13, 0xb2, 0x00, 0xb1, 0xad, 0xbc, 0x8d, 0xea,
+	0xc2, 0xba, 0xdc, 0xbd, 0x6e, 0xb5, 0xd7, 0x88, 0x4a, 0xed, 0x7f, 0x74, 0xd0, 0x63, 0x5d, 0xfc,
+	0x3c, 0x4b, 0xc6, 0x40, 0x2f, 0x05, 0xcf, 0xb9, 0x04, 0x51, 0xb4, 0x09, 0x3e, 0x99, 0x90, 0x3c,
+	0x77, 0xab, 0xa6, 0xcd, 0x4a, 0x7c, 0x84, 0xf6, 0xc7, 0x85, 0x77, 0xf7, 0x5f, 0x67, 0x7d, 0xf8,
+	0x29, 0xaa, 0xe7, 0xb6, 0xd7, 0x4c, 0xb6, 0x25, 0x53, 0x3a, 0xfd, 0x0f, 0x6b, 0xb2, 0x35, 0xd3,
+	0xf9, 0x88, 0xb0, 0x14, 0xb6, 0x93, 0xc5, 0x70, 0xc3, 0x05, 0xec, 0x26, 0x33, 0x3e, 0x1c, 0xa0,
+	0x07, 0xe4, 0x46, 0xfd, 0x03, 0x96, 0xb1, 0xf9, 0x9f, 0x1c, 0x74, 0xa0, 0x99, 0x5e, 0xe4, 0xea,
+	0x82, 0x5d, 0x29, 0xa2, 0x66, 0x72, 0x27, 0xd6, 0xff, 0x1e, 0xf7, 0x83, 0x72, 0x9c, 0x82, 0xae,
+	0x5e, 0x42, 0xb7, 0xd6, 0xd0, 0x35, 0xbd, 0x6c, 0xc4, 0xe0, 0xf2, 0x6e, 0xe9, 0x39, 0xf7, 0x4b,
+	0xcf, 0xf9, 0xb9, 0xf4, 0x9c, 0xf7, 0x2b, 0xaf, 0x72, 0xbf, 0xf2, 0x2a, 0xdf, 0x56, 0x5e, 0xe5,
+	0xf5, 0xe9, 0xc6, 0x09, 0xfe, 0xcb, 0x95, 0x31, 0x3f, 0x09, 0x6f, 0x37, 0xee, 0x0d, 0x7d, 0xaa,
+	0xe3, 0x7d, 0xfd, 0x12, 0x9f, 0xfc, 0x0e, 0x00, 0x00, 0xff, 0xff, 0xed, 0xe5, 0x96, 0x73, 0x68,
+	0x04, 0x00, 0x00,
 }
 
 func (m *EventIncreasedBond) Marshal() (dAtA []byte, err error) {
@@ -368,6 +575,151 @@ func (m *EventUpdateWhitelistedRelayers) MarshalToSizedBuffer(dAtA []byte) (int,
 	return len(dAtA) - i, nil
 }
 
+func (m *EventKickedProposer) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventKickedProposer) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventKickedProposer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Rollapp) > 0 {
+		i -= len(m.Rollapp)
+		copy(dAtA[i:], m.Rollapp)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Rollapp)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Proposer) > 0 {
+		i -= len(m.Proposer)
+		copy(dAtA[i:], m.Proposer)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Proposer)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Kicker) > 0 {
+		i -= len(m.Kicker)
+		copy(dAtA[i:], m.Kicker)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Kicker)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventProposerChange) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventProposerChange) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventProposerChange) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Rollapp) > 0 {
+		i -= len(m.Rollapp)
+		copy(dAtA[i:], m.Rollapp)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Rollapp)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.After) > 0 {
+		i -= len(m.After)
+		copy(dAtA[i:], m.After)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.After)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Before) > 0 {
+		i -= len(m.Before)
+		copy(dAtA[i:], m.Before)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Before)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventOptInStatusChange) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventOptInStatusChange) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventOptInStatusChange) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.After {
+		i--
+		if m.After {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.Rollapp) > 0 {
+		i -= len(m.Rollapp)
+		copy(dAtA[i:], m.Rollapp)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Rollapp)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Before {
+		i--
+		if m.Before {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Sequencer) > 0 {
+		i -= len(m.Sequencer)
+		copy(dAtA[i:], m.Sequencer)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Sequencer)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintEvents(dAtA []byte, offset int, v uint64) int {
 	offset -= sovEvents(v)
 	base := offset
@@ -432,6 +784,71 @@ func (m *EventUpdateWhitelistedRelayers) Size() (n int) {
 			l = len(s)
 			n += 1 + l + sovEvents(uint64(l))
 		}
+	}
+	return n
+}
+
+func (m *EventKickedProposer) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Kicker)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.Proposer)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.Rollapp)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	return n
+}
+
+func (m *EventProposerChange) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Before)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.After)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.Rollapp)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	return n
+}
+
+func (m *EventOptInStatusChange) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Sequencer)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	if m.Before {
+		n += 2
+	}
+	l = len(m.Rollapp)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	if m.After {
+		n += 2
 	}
 	return n
 }
@@ -798,6 +1215,452 @@ func (m *EventUpdateWhitelistedRelayers) Unmarshal(dAtA []byte) error {
 			}
 			m.Relayers = append(m.Relayers, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventKickedProposer) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventKickedProposer: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventKickedProposer: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Kicker", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Kicker = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Proposer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Proposer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Rollapp", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Rollapp = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventProposerChange) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventProposerChange: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventProposerChange: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Before", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Before = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field After", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.After = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Rollapp", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Rollapp = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventOptInStatusChange) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventOptInStatusChange: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventOptInStatusChange: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sequencer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Sequencer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Before", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Before = bool(v != 0)
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Rollapp", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Rollapp = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field After", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.After = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])
