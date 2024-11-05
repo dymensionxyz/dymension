@@ -121,7 +121,7 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 	l := w.logger(ctx, packet, "OnAcknowledgementPacket")
 
 	var ack channeltypes.Acknowledgement
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+	if err := w.Keeper.Cdc().UnmarshalJSON(acknowledgement, &ack); err != nil {
 		l.Error("Unmarshal acknowledgement.", "err", err)
 		return errorsmod.Wrapf(types.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
@@ -200,6 +200,15 @@ func (w IBCMiddleware) savePacket(ctx sdk.Context, packet channeltypes.Packet, t
 		Type:            packetType,
 	}
 
+	// Add the packet to the pending packet index
+	switch packetType {
+	case commontypes.RollappPacket_ON_RECV:
+		w.MustSetPendingPacketByAddress(ctx, transfer.FungibleTokenPacketData.Receiver, p.RollappPacketKey())
+	case commontypes.RollappPacket_ON_ACK, commontypes.RollappPacket_ON_TIMEOUT:
+		w.MustSetPendingPacketByAddress(ctx, transfer.FungibleTokenPacketData.Sender, p.RollappPacketKey())
+	}
+
+	// Save the rollapp packet
 	w.Keeper.SetRollappPacket(ctx, p)
 
 	return p

@@ -25,6 +25,11 @@ service Msg {
   rpc UpdateRewardAddress(MsgUpdateRewardAddress) returns (MsgUpdateRewardAddressResponse);
   // UpdateWhitelistedRelayers defines a method for updating the sequencer's whitelisted relater list.
   rpc UpdateWhitelistedRelayers(MsgUpdateWhitelistedRelayers) returns (MsgUpdateWhitelistedRelayersResponse);
+  // UpdateOptInStatus allows toggling optedIn bool
+  // NOTE: arguably should have just used UpdateSequencerInformation instead of having a new message, but want to avoid changing
+  // frontends last minute.
+  rpc UpdateOptInStatus (MsgUpdateOptInStatus) returns (MsgUpdateOptInStatus);
+  rpc KickProposer (MsgKickProposer) returns (MsgKickProposerResponse);
   // Unbond defines a method for removing coins from sequencer's bond
   rpc Unbond (MsgUnbond) returns (MsgUnbondResponse);
   // IncreaseBond defines a method for increasing a sequencer's bond amount
@@ -76,6 +81,15 @@ message MsgCreateSequencer {
 
 message MsgCreateSequencerResponse {}
 
+// Try to kick the current proposer whose bond is below kick threshold
+message MsgKickProposer {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+  string creator = 1;
+}
+
+message MsgKickProposerResponse {}
+
 message MsgUpdateSequencerInformation {
   option (cosmos.msg.v1.signer) = "creator";
   // creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
@@ -106,6 +120,18 @@ message MsgUpdateWhitelistedRelayers {
 
 message MsgUpdateWhitelistedRelayersResponse {}
 
+message MsgUpdateOptInStatus {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+  string creator = 1;
+  // OptedIn : the new value
+  bool opted_in = 2;
+}
+
+message MsgUpdateOptInStatusResponse {}
+
+
+
 // MsgUnbond defines a SDK message for performing an undelegation from a
 // bond and a sequencer.
 message MsgUnbond {
@@ -116,11 +142,9 @@ message MsgUnbond {
 
 // MsgUnbondResponse defines the Msg/Unbond response type.
 message MsgUnbondResponse {
-  // completion_time defines the time at which the unbonding will be completed.
   // If unbonding the proposer, the completion time is the time at which the notice period will be completed.
-  oneof completion_time {
-    // unbonding_completion_time is the time at which the unbonding will be completed.
-    google.protobuf.Timestamp unbonding_completion_time = 1 [ (gogoproto.stdtime) = true];
+  reserved 1;
+  oneof completion_time { // NOTE: oneof for legacy reasons.
     // notice_period_completion_time is the time at which the notice period will be completed.
     google.protobuf.Timestamp notice_period_completion_time = 2 [ (gogoproto.stdtime) = true];
   }
@@ -151,5 +175,5 @@ message MsgDecreaseBond {
 
 // MsgDecreaseBondResponse defines the Msg/DecreaseBond response type.
 message MsgDecreaseBondResponse {
-  google.protobuf.Timestamp completion_time = 1 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  reserved 1;
 }

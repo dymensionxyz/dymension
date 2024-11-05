@@ -144,7 +144,7 @@ type AppKeepers struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	RollappKeeper     *rollappmodulekeeper.Keeper
-	SequencerKeeper   sequencermodulekeeper.Keeper
+	SequencerKeeper   *sequencermodulekeeper.Keeper
 	SponsorshipKeeper sponsorshipkeeper.Keeper
 	StreamerKeeper    streamermodulekeeper.Keeper
 	EIBCKeeper        eibckeeper.Keeper
@@ -311,7 +311,8 @@ func (a *AppKeepers) InitKeepers(
 		appCodec, a.keys[gammtypes.StoreKey],
 		a.GetSubspace(gammtypes.ModuleName),
 		a.AccountKeeper,
-		a.BankKeeper, a.DistrKeeper,
+		a.BankKeeper,
+		a.DistrKeeper,
 	)
 	a.GAMMKeeper = &gammKeeper
 
@@ -330,6 +331,7 @@ func (a *AppKeepers) InitKeepers(
 		a.BankKeeper,
 		a.PoolManagerKeeper,
 		a.GAMMKeeper,
+		a.DistrKeeper,
 	)
 	a.TxFeesKeeper = &txFeesKeeper
 
@@ -359,11 +361,14 @@ func (a *AppKeepers) InitKeepers(
 		a.IBCKeeper.ClientKeeper,
 		nil,
 		a.BankKeeper,
+		a.TransferKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		nil,
 	)
 
-	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
+	a.GAMMKeeper.SetRollapp(a.RollappKeeper)
+
+	a.SequencerKeeper = sequencermodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[sequencermoduletypes.StoreKey],
 		a.BankKeeper,
@@ -378,6 +383,9 @@ func (a *AppKeepers) InitKeepers(
 		a.SequencerKeeper,
 		a.RollappKeeper,
 	)
+
+	a.SequencerKeeper.SetUnbondBlockers(a.RollappKeeper, a.LightClientKeeper)
+	a.SequencerKeeper.SetHooks(sequencermoduletypes.MultiHooks{rollappmodulekeeper.SequencerHooks{Keeper: a.RollappKeeper}})
 
 	groupConfig := grouptypes.Config{
 		MaxExecutionPeriod: 0,
@@ -416,6 +424,7 @@ func (a *AppKeepers) InitKeepers(
 		a.GAMMKeeper,
 		a.IncentivesKeeper,
 		a.PoolManagerKeeper,
+		a.TxFeesKeeper,
 	)
 
 	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
@@ -527,10 +536,11 @@ func (a *AppKeepers) InitTransferStack() {
 	a.TransferStack = ibctransfer.NewIBCModule(a.TransferKeeper)
 	a.TransferStack = bridgingfee.NewIBCModule(
 		a.TransferStack.(ibctransfer.IBCModule),
+		*a.RollappKeeper,
 		a.DelayedAckKeeper,
 		a.TransferKeeper,
+		*a.TxFeesKeeper,
 		a.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName),
-		*a.RollappKeeper,
 	)
 	a.TransferStack = packetforwardmiddleware.NewIBCMiddleware(
 		a.TransferStack,

@@ -111,6 +111,7 @@ func (s *utilSuite) rollappMsgServer() rollapptypes.MsgServer {
 func (s *utilSuite) SetupTest() {
 	s.coordinator = ibctesting.NewCoordinator(s.T(), 2) // initializes test chains
 	s.coordinator.Chains[rollappChainID()] = s.newTestChainWithSingleValidator(s.T(), s.coordinator, rollappChainID())
+	s.hubApp().LightClientKeeper.SetEnabled(false)
 }
 
 func (s *utilSuite) fundSenderAccount() {
@@ -138,7 +139,7 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 			X:           "https://x.dymension.xyz",
 		},
 		&rollapptypes.GenesisInfo{
-			GenesisChecksum: "somechecksum",
+			GenesisChecksum: "checksum",
 			Bech32Prefix:    "ethm",
 			NativeDenom: rollapptypes.DenomMetadata{
 				Display:  "DEN",
@@ -373,16 +374,15 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 	return chain
 }
 
-func (s *utilSuite) finalizeRollappPacketsByReceiver(receiver string) sdk.Events {
+func (s *utilSuite) finalizeRollappPacketsByAddress(address string) sdk.Events {
 	s.T().Helper()
-	// Query all pending packets by receiver
+	// Query all pending packets by address
 	querier := delayedackkeeper.NewQuerier(s.hubApp().DelayedAckKeeper)
-	resp, err := querier.GetPendingPacketsByReceiver(s.hubCtx(), &delayedacktypes.QueryPendingPacketsByReceiverRequest{
-		RollappId: rollappChainID(),
-		Receiver:  receiver,
+	resp, err := querier.GetPendingPacketsByAddress(s.hubCtx(), &delayedacktypes.QueryPendingPacketsByAddressRequest{
+		Address: address,
 	})
 	s.Require().NoError(err)
-	// Finalize all packets are collect events
+	// Finalize all packets and collect events
 	events := make(sdk.Events, 0)
 	for _, packet := range resp.RollappPackets {
 		k := common.EncodePacketKey(packet.RollappPacketKey())

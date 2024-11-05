@@ -11,9 +11,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
 	"github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
-	"github.com/stretchr/testify/require"
 )
 
 func IROKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
@@ -31,6 +32,7 @@ func IROKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		cdc,
 		storeKey,
 		"",
+		nil,
 		nil,
 		nil,
 		nil,

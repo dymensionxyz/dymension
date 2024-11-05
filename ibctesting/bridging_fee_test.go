@@ -97,7 +97,7 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	s.Require().NoError(err)
 
 	// manually finalize packets through x/delayedack
-	s.finalizeRollappPacketsByReceiver(s.hubChain().SenderAccount.GetAddress().String())
+	s.finalizeRollappPacketsByAddress(s.hubChain().SenderAccount.GetAddress().String())
 
 	// check balance after finalization
 	expectedFee := s.hubApp().DelayedAckKeeper.BridgingFeeFromAmt(s.hubCtx(), transferredCoins.Amount)
@@ -105,8 +105,8 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	finalBalance := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), recipient)
 	s.Equal(expectedBalance, finalBalance)
 
-	// check fees
+	// check fees are burned
 	addr := s.hubApp().AccountKeeper.GetModuleAccount(s.hubCtx(), txfees.ModuleName)
 	txFeesBalance := s.hubApp().BankKeeper.GetBalance(s.hubCtx(), addr.GetAddress(), denom)
-	s.Equal(expectedFee, txFeesBalance.Amount)
+	s.True(txFeesBalance.IsZero())
 }

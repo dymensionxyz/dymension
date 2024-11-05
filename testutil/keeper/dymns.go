@@ -95,6 +95,7 @@ func DymNSKeeper(t testing.TB) (dymnskeeper.Keeper, dymnstypes.BankKeeper, rolla
 		rollappParamsSubspace,
 		nil, nil, nil, nil,
 		bankKeeper,
+		nil,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		nil,
 	)

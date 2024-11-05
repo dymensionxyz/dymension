@@ -12,10 +12,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
-const (
-	delayedAckEventType = "delayedack"
-	testSourceChannel   = "testSourceChannel"
-)
+const delayedAckEventType = "delayedack"
 
 type DelayedAckTestSuite struct {
 	apptesting.KeeperTestHelper

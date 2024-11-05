@@ -268,6 +268,88 @@ func (m *MsgCreateSequencerResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCreateSequencerResponse proto.InternalMessageInfo
 
+// Try to kick the current proposer whose bond is below kick threshold
+type MsgKickProposer struct {
+	// creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+}
+
+func (m *MsgKickProposer) Reset()         { *m = MsgKickProposer{} }
+func (m *MsgKickProposer) String() string { return proto.CompactTextString(m) }
+func (*MsgKickProposer) ProtoMessage()    {}
+func (*MsgKickProposer) Descriptor() ([]byte, []int) {
+	return fileDescriptor_02cdd6b9ffa005b4, []int{4}
+}
+func (m *MsgKickProposer) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgKickProposer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgKickProposer.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgKickProposer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgKickProposer.Merge(m, src)
+}
+func (m *MsgKickProposer) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgKickProposer) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgKickProposer.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgKickProposer proto.InternalMessageInfo
+
+func (m *MsgKickProposer) GetCreator() string {
+	if m != nil {
+		return m.Creator
+	}
+	return ""
+}
+
+type MsgKickProposerResponse struct {
+}
+
+func (m *MsgKickProposerResponse) Reset()         { *m = MsgKickProposerResponse{} }
+func (m *MsgKickProposerResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgKickProposerResponse) ProtoMessage()    {}
+func (*MsgKickProposerResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_02cdd6b9ffa005b4, []int{5}
+}
+func (m *MsgKickProposerResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgKickProposerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgKickProposerResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgKickProposerResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgKickProposerResponse.Merge(m, src)
+}
+func (m *MsgKickProposerResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgKickProposerResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgKickProposerResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgKickProposerResponse proto.InternalMessageInfo
+
 type MsgUpdateSequencerInformation struct {
 	// creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
@@ -279,7 +361,7 @@ func (m *MsgUpdateSequencerInformation) Reset()         { *m = MsgUpdateSequence
 func (m *MsgUpdateSequencerInformation) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateSequencerInformation) ProtoMessage()    {}
 func (*MsgUpdateSequencerInformation) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{4}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{6}
 }
 func (m *MsgUpdateSequencerInformation) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -329,7 +411,7 @@ func (m *MsgUpdateSequencerInformationResponse) Reset()         { *m = MsgUpdate
 func (m *MsgUpdateSequencerInformationResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateSequencerInformationResponse) ProtoMessage()    {}
 func (*MsgUpdateSequencerInformationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{5}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{7}
 }
 func (m *MsgUpdateSequencerInformationResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -369,7 +451,7 @@ func (m *MsgUpdateRewardAddress) Reset()         { *m = MsgUpdateRewardAddress{}
 func (m *MsgUpdateRewardAddress) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateRewardAddress) ProtoMessage()    {}
 func (*MsgUpdateRewardAddress) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{6}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{8}
 }
 func (m *MsgUpdateRewardAddress) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -419,7 +501,7 @@ func (m *MsgUpdateRewardAddressResponse) Reset()         { *m = MsgUpdateRewardA
 func (m *MsgUpdateRewardAddressResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateRewardAddressResponse) ProtoMessage()    {}
 func (*MsgUpdateRewardAddressResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{7}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{9}
 }
 func (m *MsgUpdateRewardAddressResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -459,7 +541,7 @@ func (m *MsgUpdateWhitelistedRelayers) Reset()         { *m = MsgUpdateWhitelist
 func (m *MsgUpdateWhitelistedRelayers) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateWhitelistedRelayers) ProtoMessage()    {}
 func (*MsgUpdateWhitelistedRelayers) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{8}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{10}
 }
 func (m *MsgUpdateWhitelistedRelayers) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -509,7 +591,7 @@ func (m *MsgUpdateWhitelistedRelayersResponse) Reset()         { *m = MsgUpdateW
 func (m *MsgUpdateWhitelistedRelayersResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateWhitelistedRelayersResponse) ProtoMessage()    {}
 func (*MsgUpdateWhitelistedRelayersResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{9}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{11}
 }
 func (m *MsgUpdateWhitelistedRelayersResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -538,6 +620,96 @@ func (m *MsgUpdateWhitelistedRelayersResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateWhitelistedRelayersResponse proto.InternalMessageInfo
 
+type MsgUpdateOptInStatus struct {
+	// creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	// OptedIn : the new value
+	OptedIn bool `protobuf:"varint,2,opt,name=opted_in,json=optedIn,proto3" json:"opted_in,omitempty"`
+}
+
+func (m *MsgUpdateOptInStatus) Reset()         { *m = MsgUpdateOptInStatus{} }
+func (m *MsgUpdateOptInStatus) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateOptInStatus) ProtoMessage()    {}
+func (*MsgUpdateOptInStatus) Descriptor() ([]byte, []int) {
+	return fileDescriptor_02cdd6b9ffa005b4, []int{12}
+}
+func (m *MsgUpdateOptInStatus) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateOptInStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateOptInStatus.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateOptInStatus) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateOptInStatus.Merge(m, src)
+}
+func (m *MsgUpdateOptInStatus) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateOptInStatus) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateOptInStatus.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateOptInStatus proto.InternalMessageInfo
+
+func (m *MsgUpdateOptInStatus) GetCreator() string {
+	if m != nil {
+		return m.Creator
+	}
+	return ""
+}
+
+func (m *MsgUpdateOptInStatus) GetOptedIn() bool {
+	if m != nil {
+		return m.OptedIn
+	}
+	return false
+}
+
+type MsgUpdateOptInStatusResponse struct {
+}
+
+func (m *MsgUpdateOptInStatusResponse) Reset()         { *m = MsgUpdateOptInStatusResponse{} }
+func (m *MsgUpdateOptInStatusResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateOptInStatusResponse) ProtoMessage()    {}
+func (*MsgUpdateOptInStatusResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_02cdd6b9ffa005b4, []int{13}
+}
+func (m *MsgUpdateOptInStatusResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateOptInStatusResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateOptInStatusResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateOptInStatusResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateOptInStatusResponse.Merge(m, src)
+}
+func (m *MsgUpdateOptInStatusResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateOptInStatusResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateOptInStatusResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateOptInStatusResponse proto.InternalMessageInfo
+
 // MsgUnbond defines a SDK message for performing an undelegation from a
 // bond and a sequencer.
 type MsgUnbond struct {
@@ -548,7 +720,7 @@ func (m *MsgUnbond) Reset()         { *m = MsgUnbond{} }
 func (m *MsgUnbond) String() string { return proto.CompactTextString(m) }
 func (*MsgUnbond) ProtoMessage()    {}
 func (*MsgUnbond) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{10}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{14}
 }
 func (m *MsgUnbond) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -586,12 +758,8 @@ func (m *MsgUnbond) GetCreator() string {
 
 // MsgUnbondResponse defines the Msg/Unbond response type.
 type MsgUnbondResponse struct {
-	// completion_time defines the time at which the unbonding will be completed.
-	// If unbonding the proposer, the completion time is the time at which the notice period will be completed.
-	//
 	// Types that are valid to be assigned to CompletionTime:
 	//
-	//	*MsgUnbondResponse_UnbondingCompletionTime
 	//	*MsgUnbondResponse_NoticePeriodCompletionTime
 	CompletionTime isMsgUnbondResponse_CompletionTime `protobuf_oneof:"completion_time"`
 }
@@ -600,7 +768,7 @@ func (m *MsgUnbondResponse) Reset()         { *m = MsgUnbondResponse{} }
 func (m *MsgUnbondResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUnbondResponse) ProtoMessage()    {}
 func (*MsgUnbondResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{11}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{15}
 }
 func (m *MsgUnbondResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -635,26 +803,15 @@ type isMsgUnbondResponse_CompletionTime interface {
 	Size() int
 }
 
-type MsgUnbondResponse_UnbondingCompletionTime struct {
-	UnbondingCompletionTime *time.Time `protobuf:"bytes,1,opt,name=unbonding_completion_time,json=unbondingCompletionTime,proto3,oneof,stdtime" json:"unbonding_completion_time,omitempty"`
-}
 type MsgUnbondResponse_NoticePeriodCompletionTime struct {
 	NoticePeriodCompletionTime *time.Time `protobuf:"bytes,2,opt,name=notice_period_completion_time,json=noticePeriodCompletionTime,proto3,oneof,stdtime" json:"notice_period_completion_time,omitempty"`
 }
 
-func (*MsgUnbondResponse_UnbondingCompletionTime) isMsgUnbondResponse_CompletionTime()    {}
 func (*MsgUnbondResponse_NoticePeriodCompletionTime) isMsgUnbondResponse_CompletionTime() {}
 
 func (m *MsgUnbondResponse) GetCompletionTime() isMsgUnbondResponse_CompletionTime {
 	if m != nil {
 		return m.CompletionTime
-	}
-	return nil
-}
-
-func (m *MsgUnbondResponse) GetUnbondingCompletionTime() *time.Time {
-	if x, ok := m.GetCompletionTime().(*MsgUnbondResponse_UnbondingCompletionTime); ok {
-		return x.UnbondingCompletionTime
 	}
 	return nil
 }
@@ -669,7 +826,6 @@ func (m *MsgUnbondResponse) GetNoticePeriodCompletionTime() *time.Time {
 // XXX_OneofWrappers is for the internal use of the proto package.
 func (*MsgUnbondResponse) XXX_OneofWrappers() []interface{} {
 	return []interface{}{
-		(*MsgUnbondResponse_UnbondingCompletionTime)(nil),
 		(*MsgUnbondResponse_NoticePeriodCompletionTime)(nil),
 	}
 }
@@ -686,7 +842,7 @@ func (m *MsgIncreaseBond) Reset()         { *m = MsgIncreaseBond{} }
 func (m *MsgIncreaseBond) String() string { return proto.CompactTextString(m) }
 func (*MsgIncreaseBond) ProtoMessage()    {}
 func (*MsgIncreaseBond) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{12}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{16}
 }
 func (m *MsgIncreaseBond) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -737,7 +893,7 @@ func (m *MsgIncreaseBondResponse) Reset()         { *m = MsgIncreaseBondResponse
 func (m *MsgIncreaseBondResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgIncreaseBondResponse) ProtoMessage()    {}
 func (*MsgIncreaseBondResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{13}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{17}
 }
 func (m *MsgIncreaseBondResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -778,7 +934,7 @@ func (m *MsgDecreaseBond) Reset()         { *m = MsgDecreaseBond{} }
 func (m *MsgDecreaseBond) String() string { return proto.CompactTextString(m) }
 func (*MsgDecreaseBond) ProtoMessage()    {}
 func (*MsgDecreaseBond) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{14}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{18}
 }
 func (m *MsgDecreaseBond) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -823,14 +979,13 @@ func (m *MsgDecreaseBond) GetDecreaseAmount() types1.Coin {
 
 // MsgDecreaseBondResponse defines the Msg/DecreaseBond response type.
 type MsgDecreaseBondResponse struct {
-	CompletionTime time.Time `protobuf:"bytes,1,opt,name=completion_time,json=completionTime,proto3,stdtime" json:"completion_time"`
 }
 
 func (m *MsgDecreaseBondResponse) Reset()         { *m = MsgDecreaseBondResponse{} }
 func (m *MsgDecreaseBondResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgDecreaseBondResponse) ProtoMessage()    {}
 func (*MsgDecreaseBondResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{15}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{19}
 }
 func (m *MsgDecreaseBondResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -859,24 +1014,21 @@ func (m *MsgDecreaseBondResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgDecreaseBondResponse proto.InternalMessageInfo
 
-func (m *MsgDecreaseBondResponse) GetCompletionTime() time.Time {
-	if m != nil {
-		return m.CompletionTime
-	}
-	return time.Time{}
-}
-
 func init() {
 	proto.RegisterType((*MsgUpdateParams)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateParams")
 	proto.RegisterType((*MsgUpdateParamsResponse)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateParamsResponse")
 	proto.RegisterType((*MsgCreateSequencer)(nil), "dymensionxyz.dymension.sequencer.MsgCreateSequencer")
 	proto.RegisterType((*MsgCreateSequencerResponse)(nil), "dymensionxyz.dymension.sequencer.MsgCreateSequencerResponse")
+	proto.RegisterType((*MsgKickProposer)(nil), "dymensionxyz.dymension.sequencer.MsgKickProposer")
+	proto.RegisterType((*MsgKickProposerResponse)(nil), "dymensionxyz.dymension.sequencer.MsgKickProposerResponse")
 	proto.RegisterType((*MsgUpdateSequencerInformation)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateSequencerInformation")
 	proto.RegisterType((*MsgUpdateSequencerInformationResponse)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateSequencerInformationResponse")
 	proto.RegisterType((*MsgUpdateRewardAddress)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateRewardAddress")
 	proto.RegisterType((*MsgUpdateRewardAddressResponse)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateRewardAddressResponse")
 	proto.RegisterType((*MsgUpdateWhitelistedRelayers)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateWhitelistedRelayers")
 	proto.RegisterType((*MsgUpdateWhitelistedRelayersResponse)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateWhitelistedRelayersResponse")
+	proto.RegisterType((*MsgUpdateOptInStatus)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateOptInStatus")
+	proto.RegisterType((*MsgUpdateOptInStatusResponse)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateOptInStatusResponse")
 	proto.RegisterType((*MsgUnbond)(nil), "dymensionxyz.dymension.sequencer.MsgUnbond")
 	proto.RegisterType((*MsgUnbondResponse)(nil), "dymensionxyz.dymension.sequencer.MsgUnbondResponse")
 	proto.RegisterType((*MsgIncreaseBond)(nil), "dymensionxyz.dymension.sequencer.MsgIncreaseBond")
@@ -890,71 +1042,75 @@ func init() {
 }
 
 var fileDescriptor_02cdd6b9ffa005b4 = []byte{
-	// 1014 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x57, 0xcb, 0x6f, 0x1b, 0x45,
-	0x18, 0xf7, 0x3a, 0x69, 0x1a, 0x7f, 0x89, 0x12, 0xba, 0x8d, 0xc8, 0x7a, 0xd5, 0xd8, 0x96, 0xc5,
-	0x23, 0x14, 0x75, 0x57, 0x8e, 0x51, 0x05, 0x11, 0x2a, 0xc4, 0x41, 0xa5, 0x11, 0xb2, 0x14, 0xb6,
-	0x54, 0x48, 0x1c, 0xb0, 0xc6, 0x9e, 0xe9, 0x66, 0x91, 0x77, 0x67, 0xd9, 0x19, 0xa7, 0x59, 0xd4,
-	0x03, 0x42, 0xe2, 0x4c, 0x11, 0x67, 0x10, 0x08, 0x89, 0x73, 0x0f, 0xfc, 0x11, 0x15, 0xa7, 0x8a,
-	0x13, 0x17, 0x1e, 0x4a, 0x0e, 0xe5, 0xc2, 0xff, 0x80, 0x76, 0x77, 0x76, 0x62, 0xaf, 0x1d, 0x3f,
-	0x92, 0x9e, 0xda, 0x99, 0xf9, 0x7e, 0x8f, 0xf9, 0x7e, 0x93, 0x2f, 0x1b, 0x78, 0x0d, 0x87, 0x2e,
-	0xf1, 0x98, 0x43, 0xbd, 0xa3, 0xf0, 0x0b, 0x53, 0x2e, 0x4c, 0x46, 0x3e, 0xef, 0x11, 0xaf, 0x43,
-	0x02, 0x93, 0x1f, 0x19, 0x7e, 0x40, 0x39, 0x55, 0x2b, 0xfd, 0xa5, 0x86, 0x5c, 0x18, 0xb2, 0x54,
-	0x2f, 0xda, 0x94, 0xda, 0x5d, 0x62, 0xc6, 0xf5, 0xed, 0xde, 0x7d, 0x13, 0x79, 0x61, 0x02, 0xd6,
-	0x8b, 0x1d, 0xca, 0x5c, 0xca, 0x5a, 0xf1, 0xca, 0x4c, 0x16, 0xe2, 0x68, 0xcd, 0xa6, 0x36, 0x4d,
-	0xf6, 0xa3, 0xff, 0x89, 0xdd, 0x52, 0x52, 0x63, 0xb6, 0x11, 0x23, 0xe6, 0x61, 0xad, 0x4d, 0x38,
-	0xaa, 0x99, 0x1d, 0xea, 0x78, 0xe2, 0xbc, 0x9c, 0xd5, 0xe2, 0x8e, 0x4b, 0x18, 0x47, 0xae, 0x2f,
-	0x0a, 0xd6, 0x05, 0x81, 0xcb, 0x6c, 0xf3, 0xb0, 0x16, 0xfd, 0x23, 0x0e, 0x6e, 0x4c, 0xbc, 0xb2,
-	0x8f, 0x02, 0xe4, 0xa6, 0xf6, 0xcc, 0x89, 0xe5, 0x2e, 0xe1, 0x08, 0x23, 0x8e, 0x12, 0x40, 0xf5,
-	0x27, 0x05, 0x56, 0x9b, 0xcc, 0xbe, 0xe7, 0x63, 0xc4, 0xc9, 0x7e, 0x4c, 0xa5, 0xde, 0x84, 0x02,
-	0xea, 0xf1, 0x03, 0x1a, 0x38, 0x3c, 0xd4, 0x94, 0x8a, 0xb2, 0x59, 0x68, 0x68, 0xbf, 0xff, 0x7a,
-	0x63, 0x4d, 0x34, 0x62, 0x07, 0xe3, 0x80, 0x30, 0x76, 0x97, 0x07, 0x8e, 0x67, 0x5b, 0xa7, 0xa5,
-	0xea, 0x6d, 0x58, 0x48, 0xcc, 0x68, 0xf9, 0x8a, 0xb2, 0xb9, 0xb4, 0xb5, 0x69, 0x4c, 0x0a, 0xc1,
-	0x48, 0x14, 0x1b, 0xf3, 0x4f, 0xfe, 0x2a, 0xe7, 0x2c, 0x81, 0xde, 0x5e, 0xf9, 0xea, 0xd9, 0xe3,
-	0xeb, 0xa7, 0xbc, 0xd5, 0x22, 0xac, 0x67, 0x2c, 0x5a, 0x84, 0xf9, 0xd4, 0x63, 0xa4, 0xfa, 0xcd,
-	0x1c, 0xa8, 0x4d, 0x66, 0xef, 0x06, 0x04, 0x71, 0x72, 0x37, 0xa5, 0x55, 0x35, 0xb8, 0xdc, 0x89,
-	0xb6, 0x68, 0x90, 0xf8, 0xb7, 0xd2, 0xa5, 0x6a, 0xc1, 0x32, 0x0e, 0x5d, 0xc7, 0xe3, 0xfb, 0xbd,
-	0xf6, 0x07, 0x24, 0x14, 0x4e, 0xd7, 0x8c, 0x24, 0x20, 0x23, 0x0d, 0xc8, 0xd8, 0xf1, 0xc2, 0x86,
-	0xf6, 0xdb, 0xe9, 0xa5, 0x3b, 0x41, 0xe8, 0x73, 0x6a, 0x24, 0x28, 0x6b, 0x80, 0x43, 0xdd, 0x00,
-	0x08, 0x68, 0xb7, 0x8b, 0x7c, 0xbf, 0xe5, 0x60, 0x6d, 0x2e, 0x16, 0x2c, 0x88, 0x9d, 0x3d, 0xac,
-	0xde, 0x83, 0xc5, 0xb4, 0xe9, 0xda, 0x7c, 0x2c, 0x57, 0x9f, 0xdc, 0x18, 0x79, 0x97, 0xa6, 0x80,
-	0x8a, 0x1e, 0x49, 0x2a, 0xb5, 0x0e, 0xf3, 0x6d, 0xea, 0x61, 0xed, 0x52, 0x4c, 0x59, 0x34, 0x84,
-	0xd1, 0xe8, 0x09, 0x1a, 0xe2, 0x09, 0x1a, 0xbb, 0xd4, 0xf1, 0x04, 0x30, 0x2e, 0x56, 0xcb, 0xb0,
-	0x14, 0x90, 0x07, 0x28, 0xc0, 0x2d, 0x84, 0x71, 0xa0, 0x2d, 0xc4, 0x5e, 0x21, 0xd9, 0x8a, 0x72,
-	0x55, 0x6b, 0xb0, 0xf6, 0xe0, 0xc0, 0xe1, 0xa4, 0xeb, 0x30, 0x4e, 0x70, 0x2b, 0x20, 0x5d, 0x14,
-	0x92, 0x80, 0x69, 0x97, 0x2b, 0x73, 0x9b, 0x05, 0xeb, 0x6a, 0xdf, 0x99, 0x25, 0x8e, 0xb6, 0x97,
-	0xa3, 0xb8, 0xd2, 0x06, 0x57, 0xaf, 0x81, 0x3e, 0x1c, 0x88, 0xcc, 0xeb, 0x07, 0x05, 0x36, 0x64,
-	0x96, 0xf2, 0x78, 0xcf, 0xbb, 0x4f, 0x03, 0x17, 0x71, 0x87, 0x7a, 0x63, 0xa2, 0xeb, 0xef, 0x63,
-	0xfe, 0xb9, 0xf5, 0x31, 0x63, 0xff, 0x55, 0x78, 0x79, 0xac, 0x3f, 0x79, 0x13, 0x04, 0x2f, 0xca,
-	0x42, 0x4b, 0xf6, 0x8f, 0x30, 0x36, 0xe6, 0x06, 0x99, 0xee, 0xe7, 0xb3, 0xdd, 0xcf, 0x78, 0xa9,
-	0x40, 0x69, 0xb4, 0x84, 0x34, 0xd1, 0x86, 0x6b, 0xb2, 0xe2, 0xe3, 0xe1, 0x68, 0xc6, 0x58, 0xd1,
-	0x61, 0x51, 0x66, 0x9b, 0x8f, 0xb3, 0x95, 0xeb, 0x8c, 0x8b, 0x57, 0xe0, 0xa5, 0x71, 0x1a, 0xd2,
-	0xcb, 0x87, 0x50, 0x88, 0xea, 0xbc, 0xf8, 0x9d, 0x6d, 0x65, 0x84, 0xc7, 0x0c, 0x90, 0xb4, 0x70,
-	0xfb, 0x85, 0x7f, 0x7f, 0x2c, 0xe7, 0x06, 0xa4, 0xff, 0x53, 0xe0, 0x8a, 0xe4, 0x4c, 0x85, 0xd4,
-	0x4f, 0xa1, 0xd8, 0x8b, 0x77, 0x1c, 0xcf, 0x6e, 0x75, 0xa8, 0xeb, 0x77, 0x49, 0x94, 0x4c, 0x2b,
-	0x9a, 0xa9, 0xb1, 0xda, 0xd2, 0x96, 0x3e, 0xf4, 0xf3, 0xfc, 0x51, 0x3a, 0x70, 0x1b, 0xf3, 0x8f,
-	0xfe, 0x2e, 0x2b, 0x77, 0x72, 0xd6, 0xba, 0x24, 0xd9, 0x95, 0x1c, 0x51, 0x95, 0x4a, 0x60, 0xc3,
-	0xa3, 0xdc, 0xe9, 0x90, 0x96, 0x4f, 0x02, 0x87, 0xe2, 0x21, 0x8d, 0xfc, 0xd4, 0x1a, 0x7a, 0x42,
-	0xb4, 0x1f, 0xf3, 0x0c, 0xca, 0x34, 0xae, 0xc0, 0x6a, 0x86, 0xb8, 0xfa, 0x5d, 0x32, 0x8c, 0xf7,
-	0xbc, 0xa8, 0x01, 0x8c, 0x34, 0xce, 0xd9, 0x49, 0xf5, 0x16, 0x00, 0xc2, 0xb8, 0x85, 0x5c, 0xda,
-	0xf3, 0xb8, 0xb0, 0x3b, 0x71, 0x40, 0x14, 0x10, 0xc6, 0x3b, 0x31, 0x22, 0xf3, 0x00, 0x92, 0xf1,
-	0xdb, 0x6f, 0x4a, 0x66, 0xfe, 0x7d, 0x62, 0xf8, 0x3d, 0x72, 0x41, 0xc3, 0x77, 0x60, 0x15, 0x0b,
-	0x8e, 0x19, 0x5d, 0xaf, 0xa4, 0xb8, 0x91, 0xd6, 0x0f, 0x62, 0xeb, 0xfd, 0xf6, 0xe4, 0x2b, 0x6a,
-	0x0e, 0xb5, 0x7f, 0x8a, 0xb7, 0xb3, 0x18, 0x69, 0x46, 0xd9, 0x5a, 0x2b, 0x9d, 0x81, 0x34, 0xb7,
-	0xfe, 0x5c, 0x84, 0xb9, 0x26, 0xb3, 0xd5, 0xaf, 0x15, 0x58, 0xcd, 0xfe, 0x36, 0x7a, 0x63, 0xf2,
-	0x98, 0x1a, 0x1e, 0x99, 0xfa, 0xdb, 0xe7, 0x41, 0xc9, 0xeb, 0xfd, 0xa2, 0x80, 0x3e, 0x66, 0xca,
-	0xbe, 0x33, 0x15, 0xf9, 0xd9, 0x04, 0xfa, 0xfb, 0x17, 0x24, 0x90, 0x46, 0xbf, 0x55, 0xe0, 0xea,
-	0xa8, 0x29, 0xfa, 0xe6, 0x0c, 0x02, 0x03, 0x48, 0xfd, 0xdd, 0xf3, 0x22, 0xa5, 0xa7, 0x9f, 0x15,
-	0x28, 0x9e, 0x3d, 0x54, 0x6f, 0xcd, 0xc0, 0x3f, 0x02, 0xaf, 0xdf, 0xbe, 0x18, 0x5e, 0xba, 0xfc,
-	0x0c, 0x16, 0xc4, 0xb4, 0x7d, 0x7d, 0x3a, 0xc6, 0xb8, 0x58, 0xaf, 0xcf, 0x50, 0x2c, 0xb5, 0x1e,
-	0xc2, 0xf2, 0xc0, 0x54, 0xaa, 0x4d, 0x45, 0xd2, 0x0f, 0xd1, 0xdf, 0x9a, 0x19, 0xd2, 0xaf, 0x3e,
-	0x30, 0x62, 0xa6, 0x53, 0xef, 0x87, 0x4c, 0xa9, 0x3e, 0x72, 0x52, 0x3c, 0x84, 0xe5, 0x81, 0xcf,
-	0xe3, 0xda, 0x0c, 0xf9, 0x25, 0x90, 0x29, 0xd5, 0x47, 0x7d, 0xe1, 0xea, 0x97, 0xbe, 0x7c, 0xf6,
-	0xf8, 0xba, 0xd2, 0xd8, 0x7f, 0x72, 0x5c, 0x52, 0x9e, 0x1e, 0x97, 0x94, 0x7f, 0x8e, 0x4b, 0xca,
-	0xa3, 0x93, 0x52, 0xee, 0xe9, 0x49, 0x29, 0xf7, 0xc7, 0x49, 0x29, 0xf7, 0xc9, 0x4d, 0xdb, 0xe1,
-	0x07, 0xbd, 0xb6, 0xd1, 0xa1, 0xee, 0x59, 0x5f, 0xff, 0x87, 0x75, 0xf3, 0xa8, 0xff, 0x8f, 0xa4,
-	0xd0, 0x27, 0xac, 0xbd, 0x10, 0xcf, 0xb7, 0xfa, 0xff, 0x01, 0x00, 0x00, 0xff, 0xff, 0x21, 0x97,
-	0x23, 0x18, 0x55, 0x0d, 0x00, 0x00,
+	// 1076 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x57, 0xcf, 0x6f, 0xdc, 0xc4,
+	0x17, 0x5f, 0x27, 0x69, 0x92, 0x7d, 0x8d, 0x9a, 0xc6, 0x8d, 0xbe, 0xf5, 0x5a, 0xcd, 0x6e, 0x14,
+	0x7d, 0x81, 0x50, 0x54, 0x5b, 0x9b, 0xa0, 0x88, 0x56, 0xa8, 0x90, 0x0d, 0x2a, 0x5d, 0xaa, 0x88,
+	0xc5, 0xa1, 0x42, 0x70, 0x59, 0xcd, 0xae, 0xa7, 0x8e, 0x61, 0x3d, 0x63, 0x3c, 0xb3, 0x69, 0x8c,
+	0x7a, 0x40, 0x20, 0xce, 0x14, 0x71, 0x06, 0x81, 0x90, 0x38, 0xf7, 0xc0, 0x1f, 0x51, 0x71, 0xaa,
+	0x38, 0x71, 0xe2, 0x47, 0x72, 0x28, 0x7f, 0x06, 0xb2, 0x3d, 0x9e, 0x78, 0xbd, 0x9b, 0xfd, 0x91,
+	0x70, 0x4a, 0x66, 0xe6, 0x7d, 0x7e, 0xbc, 0x79, 0x6f, 0xdf, 0xc8, 0xf0, 0xb2, 0x1d, 0x7a, 0x98,
+	0x30, 0x97, 0x92, 0xc3, 0xf0, 0x33, 0x53, 0x2e, 0x4c, 0x86, 0x3f, 0xed, 0x62, 0xd2, 0xc6, 0x81,
+	0xc9, 0x0f, 0x0d, 0x3f, 0xa0, 0x9c, 0xaa, 0xab, 0xd9, 0x50, 0x43, 0x2e, 0x0c, 0x19, 0xaa, 0x97,
+	0x1c, 0x4a, 0x9d, 0x0e, 0x36, 0xe3, 0xf8, 0x56, 0xf7, 0x81, 0x89, 0x48, 0x98, 0x80, 0xf5, 0x52,
+	0x9b, 0x32, 0x8f, 0xb2, 0x66, 0xbc, 0x32, 0x93, 0x85, 0x38, 0x5a, 0x76, 0xa8, 0x43, 0x93, 0xfd,
+	0xe8, 0x3f, 0xb1, 0x5b, 0x4e, 0x62, 0xcc, 0x16, 0x62, 0xd8, 0x3c, 0xa8, 0xb6, 0x30, 0x47, 0x55,
+	0xb3, 0x4d, 0x5d, 0x22, 0xce, 0x2b, 0x79, 0x2d, 0xee, 0x7a, 0x98, 0x71, 0xe4, 0xf9, 0x22, 0xe0,
+	0xaa, 0x20, 0xf0, 0x98, 0x63, 0x1e, 0x54, 0xa3, 0x3f, 0xe2, 0xe0, 0xc6, 0xc8, 0x94, 0x7d, 0x14,
+	0x20, 0x2f, 0xb5, 0x67, 0x8e, 0x0c, 0xf7, 0x30, 0x47, 0x36, 0xe2, 0x28, 0x01, 0xac, 0xfd, 0xa8,
+	0xc0, 0xe2, 0x2e, 0x73, 0xee, 0xfb, 0x36, 0xe2, 0xb8, 0x11, 0x53, 0xa9, 0x5b, 0x50, 0x44, 0x5d,
+	0xbe, 0x4f, 0x03, 0x97, 0x87, 0x9a, 0xb2, 0xaa, 0xac, 0x17, 0x6b, 0xda, 0x6f, 0xbf, 0xdc, 0x58,
+	0x16, 0x17, 0xb1, 0x6d, 0xdb, 0x01, 0x66, 0x6c, 0x8f, 0x07, 0x2e, 0x71, 0xac, 0x93, 0x50, 0xf5,
+	0x0e, 0xcc, 0x26, 0x66, 0xb4, 0xa9, 0x55, 0x65, 0xfd, 0xe2, 0xc6, 0xba, 0x31, 0xaa, 0x08, 0x46,
+	0xa2, 0x58, 0x9b, 0x79, 0xfa, 0x47, 0xa5, 0x60, 0x09, 0xf4, 0xad, 0x4b, 0x5f, 0x3c, 0x7f, 0x72,
+	0xfd, 0x84, 0x77, 0xad, 0x04, 0x57, 0x73, 0x16, 0x2d, 0xcc, 0x7c, 0x4a, 0x18, 0x5e, 0xfb, 0x7a,
+	0x1a, 0xd4, 0x5d, 0xe6, 0xec, 0x04, 0x18, 0x71, 0xbc, 0x97, 0xd2, 0xaa, 0x1a, 0xcc, 0xb5, 0xa3,
+	0x2d, 0x1a, 0x24, 0xfe, 0xad, 0x74, 0xa9, 0x5a, 0xb0, 0x60, 0x87, 0x9e, 0x4b, 0x78, 0xa3, 0xdb,
+	0xba, 0x87, 0x43, 0xe1, 0x74, 0xd9, 0x48, 0x0a, 0x64, 0xa4, 0x05, 0x32, 0xb6, 0x49, 0x58, 0xd3,
+	0x7e, 0x3d, 0x49, 0xba, 0x1d, 0x84, 0x3e, 0xa7, 0x46, 0x82, 0xb2, 0x7a, 0x38, 0xd4, 0x15, 0x80,
+	0x80, 0x76, 0x3a, 0xc8, 0xf7, 0x9b, 0xae, 0xad, 0x4d, 0xc7, 0x82, 0x45, 0xb1, 0x53, 0xb7, 0xd5,
+	0xfb, 0x30, 0x9f, 0x5e, 0xba, 0x36, 0x13, 0xcb, 0x6d, 0x8e, 0xbe, 0x18, 0x99, 0xcb, 0xae, 0x80,
+	0x8a, 0x3b, 0x92, 0x54, 0xea, 0x26, 0xcc, 0xb4, 0x28, 0xb1, 0xb5, 0x0b, 0x31, 0x65, 0xc9, 0x10,
+	0x46, 0xa3, 0x16, 0x34, 0x44, 0x0b, 0x1a, 0x3b, 0xd4, 0x25, 0x02, 0x18, 0x07, 0xab, 0x15, 0xb8,
+	0x18, 0xe0, 0x87, 0x28, 0xb0, 0x9b, 0xc8, 0xb6, 0x03, 0x6d, 0x36, 0xf6, 0x0a, 0xc9, 0x56, 0x54,
+	0x57, 0xb5, 0x0a, 0xcb, 0x0f, 0xf7, 0x5d, 0x8e, 0x3b, 0x2e, 0xe3, 0xd8, 0x6e, 0x06, 0xb8, 0x83,
+	0x42, 0x1c, 0x30, 0x6d, 0x6e, 0x75, 0x7a, 0xbd, 0x68, 0x5d, 0xc9, 0x9c, 0x59, 0xe2, 0xe8, 0xd6,
+	0x42, 0x54, 0xae, 0xf4, 0x82, 0xd7, 0xae, 0x81, 0xde, 0x5f, 0x10, 0x59, 0xaf, 0x9b, 0x71, 0xb7,
+	0xdd, 0x73, 0xdb, 0x9f, 0x34, 0x02, 0xea, 0x53, 0x36, 0xac, 0x56, 0x39, 0xe2, 0xa4, 0x0b, 0xb2,
+	0x50, 0xc9, 0xfa, 0xbd, 0x02, 0x2b, 0xb2, 0x43, 0xa4, 0x68, 0x9d, 0x3c, 0xa0, 0x81, 0x87, 0xb8,
+	0x4b, 0xc9, 0x90, 0x86, 0xc8, 0x56, 0x67, 0xea, 0x3f, 0xab, 0x4e, 0xce, 0xfb, 0x4b, 0xf0, 0xc2,
+	0x50, 0x7f, 0x32, 0x13, 0x04, 0xff, 0x93, 0x81, 0x96, 0xac, 0x0a, 0x66, 0x6c, 0x48, 0x06, 0xb9,
+	0x9a, 0x4e, 0xe5, 0x6b, 0x9a, 0xf3, 0xb2, 0x0a, 0xe5, 0xc1, 0x12, 0xd2, 0x44, 0x0b, 0xae, 0xc9,
+	0x88, 0x0f, 0xfa, 0x0b, 0x3e, 0xc4, 0x8a, 0x0e, 0xf3, 0xb2, 0x63, 0xa6, 0xe2, 0x8e, 0x91, 0xeb,
+	0x9c, 0x8b, 0x17, 0xe1, 0xff, 0xc3, 0x34, 0xa4, 0x97, 0x0f, 0x61, 0x59, 0xc6, 0xbd, 0xeb, 0xf3,
+	0x3a, 0xd9, 0xe3, 0x88, 0x77, 0x87, 0x79, 0x28, 0xc1, 0x3c, 0xf5, 0xa3, 0xde, 0x75, 0x49, 0x7c,
+	0x17, 0xf3, 0xd6, 0x5c, 0xbc, 0xae, 0x93, 0x9c, 0x85, 0x72, 0x26, 0xcd, 0x0c, 0xb5, 0x94, 0x7e,
+	0x0f, 0x8a, 0xd1, 0x39, 0x89, 0x7f, 0x38, 0x1b, 0x39, 0xbd, 0x21, 0x13, 0x51, 0xf6, 0xef, 0xe5,
+	0x7f, 0x7e, 0xa8, 0x14, 0x7a, 0x24, 0xbf, 0x55, 0x60, 0x49, 0x72, 0xa6, 0x42, 0x2a, 0x86, 0x15,
+	0x42, 0xb9, 0xdb, 0xc6, 0x4d, 0x1f, 0x07, 0x2e, 0xb5, 0x9b, 0x6d, 0xea, 0xf9, 0x1d, 0x1c, 0x35,
+	0x46, 0x33, 0x7a, 0x28, 0x44, 0x5f, 0xea, 0x7d, 0x43, 0xea, 0xfd, 0xf4, 0x15, 0xa9, 0xcd, 0x3c,
+	0xfe, 0xb3, 0xa2, 0xdc, 0x2d, 0x58, 0x7a, 0x42, 0xd4, 0x88, 0x79, 0x76, 0x24, 0x4d, 0x14, 0x58,
+	0x5b, 0x82, 0xc5, 0x1c, 0xf1, 0x3b, 0x33, 0xf3, 0xca, 0xe5, 0xa9, 0xc8, 0x55, 0xf4, 0xab, 0xac,
+	0x93, 0xc8, 0x26, 0xc3, 0xb5, 0x33, 0xe6, 0xab, 0xde, 0x06, 0x40, 0xb6, 0xdd, 0x44, 0x1e, 0xed,
+	0x12, 0x2e, 0x4c, 0x8f, 0x9c, 0x4b, 0x45, 0x64, 0xdb, 0xdb, 0x31, 0x62, 0xe0, 0xef, 0x3d, 0x6b,
+	0x4a, 0x56, 0xe6, 0xbb, 0xc4, 0xf0, 0x5b, 0xf8, 0x9c, 0x86, 0xef, 0xc2, 0xa2, 0x2d, 0x38, 0x26,
+	0x74, 0x7d, 0x29, 0xc5, 0x0d, 0xb4, 0x5e, 0x89, 0xad, 0x67, 0xed, 0xa5, 0xd6, 0x93, 0x1b, 0xdf,
+	0xf8, 0x1b, 0x60, 0x7a, 0x97, 0x39, 0xea, 0x57, 0x0a, 0x2c, 0xe6, 0xdf, 0xae, 0x57, 0x47, 0x8f,
+	0x9f, 0xfe, 0x01, 0xab, 0xbf, 0x7e, 0x16, 0x94, 0xec, 0xc0, 0x9f, 0x15, 0xd0, 0x87, 0x4c, 0xcf,
+	0x37, 0xc6, 0x22, 0x3f, 0x9d, 0x40, 0x7f, 0xfb, 0x9c, 0x04, 0xd2, 0xe8, 0x37, 0x0a, 0x5c, 0x19,
+	0x34, 0x1d, 0x5f, 0x9b, 0x40, 0xa0, 0x07, 0xa9, 0xbf, 0x79, 0x56, 0xa4, 0xf4, 0xf4, 0x93, 0x02,
+	0xa5, 0xd3, 0x87, 0xe5, 0xed, 0x09, 0xf8, 0x07, 0xe0, 0xf5, 0x3b, 0xe7, 0xc3, 0x4b, 0x97, 0x5f,
+	0x2a, 0xb0, 0xd4, 0x3f, 0x46, 0xb7, 0x26, 0x60, 0xcf, 0xe0, 0xf4, 0x33, 0xe2, 0xd4, 0x47, 0xb0,
+	0xd0, 0xf3, 0xf8, 0x57, 0xc7, 0xe2, 0xc9, 0x42, 0xf4, 0x9b, 0x13, 0x43, 0xe4, 0x1d, 0x7c, 0x0c,
+	0xb3, 0x62, 0x9c, 0xbf, 0x32, 0x9e, 0xff, 0x38, 0x58, 0xdf, 0x9c, 0x20, 0x58, 0x6a, 0x3d, 0x82,
+	0x85, 0x9e, 0x81, 0x3a, 0x5e, 0xa6, 0x59, 0xc8, 0x98, 0x99, 0x0e, 0x9a, 0x90, 0x91, 0x7a, 0xcf,
+	0x74, 0x1c, 0x4f, 0x3d, 0x0b, 0x19, 0x53, 0x7d, 0xd0, 0x90, 0x8b, 0xd4, 0x7b, 0x3e, 0x28, 0xaa,
+	0x13, 0x74, 0x4b, 0x02, 0x19, 0x53, 0x7d, 0xd0, 0x37, 0x81, 0x7e, 0xe1, 0xf3, 0xe7, 0x4f, 0xae,
+	0x2b, 0xb5, 0xc6, 0xd3, 0xa3, 0xb2, 0xf2, 0xec, 0xa8, 0xac, 0xfc, 0x75, 0x54, 0x56, 0x1e, 0x1f,
+	0x97, 0x0b, 0xcf, 0x8e, 0xcb, 0x85, 0xdf, 0x8f, 0xcb, 0x85, 0x8f, 0xb6, 0x1c, 0x97, 0xef, 0x77,
+	0x5b, 0x46, 0x9b, 0x7a, 0xa7, 0x7d, 0x2f, 0x1d, 0x6c, 0x9a, 0x87, 0xd9, 0xcf, 0xca, 0xd0, 0xc7,
+	0xac, 0x35, 0x1b, 0x3f, 0xbc, 0x9b, 0xff, 0x06, 0x00, 0x00, 0xff, 0xff, 0x1a, 0x95, 0xd6, 0xb8,
+	0x87, 0x0e, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -977,6 +1133,11 @@ type MsgClient interface {
 	UpdateRewardAddress(ctx context.Context, in *MsgUpdateRewardAddress, opts ...grpc.CallOption) (*MsgUpdateRewardAddressResponse, error)
 	// UpdateWhitelistedRelayers defines a method for updating the sequencer's whitelisted relater list.
 	UpdateWhitelistedRelayers(ctx context.Context, in *MsgUpdateWhitelistedRelayers, opts ...grpc.CallOption) (*MsgUpdateWhitelistedRelayersResponse, error)
+	// UpdateOptInStatus allows toggling optedIn bool
+	// NOTE: arguably should have just used UpdateSequencerInformation instead of having a new message, but want to avoid changing
+	// frontends last minute.
+	UpdateOptInStatus(ctx context.Context, in *MsgUpdateOptInStatus, opts ...grpc.CallOption) (*MsgUpdateOptInStatus, error)
+	KickProposer(ctx context.Context, in *MsgKickProposer, opts ...grpc.CallOption) (*MsgKickProposerResponse, error)
 	// Unbond defines a method for removing coins from sequencer's bond
 	Unbond(ctx context.Context, in *MsgUnbond, opts ...grpc.CallOption) (*MsgUnbondResponse, error)
 	// IncreaseBond defines a method for increasing a sequencer's bond amount
@@ -1032,6 +1193,24 @@ func (c *msgClient) UpdateWhitelistedRelayers(ctx context.Context, in *MsgUpdate
 	return out, nil
 }
 
+func (c *msgClient) UpdateOptInStatus(ctx context.Context, in *MsgUpdateOptInStatus, opts ...grpc.CallOption) (*MsgUpdateOptInStatus, error) {
+	out := new(MsgUpdateOptInStatus)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Msg/UpdateOptInStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) KickProposer(ctx context.Context, in *MsgKickProposer, opts ...grpc.CallOption) (*MsgKickProposerResponse, error) {
+	out := new(MsgKickProposerResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Msg/KickProposer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) Unbond(ctx context.Context, in *MsgUnbond, opts ...grpc.CallOption) (*MsgUnbondResponse, error) {
 	out := new(MsgUnbondResponse)
 	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Msg/Unbond", in, out, opts...)
@@ -1078,6 +1257,11 @@ type MsgServer interface {
 	UpdateRewardAddress(context.Context, *MsgUpdateRewardAddress) (*MsgUpdateRewardAddressResponse, error)
 	// UpdateWhitelistedRelayers defines a method for updating the sequencer's whitelisted relater list.
 	UpdateWhitelistedRelayers(context.Context, *MsgUpdateWhitelistedRelayers) (*MsgUpdateWhitelistedRelayersResponse, error)
+	// UpdateOptInStatus allows toggling optedIn bool
+	// NOTE: arguably should have just used UpdateSequencerInformation instead of having a new message, but want to avoid changing
+	// frontends last minute.
+	UpdateOptInStatus(context.Context, *MsgUpdateOptInStatus) (*MsgUpdateOptInStatus, error)
+	KickProposer(context.Context, *MsgKickProposer) (*MsgKickProposerResponse, error)
 	// Unbond defines a method for removing coins from sequencer's bond
 	Unbond(context.Context, *MsgUnbond) (*MsgUnbondResponse, error)
 	// IncreaseBond defines a method for increasing a sequencer's bond amount
@@ -1104,6 +1288,12 @@ func (*UnimplementedMsgServer) UpdateRewardAddress(ctx context.Context, req *Msg
 }
 func (*UnimplementedMsgServer) UpdateWhitelistedRelayers(ctx context.Context, req *MsgUpdateWhitelistedRelayers) (*MsgUpdateWhitelistedRelayersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateWhitelistedRelayers not implemented")
+}
+func (*UnimplementedMsgServer) UpdateOptInStatus(ctx context.Context, req *MsgUpdateOptInStatus) (*MsgUpdateOptInStatus, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateOptInStatus not implemented")
+}
+func (*UnimplementedMsgServer) KickProposer(ctx context.Context, req *MsgKickProposer) (*MsgKickProposerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method KickProposer not implemented")
 }
 func (*UnimplementedMsgServer) Unbond(ctx context.Context, req *MsgUnbond) (*MsgUnbondResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Unbond not implemented")
@@ -1190,6 +1380,42 @@ func _Msg_UpdateWhitelistedRelayers_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).UpdateWhitelistedRelayers(ctx, req.(*MsgUpdateWhitelistedRelayers))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UpdateOptInStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateOptInStatus)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateOptInStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.sequencer.Msg/UpdateOptInStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateOptInStatus(ctx, req.(*MsgUpdateOptInStatus))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_KickProposer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgKickProposer)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).KickProposer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.sequencer.Msg/KickProposer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).KickProposer(ctx, req.(*MsgKickProposer))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1285,6 +1511,14 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateWhitelistedRelayers",
 			Handler:    _Msg_UpdateWhitelistedRelayers_Handler,
+		},
+		{
+			MethodName: "UpdateOptInStatus",
+			Handler:    _Msg_UpdateOptInStatus_Handler,
+		},
+		{
+			MethodName: "KickProposer",
+			Handler:    _Msg_KickProposer_Handler,
 		},
 		{
 			MethodName: "Unbond",
@@ -1478,6 +1712,59 @@ func (m *MsgCreateSequencerResponse) MarshalToSizedBuffer(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgKickProposer) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgKickProposer) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgKickProposer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Creator) > 0 {
+		i -= len(m.Creator)
+		copy(dAtA[i:], m.Creator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgKickProposerResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgKickProposerResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgKickProposerResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func (m *MsgUpdateSequencerInformation) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1663,6 +1950,69 @@ func (m *MsgUpdateWhitelistedRelayersResponse) MarshalToSizedBuffer(dAtA []byte)
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgUpdateOptInStatus) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateOptInStatus) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateOptInStatus) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.OptedIn {
+		i--
+		if m.OptedIn {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Creator) > 0 {
+		i -= len(m.Creator)
+		copy(dAtA[i:], m.Creator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateOptInStatusResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateOptInStatusResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateOptInStatusResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func (m *MsgUnbond) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1725,25 +2075,6 @@ func (m *MsgUnbondResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgUnbondResponse_UnbondingCompletionTime) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgUnbondResponse_UnbondingCompletionTime) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.UnbondingCompletionTime != nil {
-		n6, err6 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(*m.UnbondingCompletionTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(*m.UnbondingCompletionTime):])
-		if err6 != nil {
-			return 0, err6
-		}
-		i -= n6
-		i = encodeVarintTx(dAtA, i, uint64(n6))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
 func (m *MsgUnbondResponse_NoticePeriodCompletionTime) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
@@ -1752,12 +2083,12 @@ func (m *MsgUnbondResponse_NoticePeriodCompletionTime) MarshalTo(dAtA []byte) (i
 func (m *MsgUnbondResponse_NoticePeriodCompletionTime) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	if m.NoticePeriodCompletionTime != nil {
-		n7, err7 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(*m.NoticePeriodCompletionTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(*m.NoticePeriodCompletionTime):])
-		if err7 != nil {
-			return 0, err7
+		n6, err6 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(*m.NoticePeriodCompletionTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(*m.NoticePeriodCompletionTime):])
+		if err6 != nil {
+			return 0, err6
 		}
-		i -= n7
-		i = encodeVarintTx(dAtA, i, uint64(n7))
+		i -= n6
+		i = encodeVarintTx(dAtA, i, uint64(n6))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -1886,14 +2217,6 @@ func (m *MsgDecreaseBondResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	_ = i
 	var l int
 	_ = l
-	n10, err10 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.CompletionTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.CompletionTime):])
-	if err10 != nil {
-		return 0, err10
-	}
-	i -= n10
-	i = encodeVarintTx(dAtA, i, uint64(n10))
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -1968,6 +2291,28 @@ func (m *MsgCreateSequencer) Size() (n int) {
 }
 
 func (m *MsgCreateSequencerResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgKickProposer) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Creator)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgKickProposerResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2054,6 +2399,31 @@ func (m *MsgUpdateWhitelistedRelayersResponse) Size() (n int) {
 	return n
 }
 
+func (m *MsgUpdateOptInStatus) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Creator)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.OptedIn {
+		n += 2
+	}
+	return n
+}
+
+func (m *MsgUpdateOptInStatusResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
 func (m *MsgUnbond) Size() (n int) {
 	if m == nil {
 		return 0
@@ -2079,18 +2449,6 @@ func (m *MsgUnbondResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgUnbondResponse_UnbondingCompletionTime) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.UnbondingCompletionTime != nil {
-		l = github_com_cosmos_gogoproto_types.SizeOfStdTime(*m.UnbondingCompletionTime)
-		n += 1 + l + sovTx(uint64(l))
-	}
-	return n
-}
 func (m *MsgUnbondResponse_NoticePeriodCompletionTime) Size() (n int) {
 	if m == nil {
 		return 0
@@ -2148,8 +2506,6 @@ func (m *MsgDecreaseBondResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.CompletionTime)
-	n += 1 + l + sovTx(uint64(l))
 	return n
 }
 
@@ -2631,6 +2987,138 @@ func (m *MsgCreateSequencerResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgCreateSequencerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgKickProposer) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgKickProposer: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgKickProposer: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Creator = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgKickProposerResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgKickProposerResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgKickProposerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -3147,6 +3635,158 @@ func (m *MsgUpdateWhitelistedRelayersResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *MsgUpdateOptInStatus) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateOptInStatus: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateOptInStatus: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Creator = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OptedIn", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.OptedIn = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateOptInStatusResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateOptInStatusResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateOptInStatusResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *MsgUnbond) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -3258,41 +3898,6 @@ func (m *MsgUnbondResponse) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: MsgUnbondResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UnbondingCompletionTime", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := new(time.Time)
-			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(v, dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.CompletionTime = &MsgUnbondResponse_UnbondingCompletionTime{v}
-			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field NoticePeriodCompletionTime", wireType)
@@ -3658,39 +4263,6 @@ func (m *MsgDecreaseBondResponse) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: MsgDecreaseBondResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CompletionTime", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.CompletionTime, dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])

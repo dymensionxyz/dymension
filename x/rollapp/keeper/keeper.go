@@ -40,6 +40,7 @@ type Keeper struct {
 	channelKeeper         ChannelKeeper
 	sequencerKeeper       SequencerKeeper
 	bankKeeper            BankKeeper
+	transferKeeper        TransferKeeper
 
 	vulnerableDRSVersions   collections.KeySet[uint32]
 	registeredRollappDenoms collections.KeySet[collections.Pair[string, string]]
@@ -49,7 +50,8 @@ type Keeper struct {
 	// Index key: (rollappID, creation height), Value: state indexes to finalize.
 	finalizationQueue *collections.IndexedMap[collections.Pair[uint64, string], types.BlockHeightToFinalizationQueue, finalizationQueueIndex]
 
-	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
+	finalizePending        func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
+	seqToUnfinalizedHeight collections.KeySet[collections.Pair[string, uint64]]
 }
 
 func NewKeeper(
@@ -61,6 +63,7 @@ func NewKeeper(
 	ibcclientKeeper IBCClientKeeper,
 	sequencerKeeper SequencerKeeper,
 	bankKeeper BankKeeper,
+	transferKeeper TransferKeeper,
 	authority string,
 	canonicalClientKeeper CanonicalLightClientKeeper,
 ) *Keeper {
@@ -73,7 +76,8 @@ func NewKeeper(
 		panic(fmt.Errorf("invalid x/rollapp authority address: %w", err))
 	}
 
-	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
+	service := collcompat.NewKVStoreService(storeKey)
+	sb := collections.NewSchemaBuilder(service)
 
 	k := &Keeper{
 		cdc:             cdc,
@@ -86,6 +90,7 @@ func NewKeeper(
 		ibcClientKeeper: ibcclientKeeper,
 		sequencerKeeper: sequencerKeeper,
 		bankKeeper:      bankKeeper,
+		transferKeeper:  transferKeeper,
 		vulnerableDRSVersions: collections.NewKeySet(
 			sb,
 			collections.NewPrefix(types.VulnerableDRSVersionsKeyPrefix),
@@ -115,6 +120,12 @@ func NewKeeper(
 		),
 		finalizePending:       nil,
 		canonicalClientKeeper: canonicalClientKeeper,
+		seqToUnfinalizedHeight: collections.NewKeySet(
+			sb,
+			types.SeqToUnfinalizedHeightKeyPrefix,
+			"seq_to_unfinalized_height",
+			collections.PairKeyCodec(collections.StringKey, collections.Uint64Key),
+		),
 	}
 	k.SetFinalizePendingFn(k.finalizePendingState)
 	return k

@@ -170,7 +170,7 @@ func (suite *RollappTestSuite) assertBeforeFraud(rollappId string, height uint64
 	suite.Require().False(rollapp.Frozen)
 
 	// check sequencers
-	sequencers := suite.App.SequencerKeeper.GetSequencersByRollapp(suite.Ctx, rollappId)
+	sequencers := suite.App.SequencerKeeper.RollappSequencers(suite.Ctx, rollappId)
 	for _, sequencer := range sequencers {
 		suite.Require().Equal(types.Bonded, sequencer.Status)
 	}
@@ -201,14 +201,6 @@ func (suite *RollappTestSuite) assertFraudHandled(rollappId string) {
 	rollapp, found := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappId)
 	suite.Require().True(found)
 	suite.Require().True(rollapp.Frozen)
-
-	// check sequencers
-	sequencers := suite.App.SequencerKeeper.GetSequencersByRollappByStatus(suite.Ctx, rollappId, types.Bonded)
-	suite.Require().Equal(0, len(sequencers))
-	_, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
-	suite.Require().False(ok)
-	seq := suite.App.SequencerKeeper.ExpectedNextProposer(suite.Ctx, rollappId)
-	suite.Require().Empty(seq.Address)
 
 	// check states
 	finalIdx, _ := suite.App.RollappKeeper.GetLatestFinalizedStateIndex(suite.Ctx, rollappId)

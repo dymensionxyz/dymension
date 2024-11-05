@@ -23,8 +23,8 @@ service Query {
 	}
 
 	// Queries a list of pending RollappPacket items by rollappID and receiver.
-	rpc GetPendingPacketsByReceiver(QueryPendingPacketsByReceiverRequest) returns (QueryPendingPacketByReceiverListResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/delayedack/pending-receiver-packets/{rollappId}/{receiver}";
+	rpc GetPendingPacketsByAddress(QueryPendingPacketsByAddressRequest) returns (QueryPendingPacketByAddressListResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/delayedack/pending-receiver-packets/{address}";
 	}
 }
 
@@ -49,13 +49,12 @@ message QueryRollappPacketListResponse {
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryPendingPacketsByReceiverRequest {
-	string rollappId = 1;
-	string receiver = 2;
-	cosmos.base.query.v1beta1.PageRequest pagination = 3;
+message QueryPendingPacketsByAddressRequest {
+	string address = 1;
+	cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
-message QueryPendingPacketByReceiverListResponse {
+message QueryPendingPacketByAddressListResponse {
 	repeated common.RollappPacket rollappPackets = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

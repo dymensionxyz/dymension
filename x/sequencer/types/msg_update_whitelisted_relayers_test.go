@@ -3,7 +3,6 @@ package types_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
 
@@ -12,7 +11,7 @@ import (
 )
 
 func TestMsgUpdateWhitelistedRelayers(t *testing.T) {
-	valAddr := sdk.ValAddress(sample.Acc())
+	valAddr := sample.Acc()
 	addr := sample.AccAddress()
 	relayers := []string{
 		sample.AccAddress(),
