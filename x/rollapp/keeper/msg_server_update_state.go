@@ -129,15 +129,16 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 	k.Logger(ctx).Debug("Adding state to finalization queue at %d", creationHeight)
 	// load FinalizationQueue and update
-	blockHeightToFinalizationQueue, found := k.GetBlockHeightToFinalizationQueue(ctx, creationHeight)
+	finalizationQueue, found := k.GetFinalizationQueue(ctx, creationHeight, msg.RollappId)
 	if found {
-		newFinalizationQueue = append(blockHeightToFinalizationQueue.FinalizationQueue, newFinalizationQueue...)
+		newFinalizationQueue = append(finalizationQueue.FinalizationQueue, newFinalizationQueue...)
 	}
 
 	// Write new BlockHeightToFinalizationQueue
-	k.SetBlockHeightToFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{
+	k.SetFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{
 		CreationHeight:    creationHeight,
 		FinalizationQueue: newFinalizationQueue,
+		RollappId:         msg.RollappId,
 	})
 
 	// TODO: enforce `final_state_update_timeout` if sequencer rotation is in progress

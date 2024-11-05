@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"slices"
 	"strconv"
@@ -37,10 +38,20 @@ func (suite *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
 	suite.Require().Nil(err)
 
 	// Get the pending finalization queue
-	suite.Len(k.GetAllFinalizationQueueUntilHeightInclusive(*ctx, initialHeight-1), 0)
-	suite.Len(k.GetAllFinalizationQueueUntilHeightInclusive(*ctx, initialHeight), 1)
-	suite.Len(k.GetAllFinalizationQueueUntilHeightInclusive(*ctx, initialHeight+1), 2)
-	suite.Len(k.GetAllFinalizationQueueUntilHeightInclusive(*ctx, initialHeight+100), 2)
+	testCases := []struct {
+		height      uint64
+		expectedLen int
+	}{
+		{height: initialHeight - 1, expectedLen: 0},
+		{height: initialHeight, expectedLen: 1},
+		{height: initialHeight + 1, expectedLen: 2},
+		{height: initialHeight + 100, expectedLen: 2},
+	}
+	for _, tc := range testCases {
+		actual, err := k.GetFinalizationQueueUntilHeightInclusive(*ctx, tc.height)
+		suite.Require().NoError(err)
+		suite.Require().Len(actual, tc.expectedLen)
+	}
 }
 
 func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
@@ -48,8 +59,10 @@ func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
 	items := createNBlockHeightToFinalizationQueue(k, ctx, 10)
 	for _, item := range items {
 		item := item
-		rst, found := k.GetBlockHeightToFinalizationQueue(ctx,
+		rst, found := k.GetFinalizationQueue(
+			ctx,
 			item.CreationHeight,
+			item.RollappId,
 		)
 		require.True(t, found)
 		require.Equal(t,
@@ -63,11 +76,15 @@ func TestBlockHeightToFinalizationQueueRemove(t *testing.T) {
 	k, ctx := keepertest.RollappKeeper(t)
 	items := createNBlockHeightToFinalizationQueue(k, ctx, 10)
 	for _, item := range items {
-		k.RemoveBlockHeightToFinalizationQueue(ctx,
+		k.RemoveFinalizationQueue(
+			ctx,
 			item.CreationHeight,
+			item.RollappId,
 		)
-		_, found := k.GetBlockHeightToFinalizationQueue(ctx,
+		_, found := k.GetFinalizationQueue(
+			ctx,
 			item.CreationHeight,
+			item.RollappId,
 		)
 		require.False(t, found)
 	}
@@ -76,10 +93,54 @@ func TestBlockHeightToFinalizationQueueRemove(t *testing.T) {
 func TestBlockHeightToFinalizationQueueGetAll(t *testing.T) {
 	k, ctx := keepertest.RollappKeeper(t)
 	items := createNBlockHeightToFinalizationQueue(k, ctx, 10)
+	queue, err := k.GetEntireFinalizationQueue(ctx)
+	require.NoError(t, err)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
-		nullify.Fill(k.GetAllBlockHeightToFinalizationQueue(ctx)),
+		nullify.Fill(queue),
 	)
+}
+
+func TestGetFinalizationQueueByRollapp(t *testing.T) {
+	k, ctx := keepertest.RollappKeeper(t)
+
+	q1 := types.BlockHeightToFinalizationQueue{CreationHeight: 1, RollappId: "rollapp_1234-1"}
+	q2 := types.BlockHeightToFinalizationQueue{CreationHeight: 2, RollappId: "rollapp_1234-1"}
+	q3 := types.BlockHeightToFinalizationQueue{CreationHeight: 3, RollappId: "rollapp_1234-1"}
+
+	k.SetFinalizationQueue(ctx, q1)
+	k.SetFinalizationQueue(ctx, q2)
+	k.SetFinalizationQueue(ctx, q3)
+
+	// Check all queues
+	q, err := k.GetEntireFinalizationQueue(ctx)
+	require.NoError(t, err)
+	require.Equal(t, []types.BlockHeightToFinalizationQueue{q1, q2, q3}, q)
+
+	// Get all queues from different heights associated with a given rollapp
+	q, err = k.GetFinalizationQueueByRollapp(ctx, "rollapp_1234-1")
+	require.NoError(t, err)
+	require.Equal(t, []types.BlockHeightToFinalizationQueue{q1, q2, q3}, q)
+
+	// Remove one of the queues
+	k.RemoveFinalizationQueue(ctx, 2, "rollapp_1234-1")
+
+	// Verify the index is updated
+	q, err = k.GetFinalizationQueueByRollapp(ctx, "rollapp_1234-1")
+	require.NoError(t, err)
+	require.Equal(t, []types.BlockHeightToFinalizationQueue{q1, q3}, q)
+
+	// Verify height 2 is empty
+
+	// Check all queues until height 3
+	q, err = k.GetFinalizationQueueUntilHeightInclusive(ctx, 3)
+	require.NoError(t, err)
+	require.Equal(t, []types.BlockHeightToFinalizationQueue{q1, q3}, q)
+
+	// Check all queues
+	q, err = k.GetEntireFinalizationQueue(ctx)
+	require.NoError(t, err)
+	require.Equal(t, []types.BlockHeightToFinalizationQueue{q1, q3}, q)
 }
 
 //nolint:gofumpt
@@ -225,7 +286,11 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 									{
 										rollappId: "rollappi_4567-1",
 										index:     1,
-									}, {
+									},
+								},
+							}, {
+								rollappsLeft: []rollappQueue{
+									{
 										rollappId: "rollappo_5678-1",
 										index:     1,
 									},
@@ -335,7 +400,8 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 				numFinalized := countFinalized(response)
 				suite.Require().Equalf(be.wantNumFinalized, numFinalized, "finalization %d", i+1)
 
-				heightQueue := suite.App.RollappKeeper.GetAllBlockHeightToFinalizationQueue(*ctx)
+				heightQueue, err := suite.App.RollappKeeper.GetEntireFinalizationQueue(*ctx)
+				suite.Require().NoError(err)
 				suite.Require().Lenf(heightQueue, len(be.wantQueue), "finalization %d", i+1)
 
 				for i, q := range be.wantQueue {
@@ -374,19 +440,25 @@ func (suite *RollappTestSuite) TestFinalize() {
 
 	// Finalize pending queues and check
 	response := suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
-	suite.Require().Len(k.GetAllBlockHeightToFinalizationQueue(*ctx), 2)
+	actualQueue, err := k.GetEntireFinalizationQueue(*ctx)
+	suite.Require().NoError(err)
+	suite.Require().Len(actualQueue, 2)
 	suite.False(findEvent(response, types.EventTypeStatusChange))
 
 	// Finalize pending queues and check
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx)))
 	response = suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
-	suite.Require().Len(k.GetAllBlockHeightToFinalizationQueue(*ctx), 1)
+	actualQueue, err = k.GetEntireFinalizationQueue(*ctx)
+	suite.Require().NoError(err)
+	suite.Require().Len(actualQueue, 1)
 	suite.True(findEvent(response, types.EventTypeStatusChange))
 
 	// Finalize pending queues and check
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx) + 1))
 	response = suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
-	suite.Require().Len(k.GetAllBlockHeightToFinalizationQueue(*ctx), 0)
+	actualQueue, err = k.GetEntireFinalizationQueue(*ctx)
+	suite.Require().NoError(err)
+	suite.Require().Len(actualQueue, 0)
 	suite.True(findEvent(response, types.EventTypeStatusChange))
 }
 
@@ -395,7 +467,8 @@ func createNBlockHeightToFinalizationQueue(keeper *keeper.Keeper, ctx sdk.Contex
 	items := make([]types.BlockHeightToFinalizationQueue, n)
 	for i := range items {
 		items[i].CreationHeight = uint64(i)
-		keeper.SetBlockHeightToFinalizationQueue(ctx, items[i])
+		items[i].RollappId = fmt.Sprintf("rollapp_%d-1", i)
+		keeper.SetFinalizationQueue(ctx, items[i])
 	}
 	return items
 }
@@ -429,22 +502,44 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp_1234-1", Index: 1},
-						{RollappId: "rollappa_2345-1", Index: 2},
 						{RollappId: "rollapp_1234-1", Index: 2},
-						{RollappId: "rollappe_3456-1", Index: 1},
+					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 2},
 						{RollappId: "rollappa_2345-1", Index: 3},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 1},
 						{RollappId: "rollappe_3456-1", Index: 2},
 					},
+					RollappId: "rollappe_3456-1",
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp_1234-1", Index: 3},
-						{RollappId: "rollappa_2345-1", Index: 4},
 						{RollappId: "rollapp_1234-1", Index: 4},
-						{RollappId: "rollappe_3456-1", Index: 3},
+					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 4},
 						{RollappId: "rollappa_2345-1", Index: 5},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 3},
 						{RollappId: "rollappe_3456-1", Index: 4},
 					},
+					RollappId: "rollappe_3456-1",
 				},
 			},
 			errFinalizeIndices: []types.StateInfoIndex{},
@@ -456,23 +551,44 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp_1234-1", Index: 1},
-						{RollappId: "rollappa_2345-1", Index: 2},
 						{RollappId: "rollapp_1234-1", Index: 2},
-						{RollappId: "rollappe_3456-1", Index: 1},
 						{RollappId: "rollapp_1234-1", Index: 3},
+					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 2},
+					},
+					RollappId: "rollappa_2345-1",
+				},
+				{
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 1},
 						{RollappId: "rollappe_3456-1", Index: 2},
 					},
+					RollappId: "rollappe_3456-1",
 				},
 			},
-			errFinalizeIndices: []types.StateInfoIndex{{"rollapp_1234-1", 2}, {"rollappe_3456-1", 2}},
+			errFinalizeIndices: []types.StateInfoIndex{
+				{RollappId: "rollapp_1234-1", Index: 2},
+				{RollappId: "rollappe_3456-1", Index: 2},
+			},
 			expectQueueAfter: []types.BlockHeightToFinalizationQueue{
 				{
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp_1234-1", Index: 2},
 						{RollappId: "rollapp_1234-1", Index: 3},
+					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollappe_3456-1", Index: 2},
 					},
+					RollappId: "rollappe_3456-1",
 				},
 			},
 		}, {
@@ -482,29 +598,51 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp_1234-1", Index: 1},
+					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollappa_2345-1", Index: 1},
 					},
+					RollappId: "rollappa_2345-1",
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp_1234-1", Index: 2},
+					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollappa_2345-1", Index: 2},
 					},
+					RollappId: "rollappa_2345-1",
 				},
 			},
-			errFinalizeIndices: []types.StateInfoIndex{{"rollapp_1234-1", 1}, {"rollappa_2345-1", 2}},
+			errFinalizeIndices: []types.StateInfoIndex{
+				{RollappId: "rollapp_1234-1", Index: 1},
+				{RollappId: "rollappa_2345-1", Index: 2},
+			},
 			expectQueueAfter: []types.BlockHeightToFinalizationQueue{
 				{
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp_1234-1", Index: 1},
 					},
+					RollappId: "rollapp_1234-1",
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp_1234-1", Index: 2},
+					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollappa_2345-1", Index: 2},
 					},
+					RollappId: "rollappa_2345-1",
 				},
 			},
 		}, {
@@ -514,38 +652,70 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp_1234-1", Index: 1},
-						{RollappId: "rollappa_2345-1", Index: 2},
 						{RollappId: "rollapp_1234-1", Index: 2},
-						{RollappId: "rollappe_3456-1", Index: 1},
+					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 2},
 						{RollappId: "rollappa_2345-1", Index: 3},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 1},
 						{RollappId: "rollappe_3456-1", Index: 2},
 					},
+					RollappId: "rollappe_3456-1",
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp_1234-1", Index: 3},
-						{RollappId: "rollappa_2345-1", Index: 4},
 						{RollappId: "rollapp_1234-1", Index: 4},
-						{RollappId: "rollappe_3456-1", Index: 3},
+					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 4},
 						{RollappId: "rollappa_2345-1", Index: 5},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 3},
 						{RollappId: "rollappe_3456-1", Index: 4},
 					},
+					RollappId: "rollappe_3456-1",
 				},
 			},
-			errFinalizeIndices: []types.StateInfoIndex{{"rollapp_1234-1", 2}, {"rollappe_3456-1", 4}},
+			errFinalizeIndices: []types.StateInfoIndex{
+				{RollappId: "rollapp_1234-1", Index: 2},
+				{RollappId: "rollappe_3456-1", Index: 4},
+			},
 			expectQueueAfter: []types.BlockHeightToFinalizationQueue{
 				{
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp_1234-1", Index: 2},
 					},
+					RollappId: "rollapp_1234-1",
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp_1234-1", Index: 3},
 						{RollappId: "rollapp_1234-1", Index: 4},
+					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollappe_3456-1", Index: 4},
 					},
+					RollappId: "rollappe_3456-1",
 				},
 			},
 		}, {
@@ -555,22 +725,44 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp_1234-1", Index: 1},
-						{RollappId: "rollappa_2345-1", Index: 2},
 						{RollappId: "rollapp_1234-1", Index: 2},
-						{RollappId: "rollappe_3456-1", Index: 1},
+					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 2},
 						{RollappId: "rollappa_2345-1", Index: 3},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 1},
 						{RollappId: "rollappe_3456-1", Index: 2},
 					},
+					RollappId: "rollappe_3456-1",
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp_1234-1", Index: 3},
-						{RollappId: "rollappa_2345-1", Index: 4},
 						{RollappId: "rollapp_1234-1", Index: 4},
-						{RollappId: "rollappe_3456-1", Index: 3},
+					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 4},
 						{RollappId: "rollappa_2345-1", Index: 5},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 3},
 						{RollappId: "rollappe_3456-1", Index: 4},
 					},
+					RollappId: "rollappe_3456-1",
 				},
 			},
 			errFinalizeIndices: []types.StateInfoIndex{
@@ -583,22 +775,44 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp_1234-1", Index: 1},
-						{RollappId: "rollappa_2345-1", Index: 2},
 						{RollappId: "rollapp_1234-1", Index: 2},
-						{RollappId: "rollappe_3456-1", Index: 1},
+					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 2},
 						{RollappId: "rollappa_2345-1", Index: 3},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 1},
 						{RollappId: "rollappe_3456-1", Index: 2},
 					},
+					RollappId: "rollappe_3456-1",
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp_1234-1", Index: 3},
-						{RollappId: "rollappa_2345-1", Index: 4},
 						{RollappId: "rollapp_1234-1", Index: 4},
-						{RollappId: "rollappe_3456-1", Index: 3},
+					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 4},
 						{RollappId: "rollappa_2345-1", Index: 5},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 3},
 						{RollappId: "rollappe_3456-1", Index: 4},
 					},
+					RollappId: "rollappe_3456-1",
 				},
 			},
 		},
@@ -611,7 +825,8 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 			k.SetFinalizePendingFn(MockFinalizePending(tt.errFinalizeIndices))
 			k.FinalizeAllPending(suite.Ctx, tt.pendingFinalizationQueue)
 
-			finalizationQueue := k.GetAllBlockHeightToFinalizationQueue(suite.Ctx)
+			finalizationQueue, err := k.GetEntireFinalizationQueue(suite.Ctx)
+			suite.Require().NoError(err)
 			suite.Require().Equal(tt.expectQueueAfter, finalizationQueue)
 		})
 	}

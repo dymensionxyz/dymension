@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app"
@@ -118,6 +119,11 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 				// Check Sequencers
 				if err = s.validateSequencersMigration(numRollapps); err != nil {
+					return
+				}
+
+				// Check rollapp gauges
+				if err = s.validateRollappGaugesMigration(); err != nil {
 					return
 				}
 
@@ -339,4 +345,48 @@ func (s *UpgradeTestSuite) seedSequencers(numRollapps int) []sequencertypes.Sequ
 
 func rollappIDFromIdx(idx int) string {
 	return fmt.Sprintf("roll%spp_123%d-1", string(rune(idx+'a')), idx+1)
+}
+
+func TestReformatFinalizationQueue(t *testing.T) {
+	q := rollapptypes.BlockHeightToFinalizationQueue{
+		CreationHeight: 1,
+		FinalizationQueue: []rollapptypes.StateInfoIndex{
+			{RollappId: "rollapp1", Index: 1},
+			{RollappId: "rollapp1", Index: 2},
+			{RollappId: "rollapp1", Index: 3},
+			{RollappId: "rollapp2", Index: 1},
+			{RollappId: "rollapp2", Index: 2},
+			{RollappId: "rollapp3", Index: 1},
+		},
+		RollappId: "", // empty for old-style queues
+	}
+
+	newQueues := v4.ReformatFinalizationQueue(q)
+
+	require.Equal(t, []rollapptypes.BlockHeightToFinalizationQueue{
+		{
+			CreationHeight: 1,
+			FinalizationQueue: []rollapptypes.StateInfoIndex{
+				{RollappId: "rollapp1", Index: 1},
+				{RollappId: "rollapp1", Index: 2},
+				{RollappId: "rollapp1", Index: 3},
+			},
+			RollappId: "rollapp1",
+		},
+		{
+			CreationHeight: 1,
+			FinalizationQueue: []rollapptypes.StateInfoIndex{
+				{RollappId: "rollapp2", Index: 1},
+				{RollappId: "rollapp2", Index: 2},
+			},
+			RollappId: "rollapp2",
+		},
+		{
+			CreationHeight: 1,
+			FinalizationQueue: []rollapptypes.StateInfoIndex{
+				{RollappId: "rollapp3", Index: 1},
+			},
+			RollappId: "rollapp3",
+		},
+	}, newQueues)
 }

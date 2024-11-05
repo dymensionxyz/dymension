@@ -1,6 +1,9 @@
 package v4
 
 import (
+	"slices"
+	"strings"
+
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 
@@ -204,6 +207,51 @@ func migrateStreamer(ctx sdk.Context, sk streamerkeeper.Keeper, ek *epochskeeper
 		}
 	}
 	return nil
+}
+
+func migrateRollappFinalizationQueue(ctx sdk.Context, rk *rollappkeeper.Keeper) {
+	q := rk.GetAllBlockHeightToFinalizationQueue(ctx)
+
+	// iterate over queues on different heights
+	for _, queue := range q {
+		// convert the queue to the new format
+		newQueues := ReformatFinalizationQueue(queue)
+
+		// save the new queues
+		for _, newQueue := range newQueues {
+			rk.SetFinalizationQueue(ctx, newQueue)
+		}
+
+		// remove the old queue
+		rk.RemoveBlockHeightToFinalizationQueue(ctx, queue.CreationHeight)
+	}
+}
+
+// ReformatFinalizationQueue groups the finalization queue by rollapp
+func ReformatFinalizationQueue(queue rollapptypes.BlockHeightToFinalizationQueue) []rollapptypes.BlockHeightToFinalizationQueue {
+	grouped := make(map[string][]rollapptypes.StateInfoIndex)
+
+	// group indexes by rollapp
+	for _, index := range queue.FinalizationQueue {
+		grouped[index.RollappId] = append(grouped[index.RollappId], index)
+	}
+
+	// cast map to slice
+	queues := make([]rollapptypes.BlockHeightToFinalizationQueue, 0, len(grouped))
+	for rollappID, indexes := range grouped {
+		queues = append(queues, rollapptypes.BlockHeightToFinalizationQueue{
+			CreationHeight:    queue.CreationHeight,
+			FinalizationQueue: indexes,
+			RollappId:         rollappID,
+		})
+	}
+
+	// sort by rollappID
+	slices.SortFunc(queues, func(a, b rollapptypes.BlockHeightToFinalizationQueue) int {
+		return strings.Compare(a.RollappId, b.RollappId)
+	})
+
+	return queues
 }
 
 func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {

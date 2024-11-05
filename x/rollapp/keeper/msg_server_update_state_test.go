@@ -66,10 +66,11 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		suite.Require().EqualValues(true, found)
 
 		// verify finalization queue
-		expectedFinalizationQueue, _ := suite.App.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.Ctx, expectedStateInfo.CreationHeight)
+		expectedFinalizationQueue, _ := suite.App.RollappKeeper.GetFinalizationQueue(suite.Ctx, expectedStateInfo.CreationHeight, rollappId)
 		suite.Require().EqualValues(expectedFinalizationQueue, types.BlockHeightToFinalizationQueue{
 			CreationHeight:    expectedStateInfo.CreationHeight,
 			FinalizationQueue: []types.StateInfoIndex{latestStateInfoIndex},
+			RollappId:         rollappId,
 		}, "finalization queue", "i", i)
 
 		// update state
@@ -89,7 +90,8 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		}
 
 		// check finalization status change
-		pendingQueues := suite.App.RollappKeeper.GetAllFinalizationQueueUntilHeightInclusive(suite.Ctx, uint64(suite.Ctx.BlockHeader().Height))
+		pendingQueues, err := suite.App.RollappKeeper.GetFinalizationQueueUntilHeightInclusive(suite.Ctx, uint64(suite.Ctx.BlockHeader().Height))
+		suite.Require().NoError(err)
 		for _, finalizationQueue := range pendingQueues {
 			stateInfo, found := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, finalizationQueue.FinalizationQueue[0].RollappId, finalizationQueue.FinalizationQueue[0].Index)
 			suite.Require().True(found)

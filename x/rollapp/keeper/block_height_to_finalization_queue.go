@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 
@@ -20,18 +21,21 @@ func (k Keeper) FinalizeRollappStates(ctx sdk.Context) {
 	}
 	// check to see if there are pending  states to be finalized
 	finalizationHeight := uint64(ctx.BlockHeight() - int64(k.DisputePeriodInBlocks(ctx)))
-	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeightInclusive(ctx, finalizationHeight)
+	queue, err := k.GetFinalizationQueueUntilHeightInclusive(ctx, finalizationHeight)
+	if err != nil {
+		panic(fmt.Errorf("get finalization queue until height: %d, %w", finalizationHeight, err))
+	}
 
-	k.FinalizeAllPending(ctx, pendingFinalizationQueue)
+	k.FinalizeAllPending(ctx, queue)
 }
 
-func (k Keeper) FinalizeAllPending(ctx sdk.Context, pendingFinalizationQueue []types.BlockHeightToFinalizationQueue) {
+func (k Keeper) FinalizeAllPending(ctx sdk.Context, pendingQueue []types.BlockHeightToFinalizationQueue) {
 	// Cache the rollapps that failed to finalize at current EndBlocker execution.
 	// The mapping is from rollappID to the first index of the state that failed to finalize.
 	failedRollapps := make(map[string]uint64)
 	// iterate over all the pending finalization height queues
-	for _, blockHeightToFinalizationQueue := range pendingFinalizationQueue {
-		k.finalizeQueueForHeight(ctx, blockHeightToFinalizationQueue, failedRollapps)
+	for _, queue := range pendingQueue {
+		k.finalizeQueueForHeight(ctx, queue, failedRollapps)
 	}
 }
 
@@ -94,46 +98,99 @@ func (k *Keeper) finalizePendingState(ctx sdk.Context, stateInfoIndex types.Stat
 	return nil
 }
 
-func (k Keeper) updateQueueForHeight(ctx sdk.Context, blockHeightToFinalizationQueue types.BlockHeightToFinalizationQueue, failedRollapps map[string]uint64) {
-	// remove the blockHeightToFinalizationQueue if all the rollapps' states are finalized
-	if len(failedRollapps) == 0 {
-		k.RemoveBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue.CreationHeight)
+func (k Keeper) updateQueueForHeight(ctx sdk.Context, queue types.BlockHeightToFinalizationQueue, failedRollapps map[string]uint64) {
+	// remove the queue if all the rollapp states are finalized
+	if _, ok := failedRollapps[queue.RollappId]; !ok {
+		k.RemoveFinalizationQueue(ctx, queue.CreationHeight, queue.RollappId)
 		return
 	}
-	// remove from the queue only the rollapps that were successfully finalized at all indices.
-	// while iterating the queue for deleting the successfully finalized states, we remove them if
-	// - rollapp was not found in the failedRollapps map
-	// - if it was found, the indexes to be deleted should only be the ones up to the point of the index of the first failed state change
-	blockHeightToFinalizationQueue.FinalizationQueue = slices.DeleteFunc(blockHeightToFinalizationQueue.FinalizationQueue,
+	// remove from the queue only the indexes that were successfully finalized.
+	// only delete the indexes up to the first failed state change.
+	failedIndex := failedRollapps[queue.RollappId]
+	queue.FinalizationQueue = slices.DeleteFunc(
+		queue.FinalizationQueue,
 		func(si types.StateInfoIndex) bool {
-			idx, failed := failedRollapps[si.RollappId]
-			return !failed || si.Index < idx
-		})
-	// save the current queue with "leftover" rollapp's state changes
-	k.SetBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue)
+			return si.Index < failedIndex
+		},
+	)
+	// save the current queue with "leftover" rollapp state changes
+	k.SetFinalizationQueue(ctx, queue)
 }
 
-// SetFinalizationQueue set types.FinalizationQueue for a specific height and rollappID
-func (k Keeper) SetFinalizationQueue(ctx sdk.Context, height uint64, rollappID string, queue types.BlockHeightToFinalizationQueue) error {
-	return k.finalizationQueue.Set(ctx, collections.Join(height, rollappID), queue)
+// SetFinalizationQueue set types.BlockHeightToFinalizationQueue for a specific height and rollappID.
+// Panics on encoding errors.
+func (k Keeper) SetFinalizationQueue(ctx sdk.Context, queue types.BlockHeightToFinalizationQueue) {
+	err := k.finalizationQueue.Set(ctx, collections.Join(queue.CreationHeight, queue.RollappId), queue)
+	if err != nil {
+		panic(err)
+	}
 }
 
-// GetFinalizationQueue gets types.FinalizationQueue for a specific height and rollappID
-func (k Keeper) GetFinalizationQueue(ctx sdk.Context, height uint64, rollappID string) (types.BlockHeightToFinalizationQueue, error) {
-	return k.finalizationQueue.Get(ctx, collections.Join(height, rollappID))
+// GetFinalizationQueue gets types.BlockHeightToFinalizationQueue for a specific height and rollappID.
+// Panics on encoding errors.
+func (k Keeper) GetFinalizationQueue(ctx sdk.Context, height uint64, rollappID string) (types.BlockHeightToFinalizationQueue, bool) {
+	queue, err := k.finalizationQueue.Get(ctx, collections.Join(height, rollappID))
+	if err != nil && !errors.Is(err, collections.ErrNotFound) {
+		panic(err)
+	}
+	found := err == nil
+	return queue, found
 }
 
-// SetFinalizationQueue set types.FinalizationQueue for a specific height and rollappID
-func (k Keeper) SetFinalizationQueue(ctx sdk.Context, height uint64, rollappID string, queue types.BlockHeightToFinalizationQueue) error {
-	return k.finalizationQueue.Set(ctx, collections.Join(height, rollappID), queue)
+// RemoveFinalizationQueue removes types.BlockHeightToFinalizationQueue.
+// Panics on encoding errors. Do not panic if the key does not exist.
+func (k Keeper) RemoveFinalizationQueue(ctx sdk.Context, height uint64, rollappID string) {
+	err := k.finalizationQueue.Remove(ctx, collections.Join(height, rollappID))
+	if err != nil {
+		panic(err)
+	}
 }
 
-// GetFinalizationQueue gets types.FinalizationQueue for a specific height and rollappID
-func (k Keeper) GetFinalizationQueue(ctx sdk.Context, height uint64, rollappID string) (types.BlockHeightToFinalizationQueue, error) {
-	return k.finalizationQueue.Get(ctx, collections.Join(height, rollappID))
+// GetFinalizationQueueUntilHeightInclusive returns all types.BlockHeightToFinalizationQueue with creation height equal or less to the input height
+func (k Keeper) GetFinalizationQueueUntilHeightInclusive(ctx sdk.Context, height uint64) ([]types.BlockHeightToFinalizationQueue, error) {
+	rng := collections.NewPrefixUntilPairRange[uint64, string](height)
+	iter, err := k.finalizationQueue.Iterate(ctx, rng)
+	if err != nil {
+		return nil, err
+	}
+	defer iter.Close() // nolint: errcheck
+	return iter.Values()
+}
+
+// GetFinalizationQueueByRollapp returns all states from different heights associated with a given rollapp
+func (k Keeper) GetFinalizationQueueByRollapp(ctx sdk.Context, rollapp string) ([]types.BlockHeightToFinalizationQueue, error) {
+	iter, err := k.finalizationQueue.Indexes.RollappIDReverseLookup.MatchExact(ctx, rollapp)
+	if err != nil {
+		return nil, err
+	}
+	defer iter.Close() // nolint: errcheck
+	var res []types.BlockHeightToFinalizationQueue
+	for ; iter.Valid(); iter.Next() {
+		key, err := iter.PrimaryKey()
+		if err != nil {
+			return nil, err
+		}
+		queue, err := k.finalizationQueue.Get(ctx, key)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, queue)
+	}
+	return res, nil
+}
+
+// GetEntireFinalizationQueue returns all types.BlockHeightToFinalizationQueue
+func (k Keeper) GetEntireFinalizationQueue(ctx sdk.Context) ([]types.BlockHeightToFinalizationQueue, error) {
+	iter, err := k.finalizationQueue.Iterate(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer iter.Close() // nolint: errcheck
+	return iter.Values()
 }
 
 // SetBlockHeightToFinalizationQueue set a specific blockHeightToFinalizationQueue in the store from its index
+// Deprecated: use SetFinalizationQueue instead. Only used in state migrations.
 func (k Keeper) SetBlockHeightToFinalizationQueue(ctx sdk.Context, blockHeightToFinalizationQueue types.BlockHeightToFinalizationQueue) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 	b := k.cdc.MustMarshal(&blockHeightToFinalizationQueue)
@@ -142,25 +199,8 @@ func (k Keeper) SetBlockHeightToFinalizationQueue(ctx sdk.Context, blockHeightTo
 	), b)
 }
 
-// GetBlockHeightToFinalizationQueue returns a blockHeightToFinalizationQueue from its index
-func (k Keeper) GetBlockHeightToFinalizationQueue(
-	ctx sdk.Context,
-	creationHeight uint64,
-) (val types.BlockHeightToFinalizationQueue, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
-
-	b := store.Get(types.BlockHeightToFinalizationQueueKey(
-		creationHeight,
-	))
-	if b == nil {
-		return val, false
-	}
-
-	k.cdc.MustUnmarshal(b, &val)
-	return val, true
-}
-
 // RemoveBlockHeightToFinalizationQueue removes a blockHeightToFinalizationQueue from the store
+// Deprecated: use RemoveFinalizationQueue instead. Only used in state migrations.
 func (k Keeper) RemoveBlockHeightToFinalizationQueue(
 	ctx sdk.Context,
 	creationHeight uint64,
@@ -172,16 +212,19 @@ func (k Keeper) RemoveBlockHeightToFinalizationQueue(
 }
 
 // GetAllFinalizationQueueUntilHeightInclusive returns all the blockHeightToFinalizationQueues with creation height equal or less to the input height
+// Deprecated: use GetFinalizationQueueUntilHeightInclusive instead. Only used in state migrations.
 func (k Keeper) GetAllFinalizationQueueUntilHeightInclusive(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
 	height++
 	return k.getFinalizationQueue(ctx, &height)
 }
 
 // GetAllBlockHeightToFinalizationQueue returns all blockHeightToFinalizationQueue
+// Deprecated: use GetEntireFinalizationQueue instead. Only used in state migrations.
 func (k Keeper) GetAllBlockHeightToFinalizationQueue(ctx sdk.Context) (list []types.BlockHeightToFinalizationQueue) {
 	return k.getFinalizationQueue(ctx, nil)
 }
 
+// Deprecated: only used in GetAllFinalizationQueueUntilHeightInclusive and GetAllBlockHeightToFinalizationQueue
 func (k Keeper) getFinalizationQueue(ctx sdk.Context, endHeightNonInclusive *uint64) (list []types.BlockHeightToFinalizationQueue) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
