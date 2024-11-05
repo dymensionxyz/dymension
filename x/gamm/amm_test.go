@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"testing"
 
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/v15/x/gamm/pool-models/balancer"
 	"github.com/stretchr/testify/suite"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
@@ -47,9 +47,9 @@ func (s *KeeperTestSuite) TestSwapsRevenue() {
 		expRevenue bool
 	}{
 		{
-			name:       "1% swap fee, 1% taker fee",
+			name:       "1% swap fee, 0.9% taker fee",
 			swapFee:    sdk.NewDecWithPrec(1, 2), // 1%
-			takerFee:   sdk.NewDecWithPrec(1, 2), // 1%
+			takerFee:   sdk.NewDecWithPrec(9, 3), // 0.9%
 			expRevenue: true,
 		},
 		{
