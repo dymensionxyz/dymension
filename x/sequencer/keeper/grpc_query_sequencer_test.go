@@ -6,19 +6,18 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/stretchr/testify/require"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/utest"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSequencerQuerySingle(t *testing.T) {
 	keeper, ctx := keepertest.SequencerKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	sequencers := createNSequencer(keeper, ctx, 2)
+	sequencers := createNSequencers(keeper, ctx, 2)
 	for _, tc := range []struct {
 		desc     string
 		request  *types.QueryGetSequencerRequest
@@ -48,17 +47,17 @@ func TestSequencerQuerySingle(t *testing.T) {
 			request: &types.QueryGetSequencerRequest{
 				SequencerAddress: strconv.Itoa(100000),
 			},
-			err: status.Error(codes.NotFound, "not found"),
+			err: gerrc.ErrNotFound,
 		},
 		{
 			desc: "InvalidRequest",
-			err:  status.Error(codes.InvalidArgument, "invalid request"),
+			err:  gerrc.ErrInvalidArgument,
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			response, err := keeper.Sequencer(wctx, tc.request)
 			if tc.err != nil {
-				require.ErrorIs(t, err, tc.err)
+				utest.IsErr(require.New(t), err, tc.err)
 			} else {
 				require.NoError(t, err)
 				require.Equal(t,
@@ -73,7 +72,7 @@ func TestSequencerQuerySingle(t *testing.T) {
 func TestSequencersQueryPaginated(t *testing.T) {
 	keeper, ctx := keepertest.SequencerKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	sequencers := createNSequencer(keeper, ctx, 5)
+	sequencers := createNSequencers(keeper, ctx, 5)
 
 	request := func(next []byte, offset, limit uint64, total bool) *types.QuerySequencersRequest {
 		return &types.QuerySequencersRequest{
@@ -122,6 +121,6 @@ func TestSequencersQueryPaginated(t *testing.T) {
 	})
 	t.Run("InvalidRequest", func(t *testing.T) {
 		_, err := keeper.Sequencers(wctx, nil)
-		require.ErrorIs(t, err, status.Error(codes.InvalidArgument, "invalid request"))
+		utest.IsErr(require.New(t), err, gerrc.ErrInvalidArgument)
 	})
 }

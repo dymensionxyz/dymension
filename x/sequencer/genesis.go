@@ -6,44 +6,56 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// InitGenesis initializes the sequencer module's state from a provided genesis
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
+func InitGenesis(ctx sdk.Context, k *keeper.Keeper, genState types.GenesisState) {
 	k.SetParams(ctx, genState.Params)
 
-	// Set all the sequencer
 	for _, elem := range genState.SequencerList {
 		k.SetSequencer(ctx, elem)
-
-		// Set the unbonding queue for the sequencer
-		if elem.Status == types.Unbonding {
-			k.AddSequencerToUnbondingQueue(ctx, &elem)
-		} else if elem.IsNoticePeriodInProgress() {
-			k.AddSequencerToNoticePeriodQueue(ctx, &elem)
+		if err := k.SetSequencerByDymintAddr(ctx, elem.MustProposerAddr(), elem.Address); err != nil {
+			panic(err)
 		}
+	}
+
+	for _, s := range genState.NoticeQueue {
+		seq := k.GetSequencer(ctx, s)
+		k.AddToNoticeQueue(ctx, seq)
 	}
 
 	for _, elem := range genState.GenesisProposers {
 		k.SetProposer(ctx, elem.RollappId, elem.Address)
 	}
-
-	for _, bondReduction := range genState.BondReductions {
-		k.SetDecreasingBondQueue(ctx, bondReduction)
+	for _, elem := range genState.GenesisSuccessors {
+		k.SetSuccessor(ctx, elem.RollappId, elem.Address)
 	}
 }
 
-// ExportGenesis returns the sequencer module's exported genesis.
-func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
+func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) *types.GenesisState {
 	genesis := types.GenesisState{}
 	genesis.Params = k.GetParams(ctx)
-	genesis.SequencerList = k.GetAllSequencers(ctx)
-	genesis.BondReductions = k.GetAllBondReductions(ctx)
+	genesis.SequencerList = k.AllSequencers(ctx)
 
-	proposers := k.GetAllProposers(ctx)
+	proposers := k.AllProposers(ctx)
 	for _, proposer := range proposers {
 		genesis.GenesisProposers = append(genesis.GenesisProposers, types.GenesisProposer{
 			RollappId: proposer.RollappId,
 			Address:   proposer.Address,
 		})
+	}
+
+	elems := k.AllSuccessors(ctx)
+	for _, elem := range elems {
+		genesis.GenesisSuccessors = append(genesis.GenesisSuccessors, types.GenesisProposer{
+			RollappId: elem.RollappId,
+			Address:   elem.Address,
+		})
+	}
+
+	notice, err := k.NoticeQueue(ctx, nil)
+	if err != nil {
+		panic(err)
+	}
+	for _, seq := range notice {
+		genesis.NoticeQueue = append(genesis.NoticeQueue, seq.Address)
 	}
 
 	return &genesis

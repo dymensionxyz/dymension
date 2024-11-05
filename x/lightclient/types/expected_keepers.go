@@ -2,8 +2,8 @@ package types
 
 import (
 	"context"
-	"time"
 
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -13,12 +13,10 @@ import (
 )
 
 type SequencerKeeperExpected interface {
-	GetSequencer(ctx sdk.Context, sequencerAddress string) (val sequencertypes.Sequencer, found bool)
-	GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list []sequencertypes.Sequencer)
-	UnbondingTime(ctx sdk.Context) (res time.Duration)
-	JailSequencerOnFraud(ctx sdk.Context, sequencerAddress string) error
-
-	GetProposer(ctx sdk.Context, rollappId string) (val sequencertypes.Sequencer, found bool)
+	GetSequencer(ctx sdk.Context, sequencerAddress string) (val sequencertypes.Sequencer)
+	GetProposer(ctx sdk.Context, rollappId string) (val sequencertypes.Sequencer)
+	SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address) (sequencertypes.Sequencer, error)
+	RealSequencer(ctx sdk.Context, addr string) (sequencertypes.Sequencer, error)
 }
 
 type RollappKeeperExpected interface {

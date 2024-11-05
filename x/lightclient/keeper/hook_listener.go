@@ -1,11 +1,15 @@
 package keeper
 
 import (
-	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
+	"errors"
+
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -31,11 +35,15 @@ func (hook rollappHook) AfterUpdateState(
 	rollappId string,
 	stateInfo *rollapptypes.StateInfo,
 ) error {
-	canonicalClient, found := hook.k.GetCanonicalClient(ctx, rollappId)
-	if !found {
-		canonicalClient, foundClient := hook.k.GetProspectiveCanonicalClient(ctx, rollappId, stateInfo.GetLatestHeight()-1)
-		if foundClient {
-			hook.k.SetCanonicalClient(ctx, rollappId, canonicalClient)
+	if !hook.k.Enabled() {
+		return nil
+	}
+
+	client, ok := hook.k.GetCanonicalClient(ctx, rollappId)
+	if !ok {
+		client, ok = hook.k.GetProspectiveCanonicalClient(ctx, rollappId, stateInfo.GetLatestHeight()-1)
+		if ok {
+			hook.k.SetCanonicalClient(ctx, rollappId, client)
 		}
 		return nil
 	}
@@ -46,57 +54,94 @@ func (hook rollappHook) AfterUpdateState(
 		return nil
 	}
 
-	sequencerPk, err := hook.k.GetSequencerPubKey(ctx, stateInfo.Sequencer)
+	seq, err := hook.k.SeqK.RealSequencer(ctx, stateInfo.Sequencer)
 	if err != nil {
-		return err
+		return errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "get sequencer for state info")
 	}
-	latestHeight := stateInfo.GetLatestHeight()
-	// We check from latestHeight-1 downwards, as the nextValHash for latestHeight will not be available until next stateupdate
-	for h := latestHeight - 1; h >= stateInfo.StartHeight; h-- {
-		bd, _ := stateInfo.GetBlockDescriptor(h)
-		// Check if any optimistic updates were made for the given height
-		blockValHash, found := hook.k.GetConsensusStateValHash(ctx, canonicalClient, bd.GetHeight())
-		if !found {
-			continue
-		}
-		err := hook.checkStateForHeight(ctx, rollappId, bd, canonicalClient, sequencerPk, blockValHash)
-		if err != nil {
-			return err
-		}
-	}
-	// Check for the last BD from the previous stateInfo as now we have the nextValhash available for that block
-	blockValHash, found := hook.k.GetConsensusStateValHash(ctx, canonicalClient, stateInfo.StartHeight-1)
-	if found {
-		previousStateInfo, err := hook.k.rollappKeeper.FindStateInfoByHeight(ctx, rollappId, stateInfo.StartHeight-1)
-		if err != nil {
-			return err
-		}
-		bd, _ := previousStateInfo.GetBlockDescriptor(stateInfo.StartHeight - 1)
-		err = hook.checkStateForHeight(ctx, rollappId, bd, canonicalClient, sequencerPk, blockValHash)
-		if err != nil {
-			return err
+
+	// [hStart-1..,hEnd) is correct because we compare against a next validators hash
+	for h := stateInfo.GetStartHeight() - 1; h < stateInfo.GetLatestHeight(); h++ {
+		if err := hook.validateOptimisticUpdate(ctx, rollappId, client, seq, stateInfo, h); err != nil {
+			return errorsmod.Wrap(err, "validate optimistic update")
 		}
 	}
 	return nil
 }
 
-func (hook rollappHook) checkStateForHeight(ctx sdk.Context, rollappId string, bd rollapptypes.BlockDescriptor, canonicalClient string, sequencerPk tmprotocrypto.PublicKey, blockValHash []byte) error {
-	cs, _ := hook.k.ibcClientKeeper.GetClientState(ctx, canonicalClient)
-	height := ibcclienttypes.NewHeight(cs.GetLatestHeight().GetRevisionNumber(), bd.GetHeight())
-	consensusState, _ := hook.k.ibcClientKeeper.GetClientConsensusState(ctx, canonicalClient, height)
-	// Cast consensus state to tendermint consensus state - we need this to check the state root and timestamp and nextValHash
-	tmConsensusState, ok := consensusState.(*ibctm.ConsensusState)
+func (hook rollappHook) validateOptimisticUpdate(
+	ctx sdk.Context,
+	rollapp string,
+	client string,
+	nextSequencer sequencertypes.Sequencer,
+	cache *rollapptypes.StateInfo, // a place to look up the BD for a height
+	h uint64,
+) error {
+	got, ok := hook.getConsensusState(ctx, client, h)
 	if !ok {
+		// done, nothing to validate
 		return nil
 	}
-	rollappState := types.RollappState{
-		BlockDescriptor:    bd,
-		NextBlockSequencer: sequencerPk,
-	}
-	err := types.CheckCompatibility(*tmConsensusState, rollappState)
+	expectBD, err := hook.getBlockDescriptor(ctx, rollapp, cache, h)
 	if err != nil {
 		return err
 	}
-	hook.k.RemoveConsensusStateValHash(ctx, canonicalClient, bd.GetHeight())
+	expect := types.RollappState{
+		BlockDescriptor:    expectBD,
+		NextBlockSequencer: nextSequencer,
+	}
+	signerAddr, err := hook.k.GetSigner(ctx, client, h)
+	if err != nil {
+		return gerrc.ErrInternal.Wrapf("got cons state but no signer addr: client: %s: h: %d", client, h)
+	}
+	signer, err := hook.k.SeqK.RealSequencer(ctx, signerAddr)
+	if err != nil {
+		return gerrc.ErrInternal.Wrapf("got cons state but no signer seq: client: %s: h: %d: signer addr: %s", client, h, signerAddr)
+	}
+	// remove to allow unbond
+	err = hook.k.RemoveSigner(ctx, signer.Address, client, h)
+	if err != nil {
+		return errorsmod.Wrap(err, "remove signer")
+	}
+	err = types.CheckCompatibility(*got, expect)
+	if err != nil {
+		// return gerrc.ErrFault
+		return errors.Join(gerrc.ErrFault, err)
+	}
+
+	// everything is fine
 	return nil
+}
+
+func (hook rollappHook) getBlockDescriptor(ctx sdk.Context,
+	rollapp string,
+	cache *rollapptypes.StateInfo,
+	h uint64,
+) (rollapptypes.BlockDescriptor, error) {
+	stateInfo := cache
+	if !stateInfo.ContainsHeight(h) {
+		var err error
+		stateInfo, err = hook.k.rollappKeeper.FindStateInfoByHeight(ctx, rollapp, h)
+		if err != nil {
+			return rollapptypes.BlockDescriptor{}, errors.Join(err, gerrc.ErrInternal)
+		}
+	}
+	bd, _ := stateInfo.GetBlockDescriptor(h)
+	return bd, nil
+}
+
+func (hook rollappHook) getConsensusState(ctx sdk.Context,
+	client string,
+	h uint64,
+) (*ibctm.ConsensusState, bool) {
+	cs, _ := hook.k.ibcClientKeeper.GetClientState(ctx, client)
+	height := ibcclienttypes.NewHeight(cs.GetLatestHeight().GetRevisionNumber(), h)
+	consensusState, ok := hook.k.ibcClientKeeper.GetClientConsensusState(ctx, client, height)
+	if !ok {
+		return nil, false
+	}
+	tmConsensusState, ok := consensusState.(*ibctm.ConsensusState)
+	if !ok {
+		return nil, false
+	}
+	return tmConsensusState, true
 }

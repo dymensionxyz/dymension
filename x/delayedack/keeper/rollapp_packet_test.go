@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
@@ -24,15 +25,8 @@ func (suite *DelayedAckTestSuite) TestRollappPacketEvents() {
 		{
 			name: "Test demand order fulfillment - success",
 			rollappPacket: commontypes.RollappPacket{
-				RollappId: "testRollappID",
-				Packet: &channeltypes.Packet{
-					SourcePort:         "testSourcePort",
-					SourceChannel:      "testSourceChannel",
-					DestinationPort:    "testDestinationPort",
-					DestinationChannel: "testDestinationChannel",
-					Data:               []byte("testData"),
-					Sequence:           1,
-				},
+				RollappId:   "testRollappID",
+				Packet:      apptesting.GenerateTestPacket(suite.T(), 1),
 				Status:      commontypes.Status_PENDING,
 				ProofHeight: 1,
 			},
@@ -174,29 +168,139 @@ func (suite *DelayedAckTestSuite) TestListRollappPackets() {
 	suite.Require().Equal(totalLength, totalCount)
 }
 
-func (suite *DelayedAckTestSuite) TestUpdateRollappPacketWithStatus() {
+func (suite *DelayedAckTestSuite) TestUpdateRollappPacketWithStatus_PendingToFinalized() {
+	var err error
+	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
+	oldPacket := commontypes.RollappPacket{
+		RollappId:   "testRollappID",
+		Packet:      apptesting.GenerateTestPacket(suite.T(), 1),
+		Status:      commontypes.Status_PENDING,
+		ProofHeight: 1,
+	}
+	keeper.SetRollappPacket(ctx, oldPacket)
+	err = keeper.SetPendingPacketByAddress(ctx, apptesting.TestPacketReceiver, oldPacket.RollappPacketKey())
+	suite.Require().NoError(err)
+
+	// Update the packet status
+	packet, err := keeper.UpdateRollappPacketWithStatus(ctx, oldPacket, commontypes.Status_FINALIZED)
+	suite.Require().NoError(err)
+	suite.Require().Equal(commontypes.Status_FINALIZED, packet.Status)
+
+	// Check the updated packet is not in the receiver's index anymore
+	byReceiver, err := keeper.GetPendingPacketsByAddress(ctx, apptesting.TestPacketReceiver)
+	suite.Require().NoError(err)
+	suite.Require().Empty(len(byReceiver))
+
+	packets := keeper.GetAllRollappPackets(ctx)
+	suite.Require().Equal(1, len(packets))
+	// Set the packet and make sure there is only one packet in the store
+	keeper.SetRollappPacket(ctx, packet)
+	packets = keeper.GetAllRollappPackets(ctx)
+	suite.Require().Equal(1, len(packets))
+}
+
+func (suite *DelayedAckTestSuite) TestUpdateRollappPacketTransferAddress_ON_RECV() {
 	var err error
 	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
 	packet := commontypes.RollappPacket{
-		RollappId: "testRollappID",
-		Packet: &channeltypes.Packet{
-			SourcePort:         "testSourcePort",
-			SourceChannel:      "testSourceChannel",
-			DestinationPort:    "testDestinationPort",
-			DestinationChannel: "testDestinationChannel",
-			Data:               []byte("testData"),
-			Sequence:           1,
-		},
+		RollappId:   "testRollappID",
+		Packet:      apptesting.GenerateTestPacket(suite.T(), 1),
+		Type:        commontypes.RollappPacket_ON_RECV,
 		Status:      commontypes.Status_PENDING,
 		ProofHeight: 1,
 	}
 	keeper.SetRollappPacket(ctx, packet)
-	// Update the packet status
-	packet, err = keeper.UpdateRollappPacketWithStatus(ctx, packet, commontypes.Status_FINALIZED)
+	err = keeper.SetPendingPacketByAddress(ctx, apptesting.TestPacketReceiver, packet.RollappPacketKey())
 	suite.Require().NoError(err)
-	suite.Require().Equal(commontypes.Status_FINALIZED, packet.Status)
+
+	// Update the packet receiver
+	const newReceiver = "newReceiver"
+	err = keeper.UpdateRollappPacketTransferAddress(ctx, string(packet.RollappPacketKey()), newReceiver)
+	suite.Require().NoError(err)
+
+	// Check the state
 	packets := keeper.GetAllRollappPackets(ctx)
 	suite.Require().Equal(1, len(packets))
+	pd1, err := packets[0].GetTransferPacketData()
+	suite.Require().NoError(err)
+	suite.Require().Equal(newReceiver, pd1.Receiver)
+
+	// Check the packet key is the same
+	actualPacket, err := keeper.GetRollappPacket(ctx, string(packet.RollappPacketKey()))
+	suite.Require().NoError(err)
+	pd2, err := actualPacket.GetTransferPacketData()
+	suite.Require().NoError(err)
+	suite.Require().Equal(newReceiver, pd2.Receiver)
+
+	// Check the index
+	// Check the packet is in the receiver's index
+	byReceiverNew, err := keeper.GetPendingPacketsByAddress(ctx, newReceiver)
+	suite.Require().NoError(err)
+	suite.Require().Equal(1, len(byReceiverNew))
+	suite.Require().Equal(packet.RollappPacketKey(), byReceiverNew[0].RollappPacketKey())
+	pd3, err := byReceiverNew[0].GetTransferPacketData()
+	suite.Require().NoError(err)
+	suite.Require().Equal(newReceiver, pd3.Receiver)
+
+	// Check the packet is not in the receiver's index
+	byReceiverOld, err := keeper.GetPendingPacketsByAddress(ctx, apptesting.TestPacketReceiver)
+	suite.Require().NoError(err)
+	suite.Require().Empty(byReceiverOld)
+
+	// Set the packet and make sure there is only one packet in the store
+	keeper.SetRollappPacket(ctx, packet)
+	packets = keeper.GetAllRollappPackets(ctx)
+	suite.Require().Equal(1, len(packets))
+}
+
+func (suite *DelayedAckTestSuite) TestUpdateRollappPacketTransferAddress_ON_ACK() {
+	var err error
+	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
+	packet := commontypes.RollappPacket{
+		RollappId:   "testRollappID",
+		Packet:      apptesting.GenerateTestPacket(suite.T(), 1),
+		Type:        commontypes.RollappPacket_ON_ACK,
+		Status:      commontypes.Status_PENDING,
+		ProofHeight: 1,
+	}
+	keeper.SetRollappPacket(ctx, packet)
+	err = keeper.SetPendingPacketByAddress(ctx, apptesting.TestPacketSender, packet.RollappPacketKey())
+	suite.Require().NoError(err)
+
+	// Update the packet receiver
+	const newSender = "newSender"
+	err = keeper.UpdateRollappPacketTransferAddress(ctx, string(packet.RollappPacketKey()), newSender)
+	suite.Require().NoError(err)
+
+	// Check the state
+	packets := keeper.GetAllRollappPackets(ctx)
+	suite.Require().Equal(1, len(packets))
+	pd1, err := packets[0].GetTransferPacketData()
+	suite.Require().NoError(err)
+	suite.Require().Equal(newSender, pd1.Sender)
+
+	// Check the packet key is the same
+	actualPacket, err := keeper.GetRollappPacket(ctx, string(packet.RollappPacketKey()))
+	suite.Require().NoError(err)
+	pd2, err := actualPacket.GetTransferPacketData()
+	suite.Require().NoError(err)
+	suite.Require().Equal(newSender, pd2.Sender)
+
+	// Check the index
+	// Check the new packet is in the sender's index
+	bySenderNew, err := keeper.GetPendingPacketsByAddress(ctx, newSender)
+	suite.Require().NoError(err)
+	suite.Require().Equal(1, len(bySenderNew))
+	suite.Require().Equal(packet.RollappPacketKey(), bySenderNew[0].RollappPacketKey())
+	pd3, err := bySenderNew[0].GetTransferPacketData()
+	suite.Require().NoError(err)
+	suite.Require().Equal(newSender, pd3.Sender)
+
+	// Check the old packet is not in the sender's index
+	bySenderOld, err := keeper.GetPendingPacketsByAddress(ctx, apptesting.TestPacketSender)
+	suite.Require().NoError(err)
+	suite.Require().Empty(bySenderOld)
+
 	// Set the packet and make sure there is only one packet in the store
 	keeper.SetRollappPacket(ctx, packet)
 	packets = keeper.GetAllRollappPackets(ctx)

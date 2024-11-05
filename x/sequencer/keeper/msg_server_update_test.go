@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"time"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,11 +10,11 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-func (suite *SequencerTestSuite) TestUpdateSequencer() {
+func (s *SequencerTestSuite) TestUpdateSequencer() {
 	pubkey := ed25519.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
-	suite.Require().Nil(err)
+	s.Require().Nil(err)
 
 	const rollappID = "rollapp_1234-1"
 
@@ -85,24 +83,9 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 					},
 					GasPrice: uptr.To(sdk.NewInt(100)),
 				},
-				Jailed:     false,
-				Status:     0,
-				Tokens:     nil,
-				UnbondTime: time.Time{},
+				Status: 0,
+				Tokens: nil,
 			},
-		}, {
-			name: "Update rollapp: fail - try to update a jailed sequencer",
-			update: &types.MsgUpdateSequencerInformation{
-				Creator: addr.String(),
-			},
-			malleate: func(sequencer *types.Sequencer) {
-				suite.App.SequencerKeeper.SetSequencer(suite.Ctx, types.Sequencer{
-					Address:   addr.String(),
-					RollappId: rollappID,
-					Jailed:    true,
-				})
-			},
-			expError: types.ErrSequencerJailed,
 		}, {
 			name: "Update rollapp: fail - try to update wrong VM type fields",
 			update: &types.MsgUpdateSequencerInformation{
@@ -112,7 +95,7 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 				},
 			},
 			malleate: func(*types.Sequencer) {
-				suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapptypes.Rollapp{
+				s.raK().SetRollapp(s.Ctx, rollapptypes.Rollapp{
 					RollappId: rollappID,
 					VmType:    rollapptypes.Rollapp_WASM,
 				})
@@ -122,8 +105,8 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 	}
 
 	for _, tc := range tests {
-		suite.Run(tc.name, func() {
-			goCtx := sdk.WrapSDKContext(suite.Ctx)
+		s.Run(tc.name, func() {
+			goCtx := sdk.WrapSDKContext(s.Ctx)
 			rollapp := rollapptypes.Rollapp{
 				RollappId:        rollappID,
 				VmType:           rollapptypes.Rollapp_EVM,
@@ -131,35 +114,50 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 				InitialSequencer: addr.String(),
 			}
 
-			suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+			s.raK().SetRollapp(s.Ctx, rollapp)
 
 			sequencer := types.Sequencer{
 				Address:      addr.String(),
 				DymintPubKey: pkAny,
 				RollappId:    rollappID,
 				Metadata:     types.SequencerMetadata{},
-				Jailed:       false,
 				Status:       0,
 				Tokens:       nil,
-				UnbondTime:   time.Time{},
 			}
 
-			suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
-			suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
+			s.raK().SetRollapp(s.Ctx, rollapp)
+			s.k().SetSequencer(s.Ctx, sequencer)
 
 			if tc.malleate != nil {
 				tc.malleate(&sequencer)
 			}
 
-			_, err = suite.msgServer.UpdateSequencerInformation(goCtx, tc.update)
+			_, err = s.msgServer.UpdateSequencerInformation(goCtx, tc.update)
 			if tc.expError == nil {
-				suite.Require().NoError(err)
-				resp, err := suite.queryClient.Sequencer(goCtx, &types.QueryGetSequencerRequest{SequencerAddress: tc.update.Creator})
-				suite.Require().NoError(err)
-				suite.equalSequencer(&tc.expSequencer, &resp.Sequencer)
+				s.Require().NoError(err)
+				resp, err := s.queryClient.Sequencer(goCtx, &types.QueryGetSequencerRequest{SequencerAddress: tc.update.Creator})
+				s.Require().NoError(err)
+				s.equalSequencers(&tc.expSequencer, &resp.Sequencer)
 			} else {
-				suite.ErrorIs(err, tc.expError)
+				s.ErrorIs(err, tc.expError)
 			}
 		})
 	}
+}
+
+func (s *SequencerTestSuite) TestChangeOptInStatusBasicFlow() {
+	ra := s.createRollapp()
+	seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
+
+	m := &types.MsgUpdateOptInStatus{Creator: seq.Address, OptedIn: false}
+	_, err := s.msgServer.UpdateOptInStatus(s.Ctx, m)
+	s.Require().NoError(err)
+	seq = s.k().GetSequencer(s.Ctx, seq.Address)
+	s.Require().False(seq.OptedIn)
+
+	m = &types.MsgUpdateOptInStatus{Creator: seq.Address, OptedIn: true}
+	_, err = s.msgServer.UpdateOptInStatus(s.Ctx, m)
+	s.Require().NoError(err)
+	seq = s.k().GetSequencer(s.Ctx, seq.Address)
+	s.Require().True(seq.OptedIn)
 }

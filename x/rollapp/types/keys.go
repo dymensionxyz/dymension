@@ -1,5 +1,7 @@
 package types
 
+import "cosmossdk.io/collections"
+
 const (
 	// ModuleName defines the module name
 	ModuleName = "rollapp"
@@ -26,3 +28,5 @@ const (
 	// KeyRegisteredDenomPrefix is the prefix to retrieve all RegisteredDenom
 	KeyRegisteredDenomPrefix = "RegisteredDenom/value/"
 )
+
+var SeqToUnfinalizedHeightKeyPrefix = collections.NewPrefix("seqToFinalizeHeight/")

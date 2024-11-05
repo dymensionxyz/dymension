@@ -143,7 +143,7 @@ type AppKeepers struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	RollappKeeper     *rollappmodulekeeper.Keeper
-	SequencerKeeper   sequencermodulekeeper.Keeper
+	SequencerKeeper   *sequencermodulekeeper.Keeper
 	SponsorshipKeeper sponsorshipkeeper.Keeper
 	StreamerKeeper    streamermodulekeeper.Keeper
 	EIBCKeeper        eibckeeper.Keeper
@@ -362,7 +362,7 @@ func (a *AppKeepers) InitKeepers(
 		nil,
 	)
 
-	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
+	a.SequencerKeeper = sequencermodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[sequencermoduletypes.StoreKey],
 		a.BankKeeper,
@@ -377,6 +377,9 @@ func (a *AppKeepers) InitKeepers(
 		a.SequencerKeeper,
 		a.RollappKeeper,
 	)
+
+	a.SequencerKeeper.SetUnbondBlockers(a.RollappKeeper, a.LightClientKeeper)
+	a.SequencerKeeper.SetHooks(sequencermoduletypes.MultiHooks{rollappmodulekeeper.SequencerHooks{Keeper: a.RollappKeeper}})
 
 	groupConfig := grouptypes.Config{
 		MaxExecutionPeriod: 0,

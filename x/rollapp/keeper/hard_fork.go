@@ -80,7 +80,17 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 	lastIdx, _ := k.GetLatestStateInfoIndex(ctx, rollappID)
 	for i := lastStateIdxToKeep + 1; i <= lastIdx.Index; i++ {
 		k.RemoveStateInfo(ctx, rollappID, i)
+
+		// clear the sequencer heights
+		sInfo := k.MustGetStateInfo(ctx, rollappID, i)
+		for _, bd := range sInfo.BDs.BD {
+			if err := k.DelSequencerHeight(ctx, sInfo.Sequencer, bd.Height); err != nil {
+				return 0, errorsmod.Wrap(err, "del sequencer height")
+			}
+		}
+
 		revertedStatesCount++ // Increment the counter
+
 	}
 	k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
 		RollappId: rollappID,

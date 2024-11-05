@@ -140,7 +140,7 @@ func (k Keeper) validateWeights(ctx sdk.Context, weights []types.GaugeWeight, mi
 			// no additional restrictions for asset gauges
 		case *incentivestypes.Gauge_Rollapp:
 			// we allow sponsoring only rollapps with bonded sequencers
-			bondedSequencers := k.sequencerKeeper.GetSequencersByRollappByStatus(ctx, distrTo.Rollapp.RollappId, sequencertypes.Bonded)
+			bondedSequencers := k.sequencerKeeper.RollappSequencersByStatus(ctx, distrTo.Rollapp.RollappId, sequencertypes.Bonded)
 			if len(bondedSequencers) == 0 {
 				return fmt.Errorf("rollapp has no bonded sequencers: %s'", distrTo.Rollapp.RollappId)
 			}

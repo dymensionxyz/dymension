@@ -19,28 +19,3 @@ message EventFinalizePacket {
   // PacketSequence is a sequence number of the packet.
   uint64 packet_sequence = 6;
 }
-
-message EventFinalizePacketsUntilHeight {
-  // Sender is the signer of the message.
-  string sender = 1;
-  // RollappID is the ID of the rollapp.
-  string rollapp_id = 2;
-  // Height is a height until which packets are to be finalized. Height is inclusive.
-  uint64 height = 3;
-  // FinalizedNum is the number of finalized packets.
-  uint64 finalized_num = 4;
-}
-
-message EventFinalizeRollappPacketsByReceiver {
-  // Sender is the signer of the message.
-  string sender = 1;
-  // RollappID is the ID of the rollapp.
-  string rollapp_id = 2;
-  // Receiver is the one who waits tokens after the finalization.
-  string receiver = 3;
-  // Height is a height until which packets are to be finalized.
-  uint64 height = 4;
-  // FinalizedNum is the number of finalized packets.
-  uint64 finalized_num = 5;
-
-}

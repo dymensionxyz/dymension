@@ -13,14 +13,13 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/stretchr/testify/suite"
 )
 
 var canonicalClientConfig = ibctesting.TendermintConfig{
 	TrustLevel:      types.DefaultExpectedCanonicalClientParams().TrustLevel,
 	TrustingPeriod:  types.DefaultExpectedCanonicalClientParams().TrustingPeriod,
-	UnbondingPeriod: sequencertypes.DefaultUnbondingTime,
+	UnbondingPeriod: types.DefaultExpectedCanonicalClientParams().UnbondingPeriod,
 	MaxClockDrift:   types.DefaultExpectedCanonicalClientParams().MaxClockDrift,
 }
 
@@ -124,9 +123,7 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateDoesntExist() {
 
 	s.NoError(s.path.EndpointA.UpdateClient())
 	// As there was no stateinfo found for the height, should have accepted the update optimistically.
-	seqValHash, found := s.hubApp().LightClientKeeper.GetConsensusStateValHash(s.hubCtx(), s.path.EndpointA.ClientID, s.path.EndpointA.GetClientState().GetLatestHeight().GetRevisionHeight())
-	s.True(found)
-	seqAddr, err := s.hubApp().LightClientKeeper.GetSequencerFromValHash(s.hubCtx(), s.rollappChain().ChainID, seqValHash)
+	seqAddr, err := s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, s.path.EndpointA.GetClientState().GetLatestHeight().GetRevisionHeight())
 	s.NoError(err)
 	s.Equal(s.hubChain().SenderAccount.GetAddress().String(), seqAddr)
 }
@@ -177,8 +174,8 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_Compatible() {
 	s.NoError(err)
 	s.Equal(uint64(header.Header.Height), s.path.EndpointA.GetClientState().GetLatestHeight().GetRevisionHeight())
 	// There shouldnt be any optimistic updates as the roots were verified
-	_, found := s.hubApp().LightClientKeeper.GetConsensusStateValHash(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
-	s.False(found)
+	_, err = s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
+	s.Error(err)
 }
 
 func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_NotCompatible() {
@@ -275,8 +272,8 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_Compatibl
 	_, err = s.path.EndpointA.Chain.SendMsgs(msg)
 	s.NoError(err)
 	// There should be one optimistic update for the header height
-	_, found := s.hubApp().LightClientKeeper.GetConsensusStateValHash(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
-	s.True(found)
+	_, err = s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
+	s.NoError(err)
 
 	msgUpdateState := rollapptypes.NewMsgUpdateState(
 		s.hubChain().SenderAccount.GetAddress().String(),
@@ -287,8 +284,8 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_Compatibl
 	_, err = s.rollappMsgServer().UpdateState(s.hubCtx(), msgUpdateState)
 	s.NoError(err)
 	// The optimistic update valhash should be removed as the state has been confirmed to be compatible
-	_, found = s.hubApp().LightClientKeeper.GetConsensusStateValHash(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
-	s.False(found)
+	_, err = s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
+	s.Error(err)
 	// Ensuring that the stateinfo is now upto date as well
 	state, found := s.hubApp().RollappKeeper.GetLatestStateInfo(s.hubCtx(), s.rollappChain().ChainID)
 	s.True(found)
@@ -332,8 +329,8 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_NotCompat
 	_, err = s.path.EndpointA.Chain.SendMsgs(msg)
 	s.NoError(err)
 	// There should be one optimistic update for the header height
-	_, found := s.hubApp().LightClientKeeper.GetConsensusStateValHash(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
-	s.True(found)
+	_, err = s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
+	s.NoError(err)
 
 	msgUpdateState := rollapptypes.NewMsgUpdateState(
 		s.hubChain().SenderAccount.GetAddress().String(),

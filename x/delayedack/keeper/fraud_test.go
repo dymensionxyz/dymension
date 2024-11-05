@@ -1,8 +1,7 @@
 package keeper_test
 
 import (
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
@@ -10,9 +9,9 @@ import (
 func (suite *DelayedAckTestSuite) TestHandleFraud() {
 	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
 	rollappId := "testRollappId"
-	pkts := generatePackets(rollappId, 10)
+	pkts := apptesting.GenerateRollappPackets(suite.T(), rollappId, 10)
 	rollappId2 := "testRollappId2"
-	pkts2 := generatePackets(rollappId2, 10)
+	pkts2 := apptesting.GenerateRollappPackets(suite.T(), rollappId2, 10)
 	prefixPending1 := types.ByRollappIDByStatus(rollappId, commontypes.Status_PENDING)
 	prefixPending2 := types.ByRollappIDByStatus(rollappId2, commontypes.Status_PENDING)
 	prefixFinalized1 := types.ByRollappIDByStatus(rollappId, commontypes.Status_FINALIZED)
@@ -49,26 +48,4 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 
 	suite.Require().Equal(1, len(keeper.ListRollappPackets(ctx, prefixFinalized2)))
 	suite.Require().Equal(9, len(keeper.ListRollappPackets(ctx, prefixPending2)))
-}
-
-/* ---------------------------------- utils --------------------------------- */
-
-func generatePackets(rollappId string, num uint64) []commontypes.RollappPacket {
-	var packets []commontypes.RollappPacket
-	for i := uint64(1); i <= num; i++ {
-		packets = append(packets, commontypes.RollappPacket{
-			RollappId: rollappId,
-			Packet: &channeltypes.Packet{
-				SourcePort:         "testSourcePort",
-				SourceChannel:      "testSourceChannel",
-				DestinationPort:    "testDestinationPort",
-				DestinationChannel: "testDestinationChannel",
-				Data:               []byte("testData"),
-				Sequence:           i,
-			},
-			Status:      commontypes.Status_PENDING,
-			ProofHeight: i,
-		})
-	}
-	return packets
 }

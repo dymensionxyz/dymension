@@ -51,7 +51,7 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 
 	// jail the sequencer if needed
 	if msg.SlashSequencerAddress != "" {
-		err := k.sequencerKeeper.JailByAddr(ctx, msg.SlashSequencerAddress)
+		err := k.sequencerKeeper.PunishSequencer(ctx, msg.SlashSequencerAddress)
 		if err != nil {
 			return nil, errorsmod.Wrap(err, "jail sequencer")
 		}

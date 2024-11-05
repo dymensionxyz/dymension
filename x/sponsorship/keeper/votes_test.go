@@ -396,9 +396,9 @@ func (s *KeeperTestSuite) TestMsgVoteRollAppGaugeBondedSequencer() {
 	proposer := s.CreateDefaultSequencer(s.Ctx, raName)
 
 	// verify the sequencer is bonded
-	seq, found := s.App.SequencerKeeper.GetSequencer(s.Ctx, proposer)
-	s.Require().True(found)
-	s.Require().True(seq.IsBonded())
+	seq, err := s.App.SequencerKeeper.RealSequencer(s.Ctx, proposer)
+	s.Require().NoError(err)
+	s.Require().True(seq.Bonded())
 
 	// create a validator and a delegator
 	initial := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000))
@@ -433,12 +433,6 @@ func (s *KeeperTestSuite) TestMsgVoteRollAppGaugeNonBondedSequencer() {
 
 	// create a rollapp, subsequently the rollapp gauge must be created
 	s.CreateRollappByName(raName)
-	// create a bonded sequencer
-	proposer := s.CreateDefaultSequencer(s.Ctx, raName)
-
-	// jail the sequencer
-	err := s.App.SequencerKeeper.JailSequencerOnFraud(s.Ctx, proposer)
-	s.Require().NoError(err)
 
 	// create a validator and a delegator
 	initial := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000))
