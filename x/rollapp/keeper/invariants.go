@@ -269,7 +269,7 @@ func LivenessEventInvariant(k Keeper) sdk.Invariant {
 		)
 		rollapps := k.GetAllRollapps(ctx)
 		for _, ra := range rollapps {
-			if !ra.LastStateUpdateHeightIsSet() {
+			if ra.LivenessEventHeight == 0 {
 				continue
 			}
 			events := k.GetLivenessEvents(ctx, &ra.LivenessEventHeight)

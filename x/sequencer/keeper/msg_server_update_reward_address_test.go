@@ -5,9 +5,9 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-func (suite *SequencerTestSuite) TestUpdateRewardAddress() {
-	rollappId, pk := suite.CreateDefaultRollapp()
-	defaultSequencerAddress := suite.CreateSequencer(suite.Ctx, rollappId, pk)
+func (s *SequencerTestSuite) TestUpdateRewardAddress() {
+	ra := s.createRollapp()
+	seqAlice := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
 	rewardAddr := sample.AccAddress()
 
 	testCase := []struct {
@@ -18,7 +18,7 @@ func (suite *SequencerTestSuite) TestUpdateRewardAddress() {
 		{
 			name: "valid",
 			msg: types.MsgUpdateRewardAddress{
-				Creator:    defaultSequencerAddress,
+				Creator:    seqAlice.Address,
 				RewardAddr: rewardAddr,
 			},
 			expectedErr: nil,
@@ -26,14 +26,14 @@ func (suite *SequencerTestSuite) TestUpdateRewardAddress() {
 	}
 
 	for _, tc := range testCase {
-		suite.Run(tc.name, func() {
-			_, err := suite.msgServer.UpdateRewardAddress(suite.Ctx, &tc.msg)
+		s.Run(tc.name, func() {
+			_, err := s.msgServer.UpdateRewardAddress(s.Ctx, &tc.msg)
 			if tc.expectedErr != nil {
-				suite.Require().ErrorIs(err, tc.expectedErr)
+				s.Require().ErrorIs(err, tc.expectedErr)
 			} else {
-				suite.Require().NoError(err)
-				seq, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, tc.msg.Creator)
-				suite.Require().Equal(tc.msg.RewardAddr, seq.RewardAddr)
+				s.Require().NoError(err)
+				seq, _ := s.App.SequencerKeeper.RealSequencer(s.Ctx, tc.msg.Creator)
+				s.Require().Equal(tc.msg.RewardAddr, seq.RewardAddr)
 			}
 		})
 	}

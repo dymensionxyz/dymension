@@ -100,7 +100,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// it takes the actual proposer because the next one have already been set
 	// by the sequencer rotation in k.hooks.BeforeUpdateState
 	// the proposer we get is the one that will propose the next block.
-	val, _ := k.sequencerKeeper.GetProposer(ctx, msg.RollappId)
+	val := k.sequencerKeeper.GetProposer(ctx, msg.RollappId)
 
 	creationHeight := uint64(ctx.BlockHeight())
 	blockTime := ctx.BlockTime()
@@ -121,7 +121,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 	err = k.hooks.AfterUpdateState(ctx, msg.RollappId, stateInfo)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "after update state")
+		return nil, errorsmod.Wrap(err, "hook: after update state")
 	}
 
 	stateInfoIndex := stateInfo.GetIndex()
@@ -140,9 +140,16 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		FinalizationQueue: newFinalizationQueue,
 	})
 
+	for _, bd := range msg.BDs.BD {
+		if err := k.SaveSequencerHeight(ctx, stateInfo.Sequencer, bd.Height); err != nil {
+			return nil, errorsmod.Wrap(err, "save sequencer height")
+		}
+	}
+
 	// TODO: enforce `final_state_update_timeout` if sequencer rotation is in progress
 	// https://github.com/dymensionxyz/dymension/issues/1085
 	k.IndicateLiveness(ctx, &rollapp)
+	k.SetRollapp(ctx, rollapp)
 
 	events := stateInfo.GetEvents()
 

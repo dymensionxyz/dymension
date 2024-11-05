@@ -243,7 +243,7 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 	for i, sequencer := range testSeqs {
 		expectSequencers[i] = v4.ConvertOldSequencerToNew(sequencer)
 	}
-	sequencers := s.App.SequencerKeeper.GetAllSequencers(s.Ctx)
+	sequencers := s.App.SequencerKeeper.AllSequencers(s.Ctx)
 	s.Require().Len(sequencers, len(expectSequencers))
 
 	sort.Slice(sequencers, func(i, j int) bool {
@@ -256,9 +256,9 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 
 	for i, sequencer := range sequencers {
 		// check that the sequencer can be retrieved by address
-		_, ok := s.App.SequencerKeeper.GetSequencer(s.Ctx, sequencer.Address)
-		if !ok {
-			return fmt.Errorf("sequencer by address not migrated")
+		_, err := s.App.SequencerKeeper.RealSequencer(s.Ctx, sequencer.Address)
+		if err != nil {
+			return err
 		}
 
 		seq := s.App.AppCodec().MustMarshalJSON(&sequencer)
@@ -269,8 +269,8 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 
 	// check proposer
 	for _, rollapp := range s.App.RollappKeeper.GetAllRollapps(s.Ctx) {
-		_, found := s.App.SequencerKeeper.GetProposer(s.Ctx, rollapp.RollappId)
-		s.Assert().True(found)
+		p := s.App.SequencerKeeper.GetProposer(s.Ctx, rollapp.RollappId)
+		s.Require().False(p.Sentinel())
 	}
 
 	return nil

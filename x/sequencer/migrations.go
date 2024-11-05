@@ -22,12 +22,12 @@ type (
 
 // Migrator is a struct for handling in-place store migrations.
 type Migrator struct {
-	keeper         seqkeeper.Keeper
+	keeper         *seqkeeper.Keeper
 	legacySubspace Subspace
 }
 
 // NewMigrator returns a new Migrator.
-func NewMigrator(keeper seqkeeper.Keeper, ss Subspace) Migrator {
+func NewMigrator(keeper *seqkeeper.Keeper, ss Subspace) Migrator {
 	return Migrator{keeper: keeper, legacySubspace: ss}
 }
 

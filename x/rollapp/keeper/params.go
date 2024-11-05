@@ -12,7 +12,6 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		k.DisputePeriodInBlocks(ctx),
 		k.LivenessSlashBlocks(ctx),
 		k.LivenessSlashInterval(ctx),
-		k.LivenessJailBlocks(ctx),
 		k.AppRegistrationFee(ctx),
 	)
 }
@@ -35,11 +34,6 @@ func (k Keeper) LivenessSlashBlocks(ctx sdk.Context) (res uint64) {
 
 func (k Keeper) LivenessSlashInterval(ctx sdk.Context) (res uint64) {
 	k.paramstore.Get(ctx, types.KeyLivenessSlashInterval, &res)
-	return
-}
-
-func (k Keeper) LivenessJailBlocks(ctx sdk.Context) (res uint64) {
-	k.paramstore.Get(ctx, types.KeyLivenessJailBlocks, &res)
 	return
 }
 
