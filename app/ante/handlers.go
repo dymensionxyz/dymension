@@ -45,7 +45,7 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 			See https://jumpcrypto.com/writing/bypassing-ethermint-ante-handlers/
 			for an explanation of these message blocking decorators
 		*/
-		NewRejectMessagesDecorator(options.Cdc,
+		NewRejectMessagesDecorator(
 			// reject MsgEthereumTxs and disable the Msg types that cannot be included on an authz.MsgExec msgs field
 			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
@@ -83,7 +83,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 
 	return sdk.ChainAnteDecorators(
-		NewRejectMessagesDecorator(options.Cdc,
+		NewRejectMessagesDecorator(
 			// reject MsgEthereumTxs and disable the Msg types that cannot be included on an authz.MsgExec msgs field
 			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),

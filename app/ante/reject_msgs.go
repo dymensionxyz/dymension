@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -16,13 +15,12 @@ import (
 // RejectMessagesDecorator prevents invalid msg types from being executed
 type RejectMessagesDecorator struct {
 	disabledMsgTypeURLs map[string]struct{}
-	cdc                 codec.Codec
 }
 
 var _ sdk.AnteDecorator = RejectMessagesDecorator{}
 
 // NewRejectMessagesDecorator creates a decorator to block provided messages from reaching the mempool
-func NewRejectMessagesDecorator(cdc codec.Codec, disabledMsgTypeURLs ...string) RejectMessagesDecorator {
+func NewRejectMessagesDecorator(disabledMsgTypeURLs ...string) RejectMessagesDecorator {
 	disabledMsgsMap := make(map[string]struct{})
 	for _, url := range disabledMsgTypeURLs {
 		disabledMsgsMap[url] = struct{}{}
@@ -30,7 +28,6 @@ func NewRejectMessagesDecorator(cdc codec.Codec, disabledMsgTypeURLs ...string) 
 
 	return RejectMessagesDecorator{
 		disabledMsgTypeURLs: disabledMsgsMap,
-		cdc:                 cdc,
 	}
 }
 
@@ -120,5 +117,4 @@ func extractMsgs(msg any) ([]sdk.Msg, error) {
 		return msgWithMessages.GetMessages()
 	}
 	return nil, nil
-
 }

@@ -1,7 +1,6 @@
 package ante
 
 import (
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
@@ -18,7 +17,6 @@ import (
 )
 
 type HandlerOptions struct {
-	Cdc                    codec.Codec
 	AccountKeeper          *authkeeper.AccountKeeper
 	BankKeeper             bankkeeper.Keeper
 	IBCKeeper              *ibckeeper.Keeper
@@ -34,9 +32,6 @@ type HandlerOptions struct {
 }
 
 func (options HandlerOptions) validate() error {
-	if options.Cdc == nil {
-		return errorsmod.Wrap(errortypes.ErrLogic, "codec is required for AnteHandler")
-	}
 	if options.AccountKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "account keeper is required for AnteHandler")
 	}

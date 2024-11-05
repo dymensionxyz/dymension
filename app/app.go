@@ -206,7 +206,6 @@ func New(
 
 	maxGasWanted := cast.ToUint64(appOpts.Get(flags.EVMMaxTxGasWanted))
 	anteHandler, err := ante.NewAnteHandler(ante.HandlerOptions{
-		Cdc:                    app.appCodec,
 		AccountKeeper:          &app.AccountKeeper,
 		BankKeeper:             app.BankKeeper,
 		IBCKeeper:              app.IBCKeeper,
