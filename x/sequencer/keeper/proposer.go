@@ -85,6 +85,7 @@ func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) error {
 		// a valid successor is already set so there's no need to do anything
 		return nil
 	}
+	// FIXME: why it's needed?
 	proposer := k.GetProposer(ctx, rollapp)
 	if proposer.Sentinel() {
 		return nil

@@ -80,17 +80,17 @@ func (k Keeper) OnProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) e
 		return errorsmod.Wrap(gerrc.ErrFault, "sequencer has submitted last block without finishing notice period")
 	}
 
-	k.SetProposer(ctx, proposer.RollappId, types.SentinelSeqAddr)
-	// FIXME: shouldn't go through sentinel, as it considered hard fork
-	if err := k.UpdateProposerIfNeeded(ctx, proposer.RollappId); err != nil {
-		return errorsmod.Wrap(err, "choose proposer")
-	}
-	after := k.GetProposer(ctx, proposer.RollappId)
+	rollapp := proposer.RollappId
+
+	successor := k.GetSuccessor(ctx, rollapp)
+	k.SetProposer(ctx, rollapp, successor.Address)
+	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr)
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeProposerRotated,
 			sdk.NewAttribute(types.AttributeKeyRollappId, proposer.RollappId),
-			sdk.NewAttribute(types.AttributeKeySequencer, after.Address),
+			sdk.NewAttribute(types.AttributeKeySequencer, successor.Address),
 		),
 	)
 	return nil

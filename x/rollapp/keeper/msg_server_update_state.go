@@ -143,7 +143,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		FinalizationQueue: newFinalizationQueue,
 	})
 
-	// FIXME: only single save can be done
+	// FIXME: only single save can be done with the latest height
 	for _, bd := range msg.BDs.BD {
 		if err := k.SaveSequencerHeight(ctx, stateInfo.Sequencer, bd.Height); err != nil {
 			return nil, errorsmod.Wrap(err, "save sequencer height")
