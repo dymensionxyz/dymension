@@ -71,7 +71,6 @@ func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []uint32) (i
 			// If this fails, no state change happens
 			err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
 				return k.HardForkToLatest(ctx, rollapp.RollappId)
-				// return k.MarkRollappAsVulnerable(ctx, rollapp.RollappId)
 			})
 			if err != nil {
 				// We do not want to fail if one rollapp cannot to be marked as vulnerable

@@ -38,6 +38,7 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 	}
 
 	// validate the fraud height is already committed
+	// FIXME: allow the latest height +1 as well?
 	sinfo, found := k.GetLatestStateInfo(ctx, msg.RollappId)
 	if !found || sinfo.GetLatestHeight() < msg.FraudHeight {
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "fraud height not committed")
@@ -49,7 +50,7 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "fraud height already finalized")
 	}
 
-	// jail the sequencer if needed
+	// punish the sequencer if needed
 	if msg.SlashSequencerAddress != "" {
 		err := k.sequencerKeeper.PunishSequencer(ctx, msg.SlashSequencerAddress)
 		if err != nil {
@@ -57,6 +58,7 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 		}
 	}
 
+	// FIXME: remove hard fork bool from the msg
 	err := k.HardFork(ctx, msg.RollappId, msg.FraudHeight)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "hard fork")

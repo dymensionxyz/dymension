@@ -75,20 +75,20 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 		return 0, errorsmod.Wrap(err, "update last state info")
 	}
 
-	// clear state info
+	// clear pending states post the fraud height
 	revertedStatesCount := 0 // Counter for reverted state updates
 	lastIdx, _ := k.GetLatestStateInfoIndex(ctx, rollappID)
 	for i := lastStateIdxToKeep + 1; i <= lastIdx.Index; i++ {
-		k.RemoveStateInfo(ctx, rollappID, i)
+		sInfo := k.MustGetStateInfo(ctx, rollappID, i)
 
 		// clear the sequencer heights
-		sInfo := k.MustGetStateInfo(ctx, rollappID, i)
 		for _, bd := range sInfo.BDs.BD {
 			if err := k.DelSequencerHeight(ctx, sInfo.Sequencer, bd.Height); err != nil {
 				return 0, errorsmod.Wrap(err, "del sequencer height")
 			}
 		}
-
+		// clear the state info
+		k.RemoveStateInfo(ctx, rollappID, i)
 		revertedStatesCount++ // Increment the counter
 
 	}
@@ -137,13 +137,16 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 	}
 
 	ctx.Logger().Info(fmt.Sprintf("Reverted state updates for rollapp: %s, count: %d", rollappID, revertedStatesCount))
-
 	return fraudHeight - 1, nil
 }
 
 // UpdateLastStateInfo truncates the state info to the last valid block before the fraud height.
 // It returns the index of the last state info to keep.
 func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo, fraudHeight uint64) (uint64, error) {
+	if fraudHeight < stateInfo.StartHeight {
+		return 0, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "state info start height is greater than fraud height")
+	}
+
 	if stateInfo.StartHeight == fraudHeight {
 		// If fraud height is at the beginning of the state info, return the previous index to keep
 		var ok bool
@@ -151,15 +154,13 @@ func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo,
 		if !ok {
 			return 0, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "no state info found for rollapp: %s", stateInfo.StateInfoIndex.RollappId)
 		}
-	} else if stateInfo.GetLatestHeight() > fraudHeight {
+	} else if stateInfo.GetLatestHeight() >= fraudHeight {
 		// Remove block descriptors until the one we need to rollback to
 		truncatedBDs := stateInfo.BDs.BD[:fraudHeight-stateInfo.StartHeight]
 
 		// Update the state info to reflect truncated data
 		stateInfo.NumBlocks = uint64(len(truncatedBDs))
 		stateInfo.BDs.BD = truncatedBDs
-	} else {
-		return 0, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "state info start height is greater than fraud height")
 	}
 
 	// Update the state info in the keeper
