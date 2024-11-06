@@ -25,7 +25,6 @@ func (k Keeper) CanUnbond(ctx sdk.Context, seq sequencertypes.Sequencer) error {
 
 // PruneSequencerHeights removes bookkeeping for all heights ABOVE h for given sequencers
 // On rollback, this should be called passing all sequencers who sequenced a rolled back block
-// TODO: plug into hard fork
 func (k Keeper) PruneSequencerHeights(ctx sdk.Context, sequencers []string, h uint64) error {
 	for _, seqAddr := range sequencers {
 		rng := collections.NewPrefixedPairRange[string, uint64](seqAddr).StartExclusive(h)

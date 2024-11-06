@@ -132,6 +132,19 @@ func (suite *RollappTestSuite) assertFraudHandled(rollappId string, height uint6
 		suite.Require().Less(lastestStateInfo.GetLatestHeight(), height)
 	}
 
+	// check sequencers heights
+	sequencers, err := suite.App.RollappKeeper.AllSequencerHeightPairs(suite.Ctx)
+	suite.Require().NoError(err)
+
+	ok = false
+	for _, seq := range sequencers {
+		if seq.Sequencer == lastestStateInfo.Sequencer {
+			suite.Require().Less(seq.Height, height)
+			ok = true
+		}
+	}
+	suite.Require().True(ok)
+
 	// check queue
 	queue := suite.App.RollappKeeper.GetAllBlockHeightToFinalizationQueue(suite.Ctx)
 	suite.Require().Greater(len(queue), 0)

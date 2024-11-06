@@ -30,7 +30,7 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) 
 	k.SetRollapp(ctx, rollapp)
 
 	// handle the sequencers, clean delayed packets, handle light client
-	err = k.hooks.OnHardFork(ctx, rollappID, fraudHeight)
+	err = k.hooks.OnHardFork(ctx, rollappID, lastCommittedHeight+1)
 	if err != nil {
 		return err
 	}
@@ -76,22 +76,19 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 	}
 
 	// clear pending states post the fraud height
-	revertedStatesCount := 0 // Counter for reverted state updates
+	revertedStatesCount := 0                     // Counter for reverted state updates
+	uniqueProposers := make(map[string]struct{}) // Map to manage unique proposers
+
 	lastIdx, _ := k.GetLatestStateInfoIndex(ctx, rollappID)
 	for i := lastStateIdxToKeep + 1; i <= lastIdx.Index; i++ {
-		sInfo := k.MustGetStateInfo(ctx, rollappID, i)
+		// Add the proposer to the unique map
+		uniqueProposers[k.MustGetStateInfo(ctx, rollappID, i).Sequencer] = struct{}{}
 
-		// clear the sequencer heights
-		for _, bd := range sInfo.BDs.BD {
-			if err := k.DelSequencerHeight(ctx, sInfo.Sequencer, bd.Height); err != nil {
-				return 0, errorsmod.Wrap(err, "del sequencer height")
-			}
-		}
 		// clear the state info
 		k.RemoveStateInfo(ctx, rollappID, i)
 		revertedStatesCount++ // Increment the counter
-
 	}
+
 	k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
 		RollappId: rollappID,
 		Index:     lastStateIdxToKeep,
@@ -136,8 +133,15 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 		})
 	}
 
+	// remove the sequencer heights
+	lastStateInfo := k.MustGetStateInfo(ctx, rollappID, lastStateIdxToKeep)
+	err = k.PruneSequencerHeights(ctx, mapKeysToSlice(uniqueProposers), lastStateInfo.GetLatestHeight())
+	if err != nil {
+		return 0, errorsmod.Wrap(err, "prune sequencer heights")
+	}
+
 	ctx.Logger().Info(fmt.Sprintf("Reverted state updates for rollapp: %s, count: %d", rollappID, revertedStatesCount))
-	return fraudHeight - 1, nil
+	return lastStateInfo.GetLatestHeight(), nil
 }
 
 // UpdateLastStateInfo truncates the state info to the last valid block before the fraud height.
@@ -176,4 +180,12 @@ func (k Keeper) HardForkToLatest(ctx sdk.Context, rollappID string) error {
 	}
 	// we invoke a hard fork on the last posted batch without reverting any states
 	return k.HardFork(ctx, rollappID, lastBatch.GetLatestHeight()+1)
+}
+
+func mapKeysToSlice(m map[string]struct{}) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }
