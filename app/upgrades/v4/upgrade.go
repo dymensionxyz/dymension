@@ -137,13 +137,6 @@ func migrateDelayedAckParams(ctx sdk.Context, delayedAckKeeper delayedackkeeper.
 	delayedAckKeeper.SetParams(ctx, params)
 }
 
-func migrateRollappParams(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) {
-	// overwrite params for rollapp module due to proto change
-	params := rollapptypes.DefaultParams()
-	params.DisputePeriodInBlocks = rollappkeeper.DisputePeriodInBlocks(ctx)
-	rollappkeeper.SetParams(ctx, params)
-}
-
 // migrateRollappGauges creates a gauge for each rollapp in the store
 func migrateRollappGauges(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, incentivizeKeeper *incentiveskeeper.Keeper) error {
 	rollapps := rollappkeeper.GetAllRollapps(ctx)
