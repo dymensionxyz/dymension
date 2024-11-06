@@ -5,8 +5,6 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 )
 
-//FIXME: test all sequencer are unbonded after fraud
-
 // Can eventually slash to below kickable threshold
 func (s *SequencerTestSuite) TestSlashLivenessFlow() {
 	ra := s.createRollapp()

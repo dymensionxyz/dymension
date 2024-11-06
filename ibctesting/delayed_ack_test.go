@@ -30,6 +30,8 @@ func TestDelayedAckTestSuite(t *testing.T) {
 
 func (s *delayedAckSuite) SetupTest() {
 	s.utilSuite.SetupTest()
+	s.hubApp().LightClientKeeper.SetEnabled(false)
+
 	s.hubApp().BankKeeper.SetDenomMetaData(s.hubCtx(), banktypes.Metadata{
 		Base: sdk.DefaultBondDenom,
 	})

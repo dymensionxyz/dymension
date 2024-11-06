@@ -34,7 +34,7 @@ func (k Keeper) RollappPotentialProposers(ctx sdk.Context, rollappId string) []t
 	seqs = slices.DeleteFunc(seqs, func(seq types.Sequencer) bool {
 		return !seq.IsPotentialProposer()
 	})
-	// FIXME: sentinel should be added in no sequencers are bonded
+	// FIXME: sentinel should be added only if no sequencers are bonded
 	return append(seqs, k.SentinelSequencer(ctx))
 }
 

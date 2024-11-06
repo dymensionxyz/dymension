@@ -19,6 +19,11 @@ func TestBridgingFeeTestSuite(t *testing.T) {
 	suite.Run(t, new(bridgingFeeSuite))
 }
 
+func (s *bridgingFeeSuite) SetupTest() {
+	s.utilSuite.SetupTest()
+	s.hubApp().LightClientKeeper.SetEnabled(false)
+}
+
 func (s *bridgingFeeSuite) TestNotRollappNoBridgingFee() {
 	// setup between cosmosChain and hubChain
 	path := s.newTransferPath(s.hubChain(), s.cosmosChain())

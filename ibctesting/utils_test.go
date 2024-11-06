@@ -114,7 +114,6 @@ func (s *utilSuite) SetupTest() {
 
 	s.coordinator = ibctesting.NewCoordinator(s.T(), 2) // initializes test chains
 	s.coordinator.Chains[rollappChainID()] = s.newTestChainWithSingleValidator(s.T(), s.coordinator, rollappChainID())
-	s.hubApp().LightClientKeeper.SetEnabled(false)
 }
 
 func (s *utilSuite) fundSenderAccount() {

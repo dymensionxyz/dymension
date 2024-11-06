@@ -37,6 +37,8 @@ func TestTransferGenesisTestSuite(t *testing.T) {
 
 func (s *transferGenesisSuite) SetupTest() {
 	s.utilSuite.SetupTest()
+	s.hubApp().LightClientKeeper.SetEnabled(false)
+
 	path := s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.SetupConnections(path)
 	s.createRollapp(false, nil) // genesis protocol is not finished yet
