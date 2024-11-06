@@ -265,6 +265,7 @@ func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Seque
 		RollappId:    old.RollappId,
 		Status:       old.Status,
 		Tokens:       old.Tokens,
+		OptedIn:      true,
 		Metadata: sequencertypes.SequencerMetadata{
 			Moniker: old.Metadata.Moniker,
 			Details: old.Metadata.Details,
