@@ -74,9 +74,10 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 	// check that the blocks are sequential by height
 	for bdIndex := uint64(0); bdIndex < msg.NumBlocks; bdIndex += 1 {
 
-		// TODO: by now DRS version can be empty, but it will be deprecated
-		//  https://github.com/dymensionxyz/dymension/issues/1233
-		if msg.BDs.BD[bdIndex].DrsVersion <= 0 {
+		// Pre 3D rollapps will use zero until they upgrade. Post 3D rollapps
+		// should use a non-zero version. We rely on other fraud mechanisms
+		// to catch that if it's wrong.
+		if msg.BDs.BD[bdIndex].DrsVersion < 0 {
 			return ErrInvalidDRSVersion
 		}
 		if msg.BDs.BD[bdIndex].Height != msg.StartHeight+bdIndex {
