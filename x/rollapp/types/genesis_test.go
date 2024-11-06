@@ -61,6 +61,7 @@ func TestGenesisState_Validate(t *testing.T) {
 						CreationHeight: 1,
 					},
 				},
+				VulnerableDrsVersions: []uint32{1, 2},
 			},
 			valid: true,
 		},
@@ -109,17 +110,6 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid: false,
 		},
 		{
-			desc: "invalid LivenessJailBlocks",
-			genState: &types.GenesisState{
-				Params:                             types.DefaultParams().WithLivenessJailBlocks(0),
-				RollappList:                        []types.Rollapp{{RollappId: "0"}},
-				StateInfoList:                      []types.StateInfo{},
-				LatestStateInfoIndexList:           []types.StateInfoIndex{},
-				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
-			},
-			valid: false,
-		},
-		{
 			desc: "duplicated stateInfo",
 			genState: &types.GenesisState{
 				Params:                             types.DefaultParams(),
@@ -149,6 +139,18 @@ func TestGenesisState_Validate(t *testing.T) {
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
 				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{{CreationHeight: 0}, {CreationHeight: 0}},
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicated VulnerableDrsVersions",
+			genState: &types.GenesisState{
+				Params:                             types.DefaultParams(),
+				RollappList:                        []types.Rollapp{},
+				StateInfoList:                      []types.StateInfo{},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+				VulnerableDrsVersions:              []uint32{1, 1},
 			},
 			valid: false,
 		},

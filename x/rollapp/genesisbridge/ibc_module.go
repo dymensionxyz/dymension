@@ -114,7 +114,7 @@ func (w IBCModule) OnRecvPacket(
 	}
 
 	// validate genesis info against the expected data set on the rollapp
-	err = w.ValidateGenesisBridge(ctx, ra, genesisBridgeData.GenesisInfo)
+	err = w.ValidateGenesisBridge(ra, genesisBridgeData.GenesisInfo)
 	if err != nil {
 		l.Error("Validate genesis info.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "validate genesis info"))
@@ -151,13 +151,12 @@ func (w IBCModule) OnRecvPacket(
 	return successAck
 }
 
-func (w IBCModule) ValidateGenesisBridge(ctx sdk.Context, ra *types.Rollapp, data GenesisBridgeInfo) error {
+func (w IBCModule) ValidateGenesisBridge(ra *types.Rollapp, data GenesisBridgeInfo) error {
 	raInfo := ra.GenesisInfo
 
-	// TODO: validate genesis checksum
-	// if data.GenesisChecksum != raInfo.GenesisChecksum {
-	// 	return fmt.Errorf("genesis checksum mismatch: expected: %v, got: %v", raInfo.GenesisChecksum, data.GenesisChecksum)
-	// }
+	if data.GenesisChecksum != raInfo.GenesisChecksum {
+		return fmt.Errorf("genesis checksum mismatch: expected: %v, got: %v", raInfo.GenesisChecksum, data.GenesisChecksum)
+	}
 
 	if data.Bech32Prefix != raInfo.Bech32Prefix {
 		return fmt.Errorf("bech32 prefix mismatch: expected: %v, got: %v", raInfo.Bech32Prefix, data.Bech32Prefix)

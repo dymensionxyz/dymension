@@ -10,12 +10,12 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
 
 // EventIncreasedBond is an event emitted when a sequencer's bond is increased.
 message EventIncreasedBond {
-    // sequencer is the bech32-encoded address of the sequencer which increased its bond
-    string sequencer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-    // added_amount is the amount of coins added to the sequencer's bond
-    cosmos.base.v1beta1.Coin added_amount = 2 [(gogoproto.nullable) = false];
-    // bond is the new active bond amount of the sequencer
-    repeated cosmos.base.v1beta1.Coin bond = 3 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  // sequencer is the bech32-encoded address of the sequencer
+  string sequencer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // added_amount is the amount of coins added to the sequencer's bond
+  cosmos.base.v1beta1.Coin added_amount = 2 [(gogoproto.nullable) = false];
+  // bond is the new active bond amount of the sequencer
+  repeated cosmos.base.v1beta1.Coin bond = 3 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }
 
 message EventUpdateRewardAddress {
@@ -30,4 +30,32 @@ message EventUpdateWhitelistedRelayers {
     string creator = 1;
     // Relayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
     repeated string relayers = 2;
+}
+
+
+// On a sequencer kicking the incumbent proposer
+message EventKickedProposer {
+  string rollapp = 3;
+  // Kicker is the bech32-encoded address of the sequencer who triggered the kick
+  string kicker = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // Proposer is the bech32-encoded address of the proposer who was kicked
+  string proposer = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// Whenever the proposer changes to a new proposer
+message EventProposerChange {
+  string rollapp = 3;
+  // Before is the bech32-encoded address of the old proposer
+  string before = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // After is the bech32-encoded address of the new proposer
+  string after = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// When a sequencer opt-in status changes
+message EventOptInStatusChange {
+  string rollapp = 3;
+  // Sequencer is the bech32-encoded address of the old proposer
+  string sequencer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  bool before = 2;
+  bool after = 4 ;
 }

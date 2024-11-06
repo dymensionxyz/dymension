@@ -19,7 +19,7 @@ var (
 	ErrInvalidGenesisChecksum        = errorsmod.Register(ModuleName, 1010, "invalid genesis checksum")
 	ErrInvalidStateRoot              = errorsmod.Register(ModuleName, 1011, "invalid blocks state root")
 	ErrAppRegistrationFeePayment     = errorsmod.Register(ModuleName, 1013, "app registration fee payment error")
-	ErrStateNotExists                = errorsmod.Register(ModuleName, 1017, "state of this height doesn't exist")
+	ErrStateNotExists                = gerrc.ErrNotFound.Wrap("state of this height doesn't exist")
 	ErrInvalidHeight                 = errorsmod.Register(ModuleName, 1018, "invalid rollapp height")
 	ErrInvalidRollappID              = errorsmod.Register(ModuleName, 1020, "invalid rollapp-id")
 	ErrNoFinalizedStateYetForRollapp = errorsmod.Register(ModuleName, 1024, "no finalized state yet for rollapp")

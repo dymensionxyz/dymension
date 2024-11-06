@@ -142,7 +142,7 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
 
 	// update state
 	_, err := suite.PostStateUpdate(suite.Ctx, rollappId, bob, 1, uint64(3))
-	suite.ErrorIs(err, sequencertypes.ErrNotActiveSequencer)
+	suite.ErrorIs(err, sequencertypes.ErrNotProposer)
 }
 
 func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
@@ -153,7 +153,7 @@ func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
 
 	// update state from proposer of rollapp2
 	_, err := suite.PostStateUpdate(suite.Ctx, rollappId, seq_2, 1, uint64(3))
-	suite.ErrorIs(err, sequencertypes.ErrNotActiveSequencer)
+	suite.ErrorIs(err, sequencertypes.ErrNotProposer)
 }
 
 func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
@@ -190,7 +190,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 	}
 
 	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
-	suite.ErrorIs(err, sequencertypes.ErrNotActiveSequencer)
+	suite.ErrorIs(err, sequencertypes.ErrNotProposer)
 }
 
 func (suite *RollappTestSuite) TestFirstUpdateStateGenesisHeightGreaterThanZero() {
@@ -264,7 +264,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 
 	// update state from bob
 	_, err := suite.PostStateUpdate(suite.Ctx, rollappId, addr2, 1, uint64(3))
-	suite.ErrorIs(err, sequencertypes.ErrNotActiveSequencer)
+	suite.ErrorIs(err, sequencertypes.ErrNotProposer)
 }
 
 func (suite *RollappTestSuite) TestUpdateStateDowngradeTimestamp() {

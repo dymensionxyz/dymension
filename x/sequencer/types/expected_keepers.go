@@ -14,11 +14,6 @@ type RollappKeeper interface {
 	GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp)
 	SetRollappAsLaunched(ctx sdk.Context, rollapp *rollapptypes.Rollapp) error
 	GetParams(ctx sdk.Context) rollapptypes.Params
-
-	// FIXME: remove after merge (will have hooks)
-	SetStateInfo(ctx sdk.Context, stateInfo rollapptypes.StateInfo)
-	GetLatestStateInfo(ctx sdk.Context, rollappId string) (val rollapptypes.StateInfo, found bool)
-	GetStateInfo(ctx sdk.Context, rollappId string, index uint64) (val rollapptypes.StateInfo, found bool)
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

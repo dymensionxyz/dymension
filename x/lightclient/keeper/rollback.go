@@ -36,11 +36,12 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, fraud
 		deleteConsensusState(cs, h)
 		deleteConsensusMetadata(cs, h)
 
-		// clean the optimistic updates valset
-		k.RemoveConsensusStateValHash(ctx, client, h.GetRevisionHeight())
-
 		return false
 	})
+
+	// clean the optimistic updates valset
+	k.PruneSignersAbove(ctx, client, fraudHeight-1)
+
 	// marks that hard fork is in progress
 	k.setHardForkInProgress(ctx, rollappId)
 
@@ -59,8 +60,8 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) {
 	bd := stateinfo.GetLatestBlockDescriptor()
 
 	// get the valHash of this sequencer
-	proposer, _ := k.sequencerKeeper.GetSequencer(ctx, stateinfo.Sequencer)
-	valHash, _ := proposer.GetDymintPubKeyHash()
+	proposer, _ := k.SeqK.RealSequencer(ctx, stateinfo.Sequencer)
+	valHash, _ := proposer.ValsetHash()
 
 	// unfreeze the client and set the latest height
 	k.resetClientToValidState(clientStore, height)

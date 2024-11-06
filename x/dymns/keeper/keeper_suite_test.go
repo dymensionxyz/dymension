@@ -144,6 +144,7 @@ func (s *KeeperTestSuite) SetupTest() {
 			rollappParamsSubspace,
 			nil, nil, nil, nil,
 			bk,
+			nil,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 			nil,
 		)

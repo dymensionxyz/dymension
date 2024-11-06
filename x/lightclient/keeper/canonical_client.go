@@ -63,7 +63,7 @@ func (k Keeper) GetAllCanonicalClients(ctx sdk.Context) (clients []types.Canonic
 }
 
 func (k Keeper) expectedClient(ctx sdk.Context) ibctm.ClientState {
-	return types.ExpectedCanonicalClientParams(k.sequencerKeeper.UnbondingTime(ctx))
+	return types.DefaultExpectedCanonicalClientParams()
 }
 
 var errChainIDMismatch = errors.New("chain id mismatch")
@@ -108,9 +108,10 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.Client
 			return errorsmod.Wrapf(err, "find state info by height h+1: %d", h+1)
 		}
 		bd, _ := stateInfoH.GetBlockDescriptor(h)
-		nextSeq, err := k.GetSequencerPubKey(ctx, stateInfoHplus1.Sequencer)
+
+		nextSeq, err := k.SeqK.RealSequencer(ctx, stateInfoHplus1.Sequencer)
 		if err != nil {
-			return errorsmod.Wrap(err, "get sequencer pubkey")
+			return errorsmod.Wrap(err, "get sequencer")
 		}
 		rollappState := types.RollappState{
 			BlockDescriptor:    bd,

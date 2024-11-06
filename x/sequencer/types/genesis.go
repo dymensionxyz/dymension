@@ -8,6 +8,7 @@ func DefaultGenesis() *GenesisState {
 		SequencerList:    []Sequencer{},
 		GenesisProposers: []GenesisProposer{},
 		Params:           DefaultParams(),
+		NoticeQueue:      []string{},
 	}
 }
 
@@ -28,18 +29,33 @@ func (gs GenesisState) Validate() error {
 		sequencerIndexMap[seqKey] = struct{}{}
 	}
 
-	// Check for duplicated index in proposer
-	proposerIndexMap := make(map[string]struct{})
-	for _, elem := range gs.GenesisProposers {
-		rollappId := elem.RollappId
-		if _, ok := proposerIndexMap[rollappId]; ok {
-			return fmt.Errorf("duplicated proposer for %s", rollappId)
+	if err := checkSecondIndex(gs.GenesisProposers, sequencerIndexMap); err != nil {
+		return err
+	}
+	if err := checkSecondIndex(gs.GenesisSuccessors, sequencerIndexMap); err != nil {
+		return err
+	}
+
+	for _, s := range gs.NoticeQueue {
+		if _, ok := sequencerIndexMap[s]; !ok {
+			return fmt.Errorf("notice queue contains non-existent sequencer")
 		}
-		if _, ok := sequencerIndexMap[string(SequencerKey(elem.Address))]; !ok {
-			return fmt.Errorf("proposer %s does not have a sequencer", rollappId)
-		}
-		proposerIndexMap[rollappId] = struct{}{}
 	}
 
 	return gs.Params.ValidateBasic()
+}
+
+func checkSecondIndex(seqs []GenesisProposer, sequencerIndexMap map[string]struct{}) error {
+	proposerIndexMap := make(map[string]struct{})
+	for _, elem := range seqs {
+		rollappId := elem.RollappId
+		if _, ok := proposerIndexMap[rollappId]; ok {
+			return fmt.Errorf("duplicated for %s", rollappId)
+		}
+		if _, ok := sequencerIndexMap[string(SequencerKey(elem.Address))]; !ok {
+			return fmt.Errorf("%s does not have a sequencer", rollappId)
+		}
+		proposerIndexMap[rollappId] = struct{}{}
+	}
+	return nil
 }

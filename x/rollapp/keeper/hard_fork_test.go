@@ -4,8 +4,6 @@ import (
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
-// FIXME: Liveness????
-
 // TestHardFork - Test the HardFork function
 // - deleted states
 // - pending queue is cleared up to the fraud height
@@ -27,10 +25,11 @@ func (suite *RollappTestSuite) TestHardFork() {
 		{"Fraud at start of batch", numOfStates, numOfFinalizedStates, 101, false},
 		{"Fraud in middle of batch", numOfStates, numOfFinalizedStates, 107, false},
 		{"Fraud at end of batch", numOfStates, numOfFinalizedStates, 200, false},
-		{"first batch not committed yet", 0, 0, 10, false},
 		{"Fraud at future height", 10, 1, 300, false},
 
 		// error flows
+		{"first batch not committed yet", 0, 0, 10, true},
+		{"first block of the first batch", 1, 0, 1, true},
 		{"height already finalized", numOfStates, numOfFinalizedStates, 20, true},
 	}
 

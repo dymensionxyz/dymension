@@ -1,28 +1,55 @@
 package keeper
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
 
+	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
-	tmprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
+func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+// wrapper to allow taking a pointer to mutable value
+type enabled struct {
+	enabled bool
+}
+
 type Keeper struct {
+	// if false, will not run the msg update client ante handler. Very hacky
+	// use to avoid problems in ibctesting.
+	enabled *enabled
+
 	cdc             codec.BinaryCodec
 	storeKey        storetypes.StoreKey
 	ibcClientKeeper types.IBCClientKeeperExpected
-	sequencerKeeper types.SequencerKeeperExpected
+	SeqK            types.SequencerKeeperExpected
 	rollappKeeper   types.RollappKeeperExpected
+
+	// <sequencer addr,client ID, height>
+	headerSigners collections.KeySet[collections.Triple[string, string, uint64]]
+	// <client ID, height> -> <sequencer addr>
+	clientHeightToSigner collections.Map[collections.Pair[string, uint64], string]
+}
+
+func (k Keeper) Enabled() bool {
+	return k.enabled.enabled
+}
+
+func (k Keeper) SetEnabled(b bool) {
+	k.enabled.enabled = b
 }
 
 func NewKeeper(
@@ -32,86 +59,126 @@ func NewKeeper(
 	sequencerKeeper types.SequencerKeeperExpected,
 	rollappKeeper types.RollappKeeperExpected,
 ) *Keeper {
+	service := collcompat.NewKVStoreService(storeKey)
+	sb := collections.NewSchemaBuilder(service)
 	k := &Keeper{
+		enabled:         &enabled{true},
 		cdc:             cdc,
 		storeKey:        storeKey,
 		ibcClientKeeper: ibcKeeper,
-		sequencerKeeper: sequencerKeeper,
+		SeqK:            sequencerKeeper,
 		rollappKeeper:   rollappKeeper,
+		headerSigners: collections.NewKeySet(
+			sb,
+			types.HeaderSignersPrefixKey,
+			"header_signers",
+			collections.TripleKeyCodec(collections.StringKey, collections.StringKey, collections.Uint64Key),
+		),
+		clientHeightToSigner: collections.NewMap(
+			sb,
+			types.ClientHeightToSigner,
+			"client_height_to_signer",
+			collections.PairKeyCodec(collections.StringKey, collections.Uint64Key),
+			collections.StringValue,
+		),
 	}
 	return k
 }
 
-// GetSequencerHash returns the sequencer's tendermint public key hash
-func (k Keeper) GetSequencerHash(ctx sdk.Context, sequencerAddr string) ([]byte, error) {
-	seq, found := k.sequencerKeeper.GetSequencer(ctx, sequencerAddr)
-	if !found {
-		return nil, fmt.Errorf("sequencer not found")
+func (k Keeper) CanUnbond(ctx sdk.Context, seq sequencertypes.Sequencer) error {
+	client, ok := k.GetCanonicalClient(ctx, seq.RollappId)
+	if !ok {
+		return errorsmod.Wrap(sequencertypes.ErrUnbondNotAllowed, "no canonical client")
 	}
-	return seq.GetDymintPubKeyHash()
+	rng := collections.NewSuperPrefixedTripleRange[string, string, uint64](seq.Address, client)
+	return k.headerSigners.Walk(ctx, rng, func(key collections.Triple[string, string, uint64]) (stop bool, err error) {
+		return true, errorsmod.Wrapf(sequencertypes.ErrUnbondNotAllowed, "unverified header: h: %d", key.K3())
+	})
 }
 
-func (k Keeper) GetSequencerPubKey(ctx sdk.Context, sequencerAddr string) (tmprotocrypto.PublicKey, error) {
-	seq, found := k.sequencerKeeper.GetSequencer(ctx, sequencerAddr)
-	if !found {
-		return tmprotocrypto.PublicKey{}, fmt.Errorf("sequencer not found")
+// PruneSignersAbove removes bookkeeping for all heights ABOVE h for given rollapp
+// This should only be called after canonical client set
+func (k Keeper) PruneSignersAbove(ctx sdk.Context, rollapp string, h uint64) error {
+	client, ok := k.GetCanonicalClient(ctx, rollapp)
+	if !ok {
+		return gerrc.ErrInternal.Wrap(`
+prune light client signers for rollapp before canonical client is set
+this suggests fork happened prior to genesis bridge completion, which
+shouldnt be allowed
+`)
 	}
-	return seq.GetCometPubKey()
-}
+	rng := collections.NewPrefixedPairRange[string, uint64](client).StartExclusive(h)
 
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
-}
+	seqs := make([]string, 0)
+	heights := make([]uint64, 0)
 
-func (k Keeper) GetSequencerFromValHash(ctx sdk.Context, rollappID string, blockValHash []byte) (string, error) {
-	sequencerList := k.sequencerKeeper.GetSequencersByRollapp(ctx, rollappID)
-	for _, seq := range sequencerList {
-		seqHash, err := seq.GetDymintPubKeyHash()
-		if err != nil {
-			return "", err
+	// collect first to avoid del while iterating
+	if err := k.clientHeightToSigner.Walk(ctx, rng, func(key collections.Pair[string, uint64], value string) (stop bool, err error) {
+		seqs = append(seqs, value)
+		heights = append(heights, key.K2())
+		return false, nil
+	}); err != nil {
+		return errorsmod.Wrap(err, "walk signers")
+	}
+
+	for i := 0; i < len(seqs); i++ {
+		if err := k.RemoveSigner(ctx, seqs[i], client, heights[i]); err != nil {
+			return errorsmod.Wrap(err, "remove signer")
 		}
-		if bytes.Equal(seqHash, blockValHash) {
-			return seq.Address, nil
+	}
+	return nil
+}
+
+// PruneSignersBelow removes bookkeeping for all heights BELOW h for given rollapp
+// This should only be called after canonical client set
+func (k Keeper) PruneSignersBelow(ctx sdk.Context, rollapp string, h uint64) error {
+	client, ok := k.GetCanonicalClient(ctx, rollapp)
+	if !ok {
+		return gerrc.ErrInternal.Wrap(`
+prune light client signers for rollapp before canonical client is set
+this suggests fork happened prior to genesis bridge completion, which
+shouldnt be allowed
+`)
+	}
+	rng := collections.NewPrefixedPairRange[string, uint64](client).EndExclusive(h)
+
+	seqs := make([]string, 0)
+	heights := make([]uint64, 0)
+
+	// collect first to avoid del while iterating
+	if err := k.clientHeightToSigner.Walk(ctx, rng, func(key collections.Pair[string, uint64], value string) (stop bool, err error) {
+		seqs = append(seqs, value)
+		heights = append(heights, key.K2())
+		return false, nil
+	}); err != nil {
+		return errorsmod.Wrap(err, "walk signers")
+	}
+
+	for i := 0; i < len(seqs); i++ {
+		if err := k.RemoveSigner(ctx, seqs[i], client, heights[i]); err != nil {
+			return errorsmod.Wrap(err, "remove signer")
 		}
 	}
-	return "", types.ErrSequencerNotFound
+	return nil
 }
 
-// SetConsensusStateValHash sets block valHash for the given height of the client
-func (k Keeper) SetConsensusStateValHash(ctx sdk.Context, clientID string, height uint64, blockValHash []byte) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.ConsensusStateValhashKeyByClientID(clientID, height), blockValHash)
+// GetSigner returns the sequencer address who signed the header in the update
+func (k Keeper) GetSigner(ctx sdk.Context, client string, h uint64) (string, error) {
+	return k.clientHeightToSigner.Get(ctx, collections.Join(client, h))
 }
 
-func (k Keeper) RemoveConsensusStateValHash(ctx sdk.Context, clientID string, height uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.ConsensusStateValhashKeyByClientID(clientID, height))
+func (k Keeper) SaveSigner(ctx sdk.Context, seqAddr string, client string, h uint64) error {
+	return errors.Join(
+		k.headerSigners.Set(ctx, collections.Join3(seqAddr, client, h)),
+		k.clientHeightToSigner.Set(ctx, collections.Join(client, h), seqAddr),
+	)
 }
 
-// GetConsensusStateValHash returns the block valHash for the given height of the client
-func (k Keeper) GetConsensusStateValHash(ctx sdk.Context, clientID string, height uint64) ([]byte, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.ConsensusStateValhashKeyByClientID(clientID, height))
-	if bz == nil {
-		return nil, false
-	}
-	return bz, true
-}
-
-func (k Keeper) GetAllConsensusStateSigners(ctx sdk.Context) (signers []types.ConsensusStateSigner) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ConsensusStateValhashKey)
-	defer iterator.Close() // nolint: errcheck
-	for ; iterator.Valid(); iterator.Next() {
-		key := iterator.Key()
-		clientID, height := types.ParseConsensusStateValhashKey(key)
-		signers = append(signers, types.ConsensusStateSigner{
-			IbcClientId:  clientID,
-			Height:       height,
-			BlockValHash: string(iterator.Value()),
-		})
-	}
-	return
+func (k Keeper) RemoveSigner(ctx sdk.Context, seqAddr string, client string, h uint64) error {
+	return errors.Join(
+		k.headerSigners.Remove(ctx, collections.Join3(seqAddr, client, h)),
+		k.clientHeightToSigner.Remove(ctx, collections.Join(client, h)),
+	)
 }
 
 func (k Keeper) GetRollappForClientID(ctx sdk.Context, clientID string) (string, bool) {

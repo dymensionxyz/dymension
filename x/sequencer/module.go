@@ -98,7 +98,7 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper        keeper.Keeper
+	keeper        *keeper.Keeper
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
 
@@ -108,7 +108,7 @@ type AppModule struct {
 
 func NewAppModule(
 	cdc codec.Codec,
-	keeper keeper.Keeper,
+	keeper *keeper.Keeper,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	ss Subspace,
@@ -141,7 +141,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 // RegisterInvariants registers the module's invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	keeper.RegisterInvariants(ir, am.keeper)
+	keeper.RegisterInvariants(ir, *am.keeper)
 }
 
 // InitGenesis performs the capability module's genesis initialization It returns
@@ -166,19 +166,16 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 func (AppModule) ConsensusVersion() uint64 { return 3 }
 
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
+func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
+	// Must be in begin block to make sure successor is set before allowing last block from proposer
+	err := am.keeper.ChooseSuccessorForFinishedNotices(ctx, ctx.BlockTime())
+	if err != nil {
+		ctx.Logger().Error("ChooseNewProposerForFinishedNoticePeriods", "err", err)
+	}
+}
 
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	// start unbonding period for sequencers after notice period
-	am.keeper.MatureSequencersWithNoticePeriod(ctx, ctx.BlockTime())
-
-	// Unbond all mature sequencers
-	am.keeper.UnbondAllMatureSequencers(ctx, ctx.BlockTime())
-
-	// Handle bond reduction
-	am.keeper.HandleBondReduction(ctx, ctx.BlockTime())
-
 	return []abci.ValidatorUpdate{}
 }

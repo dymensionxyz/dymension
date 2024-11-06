@@ -1,7 +1,7 @@
 package types
 
 import (
-	time "time"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -56,5 +56,9 @@ type PoolManagerKeeper interface {
 type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (rollapp rollapptypes.Rollapp, found bool)
 	SetIROPlanToRollapp(ctx sdk.Context, rollapp *rollapptypes.Rollapp, iro Plan) error
-	MustGetRollapp(ctx sdk.Context, rollappId string) rollapptypes.Rollapp
+	MustGetRollappOwner(ctx sdk.Context, rollappID string) sdk.AccAddress
+}
+
+type TxFeesKeeper interface {
+	ChargeFeesFromPayer(ctx sdk.Context, payer sdk.AccAddress, takerFeeCoin sdk.Coin, beneficiary *sdk.AccAddress) error
 }

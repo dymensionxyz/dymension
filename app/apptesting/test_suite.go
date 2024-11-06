@@ -44,7 +44,6 @@ func (s *KeeperTestHelper) CreateDefaultRollappAndProposer() (string, string) {
 	return rollappId, proposer
 }
 
-// creates a rollapp and return its rollappID
 func (s *KeeperTestHelper) CreateDefaultRollapp() string {
 	rollappId := urand.RollappID()
 	s.CreateRollappByName(rollappId)
@@ -183,13 +182,12 @@ func FundForAliasRegistration(
 	)
 }
 
-func (s *KeeperTestHelper) FinalizeAllPendingPackets(rollappID, receiver string) int {
+func (s *KeeperTestHelper) FinalizeAllPendingPackets(address string) int {
 	s.T().Helper()
-	// Query all pending packets by receiver
+	// Query all pending packets by address
 	querier := delayedackkeeper.NewQuerier(s.App.DelayedAckKeeper)
-	resp, err := querier.GetPendingPacketsByReceiver(s.Ctx, &delayedacktypes.QueryPendingPacketsByReceiverRequest{
-		RollappId: rollappID,
-		Receiver:  receiver,
+	resp, err := querier.GetPendingPacketsByAddress(s.Ctx, &delayedacktypes.QueryPendingPacketsByAddressRequest{
+		Address: address,
 	})
 	s.Require().NoError(err)
 	// Finalize all packets and return the num of finalized

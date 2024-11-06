@@ -77,6 +77,30 @@ func TestInitExportGenesis(t *testing.T) {
 				RollappId: rollappID2,
 			},
 		},
+		SequencerHeightPairs: []types.SequencerHeightPair{
+			{
+				Sequencer: "seq1",
+				Height:    0,
+			},
+			{
+				Sequencer: "seq2",
+				Height:    1,
+			},
+			{
+				Sequencer: "seq3",
+				Height:    2,
+			},
+		},
+		LivenessEvents: []types.LivenessEvent{
+			{
+				RollappId: rollappID2,
+				HubHeight: 42,
+			},
+			{
+				RollappId: rollappID1,
+				HubHeight: 44,
+			},
+		},
 	}
 
 	k, ctx := keepertest.RollappKeeper(t)

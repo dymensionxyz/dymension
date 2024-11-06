@@ -59,10 +59,14 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketDeleted() {
 			demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(100), math.NewIntFromUint64(50), sdk.DefaultBondDenom, demandOrderFulfillerAddr, 1)
 			err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
 			suite.Require().NoError(err)
+			_, err = suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, commontypes.Status_PENDING, demandOrder.Id)
+			suite.Require().NoError(err)
 
 			// Update rollapp packet status
-			_, err = suite.App.DelayedAckKeeper.UpdateRollappPacketWithStatus(suite.Ctx, *rollappPacket, tc.packetStatus)
-			suite.Require().NoError(err)
+			if tc.packetStatus == commontypes.Status_FINALIZED {
+				_, err = suite.App.DelayedAckKeeper.UpdateRollappPacketWithStatus(suite.Ctx, *rollappPacket, tc.packetStatus)
+				suite.Require().NoError(err)
+			}
 
 			// delete the rollapp packet
 			err = suite.App.DelayedAckKeeper.DeleteRollappPacket(suite.Ctx, rollappPacket)

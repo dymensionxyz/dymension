@@ -35,41 +35,17 @@ func TestAfterUpdateState(t *testing.T) {
 			},
 			expectErr: false,
 		},
-		{
-			name: "canonical client exists but consensus state is not found for given height",
-			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
-				k.SetCanonicalClient(ctx, "rollapp-has-canon-client-but-no-state", "canon-client-id-no-state")
-				return testInput{
-					rollappId: "rollapp-has-canon-client-but-no-state",
-					stateInfo: &rollapptypes.StateInfo{
-						Sequencer:   keepertest.Alice,
-						StartHeight: 1,
-						NumBlocks:   1,
-						BDs: rollapptypes.BlockDescriptors{
-							BD: []rollapptypes.BlockDescriptor{
-								{
-									Height:    1,
-									StateRoot: []byte("test"),
-									Timestamp: time.Unix(1724392989, 0),
-								},
-							},
-						},
-					},
-				}
-			},
-			expectErr: false,
-		},
+
 		{
 			name: "both states are not compatible - slash the sequencer who signed",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
-				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				seqValHash, err := k.GetSequencerHash(ctx, keepertest.Alice)
+				k.SetCanonicalClient(ctx, keepertest.DefaultRollapp, keepertest.CanonClientID)
+				err := k.SaveSigner(ctx, keepertest.Alice.Address, keepertest.CanonClientID, 2)
 				require.NoError(t, err)
-				k.SetConsensusStateValHash(ctx, "canon-client-id", 2, seqValHash)
 				return testInput{
-					rollappId: "rollapp-has-canon-client",
+					rollappId: keepertest.DefaultRollapp,
 					stateInfo: &rollapptypes.StateInfo{
-						Sequencer:   keepertest.Alice,
+						Sequencer:   keepertest.Alice.Address,
 						StartHeight: 1,
 						NumBlocks:   3,
 						BDs: rollapptypes.BlockDescriptors{
@@ -99,14 +75,14 @@ func TestAfterUpdateState(t *testing.T) {
 		{
 			name: "state is compatible",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
-				k.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
-				seqValHash, err := k.GetSequencerHash(ctx, keepertest.Alice)
+				k.SetCanonicalClient(ctx, keepertest.DefaultRollapp, keepertest.CanonClientID)
+				err := k.SaveSigner(ctx, keepertest.Alice.Address, keepertest.CanonClientID, 2)
 				require.NoError(t, err)
-				k.SetConsensusStateValHash(ctx, "canon-client-id", 2, seqValHash)
+
 				return testInput{
-					rollappId: "rollapp-has-canon-client",
+					rollappId: keepertest.DefaultRollapp,
 					stateInfo: &rollapptypes.StateInfo{
-						Sequencer:   keepertest.Alice,
+						Sequencer:   keepertest.Alice.Address,
 						StartHeight: 1,
 						NumBlocks:   3,
 						BDs: rollapptypes.BlockDescriptors{

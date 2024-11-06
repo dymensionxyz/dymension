@@ -40,7 +40,7 @@ func NewMsgCreateSequencer(
 	whitelistedRelayers []string,
 ) (*MsgCreateSequencer, error) {
 	if metadata == nil {
-		return nil, ErrInvalidRequest
+		return nil, gerrc.ErrInvalidArgument
 	}
 	var pkAny *codectypes.Any
 	if pubkey != nil {
@@ -85,7 +85,7 @@ func (msg *MsgCreateSequencer) GetSignBytes() []byte {
 func (msg *MsgCreateSequencer) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(ErrInvalidAddr, "invalid creator address (%s)", err)
 	}
 
 	// public key also checked by the application logic
@@ -101,7 +101,7 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 	// cast to cryptotypes.PubKey type
 	pk, ok := msg.DymintPubKey.GetCachedValue().(cryptotypes.PubKey)
 	if !ok {
-		return errorsmod.Wrapf(ErrInvalidType, "expecting cryptotypes.PubKey, got %T", pk)
+		return errorsmod.WithType(ErrInvalidPubKey, pk)
 	}
 
 	_, err = edwards.ParsePubKey(edwards.Edwards(), pk.Bytes())

@@ -1,21 +1,25 @@
 package types
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 var (
 	_ sdk.Msg                            = &MsgUpdateSequencerInformation{}
+	_ sdk.Msg                            = &MsgUpdateOptInStatus{}
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateSequencerInformation)(nil)
 )
 
 func NewMsgUpdateSequencerInformation(creator string, metadata *SequencerMetadata) (*MsgUpdateSequencerInformation, error) {
 	if metadata == nil {
-		return nil, ErrInvalidRequest
+		return nil, gerrc.ErrInvalidArgument
 	}
 	return &MsgUpdateSequencerInformation{
 		Creator:  creator,
@@ -63,3 +67,26 @@ func (msg *MsgUpdateSequencerInformation) VMSpecificValidate(vmType types.Rollap
 }
 
 func (msg *MsgUpdateSequencerInformation) UnpackInterfaces(codectypes.AnyUnpacker) error { return nil }
+
+func (m *MsgUpdateOptInStatus) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Creator)
+	if err != nil {
+		return errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "get creator addr from bech32")
+	}
+	return nil
+}
+
+func (m *MsgUpdateOptInStatus) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(m.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func NewMsgUpdateOptInStatus(creator string, optIn bool) *MsgUpdateOptInStatus {
+	return &MsgUpdateOptInStatus{
+		Creator: creator,
+		OptedIn: optIn,
+	}
+}
