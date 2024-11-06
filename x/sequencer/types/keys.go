@@ -55,9 +55,9 @@ var (
 
 	DymintProposerAddrToAccAddrKeyPrefix = collections.NewPrefix([]byte{0x43})
 
-	// These keys were already used on mainnet
-	_Reserved0 = []byte{0xa3}
-	_Reserved1 = []byte{0x41}
+	// These keys were already used on mainnet. Don't reuse
+	_ = []byte{0xa3}
+	_ = []byte{0x41}
 )
 
 /* --------------------- specific sequencer address keys -------------------- */
