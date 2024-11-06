@@ -29,24 +29,34 @@ func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, fraudHeight uint64
 			"sequence", rollappPacket.Packet.Sequence,
 		}
 
+		pendingAddr := ""
+		transfer := rollappPacket.MustGetTransferPacketData()
 		if rollappPacket.Type == commontypes.RollappPacket_ON_ACK || rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
 			// for sent packets, we restore the packet commitment
 			// the packet will be handled over the new rollapp revision
 			commitment := channeltypes.CommitPacket(k.cdc, rollappPacket.Packet)
 			k.channelKeeper.SetPacketCommitment(ctx, rollappPacket.Packet.SourcePort, rollappPacket.Packet.SourceChannel, rollappPacket.Packet.Sequence, commitment)
+			pendingAddr = transfer.Sender
 		} else {
 			// for incoming packets, we need to reset the packet receipt
 			ibcPacket := rollappPacket.Packet
 			k.deletePacketReceipt(ctx, ibcPacket.GetDestPort(), ibcPacket.GetDestChannel(), ibcPacket.GetSequence())
+			pendingAddr = transfer.Receiver
 		}
 
 		// delete the packet
 		err := k.DeleteRollappPacket(ctx, &rollappPacket)
 		if err != nil {
 			logger.Error("failed to delete reverted packet", append(logContext, "error", err.Error())...)
+			continue
 		}
 
-		// FIXME: delete pendingPacketsByAddress>????
+		// delete the pending packet
+		err = k.DeletePendingPacketByAddress(ctx, pendingAddr, rollappPacket.RollappPacketKey())
+		if err != nil {
+			logger.Error("failed to delete reverted pending packet", append(logContext, "error", err.Error())...)
+			continue
+		}
 
 		logger.Debug("reverted IBC rollapp packet", logContext...)
 	}

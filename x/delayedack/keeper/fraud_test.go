@@ -19,13 +19,17 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 
 	for _, pkt := range append(pkts, pkts2...) {
 		keeper.SetRollappPacket(ctx, pkt)
+		keeper.MustSetPendingPacketByAddress(ctx, apptesting.TestPacketReceiver, pkt.RollappPacketKey())
 	}
 
 	suite.Require().Equal(10, len(keeper.ListRollappPackets(ctx, prefixPending1)))
 	suite.Require().Equal(10, len(keeper.ListRollappPackets(ctx, prefixPending2)))
+	pktsByAddr, err := keeper.GetPendingPacketsByAddress(ctx, apptesting.TestPacketReceiver)
+	suite.Require().NoError(err)
+	suite.Require().Equal(20, len(pktsByAddr))
 
 	// finalize one packet
-	_, err := keeper.UpdateRollappPacketWithStatus(ctx, pkts[0], commontypes.Status_FINALIZED)
+	_, err = keeper.UpdateRollappPacketWithStatus(ctx, pkts[0], commontypes.Status_FINALIZED)
 	suite.Require().Nil(err)
 	_, err = keeper.UpdateRollappPacketWithStatus(ctx, pkts2[0], commontypes.Status_FINALIZED)
 	suite.Require().Nil(err)
@@ -45,6 +49,10 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 
 	suite.Require().Equal(1, len(keeper.ListRollappPackets(ctx, prefixFinalized1)))
 	suite.Require().Equal(2, len(keeper.ListRollappPackets(ctx, prefixPending1)))
+
+	pktsByAddr, err = keeper.GetPendingPacketsByAddress(ctx, apptesting.TestPacketReceiver)
+	suite.Require().NoError(err)
+	suite.Require().Equal(11, len(pktsByAddr)) // 2 from rollappId, 9 from rollappId2
 
 	suite.Require().Equal(1, len(keeper.ListRollappPackets(ctx, prefixFinalized2)))
 	suite.Require().Equal(9, len(keeper.ListRollappPackets(ctx, prefixPending2)))
