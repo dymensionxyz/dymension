@@ -81,6 +81,7 @@ func (k Keeper) OnProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) e
 	}
 
 	k.SetProposer(ctx, proposer.RollappId, types.SentinelSeqAddr)
+	// FIXME: shouldn't go through sentinel, as it considered hard fork
 	if err := k.UpdateProposerIfNeeded(ctx, proposer.RollappId); err != nil {
 		return errorsmod.Wrap(err, "choose proposer")
 	}

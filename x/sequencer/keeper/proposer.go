@@ -46,11 +46,8 @@ func (k Keeper) UpdateProposerIfNeeded(ctx sdk.Context, rollapp string) error {
 	proposer := k.GetProposer(ctx, rollapp)
 	before := proposer
 
+	// a valid proposer is already set so there's no need to do anything
 	if !proposer.Sentinel() {
-		if !proposer.Bonded() {
-			return gerrc.ErrInternal.Wrap("proposer is unbonded - invariant broken")
-		}
-		// a valid proposer is already set so there's no need to do anything
 		return nil
 	}
 	successor := k.GetSuccessor(ctx, rollapp)

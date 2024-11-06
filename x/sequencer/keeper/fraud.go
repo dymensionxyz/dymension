@@ -12,10 +12,6 @@ import (
 // TryKickProposer tries to remove the incumbent proposer. It requires the incumbent
 // proposer to be below a threshold of bond. The caller must also be bonded and opted in.
 func (k Keeper) TryKickProposer(ctx sdk.Context, kicker types.Sequencer) error {
-	if !kicker.IsPotentialProposer() {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "not ready to propose")
-	}
-
 	ra := kicker.RollappId
 
 	proposer := k.GetProposer(ctx, ra)
