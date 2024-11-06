@@ -74,12 +74,10 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 	// check that the blocks are sequential by height
 	for bdIndex := uint64(0); bdIndex < msg.NumBlocks; bdIndex += 1 {
 
-		// Pre 3D rollapps will use zero until they upgrade. Post 3D rollapps
+		// Pre 3D rollapps will use zero DRS until they upgrade. Post 3D rollapps
 		// should use a non-zero version. We rely on other fraud mechanisms
-		// to catch that if it's wrong.
-		if msg.BDs.BD[bdIndex].DrsVersion < 0 {
-			return ErrInvalidDRSVersion
-		}
+		// to catch that if it's wrong. So we don't check DRS.
+
 		if msg.BDs.BD[bdIndex].Height != msg.StartHeight+bdIndex {
 			return ErrInvalidBlockSequence
 		}

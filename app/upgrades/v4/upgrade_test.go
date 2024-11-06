@@ -272,8 +272,9 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 		s.Require().True(sequencer.OptedIn)
 		s.Require().JSONEq(string(seq), string(nSeq))
 
-		_, byDymintAddr := s.App.SequencerKeeper.SequencerByDymintAddr(s.Ctx, expectSequencers[i].MustProposerAddr())
-		s.Require().Equal(sequencer.Address, byDymintAddr)
+		byDymintAddr, err := s.App.SequencerKeeper.SequencerByDymintAddr(s.Ctx, expectSequencers[i].MustProposerAddr())
+		s.Require().NoError(err)
+		s.Require().Equal(sequencer.Address, byDymintAddr.Address)
 	}
 
 	// check proposer

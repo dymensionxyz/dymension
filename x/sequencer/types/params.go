@@ -12,7 +12,7 @@ import (
 
 var (
 	// DefaultMinBond is the minimum bond required to be a validator
-	DefaultMinBond uint64 = 1000000
+	DefaultMinBond = rollapptypes.OneDymCoin.Amount.Uint64() * 10
 	// DefaultKickThreshold is the minimum bond required to be a validator
 	DefaultKickThreshold = rollapptypes.OneDymCoin
 	// DefaultNoticePeriod is the time duration for notice period
