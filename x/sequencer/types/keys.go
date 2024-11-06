@@ -54,6 +54,10 @@ var (
 	NoticePeriodQueueKey = []byte{0x42} // prefix for the timestamps in notice period queue
 
 	DymintProposerAddrToAccAddrKeyPrefix = collections.NewPrefix([]byte{0x43})
+
+	// These keys were already used on mainnet
+	_Reserved0 = []byte{0xa3}
+	_Reserved1 = []byte{0x41}
 )
 
 /* --------------------- specific sequencer address keys -------------------- */
