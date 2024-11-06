@@ -51,14 +51,13 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 	}
 
 	// punish the sequencer if needed
-	if msg.SlashSequencerAddress != "" {
-		err := k.sequencerKeeper.PunishSequencer(ctx, msg.SlashSequencerAddress)
+	if msg.PunishSequencerAddress != "" {
+		err := k.sequencerKeeper.PunishSequencer(ctx, msg.PunishSequencerAddress)
 		if err != nil {
 			return nil, errorsmod.Wrap(err, "jail sequencer")
 		}
 	}
 
-	// FIXME: remove hard fork bool from the msg
 	err := k.HardFork(ctx, msg.RollappId, msg.FraudHeight)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "hard fork")

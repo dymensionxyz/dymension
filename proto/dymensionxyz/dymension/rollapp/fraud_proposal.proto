@@ -26,11 +26,8 @@ message MsgRollappFraudProposal {
   // The height of the fraudelent block
 	uint64 fraud_height = 4;
 
-  // hard fork required?
-  bool hard_fork = 5;
-
-  // sequencer address to jail. optional
-  string slash_sequencer_address = 6;
+  // sequencer address to punish. optional
+  string punish_sequencer_address = 6;
 }
 
 message MsgRollappFraudProposalResponse {
