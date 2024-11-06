@@ -110,6 +110,8 @@ func (s *utilSuite) rollappMsgServer() rollapptypes.MsgServer {
 
 // SetupTest creates a coordinator with 2 test chains.
 func (s *utilSuite) SetupTest() {
+	// this is used as default when creating blocks.
+	// set in the block as the revision number
 	simapp.DefaultAppVersion = 0
 
 	s.coordinator = ibctesting.NewCoordinator(s.T(), 2) // initializes test chains

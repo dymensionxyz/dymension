@@ -33,5 +33,8 @@ func (h SequencerHooks) AfterChooseNewProposer(ctx sdk.Context, rollapp string, 
 }
 
 func (h SequencerHooks) AfterKickProposer(ctx sdk.Context, kicked sequencertypes.Sequencer) {
-	h.Keeper.HardForkToLatest(ctx, kicked.RollappId)
+	err := h.Keeper.HardForkToLatest(ctx, kicked.RollappId)
+	if err != nil {
+		h.Keeper.Logger(ctx).Error("hard fork after kick proposer", "error", err)
+	}
 }

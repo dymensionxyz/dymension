@@ -45,6 +45,9 @@ func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, fraudHeight uint64
 		if err != nil {
 			logger.Error("failed to delete reverted packet", append(logContext, "error", err.Error())...)
 		}
+
+		// FIXME: delete pendingPacketsByAddress>????
+
 		logger.Debug("reverted IBC rollapp packet", logContext...)
 	}
 

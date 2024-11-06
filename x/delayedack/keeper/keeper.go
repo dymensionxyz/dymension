@@ -80,17 +80,6 @@ func (k Keeper) Cdc() codec.Codec {
 	return k.cdc
 }
 
-func (k Keeper) getRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint64, error) {
-	// GetLatestFinalizedStateIndex
-	latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, chainID)
-	if !found {
-		return 0, rollapptypes.ErrNoFinalizedStateYetForRollapp
-	}
-
-	stateInfo := k.rollappKeeper.MustGetStateInfo(ctx, chainID, latestFinalizedStateIndex.Index)
-	return stateInfo.StartHeight + stateInfo.NumBlocks - 1, nil
-}
-
 /* -------------------------------------------------------------------------- */
 /*                               Hooks handling                               */
 /* -------------------------------------------------------------------------- */

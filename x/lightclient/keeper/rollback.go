@@ -40,7 +40,10 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, fraud
 	})
 
 	// clean the optimistic updates valset
-	k.PruneSignersAbove(ctx, client, fraudHeight-1)
+	err := k.PruneSignersAbove(ctx, client, fraudHeight-1)
+	if err != nil {
+		k.Logger(ctx).Error("Failed to prune signers", "err", err)
+	}
 
 	// marks that hard fork is in progress
 	k.setHardForkInProgress(ctx, rollappId)

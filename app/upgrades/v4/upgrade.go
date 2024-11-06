@@ -267,9 +267,10 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 			InitialSupply: sdk.NewInt(100000), // placeholder data
 			Sealed:        true,
 		},
-		InitialSequencer: "*",
-		Launched:         true,
-		RevisionNumber:   0,
+		InitialSequencer:    "*",
+		Launched:            true,
+		RevisionNumber:      0,
+		RevisionStartHeight: 0,
 	}
 }
 
