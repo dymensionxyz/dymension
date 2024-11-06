@@ -84,7 +84,7 @@ func (k Keeper) finalizeRollappPacket(
 	}
 
 	// Update status to finalized
-	_, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
+	_, err := k.UpdateRollappPacketAfterFinalization(ctx, rollappPacket)
 	if err != nil {
 		return fmt.Errorf("update rollapp packet: %w", err)
 	}

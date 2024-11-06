@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
 
 	"cosmossdk.io/collections"
@@ -153,15 +152,12 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 	return nil
 }
 
-// UpdateRollappPacketWithStatus deletes the current rollapp packet and creates a new one with and updated status under a new key.
+// UpdateRollappPacketAfterFinalization deletes the current rollapp packet and creates a new one with and updated status under a new key.
 // Updating the status should be called only with this method as it effects the key of the packet.
 // The assumption is that the passed rollapp packet status field is not updated directly.
-func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket commontypes.RollappPacket, newStatus commontypes.Status) (commontypes.RollappPacket, error) {
+func (k *Keeper) UpdateRollappPacketAfterFinalization(ctx sdk.Context, rollappPacket commontypes.RollappPacket) (commontypes.RollappPacket, error) {
 	if rollappPacket.Status != commontypes.Status_PENDING {
 		return commontypes.RollappPacket{}, types.ErrCanOnlyUpdatePendingPacket
-	}
-	if newStatus == commontypes.Status_PENDING {
-		return commontypes.RollappPacket{}, errors.New("cannot update packet to pending status")
 	}
 
 	transferPacketData, err := rollappPacket.GetTransferPacketData()
@@ -184,7 +180,7 @@ func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket co
 	store.Delete(oldKey)
 
 	// Update the packet
-	rollappPacket.Status = newStatus
+	rollappPacket.Status = commontypes.Status_FINALIZED
 	// Create a new rollapp packet with the updated status
 	k.SetRollappPacket(ctx, rollappPacket)
 

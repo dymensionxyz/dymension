@@ -20,7 +20,7 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketUpdated() {
 	err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
 	suite.Require().NoError(err)
 	// Update rollapp packet status to finalized
-	updatedRollappPacket, err := suite.App.DelayedAckKeeper.UpdateRollappPacketWithStatus(suite.Ctx, *rollappPacket, commontypes.Status_FINALIZED)
+	updatedRollappPacket, err := suite.App.DelayedAckKeeper.UpdateRollappPacketAfterFinalization(suite.Ctx, *rollappPacket)
 	suite.Require().NoError(err)
 	// Veirfy that the demand order is updated
 	updatedDemandOrder, err := suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, commontypes.Status_FINALIZED, demandOrder.Id)
@@ -64,7 +64,7 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketDeleted() {
 
 			// Update rollapp packet status
 			if tc.packetStatus == commontypes.Status_FINALIZED {
-				_, err = suite.App.DelayedAckKeeper.UpdateRollappPacketWithStatus(suite.Ctx, *rollappPacket, tc.packetStatus)
+				_, err = suite.App.DelayedAckKeeper.UpdateRollappPacketAfterFinalization(suite.Ctx, *rollappPacket)
 				suite.Require().NoError(err)
 			}
 

@@ -14,7 +14,6 @@ func (suite *DelayedAckTestSuite) TestRollappPacketEvents() {
 	tests := []struct {
 		name                               string
 		rollappPacket                      commontypes.RollappPacket
-		rollappUpdatedStatus               commontypes.Status
 		rollappUpdateError                 error
 		expectedEventType                  string
 		expectedEventsCountPreUpdate       int
@@ -30,7 +29,6 @@ func (suite *DelayedAckTestSuite) TestRollappPacketEvents() {
 				Status:      commontypes.Status_PENDING,
 				ProofHeight: 1,
 			},
-			rollappUpdatedStatus:         commontypes.Status_FINALIZED,
 			rollappUpdateError:           types.ErrRollappPacketDoesNotExist,
 			expectedEventType:            delayedAckEventType,
 			expectedEventsCountPreUpdate: 1,
@@ -65,7 +63,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketEvents() {
 			suite.AssertAttributes(lastEvent, tc.expectedEventsAttributesPreUpdate)
 			// Update the rollapp packet
 			tc.rollappPacket.Error = tc.rollappUpdateError.Error()
-			_, err := keeper.UpdateRollappPacketWithStatus(ctx, tc.rollappPacket, tc.rollappUpdatedStatus)
+			_, err := keeper.UpdateRollappPacketAfterFinalization(ctx, tc.rollappPacket)
 			suite.Require().NoError(err)
 			// Check the events
 			suite.AssertEventEmitted(ctx, tc.expectedEventType, tc.expectedEventsCountPostUpdate)
@@ -182,7 +180,7 @@ func (suite *DelayedAckTestSuite) TestUpdateRollappPacketWithStatus_PendingToFin
 	suite.Require().NoError(err)
 
 	// Update the packet status
-	packet, err := keeper.UpdateRollappPacketWithStatus(ctx, oldPacket, commontypes.Status_FINALIZED)
+	packet, err := keeper.UpdateRollappPacketAfterFinalization(ctx, oldPacket)
 	suite.Require().NoError(err)
 	suite.Require().Equal(commontypes.Status_FINALIZED, packet.Status)
 

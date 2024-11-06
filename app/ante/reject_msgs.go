@@ -1,6 +1,7 @@
 package ante
 
 import (
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -41,7 +42,7 @@ func (rmd RejectMessagesDecorator) AnteHandle(
 	next sdk.AnteHandler,
 ) (sdk.Context, error) {
 	if err := rmd.checkMsgs(ctx, tx.GetMsgs(), 0); err != nil {
-		return ctx, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, err.Error())
+		return ctx, errors.Join(sdkerrors.ErrUnauthorized, err)
 	}
 	return next(ctx, tx, simulate)
 }

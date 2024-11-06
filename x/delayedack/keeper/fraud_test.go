@@ -29,9 +29,9 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 	suite.Require().Equal(20, len(pktsByAddr))
 
 	// finalize one packet
-	_, err = keeper.UpdateRollappPacketWithStatus(ctx, pkts[0], commontypes.Status_FINALIZED)
+	_, err = keeper.UpdateRollappPacketAfterFinalization(ctx, pkts[0])
 	suite.Require().Nil(err)
-	_, err = keeper.UpdateRollappPacketWithStatus(ctx, pkts2[0], commontypes.Status_FINALIZED)
+	_, err = keeper.UpdateRollappPacketAfterFinalization(ctx, pkts2[0])
 	suite.Require().Nil(err)
 
 	// call fraud on the 4 packet
