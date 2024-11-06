@@ -28,7 +28,8 @@ var (
 
 	// DYM is 1dym
 	DYM                       = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-	DefaultAppRegistrationFee = sdk.NewCoin(params.BaseDenom, DYM)
+	OneDymCoin                = sdk.NewCoin(params.BaseDenom, DYM)
+	DefaultAppRegistrationFee = OneDymCoin
 )
 
 const (
