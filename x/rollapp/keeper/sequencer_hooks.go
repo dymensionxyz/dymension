@@ -30,7 +30,6 @@ func (h SequencerHooks) AfterChooseNewProposer(ctx sdk.Context, rollapp string, 
 		sInfo.NextProposer = after.Address
 		h.Keeper.SetStateInfo(ctx, sInfo)
 	}
-
 }
 
 func (h SequencerHooks) AfterKickProposer(ctx sdk.Context, kicked sequencertypes.Sequencer) {
