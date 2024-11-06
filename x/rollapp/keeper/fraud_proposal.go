@@ -37,11 +37,10 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp is not past genesis bridge phase")
 	}
 
-	// validate the fraud height is already committed
-	// FIXME: allow the latest height +1 as well?
+	// validate we have state infos committed
 	sinfo, found := k.GetLatestStateInfo(ctx, msg.RollappId)
-	if !found || sinfo.GetLatestHeight() < msg.FraudHeight {
-		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "fraud height not committed")
+	if !found {
+		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "no state info found")
 	}
 
 	// check wether the fraud height is already finalized
