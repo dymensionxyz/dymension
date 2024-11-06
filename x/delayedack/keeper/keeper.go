@@ -21,7 +21,7 @@ import (
 type Keeper struct {
 	rollapptypes.StubRollappCreatedHooks
 
-	cdc                   codec.BinaryCodec
+	cdc                   codec.Codec
 	storeKey              storetypes.StoreKey
 	channelKeeperStoreKey storetypes.StoreKey // we need direct access to the IBC channel store
 	hooks                 types.MultiDelayedAckHooks
@@ -40,7 +40,7 @@ type Keeper struct {
 }
 
 func NewKeeper(
-	cdc codec.BinaryCodec,
+	cdc codec.Codec,
 	storeKey storetypes.StoreKey,
 	channelKeeperStoreKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
@@ -73,6 +73,22 @@ func NewKeeper(
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+// expose codec to be used by the delayedack middleware
+func (k Keeper) Cdc() codec.Codec {
+	return k.cdc
+}
+
+func (k Keeper) getRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint64, error) {
+	// GetLatestFinalizedStateIndex
+	latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, chainID)
+	if !found {
+		return 0, rollapptypes.ErrNoFinalizedStateYetForRollapp
+	}
+
+	stateInfo := k.rollappKeeper.MustGetStateInfo(ctx, chainID, latestFinalizedStateIndex.Index)
+	return stateInfo.StartHeight + stateInfo.NumBlocks - 1, nil
 }
 
 /* -------------------------------------------------------------------------- */

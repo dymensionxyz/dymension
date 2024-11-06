@@ -13,8 +13,6 @@ import (
 )
 
 type SequencerKeeperExpected interface {
-	GetSequencer(ctx sdk.Context, sequencerAddress string) (val sequencertypes.Sequencer)
-	GetProposer(ctx sdk.Context, rollappId string) (val sequencertypes.Sequencer)
 	SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address) (sequencertypes.Sequencer, error)
 	RealSequencer(ctx sdk.Context, addr string) (sequencertypes.Sequencer, error)
 }

@@ -40,7 +40,7 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, fraud
 	})
 
 	// clean the optimistic updates valset
-	k.PruneSigners(ctx, client, fraudHeight-1)
+	k.PruneSignersAbove(ctx, client, fraudHeight-1)
 
 	// marks that hard fork is in progress
 	k.setHardForkInProgress(ctx, rollappId)

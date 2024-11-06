@@ -10,6 +10,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+	"github.com/dymensionxyz/sdk-utils/utils/uibc"
+	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -29,22 +31,25 @@ type IBCModule struct {
 	rollappKeeper    rollappkeeper.Keeper
 	delayedAckKeeper delayedackkeeper.Keeper
 	transferKeeper   transferkeeper.Keeper
+	txFeesKeeper     txfeeskeeper.Keeper
 	feeModuleAddr    sdk.AccAddress
 }
 
 func NewIBCModule(
 	next ibctransfer.IBCModule,
-	keeper delayedackkeeper.Keeper,
-	transferKeeper transferkeeper.Keeper,
-	feeModuleAddr sdk.AccAddress,
 	rollappKeeper rollappkeeper.Keeper,
+	delayedAckKeeper delayedackkeeper.Keeper,
+	transferKeeper transferkeeper.Keeper,
+	txFeesKeeper txfeeskeeper.Keeper,
+	feeModuleAddr sdk.AccAddress,
 ) *IBCModule {
 	return &IBCModule{
 		IBCModule:        next,
-		delayedAckKeeper: keeper,
-		transferKeeper:   transferKeeper,
-		feeModuleAddr:    feeModuleAddr,
 		rollappKeeper:    rollappKeeper,
+		delayedAckKeeper: delayedAckKeeper,
+		transferKeeper:   transferKeeper,
+		txFeesKeeper:     txFeesKeeper,
+		feeModuleAddr:    feeModuleAddr,
 	}
 }
 
@@ -90,9 +95,20 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 	err = w.transferKeeper.OnRecvPacket(ctx, packet, feeData.FungibleTokenPacketData)
 	if err != nil {
 		l.Error("Charge bridging fee.", "err", err)
-		// we continue as we don't want the fee charge to fail the transfer in any case
+		// We continue as we don't want the fee charge to fail the transfer in any case
 		fee = sdk.ZeroInt()
 	} else {
+		// Charge the fee from the txfees module account: construct the IBC denom and use it for the fee coin.
+		denomTrace := uibc.GetForeignDenomTrace(packet.GetDestChannel(), feeData.Denom)
+		feeCoin := sdk.NewCoin(denomTrace.IBCDenom(), fee)
+
+		err = w.txFeesKeeper.ChargeFees(ctx, feeCoin, nil, transfer.Receiver)
+		if err != nil {
+			// We continue as we don't want the fee charge to fail the transfer in any case.
+			// Also, the fee was already successfully sent to x/txfees and charging will be retried at the epoch end.
+			w.logger(ctx, packet, "OnRecvPacket").Error("Charge bridging fee from x/txfees account.", "err", err)
+		}
+
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				EventTypeBridgingFee,

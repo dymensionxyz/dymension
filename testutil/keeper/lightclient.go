@@ -143,16 +143,6 @@ type MockSequencerKeeper struct {
 	sequencers map[string]*sequencertypes.Sequencer
 }
 
-// GetProposer implements types.SequencerKeeperExpected.
-func (m *MockSequencerKeeper) GetProposer(ctx sdk.Context, rollappId string) (val sequencertypes.Sequencer) {
-	panic("unimplemented")
-}
-
-// GetSequencer implements types.SequencerKeeperExpected.
-func (m *MockSequencerKeeper) GetSequencer(ctx sdk.Context, sequencerAddress string) (val sequencertypes.Sequencer) {
-	panic("unimplemented")
-}
-
 func (m *MockSequencerKeeper) SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address) (sequencertypes.Sequencer, error) {
 	for _, s := range m.sequencers {
 		if bytes.Equal(s.MustProposerAddr(), addr) {
@@ -177,6 +167,11 @@ func (m *MockSequencerKeeper) RollappSequencers(ctx sdk.Context, rollappId strin
 		seqs = append(seqs, *seq)
 	}
 	return seqs
+}
+
+// GetProposer implements types.SequencerKeeperExpected.
+func (m *MockSequencerKeeper) GetProposer(ctx sdk.Context, rollappId string) (val sequencertypes.Sequencer) {
+	panic("unimplemented")
 }
 
 func NewMockSequencerKeeper(sequencers map[string]*sequencertypes.Sequencer) *MockSequencerKeeper {

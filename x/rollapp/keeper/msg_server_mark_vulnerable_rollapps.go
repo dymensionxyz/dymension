@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -67,9 +68,15 @@ func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []uint32) (i
 
 		_, vulnerable := vulnerableVersions[bd.DrsVersion]
 		if vulnerable {
-			err := k.HardForkToLatest(ctx, rollapp.RollappId)
+			// If this fails, no state change happens
+			err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+				return k.HardForkToLatest(ctx, rollapp.RollappId)
+				// return k.MarkRollappAsVulnerable(ctx, rollapp.RollappId)
+			})
 			if err != nil {
-				logger.With("rollapp_id", rollapp.RollappId).Error("mark rollapp as vulnerable", "error", err)
+				// We do not want to fail if one rollapp cannot to be marked as vulnerable
+				k.Logger(ctx).With("rollapp_id", rollapp.RollappId, "drs_version", bd.DrsVersion, "error", err.Error()).
+					Error("Failed to mark rollapp as vulnerable")
 			}
 			vulnerableNum++
 		}
