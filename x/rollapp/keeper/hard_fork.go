@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"sort"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -184,5 +185,6 @@ func mapKeysToSlice(m map[string]struct{}) []string {
 	for k := range m {
 		keys = append(keys, k)
 	}
+	sort.Strings(keys)
 	return keys
 }
