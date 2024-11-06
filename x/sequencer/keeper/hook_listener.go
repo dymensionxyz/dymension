@@ -37,15 +37,13 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 // OnHardFork implements the RollappHooks interface
 // unbonds all rollapp sequencers
 // slashing / jailing is handled by the caller, outside of this function
-func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappID string, _ uint64) error {
+func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappID string, _ uint64) {
 	err := hook.k.optOutAllSequencers(ctx, rollappID)
 	if err != nil {
-		return errorsmod.Wrap(err, "opt out all sequencers")
+		hook.k.Logger(ctx).Error("failed to opt out all sequencers", "error", err)
 	}
 
 	// clear current proposer and successor
 	hook.k.SetProposer(ctx, rollappID, types.SentinelSeqAddr)
 	hook.k.SetSuccessor(ctx, rollappID, types.SentinelSeqAddr)
-
-	return nil
 }

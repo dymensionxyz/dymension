@@ -12,9 +12,8 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
-func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappId string, fraudHeight uint64) error {
+func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappId string, fraudHeight uint64) {
 	hook.k.RollbackCanonicalClient(ctx, rollappId, fraudHeight)
-	return nil
 }
 
 func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, fraudHeight uint64) {

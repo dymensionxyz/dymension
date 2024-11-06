@@ -13,7 +13,7 @@ import (
 
 var _ rollapptypes.RollappHooks = &Keeper{}
 
-func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) error {
+func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) {
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
 	// Get all the pending packets from fork height inclusive
@@ -62,8 +62,6 @@ func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, fraudHeight uint64
 	}
 
 	logger.Info("reverting IBC rollapp packets", "rollappID", rollappID, "numPackets", len(rollappPendingPackets))
-
-	return nil
 }
 
 // DeleteRollappPacket deletes a packet receipt from the store

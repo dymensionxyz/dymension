@@ -308,8 +308,7 @@ func (s *delayedAckSuite) TestHardFork_HubToRollapp() {
 	s.Require().NotEqual(balanceBefore.String(), balanceAfter.String())
 
 	// hard fork
-	err = s.hubApp().DelayedAckKeeper.OnHardFork(s.hubCtx(), s.rollappCtx().ChainID(), 5)
-	s.Require().NoError(err)
+	s.hubApp().DelayedAckKeeper.OnHardFork(s.hubCtx(), s.rollappCtx().ChainID(), 5)
 
 	// assert commitments are created again
 	found = hubIBCKeeper.ChannelKeeper.HasPacketCommitment(s.hubCtx(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())

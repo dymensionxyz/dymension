@@ -73,9 +73,7 @@ func (h rollappHooks) AfterStateFinalized(_ sdk.Context, _ string, _ *rollapptyp
 	return nil
 }
 
-func (h rollappHooks) OnHardFork(_ sdk.Context, _ string, _ uint64) error {
-	return nil
-}
+func (h rollappHooks) OnHardFork(_ sdk.Context, _ string, _ uint64) {}
 
 func (h rollappHooks) AfterTransfersEnabled(_ sdk.Context, _, _ string) error {
 	return nil

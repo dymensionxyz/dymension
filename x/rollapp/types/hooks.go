@@ -17,7 +17,7 @@ type RollappHooks interface {
 	RollappCreated(ctx sdk.Context, rollappID, alias string, creator sdk.AccAddress) error
 	AfterTransfersEnabled(ctx sdk.Context, rollappID, rollappIBCDenom string) error
 
-	OnHardFork(ctx sdk.Context, rollappID string, height uint64) error
+	OnHardFork(ctx sdk.Context, rollappID string, height uint64)
 }
 
 var _ RollappHooks = MultiRollappHooks{}
@@ -60,14 +60,10 @@ func (h MultiRollappHooks) AfterStateFinalized(ctx sdk.Context, rollappID string
 	return nil
 }
 
-func (h MultiRollappHooks) OnHardFork(ctx sdk.Context, rollappID string, height uint64) error {
+func (h MultiRollappHooks) OnHardFork(ctx sdk.Context, rollappID string, height uint64) {
 	for i := range h {
-		err := h[i].OnHardFork(ctx, rollappID, height)
-		if err != nil {
-			return err
-		}
+		h[i].OnHardFork(ctx, rollappID, height)
 	}
-	return nil
 }
 
 // RollappCreated implements RollappHooks.
@@ -103,7 +99,7 @@ func (StubRollappCreatedHooks) BeforeUpdateState(sdk.Context, string, string, bo
 func (StubRollappCreatedHooks) AfterUpdateState(sdk.Context, string, *StateInfo) error {
 	return nil
 }
-func (StubRollappCreatedHooks) OnHardFork(sdk.Context, string, uint64) error { return nil }
+func (StubRollappCreatedHooks) OnHardFork(sdk.Context, string, uint64) {}
 func (StubRollappCreatedHooks) AfterStateFinalized(sdk.Context, string, *StateInfo) error {
 	return nil
 }
