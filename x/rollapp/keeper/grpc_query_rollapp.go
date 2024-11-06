@@ -67,10 +67,21 @@ func getSummaryResponse(ctx sdk.Context, k Keeper, rollapp types.Rollapp, ok, wi
 	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
 	if found {
 		s.LatestStateIndex = &latestStateInfoIndex
+
+		latestStateInfo, foundFin := k.GetStateInfo(ctx, rollapp.RollappId, latestStateInfoIndex.Index)
+		if foundFin {
+			s.LatestHeight = latestStateInfo.GetLatestHeight()
+		}
 	}
-	latestFinalizedStateInfoIndex, found := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
-	if found {
+
+	latestFinalizedStateInfoIndex, foundFinIdx := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
+	if foundFinIdx {
 		s.LatestFinalizedStateIndex = &latestFinalizedStateInfoIndex
+
+		latestFinalizedStateInfo, foundFin := k.GetStateInfo(ctx, rollapp.RollappId, latestFinalizedStateInfoIndex.Index)
+		if foundFin {
+			s.LatestFinalizedHeight = latestFinalizedStateInfo.GetLatestHeight()
+		}
 	}
 
 	resp := &types.QueryGetRollappResponse{
