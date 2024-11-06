@@ -1,18 +1,34 @@
 package v4
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 )
 
-func migrateSequencers(ctx sdk.Context, k *sequencerkeeper.Keeper) {
+func migrateSequencerIndices(ctx sdk.Context, k *sequencerkeeper.Keeper) error {
 	list := k.AllSequencers(ctx)
 	for _, oldSequencer := range list {
-		newSequencer := ConvertOldSequencerToNew(oldSequencer)
-		k.SetSequencer(ctx, newSequencer)
 
+		// fill proposer index
 		if oldSequencer.Proposer {
 			k.SetProposer(ctx, oldSequencer.RollappId, oldSequencer.Address)
 		}
+
+		// fill dymint proposer addr index
+		addr, err := oldSequencer.ProposerAddr()
+		if err != nil {
+			// This shouldn't happen, but it's not obvious how we can recover from it.
+			// It could lead to broken state for this rollapp, meaning that their IBC won't work properly.
+			ctx.Logger().Error("Get dymint proposer address from seq pub key", "seq", oldSequencer.Address)
+			continue
+		}
+		if err = k.SetSequencerByDymintAddr(ctx, addr, oldSequencer.Address); err != nil {
+			return errorsmod.Wrapf(err, "set sequencer by dymint address: seq: %s", oldSequencer.Address)
+		}
+
+		// NOTE: technically should delete the unbonding queue, but we make an assumption
+		// that the unbonding queue is empty at the time of upgrade.
 	}
+	return nil
 }

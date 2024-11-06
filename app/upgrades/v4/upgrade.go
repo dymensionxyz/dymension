@@ -1,6 +1,7 @@
 package v4
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 
@@ -58,7 +59,9 @@ func CreateUpgradeHandler(
 		}
 
 		migrateSequencerParams(ctx, keepers.SequencerKeeper)
-		migrateSequencerIndices(ctx, keepers.SequencerKeeper)
+		if err := migrateSequencerIndices(ctx, keepers.SequencerKeeper); err != nil {
+			return nil, errorsmod.Wrap(err, "migrate sequencer indices")
+		}
 		migrateSequencers(ctx, keepers.SequencerKeeper)
 
 		migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper)
