@@ -159,7 +159,7 @@ func CmdUpdateRewardAddress() *cobra.Command {
 			}
 
 			msg := &types.MsgUpdateRewardAddress{
-				Creator:    sdk.ValAddress(ctx.GetFromAddress()).String(),
+				Creator:    ctx.GetFromAddress().String(),
 				RewardAddr: args[0],
 			}
 
@@ -186,7 +186,7 @@ func CmdUpdateWhitelistedRelayers() *cobra.Command {
 			}
 
 			msg := &types.MsgUpdateWhitelistedRelayers{
-				Creator:  sdk.ValAddress(ctx.GetFromAddress()).String(),
+				Creator:  ctx.GetFromAddress().String(),
 				Relayers: strings.Split(args[0], ","),
 			}
 
