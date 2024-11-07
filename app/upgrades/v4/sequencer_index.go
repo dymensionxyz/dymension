@@ -4,6 +4,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func migrateSequencerIndices(ctx sdk.Context, k *sequencerkeeper.Keeper) error {
@@ -14,6 +15,7 @@ func migrateSequencerIndices(ctx sdk.Context, k *sequencerkeeper.Keeper) error {
 		if oldSequencer.Proposer {
 			k.SetProposer(ctx, oldSequencer.RollappId, oldSequencer.Address)
 		}
+		k.SetSuccessor(ctx, oldSequencer.RollappId, types.SentinelSeqAddr)
 
 		// fill dymint proposer addr index
 		addr, err := oldSequencer.ProposerAddr()
