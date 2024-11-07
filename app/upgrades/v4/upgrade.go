@@ -82,10 +82,6 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
-		if err := migrateDymnsParams(ctx, keepers.DymNSKeeper); err != nil {
-			return nil, err
-		}
-
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
 		return mm.RunMigrations(ctx, configurator, fromVM)
