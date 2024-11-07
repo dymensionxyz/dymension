@@ -44,11 +44,6 @@ func (hook rollappHook) AfterUpdateState(
 		client, ok = hook.k.GetProspectiveCanonicalClient(ctx, rollappId, stateInfo.GetLatestHeight()-1)
 		if ok {
 			hook.k.SetCanonicalClient(ctx, rollappId, client)
-			// we now verified everything up to and including stateInfo.GetLatestHeight()-1
-			// so we should prune everything up to stateInfo.GetLatestHeight()-1
-			if err := hook.k.PruneSignersBelow(ctx, rollappId, stateInfo.GetLatestHeight()); err != nil {
-				return errorsmod.Wrap(err, "prune signers")
-			}
 		}
 		return nil
 	}
@@ -70,6 +65,12 @@ func (hook rollappHook) AfterUpdateState(
 			return errorsmod.Wrap(err, "validate optimistic update")
 		}
 	}
+	// we now verified everything up to and including stateInfo.GetLatestHeight()-1
+	// so we should prune everything up to stateInfo.GetLatestHeight()-1
+	if err := hook.k.PruneSignersBelow(ctx, rollappId, stateInfo.GetLatestHeight()); err != nil {
+		return errorsmod.Wrap(err, "prune signers")
+	}
+
 	return nil
 }
 

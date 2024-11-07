@@ -75,6 +75,7 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) {
 	}
 
 	setConsensusState(clientStore, k.cdc, clienttypes.NewHeight(1, height), &cs)
+	_ = k.SaveSigner(ctx, proposer.Address, client, height)
 
 	k.setHardForkResolved(ctx, rollappID)
 }
