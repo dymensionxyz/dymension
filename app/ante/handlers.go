@@ -2,7 +2,7 @@ package ante
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ante "github.com/cosmos/cosmos-sdk/x/auth/ante"
+	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
 	ethante "github.com/evmos/ethermint/app/ante"
 	txfeesante "github.com/osmosis-labs/osmosis/v15/x/txfees/ante"
@@ -10,7 +10,7 @@ import (
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	delayedack "github.com/dymensionxyz/dymension/v3/x/delayedack"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack"
 	lightclientante "github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge"
 )
@@ -45,13 +45,12 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 			See https://jumpcrypto.com/writing/bypassing-ethermint-ante-handlers/
 			for an explanation of these message blocking decorators
 		*/
-		NewRejectMessagesDecorator(), // reject MsgEthereumTxs
-		ethante.NewAuthzLimiterDecorator([]string{ // disable the Msg types that cannot be included on an authz.MsgExec msgs field
+		NewRejectMessagesDecorator(
+			// reject MsgEthereumTxs and disable the Msg types that cannot be included on an authz.MsgExec msgs field
 			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreatePermanentLockedAccount{}),
-		},
 		),
 
 		ante.NewSetUpContextDecorator(),
@@ -84,14 +83,12 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 
 	return sdk.ChainAnteDecorators(
-
-		NewRejectMessagesDecorator(), // reject MsgEthereumTxs and vesting msgs
-		ethante.NewAuthzLimiterDecorator([]string{ // disable the Msg types that cannot be included on an authz.MsgExec msgs field
+		NewRejectMessagesDecorator(
+			// reject MsgEthereumTxs and disable the Msg types that cannot be included on an authz.MsgExec msgs field
 			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreatePermanentLockedAccount{}),
-		},
 		),
 		ante.NewSetUpContextDecorator(),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),

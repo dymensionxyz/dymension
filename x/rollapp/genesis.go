@@ -44,9 +44,16 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 			}
 		}
 	}
-
+	// Set all the sequencer height pairs
 	for _, elem := range genState.SequencerHeightPairs {
 		err := k.SaveSequencerHeight(ctx, elem.Sequencer, elem.Height)
+		if err != nil {
+			panic(err)
+		}
+	}
+	// Set all the vulnerable DRS versions
+	for _, elem := range genState.VulnerableDrsVersions {
+		err := k.SetVulnerableDRSVersion(ctx, elem)
 		if err != nil {
 			panic(err)
 		}
@@ -94,6 +101,12 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	if err != nil {
 		panic(err)
 	}
+
+	drsVersions, err := k.GetAllVulnerableDRSVersions(ctx)
+	if err != nil {
+		panic(err)
+	}
+	genesis.VulnerableDrsVersions = drsVersions
 
 	return genesis
 }
