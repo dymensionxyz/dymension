@@ -1,6 +1,7 @@
 package v4
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 
@@ -33,7 +34,6 @@ import (
 	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	streamerkeeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -63,7 +63,12 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
+		migrateSequencerParams(ctx, keepers.SequencerKeeper)
+		if err := migrateSequencerIndices(ctx, keepers.SequencerKeeper); err != nil {
+			return nil, errorsmod.Wrap(err, "migrate sequencer indices")
+		}
 		migrateSequencers(ctx, keepers.SequencerKeeper)
+
 		migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper)
 		if err := migrateStreamer(ctx, keepers.StreamerKeeper, keepers.EpochsKeeper); err != nil {
 			return nil, err
@@ -146,13 +151,6 @@ func migrateDelayedAckParams(ctx sdk.Context, delayedAckKeeper delayedackkeeper.
 	delayedAckKeeper.SetParams(ctx, params)
 }
 
-func migrateRollappParams(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) {
-	// overwrite params for rollapp module due to proto change
-	params := rollapptypes.DefaultParams()
-	params.DisputePeriodInBlocks = rollappkeeper.DisputePeriodInBlocks(ctx)
-	rollappkeeper.SetParams(ctx, params)
-}
-
 // migrateRollappGauges creates a gauge for each rollapp in the store
 func migrateRollappGauges(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, incentivizeKeeper *incentiveskeeper.Keeper) error {
 	rollapps := rollappkeeper.GetAllRollapps(ctx)
@@ -176,18 +174,6 @@ func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) error
 		rollappkeeper.SetRollapp(ctx, newRollapp)
 	}
 	return nil
-}
-
-func migrateSequencers(ctx sdk.Context, sequencerkeeper *sequencerkeeper.Keeper) {
-	list := sequencerkeeper.AllSequencers(ctx)
-	for _, oldSequencer := range list {
-		newSequencer := ConvertOldSequencerToNew(oldSequencer)
-		sequencerkeeper.SetSequencer(ctx, newSequencer)
-
-		if oldSequencer.Proposer {
-			sequencerkeeper.SetProposer(ctx, oldSequencer.RollappId, oldSequencer.Address)
-		}
-	}
 }
 
 func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, lightClientKeeper lightclientkeeper.Keeper, ibcChannelKeeper ibcchannelkeeper.Keeper) {
@@ -310,6 +296,7 @@ func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Seque
 		RollappId:    old.RollappId,
 		Status:       old.Status,
 		Tokens:       old.Tokens,
+		OptedIn:      true,
 		Metadata: sequencertypes.SequencerMetadata{
 			Moniker: old.Metadata.Moniker,
 			Details: old.Metadata.Details,
