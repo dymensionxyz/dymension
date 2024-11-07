@@ -178,6 +178,7 @@ func (m *MsgUpdateDemandOrder) Route() string {
 func (m *MsgUpdateDemandOrder) Type() string {
 	return sdk.MsgTypeURL(m)
 }
+
 func isValidOrderId(orderId string) bool {
 	hashBytes, err := hex.DecodeString(orderId)
 	if err != nil {
