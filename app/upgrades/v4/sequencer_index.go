@@ -20,8 +20,7 @@ func migrateSequencerIndices(ctx sdk.Context, k *sequencerkeeper.Keeper) error {
 		if err != nil {
 			// This shouldn't happen, but it's not obvious how we can recover from it.
 			// It could lead to broken state for this rollapp, meaning that their IBC won't work properly.
-			ctx.Logger().Error("Get dymint proposer address from seq pub key", "seq", oldSequencer.Address)
-			continue
+			return errorsmod.Wrapf(err, "get dymint proposer address, seq: %s", oldSequencer.Address)
 		}
 		if err = k.SetSequencerByDymintAddr(ctx, addr, oldSequencer.Address); err != nil {
 			return errorsmod.Wrapf(err, "set sequencer by dymint address: seq: %s", oldSequencer.Address)
