@@ -251,5 +251,17 @@ func (m msgServer) GetOutstandingOrder(ctx sdk.Context, orderId string) (*types.
 		return nil, err
 	}
 
+	// TODO: would be nice if the demand order already has the proofHeight, so we don't have to fetch the packet
+	packet, err := m.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// No error means the order is due to be finalized,
+	// in which case the order is not outstanding anymore
+	if err = m.dack.VerifyHeightFinalized(ctx, demandOrder.RollappId, packet.ProofHeight); err == nil {
+		return nil, types.ErrDemandOrderInactive
+	}
+
 	return demandOrder, demandOrder.ValidateOrderIsOutstanding()
 }
