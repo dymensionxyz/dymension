@@ -13,74 +13,74 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (k msgServer) MarkVulnerableRollapps(goCtx context.Context, msg *types.MsgMarkVulnerableRollapps) (*types.MsgMarkVulnerableRollappsResponse, error) {
+func (k msgServer) MarkObsoleteRollapps(goCtx context.Context, msg *types.MsgMarkObsoleteRollapps) (*types.MsgMarkObsoleteRollappsResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, err
 	}
 
 	if msg.Authority != k.authority {
-		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "only the gov module can mark vulnerable rollapps")
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "only the gov module can mark obsolete rollapps")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	vulnerableNum, err := k.Keeper.MarkVulnerableRollapps(ctx, msg.DrsVersions)
+	obsoleteNum, err := k.Keeper.MarkObsoleteRollapps(ctx, msg.DrsVersions)
 	if err != nil {
-		return nil, fmt.Errorf("mark vulnerable rollapps: %w", err)
+		return nil, fmt.Errorf("mark obsolete rollapps: %w", err)
 	}
 
-	err = uevent.EmitTypedEvent(ctx, &types.EventMarkVulnerableRollapps{
-		VulnerableRollappNum: uint64(vulnerableNum),
-		DrsVersions:          msg.DrsVersions,
+	err = uevent.EmitTypedEvent(ctx, &types.EventMarkObsoleteRollapps{
+		ObsoleteRollappNum: uint64(obsoleteNum),
+		DrsVersions:        msg.DrsVersions,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
-	return &types.MsgMarkVulnerableRollappsResponse{}, nil
+	return &types.MsgMarkObsoleteRollappsResponse{}, nil
 }
 
-func (k Keeper) MarkVulnerableRollapps(ctx sdk.Context, drsVersions []uint32) (int, error) {
-	vulnerableVersions := make(map[uint32]struct{})
+func (k Keeper) MarkObsoleteRollapps(ctx sdk.Context, drsVersions []uint32) (int, error) {
+	obsoleteVersions := make(map[uint32]struct{})
 	for _, v := range drsVersions {
-		vulnerableVersions[v] = struct{}{}
-		// this also saves in the state the vulnerable version
-		err := k.SetVulnerableDRSVersion(ctx, v)
+		obsoleteVersions[v] = struct{}{}
+		// this also saves in the state the obsolete version
+		err := k.SetObsoleteDRSVersion(ctx, v)
 		if err != nil {
-			return 0, fmt.Errorf("set vulnerable DRS version: %w", err)
+			return 0, fmt.Errorf("set obsolete DRS version: %w", err)
 		}
 	}
 
 	var (
-		logger        = k.Logger(ctx)
-		nonVulnerable = k.FilterRollapps(ctx, FilterNonVulnerable)
-		vulnerableNum int
+		logger      = k.Logger(ctx)
+		nonObsolete = k.FilterRollapps(ctx, FilterNonObsolete)
+		obsoleteNum int
 	)
-	for _, rollapp := range nonVulnerable {
+	for _, rollapp := range nonObsolete {
 		info, found := k.GetLatestStateInfo(ctx, rollapp.RollappId)
 		if !found {
 			logger.With("rollapp_id", rollapp.RollappId).Info("no latest state info for rollapp")
 			continue
 		}
 
-		// check only last block descriptor DRS, since if that last is not vulnerable it means the rollapp already upgraded and is not vulnerable anymore
+		// check only last block descriptor DRS, since if that last is not obsolete it means the rollapp already upgraded and is not obsolete anymore
 		bd := info.BDs.BD[len(info.BDs.BD)-1]
 
-		_, vulnerable := vulnerableVersions[bd.DrsVersion]
-		if vulnerable {
+		_, obsolete := obsoleteVersions[bd.DrsVersion]
+		if obsolete {
 			// If this fails, no state change happens
 			err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-				return k.MarkRollappAsVulnerable(ctx, rollapp.RollappId)
+				return k.MarkRollappAsObsolete(ctx, rollapp.RollappId)
 			})
 			if err != nil {
-				// We do not want to fail if one rollapp cannot to be marked as vulnerable
+				// We do not want to fail if one rollapp cannot to be marked as obsolete
 				k.Logger(ctx).With("rollapp_id", rollapp.RollappId, "drs_version", bd.DrsVersion, "error", err.Error()).
-					Error("Failed to mark rollapp as vulnerable")
+					Error("Failed to mark rollapp as obsolete")
 			}
-			vulnerableNum++
+			obsoleteNum++
 		}
 	}
 
-	return vulnerableNum, nil
+	return obsoleteNum, nil
 }

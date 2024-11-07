@@ -99,7 +99,7 @@ func (r Rollapp) GenesisInfoFieldsAreSet() bool {
 	return r.GenesisInfo.AllSet()
 }
 
-func (r Rollapp) IsVulnerable() bool {
+func (r Rollapp) IsObsolete() bool {
 	return r.Frozen
 }
 

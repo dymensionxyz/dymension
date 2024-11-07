@@ -35,15 +35,15 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	}
 
 	for _, bd := range msg.BDs.BD {
-		// verify the DRS version is not vulnerable
-		if k.IsDRSVersionVulnerable(ctx, bd.DrsVersion) {
-			// the rollapp is not marked as vulnerable yet, mark it now
-			err := k.MarkRollappAsVulnerable(ctx, msg.RollappId)
+		// verify the DRS version is not obsolete
+		if k.IsDRSVersionObsolete(ctx, bd.DrsVersion) {
+			// the rollapp is not marked as obsolete yet, mark it now
+			err := k.MarkRollappAsObsolete(ctx, msg.RollappId)
 			if err != nil {
-				return nil, fmt.Errorf("mark rollapp vulnerable: %w", err)
+				return nil, fmt.Errorf("mark rollapp obsolete: %w", err)
 			}
 			k.Logger(ctx).With("rollapp_id", msg.RollappId, "drs_version", bd.DrsVersion).
-				Info("non-frozen rollapp tried to submit MsgUpdateState with the vulnerable DRS version, mark the rollapp as vulnerable")
+				Info("non-frozen rollapp tried to submit MsgUpdateState with the obsolete DRS version, mark the rollapp as obsolete")
 			// we must return non-error if we want the changes to be saved
 			return &types.MsgUpdateStateResponse{}, nil
 		}

@@ -24,7 +24,7 @@ func KeyPrefix(p string) []byte {
 }
 
 const (
-	VulnerableDRSVersionsKeyPrefix = "vulnerableDRSVersions/value/"
+	ObsoleteDRSVersionsKeyPrefix = "obsoleteDRSVersions/value/"
 	// KeyRegisteredDenomPrefix is the prefix to retrieve all RegisteredDenom
 	KeyRegisteredDenomPrefix = "RegisteredDenom/value/"
 )

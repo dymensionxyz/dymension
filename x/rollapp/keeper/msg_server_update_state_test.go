@@ -98,11 +98,11 @@ func (suite *RollappTestSuite) TestUpdateState() {
 	}
 }
 
-func (s *RollappTestSuite) TestUpdateStateVulnerableRollapp() {
+func (s *RollappTestSuite) TestUpdateStateObsoleteRollapp() {
 	const (
-		raName               = "rollapptest_1-1"
-		nonVulnerableVersion = 2
-		vulnerableVersion    = 1
+		raName             = "rollapptest_1-1"
+		nonObsoleteVersion = 2
+		obsoleteVersion    = 1
 	)
 
 	// create a rollapp
@@ -110,46 +110,46 @@ func (s *RollappTestSuite) TestUpdateStateVulnerableRollapp() {
 	// create a sequencer
 	proposer := s.CreateDefaultSequencer(s.Ctx, raName)
 
-	// create the initial state update with non-vulnerable version
-	expectedLastHeight, err := s.PostStateUpdateWithDRSVersion(s.Ctx, raName, proposer, 1, uint64(3), nonVulnerableVersion)
+	// create the initial state update with non-obsolete version
+	expectedLastHeight, err := s.PostStateUpdateWithDRSVersion(s.Ctx, raName, proposer, 1, uint64(3), nonObsoleteVersion)
 	s.Require().Nil(err)
 
 	// check the rollapp's last height
 	actualLastHeight := s.GetRollappLastHeight(raName)
 	s.Require().Equal(expectedLastHeight, actualLastHeight)
 
-	// mark a DRS version as vulnerable. note that the last state update of the rollapp wasn't vulnerable
-	vulnNum, err := s.App.RollappKeeper.MarkVulnerableRollapps(s.Ctx, []uint32{vulnerableVersion})
+	// mark a DRS version as obsolete. note that the last state update of the rollapp wasn't obsolete
+	obsoleteNum, err := s.App.RollappKeeper.MarkObsoleteRollapps(s.Ctx, []uint32{obsoleteVersion})
 	s.Require().NoError(err)
-	s.Require().Equal(0, vulnNum)
+	s.Require().Equal(0, obsoleteNum)
 
-	// check the version is vulnerable
-	ok := s.App.RollappKeeper.IsDRSVersionVulnerable(s.Ctx, vulnerableVersion)
+	// check the version is obsolete
+	ok := s.App.RollappKeeper.IsDRSVersionObsolete(s.Ctx, obsoleteVersion)
 	s.Require().True(ok)
 
-	// the rollapp is not vulnerable at this step
-	ok = s.IsRollappVulnerable(raName)
+	// the rollapp is not obsolete at this step
+	ok = s.IsRollappObsolete(raName)
 	s.Require().False(ok)
 
-	// create a new update using the vulnerable version
-	_, err = s.PostStateUpdateWithDRSVersion(s.Ctx, raName, proposer, 1, uint64(3), vulnerableVersion)
+	// create a new update using the obsolete version
+	_, err = s.PostStateUpdateWithDRSVersion(s.Ctx, raName, proposer, 1, uint64(3), obsoleteVersion)
 	s.Require().NoError(err)
 
-	// the rollapp now is vulnerable
-	ok = s.IsRollappVulnerable(raName)
+	// the rollapp now is obsolete
+	ok = s.IsRollappObsolete(raName)
 	s.Require().True(ok)
 
 	// the rollapp state is not updated
 	actualLastHeight = s.GetRollappLastHeight(raName)
 	s.Require().Equal(expectedLastHeight, actualLastHeight)
 
-	// create one more update using the vulnerable version. this time we expect an error.
-	_, err = s.PostStateUpdateWithDRSVersion(s.Ctx, raName, proposer, 1, uint64(3), vulnerableVersion)
+	// create one more update using the obsolete version. this time we expect an error.
+	_, err = s.PostStateUpdateWithDRSVersion(s.Ctx, raName, proposer, 1, uint64(3), obsoleteVersion)
 	s.Require().Error(err)
 	s.Assert().ErrorIs(err, gerrc.ErrFailedPrecondition)
 
-	// the rollapp is still vulnerable
-	ok = s.IsRollappVulnerable(raName)
+	// the rollapp is still obsolete
+	ok = s.IsRollappObsolete(raName)
 	s.Require().True(ok)
 
 	// the rollapp state is still not updated
