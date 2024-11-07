@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 var (
@@ -30,20 +29,6 @@ func (p Params) Validate() error {
 		return ErrInvalidParams.Wrapf("MinVotingPower must be >= 0, got %s", p.MinVotingPower)
 	}
 	return nil
-}
-
-// ParamKeyTable for the x/sponsorship module.
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
-}
-
-// ParamSetPairs implements params.ParamSet. Params must have a pointer receiver since it is registered as
-// a pointer in the ParamKeyTable method.
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyMinAllocationWeight, &p.MinAllocationWeight, validateMinAllocationWeight),
-		paramtypes.NewParamSetPair(KeyMinVotingPower, &p.MinVotingPower, validateMinVotingPower),
-	}
 }
 
 func validateMinAllocationWeight(i interface{}) error {
