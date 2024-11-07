@@ -50,7 +50,7 @@ func CreateUpgradeHandler(
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 
 		LoadDeprecatedParamsSubspaces(keepers)
-	
+
 		// Run migrations before applying any other state changes.
 		// NOTE: DO NOT PUT ANY STATE CHANGES BEFORE RunMigrations().
 		// (This is how osmosis do it)
