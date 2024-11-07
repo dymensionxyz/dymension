@@ -49,11 +49,6 @@ func CreateUpgradeHandler(
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 
-		// sanity check to re-ensure old rollapps are in the store
-		if err := validateOldRollappsAreInStore(ctx, keepers.RollappKeeper); err != nil {
-			return nil, err
-		}
-
 		LoadDeprecatedParamsSubspaces(keepers)
 
 		migrateModuleParams(ctx, keepers)
@@ -84,6 +79,10 @@ func CreateUpgradeHandler(
 		}
 
 		if err := migrateRollappRegisteredDenoms(ctx, keepers.RollappKeeper); err != nil {
+			return nil, err
+		}
+
+		if err := migrateDymnsParams(ctx, keepers.DymNSKeeper); err != nil {
 			return nil, err
 		}
 
@@ -143,12 +142,6 @@ func LoadDeprecatedParamsSubspaces(keepers *keepers.AppKeepers) {
 			subspace.WithKeyTable(keyTable)
 		}
 	}
-}
-
-func migrateDelayedAckParams(ctx sdk.Context, delayedAckKeeper delayedackkeeper.Keeper) {
-	// overwrite params for delayedack module due to added parameters
-	params := delayedacktypes.DefaultParams()
-	delayedAckKeeper.SetParams(ctx, params)
 }
 
 // migrateRollappGauges creates a gauge for each rollapp in the store

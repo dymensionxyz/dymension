@@ -204,6 +204,8 @@ func (s *UpgradeTestSuite) validateRollappsMigration(numRoll int) error {
 	s.Require().Equal(expectLivenessSlashInterval, s.App.RollappKeeper.GetParams(s.Ctx).LivenessSlashInterval)
 
 	if !reflect.DeepEqual(rollapps, expectRollapps) {
+		s.T().Log("Expect rollapps", expectRollapps)
+		s.T().Log("Actual rollapps", rollapps)
 		return fmt.Errorf("rollapps do not match")
 	}
 	return nil

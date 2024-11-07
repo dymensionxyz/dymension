@@ -1,12 +1,8 @@
 package v4
 
 import (
-	"fmt"
-
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -84,16 +80,3 @@ var (
 		"ibc/04E01477A69DF1E5EE99F85C15B66D68D23292275357CAA44B2E0527310A405E", // EVMOS
 	}
 )
-
-func validateOldRollappsAreInStore(ctx sdk.Context, rk *rollappkeeper.Keeper) error {
-	// validate old rollapps are in the store
-	_, found := rk.GetRollapp(ctx, nimRollappID)
-	if !found {
-		return fmt.Errorf("rollapp not found: %s", nimRollappID)
-	}
-	_, found = rk.GetRollapp(ctx, mandeRollappID)
-	if !found {
-		return fmt.Errorf("rollapp not found: %s", mandeRollappID)
-	}
-	return nil
-}
