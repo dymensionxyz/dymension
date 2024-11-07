@@ -70,48 +70,58 @@ func (k Keeper) FinalizeRollappStates(ctx sdk.Context) {
 	k.FinalizeAllPending(ctx, queue)
 }
 
-func (k Keeper) FinalizeAllPending(ctx sdk.Context, pendingQueue []types.BlockHeightToFinalizationQueue) {
+// FinalizeAllPending is called every block to finalize all pending states in the queue.
+// pendingQueues contains queues in acsending order of creation height. There may be multiple queues for the same
+// creation height since multiple rollapps may have pending states. In that case, the queues are ordered by rollappID.
+// If one of rollapps states fails to finalize, the rest of the states are not finalized as well. This is achieved by
+// using a set of failed rollapps.
+func (k Keeper) FinalizeAllPending(ctx sdk.Context, pendingQueues []types.BlockHeightToFinalizationQueue) {
 	// Cache the rollapps that failed to finalize at current EndBlocker execution.
-	// The mapping is from rollappID to the first index of the state that failed to finalize.
-	failedRollapps := make(map[string]uint64)
-	// iterate over all the pending finalization height queues
-	for _, queue := range pendingQueue {
-		k.finalizeQueueForHeight(ctx, queue, failedRollapps)
-	}
-}
+	// Once the rollapp is added to this set, the rest of the states for that rollapp are not finalized.
+	// Map here is safe to use since it's used only as a key set for existence checks.
+	failedRollapps := make(map[string]struct{})
 
-func (k Keeper) finalizeQueueForHeight(ctx sdk.Context, queue types.BlockHeightToFinalizationQueue, failedRollapps map[string]uint64) {
-	// finalize pending states
-	for _, stateInfoIndex := range queue.FinalizationQueue {
-		if _, failed := failedRollapps[stateInfoIndex.RollappId]; failed {
-			// if the rollapp has already failed to finalize for at least one state index,
-			// skip all subsequent state changes for this rollapp
+	// Iterate over all the pending finalization height queues
+	for _, queue := range pendingQueues {
+		// Check if the rollapp failed to finalize previously
+		_, failed := failedRollapps[queue.RollappId]
+		if failed {
+			// Skip the rollapp if it failed to finalize previously
 			continue
 		}
-		if err := k.finalizeStateForIndex(ctx, stateInfoIndex); err != nil {
-			// record the rollapp that had a failed state change at current height
-			failedRollapps[stateInfoIndex.RollappId] = stateInfoIndex.Index
+
+		// Finalize the queue. If it fails, add the rollapp to the failedRollapps set.
+		finalized := k.FinalizeQueueForHeight(ctx, queue)
+		if !finalized {
+			failedRollapps[queue.RollappId] = struct{}{}
 		}
 	}
-	k.updateQueueForHeight(ctx, queue, failedRollapps)
 }
 
-func (k Keeper) finalizeStateForIndex(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
-	// if this fails, no state change will happen
-	err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-		return k.finalizePending(ctx, stateInfoIndex)
-	})
-	if err != nil {
-		// TODO: think about (non)recoverable errors and how to handle them accordingly
-		k.Logger(ctx).Error(
-			"failed to finalize state",
-			"rollapp", stateInfoIndex.RollappId,
-			"index", stateInfoIndex.Index,
-			"error", err.Error(),
-		)
-		return fmt.Errorf("finalize state: %w", err)
+// FinalizeQueueForHeight finalizes all the pending states in the queue. Returns true if all states are finalized.
+func (k Keeper) FinalizeQueueForHeight(ctx sdk.Context, queue types.BlockHeightToFinalizationQueue) bool {
+	// finalize pending states
+	for i, stateInfoIndex := range queue.FinalizationQueue {
+		// if this fails, no state change will happen
+		err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+			return k.finalizePending(ctx, stateInfoIndex)
+		})
+		if err != nil {
+			k.Logger(ctx).
+				With("rollapp_id", stateInfoIndex.RollappId, "index", stateInfoIndex.Index, "err", err.Error()).
+				Error("failed to finalize rollapp state")
+			// remove from the queue only the indexes that were successfully finalized.
+			// delete up to the first failed state change, exclusively.
+			queue.FinalizationQueue = slices.Delete(queue.FinalizationQueue, 0, i)
+			// save the current queue with "leftover" rollapp state changes
+			k.SetFinalizationQueue(ctx, queue)
+			return false
+		}
 	}
-	return nil
+
+	// remove the queue if all the states are finalized
+	k.RemoveFinalizationQueue(ctx, queue.CreationHeight, queue.RollappId)
+	return true
 }
 
 func (k *Keeper) finalizePendingState(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
@@ -144,25 +154,6 @@ func (k *Keeper) finalizePendingState(ctx sdk.Context, stateInfoIndex types.Stat
 		),
 	)
 	return nil
-}
-
-func (k Keeper) updateQueueForHeight(ctx sdk.Context, queue types.BlockHeightToFinalizationQueue, failedRollapps map[string]uint64) {
-	// remove the queue if all the rollapp states are finalized
-	if _, ok := failedRollapps[queue.RollappId]; !ok {
-		k.RemoveFinalizationQueue(ctx, queue.CreationHeight, queue.RollappId)
-		return
-	}
-	// remove from the queue only the indexes that were successfully finalized.
-	// only delete the indexes up to the first failed state change.
-	failedIndex := failedRollapps[queue.RollappId]
-	queue.FinalizationQueue = slices.DeleteFunc(
-		queue.FinalizationQueue,
-		func(si types.StateInfoIndex) bool {
-			return si.Index < failedIndex
-		},
-	)
-	// save the current queue with "leftover" rollapp state changes
-	k.SetFinalizationQueue(ctx, queue)
 }
 
 // SetFinalizationQueue set types.BlockHeightToFinalizationQueue for a specific height and rollappID.

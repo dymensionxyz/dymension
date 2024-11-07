@@ -823,6 +823,9 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 			suite.SetupTest()
 
 			k := suite.App.RollappKeeper
+			for _, item := range tt.pendingFinalizationQueue {
+				k.SetFinalizationQueue(suite.Ctx, item)
+			}
 			k.SetFinalizePendingFn(MockFinalizePending(tt.errFinalizeIndices))
 			k.FinalizeAllPending(suite.Ctx, tt.pendingFinalizationQueue)
 

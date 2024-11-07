@@ -234,6 +234,8 @@ func migrateRollappFinalizationQueue(ctx sdk.Context, rk *rollappkeeper.Keeper) 
 
 // ReformatFinalizationQueue groups the finalization queue by rollapp
 func ReformatFinalizationQueue(queue rollapptypes.BlockHeightToFinalizationQueue) []rollapptypes.BlockHeightToFinalizationQueue {
+	// Map is used for convenient data aggregation.
+	// Later it is converted to a slice and sorted by rollappID, so the output is always deterministic.
 	grouped := make(map[string][]rollapptypes.StateInfoIndex)
 
 	// group indexes by rollapp
