@@ -8,6 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
@@ -223,13 +225,18 @@ func CmdGetPendingPacketsByAddress() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pending-packets-by-address [address]",
 		Short: "Get pending packets by address",
-		Args:  cobra.MinimumNArgs(1),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
+
+			_, err = sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
 
 			res, err := queryClient.GetPendingPacketsByAddress(cmd.Context(), &types.QueryPendingPacketsByAddressRequest{
 				Address:    args[0],
