@@ -62,7 +62,8 @@ func NewParams(
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(DefaultDisputePeriodInBlocks,
+	return NewParams(
+		DefaultDisputePeriodInBlocks,
 		DefaultLivenessSlashBlocks,
 		DefaultLivenessSlashInterval,
 		DefaultAppRegistrationFee,

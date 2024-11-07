@@ -45,11 +45,11 @@ func TestUpgradeTestSuite(t *testing.T) {
 }
 
 const (
-	dummyUpgradeHeight                      int64 = 5
-	expectDelayedackDeletePacketsEpochLimit int32 = 1000_000
-	expectDelayedackEpochIdentifier               = "hour"
-
-	expectDisputePeriodInBlocks = 3
+	dummyUpgradeHeight                      int64  = 5
+	expectDelayedackDeletePacketsEpochLimit int32  = 1000_000
+	expectDelayedackEpochIdentifier                = "hour"
+	expectDisputePeriodInBlocks                    = 3
+	expectSequencerMinBond                  uint64 = 1000000
 )
 
 var expectDelayedackBridgingFee = sdk.NewDecWithPrec(1, 3)
@@ -125,6 +125,11 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 					return
 				}
 
+				// Check sequencer parameters
+				if err = s.validateSequencerParamsMigration(); err != nil {
+					return
+				}
+
 				// Check rollapp gauges
 				if err = s.validateRollappGaugesMigration(); err != nil {
 					return
@@ -178,6 +183,21 @@ func (s *UpgradeTestSuite) validateRollappParamsMigration() error {
 
 	if !cond {
 		return fmt.Errorf("rollapp parameters not set correctly")
+	}
+	return nil
+}
+
+func (s *UpgradeTestSuite) validateSequencerParamsMigration() error {
+	sequencerParams := s.App.SequencerKeeper.GetParams(s.Ctx)
+	denom, err := sdk.GetBaseDenom()
+	if err != nil {
+		panic(err)
+	}
+	minBond := sdk.NewCoin(denom, sdk.NewIntFromUint64(expectSequencerMinBond))
+	cond := sequencerParams.MinBond.Equal(minBond)
+
+	if !cond {
+		return fmt.Errorf("sequencer parameters not set correctly")
 	}
 	return nil
 }
