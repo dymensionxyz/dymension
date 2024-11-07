@@ -6,13 +6,14 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
 	"gopkg.in/yaml.v2"
 )
 
 var (
 	// DefaultMinBond is the minimum bond required to be a validator
-	DefaultMinBond = rollapptypes.OneDymCoin.Amount.Uint64() * 10
+	DefaultMinBond = ucoin.SimpleMul(rollapptypes.OneDymCoin, 100)
 	// DefaultKickThreshold is the minimum bond required to be a validator
 	DefaultKickThreshold = rollapptypes.OneDymCoin
 	// DefaultNoticePeriod is the time duration for notice period
@@ -36,13 +37,8 @@ func NewParams(minBond sdk.Coin, noticePeriod time.Duration, livenessSlashMul sd
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	denom, err := sdk.GetBaseDenom()
-	if err != nil {
-		panic(err)
-	}
-	minBond := sdk.NewCoin(denom, sdk.NewIntFromUint64(DefaultMinBond))
 	return NewParams(
-		minBond, DefaultNoticePeriod, DefaultLivenessSlashMultiplier, DefaultLivenessSlashMinAbsolute, DefaultKickThreshold,
+		DefaultMinBond, DefaultNoticePeriod, DefaultLivenessSlashMultiplier, DefaultLivenessSlashMinAbsolute, DefaultKickThreshold,
 	)
 }
 

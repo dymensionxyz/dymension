@@ -8,10 +8,8 @@ import (
 
 func migrateSequencerParams(ctx sdk.Context, k *sequencerkeeper.Keeper) {
 	// overwrite params for rollapp module due to proto change
+	// (Note: all of them have changed, including min bond)
 	p := sequencertypes.DefaultParams()
-
-	// min bond is the only one that hasn't changed
-	p.MinBond = k.GetParams(ctx).MinBond
 
 	k.SetParams(ctx, p)
 }
