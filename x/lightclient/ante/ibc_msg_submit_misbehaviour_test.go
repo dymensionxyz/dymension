@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibcsolomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
@@ -18,13 +19,13 @@ func TestHandleMsgSubmitMisbehaviour(t *testing.T) {
 	rollappKeeper := NewMockRollappKeeper(nil, nil)
 	testClientStates := map[string]exported.ClientState{
 		"non-tm-client-id": &ibcsolomachine.ClientState{},
-		"canon-client-id": &ibctm.ClientState{
-			ChainId: "rollapp-has-canon-client",
+		keepertest.CanonClientID: &ibctm.ClientState{
+			ChainId: keepertest.DefaultRollapp,
 		},
 	}
 	ibcclientKeeper := NewMockIBCClientKeeper(testClientStates)
 	ibcchannelKeeper := NewMockIBCChannelKeeper(nil)
-	keeper.SetCanonicalClient(ctx, "rollapp-has-canon-client", "canon-client-id")
+	keeper.SetCanonicalClient(ctx, keepertest.DefaultRollapp, keepertest.CanonClientID)
 	ibcMsgDecorator := ante.NewIBCMessagesDecorator(*keeper, ibcclientKeeper, ibcchannelKeeper, rollappKeeper)
 	testCases := []struct {
 		name     string
@@ -42,10 +43,10 @@ func TestHandleMsgSubmitMisbehaviour(t *testing.T) {
 		{
 			name: "Client is a known canonical client for a rollapp",
 			inputMsg: ibcclienttypes.MsgSubmitMisbehaviour{
-				ClientId:     "canon-client-id",
+				ClientId:     keepertest.CanonClientID,
 				Misbehaviour: nil,
 			},
-			err: ibcclienttypes.ErrInvalidClient,
+			err: gerrc.ErrInvalidArgument,
 		},
 		{
 			name: "Client is not a known canonical client",

@@ -262,7 +262,7 @@ func (s *eibcSuite) TestEIBCDemandOrderFulfillment() {
 				s.Require().NoError(err)
 
 				// manually finalize packets through x/delayedack
-				s.finalizeRollappPacketsByReceiver(fulfiller.String())
+				s.finalizeRollappPacketsByAddress(fulfiller.String())
 
 				// Check the fulfiller balance was updated fully with the IBC amount
 				isUpdated := false
@@ -346,7 +346,7 @@ func (s *eibcSuite) TestEIBCDemandOrderFulfillment() {
 			s.Require().NoError(err)
 
 			// manually finalize packets through x/delayedack
-			evts := s.finalizeRollappPacketsByReceiver(fulfiller.String())
+			evts := s.finalizeRollappPacketsByAddress(fulfiller.String())
 
 			ack, err := ibctesting.ParseAckFromEvents(evts)
 			s.Require().NoError(err)
@@ -509,7 +509,7 @@ func (s *eibcSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			_, err = s.finalizeRollappState(1, currentRollappBlockHeight)
 			s.Require().NoError(err)
 			// manually finalize packets through x/delayedack
-			s.finalizeRollappPacketsByReceiver(receiverAccount.String())
+			s.finalizeRollappPacketsByAddress(fulfillerAccount.String())
 			// Funds are passed to the fulfiller
 			fulfillerAccountBalanceAfterTimeout := bankKeeper.GetBalance(s.hubCtx(), fulfillerAccount, sdk.DefaultBondDenom)
 			s.Require().True(fulfillerAccountBalanceAfterTimeout.IsEqual(fulfillerInitialBalance.Add(lastDemandOrder.Fee[0])))

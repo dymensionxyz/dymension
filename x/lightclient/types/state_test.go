@@ -4,32 +4,32 @@ import (
 	"testing"
 	"time"
 
-	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/stretchr/testify/require"
 )
 
 var (
 	sequencerPubKey = ed25519.GenPrivKey().PubKey()
-	tmPk, _         = cryptocodec.ToTmProtoPublicKey(sequencerPubKey)
-	valHash, _      = types.GetValHashForSequencer(tmPk)
 	timestamp       = time.Unix(1724392989, 0)
+
+	seq = sequencertypes.NewTestSequencer(sequencerPubKey)
 
 	validIBCState = ibctm.ConsensusState{
 		Root:               commitmenttypes.NewMerkleRoot([]byte("root")),
 		Timestamp:          timestamp,
-		NextValidatorsHash: valHash,
+		NextValidatorsHash: seq.MustValsetHash(),
 	}
 	validRollappState = types.RollappState{
 		BlockDescriptor: rollapptypes.BlockDescriptor{
 			StateRoot: []byte("root"),
 			Timestamp: timestamp,
 		},
-		NextBlockSequencer: tmPk,
+		NextBlockSequencer: seq,
 	}
 )
 

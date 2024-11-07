@@ -11,11 +11,14 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ics23 "github.com/cosmos/ics23/go"
-	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func DefaultExpectedCanonicalClientParams() ibctm.ClientState {
-	return ExpectedCanonicalClientParams(sequencertypes.DefaultUnbondingTime)
+	// Note: need to be very sure that this is the same value that the
+	// relayer gets when it queries the rollapp (x/sequencers)
+	unbondingTime := time.Hour * 24 * 7 * 3
+
+	return ExpectedCanonicalClientParams(unbondingTime)
 }
 
 const (

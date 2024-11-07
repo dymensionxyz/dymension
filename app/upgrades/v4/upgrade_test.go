@@ -19,6 +19,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	v4 "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -74,6 +76,8 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				// Create and store sequencers
 				s.seedAndStoreSequencers(numRollapps)
 
+				s.seedPendingRollappPackets()
+
 				return nil
 			},
 			upgrade: func() {
@@ -123,6 +127,11 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 				// Check rollapp gauges
 				if err = s.validateRollappGaugesMigration(); err != nil {
+					return
+				}
+
+				// Check rollapp packets
+				if err = s.validateDelayedAckIndexMigration(); err != nil {
 					return
 				}
 
@@ -234,7 +243,7 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 	for i, sequencer := range testSeqs {
 		expectSequencers[i] = v4.ConvertOldSequencerToNew(sequencer)
 	}
-	sequencers := s.App.SequencerKeeper.GetAllSequencers(s.Ctx)
+	sequencers := s.App.SequencerKeeper.AllSequencers(s.Ctx)
 	s.Require().Len(sequencers, len(expectSequencers))
 
 	sort.Slice(sequencers, func(i, j int) bool {
@@ -247,9 +256,9 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 
 	for i, sequencer := range sequencers {
 		// check that the sequencer can be retrieved by address
-		_, ok := s.App.SequencerKeeper.GetSequencer(s.Ctx, sequencer.Address)
-		if !ok {
-			return fmt.Errorf("sequencer by address not migrated")
+		_, err := s.App.SequencerKeeper.RealSequencer(s.Ctx, sequencer.Address)
+		if err != nil {
+			return err
 		}
 
 		seq := s.App.AppCodec().MustMarshalJSON(&sequencer)
@@ -260,8 +269,8 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 
 	// check proposer
 	for _, rollapp := range s.App.RollappKeeper.GetAllRollapps(s.Ctx) {
-		_, found := s.App.SequencerKeeper.GetProposer(s.Ctx, rollapp.RollappId)
-		s.Assert().True(found)
+		p := s.App.SequencerKeeper.GetProposer(s.Ctx, rollapp.RollappId)
+		s.Require().False(p.Sentinel())
 	}
 
 	return nil
@@ -280,6 +289,14 @@ func (s *UpgradeTestSuite) validateStreamerMigration() {
 
 	// Equal also checks the order of pointers
 	s.Require().Equal(expected, pointers)
+}
+
+func (s *UpgradeTestSuite) validateDelayedAckIndexMigration() error {
+	packets := s.App.DelayedAckKeeper.ListRollappPackets(s.Ctx, delayedacktypes.ByStatus(commontypes.Status_PENDING))
+	actual, err := s.App.DelayedAckKeeper.GetPendingPacketsByAddress(s.Ctx, apptesting.TestPacketReceiver)
+	s.Require().NoError(err)
+	s.Require().Equal(len(packets), len(actual))
+	return nil
 }
 
 func (s *UpgradeTestSuite) seedAndStoreRollapps(numRollapps int) {
@@ -339,4 +356,11 @@ func (s *UpgradeTestSuite) seedSequencers(numRollapps int) []sequencertypes.Sequ
 
 func rollappIDFromIdx(idx int) string {
 	return fmt.Sprintf("roll%spp_123%d-1", string(rune(idx+'a')), idx+1)
+}
+
+func (s *UpgradeTestSuite) seedPendingRollappPackets() {
+	packets := apptesting.GenerateRollappPackets(s.T(), "testrollappid_1-1", 20)
+	for _, packet := range packets {
+		s.App.DelayedAckKeeper.SetRollappPacket(s.Ctx, packet)
+	}
 }

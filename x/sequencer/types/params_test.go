@@ -2,7 +2,6 @@ package types
 
 import (
 	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -24,27 +23,33 @@ func TestValidateBasic(t *testing.T) {
 		{
 			"invalid min bond",
 			Params{
-				MinBond:                 sdk.Coin{Denom: "testdenom", Amount: sdk.NewInt(-5)},
-				UnbondingTime:           params.UnbondingTime,
-				LivenessSlashMultiplier: params.LivenessSlashMultiplier,
+				MinBond:                    sdk.Coin{Denom: "testdenom", Amount: sdk.NewInt(-5)},
+				NoticePeriod:               params.NoticePeriod,
+				LivenessSlashMinMultiplier: params.LivenessSlashMinMultiplier,
+				LivenessSlashMinAbsolute:   params.LivenessSlashMinAbsolute,
+				KickThreshold:              params.KickThreshold,
 			},
 			true,
 		},
 		{
-			"invalid unbonding time",
+			"invalid notice period",
 			Params{
-				MinBond:                 params.MinBond,
-				UnbondingTime:           -time.Second,
-				LivenessSlashMultiplier: params.LivenessSlashMultiplier,
+				MinBond:                    params.MinBond,
+				NoticePeriod:               0,
+				LivenessSlashMinMultiplier: params.LivenessSlashMinMultiplier,
+				LivenessSlashMinAbsolute:   params.LivenessSlashMinAbsolute,
+				KickThreshold:              params.KickThreshold,
 			},
 			true,
 		},
 		{
 			"invalid liveness slash multiplier",
 			Params{
-				MinBond:                 params.MinBond,
-				UnbondingTime:           params.UnbondingTime,
-				LivenessSlashMultiplier: sdk.NewDec(-1),
+				MinBond:                    params.MinBond,
+				NoticePeriod:               params.NoticePeriod,
+				LivenessSlashMinMultiplier: sdk.NewDec(-1),
+				LivenessSlashMinAbsolute:   params.LivenessSlashMinAbsolute,
+				KickThreshold:              params.KickThreshold,
 			},
 			true,
 		},

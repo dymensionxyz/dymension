@@ -8,6 +8,7 @@ import (
 	"testing"
 	"unsafe"
 
+	errorsmod "cosmossdk.io/errors"
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -16,6 +17,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // Prevent strconv unused error
@@ -653,4 +655,35 @@ func (m mockRollappHooks) AfterStateFinalized(_ sdk.Context, _ string, stateInfo
 		return errors.New("error")
 	}
 	return
+}
+
+func TestUnbondConditionFlow(t *testing.T) {
+	k, ctx := keepertest.RollappKeeper(t)
+
+	seq := keepertest.Alice
+
+	err := k.CanUnbond(ctx, seq)
+	require.NoError(t, err)
+
+	for h := range 10 {
+		err := k.SaveSequencerHeight(ctx, seq.Address, uint64(h))
+		require.NoError(t, err)
+	}
+
+	err = k.CanUnbond(ctx, seq)
+	require.True(t, errorsmod.IsOf(err, sequencertypes.ErrUnbondNotAllowed))
+
+	err = k.PruneSequencerHeights(ctx, []string{seq.Address}, 6)
+	require.NoError(t, err)
+
+	err = k.CanUnbond(ctx, seq)
+	require.True(t, errorsmod.IsOf(err, sequencertypes.ErrUnbondNotAllowed))
+
+	for h := range 7 {
+		err := k.DelSequencerHeight(ctx, seq.Address, uint64(h))
+		require.NoError(t, err)
+	}
+
+	err = k.CanUnbond(ctx, seq)
+	require.NoError(t, err)
 }

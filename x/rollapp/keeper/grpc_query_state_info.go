@@ -70,7 +70,7 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 
 	stateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollappId)
 	if !found {
-		return nil, errorsmod.Wrapf(types.ErrNotFound,
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound,
 			"LatestStateInfoIndex wasn't found for rollappId=%s",
 			rollappId)
 	}
@@ -92,5 +92,5 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 			startInfoIndex = midIndex + 1
 		}
 	}
-	return nil, errorsmod.Wrapf(types.ErrStateNotExists, "StateInfo wasn't found for rollappId=%s, height=%d", rollappId, height)
+	return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "StateInfo wasn't found for rollappId=%s, height=%d", rollappId, height)
 }

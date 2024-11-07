@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	"testing"
 	"time"
@@ -8,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,6 +21,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	cometbftdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
@@ -28,8 +31,16 @@ import (
 )
 
 const (
-	Alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
+	CanonClientID  = "canon"
+	DefaultRollapp = "default"
 )
+
+var Alice = func() sequencertypes.Sequencer {
+	ret := sequencertypes.NewTestSequencer(ed25519.GenPrivKey().PubKey())
+	ret.Status = sequencertypes.Bonded
+	ret.RollappId = DefaultRollapp
+	return ret
+}()
 
 func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
@@ -43,25 +54,16 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
-	sequencerPubKey := ed25519.GenPrivKey().PubKey()
-	tmPk, err := codectypes.NewAnyWithValue(sequencerPubKey)
-	require.NoError(t, err)
 
-	testSequencer := sequencertypes.Sequencer{
-		Address:      Alice,
-		DymintPubKey: tmPk,
+	seqs := map[string]*sequencertypes.Sequencer{
+		Alice.Address: &Alice,
 	}
-	nextValHash, err := testSequencer.GetDymintPubKeyHash()
-	require.NoError(t, err)
-	testSequencers := map[string]sequencertypes.Sequencer{
-		Alice: testSequencer,
-	}
-	testConsensusStates := map[string]map[uint64]exported.ConsensusState{
-		"canon-client-id": {
+	consStates := map[string]map[uint64]exported.ConsensusState{
+		CanonClientID: {
 			2: &ibctm.ConsensusState{
 				Timestamp:          time.Unix(1724392989, 0),
 				Root:               commitmenttypes.NewMerkleRoot([]byte("test2")),
-				NextValidatorsHash: nextValHash,
+				NextValidatorsHash: Alice.MustValsetHash(),
 			},
 		},
 	}
@@ -70,12 +72,12 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		time.Hour*24*7*2, time.Hour*24*7*3, time.Minute*10,
 		ibcclienttypes.MustParseHeight("1-2"), commitmenttypes.GetSDKSpecs(), []string{},
 	)
-	testGenesisClients := map[string]exported.ClientState{
-		"canon-client-id": cs,
+	genesisClients := map[string]exported.ClientState{
+		CanonClientID: cs,
 	}
 
-	mockIBCKeeper := NewMockIBCClientKeeper(testConsensusStates, testGenesisClients)
-	mockSequencerKeeper := NewMockSequencerKeeper(testSequencers)
+	mockIBCKeeper := NewMockIBCClientKeeper(consStates, genesisClients)
+	mockSequencerKeeper := NewMockSequencerKeeper(seqs)
 	mockRollappKeeper := NewMockRollappKeeper()
 	k := keeper.NewKeeper(
 		cdc,
@@ -133,30 +135,43 @@ func (m *MockIBCCLientKeeper) ConsensusStateHeights(c context.Context, req *ibcc
 }
 
 type MockSequencerKeeper struct {
-	sequencers map[string]sequencertypes.Sequencer
+	sequencers map[string]*sequencertypes.Sequencer
+}
+
+func (m *MockSequencerKeeper) SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address) (sequencertypes.Sequencer, error) {
+	for _, s := range m.sequencers {
+		if bytes.Equal(s.MustProposerAddr(), addr) {
+			return *s, nil
+		}
+	}
+	return sequencertypes.Sequencer{}, gerrc.ErrNotFound
+}
+
+func (m *MockSequencerKeeper) RealSequencer(ctx sdk.Context, addr string) (sequencertypes.Sequencer, error) {
+	seq, ok := m.sequencers[addr]
+	var err error
+	if !ok {
+		err = gerrc.ErrNotFound
+	}
+	return *seq, err
+}
+
+func (m *MockSequencerKeeper) RollappSequencers(ctx sdk.Context, rollappId string) (list []sequencertypes.Sequencer) {
+	seqs := make([]sequencertypes.Sequencer, 0, len(m.sequencers))
+	for _, seq := range m.sequencers {
+		seqs = append(seqs, *seq)
+	}
+	return seqs
 }
 
 func (m *MockSequencerKeeper) UnbondingTime(ctx sdk.Context) (res time.Duration) {
 	return types.DefaultExpectedCanonicalClientParams().UnbondingPeriod
 }
 
-func NewMockSequencerKeeper(sequencers map[string]sequencertypes.Sequencer) *MockSequencerKeeper {
+func NewMockSequencerKeeper(sequencers map[string]*sequencertypes.Sequencer) *MockSequencerKeeper {
 	return &MockSequencerKeeper{
 		sequencers: sequencers,
 	}
-}
-
-func (m *MockSequencerKeeper) GetSequencer(ctx sdk.Context, seqAddr string) (sequencertypes.Sequencer, bool) {
-	seq, ok := m.sequencers[seqAddr]
-	return seq, ok
-}
-
-func (m *MockSequencerKeeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list []sequencertypes.Sequencer) {
-	seqs := make([]sequencertypes.Sequencer, 0, len(m.sequencers))
-	for _, seq := range m.sequencers {
-		seqs = append(seqs, seq)
-	}
-	return seqs
 }
 
 type MockRollappKeeper struct{}

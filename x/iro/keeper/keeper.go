@@ -26,6 +26,7 @@ type Keeper struct {
 	gk types.GammKeeper
 	pm types.PoolManagerKeeper
 	ik types.IncentivesKeeper
+	tk types.TxFeesKeeper
 }
 
 func NewKeeper(
@@ -39,6 +40,7 @@ func NewKeeper(
 	gk types.GammKeeper,
 	ik types.IncentivesKeeper,
 	pm types.PoolManagerKeeper,
+	tk types.TxFeesKeeper,
 ) *Keeper {
 	return &Keeper{
 		cdc:       cdc,
@@ -51,6 +53,7 @@ func NewKeeper(
 		gk:        gk,
 		ik:        ik,
 		pm:        pm,
+		tk:        tk,
 	}
 }
 
