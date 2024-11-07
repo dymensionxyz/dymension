@@ -71,7 +71,7 @@ func (k Keeper) FinalizeRollappStates(ctx sdk.Context) {
 }
 
 // FinalizeAllPending is called every block to finalize all pending states in the queue.
-// pendingQueues contains queues in acsending order of creation height. There may be multiple queues for the same
+// pendingQueues contains queues in ascending order of creation height. There may be multiple queues for the same
 // creation height since multiple rollapps may have pending states. In that case, the queues are ordered by rollappID.
 // If one of rollapps states fails to finalize, the rest of the states are not finalized as well. This is achieved by
 // using a set of failed rollapps.
