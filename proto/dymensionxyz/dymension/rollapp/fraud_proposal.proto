@@ -28,6 +28,9 @@ message MsgRollappFraudProposal {
 
   // sequencer address to punish. optional
   string punish_sequencer_address = 6;
+
+  // rewardAddr is bech32 for sdk acc addr
+  string rewardee = 7;
 }
 
 message MsgRollappFraudProposalResponse {
