@@ -78,6 +78,10 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
+		if err := migrateRollappRegisteredDenoms(ctx, keepers.RollappKeeper); err != nil {
+			return nil, err
+		}
+
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
 		return mm.RunMigrations(ctx, configurator, fromVM)
@@ -136,12 +140,6 @@ func LoadDeprecatedParamsSubspaces(keepers *keepers.AppKeepers) {
 	}
 }
 
-func migrateDelayedAckParams(ctx sdk.Context, delayedAckKeeper delayedackkeeper.Keeper) {
-	// overwrite params for delayedack module due to added parameters
-	params := delayedacktypes.DefaultParams()
-	delayedAckKeeper.SetParams(ctx, params)
-}
-
 // migrateRollappGauges creates a gauge for each rollapp in the store
 func migrateRollappGauges(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, incentivizeKeeper *incentiveskeeper.Keeper) error {
 	rollapps := rollappkeeper.GetAllRollapps(ctx)
@@ -155,6 +153,7 @@ func migrateRollappGauges(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, 
 }
 
 func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) error {
+	// in theory, there should be only two rollapps in the store, but we iterate over all of them just in case
 	list := rollappkeeper.GetAllRollapps(ctx)
 	for _, oldRollapp := range list {
 		newRollapp := ConvertOldRollappToNew(oldRollapp)
@@ -185,8 +184,14 @@ func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Ke
 	}
 }
 
-// migrateStreamer creates epoch pointers for all epoch infos.
+// migrateStreamer creates epoch pointers for all epoch infos and updates module params
 func migrateStreamer(ctx sdk.Context, sk streamerkeeper.Keeper, ek *epochskeeper.Keeper) error {
+	// update module params
+	oldParams := sk.GetParams(ctx)
+	oldParams.MaxIterationsPerBlock = streamertypes.DefaultMaxIterationsPerBlock
+	sk.SetParams(ctx, oldParams)
+
+	// create epoch pointers for all epoch infos
 	for _, epoch := range ek.AllEpochInfos(ctx) {
 		err := sk.SaveEpochPointer(ctx, streamertypes.NewEpochPointer(epoch.Identifier, epoch.Duration))
 		if err != nil {
@@ -224,15 +229,33 @@ func migrateDelayedAckPacketIndex(ctx sdk.Context, dk delayedackkeeper.Keeper) e
 }
 
 func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollapp {
+	genesisInfo := rollapptypes.GenesisInfo{
+		Bech32Prefix:    oldRollapp.RollappId[:5],                            // placeholder data
+		GenesisChecksum: string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
+		NativeDenom: rollapptypes.DenomMetadata{
+			Display:  "DEN",  // placeholder data
+			Base:     "aden", // placeholder data
+			Exponent: 18,     // placeholder data
+		},
+		InitialSupply: sdk.NewInt(100000), // placeholder data
+		Sealed:        true,
+	}
+
+	// migrate existing rollapps
+	if oldRollapp.RollappId == nimRollappID {
+		genesisInfo = nimGenesisInfo
+	}
+	if oldRollapp.RollappId == mandeRollappID {
+		genesisInfo = mandeGenesisInfo
+	}
+
 	return rollapptypes.Rollapp{
 		RollappId:    oldRollapp.RollappId,
 		Owner:        oldRollapp.Owner,
 		GenesisState: oldRollapp.GenesisState,
 		ChannelId:    oldRollapp.ChannelId,
 		Frozen:       oldRollapp.Frozen,
-		// TODO: regarding missing data - https://github.com/dymensionxyz/dymension/issues/986
-		VmType: rollapptypes.Rollapp_EVM, // placeholder data
-		Metadata: &rollapptypes.RollappMetadata{
+		Metadata: &rollapptypes.RollappMetadata{ // Can be updated in runtime
 			Website:     "",
 			Description: "",
 			LogoUrl:     "",
@@ -243,19 +266,13 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 			Tagline:     "",
 			FeeDenom:    nil,
 		},
-		GenesisInfo: rollapptypes.GenesisInfo{
-			Bech32Prefix:    oldRollapp.RollappId[:5],                            // placeholder data
-			GenesisChecksum: string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
-			NativeDenom: rollapptypes.DenomMetadata{
-				Display:  "DEN",  // placeholder data
-				Base:     "aden", // placeholder data
-				Exponent: 18,     // placeholder data
-			},
-			InitialSupply: sdk.NewInt(100000), // placeholder data
-			Sealed:        true,
-		},
-		InitialSequencer: "*",
-		Launched:         true,
+		GenesisInfo:           genesisInfo,
+		InitialSequencer:      "*",
+		VmType:                rollapptypes.Rollapp_EVM, // EVM for existing rollapps
+		Launched:              true,                     // Existing rollapps are already launched
+		PreLaunchTime:         nil,                      // We can just let it be zero. Existing rollapps are already launched.
+		LivenessEventHeight:   0,                        // Filled lazily in runtime
+		LastStateUpdateHeight: 0,                        // Filled lazily in runtime
 	}
 }
 
