@@ -69,7 +69,8 @@ func (suite *RollappTestSuite) TestHardFork() {
 
 			// Assert initial stats (revision 0, states pending)
 			suite.assertNotForked(rollappId)
-			queue := suite.App.RollappKeeper.GetAllFinalizationQueueUntilHeightInclusive(suite.Ctx, initialHeight+numOfStates+suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx))
+			queue, err := suite.App.RollappKeeper.GetFinalizationQueueByRollapp(suite.Ctx, rollappId)
+			suite.Require().NoError(err)
 			suite.Require().Len(queue, int(numOfStates))
 
 			// finalize some of the states
