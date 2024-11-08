@@ -6,7 +6,7 @@ var _ binary.ByteOrder
 
 const (
 	// BlockHeightToFinalizationQueueKeyPrefix is the prefix to retrieve all BlockHeightToFinalizationQueue
-	// Deprecated: HeightRollappToFinalizationQueueKeyPrefix and RollappHeightToFinalizationQueueKeyPrefix are used instead
+	// Deprecated : HeightRollappToFinalizationQueueKeyPrefix and RollappHeightToFinalizationQueueKeyPrefix are used instead
 	BlockHeightToFinalizationQueueKeyPrefix = "BlockHeightToFinalizationQueue/value/"
 
 	// HeightRollappToFinalizationQueueKeyPrefix is the prefix to retrieve all FinalizationQueue by (height, rollappID)
