@@ -14,21 +14,35 @@ import (
 
 // RejectMessagesDecorator prevents invalid msg types from being executed
 type RejectMessagesDecorator struct {
-	disabledMsgTypeURLs map[string]struct{}
+	// message is rejected if any predicate returns true
+	predicates []predicate
+}
+
+// predicate should return true if message is not allowed
+type predicate func(typeURL string, depth int) bool
+
+func simplePredicate(typeUrls ...string) predicate {
+	block := make(map[string]struct{})
+	for _, url := range typeUrls {
+		block[url] = struct{}{}
+	}
+	return func(url string, depth int) bool {
+		_, ok := block[url]
+		return ok
+	}
 }
 
 var _ sdk.AnteDecorator = RejectMessagesDecorator{}
 
 // NewRejectMessagesDecorator creates a decorator to block provided messages from reaching the mempool
 func NewRejectMessagesDecorator(disabledMsgTypeURLs ...string) RejectMessagesDecorator {
-	disabledMsgsMap := make(map[string]struct{})
-	for _, url := range disabledMsgTypeURLs {
-		disabledMsgsMap[url] = struct{}{}
-	}
-
 	return RejectMessagesDecorator{
-		disabledMsgTypeURLs: disabledMsgsMap,
+		predicates: []predicate{simplePredicate(disabledMsgTypeURLs...)},
 	}
+}
+
+func (rmd *RejectMessagesDecorator) addPredicate(p predicate) {
+	rmd.predicates = append(rmd.predicates, p)
 }
 
 // AnteHandle recursively rejects messages such as those that requires ethereum-specific authentication.
@@ -46,21 +60,22 @@ func (rmd RejectMessagesDecorator) AnteHandle(
 	return next(ctx, tx, simulate)
 }
 
-const maxNestedMsgs = 6
+const maxDepth = 6
 
-func (rmd RejectMessagesDecorator) checkMsgs(ctx sdk.Context, msgs []sdk.Msg, nestedMsgs int) error {
+// depth=0 means top level message
+func (rmd RejectMessagesDecorator) checkMsgs(ctx sdk.Context, msgs []sdk.Msg, depth int) error {
 	for _, msg := range msgs {
-		if err := rmd.checkMsg(ctx, msg, nestedMsgs); err != nil {
+		if err := rmd.checkMsg(ctx, msg, depth); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, nestedMsgs int) error {
-	typeURL := sdk.MsgTypeURL(msg)
-	if _, ok := rmd.disabledMsgTypeURLs[typeURL]; ok {
-		return fmt.Errorf("found disabled msg type: %s", typeURL)
+// depth=0 means top level message
+func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, depth int) error {
+	if depth >= maxDepth {
+		return fmt.Errorf("found more nested msgs than permitted. Limit is : %d", maxDepth)
 	}
 
 	if _, ok := msg.(*evmtypes.MsgEthereumTx); ok {
@@ -70,37 +85,41 @@ func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, nested
 		)
 	}
 
-	if nestedMsgs >= maxNestedMsgs {
-		return fmt.Errorf("found more nested msgs than permitted. Limit is : %d", maxNestedMsgs)
+	typeURL := sdk.MsgTypeURL(msg)
+	for _, pred := range rmd.predicates {
+		if pred(typeURL, depth) {
+			return fmt.Errorf("found disabled msg type: %s", typeURL)
+		}
 	}
+
+	depth++
 
 	innerMsgs, err := extractMsgs(msg)
 	if err != nil {
 		return err
 	}
 	switch concreteMsg := msg.(type) {
-	case *authz.MsgExec:
-		nestedMsgs++
-		if err := rmd.checkMsgs(ctx, innerMsgs, nestedMsgs); err != nil {
-			return err
-		}
 	case *authz.MsgGrant:
 		authorization, err := concreteMsg.GetAuthorization()
 		if err != nil {
 			return err
 		}
 		url := authorization.MsgTypeURL()
-		if _, ok := rmd.disabledMsgTypeURLs[url]; ok {
-			return fmt.Errorf("granting disabled msg type: %s is not allowed", url)
+		for _, pred := range rmd.predicates {
+			if pred(url, depth) {
+				return fmt.Errorf("found disabled msg type: %s", url)
+			}
+		}
+	case *authz.MsgExec:
+		if err := rmd.checkMsgs(ctx, innerMsgs, depth); err != nil {
+			return err
 		}
 	case *govtypesv1.MsgSubmitProposal:
-		nestedMsgs++
-		if err := rmd.checkMsgs(ctx, innerMsgs, nestedMsgs); err != nil {
+		if err := rmd.checkMsgs(ctx, innerMsgs, depth); err != nil {
 			return err
 		}
 	case *group.MsgSubmitProposal:
-		nestedMsgs++
-		if err := rmd.checkMsgs(ctx, innerMsgs, nestedMsgs); err != nil {
+		if err := rmd.checkMsgs(ctx, innerMsgs, depth); err != nil {
 			return err
 		}
 	default:
@@ -109,6 +128,7 @@ func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, nested
 	return nil
 }
 
+// returns nested messages from authz and gov
 func extractMsgs(msg any) ([]sdk.Msg, error) {
 	if msgWithMsgs, ok := msg.(interface{ GetMsgs() ([]sdk.Msg, error) }); ok {
 		return msgWithMsgs.GetMsgs()

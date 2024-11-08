@@ -105,7 +105,7 @@ func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
 		{
 			name: "Transaction exceeding max nested messages",
 			msgs: []sdk.Msg{
-				generateDeeplyNestedMsgExec(suite.T(), 7), // exceeds maxNestedMsgs (6)
+				generateDeeplyNestedMsgExec(suite.T(), 7), // exceeds maxDepth (6)
 			},
 			expectPass:    false,
 			expectedError: "found more nested msgs than permitted. Limit is : 6",
