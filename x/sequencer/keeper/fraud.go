@@ -69,21 +69,23 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	return err
 }
 
-func (k Keeper) PunishSequencer(ctx sdk.Context, seqAddr string) error {
+// Takes an optional rewardee addr who will receive some bounty
+func (k Keeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
 	seq, err := k.RealSequencer(ctx, seqAddr)
 	if err != nil {
 		return err
 	}
 
-	err = k.slash(ctx, &seq, seq.TokensCoin(), sdk.ZeroDec(), nil)
+	if rewardee != nil {
+		rewardMul := sdk.MustNewDecFromStr("0.5") // TODO: parameterise
+		err = k.slash(ctx, &seq, seq.TokensCoin(), rewardMul, *rewardee)
+	} else {
+		err = k.slash(ctx, &seq, seq.TokensCoin(), sdk.ZeroDec(), nil)
+	}
 	if err != nil {
 		return errorsmod.Wrap(err, "slash")
 	}
-	err = k.unbond(ctx, &seq)
-	if err != nil {
-		return errorsmod.Wrap(err, "unbond")
-	}
-
+	err = errorsmod.Wrap(k.unbond(ctx, &seq), "unbond")
 	k.SetSequencer(ctx, seq)
 	return nil
 }

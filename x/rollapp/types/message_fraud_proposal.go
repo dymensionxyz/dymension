@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
@@ -19,6 +18,14 @@ func (m *MsgRollappFraudProposal) ValidateBasic() error {
 			errors.Join(gerrc.ErrInvalidArgument, err),
 			"authority is not a valid bech32 address: %s", m.Authority,
 		)
+	}
+	if m.Rewardee != "" {
+		if _, err := sdk.AccAddressFromBech32(m.Rewardee); err != nil {
+			return errorsmod.Wrapf(
+				errors.Join(gerrc.ErrInvalidArgument, err),
+				"rewardee is not a valid bech32 address: %s", m.Authority,
+			)
+		}
 	}
 
 	return nil
