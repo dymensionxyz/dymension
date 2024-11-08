@@ -41,12 +41,12 @@ func (suite *RollappTestSuite) TestHardFork() {
 			initialHeight := uint64(1)
 			suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialHeight))
 
-			// unrelated rollapp just to validate it's unaffected
-			rollapp2, proposer2 := suite.CreateDefaultRollappAndProposer()
 			var (
 				err        error
 				lastHeight uint64 = 1
 			)
+			//unrelated rollapp just to validate it's unaffected
+			rollapp2, proposer2 := suite.CreateDefaultRollappAndProposer()
 			for i := uint64(0); i < numOfStates; i++ {
 				suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialHeight + i))
 				lastHeight, err = suite.PostStateUpdate(suite.Ctx, rollapp2, proposer2, lastHeight, numOfBlocks)

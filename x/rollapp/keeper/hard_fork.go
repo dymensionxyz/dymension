@@ -96,7 +96,7 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 	// we iterate over the queue,
 	// - skipping the states that are not related to the rollapp
 	// - skipping the states that are less than the rollback index
-	queuePerHeight, err := k.GetEntireFinalizationQueue(ctx) // FIXME (#631): Prefix store by rollappID for efficient querying
+	queuePerHeight, err := k.GetFinalizationQueueByRollapp(ctx, rollappID)
 
 	for _, queue := range queuePerHeight {
 		leftPendingStates := []types.StateInfoIndex{}
