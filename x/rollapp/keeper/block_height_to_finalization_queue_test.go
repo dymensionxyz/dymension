@@ -78,11 +78,12 @@ func TestBlockHeightToFinalizationQueueRemove(t *testing.T) {
 	k, ctx := keepertest.RollappKeeper(t)
 	items := createNBlockHeightToFinalizationQueue(k, ctx, 10)
 	for _, item := range items {
-		k.RemoveFinalizationQueue(
+		err := k.RemoveFinalizationQueue(
 			ctx,
 			item.CreationHeight,
 			item.RollappId,
 		)
+		require.NoError(t, err)
 		_, found := k.GetFinalizationQueue(
 			ctx,
 			item.CreationHeight,
