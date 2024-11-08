@@ -21,7 +21,7 @@ type RejectMessagesDecorator struct {
 // predicate should return true if message is not allowed
 type predicate func(typeURL string, depth int) bool
 
-func simplePredicate(typeUrls ...string) predicate {
+func blockTypeUrls(typeUrls ...string) predicate {
 	block := make(map[string]struct{})
 	for _, url := range typeUrls {
 		block[url] = struct{}{}
@@ -37,7 +37,7 @@ var _ sdk.AnteDecorator = RejectMessagesDecorator{}
 // NewRejectMessagesDecorator creates a decorator to block provided messages from reaching the mempool
 func NewRejectMessagesDecorator(disabledMsgTypeURLs ...string) RejectMessagesDecorator {
 	return RejectMessagesDecorator{
-		predicates: []predicate{simplePredicate(disabledMsgTypeURLs...)},
+		predicates: []predicate{blockTypeUrls(disabledMsgTypeURLs...)},
 	}
 }
 
@@ -94,39 +94,22 @@ func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, depth 
 
 	depth++
 
+	var err error
+	var inner []sdk.Msg
+
 	switch m := msg.(type) {
-	case *authz.MsgGrant:
-		authorization, err := m.GetAuthorization()
-		if err != nil {
-			return err
-		}
-		url := authorization.MsgTypeURL()
-		for _, pred := range rmd.predicates {
-			if pred(url, depth) {
-				return fmt.Errorf("found disabled msg type: %s", url)
-			}
-		}
-		return nil
 	case *authz.MsgExec:
-		inner, err := m.GetMessages()
-		if err != nil {
-			return err
-		}
-		return rmd.checkMsgs(ctx, inner, depth)
+		inner, err = m.GetMessages()
 	case *govtypesv1.MsgSubmitProposal:
-		inner, err := m.GetMsgs()
-		if err != nil {
-			return err
-		}
-		return rmd.checkMsgs(ctx, inner, depth)
+		inner, err = m.GetMsgs()
 	case *group.MsgSubmitProposal:
-		inner, err := m.GetMsgs()
-		if err != nil {
-			return err
-		}
-		return rmd.checkMsgs(ctx, inner, depth)
+		inner, err = m.GetMsgs()
 	default:
 	}
 
-	return nil
+	if err != nil {
+		return err
+	}
+
+	return rmd.checkMsgs(ctx, inner, depth+1)
 }
