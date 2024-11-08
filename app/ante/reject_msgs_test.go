@@ -22,7 +22,7 @@ func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
 		sdk.MsgTypeURL(&types.MsgDelegate{}),
 	}
 
-	decorator := ante.NewRejectMessagesDecorator(disabledMsgTypes...)
+	decorator := ante.NewRejectMessagesDecorator().WithPredicate(ante.BlockTypeUrls(disabledMsgTypes...))
 
 	testCases := []struct {
 		name          string
@@ -40,7 +40,7 @@ func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
 				},
 			},
 			expectPass:    false,
-			expectedError: "found disabled msg type: /cosmos.bank.v1beta1.MsgSend",
+			expectedError: "/cosmos.bank.v1beta1.MsgSend",
 		},
 		{
 			name: "Transaction with allowed message (MsgMultiSend)",
@@ -67,7 +67,7 @@ func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
 				},
 			},
 			expectPass:    false,
-			expectedError: "found disabled msg type: /cosmos.bank.v1beta1.MsgSend",
+			expectedError: "/cosmos.bank.v1beta1.MsgSend",
 		},
 		{
 			name: "Transaction with allowed message nested in MsgExec",
@@ -100,7 +100,7 @@ func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
 				},
 			},
 			expectPass:    false,
-			expectedError: "found disabled msg type: /cosmos.bank.v1beta1.MsgSend",
+			expectedError: "/cosmos.bank.v1beta1.MsgSend",
 		},
 		{
 			name: "Transaction exceeding max nested messages",
@@ -125,7 +125,7 @@ func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
 				},
 			},
 			expectPass:    false,
-			expectedError: "granting disabled msg type: /cosmos.bank.v1beta1.MsgSend is not allowed",
+			expectedError: "/cosmos.bank.v1beta1.MsgSend",
 		},
 		{
 			name: "Transaction with authz.MsgGrant granting allowed message",

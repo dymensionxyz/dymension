@@ -9,19 +9,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/cosmos/cosmos-sdk/x/group"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
 // RejectMessagesDecorator prevents invalid msg types from being executed
 type RejectMessagesDecorator struct {
-	// message is rejected if any predicate returns true
-	predicates []predicate
+	// message is rejected if any Predicate returns true
+	predicates []Predicate
 }
 
-// predicate should return true if message is not allowed
-type predicate = func(typeURL string, depth int) bool
+// Predicate should return true if message is not allowed
+type Predicate = func(typeURL string, depth int) bool
 
-func blockTypeUrls(typeUrls ...string) predicate {
+func BlockTypeUrls(typeUrls ...string) Predicate {
 	block := make(map[string]struct{})
 	for _, url := range typeUrls {
 		block[url] = struct{}{}
@@ -36,11 +37,11 @@ var _ sdk.AnteDecorator = RejectMessagesDecorator{}
 
 func NewRejectMessagesDecorator() *RejectMessagesDecorator {
 	return &RejectMessagesDecorator{
-		predicates: []predicate{},
+		predicates: []Predicate{},
 	}
 }
 
-func (rmd *RejectMessagesDecorator) withPredicate(p predicate) *RejectMessagesDecorator {
+func (rmd *RejectMessagesDecorator) WithPredicate(p Predicate) *RejectMessagesDecorator {
 	rmd.predicates = append(rmd.predicates, p)
 	return rmd
 }
@@ -88,11 +89,9 @@ func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, depth 
 	typeURL := sdk.MsgTypeURL(msg)
 	for _, pred := range rmd.predicates {
 		if pred(typeURL, depth) {
-			return fmt.Errorf("found disabled msg type: %s", typeURL)
+			return gerrc.ErrInvalidArgument.Wrapf("disabled: %s", typeURL)
 		}
 	}
-
-	depth++
 
 	var err error
 	var inner []sdk.Msg
@@ -105,6 +104,17 @@ func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, depth 
 	case *group.MsgSubmitProposal:
 		inner, err = m.GetMsgs()
 	default:
+	case *authz.MsgGrant:
+		authorization, err := m.GetAuthorization()
+		if err != nil {
+			return err
+		}
+		typeURL = authorization.MsgTypeURL()
+		for _, pred := range rmd.predicates {
+			if pred(typeURL, depth) {
+				return gerrc.ErrInvalidArgument.Wrapf("disabled grant: %s", typeURL)
+			}
+		}
 	}
 
 	if err != nil {

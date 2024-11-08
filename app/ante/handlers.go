@@ -46,7 +46,7 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 			for an explanation of these message blocking decorators
 		*/
 		// reject MsgEthereumTxs and disable the Msg types that cannot be included on an authz.MsgExec msgs field
-		NewRejectMessagesDecorator().withPredicate(lightclientante.BlockMsg).withPredicate(blockTypeUrls(
+		NewRejectMessagesDecorator().WithPredicate(lightclientante.BlockMsg).WithPredicate(BlockTypeUrls(
 			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}),
@@ -82,7 +82,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 
 	return sdk.ChainAnteDecorators(
-		NewRejectMessagesDecorator().withPredicate(lightclientante.BlockMsg).withPredicate(blockTypeUrls(
+		NewRejectMessagesDecorator().WithPredicate(lightclientante.BlockMsg).WithPredicate(BlockTypeUrls(
 			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}),
