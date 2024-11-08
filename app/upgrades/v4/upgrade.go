@@ -59,6 +59,10 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
+		if err := deprecateCrisisModule(ctx, keepers.CrisisKeeper); err != nil {
+			return nil, err
+		}
+
 		migrateModuleParams(ctx, keepers)
 		migrateDelayedAckParams(ctx, keepers.DelayedAckKeeper)
 		migrateRollappParams(ctx, keepers.RollappKeeper)
