@@ -27,6 +27,8 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 		demandOrderUnderlyingPacketStatus    commontypes.Status
 		demandOrderDenom                     string
 		fulfillmentExpectedFee               string
+		latestFinalizedStateIndex            uint64
+		proofHeight                          uint64
 		expectedFulfillmentError             error
 		eIBCdemandAddrBalance                math.Int
 		expectedDemandOrdefFulfillmentStatus bool
@@ -37,6 +39,8 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			demandOrderFee:                       50,
 			eIBCdemandAddrBalance:                math.NewInt(1000),
 			expectedDemandOrdefFulfillmentStatus: true,
+			latestFinalizedStateIndex:            10,
+			proofHeight:                          10,
 		},
 		{
 			name:                                 "order with zero fee - success",
@@ -44,6 +48,8 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			demandOrderFee:                       0,
 			fulfillmentExpectedFee:               "0",
 			eIBCdemandAddrBalance:                math.NewInt(1000),
+			latestFinalizedStateIndex:            10,
+			proofHeight:                          10,
 			expectedDemandOrdefFulfillmentStatus: true,
 		},
 		{
@@ -53,6 +59,8 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			fulfillmentExpectedFee:               "30",
 			expectedFulfillmentError:             types.ErrExpectedFeeNotMet,
 			eIBCdemandAddrBalance:                math.NewInt(1000),
+			latestFinalizedStateIndex:            10,
+			proofHeight:                          10,
 			expectedDemandOrdefFulfillmentStatus: false,
 		},
 		{
@@ -61,6 +69,8 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			demandOrderFee:                       50,
 			expectedFulfillmentError:             sdkerrors.ErrInsufficientFunds,
 			eIBCdemandAddrBalance:                math.NewInt(130),
+			latestFinalizedStateIndex:            10,
+			proofHeight:                          10,
 			expectedDemandOrdefFulfillmentStatus: false,
 		},
 		{
@@ -70,6 +80,8 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			demandOrderDenom:                     "adym",
 			expectedFulfillmentError:             sdkerrors.ErrInsufficientFunds,
 			eIBCdemandAddrBalance:                math.NewInt(130),
+			latestFinalizedStateIndex:            10,
+			proofHeight:                          10,
 			expectedDemandOrdefFulfillmentStatus: false,
 		},
 		{
@@ -79,6 +91,8 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			demandOrderFulfillmentStatus:         true,
 			expectedFulfillmentError:             types.ErrDemandAlreadyFulfilled,
 			eIBCdemandAddrBalance:                math.NewInt(300),
+			latestFinalizedStateIndex:            10,
+			proofHeight:                          10,
 			expectedDemandOrdefFulfillmentStatus: true,
 		},
 		{
@@ -89,6 +103,18 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			demandOrderUnderlyingPacketStatus:    commontypes.Status_FINALIZED,
 			expectedFulfillmentError:             types.ErrDemandOrderDoesNotExist,
 			eIBCdemandAddrBalance:                math.NewInt(300),
+			latestFinalizedStateIndex:            10,
+			proofHeight:                          10,
+			expectedDemandOrdefFulfillmentStatus: false,
+		},
+		{
+			name:                                 "Test demand order fulfillment - failure due to finalization status",
+			demandOrderPrice:                     150,
+			demandOrderFee:                       50,
+			eIBCdemandAddrBalance:                math.NewInt(1000),
+			latestFinalizedStateIndex:            10,
+			proofHeight:                          9,
+			expectedFulfillmentError:             types.ErrDemandOrderInactive,
 			expectedDemandOrdefFulfillmentStatus: false,
 		},
 	}
@@ -103,12 +129,28 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			eibcSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, sdk.DefaultBondDenom)
 			eibcDemandAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, sdk.DefaultBondDenom)
 			// Set the rollapp packet
-			suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
+			rPacket := *rollappPacket
+			rPacket.ProofHeight = tc.proofHeight
+			suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, rPacket)
 			// Create new demand order
 			if tc.demandOrderDenom == "" {
 				tc.demandOrderDenom = sdk.DefaultBondDenom
 			}
-			demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(tc.demandOrderPrice), math.NewIntFromUint64(tc.demandOrderFee), tc.demandOrderDenom, eibcSupplyAddr.String(), 1)
+
+			if tc.latestFinalizedStateIndex != 0 {
+				stateInfoIndex := rollapptypes.StateInfoIndex{
+					RollappId: rollappPacket.RollappId,
+					Index:     tc.latestFinalizedStateIndex,
+				}
+				suite.App.RollappKeeper.SetLatestFinalizedStateIndex(suite.Ctx, stateInfoIndex)
+				suite.App.RollappKeeper.SetStateInfo(suite.Ctx, rollapptypes.StateInfo{
+					StateInfoIndex: stateInfoIndex,
+					StartHeight:    10,
+					Status:         tc.demandOrderUnderlyingPacketStatus,
+				})
+			}
+
+			demandOrder := types.NewDemandOrder(rPacket, math.NewIntFromUint64(tc.demandOrderPrice), math.NewIntFromUint64(tc.demandOrderFee), tc.demandOrderDenom, eibcSupplyAddr.String(), 1)
 			if tc.demandOrderFulfillmentStatus {
 				demandOrder.FulfillerAddress = eibcDemandAddr.String() // simulate fulfillment
 			}
@@ -116,6 +158,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			suite.Require().NoError(err)
 			// Update rollapp status if needed
 			if rollappPacket.Status != tc.demandOrderUnderlyingPacketStatus {
+				_, err = suite.App.DelayedAckKeeper.UpdateRollappPacketWithStatus(suite.Ctx, rPacket, tc.demandOrderUnderlyingPacketStatus)
 				_, err = suite.App.DelayedAckKeeper.UpdateRollappPacketAfterFinalization(suite.Ctx, *rollappPacket)
 				suite.Require().NoError(err, tc.name)
 			}
@@ -158,9 +201,11 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 		msg                               *types.MsgFulfillOrderAuthorized
 		lpAccountBalance                  sdk.Coins
 		operatorFeeAccountBalance         sdk.Coins
+		proofHeight                       uint64
 		malleate                          func()
 		expectError                       error
 		expectOrderFulfilled              bool
+		expectedFulfillmentError          error
 		expectedLPAccountBalance          sdk.Coins
 		expectedOperatorFeeAccountBalance sdk.Coins
 	}{
@@ -201,8 +246,8 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			},
 			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
 			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
+			proofHeight:               1,
 			malleate: func() {
-				rollappPacket.ProofHeight = 1
 				siIndex := rollapptypes.StateInfoIndex{
 					RollappId: rollappPacket.RollappId,
 					Index:     1,
@@ -355,8 +400,8 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			},
 			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
 			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
+			proofHeight:               10,
 			malleate: func() {
-				rollappPacket.ProofHeight = 10
 				siIndex := rollapptypes.StateInfoIndex{
 					RollappId: rollappPacket.RollappId,
 					Index:     1,
@@ -370,6 +415,40 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 				})
 			},
 			expectError:              types.ErrOrderNotSettlementValidated,
+			expectOrderFulfilled:     false,
+			expectedLPAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 200)), // Unchanged
+		},
+		{
+			name:           "Failure due to finalization status",
+			orderPrice:     sdk.NewInt64Coin("adym", 90),
+			orderFee:       sdk.NewInt(10),
+			orderRecipient: sample.AccAddress(),
+			msg: &types.MsgFulfillOrderAuthorized{
+				RollappId:           rollappPacket.RollappId,
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 90)),
+				ExpectedFee:         "10",
+				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeAddress:  sample.AccAddress(),
+				LpAddress:           sample.AccAddress(),
+				SettlementValidated: false,
+			},
+			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
+			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
+			proofHeight:               9,
+			malleate: func() {
+				siIndex := rollapptypes.StateInfoIndex{
+					RollappId: rollappPacket.RollappId,
+					Index:     1,
+				}
+				suite.App.RollappKeeper.SetLatestFinalizedStateIndex(suite.Ctx, siIndex)
+				suite.App.RollappKeeper.SetStateInfo(suite.Ctx, rollapptypes.StateInfo{
+					StateInfoIndex: siIndex,
+					StartHeight:    10,
+					NumBlocks:      1,
+					Status:         commontypes.Status_PENDING,
+				})
+			},
+			expectError:              types.ErrDemandOrderInactive,
 			expectOrderFulfilled:     false,
 			expectedLPAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 200)), // Unchanged
 		},
@@ -402,8 +481,10 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 				require.NoError(suite.T(), err, "Failed to fund operator account")
 			}
 
-			suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
-			demandOrder := types.NewDemandOrder(*rollappPacket, tc.orderPrice.Amount, tc.orderFee, tc.orderPrice.Denom, tc.orderRecipient, 1)
+			rPacket := *rollappPacket
+			rPacket.ProofHeight = tc.proofHeight
+			suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, rPacket)
+			demandOrder := types.NewDemandOrder(rPacket, tc.orderPrice.Amount, tc.orderFee, tc.orderPrice.Denom, tc.orderRecipient, 1)
 			err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
 			suite.Require().NoError(err)
 

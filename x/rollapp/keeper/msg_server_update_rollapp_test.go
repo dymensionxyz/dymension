@@ -51,14 +51,15 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
 				GenesisInfo: types.GenesisInfo{
-					Bech32Prefix:    "new",
 					GenesisChecksum: "new_checksum",
-					InitialSupply:   sdk.NewInt(1000),
+					Bech32Prefix:    "new",
 					NativeDenom: types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
 						Exponent: 18,
 					},
+					InitialSupply:   sdk.NewInt(1000),
+					GenesisAccounts: &types.GenesisAccounts{},
 				},
 			},
 		}, {
@@ -163,6 +164,14 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 						Base:     "aold",
 						Exponent: 18,
 					},
+					GenesisAccounts: &types.GenesisAccounts{
+						Accounts: []types.GenesisAccount{
+							{
+								Amount:  sdk.NewInt(1000),
+								Address: initialSequencerAddress,
+							},
+						},
+					},
 					Sealed: true,
 				},
 			},
@@ -193,6 +202,14 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 						Base:     "aold",
 						Exponent: 18,
 					},
+					GenesisAccounts: &types.GenesisAccounts{
+						Accounts: []types.GenesisAccount{
+							{
+								Amount:  sdk.NewInt(1000),
+								Address: initialSequencerAddress,
+							},
+						},
+					},
 					Sealed: false,
 				},
 			},
@@ -217,15 +234,23 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 					X:           "",
 				},
 				GenesisInfo: types.GenesisInfo{
-					Bech32Prefix:    "old",
 					GenesisChecksum: "old",
-					InitialSupply:   sdk.NewInt(1000),
+					Bech32Prefix:    "old",
 					NativeDenom: types.DenomMetadata{
 						Display:  "OLD",
 						Base:     "aold",
 						Exponent: 18,
 					},
-					Sealed: tc.genInfoSealed,
+					InitialSupply: sdk.NewInt(1000),
+					Sealed:        tc.genInfoSealed,
+					GenesisAccounts: &types.GenesisAccounts{
+						Accounts: []types.GenesisAccount{
+							{
+								Amount:  sdk.NewInt(1000),
+								Address: initialSequencerAddress,
+							},
+						},
+					},
 				},
 			}
 
