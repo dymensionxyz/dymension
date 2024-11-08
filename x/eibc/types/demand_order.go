@@ -161,7 +161,7 @@ func (m *DemandOrder) ValidateOrderIsOutstanding() error {
 }
 
 func (m *DemandOrder) IsFulfilled() bool {
-	return m.FulfillerAddress != ""
+	return m.FulfillerAddress != "" || m.DeprecatedIsFulfilled
 }
 
 // BuildDemandIDFromPacketKey returns a unique demand order id from the packet key.
