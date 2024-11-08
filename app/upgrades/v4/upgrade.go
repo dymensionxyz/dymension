@@ -51,6 +51,14 @@ func CreateUpgradeHandler(
 
 		LoadDeprecatedParamsSubspaces(keepers)
 
+		// Run migrations before applying any other state changes.
+		// NOTE: DO NOT PUT ANY STATE CHANGES BEFORE RunMigrations().
+		// (This is how osmosis do it)
+		migrations, err := mm.RunMigrations(ctx, configurator, fromVM)
+		if err != nil {
+			return nil, err
+		}
+
 		migrateModuleParams(ctx, keepers)
 		migrateDelayedAckParams(ctx, keepers.DelayedAckKeeper)
 		migrateRollappParams(ctx, keepers.RollappKeeper)
@@ -75,7 +83,7 @@ func CreateUpgradeHandler(
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
-		return mm.RunMigrations(ctx, configurator, fromVM)
+		return migrations, nil
 	}
 }
 
