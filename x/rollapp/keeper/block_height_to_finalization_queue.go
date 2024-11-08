@@ -64,7 +64,11 @@ func (k Keeper) FinalizeRollappStates(ctx sdk.Context) {
 	finalizationHeight := uint64(ctx.BlockHeight() - int64(k.DisputePeriodInBlocks(ctx)))
 	queue, err := k.GetFinalizationQueueUntilHeightInclusive(ctx, finalizationHeight)
 	if err != nil {
-		panic(fmt.Errorf("get finalization queue until height: %d, %w", finalizationHeight, err))
+		// The error is returned only if there is an internal issue with the store iterator or encoding.
+		// This should never happen in practice.
+		k.Logger(ctx).With("error", err, "height", finalizationHeight).
+			Error("failed to get finalization queue until height")
+		return
 	}
 
 	k.FinalizeAllPending(ctx, queue)
@@ -91,16 +95,15 @@ func (k Keeper) FinalizeAllPending(ctx sdk.Context, pendingQueues []types.BlockH
 		}
 
 		// Finalize the queue. If it fails, add the rollapp to the failedRollapps set.
-		finalized := k.FinalizeQueueForHeight(ctx, queue)
+		finalized := k.FinalizeStates(ctx, queue)
 		if !finalized {
 			failedRollapps[queue.RollappId] = struct{}{}
 		}
 	}
 }
 
-// FinalizeQueueForHeight finalizes all the pending states in the queue. Returns true if all states are finalized.
-func (k Keeper) FinalizeQueueForHeight(ctx sdk.Context, queue types.BlockHeightToFinalizationQueue) bool {
-	// finalize pending states
+// FinalizeStates finalizes all the pending states in the queue. Returns true if all the states are finalized successfully.
+func (k Keeper) FinalizeStates(ctx sdk.Context, queue types.BlockHeightToFinalizationQueue) bool {
 	for i, stateInfoIndex := range queue.FinalizationQueue {
 		// if this fails, no state change will happen
 		err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
@@ -113,14 +116,29 @@ func (k Keeper) FinalizeQueueForHeight(ctx sdk.Context, queue types.BlockHeightT
 			// remove from the queue only the indexes that were successfully finalized.
 			// delete up to the first failed state change, exclusively.
 			queue.FinalizationQueue = slices.Delete(queue.FinalizationQueue, 0, i)
-			// save the current queue with "leftover" rollapp state changes
-			k.SetFinalizationQueue(ctx, queue)
+
+			// Save the current queue with "leftover" rollapp state changes.
+			//
+			// Use Must-method here as there are no any other options to handle the error.
+			// At this stage, some of the states are already finalized. If we can't save the queue, then
+			// the runtime will panic on the next EndBlocker when we try to finalize the same states from
+			// the queue again. Plus, if the panic occurs here, it means that there is an internal issue
+			// with the store. This should never happen in practice.
+			k.MustSetFinalizationQueue(ctx, queue)
+
 			return false
 		}
 	}
 
-	// remove the queue if all the states are finalized
-	k.RemoveFinalizationQueue(ctx, queue.CreationHeight, queue.RollappId)
+	// Remove the queue if all the states are finalized.
+	//
+	// Use Must-method here as there are no any other options to handle the error.
+	// At this stage, all the states are already finalized. If we can't remove the queue, then
+	// the runtime will panic on the next EndBlocker when we try to finalize the same states from
+	// the queue again. Plus, if the panic occurs here, it means that there is an internal issue
+	// with the store. This should never happen in practice.
+	k.MustRemoveFinalizationQueue(ctx, queue.CreationHeight, queue.RollappId)
+
 	return true
 }
 
@@ -157,9 +175,14 @@ func (k *Keeper) finalizePendingState(ctx sdk.Context, stateInfoIndex types.Stat
 }
 
 // SetFinalizationQueue set types.BlockHeightToFinalizationQueue for a specific height and rollappID.
-// Panics on encoding errors.
-func (k Keeper) SetFinalizationQueue(ctx sdk.Context, queue types.BlockHeightToFinalizationQueue) {
-	err := k.finalizationQueue.Set(ctx, collections.Join(queue.CreationHeight, queue.RollappId), queue)
+func (k Keeper) SetFinalizationQueue(ctx sdk.Context, queue types.BlockHeightToFinalizationQueue) error {
+	return k.finalizationQueue.Set(ctx, collections.Join(queue.CreationHeight, queue.RollappId), queue)
+}
+
+// MustSetFinalizationQueue is a wrapper for SetFinalizationQueue that panics on error.
+// Panics only on encoding errors (this implies from the internal implementation).
+func (k Keeper) MustSetFinalizationQueue(ctx sdk.Context, queue types.BlockHeightToFinalizationQueue) {
+	err := k.SetFinalizationQueue(ctx, queue)
 	if err != nil {
 		panic(err)
 	}
@@ -177,9 +200,14 @@ func (k Keeper) GetFinalizationQueue(ctx sdk.Context, height uint64, rollappID s
 }
 
 // RemoveFinalizationQueue removes types.BlockHeightToFinalizationQueue.
-// Panics on encoding errors. Do not panic if the key does not exist.
-func (k Keeper) RemoveFinalizationQueue(ctx sdk.Context, height uint64, rollappID string) {
-	err := k.finalizationQueue.Remove(ctx, collections.Join(height, rollappID))
+func (k Keeper) RemoveFinalizationQueue(ctx sdk.Context, height uint64, rollappID string) error {
+	return k.finalizationQueue.Remove(ctx, collections.Join(height, rollappID))
+}
+
+// MustRemoveFinalizationQueue is a wrapper for RemoveFinalizationQueue that panics on error.
+// Panics on encoding errors. Do not panic if the key does not exist (this implies from the internal implementation).
+func (k Keeper) MustRemoveFinalizationQueue(ctx sdk.Context, height uint64, rollappID string) {
+	err := k.RemoveFinalizationQueue(ctx, height, rollappID)
 	if err != nil {
 		panic(err)
 	}

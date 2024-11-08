@@ -110,9 +110,9 @@ func TestGetFinalizationQueueByRollapp(t *testing.T) {
 	q2 := types.BlockHeightToFinalizationQueue{CreationHeight: 2, RollappId: "rollapp_1234-1"}
 	q3 := types.BlockHeightToFinalizationQueue{CreationHeight: 3, RollappId: "rollapp_1234-1"}
 
-	k.SetFinalizationQueue(ctx, q1)
-	k.SetFinalizationQueue(ctx, q2)
-	k.SetFinalizationQueue(ctx, q3)
+	k.MustSetFinalizationQueue(ctx, q1)
+	k.MustSetFinalizationQueue(ctx, q2)
+	k.MustSetFinalizationQueue(ctx, q3)
 
 	// Check all queues
 	q, err := k.GetEntireFinalizationQueue(ctx)
@@ -125,7 +125,7 @@ func TestGetFinalizationQueueByRollapp(t *testing.T) {
 	require.Equal(t, []types.BlockHeightToFinalizationQueue{q1, q2, q3}, q)
 
 	// Remove one of the queues
-	k.RemoveFinalizationQueue(ctx, 2, "rollapp_1234-1")
+	k.MustRemoveFinalizationQueue(ctx, 2, "rollapp_1234-1")
 
 	// Verify the index is updated
 	q, err = k.GetFinalizationQueueByRollapp(ctx, "rollapp_1234-1")
@@ -470,7 +470,7 @@ func createNBlockHeightToFinalizationQueue(keeper *keeper.Keeper, ctx sdk.Contex
 	for i := range items {
 		items[i].CreationHeight = uint64(i)
 		items[i].RollappId = fmt.Sprintf("rollapp_%d-1", i)
-		keeper.SetFinalizationQueue(ctx, items[i])
+		keeper.MustSetFinalizationQueue(ctx, items[i])
 	}
 	return items
 }
@@ -824,7 +824,7 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 
 			k := suite.App.RollappKeeper
 			for _, item := range tt.pendingFinalizationQueue {
-				k.SetFinalizationQueue(suite.Ctx, item)
+				k.MustSetFinalizationQueue(suite.Ctx, item)
 			}
 			k.SetFinalizePendingFn(MockFinalizePending(tt.errFinalizeIndices))
 			k.FinalizeAllPending(suite.Ctx, tt.pendingFinalizationQueue)

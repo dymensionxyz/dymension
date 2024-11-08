@@ -92,7 +92,9 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
-		migrateRollappFinalizationQueue(ctx, keepers.RollappKeeper)
+		if err := migrateRollappFinalizationQueue(ctx, keepers.RollappKeeper); err != nil {
+			return nil, err
+		}
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -213,7 +215,7 @@ func migrateStreamer(ctx sdk.Context, sk streamerkeeper.Keeper, ek *epochskeeper
 	return nil
 }
 
-func migrateRollappFinalizationQueue(ctx sdk.Context, rk *rollappkeeper.Keeper) {
+func migrateRollappFinalizationQueue(ctx sdk.Context, rk *rollappkeeper.Keeper) error {
 	q := rk.GetAllBlockHeightToFinalizationQueue(ctx)
 
 	// iterate over queues on different heights
@@ -223,12 +225,16 @@ func migrateRollappFinalizationQueue(ctx sdk.Context, rk *rollappkeeper.Keeper) 
 
 		// save the new queues
 		for _, newQueue := range newQueues {
-			rk.SetFinalizationQueue(ctx, newQueue)
+			err := rk.SetFinalizationQueue(ctx, newQueue)
+			if err != nil {
+				return err
+			}
 		}
 
 		// remove the old queue
 		rk.RemoveBlockHeightToFinalizationQueue(ctx, queue.CreationHeight)
 	}
+	return nil
 }
 
 // ReformatFinalizationQueue groups the finalization queue by rollapp

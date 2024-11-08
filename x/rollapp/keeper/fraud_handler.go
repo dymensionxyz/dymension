@@ -103,7 +103,10 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string) error {
 			k.SetStateInfo(ctx, stateInfo)
 		}
 
-		k.RemoveFinalizationQueue(ctx, queue.CreationHeight, queue.RollappId)
+		err = k.RemoveFinalizationQueue(ctx, queue.CreationHeight, queue.RollappId)
+		if err != nil {
+			return fmt.Errorf("remove finalization queue: %w", err)
+		}
 	}
 
 	return nil

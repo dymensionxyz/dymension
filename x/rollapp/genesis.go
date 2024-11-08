@@ -27,7 +27,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	}
 	// Set all the blockHeightToFinalizationQueue
 	for _, elem := range genState.BlockHeightToFinalizationQueueList {
-		k.SetFinalizationQueue(ctx, elem)
+		k.MustSetFinalizationQueue(ctx, elem)
 	}
 	for _, elem := range genState.LivenessEvents {
 		k.PutLivenessEvent(ctx, elem)
