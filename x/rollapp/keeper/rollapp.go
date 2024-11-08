@@ -325,7 +325,10 @@ func (k Keeper) FreezeRollapp(ctx sdk.Context, rollappID string) error {
 
 	rollapp.Frozen = true
 
-	k.RevertPendingStates(ctx, rollappID)
+	err := k.RevertPendingStates(ctx, rollappID)
+	if err != nil {
+		return fmt.Errorf("revert pending states: %w", err)
+	}
 
 	if rollapp.ChannelId != "" {
 		clientID, _, err := k.channelKeeper.GetChannelClientState(ctx, "transfer", rollapp.ChannelId)

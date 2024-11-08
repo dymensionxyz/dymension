@@ -182,7 +182,7 @@ func (suite *RollappTestSuite) assertBeforeFraud(rollappId string, height uint64
 
 	// check queue
 	expectedHeight := stateInfo.CreationHeight + suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx)
-	queue, found := suite.App.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.Ctx, expectedHeight)
+	queue, found := suite.App.RollappKeeper.GetFinalizationQueue(suite.Ctx, expectedHeight, rollappId)
 	suite.Require().True(found)
 
 	found = false
@@ -215,7 +215,8 @@ func (suite *RollappTestSuite) assertFraudHandled(rollappId string) {
 	}
 
 	// check queue
-	queue := suite.App.RollappKeeper.GetAllBlockHeightToFinalizationQueue(suite.Ctx)
+	queue, err := suite.App.RollappKeeper.GetEntireFinalizationQueue(suite.Ctx)
+	suite.Require().NoError(err)
 	suite.Greater(len(queue), 0)
 	for _, q := range queue {
 		for _, stateInfoIndex := range q.FinalizationQueue {
