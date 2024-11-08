@@ -287,9 +287,8 @@ func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Seque
 		Tokens:       old.Tokens,
 		OptedIn:      true,
 		Metadata: sequencertypes.SequencerMetadata{
-			Moniker: old.Metadata.Moniker,
-			Details: old.Metadata.Details,
-			// TODO: regarding missing data - https://github.com/dymensionxyz/dymension/issues/987
+			Moniker:     old.Metadata.Moniker,
+			Details:     old.Metadata.Details,
 			P2PSeeds:    nil,
 			Rpcs:        nil,
 			EvmRpcs:     nil,
