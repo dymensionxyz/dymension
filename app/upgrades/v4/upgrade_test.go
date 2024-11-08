@@ -49,6 +49,8 @@ const (
 	expectDelayedackDeletePacketsEpochLimit int32 = 1000_000
 	expectDelayedackEpochIdentifier               = "hour"
 
+	expectLivenessSlashInterval = rollapptypes.DefaultLivenessSlashInterval
+	expectLivenessSlashBlock    = rollapptypes.DefaultLivenessSlashBlocks
 	expectDisputePeriodInBlocks = 3
 )
 
@@ -198,7 +200,12 @@ func (s *UpgradeTestSuite) validateRollappsMigration(numRoll int) error {
 		}
 	}
 
+	s.Require().Equal(expectLivenessSlashBlock, s.App.RollappKeeper.GetParams(s.Ctx).LivenessSlashBlocks)
+	s.Require().Equal(expectLivenessSlashInterval, s.App.RollappKeeper.GetParams(s.Ctx).LivenessSlashInterval)
+
 	if !reflect.DeepEqual(rollapps, expectRollapps) {
+		s.T().Log("Expect rollapps", expectRollapps)
+		s.T().Log("Actual rollapps", rollapps)
 		return fmt.Errorf("rollapps do not match")
 	}
 	return nil
@@ -264,7 +271,12 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 		seq := s.App.AppCodec().MustMarshalJSON(&sequencer)
 		nSeq := s.App.AppCodec().MustMarshalJSON(&expectSequencers[i])
 
+		s.Require().True(sequencer.OptedIn)
 		s.Require().JSONEq(string(seq), string(nSeq))
+
+		byDymintAddr, err := s.App.SequencerKeeper.SequencerByDymintAddr(s.Ctx, expectSequencers[i].MustProposerAddr())
+		s.Require().NoError(err)
+		s.Require().Equal(sequencer.Address, byDymintAddr.Address)
 	}
 
 	// check proposer
@@ -272,6 +284,11 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 		p := s.App.SequencerKeeper.GetProposer(s.Ctx, rollapp.RollappId)
 		s.Require().False(p.Sentinel())
 	}
+	s.Require().Equal(sequencertypes.DefaultNoticePeriod, s.App.SequencerKeeper.GetParams(s.Ctx).NoticePeriod)
+	s.Require().Equal(sequencertypes.DefaultKickThreshold, s.App.SequencerKeeper.GetParams(s.Ctx).KickThreshold)
+	s.Require().Equal(sequencertypes.DefaultLivenessSlashMultiplier, s.App.SequencerKeeper.GetParams(s.Ctx).LivenessSlashMinMultiplier)
+	s.Require().Equal(sequencertypes.DefaultLivenessSlashMinAbsolute, s.App.SequencerKeeper.GetParams(s.Ctx).LivenessSlashMinAbsolute)
+	s.Require().Equal(sequencertypes.DefaultMinBond, s.App.SequencerKeeper.GetParams(s.Ctx).MinBond)
 
 	return nil
 }

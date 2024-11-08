@@ -8,11 +8,7 @@ import (
 )
 
 func (k Keeper) SetRegisteredDenom(ctx sdk.Context, rollappID, denom string) error {
-	key := collections.Join(rollappID, denom)
-	if err := k.registeredRollappDenoms.Set(ctx, key); err != nil {
-		return fmt.Errorf("set registered denom: %w", err)
-	}
-	return nil
+	return k.registeredRollappDenoms.Set(ctx, collections.Join(rollappID, denom))
 }
 
 func (k Keeper) HasRegisteredDenom(ctx sdk.Context, rollappID, denom string) (bool, error) {

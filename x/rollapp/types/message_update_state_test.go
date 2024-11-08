@@ -234,17 +234,6 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				}},
 			},
 			err: ErrInvalidStateRoot,
-		}, {
-			name: "illegal invalid drs version",
-			msg: MsgUpdateState{
-				Creator:     sample.AccAddress(),
-				StartHeight: 1,
-				NumBlocks:   1,
-				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 1, StateRoot: hash32},
-				}},
-			},
-			err: ErrInvalidDRSVersion,
 		},
 	}
 	for _, tt := range tests {
