@@ -94,13 +94,9 @@ func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, depth 
 
 	depth++
 
-	innerMsgs, err := extractMsgs(msg)
-	if err != nil {
-		return err
-	}
-	switch concreteMsg := msg.(type) {
+	switch m := msg.(type) {
 	case *authz.MsgGrant:
-		authorization, err := concreteMsg.GetAuthorization()
+		authorization, err := m.GetAuthorization()
 		if err != nil {
 			return err
 		}
@@ -110,31 +106,27 @@ func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, depth 
 				return fmt.Errorf("found disabled msg type: %s", url)
 			}
 		}
+		return nil
 	case *authz.MsgExec:
-		if err := rmd.checkMsgs(ctx, innerMsgs, depth); err != nil {
+		inner, err := m.GetMessages()
+		if err != nil {
 			return err
 		}
+		return rmd.checkMsgs(ctx, inner, depth)
 	case *govtypesv1.MsgSubmitProposal:
-		if err := rmd.checkMsgs(ctx, innerMsgs, depth); err != nil {
+		inner, err := m.GetMsgs()
+		if err != nil {
 			return err
 		}
+		return rmd.checkMsgs(ctx, inner, depth)
 	case *group.MsgSubmitProposal:
-		if err := rmd.checkMsgs(ctx, innerMsgs, depth); err != nil {
+		inner, err := m.GetMsgs()
+		if err != nil {
 			return err
 		}
+		return rmd.checkMsgs(ctx, inner, depth)
 	default:
 	}
 
 	return nil
-}
-
-// returns nested messages from authz and gov
-func extractMsgs(msg any) ([]sdk.Msg, error) {
-	if msgWithMsgs, ok := msg.(interface{ GetMsgs() ([]sdk.Msg, error) }); ok {
-		return msgWithMsgs.GetMsgs()
-	}
-	if msgWithMessages, ok := msg.(interface{ GetMessages() ([]sdk.Msg, error) }); ok {
-		return msgWithMessages.GetMessages()
-	}
-	return nil, nil
 }
