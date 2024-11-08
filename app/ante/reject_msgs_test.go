@@ -9,10 +9,49 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	lightclientante "github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/app/ante"
 )
+
+func (suite *AnteTestSuite) TestRejectMessagesDecoratorCustom() {
+	suite.SetupTestCheckTx(false)
+
+	decorator := ante.NewRejectMessagesDecorator().WithPredicate(lightclientante.BlockMsg)
+
+	{
+
+		m := []sdk.Msg{
+			// nest = 0 is OK
+			&ibcclienttypes.MsgUpdateClient{},
+		}
+		tx := &mockTx{msgs: m}
+
+		ctx := suite.ctx.WithBlockHeight(1)
+		_, err := decorator.AnteHandle(ctx, tx, false, func(sdk.Context, sdk.Tx, bool) (sdk.Context, error) { return ctx, nil })
+
+		suite.NoError(err)
+	}
+	{
+		m := []sdk.Msg{
+			&authz.MsgExec{
+				Grantee: "cosmos1...",
+				Msgs: []*codectypes.Any{
+					packMsg(suite.T(), &ibcclienttypes.MsgUpdateClient{}),
+				},
+			},
+		}
+		tx := &mockTx{msgs: m}
+
+		ctx := suite.ctx.WithBlockHeight(1)
+		_, err := decorator.AnteHandle(ctx, tx, false, func(sdk.Context, sdk.Tx, bool) (sdk.Context, error) { return ctx, nil })
+
+		suite.Error(err)
+	}
+
+}
 
 func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
 	suite.SetupTestCheckTx(false)
