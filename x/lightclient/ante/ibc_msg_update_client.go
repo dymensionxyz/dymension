@@ -14,8 +14,10 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-var blockUrlUpdate = sdk.MsgTypeURL(&ibcclienttypes.MsgUpdateClient{})
-var blockUrlMisbehavior = sdk.MsgTypeURL(&ibcclienttypes.MsgSubmitMisbehaviour{})
+var (
+	blockUrlUpdate      = sdk.MsgTypeURL(&ibcclienttypes.MsgUpdateClient{})
+	blockUrlMisbehavior = sdk.MsgTypeURL(&ibcclienttypes.MsgSubmitMisbehaviour{})
+)
 
 // Depth is the nesting depth of the message with authz and gov proposal. depth 0 is a top level message.
 // Only blanket rejects depth greater than zero because we have our own custom logic for depth 0

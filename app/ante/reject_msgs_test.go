@@ -50,7 +50,6 @@ func (suite *AnteTestSuite) TestRejectMessagesDecoratorCustom() {
 
 		suite.Error(err)
 	}
-
 }
 
 func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
