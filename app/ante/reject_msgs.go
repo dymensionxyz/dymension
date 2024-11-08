@@ -34,15 +34,15 @@ func blockTypeUrls(typeUrls ...string) predicate {
 
 var _ sdk.AnteDecorator = RejectMessagesDecorator{}
 
-// NewRejectMessagesDecorator creates a decorator to block provided messages from reaching the mempool
-func NewRejectMessagesDecorator(disabledMsgTypeURLs ...string) RejectMessagesDecorator {
-	return RejectMessagesDecorator{
-		predicates: []predicate{blockTypeUrls(disabledMsgTypeURLs...)},
+func NewRejectMessagesDecorator() *RejectMessagesDecorator {
+	return &RejectMessagesDecorator{
+		predicates: []predicate{},
 	}
 }
 
 func (rmd *RejectMessagesDecorator) withPredicate(p predicate) *RejectMessagesDecorator {
 	rmd.predicates = append(rmd.predicates, p)
+	return rmd
 }
 
 // AnteHandle recursively rejects messages such as those that requires ethereum-specific authentication.
