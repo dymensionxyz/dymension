@@ -128,17 +128,22 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	newFinalizationQueue := []types.StateInfoIndex{stateInfoIndex}
 
 	k.Logger(ctx).Debug("Adding state to finalization queue at %d", creationHeight)
+
 	// load FinalizationQueue and update
-	blockHeightToFinalizationQueue, found := k.GetBlockHeightToFinalizationQueue(ctx, creationHeight)
+	finalizationQueue, found := k.GetFinalizationQueue(ctx, creationHeight, msg.RollappId)
 	if found {
-		newFinalizationQueue = append(blockHeightToFinalizationQueue.FinalizationQueue, newFinalizationQueue...)
+		newFinalizationQueue = append(finalizationQueue.FinalizationQueue, newFinalizationQueue...)
 	}
 
 	// Write new BlockHeightToFinalizationQueue
-	k.SetBlockHeightToFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{
+	err = k.SetFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{
 		CreationHeight:    creationHeight,
 		FinalizationQueue: newFinalizationQueue,
+		RollappId:         msg.RollappId,
 	})
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "set finalization queue")
+	}
 
 	for _, bd := range msg.BDs.BD {
 		if err := k.SaveSequencerHeight(ctx, stateInfo.Sequencer, bd.Height); err != nil {

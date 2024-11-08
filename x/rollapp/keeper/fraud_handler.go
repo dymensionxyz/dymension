@@ -86,31 +86,28 @@ func (k Keeper) freezeClientState(ctx sdk.Context, clientId string) error {
 	return nil
 }
 
-// revert all pending states of a rollapp
-func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string) {
-	// TODO (#631): Prefix store by rollappID for efficient querying
-	queuePerHeight := k.GetAllBlockHeightToFinalizationQueue(ctx)
-	for _, queue := range queuePerHeight {
-		leftPendingStates := []types.StateInfoIndex{}
-		for _, stateInfoIndex := range queue.FinalizationQueue {
-			// keep pending packets not related to this rollapp in the queue
-			if stateInfoIndex.RollappId != rollappID {
-				leftPendingStates = append(leftPendingStates, stateInfoIndex)
-				continue
-			}
+// RevertPendingStates reverts all pending states of a rollapp. It iterates over all the pending states
+// on all the available for rollapp heights.
+func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string) error {
+	// Get all pending states for the rollapp independently of the height
+	queuePerHeight, err := k.GetFinalizationQueueByRollapp(ctx, rollappID)
+	if err != nil {
+		return fmt.Errorf("get finalization queue by rollapp: %s: %w", rollappID, err)
+	}
 
+	// Each queue contains the states to finalize for the specified height
+	for _, queue := range queuePerHeight {
+		for _, stateInfoIndex := range queue.FinalizationQueue {
 			stateInfo, _ := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
 			stateInfo.Status = common.Status_REVERTED
 			k.SetStateInfo(ctx, stateInfo)
 		}
 
-		if len(leftPendingStates) == 0 {
-			k.RemoveBlockHeightToFinalizationQueue(ctx, queue.CreationHeight)
-		} else {
-			k.SetBlockHeightToFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{
-				CreationHeight:    queue.CreationHeight,
-				FinalizationQueue: leftPendingStates,
-			})
+		err = k.RemoveFinalizationQueue(ctx, queue.CreationHeight, queue.RollappId)
+		if err != nil {
+			return fmt.Errorf("remove finalization queue: %w", err)
 		}
 	}
+
+	return nil
 }
