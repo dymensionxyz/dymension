@@ -17,6 +17,7 @@ type (
 	Subspace interface {
 		GetParamSet(ctx sdk.Context, ps ParamSet)
 		WithKeyTable(table paramtypes.KeyTable) paramtypes.Subspace
+		HasKeyTable() bool
 	}
 )
 
@@ -34,7 +35,10 @@ func NewMigrator(keeper *seqkeeper.Keeper, ss Subspace) Migrator {
 // Migrate2to3 migrates from version 2 to 3.
 func (m Migrator) Migrate2to3(ctx sdk.Context) error {
 	var currParams types.Params
-	ss := m.legacySubspace.WithKeyTable(types.ParamKeyTable())
+	ss := m.legacySubspace
+	if !ss.HasKeyTable() {
+		ss = ss.WithKeyTable(types.ParamKeyTable())
+	}
 	ss.GetParamSet(ctx, &currParams)
 
 	if err := currParams.ValidateBasic(); err != nil {
