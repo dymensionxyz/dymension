@@ -76,7 +76,7 @@ func (s *SequencerTestSuite) TestFraud() {
 		s.Require().True(seq.TokensCoin().IsZero())
 		s.Require().True(mod.Equal(seq.TokensCoin()))
 		rewardeeBalAfter := s.App.BankKeeper.GetAllBalances(s.Ctx, rewardee)
-		s.Require().False(rewardeeBalAfter.IsEqual(rewardeeBalBefore))
+		s.Require().True(rewardeeBalAfter.IsAllGT(rewardeeBalBefore))
 	})
 }
 
