@@ -185,6 +185,21 @@ It's encouraged to add golang and cosmos utilities and shared code to [dymension
 
 2. Do not reuse protobuf field numbers when updating protos. When in doubt, reserve the old number and use a new one.
 
+#### Docstrings
+
+Do not worry about making the first word of the docstring on a public object the same as the object. Feel free to disable any linters/highlighters that pick up on it.
+
+In other words, we are fine with the first version here:
+
+```go
+
+// bla bla
+type Foo struct{ }
+
+// Foo bla bla
+type Foo struct{ }
+```
+
 ### References
 
 - https://github.com/dymensionxyz/sdk-utils : Dymension golang and SDK utils library

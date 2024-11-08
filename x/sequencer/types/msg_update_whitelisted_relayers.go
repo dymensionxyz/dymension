@@ -6,8 +6,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uaddr"
 )
 
 const maxWhitelistedRelayers = 10
@@ -37,7 +37,7 @@ func ValidateWhitelistedRelayers(wr []string) error {
 		}
 		relayers[r] = struct{}{}
 
-		relayer, err := Bech32ToAddr[sdk.AccAddress](r)
+		relayer, err := uaddr.FromBech32[sdk.AccAddress](r)
 		if err != nil {
 			return fmt.Errorf("convert bech32 to relayer address: %s: %w", r, err)
 		}
@@ -47,16 +47,6 @@ func ValidateWhitelistedRelayers(wr []string) error {
 		}
 	}
 	return nil
-}
-
-// Bech32ToAddr casts an arbitrary-prefixed bech32 string to either sdk.AccAddress or sdk.ValAddress.
-// TODO: move to sdk-utils.
-func Bech32ToAddr[T sdk.AccAddress | sdk.ValAddress](addr string) (T, error) {
-	_, bytes, err := bech32.DecodeAndConvert(addr)
-	if err != nil {
-		return nil, fmt.Errorf("decoding bech32 addr: %w", err)
-	}
-	return T(bytes), nil
 }
 
 func (m *MsgUpdateWhitelistedRelayers) GetSigners() []sdk.AccAddress {
