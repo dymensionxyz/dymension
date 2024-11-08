@@ -916,27 +916,27 @@ func (m *MsgRemoveAppResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRemoveAppResponse proto.InternalMessageInfo
 
-// MsgMarkVulnerableRollapps marks specified versions as vulnerable as well as
+// MsgMarkObsoleteRollapps marks specified versions as obsolete as well as
 // all corresponding rollapps. Must be called by the governance.
-type MsgMarkVulnerableRollapps struct {
+type MsgMarkObsoleteRollapps struct {
 	// Authority is the authority address.
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
-	// DrsVersions is a list of DRS versions that will be marked vulnerable.
+	// DrsVersions is a list of DRS versions that will be marked obsolete.
 	DrsVersions []uint32 `protobuf:"varint,2,rep,packed,name=drs_versions,json=drsVersions,proto3" json:"drs_versions,omitempty"`
 }
 
-func (m *MsgMarkVulnerableRollapps) Reset()         { *m = MsgMarkVulnerableRollapps{} }
-func (m *MsgMarkVulnerableRollapps) String() string { return proto.CompactTextString(m) }
-func (*MsgMarkVulnerableRollapps) ProtoMessage()    {}
-func (*MsgMarkVulnerableRollapps) Descriptor() ([]byte, []int) {
+func (m *MsgMarkObsoleteRollapps) Reset()         { *m = MsgMarkObsoleteRollapps{} }
+func (m *MsgMarkObsoleteRollapps) String() string { return proto.CompactTextString(m) }
+func (*MsgMarkObsoleteRollapps) ProtoMessage()    {}
+func (*MsgMarkObsoleteRollapps) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1a86300fb8647ecb, []int{14}
 }
-func (m *MsgMarkVulnerableRollapps) XXX_Unmarshal(b []byte) error {
+func (m *MsgMarkObsoleteRollapps) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgMarkVulnerableRollapps) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgMarkObsoleteRollapps) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgMarkVulnerableRollapps.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgMarkObsoleteRollapps.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -946,47 +946,47 @@ func (m *MsgMarkVulnerableRollapps) XXX_Marshal(b []byte, deterministic bool) ([
 		return b[:n], nil
 	}
 }
-func (m *MsgMarkVulnerableRollapps) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgMarkVulnerableRollapps.Merge(m, src)
+func (m *MsgMarkObsoleteRollapps) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgMarkObsoleteRollapps.Merge(m, src)
 }
-func (m *MsgMarkVulnerableRollapps) XXX_Size() int {
+func (m *MsgMarkObsoleteRollapps) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgMarkVulnerableRollapps) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgMarkVulnerableRollapps.DiscardUnknown(m)
+func (m *MsgMarkObsoleteRollapps) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgMarkObsoleteRollapps.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgMarkVulnerableRollapps proto.InternalMessageInfo
+var xxx_messageInfo_MsgMarkObsoleteRollapps proto.InternalMessageInfo
 
-func (m *MsgMarkVulnerableRollapps) GetAuthority() string {
+func (m *MsgMarkObsoleteRollapps) GetAuthority() string {
 	if m != nil {
 		return m.Authority
 	}
 	return ""
 }
 
-func (m *MsgMarkVulnerableRollapps) GetDrsVersions() []uint32 {
+func (m *MsgMarkObsoleteRollapps) GetDrsVersions() []uint32 {
 	if m != nil {
 		return m.DrsVersions
 	}
 	return nil
 }
 
-type MsgMarkVulnerableRollappsResponse struct {
+type MsgMarkObsoleteRollappsResponse struct {
 }
 
-func (m *MsgMarkVulnerableRollappsResponse) Reset()         { *m = MsgMarkVulnerableRollappsResponse{} }
-func (m *MsgMarkVulnerableRollappsResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgMarkVulnerableRollappsResponse) ProtoMessage()    {}
-func (*MsgMarkVulnerableRollappsResponse) Descriptor() ([]byte, []int) {
+func (m *MsgMarkObsoleteRollappsResponse) Reset()         { *m = MsgMarkObsoleteRollappsResponse{} }
+func (m *MsgMarkObsoleteRollappsResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgMarkObsoleteRollappsResponse) ProtoMessage()    {}
+func (*MsgMarkObsoleteRollappsResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1a86300fb8647ecb, []int{15}
 }
-func (m *MsgMarkVulnerableRollappsResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgMarkObsoleteRollappsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgMarkVulnerableRollappsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgMarkObsoleteRollappsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgMarkVulnerableRollappsResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgMarkObsoleteRollappsResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -996,17 +996,17 @@ func (m *MsgMarkVulnerableRollappsResponse) XXX_Marshal(b []byte, deterministic 
 		return b[:n], nil
 	}
 }
-func (m *MsgMarkVulnerableRollappsResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgMarkVulnerableRollappsResponse.Merge(m, src)
+func (m *MsgMarkObsoleteRollappsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgMarkObsoleteRollappsResponse.Merge(m, src)
 }
-func (m *MsgMarkVulnerableRollappsResponse) XXX_Size() int {
+func (m *MsgMarkObsoleteRollappsResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgMarkVulnerableRollappsResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgMarkVulnerableRollappsResponse.DiscardUnknown(m)
+func (m *MsgMarkObsoleteRollappsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgMarkObsoleteRollappsResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgMarkVulnerableRollappsResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgMarkObsoleteRollappsResponse proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterType((*MsgCreateRollapp)(nil), "dymensionxyz.dymension.rollapp.MsgCreateRollapp")
@@ -1023,8 +1023,8 @@ func init() {
 	proto.RegisterType((*MsgUpdateAppResponse)(nil), "dymensionxyz.dymension.rollapp.MsgUpdateAppResponse")
 	proto.RegisterType((*MsgRemoveApp)(nil), "dymensionxyz.dymension.rollapp.MsgRemoveApp")
 	proto.RegisterType((*MsgRemoveAppResponse)(nil), "dymensionxyz.dymension.rollapp.MsgRemoveAppResponse")
-	proto.RegisterType((*MsgMarkVulnerableRollapps)(nil), "dymensionxyz.dymension.rollapp.MsgMarkVulnerableRollapps")
-	proto.RegisterType((*MsgMarkVulnerableRollappsResponse)(nil), "dymensionxyz.dymension.rollapp.MsgMarkVulnerableRollappsResponse")
+	proto.RegisterType((*MsgMarkObsoleteRollapps)(nil), "dymensionxyz.dymension.rollapp.MsgMarkObsoleteRollapps")
+	proto.RegisterType((*MsgMarkObsoleteRollappsResponse)(nil), "dymensionxyz.dymension.rollapp.MsgMarkObsoleteRollappsResponse")
 }
 
 func init() {
@@ -1121,7 +1121,7 @@ type MsgClient interface {
 	AddApp(ctx context.Context, in *MsgAddApp, opts ...grpc.CallOption) (*MsgAddAppResponse, error)
 	UpdateApp(ctx context.Context, in *MsgUpdateApp, opts ...grpc.CallOption) (*MsgUpdateAppResponse, error)
 	RemoveApp(ctx context.Context, in *MsgRemoveApp, opts ...grpc.CallOption) (*MsgRemoveAppResponse, error)
-	MarkVulnerableRollapps(ctx context.Context, in *MsgMarkVulnerableRollapps, opts ...grpc.CallOption) (*MsgMarkVulnerableRollappsResponse, error)
+	MarkObsoleteRollapps(ctx context.Context, in *MsgMarkObsoleteRollapps, opts ...grpc.CallOption) (*MsgMarkObsoleteRollappsResponse, error)
 }
 
 type msgClient struct {
@@ -1195,9 +1195,9 @@ func (c *msgClient) RemoveApp(ctx context.Context, in *MsgRemoveApp, opts ...grp
 	return out, nil
 }
 
-func (c *msgClient) MarkVulnerableRollapps(ctx context.Context, in *MsgMarkVulnerableRollapps, opts ...grpc.CallOption) (*MsgMarkVulnerableRollappsResponse, error) {
-	out := new(MsgMarkVulnerableRollappsResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Msg/MarkVulnerableRollapps", in, out, opts...)
+func (c *msgClient) MarkObsoleteRollapps(ctx context.Context, in *MsgMarkObsoleteRollapps, opts ...grpc.CallOption) (*MsgMarkObsoleteRollappsResponse, error) {
+	out := new(MsgMarkObsoleteRollappsResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Msg/MarkObsoleteRollapps", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1213,7 +1213,7 @@ type MsgServer interface {
 	AddApp(context.Context, *MsgAddApp) (*MsgAddAppResponse, error)
 	UpdateApp(context.Context, *MsgUpdateApp) (*MsgUpdateAppResponse, error)
 	RemoveApp(context.Context, *MsgRemoveApp) (*MsgRemoveAppResponse, error)
-	MarkVulnerableRollapps(context.Context, *MsgMarkVulnerableRollapps) (*MsgMarkVulnerableRollappsResponse, error)
+	MarkObsoleteRollapps(context.Context, *MsgMarkObsoleteRollapps) (*MsgMarkObsoleteRollappsResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -1241,8 +1241,8 @@ func (*UnimplementedMsgServer) UpdateApp(ctx context.Context, req *MsgUpdateApp)
 func (*UnimplementedMsgServer) RemoveApp(ctx context.Context, req *MsgRemoveApp) (*MsgRemoveAppResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveApp not implemented")
 }
-func (*UnimplementedMsgServer) MarkVulnerableRollapps(ctx context.Context, req *MsgMarkVulnerableRollapps) (*MsgMarkVulnerableRollappsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method MarkVulnerableRollapps not implemented")
+func (*UnimplementedMsgServer) MarkObsoleteRollapps(ctx context.Context, req *MsgMarkObsoleteRollapps) (*MsgMarkObsoleteRollappsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MarkObsoleteRollapps not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -1375,20 +1375,20 @@ func _Msg_RemoveApp_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_MarkVulnerableRollapps_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgMarkVulnerableRollapps)
+func _Msg_MarkObsoleteRollapps_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgMarkObsoleteRollapps)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).MarkVulnerableRollapps(ctx, in)
+		return srv.(MsgServer).MarkObsoleteRollapps(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Msg/MarkVulnerableRollapps",
+		FullMethod: "/dymensionxyz.dymension.rollapp.Msg/MarkObsoleteRollapps",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).MarkVulnerableRollapps(ctx, req.(*MsgMarkVulnerableRollapps))
+		return srv.(MsgServer).MarkObsoleteRollapps(ctx, req.(*MsgMarkObsoleteRollapps))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1426,8 +1426,8 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_RemoveApp_Handler,
 		},
 		{
-			MethodName: "MarkVulnerableRollapps",
-			Handler:    _Msg_MarkVulnerableRollapps_Handler,
+			MethodName: "MarkObsoleteRollapps",
+			Handler:    _Msg_MarkObsoleteRollapps_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -2053,7 +2053,7 @@ func (m *MsgRemoveAppResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgMarkVulnerableRollapps) Marshal() (dAtA []byte, err error) {
+func (m *MsgMarkObsoleteRollapps) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2063,12 +2063,12 @@ func (m *MsgMarkVulnerableRollapps) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgMarkVulnerableRollapps) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgMarkObsoleteRollapps) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgMarkVulnerableRollapps) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgMarkObsoleteRollapps) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2101,7 +2101,7 @@ func (m *MsgMarkVulnerableRollapps) MarshalToSizedBuffer(dAtA []byte) (int, erro
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgMarkVulnerableRollappsResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgMarkObsoleteRollappsResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2111,12 +2111,12 @@ func (m *MsgMarkVulnerableRollappsResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgMarkVulnerableRollappsResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgMarkObsoleteRollappsResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgMarkVulnerableRollappsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgMarkObsoleteRollappsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2414,7 +2414,7 @@ func (m *MsgRemoveAppResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgMarkVulnerableRollapps) Size() (n int) {
+func (m *MsgMarkObsoleteRollapps) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2434,7 +2434,7 @@ func (m *MsgMarkVulnerableRollapps) Size() (n int) {
 	return n
 }
 
-func (m *MsgMarkVulnerableRollappsResponse) Size() (n int) {
+func (m *MsgMarkObsoleteRollappsResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4362,7 +4362,7 @@ func (m *MsgRemoveAppResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgMarkVulnerableRollapps) Unmarshal(dAtA []byte) error {
+func (m *MsgMarkObsoleteRollapps) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4385,10 +4385,10 @@ func (m *MsgMarkVulnerableRollapps) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgMarkVulnerableRollapps: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgMarkObsoleteRollapps: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgMarkVulnerableRollapps: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgMarkObsoleteRollapps: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4520,7 +4520,7 @@ func (m *MsgMarkVulnerableRollapps) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgMarkVulnerableRollappsResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgMarkObsoleteRollappsResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4543,10 +4543,10 @@ func (m *MsgMarkVulnerableRollappsResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgMarkVulnerableRollappsResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgMarkObsoleteRollappsResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgMarkVulnerableRollappsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgMarkObsoleteRollappsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

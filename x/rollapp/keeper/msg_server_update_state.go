@@ -97,16 +97,16 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		val.Address,
 	)
 
-	// verify the DRS version is not vulnerable
-	// check only last block descriptor DRS, since if that last is not vulnerable it means the rollapp already upgraded and is not vulnerable anymore
-	// Rollapp is using a vulnerable DRS version, hard fork it
-	if k.IsStateUpdateVulnerable(ctx, stateInfo) {
+	// verify the DRS version is not obsolete
+	// check only last block descriptor DRS, since if that last is not obsolete it means the rollapp already upgraded and is not obsolete anymore
+	// Rollapp is using a obsolete DRS version, hard fork it
+	if k.IsStateUpdateObsolete(ctx, stateInfo) {
 		err := k.HardForkToLatest(ctx, msg.RollappId)
 		if err != nil {
-			return nil, fmt.Errorf("mark rollapp vulnerable: %w", err)
+			return nil, fmt.Errorf("mark rollapp obsolete: %w", err)
 		}
 		k.Logger(ctx).With("rollapp_id", msg.RollappId, "drs_version", stateInfo.GetLatestBlockDescriptor().DrsVersion).
-			Info("rollapp tried to submit MsgUpdateState with the vulnerable DRS version, mark the rollapp as vulnerable")
+			Info("rollapp tried to submit MsgUpdateState with the obsolete DRS version, mark the rollapp as obsolete")
 
 		// we must return non-error if we want the changes to be saved
 		return &types.MsgUpdateStateResponse{}, nil
@@ -166,7 +166,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	return &types.MsgUpdateStateResponse{}, nil
 }
 
-// IsStateUpdateVulnerable checks if the given DRS version is vulnerable
-func (k msgServer) IsStateUpdateVulnerable(ctx sdk.Context, stateInfo *types.StateInfo) bool {
-	return k.IsDRSVersionVulnerable(ctx, stateInfo.GetLatestBlockDescriptor().DrsVersion)
+// IsStateUpdateObsolete checks if the given DRS version is obsolete
+func (k msgServer) IsStateUpdateObsolete(ctx sdk.Context, stateInfo *types.StateInfo) bool {
+	return k.IsDRSVersionObsolete(ctx, stateInfo.GetLatestBlockDescriptor().DrsVersion)
 }

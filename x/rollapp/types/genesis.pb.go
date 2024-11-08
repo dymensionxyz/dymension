@@ -36,8 +36,8 @@ type GenesisState struct {
 	AppList              []App                     `protobuf:"bytes,8,rep,name=appList,proto3" json:"appList"`
 	RegisteredDenoms     []RollappRegisteredDenoms `protobuf:"bytes,9,rep,name=registeredDenoms,proto3" json:"registeredDenoms"`
 	SequencerHeightPairs []SequencerHeightPair     `protobuf:"bytes,10,rep,name=sequencerHeightPairs,proto3" json:"sequencerHeightPairs"`
-	// VulnerableDrsVersions is a list of DRS versions that are marked vulnerable
-	VulnerableDrsVersions []uint32 `protobuf:"varint,11,rep,packed,name=vulnerable_drs_versions,json=vulnerableDrsVersions,proto3" json:"vulnerable_drs_versions,omitempty"`
+	// ObsoleteDrsVersions is a list of DRS versions that are marked obsolete
+	ObsoleteDrsVersions []uint32 `protobuf:"varint,11,rep,packed,name=obsolete_drs_versions,json=obsoleteDrsVersions,proto3" json:"obsolete_drs_versions,omitempty"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -143,9 +143,9 @@ func (m *GenesisState) GetSequencerHeightPairs() []SequencerHeightPair {
 	return nil
 }
 
-func (m *GenesisState) GetVulnerableDrsVersions() []uint32 {
+func (m *GenesisState) GetObsoleteDrsVersions() []uint32 {
 	if m != nil {
-		return m.VulnerableDrsVersions
+		return m.ObsoleteDrsVersions
 	}
 	return nil
 }
@@ -325,10 +325,10 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.VulnerableDrsVersions) > 0 {
-		dAtA2 := make([]byte, len(m.VulnerableDrsVersions)*10)
+	if len(m.ObsoleteDrsVersions) > 0 {
+		dAtA2 := make([]byte, len(m.ObsoleteDrsVersions)*10)
 		var j1 int
-		for _, num := range m.VulnerableDrsVersions {
+		for _, num := range m.ObsoleteDrsVersions {
 			for num >= 1<<7 {
 				dAtA2[j1] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
@@ -629,9 +629,9 @@ func (m *GenesisState) Size() (n int) {
 			n += 1 + l + sovGenesis(uint64(l))
 		}
 	}
-	if len(m.VulnerableDrsVersions) > 0 {
+	if len(m.ObsoleteDrsVersions) > 0 {
 		l = 0
-		for _, e := range m.VulnerableDrsVersions {
+		for _, e := range m.ObsoleteDrsVersions {
 			l += sovGenesis(uint64(e))
 		}
 		n += 1 + sovGenesis(uint64(l)) + l
@@ -1065,7 +1065,7 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 						break
 					}
 				}
-				m.VulnerableDrsVersions = append(m.VulnerableDrsVersions, v)
+				m.ObsoleteDrsVersions = append(m.ObsoleteDrsVersions, v)
 			} else if wireType == 2 {
 				var packedLen int
 				for shift := uint(0); ; shift += 7 {
@@ -1100,8 +1100,8 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 					}
 				}
 				elementCount = count
-				if elementCount != 0 && len(m.VulnerableDrsVersions) == 0 {
-					m.VulnerableDrsVersions = make([]uint32, 0, elementCount)
+				if elementCount != 0 && len(m.ObsoleteDrsVersions) == 0 {
+					m.ObsoleteDrsVersions = make([]uint32, 0, elementCount)
 				}
 				for iNdEx < postIndex {
 					var v uint32
@@ -1119,10 +1119,10 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 							break
 						}
 					}
-					m.VulnerableDrsVersions = append(m.VulnerableDrsVersions, v)
+					m.ObsoleteDrsVersions = append(m.ObsoleteDrsVersions, v)
 				}
 			} else {
-				return fmt.Errorf("proto: wrong wireType = %d for field VulnerableDrsVersions", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ObsoleteDrsVersions", wireType)
 			}
 		default:
 			iNdEx = preIndex

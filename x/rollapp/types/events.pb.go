@@ -154,25 +154,25 @@ func (m *EventAppRemoved) GetApp() *App {
 	return nil
 }
 
-type EventMarkVulnerableRollapps struct {
-	// VulnerableRollappNum is a number of rollapps that were marked as vulnerable.
-	VulnerableRollappNum uint64 `protobuf:"varint,1,opt,name=vulnerable_rollapp_num,json=vulnerableRollappNum,proto3" json:"vulnerable_rollapp_num,omitempty"`
-	// DrsVersions is a list of DRS versions that were marked as vulnerable.
+type EventMarkObsoleteRollapps struct {
+	// ObsoleteRollappNum is a number of rollapps that were marked as obsolete.
+	ObsoleteRollappNum uint64 `protobuf:"varint,1,opt,name=obsolete_rollapp_num,json=obsoleteRollappNum,proto3" json:"obsolete_rollapp_num,omitempty"`
+	// DrsVersions is a list of DRS versions that were marked as obsolete.
 	DrsVersions []uint32 `protobuf:"varint,2,rep,packed,name=drs_versions,json=drsVersions,proto3" json:"drs_versions,omitempty"`
 }
 
-func (m *EventMarkVulnerableRollapps) Reset()         { *m = EventMarkVulnerableRollapps{} }
-func (m *EventMarkVulnerableRollapps) String() string { return proto.CompactTextString(m) }
-func (*EventMarkVulnerableRollapps) ProtoMessage()    {}
-func (*EventMarkVulnerableRollapps) Descriptor() ([]byte, []int) {
+func (m *EventMarkObsoleteRollapps) Reset()         { *m = EventMarkObsoleteRollapps{} }
+func (m *EventMarkObsoleteRollapps) String() string { return proto.CompactTextString(m) }
+func (*EventMarkObsoleteRollapps) ProtoMessage()    {}
+func (*EventMarkObsoleteRollapps) Descriptor() ([]byte, []int) {
 	return fileDescriptor_e0f74405c12dec3c, []int{3}
 }
-func (m *EventMarkVulnerableRollapps) XXX_Unmarshal(b []byte) error {
+func (m *EventMarkObsoleteRollapps) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *EventMarkVulnerableRollapps) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *EventMarkObsoleteRollapps) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_EventMarkVulnerableRollapps.Marshal(b, m, deterministic)
+		return xxx_messageInfo_EventMarkObsoleteRollapps.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -182,26 +182,26 @@ func (m *EventMarkVulnerableRollapps) XXX_Marshal(b []byte, deterministic bool) 
 		return b[:n], nil
 	}
 }
-func (m *EventMarkVulnerableRollapps) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EventMarkVulnerableRollapps.Merge(m, src)
+func (m *EventMarkObsoleteRollapps) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventMarkObsoleteRollapps.Merge(m, src)
 }
-func (m *EventMarkVulnerableRollapps) XXX_Size() int {
+func (m *EventMarkObsoleteRollapps) XXX_Size() int {
 	return m.Size()
 }
-func (m *EventMarkVulnerableRollapps) XXX_DiscardUnknown() {
-	xxx_messageInfo_EventMarkVulnerableRollapps.DiscardUnknown(m)
+func (m *EventMarkObsoleteRollapps) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventMarkObsoleteRollapps.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_EventMarkVulnerableRollapps proto.InternalMessageInfo
+var xxx_messageInfo_EventMarkObsoleteRollapps proto.InternalMessageInfo
 
-func (m *EventMarkVulnerableRollapps) GetVulnerableRollappNum() uint64 {
+func (m *EventMarkObsoleteRollapps) GetObsoleteRollappNum() uint64 {
 	if m != nil {
-		return m.VulnerableRollappNum
+		return m.ObsoleteRollappNum
 	}
 	return 0
 }
 
-func (m *EventMarkVulnerableRollapps) GetDrsVersions() []uint32 {
+func (m *EventMarkObsoleteRollapps) GetDrsVersions() []uint32 {
 	if m != nil {
 		return m.DrsVersions
 	}
@@ -212,7 +212,7 @@ func init() {
 	proto.RegisterType((*EventAppAdded)(nil), "dymensionxyz.dymension.rollapp.EventAppAdded")
 	proto.RegisterType((*EventAppUpdated)(nil), "dymensionxyz.dymension.rollapp.EventAppUpdated")
 	proto.RegisterType((*EventAppRemoved)(nil), "dymensionxyz.dymension.rollapp.EventAppRemoved")
-	proto.RegisterType((*EventMarkVulnerableRollapps)(nil), "dymensionxyz.dymension.rollapp.EventMarkVulnerableRollapps")
+	proto.RegisterType((*EventMarkObsoleteRollapps)(nil), "dymensionxyz.dymension.rollapp.EventMarkObsoleteRollapps")
 }
 
 func init() {
@@ -346,7 +346,7 @@ func (m *EventAppRemoved) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *EventMarkVulnerableRollapps) Marshal() (dAtA []byte, err error) {
+func (m *EventMarkObsoleteRollapps) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -356,12 +356,12 @@ func (m *EventMarkVulnerableRollapps) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *EventMarkVulnerableRollapps) MarshalTo(dAtA []byte) (int, error) {
+func (m *EventMarkObsoleteRollapps) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *EventMarkVulnerableRollapps) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *EventMarkObsoleteRollapps) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -384,8 +384,8 @@ func (m *EventMarkVulnerableRollapps) MarshalToSizedBuffer(dAtA []byte) (int, er
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.VulnerableRollappNum != 0 {
-		i = encodeVarintEvents(dAtA, i, uint64(m.VulnerableRollappNum))
+	if m.ObsoleteRollappNum != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.ObsoleteRollappNum))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -442,14 +442,14 @@ func (m *EventAppRemoved) Size() (n int) {
 	return n
 }
 
-func (m *EventMarkVulnerableRollapps) Size() (n int) {
+func (m *EventMarkObsoleteRollapps) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.VulnerableRollappNum != 0 {
-		n += 1 + sovEvents(uint64(m.VulnerableRollappNum))
+	if m.ObsoleteRollappNum != 0 {
+		n += 1 + sovEvents(uint64(m.ObsoleteRollappNum))
 	}
 	if len(m.DrsVersions) > 0 {
 		l = 0
@@ -725,7 +725,7 @@ func (m *EventAppRemoved) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *EventMarkVulnerableRollapps) Unmarshal(dAtA []byte) error {
+func (m *EventMarkObsoleteRollapps) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -748,17 +748,17 @@ func (m *EventMarkVulnerableRollapps) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: EventMarkVulnerableRollapps: wiretype end group for non-group")
+			return fmt.Errorf("proto: EventMarkObsoleteRollapps: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: EventMarkVulnerableRollapps: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: EventMarkObsoleteRollapps: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field VulnerableRollappNum", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ObsoleteRollappNum", wireType)
 			}
-			m.VulnerableRollappNum = 0
+			m.ObsoleteRollappNum = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvents
@@ -768,7 +768,7 @@ func (m *EventMarkVulnerableRollapps) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.VulnerableRollappNum |= uint64(b&0x7F) << shift
+				m.ObsoleteRollappNum |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

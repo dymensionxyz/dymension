@@ -13,7 +13,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
+func (s *RollappTestSuite) TestMarkObsoleteRollapps() {
 	type rollapp struct {
 		name       string
 		drsVersion uint32
@@ -21,11 +21,11 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 	govModule := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	tests := []struct {
-		name         string
-		authority    string
-		rollapps     []rollapp
-		vulnVersions []uint32
-		expError     error
+		name             string
+		authority        string
+		rollapps         []rollapp
+		obsoleteVersions []uint32
+		expError         error
 	}{
 		{
 			name:      "happy path 1",
@@ -38,7 +38,7 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				{name: "rollappe_5-1", drsVersion: 1},
 				{name: "rollappf_6-1", drsVersion: 2},
 			},
-			vulnVersions: []uint32{
+			obsoleteVersions: []uint32{
 				1,
 				2,
 			},
@@ -51,7 +51,7 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				{name: "rollappa_1-1", drsVersion: 2},
 				{name: "rollappd_2-1", drsVersion: 1},
 			},
-			vulnVersions: []uint32{
+			obsoleteVersions: []uint32{
 				1,
 			},
 			expError: nil,
@@ -67,14 +67,14 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				{name: "rollappe_5-1", drsVersion: 0},
 				{name: "rollappf_6-1", drsVersion: 2},
 			},
-			vulnVersions: []uint32{
+			obsoleteVersions: []uint32{
 				1,
 				2,
 			},
 			expError: nil,
 		},
 		{
-			name:      "empty DRS version is also vulnerable",
+			name:      "empty DRS version is also obsolete",
 			authority: govModule,
 			rollapps: []rollapp{
 				{name: "rollappa_1-1", drsVersion: 3},
@@ -84,7 +84,7 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				{name: "rollappe_5-1", drsVersion: 0},
 				{name: "rollappf_6-1", drsVersion: 1},
 			},
-			vulnVersions: []uint32{
+			obsoleteVersions: []uint32{
 				0,
 				1,
 				2,
@@ -98,7 +98,7 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				{name: "rollappa_1-1", drsVersion: 2},
 				{name: "rollappe_2-1", drsVersion: 1},
 			},
-			vulnVersions: []uint32{
+			obsoleteVersions: []uint32{
 				1,
 			},
 			expError: gerrc.ErrInvalidArgument,
@@ -110,11 +110,11 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 			s.SetupTest()
 
 			// prepare test data
-			vulnVersions := uslice.ToKeySet(tc.vulnVersions)
-			// list of expected vulnerable rollapps
-			expectedVulnRollappIDs := make([]string, 0, len(tc.rollapps))
-			// list of expected non-vulnerable rollapps
-			expectedNonVulnRollappIDs := make([]string, 0, len(tc.rollapps))
+			obsoleteVersions := uslice.ToKeySet(tc.obsoleteVersions)
+			// list of expected obsolete rollapps
+			expectedObsoleteRollappIDs := make([]string, 0, len(tc.rollapps))
+			// list of expected non-obsolete rollapps
+			expectedNonObsoleteRollappIDs := make([]string, 0, len(tc.rollapps))
 			// create rollapps for every rollapp record from the test case
 			for _, ra := range tc.rollapps {
 				// create a rollapp
@@ -127,17 +127,17 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				s.Require().Nil(err)
 
 				// fill lists with expectations
-				if _, vuln := vulnVersions[ra.drsVersion]; vuln {
-					expectedVulnRollappIDs = append(expectedVulnRollappIDs, ra.name)
+				if _, obsolete := obsoleteVersions[ra.drsVersion]; obsolete {
+					expectedObsoleteRollappIDs = append(expectedObsoleteRollappIDs, ra.name)
 				} else {
-					expectedNonVulnRollappIDs = append(expectedNonVulnRollappIDs, ra.name)
+					expectedNonObsoleteRollappIDs = append(expectedNonObsoleteRollappIDs, ra.name)
 				}
 			}
 
 			// trigger the message we want to test
-			_, err := s.msgServer.MarkVulnerableRollapps(s.Ctx, &types.MsgMarkVulnerableRollapps{
+			_, err := s.msgServer.MarkObsoleteRollapps(s.Ctx, &types.MsgMarkObsoleteRollapps{
 				Authority:   tc.authority,
-				DrsVersions: tc.vulnVersions,
+				DrsVersions: tc.obsoleteVersions,
 			})
 
 			// validate results
@@ -145,44 +145,44 @@ func (s *RollappTestSuite) TestMarkVulnerableRollapps() {
 				s.ErrorIs(err, tc.expError)
 
 				// check the event is not emitted
-				eventName := proto.MessageName(new(types.EventMarkVulnerableRollapps))
+				eventName := proto.MessageName(new(types.EventMarkObsoleteRollapps))
 				s.AssertEventEmitted(s.Ctx, eventName, 0)
 
-				// check non-vulnerable rollapps: all rollapps are still non-vulnerable
-				nonVulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterNonForked)
-				actualNonVulnRollappIDs := uslice.Map(nonVulnRa, func(r types.Rollapp) string { return r.RollappId })
-				allRollapps := slices.Concat(expectedVulnRollappIDs, expectedNonVulnRollappIDs)
-				s.ElementsMatch(allRollapps, actualNonVulnRollappIDs)
+				// check non-obsolete rollapps: all rollapps are still non-obsolete
+				nonObsoleteRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterNonForked)
+				actualNonObsoleteRollappIDs := uslice.Map(nonObsoleteRa, func(r types.Rollapp) string { return r.RollappId })
+				allRollapps := slices.Concat(expectedObsoleteRollappIDs, expectedNonObsoleteRollappIDs)
+				s.ElementsMatch(allRollapps, actualNonObsoleteRollappIDs)
 
-				// check vulnerable rollapps: no vulnerable rollapps
-				vulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterForked)
-				s.Empty(vulnRa)
+				// check obsolete rollapps: no obsolete rollapps
+				obsoleteRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterForked)
+				s.Empty(obsoleteRa)
 
-				// check the vulnerable version set is empty
-				actualVulnVersions, err := s.App.RollappKeeper.GetAllVulnerableDRSVersions(s.Ctx)
+				// check the obsolete version set is empty
+				actualObsoleteVersions, err := s.App.RollappKeeper.GetAllObsoleteDRSVersions(s.Ctx)
 				s.Require().NoError(err)
-				s.Require().Empty(actualVulnVersions)
+				s.Require().Empty(actualObsoleteVersions)
 			} else {
 				s.NoError(err)
 
 				// check the event is emitted
-				eventName := proto.MessageName(new(types.EventMarkVulnerableRollapps))
+				eventName := proto.MessageName(new(types.EventMarkObsoleteRollapps))
 				s.AssertEventEmitted(s.Ctx, eventName, 1)
 
-				// check non-vulnerable rollapps
-				nonVulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterNonForked)
-				actualNonVulnRollappIDs := uslice.Map(nonVulnRa, func(r types.Rollapp) string { return r.RollappId })
-				s.ElementsMatch(expectedNonVulnRollappIDs, actualNonVulnRollappIDs)
+				// check non-obsolete rollapps
+				nonObsoleteRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterNonForked)
+				actualNonObsoleteRollappIDs := uslice.Map(nonObsoleteRa, func(r types.Rollapp) string { return r.RollappId })
+				s.ElementsMatch(expectedNonObsoleteRollappIDs, actualNonObsoleteRollappIDs)
 
-				// check vulnerable rollapps
-				vulnRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterForked)
-				actualVulnRollappIDs := uslice.Map(vulnRa, func(r types.Rollapp) string { return r.RollappId })
-				s.ElementsMatch(expectedVulnRollappIDs, actualVulnRollappIDs)
+				// check obsolete rollapps
+				obsoleteRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterForked)
+				actualObsoleteRollappIDs := uslice.Map(obsoleteRa, func(r types.Rollapp) string { return r.RollappId })
+				s.ElementsMatch(expectedObsoleteRollappIDs, actualObsoleteRollappIDs)
 
-				// check the vulnerable version set
-				actualVulnVersions, err := s.App.RollappKeeper.GetAllVulnerableDRSVersions(s.Ctx)
+				// check the obsolete version set
+				actualObsoleteVersions, err := s.App.RollappKeeper.GetAllObsoleteDRSVersions(s.Ctx)
 				s.Require().NoError(err)
-				s.Require().ElementsMatch(tc.vulnVersions, actualVulnVersions)
+				s.Require().ElementsMatch(tc.obsoleteVersions, actualObsoleteVersions)
 			}
 		})
 	}
