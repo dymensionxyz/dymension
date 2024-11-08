@@ -96,6 +96,57 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 	// we iterate over the queue,
 	// - skipping the states that are not related to the rollapp
 	// - skipping the states that are less than the rollback index
+
+	if err := k.pruneFinalizationsAbove(ctx, rollappID, lastStateIdxToKeep); err != nil {
+		return 0, errorsmod.Wrap(err, "prune finalizations above")
+	}
+
+	// remove the sequencer heights
+	lastStateInfo := k.MustGetStateInfo(ctx, rollappID, lastStateIdxToKeep)
+	err = k.PruneSequencerHeights(ctx, mapKeysToSlice(uniqueProposers), lastStateInfo.GetLatestHeight())
+	if err != nil {
+		return 0, errorsmod.Wrap(err, "prune sequencer heights")
+	}
+
+	ctx.Logger().Info(fmt.Sprintf("Reverted state updates for rollapp: %s, count: %d", rollappID, revertedStatesCount))
+	return lastStateInfo.GetLatestHeight(), nil
+}
+
+func (k Keeper) pruneFinalizationsAbove(ctx sdk.Context, rollappID string, lastStateIdxToKeep uint64) error {
+	queuePerHeight, err := k.GetFinalizationQueueByRollapp(ctx, rollappID)
+	if err != nil {
+		return errorsmod.Wrap(err, "get finalization q by rollapp")
+	}
+	for _, q := range queuePerHeight {
+		leftPendingStates := []types.StateInfoIndex{}
+		for _, stateInfoIndex := range q.FinalizationQueue {
+
+			// keep state info indexes with index less than the rollback index
+			if stateInfoIndex.Index <= lastStateIdxToKeep {
+				leftPendingStates = append(leftPendingStates, stateInfoIndex)
+				continue
+			}
+		}
+
+		if len(leftPendingStates) == 0 {
+			if err := k.RemoveFinalizationQueue(ctx, q.CreationHeight, rollappID); err != nil {
+				return errorsmod.Wrap(err, "remove finalization queue")
+			}
+			continue
+		}
+
+		if err := k.SetFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{
+			RollappId:         rollappID,
+			CreationHeight:    q.CreationHeight,
+			FinalizationQueue: leftPendingStates,
+		}); err != nil {
+			return errorsmod.Wrap(err, "set finalization queue")
+		}
+	}
+	return nil
+}
+
+func (k Keeper) pruneFinalizationsAboveLeg(ctx sdk.Context, rollappID string, lastStateIdxToKeep uint64) {
 	queuePerHeight := k.GetAllBlockHeightToFinalizationQueue(ctx) // FIXME (#631): Prefix store by rollappID for efficient querying
 	for _, queue := range queuePerHeight {
 		leftPendingStates := []types.StateInfoIndex{}
@@ -130,16 +181,6 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 			FinalizationQueue: leftPendingStates,
 		})
 	}
-
-	// remove the sequencer heights
-	lastStateInfo := k.MustGetStateInfo(ctx, rollappID, lastStateIdxToKeep)
-	err = k.PruneSequencerHeights(ctx, mapKeysToSlice(uniqueProposers), lastStateInfo.GetLatestHeight())
-	if err != nil {
-		return 0, errorsmod.Wrap(err, "prune sequencer heights")
-	}
-
-	ctx.Logger().Info(fmt.Sprintf("Reverted state updates for rollapp: %s, count: %d", rollappID, revertedStatesCount))
-	return lastStateInfo.GetLatestHeight(), nil
 }
 
 // UpdateLastStateInfo truncates the state info to the last valid block before the fraud height.
