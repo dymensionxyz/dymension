@@ -85,14 +85,14 @@ func (gs GenesisState) Validate() error {
 		appIndexMap[index] = struct{}{}
 	}
 
-	// Check for duplicated index in vulnerable DRS versions
-	vulnerableDRSVersionIndexMap := make(map[uint32]struct{})
+	// Check for duplicated index in obsolete DRS versions
+	obsoleteDRSVersionIndexMap := make(map[uint32]struct{})
 
-	for _, elem := range gs.VulnerableDrsVersions {
-		if _, ok := vulnerableDRSVersionIndexMap[elem]; ok {
-			return errors.New("duplicated index for VulnerableDrsVersions")
+	for _, elem := range gs.ObsoleteDrsVersions {
+		if _, ok := obsoleteDRSVersionIndexMap[elem]; ok {
+			return errors.New("duplicated index for ObsoleteDrsVersions")
 		}
-		vulnerableDRSVersionIndexMap[elem] = struct{}{}
+		obsoleteDRSVersionIndexMap[elem] = struct{}{}
 	}
 
 	return gs.Params.Validate()

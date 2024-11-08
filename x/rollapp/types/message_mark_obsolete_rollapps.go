@@ -8,9 +8,9 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-var _ sdk.Msg = new(MsgMarkVulnerableRollapps)
+var _ sdk.Msg = new(MsgMarkObsoleteRollapps)
 
-func (m MsgMarkVulnerableRollapps) ValidateBasic() error {
+func (m MsgMarkObsoleteRollapps) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Authority)
 	if err != nil {
 		return errors.Join(gerrc.ErrInvalidArgument, errorsmod.Wrap(err, "authority must be a valid bech32 address"))
@@ -23,7 +23,7 @@ func (m MsgMarkVulnerableRollapps) ValidateBasic() error {
 	return nil
 }
 
-func (m MsgMarkVulnerableRollapps) GetSigners() []sdk.AccAddress {
+func (m MsgMarkObsoleteRollapps) GetSigners() []sdk.AccAddress {
 	signer, _ := sdk.AccAddressFromBech32(m.Authority)
 	return []sdk.AccAddress{signer}
 }
