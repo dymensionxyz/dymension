@@ -96,7 +96,8 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 	// we iterate over the queue,
 	// - skipping the states that are not related to the rollapp
 	// - skipping the states that are less than the rollback index
-	queuePerHeight := k.GetAllBlockHeightToFinalizationQueue(ctx) // FIXME (#631): Prefix store by rollappID for efficient querying
+	queuePerHeight, err := k.GetEntireFinalizationQueue(ctx) // FIXME (#631): Prefix store by rollappID for efficient querying
+
 	for _, queue := range queuePerHeight {
 		leftPendingStates := []types.StateInfoIndex{}
 		for _, stateInfoIndex := range queue.FinalizationQueue {
@@ -120,15 +121,20 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 
 		// remove the queue if no pending states left
 		if len(leftPendingStates) == 0 {
-			k.RemoveBlockHeightToFinalizationQueue(ctx, queue.CreationHeight)
+			if err := k.RemoveFinalizationQueue(ctx, queue.CreationHeight, rollappID); err != nil {
+				return 0, err
+			}
 			continue
 		}
 
 		// update the queue after removing the reverted states
-		k.SetBlockHeightToFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{
+		if err := k.SetFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{
 			CreationHeight:    queue.CreationHeight,
 			FinalizationQueue: leftPendingStates,
-		})
+			RollappId:         rollappID,
+		}); err != nil {
+			return 0, err
+		}
 	}
 
 	// remove the sequencer heights
