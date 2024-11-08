@@ -4,6 +4,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
+	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -27,6 +28,7 @@ var Upgrade = upgrades.Upgrade{
 			sponsorshiptypes.ModuleName,
 			dymnstypes.ModuleName,
 			irotypes.ModuleName,
+			grouptypes.ModuleName,
 		},
 	},
 }
