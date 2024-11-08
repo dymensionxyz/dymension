@@ -5,21 +5,23 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
 	"gopkg.in/yaml.v2"
 )
 
 var (
 	// DefaultMinBond is the minimum bond required to be a validator
-	DefaultMinBond uint64 = 1000000
+	DefaultMinBond = ucoin.SimpleMul(rollapptypes.OneDymCoin, 100)
 	// DefaultKickThreshold is the minimum bond required to be a validator
-	DefaultKickThreshold uint64 = 10
+	DefaultKickThreshold = rollapptypes.OneDymCoin
 	// DefaultNoticePeriod is the time duration for notice period
 	DefaultNoticePeriod = time.Hour * 24 * 7 // 1 week
 	// DefaultLivenessSlashMultiplier gives the amount of tokens to slash if the sequencer is liable for a liveness failure
 	DefaultLivenessSlashMultiplier = sdk.MustNewDecFromStr("0.01")
 	// DefaultLivenessSlashMinAbsolute will be slashed if the multiplier amount is too small
-	DefaultLivenessSlashMinAbsolute uint64 = 1
+	DefaultLivenessSlashMinAbsolute = rollapptypes.OneDymCoin
 )
 
 // NewParams creates a new Params instance
@@ -35,16 +37,8 @@ func NewParams(minBond sdk.Coin, noticePeriod time.Duration, livenessSlashMul sd
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	denom, err := sdk.GetBaseDenom()
-	if err != nil {
-		panic(err)
-	}
-	minBond := sdk.NewCoin(denom, sdk.NewIntFromUint64(DefaultMinBond))
-	kick := sdk.NewCoin(denom, sdk.NewIntFromUint64(DefaultKickThreshold))
-	slashAbs := sdk.NewCoin(denom, sdk.NewIntFromUint64(DefaultLivenessSlashMinAbsolute))
 	return NewParams(
-		minBond, DefaultNoticePeriod, DefaultLivenessSlashMultiplier, slashAbs,
-		kick,
+		DefaultMinBond, DefaultNoticePeriod, DefaultLivenessSlashMultiplier, DefaultLivenessSlashMinAbsolute, DefaultKickThreshold,
 	)
 }
 
