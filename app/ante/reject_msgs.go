@@ -19,7 +19,7 @@ type RejectMessagesDecorator struct {
 }
 
 // predicate should return true if message is not allowed
-type predicate func(typeURL string, depth int) bool
+type predicate = func(typeURL string, depth int) bool
 
 func blockTypeUrls(typeUrls ...string) predicate {
 	block := make(map[string]struct{})
@@ -41,7 +41,7 @@ func NewRejectMessagesDecorator(disabledMsgTypeURLs ...string) RejectMessagesDec
 	}
 }
 
-func (rmd *RejectMessagesDecorator) addPredicate(p predicate) {
+func (rmd *RejectMessagesDecorator) withPredicate(p predicate) *RejectMessagesDecorator {
 	rmd.predicates = append(rmd.predicates, p)
 }
 

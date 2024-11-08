@@ -14,6 +14,17 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
+var blockUrlUpdate = sdk.MsgTypeURL(&ibcclienttypes.MsgUpdateClient{})
+var blockUrlMisbehavior = sdk.MsgTypeURL(&ibcclienttypes.MsgSubmitMisbehaviour{})
+
+// Depth is the nesting depth of the message with authz and gov proposal. depth 0 is a top level message.
+// Only blanket rejects depth greater than zero because we have our own custom logic for depth 0
+// Note that there is never a genuine reason to pass both ibc update client and misbehaviour submission through gov or auth,
+// it's always done by relayers directly.
+func BlockMsg(typeURL string, depth int) bool {
+	return (typeURL == blockUrlUpdate || typeURL == blockUrlMisbehavior) && 0 < depth
+}
+
 func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibcclienttypes.MsgUpdateClient) error {
 	if !i.k.Enabled() {
 		return nil
