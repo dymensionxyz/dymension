@@ -146,8 +146,9 @@ func (k Keeper) VerifyHeightFinalized(ctx sdk.Context, rollappID string, height 
 		return gerrc.ErrNotFound.Wrapf("state info is not found")
 	}
 	// Check the latest finalized height of the rollapp is higher than the height specified
-	if height > stateInfo.GetLatestHeight() {
-		return gerrc.ErrInvalidArgument.Wrapf("packet height is not finalized yet: height '%d', latest height '%d'", height, stateInfo.GetLatestHeight())
+	latestHeight := stateInfo.GetLatestHeight()
+	if height > latestHeight {
+		return gerrc.ErrInvalidArgument.Wrapf("packet height is not finalized yet: height '%d', latest height '%d'", height, latestHeight)
 	}
 	return nil
 }
