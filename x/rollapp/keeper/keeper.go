@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"cosmossdk.io/collections"
+	"cosmossdk.io/collections/indexes"
 	"github.com/cometbft/cometbft/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -14,6 +15,17 @@ import (
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
+
+// finalizationQueueIndex is a set of indexes for the finalization queue.
+type finalizationQueueIndex struct {
+	// RollappIDReverseLookup is a reverse lookup index for the finalization queue.
+	// It helps to find all available heights to finalize by rollapp.
+	RollappIDReverseLookup *indexes.ReversePair[uint64, string, types.BlockHeightToFinalizationQueue]
+}
+
+func (b finalizationQueueIndex) IndexesList() []collections.Index[collections.Pair[uint64, string], types.BlockHeightToFinalizationQueue] {
+	return []collections.Index[collections.Pair[uint64, string], types.BlockHeightToFinalizationQueue]{b.RollappIDReverseLookup}
+}
 
 type Keeper struct {
 	cdc        codec.BinaryCodec
@@ -32,6 +44,11 @@ type Keeper struct {
 
 	obsoleteDRSVersions     collections.KeySet[uint32]
 	registeredRollappDenoms collections.KeySet[collections.Pair[string, string]]
+	// finalizationQueue is a map from creation height and rollapp to the finalization queue.
+	// Key: (creation height, rollappID), Value: state indexes to finalize.
+	// Contains a special index that helps reverse lookup: finalization queue (all available heights) by rollapp.
+	// Index key: (rollappID, creation height), Value: state indexes to finalize.
+	finalizationQueue *collections.IndexedMap[collections.Pair[uint64, string], types.BlockHeightToFinalizationQueue, finalizationQueueIndex]
 
 	finalizePending        func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 	seqToUnfinalizedHeight collections.KeySet[collections.Pair[string, uint64]]
@@ -81,10 +98,25 @@ func NewKeeper(
 			collections.Uint32Key,
 		),
 		registeredRollappDenoms: collections.NewKeySet[collections.Pair[string, string]](
-			collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey)),
+			sb,
 			collections.NewPrefix(types.KeyRegisteredDenomPrefix),
 			"registered_rollapp_denoms",
 			collections.PairKeyCodec(collections.StringKey, collections.StringKey),
+		),
+		finalizationQueue: collections.NewIndexedMap(
+			sb,
+			collections.NewPrefix(types.HeightRollappToFinalizationQueueKeyPrefix),
+			"height_rollapp_to_finalization_queue",
+			collections.PairKeyCodec(collections.Uint64Key, collections.StringKey),
+			collcompat.ProtoValue[types.BlockHeightToFinalizationQueue](cdc),
+			finalizationQueueIndex{
+				RollappIDReverseLookup: indexes.NewReversePair[types.BlockHeightToFinalizationQueue](
+					sb,
+					collections.NewPrefix(types.RollappHeightToFinalizationQueueKeyPrefix),
+					"rollapp_id_reverse_lookup",
+					collections.PairKeyCodec(collections.Uint64Key, collections.StringKey),
+				),
+			},
 		),
 		finalizePending:       nil,
 		canonicalClientKeeper: canonicalClientKeeper,
