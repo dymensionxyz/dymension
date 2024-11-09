@@ -71,7 +71,6 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			msg:         "Test that upgrade does not panic and sets correct parameters and migrates rollapp module",
 			numRollapps: 5,
 			preUpgrade: func(numRollapps int) error {
-
 				// Create and store rollapps
 				s.seedAndStoreRollapps(numRollapps)
 
