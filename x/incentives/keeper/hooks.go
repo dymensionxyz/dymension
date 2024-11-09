@@ -13,8 +13,7 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochN
 
 // AfterEpochEnd is the epoch end hook.
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	params := k.GetParams(ctx)
-	if epochIdentifier == params.DistrEpochIdentifier {
+	if epochIdentifier == k.DistrEpochIdentifier(ctx) {
 		// begin distribution if it's start time
 		gauges := k.GetUpcomingGauges(ctx)
 		for _, gauge := range gauges {

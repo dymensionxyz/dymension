@@ -49,7 +49,7 @@ func (s *SequencerTestSuite) TestValidateParams() {
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			err := k.ValidateParams(s.Ctx, tt.params())
+			err := k.ValidateParams(tt.params())
 			if tt.wantErr {
 				s.Require().Error(err)
 			} else {

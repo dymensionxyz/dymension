@@ -72,7 +72,6 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
-		migrateSequencerParams(ctx, keepers.SequencerKeeper)
 		if err := migrateSequencerIndices(ctx, keepers.SequencerKeeper); err != nil {
 			return nil, errorsmod.Wrap(err, "migrate sequencer indices")
 		}
@@ -205,9 +204,8 @@ func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Ke
 // migrateStreamer creates epoch pointers for all epoch infos and updates module params
 func migrateStreamer(ctx sdk.Context, sk streamerkeeper.Keeper, ek *epochskeeper.Keeper) error {
 	// update module params
-	oldParams := sk.GetParams(ctx)
-	oldParams.MaxIterationsPerBlock = streamertypes.DefaultMaxIterationsPerBlock
-	sk.SetParams(ctx, oldParams)
+	params := streamertypes.DefaultParams()
+	sk.SetParams(ctx, params)
 
 	// create epoch pointers for all epoch infos
 	for _, epoch := range ek.AllEpochInfos(ctx) {
@@ -271,11 +269,8 @@ func ReformatFinalizationQueue(queue rollapptypes.BlockHeightToFinalizationQueue
 }
 
 func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {
-	params := ik.GetParams(ctx)
-	defaultParams := incentivestypes.DefaultParams()
-	params.CreateGaugeBaseFee = defaultParams.CreateGaugeBaseFee
-	params.AddToGaugeBaseFee = defaultParams.AddToGaugeBaseFee
-	params.AddDenomFee = defaultParams.AddDenomFee
+	params := incentivestypes.DefaultParams()
+	params.DistrEpochIdentifier = ik.DistrEpochIdentifier(ctx)
 	ik.SetParams(ctx, params)
 }
 

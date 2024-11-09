@@ -17,7 +17,7 @@ func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParam
 		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
 	}
 
-	if err := k.ValidateParams(ctx, msg.Params); err != nil {
+	if err := k.ValidateParams(msg.Params); err != nil {
 		return nil, err
 	}
 

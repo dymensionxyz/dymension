@@ -3,9 +3,9 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // ValidateParams is a stateful validation for params.
@@ -13,7 +13,7 @@ import (
 // and that the correct denom is set.
 // The unbonding time is set by governance hence it's more of a sanity/human error check which
 // in theory should never fail as setting such unbonding time has wide protocol security implications beyond the dispute period.
-func (k Keeper) ValidateParams(ctx sdk.Context, params types.Params) error {
+func (k Keeper) ValidateParams(params types.Params) error {
 	// validate min bond denom
 	denom, err := sdk.GetBaseDenom()
 	if err != nil {

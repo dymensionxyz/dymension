@@ -16,7 +16,7 @@ type (
 	//
 	// NOTE: This is used solely for migration of x/params managed parameters.
 	Subspace interface {
-		GetParamSet(ctx sdk.Context, ps ParamSet)
+		Get(ctx sdk.Context, key []byte, ptr interface{})
 	}
 )
 
@@ -34,7 +34,27 @@ func NewMigrator(keeper *seqkeeper.Keeper, ss Subspace) Migrator {
 // Migrate2to3 migrates from version 2 to 3.
 func (m Migrator) Migrate2to3(ctx sdk.Context) error {
 	var currParams types.Params
-	m.legacySubspace.GetParamSet(ctx, &currParams)
+	m.legacySubspace.Get(ctx, types.KeyMinBond, &currParams.MinBond)
+	m.legacySubspace.Get(ctx, types.KeyKickThreshold, &currParams.KickThreshold)
+	m.legacySubspace.Get(ctx, types.KeyNoticePeriod, &currParams.NoticePeriod)
+	m.legacySubspace.Get(ctx, types.KeyLivenessSlashMinMultiplier, &currParams.LivenessSlashMinMultiplier)
+	m.legacySubspace.Get(ctx, types.KeyLivenessSlashMinAbsolute, &currParams.LivenessSlashMinAbsolute)
+
+	if currParams.MinBond.Denom == "" {
+		currParams.MinBond = types.DefaultMinBond
+	}
+	if currParams.KickThreshold.Denom == "" {
+		currParams.KickThreshold = types.DefaultKickThreshold
+	}
+	if currParams.NoticePeriod == 0 {
+		currParams.NoticePeriod = types.DefaultNoticePeriod
+	}
+	if currParams.LivenessSlashMinMultiplier.IsNil() || currParams.LivenessSlashMinMultiplier.String() == "" {
+		currParams.LivenessSlashMinMultiplier = types.DefaultLivenessSlashMultiplier
+	}
+	if currParams.LivenessSlashMinAbsolute.Denom == "" {
+		currParams.LivenessSlashMinAbsolute = types.DefaultLivenessSlashMinAbsolute
+	}
 
 	if err := currParams.ValidateBasic(); err != nil {
 		return err

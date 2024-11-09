@@ -16,7 +16,7 @@ var (
 	KeyMinBond                    = []byte("MinBond")
 	KeyKickThreshold              = []byte("KickThreshold")
 	KeyNoticePeriod               = []byte("NoticePeriod")
-	keyLivenessSlashMinMultiplier = []byte("LivenessSlashMultiplier")
+	KeyLivenessSlashMinMultiplier = []byte("LivenessSlashMultiplier")
 	KeyLivenessSlashMinAbsolute   = []byte("LivenessSlashMinAbsolute")
 )
 
@@ -32,7 +32,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyMinBond, &p.MinBond, validateMinBond),
 		paramtypes.NewParamSetPair(KeyKickThreshold, &p.KickThreshold, uparam.ValidateCoin),
 		paramtypes.NewParamSetPair(KeyNoticePeriod, &p.NoticePeriod, validateTime),
-		paramtypes.NewParamSetPair(keyLivenessSlashMinMultiplier, &p.LivenessSlashMinMultiplier, validateLivenessSlashMultiplier),
+		paramtypes.NewParamSetPair(KeyLivenessSlashMinMultiplier, &p.LivenessSlashMinMultiplier, validateLivenessSlashMultiplier),
 		paramtypes.NewParamSetPair(KeyLivenessSlashMinAbsolute, &p.LivenessSlashMinAbsolute, uparam.ValidateCoin),
 	}
 }

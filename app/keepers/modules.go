@@ -268,8 +268,8 @@ var maccPerms = map[string][]string{
 }
 
 var BeginBlockers = []string{
-	epochstypes.ModuleName,
 	upgradetypes.ModuleName,
+	epochstypes.ModuleName,
 	capabilitytypes.ModuleName,
 	minttypes.ModuleName,
 	distrtypes.ModuleName,
