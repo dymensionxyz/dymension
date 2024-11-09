@@ -185,11 +185,6 @@ func (l livenessMockSequencerKeeper) PunishSequencer(ctx sdk.Context, seqAddr st
 	panic("implement me")
 }
 
-// JailByAddr implements types.SequencerKeeper.
-func (l livenessMockSequencerKeeper) JailByAddr(ctx sdk.Context, seqAddr string) error {
-	panic("unimplemented")
-}
-
 func newLivenessMockSequencerKeeper() livenessMockSequencerKeeper {
 	return livenessMockSequencerKeeper{
 		make(map[string]int),

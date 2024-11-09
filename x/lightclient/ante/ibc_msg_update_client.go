@@ -62,7 +62,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 		return gerrc.ErrInternal.Wrapf("get rollapp from sequencer: rollapp: %s", seq.RollappId)
 	}
 
-	// cannot update the LC unless fork is resolved (after receiving state updates of HF height +1 & HF height +2
+	// cannot update the LC unless fork is resolved (after receiving state post fork state update)
 	if i.k.IsHardForkingInProgress(ctx, rollapp.RollappId) {
 		return types.ErrorHardForkInProgress
 	}

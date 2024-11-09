@@ -323,7 +323,6 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		Owner:        oldRollapp.Owner,
 		GenesisState: oldRollapp.GenesisState,
 		ChannelId:    oldRollapp.ChannelId,
-		Frozen:       oldRollapp.Frozen,
 		Metadata: &rollapptypes.RollappMetadata{ // Can be updated in runtime
 			Website:     "",
 			Description: "",

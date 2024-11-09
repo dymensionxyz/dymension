@@ -103,10 +103,10 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	if k.IsStateUpdateObsolete(ctx, stateInfo) {
 		err := k.HardForkToLatest(ctx, msg.RollappId)
 		if err != nil {
-			return nil, fmt.Errorf("mark rollapp obsolete: %w", err)
+			return nil, fmt.Errorf("hard fork due to obsolete version: %w", err)
 		}
 		k.Logger(ctx).With("rollapp_id", msg.RollappId, "drs_version", stateInfo.GetLatestBlockDescriptor().DrsVersion).
-			Info("rollapp tried to submit MsgUpdateState with the obsolete DRS version, mark the rollapp as obsolete")
+			Info("rollapp tried to submit MsgUpdateState with an obsolete DRS version,forked")
 
 		// we must return non-error if we want the changes to be saved
 		return &types.MsgUpdateStateResponse{}, nil

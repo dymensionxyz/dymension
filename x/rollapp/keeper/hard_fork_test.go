@@ -69,8 +69,9 @@ func (suite *RollappTestSuite) TestHardFork() {
 
 			// Assert initial stats (revision 0, states pending)
 			suite.assertNotForked(rollappId)
-			queue := suite.App.RollappKeeper.GetAllFinalizationQueueUntilHeightInclusive(suite.Ctx, initialHeight+numOfStates+suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx))
-			suite.Require().Len(queue, int(numOfStates))
+			queue, err := suite.App.RollappKeeper.GetFinalizationQueueByRollapp(suite.Ctx, rollappId)
+			suite.Require().NoError(err)
+			suite.Require().Len(queue, int(tc.statesCommitted))
 
 			// finalize some of the states
 			suite.App.RollappKeeper.FinalizeRollappStates(suite.Ctx.WithBlockHeight(int64(initialHeight + tc.statesFinalized)))
@@ -146,7 +147,8 @@ func (suite *RollappTestSuite) assertFraudHandled(rollappId string, height uint6
 	suite.Require().True(ok)
 
 	// check queue
-	queue := suite.App.RollappKeeper.GetAllBlockHeightToFinalizationQueue(suite.Ctx)
+	queue, err := suite.App.RollappKeeper.GetFinalizationQueueByRollapp(suite.Ctx, rollappId)
+	suite.Require().NoError(err)
 	suite.Require().Greater(len(queue), 0)
 	for _, q := range queue {
 		for _, stateInfoIndex := range q.FinalizationQueue {

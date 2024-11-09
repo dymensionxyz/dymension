@@ -34,6 +34,8 @@ var (
 	PendingDemandOrderKeyPrefix = []byte{0x00, 0x01}
 	// FinalizedDemandOrderKeyPrefix is the prefix for finalized demand orders
 	FinalizedDemandOrderKeyPrefix = []byte{0x00, 0x02}
+
+	_ = []byte{0x00, 0x03} // deprecated key
 )
 
 // GetDemandOrderKey constructs a key for a specific DemandOrder.

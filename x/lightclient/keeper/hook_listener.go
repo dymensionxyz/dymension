@@ -110,7 +110,6 @@ func (hook rollappHook) validateOptimisticUpdate(
 	}
 	err = types.CheckCompatibility(*got, expect)
 	if err != nil {
-		// return gerrc.ErrFault
 		return errors.Join(gerrc.ErrFault, err)
 	}
 

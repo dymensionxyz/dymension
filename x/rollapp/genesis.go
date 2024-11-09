@@ -59,13 +59,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		}
 	}
 
-	for _, elem := range genState.SequencerHeightPairs {
-		err := k.SaveSequencerHeight(ctx, elem.Sequencer, elem.Height)
-		if err != nil {
-			panic(err)
-		}
-	}
-
 	k.SetParams(ctx, genState.Params)
 }
 

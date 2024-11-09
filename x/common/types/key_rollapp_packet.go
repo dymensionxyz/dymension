@@ -18,6 +18,9 @@ var (
 	PendingRollappPacketKeyPrefix = []byte{0x00, 0x01}
 	// FinalizedRollappPacketKeyPrefix is the prefix for finalized rollapp packets
 	FinalizedRollappPacketKeyPrefix = []byte{0x00, 0x02}
+
+	_ = []byte{0x00, 0x03} // deprecated key
+
 	// keySeparatorBytes is used to separate the rollapp packet key parts
 	keySeparatorBytes = []byte("/")
 )

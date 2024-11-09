@@ -89,7 +89,7 @@ message MsgUpdateState {
   BlockDescriptors BDs = 7 [(gogoproto.nullable) = false];
   // last is true if this is the last batch of the sequencer
   bool last = 8;
-  // rollapp_revision is the revision of the rollapp chain
+  // rollapp_revision is the revision of the rollapp chain. increases after hard fork  
   uint64 rollapp_revision = 9;
 }
 
