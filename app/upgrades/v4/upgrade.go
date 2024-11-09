@@ -212,11 +212,8 @@ func ReformatFinalizationQueue(queue rollapptypes.BlockHeightToFinalizationQueue
 }
 
 func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {
-	params := ik.GetParams(ctx)
-	defaultParams := incentivestypes.DefaultParams()
-	params.CreateGaugeBaseFee = defaultParams.CreateGaugeBaseFee
-	params.AddToGaugeBaseFee = defaultParams.AddToGaugeBaseFee
-	params.AddDenomFee = defaultParams.AddDenomFee
+	params := incentivestypes.DefaultParams()
+	params.DistrEpochIdentifier = ik.DistrEpochIdentifier(ctx)
 	ik.SetParams(ctx, params)
 }
 
