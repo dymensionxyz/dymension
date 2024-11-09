@@ -27,7 +27,7 @@ func BlockTypeUrls(typeUrls ...string) Predicate {
 	for _, url := range typeUrls {
 		block[url] = struct{}{}
 	}
-	return func(url string, depth int) bool {
+	return func(url string, _ int) bool {
 		_, ok := block[url]
 		return ok
 	}
