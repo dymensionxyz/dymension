@@ -58,6 +58,7 @@ var (
 	// These keys were already used on mainnet. Don't reuse
 	_ = []byte{0xa3}
 	_ = []byte{0x41}
+	_ = []byte("MinBond")
 )
 
 /* --------------------- specific sequencer address keys -------------------- */
