@@ -76,7 +76,7 @@ func CreateUpgradeHandler(
 			case rollapptypes.ModuleName:
 				keyTable = rollapptypes.ParamKeyTable()
 			case sequencertypes.ModuleName:
-				keyTable = sequencertypes.ParamKeyTable()
+				continue
 
 			// Ethermint  modules
 			case evmtypes.ModuleName:
