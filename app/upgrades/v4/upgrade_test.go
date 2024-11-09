@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app"
@@ -49,6 +50,8 @@ const (
 	expectDelayedackDeletePacketsEpochLimit int32 = 1000_000
 	expectDelayedackEpochIdentifier               = "hour"
 
+	expectLivenessSlashInterval = rollapptypes.DefaultLivenessSlashInterval
+	expectLivenessSlashBlock    = rollapptypes.DefaultLivenessSlashBlocks
 	expectDisputePeriodInBlocks = 3
 )
 
@@ -77,6 +80,8 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				s.seedAndStoreSequencers(numRollapps)
 
 				s.seedPendingRollappPackets()
+
+				s.seedRollappFinalizationQueue()
 
 				return nil
 			},
@@ -134,6 +139,14 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				if err = s.validateDelayedAckIndexMigration(); err != nil {
 					return
 				}
+
+				// Check rollapp gauges
+				if err = s.validateRollappGaugesMigration(); err != nil {
+					return
+				}
+
+				// Check rollapp finalization queue
+				s.validateRollappFinalizationQueue()
 
 				s.validateStreamerMigration()
 
@@ -198,7 +211,12 @@ func (s *UpgradeTestSuite) validateRollappsMigration(numRoll int) error {
 		}
 	}
 
+	s.Require().Equal(expectLivenessSlashBlock, s.App.RollappKeeper.GetParams(s.Ctx).LivenessSlashBlocks)
+	s.Require().Equal(expectLivenessSlashInterval, s.App.RollappKeeper.GetParams(s.Ctx).LivenessSlashInterval)
+
 	if !reflect.DeepEqual(rollapps, expectRollapps) {
+		s.T().Log("Expect rollapps", expectRollapps)
+		s.T().Log("Actual rollapps", rollapps)
 		return fmt.Errorf("rollapps do not match")
 	}
 	return nil
@@ -264,7 +282,12 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 		seq := s.App.AppCodec().MustMarshalJSON(&sequencer)
 		nSeq := s.App.AppCodec().MustMarshalJSON(&expectSequencers[i])
 
+		s.Require().True(sequencer.OptedIn)
 		s.Require().JSONEq(string(seq), string(nSeq))
+
+		byDymintAddr, err := s.App.SequencerKeeper.SequencerByDymintAddr(s.Ctx, expectSequencers[i].MustProposerAddr())
+		s.Require().NoError(err)
+		s.Require().Equal(sequencer.Address, byDymintAddr.Address)
 	}
 
 	// check proposer
@@ -272,6 +295,11 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 		p := s.App.SequencerKeeper.GetProposer(s.Ctx, rollapp.RollappId)
 		s.Require().False(p.Sentinel())
 	}
+	s.Require().Equal(sequencertypes.DefaultNoticePeriod, s.App.SequencerKeeper.GetParams(s.Ctx).NoticePeriod)
+	s.Require().Equal(sequencertypes.DefaultKickThreshold, s.App.SequencerKeeper.GetParams(s.Ctx).KickThreshold)
+	s.Require().Equal(sequencertypes.DefaultLivenessSlashMultiplier, s.App.SequencerKeeper.GetParams(s.Ctx).LivenessSlashMinMultiplier)
+	s.Require().Equal(sequencertypes.DefaultLivenessSlashMinAbsolute, s.App.SequencerKeeper.GetParams(s.Ctx).LivenessSlashMinAbsolute)
+	s.Require().Equal(sequencertypes.DefaultMinBond, s.App.SequencerKeeper.GetParams(s.Ctx).MinBond)
 
 	return nil
 }
@@ -297,6 +325,59 @@ func (s *UpgradeTestSuite) validateDelayedAckIndexMigration() error {
 	s.Require().NoError(err)
 	s.Require().Equal(len(packets), len(actual))
 	return nil
+}
+
+func (s *UpgradeTestSuite) validateRollappFinalizationQueue() {
+	queue, err := s.App.RollappKeeper.GetEntireFinalizationQueue(s.Ctx)
+	s.Require().NoError(err)
+
+	s.Require().Equal([]rollapptypes.BlockHeightToFinalizationQueue{
+		{
+			CreationHeight: 1,
+			FinalizationQueue: []rollapptypes.StateInfoIndex{
+				{RollappId: "rollapp1", Index: 1},
+				{RollappId: "rollapp1", Index: 2},
+			},
+			RollappId: "rollapp1",
+		},
+		{
+			CreationHeight: 1,
+			FinalizationQueue: []rollapptypes.StateInfoIndex{
+				{RollappId: "rollapp2", Index: 1},
+				{RollappId: "rollapp2", Index: 2},
+			},
+			RollappId: "rollapp2",
+		},
+		{
+			CreationHeight: 1,
+			FinalizationQueue: []rollapptypes.StateInfoIndex{
+				{RollappId: "rollapp3", Index: 1},
+			},
+			RollappId: "rollapp3",
+		},
+		{
+			CreationHeight: 2,
+			FinalizationQueue: []rollapptypes.StateInfoIndex{
+				{RollappId: "rollapp1", Index: 3},
+			},
+			RollappId: "rollapp1",
+		},
+		{
+			CreationHeight: 2,
+			FinalizationQueue: []rollapptypes.StateInfoIndex{
+				{RollappId: "rollapp3", Index: 2},
+			},
+			RollappId: "rollapp3",
+		},
+		{
+			CreationHeight: 3,
+			FinalizationQueue: []rollapptypes.StateInfoIndex{
+				{RollappId: "rollapp3", Index: 3},
+				{RollappId: "rollapp3", Index: 4},
+			},
+			RollappId: "rollapp3",
+		},
+	}, queue)
 }
 
 func (s *UpgradeTestSuite) seedAndStoreRollapps(numRollapps int) {
@@ -363,4 +444,82 @@ func (s *UpgradeTestSuite) seedPendingRollappPackets() {
 	for _, packet := range packets {
 		s.App.DelayedAckKeeper.SetRollappPacket(s.Ctx, packet)
 	}
+}
+
+func (s *UpgradeTestSuite) seedRollappFinalizationQueue() {
+	q1 := rollapptypes.BlockHeightToFinalizationQueue{
+		CreationHeight: 1,
+		FinalizationQueue: []rollapptypes.StateInfoIndex{
+			{RollappId: "rollapp1", Index: 1},
+			{RollappId: "rollapp1", Index: 2},
+			{RollappId: "rollapp2", Index: 1},
+			{RollappId: "rollapp2", Index: 2},
+			{RollappId: "rollapp3", Index: 1},
+		},
+		RollappId: "",
+	}
+	q2 := rollapptypes.BlockHeightToFinalizationQueue{
+		CreationHeight: 2,
+		FinalizationQueue: []rollapptypes.StateInfoIndex{
+			{RollappId: "rollapp1", Index: 3},
+			{RollappId: "rollapp3", Index: 2},
+		},
+		RollappId: "",
+	}
+	q3 := rollapptypes.BlockHeightToFinalizationQueue{
+		CreationHeight: 3,
+		FinalizationQueue: []rollapptypes.StateInfoIndex{
+			{RollappId: "rollapp3", Index: 3},
+			{RollappId: "rollapp3", Index: 4},
+		},
+		RollappId: "",
+	}
+
+	s.App.RollappKeeper.SetBlockHeightToFinalizationQueue(s.Ctx, q1)
+	s.App.RollappKeeper.SetBlockHeightToFinalizationQueue(s.Ctx, q2)
+	s.App.RollappKeeper.SetBlockHeightToFinalizationQueue(s.Ctx, q3)
+}
+
+func TestReformatFinalizationQueue(t *testing.T) {
+	q := rollapptypes.BlockHeightToFinalizationQueue{
+		CreationHeight: 1,
+		FinalizationQueue: []rollapptypes.StateInfoIndex{
+			{RollappId: "rollapp1", Index: 1},
+			{RollappId: "rollapp1", Index: 2},
+			{RollappId: "rollapp1", Index: 3},
+			{RollappId: "rollapp2", Index: 1},
+			{RollappId: "rollapp2", Index: 2},
+			{RollappId: "rollapp3", Index: 1},
+		},
+		RollappId: "", // empty for old-style queues
+	}
+
+	newQueues := v4.ReformatFinalizationQueue(q)
+
+	require.Equal(t, []rollapptypes.BlockHeightToFinalizationQueue{
+		{
+			CreationHeight: 1,
+			FinalizationQueue: []rollapptypes.StateInfoIndex{
+				{RollappId: "rollapp1", Index: 1},
+				{RollappId: "rollapp1", Index: 2},
+				{RollappId: "rollapp1", Index: 3},
+			},
+			RollappId: "rollapp1",
+		},
+		{
+			CreationHeight: 1,
+			FinalizationQueue: []rollapptypes.StateInfoIndex{
+				{RollappId: "rollapp2", Index: 1},
+				{RollappId: "rollapp2", Index: 2},
+			},
+			RollappId: "rollapp2",
+		},
+		{
+			CreationHeight: 1,
+			FinalizationQueue: []rollapptypes.StateInfoIndex{
+				{RollappId: "rollapp3", Index: 1},
+			},
+			RollappId: "rollapp3",
+		},
+	}, newQueues)
 }

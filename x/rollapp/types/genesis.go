@@ -64,10 +64,10 @@ func (gs GenesisState) Validate() error {
 		latestFinalizedStateIndexIndexMap[index] = struct{}{}
 	}
 	// Check for duplicated index in blockHeightToFinalizationQueue
-	blockHeightToFinalizationQueueIndexMap := make(map[string]struct{})
+	blockHeightToFinalizationQueueIndexMap := make(map[uint64]struct{})
 
 	for _, elem := range gs.BlockHeightToFinalizationQueueList {
-		index := string(BlockHeightToFinalizationQueueKey(elem.CreationHeight))
+		index := elem.CreationHeight
 		if _, ok := blockHeightToFinalizationQueueIndexMap[index]; ok {
 			return errors.New("duplicated index for blockHeightToFinalizationQueue")
 		}
@@ -83,6 +83,16 @@ func (gs GenesisState) Validate() error {
 			return errors.New("duplicated index for app")
 		}
 		appIndexMap[index] = struct{}{}
+	}
+
+	// Check for duplicated index in vulnerable DRS versions
+	vulnerableDRSVersionIndexMap := make(map[uint32]struct{})
+
+	for _, elem := range gs.VulnerableDrsVersions {
+		if _, ok := vulnerableDRSVersionIndexMap[elem]; ok {
+			return errors.New("duplicated index for VulnerableDrsVersions")
+		}
+		vulnerableDRSVersionIndexMap[elem] = struct{}{}
 	}
 
 	return gs.Params.Validate()

@@ -2,16 +2,16 @@ package types
 
 import (
 	"errors"
-	fmt "fmt"
+	"fmt"
 	"strings"
-	time "time"
+	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
-const IROTokenPrefix = "future_"
+const IROTokenPrefix = "IRO/"
 
 func IRODenom(rollappID string) string {
 	return fmt.Sprintf("%s%s", IROTokenPrefix, rollappID)

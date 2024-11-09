@@ -59,6 +59,11 @@ service Query {
   rpc RegisteredDenoms(QueryRegisteredDenomsRequest) returns (QueryRegisteredDenomsResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/rollapp/registered_denoms";
   }
+
+  // Queries a list of obsolete DRS versions.
+  rpc ObsoleteDRSVersions(QueryObsoleteDRSVersionsRequest) returns (QueryObsoleteDRSVersionsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/rollapp/obsolete_drs_versions";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -135,4 +140,10 @@ message QueryRegisteredDenomsRequest {
 
 message QueryRegisteredDenomsResponse {
   repeated string denoms = 1;
+}
+
+message QueryObsoleteDRSVersionsRequest {}
+
+message QueryObsoleteDRSVersionsResponse {
+  repeated uint32 drs_versions = 1;
 }

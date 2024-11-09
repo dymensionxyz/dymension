@@ -27,7 +27,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	}
 	// Set all the blockHeightToFinalizationQueue
 	for _, elem := range genState.BlockHeightToFinalizationQueueList {
-		k.SetBlockHeightToFinalizationQueue(ctx, elem)
+		k.MustSetFinalizationQueue(ctx, elem)
 	}
 	for _, elem := range genState.LivenessEvents {
 		k.PutLivenessEvent(ctx, elem)
@@ -44,9 +44,16 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 			}
 		}
 	}
-
+	// Set all the sequencer height pairs
 	for _, elem := range genState.SequencerHeightPairs {
 		err := k.SaveSequencerHeight(ctx, elem.Sequencer, elem.Height)
+		if err != nil {
+			panic(err)
+		}
+	}
+	// Set all the vulnerable DRS versions
+	for _, elem := range genState.VulnerableDrsVersions {
+		err := k.SetVulnerableDRSVersion(ctx, elem)
 		if err != nil {
 			panic(err)
 		}
@@ -64,7 +71,11 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.StateInfoList = k.GetAllStateInfo(ctx)
 	genesis.LatestStateInfoIndexList = k.GetAllLatestStateInfoIndex(ctx)
 	genesis.LatestFinalizedStateIndexList = k.GetAllLatestFinalizedStateIndex(ctx)
-	genesis.BlockHeightToFinalizationQueueList = k.GetAllBlockHeightToFinalizationQueue(ctx)
+	finalizationQueue, err := k.GetEntireFinalizationQueue(ctx)
+	if err != nil {
+		panic(err)
+	}
+	genesis.BlockHeightToFinalizationQueueList = finalizationQueue
 	genesis.LivenessEvents = k.GetLivenessEvents(ctx, nil)
 	apps := k.GetRollappApps(ctx, "")
 	var appList []types.App
@@ -86,11 +97,16 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	}
 	genesis.RegisteredDenoms = registeredRollappDenoms
 
-	var err error
 	genesis.SequencerHeightPairs, err = k.AllSequencerHeightPairs(ctx)
 	if err != nil {
 		panic(err)
 	}
+
+	drsVersions, err := k.GetAllVulnerableDRSVersions(ctx)
+	if err != nil {
+		panic(err)
+	}
+	genesis.VulnerableDrsVersions = drsVersions
 
 	return genesis
 }
