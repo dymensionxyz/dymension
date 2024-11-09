@@ -34,15 +34,13 @@ func NewMigrator(keeper *seqkeeper.Keeper, ss Subspace) Migrator {
 // Migrate2to3 migrates from version 2 to 3.
 func (m Migrator) Migrate2to3(ctx sdk.Context) error {
 	var currParams types.Params
-	m.legacySubspace.Get(ctx, types.KeyMinBond, &currParams.MinBond)
 	m.legacySubspace.Get(ctx, types.KeyKickThreshold, &currParams.KickThreshold)
 	m.legacySubspace.Get(ctx, types.KeyNoticePeriod, &currParams.NoticePeriod)
 	m.legacySubspace.Get(ctx, types.KeyLivenessSlashMinMultiplier, &currParams.LivenessSlashMinMultiplier)
 	m.legacySubspace.Get(ctx, types.KeyLivenessSlashMinAbsolute, &currParams.LivenessSlashMinAbsolute)
 
-	if currParams.MinBond.Denom == "" {
-		currParams.MinBond = types.DefaultMinBond
-	}
+	currParams.MinBond = types.DefaultMinBond
+
 	if currParams.KickThreshold.Denom == "" {
 		currParams.KickThreshold = types.DefaultKickThreshold
 	}
