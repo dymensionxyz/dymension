@@ -59,7 +59,7 @@ func (m msgServer) Sell(ctx context.Context, req *types.MsgSell) (*types.MsgSell
 
 // Buy buys fixed amount of allocation with price according to the price curve
 func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amountTokensToBuy, maxCostAmt math.Int) error {
-	plan, err := k.GetTradeableIRO(ctx, planId, buyer)
+	plan, err := k.GetTradeableIRO(ctx, planId)
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 
 // BuyExactSpend uses exact amount of DYM to buy tokens on the curve
 func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddress, amountToSpend, minTokensAmt math.Int) error {
-	plan, err := k.GetTradeableIRO(ctx, planId, buyer)
+	plan, err := k.GetTradeableIRO(ctx, planId)
 	if err != nil {
 		return err
 	}
@@ -196,7 +196,7 @@ func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddre
 
 // Sell sells allocation with price according to the price curve
 func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amountTokensToSell, minIncomeAmt math.Int) error {
-	plan, err := k.GetTradeableIRO(ctx, planId, seller)
+	plan, err := k.GetTradeableIRO(ctx, planId)
 	if err != nil {
 		return err
 	}
@@ -258,8 +258,8 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 // GetTradeableIRO returns the tradeable IRO plan
 // - plan must exist
 // - plan must not be settled
-// - plan must have started (unless the trader is the owner)
-func (k Keeper) GetTradeableIRO(ctx sdk.Context, planId string, trader sdk.AccAddress) (*types.Plan, error) {
+// - plan must have started
+func (k Keeper) GetTradeableIRO(ctx sdk.Context, planId string) (*types.Plan, error) {
 	plan, found := k.GetPlan(ctx, planId)
 	if !found {
 		return nil, types.ErrPlanNotFound
@@ -269,9 +269,8 @@ func (k Keeper) GetTradeableIRO(ctx sdk.Context, planId string, trader sdk.AccAd
 		return nil, errorsmod.Wrapf(types.ErrPlanSettled, "planId: %d", plan.Id)
 	}
 
-	// Validate start time started (unless the trader is the owner)
-	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
-	if ctx.BlockTime().Before(plan.StartTime) && !owner.Equals(trader) {
+	// Validate start time started
+	if ctx.BlockTime().Before(plan.StartTime) {
 		return nil, errorsmod.Wrapf(types.ErrPlanNotStarted, "planId: %d", plan.Id)
 	}
 
