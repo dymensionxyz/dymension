@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -32,9 +33,10 @@ func (h SequencerHooks) AfterChooseNewProposer(ctx sdk.Context, rollapp string, 
 	}
 }
 
-func (h SequencerHooks) AfterKickProposer(ctx sdk.Context, kicked sequencertypes.Sequencer) {
+func (h SequencerHooks) AfterKickProposer(ctx sdk.Context, kicked sequencertypes.Sequencer) error {
 	err := h.Keeper.HardForkToLatest(ctx, kicked.RollappId)
 	if err != nil {
-		h.Keeper.Logger(ctx).Error("hard fork after kick proposer", "error", err)
+		return errorsmod.Wrap(err, "hard fork to latest")
 	}
+	return nil
 }
