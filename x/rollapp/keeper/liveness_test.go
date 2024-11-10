@@ -181,7 +181,7 @@ type livenessMockSequencerKeeper struct {
 }
 
 func (l livenessMockSequencerKeeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
-	//TODO implement me
+	// TODO implement me
 	panic("implement me")
 }
 

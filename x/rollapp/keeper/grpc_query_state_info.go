@@ -77,7 +77,7 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 	}
 
 	// initial interval to search in
-	startInfoIndex := uint64(1) // TODO: startInfo should start at least with last unpruned hight (https://github.com/dymensionxyz/dymension/issues/1307)
+	startInfoIndex := uint64(1) // TODO: handle pruned states (https://github.com/dymensionxyz/dymension/issues/1307)
 	endInfoIndex := ss.StateInfoIndex.Index
 	for startInfoIndex <= endInfoIndex {
 		midIndex := startInfoIndex + (endInfoIndex-startInfoIndex)/2

@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
@@ -100,19 +98,6 @@ func (k Keeper) resetClientToValidState(clientStore sdk.KVStore, height uint64) 
 	tmClientState.LatestHeight = clienttypes.NewHeight(1, height)
 
 	setClientState(clientStore, k.cdc, tmClientState)
-}
-
-func GetPreviousConsensusStateHeight(clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (exported.Height, bool) {
-	iterateStore := prefix.NewStore(clientStore, []byte(ibctm.KeyIterateConsensusStatePrefix))
-	iterator := iterateStore.ReverseIterator(nil, bigEndianHeightBytes(height))
-	defer iterator.Close() // nolint: errcheck
-
-	if !iterator.Valid() {
-		return nil, false
-	}
-
-	prevHeight := ibctm.GetHeightFromIterationKey(iterator.Key())
-	return prevHeight, true
 }
 
 // IterateConsensusStateDescending iterates through all consensus states in descending order

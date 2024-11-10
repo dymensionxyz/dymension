@@ -113,7 +113,7 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 // It returns the index of the last state info to keep.
 func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo, fraudHeight uint64) (uint64, error) {
 	if fraudHeight < stateInfo.StartHeight {
-		return 0, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "state info start height is greater than fraud height")
+		return 0, errorsmod.Wrapf(gerrc.ErrInternal, "state info start height is greater than fraud height")
 	}
 
 	if stateInfo.StartHeight == fraudHeight {
@@ -164,7 +164,6 @@ func (k Keeper) pruneFinalizationsAbove(ctx sdk.Context, rollappID string, lastS
 	for _, q := range queuePerHeight {
 		leftPendingStates := []types.StateInfoIndex{}
 		for _, stateInfoIndex := range q.FinalizationQueue {
-
 			// keep state info indexes with index less than the rollback index
 			if stateInfoIndex.Index <= lastStateIdxToKeep {
 				leftPendingStates = append(leftPendingStates, stateInfoIndex)

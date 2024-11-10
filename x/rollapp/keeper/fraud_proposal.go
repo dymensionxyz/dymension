@@ -10,7 +10,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-// FraudProposalHandler handles the submission of a fraud proposal
+// SubmitRollappFraud handles the submission of a fraud proposal
 // The fraud proposal can be submitted by the gov module
 func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappFraudProposal) (*types.MsgRollappFraudProposalResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -43,7 +43,7 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "no state info found")
 	}
 
-	// check wether the fraud height is already finalized
+	// check whether the fraud height is already finalized
 	sinfo, found = k.GetLatestFinalizedStateInfo(ctx, msg.RollappId)
 	if found && sinfo.GetLatestHeight() >= msg.FraudHeight {
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "fraud height already finalized")
