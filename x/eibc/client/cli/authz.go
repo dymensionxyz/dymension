@@ -107,10 +107,6 @@ Examples:
 				if err != nil {
 					return fmt.Errorf("failed to parse spend limit: %w", err)
 				}
-				spendLimit, err = sdk.ParseCoinsNormalized(limit)
-				if err != nil {
-					return fmt.Errorf("failed to parse spend limit: %w", err)
-				}
 
 				if !spendLimit.IsAllPositive() {
 					return fmt.Errorf("spend-limit should be greater than zero")
