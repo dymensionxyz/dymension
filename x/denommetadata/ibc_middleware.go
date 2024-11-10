@@ -106,6 +106,7 @@ func (im IBCModule) OnRecvPacket(
 }
 
 // OnAcknowledgementPacket adds the token metadata to the rollapp if it doesn't exist
+// It marks the completion of the denom metadata registration process on the rollapp
 func (im IBCModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,

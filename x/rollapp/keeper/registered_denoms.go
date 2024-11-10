@@ -32,3 +32,12 @@ func (k Keeper) IterateRegisteredDenoms(ctx sdk.Context, rollappID string, cb fu
 		return cb(item.K2())
 	})
 }
+
+func (k Keeper) ClearRegisteredDenoms(ctx sdk.Context, rollappID string) error {
+	return k.IterateRegisteredDenoms(ctx, rollappID, func(denom string) (bool, error) {
+		if err := k.registeredRollappDenoms.Remove(ctx, collections.Join(rollappID, denom)); err != nil {
+			return false, fmt.Errorf("clear registered denoms: %w", err)
+		}
+		return false, nil
+	})
+}

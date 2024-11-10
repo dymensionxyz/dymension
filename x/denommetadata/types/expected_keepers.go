@@ -27,4 +27,5 @@ type RollappKeeper interface {
 	) (data rollapptypes.TransferData, err error)
 	SetRegisteredDenom(ctx sdk.Context, rollappID, denom string) error
 	HasRegisteredDenom(ctx sdk.Context, rollappID, denom string) (bool, error)
+	ClearRegisteredDenoms(ctx sdk.Context, rollappID string) error
 }
