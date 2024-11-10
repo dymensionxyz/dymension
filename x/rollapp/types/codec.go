@@ -17,6 +17,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUpdateApp{}, "rollapp/UpdateApp", nil)
 	cdc.RegisterConcrete(&MsgRemoveApp{}, "rollapp/RemoveApp", nil)
 	cdc.RegisterConcrete(&MsgRollappFraudProposal{}, "rollapp/RollappFraudProposal", nil)
+	cdc.RegisterConcrete(&MsgMarkObsoleteRollapps{}, "rollapp/MarkObsoleteRollapps", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -29,6 +30,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgUpdateApp{},
 		&MsgRemoveApp{},
 		&MsgRollappFraudProposal{},
+		&MsgMarkObsoleteRollapps{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

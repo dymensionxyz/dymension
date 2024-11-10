@@ -2,16 +2,20 @@ package types
 
 import (
 	"errors"
-	fmt "fmt"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 const TypeMsgUpdateRollappInformation = "update_rollapp"
 
-var _ sdk.Msg = &MsgUpdateRollappInformation{}
+var (
+	_ sdk.Msg            = &MsgUpdateRollappInformation{}
+	_ legacytx.LegacyMsg = &MsgUpdateRollappInformation{}
+)
 
 func NewMsgUpdateRollappInformation(
 	creator,

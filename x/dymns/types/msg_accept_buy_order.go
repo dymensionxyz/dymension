@@ -3,10 +3,14 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-var _ sdk.Msg = &MsgAcceptBuyOrder{}
+var (
+	_ sdk.Msg            = &MsgAcceptBuyOrder{}
+	_ legacytx.LegacyMsg = &MsgAcceptBuyOrder{}
+)
 
 // ValidateBasic performs basic validation for the MsgAcceptBuyOrder.
 func (m *MsgAcceptBuyOrder) ValidateBasic() error {
