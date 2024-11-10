@@ -251,6 +251,17 @@ func (k Keeper) DeleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.
 	rollappPacketKey := rollappPacket.RollappPacketKey()
 	store.Delete(rollappPacketKey)
 
+	// delete the PacketByAddress index
+	pendingAddr := ""
+	transfer := rollappPacket.MustGetTransferPacketData()
+	switch rollappPacket.Type {
+	case commontypes.RollappPacket_ON_RECV:
+		pendingAddr = transfer.Receiver
+	case commontypes.RollappPacket_ON_ACK, commontypes.RollappPacket_ON_TIMEOUT:
+		pendingAddr = transfer.Sender
+	}
+	k.MustDeletePendingPacketByAddress(ctx, pendingAddr, rollappPacket.RollappPacketKey())
+
 	keeperHooks := k.GetHooks()
 	// TODO: can call eIBC directly. shouldn't return error anyway
 	err := keeperHooks.AfterPacketDeleted(ctx, rollappPacket)

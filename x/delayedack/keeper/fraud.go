@@ -30,20 +30,16 @@ func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, newRevisionHeight 
 			"sequence", rollappPacket.Packet.Sequence,
 		}
 
-		pendingAddr := ""
-		transfer := rollappPacket.MustGetTransferPacketData()
 		if rollappPacket.Type == commontypes.RollappPacket_ON_ACK || rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
 			// for sent packets, we restore the packet commitment
 			// the packet will be handled over the new rollapp revision
 			// we update the packet to the original transfer target and restore the packet commitment
 			commitment := channeltypes.CommitPacket(k.cdc, rollappPacket.RestoreOriginalTransferTarget().Packet)
 			k.channelKeeper.SetPacketCommitment(ctx, rollappPacket.Packet.SourcePort, rollappPacket.Packet.SourceChannel, rollappPacket.Packet.Sequence, commitment)
-			pendingAddr = transfer.Sender
 		} else {
 			// for incoming packets, we need to reset the packet receipt
 			ibcPacket := rollappPacket.Packet
 			k.deletePacketReceipt(ctx, ibcPacket.GetDestPort(), ibcPacket.GetDestChannel(), ibcPacket.GetSequence())
-			pendingAddr = transfer.Receiver
 		}
 
 		// delete the packet
@@ -51,9 +47,6 @@ func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, newRevisionHeight 
 		if err != nil {
 			return errorsmod.Wrap(err, "delete rollapp packet")
 		}
-
-		// delete the pending packet
-		k.MustDeletePendingPacketByAddress(ctx, pendingAddr, rollappPacket.RollappPacketKey())
 
 		logger.Debug("reverted IBC rollapp packet", logContext...)
 	}
