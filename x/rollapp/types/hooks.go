@@ -60,9 +60,9 @@ func (h MultiRollappHooks) AfterStateFinalized(ctx sdk.Context, rollappID string
 	return nil
 }
 
-func (h MultiRollappHooks) OnHardFork(ctx sdk.Context, rollappID string, height uint64) error {
+func (h MultiRollappHooks) OnHardFork(ctx sdk.Context, rollappID string, newRevisionHeight uint64) error {
 	for i := range h {
-		err := h[i].OnHardFork(ctx, rollappID, height)
+		err := h[i].OnHardFork(ctx, rollappID, newRevisionHeight)
 		if err != nil {
 			return err
 		}

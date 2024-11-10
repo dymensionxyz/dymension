@@ -14,24 +14,25 @@ import (
 )
 
 // HardFork handles the fraud evidence submitted by the user.
-func (k Keeper) HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) error {
+func (k Keeper) HardFork(ctx sdk.Context, rollappID string, newRevisionHeight uint64) error {
 	rollapp, found := k.GetRollapp(ctx, rollappID)
 	if !found {
 		return gerrc.ErrNotFound
 	}
 
-	lastValidHeight, err := k.RevertPendingStates(ctx, rollappID, fraudHeight)
+	lastValidHeight, err := k.RevertPendingStates(ctx, rollappID, newRevisionHeight)
 	if err != nil {
 		return errorsmod.Wrap(err, "revert pending states")
 	}
+	newRevisionHeight = lastValidHeight + 1
 
 	// update revision number
 	rollapp.RevisionNumber += 1
-	rollapp.RevisionStartHeight = lastValidHeight + 1
+	rollapp.RevisionStartHeight = newRevisionHeight
 	k.SetRollapp(ctx, rollapp)
 
 	// handle the sequencers, clean delayed packets, handle light client
-	err = k.hooks.OnHardFork(ctx, rollappID, lastValidHeight+1)
+	err = k.hooks.OnHardFork(ctx, rollappID, newRevisionHeight)
 	if err != nil {
 		return errorsmod.Wrap(err, "hard fork callback")
 	}
@@ -40,7 +41,7 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) 
 		sdk.NewEvent(
 			types.EventTypeFraud,
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollappID),
-			sdk.NewAttribute(types.AttributeKeyFraudHeight, fmt.Sprint(fraudHeight)),
+			sdk.NewAttribute(types.AttributeKeyFraudHeight, fmt.Sprint(newRevisionHeight)),
 		),
 	)
 
@@ -49,10 +50,10 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) 
 
 // RevertPendingStates removes state updates until the one specified and included
 // returns the latest height of the state info
-func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeight uint64) (uint64, error) {
+func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, newRevisionHeight uint64) (uint64, error) {
 	// find the affected state info index
 	// use latest state info for future height
-	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, fraudHeight)
+	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, newRevisionHeight)
 	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
 		s, ok := k.GetLatestStateInfo(ctx, rollappID)
 		if !ok {
@@ -65,13 +66,13 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 
 	// check height is not finalized
 	if stateInfo.Status == common.Status_FINALIZED {
-		return 0, errorsmod.Wrapf(types.ErrDisputeAlreadyFinalized, "state info for height %d is already finalized", fraudHeight)
+		return 0, errorsmod.Wrapf(types.ErrDisputeAlreadyFinalized, "state info for height %d is already finalized", newRevisionHeight)
 	}
 
 	// update the last state info before the fraud height
 	// it removes all block descriptors after the fraud height
 	// and sets the next proposer to the empty string
-	lastStateIdxToKeep, err := k.UpdateLastStateInfo(ctx, stateInfo, fraudHeight)
+	lastStateIdxToKeep, err := k.UpdateLastStateInfo(ctx, stateInfo, newRevisionHeight)
 	if err != nil {
 		return 0, errorsmod.Wrap(err, "update last state info")
 	}
