@@ -34,8 +34,6 @@ type Keeper struct {
 	paramstore paramtypes.Subspace
 	authority  string // authority is the x/gov module account
 
-	accKeeper             AccountKeeper
-	ibcClientKeeper       IBCClientKeeper
 	canonicalClientKeeper CanonicalLightClientKeeper
 	channelKeeper         ChannelKeeper
 	sequencerKeeper       SequencerKeeper
@@ -58,9 +56,7 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
-	ak AccountKeeper,
 	channelKeeper ChannelKeeper,
-	ibcclientKeeper IBCClientKeeper,
 	sequencerKeeper SequencerKeeper,
 	bankKeeper BankKeeper,
 	transferKeeper TransferKeeper,
@@ -86,8 +82,6 @@ func NewKeeper(
 		hooks:           nil,
 		channelKeeper:   channelKeeper,
 		authority:       authority,
-		accKeeper:       ak,
-		ibcClientKeeper: ibcclientKeeper,
 		sequencerKeeper: sequencerKeeper,
 		bankKeeper:      bankKeeper,
 		transferKeeper:  transferKeeper,
