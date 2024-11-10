@@ -107,7 +107,7 @@ Examples:
 				if err != nil {
 					return fmt.Errorf("failed to parse spend limit: %w", err)
 				}
-				spendLimit, err := sdk.ParseCoinsNormalized(limit)
+				spendLimit, err = sdk.ParseCoinsNormalized(limit)
 				if err != nil {
 					return fmt.Errorf("failed to parse spend limit: %w", err)
 				}
@@ -122,13 +122,13 @@ Examples:
 				denoms,
 				minLPFeePercent,
 				maxPrice,
+				spendLimit,
 				fulfillerFeePart,
 				settlementValidated,
 			)
 
 			authorization := types.NewFulfillOrderAuthorization(
 				[]*types.RollappCriteria{rollappCriteria},
-				spendLimit,
 			)
 
 			expire, err := getExpireTime(cmd)
