@@ -39,9 +39,10 @@ func NewKeeper(storeKey stroretypes.StoreKey, paramSpace paramtypes.Subspace, ak
 }
 
 // GetParams returns the total set of lockup parameters.
-func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
-	k.paramSpace.GetParamSet(ctx, &params)
-	return params
+func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+	return types.Params{
+		ForceUnlockAllowedAddresses: k.GetForceUnlockAllowedAddresses(ctx),
+	}
 }
 
 // SetParams sets the total set of lockup parameters.
@@ -50,7 +51,8 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 }
 
 func (k Keeper) GetForceUnlockAllowedAddresses(ctx sdk.Context) (forceUnlockAllowedAddresses []string) {
-	return k.GetParams(ctx).ForceUnlockAllowedAddresses
+	k.paramSpace.Get(ctx, types.KeyForceUnlockAllowedAddresses, &forceUnlockAllowedAddresses)
+	return
 }
 
 // Logger returns a logger instance.

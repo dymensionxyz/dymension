@@ -51,46 +51,7 @@ func CreateUpgradeHandler(
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 
-		for _, subspace := range keepers.ParamsKeeper.GetSubspaces() {
-			var keyTable paramstypes.KeyTable
-			switch subspace.Name() {
-			// Cosmos SDK modules
-			case authtypes.ModuleName:
-				keyTable = authtypes.ParamKeyTable()
-			case banktypes.ModuleName:
-				keyTable = banktypes.ParamKeyTable()
-			case stakingtypes.ModuleName:
-				keyTable = stakingtypes.ParamKeyTable()
-			case minttypes.ModuleName:
-				keyTable = minttypes.ParamKeyTable()
-			case distrtypes.ModuleName:
-				keyTable = distrtypes.ParamKeyTable()
-			case slashingtypes.ModuleName:
-				keyTable = slashingtypes.ParamKeyTable()
-			case govtypes.ModuleName:
-				keyTable = govv1.ParamKeyTable()
-			case crisistypes.ModuleName:
-				keyTable = crisistypes.ParamKeyTable()
-
-			// Dymension modules
-			case rollapptypes.ModuleName:
-				keyTable = rollapptypes.ParamKeyTable()
-			case sequencertypes.ModuleName:
-				continue
-
-			// Ethermint  modules
-			case evmtypes.ModuleName:
-				keyTable = evmtypes.ParamKeyTable()
-			case feemarkettypes.ModuleName:
-				keyTable = feemarkettypes.ParamKeyTable()
-			default:
-				continue
-			}
-
-			if !subspace.HasKeyTable() {
-				subspace.WithKeyTable(keyTable)
-			}
-		}
+		LoadDeprecatedParamsSubspaces(keepers)
 
 		// Run migrations before applying any other state changes.
 		// NOTE: DO NOT PUT ANY STATE CHANGES BEFORE RunMigrations().
@@ -150,6 +111,49 @@ func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
 	// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
 	baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 	baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
+}
+
+// LoadDeprecatedParamsSubspaces loads the deprecated param subspaces for each module
+// used to support the migration from x/params to each module's own store
+func LoadDeprecatedParamsSubspaces(keepers *keepers.AppKeepers) {
+	for _, subspace := range keepers.ParamsKeeper.GetSubspaces() {
+		var keyTable paramstypes.KeyTable
+		switch subspace.Name() {
+		// Cosmos SDK modules
+		case authtypes.ModuleName:
+			keyTable = authtypes.ParamKeyTable()
+		case banktypes.ModuleName:
+			keyTable = banktypes.ParamKeyTable()
+		case stakingtypes.ModuleName:
+			keyTable = stakingtypes.ParamKeyTable()
+		case minttypes.ModuleName:
+			keyTable = minttypes.ParamKeyTable()
+		case distrtypes.ModuleName:
+			keyTable = distrtypes.ParamKeyTable()
+		case slashingtypes.ModuleName:
+			keyTable = slashingtypes.ParamKeyTable()
+		case govtypes.ModuleName:
+			keyTable = govv1.ParamKeyTable()
+		case crisistypes.ModuleName:
+			keyTable = crisistypes.ParamKeyTable()
+
+		// Dymension modules
+		case rollapptypes.ModuleName:
+			keyTable = rollapptypes.ParamKeyTable()
+
+		// Ethermint  modules
+		case evmtypes.ModuleName:
+			keyTable = evmtypes.ParamKeyTable()
+		case feemarkettypes.ModuleName:
+			keyTable = feemarkettypes.ParamKeyTable()
+		default:
+			continue
+		}
+
+		if !subspace.HasKeyTable() {
+			subspace.WithKeyTable(keyTable)
+		}
+	}
 }
 
 // migrateRollappGauges creates a gauge for each rollapp in the store

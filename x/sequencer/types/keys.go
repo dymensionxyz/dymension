@@ -2,10 +2,11 @@ package types
 
 import (
 	"encoding/binary"
-	fmt "fmt"
+	"fmt"
 	"time"
 
 	"cosmossdk.io/collections"
+
 	"github.com/dymensionxyz/dymension/v3/utils"
 )
 

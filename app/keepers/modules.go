@@ -205,7 +205,6 @@ func (a *AppKeepers) SetupModules(
 		ibctransfer.NewAppModule(a.TransferKeeper),
 		rollappmodule.NewAppModule(appCodec, a.RollappKeeper, a.AccountKeeper, a.BankKeeper),
 		iro.NewAppModule(appCodec, *a.IROKeeper),
-
 		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper, a.AccountKeeper, a.BankKeeper),
 		sponsorship.NewAppModule(a.SponsorshipKeeper),
 		streamermodule.NewAppModule(a.StreamerKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),

@@ -66,9 +66,7 @@ func (e epochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, ep
 // AfterEpochEnd is the epoch end hook.
 // We want to clean up the demand orders that are with underlying packet status which are finalized.
 func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	params := e.GetParams(ctx)
-
-	if epochIdentifier != params.EpochIdentifier {
+	if epochIdentifier != e.EpochIdentifier(ctx) {
 		return nil
 	}
 
@@ -92,7 +90,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 		}
 
 		// if the total number of deleted packets reaches the hard limit for the epoch, stop deleting packets
-		if int32(count) >= params.DeletePacketsEpochLimit {
+		if int32(count) >= e.DeletePacketsEpochLimit(ctx) {
 			break
 		}
 	}
