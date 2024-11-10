@@ -52,11 +52,7 @@ func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, fraudHeight uint64
 		}
 
 		// delete the pending packet
-		err = k.DeletePendingPacketByAddress(ctx, pendingAddr, rollappPacket.RollappPacketKey())
-		if err != nil {
-			logger.Error("failed to delete reverted PacketByAddress", append(logContext, "error", err.Error())...)
-			continue
-		}
+		k.MustDeletePendingPacketByAddress(ctx, pendingAddr, rollappPacket.RollappPacketKey())
 
 		logger.Debug("reverted IBC rollapp packet", logContext...)
 	}

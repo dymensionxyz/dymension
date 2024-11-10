@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"encoding/binary"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -66,11 +64,4 @@ func deleteProcessedHeight(clientStore sdk.KVStore, height exported.Height) {
 func deleteIterationKey(clientStore sdk.KVStore, height exported.Height) {
 	key := ibctm.IterationKey(height)
 	clientStore.Delete(key)
-}
-
-func bigEndianHeightBytes(height exported.Height) []byte {
-	heightBytes := make([]byte, 16)
-	binary.BigEndian.PutUint64(heightBytes, height.GetRevisionNumber())
-	binary.BigEndian.PutUint64(heightBytes[8:], height.GetRevisionHeight())
-	return heightBytes
 }

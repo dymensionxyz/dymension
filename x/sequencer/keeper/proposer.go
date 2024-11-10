@@ -77,7 +77,7 @@ func (k Keeper) UpdateProposerIfNeeded(ctx sdk.Context, rollapp string) error {
 }
 
 // ChooseSuccessor will assign a successor. It won't replace an existing one.
-// It will prioritise non sentinel
+// It will prioritize non sentinel
 func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) error {
 	successor := k.GetSuccessor(ctx, rollapp)
 	if !successor.Sentinel() {
