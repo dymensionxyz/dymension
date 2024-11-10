@@ -93,18 +93,9 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeig
 	})
 
 	// remove all the pending states from the finalization queue
-	queuePerHeight, err := k.GetFinalizationQueueByRollapp(ctx, rollappID)
+	err = k.pruneFinalizationsAbove(ctx, rollappID, lastStateIdxToKeep)
 	if err != nil {
-		return 0, fmt.Errorf("get finalization queue by rollapp: %s: %w", rollappID, err)
-	}
-
-	for _, queue := range queuePerHeight {
-		if queue.FinalizationQueue[0].Index > lastStateIdxToKeep {
-			err = k.RemoveFinalizationQueue(ctx, queue.CreationHeight, queue.RollappId)
-			if err != nil {
-				return 0, fmt.Errorf("remove finalization queue: %w", err)
-			}
-		}
+		return 0, fmt.Errorf("remove finalization queue: %w", err)
 	}
 
 	// remove the sequencers heights
@@ -163,4 +154,37 @@ func mapKeysToSlice(m map[string]struct{}) []string {
 	}
 	sort.Strings(keys)
 	return keys
+}
+
+func (k Keeper) pruneFinalizationsAbove(ctx sdk.Context, rollappID string, lastStateIdxToKeep uint64) error {
+	queuePerHeight, err := k.GetFinalizationQueueByRollapp(ctx, rollappID)
+	if err != nil {
+		return errorsmod.Wrap(err, "get finalization q by rollapp")
+	}
+	for _, q := range queuePerHeight {
+		leftPendingStates := []types.StateInfoIndex{}
+		for _, stateInfoIndex := range q.FinalizationQueue {
+
+			// keep state info indexes with index less than the rollback index
+			if stateInfoIndex.Index <= lastStateIdxToKeep {
+				leftPendingStates = append(leftPendingStates, stateInfoIndex)
+				continue
+			}
+		}
+
+		if len(leftPendingStates) == 0 {
+			if err := k.RemoveFinalizationQueue(ctx, q.CreationHeight, rollappID); err != nil {
+				return errorsmod.Wrap(err, "remove finalization queue")
+			}
+		} else {
+			if err := k.SetFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{
+				RollappId:         rollappID,
+				CreationHeight:    q.CreationHeight,
+				FinalizationQueue: leftPendingStates,
+			}); err != nil {
+				return errorsmod.Wrap(err, "set finalization queue")
+			}
+		}
+	}
+	return nil
 }

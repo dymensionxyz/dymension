@@ -34,7 +34,6 @@ func (k Keeper) RollappPotentialProposers(ctx sdk.Context, rollappId string) []t
 	seqs = slices.DeleteFunc(seqs, func(seq types.Sequencer) bool {
 		return !seq.IsPotentialProposer()
 	})
-	// FIXME: sentinel can be added only if no sequencers are bonded
 	return append(seqs, k.SentinelSequencer(ctx))
 }
 
@@ -85,11 +84,7 @@ func (k Keeper) chooseSuccessor(ctx sdk.Context, rollapp string) error {
 		// a valid successor is already set so there's no need to do anything
 		return nil
 	}
-	// FIXME: why this check needed?
-	proposer := k.GetProposer(ctx, rollapp)
-	if proposer.Sentinel() {
-		return nil
-	}
+
 	seqs := k.RollappPotentialProposers(ctx, rollapp)
 	successor, err := ProposerChoiceAlgo(seqs)
 	if err != nil {
