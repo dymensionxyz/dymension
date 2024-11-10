@@ -72,6 +72,7 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
+		migrateSequencerParams(ctx, keepers.SequencerKeeper)
 		if err := migrateSequencerIndices(ctx, keepers.SequencerKeeper); err != nil {
 			return nil, errorsmod.Wrap(err, "migrate sequencer indices")
 		}
