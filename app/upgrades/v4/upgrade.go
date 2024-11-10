@@ -345,6 +345,7 @@ func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Seque
 		Status:       old.Status,
 		Tokens:       old.Tokens,
 		OptedIn:      true,
+		Proposer:     old.Proposer,
 		Metadata: sequencertypes.SequencerMetadata{
 			Moniker:     old.Metadata.Moniker,
 			Details:     old.Metadata.Details,
