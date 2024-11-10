@@ -7,6 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const (
@@ -17,7 +18,18 @@ const (
 	TypeForceUnlock          = "force_unlock"
 )
 
-var _ sdk.Msg = &MsgLockTokens{}
+var (
+	_ sdk.Msg            = &MsgLockTokens{}
+	_ sdk.Msg            = &MsgBeginUnlockingAll{}
+	_ sdk.Msg            = &MsgBeginUnlocking{}
+	_ sdk.Msg            = &MsgExtendLockup{}
+	_ sdk.Msg            = &MsgForceUnlock{}
+	_ legacytx.LegacyMsg = &MsgLockTokens{}
+	_ legacytx.LegacyMsg = &MsgBeginUnlockingAll{}
+	_ legacytx.LegacyMsg = &MsgBeginUnlocking{}
+	_ legacytx.LegacyMsg = &MsgExtendLockup{}
+	_ legacytx.LegacyMsg = &MsgForceUnlock{}
+)
 
 // NewMsgLockTokens creates a message to lock tokens.
 func NewMsgLockTokens(owner sdk.AccAddress, duration time.Duration, coins sdk.Coins) *MsgLockTokens {
@@ -169,7 +181,7 @@ func (m MsgExtendLockup) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgForceUnlock{}
 
-// NewMsgBeginUnlockingAll creates a message to begin unlocking tokens.
+// NewMsgForceUnlock creates a message to begin unlocking tokens.
 func NewMsgForceUnlock(owner sdk.AccAddress, id uint64, coins sdk.Coins) *MsgForceUnlock {
 	return &MsgForceUnlock{
 		Owner: owner.String(),
@@ -179,7 +191,7 @@ func NewMsgForceUnlock(owner sdk.AccAddress, id uint64, coins sdk.Coins) *MsgFor
 }
 
 func (m MsgForceUnlock) Route() string { return RouterKey }
-func (m MsgForceUnlock) Type() string  { return TypeMsgBeginUnlockingAll }
+func (m MsgForceUnlock) Type() string  { return TypeForceUnlock }
 func (m MsgForceUnlock) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {

@@ -2,11 +2,15 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const TypeMsgTransferOwnership = "transfer_ownership"
 
-var _ sdk.Msg = &MsgTransferOwnership{}
+var (
+	_ sdk.Msg            = &MsgTransferOwnership{}
+	_ legacytx.LegacyMsg = &MsgTransferOwnership{}
+)
 
 func NewMsgTransferOwnership(
 	currentOwner,
