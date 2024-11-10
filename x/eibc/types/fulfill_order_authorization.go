@@ -10,13 +10,9 @@ import (
 )
 
 // NewFulfillOrderAuthorization creates a new FulfillOrderAuthorization object.
-func NewFulfillOrderAuthorization(
-	rollapps []*RollappCriteria,
-	spendLimit sdk.Coins,
-) *FulfillOrderAuthorization {
+func NewFulfillOrderAuthorization(rollapps []*RollappCriteria) *FulfillOrderAuthorization {
 	return &FulfillOrderAuthorization{
-		Rollapps:   rollapps,
-		SpendLimit: spendLimit,
+		Rollapps: rollapps,
 	}
 }
 
@@ -25,6 +21,7 @@ func NewRollappCriteria(
 	denoms []string,
 	minLPFeePercentage sdk.DecProto,
 	maxPrice sdk.Coins,
+	spendLimit sdk.Coins,
 	fulfillerFeePart sdk.DecProto,
 	settlementValidated bool,
 ) *RollappCriteria {
@@ -33,6 +30,7 @@ func NewRollappCriteria(
 		Denoms:              denoms,
 		MinLpFeePercentage:  minLPFeePercentage,
 		MaxPrice:            maxPrice,
+		SpendLimit:          spendLimit,
 		OperatorFeeShare:    fulfillerFeePart,
 		SettlementValidated: settlementValidated,
 	}
@@ -58,8 +56,8 @@ func (a FulfillOrderAuthorization) Accept(
 
 	// Find the RollappCriteria matching the msg.RollappId
 	var matchedCriteria *RollappCriteria
-	for i, criteria := range a.Rollapps {
-		if criteria.RollappId == mFulfill.RollappId {
+	for i := range a.Rollapps {
+		if a.Rollapps[i].RollappId == mFulfill.RollappId {
 			matchedCriteria = a.Rollapps[i] // Use pointer to modify if needed
 			break
 		}
@@ -121,22 +119,32 @@ func (a FulfillOrderAuthorization) Accept(
 		}
 	}
 
-	// Check if spend limit is exhausted (spend_limit is at the top level)
-	if !a.SpendLimit.IsZero() {
-		spendLeft, isNegative := a.SpendLimit.SafeSub(mFulfill.Price...)
+	// Check if spend limit is exhausted (spend_limit is now in matchedCriteria)
+	if !matchedCriteria.SpendLimit.IsZero() {
+		spendLeft, isNegative := matchedCriteria.SpendLimit.SafeSub(mFulfill.Price...)
 		if isNegative {
 			return authz.AcceptResponse{},
 				errorsmod.Wrapf(errors.ErrInsufficientFunds,
-					"spend limit exhausted")
+					"spend limit exhausted for rollapp %s", mFulfill.RollappId)
 		}
+
+		// Update the spend limit in matchedCriteria
+		matchedCriteria.SpendLimit = spendLeft
+
+		// If spendLeft is zero, remove the matchedCriteria
 		if spendLeft.IsZero() {
+			a.removeRollappCriteria(mFulfill.RollappId)
+		}
+
+		// If all rollapps are exhausted, delete the authorization
+		if len(a.Rollapps) == 0 {
 			return authz.AcceptResponse{
 				Accept: true,
 				Delete: true,
 			}, nil
 		}
-		// Update the authorization with the new spend limit
-		a.SpendLimit = spendLeft
+
+		// Return the updated authorization
 		return authz.AcceptResponse{
 			Accept:  true,
 			Delete:  false,
@@ -151,13 +159,18 @@ func (a FulfillOrderAuthorization) Accept(
 	}, nil
 }
 
+func (a *FulfillOrderAuthorization) removeRollappCriteria(rollappId string) {
+	for i, criteria := range a.Rollapps {
+		if criteria.RollappId == rollappId {
+			// Remove the criteria from the slice
+			a.Rollapps = append(a.Rollapps[:i], a.Rollapps[i+1:]...)
+			return
+		}
+	}
+}
+
 // ValidateBasic implements Authorization.ValidateBasic.
 func (a FulfillOrderAuthorization) ValidateBasic() error {
-	// Validate SpendLimit
-	if a.SpendLimit != nil && !a.SpendLimit.IsValid() {
-		return errorsmod.Wrapf(errors.ErrInvalidCoins, "spend_limit is invalid")
-	}
-
 	// Create a set to check for duplicate rollapp_ids
 	rollappIDSet := make(map[string]struct{})
 
@@ -186,6 +199,11 @@ func (a FulfillOrderAuthorization) ValidateBasic() error {
 		// Validate MaxPrice (if provided)
 		if criteria.MaxPrice != nil && !criteria.MaxPrice.IsValid() {
 			return errorsmod.Wrapf(errors.ErrInvalidCoins, "max_price is invalid for rollapp_id %s", criteria.RollappId)
+		}
+
+		// Validate SpendLimit
+		if criteria.SpendLimit != nil && !criteria.SpendLimit.IsValid() {
+			return errorsmod.Wrapf(errors.ErrInvalidCoins, "spend_limit is invalid")
 		}
 
 		// Check for duplicates in Denoms
