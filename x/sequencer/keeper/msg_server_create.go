@@ -106,7 +106,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, err
 	}
 
-	if err := k.UpdateProposerIfNeeded(ctx, msg.RollappId); err != nil {
+	if err := k.RecoverFromSentinelProposerIfNeeded(ctx, msg.RollappId); err != nil {
 		return nil, err
 	}
 

@@ -12,27 +12,29 @@ type SequencerHooks struct {
 	*Keeper
 }
 
-func (h SequencerHooks) AfterChooseNewProposer(ctx sdk.Context, rollapp string, before, after sequencertypes.Sequencer) {
+// AfterRecoveryFromHalt is called after a new sequencer is set the proposer for an halted rollapp.
+// We assume the rollapp had forked once halted
+func (h SequencerHooks) AfterRecoveryFromHalt(ctx sdk.Context, rollapp string, _, newSeq sequencertypes.Sequencer) {
 	// Start the liveness clock from zero
 	// NOTE: it could make more sense if liveness was a property of the sequencer rather than the rollapp
 	// TODO: tech debt https://github.com/dymensionxyz/dymension/issues/1357
 
 	ra := h.Keeper.MustGetRollapp(ctx, rollapp)
 	h.Keeper.ResetLivenessClock(ctx, &ra)
-	if !after.Sentinel() {
-		h.Keeper.ScheduleLivenessEvent(ctx, &ra)
-	}
+	h.Keeper.ScheduleLivenessEvent(ctx, &ra)
 	h.Keeper.SetRollapp(ctx, ra)
 
-	// recover from halt
 	// if the rollapp has a state info, set the next proposer to this sequencer
-	if before.Sentinel() && !after.Sentinel() {
-		sInfo, _ := h.Keeper.GetLatestStateInfo(ctx, rollapp)
-		sInfo.NextProposer = after.Address
-		h.Keeper.SetStateInfo(ctx, sInfo)
+	sInfo, ok := h.Keeper.GetLatestStateInfo(ctx, rollapp)
+	if !ok {
+		return
 	}
+	sInfo.NextProposer = newSeq.Address
+	h.Keeper.SetStateInfo(ctx, sInfo)
 }
 
+// AfterKickProposer is called after a sequencer is kicked from being a proposer.
+// We hard fork the rollapp to the latest state so it'll be ready for the next proposer
 func (h SequencerHooks) AfterKickProposer(ctx sdk.Context, kicked sequencertypes.Sequencer) error {
 	err := h.Keeper.HardForkToLatest(ctx, kicked.RollappId)
 	if err != nil {

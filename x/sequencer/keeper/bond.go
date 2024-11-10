@@ -4,7 +4,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 )
 
@@ -41,17 +40,14 @@ func (k Keeper) TryUnbond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) e
 		return errorsmod.Wrap(err, "refund")
 	}
 	if seq.Tokens.IsZero() {
-		return errorsmod.Wrap(k.unbond(ctx, seq), "unbond")
+		k.unbond(ctx, seq)
 	}
+	k.SetSequencer(ctx, *seq)
 	return nil
 }
 
 // set unbonded status and clear proposer/successor if necessary
-func (k Keeper) unbond(ctx sdk.Context, seq *types.Sequencer) error {
-	if k.IsSuccessor(ctx, *seq) {
-		return gerrc.ErrInternal.Wrap(`unbond next proposer: it shouldnt be possible because
-they cannot do frauds and they cannot unbond gracefully`)
-	}
+func (k Keeper) unbond(ctx sdk.Context, seq *types.Sequencer) {
 	seq.Status = types.Unbonded
 
 	ctx.EventManager().EmitEvent(
@@ -60,10 +56,4 @@ they cannot do frauds and they cannot unbond gracefully`)
 			sdk.NewAttribute(types.AttributeKeySequencer, seq.Address),
 		),
 	)
-	if k.IsProposer(ctx, *seq) {
-		k.SetProposer(ctx, seq.RollappId, types.SentinelSeqAddr)
-		// we assume the current successor will not be happy if the proposer suddenly unbonds
-		k.SetSuccessor(ctx, seq.RollappId, types.SentinelSeqAddr)
-	}
-	return nil
 }

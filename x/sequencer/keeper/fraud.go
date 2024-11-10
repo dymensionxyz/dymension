@@ -19,14 +19,18 @@ func (k Keeper) TryKickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 	if !k.Kickable(ctx, proposer) {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "not kickable")
 	}
-	// FIXME: slash remaining funds if any?
-	if err := k.unbond(ctx, &proposer); err != nil {
-		return errorsmod.Wrap(err, "unbond")
+
+	// clear the proposer
+	k.SetProposer(ctx, ra, types.SentinelSeqAddr)
+
+	err := k.TryUnbond(ctx, &proposer, proposer.TokensCoin())
+	if err != nil {
+		return errorsmod.Wrap(err, "try unbond")
 	}
 	k.SetSequencer(ctx, proposer)
 
 	// This will call hard fork on the rollapp, which will also optOut all sequencers
-	err := k.hooks.AfterKickProposer(ctx, proposer)
+	err = k.hooks.AfterKickProposer(ctx, proposer)
 	if err != nil {
 		return errorsmod.Wrap(err, "kick proposer callbacks")
 	}
@@ -47,7 +51,7 @@ func (k Keeper) TryKickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 
 	// this will choose kicker as next proposer, since he is the only opted in and bonded
 	// sequencer remaining.
-	if err := k.UpdateProposerIfNeeded(ctx, ra); err != nil {
+	if err := k.RecoverFromSentinelProposerIfNeeded(ctx, ra); err != nil {
 		return errorsmod.Wrap(err, "choose proposer")
 	}
 
@@ -74,24 +78,24 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 
 // Takes an optional rewardee addr who will receive some bounty
 func (k Keeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
+	var (
+		rewardMul = sdk.ZeroDec()
+		addr      = []byte(nil)
+	)
+
 	seq, err := k.RealSequencer(ctx, seqAddr)
 	if err != nil {
 		return err
 	}
 
 	if rewardee != nil {
-		rewardMul := sdk.MustNewDecFromStr("0.5") // TODO: parameterise
-		err = k.slash(ctx, &seq, seq.TokensCoin(), rewardMul, *rewardee)
-	} else {
-		err = k.slash(ctx, &seq, seq.TokensCoin(), sdk.ZeroDec(), nil)
-	}
-	if err != nil {
-		return errorsmod.Wrap(err, "slash")
+		rewardMul = sdk.MustNewDecFromStr("0.5") // TODO: parameterise
+		addr = *rewardee
 	}
 
-	err = k.unbond(ctx, &seq)
+	err = k.slash(ctx, &seq, seq.TokensCoin(), rewardMul, addr)
 	if err != nil {
-		return errorsmod.Wrap(err, "unbond")
+		return errorsmod.Wrap(err, "slash")
 	}
 
 	k.SetSequencer(ctx, seq)
