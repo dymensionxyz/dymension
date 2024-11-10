@@ -110,7 +110,8 @@ func (s *SequencerTestSuite) TestFraudFullFlowDuringRotation() {
 	s.Require().True(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
 
 	// instead of submitting last, proposer does a fraud
-	s.k().RollappHooks().OnHardFork(s.Ctx, ra.RollappId, 0)
+	err = s.k().RollappHooks().OnHardFork(s.Ctx, ra.RollappId, 0)
+	s.Require().NoError(err)
 
 	// assert all are opted out
 	s.Require().False(s.k().IsProposer(s.Ctx, s.seq(alice)))

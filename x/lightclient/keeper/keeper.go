@@ -96,13 +96,9 @@ func (k Keeper) CanUnbond(ctx sdk.Context, seq sequencertypes.Sequencer) error {
 	})
 }
 
-// PruneSignersAbove removes bookkeeping for all heights ABOVE h for given rollapp
+// PruneSignersAbove removes bookkeeping for all heights ABOVE h for given client
 // This should only be called after canonical client set
-func (k Keeper) PruneSignersAbove(ctx sdk.Context, rollapp string, h uint64) error {
-	client, ok := k.GetCanonicalClient(ctx, rollapp)
-	if !ok {
-		return gerrc.ErrInternal
-	}
+func (k Keeper) PruneSignersAbove(ctx sdk.Context, client string, h uint64) error {
 	rng := collections.NewPrefixedPairRange[string, uint64](client).StartExclusive(h)
 
 	seqs := make([]string, 0)
@@ -125,17 +121,9 @@ func (k Keeper) PruneSignersAbove(ctx sdk.Context, rollapp string, h uint64) err
 	return nil
 }
 
-// PruneSignersBelow removes bookkeeping for all heights BELOW h for given rollapp
+// PruneSignersBelow removes bookkeeping for all heights BELOW h for given clientId
 // This should only be called after canonical client set
-func (k Keeper) PruneSignersBelow(ctx sdk.Context, rollapp string, h uint64) error {
-	client, ok := k.GetCanonicalClient(ctx, rollapp)
-	if !ok {
-		return gerrc.ErrInternal.Wrap(`
-prune light client signers for rollapp before canonical client is set
-this suggests fork happened prior to genesis bridge completion, which
-shouldnt be allowed
-`)
-	}
+func (k Keeper) PruneSignersBelow(ctx sdk.Context, client string, h uint64) error {
 	rng := collections.NewPrefixedPairRange[string, uint64](client).EndExclusive(h)
 
 	seqs := make([]string, 0)

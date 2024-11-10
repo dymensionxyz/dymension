@@ -1,8 +1,10 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -10,15 +12,14 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
-func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappId string, fraudHeight uint64) {
-	hook.k.RollbackCanonicalClient(ctx, rollappId, fraudHeight)
+func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappId string, fraudHeight uint64) error {
+	return hook.k.RollbackCanonicalClient(ctx, rollappId, fraudHeight)
 }
 
-func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, fraudHeight uint64) {
+func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, fraudHeight uint64) error {
 	client, found := k.GetCanonicalClient(ctx, rollappId)
 	if !found {
-		k.Logger(ctx).Error("Canonical client not found", "rollappId", rollappId)
-		return
+		return gerrc.ErrFailedPrecondition.Wrap("canonical client not found")
 	}
 	cs := k.ibcClientKeeper.ClientStore(ctx, client)
 
@@ -39,7 +40,7 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, fraud
 	// clean the optimistic updates valset
 	err := k.PruneSignersAbove(ctx, client, fraudHeight-1)
 	if err != nil {
-		k.Logger(ctx).Error("Failed to prune signers", "err", err)
+		return errorsmod.Wrap(err, "prune signers above")
 	}
 
 	// marks that hard fork is in progress
@@ -48,6 +49,8 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, fraud
 	// freeze the client
 	// it will be released after the hardfork is resolved (on the next state update)
 	k.freezeClient(cs, fraudHeight)
+
+	return nil
 }
 
 // ResolveHardFork resolves the hard fork by resetting the client to the valid state

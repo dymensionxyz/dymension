@@ -78,7 +78,7 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 
 	s.FundForAliasRegistration(msgCreateRollapp)
 
-	msgServer := rollappkeeper.NewMsgServerImpl(*s.App.RollappKeeper)
+	msgServer := rollappkeeper.NewMsgServerImpl(s.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(s.Ctx, &msgCreateRollapp)
 	s.Require().NoError(err)
 }
@@ -135,7 +135,7 @@ func (s *KeeperTestHelper) PostStateUpdateWithDRSVersion(ctx sdk.Context, rollap
 		BDs:         bds,
 		Last:        false,
 	}
-	msgServer := rollappkeeper.NewMsgServerImpl(*s.App.RollappKeeper)
+	msgServer := rollappkeeper.NewMsgServerImpl(s.App.RollappKeeper)
 	_, err = msgServer.UpdateState(ctx, &updateState)
 	return startHeight + numOfBlocks, err
 }

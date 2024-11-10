@@ -31,7 +31,10 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) 
 	k.SetRollapp(ctx, rollapp)
 
 	// handle the sequencers, clean delayed packets, handle light client
-	k.hooks.OnHardFork(ctx, rollappID, lastValidHeight+1)
+	err = k.hooks.OnHardFork(ctx, rollappID, lastValidHeight+1)
+	if err != nil {
+		return errorsmod.Wrap(err, "hard fork callback")
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

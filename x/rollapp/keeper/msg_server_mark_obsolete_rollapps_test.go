@@ -108,6 +108,7 @@ func (s *RollappTestSuite) TestMarkObsoleteRollapps() {
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			s.SetupTest()
+			s.App.RollappKeeper.SetHooks(nil) // disable hooks
 
 			// prepare test data
 			obsoleteVersions := uslice.ToKeySet(tc.obsoleteVersions)

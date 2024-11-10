@@ -37,6 +37,7 @@ func (suite *RollappTestSuite) TestHardFork() {
 		suite.Run(tc.name, func() {
 			// Reset the state for the next test case
 			suite.SetupTest()
+			suite.App.RollappKeeper.SetHooks(nil) // disable hooks
 
 			initialHeight := uint64(1)
 			suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialHeight))

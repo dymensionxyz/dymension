@@ -41,7 +41,7 @@ func (suite *QueryTestSuite) CreateDefaultRollapp() string {
 
 	suite.FundForAliasRegistration(msgCreateRollapp)
 
-	msgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)
+	msgServer := rollapp.NewMsgServerImpl(suite.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(suite.Ctx, &msgCreateRollapp)
 	suite.Require().NoError(err)
 	return msgCreateRollapp.RollappId

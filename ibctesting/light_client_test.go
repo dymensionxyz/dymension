@@ -366,6 +366,10 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 	s.coordinator.CreateChannels(s.path)
 
 	bds := rollapptypes.BlockDescriptors{}
+	signerHeights := struct {
+		Name    string
+		Heights []int64
+	}{}
 
 	for i := 0; i < 20; i++ {
 		s.coordinator.CommitBlock(s.hubChain(), s.rollappChain())
@@ -374,7 +378,7 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 		bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
 		bds.BD = append(bds.BD, bd)
 
-		if i%5 == 0 {
+		if i%4 == 0 {
 			header, err := s.path.EndpointA.Chain.ConstructUpdateTMClientHeader(s.path.EndpointA.Counterparty.Chain, s.path.EndpointA.ClientID)
 			s.NoError(err)
 			msg, err := clienttypes.NewMsgUpdateClient(
@@ -384,6 +388,12 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 			s.NoError(err)
 			_, err = s.path.EndpointA.Chain.SendMsgs(msg)
 			s.NoError(err)
+
+			// save signers
+			signer, err := s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
+			s.NoError(err)
+			signerHeights.Name = signer
+			signerHeights.Heights = append(signerHeights.Heights, header.Header.Height)
 		}
 
 	}
@@ -415,6 +425,19 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 			s.False(found, "Consensus state should be cleared for height %d", height)
 		}
 	}
+
+	// validate signers are removed
+	cnt := 0
+	for _, height := range signerHeights.Heights {
+		_, err := s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(height))
+		if height > int64(rollbackHeight) {
+			s.Error(err, "Signer should be removed for height %d", height)
+		} else {
+			s.NoError(err, "Signer should not be removed for height %d", height)
+			cnt++
+		}
+	}
+	s.Require().Less(cnt, len(signerHeights.Heights), "Signers should be removed after rollback")
 
 	// Validate client updates are blocked
 	header, err := s.path.EndpointA.Chain.ConstructUpdateTMClientHeader(s.path.EndpointA.Counterparty.Chain, s.path.EndpointA.ClientID)

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,7 +14,7 @@ import (
 
 var _ rollapptypes.RollappHooks = &Keeper{}
 
-func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) {
+func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) error {
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
 	// Get all the pending packets from fork height inclusive
@@ -48,8 +49,7 @@ func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, fraudHeight uint64
 		// delete the packet
 		err := k.DeleteRollappPacket(ctx, &rollappPacket)
 		if err != nil {
-			logger.Error("failed to delete reverted packet", append(logContext, "error", err.Error())...)
-			continue
+			return errorsmod.Wrap(err, "delete rollapp packet")
 		}
 
 		// delete the pending packet
@@ -59,6 +59,8 @@ func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, fraudHeight uint64
 	}
 
 	logger.Info("reverting IBC rollapp packets", "rollappID", rollappID, "numPackets", len(rollappPendingPackets))
+
+	return nil
 }
 
 // DeleteRollappPacket deletes a packet receipt from the store

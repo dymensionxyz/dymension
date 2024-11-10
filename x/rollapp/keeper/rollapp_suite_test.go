@@ -53,7 +53,7 @@ func (suite *RollappTestSuite) SetupTest() {
 	queryClient := types.NewQueryClient(queryHelper)
 
 	suite.App = app
-	suite.msgServer = keeper.NewMsgServerImpl(*app.RollappKeeper)
+	suite.msgServer = keeper.NewMsgServerImpl(app.RollappKeeper)
 	suite.seqMsgServer = sequencerkeeper.NewMsgServerImpl(app.SequencerKeeper)
 	suite.Ctx = ctx
 	suite.queryClient = queryClient

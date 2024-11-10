@@ -146,9 +146,6 @@ func (k *Keeper) SetCanonicalClientKeeper(kk CanonicalLightClientKeeper) {
 /* -------------------------------------------------------------------------- */
 
 func (k *Keeper) SetHooks(sh types.MultiRollappHooks) {
-	if k.hooks != nil {
-		panic("cannot set rollapp hooks twice")
-	}
 	k.hooks = sh
 }
 
