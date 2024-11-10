@@ -4,11 +4,15 @@ import (
 	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const TypeMsgAddApp = "add_app"
 
-var _ sdk.Msg = &MsgAddApp{}
+var (
+	_ sdk.Msg            = &MsgAddApp{}
+	_ legacytx.LegacyMsg = &MsgAddApp{}
+)
 
 func NewMsgAddApp(creator, name, rollappId, description, image, url string, order int32) *MsgAddApp {
 	return &MsgAddApp{

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
@@ -14,7 +15,10 @@ const (
 	TypeMsgAddToGauge  = "add_to_gauge"
 )
 
-var _ sdk.Msg = &MsgCreateGauge{}
+var (
+	_ sdk.Msg            = &MsgCreateGauge{}
+	_ legacytx.LegacyMsg = &MsgCreateGauge{}
+)
 
 // NewMsgCreateGauge creates a message to create a gauge with the provided parameters.
 func NewMsgCreateGauge(isPerpetual bool, owner sdk.AccAddress, distributeTo lockuptypes.QueryCondition, coins sdk.Coins, startTime time.Time, numEpochsPaidOver uint64) *MsgCreateGauge {
@@ -73,7 +77,10 @@ func (m MsgCreateGauge) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{owner}
 }
 
-var _ sdk.Msg = &MsgAddToGauge{}
+var (
+	_ sdk.Msg            = &MsgAddToGauge{}
+	_ legacytx.LegacyMsg = &MsgAddToGauge{}
+)
 
 // NewMsgAddToGauge creates a message to add rewards to a specific gauge.
 func NewMsgAddToGauge(owner sdk.AccAddress, gaugeId uint64, rewards sdk.Coins) *MsgAddToGauge {

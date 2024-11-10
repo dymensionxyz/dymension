@@ -5,11 +5,15 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const TypeMsgRemoveApp = "remove_app"
 
-var _ sdk.Msg = &MsgRemoveApp{}
+var (
+	_ sdk.Msg            = &MsgRemoveApp{}
+	_ legacytx.LegacyMsg = &MsgRemoveApp{}
+)
 
 func NewMsgRemoveApp(creator string, id uint64, rollappId string) *MsgRemoveApp {
 	return &MsgRemoveApp{

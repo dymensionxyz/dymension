@@ -5,10 +5,18 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-var _ sdk.Msg = new(MsgMarkVulnerableRollapps)
+const (
+	TypeMsgMarkVulnerableRollapps = "mark_vulnerable_rollapps"
+)
+
+var (
+	_ sdk.Msg            = new(MsgMarkVulnerableRollapps)
+	_ legacytx.LegacyMsg = new(MsgMarkVulnerableRollapps)
+)
 
 func (m MsgMarkVulnerableRollapps) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Authority)
@@ -26,4 +34,17 @@ func (m MsgMarkVulnerableRollapps) ValidateBasic() error {
 func (m MsgMarkVulnerableRollapps) GetSigners() []sdk.AccAddress {
 	signer, _ := sdk.AccAddressFromBech32(m.Authority)
 	return []sdk.AccAddress{signer}
+}
+
+func (m MsgMarkVulnerableRollapps) Type() string {
+	return TypeMsgMarkVulnerableRollapps
+}
+
+func (m MsgMarkVulnerableRollapps) Route() string {
+	return RouterKey
+}
+
+func (m MsgMarkVulnerableRollapps) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&m)
+	return sdk.MustSortJSON(bz)
 }

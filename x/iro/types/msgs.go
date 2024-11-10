@@ -14,6 +14,7 @@ const (
 	TypeMsgExactSpend = "buy_exact_spend"
 	TypeMsgSell       = "sell"
 	TypeMsgClaim      = "claim"
+	TypeUpdateParams  = "update_params"
 )
 
 var (
@@ -28,6 +29,7 @@ var (
 	_ legacytx.LegacyMsg = &MsgBuyExactSpend{}
 	_ legacytx.LegacyMsg = &MsgSell{}
 	_ legacytx.LegacyMsg = &MsgClaim{}
+	_ legacytx.LegacyMsg = &MsgUpdateParams{}
 )
 
 // ValidateBasic performs basic validation checks on the MsgCreatePlan message.
@@ -80,6 +82,10 @@ func (m *MsgBuyExactSpend) Route() string {
 	return RouterKey
 }
 
+func (m *MsgUpdateParams) Route() string {
+	return RouterKey
+}
+
 func (m *MsgCreatePlan) Type() string {
 	return TypeMsgCreatePlan
 }
@@ -98,6 +104,10 @@ func (m *MsgClaim) Type() string {
 
 func (m *MsgBuyExactSpend) Type() string {
 	return TypeMsgExactSpend
+}
+
+func (m *MsgUpdateParams) Type() string {
+	return TypeUpdateParams
 }
 
 func (m *MsgCreatePlan) GetSigners() []sdk.AccAddress {
@@ -126,6 +136,11 @@ func (m *MsgSell) GetSignBytes() []byte {
 }
 
 func (m *MsgClaim) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgUpdateParams) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)
 }
