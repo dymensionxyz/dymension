@@ -101,11 +101,7 @@ func (k Keeper) CanUnbond(ctx sdk.Context, seq sequencertypes.Sequencer) error {
 func (k Keeper) PruneSignersAbove(ctx sdk.Context, rollapp string, h uint64) error {
 	client, ok := k.GetCanonicalClient(ctx, rollapp)
 	if !ok {
-		return gerrc.ErrInternal.Wrap(`
-prune light client signers for rollapp before canonical client is set
-this suggests fork happened prior to genesis bridge completion, which
-shouldnt be allowed
-`)
+		return gerrc.ErrInternal
 	}
 	rng := collections.NewPrefixedPairRange[string, uint64](client).StartExclusive(h)
 

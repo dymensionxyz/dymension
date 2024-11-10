@@ -65,8 +65,10 @@ func (hook rollappHook) AfterUpdateState(
 			return errorsmod.Wrap(err, "validate optimistic update")
 		}
 	}
+
 	// we now verified everything up to and including stateInfo.GetLatestHeight()-1
 	// so we should prune everything up to stateInfo.GetLatestHeight()-1
+	// this removes the unbonding condition for the sequencers
 	if err := hook.k.PruneSignersBelow(ctx, rollappId, stateInfo.GetLatestHeight()); err != nil {
 		return errorsmod.Wrap(err, "prune signers")
 	}
@@ -95,19 +97,7 @@ func (hook rollappHook) validateOptimisticUpdate(
 		BlockDescriptor:    expectBD,
 		NextBlockSequencer: nextSequencer,
 	}
-	signerAddr, err := hook.k.GetSigner(ctx, client, h)
-	if err != nil {
-		return gerrc.ErrInternal.Wrapf("got cons state but no signer addr: client: %s: h: %d", client, h)
-	}
-	signer, err := hook.k.SeqK.RealSequencer(ctx, signerAddr)
-	if err != nil {
-		return gerrc.ErrInternal.Wrapf("got cons state but no signer seq: client: %s: h: %d: signer addr: %s", client, h, signerAddr)
-	}
-	// remove to allow unbond
-	err = hook.k.RemoveSigner(ctx, signer.Address, client, h)
-	if err != nil {
-		return errorsmod.Wrap(err, "remove signer")
-	}
+
 	err = types.CheckCompatibility(*got, expect)
 	if err != nil {
 		return errors.Join(gerrc.ErrFault, err)

@@ -34,7 +34,8 @@ func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, fraudHeight uint64
 		if rollappPacket.Type == commontypes.RollappPacket_ON_ACK || rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
 			// for sent packets, we restore the packet commitment
 			// the packet will be handled over the new rollapp revision
-			commitment := channeltypes.CommitPacket(k.cdc, rollappPacket.Packet)
+			// we update the packet to the original transfer target and restore the packet commitment
+			commitment := channeltypes.CommitPacket(k.cdc, rollappPacket.RestoreOriginalTransferTarget().Packet)
 			k.channelKeeper.SetPacketCommitment(ctx, rollappPacket.Packet.SourcePort, rollappPacket.Packet.SourceChannel, rollappPacket.Packet.Sequence, commitment)
 			pendingAddr = transfer.Sender
 		} else {

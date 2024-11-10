@@ -50,16 +50,19 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, fraud
 	k.freezeClient(cs, fraudHeight)
 }
 
-// set latest IBC consensus state nextValHash to the current proposing sequencer.
-func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) {
-	client, _ := k.GetCanonicalClient(ctx, rollappID)
+// ResolveHardFork resolves the hard fork by resetting the client to the valid state
+// and adding consensus states based on the block descriptors
+// CONTRACT: canonical client is already set, state info exists
+func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
+	client, _ := k.GetCanonicalClient(ctx, rollappID) // already checked in the caller
 	clientStore := k.ibcClientKeeper.ClientStore(ctx, client)
 
-	stateinfo, _ := k.rollappKeeper.GetLatestStateInfo(ctx, rollappID)
-	height := stateinfo.GetLatestHeight()
-	bd := stateinfo.GetLatestBlockDescriptor()
+	stateinfo, _ := k.rollappKeeper.GetLatestStateInfo(ctx, rollappID) // already checked in the caller
+	height := stateinfo.StartHeight
+	bd := stateinfo.BDs.BD[0]
 
 	// get the valHash of this sequencer
+	// we assume the proposer of the first state update after the hard fork won't be rotated in the next block
 	proposer, _ := k.SeqK.RealSequencer(ctx, stateinfo.Sequencer)
 	valHash, _ := proposer.ValsetHash()
 
@@ -73,9 +76,8 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) {
 	}
 
 	setConsensusState(clientStore, k.cdc, clienttypes.NewHeight(1, height), &cs)
-	_ = k.SaveSigner(ctx, proposer.Address, client, height)
-
 	k.setHardForkResolved(ctx, rollappID)
+	return nil
 }
 
 // freezeClient freezes the client by setting the frozen height to the current height
@@ -85,6 +87,8 @@ func (k Keeper) freezeClient(clientStore sdk.KVStore, height uint64) {
 
 	// freeze the client
 	tmClientState.FrozenHeight = clienttypes.NewHeight(1, height)
+	tmClientState.LatestHeight = clienttypes.NewHeight(1, height)
+
 	setClientState(clientStore, k.cdc, tmClientState)
 }
 
