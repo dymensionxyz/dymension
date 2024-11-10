@@ -14,12 +14,6 @@ message FulfillOrderAuthorization {
 
   // rollapps is an optional list of rollapp criteria that the grantee can fulfill demand orders from
   repeated RollappCriteria rollapps = 1;
-
-  // spend_limit is the optional maximum amount of coins that can be spent by the grantee
-  repeated cosmos.base.v1beta1.Coin spend_limit = 2 [
-    (gogoproto.nullable)     = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-  ];
 }
 
 message RollappCriteria {
@@ -49,4 +43,10 @@ message RollappCriteria {
 
   // settlement_validated is the flag to only fulfill demand orders that have been settlement validated
   bool settlement_validated = 6;
+
+  // spend_limit is the optional maximum amount of coins that can be spent by the grantee
+  repeated cosmos.base.v1beta1.Coin spend_limit = 7 [
+    (gogoproto.nullable)     = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }

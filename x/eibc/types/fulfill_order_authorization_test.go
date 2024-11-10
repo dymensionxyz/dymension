@@ -21,12 +21,12 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 		{
 			name: "Valid Authorization Acceptance",
 			authorization: FulfillOrderAuthorization{
-				SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
 				Rollapps: []*RollappCriteria{
 					{
 						RollappId:           "rollapp1",
 						Denoms:              []string{"atom"},
 						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 500)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
 						MinLpFeePercentage:  sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.05")},
 						OperatorFeeShare:    sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.02")},
 						SettlementValidated: true,
@@ -43,12 +43,12 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 			expectedAccept: true,
 			expectedDelete: false,
 			updatedAuth: &FulfillOrderAuthorization{
-				SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("atom", 600)),
 				Rollapps: []*RollappCriteria{
 					{
 						RollappId:           "rollapp1",
 						Denoms:              []string{"atom"},
 						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 500)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 600)),
 						MinLpFeePercentage:  sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.05")},
 						OperatorFeeShare:    sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.02")},
 						SettlementValidated: true,
@@ -122,12 +122,12 @@ func TestFulfillOrderAuthorization_ValidateBasic(t *testing.T) {
 		{
 			name: "Valid Authorization",
 			authorization: FulfillOrderAuthorization{
-				SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
 				Rollapps: []*RollappCriteria{
 					{
 						RollappId:           "rollapp1",
 						Denoms:              []string{"atom", "btc"},
 						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 500)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
 						MinLpFeePercentage:  sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.05")},
 						OperatorFeeShare:    sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.02")},
 						SettlementValidated: true,
@@ -163,9 +163,11 @@ func TestFulfillOrderAuthorization_ValidateBasic(t *testing.T) {
 		{
 			name: "Invalid SpendLimit",
 			authorization: FulfillOrderAuthorization{
-				SpendLimit: sdk.Coins{sdk.Coin{Denom: "atom", Amount: sdk.NewInt(-100)}},
 				Rollapps: []*RollappCriteria{
-					{RollappId: "rollapp1"},
+					{
+						RollappId:  "rollapp1",
+						SpendLimit: sdk.Coins{sdk.Coin{Denom: "atom", Amount: sdk.NewInt(-100)}},
+					},
 				},
 			},
 			expectedError: "spend_limit is invalid",

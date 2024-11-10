@@ -118,13 +118,13 @@ Examples:
 				denoms,
 				minLPFeePercent,
 				maxPrice,
+				spendLimit,
 				fulfillerFeePart,
 				settlementValidated,
 			)
 
 			authorization := types.NewFulfillOrderAuthorization(
 				[]*types.RollappCriteria{rollappCriteria},
-				spendLimit,
 			)
 
 			expire, err := getExpireTime(cmd)
