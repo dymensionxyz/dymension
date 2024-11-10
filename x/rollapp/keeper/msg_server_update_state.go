@@ -2,10 +2,11 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -99,17 +100,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 	// verify the DRS version is not obsolete
 	// check only last block descriptor DRS, since if that last is not obsolete it means the rollapp already upgraded and is not obsolete anymore
-	// Rollapp is using a obsolete DRS version, hard fork it
 	if k.IsStateUpdateObsolete(ctx, stateInfo) {
-		err := k.HardForkToLatest(ctx, msg.RollappId)
-		if err != nil {
-			return nil, fmt.Errorf("hard fork due to obsolete version: %w", err)
-		}
-		k.Logger(ctx).With("rollapp_id", msg.RollappId, "drs_version", stateInfo.GetLatestBlockDescriptor().DrsVersion).
-			Info("rollapp tried to submit MsgUpdateState with an obsolete DRS version,forked")
-
-		// we must return non-error if we want the changes to be saved
-		return &types.MsgUpdateStateResponse{}, nil
+		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "MsgUpdateState with an obsolete DRS version. rollapp_id: %s, drs_version: %d",
+			msg.RollappId, stateInfo.GetLatestBlockDescriptor().DrsVersion)
 	}
 
 	// Write new index information to the store

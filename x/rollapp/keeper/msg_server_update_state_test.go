@@ -125,13 +125,7 @@ func (s *RollappTestSuite) TestUpdateStateObsoleteRollapp() {
 
 	// create a new update using the obsolete version
 	_, err = s.PostStateUpdateWithDRSVersion(s.Ctx, raName, proposer, expectedNextHeight, uint64(3), obsoleteVersion)
-	s.Require().NoError(err)
-
-	s.assertFraudHandled(raName, expectedNextHeight)
-
-	// the rollapp state is not updated
-	actualLastHeight = s.GetRollappLastHeight(raName)
-	s.Require().Equal(expectedNextHeight-1, actualLastHeight)
+	s.Require().Error(err)
 }
 
 func (suite *RollappTestSuite) TestUpdateStateUnknownRollappId() {
