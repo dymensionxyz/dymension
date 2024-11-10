@@ -85,7 +85,12 @@ func (k Keeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.A
 	if err != nil {
 		return errorsmod.Wrap(err, "slash")
 	}
-	err = errorsmod.Wrap(k.unbond(ctx, &seq), "unbond")
+
+	err = k.unbond(ctx, &seq)
+	if err != nil {
+		return errorsmod.Wrap(err, "unbond")
+	}
+
 	k.SetSequencer(ctx, seq)
 	return nil
 }

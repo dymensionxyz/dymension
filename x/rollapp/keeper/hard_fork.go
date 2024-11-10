@@ -20,18 +20,18 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) 
 		return gerrc.ErrNotFound
 	}
 
-	lastCommittedHeight, err := k.RevertPendingStates(ctx, rollappID, fraudHeight)
+	lastValidHeight, err := k.RevertPendingStates(ctx, rollappID, fraudHeight)
 	if err != nil {
 		return errorsmod.Wrap(err, "revert pending states")
 	}
 
 	// update revision number
 	rollapp.RevisionNumber += 1
-	rollapp.RevisionStartHeight = lastCommittedHeight + 1
+	rollapp.RevisionStartHeight = lastValidHeight + 1
 	k.SetRollapp(ctx, rollapp)
 
 	// handle the sequencers, clean delayed packets, handle light client
-	k.hooks.OnHardFork(ctx, rollappID, lastCommittedHeight+1)
+	k.hooks.OnHardFork(ctx, rollappID, lastValidHeight+1)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
