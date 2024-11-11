@@ -168,6 +168,15 @@ func (k Keeper) GetSigner(ctx sdk.Context, client string, h uint64) (string, err
 	return k.clientHeightToSigner.Get(ctx, collections.Join(client, h))
 }
 
+func (k Keeper) GetSignerSeq(ctx sdk.Context, client string, h uint64) (sequencertypes.Sequencer, error) {
+	a
+	ret, err := k.clientHeightToSigner.Get(ctx, collections.Join(client, h))
+	if errorsmod.IsOf(err, collections.ErrNotFound) {
+		return "", errors.Join(err, gerrc.ErrNotFound)
+	}
+	return ret, err
+}
+
 func (k Keeper) SaveSigner(ctx sdk.Context, seqAddr string, client string, h uint64) error {
 	return errors.Join(
 		k.headerSigners.Set(ctx, collections.Join3(seqAddr, client, h)),
