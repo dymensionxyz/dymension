@@ -103,7 +103,6 @@ func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, depth 
 		inner, err = m.GetMsgs()
 	case *group.MsgSubmitProposal:
 		inner, err = m.GetMsgs()
-	default:
 	case *authz.MsgGrant:
 		authorization, err := m.GetAuthorization()
 		if err != nil {
@@ -115,6 +114,7 @@ func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, depth 
 				return gerrc.ErrInvalidArgument.Wrapf("disabled grant: %s", typeURL)
 			}
 		}
+	default:
 	}
 
 	if err != nil {
