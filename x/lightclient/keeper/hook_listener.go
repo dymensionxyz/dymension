@@ -94,20 +94,10 @@ func (hook rollappHook) validateOptimisticUpdate(
 		BlockDescriptor:    expectBD,
 		NextBlockSequencer: nextSequencer,
 	}
-	foundSigner := true
 	signerAddr, err := hook.k.GetSigner(ctx, client, h)
 	if err != nil {
-		if !errorsmod.IsOf(err, gerrc.ErrNotFound) {
-			return gerrc.ErrInternal.Wrapf("got cons state but no signer addr: client: %s: h: %d", client, h)
-		}
-		foundSigner = false
+		return gerrc.ErrInternal.Wrapf("got cons state but no signer addr: client: %s: h: %d", client, h)
 	}
-	err = types.CheckCompatibility(*got, expect)
-	if err == nil {
-		// everything is fine
-		return nil
-	}
-
 	signer, err := hook.k.SeqK.RealSequencer(ctx, signerAddr)
 	if err != nil {
 		return gerrc.ErrInternal.Wrapf("got cons state but no signer seq: client: %s: h: %d: signer addr: %s", client, h, signerAddr)
@@ -117,7 +107,11 @@ func (hook rollappHook) validateOptimisticUpdate(
 	if err != nil {
 		return errorsmod.Wrap(err, "remove signer")
 	}
-
+	err = types.CheckCompatibility(*got, expect)
+	if err == nil {
+		// everything is fine
+		return nil
+	}
 	// fraud!
 	err = hook.k.rollappKeeper.HandleFraud(ctx, signer.RollappId, client, h, signer.Address)
 	if err != nil {
