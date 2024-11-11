@@ -99,51 +99,13 @@ func (k Keeper) CanUnbond(ctx sdk.Context, seq sequencertypes.Sequencer) error {
 // PruneSignersAbove removes bookkeeping for all heights ABOVE h for given client
 // This should only be called after canonical client set
 func (k Keeper) PruneSignersAbove(ctx sdk.Context, client string, h uint64) error {
-	rng := collections.NewPrefixedPairRange[string, uint64](client).StartExclusive(h)
-
-	seqs := make([]string, 0)
-	heights := make([]uint64, 0)
-
-	// collect first to avoid del while iterating
-	if err := k.clientHeightToSigner.Walk(ctx, rng, func(key collections.Pair[string, uint64], value string) (stop bool, err error) {
-		seqs = append(seqs, value)
-		heights = append(heights, key.K2())
-		return false, nil
-	}); err != nil {
-		return errorsmod.Wrap(err, "walk signers")
-	}
-
-	for i := 0; i < len(seqs); i++ {
-		if err := k.RemoveSigner(ctx, seqs[i], client, heights[i]); err != nil {
-			return errorsmod.Wrap(err, "remove signer")
-		}
-	}
-	return nil
+	return k.pruneSigner(ctx, client, h, true)
 }
 
 // PruneSignersBelow removes bookkeeping for all heights BELOW h for given clientId
 // This should only be called after canonical client set
 func (k Keeper) PruneSignersBelow(ctx sdk.Context, client string, h uint64) error {
-	rng := collections.NewPrefixedPairRange[string, uint64](client).EndExclusive(h)
-
-	seqs := make([]string, 0)
-	heights := make([]uint64, 0)
-
-	// collect first to avoid del while iterating
-	if err := k.clientHeightToSigner.Walk(ctx, rng, func(key collections.Pair[string, uint64], value string) (stop bool, err error) {
-		seqs = append(seqs, value)
-		heights = append(heights, key.K2())
-		return false, nil
-	}); err != nil {
-		return errorsmod.Wrap(err, "walk signers")
-	}
-
-	for i := 0; i < len(seqs); i++ {
-		if err := k.RemoveSigner(ctx, seqs[i], client, heights[i]); err != nil {
-			return errorsmod.Wrap(err, "remove signer")
-		}
-	}
-	return nil
+	return k.pruneSigner(ctx, client, h, false)
 }
 
 // GetSigner returns the sequencer address who signed the header in the update
@@ -202,4 +164,32 @@ func (k Keeper) setHardForkResolved(ctx sdk.Context, rollappID string) {
 // checks if rollapp is hard forking
 func (k Keeper) IsHardForkingInProgress(ctx sdk.Context, rollappID string) bool {
 	return ctx.KVStore(k.storeKey).Has(types.HardForkKey(rollappID))
+}
+
+func (k Keeper) pruneSigner(ctx sdk.Context, client string, h uint64, isAbove bool) error {
+	var rng *collections.PairRange[string, uint64]
+	if isAbove {
+		rng = collections.NewPrefixedPairRange[string, uint64](client).StartExclusive(h)
+	} else {
+		rng = collections.NewPrefixedPairRange[string, uint64](client).EndExclusive(h)
+	}
+
+	seqs := make([]string, 0)
+	heights := make([]uint64, 0)
+
+	// collect first to avoid del while iterating
+	if err := k.clientHeightToSigner.Walk(ctx, rng, func(key collections.Pair[string, uint64], value string) (stop bool, err error) {
+		seqs = append(seqs, value)
+		heights = append(heights, key.K2())
+		return false, nil
+	}); err != nil {
+		return errorsmod.Wrap(err, "walk signers")
+	}
+
+	for i := 0; i < len(seqs); i++ {
+		if err := k.RemoveSigner(ctx, seqs[i], client, heights[i]); err != nil {
+			return errorsmod.Wrap(err, "remove signer")
+		}
+	}
+	return nil
 }
