@@ -51,7 +51,7 @@ func CreateUpgradeHandler(
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 
-		LoadDeprecatedParamsSubspaces(keepers)
+		setKeyTables(keepers)
 
 		// Run migrations before applying any other state changes.
 		// NOTE: DO NOT PUT ANY STATE CHANGES BEFORE RunMigrations().
@@ -60,12 +60,12 @@ func CreateUpgradeHandler(
 		if err != nil {
 			return nil, err
 		}
+		migrateModuleParams(ctx, keepers)
 
 		if err := deprecateCrisisModule(ctx, keepers.CrisisKeeper); err != nil {
 			return nil, err
 		}
 
-		migrateModuleParams(ctx, keepers)
 		migrateDelayedAckParams(ctx, keepers.DelayedAckKeeper)
 		migrateRollappParams(ctx, keepers.RollappKeeper)
 		if err := migrateRollapps(ctx, keepers.RollappKeeper); err != nil {
@@ -106,16 +106,7 @@ func CreateUpgradeHandler(
 	}
 }
 
-//nolint:staticcheck
-func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
-	// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
-	baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
-	baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
-}
-
-// LoadDeprecatedParamsSubspaces loads the deprecated param subspaces for each module
-// used to support the migration from x/params to each module's own store
-func LoadDeprecatedParamsSubspaces(keepers *keepers.AppKeepers) {
+func setKeyTables(keepers *keepers.AppKeepers) {
 	for _, subspace := range keepers.ParamsKeeper.GetSubspaces() {
 		var keyTable paramstypes.KeyTable
 		switch subspace.Name() {
@@ -141,7 +132,7 @@ func LoadDeprecatedParamsSubspaces(keepers *keepers.AppKeepers) {
 		case rollapptypes.ModuleName:
 			keyTable = rollapptypes.ParamKeyTable()
 		case sequencertypes.ModuleName:
-			keyTable = sequencertypes.ParamKeyTable()
+			continue
 
 		// Ethermint  modules
 		case evmtypes.ModuleName:
@@ -156,6 +147,13 @@ func LoadDeprecatedParamsSubspaces(keepers *keepers.AppKeepers) {
 			subspace.WithKeyTable(keyTable)
 		}
 	}
+}
+
+//nolint:staticcheck
+func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
+	// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
+	baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
+	baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
 }
 
 // migrateRollappGauges creates a gauge for each rollapp in the store
@@ -205,9 +203,8 @@ func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Ke
 // migrateStreamer creates epoch pointers for all epoch infos and updates module params
 func migrateStreamer(ctx sdk.Context, sk streamerkeeper.Keeper, ek *epochskeeper.Keeper) error {
 	// update module params
-	oldParams := sk.GetParams(ctx)
-	oldParams.MaxIterationsPerBlock = streamertypes.DefaultMaxIterationsPerBlock
-	sk.SetParams(ctx, oldParams)
+	params := streamertypes.DefaultParams()
+	sk.SetParams(ctx, params)
 
 	// create epoch pointers for all epoch infos
 	for _, epoch := range ek.AllEpochInfos(ctx) {
@@ -271,11 +268,8 @@ func ReformatFinalizationQueue(queue rollapptypes.BlockHeightToFinalizationQueue
 }
 
 func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {
-	params := ik.GetParams(ctx)
-	defaultParams := incentivestypes.DefaultParams()
-	params.CreateGaugeBaseFee = defaultParams.CreateGaugeBaseFee
-	params.AddToGaugeBaseFee = defaultParams.AddToGaugeBaseFee
-	params.AddDenomFee = defaultParams.AddDenomFee
+	params := incentivestypes.DefaultParams()
+	params.DistrEpochIdentifier = ik.DistrEpochIdentifier(ctx)
 	ik.SetParams(ctx, params)
 }
 
@@ -355,6 +349,7 @@ func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Seque
 		Status:       old.Status,
 		Tokens:       old.Tokens,
 		OptedIn:      true,
+		Proposer:     old.Proposer,
 		Metadata: sequencertypes.SequencerMetadata{
 			Moniker:     old.Metadata.Moniker,
 			Details:     old.Metadata.Details,
