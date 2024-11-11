@@ -10,7 +10,6 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	lightclientante "github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/app/ante"
@@ -19,7 +18,7 @@ import (
 func (suite *AnteTestSuite) TestRejectMessagesDecoratorCustom() {
 	suite.SetupTestCheckTx(false)
 
-	decorator := ante.NewRejectMessagesDecorator().WithPredicate(lightclientante.BlockMsg)
+	decorator := ante.NewRejectMessagesDecorator().WithPredicate(ante.BlockTypeUrls(1, sdk.MsgTypeURL(&ibcclienttypes.MsgUpdateClient{})))
 
 	{
 
@@ -60,7 +59,7 @@ func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
 		sdk.MsgTypeURL(&types.MsgDelegate{}),
 	}
 
-	decorator := ante.NewRejectMessagesDecorator().WithPredicate(ante.BlockTypeUrls(disabledMsgTypes...))
+	decorator := ante.NewRejectMessagesDecorator().WithPredicate(ante.BlockTypeUrls(0, disabledMsgTypes...))
 
 	testCases := []struct {
 		name          string

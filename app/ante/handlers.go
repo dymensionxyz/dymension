@@ -3,6 +3,7 @@ package ante
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
 	ethante "github.com/evmos/ethermint/app/ante"
 	txfeesante "github.com/osmosis-labs/osmosis/v15/x/txfees/ante"
@@ -46,11 +47,20 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 			for an explanation of these message blocking decorators
 		*/
 		// reject MsgEthereumTxs and disable the Msg types that cannot be included on an authz.MsgExec msgs field
-		NewRejectMessagesDecorator().WithPredicate(lightclientante.BlockMsg).WithPredicate(BlockTypeUrls(
-			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
-			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
-			sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}),
-			sdk.MsgTypeURL(&vestingtypes.MsgCreatePermanentLockedAccount{}))),
+		NewRejectMessagesDecorator().WithPredicate(
+			BlockTypeUrls(
+				1,
+				// Only blanket rejects depth greater than zero because we have our own custom logic for depth 0
+				// Note that there is never a genuine reason to pass both ibc update client and misbehaviour submission through gov or auth,
+				// it's always done by relayers directly.
+				sdk.MsgTypeURL(&ibcclienttypes.MsgUpdateClient{}),
+				sdk.MsgTypeURL(&ibcclienttypes.MsgSubmitMisbehaviour{}))).
+			WithPredicate(BlockTypeUrls(
+				0,
+				sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
+				sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
+				sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}),
+				sdk.MsgTypeURL(&vestingtypes.MsgCreatePermanentLockedAccount{}))),
 
 		ante.NewSetUpContextDecorator(),
 		ante.NewValidateBasicDecorator(),
@@ -82,11 +92,21 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 
 	return sdk.ChainAnteDecorators(
-		NewRejectMessagesDecorator().WithPredicate(lightclientante.BlockMsg).WithPredicate(BlockTypeUrls(
-			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
-			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
-			sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}),
-			sdk.MsgTypeURL(&vestingtypes.MsgCreatePermanentLockedAccount{}))),
+		// reject MsgEthereumTxs and disable the Msg types that cannot be included on an authz.MsgExec msgs field
+		NewRejectMessagesDecorator().WithPredicate(
+			BlockTypeUrls(
+				1,
+				// Only blanket rejects depth greater than zero because we have our own custom logic for depth 0
+				// Note that there is never a genuine reason to pass both ibc update client and misbehaviour submission through gov or auth,
+				// it's always done by relayers directly.
+				sdk.MsgTypeURL(&ibcclienttypes.MsgUpdateClient{}),
+				sdk.MsgTypeURL(&ibcclienttypes.MsgSubmitMisbehaviour{}))).
+			WithPredicate(BlockTypeUrls(
+				0,
+				sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
+				sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
+				sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}),
+				sdk.MsgTypeURL(&vestingtypes.MsgCreatePermanentLockedAccount{}))),
 		ante.NewSetUpContextDecorator(),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		// Use Mempool Fee TransferEnabledDecorator from our txfees module instead of default one from auth

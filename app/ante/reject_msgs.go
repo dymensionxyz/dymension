@@ -22,14 +22,17 @@ type RejectMessagesDecorator struct {
 // Predicate should return true if message is not allowed
 type Predicate = func(typeURL string, depth int) bool
 
-func BlockTypeUrls(typeUrls ...string) Predicate {
+// Blocks any message with depth of depthMax OR MORE
+// Depth 0 is top level message
+// Depth 1 or more is wrapped in something
+func BlockTypeUrls(depthMax int, typeUrls ...string) Predicate {
 	block := make(map[string]struct{})
 	for _, url := range typeUrls {
 		block[url] = struct{}{}
 	}
-	return func(url string, _ int) bool {
+	return func(url string, depth int) bool {
 		_, ok := block[url]
-		return ok
+		return ok && depthMax <= depth
 	}
 }
 
