@@ -347,10 +347,6 @@ func (a *AppKeepers) InitKeepers(
 		a.ScopedIBCKeeper,
 	)
 
-	a.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
-		a.BankKeeper,
-	)
-
 	a.RollappKeeper = rollappmodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[rollappmoduletypes.StoreKey],
@@ -399,6 +395,11 @@ func (a *AppKeepers) InitKeepers(
 
 	a.RollappKeeper.SetSequencerKeeper(a.SequencerKeeper)
 	a.RollappKeeper.SetCanonicalClientKeeper(a.LightClientKeeper)
+
+	a.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
+		a.BankKeeper,
+		a.RollappKeeper,
+	)
 
 	a.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		a.keys[incentivestypes.StoreKey],
@@ -630,6 +631,7 @@ func (a *AppKeepers) SetupHooks() {
 		a.DymNSKeeper.GetRollAppHooks(),
 		a.LightClientKeeper.RollappHooks(),
 		a.IROKeeper,
+		a.DenomMetadataKeeper.RollappHooks(),
 	))
 }
 
