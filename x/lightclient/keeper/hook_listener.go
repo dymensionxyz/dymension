@@ -44,16 +44,11 @@ func (hook rollappHook) AfterUpdateState(
 		client, ok = hook.k.GetProspectiveCanonicalClient(ctx, rollappId, stateInfo.GetLatestHeight()-1)
 		if ok {
 			hook.k.SetCanonicalClient(ctx, rollappId, client)
-			// we now verified everything up to and including stateInfo.GetLatestHeight()-1
-			// so we should prune everything up to stateInfo.GetLatestHeight()-1
-			if err := hook.k.PruneSignersBelow(ctx, rollappId, stateInfo.GetLatestHeight()); err != nil {
-				return errorsmod.Wrap(err, "prune signers")
-			}
 		}
-	}
-	if !ok {
 		return nil
 	}
+
+	// TODO: check hard fork in progress here
 
 	seq, err := hook.k.SeqK.RealSequencer(ctx, stateInfo.Sequencer)
 	if err != nil {
@@ -63,13 +58,18 @@ func (hook rollappHook) AfterUpdateState(
 	// [hStart-1..,hEnd) is correct because we compare against a next validators hash
 	for h := stateInfo.GetStartHeight() - 1; h < stateInfo.GetLatestHeight(); h++ {
 		if err := hook.validateOptimisticUpdate(ctx, rollappId, client, seq, stateInfo, h); err != nil {
-			if errorsmod.IsOf(err, gerrc.ErrFault) {
-				// TODO: should double check this flow when implementing hard fork
-				break
-			}
-			return errorsmod.Wrap(err, "validate optimistic")
+			return errorsmod.Wrap(err, "validate optimistic update")
 		}
 	}
+
+	// we now verified everything up to and including stateInfo.GetLatestHeight()-1
+	// so we should prune everything up to stateInfo.GetLatestHeight()-1
+	// this removes the unbonding condition for the sequencers
+	// TODO: when integrating with hard fork PR need to change rollapp argument to client argument
+	if err := hook.k.PruneSignersBelow(ctx, rollappId, stateInfo.GetLatestHeight()); err != nil {
+		return errorsmod.Wrap(err, "prune signers")
+	}
+
 	return nil
 }
 
@@ -94,30 +94,14 @@ func (hook rollappHook) validateOptimisticUpdate(
 		BlockDescriptor:    expectBD,
 		NextBlockSequencer: nextSequencer,
 	}
-	signerAddr, err := hook.k.GetSigner(ctx, client, h)
-	if err != nil {
-		return gerrc.ErrInternal.Wrapf("got cons state but no signer addr: client: %s: h: %d", client, h)
-	}
-	signer, err := hook.k.SeqK.RealSequencer(ctx, signerAddr)
-	if err != nil {
-		return gerrc.ErrInternal.Wrapf("got cons state but no signer seq: client: %s: h: %d: signer addr: %s", client, h, signerAddr)
-	}
-	// remove to allow unbond
-	err = hook.k.RemoveSigner(ctx, signer.Address, client, h)
-	if err != nil {
-		return errorsmod.Wrap(err, "remove signer")
-	}
+
 	err = types.CheckCompatibility(*got, expect)
-	if err == nil {
-		// everything is fine
-		return nil
-	}
-	// fraud!
-	err = hook.k.rollappKeeper.HandleFraud(ctx, signer.RollappId, client, h, signer.Address)
 	if err != nil {
-		return errorsmod.Wrap(err, "handle fraud")
+		return errors.Join(gerrc.ErrFault, err)
 	}
-	return gerrc.ErrFault
+
+	// everything is fine
+	return nil
 }
 
 func (hook rollappHook) getBlockDescriptor(ctx sdk.Context,
