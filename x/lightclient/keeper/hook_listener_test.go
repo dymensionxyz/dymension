@@ -70,7 +70,7 @@ func TestAfterUpdateState(t *testing.T) {
 					},
 				}
 			},
-			expectErr: false,
+			expectErr: true,
 		},
 		{
 			name: "state is compatible",
