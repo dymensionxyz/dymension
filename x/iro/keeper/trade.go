@@ -115,7 +115,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 		Cost:         costAmt,
 		TakerFee:     takerFeeAmt,
 		ClosingPrice: plan.SpotPrice(),
-		Denom:        plan.SettledDenom,
+		Denom:        plan.GetIRODenom(),
 	})
 	if err != nil {
 		return err
@@ -187,7 +187,7 @@ func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddre
 		Cost:         toSpendMinusTakerFeeAmt,
 		TakerFee:     takerFeeAmt,
 		ClosingPrice: plan.SpotPrice(),
-		Denom:        plan.SettledDenom,
+		Denom:        plan.GetIRODenom(),
 	})
 	if err != nil {
 		return err
@@ -249,7 +249,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 		Revenue:      costAmt,
 		TakerFee:     takerFeeAmt,
 		ClosingPrice: plan.SpotPrice(),
-		Denom:        plan.SettledDenom,
+		Denom:        plan.GetIRODenom(),
 	})
 	if err != nil {
 		return err
