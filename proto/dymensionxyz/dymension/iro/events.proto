@@ -41,6 +41,8 @@ message EventBuy {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
+
+  string denom = 8;
 }
 
 message EventSell {
@@ -66,6 +68,8 @@ message EventSell {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
+
+  string denom = 8;
 }
 
 message EventClaim {
@@ -76,6 +80,8 @@ message EventClaim {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+
+  string denom = 5;
 }
 
 message EventSettle {
