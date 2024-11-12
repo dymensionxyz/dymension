@@ -15,13 +15,15 @@ import (
 // Keeper of the denommetadata store
 type Keeper struct {
 	bankKeeper types.BankKeeper
+	rk         types.RollappKeeper
 	hooks      types.MultiDenomMetadataHooks
 }
 
 // NewKeeper returns a new instance of the denommetadata keeper
-func NewKeeper(bankKeeper types.BankKeeper) *Keeper {
+func NewKeeper(bankKeeper types.BankKeeper, rk types.RollappKeeper) *Keeper {
 	return &Keeper{
 		bankKeeper: bankKeeper,
+		rk:         rk,
 		hooks:      nil,
 	}
 }

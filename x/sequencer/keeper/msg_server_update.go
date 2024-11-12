@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
@@ -56,8 +55,11 @@ func (k msgServer) UpdateOptInStatus(goCtx context.Context,
 	k.SetSequencer(ctx, seq)
 
 	// maybe set as proposer if one is needed
-	if err := k.UpdateProposerIfNeeded(ctx, seq.RollappId); err != nil {
-		return nil, errorsmod.Wrap(err, "choose proposer")
+	proposer := k.GetProposer(ctx, seq.RollappId)
+	if proposer.Sentinel() {
+		if err := k.RecoverFromHalt(ctx, seq.RollappId); err != nil {
+			return nil, err
+		}
 	}
 	return &types.MsgUpdateOptInStatus{}, nil
 }

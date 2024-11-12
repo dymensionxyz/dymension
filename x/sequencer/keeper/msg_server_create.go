@@ -106,8 +106,11 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, err
 	}
 
-	if err := k.UpdateProposerIfNeeded(ctx, msg.RollappId); err != nil {
-		return nil, err
+	proposer := k.GetProposer(ctx, msg.RollappId)
+	if proposer.Sentinel() {
+		if err := k.RecoverFromHalt(ctx, msg.RollappId); err != nil {
+			return nil, err
+		}
 	}
 
 	ctx.EventManager().EmitEvent(
