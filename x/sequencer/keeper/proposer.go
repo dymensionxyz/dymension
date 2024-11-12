@@ -39,35 +39,30 @@ func (k Keeper) RollappPotentialProposers(ctx sdk.Context, rollappId string) []t
 
 // RecoverFromHalt will assign a new proposer to the rollapp.
 // It will choose a new proposer from the list of potential proposers.
-// The rollapp must
+// The rollapp must be halted and with potential proposer available.
 func (k Keeper) RecoverFromHalt(ctx sdk.Context, rollapp string) error {
 	proposer := k.GetProposer(ctx, rollapp)
 
-	// a valid proposer is already set so there's no need to do anything
 	if !proposer.Sentinel() {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "proposer is not sentinel")
 	}
 
-	before := proposer
-	seqs := k.RollappPotentialProposers(ctx, rollapp)
-	successor, err := ProposerChoiceAlgo(seqs)
+	successor, err := ProposerChoiceAlgo(k.RollappPotentialProposers(ctx, rollapp))
 	if err != nil {
 		return err
 	}
 	if successor.Sentinel() {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "no valid proposer found")
 	}
-
 	k.SetProposer(ctx, rollapp, successor.Address)
-	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr) // clear successor
 
-	err = k.hooks.AfterRecoveryFromHalt(ctx, rollapp, before, successor)
+	err = k.hooks.AfterRecoveryFromHalt(ctx, rollapp, successor)
 	if err != nil {
 		return errorsmod.Wrap(err, "recovery from halt callbacks")
 	}
 	if err := uevent.EmitTypedEvent(ctx, &types.EventProposerChange{
 		Rollapp: rollapp,
-		Before:  before.Address,
+		Before:  types.SentinelSeqAddr,
 		After:   successor.Address,
 	}); err != nil {
 		return err

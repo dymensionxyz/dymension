@@ -42,7 +42,6 @@ func (k Keeper) TryUnbond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) e
 	if seq.Tokens.IsZero() {
 		k.unbond(ctx, seq)
 	}
-	k.SetSequencer(ctx, *seq)
 	return nil
 }
 

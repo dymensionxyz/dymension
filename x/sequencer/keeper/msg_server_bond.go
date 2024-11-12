@@ -17,17 +17,16 @@ func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBon
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		k.SetSequencer(ctx, seq)
-	}()
 
 	if err := k.validBondDenom(ctx, msg.AddAmount); err != nil {
 		return nil, err
 	}
 
+	// charge the user and modify the sequencer object
 	if err := k.sendToModule(ctx, &seq, msg.AddAmount); err != nil {
 		return nil, err
 	}
+	k.SetSequencer(ctx, seq)
 
 	// emit a typed event which includes the added amount and the active bond amount
 	return &types.MsgIncreaseBondResponse{}, uevent.EmitTypedEvent(ctx,
@@ -46,13 +45,11 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		k.SetSequencer(ctx, seq)
-	}()
 
 	if err := k.TryUnbond(ctx, &seq, msg.GetDecreaseAmount()); err != nil {
 		return nil, errorsmod.Wrap(err, "try unbond")
 	}
+	k.SetSequencer(ctx, seq)
 
 	return &types.MsgDecreaseBondResponse{}, nil
 }
@@ -63,9 +60,6 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		k.SetSequencer(ctx, seq)
-	}()
 
 	// ensures they will not get chosen as their own successor!
 	if err := seq.SetOptedIn(ctx, false); err != nil {
@@ -93,6 +87,8 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "try unbond")
 	}
+
+	k.SetSequencer(ctx, seq)
 
 	return &types.MsgUnbondResponse{}, nil
 }

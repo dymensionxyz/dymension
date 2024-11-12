@@ -14,7 +14,7 @@ type SequencerHooks struct {
 
 // AfterRecoveryFromHalt is called after a new sequencer is set the proposer for an halted rollapp.
 // We assume the rollapp had forked once halted
-func (h SequencerHooks) AfterRecoveryFromHalt(ctx sdk.Context, rollapp string, _, newSeq sequencertypes.Sequencer) error {
+func (h SequencerHooks) AfterRecoveryFromHalt(ctx sdk.Context, rollapp string, newSeq sequencertypes.Sequencer) error {
 	// Start the liveness clock from zero
 	// NOTE: it could make more sense if liveness was a property of the sequencer rather than the rollapp
 	// TODO: tech debt https://github.com/dymensionxyz/dymension/issues/1357
