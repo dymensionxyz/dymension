@@ -65,6 +65,7 @@ func (k Keeper) Claim(ctx sdk.Context, planId string, claimer sdk.AccAddress) er
 		PlanId:    planId,
 		RollappId: plan.RollappId,
 		Amount:    availableTokens.Amount,
+		Denom:     plan.GetIRODenom(),
 	})
 	if err != nil {
 		return err
