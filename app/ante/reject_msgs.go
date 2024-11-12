@@ -10,26 +10,44 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/cosmos/cosmos-sdk/x/group"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
 // RejectMessagesDecorator prevents invalid msg types from being executed
 type RejectMessagesDecorator struct {
-	disabledMsgTypeURLs map[string]struct{}
+	// message is rejected if any Predicate returns true
+	predicates []Predicate
+}
+
+// Predicate should return true if message is not allowed
+type Predicate = func(typeURL string, depth int) bool
+
+// Blocks any message with depth of depthMax OR MORE
+// Depth 0 is top level message
+// Depth 1 or more is wrapped in something
+func BlockTypeUrls(depthMax int, typeUrls ...string) Predicate {
+	block := make(map[string]struct{})
+	for _, url := range typeUrls {
+		block[url] = struct{}{}
+	}
+	return func(url string, depth int) bool {
+		_, ok := block[url]
+		return ok && depthMax <= depth
+	}
 }
 
 var _ sdk.AnteDecorator = RejectMessagesDecorator{}
 
-// NewRejectMessagesDecorator creates a decorator to block provided messages from reaching the mempool
-func NewRejectMessagesDecorator(disabledMsgTypeURLs ...string) RejectMessagesDecorator {
-	disabledMsgsMap := make(map[string]struct{})
-	for _, url := range disabledMsgTypeURLs {
-		disabledMsgsMap[url] = struct{}{}
+func NewRejectMessagesDecorator() *RejectMessagesDecorator {
+	return &RejectMessagesDecorator{
+		predicates: []Predicate{},
 	}
+}
 
-	return RejectMessagesDecorator{
-		disabledMsgTypeURLs: disabledMsgsMap,
-	}
+func (rmd *RejectMessagesDecorator) WithPredicate(p Predicate) *RejectMessagesDecorator {
+	rmd.predicates = append(rmd.predicates, p)
+	return rmd
 }
 
 // AnteHandle recursively rejects messages such as those that requires ethereum-specific authentication.
@@ -47,21 +65,22 @@ func (rmd RejectMessagesDecorator) AnteHandle(
 	return next(ctx, tx, simulate)
 }
 
-const maxNestedMsgs = 6
+const maxDepth = 6
 
-func (rmd RejectMessagesDecorator) checkMsgs(ctx sdk.Context, msgs []sdk.Msg, nestedMsgs int) error {
+// depth=0 means top level message
+func (rmd RejectMessagesDecorator) checkMsgs(ctx sdk.Context, msgs []sdk.Msg, depth int) error {
 	for _, msg := range msgs {
-		if err := rmd.checkMsg(ctx, msg, nestedMsgs); err != nil {
+		if err := rmd.checkMsg(ctx, msg, depth); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, nestedMsgs int) error {
-	typeURL := sdk.MsgTypeURL(msg)
-	if _, ok := rmd.disabledMsgTypeURLs[typeURL]; ok {
-		return fmt.Errorf("found disabled msg type: %s", typeURL)
+// depth=0 means top level message
+func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, depth int) error {
+	if depth >= maxDepth {
+		return fmt.Errorf("found more nested msgs than permitted. Limit is : %d", maxDepth)
 	}
 
 	if _, ok := msg.(*evmtypes.MsgEthereumTx); ok {
@@ -71,51 +90,40 @@ func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, nested
 		)
 	}
 
-	if nestedMsgs >= maxNestedMsgs {
-		return fmt.Errorf("found more nested msgs than permitted. Limit is : %d", maxNestedMsgs)
+	typeURL := sdk.MsgTypeURL(msg)
+	for _, pred := range rmd.predicates {
+		if pred(typeURL, depth) {
+			return gerrc.ErrInvalidArgument.Wrapf("disabled: %s", typeURL)
+		}
 	}
 
-	innerMsgs, err := extractMsgs(msg)
-	if err != nil {
-		return err
-	}
-	switch concreteMsg := msg.(type) {
+	var err error
+	var inner []sdk.Msg
+
+	switch m := msg.(type) {
 	case *authz.MsgExec:
-		nestedMsgs++
-		if err := rmd.checkMsgs(ctx, innerMsgs, nestedMsgs); err != nil {
-			return err
-		}
+		inner, err = m.GetMessages()
+	case *govtypesv1.MsgSubmitProposal:
+		inner, err = m.GetMsgs()
+	case *group.MsgSubmitProposal:
+		inner, err = m.GetMsgs()
 	case *authz.MsgGrant:
-		authorization, err := concreteMsg.GetAuthorization()
+		authorization, err := m.GetAuthorization()
 		if err != nil {
 			return err
 		}
-		url := authorization.MsgTypeURL()
-		if _, ok := rmd.disabledMsgTypeURLs[url]; ok {
-			return fmt.Errorf("granting disabled msg type: %s is not allowed", url)
-		}
-	case *govtypesv1.MsgSubmitProposal:
-		nestedMsgs++
-		if err := rmd.checkMsgs(ctx, innerMsgs, nestedMsgs); err != nil {
-			return err
-		}
-	case *group.MsgSubmitProposal:
-		nestedMsgs++
-		if err := rmd.checkMsgs(ctx, innerMsgs, nestedMsgs); err != nil {
-			return err
+		typeURL = authorization.MsgTypeURL()
+		for _, pred := range rmd.predicates {
+			if pred(typeURL, depth) {
+				return gerrc.ErrInvalidArgument.Wrapf("disabled grant: %s", typeURL)
+			}
 		}
 	default:
 	}
 
-	return nil
-}
+	if err != nil {
+		return err
+	}
 
-func extractMsgs(msg any) ([]sdk.Msg, error) {
-	if msgWithMsgs, ok := msg.(interface{ GetMsgs() ([]sdk.Msg, error) }); ok {
-		return msgWithMsgs.GetMsgs()
-	}
-	if msgWithMessages, ok := msg.(interface{ GetMessages() ([]sdk.Msg, error) }); ok {
-		return msgWithMessages.GetMessages()
-	}
-	return nil, nil
+	return rmd.checkMsgs(ctx, inner, depth+1)
 }

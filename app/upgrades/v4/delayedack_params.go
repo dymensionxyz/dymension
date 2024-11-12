@@ -12,7 +12,7 @@ func migrateDelayedAckParams(ctx sdk.Context, delayedAckKeeper delayedackkeeper.
 	params := delayedacktypes.DefaultParams()
 
 	// EpochIdentifier is the only one that hasn't changed
-	params.EpochIdentifier = delayedAckKeeper.GetParams(ctx).EpochIdentifier
+	params.EpochIdentifier = delayedAckKeeper.EpochIdentifier(ctx)
 
 	delayedAckKeeper.SetParams(ctx, params)
 }
