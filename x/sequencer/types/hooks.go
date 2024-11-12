@@ -3,7 +3,7 @@ package types
 import sdk "github.com/cosmos/cosmos-sdk/types"
 
 type Hooks interface {
-	AfterRecoveryFromHalt(ctx sdk.Context, rollapp string, before, after Sequencer)
+	AfterRecoveryFromHalt(ctx sdk.Context, rollapp string, before, after Sequencer) error
 	AfterKickProposer(ctx sdk.Context, kicked Sequencer) error
 }
 
@@ -11,7 +11,8 @@ var _ Hooks = NoOpHooks{}
 
 type NoOpHooks struct{}
 
-func (n NoOpHooks) AfterRecoveryFromHalt(ctx sdk.Context, rollapp string, before, after Sequencer) {
+func (n NoOpHooks) AfterRecoveryFromHalt(ctx sdk.Context, rollapp string, before, after Sequencer) error {
+	return nil
 }
 
 func (n NoOpHooks) AfterKickProposer(ctx sdk.Context, kicked Sequencer) error {
@@ -26,10 +27,14 @@ func NewMultiHooks(hooks ...Hooks) MultiHooks {
 	return MultiHooks(hooks)
 }
 
-func (m MultiHooks) AfterRecoveryFromHalt(ctx sdk.Context, rollapp string, before, after Sequencer) {
+func (m MultiHooks) AfterRecoveryFromHalt(ctx sdk.Context, rollapp string, before, after Sequencer) error {
 	for _, h := range m {
-		h.AfterRecoveryFromHalt(ctx, rollapp, before, after)
+		err := h.AfterRecoveryFromHalt(ctx, rollapp, before, after)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func (m MultiHooks) AfterKickProposer(ctx sdk.Context, kicked Sequencer) error {

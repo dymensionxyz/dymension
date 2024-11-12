@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
@@ -36,44 +37,39 @@ func (k Keeper) RollappPotentialProposers(ctx sdk.Context, rollappId string) []t
 	return append(seqs, k.SentinelSequencer(ctx))
 }
 
-// RecoverFromSentinelProposerIfNeeded will assign a proposer to the rollapp. It won't replace the incumbent proposer
-// if they are not sentinel. Otherwise it will prioritize a non sentinel successor. Finally, it
-// choose one based on an algorithm.
-// The result can be the sentinel sequencer.
-func (k Keeper) RecoverFromSentinelProposerIfNeeded(ctx sdk.Context, rollapp string) error {
+// RecoverFromHalt will assign a new proposer to the rollapp.
+// It will choose a new proposer from the list of potential proposers.
+// The rollapp must
+func (k Keeper) RecoverFromHalt(ctx sdk.Context, rollapp string) error {
 	proposer := k.GetProposer(ctx, rollapp)
 
 	// a valid proposer is already set so there's no need to do anything
 	if !proposer.Sentinel() {
-		return nil
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "proposer is not sentinel")
 	}
 
 	before := proposer
-	successor := k.GetSuccessor(ctx, rollapp)
-	// if successor is sentinel, we attempt to find a non sentinel successor
+	seqs := k.RollappPotentialProposers(ctx, rollapp)
+	successor, err := ProposerChoiceAlgo(seqs)
+	if err != nil {
+		return err
+	}
 	if successor.Sentinel() {
-		seqs := k.RollappPotentialProposers(ctx, rollapp)
-		next, err := ProposerChoiceAlgo(seqs)
-		if err != nil {
-			return err
-		}
-		successor = next
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "no valid proposer found")
 	}
 
 	k.SetProposer(ctx, rollapp, successor.Address)
-	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr)
+	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr) // clear successor
 
-	if !successor.Sentinel() {
-		k.hooks.AfterRecoveryFromHalt(ctx, rollapp, before, successor)
-
-		if err := uevent.EmitTypedEvent(ctx, &types.EventProposerChange{
-			Rollapp: rollapp,
-			Before:  before.Address,
-			After:   successor.Address,
-		}); err != nil {
-			return err
-		}
+	k.hooks.AfterRecoveryFromHalt(ctx, rollapp, before, successor)
+	if err := uevent.EmitTypedEvent(ctx, &types.EventProposerChange{
+		Rollapp: rollapp,
+		Before:  before.Address,
+		After:   successor.Address,
+	}); err != nil {
+		return err
 	}
+
 	return nil
 }
 

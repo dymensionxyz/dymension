@@ -41,18 +41,18 @@ func (k Keeper) TryKickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 	}
 	k.SetSequencer(ctx, kicker)
 
+	// this will choose kicker as next proposer, since he is the only opted in and bonded
+	// sequencer remaining.
+	if err := k.RecoverFromHalt(ctx, ra); err != nil {
+		return errorsmod.Wrap(err, "choose proposer")
+	}
+
 	if err := uevent.EmitTypedEvent(ctx, &types.EventKickedProposer{
 		Rollapp:  ra,
 		Kicker:   kicker.Address,
 		Proposer: proposer.Address,
 	}); err != nil {
 		return err
-	}
-
-	// this will choose kicker as next proposer, since he is the only opted in and bonded
-	// sequencer remaining.
-	if err := k.RecoverFromSentinelProposerIfNeeded(ctx, ra); err != nil {
-		return errorsmod.Wrap(err, "choose proposer")
 	}
 
 	return nil
