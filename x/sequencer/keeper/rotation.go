@@ -46,7 +46,7 @@ func (k Keeper) ChooseSuccessorForFinishedNotices(ctx sdk.Context, now time.Time
 	}
 	for _, seq := range seqs {
 		k.removeFromNoticeQueue(ctx, seq)
-		if err := k.setSuccessorForRollapp(ctx, seq.RollappId); err != nil {
+		if err := k.setSuccessorForRotatingRollapp(ctx, seq.RollappId); err != nil {
 			return errorsmod.Wrap(err, "choose successor")
 		}
 		successor := k.GetSuccessor(ctx, seq.RollappId)
@@ -86,7 +86,7 @@ func (k Keeper) OnProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) e
 	successor := k.GetSuccessor(ctx, rollapp)
 	k.SetProposer(ctx, rollapp, successor.Address)
 
-	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr)
+	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr) // clear successor
 
 	// if proposer is sentinel, prepare new revision for the rollapp
 	if successor.Sentinel() {
@@ -106,15 +106,10 @@ func (k Keeper) OnProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) e
 	return nil
 }
 
-// setSuccessorForRollapp will assign a successor. It won't replace an existing one.
+// setSuccessorForRotatingRollapp will assign a successor to the rollapp.
 // It will prioritize non sentinel
-func (k Keeper) setSuccessorForRollapp(ctx sdk.Context, rollapp string) error {
-	successor := k.GetSuccessor(ctx, rollapp)
-	if !successor.Sentinel() {
-		// a valid successor is already set so there's no need to do anything
-		return nil
-	}
-
+// called when a proposer has finished their notice period.
+func (k Keeper) setSuccessorForRotatingRollapp(ctx sdk.Context, rollapp string) error {
 	seqs := k.RollappPotentialProposers(ctx, rollapp)
 	successor, err := ProposerChoiceAlgo(seqs)
 	if err != nil {
