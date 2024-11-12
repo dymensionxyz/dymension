@@ -37,18 +37,6 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp is not past genesis bridge phase")
 	}
 
-	// validate we have state infos committed
-	sinfo, found := k.GetLatestStateInfo(ctx, msg.RollappId)
-	if !found {
-		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "no state info found")
-	}
-
-	// check whether the fraud height is already finalized
-	sinfo, found = k.GetLatestFinalizedStateInfo(ctx, msg.RollappId)
-	if found && sinfo.GetLatestHeight() >= msg.FraudHeight {
-		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "fraud height already finalized")
-	}
-
 	// punish the sequencer if needed
 	if msg.PunishSequencerAddress != "" {
 		err := k.sequencerKeeper.PunishSequencer(ctx, msg.PunishSequencerAddress, msg.MustRewardee())
@@ -57,6 +45,10 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 		}
 	}
 
+	// hard fork the rollapp
+	// it will revert the future pending states to the specified height
+	// and increment the revision number
+	// will fail if state already finalized
 	err := k.HardFork(ctx, msg.RollappId, msg.FraudHeight)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "hard fork")

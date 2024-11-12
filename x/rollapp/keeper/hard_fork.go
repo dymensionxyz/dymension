@@ -72,10 +72,11 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, newRevisi
 	// update the last state info before the fraud height
 	// it removes all block descriptors after the fraud height
 	// and sets the next proposer to the empty string
-	lastStateIdxToKeep, err := k.UpdateLastStateInfo(ctx, stateInfo, newRevisionHeight)
+	stateInfo, err = k.UpdateLastStateInfo(ctx, stateInfo, newRevisionHeight)
 	if err != nil {
 		return 0, errorsmod.Wrap(err, "update last state info")
 	}
+	lastStateIdxToKeep := stateInfo.StateInfoIndex.Index
 
 	// clear states updates post the fraud height
 	revertedStatesCount := 0                     // Counter for reverted state updates
@@ -114,10 +115,10 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, newRevisi
 }
 
 // UpdateLastStateInfo truncates the state info to the last valid block before the fraud height.
-// It returns the index of the last state info to keep.
-func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo, fraudHeight uint64) (uint64, error) {
+// It returns the last state
+func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo, fraudHeight uint64) (*types.StateInfo, error) {
 	if fraudHeight < stateInfo.StartHeight {
-		return 0, errorsmod.Wrapf(gerrc.ErrInternal, "state info start height is greater than fraud height")
+		return nil, errorsmod.Wrapf(gerrc.ErrInternal, "state info start height is greater than fraud height")
 	}
 
 	if stateInfo.StartHeight == fraudHeight {
@@ -125,7 +126,7 @@ func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo,
 		var ok bool
 		*stateInfo, ok = k.GetStateInfo(ctx, stateInfo.StateInfoIndex.RollappId, stateInfo.StateInfoIndex.Index-1)
 		if !ok {
-			return 0, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "no state info found for rollapp: %s", stateInfo.StateInfoIndex.RollappId)
+			return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "no state info found for rollapp: %s", stateInfo.StateInfoIndex.RollappId)
 		}
 	} else if stateInfo.GetLatestHeight() >= fraudHeight {
 		// Remove block descriptors until the one we need to rollback to
@@ -139,7 +140,7 @@ func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo,
 	// Update the state info in the keeper
 	stateInfo.NextProposer = ""
 	k.SetStateInfo(ctx, *stateInfo)
-	return stateInfo.StateInfoIndex.Index, nil
+	return stateInfo, nil
 }
 
 func (k Keeper) HardForkToLatest(ctx sdk.Context, rollappID string) error {
