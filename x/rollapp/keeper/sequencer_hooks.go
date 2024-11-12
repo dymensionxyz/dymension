@@ -31,6 +31,8 @@ func (h SequencerHooks) AfterRecoveryFromHalt(ctx sdk.Context, rollapp string, _
 	}
 	sInfo.NextProposer = newSeq.Address
 	h.Keeper.SetStateInfo(ctx, sInfo)
+
+	return nil
 }
 
 // AfterKickProposer is called after a sequencer is kicked from being a proposer.

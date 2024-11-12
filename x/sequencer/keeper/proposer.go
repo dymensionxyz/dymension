@@ -61,7 +61,10 @@ func (k Keeper) RecoverFromHalt(ctx sdk.Context, rollapp string) error {
 	k.SetProposer(ctx, rollapp, successor.Address)
 	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr) // clear successor
 
-	k.hooks.AfterRecoveryFromHalt(ctx, rollapp, before, successor)
+	err = k.hooks.AfterRecoveryFromHalt(ctx, rollapp, before, successor)
+	if err != nil {
+		return errorsmod.Wrap(err, "recovery from halt callbacks")
+	}
 	if err := uevent.EmitTypedEvent(ctx, &types.EventProposerChange{
 		Rollapp: rollapp,
 		Before:  before.Address,
