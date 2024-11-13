@@ -99,13 +99,13 @@ func (k Keeper) CanUnbond(ctx sdk.Context, seq sequencertypes.Sequencer) error {
 // PruneSignersAbove removes bookkeeping for all heights ABOVE h for given client
 // This should only be called after canonical client set
 func (k Keeper) PruneSignersAbove(ctx sdk.Context, client string, h uint64) error {
-	return k.pruneSigner(ctx, client, h, true)
+	return k.pruneSigners(ctx, client, h, true)
 }
 
 // PruneSignersBelow removes bookkeeping for all heights BELOW h for given clientId
 // This should only be called after canonical client set
 func (k Keeper) PruneSignersBelow(ctx sdk.Context, client string, h uint64) error {
-	return k.pruneSigner(ctx, client, h, false)
+	return k.pruneSigners(ctx, client, h, false)
 }
 
 // GetSigner returns the sequencer address who signed the header in the update
@@ -166,7 +166,7 @@ func (k Keeper) IsHardForkingInProgress(ctx sdk.Context, rollappID string) bool 
 	return ctx.KVStore(k.storeKey).Has(types.HardForkKey(rollappID))
 }
 
-func (k Keeper) pruneSigner(ctx sdk.Context, client string, h uint64, isAbove bool) error {
+func (k Keeper) pruneSigners(ctx sdk.Context, client string, h uint64, isAbove bool) error {
 	var rng *collections.PairRange[string, uint64]
 	if isAbove {
 		rng = collections.NewPrefixedPairRange[string, uint64](client).StartExclusive(h)
