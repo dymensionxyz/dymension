@@ -25,7 +25,7 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, newRe
 
 	// iterate over all consensus states and metadata in the client store
 	IterateConsensusStateDescending(cs, func(h exported.Height) bool {
-		// iterate until we pass the fraud height
+		// iterate until we pass the new revision height
 		if h.GetRevisionHeight() < newRevisionHeight {
 			return true
 		}
@@ -79,6 +79,8 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
 	}
 
 	setConsensusState(clientStore, k.cdc, clienttypes.NewHeight(1, height), &cs)
+	setConsensusMetadata(ctx, clientStore, clienttypes.NewHeight(1, height))
+
 	k.setHardForkResolved(ctx, rollappID)
 	return nil
 }

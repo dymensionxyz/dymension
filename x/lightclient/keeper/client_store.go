@@ -35,6 +35,25 @@ func setConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, height ex
 	clientStore.Set(key, val)
 }
 
+// setConsensusMetadata sets context time as processed time and set context height as processed height
+// as this is internal tendermint light client logic.
+// client state and consensus state will be set by client keeper
+// set iteration key to provide ability for efficient ordered iteration of consensus states.
+func setConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore, height exported.Height) {
+	setConsensusMetadataWithValues(clientStore, height, clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano()))
+}
+
+// setConsensusMetadataWithValues sets the consensus metadata with the provided values
+func setConsensusMetadataWithValues(
+	clientStore sdk.KVStore, height,
+	processedHeight exported.Height,
+	processedTime uint64,
+) {
+	ibctm.SetProcessedTime(clientStore, height, processedTime)
+	ibctm.SetProcessedHeight(clientStore, height, processedHeight)
+	ibctm.SetIterationKey(clientStore, height)
+}
+
 // deleteConsensusMetadata deletes the metadata stored for a particular consensus state.
 func deleteConsensusMetadata(clientStore sdk.KVStore, height exported.Height) {
 	deleteProcessedTime(clientStore, height)

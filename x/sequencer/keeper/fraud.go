@@ -23,14 +23,12 @@ func (k Keeper) TryKickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 	// clear the proposer
 	k.SetProposer(ctx, ra, types.SentinelSeqAddr)
 
-	err := k.TryUnbond(ctx, &proposer, proposer.TokensCoin())
-	if err != nil {
-		return errorsmod.Wrap(err, "try unbond")
-	}
+	// TODO: refund/burn if needed
+	k.unbond(ctx, &proposer)
 	k.SetSequencer(ctx, proposer)
 
 	// This will call hard fork on the rollapp, which will also optOut all sequencers
-	err = k.hooks.AfterKickProposer(ctx, proposer)
+	err := k.hooks.AfterKickProposer(ctx, proposer)
 	if err != nil {
 		return errorsmod.Wrap(err, "kick proposer callbacks")
 	}
