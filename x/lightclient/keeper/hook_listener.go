@@ -41,7 +41,7 @@ func (hook rollappHook) AfterUpdateState(
 
 	client, ok := hook.k.GetCanonicalClient(ctx, rollappId)
 	if !ok {
-		client, ok = hook.k.GetProspectiveCanonicalClient(ctx, rollappId, stateInfo.GetLatestHeight()-1)
+		client, ok = hook.k.FindMatchingClient(ctx, stateInfo)
 		if ok {
 			hook.k.SetCanonicalClient(ctx, rollappId, client)
 		}

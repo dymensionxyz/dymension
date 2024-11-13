@@ -124,9 +124,9 @@ func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo,
 	if stateInfo.StartHeight == fraudHeight {
 		// If fraud height is at the beginning of the state info, return the previous index to keep
 		var ok bool
-		*stateInfo, ok = k.GetStateInfo(ctx, stateInfo.StateInfoIndex.RollappId, stateInfo.StateInfoIndex.Index-1)
+		*stateInfo, ok = k.GetStateInfo(ctx, stateInfo.GetRollappId(), stateInfo.StateInfoIndex.Index-1)
 		if !ok {
-			return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "no state info found for rollapp: %s", stateInfo.StateInfoIndex.RollappId)
+			return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "no state info found for rollapp: %s", stateInfo.GetRollappId())
 		}
 	} else if stateInfo.GetLatestHeight() >= fraudHeight {
 		// Remove block descriptors until the one we need to rollback to

@@ -9,7 +9,6 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
@@ -74,18 +73,17 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	}
 
 	h := header.GetHeight().GetRevisionHeight()
-	stateInfos, err := i.getStateInfos(ctx, rollapp.RollappId, h)
+	sInfo, err := i.raK.FindStateInfoByHeight(ctx, rollapp.RollappId, h)
+	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
+
+		// the header is optimistic: the state update has not yet been received, so we save optimistically
+		return errorsmod.Wrap(i.k.SaveSigner(ctx, seq.Address, msg.ClientId, h), "save updater")
+	}
 	if err != nil {
-		return errorsmod.Wrap(err, "get state infos")
+		return errorsmod.Wrap(err, "find state info by height")
 	}
 
-	if stateInfos.containingHPlus1 != nil {
-		// the header is pessimistic: the state update has already been received, so we check the header doesn't mismatch
-		return errorsmod.Wrap(i.validateUpdatePessimistically(ctx, stateInfos, header.ConsensusState(), h), "validate pessimistic")
-	}
-
-	// the header is optimistic: the state update has not yet been received, so we save optimistically
-	return errorsmod.Wrap(i.k.SaveSigner(ctx, seq.Address, msg.ClientId, h), "save updater")
+	return errorsmod.Wrap(i.k.ValidateUpdatePessimistically(ctx, sInfo, header.ConsensusState(), h), "validate pessimistic")
 }
 
 var (
@@ -118,46 +116,4 @@ func getHeader(msg *ibcclienttypes.MsgUpdateClient) (*ibctm.Header, error) {
 		return nil, errNoHeader
 	}
 	return header, nil
-}
-
-// if containingHPlus1 is not nil then containingH also guaranteed to not be nil
-type stateInfos struct {
-	containingH      *rollapptypes.StateInfo
-	containingHPlus1 *rollapptypes.StateInfo
-}
-
-// getStateInfos gets state infos for h and h+1
-func (i IBCMessagesDecorator) getStateInfos(ctx sdk.Context, rollapp string, h uint64) (stateInfos, error) {
-	// Check if there are existing block descriptors for the given height of client state
-	s0, err := i.raK.FindStateInfoByHeight(ctx, rollapp, h)
-	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
-		return stateInfos{}, nil
-	}
-	if err != nil {
-		return stateInfos{}, err
-	}
-	s1 := s0
-	if !s1.ContainsHeight(h + 1) {
-		s1, err = i.raK.FindStateInfoByHeight(ctx, rollapp, h+1)
-		if errorsmod.IsOf(err, gerrc.ErrNotFound) {
-			return stateInfos{s0, nil}, nil
-		}
-		if err != nil {
-			return stateInfos{}, err
-		}
-	}
-	return stateInfos{s0, s1}, nil
-}
-
-func (i IBCMessagesDecorator) validateUpdatePessimistically(ctx sdk.Context, infos stateInfos, consState *ibctm.ConsensusState, h uint64) error {
-	bd, _ := infos.containingH.GetBlockDescriptor(h)
-	seq, err := i.k.SeqK.RealSequencer(ctx, infos.containingHPlus1.Sequencer)
-	if err != nil {
-		return errorsmod.Wrap(errors.Join(err, gerrc.ErrInternal), "get sequencer of state info")
-	}
-	rollappState := types.RollappState{
-		BlockDescriptor:    bd,
-		NextBlockSequencer: seq,
-	}
-	return errorsmod.Wrap(types.CheckCompatibility(*consState, rollappState), "check compatibility")
 }
