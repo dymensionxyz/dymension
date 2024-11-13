@@ -61,33 +61,39 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 		return nil, err
 	}
 
+	// not allowed to unbond immediately, need to serve a notice to allow the rollapp community to organise
+	// Also, if they already requested to unbond, we don't want to start another notice period, regardless
+	// of if their notice already elapsed or not.
+	if k.AwaitingLastProposerBlock(ctx, seq.RollappId) && (k.IsProposer(ctx, seq) || k.IsSuccessor(ctx, seq)) {
+		return nil, gerrc.ErrFailedPrecondition.Wrap("cannot unbond while rotation in progress")
+	}
+
 	// ensures they will not get chosen as their own successor!
 	if err := seq.SetOptedIn(ctx, false); err != nil {
 		return nil, err
 	}
-	err = k.TryUnbond(ctx, &seq, seq.TokensCoin())
-	if errorsmod.IsOf(err, types.ErrUnbondProposerOrSuccessor) {
-		// not allowed to unbond immediately, need to serve a notice to allow the rollapp community to organise
-		// Also, if they already requested to unbond, we don't want to start another notice period, regardless
-		// of if their notice already elapsed or not.
-		if k.IsSuccessor(ctx, seq) {
-			return nil, gerrc.ErrFailedPrecondition.Wrap("successor cannot unbond or start notice")
+
+	// now we know they are proposer
+	// avoid starting another notice unnecessarily
+	if k.IsProposer(ctx, seq) {
+		if seq.NoticeInProgress(ctx.BlockTime()) {
+			return nil, gerrc.ErrFailedPrecondition.Wrap("notice period in progress")
 		}
-		// now we know they are proposer
-		// avoid starting another notice unnecessarily
-		if !k.RotationInProgress(ctx, seq.RollappId) {
-			k.StartNoticePeriod(ctx, &seq)
-		}
+
+		k.StartNoticePeriod(ctx, &seq)
+		k.SetSequencer(ctx, seq)
 		return &types.MsgUnbondResponse{
 			CompletionTime: &types.MsgUnbondResponse_NoticePeriodCompletionTime{
 				NoticePeriodCompletionTime: &seq.NoticePeriodTime,
 			},
 		}, nil
+
 	}
+
+	err = k.TryUnbond(ctx, &seq, seq.TokensCoin())
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "try unbond")
 	}
-
 	k.SetSequencer(ctx, seq)
 
 	return &types.MsgUnbondResponse{}, nil

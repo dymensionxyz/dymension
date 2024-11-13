@@ -84,6 +84,8 @@ func (k Keeper) OnProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) e
 	rollapp := proposer.RollappId
 
 	successor := k.GetSuccessor(ctx, rollapp)
+	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr) // clear successor
+	k.SetProposer(ctx, rollapp, successor.Address)
 
 	// if proposer is sentinel, prepare new revision for the rollapp
 	if successor.Sentinel() {
@@ -91,11 +93,7 @@ func (k Keeper) OnProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) e
 		if err != nil {
 			return errorsmod.Wrap(err, "hard fork to latest")
 		}
-		return nil
 	}
-
-	k.SetProposer(ctx, rollapp, successor.Address)
-	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr) // clear successor
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
