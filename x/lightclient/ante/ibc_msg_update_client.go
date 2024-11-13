@@ -75,7 +75,6 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	h := header.GetHeight().GetRevisionHeight()
 	sInfo, err := i.raK.FindStateInfoByHeight(ctx, rollapp.RollappId, h)
 	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
-
 		// the header is optimistic: the state update has not yet been received, so we save optimistically
 		return errorsmod.Wrap(i.k.SaveSigner(ctx, seq.Address, msg.ClientId, h), "save updater")
 	}

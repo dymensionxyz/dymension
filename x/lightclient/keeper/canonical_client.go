@@ -102,7 +102,7 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.Client
 
 		// iterate until we pass the fraud height
 		if h.GetRevisionHeight() < minHeight {
-			return true
+			return true // break
 		}
 
 		consensusState, ok := k.ibcClientKeeper.GetClientConsensusState(ctx, clientID, h)
@@ -114,21 +114,14 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.Client
 			return false
 		}
 
-		var stateInfo *rollapptypes.StateInfo
-		stateInfo, err = k.rollappKeeper.FindStateInfoByHeight(ctx, rollappId, h.GetRevisionHeight())
-		if err != nil {
-			err = errorsmod.Wrapf(err, "find state info by height h: %d", h.GetRevisionHeight())
-			return true
-		}
-
-		err = k.ValidateUpdatePessimistically(ctx, stateInfo, tmConsensusState, h.GetRevisionHeight())
+		err = k.ValidateUpdatePessimistically(ctx, sInfo, tmConsensusState, h.GetRevisionHeight())
 		if err != nil {
 			err = errorsmod.Wrapf(err, "validate pessimistic h: %d", h.GetRevisionHeight())
-			return true
+			return true // break
 		}
 
 		atLeastOneMatch = true
-		return false
+		return true // break
 	})
 	// Need to be sure that at least one consensus state agrees with a state update
 	// (There are also no disagreeing consensus states. There may be some consensus states
@@ -144,7 +137,10 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.Client
 }
 
 func (k Keeper) ValidateUpdatePessimistically(ctx sdk.Context, sInfo *rollapptypes.StateInfo, consState *ibctm.ConsensusState, h uint64) error {
-	bd, _ := sInfo.GetBlockDescriptor(h)
+	bd, ok := sInfo.GetBlockDescriptor(h)
+	if !ok {
+		return errorsmod.Wrapf(gerrc.ErrInternal, "no block descriptor found for height %d", h)
+	}
 	nextSeq, err := k.SeqK.RealSequencer(ctx, sInfo.NextSequencerForHeight(h))
 	if err != nil {
 		return errorsmod.Wrap(errors.Join(err, gerrc.ErrInternal), "get sequencer of state info")
