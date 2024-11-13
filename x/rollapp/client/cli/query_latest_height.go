@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"context"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -34,7 +32,7 @@ func CmdShowLatestHeight() *cobra.Command {
 				Finalized: argFinalized,
 			}
 
-			res, err := queryClient.LatestHeight(context.Background(), req)
+			res, err := queryClient.LatestHeight(cmd.Context(), req)
 			if err != nil {
 				return err
 			}

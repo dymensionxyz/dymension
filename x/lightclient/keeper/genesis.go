@@ -3,6 +3,7 @@ package keeper
 import (
 	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
 
@@ -18,13 +19,18 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genesisState types.GenesisState) {
 			panic(err)
 		}
 	}
+	for _, key := range genesisState.HardForkKeys {
+		k.SetHardForkInProgress(ctx, key)
+	}
 }
 
 func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 	clients := k.GetAllCanonicalClients(ctx)
+	hardForkKeys := k.ListHardForkKeys(ctx)
 
 	ret := types.GenesisState{
 		CanonicalClients: clients,
+		HardForkKeys:     hardForkKeys,
 	}
 
 	if err := k.headerSigners.Walk(ctx, nil,

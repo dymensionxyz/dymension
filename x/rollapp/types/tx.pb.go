@@ -306,7 +306,7 @@ type MsgUpdateState struct {
 	BDs BlockDescriptors `protobuf:"bytes,7,opt,name=BDs,proto3" json:"BDs"`
 	// last is true if this is the last batch of the sequencer
 	Last bool `protobuf:"varint,8,opt,name=last,proto3" json:"last,omitempty"`
-	// rollapp_revision is the revision of the rollapp chain
+	// rollapp_revision is the revision of the rollapp chain. increases after hard fork
 	RollappRevision uint64 `protobuf:"varint,9,opt,name=rollapp_revision,json=rollappRevision,proto3" json:"rollapp_revision,omitempty"`
 }
 

@@ -40,7 +40,7 @@ type MsgRollappFraudProposal struct {
 	FraudHeight uint64 `protobuf:"varint,4,opt,name=fraud_height,json=fraudHeight,proto3" json:"fraud_height,omitempty"`
 	// sequencer address to punish. optional
 	PunishSequencerAddress string `protobuf:"bytes,6,opt,name=punish_sequencer_address,json=punishSequencerAddress,proto3" json:"punish_sequencer_address,omitempty"`
-	// rewardAddr is sdk acc addr
+	// rewardAddr is bech32 for sdk acc addr
 	Rewardee string `protobuf:"bytes,7,opt,name=rewardee,proto3" json:"rewardee,omitempty"`
 }
 
