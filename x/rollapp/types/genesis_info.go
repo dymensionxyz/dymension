@@ -2,7 +2,7 @@ package types
 
 import (
 	"errors"
-	fmt "fmt"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
@@ -48,10 +48,8 @@ func (gi GenesisInfo) Validate() error {
 		}
 	}
 
-	if !gi.InitialSupply.IsNil() {
-		if !gi.InitialSupply.IsPositive() {
-			return ErrInvalidInitialSupply
-		}
+	if !gi.InitialSupply.IsNil() && !gi.InitialSupply.IsPositive() {
+		return ErrInvalidInitialSupply
 	}
 
 	// validate max limit of genesis accounts
@@ -60,17 +58,22 @@ func (gi GenesisInfo) Validate() error {
 			return fmt.Errorf("too many genesis accounts: %d", len(gi.GenesisAccounts.Accounts))
 		}
 
+		accountSet := make(map[string]struct{})
 		for _, a := range gi.GenesisAccounts.Accounts {
 			if err := a.ValidateBasic(); err != nil {
 				return errors.Join(gerrc.ErrInvalidArgument, err)
 			}
+			if _, exists := accountSet[a.Address]; exists {
+				return fmt.Errorf("duplicate genesis account: %s", a.Address)
+			}
+			accountSet[a.Address] = struct{}{}
 		}
 	}
 	return nil
 }
 
 func (a GenesisAccount) ValidateBasic() error {
-	if !a.Amount.IsPositive() {
+	if !a.Amount.IsNil() && !a.Amount.IsPositive() {
 		return fmt.Errorf("invalid amount: %s %s", a.Address, a.Amount)
 	}
 

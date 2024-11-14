@@ -6,9 +6,10 @@ import (
 	"cosmossdk.io/math"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	"github.com/stretchr/testify/require"
+
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
@@ -158,6 +159,27 @@ func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
 					Receiver: "receiver",
 					Memo:     "",
 				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "duplicate genesis accounts",
+			data: genesisbridge.GenesisBridgeData{
+				GenesisInfo: genesisbridge.GenesisBridgeInfo{
+					GenesisChecksum: "checksum",
+					Bech32Prefix:    "prefix",
+					NativeDenom: types.DenomMetadata{
+						Base:     "base",
+						Display:  "display",
+						Exponent: 18,
+					},
+					InitialSupply: math.NewInt(1000),
+					GenesisAccounts: []types.GenesisAccount{
+						{Address: "dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58"},
+						{Address: "dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58"}, // duplicate account
+					},
+				},
+				NativeDenom: validMetadata,
 			},
 			wantErr: true,
 		},
