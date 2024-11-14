@@ -4,7 +4,7 @@ import sdk "github.com/cosmos/cosmos-sdk/types"
 
 type Hooks interface {
 	AfterRecoveryFromHalt(ctx sdk.Context, rollapp string, newProposer Sequencer) error
-	AfterKickProposer(ctx sdk.Context, kicked Sequencer) error
+	AfterKickProposer(ctx sdk.Context, rollapp string) error
 }
 
 var _ Hooks = NoOpHooks{}
@@ -15,7 +15,7 @@ func (n NoOpHooks) AfterRecoveryFromHalt(ctx sdk.Context, rollapp string, newPro
 	return nil
 }
 
-func (n NoOpHooks) AfterKickProposer(ctx sdk.Context, kicked Sequencer) error {
+func (n NoOpHooks) AfterKickProposer(ctx sdk.Context, rollapp string) error {
 	return nil
 }
 
@@ -37,9 +37,9 @@ func (m MultiHooks) AfterRecoveryFromHalt(ctx sdk.Context, rollapp string, newPr
 	return nil
 }
 
-func (m MultiHooks) AfterKickProposer(ctx sdk.Context, kicked Sequencer) error {
+func (m MultiHooks) AfterKickProposer(ctx sdk.Context, rollapp string) error {
 	for _, h := range m {
-		err := h.AfterKickProposer(ctx, kicked)
+		err := h.AfterKickProposer(ctx, rollapp)
 		if err != nil {
 			return err
 		}

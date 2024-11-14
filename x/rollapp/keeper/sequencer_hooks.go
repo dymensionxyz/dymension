@@ -37,8 +37,13 @@ func (h SequencerHooks) AfterRecoveryFromHalt(ctx sdk.Context, rollapp string, n
 
 // AfterKickProposer is called after a sequencer is kicked from being a proposer.
 // We hard fork the rollapp to the latest state so it'll be ready for the next proposer
-func (h SequencerHooks) AfterKickProposer(ctx sdk.Context, kicked sequencertypes.Sequencer) error {
-	err := h.Keeper.HardForkToLatest(ctx, kicked.RollappId)
+func (h SequencerHooks) AfterKickProposer(ctx sdk.Context, rollapp string) error {
+	// Start the liveness clock from zero
+	ra := h.Keeper.MustGetRollapp(ctx, rollapp)
+	h.Keeper.ResetLivenessClock(ctx, &ra)
+	h.Keeper.SetRollapp(ctx, ra)
+
+	err := h.Keeper.HardForkToLatest(ctx, rollapp)
 	if err != nil {
 		return errorsmod.Wrap(err, "hard fork to latest")
 	}
