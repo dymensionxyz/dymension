@@ -19,21 +19,13 @@ func (k Keeper) abruptRemoveSequencer(ctx sdk.Context, seq types.Sequencer) erro
 	}
 
 	ra := seq.RollappId
-	// clear the proposer
 	k.SetProposer(ctx, ra, types.SentinelSeqAddr)
 
 	k.unbond(ctx, &seq)
 	k.SetSequencer(ctx, seq)
 
 	// This will call hard fork on the rollapp, which will also optOut all sequencers
-	err := k.hooks.AfterKickProposer(ctx, seq)
-	if err != nil {
-		return errorsmod.Wrap(err, "kick proposer callbacks")
-	}
-
-	// this will choose kicker as next proposer, since he is the only opted in and bonded
-	// seq remaining.
-	return k.RecoverFromSentinel(ctx, ra)
+	return k.hooks.AfterKickProposer(ctx, seq)
 }
 
 func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
