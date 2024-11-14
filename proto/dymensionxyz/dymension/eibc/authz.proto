@@ -29,8 +29,8 @@ message RollappCriteria {
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 
-  // min_lp_fee_percentage is the minimum fee earning percentage the LP is willing to get from a demand order
-  cosmos.base.v1beta1.DecProto min_lp_fee_percentage = 4 [
+  // min_fee_percentage is the minimum gross fee earning percentage the LP is willing to get from a demand order
+  cosmos.base.v1beta1.DecProto min_fee_percentage = 4 [
     (gogoproto.nullable)     = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecProto"
   ];

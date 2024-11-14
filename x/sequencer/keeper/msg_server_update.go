@@ -57,7 +57,7 @@ func (k msgServer) UpdateOptInStatus(goCtx context.Context,
 	// maybe set as proposer if one is needed
 	proposer := k.GetProposer(ctx, seq.RollappId)
 	if proposer.Sentinel() {
-		if err := k.RecoverFromHalt(ctx, seq.RollappId); err != nil {
+		if err := k.RecoverFromSentinel(ctx, seq.RollappId); err != nil {
 			return nil, err
 		}
 	}

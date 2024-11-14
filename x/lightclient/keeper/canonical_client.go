@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -67,7 +68,7 @@ func (k Keeper) GetAllCanonicalClients(ctx sdk.Context) (clients []types.Canonic
 	return
 }
 
-func (k Keeper) expectedClient(ctx sdk.Context) ibctm.ClientState {
+func (k Keeper) expectedClient() ibctm.ClientState {
 	return types.DefaultExpectedCanonicalClientParams()
 }
 
@@ -86,7 +87,7 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.Client
 		return errChainIDMismatch
 	}
 
-	expClient := k.expectedClient(ctx)
+	expClient := k.expectedClient()
 	if err := types.IsCanonicalClientParamsValid(tmClientState, &expClient); err != nil {
 		return errorsmod.Wrap(err, "params")
 	}

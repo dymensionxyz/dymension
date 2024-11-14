@@ -37,10 +37,10 @@ func (k Keeper) RollappPotentialProposers(ctx sdk.Context, rollappId string) []t
 	return append(seqs, k.SentinelSequencer(ctx))
 }
 
-// RecoverFromHalt will assign a new proposer to the rollapp.
+// RecoverFromSentinel will assign a new proposer to the rollapp.
 // It will choose a new proposer from the list of potential proposers.
 // The rollapp must be halted and with potential proposer available.
-func (k Keeper) RecoverFromHalt(ctx sdk.Context, rollapp string) error {
+func (k Keeper) RecoverFromSentinel(ctx sdk.Context, rollapp string) error {
 	proposer := k.GetProposer(ctx, rollapp)
 
 	if !proposer.Sentinel() {

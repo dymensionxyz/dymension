@@ -52,21 +52,22 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, newRevisionHeight ui
 // returns the latest height of the state info
 func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, newRevisionHeight uint64) (uint64, error) {
 	// find the affected state info index
-	// use latest state info for future height
 	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, newRevisionHeight)
-	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
+	if err == nil {
+		// check the disputed state info is not already finalized
+		if stateInfo.Status == common.Status_FINALIZED {
+			return 0, errorsmod.Wrapf(types.ErrDisputeAlreadyFinalized, "state info for height %d is already finalized", newRevisionHeight)
+		}
+	} else if errorsmod.IsOf(err, gerrc.ErrNotFound) {
+		// if not found, it's a future height.
+		// use latest state info
 		s, ok := k.GetLatestStateInfo(ctx, rollappID)
 		if !ok {
 			return 0, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "no state info found for rollapp: %s", rollappID)
 		}
 		stateInfo = &s
-	} else if err != nil {
+	} else {
 		return 0, err
-	}
-
-	// check height is not finalized
-	if stateInfo.Status == common.Status_FINALIZED {
-		return 0, errorsmod.Wrapf(types.ErrDisputeAlreadyFinalized, "state info for height %d is already finalized", newRevisionHeight)
 	}
 
 	// update the last state info before the fraud height
@@ -124,9 +125,9 @@ func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo,
 	if stateInfo.StartHeight == fraudHeight {
 		// If fraud height is at the beginning of the state info, return the previous index to keep
 		var ok bool
-		*stateInfo, ok = k.GetStateInfo(ctx, stateInfo.GetRollappId(), stateInfo.StateInfoIndex.Index-1)
+		*stateInfo, ok = k.GetStateInfo(ctx, stateInfo.StateInfoIndex.RollappId, stateInfo.StateInfoIndex.Index-1)
 		if !ok {
-			return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "no state info found for rollapp: %s", stateInfo.GetRollappId())
+			return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "no state info found for rollapp: %s", stateInfo.StateInfoIndex.RollappId)
 		}
 	} else if stateInfo.GetLatestHeight() >= fraudHeight {
 		// Remove block descriptors until the one we need to rollback to

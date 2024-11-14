@@ -44,7 +44,7 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, newRe
 	}
 
 	// marks that hard fork is in progress
-	k.setHardForkInProgress(ctx, rollappId)
+	k.SetHardForkInProgress(ctx, rollappId)
 
 	// freeze the client
 	// it will be released after the hardfork is resolved (on the next state update)
