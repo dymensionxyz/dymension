@@ -21,7 +21,7 @@ const (
 	FlagExpiration          = "expiration"
 	FlagRollapp             = "rollapp"
 	FlagDenoms              = "denoms"
-	FlagMinLPFeePercentage  = "min-lp-fee-percentage"
+	FlagMinFeePercentage    = "min-fee-percentage"
 	FlagMaxPrice            = "max-price"
 	FlagOperatorFeeShare    = "operator-fee-share"
 	FlagSettlementValidated = "settlement-validated"
@@ -59,16 +59,16 @@ Examples:
 				return fmt.Errorf("failed to get denoms: %w", err)
 			}
 
-			minFeeStr, err := cmd.Flags().GetString(FlagMinLPFeePercentage)
+			minFeeStr, err := cmd.Flags().GetString(FlagMinFeePercentage)
 			if err != nil {
 				return fmt.Errorf("failed to get min fee: %w", err)
 			}
 
 			minFeePercDec, err := sdk.NewDecFromStr(minFeeStr)
 			if err != nil {
-				return fmt.Errorf("invalid min lp fee percentage: %w", err)
+				return fmt.Errorf("invalid min fee percentage: %w", err)
 			}
-			minLPFeePercent := sdk.DecProto{Dec: minFeePercDec}
+			minFeePercent := sdk.DecProto{Dec: minFeePercDec}
 
 			maxPriceStr, err := cmd.Flags().GetString(FlagMaxPrice)
 			if err != nil {
@@ -120,7 +120,7 @@ Examples:
 			rollappCriteria := types.NewRollappCriteria(
 				rollappID,
 				denoms,
-				minLPFeePercent,
+				minFeePercent,
 				maxPrice,
 				spendLimit,
 				fulfillerFeePart,
@@ -150,7 +150,7 @@ Examples:
 	cmd.Flags().StringSlice(FlagDenoms, []string{}, "An array of denoms allowed to use")
 	cmd.Flags().String(FlagSpendLimit, "", "An array of Coins allowed to spend")
 	cmd.Flags().Bool(FlagSettlementValidated, false, "Settlement validated flag")
-	cmd.Flags().String(FlagMinLPFeePercentage, "", "Minimum fee")
+	cmd.Flags().String(FlagMinFeePercentage, "", "Minimum fee")
 	cmd.Flags().String(FlagMaxPrice, "", "Maximum price")
 	cmd.Flags().String(FlagOperatorFeeShare, "", "Fulfiller fee part")
 	cmd.Flags().Int64(FlagExpiration, 0, "Expire time as Unix timestamp. Set zero (0) for no expiry. Default is 0.")
