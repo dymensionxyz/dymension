@@ -50,6 +50,12 @@ func (s *KeeperTestHelper) CreateDefaultRollapp() string {
 	return rollappId
 }
 
+func (s *KeeperTestHelper) EnableRollappTransfers(ra string) {
+	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, ra)
+	rollapp.GenesisState.TransfersEnabled = true
+	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+}
+
 func (s *KeeperTestHelper) CreateRollappByName(name string) {
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:          alice,

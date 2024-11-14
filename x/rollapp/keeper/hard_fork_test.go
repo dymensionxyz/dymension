@@ -59,6 +59,7 @@ func (suite *RollappTestSuite) TestHardFork() {
 			for i := uint64(0); i < numOfSequencers-1; i++ {
 				_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 			}
+			suite.EnableRollappTransfers(rollappId)
 
 			// send state updates
 			lastHeight = 1

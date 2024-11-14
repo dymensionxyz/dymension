@@ -25,7 +25,7 @@ func (k Keeper) abruptRemoveSequencer(ctx sdk.Context, seq types.Sequencer) erro
 	k.SetSequencer(ctx, seq)
 
 	// This will call hard fork on the rollapp, which will also optOut all sequencers
-	return k.hooks.AfterKickProposer(ctx, seq)
+	return k.hooks.AfterKickProposer(ctx, ra)
 }
 
 func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {

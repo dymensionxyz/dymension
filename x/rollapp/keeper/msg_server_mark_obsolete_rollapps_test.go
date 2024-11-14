@@ -125,7 +125,7 @@ func (s *RollappTestSuite) TestMarkObsoleteRollapps() {
 
 				// create a new update
 				_, err := s.PostStateUpdateWithDRSVersion(s.Ctx, ra.name, proposer, 1, uint64(3), ra.drsVersion)
-				s.Require().Nil(err)
+				s.Require().NoError(err)
 
 				// fill lists with expectations
 				if _, obsolete := obsoleteVersions[ra.drsVersion]; obsolete {
