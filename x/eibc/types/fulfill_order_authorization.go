@@ -19,7 +19,7 @@ func NewFulfillOrderAuthorization(rollapps []*RollappCriteria) *FulfillOrderAuth
 func NewRollappCriteria(
 	rollappID string,
 	denoms []string,
-	minLPFeePercentage sdk.DecProto,
+	minFeePercentage sdk.DecProto,
 	maxPrice sdk.Coins,
 	spendLimit sdk.Coins,
 	fulfillerFeePart sdk.DecProto,
@@ -28,7 +28,7 @@ func NewRollappCriteria(
 	return &RollappCriteria{
 		RollappId:           rollappID,
 		Denoms:              denoms,
-		MinLpFeePercentage:  minLPFeePercentage,
+		MinFeePercentage:    minFeePercentage,
 		MaxPrice:            maxPrice,
 		SpendLimit:          spendLimit,
 		OperatorFeeShare:    fulfillerFeePart,
@@ -97,16 +97,14 @@ func (a FulfillOrderAuthorization) Accept(
 			errorsmod.Wrapf(errors.ErrInvalidCoins, "invalid fee amount: %s", err)
 	}
 
-	operatorFee := orderFeeDec.Mul(matchedCriteria.OperatorFeeShare.Dec)
 	amountDec := mFulfill.Price[0].Amount.Add(orderFeeDec.RoundInt()).ToLegacyDec()
-	minLPFee := amountDec.Mul(matchedCriteria.MinLpFeePercentage.Dec)
-	lpFee := orderFeeDec.Sub(operatorFee)
+	minFee := amountDec.Mul(matchedCriteria.MinFeePercentage.Dec)
 
-	if lpFee.LT(minLPFee) {
+	if orderFeeDec.LT(minFee) {
 		return authz.AcceptResponse{},
 			errorsmod.Wrapf(errors.ErrUnauthorized,
-				"order LP fee %s is less than minimum LP fee %s",
-				lpFee.String(), minLPFee.String())
+				"order fee %s is less than minimum fee %s",
+				orderFeeDec.String(), minFee.String())
 	}
 
 	// Check if the order price does not exceed the max price
@@ -186,9 +184,9 @@ func (a FulfillOrderAuthorization) ValidateBasic() error {
 		}
 		rollappIDSet[criteria.RollappId] = struct{}{}
 
-		// Validate MinLpFeePercentage
-		if !criteria.MinLpFeePercentage.Dec.IsNil() && criteria.MinLpFeePercentage.Dec.IsNegative() {
-			return errorsmod.Wrapf(errors.ErrInvalidRequest, "min_lp_fee_percentage cannot be negative for rollapp_id %s", criteria.RollappId)
+		// Validate MinFeePercentage
+		if !criteria.MinFeePercentage.Dec.IsNil() && criteria.MinFeePercentage.Dec.IsNegative() {
+			return errorsmod.Wrapf(errors.ErrInvalidRequest, "min_fee_percentage cannot be negative for rollapp_id %s", criteria.RollappId)
 		}
 
 		// Validate OperatorFeeShare
