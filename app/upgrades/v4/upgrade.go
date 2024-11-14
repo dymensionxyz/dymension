@@ -317,7 +317,6 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		Owner:        oldRollapp.Owner,
 		GenesisState: oldRollapp.GenesisState,
 		ChannelId:    oldRollapp.ChannelId,
-		Frozen:       oldRollapp.Frozen,
 		Metadata: &rollapptypes.RollappMetadata{ // Can be updated in runtime
 			Website:     "",
 			Description: "",
@@ -336,6 +335,8 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		PreLaunchTime:         nil,                      // We can just let it be zero. Existing rollapps are already launched.
 		LivenessEventHeight:   0,                        // Filled lazily in runtime
 		LastStateUpdateHeight: 0,                        // Filled lazily in runtime
+		RevisionNumber:        0,
+		RevisionStartHeight:   0,
 	}
 }
 

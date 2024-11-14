@@ -19,10 +19,13 @@ import (
 )
 
 type Keeper struct {
-	cdc        codec.Codec
-	storeKey   storetypes.StoreKey
-	hooks      types.MultiDelayedAckHooks
-	paramstore paramtypes.Subspace
+	rollapptypes.StubRollappCreatedHooks
+
+	cdc                   codec.Codec
+	storeKey              storetypes.StoreKey
+	channelKeeperStoreKey storetypes.StoreKey // we need direct access to the IBC channel store
+	hooks                 types.MultiDelayedAckHooks
+	paramstore            paramtypes.Subspace
 
 	// pendingPacketsByAddress is an index of all pending packets associated with a Hub address.
 	// In case of ON_RECV packet (Rollapp -> Hub), the address is the packet receiver.
@@ -39,6 +42,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.Codec,
 	storeKey storetypes.StoreKey,
+	channelKeeperStoreKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	rollappKeeper types.RollappKeeper,
 	ics4Wrapper porttypes.ICS4Wrapper,
@@ -50,9 +54,10 @@ func NewKeeper(
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 	return &Keeper{
-		cdc:        cdc,
-		storeKey:   storeKey,
-		paramstore: ps,
+		cdc:                   cdc,
+		storeKey:              storeKey,
+		channelKeeperStoreKey: channelKeeperStoreKey,
+		paramstore:            ps,
 		pendingPacketsByAddress: collections.NewKeySet(
 			collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey)),
 			collections.NewPrefix(types.PendingPacketsByAddressKeyPrefix),
@@ -73,17 +78,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // expose codec to be used by the delayedack middleware
 func (k Keeper) Cdc() codec.Codec {
 	return k.cdc
-}
-
-func (k Keeper) getRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint64, error) {
-	// GetLatestFinalizedStateIndex
-	latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, chainID)
-	if !found {
-		return 0, rollapptypes.ErrNoFinalizedStateYetForRollapp
-	}
-
-	stateInfo := k.rollappKeeper.MustGetStateInfo(ctx, chainID, latestFinalizedStateIndex.Index)
-	return stateInfo.StartHeight + stateInfo.NumBlocks - 1, nil
 }
 
 /* -------------------------------------------------------------------------- */

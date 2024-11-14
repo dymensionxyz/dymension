@@ -16,7 +16,7 @@ func (k Keeper) ObsoleteDRSVersions(goCtx context.Context, req *types.QueryObsol
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	versions, err := k.GetAllVulnerableDRSVersions(ctx)
+	versions, err := k.GetAllObsoleteDRSVersions(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

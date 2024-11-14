@@ -46,6 +46,8 @@ func NewRollapp(
 		GenesisState: RollappGenesisState{
 			TransfersEnabled: transfersEnabled,
 		},
+		RevisionNumber:      0,
+		RevisionStartHeight: 0,
 	}
 }
 
@@ -97,10 +99,6 @@ func (r Rollapp) AllImmutableFieldsAreSet() bool {
 
 func (r Rollapp) GenesisInfoFieldsAreSet() bool {
 	return r.GenesisInfo.AllSet()
-}
-
-func (r Rollapp) IsVulnerable() bool {
-	return r.Frozen
 }
 
 func validateInitialSequencer(initialSequencer string) error {

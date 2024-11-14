@@ -53,7 +53,7 @@ func (suite *RollappTestSuite) SetupTest() {
 	queryClient := types.NewQueryClient(queryHelper)
 
 	suite.App = app
-	suite.msgServer = keeper.NewMsgServerImpl(*app.RollappKeeper)
+	suite.msgServer = keeper.NewMsgServerImpl(app.RollappKeeper)
 	suite.seqMsgServer = sequencerkeeper.NewMsgServerImpl(app.SequencerKeeper)
 	suite.Ctx = ctx
 	suite.queryClient = queryClient
@@ -72,14 +72,13 @@ func TestRollappKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(RollappTestSuite))
 }
 
-func (suite *RollappTestSuite) IsRollappVulnerable(rollappID string) bool {
-	ra, ok := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
-	suite.Require().True(ok)
-	return ra.IsVulnerable()
+func (suite *RollappTestSuite) assertNotForked(rollappID string) {
+	rollapp, _ := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
+	suite.Zero(rollapp.RevisionNumber)
 }
 
 func (suite *RollappTestSuite) GetRollappLastHeight(rollappID string) uint64 {
 	stateInfo, ok := suite.App.RollappKeeper.GetLatestStateInfo(suite.Ctx, rollappID)
 	suite.Require().True(ok)
-	return stateInfo.GetLatestHeight() + 1
+	return stateInfo.GetLatestHeight()
 }

@@ -7,14 +7,18 @@ import (
 )
 
 func (s *SequencerTestSuite) TestKickProposerBasicFlow() {
+	s.App.RollappKeeper.SetHooks(nil)
 	ra := s.createRollapp()
 	seqAlice := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
 	s.Require().True(s.k().IsProposer(s.Ctx, seqAlice))
 
+	_, err := s.PostStateUpdate(s.Ctx, ra.RollappId, seqAlice.Address, 1, 10)
+	s.Require().NoError(err)
+
 	// bob tries to kick alice but he doesn't have a sequencer
 	m := &types.MsgKickProposer{Creator: pkAddr(bob)}
-	_, err := s.msgServer.KickProposer(s.Ctx, m)
-	utest.IsErr(s.Require(), err, gerrc.ErrNotFound)
+	_, err = s.msgServer.KickProposer(s.Ctx, m)
+	utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
 
 	// bob creates a sequencer
 	seqBob := s.createSequencerWithBond(s.Ctx, ra.RollappId, bob, bond)
@@ -30,7 +34,7 @@ func (s *SequencerTestSuite) TestKickProposerBasicFlow() {
 	seqBob.Status = types.Bonded
 	s.k().SetSequencer(s.Ctx, seqBob)
 	_, err = s.msgServer.KickProposer(s.Ctx, m)
-	s.Require().NoError(err)
+	s.Require().Error(err)
 	s.Require().True(s.k().IsProposer(s.Ctx, seqAlice))
 	s.Require().False(s.k().IsProposer(s.Ctx, seqBob))
 

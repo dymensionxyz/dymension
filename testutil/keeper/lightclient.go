@@ -97,6 +97,11 @@ type MockIBCCLientKeeper struct {
 	clientStates         map[string]exported.ClientState
 }
 
+// ClientStore implements types.IBCClientKeeperExpected.
+func (m *MockIBCCLientKeeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore {
+	panic("unimplemented")
+}
+
 func NewMockIBCClientKeeper(
 	clientCS map[string]map[uint64]exported.ConsensusState,
 	genesisClients map[string]exported.ClientState,
@@ -164,8 +169,9 @@ func (m *MockSequencerKeeper) RollappSequencers(ctx sdk.Context, rollappId strin
 	return seqs
 }
 
-func (m *MockSequencerKeeper) UnbondingTime(ctx sdk.Context) (res time.Duration) {
-	return types.DefaultExpectedCanonicalClientParams().UnbondingPeriod
+// GetProposer implements types.SequencerKeeperExpected.
+func (m *MockSequencerKeeper) GetProposer(ctx sdk.Context, rollappId string) (val sequencertypes.Sequencer) {
+	panic("unimplemented")
 }
 
 func NewMockSequencerKeeper(sequencers map[string]*sequencertypes.Sequencer) *MockSequencerKeeper {
@@ -175,6 +181,11 @@ func NewMockSequencerKeeper(sequencers map[string]*sequencertypes.Sequencer) *Mo
 }
 
 type MockRollappKeeper struct{}
+
+// GetLatestStateInfo implements types.RollappKeeperExpected.
+func (m *MockRollappKeeper) GetLatestStateInfo(ctx sdk.Context, rollappId string) (rollapptypes.StateInfo, bool) {
+	panic("unimplemented")
+}
 
 func NewMockRollappKeeper() *MockRollappKeeper {
 	return &MockRollappKeeper{}
@@ -195,6 +206,6 @@ func (m *MockRollappKeeper) GetStateInfo(ctx sdk.Context, rollappId string, inde
 func (m *MockRollappKeeper) SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp) {
 }
 
-func (m *MockRollappKeeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHeight uint64, seqAddr string) error {
+func (m *MockRollappKeeper) HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) error {
 	return nil
 }

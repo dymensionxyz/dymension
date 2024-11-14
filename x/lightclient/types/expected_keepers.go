@@ -20,8 +20,8 @@ type SequencerKeeperExpected interface {
 type RollappKeeperExpected interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
 	FindStateInfoByHeight(ctx sdk.Context, rollappId string, height uint64) (*rollapptypes.StateInfo, error)
+	GetLatestStateInfo(ctx sdk.Context, rollappId string) (rollapptypes.StateInfo, bool)
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
-	HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHeight uint64, seqAddr string) error
 }
 
 type IBCClientKeeperExpected interface {
@@ -29,6 +29,7 @@ type IBCClientKeeperExpected interface {
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
 	IterateClientStates(ctx sdk.Context, prefix []byte, cb func(clientID string, cs exported.ClientState) bool)
 	ConsensusStateHeights(c context.Context, req *ibcclienttypes.QueryConsensusStateHeightsRequest) (*ibcclienttypes.QueryConsensusStateHeightsResponse, error)
+	ClientStore(ctx sdk.Context, clientID string) sdk.KVStore
 }
 
 type IBCChannelKeeperExpected interface {

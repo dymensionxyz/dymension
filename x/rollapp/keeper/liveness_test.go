@@ -180,6 +180,11 @@ type livenessMockSequencerKeeper struct {
 	slashes map[string]int
 }
 
+func (l livenessMockSequencerKeeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
+	// TODO implement me
+	panic("implement me")
+}
+
 func newLivenessMockSequencerKeeper() livenessMockSequencerKeeper {
 	return livenessMockSequencerKeeper{
 		make(map[string]int),

@@ -696,6 +696,12 @@ type mockRollappKeeper struct {
 	err              error
 }
 
+// ClearRegisteredDenoms implements types.RollappKeeper.
+func (m *mockRollappKeeper) ClearRegisteredDenoms(ctx sdk.Context, rollappID string) error {
+	m.registeredDenoms = make(map[string]struct{})
+	return nil
+}
+
 func (m *mockRollappKeeper) SetRollapp(_ sdk.Context, rollapp rollapptypes.Rollapp) {
 	m.returnRollapp = &rollapp
 }

@@ -9,21 +9,13 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-type AccountKeeper interface {
-	GetModuleAddress(name string) sdk.AccAddress
-}
-
-type IBCClientKeeper interface {
-	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
-	SetClientState(ctx sdk.Context, clientID string, clientState exported.ClientState)
-}
-
 type ChannelKeeper interface {
 	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
 }
 
 type SequencerKeeper interface {
 	SlashLiveness(ctx sdk.Context, rollappID string) error
+	PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error
 	GetProposer(ctx sdk.Context, rollappId string) types.Sequencer
 }
 

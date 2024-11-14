@@ -51,9 +51,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 			panic(err)
 		}
 	}
-	// Set all the vulnerable DRS versions
-	for _, elem := range genState.VulnerableDrsVersions {
-		err := k.SetVulnerableDRSVersion(ctx, elem)
+	// Set all the obsolete DRS versions
+	for _, elem := range genState.ObsoleteDrsVersions {
+		err := k.SetObsoleteDRSVersion(ctx, elem)
 		if err != nil {
 			panic(err)
 		}
@@ -102,11 +102,11 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		panic(err)
 	}
 
-	drsVersions, err := k.GetAllVulnerableDRSVersions(ctx)
+	drsVersions, err := k.GetAllObsoleteDRSVersions(ctx)
 	if err != nil {
 		panic(err)
 	}
-	genesis.VulnerableDrsVersions = drsVersions
+	genesis.ObsoleteDrsVersions = drsVersions
 
 	return genesis
 }

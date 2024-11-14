@@ -23,8 +23,8 @@ message GenesisState {
   repeated App appList = 8 [(gogoproto.nullable) = false];
   repeated RollappRegisteredDenoms registeredDenoms = 9 [(gogoproto.nullable) = false];
   repeated SequencerHeightPair sequencerHeightPairs = 10 [(gogoproto.nullable) = false];
-  // VulnerableDrsVersions is a list of DRS versions that are marked vulnerable
-  repeated uint32 vulnerable_drs_versions = 11;
+  // ObsoleteDrsVersions is a list of DRS versions that are marked obsolete
+  repeated uint32 obsolete_drs_versions = 11;
 }
 
 message SequencerHeightPair {
@@ -34,5 +34,5 @@ message SequencerHeightPair {
 
 message RollappRegisteredDenoms {
   string rollapp_id = 1;
-  repeated string denoms = 2 [(gogoproto.nullable) = false];
+  repeated string denoms = 2;
 }

@@ -49,11 +49,15 @@ func (s *SequencerTestSuite) TestRotationHappyFlow() {
 
 // A wants to rotate but there is no B to take over. Proposer should be sentinel afterwards.
 func (s *SequencerTestSuite) TestRotationNoSuccessor() {
+	s.App.RollappKeeper.SetHooks(nil)
 	// init
 	ra := s.createRollapp()
 	s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
 	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(alice)))
 	s.Require().True(s.k().IsSuccessor(s.Ctx, s.k().SentinelSequencer(s.Ctx)))
+
+	_, err := s.PostStateUpdate(s.Ctx, ra.RollappId, s.seq(alice).Address, 1, 10)
+	s.Require().NoError(err)
 
 	// proposer tries to unbond
 	mUnbond := &types.MsgUnbond{Creator: pkAddr(alice)}

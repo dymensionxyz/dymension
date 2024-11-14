@@ -34,15 +34,13 @@ type Keeper struct {
 	paramstore paramtypes.Subspace
 	authority  string // authority is the x/gov module account
 
-	accKeeper             AccountKeeper
-	ibcClientKeeper       IBCClientKeeper
 	canonicalClientKeeper CanonicalLightClientKeeper
 	channelKeeper         ChannelKeeper
 	sequencerKeeper       SequencerKeeper
 	bankKeeper            BankKeeper
 	transferKeeper        TransferKeeper
 
-	vulnerableDRSVersions   collections.KeySet[uint32]
+	obsoleteDRSVersions     collections.KeySet[uint32]
 	registeredRollappDenoms collections.KeySet[collections.Pair[string, string]]
 	// finalizationQueue is a map from creation height and rollapp to the finalization queue.
 	// Key: (creation height, rollappID), Value: state indexes to finalize.
@@ -58,9 +56,7 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
-	ak AccountKeeper,
 	channelKeeper ChannelKeeper,
-	ibcclientKeeper IBCClientKeeper,
 	sequencerKeeper SequencerKeeper,
 	bankKeeper BankKeeper,
 	transferKeeper TransferKeeper,
@@ -86,15 +82,13 @@ func NewKeeper(
 		hooks:           nil,
 		channelKeeper:   channelKeeper,
 		authority:       authority,
-		accKeeper:       ak,
-		ibcClientKeeper: ibcclientKeeper,
 		sequencerKeeper: sequencerKeeper,
 		bankKeeper:      bankKeeper,
 		transferKeeper:  transferKeeper,
-		vulnerableDRSVersions: collections.NewKeySet(
+		obsoleteDRSVersions: collections.NewKeySet(
 			sb,
-			collections.NewPrefix(types.VulnerableDRSVersionsKeyPrefix),
-			"vulnerable_drs_versions",
+			collections.NewPrefix(types.ObsoleteDRSVersionsKeyPrefix),
+			"obsolete_drs_versions",
 			collections.Uint32Key,
 		),
 		registeredRollappDenoms: collections.NewKeySet[collections.Pair[string, string]](
@@ -152,9 +146,6 @@ func (k *Keeper) SetCanonicalClientKeeper(kk CanonicalLightClientKeeper) {
 /* -------------------------------------------------------------------------- */
 
 func (k *Keeper) SetHooks(sh types.MultiRollappHooks) {
-	if k.hooks != nil {
-		panic("cannot set rollapp hooks twice")
-	}
 	k.hooks = sh
 }
 

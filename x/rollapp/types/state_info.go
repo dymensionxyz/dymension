@@ -46,7 +46,10 @@ func (s *StateInfo) GetIndex() StateInfoIndex {
 }
 
 func (s *StateInfo) GetLatestHeight() uint64 {
-	return s.StartHeight + s.NumBlocks - 1
+	if s.StartHeight+s.NumBlocks > 0 {
+		return s.StartHeight + s.NumBlocks - 1
+	}
+	return 0
 }
 
 func (s *StateInfo) ContainsHeight(height uint64) bool {

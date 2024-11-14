@@ -22,7 +22,6 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 		update          *types.MsgUpdateRollappInformation
 		rollappLaunched bool
 		genInfoSealed   bool
-		frozen          bool
 		expError        error
 		expRollapp      types.Rollapp
 	}{
@@ -79,15 +78,6 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				InitialSequencer: initialSequencerAddress,
 			},
 			expError: sdkerrors.ErrUnauthorized,
-		}, {
-			name: "Update rollapp: fail - try to update a frozen rollapp",
-			update: &types.MsgUpdateRollappInformation{
-				Owner:            alice,
-				RollappId:        rollappId,
-				InitialSequencer: initialSequencerAddress,
-			},
-			frozen:   true,
-			expError: types.ErrRollappFrozen,
 		}, {
 			name: "Update rollapp: fail - try to update InitialSequencer when launched",
 			update: &types.MsgUpdateRollappInformation{
@@ -162,7 +152,6 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Owner:            alice,
 				InitialSequencer: "",
 				ChannelId:        "",
-				Frozen:           false,
 				Launched:         true,
 				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
@@ -201,7 +190,6 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Owner:            alice,
 				InitialSequencer: "",
 				ChannelId:        "",
-				Frozen:           false,
 				Launched:         false,
 				VmType:           types.Rollapp_EVM,
 				Metadata:         &mockRollappMetadata,
@@ -236,7 +224,6 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Owner:            alice,
 				InitialSequencer: "",
 				ChannelId:        "",
-				Frozen:           tc.frozen,
 				Launched:         tc.rollappLaunched,
 				VmType:           types.Rollapp_EVM,
 				Metadata: &types.RollappMetadata{
