@@ -43,7 +43,7 @@ func (s *SequencerTestSuite) TestPunishSequencer() {
 		s.k().SetProposer(s.Ctx, ra.RollappId, seq.Address)
 		s.Require().False(s.k().Kickable(s.Ctx, seq))
 
-		err := s.k().PunishSequencer(s.Ctx, seq.Address, nil)
+		err := s.k().Slash(s.Ctx, seq.Address, nil)
 		s.Require().NoError(err)
 
 		seq = s.seq(alice)
@@ -55,7 +55,7 @@ func (s *SequencerTestSuite) TestPunishSequencer() {
 		seq := s.seq(bob)
 
 		s.k().SetProposer(s.Ctx, ra.RollappId, seq.Address)
-		err := s.k().PunishSequencer(s.Ctx, seq.Address, nil)
+		err := s.k().Slash(s.Ctx, seq.Address, nil)
 		s.Require().NoError(err)
 
 		seq = s.seq(bob)
@@ -70,7 +70,7 @@ func (s *SequencerTestSuite) TestPunishSequencer() {
 		rewardeeBalBefore := s.App.BankKeeper.GetAllBalances(s.Ctx, rewardee)
 
 		s.k().SetProposer(s.Ctx, ra.RollappId, seq.Address)
-		err := s.k().PunishSequencer(s.Ctx, seq.Address, &rewardee)
+		err := s.k().Slash(s.Ctx, seq.Address, &rewardee)
 		s.Require().NoError(err)
 
 		seq = s.seq(charlie)

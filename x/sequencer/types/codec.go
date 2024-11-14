@@ -18,6 +18,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgKickProposer{}, "sequencer/KickProposer", nil)
 	cdc.RegisterConcrete(&MsgUpdateOptInStatus{}, "sequencer/UpdateOtpInStatus", nil)
 	cdc.RegisterConcrete(&MsgUpdateParams{}, "sequencer/UpdateParams", nil)
+	cdc.RegisterConcrete(&MsgSlashSequencerProposal{}, "sequencer/SlashSequencerProposal", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {

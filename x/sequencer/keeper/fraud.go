@@ -56,6 +56,10 @@ func (k Keeper) TryKickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 	return nil
 }
 
+func (k Keeper) KickSequencer(ctx sdk.Context) error {
+
+}
+
 func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	seq := k.GetProposer(ctx, rollappID)
 	if seq.Sentinel() {
@@ -75,7 +79,7 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 }
 
 // Takes an optional rewardee addr who will receive some bounty
-func (k Keeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
+func (k Keeper) Slash(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
 	var (
 		rewardMul = sdk.ZeroDec()
 		addr      = []byte(nil)

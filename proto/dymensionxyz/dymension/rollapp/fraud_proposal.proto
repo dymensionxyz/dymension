@@ -20,10 +20,9 @@ message MsgRollappFraudProposal {
 
   // RollappID is the rollapp id.
 	string rollapp_id = 2;
-  // rollapp revision. used to verify the rollapp revision is the same as the one in the fraud proposal
-  uint64 rollapp_revision = 3;
+  reserved 3;
 
-  // The height of the fraudelent block
+  // The height of the fraudulent block
 	uint64 fraud_height = 4;
 
   // sequencer address to punish. optional
