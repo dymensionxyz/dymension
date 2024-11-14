@@ -13,7 +13,7 @@ const (
 var (
 	RollappClientKey       = []byte{0x01}
 	canonicalClientKey     = []byte{0x04}
-	hardForkKey            = []byte{0x05}
+	HardForkPrefix         = []byte{0x05}
 	HeaderSignersPrefixKey = collections.NewPrefix("headerSigners/")
 	ClientHeightToSigner   = collections.NewPrefix("clientHeightToSigner/")
 )
@@ -31,7 +31,7 @@ func CanonicalClientKey(clientID string) []byte {
 }
 
 func HardForkKey(rollappID string) []byte {
-	key := hardForkKey
+	key := HardForkPrefix
 	key = append(key, []byte(rollappID)...)
 	return key
 }

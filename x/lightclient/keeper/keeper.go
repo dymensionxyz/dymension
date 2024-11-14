@@ -9,13 +9,15 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
@@ -142,9 +144,8 @@ func (k Keeper) LightClient(goCtx context.Context, req *types.QueryGetLightClien
 	return &types.QueryGetLightClientResponse{ClientId: id}, nil
 }
 
-func (k Keeper) ExpectedClientState(goCtx context.Context, req *types.QueryExpectedClientStateRequest) (*types.QueryExpectedClientStateResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	c := k.expectedClient(ctx)
+func (k Keeper) ExpectedClientState(context.Context, *types.QueryExpectedClientStateRequest) (*types.QueryExpectedClientStateResponse, error) {
+	c := k.expectedClient()
 	anyClient, err := ibcclienttypes.PackClientState(&c)
 	if err != nil {
 		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "pack client state")
@@ -152,7 +153,7 @@ func (k Keeper) ExpectedClientState(goCtx context.Context, req *types.QueryExpec
 	return &types.QueryExpectedClientStateResponse{ClientState: anyClient}, nil
 }
 
-func (k Keeper) setHardForkInProgress(ctx sdk.Context, rollappID string) {
+func (k Keeper) SetHardForkInProgress(ctx sdk.Context, rollappID string) {
 	ctx.KVStore(k.storeKey).Set(types.HardForkKey(rollappID), []byte{0x01})
 }
 
@@ -164,6 +165,17 @@ func (k Keeper) setHardForkResolved(ctx sdk.Context, rollappID string) {
 // checks if rollapp is hard forking
 func (k Keeper) IsHardForkingInProgress(ctx sdk.Context, rollappID string) bool {
 	return ctx.KVStore(k.storeKey).Has(types.HardForkKey(rollappID))
+}
+
+func (k Keeper) ListHardForkKeys(ctx sdk.Context) []string {
+	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.HardForkPrefix)
+	iter := prefixStore.Iterator(nil, nil)
+	defer iter.Close() // nolint: errcheck
+	var ret []string
+	for ; iter.Valid(); iter.Next() {
+		ret = append(ret, string(iter.Key()))
+	}
+	return ret
 }
 
 func (k Keeper) pruneSigners(ctx sdk.Context, client string, h uint64, isAbove bool) error {
