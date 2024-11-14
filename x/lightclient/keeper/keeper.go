@@ -9,6 +9,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -167,14 +168,12 @@ func (k Keeper) IsHardForkingInProgress(ctx sdk.Context, rollappID string) bool 
 }
 
 func (k Keeper) ListHardForkKeys(ctx sdk.Context) []string {
-	store := ctx.KVStore(k.storeKey)
-	iter := store.Iterator(nil, nil)
-	defer iter.Close()
+	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.HardForkPrefix)
+	iter := prefixStore.Iterator(nil, nil)
+	defer iter.Close() // nolint: errcheck
 	var ret []string
 	for ; iter.Valid(); iter.Next() {
-		if iter.Key()[0] == types.HardForkPrefix[0] {
-			ret = append(ret, string(iter.Key()[1:]))
-		}
+		ret = append(ret, string(iter.Key()))
 	}
 	return ret
 }

@@ -19,8 +19,8 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genesisState types.GenesisState) {
 			panic(err)
 		}
 	}
-	for _, key := range genesisState.HardForkKeys {
-		k.SetHardForkInProgress(ctx, key)
+	for _, rollappID := range genesisState.HardForkKeys {
+		k.SetHardForkInProgress(ctx, rollappID)
 	}
 }
 
