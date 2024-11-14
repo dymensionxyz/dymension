@@ -32,21 +32,9 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 		return
 	}
 
-	rollapp, found := k.GetRollapp(ctx, msg.RollappId)
-	if !found {
-		err = errorsmod.Wrap(gerrc.ErrNotFound, "rollapp not found")
-		return
-	}
-
-	// validate the rollapp is past its genesis bridge phase
-	if !rollapp.IsTransferEnabled() {
-		err = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp is not past genesis bridge phase")
-		return
-	}
-
 	// punish the sequencer if needed
 	if msg.PunishSequencerAddress != "" {
-		err = k.sequencerKeeper.Slash(ctx, msg.PunishSequencerAddress, msg.MustRewardee())
+		err = k.sequencerKeeper.SlashAllTokens(ctx, msg.PunishSequencerAddress, msg.MustRewardee())
 		if err != nil {
 			err = errorsmod.Wrap(err, "jail sequencer")
 			return

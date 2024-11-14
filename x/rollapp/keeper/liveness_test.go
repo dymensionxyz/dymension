@@ -180,7 +180,7 @@ type livenessMockSequencerKeeper struct {
 	slashes map[string]int
 }
 
-func (l livenessMockSequencerKeeper) Slash(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
+func (l livenessMockSequencerKeeper) SlashAllTokens(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
 	// TODO implement me
 	panic("implement me")
 }

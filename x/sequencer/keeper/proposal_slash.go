@@ -27,11 +27,22 @@ func (k Keeper) SubmitSlashProposal(goCtx context.Context, msg *types.MsgSlashSe
 	// validate the message
 	if err = msg.ValidateBasic(); err != nil {
 		err = errorsmod.Wrap(gerrc.ErrInvalidArgument, "msg")
-		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid msg")
+		return
 	}
 
-	if err := k.Slash(ctx, msg.Sequencer, msg.MustRewardee()); err != nil {
-		return nil, errorsmod.Wrap(err, "slash sequencer")
+	var seq types.Sequencer
+	seq, err = k.RealSequencer(ctx, msg.Sequencer)
+	if err != nil {
+		return
+	}
+
+	if err = k.SlashAllTokens(ctx, msg.Sequencer, msg.MustRewardee()); err != nil {
+		return
+	}
+
+	err = k.abruptRemoveSequencer(ctx, seq)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "abrupt remove sequencer")
 	}
 
 	return &types.MsgSlashSequencerResponse{}, nil

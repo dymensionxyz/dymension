@@ -20,6 +20,11 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, newRevisionHeight ui
 		return gerrc.ErrNotFound
 	}
 
+	// core assumption: fraud not possible before genesis bridge
+	if !rollapp.IsTransferEnabled() {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp is not past genesis bridge phase")
+	}
+
 	lastValidHeight, err := k.RevertPendingStates(ctx, rollappID, newRevisionHeight)
 	if err != nil {
 		return errorsmod.Wrap(err, "revert pending states")

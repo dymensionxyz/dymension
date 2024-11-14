@@ -6,58 +6,34 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
-// TryKickProposer tries to remove the incumbent proposer. It requires the incumbent
-// proposer to be below a threshold of bond. The caller must also be bonded and opted in.
-func (k Keeper) TryKickProposer(ctx sdk.Context, kicker types.Sequencer) error {
-	ra := kicker.RollappId
+func (k Keeper) abruptRemoveSequencer(ctx sdk.Context, seq types.Sequencer) error {
 
-	proposer := k.GetProposer(ctx, ra)
-
-	if !k.Kickable(ctx, proposer) {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "not kickable")
+	if k.IsSuccessor(ctx, seq) {
+		return gerrc.ErrUnimplemented.Wrap("successor")
 	}
 
+	if !k.IsProposer(ctx, seq) {
+		return nil
+	}
+
+	ra := seq.RollappId
 	// clear the proposer
 	k.SetProposer(ctx, ra, types.SentinelSeqAddr)
 
-	// TODO: refund/burn if needed
-	k.unbond(ctx, &proposer)
-	k.SetSequencer(ctx, proposer)
+	k.unbond(ctx, &seq)
+	k.SetSequencer(ctx, seq)
 
 	// This will call hard fork on the rollapp, which will also optOut all sequencers
-	err := k.hooks.AfterKickProposer(ctx, proposer)
+	err := k.hooks.AfterKickProposer(ctx, seq)
 	if err != nil {
 		return errorsmod.Wrap(err, "kick proposer callbacks")
 	}
 
-	// optIn the kicker
-	if err := kicker.SetOptedIn(ctx, true); err != nil {
-		return errorsmod.Wrap(err, "set opted in")
-	}
-	k.SetSequencer(ctx, kicker)
-
 	// this will choose kicker as next proposer, since he is the only opted in and bonded
-	// sequencer remaining.
-	if err := k.RecoverFromSentinel(ctx, ra); err != nil {
-		return errorsmod.Wrap(err, "choose proposer")
-	}
-
-	if err := uevent.EmitTypedEvent(ctx, &types.EventKickedProposer{
-		Rollapp:  ra,
-		Kicker:   kicker.Address,
-		Proposer: proposer.Address,
-	}); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (k Keeper) KickSequencer(ctx sdk.Context) error {
-
+	// seq remaining.
+	return k.RecoverFromSentinel(ctx, ra)
 }
 
 func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
@@ -79,7 +55,7 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 }
 
 // Takes an optional rewardee addr who will receive some bounty
-func (k Keeper) Slash(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
+func (k Keeper) SlashAllTokens(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
 	var (
 		rewardMul = sdk.ZeroDec()
 		addr      = []byte(nil)
