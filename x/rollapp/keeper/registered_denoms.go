@@ -32,3 +32,8 @@ func (k Keeper) IterateRegisteredDenoms(ctx sdk.Context, rollappID string, cb fu
 		return cb(item.K2())
 	})
 }
+
+func (k Keeper) ClearRegisteredDenoms(ctx sdk.Context, rollappID string) error {
+	rng := collections.NewPrefixedPairRange[string, string](rollappID)
+	return k.registeredRollappDenoms.Clear(ctx, rng)
+}

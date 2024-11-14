@@ -158,7 +158,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			suite.Require().NoError(err)
 			// Update rollapp status if needed
 			if rollappPacket.Status != tc.demandOrderUnderlyingPacketStatus {
-				_, err = suite.App.DelayedAckKeeper.UpdateRollappPacketWithStatus(suite.Ctx, rPacket, tc.demandOrderUnderlyingPacketStatus)
+				_, err = suite.App.DelayedAckKeeper.UpdateRollappPacketAfterFinalization(suite.Ctx, rPacket)
 				suite.Require().NoError(err, tc.name)
 			}
 

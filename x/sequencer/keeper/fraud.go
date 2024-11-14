@@ -12,37 +12,45 @@ import (
 // TryKickProposer tries to remove the incumbent proposer. It requires the incumbent
 // proposer to be below a threshold of bond. The caller must also be bonded and opted in.
 func (k Keeper) TryKickProposer(ctx sdk.Context, kicker types.Sequencer) error {
-	if !kicker.IsPotentialProposer() {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "not ready to propose")
-	}
-
 	ra := kicker.RollappId
 
 	proposer := k.GetProposer(ctx, ra)
 
-	if k.Kickable(ctx, proposer) {
-		if err := k.unbond(ctx, &proposer); err != nil {
-			return errorsmod.Wrap(err, "unbond")
-		}
-		k.SetSequencer(ctx, proposer)
-		if err := k.optOutAllSequencers(ctx, ra, kicker.Address); err != nil {
-			return errorsmod.Wrap(err, "opt out all seqs")
-		}
-		k.hooks.AfterKickProposer(ctx, proposer)
-
-		if err := uevent.EmitTypedEvent(ctx, &types.EventKickedProposer{
-			Rollapp:  ra,
-			Kicker:   kicker.Address,
-			Proposer: proposer.Address,
-		}); err != nil {
-			return err
-		}
+	if !k.Kickable(ctx, proposer) {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "not kickable")
 	}
+
+	// clear the proposer
+	k.SetProposer(ctx, ra, types.SentinelSeqAddr)
+
+	// TODO: refund/burn if needed
+	k.unbond(ctx, &proposer)
+	k.SetSequencer(ctx, proposer)
+
+	// This will call hard fork on the rollapp, which will also optOut all sequencers
+	err := k.hooks.AfterKickProposer(ctx, proposer)
+	if err != nil {
+		return errorsmod.Wrap(err, "kick proposer callbacks")
+	}
+
+	// optIn the kicker
+	if err := kicker.SetOptedIn(ctx, true); err != nil {
+		return errorsmod.Wrap(err, "set opted in")
+	}
+	k.SetSequencer(ctx, kicker)
 
 	// this will choose kicker as next proposer, since he is the only opted in and bonded
 	// sequencer remaining.
-	if err := k.ChooseProposer(ctx, ra); err != nil {
+	if err := k.RecoverFromSentinel(ctx, ra); err != nil {
 		return errorsmod.Wrap(err, "choose proposer")
+	}
+
+	if err := uevent.EmitTypedEvent(ctx, &types.EventKickedProposer{
+		Rollapp:  ra,
+		Kicker:   kicker.Address,
+		Proposer: proposer.Address,
+	}); err != nil {
+		return err
 	}
 
 	return nil
@@ -66,23 +74,30 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	return err
 }
 
-func (k Keeper) HandleFraud(ctx sdk.Context, seq types.Sequencer, rewardee *sdk.AccAddress) error {
-	var err error
-	if rewardee != nil {
-		rewardMul := sdk.MustNewDecFromStr("0.5") // TODO: parameterise
-		err = k.slash(ctx, &seq, seq.TokensCoin(), rewardMul, *rewardee)
-	} else {
-		err = k.slash(ctx, &seq, seq.TokensCoin(), sdk.ZeroDec(), nil)
+// Takes an optional rewardee addr who will receive some bounty
+func (k Keeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
+	var (
+		rewardMul = sdk.ZeroDec()
+		addr      = []byte(nil)
+	)
+
+	seq, err := k.RealSequencer(ctx, seqAddr)
+	if err != nil {
+		return err
 	}
+
+	if rewardee != nil {
+		rewardMul = sdk.MustNewDecFromStr("0.5") // TODO: parameterise
+		addr = *rewardee
+	}
+
+	err = k.slash(ctx, &seq, seq.TokensCoin(), rewardMul, addr)
 	if err != nil {
 		return errorsmod.Wrap(err, "slash")
 	}
-	err = errorsmod.Wrap(k.unbond(ctx, &seq), "unbond")
+
 	k.SetSequencer(ctx, seq)
-	if err := k.optOutAllSequencers(ctx, seq.RollappId); err != nil {
-		return errorsmod.Wrap(err, "opt out all seqs")
-	}
-	return err
+	return nil
 }
 
 func (k Keeper) slash(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin, rewardMul sdk.Dec, rewardee sdk.AccAddress) error {

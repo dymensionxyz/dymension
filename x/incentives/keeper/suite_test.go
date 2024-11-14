@@ -228,14 +228,14 @@ func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
 
 	suite.FundForAliasRegistration(msgCreateRollapp)
 
-	msgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)
+	msgServer := rollapp.NewMsgServerImpl(suite.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(suite.Ctx, &msgCreateRollapp)
 	suite.Require().NoError(err)
 	return msgCreateRollapp.RollappId
 }
 
 func (suite *KeeperTestSuite) TransferRollappOwnership(currentOwner, newOwner sdk.AccAddress, rollappID string) {
-	rollappMsgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)
+	rollappMsgServer := rollapp.NewMsgServerImpl(suite.App.RollappKeeper)
 	resp, err := rollappMsgServer.TransferOwnership(suite.Ctx, &rollapptypes.MsgTransferOwnership{
 		CurrentOwner: currentOwner.String(),
 		NewOwner:     newOwner.String(),

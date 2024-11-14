@@ -66,7 +66,7 @@ func (suite *DelayedAckTestSuite) TestAfterEpochEnd() {
 			suite.Require().Equal(tc.pendingPacketsNum, len(rollappPackets))
 
 			for _, rollappPacket := range rollappPackets[:tc.finalizePacketsNum] {
-				_, err := keeper.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
+				_, err := keeper.UpdateRollappPacketAfterFinalization(ctx, rollappPacket)
 				suite.Require().NoError(err)
 			}
 			finalizedRollappPackets := keeper.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappID, commontypes.Status_FINALIZED))

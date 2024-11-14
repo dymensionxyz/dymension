@@ -22,6 +22,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -104,14 +105,17 @@ func (s *utilSuite) rollappCtx() sdk.Context {
 }
 
 func (s *utilSuite) rollappMsgServer() rollapptypes.MsgServer {
-	return rollappkeeper.NewMsgServerImpl(*s.hubApp().RollappKeeper)
+	return rollappkeeper.NewMsgServerImpl(s.hubApp().RollappKeeper)
 }
 
 // SetupTest creates a coordinator with 2 test chains.
 func (s *utilSuite) SetupTest() {
+	// this is used as default when creating blocks.
+	// set in the block as the revision number
+	simapp.DefaultAppVersion = 0
+
 	s.coordinator = ibctesting.NewCoordinator(s.T(), 2) // initializes test chains
 	s.coordinator.Chains[rollappChainID()] = s.newTestChainWithSingleValidator(s.T(), s.coordinator, rollappChainID())
-	s.hubApp().LightClientKeeper.SetEnabled(false)
 }
 
 func (s *utilSuite) fundSenderAccount() {

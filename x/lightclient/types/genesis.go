@@ -1,6 +1,6 @@
 package types
 
-import fmt "fmt"
+import "fmt"
 
 func DefaultGenesisState() GenesisState {
 	return GenesisState{

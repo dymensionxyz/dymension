@@ -15,6 +15,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
+	simulationtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -99,20 +100,19 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper        *keeper.Keeper
-	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper
+	accountKeeper simulationtypes.AccountKeeper
+	bankKeeper    simulationtypes.BankKeeper
 }
 
 func NewAppModule(
 	cdc codec.Codec,
 	keeper *keeper.Keeper,
-	accountKeeper types.AccountKeeper,
-	bankKeeper types.BankKeeper,
+	accountKeeper simulationtypes.AccountKeeper,
+	bankKeeper simulationtypes.BankKeeper,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),
 		keeper:         keeper,
-		accountKeeper:  accountKeeper,
 		bankKeeper:     bankKeeper,
 	}
 }

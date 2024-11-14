@@ -18,8 +18,9 @@ var (
 	PendingRollappPacketKeyPrefix = []byte{0x00, 0x01}
 	// FinalizedRollappPacketKeyPrefix is the prefix for finalized rollapp packets
 	FinalizedRollappPacketKeyPrefix = []byte{0x00, 0x02}
-	// RevertedRollappPacketKeyPrefix is the prefix for reverted rollapp packets
-	RevertedRollappPacketKeyPrefix = []byte{0x00, 0x03}
+
+	_ = []byte{0x00, 0x03} // deprecated key
+
 	// keySeparatorBytes is used to separate the rollapp packet key parts
 	keySeparatorBytes = []byte("/")
 )
@@ -100,8 +101,6 @@ func MustGetStatusBytes(status Status) []byte {
 		return PendingRollappPacketKeyPrefix
 	case Status_FINALIZED:
 		return FinalizedRollappPacketKeyPrefix
-	case Status_REVERTED:
-		return RevertedRollappPacketKeyPrefix
 	default:
 		panic(fmt.Sprintf("invalid packet status: %s", status))
 	}

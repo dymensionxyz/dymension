@@ -1,22 +1,24 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, ibc porttypes.IBCModule) error {
-	// Get all the pending packets
-	rollappPendingPackets := k.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappID, commontypes.Status_PENDING))
-	if len(rollappPendingPackets) == 0 {
-		return nil
-	}
+var _ rollapptypes.RollappHooks = &Keeper{}
+
+func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, newRevisionHeight uint64) error {
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
-	logger.Info("reverting IBC rollapp packets", "rollappID", rollappID)
+
+	// Get all the pending packets from fork height inclusive
+	rollappPendingPackets := k.ListRollappPackets(ctx, types.PendingByRollappIDFromHeight(rollappID, newRevisionHeight))
 
 	// Iterate over all the pending packets and revert them
 	for _, rollappPacket := range rollappPendingPackets {
@@ -29,21 +31,33 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, ibc porttypes.IBC
 		}
 
 		if rollappPacket.Type == commontypes.RollappPacket_ON_ACK || rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
-			// refund all pending outgoing packets
-			// we don't have access directly to `refundPacketToken` function, so we'll use the `OnTimeoutPacket` function
-			err := ibc.OnTimeoutPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
-			if err != nil {
-				logger.Error("failed to refund reverted packet", append(logContext, "error", err.Error())...)
-			}
+			// for sent packets, we restore the packet commitment
+			// the packet will be handled over the new rollapp revision
+			// we update the packet to the original transfer target and restore the packet commitment
+			commitment := channeltypes.CommitPacket(k.cdc, rollappPacket.RestoreOriginalTransferTarget().Packet)
+			k.channelKeeper.SetPacketCommitment(ctx, rollappPacket.Packet.SourcePort, rollappPacket.Packet.SourceChannel, rollappPacket.Packet.Sequence, commitment)
+		} else {
+			// for incoming packets, we need to reset the packet receipt
+			ibcPacket := rollappPacket.Packet
+			k.deletePacketReceipt(ctx, ibcPacket.GetDestPort(), ibcPacket.GetDestChannel(), ibcPacket.GetSequence())
 		}
-		// Update status to reverted
-		_, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_REVERTED)
+
+		// delete the packet
+		err := k.DeleteRollappPacket(ctx, &rollappPacket)
 		if err != nil {
-			logger.Error("error reverting IBC rollapp packet", append(logContext, "error", err.Error())...)
-			return err
+			return errorsmod.Wrap(err, "delete rollapp packet")
 		}
 
 		logger.Debug("reverted IBC rollapp packet", logContext...)
 	}
+
+	logger.Info("reverting IBC rollapp packets", "rollappID", rollappID, "numPackets", len(rollappPendingPackets))
+
 	return nil
+}
+
+// DeleteRollappPacket deletes a packet receipt from the store
+func (k Keeper) deletePacketReceipt(ctx sdk.Context, portID, channelID string, sequence uint64) {
+	store := ctx.KVStore(k.channelKeeperStoreKey)
+	store.Delete(host.PacketReceiptKey(portID, channelID, sequence))
 }

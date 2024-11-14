@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"errors"
+	"fmt"
 
 	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,6 +9,7 @@ import (
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // SetRollappPacket stores a rollapp packet in the KVStore.
@@ -151,15 +152,12 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 	return nil
 }
 
-// UpdateRollappPacketWithStatus deletes the current rollapp packet and creates a new one with and updated status under a new key.
+// UpdateRollappPacketAfterFinalization deletes the current rollapp packet and creates a new one with and updated status under a new key.
 // Updating the status should be called only with this method as it effects the key of the packet.
 // The assumption is that the passed rollapp packet status field is not updated directly.
-func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket commontypes.RollappPacket, newStatus commontypes.Status) (commontypes.RollappPacket, error) {
+func (k *Keeper) UpdateRollappPacketAfterFinalization(ctx sdk.Context, rollappPacket commontypes.RollappPacket) (commontypes.RollappPacket, error) {
 	if rollappPacket.Status != commontypes.Status_PENDING {
 		return commontypes.RollappPacket{}, types.ErrCanOnlyUpdatePendingPacket
-	}
-	if newStatus == commontypes.Status_PENDING {
-		return commontypes.RollappPacket{}, errors.New("cannot update packet to pending status")
 	}
 
 	transferPacketData, err := rollappPacket.GetTransferPacketData()
@@ -182,7 +180,7 @@ func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket co
 	store.Delete(oldKey)
 
 	// Update the packet
-	rollappPacket.Status = newStatus
+	rollappPacket.Status = commontypes.Status_FINALIZED
 	// Create a new rollapp packet with the updated status
 	k.SetRollappPacket(ctx, rollappPacket)
 
@@ -248,16 +246,50 @@ func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []commontypes.Rollap
 	return list
 }
 
-func (k Keeper) deleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) error {
+func (k Keeper) DeleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) error {
 	store := ctx.KVStore(k.storeKey)
 	rollappPacketKey := rollappPacket.RollappPacketKey()
 	store.Delete(rollappPacketKey)
 
+	// delete the PacketByAddress index
+	pendingAddr := ""
+	transfer := rollappPacket.MustGetTransferPacketData()
+	switch rollappPacket.Type {
+	case commontypes.RollappPacket_ON_RECV:
+		pendingAddr = transfer.Receiver
+	case commontypes.RollappPacket_ON_ACK, commontypes.RollappPacket_ON_TIMEOUT:
+		pendingAddr = transfer.Sender
+	}
+	k.MustDeletePendingPacketByAddress(ctx, pendingAddr, rollappPacket.RollappPacketKey())
+
 	keeperHooks := k.GetHooks()
+	// TODO: can call eIBC directly. shouldn't return error anyway
 	err := keeperHooks.AfterPacketDeleted(ctx, rollappPacket)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// GetPendingPacketsUntilFinalizedHeight returns all pending rollapp packets until the latest finalized height.
+func (k Keeper) GetPendingPacketsUntilFinalizedHeight(ctx sdk.Context, rollappID string) ([]commontypes.RollappPacket, uint64, error) {
+	// Get rollapp's latest finalized height
+	latestFinalizedHeight, err := k.getRollappLatestFinalizedHeight(ctx, rollappID)
+	if err != nil {
+		return nil, 0, fmt.Errorf("get latest finalized height: rollapp '%s': %w", rollappID, err)
+	}
+
+	// Get all pending rollapp packets until the latest finalized height
+	return k.ListRollappPackets(ctx, types.PendingByRollappIDByMaxHeight(rollappID, latestFinalizedHeight)), latestFinalizedHeight, nil
+}
+
+func (k Keeper) getRollappLatestFinalizedHeight(ctx sdk.Context, rollappID string) (uint64, error) {
+	latestIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollappID)
+	if !found {
+		return 0, gerrc.ErrNotFound.Wrapf("latest finalized state index is not found")
+	}
+
+	stateInfo := k.rollappKeeper.MustGetStateInfo(ctx, rollappID, latestIndex.Index)
+	return stateInfo.GetLatestHeight(), nil
 }

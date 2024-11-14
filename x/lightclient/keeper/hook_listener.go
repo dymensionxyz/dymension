@@ -48,6 +48,15 @@ func (hook rollappHook) AfterUpdateState(
 		return nil
 	}
 
+	// first state after hardfork, should reset the client to active state
+	if hook.k.IsHardForkingInProgress(ctx, rollappId) {
+		err := hook.k.ResolveHardFork(ctx, rollappId)
+		if err != nil {
+			return errorsmod.Wrap(err, "resolve hard fork")
+		}
+		return nil
+	}
+
 	// TODO: check hard fork in progress here
 
 	seq, err := hook.k.SeqK.RealSequencer(ctx, stateInfo.Sequencer)
@@ -65,8 +74,7 @@ func (hook rollappHook) AfterUpdateState(
 	// we now verified everything up to and including stateInfo.GetLatestHeight()-1
 	// so we should prune everything up to stateInfo.GetLatestHeight()-1
 	// this removes the unbonding condition for the sequencers
-	// TODO: when integrating with hard fork PR need to change rollapp argument to client argument
-	if err := hook.k.PruneSignersBelow(ctx, rollappId, stateInfo.GetLatestHeight()); err != nil {
+	if err := hook.k.PruneSignersBelow(ctx, client, stateInfo.GetLatestHeight()); err != nil {
 		return errorsmod.Wrap(err, "prune signers")
 	}
 

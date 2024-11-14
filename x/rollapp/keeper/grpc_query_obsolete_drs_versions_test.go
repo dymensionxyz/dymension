@@ -15,13 +15,13 @@ func TestObsoleteDRSVersionsQuery(t *testing.T) {
 	wctx := sdk.WrapSDKContext(ctx)
 
 	const obsoleteDRSVersion uint32 = 1234567890
-	err := keeper.SetVulnerableDRSVersion(ctx, obsoleteDRSVersion)
+	err := keeper.SetObsoleteDRSVersion(ctx, obsoleteDRSVersion)
 	require.NoError(t, err)
 
 	response, err := keeper.ObsoleteDRSVersions(wctx, &types.QueryObsoleteDRSVersionsRequest{})
 	require.NoError(t, err)
 
-	expected, err := keeper.GetAllVulnerableDRSVersions(ctx)
+	expected, err := keeper.GetAllObsoleteDRSVersions(ctx)
 	require.NoError(t, err)
 	require.EqualValues(t, expected, response.DrsVersions)
 }

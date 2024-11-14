@@ -89,7 +89,6 @@ import (
 	lightclientmoduletypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
-	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -348,17 +347,11 @@ func (a *AppKeepers) InitKeepers(
 		a.ScopedIBCKeeper,
 	)
 
-	a.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
-		a.BankKeeper,
-	)
-
 	a.RollappKeeper = rollappmodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[rollappmoduletypes.StoreKey],
 		a.GetSubspace(rollappmoduletypes.ModuleName),
-		a.AccountKeeper,
 		a.IBCKeeper.ChannelKeeper,
-		a.IBCKeeper.ClientKeeper,
 		nil,
 		a.BankKeeper,
 		a.TransferKeeper,
@@ -402,6 +395,11 @@ func (a *AppKeepers) InitKeepers(
 
 	a.RollappKeeper.SetSequencerKeeper(a.SequencerKeeper)
 	a.RollappKeeper.SetCanonicalClientKeeper(a.LightClientKeeper)
+
+	a.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
+		a.BankKeeper,
+		a.RollappKeeper,
+	)
 
 	a.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		a.keys[incentivestypes.StoreKey],
@@ -484,6 +482,7 @@ func (a *AppKeepers) InitKeepers(
 	a.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
 		appCodec,
 		a.keys[delayedacktypes.StoreKey],
+		a.keys[ibcexported.StoreKey],
 		a.GetSubspace(delayedacktypes.ModuleName),
 		a.RollappKeeper,
 		a.IBCKeeper.ChannelKeeper,
@@ -503,7 +502,6 @@ func (a *AppKeepers) InitKeepers(
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(a.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(a.IBCKeeper.ClientKeeper)).
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(a.StreamerKeeper)).
-		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(a.RollappKeeper)).
 		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(a.DenomMetadataKeeper)).
 		AddRoute(dymnstypes.RouterKey, dymnsmodule.NewDymNsProposalHandler(a.DymNSKeeper)).
 		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(a.EvmKeeper))
@@ -628,11 +626,12 @@ func (a *AppKeepers) SetupHooks() {
 	a.RollappKeeper.SetHooks(rollappmoduletypes.NewMultiRollappHooks(
 		// insert rollapp hooks receivers here
 		a.SequencerKeeper.RollappHooks(),
-		a.delayedAckMiddleware,
+		a.DelayedAckKeeper,
 		a.StreamerKeeper.Hooks(),
 		a.DymNSKeeper.GetRollAppHooks(),
 		a.LightClientKeeper.RollappHooks(),
 		a.IROKeeper,
+		a.DenomMetadataKeeper.RollappHooks(),
 	))
 }
 

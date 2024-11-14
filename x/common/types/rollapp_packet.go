@@ -107,11 +107,8 @@ func (r RollappPacket) GetAck() (channeltypes.Acknowledgement, error) {
 	return ack, nil
 }
 
-func (r RollappPacket) RestoreOriginalTransferTarget() (RollappPacket, error) {
-	transferPacketData, err := r.GetTransferPacketData()
-	if err != nil {
-		return r, fmt.Errorf("get transfer packet data: %w", err)
-	}
+func (r RollappPacket) RestoreOriginalTransferTarget() RollappPacket {
+	transferPacketData := r.MustGetTransferPacketData()
 	if r.OriginalTransferTarget != "" { // It can be empty if the eibc order was never fulfilled
 		switch r.Type {
 		case RollappPacket_ON_RECV:
@@ -121,5 +118,5 @@ func (r RollappPacket) RestoreOriginalTransferTarget() (RollappPacket, error) {
 		}
 		r.Packet.Data = transferPacketData.GetBytes()
 	}
-	return r, nil
+	return r
 }

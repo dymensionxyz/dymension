@@ -13,13 +13,11 @@ import (
 // ChannelKeeper defines the expected IBC channel keeper
 type ChannelKeeper interface {
 	LookupModuleByChannel(ctx sdk.Context, portID, channelID string) (string, *capabilitytypes.Capability, error)
+	SetPacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64, commitmentHash []byte)
 }
 
 type RollappKeeper interface {
-	GetParams(ctx sdk.Context) rollapptypes.Params
-	GetStateInfo(ctx sdk.Context, rollappId string, index uint64) (val rollapptypes.StateInfo, found bool)
 	MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) rollapptypes.StateInfo
-	GetLatestStateInfo(ctx sdk.Context, rollappId string) (types.StateInfo, bool)
 	GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val types.StateInfoIndex, found bool)
 	GetAllRollapps(ctx sdk.Context) (list []types.Rollapp)
 	GetValidTransfer(

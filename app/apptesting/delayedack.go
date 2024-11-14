@@ -41,7 +41,7 @@ func GenerateTestPacket(t *testing.T, sequence uint64) *channeltypes.Packet {
 func GenerateRollappPackets(t *testing.T, rollappId string, num uint64) []commontypes.RollappPacket {
 	t.Helper()
 	var packets []commontypes.RollappPacket
-	for i := uint64(0); i < num; i++ {
+	for i := uint64(1); i <= num; i++ {
 		packets = append(packets, commontypes.RollappPacket{
 			RollappId:   rollappId,
 			Packet:      GenerateTestPacket(t, i),

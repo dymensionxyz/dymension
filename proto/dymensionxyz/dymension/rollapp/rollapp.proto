@@ -41,10 +41,9 @@ message Rollapp {
   RollappGenesisState genesis_state = 7 [ (gogoproto.nullable) = false ];
   // channel_id will be set to the canonical IBC channel of the rollapp.
   string channel_id = 8;
-  // frozen is a boolean that indicates if the rollapp is frozen.
-  bool frozen = 9;
 
-  reserved 10;
+  reserved 9,10;
+  
   // metadata is the rollapp metadata
   RollappMetadata metadata = 11;
   // genesis_info keeps immutable rollapp fields
@@ -75,6 +74,11 @@ message Rollapp {
   // The LastStateUpdateHeight HUB height when the last state update was
   // received
   int64 last_state_update_height = 18;
+
+  // The revision number of the rollapp. starts always with 0 revision
+  uint64 revision_number = 19;
+  // The first height of the rollapp when the revision started
+  uint64 revision_start_height = 20;
 }
 
 // Rollapp summary is a compact representation of Rollapp

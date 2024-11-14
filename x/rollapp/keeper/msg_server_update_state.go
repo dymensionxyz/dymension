@@ -2,10 +2,10 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -20,11 +20,6 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		return nil, types.ErrUnknownRollappID
 	}
 
-	// verify the rollapp is not frozen
-	if rollapp.Frozen {
-		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp is frozen")
-	}
-
 	// call the before-update-state hook
 	// currently used by `x/sequencer` to:
 	// 1. validate the state update submitter
@@ -34,19 +29,11 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		return nil, errorsmod.Wrap(err, "before update state")
 	}
 
-	for _, bd := range msg.BDs.BD {
-		// verify the DRS version is not vulnerable
-		if k.IsDRSVersionVulnerable(ctx, bd.DrsVersion) {
-			// the rollapp is not marked as vulnerable yet, mark it now
-			err := k.MarkRollappAsVulnerable(ctx, msg.RollappId)
-			if err != nil {
-				return nil, fmt.Errorf("mark rollapp vulnerable: %w", err)
-			}
-			k.Logger(ctx).With("rollapp_id", msg.RollappId, "drs_version", bd.DrsVersion).
-				Info("non-frozen rollapp tried to submit MsgUpdateState with the vulnerable DRS version, mark the rollapp as vulnerable")
-			// we must return non-error if we want the changes to be saved
-			return &types.MsgUpdateStateResponse{}, nil
-		}
+	// validate correct rollapp revision number
+	if rollapp.RevisionNumber != msg.RollappRevision {
+		return nil, errorsmod.Wrapf(types.ErrWrongRollappRevision,
+			"expected revision number (%d), but received (%d)",
+			rollapp.RevisionNumber, msg.RollappRevision)
 	}
 
 	// retrieve last updating index
@@ -91,12 +78,6 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	}
 	newIndex = lastIndex + 1
 
-	// Write new index information to the store
-	k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
-		RollappId: msg.RollappId,
-		Index:     newIndex,
-	})
-
 	// it takes the actual proposer because the next one have already been set
 	// by the sequencer rotation in k.hooks.BeforeUpdateState
 	// the proposer we get is the one that will propose the next block.
@@ -116,9 +97,24 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		blockTime,
 		val.Address,
 	)
+
+	// verify the DRS version is not obsolete
+	// check only last block descriptor DRS, since if that last is not obsolete it means the rollapp already upgraded and is not obsolete anymore
+	if k.IsStateUpdateObsolete(ctx, stateInfo) {
+		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "MsgUpdateState with an obsolete DRS version. rollapp_id: %s, drs_version: %d",
+			msg.RollappId, stateInfo.GetLatestBlockDescriptor().DrsVersion)
+	}
+
+	// Write new index information to the store
+	k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
+		RollappId: msg.RollappId,
+		Index:     newIndex,
+	})
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
 	k.SetStateInfo(ctx, *stateInfo)
 
+	// call the after-update-state hook
+	// currently used by `x/lightclient` to validate the state update in regards to the light client
 	err = k.hooks.AfterUpdateState(ctx, msg.RollappId, stateInfo)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "hook: after update state")
@@ -145,6 +141,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		return nil, errorsmod.Wrap(err, "set finalization queue")
 	}
 
+	// FIXME: only single save can be done with the latest height
 	for _, bd := range msg.BDs.BD {
 		if err := k.SaveSequencerHeight(ctx, stateInfo.Sequencer, bd.Height); err != nil {
 			return nil, errorsmod.Wrap(err, "save sequencer height")
@@ -165,4 +162,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	)
 
 	return &types.MsgUpdateStateResponse{}, nil
+}
+
+// IsStateUpdateObsolete checks if the given DRS version is obsolete
+func (k msgServer) IsStateUpdateObsolete(ctx sdk.Context, stateInfo *types.StateInfo) bool {
+	return k.IsDRSVersionObsolete(ctx, stateInfo.GetLatestBlockDescriptor().DrsVersion)
 }

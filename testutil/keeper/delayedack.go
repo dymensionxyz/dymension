@@ -28,6 +28,12 @@ import (
 
 type ChannelKeeperStub struct{}
 
+func (c ChannelKeeperStub) SetPacketCommitment(ctx sdk.Context, portID string, channelID string, sequence uint64, commitmentHash []byte) {
+}
+
+func (c ChannelKeeperStub) SetPacketReceipt(ctx sdk.Context, portID string, channelID string, sequence uint64) {
+}
+
 func (ChannelKeeperStub) LookupModuleByChannel(ctx sdk.Context, portID, channelID string) (string, *capabilitytypes.Capability, error) {
 	return "", nil, nil
 }
@@ -137,6 +143,7 @@ func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 	k := keeper.NewKeeper(cdc,
 		storeKey,
+		nil,
 		paramsSubspace,
 		RollappKeeperStub{},
 		ICS4WrapperStub{},

@@ -35,20 +35,15 @@ func DemandOrderCountInvariant(k Keeper) sdk.Invariant {
 			msg += fmt.Sprintf("list pending demand orders failed: %v\n", err)
 			broken = true
 		}
-		revertedDemandOrders, err := k.ListDemandOrdersByStatus(ctx, commontypes.Status_REVERTED, 0)
-		if err != nil {
-			msg += fmt.Sprintf("list reverted demand orders failed: %v\n", err)
-			broken = true
-		}
 		finalizedDemandOrders, err := k.ListDemandOrdersByStatus(ctx, commontypes.Status_FINALIZED, 0)
 		if err != nil {
 			msg += fmt.Sprintf("list finalized demand orders failed: %v\n", err)
 			broken = true
 		}
 		// Validate the count of demand orders is equal to the sum of demand orders in all statuses
-		if len(allDemandOrders) != len(pendingDemandOrders)+len(revertedDemandOrders)+len(finalizedDemandOrders) {
-			msg += fmt.Sprintf("demand orders count mismatch: all(%d) != pending(%d) + reverted(%d) + finalized(%d)\n",
-				len(allDemandOrders), len(pendingDemandOrders), len(revertedDemandOrders), len(finalizedDemandOrders))
+		if len(allDemandOrders) != len(pendingDemandOrders)+len(finalizedDemandOrders) {
+			msg += fmt.Sprintf("demand orders count mismatch: all(%d) != pending(%d)  + finalized(%d)\n",
+				len(allDemandOrders), len(pendingDemandOrders), len(finalizedDemandOrders))
 			broken = true
 		}
 		return sdk.FormatInvariant(types.ModuleName, demandOrderCountInvariantName, msg), broken

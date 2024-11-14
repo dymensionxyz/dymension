@@ -9,6 +9,7 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
 
@@ -62,7 +63,7 @@ func (k Keeper) GetAllCanonicalClients(ctx sdk.Context) (clients []types.Canonic
 	return
 }
 
-func (k Keeper) expectedClient(ctx sdk.Context) ibctm.ClientState {
+func (k Keeper) expectedClient() ibctm.ClientState {
 	return types.DefaultExpectedCanonicalClientParams()
 }
 
@@ -77,11 +78,13 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.Client
 		return errChainIDMismatch
 	}
 
-	expClient := k.expectedClient(ctx)
+	expClient := k.expectedClient()
 
 	if err := types.IsCanonicalClientParamsValid(tmClientState, &expClient); err != nil {
 		return errorsmod.Wrap(err, "params")
 	}
+
+	// FIXME: No need to get all consensus states. should iterate over the consensus states
 	res, err := k.ibcClientKeeper.ConsensusStateHeights(ctx, &ibcclienttypes.QueryConsensusStateHeightsRequest{
 		ClientId:   clientID,
 		Pagination: &query.PageRequest{Limit: maxHeight},

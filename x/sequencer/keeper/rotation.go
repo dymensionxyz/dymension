@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"slices"
 	"strings"
 	"time"
 
@@ -45,7 +46,7 @@ func (k Keeper) ChooseSuccessorForFinishedNotices(ctx sdk.Context, now time.Time
 	}
 	for _, seq := range seqs {
 		k.removeFromNoticeQueue(ctx, seq)
-		if err := k.chooseSuccessor(ctx, seq.RollappId); err != nil {
+		if err := k.setSuccessorForRotatingRollapp(ctx, seq.RollappId); err != nil {
 			return errorsmod.Wrap(err, "choose successor")
 		}
 		successor := k.GetSuccessor(ctx, seq.RollappId)
@@ -80,17 +81,62 @@ func (k Keeper) OnProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) e
 		return errorsmod.Wrap(gerrc.ErrFault, "sequencer has submitted last block without finishing notice period")
 	}
 
-	k.SetProposer(ctx, proposer.RollappId, types.SentinelSeqAddr)
-	if err := k.ChooseProposer(ctx, proposer.RollappId); err != nil {
-		return errorsmod.Wrap(err, "choose proposer")
+	rollapp := proposer.RollappId
+
+	successor := k.GetSuccessor(ctx, rollapp)
+	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr) // clear successor
+	k.SetProposer(ctx, rollapp, successor.Address)
+
+	// if proposer is sentinel, prepare new revision for the rollapp
+	if successor.Sentinel() {
+		err := k.rollappKeeper.HardForkToLatest(ctx, rollapp)
+		if err != nil {
+			return errorsmod.Wrap(err, "hard fork to latest")
+		}
 	}
-	after := k.GetProposer(ctx, proposer.RollappId)
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeProposerRotated,
 			sdk.NewAttribute(types.AttributeKeyRollappId, proposer.RollappId),
-			sdk.NewAttribute(types.AttributeKeySequencer, after.Address),
+			sdk.NewAttribute(types.AttributeKeySequencer, successor.Address),
 		),
 	)
 	return nil
+}
+
+// setSuccessorForRotatingRollapp will assign a successor to the rollapp.
+// It will prioritize non sentinel
+// called when a proposer has finished their notice period.
+func (k Keeper) setSuccessorForRotatingRollapp(ctx sdk.Context, rollapp string) error {
+	seqs := k.RollappPotentialProposers(ctx, rollapp)
+	successor, err := ProposerChoiceAlgo(seqs)
+	if err != nil {
+		return err
+	}
+	k.SetSuccessor(ctx, rollapp, successor.Address)
+	return nil
+}
+
+// ProposerChoiceAlgo : choose the one with most bond
+// Requires sentinel to be passed in, as last resort.
+func ProposerChoiceAlgo(seqs []types.Sequencer) (types.Sequencer, error) {
+	if len(seqs) == 0 {
+		return types.Sequencer{}, gerrc.ErrInternal.Wrap("seqs must at least include sentinel")
+	}
+	// slices package is recommended over sort package
+	slices.SortStableFunc(seqs, func(a, b types.Sequencer) int {
+		ca := a.TokensCoin()
+		cb := b.TokensCoin()
+		if ca.IsEqual(cb) {
+			return 0
+		}
+
+		// flipped to sort decreasing
+		if ca.IsLT(cb) {
+			return 1
+		}
+		return -1
+	})
+	return seqs[0], nil
 }

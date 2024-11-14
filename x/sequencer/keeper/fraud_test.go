@@ -31,29 +31,31 @@ func (s *SequencerTestSuite) TestSlashLivenessFlow() {
 	s.Require().True(ok)
 }
 
-// check the basic properties and that funds are allocated to the right place
-func (s *SequencerTestSuite) TestFraud() {
+// TestPunishSequencer tests the punish sequencer flow
+// tokens are slashed and distributed to rewardee
+func (s *SequencerTestSuite) TestPunishSequencer() {
 	ra := s.createRollapp()
 
-	s.Run("unbonded and not proposer anymore", func() {
+	s.Run("kickable after punish", func() {
 		s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
 		seq := s.seq(alice)
 
 		s.k().SetProposer(s.Ctx, ra.RollappId, seq.Address)
-		err := s.k().HandleFraud(s.Ctx, seq, nil)
+		s.Require().False(s.k().Kickable(s.Ctx, seq))
+
+		err := s.k().PunishSequencer(s.Ctx, seq.Address, nil)
 		s.Require().NoError(err)
 
 		seq = s.seq(alice)
-		s.Require().False(s.k().IsProposer(s.Ctx, seq))
-		s.Require().True(s.k().IsProposer(s.Ctx, s.k().SentinelSequencer(s.Ctx)))
-		s.Require().False(seq.Bonded())
+		// assert alice is now kickable
+		s.Require().True(s.k().Kickable(s.Ctx, seq))
 	})
 	s.Run("without rewardee", func() {
 		s.createSequencerWithBond(s.Ctx, ra.RollappId, bob, bond)
 		seq := s.seq(bob)
 
 		s.k().SetProposer(s.Ctx, ra.RollappId, seq.Address)
-		err := s.k().HandleFraud(s.Ctx, seq, nil)
+		err := s.k().PunishSequencer(s.Ctx, seq.Address, nil)
 		s.Require().NoError(err)
 
 		seq = s.seq(bob)
@@ -68,7 +70,7 @@ func (s *SequencerTestSuite) TestFraud() {
 		rewardeeBalBefore := s.App.BankKeeper.GetAllBalances(s.Ctx, rewardee)
 
 		s.k().SetProposer(s.Ctx, ra.RollappId, seq.Address)
-		err := s.k().HandleFraud(s.Ctx, seq, &rewardee)
+		err := s.k().PunishSequencer(s.Ctx, seq.Address, &rewardee)
 		s.Require().NoError(err)
 
 		seq = s.seq(charlie)
@@ -76,7 +78,7 @@ func (s *SequencerTestSuite) TestFraud() {
 		s.Require().True(seq.TokensCoin().IsZero())
 		s.Require().True(mod.Equal(seq.TokensCoin()))
 		rewardeeBalAfter := s.App.BankKeeper.GetAllBalances(s.Ctx, rewardee)
-		s.Require().False(rewardeeBalAfter.IsEqual(rewardeeBalBefore))
+		s.Require().True(rewardeeBalAfter.IsAllGT(rewardeeBalBefore))
 	})
 }
 
@@ -110,8 +112,10 @@ func (s *SequencerTestSuite) TestFraudFullFlowDuringRotation() {
 	s.Require().True(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
 
 	// instead of submitting last, proposer does a fraud
-	err = s.k().HandleFraud(s.Ctx, s.seq(alice), nil)
+	err = s.k().RollappHooks().OnHardFork(s.Ctx, ra.RollappId, 0)
 	s.Require().NoError(err)
+
+	// assert all are opted out
 	s.Require().False(s.k().IsProposer(s.Ctx, s.seq(alice)))
 	s.Require().False(s.k().IsProposer(s.Ctx, s.seq(bob)))
 	s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(bob)))

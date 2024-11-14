@@ -24,7 +24,7 @@ func (k Keeper) FinalizeRollappPacket(ctx sdk.Context, ibc porttypes.IBCModule, 
 	// Verify the height is finalized
 	err = k.VerifyHeightFinalized(ctx, packet.RollappId, packet.ProofHeight)
 	if err != nil {
-		return packet, fmt.Errorf("verify height is finalized: rollapp '%s': %w", packet.RollappId, err)
+		return packet, fmt.Errorf("verify height: rollapp '%s': %w", packet.RollappId, err)
 	}
 
 	// Finalize the packet
@@ -84,7 +84,7 @@ func (k Keeper) finalizeRollappPacket(
 	}
 
 	// Update status to finalized
-	_, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
+	_, err := k.UpdateRollappPacketAfterFinalization(ctx, rollappPacket)
 	if err != nil {
 		return fmt.Errorf("update rollapp packet: %w", err)
 	}
@@ -109,10 +109,7 @@ func (k Keeper) writeRecvAck(rollappPacket commontypes.RollappPacket, ack export
 			Here, we do the inverse of what we did when we updated the packet transfer address, when we fulfilled the order
 			to ensure the ack matches what the rollapp expects.
 		*/
-		rollappPacket, err = rollappPacket.RestoreOriginalTransferTarget()
-		if err != nil {
-			return fmt.Errorf("restore original transfer target: %w", err)
-		}
+		rollappPacket = rollappPacket.RestoreOriginalTransferTarget()
 		err = k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
 		return
 	}
@@ -136,19 +133,14 @@ func (k Keeper) onTimeoutPacket(rollappPacket commontypes.RollappPacket, ibc por
 }
 
 func (k Keeper) VerifyHeightFinalized(ctx sdk.Context, rollappID string, height uint64) error {
-	// Get the latest state info of the rollapp
-	latestIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollappID)
-	if !found {
-		return gerrc.ErrNotFound.Wrapf("latest finalized state index is not found")
+	latestFinalizedHeight, err := k.getRollappLatestFinalizedHeight(ctx, rollappID)
+	if err != nil {
+		return err
 	}
-	stateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollappID, latestIndex.Index)
-	if !found {
-		return gerrc.ErrNotFound.Wrapf("state info is not found")
-	}
+
 	// Check the latest finalized height of the rollapp is higher than the height specified
-	latestHeight := stateInfo.GetLatestHeight()
-	if height > latestHeight {
-		return gerrc.ErrInvalidArgument.Wrapf("packet height is not finalized yet: height '%d', latest height '%d'", height, latestHeight)
+	if height > latestFinalizedHeight {
+		return gerrc.ErrInvalidArgument.Wrapf("packet height is not finalized yet: height '%d', latest finalized height '%d'", height, latestFinalizedHeight)
 	}
 	return nil
 }

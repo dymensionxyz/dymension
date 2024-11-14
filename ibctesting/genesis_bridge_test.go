@@ -37,6 +37,8 @@ func TestTransferGenesisTestSuite(t *testing.T) {
 
 func (s *transferGenesisSuite) SetupTest() {
 	s.utilSuite.SetupTest()
+	s.hubApp().LightClientKeeper.SetEnabled(false)
+
 	path := s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.SetupConnections(path)
 	s.createRollapp(false, nil) // genesis protocol is not finished yet
@@ -44,11 +46,6 @@ func (s *transferGenesisSuite) SetupTest() {
 	// fund the rollapp owner account for iro creation fee
 	iroFee := sdk.NewCoin(appparams.BaseDenom, s.hubApp().IROKeeper.GetParams(s.hubCtx()).CreationFee)
 	apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(iroFee))
-
-	// FIXME: remove?
-	// fund the iro module account for pool creation fee
-	poolFee := s.hubApp().GAMMKeeper.GetParams(s.hubCtx()).PoolCreationFee
-	apptesting.FundAccount(s.hubApp(), s.hubCtx(), sdk.MustAccAddressFromBech32(s.hubApp().IROKeeper.GetModuleAccountAddress()), poolFee)
 
 	// set the canonical client before creating channels
 	s.path = path

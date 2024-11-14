@@ -26,10 +26,6 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		return current, sdkerrors.ErrUnauthorized
 	}
 
-	if current.Frozen {
-		return current, types.ErrRollappFrozen
-	}
-
 	// immutable values cannot be updated when the rollapp is launched
 	if update.UpdatingImmutableValues() && current.Launched {
 		return current, types.ErrImmutableFieldUpdateAfterLaunched
@@ -86,32 +82,14 @@ func (k Keeper) CheckIfRollappExists(ctx sdk.Context, rollappId types.ChainID) e
 		return types.ErrRollappExists
 	}
 
-	existingRollapp, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID())
-	// allow replacing EIP155 only when forking (previous rollapp is frozen)
-	if !isFound {
-		// if not forking, check to see if the Rollapp has been registered before with same name
-		if _, isFound = k.GetRollappByName(ctx, rollappId.GetName()); isFound {
-			return types.ErrRollappExists
-		}
-		// when creating a new Rollapp, the revision number should always be 1
-		if rollappId.GetRevisionNumber() != 1 {
-			return errorsmod.Wrapf(types.ErrInvalidRollappID, "revision number should be 1, got: %d", rollappId.GetRevisionNumber())
-		}
-		return nil
-	}
-	if !existingRollapp.Frozen {
+	if _, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID()); isFound {
 		return types.ErrRollappExists
 	}
-	existingRollappChainId := types.MustNewChainID(existingRollapp.RollappId)
 
-	if rollappId.GetName() != existingRollappChainId.GetName() {
-		return errorsmod.Wrapf(types.ErrInvalidRollappID, "rollapp name should be %s", existingRollappChainId.GetName())
+	if _, isFound := k.GetRollappByName(ctx, rollappId.GetName()); isFound {
+		return types.ErrRollappExists
 	}
 
-	nextRevisionNumber := existingRollappChainId.GetRevisionNumber() + 1
-	if rollappId.GetRevisionNumber() != nextRevisionNumber {
-		return errorsmod.Wrapf(types.ErrInvalidRollappID, "revision number should be %d", nextRevisionNumber)
-	}
 	return nil
 }
 
@@ -311,86 +289,6 @@ func (k Keeper) IsRollappStarted(ctx sdk.Context, rollappId string) bool {
 	return found
 }
 
-func (k Keeper) MarkRollappAsVulnerable(ctx sdk.Context, rollappId string) error {
-	return k.FreezeRollapp(ctx, rollappId)
-}
-
-// FreezeRollapp marks the rollapp as frozen and reverts all pending states.
-// NB! This method is going to be changed as soon as the "Freezing" ADR is ready.
-func (k Keeper) FreezeRollapp(ctx sdk.Context, rollappID string) error {
-	rollapp, found := k.GetRollapp(ctx, rollappID)
-	if !found {
-		return gerrc.ErrNotFound
-	}
-
-	rollapp.Frozen = true
-
-	err := k.RevertPendingStates(ctx, rollappID)
-	if err != nil {
-		return fmt.Errorf("revert pending states: %w", err)
-	}
-
-	if rollapp.ChannelId != "" {
-		clientID, _, err := k.channelKeeper.GetChannelClientState(ctx, "transfer", rollapp.ChannelId)
-		if err != nil {
-			return fmt.Errorf("get channel client state: %w", err)
-		}
-
-		err = k.freezeClientState(ctx, clientID)
-		if err != nil {
-			return fmt.Errorf("freeze client state: %w", err)
-		}
-	}
-
-	k.SetRollapp(ctx, rollapp)
-	return nil
-}
-
-// verifyClientID verifies that the provided clientID is the same clientID used by the provided rollapp.
-// Possible scenarios:
-//  1. both channelID and clientID are empty -> okay
-//  2. channelID is empty while clientID is not -> error: rollapp does not have a channel
-//  3. clientID is empty while channelID is not -> error: rollapp does have a channel, but the provided clientID is empty
-//  4. both channelID and clientID are not empty -> okay: compare the provided channelID against the one from IBC
-func (k Keeper) verifyClientID(ctx sdk.Context, rollappID, clientID string) error {
-	rollapp, found := k.GetRollapp(ctx, rollappID)
-	if !found {
-		return gerrc.ErrNotFound
-	}
-
-	var (
-		emptyRollappChannelID = rollapp.ChannelId == ""
-		emptyClientID         = clientID == ""
-	)
-
-	switch {
-	// both channelID and clientID are empty
-	case emptyRollappChannelID && emptyClientID:
-		return nil // everything is fine, expected scenario
-
-	// channelID is empty while clientID is not
-	case emptyRollappChannelID:
-		return fmt.Errorf("rollapp does not have a channel: rollapp '%s'", rollappID)
-
-	// clientID is empty while channelID is not
-	case emptyClientID:
-		return fmt.Errorf("empty clientID while the rollapp channelID is not empty")
-
-	// both channelID and clientID are not empty
-	default:
-		// extract rollapp channelID
-		extractedClientId, _, err := k.channelKeeper.GetChannelClientState(ctx, "transfer", rollapp.ChannelId)
-		if err != nil {
-			return fmt.Errorf("get channel client state: %w", err)
-		}
-		// compare it with the passed clientID
-		if extractedClientId != clientID {
-			return fmt.Errorf("clientID does not match the one in the rollapp: clientID %s, rollapp clientID %s", clientID, extractedClientId)
-		}
-		return nil
-	}
-}
-
 func (k Keeper) FilterRollapps(ctx sdk.Context, f func(types.Rollapp) bool) []types.Rollapp {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
@@ -407,24 +305,20 @@ func (k Keeper) FilterRollapps(ctx sdk.Context, f func(types.Rollapp) bool) []ty
 	return result
 }
 
-func FilterNonVulnerable(b types.Rollapp) bool {
-	return !b.IsVulnerable()
-}
-
-func (k Keeper) IsDRSVersionVulnerable(ctx sdk.Context, version uint32) bool {
-	ok, err := k.vulnerableDRSVersions.Has(ctx, version)
+func (k Keeper) IsDRSVersionObsolete(ctx sdk.Context, version uint32) bool {
+	ok, err := k.obsoleteDRSVersions.Has(ctx, version)
 	if err != nil {
-		panic(fmt.Sprintf("checking if DRS version is vulnerable: %v", err))
+		panic(fmt.Sprintf("checking if DRS version is obsolete: %v", err))
 	}
 	return ok
 }
 
-func (k Keeper) SetVulnerableDRSVersion(ctx sdk.Context, version uint32) error {
-	return k.vulnerableDRSVersions.Set(ctx, version)
+func (k Keeper) SetObsoleteDRSVersion(ctx sdk.Context, version uint32) error {
+	return k.obsoleteDRSVersions.Set(ctx, version)
 }
 
-func (k Keeper) GetAllVulnerableDRSVersions(ctx sdk.Context) ([]uint32, error) {
-	iter, err := k.vulnerableDRSVersions.Iterate(ctx, nil)
+func (k Keeper) GetAllObsoleteDRSVersions(ctx sdk.Context) ([]uint32, error) {
+	iter, err := k.obsoleteDRSVersions.Iterate(ctx, nil)
 	if err != nil {
 		return nil, err
 	}

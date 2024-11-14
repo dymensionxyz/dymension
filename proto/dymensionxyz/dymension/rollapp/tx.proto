@@ -19,7 +19,7 @@ service Msg {
   rpc AddApp(MsgAddApp) returns (MsgAddAppResponse);
   rpc UpdateApp(MsgUpdateApp) returns (MsgUpdateAppResponse);
   rpc RemoveApp(MsgRemoveApp) returns (MsgRemoveAppResponse);
-  rpc MarkVulnerableRollapps(MsgMarkVulnerableRollapps) returns (MsgMarkVulnerableRollappsResponse);
+  rpc MarkObsoleteRollapps(MsgMarkObsoleteRollapps) returns (MsgMarkObsoleteRollappsResponse);
 }
 
 // MsgCreateRollapp creates a new rollapp chain on the hub.
@@ -89,6 +89,8 @@ message MsgUpdateState {
   BlockDescriptors BDs = 7 [(gogoproto.nullable) = false];
   // last is true if this is the last batch of the sequencer
   bool last = 8;
+  // rollapp_revision is the revision of the rollapp chain. increases after hard fork  
+  uint64 rollapp_revision = 9;
 }
 
 message MsgUpdateStateResponse {
@@ -168,15 +170,15 @@ message MsgRemoveApp {
 message MsgRemoveAppResponse {
 }
 
-// MsgMarkVulnerableRollapps marks specified versions as vulnerable as well as
+// MsgMarkObsoleteRollapps marks specified versions as obsolete as well as
 // all corresponding rollapps. Must be called by the governance.
-message MsgMarkVulnerableRollapps {
+message MsgMarkObsoleteRollapps {
   option (cosmos.msg.v1.signer) = "authority";
 
   // Authority is the authority address.
   string authority = 1;
-  // DrsVersions is a list of DRS versions that will be marked vulnerable.
+  // DrsVersions is a list of DRS versions that will be marked obsolete.
   repeated uint32 drs_versions = 2;
 }
 
-message MsgMarkVulnerableRollappsResponse {}
+message MsgMarkObsoleteRollappsResponse {}
