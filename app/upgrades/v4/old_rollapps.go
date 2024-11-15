@@ -7,7 +7,7 @@ import (
 )
 
 // Genesis info data is from https://www.notion.so/dymension/Rollapp-Specific-Migration-Data-136a4a51f86a8017be93d774a576d0ce.
-// Rollapp IDs are from https://dym.fyi/rollapps.
+// Rollapp IDs are from https://dym.fyi/rollapps and https://bb.dym.fyi/rollapps.
 
 var (
 	nimRollappID   = "nim_1122-1"
@@ -78,5 +78,37 @@ var (
 		"ibc/27A5DE18D796A595123D97078F9AB9EAEFC23540724384F219EACED2BD5511F5", // SCRT
 		"ibc/13B2C536BB057AC79D5616B8EA1B9540EC1F2170718CAFF6F0083C966FFFED0B", // OSMO
 		"ibc/04E01477A69DF1E5EE99F85C15B66D68D23292275357CAA44B2E0527310A405E", // EVMOS
+	}
+
+	rollappXRollappID        = "rollappx_700001-1"
+	rollappXInitialSupply, _ = math.NewIntFromString("2000060000000000000000000000")
+	rollappXGenesisInfo      = rollapptypes.GenesisInfo{
+		GenesisChecksum: "",
+		Bech32Prefix:    "rolx",
+		NativeDenom: rollapptypes.DenomMetadata{
+			Display:  "rolx",
+			Base:     "arolx",
+			Exponent: 18,
+		},
+		InitialSupply:   rollappXInitialSupply,
+		Sealed:          true,
+		GenesisAccounts: nil,
+	}
+	rollappXDenoms = []string{
+		"ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D", // DYM
+	}
+
+	crynuxRollappID        = "crynux_10000-1"
+	crynuxInitialSupply, _ = math.NewIntFromString("2000050000000000000000000000")
+	crynuxGenesisInfo      = rollapptypes.GenesisInfo{
+		GenesisChecksum: "",
+		Bech32Prefix:    "cry",
+		NativeDenom:     rollapptypes.DenomMetadata{},
+		InitialSupply:   crynuxInitialSupply,
+		Sealed:          true,
+		GenesisAccounts: nil,
+	}
+	crynuxDenoms = []string{
+		"ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D", // DYM
 	}
 )
