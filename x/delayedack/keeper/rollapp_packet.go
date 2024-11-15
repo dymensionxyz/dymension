@@ -7,9 +7,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // SetRollappPacket stores a rollapp packet in the KVStore.
@@ -246,7 +247,7 @@ func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []commontypes.Rollap
 	return list
 }
 
-func (k Keeper) DeleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) error {
+func (k Keeper) DeleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) {
 	store := ctx.KVStore(k.storeKey)
 	rollappPacketKey := rollappPacket.RollappPacketKey()
 	store.Delete(rollappPacketKey)
@@ -263,13 +264,8 @@ func (k Keeper) DeleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.
 	k.MustDeletePendingPacketByAddress(ctx, pendingAddr, rollappPacket.RollappPacketKey())
 
 	keeperHooks := k.GetHooks()
-	// TODO: can call eIBC directly. shouldn't return error anyway
-	err := keeperHooks.AfterPacketDeleted(ctx, rollappPacket)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	// TODO: can call eIBC directly
+	keeperHooks.AfterPacketDeleted(ctx, rollappPacket)
 }
 
 // GetPendingPacketsUntilFinalizedHeight returns all pending rollapp packets until the latest finalized height.
