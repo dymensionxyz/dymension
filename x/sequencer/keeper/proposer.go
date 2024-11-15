@@ -56,7 +56,7 @@ func (k Keeper) RecoverFromSentinel(ctx sdk.Context, rollapp string) error {
 	}
 	k.SetProposer(ctx, rollapp, successor.Address)
 
-	err = k.hooks.AfterRecoveryFromHalt(ctx, rollapp, successor)
+	err = k.hooks.AfterSetRealProposer(ctx, rollapp, successor)
 	if err != nil {
 		return errorsmod.Wrap(err, "recovery from halt callbacks")
 	}
