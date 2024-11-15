@@ -314,7 +314,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		genesisInfo = mandeGenesisInfo
 	}
 
-	//testnet
+	// testnet
 	if oldRollapp.RollappId == rollappXRollappID {
 		genesisInfo = rollappXGenesisInfo
 	}
