@@ -96,6 +96,10 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
+		if err := migrateRollappStateInfoNextProposer(ctx, keepers.RollappKeeper, keepers.SequencerKeeper); err != nil {
+			return nil, err
+		}
+
 		if err := migrateRollappFinalizationQueue(ctx, keepers.RollappKeeper); err != nil {
 			return nil, err
 		}
