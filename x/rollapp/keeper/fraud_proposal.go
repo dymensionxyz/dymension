@@ -36,13 +36,6 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 		return nil, err
 	}
 
-	// check revision number
-	if rollapp.LatestRevision().Number != msg.RollappRevision {
-		err := errorsmod.Wrap(gerrc.ErrFailedPrecondition, "revision number mismatch")
-		ctx.Logger().Error(err.Error())
-		return nil, err
-	}
-
 	// validate the rollapp is past its genesis bridge phase
 	if !rollapp.IsTransferEnabled() {
 		err := errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp is not past genesis bridge phase")
