@@ -54,7 +54,8 @@ message StateInfo {
         (gogoproto.moretags) = "yaml:\"created_at\""
     ];
 
-    // next sequencer is the bech32-encoded address of the next sequencer after the current sequencer
+    // NextProposer is the bech32-encoded address of the proposer that we expect to see in the next state info.
+    // Most of the time NextProposer is the current proposer. In case of rotation it is changed to the successor.
     string nextProposer = 11;
 }
 
