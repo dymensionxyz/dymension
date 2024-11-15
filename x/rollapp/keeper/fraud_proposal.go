@@ -18,27 +18,27 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 
 	if msg.Authority != k.authority {
 		err := errorsmod.Wrap(gerrc.ErrUnauthenticated, "only the gov module can submit fraud proposals")
-		ctx.Logger().Error(err.Error())
+		ctx.Logger().Error("Fraud proposal.", err)
 		return nil, err
 	}
 
 	if err := msg.ValidateBasic(); err != nil {
 		err = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid msg")
-		ctx.Logger().Error(err.Error())
+		ctx.Logger().Error("Fraud proposal.", err)
 		return nil, err
 	}
 
 	rollapp, found := k.GetRollapp(ctx, msg.RollappId)
 	if !found {
 		err := errorsmod.Wrap(gerrc.ErrNotFound, "rollapp not found")
-		ctx.Logger().Error(err.Error())
+		ctx.Logger().Error("Fraud proposal.", err)
 		return nil, err
 	}
 
 	// validate the rollapp is past its genesis bridge phase
 	if !rollapp.IsTransferEnabled() {
 		err := errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp is not past genesis bridge phase")
-		ctx.Logger().Error(err.Error())
+		ctx.Logger().Error("Fraud proposal.", err)
 		return nil, err
 	}
 
@@ -47,7 +47,7 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 		err := k.sequencerKeeper.PunishSequencer(ctx, msg.PunishSequencerAddress, msg.MustRewardee())
 		if err != nil {
 			err = errorsmod.Wrap(err, "jail sequencer")
-			ctx.Logger().Error(err.Error())
+			ctx.Logger().Error("Fraud proposal.", err)
 			return nil, err
 		}
 	}
@@ -59,7 +59,7 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 	err := k.HardFork(ctx, msg.RollappId, msg.FraudHeight)
 	if err != nil {
 		err = errorsmod.Wrap(err, "hard fork")
-		ctx.Logger().Error(err.Error())
+		ctx.Logger().Error("Fraud proposal.", err)
 		return nil, err
 	}
 
