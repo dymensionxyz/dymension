@@ -5,9 +5,7 @@ import (
 	"sort"
 
 	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
