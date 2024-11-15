@@ -146,6 +146,8 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				// Check rollapp finalization queue
 				s.validateRollappFinalizationQueue()
 
+				s.validateNonFinalizedStateInfos()
+
 				s.validateStreamerMigration()
 
 				return
@@ -333,49 +335,65 @@ func (s *UpgradeTestSuite) validateRollappFinalizationQueue() {
 		{
 			CreationHeight: 1,
 			FinalizationQueue: []rollapptypes.StateInfoIndex{
-				{RollappId: "rollapp1", Index: 1},
-				{RollappId: "rollapp1", Index: 2},
+				{RollappId: rollappIDFromIdx(1), Index: 1},
+				{RollappId: rollappIDFromIdx(1), Index: 2},
 			},
-			RollappId: "rollapp1",
+			RollappId: rollappIDFromIdx(1),
 		},
 		{
 			CreationHeight: 1,
 			FinalizationQueue: []rollapptypes.StateInfoIndex{
-				{RollappId: "rollapp2", Index: 1},
-				{RollappId: "rollapp2", Index: 2},
+				{RollappId: rollappIDFromIdx(2), Index: 1},
+				{RollappId: rollappIDFromIdx(2), Index: 2},
 			},
-			RollappId: "rollapp2",
+			RollappId: rollappIDFromIdx(2),
 		},
 		{
 			CreationHeight: 1,
 			FinalizationQueue: []rollapptypes.StateInfoIndex{
-				{RollappId: "rollapp3", Index: 1},
+				{RollappId: rollappIDFromIdx(3), Index: 1},
 			},
-			RollappId: "rollapp3",
+			RollappId: rollappIDFromIdx(3),
 		},
 		{
 			CreationHeight: 2,
 			FinalizationQueue: []rollapptypes.StateInfoIndex{
-				{RollappId: "rollapp1", Index: 3},
+				{RollappId: rollappIDFromIdx(1), Index: 3},
 			},
-			RollappId: "rollapp1",
+			RollappId: rollappIDFromIdx(1),
 		},
 		{
 			CreationHeight: 2,
 			FinalizationQueue: []rollapptypes.StateInfoIndex{
-				{RollappId: "rollapp3", Index: 2},
+				{RollappId: rollappIDFromIdx(3), Index: 2},
 			},
-			RollappId: "rollapp3",
+			RollappId: rollappIDFromIdx(3),
 		},
 		{
 			CreationHeight: 3,
 			FinalizationQueue: []rollapptypes.StateInfoIndex{
-				{RollappId: "rollapp3", Index: 3},
-				{RollappId: "rollapp3", Index: 4},
+				{RollappId: rollappIDFromIdx(3), Index: 3},
+				{RollappId: rollappIDFromIdx(3), Index: 4},
 			},
-			RollappId: "rollapp3",
+			RollappId: rollappIDFromIdx(3),
 		},
 	}, queue)
+}
+
+func (s *UpgradeTestSuite) validateNonFinalizedStateInfos() {
+	queue, err := s.App.RollappKeeper.GetEntireFinalizationQueue(s.Ctx)
+	s.Require().NoError(err)
+
+	for _, q := range queue {
+		proposer := s.App.SequencerKeeper.GetProposer(s.Ctx, q.RollappId)
+		for _, stateInfoIndex := range q.FinalizationQueue {
+			stateInfo, found := s.App.RollappKeeper.GetStateInfo(s.Ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
+			s.Require().True(found)
+
+			// Verify that all non-finalized state infos contain the correct proposer (the same that's set in x/sequencer)
+			s.Require().Equal(proposer.Address, stateInfo.NextProposer)
+		}
+	}
 }
 
 func (s *UpgradeTestSuite) seedAndStoreRollapps(numRollapps int) {
@@ -448,27 +466,27 @@ func (s *UpgradeTestSuite) seedRollappFinalizationQueue() {
 	q1 := rollapptypes.BlockHeightToFinalizationQueue{
 		CreationHeight: 1,
 		FinalizationQueue: []rollapptypes.StateInfoIndex{
-			{RollappId: "rollapp1", Index: 1},
-			{RollappId: "rollapp1", Index: 2},
-			{RollappId: "rollapp2", Index: 1},
-			{RollappId: "rollapp2", Index: 2},
-			{RollappId: "rollapp3", Index: 1},
+			{RollappId: rollappIDFromIdx(1), Index: 1},
+			{RollappId: rollappIDFromIdx(1), Index: 2},
+			{RollappId: rollappIDFromIdx(2), Index: 1},
+			{RollappId: rollappIDFromIdx(2), Index: 2},
+			{RollappId: rollappIDFromIdx(3), Index: 1},
 		},
 		RollappId: "",
 	}
 	q2 := rollapptypes.BlockHeightToFinalizationQueue{
 		CreationHeight: 2,
 		FinalizationQueue: []rollapptypes.StateInfoIndex{
-			{RollappId: "rollapp1", Index: 3},
-			{RollappId: "rollapp3", Index: 2},
+			{RollappId: rollappIDFromIdx(1), Index: 3},
+			{RollappId: rollappIDFromIdx(3), Index: 2},
 		},
 		RollappId: "",
 	}
 	q3 := rollapptypes.BlockHeightToFinalizationQueue{
 		CreationHeight: 3,
 		FinalizationQueue: []rollapptypes.StateInfoIndex{
-			{RollappId: "rollapp3", Index: 3},
-			{RollappId: "rollapp3", Index: 4},
+			{RollappId: rollappIDFromIdx(3), Index: 3},
+			{RollappId: rollappIDFromIdx(3), Index: 4},
 		},
 		RollappId: "",
 	}
@@ -476,18 +494,43 @@ func (s *UpgradeTestSuite) seedRollappFinalizationQueue() {
 	s.App.RollappKeeper.SetBlockHeightToFinalizationQueue(s.Ctx, q1)
 	s.App.RollappKeeper.SetBlockHeightToFinalizationQueue(s.Ctx, q2)
 	s.App.RollappKeeper.SetBlockHeightToFinalizationQueue(s.Ctx, q3)
+
+	stateInfos := []rollapptypes.StateInfo{
+		generateStateInfo(1, 1),
+		generateStateInfo(1, 2),
+		generateStateInfo(1, 3),
+		generateStateInfo(2, 1),
+		generateStateInfo(2, 2),
+		generateStateInfo(3, 1),
+		generateStateInfo(3, 2),
+		generateStateInfo(3, 3),
+		generateStateInfo(3, 4),
+	}
+
+	for _, stateInfo := range stateInfos {
+		s.App.RollappKeeper.SetStateInfo(s.Ctx, stateInfo)
+	}
+}
+
+func generateStateInfo(rollappIdx, stateIdx int) rollapptypes.StateInfo {
+	return rollapptypes.StateInfo{
+		StateInfoIndex: rollapptypes.StateInfoIndex{
+			RollappId: rollappIDFromIdx(rollappIdx),
+			Index:     uint64(stateIdx),
+		},
+	}
 }
 
 func TestReformatFinalizationQueue(t *testing.T) {
 	q := rollapptypes.BlockHeightToFinalizationQueue{
 		CreationHeight: 1,
 		FinalizationQueue: []rollapptypes.StateInfoIndex{
-			{RollappId: "rollapp1", Index: 1},
-			{RollappId: "rollapp1", Index: 2},
-			{RollappId: "rollapp1", Index: 3},
-			{RollappId: "rollapp2", Index: 1},
-			{RollappId: "rollapp2", Index: 2},
-			{RollappId: "rollapp3", Index: 1},
+			{RollappId: rollappIDFromIdx(1), Index: 1},
+			{RollappId: rollappIDFromIdx(1), Index: 2},
+			{RollappId: rollappIDFromIdx(1), Index: 3},
+			{RollappId: rollappIDFromIdx(2), Index: 1},
+			{RollappId: rollappIDFromIdx(2), Index: 2},
+			{RollappId: rollappIDFromIdx(3), Index: 1},
 		},
 		RollappId: "", // empty for old-style queues
 	}
@@ -498,26 +541,26 @@ func TestReformatFinalizationQueue(t *testing.T) {
 		{
 			CreationHeight: 1,
 			FinalizationQueue: []rollapptypes.StateInfoIndex{
-				{RollappId: "rollapp1", Index: 1},
-				{RollappId: "rollapp1", Index: 2},
-				{RollappId: "rollapp1", Index: 3},
+				{RollappId: rollappIDFromIdx(1), Index: 1},
+				{RollappId: rollappIDFromIdx(1), Index: 2},
+				{RollappId: rollappIDFromIdx(1), Index: 3},
 			},
-			RollappId: "rollapp1",
+			RollappId: rollappIDFromIdx(1),
 		},
 		{
 			CreationHeight: 1,
 			FinalizationQueue: []rollapptypes.StateInfoIndex{
-				{RollappId: "rollapp2", Index: 1},
-				{RollappId: "rollapp2", Index: 2},
+				{RollappId: rollappIDFromIdx(2), Index: 1},
+				{RollappId: rollappIDFromIdx(2), Index: 2},
 			},
-			RollappId: "rollapp2",
+			RollappId: rollappIDFromIdx(2),
 		},
 		{
 			CreationHeight: 1,
 			FinalizationQueue: []rollapptypes.StateInfoIndex{
-				{RollappId: "rollapp3", Index: 1},
+				{RollappId: rollappIDFromIdx(3), Index: 1},
 			},
-			RollappId: "rollapp3",
+			RollappId: rollappIDFromIdx(3),
 		},
 	}, newQueues)
 }
