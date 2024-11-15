@@ -30,10 +30,10 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	}
 
 	// validate correct rollapp revision number
-	if rollapp.RevisionNumber != msg.RollappRevision {
+	if rollapp.LatestRevision().Number != msg.RollappRevision {
 		return nil, errorsmod.Wrapf(types.ErrWrongRollappRevision,
 			"expected revision number (%d), but received (%d)",
-			rollapp.RevisionNumber, msg.RollappRevision)
+			rollapp.LatestRevision().Number, msg.RollappRevision)
 	}
 
 	// retrieve last updating index

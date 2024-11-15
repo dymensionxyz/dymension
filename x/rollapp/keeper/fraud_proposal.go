@@ -6,8 +6,9 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // SubmitRollappFraud handles the submission of a fraud proposal
@@ -36,7 +37,7 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 	}
 
 	// check revision number
-	if rollapp.RevisionNumber != msg.RollappRevision {
+	if rollapp.LatestRevision().Number != msg.RollappRevision {
 		err := errorsmod.Wrap(gerrc.ErrFailedPrecondition, "revision number mismatch")
 		ctx.Logger().Error(err.Error())
 		return nil, err

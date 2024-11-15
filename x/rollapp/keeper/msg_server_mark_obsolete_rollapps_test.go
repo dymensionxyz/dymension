@@ -190,9 +190,9 @@ func (s *RollappTestSuite) TestMarkObsoleteRollapps() {
 }
 
 func FilterForked(b types.Rollapp) bool {
-	return b.RevisionNumber > 0
+	return b.LatestRevision().Number > 0
 }
 
 func FilterNonForked(b types.Rollapp) bool {
-	return b.RevisionNumber == 0
+	return b.LatestRevision().Number == 0
 }
