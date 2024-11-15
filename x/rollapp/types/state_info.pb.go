@@ -112,7 +112,8 @@ type StateInfo struct {
 	BDs BlockDescriptors `protobuf:"bytes,9,opt,name=BDs,proto3" json:"BDs"`
 	// created_at is the timestamp at which the StateInfo was created
 	CreatedAt time.Time `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3,stdtime" json:"created_at" yaml:"created_at"`
-	// next sequencer is the bech32-encoded address of the next sequencer after the current sequencer
+	// NextProposer is the bech32-encoded address of the proposer that we expect to see in the next state info.
+	// Most of the time NextProposer is the current proposer. In case of rotation it is changed to the successor.
 	NextProposer string `protobuf:"bytes,11,opt,name=nextProposer,proto3" json:"nextProposer,omitempty"`
 }
 
