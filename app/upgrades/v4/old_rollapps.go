@@ -83,7 +83,7 @@ var (
 	rollappXRollappID        = "rollappx_700001-1"
 	rollappXInitialSupply, _ = math.NewIntFromString("2000060000000000000000000000")
 	rollappXGenesisInfo      = rollapptypes.GenesisInfo{
-		GenesisChecksum: "",
+		GenesisChecksum: "27b8fdd4e7138fb608500c4dc3005b52eecf6e667230769751e24a3f5c601f0f",
 		Bech32Prefix:    "rolx",
 		NativeDenom: rollapptypes.DenomMetadata{
 			Display:  "rolx",
@@ -101,9 +101,13 @@ var (
 	crynuxRollappID        = "crynux_10000-1"
 	crynuxInitialSupply, _ = math.NewIntFromString("2000050000000000000000000000")
 	crynuxGenesisInfo      = rollapptypes.GenesisInfo{
-		GenesisChecksum: "",
+		GenesisChecksum: "6e7207c082dad7d62148f44437fdeacb9aab6c30396d1d4bbe5c08d44296dc21",
 		Bech32Prefix:    "cry",
-		NativeDenom:     rollapptypes.DenomMetadata{},
+		NativeDenom: rollapptypes.DenomMetadata{
+			Display:  "cnx",
+			Base:     "acnx",
+			Exponent: 18,
+		},
 		InitialSupply:   crynuxInitialSupply,
 		Sealed:          true,
 		GenesisAccounts: nil,
