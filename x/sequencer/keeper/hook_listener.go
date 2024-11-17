@@ -19,9 +19,8 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 	return rollappHook{k: k}
 }
 
-// BeforeUpdateState will reject if the caller is not proposer, or if they are proposer but haven't
-// finished their rotation notice period.
-// If valid, it will set the successor as proposer
+// BeforeUpdateState will reject if the caller is not proposer
+// if lastStateUpdateBySequencer is true, validate that the sequencer is in the middle of a rotation
 func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, lastStateUpdateBySequencer bool) error {
 	proposer := hook.k.GetProposer(ctx, rollappId)
 	if seqAddr != proposer.Address {
@@ -36,14 +35,18 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 	return nil
 }
 
+// AfterUpdateState checks if rotation is completed and the nextProposer is changed
 func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
-	// if last block, handle proposer rotation
-	if stateInfo.Sequencer != stateInfo.NextProposer {
-		proposer := hook.k.GetProposer(ctx, rollappID)
-		err := hook.k.OnProposerLastBlock(ctx, proposer)
-		if err != nil {
-			return errorsmod.Wrap(err, "on proposer last block")
-		}
+	// no proposer changed - no op
+	if stateInfo.Sequencer == stateInfo.NextProposer {
+		return nil
+	}
+
+	// handle proposer rotation completion
+	proposer := hook.k.GetProposer(ctx, rollappID)
+	err := hook.k.OnProposerLastBlock(ctx, proposer)
+	if err != nil {
+		return errorsmod.Wrap(err, "on proposer last block")
 	}
 
 	return nil
