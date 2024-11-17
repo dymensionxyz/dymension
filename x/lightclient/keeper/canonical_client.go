@@ -97,7 +97,7 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.Client
 	var err error
 	IterateConsensusStateDescending(csStore, func(h exported.Height) bool {
 		// skip future heights
-		if h.GetRevisionHeight() >= maxHeight {
+		if h.GetRevisionHeight() > maxHeight {
 			return false
 		}
 
