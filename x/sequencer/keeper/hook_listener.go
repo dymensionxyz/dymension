@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var _ rollapptypes.RollappHooks = rollappHook{}
@@ -27,8 +28,22 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 		return types.ErrNotProposer
 	}
 
-	if lastStateUpdateBySequencer {
-		return errorsmod.Wrap(hook.k.OnProposerLastBlock(ctx, proposer), "on proposer last block")
+	// if lastStateUpdateBySequencer is true, validate that the sequencer is in the middle of a rotation
+	if lastStateUpdateBySequencer && !hook.k.AwaitingLastProposerBlock(ctx, rollappId) {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "sequencer is not in the middle of a rotation")
+	}
+
+	return nil
+}
+
+func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
+	// if last block, handle proposer rotation
+	if stateInfo.Sequencer != stateInfo.NextProposer {
+		proposer := hook.k.GetProposer(ctx, rollappID)
+		err := hook.k.OnProposerLastBlock(ctx, proposer)
+		if err != nil {
+			return errorsmod.Wrap(err, "on proposer last block")
+		}
 	}
 
 	return nil
