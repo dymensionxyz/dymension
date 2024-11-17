@@ -21,9 +21,9 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 // BeforeUpdateState will reject if the caller is not proposer, or if they are proposer but haven't
 // finished their rotation notice period.
 // If valid, it will set the successor as proposer
-func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, lastStateUpdateBySequencer bool) error {
-	proposer := hook.k.GetProposer(ctx, rollappId)
-	if seqAddr != proposer.Address {
+func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappId string, stateInfo *rollapptypes.StateInfo, lastStateUpdateBySequencer bool) error {
+	proposer := hook.k.GetProposer(ctx, stateInfo.StateInfoIndex.RollappId)
+	if proposer.Address != stateInfo.Sequencer {
 		return types.ErrNotProposer
 	}
 

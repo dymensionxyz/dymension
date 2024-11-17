@@ -34,6 +34,7 @@ func (hook rollappHook) AfterUpdateState(
 	ctx sdk.Context,
 	rollappId string,
 	stateInfo *rollapptypes.StateInfo,
+	_ bool,
 ) error {
 	if !hook.k.Enabled() {
 		return nil
