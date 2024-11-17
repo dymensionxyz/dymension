@@ -478,6 +478,7 @@ func (a *AppKeepers) InitKeepers(
 		a.BankKeeper,
 		a.ScopedTransferKeeper,
 	)
+	a.RollappKeeper.SetTransferKeeper(a.TransferKeeper)
 
 	a.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
 		appCodec,
