@@ -141,6 +141,10 @@ func (k *Keeper) SetCanonicalClientKeeper(kk CanonicalLightClientKeeper) {
 	k.canonicalClientKeeper = kk
 }
 
+func (k *Keeper) SetTransferKeeper(transferKeeper TransferKeeper) {
+	k.transferKeeper = transferKeeper
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                    Hooks                                   */
 /* -------------------------------------------------------------------------- */
