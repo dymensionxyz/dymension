@@ -43,7 +43,7 @@ func (hook rollappHook) AfterUpdateState(
 		}
 	} else {
 		var ok bool
-		client, ok = hook.k.FindPotentialClient(ctx, stateInfo)
+		client, ok = hook.k.GetProspectiveCanonicalClient(ctx, stateInfo)
 		if !ok {
 			return nil
 		}

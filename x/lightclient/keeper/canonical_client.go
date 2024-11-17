@@ -13,15 +13,13 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-var errChainIDMismatch = errors.New("chain id mismatch")
-
-// FindPotentialClient returns the client id of the first IBC client which can be set as the canonical client for the given rollapp.
+// GetProspectiveCanonicalClient returns the client id of the first IBC client which can be set as the canonical client for the given rollapp.
 // The canonical client criteria are:
 // 1. The client must be a tendermint client.
 // 2. The client state must match the expected client params as configured by the module
 // 3. The client state must have the same chain id as the rollapp id.
-// 4. The client state must have a consensus state which is compatible with the state info.
-func (k Keeper) FindPotentialClient(ctx sdk.Context, sInfo *rollapptypes.StateInfo) (clientID string, found bool) {
+// 4. All the existing consensus states much match the corresponding height rollapp block descriptors
+func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, sInfo *rollapptypes.StateInfo) (clientID string, found bool) {
 	k.ibcClientKeeper.IterateClientStates(ctx, nil, func(client string, cs exported.ClientState) bool {
 		rollappId := sInfo.GetRollappId()
 
