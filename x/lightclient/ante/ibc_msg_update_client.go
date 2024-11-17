@@ -87,9 +87,6 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	if err != nil {
 		return errorsmod.Wrap(err, "validate pessimistic")
 	}
-	if !canonical {
-		i.k.SetCanonicalClient(ctx, seq.RollappId, msg.ClientId)
-	}
 
 	return nil
 }
