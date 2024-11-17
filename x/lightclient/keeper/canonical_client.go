@@ -13,28 +13,56 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-// FindMatchingClient returns the client id of the first IBC client which can be set as the canonical client for the given rollapp.
+var errChainIDMismatch = errors.New("chain id mismatch")
+
+// FindPotentialClient returns the client id of the first IBC client which can be set as the canonical client for the given rollapp.
 // The canonical client criteria are:
 // 1. The client must be a tendermint client.
 // 2. The client state must match the expected client params as configured by the module
-// 3. All the existing consensus states much match the corresponding height rollapp block descriptors
-func (k Keeper) FindMatchingClient(ctx sdk.Context, sInfo *rollapptypes.StateInfo) (clientID string, stateCompatible bool) {
+// 3. The client state must have the same chain id as the rollapp id.
+// 4. The client state must have a consensus state which is compatible with the state info.
+func (k Keeper) FindPotentialClient(ctx sdk.Context, sInfo *rollapptypes.StateInfo) (clientID string, found bool) {
 	k.ibcClientKeeper.IterateClientStates(ctx, nil, func(client string, cs exported.ClientState) bool {
-		err := k.validClient(ctx, client, cs, sInfo)
-		if err == nil {
-			clientID = client
-			stateCompatible = true
-			return true
+		rollappId := sInfo.GetRollappId()
+
+		tmClientState, ok := cs.(*ibctm.ClientState)
+		if !ok {
+			return false
 		}
-		if !errorsmod.IsOf(err, errChainIDMismatch) {
-			// Log the error with key-value pairs
-			ctx.Logger().Debug("tried to validate rollapp against light client for same chain id",
+		if tmClientState.ChainId != rollappId {
+			return false
+		}
+
+		expClient := k.expectedClient()
+		if err := types.IsCanonicalClientParamsValid(tmClientState, &expClient); err != nil {
+			k.Logger(ctx).Debug("validate client params against light client with same chain id",
+				"rollapp", sInfo.GetRollappId(),
+				"client", client,
+				"expected", expClient,
+				"actual", tmClientState,
+				"err", err,
+			)
+			return false
+		}
+
+		// validate state info against optimistically accepted headers
+		validated, err := k.ValidateOptimisticUpdates(ctx, client, sInfo)
+		if err != nil {
+			k.Logger(ctx).Debug("validate rollapp state against light client with same chain id",
 				"rollapp", sInfo.GetRollappId(),
 				"client", client,
 				"err", err,
 			)
+			return false
 		}
-		return false
+		if !validated {
+			return false
+		}
+
+		// we successfully validated the state info against a potential client
+		clientID = client
+		found = true
+		return true
 	})
 	return
 }
@@ -72,72 +100,7 @@ func (k Keeper) expectedClient() ibctm.ClientState {
 	return types.DefaultExpectedCanonicalClientParams()
 }
 
-var errChainIDMismatch = errors.New("chain id mismatch")
-
-func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.ClientState, sInfo *rollapptypes.StateInfo) error {
-	maxHeight := sInfo.GetLatestHeight()
-	minHeight := sInfo.StartHeight
-	rollappId := sInfo.GetRollappId()
-
-	tmClientState, ok := cs.(*ibctm.ClientState)
-	if !ok {
-		return errors.New("not tm client")
-	}
-	if tmClientState.ChainId != rollappId {
-		return errChainIDMismatch
-	}
-
-	expClient := k.expectedClient()
-	if err := types.IsCanonicalClientParamsValid(tmClientState, &expClient); err != nil {
-		return errorsmod.Wrap(err, "params")
-	}
-
-	atLeastOneMatch := false
-	csStore := k.ibcClientKeeper.ClientStore(ctx, clientID)
-	var err error
-	IterateConsensusStateDescending(csStore, func(h exported.Height) bool {
-		// skip future heights
-		if h.GetRevisionHeight() > maxHeight {
-			return false
-		}
-
-		// iterate until we pass the fraud height
-		if h.GetRevisionHeight() < minHeight {
-			return true // break
-		}
-
-		consensusState, ok := k.ibcClientKeeper.GetClientConsensusState(ctx, clientID, h)
-		if !ok {
-			return false
-		}
-		tmConsensusState, ok := consensusState.(*ibctm.ConsensusState)
-		if !ok {
-			return false
-		}
-
-		err = k.ValidateUpdatePessimistically(ctx, sInfo, tmConsensusState, h.GetRevisionHeight())
-		if err != nil {
-			err = errorsmod.Wrapf(err, "validate pessimistic h: %d", h.GetRevisionHeight())
-			return true // break
-		}
-
-		atLeastOneMatch = true
-		return true // break
-	})
-	// Need to be sure that at least one consensus state agrees with a state update
-	// (There are also no disagreeing consensus states. There may be some consensus states
-	// for future state updates, which will incur a fraud if they disagree.)
-	if !atLeastOneMatch {
-		err = errors.Join(errors.New("no consensus state matches"), err)
-	}
-
-	if err != nil {
-		return errorsmod.Wrapf(err, "testing client %s for rollapp %s", clientID, rollappId)
-	}
-	return nil
-}
-
-func (k Keeper) ValidateUpdatePessimistically(ctx sdk.Context, sInfo *rollapptypes.StateInfo, consState *ibctm.ConsensusState, h uint64) error {
+func (k Keeper) ValidateHeaderAgainstStateInfo(ctx sdk.Context, sInfo *rollapptypes.StateInfo, consState *ibctm.ConsensusState, h uint64) error {
 	bd, ok := sInfo.GetBlockDescriptor(h)
 	if !ok {
 		return errorsmod.Wrapf(gerrc.ErrInternal, "no block descriptor found for height %d", h)

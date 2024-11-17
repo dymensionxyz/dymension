@@ -34,16 +34,26 @@ func (hook rollappHook) AfterUpdateState(
 		return nil
 	}
 
-	client, ok := hook.k.GetCanonicalClient(ctx, rollappId)
-	if !ok {
-		client, ok = hook.k.FindMatchingClient(ctx, stateInfo)
-		if ok {
-			hook.k.SetCanonicalClient(ctx, rollappId, client)
-			if err := hook.k.PruneSignersBelow(ctx, client, stateInfo.GetLatestHeight()+1); err != nil {
-				return errorsmod.Wrap(err, "prune signers")
-			}
+	client, canonical := hook.k.GetCanonicalClient(ctx, rollappId)
+	if canonical {
+		// validate state info against optimistically accepted headers
+		_, err := hook.k.ValidateOptimisticUpdates(ctx, client, stateInfo)
+		if err != nil {
+			return errorsmod.Wrap(err, "validate optimistic update")
 		}
-		return nil
+	} else {
+		var ok bool
+		client, ok = hook.k.FindPotentialClient(ctx, stateInfo)
+		if !ok {
+			return nil
+		}
+		hook.k.SetCanonicalClient(ctx, rollappId, client)
+	}
+
+	// we now verified everything up to and including stateInfo.GetLatestHeight()
+	// this removes the unbonding condition for the sequencers
+	if err := hook.k.PruneSignersBelow(ctx, client, stateInfo.GetLatestHeight()+1); err != nil {
+		return errorsmod.Wrap(err, "prune signers")
 	}
 
 	// first state after hardfork, should reset the client to active state
@@ -55,47 +65,40 @@ func (hook rollappHook) AfterUpdateState(
 		return nil
 	}
 
-	if err := hook.validateOptimisticUpdate(ctx, client, stateInfo); err != nil {
-		return errorsmod.Wrap(err, "validate optimistic update")
-	}
-
-	// we now verified everything up to and including stateInfo.GetLatestHeight()
-	// this removes the unbonding condition for the sequencers
-	if err := hook.k.PruneSignersBelow(ctx, client, stateInfo.GetLatestHeight()+1); err != nil {
-		return errorsmod.Wrap(err, "prune signers")
-	}
-
 	return nil
 }
 
-func (hook rollappHook) validateOptimisticUpdate(
+func (k Keeper) ValidateOptimisticUpdates(
 	ctx sdk.Context,
 	client string,
 	stateInfo *rollapptypes.StateInfo, // a place to look up the BD for a height
-) error {
+) (matched bool, err error) {
+	atLeastOneMatch := false
 	for h := stateInfo.GetStartHeight(); h <= stateInfo.GetLatestHeight(); h++ {
-		got, ok := hook.getConsensusState(ctx, client, h)
+		got, ok := k.getConsensusState(ctx, client, h)
 		if !ok {
 			continue
 		}
 
-		err := hook.k.ValidateUpdatePessimistically(ctx, stateInfo, got, h)
+		err := k.ValidateHeaderAgainstStateInfo(ctx, stateInfo, got, h)
 		if err != nil {
-			return errorsmod.Wrapf(err, "validate pessimistic h: %d", h)
+			return false, errorsmod.Wrapf(err, "validate pessimistic h: %d", h)
 		}
+
+		atLeastOneMatch = true
 	}
 
 	// everything is fine
-	return nil
+	return atLeastOneMatch, nil
 }
 
-func (hook rollappHook) getConsensusState(ctx sdk.Context,
+func (k Keeper) getConsensusState(ctx sdk.Context,
 	client string,
 	h uint64,
 ) (*ibctm.ConsensusState, bool) {
-	cs, _ := hook.k.ibcClientKeeper.GetClientState(ctx, client)
+	cs, _ := k.ibcClientKeeper.GetClientState(ctx, client)
 	height := ibcclienttypes.NewHeight(cs.GetLatestHeight().GetRevisionNumber(), h)
-	consensusState, ok := hook.k.ibcClientKeeper.GetClientConsensusState(ctx, client, height)
+	consensusState, ok := k.ibcClientKeeper.GetClientConsensusState(ctx, client, height)
 	if !ok {
 		return nil, false
 	}

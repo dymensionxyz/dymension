@@ -30,6 +30,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	if err != nil {
 		return errorsmod.Wrap(err, "get header")
 	}
+
 	seq, err := i.getSequencer(ctx, header)
 	err = errorsmod.Wrap(err, "get sequencer")
 	if errorsmod.IsOf(err, errProposerMismatch) {
@@ -82,7 +83,15 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 		return errorsmod.Wrap(err, "find state info by height")
 	}
 
-	return errorsmod.Wrap(i.k.ValidateUpdatePessimistically(ctx, sInfo, header.ConsensusState(), h), "validate pessimistic")
+	err = i.k.ValidateHeaderAgainstStateInfo(ctx, sInfo, header.ConsensusState(), h)
+	if err != nil {
+		return errorsmod.Wrap(err, "validate pessimistic")
+	}
+	if !canonical {
+		i.k.SetCanonicalClient(ctx, seq.RollappId, msg.ClientId)
+	}
+
+	return nil
 }
 
 var (
