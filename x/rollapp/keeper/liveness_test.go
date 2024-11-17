@@ -180,6 +180,11 @@ type livenessMockSequencerKeeper struct {
 	slashes map[string]int
 }
 
+// GetSuccessor implements keeper.SequencerKeeper.
+func (l livenessMockSequencerKeeper) GetSuccessor(ctx sdk.Context, rollapp string) seqtypes.Sequencer {
+	panic("unimplemented")
+}
+
 func (l livenessMockSequencerKeeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
 	// TODO implement me
 	panic("implement me")

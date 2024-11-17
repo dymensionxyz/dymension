@@ -21,9 +21,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	}
 
 	// call the before-update-state hook
-	// currently used by `x/sequencer` to:
-	// 1. validate the state update submitter
-	// 2. complete the rotation of the proposer if needed
+	// currently used by `x/sequencer` to validate the proposer
 	err := k.hooks.BeforeUpdateState(ctx, msg.Creator, msg.RollappId, msg.Last)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "before update state")
@@ -82,6 +80,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// by the sequencer rotation in k.hooks.BeforeUpdateState
 	// the proposer we get is the one that will propose the next block.
 	val := k.sequencerKeeper.GetProposer(ctx, msg.RollappId)
+	if msg.Last {
+		val = k.sequencerKeeper.GetSuccessor(ctx, msg.RollappId)
+	}
 
 	creationHeight := uint64(ctx.BlockHeight())
 	blockTime := ctx.BlockTime()
@@ -115,6 +116,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 	// call the after-update-state hook
 	// currently used by `x/lightclient` to validate the state update in regards to the light client
+	// x/sequencer will complete the rotation if needed
 	err = k.hooks.AfterUpdateState(ctx, msg.RollappId, stateInfo)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "hook: after update state")
