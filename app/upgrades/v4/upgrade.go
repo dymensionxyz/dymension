@@ -96,6 +96,10 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
+		if err := migrateRollappStateInfoNextProposer(ctx, keepers.RollappKeeper, keepers.SequencerKeeper); err != nil {
+			return nil, err
+		}
+
 		if err := migrateRollappFinalizationQueue(ctx, keepers.RollappKeeper); err != nil {
 			return nil, err
 		}
@@ -305,11 +309,21 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 	}
 
 	// migrate existing rollapps
+
+	// mainnet
 	if oldRollapp.RollappId == nimRollappID {
 		genesisInfo = nimGenesisInfo
 	}
 	if oldRollapp.RollappId == mandeRollappID {
 		genesisInfo = mandeGenesisInfo
+	}
+
+	// testnet
+	if oldRollapp.RollappId == rollappXRollappID {
+		genesisInfo = rollappXGenesisInfo
+	}
+	if oldRollapp.RollappId == crynuxRollappID {
+		genesisInfo = crynuxGenesisInfo
 	}
 
 	return rollapptypes.Rollapp{

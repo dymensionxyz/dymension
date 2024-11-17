@@ -87,12 +87,14 @@ func (k Keeper) OnProposerLastBlock(ctx sdk.Context, proposer types.Sequencer) e
 	k.SetSuccessor(ctx, rollapp, types.SentinelSeqAddr) // clear successor
 	k.SetProposer(ctx, rollapp, successor.Address)
 
-	// if proposer is sentinel, prepare new revision for the rollapp
+	// if successor is sentinel, prepare new revision for the rollapp
 	if successor.Sentinel() {
 		err := k.rollappKeeper.HardForkToLatest(ctx, rollapp)
 		if err != nil {
 			return errorsmod.Wrap(err, "hard fork to latest")
 		}
+	} else if err := k.hooks.AfterSetRealProposer(ctx, rollapp, successor); err != nil {
+		return errorsmod.Wrap(err, "after set real sequencer")
 	}
 
 	ctx.EventManager().EmitEvent(

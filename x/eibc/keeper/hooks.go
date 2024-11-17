@@ -7,7 +7,7 @@ import (
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayeacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	types "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -58,7 +58,7 @@ func (d delayedAckHooks) AfterPacketStatusUpdated(ctx sdk.Context, packet *commo
 // AfterPacketDeleted is called every time the underlying IBC packet is deleted.
 // We only want to delete the demand order when the underlying packet is deleted to not
 // break the invariant that the demand order is always in sync with the underlying packet.
-func (d delayedAckHooks) AfterPacketDeleted(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) error {
+func (d delayedAckHooks) AfterPacketDeleted(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) {
 	// Get the demand order from the packet key. The initial demand order was built when
 	// the packet was created, hence with PENDING status.
 	rollappPacket.Status = commontypes.Status_PENDING
@@ -67,20 +67,6 @@ func (d delayedAckHooks) AfterPacketDeleted(ctx sdk.Context, rollappPacket *comm
 
 	statuses := []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_FINALIZED}
 	for _, status := range statuses {
-		demandOrder, err := d.GetDemandOrder(ctx, status, demandOrderID)
-		if err != nil {
-			if errors.Is(err, types.ErrDemandOrderDoesNotExist) {
-				continue
-			}
-			return err
-		}
-
-		// Delete the demand order if found
-		if err := d.deleteDemandOrder(ctx, demandOrder); err != nil {
-			return err
-		}
-		break // Exit the loop if the demand order is successfully handled
+		d.deleteDemandOrder(ctx, status, demandOrderID)
 	}
-
-	return nil
 }
