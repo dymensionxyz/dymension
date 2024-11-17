@@ -19,6 +19,8 @@ var errChainIDMismatch = errors.New("chain id mismatch")
 // The canonical client criteria are:
 // 1. The client must be a tendermint client.
 // 2. The client state must match the expected client params as configured by the module
+// 3. The client state must have the same chain id as the rollapp id.
+// 4. The client state must have a consensus state which is compatible with the state info.
 func (k Keeper) FindPotentialClient(ctx sdk.Context, sInfo *rollapptypes.StateInfo) (clientID string, found bool) {
 	k.ibcClientKeeper.IterateClientStates(ctx, nil, func(client string, cs exported.ClientState) bool {
 		rollappId := sInfo.GetRollappId()
@@ -33,6 +35,19 @@ func (k Keeper) FindPotentialClient(ctx sdk.Context, sInfo *rollapptypes.StateIn
 
 		expClient := k.expectedClient()
 		if err := types.IsCanonicalClientParamsValid(tmClientState, &expClient); err != nil {
+			k.Logger(ctx).Debug("validate client params against light client with same chain id",
+				"rollapp", sInfo.GetRollappId(),
+				"client", client,
+				"expected", expClient,
+				"actual", tmClientState,
+				"err", err,
+			)
+			return false
+		}
+
+		// validate state info against optimistically accepted headers
+		validated, err := k.ValidateOptimisticUpdates(ctx, client, sInfo)
+		if err != nil {
 			k.Logger(ctx).Debug("validate rollapp state against light client with same chain id",
 				"rollapp", sInfo.GetRollappId(),
 				"client", client,
@@ -40,7 +55,11 @@ func (k Keeper) FindPotentialClient(ctx sdk.Context, sInfo *rollapptypes.StateIn
 			)
 			return false
 		}
+		if !validated {
+			return false
+		}
 
+		// we successfully validated the state info against a potential client
 		clientID = client
 		found = true
 		return true
