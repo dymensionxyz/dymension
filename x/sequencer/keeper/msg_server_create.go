@@ -36,15 +36,6 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, gerrc.ErrAlreadyExists.Wrap("pub key in use")
 	}
 
-	/*
-		If we are awaiting the last block from the proposer we stop new sequencer registrations, because
-		we don't want to set a new successor while the last block from the proposer is in flight.
-		TODO: possible to simplify?
-	*/
-	if k.AwaitingLastProposerBlock(ctx, msg.RollappId) {
-		return nil, types.ErrRegisterSequencerWhileAwaitingLastProposerBlock
-	}
-
 	if err := k.sufficientBond(ctx, msg.Bond); err != nil {
 		return nil, err
 	}
