@@ -31,6 +31,7 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
@@ -68,7 +69,7 @@ func CreateUpgradeHandler(
 
 		migrateDelayedAckParams(ctx, keepers.DelayedAckKeeper)
 		migrateRollappParams(ctx, keepers.RollappKeeper)
-		if err := migrateRollapps(ctx, keepers.RollappKeeper); err != nil {
+		if err := migrateRollapps(ctx, keepers.RollappKeeper, keepers.DymNSKeeper); err != nil {
 			return nil, err
 		}
 
@@ -172,7 +173,7 @@ func migrateRollappGauges(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, 
 	return nil
 }
 
-func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) error {
+func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, dymnsKeeper dymnskeeper.Keeper) error {
 	// in theory, there should be only two rollapps in the store, but we iterate over all of them just in case
 	list := rollappkeeper.GetAllRollapps(ctx)
 	for _, oldRollapp := range list {
@@ -181,6 +182,17 @@ func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) error
 			return err
 		}
 		rollappkeeper.SetRollapp(ctx, newRollapp)
+
+		switch oldRollapp.RollappId {
+		case nimRollappID:
+			if err := dymnsKeeper.SetAliasForRollAppId(ctx, oldRollapp.RollappId, nimAlias); err != nil {
+				return err
+			}
+		case mandeRollappID:
+			if err := dymnsKeeper.SetAliasForRollAppId(ctx, oldRollapp.RollappId, mandeAlias); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }

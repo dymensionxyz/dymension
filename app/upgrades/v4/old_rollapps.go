@@ -11,6 +11,7 @@ import (
 
 var (
 	nimRollappID   = "nim_1122-1"
+	nimAlias       = "nim"
 	nimGenesisInfo = rollapptypes.GenesisInfo{
 		GenesisChecksum: "cbff2650625cb02240757e76b3c00a0f04ff9347e51ec69eaddbc2b40f2c2335",
 		Bech32Prefix:    "nim",
@@ -46,6 +47,7 @@ var (
 	}
 
 	mandeRollappID   = "mande_18071918-1"
+	mandeAlias       = "mande"
 	mandeGenesisInfo = rollapptypes.GenesisInfo{
 		GenesisChecksum: "7f64188a70c2b67230f6af826b33fe35f2a46c63c4838216c3ac50b8ab148632",
 		Bech32Prefix:    "mande",
