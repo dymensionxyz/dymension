@@ -69,8 +69,7 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketDeleted() {
 			}
 
 			// delete the rollapp packet
-			err = suite.App.DelayedAckKeeper.DeleteRollappPacket(suite.Ctx, rollappPacket)
-			suite.Require().NoError(err)
+			suite.App.DelayedAckKeeper.DeleteRollappPacket(suite.Ctx, rollappPacket)
 
 			// Verify that the rollapp packet and demand order are deleted
 			_, err = suite.App.DelayedAckKeeper.GetRollappPacket(suite.Ctx, string(rollappPacketKey))

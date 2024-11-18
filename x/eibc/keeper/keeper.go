@@ -75,26 +75,21 @@ func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) error 
 	return nil
 }
 
-func (k Keeper) deleteDemandOrder(ctx sdk.Context, order *types.DemandOrder) error {
+func (k Keeper) deleteDemandOrder(ctx sdk.Context, status commontypes.Status, orderID string) {
 	store := ctx.KVStore(k.storeKey)
-	demandOrderKey, err := types.GetDemandOrderKey(order.TrackingPacketStatus, order.Id)
-	if err != nil {
-		return err
-	}
+	// we can skip error check, the status is known, if key is not valid, order will not be deleted anyway
+	demandOrderKey, _ := types.GetDemandOrderKey(status, orderID)
 	store.Delete(demandOrderKey)
-	return nil
 }
 
 // UpdateDemandOrderWithStatus deletes the current demand order and creates a new one with and updated packet status under a new key.
 // Updating the status should be called only with this method as it effects the key of the packet.
 // The assumption is that the passed demand order packet status field is not updated directly.
 func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types.DemandOrder, newStatus commontypes.Status) (*types.DemandOrder, error) {
-	err := k.deleteDemandOrder(ctx, demandOrder)
-	if err != nil {
-		return nil, err
-	}
+	k.deleteDemandOrder(ctx, demandOrder.TrackingPacketStatus, demandOrder.Id)
+
 	demandOrder.TrackingPacketStatus = newStatus
-	err = k.SetDemandOrder(ctx, demandOrder)
+	err := k.SetDemandOrder(ctx, demandOrder)
 	if err != nil {
 		return nil, err
 	}

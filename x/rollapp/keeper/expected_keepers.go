@@ -17,6 +17,7 @@ type SequencerKeeper interface {
 	SlashLiveness(ctx sdk.Context, rollappID string) error
 	PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error
 	GetProposer(ctx sdk.Context, rollappId string) types.Sequencer
+	GetSuccessor(ctx sdk.Context, rollapp string) types.Sequencer
 }
 
 // BankKeeper defines the expected interface needed to retrieve account balances.

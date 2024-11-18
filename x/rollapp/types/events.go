@@ -12,11 +12,10 @@ const (
 	AttributeKeyDAPath         = "da_path"
 	AttributeKeyStatus         = "status"
 
-	// EventTypeFraud is emitted when a fraud evidence is submitted
-	EventTypeFraud             = "fraud_proposal"
-	AttributeKeyFraudHeight    = "fraud_height"
-	AttributeKeyFraudSequencer = "fraud_sequencer"
-	AttributeKeyClientID       = "client_id"
+	// EventTypeHardFork is emitted when a fraud evidence is submitted
+	EventTypeHardFork             = "hard_fork"
+	AttributeKeyNewRevisionHeight = "new_revision_height"
+	AttributeKeyClientID          = "client_id"
 
 	// EventTypeTransfersEnabled is when the bridge is enabled
 	EventTypeTransfersEnabled = "transfers_enabled"

@@ -4,7 +4,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -82,13 +81,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 		count += len(toDeletePackets)
 
 		for _, packet := range toDeletePackets {
-			err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-				return e.DeleteRollappPacket(ctx, &packet)
-			})
-			if err != nil {
-				e.Logger(ctx).Error("Failed to delete rollapp packet",
-					"packet", packet.RollappPacketKey(), "error", err)
-			}
+			e.DeleteRollappPacket(ctx, &packet)
 		}
 
 		// if the total number of deleted packets reaches the hard limit for the epoch, stop deleting packets

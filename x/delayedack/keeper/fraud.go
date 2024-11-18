@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -43,10 +42,7 @@ func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, newRevisionHeight 
 		}
 
 		// delete the packet
-		err := k.DeleteRollappPacket(ctx, &rollappPacket)
-		if err != nil {
-			return errorsmod.Wrap(err, "delete rollapp packet")
-		}
+		k.DeleteRollappPacket(ctx, &rollappPacket)
 
 		logger.Debug("reverted IBC rollapp packet", logContext...)
 	}

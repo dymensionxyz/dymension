@@ -2,12 +2,13 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
 type DelayedAckHooks interface {
 	AfterPacketStatusUpdated(ctx sdk.Context, packet *commontypes.RollappPacket, oldPacketKey string, newPacketKey string) error
-	AfterPacketDeleted(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) error
+	AfterPacketDeleted(ctx sdk.Context, rollappPacket *commontypes.RollappPacket)
 }
 
 type MultiDelayedAckHooks []DelayedAckHooks
@@ -28,14 +29,10 @@ func (h MultiDelayedAckHooks) AfterPacketStatusUpdated(ctx sdk.Context, packet *
 	return nil
 }
 
-func (h MultiDelayedAckHooks) AfterPacketDeleted(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) error {
+func (h MultiDelayedAckHooks) AfterPacketDeleted(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) {
 	for i := range h {
-		err := h[i].AfterPacketDeleted(ctx, rollappPacket)
-		if err != nil {
-			return err
-		}
+		h[i].AfterPacketDeleted(ctx, rollappPacket)
 	}
-	return nil
 }
 
 type BaseDelayedAckHook struct{}
@@ -46,6 +43,5 @@ func (b BaseDelayedAckHook) AfterPacketStatusUpdated(ctx sdk.Context, packet *co
 	return nil
 }
 
-func (b BaseDelayedAckHook) AfterPacketDeleted(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) error {
-	return nil
+func (b BaseDelayedAckHook) AfterPacketDeleted(sdk.Context, *commontypes.RollappPacket) {
 }

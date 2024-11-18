@@ -41,9 +41,9 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, newRevisionHeight ui
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeFraud,
+			types.EventTypeHardFork,
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollappID),
-			sdk.NewAttribute(types.AttributeKeyFraudHeight, fmt.Sprint(newRevisionHeight)),
+			sdk.NewAttribute(types.AttributeKeyNewRevisionHeight, fmt.Sprint(newRevisionHeight)),
 		),
 	)
 
