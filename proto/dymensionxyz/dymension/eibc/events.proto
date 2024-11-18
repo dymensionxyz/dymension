@@ -12,24 +12,22 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 message EventDemandOrderCreated {
   // order_id is the unique identifier of the demand order.
   string order_id = 1;
-  // fulfillment_id is the unique identifier of the fulfillment.
+  // price is the price of the demand order.
   string price = 2;
-  // fulfillment_amount is the amount of the fulfillment.
+  // fee is the fee of the demand order.
   string fee = 3;
-  // is_fulfilled is the flag indicating whether the order is fulfilled.
-  bool is_fulfilled = 4;
   // packet_status is the status of the packet.
-  string packet_status = 5;
+  string packet_status = 4;
   // packet_key is the base64 encoded key of the packet.
-  string packet_key = 6;
+  string packet_key = 5;
   // rollapp_id is the id of the rollapp.
-  string rollapp_id = 7;
+  string rollapp_id = 6;
   // recipient is the address of the recipient.
-  string recipient = 8;
+  string recipient = 7;
   // packet_type is the type of the packet.
-  string packet_type = 9;
+  string packet_type = 8;
   // proof_height is the height of the block when order was created.
-  uint64 proof_height = 10;
+  uint64 proof_height = 9;
 }
 
 // EventDemandOrderPacketStatusUpdate is emitted when the status of the related packet is updated.
@@ -48,6 +46,12 @@ message EventDemandOrderFeeUpdated {
   string order_id = 1;
   // new_fee is the new fee amount set in the order.
   string new_fee = 2;
+  // price is the price of the demand order.
+  string price = 3;
+  // rollapp_id is the id of the rollapp.
+  string rollapp_id = 4;
+  // proof_height is the height of the block when order was created.
+  uint64 proof_height = 5;
 }
 
 // EventDemandOrderFulfilled is emitted when the demand order is fulfilled.
