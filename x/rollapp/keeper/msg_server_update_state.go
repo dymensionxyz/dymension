@@ -5,6 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -27,10 +28,10 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	}
 
 	// validate correct rollapp revision number
-	if rollapp.LatestRevision().Number != msg.RollappRevision {
+	if rollapp.RevisionNumber != msg.RollappRevision {
 		return nil, errorsmod.Wrapf(types.ErrWrongRollappRevision,
 			"expected revision number (%d), but received (%d)",
-			rollapp.LatestRevision().Number, msg.RollappRevision)
+			rollapp.RevisionNumber, msg.RollappRevision)
 	}
 
 	// retrieve last updating index

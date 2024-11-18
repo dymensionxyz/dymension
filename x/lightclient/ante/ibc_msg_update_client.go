@@ -8,11 +8,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibcclienttypes.MsgUpdateClient) error {
@@ -70,7 +69,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 
 	// this disallows LC updates from previous revisions but should be fine since new state roots can be used to prove
 	// state older than the one in the current state root.
-	if header.Header.Version.App != rollapp.LatestRevision().Number {
+	if header.Header.Version.App != rollapp.RevisionNumber {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "client update revision mismatch")
 	}
 
