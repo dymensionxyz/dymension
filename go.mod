@@ -235,7 +235,7 @@ require (
 replace (
 	// for collections
 	cosmossdk.io/api => cosmossdk.io/api v0.3.1
-	github.com/cometbft/cometbft => github.com/dymensionxyz/cometbft v0.37.5-0.20241030105725-c89709ec7a2a
+	github.com/cometbft/cometbft => github.com/dymensionxyz/cometbft v0.37.5-0.20241114162308-4d40a0eba3a7
 	// use dymension forks
 	github.com/cosmos/cosmos-sdk => github.com/dymensionxyz/cosmos-sdk v0.47.9-0.20241030110731-1ee7a862da35
 	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20241030105541-9d34c1e3378f
