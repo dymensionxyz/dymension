@@ -5,12 +5,11 @@ import (
 	"sort"
 
 	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // HardFork handles the fraud evidence submitted by the user.
@@ -27,8 +26,7 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, newRevisionHeight ui
 	newRevisionHeight = lastValidHeight + 1
 
 	// update revision number
-	rollapp.RevisionNumber += 1
-	rollapp.RevisionStartHeight = newRevisionHeight
+	rollapp.BumpRevision(newRevisionHeight)
 
 	// stop liveness events
 	k.ResetLivenessClock(ctx, &rollapp)
