@@ -51,10 +51,12 @@ message EventDemandOrderFeeUpdated {
   string new_fee = 2;
   // price is the price of the demand order.
   string price = 3;
+  // packet_status is the status of the packet.
+  string packet_status = 4;
   // rollapp_id is the id of the rollapp.
-  string rollapp_id = 4;
+  string rollapp_id = 5;
   // proof_height is the height of the block when order was created.
-  uint64 proof_height = 5;
+  uint64 proof_height = 6;
 }
 
 // EventDemandOrderFulfilled is emitted when the demand order is fulfilled.

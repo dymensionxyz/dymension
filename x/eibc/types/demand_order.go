@@ -119,11 +119,12 @@ func (m *DemandOrder) GetFulfilledAuthorizedEvent(creationHeight uint64, lpAddre
 
 func (m *DemandOrder) GetUpdatedEvent(proofHeight uint64) *EventDemandOrderFeeUpdated {
 	return &EventDemandOrderFeeUpdated{
-		OrderId:     m.Id,
-		NewFee:      m.Fee.String(),
-		Price:       m.Price.String(),
-		RollappId:   m.RollappId,
-		ProofHeight: proofHeight,
+		OrderId:      m.Id,
+		NewFee:       m.Fee.String(),
+		Price:        m.Price.String(),
+		PacketStatus: m.TrackingPacketStatus.String(),
+		RollappId:    m.RollappId,
+		ProofHeight:  proofHeight,
 	}
 }
 
