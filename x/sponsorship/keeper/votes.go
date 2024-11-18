@@ -8,7 +8,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
@@ -139,11 +138,7 @@ func (k Keeper) validateWeights(ctx sdk.Context, weights []types.GaugeWeight, mi
 		case *incentivestypes.Gauge_Asset:
 			// no additional restrictions for asset gauges
 		case *incentivestypes.Gauge_Rollapp:
-			// we allow sponsoring only rollapps with bonded sequencers
-			bondedSequencers := k.sequencerKeeper.RollappSequencersByStatus(ctx, distrTo.Rollapp.RollappId, sequencertypes.Bonded)
-			if len(bondedSequencers) == 0 {
-				return fmt.Errorf("rollapp has no bonded sequencers: %s'", distrTo.Rollapp.RollappId)
-			}
+			// no additional restrictions for asset gauges
 		default:
 			return fmt.Errorf("gauge has an unsupported distribution type: gauge id %d, type %T", gauge.Id, distrTo)
 		}

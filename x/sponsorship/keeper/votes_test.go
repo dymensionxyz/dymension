@@ -428,36 +428,6 @@ func (s *KeeperTestSuite) TestMsgVoteRollAppGaugeBondedSequencer() {
 	s.Require().True(expectedDistr.Equal(distr), "expect: %v\nactual: %v", expectedDistr, distr)
 }
 
-func (s *KeeperTestSuite) TestMsgVoteRollAppGaugeNonBondedSequencer() {
-	raName := "testrollapp_1-1"
-
-	// create a rollapp, subsequently the rollapp gauge must be created
-	s.CreateRollappByName(raName)
-
-	// create a validator and a delegator
-	initial := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000))
-	val := s.CreateValidator()
-	del := s.CreateDelegator(val.GetOperator(), initial)
-
-	// case a vote to the rollapp gauge created above
-	voteResp, err := s.msgServer.Vote(s.Ctx, &types.MsgVote{
-		Voter: del.GetDelegatorAddr().String(),
-		Weights: []types.GaugeWeight{
-			{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
-		},
-	})
-	s.Require().Error(err)
-	s.Require().ErrorContains(err, "rollapp has no bonded sequencers")
-	s.Require().Nil(voteResp)
-
-	// check the distribution is correct. the distr is empty.
-	expectedDistr := types.NewDistribution()
-	distr := s.GetDistribution()
-	err = distr.Validate()
-	s.Require().NoError(err)
-	s.Require().True(expectedDistr.Equal(distr), "expect: %v\nactual: %v", expectedDistr, distr)
-}
-
 func (s *KeeperTestSuite) TestMsgRevokeVote() {
 	addr := apptesting.CreateRandomAccounts(3)
 
