@@ -74,7 +74,7 @@ func TestRollappKeeperTestSuite(t *testing.T) {
 
 func (suite *RollappTestSuite) assertNotForked(rollappID string) {
 	rollapp, _ := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
-	suite.Zero(rollapp.RevisionNumber)
+	suite.Zero(rollapp.LatestRevision().Number)
 }
 
 func (suite *RollappTestSuite) GetRollappLastHeight(rollappID string) uint64 {

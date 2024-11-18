@@ -202,6 +202,10 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(
 		VmType:           types.Rollapp_EVM,
 		Metadata:         rollapp.GetMetadata(),
 		GenesisInfo:      *rollapp.GetGenesisInfo(),
+		Revisions: []types.Revision{{
+			Number:      0,
+			StartHeight: 0,
+		}},
 	}
 
 	// create rollapp

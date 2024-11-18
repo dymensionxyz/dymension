@@ -361,8 +361,10 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		PreLaunchTime:         nil,                      // We can just let it be zero. Existing rollapps are already launched.
 		LivenessEventHeight:   0,                        // Filled lazily in runtime
 		LastStateUpdateHeight: 0,                        // Filled lazily in runtime
-		RevisionNumber:        0,
-		RevisionStartHeight:   0,
+		Revisions: []rollapptypes.Revision{{
+			Number:      0,
+			StartHeight: 0,
+		}},
 	}
 }
 
