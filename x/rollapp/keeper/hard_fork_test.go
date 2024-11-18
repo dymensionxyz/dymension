@@ -125,7 +125,7 @@ func (suite *RollappTestSuite) TestHardFork_AlreadyFinalized() {
 func (suite *RollappTestSuite) assertFraudHandled(rollappId string, height uint64) {
 	rollapp, found := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappId)
 	suite.Require().True(found)
-	suite.Require().Equal(uint64(1), rollapp.LatestRevision().Number)
+	suite.Require().Equal(uint64(1), rollapp.RevisionNumber)
 
 	// check states were deleted
 	// the last state should have height less than the fraud height
