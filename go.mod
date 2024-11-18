@@ -235,7 +235,8 @@ require (
 replace (
 	// for collections
 	cosmossdk.io/api => cosmossdk.io/api v0.3.1
-	github.com/cometbft/cometbft => github.com/dymensionxyz/cometbft v0.37.5-0.20241118111023-1c4e8b20351d
+	// hack
+	github.com/cometbft/cometbft => github.com/dymensionxyz/cometbft v0.37.5-0.20241118210820-8eda0d5f45b9
 	// use dymension forks
 	github.com/cosmos/cosmos-sdk => github.com/dymensionxyz/cosmos-sdk v0.47.9-0.20241030110731-1ee7a862da35
 	//hacks
