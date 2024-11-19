@@ -62,7 +62,7 @@ func (seq Sequencer) Bonded() bool {
 }
 
 func (seq Sequencer) IsPotentialProposer() bool {
-	return seq.Bonded() && seq.OptedIn
+	return seq.Bonded() && seq.OptedIn && !seq.NoticeStarted()
 }
 
 func (seq Sequencer) TokensCoin() sdk.Coin {
