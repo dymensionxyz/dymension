@@ -18,7 +18,6 @@ var invs = invar.NamedFuncsList[Keeper]{
 	{"general", InvariantGeneral},
 }
 
-// RegisterInvariants registers the sequencer module invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	invs.RegisterInvariants(types.ModuleName, ir, k)
 }
