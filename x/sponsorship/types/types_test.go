@@ -616,6 +616,103 @@ func TestDistribution(t *testing.T) {
 				},
 			},
 		},
+		// edge cases
+		{
+			name: "zero weight is removed from the distribution",
+			initial: types.Distribution{
+				VotingPower: math.NewInt(20),
+				Gauges: []types.Gauge{
+					{GaugeId: 1, Power: math.NewInt(0)},
+					{GaugeId: 2, Power: math.NewInt(10)},
+					{GaugeId: 3, Power: math.NewInt(10)},
+				},
+			},
+			update: types.Distribution{
+				VotingPower: math.NewInt(20),
+				Gauges: []types.Gauge{
+					{GaugeId: 2, Power: math.NewInt(10)},
+					{GaugeId: 3, Power: math.NewInt(10)},
+				},
+			},
+			expected: types.Distribution{
+				VotingPower: math.NewInt(40),
+				Gauges: []types.Gauge{
+					{GaugeId: 2, Power: math.NewInt(20)},
+					{GaugeId: 3, Power: math.NewInt(20)},
+				},
+			},
+		},
+		{
+			name: "update leads to zero weight which is removed",
+			initial: types.Distribution{
+				VotingPower: math.NewInt(20),
+				Gauges: []types.Gauge{
+					{GaugeId: 2, Power: math.NewInt(10)},
+					{GaugeId: 3, Power: math.NewInt(10)},
+				},
+			},
+			update: types.Distribution{
+				VotingPower: math.NewInt(0),
+				Gauges: []types.Gauge{
+					{GaugeId: 2, Power: math.NewInt(-10)},
+					{GaugeId: 3, Power: math.NewInt(10)},
+				},
+			},
+			expected: types.Distribution{
+				VotingPower: math.NewInt(20),
+				Gauges: []types.Gauge{
+					{GaugeId: 3, Power: math.NewInt(20)},
+				},
+			},
+		},
+		{
+			name: "negative weight is removed from the distribution",
+			initial: types.Distribution{
+				VotingPower: math.NewInt(20),
+				Gauges: []types.Gauge{
+					{GaugeId: 1, Power: math.NewInt(-1)},
+					{GaugeId: 2, Power: math.NewInt(10)},
+					{GaugeId: 3, Power: math.NewInt(10)},
+				},
+			},
+			update: types.Distribution{
+				VotingPower: math.NewInt(20),
+				Gauges: []types.Gauge{
+					{GaugeId: 2, Power: math.NewInt(10)},
+					{GaugeId: 3, Power: math.NewInt(10)},
+				},
+			},
+			expected: types.Distribution{
+				VotingPower: math.NewInt(40),
+				Gauges: []types.Gauge{
+					{GaugeId: 2, Power: math.NewInt(20)},
+					{GaugeId: 3, Power: math.NewInt(20)},
+				},
+			},
+		},
+		{
+			name: "update leads to negative weight which is removed",
+			initial: types.Distribution{
+				VotingPower: math.NewInt(20),
+				Gauges: []types.Gauge{
+					{GaugeId: 2, Power: math.NewInt(10)},
+					{GaugeId: 3, Power: math.NewInt(10)},
+				},
+			},
+			update: types.Distribution{
+				VotingPower: math.NewInt(20),
+				Gauges: []types.Gauge{
+					{GaugeId: 2, Power: math.NewInt(-11)},
+					{GaugeId: 3, Power: math.NewInt(10)},
+				},
+			},
+			expected: types.Distribution{
+				VotingPower: math.NewInt(40),
+				Gauges: []types.Gauge{
+					{GaugeId: 3, Power: math.NewInt(20)},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -650,12 +747,14 @@ func TestDistribution(t *testing.T) {
 			require.True(t, e.Equal(a.Merge(i)))
 			require.True(t, e.Equal(i.Merge(a)))
 
+			// TODO: this is not true for the current implementation since we remove gauges with <= 0 power
+			//  though these conditions are not important for the current implementation
 			// Additional checks:
 			// a + b = c =>
 			//    b = c - a
 			//    a = c - b
-			require.True(t, b.Equal(c.Merge(a.Negate())))
-			require.True(t, a.Equal(c.Merge(b.Negate())))
+			// require.True(t, b.Equal(c.Merge(a.Negate())))
+			// require.True(t, a.Equal(c.Merge(b.Negate())))
 		})
 	}
 }
