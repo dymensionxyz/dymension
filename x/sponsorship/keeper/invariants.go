@@ -26,18 +26,22 @@ func AllInvariants(k Keeper) sdk.Invariant {
 
 func InvariantDelegatorValidatorPower(k Keeper) invar.Func {
 	return func(ctx sdk.Context) (error, bool) {
+		return nil, false
 	}
 }
 
 func InvariantDistribution(k Keeper) invar.Func {
 	return func(ctx sdk.Context) (error, bool) {
+		return nil, false
 	}
 }
 func InvariantVotes(k Keeper) invar.Func {
 	return func(ctx sdk.Context) (error, bool) {
+		return nil, false
 	}
 }
 func InvariantGeneral(k Keeper) invar.Func {
 	return func(ctx sdk.Context) (error, bool) {
+		return nil, false
 	}
 }
