@@ -119,8 +119,8 @@ func (d Distribution) Merge(d1 Distribution) Distribution {
 			gauge = rhs[j]
 			j++
 		}
-		// Don't store gauges with zero power
-		if !gauge.Power.IsZero() {
+		// Don't store gauges with <= 0 power
+		if gauge.Power.IsPositive() {
 			gauges = append(gauges, gauge)
 		}
 	}
