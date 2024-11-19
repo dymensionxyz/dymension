@@ -1,19 +1,47 @@
 package keeper
 
 import (
+	"errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// RegisterInvariants registers the sequencer module invariants
-func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
-	ir.RegisterRoute(types.ModuleName, "sequencers-count", SequencersCountInvariant(k))
-	ir.RegisterRoute(types.ModuleName, "sequencer-proposer-bonded", ProposerBondedInvariant(k))
+type Invar = func(sdk.Context) (error, bool)
+type InvarNamed struct {
+	name  string
+	invar func(Keeper) Invar
 }
 
-func SequencersCountInvariant(k Keeper) sdk.Invariant {
+var invars = []InvarNamed{
+	{"sequencers-count", SequencersCountInvariant},
+	{"sequencers-proposer-bonded", ProposerBondedInvariant},
+}
+
+// RegisterInvariants registers the sequencer module invariants
+func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
+	for _, invar := range invars {
+		ir.RegisterRoute(types.ModuleName, invar.name, func(ctx sdk.Context) (string, bool) {
+			err, broken := invar.invar(k)(ctx)
+			return err.Error(), broken
+		})
+	}
+}
+
+func AllInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
+		for _, invar := range invars {
+			err, broken := invar.invar(k)(ctx)
+			if broken {
+				return err.Error(), broken
+			}
+		}
+	}
+}
+
+func SequencersCountInvariant(k Keeper) Invar {
+	return func(ctx sdk.Context) (error, bool) {
 		var (
 			broken bool
 			msg    string
@@ -41,16 +69,13 @@ func SequencersCountInvariant(k Keeper) sdk.Invariant {
 			msg += "total sequencer count is not equal to sum of sequencers by rollapp\n"
 		}
 
-		return sdk.FormatInvariant(
-			types.ModuleName, "sequencers-count",
-			msg,
-		), broken
+		return errors.New(msg), broken
 	}
 }
 
 // ProposerBondedInvariant checks if the proposer and next proposer are bonded as expected
-func ProposerBondedInvariant(k Keeper) sdk.Invariant {
-	return func(ctx sdk.Context) (string, bool) {
+func ProposerBondedInvariant(k Keeper) Invar {
+	return func(ctx sdk.Context) (error, bool) {
 		var (
 			broken bool
 			msg    string
@@ -70,10 +95,6 @@ func ProposerBondedInvariant(k Keeper) sdk.Invariant {
 			}
 
 		}
-
-		return sdk.FormatInvariant(
-			types.ModuleName, "sequencer-bonded",
-			msg,
-		), broken
+		return errors.New(msg), broken
 	}
 }
