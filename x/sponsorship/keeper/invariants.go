@@ -102,7 +102,6 @@ func InvariantVotes(k Keeper) invar.Func {
 
 func InvariantGeneral(k Keeper) invar.Func {
 	return func(ctx sdk.Context) (error, bool) {
-		// Total VP of users vote is equal to total VP of records in delegatorsVotingPower
 		totalVP := math.ZeroInt()
 		err := k.delegatorValidatorPower.Walk(ctx, nil, func(key collections.Pair[sdk.AccAddress, sdk.ValAddress], value math.Int) (stop bool, err error) {
 			totalVP = totalVP.Add(value)
@@ -117,12 +116,11 @@ func InvariantGeneral(k Keeper) invar.Func {
 			return fmt.Errorf("get distribution: %w", err), true
 		}
 
-		if !totalVP.Equal(distribution.Total) {
-			return fmt.Errorf("total voting power %s does not equal total power in distribution %s", totalVP, distribution.Total), true
+		if !totalVP.Equal(distribution.VotingPower) {
+			return fmt.Errorf("total voting power does not equal total power in distribution: total: %s: distr:  %s", totalVP, distribution.VotingPower), true
 		}
 
-		// Distribution is the result of merging the vote.ToDistribution of all votes
-		expectedDistribution := types.Distribution{}
+		expectedDistribution := types.NewDistribution()
 		err = k.IterateVotes(ctx, func(voter sdk.AccAddress, vote types.Vote) (stop bool, err error) {
 			expectedDistribution = expectedDistribution.Merge(vote.ToDistribution())
 			return false, nil
@@ -135,12 +133,6 @@ func InvariantGeneral(k Keeper) invar.Func {
 			return fmt.Errorf("distribution does not match expected distribution from votes"), true
 		}
 
-		return nil, false
-	}
-}
-
-func InvariantGeneral(k Keeper) invar.Func {
-	return func(ctx sdk.Context) (error, bool) {
 		return nil, false
 	}
 }
