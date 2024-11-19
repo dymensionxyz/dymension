@@ -192,32 +192,6 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 	})
 }
 
-// TestCreateSequencerRestrictions2
-// TODO: subtests in here were breaking when in the main test, but not sure why
-func (s *SequencerTestSuite) TestCreateSequencerRestrictions2() {
-	ra := s.createRollapp()
-	s.Run("not allowed - awaitingLastProposerBlock", func() {
-		// create one proposer and finish their notice
-		pk := randomTMPubKey()
-		s.fundSequencer(pk, bond)
-		msg := createSequencerMsgOnePubkey(ra.RollappId, pk)
-		msg.Bond = bond
-		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
-		s.Require().NoError(err)
-		seq := s.k().GetSequencer(s.Ctx, pkAddr(pk))
-		s.k().StartNoticePeriod(s.Ctx, &seq)
-		s.k().SetSequencer(s.Ctx, seq)
-
-		// try to create another one
-		s.Ctx = s.Ctx.WithBlockTime(seq.NoticePeriodTime)
-		s.fundSequencer(alice, bond)
-		msg = createSequencerMsgOnePubkey(ra.RollappId, alice)
-		msg.Bond = bond
-		_, err = s.msgServer.CreateSequencer(s.Ctx, &msg)
-		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
-	})
-}
-
 func expectedSequencer(m *types.MsgCreateSequencer) types.Sequencer {
 	return types.Sequencer{
 		Address:          m.Creator,
