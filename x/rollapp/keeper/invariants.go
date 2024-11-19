@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 
+	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -69,11 +70,15 @@ func RollappByEIP155KeyInvariant(k Keeper) sdk.Invariant {
 				continue
 			}
 
-			_, found := k.GetRollappByEIP155(ctx, rollappID.GetEIP155ID())
+			got, found := k.GetRollappByEIP155(ctx, rollappID.GetEIP155ID())
 			if !found {
 				msg += fmt.Sprintf("rollapp (%s) have no eip155 key\n", rollapp.RollappId)
 				broken = true
 				continue
+			}
+			if got.RollappId != rollapp.RollappId {
+				msg += fmt.Sprintf("rollapp (%s) have different rollappId\n", rollapp.RollappId)
+				broken = true
 			}
 		}
 
@@ -137,6 +142,27 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 					msg += fmt.Sprintf("rollapp (%s) has stateInfo that doesn't not correspond to it\n", rollapp.RollappId)
 					broken = true
 				}
+			}
+
+			err := k.finalizationQueue.Walk(ctx, nil,
+				func(key collections.Pair[uint64, string], value types.BlockHeightToFinalizationQueue) (stop bool, err error) {
+					if key.K2() != rollapp.RollappId {
+						return false, nil
+					}
+					if key.K2() != value.RollappId {
+						return false, fmt.Errorf("rollapp (%s) have finalizationQueue with wrong rollappId\n", rollapp.RollappId)
+					}
+					for _, idx := range value.FinalizationQueue {
+						if idx.Index <= latestFinalizedStateIdx.Index {
+							msg += fmt.Sprintf("rollapp (%s) have finalizd stateInfo at index %d finalized in finalizationQueue\n", rollapp.RollappId, idx.Index)
+							broken = true
+						}
+					}
+					return false, nil
+				})
+			if err != nil {
+				msg += fmt.Sprintf("error walking finalization queue: %s\n", err)
+				broken = true
 			}
 		}
 
