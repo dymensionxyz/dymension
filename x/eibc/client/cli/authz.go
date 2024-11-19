@@ -142,7 +142,7 @@ Examples:
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
-	cmd.Flags().StringSlice(FlagRollapp, []string{}, "An array of Rollapp IDs allowed")
+	cmd.Flags().String(FlagRollapp, "", "Allowed Rollapp ID")
 	cmd.Flags().StringSlice(FlagDenoms, []string{}, "An array of denoms allowed to use")
 	cmd.Flags().String(FlagSpendLimit, "", "An array of Coins allowed to spend")
 	cmd.Flags().Bool(FlagSettlementValidated, false, "Settlement validated flag")
