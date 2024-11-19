@@ -21,7 +21,22 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 
 // DO NOT DELETE
 func AllInvariants(k Keeper) sdk.Invariant {
-	return invars.All(k)
+	return invars.All(types.ModuleName, k)
+}
+
+func InvariantNotice(k Keeper) invar.Func {
+	return func(ctx sdk.Context) (error, bool) {
+		seqs, err := k.NoticeQueue(ctx, nil)
+		if err != nil {
+			return err, true
+		}
+		for _, seq := range seqs {
+			if !seq.NoticeStarted() {
+				return errors.New("sequencer not started notice"), true
+			}
+		}
+		return nil, false
+	}
 }
 
 func SequencersCountInvariant(k Keeper) invar.Func {
