@@ -4,43 +4,27 @@ import (
 	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/utils/invar"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-type Invar = func(sdk.Context) (error, bool)
-type InvarNamed struct {
-	name  string
-	invar func(Keeper) Invar
-}
-
-var invars = []InvarNamed{
+var invars = invar.NamedFuncsList[Keeper]{
 	{"sequencers-count", SequencersCountInvariant},
 	{"sequencers-proposer-bonded", ProposerBondedInvariant},
 }
 
 // RegisterInvariants registers the sequencer module invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
-	for _, invar := range invars {
-		ir.RegisterRoute(types.ModuleName, invar.name, func(ctx sdk.Context) (string, bool) {
-			err, broken := invar.invar(k)(ctx)
-			return err.Error(), broken
-		})
-	}
+	invars.RegisterInvariants(types.ModuleName, ir, k)
 }
 
+// DO NOT DELETE
 func AllInvariants(k Keeper) sdk.Invariant {
-	return func(ctx sdk.Context) (string, bool) {
-		for _, invar := range invars {
-			err, broken := invar.invar(k)(ctx)
-			if broken {
-				return err.Error(), broken
-			}
-		}
-	}
+	return invars.All(k)
 }
 
-func SequencersCountInvariant(k Keeper) Invar {
+func SequencersCountInvariant(k Keeper) invar.Func {
 	return func(ctx sdk.Context) (error, bool) {
 		var (
 			broken bool
@@ -74,7 +58,7 @@ func SequencersCountInvariant(k Keeper) Invar {
 }
 
 // ProposerBondedInvariant checks if the proposer and next proposer are bonded as expected
-func ProposerBondedInvariant(k Keeper) Invar {
+func ProposerBondedInvariant(k Keeper) invar.Func {
 	return func(ctx sdk.Context) (error, bool) {
 		var (
 			broken bool
