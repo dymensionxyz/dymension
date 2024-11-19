@@ -44,63 +44,31 @@ func InvariantDelegatorValidatorPower(k Keeper) invar.Func {
 	}
 }
 
-func InvariantDelegatorValidatorPower(k Keeper) invar.Func {
-	return func(ctx sdk.Context) (error, bool) {
-		err := k.delegatorValidatorPower.Walk(ctx, nil,
-			func(key collections.Pair[sdk.AccAddress, sdk.ValAddress], value math.Int) (stop bool, err error) {
-				if value.IsNegative() {
-					return true, fmt.Errorf("negative power: %s", value)
-				}
-				return false, nil
-			})
-		if err != nil {
-			return err, true
-		}
-		return nil, false
-	}
-}
-
 func InvariantDistribution(k Keeper) invar.Func {
 	return func(ctx sdk.Context) (error, bool) {
-		distribution, err := k.GetDistribution(ctx)
+		d, err := k.GetDistribution(ctx)
 		if err != nil {
 			return fmt.Errorf("get distribution: %w", err), true
 		}
 
-		// Sum of gauge power <= total power
-		totalGaugePower := math.ZeroInt()
-		for _, gauge := range distribution.Gauges {
-			totalGaugePower = totalGaugePower.Add(gauge.Power)
+		t := math.ZeroInt()
+		for _, g := range d.Gauges {
+			t = t.Add(g.Power)
 		}
-		if totalGaugePower.GT(distribution.Total) {
-			return fmt.Errorf("sum of gauge power %s exceeds total power %s", totalGaugePower, distribution.Total), true
+		if t.GT(d.VotingPower) {
+			return fmt.Errorf("sum of gauge power exceeds total power sum: %s: total: %s", t, d.VotingPower), true
 		}
 
-		// All gauge powers non negative
-		for _, gauge := range distribution.Gauges {
-			if gauge.Power.IsNegative() {
-				return fmt.Errorf("negative gauge power: %s", gauge.Power), true
+		for _, g := range d.Gauges {
+			if g.Power.IsNegative() {
+				return fmt.Errorf("negative g power: %s", g.Power), true
 			}
 		}
 
-		// Voting power non negative
-		if distribution.Total.IsNegative() {
-			return fmt.Errorf("negative total voting power: %s", distribution.Total), true
+		if d.VotingPower.IsNegative() {
+			return fmt.Errorf("negative total voting power: %s", d.VotingPower), true
 		}
 
-		return nil, false
-	}
-}
-
-func InvariantDistribution(k Keeper) invar.Func {
-	return func(ctx sdk.Context) (error, bool) {
-		err := k.distribution.Walk(ctx, nil,
-			func(value types.Distribution) (stop bool, err error) {
-				if value.Total.IsNegative() {
-					return true, fmt.Errorf("negative total: %s", value.Total)
-				}
-				return false, nil
-			})
 		return nil, false
 	}
 }
@@ -109,49 +77,25 @@ func InvariantVotes(k Keeper) invar.Func {
 	return func(ctx sdk.Context) (error, bool) {
 		// All gauge weights in 1-100
 		err := k.IterateVotes(ctx, func(voter sdk.AccAddress, vote types.Vote) (stop bool, err error) {
-			for _, weight := range vote.GaugeWeights {
-				if weight < 1 || weight > 100 {
-					return true, fmt.Errorf("gauge weight %d out of range (1-100)", weight)
-				}
-			}
-			return false, nil
-		})
-		if err != nil {
-			return fmt.Errorf("iterate votes: %w", err), true
-		}
-
-		// Sum of gauge weights equal <= 100
-		err = k.IterateVotes(ctx, func(voter sdk.AccAddress, vote types.Vote) (stop bool, err error) {
-			totalWeight := 0
-			for _, weight := range vote.GaugeWeights {
-				totalWeight += weight
-			}
-			if totalWeight > 100 {
-				return true, fmt.Errorf("sum of gauge weights %d exceeds 100", totalWeight)
-			}
-			return false, nil
-		})
-		if err != nil {
-			return fmt.Errorf("iterate votes: %w", err), true
-		}
-
-		// Voting power non negative
-		err = k.IterateVotes(ctx, func(voter sdk.AccAddress, vote types.Vote) (stop bool, err error) {
 			if vote.VotingPower.IsNegative() {
 				return true, fmt.Errorf("negative voting power: %s", vote.VotingPower)
 			}
+			t := sdk.ZeroInt()
+			for _, weight := range vote.GetWeights() {
+				w := weight.Weight
+				if w.LT(sdk.OneInt()) || w.GT(sdk.NewInt(100)) {
+					return true, fmt.Errorf("gauge weight out of range (1-100): %s", w)
+				}
+				t = t.Add(w)
+			}
+			if t.GT(sdk.NewInt(100)) {
+				return true, fmt.Errorf("sum of gauge weights exceeds 100: %s", t)
+			}
 			return false, nil
 		})
 		if err != nil {
 			return fmt.Errorf("iterate votes: %w", err), true
 		}
-
-		return nil, false
-	}
-}
-
-func InvariantVotes(k Keeper) invar.Func {
-	return func(ctx sdk.Context) (error, bool) {
 		return nil, false
 	}
 }
