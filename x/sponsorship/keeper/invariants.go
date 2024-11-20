@@ -77,7 +77,6 @@ func InvariantDistribution(k Keeper) uinv.Func {
 func InvariantVotes(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 
-		// All gauge weights in 1-100
 		err := k.IterateVotes(ctx, func(voter sdk.AccAddress, vote types.Vote) (stop bool, err error) {
 			if vote.VotingPower.IsNegative() {
 				return false, fmt.Errorf("negative voting power: %s", vote.VotingPower)

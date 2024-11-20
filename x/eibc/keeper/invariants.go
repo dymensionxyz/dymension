@@ -88,10 +88,16 @@ func CoinsInvariant(k Keeper) sdk.Invariant {
 		}
 		for _, do := range allDemandOrders {
 			for _, coins := range []sdk.Coins{do.Price, do.Fee} {
-				if len(coins) != 1 {
-					msg += fmt.Sprintf("expect 1 coin: %s\n", coins)
+				if len(coins) == 0 {
+					// This is OK, since coins will erase the zero coin and zero price/fee is allowed
+					continue
+				}
+				if len(coins) > 1 {
+					msg += fmt.Sprintf("multiple coins: %s\n", coins)
 					broken = true
-				} else if coins[0].IsNegative() {
+					continue
+				}
+				if coins[0].IsNegative() {
 					msg += fmt.Sprintf("negative coins: %s\n", coins)
 					broken = true
 				}
