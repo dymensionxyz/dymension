@@ -3,6 +3,7 @@ package invar
 import (
 	"errors"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -13,7 +14,7 @@ func NewErr(err error) error {
 }
 
 // return bool should be if the invariant is broken. If true, error should have meaningful debug info
-type Func = func(sdk.Context) (error, bool)
+type Func = func(sdk.Context) error
 
 type NamedFunc[K any] struct {
 	Name string
@@ -21,11 +22,13 @@ type NamedFunc[K any] struct {
 }
 
 func (nf NamedFunc[K]) Exec(ctx sdk.Context, module string, keeper K) (string, bool) {
-	err, broken := nf.Func(keeper)(ctx)
-	if err == nil {
-		return "", broken
+	err := nf.Func(keeper)(ctx)
+	broken := errorsmod.IsOf(err, ErrBroken)
+	var msg string
+	if err != nil {
+		msg = sdk.FormatInvariant(module, nf.Name, err.Error())
 	}
-	return sdk.FormatInvariant(module, nf.Name, err.Error()), broken
+	return msg, broken
 }
 
 type NamedFuncsList[K any] []NamedFunc[K]
