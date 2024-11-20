@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/utils/uinv"
@@ -79,25 +80,23 @@ func InvariantVotes(k Keeper) uinv.Func {
 		// All gauge weights in 1-100
 		err := k.IterateVotes(ctx, func(voter sdk.AccAddress, vote types.Vote) (stop bool, err error) {
 			if vote.VotingPower.IsNegative() {
-				return true, fmt.Errorf("negative voting power: %s", vote.VotingPower)
+				return false, fmt.Errorf("negative voting power: %s", vote.VotingPower)
 			}
 			t := sdk.ZeroInt()
 			for _, weight := range vote.GetWeights() {
 				w := weight.Weight
 				if w.LT(sdk.OneInt()) || w.GT(sdk.NewInt(100)) {
-					return true, fmt.Errorf("gauge weight out of range (1-100): %s", w)
+					return false, fmt.Errorf("gauge weight out of range (1-100): %s", w)
 				}
 				t = t.Add(w)
 			}
 			if t.GT(sdk.NewInt(100)) {
-				return true, fmt.Errorf("sum of gauge weights exceeds 100: %s", t)
+				return false, fmt.Errorf("sum of gauge weights exceeds 100: %s", t)
 			}
 			return false, nil
 		})
-		if err != nil {
-			return fmt.Errorf("iterate votes: %w", err), true
-		}
-		return nil, false
+
+		return errorsmod.Wrap(err, "iterate votes")
 	})
 }
 
