@@ -17,6 +17,7 @@ const (
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "demand-order-count", DemandOrderCountInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "underlying-packet-exist", UnderlyingPacketExistInvariant(k))
+	ir.RegisterRoute(types.ModuleName, "coins", CoinsInvariant(k))
 }
 
 func DemandOrderCountInvariant(k Keeper) sdk.Invariant {
@@ -71,5 +72,31 @@ func UnderlyingPacketExistInvariant(k Keeper) sdk.Invariant {
 			}
 		}
 		return sdk.FormatInvariant(types.ModuleName, "underlying-packet-exist", msg), broken
+	}
+}
+
+func CoinsInvariant(k Keeper) sdk.Invariant {
+	return func(ctx sdk.Context) (string, bool) {
+		var (
+			broken bool
+			msg    string
+		)
+		allDemandOrders, err := k.ListAllDemandOrders(ctx)
+		if err != nil {
+			msg += fmt.Sprintf("list all demand orders failed: %v\n", err)
+			broken = true
+		}
+		for _, do := range allDemandOrders {
+			for _, coins := range []sdk.Coins{do.Price, do.Fee} {
+				if len(coins) != 1 {
+					msg += fmt.Sprintf("expect 1 coin: %s\n", coins)
+					broken = true
+				} else if coins[0].IsNegative() {
+					msg += fmt.Sprintf("negative coins: %s\n", coins)
+					broken = true
+				}
+			}
+		}
+		return sdk.FormatInvariant(types.ModuleName, "coins", msg), broken
 	}
 }
