@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"errors"
+
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -27,31 +29,37 @@ func AllInvariants(k Keeper) sdk.Invariant {
 }
 
 func InvariantClientState(k Keeper) uinv.Func {
-	return func(ctx sdk.Context) (error, bool) {
+	return func(ctx sdk.Context) error {
 		clients := k.GetAllCanonicalClients(ctx)
+		var errs []error
 		for _, client := range clients {
-			cs, ok := k.ibcClientKeeper.GetClientState(ctx, client.IbcClientId)
-			if !ok {
-				return gerrc.ErrNotFound.Wrapf("client state for client ID: %s", client.IbcClientId), true
-			}
-			tmCS, ok := cs.(*ibctm.ClientState)
-			if !ok {
-				return gerrc.ErrInvalidArgument.Wrapf("client state is not a tendermint client state for client ID: %s", client.IbcClientId), true
-			}
-			if tmCS.ChainId != client.RollappId {
-				return gerrc.ErrInvalidArgument.Wrapf("client state chain ID does not match rollapp ID for client ID: %s: expect: %s", client.IbcClientId, client.RollappId), true
-			}
-			_, ok = k.rollappKeeper.GetRollapp(ctx, client.RollappId)
-			if !ok {
-				return gerrc.ErrNotFound.Wrapf("rollapp for rollapp ID: %s", client.RollappId), true
-			}
-			_, ok = k.ibcClientKeeper.GetClientConsensusState(ctx, client.IbcClientId, cs.GetLatestHeight())
-			if !ok {
-				return gerrc.ErrNotFound.Wrapf("latest consensus state for client ID: %s", client.IbcClientId), true
-			}
+			errs = append(errs, checkClient(ctx, k, client))
 		}
-		return nil, false
+		return uinv.Breaking(errors.Join(errs...))
 	}
+}
+
+func checkClient(ctx sdk.Context, k Keeper, client types.CanonicalClient) error {
+	cs, ok := k.ibcClientKeeper.GetClientState(ctx, client.IbcClientId)
+	if !ok {
+		return gerrc.ErrNotFound.Wrapf("client state for client ID: %s", client.IbcClientId)
+	}
+	tmCS, ok := cs.(*ibctm.ClientState)
+	if !ok {
+		return gerrc.ErrInvalidArgument.Wrapf("client state is not a tendermint client state for client ID: %s", client.IbcClientId)
+	}
+	if tmCS.ChainId != client.RollappId {
+		return gerrc.ErrInvalidArgument.Wrapf("client state chain ID does not match rollapp ID for client ID: %s: expect: %s", client.IbcClientId, client.RollappId)
+	}
+	_, ok = k.rollappKeeper.GetRollapp(ctx, client.RollappId)
+	if !ok {
+		return gerrc.ErrNotFound.Wrapf("rollapp for rollapp ID: %s", client.RollappId)
+	}
+	_, ok = k.ibcClientKeeper.GetClientConsensusState(ctx, client.IbcClientId, cs.GetLatestHeight())
+	if !ok {
+		return gerrc.ErrNotFound.Wrapf("latest consensus state for client ID: %s", client.IbcClientId)
+	}
+	return nil
 }
 
 func InvariantAttribution(k Keeper) uinv.Func {

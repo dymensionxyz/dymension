@@ -5,11 +5,12 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-var ErrBroken = errors.New("invariant broken")
+var ErrBroken = gerrc.ErrInternal.Wrap("invariant broken")
 
-func NewErr(err error) error {
+func Breaking(err error) error {
 	return errors.Join(ErrBroken, err)
 }
 
