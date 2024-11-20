@@ -216,6 +216,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 90)),
+				Amount:              sdk.IntProto{Int: sdk.NewInt(100)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
@@ -237,6 +238,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 90)),
+				Amount:              sdk.IntProto{Int: sdk.NewInt(100)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
@@ -272,6 +274,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           "rollapp2", // Mismatched Rollapp ID
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
+				Amount:              sdk.IntProto{Int: sdk.NewInt(110)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
@@ -292,6 +295,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 110)), // Mismatched Price
+				Amount:              sdk.IntProto{Int: sdk.NewInt(120)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
@@ -312,6 +316,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
+				Amount:              sdk.IntProto{Int: sdk.NewInt(115)},
 				ExpectedFee:         "15",                                        // Mismatched Expected Fee
 				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
@@ -332,6 +337,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
+				Amount:              sdk.IntProto{Int: sdk.NewInt(110)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
@@ -351,6 +357,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
+				Amount:              sdk.IntProto{Int: sdk.NewInt(110)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),                         // Non-existent operator account
@@ -371,6 +378,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
+				Amount:              sdk.IntProto{Int: sdk.NewInt(110)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
@@ -391,6 +399,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
+				Amount:              sdk.IntProto{Int: sdk.NewInt(110)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
@@ -425,6 +434,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 90)),
+				Amount:              sdk.IntProto{Int: sdk.NewInt(100)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),

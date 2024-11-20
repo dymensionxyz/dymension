@@ -25,9 +25,9 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 					{
 						RollappId:           "rollapp1",
 						Denoms:              []string{"atom"},
-						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 500)),
-						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
-						MinFeePercentage:    sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.05")},
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 9986)),
+						MinFeePercentage:    sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.0015")},
 						OperatorFeeShare:    sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.02")},
 						SettlementValidated: true,
 					},
@@ -35,8 +35,9 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 			},
 			msg: &MsgFulfillOrderAuthorized{
 				RollappId:           "rollapp1",
-				Price:               sdk.NewCoins(sdk.NewInt64Coin("atom", 400)),
-				ExpectedFee:         "23",
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
+				Amount:              sdk.IntProto{Int: sdk.NewInt(10000)},
+				ExpectedFee:         "15",
 				OperatorFeeShare:    sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.02")},
 				SettlementValidated: true,
 			},
@@ -47,9 +48,9 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 					{
 						RollappId:           "rollapp1",
 						Denoms:              []string{"atom"},
-						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 500)),
-						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 600)),
-						MinFeePercentage:    sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.05")},
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 1)),
+						MinFeePercentage:    sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.0015")},
 						OperatorFeeShare:    sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.02")},
 						SettlementValidated: true,
 					},
@@ -146,7 +147,7 @@ func TestFulfillOrderAuthorization_ValidateBasic(t *testing.T) {
 					},
 				},
 			},
-			expectedError: "min_fee_percentage cannot be negative for rollapp_id rollapp1",
+			expectedError: "min_fee_percentage must be between 0 and 1 for rollapp_id rollapp1",
 		},
 		{
 			name: "OperatorFeeShare Greater Than One",
@@ -154,6 +155,7 @@ func TestFulfillOrderAuthorization_ValidateBasic(t *testing.T) {
 				Rollapps: []*RollappCriteria{
 					{
 						RollappId:        "rollapp1",
+						MinFeePercentage: sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.01")},
 						OperatorFeeShare: sdk.DecProto{Dec: sdk.MustNewDecFromStr("1.1")},
 					},
 				},
@@ -165,8 +167,10 @@ func TestFulfillOrderAuthorization_ValidateBasic(t *testing.T) {
 			authorization: FulfillOrderAuthorization{
 				Rollapps: []*RollappCriteria{
 					{
-						RollappId:  "rollapp1",
-						SpendLimit: sdk.Coins{sdk.Coin{Denom: "atom", Amount: sdk.NewInt(-100)}},
+						RollappId:        "rollapp1",
+						MinFeePercentage: sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.01")},
+						OperatorFeeShare: sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.1")},
+						SpendLimit:       sdk.Coins{sdk.Coin{Denom: "atom", Amount: sdk.NewInt(-100)}},
 					},
 				},
 			},
@@ -176,8 +180,16 @@ func TestFulfillOrderAuthorization_ValidateBasic(t *testing.T) {
 			name: "Duplicate Rollapp IDs",
 			authorization: FulfillOrderAuthorization{
 				Rollapps: []*RollappCriteria{
-					{RollappId: "rollapp1"},
-					{RollappId: "rollapp1"},
+					{
+						RollappId:        "rollapp1",
+						MinFeePercentage: sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.01")},
+						OperatorFeeShare: sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.1")},
+					},
+					{
+						RollappId:        "rollapp1",
+						MinFeePercentage: sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.01")},
+						OperatorFeeShare: sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.1")},
+					},
 				},
 			},
 			expectedError: "duplicate rollapp_id rollapp1 in rollapps",
@@ -196,8 +208,10 @@ func TestFulfillOrderAuthorization_ValidateBasic(t *testing.T) {
 			authorization: FulfillOrderAuthorization{
 				Rollapps: []*RollappCriteria{
 					{
-						RollappId: "rollapp1",
-						Denoms:    []string{"atom", "atom"},
+						RollappId:        "rollapp1",
+						MinFeePercentage: sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.01")},
+						OperatorFeeShare: sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.1")},
+						Denoms:           []string{"atom", "atom"},
 					},
 				},
 			},
@@ -208,22 +222,21 @@ func TestFulfillOrderAuthorization_ValidateBasic(t *testing.T) {
 			authorization: FulfillOrderAuthorization{
 				Rollapps: []*RollappCriteria{
 					{
-						RollappId: "rollapp1",
-						MaxPrice:  sdk.Coins{sdk.Coin{Denom: "atom", Amount: sdk.NewInt(-500)}},
+						RollappId:        "rollapp1",
+						MinFeePercentage: sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.01")},
+						OperatorFeeShare: sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.1")},
+						MaxPrice:         sdk.Coins{sdk.Coin{Denom: "atom", Amount: sdk.NewInt(-500)}},
 					},
 				},
 			},
 			expectedError: "max_price is invalid for rollapp_id rollapp1",
 		},
-		// Add more test cases as needed...
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Execute
 			err := tc.authorization.ValidateBasic()
 
-			// Verify
 			if tc.expectedError != "" {
 				require.Error(t, err)
 				require.Contains(t, err.Error(), tc.expectedError)
