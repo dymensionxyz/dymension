@@ -68,6 +68,11 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 		return nil, gerrc.ErrFailedPrecondition.Wrap("cannot unbond while rotation in progress")
 	}
 
+	// ensures they will not get chosen as their own successor!
+	if err := seq.SetOptedIn(ctx, false); err != nil {
+		return nil, err
+	}
+
 	// now we know they are proposer
 	// avoid starting another notice unnecessarily
 	if k.IsProposer(ctx, seq) {
