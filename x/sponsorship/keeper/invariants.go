@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/utils/uinv"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
@@ -26,7 +27,8 @@ func AllInvariants(k Keeper) sdk.Invariant {
 }
 
 func InvariantDelegatorValidatorPower(k Keeper) uinv.Func {
-	return func(ctx sdk.Context) (error, bool) {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+
 		err := k.delegatorValidatorPower.Walk(ctx, nil,
 			func(key collections.Pair[sdk.AccAddress, sdk.ValAddress], value math.Int) (stop bool, err error) {
 				if value.IsNegative() {
@@ -38,11 +40,12 @@ func InvariantDelegatorValidatorPower(k Keeper) uinv.Func {
 			return err, true
 		}
 		return nil, false
-	}
+	})
 }
 
 func InvariantDistribution(k Keeper) uinv.Func {
-	return func(ctx sdk.Context) (error, bool) {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+
 		d, err := k.GetDistribution(ctx)
 		if err != nil {
 			return fmt.Errorf("get distribution: %w", err), true
@@ -67,11 +70,12 @@ func InvariantDistribution(k Keeper) uinv.Func {
 		}
 
 		return nil, false
-	}
+	})
 }
 
 func InvariantVotes(k Keeper) uinv.Func {
-	return func(ctx sdk.Context) (error, bool) {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+
 		// All gauge weights in 1-100
 		err := k.IterateVotes(ctx, func(voter sdk.AccAddress, vote types.Vote) (stop bool, err error) {
 			if vote.VotingPower.IsNegative() {
@@ -94,11 +98,12 @@ func InvariantVotes(k Keeper) uinv.Func {
 			return fmt.Errorf("iterate votes: %w", err), true
 		}
 		return nil, false
-	}
+	})
 }
 
 func InvariantGeneral(k Keeper) uinv.Func {
-	return func(ctx sdk.Context) (error, bool) {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+
 		totalVP := math.ZeroInt()
 		err := k.delegatorValidatorPower.Walk(ctx, nil, func(key collections.Pair[sdk.AccAddress, sdk.ValAddress], value math.Int) (stop bool, err error) {
 			totalVP = totalVP.Add(value)
@@ -131,5 +136,5 @@ func InvariantGeneral(k Keeper) uinv.Func {
 		}
 
 		return nil, false
-	}
+	})
 }
