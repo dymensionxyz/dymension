@@ -13,7 +13,7 @@ import (
 )
 
 var invs = uinv.NamedFuncsList[Keeper]{
-	{"proof-height", InvariantProofHeight},
+	{Name: "proof-height", Func: InvariantProofHeight},
 }
 
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {

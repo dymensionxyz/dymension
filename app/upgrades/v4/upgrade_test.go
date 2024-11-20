@@ -150,6 +150,8 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 				s.validateStreamerMigration()
 
+				s.tryRollappBurn()
+
 				return
 			},
 			expPass: true,
@@ -510,6 +512,9 @@ func (s *UpgradeTestSuite) seedRollappFinalizationQueue() {
 	for _, stateInfo := range stateInfos {
 		s.App.RollappKeeper.SetStateInfo(s.Ctx, stateInfo)
 	}
+}
+
+func (s *UpgradeTestSuite) tryRollappBurn() {
 }
 
 func generateStateInfo(rollappIdx, stateIdx int) rollapptypes.StateInfo {
