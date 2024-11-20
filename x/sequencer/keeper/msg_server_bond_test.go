@@ -166,6 +166,7 @@ func (s *SequencerTestSuite) TestUnbondRestrictions() {
 		seq = s.k().GetSequencer(s.Ctx, seq.Address)
 		s.Require().True(seq.NoticeInProgress(s.Ctx.BlockTime()))
 		s.Require().True(s.k().IsProposer(s.Ctx, seq))
+		s.Require().False(seq.OptedIn)
 	})
 	s.Run("successor - not allowed", func() {
 		seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, charlie, bond)
