@@ -29,15 +29,14 @@ func AllInvariants(k Keeper) sdk.Invariant {
 }
 
 func InvariantClientState(k Keeper) uinv.Func {
-	return func(ctx sdk.Context) error {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		clients := k.GetAllCanonicalClients(ctx)
 		var errs []error
 		for _, client := range clients {
 			errs = append(errs, checkClient(ctx, k, client))
 		}
-		// any error here is breaking
-		return uinv.Breaking(errors.Join(errs...))
-	}
+		return errors.Join(errs...)
+	})
 }
 
 func checkClient(ctx sdk.Context, k Keeper, client types.CanonicalClient) error {
@@ -64,8 +63,7 @@ func checkClient(ctx sdk.Context, k Keeper, client types.CanonicalClient) error 
 }
 
 func InvariantAttribution(k Keeper) uinv.Func {
-	return func(ctx sdk.Context) error {
-
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		err := k.headerSigners.Walk(ctx, nil, func(key collections.Triple[string, string, uint64]) (stop bool, err error) {
 			seq := key.K1()
 			clientID := key.K2()
@@ -107,6 +105,6 @@ func InvariantAttribution(k Keeper) uinv.Func {
 			return false, nil
 		})
 
-		return err, err != nil
-	}
+		return err
+	})
 }
