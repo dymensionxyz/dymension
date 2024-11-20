@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"github.com/cometbft/cometbft/libs/rand"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -80,6 +81,9 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 		err := suite.App.DelayedAckKeeper.OnHardFork(suite.Ctx, rollapp, uint64(suite.Ctx.BlockHeight()))
 		suite.Require().NoError(err)
 	}
+
+	msg, fails := keeper.AllInvariants(suite.App.DelayedAckKeeper)(suite.Ctx)
+	suite.Require().False(fails, msg)
 
 }
 
@@ -229,6 +233,9 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			// add rollapp packets
 			suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet)
 			suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet2)
+
+			_, fails := keeper.AllInvariants(suite.App.DelayedAckKeeper)(suite.Ctx)
+			suite.Require().Equal(tc.expectedIsBroken, fails)
 
 		})
 	}

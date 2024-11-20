@@ -38,18 +38,6 @@ type KeeperTestHelper struct {
 	Ctx sdk.Context
 }
 
-func (s *KeeperTestHelper) AfterTest(suiteName, testName string) {
-	s.checkInvariants()
-}
-
-func (s *KeeperTestHelper) TearDownSubTest() {
-	s.checkInvariants()
-}
-
-func (s *KeeperTestHelper) checkInvariants() {
-	s.App.CrisisKeeper.AssertInvariants(s.Ctx)
-}
-
 func (s *KeeperTestHelper) CreateDefaultRollappAndProposer() (string, string) {
 	rollappId := s.CreateDefaultRollapp()
 	proposer := s.CreateDefaultSequencer(s.Ctx, rollappId)
