@@ -109,16 +109,16 @@ func InvariantGeneral(k Keeper) uinv.Func {
 			return false, nil
 		})
 		if err != nil {
-			return fmt.Errorf("walk delegator validator power: %w", err), true
+			return fmt.Errorf("sum delegator validator power: %w", err)
 		}
 
 		distribution, err := k.GetDistribution(ctx)
 		if err != nil {
-			return fmt.Errorf("get distribution: %w", err), true
+			return fmt.Errorf("get distribution: %w", err)
 		}
 
 		if !totalVP.Equal(distribution.VotingPower) {
-			return fmt.Errorf("total voting power does not equal total power in distribution: total: %s: distr:  %s", totalVP, distribution.VotingPower), true
+			return fmt.Errorf("total voting power does not equal total power in distribution: total: %s: distr:  %s", totalVP, distribution.VotingPower)
 		}
 
 		expectedDistribution := types.NewDistribution()
@@ -127,13 +127,13 @@ func InvariantGeneral(k Keeper) uinv.Func {
 			return false, nil
 		})
 		if err != nil {
-			return fmt.Errorf("iterate votes: %w", err), true
+			return fmt.Errorf("merge votes: %w", err)
 		}
 
 		if !expectedDistribution.Equal(distribution) {
-			return fmt.Errorf("distribution does not match expected distribution from votes"), true
+			return fmt.Errorf("distribution does not match expected distribution from votes")
 		}
 
-		return nil, false
+		return nil
 	})
 }
