@@ -11,10 +11,10 @@ import (
 )
 
 var invs = uinv.NamedFuncsList[Keeper]{
-	{"notice", InvariantNotice},
-	{"hash-index", InvariantHashIndex},
-	{"status", InvariantStatus},
-	{"tokens", InvariantTokens},
+	{Name: "notice", Func: InvariantNotice},
+	{Name: "hash-index", Func: InvariantHashIndex},
+	{Name: "status", Func: InvariantStatus},
+	{Name: "tokens", Func: InvariantTokens},
 }
 
 // RegisterInvariants registers the sequencer module invariants
@@ -124,6 +124,7 @@ func InvariantTokens(k Keeper) uinv.Func {
 		for _, seq := range k.AllSequencers(ctx) {
 			err := checkSeqTokens(ctx, seq, k)
 			err = errorsmod.Wrapf(err, "sequencer: %s", seq.Address)
+			errs = append(errs, err)
 		}
 
 		if err := errors.Join(errs...); err != nil {

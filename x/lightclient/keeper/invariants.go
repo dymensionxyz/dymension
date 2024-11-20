@@ -15,8 +15,8 @@ import (
 )
 
 var invs = uinv.NamedFuncsList[Keeper]{
-	{"client-state", InvariantClientState},
-	{"attribution", InvariantAttribution},
+	{Name: "client-state", Func: InvariantClientState},
+	{Name: "attribution", Func: InvariantAttribution},
 }
 
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {

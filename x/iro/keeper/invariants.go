@@ -11,7 +11,7 @@ import (
 )
 
 var invs = uinv.NamedFuncsList[Keeper]{
-	{"plan", InvariantPlan},
+	{Name: "plan", Func: InvariantPlan},
 }
 
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {

@@ -13,10 +13,10 @@ import (
 )
 
 var invs = uinv.NamedFuncsList[Keeper]{
-	{"delegator-validator-power", InvariantDelegatorValidatorPower},
-	{"distribution", InvariantDistribution},
-	{"votes", InvariantVotes},
-	{"general", InvariantGeneral},
+	{Name: "delegator-validator-power", Func: InvariantDelegatorValidatorPower},
+	{Name: "distribution", Func: InvariantDistribution},
+	{Name: "votes", Func: InvariantVotes},
+	{Name: "general", Func: InvariantGeneral},
 }
 
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
