@@ -25,6 +25,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	return invs.All(types.ModuleName, k)
 }
 
+// ensures packet not finalized before proof height is finalized
 func InvariantProofHeight(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		var errs []error
@@ -61,7 +62,7 @@ func (k Keeper) checkRollapp(ctx sdk.Context, ra rtypes.Rollapp) error {
 }
 
 func (k Keeper) checkPacket(p commontypes.RollappPacket, latestFinalizedHeight uint64) error {
-	finalizedTooEarly := p.ProofHeight < latestFinalizedHeight && p.Status == commontypes.Status_FINALIZED
+	finalizedTooEarly := latestFinalizedHeight < p.ProofHeight && p.Status == commontypes.Status_FINALIZED
 	if finalizedTooEarly {
 		return fmt.Errorf("finalized too early height=%d, rollapp=%s, status=%s\n",
 			p.ProofHeight, p.RollappId, p.Status,

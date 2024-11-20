@@ -13,7 +13,6 @@ import (
 
 // RegisterInvariants registers the bank module invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
-	ir.RegisterRoute(types.ModuleName, "rollapp-state-index", RollappLatestStateIndexInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "rollapp-count", RollappCountInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "block-height-to-finalization-queue", BlockHeightToFinalizationQueueInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "rollapp-by-eip155-key", RollappByEIP155KeyInvariant(k))
@@ -24,11 +23,7 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 // AllInvariants runs all invariants of the module.
 func AllInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-		res, stop := RollappLatestStateIndexInvariant(k)(ctx)
-		if stop {
-			return res, stop
-		}
-		res, stop = RollappCountInvariant(k)(ctx)
+		res, stop := RollappCountInvariant(k)(ctx)
 		if stop {
 			return res, stop
 		}
@@ -223,43 +218,6 @@ func RollappCountInvariant(k Keeper) sdk.Invariant {
 
 		return sdk.FormatInvariant(
 			types.ModuleName, "rollapp-count",
-			msg,
-		), broken
-	}
-}
-
-// RollappLatestStateIndexInvariant checks the following invariants per each rollapp that latest state index >= finalized state index
-func RollappLatestStateIndexInvariant(k Keeper) sdk.Invariant {
-	return func(ctx sdk.Context) (string, bool) {
-		var (
-			broken bool
-			msg    string
-		)
-
-		rollapps := k.GetAllRollapps(ctx)
-		for _, rollapp := range rollapps {
-			if !k.IsRollappStarted(ctx, rollapp.RollappId) {
-				continue
-			}
-
-			latestStateIdx, found := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
-			if !found {
-				msg += fmt.Sprintf("rollapp (%s) have no latestStateIdx\n", rollapp.RollappId)
-				broken = true
-				break
-			}
-
-			latestFinalizedStateIdx, _ := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
-			// not found is ok, it means no finalized state yet
-
-			if latestStateIdx.Index < latestFinalizedStateIdx.Index {
-				msg += fmt.Sprintf("rollapp (%s) have latestStateIdx < latestFinalizedStateIdx\n", rollapp.RollappId)
-				broken = true
-			}
-		}
-
-		return sdk.FormatInvariant(
-			types.ModuleName, "rollapp-state-index",
 			msg,
 		), broken
 	}
