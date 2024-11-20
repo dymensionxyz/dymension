@@ -2,8 +2,11 @@ package keeper
 
 import (
 	"errors"
+	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/utils/uinv"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -25,72 +28,89 @@ func AllInvariants(k Keeper) sdk.Invariant {
 }
 
 func InvariantNotice(k Keeper) uinv.Func {
-	return func(ctx sdk.Context) (error, bool) {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		seqs, err := k.NoticeQueue(ctx, nil)
 		if err != nil {
-			return err, true
+			return err
 		}
+		var errs []error
 		for _, seq := range seqs {
 			if !seq.NoticeStarted() {
-				return errors.New("sequencer not started notice"), true
+				errs = append(errs, fmt.Errorf("in notice queue but notice not started: %s", seq.Address))
 			}
 		}
-		return nil, false
-	}
+		return errors.Join(errs...)
+	})
 }
 
 func InvariantHashIndex(k Keeper) uinv.Func {
-	return func(ctx sdk.Context) (error, bool) {
-		for _, exp := range k.AllSequencers(ctx) {
-			got, err := k.SequencerByDymintAddr(ctx, exp.MustValsetHash())
-			if err != nil {
-				return err, true
-			}
-			if got.Address != exp.Address {
-				return errors.New("address mismatch"), true
-			}
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+		var errs []error
+		for _, seq := range k.AllSequencers(ctx) {
+			err := checkSeqHashIndex(ctx, k, seq)
+			err = errorsmod.Wrapf(err, "sequencer: %s", seq.Address)
+			errs = append(errs, err)
 		}
-		return nil, false
+		return errors.Join(errs...)
+	})
+}
+
+func checkSeqHashIndex(ctx sdk.Context, k Keeper, exp types.Sequencer) error {
+	got, err := k.SequencerByDymintAddr(ctx, exp.MustValsetHash())
+	if err != nil {
+		return err
 	}
+	if got.Address != exp.Address {
+		return errors.New("address mismatch")
+	}
+	return nil
 }
 
 func InvariantStatus(k Keeper) uinv.Func {
-	return func(ctx sdk.Context) (error, bool) {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+		var errs []error
 		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
 		for _, ra := range rollapps {
-			proposer := k.GetProposer(ctx, ra.RollappId)
-			if !proposer.Bonded() {
-				return errors.New("proposer not bonded"), true
-			}
-			successor := k.GetSuccessor(ctx, ra.RollappId)
-			if !successor.Bonded() {
-				return errors.New("successor not bonded"), true
-			}
-			if !proposer.Sentinel() && proposer.Address == successor.Address {
-				return errors.New("proposer and successor are the same"), true
-			}
-			if !successor.Sentinel() && proposer.Sentinel() {
-				return errors.New("proposer is sentinel but successor is not"), true
-			}
-			all := k.RollappSequencers(ctx, ra.RollappId)
-			bonded := k.RollappSequencersByStatus(ctx, ra.RollappId, types.Bonded)
-			unbonded := k.RollappSequencersByStatus(ctx, ra.RollappId, types.Unbonded)
-			if len(all) != len(bonded)+len(unbonded) {
-				return errors.New("sequencer by rollapp length is not equal to sum of bonded, and unbonded"), true
-			}
+			err := checkRollappStatus(ctx, k, ra.RollappId)
+			err = errorsmod.Wrapf(err, "rollapp: %s", ra.RollappId)
+			errs = append(errs, err)
 		}
 		for _, seq := range k.AllProposers(ctx) {
 			if !k.IsProposer(ctx, seq) {
-				return errors.New("sequencer in proposers query is not proposer"), true
+				errs = append(errs, fmt.Errorf("proposer in query is not proposer: %s", seq.Address))
 			}
 		}
 		for _, seq := range k.AllSuccessors(ctx) {
 			if !k.IsSuccessor(ctx, seq) {
-				return errors.New("sequencer in successor query is not successor"), true
+				errs = append(errs, fmt.Errorf("successor in query is not successor: %s", seq.Address))
 			}
 		}
-		return nil, false
+		return errors.Join(errs...)
+	})
+}
+
+func checkRollappStatus(ctx sdk.Context, k Keeper, ra string) error {
+	proposer := k.GetProposer(ctx, ra)
+	if !proposer.Bonded() {
+		return errors.New("proposer not bonded")
 	}
+	successor := k.GetSuccessor(ctx, ra)
+	if !successor.Bonded() {
+		return errors.New("successor not bonded")
+	}
+	if !proposer.Sentinel() && proposer.Address == successor.Address {
+		return errors.New("proposer and successor are the same")
+	}
+	if !successor.Sentinel() && proposer.Sentinel() {
+		return errors.New("proposer is sentinel but successor is not")
+	}
+	all := k.RollappSequencers(ctx, ra)
+	bonded := k.RollappSequencersByStatus(ctx, ra, types.Bonded)
+	unbonded := k.RollappSequencersByStatus(ctx, ra, types.Unbonded)
+	if len(all) != len(bonded)+len(unbonded) {
+		return errors.New("sequencer by rollapp length is not equal to sum of bonded, and unbonded")
+	}
+	return nil
 }
 
 func InvariantTokens(k Keeper) uinv.Func {
