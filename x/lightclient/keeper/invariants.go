@@ -1,7 +1,10 @@
 package keeper
 
 import (
+	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/dymension/v3/utils/invar"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -11,6 +14,7 @@ import (
 
 var invs = invar.NamedFuncsList[Keeper]{
 	{"client-state", InvariantClientState},
+	{"attribution", InvariantAttribution},
 }
 
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
@@ -47,5 +51,53 @@ func InvariantClientState(k Keeper) invar.Func {
 			}
 		}
 		return nil, false
+	}
+}
+
+func InvariantAttribution(k Keeper) invar.Func {
+	return func(ctx sdk.Context) (error, bool) {
+
+		err := k.headerSigners.Walk(ctx, nil, func(key collections.Triple[string, string, uint64]) (stop bool, err error) {
+			seq := key.K1()
+			clientID := key.K2()
+			height := key.K3()
+
+			_, err = k.clientHeightToSigner.Get(ctx, collections.Join(clientID, height))
+			if err != nil {
+				return false, errorsmod.Wrapf(err, "reverse lookup for sequencer address: %s", seq)
+			}
+			_, ok := k.ibcClientKeeper.GetClientConsensusState(ctx, clientID, clienttypes.NewHeight(1, height))
+			if !ok {
+				return false, gerrc.ErrNotFound.Wrapf("consensus state for client ID: %s", clientID)
+			}
+			signer, err := k.clientHeightToSigner.Get(ctx, collections.Join(clientID, height))
+			if err != nil {
+				return false, errorsmod.Wrapf(err, "get signer for client ID: %s", clientID)
+			}
+			if signer != seq {
+				return false, gerrc.ErrInvalidArgument.Wrapf("signer mismatch: expected: %s, got: %s", seq, signer)
+			}
+			_, err = k.SeqK.RealSequencer(ctx, seq)
+			if err != nil {
+				return false, errorsmod.Wrapf(err, "get real sequencer for sequencer address: %s", seq)
+			}
+			return false, nil
+		})
+
+		if err != nil {
+			return err, true
+		}
+
+		err = k.clientHeightToSigner.Walk(ctx, nil, func(key collections.Pair[string, uint64], seq string) (stop bool, err error) {
+			clientID := key.K1()
+			height := key.K2()
+			ok, err := k.headerSigners.Has(ctx, collections.Join3(seq, clientID, height))
+			if !ok || err != nil {
+				return false, errorsmod.Wrapf(err, "forward lookup for client ID: %s", clientID)
+			}
+			return false, nil
+		})
+
+		return err, err != nil
 	}
 }
