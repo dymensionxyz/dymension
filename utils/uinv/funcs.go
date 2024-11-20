@@ -34,9 +34,9 @@ func (nf NamedFunc[K]) Exec(ctx sdk.Context, module string, keeper K) (string, b
 type NamedFuncsList[K any] []NamedFunc[K]
 
 func (l NamedFuncsList[K]) RegisterInvariants(module string, ir sdk.InvariantRegistry, keeper K) {
-	for _, invar := range l {
-		ir.RegisterRoute(module, invar.Name, func(ctx sdk.Context) (string, bool) {
-			return invar.Exec(ctx, module, keeper)
+	for _, f := range l {
+		ir.RegisterRoute(module, f.Name, func(ctx sdk.Context) (string, bool) {
+			return f.Exec(ctx, module, keeper)
 		})
 	}
 }
