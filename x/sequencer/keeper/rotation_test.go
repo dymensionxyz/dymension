@@ -47,6 +47,54 @@ func (s *SequencerTestSuite) TestRotationHappyFlow() {
 	s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
 }
 
+// Make sure a sequencer cannot be proposer twice
+func (s *SequencerTestSuite) TestRotationReOptInFlow() {
+	// init
+	ra := s.createRollapp()
+	s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, ucoin.SimpleMul(bond, 3))
+	s.createSequencerWithBond(s.Ctx, ra.RollappId, bob, ucoin.SimpleMul(bond, 2)) // bob has prio over charlie
+	s.createSequencerWithBond(s.Ctx, ra.RollappId, charlie, ucoin.SimpleMul(bond, 1))
+	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(alice)))
+	s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
+
+	prop := alice
+	succ := bob
+
+	for range 2 {
+		// proposer tries to unbond
+		mUnbond := &types.MsgUnbond{Creator: pkAddr(prop)}
+		res, err := s.msgServer.Unbond(s.Ctx, mUnbond)
+		s.Require().NoError(err)
+
+		// notice period has not yet elapsed
+		err = s.k().ChooseSuccessorForFinishedNotices(s.Ctx, s.Ctx.BlockTime())
+		s.Require().NoError(err)
+		s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(succ)))
+
+		// proposer cannot yet submit last
+		err = s.k().OnProposerLastBlock(s.Ctx, s.seq(prop))
+		utest.IsErr(s.Require(), err, gerrc.ErrFault)
+
+		// advance clock past notice
+		s.Require().True(res.GetNoticePeriodCompletionTime().After(s.Ctx.BlockTime()))
+		s.Ctx = s.Ctx.WithBlockTime(*res.GetNoticePeriodCompletionTime())
+
+		// notice period has now elapsed
+		err = s.k().ChooseSuccessorForFinishedNotices(s.Ctx, s.Ctx.BlockTime())
+		s.Require().NoError(err)
+
+		// proposer can submit last
+		err = s.k().OnProposerLastBlock(s.Ctx, s.seq(prop))
+		s.Require().NoError(err)
+		s.Require().False(s.k().IsProposer(s.Ctx, s.seq(prop)))
+		s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(succ)))
+
+		// We can rotate Alice -> Bob but not Bob -> Alice
+		s.Require().Equal(succ == bob, s.k().IsProposer(s.Ctx, s.seq(succ)))
+		prop, succ = succ, prop
+	}
+}
+
 // A wants to rotate but there is no B to take over. Proposer should be sentinel afterwards.
 func (s *SequencerTestSuite) TestRotationNoSuccessor() {
 	s.App.RollappKeeper.SetHooks(nil)
