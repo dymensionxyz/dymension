@@ -75,23 +75,25 @@ func InvariantDistribution(k Keeper) uinv.Func {
 
 func InvariantVotes(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+		var errs []error
 		err := k.IterateVotes(ctx, func(voter sdk.AccAddress, vote types.Vote) (stop bool, err error) {
-			if vote.VotingPower.IsNegative() {
-				return false, fmt.Errorf("negative voting power: %s", vote.VotingPower)
-			}
 			t := sdk.ZeroInt()
 			for _, weight := range vote.GetWeights() {
-				w := weight.Weight
-				if w.LT(sdk.OneInt()) || w.GT(sdk.NewInt(100)) {
-					return false, fmt.Errorf("gauge weight out of range (1-100): %s", w)
+				if err := weight.Validate(); err != nil {
+					errs = append(errs, err)
+					continue
 				}
-				t = t.Add(w)
+				t = t.Add(weight.Weight)
 			}
-			if t.GT(sdk.NewInt(100)) {
-				return false, fmt.Errorf("sum of gauge weights exceeds 100: %s", t)
+			if t.GT(types.MaxAllocationWeight) {
+				return false, fmt.Errorf("sum of gauge weights exceeds max: %s", t)
 			}
 			return false, nil
 		})
+
+		if err := errors.Join(errs...); err != nil {
+			return errorsmod.Wrap(err, "validate weights")
+		}
 
 		return errorsmod.Wrap(err, "iterate votes")
 	})

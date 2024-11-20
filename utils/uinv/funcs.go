@@ -26,8 +26,7 @@ func AnyErrorIsBreaking(f Func) Func {
 	}
 }
 
-// return bool should be if the invariant is broken. If true, error should have meaningful debug info
-// Should return an ErrBroken if invariant is broken. Other errors are
+// Should return an ErrBroken if invariant is broken. Other errors are logged.
 type Func = func(sdk.Context) error
 
 type NamedFunc[K any] struct {

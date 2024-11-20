@@ -118,8 +118,6 @@ func (s *utilSuite) SetupTest() {
 	s.coordinator.Chains[rollappChainID()] = s.newTestChainWithSingleValidator(s.T(), s.coordinator, rollappChainID())
 }
 
-// FIXME: there used to be a fund sender account method, it might not be needed https://github.com/dymensionxyz/dymension/blob/deb306dfaaffd15c2695043cf690372dd4423deb/ibctesting/utils_test.go#L122
-
 // CreateRollappWithFinishedGenesis creates a rollapp whose 'genesis' protocol is complete:
 // that is, they have finished all genesis transfers and their bridge is enabled.
 func (s *utilSuite) createRollappWithFinishedGenesis(canonicalChannelID string) {
