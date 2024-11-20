@@ -90,7 +90,6 @@ func InvariantAttribution(k Keeper) uinv.Func {
 			}
 			return false, nil
 		})
-
 		if err != nil {
 			return err
 		}

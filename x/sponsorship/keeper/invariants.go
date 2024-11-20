@@ -42,7 +42,6 @@ func InvariantDelegatorValidatorPower(k Keeper) uinv.Func {
 
 func InvariantDistribution(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
-
 		d, err := k.GetDistribution(ctx)
 		if err != nil {
 			return fmt.Errorf("get distribution: %w", err)
@@ -76,7 +75,6 @@ func InvariantDistribution(k Keeper) uinv.Func {
 
 func InvariantVotes(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
-
 		err := k.IterateVotes(ctx, func(voter sdk.AccAddress, vote types.Vote) (stop bool, err error) {
 			if vote.VotingPower.IsNegative() {
 				return false, fmt.Errorf("negative voting power: %s", vote.VotingPower)
@@ -101,7 +99,6 @@ func InvariantVotes(k Keeper) uinv.Func {
 
 func InvariantGeneral(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
-
 		totalVP := math.ZeroInt()
 		err := k.delegatorValidatorPower.Walk(ctx, nil, func(key collections.Pair[sdk.AccAddress, sdk.ValAddress], value math.Int) (stop bool, err error) {
 			totalVP = totalVP.Add(value)

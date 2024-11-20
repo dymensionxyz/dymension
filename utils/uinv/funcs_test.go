@@ -9,7 +9,6 @@ import (
 )
 
 func TestSanityCheckErrorTypes(t *testing.T) {
-
 	baseErr := errors.New("base")
 	var nilErr error
 
@@ -24,5 +23,4 @@ func TestSanityCheckErrorTypes(t *testing.T) {
 		require.True(t, errorsmod.IsOf(Breaking(joinedBase), ErrBroken))
 		require.False(t, errorsmod.IsOf(Breaking(joinedNil), ErrBroken))
 	})
-
 }

@@ -25,7 +25,6 @@ func AllInvariants(k Keeper) sdk.Invariant {
 
 func InvariantPlan(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
-
 		plans := k.GetAllPlans(ctx, false)
 		if len(plans) == 0 {
 			return nil

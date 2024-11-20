@@ -84,7 +84,6 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 
 	msg, fails := keeper.AllInvariants(suite.App.DelayedAckKeeper)(suite.Ctx)
 	suite.Require().False(fails, msg)
-
 }
 
 // TestRollappPacketsCasesInvariant tests the invariant that checks if the packets are finalized only for finalized heights
@@ -236,7 +235,6 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 
 			_, fails := keeper.AllInvariants(suite.App.DelayedAckKeeper)(suite.Ctx)
 			suite.Require().Equal(tc.expectedIsBroken, fails)
-
 		})
 	}
 }
