@@ -116,10 +116,18 @@ func (s *KeeperTestHelper) CreateSequencerByPubkey(ctx sdk.Context, rollappId st
 }
 
 func (s *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAddr string, startHeight, numOfBlocks uint64) (lastHeight uint64, err error) {
-	return s.PostStateUpdateWithDRSVersion(ctx, rollappId, seqAddr, startHeight, numOfBlocks, 1)
+	return s.PostStateUpdateWithOptions(ctx, rollappId, seqAddr, startHeight, numOfBlocks, 0, 1)
 }
 
 func (s *KeeperTestHelper) PostStateUpdateWithDRSVersion(ctx sdk.Context, rollappId, seqAddr string, startHeight, numOfBlocks uint64, drsVersion uint32) (lastHeight uint64, err error) {
+	return s.PostStateUpdateWithOptions(ctx, rollappId, seqAddr, startHeight, numOfBlocks, 0, drsVersion)
+}
+
+func (s *KeeperTestHelper) PostStateUpdateWithRevision(ctx sdk.Context, rollappId, seqAddr string, startHeight, numOfBlocks, revision uint64) (lastHeight uint64, err error) {
+	return s.PostStateUpdateWithOptions(ctx, rollappId, seqAddr, startHeight, numOfBlocks, revision, 1)
+}
+
+func (s *KeeperTestHelper) PostStateUpdateWithOptions(ctx sdk.Context, rollappId, seqAddr string, startHeight, numOfBlocks, revision uint64, drsVersion uint32) (lastHeight uint64, err error) {
 	var bds rollapptypes.BlockDescriptors
 	bds.BD = make([]rollapptypes.BlockDescriptor, numOfBlocks)
 	for k := uint64(0); k < numOfBlocks; k++ {
@@ -127,13 +135,14 @@ func (s *KeeperTestHelper) PostStateUpdateWithDRSVersion(ctx sdk.Context, rollap
 	}
 
 	updateState := rollapptypes.MsgUpdateState{
-		Creator:     seqAddr,
-		RollappId:   rollappId,
-		StartHeight: startHeight,
-		NumBlocks:   numOfBlocks,
-		DAPath:      "",
-		BDs:         bds,
-		Last:        false,
+		Creator:         seqAddr,
+		RollappId:       rollappId,
+		StartHeight:     startHeight,
+		NumBlocks:       numOfBlocks,
+		DAPath:          "",
+		BDs:             bds,
+		RollappRevision: revision,
+		Last:            false,
 	}
 	msgServer := rollappkeeper.NewMsgServerImpl(s.App.RollappKeeper)
 	_, err = msgServer.UpdateState(ctx, &updateState)
