@@ -60,6 +60,7 @@ func (l NamedFuncsList[K]) RegisterInvariants(module string, ir sdk.InvariantReg
 	}
 }
 
+// Should be called in a function func AllInvariants(k Keeper) sdk.Invariant within your own module namespace.
 func (l NamedFuncsList[K]) All(module string, keeper K) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		for _, invar := range l {
