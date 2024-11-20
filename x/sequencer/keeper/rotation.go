@@ -46,24 +46,19 @@ func (k Keeper) ChooseSuccessorForFinishedNotices(ctx sdk.Context, now time.Time
 	}
 	for _, seq := range seqs {
 		k.removeFromNoticeQueue(ctx, seq)
-
-		// Very important to check, because we do not explicitly remove sequencers from the queue: if they are forcibly
-		// removed (by e.g. hard fork). Such sequencers will eventually be processed out of the queue.
-		if k.IsProposer(ctx, seq) {
-			if err := k.setSuccessorForRotatingRollapp(ctx, seq.RollappId); err != nil {
-				return errorsmod.Wrap(err, "choose successor")
-			}
-			successor := k.GetSuccessor(ctx, seq.RollappId)
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EventTypeRotationStarted,
-					sdk.NewAttribute(types.AttributeKeyRollappId, seq.RollappId),
-					sdk.NewAttribute(types.AttributeKeyNextProposer, successor.Address),
-					sdk.NewAttribute(types.AttributeKeyRewardAddr, successor.RewardAddr),
-					sdk.NewAttribute(types.AttributeKeyWhitelistedRelayers, strings.Join(successor.WhitelistedRelayers, ",")),
-				),
-			)
+		if err := k.setSuccessorForRotatingRollapp(ctx, seq.RollappId); err != nil {
+			return errorsmod.Wrap(err, "choose successor")
 		}
+		successor := k.GetSuccessor(ctx, seq.RollappId)
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeRotationStarted,
+				sdk.NewAttribute(types.AttributeKeyRollappId, seq.RollappId),
+				sdk.NewAttribute(types.AttributeKeyNextProposer, successor.Address),
+				sdk.NewAttribute(types.AttributeKeyRewardAddr, successor.RewardAddr),
+				sdk.NewAttribute(types.AttributeKeyWhitelistedRelayers, strings.Join(successor.WhitelistedRelayers, ",")),
+			),
+		)
 	}
 	return nil
 }
