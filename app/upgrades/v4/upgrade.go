@@ -354,13 +354,13 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 			Tagline:     "",
 			FeeDenom:    nil,
 		},
-		GenesisInfo:           genesisInfo,
-		InitialSequencer:      "*",
-		VmType:                rollapptypes.Rollapp_EVM, // EVM for existing rollapps
-		Launched:              true,                     // Existing rollapps are already launched
-		PreLaunchTime:         nil,                      // We can just let it be zero. Existing rollapps are already launched.
-		LivenessEventHeight:   0,                        // Filled lazily in runtime
-		LastStateUpdateHeight: 0,                        // Filled lazily in runtime
+		GenesisInfo:                  genesisInfo,
+		InitialSequencer:             "*",
+		VmType:                       rollapptypes.Rollapp_EVM, // EVM for existing rollapps
+		Launched:                     true,                     // Existing rollapps are already launched
+		PreLaunchTime:                nil,                      // We can just let it be zero. Existing rollapps are already launched.
+		LivenessEventHeight:          0,                        // Filled lazily in runtime
+		LivenessCountdownStartHeight: 0,                        // Filled lazily in runtime
 		Revisions: []rollapptypes.Revision{{
 			Number:      0,
 			StartHeight: 0,

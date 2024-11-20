@@ -71,9 +71,9 @@ message Rollapp {
   // LivenessEventHeight is the height on the HUB of an upcoming liveness event (slash or
   // jail against the rollapp). 0 means not set
   int64 liveness_event_height = 17;
-  // The LastStateUpdateHeight HUB height when the last state update was
-  // received
-  int64 last_state_update_height = 18;
+  // The height on the HUB that we start counting liveness from. If the rollapp is not active
+  // for a long time after this height, a liveness event will happen.
+  int64 liveness_countdown_start_height = 18;
 
   // Revisions is a list of all the rollapp revisions.
   repeated Revision revisions = 19 [ (gogoproto.nullable) = false ];
