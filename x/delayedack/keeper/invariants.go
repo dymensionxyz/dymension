@@ -1,10 +1,12 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/utils/uinv"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rtypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -24,15 +26,15 @@ func AllInvariants(k Keeper) sdk.Invariant {
 }
 
 func InvariantProofHeight(k Keeper) uinv.Func {
-	return func(ctx sdk.Context) (error, bool) {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+		var errs []error
 		for _, ra := range k.rollappKeeper.GetAllRollapps(ctx) {
 			err := k.checkRollapp(ctx, ra)
-			if err != nil {
-				return errorsmod.Wrapf(err, "rollapp: %s", ra.RollappId), true
-			}
+			err = errorsmod.Wrapf(err, "rollapp: %s", ra.RollappId)
+			errs = append(errs, err)
 		}
-		return nil, false
-	}
+		return errors.Join(errs...)
+	})
 }
 
 func (k Keeper) checkRollapp(ctx sdk.Context, ra rtypes.Rollapp) error {
@@ -49,13 +51,21 @@ func (k Keeper) checkRollapp(ctx sdk.Context, ra rtypes.Rollapp) error {
 	latestFinalizedHeight = latestFinalizedStateInfo.GetLatestHeight()
 
 	packets := k.ListRollappPackets(ctx, types.ByRollappID(ra.RollappId))
+	var errs []error
 	for _, p := range packets {
-		finalizedTooEarly := p.ProofHeight < latestFinalizedHeight && p.Status == commontypes.Status_FINALIZED
-		if finalizedTooEarly {
-			return fmt.Errorf("finalized too early height=%d, rollapp=%s, status=%s\n",
-				p.ProofHeight, p.RollappId, p.Status,
-			)
-		}
+		err := k.checkPacket(p, latestFinalizedHeight)
+		err = errorsmod.Wrapf(err, "packet: %s", p.RollappId)
+		errs = append(errs, err)
+	}
+	return errors.Join(errs...)
+}
+
+func (k Keeper) checkPacket(p commontypes.RollappPacket, latestFinalizedHeight uint64) error {
+	finalizedTooEarly := p.ProofHeight < latestFinalizedHeight && p.Status == commontypes.Status_FINALIZED
+	if finalizedTooEarly {
+		return fmt.Errorf("finalized too early height=%d, rollapp=%s, status=%s\n",
+			p.ProofHeight, p.RollappId, p.Status,
+		)
 	}
 	return nil
 }
