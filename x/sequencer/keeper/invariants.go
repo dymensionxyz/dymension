@@ -114,18 +114,16 @@ func checkRollappStatus(ctx sdk.Context, k Keeper, ra string) error {
 }
 
 func InvariantTokens(k Keeper) uinv.Func {
-	return func(ctx sdk.Context) (error, bool) {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+		var errs []error
 
 		for _, seq := range k.AllSequencers(ctx) {
-			if err := seq.ValidateBasic(); err != nil {
-				return err, true
-			}
-			if err := k.validBondDenom(ctx, seq.TokensCoin()); err != nil {
-				return err, true
-			}
-			if seq.TokensCoin().Amount.IsNegative() {
-				return errors.New("negative seq tokens"), true
-			}
+			err := checkSeqTokens(ctx, seq, k)
+			err = errorsmod.Wrapf(err, "sequencer: %s", seq.Address)
+		}
+
+		if err := errors.Join(errs...); err != nil {
+			return err
 		}
 
 		total := sdk.NewCoin(k.bondDenom(ctx), sdk.ZeroInt())
@@ -136,14 +134,27 @@ func InvariantTokens(k Keeper) uinv.Func {
 		moduleAcc := k.accountK.GetModuleAccount(ctx, types.ModuleName)
 		balances := k.bankKeeper.GetAllBalances(ctx, moduleAcc.GetAddress())
 		if 1 < len(balances) {
-			return errors.New("module account has more than one coin"), true
+			return errors.New("module account has more than one coin")
 		}
 		if !total.IsZero() && len(balances) == 0 {
-			return errors.New("module account has no balance"), true
+			return errors.New("module account has no balance")
 		}
 		if !total.IsZero() && !balances[0].IsEqual(total) {
-			return errors.New("module account balance not equal to sum of sequencer tokens"), true
+			return errors.New("module account balance not equal to sum of sequencer tokens")
 		}
-		return nil, false
+		return nil
+	})
+}
+
+func checkSeqTokens(ctx sdk.Context, seq types.Sequencer, k Keeper) error {
+	if err := seq.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(err, "validate basic")
 	}
+	if err := k.validBondDenom(ctx, seq.TokensCoin()); err != nil {
+		return errorsmod.Wrap(err, "valid bond denom")
+	}
+	if seq.TokensCoin().Amount.IsNegative() {
+		return errors.New("negative seq tokens")
+	}
+	return nil
 }
