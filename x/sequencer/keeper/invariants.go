@@ -38,6 +38,9 @@ func InvariantNotice(k Keeper) uinv.Func {
 			if !seq.NoticeStarted() {
 				errs = append(errs, fmt.Errorf("in notice queue but notice not started: %s", seq.Address))
 			}
+			if !k.IsProposer(ctx, seq) {
+				errs = append(errs, fmt.Errorf("in notice queue but not proposer: %s", seq.Address))
+			}
 		}
 		return errors.Join(errs...)
 	})

@@ -28,18 +28,13 @@ func AllInvariants(k Keeper) sdk.Invariant {
 
 func InvariantDelegatorValidatorPower(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
-
-		err := k.delegatorValidatorPower.Walk(ctx, nil,
+		return k.delegatorValidatorPower.Walk(ctx, nil,
 			func(key collections.Pair[sdk.AccAddress, sdk.ValAddress], value math.Int) (stop bool, err error) {
 				if value.IsNegative() {
-					return true, fmt.Errorf("negative power: %s", value)
+					return false, fmt.Errorf("negative power: %s", value)
 				}
 				return false, nil
 			})
-		if err != nil {
-			return err, true
-		}
-		return nil, false
 	})
 }
 

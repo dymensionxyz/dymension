@@ -27,6 +27,7 @@ func AnyErrorIsBreaking(f Func) Func {
 }
 
 // return bool should be if the invariant is broken. If true, error should have meaningful debug info
+// Should return an ErrBroken if invariant is broken. Other errors are
 type Func = func(sdk.Context) error
 
 type NamedFunc[K any] struct {
@@ -36,9 +37,14 @@ type NamedFunc[K any] struct {
 
 func (nf NamedFunc[K]) Exec(ctx sdk.Context, module string, keeper K) (string, bool) {
 	err := nf.Func(keeper)(ctx)
-	broken := errorsmod.IsOf(err, ErrBroken)
+	broken := false
 	var msg string
 	if err != nil {
+		broken = errorsmod.IsOf(err, ErrBroken)
+		if !broken {
+			ctx.Logger().Error("Invariant function error but not breaking.", "module", module, "name", nf.Name, "error", err)
+			// Note that if it is broken the SDK wil take care of logging the error somewhere else
+		}
 		msg = sdk.FormatInvariant(module, nf.Name, err.Error())
 	}
 	return msg, broken
