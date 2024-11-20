@@ -102,14 +102,25 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 				continue
 			}
 
-			latestStateIdx, ok := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
-			if !ok {
-				msg += fmt.Sprintf("rollapp (%s) have no latestStateIdx\n", rollapp.RollappId)
+			latestStateIdx, okLatest := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
+
+			// if not found, zero is fine, which means first expected is 1
+			latestFinalizedStateIdx, okLatestFinalized := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
+
+			if !okLatest && okLatestFinalized {
+				msg += fmt.Sprintf("rollapp (%s) has latest finalized ix but not lastest ix\n", rollapp.RollappId)
 				broken = true
 				continue
 			}
-			// if not found, zero is fine
-			latestFinalizedStateIdx, _ := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
+
+			if okLatest && okLatestFinalized {
+				if latestStateIdx.Index < latestFinalizedStateIdx.Index {
+					msg += fmt.Sprintf("rollapp has latest ix < latest finalized ix: latest: %d: latest finalized: %d: rollapp: %s\n",
+						latestStateIdx.Index, latestFinalizedStateIdx.Index, rollapp.RollappId)
+					broken = true
+					continue
+				}
+			}
 
 			firstUnfinalizedStateIdx := latestFinalizedStateIdx.Index + 1
 
@@ -160,9 +171,9 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 					}
 					for _, idx := range value.FinalizationQueue {
 						if idx.Index <= latestFinalizedStateIdx.Index {
-							msg += fmt.Sprintf(`rollapp (%s) have finalized stateInfo at index %d finalized in finalizationQueue
-latest finalized index is %d`,
-								rollapp.RollappId, idx.Index, latestFinalizedStateIdx.Index)
+							msg += fmt.Sprintf(`rollapp has index in queue which is already finalized:
+latest ix: %d,  latest finalized index : %d, queue ix: %d, rollapp: %s`, latestStateIdx.Index, latestFinalizedStateIdx.Index, idx.Index, rollapp.RollappId)
+
 							broken = true
 						}
 					}

@@ -251,6 +251,7 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	s.Require().NoError(err)
 }
 
+// NOTE: does not use process the queue, it uses intrusive method which breaks invariants
 func (s *utilSuite) finalizeRollappState(index uint64, endHeight uint64) (sdk.Events, error) {
 	rollappKeeper := s.hubApp().RollappKeeper
 	ctx := s.hubCtx()
