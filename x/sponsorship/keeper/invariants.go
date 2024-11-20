@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
 	"cosmossdk.io/collections"
@@ -43,7 +44,7 @@ func InvariantDistribution(k Keeper) uinv.Func {
 
 		d, err := k.GetDistribution(ctx)
 		if err != nil {
-			return fmt.Errorf("get distribution: %w", err), true
+			return fmt.Errorf("get distribution: %w", err)
 		}
 
 		t := math.ZeroInt()
@@ -51,20 +52,24 @@ func InvariantDistribution(k Keeper) uinv.Func {
 			t = t.Add(g.Power)
 		}
 		if t.GT(d.VotingPower) {
-			return fmt.Errorf("sum of gauge power exceeds total power sum: %s: total: %s", t, d.VotingPower), true
+			return fmt.Errorf("sum of gauge power exceeds total power sum: %s: total: %s", t, d.VotingPower)
 		}
 
+		var errs []error
 		for _, g := range d.Gauges {
 			if g.Power.IsNegative() {
-				return fmt.Errorf("negative g power: %s", g.Power), true
+				errs = append(errs, fmt.Errorf("negative g power: %d: %s", g.GaugeId, g.Power))
 			}
+		}
+		if len(errs) > 0 {
+			return errors.Join(errs...)
 		}
 
 		if d.VotingPower.IsNegative() {
-			return fmt.Errorf("negative total voting power: %s", d.VotingPower), true
+			return fmt.Errorf("negative total voting power: %s", d.VotingPower)
 		}
 
-		return nil, false
+		return nil
 	})
 }
 
