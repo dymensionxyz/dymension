@@ -1,4 +1,4 @@
-package invar
+package uinv
 
 import (
 	"errors"

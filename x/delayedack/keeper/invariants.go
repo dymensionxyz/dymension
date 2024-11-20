@@ -5,14 +5,12 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/utils/invar"
-
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rtypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-var invs = invar.NamedFuncsList[Keeper]{
+var invs = uinv.NamedFuncsList[Keeper]{
 	{"proof-height", InvariantProofHeight},
 }
 
@@ -25,7 +23,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	return invs.All(types.ModuleName, k)
 }
 
-func InvariantProofHeight(k Keeper) invar.Func {
+func InvariantProofHeight(k Keeper) uinv.Func {
 	return func(ctx sdk.Context) (error, bool) {
 		for _, ra := range k.rollappKeeper.GetAllRollapps(ctx) {
 			err := k.checkRollapp(ctx, ra)

@@ -4,11 +4,10 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/utils/invar"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
-var invs = invar.NamedFuncsList[Keeper]{
+var invs = uinv.NamedFuncsList[Keeper]{
 	{"plan", InvariantPlan},
 }
 
@@ -21,7 +20,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	return invs.All(types.ModuleName, k)
 }
 
-func InvariantPlan(k Keeper) invar.Func {
+func InvariantPlan(k Keeper) uinv.Func {
 	return func(ctx sdk.Context) (error, bool) {
 		lastPlanID := k.GetLastPlanId(ctx)
 		plans := k.GetAllPlans(ctx, false)

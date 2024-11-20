@@ -4,12 +4,10 @@ import (
 	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/utils/invar"
-
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-var invs = invar.NamedFuncsList[Keeper]{
+var invs = uinv.NamedFuncsList[Keeper]{
 	{"notice", InvariantNotice},
 	{"hash-index", InvariantHashIndex},
 	{"status", InvariantStatus},
@@ -26,7 +24,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	return invs.All(types.ModuleName, k)
 }
 
-func InvariantNotice(k Keeper) invar.Func {
+func InvariantNotice(k Keeper) uinv.Func {
 	return func(ctx sdk.Context) (error, bool) {
 		seqs, err := k.NoticeQueue(ctx, nil)
 		if err != nil {
@@ -41,7 +39,7 @@ func InvariantNotice(k Keeper) invar.Func {
 	}
 }
 
-func InvariantHashIndex(k Keeper) invar.Func {
+func InvariantHashIndex(k Keeper) uinv.Func {
 	return func(ctx sdk.Context) (error, bool) {
 		for _, exp := range k.AllSequencers(ctx) {
 			got, err := k.SequencerByDymintAddr(ctx, exp.MustValsetHash())
@@ -56,7 +54,7 @@ func InvariantHashIndex(k Keeper) invar.Func {
 	}
 }
 
-func InvariantStatus(k Keeper) invar.Func {
+func InvariantStatus(k Keeper) uinv.Func {
 	return func(ctx sdk.Context) (error, bool) {
 		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
 		for _, ra := range rollapps {
@@ -95,7 +93,7 @@ func InvariantStatus(k Keeper) invar.Func {
 	}
 }
 
-func InvariantTokens(k Keeper) invar.Func {
+func InvariantTokens(k Keeper) uinv.Func {
 	return func(ctx sdk.Context) (error, bool) {
 
 		for _, seq := range k.AllSequencers(ctx) {

@@ -6,13 +6,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	"github.com/dymensionxyz/dymension/v3/utils/invar"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
 
-var invs = invar.NamedFuncsList[Keeper]{
+var invs = uinv.NamedFuncsList[Keeper]{
 	{"client-state", InvariantClientState},
 	{"attribution", InvariantAttribution},
 }
@@ -26,7 +25,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	return invs.All(types.ModuleName, k)
 }
 
-func InvariantClientState(k Keeper) invar.Func {
+func InvariantClientState(k Keeper) uinv.Func {
 	return func(ctx sdk.Context) (error, bool) {
 		clients := k.GetAllCanonicalClients(ctx)
 		for _, client := range clients {
@@ -54,7 +53,7 @@ func InvariantClientState(k Keeper) invar.Func {
 	}
 }
 
-func InvariantAttribution(k Keeper) invar.Func {
+func InvariantAttribution(k Keeper) uinv.Func {
 	return func(ctx sdk.Context) (error, bool) {
 
 		err := k.headerSigners.Walk(ctx, nil, func(key collections.Triple[string, string, uint64]) (stop bool, err error) {

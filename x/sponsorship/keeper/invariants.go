@@ -6,12 +6,10 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/utils/invar"
-
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
-var invs = invar.NamedFuncsList[Keeper]{
+var invs = uinv.NamedFuncsList[Keeper]{
 	{"delegator-validator-power", InvariantDelegatorValidatorPower},
 	{"distribution", InvariantDistribution},
 	{"votes", InvariantVotes},
@@ -27,7 +25,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	return invs.All(types.ModuleName, k)
 }
 
-func InvariantDelegatorValidatorPower(k Keeper) invar.Func {
+func InvariantDelegatorValidatorPower(k Keeper) uinv.Func {
 	return func(ctx sdk.Context) (error, bool) {
 		err := k.delegatorValidatorPower.Walk(ctx, nil,
 			func(key collections.Pair[sdk.AccAddress, sdk.ValAddress], value math.Int) (stop bool, err error) {
@@ -43,7 +41,7 @@ func InvariantDelegatorValidatorPower(k Keeper) invar.Func {
 	}
 }
 
-func InvariantDistribution(k Keeper) invar.Func {
+func InvariantDistribution(k Keeper) uinv.Func {
 	return func(ctx sdk.Context) (error, bool) {
 		d, err := k.GetDistribution(ctx)
 		if err != nil {
@@ -72,7 +70,7 @@ func InvariantDistribution(k Keeper) invar.Func {
 	}
 }
 
-func InvariantVotes(k Keeper) invar.Func {
+func InvariantVotes(k Keeper) uinv.Func {
 	return func(ctx sdk.Context) (error, bool) {
 		// All gauge weights in 1-100
 		err := k.IterateVotes(ctx, func(voter sdk.AccAddress, vote types.Vote) (stop bool, err error) {
@@ -99,7 +97,7 @@ func InvariantVotes(k Keeper) invar.Func {
 	}
 }
 
-func InvariantGeneral(k Keeper) invar.Func {
+func InvariantGeneral(k Keeper) uinv.Func {
 	return func(ctx sdk.Context) (error, bool) {
 		totalVP := math.ZeroInt()
 		err := k.delegatorValidatorPower.Walk(ctx, nil, func(key collections.Pair[sdk.AccAddress, sdk.ValAddress], value math.Int) (stop bool, err error) {
