@@ -28,18 +28,25 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	return invs.All(types.ModuleName, k)
 }
 
+// delegator validator power is non-negative
 func InvariantDelegatorValidatorPower(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
-		return k.delegatorValidatorPower.Walk(ctx, nil,
+		var errs []error
+		err := k.delegatorValidatorPower.Walk(ctx, nil,
 			func(key collections.Pair[sdk.AccAddress, sdk.ValAddress], value math.Int) (stop bool, err error) {
 				if value.IsNegative() {
-					return false, fmt.Errorf("negative power: %s", value)
+					errs = append(errs, fmt.Errorf("negative power: %s", value))
 				}
 				return false, nil
 			})
+		if err != nil {
+			return fmt.Errorf("walk delegator validator power: %w", err)
+		}
+		return errors.Join(errs...)
 	})
 }
 
+// basic checks on voting power, and consistency with individual gauges
 func InvariantDistribution(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		d, err := k.GetDistribution(ctx)
@@ -73,10 +80,11 @@ func InvariantDistribution(k Keeper) uinv.Func {
 	})
 }
 
+// vote weights in range and sum to not more than total (need not be 100% due to abstaining)
 func InvariantVotes(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		var errs []error
-		err := k.IterateVotes(ctx, func(voter sdk.AccAddress, vote types.Vote) (stop bool, err error) {
+		err := k.IterateVotes(ctx, func(voter sdk.AccAddress, vote types.Vote) (bool, error) {
 			t := sdk.ZeroInt()
 			for _, weight := range vote.GetWeights() {
 				if err := weight.Validate(); err != nil {
@@ -99,6 +107,7 @@ func InvariantVotes(k Keeper) uinv.Func {
 	})
 }
 
+// check that across data structures the total voting power and distribution is consistent
 func InvariantGeneral(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		totalVP := math.ZeroInt()

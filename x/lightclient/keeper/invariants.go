@@ -28,6 +28,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	return invs.All(types.ModuleName, k)
 }
 
+// client state should match rollapp and have a consensus state
 func InvariantClientState(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		clients := k.GetAllCanonicalClients(ctx)
@@ -62,48 +63,59 @@ func checkClient(ctx sdk.Context, k Keeper, client types.CanonicalClient) error 
 	return nil
 }
 
+// the indexes used to attribute fraud should be populated and properly pruned
 func InvariantAttribution(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
-		err := k.headerSigners.Walk(ctx, nil, func(key collections.Triple[string, string, uint64]) (stop bool, err error) {
+		var errs []error
+		err := k.headerSigners.Walk(ctx, nil, func(key collections.Triple[string, string, uint64]) (bool, error) {
 			seq := key.K1()
 			clientID := key.K2()
 			height := key.K3()
-
-			_, err = k.clientHeightToSigner.Get(ctx, collections.Join(clientID, height))
-			if err != nil {
-				return false, errorsmod.Wrapf(err, "reverse lookup for sequencer address: %s", seq)
-			}
-			_, ok := k.ibcClientKeeper.GetClientConsensusState(ctx, clientID, clienttypes.NewHeight(1, height))
-			if !ok {
-				return false, gerrc.ErrNotFound.Wrapf("consensus state for client ID: %s", clientID)
-			}
-			signer, err := k.clientHeightToSigner.Get(ctx, collections.Join(clientID, height))
-			if err != nil {
-				return false, errorsmod.Wrapf(err, "get signer for client ID: %s", clientID)
-			}
-			if signer != seq {
-				return false, gerrc.ErrInvalidArgument.Wrapf("signer mismatch: expected: %s, got: %s", seq, signer)
-			}
-			_, err = k.SeqK.RealSequencer(ctx, seq)
-			if err != nil {
-				return false, errorsmod.Wrapf(err, "get real sequencer for sequencer address: %s", seq)
-			}
+			err := checkAttributionIndexes(k, ctx, clientID, height, seq)
+			err = errorsmod.Wrapf(err, "header signer for sequencer: %s, client ID: %s, height: %d", seq, clientID, height)
+			errs = append(errs, err)
 			return false, nil
 		})
-		if err != nil {
-			return err
+		errs = append(errs, err)
+		if err := errors.Join(errs...); err != nil {
+			return errorsmod.Wrap(err, "check header signers")
 		}
 
-		err = k.clientHeightToSigner.Walk(ctx, nil, func(key collections.Pair[string, uint64], seq string) (stop bool, err error) {
+		errs = nil
+
+		err = k.clientHeightToSigner.Walk(ctx, nil, func(key collections.Pair[string, uint64], seq string) (bool, error) {
 			clientID := key.K1()
 			height := key.K2()
 			ok, err := k.headerSigners.Has(ctx, collections.Join3(seq, clientID, height))
 			if !ok || err != nil {
-				return false, errorsmod.Wrapf(err, "forward lookup for client ID: %s", clientID)
+				errs = append(errs, gerrc.ErrNotFound.Wrapf("header signer for sequencer: %s, client ID: %s, height: %d", seq, clientID, height))
 			}
 			return false, nil
 		})
-
-		return err
+		errs = append(errs, err)
+		return errors.Join(errs...)
 	})
+}
+
+func checkAttributionIndexes(k Keeper, ctx sdk.Context, clientID string, height uint64, seq string) error {
+	_, err := k.clientHeightToSigner.Get(ctx, collections.Join(clientID, height))
+	if err != nil {
+		return errorsmod.Wrapf(err, "reverse lookup for sequencer address: %s", seq)
+	}
+	_, ok := k.ibcClientKeeper.GetClientConsensusState(ctx, clientID, clienttypes.NewHeight(1, height))
+	if !ok {
+		return gerrc.ErrNotFound.Wrapf("consensus state for client ID: %s", clientID)
+	}
+	signer, err := k.clientHeightToSigner.Get(ctx, collections.Join(clientID, height))
+	if err != nil {
+		return errorsmod.Wrapf(err, "get signer for client ID: %s", clientID)
+	}
+	if signer != seq {
+		return gerrc.ErrInvalidArgument.Wrapf("signer mismatch: expected: %s, got: %s", seq, signer)
+	}
+	_, err = k.SeqK.RealSequencer(ctx, seq)
+	if err != nil {
+		return errorsmod.Wrapf(err, "get real sequencer for sequencer address: %s", seq)
+	}
+	return nil
 }

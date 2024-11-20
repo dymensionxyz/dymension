@@ -12,7 +12,7 @@ import (
 
 var invs = uinv.NamedFuncsList[Keeper]{
 	{Name: "notice", Func: InvariantNotice},
-	{Name: "hash-index", Func: InvariantHashIndex},
+	{Name: "hash-index", Func: InvariantProposerAddrIndex},
 	{Name: "status", Func: InvariantStatus},
 	{Name: "tokens", Func: InvariantTokens},
 }
@@ -27,6 +27,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	return invs.All(types.ModuleName, k)
 }
 
+// notice queue should have only proposers who started notice
 func InvariantNotice(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		seqs, err := k.NoticeQueue(ctx, nil)
@@ -46,11 +47,12 @@ func InvariantNotice(k Keeper) uinv.Func {
 	})
 }
 
-func InvariantHashIndex(k Keeper) uinv.Func {
+// the lookup proposer hash -> seq should be populated
+func InvariantProposerAddrIndex(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		var errs []error
 		for _, seq := range k.AllSequencers(ctx) {
-			err := checkSeqHashIndex(ctx, k, seq)
+			err := checkProposerAddrIndex(ctx, k, seq)
 			err = errorsmod.Wrapf(err, "sequencer: %s", seq.Address)
 			errs = append(errs, err)
 		}
@@ -58,7 +60,7 @@ func InvariantHashIndex(k Keeper) uinv.Func {
 	})
 }
 
-func checkSeqHashIndex(ctx sdk.Context, k Keeper, exp types.Sequencer) error {
+func checkProposerAddrIndex(ctx sdk.Context, k Keeper, exp types.Sequencer) error {
 	hash := exp.MustProposerAddr()
 	got, err := k.SequencerByDymintAddr(ctx, hash)
 	if err != nil {
@@ -70,6 +72,7 @@ func checkSeqHashIndex(ctx sdk.Context, k Keeper, exp types.Sequencer) error {
 	return nil
 }
 
+// proposer and successor status' should be sensible
 func InvariantStatus(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		var errs []error
@@ -117,6 +120,7 @@ func checkRollappStatus(ctx sdk.Context, k Keeper, ra string) error {
 	return nil
 }
 
+// module balance must correspond to sequencer stakes, and sequencer stakes should be sensible
 func InvariantTokens(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		var errs []error

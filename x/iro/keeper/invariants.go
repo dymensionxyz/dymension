@@ -23,6 +23,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	return invs.All(types.ModuleName, k)
 }
 
+// the plan should validate and bookkeeping for tokens should be sensible
 func InvariantPlan(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		plans := k.GetAllPlans(ctx, false)
