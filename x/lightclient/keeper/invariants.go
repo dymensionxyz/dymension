@@ -35,6 +35,7 @@ func InvariantClientState(k Keeper) uinv.Func {
 		for _, client := range clients {
 			errs = append(errs, checkClient(ctx, k, client))
 		}
+		// any error here is breaking
 		return uinv.Breaking(errors.Join(errs...))
 	}
 }
@@ -63,7 +64,7 @@ func checkClient(ctx sdk.Context, k Keeper, client types.CanonicalClient) error 
 }
 
 func InvariantAttribution(k Keeper) uinv.Func {
-	return func(ctx sdk.Context) (error, bool) {
+	return func(ctx sdk.Context) error {
 
 		err := k.headerSigners.Walk(ctx, nil, func(key collections.Triple[string, string, uint64]) (stop bool, err error) {
 			seq := key.K1()
@@ -93,7 +94,7 @@ func InvariantAttribution(k Keeper) uinv.Func {
 		})
 
 		if err != nil {
-			return err, true
+			return err
 		}
 
 		err = k.clientHeightToSigner.Walk(ctx, nil, func(key collections.Pair[string, uint64], seq string) (stop bool, err error) {

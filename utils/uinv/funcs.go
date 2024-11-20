@@ -10,8 +10,20 @@ import (
 
 var ErrBroken = gerrc.ErrInternal.Wrap("invariant broken")
 
+// Wrap an error to mark as invariant breaking. If the error is nil, it will return nil.
 func Breaking(err error) error {
+	if err == nil {
+		return nil
+	}
 	return errors.Join(ErrBroken, err)
+}
+
+// If any error that your function returns is invariant breaking, use this function to wrap
+// it to reduce verbosity.
+func AnyErrorIsBreaking(f Func) Func {
+	return func(ctx sdk.Context) error {
+		return Breaking(f(ctx))
+	}
 }
 
 // return bool should be if the invariant is broken. If true, error should have meaningful debug info
