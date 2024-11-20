@@ -75,6 +75,7 @@ func UnderlyingPacketExistInvariant(k Keeper) sdk.Invariant {
 	}
 }
 
+// coins (price,fee) are sensible
 func CoinsInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
