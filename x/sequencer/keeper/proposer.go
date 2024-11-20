@@ -10,21 +10,21 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
+func (k Keeper) abruptRemoveProposer(ctx sdk.Context, rollapp string) {
+	proposer := k.GetProposer(ctx, rollapp)
+	k.removeFromNoticeQueue(ctx, proposer)
+	k.SetProposer(ctx, rollapp, types.SentinelSeqAddr)
+}
+
 // OptOutAllSequencers : change every sequencer of the rollapp to be opted out.
 // Can optionally pass a list of exclusions: those sequencers won't be modified.
-func (k Keeper) optOutAllSequencers(ctx sdk.Context, rollapp string, excl ...string) error {
+func (k Keeper) optOutAllSequencers(ctx sdk.Context, rollapp string) error {
 	seqs := k.RollappSequencers(ctx, rollapp)
-	exclMap := make(map[string]struct{}, len(excl))
-	for _, addr := range excl {
-		exclMap[addr] = struct{}{}
-	}
 	for _, seq := range seqs {
-		if _, ok := exclMap[seq.Address]; !ok {
-			if err := seq.SetOptedIn(ctx, false); err != nil {
-				return errorsmod.Wrap(err, "set opted in")
-			}
-			k.SetSequencer(ctx, seq)
+		if err := seq.SetOptedIn(ctx, false); err != nil {
+			return errorsmod.Wrap(err, "set opted in")
 		}
+		k.SetSequencer(ctx, seq)
 	}
 	return nil
 }

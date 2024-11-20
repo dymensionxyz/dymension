@@ -62,7 +62,7 @@ func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappID string, _ uint64) 
 	}
 
 	// clear current proposer and successor
-	hook.k.SetProposer(ctx, rollappID, types.SentinelSeqAddr)
+	hook.k.abruptRemoveProposer(ctx, rollappID)
 	hook.k.SetSuccessor(ctx, rollappID, types.SentinelSeqAddr)
 
 	return nil
