@@ -41,22 +41,27 @@ message MsgFulfillOrderAuthorized {
         (gogoproto.nullable)     = false,
         (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
     ];
+    // amount is the amount of the IBC transfer
+    cosmos.base.v1beta1.IntProto amount = 4 [
+        (gogoproto.nullable)     = false,
+        (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.IntProto"
+    ];
     // lp_address is the bech32-encoded address of the account which the authorization was granted from.
     // This account will receive the price amount at the finalization phase.
-    string lp_address = 4;
+    string lp_address = 5;
     // operator_fee_address is an optional bech32-encoded address of an account that would collect the operator_fee_part
     // if it's empty, the operator_fee_part will go to the operator_address
-    string operator_fee_address = 5;
+    string operator_fee_address = 6;
     // expected_fee is the nominal fee set in the order.
-    string expected_fee = 6;
+    string expected_fee = 7;
     // operator_fee_share is the share of the fee earnings that goes to the operator
     // it will be deduced from the fee of the demand order and paid out immediately
-    cosmos.base.v1beta1.DecProto operator_fee_share = 7 [
+    cosmos.base.v1beta1.DecProto operator_fee_share = 8 [
         (gogoproto.nullable)     = false,
         (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecProto"
     ];
     // settlement_validated signals if the block behind the demand order needs to be "settlement validated" or not
-    bool settlement_validated = 8;
+    bool settlement_validated = 9;
 }
 
 message MsgFulfillOrderAuthorizedResponse {}

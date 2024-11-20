@@ -97,8 +97,7 @@ func (a FulfillOrderAuthorization) Accept(
 			errorsmod.Wrapf(errors.ErrInvalidCoins, "invalid fee amount: %s", err)
 	}
 
-	amountDec := mFulfill.Price[0].Amount.Add(orderFeeDec.RoundInt()).ToLegacyDec()
-	minFee := amountDec.Mul(matchedCriteria.MinFeePercentage.Dec)
+	minFee := sdk.NewDecFromInt(mFulfill.Amount.Int).Mul(matchedCriteria.MinFeePercentage.Dec)
 
 	if orderFeeDec.LT(minFee) {
 		return authz.AcceptResponse{},
@@ -185,12 +184,12 @@ func (a FulfillOrderAuthorization) ValidateBasic() error {
 		rollappIDSet[criteria.RollappId] = struct{}{}
 
 		// Validate MinFeePercentage
-		if !criteria.MinFeePercentage.Dec.IsNil() && criteria.MinFeePercentage.Dec.IsNegative() {
-			return errorsmod.Wrapf(errors.ErrInvalidRequest, "min_fee_percentage cannot be negative for rollapp_id %s", criteria.RollappId)
+		if criteria.MinFeePercentage.Dec.IsNil() || criteria.MinFeePercentage.Dec.IsNegative() || criteria.MinFeePercentage.Dec.GT(sdk.OneDec()) {
+			return errorsmod.Wrapf(errors.ErrInvalidRequest, "min_fee_percentage must be between 0 and 1 for rollapp_id %s", criteria.RollappId)
 		}
 
 		// Validate OperatorFeeShare
-		if !criteria.OperatorFeeShare.Dec.IsNil() && (criteria.OperatorFeeShare.Dec.IsNegative() || criteria.OperatorFeeShare.Dec.GT(sdk.OneDec())) {
+		if criteria.OperatorFeeShare.Dec.IsNil() || criteria.OperatorFeeShare.Dec.IsNegative() || criteria.OperatorFeeShare.Dec.GT(sdk.OneDec()) {
 			return errorsmod.Wrapf(errors.ErrInvalidRequest, "operator_fee_share must be between 0 and 1 for rollapp_id %s", criteria.RollappId)
 		}
 

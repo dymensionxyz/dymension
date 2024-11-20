@@ -31,6 +31,8 @@ message EventDemandOrderCreated {
   string packet_type = 9;
   // proof_height is the height of the block when order was created.
   uint64 proof_height = 10;
+  // amount is the amount of the IBC transfer.
+  string amount = 11;
 }
 
 // EventDemandOrderPacketStatusUpdate is emitted when the status of the related packet is updated.
@@ -57,6 +59,8 @@ message EventDemandOrderFeeUpdated {
   string rollapp_id = 5;
   // proof_height is the height of the block when order was created.
   uint64 proof_height = 6;
+  // amount is the amount of the IBC transfer.
+  string amount = 7;
 }
 
 // EventDemandOrderFulfilled is emitted when the demand order is fulfilled.
