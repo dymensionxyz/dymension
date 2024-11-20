@@ -59,7 +59,7 @@ func InvariantHashIndex(k Keeper) uinv.Func {
 }
 
 func checkSeqHashIndex(ctx sdk.Context, k Keeper, exp types.Sequencer) error {
-	hash := exp.MustValsetHash()
+	hash := exp.MustProposerAddr()
 	got, err := k.SequencerByDymintAddr(ctx, hash)
 	if err != nil {
 		return errorsmod.Wrapf(err, "seq by dymint addr: proposer hash: %x", hash)
