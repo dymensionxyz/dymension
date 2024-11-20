@@ -118,9 +118,11 @@ func (s *utilSuite) SetupTest() {
 	s.coordinator.Chains[rollappChainID()] = s.newTestChainWithSingleValidator(s.T(), s.coordinator, rollappChainID())
 }
 
-func (s *utilSuite) fundSenderAccount() {
-	//	apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(rollapptypes.DefaultRegistrationFee))
+func (s *utilSuite) DisableInvariants() {
+
 }
+
+// FIXME: there used to be a fund sender account method, it might not be needed https://github.com/dymensionxyz/dymension/blob/deb306dfaaffd15c2695043cf690372dd4423deb/ibctesting/utils_test.go#L122
 
 // CreateRollappWithFinishedGenesis creates a rollapp whose 'genesis' protocol is complete:
 // that is, they have finished all genesis transfers and their bridge is enabled.
