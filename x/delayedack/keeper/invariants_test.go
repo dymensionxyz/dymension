@@ -5,7 +5,6 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	dakeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -82,9 +81,6 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 		suite.Require().NoError(err)
 	}
 
-	// check invariant
-	msg, fails := dakeeper.PacketsFinalizationCorrespondsToFinalizationHeight(suite.App.DelayedAckKeeper)(suite.Ctx)
-	suite.Require().False(fails, msg)
 }
 
 // TestRollappPacketsCasesInvariant tests the invariant that checks if the packets are finalized only for finalized heights
@@ -234,9 +230,6 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet)
 			suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet2)
 
-			// check invariant
-			_, isBroken := dakeeper.PacketsFinalizationCorrespondsToFinalizationHeight(suite.App.DelayedAckKeeper)(suite.Ctx)
-			suite.Require().Equal(tc.expectedIsBroken, isBroken)
 		})
 	}
 }

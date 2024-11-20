@@ -38,11 +38,6 @@ type KeeperTestHelper struct {
 	Ctx sdk.Context
 }
 
-func (s *KeeperTestHelper) SetupTest() {
-	s.App = Setup(s.T(), false)
-	s.Ctx = s.App.GetBaseApp().NewContext(false, app.Header())
-}
-
 func (s *KeeperTestHelper) AfterTest(suiteName, testName string) {
 	s.checkInvariants()
 }
