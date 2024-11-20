@@ -63,7 +63,7 @@ func (h Hooks) afterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, 
 	}
 
 	// Calculate a staking voting power
-	stakingVP := v.TokensFromShares(d.GetShares()).Ceil().TruncateInt()
+	stakingVP := v.TokensFromShares(d.GetShares()).TruncateInt()
 
 	// Get the current voting power saved in x/sponsorship. If the VP is not found, then we yet don't
 	// have a relevant record. This is a valid case when the VP is zero.
@@ -189,7 +189,7 @@ func (h Hooks) processHook(
 			distribution: distr,
 			votePruned:   true,
 			vpDiff:       powerDiff,
-			newTotal:     vote.VotingPower,
+			newTotal:     newTotalVP,
 		}, nil
 	}
 

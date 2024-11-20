@@ -116,7 +116,7 @@ func (s *KeeperTestSuite) Vote(vote types.MsgVote) {
 func (s *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 	s.T().Helper()
 
-	valAddrs := apptesting.AddTestAddrs(s.App, s.Ctx, 1, sdk.NewInt(1_000_000_000))
+	valAddrs := apptesting.AddTestAddrs(s.App, s.Ctx, 1, types.DYM.MulRaw(1_000))
 
 	// Build MsgCreateValidator
 	valAddr := sdk.ValAddress(valAddrs[0].Bytes())
@@ -178,7 +178,7 @@ func (s *KeeperTestSuite) CreateValidatorWithAddress(acc sdk.AccAddress, balance
 func (s *KeeperTestSuite) CreateDelegator(valAddr sdk.ValAddress, coin sdk.Coin) stakingtypes.DelegationI {
 	s.T().Helper()
 
-	delAddrs := apptesting.AddTestAddrs(s.App, s.Ctx, 1, sdk.NewInt(1_000_000_000))
+	delAddrs := apptesting.AddTestAddrs(s.App, s.Ctx, 1, types.DYM.MulRaw(1_000))
 	delAddr := delAddrs[0]
 	return s.Delegate(delAddr, valAddr, coin)
 }
