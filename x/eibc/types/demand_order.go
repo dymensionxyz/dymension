@@ -76,7 +76,7 @@ func (m *DemandOrder) Validate() error {
 	return nil
 }
 
-func (m *DemandOrder) GetCreatedEvent(proofHeight uint64) *EventDemandOrderCreated {
+func (m *DemandOrder) GetCreatedEvent(proofHeight uint64, amount string) *EventDemandOrderCreated {
 	packetKey := base64.StdEncoding.EncodeToString([]byte(m.TrackingPacketKey))
 	return &EventDemandOrderCreated{
 		OrderId:      m.Id,
@@ -88,6 +88,7 @@ func (m *DemandOrder) GetCreatedEvent(proofHeight uint64) *EventDemandOrderCreat
 		Recipient:    m.Recipient,
 		PacketType:   m.Type.String(),
 		ProofHeight:  proofHeight,
+		Amount:       amount,
 	}
 }
 
@@ -117,7 +118,7 @@ func (m *DemandOrder) GetFulfilledAuthorizedEvent(creationHeight uint64, lpAddre
 	}
 }
 
-func (m *DemandOrder) GetUpdatedEvent(proofHeight uint64) *EventDemandOrderFeeUpdated {
+func (m *DemandOrder) GetUpdatedEvent(proofHeight uint64, amount string) *EventDemandOrderFeeUpdated {
 	return &EventDemandOrderFeeUpdated{
 		OrderId:      m.Id,
 		NewFee:       m.Fee.String(),
@@ -125,6 +126,7 @@ func (m *DemandOrder) GetUpdatedEvent(proofHeight uint64) *EventDemandOrderFeeUp
 		PacketStatus: m.TrackingPacketStatus.String(),
 		RollappId:    m.RollappId,
 		ProofHeight:  proofHeight,
+		Amount:       amount,
 	}
 }
 

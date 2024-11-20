@@ -237,7 +237,7 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 		return nil, err
 	}
 
-	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetUpdatedEvent(raPacket.ProofHeight)); err != nil {
+	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetUpdatedEvent(raPacket.ProofHeight, data.Amount)); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
