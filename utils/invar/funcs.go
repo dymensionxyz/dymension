@@ -1,8 +1,16 @@
 package invar
 
 import (
+	"errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+var ErrBroken = errors.New("invariant broken")
+
+func NewErr(err error) error {
+	return errors.Join(ErrBroken, err)
+}
 
 // return bool should be if the invariant is broken. If true, error should have meaningful debug info
 type Func = func(sdk.Context) (error, bool)
