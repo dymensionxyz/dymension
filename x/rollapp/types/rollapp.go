@@ -112,6 +112,15 @@ func (r Rollapp) LatestRevision() Revision {
 	return r.Revisions[len(r.Revisions)-1]
 }
 
+func (r Rollapp) GetRevisionForHeight(h uint64) Revision {
+	for i := len(r.Revisions) - 1; i >= 0; i-- {
+		if r.Revisions[i].StartHeight <= h {
+			return r.Revisions[i]
+		}
+	}
+	return Revision{}
+}
+
 func (r *Rollapp) BumpRevision(nextRevisionStartHeight uint64) {
 	r.Revisions = append(r.Revisions, Revision{
 		Number:      r.LatestRevision().Number + 1,

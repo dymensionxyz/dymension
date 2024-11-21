@@ -21,7 +21,7 @@ func (k Keeper) TryKickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 	}
 
 	// clear the proposer
-	k.SetProposer(ctx, ra, types.SentinelSeqAddr)
+	k.abruptRemoveProposer(ctx, ra)
 
 	// TODO: refund/burn if needed
 	k.unbond(ctx, &proposer)

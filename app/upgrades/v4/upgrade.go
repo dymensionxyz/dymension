@@ -31,6 +31,7 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
@@ -61,6 +62,7 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 		migrateModuleParams(ctx, keepers)
+		keepers.MigrateModuleAccountPerms(ctx)
 
 		if err := deprecateCrisisModule(ctx, keepers.CrisisKeeper); err != nil {
 			return nil, err
@@ -68,7 +70,7 @@ func CreateUpgradeHandler(
 
 		migrateDelayedAckParams(ctx, keepers.DelayedAckKeeper)
 		migrateRollappParams(ctx, keepers.RollappKeeper)
-		if err := migrateRollapps(ctx, keepers.RollappKeeper); err != nil {
+		if err := migrateRollapps(ctx, keepers.RollappKeeper, keepers.DymNSKeeper); err != nil {
 			return nil, err
 		}
 
@@ -153,7 +155,7 @@ func setKeyTables(keepers *keepers.AppKeepers) {
 	}
 }
 
-//nolint:staticcheck
+//nolint:staticcheck - note this is a cosmos SDK supplied function specifically for upgrading consensus params
 func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
 	// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
 	baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
@@ -172,7 +174,7 @@ func migrateRollappGauges(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, 
 	return nil
 }
 
-func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) error {
+func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, dymnsKeeper dymnskeeper.Keeper) error {
 	// in theory, there should be only two rollapps in the store, but we iterate over all of them just in case
 	list := rollappkeeper.GetAllRollapps(ctx)
 	for _, oldRollapp := range list {
@@ -181,6 +183,17 @@ func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) error
 			return err
 		}
 		rollappkeeper.SetRollapp(ctx, newRollapp)
+
+		switch oldRollapp.RollappId {
+		case nimRollappID:
+			if err := dymnsKeeper.SetAliasForRollAppId(ctx, oldRollapp.RollappId, nimAlias); err != nil {
+				return err
+			}
+		case mandeRollappID:
+			if err := dymnsKeeper.SetAliasForRollAppId(ctx, oldRollapp.RollappId, mandeAlias); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -342,13 +355,13 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 			Tagline:     "",
 			FeeDenom:    nil,
 		},
-		GenesisInfo:           genesisInfo,
-		InitialSequencer:      "*",
-		VmType:                rollapptypes.Rollapp_EVM, // EVM for existing rollapps
-		Launched:              true,                     // Existing rollapps are already launched
-		PreLaunchTime:         nil,                      // We can just let it be zero. Existing rollapps are already launched.
-		LivenessEventHeight:   0,                        // Filled lazily in runtime
-		LastStateUpdateHeight: 0,                        // Filled lazily in runtime
+		GenesisInfo:                  genesisInfo,
+		InitialSequencer:             "*",
+		VmType:                       rollapptypes.Rollapp_EVM, // EVM for existing rollapps
+		Launched:                     true,                     // Existing rollapps are already launched
+		PreLaunchTime:                nil,                      // We can just let it be zero. Existing rollapps are already launched.
+		LivenessEventHeight:          0,                        // Filled lazily in runtime
+		LivenessCountdownStartHeight: 0,                        // Filled lazily in runtime
 		Revisions: []rollapptypes.Revision{{
 			Number:      0,
 			StartHeight: 0,

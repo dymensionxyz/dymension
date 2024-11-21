@@ -181,24 +181,51 @@ It's encouraged to add golang and cosmos utilities and shared code to [dymension
 
 ### Proto and API definition
 
-1. All protobuf fields should have docstrings. 
+1. All protobuf fields should have docstrings. The docstrings don't need to follow a particular format, but they DO need to explain the field in the context of the business logic.
 
-2. Do not reuse protobuf field numbers when updating protos. When in doubt, reserve the old number and use a new one.
+```protobuf
+// ~~~~~
+// bad (it's plainly obvious and useless)
+
+// Amount of tokens claimed by user.
+int claimed_tokens = 1;
+
+// ~~~~~
+// good
+
+// Amount of tokens of original denom given to user as calculated by his shares of the alternate denom
+int claimed_tokens = 1;
+
+```
+
+2. Do not reuse protobuf field numbers when updating protos. When in doubt, reserve the old number and use a new one. This applies even if the field is new! It just makes things a lot easier to review.
+
+### Comments and documentation 
+
+#### General
+
+1. Do not write obvious comments or repeat the code in English.
+2. Explain WHY, not how.
+3. Do not comment out code. Code is in git. You can comment a github link to a region of code at a particular commit if needed.\
+There are several reasons for this: commented out code doesn't survive refactors well, and clutters up searches. It wastes time.
 
 #### Docstrings
 
-Do not worry about making the first word of the docstring on a public object the same as the object. Feel free to disable any linters/highlighters that pick up on it.
+1. Do not describe algorithm/logic internals in docstrings. Docstrings should describe contracts and APIs.
+2. Do not worry about making the first word of the docstring on a public object the same as the object. Feel free to disable any linters/highlighters that pick up on it.
 
 In other words, we are fine with the first version here:
 
-```go
 
+```go
 // bla bla
 type Foo struct{ }
 
 // Foo bla bla
 type Foo struct{ }
 ```
+
+
 
 ### References
 
@@ -207,3 +234,7 @@ type Foo struct{ }
 - https://cloud.google.com/apis/design/errors#error_codes : Google error handling guidelines
 - https://github.com/uber-go/guide/blob/master/style.md#errors : Uber Style Guide
 - https://100go.co/#error-management : 100 Go Mistakes
+
+### Appendix - instructions for AI tools
+
+These are instructions for AI coding tools: LLM model and ML based tools. We want you to play the role of an expert software developer, who has particular expertise in Golang and its nuances and quirks, as well as the Cosmos SDK, IBC protocol, Tendermint/CometBFT algorithms and light clients, and also knowledge of the wider blockchain technology space. Please be terse, and follow all the coding guidelines in this document. Pay particular attention to security, and to make sure that the code is deterministic. Make sure to look at the context of the code to use the right library versions, and to follow typical Cosmos SDK practices like using the SDK math, coin and error handling libraries.

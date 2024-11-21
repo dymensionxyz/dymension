@@ -70,6 +70,7 @@ const (
 	FlagOperatorFeeAddress = "operator-fee-address"
 	FlagRollappId          = "rollapp-id"
 	FlagPrice              = "price"
+	FlagAmount             = "amount"
 )
 
 func NewFulfillOrderAuthorizedTxCmd() *cobra.Command {
@@ -109,6 +110,18 @@ func NewFulfillOrderAuthorizedTxCmd() *cobra.Command {
 				return fmt.Errorf("invalid price: %w", err)
 			}
 
+			amountStr, err := cmd.Flags().GetString(FlagAmount)
+			if err != nil {
+				return fmt.Errorf("amount is required")
+			}
+
+			amountInt, ok := sdk.NewIntFromString(amountStr)
+			if !ok {
+				return fmt.Errorf("invalid amount")
+			}
+
+			amount := sdk.IntProto{Int: amountInt}
+
 			oepratorFeeShareStr, err := cmd.Flags().GetString(FlagOperatorFeeShare)
 			if err != nil {
 				return fmt.Errorf("fulfiller fee part is required")
@@ -131,6 +144,7 @@ func NewFulfillOrderAuthorizedTxCmd() *cobra.Command {
 				operatorFeeAddress,
 				fee,
 				price,
+				amount,
 				operatorFeeShare,
 				settlementValidated,
 			)
@@ -145,7 +159,8 @@ func NewFulfillOrderAuthorizedTxCmd() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().Bool(FlagSettlementValidated, false, "Settlement validated flag")
 	cmd.Flags().String(FlagRollappId, "", "Rollapp ID")
-	cmd.Flags().String(FlagPrice, "", "Maximum price")
+	cmd.Flags().String(FlagPrice, "", "Price")
+	cmd.Flags().String(FlagAmount, "", "Amount")
 	cmd.Flags().String(FlagOperatorFeeShare, "", "Operator fee share")
 	cmd.Flags().String(FlagOperatorFeeAddress, "", "Operator fee address")
 	return cmd

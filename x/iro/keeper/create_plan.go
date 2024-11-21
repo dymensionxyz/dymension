@@ -165,13 +165,13 @@ func (k Keeper) MintAllocation(ctx sdk.Context, allocatedAmount math.Int, rollap
 	baseDenom := types.IRODenom(rollappId)
 	displayDenom := types.IRODenom(rollappTokenSymbol)
 	metadata := banktypes.Metadata{
-		Description: fmt.Sprintf("Future token for rollapp %s", rollappId),
+		Description: fmt.Sprintf("IRO token for %s of rollapp %s", rollappTokenSymbol, rollappId),
 		DenomUnits: []*banktypes.DenomUnit{
 			{Denom: baseDenom, Exponent: 0, Aliases: []string{}},
 			{Denom: displayDenom, Exponent: uint32(exponent), Aliases: []string{}}, //nolint:gosec
 		},
 		Base:    baseDenom,
-		Name:    baseDenom,
+		Name:    displayDenom,
 		Display: displayDenom,
 		Symbol:  displayDenom,
 	}

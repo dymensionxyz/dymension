@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -74,6 +75,15 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 		}
 	}
 
+	err = uevent.EmitTypedEvent(ctx, &types.EventVote{
+		Voter:        voter.String(),
+		Vote:         vote,
+		Distribution: distr,
+	})
+	if err != nil {
+		return types.Vote{}, types.Distribution{}, fmt.Errorf("emit event: %w", err)
+	}
+
 	return vote, distr, nil
 }
 
@@ -105,6 +115,14 @@ func (k Keeper) revokeVote(ctx sdk.Context, voter sdk.AccAddress, vote types.Vot
 	err = k.DeleteDelegatorPower(ctx, voter)
 	if err != nil {
 		return types.Distribution{}, fmt.Errorf("failed to delete delegator's vote breakdown: %w", err)
+	}
+
+	err = uevent.EmitTypedEvent(ctx, &types.EventRevokeVote{
+		Voter:        voter.String(),
+		Distribution: d,
+	})
+	if err != nil {
+		return types.Distribution{}, fmt.Errorf("emit event: %w", err)
 	}
 
 	return d, nil
@@ -174,7 +192,7 @@ func (k Keeper) GetValidatorBreakdown(ctx sdk.Context, voter sdk.AccAddress) (Va
 		}
 
 		// VotingPower = Ceil(DelegationShares * BondedTokens / TotalShares)
-		votingPower := v.TokensFromShares(d.GetShares()).Ceil().TruncateInt()
+		votingPower := v.TokensFromShares(d.GetShares()).TruncateInt()
 		totalPower = totalPower.Add(votingPower)
 
 		breakdown = append(breakdown, ValidatorPower{

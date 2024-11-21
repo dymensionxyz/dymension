@@ -108,7 +108,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 	}
 
 	fee := sdk.NewDecFromInt(demandOrder.GetFeeAmount())
-	operatorFee := fee.Mul(msg.OperatorFeeShare.Dec).TruncateInt()
+	operatorFee := fee.MulTruncate(msg.OperatorFeeShare.Dec).TruncateInt()
 
 	if operatorFee.IsPositive() {
 		// Send the fee part to the fulfiller/operator
@@ -237,7 +237,7 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 		return nil, err
 	}
 
-	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetUpdatedEvent()); err != nil {
+	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetUpdatedEvent(raPacket.ProofHeight, data.Amount)); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 

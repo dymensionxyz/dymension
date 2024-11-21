@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -47,6 +48,12 @@ func (k msgServer) UpdateOptInStatus(goCtx context.Context,
 	seq, err := k.RealSequencer(ctx, msg.Creator)
 	if err != nil {
 		return nil, err
+	}
+
+	if seq.NoticeStarted() {
+		// prevent a sequencer who proposed in the past from becoming chosen as proposer again
+		return nil, gerrc.ErrFailedPrecondition.Wrap(`tried to change opt in status after rotating: not allowed because
+sequencers can only be proposer at most once`)
 	}
 
 	if err := seq.SetOptedIn(ctx, msg.OptedIn); err != nil {

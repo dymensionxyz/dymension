@@ -36,6 +36,13 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 		return nil, err
 	}
 
+	// check correct revision number (to avoid sending duplicated proposals)
+	if rollapp.GetRevisionForHeight(msg.FraudHeight).Number != msg.FraudRevision {
+		err := errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "fraud revision number mismatch: %d != %d", rollapp.GetRevisionForHeight(msg.FraudHeight).Number, msg.FraudRevision)
+		ctx.Logger().Error("Fraud proposal.", err)
+		return nil, err
+	}
+
 	// validate the rollapp is past its genesis bridge phase
 	if !rollapp.IsTransferEnabled() {
 		err := errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp is not past genesis bridge phase")

@@ -68,6 +68,7 @@ func NewMsgFulfillOrderAuthorized(
 	operatorFeeAddress,
 	expectedFee string,
 	price sdk.Coins,
+	amount sdk.IntProto,
 	fulfillerFeePart sdk.DecProto,
 	settlementValidated bool,
 ) *MsgFulfillOrderAuthorized {
@@ -78,6 +79,7 @@ func NewMsgFulfillOrderAuthorized(
 		OperatorFeeAddress:  operatorFeeAddress,
 		ExpectedFee:         expectedFee,
 		Price:               price,
+		Amount:              amount,
 		OperatorFeeShare:    fulfillerFeePart,
 		SettlementValidated: settlementValidated,
 	}
@@ -114,12 +116,16 @@ func (msg *MsgFulfillOrderAuthorized) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 
-	if msg.Price.IsAnyNegative() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "price cannot be negative")
+	if !msg.Price.IsValid() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "price is invalid")
 	}
 
-	if msg.OperatorFeeShare.Dec.IsNegative() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "operator fee share cannot be negative")
+	if msg.Amount.Int.IsNil() || msg.Amount.Int.IsNegative() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "amount cannot be empty or negative")
+	}
+
+	if msg.OperatorFeeShare.Dec.IsNil() || msg.OperatorFeeShare.Dec.IsNegative() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "operator fee share cannot be empty or negative")
 	}
 
 	if msg.OperatorFeeShare.Dec.GT(sdk.OneDec()) {
