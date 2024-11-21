@@ -72,20 +72,6 @@ func checkPlan(plan types.Plan) error {
 	return nil
 }
 
-/*
-For all plans
-
-		if plan is settled, no IRO tokens should be left
-			denom GetIRODenom
-			account
-		if plan is settled, no DYM should be left in the plan account
-			denom = appparams.BaseDenom
-			account =
-		module should have enough RA tokens to cover the claimable amount
-			denom = GetIRODenom
-			account = module
-	        claimable amt =
-*/
 // the plan and module accounts should have sufficient and correct balances
 func InvariantAccounting(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
