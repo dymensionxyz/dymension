@@ -25,7 +25,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	return invs.All(types.ModuleName, k)
 }
 
-// the plan should validate and bookkeeping for tokens should be sensible
+// the plan should validate and struct level bookkeeping for tokens should be sensible
 func InvariantPlan(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		plans := k.GetAllPlans(ctx, false)
@@ -75,10 +75,18 @@ func checkPlan(plan types.Plan) error {
 /*
 For all plans
 
-	if plan is settled, no IRO tokens should be left
-	if plan is settled, no DYM should be left in the plan account
-	module should have enough RA tokens to cover the claimable amount
+		if plan is settled, no IRO tokens should be left
+			denom GetIRODenom
+			account
+		if plan is settled, no DYM should be left in the plan account
+			denom = appparams.BaseDenom
+			account =
+		module should have enough RA tokens to cover the claimable amount
+			denom = GetIRODenom
+			account = module
+	        claimable amt =
 */
+// the plan and module accounts should have sufficient and correct balances
 func InvariantAccounting(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		plans := k.GetAllPlans(ctx, false)
@@ -86,13 +94,13 @@ func InvariantAccounting(k Keeper) uinv.Func {
 
 		for _, plan := range plans {
 			if plan.IsSettled() {
-				// Check if no IRO tokens are left
+				// module should have no more IRO
 				iroBalance := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.GetIRODenom())
 				if !iroBalance.IsZero() {
 					errs = append(errs, fmt.Errorf("iro tokens left: planID: %d, balance: %s", plan.Id, iroBalance))
 				}
 
-				// Check if no DYM is left in the plan account
+				// plan should have no more dym
 				dymBalance := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom)
 				if !dymBalance.IsZero() {
 					errs = append(errs, fmt.Errorf("dym tokens left: planID: %d, balance: %s", plan.Id, dymBalance))
@@ -100,18 +108,14 @@ func InvariantAccounting(k Keeper) uinv.Func {
 			}
 
 			// Check if module has enough RA tokens to cover the claimable amount
-			claimableAmount := plan.TotalAllocation.Amount.Sub(plan.ClaimedAmt)
-			moduleBalance := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.TotalAllocation.Denom)
-			if moduleBalance.Amount.LT(claimableAmount) {
+			claimable := plan.TotalAllocation.Amount.Sub(plan.ClaimedAmt)
+			moduleBal := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.SettledDenom)
+			if moduleBal.Amount.LT(claimable) {
 				errs = append(errs, fmt.Errorf("insufficient RA tokens: planID: %d, required: %s, available: %s",
-					plan.Id, claimableAmount, moduleBalance.Amount))
+					plan.Id, claimable, moduleBal.Amount))
 			}
 		}
 
-		if err := errors.Join(errs...); err != nil {
-			return errorsmod.Wrap(err, "accounting check")
-		}
-
-		return nil
+		return errors.Join(errs...)
 	})
 }
