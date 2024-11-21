@@ -85,7 +85,6 @@ func UnderlyingPacketExistInvariant(k Keeper) sdk.Invariant {
 			if err != nil {
 				msg += fmt.Sprintf("underlying packet for demand order %s not found: %v\n", demandOrder.Id, err)
 				broken = true
-				break
 			}
 		}
 		return sdk.FormatInvariant(types.ModuleName, "underlying-packet-exist", msg), broken
