@@ -111,6 +111,19 @@ func TestLivenessEventsStorage(t *testing.T) {
 	})
 }
 
+func (s *RollappTestSuite) TestLivenessFlow2() {
+	/*
+		What do I want to test?
+		- Everything is wired properly
+		- Invariants hold
+		- They are slashed as they should be
+
+		What is the liveness flow?
+
+	*/
+
+}
+
 // The protocol works.
 func (s *RollappTestSuite) TestLivenessFlow() {
 	_ = flag.Set("rapid.checks", "500")
@@ -187,8 +200,8 @@ func (l livenessMockSequencerKeeper) GetSuccessor(ctx sdk.Context, rollapp strin
 }
 
 func (l livenessMockSequencerKeeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
-	// TODO implement me
-	panic("implement me")
+	// only relevant in HF
+	return nil
 }
 
 func newLivenessMockSequencerKeeper() livenessMockSequencerKeeper {

@@ -9,9 +9,8 @@ import (
 )
 
 /*
-This file has the logic for slashing rollapps based on liveness requirements (time since last update (actually number of hub blocks)).
-It will trigger slash/jail operations through the x/sequencers module, at intervals decided by parameters.
-See ADR for more info https://www.notion.so/dymension/ADR-x-Sequencer-Liveness-Slash-Phase-1-5131b4d557e34f4498855831f439d218
+Slash rollapps based on liveness requirements (time since last update (actually number of hub blocks)).
+See https://www.notion.so/dymension/sequencer-jailing-slashing-3455fe70923143cbbfd8f96d71deb583?pvs=4#11fa4a51f86a80ac9c2cda8ab7f8d39a
 */
 
 // NextSlashHeight returns the next height on the HUB to slash or jail the rollapp
@@ -27,7 +26,7 @@ func NextSlashHeight(
 ) {
 	// how long has the rollapp been down ?
 	down := uint64(heightHub - heightLastRollappUpdate)
-	// when should we schedule the next slash/jail, in terms of down time duration?
+	// when should we schedule the next slash, in terms of downtime duration?
 	interval := blocksSlashNoUpdate
 	if blocksSlashNoUpdate <= down {
 		// round up to next slash interval
