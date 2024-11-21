@@ -62,6 +62,7 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 		migrateModuleParams(ctx, keepers)
+		keepers.MigrateModuleAccountPerms(ctx)
 
 		if err := deprecateCrisisModule(ctx, keepers.CrisisKeeper); err != nil {
 			return nil, err
@@ -154,7 +155,7 @@ func setKeyTables(keepers *keepers.AppKeepers) {
 	}
 }
 
-//nolint:staticcheck
+//nolint:staticcheck - note this is a cosmos SDK supplied function specifically for upgrading consensus params
 func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
 	// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
 	baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())

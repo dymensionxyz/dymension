@@ -12,6 +12,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -150,6 +151,8 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 				s.validateStreamerMigration()
 
+				s.validateModulePermissions()
+
 				return
 			},
 			expPass: true,
@@ -171,6 +174,12 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			}
 		})
 	}
+}
+
+func (s *UpgradeTestSuite) validateModulePermissions() {
+	// a bit hacky : just check at least one concrete example of a permission upgrade
+	acc := s.App.AccountKeeper.GetModuleAccount(s.Ctx, rollapptypes.ModuleName)
+	s.Require().True(acc.HasPermission(authtypes.Burner))
 }
 
 func (s *UpgradeTestSuite) validateDelayedAckParamsMigration() error {
