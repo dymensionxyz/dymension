@@ -10,7 +10,6 @@ import (
 )
 
 func (suite *DelayedAckTestSuite) TestInvariants() {
-	suite.T().Skip("skipping TestInvariants as it's not supported with lazy finalization feature")
 
 	initialHeight := int64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(initialHeight)
