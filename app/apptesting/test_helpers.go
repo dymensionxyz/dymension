@@ -119,9 +119,9 @@ func Setup(t *testing.T, isCheckTx bool) *app.App {
 		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000000000000000))),
 	}
 
-	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
+	a := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
 
-	return app
+	return a
 }
 
 func genesisStateWithValSet(t *testing.T,
