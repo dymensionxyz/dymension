@@ -11,6 +11,6 @@ import (
 // deprecateCrisisModule sets the constant fee to an unreachable value to effectively disable the crisis module.
 // The crisis module was used to handle the invariant checks and halt the chain if an invariant was broken.
 func deprecateCrisisModule(ctx sdk.Context, keeper *crisiskeeper.Keeper) error {
-	const unreachableFee = 1_000_000_000 // 1B DYM
+	const unreachableFee = 1_000 // 1000 DYM
 	return keeper.SetConstantFee(ctx, sdk.NewCoin(params.BaseDenom, commontypes.DYM.MulRaw(unreachableFee)))
 }
