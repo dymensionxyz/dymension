@@ -27,8 +27,14 @@ func AllInvariants(k Keeper) sdk.Invariant {
 func InvariantPlan(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		plans := k.GetAllPlans(ctx, false)
+
 		if len(plans) == 0 {
 			return nil
+		}
+
+		lastPlanID := k.GetLastPlanId(ctx)
+		if lastPlanID != plans[len(plans)-1].Id {
+			return fmt.Errorf("last plan id mismatch: lastPlanID: %d, lastPlanInListID: %d", lastPlanID, plans[len(plans)-1].Id)
 		}
 
 		var errs []error
@@ -37,14 +43,8 @@ func InvariantPlan(k Keeper) uinv.Func {
 			err = errorsmod.Wrapf(err, "planID: %d", plan.Id)
 			errs = append(errs, err)
 		}
-		errorsmod.IsOf()
 		if err := errors.Join(errs...); err != nil {
 			return errorsmod.Wrap(err, "check plans")
-		}
-
-		lastPlanID := k.GetLastPlanId(ctx)
-		if lastPlanID != plans[len(plans)-1].Id {
-			return fmt.Errorf("last plan id mismatch: lastPlanID: %d, lastPlanInListID: %d", lastPlanID, plans[len(plans)-1].Id)
 		}
 
 		return nil
