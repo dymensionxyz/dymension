@@ -20,6 +20,23 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "coins", CoinsInvariant(k))
 }
 
+// DO NOT DELETE
+func AllInvariants(k Keeper) sdk.Invariant {
+	return func(ctx sdk.Context) (string, bool) {
+		for _, inv := range []sdk.Invariant{
+			DemandOrderCountInvariant(k),
+			UnderlyingPacketExistInvariant(k),
+			CoinsInvariant(k),
+		} {
+			res, stop := inv(ctx)
+			if stop {
+				return res, stop
+			}
+		}
+		return "", false
+	}
+}
+
 func DemandOrderCountInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
