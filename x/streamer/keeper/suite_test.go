@@ -43,7 +43,7 @@ type KeeperTestSuite struct {
 
 // SetupTest sets streamer parameters from the suite's context
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.App = apptesting.Setup(suite.T(), false)
+	suite.App = apptesting.Setup(suite.T())
 	suite.Ctx = suite.App.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
 	streamerCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2500000)), sdk.NewCoin("udym", sdk.NewInt(2500000)))
 	suite.FundModuleAcc(types.ModuleName, streamerCoins)

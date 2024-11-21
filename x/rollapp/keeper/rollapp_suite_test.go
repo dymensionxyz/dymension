@@ -35,7 +35,7 @@ type RollappTestSuite struct {
 }
 
 func (suite *RollappTestSuite) SetupTest() {
-	app := apptesting.Setup(suite.T(), false)
+	app := apptesting.Setup(suite.T())
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
 	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
