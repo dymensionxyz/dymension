@@ -10,7 +10,6 @@ import (
 )
 
 func (suite *DelayedAckTestSuite) TestInvariants() {
-
 	initialHeight := int64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(initialHeight)
 
