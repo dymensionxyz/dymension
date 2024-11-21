@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"strconv"
+	_ "strconv"
 	"testing"
 
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -18,9 +18,6 @@ import (
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// Prevent strconv unused error
-var _ = strconv.IntSize
-
 const (
 	alice           = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
 	bob             = "dym1d0wlmz987qlurs6e3kc6zd25z6wsdmnwx8tafy"
@@ -32,6 +29,10 @@ type RollappTestSuite struct {
 	msgServer    types.MsgServer
 	seqMsgServer sequencertypes.MsgServer
 	queryClient  types.QueryClient
+}
+
+func TestRollappKeeperTestSuite(t *testing.T) {
+	suite.Run(t, new(RollappTestSuite))
 }
 
 func (suite *RollappTestSuite) SetupTest() {
@@ -61,15 +62,6 @@ func (suite *RollappTestSuite) SetupTest() {
 
 func (suite *RollappTestSuite) keeper() *keeper.Keeper {
 	return suite.App.RollappKeeper
-}
-
-func (suite *RollappTestSuite) nextBlock() {
-	h := suite.Ctx.BlockHeight()
-	suite.Ctx = suite.Ctx.WithBlockHeight(h + 1)
-}
-
-func TestRollappKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(RollappTestSuite))
 }
 
 func (suite *RollappTestSuite) assertNotForked(rollappID string) {

@@ -169,7 +169,8 @@ func (suite *RollappTestSuite) TestLivenessFlow() {
 			},
 			"hub end blocks": func(r *rapid.T) {
 				for range rapid.IntRange(0, 100).Draw(r, "num blocks") {
-					suite.nextBlock()
+					h := suite.Ctx.BlockHeight()
+					suite.Ctx = suite.Ctx.WithBlockHeight(h + 1)
 				}
 			},
 		})
