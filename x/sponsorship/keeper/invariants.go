@@ -53,30 +53,7 @@ func InvariantDistribution(k Keeper) uinv.Func {
 		if err != nil {
 			return fmt.Errorf("get distribution: %w", err)
 		}
-
-		t := math.ZeroInt()
-		for _, g := range d.Gauges {
-			t = t.Add(g.Power)
-		}
-		if t.GT(d.VotingPower) {
-			return fmt.Errorf("sum of gauge power exceeds total power sum: %s: total: %s", t, d.VotingPower)
-		}
-
-		var errs []error
-		for _, g := range d.Gauges {
-			if g.Power.IsNegative() {
-				errs = append(errs, fmt.Errorf("negative g power: %d: %s", g.GaugeId, g.Power))
-			}
-		}
-		if len(errs) > 0 {
-			return errors.Join(errs...)
-		}
-
-		if d.VotingPower.IsNegative() {
-			return fmt.Errorf("negative total voting power: %s", d.VotingPower)
-		}
-
-		return nil
+		return d.Validate()
 	})
 }
 

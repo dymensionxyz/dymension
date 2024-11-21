@@ -37,6 +37,7 @@ func InvariantPlan(k Keeper) uinv.Func {
 			err = errorsmod.Wrapf(err, "planID: %d", plan.Id)
 			errs = append(errs, err)
 		}
+		errorsmod.IsOf()
 		if err := errors.Join(errs...); err != nil {
 			return errorsmod.Wrap(err, "check plans")
 		}
