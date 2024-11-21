@@ -1,6 +1,6 @@
 package keeper_test
 
-func (suite *RollappTestSuite) TestKeeper_SetRegisteredDenom() {
+func (s *RollappTestSuite) TestKeeper_SetRegisteredDenom() {
 	denoms := []string{
 		"stake",
 		"adym",
@@ -11,19 +11,19 @@ func (suite *RollappTestSuite) TestKeeper_SetRegisteredDenom() {
 	rollappIDs := make([]string, 0, numRollapps)
 
 	for i := 0; i < numRollapps; i++ {
-		rollappID := suite.CreateDefaultRollapp()
+		rollappID := s.CreateDefaultRollapp()
 		rollappIDs = append(rollappIDs, rollappID)
 
 		for _, d := range denoms {
-			err := suite.App.RollappKeeper.SetRegisteredDenom(suite.Ctx, rollappID, d)
-			suite.Require().NoError(err)
-			suite.Require().True(suite.App.RollappKeeper.HasRegisteredDenom(suite.Ctx, rollappID, d))
+			err := s.k().SetRegisteredDenom(s.Ctx, rollappID, d)
+			s.Require().NoError(err)
+			s.Require().True(s.k().HasRegisteredDenom(s.Ctx, rollappID, d))
 		}
 	}
 
 	for _, rollappId := range rollappIDs {
-		gotDenoms, err := suite.App.RollappKeeper.GetAllRegisteredDenoms(suite.Ctx, rollappId)
-		suite.Require().NoError(err)
-		suite.Require().ElementsMatch(denoms, gotDenoms)
+		gotDenoms, err := s.k().GetAllRegisteredDenoms(s.Ctx, rollappId)
+		s.Require().NoError(err)
+		s.Require().ElementsMatch(denoms, gotDenoms)
 	}
 }

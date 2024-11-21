@@ -112,18 +112,18 @@ func TestLivenessEventsStorage(t *testing.T) {
 }
 
 // The protocol works.
-func (suite *RollappTestSuite) TestLivenessFlow() {
+func (s *RollappTestSuite) TestLivenessFlow() {
 	_ = flag.Set("rapid.checks", "500")
 	_ = flag.Set("rapid.steps", "300")
-	rapid.Check(suite.T(), func(r *rapid.T) {
-		suite.SetupTest()
+	rapid.Check(s.T(), func(r *rapid.T) {
+		s.SetupTest()
 
 		rollapps := []string{urand.RollappID(), urand.RollappID()}
 
 		tracker := newLivenessMockSequencerKeeper()
-		suite.keeper().SetSequencerKeeper(tracker)
+		s.k().SetSequencerKeeper(tracker)
 		for _, ra := range rollapps {
-			suite.keeper().SetRollapp(suite.Ctx, types.NewRollapp("", ra, "", types.Rollapp_Unspecified, nil, types.GenesisInfo{}, false))
+			s.k().SetRollapp(s.Ctx, types.NewRollapp("", ra, "", types.Rollapp_Unspecified, nil, types.GenesisInfo{}, false))
 		}
 
 		hLastUpdate := map[string]int64{}
@@ -132,17 +132,17 @@ func (suite *RollappTestSuite) TestLivenessFlow() {
 		r.Repeat(map[string]func(r *rapid.T){
 			"": func(r *rapid.T) { // check
 				// 1. check registered invariant
-				msg, notOk := keeper.LivenessEventInvariant(*suite.keeper())(suite.Ctx)
+				msg, notOk := keeper.LivenessEventInvariant(*s.k())(s.Ctx)
 				require.False(r, notOk, msg)
 				// 2. check the right amount of slashing occurred
 				for _, ra := range rollapps {
-					h := suite.Ctx.BlockHeight()
+					h := s.Ctx.BlockHeight()
 					lastUpdate, ok := hLastUpdate[ra]
 					if !ok {
 						continue // we can freely assume we will not need to slash a rollapp if it has NEVER had an update
 					}
 					elapsed := uint64(h - lastUpdate)
-					p := suite.keeper().GetParams(suite.Ctx)
+					p := s.k().GetParams(s.Ctx)
 
 					if elapsed <= p.LivenessSlashBlocks {
 						l := tracker.slashes[ra]
@@ -160,17 +160,17 @@ func (suite *RollappTestSuite) TestLivenessFlow() {
 			"state update": func(r *rapid.T) {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
 				if !rollappIsDown[raID] {
-					ra := suite.keeper().MustGetRollapp(suite.Ctx, raID)
-					suite.keeper().IndicateLiveness(suite.Ctx, &ra)
-					suite.keeper().SetRollapp(suite.Ctx, ra)
-					hLastUpdate[raID] = suite.Ctx.BlockHeight()
+					ra := s.k().MustGetRollapp(s.Ctx, raID)
+					s.k().IndicateLiveness(s.Ctx, &ra)
+					s.k().SetRollapp(s.Ctx, ra)
+					hLastUpdate[raID] = s.Ctx.BlockHeight()
 					tracker.clear(raID)
 				}
 			},
 			"hub end blocks": func(r *rapid.T) {
 				for range rapid.IntRange(0, 100).Draw(r, "num blocks") {
-					h := suite.Ctx.BlockHeight()
-					suite.Ctx = suite.Ctx.WithBlockHeight(h + 1)
+					h := s.Ctx.BlockHeight()
+					s.Ctx = s.Ctx.WithBlockHeight(h + 1)
 				}
 			},
 		})
