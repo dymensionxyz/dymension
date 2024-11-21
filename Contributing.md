@@ -1,3 +1,7 @@
+# CONTRIBUTING
+
+1. [Code standards](#code-standards)
+2. [Test pyramid](#test-pyramid)
 
 ## Code standards
 
@@ -207,3 +211,6 @@ type Foo struct{ }
 - https://cloud.google.com/apis/design/errors#error_codes : Google error handling guidelines
 - https://github.com/uber-go/guide/blob/master/style.md#errors : Uber Style Guide
 - https://100go.co/#error-management : 100 Go Mistakes
+
+## Test pyramid
+
