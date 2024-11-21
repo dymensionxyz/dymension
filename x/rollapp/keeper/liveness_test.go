@@ -119,6 +119,17 @@ func (s *RollappTestSuite) TestLivenessFlow2() {
 		- They are slashed as they should be
 
 		What is the liveness flow?
+			On hard fork -> reset clock
+			On state update -> reset clock
+			On set a new non sentinel proposer -> reset clock
+			On state update -> schedule event
+			On set a new non sentinel proposer -> schedule event
+			On hub end blocks -> check events and schedule new ones if needed
+
+
+
+
+
 
 	*/
 
