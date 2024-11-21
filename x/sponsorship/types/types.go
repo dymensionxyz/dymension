@@ -34,6 +34,9 @@ func (v Vote) Validate() error {
 	if err != nil {
 		return ErrInvalidVote.Wrap(err.Error())
 	}
+	if !v.VotingPower.IsPositive() {
+		return ErrInvalidVote.Wrapf("must be > 0, got %s", v.VotingPower)
+	}
 	return nil
 }
 

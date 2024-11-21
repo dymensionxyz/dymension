@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"cosmossdk.io/collections"
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/utils/uinv"
@@ -62,25 +61,11 @@ func InvariantVotes(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		var errs []error
 		err := k.IterateVotes(ctx, func(voter sdk.AccAddress, vote types.Vote) (bool, error) {
-			t := sdk.ZeroInt()
-			for _, weight := range vote.GetWeights() {
-				if err := weight.Validate(); err != nil {
-					errs = append(errs, err)
-					continue
-				}
-				t = t.Add(weight.Weight)
-			}
-			if t.GT(types.MaxAllocationWeight) {
-				return false, fmt.Errorf("sum of gauge weights exceeds max: %s", t)
-			}
+			errs = append(errs, vote.Validate())
 			return false, nil
 		})
-
-		if err := errors.Join(errs...); err != nil {
-			return errorsmod.Wrap(err, "validate weights")
-		}
-
-		return errorsmod.Wrap(err, "iterate votes")
+		errs = append(errs, err)
+		return errors.Join(errs...)
 	})
 }
 
