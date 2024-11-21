@@ -193,10 +193,14 @@ func (a FulfillOrderAuthorization) ValidateBasic() error {
 			return errorsmod.Wrapf(errors.ErrInvalidRequest, "operator_fee_share must be between 0 and 1 for rollapp_id %s", criteria.RollappId)
 		}
 
+		criteria.MaxPrice = criteria.MaxPrice.Sort()
+
 		// Validate MaxPrice (if provided)
 		if criteria.MaxPrice != nil && !criteria.MaxPrice.IsValid() {
 			return errorsmod.Wrapf(errors.ErrInvalidCoins, "max_price is invalid for rollapp_id %s", criteria.RollappId)
 		}
+
+		criteria.SpendLimit = criteria.SpendLimit.Sort()
 
 		// Validate SpendLimit
 		if criteria.SpendLimit != nil && !criteria.SpendLimit.IsValid() {
