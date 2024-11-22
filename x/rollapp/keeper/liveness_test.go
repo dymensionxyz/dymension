@@ -131,13 +131,13 @@ func (s *RollappTestSuite) TestLivenessEndBlock() {
 	rollapp, proposer := s.CreateDefaultRollappAndProposer()
 	_, err := s.PostStateUpdate(s.Ctx, rollapp, proposer, 1, uint64(10))
 	s.Require().NoError(err)
-	for range p.LivenessSlashBlocks {
+	for range p.LivenessSlashBlocks + 1 {
 		s.Require().Equal(0, tracker.slashes[rollapp])
 		s.checkLiveness(rollapp, false, true)
 		s.NextBlock(time.Second)
 	}
-	s.checkLiveness(rollapp, false, true)
 	s.Require().Equal(1, tracker.slashes[rollapp])
+	s.checkLiveness(rollapp, false, true)
 }
 
 func (s *RollappTestSuite) checkLiveness(rollappId string, expectClockReset, expectEvent bool) {
@@ -164,7 +164,8 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 		tracker := newLivenessMockSequencerKeeper(s.k().SequencerK)
 		s.k().SetSequencerKeeper(tracker)
 		for _, ra := range rollapps {
-			s.k().SetRollapp(s.Ctx, types.NewRollapp("", ra, "", types.Rollapp_Unspecified, nil, types.GenesisInfo{}, false))
+			s.k().SetRollapp(s.Ctx, types.NewRollapp("", ra, "",
+				types.Rollapp_Unspecified, nil, types.GenesisInfo{}, false))
 		}
 
 		hClockStart := map[string]int64{}
@@ -178,11 +179,11 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 				// 2. check the right amount of slashing occurred
 				for _, ra := range rollapps {
 					h := s.Ctx.BlockHeight()
-					lastUpdate, ok := hClockStart[ra]
+					hStart, ok := hClockStart[ra]
 					if !ok {
 						continue // we can freely assume we will not need to slash a rollapp if it has NEVER had an update
 					}
-					elapsed := uint64(h - lastUpdate)
+					elapsed := uint64(h - hStart)
 					p := s.k().GetParams(s.Ctx)
 
 					if elapsed <= p.LivenessSlashBlocks {
@@ -190,7 +191,8 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 						require.Zero(r, l, "expect not slashed")
 					} else {
 						expectedSlashes := int((elapsed-p.LivenessSlashBlocks)/p.LivenessSlashInterval) + 1
-						require.Equal(r, expectedSlashes, tracker.slashes[ra], "expect slashed", "rollapp", ra, "elapsed blocks", elapsed)
+						require.Equal(r, expectedSlashes, tracker.slashes[ra], "expect slashed",
+							"rollapp", ra, "elapsed blocks", elapsed)
 					}
 				}
 			},
@@ -198,7 +200,7 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
 				rollappIsDown[raID] = rapid.Bool().Draw(r, "down")
 			},
-			"state update": func(r *rapid.T) {
+			"indicate liveness": func(r *rapid.T) {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
 				if !rollappIsDown[raID] {
 					ra := s.k().MustGetRollapp(s.Ctx, raID)
@@ -208,7 +210,14 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 					tracker.clear(raID)
 				}
 			},
-			"hub end blocks": func(r *rapid.T) {
+			"fork": func(r *rapid.T) {
+				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
+				ra := s.k().MustGetRollapp(s.Ctx, raID)
+				s.k().ResetLivenessClock(s.Ctx, &ra)
+				hClockStart[raID] = s.Ctx.BlockHeight()
+				tracker.clear(raID)
+			},
+			"end blocker": func(r *rapid.T) {
 				for range rapid.IntRange(0, 100).Draw(r, "num blocks") {
 					s.NextBlock(time.Second)
 				}

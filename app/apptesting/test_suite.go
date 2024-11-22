@@ -42,7 +42,6 @@ type KeeperTestHelper struct {
 
 func (s *KeeperTestHelper) NextBlock(dt time.Duration) {
 	s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
-	//s.App.Commit()
 	s.Ctx = s.Ctx.WithBlockTime(s.Ctx.BlockTime().Add(dt)).WithBlockHeight(s.Ctx.BlockHeight() + 1)
 	h := tmproto.Header{Height: s.Ctx.BlockHeight(), Time: s.Ctx.BlockTime(), ChainID: s.Ctx.ChainID()}
 	s.App.BeginBlocker(s.Ctx, abci.RequestBeginBlock{Header: h})

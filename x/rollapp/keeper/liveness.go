@@ -64,6 +64,7 @@ func (k Keeper) HandleLivenessEvent(ctx sdk.Context, e types.LivenessEvent) erro
 	}
 
 	ra := k.MustGetRollapp(ctx, e.RollappId)
+	k.DelLivenessEvents(ctx, e.HubHeight, e.RollappId)
 	k.ScheduleLivenessEvent(ctx, &ra)
 	k.SetRollapp(ctx, ra)
 	return nil
