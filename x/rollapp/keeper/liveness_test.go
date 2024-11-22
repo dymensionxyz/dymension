@@ -177,18 +177,17 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 						continue
 					}
 					p := s.k().GetParams(s.Ctx)
-
-					// the events are scheduled in block
-					// they are processed at end block
-
-					elapsed := h - hStart // num block that have passed since setting the clock start
-					if elapsed <= int64(p.LivenessSlashBlocks) {
+					elapsed := h - 1 - hStart // num end blockers that have passed since setting the clock start
+					if elapsed <= 0 {
+						continue
+					}
+					if elapsed < int64(p.LivenessSlashBlocks) {
 						l := tracker.slashes[ra]
-						require.Zero(r, l, "expect not slashed", "elapsed", elapsed, "rollapp", ra)
+						require.Zero(r, l, "expect not slashed", "elapsed", elapsed, "rollapp", ra, "h", s.Ctx.BlockHeight())
 					} else {
 						expectedSlashes := int((elapsed-int64(p.LivenessSlashBlocks))/int64(p.LivenessSlashInterval)) + 1
 						require.Equal(r, expectedSlashes, tracker.slashes[ra], "expect slashed",
-							"rollapp", ra, "elapsed blocks", elapsed)
+							"rollapp", ra, "elapsed blocks", elapsed, "h", s.Ctx.BlockHeight())
 					}
 				}
 			},
@@ -212,6 +211,7 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 			},
 			"end blocker": func(r *rapid.T) {
 				for range rapid.IntRange(0, 9).Draw(r, "num blocks") {
+					r.Log("Doing EB", s.Ctx.BlockHeight(), "slashes", tracker.slashes)
 					s.NextBlock(time.Second)
 				}
 			},
