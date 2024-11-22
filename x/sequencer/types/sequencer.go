@@ -89,6 +89,7 @@ func (seq Sequencer) NoticeStarted() bool {
 	return seq.NoticePeriodTime != time.Time{}
 }
 
+// Also called 'dymint proposer addr' in some places
 func (seq Sequencer) ProposerAddr() ([]byte, error) {
 	return PubKeyAddr(seq.DymintPubKey)
 }
