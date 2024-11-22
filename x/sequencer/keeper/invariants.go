@@ -1,79 +1,169 @@
 package keeper
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"errors"
+	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/utils/uinv"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
+var invs = uinv.NamedFuncsList[Keeper]{
+	{Name: "notice", Func: InvariantNotice},
+	{Name: "hash-index", Func: InvariantProposerAddrIndex},
+	{Name: "status", Func: InvariantStatus},
+	{Name: "tokens", Func: InvariantTokens},
+}
+
 // RegisterInvariants registers the sequencer module invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
-	ir.RegisterRoute(types.ModuleName, "sequencers-count", SequencersCountInvariant(k))
-	ir.RegisterRoute(types.ModuleName, "sequencer-proposer-bonded", ProposerBondedInvariant(k))
+	invs.RegisterInvariants(types.ModuleName, ir, k)
 }
 
-func SequencersCountInvariant(k Keeper) sdk.Invariant {
-	return func(ctx sdk.Context) (string, bool) {
-		var (
-			broken bool
-			msg    string
-		)
-
-		sequencers := k.AllSequencers(ctx)
-		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
-
-		totalCount := 0
-		for _, rollapp := range rollapps {
-			seqByRollapp := k.RollappSequencers(ctx, rollapp.RollappId)
-			bonded := k.RollappSequencersByStatus(ctx, rollapp.RollappId, types.Bonded)
-			unbonded := k.RollappSequencersByStatus(ctx, rollapp.RollappId, types.Unbonded)
-
-			if len(seqByRollapp) != len(bonded)+len(unbonded) {
-				broken = true
-				msg += "sequencer by rollapp length is not equal to sum of bonded, and unbonded " + rollapp.RollappId + "\n"
-			}
-
-			totalCount += len(seqByRollapp)
-		}
-
-		if totalCount != len(sequencers) {
-			broken = true
-			msg += "total sequencer count is not equal to sum of sequencers by rollapp\n"
-		}
-
-		return sdk.FormatInvariant(
-			types.ModuleName, "sequencers-count",
-			msg,
-		), broken
-	}
+// DO NOT DELETE
+func AllInvariants(k Keeper) sdk.Invariant {
+	return invs.All(types.ModuleName, k)
 }
 
-// ProposerBondedInvariant checks if the proposer and next proposer are bonded as expected
-func ProposerBondedInvariant(k Keeper) sdk.Invariant {
-	return func(ctx sdk.Context) (string, bool) {
-		var (
-			broken bool
-			msg    string
-		)
+// notice queue should have only proposers who started notice
+func InvariantNotice(k Keeper) uinv.Func {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+		seqs, err := k.NoticeQueue(ctx, nil)
+		if err != nil {
+			return err
+		}
+		var errs []error
+		for _, seq := range seqs {
+			if !seq.NoticeStarted() {
+				errs = append(errs, fmt.Errorf("in notice queue but notice not started: %s", seq.Address))
+			}
+			if !k.IsProposer(ctx, seq) {
+				errs = append(errs, fmt.Errorf("in notice queue but not proposer: %s", seq.Address))
+			}
+		}
+		return errors.Join(errs...)
+	})
+}
 
+// the lookup proposer hash -> seq should be populated
+func InvariantProposerAddrIndex(k Keeper) uinv.Func {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+		var errs []error
+		for _, seq := range k.AllSequencers(ctx) {
+			err := checkProposerAddrIndex(ctx, k, seq)
+			err = errorsmod.Wrapf(err, "sequencer: %s", seq.Address)
+			errs = append(errs, err)
+		}
+		return errors.Join(errs...)
+	})
+}
+
+func checkProposerAddrIndex(ctx sdk.Context, k Keeper, exp types.Sequencer) error {
+	hash := exp.MustProposerAddr()
+	got, err := k.SequencerByDymintAddr(ctx, hash)
+	if err != nil {
+		return errorsmod.Wrapf(err, "seq by dymint addr: proposer hash: %x", hash)
+	}
+	if got.Address != exp.Address {
+		return fmt.Errorf("hash index mismatch: got addr: %s, exp addr: %s", got.Address, exp.Address)
+	}
+	return nil
+}
+
+// proposer and successor status' should be sensible
+func InvariantStatus(k Keeper) uinv.Func {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+		var errs []error
 		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
-		for _, rollapp := range rollapps {
-			proposer := k.GetProposer(ctx, rollapp.RollappId)
-			if !proposer.Bonded() {
-				broken = true
-				msg += "proposer is not bonded " + rollapp.RollappId + "\n"
+		for _, ra := range rollapps {
+			err := checkRollappStatus(ctx, k, ra.RollappId)
+			err = errorsmod.Wrapf(err, "rollapp: %s", ra.RollappId)
+			errs = append(errs, err)
+		}
+		for _, seq := range k.AllProposers(ctx) {
+			if !k.IsProposer(ctx, seq) {
+				errs = append(errs, fmt.Errorf("proposer in query is not proposer: %s", seq.Address))
 			}
-			successor := k.GetSuccessor(ctx, rollapp.RollappId)
-			if !successor.Bonded() {
-				broken = true
-				msg += "successor is not bonded " + rollapp.RollappId + "\n"
+		}
+		for _, seq := range k.AllSuccessors(ctx) {
+			if !k.IsSuccessor(ctx, seq) {
+				errs = append(errs, fmt.Errorf("successor in query is not successor: %s", seq.Address))
 			}
+		}
+		return errors.Join(errs...)
+	})
+}
 
+func checkRollappStatus(ctx sdk.Context, k Keeper, ra string) error {
+	proposer := k.GetProposer(ctx, ra)
+	if !proposer.Bonded() {
+		return errors.New("proposer not bonded")
+	}
+	successor := k.GetSuccessor(ctx, ra)
+	if !successor.Bonded() {
+		return errors.New("successor not bonded")
+	}
+	if !proposer.Sentinel() && proposer.Address == successor.Address {
+		return errors.New("proposer and successor are the same")
+	}
+	if !successor.Sentinel() && proposer.Sentinel() {
+		return errors.New("proposer is sentinel but successor is not")
+	}
+	all := k.RollappSequencers(ctx, ra)
+	bonded := k.RollappSequencersByStatus(ctx, ra, types.Bonded)
+	unbonded := k.RollappSequencersByStatus(ctx, ra, types.Unbonded)
+	if len(all) != len(bonded)+len(unbonded) {
+		return errors.New("sequencer by rollapp length is not equal to sum of bonded, and unbonded")
+	}
+	return nil
+}
+
+// module balance must correspond to sequencer stakes, and sequencer stakes should be sensible
+func InvariantTokens(k Keeper) uinv.Func {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+		var errs []error
+
+		for _, seq := range k.AllSequencers(ctx) {
+			err := checkSeqTokens(ctx, seq, k)
+			err = errorsmod.Wrapf(err, "sequencer: %s", seq.Address)
+			errs = append(errs, err)
 		}
 
-		return sdk.FormatInvariant(
-			types.ModuleName, "sequencer-bonded",
-			msg,
-		), broken
+		if err := errors.Join(errs...); err != nil {
+			return err
+		}
+
+		total := sdk.NewCoin(k.bondDenom(ctx), sdk.ZeroInt())
+		for _, seq := range k.AllSequencers(ctx) {
+			total = total.Add(seq.TokensCoin())
+		}
+		// check module balance is equal
+		moduleAcc := k.accountK.GetModuleAccount(ctx, types.ModuleName)
+		balances := k.bankKeeper.GetAllBalances(ctx, moduleAcc.GetAddress())
+		if 1 < len(balances) {
+			return errors.New("module account has more than one coin")
+		}
+		if !total.IsZero() && len(balances) == 0 {
+			return errors.New("module account has no balance")
+		}
+		if !total.IsZero() && !balances[0].IsEqual(total) {
+			return errors.New("module account balance not equal to sum of sequencer tokens")
+		}
+		return nil
+	})
+}
+
+func checkSeqTokens(ctx sdk.Context, seq types.Sequencer, k Keeper) error {
+	if err := seq.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(err, "validate basic")
 	}
+	if err := k.validBondDenom(ctx, seq.TokensCoin()); err != nil {
+		return errorsmod.Wrap(err, "valid bond denom")
+	}
+	if seq.TokensCoin().Amount.IsNegative() {
+		return errors.New("negative seq tokens")
+	}
+	return nil
 }

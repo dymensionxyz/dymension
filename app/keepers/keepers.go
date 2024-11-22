@@ -365,6 +365,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[sequencermoduletypes.StoreKey],
 		a.BankKeeper,
+		a.AccountKeeper,
 		a.RollappKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)

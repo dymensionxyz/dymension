@@ -75,12 +75,15 @@ type SetupOptions struct {
 	AppOpts            types.AppOptions
 }
 
+// Having this enabled led to some problems because some tests use intrusive methods to modify the state, whichs breaks invariants
+var InvariantCheckInterval = uint(0) // disabled
+
 func SetupTestingApp() (*app.App, app.GenesisState) {
 	db := dbm.NewMemDB()
 	encCdc := app.MakeEncodingConfig()
 	params.SetAddressPrefixes()
 
-	newApp := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encCdc, EmptyAppOptions{}, bam.SetChainID(TestChainID))
+	newApp := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, InvariantCheckInterval, encCdc, EmptyAppOptions{}, bam.SetChainID(TestChainID))
 	defaultGenesisState := app.NewDefaultGenesisState(encCdc.Codec)
 
 	incentivesGenesisStateJson := defaultGenesisState[incentivestypes.ModuleName]

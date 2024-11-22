@@ -30,7 +30,6 @@ func (s *transfersEnabledSuite) SetupTest() {
 	s.utilSuite.SetupTest()
 	path := s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.Setup(path)
-	s.fundSenderAccount()
 	s.createRollapp(false, nil)
 	s.registerSequencer()
 	s.path = path

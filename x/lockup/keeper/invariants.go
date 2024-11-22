@@ -17,6 +17,22 @@ func RegisterInvariants(ir sdk.InvariantRegistry, keeper Keeper) {
 	ir.RegisterRoute(types.ModuleName, "locks-amount-invariant", LocksBalancesInvariant(keeper))
 }
 
+// DO NOT DELETE
+func AllInvariants(k Keeper) sdk.Invariant {
+	return func(ctx sdk.Context) (string, bool) {
+		for _, inv := range []sdk.Invariant{
+			AccumulationStoreInvariant(k),
+			LocksBalancesInvariant(k),
+		} {
+			res, stop := inv(ctx)
+			if stop {
+				return res, stop
+			}
+		}
+		return "", false
+	}
+}
+
 // AccumulationStoreInvariant ensures that the sum of all lockups at a given duration
 // is equal to the value stored within the accumulation store.
 func AccumulationStoreInvariant(keeper Keeper) sdk.Invariant {
