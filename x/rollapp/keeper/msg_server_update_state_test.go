@@ -6,12 +6,11 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/dymensionxyz/sdk-utils/utils/urand"
-
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
 )
 
 func (s *RollappTestSuite) TestFirstUpdateState() {
@@ -96,6 +95,8 @@ func (s *RollappTestSuite) TestUpdateState() {
 			s.Require().True(found)
 			s.Require().EqualValues(stateInfo.Status, common.Status_PENDING)
 		}
+
+		s.checkLivenessReset(rollappId, true)
 	}
 }
 

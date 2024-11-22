@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 )
 
 // TestHardFork - Test the HardFork function
@@ -84,6 +85,7 @@ func (s *RollappTestSuite) TestHardFork() {
 				s.Require().NoError(err)
 				s.assertFraudHandled(rollappId, tc.fraudHeight)
 			}
+			s.checkLivenessReset(rollappId, false)
 		})
 	}
 }
@@ -99,6 +101,19 @@ func (s *RollappTestSuite) TestHardFork_InvalidRollapp() {
 
 	err = keeper.HardFork(*ctx, "invalidRollapp", 2)
 	s.Require().Error(err)
+}
+
+func (s *RollappTestSuite) TestAfterSetRealProposer() {
+	ctx := &s.Ctx
+	rollapp, proposer := s.CreateDefaultRollappAndProposer()
+	_, err := s.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
+	s.Require().NoError(err)
+	h := &keeper.SequencerHooks{
+		Keeper: s.k(),
+	}
+	err = h.AfterSetRealProposer(*ctx, rollapp, s.App.SequencerKeeper.GetProposer(*ctx, rollapp))
+	s.Require().NoError(err)
+	s.checkLivenessReset(rollapp, true)
 }
 
 // Fail - Disputing already finalized state

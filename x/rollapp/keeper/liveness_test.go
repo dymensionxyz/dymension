@@ -111,37 +111,55 @@ func TestLivenessEventsStorage(t *testing.T) {
 	})
 }
 
-func (s *RollappTestSuite) TestLivenessFlow2() {
+func (s *RollappTestSuite) TestLivenessWiring() {
 	/*
-		What do I want to test?
-		- Everything is wired properly
-		- Invariants hold
-		- They are slashed as they should be
+			What do I want to test?
+			- Everything is wired properly
+			- Invariants hold
+			- They are slashed as they should be
 
-		What is the liveness flow?
-			On hard fork -> reset clock
-			On state update -> reset clock
-			On set a new non sentinel proposer -> reset clock
+			What is the liveness flow?
+				On hard fork -> reset clock
+				On state update -> reset clock
+				On set a new non sentinel proposer -> reset clock
 
-			On state update -> schedule event
-			On set a new non sentinel proposer -> schedule event
-			On hub end blocks -> check events and schedule new ones if needed
+				On state update -> schedule event
+				On set a new non sentinel proposer -> schedule event
+				On hub end blocks -> check events and schedule new ones if needed
 
-		Gameplan
-		Test 1
-			Create a rollapp
+			Gameplan
+			Test 1
+				Create a rollapp
 
-		Actions
-			Hard fork
-			State update
-			Set new proposer
+			Actions
+				Hard fork
+				State update
+				Set new proposer
 
+			We need to check that
+				2. state update resets the clock
+				1. hard fork resets the clock
+				3. set new real proposer resets the clock
+				4. state update schedules event
+				4. set new real proposer schedules an event
+				5. end block does a slash, and schedules new ones
+
+		state update and set new non sentinel
+			reset clock + event
+		HF
+			reset clock
+		end block
 
 	*/
 
 }
 
-type model struct {
+func (s *RollappTestSuite) checkLivenessReset(rollappId string, expectNewEvent bool) {
+	msg, broken := keeper.LivenessEventInvariant(*s.k())(s.Ctx)
+	s.Require().False(broken, msg)
+	ra := s.k().MustGetRollapp(s.Ctx, rollappId)
+	s.Require().Equal(s.Ctx.BlockHeight(), ra.LivenessCountdownStartHeight)
+	s.Require().Equal(expectNewEvent, ra.LivenessEventHeight != 0)
 }
 
 // The protocol works.
@@ -211,12 +229,21 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 }
 
 type livenessMockSequencerKeeper struct {
-	slashes map[string]int
+	slashes map[string]int // rollapp->cnt
+}
+
+func (l livenessMockSequencerKeeper) GetProposer(ctx sdk.Context, rollappId string) seqtypes.Sequencer {
+	return seqtypes.Sequencer{}
 }
 
 // GetSuccessor implements keeper.SequencerKeeper.
 func (l livenessMockSequencerKeeper) GetSuccessor(ctx sdk.Context, rollapp string) seqtypes.Sequencer {
 	panic("unimplemented")
+}
+
+func (l livenessMockSequencerKeeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
+	l.slashes[rollappID]++
+	return nil
 }
 
 func (l livenessMockSequencerKeeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
@@ -228,15 +255,6 @@ func newLivenessMockSequencerKeeper() livenessMockSequencerKeeper {
 	return livenessMockSequencerKeeper{
 		make(map[string]int),
 	}
-}
-
-func (l livenessMockSequencerKeeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
-	l.slashes[rollappID]++
-	return nil
-}
-
-func (l livenessMockSequencerKeeper) GetProposer(ctx sdk.Context, rollappId string) seqtypes.Sequencer {
-	return seqtypes.Sequencer{}
 }
 
 func (l livenessMockSequencerKeeper) clear(rollappID string) {
