@@ -228,6 +228,16 @@ func (a *AppKeepers) SetupModules(
 	}
 }
 
+func (a *AppKeepers) SetupSimulationModules(appCodec codec.Codec) []module.AppModuleSimulation {
+	return []module.AppModuleSimulation{
+		rollappmodule.NewAppModule(appCodec, a.RollappKeeper, a.AccountKeeper, a.BankKeeper),
+		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper, a.AccountKeeper, a.BankKeeper),
+		eibcmodule.NewAppModule(appCodec, a.EIBCKeeper, a.AccountKeeper, a.BankKeeper),
+		dymnsmodule.NewAppModule(appCodec, a.DymNSKeeper),
+		//sponsorship.NewAppModule(a.SponsorshipKeeper),
+	}
+}
+
 // ModuleAccountAddrs returns all the app's module account addresses.
 func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)

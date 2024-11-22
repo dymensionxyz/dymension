@@ -113,6 +113,8 @@ type App struct {
 	mm *module.Manager
 	// module configurator
 	configurator module.Configurator
+	// simulation manager
+	sm *module.SimulationManager
 }
 
 // New returns a reference to an initialized blockchain app
@@ -194,6 +196,10 @@ func New(
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.mm.RegisterServices(app.configurator)
+
+	/****  Simulations ****/
+	app.sm = module.NewSimulationManager(app.SetupSimulationModules(appCodec)...)
+	app.sm.RegisterStoreDecoders()
 
 	// initialize stores
 	app.MountKVStores(keepers.KVStoreKeys)
@@ -358,7 +364,7 @@ func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router) {
 
 // SimulationManager implements the SimulationApp interface
 func (app *App) SimulationManager() *module.SimulationManager {
-	return nil
+	return app.sm
 }
 
 // GetTxConfig implements ibctesting.TestingApp
