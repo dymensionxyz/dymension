@@ -96,7 +96,7 @@ func (s *RollappTestSuite) TestUpdateState() {
 			s.Require().EqualValues(stateInfo.Status, common.Status_PENDING)
 		}
 
-		s.checkLivenessReset(rollappId, true)
+		s.checkLiveness(rollappId, true, true)
 	}
 }
 

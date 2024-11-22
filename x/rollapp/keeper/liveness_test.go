@@ -15,7 +15,6 @@ import (
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	seqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func TestLivenessArithmetic(t *testing.T) {
@@ -112,65 +111,45 @@ func TestLivenessEventsStorage(t *testing.T) {
 	})
 }
 
-func (s *RollappTestSuite) TestLivenessWiring() {
-	/*
-			What do I want to test?
-			- Everything is wired properly
-			- Invariants hold
-			- They are slashed as they should be
+/*
 
-			What is the liveness flow?
-				On hard fork -> reset clock
-				On state update -> reset clock
-				On set a new non sentinel proposer -> reset clock
+	state update and set new non sentinel
+		reset clock + event
+	HF
+		reset clock
+	end block
+		reschedule + slash
 
-				On state update -> schedule event
-				On set a new non sentinel proposer -> schedule event
-				On hub end blocks -> check events and schedule new ones if needed
+*/
 
-			Gameplan
-			Test 1
-				Create a rollapp
-
-			Actions
-				Hard fork
-				State update
-				Set new proposer
-
-			We need to check that
-				2. state update resets the clock
-				1. hard fork resets the clock
-				3. set new real proposer resets the clock
-				4. state update schedules event
-				4. set new real proposer schedules an event
-				5. end block does a slash, and schedules new ones
-
-		state update and set new non sentinel
-			reset clock + event
-		HF
-			reset clock
-		end block
-
-	*/
-
-}
 func (s *RollappTestSuite) TestLivenessEndBlock() {
 	p := s.k().GetParams(s.Ctx)
-	p.LivenessSlashBlocks = 10
+	p.LivenessSlashBlocks = 2
 	s.k().SetParams(s.Ctx, p)
+	tracker := newLivenessMockSequencerKeeper(s.k().GetSE)
+	s.k().SetSequencerKeeper(tracker)
 	rollapp, proposer := s.CreateDefaultRollappAndProposer()
 	_, err := s.PostStateUpdate(s.Ctx, rollapp, proposer, 1, uint64(10))
 	s.Require().NoError(err)
-	s.checkLivenessReset(rollapp, true)
-
+	for range p.LivenessSlashBlocks {
+		s.Require().Equal(0, tracker.slashes[rollapp])
+		s.checkLiveness(rollapp, false, true)
+		s.NextBlock(time.Second)
+	}
+	s.checkLiveness(rollapp, false, true)
+	s.Require().Equal(1, tracker.slashes[rollapp])
 }
 
-func (s *RollappTestSuite) checkLivenessReset(rollappId string, expectNewEvent bool) {
+func (s *RollappTestSuite) checkLiveness(rollappId string, expectClockReset, expectEvent bool) {
 	msg, broken := keeper.LivenessEventInvariant(*s.k())(s.Ctx)
 	s.Require().False(broken, msg)
 	ra := s.k().MustGetRollapp(s.Ctx, rollappId)
-	s.Require().Equal(s.Ctx.BlockHeight(), ra.LivenessCountdownStartHeight)
-	s.Require().Equal(expectNewEvent, ra.LivenessEventHeight != 0)
+	if expectClockReset {
+		s.Require().Equal(s.Ctx.BlockHeight(), ra.LivenessCountdownStartHeight)
+	} else {
+		s.Require().LessOrEqual(ra.LivenessCountdownStartHeight, s.Ctx.BlockHeight())
+	}
+	s.Require().Equal(expectEvent, ra.LivenessEventHeight != 0)
 }
 
 // The protocol works.
@@ -239,16 +218,8 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 }
 
 type livenessMockSequencerKeeper struct {
+	keeper.SequencerKeeper
 	slashes map[string]int // rollapp->cnt
-}
-
-func (l livenessMockSequencerKeeper) GetProposer(ctx sdk.Context, rollappId string) seqtypes.Sequencer {
-	return seqtypes.Sequencer{}
-}
-
-// GetSuccessor implements keeper.SequencerKeeper.
-func (l livenessMockSequencerKeeper) GetSuccessor(ctx sdk.Context, rollapp string) seqtypes.Sequencer {
-	panic("unimplemented")
 }
 
 func (l livenessMockSequencerKeeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
@@ -256,14 +227,10 @@ func (l livenessMockSequencerKeeper) SlashLiveness(ctx sdk.Context, rollappID st
 	return nil
 }
 
-func (l livenessMockSequencerKeeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
-	// only relevant in HF
-	return nil
-}
-
-func newLivenessMockSequencerKeeper() livenessMockSequencerKeeper {
+func newLivenessMockSequencerKeeper(k keeper.SequencerKeeper) livenessMockSequencerKeeper {
 	return livenessMockSequencerKeeper{
-		make(map[string]int),
+		SequencerKeeper: k,
+		slashes:         make(map[string]int),
 	}
 }
 

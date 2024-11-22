@@ -84,8 +84,8 @@ func (s *RollappTestSuite) TestHardFork() {
 			} else {
 				s.Require().NoError(err)
 				s.assertFraudHandled(rollappId, tc.fraudHeight)
+				s.checkLiveness(rollappId, true, false)
 			}
-			s.checkLivenessReset(rollappId, false)
 		})
 	}
 }
@@ -112,26 +112,25 @@ func (s *RollappTestSuite) TestAfterSetRealProposer() {
 	}
 	err = h.AfterSetRealProposer(*ctx, rollapp, s.App.SequencerKeeper.GetProposer(*ctx, rollapp))
 	s.Require().NoError(err)
-	s.checkLivenessReset(rollapp, true)
+	s.checkLiveness(rollapp, true, true)
 }
 
 // Fail - Disputing already finalized state
 func (s *RollappTestSuite) TestHardFork_AlreadyFinalized() {
 	ctx := &s.Ctx
-	keeper := s.k()
 
 	rollapp, proposer := s.CreateDefaultRollappAndProposer()
 	_, err := s.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	s.Require().Nil(err)
 
 	// finalize state
-	s.Ctx = s.Ctx.WithBlockHeight(ctx.BlockHeight() + int64(keeper.DisputePeriodInBlocks(*ctx)))
+	s.Ctx = s.Ctx.WithBlockHeight(ctx.BlockHeight() + int64(s.k().DisputePeriodInBlocks(*ctx)))
 	s.k().FinalizeRollappStates(s.Ctx)
 	stateInfo, err := s.k().FindStateInfoByHeight(s.Ctx, rollapp, 1)
 	s.Require().Nil(err)
 	s.Require().Equal(common.Status_FINALIZED, stateInfo.Status)
 
-	err = keeper.HardFork(*ctx, rollapp, 2)
+	err = s.k().HardFork(*ctx, rollapp, 2)
 	s.Require().NotNil(err)
 }
 
