@@ -114,12 +114,18 @@ func TestLivenessEventsStorage(t *testing.T) {
 /*
 
 	state update and set new non sentinel
-		reset clock + event
-	HF
+		delete events
 		reset clock
+		reset rollapp field
+		set new event + rollapp field
+	HF
+		delete events
+		reset clock
+		reset rollapp field
 	end block
-		reschedule + slash
-
+		delete events
+		reset rollapp field
+		set new event + rollapp field
 */
 
 func (s *RollappTestSuite) TestLivenessEndBlock() {
