@@ -93,13 +93,12 @@ func (s *RollappTestSuite) TestHardFork() {
 // Fail - Invalid rollapp
 func (s *RollappTestSuite) TestHardFork_InvalidRollapp() {
 	ctx := &s.Ctx
-	keeper := s.k()
 
 	rollapp, proposer := s.CreateDefaultRollappAndProposer()
 	_, err := s.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	s.Require().Nil(err)
 
-	err = keeper.HardFork(*ctx, "invalidRollapp", 2)
+	err = s.k().HardFork(*ctx, "invalidRollapp", 2)
 	s.Require().Error(err)
 }
 

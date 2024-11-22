@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
@@ -153,6 +154,16 @@ func (s *RollappTestSuite) TestLivenessWiring() {
 	*/
 
 }
+func (s *RollappTestSuite) TestLivenessEndBlock() {
+	p := s.k().GetParams(s.Ctx)
+	p.LivenessSlashBlocks = 10
+	s.k().SetParams(s.Ctx, p)
+	rollapp, proposer := s.CreateDefaultRollappAndProposer()
+	_, err := s.PostStateUpdate(s.Ctx, rollapp, proposer, 1, uint64(10))
+	s.Require().NoError(err)
+	s.checkLivenessReset(rollapp, true)
+
+}
 
 func (s *RollappTestSuite) checkLivenessReset(rollappId string, expectNewEvent bool) {
 	msg, broken := keeper.LivenessEventInvariant(*s.k())(s.Ctx)
@@ -220,8 +231,7 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 			},
 			"hub end blocks": func(r *rapid.T) {
 				for range rapid.IntRange(0, 100).Draw(r, "num blocks") {
-					h := s.Ctx.BlockHeight()
-					s.Ctx = s.Ctx.WithBlockHeight(h + 1)
+					s.NextBlock(time.Second)
 				}
 			},
 		})
