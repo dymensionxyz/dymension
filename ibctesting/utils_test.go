@@ -118,10 +118,6 @@ func (s *utilSuite) SetupTest() {
 	s.coordinator.Chains[rollappChainID()] = s.newTestChainWithSingleValidator(s.T(), s.coordinator, rollappChainID())
 }
 
-func (s *utilSuite) fundSenderAccount() {
-	//	apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(rollapptypes.DefaultRegistrationFee))
-}
-
 // CreateRollappWithFinishedGenesis creates a rollapp whose 'genesis' protocol is complete:
 // that is, they have finished all genesis transfers and their bridge is enabled.
 func (s *utilSuite) createRollappWithFinishedGenesis(canonicalChannelID string) {
@@ -251,6 +247,7 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	s.Require().NoError(err)
 }
 
+// NOTE: does not use process the queue, it uses intrusive method which breaks invariants
 func (s *utilSuite) finalizeRollappState(index uint64, endHeight uint64) (sdk.Events, error) {
 	rollappKeeper := s.hubApp().RollappKeeper
 	ctx := s.hubCtx()

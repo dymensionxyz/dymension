@@ -15,10 +15,16 @@ func (d Distribution) Validate() error {
 			return ErrInvalidDistribution.Wrapf("duplicated gauge id: %d", g.GaugeId)
 		}
 		gaugeIDs[g.GaugeId] = struct{}{}
+		if !g.Power.IsPositive() { // zeros are already pruned
+			return ErrInvalidDistribution.Wrapf("gauge power must be > 0, got %s: id: %d", g.Power, g.GaugeId)
+		}
 		total = total.Add(g.Power)
 	}
 	if total.GT(d.VotingPower) {
 		return ErrInvalidDistribution.Wrapf("voting power mismatch: sum of gauge powers %s is greater than the total voting power %s", total, d.VotingPower)
+	}
+	if d.VotingPower.IsNegative() {
+		return ErrInvalidDistribution.Wrapf("voting power must be >= 0, got %s", d.VotingPower)
 	}
 	return nil
 }
@@ -27,6 +33,9 @@ func (v Vote) Validate() error {
 	err := ValidateGaugeWeights(v.Weights)
 	if err != nil {
 		return ErrInvalidVote.Wrap(err.Error())
+	}
+	if !v.VotingPower.IsPositive() {
+		return ErrInvalidVote.Wrapf("must be > 0, got %s", v.VotingPower)
 	}
 	return nil
 }
