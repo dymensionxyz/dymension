@@ -79,8 +79,8 @@ func (k Keeper) IndicateLiveness(ctx sdk.Context, ra *types.Rollapp) {
 // Modifies the passed-in rollapp object.
 func (k Keeper) ResetLivenessClock(ctx sdk.Context, ra *types.Rollapp) {
 	k.DelLivenessEvents(ctx, ra.LivenessEventHeight, ra.RollappId)
-	ra.LivenessCountdownStartHeight = ctx.BlockHeight()
 	ra.LivenessEventHeight = 0
+	ra.LivenessCountdownStartHeight = ctx.BlockHeight()
 }
 
 // ScheduleLivenessEvent schedules a new liveness event. Assumes an event does not

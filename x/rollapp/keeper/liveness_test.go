@@ -111,23 +111,6 @@ func TestLivenessEventsStorage(t *testing.T) {
 	})
 }
 
-/*
-
-	state update and set new non sentinel
-		delete events
-		reset clock
-		reset rollapp field
-		set new event + rollapp field
-	HF
-		delete events
-		reset clock
-		reset rollapp field
-	end block
-		delete events
-		reset rollapp field
-		set new event + rollapp field
-*/
-
 func (s *RollappTestSuite) TestLivenessEndBlock() {
 	p := s.k().GetParams(s.Ctx)
 	p.LivenessSlashBlocks = 2
