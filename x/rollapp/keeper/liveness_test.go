@@ -189,7 +189,7 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
 				rollappIsDown[raID] = rapid.Bool().Draw(r, "down")
 			},
-			"indicate liveness": func(r *rapid.T) {
+			"indicate liveness (new proposer + state update)": func(r *rapid.T) {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
 				if !rollappIsDown[raID] {
 					ra := s.k().MustGetRollapp(s.Ctx, raID)
@@ -203,6 +203,7 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
 				ra := s.k().MustGetRollapp(s.Ctx, raID)
 				s.k().ResetLivenessClock(s.Ctx, &ra)
+				s.k().SetRollapp(s.Ctx, ra)
 				hClockStart[raID] = s.Ctx.BlockHeight()
 				tracker.clear(raID)
 			},
