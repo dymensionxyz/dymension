@@ -158,7 +158,6 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 		}
 
 		hClockStart := map[string]int64{}
-		rollappIsDown := map[string]bool{}
 
 		r.Repeat(map[string]func(r *rapid.T){
 			"": func(r *rapid.T) { // check
@@ -185,23 +184,20 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 					}
 				}
 			},
-			"change sequencer status": func(r *rapid.T) {
-				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
-				rollappIsDown[raID] = rapid.Bool().Draw(r, "down")
-			},
+
 			"indicate liveness (new proposer + state update)": func(r *rapid.T) {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
-				if !rollappIsDown[raID] {
-					ra := s.k().MustGetRollapp(s.Ctx, raID)
-					s.k().IndicateLiveness(s.Ctx, &ra)
-					s.k().SetRollapp(s.Ctx, ra)
-					hClockStart[raID] = s.Ctx.BlockHeight()
-					tracker.clear(raID)
-				}
+				ra := s.k().MustGetRollapp(s.Ctx, raID)
+				// use intrusive method. Wiring is checked in state update test and hook test
+				s.k().IndicateLiveness(s.Ctx, &ra)
+				s.k().SetRollapp(s.Ctx, ra)
+				hClockStart[raID] = s.Ctx.BlockHeight()
+				tracker.clear(raID)
 			},
 			"fork": func(r *rapid.T) {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
 				ra := s.k().MustGetRollapp(s.Ctx, raID)
+				// use intrusive method
 				s.k().ResetLivenessClock(s.Ctx, &ra)
 				s.k().SetRollapp(s.Ctx, ra)
 				hClockStart[raID] = s.Ctx.BlockHeight()
