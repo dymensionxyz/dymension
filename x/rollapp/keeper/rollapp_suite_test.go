@@ -22,6 +22,7 @@ const (
 	alice           = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
 	bob             = "dym1d0wlmz987qlurs6e3kc6zd25z6wsdmnwx8tafy"
 	registrationFee = "1000000000000000000adym"
+	hubChainID      = "dymension_100-1"
 )
 
 type RollappTestSuite struct {
@@ -38,7 +39,7 @@ func TestRollappKeeperTestSuite(t *testing.T) {
 func (s *RollappTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T())
 	s.App = app
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{ChainID: hubChainID})
 
 	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
 	s.Require().NoError(err)

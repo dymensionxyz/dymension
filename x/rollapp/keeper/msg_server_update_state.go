@@ -76,9 +76,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	newIndex = lastIndex + 1
 
 	// if no rotation, next is the same!
-	successor := k.sequencerKeeper.GetProposer(ctx, msg.RollappId)
+	successor := k.SequencerK.GetProposer(ctx, msg.RollappId)
 	if msg.Last {
-		successor = k.sequencerKeeper.GetSuccessor(ctx, msg.RollappId)
+		successor = k.SequencerK.GetSuccessor(ctx, msg.RollappId)
 	}
 
 	creationHeight := uint64(ctx.BlockHeight())

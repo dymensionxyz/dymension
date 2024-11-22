@@ -126,7 +126,7 @@ func (s *RollappTestSuite) TestLivenessEndBlock() {
 	p := s.k().GetParams(s.Ctx)
 	p.LivenessSlashBlocks = 2
 	s.k().SetParams(s.Ctx, p)
-	tracker := newLivenessMockSequencerKeeper(s.k().GetSE)
+	tracker := newLivenessMockSequencerKeeper(s.k().SequencerK)
 	s.k().SetSequencerKeeper(tracker)
 	rollapp, proposer := s.CreateDefaultRollappAndProposer()
 	_, err := s.PostStateUpdate(s.Ctx, rollapp, proposer, 1, uint64(10))
@@ -161,7 +161,7 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 
 		rollapps := []string{urand.RollappID(), urand.RollappID()}
 
-		tracker := newLivenessMockSequencerKeeper()
+		tracker := newLivenessMockSequencerKeeper(s.k().SequencerK)
 		s.k().SetSequencerKeeper(tracker)
 		for _, ra := range rollapps {
 			s.k().SetRollapp(s.Ctx, types.NewRollapp("", ra, "", types.Rollapp_Unspecified, nil, types.GenesisInfo{}, false))
@@ -222,16 +222,16 @@ type livenessMockSequencerKeeper struct {
 	slashes map[string]int // rollapp->cnt
 }
 
-func (l livenessMockSequencerKeeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
-	l.slashes[rollappID]++
-	return nil
-}
-
 func newLivenessMockSequencerKeeper(k keeper.SequencerKeeper) livenessMockSequencerKeeper {
 	return livenessMockSequencerKeeper{
 		SequencerKeeper: k,
 		slashes:         make(map[string]int),
 	}
+}
+
+func (l livenessMockSequencerKeeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
+	l.slashes[rollappID]++
+	return nil
 }
 
 func (l livenessMockSequencerKeeper) clear(rollappID string) {

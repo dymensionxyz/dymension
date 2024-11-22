@@ -40,6 +40,14 @@ type KeeperTestHelper struct {
 	Ctx sdk.Context
 }
 
+func (s *KeeperTestHelper) NextBlock(dt time.Duration) {
+	s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	//s.App.Commit()
+	s.Ctx = s.Ctx.WithBlockTime(s.Ctx.BlockTime().Add(dt)).WithBlockHeight(s.Ctx.BlockHeight() + 1)
+	h := tmproto.Header{Height: s.Ctx.BlockHeight(), Time: s.Ctx.BlockTime(), ChainID: s.Ctx.ChainID()}
+	s.App.BeginBlocker(s.Ctx, abci.RequestBeginBlock{Header: h})
+}
+
 func (s *KeeperTestHelper) CreateDefaultRollappAndProposer() (string, string) {
 	rollappId := s.CreateDefaultRollapp()
 	proposer := s.CreateDefaultSequencer(s.Ctx, rollappId)
@@ -149,14 +157,6 @@ func (s *KeeperTestHelper) PostStateUpdateWithOptions(ctx sdk.Context, rollappId
 	msgServer := rollappkeeper.NewMsgServerImpl(s.App.RollappKeeper)
 	_, err = msgServer.UpdateState(ctx, &updateState)
 	return startHeight + numOfBlocks, err
-}
-
-func (s *KeeperTestHelper) NextBlock(dt time.Duration) {
-	s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
-	s.App.Commit()
-	s.Ctx = s.Ctx.WithBlockTime(s.Ctx.BlockTime().Add(dt)).WithBlockHeight(s.Ctx.BlockHeight() + 1)
-	h := tmproto.Header{Height: s.Ctx.BlockHeight(), Time: s.Ctx.BlockTime()}
-	s.App.BeginBlocker(s.Ctx, abci.RequestBeginBlock{Header: h})
 }
 
 // FundAcc funds target address with specified amount.
