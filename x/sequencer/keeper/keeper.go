@@ -20,6 +20,7 @@ type Keeper struct {
 	cdc            codec.BinaryCodec
 	storeKey       storetypes.StoreKey
 	bankKeeper     types.BankKeeper
+	accountK       types.AccountKeeper
 	rollappKeeper  types.RollappKeeper
 	unbondBlockers []UnbondBlocker
 	hooks          types.Hooks
@@ -31,6 +32,7 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
 	bankKeeper types.BankKeeper,
+	accountK types.AccountKeeper,
 	rollappKeeper types.RollappKeeper,
 	authority string,
 ) *Keeper {
@@ -46,6 +48,7 @@ func NewKeeper(
 		storeKey:       storeKey,
 		bankKeeper:     bankKeeper,
 		rollappKeeper:  rollappKeeper,
+		accountK:       accountK,
 		authority:      authority,
 		unbondBlockers: []UnbondBlocker{},
 		hooks:          types.NoOpHooks{},

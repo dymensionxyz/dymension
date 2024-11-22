@@ -2,16 +2,14 @@ package keeper_test
 
 import (
 	"github.com/cometbft/cometbft/libs/rand"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	dakeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func (suite *DelayedAckTestSuite) TestInvariants() {
-	suite.T().Skip("skipping TestInvariants as it's not supported with lazy finalization feature")
-
 	initialHeight := int64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(initialHeight)
 
@@ -82,8 +80,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 		suite.Require().NoError(err)
 	}
 
-	// check invariant
-	msg, fails := dakeeper.PacketsFinalizationCorrespondsToFinalizationHeight(suite.App.DelayedAckKeeper)(suite.Ctx)
+	msg, fails := keeper.AllInvariants(suite.App.DelayedAckKeeper)(suite.Ctx)
 	suite.Require().False(fails, msg)
 }
 
@@ -234,9 +231,8 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet)
 			suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet2)
 
-			// check invariant
-			_, isBroken := dakeeper.PacketsFinalizationCorrespondsToFinalizationHeight(suite.App.DelayedAckKeeper)(suite.Ctx)
-			suite.Require().Equal(tc.expectedIsBroken, isBroken)
+			_, fails := keeper.AllInvariants(suite.App.DelayedAckKeeper)(suite.Ctx)
+			suite.Require().Equal(tc.expectedIsBroken, fails)
 		})
 	}
 }

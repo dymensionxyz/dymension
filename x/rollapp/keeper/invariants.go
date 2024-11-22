@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 
+	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -12,7 +13,6 @@ import (
 
 // RegisterInvariants registers the bank module invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
-	ir.RegisterRoute(types.ModuleName, "rollapp-state-index", RollappLatestStateIndexInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "rollapp-count", RollappCountInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "block-height-to-finalization-queue", BlockHeightToFinalizationQueueInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "rollapp-by-eip155-key", RollappByEIP155KeyInvariant(k))
@@ -23,11 +23,7 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 // AllInvariants runs all invariants of the module.
 func AllInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-		res, stop := RollappLatestStateIndexInvariant(k)(ctx)
-		if stop {
-			return res, stop
-		}
-		res, stop = RollappCountInvariant(k)(ctx)
+		res, stop := RollappCountInvariant(k)(ctx)
 		if stop {
 			return res, stop
 		}
@@ -69,11 +65,15 @@ func RollappByEIP155KeyInvariant(k Keeper) sdk.Invariant {
 				continue
 			}
 
-			_, found := k.GetRollappByEIP155(ctx, rollappID.GetEIP155ID())
+			got, found := k.GetRollappByEIP155(ctx, rollappID.GetEIP155ID())
 			if !found {
 				msg += fmt.Sprintf("rollapp (%s) have no eip155 key\n", rollapp.RollappId)
 				broken = true
 				continue
+			}
+			if got.RollappId != rollapp.RollappId {
+				msg += fmt.Sprintf("rollapp (%s) have different rollappId\n", rollapp.RollappId)
+				broken = true
 			}
 		}
 
@@ -97,8 +97,25 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 				continue
 			}
 
-			latestStateIdx, _ := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
-			latestFinalizedStateIdx, _ := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
+			latestStateIdx, okLatest := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
+
+			// if not found, zero is fine, which means first expected is 1
+			latestFinalizedStateIdx, okLatestFinalized := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
+
+			if !okLatest && okLatestFinalized {
+				msg += fmt.Sprintf("rollapp (%s) has latest finalized ix but not lastest ix\n", rollapp.RollappId)
+				broken = true
+				continue
+			}
+
+			if okLatest && okLatestFinalized {
+				if latestStateIdx.Index < latestFinalizedStateIdx.Index {
+					msg += fmt.Sprintf("rollapp has latest ix < latest finalized ix: latest: %d: latest finalized: %d: rollapp: %s\n",
+						latestStateIdx.Index, latestFinalizedStateIdx.Index, rollapp.RollappId)
+					broken = true
+					continue
+				}
+			}
 
 			firstUnfinalizedStateIdx := latestFinalizedStateIdx.Index + 1
 
@@ -137,6 +154,29 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 					msg += fmt.Sprintf("rollapp (%s) has stateInfo that doesn't not correspond to it\n", rollapp.RollappId)
 					broken = true
 				}
+			}
+
+			err := k.finalizationQueue.Walk(ctx, nil,
+				func(key collections.Pair[uint64, string], value types.BlockHeightToFinalizationQueue) (stop bool, err error) {
+					if key.K2() != rollapp.RollappId {
+						return false, nil
+					}
+					if key.K2() != value.RollappId {
+						return false, fmt.Errorf("rollapp (%s) have finalizationQueue with wrong rollappId\n", rollapp.RollappId)
+					}
+					for _, idx := range value.FinalizationQueue {
+						if idx.Index <= latestFinalizedStateIdx.Index {
+							msg += fmt.Sprintf(`rollapp has index in queue which is already finalized:
+latest ix: %d,  latest finalized index : %d, queue ix: %d, rollapp: %s`, latestStateIdx.Index, latestFinalizedStateIdx.Index, idx.Index, rollapp.RollappId)
+
+							broken = true
+						}
+					}
+					return false, nil
+				})
+			if err != nil {
+				msg += fmt.Sprintf("error walking finalization queue: %s\n", err)
+				broken = true
 			}
 		}
 
@@ -178,43 +218,6 @@ func RollappCountInvariant(k Keeper) sdk.Invariant {
 
 		return sdk.FormatInvariant(
 			types.ModuleName, "rollapp-count",
-			msg,
-		), broken
-	}
-}
-
-// RollappLatestStateIndexInvariant checks the following invariants per each rollapp that latest state index >= finalized state index
-func RollappLatestStateIndexInvariant(k Keeper) sdk.Invariant {
-	return func(ctx sdk.Context) (string, bool) {
-		var (
-			broken bool
-			msg    string
-		)
-
-		rollapps := k.GetAllRollapps(ctx)
-		for _, rollapp := range rollapps {
-			if !k.IsRollappStarted(ctx, rollapp.RollappId) {
-				continue
-			}
-
-			latestStateIdx, found := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
-			if !found {
-				msg += fmt.Sprintf("rollapp (%s) have no latestStateIdx\n", rollapp.RollappId)
-				broken = true
-				break
-			}
-
-			latestFinalizedStateIdx, _ := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
-			// not found is ok, it means no finalized state yet
-
-			if latestStateIdx.Index < latestFinalizedStateIdx.Index {
-				msg += fmt.Sprintf("rollapp (%s) have latestStateIdx < latestFinalizedStateIdx\n", rollapp.RollappId)
-				broken = true
-			}
-		}
-
-		return sdk.FormatInvariant(
-			types.ModuleName, "rollapp-state-index",
 			msg,
 		), broken
 	}

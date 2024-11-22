@@ -37,9 +37,8 @@ func (suite *KeeperTestSuite) TestInvariants() {
 		suite.Require().NoError(err)
 	}
 
-	// check invariant
 	suite.Require().NotPanics(func() {
-		eibckeeper.DemandOrderCountInvariant(suite.App.EIBCKeeper)(ctx)
-		eibckeeper.UnderlyingPacketExistInvariant(suite.App.EIBCKeeper)(ctx)
+		_, broken := eibckeeper.AllInvariants(suite.App.EIBCKeeper)(ctx)
+		suite.False(broken)
 	})
 }

@@ -94,7 +94,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 
 	k.SetSequencer(ctx, *seq)
 	if err := k.SetSequencerByDymintAddr(ctx, pkAddr, seq.Address); err != nil {
-		return nil, err
+		return nil, errorsmod.Wrapf(err, "set sequencer by dymint addr: %s: proposer hash: %x", seq.Address, pkAddr)
 	}
 
 	proposer := k.GetProposer(ctx, msg.RollappId)

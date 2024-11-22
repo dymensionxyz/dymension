@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/stretchr/testify/require"
 
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -38,6 +39,7 @@ func SequencerKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		cdc,
 		storeKey,
 		nil,
+		&authkeeper.AccountKeeper{},
 		&rollappkeeper.Keeper{},
 		sample.AccAddress(),
 	)
