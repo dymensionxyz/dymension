@@ -496,8 +496,8 @@ github.com/dymensionxyz/cometbft v0.37.5-0.20241118210820-8eda0d5f45b9 h1:VfDGsd
 github.com/dymensionxyz/cometbft v0.37.5-0.20241118210820-8eda0d5f45b9/go.mod h1:QC+mU0lBhKn8r9qvmnq53Dmf3DWBt4VtkcKw2C81wxY=
 github.com/dymensionxyz/cosmos-sdk v0.47.9-0.20241030110731-1ee7a862da35 h1:Yi+cSEYwRszwUc4SHEabtmDucmYvQHRM+YQWcqzW6dw=
 github.com/dymensionxyz/cosmos-sdk v0.47.9-0.20241030110731-1ee7a862da35/go.mod h1:pYMzhTfKFn9AJB5X64Epwe9NgYk0y3v7XN8Ks5xqWoo=
-github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20241030105541-9d34c1e3378f h1:ztQow9uwaXrcYOeSYt+9yF0FKnVjG9jiwnJxR1ss/hM=
-github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20241030105541-9d34c1e3378f/go.mod h1:2G1Xmc/tJP6A4jc00TgPl7NlA0ts2u0Qo1zW27vBTx4=
+github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20241122154128-8b8f9994b9c5 h1:z9IeNI0rFTj5H6lDwH+UWqVF9CSDYD7sm5YL1bZRsk8=
+github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20241122154128-8b8f9994b9c5/go.mod h1:2G1Xmc/tJP6A4jc00TgPl7NlA0ts2u0Qo1zW27vBTx4=
 github.com/dymensionxyz/gerr-cosmos v1.1.0 h1:IW/P7HCB/iP9kgk3VXaWUoMoyx3vD76YO6p1fnubHVc=
 github.com/dymensionxyz/gerr-cosmos v1.1.0/go.mod h1:n+0olxPogzWqFKba45mCpvrHLGmeS8W9UZjggHnWk6c=
 github.com/dymensionxyz/ibc-go-fork/v7 v7.5.2-0.20241118120532-3f2f353810f3 h1:+8YElg88E5PZMbKWUXBEKM05FpFsi8lNhVPlXrW31G8=

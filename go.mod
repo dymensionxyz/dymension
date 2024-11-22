@@ -241,7 +241,7 @@ replace (
 	github.com/cosmos/cosmos-sdk => github.com/dymensionxyz/cosmos-sdk v0.47.9-0.20241030110731-1ee7a862da35
 	//hacks
 	github.com/cosmos/ibc-go/v7 => github.com/dymensionxyz/ibc-go-fork/v7 v7.5.2-0.20241118120532-3f2f353810f3
-	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20241030105541-9d34c1e3378f
+	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20241122154128-8b8f9994b9c5
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/osmosis-labs/osmosis/osmomath => github.com/dymensionxyz/osmosis/osmomath v0.0.6-dymension-v0.1.0.20240820121212-c0e21fa21e43
 	github.com/osmosis-labs/osmosis/v15 => github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20241121091134-5930c0d433a8
