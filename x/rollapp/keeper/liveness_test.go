@@ -128,8 +128,20 @@ func (s *RollappTestSuite) TestLivenessFlow2() {
 			On hub end blocks -> check events and schedule new ones if needed
 
 		Gameplan
+		Test 1
+			Create a rollapp
+
+		Actions
+			Hard fork
+			State update
+			Set new proposer
+
+
 	*/
 
+}
+
+type model struct {
 }
 
 // The protocol works.
@@ -147,7 +159,7 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 			s.k().SetRollapp(s.Ctx, types.NewRollapp("", ra, "", types.Rollapp_Unspecified, nil, types.GenesisInfo{}, false))
 		}
 
-		hLastUpdate := map[string]int64{}
+		hClockStart := map[string]int64{}
 		rollappIsDown := map[string]bool{}
 
 		r.Repeat(map[string]func(r *rapid.T){
@@ -158,7 +170,7 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 				// 2. check the right amount of slashing occurred
 				for _, ra := range rollapps {
 					h := s.Ctx.BlockHeight()
-					lastUpdate, ok := hLastUpdate[ra]
+					lastUpdate, ok := hClockStart[ra]
 					if !ok {
 						continue // we can freely assume we will not need to slash a rollapp if it has NEVER had an update
 					}
@@ -174,7 +186,7 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 					}
 				}
 			},
-			"set sequencer status": func(r *rapid.T) {
+			"change sequencer status": func(r *rapid.T) {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
 				rollappIsDown[raID] = rapid.Bool().Draw(r, "down")
 			},
@@ -184,7 +196,7 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 					ra := s.k().MustGetRollapp(s.Ctx, raID)
 					s.k().IndicateLiveness(s.Ctx, &ra)
 					s.k().SetRollapp(s.Ctx, ra)
-					hLastUpdate[raID] = s.Ctx.BlockHeight()
+					hClockStart[raID] = s.Ctx.BlockHeight()
 					tracker.clear(raID)
 				}
 			},
