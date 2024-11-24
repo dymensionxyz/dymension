@@ -12,6 +12,7 @@ import (
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
 	simappparams "cosmossdk.io/simapp/params"
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -19,7 +20,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	v4 "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
-	v4hotfix "github.com/dymensionxyz/dymension/v3/app/upgrades/v4_migration_script_hotfix"
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -84,7 +84,7 @@ var (
 	DefaultNodeHome string
 
 	// Upgrades contains the upgrade handlers for the application
-	Upgrades = []upgrades.Upgrade{v4.Upgrade, v4hotfix.Upgrade}
+	Upgrades = []upgrades.Upgrade{v4.Upgrade}
 )
 
 func init() {
@@ -258,9 +258,51 @@ func (app *App) Name() string { return app.BaseApp.Name() }
 // GetBaseApp returns the base app of the application
 func (app App) GetBaseApp() *baseapp.BaseApp { return app.BaseApp }
 
+const (
+	EMERGENCY_PATCH_HEIGHT = 4117908
+)
+
 // BeginBlocker application updates every begin block
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	if ctx.BlockHeight() == EMERGENCY_PATCH_HEIGHT {
+		app.ApplyEmergencyPatch(ctx)
+	}
 	return app.mm.BeginBlock(ctx, req)
+}
+
+func (app *App) ApplyEmergencyPatch(ctx sdk.Context) {
+	// update validator_current_rewards period to 2 instead of 1
+	app.DistrKeeper.IterateValidatorCurrentRewards(ctx, func(val sdk.ValAddress, rewards distrtypes.ValidatorCurrentRewards) bool {
+		if rewards.Period != 0 {
+			app.Logger().Error("fixing validator current rewards period. expected 0", "val", val, "period", rewards.Period)
+			return true
+		}
+		rewards.Period = 2
+		app.DistrKeeper.SetValidatorCurrentRewards(ctx, val, rewards)
+
+		// validator_historical_rewards set period 1 instead of 0 with reference count 2
+		old := app.DistrKeeper.GetValidatorHistoricalRewards(ctx, val, 0)
+		if old.ReferenceCount != 0 {
+			app.Logger().Error("fixing validator historical rewards period. expected reference count 0", "val", val, "period", old.ReferenceCount)
+			return true
+		}
+		app.DistrKeeper.DeleteValidatorHistoricalReward(ctx, val, 0)
+
+		old.ReferenceCount = 2
+		app.DistrKeeper.SetValidatorHistoricalRewards(ctx, val, 1, old)
+
+		return false
+	})
+
+	// fix delegation starting info from 0 to 1
+	app.DistrKeeper.IterateDelegatorStartingInfos(ctx, func(val sdk.ValAddress, del sdk.AccAddress, info distrtypes.DelegatorStartingInfo) bool {
+		info.PreviousPeriod = 1
+		app.DistrKeeper.SetDelegatorStartingInfo(ctx, val, del, info)
+		return false
+	})
+
+	// remove slash events
+	app.DistrKeeper.DeleteAllValidatorSlashEvents(ctx)
 }
 
 // EndBlocker application updates every end block
