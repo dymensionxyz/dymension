@@ -273,8 +273,8 @@ func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.R
 func (app *App) ApplyEmergencyPatch(ctx sdk.Context) {
 	// update validator_current_rewards period to 2 instead of 1
 	app.DistrKeeper.IterateValidatorCurrentRewards(ctx, func(val sdk.ValAddress, rewards distrtypes.ValidatorCurrentRewards) bool {
-		if rewards.Period != 1 {
-			app.Logger().Error("fixing validator current rewards period. expected 1", "val", val, "period", rewards.Period)
+		if rewards.Period != 0 {
+			app.Logger().Error("fixing validator current rewards period. expected 0", "val", val, "period", rewards.Period)
 			return true
 		}
 		rewards.Period = 2
@@ -282,8 +282,8 @@ func (app *App) ApplyEmergencyPatch(ctx sdk.Context) {
 
 		// validator_historical_rewards set period 1 instead of 0 with reference count 2
 		old := app.DistrKeeper.GetValidatorHistoricalRewards(ctx, val, 0)
-		if old.ReferenceCount != 0 {
-			app.Logger().Error("fixing validator historical rewards period. expected reference count 0", "val", val, "period", old.ReferenceCount)
+		if old.ReferenceCount != 1 {
+			app.Logger().Error("fixing validator historical rewards period. expected reference count 1", "val", val, "period", old.ReferenceCount)
 			return true
 		}
 		app.DistrKeeper.DeleteValidatorHistoricalReward(ctx, val, 0)
