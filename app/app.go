@@ -274,7 +274,7 @@ func (app *App) ApplyEmergencyPatch(ctx sdk.Context) {
 	// update validator_current_rewards period to 2 instead of 1
 	app.DistrKeeper.IterateValidatorCurrentRewards(ctx, func(val sdk.ValAddress, rewards distrtypes.ValidatorCurrentRewards) bool {
 		if rewards.Period != 1 {
-			app.Logger().Error("fixing validator current rewards period. expected 0", "val", val, "period", rewards.Period)
+			app.Logger().Error("fixing validator current rewards period. expected 1", "val", val, "period", rewards.Period)
 			return true
 		}
 		rewards.Period = 2
