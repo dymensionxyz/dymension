@@ -273,7 +273,7 @@ func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.R
 func (app *App) ApplyEmergencyPatch(ctx sdk.Context) {
 	// update validator_current_rewards period to 2 instead of 1
 	app.DistrKeeper.IterateValidatorCurrentRewards(ctx, func(val sdk.ValAddress, rewards distrtypes.ValidatorCurrentRewards) bool {
-		if rewards.Period != 0 {
+		if rewards.Period != 1 {
 			app.Logger().Error("fixing validator current rewards period. expected 0", "val", val, "period", rewards.Period)
 			return true
 		}
