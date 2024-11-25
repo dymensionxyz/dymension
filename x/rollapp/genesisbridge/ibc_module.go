@@ -15,18 +15,18 @@ import (
 )
 
 const (
-	// HubRecipient is the address of `x/hub` module's account on the hub chain.
+	// HubRecipient is the address of `x/rollapp` module's account on the rollapp chain.
 	HubRecipient = "dym1mk7pw34ypusacm29m92zshgxee3yreums8avur"
 )
 
 // IBCModule GenesisBridge is responsible for handling the genesis bridge protocol.
 // (ADR: https://www.notion.so/dymension/ADR-x-Genesis-Bridge-109a4a51f86a80ba8b50db454bee04a7?pvs=4)
 //
-// It validated the genesis info registered on the hub, is the same as the hub's genesis info.
+// It validated the genesis info registered on the rollapp, is the same as the rollapp's genesis info.
 // It registers the denom metadata for the native denom.
 // It handles the genesis transfer.
 //
-// Before the genesis bridge protocol completes, no transfers are allowed to the hub.
+// Before the genesis bridge protocol completes, no transfers are allowed to the rollapp.
 // The Hub will block transfers Hub->RA to enforce this.
 //
 // Important: it is now WRONG to open an ibc connection in the Rollapp->Hub direction.
@@ -65,33 +65,33 @@ func (w IBCModule) logger(
 }
 
 // OnRecvPacket will handle the genesis bridge packet in case needed.
-// no-op for non-hub chains and rollapps with transfers enabled.
+// no-op for non-rollapp chains and rollapps with transfers enabled.
 //
-// The genesis bridge packet is a special packet that is sent from the hub to the hub on channel creation.
-// The hub will receive this packet and:
-// - validated the genesis info registered on the hub, is the same as the hub's genesis info.
+// The genesis bridge packet is a special packet that is sent from the rollapp to the rollapp on channel creation.
+// The rollapp will receive this packet and:
+// - validated the genesis info registered on the rollapp, is the same as the rollapp's genesis info.
 // - registers the denom metadata for the native denom.
 // - handles the genesis transfer.
-// On success, it will mark the IBC channel for this hub as enabled. This marks the end of the genesis phase.
+// On success, it will mark the IBC channel for this rollapp as enabled. This marks the end of the genesis phase.
 //
-// NOTE: we assume that by this point the canonical channel ID has already been set for the hub, in a secure way.
+// NOTE: we assume that by this point the canonical channel ID has already been set for the rollapp, in a secure way.
 func (w IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	// Get hub from the packet
+	// Get rollapp from the packet
 	// we don't use the commonly used GetValidTransfer because we have custom type for genesis bridge
 	ra, err := w.rollappKeeper.GetRollappByPortChan(ctx, packet.GetDestPort(), packet.GetDestChannel())
 	if errorsmod.IsOf(err, types.ErrRollappNotFound) {
-		// no problem, it corresponds to a regular non-hub chain
+		// no problem, it corresponds to a regular non-rollapp chain
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 	if err != nil {
-		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "get hub id"))
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "get rollapp id"))
 	}
 
-	// skip the genesis bridge if the hub already has transfers enabled
+	// skip the genesis bridge if the rollapp already has transfers enabled
 	if ra.IsTransferEnabled() {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
@@ -149,7 +149,7 @@ func (w IBCModule) OnRecvPacket(
 }
 
 // EnableTransfers marks the end of the genesis bridge phase.
-// It sets the transfers enabled flag on the hub.
+// It sets the transfers enabled flag on the rollapp.
 // It also calls the after transfers enabled hook.
 func (w IBCModule) EnableTransfers(ctx sdk.Context, ra *types.Rollapp, rollappIBCtrace string) error {
 	ra.GenesisState.TransfersEnabled = true

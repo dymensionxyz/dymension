@@ -27,12 +27,12 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// GenesisBridgeData is the data struct that is passed to the hub for the
+// GenesisBridgeData is the data struct that is passed to the rollapp for the
 // genesis bridge flow
 type GenesisBridgeData struct {
-	// genesis_info is the genesis info of the hub. used for hub validation
+	// genesis_info is the genesis info of the rollapp. used for rollapp validation
 	GenesisInfo GenesisBridgeInfo `protobuf:"bytes,1,opt,name=genesis_info,json=genesisInfo,proto3" json:"genesis_info"`
-	// native_denom is the native denom of the hub. registered on the hub
+	// native_denom is the native denom of the rollapp. registered on the rollapp
 	NativeDenom types.Metadata `protobuf:"bytes,2,opt,name=native_denom,json=nativeDenom,proto3" json:"native_denom"`
 	// optional genesis transfer packet data
 	GenesisTransfer *types1.FungibleTokenPacketData `protobuf:"bytes,3,opt,name=genesis_transfer,json=genesisTransfer,proto3" json:"genesis_transfer,omitempty"`
@@ -92,8 +92,8 @@ func (m *GenesisBridgeData) GetGenesisTransfer() *types1.FungibleTokenPacketData
 	return nil
 }
 
-// The genesis info of the hub, that is passed to the hub for validation.
-// it's populated on the InitGenesis of the hub
+// The genesis info of the rollapp, that is passed to the rollapp for validation.
+// it's populated on the InitGenesis of the rollapp
 type GenesisBridgeInfo struct {
 	// checksum used to verify integrity of the genesis file. currently unused
 	GenesisChecksum string `protobuf:"bytes,1,opt,name=genesis_checksum,json=genesisChecksum,proto3" json:"genesis_checksum,omitempty"`

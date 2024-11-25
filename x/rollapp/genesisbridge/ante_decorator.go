@@ -16,7 +16,7 @@ type ChannelKeeper interface {
 	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error) // implemented by ibc channel keeper
 }
 
-// TransferEnabledDecorator only allows ibc transfers to a hub if that hub has finished
+// TransferEnabledDecorator only allows ibc transfers to a rollapp if that rollapp has finished
 // the genesis bridge protocol.
 type TransferEnabledDecorator struct {
 	rollappK              RollappKeeperMinimal
@@ -35,21 +35,21 @@ func (h TransferEnabledDecorator) transfersEnabled(ctx sdk.Context, transfer *tr
 	if err != nil {
 		if errorsmod.IsOf(err, types.ErrRollappNotFound) {
 			// Two cases
-			// 1. Non hub
+			// 1. Non rollapp
 			//    Transfers are enabled
-			// 2. It is for hub but the light client of this transfer is not yet canonical or will never
-			//    be marked canonical: for a correct hub the transfer channel is only created after it's
+			// 2. It is for rollapp but the light client of this transfer is not yet canonical or will never
+			//    be marked canonical: for a correct rollapp the transfer channel is only created after it's
 			//    marked canonical, so this transfer corresponds to a not-relevant channel.
 			//    Note: IBC prevents sending to a channel which is not OPEN, which prevents making the transfer
 			//    for a channel before it is marked canonical in the onOpenAck hook.
 			return true, nil
 		}
-		return false, errorsmod.Wrap(err, "hub by port chan")
+		return false, errorsmod.Wrap(err, "rollapp by port chan")
 	}
 	return ra.GenesisState.TransfersEnabled, nil
 }
 
-// AnteHandle will return an error if the tx contains an ibc transfer message to a hub that has not finished the transfer genesis protocol.
+// AnteHandle will return an error if the tx contains an ibc transfer message to a rollapp that has not finished the transfer genesis protocol.
 func (h TransferEnabledDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	for _, msg := range tx.GetMsgs() {
 		typeURL := sdk.MsgTypeURL(msg)
@@ -63,7 +63,7 @@ func (h TransferEnabledDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 				return ctx, errorsmod.Wrap(err, "transfer genesis: transfers enabled")
 			}
 			if !ok {
-				return ctx, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "transfers to/from hub are disabled")
+				return ctx, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "transfers to/from rollapp are disabled")
 			}
 		}
 	}

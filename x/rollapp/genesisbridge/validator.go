@@ -14,7 +14,7 @@ import (
 
 type validator struct {
 	rollapp   GenesisBridgeData // what the rollapp sent over IBC
-	hub       types.GenesisInfo // what the hub thinks is correct
+	hub       types.GenesisInfo // what the rollapp thinks is correct
 	channelID string            // can use "channel-0" in simulation
 	rollappID string            // the actual rollapp ID
 }
@@ -31,7 +31,7 @@ func (v *validator) validateAndGetActionItems() (*actionItems, error) {
 	}
 
 	if err := v.validateAgainstHub(v.rollapp.GenesisInfo, v.hub); err != nil {
-		return nil, errorsmod.Wrap(err, "validate against hub")
+		return nil, errorsmod.Wrap(err, "validate against rollapp")
 	}
 
 	ret := &actionItems{}
@@ -106,7 +106,7 @@ func (v *validator) getBankStuff() (*transfertypes.DenomTrace, *banktypes.Metada
 
 	// Change the base to the ibc denom, and add an alias to the original
 	m.Base = trace.IBCDenom()
-	m.Description = fmt.Sprintf("auto-generated ibc denom for hub: base: %s: hub: %s", m.GetBase(), v.rollappID)
+	m.Description = fmt.Sprintf("auto-generated ibc denom for rollapp: base: %s: rollapp: %s", m.GetBase(), v.rollappID)
 	for i, u := range m.DenomUnits {
 		if u.Exponent == 0 {
 			m.DenomUnits[i].Aliases = append(m.DenomUnits[i].Aliases, u.Denom)
