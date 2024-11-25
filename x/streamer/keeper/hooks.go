@@ -161,7 +161,7 @@ func (h Hooks) RollappCreated(ctx sdk.Context, rollappID, _ string, _ sdk.AccAdd
 	err := h.k.CreateRollappGauge(ctx, rollappID)
 	if err != nil {
 		ctx.Logger().Error("Failed to create rollapp gauge", "error", err)
-		return err
+		return fmt.Errorf("create rollapp gauge: %w", err)
 	}
 	return nil
 }

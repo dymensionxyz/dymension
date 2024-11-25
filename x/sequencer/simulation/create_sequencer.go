@@ -10,12 +10,12 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/simulation"
 	simulationtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func SimulateMsgCreateSequencer(ak simulationtypes.AccountKeeper, bk simulationtypes.BankKeeper) simtypes.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
-	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		// choose creator and rollappId
 		creatorAccount, _ := simtypes.RandomAcc(r, accs)
 		seqAddress := creatorAccount.Address.String()
@@ -35,10 +35,24 @@ func SimulateMsgCreateSequencer(ak simulationtypes.AccountKeeper, bk simulationt
 		}
 
 		msg := &types.MsgCreateSequencer{
-			Creator:             seqAddress,
-			DymintPubKey:        pkAny,
-			RollappId:           rollappId,
-			Metadata:            types.SequencerMetadata{},
+			Creator:      seqAddress,
+			DymintPubKey: pkAny,
+			RollappId:    rollappId,
+			Metadata: types.SequencerMetadata{
+				Moniker:        "sequencer",
+				Details:        "Sample description",
+				P2PSeeds:       nil,
+				Rpcs:           []string{"https://rpc-dym.com:443"},
+				EvmRpcs:        []string{"https://rpc-dym-evm.com:443"},
+				RestApiUrls:    []string{"https://rest-dym.com:443"},
+				ExplorerUrl:    "https://dymension-explorer.xyz",
+				GenesisUrls:    []string{"https://genesis-dym.com"},
+				ContactDetails: nil,
+				ExtraData:      nil,
+				Snapshots:      nil,
+				GasPrice:       nil,
+			},
+			Bond:                sdk.NewCoin("adym", commontypes.DYM.MulRaw(100)),
 			RewardAddr:          seqAddress,
 			WhitelistedRelayers: []string{},
 		}

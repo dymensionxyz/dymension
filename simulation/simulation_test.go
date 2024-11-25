@@ -4,17 +4,21 @@ import (
 	"os"
 	"testing"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
+	"github.com/cosmos/cosmos-sdk/types"
 	simulationtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	simcli "github.com/cosmos/cosmos-sdk/x/simulation/client/cli"
 	"github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/testing/simapp"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/app"
+	appParams "github.com/dymensionxyz/dymension/v3/app/params"
 )
 
 func init() {
@@ -55,8 +59,13 @@ func TestFullAppSimulation(t *testing.T) {
 	appOptions := make(simtestutil.AppOptionsMap, 0)
 	appOptions[flags.FlagHome] = app.DefaultNodeHome
 	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue
+	appOptions[cli.FlagDefaultBondDenom] = "adym"
+	types.DefaultBondDenom = "adym"
+	types.DefaultPowerReduction = math.NewIntFromUint64(1000000) // overwrite evm module's default power reduction
 
 	encoding := app.MakeEncodingConfig()
+
+	appParams.SetAddressPrefixes()
 
 	dymdApp := app.New(
 		logger,
@@ -67,17 +76,20 @@ func TestFullAppSimulation(t *testing.T) {
 		app.DefaultNodeHome,
 		0,
 		encoding,
-		simapp.EmptyAppOptions{},
+		appOptions,
 		baseapp.SetChainID(SimulationAppChainID),
 	)
 	require.Equal(t, "dymension", dymdApp.Name())
+
+	genesis, err := prepareGenesis(dymdApp.AppCodec())
+	require.NoError(t, err)
 
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
 		t,
 		os.Stdout,
 		dymdApp.BaseApp,
-		simtestutil.AppStateFn(dymdApp.AppCodec(), dymdApp.SimulationManager(), app.NewDefaultGenesisState(dymdApp.AppCodec())),
+		simtestutil.AppStateFn(dymdApp.AppCodec(), dymdApp.SimulationManager(), genesis),
 		simulationtypes.RandomAccounts,
 		simtestutil.SimulationOperations(dymdApp, dymdApp.AppCodec(), config),
 		dymdApp.ModuleAccountAddrs(),
