@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	// HubRecipient is the address of `x/rollapp` module's account on the hub chain.
+	// HubRecipient is the address of `x/hub` module's account on the hub chain.
 	HubRecipient = "dym1mk7pw34ypusacm29m92zshgxee3yreums8avur"
 )
 
