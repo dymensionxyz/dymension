@@ -48,7 +48,7 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge, cache types.De
 			filteredLocks := k.GetDistributeToBaseLocks(ctx, gauge, cache) // get all locks that satisfy the gauge
 			gaugeDistributedCoins, err = k.calculateAssetGaugeRewards(ctx, gauge, filteredLocks, &lockHolders)
 		case *types.Gauge_Rollapp:
-			gaugeDistributedCoins, err = k.distributeToRollappGauge(ctx, gauge)
+			gaugeDistributedCoins, err = k.calculateRollappGaugeRewards(ctx, gauge, &lockHolders)
 		default:
 			return nil, errorsmod.WithType(sdkerrors.ErrInvalidType, fmt.Errorf("gauge %d has an unsupported distribution type", gauge.Id))
 		}
