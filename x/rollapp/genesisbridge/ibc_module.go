@@ -122,9 +122,6 @@ func (w IBCModule) OnRecvPacket(
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "create denom metadata"))
 	}
 
-	if err := w.transferKeeper.OnRecvPacket(ctx, packet, actionItems.fungiDatas[0]); err != nil {
-		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "handle genesis transfer"))
-	}
 	for _, data := range actionItems.fungiDatas {
 		if err := w.transferKeeper.OnRecvPacket(ctx, packet, data); err != nil {
 			return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "handle genesis transfer"))
