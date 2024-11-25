@@ -201,10 +201,10 @@ func (a *AppKeepers) SetupModules(
 		params.NewAppModule(a.ParamsKeeper),
 		packetforwardmiddleware.NewAppModule(a.PacketForwardMiddlewareKeeper, a.GetSubspace(packetforwardtypes.ModuleName)),
 		ibctransfer.NewAppModule(a.TransferKeeper),
-		rollappmodule.NewAppModule(appCodec, a.RollappKeeper, a.AccountKeeper, a.BankKeeper),
+		rollappmodule.NewAppModule(appCodec, a.RollappKeeper),
 		iro.NewAppModule(appCodec, *a.IROKeeper),
 
-		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper, a.AccountKeeper, a.BankKeeper),
+		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper),
 		sponsorship.NewAppModule(a.SponsorshipKeeper),
 		streamermodule.NewAppModule(a.StreamerKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
 		delayedackmodule.NewAppModule(appCodec, a.DelayedAckKeeper, a.delayedAckMiddleware),

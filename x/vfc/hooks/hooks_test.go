@@ -17,7 +17,7 @@ func TestHooksTestSuite(t *testing.T) {
 }
 
 func (suite *HooksTestSuite) SetupTest() {
-	app := apptesting.Setup(suite.T(), false)
+	app := apptesting.Setup(suite.T())
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
 	suite.App = app

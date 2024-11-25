@@ -46,7 +46,7 @@ func TestAnteTestSuite(t *testing.T) {
 
 // SetupTest setups a new test, with new app, context, and anteHandler.
 func (s *AnteTestSuite) SetupTestCheckTx(isCheckTx bool) {
-	s.app = apptesting.Setup(s.T(), isCheckTx)
+	s.app = apptesting.Setup(s.T())
 	s.ctx = s.app.BaseApp.NewContext(isCheckTx, cometbftproto.Header{}).WithBlockHeight(1).WithChainID(apptesting.TestChainID)
 
 	txConfig := s.app.GetTxConfig()

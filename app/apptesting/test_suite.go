@@ -4,7 +4,9 @@ import (
 	"strings"
 	"time"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/rand"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
@@ -36,6 +38,13 @@ type KeeperTestHelper struct {
 	suite.Suite
 	App *app.App
 	Ctx sdk.Context
+}
+
+func (s *KeeperTestHelper) NextBlock(dt time.Duration) {
+	s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	s.Ctx = s.Ctx.WithBlockTime(s.Ctx.BlockTime().Add(dt)).WithBlockHeight(s.Ctx.BlockHeight() + 1)
+	h := tmproto.Header{Height: s.Ctx.BlockHeight(), Time: s.Ctx.BlockTime(), ChainID: s.Ctx.ChainID()}
+	s.App.BeginBlocker(s.Ctx, abci.RequestBeginBlock{Header: h})
 }
 
 func (s *KeeperTestHelper) CreateDefaultRollappAndProposer() (string, string) {

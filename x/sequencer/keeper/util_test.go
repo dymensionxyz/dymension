@@ -86,7 +86,7 @@ func TestSequencerKeeperTestSuite(t *testing.T) {
 }
 
 func (s *SequencerTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
+	app := apptesting.Setup(s.T())
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())

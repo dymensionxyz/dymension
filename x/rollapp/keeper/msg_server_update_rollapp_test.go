@@ -11,7 +11,7 @@ import (
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-func (suite *RollappTestSuite) TestUpdateRollapp() {
+func (s *RollappTestSuite) TestUpdateRollapp() {
 	const (
 		rollappId               = "rollapp_1234-1"
 		initialSequencerAddress = "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz"
@@ -217,8 +217,8 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 	}
 
 	for _, tc := range tests {
-		suite.Run(tc.name, func() {
-			goCtx := sdk.WrapSDKContext(suite.Ctx)
+		s.Run(tc.name, func() {
+			goCtx := sdk.WrapSDKContext(s.Ctx)
 			rollapp := types.Rollapp{
 				RollappId:        rollappId,
 				Owner:            alice,
@@ -254,22 +254,22 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				},
 			}
 
-			suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+			s.k().SetRollapp(s.Ctx, rollapp)
 
-			_, err := suite.msgServer.UpdateRollappInformation(goCtx, tc.update)
+			_, err := s.msgServer.UpdateRollappInformation(goCtx, tc.update)
 			if tc.expError == nil {
-				suite.Require().NoError(err)
-				resp, err := suite.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{RollappId: tc.update.RollappId})
-				suite.Require().NoError(err)
-				suite.Equal(tc.expRollapp, resp.Rollapp)
+				s.Require().NoError(err)
+				resp, err := s.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{RollappId: tc.update.RollappId})
+				s.Require().NoError(err)
+				s.Equal(tc.expRollapp, resp.Rollapp)
 			} else {
-				suite.ErrorIs(err, tc.expError)
+				s.ErrorIs(err, tc.expError)
 			}
 		})
 	}
 }
 
-func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
+func (s *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	const rollappId = "rollapp_1234-1"
 
 	// 1. register rollapp
@@ -290,53 +290,53 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 			},
 		},
 	}
-	suite.FundForAliasRegistration(msg)
-	_, err := suite.msgServer.CreateRollapp(suite.Ctx, &msg)
-	suite.Require().NoError(err)
+	s.FundForAliasRegistration(msg)
+	_, err := s.msgServer.CreateRollapp(s.Ctx, &msg)
+	s.Require().NoError(err)
 
 	// 2. try to register sequencer (not initial) - should fail because rollapp is not launched
-	err = suite.CreateSequencerByPubkey(suite.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
-	suite.Require().ErrorIs(err, sequencertypes.ErrNotInitialSequencer)
+	err = s.CreateSequencerByPubkey(s.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
+	s.Require().ErrorIs(err, sequencertypes.ErrNotInitialSequencer)
 
 	// 3. update rollapp immutable fields, set InitialSequencer, Alias and GenesisChecksum
 	initSeqPubKey := ed25519.GenPrivKey().PubKey()
 	addrInit := sdk.AccAddress(initSeqPubKey.Address()).String()
 
-	_, err = suite.msgServer.UpdateRollappInformation(suite.Ctx, &types.MsgUpdateRollappInformation{
+	_, err = s.msgServer.UpdateRollappInformation(s.Ctx, &types.MsgUpdateRollappInformation{
 		Owner:            alice,
 		RollappId:        rollappId,
 		InitialSequencer: addrInit,
 		GenesisInfo:      &types.GenesisInfo{GenesisChecksum: "checksum1"},
 	})
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// 4. register sequencer (initial) - should be proposer; rollapp should be launched
 	// from this point on, the rollapp is launched and immutable fields cannot be updated
-	err = suite.CreateSequencerByPubkey(suite.Ctx, rollappId, initSeqPubKey)
-	suite.Require().NoError(err)
-	initSeq, err := suite.App.SequencerKeeper.RealSequencer(suite.Ctx, addrInit)
-	suite.Require().NoError(err)
-	proposer := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
-	suite.Require().Equal(initSeq, proposer)
-	rollapp, ok := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappId)
-	suite.Require().True(ok)
-	suite.Require().True(rollapp.Launched)
+	err = s.CreateSequencerByPubkey(s.Ctx, rollappId, initSeqPubKey)
+	s.Require().NoError(err)
+	initSeq, err := s.App.SequencerKeeper.RealSequencer(s.Ctx, addrInit)
+	s.Require().NoError(err)
+	proposer := s.App.SequencerKeeper.GetProposer(s.Ctx, rollappId)
+	s.Require().Equal(initSeq, proposer)
+	rollapp, ok := s.k().GetRollapp(s.Ctx, rollappId)
+	s.Require().True(ok)
+	s.Require().True(rollapp.Launched)
 
 	// 5. try to update rollapp immutable fields - should fail because rollapp is launched
-	_, err = suite.msgServer.UpdateRollappInformation(suite.Ctx, &types.MsgUpdateRollappInformation{
+	_, err = s.msgServer.UpdateRollappInformation(s.Ctx, &types.MsgUpdateRollappInformation{
 		Owner:            alice,
 		RollappId:        rollappId,
 		InitialSequencer: "new",
 	})
-	suite.Require().ErrorIs(err, types.ErrImmutableFieldUpdateAfterLaunched)
+	s.Require().ErrorIs(err, types.ErrImmutableFieldUpdateAfterLaunched)
 
 	// 6. register another sequencer - should not be proposer
-	newSeqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	proposer = suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
-	suite.Require().NotEqual(proposer, newSeqAddr)
+	newSeqAddr := s.CreateDefaultSequencer(s.Ctx, rollappId)
+	proposer = s.App.SequencerKeeper.GetProposer(s.Ctx, rollappId)
+	s.Require().NotEqual(proposer, newSeqAddr)
 
 	// 7. create state update
-	suite.App.RollappKeeper.SetLatestStateInfoIndex(suite.Ctx, types.StateInfoIndex{
+	s.k().SetLatestStateInfoIndex(s.Ctx, types.StateInfoIndex{
 		RollappId: rollappId,
 		Index:     1,
 	})
@@ -366,12 +366,12 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		},
 		GasPrice: uptr.To(sdk.NewInt(100)),
 	}
-	_, err = suite.seqMsgServer.UpdateSequencerInformation(suite.Ctx, &sequencertypes.MsgUpdateSequencerInformation{
+	_, err = s.seqMsgServer.UpdateSequencerInformation(s.Ctx, &sequencertypes.MsgUpdateSequencerInformation{
 		Creator:  addrInit,
 		Metadata: metadata,
 	})
-	suite.Require().NoError(err)
-	initSeq, err = suite.App.SequencerKeeper.RealSequencer(suite.Ctx, addrInit)
-	suite.Require().NoError(err)
-	suite.Require().Equal(metadata, initSeq.Metadata)
+	s.Require().NoError(err)
+	initSeq, err = s.App.SequencerKeeper.RealSequencer(s.Ctx, addrInit)
+	s.Require().NoError(err)
+	s.Require().Equal(metadata, initSeq.Metadata)
 }

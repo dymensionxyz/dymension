@@ -46,7 +46,7 @@ func (suite *QueryTestSuite) CreateDefaultStream(coins sdk.Coins) (uint64, *type
 }
 
 func (suite *QueryTestSuite) SetupSuite() {
-	suite.App = apptesting.Setup(suite.T(), false)
+	suite.App = apptesting.Setup(suite.T())
 	suite.Ctx = suite.App.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
 	streamerCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2500)), sdk.NewCoin("udym", sdk.NewInt(2500)))
 	suite.FundModuleAcc(types.ModuleName, streamerCoins)
