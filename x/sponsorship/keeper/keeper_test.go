@@ -36,7 +36,7 @@ type KeeperTestSuite struct {
 
 // SetupTest sets streamer parameters from the suite's context.
 func (s *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
+	app := apptesting.Setup(s.T())
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())

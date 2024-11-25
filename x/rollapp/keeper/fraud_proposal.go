@@ -52,7 +52,7 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 
 	// punish the sequencer if needed
 	if msg.PunishSequencerAddress != "" {
-		err := k.sequencerKeeper.PunishSequencer(ctx, msg.PunishSequencerAddress, msg.MustRewardee())
+		err := k.SequencerK.PunishSequencer(ctx, msg.PunishSequencerAddress, msg.MustRewardee())
 		if err != nil {
 			err = errorsmod.Wrap(err, "jail sequencer")
 			ctx.Logger().Error("Fraud proposal.", err)

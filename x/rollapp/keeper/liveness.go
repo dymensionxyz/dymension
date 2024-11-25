@@ -9,9 +9,8 @@ import (
 )
 
 /*
-This file has the logic for slashing rollapps based on liveness requirements (time since last update (actually number of hub blocks)).
-It will trigger slash/jail operations through the x/sequencers module, at intervals decided by parameters.
-See ADR for more info https://www.notion.so/dymension/ADR-x-Sequencer-Liveness-Slash-Phase-1-5131b4d557e34f4498855831f439d218
+Slash rollapps based on liveness requirements (time since last update (actually number of hub blocks)).
+See https://www.notion.so/dymension/sequencer-jailing-slashing-3455fe70923143cbbfd8f96d71deb583?pvs=4#11fa4a51f86a80ac9c2cda8ab7f8d39a
 */
 
 // NextSlashHeight returns the next height on the HUB to slash or jail the rollapp
@@ -27,7 +26,7 @@ func NextSlashHeight(
 ) {
 	// how long has the rollapp been down ?
 	down := uint64(heightHub - heightLastRollappUpdate)
-	// when should we schedule the next slash/jail, in terms of down time duration?
+	// when should we schedule the next slash, in terms of downtime duration?
 	interval := blocksSlashNoUpdate
 	if blocksSlashNoUpdate <= down {
 		// round up to next slash interval
@@ -59,12 +58,13 @@ func (k Keeper) CheckLiveness(ctx sdk.Context) {
 
 // HandleLivenessEvent will slash or jail and then schedule a new event in the future.
 func (k Keeper) HandleLivenessEvent(ctx sdk.Context, e types.LivenessEvent) error {
-	err := k.sequencerKeeper.SlashLiveness(ctx, e.RollappId)
+	err := k.SequencerK.SlashLiveness(ctx, e.RollappId)
 	if err != nil {
 		return errorsmod.Wrap(err, "slash liveness")
 	}
 
 	ra := k.MustGetRollapp(ctx, e.RollappId)
+	k.DelLivenessEvents(ctx, e.HubHeight, e.RollappId)
 	k.ScheduleLivenessEvent(ctx, &ra)
 	k.SetRollapp(ctx, ra)
 	return nil
@@ -79,8 +79,8 @@ func (k Keeper) IndicateLiveness(ctx sdk.Context, ra *types.Rollapp) {
 // Modifies the passed-in rollapp object.
 func (k Keeper) ResetLivenessClock(ctx sdk.Context, ra *types.Rollapp) {
 	k.DelLivenessEvents(ctx, ra.LivenessEventHeight, ra.RollappId)
-	ra.LivenessCountdownStartHeight = ctx.BlockHeight()
 	ra.LivenessEventHeight = 0
+	ra.LivenessCountdownStartHeight = ctx.BlockHeight()
 }
 
 // ScheduleLivenessEvent schedules a new liveness event. Assumes an event does not

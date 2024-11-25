@@ -23,7 +23,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *DelayedAckTestSuite) SetupTest() {
-	app := apptesting.Setup(suite.T(), false)
+	app := apptesting.Setup(suite.T())
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
 	suite.App = app

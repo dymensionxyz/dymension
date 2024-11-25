@@ -17,7 +17,7 @@ type TestSuite struct {
 }
 
 func (s *TestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
+	app := apptesting.Setup(s.T())
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
 	s.App = app
