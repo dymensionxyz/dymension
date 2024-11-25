@@ -99,22 +99,15 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper *keeper.Keeper
-
-	// keepers for simulation
-	accountKeeper simulationtypes.AccountKeeper
-	bankKeeper    simulationtypes.BankKeeper
 }
 
 func NewAppModule(
 	cdc codec.Codec,
 	keeper *keeper.Keeper,
-	accountKeeper simulationtypes.AccountKeeper,
-	bankKeeper simulationtypes.BankKeeper,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),
 		keeper:         keeper,
-		bankKeeper:     bankKeeper,
 	}
 }
 

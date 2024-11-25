@@ -28,9 +28,9 @@ func init() {
 const SimulationAppChainID = "dymension_100-1"
 
 /*
-To execute a completely pseudo-random simulation:
+To execute a completely pseudo-random simulation (from the root of the repository):
 
-	 $ go test . \
+	go test ./simulation \
 		-run=TestFullAppSimulation \
 		-Enabled=true \
 		-NumBlocks=100 \
@@ -40,7 +40,6 @@ To execute a completely pseudo-random simulation:
 		-Period=5 \
 		-v -timeout 24h
 */
-
 func TestFullAppSimulation(t *testing.T) {
 	config := simcli.NewConfigFromFlags()
 	config.ChainID = SimulationAppChainID

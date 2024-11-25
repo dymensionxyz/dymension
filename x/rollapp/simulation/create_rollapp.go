@@ -16,6 +16,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
+// TODO: revive simulation tests!
 func SimulateMsgCreateRollapp(ak simulationtypes.AccountKeeper, bk simulationtypes.BankKeeper) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		// choose creator and rollappId
