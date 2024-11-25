@@ -20,8 +20,7 @@ func (h SequencerHooks) AfterSetRealProposer(ctx sdk.Context, rollapp string, ne
 	// TODO: tech debt https://github.com/dymensionxyz/dymension/issues/1357
 
 	ra := h.Keeper.MustGetRollapp(ctx, rollapp)
-	h.Keeper.ResetLivenessClock(ctx, &ra)
-	h.Keeper.ScheduleLivenessEvent(ctx, &ra)
+	h.Keeper.IndicateLiveness(ctx, &ra)
 	h.Keeper.SetRollapp(ctx, ra)
 
 	// if the rollapp has a state info, set the next proposer to this sequencer

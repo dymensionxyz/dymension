@@ -19,7 +19,7 @@ import (
 func TestStreamerExportGenesis(t *testing.T) {
 	// export genesis using default configurations
 	// ensure resulting genesis params match default params
-	app := apptesting.Setup(t, false)
+	app := apptesting.Setup(t)
 	ctx := app.BaseApp.NewContext(false, cometbftproto.Header{})
 	genesis := app.StreamerKeeper.ExportGenesis(ctx)
 	require.Equal(t, genesis.Params, types.DefaultGenesis().Params)
@@ -80,7 +80,7 @@ func TestStreamerExportGenesis(t *testing.T) {
 
 // TestStreamerInitGenesis takes a genesis state and tests initializing that genesis for the streamer module.
 func TestStreamerInitGenesis(t *testing.T) {
-	app := apptesting.Setup(t, false)
+	app := apptesting.Setup(t)
 	ctx := app.BaseApp.NewContext(false, cometbftproto.Header{})
 
 	// checks that the default genesis parameters pass validation
@@ -141,7 +141,7 @@ func TestStreamerInitGenesis(t *testing.T) {
 }
 
 func TestStreamerOrder(t *testing.T) {
-	app := apptesting.Setup(t, false)
+	app := apptesting.Setup(t)
 	ctx := app.BaseApp.NewContext(false, cometbftproto.Header{}).WithBlockTime(time.Now())
 
 	// checks that the default genesis parameters pass validation

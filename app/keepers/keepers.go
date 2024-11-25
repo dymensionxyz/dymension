@@ -295,13 +295,6 @@ func (a *AppKeepers) InitKeepers(
 
 	// Osmosis keepers
 
-	a.LockupKeeper = lockupkeeper.NewKeeper(
-		a.keys[lockuptypes.StoreKey],
-		a.GetSubspace(lockuptypes.ModuleName),
-		a.AccountKeeper,
-		a.BankKeeper,
-	)
-
 	a.EpochsKeeper = epochskeeper.NewKeeper(
 		a.keys[epochstypes.StoreKey],
 	)
@@ -336,6 +329,14 @@ func (a *AppKeepers) InitKeepers(
 
 	a.GAMMKeeper.SetPoolManager(a.PoolManagerKeeper)
 	a.GAMMKeeper.SetTxFees(a.TxFeesKeeper)
+
+	a.LockupKeeper = lockupkeeper.NewKeeper(
+		a.keys[lockuptypes.StoreKey],
+		a.GetSubspace(lockuptypes.ModuleName),
+		a.AccountKeeper,
+		a.BankKeeper,
+		a.TxFeesKeeper,
+	)
 
 	// Create IBC Keeper
 	a.IBCKeeper = ibckeeper.NewKeeper(

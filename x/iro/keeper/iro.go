@@ -74,7 +74,7 @@ func (k Keeper) GetAllPlans(ctx sdk.Context, tradableOnly bool) (list []types.Pl
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Plan
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		if tradableOnly && !val.IsSettled() && !val.StartTime.After(ctx.BlockTime()) {
+		if tradableOnly && (val.IsSettled() || val.StartTime.After(ctx.BlockTime())) {
 			continue
 		}
 		list = append(list, val)

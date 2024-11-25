@@ -19,7 +19,7 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(suite.T(), false)
+	app := apptesting.Setup(suite.T())
 	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
 
 	suite.App = app

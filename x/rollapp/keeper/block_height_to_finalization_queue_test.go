@@ -24,20 +24,20 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func (suite *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
-	suite.SetupTest()
+func (s *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
+	s.SetupTest()
 	initialHeight := uint64(10)
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialHeight))
-	ctx := &suite.Ctx
-	k := suite.App.RollappKeeper
+	s.Ctx = s.Ctx.WithBlockHeight(int64(initialHeight))
+	ctx := &s.Ctx
+	k := s.k()
 
-	rollapp, proposer := suite.CreateDefaultRollappAndProposer()
+	rollapp, proposer := s.CreateDefaultRollappAndProposer()
 	// Create 2 state updates
-	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
-	suite.Require().Nil(err)
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialHeight + 1))
-	_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
-	suite.Require().Nil(err)
+	_, err := s.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
+	s.Require().Nil(err)
+	s.Ctx = s.Ctx.WithBlockHeight(int64(initialHeight + 1))
+	_, err = s.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
+	s.Require().Nil(err)
 
 	// Get the pending finalization queue
 	testCases := []struct {
@@ -51,8 +51,8 @@ func (suite *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
 	}
 	for _, tc := range testCases {
 		actual, err := k.GetFinalizationQueueUntilHeightInclusive(*ctx, tc.height)
-		suite.Require().NoError(err)
-		suite.Require().Len(actual, tc.expectedLen)
+		s.Require().NoError(err)
+		s.Require().Len(actual, tc.expectedLen)
 	}
 }
 
@@ -147,8 +147,8 @@ func TestGetFinalizationQueueByRollapp(t *testing.T) {
 }
 
 //nolint:gofumpt
-func (suite *RollappTestSuite) TestFinalizeRollapps() {
-	suite.SetupTest()
+func (s *RollappTestSuite) TestFinalizeRollapps() {
+	s.SetupTest()
 
 	type rollappQueue struct {
 		rollappId string
@@ -179,7 +179,7 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 
 	const initialHeight int64 = 10
 	getDisputePeriod := func() int64 {
-		return int64(suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx))
+		return int64(s.k().DisputePeriodInBlocks(s.Ctx))
 	}
 
 	getFinalizationHeight := func(n int64) int64 {
@@ -360,20 +360,20 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 	}
 
 	for _, tt := range tests {
-		suite.T().Run(tt.name, func(t *testing.T) {
-			suite.SetupTest()
-			ctx := &suite.Ctx
+		s.T().Run(tt.name, func(t *testing.T) {
+			s.SetupTest()
+			ctx := &s.Ctx
 
 			for _, rf := range tt.fields.rollappStateUpdates {
 				// Create a rollapp
-				suite.CreateRollappByName(rf.rollappId)
-				proposer := suite.CreateDefaultSequencer(suite.Ctx, rf.rollappId)
+				s.CreateRollappByName(rf.rollappId)
+				proposer := s.CreateDefaultSequencer(s.Ctx, rf.rollappId)
 
 				// Create state update
 				for _, su := range rf.stateUpdates {
-					suite.Ctx = suite.Ctx.WithBlockHeight(su.blockHeight)
-					_, err := suite.PostStateUpdate(*ctx, rf.rollappId, proposer, su.startHeight, su.numOfBlocks)
-					suite.Require().Nil(err)
+					s.Ctx = s.Ctx.WithBlockHeight(su.blockHeight)
+					_, err := s.PostStateUpdate(*ctx, rf.rollappId, proposer, su.startHeight, su.numOfBlocks)
+					s.Require().Nil(err)
 				}
 			}
 
@@ -389,7 +389,7 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 					}
 				}
 			}
-			suite.setMockErrRollappKeeperHooks(errFinalizeIndexes)
+			s.setMockErrRollappKeeperHooks(errFinalizeIndexes)
 			// run finalizations and check finalized state updates
 			for i, be := range tt.fields.finalizations {
 				errFinalizeIndexes = slices.DeleteFunc(errFinalizeIndexes, func(e types.StateInfoIndex) bool {
@@ -397,22 +397,22 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 					return ok
 				})
 
-				suite.Ctx = suite.Ctx.WithBlockHeight(getFinalizationHeight(int64(i + 1)))
-				response := suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+				s.Ctx = s.Ctx.WithBlockHeight(getFinalizationHeight(int64(i + 1)))
+				response := s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
 
 				numFinalized := countFinalized(response)
-				suite.Require().Equalf(be.wantNumFinalized, numFinalized, "finalization %d", i+1)
+				s.Require().Equalf(be.wantNumFinalized, numFinalized, "finalization %d", i+1)
 
-				heightQueue, err := suite.App.RollappKeeper.GetEntireFinalizationQueue(*ctx)
-				suite.Require().NoError(err)
-				suite.Require().Lenf(heightQueue, len(be.wantQueue), "finalization %d", i+1)
+				heightQueue, err := s.k().GetEntireFinalizationQueue(*ctx)
+				s.Require().NoError(err)
+				s.Require().Lenf(heightQueue, len(be.wantQueue), "finalization %d", i+1)
 
 				for i, q := range be.wantQueue {
-					suite.Require().Lenf(heightQueue[i].FinalizationQueue, len(q.rollappsLeft), "finalization %d", i+1)
+					s.Require().Lenf(heightQueue[i].FinalizationQueue, len(q.rollappsLeft), "finalization %d", i+1)
 
 					for j, r := range q.rollappsLeft {
-						suite.Require().Equalf(heightQueue[i].FinalizationQueue[j].RollappId, r.rollappId, "finalization %d, rollappLeft: %d", i+1, j+1)
-						suite.Require().Equalf(heightQueue[i].FinalizationQueue[j].Index, r.index, "finalization %d, rollappLeft: %d", i+1, j+1)
+						s.Require().Equalf(heightQueue[i].FinalizationQueue[j].RollappId, r.rollappId, "finalization %d, rollappLeft: %d", i+1, j+1)
+						s.Require().Equalf(heightQueue[i].FinalizationQueue[j].Index, r.index, "finalization %d, rollappLeft: %d", i+1, j+1)
 					}
 				}
 			}
@@ -421,48 +421,48 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 }
 
 // TODO: Test FinalizeQueue function with failed states
-func (suite *RollappTestSuite) TestFinalize() {
-	suite.SetupTest()
+func (s *RollappTestSuite) TestFinalize() {
+	s.SetupTest()
 
 	initialheight := uint64(10)
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight))
-	ctx := &suite.Ctx
+	s.Ctx = s.Ctx.WithBlockHeight(int64(initialheight))
+	ctx := &s.Ctx
 
-	k := suite.App.RollappKeeper
+	k := s.k()
 
 	// Create a rollapp
-	rollapp, proposer := suite.CreateDefaultRollappAndProposer()
+	rollapp, proposer := s.CreateDefaultRollappAndProposer()
 
 	// Create 2 state updates
-	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
-	suite.Require().Nil(err)
+	_, err := s.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
+	s.Require().Nil(err)
 
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + 1))
-	_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
-	suite.Require().Nil(err)
+	s.Ctx = s.Ctx.WithBlockHeight(int64(initialheight + 1))
+	_, err = s.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
+	s.Require().Nil(err)
 
 	// Finalize pending queues and check
-	response := suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+	response := s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
 	actualQueue, err := k.GetEntireFinalizationQueue(*ctx)
-	suite.Require().NoError(err)
-	suite.Require().Len(actualQueue, 2)
-	suite.False(findEvent(response, types.EventTypeStatusChange))
+	s.Require().NoError(err)
+	s.Require().Len(actualQueue, 2)
+	s.False(findEvent(response, types.EventTypeStatusChange))
 
 	// Finalize pending queues and check
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx)))
-	response = suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+	s.Ctx = s.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx)))
+	response = s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
 	actualQueue, err = k.GetEntireFinalizationQueue(*ctx)
-	suite.Require().NoError(err)
-	suite.Require().Len(actualQueue, 1)
-	suite.True(findEvent(response, types.EventTypeStatusChange))
+	s.Require().NoError(err)
+	s.Require().Len(actualQueue, 1)
+	s.True(findEvent(response, types.EventTypeStatusChange))
 
 	// Finalize pending queues and check
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx) + 1))
-	response = suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+	s.Ctx = s.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx) + 1))
+	response = s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
 	actualQueue, err = k.GetEntireFinalizationQueue(*ctx)
-	suite.Require().NoError(err)
-	suite.Require().Len(actualQueue, 0)
-	suite.True(findEvent(response, types.EventTypeStatusChange))
+	s.Require().NoError(err)
+	s.Require().Len(actualQueue, 0)
+	s.True(findEvent(response, types.EventTypeStatusChange))
 }
 
 /* ---------------------------------- utils --------------------------------- */
@@ -491,7 +491,7 @@ func findEvent(response abci.ResponseEndBlock, eventType string) bool {
 }
 
 //nolint:govet
-func (suite *RollappTestSuite) TestKeeperFinalizePending() {
+func (s *RollappTestSuite) TestKeeperFinalizePending() {
 	tests := []struct {
 		name                     string
 		pendingFinalizationQueue []types.BlockHeightToFinalizationQueue
@@ -820,19 +820,19 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 		},
 	}
 	for _, tt := range tests {
-		suite.T().Run(tt.name, func(t *testing.T) {
-			suite.SetupTest()
+		s.T().Run(tt.name, func(t *testing.T) {
+			s.SetupTest()
 
-			k := suite.App.RollappKeeper
+			k := s.k()
 			for _, item := range tt.pendingFinalizationQueue {
-				k.MustSetFinalizationQueue(suite.Ctx, item)
+				k.MustSetFinalizationQueue(s.Ctx, item)
 			}
 			k.SetFinalizePendingFn(MockFinalizePending(tt.errFinalizeIndices))
-			k.FinalizeAllPending(suite.Ctx, tt.pendingFinalizationQueue)
+			k.FinalizeAllPending(s.Ctx, tt.pendingFinalizationQueue)
 
-			finalizationQueue, err := k.GetEntireFinalizationQueue(suite.Ctx)
-			suite.Require().NoError(err)
-			suite.Require().Equal(tt.expectQueueAfter, finalizationQueue)
+			finalizationQueue, err := k.GetEntireFinalizationQueue(s.Ctx)
+			s.Require().NoError(err)
+			s.Require().Equal(tt.expectQueueAfter, finalizationQueue)
 		})
 	}
 }
@@ -848,8 +848,8 @@ func MockFinalizePending(errFinalizedIndices []types.StateInfoIndex) func(ctx sd
 
 // black-ops: don't do this at home
 // nolint:gosec
-func (suite *RollappTestSuite) setMockErrRollappKeeperHooks(failIndexes []types.StateInfoIndex) {
-	k := suite.App.RollappKeeper
+func (s *RollappTestSuite) setMockErrRollappKeeperHooks(failIndexes []types.StateInfoIndex) {
+	k := s.k()
 	v := reflect.ValueOf(k).Elem()
 	f := v.FieldByName("hooks")
 	hooks := mockRollappHooks{failIndexes: failIndexes}
