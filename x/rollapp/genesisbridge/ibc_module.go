@@ -2,24 +2,21 @@ package genesisbridge
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
-	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
-	"github.com/dymensionxyz/sdk-utils/utils/uibc"
-
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+)
+
+const (
+	// HubRecipient is the address of `x/hub` module's account on the hub chain.
+	HubRecipient = "dym1mk7pw34ypusacm29m92zshgxee3yreums8avur"
 )
 
 // IBCModule GenesisBridge is responsible for handling the genesis bridge protocol.
@@ -108,24 +105,33 @@ func (w IBCModule) OnRecvPacket(
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "unmarshal genesis bridge data"))
 	}
 
-	v := genesisTransferValidator{
+	v := validator{
 		rollapp:   genesisBridgeData,
 		hub:       ra.GenesisInfo,
 		channelID: ra.ChannelId,
 		rollappID: ra.RollappId,
 	}
 
-	actionableData, err := v.validateAndGetActionableData()
+	actionItems, err := v.validateAndGetActionItems()
 	if err != nil {
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "validate and get actionable data"))
 	}
 
-	w.transferKeeper.SetDenomTrace(ctx, actionableData.trace)
-	if err := w.denomKeeper.CreateDenomMetadata(ctx, actionableData.bankMeta); err != nil {
+	w.transferKeeper.SetDenomTrace(ctx, actionItems.trace)
+	if err := w.denomKeeper.CreateDenomMetadata(ctx, actionItems.bankMeta); err != nil {
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "create denom metadata"))
 	}
 
-	err = w.EnableTransfers(ctx, ra, actionableData.bankMeta.Base)
+	if err := w.transferKeeper.OnRecvPacket(ctx, packet, actionItems.fungiDatas[0]); err != nil {
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "handle genesis transfer"))
+	}
+	for _, data := range actionItems.fungiDatas {
+		if err := w.transferKeeper.OnRecvPacket(ctx, packet, data); err != nil {
+			return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "handle genesis transfer"))
+		}
+	}
+
+	err = w.EnableTransfers(ctx, ra, actionItems.bankMeta.Base)
 	if err != nil {
 		l.Error("Enable transfers.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: enable transfers"))
@@ -133,38 +139,13 @@ func (w IBCModule) OnRecvPacket(
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeTransfersEnabled,
 		sdk.NewAttribute(types.AttributeKeyRollappId, ra.RollappId),
-		sdk.NewAttribute(types.AttributeRollappIBCdenom, actionableData.bankMeta.Base),
+		sdk.NewAttribute(types.AttributeRollappIBCdenom, actionItems.bankMeta.Base),
 	))
 
 	// return success ack
 	// acknowledgement will be written synchronously during IBC handler execution.
 	successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 	return successAck
-}
-
-func compareGenesisAccounts(raCommitted *types.GenesisAccounts, gbData []types.GenesisAccount) error {
-	if raCommitted == nil {
-		if len(gbData) == 0 {
-			return nil
-		}
-		return fmt.Errorf("genesis accounts length mismatch: expected 0, got %d", len(gbData))
-	}
-
-	if len(raCommitted.Accounts) != len(gbData) {
-		return fmt.Errorf("genesis accounts length mismatch: expected %d, got %d", len(raCommitted.Accounts), len(gbData))
-	}
-
-	for _, acc := range raCommitted.Accounts {
-		found := slices.ContainsFunc(gbData, func(dataAcc types.GenesisAccount) bool {
-			return dataAcc.Address == acc.Address && dataAcc.Amount.Equal(acc.Amount)
-		})
-
-		if !found {
-			return fmt.Errorf("genesis account mismatch: account %s with amount %v not found in data", acc.Address, acc.Amount)
-		}
-	}
-
-	return nil
 }
 
 // EnableTransfers marks the end of the genesis bridge phase.
@@ -182,127 +163,4 @@ func (w IBCModule) EnableTransfers(ctx sdk.Context, ra *types.Rollapp, rollappIB
 	}
 
 	return nil
-}
-
-type genesisTransferValidator struct {
-	rollapp   GenesisBridgeData // what the rollapp sent over IBC
-	hub       types.GenesisInfo // what the hub thinks is correct
-	channelID string            // can use "channel-0" in simulation
-	rollappID string            // the actual rollapp ID
-}
-
-type genesisTransferActionableData struct {
-	trace      transfertypes.DenomTrace
-	bankMeta   banktypes.Metadata
-	fungiDatas []transfertypes.FungibleTokenPacketData
-}
-
-func (e *genesisTransferValidator) validateAndGetActionableData() (*genesisTransferActionableData, error) {
-	if err := e.rollapp.ValidateBasic(); err != nil {
-		return nil, errorsmod.Wrap(err, "validate basic genesis bridge data")
-	}
-
-	if err := e.validateAgainstHub(e.rollapp.GenesisInfo, e.hub); err != nil {
-		return nil, errorsmod.Wrap(err, "validate against hub")
-	}
-
-	ret := &genesisTransferActionableData{}
-	trace, bankMeta, err := e.getBankStuff()
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "get bank stuff")
-	}
-	ret.trace = *trace
-	ret.bankMeta = *bankMeta
-
-	fungiDatas, err := e.getFungiData()
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "get fungi data")
-	}
-	ret.fungiDatas = fungiDatas
-	return ret, nil
-}
-
-func (e *genesisTransferValidator) validateAgainstHub(packet GenesisBridgeInfo, hub types.GenesisInfo) error {
-	if packet.GenesisChecksum != hub.GenesisChecksum {
-		return fmt.Errorf("genesis checksum mismatch: expected: %v, got: %v", hub.GenesisChecksum, packet.GenesisChecksum)
-	}
-
-	if packet.Bech32Prefix != hub.Bech32Prefix {
-		return fmt.Errorf("bech32 prefix mismatch: expected: %v, got: %v", hub.Bech32Prefix, packet.Bech32Prefix)
-	}
-
-	if packet.NativeDenom != hub.NativeDenom {
-		return fmt.Errorf("native denom mismatch: expected: %v, got: %v", hub.NativeDenom, packet.NativeDenom)
-	}
-
-	if !packet.InitialSupply.Equal(hub.InitialSupply) {
-		return fmt.Errorf("initial supply mismatch: expected: %v, got: %v", hub.InitialSupply, packet.InitialSupply)
-	}
-
-	err := compareGenesisAccounts(hub.GenesisAccounts, packet.GenesisAccounts)
-	if err != nil {
-		return errorsmod.Wrap(err, "genesis accounts mismatch")
-	}
-}
-
-func (e *genesisTransferValidator) getBankStuff() (*transfertypes.DenomTrace, *banktypes.Metadata, error) {
-	var m banktypes.Metadata
-	m = e.rollapp.NativeDenom
-	trace := uibc.GetForeignDenomTrace(e.channelID, m.Base)
-
-	// Change the base to the ibc denom, and add an alias to the original
-	m.Base = trace.IBCDenom()
-	m.Description = fmt.Sprintf("auto-generated ibc denom for hub: base: %s: hub: %s", m.GetBase(), e.rollappID)
-	for i, u := range m.DenomUnits {
-		if u.Exponent == 0 {
-			m.DenomUnits[i].Aliases = append(m.DenomUnits[i].Aliases, u.Denom)
-			m.DenomUnits[i].Denom = m.GetBase()
-		}
-	}
-
-	if err := m.Validate(); err != nil {
-		return nil, nil, errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "metadata validate")
-	}
-	return &trace, &m, nil
-}
-
-func (e *genesisTransferValidator) getFungiData() ([]transfertypes.FungibleTokenPacketData, error) {
-	gTransfer := e.rollapp.GenesisTransfer
-	required := e.hub.GenesisAccounts != nil
-	// required but not present
-	if required && gTransfer == nil {
-		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer required")
-	}
-	// not required but present
-	if !required && gTransfer != nil {
-		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer not expected")
-	}
-	if gTransfer == nil {
-		return nil, nil
-	}
-
-	// validate the receiver
-	if gTransfer.Receiver != HubRecipient {
-		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "receiver mismatch")
-	}
-
-	// validate that the transfer amount matches the expected amount, which is the sum of all genesis accounts
-	expectedAmount := e.hub.GenesisTransferAmount()
-	if expectedAmount.String() != gTransfer.Amount {
-		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "amount mismatch")
-	}
-
-	var ret []transfertypes.FungibleTokenPacketData
-	for _, acc := range e.hub.GenesisAccounts.Accounts {
-		// create a new packet for each account
-		data := transfertypes.NewFungibleTokenPacketData(
-			gTransfer.Denom,
-			acc.Amount.String(),
-			gTransfer.Sender,
-			acc.Address,
-			"",
-		)
-		ret = append(ret, data)
-	}
-	return ret, nil
 }
