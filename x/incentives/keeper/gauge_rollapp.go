@@ -53,5 +53,13 @@ func (k Keeper) distributeToRollappGauge(ctx sdk.Context, gauge types.Gauge) (to
 		return sdk.Coins{}, err
 	}
 
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.TypeEvtDistribution,
+			sdk.NewAttribute(types.AttributeReceiver, distrs.idToBech32Addr[id]),
+			sdk.NewAttribute(types.AttributeAmount, distrs.idToDistrCoins[id].String()),
+		),
+	})
+
 	return totalDistrCoins, nil
 }
