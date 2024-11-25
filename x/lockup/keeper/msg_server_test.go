@@ -51,6 +51,9 @@ func (suite *KeeperTestSuite) TestMsgLockTokens() {
 			suite.SetupTest()
 
 			suite.FundAcc(test.param.lockOwner, test.param.coinsInOwnerAddress)
+			// fund address with lock fee
+			baseDenom, _ := suite.App.TxFeesKeeper.GetBaseDenom(suite.Ctx)
+			suite.FundAcc(test.param.lockOwner, sdk.NewCoins(sdk.NewCoin(baseDenom, types.DefaultLockFee)))
 
 			msgServer := keeper.NewMsgServerImpl(suite.App.LockupKeeper)
 			c := sdk.WrapSDKContext(suite.Ctx)
@@ -75,6 +78,8 @@ func (suite *KeeperTestSuite) TestMsgLockTokens() {
 
 				// add more tokens to lock via LockTokens
 				suite.FundAcc(test.param.lockOwner, test.param.coinsInOwnerAddress)
+				// fund address with lock fee
+				suite.FundAcc(test.param.lockOwner, sdk.NewCoins(sdk.NewCoin(baseDenom, types.DefaultLockFee)))
 
 				_, err = msgServer.LockTokens(sdk.WrapSDKContext(suite.Ctx), types.NewMsgLockTokens(test.param.lockOwner, locks[0].Duration, test.param.coinsToLock))
 				suite.Require().NoError(err)
@@ -156,6 +161,9 @@ func (suite *KeeperTestSuite) TestMsgBeginUnlocking() {
 		suite.SetupTest()
 
 		suite.FundAcc(test.param.lockOwner, test.param.coinsInOwnerAddress)
+		// fund address with lock fee
+		baseDenom, _ := suite.App.TxFeesKeeper.GetBaseDenom(suite.Ctx)
+		suite.FundAcc(test.param.lockOwner, sdk.NewCoins(sdk.NewCoin(baseDenom, types.DefaultLockFee)))
 
 		msgServer := keeper.NewMsgServerImpl(suite.App.LockupKeeper)
 		goCtx := sdk.WrapSDKContext(suite.Ctx)
@@ -209,6 +217,9 @@ func (suite *KeeperTestSuite) TestMsgBeginUnlockingAll() {
 		suite.SetupTest()
 
 		suite.FundAcc(test.param.lockOwner, test.param.coinsInOwnerAddress)
+		// fund address with lock fee
+		baseDenom, _ := suite.App.TxFeesKeeper.GetBaseDenom(suite.Ctx)
+		suite.FundAcc(test.param.lockOwner, sdk.NewCoins(sdk.NewCoin(baseDenom, types.DefaultLockFee)))
 
 		msgServer := keeper.NewMsgServerImpl(suite.App.LockupKeeper)
 		c := sdk.WrapSDKContext(suite.Ctx)
@@ -268,6 +279,9 @@ func (suite *KeeperTestSuite) TestMsgEditLockup() {
 
 		err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, test.param.lockOwner, test.param.coinsToLock)
 		suite.Require().NoError(err)
+		// fund address with lock fee
+		baseDenom, _ := suite.App.TxFeesKeeper.GetBaseDenom(suite.Ctx)
+		suite.FundAcc(test.param.lockOwner, sdk.NewCoins(sdk.NewCoin(baseDenom, types.DefaultLockFee)))
 
 		msgServer := keeper.NewMsgServerImpl(suite.App.LockupKeeper)
 		c := sdk.WrapSDKContext(suite.Ctx)
@@ -350,6 +364,10 @@ func (suite *KeeperTestSuite) TestMsgForceUnlock() {
 		poolDenom := gammtypes.GetPoolShareDenom(poolId)
 		coinsToLock := sdk.Coins{sdk.NewCoin(poolDenom, defaultLockAmount)}
 		suite.FundAcc(addr1, coinsToLock)
+
+		// fund address with lock fee
+		baseDenom, _ := suite.App.TxFeesKeeper.GetBaseDenom(suite.Ctx)
+		suite.FundAcc(addr1, sdk.NewCoins(sdk.NewCoin(baseDenom, types.DefaultLockFee)))
 
 		unbondingDuration := suite.App.StakingKeeper.GetParams(suite.Ctx).UnbondingTime
 		resp, err := msgServer.LockTokens(c, types.NewMsgLockTokens(addr1, unbondingDuration, coinsToLock))
