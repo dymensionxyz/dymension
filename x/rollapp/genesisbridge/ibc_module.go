@@ -108,34 +108,24 @@ func (w IBCModule) OnRecvPacket(
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "unmarshal genesis bridge data"))
 	}
 
-	// stateless validation of the genesis bridge data
-	if err := genesisBridgeData.ValidateBasic(); err != nil {
-		l.Error("Validate basic genesis bridge data.", "err", err)
-		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "validate basic genesis bridge data"))
+	v := genesisTransferValidator{
+		rollapp:   genesisBridgeData,
+		hub:       ra.GenesisInfo,
+		channelID: ra.ChannelId,
+		rollappID: ra.RollappId,
 	}
 
-	// validate genesis info against the expected data set on the hub
-	err = w.ValidateGenesisBridge(ra, genesisBridgeData.GenesisInfo)
+	actionableData, err := v.validateAndGetActionableData()
 	if err != nil {
-		l.Error("Validate genesis info.", "err", err)
-		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "validate genesis info"))
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "validate and get actionable data"))
 	}
 
-	// register the denom metadata. the supplied denom is validated on validateBasic
-	raBaseDenom, err := w.registerDenomMetadata(ctx, ra.RollappId, ra.ChannelId, genesisBridgeData.NativeDenom)
-	if err != nil {
-		l.Error("Register denom metadata.", "err", err)
-		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: register denom metadata"))
+	w.transferKeeper.SetDenomTrace(ctx, actionableData.trace)
+	if err := w.denomKeeper.CreateDenomMetadata(ctx, actionableData.bankMeta); err != nil {
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "create denom metadata"))
 	}
 
-	// validate and handle the genesis transfer
-	err = w.handleGenesisTransfer(ctx, *ra, packet, genesisBridgeData.GenesisTransfer)
-	if err != nil {
-		l.Error("Handle genesis transfer.", "err", err)
-		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "handle genesis transfer"))
-	}
-
-	err = w.EnableTransfers(ctx, ra, raBaseDenom)
+	err = w.EnableTransfers(ctx, ra, actionableData.bankMeta.Base)
 	if err != nil {
 		l.Error("Enable transfers.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: enable transfers"))
@@ -143,7 +133,7 @@ func (w IBCModule) OnRecvPacket(
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeTransfersEnabled,
 		sdk.NewAttribute(types.AttributeKeyRollappId, ra.RollappId),
-		sdk.NewAttribute(types.AttributeRollappIBCdenom, raBaseDenom),
+		sdk.NewAttribute(types.AttributeRollappIBCdenom, actionableData.bankMeta.Base),
 	))
 
 	// return success ack
@@ -177,34 +167,6 @@ func compareGenesisAccounts(raCommitted *types.GenesisAccounts, gbData []types.G
 	return nil
 }
 
-func (w IBCModule) registerDenomMetadata(ctx sdk.Context, rollappID, channelID string, m banktypes.Metadata) (string, error) {
-	// Set the trace for the ibc denom
-	trace := uibc.GetForeignDenomTrace(channelID, m.Base)
-	w.transferKeeper.SetDenomTrace(ctx, trace)
-
-	// Change the base to the ibc denom, and add an alias to the original
-	m.Base = trace.IBCDenom()
-	m.Description = fmt.Sprintf("auto-generated ibc denom for hub: base: %s: hub: %s", m.GetBase(), rollappID)
-	for i, u := range m.DenomUnits {
-		if u.Exponent == 0 {
-			m.DenomUnits[i].Aliases = append(m.DenomUnits[i].Aliases, u.Denom)
-			m.DenomUnits[i].Denom = m.GetBase()
-		}
-	}
-
-	if err := m.Validate(); err != nil {
-		return "", errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "metadata validate")
-	}
-
-	// We go by the denom keeper instead of calling bank directly, so denom creation hooks are called
-	err := w.denomKeeper.CreateDenomMetadata(ctx, m)
-	if err != nil {
-		return "", errorsmod.Wrap(err, "create denom metadata")
-	}
-
-	return m.Base, nil
-}
-
 // EnableTransfers marks the end of the genesis bridge phase.
 // It sets the transfers enabled flag on the hub.
 // It also calls the after transfers enabled hook.
@@ -223,30 +185,28 @@ func (w IBCModule) EnableTransfers(ctx sdk.Context, ra *types.Rollapp, rollappIB
 }
 
 type genesisTransferValidator struct {
-	args struct {
-		rollapp   GenesisBridgeData // what the rollapp sent over IBC
-		hub       types.GenesisInfo // what the hub thinks is correct
-		channelID string            // can use "channel-0" in simulation
-		rollappID string            // the actual rollapp ID
-	}
+	rollapp   GenesisBridgeData // what the rollapp sent over IBC
+	hub       types.GenesisInfo // what the hub thinks is correct
+	channelID string            // can use "channel-0" in simulation
+	rollappID string            // the actual rollapp ID
 }
 
-type GenesisTransferExecData struct {
+type genesisTransferActionableData struct {
 	trace      transfertypes.DenomTrace
 	bankMeta   banktypes.Metadata
 	fungiDatas []transfertypes.FungibleTokenPacketData
 }
 
-func (e *genesisTransferValidator) validateAndGetActionableData() (*GenesisTransferExecData, error) {
-	if err := e.args.rollapp.ValidateBasic(); err != nil {
+func (e *genesisTransferValidator) validateAndGetActionableData() (*genesisTransferActionableData, error) {
+	if err := e.rollapp.ValidateBasic(); err != nil {
 		return nil, errorsmod.Wrap(err, "validate basic genesis bridge data")
 	}
 
-	if err := e.validateAgainstHub(e.args.rollapp.GenesisInfo, e.args.hub); err != nil {
+	if err := e.validateAgainstHub(e.rollapp.GenesisInfo, e.hub); err != nil {
 		return nil, errorsmod.Wrap(err, "validate against hub")
 	}
 
-	ret := &GenesisTransferExecData{}
+	ret := &genesisTransferActionableData{}
 	trace, bankMeta, err := e.getBankStuff()
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "get bank stuff")
@@ -287,12 +247,12 @@ func (e *genesisTransferValidator) validateAgainstHub(packet GenesisBridgeInfo, 
 
 func (e *genesisTransferValidator) getBankStuff() (*transfertypes.DenomTrace, *banktypes.Metadata, error) {
 	var m banktypes.Metadata
-	m = e.args.rollapp.NativeDenom
-	trace := uibc.GetForeignDenomTrace(e.args.channelID, m.Base)
+	m = e.rollapp.NativeDenom
+	trace := uibc.GetForeignDenomTrace(e.channelID, m.Base)
 
 	// Change the base to the ibc denom, and add an alias to the original
 	m.Base = trace.IBCDenom()
-	m.Description = fmt.Sprintf("auto-generated ibc denom for hub: base: %s: hub: %s", m.GetBase(), e.args.rollappID)
+	m.Description = fmt.Sprintf("auto-generated ibc denom for hub: base: %s: hub: %s", m.GetBase(), e.rollappID)
 	for i, u := range m.DenomUnits {
 		if u.Exponent == 0 {
 			m.DenomUnits[i].Aliases = append(m.DenomUnits[i].Aliases, u.Denom)
@@ -307,8 +267,8 @@ func (e *genesisTransferValidator) getBankStuff() (*transfertypes.DenomTrace, *b
 }
 
 func (e *genesisTransferValidator) getFungiData() ([]transfertypes.FungibleTokenPacketData, error) {
-	gTransfer := e.args.rollapp.GenesisTransfer
-	required := e.args.hub.GenesisAccounts != nil
+	gTransfer := e.rollapp.GenesisTransfer
+	required := e.hub.GenesisAccounts != nil
 	// required but not present
 	if required && gTransfer == nil {
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer required")
@@ -327,13 +287,13 @@ func (e *genesisTransferValidator) getFungiData() ([]transfertypes.FungibleToken
 	}
 
 	// validate that the transfer amount matches the expected amount, which is the sum of all genesis accounts
-	expectedAmount := e.args.hub.GenesisTransferAmount()
+	expectedAmount := e.hub.GenesisTransferAmount()
 	if expectedAmount.String() != gTransfer.Amount {
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "amount mismatch")
 	}
 
 	var ret []transfertypes.FungibleTokenPacketData
-	for _, acc := range e.args.hub.GenesisAccounts.Accounts {
+	for _, acc := range e.hub.GenesisAccounts.Accounts {
 		// create a new packet for each account
 		data := transfertypes.NewFungibleTokenPacketData(
 			gTransfer.Denom,
