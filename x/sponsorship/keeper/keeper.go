@@ -16,6 +16,7 @@ import (
 type Keeper struct {
 	authority string // authority is the x/gov module account
 
+	schema                  collections.Schema
 	params                  collections.Item[types.Params]
 	delegatorValidatorPower collections.Map[collections.Pair[sdk.AccAddress, sdk.ValAddress], math.Int]
 	distribution            collections.Item[types.Distribution]
@@ -47,8 +48,9 @@ func NewKeeper(
 
 	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
 
-	return Keeper{
+	k := Keeper{
 		authority: authority,
+		schema:    collections.Schema{}, // set later
 		params: collections.NewItem(
 			sb,
 			types.ParamsPrefix(),
@@ -82,4 +84,18 @@ func NewKeeper(
 		incentivesKeeper: ik,
 		sequencerKeeper:  sqk,
 	}
+
+	// SchemaBuilder CANNOT be used after Build is called,
+	// so we build it after all collections are initialized
+	schema, err := sb.Build()
+	if err != nil {
+		panic(err)
+	}
+	k.schema = schema
+
+	return k
+}
+
+func (k Keeper) Schema() collections.Schema {
+	return k.schema
 }

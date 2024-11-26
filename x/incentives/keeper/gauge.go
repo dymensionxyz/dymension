@@ -112,6 +112,12 @@ func (k Keeper) CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddr
 
 	gauge := types.NewAssetGauge(k.GetLastGaugeID(ctx)+1, isPerpetual, distrTo, coins, startTime, numEpochsPaidOver)
 
+	//6810433581adym
+	//957752698adym
+	//2674521647adym
+
+	// spendable balance 957752698adym is smaller than 2674521647adym: insufficient funds
+
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, gauge.Coins); err != nil {
 		return 0, err
 	}
