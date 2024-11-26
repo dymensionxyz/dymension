@@ -40,7 +40,7 @@ func (w IBCModule) handleGenesisTransfer(ctx sdk.Context, ra types.Rollapp, pack
 	}
 
 	// split the transfer to the genesis accounts
-	for _, acc := range ra.GenesisInfo.GenesisAccounts.Accounts {
+	for _, acc := range ra.GenesisInfo.Accounts() {
 		// create a new packet for each account
 		data := transfertypes.NewFungibleTokenPacketData(
 			gTransfer.Denom,

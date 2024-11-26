@@ -66,6 +66,7 @@ func (info GenesisBridgeInfo) ValidateBasic() error {
 		InitialSupply:   info.InitialSupply,
 	}
 	if len(info.GenesisAccounts) > 0 {
+		// TODO: check
 		raGenesisInfo.GenesisAccounts = &types.GenesisAccounts{
 			Accounts: info.GenesisAccounts,
 		}

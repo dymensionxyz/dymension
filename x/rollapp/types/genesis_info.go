@@ -61,23 +61,19 @@ func (gi GenesisInfo) Validate() error {
 		return ErrInvalidInitialSupply
 	}
 
-	// validate max limit of genesis accounts
-	if gi.RequiresTransfer() {
+	if l := len(gi.Accounts()); l > maxAllowedGenesisAccounts {
+		return fmt.Errorf("too many genesis accounts: %d", l)
+	}
 
-		if len(gi.GenesisAccounts.Accounts) > maxAllowedGenesisAccounts {
-			return fmt.Errorf("too many genesis accounts: %d", len(gi.GenesisAccounts.Accounts))
+	accountSet := make(map[string]struct{})
+	for _, a := range gi.Accounts() {
+		if err := a.ValidateBasic(); err != nil {
+			return errors.Join(gerrc.ErrInvalidArgument, err)
 		}
-
-		accountSet := make(map[string]struct{})
-		for _, a := range gi.GenesisAccounts.Accounts {
-			if err := a.ValidateBasic(); err != nil {
-				return errors.Join(gerrc.ErrInvalidArgument, err)
-			}
-			if _, exists := accountSet[a.Address]; exists {
-				return fmt.Errorf("duplicate genesis account: %s", a.Address)
-			}
-			accountSet[a.Address] = struct{}{}
+		if _, exists := accountSet[a.Address]; exists {
+			return fmt.Errorf("duplicate genesis account: %s", a.Address)
 		}
+		accountSet[a.Address] = struct{}{}
 	}
 	return nil
 }

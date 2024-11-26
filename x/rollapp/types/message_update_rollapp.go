@@ -68,6 +68,8 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 	}
 
 	if msg.GenesisInfo != nil {
+		// TODO: need
+
 		if len(msg.GenesisInfo.GenesisChecksum) > maxGenesisChecksumLength {
 			return ErrInvalidGenesisChecksum
 		}
@@ -80,11 +82,11 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 
 		if msg.GenesisInfo.GenesisAccounts != nil {
 			// validate max limit of genesis accounts
-			if len(msg.GenesisInfo.GenesisAccounts.Accounts) > maxAllowedGenesisAccounts {
-				return fmt.Errorf("too many genesis accounts: %d", len(msg.GenesisInfo.GenesisAccounts.Accounts))
+			if l := len(msg.GenesisInfo.Accounts()); l > maxAllowedGenesisAccounts {
+				return fmt.Errorf("too many genesis accounts: %d", l)
 			}
 
-			for _, acc := range msg.GenesisInfo.GenesisAccounts.Accounts {
+			for _, acc := range msg.GenesisInfo.Accounts() {
 				if err := acc.ValidateBasic(); err != nil {
 					return errorsmod.Wrapf(errors.Join(gerrc.ErrInvalidArgument, err), "genesis account: %v", acc)
 				}
@@ -113,5 +115,7 @@ func (msg *MsgUpdateRollappInformation) UpdatingGenesisInfo() bool {
 		msg.GenesisInfo.Bech32Prefix != "" ||
 		msg.GenesisInfo.NativeDenom.Base != "" ||
 		!msg.GenesisInfo.InitialSupply.IsNil() ||
+
+		// Not nil = doing an update
 		msg.GenesisInfo.GenesisAccounts != nil
 }
