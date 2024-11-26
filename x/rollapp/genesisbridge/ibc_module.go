@@ -179,7 +179,6 @@ func (w IBCModule) ValidateGenesisBridge(ra *types.Rollapp, data GenesisBridgeIn
 }
 
 func compareGenesisAccounts(raCommitted []types.GenesisAccount, gbData []types.GenesisAccount) error {
-
 	if len(raCommitted) != len(gbData) {
 		return fmt.Errorf("genesis accounts length mismatch: expected %d, got %d", len(raCommitted), len(gbData))
 	}
