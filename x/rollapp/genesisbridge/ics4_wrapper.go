@@ -6,6 +6,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
@@ -41,6 +42,21 @@ func (w *ICS4Wrapper) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (sequence uint64, err error) {
+	if err := w.transferAllowed(ctx, sourcePort, sourceChannel); err != nil {
+		return 0, errorsmod.Wrap(err, "transfer allowed")
+	}
+	return w.ICS4Wrapper.SendPacket(
+		ctx,
+		chanCap,
+		sourcePort,
+		sourceChannel,
+		timeoutHeight,
+		timeoutTimestamp,
+		data,
+	)
+}
+
+func (w *ICS4Wrapper) transferAllowed(ctx sdk.Context, sourcePort string, sourceChannel string) error {
 	ra, err := w.rollappK.GetRollappByPortChan(ctx, sourcePort, sourceChannel)
 	if err != nil {
 		if errorsmod.IsOf(err, types.ErrRollappNotFound) {
@@ -52,20 +68,12 @@ func (w *ICS4Wrapper) SendPacket(
 			//    marked canonical, so this transfer corresponds to a not-relevant channel.
 			//    Note: IBC prevents sending to a channel which is not OPEN, which prevents making the transfer
 			//    for a channel before it is marked canonical in the onOpenAck hook.
-			return 0, nil
+			return nil
 		}
-		return 0, errorsmod.Wrap(err, "rollapp by port chan")
+		return errorsmod.Wrap(err, "rollapp by port chan")
 	}
 	if !ra.GenesisState.TransfersEnabled {
-		return 0, gerrc.ErrFailedPrecondition.Wrap("transfers disabled for rollapp")
+		return gerrc.ErrFailedPrecondition.Wrap("transfers disabled for rollapp")
 	}
-	return w.ICS4Wrapper.SendPacket(
-		ctx,
-		chanCap,
-		sourcePort,
-		sourceChannel,
-		timeoutHeight,
-		timeoutTimestamp,
-		data,
-	)
+	return nil
 }
