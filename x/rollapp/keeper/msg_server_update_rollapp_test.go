@@ -325,8 +325,7 @@ func (s *RollappTestSuite) TestUpdateRollappRegression() {
 	s.k().SetRollapp(s.Ctx, rollapp)
 
 	_, err := s.msgServer.UpdateRollappInformation(goCtx, update)
-	_ = err
-	//s.ErrorIs(err, types.ErrGenesisInfoSealed)
+	s.ErrorIs(err, types.ErrGenesisInfoSealed)
 
 	expect := len(rollapp.GenesisInfo.Accounts())
 	ra := s.k().MustGetRollapp(s.Ctx, rollappId)

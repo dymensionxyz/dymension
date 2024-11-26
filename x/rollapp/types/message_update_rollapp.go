@@ -113,7 +113,5 @@ func (msg *MsgUpdateRollappInformation) UpdatingGenesisInfo() bool {
 		msg.GenesisInfo.Bech32Prefix != "" ||
 		msg.GenesisInfo.NativeDenom.Base != "" ||
 		!msg.GenesisInfo.InitialSupply.IsNil() ||
-
-		// Not nil = doing an update
 		msg.GenesisInfo.GenesisAccounts != nil
 }
