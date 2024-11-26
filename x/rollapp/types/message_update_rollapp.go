@@ -106,12 +106,5 @@ func (msg *MsgUpdateRollappInformation) UpdatingImmutableValues() bool {
 }
 
 func (msg *MsgUpdateRollappInformation) UpdatingGenesisInfo() bool {
-	if msg.GenesisInfo == nil {
-		return false
-	}
-	return msg.GenesisInfo.GenesisChecksum != "" ||
-		msg.GenesisInfo.Bech32Prefix != "" ||
-		msg.GenesisInfo.NativeDenom.Base != "" ||
-		!msg.GenesisInfo.InitialSupply.IsNil() ||
-		msg.GenesisInfo.GenesisAccounts != nil
+	return msg.GenesisInfo != nil
 }
