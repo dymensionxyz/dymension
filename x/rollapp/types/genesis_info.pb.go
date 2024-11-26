@@ -46,7 +46,7 @@ type GenesisInfo struct {
 	//
 	// What does it mean?
 	// The nilness of the pointer is only relevant for handling the update message. The semantics are only based on the length
-	// of the list within.
+	// of the list within. Nil = update or set to empty. Non-nil = update or set to the list within.
 	GenesisAccounts *GenesisAccounts `protobuf:"bytes,6,opt,name=genesis_accounts,json=genesisAccounts,proto3" json:"genesis_accounts,omitempty"`
 }
 
