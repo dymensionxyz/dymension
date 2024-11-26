@@ -68,7 +68,7 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 	}
 
 	if msg.GenesisInfo != nil {
-		// TODO: need
+		// TODO: impl using .Validate() https://github.com/dymensionxyz/dymension/issues/1559
 
 		if len(msg.GenesisInfo.GenesisChecksum) > maxGenesisChecksumLength {
 			return ErrInvalidGenesisChecksum
@@ -80,16 +80,14 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 			}
 		}
 
-		if msg.GenesisInfo.GenesisAccounts != nil {
-			// validate max limit of genesis accounts
-			if l := len(msg.GenesisInfo.Accounts()); l > maxAllowedGenesisAccounts {
-				return fmt.Errorf("too many genesis accounts: %d", l)
-			}
+		// validate max limit of genesis accounts
+		if l := len(msg.GenesisInfo.Accounts()); l > maxAllowedGenesisAccounts {
+			return fmt.Errorf("too many genesis accounts: %d", l)
+		}
 
-			for _, acc := range msg.GenesisInfo.Accounts() {
-				if err := acc.ValidateBasic(); err != nil {
-					return errorsmod.Wrapf(errors.Join(gerrc.ErrInvalidArgument, err), "genesis account: %v", acc)
-				}
+		for _, acc := range msg.GenesisInfo.Accounts() {
+			if err := acc.ValidateBasic(); err != nil {
+				return errorsmod.Wrapf(errors.Join(gerrc.ErrInvalidArgument, err), "genesis account: %v", acc)
 			}
 		}
 	}
