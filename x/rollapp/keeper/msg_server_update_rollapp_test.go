@@ -41,6 +41,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 						Base:     "aden",
 						Exponent: 18,
 					},
+					GenesisAccounts: &types.GenesisAccounts{}, // Frontend must specify empty type
 				},
 			},
 			expError: nil,
