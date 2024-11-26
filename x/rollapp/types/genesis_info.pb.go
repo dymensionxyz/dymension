@@ -37,6 +37,16 @@ type GenesisInfo struct {
 	InitialSupply github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=initial_supply,json=initialSupply,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"initial_supply"`
 	// sealed indicates if the fields in this object are no longer updatable
 	Sealed          bool             `protobuf:"varint,5,opt,name=sealed,proto3" json:"sealed,omitempty"`
+
+	// Question: why do we have a pointer to a slice wrapper?
+	// Answer:
+	//     If we only used a slice, then to update to be empty, then the frontend would have to pass an empty slice
+	//     but there is some restriction on the frontend which nullifies such fields. Therefore we need a way to identify
+	//     updates.
+	//
+	// What does it mean?
+	// The nilness of the pointer is only relevant for handling the update message. The semantics are only based on the length
+	// of the list within.
 	GenesisAccounts *GenesisAccounts `protobuf:"bytes,6,opt,name=genesis_accounts,json=genesisAccounts,proto3" json:"genesis_accounts,omitempty"`
 }
 
@@ -109,6 +119,7 @@ func (m *GenesisInfo) GetGenesisAccounts() *GenesisAccounts {
 }
 
 type GenesisAccounts struct {
+	// empty means no genesis accounts! obviously
 	Accounts []GenesisAccount `protobuf:"bytes,1,rep,name=accounts,proto3" json:"accounts"`
 }
 
