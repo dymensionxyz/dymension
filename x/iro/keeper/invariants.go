@@ -35,8 +35,12 @@ func InvariantPlan(k Keeper) uinv.Func {
 		}
 
 		lastPlanID := k.GetLastPlanId(ctx)
-		if lastPlanID != plans[len(plans)-1].Id {
-			return fmt.Errorf("last plan id mismatch: lastPlanID: %d, lastPlanInListID: %d", lastPlanID, plans[len(plans)-1].Id)
+		max_ := plans[0].Id
+		for _, plan := range plans {
+			max_ = max(plan.Id, max_)
+		}
+		if lastPlanID != max_ {
+			return fmt.Errorf("last plan id mismatch: lastPlanID: %d, max: %d", lastPlanID, max_)
 		}
 
 		var errs []error
