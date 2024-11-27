@@ -1,5 +1,5 @@
 syntax = "proto3";
-package dymensionxyz.dymension.genesisbridge;
+package dymensionxyz.dymension.rollapp;
 
 import "gogoproto/gogo.proto";
 import "cosmos/bank/v1beta1/bank.proto";
@@ -8,7 +8,7 @@ import "dymensionxyz/dymension/rollapp/metadata.proto";
 import "dymensionxyz/dymension/rollapp/genesis_info.proto";
 
 
-option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
 // GenesisBridgeData is the data struct that is passed to the hub for the
 // genesis bridge flow

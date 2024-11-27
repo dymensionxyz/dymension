@@ -9,14 +9,9 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
-)
-
-const (
-	// HubRecipient is the address of `x/rollapp` module's account on the rollapp chain.
-	HubRecipient = "dym1mk7pw34ypusacm29m92zshgxee3yreums8avur"
 )
 
 // IBCModule GenesisBridge is responsible for handling the genesis bridge protocol.
@@ -99,36 +94,31 @@ func (w IBCModule) OnRecvPacket(
 	l := w.logger(ctx, packet).With("rollapp_id", ra.RollappId)
 
 	// parse the genesis bridge data
-	var genesisBridgeData GenesisBridgeData
+	var genesisBridgeData types.GenesisBridgeData
 	if err := json.Unmarshal(packet.GetData(), &genesisBridgeData); err != nil {
 		l.Error("Unmarshal genesis bridge data.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "unmarshal genesis bridge data"))
 	}
 
-	v := validator{
-		rollapp:   genesisBridgeData,
-		hub:       ra.GenesisInfo,
-		channelID: ra.ChannelId,
-		rollappID: ra.RollappId,
-	}
+	v := types.NewGenesisBridgeValidator(genesisBridgeData, ra.GenesisInfo, ra.ChannelId, ra.RollappId)
 
-	actionItems, err := v.validateAndGetActionItems()
+	result, err := v.Validate()
 	if err != nil {
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "validate and get actionable data"))
 	}
 
-	w.transferKeeper.SetDenomTrace(ctx, actionItems.trace)
-	if err := w.denomKeeper.CreateDenomMetadata(ctx, actionItems.bankMeta); err != nil {
+	w.transferKeeper.SetDenomTrace(ctx, result.NativeDenomTrace)
+	if err := w.denomKeeper.CreateDenomMetadata(ctx, result.NativeDenom); err != nil {
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "create denom metadata"))
 	}
 
-	for _, data := range actionItems.fungiDatas {
+	for _, data := range result.GenesisAccPackets {
 		if err := w.transferKeeper.OnRecvPacket(ctx, packet, data); err != nil {
 			return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "handle genesis transfer"))
 		}
 	}
 
-	err = w.EnableTransfers(ctx, ra, actionItems.bankMeta.Base)
+	err = w.EnableTransfers(ctx, ra, result.NativeDenom.Base)
 	if err != nil {
 		l.Error("Enable transfers.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: enable transfers"))
@@ -136,7 +126,7 @@ func (w IBCModule) OnRecvPacket(
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeTransfersEnabled,
 		sdk.NewAttribute(types.AttributeKeyRollappId, ra.RollappId),
-		sdk.NewAttribute(types.AttributeRollappIBCdenom, actionItems.bankMeta.Base),
+		sdk.NewAttribute(types.AttributeRollappIBCdenom, result.NativeDenom.Base),
 	))
 
 	// return success ack

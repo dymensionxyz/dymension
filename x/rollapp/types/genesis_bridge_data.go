@@ -1,11 +1,10 @@
-package genesisbridge
+package types
 
 import (
-	fmt "fmt"
+	"fmt"
 
 	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
-	types "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -59,14 +58,14 @@ func (data GenesisBridgeData) ValidateBasic() error {
 // ValidateBasic performs basic validation checks on the GenesisInfo.
 func (info GenesisBridgeInfo) ValidateBasic() error {
 	// wrap the genesis info in a GenesisInfo struct, to reuse the validation logic
-	raGenesisInfo := types.GenesisInfo{
+	raGenesisInfo := GenesisInfo{
 		GenesisChecksum: info.GenesisChecksum,
 		Bech32Prefix:    info.Bech32Prefix,
 		NativeDenom:     info.NativeDenom,
 		InitialSupply:   info.InitialSupply,
 	}
 	if len(info.GenesisAccounts) > 0 {
-		raGenesisInfo.GenesisAccounts = &types.GenesisAccounts{
+		raGenesisInfo.GenesisAccounts = &GenesisAccounts{
 			Accounts: info.GenesisAccounts,
 		}
 	}

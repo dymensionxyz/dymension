@@ -1,56 +1,74 @@
-package genesisbridge
+package types
 
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 )
 
-type validator struct {
+// HubRecipient is the address of `x/rollapp` module's account on the rollapp chain.
+const HubRecipient = "dym1mk7pw34ypusacm29m92zshgxee3yreums8avur"
+
+type GenesisBridgeValidator struct {
 	rollapp   GenesisBridgeData // what the rollapp sent over IBC
-	hub       types.GenesisInfo // what the rollapp thinks is correct
+	hub       GenesisInfo       // what the rollapp thinks is correct
 	channelID string            // can use "channel-0" in simulation
 	rollappID string            // the actual rollapp ID
 }
 
-type actionItems struct {
-	trace      transfertypes.DenomTrace
-	bankMeta   banktypes.Metadata
-	fungiDatas []transfertypes.FungibleTokenPacketData
+func NewGenesisBridgeValidator(
+	rollappGenesis GenesisBridgeData,
+	hubGenesis GenesisInfo,
+	rollappChannelID string,
+	rollappID string,
+) *GenesisBridgeValidator {
+	return &GenesisBridgeValidator{
+		rollapp:   rollappGenesis,
+		hub:       hubGenesis,
+		channelID: rollappChannelID,
+		rollappID: rollappID,
+	}
 }
 
-func (v *validator) validateAndGetActionItems() (*actionItems, error) {
+type ValidationResult struct {
+	NativeDenomTrace  transfertypes.DenomTrace                // the ibc denom trace of the native rollapp denom
+	NativeDenom       banktypes.Metadata                      // the metadata of the native rollapp denom
+	GenesisAccPackets []transfertypes.FungibleTokenPacketData // packets holding native tokens dedicated for genesis accounts
+}
+
+func (v *GenesisBridgeValidator) Validate() (*ValidationResult, error) {
 	if err := v.rollapp.ValidateBasic(); err != nil {
 		return nil, errorsmod.Wrap(err, "validate basic genesis bridge data")
 	}
 
-	if err := v.validateAgainstHub(v.rollapp.GenesisInfo, v.hub); err != nil {
+	if err := validateAgainstHub(v.rollapp.GenesisInfo, v.hub); err != nil {
 		return nil, errorsmod.Wrap(err, "validate against rollapp")
 	}
 
-	ret := &actionItems{}
-	trace, bankMeta, err := v.getBankStuff()
+	trace, denomMeta, err := v.validateNativeDenom()
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "get bank stuff")
+		return nil, errorsmod.Wrap(err, "validate native denom")
 	}
-	ret.trace = *trace
-	ret.bankMeta = *bankMeta
 
-	fungiDatas, err := v.getFungiData()
+	genesisAccPackets, err := v.validateGenesisTransfer()
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "get fungi data")
+		return nil, errorsmod.Wrap(err, "validate genesis transfer")
 	}
-	ret.fungiDatas = fungiDatas
-	return ret, nil
+
+	return &ValidationResult{
+		NativeDenomTrace:  trace,
+		NativeDenom:       denomMeta,
+		GenesisAccPackets: genesisAccPackets,
+	}, nil
 }
 
-func (v *validator) validateAgainstHub(packet GenesisBridgeInfo, hub types.GenesisInfo) error {
+func validateAgainstHub(packet GenesisBridgeInfo, hub GenesisInfo) error {
 	if packet.GenesisChecksum != hub.GenesisChecksum {
 		return fmt.Errorf("genesis checksum mismatch: expected: %v, got: %v", hub.GenesisChecksum, packet.GenesisChecksum)
 	}
@@ -74,7 +92,7 @@ func (v *validator) validateAgainstHub(packet GenesisBridgeInfo, hub types.Genes
 	return nil
 }
 
-func compareGenesisAccounts(raCommitted *types.GenesisAccounts, gbData []types.GenesisAccount) error {
+func compareGenesisAccounts(raCommitted *GenesisAccounts, gbData []GenesisAccount) error {
 	if raCommitted == nil {
 		if len(gbData) == 0 {
 			return nil
@@ -87,7 +105,7 @@ func compareGenesisAccounts(raCommitted *types.GenesisAccounts, gbData []types.G
 	}
 
 	for _, acc := range raCommitted.Accounts {
-		found := slices.ContainsFunc(gbData, func(dataAcc types.GenesisAccount) bool {
+		found := slices.ContainsFunc(gbData, func(dataAcc GenesisAccount) bool {
 			return dataAcc.Address == acc.Address && dataAcc.Amount.Equal(acc.Amount)
 		})
 
@@ -99,9 +117,10 @@ func compareGenesisAccounts(raCommitted *types.GenesisAccounts, gbData []types.G
 	return nil
 }
 
-func (v *validator) getBankStuff() (*transfertypes.DenomTrace, *banktypes.Metadata, error) {
-	var m banktypes.Metadata
-	m = v.rollapp.NativeDenom
+// validateNativeDenom extracts the IBC denom trace and metadata from the rollapp native denom.
+// Resulting IBC denom is validated.
+func (v *GenesisBridgeValidator) validateNativeDenom() (transfertypes.DenomTrace, banktypes.Metadata, error) {
+	m := v.rollapp.NativeDenom
 	trace := uibc.GetForeignDenomTrace(v.channelID, m.Base)
 
 	// Change the base to the ibc denom, and add an alias to the original
@@ -115,14 +134,16 @@ func (v *validator) getBankStuff() (*transfertypes.DenomTrace, *banktypes.Metada
 	}
 
 	if err := m.Validate(); err != nil {
-		return nil, nil, errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "metadata validate")
+		return transfertypes.DenomTrace{}, banktypes.Metadata{}, errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "metadata validate")
 	}
-	return &trace, &m, nil
+	return trace, m, nil
 }
 
-func (v *validator) getFungiData() ([]transfertypes.FungibleTokenPacketData, error) {
+// validateGenesisTransfer validates the genesis transfer and prepares the packets for each genesis account.
+func (v *GenesisBridgeValidator) validateGenesisTransfer() ([]transfertypes.FungibleTokenPacketData, error) {
 	gTransfer := v.rollapp.GenesisTransfer
 	required := v.hub.GenesisAccounts != nil
+
 	// required but not present
 	if required && gTransfer == nil {
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer required")

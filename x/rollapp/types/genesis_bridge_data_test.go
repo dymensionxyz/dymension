@@ -1,4 +1,4 @@
-package genesisbridge_test
+package types_test
 
 import (
 	"testing"
@@ -8,12 +8,11 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
-	validGenInfo := genesisbridge.GenesisBridgeInfo{
+	validGenInfo := types.GenesisBridgeInfo{
 		GenesisChecksum: "checksum",
 		Bech32Prefix:    "prefix",
 		NativeDenom: types.DenomMetadata{
@@ -52,12 +51,12 @@ func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		data    genesisbridge.GenesisBridgeData
+		data    types.GenesisBridgeData
 		wantErr bool
 	}{
 		{
 			name: "valid data",
-			data: genesisbridge.GenesisBridgeData{
+			data: types.GenesisBridgeData{
 				GenesisInfo: validGenInfo,
 				NativeDenom: validMetadata,
 			},
@@ -65,7 +64,7 @@ func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "valid data with genesis transfer",
-			data: genesisbridge.GenesisBridgeData{
+			data: types.GenesisBridgeData{
 				GenesisInfo:     validGenInfo,
 				NativeDenom:     validMetadata,
 				GenesisTransfer: &validGenTransfer,
@@ -74,8 +73,8 @@ func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "invalid genesis info",
-			data: genesisbridge.GenesisBridgeData{
-				GenesisInfo: genesisbridge.GenesisBridgeInfo{
+			data: types.GenesisBridgeData{
+				GenesisInfo: types.GenesisBridgeInfo{
 					GenesisChecksum: "",
 					Bech32Prefix:    "prefix",
 					NativeDenom: types.DenomMetadata{
@@ -92,7 +91,7 @@ func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "invalid metadata",
-			data: genesisbridge.GenesisBridgeData{
+			data: types.GenesisBridgeData{
 				GenesisInfo: validGenInfo,
 				NativeDenom: banktypes.Metadata{
 					Base:    "base",
@@ -113,7 +112,7 @@ func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "invalid genesis transfer",
-			data: genesisbridge.GenesisBridgeData{
+			data: types.GenesisBridgeData{
 				GenesisInfo: validGenInfo,
 				NativeDenom: validMetadata,
 				GenesisTransfer: &transfertypes.FungibleTokenPacketData{
@@ -128,7 +127,7 @@ func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "metadata not matching genesis info denom",
-			data: genesisbridge.GenesisBridgeData{
+			data: types.GenesisBridgeData{
 				GenesisInfo: validGenInfo,
 				NativeDenom: banktypes.Metadata{
 					Base:    "base",
@@ -149,7 +148,7 @@ func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "genesis transfer denom is wrong",
-			data: genesisbridge.GenesisBridgeData{
+			data: types.GenesisBridgeData{
 				GenesisInfo: validGenInfo,
 				NativeDenom: validMetadata,
 				GenesisTransfer: &transfertypes.FungibleTokenPacketData{
@@ -164,8 +163,8 @@ func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "duplicate genesis accounts",
-			data: genesisbridge.GenesisBridgeData{
-				GenesisInfo: genesisbridge.GenesisBridgeInfo{
+			data: types.GenesisBridgeData{
+				GenesisInfo: types.GenesisBridgeInfo{
 					GenesisChecksum: "checksum",
 					Bech32Prefix:    "prefix",
 					NativeDenom: types.DenomMetadata{
@@ -200,12 +199,12 @@ func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
 func TestGenesisBridgeInfo_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name    string
-		info    genesisbridge.GenesisBridgeInfo
+		info    types.GenesisBridgeInfo
 		wantErr bool
 	}{
 		{
 			name: "valid info",
-			info: genesisbridge.GenesisBridgeInfo{
+			info: types.GenesisBridgeInfo{
 				GenesisChecksum: "checksum",
 				Bech32Prefix:    "prefix",
 				NativeDenom: types.DenomMetadata{
@@ -220,7 +219,7 @@ func TestGenesisBridgeInfo_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "missing fields",
-			info: genesisbridge.GenesisBridgeInfo{
+			info: types.GenesisBridgeInfo{
 				GenesisChecksum: "",
 				Bech32Prefix:    "prefix",
 				NativeDenom: types.DenomMetadata{

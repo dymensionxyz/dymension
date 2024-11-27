@@ -6,22 +6,20 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
-	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 var successAck = channeltypes.CommitAcknowledgement(channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement())
@@ -232,7 +230,7 @@ func (s *transferGenesisSuite) TestInvalidGenesisDenomMetadata() {
 	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 
 	packet := s.genesisBridgePacket(rollapp.GenesisInfo)
-	var gb genesisbridge.GenesisBridgeData
+	var gb rollapptypes.GenesisBridgeData
 	err := json.Unmarshal(packet.Data, &gb)
 	s.Require().NoError(err)
 
@@ -277,7 +275,7 @@ func (s *transferGenesisSuite) TestInvalidGenesisTransfer() {
 	packet := s.genesisBridgePacket(rollapp.GenesisInfo)
 
 	// change the amount in the genesis transfer
-	var gb genesisbridge.GenesisBridgeData
+	var gb rollapptypes.GenesisBridgeData
 	err := json.Unmarshal(packet.Data, &gb)
 	s.Require().NoError(err)
 	gb.GenesisTransfer.Amount = "1242353645"
@@ -366,7 +364,7 @@ func (s *transferGenesisSuite) genesisBridgePacket(raGenesisInfo rollapptypes.Ge
 	display := raGenesisInfo.NativeDenom.Display
 	initialSupply := raGenesisInfo.InitialSupply
 
-	var gb genesisbridge.GenesisBridgeData
+	var gb rollapptypes.GenesisBridgeData
 
 	meta := banktypes.Metadata{
 		DenomUnits: []*banktypes.DenomUnit{
@@ -385,7 +383,7 @@ func (s *transferGenesisSuite) genesisBridgePacket(raGenesisInfo rollapptypes.Ge
 	}
 	s.Require().NoError(meta.Validate()) // sanity check the test is written correctly
 
-	gb.GenesisInfo = genesisbridge.GenesisBridgeInfo{
+	gb.GenesisInfo = rollapptypes.GenesisBridgeInfo{
 		GenesisChecksum: "checksum",
 		Bech32Prefix:    "ethm",
 		NativeDenom: rollapptypes.DenomMetadata{
@@ -409,7 +407,7 @@ func (s *transferGenesisSuite) genesisBridgePacket(raGenesisInfo rollapptypes.Ge
 			denom,
 			total.String(),
 			s.rollappChain().SenderAccount.GetAddress().String(),
-			genesisbridge.HubRecipient,
+			rollapptypes.HubRecipient,
 			"",
 		)
 		gb.GenesisTransfer = &gTransfer
