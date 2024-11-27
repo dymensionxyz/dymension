@@ -10,6 +10,7 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 	"github.com/pkg/errors"
 
+	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	dacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -90,7 +91,7 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 		return nil, err
 	}
 
-	demandOrderDenom := k.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
+	demandOrderDenom := denomutils.GetIncomingTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
 	demandOrderRecipient := fungibleTokenPacketData.Receiver // who we tried to send to
 	creationHeight := uint64(ctx.BlockHeight())
 

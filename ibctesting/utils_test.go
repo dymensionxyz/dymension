@@ -28,6 +28,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -287,17 +288,8 @@ func (s *utilSuite) getRollappToHubIBCDenomFromPacket(packet channeltypes.Packet
 	var data transfertypes.FungibleTokenPacketData
 	err := eibctypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data)
 	s.Require().NoError(err)
-	return s.getIBCDenomForChannel(packet.GetDestChannel(), data.Denom)
-}
 
-func (s *utilSuite) getIBCDenomForChannel(channel string, denom string) string {
-	// since SendPacket did not prefix the denomination, we must prefix denomination here
-	sourcePrefix := types.GetDenomPrefix("transfer", channel)
-	// NOTE: sourcePrefix contains the trailing "/"
-	prefixedDenom := sourcePrefix + denom
-	// construct the denomination trace from the full raw denomination
-	denomTrace := types.ParseDenomTrace(prefixedDenom)
-	return denomTrace.IBCDenom()
+	return denomutils.GetIncomingTransferDenom(packet, data)
 }
 
 func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctesting.Coordinator, chainID string) *ibctesting.TestChain {

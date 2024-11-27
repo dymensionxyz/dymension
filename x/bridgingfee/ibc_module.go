@@ -9,8 +9,8 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
-	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 
@@ -65,7 +65,12 @@ func (w IBCModule) logger(
 	)
 }
 
-func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
+// OnRecvPacket implements the IBCModule interface. It processes IBC transfer packets,
+// charging bridging fees for transfers from rollapps to the hub. The fee is charged
+// in the denomination of the incoming tokens, which is determined by:
+// - For tokens originating from the hub: the original denomination
+// - For tokens originating on the rollapp: the IBC denomination on the hub
+func (w IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	l := w.logger(ctx, packet, "OnRecvPacket")
 
 	if commontypes.SkipRollappMiddleware(ctx) {
@@ -91,8 +96,8 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 	receiver := sdk.MustAccAddressFromBech32(transfer.Receiver)
 
 	feeAmt := w.delayedAckKeeper.BridgingFeeFromAmt(ctx, transfer.MustAmountInt())
-	denomTrace := uibc.GetForeignDenomTrace(packet.GetDestChannel(), transfer.Denom)
-	feeCoin := sdk.NewCoin(denomTrace.IBCDenom(), feeAmt)
+	denom := denomutils.GetIncomingTransferDenom(packet, transfer.FungibleTokenPacketData)
+	feeCoin := sdk.NewCoin(denom, feeAmt)
 
 	// charge the bridging fee in cache context
 	err = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
