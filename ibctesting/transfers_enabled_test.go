@@ -64,7 +64,7 @@ func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 
 	shouldFail := true
 
-	for range 2 {
+	for i := range 2 {
 
 		apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.Coins{msg.Token})
 
@@ -76,7 +76,8 @@ func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 			[]sdk.Msg{msg},
 			hubChainID(),
 			[]uint64{s.hubChain().SenderAccount.GetAccountNumber()},
-			[]uint64{s.hubChain().SenderAccount.GetSequence()},
+			// TODO: not sure why, but the simapp doesn't seem to properly update the sequence after a failed tx
+			[]uint64{s.hubChain().SenderAccount.GetSequence() + uint64(i)},
 			true,
 			!shouldFail,
 			s.hubChain().SenderPrivKey,
