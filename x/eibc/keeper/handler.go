@@ -5,9 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
-	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 	"github.com/pkg/errors"
 
 	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
@@ -129,29 +127,6 @@ func (k Keeper) CreateDemandOrderOnErrAckOrTimeout(ctx sdk.Context, fungibleToke
 
 	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight)
 	return order, nil
-}
-
-// getEIBCTransferDenom returns the actual denom that will be credited to the eIBC fulfiller.
-// The denom logic follows the transfer middleware's logic and is necessary in order to prefix/non-prefix the denom
-// based on the original chain it was sent from.
-func (k *Keeper) getEIBCTransferDenom(packet channeltypes.Packet, fungibleTokenPacketData transfertypes.FungibleTokenPacketData) string {
-	var denom string
-	if transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), fungibleTokenPacketData.Denom) {
-		// remove prefix added by sender chain
-		voucherPrefix := transfertypes.GetDenomPrefix(packet.GetSourcePort(), packet.GetSourceChannel())
-		unprefixedDenom := fungibleTokenPacketData.Denom[len(voucherPrefix):]
-		// coin denomination used in sending from the escrow address
-		denom = unprefixedDenom
-		// The denomination used to send the coins is either the native denom or the hash of the path
-		// if the denomination is not native.
-		denomTrace := transfertypes.ParseDenomTrace(unprefixedDenom)
-		if denomTrace.Path != "" {
-			denom = denomTrace.IBCDenom()
-		}
-	} else {
-		denom = uibc.GetForeignDenomTrace(packet.GetDestChannel(), fungibleTokenPacketData.Denom).IBCDenom()
-	}
-	return denom
 }
 
 func (k Keeper) BlockedAddr(addr string) bool {
