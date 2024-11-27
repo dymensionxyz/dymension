@@ -17,7 +17,7 @@ import (
 // IBCModule GenesisBridge is responsible for handling the genesis bridge protocol.
 // (ADR: https://www.notion.so/dymension/ADR-x-Genesis-Bridge-109a4a51f86a80ba8b50db454bee04a7?pvs=4)
 //
-// It validated the genesis info registered on the rollapp, is the same as the rollapp's genesis info.
+// It validated the genesis info registered on the hub, is the same as the rollapp's genesis info.
 // It registers the denom metadata for the native denom.
 // It handles the genesis transfer.
 //
@@ -62,9 +62,9 @@ func (w IBCModule) logger(
 // OnRecvPacket will handle the genesis bridge packet in case needed.
 // no-op for non-rollapp chains and rollapps with transfers enabled.
 //
-// The genesis bridge packet is a special packet that is sent from the rollapp to the rollapp on channel creation.
-// The rollapp will receive this packet and:
-// - validated the genesis info registered on the rollapp, is the same as the rollapp's genesis info.
+// The genesis bridge packet is a special packet that is sent from the rollapp to the hub on channel creation.
+// The hub will receive this packet and:
+// - validated the genesis info registered on the hub, is the same as the rollapp's genesis info.
 // - registers the denom metadata for the native denom.
 // - handles the genesis transfer.
 // On success, it will mark the IBC channel for this rollapp as enabled. This marks the end of the genesis phase.
