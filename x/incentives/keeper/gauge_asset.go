@@ -56,10 +56,7 @@ func (d *RewardDistributionTracker) addLockRewards(owner string, gaugeID uint64,
 		oldDistrCoins := d.idToDistrCoins[id]
 		d.idToDistrCoins[id] = rewards.Add(oldDistrCoins...)
 
-		// Update gauge-specific rewards
-		if d.idToGaugeRewards[id] == nil {
-			d.idToGaugeRewards[id] = make(map[uint64]sdk.Coins)
-		}
+		// Update gauge rewards (idToGaugeRewards[id] already initialized on first creation)
 		if existing, ok := d.idToGaugeRewards[id][gaugeID]; ok {
 			d.idToGaugeRewards[id][gaugeID] = existing.Add(rewards...)
 		} else {
@@ -88,7 +85,7 @@ func (d *RewardDistributionTracker) addLockRewards(owner string, gaugeID uint64,
 // GetEvents returns distribution events for all recipients.
 // For each recipient, it creates a single event with attributes for each gauge's rewards.
 func (d *RewardDistributionTracker) GetEvents() sdk.Events {
-	events := sdk.Events{}
+	events := make(sdk.Events, 0, len(d.idToBech32Addr))
 
 	for id := 0; id < len(d.idToBech32Addr); id++ {
 		attributes := []sdk.Attribute{
@@ -96,7 +93,7 @@ func (d *RewardDistributionTracker) GetEvents() sdk.Events {
 			sdk.NewAttribute(types.AttributeAmount, d.idToDistrCoins[id].String()),
 		}
 
-		// Add attributes for each gauge's rewards
+		// Add attributes for each gauge's rewards (events doesn't requires deterministic order)
 		for gaugeID, gaugeRewards := range d.idToGaugeRewards[id] {
 			attributes = append(attributes,
 				sdk.NewAttribute(
