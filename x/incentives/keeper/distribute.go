@@ -33,9 +33,11 @@ func (k Keeper) DistributeOnEpochEnd(ctx sdk.Context, gauges []types.Gauge) (sdk
 // the epoch. If it's called at the end, then the FilledEpochs field for every gauge is increased. Also, it uses
 // a cache specific for asset gauges that helps reduce the number of x/lockup requests.
 func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge, cache types.DenomLocksCache, epochEnd bool) (sdk.Coins, error) {
-	lockHolders := newDistributionInfo()
-
+	// lockHolders is a map of address -> coins
+	// it used as an aggregator for owners of the locks over all gauges
+	lockHolders := NewRewardDistributionTracker()
 	totalDistributedCoins := sdk.Coins{}
+
 	for _, gauge := range gauges {
 		var (
 			gaugeDistributedCoins sdk.Coins
@@ -43,10 +45,10 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge, cache types.De
 		)
 		switch gauge.DistributeTo.(type) {
 		case *types.Gauge_Asset:
-			filteredLocks := k.GetDistributeToBaseLocks(ctx, gauge, cache)
-			gaugeDistributedCoins, err = k.distributeToAssetGauge(ctx, gauge, filteredLocks, &lockHolders)
+			filteredLocks := k.GetDistributeToBaseLocks(ctx, gauge, cache) // get all locks that satisfy the gauge
+			gaugeDistributedCoins, err = k.calculateAssetGaugeRewards(ctx, gauge, filteredLocks, &lockHolders)
 		case *types.Gauge_Rollapp:
-			gaugeDistributedCoins, err = k.distributeToRollappGauge(ctx, gauge)
+			gaugeDistributedCoins, err = k.calculateRollappGaugeRewards(ctx, gauge, &lockHolders)
 		default:
 			return nil, errorsmod.WithType(sdkerrors.ErrInvalidType, fmt.Errorf("gauge %d has an unsupported distribution type", gauge.Id))
 		}
@@ -64,7 +66,7 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge, cache types.De
 	}
 
 	// apply the distribution to asset gauges
-	err := k.sendRewardsToLocks(ctx, &lockHolders)
+	err := k.distributeTrackedRewards(ctx, &lockHolders)
 	if err != nil {
 		return nil, err
 	}
