@@ -85,26 +85,19 @@ func validateAgainstHub(packet GenesisBridgeInfo, hub GenesisInfo) error {
 		return fmt.Errorf("initial supply mismatch: expected: %v, got: %v", hub.InitialSupply, packet.InitialSupply)
 	}
 
-	err := compareGenesisAccounts(hub.GenesisAccounts, packet.GenesisAccounts)
+	err := compareGenesisAccounts(hub.Accounts(), packet.GenesisAccounts)
 	if err != nil {
 		return errorsmod.Wrap(err, "genesis accounts mismatch")
 	}
 	return nil
 }
 
-func compareGenesisAccounts(raCommitted *GenesisAccounts, gbData []GenesisAccount) error {
-	if raCommitted == nil {
-		if len(gbData) == 0 {
-			return nil
-		}
-		return fmt.Errorf("genesis accounts length mismatch: expected 0, got %d", len(gbData))
+func compareGenesisAccounts(raCommitted []GenesisAccount, gbData []GenesisAccount) error {
+	if len(raCommitted) != len(gbData) {
+		return fmt.Errorf("genesis accounts length mismatch: expected %d, got %d", len(raCommitted), len(gbData))
 	}
 
-	if len(raCommitted.Accounts) != len(gbData) {
-		return fmt.Errorf("genesis accounts length mismatch: expected %d, got %d", len(raCommitted.Accounts), len(gbData))
-	}
-
-	for _, acc := range raCommitted.Accounts {
+	for _, acc := range raCommitted {
 		found := slices.ContainsFunc(gbData, func(dataAcc GenesisAccount) bool {
 			return dataAcc.Address == acc.Address && dataAcc.Amount.Equal(acc.Amount)
 		})
@@ -142,14 +135,14 @@ func (v *GenesisBridgeValidator) validateNativeDenom() (transfertypes.DenomTrace
 // validateGenesisTransfer validates the genesis transfer and prepares the packets for each genesis account.
 func (v *GenesisBridgeValidator) validateGenesisTransfer() ([]transfertypes.FungibleTokenPacketData, error) {
 	gTransfer := v.rollapp.GenesisTransfer
-	required := v.hub.GenesisAccounts != nil
+	requiresTransfer := v.hub.RequiresTransfer()
 
 	// required but not present
-	if required && gTransfer == nil {
+	if requiresTransfer && gTransfer == nil {
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer required")
 	}
 	// not required but present
-	if !required && gTransfer != nil {
+	if !requiresTransfer && gTransfer != nil {
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer not expected")
 	}
 	if gTransfer == nil {
@@ -168,7 +161,7 @@ func (v *GenesisBridgeValidator) validateGenesisTransfer() ([]transfertypes.Fung
 	}
 
 	var ret []transfertypes.FungibleTokenPacketData
-	for _, acc := range v.hub.GenesisAccounts.Accounts {
+	for _, acc := range v.hub.Accounts() {
 		// create a new packet for each account
 		data := transfertypes.NewFungibleTokenPacketData(
 			gTransfer.Denom,
