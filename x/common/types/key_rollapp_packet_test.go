@@ -11,6 +11,58 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
+type tcase struct {
+	orderID string
+	tracker string
+	bz      []byte
+}
+
+func TestFoo(t *testing.T) {
+
+	var testcases = []tcase{
+		{
+			orderID: "8c2bfdcb05c9f9519ffb08eff4d517e4c6a2c69f1b6c0bd7c508d2f76218d4e1",
+			tracker: `/mande_18071918-1/d�/ON_RECV/channel-0/��`,
+			bz: commontypes.RollappPacketKey(
+				commontypes.Status_PENDING,
+				"mande_18071918-1",
+				1205408,
+				commontypes.RollappPacket_ON_RECV,
+				"channel-0",
+				53449,
+			),
+		},
+		{
+			orderID: "2ab7c88129c2c5a5b401a43e8423b2eab3ed3e2cf67dc71df8a88e97336b97b7",
+			tracker: `/mande_18071918-1/k�/ON_RECV/channel-0/��`,
+			bz: commontypes.RollappPacketKey(
+				commontypes.Status_PENDING,
+				"mande_18071918-1",
+				1207252,
+				commontypes.RollappPacket_ON_RECV,
+				"channel-0",
+				53450,
+			),
+		},
+		{
+			orderID: "c9c834d23707fa53a55944c98c767e319f51ff610fdbb866b8f7d35088ef543f",
+			tracker: `/mande_18071918-1/o/ON_RECV/channel-0/��`,
+			bz: commontypes.RollappPacketKey(
+				commontypes.Status_PENDING,
+				"mande_18071918-1",
+				1208081,
+				commontypes.RollappPacket_ON_RECV,
+				"channel-0",
+				53451,
+			),
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Log(tc.orderID, "Tracker: ", tc.tracker, "Actual reversed:", string(tc.bz))
+	}
+}
+
 func TestEncodeDecodePacketKey(t *testing.T) {
 	packet := commontypes.RollappPacket{
 		RollappId:   "rollapp_1234-1",
