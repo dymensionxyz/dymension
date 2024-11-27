@@ -14,6 +14,31 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
+func CmdDemandOrderByID() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "get-demand-order [id]",
+		Short: "Get by id",
+		Args:  cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			id := "2ab7c88129c2c5a5b401a43e8423b2eab3ed3e2cf67dc71df8a88e97336b97b7"
+			request := &types.QueryGetDemandOrderRequest{
+				Id: id,
+			}
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.DemandOrderById(cmd.Context(), request)
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
 func CmdListDemandOrdersByStatus() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-demand-orders status [rollapp] [recipient] [type] [denom] [fulfilled] [fulfiller] [limit]",
