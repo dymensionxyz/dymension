@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"fmt"
 	"testing"
 
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -49,6 +50,18 @@ func TestFoo(t *testing.T) {
 			tracker: `/mande_18071918-1/o/ON_RECV/channel-0/��`,
 			bz: commontypes.RollappPacketKey(
 				commontypes.Status_PENDING,
+				"gokhanmolla_899158-1",
+				2256,
+				commontypes.RollappPacket_ON_ACK,
+				"channel-64",
+				53451,
+			),
+		},
+		{
+			orderID: "c9c834d23707fa53a55944c98c767e319f51ff610fdbb866b8f7d35088ef543f",
+			tracker: `/mande_18071918-1/o/ON_RECV/channel-0/��`,
+			bz: commontypes.RollappPacketKey(
+				commontypes.Status_PENDING,
 				"mande_18071918-1",
 				1208081,
 				commontypes.RollappPacket_ON_RECV,
@@ -59,7 +72,12 @@ func TestFoo(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
-		t.Log(tc.orderID, "Tracker: ", tc.tracker, "Actual reversed:", string(tc.bz))
+		t.Log(fmt.Sprintf(`
+order id: %s,
+tracker: %s,
+actual : %s
+`, tc.orderID, tc.tracker, string(tc.bz)))
+		//t.Log(tc.orderID, "Tracker: ", tc.tracker, "Actual reversed:", string(tc.bz))
 	}
 }
 
