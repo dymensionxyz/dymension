@@ -170,7 +170,7 @@ func (w IBCModule) ValidateGenesisBridge(ra *types.Rollapp, data GenesisBridgeIn
 		return fmt.Errorf("initial supply mismatch: expected: %v, got: %v", raInfo.InitialSupply, data.InitialSupply)
 	}
 
-	err := compareGenesisAccounts(raInfo.GenesisAccounts, data.GenesisAccounts)
+	err := compareGenesisAccounts(raInfo.Accounts(), data.GenesisAccounts)
 	if err != nil {
 		return errorsmod.Wrap(err, "genesis accounts mismatch")
 	}
@@ -178,19 +178,12 @@ func (w IBCModule) ValidateGenesisBridge(ra *types.Rollapp, data GenesisBridgeIn
 	return nil
 }
 
-func compareGenesisAccounts(raCommitted *types.GenesisAccounts, gbData []types.GenesisAccount) error {
-	if raCommitted == nil {
-		if len(gbData) == 0 {
-			return nil
-		}
-		return fmt.Errorf("genesis accounts length mismatch: expected 0, got %d", len(gbData))
+func compareGenesisAccounts(raCommitted []types.GenesisAccount, gbData []types.GenesisAccount) error {
+	if len(raCommitted) != len(gbData) {
+		return fmt.Errorf("genesis accounts length mismatch: expected %d, got %d", len(raCommitted), len(gbData))
 	}
 
-	if len(raCommitted.Accounts) != len(gbData) {
-		return fmt.Errorf("genesis accounts length mismatch: expected %d, got %d", len(raCommitted.Accounts), len(gbData))
-	}
-
-	for _, acc := range raCommitted.Accounts {
+	for _, acc := range raCommitted {
 		found := slices.ContainsFunc(gbData, func(dataAcc types.GenesisAccount) bool {
 			return dataAcc.Address == acc.Address && dataAcc.Amount.Equal(acc.Amount)
 		})

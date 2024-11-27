@@ -56,7 +56,7 @@ func (data GenesisBridgeData) ValidateBasic() error {
 	return nil
 }
 
-// ValidateBasic performs basic validation checks on the GenesisInfo.
+// converts to a native type and validates that
 func (info GenesisBridgeInfo) ValidateBasic() error {
 	// wrap the genesis info in a GenesisInfo struct, to reuse the validation logic
 	raGenesisInfo := types.GenesisInfo{
@@ -64,11 +64,7 @@ func (info GenesisBridgeInfo) ValidateBasic() error {
 		Bech32Prefix:    info.Bech32Prefix,
 		NativeDenom:     info.NativeDenom,
 		InitialSupply:   info.InitialSupply,
-	}
-	if len(info.GenesisAccounts) > 0 {
-		raGenesisInfo.GenesisAccounts = &types.GenesisAccounts{
-			Accounts: info.GenesisAccounts,
-		}
+		GenesisAccounts: &types.GenesisAccounts{Accounts: info.GenesisAccounts},
 	}
 
 	if !raGenesisInfo.AllSet() {

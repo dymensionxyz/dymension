@@ -174,7 +174,7 @@ func (s *transferGenesisSuite) addGenesisAccounts(genesisAccounts []rollapptypes
 	if rollapp.GenesisInfo.GenesisAccounts == nil {
 		rollapp.GenesisInfo.GenesisAccounts = &rollapptypes.GenesisAccounts{}
 	}
-	rollapp.GenesisInfo.GenesisAccounts.Accounts = append(rollapp.GenesisInfo.GenesisAccounts.Accounts, genesisAccounts...)
+	rollapp.GenesisInfo.GenesisAccounts.Accounts = append(rollapp.GenesisInfo.Accounts(), genesisAccounts...)
 	s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), rollapp)
 }
 
