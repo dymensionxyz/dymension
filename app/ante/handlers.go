@@ -13,7 +13,6 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/x/delayedack"
 	lightclientante "github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge"
 )
 
 func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
@@ -83,7 +82,6 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 		delayedack.NewIBCProofHeightDecorator(),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
-		genesisbridge.NewTransferEnabledDecorator(options.RollappKeeper, options.IBCKeeper.ChannelKeeper),
 	)
 }
 
@@ -125,6 +123,5 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		lightclientante.NewIBCMessagesDecorator(*options.LightClientKeeper, options.IBCKeeper.ClientKeeper, options.IBCKeeper.ChannelKeeper, options.RollappKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
-		genesisbridge.NewTransferEnabledDecorator(options.RollappKeeper, options.IBCKeeper.ChannelKeeper),
 	)
 }

@@ -397,21 +397,17 @@ func (s *transferGenesisSuite) genesisBridgePacket(raGenesisInfo rollapptypes.Ge
 	gb.NativeDenom = meta
 
 	// add genesis transfer if needed
-	if raGenesisInfo.GenesisAccounts != nil {
-		total := math.ZeroInt()
-		for _, acc := range raGenesisInfo.GenesisAccounts.Accounts {
-			total = total.Add(acc.Amount)
-		}
+	if raGenesisInfo.RequiresTransfer() {
 
 		gTransfer := transfertypes.NewFungibleTokenPacketData(
 			denom,
-			total.String(),
+			raGenesisInfo.GenesisTransferAmount().String(),
 			s.rollappChain().SenderAccount.GetAddress().String(),
 			rollapptypes.HubRecipient,
 			"",
 		)
 		gb.GenesisTransfer = &gTransfer
-		gb.GenesisInfo.GenesisAccounts = raGenesisInfo.GenesisAccounts.Accounts
+		gb.GenesisInfo.GenesisAccounts = raGenesisInfo.Accounts()
 	}
 
 	bz, err := json.Marshal(gb)

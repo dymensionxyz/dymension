@@ -68,6 +68,8 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 	}
 
 	if msg.GenesisInfo != nil {
+		// TODO: impl using .Validate() https://github.com/dymensionxyz/dymension/issues/1559
+
 		if len(msg.GenesisInfo.GenesisChecksum) > maxGenesisChecksumLength {
 			return ErrInvalidGenesisChecksum
 		}
@@ -78,16 +80,14 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 			}
 		}
 
-		if msg.GenesisInfo.GenesisAccounts != nil {
-			// validate max limit of genesis accounts
-			if len(msg.GenesisInfo.GenesisAccounts.Accounts) > maxAllowedGenesisAccounts {
-				return fmt.Errorf("too many genesis accounts: %d", len(msg.GenesisInfo.GenesisAccounts.Accounts))
-			}
+		// validate max limit of genesis accounts
+		if l := len(msg.GenesisInfo.Accounts()); l > maxAllowedGenesisAccounts {
+			return fmt.Errorf("too many genesis accounts: %d", l)
+		}
 
-			for _, acc := range msg.GenesisInfo.GenesisAccounts.Accounts {
-				if err := acc.ValidateBasic(); err != nil {
-					return errorsmod.Wrapf(errors.Join(gerrc.ErrInvalidArgument, err), "genesis account: %v", acc)
-				}
+		for _, acc := range msg.GenesisInfo.Accounts() {
+			if err := acc.ValidateBasic(); err != nil {
+				return errorsmod.Wrapf(errors.Join(gerrc.ErrInvalidArgument, err), "genesis account: %v", acc)
 			}
 		}
 	}
@@ -106,12 +106,5 @@ func (msg *MsgUpdateRollappInformation) UpdatingImmutableValues() bool {
 }
 
 func (msg *MsgUpdateRollappInformation) UpdatingGenesisInfo() bool {
-	if msg.GenesisInfo == nil {
-		return false
-	}
-	return msg.GenesisInfo.GenesisChecksum != "" ||
-		msg.GenesisInfo.Bech32Prefix != "" ||
-		msg.GenesisInfo.NativeDenom.Base != "" ||
-		!msg.GenesisInfo.InitialSupply.IsNil() ||
-		msg.GenesisInfo.GenesisAccounts != nil
+	return msg.GenesisInfo != nil
 }

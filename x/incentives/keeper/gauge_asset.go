@@ -10,24 +10,27 @@ import (
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
-// distributionInfo stores all of the information for rewards distributions.
-type distributionInfo struct {
-	nextID            int
-	lockOwnerAddrToID map[string]int
-	idToBech32Addr    []string
-	idToDecodedAddr   []sdk.AccAddress
-	idToDistrCoins    []sdk.Coins
-	// TODO: add totalDistrCoins to track total coins distributed
+// RewardDistributionTracker maintains the state of pending reward distributions,
+// tracking both total rewards and per-gauge rewards for each recipient.
+// It uses array-based storage for better cache locality during distribution.
+type RewardDistributionTracker struct {
+	nextID            int                    // Next available ID for new recipients
+	lockOwnerAddrToID map[string]int         // Maps lock owner addresses to their array index
+	idToBech32Addr    []string               // Recipient bech32 addresses indexed by ID
+	idToDecodedAddr   []sdk.AccAddress       // Decoded recipient addresses indexed by ID
+	idToDistrCoins    []sdk.Coins            // Total rewards per recipient indexed by ID
+	idToGaugeRewards  []map[uint64]sdk.Coins // Per-gauge rewards for each recipient indexed by ID
 }
 
-// newDistributionInfo creates a new distributionInfo struct
-func newDistributionInfo() distributionInfo {
-	return distributionInfo{
+// NewRewardDistributionTracker creates a new tracker for managing reward distributions
+func NewRewardDistributionTracker() RewardDistributionTracker {
+	return RewardDistributionTracker{
 		nextID:            0,
 		lockOwnerAddrToID: make(map[string]int),
 		idToBech32Addr:    []string{},
 		idToDecodedAddr:   []sdk.AccAddress{},
 		idToDistrCoins:    []sdk.Coins{},
+		idToGaugeRewards:  []map[uint64]sdk.Coins{},
 	}
 }
 
@@ -47,10 +50,18 @@ func (k Keeper) getLocksToDistributionWithMaxDuration(ctx sdk.Context, distrTo l
 }
 
 // addLockRewards adds the provided rewards to the lockID mapped to the provided owner address.
-func (d *distributionInfo) addLockRewards(owner string, rewards sdk.Coins) error {
+func (d *RewardDistributionTracker) addLockRewards(owner string, gaugeID uint64, rewards sdk.Coins) error {
 	if id, ok := d.lockOwnerAddrToID[owner]; ok {
+		// Update total rewards
 		oldDistrCoins := d.idToDistrCoins[id]
 		d.idToDistrCoins[id] = rewards.Add(oldDistrCoins...)
+
+		// Update gauge rewards (idToGaugeRewards[id] already initialized on first creation)
+		if existing, ok := d.idToGaugeRewards[id][gaugeID]; ok {
+			d.idToGaugeRewards[id][gaugeID] = existing.Add(rewards...)
+		} else {
+			d.idToGaugeRewards[id][gaugeID] = rewards
+		}
 	} else {
 		id := d.nextID
 		d.nextID++
@@ -62,46 +73,77 @@ func (d *distributionInfo) addLockRewards(owner string, rewards sdk.Coins) error
 		d.idToBech32Addr = append(d.idToBech32Addr, owner)
 		d.idToDecodedAddr = append(d.idToDecodedAddr, decodedOwnerAddr)
 		d.idToDistrCoins = append(d.idToDistrCoins, rewards)
+
+		// Initialize and set gauge rewards
+		gaugeRewards := make(map[uint64]sdk.Coins)
+		gaugeRewards[gaugeID] = rewards
+		d.idToGaugeRewards = append(d.idToGaugeRewards, gaugeRewards)
 	}
 	return nil
 }
 
-// sendRewardsToLocks utilizes provided distributionInfo to send coins from the module account to various recipients.
-func (k Keeper) sendRewardsToLocks(ctx sdk.Context, distrs *distributionInfo) error {
-	numIDs := len(distrs.idToDecodedAddr)
-	if len(distrs.idToDistrCoins) != numIDs {
-		return fmt.Errorf("number of addresses and coins to distribute to must be equal")
+// GetEvents returns distribution events for all recipients.
+// For each recipient, it creates a single event with attributes for each gauge's rewards.
+func (d *RewardDistributionTracker) GetEvents() sdk.Events {
+	events := make(sdk.Events, 0, len(d.idToBech32Addr))
+
+	for id := 0; id < len(d.idToBech32Addr); id++ {
+		attributes := []sdk.Attribute{
+			sdk.NewAttribute(types.AttributeReceiver, d.idToBech32Addr[id]),
+			sdk.NewAttribute(types.AttributeAmount, d.idToDistrCoins[id].String()),
+		}
+
+		// Add attributes for each gauge's rewards (events doesn't requires deterministic order)
+		for gaugeID, gaugeRewards := range d.idToGaugeRewards[id] {
+			attributes = append(attributes,
+				sdk.NewAttribute(
+					fmt.Sprintf("%s_%d", types.AttributeGaugeID, gaugeID),
+					gaugeRewards.String(),
+				),
+			)
+		}
+
+		events = append(events, sdk.NewEvent(
+			types.TypeEvtDistribution,
+			attributes...,
+		))
+	}
+
+	return events
+}
+
+// distributeTrackedRewards sends the tracked rewards from the module account to recipients
+// and emits corresponding events for each gauge's rewards.
+func (k Keeper) distributeTrackedRewards(ctx sdk.Context, tracker *RewardDistributionTracker) error {
+	numIDs := len(tracker.idToDecodedAddr)
+	if len(tracker.idToDistrCoins) != numIDs || len(tracker.idToGaugeRewards) != numIDs {
+		return fmt.Errorf("number of addresses, coins, and gauge rewards to distribute must be equal")
 	}
 	ctx.Logger().Debug("Beginning distribution to users", "num_of_user", numIDs)
 
+	// First send all rewards
 	for id := 0; id < numIDs; id++ {
 		err := k.bk.SendCoinsFromModuleToAccount(
 			ctx,
 			types.ModuleName,
-			distrs.idToDecodedAddr[id],
-			distrs.idToDistrCoins[id])
+			tracker.idToDecodedAddr[id],
+			tracker.idToDistrCoins[id])
 		if err != nil {
 			return err
 		}
 	}
-	ctx.Logger().Debug("Finished sending, now creating liquidity add events")
-	for id := 0; id < numIDs; id++ {
-		ctx.EventManager().EmitEvents(sdk.Events{
-			sdk.NewEvent(
-				types.TypeEvtDistribution,
-				sdk.NewAttribute(types.AttributeReceiver, distrs.idToBech32Addr[id]),
-				sdk.NewAttribute(types.AttributeAmount, distrs.idToDistrCoins[id].String()),
-			),
-		})
-	}
+
+	// Emit all events
+	ctx.EventManager().EmitEvents(tracker.GetEvents())
+
 	ctx.Logger().Debug("Finished Distributing to users")
 	return nil
 }
 
-// distributeToAssetGauge runs the distribution logic for a gauge, and adds the sends to
-// the distrInfo struct. It also updates the gauge for the distribution.
-// Locks is expected to be the correct set of lock recipients for this gauge.
-func (k Keeper) distributeToAssetGauge(ctx sdk.Context, gauge types.Gauge, locks []lockuptypes.PeriodLock, currResult *distributionInfo) (sdk.Coins, error) {
+// calculateAssetGaugeRewards computes the reward distribution for an asset gauge based on lock amounts.
+// It calculates rewards for each qualifying lock and tracks them in the distribution tracker.
+// Returns the total coins allocated for distribution.
+func (k Keeper) calculateAssetGaugeRewards(ctx sdk.Context, gauge types.Gauge, locks []lockuptypes.PeriodLock, tracker *RewardDistributionTracker) (sdk.Coins, error) {
 	assetDist := gauge.GetAsset()
 	if assetDist == nil {
 		return sdk.Coins{}, fmt.Errorf("gauge %d is not an asset gauge", gauge.Id)
@@ -152,7 +194,7 @@ func (k Keeper) distributeToAssetGauge(ctx sdk.Context, gauge types.Gauge, locks
 			continue
 		}
 		// update the amount for that address
-		err := currResult.addLockRewards(lock.Owner, distrCoins)
+		err := tracker.addLockRewards(lock.Owner, gauge.Id, distrCoins)
 		if err != nil {
 			return sdk.Coins{}, err
 		}
