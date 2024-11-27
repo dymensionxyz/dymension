@@ -67,7 +67,7 @@ service Query {
   }
 
   // Validates provided genesis bridge data against the hub.
-  rpc ValidateGenesisBridge(QueryValidateGenesisBridge) returns (QueryValidateGenesisBridgeResponse);
+  rpc ValidateGenesisBridge(QueryValidateGenesisBridgeRequest) returns (QueryValidateGenesisBridgeResponse);
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -152,7 +152,7 @@ message QueryObsoleteDRSVersionsResponse {
   repeated uint32 drs_versions = 1;
 }
 
-message QueryValidateGenesisBridge {
+message QueryValidateGenesisBridgeRequest {
   string rollappId = 1;
   GenesisBridgeData data = 2 [ (gogoproto.nullable) = false ];
 }

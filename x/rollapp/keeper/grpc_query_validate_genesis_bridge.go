@@ -10,7 +10,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (k Keeper) ValidateGenesisBridge(goCtx context.Context, req *types.QueryValidateGenesisBridge) (*types.QueryValidateGenesisBridgeResponse, error) {
+func (k Keeper) ValidateGenesisBridge(goCtx context.Context, req *types.QueryValidateGenesisBridgeRequest) (*types.QueryValidateGenesisBridgeResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -29,7 +29,6 @@ func (k Keeper) ValidateGenesisBridge(goCtx context.Context, req *types.QueryVal
 	}
 
 	_, err := types.NewGenesisBridgeValidator(req.Data, ra.GenesisInfo, channelID, ra.RollappId).Validate()
-
 	// we want to distinguish between the gRPC error and the error from the validation,
 	// so we put the validation error in the response
 	if err != nil {
