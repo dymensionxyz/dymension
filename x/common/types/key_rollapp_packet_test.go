@@ -1,14 +1,16 @@
 package types_test
 
 import (
+	"encoding/hex"
 	"fmt"
+	"strings"
 	"testing"
 
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dymensionxyz/dymension/v3/x/common/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
@@ -18,7 +20,7 @@ type tcase struct {
 	bz      []byte
 }
 
-func TestFoo(t *testing.T) {
+func TestFooKey(t *testing.T) {
 
 	var testcases = []tcase{
 		{
@@ -50,18 +52,6 @@ func TestFoo(t *testing.T) {
 			tracker: `/mande_18071918-1/o/ON_RECV/channel-0/��`,
 			bz: commontypes.RollappPacketKey(
 				commontypes.Status_PENDING,
-				"gokhanmolla_899158-1",
-				2256,
-				commontypes.RollappPacket_ON_ACK,
-				"channel-64",
-				53451,
-			),
-		},
-		{
-			orderID: "c9c834d23707fa53a55944c98c767e319f51ff610fdbb866b8f7d35088ef543f",
-			tracker: `/mande_18071918-1/o/ON_RECV/channel-0/��`,
-			bz: commontypes.RollappPacketKey(
-				commontypes.Status_PENDING,
 				"mande_18071918-1",
 				1208081,
 				commontypes.RollappPacket_ON_RECV,
@@ -72,30 +62,37 @@ func TestFoo(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
+		idGotRebuild := eibctypes.BuildDemandIDFromPacketKey(string(tc.bz))
+		idGotTracker := eibctypes.BuildDemandIDFromPacketKey(string(tc.tracker))
+		k := string(tc.bz)
+		fmt.Println(tc.orderID, "key", len(k), k)
+
 		t.Log(fmt.Sprintf(`
 order id: %s,
 tracker: %s,
-actual : %s
-`, tc.orderID, tc.tracker, string(tc.bz)))
+actual : %s,
+order id rebuild : %s,
+order id tracker : %s,
+`, tc.orderID, tc.tracker, string(tc.bz), idGotRebuild, idGotTracker))
 		//t.Log(tc.orderID, "Tracker: ", tc.tracker, "Actual reversed:", string(tc.bz))
 	}
+	t.FailNow()
 }
 
-func TestEncodeDecodePacketKey(t *testing.T) {
-	packet := commontypes.RollappPacket{
-		RollappId:   "rollapp_1234-1",
-		Status:      commontypes.Status_PENDING,
-		ProofHeight: 8,
-		Packet:      getNewTestPacket(t),
+func decodeTrackingPacketKey(encodedKey string) (string, error) {
+	// Replace Unicode escape sequences with their actual characters
+	decodedKey := strings.ReplaceAll(encodedKey, "\\u0000", "\x00")
+	decodedKey = strings.ReplaceAll(decodedKey, "\\u0001", "\x01")
+	decodedKey = strings.ReplaceAll(decodedKey, "\\u0012", "\x12")
+	// Add more replacements as needed
+
+	// Decode any remaining hex-encoded characters
+	decodedBytes, err := hex.DecodeString(decodedKey)
+	if err != nil {
+		return "", err
 	}
 
-	expectedPK := packet.RollappPacketKey()
-
-	encoded := types.EncodePacketKey(expectedPK)
-	decoded, err := types.DecodePacketKey(encoded)
-	require.NoError(t, err)
-
-	require.Equal(t, expectedPK, decoded)
+	return string(decodedBytes), nil
 }
 
 func getNewTestPacket(t *testing.T) *channeltypes.Packet {

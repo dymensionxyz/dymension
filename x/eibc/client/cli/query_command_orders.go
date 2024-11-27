@@ -20,9 +20,8 @@ func CmdDemandOrderByID() *cobra.Command {
 		Short: "Get by id",
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id := "2ab7c88129c2c5a5b401a43e8423b2eab3ed3e2cf67dc71df8a88e97336b97b7"
 			request := &types.QueryGetDemandOrderRequest{
-				Id: id,
+				Id: args[0],
 			}
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -33,9 +32,12 @@ func CmdDemandOrderByID() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			k := res.DemandOrder.TrackingPacketKey
+			fmt.Println("key", len(k), res.DemandOrder.TrackingPacketKey)
 			return clientCtx.PrintProto(res)
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
