@@ -21,7 +21,7 @@ import (
 func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string, maxHeight uint64) (clientID string, stateCompatible bool) {
 	log := func(ctx sdk.Context, msg string, keyvals ...interface{}) {
 		keyvals = append(keyvals, "gas used", ctx.GasMeter().GasConsumed())
-		ctx.Logger().With("GetProspectiveCanonicalClient", "rollapp", rollappId, "maxHeight", maxHeight).Debug(
+		ctx.Logger().With("GetProspectiveCanonicalClient", "rollapp", rollappId, "maxHeight", maxHeight).Info(
 			msg, keyvals...,
 		)
 	}
