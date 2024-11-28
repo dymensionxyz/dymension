@@ -33,22 +33,25 @@ func (k Keeper) CreateRollappGauge(ctx sdk.Context, rollappId string) (uint64, e
 	return gauge.Id, nil
 }
 
-func (k Keeper) distributeToRollappGauge(ctx sdk.Context, gauge types.Gauge) (totalDistrCoins sdk.Coins, err error) {
+// calculateRollappGaugeRewards computes the reward distribution for a rollapp gauge.
+// Returns the total coins allocated for distribution.
+func (k Keeper) calculateRollappGaugeRewards(ctx sdk.Context, gauge types.Gauge, tracker *RewardDistributionTracker) (sdk.Coins, error) {
 	// Get the rollapp owner
 	rollapp, found := k.rk.GetRollapp(ctx, gauge.GetRollapp().RollappId)
 	if !found {
 		return sdk.Coins{}, fmt.Errorf("gauge %d: rollapp %s not found", gauge.Id, gauge.GetRollapp().RollappId)
 	}
 	// Ignore the error since the owner must always be valid in x/rollapp
-	addr := sdk.MustAccAddressFromBech32(rollapp.Owner)
+	owner := rollapp.Owner
 
-	totalDistrCoins = gauge.Coins.Sub(gauge.DistributedCoins...)
+	totalDistrCoins := gauge.Coins.Sub(gauge.DistributedCoins...) // distribute all remaining coins
 	if totalDistrCoins.Empty() {
 		ctx.Logger().Debug(fmt.Sprintf("gauge %d is empty, skipping", gauge.Id))
 		return sdk.Coins{}, nil
 	}
 
-	err = k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, totalDistrCoins)
+	// Add rewards to the tracker
+	err := tracker.addLockRewards(owner, gauge.Id, totalDistrCoins)
 	if err != nil {
 		return sdk.Coins{}, err
 	}

@@ -41,6 +41,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 						Base:     "aden",
 						Exponent: 18,
 					},
+					GenesisAccounts: &types.GenesisAccounts{}, // Frontend must specify empty type
 				},
 			},
 			expError: nil,
@@ -267,6 +268,69 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			}
 		})
 	}
+}
+
+// Update rollapp: fail - try to update genesis checksum when sealed
+func (s *RollappTestSuite) TestUpdateRollappRegression() {
+	const (
+		rollappId               = "rollapp_1234-1"
+		initialSequencerAddress = "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz"
+	)
+
+	goCtx := sdk.WrapSDKContext(s.Ctx)
+	rollapp := types.Rollapp{
+		RollappId:        rollappId,
+		Owner:            alice,
+		InitialSequencer: "",
+		ChannelId:        "",
+		Launched:         true,
+		VmType:           types.Rollapp_EVM,
+		Metadata: &types.RollappMetadata{
+			Website:     "",
+			Description: "",
+			LogoUrl:     "",
+			Telegram:    "",
+			X:           "",
+		},
+		GenesisInfo: types.GenesisInfo{
+			GenesisChecksum: "old",
+			Bech32Prefix:    "old",
+			NativeDenom: types.DenomMetadata{
+				Display:  "OLD",
+				Base:     "aold",
+				Exponent: 18,
+			},
+			InitialSupply: sdk.NewInt(1000),
+			Sealed:        true,
+			GenesisAccounts: &types.GenesisAccounts{
+				Accounts: []types.GenesisAccount{
+					{
+						Amount:  sdk.NewInt(1000),
+						Address: initialSequencerAddress,
+					},
+				},
+			},
+		},
+	}
+
+	update := &types.MsgUpdateRollappInformation{
+		Owner:            alice,
+		RollappId:        rollappId,
+		InitialSequencer: "",
+		Metadata:         nil,
+		GenesisInfo: &types.GenesisInfo{
+			GenesisAccounts: nil,
+		},
+	}
+
+	s.k().SetRollapp(s.Ctx, rollapp)
+
+	_, err := s.msgServer.UpdateRollappInformation(goCtx, update)
+	s.ErrorIs(err, types.ErrGenesisInfoSealed)
+
+	expect := len(rollapp.GenesisInfo.Accounts())
+	ra := s.k().MustGetRollapp(s.Ctx, rollappId)
+	s.Require().Equal(expect, len(ra.GenesisInfo.Accounts()))
 }
 
 func (s *RollappTestSuite) TestCreateAndUpdateRollapp() {

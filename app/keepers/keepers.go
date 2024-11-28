@@ -473,7 +473,11 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[ibctransfertypes.StoreKey],
 		a.GetSubspace(ibctransfertypes.ModuleName),
-		denommetadatamodule.NewICS4Wrapper(a.IBCKeeper.ChannelKeeper, a.RollappKeeper, a.BankKeeper),
+		genesisbridge.NewICS4Wrapper(
+			denommetadatamodule.NewICS4Wrapper(a.IBCKeeper.ChannelKeeper, a.RollappKeeper, a.BankKeeper),
+			a.RollappKeeper,
+			a.IBCKeeper.ChannelKeeper,
+		),
 		a.IBCKeeper.ChannelKeeper,
 		&a.IBCKeeper.PortKeeper,
 		a.AccountKeeper,
@@ -541,7 +545,6 @@ func (a *AppKeepers) InitTransferStack() {
 		a.DelayedAckKeeper,
 		a.TransferKeeper,
 		*a.TxFeesKeeper,
-		a.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName),
 	)
 	a.TransferStack = packetforwardmiddleware.NewIBCMiddleware(
 		a.TransferStack,
