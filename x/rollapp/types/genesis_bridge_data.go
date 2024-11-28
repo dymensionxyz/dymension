@@ -79,7 +79,6 @@ func (d GenesisBridgeData) IBCDenom(rollappID, channelID string) (transfertypes.
 		return transfertypes.DenomTrace{}, banktypes.Metadata{}, fmt.Errorf("validate IBC denom metadata: %w", err)
 	}
 	return trace, m, nil
-
 }
 
 // GenesisAccPackets creates a new packet for each genesis account.
