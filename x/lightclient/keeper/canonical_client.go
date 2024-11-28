@@ -7,9 +7,56 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
+
+func (k *Keeper) TrySetCanonicalClient(ctx sdk.Context, clientID string) error {
+
+	clientStateI, ok := k.ibcClientKeeper.GetClientState(ctx, clientID)
+	if !ok {
+		return gerrc.ErrNotFound.Wrap("client")
+	}
+
+	clientState, ok := clientStateI.(*ibctm.ClientState)
+	if !ok {
+		return gerrc.ErrInvalidArgument.Wrap("not tm client")
+	}
+
+	chainID := clientState.ChainId
+	_, ok = k.rollappKeeper.GetRollapp(ctx, chainID)
+	if !ok {
+		return gerrc.ErrNotFound.Wrap("rollapp")
+	}
+	rollappID := chainID
+
+	_, ok = k.GetCanonicalClient(ctx, rollappID)
+	if ok {
+		return gerrc.ErrAlreadyExists.Wrap("canonical client for rollapp")
+	}
+
+	latestHeight, ok := k.rollappKeeper.GetLatestHeight(ctx, rollappID)
+	if !ok {
+		return gerrc.ErrNotFound.Wrap("latest rollapp height")
+	}
+
+	err := k.validClient(ctx, clientID, clientState, rollappID, latestHeight)
+	if err != nil {
+		return errorsmod.Wrap(err, "unsafe to mark client canonical: check that sequencer has posted a recent state update")
+	}
+
+	k.SetCanonicalClient(ctx, rollappID, clientID)
+
+	if err := uevent.EmitTypedEvent(ctx, &types.EventSetCanonicalClient{
+		RollappId: rollappID,
+		ClientId:  clientID,
+	}); err != nil {
+		return errorsmod.Wrap(err, "emit typed event")
+	}
+
+	return nil
+}
 
 func (k Keeper) GetCanonicalClient(ctx sdk.Context, rollappId string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
