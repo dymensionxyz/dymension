@@ -545,7 +545,6 @@ func (a *AppKeepers) InitTransferStack() {
 		a.DelayedAckKeeper,
 		a.TransferKeeper,
 		*a.TxFeesKeeper,
-		a.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName),
 	)
 	a.TransferStack = packetforwardmiddleware.NewIBCMiddleware(
 		a.TransferStack,
