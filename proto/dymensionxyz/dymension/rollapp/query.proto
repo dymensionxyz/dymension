@@ -68,11 +68,6 @@ service Query {
 
   // Validates provided genesis bridge data against the hub.
   rpc ValidateGenesisBridge(QueryValidateGenesisBridgeRequest) returns (QueryValidateGenesisBridgeResponse);
-
-  // Queries the list of possible rollapp tags
-  rpc Tags(QueryTagsRequest) returns (QueryTagsResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/rollapp/tags";
-  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -165,10 +160,4 @@ message QueryValidateGenesisBridgeRequest {
 message QueryValidateGenesisBridgeResponse {
   bool valid = 1;
   string err = 2;
-}
-
-message QueryTagsRequest {}
-
-message QueryTagsResponse {
-  repeated string tags = 1;
 }
