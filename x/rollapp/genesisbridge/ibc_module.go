@@ -100,25 +100,31 @@ func (w IBCModule) OnRecvPacket(
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "unmarshal genesis bridge data"))
 	}
 
-	v := types.NewGenesisBridgeValidator(genesisBridgeData, ra.GenesisInfo, ra.ChannelId, ra.RollappId)
-
-	result, err := v.Validate()
+	// validate the genesis bridge data against the hub's genesis info
+	err = types.NewGenesisBridgeValidator(genesisBridgeData, ra.GenesisInfo).Validate()
 	if err != nil {
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "validate and get actionable data"))
 	}
 
-	w.transferKeeper.SetDenomTrace(ctx, result.NativeDenomTrace)
-	if err := w.denomKeeper.CreateDenomMetadata(ctx, result.NativeDenom); err != nil {
+	trace, denom, err := genesisBridgeData.IBCDenom(ra.RollappId, ra.ChannelId)
+	if err != nil {
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "genesis bridge data: to IBC denom"))
+	}
+
+	genesisPackets := genesisBridgeData.GenesisAccPackets()
+
+	w.transferKeeper.SetDenomTrace(ctx, trace)
+	if err := w.denomKeeper.CreateDenomMetadata(ctx, denom); err != nil {
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "create denom metadata"))
 	}
 
-	for _, data := range result.GenesisAccPackets {
+	for _, data := range genesisPackets {
 		if err := w.transferKeeper.OnRecvPacket(ctx, packet, data); err != nil {
 			return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "handle genesis transfer"))
 		}
 	}
 
-	err = w.EnableTransfers(ctx, ra, result.NativeDenom.Base)
+	err = w.EnableTransfers(ctx, ra, denom.Base)
 	if err != nil {
 		l.Error("Enable transfers.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: enable transfers"))
@@ -126,7 +132,7 @@ func (w IBCModule) OnRecvPacket(
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeTransfersEnabled,
 		sdk.NewAttribute(types.AttributeKeyRollappId, ra.RollappId),
-		sdk.NewAttribute(types.AttributeRollappIBCdenom, result.NativeDenom.Base),
+		sdk.NewAttribute(types.AttributeRollappIBCdenom, denom.Base),
 	))
 
 	// return success ack

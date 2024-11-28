@@ -22,13 +22,7 @@ func (k Keeper) ValidateGenesisBridge(goCtx context.Context, req *types.QueryVal
 		return nil, status.Error(codes.InvalidArgument, types.ErrRollappNotFound.Error())
 	}
 
-	// it's okay to use this value for simulation
-	channelID := "channel-0"
-	if ra.ChannelId != "" {
-		channelID = ra.ChannelId
-	}
-
-	_, err := types.NewGenesisBridgeValidator(req.Data, ra.GenesisInfo, channelID, ra.RollappId).Validate()
+	err := types.NewGenesisBridgeValidator(req.Data, ra.GenesisInfo).Validate()
 	// we want to distinguish between the gRPC error and the error from the validation,
 	// so we put the validation error in the response
 	if err != nil {

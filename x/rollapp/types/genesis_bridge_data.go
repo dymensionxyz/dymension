@@ -5,32 +5,37 @@ import (
 
 	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uibc"
+	"github.com/dymensionxyz/sdk-utils/utils/uslice"
 )
 
 // ValidateBasic performs basic validation checks on the GenesisBridgeData.
-func (data GenesisBridgeData) ValidateBasic() error {
+func (d GenesisBridgeData) ValidateBasic() error {
 	// Validate genesis info
-	if err := data.GenesisInfo.ValidateBasic(); err != nil {
+	if err := d.GenesisInfo.ValidateBasic(); err != nil {
 		return errors.Wrap(err, "invalid genesis info")
 	}
 
 	// Validate metadata
-	if err := data.NativeDenom.Validate(); err != nil {
+	if err := d.NativeDenom.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
 	}
 
 	// validate metadata corresponding to the genesis info denom
 	// check the base denom, display unit and decimals
-	if data.NativeDenom.Base != data.GenesisInfo.NativeDenom.Base {
+	if d.NativeDenom.Base != d.GenesisInfo.NativeDenom.Base {
 		return fmt.Errorf("metadata denom does not match genesis info denom")
 	}
 
 	// validate the decimals of the display denom
 	valid := false
-	for _, unit := range data.NativeDenom.DenomUnits {
-		if unit.Denom == data.GenesisInfo.NativeDenom.Display {
-			if unit.Exponent == data.GenesisInfo.NativeDenom.Exponent {
+	for _, unit := range d.NativeDenom.DenomUnits {
+		if unit.Denom == d.GenesisInfo.NativeDenom.Display {
+			if unit.Exponent == d.GenesisInfo.NativeDenom.Exponent {
 				valid = true
 				break
 			}
@@ -41,13 +46,13 @@ func (data GenesisBridgeData) ValidateBasic() error {
 	}
 
 	// Validate genesis transfers
-	if data.GenesisTransfer != nil {
-		if err := data.GenesisTransfer.ValidateBasic(); err != nil {
+	if d.GenesisTransfer != nil {
+		if err := d.GenesisTransfer.ValidateBasic(); err != nil {
 			return errors.Wrap(err, "invalid genesis transfer")
 		}
 
 		// validate the genesis transfer denom
-		if data.GenesisInfo.NativeDenom.Base != data.GenesisTransfer.Denom {
+		if d.GenesisInfo.NativeDenom.Base != d.GenesisTransfer.Denom {
 			return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "denom mismatch")
 		}
 	}
@@ -55,15 +60,70 @@ func (data GenesisBridgeData) ValidateBasic() error {
 	return nil
 }
 
+// IBCDenom extracts the IBC denom trace and metadata from the rollapp native denom.
+func (d GenesisBridgeData) IBCDenom(rollappID, channelID string) (transfertypes.DenomTrace, banktypes.Metadata, error) {
+	m := d.NativeDenom
+	trace := uibc.GetForeignDenomTrace(channelID, m.Base)
+
+	// Change the base to the ibc denom, and add an alias to the original
+	m.Base = trace.IBCDenom()
+	m.Description = fmt.Sprintf("auto-generated ibc denom for rollapp: base: %s: rollapp: %s", m.GetBase(), rollappID)
+	for i, u := range m.DenomUnits {
+		if u.Exponent == 0 {
+			m.DenomUnits[i].Aliases = append(m.DenomUnits[i].Aliases, u.Denom)
+			m.DenomUnits[i].Denom = m.Base
+		}
+	}
+
+	if err := m.Validate(); err != nil {
+		return transfertypes.DenomTrace{}, banktypes.Metadata{}, fmt.Errorf("validate IBC denom metadata: %w", err)
+	}
+	return trace, m, nil
+
+}
+
+// GenesisAccPackets creates a new packet for each genesis account.
+func (d *GenesisBridgeData) GenesisAccPackets() []transfertypes.FungibleTokenPacketData {
+	return uslice.Map(d.GenesisInfo.Accounts(), func(acc GenesisAccount) transfertypes.FungibleTokenPacketData {
+		return transfertypes.NewFungibleTokenPacketData(
+			d.GenesisTransfer.Denom,
+			acc.Amount.String(),
+			d.GenesisTransfer.Sender,
+			acc.Address,
+			"",
+		)
+	})
+}
+
+// Handling should be based on length and contents, not nil status
+func (i GenesisBridgeInfo) Accounts() []GenesisAccount {
+	if i.GenesisAccounts == nil {
+		return nil
+	}
+	return i.GenesisAccounts
+}
+
+func (i GenesisBridgeInfo) RequiresTransfer() bool {
+	return 0 < len(i.Accounts())
+}
+
+func (i GenesisBridgeInfo) GenesisTransferAmount() math.Int {
+	total := math.ZeroInt()
+	for _, a := range i.Accounts() {
+		total = total.Add(a.Amount)
+	}
+	return total
+}
+
 // converts to a native type and validates that
-func (info GenesisBridgeInfo) ValidateBasic() error {
+func (i GenesisBridgeInfo) ValidateBasic() error {
 	// wrap the genesis info in a GenesisInfo struct, to reuse the validation logic
 	raGenesisInfo := GenesisInfo{
-		GenesisChecksum: info.GenesisChecksum,
-		Bech32Prefix:    info.Bech32Prefix,
-		NativeDenom:     info.NativeDenom,
-		InitialSupply:   info.InitialSupply,
-		GenesisAccounts: &GenesisAccounts{Accounts: info.GenesisAccounts},
+		GenesisChecksum: i.GenesisChecksum,
+		Bech32Prefix:    i.Bech32Prefix,
+		NativeDenom:     i.NativeDenom,
+		InitialSupply:   i.InitialSupply,
+		GenesisAccounts: &GenesisAccounts{Accounts: i.GenesisAccounts},
 	}
 
 	if !raGenesisInfo.AllSet() {
