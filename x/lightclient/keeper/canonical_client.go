@@ -22,7 +22,7 @@ func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string,
 	log := func(ctx sdk.Context, msg string, keyvals ...interface{}) {
 		keyvals = append(keyvals, "gas used", ctx.GasMeter().GasConsumed())
 		ctx.Logger().With("GetProspectiveCanonicalClient", "rollapp", rollappId, "maxHeight", maxHeight).Debug(
-			msg, keyvals,
+			msg, keyvals...,
 		)
 	}
 
