@@ -95,14 +95,14 @@ func InvariantAccounting(k Keeper) uinv.Func {
 				if !dymBalance.IsZero() {
 					errs = append(errs, fmt.Errorf("dym tokens left in settled: planID: %d, balance: %s", plan.Id, dymBalance))
 				}
-			}
 
-			// Check if module has enough RA tokens to cover the claimable amount
-			claimable := plan.TotalAllocation.Amount.Sub(plan.ClaimedAmt)
-			moduleBal := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.SettledDenom)
-			if moduleBal.Amount.LT(claimable) {
-				errs = append(errs, fmt.Errorf("insufficient RA tokens: planID: %d, required: %s, available: %s",
-					plan.Id, claimable, moduleBal.Amount))
+				// Check if module has enough RA tokens to cover the claimable amount
+				claimable := plan.TotalAllocation.Amount.Sub(plan.ClaimedAmt)
+				moduleBal := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.SettledDenom)
+				if moduleBal.Amount.LT(claimable) {
+					errs = append(errs, fmt.Errorf("insufficient RA tokens: planID: %d, required: %s, available: %s",
+						plan.Id, claimable, moduleBal.Amount))
+				}
 			}
 		}
 
