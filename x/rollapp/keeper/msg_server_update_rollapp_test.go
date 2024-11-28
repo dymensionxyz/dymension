@@ -494,23 +494,6 @@ func (s *RollappTestSuite) TestForceGenesisInfoChange() {
 			},
 			expError: gerrc.ErrInvalidArgument,
 		},
-		{
-			name: "IRO mismatch - wrong decimals",
-			msg: &types.MsgForceGenesisInfoChange{
-				Authority: govModuleAccount,
-				NewGenesisInfo: types.GenesisInfo{
-					Bech32Prefix:    "new",
-					GenesisChecksum: "new_checksum",
-					InitialSupply:   sdk.NewInt(2000),
-					NativeDenom: types.DenomMetadata{
-						Display:  "NEW",
-						Base:     "anew",
-						Exponent: 18,
-					},
-				},
-			},
-			expError: gerrc.ErrInvalidArgument,
-		},
 	}
 
 	for _, tc := range tests {

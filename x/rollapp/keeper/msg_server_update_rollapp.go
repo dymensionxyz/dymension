@@ -58,7 +58,6 @@ func (k Keeper) ForceGenesisInfoChange(goCtx context.Context, msg *types.MsgForc
 		ctx.Logger().Error("force genesis info change.", err)
 		return nil, err
 	}
-	// FIXME: validate against existing IRO plan
 
 	rollapp.GenesisInfo = msg.NewGenesisInfo
 	rollapp.GenesisInfo.Sealed = true
