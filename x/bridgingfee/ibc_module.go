@@ -100,7 +100,7 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 	})
 	if err != nil {
 		// We continue as we don't want the fee charge to fail the transfer in any case.
-		w.logger(ctx, packet, "OnRecvPacket").Error("Charge bridging fee from payer.", "receiver", receiver, "err", err)
+		l.Error("Charge bridging fee from payer.", "receiver", receiver, "err", err)
 	}
 
 	ctx.EventManager().EmitEvent(
