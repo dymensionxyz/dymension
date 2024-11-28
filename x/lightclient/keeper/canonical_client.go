@@ -1,13 +1,12 @@
 package keeper
 
 import (
-	"errors"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
@@ -44,7 +43,7 @@ func (k Keeper) expectedClient() ibctm.ClientState {
 	return types.DefaultExpectedCanonicalClientParams()
 }
 
-var errChainIDMismatch = errors.New("chain id mismatch")
+var errNoMatchFound = gerrc.ErrFailedPrecondition.Wrap("not at least one cons state matches the rollapp state")
 
 // The canonical client criteria are:
 // 1. The client must be a tendermint client.
@@ -108,7 +107,7 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientSt
 	// (There are also no disagreeing consensus states. There may be some consensus states
 	// for future state updates, which will incur a fraud if they disagree.)
 	if !atLeastOneMatch {
-		return errors.New("no matching consensus state found")
+		return errNoMatchFound
 	}
 	return nil
 }
