@@ -122,5 +122,4 @@ func TestAfterUpdateState(t *testing.T) {
 			}
 		})
 	}
-	t.FailNow()
 }
