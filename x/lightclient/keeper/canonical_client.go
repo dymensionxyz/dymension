@@ -95,6 +95,7 @@ func (k Keeper) expectedClient() ibctm.ClientState {
 }
 
 var ErrNoMatch = gerrc.ErrFailedPrecondition.Wrap("not at least one cons state matches the rollapp state")
+var ErrMismatch = gerrc.ErrInvalidArgument.Wrap("consensus state mismatch")
 var ErrParamsMismatch = gerrc.ErrInvalidArgument.Wrap("params")
 
 // The canonical client criteria are:
@@ -150,7 +151,7 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientSt
 		}
 		err = types.CheckCompatibility(*tmConsensusState, rollappState)
 		if err != nil {
-			return errorsmod.Wrapf(errors.Join(gerrc.ErrInvalidArgument, err), "check compatibility: height: %d", h)
+			return errorsmod.Wrapf(errors.Join(ErrMismatch, err), "check compatibility: height: %d", h)
 		}
 		atLeastOneMatch = true
 	}

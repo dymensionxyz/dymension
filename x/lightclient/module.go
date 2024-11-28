@@ -44,9 +44,11 @@ func (AppModuleBasic) Name() string {
 }
 
 func (AppModuleBasic) RegisterCodec(cdc *codec.LegacyAmino) {
+	types.RegisterCodec(cdc)
 }
 
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	types.RegisterCodec(cdc)
 }
 
 // RegisterInterfaces registers the module's interface types
