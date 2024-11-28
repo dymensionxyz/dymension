@@ -102,6 +102,12 @@ func (s *lightClientSuite) TestSetCanonicalClient_Succeeds() {
 	_, err := s.rollappMsgServer().UpdateState(s.hubCtx(), msgUpdateState)
 	s.Require().NoError(err)
 
+	_, err = s.lightclientMsgServer().SetCanonicalClient(s.hubCtx(),
+		&types.MsgSetCanonicalClient{
+			Signer: s.hubChain().SenderAccount.GetAddress().String(), ClientId: s.path.EndpointA.ClientID,
+		})
+	s.Require().NoError(err)
+
 	canonClientID, found := s.hubApp().LightClientKeeper.GetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID)
 	s.Require().True(found)
 	s.Equal(endpointA.ClientID, canonClientID)
