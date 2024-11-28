@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -19,7 +20,22 @@ const (
 	maxTaglineLength         = 64
 	maxURLLength             = 256
 	maxGenesisChecksumLength = 64
+	maxTags                  = 3
 )
+
+// RollappTags are hardcoded for now TODO: manage them through the store
+var RollappTags = []string{
+	"Meme",
+	"AI",
+	"DeFI",
+	"NFT",
+	"Gaming",
+	"Betting",
+	"Community",
+	"Social",
+	"DePIN",
+	"Launchpad",
+}
 
 type AllowedDecimals uint32
 
@@ -229,6 +245,22 @@ func (md *RollappMetadata) Validate() error {
 		if err := md.FeeDenom.Validate(); err != nil {
 			return errors.Join(ErrInvalidFeeDenom, err)
 		}
+	}
+
+	if len(md.Tags) > maxTags {
+		return ErrTooManyTags
+	}
+
+	seen := make(map[string]struct{})
+
+	for _, tag := range md.Tags {
+		if !slices.Contains(RollappTags, tag) {
+			return ErrInvalidTag
+		}
+		if _, ok := seen[tag]; ok {
+			return ErrDuplicateTag
+		}
+		seen[tag] = struct{}{}
 	}
 
 	return nil
