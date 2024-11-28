@@ -3,7 +3,9 @@ package denom
 import (
 	"strings"
 
-	transferTypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 )
 
 // ValidateIBCDenom validates that the given denomination is a valid fungible token representation (i.e 'ibc/{hash}')
@@ -13,7 +15,7 @@ import (
 func ValidateIBCDenom(denom string) (string, bool) {
 	denomSplit := strings.SplitN(denom, "/", 2)
 
-	if len(denomSplit) == 2 && denomSplit[0] == transferTypes.DenomPrefix && strings.TrimSpace(denomSplit[1]) != "" {
+	if len(denomSplit) == 2 && denomSplit[0] == transfertypes.DenomPrefix && strings.TrimSpace(denomSplit[1]) != "" {
 		return denomSplit[1], true
 	}
 
@@ -34,4 +36,28 @@ func SourcePortChanFromTracePath(tracePath string) (sourcePort, sourceChannel st
 		return "", "", false
 	}
 	return sourcePort, sourceChannel, true
+}
+
+// GetIncomingTransferDenom returns the denom that will be credited on the hub.
+// The denom logic follows the transfer middleware's logic and is necessary in order to prefix/non-prefix the denom
+// based on the original chain it was sent from.
+func GetIncomingTransferDenom(packet channeltypes.Packet, fungibleTokenPacketData transfertypes.FungibleTokenPacketData) string {
+	var denom string
+
+	if transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), fungibleTokenPacketData.Denom) {
+		// remove prefix added by sender chain
+		voucherPrefix := transfertypes.GetDenomPrefix(packet.GetSourcePort(), packet.GetSourceChannel())
+		unprefixedDenom := fungibleTokenPacketData.Denom[len(voucherPrefix):]
+		// coin denomination used in sending from the escrow address
+		denom = unprefixedDenom
+		// The denomination used to send the coins is either the native denom or the hash of the path
+		// if the denomination is not native.
+		denomTrace := transfertypes.ParseDenomTrace(unprefixedDenom)
+		if denomTrace.Path != "" {
+			denom = denomTrace.IBCDenom()
+		}
+	} else {
+		denom = uibc.GetForeignDenomTrace(packet.GetDestChannel(), fungibleTokenPacketData.Denom).IBCDenom()
+	}
+	return denom
 }
