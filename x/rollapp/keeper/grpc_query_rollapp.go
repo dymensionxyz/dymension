@@ -99,11 +99,7 @@ func getSummaryResponse(ctx sdk.Context, k Keeper, rollapp types.Rollapp, ok, wi
 // Tags returns all the tags available for rollapps.
 // The order is non-deterministic.
 func (k Keeper) Tags(context.Context, *types.QueryTagsRequest) (*types.QueryTagsResponse, error) {
-	tags := make([]string, 0, len(types.RollappTags))
-	for tag := range types.RollappTags {
-		tags = append(tags, tag)
-	}
 	return &types.QueryTagsResponse{
-		Tags: tags,
+		Tags: types.RollappTags,
 	}, nil
 }

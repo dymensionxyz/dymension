@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -23,17 +24,17 @@ const (
 )
 
 // RollappTags are hardcoded for now TODO: manage them through the store
-var RollappTags = map[string]struct{}{
-	"Meme":      {},
-	"AI":        {},
-	"DeFI":      {},
-	"NFT":       {},
-	"Gaming":    {},
-	"Betting":   {},
-	"Community": {},
-	"Social":    {},
-	"DePIN":     {},
-	"Launchpad": {},
+var RollappTags = []string{
+	"Meme",
+	"AI",
+	"DeFI",
+	"NFT",
+	"Gaming",
+	"Betting",
+	"Community",
+	"Social",
+	"DePIN",
+	"Launchpad",
 }
 
 type AllowedDecimals uint32
@@ -253,7 +254,7 @@ func (md *RollappMetadata) Validate() error {
 	seen := make(map[string]struct{})
 
 	for _, tag := range md.Tags {
-		if _, ok := RollappTags[tag]; !ok {
+		if !slices.Contains(RollappTags, tag) {
 			return ErrInvalidTag
 		}
 		if _, ok := seen[tag]; ok {
