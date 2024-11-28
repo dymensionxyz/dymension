@@ -22,21 +22,19 @@ const (
 	maxTags                  = 3
 )
 
-var (
-	// RollappTags are hardcoded for now TODO: manage them through the store
-	RollappTags = map[string]struct{}{
-		"Meme":      {},
-		"AI":        {},
-		"DeFI":      {},
-		"NFT":       {},
-		"Gaming":    {},
-		"Betting":   {},
-		"Community": {},
-		"Social":    {},
-		"DePIN":     {},
-		"Launchpad": {},
-	}
-)
+// RollappTags are hardcoded for now TODO: manage them through the store
+var RollappTags = map[string]struct{}{
+	"Meme":      {},
+	"AI":        {},
+	"DeFI":      {},
+	"NFT":       {},
+	"Gaming":    {},
+	"Betting":   {},
+	"Community": {},
+	"Social":    {},
+	"DePIN":     {},
+	"Launchpad": {},
+}
 
 type AllowedDecimals uint32
 
