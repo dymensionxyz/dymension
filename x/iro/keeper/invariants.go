@@ -97,7 +97,7 @@ func InvariantAccounting(k Keeper) uinv.Func {
 				}
 
 				// Check if module has enough RA tokens to cover the claimable amount
-				claimable := plan.ClaimedAmt.Sub(plan.ClaimedAmt)
+				claimable := plan.SoldAmt.Sub(plan.ClaimedAmt)
 				moduleBal := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.SettledDenom)
 				if moduleBal.Amount.LT(claimable) {
 					errs = append(errs, fmt.Errorf("insufficient RA tokens: planID: %d, required: %s, available: %s",
