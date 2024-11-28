@@ -18,14 +18,10 @@ const (
 // HandleGenesisTransfer handles the genesis transfer packet, if present, and expected.
 // We assume that genesis info is already validated, and the genesis transfer is expected to fulfill the genesis info.
 func (w IBCModule) handleGenesisTransfer(ctx sdk.Context, ra types.Rollapp, packet channeltypes.Packet, gTransfer *transfertypes.FungibleTokenPacketData) error {
-	// check if required or expected
-	required := ra.GenesisInfo.GenesisAccounts != nil
-	// required but not present
-	if required && gTransfer == nil {
+	if ra.GenesisInfo.RequiresTransfer() && gTransfer == nil {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer required")
 	}
-	// not required but present
-	if !required && gTransfer != nil {
+	if !ra.GenesisInfo.RequiresTransfer() && gTransfer != nil {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer not expected")
 	}
 	if gTransfer == nil {
@@ -44,7 +40,7 @@ func (w IBCModule) handleGenesisTransfer(ctx sdk.Context, ra types.Rollapp, pack
 	}
 
 	// split the transfer to the genesis accounts
-	for _, acc := range ra.GenesisInfo.GenesisAccounts.Accounts {
+	for _, acc := range ra.GenesisInfo.Accounts() {
 		// create a new packet for each account
 		data := transfertypes.NewFungibleTokenPacketData(
 			gTransfer.Denom,
