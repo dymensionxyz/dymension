@@ -19,6 +19,23 @@ const (
 	maxTaglineLength         = 64
 	maxURLLength             = 256
 	maxGenesisChecksumLength = 64
+	maxTags                  = 3
+)
+
+var (
+	// RollappTags are hardcoded for now TODO: manage them through the store
+	RollappTags = map[string]struct{}{
+		"Meme":      {},
+		"AI":        {},
+		"DeFI":      {},
+		"NFT":       {},
+		"Gaming":    {},
+		"Betting":   {},
+		"Community": {},
+		"Social":    {},
+		"DePIN":     {},
+		"Launchpad": {},
+	}
 )
 
 type AllowedDecimals uint32
@@ -229,6 +246,22 @@ func (md *RollappMetadata) Validate() error {
 		if err := md.FeeDenom.Validate(); err != nil {
 			return errors.Join(ErrInvalidFeeDenom, err)
 		}
+	}
+
+	if len(md.Tags) > maxTags {
+		return ErrTooManyTags
+	}
+
+	seen := make(map[string]struct{})
+
+	for _, tag := range md.Tags {
+		if _, ok := RollappTags[tag]; !ok {
+			return ErrInvalidTag
+		}
+		if _, ok := seen[tag]; ok {
+			return ErrDuplicateTag
+		}
+		seen[tag] = struct{}{}
 	}
 
 	return nil

@@ -95,3 +95,13 @@ func getSummaryResponse(ctx sdk.Context, k Keeper, rollapp types.Rollapp, ok, wi
 
 	return resp, nil
 }
+
+func (k Keeper) Tags(context.Context, *types.QueryTagsRequest) (*types.QueryTagsResponse, error) {
+	tags := make([]string, 0, len(types.RollappTags))
+	for tag := range types.RollappTags {
+		tags = append(tags, tag)
+	}
+	return &types.QueryTagsResponse{
+		Tags: tags,
+	}, nil
+}
