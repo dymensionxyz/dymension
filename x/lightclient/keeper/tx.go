@@ -19,8 +19,6 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-// intended to be called by relayer, but can be called by anyone
-// verifies that the suggested client is safe to designate canonical and matches state updates from the sequencer
 func (m msgServer) SetCanonicalClient(goCtx context.Context, msg *types.MsgSetCanonicalClient) (*types.MsgSetCanonicalClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

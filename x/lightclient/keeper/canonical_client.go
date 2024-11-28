@@ -12,6 +12,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
 
+// intended to be called by relayer, but can be called by anyone
+// verifies that the suggested client is safe to designate canonical and matches state updates from the sequencer
 func (k *Keeper) TrySetCanonicalClient(ctx sdk.Context, clientID string) error {
 
 	clientStateI, ok := k.ibcClientKeeper.GetClientState(ctx, clientID)
