@@ -26,7 +26,6 @@ var _ types.MsgServer = msgServer{}
 // intended to be called by relayer, but can be called by anyone
 // verifies that the suggested client is safe to designate canonical and matches state updates from the sequencer
 func (m msgServer) SetCanonicalClient(goCtx context.Context, msg *types.MsgSetCanonicalClient) (*types.MsgSetCanonicalClientResponse, error) {
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	clientStateI, ok := m.ibcClientKeeper.GetClientState(ctx, msg.ClientId)
@@ -57,7 +56,6 @@ func (m msgServer) SetCanonicalClient(goCtx context.Context, msg *types.MsgSetCa
 	}
 
 	err := m.validClient(ctx, msg.ClientId, clientState, rollappID, latestHeight)
-
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "unsafe to mark client canonical: check that sequencer has posted a recent state update")
 	}

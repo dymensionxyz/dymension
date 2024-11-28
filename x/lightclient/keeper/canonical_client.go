@@ -50,7 +50,6 @@ var errNoMatchFound = gerrc.ErrFailedPrecondition.Wrap("not at least one cons st
 // 2. The client state must match the expected client params as configured by the module
 // 3. All the existing consensus states much match the corresponding height rollapp block descriptors
 func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientState, rollappId string, maxHeight uint64) error {
-
 	log := k.Logger(ctx).With("component", "valid client func", "rollapp", rollappId, "client", clientID)
 
 	log.Debug("top of func", "max height", maxHeight, "gas", ctx.GasMeter().GasConsumed())

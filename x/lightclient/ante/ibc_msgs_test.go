@@ -18,7 +18,7 @@ type MockRollappKeeper struct {
 }
 
 func (m *MockRollappKeeper) GetLatestHeight(ctx sdk.Context, rollappId string) (uint64, bool) {
-	//TODO implement me
+	// TODO implement me
 	panic("implement me")
 }
 

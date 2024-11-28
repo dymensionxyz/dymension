@@ -120,7 +120,6 @@ func TestAfterUpdateState(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
-
 		})
 	}
 	t.FailNow()
