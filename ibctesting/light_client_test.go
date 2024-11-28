@@ -8,7 +8,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
-
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
@@ -90,6 +89,13 @@ func (s *lightClientSuite) TestSetCanonicalClient_Succeeds() {
 	currentHeader = s.rollappChain().CurrentHeader
 	bdNext := rollapptypes.BlockDescriptor{Height: uint64(currentHeader.Height), StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
 
+	setCanonMsg := &types.MsgSetCanonicalClient{
+		Signer: s.hubChain().SenderAccount.GetAddress().String(), ClientId: s.path.EndpointA.ClientID,
+	}
+	// It's too early, it should fail
+	_, err := s.lightclientMsgServer().SetCanonicalClient(s.hubCtx(), setCanonMsg)
+	s.Require().Error(err)
+
 	// Update the rollapp state - this will trigger the check for prospective canonical client
 	msgUpdateState := rollapptypes.NewMsgUpdateState(
 		s.hubChain().SenderAccount.GetAddress().String(),
@@ -99,7 +105,7 @@ func (s *lightClientSuite) TestSetCanonicalClient_Succeeds() {
 		2,
 		&rollapptypes.BlockDescriptors{BD: []rollapptypes.BlockDescriptor{bd, bdNext}},
 	)
-	_, err := s.rollappMsgServer().UpdateState(s.hubCtx(), msgUpdateState)
+	_, err = s.rollappMsgServer().UpdateState(s.hubCtx(), msgUpdateState)
 	s.Require().NoError(err)
 
 	_, err = s.lightclientMsgServer().SetCanonicalClient(s.hubCtx(),
