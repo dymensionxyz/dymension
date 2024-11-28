@@ -49,5 +49,8 @@ func (msg *MsgSetCanonicalClient) ValidateBasic() error {
 	if err != nil {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid creator address (%s)", err)
 	}
+	if msg.ClientId == "" {
+		return gerrc.ErrInvalidArgument.Wrap("empty client id")
+	}
 	return nil
 }
