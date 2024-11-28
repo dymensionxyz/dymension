@@ -129,9 +129,9 @@ func (hook rollappHook) getConsensusState(ctx sdk.Context,
 	client string,
 	h uint64,
 ) (*ibctm.ConsensusState, bool) {
-	cs, _ := hook.k.ibcClientKeeper.GetClientState(ctx, client)
+	cs, _ := hook.k.IbcClientK.GetClientState(ctx, client)
 	height := ibcclienttypes.NewHeight(cs.GetLatestHeight().GetRevisionNumber(), h)
-	consensusState, ok := hook.k.ibcClientKeeper.GetClientConsensusState(ctx, client, height)
+	consensusState, ok := hook.k.IbcClientK.GetClientConsensusState(ctx, client, height)
 	if !ok {
 		return nil, false
 	}

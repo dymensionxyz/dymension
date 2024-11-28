@@ -21,7 +21,7 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, newRe
 	if !found {
 		return gerrc.ErrFailedPrecondition.Wrap("canonical client not found")
 	}
-	cs := k.ibcClientKeeper.ClientStore(ctx, client)
+	cs := k.IbcClientK.ClientStore(ctx, client)
 
 	// iterate over all consensus states and metadata in the client store
 	IterateConsensusStateDescending(cs, func(h exported.Height) bool {
@@ -58,7 +58,7 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, newRe
 // CONTRACT: canonical client is already set, state info exists
 func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
 	client, _ := k.GetCanonicalClient(ctx, rollappID) // already checked in the caller
-	clientStore := k.ibcClientKeeper.ClientStore(ctx, client)
+	clientStore := k.IbcClientK.ClientStore(ctx, client)
 
 	stateinfo, _ := k.rollappKeeper.GetLatestStateInfo(ctx, rollappID) // already checked in the caller
 	height := stateinfo.StartHeight

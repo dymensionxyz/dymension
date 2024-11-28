@@ -34,11 +34,11 @@ type Keeper struct {
 	// use to avoid problems in ibctesting.
 	enabled *enabled
 
-	cdc             codec.BinaryCodec
-	storeKey        storetypes.StoreKey
-	ibcClientKeeper types.IBCClientKeeperExpected
-	SeqK            types.SequencerKeeperExpected
-	rollappKeeper   types.RollappKeeperExpected
+	cdc           codec.BinaryCodec
+	storeKey      storetypes.StoreKey
+	IbcClientK    types.IBCClientKeeperExpected
+	SeqK          types.SequencerKeeperExpected
+	rollappKeeper types.RollappKeeperExpected
 
 	// <sequencer addr,client ID, height>
 	headerSigners collections.KeySet[collections.Triple[string, string, uint64]]
@@ -64,12 +64,12 @@ func NewKeeper(
 	service := collcompat.NewKVStoreService(storeKey)
 	sb := collections.NewSchemaBuilder(service)
 	k := &Keeper{
-		enabled:         &enabled{true},
-		cdc:             cdc,
-		storeKey:        storeKey,
-		ibcClientKeeper: ibcKeeper,
-		SeqK:            sequencerKeeper,
-		rollappKeeper:   rollappKeeper,
+		enabled:       &enabled{true},
+		cdc:           cdc,
+		storeKey:      storeKey,
+		IbcClientK:    ibcKeeper,
+		SeqK:          sequencerKeeper,
+		rollappKeeper: rollappKeeper,
 		headerSigners: collections.NewKeySet(
 			sb,
 			types.HeaderSignersPrefixKey,

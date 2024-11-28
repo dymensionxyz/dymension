@@ -9,6 +9,7 @@ import (
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	keeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func TestTrySetCanonicalClient(t *testing.T) {
@@ -29,7 +30,7 @@ func TestTrySetCanonicalClient(t *testing.T) {
 				k.SetClientState(ctx, clientID, &types.ClientState{})
 				return input{clientID: clientID}
 			},
-			expectErr: types.ErrInvalidArgument,
+			expectErr: gerrc.ErrInvalidArgument,
 		},
 		{
 			name: "rollapp not exists",
