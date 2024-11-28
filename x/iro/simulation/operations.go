@@ -104,8 +104,10 @@ func SimulateMsgBuy(
 		plan := plans[r.Intn(len(plans))]
 
 		// Generate random amount to buy
-		maxAmount := math.NewInt(1000000) // Arbitrary max amount
-		amount := simtypes.RandomAmount(r, maxAmount)
+		amount := simtypes.RandomAmount(r, plan.TotalAllocation.Amount.Sub(plan.SoldAmt))
+
+		// FIXME: maxAmount should be calculated based on amount
+		maxAmount := math.NewInt(1000000000000).Mul(DYM)
 
 		msg := types.MsgBuy{
 			Buyer:         simAccount.Address.String(),
@@ -159,14 +161,15 @@ func SimulateMsgBuyExactSpend(
 		plan := plans[r.Intn(len(plans))]
 
 		// Generate random amount to spend
-		maxSpend := math.NewInt(1000000) // Arbitrary max spend
-		spendAmount := simtypes.RandomAmount(r, maxSpend)
+		spendAmount := simtypes.RandomAmount(r, DYM.MulRaw(100000000))
+		// FIXME: minOutTokens should be calculated based on spendAmount
+		minOutTokens := math.ZeroInt()
 
 		msg := types.MsgBuyExactSpend{
 			Buyer:              simAccount.Address.String(),
 			PlanId:             fmt.Sprintf("%d", plan.Id),
 			Spend:              spendAmount,
-			MinOutTokensAmount: math.NewInt(10000),
+			MinOutTokensAmount: minOutTokens,
 		}
 
 		txCtx := simulation.OperationInput{
@@ -214,14 +217,15 @@ func SimulateMsgSell(
 		plan := plans[r.Intn(len(plans))]
 
 		// Generate random amount to sell
-		maxSell := math.NewInt(1000000) // Arbitrary max sell amount
-		sellAmount := simtypes.RandomAmount(r, maxSell)
+		sellAmount := simtypes.RandomAmount(r, spendable.AmountOf(types.IRODenom(plan.RollappId)))
+		// FIXME: minIncomeAmount should be calculated based on sellAmount
+		minIncomeAmount := math.ZeroInt()
 
 		msg := types.MsgSell{
 			Seller:          simAccount.Address.String(),
 			PlanId:          fmt.Sprintf("%d", plan.Id),
 			Amount:          sellAmount,
-			MinIncomeAmount: math.Int{},
+			MinIncomeAmount: minIncomeAmount,
 		}
 
 		txCtx := simulation.OperationInput{

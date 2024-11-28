@@ -12,6 +12,12 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
+)
+
+var (
+	// DYM represents 1 DYM. Equals to 10^18 ADYM.
+	DYM = math.NewIntWithDecimal(1, 18)
 )
 
 // RandomizedGenState generates a random GenesisState for iro module
@@ -43,36 +49,36 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 func generateRandomPlan(r *rand.Rand, id uint64) types.Plan {
 	// Generate random account address for owner
-	rollappId := "rollapp_1234-1" // FIXME: randomize
+	rollappId := urand.RollappID()
 
 	// Generate random bonding curve
 	curve := generateRandomBondingCurve(r)
 
 	// Generate random timestamps for pre-launch and start time
-	now := time.Now()
-	preLaunchTime := now.Add(time.Duration(r.Int63n(7*24)) * time.Hour)       // Within a week
-	startTime := preLaunchTime.Add(time.Duration(r.Int63n(7*24)) * time.Hour) // Within a week after pre-launch
+	startTime := time.Now()
+	preLaunchTime := startTime.Add(24 * time.Hour)
 
-	// Generate random allocated amount (between 1M and 10M)
-	// FIXME: do all 10^18
+	// Generate random allocated amount (between 1000 and 1B)
 	baseDenom := types.IRODenom(rollappId)
-	allocatedAmount := simtypes.RandomAmount(r, math.NewInt(1000000000000000000)).Add(math.NewInt(1000))
+	allocatedAmount := simtypes.RandomAmount(r, math.NewInt(10^9)).Add(math.NewInt(1000)).Mul(DYM)
 	allocation := sdk.Coin{
 		Denom:  baseDenom,
 		Amount: allocatedAmount,
 	}
 
-	plan := types.NewPlan(id, rollappId, allocation, curve, startTime, preLaunchTime, types.IncentivePlanParams{})
+	plan := types.NewPlan(id, rollappId, allocation, curve, startTime, preLaunchTime, types.DefaultIncentivePlanParams())
 
 	return plan
 }
 
 func generateRandomBondingCurve(r *rand.Rand) types.BondingCurve {
 	m := simtypes.RandomDecAmount(r, math.LegacyMustNewDecFromStr("1"))
-	n := simtypes.RandomDecAmount(r, math.LegacyMustNewDecFromStr("2"))
-	// fixme: enforce 	MaxNPrecision = 3 // Maximum allowed decimal precision for the N parameter
 
-	// linear bonding curve as default
+	// Generate N with maximum precision of 3
+	nInt := r.Int63n(1000)                     // Generate a random integer between 0 and 999
+	nDec := math.LegacyNewDecWithPrec(nInt, 3) // Convert to decimal with 3 decimal places
+	n := nDec.Add(math.LegacyOneDec())         // Add 1 to ensure n > 1
+
 	return types.BondingCurve{
 		M: m,
 		N: n,
