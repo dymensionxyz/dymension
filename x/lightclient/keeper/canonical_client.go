@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -92,7 +94,8 @@ func (k Keeper) expectedClient() ibctm.ClientState {
 	return types.DefaultExpectedCanonicalClientParams()
 }
 
-var errNoMatchFound = gerrc.ErrFailedPrecondition.Wrap("not at least one cons state matches the rollapp state")
+var ErrNoMatch = gerrc.ErrFailedPrecondition.Wrap("not at least one cons state matches the rollapp state")
+var ErrParamsMismatch = gerrc.ErrInvalidArgument.Wrap("params")
 
 // The canonical client criteria are:
 // 1. The client must be a tendermint client.
@@ -106,7 +109,7 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientSt
 	expClient := k.expectedClient()
 
 	if err := types.IsCanonicalClientParamsValid(cs, &expClient); err != nil {
-		return errorsmod.Wrap(err, "params")
+		return errors.Join(err, ErrParamsMismatch)
 	}
 
 	// FIXME: No need to get all consensus states. should iterate over the consensus states
@@ -147,7 +150,7 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientSt
 		}
 		err = types.CheckCompatibility(*tmConsensusState, rollappState)
 		if err != nil {
-			return errorsmod.Wrapf(err, "check compatibility: height: %d", h)
+			return errorsmod.Wrapf(errors.Join(gerrc.ErrInvalidArgument, err), "check compatibility: height: %d", h)
 		}
 		atLeastOneMatch = true
 	}
@@ -155,7 +158,7 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientSt
 	// (There are also no disagreeing consensus states. There may be some consensus states
 	// for future state updates, which will incur a fraud if they disagree.)
 	if !atLeastOneMatch {
-		return errNoMatchFound
+		return ErrNoMatch
 	}
 	return nil
 }
