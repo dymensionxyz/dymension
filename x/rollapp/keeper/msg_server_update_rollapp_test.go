@@ -441,6 +441,7 @@ func (s *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	s.Require().NoError(err)
 	s.Require().Equal(metadata, initSeq.Metadata)
 }
+
 func (s *RollappTestSuite) TestForceGenesisInfoChange() {
 	govModuleAccount := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
