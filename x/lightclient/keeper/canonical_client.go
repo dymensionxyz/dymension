@@ -7,32 +7,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
-
-// GetProspectiveCanonicalClient returns the client id of the first IBC client which can be set as the canonical client for the given rollapp.
-// The canonical client criteria are:
-// 1. The client must be a tendermint client.
-// 2. The client state must match the expected client params as configured by the module
-// 3. All the existing consensus states much match the corresponding height rollapp block descriptors
-func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string, maxHeight uint64) (clientID string, stateCompatible bool) {
-	k.ibcClientKeeper.IterateClientStates(ctx, nil, func(client string, cs exported.ClientState) bool {
-		err := k.validClient(ctx, client, cs, rollappId, maxHeight)
-		if err != nil && !errorsmod.IsOf(err, errChainIDMismatch) {
-			ctx.Logger().Debug("tried to validate rollapp against light client for same chain id: rollapp: %s: client: %s", rollappId, client, "err", err)
-		}
-		if err == nil {
-			clientID = client
-			stateCompatible = true
-			return true
-		}
-		return false
-	})
-	return
-}
 
 func (k Keeper) GetCanonicalClient(ctx sdk.Context, rollappId string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -47,7 +25,6 @@ func (k Keeper) SetCanonicalClient(ctx sdk.Context, rollappId string, clientID s
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetRollappClientKey(rollappId), []byte(clientID))
 	store.Set(types.CanonicalClientKey(clientID), []byte(rollappId))
-	// TODO: event and log
 }
 
 func (k Keeper) GetAllCanonicalClients(ctx sdk.Context) (clients []types.CanonicalClient) {
@@ -69,18 +46,19 @@ func (k Keeper) expectedClient() ibctm.ClientState {
 
 var errChainIDMismatch = errors.New("chain id mismatch")
 
-func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.ClientState, rollappId string, maxHeight uint64) error {
-	tmClientState, ok := cs.(*ibctm.ClientState)
-	if !ok {
-		return errors.New("not tm client")
-	}
-	if tmClientState.ChainId != rollappId {
-		return errChainIDMismatch
-	}
+// The canonical client criteria are:
+// 1. The client must be a tendermint client.
+// 2. The client state must match the expected client params as configured by the module
+// 3. All the existing consensus states much match the corresponding height rollapp block descriptors
+func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientState, rollappId string, maxHeight uint64) error {
+
+	log := k.Logger(ctx).With("component", "valid client func", "rollapp", rollappId, "client", clientID)
+
+	log.Debug("top of func", "max height", maxHeight, "gas", ctx.GasMeter().GasConsumed())
 
 	expClient := k.expectedClient()
 
-	if err := types.IsCanonicalClientParamsValid(tmClientState, &expClient); err != nil {
+	if err := types.IsCanonicalClientParamsValid(cs, &expClient); err != nil {
 		return errorsmod.Wrap(err, "params")
 	}
 
@@ -89,11 +67,13 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.Client
 		ClientId:   clientID,
 		Pagination: &query.PageRequest{Limit: maxHeight},
 	})
+	log.Debug("after fetch heights", "max height", maxHeight, "gas", ctx.GasMeter().GasConsumed())
 	if err != nil {
 		return errorsmod.Wrap(err, "cons state heights")
 	}
 	atLeastOneMatch := false
 	for _, consensusHeight := range res.ConsensusStateHeights {
+		log.Debug("after fetch heights", "cons state height", consensusHeight.RevisionHeight, "gas", ctx.GasMeter().GasConsumed())
 		h := consensusHeight.GetRevisionHeight()
 		if maxHeight < h {
 			break
