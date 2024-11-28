@@ -19,8 +19,17 @@ import (
 // 2. The client state must match the expected client params as configured by the module
 // 3. All the existing consensus states much match the corresponding height rollapp block descriptors
 func (k Keeper) GetProspectiveCanonicalClient(ctx sdk.Context, rollappId string, maxHeight uint64) (clientID string, stateCompatible bool) {
+	log := func(ctx sdk.Context, msg string, keyvals ...interface{}) {
+		keyvals = append(keyvals, "gas used", ctx.GasMeter().GasConsumed())
+		ctx.Logger().With("GetProspectiveCanonicalClient", "rollapp", rollappId, "maxHeight", maxHeight).Debug(
+			msg, keyvals,
+		)
+	}
+
+	log(ctx, "Before iterate client states.")
 	k.ibcClientKeeper.IterateClientStates(ctx, nil, func(client string, cs exported.ClientState) bool {
-		err := k.validClient(ctx, client, cs, rollappId, maxHeight)
+		err := k.validClient(ctx, log, client, cs, rollappId, maxHeight)
+		log(ctx, "Valid client.", "client", client)
 		if err != nil && !errorsmod.IsOf(err, errChainIDMismatch) {
 			ctx.Logger().Debug("tried to validate rollapp against light client for same chain id: rollapp: %s: client: %s", rollappId, client, "err", err)
 		}
@@ -69,7 +78,7 @@ func (k Keeper) expectedClient() ibctm.ClientState {
 
 var errChainIDMismatch = errors.New("chain id mismatch")
 
-func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.ClientState, rollappId string, maxHeight uint64) error {
+func (k Keeper) validClient(ctx sdk.Context, log func(sdk.Context, string, ...interface{}), clientID string, cs exported.ClientState, rollappId string, maxHeight uint64) error {
 	tmClientState, ok := cs.(*ibctm.ClientState)
 	if !ok {
 		return errors.New("not tm client")
@@ -77,6 +86,8 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.Client
 	if tmClientState.ChainId != rollappId {
 		return errChainIDMismatch
 	}
+
+	log(ctx, "Valid client: chain ID matches.", "client ID", clientID, "chain ID", tmClientState.ChainId)
 
 	expClient := k.expectedClient()
 
@@ -89,11 +100,13 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs exported.Client
 		ClientId:   clientID,
 		Pagination: &query.PageRequest{Limit: maxHeight},
 	})
+	log(ctx, "Valid client: query client consensus heights.", "client ID", clientID, "chain ID", tmClientState.ChainId)
 	if err != nil {
 		return errorsmod.Wrap(err, "cons state heights")
 	}
 	atLeastOneMatch := false
 	for _, consensusHeight := range res.ConsensusStateHeights {
+		log(ctx, "Valid client: compare revision height.", "client ID", clientID, "chain ID", tmClientState.ChainId, "height", consensusHeight.GetRevisionHeight())
 		h := consensusHeight.GetRevisionHeight()
 		if maxHeight < h {
 			break
