@@ -4,6 +4,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
@@ -438,4 +440,95 @@ func (s *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	initSeq, err = s.App.SequencerKeeper.RealSequencer(s.Ctx, addrInit)
 	s.Require().NoError(err)
 	s.Require().Equal(metadata, initSeq.Metadata)
+}
+
+func (s *RollappTestSuite) TestForceGenesisInfoChange() {
+	govModuleAccount := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+
+	tests := []struct {
+		name     string
+		msg      *types.MsgForceGenesisInfoChange
+		expError error
+	}{
+		{
+			name: "happy path - valid genesis info change",
+			msg: &types.MsgForceGenesisInfoChange{
+				Authority: govModuleAccount,
+				NewGenesisInfo: types.GenesisInfo{
+					Bech32Prefix:    "new",
+					GenesisChecksum: "new_checksum",
+					InitialSupply:   sdk.NewInt(2000),
+					NativeDenom: types.DenomMetadata{
+						Display:  "NEW",
+						Base:     "anew",
+						Exponent: 18,
+					},
+				},
+			},
+			expError: nil,
+		},
+		{
+			name: "missing bech32 prefix",
+			msg: &types.MsgForceGenesisInfoChange{
+				Authority: govModuleAccount,
+				NewGenesisInfo: types.GenesisInfo{
+					GenesisChecksum: "new_checksum",
+					InitialSupply:   sdk.NewInt(2000),
+					NativeDenom: types.DenomMetadata{
+						Display:  "NEW",
+						Base:     "anew",
+						Exponent: 18,
+					},
+				},
+			},
+			expError: gerrc.ErrInvalidArgument,
+		},
+		{
+			name: "missing native denom",
+			msg: &types.MsgForceGenesisInfoChange{
+				Authority: govModuleAccount,
+				NewGenesisInfo: types.GenesisInfo{
+					Bech32Prefix:    "new",
+					GenesisChecksum: "new_checksum",
+					InitialSupply:   sdk.NewInt(2000),
+				},
+			},
+			expError: gerrc.ErrInvalidArgument,
+		},
+	}
+
+	for _, tc := range tests {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+			rollappId, _ := s.CreateDefaultRollappAndProposer()
+			tc.msg.RollappId = rollappId
+
+			// Verify rollapp was created with sealed genesis info
+			rollapp, found := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+			s.Require().True(found)
+			s.Require().True(rollapp.GenesisInfo.Sealed)
+
+			// Execute the message
+			_, err := s.App.RollappKeeper.ForceGenesisInfoChange(s.Ctx, tc.msg)
+
+			if tc.expError != nil {
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expError)
+				return
+			}
+
+			s.Require().NoError(err)
+
+			// Verify genesis info was changed correctly
+			rollapp, found = s.App.RollappKeeper.GetRollapp(s.Ctx, tc.msg.RollappId)
+			s.Require().True(found)
+			s.Require().Equal(tc.msg.NewGenesisInfo.Bech32Prefix, rollapp.GenesisInfo.Bech32Prefix)
+			s.Require().Equal(tc.msg.NewGenesisInfo.GenesisChecksum, rollapp.GenesisInfo.GenesisChecksum)
+			s.Require().Equal(tc.msg.NewGenesisInfo.InitialSupply, rollapp.GenesisInfo.InitialSupply)
+			s.Require().Equal(tc.msg.NewGenesisInfo.NativeDenom.Display, rollapp.GenesisInfo.NativeDenom.Display)
+			s.Require().Equal(tc.msg.NewGenesisInfo.NativeDenom.Base, rollapp.GenesisInfo.NativeDenom.Base)
+			s.Require().Equal(tc.msg.NewGenesisInfo.NativeDenom.Exponent, rollapp.GenesisInfo.NativeDenom.Exponent)
+			s.Require().True(rollapp.GenesisInfo.Sealed)
+		})
+	}
 }

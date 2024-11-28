@@ -14,9 +14,11 @@ const TypeMsgUpdateRollappInformation = "update_rollapp"
 
 var (
 	_ sdk.Msg            = &MsgUpdateRollappInformation{}
+	_ sdk.Msg            = &MsgForceGenesisInfoChange{}
 	_ legacytx.LegacyMsg = &MsgUpdateRollappInformation{}
 )
 
+/* ----------------------- MsgUpdateRollappInformation ---------------------- */
 func NewMsgUpdateRollappInformation(
 	creator,
 	rollappId,
@@ -68,27 +70,8 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 	}
 
 	if msg.GenesisInfo != nil {
-		// TODO: impl using .Validate() https://github.com/dymensionxyz/dymension/issues/1559
-
-		if len(msg.GenesisInfo.GenesisChecksum) > maxGenesisChecksumLength {
-			return ErrInvalidGenesisChecksum
-		}
-
-		if msg.GenesisInfo.Bech32Prefix != "" {
-			if err := validateBech32Prefix(msg.GenesisInfo.Bech32Prefix); err != nil {
-				return errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "bech32 prefix")
-			}
-		}
-
-		// validate max limit of genesis accounts
-		if l := len(msg.GenesisInfo.Accounts()); l > maxAllowedGenesisAccounts {
-			return fmt.Errorf("too many genesis accounts: %d", l)
-		}
-
-		for _, acc := range msg.GenesisInfo.Accounts() {
-			if err := acc.ValidateBasic(); err != nil {
-				return errorsmod.Wrapf(errors.Join(gerrc.ErrInvalidArgument, err), "genesis account: %v", acc)
-			}
+		if err := msg.GenesisInfo.Validate(); err != nil {
+			return err
 		}
 	}
 
@@ -107,4 +90,45 @@ func (msg *MsgUpdateRollappInformation) UpdatingImmutableValues() bool {
 
 func (msg *MsgUpdateRollappInformation) UpdatingGenesisInfo() bool {
 	return msg.GenesisInfo != nil
+}
+
+/* ------------------------ MsgForceGenesisInfoChange ----------------------- */
+// ValidateBasic performs basic validation for the MsgForceGenesisInfoChange.
+func (m *MsgForceGenesisInfoChange) ValidateBasic() error {
+	// Validate authority address
+	_, err := sdk.AccAddressFromBech32(m.Authority)
+	if err != nil {
+		return errorsmod.Wrapf(
+			errors.Join(gerrc.ErrInvalidArgument, err),
+			"authority is not a valid bech32 address: %s", m.Authority,
+		)
+	}
+
+	// Validate rollapp ID
+	if m.RollappId == "" {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "rollapp_id cannot be empty")
+	}
+
+	// Validate new genesis info
+	if err := m.NewGenesisInfo.Validate(); err != nil {
+		return errorsmod.Wrapf(
+			errors.Join(gerrc.ErrInvalidArgument, err),
+			"invalid genesis info",
+		)
+	}
+
+	if !m.NewGenesisInfo.AllSet() {
+		return errorsmod.Wrapf(
+			errors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("missing fields in genesis info")),
+			"invalid genesis info",
+		)
+	}
+
+	return nil
+}
+
+// GetSigners returns the expected signers for a MsgForceGenesisInfoChange.
+func (m *MsgForceGenesisInfoChange) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(m.Authority)
+	return []sdk.AccAddress{addr}
 }
