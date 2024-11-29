@@ -14,6 +14,8 @@ func TestNewPunishSequencerProposal(t *testing.T) {
 	var seqAddr = sample.AccAddress()
 	var rewardee = sample.AccAddress()
 	got := NewPunishSequencerProposal(title, description, seqAddr, rewardee)
+	err := got.ValidateBasic()
+	require.NoError(t, err)
 
 	require.Equal(t, title, got.GetTitle())
 	require.Equal(t, description, got.GetDescription())
