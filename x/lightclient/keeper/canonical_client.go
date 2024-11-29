@@ -17,7 +17,6 @@ import (
 // intended to be called by relayer, but can be called by anyone
 // verifies that the suggested client is safe to designate canonical and matches state updates from the sequencer
 func (k *Keeper) TrySetCanonicalClient(ctx sdk.Context, clientID string) error {
-
 	clientStateI, ok := k.ibcClientKeeper.GetClientState(ctx, clientID)
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("client")
@@ -94,9 +93,11 @@ func (k Keeper) expectedClient() ibctm.ClientState {
 	return types.DefaultExpectedCanonicalClientParams()
 }
 
-var ErrNoMatch = gerrc.ErrFailedPrecondition.Wrap("not at least one cons state matches the rollapp state")
-var ErrMismatch = gerrc.ErrInvalidArgument.Wrap("consensus state mismatch")
-var ErrParamsMismatch = gerrc.ErrInvalidArgument.Wrap("params")
+var (
+	ErrNoMatch        = gerrc.ErrFailedPrecondition.Wrap("not at least one cons state matches the rollapp state")
+	ErrMismatch       = gerrc.ErrInvalidArgument.Wrap("consensus state mismatch")
+	ErrParamsMismatch = gerrc.ErrInvalidArgument.Wrap("params")
+)
 
 // The canonical client criteria are:
 // 1. The client must be a tendermint client.

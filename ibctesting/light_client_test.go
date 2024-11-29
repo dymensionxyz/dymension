@@ -150,7 +150,6 @@ func (s *lightClientSuite) TestSetCanonicalClient_ConsStateMismatch() {
 
 	_, err = s.lightclientMsgServer().SetCanonicalClient(s.hubCtx(), setCanonMsg)
 	utest.IsErr(s.Require(), err, lightclientkeeper.ErrMismatch)
-
 }
 
 func (s *lightClientSuite) TestSetCanonicalClient_FailsIncompatibleState() {
