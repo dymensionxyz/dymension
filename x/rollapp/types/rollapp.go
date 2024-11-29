@@ -41,12 +41,10 @@ var RollappTags = []string{
 type AllowedDecimals uint32
 
 const (
-	Decimals18     AllowedDecimals = 18
-	DefaultMinBond uint64          = 100 // dym - only used if not supplied by creator
+	Decimals18 AllowedDecimals = 18
 )
 
 func NewRollapp(creator, rollappId, initialSequencer string, minSequencerBond uint64, vmType Rollapp_VMType, metadata *RollappMetadata, genInfo GenesisInfo, transfersEnabled bool) Rollapp {
-	minSequencerBond = max(minSequencerBond, DefaultMinBond)
 	return Rollapp{
 		RollappId:        rollappId,
 		Owner:            creator,

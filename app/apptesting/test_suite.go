@@ -64,8 +64,10 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 		Creator:          alice,
 		RollappId:        name,
 		InitialSequencer: "*",
-		Alias:            strings.ToLower(rand.Str(7)),
-		VmType:           rollapptypes.Rollapp_EVM,
+		MinSequencerBond: types.DefaultMinSequencerBondGlobal,
+
+		Alias:  strings.ToLower(rand.Str(7)),
+		VmType: rollapptypes.Rollapp_EVM,
 		GenesisInfo: &rollapptypes.GenesisInfo{
 			Bech32Prefix:    strings.ToLower(rand.Str(3)),
 			GenesisChecksum: "1234567890abcdefg",

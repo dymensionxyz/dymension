@@ -22,6 +22,7 @@ func CmdCreateRollapp() *cobra.Command {
 		dymd tx rollapp create-rollapp myrollapp_12345-1 RollappAlias EVM 
 		// optional flags:
 		--init-sequencer '<seq_address1>,<seq_address2>'
+        --min-sequencer-bond 100
 		--genesis-checksum <genesis_checksum>
 		--initial-supply 1000000
 		--native-denom native_denom.json
@@ -39,6 +40,11 @@ func CmdCreateRollapp() *cobra.Command {
 			}
 
 			initSequencer, err := cmd.Flags().GetString(FlagInitSequencer)
+			if err != nil {
+				return err
+			}
+
+			minSeqBond, err := cmd.Flags().GetUint64(FlagMinSequencerBond)
 			if err != nil {
 				return err
 			}
@@ -62,6 +68,7 @@ func CmdCreateRollapp() *cobra.Command {
 				clientCtx.GetFromAddress().String(),
 				argRollappId,
 				initSequencer,
+				minSeqBond,
 				alias,
 				types.Rollapp_VMType(vmType),
 				metadata,

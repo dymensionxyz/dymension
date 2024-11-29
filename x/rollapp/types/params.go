@@ -26,10 +26,13 @@ var (
 	// KeyAppRegistrationFee defines the key to store the cost of the app
 	KeyAppRegistrationFee = []byte("AppRegistrationFee")
 
+	KeyMinSequencerBondGlobal = []byte("KeyMinSequencerBondGlobal")
+
 	// DYM is 1dym
-	DYM                       = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-	OneDymCoin                = sdk.NewCoin(params.BaseDenom, DYM)
-	DefaultAppRegistrationFee = OneDymCoin
+	DYM                           = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
+	OneDymCoin                    = sdk.NewCoin(params.BaseDenom, DYM)
+	DefaultAppRegistrationFee     = OneDymCoin
+	DefaultMinSequencerBondGlobal = uint64(100)
 )
 
 const (
@@ -52,21 +55,25 @@ func NewParams(
 	livenessSlashBlocks uint64,
 	livenessSlashInterval uint64,
 	appRegistrationFee sdk.Coin,
+	minSequencerBondGlobal uint64,
 ) Params {
 	return Params{
-		DisputePeriodInBlocks: disputePeriodInBlocks,
-		LivenessSlashBlocks:   livenessSlashBlocks,
-		LivenessSlashInterval: livenessSlashInterval,
-		AppRegistrationFee:    appRegistrationFee,
+		DisputePeriodInBlocks:  disputePeriodInBlocks,
+		LivenessSlashBlocks:    livenessSlashBlocks,
+		LivenessSlashInterval:  livenessSlashInterval,
+		AppRegistrationFee:     appRegistrationFee,
+		MinSequencerBondGlobal: minSequencerBondGlobal,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(DefaultDisputePeriodInBlocks,
+	return NewParams(
+		DefaultDisputePeriodInBlocks,
 		DefaultLivenessSlashBlocks,
 		DefaultLivenessSlashInterval,
 		DefaultAppRegistrationFee,
+		DefaultMinSequencerBondGlobal,
 	)
 }
 
@@ -77,6 +84,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyLivenessSlashBlocks, &p.LivenessSlashBlocks, validateLivenessSlashBlocks),
 		paramtypes.NewParamSetPair(KeyLivenessSlashInterval, &p.LivenessSlashInterval, validateLivenessSlashInterval),
 		paramtypes.NewParamSetPair(KeyAppRegistrationFee, &p.AppRegistrationFee, validateAppRegistrationFee),
+		paramtypes.NewParamSetPair(KeyMinSequencerBondGlobal, &p.MinSequencerBondGlobal, uparam.ValidatePositiveUint64),
 	}
 }
 
@@ -110,6 +118,9 @@ func (p Params) Validate() error {
 
 	if err := validateAppRegistrationFee(p.AppRegistrationFee); err != nil {
 		return errorsmod.Wrap(err, "app registration fee")
+	}
+	if err := uparam.ValidatePositiveUint64(p.MinSequencerBondGlobal); err != nil {
+		return errorsmod.Wrap(err, "min sequencer bond")
 	}
 	return nil
 }

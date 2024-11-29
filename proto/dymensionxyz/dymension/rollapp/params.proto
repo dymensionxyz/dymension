@@ -27,4 +27,7 @@ message Params {
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"app_registration_fee\""
   ];
+
+  // no rollapp can have a minimum less than this (dym, not adym)
+  uint64 min_sequencer_bond_global = 8;
 }

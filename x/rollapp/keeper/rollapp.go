@@ -35,6 +35,10 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		return current, types.ErrGenesisInfoSealed
 	}
 
+	if err := k.validMinBond(ctx, update.MinSequencerBond); err != nil {
+		return current, err
+	}
+
 	if update.InitialSequencer != "" {
 		current.InitialSequencer = update.InitialSequencer
 	}

@@ -23,6 +23,7 @@ func NewMsgUpdateRollappInformation(
 	creator,
 	rollappId,
 	initSequencer string,
+	minSeqBond uint64,
 	metadata *RollappMetadata,
 	genesisInfo *GenesisInfo,
 ) *MsgUpdateRollappInformation {
@@ -30,6 +31,7 @@ func NewMsgUpdateRollappInformation(
 		Owner:            creator,
 		RollappId:        rollappId,
 		InitialSequencer: initSequencer,
+		MinSequencerBond: minSeqBond,
 		Metadata:         metadata,
 		GenesisInfo:      genesisInfo,
 	}
