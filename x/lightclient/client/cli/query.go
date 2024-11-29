@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/spf13/cobra"
@@ -65,6 +66,7 @@ The other fields can take any value`,
 		},
 	}
 
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -94,6 +96,8 @@ func CmdGetLightClient() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }

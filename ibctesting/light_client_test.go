@@ -1,6 +1,7 @@
 package ibctesting_test
 
 import (
+	"slices"
 	"testing"
 
 	errorsmod "cosmossdk.io/errors"
@@ -8,9 +9,10 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
-
+	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/sdk-utils/utils/utest"
 
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/suite"
@@ -41,36 +43,17 @@ func (s *lightClientSuite) TestSetCanonicalClient_FailsTrustRequirements() {
 	s.coordinator.SetupClients(s.path)
 
 	// Update rollapp state - this will trigger the check for prospective canonical client
-	currentRollappBlockHeight := uint64(s.rollappChain().App.LastBlockHeight())
-	s.updateRollappState(currentRollappBlockHeight)
+	_, err := s.lightclientMsgServer().SetCanonicalClient(s.hubCtx(),
+		&types.MsgSetCanonicalClient{
+			Signer: s.hubChain().SenderAccount.GetAddress().String(), ClientId: s.path.EndpointA.ClientID,
+		})
+	s.Require().Error(err)
 
 	_, found := s.hubApp().LightClientKeeper.GetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID)
 	s.False(found)
 }
 
-func (s *lightClientSuite) TestSetCanonicalClient_FailsIncompatibleState() {
-	s.createRollapp(false, nil)
-	s.registerSequencer()
-	// create a custom tm client which matches the trust requirements of a canonical client
-	endpointA := ibctesting.NewEndpoint(s.hubChain(), &canonicalClientConfig, ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
-	endpointB := ibctesting.NewEndpoint(s.rollappChain(), ibctesting.NewTendermintConfig(), ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
-	endpointA.Counterparty = endpointB
-	endpointB.Counterparty = endpointA
-	s.path = &ibctesting.Path{EndpointA: endpointA, EndpointB: endpointB}
-
-	// Creating the tm client - this will take us to the next block
-	s.coordinator.SetupClients(s.path)
-
-	// Update the rollapp state - this will trigger the check for prospective canonical client
-	// The block descriptor root has dummy values and will not match the IBC roots for the same height
-	currentRollappBlockHeight := uint64(s.rollappChain().App.LastBlockHeight())
-	s.updateRollappState(currentRollappBlockHeight)
-
-	_, found := s.hubApp().LightClientKeeper.GetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID)
-	s.False(found)
-}
-
-func (s *lightClientSuite) TestSetCanonicalClient_Succeeds() {
+func (s *lightClientSuite) TestSetCanonicalClient_ParamsMismatch() {
 	s.createRollapp(false, nil)
 	s.registerSequencer()
 	// create a custom tm client which matches the trust requirements of a canonical client
@@ -100,6 +83,143 @@ func (s *lightClientSuite) TestSetCanonicalClient_Succeeds() {
 		&rollapptypes.BlockDescriptors{BD: []rollapptypes.BlockDescriptor{bd, bdNext}},
 	)
 	_, err := s.rollappMsgServer().UpdateState(s.hubCtx(), msgUpdateState)
+	s.Require().NoError(err)
+
+	// now break the params
+	c, _ := s.hubChain().App.GetIBCKeeper().ClientKeeper.GetClientState(s.hubCtx(), s.path.EndpointA.ClientID)
+	tmClient, _ := c.(*ibctm.ClientState)
+	tmClient.MaxClockDrift = 0 // wrong
+	s.hubChain().App.GetIBCKeeper().ClientKeeper.SetClientState(s.hubCtx(), s.path.EndpointA.ClientID, tmClient)
+
+	// Update rollapp state - this will trigger the check for prospective canonical client
+	setCanonMsg := &types.MsgSetCanonicalClient{
+		Signer: s.hubChain().SenderAccount.GetAddress().String(), ClientId: s.path.EndpointA.ClientID,
+	}
+	_, err = s.lightclientMsgServer().SetCanonicalClient(s.hubCtx(), setCanonMsg)
+	utest.IsErr(s.Require(), err, lightclientkeeper.ErrParamsMismatch)
+
+	_, found := s.hubApp().LightClientKeeper.GetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID)
+	s.False(found)
+}
+
+func (s *lightClientSuite) TestSetCanonicalClient_ConsStateMismatch() {
+	s.createRollapp(false, nil)
+	s.registerSequencer()
+	// create a custom tm client which matches the trust requirements of a canonical client
+	endpointA := ibctesting.NewEndpoint(s.hubChain(), &canonicalClientConfig, ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
+	endpointB := ibctesting.NewEndpoint(s.rollappChain(), ibctesting.NewTendermintConfig(), ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
+	endpointA.Counterparty = endpointB
+	endpointB.Counterparty = endpointA
+	s.path = &ibctesting.Path{EndpointA: endpointA, EndpointB: endpointB}
+
+	currentHeader := s.rollappChain().CurrentHeader
+	startHeight := uint64(currentHeader.Height)
+	bd := rollapptypes.BlockDescriptor{Height: startHeight, StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
+
+	// Creating the tm client - this will take us to the next block
+	s.NoError(s.path.EndpointA.CreateClient())
+
+	currentHeader = s.rollappChain().CurrentHeader
+	bdNext := rollapptypes.BlockDescriptor{Height: uint64(currentHeader.Height), StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
+
+	// It's too early, it should fail
+	setCanonMsg := &types.MsgSetCanonicalClient{
+		Signer: s.hubChain().SenderAccount.GetAddress().String(), ClientId: s.path.EndpointA.ClientID,
+	}
+	_, err := s.lightclientMsgServer().SetCanonicalClient(s.hubCtx(), setCanonMsg)
+	s.Require().Error(err)
+
+	// Update the rollapp state - this will trigger the check for prospective canonical client
+	msgUpdateState := rollapptypes.NewMsgUpdateState(
+		s.hubChain().SenderAccount.GetAddress().String(),
+		rollappChainID(),
+		"mock-da-path",
+		startHeight,
+		2,
+		&rollapptypes.BlockDescriptors{BD: []rollapptypes.BlockDescriptor{bd, bdNext}},
+	)
+	_, err = s.rollappMsgServer().UpdateState(s.hubCtx(), msgUpdateState)
+	s.Require().NoError(err)
+
+	c, _ := s.hubChain().App.GetIBCKeeper().ClientKeeper.GetClientState(s.hubCtx(), s.path.EndpointA.ClientID)
+	tmClient, _ := c.(*ibctm.ClientState)
+	cs, _ := s.hubChain().App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(s.hubCtx(), s.path.EndpointA.ClientID, tmClient.GetLatestHeight())
+	tmConsState, _ := cs.(*ibctm.ConsensusState)
+	slices.Reverse(tmConsState.NextValidatorsHash) // make it wrong
+	s.hubChain().App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(s.hubCtx(), s.path.EndpointA.ClientID, tmClient.GetLatestHeight(), tmConsState)
+
+	_, err = s.lightclientMsgServer().SetCanonicalClient(s.hubCtx(), setCanonMsg)
+	utest.IsErr(s.Require(), err, lightclientkeeper.ErrMismatch)
+}
+
+func (s *lightClientSuite) TestSetCanonicalClient_FailsIncompatibleState() {
+	s.createRollapp(false, nil)
+	s.registerSequencer()
+	// create a custom tm client which matches the trust requirements of a canonical client
+	endpointA := ibctesting.NewEndpoint(s.hubChain(), &canonicalClientConfig, ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
+	endpointB := ibctesting.NewEndpoint(s.rollappChain(), ibctesting.NewTendermintConfig(), ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
+	endpointA.Counterparty = endpointB
+	endpointB.Counterparty = endpointA
+	s.path = &ibctesting.Path{EndpointA: endpointA, EndpointB: endpointB}
+
+	// Creating the tm client - this will take us to the next block
+	s.coordinator.SetupClients(s.path)
+
+	// Update the rollapp state - this will trigger the check for prospective canonical client
+	// The block descriptor root has dummy values and will not match the IBC roots for the same height
+	currentRollappBlockHeight := uint64(s.rollappChain().App.LastBlockHeight())
+	s.updateRollappState(currentRollappBlockHeight)
+
+	_, err := s.lightclientMsgServer().SetCanonicalClient(s.hubCtx(),
+		&types.MsgSetCanonicalClient{
+			Signer: s.hubChain().SenderAccount.GetAddress().String(), ClientId: s.path.EndpointA.ClientID,
+		})
+	s.Require().Error(err)
+
+	_, found := s.hubApp().LightClientKeeper.GetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID)
+	s.False(found)
+}
+
+func (s *lightClientSuite) TestSetCanonicalClient_Succeeds() {
+	s.createRollapp(false, nil)
+	s.registerSequencer()
+	// create a custom tm client which matches the trust requirements of a canonical client
+	endpointA := ibctesting.NewEndpoint(s.hubChain(), &canonicalClientConfig, ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
+	endpointB := ibctesting.NewEndpoint(s.rollappChain(), ibctesting.NewTendermintConfig(), ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
+	endpointA.Counterparty = endpointB
+	endpointB.Counterparty = endpointA
+	s.path = &ibctesting.Path{EndpointA: endpointA, EndpointB: endpointB}
+
+	currentHeader := s.rollappChain().CurrentHeader
+	startHeight := uint64(currentHeader.Height)
+	bd := rollapptypes.BlockDescriptor{Height: startHeight, StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
+
+	// Creating the tm client - this will take us to the next block
+	s.NoError(s.path.EndpointA.CreateClient())
+
+	currentHeader = s.rollappChain().CurrentHeader
+	bdNext := rollapptypes.BlockDescriptor{Height: uint64(currentHeader.Height), StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
+
+	// It's too early, it should fail
+	setCanonMsg := &types.MsgSetCanonicalClient{
+		Signer: s.hubChain().SenderAccount.GetAddress().String(), ClientId: s.path.EndpointA.ClientID,
+	}
+	_, err := s.lightclientMsgServer().SetCanonicalClient(s.hubCtx(), setCanonMsg)
+	s.Require().Error(err)
+
+	// Update the rollapp state - this will trigger the check for prospective canonical client
+	msgUpdateState := rollapptypes.NewMsgUpdateState(
+		s.hubChain().SenderAccount.GetAddress().String(),
+		rollappChainID(),
+		"mock-da-path",
+		startHeight,
+		2,
+		&rollapptypes.BlockDescriptors{BD: []rollapptypes.BlockDescriptor{bd, bdNext}},
+	)
+	_, err = s.rollappMsgServer().UpdateState(s.hubCtx(), msgUpdateState)
+	s.Require().NoError(err)
+
+	_, err = s.lightclientMsgServer().SetCanonicalClient(s.hubCtx(), setCanonMsg)
 	s.Require().NoError(err)
 
 	canonClientID, found := s.hubApp().LightClientKeeper.GetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID)

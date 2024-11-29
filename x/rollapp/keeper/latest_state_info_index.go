@@ -36,6 +36,17 @@ func (k Keeper) GetLatestStateInfoIndex(
 	return val, true
 }
 
+func (k Keeper) GetLatestHeight(
+	ctx sdk.Context,
+	rollappId string,
+) (uint64, bool) {
+	info, ok := k.GetLatestStateInfo(ctx, rollappId)
+	if !ok {
+		return 0, false
+	}
+	return info.GetLatestHeight(), true
+}
+
 // RemoveLatestStateInfoIndex removes a latestStateInfoIndex from the store
 func (k Keeper) RemoveLatestStateInfoIndex(
 	ctx sdk.Context,
