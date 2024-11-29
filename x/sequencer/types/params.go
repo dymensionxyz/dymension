@@ -55,7 +55,6 @@ func validateLivenessSlashMultiplier(i interface{}) error {
 
 // ValidateBasic validates the set of params
 func (p Params) ValidateBasic() error {
-
 	if err := validateTime(p.NoticePeriod); err != nil {
 		return err
 	}

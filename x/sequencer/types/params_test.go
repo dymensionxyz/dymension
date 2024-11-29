@@ -9,9 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	DefaultMinBond = ucoin.SimpleMul(rollapptypes.OneDymCoin, 100)
-)
+var DefaultMinBond = ucoin.SimpleMul(rollapptypes.OneDymCoin, 100)
 
 func TestValidateBasic(t *testing.T) {
 	params := DefaultParams()

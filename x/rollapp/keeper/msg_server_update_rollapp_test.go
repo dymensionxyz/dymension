@@ -66,7 +66,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 					GenesisAccounts: &types.GenesisAccounts{},
 				},
 			},
-		}, {
+		},
+		{
 			name: "Update rollapp: fail - try to update a non-existing rollapp",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
@@ -74,7 +75,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				InitialSequencer: initialSequencerAddress,
 			},
 			expError: gerrc.ErrNotFound,
-		}, {
+		},
+		{
 			name: "Update rollapp: fail - try to update from non-creator address",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            bob,
@@ -82,7 +84,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				InitialSequencer: initialSequencerAddress,
 			},
 			expError: sdkerrors.ErrUnauthorized,
-		}, {
+		},
+		{
 			name: "Update rollapp: fail - try to update InitialSequencer when launched",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
@@ -115,7 +118,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			},
 			genInfoSealed: true,
 			expError:      types.ErrGenesisInfoSealed,
-		}, {
+		},
+		{
 			name: "Update rollapp: fail - try to update bech32 when sealed",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:     alice,
@@ -126,7 +130,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			},
 			genInfoSealed: true,
 			expError:      types.ErrGenesisInfoSealed,
-		}, {
+		},
+		{
 			name: "Update rollapp: fail - try to update native_denom when sealed",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:     alice,
@@ -141,7 +146,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			},
 			genInfoSealed: true,
 			expError:      types.ErrGenesisInfoSealed,
-		}, {
+		},
+		{
 			name: "Update rollapp: fail - try to update initial_supply when sealed",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:     alice,
@@ -152,7 +158,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			},
 			genInfoSealed: true,
 			expError:      types.ErrGenesisInfoSealed,
-		}, {
+		},
+		{
 			name: "Update rollapp: success - update metadata when sealed",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:     alice,
@@ -191,7 +198,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 					Sealed: true,
 				},
 			},
-		}, {
+		},
+		{
 			name: "Update rollapp: success - unsealed, update rollapp without genesis info",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:     alice,
