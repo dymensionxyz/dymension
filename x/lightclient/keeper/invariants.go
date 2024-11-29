@@ -41,7 +41,7 @@ func InvariantClientState(k Keeper) uinv.Func {
 }
 
 func checkClient(ctx sdk.Context, k Keeper, client types.CanonicalClient) error {
-	cs, ok := k.IbcClientK.GetClientState(ctx, client.IbcClientId)
+	cs, ok := k.ibcClientKeeper.GetClientState(ctx, client.IbcClientId)
 	if !ok {
 		return gerrc.ErrNotFound.Wrapf("client state for client ID: %s", client.IbcClientId)
 	}
@@ -56,7 +56,7 @@ func checkClient(ctx sdk.Context, k Keeper, client types.CanonicalClient) error 
 	if !ok {
 		return gerrc.ErrNotFound.Wrapf("rollapp for rollapp ID: %s", client.RollappId)
 	}
-	_, ok = k.IbcClientK.GetClientConsensusState(ctx, client.IbcClientId, cs.GetLatestHeight())
+	_, ok = k.ibcClientKeeper.GetClientConsensusState(ctx, client.IbcClientId, cs.GetLatestHeight())
 	if !ok {
 		return gerrc.ErrNotFound.Wrapf("latest consensus state for client ID: %s", client.IbcClientId)
 	}
@@ -102,7 +102,7 @@ func checkAttributionIndexes(k Keeper, ctx sdk.Context, clientID string, height 
 	if err != nil {
 		return errorsmod.Wrapf(err, "reverse lookup for sequencer address: %s", seq)
 	}
-	_, ok := k.IbcClientK.GetClientConsensusState(ctx, clientID, clienttypes.NewHeight(1, height))
+	_, ok := k.ibcClientKeeper.GetClientConsensusState(ctx, clientID, clienttypes.NewHeight(1, height))
 	if !ok {
 		return gerrc.ErrNotFound.Wrapf("consensus state for client ID: %s", clientID)
 	}

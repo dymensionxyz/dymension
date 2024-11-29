@@ -18,7 +18,7 @@ import (
 // verifies that the suggested client is safe to designate canonical and matches state updates from the sequencer
 func (k *Keeper) TrySetCanonicalClient(ctx sdk.Context, clientID string) error {
 
-	clientStateI, ok := k.IbcClientK.GetClientState(ctx, clientID)
+	clientStateI, ok := k.ibcClientKeeper.GetClientState(ctx, clientID)
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("client")
 	}
@@ -114,7 +114,7 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientSt
 	}
 
 	// FIXME: No need to get all consensus states. should iterate over the consensus states
-	res, err := k.IbcClientK.ConsensusStateHeights(ctx, &ibcclienttypes.QueryConsensusStateHeightsRequest{
+	res, err := k.ibcClientKeeper.ConsensusStateHeights(ctx, &ibcclienttypes.QueryConsensusStateHeightsRequest{
 		ClientId:   clientID,
 		Pagination: &query.PageRequest{Limit: maxHeight},
 	})
@@ -129,7 +129,7 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientSt
 		if maxHeight < h {
 			break
 		}
-		consensusState, _ := k.IbcClientK.GetClientConsensusState(ctx, clientID, consensusHeight)
+		consensusState, _ := k.ibcClientKeeper.GetClientConsensusState(ctx, clientID, consensusHeight)
 		tmConsensusState, _ := consensusState.(*ibctm.ConsensusState)
 		stateInfoH, err := k.rollappKeeper.FindStateInfoByHeight(ctx, rollappId, h)
 		if err != nil {
