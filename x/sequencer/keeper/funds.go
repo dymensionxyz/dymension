@@ -7,10 +7,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-func (k Keeper) bondDenom() string {
-	return commontypes.DYMCoin.Denom
-}
-
 func (k Keeper) minBond(ctx sdk.Context, rollapp string) sdk.Coin {
 	nDym := k.rollappKeeper.MinBond(ctx, rollapp)
 	ret := commontypes.DYMCoin
