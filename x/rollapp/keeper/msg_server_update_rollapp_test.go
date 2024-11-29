@@ -175,11 +175,10 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				Owner:            alice,
 				InitialSequencer: "",
 				MinSequencerBond: types.DefaultMinSequencerBondGlobal,
-
-				ChannelId: "",
-				Launched:  true,
-				VmType:    types.Rollapp_EVM,
-				Metadata:  &mockRollappMetadata,
+				ChannelId:        "",
+				Launched:         true,
+				VmType:           types.Rollapp_EVM,
+				Metadata:         &mockRollappMetadata,
 				GenesisInfo: types.GenesisInfo{
 					Bech32Prefix:    "old",
 					GenesisChecksum: "old",
@@ -216,11 +215,10 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				Owner:            alice,
 				InitialSequencer: "",
 				MinSequencerBond: types.DefaultMinSequencerBondGlobal,
-
-				ChannelId: "",
-				Launched:  false,
-				VmType:    types.Rollapp_EVM,
-				Metadata:  &mockRollappMetadata,
+				ChannelId:        "",
+				Launched:         false,
+				VmType:           types.Rollapp_EVM,
+				Metadata:         &mockRollappMetadata,
 				GenesisInfo: types.GenesisInfo{
 					Bech32Prefix:    "old",
 					GenesisChecksum: "old",
@@ -369,6 +367,7 @@ func (s *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		RollappId:        rollappId,
 		Creator:          alice,
 		InitialSequencer: "",
+		MinSequencerBond: types.DefaultMinSequencerBondGlobal,
 		Alias:            "default",
 		VmType:           types.Rollapp_EVM,
 		GenesisInfo: &types.GenesisInfo{

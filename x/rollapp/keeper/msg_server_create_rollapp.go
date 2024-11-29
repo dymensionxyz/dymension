@@ -24,11 +24,10 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		return nil, errorsmod.Wrapf(types.ErrInvalidRollappID, "revision number should be 1, got: %d", rollappId.GetRevisionNumber())
 	}
 
-	if err := k.validMinBond(ctx, msg.MinSequencerBond); err != nil {
+	if err := k.CheckIfRollappExists(ctx, rollappId); err != nil {
 		return nil, err
 	}
-
-	if err := k.CheckIfRollappExists(ctx, rollappId); err != nil {
+	if err := k.validMinBond(ctx, msg.MinSequencerBond); err != nil {
 		return nil, err
 	}
 

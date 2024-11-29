@@ -20,7 +20,7 @@ func FlagSetUpdateRollapp() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
 	fs.String(FlagInitSequencer, "", "The address of the sequencer that will be used to initialize the rollapp")
-	fs.String(FlagMinSequencerBond, "", "Minimum amount of bond required to be a sequencer in DYM (not adym)")
+	fs.Uint64(FlagMinSequencerBond, 100, "Minimum amount of bond required to be a sequencer in DYM (not adym)")
 	fs.String(FlagGenesisChecksum, "", "The checksum of the genesis file of the rollapp")
 	fs.String(FlagNativeDenom, "", "The native denomination of the rollapp")
 	fs.String(FlagInitialSupply, "", "The initial supply of the rollapp")

@@ -212,7 +212,7 @@ func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
 		Creator:          addr.String(),
 		RollappId:        urand.RollappID(),
 		InitialSequencer: addr.String(),
-		MinSequencerBond: types.DefaultMinSequencerBondGlobal,
+		MinSequencerBond: rollapptypes.DefaultMinSequencerBondGlobal,
 
 		Alias:  strings.ToLower(tmrand.Str(7)),
 		VmType: rollapptypes.Rollapp_EVM,
