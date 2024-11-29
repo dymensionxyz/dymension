@@ -13,6 +13,7 @@ import (
 func (k Keeper) abruptRemoveProposer(ctx sdk.Context, rollapp string) {
 	proposer := k.GetProposer(ctx, rollapp)
 	k.removeFromNoticeQueue(ctx, proposer)
+	proposer.Status = types.Unbonded
 	k.SetProposer(ctx, rollapp, types.SentinelSeqAddr)
 }
 

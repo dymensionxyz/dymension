@@ -124,10 +124,16 @@ func (s *SequencerTestSuite) TestFraudFullFlowDuringRotation() {
 	s.Require().False(s.seq(bob).OptedIn)
 	s.Require().False(s.seq(charlie).OptedIn)
 
-	mOptIn := &types.MsgUpdateOptInStatus{Creator: pkAddr(bob), OptedIn: true}
+	// alice cannot re-opt in
+	mOptIn := &types.MsgUpdateOptInStatus{Creator: pkAddr(alice), OptedIn: true}
+	_, err = s.msgServer.UpdateOptInStatus(s.Ctx, mOptIn)
+	s.Require().NoError(err)
+	s.Require().True(s.k().IsProposer(s.Ctx, s.k().SentinelSequencer(s.Ctx)))
+
+	// but bob can
+	mOptIn = &types.MsgUpdateOptInStatus{Creator: pkAddr(bob), OptedIn: true}
 	_, err = s.msgServer.UpdateOptInStatus(s.Ctx, mOptIn)
 	s.Require().NoError(err)
 	s.Require().True(s.seq(bob).OptedIn)
-
 	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(bob)))
 }
