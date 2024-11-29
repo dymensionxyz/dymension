@@ -91,7 +91,18 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			},
 			rollappLaunched: true,
 			expError:        types.ErrImmutableFieldUpdateAfterLaunched,
-		}, {
+		},
+		{
+			name: "Update rollapp: fail - try to update min seq bond when launched",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:            alice,
+				RollappId:        rollappId,
+				MinSequencerBond: 150,
+			},
+			rollappLaunched: true,
+			expError:        types.ErrImmutableFieldUpdateAfterLaunched,
+		},
+		{
 			name: "Update rollapp: fail - try to update genesis checksum when sealed",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,

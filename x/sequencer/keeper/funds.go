@@ -18,16 +18,15 @@ func (k Keeper) minBond(ctx sdk.Context, rollapp string) sdk.Coin {
 	return ret
 }
 
-func (k Keeper) validBondDenom(c sdk.Coin) error {
-	d := k.bondDenom()
-	if c.Denom != d {
-		return errorsmod.Wrapf(types.ErrInvalidDenom, "expect: %s", d)
+func validBondDenom(c sdk.Coin) error {
+	if c.Denom != types.BondDenom {
+		return errorsmod.Wrapf(types.ErrInvalidDenom, "expect: %s", types.BondDenom)
 	}
 	return nil
 }
 
 func (k Keeper) sufficientBond(ctx sdk.Context, rollapp string, c sdk.Coin) error {
-	if err := k.validBondDenom(c); err != nil {
+	if err := validBondDenom(c); err != nil {
 		return err
 	}
 	minBond := k.minBond(ctx, rollapp)

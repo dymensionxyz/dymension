@@ -85,7 +85,7 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 }
 
 func (msg *MsgUpdateRollappInformation) UpdatingImmutableValues() bool {
-	return msg.InitialSequencer != ""
+	return msg.InitialSequencer != "" || 0 < msg.MinSequencerBond
 }
 
 func (msg *MsgUpdateRollappInformation) UpdatingGenesisInfo() bool {
