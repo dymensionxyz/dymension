@@ -126,7 +126,7 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientSt
 	for _, consensusHeight := range res.ConsensusStateHeights {
 		log.Debug("after fetch heights", "cons state height", consensusHeight.RevisionHeight, "gas", ctx.GasMeter().GasConsumed())
 		h := consensusHeight.GetRevisionHeight()
-		if maxHeight < h {
+		if maxHeight <= h {
 			break
 		}
 		consensusState, _ := k.ibcClientKeeper.GetClientConsensusState(ctx, clientID, consensusHeight)
