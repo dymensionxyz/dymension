@@ -3,17 +3,19 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app/params"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 )
 
 func (k Keeper) bondDenom() string {
-	return params.BaseDenom
+	return commontypes.DYMCoin.Denom
 }
 
 func (k Keeper) minBond(ctx sdk.Context, rollapp string) sdk.Coin {
-	return ucoin.SimpleMul(sdk.NewCoin(k.bondDenom(), k.rollappKeeper.MinBond(ctx, rollapp)), params.BaseDenomUnit)
+	nDym := k.rollappKeeper.MinBond(ctx, rollapp)
+	ret := commontypes.DYMCoin
+	ret.Amount = ret.Amount.Mul(nDym)
+	return ret
 }
 
 func (k Keeper) validBondDenom(c sdk.Coin) error {

@@ -1,14 +1,12 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app/params"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 )
 
 var (
-	BondDenom = params.BaseDenom
 	// for tests, real value is supplied by rollapp keeper
 	TestMinBondDym = int64(100)
-	TestMinBond    = ucoin.SimpleMul(sdk.NewCoin(BondDenom, sdk.NewInt(params.BaseDenomUnit)), TestMinBondDym)
+	TestMinBond    = ucoin.SimpleMul(commontypes.DYMCoin, TestMinBondDym)
 )
