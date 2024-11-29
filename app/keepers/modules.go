@@ -81,6 +81,7 @@ import (
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
 	sequencermodule "github.com/dymensionxyz/dymension/v3/x/sequencer"
+	sequencermoduleclient "github.com/dymensionxyz/dymension/v3/x/sequencer/client"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	streamermodule "github.com/dymensionxyz/dymension/v3/x/streamer"
@@ -129,6 +130,7 @@ var ModuleBasics = module.NewBasicManager(
 		streamermoduleclient.TerminateStreamHandler,
 		streamermoduleclient.ReplaceStreamHandler,
 		streamermoduleclient.UpdateStreamHandler,
+		sequencermoduleclient.PunishSequencerHandler,
 		denommetadatamoduleclient.CreateDenomMetadataHandler,
 		denommetadatamoduleclient.UpdateDenomMetadataHandler,
 		dymnsmoduleclient.MigrateChainIdsProposalHandler,
