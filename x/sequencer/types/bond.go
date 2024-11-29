@@ -9,5 +9,6 @@ import (
 var (
 	BondDenom = params.BaseDenom
 	// for tests, real value is supplied by rollapp keeper
-	TestMinBond = ucoin.SimpleMul(sdk.NewCoin(BondDenom, sdk.NewInt(params.BaseDenomUnit)), 100)
+	TestMinBondDym = int64(100)
+	TestMinBond    = ucoin.SimpleMul(sdk.NewCoin(BondDenom, sdk.NewInt(params.BaseDenomUnit)), TestMinBondDym)
 )
