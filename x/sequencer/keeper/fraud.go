@@ -23,8 +23,6 @@ func (k Keeper) TryKickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 	// clear the proposer
 	k.abruptRemoveProposer(ctx, ra)
 
-	k.SetSequencer(ctx, proposer)
-
 	// This will call hard fork on the rollapp, which will also optOut all sequencers
 	err := k.hooks.AfterKickProposer(ctx, proposer)
 	if err != nil {
