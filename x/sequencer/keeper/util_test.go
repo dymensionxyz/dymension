@@ -29,7 +29,7 @@ var (
 
 	// TODO: use separate cosmos/dymint pubkeys in tests https://github.com/dymensionxyz/dymension/issues/1360
 
-	bond = types.DefaultParams().MinBond
+	bond = types.TestMinBond
 	kick = types.DefaultParams().KickThreshold
 	pks  = []cryptotypes.PubKey{
 		randomTMPubKey(),

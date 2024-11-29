@@ -20,7 +20,7 @@ func (k Keeper) validBondDenom(c sdk.Coin) error {
 }
 
 func (k Keeper) minBond(ctx sdk.Context, rollapp string) sdk.Coin {
-	return sdk.NewCoin(k.bondDenom(), k.rollappKeeper.GetRollappMinBond(ctx, rollapp))
+	return sdk.NewCoin(k.bondDenom(), k.rollappKeeper.MinBond(ctx, rollapp))
 }
 
 func (k Keeper) sufficientBond(ctx sdk.Context, rollapp string, c sdk.Coin) error {

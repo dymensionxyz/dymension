@@ -31,7 +31,7 @@ import (
 
 var (
 	alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
-	bond  = sequencertypes.DefaultParams().MinBond
+	bond  = sequencertypes.TestMinBond
 )
 
 type KeeperTestHelper struct {
