@@ -3,26 +3,31 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-func (k Keeper) bondDenom(ctx sdk.Context) string {
-	return k.GetParams(ctx).MinBond.Denom
+func (k Keeper) bondDenom() string {
+	return params.BaseDenom
 }
 
-func (k Keeper) validBondDenom(ctx sdk.Context, c sdk.Coin) error {
-	d := k.bondDenom(ctx)
+func (k Keeper) validBondDenom(c sdk.Coin) error {
+	d := k.bondDenom()
 	if c.Denom != d {
 		return errorsmod.Wrapf(types.ErrInvalidDenom, "expect: %s", d)
 	}
 	return nil
 }
 
-func (k Keeper) sufficientBond(ctx sdk.Context, c sdk.Coin) error {
-	if err := k.validBondDenom(ctx, c); err != nil {
+func (k Keeper) minBond(ctx sdk.Context, rollapp string) sdk.Coin {
+	return sdk.NewCoin(k.bondDenom(), k.rollappKeeper.GetRollappMinBond(ctx, rollapp))
+}
+
+func (k Keeper) sufficientBond(ctx sdk.Context, rollapp string, c sdk.Coin) error {
+	if err := k.validBondDenom(c); err != nil {
 		return err
 	}
-	minBond := k.GetParams(ctx).MinBond
+	minBond := k.minBond(ctx, rollapp)
 	if c.IsLT(minBond) {
 		return errorsmod.Wrapf(types.ErrInsufficientBond, "min: %s", minBond.Amount)
 	}

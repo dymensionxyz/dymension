@@ -19,6 +19,6 @@ func (k Keeper) NewSequencer(ctx sdk.Context, rollapp string) *types.Sequencer {
 	return &types.Sequencer{
 		RollappId: rollapp,
 		// DO NOT USE NEW COINS! IT WILL REMOVE ZERO COIN
-		Tokens: sdk.Coins{sdk.NewCoin(k.bondDenom(ctx), sdk.NewInt(0))},
+		Tokens: sdk.Coins{sdk.NewCoin(k.bondDenom(), sdk.NewInt(0))},
 	}
 }

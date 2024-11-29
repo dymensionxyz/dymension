@@ -135,7 +135,7 @@ func InvariantTokens(k Keeper) uinv.Func {
 			return err
 		}
 
-		total := sdk.NewCoin(k.bondDenom(ctx), sdk.ZeroInt())
+		total := sdk.NewCoin(k.bondDenom(), sdk.ZeroInt())
 		for _, seq := range k.AllSequencers(ctx) {
 			total = total.Add(seq.TokensCoin())
 		}
@@ -159,7 +159,7 @@ func checkSeqTokens(ctx sdk.Context, seq types.Sequencer, k Keeper) error {
 	if err := seq.ValidateBasic(); err != nil {
 		return errorsmod.Wrap(err, "validate basic")
 	}
-	if err := k.validBondDenom(ctx, seq.TokensCoin()); err != nil {
+	if err := k.validBondDenom(seq.TokensCoin()); err != nil {
 		return errorsmod.Wrap(err, "valid bond denom")
 	}
 	if seq.TokensCoin().Amount.IsNegative() {
