@@ -12,16 +12,16 @@ func (k Keeper) bondDenom() string {
 	return params.BaseDenom
 }
 
+func (k Keeper) minBond(ctx sdk.Context, rollapp string) sdk.Coin {
+	return ucoin.SimpleMul(sdk.NewCoin(k.bondDenom(), k.rollappKeeper.MinBond(ctx, rollapp)), params.BaseDenomUnit)
+}
+
 func (k Keeper) validBondDenom(c sdk.Coin) error {
 	d := k.bondDenom()
 	if c.Denom != d {
 		return errorsmod.Wrapf(types.ErrInvalidDenom, "expect: %s", d)
 	}
 	return nil
-}
-
-func (k Keeper) minBond(ctx sdk.Context, rollapp string) sdk.Coin {
-	return ucoin.SimpleMul(sdk.NewCoin(k.bondDenom(), k.rollappKeeper.MinBond(ctx, rollapp)), params.BaseDenomUnit)
 }
 
 func (k Keeper) sufficientBond(ctx sdk.Context, rollapp string, c sdk.Coin) error {
