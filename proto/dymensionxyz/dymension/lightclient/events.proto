@@ -10,3 +10,9 @@ message EventSetCanonicalChannel {
     string rollapp_id = 1;
     string channel_id = 2;
 }
+
+// When the canonical client of the rollapp is set
+message EventSetCanonicalClient {
+    string rollapp_id = 1;
+    string client_id = 2;
+}

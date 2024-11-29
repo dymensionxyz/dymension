@@ -10,3 +10,4 @@ proposal.json
 .go-version
 **/testdata/rapid/
 **/__debug_bin*
+.aider*

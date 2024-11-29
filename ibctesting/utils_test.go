@@ -23,6 +23,8 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
+	lightclienttypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -107,6 +109,10 @@ func (s *utilSuite) rollappCtx() sdk.Context {
 
 func (s *utilSuite) rollappMsgServer() rollapptypes.MsgServer {
 	return rollappkeeper.NewMsgServerImpl(s.hubApp().RollappKeeper)
+}
+
+func (s *utilSuite) lightclientMsgServer() lightclienttypes.MsgServer {
+	return lightclientkeeper.NewMsgServerImpl(&s.hubApp().LightClientKeeper)
 }
 
 // SetupTest creates a coordinator with 2 test chains.

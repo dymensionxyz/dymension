@@ -11,15 +11,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type testInput struct {
-	rollappId string
-	stateInfo *rollapptypes.StateInfo
-}
-
 func TestAfterUpdateState(t *testing.T) {
+	type input struct {
+		rollappId string
+		stateInfo *rollapptypes.StateInfo
+	}
+
 	testCases := []struct {
 		name      string
-		prepare   func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput
+		prepare   func(ctx sdk.Context, k lightClientKeeper.Keeper) input
 		expectErr bool
 	}{
 		// TODO: tests need expanding
@@ -27,8 +27,8 @@ func TestAfterUpdateState(t *testing.T) {
 		//  - Client with all cons states after the state update will not be canonical
 		{
 			name: "canonical client does not exist for rollapp",
-			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
-				return testInput{
+			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) input {
+				return input{
 					rollappId: "rollapp-no-canon-client",
 					stateInfo: &rollapptypes.StateInfo{},
 				}
@@ -38,11 +38,11 @@ func TestAfterUpdateState(t *testing.T) {
 
 		{
 			name: "both states are not compatible - slash the sequencer who signed",
-			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
+			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) input {
 				k.SetCanonicalClient(ctx, keepertest.DefaultRollapp, keepertest.CanonClientID)
 				err := k.SaveSigner(ctx, keepertest.Alice.Address, keepertest.CanonClientID, 2)
 				require.NoError(t, err)
-				return testInput{
+				return input{
 					rollappId: keepertest.DefaultRollapp,
 					stateInfo: &rollapptypes.StateInfo{
 						Sequencer:   keepertest.Alice.Address,
@@ -74,12 +74,12 @@ func TestAfterUpdateState(t *testing.T) {
 		},
 		{
 			name: "state is compatible",
-			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) testInput {
+			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) input {
 				k.SetCanonicalClient(ctx, keepertest.DefaultRollapp, keepertest.CanonClientID)
 				err := k.SaveSigner(ctx, keepertest.Alice.Address, keepertest.CanonClientID, 2)
 				require.NoError(t, err)
 
-				return testInput{
+				return input{
 					rollappId: keepertest.DefaultRollapp,
 					stateInfo: &rollapptypes.StateInfo{
 						Sequencer:   keepertest.Alice.Address,
@@ -114,6 +114,7 @@ func TestAfterUpdateState(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			keeper, ctx := keepertest.LightClientKeeper(t)
 			input := tc.prepare(ctx, *keeper)
+
 			err := keeper.RollappHooks().AfterUpdateState(ctx, input.rollappId, input.stateInfo)
 			if tc.expectErr {
 				require.Error(t, err)

@@ -76,8 +76,62 @@ func (m *EventSetCanonicalChannel) GetChannelId() string {
 	return ""
 }
 
+// When the canonical client of the rollapp is set
+type EventSetCanonicalClient struct {
+	RollappId string `protobuf:"bytes,1,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
+	ClientId  string `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+}
+
+func (m *EventSetCanonicalClient) Reset()         { *m = EventSetCanonicalClient{} }
+func (m *EventSetCanonicalClient) String() string { return proto.CompactTextString(m) }
+func (*EventSetCanonicalClient) ProtoMessage()    {}
+func (*EventSetCanonicalClient) Descriptor() ([]byte, []int) {
+	return fileDescriptor_95574d182027cfd8, []int{1}
+}
+func (m *EventSetCanonicalClient) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventSetCanonicalClient) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventSetCanonicalClient.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventSetCanonicalClient) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventSetCanonicalClient.Merge(m, src)
+}
+func (m *EventSetCanonicalClient) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventSetCanonicalClient) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventSetCanonicalClient.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventSetCanonicalClient proto.InternalMessageInfo
+
+func (m *EventSetCanonicalClient) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+func (m *EventSetCanonicalClient) GetClientId() string {
+	if m != nil {
+		return m.ClientId
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*EventSetCanonicalChannel)(nil), "dymensionxyz.dymension.lightclient.EventSetCanonicalChannel")
+	proto.RegisterType((*EventSetCanonicalClient)(nil), "dymensionxyz.dymension.lightclient.EventSetCanonicalClient")
 }
 
 func init() {
@@ -85,7 +139,7 @@ func init() {
 }
 
 var fileDescriptor_95574d182027cfd8 = []byte{
-	// 212 bytes of a gzipped FileDescriptorProto
+	// 235 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xd2, 0x4f, 0xa9, 0xcc, 0x4d,
 	0xcd, 0x2b, 0xce, 0xcc, 0xcf, 0xab, 0xa8, 0xac, 0x42, 0x70, 0xf4, 0x73, 0x32, 0xd3, 0x33, 0x4a,
 	0x92, 0x73, 0x32, 0x53, 0xf3, 0x4a, 0xf4, 0x53, 0xcb, 0x52, 0xf3, 0x4a, 0x8a, 0xf5, 0x0a, 0x8a,
@@ -94,12 +148,13 @@ var fileDescriptor_95574d182027cfd8 = []byte{
 	0x49, 0xc1, 0xa9, 0x25, 0xce, 0x89, 0x79, 0xf9, 0x79, 0x99, 0xc9, 0x89, 0x39, 0xce, 0x19, 0x89,
 	0x79, 0x79, 0xa9, 0x39, 0x42, 0xb2, 0x5c, 0x5c, 0x45, 0xf9, 0x39, 0x39, 0x89, 0x05, 0x05, 0xf1,
 	0x99, 0x29, 0x12, 0x8c, 0x0a, 0x8c, 0x1a, 0x9c, 0x41, 0x9c, 0x50, 0x11, 0xcf, 0x14, 0x90, 0x74,
-	0x32, 0x44, 0x25, 0x48, 0x9a, 0x09, 0x22, 0x0d, 0x15, 0xf1, 0x4c, 0x71, 0x0a, 0x3a, 0xf1, 0x48,
-	0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f, 0xe4, 0x18, 0x27, 0x3c, 0x96, 0x63, 0xb8, 0xf0,
-	0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39, 0x86, 0x28, 0x8b, 0xf4, 0xcc, 0x92, 0x8c, 0xd2, 0x24, 0xbd,
-	0xe4, 0xfc, 0x5c, 0x5c, 0x3e, 0x2d, 0x33, 0xd6, 0xaf, 0x40, 0xf1, 0x6e, 0x49, 0x65, 0x41, 0x6a,
-	0x71, 0x12, 0x1b, 0xd8, 0xd1, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0x42, 0xb1, 0x88, 0x2d,
-	0x21, 0x01, 0x00, 0x00,
+	0x32, 0x44, 0x25, 0x48, 0x9a, 0x09, 0x22, 0x0d, 0x15, 0xf1, 0x4c, 0x51, 0x0a, 0xe5, 0x12, 0xc7,
+	0x34, 0x19, 0xec, 0x14, 0x42, 0x06, 0x4b, 0x73, 0x71, 0x42, 0xdc, 0x8c, 0x30, 0x97, 0x03, 0x22,
+	0xe0, 0x99, 0xe2, 0x14, 0x74, 0xe2, 0x91, 0x1c, 0xe3, 0x85, 0x47, 0x72, 0x8c, 0x0f, 0x1e, 0xc9,
+	0x31, 0x4e, 0x78, 0x2c, 0xc7, 0x70, 0xe1, 0xb1, 0x1c, 0xc3, 0x8d, 0xc7, 0x72, 0x0c, 0x51, 0x16,
+	0xe9, 0x99, 0x25, 0x19, 0xa5, 0x49, 0x7a, 0xc9, 0xf9, 0xb9, 0xb8, 0x02, 0xb0, 0xcc, 0x58, 0xbf,
+	0x02, 0x25, 0x14, 0x4b, 0x2a, 0x0b, 0x52, 0x8b, 0x93, 0xd8, 0xc0, 0x61, 0x61, 0x0c, 0x08, 0x00,
+	0x00, 0xff, 0xff, 0x42, 0x10, 0x45, 0x95, 0x78, 0x01, 0x00, 0x00,
 }
 
 func (m *EventSetCanonicalChannel) Marshal() (dAtA []byte, err error) {
@@ -139,6 +194,43 @@ func (m *EventSetCanonicalChannel) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
+func (m *EventSetCanonicalClient) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventSetCanonicalClient) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventSetCanonicalClient) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.ClientId) > 0 {
+		i -= len(m.ClientId)
+		copy(dAtA[i:], m.ClientId)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.ClientId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintEvents(dAtA []byte, offset int, v uint64) int {
 	offset -= sovEvents(v)
 	base := offset
@@ -161,6 +253,23 @@ func (m *EventSetCanonicalChannel) Size() (n int) {
 		n += 1 + l + sovEvents(uint64(l))
 	}
 	l = len(m.ChannelId)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	return n
+}
+
+func (m *EventSetCanonicalClient) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.ClientId)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -265,6 +374,120 @@ func (m *EventSetCanonicalChannel) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.ChannelId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventSetCanonicalClient) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventSetCanonicalClient: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventSetCanonicalClient: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ClientId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ClientId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
