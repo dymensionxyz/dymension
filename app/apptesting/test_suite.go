@@ -29,9 +29,7 @@ import (
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-var (
-	alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
-)
+var alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
 
 type KeeperTestHelper struct {
 	suite.Suite
