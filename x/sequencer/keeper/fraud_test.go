@@ -127,7 +127,7 @@ func (s *SequencerTestSuite) TestFraudFullFlowDuringRotation() {
 	// alice cannot re-opt in
 	mOptIn := &types.MsgUpdateOptInStatus{Creator: pkAddr(alice), OptedIn: true}
 	_, err = s.msgServer.UpdateOptInStatus(s.Ctx, mOptIn)
-	s.Require().NoError(err)
+	s.Require().Error(err)
 	s.Require().True(s.k().IsProposer(s.Ctx, s.k().SentinelSequencer(s.Ctx)))
 
 	// but bob can
