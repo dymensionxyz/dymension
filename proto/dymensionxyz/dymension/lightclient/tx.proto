@@ -14,6 +14,7 @@ service Msg {
 
 // verify a client state and its consensus states against the rollapp
 // if it matches, set the client as the canonical client for the rollapp
+// NOTE: this definition is also copied to the relayer code
 message MsgSetCanonicalClient {
   option (cosmos.msg.v1.signer) = "signer";
   string signer = 1;
