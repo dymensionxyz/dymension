@@ -23,7 +23,6 @@ func (k Keeper) TryKickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 	// clear the proposer
 	k.abruptRemoveProposer(ctx, ra)
 
-	// TODO: refund/burn if needed
 	k.unbond(ctx, &proposer)
 	k.SetSequencer(ctx, proposer)
 
