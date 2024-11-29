@@ -39,6 +39,10 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		current.InitialSequencer = update.InitialSequencer
 	}
 
+	if 0 < update.MinSequencerBond {
+		current.MinSequencerBond = update.MinSequencerBond
+	}
+
 	if update.GenesisInfo != nil {
 		if update.GenesisInfo.GenesisChecksum != "" {
 			current.GenesisInfo.GenesisChecksum = update.GenesisInfo.GenesisChecksum

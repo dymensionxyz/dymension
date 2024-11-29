@@ -62,6 +62,7 @@ func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
 		msg.Creator,
 		msg.RollappId,
 		msg.InitialSequencer,
+		msg.MinSequencerBond,
 		msg.VmType,
 		msg.Metadata,
 		genInfo,

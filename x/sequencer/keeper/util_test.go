@@ -135,6 +135,7 @@ func (s *SequencerTestSuite) createRollappWithInitialSeqConstraint(initSeq strin
 			InitialSupply:   sdk.NewInt(1000),
 		},
 		InitialSequencer: initSeq,
+		MinSequencerBond: types.TestMinBond.Amount.Uint64(),
 	}
 	s.raK().SetRollapp(s.Ctx, rollapp)
 	return rollapp

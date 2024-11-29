@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 )
 
 func (k Keeper) bondDenom() string {
@@ -20,7 +21,7 @@ func (k Keeper) validBondDenom(c sdk.Coin) error {
 }
 
 func (k Keeper) minBond(ctx sdk.Context, rollapp string) sdk.Coin {
-	return sdk.NewCoin(k.bondDenom(), k.rollappKeeper.MinBond(ctx, rollapp))
+	return ucoin.SimpleMul(sdk.NewCoin(k.bondDenom(), k.rollappKeeper.MinBond(ctx, rollapp)), params.BaseDenomUnit)
 }
 
 func (k Keeper) sufficientBond(ctx sdk.Context, rollapp string, c sdk.Coin) error {
@@ -29,7 +30,7 @@ func (k Keeper) sufficientBond(ctx sdk.Context, rollapp string, c sdk.Coin) erro
 	}
 	minBond := k.minBond(ctx, rollapp)
 	if c.IsLT(minBond) {
-		return errorsmod.Wrapf(types.ErrInsufficientBond, "min: %s", minBond.Amount)
+		return errorsmod.Wrapf(types.ErrInsufficientBond, "min: %s: given: %s", minBond.Amount, c.Amount)
 	}
 	return nil
 }
