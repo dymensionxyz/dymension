@@ -24,6 +24,7 @@ func NewSequencerProposalHandler(k keeper.Keeper) govtypes.Handler {
 func HandlePunishSequencerProposal(ctx sdk.Context, k keeper.Keeper, p *types.PunishSequencerProposal) error {
 	err := k.PunishSequencer(ctx, p.PunishSequencerAddress, p.MustRewardee())
 	if err != nil {
+		k.Logger(ctx).Error("failed to punish sequencer", "error", err)
 		return err
 	}
 	return nil

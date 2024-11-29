@@ -9,10 +9,16 @@ import (
 )
 
 func TestNewPunishSequencerProposal(t *testing.T) {
-	const title = "title"
-	const description = "description"
-	var seqAddr = sample.AccAddress()
-	var rewardee = sample.AccAddress()
+	const (
+		title       = "title"
+		description = "description"
+	)
+
+	var (
+		seqAddr  = sample.AccAddress()
+		rewardee = sample.AccAddress()
+	)
+
 	got := NewPunishSequencerProposal(title, description, seqAddr, rewardee)
 	err := got.ValidateBasic()
 	require.NoError(t, err)
