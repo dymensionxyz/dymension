@@ -357,7 +357,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		},
 		GenesisInfo:                  genesisInfo,
 		InitialSequencer:             "*",
-		MinSequencerBond:             100,
+		MinSequencerBond:             rollapptypes.DefaultMinSequencerBondGlobal,
 		VmType:                       rollapptypes.Rollapp_EVM, // EVM for existing rollapps
 		Launched:                     true,                     // Existing rollapps are already launched
 		PreLaunchTime:                nil,                      // We can just let it be zero. Existing rollapps are already launched.
