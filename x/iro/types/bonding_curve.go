@@ -287,3 +287,12 @@ func checkPrecision(d math.LegacyDec) bool {
 	multiplied := d.Mul(math.LegacyNewDec(10).Power(uint64(MaxNPrecision)))
 	return multiplied.IsInteger()
 }
+
+// String returns a human readable string representation of the bonding curve
+func (lbc BondingCurve) Stringify() string {
+	return fmt.Sprintf("M=%s N=%s C=%s",
+		lbc.M.String(),
+		lbc.N.String(),
+		lbc.C.String(),
+	)
+}

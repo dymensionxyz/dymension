@@ -20,7 +20,7 @@ import (
 // Simulation operation weights constants
 const (
 	DefaultWeightMsgTestBondingCurve int = 100
-	OpWeightMsgTestBondingCurve          = "op_weight_msg_test_bonding_curve"
+	OpWeightMsgTestBondingCurve          = "op_weight_msg_test_bonding_curve" //nolint:gosec
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
@@ -56,7 +56,7 @@ func SimulateTestBondingCurve(k keeper.Keeper, cdc *codec.ProtoCodec) simtypes.O
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		plans := k.GetAllPlans(ctx, true)
 		if len(plans) == 0 {
-			return simtypes.NoOpMsg(types.ModuleName, "TestBondingCurve", "no plans available"), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, "TestBondingCurve", ""), nil, fmt.Errorf("no plans found")
 		}
 
 		// Randomly select a plan
@@ -65,6 +65,7 @@ func SimulateTestBondingCurve(k keeper.Keeper, cdc *codec.ProtoCodec) simtypes.O
 
 		// Test different token amounts
 		testAmounts := []math.Int{
+			math.NewInt(1).MulRaw(1e17),      // 0.1 token
 			math.NewInt(1).MulRaw(1e18),      // 1 token
 			math.NewInt(100).MulRaw(1e18),    // 100 tokens
 			math.NewInt(1000).MulRaw(1e18),   // 1000 tokens
@@ -72,26 +73,47 @@ func SimulateTestBondingCurve(k keeper.Keeper, cdc *codec.ProtoCodec) simtypes.O
 			math.NewInt(100000).MulRaw(1e18), // 100000 tokens
 		}
 
+		// prepare base error with curve context
+		curveDesc := fmt.Sprintf("bonding curve: %s", curve.Stringify())
+
 		var results []string
+		managed := false
+		lastCost := math.ZeroInt()
 		for _, amount := range testAmounts {
 			// Calculate cost for buying tokens
 			cost := curve.Cost(plan.SoldAmt, amount)
+			if !cost.IsPositive() {
+				continue
+			}
 
 			// Calculate tokens for exact DYM spend
 			tokens, err := curve.TokensForExactDYM(plan.SoldAmt, cost)
 			if err != nil {
-				return simtypes.NoOpMsg(types.ModuleName, "TestBondingCurve", "TokensForExactDYM failed"), nil, err
+				err = fmt.Errorf("%s: tokens for exact DYM spend: %w", curveDesc, err)
+				return simtypes.NoOpMsg(types.ModuleName, "TestBondingCurve", err.Error()), nil, err
 			}
 
-			// Calculate spot price at this amount
-			spotPrice := curve.SpotPrice(amount)
+			// FIXME: validate tokens are approximately the same as the amount
+
+			if cost.LTE(lastCost) {
+				err = fmt.Errorf("%s: cost not increasing: %s <= %s", curveDesc, cost.String(), lastCost.String())
+				return simtypes.NoOpMsg(types.ModuleName, "TestBondingCurve", err.Error()), nil, err
+			}
+
+			lastCost = cost
+			managed = true
 
 			results = append(results, fmt.Sprintf(
-				"Amount: %s tokens, Cost: %s DYM, TokensForExactDYM: %s, SpotPrice: %s",
-				amount, cost, tokens, spotPrice,
+				"Amount: %s tokens, Cost: %s DYM, TokensForExactDYM: %s tokens",
+				amount.String(), cost.String(), tokens.String(),
 			))
 		}
 
-		return simtypes.NewOperationMsg(&types.MsgBuy{}, true, fmt.Sprintf("TestBondingCurve Results:\n%s", results), cdc), nil, nil
+		if !managed {
+			err := fmt.Errorf("%s: no valid cost found for any of the test amounts", curveDesc)
+			return simtypes.NoOpMsg(types.ModuleName, "TestBondingCurve", err.Error()), nil, err
+		}
+
+		return simtypes.NewOperationMsg(&types.MsgBuy{}, true, fmt.Sprintf("%s Results:\n%s", curveDesc, results), cdc), nil, nil
 	}
 }
