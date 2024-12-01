@@ -10,11 +10,11 @@ import (
 // Default parameter values
 
 var (
-	DefaultTakerFee                                     = "0.02"                       // 2%
-	DefaultCreationFee                                  = math.NewInt(10).MulRaw(1e18) /* 10 DYM */
-	DefaultMinPlanDuration                              = 0 * time.Hour                // no enforced minimum by default
-	DefaultIncentivePlanMinimumNumEpochsPaidOver        = uint64(10_080)               // default: min 7 days (based on 1 minute distribution epoch)
-	DefaultIncentivePlanMinimumStartTimeAfterSettlement = 60 * time.Minute             // default: min 1 hour after settlement
+	DefaultTakerFee                                     = "0.02"                      // 2%
+	DefaultCreationFee                                  = math.NewInt(1).MulRaw(1e18) /* 1 DYM */
+	DefaultMinPlanDuration                              = 0 * time.Hour               // no enforced minimum by default
+	DefaultIncentivePlanMinimumNumEpochsPaidOver        = uint64(10_080)              // default: min 7 days (based on 1 minute distribution epoch)
+	DefaultIncentivePlanMinimumStartTimeAfterSettlement = 60 * time.Minute            // default: min 1 hour after settlement
 )
 
 const (
