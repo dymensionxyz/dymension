@@ -23,4 +23,5 @@ var (
 	ErrNotInitialSequencer       = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "not the initial sequencer")
 	ErrInvalidAddr               = gerrc.ErrInvalidArgument.Wrap("address")
 	ErrInvalidPubKey             = gerrc.ErrInvalidArgument.Wrap("pubkey")
+	ErrUnknownRequest            = gerrc.ErrInvalidArgument.Wrap("unknown request")
 )
