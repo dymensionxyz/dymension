@@ -182,7 +182,8 @@ func TestAppStateDeterminism(t *testing.T) {
 
 	for i := 0; i < numSeeds; i++ {
 		if config.Seed == simcli.DefaultSeedValue {
-			config.Seed = rand.Int63() // overwrite default seed //nolint:gosec
+			// overwrite default seed
+			config.Seed = rand.Int63() //nolint:gosec
 		}
 
 		fmt.Println("config.Seed: ", config.Seed)
