@@ -68,6 +68,10 @@ func generateRandomPlan(r *rand.Rand, id uint64) types.Plan {
 
 	plan := types.NewPlan(id, rollappId, allocation, curve, startTime, preLaunchTime, types.DefaultIncentivePlanParams())
 
+	// randomize starting sold amount
+	soldAmt := simtypes.RandomAmount(r, allocatedAmount)
+	plan.SoldAmt = soldAmt
+
 	return plan
 }
 

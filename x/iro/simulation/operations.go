@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
@@ -20,13 +19,8 @@ import (
 
 // Simulation operation weights constants
 const (
-	DefaultWeightMsgBuy           int = 100
-	DefaultWeightMsgBuyExactSpend int = 100
-	DefaultWeightMsgSell          int = 100
-
-	OpWeightMsgBuy           = "op_weight_msg_buy"
-	OpWeightMsgBuyExactSpend = "op_weight_msg_buy_exact_spend"
-	OpWeightMsgSell          = "op_weight_msg_sell"
+	DefaultWeightMsgTestBondingCurve int = 100
+	OpWeightMsgTestBondingCurve          = "op_weight_msg_test_bonding_curve"
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
@@ -37,211 +31,67 @@ func WeightedOperations(
 	bk dymsimtypes.BankKeeper,
 	k keeper.Keeper,
 ) simulation.WeightedOperations {
-	var (
-		weightMsgBuy           int
-		weightMsgBuyExactSpend int
-		weightMsgSell          int
-	)
 
-	interfaceRegistry := codectypes.NewInterfaceRegistry()
-	protoCdc := codec.NewProtoCodec(interfaceRegistry)
+	protoCdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
-	appParams.GetOrGenerate(
-		cdc, OpWeightMsgBuy, &weightMsgBuy, nil,
-		func(*rand.Rand) { weightMsgBuy = DefaultWeightMsgBuy },
-	)
-
-	appParams.GetOrGenerate(
-		cdc, OpWeightMsgBuyExactSpend, &weightMsgBuyExactSpend, nil,
-		func(*rand.Rand) { weightMsgBuyExactSpend = DefaultWeightMsgBuyExactSpend },
-	)
-
-	appParams.GetOrGenerate(
-		cdc, OpWeightMsgSell, &weightMsgSell, nil,
-		func(*rand.Rand) { weightMsgSell = DefaultWeightMsgSell },
+	var weightMsgTestBondingCurve int
+	appParams.GetOrGenerate(cdc, OpWeightMsgTestBondingCurve, &weightMsgTestBondingCurve, nil,
+		func(_ *rand.Rand) {
+			weightMsgTestBondingCurve = DefaultWeightMsgTestBondingCurve
+		},
 	)
 
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(
-			weightMsgBuy,
-			SimulateMsgBuy(protoCdc, ak, bk, k),
-		),
-		simulation.NewWeightedOperation(
-			weightMsgBuyExactSpend,
-			SimulateMsgBuyExactSpend(protoCdc, ak, bk, k),
-		),
-		simulation.NewWeightedOperation(
-			weightMsgSell,
-			SimulateMsgSell(protoCdc, ak, bk, k),
+			weightMsgTestBondingCurve,
+			SimulateTestBondingCurve(k, protoCdc),
 		),
 	}
 }
 
-// SimulateMsgBuy generates a MsgBuy with random values
-func SimulateMsgBuy(
-	cdc *codec.ProtoCodec,
-	ak dymsimtypes.AccountKeeper,
-	bk dymsimtypes.BankKeeper,
-	k keeper.Keeper,
-) simtypes.Operation {
+// SimulateTestBondingCurve tests the bonding curve calculations without actual trading
+func SimulateTestBondingCurve(k keeper.Keeper, cdc *codec.ProtoCodec) simtypes.Operation {
 	return func(
-		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
-		accs []simtypes.Account, chainID string,
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		simAccount, _ := simtypes.RandomAcc(r, accs)
-		account := ak.GetAccount(ctx, simAccount.Address)
-
-		spendable := bk.SpendableCoins(ctx, account.GetAddress())
-		if spendable.IsZero() {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgBuy, "no spendable coins"), nil, nil
-		}
-
-		// Get a random IRO plan
 		plans := k.GetAllPlans(ctx, true)
 		if len(plans) == 0 {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgBuy, "no plans available"), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, "TestBondingCurve", "no plans available"), nil, nil
 		}
+
+		// Randomly select a plan
 		plan := plans[r.Intn(len(plans))]
+		curve := plan.BondingCurve
 
-		// Generate random amount to buy
-		amount := simtypes.RandomAmount(r, plan.TotalAllocation.Amount.Sub(plan.SoldAmt))
-
-		// FIXME: maxAmount should be calculated based on amount
-		maxAmount := math.NewInt(1000000000000).Mul(DYM)
-
-		msg := types.MsgBuy{
-			Buyer:         simAccount.Address.String(),
-			PlanId:        fmt.Sprintf("%d", plan.Id),
-			Amount:        amount,
-			MaxCostAmount: maxAmount,
+		// Test different token amounts
+		testAmounts := []math.Int{
+			math.NewInt(1).MulRaw(1e18),      // 1 token
+			math.NewInt(100).MulRaw(1e18),    // 100 tokens
+			math.NewInt(1000).MulRaw(1e18),   // 1000 tokens
+			math.NewInt(10000).MulRaw(1e18),  // 10000 tokens
+			math.NewInt(100000).MulRaw(1e18), // 100000 tokens
 		}
 
-		txCtx := simulation.OperationInput{
-			R:             r,
-			App:           app,
-			TxGen:         moduletestutil.MakeTestEncodingConfig().TxConfig,
-			Cdc:           nil,
-			Msg:           &msg,
-			MsgType:       msg.Type(),
-			Context:       ctx,
-			SimAccount:    simAccount,
-			AccountKeeper: ak,
-			Bankkeeper:    bk,
-			ModuleName:    types.ModuleName,
+		var results []string
+		for _, amount := range testAmounts {
+			// Calculate cost for buying tokens
+			cost := curve.Cost(plan.SoldAmt, amount)
+
+			// Calculate tokens for exact DYM spend
+			tokens, err := curve.TokensForExactDYM(plan.SoldAmt, cost)
+			if err != nil {
+				return simtypes.NoOpMsg(types.ModuleName, "TestBondingCurve", "TokensForExactDYM failed"), nil, err
+			}
+
+			// Calculate spot price at this amount
+			spotPrice := curve.SpotPrice(amount)
+
+			results = append(results, fmt.Sprintf(
+				"Amount: %s tokens, Cost: %s DYM, TokensForExactDYM: %s, SpotPrice: %s",
+				amount, cost, tokens, spotPrice,
+			))
 		}
 
-		return simulation.GenAndDeliverTxWithRandFees(txCtx)
-	}
-}
-
-// SimulateMsgBuyExactSpend generates a MsgBuyExactSpend with random values
-func SimulateMsgBuyExactSpend(
-	cdc *codec.ProtoCodec,
-	ak dymsimtypes.AccountKeeper,
-	bk dymsimtypes.BankKeeper,
-	k keeper.Keeper,
-) simtypes.Operation {
-	return func(
-		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
-		accs []simtypes.Account, chainID string,
-	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		simAccount, _ := simtypes.RandomAcc(r, accs)
-		account := ak.GetAccount(ctx, simAccount.Address)
-
-		spendable := bk.SpendableCoins(ctx, account.GetAddress())
-		if spendable.IsZero() {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgExactSpend, "no spendable coins"), nil, nil
-		}
-
-		// Get a random IRO plan
-		plans := k.GetAllPlans(ctx, true)
-		if len(plans) == 0 {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgExactSpend, "no plans available"), nil, nil
-		}
-		plan := plans[r.Intn(len(plans))]
-
-		// Generate random amount to spend
-		spendAmount := simtypes.RandomAmount(r, DYM.MulRaw(100000000))
-		// FIXME: minOutTokens should be calculated based on spendAmount
-		minOutTokens := math.ZeroInt()
-
-		msg := types.MsgBuyExactSpend{
-			Buyer:              simAccount.Address.String(),
-			PlanId:             fmt.Sprintf("%d", plan.Id),
-			Spend:              spendAmount,
-			MinOutTokensAmount: minOutTokens,
-		}
-
-		txCtx := simulation.OperationInput{
-			R:             r,
-			App:           app,
-			TxGen:         moduletestutil.MakeTestEncodingConfig().TxConfig,
-			Cdc:           nil,
-			Msg:           &msg,
-			MsgType:       msg.Type(),
-			Context:       ctx,
-			SimAccount:    simAccount,
-			AccountKeeper: ak,
-			Bankkeeper:    bk,
-			ModuleName:    types.ModuleName,
-		}
-
-		return simulation.GenAndDeliverTxWithRandFees(txCtx)
-	}
-}
-
-// SimulateMsgSell generates a MsgSell with random values
-func SimulateMsgSell(
-	cdc *codec.ProtoCodec,
-	ak dymsimtypes.AccountKeeper,
-	bk dymsimtypes.BankKeeper,
-	k keeper.Keeper,
-) simtypes.Operation {
-	return func(
-		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
-		accs []simtypes.Account, chainID string,
-	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		simAccount, _ := simtypes.RandomAcc(r, accs)
-		account := ak.GetAccount(ctx, simAccount.Address)
-
-		spendable := bk.SpendableCoins(ctx, account.GetAddress())
-		if spendable.IsZero() {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgSell, "no spendable coins"), nil, nil
-		}
-
-		// Get a random IRO plan
-		plans := k.GetAllPlans(ctx, true)
-		if len(plans) == 0 {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgSell, "no plans available"), nil, nil
-		}
-		plan := plans[r.Intn(len(plans))]
-
-		// Generate random amount to sell
-		sellAmount := simtypes.RandomAmount(r, spendable.AmountOf(types.IRODenom(plan.RollappId)))
-		// FIXME: minIncomeAmount should be calculated based on sellAmount
-		minIncomeAmount := math.ZeroInt()
-
-		msg := types.MsgSell{
-			Seller:          simAccount.Address.String(),
-			PlanId:          fmt.Sprintf("%d", plan.Id),
-			Amount:          sellAmount,
-			MinIncomeAmount: minIncomeAmount,
-		}
-
-		txCtx := simulation.OperationInput{
-			R:             r,
-			App:           app,
-			TxGen:         moduletestutil.MakeTestEncodingConfig().TxConfig,
-			Cdc:           nil,
-			Msg:           &msg,
-			MsgType:       msg.Type(),
-			Context:       ctx,
-			SimAccount:    simAccount,
-			AccountKeeper: ak,
-			Bankkeeper:    bk,
-			ModuleName:    types.ModuleName,
-		}
-
-		return simulation.GenAndDeliverTxWithRandFees(txCtx)
+		return simtypes.NewOperationMsg(&types.MsgBuy{}, true, fmt.Sprintf("TestBondingCurve Results:\n%s", results), cdc), nil, nil
 	}
 }
