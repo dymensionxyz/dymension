@@ -52,7 +52,7 @@ func generateRandomPlan(r *rand.Rand, id uint64) types.Plan {
 
 	// randomize starting sold amount
 	// minSoldAmt < soldAmt < allocatedAmount - minUnsoldAmt
-	minSoldAmt := math.NewInt(100).MulRaw(1e18) // 1 token minimum
+	minSoldAmt := math.NewInt(100).MulRaw(1e18) // 100 token minimum
 	minUnsoldAmt := math.NewInt(100).MulRaw(1e18)
 	soldAmt := simtypes.RandomAmount(r, allocatedAmount.Sub(minUnsoldAmt).Sub(minSoldAmt)).Add(minSoldAmt)
 	plan.SoldAmt = soldAmt

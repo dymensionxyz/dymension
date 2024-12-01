@@ -137,9 +137,6 @@ func approxEqualInt(expected, actual math.Int) error {
 	// 0.001 = 0.1% = 1/1000
 	// With 18 decimals: 1/1000 * amount
 	tolerance := expected.QuoRaw(1000) // 0.1% of expected value
-	if tolerance.IsZero() {
-		tolerance = math.NewInt(1e3)
-	}
 
 	diff := expected.Sub(actual).Abs()
 	if tolerance.LT(diff) {
