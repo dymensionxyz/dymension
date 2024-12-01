@@ -23,11 +23,14 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
+	lightclienttypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -106,6 +109,10 @@ func (s *utilSuite) rollappCtx() sdk.Context {
 
 func (s *utilSuite) rollappMsgServer() rollapptypes.MsgServer {
 	return rollappkeeper.NewMsgServerImpl(s.hubApp().RollappKeeper)
+}
+
+func (s *utilSuite) lightclientMsgServer() lightclienttypes.MsgServer {
+	return lightclientkeeper.NewMsgServerImpl(&s.hubApp().LightClientKeeper)
 }
 
 // SetupTest creates a coordinator with 2 test chains.
@@ -287,17 +294,8 @@ func (s *utilSuite) getRollappToHubIBCDenomFromPacket(packet channeltypes.Packet
 	var data transfertypes.FungibleTokenPacketData
 	err := eibctypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data)
 	s.Require().NoError(err)
-	return s.getIBCDenomForChannel(packet.GetDestChannel(), data.Denom)
-}
 
-func (s *utilSuite) getIBCDenomForChannel(channel string, denom string) string {
-	// since SendPacket did not prefix the denomination, we must prefix denomination here
-	sourcePrefix := types.GetDenomPrefix("transfer", channel)
-	// NOTE: sourcePrefix contains the trailing "/"
-	prefixedDenom := sourcePrefix + denom
-	// construct the denomination trace from the full raw denomination
-	denomTrace := types.ParseDenomTrace(prefixedDenom)
-	return denomTrace.IBCDenom()
+	return denomutils.GetIncomingTransferDenom(packet, data)
 }
 
 func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctesting.Coordinator, chainID string) *ibctesting.TestChain {

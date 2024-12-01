@@ -24,6 +24,8 @@ message RollappMetadata {
   string explorer_url = 9;
   // fee_denom is the base denom for fees
   DenomMetadata fee_denom = 10;
+  // Tags is a list of tags that can be used to filter rollapps.
+  repeated string tags = 11;
 }
 
 message DenomMetadata {

@@ -57,8 +57,10 @@ func (gi GenesisInfo) Validate() error {
 		}
 	}
 
-	if !gi.InitialSupply.IsNil() && !gi.InitialSupply.IsPositive() {
-		return ErrInvalidInitialSupply
+	if !gi.InitialSupply.IsNil() {
+		if !gi.InitialSupply.IsPositive() {
+			return ErrInvalidInitialSupply
+		}
 	}
 
 	if l := len(gi.Accounts()); l > maxAllowedGenesisAccounts {
