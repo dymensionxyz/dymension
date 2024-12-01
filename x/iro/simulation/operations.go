@@ -74,14 +74,21 @@ func SimulateTestBondingCurve(k keeper.Keeper, cdc *codec.ProtoCodec) simtypes.O
 		}
 
 		// prepare base error with curve context
-		curveDesc := fmt.Sprintf("bonding curve: %s", curve.Stringify())
+		totalAll := types.ScaleFromBase(plan.TotalAllocation.Amount, types.DYMDecimals)
+		targetRaise := types.ScaleFromBase(curve.Cost(math.ZeroInt(), plan.TotalAllocation.Amount), types.DYMDecimals)
+		curveDesc := fmt.Sprintf("total supply: %s, target raise: %s, bonding curve: %s", totalAll.String(), targetRaise.String(), curve.Stringify())
+
+		if curve.M.IsZero() {
+			err := fmt.Errorf("%s: M is zero", curveDesc)
+			return simtypes.NoOpMsg(types.ModuleName, "TestBondingCurve", err.Error()), nil, err
+		}
 
 		var results []string
 		managed := false
 		lastCost := math.ZeroInt()
 		for _, amount := range testAmounts {
 			// Calculate cost for buying tokens
-			cost := curve.Cost(plan.SoldAmt, amount)
+			cost := curve.Cost(plan.SoldAmt, amount.Add(plan.SoldAmt))
 			if !cost.IsPositive() {
 				continue
 			}
