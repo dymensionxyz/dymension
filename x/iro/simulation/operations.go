@@ -31,7 +31,6 @@ func WeightedOperations(
 	bk dymsimtypes.BankKeeper,
 	k keeper.Keeper,
 ) simulation.WeightedOperations {
-
 	protoCdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
 	var weightMsgTestBondingCurve int
