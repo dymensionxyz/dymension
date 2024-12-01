@@ -21,8 +21,8 @@ import (
 const (
 	DefaultWeightMsgVote       int = 100
 	DefaultWeightMsgRevokeVote int = 100
-	OpWeightMsgVote                = "op_weight_msg_vote"
-	OpWeightMsgRevokeVote          = "op_weight_msg_revoke_vote"
+	OpWeightMsgVote                = "op_weight_msg_vote"        //nolint:gosec
+	OpWeightMsgRevokeVote          = "op_weight_msg_revoke_vote" //nolint:gosec
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights.

@@ -23,8 +23,8 @@ import (
 const (
 	DefaultWeightMsgCreateGauge int = 100
 	DefaultWeightMsgAddToGauge  int = 100
-	OpWeightMsgCreateGauge          = "op_weight_msg_create_gauge"
-	OpWeightMsgAddToGauge           = "op_weight_msg_add_to_gauge"
+	OpWeightMsgCreateGauge          = "op_weight_msg_create_gauge" //nolint:gosec
+	OpWeightMsgAddToGauge           = "op_weight_msg_add_to_gauge" //nolint:gosec
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights.
