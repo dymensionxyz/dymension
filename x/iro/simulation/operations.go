@@ -75,8 +75,9 @@ func SimulateTestBondingCurve(k keeper.Keeper, cdc *codec.ProtoCodec) simtypes.O
 
 		// prepare base error with curve context
 		totalAll := types.ScaleFromBase(plan.TotalAllocation.Amount, types.DYMDecimals)
+		soldAmt := types.ScaleFromBase(plan.SoldAmt, types.DYMDecimals)
 		targetRaise := types.ScaleFromBase(curve.Cost(math.ZeroInt(), plan.TotalAllocation.Amount), types.DYMDecimals)
-		curveDesc := fmt.Sprintf("total supply: %s, target raise: %s, bonding curve: %s", totalAll.String(), targetRaise.String(), curve.Stringify())
+		curveDesc := fmt.Sprintf("total supply: %s, sold amount: %s, target raise: %s, bonding curve: %s", totalAll.String(), soldAmt.String(), targetRaise.String(), curve.Stringify())
 
 		if curve.M.IsZero() {
 			err := fmt.Errorf("%s: M is zero", curveDesc)
@@ -87,6 +88,7 @@ func SimulateTestBondingCurve(k keeper.Keeper, cdc *codec.ProtoCodec) simtypes.O
 		managed := false
 		lastCost := math.ZeroInt()
 		for _, amount := range testAmounts {
+			scaledAmount := types.ScaleFromBase(amount, types.DYMDecimals)
 			// Calculate cost for buying tokens
 			cost := curve.Cost(plan.SoldAmt, amount.Add(plan.SoldAmt))
 			if !cost.IsPositive() {
@@ -96,11 +98,15 @@ func SimulateTestBondingCurve(k keeper.Keeper, cdc *codec.ProtoCodec) simtypes.O
 			// Calculate tokens for exact DYM spend
 			tokens, err := curve.TokensForExactDYM(plan.SoldAmt, cost)
 			if err != nil {
-				err = fmt.Errorf("%s: tokens for exact DYM spend: %w", curveDesc, err)
+				err = fmt.Errorf("%s: buy amount: %s,tokens for exact DYM spend: %w", curveDesc, scaledAmount.String(), err)
 				return simtypes.NoOpMsg(types.ModuleName, "TestBondingCurve", err.Error()), nil, err
 			}
 
-			// FIXME: validate tokens are approximately the same as the amount
+			// validate tokens are approximately the same as the amount
+			if err := approxEqualInt(amount, tokens); err != nil {
+				err = fmt.Errorf("%s: buy amount: %s, tokens not equal to amount: %w", curveDesc, scaledAmount.String(), err)
+				return simtypes.NoOpMsg(types.ModuleName, "TestBondingCurve", err.Error()), nil, err
+			}
 
 			if cost.LTE(lastCost) {
 				err = fmt.Errorf("%s: cost not increasing: %s <= %s", curveDesc, cost.String(), lastCost.String())
@@ -123,4 +129,22 @@ func SimulateTestBondingCurve(k keeper.Keeper, cdc *codec.ProtoCodec) simtypes.O
 
 		return simtypes.NewOperationMsg(&types.MsgBuy{}, true, fmt.Sprintf("%s Results:\n%s", curveDesc, results), cdc), nil, nil
 	}
+}
+
+// approxEqualInt checks if two math.Ints are approximately equal with 0.1% tolerance
+func approxEqualInt(expected, actual math.Int) error {
+	// For 0.1% tolerance with 18 decimals:
+	// 0.001 = 0.1% = 1/1000
+	// With 18 decimals: 1/1000 * amount
+	tolerance := expected.QuoRaw(1000) // 0.1% of expected value
+	if tolerance.IsZero() {
+		tolerance = math.NewInt(1e3)
+	}
+
+	diff := expected.Sub(actual).Abs()
+	if tolerance.LT(diff) {
+		return fmt.Errorf("expected %s, got %s, diff %s (tolerance: %s)",
+			expected, actual, diff, tolerance)
+	}
+	return nil
 }

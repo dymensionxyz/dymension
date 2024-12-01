@@ -1,8 +1,6 @@
 package simulation
 
 import (
-	"encoding/json"
-	"fmt"
 	"math/rand"
 	"time"
 
@@ -17,8 +15,8 @@ import (
 
 // RandomizedGenState generates a random GenesisState for iro module
 func RandomizedGenState(simState *module.SimulationState) {
-	// Generate random number of initial plans (1-10)
-	numPlans := 1 + simState.Rand.Intn(10)
+	// Generate number of plans. each operation will test one plan in random
+	numPlans := 30
 	plans := make([]types.Plan, numPlans)
 
 	for i := 0; i < numPlans; i++ {
@@ -31,23 +29,16 @@ func RandomizedGenState(simState *module.SimulationState) {
 		Plans:  plans,
 	}
 
-	bz, err := json.MarshalIndent(&iroGenesis, "", " ")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Selected randomly generated iro parameters:\n%s\n", bz)
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&iroGenesis)
 }
 
 func generateRandomPlan(r *rand.Rand, id uint64) types.Plan {
-	// Generate random account address for owner
 	rollappId := urand.RollappID()
 
-	// Generate random timestamps for pre-launch and start time
 	startTime := time.Now()
 	preLaunchTime := startTime.Add(24 * time.Hour)
 
-	// Generate random allocated amount (between 100_000 and 1B)
+	// Generate random allocated amount (between 100_000 and 1_000_000_000 RA tokens)
 	baseDenom := types.IRODenom(rollappId)
 	allocatedAmount := simtypes.RandomAmount(r, math.NewInt(1e9).SubRaw(100_000)).AddRaw(100_000).MulRaw(1e18)
 	allocation := sdk.Coin{
@@ -56,21 +47,12 @@ func generateRandomPlan(r *rand.Rand, id uint64) types.Plan {
 	}
 
 	// Generate random bonding curve
-	// var curve types.BondingCurve
 	curve := generateRandomBondingCurve(r, allocatedAmount)
-	// for range 10 {
-	// 	// make sure we generate a valid curve
-	// 	if !c.M.IsPositive() {
-	// 		continue
-	// 	}
-	// 	c :=
-	// 	curve = c
-	// 	break
-	// }
 	plan := types.NewPlan(id, rollappId, allocation, curve, startTime, preLaunchTime, types.DefaultIncentivePlanParams())
 
-	// randomize starting sold amount (ensure > 1)
-	minSoldAmt := math.NewInt(1).MulRaw(1e18) // 1 token minimum
+	// randomize starting sold amount
+	// minSoldAmt < soldAmt < allocatedAmount - minUnsoldAmt
+	minSoldAmt := math.NewInt(100).MulRaw(1e18) // 1 token minimum
 	minUnsoldAmt := math.NewInt(100).MulRaw(1e18)
 	soldAmt := simtypes.RandomAmount(r, allocatedAmount.Sub(minUnsoldAmt).Sub(minSoldAmt)).Add(minSoldAmt)
 	plan.SoldAmt = soldAmt
@@ -79,14 +61,13 @@ func generateRandomPlan(r *rand.Rand, id uint64) types.Plan {
 }
 
 func generateRandomBondingCurve(r *rand.Rand, allocatedAmount math.Int) types.BondingCurve {
-	// Generate N with maximum precision of 3
-	nInt := r.Int63n(1500)                  // Generate a random integer between 0 and 1499
-	n := math.LegacyNewDecWithPrec(nInt, 3) // Convert to decimal with 3 decimal places
-	// add 0.5 as minimum value
+	// Generate 0.5 < N < 1.5 with maximum precision of 3
+	nInt := r.Int63n(1000)                     // Generate a random integer between 0 and 999
+	n := math.LegacyNewDecWithPrec(nInt, 3)    // Convert to decimal with 3 decimal places
 	n = n.Add(math.LegacyNewDecWithPrec(5, 1)) // Add 0.5
 
-	// targetRaiseDYM between 10 and 100M DYM
-	targetRaiseDYM := simtypes.RandomAmount(r, math.NewInt(1e8)).AddRaw(10)
+	// targetRaiseDYM between 10K and 100M DYM
+	targetRaiseDYM := simtypes.RandomAmount(r, math.NewInt(1e8)).AddRaw(10_000)
 
 	// Scale allocatedAmount from base denomination to decimal representation
 	allocatedTokens := types.ScaleFromBase(allocatedAmount, types.DYMDecimals)
