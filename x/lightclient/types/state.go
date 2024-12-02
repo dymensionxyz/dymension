@@ -20,10 +20,11 @@ import (
 func CheckCompatibility(ibcState ibctm.ConsensusState, raState RollappState) error {
 	// Check if block descriptor state root matches IBC block header app hash
 	if !bytes.Equal(ibcState.Root.GetHash(), raState.BlockDescriptor.StateRoot) {
-		return ErrStateRootMismatch
+		return errorsmod.Wrapf(ErrStateRootMismatch, "ibc state root: %s, block descriptor state root: %s", ibcState.Root, raState.BlockDescriptor.StateRoot)
 	}
+	// timestamp is optional here to support 2D rollapp upgrade.
 	if !raState.BlockDescriptor.Timestamp.IsZero() && !ibcState.Timestamp.Equal(raState.BlockDescriptor.Timestamp) {
-		return ErrTimestampMismatch
+		return errorsmod.Wrapf(ErrTimestampMismatch, "ibc timestamp: %s, block descriptor timestamp: %s", ibcState.Timestamp, raState.BlockDescriptor.Timestamp)
 	}
 	if err := compareNextValHash(ibcState, raState); err != nil {
 		return errorsmod.Wrap(err, "compare next val hash")

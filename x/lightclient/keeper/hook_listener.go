@@ -65,7 +65,7 @@ func (hook rollappHook) AfterUpdateState(
 			if errors.Is(err, types.ErrNextValHashMismatch) && h == stateInfo.GetLatestHeight() {
 				continue
 			}
-			return errorsmod.Wrap(err, "validate optimistic update")
+			return errorsmod.Wrapf(err, "validate optimistic update: height: %d", h)
 		}
 	}
 
@@ -94,7 +94,7 @@ func (hook rollappHook) validateOptimisticUpdate(
 	}
 	expectBD, err := hook.getBlockDescriptor(ctx, rollapp, cache, h)
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "get block descriptor")
 	}
 	expect := types.RollappState{
 		BlockDescriptor:    expectBD,
