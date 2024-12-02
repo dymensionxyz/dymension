@@ -60,8 +60,9 @@ func (hook rollappHook) AfterUpdateState(
 		return errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "get sequencer for state info")
 	}
 
-	// [hStart-1..,hEnd) is correct because we compare against a next validators hash
-	for h := stateInfo.GetStartHeight() - 1; h < stateInfo.GetLatestHeight(); h++ {
+	// [hStart-1..,hEnd] is correct because we compare against a next validators hash
+	// for all heights in the range [hStart-1..hEnd), but do not for hEnd
+	for h := stateInfo.GetStartHeight() - 1; h <= stateInfo.GetLatestHeight(); h++ {
 		if err := hook.validateOptimisticUpdate(ctx, rollappId, client, seq, stateInfo, h); err != nil {
 			return errorsmod.Wrap(err, "validate optimistic update")
 		}
