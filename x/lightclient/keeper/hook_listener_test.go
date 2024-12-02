@@ -22,9 +22,6 @@ func TestAfterUpdateState(t *testing.T) {
 		prepare   func(ctx sdk.Context, k lightClientKeeper.Keeper) input
 		expectErr bool
 	}{
-		// TODO: tests need expanding
-		//  At least the following need to be added
-		//  - Client with all cons states after the state update will not be canonical
 		{
 			name: "canonical client does not exist for rollapp",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) input {
@@ -37,7 +34,7 @@ func TestAfterUpdateState(t *testing.T) {
 		},
 
 		{
-			name: "both states are not compatible - slash the sequencer who signed",
+			name: "incompatible",
 			prepare: func(ctx sdk.Context, k lightClientKeeper.Keeper) input {
 				k.SetCanonicalClient(ctx, keepertest.DefaultRollapp, keepertest.CanonClientID)
 				err := k.SaveSigner(ctx, keepertest.Alice.Address, keepertest.CanonClientID, 2)
