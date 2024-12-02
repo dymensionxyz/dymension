@@ -51,8 +51,14 @@ func CmdQueryPlans() *cobra.Command {
 				return err
 			}
 
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
 			res, err := queryClient.QueryPlans(cmd.Context(), &types.QueryPlansRequest{
 				TradableOnly: tradableOnly,
+				Pagination:   pageReq,
 			})
 			if err != nil {
 				return err
@@ -62,6 +68,7 @@ func CmdQueryPlans() *cobra.Command {
 		},
 	}
 
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
 	cmd.Flags().BoolP(FlagTradableOnly, "t", false, "Query only tradable plans")
 	return cmd

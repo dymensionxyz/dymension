@@ -122,7 +122,12 @@ func (k Keeper) QueryPlans(goCtx context.Context, req *types.QueryPlansRequest) 
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	return &types.QueryPlansResponse{Plans: k.GetAllPlans(ctx, req.TradableOnly)}, nil
+	plans, pageRes, err := k.GetAllPlansPaginated(ctx, req.TradableOnly, req.Pagination)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryPlansResponse{Plans: plans, Pagination: pageRes}, nil
 }
 
 // QuerySpotPrice implements types.QueryServer.

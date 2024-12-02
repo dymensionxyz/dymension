@@ -5,10 +5,12 @@ import (
 
 	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
+	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
@@ -75,6 +77,25 @@ func (k Keeper) GetPendingPacketsByAddress(ctx sdk.Context, receiver string) ([]
 		return nil, err
 	}
 	return packets, nil
+}
+
+// GetPendingPacketsByAddressPaginated retrieves rollapp packets from the KVStore by their receiver with pagination.
+func (k Keeper) GetPendingPacketsByAddressPaginated(ctx sdk.Context, receiver string, pageReq *query.PageRequest) (packets []commontypes.RollappPacket, pageResp *query.PageResponse, err error) {
+	_, pageResp, err = collcompat.CollectionPaginate(ctx, k.pendingPacketsByAddress, pageReq,
+		func(key collections.Pair[string, []byte], _ collections.NoValue) (bool, error) {
+			packet, err := k.GetRollappPacket(ctx, string(key.K2()))
+			if err != nil {
+				return true, err
+			}
+			packets = append(packets, *packet)
+			return false, nil
+		}, collcompat.WithCollectionPaginationPairPrefix[string, []byte](receiver),
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return packets, pageResp, nil
 }
 
 // GetRollappPacket retrieves a rollapp packet from the KVStore.

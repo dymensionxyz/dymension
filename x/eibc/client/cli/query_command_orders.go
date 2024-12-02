@@ -26,12 +26,18 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
 			if !ok {
 				return fmt.Errorf("invalid status: %s", args[0])
 			}
-			request := &types.QueryDemandOrdersByStatusRequest{
-				Status: commontypes.Status(status),
-				Type:   commontypes.RollappPacket_UNDEFINED, // default to undefined, as '0' is a valid type
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
 			}
 
-			var err error
+			request := &types.QueryDemandOrdersByStatusRequest{
+				Status:     commontypes.Status(status),
+				Type:       commontypes.RollappPacket_UNDEFINED, // default to undefined, as '0' is a valid type
+				Pagination: pageReq,
+			}
+
 			request.RollappId, err = cmd.Flags().GetString("rollapp")
 			if err != nil {
 				return err
