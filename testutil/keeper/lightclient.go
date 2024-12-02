@@ -182,7 +182,7 @@ func NewMockSequencerKeeper(sequencers map[string]*sequencertypes.Sequencer) *Mo
 
 type MockRollappKeeper struct{}
 
-func (m *MockRollappKeeper) IsFirstUpdateAfterLastFork(ctx sdk.Context, rollappId string, revision, height uint64) bool {
+func (m *MockRollappKeeper) IsFirstHeightOfLatestFork(ctx sdk.Context, rollappId string, revision, height uint64) bool {
 	return false
 }
 
