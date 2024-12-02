@@ -9,8 +9,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
 
@@ -139,18 +137,13 @@ func (r Rollapp) GetRevisionForHeight(h uint64) Revision {
 	return Revision{}
 }
 
-func (r Rollapp) SafeGetRevisionForHeight(h uint64) (Revision, error) {
-	rev := r.GetRevisionForHeight(h)
-	var empty Revision
-	if rev == empty {
-		return rev, gerrc.ErrNotFound.Wrapf("revision for height: h: %d", height)
-	}
-	return rev, nil
-}
-
 func (r Rollapp) IsRevisionStartHeight(revision, height uint64) bool {
 	rev := r.GetRevisionForHeight(height)
 	return rev.Number == revision && rev.StartHeight == height
+}
+
+func (r Rollapp) DidFork() bool {
+	return 1 < len(r.Revisions)
 }
 
 func (r *Rollapp) BumpRevision(nextRevisionStartHeight uint64) {
