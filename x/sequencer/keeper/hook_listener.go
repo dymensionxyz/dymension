@@ -43,7 +43,7 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, stateInfo *rollapptype
 	}
 
 	// handle proposer rotation completion
-	proposer := hook.k.GetProposer(ctx, rollappID)
+	proposer := hook.k.GetProposer(ctx, stateInfo.Rollapp)
 	err := hook.k.OnProposerLastBlock(ctx, proposer)
 	if err != nil {
 		return errorsmod.Wrap(err, "on proposer last block")

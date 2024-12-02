@@ -19,18 +19,13 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genesisState types.GenesisState) {
 			panic(err)
 		}
 	}
-	for _, rollappID := range genesisState.HardForkKeys {
-		k.SetHardForkInProgress(ctx, rollappID)
-	}
 }
 
 func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 	clients := k.GetAllCanonicalClients(ctx)
-	hardForkKeys := k.ListHardForkKeys(ctx)
 
 	ret := types.GenesisState{
 		CanonicalClients: clients,
-		HardForkKeys:     hardForkKeys,
 	}
 
 	if err := k.headerSigners.Walk(ctx, nil,
