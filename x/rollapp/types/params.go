@@ -79,7 +79,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyLivenessSlashBlocks, &p.LivenessSlashBlocks, validateLivenessSlashBlocks),
 		paramtypes.NewParamSetPair(KeyLivenessSlashInterval, &p.LivenessSlashInterval, validateLivenessSlashInterval),
 		paramtypes.NewParamSetPair(KeyAppRegistrationFee, &p.AppRegistrationFee, validateAppRegistrationFee),
-		paramtypes.NewParamSetPair(KeyMinSequencerBondGlobal, &p.MinSequencerBondGlobal, uparam.ValidatePositiveUint64),
+		paramtypes.NewParamSetPair(KeyMinSequencerBondGlobal, &p.MinSequencerBondGlobal, uparam.ValidateCoin),
 	}
 }
 

@@ -130,7 +130,7 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		s.hubChain().SenderAccount.GetAddress().String(),
 		rollappChainID(),
 		s.hubChain().SenderAccount.GetAddress().String(),
-		rollapptypes.DefaultMinSequencerBondGlobal,
+		rollapptypes.DefaultMinSequencerBondGlobalCoin,
 		strings.ToLower(tmrand.Str(7)),
 		rollapptypes.Rollapp_EVM,
 		&rollapptypes.RollappMetadata{

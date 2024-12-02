@@ -12,6 +12,9 @@ func (k *Keeper) MinBond(ctx sdk.Context, rollappID string) sdk.Coin {
 }
 
 func (k *Keeper) validMinBond(ctx sdk.Context, x sdk.Coin) error {
+	if x.IsNil() {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "min sequencer bond is nil")
+	}
 	min_ := k.GetParams(ctx).MinSequencerBondGlobal
 	if x.Denom != min_.Denom {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "min sequencer bond denom is not equal to global min sequencer bond denom: min: %s, got: %s", min_.Denom, x.Denom)

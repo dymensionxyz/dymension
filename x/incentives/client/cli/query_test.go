@@ -32,7 +32,7 @@ func (suite *QueryTestSuite) CreateDefaultRollapp() string {
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:          alice.String(),
 		RollappId:        urand.RollappID(),
-		MinSequencerBond: rollapptypes.DefaultMinSequencerBondGlobal,
+		MinSequencerBond: rollapptypes.DefaultMinSequencerBondGlobalCoin,
 		Alias:            strings.ToLower(tmrand.Str(7)),
 		VmType:           rollapptypes.Rollapp_EVM,
 		GenesisInfo: &rollapptypes.GenesisInfo{
