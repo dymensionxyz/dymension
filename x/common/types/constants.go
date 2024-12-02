@@ -18,7 +18,6 @@ func Dym(nDym math.Int) sdk.Coin {
 	ret := DYMCoin
 	ret.Amount = ret.Amount.Mul(nDym)
 	return ret
-	// 8,446,744,073,709,551,615
 
 }
 

@@ -7,7 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/utils/uinv"
-	types2 "github.com/dymensionxyz/dymension/v3/x/common/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -136,7 +136,7 @@ func InvariantTokens(k Keeper) uinv.Func {
 			return err
 		}
 
-		total := sdk.NewCoin(types2.DYMCoin.Denom, sdk.ZeroInt())
+		total := sdk.NewCoin(commontypes.DYMCoin.Denom, sdk.ZeroInt())
 		for _, seq := range k.AllSequencers(ctx) {
 			total = total.Add(seq.TokensCoin())
 		}

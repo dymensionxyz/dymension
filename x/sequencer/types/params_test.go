@@ -4,12 +4,8 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	types2 "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 	"github.com/stretchr/testify/require"
 )
-
-var DefaultMinBond = ucoin.SimpleMul(types2.DYMCoin, 100)
 
 func TestValidateBasic(t *testing.T) {
 	params := DefaultParams()

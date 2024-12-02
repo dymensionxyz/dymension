@@ -5,20 +5,20 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	types2 "github.com/dymensionxyz/dymension/v3/x/common/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
 	"gopkg.in/yaml.v2"
 )
 
 var (
 	// DefaultKickThreshold is the minimum bond required to be a validator
-	DefaultKickThreshold = types2.DYMCoin
+	DefaultKickThreshold = commontypes.DYMCoin
 	// DefaultNoticePeriod is the time duration for notice period
 	DefaultNoticePeriod = time.Hour * 24 * 7 // 1 week
 	// DefaultLivenessSlashMultiplier gives the amount of tokens to slash if the sequencer is liable for a liveness failure
 	DefaultLivenessSlashMultiplier = sdk.MustNewDecFromStr("0.01")
 	// DefaultLivenessSlashMinAbsolute will be slashed if the multiplier amount is too small
-	DefaultLivenessSlashMinAbsolute = types2.DYMCoin
+	DefaultLivenessSlashMinAbsolute = commontypes.DYMCoin
 )
 
 // NewParams creates a new Params instance
