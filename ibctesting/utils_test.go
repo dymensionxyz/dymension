@@ -187,7 +187,7 @@ func (s *utilSuite) setRollappLightClientID(chainID, clientID string) {
 }
 
 func (s *utilSuite) registerSequencer() {
-	bond := sequencertypes.TestMinBond
+	bond := rollapptypes.DefaultMinSequencerBondGlobal
 	// fund account
 	err := bankutil.FundAccount(s.hubApp().BankKeeper, s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(bond))
 	s.Require().Nil(err)

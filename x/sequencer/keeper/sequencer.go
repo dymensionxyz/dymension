@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	types2 "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -19,6 +20,6 @@ func (k Keeper) NewSequencer(ctx sdk.Context, rollapp string) *types.Sequencer {
 	return &types.Sequencer{
 		RollappId: rollapp,
 		// DO NOT USE NEW COINS! IT WILL REMOVE ZERO COIN
-		Tokens: sdk.Coins{sdk.NewCoin(types.BondDenom, sdk.NewInt(0))},
+		Tokens: sdk.Coins{sdk.NewCoin(types2.DYMCoin.Denom, sdk.NewInt(0))},
 	}
 }

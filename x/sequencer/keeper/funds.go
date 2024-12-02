@@ -3,12 +3,13 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	types2 "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func validBondDenom(c sdk.Coin) error {
-	if c.Denom != types.BondDenom {
-		return errorsmod.Wrapf(types.ErrInvalidDenom, "expect: %s", types.BondDenom)
+	if c.Denom != types2.DYMCoin.Denom {
+		return errorsmod.Wrapf(types.ErrInvalidDenom, "expect: %s", types2.DYMCoin.Denom)
 	}
 	return nil
 }
