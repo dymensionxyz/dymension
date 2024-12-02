@@ -146,7 +146,6 @@ func (w IBCModule) OnRecvPacket(
 // It sets the transfers enabled flag on the rollapp.
 // It also calls the after transfers enabled hook.
 func (w IBCModule) EnableTransfers(ctx sdk.Context, packet channeltypes.Packet, ra *types.Rollapp, rollappIBCtrace string) error {
-
 	height, err := commontypes.UnpackPacketProofHeight(ctx, packet, commontypes.RollappPacket_ON_RECV)
 	if err != nil {
 		return errorsmod.Wrap(err, "unpack packet proof height")
