@@ -37,8 +37,10 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, lastV
 		return false
 	})
 
-	// clean the optimistic updates valset
-	err := k.PruneSignersAbove(ctx, client, lastValidHeight)
+	// we DO want to prune the signer of the last valid height:
+	// the only reason we didn't do it before was because we were waiting for next validators hash
+	// but now we don't care about that
+	err := k.PruneSignersAbove(ctx, client, lastValidHeight-1)
 	if err != nil {
 		return errorsmod.Wrap(err, "prune signers above")
 	}
