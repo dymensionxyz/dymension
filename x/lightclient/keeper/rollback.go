@@ -12,11 +12,12 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
-func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappId string, newRevisionHeight uint64) error {
-	return hook.k.RollbackCanonicalClient(ctx, rollappId, newRevisionHeight)
+func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappId string, lastValidHeight uint64) error {
+	return hook.k.RollbackCanonicalClient(ctx, rollappId, lastValidHeight)
 }
 
-func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, newRevisionHeight uint64) error {
+func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, lastValidHeight uint64) error {
+	newRevisionHeight := lastValidHeight + 1
 	client, found := k.GetCanonicalClient(ctx, rollappId)
 	if !found {
 		return gerrc.ErrFailedPrecondition.Wrap("canonical client not found")
