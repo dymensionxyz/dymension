@@ -516,9 +516,10 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 	csBeforeRollback := s.hubApp().IBCKeeper.ClientKeeper.GetAllConsensusStates(s.hubCtx())[0].ConsensusStates
 
 	// Trigger rollback / simulate fork
-	rollbackHeight := uint64(s.rollappChain().LastHeader.Header.Height) - 5
+	nRolledBack := uint64(5)
+	rollbackHeight := uint64(s.rollappChain().LastHeader.Header.Height) - nRolledBack
 	ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), s.rollappChain().ChainID)
-	ra.BumpRevision(rollbackHeight)
+	ra.Revisions = append(ra.Revisions, rollapptypes.Revision{StartHeight: rollbackHeight, Number: 1})
 	s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), ra)
 	err := s.hubApp().LightClientKeeper.RollbackCanonicalClient(s.hubCtx(), s.rollappChain().ChainID, rollbackHeight-1)
 	s.Require().NoError(err)
@@ -576,6 +577,8 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 	s.ErrorIs(err, types.ErrorHardForkInProgress)
 
 	// submit a state info update to resolve the hard fork
+
+	bds.BD = bds.BD[len(bds.BD)-int(nRolledBack):]
 	blockDescriptors := &rollapptypes.BlockDescriptors{BD: bds.BD}
 	msgUpdateState := rollapptypes.NewMsgUpdateState(
 		s.hubChain().SenderAccount.GetAddress().String(),
