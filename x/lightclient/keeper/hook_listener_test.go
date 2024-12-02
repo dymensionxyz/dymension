@@ -115,7 +115,11 @@ func TestAfterUpdateState(t *testing.T) {
 			keeper, ctx := keepertest.LightClientKeeper(t)
 			input := tc.prepare(ctx, *keeper)
 
-			err := keeper.RollappHooks().AfterUpdateState(ctx, input.stateInfo)
+			err := keeper.RollappHooks().AfterUpdateState(ctx, &rollapptypes.StateInfoMeta{
+				StateInfo: *input.stateInfo,
+				Revision:  0, /// TODO:
+				Rollapp:   keepertest.DefaultRollapp,
+			})
 			if tc.expectErr {
 				require.Error(t, err)
 			} else {
