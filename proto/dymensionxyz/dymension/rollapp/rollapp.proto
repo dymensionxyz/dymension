@@ -53,7 +53,7 @@ message Rollapp {
   // register and serve for this rollapp. if left empty, no sequencer is allowed
   // to register. if set to "*" any sequencer can register.
   string initial_sequencer = 13;
-  // how much DYM (not aDYM) a sequencer needs (at least) to be proposer
+  // how much aDYM (not DYM) a sequencer needs (at least) to be proposer
   uint64 min_sequencer_bond = 20;
 
   enum VMType {

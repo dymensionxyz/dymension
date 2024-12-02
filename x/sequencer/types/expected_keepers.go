@@ -1,7 +1,6 @@
 package types
 
 import (
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -11,7 +10,7 @@ import (
 // RollappKeeper defines the expected rollapp keeper used for retrieve rollapp.
 type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
-	MinBond(ctx sdk.Context, rollappID string) math.Int
+	MinBond(ctx sdk.Context, rollappID string) sdk.Coin
 	MustGetRollapp(ctx sdk.Context, rollappId string) rollapptypes.Rollapp
 	GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp)
 	SetRollappAsLaunched(ctx sdk.Context, rollapp *rollapptypes.Rollapp) error

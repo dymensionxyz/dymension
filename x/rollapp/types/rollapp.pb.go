@@ -132,7 +132,7 @@ type Rollapp struct {
 	// register and serve for this rollapp. if left empty, no sequencer is allowed
 	// to register. if set to "*" any sequencer can register.
 	InitialSequencer string `protobuf:"bytes,13,opt,name=initial_sequencer,json=initialSequencer,proto3" json:"initial_sequencer,omitempty"`
-	// how much DYM (not aDYM) a sequencer needs (at least) to be proposer
+	// how much aDYM (not DYM) a sequencer needs (at least) to be proposer
 	MinSequencerBond uint64 `protobuf:"varint,20,opt,name=min_sequencer_bond,json=minSequencerBond,proto3" json:"min_sequencer_bond,omitempty"`
 	// vm_type is the type of rollapp machine: EVM or WASM
 	VmType Rollapp_VMType `protobuf:"varint,14,opt,name=vm_type,json=vmType,proto3,enum=dymensionxyz.dymension.rollapp.Rollapp_VMType" json:"vm_type,omitempty"`

@@ -3,16 +3,8 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
-
-func (k Keeper) minBond(ctx sdk.Context, rollapp string) sdk.Coin {
-	nDym := k.rollappKeeper.MinBond(ctx, rollapp)
-	ret := commontypes.DYMCoin
-	ret.Amount = ret.Amount.Mul(nDym)
-	return ret
-}
 
 func validBondDenom(c sdk.Coin) error {
 	if c.Denom != types.BondDenom {
@@ -25,7 +17,7 @@ func (k Keeper) sufficientBond(ctx sdk.Context, rollapp string, c sdk.Coin) erro
 	if err := validBondDenom(c); err != nil {
 		return err
 	}
-	minBond := k.minBond(ctx, rollapp)
+	minBond := k.rollappKeeper.MinBond(ctx, rollapp)
 	if c.IsLT(minBond) {
 		return errorsmod.Wrapf(types.ErrInsufficientBond, "min: %s: given: %s", minBond.Amount, c.Amount)
 	}

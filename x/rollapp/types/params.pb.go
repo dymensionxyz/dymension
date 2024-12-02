@@ -36,7 +36,7 @@ type Params struct {
 	LivenessSlashInterval uint64 `protobuf:"varint,5,opt,name=liveness_slash_interval,json=livenessSlashInterval,proto3" json:"liveness_slash_interval,omitempty" yaml:"liveness_slash_interval"`
 	// app_registration_fee is the fee for registering an App
 	AppRegistrationFee types.Coin `protobuf:"bytes,7,opt,name=app_registration_fee,json=appRegistrationFee,proto3" json:"app_registration_fee" yaml:"app_registration_fee"`
-	// no rollapp can have a minimum less than this (dym, not adym)
+	// no rollapp can have a minimum less than this (in adym)
 	MinSequencerBondGlobal uint64 `protobuf:"varint,8,opt,name=min_sequencer_bond_global,json=minSequencerBondGlobal,proto3" json:"min_sequencer_bond_global,omitempty"`
 }
 

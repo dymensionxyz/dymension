@@ -27,7 +27,7 @@ func (k Keeper) TryUnbond(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) e
 		}
 	}
 	bond := seq.TokensCoin()
-	minBond := k.minBond(ctx, seq.RollappId)
+	minBond := k.rollappKeeper.MinBond(ctx, seq.RollappId)
 	maxReduction, _ := bond.SafeSub(minBond)
 	isPartial := !amt.IsEqual(bond)
 	if isPartial && maxReduction.IsLT(amt) {

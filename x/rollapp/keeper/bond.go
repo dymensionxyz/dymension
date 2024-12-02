@@ -4,13 +4,14 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-// Rollapp must exist - returns base units, not atto. E.g. 100 dym not 10e18 adym
-func (k *Keeper) MinBond(ctx sdk.Context, rollappID string) math.Int {
+func (k *Keeper) MinBond(ctx sdk.Context, rollappID string) sdk.Coin {
 	ra := k.MustGetRollapp(ctx, rollappID)
-	return math.NewIntFromUint64(ra.MinSequencerBond)
+	amt := math.NewIntFromUint64(ra.MinSequencerBond)
+	return commontypes.ADym(amt)
 }
 
 func (k *Keeper) validMinBond(ctx sdk.Context, x uint64) error {
