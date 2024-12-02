@@ -152,10 +152,6 @@ func (k Keeper) ExpectedClientState(context.Context, *types.QueryExpectedClientS
 	return &types.QueryExpectedClientStateResponse{ClientState: anyClient}, nil
 }
 
-// checks if rollapp is hard forking
-func (k Keeper) IsHardForkingInProgress(ctx sdk.Context, rollappID string) bool {
-}
-
 func (k Keeper) pruneSigners(ctx sdk.Context, client string, h uint64, isAbove bool) error {
 	var rng *collections.PairRange[string, uint64]
 	if isAbove {

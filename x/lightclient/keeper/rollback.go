@@ -45,9 +45,6 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, lastV
 		return errorsmod.Wrap(err, "prune signers above")
 	}
 
-	// marks that hard fork is in progress
-	k.SetHardForkInProgress(ctx, rollappId)
-
 	// freeze the client
 	// it will be released after the hardfork is resolved (on the next state update)
 	k.freezeClient(cs, lastValidHeight)
@@ -93,7 +90,6 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
 
 	k.unfreezeClient(clientStore, height)
 
-	k.setHardForkResolved(ctx, rollappID)
 	return nil
 }
 

@@ -30,25 +30,18 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 // AfterUpdateState is called after a state update is made to a rollapp.
 // This hook checks if the rollapp has a canonical IBC light client and if the Consensus state is compatible with the state update
 // and punishes the sequencer if it is not
-func (hook rollappHook) AfterUpdateState(
-	ctx sdk.Context,
-	rollappId string,
-	stateInfo *rollapptypes.StateInfo,
-) error {
+func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
 	if !hook.k.Enabled() {
 		return nil
 	}
 
-	client, ok := hook.k.GetCanonicalClient(ctx, rollappId)
+	client, ok := hook.k.GetCanonicalClient(ctx, rollappID)
 	if !ok {
 		return nil
 	}
 
-	if isNewRevision {
-		err := hook.k.ResolveHardFork(ctx, rollappId)
-		if err != nil {
-			return errorsmod.Wrap(err, "resolve hard fork")
-		}
+	if hook.k.rollappKeeper.ResolvesHardFork(ctx, rollappID, stateInfo) {
+		return errorsmod.Wrap(hook.k.ResolveHardFork(ctx, rollappID), "resolve hard fork")
 	}
 
 	seq, err := hook.k.SeqK.RealSequencer(ctx, stateInfo.Sequencer)
@@ -59,7 +52,7 @@ func (hook rollappHook) AfterUpdateState(
 	// [hStart-1..,hEnd] is correct because we compare against a next validators hash
 	// for all heights in the range [hStart-1..hEnd), but do not for hEnd
 	for h := stateInfo.GetStartHeight() - 1; h <= stateInfo.GetLatestHeight(); h++ {
-		if err := hook.validateOptimisticUpdate(ctx, rollappId, client, seq, stateInfo, h); err != nil {
+		if err := hook.validateOptimisticUpdate(ctx, rollappID, client, seq, stateInfo, h); err != nil {
 			if errors.Is(err, types.ErrNextValHashMismatch) && h == stateInfo.GetLatestHeight() {
 				continue
 			}

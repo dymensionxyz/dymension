@@ -531,7 +531,7 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 	s.True(!tmClientState.FrozenHeight.IsZero(), "Client should be frozen after rollback")
 
 	// Check if IsHardForkingInProgress returns true
-	s.True(s.hubApp().LightClientKeeper.IsHardForkingInProgress(s.hubCtx(), s.rollappChain().ChainID), "Rollapp should be in hard forking state")
+	s.True(s.hubApp().LightClientKeeper.ResolvesHardFork(s.hubCtx(), s.rollappChain().ChainID), "Rollapp should be in hard forking state")
 
 	// Validate future consensus states are cleared
 	csAfterRollback := s.hubApp().IBCKeeper.ClientKeeper.GetAllConsensusStates(s.hubCtx())[0].ConsensusStates
@@ -596,7 +596,7 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 	// Verify that the client is unfrozen and hard fork is resolved
 	s.True(clientState.(*ibctm.ClientState).FrozenHeight.IsZero(), "Client should be unfrozen after hard fork resolution")
 	// Verify that the client is not in hard forking state
-	s.False(s.hubApp().LightClientKeeper.IsHardForkingInProgress(s.hubCtx(), s.rollappChain().ChainID), "Rollapp should not be in hard forking state")
+	s.False(s.hubApp().LightClientKeeper.ResolvesHardFork(s.hubCtx(), s.rollappChain().ChainID), "Rollapp should not be in hard forking state")
 	// Verify that the client is updated with the height of the first block descriptor
 	s.Require().Equal(bds.BD[0].Height, clientState.GetLatestHeight().GetRevisionHeight())
 	_, ok = s.hubApp().IBCKeeper.ClientKeeper.GetLatestClientConsensusState(s.hubCtx(), s.path.EndpointA.ClientID)
