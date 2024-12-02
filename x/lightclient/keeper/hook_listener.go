@@ -53,8 +53,6 @@ func (hook rollappHook) AfterUpdateState(
 		return nil
 	}
 
-	// TODO: check hard fork in progress here
-
 	seq, err := hook.k.SeqK.RealSequencer(ctx, stateInfo.Sequencer)
 	if err != nil {
 		return errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "get sequencer for state info")

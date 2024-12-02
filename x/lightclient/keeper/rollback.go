@@ -92,7 +92,7 @@ func (k Keeper) freezeClient(clientStore sdk.KVStore, height uint64) {
 	tmClientState := getClientStateTM(clientStore, k.cdc)
 
 	// freeze the client
-	tmClientState.FrozenHeight = clienttypes.NewHeight(1, height)
+	tmClientState.FrozenHeight = ibctm.FrozenHeight
 	tmClientState.LatestHeight = clienttypes.NewHeight(1, height)
 
 	setClientState(clientStore, k.cdc, tmClientState)
