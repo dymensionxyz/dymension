@@ -13,17 +13,18 @@ import (
 )
 
 // HardFork handles the fraud evidence submitted by the user.
-func (k Keeper) HardFork(ctx sdk.Context, rollappID string, newRevisionHeight uint64) error {
+func (k Keeper) HardFork(ctx sdk.Context, rollappID string, lastValidHeight uint64) error {
 	rollapp, found := k.GetRollapp(ctx, rollappID)
 	if !found {
 		return gerrc.ErrNotFound
 	}
 
-	lastValidHeight, err := k.RevertPendingStates(ctx, rollappID, newRevisionHeight)
+	lastValidHeight, err := k.RevertPendingStates(ctx, rollappID, lastValidHeight+1)
 	if err != nil {
 		return errorsmod.Wrap(err, "revert pending states")
 	}
-	newRevisionHeight = lastValidHeight + 1
+
+	newRevisionHeight := lastValidHeight + 1
 
 	// update revision number
 	rollapp.BumpRevision(newRevisionHeight)
