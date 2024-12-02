@@ -7,6 +7,7 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/utils/uinv"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
