@@ -150,7 +150,7 @@ func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo,
 func (k Keeper) HardForkToLatest(ctx sdk.Context, rollappID string) error {
 	lastBatch, ok := k.GetLatestStateInfo(ctx, rollappID)
 	if !ok {
-		return errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "can't hard fork, no state info found")
+		return errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "no last batch")
 	}
 	// we invoke a hard fork on the last posted batch without reverting any states
 	return k.HardFork(ctx, rollappID, lastBatch.GetLatestHeight())
