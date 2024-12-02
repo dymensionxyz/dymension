@@ -3,15 +3,13 @@ package types
 import (
 	"errors"
 	"fmt"
-	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
 	"gopkg.in/yaml.v2"
-
-	"github.com/dymensionxyz/dymension/v3/app/params"
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -28,11 +26,8 @@ var (
 
 	KeyMinSequencerBondGlobal = []byte("KeyMinSequencerBondGlobal")
 
-	// DYM is 1dym
-	DYM                           = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-	OneDymCoin                    = sdk.NewCoin(params.BaseDenom, DYM)
-	DefaultAppRegistrationFee     = OneDymCoin
-	DefaultMinSequencerBondGlobal = uint64(100)
+	DefaultAppRegistrationFee     = commontypes.DYMCoin
+	DefaultMinSequencerBondGlobal = commontypes.Dym(sdk.NewIntFromUint64(100)).Amount.Uint64()
 )
 
 const (
