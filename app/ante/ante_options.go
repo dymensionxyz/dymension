@@ -1,6 +1,7 @@
 package ante
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
@@ -16,11 +17,17 @@ import (
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 )
 
+// FeeMarketKeeper defines the expected keeper interface used on the AnteHandler
+type FeeMarketKeeper interface {
+	ethante.FeeMarketKeeper
+	GetMinGasPrice(ctx sdk.Context) (minGasPrice sdk.Dec)
+}
+
 type HandlerOptions struct {
 	AccountKeeper          *authkeeper.AccountKeeper
 	BankKeeper             bankkeeper.Keeper
 	IBCKeeper              *ibckeeper.Keeper
-	FeeMarketKeeper        ethante.FeeMarketKeeper
+	FeeMarketKeeper        FeeMarketKeeper
 	EvmKeeper              ethante.EVMKeeper
 	FeegrantKeeper         ante.FeegrantKeeper
 	TxFeesKeeper           *txfeeskeeper.Keeper

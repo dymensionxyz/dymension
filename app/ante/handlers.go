@@ -37,7 +37,7 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 // newLegacyCosmosAnteHandlerEip712 creates an AnteHandler to process legacy EIP-712
 // transactions, as defined by the presence of an ExtensionOptionsWeb3Tx extension.
 func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
-	mempoolFeeDecorator := txfeesante.NewMempoolFeeDecorator(*options.TxFeesKeeper)
+	mempoolFeeDecorator := txfeesante.NewMempoolFeeDecorator(*options.TxFeesKeeper, options.FeeMarketKeeper)
 	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 
 	return sdk.ChainAnteDecorators(
@@ -86,7 +86,7 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 }
 
 func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
-	mempoolFeeDecorator := txfeesante.NewMempoolFeeDecorator(*options.TxFeesKeeper)
+	mempoolFeeDecorator := txfeesante.NewMempoolFeeDecorator(*options.TxFeesKeeper, options.FeeMarketKeeper)
 	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 
 	return sdk.ChainAnteDecorators(
