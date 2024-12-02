@@ -59,11 +59,21 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, lastV
 // and adding consensus states based on the block descriptors
 // CONTRACT: canonical client is already set, state info exists
 func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
-	client, _ := k.GetCanonicalClient(ctx, rollappID) // already checked in the caller
-	clientStore := k.ibcClientKeeper.ClientStore(ctx, client)
+	clientID, _ := k.GetCanonicalClient(ctx, rollappID) // already checked in the caller
+	clientStore := k.ibcClientKeeper.ClientStore(ctx, clientID)
 
 	stateinfo, _ := k.rollappKeeper.GetLatestStateInfo(ctx, rollappID) // already checked in the caller
+
 	height := stateinfo.StartHeight
+	// sanity check
+	client := getClientStateTM(clientStore, k.cdc)
+	clientHeight := client.GetLatestHeight().GetRevisionHeight()
+	if height <= clientHeight {
+		return gerrc.ErrInternal.Wrapf("client latest height not less than new latest height: new: %d, client: %d",
+			height, clientHeight,
+		)
+	}
+
 	bd := stateinfo.BDs.BD[0]
 
 	// get the valHash of this sequencer
@@ -71,8 +81,6 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
 	proposer, _ := k.SeqK.RealSequencer(ctx, stateinfo.Sequencer)
 	valHash, _ := proposer.ValsetHash()
 
-	// unfreeze the client and set the latest height
-	k.resetClientToValidState(clientStore, height)
 	// add consensus states based on the block descriptors
 	cs := ibctm.ConsensusState{
 		Timestamp:          bd.Timestamp,
@@ -82,6 +90,8 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
 
 	setConsensusState(clientStore, k.cdc, clienttypes.NewHeight(1, height), &cs)
 	setConsensusMetadata(ctx, clientStore, clienttypes.NewHeight(1, height))
+
+	k.unfreezeClient(clientStore, height)
 
 	k.setHardForkResolved(ctx, rollappID)
 	return nil
@@ -99,7 +109,7 @@ func (k Keeper) freezeClient(clientStore sdk.KVStore, height uint64) {
 }
 
 // freezeClient freezes the client by setting the frozen height to the current height
-func (k Keeper) resetClientToValidState(clientStore sdk.KVStore, height uint64) {
+func (k Keeper) unfreezeClient(clientStore sdk.KVStore, height uint64) {
 	tmClientState := getClientStateTM(clientStore, k.cdc)
 
 	// unfreeze the client and set the latest height
