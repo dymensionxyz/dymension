@@ -24,8 +24,8 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	dymsimtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
@@ -111,14 +111,17 @@ type AppModule struct {
 
 	keeper keeper.Keeper
 
-	accountKeeper stakingtypes.AccountKeeper
-	bankKeeper    stakingtypes.BankKeeper
+	// simulation keepers
+	accountKeeper dymsimtypes.AccountKeeper
+	bankKeeper    dymsimtypes.BankKeeper
 	epochKeeper   types.EpochKeeper
 }
 
 // NewAppModule creates a new AppModule struct.
-func NewAppModule(keeper keeper.Keeper,
-	accountKeeper stakingtypes.AccountKeeper, bankKeeper stakingtypes.BankKeeper,
+func NewAppModule(
+	keeper keeper.Keeper,
+	accountKeeper dymsimtypes.AccountKeeper,
+	bankKeeper dymsimtypes.BankKeeper,
 	epochKeeper types.EpochKeeper,
 ) AppModule {
 	return AppModule{

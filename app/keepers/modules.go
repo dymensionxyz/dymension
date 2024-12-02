@@ -207,7 +207,7 @@ func (a *AppKeepers) SetupModules(
 		iro.NewAppModule(appCodec, *a.IROKeeper),
 
 		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper),
-		sponsorship.NewAppModule(a.SponsorshipKeeper),
+		sponsorship.NewAppModule(a.SponsorshipKeeper, a.AccountKeeper, a.BankKeeper, a.IncentivesKeeper, a.StakingKeeper),
 		streamermodule.NewAppModule(a.StreamerKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
 		delayedackmodule.NewAppModule(appCodec, a.DelayedAckKeeper, a.delayedAckMiddleware),
 		denommetadatamodule.NewAppModule(a.DenomMetadataKeeper, *a.EvmKeeper, a.BankKeeper),
