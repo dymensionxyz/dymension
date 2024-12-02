@@ -79,7 +79,7 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
 	}
 
-	if !r.MinSequencerBond.IsPositive() {
+	if r.MinSequencerBond.IsNil() || !r.MinSequencerBond.IsPositive() {
 		return gerrc.ErrInvalidArgument.Wrap("non positive min bond")
 	}
 
