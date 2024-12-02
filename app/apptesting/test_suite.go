@@ -101,7 +101,7 @@ func (s *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId str
 func (s *KeeperTestHelper) CreateSequencerByPubkey(ctx sdk.Context, rollappId string, pubKey types.PubKey) error {
 	addr := sdk.AccAddress(pubKey.Address())
 	// fund account
-	err := bankutil.FundAccount(s.App.BankKeeper, ctx, addr, sdk.NewCoins(rollapptypes.DefaultMinSequencerBondGlobal))
+	err := bankutil.FundAccount(s.App.BankKeeper, ctx, addr, sdk.NewCoins(rollapptypes.DefaultMinSequencerBondGlobalCoin))
 	s.Require().Nil(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pubKey)
@@ -110,7 +110,7 @@ func (s *KeeperTestHelper) CreateSequencerByPubkey(ctx sdk.Context, rollappId st
 	sequencerMsg1 := sequencertypes.MsgCreateSequencer{
 		Creator:      addr.String(),
 		DymintPubKey: pkAny,
-		Bond:         rollapptypes.DefaultMinSequencerBondGlobal,
+		Bond:         rollapptypes.DefaultMinSequencerBondGlobalCoin,
 		RollappId:    rollappId,
 		Metadata: sequencertypes.SequencerMetadata{
 			Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},

@@ -9,6 +9,7 @@ import "cosmos/msg/v1/msg.proto";
 
 import "dymensionxyz/dymension/rollapp/state_info.proto";
 import "dymensionxyz/dymension/rollapp/metadata.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "dymensionxyz/dymension/rollapp/genesis_info.proto";
 
 // RollappGenesisState is a partial repr of the state the hub can expect the
@@ -53,8 +54,13 @@ message Rollapp {
   // register and serve for this rollapp. if left empty, no sequencer is allowed
   // to register. if set to "*" any sequencer can register.
   string initial_sequencer = 13;
-  // how much aDYM (not DYM) a sequencer needs (at least) to be proposer
-  uint64 min_sequencer_bond = 20;
+
+  // how much a sequencer needs to have at stake to be proposer be proposer
+  // denom is dym
+  cosmos.base.v1beta1.Coin min_sequencer_bond = 20 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"app_registration_fee\""
+  ];
 
   enum VMType {
     Unspecified = 0;

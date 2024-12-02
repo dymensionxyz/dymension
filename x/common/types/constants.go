@@ -13,14 +13,16 @@ var (
 	DYMCoin = sdk.NewCoin(params.BaseDenom, DYM)
 )
 
-// return amt DYM
-func Dym(amt math.Int) sdk.Coin {
+// return DYM
+func Dym(nDym math.Int) sdk.Coin {
 	ret := DYMCoin
-	ret.Amount = ret.Amount.Mul(amt)
+	ret.Amount = ret.Amount.Mul(nDym)
 	return ret
+	// 8,446,744,073,709,551,615
+
 }
 
-// return amt ADYM
-func ADym(amt math.Int) sdk.Coin {
-	return sdk.NewCoin(params.BaseDenom, amt)
+// return ADYM
+func ADym(nAdym math.Int) sdk.Coin {
+	return sdk.NewCoin(params.BaseDenom, nAdym)
 }

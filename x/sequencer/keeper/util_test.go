@@ -29,7 +29,7 @@ var (
 
 	// TODO: use separate cosmos/dymint pubkeys in tests https://github.com/dymensionxyz/dymension/issues/1360
 
-	bond = rollapptypes.DefaultMinSequencerBondGlobal
+	bond = rollapptypes.DefaultMinSequencerBondGlobalCoin
 	kick = types.DefaultParams().KickThreshold
 	pks  = []cryptotypes.PubKey{
 		randomTMPubKey(),
@@ -135,7 +135,7 @@ func (s *SequencerTestSuite) createRollappWithInitialSeqConstraint(initSeq strin
 			InitialSupply:   sdk.NewInt(1000),
 		},
 		InitialSequencer: initSeq,
-		MinSequencerBond: uint64(rollapptypes.DefaultMinSequencerBondGlobal),
+		MinSequencerBond: rollapptypes.DefaultMinSequencerBondGlobal,
 	}
 	s.raK().SetRollapp(s.Ctx, rollapp)
 	return rollapp
