@@ -195,3 +195,18 @@ func (k Keeper) pruneFinalizationsAbove(ctx sdk.Context, rollappID string, lastS
 	}
 	return nil
 }
+
+// is forking to the latest height going to violate assumptions?
+func (k Keeper) ForkLatestAllowed(ctx sdk.Context, rollapp string) bool {
+	lastHeight, ok := k.GetLatestHeight(ctx, rollapp)
+	if !ok {
+		return false
+	}
+	return k.ForkAllowed(ctx, rollapp, lastHeight)
+}
+
+// is the rollback fork going to violate assumptions?
+func (k Keeper) ForkAllowed(ctx sdk.Context, rollapp string, lastValidHeight uint64) bool {
+	ra := k.MustGetRollapp(ctx, rollapp)
+	return 0 < ra.GenesisState.TransferProofHeight && ra.GenesisState.TransferProofHeight <= lastValidHeight
+}

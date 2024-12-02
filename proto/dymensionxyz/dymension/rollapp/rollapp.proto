@@ -22,7 +22,6 @@ message RollappGenesisState {
   // packet from the rollapp. If populated, the bridge is considered open. It's not allowed
   // to fork to a height prior to this height.
   uint64 transfer_proof_height = 3;
-
 }
 
 // Rollapp defines a rollapp object. First, the RollApp is created and then
