@@ -517,11 +517,12 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 
 	// Trigger rollback / simulate fork
 	nRolledBack := uint64(5)
-	rollbackHeight := uint64(s.rollappChain().LastHeader.Header.Height) - nRolledBack
+	lastValidHeight := uint64(s.rollappChain().LastHeader.Header.Height) - nRolledBack
+	newRevisionHeight := lastValidHeight + 1
 	ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), s.rollappChain().ChainID)
-	ra.Revisions = append(ra.Revisions, rollapptypes.Revision{StartHeight: rollbackHeight, Number: 1})
+	ra.Revisions = append(ra.Revisions, rollapptypes.Revision{StartHeight: newRevisionHeight, Number: 1})
 	s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), ra)
-	err := s.hubApp().LightClientKeeper.RollbackCanonicalClient(s.hubCtx(), s.rollappChain().ChainID, rollbackHeight-1)
+	err := s.hubApp().LightClientKeeper.RollbackCanonicalClient(s.hubCtx(), s.rollappChain().ChainID, lastValidHeight)
 	s.Require().NoError(err)
 
 	clientState, found := s.hubApp().IBCKeeper.ClientKeeper.GetClientState(s.hubCtx(), s.path.EndpointA.ClientID)
@@ -537,7 +538,7 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 	s.Require().Less(len(csAfterRollback), len(csBeforeRollback), "Consensus states should be cleared after rollback")
 	for height := uint64(0); height <= uint64(s.rollappChain().LastHeader.Header.Height); height++ {
 		_, found := s.hubApp().IBCKeeper.ClientKeeper.GetClientConsensusState(s.hubCtx(), s.path.EndpointA.ClientID, clienttypes.NewHeight(1, height))
-		if height > rollbackHeight {
+		if height >= newRevisionHeight {
 			s.False(found, "Consensus state should be cleared for height %d", height)
 		}
 	}
@@ -546,7 +547,7 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 	cnt := 0
 	for _, height := range signerHeights {
 		_, err := s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(height))
-		if height > int64(rollbackHeight) {
+		if height >= int64(lastValidHeight) {
 			s.Error(err, "Signer should be removed for height %d", height)
 		} else {
 			s.NoError(err, "Signer should not be removed for height %d", height)
@@ -604,5 +605,10 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 
 	// validate client updates are no longer blocked
 	s.coordinator.CommitBlock(s.rollappChain())
+
+	// a bit of a hack to make sure the ibc go testing framework can update, since we can't get inside to pass a revision
+	ra.Revisions = nil
+	s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), ra)
+
 	s.NoError(s.path.EndpointA.UpdateClient())
 }
