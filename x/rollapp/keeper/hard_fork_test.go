@@ -61,6 +61,10 @@ func (s *RollappTestSuite) TestHardFork() {
 				_ = s.CreateDefaultSequencer(s.Ctx, rollappId)
 			}
 
+			ra := s.k().MustGetRollapp(s.Ctx, rollappId)
+			ra.GenesisState.TransferProofHeight = 1
+			s.k().SetRollapp(s.Ctx, ra)
+
 			// send state updates
 			lastHeight = 1
 			for i := uint64(0); i < tc.statesCommitted; i++ {
