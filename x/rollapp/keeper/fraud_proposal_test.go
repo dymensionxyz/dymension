@@ -53,7 +53,7 @@ func (s *RollappTestSuite) TestSubmitRollappFraud() {
 
 			// set transferEnabled to true
 			rollapp := s.k().MustGetRollapp(s.Ctx, rollappId)
-			rollapp.GenesisState.TransfersEnabled = true
+			rollapp.GenesisState.TransferProofHeight = 1
 			s.k().SetRollapp(s.Ctx, rollapp)
 
 			var (

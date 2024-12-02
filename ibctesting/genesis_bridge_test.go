@@ -77,7 +77,7 @@ func (s *transferGenesisSuite) TestHappyPath_NoGenesisAccounts() {
 
 	rollapp = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 	// assert the transfers are enabled
-	s.Require().True(rollapp.GenesisState.TransfersEnabled)
+	s.Require().True(rollapp.GenesisState.IsTransferEnabled())
 
 	// assert denom registered
 	expectedIBCdenom := types.ParseDenomTrace(types.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, rollapp.GenesisInfo.NativeDenom.Base)).IBCDenom()
@@ -160,7 +160,7 @@ func (s *transferGenesisSuite) TestIRO() {
 
 	// assert the transfers are enabled
 	rollapp = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
-	s.Require().True(rollapp.GenesisState.TransfersEnabled)
+	s.Require().True(rollapp.GenesisState.IsTransferEnabled())
 
 	// the iro plan should be settled
 	plan, found := s.hubApp().IROKeeper.GetPlanByRollapp(s.hubCtx(), rollappChainID())
@@ -346,7 +346,7 @@ func (s *transferGenesisSuite) TestBridgeDisabledEnabled() {
 
 	// assert the transfers are enabled
 	rollapp = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
-	s.Require().True(rollapp.GenesisState.TransfersEnabled)
+	s.Require().True(rollapp.GenesisState.IsTransferEnabled())
 
 	// assert the transfer now goes through
 	res, err = s.rollappChain().SendMsgs(msg)

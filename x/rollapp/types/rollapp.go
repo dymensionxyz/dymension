@@ -50,7 +50,6 @@ func NewRollapp(
 	vmType Rollapp_VMType,
 	metadata *RollappMetadata,
 	genInfo GenesisInfo,
-	transfersEnabled bool,
 ) Rollapp {
 	return Rollapp{
 		RollappId:        rollappId,
@@ -59,9 +58,7 @@ func NewRollapp(
 		VmType:           vmType,
 		Metadata:         metadata,
 		GenesisInfo:      genInfo,
-		GenesisState: RollappGenesisState{
-			TransfersEnabled: transfersEnabled,
-		},
+		GenesisState:     RollappGenesisState{},
 		Revisions: []Revision{{
 			Number:      0,
 			StartHeight: 0,
@@ -108,8 +105,11 @@ func (r Rollapp) ValidateBasic() error {
 }
 
 func (r Rollapp) IsTransferEnabled() bool {
+	return r.GenesisState.IsTransferEnabled()
+}
 
-	return r.GenesisState.TransferProofHeight != 0
+func (s RollappGenesisState) IsTransferEnabled() bool {
+	return s.TransferProofHeight != 0
 }
 
 func (r Rollapp) AllImmutableFieldsAreSet() bool {

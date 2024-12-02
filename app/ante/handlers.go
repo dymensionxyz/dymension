@@ -5,13 +5,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
+	"github.com/dymensionxyz/dymension/v3/x/common/types"
 	ethante "github.com/evmos/ethermint/app/ante"
 	txfeesante "github.com/osmosis-labs/osmosis/v15/x/txfees/ante"
 
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/dymensionxyz/dymension/v3/x/delayedack"
 	lightclientante "github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
 )
 
@@ -79,7 +79,7 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 		NewLegacyEip712SigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
 		lightclientante.NewIBCMessagesDecorator(*options.LightClientKeeper, options.IBCKeeper.ClientKeeper, options.IBCKeeper.ChannelKeeper, options.RollappKeeper),
-		delayedack.NewIBCProofHeightDecorator(),
+		types.NewIBCProofHeightDecorator(),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
 	)
@@ -119,7 +119,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		ante.NewSigGasConsumeDecorator(options.AccountKeeper, ethante.DefaultSigVerificationGasConsumer),
 		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
-		delayedack.NewIBCProofHeightDecorator(),
+		types.NewIBCProofHeightDecorator(),
 		lightclientante.NewIBCMessagesDecorator(*options.LightClientKeeper, options.IBCKeeper.ClientKeeper, options.IBCKeeper.ChannelKeeper, options.RollappKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),

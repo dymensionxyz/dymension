@@ -9,6 +9,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -124,7 +125,7 @@ func (w IBCModule) OnRecvPacket(
 		}
 	}
 
-	err = w.EnableTransfers(ctx, ra, denom.Base)
+	err = w.EnableTransfers(ctx, packet, ra, denom.Base)
 	if err != nil {
 		l.Error("Enable transfers.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: enable transfers"))
@@ -144,13 +145,19 @@ func (w IBCModule) OnRecvPacket(
 // EnableTransfers marks the end of the genesis bridge phase.
 // It sets the transfers enabled flag on the rollapp.
 // It also calls the after transfers enabled hook.
-func (w IBCModule) EnableTransfers(ctx sdk.Context, ra *types.Rollapp, rollappIBCtrace string) error {
-	ra.GenesisState.TransfersEnabled = true
+func (w IBCModule) EnableTransfers(ctx sdk.Context, packet channeltypes.Packet, ra *types.Rollapp, rollappIBCtrace string) error {
+
+	height, err := commontypes.UnpackPacketProofHeight(ctx, packet, commontypes.RollappPacket_ON_RECV)
+	if err != nil {
+		return errorsmod.Wrap(err, "unpack packet proof height")
+	}
+
+	ra.GenesisState.TransferProofHeight = height
 	w.rollappKeeper.SetRollapp(ctx, *ra)
 
 	// call the after transfers enabled hook
 	// currently, used for IRO settlement
-	err := w.rollappKeeper.GetHooks().AfterTransfersEnabled(ctx, ra.RollappId, rollappIBCtrace)
+	err = w.rollappKeeper.GetHooks().AfterTransfersEnabled(ctx, ra.RollappId, rollappIBCtrace)
 	if err != nil {
 		return errorsmod.Wrap(err, "after transfers enabled hook")
 	}

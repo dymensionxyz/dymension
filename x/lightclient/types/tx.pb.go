@@ -33,6 +33,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // verify a client state and its consensus states against the rollapp
 // if it matches, set the client as the canonical client for the rollapp
+// NOTE: this definition is also copied to the relayer code
 type MsgSetCanonicalClient struct {
 	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
 	// id of ibc client state

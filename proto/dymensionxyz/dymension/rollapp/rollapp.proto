@@ -14,7 +14,7 @@ import "dymensionxyz/dymension/rollapp/genesis_info.proto";
 // RollappGenesisState is a partial repr of the state the hub can expect the
 // rollapp to be in upon genesis
 message RollappGenesisState {
-  reserved 1;
+  reserved 1,2;
 
 
   // 0 means unpopulated
@@ -22,17 +22,6 @@ message RollappGenesisState {
   // packet from the rollapp. If populated, the bridge is considered open. It's not allowed
   // to fork to a height prior to this height.
   uint64 transfer_proof_height = 3;
-
-  // Deprecated: Do not use. Replaced by transfer_proof_height.
-  // This used to mark the bridge as open, before we also needed the proof height.
-  //  If true, then full usage of the canonical ibc transfer channel is enabled.
-  //  Note: in v3.1.0 and prior this field marked the completion of the 'genesis
-  //  event' Keeping and renaming the field enables a seamless upgrade
-  //  https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
-  //  to the new genesis transfer protocol
-  //  Note: if this field is false, ibc transfers may still be allowed in one or
-  //  either direction.
-  bool transfers_enabled = 2 [deprecated = true];
 
 }
 
