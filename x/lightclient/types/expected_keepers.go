@@ -23,7 +23,7 @@ type RollappKeeperExpected interface {
 	FindStateInfoByHeight(ctx sdk.Context, rollappId string, height uint64) (*rollapptypes.StateInfo, error)
 	GetLatestStateInfo(ctx sdk.Context, rollappId string) (rollapptypes.StateInfo, bool)
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
-	ResolvesHardFork(ctx sdk.Context, rollappId string, revision, height uint64) bool
+	IsFirstUpdateAfterLastFork(ctx sdk.Context, rollappId string, revision, height uint64) bool
 }
 
 type IBCClientKeeperExpected interface {

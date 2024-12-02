@@ -42,7 +42,7 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, stateInfoM *rollapptyp
 		return nil
 	}
 
-	if hook.k.rollappKeeper.ResolvesHardFork(ctx, rollappID, stateInfoM.Revision, stateInfo.GetStartHeight()) {
+	if hook.k.rollappKeeper.IsFirstUpdateAfterLastFork(ctx, rollappID, stateInfoM.Revision, stateInfo.GetStartHeight()) {
 		return errorsmod.Wrap(hook.k.ResolveHardFork(ctx, rollappID), "resolve hard fork")
 	}
 
