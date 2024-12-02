@@ -30,17 +30,23 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 // AfterUpdateState is called after a state update is made to a rollapp.
 // This hook checks if the rollapp has a canonical IBC light client and if the Consensus state is compatible with the state update
 // and punishes the sequencer if it is not
-func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
+func (hook rollappHook) AfterUpdateState(ctx sdk.Context, stateInfoM *rollapptypes.StateInfoMeta) error {
 	if !hook.k.Enabled() {
 		return nil
 	}
+	rollappID := stateInfoM.Rollapp
+	stateInfo := &stateInfoM.StateInfo
 
 	client, ok := hook.k.GetCanonicalClient(ctx, rollappID)
 	if !ok {
 		return nil
 	}
 
-	if hook.k.rollappKeeper.ResolvesHardFork(ctx, rollappID, stateInfo) {
+	ok, err := hook.k.rollappKeeper.ResolvesHardFork(ctx, rollappID, stateInfoM.Revision, stateInfo.GetStartHeight())
+	if err != nil {
+		return errorsmod.Wrap(err, "resolves hard fork?")
+	}
+	if ok {
 		return errorsmod.Wrap(hook.k.ResolveHardFork(ctx, rollappID), "resolve hard fork")
 	}
 

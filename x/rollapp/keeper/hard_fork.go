@@ -196,3 +196,14 @@ func (k Keeper) pruneFinalizationsAbove(ctx sdk.Context, rollappID string, lastS
 	}
 	return nil
 }
+
+func (k Keeper) ResolvesHardFork(ctx sdk.Context, rollappId string, revision, height uint64) (bool, error) {
+	rollapp := k.MustGetRollapp(ctx, rollappId)
+	revisionForHeight := rollapp.GetRevisionForHeight(height)
+	var empty types.Revision
+	if revisionForHeight == empty {
+		// TODO: method should be more robust https://github.com/dymensionxyz/dymension/issues/1596
+		return false, gerrc.ErrNotFound.Wrapf("revision for height: h: %d", height)
+	}
+	return revisionForHeight.Number == revision && revisionForHeight.StartHeight == height, nil
+}

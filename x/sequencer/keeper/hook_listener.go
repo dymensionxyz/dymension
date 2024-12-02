@@ -36,7 +36,7 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 }
 
 // AfterUpdateState checks if rotation is completed and the nextProposer is changed
-func (hook rollappHook) AfterUpdateState(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
+func (hook rollappHook) AfterUpdateState(ctx sdk.Context, stateInfo *rollapptypes.StateInfoMeta) error {
 	// no proposer changed - no op
 	if stateInfo.Sequencer == stateInfo.NextProposer {
 		return nil
