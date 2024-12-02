@@ -38,7 +38,7 @@ message MsgCreateRollapp {
   // see Rollapp for more details
   cosmos.base.v1beta1.Coin min_sequencer_bond = 16 [
     (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"app_registration_fee\""
+    (gogoproto.moretags) = "yaml:\"min_sequencer_bond\""
   ];
   // alias is the chain alias used for display and namespace system
   string alias = 12;
@@ -67,7 +67,7 @@ message MsgUpdateRollappInformation {
   // see Rollapp for more details
   cosmos.base.v1beta1.Coin min_sequencer_bond = 7 [
     (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"app_registration_fee\""
+    (gogoproto.moretags) = "yaml:\"min_sequencer_bond\""
   ];
   // metadata is the rollapp metadata
   RollappMetadata metadata = 5 [(gogoproto.nullable) = true ];

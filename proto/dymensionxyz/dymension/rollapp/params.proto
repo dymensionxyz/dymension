@@ -31,6 +31,6 @@ message Params {
   // no rollapp can have a minimum less than this (in dym)
   cosmos.base.v1beta1.Coin min_sequencer_bond_global = 8 [
     (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"app_registration_fee\""
+    (gogoproto.moretags) = "yaml:\"min_sequencer_bond_global\""
   ];
 }

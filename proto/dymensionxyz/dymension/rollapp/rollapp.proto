@@ -59,7 +59,7 @@ message Rollapp {
   // denom is dym
   cosmos.base.v1beta1.Coin min_sequencer_bond = 20 [
     (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"app_registration_fee\""
+    (gogoproto.moretags) = "yaml:\"min_sequencer_bond\""
   ];
 
   enum VMType {
