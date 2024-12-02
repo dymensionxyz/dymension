@@ -17,7 +17,6 @@ func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappId string, lastValidH
 }
 
 func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, lastValidHeight uint64) error {
-	newRevisionHeight := lastValidHeight + 1
 	client, found := k.GetCanonicalClient(ctx, rollappId)
 	if !found {
 		return gerrc.ErrFailedPrecondition.Wrap("canonical client not found")
@@ -27,7 +26,7 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, lastV
 	// iterate over all consensus states and metadata in the client store
 	IterateConsensusStateDescending(cs, func(h exported.Height) bool {
 		// iterate until we pass the new revision height
-		if h.GetRevisionHeight() < newRevisionHeight {
+		if h.GetRevisionHeight() <= lastValidHeight {
 			return true
 		}
 
@@ -39,7 +38,7 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, lastV
 	})
 
 	// clean the optimistic updates valset
-	err := k.PruneSignersAbove(ctx, client, newRevisionHeight-1)
+	err := k.PruneSignersAbove(ctx, client, lastValidHeight)
 	if err != nil {
 		return errorsmod.Wrap(err, "prune signers above")
 	}
@@ -49,7 +48,7 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, lastV
 
 	// freeze the client
 	// it will be released after the hardfork is resolved (on the next state update)
-	k.freezeClient(cs, newRevisionHeight)
+	k.freezeClient(cs, lastValidHeight)
 
 	return nil
 }
