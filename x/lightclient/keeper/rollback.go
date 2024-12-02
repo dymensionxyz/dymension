@@ -4,9 +4,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
-	dymensiontypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -40,8 +37,6 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, newRe
 		return false
 	})
 
-	validateLastHeight := func
-
 	// clean the optimistic updates valset
 	err := k.PruneSignersAbove(ctx, client, newRevisionHeight-1)
 	if err != nil {
@@ -54,35 +49,6 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, newRe
 	// freeze the client
 	// it will be released after the hardfork is resolved (on the next state update)
 	k.freezeClient(cs, newRevisionHeight)
-
-	return nil
-}
-
-func (k Keeper) validateLastRollappHeight(ctx sdk.Context, rollappID string, lastRollappHeight uint64 ) error {
-	lastStateInfo, ok :=  k.rollappKeeper.GetLatestStateInfo(ctx, rollappID)
-	if !ok{
-		return gerrc.ErrInternal.Wrap("get rollapp latest state info")
-	}
-	if lastRollappHeight != lastStateInfo.GetLatestHeight() {
-		return gerrc.ErrInternal.Wrapf("last rollapp height queried != last rollapp height in arg: queried: %d, arg: %d", lastStateInfo.GetLatestHeight(), lastRollappHeight)
-	}
-	bd, ok := lastStateInfo.GetBlockDescriptor(lastRollappHeight)
-	if !ok{
-		return gerrc.ErrInternal.Wrapf("get block descriptor: %d", lastRollappHeight)
-	}
-	rollappKState := types.RollappState{
-		BlockDescriptor:    bd,
-		NextBlockSequencer: dymensionseqtypes.Sequencer{},
-	}
-	consState := getClientStateTM()
-	rollapp, found := k.GetRollapp(ctx, rollappID)
-	if !found {
-		return gerrc.ErrNotFound.Wrap("rollapp")
-	}
-
-	if lastRollappHeight > rollapp.LatestHeight {
-		return gerrc.ErrInvalidArgument.Wrap("last rollapp height")
-	}
 
 	return nil
 }
