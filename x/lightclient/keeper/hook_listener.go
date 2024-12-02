@@ -44,13 +44,11 @@ func (hook rollappHook) AfterUpdateState(
 		return nil
 	}
 
-	// first state after hard fork, should reset the client to active state
-	if hook.k.IsHardForkingInProgress(ctx, rollappId) {
+	if isNewRevision {
 		err := hook.k.ResolveHardFork(ctx, rollappId)
 		if err != nil {
 			return errorsmod.Wrap(err, "resolve hard fork")
 		}
-		return nil
 	}
 
 	seq, err := hook.k.SeqK.RealSequencer(ctx, stateInfo.Sequencer)
