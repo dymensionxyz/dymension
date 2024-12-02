@@ -19,6 +19,10 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, newRevisionHeight ui
 		return gerrc.ErrNotFound
 	}
 
+	if !k.ForkAllowed(ctx, rollappID, newRevisionHeight-1) {
+		return gerrc.ErrFailedPrecondition.Wrap("fork not allowed")
+	}
+
 	lastValidHeight, err := k.RevertPendingStates(ctx, rollappID, newRevisionHeight)
 	if err != nil {
 		return errorsmod.Wrap(err, "revert pending states")

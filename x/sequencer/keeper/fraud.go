@@ -18,10 +18,6 @@ func (k Keeper) TryKickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 
 	ra := kicker.RollappId
 
-	if !k.rollappKeeper.ForkLatestAllowed(ctx, ra) {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "kick would incur fork before genesis transfer")
-	}
-
 	proposer := k.GetProposer(ctx, ra)
 
 	if !k.Kickable(ctx, proposer) {
