@@ -467,14 +467,12 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_NotCompat
 // - trigger rollback
 // - validate rollback:
 //   - check if the client is frozen
-//   - validate IsHardForkingInProgress returns true
 //   - validate client updates are blocked
 //   - validate future consensus states are cleared
 //
 // - resolve hard fork
 //   - validate client is unfrozen and hard fork is resolved
 //   - validate the client is updated
-//   - validate the client is not in hard forking state
 //
 // - validate client updates are allowed
 func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
@@ -517,9 +515,12 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 	// get number of consensus states before rollback
 	csBeforeRollback := s.hubApp().IBCKeeper.ClientKeeper.GetAllConsensusStates(s.hubCtx())[0].ConsensusStates
 
-	// Trigger rollback
+	// Trigger rollback / simulate fork
 	rollbackHeight := uint64(s.rollappChain().LastHeader.Header.Height) - 5
-	err := s.hubApp().LightClientKeeper.RollbackCanonicalClient(s.hubCtx(), s.rollappChain().ChainID, rollbackHeight)
+	ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), s.rollappChain().ChainID)
+	ra.BumpRevision(rollbackHeight)
+	s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), ra)
+	err := s.hubApp().LightClientKeeper.RollbackCanonicalClient(s.hubCtx(), s.rollappChain().ChainID, rollbackHeight-1)
 	s.Require().NoError(err)
 
 	clientState, found := s.hubApp().IBCKeeper.ClientKeeper.GetClientState(s.hubCtx(), s.path.EndpointA.ClientID)
@@ -584,8 +585,9 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 		uint64(len(bds.BD)),
 		blockDescriptors,
 	)
+	msgUpdateState.RollappRevision = 1
 	_, err = s.rollappMsgServer().UpdateState(s.hubCtx(), msgUpdateState)
-	s.Require().NoError(err)
+	s.Require().NoError(err, "update state")
 
 	// Test resolve hard fork
 	clientState, found = s.hubApp().IBCKeeper.ClientKeeper.GetClientState(s.hubCtx(), s.path.EndpointA.ClientID)

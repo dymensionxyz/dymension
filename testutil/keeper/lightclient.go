@@ -182,8 +182,8 @@ func NewMockSequencerKeeper(sequencers map[string]*sequencertypes.Sequencer) *Mo
 
 type MockRollappKeeper struct{}
 
-func (m *MockRollappKeeper) ResolvesHardFork(ctx sdk.Context, rollappId string, revision, height uint64) (bool, error) {
-	return false, nil
+func (m *MockRollappKeeper) ResolvesHardFork(ctx sdk.Context, rollappId string, revision, height uint64) bool {
+	return false
 }
 
 func (m *MockRollappKeeper) GetLatestHeight(ctx sdk.Context, rollappId string) (uint64, bool) {
