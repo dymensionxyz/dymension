@@ -108,7 +108,8 @@ func (r Rollapp) ValidateBasic() error {
 }
 
 func (r Rollapp) IsTransferEnabled() bool {
-	return r.GenesisState.TransfersEnabled
+
+	return r.GenesisState.TransferProofHeight != 0
 }
 
 func (r Rollapp) AllImmutableFieldsAreSet() bool {
