@@ -22,6 +22,9 @@ func CheckCompatibility(ibcState ibctm.ConsensusState, raState RollappState) err
 	if !bytes.Equal(ibcState.Root.GetHash(), raState.BlockDescriptor.StateRoot) {
 		return errorsmod.Wrap(ErrStateRootsMismatch, "block descriptor state root does not match tendermint header app hash")
 	}
+	if !raState.BlockDescriptor.Timestamp.IsZero() && !ibcState.Timestamp.Equal(raState.BlockDescriptor.Timestamp) {
+		return errorsmod.Wrap(ErrTimestampMismatch, "block descriptor timestamp does not match tendermint header timestamp")
+	}
 	// Check if the nextValidatorHash matches for the sequencer for h+1 block descriptor
 	hash, err := raState.NextBlockSequencer.ValsetHash()
 	if err != nil {
@@ -29,9 +32,6 @@ func CheckCompatibility(ibcState ibctm.ConsensusState, raState RollappState) err
 	}
 	if !bytes.Equal(ibcState.NextValidatorsHash, hash) {
 		return errorsmod.Wrap(ErrValidatorHashMismatch, "cons state next validator hash does not match the state info hash for sequencer for h+1")
-	}
-	if !raState.BlockDescriptor.Timestamp.IsZero() && !ibcState.Timestamp.Equal(raState.BlockDescriptor.Timestamp) {
-		return errorsmod.Wrap(ErrTimestampMismatch, "block descriptor timestamp does not match tendermint header timestamp")
 	}
 	return nil
 }
