@@ -64,6 +64,9 @@ func (hook rollappHook) AfterUpdateState(
 	// for all heights in the range [hStart-1..hEnd), but do not for hEnd
 	for h := stateInfo.GetStartHeight() - 1; h <= stateInfo.GetLatestHeight(); h++ {
 		if err := hook.validateOptimisticUpdate(ctx, rollappId, client, seq, stateInfo, h); err != nil {
+			if errors.Is(err, types.ErrNextValHashMismatch) && h == stateInfo.GetLatestHeight() {
+				continue
+			}
 			return errorsmod.Wrap(err, "validate optimistic update")
 		}
 	}
@@ -102,7 +105,7 @@ func (hook rollappHook) validateOptimisticUpdate(
 
 	err = types.CheckCompatibility(*got, expect)
 	if err != nil {
-		return errors.Join(gerrc.ErrFault, err)
+		return errorsmod.Wrap(err, "check compatibility")
 	}
 
 	// everything is fine

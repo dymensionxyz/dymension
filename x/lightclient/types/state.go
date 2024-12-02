@@ -20,10 +20,10 @@ import (
 func CheckCompatibility(ibcState ibctm.ConsensusState, raState RollappState) error {
 	// Check if block descriptor state root matches IBC block header app hash
 	if !bytes.Equal(ibcState.Root.GetHash(), raState.BlockDescriptor.StateRoot) {
-		return errorsmod.Wrap(ErrStateRootsMismatch, "block descriptor state root does not match tendermint header app hash")
+		return ErrStateRootMismatch
 	}
 	if !raState.BlockDescriptor.Timestamp.IsZero() && !ibcState.Timestamp.Equal(raState.BlockDescriptor.Timestamp) {
-		return errorsmod.Wrap(ErrTimestampMismatch, "block descriptor timestamp does not match tendermint header timestamp")
+		return ErrTimestampMismatch
 	}
 	if err := compareNextValHash(ibcState, raState); err != nil {
 		return errorsmod.Wrap(err, "compare next val hash")
@@ -38,7 +38,7 @@ func compareNextValHash(ibcState ibctm.ConsensusState, raState RollappState) err
 		return errors.Join(err, gerrc.ErrInternal.Wrap("next block seq val set hash"))
 	}
 	if !bytes.Equal(ibcState.NextValidatorsHash, hash) {
-		return ErrValidatorHashMismatch
+		return ErrNextValHashMismatch
 	}
 	return nil
 }

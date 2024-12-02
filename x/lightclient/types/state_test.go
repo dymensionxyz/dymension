@@ -53,7 +53,7 @@ func TestCheckCompatibility(t *testing.T) {
 					raState:  invalidRootRaState,
 				}
 			},
-			err: types.ErrStateRootsMismatch,
+			err: types.ErrStateRootMismatch,
 		},
 		{
 			name: "nextValidatorHash does not match the sequencer who submitted the next block descriptor",
@@ -65,7 +65,7 @@ func TestCheckCompatibility(t *testing.T) {
 					raState:  validRollappState,
 				}
 			},
-			err: types.ErrValidatorHashMismatch,
+			err: types.ErrNextValHashMismatch,
 		},
 		{
 			name: "timestamps is empty. ignore timestamp check",
