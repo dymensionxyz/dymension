@@ -28,7 +28,6 @@ var (
 
 	DefaultAppRegistrationFee         = commontypes.DYMCoin
 	DefaultMinSequencerBondGlobalCoin = commontypes.Dym(sdk.NewInt(100))
-	DefaultMinSequencerBondGlobal     = DefaultMinSequencerBondGlobalCoin.Amount.Uint64()
 )
 
 const (
@@ -51,7 +50,7 @@ func NewParams(
 	livenessSlashBlocks uint64,
 	livenessSlashInterval uint64,
 	appRegistrationFee sdk.Coin,
-	minSequencerBondGlobal uint64,
+	minSequencerBondGlobal sdk.Coin,
 ) Params {
 	return Params{
 		DisputePeriodInBlocks:  disputePeriodInBlocks,
@@ -69,7 +68,7 @@ func DefaultParams() Params {
 		DefaultLivenessSlashBlocks,
 		DefaultLivenessSlashInterval,
 		DefaultAppRegistrationFee,
-		DefaultMinSequencerBondGlobal,
+		DefaultMinSequencerBondGlobalCoin,
 	)
 }
 
@@ -115,7 +114,7 @@ func (p Params) Validate() error {
 	if err := validateAppRegistrationFee(p.AppRegistrationFee); err != nil {
 		return errorsmod.Wrap(err, "app registration fee")
 	}
-	if err := uparam.ValidatePositiveUint64(p.MinSequencerBondGlobal); err != nil {
+	if err := uparam.ValidateCoin(p.MinSequencerBondGlobal); err != nil {
 		return errorsmod.Wrap(err, "min sequencer bond")
 	}
 	return nil

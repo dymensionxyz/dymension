@@ -23,7 +23,7 @@ func NewMsgUpdateRollappInformation(
 	creator,
 	rollappId,
 	initSequencer string,
-	minSeqBond uint64,
+	minSeqBond sdk.Coin,
 	metadata *RollappMetadata,
 	genesisInfo *GenesisInfo,
 ) *MsgUpdateRollappInformation {
@@ -87,7 +87,7 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 }
 
 func (msg *MsgUpdateRollappInformation) UpdatingImmutableValues() bool {
-	return msg.InitialSequencer != "" || 0 < msg.MinSequencerBond
+	return msg.InitialSequencer != "" || !msg.MinSequencerBond.IsZero()
 }
 
 func (msg *MsgUpdateRollappInformation) UpdatingGenesisInfo() bool {

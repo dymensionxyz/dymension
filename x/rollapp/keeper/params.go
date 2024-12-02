@@ -44,7 +44,7 @@ func (k Keeper) AppRegistrationFee(ctx sdk.Context) (res sdk.Coin) {
 	return
 }
 
-func (k Keeper) MinSequencerBondGlobal(ctx sdk.Context) (res uint64) {
+func (k Keeper) MinSequencerBondGlobal(ctx sdk.Context) (res sdk.Coin) {
 	k.paramstore.Get(ctx, types.KeyMinSequencerBondGlobal, &res)
 	return
 }

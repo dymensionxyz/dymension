@@ -44,7 +44,7 @@ const (
 	Decimals18 AllowedDecimals = 18
 )
 
-func NewRollapp(creator, rollappId, initialSequencer string, minSequencerBond uint64, vmType Rollapp_VMType, metadata *RollappMetadata, genInfo GenesisInfo, transfersEnabled bool) Rollapp {
+func NewRollapp(creator, rollappId, initialSequencer string, minSequencerBond sdk.Coin, vmType Rollapp_VMType, metadata *RollappMetadata, genInfo GenesisInfo, transfersEnabled bool) Rollapp {
 	return Rollapp{
 		RollappId:        rollappId,
 		Owner:            creator,
@@ -79,7 +79,7 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
 	}
 
-	if r.MinSequencerBond <= 0 {
+	if !r.MinSequencerBond.IsPositive() {
 		return gerrc.ErrInvalidArgument.Wrap("non positive min bond")
 	}
 
@@ -110,7 +110,7 @@ func (r Rollapp) IsTransferEnabled() bool {
 }
 
 func (r Rollapp) AllImmutableFieldsAreSet() bool {
-	return r.InitialSequencer != "" && r.GenesisInfoFieldsAreSet() && 0 < r.MinSequencerBond
+	return r.InitialSequencer != "" && r.GenesisInfoFieldsAreSet() && !r.MinSequencerBond.IsZero()
 }
 
 func (r Rollapp) GenesisInfoFieldsAreSet() bool {

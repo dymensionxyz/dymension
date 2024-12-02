@@ -61,7 +61,7 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 		Creator:          alice,
 		RollappId:        name,
 		InitialSequencer: "*",
-		MinSequencerBond: rollapptypes.DefaultMinSequencerBondGlobal,
+		MinSequencerBond: rollapptypes.DefaultMinSequencerBondGlobalCoin,
 
 		Alias:  strings.ToLower(rand.Str(7)),
 		VmType: rollapptypes.Rollapp_EVM,

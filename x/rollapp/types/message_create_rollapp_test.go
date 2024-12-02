@@ -26,7 +26,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				Creator:          sample.AccAddress(),
 				RollappId:        "dym_100-1",
 				InitialSequencer: sample.AccAddress(),
-				MinSequencerBond: DefaultMinSequencerBondGlobal,
+				MinSequencerBond: DefaultMinSequencerBondGlobalCoin,
 				Alias:            "Rollapp",
 				VmType:           Rollapp_EVM,
 				GenesisInfo: &GenesisInfo{
@@ -53,7 +53,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:          sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
-				MinSequencerBond: DefaultMinSequencerBondGlobal,
+				MinSequencerBond: DefaultMinSequencerBondGlobalCoin,
 				RollappId:        " ",
 				Alias:            "Rollapp",
 				VmType:           Rollapp_EVM,
@@ -88,7 +88,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:          "invalid_address",
 				InitialSequencer: sample.AccAddress(),
-				MinSequencerBond: DefaultMinSequencerBondGlobal,
+				MinSequencerBond: DefaultMinSequencerBondGlobalCoin,
 				RollappId:        "dym_100-1",
 				Alias:            "Rollapp",
 				VmType:           Rollapp_EVM,
@@ -106,7 +106,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:          sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
-				MinSequencerBond: DefaultMinSequencerBondGlobal,
+				MinSequencerBond: DefaultMinSequencerBondGlobalCoin,
 				RollappId:        "dym_100-1",
 				Alias:            "Rollapp",
 				VmType:           Rollapp_EVM,
@@ -123,7 +123,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:          sample.AccAddress(),
 				InitialSequencer: "invalid_address",
-				MinSequencerBond: DefaultMinSequencerBondGlobal,
+				MinSequencerBond: DefaultMinSequencerBondGlobalCoin,
 				RollappId:        "dym_100-1",
 				Alias:            "Rollapp",
 				VmType:           Rollapp_EVM,
@@ -141,7 +141,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:          sample.AccAddress(),
 				InitialSequencer: fmt.Sprintf("%s,%s,%s", sample.AccAddress(), sample.AccAddress(), sample.AccAddress()),
-				MinSequencerBond: DefaultMinSequencerBondGlobal,
+				MinSequencerBond: DefaultMinSequencerBondGlobalCoin,
 				RollappId:        "dym_100-1",
 				Alias:            "Rollapp",
 				VmType:           Rollapp_WASM,
@@ -159,7 +159,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:          sample.AccAddress(),
 				InitialSequencer: "*",
-				MinSequencerBond: DefaultMinSequencerBondGlobal,
+				MinSequencerBond: DefaultMinSequencerBondGlobalCoin,
 				RollappId:        "dym_100-1",
 				Alias:            "Rollapp",
 				VmType:           Rollapp_WASM,
@@ -179,7 +179,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				InitialSequencer: fmt.Sprintf("%s,%s",
 					sample.AccAddressFromSecret("same"),
 					sample.AccAddressFromSecret("same")),
-				MinSequencerBond: DefaultMinSequencerBondGlobal,
+				MinSequencerBond: DefaultMinSequencerBondGlobalCoin,
 				RollappId:        "dym_100-1",
 				Alias:            "Rollapp",
 				VmType:           Rollapp_EVM,
@@ -197,7 +197,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:          sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
-				MinSequencerBond: DefaultMinSequencerBondGlobal,
+				MinSequencerBond: DefaultMinSequencerBondGlobalCoin,
 				RollappId:        "dym_100-1",
 				Alias:            "Rollapp",
 				VmType:           Rollapp_EVM,
@@ -215,7 +215,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:          sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
-				MinSequencerBond: DefaultMinSequencerBondGlobal,
+				MinSequencerBond: DefaultMinSequencerBondGlobalCoin,
 				RollappId:        "dym_100-1",
 				Alias:            "alias",
 				VmType:           Rollapp_EVM,
@@ -238,7 +238,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:          sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
-				MinSequencerBond: DefaultMinSequencerBondGlobal,
+				MinSequencerBond: DefaultMinSequencerBondGlobalCoin,
 				RollappId:        "dym_100-1",
 				Alias:            "alias",
 				VmType:           Rollapp_EVM,
@@ -256,7 +256,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:          sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
-				MinSequencerBond: DefaultMinSequencerBondGlobal,
+				MinSequencerBond: DefaultMinSequencerBondGlobalCoin,
 				RollappId:        "dym_100-1",
 				Alias:            "alias",
 				VmType:           Rollapp_EVM,
@@ -277,7 +277,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:          sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
-				MinSequencerBond: DefaultMinSequencerBondGlobal,
+				MinSequencerBond: DefaultMinSequencerBondGlobalCoin,
 				RollappId:        "dym_100-1",
 				Alias:            "alias",
 				VmType:           Rollapp_EVM,
@@ -288,7 +288,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:          sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
-				MinSequencerBond: DefaultMinSequencerBondGlobal,
+				MinSequencerBond: DefaultMinSequencerBondGlobalCoin,
 				RollappId:        "dym_100-1",
 				Alias:            "alias",
 				VmType:           Rollapp_EVM,
