@@ -153,7 +153,7 @@ func (k Keeper) HardForkToLatest(ctx sdk.Context, rollappID string) error {
 		return errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "can't hard fork, no state info found")
 	}
 	// we invoke a hard fork on the last posted batch without reverting any states
-	return k.HardFork(ctx, rollappID, lastBatch.GetLatestHeight()+1)
+	return k.HardFork(ctx, rollappID, lastBatch.GetLatestHeight())
 }
 
 func mapKeysToSlice(m map[string]struct{}) []string {
