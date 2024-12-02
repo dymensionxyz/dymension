@@ -42,6 +42,8 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, stateInfoM *rollapptyp
 		return nil
 	}
 
+	// h resolves a hard fork and incurs one, due to rotate to sentinel
+	// we
 	ok, err := hook.k.rollappKeeper.ResolvesHardFork(ctx, rollappID, stateInfoM.Revision, stateInfo.GetStartHeight())
 	if err != nil {
 		return errorsmod.Wrap(err, "resolves hard fork?")
