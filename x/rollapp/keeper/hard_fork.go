@@ -200,6 +200,7 @@ func (k Keeper) pruneFinalizationsAbove(ctx sdk.Context, rollappID string, lastS
 	}
 	return nil
 }
+
 // is <height,revision> the first of the latest fork?
 func (k Keeper) IsFirstHeightOfLatestFork(ctx sdk.Context, rollappId string, revision, height uint64) bool {
 	rollapp := k.MustGetRollapp(ctx, rollappId)
