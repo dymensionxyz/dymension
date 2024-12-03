@@ -15,6 +15,7 @@ func (s *SequencerTestSuite) TestRotationHappyFlow() {
 	s.createSequencerWithBond(s.Ctx, ra.RollappId, bob, bond)
 	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(alice)))
 	s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
+	s.submitAFewRollappStates(ra.RollappId)
 
 	// proposer tries to unbond
 	mUnbond := &types.MsgUnbond{Creator: pkAddr(alice)}
@@ -56,6 +57,7 @@ func (s *SequencerTestSuite) TestRotationReOptInFlow() {
 	s.createSequencerWithBond(s.Ctx, ra.RollappId, charlie, ucoin.SimpleMul(bond, 1))
 	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(alice)))
 	s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
+	s.submitAFewRollappStates(ra.RollappId)
 
 	prop := alice
 	succ := bob
@@ -103,9 +105,7 @@ func (s *SequencerTestSuite) TestRotationNoSuccessor() {
 	s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
 	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(alice)))
 	s.Require().True(s.k().IsSuccessor(s.Ctx, s.k().SentinelSequencer(s.Ctx)))
-
-	_, err := s.PostStateUpdate(s.Ctx, ra.RollappId, s.seq(alice).Address, 1, 10)
-	s.Require().NoError(err)
+	s.submitAFewRollappStates(ra.RollappId)
 
 	// proposer tries to unbond
 	mUnbond := &types.MsgUnbond{Creator: pkAddr(alice)}
@@ -138,6 +138,7 @@ func (s *SequencerTestSuite) TestRotationProposerAndSuccessorBothUnbond() {
 	s.createSequencerWithBond(s.Ctx, ra.RollappId, charlie, ucoin.SimpleMul(bond, 1))
 	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(alice)))
 	s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
+	s.submitAFewRollappStates(ra.RollappId)
 
 	// proposer tries to unbond
 	mUnbond := &types.MsgUnbond{Creator: pkAddr(alice)}

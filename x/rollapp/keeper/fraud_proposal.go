@@ -43,13 +43,6 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 		return nil, err
 	}
 
-	// validate the rollapp is past its genesis bridge phase
-	if !rollapp.IsTransferEnabled() {
-		err := errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp is not past genesis bridge phase")
-		ctx.Logger().Error("Fraud proposal.", err)
-		return nil, err
-	}
-
 	// punish the sequencer if needed
 	if msg.PunishSequencerAddress != "" {
 		err := k.SequencerK.PunishSequencer(ctx, msg.PunishSequencerAddress, msg.MustRewardee())

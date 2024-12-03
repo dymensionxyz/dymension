@@ -339,10 +339,14 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		genesisInfo = crynuxGenesisInfo
 	}
 
+	genesisState := oldRollapp.GenesisState
+	// min(nim=813701, mande=1332619) on Dec 2nd : a sufficient and safe number
+	genesisState.TransferProofHeight = 813701
+
 	return rollapptypes.Rollapp{
 		RollappId:    oldRollapp.RollappId,
 		Owner:        oldRollapp.Owner,
-		GenesisState: oldRollapp.GenesisState,
+		GenesisState: genesisState,
 		ChannelId:    oldRollapp.ChannelId,
 		Metadata: &rollapptypes.RollappMetadata{ // Can be updated in runtime
 			Website:     "",

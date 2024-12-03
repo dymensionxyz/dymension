@@ -120,6 +120,9 @@ func (s *RollappTestSuite) TestMarkObsoleteRollapps() {
 			for _, ra := range tc.rollapps {
 				// create a rollapp
 				s.CreateRollappByName(ra.name)
+				raObj := s.k().MustGetRollapp(s.Ctx, ra.name)
+				raObj.GenesisState.TransferProofHeight = 1
+				s.k().SetRollapp(s.Ctx, raObj)
 				// create a sequencer
 				proposer := s.CreateDefaultSequencer(s.Ctx, ra.name)
 
