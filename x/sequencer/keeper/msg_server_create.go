@@ -36,7 +36,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, gerrc.ErrAlreadyExists.Wrap("pub key in use")
 	}
 
-	if err := k.sufficientBond(ctx, msg.Bond); err != nil {
+	if err := k.sufficientBond(ctx, msg.RollappId, msg.Bond); err != nil {
 		return nil, err
 	}
 

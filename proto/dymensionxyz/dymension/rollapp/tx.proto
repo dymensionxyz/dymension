@@ -9,6 +9,7 @@ import "dymensionxyz/dymension/rollapp/rollapp.proto";
 import "dymensionxyz/dymension/rollapp/metadata.proto";
 import "dymensionxyz/dymension/rollapp/genesis_info.proto";
 import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 // Msg defines the Msg service.
 service Msg {
@@ -34,6 +35,11 @@ message MsgCreateRollapp {
   // initial_sequencer takes one or more coma-separated bech32-encoded addresses of the
   // sequencer(s) that are allowed to initially serve this rollappId.
   string initial_sequencer = 11;
+  // see Rollapp for more details
+  cosmos.base.v1beta1.Coin min_sequencer_bond = 16 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"min_sequencer_bond\""
+  ];
   // alias is the chain alias used for display and namespace system
   string alias = 12;
   // metadata is the rollapp metadata
@@ -58,6 +64,11 @@ message MsgUpdateRollappInformation {
   // sequencer that are allowed to initially serve this rollappId.
   // wildcard '*' means any sequencer is allowed to be the first proposer.
   string initial_sequencer = 3;
+  // see Rollapp for more details
+  cosmos.base.v1beta1.Coin min_sequencer_bond = 7 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"min_sequencer_bond\""
+  ];
   // metadata is the rollapp metadata
   RollappMetadata metadata = 5 [(gogoproto.nullable) = true ];
   // genesis_info is the genesis information

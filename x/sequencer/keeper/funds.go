@@ -3,28 +3,24 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-func (k Keeper) bondDenom(ctx sdk.Context) string {
-	return k.GetParams(ctx).MinBond.Denom
-}
-
-func (k Keeper) validBondDenom(ctx sdk.Context, c sdk.Coin) error {
-	d := k.bondDenom(ctx)
-	if c.Denom != d {
-		return errorsmod.Wrapf(types.ErrInvalidDenom, "expect: %s", d)
+func validBondDenom(c sdk.Coin) error {
+	if c.Denom != commontypes.DYMCoin.Denom {
+		return errorsmod.Wrapf(types.ErrInvalidDenom, "expect: %s", commontypes.DYMCoin.Denom)
 	}
 	return nil
 }
 
-func (k Keeper) sufficientBond(ctx sdk.Context, c sdk.Coin) error {
-	if err := k.validBondDenom(ctx, c); err != nil {
+func (k Keeper) sufficientBond(ctx sdk.Context, rollapp string, c sdk.Coin) error {
+	if err := validBondDenom(c); err != nil {
 		return err
 	}
-	minBond := k.GetParams(ctx).MinBond
+	minBond := k.rollappKeeper.MinBond(ctx, rollapp)
 	if c.IsLT(minBond) {
-		return errorsmod.Wrapf(types.ErrInsufficientBond, "min: %s", minBond.Amount)
+		return errorsmod.Wrapf(types.ErrInsufficientBond, "min: %s: given: %s", minBond.Amount, c.Amount)
 	}
 	return nil
 }

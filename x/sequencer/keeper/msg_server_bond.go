@@ -18,7 +18,7 @@ func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBon
 		return nil, err
 	}
 
-	if err := k.validBondDenom(ctx, msg.AddAmount); err != nil {
+	if err := validBondDenom(msg.AddAmount); err != nil {
 		return nil, err
 	}
 

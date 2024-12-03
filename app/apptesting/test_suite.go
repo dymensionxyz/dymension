@@ -29,10 +29,7 @@ import (
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-var (
-	alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
-	bond  = sequencertypes.DefaultParams().MinBond
-)
+var alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
 
 type KeeperTestHelper struct {
 	suite.Suite
@@ -64,8 +61,10 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 		Creator:          alice,
 		RollappId:        name,
 		InitialSequencer: "*",
-		Alias:            strings.ToLower(rand.Str(7)),
-		VmType:           rollapptypes.Rollapp_EVM,
+		MinSequencerBond: rollapptypes.DefaultMinSequencerBondGlobalCoin,
+
+		Alias:  strings.ToLower(rand.Str(7)),
+		VmType: rollapptypes.Rollapp_EVM,
 		GenesisInfo: &rollapptypes.GenesisInfo{
 			Bech32Prefix:    strings.ToLower(rand.Str(3)),
 			GenesisChecksum: "1234567890abcdefg",
@@ -102,7 +101,7 @@ func (s *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId str
 func (s *KeeperTestHelper) CreateSequencerByPubkey(ctx sdk.Context, rollappId string, pubKey types.PubKey) error {
 	addr := sdk.AccAddress(pubKey.Address())
 	// fund account
-	err := bankutil.FundAccount(s.App.BankKeeper, ctx, addr, sdk.NewCoins(bond))
+	err := bankutil.FundAccount(s.App.BankKeeper, ctx, addr, sdk.NewCoins(rollapptypes.DefaultMinSequencerBondGlobalCoin))
 	s.Require().Nil(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pubKey)
@@ -111,7 +110,7 @@ func (s *KeeperTestHelper) CreateSequencerByPubkey(ctx sdk.Context, rollappId st
 	sequencerMsg1 := sequencertypes.MsgCreateSequencer{
 		Creator:      addr.String(),
 		DymintPubKey: pkAny,
-		Bond:         bond,
+		Bond:         rollapptypes.DefaultMinSequencerBondGlobalCoin,
 		RollappId:    rollappId,
 		Metadata: sequencertypes.SequencerMetadata{
 			Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},

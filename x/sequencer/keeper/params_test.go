@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
@@ -13,7 +12,6 @@ import (
 func TestGetParams(t *testing.T) {
 	k, ctx := testkeeper.SequencerKeeper(t)
 	params := types.DefaultParams()
-	params.MinBond = sdk.NewCoin("testdenom", sdk.NewInt(100))
 
 	k.SetParams(ctx, params)
 
@@ -35,15 +33,6 @@ func (s *SequencerTestSuite) TestValidateParams() {
 				return types.DefaultParams()
 			},
 			false,
-		},
-		{
-			"stateful validation: min bond denom not equal to base denom",
-			func() types.Params {
-				params := types.DefaultParams()
-				params.MinBond.Denom = "testdenom"
-				return params
-			},
-			true,
 		},
 	}
 
