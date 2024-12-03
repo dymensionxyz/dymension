@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
@@ -14,7 +15,6 @@ import (
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	seqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func TestLivenessArithmetic(t *testing.T) {
@@ -111,65 +111,107 @@ func TestLivenessEventsStorage(t *testing.T) {
 	})
 }
 
+func (s *RollappTestSuite) TestLivenessEndBlock() {
+	p := s.k().GetParams(s.Ctx)
+	p.LivenessSlashBlocks = 2
+	s.k().SetParams(s.Ctx, p)
+	tracker := newLivenessMockSequencerKeeper(s.k().SequencerK)
+	s.k().SetSequencerKeeper(tracker)
+	rollapp, proposer := s.CreateDefaultRollappAndProposer()
+	_, err := s.PostStateUpdate(s.Ctx, rollapp, proposer, 1, uint64(10))
+	s.Require().NoError(err)
+	for range p.LivenessSlashBlocks + 1 {
+		s.Require().Equal(0, tracker.slashes[rollapp])
+		s.checkLiveness(rollapp, false, true)
+		s.NextBlock(time.Second)
+	}
+	s.Require().Equal(1, tracker.slashes[rollapp])
+	s.checkLiveness(rollapp, false, true)
+}
+
+func (s *RollappTestSuite) checkLiveness(rollappId string, expectClockReset, expectEvent bool) {
+	msg, broken := keeper.LivenessEventInvariant(*s.k())(s.Ctx)
+	s.Require().False(broken, msg)
+	ra := s.k().MustGetRollapp(s.Ctx, rollappId)
+	if expectClockReset {
+		s.Require().Equal(s.Ctx.BlockHeight(), ra.LivenessCountdownStartHeight)
+	} else {
+		s.Require().LessOrEqual(ra.LivenessCountdownStartHeight, s.Ctx.BlockHeight())
+	}
+	s.Require().Equal(expectEvent, ra.LivenessEventHeight != 0)
+}
+
 // The protocol works.
-func (suite *RollappTestSuite) TestLivenessFlow() {
-	_ = flag.Set("rapid.checks", "500")
-	_ = flag.Set("rapid.steps", "300")
-	rapid.Check(suite.T(), func(r *rapid.T) {
-		suite.SetupTest()
+func (s *RollappTestSuite) TestLivenessFlow() {
+	_ = flag.Set("rapid.checks", "400")
+	_ = flag.Set("rapid.steps", "200")
+	rapid.Check(s.T(), func(r *rapid.T) {
+		s.SetupTest()
+		p := s.k().GetParams(s.Ctx)
+		p.LivenessSlashBlocks = 5
+		p.LivenessSlashInterval = 3
+		s.k().SetParams(s.Ctx, p)
 
 		rollapps := []string{urand.RollappID(), urand.RollappID()}
 
-		tracker := newLivenessMockSequencerKeeper()
-		suite.keeper().SetSequencerKeeper(tracker)
+		tracker := newLivenessMockSequencerKeeper(s.k().SequencerK)
+		s.k().SetSequencerKeeper(tracker)
 		for _, ra := range rollapps {
-			suite.keeper().SetRollapp(suite.Ctx, types.NewRollapp("", ra, "", types.Rollapp_Unspecified, nil, types.GenesisInfo{}, false))
+			s.k().SetRollapp(s.Ctx, types.NewRollapp("", ra, "", types.DefaultMinSequencerBondGlobalCoin, types.Rollapp_Unspecified, nil, types.GenesisInfo{}))
 		}
 
-		hLastUpdate := map[string]int64{}
-		rollappIsDown := map[string]bool{}
+		hClockStart := map[string]int64{}
 
 		r.Repeat(map[string]func(r *rapid.T){
 			"": func(r *rapid.T) { // check
 				// 1. check registered invariant
-				msg, notOk := keeper.LivenessEventInvariant(*suite.keeper())(suite.Ctx)
+				msg, notOk := keeper.LivenessEventInvariant(*s.k())(s.Ctx)
 				require.False(r, notOk, msg)
 				// 2. check the right amount of slashing occurred
 				for _, ra := range rollapps {
-					h := suite.Ctx.BlockHeight()
-					lastUpdate, ok := hLastUpdate[ra]
+					h := s.Ctx.BlockHeight()
+					hStart, ok := hClockStart[ra]
 					if !ok {
-						continue // we can freely assume we will not need to slash a rollapp if it has NEVER had an update
+						// clock not started (can be before first state update, or during fork)
+						continue
 					}
-					elapsed := uint64(h - lastUpdate)
-					p := suite.keeper().GetParams(suite.Ctx)
-
-					if elapsed <= p.LivenessSlashBlocks {
+					p := s.k().GetParams(s.Ctx)
+					elapsed := h - 1 - hStart // num end blockers that have passed since setting the clock start
+					if elapsed <= 0 {
+						continue
+					}
+					if elapsed < int64(p.LivenessSlashBlocks) {
 						l := tracker.slashes[ra]
-						require.Zero(r, l, "expect not slashed")
+						require.Zero(r, l, "expect not slashed", "elapsed", elapsed, "rollapp", ra, "h", s.Ctx.BlockHeight())
 					} else {
-						expectedSlashes := int((elapsed-p.LivenessSlashBlocks)/p.LivenessSlashInterval) + 1
-						require.Equal(r, expectedSlashes, tracker.slashes[ra], "expect slashed", "rollapp", ra, "elapsed blocks", elapsed)
+						expectedSlashes := int((elapsed-int64(p.LivenessSlashBlocks))/int64(p.LivenessSlashInterval)) + 1
+						require.Equal(r, expectedSlashes, tracker.slashes[ra], "expect slashed",
+							"rollapp", ra, "elapsed blocks", elapsed, "h", s.Ctx.BlockHeight())
 					}
 				}
 			},
-			"set sequencer status": func(r *rapid.T) {
+			"indicate liveness (new proposer + state update)": func(r *rapid.T) {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
-				rollappIsDown[raID] = rapid.Bool().Draw(r, "down")
+				ra := s.k().MustGetRollapp(s.Ctx, raID)
+				// use intrusive method. Wiring is checked in state update test and hook test.
+				s.k().IndicateLiveness(s.Ctx, &ra)
+				s.k().SetRollapp(s.Ctx, ra)
+				hClockStart[raID] = s.Ctx.BlockHeight()
+				tracker.clear(raID)
 			},
-			"state update": func(r *rapid.T) {
+			"fork": func(r *rapid.T) {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
-				if !rollappIsDown[raID] {
-					ra := suite.keeper().MustGetRollapp(suite.Ctx, raID)
-					suite.keeper().IndicateLiveness(suite.Ctx, &ra)
-					suite.keeper().SetRollapp(suite.Ctx, ra)
-					hLastUpdate[raID] = suite.Ctx.BlockHeight()
-					tracker.clear(raID)
-				}
+				ra := s.k().MustGetRollapp(s.Ctx, raID)
+				// use intrusive method. Wiring is checked in fork test.
+				s.k().ResetLivenessClock(s.Ctx, &ra)
+				s.k().SetRollapp(s.Ctx, ra)
+				delete(hClockStart, raID)
+				tracker.clear(raID)
 			},
-			"hub end blocks": func(r *rapid.T) {
-				for range rapid.IntRange(0, 100).Draw(r, "num blocks") {
-					suite.nextBlock()
+			"end blocker": func(r *rapid.T) {
+				for range rapid.IntRange(0, 9).Draw(r, "num blocks") {
+					r.Log("Doing EB", s.Ctx.BlockHeight(), "slashes", tracker.slashes)
+					s.NextBlock(time.Second)
 				}
 			},
 		})
@@ -177,32 +219,20 @@ func (suite *RollappTestSuite) TestLivenessFlow() {
 }
 
 type livenessMockSequencerKeeper struct {
-	slashes map[string]int
+	keeper.SequencerKeeper
+	slashes map[string]int // rollapp->cnt
 }
 
-// GetSuccessor implements keeper.SequencerKeeper.
-func (l livenessMockSequencerKeeper) GetSuccessor(ctx sdk.Context, rollapp string) seqtypes.Sequencer {
-	panic("unimplemented")
-}
-
-func (l livenessMockSequencerKeeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
-	// TODO implement me
-	panic("implement me")
-}
-
-func newLivenessMockSequencerKeeper() livenessMockSequencerKeeper {
+func newLivenessMockSequencerKeeper(k keeper.SequencerKeeper) livenessMockSequencerKeeper {
 	return livenessMockSequencerKeeper{
-		make(map[string]int),
+		SequencerKeeper: k,
+		slashes:         make(map[string]int),
 	}
 }
 
 func (l livenessMockSequencerKeeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	l.slashes[rollappID]++
 	return nil
-}
-
-func (l livenessMockSequencerKeeper) GetProposer(ctx sdk.Context, rollappId string) seqtypes.Sequencer {
-	return seqtypes.Sequencer{}
 }
 
 func (l livenessMockSequencerKeeper) clear(rollappID string) {

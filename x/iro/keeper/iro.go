@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
@@ -64,7 +65,7 @@ func (k Keeper) MustGetPlanByRollapp(ctx sdk.Context, rollappId string) types.Pl
 	return plan
 }
 
-// GetAllPlans returns all plans
+// GetAllPlans returns plans sorted lexically by ID e.g. 1,10,100...
 func (k Keeper) GetAllPlans(ctx sdk.Context, tradableOnly bool) (list []types.Plan) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PlanKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
@@ -74,10 +75,33 @@ func (k Keeper) GetAllPlans(ctx sdk.Context, tradableOnly bool) (list []types.Pl
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Plan
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		if tradableOnly && !val.IsSettled() && !val.StartTime.After(ctx.BlockTime()) {
+		if tradableOnly && (val.IsSettled() || val.StartTime.After(ctx.BlockTime())) {
 			continue
 		}
 		list = append(list, val)
+	}
+
+	return
+}
+
+func (k Keeper) GetAllPlansPaginated(ctx sdk.Context, tradableOnly bool, pageReq *query.PageRequest) (list []types.Plan, pageRes *query.PageResponse, err error) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PlanKeyPrefix)
+
+	pageRes, err = query.Paginate(store, pageReq, func(key []byte, value []byte) error {
+		var val types.Plan
+		if er := k.cdc.Unmarshal(value, &val); er != nil {
+			return er
+		}
+
+		if tradableOnly && (val.IsSettled() || val.StartTime.After(ctx.BlockTime())) {
+			return nil
+		}
+
+		list = append(list, val)
+		return nil
+	})
+	if err != nil {
+		return
 	}
 
 	return

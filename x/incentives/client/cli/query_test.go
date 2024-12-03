@@ -30,10 +30,11 @@ func (suite *QueryTestSuite) CreateDefaultRollapp() string {
 	alice := sdk.AccAddress("addr1---------------")
 
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
-		Creator:   alice.String(),
-		RollappId: urand.RollappID(),
-		Alias:     strings.ToLower(tmrand.Str(7)),
-		VmType:    rollapptypes.Rollapp_EVM,
+		Creator:          alice.String(),
+		RollappId:        urand.RollappID(),
+		MinSequencerBond: rollapptypes.DefaultMinSequencerBondGlobalCoin,
+		Alias:            strings.ToLower(tmrand.Str(7)),
+		VmType:           rollapptypes.Rollapp_EVM,
 		GenesisInfo: &rollapptypes.GenesisInfo{
 			Bech32Prefix: strings.ToLower(tmrand.Str(3)),
 		},
@@ -48,7 +49,7 @@ func (suite *QueryTestSuite) CreateDefaultRollapp() string {
 }
 
 func (suite *QueryTestSuite) SetupSuite() {
-	suite.App = apptesting.Setup(suite.T(), false)
+	suite.App = apptesting.Setup(suite.T())
 	suite.Ctx = suite.App.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.Ctx, suite.App.InterfaceRegistry())

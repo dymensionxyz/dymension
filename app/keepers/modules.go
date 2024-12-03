@@ -81,6 +81,7 @@ import (
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
 	sequencermodule "github.com/dymensionxyz/dymension/v3/x/sequencer"
+	sequencermoduleclient "github.com/dymensionxyz/dymension/v3/x/sequencer/client"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	streamermodule "github.com/dymensionxyz/dymension/v3/x/streamer"
@@ -129,6 +130,7 @@ var ModuleBasics = module.NewBasicManager(
 		streamermoduleclient.TerminateStreamHandler,
 		streamermoduleclient.ReplaceStreamHandler,
 		streamermoduleclient.UpdateStreamHandler,
+		sequencermoduleclient.PunishSequencerHandler,
 		denommetadatamoduleclient.CreateDenomMetadataHandler,
 		denommetadatamoduleclient.UpdateDenomMetadataHandler,
 		dymnsmoduleclient.MigrateChainIdsProposalHandler,
@@ -201,11 +203,11 @@ func (a *AppKeepers) SetupModules(
 		params.NewAppModule(a.ParamsKeeper),
 		packetforwardmiddleware.NewAppModule(a.PacketForwardMiddlewareKeeper, a.GetSubspace(packetforwardtypes.ModuleName)),
 		ibctransfer.NewAppModule(a.TransferKeeper),
-		rollappmodule.NewAppModule(appCodec, a.RollappKeeper, a.AccountKeeper, a.BankKeeper),
+		rollappmodule.NewAppModule(appCodec, a.RollappKeeper),
 		iro.NewAppModule(appCodec, *a.IROKeeper),
 
-		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper, a.AccountKeeper, a.BankKeeper),
-		sponsorship.NewAppModule(a.SponsorshipKeeper),
+		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper),
+		sponsorship.NewAppModule(a.SponsorshipKeeper, a.AccountKeeper, a.BankKeeper, a.IncentivesKeeper, a.StakingKeeper),
 		streamermodule.NewAppModule(a.StreamerKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
 		delayedackmodule.NewAppModule(appCodec, a.DelayedAckKeeper, a.delayedAckMiddleware),
 		denommetadatamodule.NewAppModule(a.DenomMetadataKeeper, *a.EvmKeeper, a.BankKeeper),

@@ -13,12 +13,21 @@ import (
 // We set the maximum amount of genesis accounts to 100
 const maxAllowedGenesisAccounts = 100
 
+// Handling should be based on length and contents, not nil status
+func (gi GenesisInfo) Accounts() []GenesisAccount {
+	if gi.GenesisAccounts == nil {
+		return nil
+	}
+	return gi.GenesisAccounts.Accounts
+}
+
+func (gi GenesisInfo) RequiresTransfer() bool {
+	return 0 < len(gi.Accounts())
+}
+
 func (gi GenesisInfo) GenesisTransferAmount() math.Int {
 	total := math.ZeroInt()
-	if gi.GenesisAccounts == nil {
-		return total
-	}
-	for _, a := range gi.GenesisAccounts.Accounts {
+	for _, a := range gi.Accounts() {
 		total = total.Add(a.Amount)
 	}
 	return total
@@ -48,26 +57,25 @@ func (gi GenesisInfo) Validate() error {
 		}
 	}
 
-	if !gi.InitialSupply.IsNil() && !gi.InitialSupply.IsPositive() {
-		return ErrInvalidInitialSupply
+	if !gi.InitialSupply.IsNil() {
+		if !gi.InitialSupply.IsPositive() {
+			return ErrInvalidInitialSupply
+		}
 	}
 
-	// validate max limit of genesis accounts
-	if gi.GenesisAccounts != nil {
-		if len(gi.GenesisAccounts.Accounts) > maxAllowedGenesisAccounts {
-			return fmt.Errorf("too many genesis accounts: %d", len(gi.GenesisAccounts.Accounts))
-		}
+	if l := len(gi.Accounts()); l > maxAllowedGenesisAccounts {
+		return fmt.Errorf("too many genesis accounts: %d", l)
+	}
 
-		accountSet := make(map[string]struct{})
-		for _, a := range gi.GenesisAccounts.Accounts {
-			if err := a.ValidateBasic(); err != nil {
-				return errors.Join(gerrc.ErrInvalidArgument, err)
-			}
-			if _, exists := accountSet[a.Address]; exists {
-				return fmt.Errorf("duplicate genesis account: %s", a.Address)
-			}
-			accountSet[a.Address] = struct{}{}
+	accountSet := make(map[string]struct{})
+	for _, a := range gi.Accounts() {
+		if err := a.ValidateBasic(); err != nil {
+			return errors.Join(gerrc.ErrInvalidArgument, err)
 		}
+		if _, exists := accountSet[a.Address]; exists {
+			return fmt.Errorf("duplicate genesis account: %s", a.Address)
+		}
+		accountSet[a.Address] = struct{}{}
 	}
 	return nil
 }

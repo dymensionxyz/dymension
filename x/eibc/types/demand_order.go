@@ -104,17 +104,22 @@ func (m *DemandOrder) GetFulfilledEvent() *EventDemandOrderFulfilled {
 	}
 }
 
-func (m *DemandOrder) GetFulfilledAuthorizedEvent(creationHeight uint64, lpAddress string) *EventDemandOrderFulfilledAuthorized {
+func (m *DemandOrder) GetFulfilledAuthorizedEvent(
+	creationHeight uint64,
+	lpAddress, operatorAddress, operatorFee string,
+) *EventDemandOrderFulfilledAuthorized {
 	return &EventDemandOrderFulfilledAuthorized{
-		OrderId:        m.Id,
-		Price:          m.Price.String(),
-		Fee:            m.Fee.String(),
-		IsFulfilled:    true,
-		PacketStatus:   m.TrackingPacketStatus.String(),
-		Fulfiller:      m.FulfillerAddress,
-		PacketType:     m.Type.String(),
-		CreationHeight: creationHeight,
-		LpAddress:      lpAddress,
+		OrderId:         m.Id,
+		Price:           m.Price.String(),
+		Fee:             m.Fee.String(),
+		IsFulfilled:     true,
+		PacketStatus:    m.TrackingPacketStatus.String(),
+		Fulfiller:       m.FulfillerAddress,
+		PacketType:      m.Type.String(),
+		CreationHeight:  creationHeight,
+		LpAddress:       lpAddress,
+		OperatorAddress: operatorAddress,
+		OperatorFee:     operatorFee,
 	}
 }
 

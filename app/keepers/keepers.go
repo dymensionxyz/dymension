@@ -92,6 +92,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencermodule "github.com/dymensionxyz/dymension/v3/x/sequencer"
 	sequencermodulekeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
@@ -295,13 +296,6 @@ func (a *AppKeepers) InitKeepers(
 
 	// Osmosis keepers
 
-	a.LockupKeeper = lockupkeeper.NewKeeper(
-		a.keys[lockuptypes.StoreKey],
-		a.GetSubspace(lockuptypes.ModuleName),
-		a.AccountKeeper,
-		a.BankKeeper,
-	)
-
 	a.EpochsKeeper = epochskeeper.NewKeeper(
 		a.keys[epochstypes.StoreKey],
 	)
@@ -336,6 +330,14 @@ func (a *AppKeepers) InitKeepers(
 
 	a.GAMMKeeper.SetPoolManager(a.PoolManagerKeeper)
 	a.GAMMKeeper.SetTxFees(a.TxFeesKeeper)
+
+	a.LockupKeeper = lockupkeeper.NewKeeper(
+		a.keys[lockuptypes.StoreKey],
+		a.GetSubspace(lockuptypes.ModuleName),
+		a.AccountKeeper,
+		a.BankKeeper,
+		a.TxFeesKeeper,
+	)
 
 	// Create IBC Keeper
 	a.IBCKeeper = ibckeeper.NewKeeper(
@@ -472,7 +474,11 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[ibctransfertypes.StoreKey],
 		a.GetSubspace(ibctransfertypes.ModuleName),
-		denommetadatamodule.NewICS4Wrapper(a.IBCKeeper.ChannelKeeper, a.RollappKeeper, a.BankKeeper),
+		genesisbridge.NewICS4Wrapper(
+			denommetadatamodule.NewICS4Wrapper(a.IBCKeeper.ChannelKeeper, a.RollappKeeper, a.BankKeeper),
+			a.RollappKeeper,
+			a.IBCKeeper.ChannelKeeper,
+		),
 		a.IBCKeeper.ChannelKeeper,
 		&a.IBCKeeper.PortKeeper,
 		a.AccountKeeper,
@@ -504,6 +510,7 @@ func (a *AppKeepers) InitKeepers(
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(a.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(a.IBCKeeper.ClientKeeper)).
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(a.StreamerKeeper)).
+		AddRoute(sequencermoduletypes.RouterKey, sequencermodule.NewSequencerProposalHandler(*a.SequencerKeeper)).
 		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(a.DenomMetadataKeeper)).
 		AddRoute(dymnstypes.RouterKey, dymnsmodule.NewDymNsProposalHandler(a.DymNSKeeper)).
 		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(a.EvmKeeper))
@@ -540,7 +547,6 @@ func (a *AppKeepers) InitTransferStack() {
 		a.DelayedAckKeeper,
 		a.TransferKeeper,
 		*a.TxFeesKeeper,
-		a.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName),
 	)
 	a.TransferStack = packetforwardmiddleware.NewIBCMiddleware(
 		a.TransferStack,

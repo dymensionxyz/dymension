@@ -5,23 +5,22 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
-	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/stretchr/testify/suite"
 
+	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 var successAck = channeltypes.CommitAcknowledgement(channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement())
@@ -78,7 +77,7 @@ func (s *transferGenesisSuite) TestHappyPath_NoGenesisAccounts() {
 
 	rollapp = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 	// assert the transfers are enabled
-	s.Require().True(rollapp.GenesisState.TransfersEnabled)
+	s.Require().True(rollapp.GenesisState.IsTransferEnabled())
 
 	// assert denom registered
 	expectedIBCdenom := types.ParseDenomTrace(types.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, rollapp.GenesisInfo.NativeDenom.Base)).IBCDenom()
@@ -161,7 +160,7 @@ func (s *transferGenesisSuite) TestIRO() {
 
 	// assert the transfers are enabled
 	rollapp = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
-	s.Require().True(rollapp.GenesisState.TransfersEnabled)
+	s.Require().True(rollapp.GenesisState.IsTransferEnabled())
 
 	// the iro plan should be settled
 	plan, found := s.hubApp().IROKeeper.GetPlanByRollapp(s.hubCtx(), rollappChainID())
@@ -232,7 +231,7 @@ func (s *transferGenesisSuite) TestInvalidGenesisDenomMetadata() {
 	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 
 	packet := s.genesisBridgePacket(rollapp.GenesisInfo)
-	var gb genesisbridge.GenesisBridgeData
+	var gb rollapptypes.GenesisBridgeData
 	err := json.Unmarshal(packet.Data, &gb)
 	s.Require().NoError(err)
 
@@ -277,7 +276,7 @@ func (s *transferGenesisSuite) TestInvalidGenesisTransfer() {
 	packet := s.genesisBridgePacket(rollapp.GenesisInfo)
 
 	// change the amount in the genesis transfer
-	var gb genesisbridge.GenesisBridgeData
+	var gb rollapptypes.GenesisBridgeData
 	err := json.Unmarshal(packet.Data, &gb)
 	s.Require().NoError(err)
 	gb.GenesisTransfer.Amount = "1242353645"
@@ -347,7 +346,7 @@ func (s *transferGenesisSuite) TestBridgeDisabledEnabled() {
 
 	// assert the transfers are enabled
 	rollapp = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
-	s.Require().True(rollapp.GenesisState.TransfersEnabled)
+	s.Require().True(rollapp.GenesisState.IsTransferEnabled())
 
 	// assert the transfer now goes through
 	res, err = s.rollappChain().SendMsgs(msg)
@@ -366,7 +365,7 @@ func (s *transferGenesisSuite) genesisBridgePacket(raGenesisInfo rollapptypes.Ge
 	display := raGenesisInfo.NativeDenom.Display
 	initialSupply := raGenesisInfo.InitialSupply
 
-	var gb genesisbridge.GenesisBridgeData
+	var gb rollapptypes.GenesisBridgeData
 
 	meta := banktypes.Metadata{
 		DenomUnits: []*banktypes.DenomUnit{
@@ -385,7 +384,7 @@ func (s *transferGenesisSuite) genesisBridgePacket(raGenesisInfo rollapptypes.Ge
 	}
 	s.Require().NoError(meta.Validate()) // sanity check the test is written correctly
 
-	gb.GenesisInfo = genesisbridge.GenesisBridgeInfo{
+	gb.GenesisInfo = rollapptypes.GenesisBridgeInfo{
 		GenesisChecksum: "checksum",
 		Bech32Prefix:    "ethm",
 		NativeDenom: rollapptypes.DenomMetadata{
@@ -399,21 +398,17 @@ func (s *transferGenesisSuite) genesisBridgePacket(raGenesisInfo rollapptypes.Ge
 	gb.NativeDenom = meta
 
 	// add genesis transfer if needed
-	if raGenesisInfo.GenesisAccounts != nil {
-		total := math.ZeroInt()
-		for _, acc := range raGenesisInfo.GenesisAccounts.Accounts {
-			total = total.Add(acc.Amount)
-		}
+	if raGenesisInfo.RequiresTransfer() {
 
 		gTransfer := transfertypes.NewFungibleTokenPacketData(
 			denom,
-			total.String(),
+			raGenesisInfo.GenesisTransferAmount().String(),
 			s.rollappChain().SenderAccount.GetAddress().String(),
-			genesisbridge.HubRecipient,
+			rollapptypes.HubRecipient,
 			"",
 		)
 		gb.GenesisTransfer = &gTransfer
-		gb.GenesisInfo.GenesisAccounts = raGenesisInfo.GenesisAccounts.Accounts
+		gb.GenesisInfo.GenesisAccounts = raGenesisInfo.Accounts()
 	}
 
 	bz, err := json.Marshal(gb)

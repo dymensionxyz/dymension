@@ -23,11 +23,14 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
+	lightclienttypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -108,6 +111,10 @@ func (s *utilSuite) rollappMsgServer() rollapptypes.MsgServer {
 	return rollappkeeper.NewMsgServerImpl(s.hubApp().RollappKeeper)
 }
 
+func (s *utilSuite) lightclientMsgServer() lightclienttypes.MsgServer {
+	return lightclientkeeper.NewMsgServerImpl(&s.hubApp().LightClientKeeper)
+}
+
 // SetupTest creates a coordinator with 2 test chains.
 func (s *utilSuite) SetupTest() {
 	// this is used as default when creating blocks.
@@ -129,6 +136,7 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		s.hubChain().SenderAccount.GetAddress().String(),
 		rollappChainID(),
 		s.hubChain().SenderAccount.GetAddress().String(),
+		rollapptypes.DefaultMinSequencerBondGlobalCoin,
 		strings.ToLower(tmrand.Str(7)),
 		rollapptypes.Rollapp_EVM,
 		&rollapptypes.RollappMetadata{
@@ -161,7 +169,10 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		a := s.hubApp()
 		ra := a.RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 		ra.ChannelId = *channelID
-		ra.GenesisState.TransfersEnabled = transfersEnabled
+		ra.GenesisState.TransferProofHeight = 0
+		if transfersEnabled {
+			ra.GenesisState.TransferProofHeight = 1
+		}
 		a.RollappKeeper.SetRollapp(s.hubCtx(), ra)
 	}
 }
@@ -174,7 +185,7 @@ func (s *transferGenesisSuite) addGenesisAccounts(genesisAccounts []rollapptypes
 	if rollapp.GenesisInfo.GenesisAccounts == nil {
 		rollapp.GenesisInfo.GenesisAccounts = &rollapptypes.GenesisAccounts{}
 	}
-	rollapp.GenesisInfo.GenesisAccounts.Accounts = append(rollapp.GenesisInfo.GenesisAccounts.Accounts, genesisAccounts...)
+	rollapp.GenesisInfo.GenesisAccounts.Accounts = append(rollapp.GenesisInfo.Accounts(), genesisAccounts...)
 	s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), rollapp)
 }
 
@@ -185,7 +196,7 @@ func (s *utilSuite) setRollappLightClientID(chainID, clientID string) {
 }
 
 func (s *utilSuite) registerSequencer() {
-	bond := sequencertypes.DefaultParams().MinBond
+	bond := rollapptypes.DefaultMinSequencerBondGlobalCoin
 	// fund account
 	err := bankutil.FundAccount(s.hubApp().BankKeeper, s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(bond))
 	s.Require().Nil(err)
@@ -287,17 +298,8 @@ func (s *utilSuite) getRollappToHubIBCDenomFromPacket(packet channeltypes.Packet
 	var data transfertypes.FungibleTokenPacketData
 	err := eibctypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data)
 	s.Require().NoError(err)
-	return s.getIBCDenomForChannel(packet.GetDestChannel(), data.Denom)
-}
 
-func (s *utilSuite) getIBCDenomForChannel(channel string, denom string) string {
-	// since SendPacket did not prefix the denomination, we must prefix denomination here
-	sourcePrefix := types.GetDenomPrefix("transfer", channel)
-	// NOTE: sourcePrefix contains the trailing "/"
-	prefixedDenom := sourcePrefix + denom
-	// construct the denomination trace from the full raw denomination
-	denomTrace := types.ParseDenomTrace(prefixedDenom)
-	return denomTrace.IBCDenom()
+	return denomutils.GetIncomingTransferDenom(packet, data)
 }
 
 func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctesting.Coordinator, chainID string) *ibctesting.TestChain {

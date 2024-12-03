@@ -43,16 +43,9 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 		return nil, err
 	}
 
-	// validate the rollapp is past its genesis bridge phase
-	if !rollapp.IsTransferEnabled() {
-		err := errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp is not past genesis bridge phase")
-		ctx.Logger().Error("Fraud proposal.", err)
-		return nil, err
-	}
-
 	// punish the sequencer if needed
 	if msg.PunishSequencerAddress != "" {
-		err := k.sequencerKeeper.PunishSequencer(ctx, msg.PunishSequencerAddress, msg.MustRewardee())
+		err := k.SequencerK.PunishSequencer(ctx, msg.PunishSequencerAddress, msg.MustRewardee())
 		if err != nil {
 			err = errorsmod.Wrap(err, "jail sequencer")
 			ctx.Logger().Error("Fraud proposal.", err)
@@ -64,7 +57,7 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 	// it will revert the future pending states to the specified height
 	// and increment the revision number
 	// will fail if state already finalized
-	err := k.HardFork(ctx, msg.RollappId, msg.FraudHeight)
+	err := k.HardFork(ctx, msg.RollappId, msg.FraudHeight-1)
 	if err != nil {
 		err = errorsmod.Wrap(err, "hard fork")
 		ctx.Logger().Error("Fraud proposal.", err)

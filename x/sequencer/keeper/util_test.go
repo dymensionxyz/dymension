@@ -29,7 +29,7 @@ var (
 
 	// TODO: use separate cosmos/dymint pubkeys in tests https://github.com/dymensionxyz/dymension/issues/1360
 
-	bond = types.DefaultParams().MinBond
+	bond = rollapptypes.DefaultMinSequencerBondGlobalCoin
 	kick = types.DefaultParams().KickThreshold
 	pks  = []cryptotypes.PubKey{
 		randomTMPubKey(),
@@ -86,7 +86,7 @@ func TestSequencerKeeperTestSuite(t *testing.T) {
 }
 
 func (s *SequencerTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
+	app := apptesting.Setup(s.T())
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
@@ -135,9 +135,18 @@ func (s *SequencerTestSuite) createRollappWithInitialSeqConstraint(initSeq strin
 			InitialSupply:   sdk.NewInt(1000),
 		},
 		InitialSequencer: initSeq,
+		GenesisState:     rollapptypes.RollappGenesisState{TransferProofHeight: 1},
+		MinSequencerBond: sdk.NewCoins(rollapptypes.DefaultMinSequencerBondGlobalCoin),
 	}
 	s.raK().SetRollapp(s.Ctx, rollapp)
-	return rollapp
+	return s.raK().MustGetRollapp(s.Ctx, rollapp.RollappId)
+}
+
+func (s *SequencerTestSuite) submitAFewRollappStates(rollapp string) {
+	p := s.k().GetProposer(s.Ctx, rollapp)
+	h, _ := s.App.RollappKeeper.GetLatestHeight(s.Ctx, rollapp)
+	_, err := s.KeeperTestHelper.PostStateUpdate(s.Ctx, rollapp, p.Address, h, 10)
+	s.Require().NoError(err)
 }
 
 // Note: this method doesn't really mimic real usage

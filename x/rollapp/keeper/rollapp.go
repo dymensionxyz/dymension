@@ -39,6 +39,13 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 		current.InitialSequencer = update.InitialSequencer
 	}
 
+	if types.IsUpdateMinSeqBond(update.MinSequencerBond) {
+		if err := k.validMinBond(ctx, update.MinSequencerBond); err != nil {
+			return current, errorsmod.Wrap(err, "valid min bond")
+		}
+		current.MinSequencerBond = sdk.NewCoins(update.MinSequencerBond)
+	}
+
 	if update.GenesisInfo != nil {
 		if update.GenesisInfo.GenesisChecksum != "" {
 			current.GenesisInfo.GenesisChecksum = update.GenesisInfo.GenesisChecksum
@@ -56,11 +63,8 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 			current.GenesisInfo.InitialSupply = update.GenesisInfo.InitialSupply
 		}
 
-		if update.GenesisInfo.GenesisAccounts != nil {
-			current.GenesisInfo.GenesisAccounts = update.GenesisInfo.GenesisAccounts
-		} else if current.GenesisInfo.GenesisAccounts != nil {
-			current.GenesisInfo.GenesisAccounts.Accounts = nil
-		}
+		// Frontend always passes new value
+		current.GenesisInfo.GenesisAccounts = update.GenesisInfo.GenesisAccounts
 	}
 
 	if update.Metadata != nil && !update.Metadata.IsEmpty() {

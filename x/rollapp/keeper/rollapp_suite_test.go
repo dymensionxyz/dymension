@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"strconv"
+	_ "strconv"
 	"testing"
 
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -18,13 +18,11 @@ import (
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// Prevent strconv unused error
-var _ = strconv.IntSize
-
 const (
 	alice           = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
 	bob             = "dym1d0wlmz987qlurs6e3kc6zd25z6wsdmnwx8tafy"
 	registrationFee = "1000000000000000000adym"
+	hubChainID      = "dymension_100-1"
 )
 
 type RollappTestSuite struct {
@@ -34,51 +32,46 @@ type RollappTestSuite struct {
 	queryClient  types.QueryClient
 }
 
-func (suite *RollappTestSuite) SetupTest() {
-	app := apptesting.Setup(suite.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+func TestRollappKeeperTestSuite(t *testing.T) {
+	suite.Run(t, new(RollappTestSuite))
+}
+
+func (s *RollappTestSuite) SetupTest() {
+	app := apptesting.Setup(s.T())
+	s.App = app
+	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{ChainID: hubChainID})
 
 	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 	regFee, _ := sdk.ParseCoinNormalized(registrationFee)
-	app.RollappKeeper.SetParams(ctx, types.DefaultParams().WithDisputePeriodInBlocks(2))
+	s.k().SetParams(ctx, types.DefaultParams().WithDisputePeriodInBlocks(2))
 
 	aliceBal := sdk.NewCoins(regFee.AddAmount(regFee.Amount.Mul(sdk.NewInt(50))))
 	apptesting.FundAccount(app, ctx, sdk.MustAccAddressFromBech32(alice), aliceBal)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, app.RollappKeeper)
+	types.RegisterQueryServer(queryHelper, s.k())
 	queryClient := types.NewQueryClient(queryHelper)
 
-	suite.App = app
-	suite.msgServer = keeper.NewMsgServerImpl(app.RollappKeeper)
-	suite.seqMsgServer = sequencerkeeper.NewMsgServerImpl(app.SequencerKeeper)
-	suite.Ctx = ctx
-	suite.queryClient = queryClient
+	s.msgServer = keeper.NewMsgServerImpl(s.k())
+	s.seqMsgServer = sequencerkeeper.NewMsgServerImpl(app.SequencerKeeper)
+	s.Ctx = ctx
+	s.queryClient = queryClient
 }
 
-func (suite *RollappTestSuite) keeper() *keeper.Keeper {
-	return suite.App.RollappKeeper
+func (s *RollappTestSuite) k() *keeper.Keeper {
+	return s.App.RollappKeeper
 }
 
-func (suite *RollappTestSuite) nextBlock() {
-	h := suite.Ctx.BlockHeight()
-	suite.Ctx = suite.Ctx.WithBlockHeight(h + 1)
+func (s *RollappTestSuite) assertNotForked(rollappID string) {
+	rollapp, _ := s.k().GetRollapp(s.Ctx, rollappID)
+	s.Zero(rollapp.LatestRevision().Number)
 }
 
-func TestRollappKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(RollappTestSuite))
-}
-
-func (suite *RollappTestSuite) assertNotForked(rollappID string) {
-	rollapp, _ := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappID)
-	suite.Zero(rollapp.LatestRevision().Number)
-}
-
-func (suite *RollappTestSuite) GetRollappLastHeight(rollappID string) uint64 {
-	stateInfo, ok := suite.App.RollappKeeper.GetLatestStateInfo(suite.Ctx, rollappID)
-	suite.Require().True(ok)
+func (s *RollappTestSuite) GetRollappLastHeight(rollappID string) uint64 {
+	stateInfo, ok := s.k().GetLatestStateInfo(s.Ctx, rollappID)
+	s.Require().True(ok)
 	return stateInfo.GetLatestHeight()
 }

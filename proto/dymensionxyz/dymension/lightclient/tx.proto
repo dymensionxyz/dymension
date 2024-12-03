@@ -1,0 +1,27 @@
+syntax = "proto3";
+package dymensionxyz.dymension.lightclient;
+
+import "cosmos/msg/v1/msg.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/lightclient/types";
+
+service Msg {
+  rpc SetCanonicalClient(MsgSetCanonicalClient) returns (MsgSetCanonicalClientResponse);
+}
+
+// verify a client state and its consensus states against the rollapp
+// if it matches, set the client as the canonical client for the rollapp
+// NOTE: this definition is also copied to the relayer code
+message MsgSetCanonicalClient {
+  option (cosmos.msg.v1.signer) = "signer";
+  string signer = 1;
+  // id of ibc client state
+  string client_id = 2;
+}
+
+message MsgSetCanonicalClientResponse {
+}
+

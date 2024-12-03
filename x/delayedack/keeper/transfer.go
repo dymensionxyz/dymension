@@ -16,30 +16,20 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 	packet channeltypes.Packet,
 	packetType commontypes.RollappPacket_Type,
 ) (data types.TransferDataWithFinalization, err error) {
-	var port string
-	var channel string
+	port, channel := commontypes.PacketHubPortChan(packetType, packet)
 
-	switch packetType {
-	case commontypes.RollappPacket_ON_RECV:
-		port, channel = packet.GetDestPort(), packet.GetDestChannel()
-	case commontypes.RollappPacket_ON_TIMEOUT, commontypes.RollappPacket_ON_ACK:
-		port, channel = packet.GetSourcePort(), packet.GetSourceChannel()
+	height, err := commontypes.UnpackPacketProofHeight(ctx, packet, packetType)
+	if err != nil {
+		err = errorsmod.Wrap(err, "unpack packet proof height")
+		return
 	}
+	data.ProofHeight = height
 
 	data.TransferData, err = k.rollappKeeper.GetValidTransfer(ctx, packet.GetData(), port, channel)
 	if err != nil {
 		err = errorsmod.Wrap(err, "get valid transfer data")
 		return
 	}
-
-	packetID := commontypes.NewPacketUID(packetType, port, channel, packet.Sequence)
-	height, ok := types.PacketProofHeightFromCtx(ctx, packetID)
-	if !ok {
-		// TODO: should probably be a panic
-		err = errorsmod.Wrapf(gerrc.ErrNotFound, "get proof height from context: packetID: %s", packetID)
-		return
-	}
-	data.ProofHeight = height.RevisionHeight
 
 	if !data.IsRollapp() {
 		return

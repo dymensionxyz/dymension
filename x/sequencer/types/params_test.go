@@ -21,20 +21,8 @@ func TestValidateBasic(t *testing.T) {
 			false,
 		},
 		{
-			"invalid min bond",
-			Params{
-				MinBond:                    sdk.Coin{Denom: "testdenom", Amount: sdk.NewInt(-5)},
-				NoticePeriod:               params.NoticePeriod,
-				LivenessSlashMinMultiplier: params.LivenessSlashMinMultiplier,
-				LivenessSlashMinAbsolute:   params.LivenessSlashMinAbsolute,
-				KickThreshold:              params.KickThreshold,
-			},
-			true,
-		},
-		{
 			"invalid notice period",
 			Params{
-				MinBond:                    params.MinBond,
 				NoticePeriod:               0,
 				LivenessSlashMinMultiplier: params.LivenessSlashMinMultiplier,
 				LivenessSlashMinAbsolute:   params.LivenessSlashMinAbsolute,
@@ -45,7 +33,6 @@ func TestValidateBasic(t *testing.T) {
 		{
 			"invalid liveness slash multiplier",
 			Params{
-				MinBond:                    params.MinBond,
 				NoticePeriod:               params.NoticePeriod,
 				LivenessSlashMinMultiplier: sdk.NewDec(-1),
 				LivenessSlashMinAbsolute:   params.LivenessSlashMinAbsolute,

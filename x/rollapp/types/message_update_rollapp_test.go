@@ -1,7 +1,7 @@
 package types
 
 import (
-	fmt "fmt"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -91,6 +91,66 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				},
 			},
 			err: ErrInvalidURL,
+		},
+		{
+			name: "invalid metadata: too many tags",
+			msg: MsgUpdateRollappInformation{
+				Owner:            sample.AccAddress(),
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				GenesisInfo: &GenesisInfo{
+					Bech32Prefix:    bech32Prefix,
+					GenesisChecksum: "checksum",
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					InitialSupply:   sdk.NewInt(1000),
+				},
+				Metadata: &RollappMetadata{
+					Website:     "https://dymension.xyz",
+					Description: "Sample description",
+					Tags:        []string{"tag1", "tag2", "tag3", "tag4"},
+				},
+			},
+			err: ErrTooManyTags,
+		},
+		{
+			name: "invalid metadata: invalid tag",
+			msg: MsgUpdateRollappInformation{
+				Owner:            sample.AccAddress(),
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				GenesisInfo: &GenesisInfo{
+					Bech32Prefix:    bech32Prefix,
+					GenesisChecksum: "checksum",
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					InitialSupply:   sdk.NewInt(1000),
+				},
+				Metadata: &RollappMetadata{
+					Website:     "https://dymension.xyz",
+					Description: "Sample description",
+					Tags:        []string{"invalid"},
+				},
+			},
+			err: ErrInvalidTag,
+		},
+		{
+			name: "invalid metadata: duplicate tag",
+			msg: MsgUpdateRollappInformation{
+				Owner:            sample.AccAddress(),
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				GenesisInfo: &GenesisInfo{
+					Bech32Prefix:    bech32Prefix,
+					GenesisChecksum: "checksum",
+					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+					InitialSupply:   sdk.NewInt(1000),
+				},
+				Metadata: &RollappMetadata{
+					Website:     "https://dymension.xyz",
+					Description: "Sample description",
+					Tags:        []string{"AI", "DeFI", "AI"},
+				},
+			},
+			err: ErrDuplicateTag,
 		},
 		{
 			name: "invalid genesis checksum: too long",

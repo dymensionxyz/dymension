@@ -7,6 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/utils/uinv"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -126,7 +127,7 @@ func InvariantTokens(k Keeper) uinv.Func {
 		var errs []error
 
 		for _, seq := range k.AllSequencers(ctx) {
-			err := checkSeqTokens(ctx, seq, k)
+			err := checkSeqTokens(seq)
 			err = errorsmod.Wrapf(err, "sequencer: %s", seq.Address)
 			errs = append(errs, err)
 		}
@@ -135,7 +136,7 @@ func InvariantTokens(k Keeper) uinv.Func {
 			return err
 		}
 
-		total := sdk.NewCoin(k.bondDenom(ctx), sdk.ZeroInt())
+		total := sdk.NewCoin(commontypes.DYMCoin.Denom, sdk.ZeroInt())
 		for _, seq := range k.AllSequencers(ctx) {
 			total = total.Add(seq.TokensCoin())
 		}
@@ -155,11 +156,11 @@ func InvariantTokens(k Keeper) uinv.Func {
 	})
 }
 
-func checkSeqTokens(ctx sdk.Context, seq types.Sequencer, k Keeper) error {
+func checkSeqTokens(seq types.Sequencer) error {
 	if err := seq.ValidateBasic(); err != nil {
 		return errorsmod.Wrap(err, "validate basic")
 	}
-	if err := k.validBondDenom(ctx, seq.TokensCoin()); err != nil {
+	if err := validBondDenom(seq.TokensCoin()); err != nil {
 		return errorsmod.Wrap(err, "valid bond denom")
 	}
 	if seq.TokensCoin().Amount.IsNegative() {

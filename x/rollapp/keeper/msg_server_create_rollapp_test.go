@@ -13,46 +13,50 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (suite *RollappTestSuite) TestCreateRollapp() {
-	suite.SetupTest()
-	suite.createRollapp(nil)
+func (s *RollappTestSuite) TestCreateRollapp() {
+	s.SetupTest()
+	s.createRollapp(nil)
 }
 
-func (suite *RollappTestSuite) TestCreateRollappUnauthorizedRollappCreator() {
-	suite.SetupTest()
-	suite.createRollappWithCreatorAndVerify(sdkerrors.ErrInsufficientFunds, bob, false) // bob is broke
+func (s *RollappTestSuite) TestCreateRollappUnauthorizedRollappCreator() {
+	s.SetupTest()
+	s.createRollappWithCreatorAndVerify(sdkerrors.ErrInsufficientFunds, bob, false) // bob is broke
 }
 
-func (suite *RollappTestSuite) TestCreateRollappWithBechGenesisSum() {
-	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
+func (s *RollappTestSuite) TestCreateRollappWithBechGenesisSum() {
+	s.SetupTest()
+	goCtx := sdk.WrapSDKContext(s.Ctx)
 
 	rollapp := types.MsgCreateRollapp{
 		Creator:          alice,
 		RollappId:        "rollapp_1234-1",
 		InitialSequencer: sample.AccAddress(),
-		Alias:            "rollapp",
-		VmType:           types.Rollapp_EVM,
-		GenesisInfo:      mockGenesisInfo,
+		MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin,
+
+		Alias:       "rollapp",
+		VmType:      types.Rollapp_EVM,
+		GenesisInfo: mockGenesisInfo,
 	}
-	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
-	suite.Require().NoError(err)
+	_, err := s.msgServer.CreateRollapp(goCtx, &rollapp)
+	s.Require().NoError(err)
 }
 
-func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
-	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
+func (s *RollappTestSuite) TestCreateRollappAlreadyExists() {
+	s.SetupTest()
+	goCtx := sdk.WrapSDKContext(s.Ctx)
 
 	rollapp := types.MsgCreateRollapp{
 		Creator:          alice,
 		RollappId:        "rollapp_1234-1",
 		InitialSequencer: sample.AccAddress(),
-		Alias:            "rollapp",
-		VmType:           types.Rollapp_EVM,
+		MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin,
+
+		Alias:  "rollapp",
+		VmType: types.Rollapp_EVM,
 	}
 
-	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
-	suite.Require().NoError(err)
+	_, err := s.msgServer.CreateRollapp(goCtx, &rollapp)
+	s.Require().NoError(err)
 
 	tests := []struct {
 		name      string
@@ -74,7 +78,7 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 		},
 	}
 	for _, test := range tests {
-		suite.Run(test.name, func() {
+		s.Run(test.name, func() {
 			newRollapp := types.MsgCreateRollapp{
 				Creator:     alice,
 				RollappId:   test.rollappId,
@@ -83,15 +87,15 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 				GenesisInfo: mockGenesisInfo,
 			}
 
-			suite.FundForAliasRegistration(newRollapp)
+			s.FundForAliasRegistration(newRollapp)
 
-			_, err := suite.msgServer.CreateRollapp(goCtx, &newRollapp)
-			suite.Require().ErrorIs(err, test.expErr)
+			_, err := s.msgServer.CreateRollapp(goCtx, &newRollapp)
+			s.Require().ErrorIs(err, test.expErr)
 		})
 	}
 }
 
-func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
+func (s *RollappTestSuite) TestOverwriteEIP155Key() {
 	tests := []struct {
 		name         string
 		rollappId    string
@@ -109,29 +113,31 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 		},
 	}
 	for _, test := range tests {
-		suite.Run(test.name, func() {
-			suite.SetupTest()
-			goCtx := sdk.WrapSDKContext(suite.Ctx)
+		s.Run(test.name, func() {
+			s.SetupTest()
+			goCtx := sdk.WrapSDKContext(s.Ctx)
 			rollapp := types.MsgCreateRollapp{
 				Creator:          alice,
 				RollappId:        test.rollappId,
 				InitialSequencer: sample.AccAddress(),
-				Alias:            "alias",
-				VmType:           types.Rollapp_EVM,
-				GenesisInfo:      mockGenesisInfo,
+				MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin,
+
+				Alias:       "alias",
+				VmType:      types.Rollapp_EVM,
+				GenesisInfo: mockGenesisInfo,
 			}
-			suite.FundForAliasRegistration(rollapp)
-			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
-			suite.Require().NoError(err)
+			s.FundForAliasRegistration(rollapp)
+			_, err := s.msgServer.CreateRollapp(goCtx, &rollapp)
+			s.Require().NoError(err)
 
 			id, err := types.NewChainID(test.rollappId)
-			suite.Require().NoError(err)
-			suite.Require().NotEqual(0, id.GetEIP155ID())
+			s.Require().NoError(err)
+			s.Require().NotEqual(0, id.GetEIP155ID())
 
 			// eip155 key registers to correct rollapp
-			rollappFromEip1155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, id.GetEIP155ID())
-			suite.Require().True(found)
-			suite.Require().Equal(rollappFromEip1155.RollappId, rollapp.RollappId)
+			rollappFromEip1155, found := s.k().GetRollappByEIP155(s.Ctx, id.GetEIP155ID())
+			s.Require().True(found)
+			s.Require().Equal(rollappFromEip1155.RollappId, rollapp.RollappId)
 
 			// create bad rollapp
 			badRollapp := types.MsgCreateRollapp{
@@ -142,43 +148,43 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 				VmType:           types.Rollapp_EVM,
 				GenesisInfo:      mockGenesisInfo,
 			}
-			suite.FundForAliasRegistration(rollapp)
-			_, err = suite.msgServer.CreateRollapp(goCtx, &badRollapp)
+			s.FundForAliasRegistration(rollapp)
+			_, err = s.msgServer.CreateRollapp(goCtx, &badRollapp)
 			// it should not be possible to register rollapp name with extra space
-			suite.Require().ErrorIs(err, types.ErrRollappExists)
+			s.Require().ErrorIs(err, types.ErrRollappExists)
 		})
 	}
 }
 
-func (suite *RollappTestSuite) createRollapp(expectedErr error) {
+func (s *RollappTestSuite) createRollapp(expectedErr error) {
 	// rollappsExpect is the expected result of query all
 	var rollappsExpect []*types.RollappSummary
 
 	// test 10 rollapp creations
 	for i := 0; i < 10; i++ {
-		res := suite.createRollappAndVerify(expectedErr)
+		res := s.createRollappAndVerify(expectedErr)
 		rollappsExpect = append(rollappsExpect, &res)
 	}
 
 	// verify that query all contains all the rollapps that were created
-	rollappsRes, totalRes := getAll(suite)
+	rollappsRes, totalRes := getAll(s)
 	if expectedErr != nil {
-		suite.Require().EqualValues(totalRes, 0)
+		s.Require().EqualValues(totalRes, 0)
 		return
 	} else {
-		suite.Require().EqualValues(totalRes, 10)
-		verifyAll(suite, rollappsExpect, rollappsRes)
+		s.Require().EqualValues(totalRes, 10)
+		verifyAll(s, rollappsExpect, rollappsRes)
 	}
 }
 
-func (suite *RollappTestSuite) createRollappAndVerify(expectedErr error) types.RollappSummary {
-	return suite.createRollappWithCreatorAndVerify(expectedErr, alice, true)
+func (s *RollappTestSuite) createRollappAndVerify(expectedErr error) types.RollappSummary {
+	return s.createRollappWithCreatorAndVerify(expectedErr, alice, true)
 }
 
-func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(
+func (s *RollappTestSuite) createRollappWithCreatorAndVerify(
 	expectedErr error, creator string, fundAccount bool,
 ) types.RollappSummary {
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
+	goCtx := sdk.WrapSDKContext(s.Ctx)
 	// generate sequencer address
 	address := sample.AccAddress()
 	// rollapp is the rollapp to create
@@ -186,19 +192,21 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(
 		Creator:          creator,
 		RollappId:        urand.RollappID(),
 		InitialSequencer: address,
+		MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin,
 		Alias:            strings.ToLower(rand.Str(7)),
 		VmType:           types.Rollapp_EVM,
 		Metadata:         &mockRollappMetadata,
 		GenesisInfo:      mockGenesisInfo,
 	}
 	if fundAccount {
-		suite.FundForAliasRegistration(rollapp)
+		s.FundForAliasRegistration(rollapp)
 	}
 	// rollappExpect is the expected result of creating rollapp
 	rollappExpect := types.Rollapp{
 		RollappId:        rollapp.GetRollappId(),
 		Owner:            rollapp.GetCreator(),
 		InitialSequencer: rollapp.GetInitialSequencer(),
+		MinSequencerBond: sdk.NewCoins(types.DefaultMinSequencerBondGlobalCoin),
 		VmType:           types.Rollapp_EVM,
 		Metadata:         rollapp.GetMetadata(),
 		GenesisInfo:      *rollapp.GetGenesisInfo(),
@@ -209,20 +217,20 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(
 	}
 
 	// create rollapp
-	createResponse, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	createResponse, err := s.msgServer.CreateRollapp(goCtx, &rollapp)
 	if expectedErr != nil {
-		suite.ErrorIs(err, expectedErr)
+		s.ErrorIs(err, expectedErr)
 		return types.RollappSummary{}
 	}
-	suite.Require().Nil(err)
-	suite.Require().EqualValues(types.MsgCreateRollappResponse{}, *createResponse)
+	s.Require().Nil(err)
+	s.Require().EqualValues(types.MsgCreateRollappResponse{}, *createResponse)
 
 	// query the specific rollapp
-	queryResponse, err := suite.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{
+	queryResponse, err := s.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{
 		RollappId: rollapp.GetRollappId(),
 	})
-	suite.Require().Nil(err)
-	suite.Require().EqualValues(&rollappExpect, &queryResponse.Rollapp)
+	s.Require().Nil(err)
+	s.Require().EqualValues(&rollappExpect, &queryResponse.Rollapp)
 
 	rollappSummaryExpect := types.RollappSummary{
 		RollappId: rollappExpect.RollappId,
@@ -236,6 +244,7 @@ var mockRollappMetadata = types.RollappMetadata{
 	LogoUrl:     "https://dymension.xyz/logo.png",
 	Telegram:    "https://t.me/rolly",
 	X:           "https://x.dymension.xyz",
+	Tags:        []string{"AI", "DeFI", "NFT"},
 }
 
 var mockGenesisInfo = &types.GenesisInfo{

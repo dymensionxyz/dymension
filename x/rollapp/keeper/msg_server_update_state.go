@@ -75,12 +75,10 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	}
 	newIndex = lastIndex + 1
 
-	// it takes the actual proposer because the next one have already been set
-	// by the sequencer rotation in k.hooks.BeforeUpdateState
-	// the proposer we get is the one that will propose the next block.
-	val := k.sequencerKeeper.GetProposer(ctx, msg.RollappId)
+	// if no rotation, next is the same!
+	successor := k.SequencerK.GetProposer(ctx, msg.RollappId)
 	if msg.Last {
-		val = k.sequencerKeeper.GetSuccessor(ctx, msg.RollappId)
+		successor = k.SequencerK.GetSuccessor(ctx, msg.RollappId)
 	}
 
 	creationHeight := uint64(ctx.BlockHeight())
@@ -95,7 +93,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		creationHeight,
 		msg.BDs,
 		blockTime,
-		val.Address,
+		successor.Address,
 	)
 
 	// verify the DRS version is not obsolete
@@ -114,9 +112,13 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	k.SetStateInfo(ctx, *stateInfo)
 
 	// call the after-update-state hook
-	// currently used by `x/lightclient` to validate the state update in regards to the light client
+	// currently used by `x/lightclient` to validate the state update against consensus states
 	// x/sequencer will complete the rotation if needed
-	err = k.hooks.AfterUpdateState(ctx, msg.RollappId, stateInfo)
+	err = k.hooks.AfterUpdateState(ctx, &types.StateInfoMeta{
+		StateInfo: *stateInfo,
+		Revision:  msg.RollappRevision,
+		Rollapp:   msg.RollappId,
+	})
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "hook: after update state")
 	}

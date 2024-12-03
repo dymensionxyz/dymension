@@ -17,6 +17,14 @@ type MockRollappKeeper struct {
 	stateInfos map[string]map[uint64]rollapptypes.StateInfo
 }
 
+func (m *MockRollappKeeper) IsFirstHeightOfLatestFork(ctx sdk.Context, rollappId string, revision, height uint64) bool {
+	panic("implement me")
+}
+
+func (m *MockRollappKeeper) GetLatestHeight(ctx sdk.Context, rollappId string) (uint64, bool) {
+	panic("implement me")
+}
+
 // GetLatestStateInfo implements types.RollappKeeperExpected.
 func (m *MockRollappKeeper) GetLatestStateInfo(ctx sdk.Context, rollappId string) (rollapptypes.StateInfo, bool) {
 	return rollapptypes.StateInfo{}, false

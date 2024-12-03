@@ -67,9 +67,9 @@ message EventDemandOrderFeeUpdated {
 message EventDemandOrderFulfilled {
   // order_id is the unique identifier of the demand order.
   string order_id = 1;
-  // fulfillment_id is the unique identifier of the fulfillment.
+  // price is the price of the demand order.
   string price = 2;
-  // fulfillment_amount is the amount of the fulfillment.
+  // fee is the fee of the demand order.
   string fee = 3;
   // is_fulfilled is the flag indicating whether the order is fulfilled.
   bool is_fulfilled = 4;
@@ -85,9 +85,9 @@ message EventDemandOrderFulfilled {
 message EventDemandOrderFulfilledAuthorized {
   // order_id is the unique identifier of the demand order.
   string order_id = 1;
-  // fulfillment_id is the unique identifier of the fulfillment.
+  // price is the price of the demand order.
   string price = 2;
-  // fulfillment_amount is the amount of the fulfillment.
+  // fee is the fee of the demand order.
   string fee = 3;
   // is_fulfilled is the flag indicating whether the order is fulfilled.
   bool is_fulfilled = 4;
@@ -101,4 +101,8 @@ message EventDemandOrderFulfilledAuthorized {
   uint64 creation_height = 11;
   // lp_address is the address of the LP.
   string lp_address = 12;
+  // operator_address is the address of the operator.
+  string operator_address = 13;
+  // operator_fee is the fee of the operator.
+  string operator_fee = 14;
 }

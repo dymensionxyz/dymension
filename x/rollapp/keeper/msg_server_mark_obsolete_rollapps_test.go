@@ -108,7 +108,7 @@ func (s *RollappTestSuite) TestMarkObsoleteRollapps() {
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			s.SetupTest()
-			s.App.RollappKeeper.SetHooks(nil) // disable hooks
+			s.k().SetHooks(nil) // disable hooks
 
 			// prepare test data
 			obsoleteVersions := uslice.ToKeySet(tc.obsoleteVersions)
@@ -120,6 +120,9 @@ func (s *RollappTestSuite) TestMarkObsoleteRollapps() {
 			for _, ra := range tc.rollapps {
 				// create a rollapp
 				s.CreateRollappByName(ra.name)
+				raObj := s.k().MustGetRollapp(s.Ctx, ra.name)
+				raObj.GenesisState.TransferProofHeight = 1
+				s.k().SetRollapp(s.Ctx, raObj)
 				// create a sequencer
 				proposer := s.CreateDefaultSequencer(s.Ctx, ra.name)
 
@@ -150,17 +153,17 @@ func (s *RollappTestSuite) TestMarkObsoleteRollapps() {
 				s.AssertEventEmitted(s.Ctx, eventName, 0)
 
 				// check non-obsolete rollapps: all rollapps are still non-obsolete
-				nonObsoleteRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterNonForked)
+				nonObsoleteRa := s.k().FilterRollapps(s.Ctx, FilterNonForked)
 				actualNonObsoleteRollappIDs := uslice.Map(nonObsoleteRa, func(r types.Rollapp) string { return r.RollappId })
 				allRollapps := slices.Concat(expectedObsoleteRollappIDs, expectedNonObsoleteRollappIDs)
 				s.ElementsMatch(allRollapps, actualNonObsoleteRollappIDs)
 
 				// check obsolete rollapps: no obsolete rollapps
-				obsoleteRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterForked)
+				obsoleteRa := s.k().FilterRollapps(s.Ctx, FilterForked)
 				s.Empty(obsoleteRa)
 
 				// check the obsolete version set is empty
-				actualObsoleteVersions, err := s.App.RollappKeeper.GetAllObsoleteDRSVersions(s.Ctx)
+				actualObsoleteVersions, err := s.k().GetAllObsoleteDRSVersions(s.Ctx)
 				s.Require().NoError(err)
 				s.Require().Empty(actualObsoleteVersions)
 			} else {
@@ -171,17 +174,17 @@ func (s *RollappTestSuite) TestMarkObsoleteRollapps() {
 				s.AssertEventEmitted(s.Ctx, eventName, 1)
 
 				// check non-obsolete rollapps
-				nonObsoleteRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterNonForked)
+				nonObsoleteRa := s.k().FilterRollapps(s.Ctx, FilterNonForked)
 				actualNonObsoleteRollappIDs := uslice.Map(nonObsoleteRa, func(r types.Rollapp) string { return r.RollappId })
 				s.ElementsMatch(expectedNonObsoleteRollappIDs, actualNonObsoleteRollappIDs)
 
 				// check obsolete rollapps
-				obsoleteRa := s.App.RollappKeeper.FilterRollapps(s.Ctx, FilterForked)
+				obsoleteRa := s.k().FilterRollapps(s.Ctx, FilterForked)
 				actualObsoleteRollappIDs := uslice.Map(obsoleteRa, func(r types.Rollapp) string { return r.RollappId })
 				s.ElementsMatch(expectedObsoleteRollappIDs, actualObsoleteRollappIDs)
 
 				// check the obsolete version set
-				actualObsoleteVersions, err := s.App.RollappKeeper.GetAllObsoleteDRSVersions(s.Ctx)
+				actualObsoleteVersions, err := s.k().GetAllObsoleteDRSVersions(s.Ctx)
 				s.Require().NoError(err)
 				s.Require().ElementsMatch(tc.obsoleteVersions, actualObsoleteVersions)
 			}

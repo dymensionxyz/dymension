@@ -37,7 +37,7 @@ type UpgradeTestSuite struct {
 
 // SetupTest initializes the necessary items for each test
 func (s *UpgradeTestSuite) SetupTestCustom(t *testing.T) {
-	s.App = apptesting.Setup(t, false)
+	s.App = apptesting.Setup(t)
 	s.Ctx = s.App.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
 }
 
@@ -308,7 +308,6 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 	s.Require().Equal(sequencertypes.DefaultKickThreshold, s.App.SequencerKeeper.GetParams(s.Ctx).KickThreshold)
 	s.Require().Equal(sequencertypes.DefaultLivenessSlashMultiplier, s.App.SequencerKeeper.GetParams(s.Ctx).LivenessSlashMinMultiplier)
 	s.Require().Equal(sequencertypes.DefaultLivenessSlashMinAbsolute, s.App.SequencerKeeper.GetParams(s.Ctx).LivenessSlashMinAbsolute)
-	s.Require().Equal(sequencertypes.DefaultMinBond, s.App.SequencerKeeper.GetParams(s.Ctx).MinBond)
 
 	return nil
 }

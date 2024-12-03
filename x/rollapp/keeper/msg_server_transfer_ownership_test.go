@@ -6,7 +6,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (suite *RollappTestSuite) TestTransferOwnership() {
+func (s *RollappTestSuite) TestTransferOwnership() {
 	const rollappId = "rollapp_1234-1"
 
 	tests := []struct {
@@ -61,7 +61,7 @@ func (suite *RollappTestSuite) TestTransferOwnership() {
 	}
 
 	for _, tc := range tests {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			rollapp := types.Rollapp{
 				RollappId:   rollappId,
 				Owner:       alice,
@@ -72,17 +72,17 @@ func (suite *RollappTestSuite) TestTransferOwnership() {
 				rollapp = tc.malleate(rollapp)
 			}
 
-			suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+			s.k().SetRollapp(s.Ctx, rollapp)
 
-			goCtx := sdk.WrapSDKContext(suite.Ctx)
-			_, err := suite.msgServer.TransferOwnership(goCtx, tc.request)
+			goCtx := sdk.WrapSDKContext(s.Ctx)
+			_, err := s.msgServer.TransferOwnership(goCtx, tc.request)
 			if tc.expError == nil {
-				suite.Require().NoError(err)
-				resp, err := suite.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{RollappId: tc.request.RollappId})
-				suite.Require().NoError(err)
-				suite.Equal(tc.expRollapp, resp.Rollapp)
+				s.Require().NoError(err)
+				resp, err := s.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{RollappId: tc.request.RollappId})
+				s.Require().NoError(err)
+				s.Equal(tc.expRollapp, resp.Rollapp)
 			} else {
-				suite.ErrorIs(err, tc.expError)
+				s.ErrorIs(err, tc.expError)
 			}
 		})
 	}

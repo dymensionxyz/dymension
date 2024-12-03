@@ -1,0 +1,57 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+import "gogoproto/gogo.proto";
+import "cosmos/msg/v1/msg.proto";
+import "dymensionxyz/dymension/rollapp/genesis_info.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+
+service ProposalMsg {
+  rpc SubmitRollappFraud(MsgRollappFraudProposal) returns (MsgRollappFraudProposalResponse);
+  rpc ForceGenesisInfoChange(MsgForceGenesisInfoChange) returns (MsgForceGenesisInfoChangeResponse);
+}
+
+message MsgRollappFraudProposal {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the authority address.
+  string authority = 1;
+
+  // RollappID is the rollapp id.
+  string rollapp_id = 2;
+
+  // The height of the fraudulent block
+  uint64 fraud_height = 4;
+  // Revision of fraudulent block
+  uint64 fraud_revision = 3;
+
+  // sequencer address to punish. optional
+  string punish_sequencer_address = 6;
+
+  // rewardAddr is bech32 for sdk acc addr
+  string rewardee = 7;
+}
+
+message MsgRollappFraudProposalResponse {
+}
+
+// MsgForceGenesisInfoChange defines the Msg/ForceGenesisInfoChange request type
+message MsgForceGenesisInfoChange {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the address that controls the module (defaults to x/gov unless overwritten).
+  string authority = 1;
+
+  // RollappID is the unique identifier of the rollapp whose genesis info will be changed
+  string rollapp_id = 2;
+
+  // NewGenesisInfo contains the new genesis information that will replace the existing one
+  GenesisInfo new_genesis_info = 3 [(gogoproto.nullable) = false];
+}
+
+// MsgForceGenesisInfoChangeResponse defines the Msg/ForceGenesisInfoChange response type
+message MsgForceGenesisInfoChangeResponse {
+}
+
+// TODO: add slashing only proposal (e.g for double signing)

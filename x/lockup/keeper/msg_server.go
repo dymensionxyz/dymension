@@ -38,6 +38,11 @@ func (server msgServer) LockTokens(goCtx context.Context, msg *types.MsgLockToke
 		return nil, err
 	}
 
+	// Charge fess for locking tokens
+	if err = server.keeper.ChargeLockFee(ctx, owner, types.DefaultLockFee, msg.Coins); err != nil {
+		return nil, fmt.Errorf("charge gauge fee: %w", err)
+	}
+
 	// check if there's an existing lock from the same owner with the same duration.
 	// If so, simply add tokens to the existing lock.
 	lockExists := server.keeper.HasLock(ctx, owner, msg.Coins[0].Denom, msg.Duration)
@@ -216,4 +221,28 @@ func (server msgServer) ForceUnlock(goCtx context.Context, msg *types.MsgForceUn
 	}
 
 	return &types.MsgForceUnlockResponse{Success: true}, nil
+}
+
+// ChargeLockFee deducts a fee in the base denom from the specified address. The total cost is calculated as the sum
+// of the fee and the amount of the base denom coin from lockCoins. If the account's balance is less than the total
+// cost, the error is returned. Otherwise, the fee is charged from the payer and sent to x/txfees to be burned.
+func (k Keeper) ChargeLockFee(ctx sdk.Context, payer sdk.AccAddress, fee sdk.Int, lockCoins sdk.Coins) (err error) {
+	var feeDenom string
+	if k.tk == nil {
+		feeDenom, err = sdk.GetBaseDenom()
+	} else {
+		feeDenom, err = k.tk.GetBaseDenom(ctx)
+	}
+	if err != nil {
+		return err
+	}
+
+	totalCost := lockCoins.AmountOf(feeDenom).Add(fee)
+	accountBalance := k.bk.GetBalance(ctx, payer, feeDenom).Amount
+
+	if accountBalance.LT(totalCost) {
+		return errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "account's balance is less than the total cost of the message: balance: %s%s, total cost: %s%s", accountBalance, feeDenom, totalCost, feeDenom)
+	}
+
+	return k.tk.ChargeFeesFromPayer(ctx, payer, sdk.NewCoin(feeDenom, fee), nil)
 }

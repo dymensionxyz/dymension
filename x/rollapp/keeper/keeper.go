@@ -36,12 +36,12 @@ type Keeper struct {
 
 	canonicalClientKeeper CanonicalLightClientKeeper
 	channelKeeper         ChannelKeeper
-	sequencerKeeper       SequencerKeeper
+	SequencerK            SequencerKeeper
 	bankKeeper            BankKeeper
 	transferKeeper        TransferKeeper
 
 	obsoleteDRSVersions     collections.KeySet[uint32]
-	registeredRollappDenoms collections.KeySet[collections.Pair[string, string]]
+	registeredRollappDenoms collections.KeySet[collections.Pair[string, string]] // [ rollappID, denom ]
 	// finalizationQueue is a map from creation height and rollapp to the finalization queue.
 	// Key: (creation height, rollappID), Value: state indexes to finalize.
 	// Contains a special index that helps reverse lookup: finalization queue (all available heights) by rollapp.
@@ -76,15 +76,15 @@ func NewKeeper(
 	sb := collections.NewSchemaBuilder(service)
 
 	k := &Keeper{
-		cdc:             cdc,
-		storeKey:        storeKey,
-		paramstore:      ps,
-		hooks:           nil,
-		channelKeeper:   channelKeeper,
-		authority:       authority,
-		sequencerKeeper: sequencerKeeper,
-		bankKeeper:      bankKeeper,
-		transferKeeper:  transferKeeper,
+		cdc:            cdc,
+		storeKey:       storeKey,
+		paramstore:     ps,
+		hooks:          nil,
+		channelKeeper:  channelKeeper,
+		authority:      authority,
+		SequencerK:     sequencerKeeper,
+		bankKeeper:     bankKeeper,
+		transferKeeper: transferKeeper,
 		obsoleteDRSVersions: collections.NewKeySet(
 			sb,
 			collections.NewPrefix(types.ObsoleteDRSVersionsKeyPrefix),
@@ -134,7 +134,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k *Keeper) SetSequencerKeeper(sk SequencerKeeper) {
-	k.sequencerKeeper = sk
+	k.SequencerK = sk
 }
 
 func (k *Keeper) SetCanonicalClientKeeper(kk CanonicalLightClientKeeper) {

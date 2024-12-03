@@ -15,7 +15,6 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
@@ -51,10 +50,6 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	if commontypes.SkipRollappMiddleware(ctx) {
-		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
-	}
-
 	transferData, err := im.rollappKeeper.GetValidTransfer(ctx, packet.Data, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
 		return uevent.NewErrorAcknowledgement(ctx, err)

@@ -19,9 +19,6 @@ func (k Keeper) ValidateParams(ctx sdk.Context, params types.Params) error {
 	if err != nil {
 		return errorsmod.Wrapf(gerrc.ErrInternal, "failed to get base denom: %v", err)
 	}
-	if params.MinBond.Denom != denom {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "min bond denom must be equal to base denom")
-	}
 	if params.KickThreshold.Denom != denom {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "kick threshold denom must be equal to base denom")
 	}

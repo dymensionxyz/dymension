@@ -96,6 +96,7 @@ func (s *SequencerTestSuite) TestFraudFullFlowDuringRotation() {
 	s.createSequencerWithBond(s.Ctx, ra.RollappId, charlie, ucoin.SimpleMul(bond, 1))
 	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(alice)))
 	s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
+	s.submitAFewRollappStates(ra.RollappId)
 
 	// proposer tries to unbond
 	mUnbond := &types.MsgUnbond{Creator: pkAddr(alice)}
@@ -124,10 +125,16 @@ func (s *SequencerTestSuite) TestFraudFullFlowDuringRotation() {
 	s.Require().False(s.seq(bob).OptedIn)
 	s.Require().False(s.seq(charlie).OptedIn)
 
-	mOptIn := &types.MsgUpdateOptInStatus{Creator: pkAddr(bob), OptedIn: true}
+	// alice cannot re-opt in
+	mOptIn := &types.MsgUpdateOptInStatus{Creator: pkAddr(alice), OptedIn: true}
+	_, err = s.msgServer.UpdateOptInStatus(s.Ctx, mOptIn)
+	s.Require().Error(err)
+	s.Require().True(s.k().IsProposer(s.Ctx, s.k().SentinelSequencer(s.Ctx)))
+
+	// but bob can
+	mOptIn = &types.MsgUpdateOptInStatus{Creator: pkAddr(bob), OptedIn: true}
 	_, err = s.msgServer.UpdateOptInStatus(s.Ctx, mOptIn)
 	s.Require().NoError(err)
 	s.Require().True(s.seq(bob).OptedIn)
-
 	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(bob)))
 }
