@@ -137,8 +137,21 @@ func (s *UpgradeTestSuite) validateRollappsMigration(numRoll int) error {
 }
 
 func (s *UpgradeTestSuite) seedAndStoreRollapps(numRollapps int) {
-	for _, rollapp := range s.seedRollapps(numRollapps) {
-		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+	for _, ra := range s.seedRollapps(numRollapps) {
+		s.App.RollappKeeper.SetRollapp(s.Ctx, ra)
+
+		for i := range 5 {
+			info := rollapptypes.StateInfo{
+				StateInfoIndex: rollapptypes.StateInfoIndex{
+					RollappId: ra.RollappId,
+					Index:     i,
+				},
+				StartHeight: uint64(i + 1),
+				NumBlocks:   1,
+			}
+			s.App.RollappKeeper.SetStateInfo(s.Ctx, info)
+			s.App.RollappKeeper.SetLatestStateInfoIndex(s.Ctx, info.StateInfoIndex)
+		}
 	}
 }
 
