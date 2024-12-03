@@ -130,7 +130,7 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		s.hubChain().SenderAccount.GetAddress().String(),
 		rollappChainID(),
 		s.hubChain().SenderAccount.GetAddress().String(),
-		rollapptypes.DefaultMinSequencerBondGlobal,
+		rollapptypes.DefaultMinSequencerBondGlobalCoin,
 		strings.ToLower(tmrand.Str(7)),
 		rollapptypes.Rollapp_EVM,
 		&rollapptypes.RollappMetadata{
@@ -187,7 +187,7 @@ func (s *utilSuite) setRollappLightClientID(chainID, clientID string) {
 }
 
 func (s *utilSuite) registerSequencer() {
-	bond := sequencertypes.TestMinBond
+	bond := rollapptypes.DefaultMinSequencerBondGlobalCoin
 	// fund account
 	err := bankutil.FundAccount(s.hubApp().BankKeeper, s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(bond))
 	s.Require().Nil(err)

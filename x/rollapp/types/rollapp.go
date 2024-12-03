@@ -9,8 +9,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
 
@@ -44,12 +42,12 @@ const (
 	Decimals18 AllowedDecimals = 18
 )
 
-func NewRollapp(creator, rollappId, initialSequencer string, minSequencerBond uint64, vmType Rollapp_VMType, metadata *RollappMetadata, genInfo GenesisInfo, transfersEnabled bool) Rollapp {
+func NewRollapp(creator, rollappId, initialSequencer string, minSequencerBond sdk.Coin, vmType Rollapp_VMType, metadata *RollappMetadata, genInfo GenesisInfo, transfersEnabled bool) Rollapp {
 	return Rollapp{
 		RollappId:        rollappId,
 		Owner:            creator,
 		InitialSequencer: initialSequencer,
-		MinSequencerBond: minSequencerBond,
+		MinSequencerBond: sdk.Coins{minSequencerBond},
 		VmType:           vmType,
 		Metadata:         metadata,
 		GenesisInfo:      genInfo,
@@ -75,12 +73,12 @@ func (r Rollapp) ValidateBasic() error {
 		return err
 	}
 
-	if err = validateInitialSequencer(r.InitialSequencer); err != nil {
-		return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
+	if err = ValidateBasicMinSeqBondCoins(r.MinSequencerBond); err != nil {
+		return errorsmod.Wrap(err, "min sequencer bond")
 	}
 
-	if r.MinSequencerBond <= 0 {
-		return gerrc.ErrInvalidArgument.Wrap("non positive min bond")
+	if err = validateInitialSequencer(r.InitialSequencer); err != nil {
+		return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
 	}
 
 	if err = r.GenesisInfo.Validate(); err != nil {
@@ -110,7 +108,7 @@ func (r Rollapp) IsTransferEnabled() bool {
 }
 
 func (r Rollapp) AllImmutableFieldsAreSet() bool {
-	return r.InitialSequencer != "" && r.GenesisInfoFieldsAreSet() && 0 < r.MinSequencerBond
+	return r.InitialSequencer != "" && r.GenesisInfoFieldsAreSet() && ValidateBasicMinSeqBondCoins(r.MinSequencerBond) == nil
 }
 
 func (r Rollapp) GenesisInfoFieldsAreSet() bool {

@@ -7,16 +7,9 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-func (k Keeper) minBond(ctx sdk.Context, rollapp string) sdk.Coin {
-	nDym := k.rollappKeeper.MinBond(ctx, rollapp)
-	ret := commontypes.DYMCoin
-	ret.Amount = ret.Amount.Mul(nDym)
-	return ret
-}
-
 func validBondDenom(c sdk.Coin) error {
-	if c.Denom != types.BondDenom {
-		return errorsmod.Wrapf(types.ErrInvalidDenom, "expect: %s", types.BondDenom)
+	if c.Denom != commontypes.DYMCoin.Denom {
+		return errorsmod.Wrapf(types.ErrInvalidDenom, "expect: %s", commontypes.DYMCoin.Denom)
 	}
 	return nil
 }
@@ -25,7 +18,7 @@ func (k Keeper) sufficientBond(ctx sdk.Context, rollapp string, c sdk.Coin) erro
 	if err := validBondDenom(c); err != nil {
 		return err
 	}
-	minBond := k.minBond(ctx, rollapp)
+	minBond := k.rollappKeeper.MinBond(ctx, rollapp)
 	if c.IsLT(minBond) {
 		return errorsmod.Wrapf(types.ErrInsufficientBond, "min: %s: given: %s", minBond.Amount, c.Amount)
 	}

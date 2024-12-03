@@ -16,7 +16,7 @@ func NewMsgCreateRollapp(
 	creator,
 	rollappId,
 	initSequencer string,
-	minSequencerBond uint64,
+	minSequencerBond sdk.Coin,
 	alias string,
 	vmType Rollapp_VMType,
 	metadata *RollappMetadata,

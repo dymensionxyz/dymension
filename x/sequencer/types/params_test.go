@@ -4,12 +4,8 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 	"github.com/stretchr/testify/require"
 )
-
-var DefaultMinBond = ucoin.SimpleMul(rollapptypes.OneDymCoin, 100)
 
 func TestValidateBasic(t *testing.T) {
 	params := DefaultParams()

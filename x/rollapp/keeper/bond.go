@@ -2,20 +2,23 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-// Rollapp must exist - returns base units, not atto. E.g. 100 dym not 10e18 adym
-func (k *Keeper) MinBond(ctx sdk.Context, rollappID string) math.Int {
+func (k *Keeper) MinBond(ctx sdk.Context, rollappID string) sdk.Coin {
 	ra := k.MustGetRollapp(ctx, rollappID)
-	return math.NewIntFromUint64(ra.MinSequencerBond)
+	return ra.MinSequencerBond[0]
 }
 
-func (k *Keeper) validMinBond(ctx sdk.Context, x uint64) error {
-	if min_ := k.GetParams(ctx).MinSequencerBondGlobal; x < min_ {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "min sequencer bond is less than global min sequencer bond: min: %d, got: %d", min_, x)
+func (k *Keeper) validMinBond(ctx sdk.Context, x sdk.Coin) error {
+	if err := types.ValidateBasicMinSeqBond(x); err != nil {
+		return err
+	}
+	min_ := k.GetParams(ctx).MinSequencerBondGlobal
+	if x.IsLT(min_) {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "min sequencer bond is less than global min sequencer bond: min: %s, got: %s", min_, x)
 	}
 	return nil
 }
