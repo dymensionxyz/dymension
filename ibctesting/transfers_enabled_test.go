@@ -37,7 +37,7 @@ func (s *transfersEnabledSuite) SetupTest() {
 	// manually set the rollapp to have transfers disabled by default
 	// (rollapp is setup correctly, meaning transfer channel is canonical)
 	ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
-	ra.GenesisState.TransfersEnabled = false
+	ra.GenesisState.TransferProofHeight = 0
 	ra.ChannelId = s.path.EndpointA.ChannelID
 	s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), ra)
 	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), rollappChainID(), s.path.EndpointA.ClientID)
@@ -88,7 +88,7 @@ func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 			s.Require().True(errorsmod.IsOf(err, gerrc.ErrFailedPrecondition))
 			ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 			ra.ChannelId = s.path.EndpointA.ChannelID
-			ra.GenesisState.TransfersEnabled = true
+			ra.GenesisState.TransferProofHeight = 1 // enable
 			s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), ra)
 		} else {
 			s.Require().NoError(err)

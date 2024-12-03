@@ -15,6 +15,7 @@ type RollappKeeper interface {
 	GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp)
 	SetRollappAsLaunched(ctx sdk.Context, rollapp *rollapptypes.Rollapp) error
 	HardForkToLatest(ctx sdk.Context, rollappId string) error
+	ForkLatestAllowed(ctx sdk.Context, rollappId string) bool
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

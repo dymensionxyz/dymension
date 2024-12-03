@@ -157,7 +157,7 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 		tracker := newLivenessMockSequencerKeeper(s.k().SequencerK)
 		s.k().SetSequencerKeeper(tracker)
 		for _, ra := range rollapps {
-			s.k().SetRollapp(s.Ctx, types.NewRollapp("", ra, "", types.DefaultMinSequencerBondGlobalCoin, types.Rollapp_Unspecified, nil, types.GenesisInfo{}, false))
+			s.k().SetRollapp(s.Ctx, types.NewRollapp("", ra, "", types.DefaultMinSequencerBondGlobalCoin, types.Rollapp_Unspecified, nil, types.GenesisInfo{}))
 		}
 
 		hClockStart := map[string]int64{}

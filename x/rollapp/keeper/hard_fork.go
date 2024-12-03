@@ -19,6 +19,10 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, lastValidHeight uint
 		return gerrc.ErrNotFound
 	}
 
+	if !k.ForkAllowed(ctx, rollappID, lastValidHeight) {
+		return gerrc.ErrFailedPrecondition.Wrap("fork not allowed")
+	}
+
 	lastValidHeight, err := k.RevertPendingStates(ctx, rollappID, lastValidHeight+1)
 	if err != nil {
 		return errorsmod.Wrap(err, "revert pending states")
@@ -202,4 +206,19 @@ func (k Keeper) IsFirstHeightOfLatestFork(ctx sdk.Context, rollappId string, rev
 	rollapp := k.MustGetRollapp(ctx, rollappId)
 	latest := rollapp.LatestRevision().Number
 	return rollapp.DidFork() && rollapp.IsRevisionStartHeight(revision, height) && revision == latest
+}
+
+// is forking to the latest height going to violate assumptions?
+func (k Keeper) ForkLatestAllowed(ctx sdk.Context, rollapp string) bool {
+	lastHeight, ok := k.GetLatestHeight(ctx, rollapp)
+	if !ok {
+		return false
+	}
+	return k.ForkAllowed(ctx, rollapp, lastHeight)
+}
+
+// is the rollback fork going to violate assumptions?
+func (k Keeper) ForkAllowed(ctx sdk.Context, rollapp string, lastValidHeight uint64) bool {
+	ra := k.MustGetRollapp(ctx, rollapp)
+	return 0 < ra.GenesisState.TransferProofHeight && ra.GenesisState.TransferProofHeight <= lastValidHeight
 }

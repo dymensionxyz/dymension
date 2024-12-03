@@ -135,10 +135,18 @@ func (s *SequencerTestSuite) createRollappWithInitialSeqConstraint(initSeq strin
 			InitialSupply:   sdk.NewInt(1000),
 		},
 		InitialSequencer: initSeq,
+		GenesisState:     rollapptypes.RollappGenesisState{TransferProofHeight: 1},
 		MinSequencerBond: sdk.NewCoins(rollapptypes.DefaultMinSequencerBondGlobalCoin),
 	}
 	s.raK().SetRollapp(s.Ctx, rollapp)
-	return rollapp
+	return s.raK().MustGetRollapp(s.Ctx, rollapp.RollappId)
+}
+
+func (s *SequencerTestSuite) submitAFewRollappStates(rollapp string) {
+	p := s.k().GetProposer(s.Ctx, rollapp)
+	h, _ := s.App.RollappKeeper.GetLatestHeight(s.Ctx, rollapp)
+	_, err := s.KeeperTestHelper.PostStateUpdate(s.Ctx, rollapp, p.Address, h, 10)
+	s.Require().NoError(err)
 }
 
 // Note: this method doesn't really mimic real usage

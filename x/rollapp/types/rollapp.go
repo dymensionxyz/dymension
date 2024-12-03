@@ -42,7 +42,7 @@ const (
 	Decimals18 AllowedDecimals = 18
 )
 
-func NewRollapp(creator, rollappId, initialSequencer string, minSequencerBond sdk.Coin, vmType Rollapp_VMType, metadata *RollappMetadata, genInfo GenesisInfo, transfersEnabled bool) Rollapp {
+func NewRollapp(creator, rollappId, initialSequencer string, minSequencerBond sdk.Coin, vmType Rollapp_VMType, metadata *RollappMetadata, genInfo GenesisInfo) Rollapp {
 	return Rollapp{
 		RollappId:        rollappId,
 		Owner:            creator,
@@ -51,9 +51,7 @@ func NewRollapp(creator, rollappId, initialSequencer string, minSequencerBond sd
 		VmType:           vmType,
 		Metadata:         metadata,
 		GenesisInfo:      genInfo,
-		GenesisState: RollappGenesisState{
-			TransfersEnabled: transfersEnabled,
-		},
+		GenesisState:     RollappGenesisState{},
 		Revisions: []Revision{{
 			Number:      0,
 			StartHeight: 0,
@@ -104,7 +102,11 @@ func (r Rollapp) ValidateBasic() error {
 }
 
 func (r Rollapp) IsTransferEnabled() bool {
-	return r.GenesisState.TransfersEnabled
+	return r.GenesisState.IsTransferEnabled()
+}
+
+func (s RollappGenesisState) IsTransferEnabled() bool {
+	return s.TransferProofHeight != 0
 }
 
 func (r Rollapp) AllImmutableFieldsAreSet() bool {
