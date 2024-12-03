@@ -9,7 +9,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
 
@@ -128,6 +127,7 @@ func (r Rollapp) LatestRevision() Revision {
 	return r.Revisions[len(r.Revisions)-1]
 }
 
+// TODO: rollapp type method should be more robust https://github.com/dymensionxyz/dymension/issues/1596
 func (r Rollapp) GetRevisionForHeight(h uint64) Revision {
 	for i := len(r.Revisions) - 1; i >= 0; i-- {
 		if r.Revisions[i].StartHeight <= h {
@@ -135,6 +135,15 @@ func (r Rollapp) GetRevisionForHeight(h uint64) Revision {
 		}
 	}
 	return Revision{}
+}
+
+func (r Rollapp) IsRevisionStartHeight(revision, height uint64) bool {
+	rev := r.GetRevisionForHeight(height)
+	return rev.Number == revision && rev.StartHeight == height
+}
+
+func (r Rollapp) DidFork() bool {
+	return 1 < len(r.Revisions)
 }
 
 func (r *Rollapp) BumpRevision(nextRevisionStartHeight uint64) {

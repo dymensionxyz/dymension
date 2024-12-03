@@ -9,7 +9,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -151,31 +150,6 @@ func (k Keeper) ExpectedClientState(context.Context, *types.QueryExpectedClientS
 		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "pack client state")
 	}
 	return &types.QueryExpectedClientStateResponse{ClientState: anyClient}, nil
-}
-
-func (k Keeper) SetHardForkInProgress(ctx sdk.Context, rollappID string) {
-	ctx.KVStore(k.storeKey).Set(types.HardForkKey(rollappID), []byte{0x01})
-}
-
-// remove the hardfork key from the store
-func (k Keeper) setHardForkResolved(ctx sdk.Context, rollappID string) {
-	ctx.KVStore(k.storeKey).Delete(types.HardForkKey(rollappID))
-}
-
-// checks if rollapp is hard forking
-func (k Keeper) IsHardForkingInProgress(ctx sdk.Context, rollappID string) bool {
-	return ctx.KVStore(k.storeKey).Has(types.HardForkKey(rollappID))
-}
-
-func (k Keeper) ListHardForkKeys(ctx sdk.Context) []string {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.HardForkPrefix)
-	iter := prefixStore.Iterator(nil, nil)
-	defer iter.Close() // nolint: errcheck
-	var ret []string
-	for ; iter.Valid(); iter.Next() {
-		ret = append(ret, string(iter.Key()))
-	}
-	return ret
 }
 
 func (k Keeper) pruneSigners(ctx sdk.Context, client string, h uint64, isAbove bool) error {

@@ -79,3 +79,9 @@ func (s *StateInfo) GetEvents() []sdk.Attribute {
 	}
 	return eventAttributes
 }
+
+type StateInfoMeta struct {
+	StateInfo
+	Revision uint64
+	Rollapp  string
+}
