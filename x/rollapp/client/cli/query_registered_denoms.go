@@ -22,8 +22,14 @@ func CmdQueryRegisteredDenoms() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 			rollappID := args[0]
 
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
 			res, err := queryClient.RegisteredDenoms(cmd.Context(), &types.QueryRegisteredDenomsRequest{
-				RollappId: rollappID,
+				RollappId:  rollappID,
+				Pagination: pageReq,
 			})
 			if err != nil {
 				return err
@@ -33,6 +39,7 @@ func CmdQueryRegisteredDenoms() *cobra.Command {
 		},
 	}
 
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd

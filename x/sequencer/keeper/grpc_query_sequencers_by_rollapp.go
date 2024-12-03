@@ -6,8 +6,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequencersByRollappRequest) (*types.QueryGetSequencersByRollappResponse, error) {
@@ -16,8 +17,13 @@ func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequen
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
+	sequencers, pagResp, err := k.RollappSequencersPaginated(ctx, req.RollappId, req.Pagination)
+	if err != nil {
+		return nil, err
+	}
 	return &types.QueryGetSequencersByRollappResponse{
-		Sequencers: k.RollappSequencers(ctx, req.RollappId),
+		Sequencers: sequencers,
+		Pagination: pagResp,
 	}, nil
 }
 
@@ -27,8 +33,13 @@ func (k Keeper) SequencersByRollappByStatus(c context.Context, req *types.QueryG
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
+	sequencers, pagResp, err := k.RollappSequencersByStatusPaginated(ctx, req.RollappId, req.Status, req.Pagination)
+	if err != nil {
+		return nil, err
+	}
 	return &types.QueryGetSequencersByRollappByStatusResponse{
-		Sequencers: k.RollappSequencersByStatus(ctx, req.RollappId, req.Status),
+		Sequencers: sequencers,
+		Pagination: pagResp,
 	}, nil
 }
 

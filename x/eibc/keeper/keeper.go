@@ -5,8 +5,10 @@ import (
 
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
@@ -196,6 +198,48 @@ outer:
 	}
 
 	return list, nil
+}
+
+func (k Keeper) ListDemandOrdersByStatusPaginated(
+	ctx sdk.Context,
+	status commontypes.Status,
+	pageReq *query.PageRequest,
+	opts ...filterOption,
+) (list []*types.DemandOrder, pageResp *query.PageResponse, err error) {
+	store := ctx.KVStore(k.storeKey)
+
+	var statusPrefix []byte
+	switch status {
+	case commontypes.Status_PENDING:
+		statusPrefix = types.PendingDemandOrderKeyPrefix
+	case commontypes.Status_FINALIZED:
+		statusPrefix = types.FinalizedDemandOrderKeyPrefix
+	default:
+		err = fmt.Errorf("invalid demand order status: %s", status)
+		return
+	}
+
+	prefixStore := prefix.NewStore(store, statusPrefix)
+
+	if pageReq == nil {
+		pageReq = &query.PageRequest{}
+	}
+
+	pageResp, err = query.Paginate(prefixStore, pageReq, func(key []byte, value []byte) error {
+		var val types.DemandOrder
+		if err := k.cdc.Unmarshal(value, &val); err != nil {
+			return err
+		}
+		for _, opt := range opts {
+			if !opt(val) {
+				return nil
+			}
+		}
+		list = append(list, &val)
+		return nil
+	})
+
+	return
 }
 
 /* -------------------------------------------------------------------------- */

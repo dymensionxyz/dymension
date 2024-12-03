@@ -6,9 +6,10 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/utest"
 	"github.com/stretchr/testify/require"
 
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func (s *SequencerTestSuite) TestSequencersByRollappQuery() {
@@ -62,9 +63,9 @@ func (s *SequencerTestSuite) TestSequencersByRollappQuery() {
 				utest.IsErr(require.New(t), err, tc.err)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t,
-					nullify.Fill(tc.response),
-					nullify.Fill(response),
+				require.ElementsMatch(t,
+					nullify.Fill(tc.response.Sequencers),
+					nullify.Fill(response.Sequencers),
 				)
 			}
 		})

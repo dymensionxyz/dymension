@@ -16,8 +16,14 @@ func CmdShowSequencersByRollapp() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			argRollappId := args[0]
 
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
 			params := &types.QueryGetSequencersByRollappRequest{
-				RollappId: argRollappId,
+				RollappId:  argRollappId,
+				Pagination: pageReq,
 			}
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -35,6 +41,7 @@ func CmdShowSequencersByRollapp() *cobra.Command {
 		},
 	}
 
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
@@ -107,7 +114,14 @@ func CmdGetAllProposers() *cobra.Command {
 		Use:   "list-proposer",
 		Short: "List all proposers",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			params := &types.QueryProposersRequest{}
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			params := &types.QueryProposersRequest{
+				Pagination: pageReq,
+			}
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -124,6 +138,7 @@ func CmdGetAllProposers() *cobra.Command {
 		},
 	}
 
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

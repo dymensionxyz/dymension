@@ -2,10 +2,10 @@ package keeper_test
 
 import (
 	"github.com/cometbft/cometbft/libs/rand"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
