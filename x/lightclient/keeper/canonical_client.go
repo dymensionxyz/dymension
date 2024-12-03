@@ -155,5 +155,4 @@ func (k Keeper) ValidateHeaderAgainstStateInfo(ctx sdk.Context, sInfo *rollappty
 		NextBlockSequencer: nextSeq,
 	}
 	return errorsmod.Wrap(types.CheckCompatibility(*consState, rollappState), "check compatibility")
-
 }

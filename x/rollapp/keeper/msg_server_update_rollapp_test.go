@@ -7,6 +7,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -33,6 +34,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
+				MinSequencerBond: ucoin.SimpleMul(types.DefaultMinSequencerBondGlobalCoin, 3),
 				Metadata:         &mockRollappMetadata,
 				GenesisInfo: &types.GenesisInfo{
 					Bech32Prefix:    "new",
@@ -51,10 +53,9 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
-				MinSequencerBond: sdk.NewCoins(types.DefaultMinSequencerBondGlobalCoin),
-
-				VmType:   types.Rollapp_EVM,
-				Metadata: &mockRollappMetadata,
+				MinSequencerBond: sdk.NewCoins(ucoin.SimpleMul(types.DefaultMinSequencerBondGlobalCoin, 3)),
+				VmType:           types.Rollapp_EVM,
+				Metadata:         &mockRollappMetadata,
 				GenesisInfo: types.GenesisInfo{
 					GenesisChecksum: "new_checksum",
 					Bech32Prefix:    "new",
