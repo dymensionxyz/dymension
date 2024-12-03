@@ -107,6 +107,15 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			expError:        types.ErrImmutableFieldUpdateAfterLaunched,
 		},
 		{
+			name: "invalid bond",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:            alice,
+				RollappId:        rollappId,
+				MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin.SubAmount(sdk.NewInt(1)),
+			},
+			expError: gerrc.ErrInvalidArgument,
+		},
+		{
 			name: "Update rollapp: fail - try to update genesis checksum when sealed",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
