@@ -5,13 +5,12 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // intended to be called by relayer, but can be called by anyone
@@ -114,48 +113,27 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientSt
 		return errors.Join(err, ErrParamsMismatch)
 	}
 
-	// FIXME: No need to get all consensus states. should iterate over the consensus states
-	res, err := k.ibcClientKeeper.ConsensusStateHeights(ctx, &ibcclienttypes.QueryConsensusStateHeightsRequest{
-		ClientId:   clientID,
-		Pagination: &query.PageRequest{Limit: maxHeight},
-	})
-	log.Debug("after fetch heights", "max height", maxHeight, "gas", ctx.GasMeter().GasConsumed())
-	if err != nil {
-		return errorsmod.Wrap(err, "cons state heights")
+	sinfo, ok := k.rollappKeeper.GetLatestStateInfoIndex(ctx, rollappId)
+	if !ok {
+		return gerrc.ErrNotFound.Wrap("latest state info index")
 	}
 	atLeastOneMatch := false
-	for _, consensusHeight := range res.ConsensusStateHeights {
-		log.Debug("after fetch heights", "cons state height", consensusHeight.RevisionHeight, "gas", ctx.GasMeter().GasConsumed())
-		h := consensusHeight.GetRevisionHeight()
-		if maxHeight <= h {
-			break
-		}
-		consensusState, _ := k.ibcClientKeeper.GetClientConsensusState(ctx, clientID, consensusHeight)
-		tmConsensusState, _ := consensusState.(*ibctm.ConsensusState)
-		stateInfoH, err := k.rollappKeeper.FindStateInfoByHeight(ctx, rollappId, h)
-		if err != nil {
-			return errorsmod.Wrapf(err, "find state info by height h: %d", h)
-		}
-		stateInfoHplus1, err := k.rollappKeeper.FindStateInfoByHeight(ctx, rollappId, h+1)
-		if err != nil {
-			return errorsmod.Wrapf(err, "find state info by height h+1: %d", h+1)
-		}
-		bd, _ := stateInfoH.GetBlockDescriptor(h)
 
-		nextSeq, err := k.SeqK.RealSequencer(ctx, stateInfoHplus1.Sequencer)
+	for i := sinfo.Index; i < maxHeight; i++ {
+		sInfo, ok := k.rollappKeeper.GetStateInfo(ctx, rollappId, i)
+		if !ok {
+			return gerrc.ErrNotFound.Wrap("state info")
+		}
+
+		matched, err := k.ValidateOptimisticUpdates(ctx, clientID, &sInfo)
 		if err != nil {
-			return errorsmod.Wrap(err, "get sequencer")
+			return errorsmod.Wrap(err, "validate optimistic updates")
 		}
-		rollappState := types.RollappState{
-			BlockDescriptor:    bd,
-			NextBlockSequencer: nextSeq,
+		if matched {
+			atLeastOneMatch = true
 		}
-		err = types.CheckCompatibility(*tmConsensusState, rollappState)
-		if err != nil {
-			return errorsmod.Wrapf(errors.Join(ErrMismatch, err), "check compatibility: height: %d", h)
-		}
-		atLeastOneMatch = true
 	}
+
 	// Need to be sure that at least one consensus state agrees with a state update
 	// (There are also no disagreeing consensus states. There may be some consensus states
 	// for future state updates, which will incur a fraud if they disagree.)
@@ -163,4 +141,23 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientSt
 		return ErrNoMatch
 	}
 	return nil
+}
+
+func (k Keeper) ValidateHeaderAgainstStateInfo(ctx sdk.Context, sInfo *rollapptypes.StateInfo, consState *ibctm.ConsensusState, h uint64) error {
+	bd, ok := sInfo.GetBlockDescriptor(h)
+	if !ok {
+		return errorsmod.Wrapf(gerrc.ErrInternal, "no block descriptor found for height %d", h)
+	}
+	nextSeq, err := k.SeqK.RealSequencer(ctx, sInfo.NextSequencerForHeight(h))
+
+	if err != nil {
+		return errorsmod.Wrap(errors.Join(err, gerrc.ErrInternal), "get sequencer of state info")
+	}
+
+	rollappState := types.RollappState{
+		BlockDescriptor:    bd,
+		NextBlockSequencer: nextSeq,
+	}
+	return errorsmod.Wrap(types.CheckCompatibility(*consState, rollappState), "check compatibility")
+
 }

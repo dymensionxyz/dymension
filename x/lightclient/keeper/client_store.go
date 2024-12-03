@@ -9,6 +9,21 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
+// IterateConsensusStateDescending iterates through all consensus states in descending order
+// until cb returns true.
+func IterateConsensusStateDescending(clientStore sdk.KVStore, cb func(height exported.Height) (stop bool)) {
+	iterator := sdk.KVStoreReversePrefixIterator(clientStore, []byte(ibctm.KeyIterateConsensusStatePrefix))
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		iterKey := iterator.Key()
+		height := ibctm.GetHeightFromIterationKey(iterKey)
+		if cb(height) {
+			break
+		}
+	}
+}
+
 // functions here copied from ibc-go/modules/core/02-client/keeper/
 // as we need direct access to the client store
 
