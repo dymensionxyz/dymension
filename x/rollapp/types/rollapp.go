@@ -47,7 +47,7 @@ func NewRollapp(creator, rollappId, initialSequencer string, minSequencerBond sd
 		RollappId:        rollappId,
 		Owner:            creator,
 		InitialSequencer: initialSequencer,
-		MinSequencerBond: sdk.NewCoins(minSequencerBond),
+		MinSequencerBond: sdk.Coins{minSequencerBond},
 		VmType:           vmType,
 		Metadata:         metadata,
 		GenesisInfo:      genInfo,
@@ -108,7 +108,7 @@ func (r Rollapp) IsTransferEnabled() bool {
 }
 
 func (r Rollapp) AllImmutableFieldsAreSet() bool {
-	return r.InitialSequencer != "" && r.GenesisInfoFieldsAreSet() && !r.MinSequencerBond.IsZero()
+	return r.InitialSequencer != "" && r.GenesisInfoFieldsAreSet() && ValidateBasicMinSeqBondCoins(r.MinSequencerBond) == nil
 }
 
 func (r Rollapp) GenesisInfoFieldsAreSet() bool {

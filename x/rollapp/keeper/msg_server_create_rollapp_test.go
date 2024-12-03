@@ -206,7 +206,7 @@ func (s *RollappTestSuite) createRollappWithCreatorAndVerify(
 		RollappId:        rollapp.GetRollappId(),
 		Owner:            rollapp.GetCreator(),
 		InitialSequencer: rollapp.GetInitialSequencer(),
-		MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin,
+		MinSequencerBond: sdk.NewCoins(types.DefaultMinSequencerBondGlobalCoin),
 		VmType:           types.Rollapp_EVM,
 		Metadata:         rollapp.GetMetadata(),
 		GenesisInfo:      *rollapp.GetGenesisInfo(),
