@@ -80,22 +80,16 @@ func (k Keeper) GetPendingPacketsByAddress(ctx sdk.Context, receiver string) ([]
 }
 
 // GetPendingPacketsByAddressPaginated retrieves rollapp packets from the KVStore by their receiver with pagination.
-func (k Keeper) GetPendingPacketsByAddressPaginated(ctx sdk.Context, receiver string, pageReq *query.PageRequest) (packets []commontypes.RollappPacket, pageResp *query.PageResponse, err error) {
-	_, pageResp, err = collcompat.CollectionPaginate(ctx, k.pendingPacketsByAddress, pageReq,
-		func(key collections.Pair[string, []byte], _ collections.NoValue) (bool, error) {
+func (k Keeper) GetPendingPacketsByAddressPaginated(ctx sdk.Context, receiver string, pageReq *query.PageRequest) ([]commontypes.RollappPacket, *query.PageResponse, error) {
+	return collcompat.CollectionPaginate(ctx, k.pendingPacketsByAddress, pageReq,
+		func(key collections.Pair[string, []byte], _ collections.NoValue) (commontypes.RollappPacket, error) {
 			packet, err := k.GetRollappPacket(ctx, string(key.K2()))
 			if err != nil {
-				return true, err
+				return commontypes.RollappPacket{}, err
 			}
-			packets = append(packets, *packet)
-			return false, nil
+			return *packet, err
 		}, collcompat.WithCollectionPaginationPairPrefix[string, []byte](receiver),
 	)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return packets, pageResp, nil
 }
 
 // GetRollappPacket retrieves a rollapp packet from the KVStore.

@@ -19,16 +19,11 @@ func (k Keeper) HasRegisteredDenom(ctx sdk.Context, rollappID, denom string) (bo
 }
 
 func (k Keeper) GetAllRegisteredDenomsPaginated(ctx sdk.Context, rollappID string, pageReq *query.PageRequest) ([]string, *query.PageResponse, error) {
-	denoms, pageRes, err := collcompat.CollectionPaginate(ctx, k.registeredRollappDenoms, pageReq,
+	return collcompat.CollectionPaginate(ctx, k.registeredRollappDenoms, pageReq,
 		func(key collections.Pair[string, string], _ collections.NoValue) (string, error) {
 			return key.K1(), nil
 		}, collcompat.WithCollectionPaginationPairPrefix[string, string](rollappID),
 	)
-	if err != nil {
-		return nil, nil, fmt.Errorf("paginate registered denoms: %w", err)
-	}
-
-	return denoms, pageRes, nil
 }
 
 func (k Keeper) GetAllRegisteredDenoms(ctx sdk.Context, rollappID string) ([]string, error) {

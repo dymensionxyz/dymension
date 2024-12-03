@@ -204,12 +204,10 @@ func (s *KeeperTestHelper) FinalizeAllPendingPackets(address string) int {
 	s.T().Helper()
 	// Query all pending packets by address
 	querier := delayedackkeeper.NewQuerier(s.App.DelayedAckKeeper)
-	resp, err := querier.GetPendingPacketsByAddress(s.Ctx, &delayedacktypes.QueryPendingPacketsByAddressRequest{
-		Address: address,
-	})
+	packets, err := querier.Keeper.GetPendingPacketsByAddress(s.Ctx, address)
 	s.Require().NoError(err)
 	// Finalize all packets and return the num of finalized
-	for _, packet := range resp.RollappPackets {
+	for _, packet := range packets {
 		handler := s.App.MsgServiceRouter().Handler(new(delayedacktypes.MsgFinalizePacket))
 		resp, err := handler(s.Ctx, &delayedacktypes.MsgFinalizePacket{
 			Sender:            authtypes.NewModuleAddress(govtypes.ModuleName).String(),
@@ -222,5 +220,5 @@ func (s *KeeperTestHelper) FinalizeAllPendingPackets(address string) int {
 		s.Require().NoError(err)
 		s.Require().NotNil(resp)
 	}
-	return len(resp.RollappPackets)
+	return len(packets)
 }

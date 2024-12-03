@@ -136,7 +136,7 @@ func collFilteredPaginateNoKey[K, V any, C Collection[K, V], T any](
 	if err != nil {
 		return nil, nil, err
 	}
-	defer iterator.Close()
+	defer iterator.Close() // nolint: errcheck
 	// we advance the iter equal to the provided offset
 	if !advanceIter(iterator, offset) {
 		return nil, nil, collections.ErrInvalidIterator
@@ -263,7 +263,7 @@ func collFilteredPaginateByKey[K, V any, C Collection[K, V], T any](
 	if err != nil {
 		return nil, nil, err
 	}
-	defer iterator.Close()
+	defer iterator.Close() // nolint: errcheck
 
 	var (
 		count   uint64
