@@ -21,6 +21,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app"
 	appParams "github.com/dymensionxyz/dymension/v3/app/params"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 func init() {

@@ -185,6 +185,15 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	}
 	genesis[incentivestypes.ModuleName] = incentivesRawGenesis
 
+	// Add streamer genesis state
+	streamerGenesis := types.DefaultGenesis()
+	streamerGenesis.Params.MaxIterationsPerBlock = 1000 // Set high enough for simulation
+	streamerRawGenesis, err := cdc.MarshalJSON(streamerGenesis)
+	if err != nil {
+		return app.GenesisState{}, fmt.Errorf("failed to marshal streamer genesis state: %w", err)
+	}
+	genesis[types.ModuleName] = streamerRawGenesis
+
 	// Modify epochs params
 	epochsGenesis := epochstypes.DefaultGenesis()
 	epochsGenesis.Epochs = append(epochsGenesis.Epochs, epochstypes.EpochInfo{
