@@ -22,6 +22,15 @@ type BankKeeper interface {
 
 type IncentivesKeeper interface {
 	GetGauges(ctx sdk.Context) []incentivestypes.Gauge
+	GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*incentivestypes.Gauge, error)
+}
+
+type Keeper interface {
+	CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.DistrRecord, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64, sponsored bool) (uint64, error)
+	GetStreams(ctx sdk.Context) []types.Stream
+	ReplaceDistrRecords(ctx sdk.Context, streamId uint64, records []types.DistrRecord) error
+	UpdateDistrRecords(ctx sdk.Context, streamId uint64, records []types.DistrRecord) error
+	TerminateStream(ctx sdk.Context, streamID uint64) error
 }
 
 type StakingKeeper interface {
