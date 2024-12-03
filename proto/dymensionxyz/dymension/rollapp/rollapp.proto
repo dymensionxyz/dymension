@@ -15,9 +15,10 @@ import "dymensionxyz/dymension/rollapp/genesis_info.proto";
 // RollappGenesisState is a partial repr of the state the hub can expect the
 // rollapp to be in upon genesis
 message RollappGenesisState {
-  reserved 1,2;
+  reserved 1;
 
 
+  bool deprecated_bridge_open = 2 [deprecated=true]; // playground only
   // 0 means unpopulated
   // If populated, it's the proof height that the hub received the genesis transfer
   // packet from the rollapp. If populated, the bridge is considered open. It's not allowed

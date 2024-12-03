@@ -54,7 +54,7 @@ func CreateUpgradeHandler(
 		rollapps := keepers.RollappKeeper.GetAllRollapps(ctx)
 		for _, ra := range rollapps {
 			ra.MinSequencerBond = sdk.NewCoins(rollapptypes.DefaultMinSequencerBondGlobalCoin)
-			if ra.GenesisState.IsTransferEnabled() {
+			if ra.GenesisState.GetDeprecatedBridgeOpen() {
 				h, ok := keepers.RollappKeeper.GetLatestHeight(ctx, ra.RollappId)
 				if !ok {
 					log.Error("latest height for transfer enabled not found")
