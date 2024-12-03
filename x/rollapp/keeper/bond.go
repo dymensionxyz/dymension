@@ -8,10 +8,11 @@ import (
 
 func (k *Keeper) MinBond(ctx sdk.Context, rollappID string) sdk.Coin {
 	ra := k.MustGetRollapp(ctx, rollappID)
-	return ra.MinSequencerBond
+	return ra.MinSequencerBond[0]
 }
 
 func (k *Keeper) validMinBond(ctx sdk.Context, x sdk.Coin) error {
+
 	if x.IsNil() {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "min sequencer bond is nil")
 	}

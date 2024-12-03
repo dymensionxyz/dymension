@@ -73,6 +73,10 @@ func (r Rollapp) ValidateBasic() error {
 		return err
 	}
 
+	if err = ValidateBasicMinSeqBondCoins(r.MinSequencerBond); err != nil {
+		return errorsmod.Wrap(err, "min sequencer bond")
+	}
+
 	if err = validateInitialSequencer(r.InitialSequencer); err != nil {
 		return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
 	}

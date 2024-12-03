@@ -3,6 +3,7 @@ package types
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/stretchr/testify/require"
@@ -69,6 +70,10 @@ func TestValidateBasicMinSeqBondCoins(t *testing.T) {
 			sdk.NewCoin("anotherdenom", sdk.NewInt(50)),
 		), true},
 		{"zero type", sdk.Coins{}, true},
+		{"zero type alt", sdk.Coins{sdk.Coin{
+			Denom:  "",
+			Amount: math.Int{},
+		}}, true},
 		{"nil", nil, true},
 	}
 
