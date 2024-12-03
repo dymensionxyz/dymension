@@ -6,12 +6,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -19,12 +17,8 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
-	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
-	lightclienttypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 )
@@ -38,17 +32,7 @@ const (
 var Upgrade = upgrades.Upgrade{
 	Name:          UpgradeName,
 	CreateHandler: CreateUpgradeHandler,
-	StoreUpgrades: storetypes.StoreUpgrades{
-		Added: []string{
-			consensustypes.ModuleName,
-			crisistypes.ModuleName,
-			lightclienttypes.ModuleName,
-			sponsorshiptypes.ModuleName,
-			dymnstypes.ModuleName,
-			irotypes.ModuleName,
-			grouptypes.ModuleName,
-		},
-	},
+	StoreUpgrades: storetypes.StoreUpgrades{},
 }
 
 func CreateUpgradeHandler(
