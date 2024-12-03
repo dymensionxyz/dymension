@@ -60,6 +60,7 @@ message QueryDemandOrdersByStatusRequest {
   string denom = 7;
   // optional recipient address
   string recipient = 8;
+  cosmos.base.query.v1beta1.PageRequest pagination = 9;
 }
 
 enum FulfillmentState {
@@ -78,4 +79,5 @@ message QueryGetDemandOrderResponse {
 message QueryDemandOrdersByStatusResponse {
   // A list of demand orders with the given status
   repeated DemandOrder demand_orders = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

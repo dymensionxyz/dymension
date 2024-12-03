@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
@@ -78,6 +79,29 @@ func (k Keeper) GetAllPlans(ctx sdk.Context, tradableOnly bool) (list []types.Pl
 			continue
 		}
 		list = append(list, val)
+	}
+
+	return
+}
+
+func (k Keeper) GetAllPlansPaginated(ctx sdk.Context, tradableOnly bool, pageReq *query.PageRequest) (list []types.Plan, pageRes *query.PageResponse, err error) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PlanKeyPrefix)
+
+	pageRes, err = query.Paginate(store, pageReq, func(key []byte, value []byte) error {
+		var val types.Plan
+		if er := k.cdc.Unmarshal(value, &val); er != nil {
+			return er
+		}
+
+		if tradableOnly && (val.IsSettled() || val.StartTime.After(ctx.BlockTime())) {
+			return nil
+		}
+
+		list = append(list, val)
+		return nil
+	})
+	if err != nil {
+		return
 	}
 
 	return

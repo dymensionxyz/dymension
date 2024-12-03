@@ -140,10 +140,12 @@ message QueryGetStateInfoResponse {
 
 message QueryRegisteredDenomsRequest {
   string rollappId = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 message QueryRegisteredDenomsResponse {
   repeated string denoms = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryObsoleteDRSVersionsRequest {}

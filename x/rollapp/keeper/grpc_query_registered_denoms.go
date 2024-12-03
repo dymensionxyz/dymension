@@ -15,12 +15,13 @@ func (k Keeper) RegisteredDenoms(c context.Context, req *types.QueryRegisteredDe
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	denoms, err := k.GetAllRegisteredDenoms(sdk.UnwrapSDKContext(c), req.RollappId)
+	denoms, pageResp, err := k.GetAllRegisteredDenomsPaginated(sdk.UnwrapSDKContext(c), req.RollappId, req.Pagination)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &types.QueryRegisteredDenomsResponse{
-		Denoms: denoms,
+		Denoms:     denoms,
+		Pagination: pageResp,
 	}, nil
 }

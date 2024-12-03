@@ -5,6 +5,9 @@ import (
 
 	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
+
+	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 )
 
 func (k Keeper) SetRegisteredDenom(ctx sdk.Context, rollappID, denom string) error {
@@ -13,6 +16,14 @@ func (k Keeper) SetRegisteredDenom(ctx sdk.Context, rollappID, denom string) err
 
 func (k Keeper) HasRegisteredDenom(ctx sdk.Context, rollappID, denom string) (bool, error) {
 	return k.registeredRollappDenoms.Has(ctx, collections.Join(rollappID, denom))
+}
+
+func (k Keeper) GetAllRegisteredDenomsPaginated(ctx sdk.Context, rollappID string, pageReq *query.PageRequest) ([]string, *query.PageResponse, error) {
+	return collcompat.CollectionPaginate(ctx, k.registeredRollappDenoms, pageReq,
+		func(key collections.Pair[string, string], _ collections.NoValue) (string, error) {
+			return key.K1(), nil
+		}, collcompat.WithCollectionPaginationPairPrefix[string, string](rollappID),
+	)
 }
 
 func (k Keeper) GetAllRegisteredDenoms(ctx sdk.Context, rollappID string) ([]string, error) {

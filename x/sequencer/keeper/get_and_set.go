@@ -8,8 +8,10 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // SetSequencer : write to store indexed by address, and also by status
@@ -66,15 +68,23 @@ func (k Keeper) RollappSequencers(ctx sdk.Context, rollappId string) []types.Seq
 	return k.prefixSequencers(ctx, types.SequencersByRollappKey(rollappId))
 }
 
+func (k Keeper) RollappSequencersPaginated(ctx sdk.Context, rollappId string, pageReq *query.PageRequest) ([]types.Sequencer, *query.PageResponse, error) {
+	return k.prefixSequencersPaginated(ctx, types.SequencersByRollappKey(rollappId), pageReq)
+}
+
 func (k Keeper) RollappSequencersByStatus(ctx sdk.Context, rollappId string, status types.OperatingStatus) []types.Sequencer {
 	return k.prefixSequencers(ctx, types.SequencersByRollappByStatusKey(rollappId, status))
+}
+
+func (k Keeper) RollappSequencersByStatusPaginated(ctx sdk.Context, rollappId string, status types.OperatingStatus, pageReq *query.PageRequest) ([]types.Sequencer, *query.PageResponse, error) {
+	return k.prefixSequencersPaginated(ctx, types.SequencersByRollappByStatusKey(rollappId, status), pageReq)
 }
 
 func (k Keeper) RollappBondedSequencers(ctx sdk.Context, rollappId string) []types.Sequencer {
 	return k.RollappSequencersByStatus(ctx, rollappId, types.Bonded)
 }
 
-func (k Keeper) AllSequencers(ctx sdk.Context) (list []types.Sequencer) {
+func (k Keeper) AllSequencers(ctx sdk.Context) []types.Sequencer {
 	return k.prefixSequencers(ctx, types.SequencersKeyPrefix)
 }
 
@@ -84,7 +94,7 @@ func (k Keeper) prefixSequencers(ctx sdk.Context, prefixKey []byte) []types.Sequ
 
 	defer it.Close() // nolint: errcheck
 
-	ret := []types.Sequencer{}
+	var ret []types.Sequencer
 	for ; it.Valid(); it.Next() {
 		var val types.Sequencer
 		k.cdc.MustUnmarshal(it.Value(), &val)
@@ -92,6 +102,26 @@ func (k Keeper) prefixSequencers(ctx sdk.Context, prefixKey []byte) []types.Sequ
 	}
 
 	return ret
+}
+
+func (k Keeper) prefixSequencersPaginated(ctx sdk.Context, prefixKey []byte, pageReq *query.PageRequest) ([]types.Sequencer, *query.PageResponse, error) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), prefixKey)
+
+	var sequencers []types.Sequencer
+
+	pageRes, err := query.Paginate(store, pageReq, func(key []byte, value []byte) error {
+		var val types.Sequencer
+		if err := k.cdc.Unmarshal(value, &val); err != nil {
+			return err
+		}
+		sequencers = append(sequencers, val)
+		return nil
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return sequencers, pageRes, nil
 }
 
 // GetSequencer returns the sentinel sequencer if not found. Use GetRealSequencer if expecting
