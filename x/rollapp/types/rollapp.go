@@ -9,8 +9,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
 
@@ -49,7 +47,7 @@ func NewRollapp(creator, rollappId, initialSequencer string, minSequencerBond sd
 		RollappId:        rollappId,
 		Owner:            creator,
 		InitialSequencer: initialSequencer,
-		MinSequencerBond: minSequencerBond,
+		MinSequencerBond: sdk.NewCoins(minSequencerBond),
 		VmType:           vmType,
 		Metadata:         metadata,
 		GenesisInfo:      genInfo,
@@ -77,10 +75,6 @@ func (r Rollapp) ValidateBasic() error {
 
 	if err = validateInitialSequencer(r.InitialSequencer); err != nil {
 		return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
-	}
-
-	if r.MinSequencerBond.IsNil() || !r.MinSequencerBond.IsPositive() {
-		return gerrc.ErrInvalidArgument.Wrap("non positive min bond")
 	}
 
 	if err = r.GenesisInfo.Validate(); err != nil {
