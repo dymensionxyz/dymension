@@ -7,6 +7,8 @@ import (
 )
 
 var (
+	// ADYM represents 1 ADYM.
+	ADYM = math.NewInt(1)
 	// DYM represents 1 DYM. Equals to 10^18 ADYM.
 	DYM = math.NewIntWithDecimal(1, 18)
 	// DYMCoin is 1 DYM coin.
