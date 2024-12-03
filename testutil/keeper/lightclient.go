@@ -97,6 +97,11 @@ type MockIBCCLientKeeper struct {
 	clientStates         map[string]exported.ClientState
 }
 
+// IterateConsensusStates implements types.IBCClientKeeperExpected.
+func (m *MockIBCCLientKeeper) IterateConsensusStates(ctx sdk.Context, cb func(clientID string, cs ibcclienttypes.ConsensusStateWithHeight) bool) {
+	panic("unimplemented")
+}
+
 // ClientStore implements types.IBCClientKeeperExpected.
 func (m *MockIBCCLientKeeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore {
 	panic("unimplemented")
@@ -181,6 +186,11 @@ func NewMockSequencerKeeper(sequencers map[string]*sequencertypes.Sequencer) *Mo
 }
 
 type MockRollappKeeper struct{}
+
+// GetLatestStateInfoIndex implements types.RollappKeeperExpected.
+func (m *MockRollappKeeper) GetLatestStateInfoIndex(ctx sdk.Context, rollappId string) (rollapptypes.StateInfoIndex, bool) {
+	panic("unimplemented")
+}
 
 func (m *MockRollappKeeper) IsFirstHeightOfLatestFork(ctx sdk.Context, rollappId string, revision, height uint64) bool {
 	return false

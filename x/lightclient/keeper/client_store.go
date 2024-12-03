@@ -106,3 +106,13 @@ func deleteIterationKey(clientStore sdk.KVStore, height exported.Height) {
 	key := ibctm.IterationKey(height)
 	clientStore.Delete(key)
 }
+
+// GetFirstHeight returns the lowest height available for a client.
+func (k Keeper) GetFirstConsensusStateHeight(ctx sdk.Context, clientID string) uint64 {
+	height := clienttypes.Height{}
+	k.ibcClientKeeper.IterateConsensusStates(ctx, func(clientID string, cs clienttypes.ConsensusStateWithHeight) bool {
+		height = cs.Height
+		return true
+	})
+	return height.GetRevisionHeight()
+}

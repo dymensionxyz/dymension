@@ -13,6 +13,12 @@ import (
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
+var (
+	errIsMisbehaviour   = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "misbehavior evidence is disabled for canonical clients")
+	errNoHeader         = errors.New("message does not contain header")
+	errProposerMismatch = errorsmod.Wrap(gerrc.ErrInvalidArgument, "validator set proposer not equal header proposer field")
+)
+
 func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibcclienttypes.MsgUpdateClient) error {
 	if !i.k.Enabled() {
 		return nil
@@ -72,7 +78,11 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	sInfo, err := i.raK.FindStateInfoByHeight(ctx, rollapp.RollappId, h)
 	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
 		// the header is optimistic: the state update has not yet been received, so we save optimistically
-		return errorsmod.Wrap(i.k.SaveSigner(ctx, seq.Address, msg.ClientId, h), "save updater")
+		err := i.k.SaveSigner(ctx, seq.Address, msg.ClientId, h)
+		if err != nil {
+			return errorsmod.Wrap(err, "save signer")
+		}
+		return nil
 	}
 	if err != nil {
 		return errorsmod.Wrap(err, "find state info by height")
@@ -85,12 +95,6 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 
 	return nil
 }
-
-var (
-	errIsMisbehaviour   = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "misbehavior evidence is disabled for canonical clients")
-	errNoHeader         = errors.New("message does not contain header")
-	errProposerMismatch = errorsmod.Wrap(gerrc.ErrInvalidArgument, "validator set proposer not equal header proposer field")
-)
 
 func (i IBCMessagesDecorator) getSequencer(ctx sdk.Context, header *ibctm.Header) (sequencertypes.Sequencer, error) {
 	proposerBySignature := header.ValidatorSet.Proposer.GetAddress()

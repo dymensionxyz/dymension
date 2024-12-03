@@ -13,6 +13,12 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
+var (
+	ErrNoMatch        = gerrc.ErrFailedPrecondition.Wrap("not at least one cons state matches the rollapp state")
+	ErrMismatch       = gerrc.ErrInvalidArgument.Wrap("consensus state mismatch")
+	ErrParamsMismatch = gerrc.ErrInvalidArgument.Wrap("params")
+)
+
 // intended to be called by relayer, but can be called by anyone
 // verifies that the suggested client is safe to designate canonical and matches state updates from the sequencer
 func (k *Keeper) TrySetCanonicalClient(ctx sdk.Context, clientID string) error {
@@ -38,14 +44,9 @@ func (k *Keeper) TrySetCanonicalClient(ctx sdk.Context, clientID string) error {
 		return gerrc.ErrAlreadyExists.Wrap("canonical client for rollapp")
 	}
 
-	latestHeight, ok := k.rollappKeeper.GetLatestHeight(ctx, rollappID)
-	if !ok {
-		return gerrc.ErrNotFound.Wrap("latest rollapp height")
-	}
-
-	err := k.validClient(ctx, clientID, clientState, rollappID, latestHeight)
+	err := k.validClient(ctx, clientID, clientState, rollappID)
 	if err != nil {
-		return errorsmod.Wrap(err, "unsafe to mark client canonical: check that sequencer has posted a recent state update")
+		return errorsmod.Wrap(err, "unsafe to mark client canonical")
 	}
 
 	k.SetCanonicalClient(ctx, rollappID, clientID)
@@ -92,23 +93,12 @@ func (k Keeper) expectedClient() ibctm.ClientState {
 	return types.DefaultExpectedCanonicalClientParams()
 }
 
-var (
-	ErrNoMatch        = gerrc.ErrFailedPrecondition.Wrap("not at least one cons state matches the rollapp state")
-	ErrMismatch       = gerrc.ErrInvalidArgument.Wrap("consensus state mismatch")
-	ErrParamsMismatch = gerrc.ErrInvalidArgument.Wrap("params")
-)
-
 // The canonical client criteria are:
 // 1. The client must be a tendermint client.
 // 2. The client state must match the expected client params as configured by the module
 // 3. All the existing consensus states much match the corresponding height rollapp block descriptors
-func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientState, rollappId string, maxHeight uint64) error {
-	log := k.Logger(ctx).With("component", "valid client func", "rollapp", rollappId, "client", clientID)
-
-	log.Debug("top of func", "max height", maxHeight, "gas", ctx.GasMeter().GasConsumed())
-
+func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientState, rollappId string) error {
 	expClient := k.expectedClient()
-
 	if err := types.IsCanonicalClientParamsValid(cs, &expClient); err != nil {
 		return errors.Join(err, ErrParamsMismatch)
 	}
@@ -117,20 +107,26 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientSt
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("latest state info index")
 	}
-	atLeastOneMatch := false
 
-	for i := sinfo.Index; i < maxHeight; i++ {
+	baseHeight := k.GetFirstConsensusStateHeight(ctx, clientID)
+	atLeastOneMatch := false
+	for i := sinfo.Index; i > 0; i-- {
 		sInfo, ok := k.rollappKeeper.GetStateInfo(ctx, rollappId, i)
 		if !ok {
-			return gerrc.ErrNotFound.Wrap("state info")
+			return errorsmod.Wrap(gerrc.ErrInternal, "get state info")
+		}
+		matched, err := k.ValidateStateInfoAgainstConsensusStates(ctx, clientID, &sInfo)
+		if err != nil {
+			return errors.Join(ErrMismatch, err)
 		}
 
-		matched, err := k.ValidateOptimisticUpdates(ctx, clientID, &sInfo)
-		if err != nil {
-			return errorsmod.Wrap(err, "validate optimistic updates")
-		}
 		if matched {
 			atLeastOneMatch = true
+		}
+
+		// break point with the lowest height of the consensus states
+		if sInfo.StartHeight > baseHeight {
+			break
 		}
 	}
 
@@ -148,8 +144,8 @@ func (k Keeper) ValidateHeaderAgainstStateInfo(ctx sdk.Context, sInfo *rollappty
 	if !ok {
 		return errorsmod.Wrapf(gerrc.ErrInternal, "no block descriptor found for height %d", h)
 	}
-	nextSeq, err := k.SeqK.RealSequencer(ctx, sInfo.NextSequencerForHeight(h))
 
+	nextSeq, err := k.SeqK.RealSequencer(ctx, sInfo.NextSequencerForHeight(h))
 	if err != nil {
 		return errorsmod.Wrap(errors.Join(err, gerrc.ErrInternal), "get sequencer of state info")
 	}

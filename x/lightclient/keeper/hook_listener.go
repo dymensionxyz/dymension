@@ -46,7 +46,7 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, stateInfoM *rollapptyp
 	}
 
 	// validate state info against optimistically accepted headers
-	_, err := hook.k.ValidateOptimisticUpdates(ctx, client, stateInfo)
+	_, err := hook.k.ValidateStateInfoAgainstConsensusStates(ctx, client, stateInfo)
 	if err != nil {
 		return errorsmod.Wrap(err, "validate optimistic update")
 	}
@@ -60,7 +60,7 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, stateInfoM *rollapptyp
 	return nil
 }
 
-func (k Keeper) ValidateOptimisticUpdates(
+func (k Keeper) ValidateStateInfoAgainstConsensusStates(
 	ctx sdk.Context,
 	client string,
 	stateInfo *rollapptypes.StateInfo, // a place to look up the BD for a height

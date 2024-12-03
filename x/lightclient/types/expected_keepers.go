@@ -3,6 +3,7 @@ package types
 import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -30,6 +31,7 @@ type IBCClientKeeperExpected interface {
 	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
 	ClientStore(ctx sdk.Context, clientID string) sdk.KVStore
+	IterateConsensusStates(ctx sdk.Context, cb func(clientID string, cs clienttypes.ConsensusStateWithHeight) bool)
 }
 
 type IBCChannelKeeperExpected interface {
