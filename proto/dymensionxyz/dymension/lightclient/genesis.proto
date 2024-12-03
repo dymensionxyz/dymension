@@ -17,7 +17,6 @@ message HeaderSignerEntry {
 message GenesisState {
     repeated CanonicalClient canonical_clients = 1 [ (gogoproto.nullable) = false ];
     repeated HeaderSignerEntry header_signers = 3 [ (gogoproto.nullable) = false ];
-    repeated string hard_fork_keys = 4;
 }
 
 message CanonicalClient {

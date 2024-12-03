@@ -63,11 +63,6 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 		return gerrc.ErrInternal.Wrapf("get rollapp from sequencer: rollapp: %s", seq.RollappId)
 	}
 
-	// cannot update the LC unless fork is resolved (after receiving state post fork state update)
-	if i.k.IsHardForkingInProgress(ctx, rollapp.RollappId) {
-		return types.ErrorHardForkInProgress
-	}
-
 	// this disallows LC updates from previous revisions but should be fine since new state roots can be used to prove
 	// state older than the one in the current state root.
 	if header.Header.Version.App != rollapp.LatestRevision().Number {

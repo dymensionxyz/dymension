@@ -64,7 +64,7 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 	// it will revert the future pending states to the specified height
 	// and increment the revision number
 	// will fail if state already finalized
-	err := k.HardFork(ctx, msg.RollappId, msg.FraudHeight)
+	err := k.HardFork(ctx, msg.RollappId, msg.FraudHeight-1)
 	if err != nil {
 		err = errorsmod.Wrap(err, "hard fork")
 		ctx.Logger().Error("Fraud proposal.", err)
