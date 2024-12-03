@@ -128,7 +128,7 @@ func (s *UpgradeTestSuite) validateRollappsMigration(numRoll int) error {
 	s.Require().Len(rollapps, numRoll)
 
 	for _, ra := range rollapps {
-		s.Require().NoError(ra.ValidateBasic())
+		s.Require().NoError(rollapptypes.ValidateBasicMinSeqBondCoins(ra.MinSequencerBond))
 		s.Require().Equal(ra.GenesisState.GetDeprecatedBridgeOpen(), ra.IsTransferEnabled())
 		s.Require().Equal(sdk.NewCoins(rollapptypes.DefaultMinSequencerBondGlobalCoin), ra.MinSequencerBond)
 	}
