@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"strconv"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibctypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func (r RollappPacket) LogString() string {
@@ -119,4 +122,96 @@ func (r RollappPacket) RestoreOriginalTransferTarget() RollappPacket {
 		r.Packet.Data = transferPacketData.GetBytes()
 	}
 	return r
+}
+
+const (
+	// proofHeightCtxKey is a context key to pass the proof height from the msg to the IBC middleware
+	proofHeightCtxKey = "ibc_proof_height"
+)
+
+func CtxWithPacketProofHeight(ctx sdk.Context, packetId PacketUID, height ibctypes.Height) sdk.Context {
+	key := fmt.Sprintf("%s_%s", proofHeightCtxKey, packetId.String())
+	return ctx.WithValue(key, height)
+}
+
+func PacketProofHeightFromCtx(ctx sdk.Context, packetId PacketUID) (ibctypes.Height, bool) {
+	key := fmt.Sprintf("%s_%s", proofHeightCtxKey, packetId.String())
+	u, ok := ctx.Value(key).(ibctypes.Height)
+	return u, ok
+}
+
+type IBCProofHeightDecorator struct{}
+
+func NewIBCProofHeightDecorator() IBCProofHeightDecorator {
+	return IBCProofHeightDecorator{}
+}
+
+func (rrd IBCProofHeightDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
+	for _, m := range tx.GetMsgs() {
+		var (
+			height   ibctypes.Height
+			packetId PacketUID
+		)
+		switch msg := m.(type) {
+		case *channeltypes.MsgRecvPacket:
+			height = msg.ProofHeight
+			packetId = NewPacketUID(
+				RollappPacket_ON_RECV,
+				msg.Packet.DestinationPort,
+				msg.Packet.DestinationChannel,
+				msg.Packet.Sequence,
+			)
+
+		case *channeltypes.MsgAcknowledgement:
+			height = msg.ProofHeight
+			packetId = NewPacketUID(
+				RollappPacket_ON_ACK,
+				msg.Packet.SourcePort,
+				msg.Packet.SourceChannel,
+				msg.Packet.Sequence,
+			)
+
+		case *channeltypes.MsgTimeout:
+			height = msg.ProofHeight
+			packetId = NewPacketUID(
+				RollappPacket_ON_TIMEOUT,
+				msg.Packet.SourcePort,
+				msg.Packet.SourceChannel,
+				msg.Packet.Sequence,
+			)
+		default:
+			continue
+		}
+
+		ctx = CtxWithPacketProofHeight(ctx, packetId, height)
+	}
+	return next(ctx, tx, simulate)
+}
+
+func PacketHubPortChan(packetType RollappPacket_Type, packet channeltypes.Packet) (string, string) {
+	var port string
+	var channel string
+
+	switch packetType {
+	case RollappPacket_ON_RECV:
+		port, channel = packet.GetDestPort(), packet.GetDestChannel()
+	case RollappPacket_ON_TIMEOUT, RollappPacket_ON_ACK:
+		port, channel = packet.GetSourcePort(), packet.GetSourceChannel()
+	}
+	return port, channel
+}
+
+func UnpackPacketProofHeight(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	packetType RollappPacket_Type,
+) (uint64, error) {
+	port, channel := PacketHubPortChan(packetType, packet)
+
+	packetID := NewPacketUID(packetType, port, channel, packet.Sequence)
+	height, ok := PacketProofHeightFromCtx(ctx, packetID)
+	if !ok {
+		return 0, errorsmod.Wrapf(gerrc.ErrInternal, "get proof height from context: packetID: %s", packetID)
+	}
+	return height.RevisionHeight, nil
 }

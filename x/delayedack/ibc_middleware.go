@@ -86,11 +86,6 @@ func (w IBCMiddleware) OnRecvPacket(
 ) exported.Acknowledgement {
 	l := w.logger(ctx, packet, "OnRecvPacket")
 
-	if commontypes.SkipRollappMiddleware(ctx) {
-		l.Debug("Skipping because of skip delay ctx.")
-		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
-	}
-
 	transfer, err := w.GetValidTransferWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_RECV)
 	if err != nil {
 		l.Error("Get valid rollapp and transfer.", "err", err)
