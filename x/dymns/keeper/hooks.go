@@ -12,6 +12,7 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -58,14 +59,19 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 		),
 	)
 
-	return h.Keeper.registerAliasForRollApp(ctx, rollappID, creatorAddr, alias, aliasCost)
+	err := h.Keeper.registerAliasForRollApp(ctx, rollappID, creatorAddr, alias, aliasCost)
+	if err != nil {
+		return errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "register alias for RollApp")
+	}
+
+	return nil
 }
 
 func (h rollappHooks) BeforeUpdateState(_ sdk.Context, _ string, _ string, _ bool) error {
 	return nil
 }
 
-func (h rollappHooks) AfterUpdateState(_ sdk.Context, _ string, _ *rollapptypes.StateInfo) error {
+func (h rollappHooks) AfterUpdateState(ctx sdk.Context, stateInfo *rollapptypes.StateInfoMeta) error {
 	return nil
 }
 

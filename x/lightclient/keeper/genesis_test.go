@@ -19,7 +19,6 @@ func TestInitGenesis(t *testing.T) {
 
 	keeper.InitGenesis(ctx, types.GenesisState{
 		CanonicalClients: clients,
-		HardForkKeys:     []string{"rollapp-1", "rollapp-2"},
 	})
 
 	ibc, found := keeper.GetCanonicalClient(ctx, "rollapp-1")
@@ -28,10 +27,6 @@ func TestInitGenesis(t *testing.T) {
 	ibc, found = keeper.GetCanonicalClient(ctx, "rollapp-2")
 	require.True(t, found)
 	require.Equal(t, "client-2", ibc)
-	hfks := keeper.ListHardForkKeys(ctx)
-	require.Len(t, hfks, 2)
-	require.Equal(t, "rollapp-1", hfks[0])
-	require.Equal(t, "rollapp-2", hfks[1])
 }
 
 func TestExportGenesis(t *testing.T) {
@@ -39,8 +34,6 @@ func TestExportGenesis(t *testing.T) {
 
 	keeper.SetCanonicalClient(ctx, "rollapp-1", "client-1")
 	keeper.SetCanonicalClient(ctx, "rollapp-2", "client-2")
-	keeper.SetHardForkInProgress(ctx, "rollapp-1")
-	keeper.SetHardForkInProgress(ctx, "rollapp-2")
 
 	genesis := keeper.ExportGenesis(ctx)
 
@@ -49,9 +42,6 @@ func TestExportGenesis(t *testing.T) {
 	require.Equal(t, "client-2", genesis.CanonicalClients[1].IbcClientId)
 	require.Equal(t, "rollapp-1", genesis.CanonicalClients[0].RollappId)
 	require.Equal(t, "rollapp-2", genesis.CanonicalClients[1].RollappId)
-	require.Len(t, genesis.HardForkKeys, 2)
-	require.Equal(t, "rollapp-1", genesis.HardForkKeys[0])
-	require.Equal(t, "rollapp-2", genesis.HardForkKeys[1])
 }
 
 func TestImportExportGenesis(t *testing.T) {
@@ -80,7 +70,6 @@ func TestImportExportGenesis(t *testing.T) {
 				Height:           43,
 			},
 		},
-		HardForkKeys: []string{"rollapp-1", "rollapp-2"},
 	}
 
 	k.InitGenesis(ctx, g)

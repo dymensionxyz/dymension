@@ -85,8 +85,8 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 		{
 			name:           "Small purchase",
 			buyAmt:         math.NewInt(1_000).MulRaw(1e18),
-			expectedDYM:    math.NewInt(110).MulRaw(1e18),
-			expectedTokens: math.NewInt(1_100).MulRaw(1e18),
+			expectedDYM:    math.NewInt(101).MulRaw(1e18),
+			expectedTokens: math.NewInt(1_010).MulRaw(1e18),
 		},
 		{
 			name:           "Large purchase - left tokens are limiting factor",
@@ -97,8 +97,8 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 		{
 			name:           "Nothing sold - pool contains only creation fee",
 			buyAmt:         math.NewInt(0),
-			expectedDYM:    math.NewInt(10).MulRaw(1e18), // creation fee
-			expectedTokens: math.NewInt(100).MulRaw(1e18),
+			expectedDYM:    math.NewInt(1).MulRaw(1e18), // creation fee
+			expectedTokens: math.NewInt(10).MulRaw(1e18),
 		},
 		{
 			name:           "All sold - pool contains only reserved tokens",

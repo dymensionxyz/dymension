@@ -182,6 +182,14 @@ func NewMockSequencerKeeper(sequencers map[string]*sequencertypes.Sequencer) *Mo
 
 type MockRollappKeeper struct{}
 
+func (m *MockRollappKeeper) IsFirstHeightOfLatestFork(ctx sdk.Context, rollappId string, revision, height uint64) bool {
+	return false
+}
+
+func (m *MockRollappKeeper) GetLatestHeight(ctx sdk.Context, rollappId string) (uint64, bool) {
+	panic("implement me")
+}
+
 // GetLatestStateInfo implements types.RollappKeeperExpected.
 func (m *MockRollappKeeper) GetLatestStateInfo(ctx sdk.Context, rollappId string) (rollapptypes.StateInfo, bool) {
 	panic("unimplemented")
