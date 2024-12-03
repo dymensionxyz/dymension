@@ -141,12 +141,13 @@ func (s *UpgradeTestSuite) seedAndStoreRollapps(numRollapps int) {
 		s.App.RollappKeeper.SetRollapp(s.Ctx, ra)
 
 		for i := range 5 {
+			i := uint64(i)
 			info := rollapptypes.StateInfo{
 				StateInfoIndex: rollapptypes.StateInfoIndex{
 					RollappId: ra.RollappId,
 					Index:     i,
 				},
-				StartHeight: uint64(i + 1),
+				StartHeight: i + 1,
 				NumBlocks:   1,
 			}
 			s.App.RollappKeeper.SetStateInfo(s.Ctx, info)
