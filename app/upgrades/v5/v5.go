@@ -65,6 +65,5 @@ func CreateUpgradeHandler(
 			keepers.RollappKeeper.SetRollapp(ctx, ra)
 		}
 		return fromVM, nil
-
 	}
 }
