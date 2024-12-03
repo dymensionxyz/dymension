@@ -107,7 +107,7 @@ func (m *RollappGenesisState) GetDeprecatedBridgeOpen() bool {
 	if m != nil {
 		return m.DeprecatedBridgeOpen
 	}
-	return 0
+	return false
 }
 
 func (m *RollappGenesisState) GetTransferProofHeight() uint64 {
@@ -963,11 +963,11 @@ func (m *RollappGenesisState) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: RollappGenesisState: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 3:
+		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DeprecatedBridgeOpen", wireType)
 			}
-			m.TransferProofHeight = 0
+			var v int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowRollapp
@@ -977,7 +977,7 @@ func (m *RollappGenesisState) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.TransferProofHeight |= uint64(b&0x7F) << shift
+				v |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
