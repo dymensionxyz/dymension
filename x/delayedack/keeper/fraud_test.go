@@ -35,7 +35,7 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 	suite.Require().Nil(err)
 
 	// call fraud on the 4 packet
-	err = keeper.OnHardFork(ctx, rollappId, 4)
+	err = keeper.OnHardFork(ctx, rollappId, 3)
 	suite.Require().NoError(err)
 
 	// expected result:

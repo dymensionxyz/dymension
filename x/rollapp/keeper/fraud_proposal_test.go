@@ -69,7 +69,7 @@ func (s *RollappTestSuite) TestSubmitRollappFraud() {
 			}
 
 			// Force a fork at height 50
-			err = s.k().HardFork(s.Ctx, rollappId, 50)
+			err = s.k().HardFork(s.Ctx, rollappId, 49)
 			s.Require().NoError(err)
 			lastHeight = 50
 
@@ -81,7 +81,7 @@ func (s *RollappTestSuite) TestSubmitRollappFraud() {
 			}
 
 			// Force another fork at height 120
-			err = s.k().HardFork(s.Ctx, rollappId, 120)
+			err = s.k().HardFork(s.Ctx, rollappId, 119)
 			s.Require().NoError(err)
 
 			// assert revision correctness

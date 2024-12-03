@@ -112,9 +112,13 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	k.SetStateInfo(ctx, *stateInfo)
 
 	// call the after-update-state hook
-	// currently used by `x/lightclient` to validate the state update in regards to the light client
+	// currently used by `x/lightclient` to validate the state update against consensus states
 	// x/sequencer will complete the rotation if needed
-	err = k.hooks.AfterUpdateState(ctx, msg.RollappId, stateInfo)
+	err = k.hooks.AfterUpdateState(ctx, &types.StateInfoMeta{
+		StateInfo: *stateInfo,
+		Revision:  msg.RollappRevision,
+		Rollapp:   msg.RollappId,
+	})
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "hook: after update state")
 	}

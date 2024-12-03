@@ -82,7 +82,7 @@ func (s *RollappTestSuite) TestHardFork() {
 			// finalize some of the states
 			s.k().FinalizeRollappStates(s.Ctx.WithBlockHeight(int64(initialHeight + tc.statesFinalized)))
 
-			err = s.k().HardFork(s.Ctx, rollappId, tc.fraudHeight)
+			err = s.k().HardFork(s.Ctx, rollappId, tc.fraudHeight-1)
 			if tc.expectError {
 				s.Require().Error(err)
 			} else {
@@ -102,7 +102,7 @@ func (s *RollappTestSuite) TestHardFork_InvalidRollapp() {
 	_, err := s.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	s.Require().Nil(err)
 
-	err = s.k().HardFork(*ctx, "invalidRollapp", 2)
+	err = s.k().HardFork(*ctx, "invalidRollapp", 1)
 	s.Require().Error(err)
 }
 
@@ -134,7 +134,7 @@ func (s *RollappTestSuite) TestHardFork_AlreadyFinalized() {
 	s.Require().Nil(err)
 	s.Require().Equal(common.Status_FINALIZED, stateInfo.Status)
 
-	err = s.k().HardFork(*ctx, rollapp, 2)
+	err = s.k().HardFork(*ctx, rollapp, 1)
 	s.Require().NotNil(err)
 }
 

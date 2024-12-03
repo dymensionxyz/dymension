@@ -22,6 +22,13 @@ func getClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec) exported.Cli
 	return clienttypes.MustUnmarshalClientState(cdc, bz)
 }
 
+// must be tendermint!
+func getClientStateTM(clientStore sdk.KVStore, cdc codec.BinaryCodec) *ibctm.ClientState {
+	c := getClientState(clientStore, cdc)
+	tmClientState, _ := c.(*ibctm.ClientState)
+	return tmClientState
+}
+
 // setClientState stores the client state
 func setClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState exported.ClientState) {
 	key := host.ClientStateKey()

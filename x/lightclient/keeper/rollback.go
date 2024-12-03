@@ -12,11 +12,11 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
-func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappId string, newRevisionHeight uint64) error {
-	return hook.k.RollbackCanonicalClient(ctx, rollappId, newRevisionHeight)
+func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappId string, lastValidHeight uint64) error {
+	return hook.k.RollbackCanonicalClient(ctx, rollappId, lastValidHeight)
 }
 
-func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, newRevisionHeight uint64) error {
+func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, lastValidHeight uint64) error {
 	client, found := k.GetCanonicalClient(ctx, rollappId)
 	if !found {
 		return gerrc.ErrFailedPrecondition.Wrap("canonical client not found")
@@ -26,7 +26,7 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, newRe
 	// iterate over all consensus states and metadata in the client store
 	IterateConsensusStateDescending(cs, func(h exported.Height) bool {
 		// iterate until we pass the new revision height
-		if h.GetRevisionHeight() < newRevisionHeight {
+		if h.GetRevisionHeight() <= lastValidHeight {
 			return true
 		}
 
@@ -37,18 +37,17 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, newRe
 		return false
 	})
 
-	// clean the optimistic updates valset
-	err := k.PruneSignersAbove(ctx, client, newRevisionHeight-1)
+	// we DO want to prune the signer of the last valid height:
+	// the only reason we didn't do it before was because we were waiting for next validators hash
+	// but now we don't care about that
+	err := k.PruneSignersAbove(ctx, client, lastValidHeight-1)
 	if err != nil {
 		return errorsmod.Wrap(err, "prune signers above")
 	}
 
-	// marks that hard fork is in progress
-	k.SetHardForkInProgress(ctx, rollappId)
-
 	// freeze the client
 	// it will be released after the hardfork is resolved (on the next state update)
-	k.freezeClient(cs, newRevisionHeight)
+	k.freezeClient(cs, lastValidHeight)
 
 	return nil
 }
@@ -57,11 +56,21 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, newRe
 // and adding consensus states based on the block descriptors
 // CONTRACT: canonical client is already set, state info exists
 func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
-	client, _ := k.GetCanonicalClient(ctx, rollappID) // already checked in the caller
-	clientStore := k.ibcClientKeeper.ClientStore(ctx, client)
+	clientID, _ := k.GetCanonicalClient(ctx, rollappID) // already checked in the caller
+	clientStore := k.ibcClientKeeper.ClientStore(ctx, clientID)
 
 	stateinfo, _ := k.rollappKeeper.GetLatestStateInfo(ctx, rollappID) // already checked in the caller
+
 	height := stateinfo.StartHeight
+	// sanity check
+	client := getClientStateTM(clientStore, k.cdc)
+	clientHeight := client.GetLatestHeight().GetRevisionHeight()
+	if height <= clientHeight {
+		return gerrc.ErrInternal.Wrapf("client latest height not less than new latest height: new: %d, client: %d",
+			height, clientHeight,
+		)
+	}
+
 	bd := stateinfo.BDs.BD[0]
 
 	// get the valHash of this sequencer
@@ -69,8 +78,6 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
 	proposer, _ := k.SeqK.RealSequencer(ctx, stateinfo.Sequencer)
 	valHash, _ := proposer.ValsetHash()
 
-	// unfreeze the client and set the latest height
-	k.resetClientToValidState(clientStore, height)
 	// add consensus states based on the block descriptors
 	cs := ibctm.ConsensusState{
 		Timestamp:          bd.Timestamp,
@@ -81,26 +88,25 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
 	setConsensusState(clientStore, k.cdc, clienttypes.NewHeight(1, height), &cs)
 	setConsensusMetadata(ctx, clientStore, clienttypes.NewHeight(1, height))
 
-	k.setHardForkResolved(ctx, rollappID)
+	k.unfreezeClient(clientStore, height)
+
 	return nil
 }
 
 // freezeClient freezes the client by setting the frozen height to the current height
 func (k Keeper) freezeClient(clientStore sdk.KVStore, height uint64) {
-	c := getClientState(clientStore, k.cdc)
-	tmClientState, _ := c.(*ibctm.ClientState)
+	tmClientState := getClientStateTM(clientStore, k.cdc)
 
 	// freeze the client
-	tmClientState.FrozenHeight = clienttypes.NewHeight(1, height)
+	tmClientState.FrozenHeight = ibctm.FrozenHeight
 	tmClientState.LatestHeight = clienttypes.NewHeight(1, height)
 
 	setClientState(clientStore, k.cdc, tmClientState)
 }
 
 // freezeClient freezes the client by setting the frozen height to the current height
-func (k Keeper) resetClientToValidState(clientStore sdk.KVStore, height uint64) {
-	c := getClientState(clientStore, k.cdc)
-	tmClientState, _ := c.(*ibctm.ClientState)
+func (k Keeper) unfreezeClient(clientStore sdk.KVStore, height uint64) {
+	tmClientState := getClientStateTM(clientStore, k.cdc)
 
 	// unfreeze the client and set the latest height
 	tmClientState.FrozenHeight = clienttypes.ZeroHeight()
