@@ -3,15 +3,13 @@ package types
 import (
 	"errors"
 	"fmt"
-	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
 	"gopkg.in/yaml.v2"
-
-	"github.com/dymensionxyz/dymension/v3/app/params"
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -26,10 +24,10 @@ var (
 	// KeyAppRegistrationFee defines the key to store the cost of the app
 	KeyAppRegistrationFee = []byte("AppRegistrationFee")
 
-	// DYM is 1dym
-	DYM                       = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-	OneDymCoin                = sdk.NewCoin(params.BaseDenom, DYM)
-	DefaultAppRegistrationFee = OneDymCoin
+	KeyMinSequencerBondGlobal = []byte("KeyMinSequencerBondGlobal")
+
+	DefaultAppRegistrationFee         = commontypes.DYMCoin
+	DefaultMinSequencerBondGlobalCoin = commontypes.Dym(sdk.NewInt(100))
 )
 
 const (
@@ -52,21 +50,25 @@ func NewParams(
 	livenessSlashBlocks uint64,
 	livenessSlashInterval uint64,
 	appRegistrationFee sdk.Coin,
+	minSequencerBondGlobal sdk.Coin,
 ) Params {
 	return Params{
-		DisputePeriodInBlocks: disputePeriodInBlocks,
-		LivenessSlashBlocks:   livenessSlashBlocks,
-		LivenessSlashInterval: livenessSlashInterval,
-		AppRegistrationFee:    appRegistrationFee,
+		DisputePeriodInBlocks:  disputePeriodInBlocks,
+		LivenessSlashBlocks:    livenessSlashBlocks,
+		LivenessSlashInterval:  livenessSlashInterval,
+		AppRegistrationFee:     appRegistrationFee,
+		MinSequencerBondGlobal: minSequencerBondGlobal,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(DefaultDisputePeriodInBlocks,
+	return NewParams(
+		DefaultDisputePeriodInBlocks,
 		DefaultLivenessSlashBlocks,
 		DefaultLivenessSlashInterval,
 		DefaultAppRegistrationFee,
+		DefaultMinSequencerBondGlobalCoin,
 	)
 }
 
@@ -77,6 +79,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyLivenessSlashBlocks, &p.LivenessSlashBlocks, validateLivenessSlashBlocks),
 		paramtypes.NewParamSetPair(KeyLivenessSlashInterval, &p.LivenessSlashInterval, validateLivenessSlashInterval),
 		paramtypes.NewParamSetPair(KeyAppRegistrationFee, &p.AppRegistrationFee, validateAppRegistrationFee),
+		paramtypes.NewParamSetPair(KeyMinSequencerBondGlobal, &p.MinSequencerBondGlobal, uparam.ValidateCoin),
 	}
 }
 
@@ -110,6 +113,9 @@ func (p Params) Validate() error {
 
 	if err := validateAppRegistrationFee(p.AppRegistrationFee); err != nil {
 		return errorsmod.Wrap(err, "app registration fee")
+	}
+	if err := uparam.ValidateCoin(p.MinSequencerBondGlobal); err != nil {
+		return errorsmod.Wrap(err, "min sequencer bond")
 	}
 	return nil
 }

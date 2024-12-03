@@ -12,11 +12,7 @@ message Params {
   option (gogoproto.equal) = true;
   option (gogoproto.goproto_stringer) = false;
 
-  // minimum amt that must be put up for stake to be sequencer
-  cosmos.base.v1beta1.Coin min_bond = 1 [
-    (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "min_bond,omitempty"
-  ];
+  reserved 1;
 
   // amt where the active sequencer can be kicked if he has less or equal bond
   cosmos.base.v1beta1.Coin kick_threshold = 5 [

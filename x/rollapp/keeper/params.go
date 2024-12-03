@@ -13,6 +13,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		k.LivenessSlashBlocks(ctx),
 		k.LivenessSlashInterval(ctx),
 		k.AppRegistrationFee(ctx),
+		k.MinSequencerBondGlobal(ctx),
 	)
 }
 
@@ -40,5 +41,10 @@ func (k Keeper) LivenessSlashInterval(ctx sdk.Context) (res uint64) {
 // AppRegistrationFee returns the cost of adding an app
 func (k Keeper) AppRegistrationFee(ctx sdk.Context) (res sdk.Coin) {
 	k.paramstore.Get(ctx, types.KeyAppRegistrationFee, &res)
+	return
+}
+
+func (k Keeper) MinSequencerBondGlobal(ctx sdk.Context) (res sdk.Coin) {
+	k.paramstore.Get(ctx, types.KeyMinSequencerBondGlobal, &res)
 	return
 }

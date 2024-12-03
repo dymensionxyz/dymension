@@ -51,8 +51,10 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
-				VmType:           types.Rollapp_EVM,
-				Metadata:         &mockRollappMetadata,
+				MinSequencerBond: sdk.NewCoins(types.DefaultMinSequencerBondGlobalCoin),
+
+				VmType:   types.Rollapp_EVM,
+				Metadata: &mockRollappMetadata,
 				GenesisInfo: types.GenesisInfo{
 					GenesisChecksum: "new_checksum",
 					Bech32Prefix:    "new",
@@ -65,7 +67,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 					GenesisAccounts: &types.GenesisAccounts{},
 				},
 			},
-		}, {
+		},
+		{
 			name: "Update rollapp: fail - try to update a non-existing rollapp",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
@@ -73,7 +76,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				InitialSequencer: initialSequencerAddress,
 			},
 			expError: gerrc.ErrNotFound,
-		}, {
+		},
+		{
 			name: "Update rollapp: fail - try to update from non-creator address",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            bob,
@@ -81,7 +85,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				InitialSequencer: initialSequencerAddress,
 			},
 			expError: sdkerrors.ErrUnauthorized,
-		}, {
+		},
+		{
 			name: "Update rollapp: fail - try to update InitialSequencer when launched",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
@@ -90,7 +95,27 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			},
 			rollappLaunched: true,
 			expError:        types.ErrImmutableFieldUpdateAfterLaunched,
-		}, {
+		},
+		{
+			name: "Update rollapp: fail - try to update min seq bond when launched",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:            alice,
+				RollappId:        rollappId,
+				MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin,
+			},
+			rollappLaunched: true,
+			expError:        types.ErrImmutableFieldUpdateAfterLaunched,
+		},
+		{
+			name: "invalid bond",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:            alice,
+				RollappId:        rollappId,
+				MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin.SubAmount(sdk.NewInt(1)),
+			},
+			expError: gerrc.ErrInvalidArgument,
+		},
+		{
 			name: "Update rollapp: fail - try to update genesis checksum when sealed",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
@@ -103,7 +128,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			},
 			genInfoSealed: true,
 			expError:      types.ErrGenesisInfoSealed,
-		}, {
+		},
+		{
 			name: "Update rollapp: fail - try to update bech32 when sealed",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:     alice,
@@ -114,7 +140,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			},
 			genInfoSealed: true,
 			expError:      types.ErrGenesisInfoSealed,
-		}, {
+		},
+		{
 			name: "Update rollapp: fail - try to update native_denom when sealed",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:     alice,
@@ -129,7 +156,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			},
 			genInfoSealed: true,
 			expError:      types.ErrGenesisInfoSealed,
-		}, {
+		},
+		{
 			name: "Update rollapp: fail - try to update initial_supply when sealed",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:     alice,
@@ -140,7 +168,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			},
 			genInfoSealed: true,
 			expError:      types.ErrGenesisInfoSealed,
-		}, {
+		},
+		{
 			name: "Update rollapp: success - update metadata when sealed",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:     alice,
@@ -154,6 +183,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				RollappId:        rollappId,
 				Owner:            alice,
 				InitialSequencer: "",
+				MinSequencerBond: sdk.NewCoins(types.DefaultMinSequencerBondGlobalCoin),
 				ChannelId:        "",
 				Launched:         true,
 				VmType:           types.Rollapp_EVM,
@@ -178,7 +208,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 					Sealed: true,
 				},
 			},
-		}, {
+		},
+		{
 			name: "Update rollapp: success - unsealed, update rollapp without genesis info",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:     alice,
@@ -192,6 +223,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				RollappId:        rollappId,
 				Owner:            alice,
 				InitialSequencer: "",
+				MinSequencerBond: sdk.NewCoins(types.DefaultMinSequencerBondGlobalCoin),
 				ChannelId:        "",
 				Launched:         false,
 				VmType:           types.Rollapp_EVM,
@@ -226,6 +258,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				RollappId:        rollappId,
 				Owner:            alice,
 				InitialSequencer: "",
+				MinSequencerBond: sdk.NewCoins(types.DefaultMinSequencerBondGlobalCoin),
 				ChannelId:        "",
 				Launched:         tc.rollappLaunched,
 				VmType:           types.Rollapp_EVM,
@@ -343,6 +376,7 @@ func (s *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		RollappId:        rollappId,
 		Creator:          alice,
 		InitialSequencer: "",
+		MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin,
 		Alias:            "default",
 		VmType:           types.Rollapp_EVM,
 		GenesisInfo: &types.GenesisInfo{
