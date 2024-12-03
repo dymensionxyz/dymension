@@ -13,6 +13,7 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lightclienttypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
@@ -48,11 +49,11 @@ func CreateUpgradeHandler(
 		log := ctx.Logger().With("upgrade", UpgradeName)
 
 		p := keepers.RollappKeeper.GetParams(ctx)
-		//p.MinSequencerBondGlobal = rollapptypes.DefaultMinSequencerBondGlobalCoin)
+		p.MinSequencerBondGlobal = rollapptypes.DefaultMinSequencerBondGlobalCoin
 		keepers.RollappKeeper.SetParams(ctx, p)
 		rollapps := keepers.RollappKeeper.GetAllRollapps(ctx)
 		for _, ra := range rollapps {
-			//ra.MinSequencerBond = sdk.NewCoins(rollapptypes.DefaultMinSequencerBondGlobalCoin)
+			ra.MinSequencerBond = sdk.NewCoins(rollapptypes.DefaultMinSequencerBondGlobalCoin)
 			if ra.GenesisState.IsTransferEnabled() {
 				h, ok := keepers.RollappKeeper.GetLatestHeight(ctx, ra.RollappId)
 				if !ok {
