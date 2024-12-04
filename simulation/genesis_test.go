@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
@@ -14,6 +15,7 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashing "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
@@ -143,6 +145,11 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 			Symbol:      "DYM",
 		},
 	}
+	// TODO: supply? apparently you can leave it empty and it wil be filled
+	bankGenesis.Balances = append(bankGenesis.Balances, banktypes.Balance{
+		Address: "how to get streamer",
+		Coins:   sdk.NewCoins(commontypes.Dym(math.NewInt(10000))),
+	})
 	bankRawGenesis, err := cdc.MarshalJSON(bankGenesis)
 	if err != nil {
 		return app.GenesisState{}, fmt.Errorf("marshal bank genesis state: %w", err)

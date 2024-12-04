@@ -88,11 +88,11 @@ func TestFullAppSimulation(t *testing.T) {
 	}()
 
 	appOptions := make(simtestutil.AppOptionsMap)
-	appOptions[flags.FlagHome] = app.DefaultNodeHome
-	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue // period at which invariants are checked
-	appOptions[cli.FlagDefaultBondDenom] = "adym"
 	types.DefaultBondDenom = "adym"
 	types.DefaultPowerReduction = math.NewIntFromUint64(1000000) // overwrite evm module's default power reduction
+	appOptions[flags.FlagHome] = app.DefaultNodeHome
+	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue // period at which invariants are checked
+	appOptions[cli.FlagDefaultBondDenom] = types.DefaultBondDenom
 
 	encoding := app.MakeEncodingConfig()
 
