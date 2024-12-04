@@ -105,7 +105,7 @@ func TestFullAppSimulation(t *testing.T) {
 		true,
 		map[int64]bool{},
 		app.DefaultNodeHome,
-		1,
+		simcli.FlagPeriodValue,
 		encoding,
 		appOptions,
 		baseapp.SetChainID(SimulationAppChainID),
