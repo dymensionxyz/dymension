@@ -57,7 +57,7 @@ func WeightedOperations(
 	}
 }
 
-// SimulateMsgSubmitProposal generates random proposal content
+// SimulateMsgSubmitProposal generates random governance proposal content
 func SimulateMsgSubmitProposal(
 	cdc *codec.ProtoCodec,
 	ak dymsimtypes.AccountKeeper,
@@ -69,59 +69,35 @@ func SimulateMsgSubmitProposal(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount := accs[r.Intn(len(accs))]
-		
-		// Get random gauges
-		gauges := dymsimtypes.RandomGaugeSubset(ctx, r, ik)
-		if len(gauges) == 0 {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreateStream, "no gauges"), nil, nil
+
+		// Randomly choose proposal type
+		proposalTypes := []string{"create", "terminate", "replace", "update"}
+		proposalType := proposalTypes[r.Intn(len(proposalTypes))]
+
+		var content govtypes.Content
+		var err error
+
+		switch proposalType {
+		case "create":
+			content, err = generateCreateStreamProposal(r, ctx, ik)
+		case "terminate":
+			content, err = generateTerminateStreamProposal(r, ctx, k)
+		case "replace":
+			content, err = generateReplaceStreamProposal(r, ctx, k, ik)
+		case "update":
+			content, err = generateUpdateStreamProposal(r, ctx, k, ik)
 		}
 
-		// Generate random distribution records
-		records := make([]types.DistrRecord, len(gauges))
-		totalWeight := math.ZeroInt()
-		for i, gauge := range gauges {
-			// Generate random weight between 1 and MaxInt64/len(gauges) to avoid overflow
-			weight, err := dymsimtypes.RandIntBetween(r, math.OneInt(), math.NewIntFromUint64(^uint64(0)/uint64(len(gauges))))
-			if err != nil {
-				return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreateStream, "failed to generate weight"), nil, nil
-			}
-			records[i] = types.DistrRecord{
-				GaugeId: gauge.Id,
-				Weight:  weight,
-			}
-			totalWeight = totalWeight.Add(weight)
-		}
-
-		// Generate random coins
-		spendable := bk.SpendableCoins(ctx, simAccount.Address)
-		if spendable.IsZero() {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreateStream, "no spendable coins"), nil, nil
-		}
-		
-		// Pick a random coin and amount
-		coin := spendable[r.Intn(len(spendable))]
-		amt, err := dymsimtypes.RandIntBetween(r, math.OneInt(), coin.Amount)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreateStream, "failed to generate amount"), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, "submit_proposal", err.Error()), nil, nil
 		}
-		coins := sdk.NewCoins(sdk.NewCoin(coin.Denom, amt))
 
-		// Random start time between now and 1 week in the future
-		startTime := ctx.BlockTime().Add(time.Duration(r.Int63n(7*24*60*60)) * time.Second)
-		
-		// Random number of epochs between 1 and 100
-		numEpochs := uint64(r.Int63n(100) + 1)
-
-		// Random epoch identifier
-		epochIdentifiers := []string{"day", "week", "month"}
-		epochIdentifier := epochIdentifiers[r.Intn(len(epochIdentifiers))]
-
-		streamID, err := k.CreateStream(ctx, coins, records, startTime, epochIdentifier, numEpochs, false)
+		msg, err := govtypes.NewMsgSubmitProposal(content, sdk.NewCoins(), simAccount.Address)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreateStream, err.Error()), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, "submit_proposal", err.Error()), nil, nil
 		}
 
-		return simtypes.NewOperationMsg(&types.MsgCreateStream{}, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
@@ -263,5 +239,156 @@ func SimulateMsgTerminateStream(
 		}
 
 		return simtypes.NewOperationMsg(&types.MsgTerminateStream{}, true, ""), nil, nil
+	}
+}
+
+// Helper functions for generating proposal content
+func generateCreateStreamProposal(r *rand.Rand, ctx sdk.Context, ik dymsimtypes.IncentivesKeeper) (*types.CreateStreamProposal, error) {
+	gauges := dymsimtypes.RandomGaugeSubset(ctx, r, ik)
+	if len(gauges) == 0 {
+		return nil, fmt.Errorf("no gauges available")
+	}
+
+	records := make([]types.DistrRecord, len(gauges))
+	for i, gauge := range gauges {
+		weight, err := dymsimtypes.RandIntBetween(r, math.OneInt(), math.NewIntFromUint64(^uint64(0)/uint64(len(gauges))))
+		if err != nil {
+			return nil, err
+		}
+		records[i] = types.DistrRecord{
+			GaugeId: gauge.Id,
+			Weight:  weight,
+		}
+	}
+
+	coins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(int64(simulation.RandIntBetween(r, 100, 10000)))))
+	startTime := ctx.BlockTime().Add(time.Duration(r.Int63n(7*24*60*60)) * time.Second)
+	epochIdentifiers := []string{"day", "week", "month"}
+
+	return &types.CreateStreamProposal{
+		Title:               simtypes.RandStringOfLength(r, 10),
+		Description:         simtypes.RandStringOfLength(r, 100),
+		DistributeToRecords: records,
+		Coins:              coins,
+		StartTime:          startTime,
+		DistrEpochIdentifier: epochIdentifiers[r.Intn(len(epochIdentifiers))],
+		NumEpochsPaidOver:    uint64(r.Int63n(100) + 1),
+		Sponsored:            r.Int()%2 == 0,
+	}, nil
+}
+
+func generateTerminateStreamProposal(r *rand.Rand, ctx sdk.Context, k Keeper) (*types.TerminateStreamProposal, error) {
+	streams := k.GetStreams(ctx)
+	if len(streams) == 0 {
+		return nil, fmt.Errorf("no streams available")
+	}
+
+	stream := streams[r.Intn(len(streams))]
+	return &types.TerminateStreamProposal{
+		Title:       simtypes.RandStringOfLength(r, 10),
+		Description: simtypes.RandStringOfLength(r, 100),
+		StreamId:    stream.Id,
+	}, nil
+}
+
+func generateReplaceStreamProposal(r *rand.Rand, ctx sdk.Context, k Keeper, ik dymsimtypes.IncentivesKeeper) (*types.ReplaceStreamDistributionProposal, error) {
+	streams := k.GetStreams(ctx)
+	if len(streams) == 0 {
+		return nil, fmt.Errorf("no streams available")
+	}
+
+	gauges := dymsimtypes.RandomGaugeSubset(ctx, r, ik)
+	if len(gauges) == 0 {
+		return nil, fmt.Errorf("no gauges available")
+	}
+
+	records := make([]types.DistrRecord, len(gauges))
+	for i, gauge := range gauges {
+		weight, err := dymsimtypes.RandIntBetween(r, math.OneInt(), math.NewIntFromUint64(^uint64(0)/uint64(len(gauges))))
+		if err != nil {
+			return nil, err
+		}
+		records[i] = types.DistrRecord{
+			GaugeId: gauge.Id,
+			Weight:  weight,
+		}
+	}
+
+	stream := streams[r.Intn(len(streams))]
+	return &types.ReplaceStreamDistributionProposal{
+		Title:       simtypes.RandStringOfLength(r, 10),
+		Description: simtypes.RandStringOfLength(r, 100),
+		StreamId:    stream.Id,
+		Records:     records,
+	}, nil
+}
+
+func generateUpdateStreamProposal(r *rand.Rand, ctx sdk.Context, k Keeper, ik dymsimtypes.IncentivesKeeper) (*types.UpdateStreamDistributionProposal, error) {
+	streams := k.GetStreams(ctx)
+	if len(streams) == 0 {
+		return nil, fmt.Errorf("no streams available")
+	}
+
+	gauges := dymsimtypes.RandomGaugeSubset(ctx, r, ik)
+	if len(gauges) == 0 {
+		return nil, fmt.Errorf("no gauges available")
+	}
+
+	records := make([]types.DistrRecord, len(gauges))
+	for i, gauge := range gauges {
+		weight, err := dymsimtypes.RandIntBetween(r, math.OneInt(), math.NewIntFromUint64(^uint64(0)/uint64(len(gauges))))
+		if err != nil {
+			return nil, err
+		}
+		records[i] = types.DistrRecord{
+			GaugeId: gauge.Id,
+			Weight:  weight,
+		}
+	}
+
+	stream := streams[r.Intn(len(streams))]
+	return &types.UpdateStreamDistributionProposal{
+		Title:       simtypes.RandStringOfLength(r, 10),
+		Description: simtypes.RandStringOfLength(r, 100),
+		StreamId:    stream.Id,
+		Records:     records,
+	}, nil
+}
+
+// SimulateMsgVoteProposal simulates a vote on an active proposal
+func SimulateMsgVoteProposal(
+	cdc *codec.ProtoCodec,
+	ak dymsimtypes.AccountKeeper,
+	bk dymsimtypes.BankKeeper,
+	ik dymsimtypes.IncentivesKeeper,
+	k Keeper,
+) simtypes.Operation {
+	return func(
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
+	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		// Get random account
+		simAccount := accs[r.Intn(len(accs))]
+
+		// Get active proposals
+		activeProposals := k.GetActiveProposals(ctx)
+		if len(activeProposals) == 0 {
+			return simtypes.NoOpMsg(types.ModuleName, "vote_proposal", "no active proposals"), nil, nil
+		}
+
+		// Pick random proposal
+		proposal := activeProposals[r.Intn(len(activeProposals))]
+
+		// Random vote option
+		voteOptions := []govtypes.VoteOption{
+			govtypes.OptionYes,
+			govtypes.OptionNo,
+			govtypes.OptionNoWithVeto,
+			govtypes.OptionAbstain,
+		}
+		vote := voteOptions[r.Intn(len(voteOptions))]
+
+		msg := govtypes.NewMsgVote(simAccount.Address, proposal.ProposalId, vote)
+
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
