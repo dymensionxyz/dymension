@@ -383,10 +383,8 @@ func (a *AppKeepers) InitKeepers(
 	a.SequencerKeeper.SetUnbondBlockers(a.RollappKeeper, a.LightClientKeeper)
 	a.SequencerKeeper.SetHooks(sequencermoduletypes.MultiHooks{rollappmodulekeeper.SequencerHooks{Keeper: a.RollappKeeper}})
 
-	groupConfig := grouptypes.Config{
-		MaxExecutionPeriod: 0,
-		MaxMetadataLen:     0,
-	}
+	groupConfig := grouptypes.DefaultConfig()
+	groupConfig.MaxMetadataLen = 2500
 
 	a.GroupKeeper = groupkeeper.NewKeeper(
 		a.keys[grouptypes.StoreKey],
