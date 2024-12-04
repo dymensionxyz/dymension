@@ -51,40 +51,90 @@ func (f OpFactory) Proposals() []simtypes.WeightedProposalContent {
 }
 
 func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
+	// Generate random distribution records
+	numRecords := simulation.RandIntBetween(r, 1, 5)
+	records := make([]types.DistrRecord, numRecords)
+	for i := 0; i < numRecords; i++ {
+		records[i] = types.DistrRecord{
+			GaugeId: uint64(simulation.RandIntBetween(r, 1, 100)),
+			Weight:  sdk.NewInt(int64(simulation.RandIntBetween(r, 1, 100))),
+		}
+	}
+
+	// Generate random coins
+	amount := sdk.NewInt(int64(simulation.RandIntBetween(r, 100, 10000)))
+	coins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amount))
+
+	// Generate random start time between now and 1 week in the future
+	startTime := ctx.BlockTime().Add(time.Duration(r.Int63n(7*24*60*60)) * time.Second)
+
+	// Random epoch identifier
+	epochIdentifiers := []string{"day", "week", "month"}
+	epochIdentifier := epochIdentifiers[r.Intn(len(epochIdentifiers))]
+
 	return &types.CreateStreamProposal{
-		Title:                "",
-		Description:          "",
-		DistributeToRecords:  nil,
-		Coins:                nil,
-		StartTime:            time.Time{},
-		DistrEpochIdentifier: "",
-		NumEpochsPaidOver:    0,
-		Sponsored:            false,
+		Title:                simtypes.RandStringOfLength(r, 10),
+		Description:          simtypes.RandStringOfLength(r, 100),
+		DistributeToRecords:  records,
+		Coins:                coins,
+		StartTime:            startTime,
+		DistrEpochIdentifier: epochIdentifier,
+		NumEpochsPaidOver:    uint64(simulation.RandIntBetween(r, 1, 100)),
+		Sponsored:            r.Int()%2 == 0,
 	}
 }
 
 func (f *OpFactory) TerminateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
+	// Generate random stream ID between 1 and 1000
+	streamId := uint64(simulation.RandIntBetween(r, 1, 1000))
+
 	return &types.TerminateStreamProposal{
-		Title:       "",
-		Description: "",
-		StreamId:    0,
+		Title:       simtypes.RandStringOfLength(r, 10),
+		Description: simtypes.RandStringOfLength(r, 100),
+		StreamId:    streamId,
 	}
 }
 
 func (f *OpFactory) ReplaceStreamDistributionProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
+	// Generate random stream ID
+	streamId := uint64(simulation.RandIntBetween(r, 1, 1000))
+
+	// Generate random distribution records
+	numRecords := simulation.RandIntBetween(r, 1, 5)
+	records := make([]types.DistrRecord, numRecords)
+	for i := 0; i < numRecords; i++ {
+		records[i] = types.DistrRecord{
+			GaugeId: uint64(simulation.RandIntBetween(r, 1, 100)),
+			Weight:  sdk.NewInt(int64(simulation.RandIntBetween(r, 1, 100))),
+		}
+	}
+
 	return &types.ReplaceStreamDistributionProposal{
-		Title:       "",
-		Description: "",
-		StreamId:    0,
-		Records:     nil,
+		Title:       simtypes.RandStringOfLength(r, 10),
+		Description: simtypes.RandStringOfLength(r, 100),
+		StreamId:    streamId,
+		Records:     records,
 	}
 }
 
 func (f *OpFactory) UpdateStreamDistributionProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
+	// Generate random stream ID
+	streamId := uint64(simulation.RandIntBetween(r, 1, 1000))
+
+	// Generate random distribution records
+	numRecords := simulation.RandIntBetween(r, 1, 5)
+	records := make([]types.DistrRecord, numRecords)
+	for i := 0; i < numRecords; i++ {
+		records[i] = types.DistrRecord{
+			GaugeId: uint64(simulation.RandIntBetween(r, 1, 100)),
+			Weight:  sdk.NewInt(int64(simulation.RandIntBetween(r, 1, 100))),
+		}
+	}
+
 	return &types.UpdateStreamDistributionProposal{
-		Title:       "",
-		Description: "",
-		StreamId:    0,
-		Records:     nil,
+		Title:       simtypes.RandStringOfLength(r, 10),
+		Description: simtypes.RandStringOfLength(r, 100),
+		StreamId:    streamId,
+		Records:     records,
 	}
 }
