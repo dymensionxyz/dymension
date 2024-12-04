@@ -4,29 +4,51 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+	dymsimtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
-
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
-
 
 const (
 	WeightCreateStreamProposal              = 100
 	WeightTerminateStreamProposal           = 100
 	WeightReplaceStreamDistributionProposal = 100
 	WeightUpdateStreamDistributionProposal  = 100
+	WeightFundModule                        = 100
 )
 
 type BankKeeper interface {
 	MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
+	types.BankKeeper
+}
+
+type EpochKeeper interface {
+	types.EpochKeeper
+}
+
+type AccountKeeper interface {
+	types.AccountKeeper
+}
+
+type IncentivesKeeper interface {
+	types.IncentivesKeeper
+}
+
+type SponsorshipKeeper interface {
+	types.SponsorshipKeeper
 }
 
 type Keepers struct {
-	Bank simulation.BankKeeper
+	Bank       BankKeeper
+	Epoch      EpochKeeper
+	Acc        AccountKeeper
+	Incentives IncentivesKeeper
+	Endorse    SponsorshipKeeper
 }
 
 type OpFactory struct {
@@ -37,9 +59,18 @@ type OpFactory struct {
 
 func NewOpFactory(k *keeper.Keeper, ks Keepers, simState module.SimulationState) OpFactory {
 	return OpFactory{
-		Keeper:         k,
-		k:              ks,
+		Keeper:          k,
+		k:               ks,
 		SimulationState: simState,
+	}
+}
+
+func (f OpFactory) Messages() []simtypes.WeightedOperation {
+	return []simtypes.WeightedOperation{
+		simulation.NewWeightedOperation(
+			WeightFundModule,
+			f.FundModule,
+		),
 	}
 }
 
@@ -68,8 +99,23 @@ func (f OpFactory) Proposals() []simtypes.WeightedProposalContent {
 	}
 }
 
+func (f OpFactory) FundModule(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accounts []simtypes.Account, id string) (OperationMsg simtypes.OperationMsg, futureOps []simtypes.FutureOperation, err error) {
+
+}
+
 func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
-	f.
+	var epoch string
+	{
+		epochs := f.k.Epoch.AllEpochInfos(ctx)
+		if 0 < len(epochs) {
+			epoch = dymsimtypes.RandChoice(r, epochs).Identifier
+		}
+	}
+
+	{
+		bal := f.k.Bank(ctx,
+	}
+
 	// Generate random distribution records
 	numRecords := simtypes.RandIntBetween(r, 1, 5)
 	records := make([]types.DistrRecord, numRecords)
@@ -88,18 +134,14 @@ func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []s
 	// Generate random start time between now and 1 week in the future
 	startTime := ctx.BlockTime().Add(time.Duration(r.Int63n(7*24*60*60)) * time.Second) // TODO: does it do anything
 
-	// Random epoch identifier
-	epochIdentifiers := []string{"day", "week", "month"}
-	epochIdentifier := epochIdentifiers[r.Intn(len(epochIdentifiers))]
-
 	return &types.CreateStreamProposal{
 		Title:                simtypes.RandStringOfLength(r, 10),
 		Description:          simtypes.RandStringOfLength(r, 100),
 		DistributeToRecords:  records,
 		Coins:                coins,
 		StartTime:            startTime,
-		DistrEpochIdentifier: epochIdentifier,
-		NumEpochsPaidOver:    uint64(simtypes.RandIntBetween(r, 1, 100)),
+		DistrEpochIdentifier: epoch,
+		NumEpochsPaidOver:    uint64(simtypes.RandIntBetween(r, 0, 100)),
 		Sponsored:            r.Int()%2 == 0,
 	}
 }
