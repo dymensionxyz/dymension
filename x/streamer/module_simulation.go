@@ -26,10 +26,12 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	return simulation.NewOpFactory(&am.keeper, am.sk, simState).Messages()
 }
 
+// Legacy proposals
 func (am AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent { //nolint:staticcheck
 	return simulation.NewOpFactory(&am.keeper, am.sk, simState).Proposals()
 }
 
+// Modern proposals
 func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
 	return nil
 }

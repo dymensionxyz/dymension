@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
@@ -68,10 +69,10 @@ func NewOpFactory(k *keeper.Keeper, ks Keepers, simState module.SimulationState)
 
 func (f OpFactory) Messages() []simtypes.WeightedOperation {
 	return []simtypes.WeightedOperation{
-		//simulation.NewWeightedOperation(
-		//	WeightFundModule,
-		//	f.FundModule,
-		//),
+		simulation.NewWeightedOperation(
+			WeightFundModule,
+			f.FundModule,
+		),
 	}
 }
 
@@ -100,9 +101,9 @@ func (f OpFactory) Proposals() []simtypes.WeightedProposalContent {
 	}
 }
 
-//func (f OpFactory) FundModule(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accounts []simtypes.Account, id string) (OperationMsg simtypes.OperationMsg, futureOps []simtypes.FutureOperation, err error) {
-//
-//}
+func (f OpFactory) FundModule(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accounts []simtypes.Account, id string) (OperationMsg simtypes.OperationMsg, futureOps []simtypes.FutureOperation, err error) {
+	return simtypes.NoOpMsg(types.ModuleName, "FundModule", "not implemented"), nil, nil
+}
 
 func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 	var epoch string
