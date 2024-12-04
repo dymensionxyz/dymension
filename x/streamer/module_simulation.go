@@ -27,7 +27,7 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 }
 
 func (am AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent { //nolint:staticcheck
-	return simulation.OpFactory{Keeper: &am.keeper, SimulationState: simState}.Proposals()
+	return simulation.NewOpFactory(&am.keeper, am.sk, simState).Proposals()
 }
 
 func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {

@@ -21,12 +21,27 @@ const (
 	WeightUpdateStreamDistributionProposal  = 100
 )
 
+type BankKeeper interface {
+	MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
+}
+
+type Keepers struct {
+	Bank simulation.BankKeeper
+}
+
 type OpFactory struct {
 	*keeper.Keeper
+	k Keepers
 	module.SimulationState
 }
 
-func
+func NewOpFactory(k *keeper.Keeper, ks Keepers, simState module.SimulationState) OpFactory {
+	return OpFactory{
+		Keeper:         k,
+		k:              ks,
+		SimulationState: simState,
+	}
+}
 
 func (f OpFactory) Proposals() []simtypes.WeightedProposalContent {
 	return []simtypes.WeightedProposalContent{
