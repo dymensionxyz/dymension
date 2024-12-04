@@ -13,6 +13,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
+
 const (
 	WeightCreateStreamProposal              = 100
 	WeightTerminateStreamProposal           = 100
@@ -24,6 +25,8 @@ type OpFactory struct {
 	*keeper.Keeper
 	module.SimulationState
 }
+
+func
 
 func (f OpFactory) Proposals() []simtypes.WeightedProposalContent {
 	return []simtypes.WeightedProposalContent{
