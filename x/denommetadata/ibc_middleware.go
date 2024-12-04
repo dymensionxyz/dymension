@@ -93,7 +93,7 @@ func (im IBCModule) OnRecvPacket(
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	// charge denom metadata registartion fee
+	// charge denom metadata registration fee
 	baseDenom, err := im.txFeesKeeper.GetBaseDenom(ctx)
 	if err != nil {
 		return uevent.NewErrorAcknowledgement(ctx, err)
