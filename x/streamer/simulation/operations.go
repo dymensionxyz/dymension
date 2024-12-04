@@ -99,7 +99,17 @@ func (f OpFactory) Proposals() []simtypes.WeightedProposalContent {
 	}
 }
 
-func (f OpFactory) FundModule(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accounts []simtypes.Account, id string) (OperationMsg simtypes.OperationMsg, futureOps []simtypes.FutureOperation, err error) {
+func (f OpFactory) FundModule(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accounts []simtypes.Account, chainID string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+    // Generate random amount to mint
+    amount := sdk.NewInt(int64(simtypes.RandIntBetween(r, 100, 10000)))
+    coins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amount))
+
+    // Mint coins to the streamer module account
+    if err := f.k.Bank.MintCoins(ctx, types.ModuleName, coins); err != nil {
+        return simtypes.NoOpMsg(types.ModuleName, "fund_module", "failed to mint"), nil, err
+    }
+
+    return simtypes.NewOperationMsg(&types.MsgCreateStream{}, true, "fund_module"), nil, nil
 
 }
 
@@ -112,9 +122,6 @@ func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []s
 		}
 	}
 
-	{
-		bal := f.k.Bank(ctx,
-	}
 
 	// Generate random distribution records
 	numRecords := simtypes.RandIntBetween(r, 1, 5)
