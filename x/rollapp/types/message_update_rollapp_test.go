@@ -147,7 +147,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
 					Description: "Sample description",
-					Tags:        []string{"AI", "DeFI", "AI"},
+					Tags:        []string{"AI", "DeFi", "AI"},
 				},
 			},
 			err: ErrDuplicateTag,
