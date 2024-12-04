@@ -237,6 +237,7 @@ func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
+	// These falsey modules are not blocked from send/receive
 	// exclude the streamer as we want him to be able to get external incentives
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false

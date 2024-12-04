@@ -28,6 +28,7 @@ type Keeper struct {
 	ik         types.IncentivesKeeper
 	sk         types.SponsorshipKeeper
 
+	schema collections.Schema // set later
 	// epochPointers holds a mapping from the epoch identifier to EpochPointer.
 	epochPointers collections.Map[string, types.EpochPointer]
 }
@@ -49,7 +50,7 @@ func NewKeeper(
 
 	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
 
-	return &Keeper{
+	k := &Keeper{
 		storeKey:   storeKey,
 		paramSpace: paramSpace,
 		bk:         bk,
@@ -57,6 +58,7 @@ func NewKeeper(
 		ak:         ak,
 		ik:         ik,
 		sk:         sk,
+		schema:     collections.Schema{}, // set later
 		epochPointers: collections.NewMap(
 			sb,
 			types.KeyPrefixEpochPointers,
@@ -65,6 +67,20 @@ func NewKeeper(
 			collcompat.ProtoValue[types.EpochPointer](cdc),
 		),
 	}
+
+	// SchemaBuilder CANNOT be used after Build is called,
+	// so we build it after all collections are initialized
+	schema, err := sb.Build()
+	if err != nil {
+		panic(err)
+	}
+	k.schema = schema
+
+	return k
+}
+
+func (k Keeper) Schema() collections.Schema {
+	return k.schema
 }
 
 // Logger returns a logger instance for the streamer module.

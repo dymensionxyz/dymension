@@ -87,7 +87,7 @@ func TestFullAppSimulation(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	appOptions := make(simtestutil.AppOptionsMap, 0)
+	appOptions := make(simtestutil.AppOptionsMap)
 	appOptions[flags.FlagHome] = app.DefaultNodeHome
 	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue // period at which invariants are checked
 	appOptions[cli.FlagDefaultBondDenom] = "adym"
@@ -105,7 +105,7 @@ func TestFullAppSimulation(t *testing.T) {
 		true,
 		map[int64]bool{},
 		app.DefaultNodeHome,
-		0,
+		1,
 		encoding,
 		appOptions,
 		baseapp.SetChainID(SimulationAppChainID),
@@ -171,7 +171,7 @@ func TestAppStateDeterminism(t *testing.T) {
 	numSeeds := 1
 	numTimesToRunPerSeed := 5
 
-	appOptions := make(simtestutil.AppOptionsMap, 0)
+	appOptions := make(simtestutil.AppOptionsMap)
 	appOptions[flags.FlagHome] = app.DefaultNodeHome
 	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue // period at which invariants are checked
 	appOptions[cli.FlagDefaultBondDenom] = "adym"

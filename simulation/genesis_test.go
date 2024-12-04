@@ -14,6 +14,7 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashing "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
@@ -38,7 +39,7 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	govGenesis.Params.VotingPeriod = &govVotingPeriod
 	govRawGenesis, err := cdc.MarshalJSON(govGenesis)
 	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal gov genesis state: %w", err)
+		return app.GenesisState{}, fmt.Errorf("marshal gov genesis state: %w", err)
 	}
 	genesis[govtypes2.ModuleName] = govRawGenesis
 
@@ -47,7 +48,7 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	rollappGenesis.Params.DisputePeriodInBlocks = 50
 	rollappRawGenesis, err := cdc.MarshalJSON(rollappGenesis)
 	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal rollapp genesis state: %w", err)
+		return app.GenesisState{}, fmt.Errorf("marshal rollapp genesis state: %w", err)
 	}
 	genesis[rollapptypes.ModuleName] = rollappRawGenesis
 
@@ -56,7 +57,7 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	sequencerGenesis.Params.NoticePeriod = time.Minute
 	sequencerRawGenesis, err := cdc.MarshalJSON(sequencerGenesis)
 	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal sequencer genesis state: %w", err)
+		return app.GenesisState{}, fmt.Errorf("marshal sequencer genesis state: %w", err)
 	}
 	genesis[sequencertypes.ModuleName] = sequencerRawGenesis
 
@@ -65,7 +66,7 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	authGenesis.Params.TxSizeCostPerByte = 100
 	authRawGenesis, err := cdc.MarshalJSON(authGenesis)
 	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal auth genesis state: %w", err)
+		return app.GenesisState{}, fmt.Errorf("marshal auth genesis state: %w", err)
 	}
 	genesis[auth.ModuleName] = authRawGenesis
 
@@ -77,7 +78,7 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	slashingGenesis.Params.SlashFractionDowntime = math.LegacyZeroDec()
 	slashingRawGenesis, err := cdc.MarshalJSON(slashingGenesis)
 	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal slashing genesis state: %w", err)
+		return app.GenesisState{}, fmt.Errorf("marshal slashing genesis state: %w", err)
 	}
 	genesis[slashing.ModuleName] = slashingRawGenesis
 
@@ -86,7 +87,7 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	stakingGenesis.Params.BondDenom = "adym"
 	stakingRawGenesis, err := cdc.MarshalJSON(stakingGenesis)
 	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal staking genesis state: %w", err)
+		return app.GenesisState{}, fmt.Errorf("marshal staking genesis state: %w", err)
 	}
 	genesis[stakingtypes.ModuleName] = stakingRawGenesis
 
@@ -95,7 +96,7 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	mintGenesis.Params.MintDenom = "adym"
 	mintRawGenesis, err := cdc.MarshalJSON(mintGenesis)
 	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal mint genesis state: %w", err)
+		return app.GenesisState{}, fmt.Errorf("marshal mint genesis state: %w", err)
 	}
 	genesis[minttypes.ModuleName] = mintRawGenesis
 
@@ -105,7 +106,7 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	evmGenesis.Params.EnableCreate = false
 	evmRawGenesis, err := cdc.MarshalJSON(evmGenesis)
 	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal evm genesis state: %w", err)
+		return app.GenesisState{}, fmt.Errorf("marshal evm genesis state: %w", err)
 	}
 	genesis[evmtypes.ModuleName] = evmRawGenesis
 
@@ -114,7 +115,7 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	feemarketGenesis.Params.NoBaseFee = true
 	feemarketRawGenesis, err := cdc.MarshalJSON(feemarketGenesis)
 	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal feemarket genesis state: %w", err)
+		return app.GenesisState{}, fmt.Errorf("marshal feemarket genesis state: %w", err)
 	}
 	genesis[feemarkettypes.ModuleName] = feemarketRawGenesis
 
@@ -123,7 +124,7 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	dymnsGenesis.Params.Misc.SellOrderDuration = 2 * time.Minute
 	dymnsRawGenesis, err := cdc.MarshalJSON(dymnsGenesis)
 	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal dymns genesis state: %w", err)
+		return app.GenesisState{}, fmt.Errorf("marshal dymns genesis state: %w", err)
 	}
 	genesis[dymnstypes.ModuleName] = dymnsRawGenesis
 
@@ -144,7 +145,7 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	}
 	bankRawGenesis, err := cdc.MarshalJSON(bankGenesis)
 	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal bank genesis state: %w", err)
+		return app.GenesisState{}, fmt.Errorf("marshal bank genesis state: %w", err)
 	}
 	genesis[banktypes.ModuleName] = bankRawGenesis
 
@@ -153,7 +154,7 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	crisisGenesis.ConstantFee.Denom = "adym"
 	crisisRawGenesis, err := cdc.MarshalJSON(crisisGenesis)
 	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal crisis genesis state: %w", err)
+		return app.GenesisState{}, fmt.Errorf("marshal crisis genesis state: %w", err)
 	}
 	genesis[crisistypes.ModuleName] = crisisRawGenesis
 
@@ -162,7 +163,7 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	txfeesGenesis.Params.EpochIdentifier = "minute"
 	txfeesRawGenesis, err := cdc.MarshalJSON(txfeesGenesis)
 	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal txfees genesis state: %w", err)
+		return app.GenesisState{}, fmt.Errorf("marshal txfees genesis state: %w", err)
 	}
 	genesis[txfeestypes.ModuleName] = txfeesRawGenesis
 
@@ -171,7 +172,7 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	gammGenesis.Params.EnableGlobalPoolFees = true
 	gammRawGenesis, err := cdc.MarshalJSON(gammGenesis)
 	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal gamm genesis state: %w", err)
+		return app.GenesisState{}, fmt.Errorf("marshal gamm genesis state: %w", err)
 	}
 	genesis[gammtypes.ModuleName] = gammRawGenesis
 
@@ -181,9 +182,18 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	incentivesGenesis.LockableDurations = []time.Duration{time.Minute}
 	incentivesRawGenesis, err := cdc.MarshalJSON(incentivesGenesis)
 	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal incentives genesis state: %w", err)
+		return app.GenesisState{}, fmt.Errorf("marshal incentives genesis state: %w", err)
 	}
 	genesis[incentivestypes.ModuleName] = incentivesRawGenesis
+
+	// Modify streamer params
+	streamerGenesis := streamertypes.DefaultGenesis()
+	streamerGenesis.Params.MaxIterationsPerBlock = 10 // see what happens
+	streamerRawGenesis, err := cdc.MarshalJSON(streamerGenesis)
+	if err != nil {
+		return app.GenesisState{}, fmt.Errorf("marshal streamer genesis state: %w", err)
+	}
+	genesis[streamertypes.ModuleName] = streamerRawGenesis
 
 	// Modify epochs params
 	epochsGenesis := epochstypes.DefaultGenesis()
@@ -196,7 +206,7 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	})
 	epochsRawGenesis, err := cdc.MarshalJSON(epochsGenesis)
 	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal epochs genesis state: %w", err)
+		return app.GenesisState{}, fmt.Errorf("marshal epochs genesis state: %w", err)
 	}
 	genesis[epochstypes.ModuleName] = epochsRawGenesis
 
