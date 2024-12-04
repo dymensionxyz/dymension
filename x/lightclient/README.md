@@ -8,11 +8,11 @@ This module implements the 'canonical light client' concept. Each established Ro
 
 This is a help section for operators - people running rollapps against the Hub in any environment (prod, testnet, local or e2e tests).
 
-If you cannot create a useable IBC channel between your rollapp and the Hub, it may be due to the light client for your rollapp on the Hub not being marked as canonical by the Hub state.
+If you cannot create a usable IBC channel between your rollapp and the Hub, it may be due to the light client for your rollapp on the Hub not being marked as canonical by the Hub state.
 
 ### An overview of the protocol
 
-The Hub will allow the creation of new light clients by anyone. The first light client to match the state info's sent by the sequencer to the Hub is marked 'canonical', which will allow it to be used to create IBC channels which use EIBC. That means it's very important that your light client be marked canonical before it is used to create a channel, which in turn requires the state update to have arrived on the Hub from the sequencer for a height which is *at least* the Rollapp height that the light client was created from. 
+The Hub will allow the creation of new light clients by anyone. The first light client to match the state infos sent by the sequencer to the Hub is marked 'canonical', which will allow it to be used to create IBC channels which use EIBC. That means it's very important that your light client be marked canonical before it is used to create a channel, which in turn requires the state update to have arrived on the Hub from the sequencer for a height which is *at least* the Rollapp height that the light client was created from. 
 
 To summarize, the order of steps is
 
