@@ -1,16 +1,17 @@
 package simulation
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	dymsimtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
@@ -19,12 +20,44 @@ import (
 
 // Simulation operation weights constants
 const (
-	OpWeightSubmitProposal = "op_weight_submit_proposal"
-	OpWeightVoteProposal   = "op_weight_vote_proposal"
+	OpWeightSubmitProposal  = "op_weight_submit_proposal"
+	OpWeightVoteProposal    = "op_weight_vote_proposal"
+	OpWeightMsgUpdateParams = "op_weight_msg_update_params"
 
-	DefaultWeightSubmitProposal = 60
-	DefaultWeightVoteProposal   = 40
+	DefaultWeightSubmitProposal      = 60
+	DefaultWeightVoteProposal        = 40
+	DefaultWeightMsgUpdateParams int = 10
 )
+
+// ProposalMsgs defines the module weighted proposals' contents
+func ProposalMsgs() []simtypes.WeightedProposalMsg {
+	return []simtypes.WeightedProposalMsg{
+		simulation.NewWeightedProposalMsg(
+			OpWeightMsgUpdateParams,
+			DefaultWeightMsgUpdateParams,
+			SimulateMsgUpdateParams,
+		),
+	}
+}
+
+// SimulateMsgUpdateParams returns a random MsgUpdateParams
+func SimulateMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
+	// use the default gov module account address as authority
+	var authority sdk.AccAddress = address.Module("gov")
+
+	params := types.DefaultParams()
+	//params.BondDenom = simtypes.RandStringOfLength(r, 10)
+	//params.HistoricalEntries = uint32(simtypes.RandIntBetween(r, 0, 1000))
+	//params.MaxEntries = uint32(simtypes.RandIntBetween(r, 1, 1000))
+	//params.MaxValidators = uint32(simtypes.RandIntBetween(r, 1, 1000))
+	//params.UnbondingTime = time.Duration(simtypes.RandTimestamp(r).UnixNano())
+	//params.MinCommissionRate = simtypes.RandomDecAmount(r, sdk.NewDec(1))
+
+	return &types.MsgUpdateParams{
+		Authority: authority.String(),
+		Params:    params,
+	}
+}
 
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
@@ -135,7 +168,7 @@ func SimulateMsgCreateSponsoredStream(
 		if spendable.IsZero() {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreateStream, "no spendable coins"), nil, nil
 		}
-		
+
 		coin := spendable[r.Intn(len(spendable))]
 		amt, err := dymsimtypes.RandIntBetween(r, math.OneInt(), coin.Amount)
 		if err != nil {
@@ -266,11 +299,11 @@ func generateCreateStreamProposal(r *rand.Rand, ctx sdk.Context, ik dymsimtypes.
 	epochIdentifiers := []string{"day", "week", "month"}
 
 	return &types.CreateStreamProposal{
-		Title:               simtypes.RandStringOfLength(r, 10),
-		Description:         simtypes.RandStringOfLength(r, 100),
-		DistributeToRecords: records,
-		Coins:              coins,
-		StartTime:          startTime,
+		Title:                simtypes.RandStringOfLength(r, 10),
+		Description:          simtypes.RandStringOfLength(r, 100),
+		DistributeToRecords:  records,
+		Coins:                coins,
+		StartTime:            startTime,
 		DistrEpochIdentifier: epochIdentifiers[r.Intn(len(epochIdentifiers))],
 		NumEpochsPaidOver:    uint64(r.Int63n(100) + 1),
 		Sponsored:            r.Int()%2 == 0,
