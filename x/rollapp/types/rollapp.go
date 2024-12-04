@@ -26,7 +26,7 @@ const (
 var RollappTags = []string{
 	"Meme",
 	"AI",
-	"DeFI",
+	"DeFi",
 	"NFT",
 	"Gaming",
 	"Betting",

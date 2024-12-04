@@ -384,7 +384,7 @@ func (a *AppKeepers) InitKeepers(
 	a.SequencerKeeper.SetHooks(sequencermoduletypes.MultiHooks{rollappmodulekeeper.SequencerHooks{Keeper: a.RollappKeeper}})
 
 	groupConfig := grouptypes.DefaultConfig()
-	groupConfig.MaxMetadataLen = 2500
+	groupConfig.MaxMetadataLen = 5500
 
 	a.GroupKeeper = groupkeeper.NewKeeper(
 		a.keys[grouptypes.StoreKey],
