@@ -14,13 +14,9 @@ import (
 
 // Operation weights for simulating the module
 const (
-	OpWeightBeginBlock = "op_weight_begin_block"
-	OpWeightEndBlock   = "op_weight_end_block"
 	OpWeightSubmitProposal = "op_weight_submit_proposal"
 	OpWeightVoteProposal = "op_weight_vote_proposal"
 
-	DefaultWeightBeginBlock = 100
-	DefaultWeightEndBlock   = 100
 	DefaultWeightSubmitProposal = 60
 	DefaultWeightVoteProposal = 40
 )
@@ -32,30 +28,16 @@ func WeightedOperations(
 	k keeper.Keeper,
 ) simulation.WeightedOperations {
 	var (
-		weightBeginBlock int
-		weightEndBlock   int
 		weightSubmitProposal int
 		weightVoteProposal int
 	)
 
-	appParams.GetOrGenerate(cdc, OpWeightBeginBlock, &weightBeginBlock, nil,
-		func(*rand.Rand) { weightBeginBlock = DefaultWeightBeginBlock })
-	appParams.GetOrGenerate(cdc, OpWeightEndBlock, &weightEndBlock, nil,
-		func(*rand.Rand) { weightEndBlock = DefaultWeightEndBlock })
 	appParams.GetOrGenerate(cdc, OpWeightSubmitProposal, &weightSubmitProposal, nil,
 		func(*rand.Rand) { weightSubmitProposal = DefaultWeightSubmitProposal })
 	appParams.GetOrGenerate(cdc, OpWeightVoteProposal, &weightVoteProposal, nil,
 		func(*rand.Rand) { weightVoteProposal = DefaultWeightVoteProposal })
 
 	return simulation.WeightedOperations{
-		simulation.NewWeightedOperation(
-			weightBeginBlock,
-			SimulateMsgBeginBlocker(k),
-		),
-		simulation.NewWeightedOperation(
-			weightEndBlock,
-			SimulateMsgEndBlocker(k),
-		),
 		simulation.NewWeightedOperation(
 			weightSubmitProposal,
 			SimulateMsgSubmitProposal(k),
