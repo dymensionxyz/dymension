@@ -3,12 +3,15 @@ package types
 import (
 	"errors"
 	"math/rand"
+	"time"
 
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 )
 
 // RandIntBetween returns a random integer in the range [min; max).
+// There is a similar method for 'int' in sdk sim utils which is [min,max]
 func RandIntBetween(r *rand.Rand, min, max math.Int) (math.Int, error) {
 	if min.GT(max) {
 		return math.Int{}, errors.New("min cannot be greater than max")
@@ -27,4 +30,16 @@ func RandIntBetween(r *rand.Rand, min, max math.Int) (math.Int, error) {
 	// Adjust the random number to be in the range [min; max):
 	// (0; rangeSize] + min - 1 = (min-1; max-1] = [min; max)
 	return min.Add(randInRange).Sub(math.OneInt()), nil
+}
+
+func RandChoice[T any](r *rand.Rand, choices []T) T {
+	return choices[r.Intn(len(choices))]
+}
+
+func RandFutureTime(r *rand.Rand, ctx sdk.Context, maxDuration time.Duration) time.Time {
+	return ctx.BlockTime().Add(RandDuration(r, maxDuration))
+}
+
+func RandDuration(r *rand.Rand, maxDuration time.Duration) time.Duration {
+	return time.Duration(r.Int63n(int64(maxDuration)))
 }

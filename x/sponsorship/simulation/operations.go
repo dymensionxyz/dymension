@@ -19,10 +19,8 @@ import (
 
 // Simulation operation weights constants.
 const (
-	DefaultWeightMsgVote       int = 100
-	DefaultWeightMsgRevokeVote int = 100
-	OpWeightMsgVote                = "op_weight_msg_vote"        //nolint:gosec
-	OpWeightMsgRevokeVote          = "op_weight_msg_revoke_vote" //nolint:gosec
+	DefaultWeightMsgVote int = 100
+	OpWeightMsgVote          = "op_weight_msg_vote" //nolint:gosec
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights.
@@ -52,12 +50,6 @@ func WeightedOperations(
 	}
 }
 
-// getAllocationWeight returns a random allocation weight in range [minAllocationWeight; MaxAllocationWeight].
-func getAllocationWeight(r *rand.Rand, minAllocationWeight math.Int) math.Int {
-	w, _ := dymsimtypes.RandIntBetween(r, minAllocationWeight, types.MaxAllocationWeight.AddRaw(1))
-	return w
-}
-
 // SimulateMsgVote generates and executes a MsgVote with random parameters
 func SimulateMsgVote(
 	cdc *codec.ProtoCodec,
@@ -84,34 +76,9 @@ func SimulateMsgVote(
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgVote, "Address does not have enough staking power to vote"), nil, nil
 		}
 
-		// Get a random subset of gauges
-		selectedGauges := dymsimtypes.RandomGaugeSubset(ctx, r, ik)
-		if len(selectedGauges) == 0 {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgVote, "No gauges available"), nil, nil
-		}
-
-		// Generate random weights for the selected gauges.
-		// The sum of the weights should be less than or equal to 100 DYM (100%).
-		totalWeight := math.ZeroInt()
-		var gaugeWeights []types.GaugeWeight
-		for _, gauge := range selectedGauges {
-			weight := getAllocationWeight(r, params.MinAllocationWeight)
-			if totalWeight.Add(weight).GT(types.MaxAllocationWeight) {
-				weight = types.MaxAllocationWeight.Sub(totalWeight)
-			}
-
-			if weight.LT(params.MinAllocationWeight) {
-				// We don't have any more weight to distribute.
-				// The remaining weight is abstained.
-				break
-			}
-
-			gaugeWeights = append(gaugeWeights, types.GaugeWeight{
-				GaugeId: gauge.Id,
-				Weight:  weight,
-			})
-
-			totalWeight = totalWeight.Add(weight)
+		gaugeWeights := GetGaugeWeights(r, ctx, ik, params)
+		if len(gaugeWeights) == 0 {
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgVote, "No gauges"), nil, nil
 		}
 
 		msg := &types.MsgVote{
@@ -150,4 +117,40 @@ func SimulateMsgVote(
 
 		return simulation.GenAndDeliverTxWithRandFees(txCtx)
 	}
+}
+
+// getAllocationWeight returns a random allocation weight in range [minAllocationWeight; MaxAllocationWeight].
+func getAllocationWeight(r *rand.Rand, minAllocationWeight math.Int) math.Int {
+	w, _ := RandIntBetween(r, minAllocationWeight, spontypes.MaxAllocationWeight.AddRaw(1))
+	return w
+}
+
+func GetGaugeWeights(r *rand.Rand, ctx sdk.Context, ik IncentivesKeeper, params spontypes.Params) []spontypes.GaugeWeight {
+	// Get a random subset of gauges
+	selectedGauges := RandomGaugeSubset(ctx, r, ik)
+
+	// Generate random weights for the selected gauges.
+	// The sum of the weights should be less than or equal to 100 DYM (100%).
+	totalWeight := math.ZeroInt()
+	var gaugeWeights []spontypes.GaugeWeight
+	for _, gauge := range selectedGauges {
+		weight := getAllocationWeight(r, params.MinAllocationWeight)
+		if totalWeight.Add(weight).GT(spontypes.MaxAllocationWeight) {
+			weight = spontypes.MaxAllocationWeight.Sub(totalWeight)
+		}
+
+		if weight.LT(params.MinAllocationWeight) {
+			// We don't have any more weight to distribute.
+			// The remaining weight is abstained.
+			break
+		}
+
+		gaugeWeights = append(gaugeWeights, spontypes.GaugeWeight{
+			GaugeId: gauge.Id,
+			Weight:  weight,
+		})
+
+		totalWeight = totalWeight.Add(weight)
+	}
+	return gaugeWeights
 }

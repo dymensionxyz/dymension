@@ -4,7 +4,6 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
@@ -67,10 +66,10 @@ func NewOpFactory(k *keeper.Keeper, ks Keepers, simState module.SimulationState)
 
 func (f OpFactory) Messages() []simtypes.WeightedOperation {
 	return []simtypes.WeightedOperation{
-		simulation.NewWeightedOperation(
-			WeightFundModule,
-			f.FundModule,
-		),
+		//simulation.NewWeightedOperation(
+		//	WeightFundModule,
+		//	f.FundModule,
+		//),
 	}
 }
 
@@ -81,37 +80,27 @@ func (f OpFactory) Proposals() []simtypes.WeightedProposalContent {
 			WeightCreateStreamProposal,
 			f.CreateStreamProposal,
 		),
-		simulation.NewWeightedProposalContent(
-			"op_terminate_stream_proposal",
-			WeightTerminateStreamProposal,
-			f.TerminateStreamProposal,
-		),
-		simulation.NewWeightedProposalContent(
-			"op_replace_stream_distribution_proposal",
-			WeightReplaceStreamDistributionProposal,
-			f.ReplaceStreamDistributionProposal,
-		),
-		simulation.NewWeightedProposalContent(
-			"op_update_stream_distribution_proposal",
-			WeightUpdateStreamDistributionProposal,
-			f.UpdateStreamDistributionProposal,
-		),
+		//simulation.NewWeightedProposalContent(
+		//	"op_terminate_stream_proposal",
+		//	WeightTerminateStreamProposal,
+		//	f.TerminateStreamProposal,
+		//),
+		//simulation.NewWeightedProposalContent(
+		//	"op_replace_stream_distribution_proposal",
+		//	WeightReplaceStreamDistributionProposal,
+		//	f.ReplaceStreamDistributionProposal,
+		//),
+		//simulation.NewWeightedProposalContent(
+		//	"op_update_stream_distribution_proposal",
+		//	WeightUpdateStreamDistributionProposal,
+		//	f.UpdateStreamDistributionProposal,
+		//),
 	}
 }
 
-func (f OpFactory) FundModule(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accounts []simtypes.Account, chainID string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-    // Generate random amount to mint
-    amount := sdk.NewInt(int64(simtypes.RandIntBetween(r, 100, 10000)))
-    coins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amount))
-
-    // Mint coins to the streamer module account
-    if err := f.k.Bank.MintCoins(ctx, types.ModuleName, coins); err != nil {
-        return simtypes.NoOpMsg(types.ModuleName, "fund_module", "failed to mint"), nil, err
-    }
-
-    return simtypes.NewOperationMsg(&types.MsgCreateStream{}, true, "fund_module"), nil, nil
-
-}
+//func (f OpFactory) FundModule(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accounts []simtypes.Account, id string) (OperationMsg simtypes.OperationMsg, futureOps []simtypes.FutureOperation, err error) {
+//
+//}
 
 func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 	var epoch string
@@ -122,7 +111,14 @@ func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []s
 		}
 	}
 
+	var coins sdk.Coins
+	{
+		bal := f.k.Bank.GetAllBalances(ctx, f.k.Acc.GetModuleAddress(types.ModuleName))
+		coins = simtypes.RandSubsetCoins(r, bal)
 
+	}
+
+	gWeights := dymsimtypes.GetGaugeWeights(r, ctx, f.k.Incentives, f.k.Incentives.GetParams(ctx))
 	// Generate random distribution records
 	numRecords := simtypes.RandIntBetween(r, 1, 5)
 	records := make([]types.DistrRecord, numRecords)
@@ -132,78 +128,71 @@ func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []s
 			Weight:  sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 100))),
 		}
 	}
-
-	// Generate random coins
-	amount := sdk.NewInt(int64(simtypes.RandIntBetween(r, 100, 10000)))
-
-	coins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amount))
-
-	// Generate random start time between now and 1 week in the future
-	startTime := ctx.BlockTime().Add(time.Duration(r.Int63n(7*24*60*60)) * time.Second) // TODO: does it do anything
 
 	return &types.CreateStreamProposal{
 		Title:                simtypes.RandStringOfLength(r, 10),
 		Description:          simtypes.RandStringOfLength(r, 100),
 		DistributeToRecords:  records,
 		Coins:                coins,
-		StartTime:            startTime,
+		StartTime:            dymsimtypes.RandFutureTime(r, ctx, time.Minute),
 		DistrEpochIdentifier: epoch,
 		NumEpochsPaidOver:    uint64(simtypes.RandIntBetween(r, 0, 100)),
 		Sponsored:            r.Int()%2 == 0,
 	}
 }
 
-func (f *OpFactory) TerminateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
-	// Generate random stream ID between 1 and 1000
-	streamId := uint64(simtypes.RandIntBetween(r, 1, 1000))
-
-	return &types.TerminateStreamProposal{
-		Title:       simtypes.RandStringOfLength(r, 10),
-		Description: simtypes.RandStringOfLength(r, 100),
-		StreamId:    streamId,
-	}
-}
-
-func (f *OpFactory) ReplaceStreamDistributionProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
-	// Generate random stream ID
-	streamId := uint64(simtypes.RandIntBetween(r, 1, 1000))
-
-	// Generate random distribution records
-	numRecords := simtypes.RandIntBetween(r, 1, 5)
-	records := make([]types.DistrRecord, numRecords)
-	for i := 0; i < numRecords; i++ {
-		records[i] = types.DistrRecord{
-			GaugeId: uint64(simtypes.RandIntBetween(r, 1, 100)),
-			Weight:  sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 100))),
-		}
-	}
-
-	return &types.ReplaceStreamDistributionProposal{
-		Title:       simtypes.RandStringOfLength(r, 10),
-		Description: simtypes.RandStringOfLength(r, 100),
-		StreamId:    streamId,
-		Records:     records,
-	}
-}
-
-func (f *OpFactory) UpdateStreamDistributionProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
-	// Generate random stream ID
-	streamId := uint64(simtypes.RandIntBetween(r, 1, 1000))
-
-	// Generate random distribution records
-	numRecords := simtypes.RandIntBetween(r, 1, 5)
-	records := make([]types.DistrRecord, numRecords)
-	for i := 0; i < numRecords; i++ {
-		records[i] = types.DistrRecord{
-			GaugeId: uint64(simtypes.RandIntBetween(r, 1, 100)),
-			Weight:  sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 100))),
-		}
-	}
-
-	return &types.UpdateStreamDistributionProposal{
-		Title:       simtypes.RandStringOfLength(r, 10),
-		Description: simtypes.RandStringOfLength(r, 100),
-		StreamId:    streamId,
-		Records:     records,
-	}
-}
+//
+//func (f *OpFactory) TerminateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
+//	// Generate random stream ID between 1 and 1000
+//	streamId := uint64(simtypes.RandIntBetween(r, 1, 1000))
+//
+//	return &types.TerminateStreamProposal{
+//		Title:       simtypes.RandStringOfLength(r, 10),
+//		Description: simtypes.RandStringOfLength(r, 100),
+//		StreamId:    streamId,
+//	}
+//}
+//
+//func (f *OpFactory) ReplaceStreamDistributionProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
+//	// Generate random stream ID
+//	streamId := uint64(simtypes.RandIntBetween(r, 1, 1000))
+//
+//	// Generate random distribution records
+//	numRecords := simtypes.RandIntBetween(r, 1, 5)
+//	records := make([]types.DistrRecord, numRecords)
+//	for i := 0; i < numRecords; i++ {
+//		records[i] = types.DistrRecord{
+//			GaugeId: uint64(simtypes.RandIntBetween(r, 1, 100)),
+//			Weight:  sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 100))),
+//		}
+//	}
+//
+//	return &types.ReplaceStreamDistributionProposal{
+//		Title:       simtypes.RandStringOfLength(r, 10),
+//		Description: simtypes.RandStringOfLength(r, 100),
+//		StreamId:    streamId,
+//		Records:     records,
+//	}
+//}
+//
+//func (f *OpFactory) UpdateStreamDistributionProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
+//	// Generate random stream ID
+//	streamId := uint64(simtypes.RandIntBetween(r, 1, 1000))
+//
+//	// Generate random distribution records
+//	numRecords := simtypes.RandIntBetween(r, 1, 5)
+//	records := make([]types.DistrRecord, numRecords)
+//	for i := 0; i < numRecords; i++ {
+//		records[i] = types.DistrRecord{
+//			GaugeId: uint64(simtypes.RandIntBetween(r, 1, 100)),
+//			Weight:  sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 100))),
+//		}
+//	}
+//
+//	return &types.UpdateStreamDistributionProposal{
+//		Title:       simtypes.RandStringOfLength(r, 10),
+//		Description: simtypes.RandStringOfLength(r, 100),
+//		StreamId:    streamId,
+//		Records:     records,
+//	}
+//}
