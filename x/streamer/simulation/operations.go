@@ -2,6 +2,7 @@ package simulation
 
 import (
 	"math/rand"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -117,6 +118,9 @@ func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []s
 		bal := f.k.Bank.GetAllBalances(ctx, f.k.Acc.GetModuleAddress(types.ModuleName))
 		coins = simtypes.RandSubsetCoins(r, bal)
 	}
+	if coins.Empty() {
+		return nil
+	}
 
 	gauges := dymsimtypes.RandomGaugeSubset(ctx, r, f.k.Incentives)
 	records := make([]types.DistrRecord, len(gauges))
@@ -127,20 +131,16 @@ func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []s
 		})
 	}
 
-	_ = epoch
-	_ = coins
-	return nil
-
-	//return &types.CreateStreamProposal{
-	//	Title:                simtypes.RandStringOfLength(r, 10),
-	//	Description:          simtypes.RandStringOfLength(r, 100),
-	//	DistributeToRecords:  records,
-	//	Coins:                coins,
-	//	StartTime:            dymsimtypes.RandFutureTime(r, ctx, time.Minute),
-	//	DistrEpochIdentifier: epoch,
-	//	NumEpochsPaidOver:    uint64(simtypes.RandIntBetween(r, 0, 100)),
-	//	Sponsored:            r.Int()%2 == 0,
-	//}
+	return &types.CreateStreamProposal{
+		Title:                simtypes.RandStringOfLength(r, 10),
+		Description:          simtypes.RandStringOfLength(r, 100),
+		DistributeToRecords:  records,
+		Coins:                coins,
+		StartTime:            dymsimtypes.RandFutureTime(r, ctx, time.Minute),
+		DistrEpochIdentifier: epoch,
+		NumEpochsPaidOver:    uint64(simtypes.RandIntBetween(r, 0, 100)),
+		Sponsored:            r.Int()%2 == 0,
+	}
 }
 
 //
