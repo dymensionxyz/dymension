@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"slices"
 	"sort"
 
@@ -162,9 +163,26 @@ func (d Distribution) Negate() Distribution {
 }
 
 func (d Distribution) Equal(d1 Distribution) bool {
-	return d.VotingPower.Equal(d1.VotingPower) && slices.EqualFunc(d.Gauges, d1.Gauges, func(g1 Gauge, g2 Gauge) bool {
-		return g1.GaugeId == g2.GaugeId && g1.Power.Equal(g2.Power)
+	return d.EqualErr(d1) == nil
+}
+
+func (d Distribution) EqualErr(d1 Distribution) error {
+	if !d.VotingPower.Equal(d1.VotingPower) {
+		return fmt.Errorf("voting power mismatch: %s, %s", d.VotingPower, d1.VotingPower)
+	}
+	var equalErr error
+	slices.EqualFunc(d.Gauges, d1.Gauges, func(g1 Gauge, g2 Gauge) bool {
+		if g1.GaugeId != g2.GaugeId {
+			equalErr = fmt.Errorf("gauge id mismatch: %d, %d", g1.GaugeId, g2.GaugeId)
+			return false
+		}
+		if !g1.Power.Equal(g2.Power) {
+			equalErr = fmt.Errorf("power mismatch: %s, %s", g1.Power, g2.Power)
+			return false
+		}
+		return true
 	})
+	return equalErr
 }
 
 var _ sort.Interface = Gauges{}
