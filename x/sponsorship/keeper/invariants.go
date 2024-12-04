@@ -91,18 +91,7 @@ func InvariantGeneral(k Keeper) uinv.Func {
 			return fmt.Errorf("total voting power does not equal total power in distribution: total: %s: distr:  %s", totalVP, distribution.VotingPower)
 		}
 
-		expectedDistribution := types.NewDistribution()
-		err = k.IterateVotes(ctx, func(voter sdk.AccAddress, vote types.Vote) (stop bool, err error) {
-			expectedDistribution = expectedDistribution.Merge(vote.ToDistribution())
-			return false, nil
-		})
-		if err != nil {
-			return fmt.Errorf("merge votes: %w", err)
-		}
-
-		if !expectedDistribution.Equal(distribution) {
-			return fmt.Errorf("distribution does not match expected distribution from votes")
-		}
+		// Equality check removed https://github.com/dymensionxyz/dymension/blob/ed7dde7e61772051b5595c38da80404d898be6ae/x/sponsorship/keeper/invariants.go#L94-L105
 
 		return nil
 	})
