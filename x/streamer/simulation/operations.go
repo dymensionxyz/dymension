@@ -33,17 +33,42 @@ const (
 	WeightUpdateStreamDistributionProposal  = 100
 )
 
+func ProposalContents(params simtypes.AppParams, cdc codec.JSONCodec) []simtypes.WeightedProposalContent {
+	return []simtypes.WeightedProposalContent{
+		simulation.NewWeightedProposalContent(
+			OpWeightMsgUpdateParams,
+			DefaultWeightMsgUpdateParams,
+			SimulateMsgUpdateParams,
+		),
+		simulation.NewWeightedProposalContent(
+			OpCreateStreamProposal,
+			WeightCreateStreamProposal,
+			SimulateCreateStreamProposal,
+		),
+		simulation.NewWeightedProposalContent(
+			OpTerminateStreamProposal,
+			WeightTerminateStreamProposal,
+			SimulateTerminateStreamProposal,
+		),
+		simulation.NewWeightedProposalContent(
+			OpReplaceStreamDistributionProposal,
+			WeightReplaceStreamDistributionProposal,
+			SimulateReplaceStreamDistributionProposal,
+		),
+		simulation.NewWeightedProposalContent(
+			OpUpdateStreamDistributionProposal,
+			WeightUpdateStreamDistributionProposal,
+			SimulateUpdateStreamDistributionProposal,
+		),
+	}
+}
+
 func ProposalMsgs(
 	appParams simtypes.AppParams,
 	cdc codec.JSONCodec,
 	k keeper.Keeper,
 ) []simtypes.WeightedProposalMsg {
 	return []simtypes.WeightedProposalMsg{
-		simulation.NewWeightedProposalMsg(
-			OpWeightMsgUpdateParams,
-			DefaultWeightMsgUpdateParams,
-			SimulateMsgUpdateParams,
-		),
 		simulation.NewWeightedProposalMsg(
 			OpCreateStreamProposal,
 			WeightCreateStreamProposal,

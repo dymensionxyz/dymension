@@ -27,6 +27,7 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 }
 
 func (AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent { //nolint:staticcheck
+	return simulation.ProposalContents(simState.AppParams, simState.Cdc)
 	return nil
 }
 
