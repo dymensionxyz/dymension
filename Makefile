@@ -12,8 +12,12 @@ BUILDDIR ?= $(CURDIR)/build
 
 # Dependencies version
 DEPS_COSMOS_SDK_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/cosmos-sdk' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
-DEPS_ETHERMINT_VERSION := $(shell cat go.sum | grep 'github.com/dymensionxyz/ethermint' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
-DEPS_OSMOSIS_VERSION := $(shell cat go.sum | grep 'github.com/dymensionxyz/osmosis' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_ETHERMINT_PSEUDO_VERSION := $(shell grep '^github.com/dymensionxyz/ethermint ' go.sum | grep -v 'go.mod' | tail -n1 | awk '{ print $$2 }')
+DEPS_ETHERMINT_SHORT_COMMIT_ID := $(shell echo "$(DEPS_ETHERMINT_PSEUDO_VERSION)" | rev | cut -d'-' -f1 | rev)
+DEPS_ETHERMINT_COMMIT_HASH := $(shell git ls-remote https://github.com/dymensionxyz/ethermint.git | awk '/^$(DEPS_ETHERMINT_SHORT_COMMIT_ID)/ { print $$1; exit }')
+DEPS_OSMOSIS_PSEUDO_VERSION := $(shell grep '^github.com/dymensionxyz/osmosis ' go.sum | grep -v 'go.mod' | tail -n1 | awk '{ print $$2 }')
+DEPS_OSMOSIS_SHORT_COMMIT_ID := $(shell echo "$(DEPS_OSMOSIS_PSEUDO_VERSION)" | rev | cut -d'-' -f1 | rev)
+DEPS_OSMOSIS_COMMIT_HASH := $(shell git ls-remote https://github.com/dymensionxyz/osmosis.git | awk '/^$(DEPS_OSMOSIS_SHORT_COMMIT_ID)/ { print $$1; exit }')
 DEPS_IBC_GO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/ibc-go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_COSMOS_PROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/cosmos-proto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_COSMOS_GOGOPROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/gogoproto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
@@ -208,7 +212,7 @@ proto-download-deps:
 	git remote add origin "https://github.com/dymensionxyz/ethermint.git" && \
 	git config core.sparseCheckout true && \
 	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
-	git fetch --depth=1 origin "$(DEPS_ETHERMINT_VERSION)" && \
+	git fetch --depth=1 origin "$(DEPS_ETHERMINT_COMMIT_HASH)" && \
 	git checkout FETCH_HEAD && \
 	rm -f ./proto/buf.* && \
 	mv ./proto/* ..
@@ -220,11 +224,15 @@ proto-download-deps:
 	git remote add origin "https://github.com/dymensionxyz/osmosis.git" && \
 	git config core.sparseCheckout true && \
 	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
-	git fetch --depth=1 origin "$(DEPS_OSMOSIS_VERSION)" && \
+	git fetch --depth=1 origin "$(DEPS_OSMOSIS_COMMIT_HASH)" && \
 	git checkout FETCH_HEAD && \
 	rm -f ./proto/buf.* && \
 	mv ./proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/osmosis_tmp"
+	rm -rf "$(THIRD_PARTY_DIR)/osmosis/lockup"
+	rm -rf "$(THIRD_PARTY_DIR)/osmosis/incentives"
+	rm -rf "$(THIRD_PARTY_DIR)/dymensionxyz/dymension/lockup"
+	rm -rf "$(THIRD_PARTY_DIR)/dymensionxyz/dymension/incentives"
 
 	mkdir -p "$(THIRD_PARTY_DIR)/ibc_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/ibc_tmp" && \
