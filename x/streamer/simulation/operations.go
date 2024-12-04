@@ -9,6 +9,7 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	dymsimtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
@@ -35,6 +36,7 @@ type AccountKeeper interface {
 }
 
 type IncentivesKeeper interface {
+	GetGauges(ctx sdk.Context) []incentivestypes.Gauge
 	types.IncentivesKeeper
 }
 
@@ -118,15 +120,13 @@ func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []s
 
 	}
 
-	gWeights := dymsimtypes.GetGaugeWeights(r, ctx, f.k.Incentives, f.k.Incentives.GetParams(ctx))
-	// Generate random distribution records
-	numRecords := simtypes.RandIntBetween(r, 1, 5)
-	records := make([]types.DistrRecord, numRecords)
-	for i := 0; i < numRecords; i++ {
-		records[i] = types.DistrRecord{
-			GaugeId: uint64(simtypes.RandIntBetween(r, 1, 100)),
+	gauges := dymsimtypes.RandomGaugeSubset(ctx, r, f.k.Incentives)
+	records := make([]types.DistrRecord, len(gauges))
+	for _, gauge := range gauges {
+		records = append(records, types.DistrRecord{
+			GaugeId: gauge.Id,
 			Weight:  sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 100))),
-		}
+		})
 	}
 
 	return &types.CreateStreamProposal{

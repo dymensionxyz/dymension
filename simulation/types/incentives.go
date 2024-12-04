@@ -17,9 +17,13 @@ func RandomGauge(ctx sdk.Context, r *rand.Rand, k IncentivesKeeper) *incentivest
 	return &gauges[r.Intn(len(gauges))]
 }
 
+type GetGauges interface {
+	GetGauges(ctx sdk.Context) []incentivestypes.Gauge
+}
+
 // RandomGaugeSubset takes a context, a random number generator, and an IncentivesKeeper,
 // then returns a random subset of gauges. Gauges are non-duplicated.
-func RandomGaugeSubset(ctx sdk.Context, r *rand.Rand, k IncentivesKeeper) []incentivestypes.Gauge {
+func RandomGaugeSubset(ctx sdk.Context, r *rand.Rand, k GetGauges) []incentivestypes.Gauge {
 	allGauges := k.GetGauges(ctx)
 	if len(allGauges) == 0 {
 		return nil

@@ -209,7 +209,7 @@ func (a *AppKeepers) SetupModules(
 
 		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper),
 		sponsorship.NewAppModule(a.SponsorshipKeeper, a.AccountKeeper, a.BankKeeper, a.IncentivesKeeper, a.StakingKeeper),
-		streamermodule.NewAppModule(a.StreamerKeeper, streamersim.Keepers{Bank: a.BankKeeper}),
+		streamermodule.NewAppModule(a.StreamerKeeper, streamersim.Keepers{Bank: a.BankKeeper, Epoch: a.EpochsKeeper, Acc: a.AccountKeeper, Incentives: a.IncentivesKeeper, Endorse: a.SponsorshipKeeper}),
 		delayedackmodule.NewAppModule(appCodec, a.DelayedAckKeeper, a.delayedAckMiddleware),
 		denommetadatamodule.NewAppModule(a.DenomMetadataKeeper, *a.EvmKeeper, a.BankKeeper),
 		eibcmodule.NewAppModule(appCodec, a.EIBCKeeper, a.AccountKeeper, a.BankKeeper),
