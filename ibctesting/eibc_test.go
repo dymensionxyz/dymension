@@ -379,10 +379,7 @@ func (s *eibcSuite) TestEIBCDemandOrderFulfillment() {
 }
 
 func (s *eibcSuite) rollappHasPacketCommitment(packet channeltypes.Packet) bool {
-	// TODO: this should be used to check that a commitment does (or doesn't) exist, when it should
-	// TODO: this is important to check that things actually work as expected and dont just look ok on the outside
-	// TODO: finish implementing, true is a temporary placeholder
-	return true
+	return s.hubChain().App.GetIBCKeeper().ChannelKeeper.HasPacketCommitment(s.rollappCtx(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 }
 
 // TestTimeoutEIBCDemandOrderFulfillment: when a packet hub->rollapp times out, or gets an error ack, than eIBC can be used to recover quickly.
