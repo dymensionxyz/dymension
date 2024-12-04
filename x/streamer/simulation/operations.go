@@ -16,9 +16,13 @@ import (
 const (
 	OpWeightBeginBlock = "op_weight_begin_block"
 	OpWeightEndBlock   = "op_weight_end_block"
+	OpWeightSubmitProposal = "op_weight_submit_proposal"
+	OpWeightVoteProposal = "op_weight_vote_proposal"
 
 	DefaultWeightBeginBlock = 100
 	DefaultWeightEndBlock   = 100
+	DefaultWeightSubmitProposal = 60
+	DefaultWeightVoteProposal = 40
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
@@ -30,12 +34,18 @@ func WeightedOperations(
 	var (
 		weightBeginBlock int
 		weightEndBlock   int
+		weightSubmitProposal int
+		weightVoteProposal int
 	)
 
 	appParams.GetOrGenerate(cdc, OpWeightBeginBlock, &weightBeginBlock, nil,
 		func(*rand.Rand) { weightBeginBlock = DefaultWeightBeginBlock })
 	appParams.GetOrGenerate(cdc, OpWeightEndBlock, &weightEndBlock, nil,
 		func(*rand.Rand) { weightEndBlock = DefaultWeightEndBlock })
+	appParams.GetOrGenerate(cdc, OpWeightSubmitProposal, &weightSubmitProposal, nil,
+		func(*rand.Rand) { weightSubmitProposal = DefaultWeightSubmitProposal })
+	appParams.GetOrGenerate(cdc, OpWeightVoteProposal, &weightVoteProposal, nil,
+		func(*rand.Rand) { weightVoteProposal = DefaultWeightVoteProposal })
 
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(
@@ -46,6 +56,64 @@ func WeightedOperations(
 			weightEndBlock,
 			SimulateMsgEndBlocker(k),
 		),
+		simulation.NewWeightedOperation(
+			weightSubmitProposal,
+			SimulateMsgSubmitProposal(k),
+		),
+		simulation.NewWeightedOperation(
+			weightVoteProposal,
+			SimulateMsgVoteProposal(k),
+		),
+	}
+}
+
+// SimulateMsgSubmitProposal simulates creating a new proposal
+func SimulateMsgSubmitProposal(k keeper.Keeper) simtypes.Operation {
+	return func(
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
+	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		proposal := generateRandomProposal(r)
+		
+		err := k.SubmitProposal(ctx, proposal)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, "submit_proposal", "failed to submit proposal"), nil, err
+		}
+
+		return simtypes.NewOperationMsg(&types.MsgSubmitProposal{}, true, ""), nil, nil
+	}
+}
+
+// SimulateMsgVoteProposal simulates voting on an existing proposal
+func SimulateMsgVoteProposal(k keeper.Keeper) simtypes.Operation {
+	return func(
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
+	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		proposals := k.GetProposals(ctx)
+		if len(proposals) == 0 {
+			return simtypes.NoOpMsg(types.ModuleName, "vote_proposal", "no proposals"), nil, nil
+		}
+
+		// Pick a random proposal
+		proposal := proposals[r.Intn(len(proposals))]
+		
+		// Random vote option
+		voteOptions := []govtypes.VoteOption{
+			govtypes.OptionYes,
+			govtypes.OptionNo,
+			govtypes.OptionNoWithVeto,
+			govtypes.OptionAbstain,
+		}
+		vote := voteOptions[r.Intn(len(voteOptions))]
+
+		// Pick a random account to vote
+		simAccount := accs[r.Intn(len(accs))]
+
+		err := k.Vote(ctx, proposal.Id, simAccount.Address, vote)
+		if err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, "vote_proposal", "failed to vote"), nil, err
+		}
+
+		return simtypes.NewOperationMsg(&types.MsgVoteProposal{}, true, ""), nil, nil
 	}
 }
 
