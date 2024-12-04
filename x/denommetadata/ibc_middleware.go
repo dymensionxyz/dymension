@@ -15,8 +15,11 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
+
+var RegistrationFeeAmt = commontypes.DYM.QuoRaw(10) // 0.1 DYM
 
 var _ porttypes.IBCModule = &IBCModule{}
 
@@ -25,6 +28,7 @@ type IBCModule struct {
 	porttypes.IBCModule
 	keeper        types.DenomMetadataKeeper
 	rollappKeeper types.RollappKeeper
+	txFeesKeeper  types.TxFeesKeeper
 }
 
 // NewIBCModule creates a new IBCModule given the keepers and underlying application
@@ -32,11 +36,13 @@ func NewIBCModule(
 	app porttypes.IBCModule,
 	keeper types.DenomMetadataKeeper,
 	rollappKeeper types.RollappKeeper,
+	txFeesKeeper types.TxFeesKeeper,
 ) IBCModule {
 	return IBCModule{
 		IBCModule:     app,
 		keeper:        keeper,
 		rollappKeeper: rollappKeeper,
+		txFeesKeeper:  txFeesKeeper,
 	}
 }
 
@@ -87,9 +93,21 @@ func (im IBCModule) OnRecvPacket(
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
+	// charge denom metadata registartion fee
+	baseDenom, err := im.txFeesKeeper.GetBaseDenom(ctx)
+	if err != nil {
+		return uevent.NewErrorAcknowledgement(ctx, err)
+	}
+
+	registrationFee := sdk.NewCoin(baseDenom, RegistrationFeeAmt)
+	err = im.txFeesKeeper.ChargeFeesFromPayer(ctx, relayer, registrationFee, nil)
+	if err != nil {
+		return uevent.NewErrorAcknowledgement(ctx, err)
+	}
+
+	// adjust the denom metadata with the IBC denom
 	dm.Base = ibcDenom
 	dm.DenomUnits[0].Denom = dm.Base
-
 	if err = im.keeper.CreateDenomMetadata(ctx, *dm); err != nil {
 		if errorsmod.IsOf(err, gerrc.ErrAlreadyExists) {
 			return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
