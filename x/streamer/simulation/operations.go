@@ -63,10 +63,12 @@ func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []s
 
 	// Generate random coins
 	amount := sdk.NewInt(int64(simtypes.RandIntBetween(r, 100, 10000)))
+
+	denom := sdk.DefaultBondDenom
 	coins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amount))
 
 	// Generate random start time between now and 1 week in the future
-	startTime := ctx.BlockTime().Add(time.Duration(r.Int63n(7*24*60*60)) * time.Second)
+	startTime := ctx.BlockTime().Add(time.Duration(r.Int63n(7*24*60*60)) * time.Second) // TODO: does it do anything
 
 	// Random epoch identifier
 	epochIdentifiers := []string{"day", "week", "month"}
