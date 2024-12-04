@@ -51,6 +51,7 @@ func (f OpFactory) Proposals() []simtypes.WeightedProposalContent {
 }
 
 func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
+	f.
 	// Generate random distribution records
 	numRecords := simtypes.RandIntBetween(r, 1, 5)
 	records := make([]types.DistrRecord, numRecords)
@@ -64,7 +65,6 @@ func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []s
 	// Generate random coins
 	amount := sdk.NewInt(int64(simtypes.RandIntBetween(r, 100, 10000)))
 
-	denom := sdk.DefaultBondDenom
 	coins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amount))
 
 	// Generate random start time between now and 1 week in the future
