@@ -52,17 +52,17 @@ func (f OpFactory) Proposals() []simtypes.WeightedProposalContent {
 
 func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 	// Generate random distribution records
-	numRecords := simulation.RandIntBetween(r, 1, 5)
+	numRecords := simtypes.RandIntBetween(r, 1, 5)
 	records := make([]types.DistrRecord, numRecords)
 	for i := 0; i < numRecords; i++ {
 		records[i] = types.DistrRecord{
-			GaugeId: uint64(simulation.RandIntBetween(r, 1, 100)),
-			Weight:  sdk.NewInt(int64(simulation.RandIntBetween(r, 1, 100))),
+			GaugeId: uint64(simtypes.RandIntBetween(r, 1, 100)),
+			Weight:  sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 100))),
 		}
 	}
 
 	// Generate random coins
-	amount := sdk.NewInt(int64(simulation.RandIntBetween(r, 100, 10000)))
+	amount := sdk.NewInt(int64(simtypes.RandIntBetween(r, 100, 10000)))
 	coins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amount))
 
 	// Generate random start time between now and 1 week in the future
@@ -79,14 +79,14 @@ func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []s
 		Coins:                coins,
 		StartTime:            startTime,
 		DistrEpochIdentifier: epochIdentifier,
-		NumEpochsPaidOver:    uint64(simulation.RandIntBetween(r, 1, 100)),
+		NumEpochsPaidOver:    uint64(simtypes.RandIntBetween(r, 1, 100)),
 		Sponsored:            r.Int()%2 == 0,
 	}
 }
 
 func (f *OpFactory) TerminateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 	// Generate random stream ID between 1 and 1000
-	streamId := uint64(simulation.RandIntBetween(r, 1, 1000))
+	streamId := uint64(simtypes.RandIntBetween(r, 1, 1000))
 
 	return &types.TerminateStreamProposal{
 		Title:       simtypes.RandStringOfLength(r, 10),
@@ -97,15 +97,15 @@ func (f *OpFactory) TerminateStreamProposal(r *rand.Rand, ctx sdk.Context, accs 
 
 func (f *OpFactory) ReplaceStreamDistributionProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 	// Generate random stream ID
-	streamId := uint64(simulation.RandIntBetween(r, 1, 1000))
+	streamId := uint64(simtypes.RandIntBetween(r, 1, 1000))
 
 	// Generate random distribution records
-	numRecords := simulation.RandIntBetween(r, 1, 5)
+	numRecords := simtypes.RandIntBetween(r, 1, 5)
 	records := make([]types.DistrRecord, numRecords)
 	for i := 0; i < numRecords; i++ {
 		records[i] = types.DistrRecord{
-			GaugeId: uint64(simulation.RandIntBetween(r, 1, 100)),
-			Weight:  sdk.NewInt(int64(simulation.RandIntBetween(r, 1, 100))),
+			GaugeId: uint64(simtypes.RandIntBetween(r, 1, 100)),
+			Weight:  sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 100))),
 		}
 	}
 
@@ -119,15 +119,15 @@ func (f *OpFactory) ReplaceStreamDistributionProposal(r *rand.Rand, ctx sdk.Cont
 
 func (f *OpFactory) UpdateStreamDistributionProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
 	// Generate random stream ID
-	streamId := uint64(simulation.RandIntBetween(r, 1, 1000))
+	streamId := uint64(simtypes.RandIntBetween(r, 1, 1000))
 
 	// Generate random distribution records
-	numRecords := simulation.RandIntBetween(r, 1, 5)
+	numRecords := simtypes.RandIntBetween(r, 1, 5)
 	records := make([]types.DistrRecord, numRecords)
 	for i := 0; i < numRecords; i++ {
 		records[i] = types.DistrRecord{
-			GaugeId: uint64(simulation.RandIntBetween(r, 1, 100)),
-			Weight:  sdk.NewInt(int64(simulation.RandIntBetween(r, 1, 100))),
+			GaugeId: uint64(simtypes.RandIntBetween(r, 1, 100)),
+			Weight:  sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 100))),
 		}
 	}
 
