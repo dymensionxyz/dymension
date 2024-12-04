@@ -92,6 +92,7 @@ func InvariantGeneral(k Keeper) uinv.Func {
 		}
 
 		// Equality check removed https://github.com/dymensionxyz/dymension/blob/ed7dde7e61772051b5595c38da80404d898be6ae/x/sponsorship/keeper/invariants.go#L94-L105
+		// https://github.com/dymensionxyz/dymension/issues/1615
 
 		return nil
 	})
