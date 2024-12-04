@@ -72,14 +72,21 @@ func SimulateMsgSubmitProposal(k keeper.Keeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		simAccount := accs[r.Intn(len(accs))]
 		proposal := generateRandomProposal(r)
 		
-		err := k.SubmitProposal(ctx, proposal)
+		msg := govtypes.NewMsgSubmitProposal(
+			proposal.Content,
+			proposal.Deposit,
+			simAccount.Address,
+		)
+		
+		_, err := k.SubmitProposal(ctx, msg)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, "submit_proposal", "failed to submit proposal"), nil, err
+			return simtypes.NoOpMsg(types.ModuleName, proposal.Content.ProposalType(), "failed to submit proposal"), nil, err
 		}
 
-		return simtypes.NewOperationMsg(&types.MsgSubmitProposal{}, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, proposal.Content.ProposalType()), nil, nil
 	}
 }
 
