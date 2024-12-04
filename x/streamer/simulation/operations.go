@@ -19,15 +19,11 @@ import (
 
 // Simulation operation weights constants
 const (
-	OpWeightMsgCreateStream          = "op_weight_msg_create_stream"
-	OpWeightMsgCreateSponsoredStream = "op_weight_msg_create_sponsored_stream"
-	OpWeightMsgUpdateStream          = "op_weight_msg_update_stream"
-	OpWeightMsgTerminateStream       = "op_weight_msg_terminate_stream"
+	OpWeightSubmitProposal = "op_weight_submit_proposal"
+	OpWeightVoteProposal   = "op_weight_vote_proposal"
 
-	DefaultWeightMsgCreateStream          = 50
-	DefaultWeightMsgCreateSponsoredStream = 50
-	DefaultWeightMsgUpdateStream          = 30
-	DefaultWeightMsgTerminateStream       = 20
+	DefaultWeightSubmitProposal = 60
+	DefaultWeightVoteProposal   = 40
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
@@ -40,45 +36,29 @@ func WeightedOperations(
 	k Keeper,
 ) simulation.WeightedOperations {
 	var (
-		weightMsgCreateStream          int
-		weightMsgCreateSponsoredStream int
-		weightMsgUpdateStream          int
-		weightMsgTerminateStream       int
+		weightSubmitProposal int
+		weightVoteProposal   int
 	)
 
-	appParams.GetOrGenerate(cdc, OpWeightMsgCreateStream, &weightMsgCreateStream, nil,
-		func(*rand.Rand) { weightMsgCreateStream = DefaultWeightMsgCreateStream })
-	appParams.GetOrGenerate(cdc, OpWeightMsgCreateSponsoredStream, &weightMsgCreateSponsoredStream, nil,
-		func(*rand.Rand) { weightMsgCreateSponsoredStream = DefaultWeightMsgCreateSponsoredStream })
-	appParams.GetOrGenerate(cdc, OpWeightMsgUpdateStream, &weightMsgUpdateStream, nil,
-		func(*rand.Rand) { weightMsgUpdateStream = DefaultWeightMsgUpdateStream })
-	appParams.GetOrGenerate(cdc, OpWeightMsgTerminateStream, &weightMsgTerminateStream, nil,
-		func(*rand.Rand) { weightMsgTerminateStream = DefaultWeightMsgTerminateStream })
-
-	protoCdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+	appParams.GetOrGenerate(cdc, OpWeightSubmitProposal, &weightSubmitProposal, nil,
+		func(*rand.Rand) { weightSubmitProposal = DefaultWeightSubmitProposal })
+	appParams.GetOrGenerate(cdc, OpWeightVoteProposal, &weightVoteProposal, nil,
+		func(*rand.Rand) { weightVoteProposal = DefaultWeightVoteProposal })
 
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(
-			weightMsgCreateStream,
-			SimulateMsgCreateStream(protoCdc, ak, bk, ik, k),
+			weightSubmitProposal,
+			SimulateMsgSubmitProposal(protoCdc, ak, bk, ik, k),
 		),
 		simulation.NewWeightedOperation(
-			weightMsgCreateSponsoredStream,
-			SimulateMsgCreateSponsoredStream(protoCdc, ak, bk, ik, k),
-		),
-		simulation.NewWeightedOperation(
-			weightMsgUpdateStream,
-			SimulateMsgUpdateStream(protoCdc, ak, bk, ik, k),
-		),
-		simulation.NewWeightedOperation(
-			weightMsgTerminateStream,
-			SimulateMsgTerminateStream(protoCdc, ak, bk, ik, k),
+			weightVoteProposal,
+			SimulateMsgVoteProposal(protoCdc, ak, bk, ik, k),
 		),
 	}
 }
 
-// SimulateMsgCreateStream generates a random stream creation
-func SimulateMsgCreateStream(
+// SimulateMsgSubmitProposal generates random proposal content
+func SimulateMsgSubmitProposal(
 	cdc *codec.ProtoCodec,
 	ak dymsimtypes.AccountKeeper,
 	bk dymsimtypes.BankKeeper,
