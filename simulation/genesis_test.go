@@ -197,13 +197,9 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 
 	// Modify epochs params
 	epochsGenesis := epochstypes.DefaultGenesis()
-	epochsGenesis.Epochs = append(epochsGenesis.Epochs, epochstypes.EpochInfo{
-		Identifier:              "minute",
-		StartTime:               time.Time{},
-		Duration:                time.Minute,
-		CurrentEpoch:            0,
-		CurrentEpochStartHeight: 0,
-	})
+	epochsGenesis.Epochs = append(epochsGenesis.Epochs,
+		epochstypes.NewGenesisEpochInfo("minute", time.Minute),
+	)
 	epochsRawGenesis, err := cdc.MarshalJSON(epochsGenesis)
 	if err != nil {
 		return app.GenesisState{}, fmt.Errorf("marshal epochs genesis state: %w", err)
