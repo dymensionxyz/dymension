@@ -100,8 +100,8 @@ func InvariantGeneral(k Keeper) uinv.Func {
 			return fmt.Errorf("merge votes: %w", err)
 		}
 
-		if !expectedDistribution.Equal(distribution) {
-			return fmt.Errorf("distribution does not match expected distribution from votes")
+		if err := expectedDistribution.EqualErr(distribution); err != nil {
+			return fmt.Errorf("distribution does not match expected distribution from votes: %w", err)
 		}
 
 		return nil
