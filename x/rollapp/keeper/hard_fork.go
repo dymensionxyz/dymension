@@ -34,7 +34,7 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, lastValidHeight uint
 	rollapp.BumpRevision(newRevisionHeight)
 
 	// stop liveness events
-	k.ResetLivenessClock(ctx, &rollapp)
+	k.StopLivenessClock(ctx, &rollapp)
 
 	k.SetRollapp(ctx, rollapp)
 
