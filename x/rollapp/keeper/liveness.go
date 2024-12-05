@@ -114,7 +114,8 @@ func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
 	})
 }
 
-// GetLivenessEvents returns events. If a height is specified, up to and including that height.
+// GetLivenessEvents returns events scheduled for the specified height.
+// If height is nil, returns all events.
 func (k Keeper) GetLivenessEvents(ctx sdk.Context, height *int64) []types.LivenessEvent {
 	store := ctx.KVStore(k.storeKey)
 	key := types.LivenessEventQueueKeyPrefix
@@ -123,12 +124,12 @@ func (k Keeper) GetLivenessEvents(ctx sdk.Context, height *int64) []types.Livene
 
 	ret := []types.LivenessEvent{}
 	for ; iterator.Valid(); iterator.Next() {
-		// events are stored in height non-decreasing order
 		e := types.LivenessEventQueueKeyToEvent(iterator.Key())
-		if height != nil && *height < e.HubHeight {
-			break
+		if height == nil {
+			ret = append(ret, e)
+		} else if *height == e.HubHeight {
+			ret = append(ret, e)
 		}
-		ret = append(ret, e)
 	}
 	return ret
 }
