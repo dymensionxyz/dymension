@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -104,7 +105,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.D
 	} else {
 		distr, err := k.NewDistrInfo(ctx, records)
 		if err != nil {
-			return 0, err
+			return 0, errorsmod.Wrap(err, "new distribution info")
 		}
 		distrInfo = distr
 	}
@@ -166,6 +167,9 @@ func (k Keeper) TerminateStream(ctx sdk.Context, streamID uint64) error {
 	stream, err := k.GetStreamByID(ctx, streamID)
 	if err != nil {
 		return err
+	}
+	if stream.IsFinishedStream(ctx.BlockTime()) {
+		return errorsmod.Wrapf(types.ErrInvalidStreamStatus, "stream %d is already finished", streamID)
 	}
 
 	if stream.IsActiveStream(ctx.BlockTime()) {

@@ -143,7 +143,7 @@ func (k Keeper) validateWeights(ctx sdk.Context, weights []types.GaugeWeight, mi
 		// All gauges exist
 		gauge, err := k.incentivesKeeper.GetGaugeByID(ctx, weight.GaugeId)
 		if err != nil {
-			return fmt.Errorf("failed to get gauge by id: %d: %w", weight.GaugeId, err)
+			return fmt.Errorf("get gauge by id: %d: %w", weight.GaugeId, err)
 		}
 
 		// All gauges are perpetual

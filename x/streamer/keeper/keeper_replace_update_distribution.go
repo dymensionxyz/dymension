@@ -3,6 +3,7 @@ package keeper
 import (
 	"sort"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -13,6 +14,9 @@ func (k Keeper) ReplaceDistrRecords(ctx sdk.Context, streamId uint64, records []
 	stream, err := k.GetStreamByID(ctx, streamId)
 	if err != nil {
 		return err
+	}
+	if stream.IsFinishedStream(ctx.BlockTime()) {
+		return errorsmod.Wrapf(types.ErrInvalidStreamStatus, "already finished: id: %d", streamId)
 	}
 
 	distrInfo, err := k.NewDistrInfo(ctx, records)
@@ -38,10 +42,13 @@ func (k Keeper) UpdateDistrRecords(ctx sdk.Context, streamId uint64, records []t
 	if err != nil {
 		return err
 	}
+	if stream.IsFinishedStream(ctx.BlockTime()) {
+		return errorsmod.Wrapf(types.ErrInvalidStreamStatus, "already finished: id: %d", streamId)
+	}
 
 	err = k.validateGauges(ctx, records)
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "validate gauges")
 	}
 
 	for _, existingRecord := range stream.DistributeTo.Records {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	db "github.com/cometbft/cometbft-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
@@ -163,7 +164,7 @@ func (k Keeper) GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*types.Gauge, err
 	}
 	bz := store.Get(gaugeKey)
 	if err := proto.Unmarshal(bz, &gauge); err != nil {
-		return nil, err
+		return nil, errorsmod.Wrap(err, "unmarshal")
 	}
 	return &gauge, nil
 }
