@@ -4,10 +4,12 @@ import (
 	"math/rand"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	dymsimtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
@@ -102,16 +104,22 @@ func (f OpFactory) Proposals() []simtypes.WeightedProposalContent {
 }
 
 func (f OpFactory) FundModule(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accounts []simtypes.Account, id string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-	// Generate random amount to mint between 100-10000
-	amount := sdk.NewInt(int64(simtypes.RandIntBetween(r, 100, 10000)))
-	coins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amount))
 
-	// Mint coins to the streamer module account
-	if err := f.k.Bank.MintCoins(ctx, types.ModuleName, coins); err != nil {
-		return simtypes.NoOpMsg(types.ModuleName, "fund_module", err.Error()), nil, err
+	fakeOp := simtypes.NoOpMsg(types.ModuleName, "fund_module", "not a real tx")
+
+	// Generate random amount to mint between 100-10000
+	amt, _ := dymsimtypes.RandIntBetween(r, sdk.NewInt(100), sdk.NewInt(10000))
+	coins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amt))
+
+	if err := f.k.Bank.MintCoins(ctx, minttypes.ModuleName, coins); err != nil {
+		return fakeOp, nil, errorsmod.Wrap(err, "mint to mint module")
 	}
 
-	return simtypes.NewOperationMsg(&types.MsgCreateStream{}, true, ""), nil, nil
+	err := f.k.Bank.SendCoinsFromModuleToModule(ctx, minttypes.ModuleName, types.ModuleName, coins)
+	if err != nil {
+		return fakeOp, nil, errorsmod.Wrap(err, "send coins from mint to streamer")
+	}
+	return fakeOp, nil, nil
 }
 
 func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) simtypes.Content {
