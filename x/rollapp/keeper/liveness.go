@@ -20,19 +20,28 @@ func NextSlashHeight(
 	blocksSlashNoUpdate uint64, // time until first slash if not updating
 	blocksSlashInterval uint64, // gap between slash if still not updating
 	heightHub int64, // current height on the hub
-	heightLastRollappUpdate int64, // when was the rollapp last updated
+	startTime time.Time, // when the countdown started
 ) (
 	heightEvent int64, // hub height to schedule event
 ) {
-	// how long has the rollapp been down ?
-	down := uint64(heightHub - heightLastRollappUpdate)
-	// when should we schedule the next slash, in terms of downtime duration?
+	// Calculate blocks since start using time difference
+	blockTime := k.GetParams(ctx).BlockTime
+	timeSinceStart := ctx.BlockTime().Sub(startTime)
+	blocksSinceStart := uint64(timeSinceStart.Seconds() / blockTime.Seconds())
+
+	// Calculate next slash interval
 	interval := blocksSlashNoUpdate
-	if blocksSlashNoUpdate <= down {
+	if blocksSlashNoUpdate <= blocksSinceStart {
 		// round up to next slash interval
-		interval += ((down-blocksSlashNoUpdate)/blocksSlashInterval + 1) * blocksSlashInterval
+		interval += ((blocksSinceStart-blocksSlashNoUpdate)/blocksSlashInterval + 1) * blocksSlashInterval
 	}
-	heightEvent = heightLastRollappUpdate + int64(interval)
+
+	// Convert back to height
+	heightEvent = heightHub + int64(interval)
+	// Ensure event is always scheduled for future height
+	if heightEvent <= heightHub {
+		heightEvent = heightHub + 1
+	}
 	return
 }
 
