@@ -64,19 +64,21 @@ func (k Keeper) HandleLivenessEvent(ctx sdk.Context, e types.LivenessEvent) erro
 	}
 
 	ra := k.MustGetRollapp(ctx, e.RollappId)
-	k.DelLivenessEvent(ctx, e.HubHeight, e.RollappId)
+	k.DelLivenessEvents(ctx, e.HubHeight, e.RollappId)
 	k.ScheduleLivenessEvent(ctx, &ra)
 	k.SetRollapp(ctx, ra)
 	return nil
 }
 
 func (k Keeper) IndicateLiveness(ctx sdk.Context, ra *types.Rollapp) {
-	k.StopLivenessClock(ctx, ra)
+	k.ResetLivenessClock(ctx, ra)
 	k.ScheduleLivenessEvent(ctx, ra)
 }
 
-func (k Keeper) StopLivenessClock(ctx sdk.Context, ra *types.Rollapp) {
-	k.DelLivenessEvent(ctx, ra.LivenessEventHeight, ra.RollappId)
+// ResetLivenessClock will reschedule pending liveness events to a later block height.
+// Modifies the passed-in rollapp object.
+func (k Keeper) ResetLivenessClock(ctx sdk.Context, ra *types.Rollapp) {
+	k.DelLivenessEvents(ctx, ra.LivenessEventHeight, ra.RollappId)
 	ra.LivenessEventHeight = 0
 	ra.LivenessCountdownStartHeight = ctx.BlockHeight()
 }
@@ -98,10 +100,13 @@ func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
 	})
 }
 
-// GetLivenessEvents returns events. If a height is specified, up to and including that height but not more.
+// GetLivenessEvents returns events. If a height is specified, only for that height.
 func (k Keeper) GetLivenessEvents(ctx sdk.Context, height *int64) []types.LivenessEvent {
 	store := ctx.KVStore(k.storeKey)
 	key := types.LivenessEventQueueKeyPrefix
+	if height != nil {
+		key = types.LivenessEventQueueIterHeightKey(*height)
+	}
 	iterator := sdk.KVStorePrefixIterator(store, key)
 	defer iterator.Close() // nolint: errcheck
 
@@ -124,8 +129,8 @@ func (k Keeper) PutLivenessEvent(ctx sdk.Context, e types.LivenessEvent) {
 	store.Set(key, []byte{})
 }
 
-// DelLivenessEvent deletes the liveness event from the queue
-func (k Keeper) DelLivenessEvent(ctx sdk.Context, height int64, rollappID string) {
+// DelLivenessEvents deletes all liveness events for the rollapp from the queue
+func (k Keeper) DelLivenessEvents(ctx sdk.Context, height int64, rollappID string) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.LivenessEventQueueKey(types.LivenessEvent{
 		RollappId: rollappID,

@@ -83,7 +83,7 @@ func TestLivenessEventsStorage(t *testing.T) {
 					RollappId: rollapps.Draw(r, "rollapp"),
 					HubHeight: heights.Draw(r, "h"),
 				}
-				k.DelLivenessEvent(ctx, e.HubHeight, e.RollappId)
+				k.DelLivenessEvents(ctx, e.HubHeight, e.RollappId)
 				delete(model, modelKey(e))
 				delete(model, modelKey(e))
 			},
@@ -207,7 +207,7 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
 				ra := s.k().MustGetRollapp(s.Ctx, raID)
 				// use intrusive method. Wiring is checked in fork test.
-				s.k().StopLivenessClock(s.Ctx, &ra)
+				s.k().ResetLivenessClock(s.Ctx, &ra)
 				s.k().SetRollapp(s.Ctx, ra)
 				delete(hClockStart, raID)
 				tracker.clear(raID)
