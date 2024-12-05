@@ -126,12 +126,20 @@ func (k Keeper) PutLivenessEvent(ctx sdk.Context, e types.LivenessEvent) {
 	store.Set(key, []byte{})
 }
 
-// DelLivenessEvents deletes all liveness events for the rollapp from the queue
+// DelLivenessEvents deletes a specific liveness event for the rollapp from the queue
 func (k Keeper) DelLivenessEvents(ctx sdk.Context, height int64, rollappID string) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.LivenessEventQueueKey(types.LivenessEvent{
+	event := types.LivenessEvent{
 		RollappId: rollappID,
 		HubHeight: height,
-	})
-	store.Delete(key)
+	}
+	key := types.LivenessEventQueueKey(event)
+	if store.Has(key) {
+		store.Delete(key)
+		k.Logger(ctx).Debug(
+			"Deleted liveness event",
+			"rollapp_id", rollappID,
+			"height", height,
+		)
+	}
 }
