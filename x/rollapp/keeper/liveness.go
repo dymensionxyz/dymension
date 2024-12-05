@@ -70,15 +70,27 @@ func (k Keeper) CheckLiveness(ctx sdk.Context) {
 
 // HandleLivenessEvent will slash or jail and then schedule a new event in the future.
 func (k Keeper) HandleLivenessEvent(ctx sdk.Context, e types.LivenessEvent) error {
+	// First handle the slashing
 	err := k.SequencerK.SlashLiveness(ctx, e.RollappId)
 	if err != nil {
 		return errorsmod.Wrap(err, "slash liveness")
 	}
 
+	// Get rollapp and clean up current event
 	ra := k.MustGetRollapp(ctx, e.RollappId)
 	k.DelLivenessEvents(ctx, e.HubHeight, e.RollappId)
+
+	// Schedule next slash event in the future
+	// Note: We don't reset the countdown clock here since the rollapp is still down
 	k.ScheduleLivenessEvent(ctx, &ra)
 	k.SetRollapp(ctx, ra)
+
+	k.Logger(ctx).Info(
+		"Handled liveness event and rescheduled",
+		"rollapp_id", e.RollappId,
+		"current_height", ctx.BlockHeight(),
+		"next_height", ra.LivenessEventHeight,
+	)
 	return nil
 }
 
