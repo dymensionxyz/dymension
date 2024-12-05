@@ -2,6 +2,7 @@ package simulation
 
 import (
 	"math/rand"
+	"slices"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -150,7 +151,7 @@ func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []s
 		Coins:                coins,
 		StartTime:            dymsimtypes.RandFutureTime(r, ctx, time.Minute),
 		DistrEpochIdentifier: epoch,
-		NumEpochsPaidOver:    uint64(simtypes.RandIntBetween(r, 0, 100)),
+		NumEpochsPaidOver:    uint64(simtypes.RandIntBetween(r, 1, 100)),
 		Sponsored:            r.Int()%2 == 0,
 	}
 }
@@ -208,12 +209,15 @@ func (f *OpFactory) GetStream(r *rand.Rand, ctx sdk.Context) *uint64 {
 
 func (f *OpFactory) GetDistr(r *rand.Rand, ctx sdk.Context) []types.DistrRecord {
 	gauges := dymsimtypes.RandomGaugeSubset(ctx, r, f.k.Incentives)
-	records := make([]types.DistrRecord, len(gauges))
+	records := make([]types.DistrRecord, 0, len(gauges))
 	for _, gauge := range gauges {
 		records = append(records, types.DistrRecord{
 			GaugeId: gauge.Id,
 			Weight:  sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 100))),
 		})
 	}
+	slices.SortFunc(records, func(a, b types.DistrRecord) int {
+		return int(a.GaugeId - b.GaugeId)
+	})
 	return records
 }
