@@ -20,6 +20,7 @@ func (k Keeper) Prune(ctx sdk.Context) {
 	for ; iterator.Valid(); iterator.Next() {
 		// events are stored in height non-decreasing order
 		e := types.LivenessEventQueueKeyToEvent(iterator.Key())
+
 		if ctx.BlockHeight() <= e.HubHeight {
 			break
 		}
