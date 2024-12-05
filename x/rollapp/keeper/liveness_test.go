@@ -36,7 +36,7 @@ func TestLivenessArithmetic(t *testing.T) {
 		)
 		require.Equal(t, 8, int(hEvent))
 	})
-	t.Run("do not schedule for next height", func(t *testing.T) {
+	t.Run("do not schedule for next height (1)", func(t *testing.T) {
 		hEvent := keeper.NextSlashHeight(
 			8,
 			4,
@@ -45,7 +45,7 @@ func TestLivenessArithmetic(t *testing.T) {
 		)
 		require.Equal(t, 12, int(hEvent))
 	})
-	t.Run("do not schedule for next height", func(t *testing.T) {
+	t.Run("do not schedule for next height (2)", func(t *testing.T) {
 		hEvent := keeper.NextSlashHeight(
 			8,
 			4,
@@ -53,6 +53,24 @@ func TestLivenessArithmetic(t *testing.T) {
 			0,
 		)
 		require.Equal(t, 16, int(hEvent))
+	})
+}
+
+func TestCannotScheduleForPast(t *testing.T) {
+	rapid.Check(t, func(t *rapid.T) {
+		var (
+			noUpdate          = rapid.Uint64Range(1, 100).Draw(t, "noUpdate")
+			slashInterval     = rapid.Uint64Range(1, 100).Draw(t, "slashInterval")
+			heightHub         = rapid.Int64Range(0, 100).Draw(t, "heightHub")
+			lastRollappUpdate = rapid.Int64Range(0, 100).Draw(t, "lastRollappUpdate")
+		)
+		res := keeper.NextSlashHeight(noUpdate, slashInterval, heightHub, lastRollappUpdate)
+		if res <= heightHub {
+			t.Fatalf(
+				"no update %d, interval %d, hub %d, last update %d, res %d",
+				noUpdate, slashInterval, heightHub, lastRollappUpdate, res,
+			)
+		}
 	})
 }
 
