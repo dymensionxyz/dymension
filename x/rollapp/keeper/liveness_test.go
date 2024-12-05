@@ -100,6 +100,10 @@ func TestLivenessEventsStorage(t *testing.T) {
 			},
 			"iterAll": func(r *rapid.T) {
 				events := k.GetLivenessEvents(ctx, nil)
+				for i := 1; i < len(events); i++ {
+					require.LessOrEqual(r, events[i-1].HubHeight, events[i].HubHeight, "events not sorted")
+					i++
+				}
 				for _, modelE := range model {
 					require.Contains(r, events, modelE, "event in model but not store")
 				}
