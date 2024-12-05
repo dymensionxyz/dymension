@@ -33,10 +33,6 @@ func NextSlashHeight(
 		interval += ((down-blocksSlashNoUpdate)/blocksSlashInterval + 1) * blocksSlashInterval
 	}
 	heightEvent = heightLastRollappUpdate + int64(interval)
-	// Ensure event is always scheduled for future height
-	if heightEvent <= heightHub {
-		heightEvent = heightHub + 1
-	}
 	return
 }
 
@@ -104,13 +100,10 @@ func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
 	})
 }
 
-// GetLivenessEvents returns events. If a height is specified, only for that height.
+// GetLivenessEvents returns events. If a height is specified, up to and including that height.
 func (k Keeper) GetLivenessEvents(ctx sdk.Context, height *int64) []types.LivenessEvent {
 	store := ctx.KVStore(k.storeKey)
 	key := types.LivenessEventQueueKeyPrefix
-	if height != nil {
-		key = types.LivenessEventQueueIterHeightKey(*height)
-	}
 	iterator := sdk.KVStorePrefixIterator(store, key)
 	defer iterator.Close() // nolint: errcheck
 
