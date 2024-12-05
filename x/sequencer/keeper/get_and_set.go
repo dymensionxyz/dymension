@@ -17,6 +17,9 @@ import (
 // SetSequencer : write to store indexed by address, and also by status
 // Note: do not call with sentinel sequencer
 func (k Keeper) SetSequencer(ctx sdk.Context, seq types.Sequencer) {
+	if seq.Sentinel() {
+		panic("set sentinel proposer")
+	}
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&seq)
 	store.Set(types.SequencerKey(seq.Address), b)
