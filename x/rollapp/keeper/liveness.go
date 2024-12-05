@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"time"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
@@ -21,12 +23,13 @@ func NextSlashHeight(
 	blocksSlashInterval uint64, // gap between slash if still not updating
 	heightHub int64, // current height on the hub
 	startTime time.Time, // when the countdown started
+	currentTime time.Time, // current block time
+	blockTime time.Duration, // average block time
 ) (
 	heightEvent int64, // hub height to schedule event
 ) {
 	// Calculate blocks since start using time difference
-	blockTime := k.GetParams(ctx).BlockTime
-	timeSinceStart := ctx.BlockTime().Sub(startTime)
+	timeSinceStart := currentTime.Sub(startTime)
 	blocksSinceStart := uint64(timeSinceStart.Seconds() / blockTime.Seconds())
 
 	// Calculate next slash interval
@@ -101,6 +104,8 @@ func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
 		params.LivenessSlashInterval,
 		ctx.BlockHeight(),
 		ra.LivenessCountdownStartTime,
+		ctx.BlockTime(),
+		params.BlockTime,
 	)
 	ra.LivenessEventHeight = nextH
 	k.PutLivenessEvent(ctx, types.LivenessEvent{
