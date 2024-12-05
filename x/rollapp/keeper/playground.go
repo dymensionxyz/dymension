@@ -10,7 +10,6 @@ import (
 )
 
 func (k Keeper) Prune(ctx sdk.Context) {
-
 	store := ctx.KVStore(k.storeKey)
 	key := types.LivenessEventQueueKeyPrefix
 	iterator := sdk.KVStorePrefixIterator(store, key)

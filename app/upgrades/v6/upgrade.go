@@ -42,7 +42,6 @@ func CreateUpgradeHandler(
 	keepers *keepers.AppKeepers,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-
 		setKeyTables(keepers)
 
 		keepers.RollappKeeper.Prune(ctx)
@@ -50,7 +49,6 @@ func CreateUpgradeHandler(
 		keepers.SequencerKeeper.Prune(ctx)
 
 		return fromVM, nil
-
 	}
 }
 

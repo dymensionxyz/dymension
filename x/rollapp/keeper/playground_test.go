@@ -14,7 +14,6 @@ import (
 
 // Storage and query operations work for the event queue
 func TestPlaygroundPrune(t *testing.T) {
-
 	k, ctx := keepertest.RollappKeeper(t)
 
 	for h := range 100 {

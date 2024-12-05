@@ -10,7 +10,6 @@ import (
 // ~~~~~~~~~~~~~~~
 
 func (k Keeper) Prune(ctx sdk.Context) {
-
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.SequencerKey(types.SentinelSeqAddr))
 
