@@ -17,6 +17,8 @@ func (s *KeeperTestSuite) TestMsgVote() {
 		delegation sdk.Coin
 	}
 
+	// TODO: use errorsmod.IsOf instead of string comparisons
+
 	testCases := []struct {
 		name          string
 		params        types.Params       // module params
@@ -232,7 +234,7 @@ func (s *KeeperTestSuite) TestMsgVote() {
 				},
 			},
 			expectErr:     true,
-			errorContains: "failed to get gauge by id: 2",
+			errorContains: "get gauge by id: 2",
 		},
 		{
 			name: "Weight is less than the min allocation",
