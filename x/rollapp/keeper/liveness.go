@@ -161,12 +161,10 @@ func (k Keeper) DelLivenessEvents(ctx sdk.Context, height int64, rollappID strin
 		HubHeight: height,
 	}
 	key := types.LivenessEventQueueKey(event)
-	if store.Has(key) {
-		store.Delete(key)
-		k.Logger(ctx).Debug(
-			"Deleted liveness event",
-			"rollapp_id", rollappID,
-			"height", height,
-		)
-	}
+	store.Delete(key)
+	k.Logger(ctx).Debug(
+		"Deleted liveness event",
+		"rollapp_id", rollappID,
+		"height", height,
+	)
 }
