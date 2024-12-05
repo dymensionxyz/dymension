@@ -105,7 +105,6 @@ func (f OpFactory) Proposals() []simtypes.WeightedProposalContent {
 }
 
 func (f OpFactory) FundModule(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accounts []simtypes.Account, id string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-
 	fakeOp := simtypes.NoOpMsg(types.ModuleName, "fund_module", "not a real tx")
 
 	// Generate random amount to mint between 100-10000
