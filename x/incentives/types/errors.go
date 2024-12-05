@@ -1,11 +1,13 @@
 package types
 
-import fmt "fmt"
+import (
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+)
 
 type UnexpectedFinishedGaugeError struct {
 	GaugeId uint64
 }
 
 func (e UnexpectedFinishedGaugeError) Error() string {
-	return fmt.Sprintf("gauge with ID (%d) is already finished", e.GaugeId)
+	return gerrc.ErrInternal.Wrapf("gauge already finished: id: %d", e.GaugeId).Error()
 }
