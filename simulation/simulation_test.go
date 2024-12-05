@@ -39,6 +39,7 @@ To execute a completely pseudo-random simulation (from the root of the repositor
 		-BlockSize=200 \
 		-Commit=true \
 		-Seed=99 \
+		-Params=
 		-Period=1 \
 		-PrintAllInvariants=true \
 		-v -timeout 24h

@@ -1,0 +1,3 @@
+The params.json file ensures that the simulation can run for a long time.
+If slash and undelegate are enabled, then the validator set is quickly reduced to zero and the simulation stops.
+Should pass the params.json file to the simulation with -Params=<filename>
