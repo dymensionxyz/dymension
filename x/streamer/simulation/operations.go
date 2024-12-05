@@ -133,7 +133,6 @@ func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []s
 
 	var coins sdk.Coins
 	{
-		// NOTE: I'm pretty sure this test is a no op because nothing is funding this module
 		bal := f.k.Bank.GetAllBalances(ctx, f.k.Acc.GetModuleAddress(types.ModuleName))
 		coins = simtypes.RandSubsetCoins(r, bal)
 	}

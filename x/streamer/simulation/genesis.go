@@ -1,8 +1,6 @@
 package simulation
 
 import (
-	"encoding/json"
-	"fmt"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -18,7 +16,7 @@ const (
 
 // GenMaxIterationsPerBlock randomized MaxIterationsPerBlock
 func GenMaxIterationsPerBlock(r *rand.Rand) uint64 {
-	return uint64(simulation.RandIntBetween(r, 100, 10000))
+	return uint64(simulation.RandIntBetween(r, 5, 1000))
 }
 
 // RandomizedGenState generates a random GenesisState for streamer module
@@ -38,12 +36,6 @@ func RandomizedGenState(simState *module.SimulationState) {
 		LastStreamId:  0,
 		EpochPointers: []types.EpochPointer{},
 	}
-
-	bz, err := json.MarshalIndent(&streamerGenesis.Params, "", " ")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Selected randomly generated streamer parameters:\n%s\n", bz)
 
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&streamerGenesis)
 }
