@@ -33,6 +33,10 @@ func NextSlashHeight(
 		interval += ((down-blocksSlashNoUpdate)/blocksSlashInterval + 1) * blocksSlashInterval
 	}
 	heightEvent = heightLastRollappUpdate + int64(interval)
+	// Ensure event is always scheduled for future height
+	if heightEvent <= heightHub {
+		heightEvent = heightHub + 1
+	}
 	return
 }
 
