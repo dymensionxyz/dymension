@@ -16,6 +16,7 @@ var invs = uinv.NamedFuncsList[Keeper]{
 	{Name: "hash-index", Func: InvariantProposerAddrIndex},
 	{Name: "status", Func: InvariantStatus},
 	{Name: "tokens", Func: InvariantTokens},
+	{Name: "do-not-expose-sentinel", Func: InvariantDoNotExposeSentinel},
 }
 
 // RegisterInvariants registers the sequencer module invariants
@@ -167,4 +168,26 @@ func checkSeqTokens(seq types.Sequencer) error {
 		return errors.New("negative seq tokens")
 	}
 	return nil
+}
+
+// sentinel should not be available in the global index or rollapp wise index
+// (it's only available in getProposer or getSuccessor)
+func InvariantDoNotExposeSentinel(k Keeper) uinv.Func {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+		var errs []error
+		for _, s := range k.AllSequencers(ctx) {
+			if s.Sentinel() {
+				errs = append(errs, fmt.Errorf("sentinel in global index: %s", s.Address))
+			}
+		}
+		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
+		for _, ra := range rollapps {
+			for _, s := range k.RollappSequencers(ctx, ra.RollappId) {
+				if s.Sentinel() {
+					errs = append(errs, fmt.Errorf("sentinel in rollapp index: %s", ra.RollappId))
+				}
+			}
+		}
+		return errors.Join(errs...)
+	})
 }

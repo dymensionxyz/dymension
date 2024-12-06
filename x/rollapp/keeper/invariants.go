@@ -301,7 +301,7 @@ func LivenessEventInvariant(k Keeper) sdk.Invariant {
 			if ra.LivenessEventHeight != e.HubHeight {
 				broken = true
 				msg += fmt.Sprintf("| event stored but rollapp has a different liveness event height: rollapp: %s"+
-					", height stored on rollapp: %d: height on event: %d", e.RollappId, ra.LivenessEventHeight, e.HubHeight,
+					", height stored on rollapp: %d: height on event: %d\n", e.RollappId, ra.LivenessEventHeight, e.HubHeight,
 				)
 			}
 
