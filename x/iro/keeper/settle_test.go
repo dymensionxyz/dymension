@@ -14,6 +14,57 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
+func (s *KeeperTestSuite) TestSettle2() {
+	rollappId := s.CreateDefaultRollapp()
+	k := s.App.IROKeeper
+	curve := types.NewBondingCurve(
+		math.LegacyMustNewDecFromStr("0.0000"), // M > 0 ensures non-zero cost
+		math.LegacyMustNewDecFromStr("1.999"),
+		math.LegacyMustNewDecFromStr("0"),
+	)
+	incentives := types.DefaultIncentivePlanParams()
+
+	startTime := time.Now()
+	endTime := startTime.Add(time.Hour)
+	amt := sdk.NewInt(1_000_000).MulRaw(1e18)
+	rollappDenom := "dasdasdasdasdsa"
+
+	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
+	planId, err := k.CreatePlan(s.Ctx, amt, startTime, endTime, rollapp, curve, incentives)
+	s.Require().NoError(err)
+	planDenom := k.MustGetPlan(s.Ctx, planId).TotalAllocation.Denom
+
+	// assert initial FUT balance
+	balance := s.App.BankKeeper.GetBalance(s.Ctx, k.AK.GetModuleAddress(types.ModuleName), planDenom)
+	s.Require().Equal(amt, balance.Amount)
+
+	// buy some tokens
+	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
+	soldAmt := sdk.NewInt(1_000).MulRaw(1e18)
+	s.BuySomeTokens(planId, sample.Acc(), soldAmt)
+
+	// settle should fail as no rollappDenom balance available
+	err = k.Settle(s.Ctx, rollappId, rollappDenom)
+	s.Require().Error(err)
+
+	// should succeed after fund
+	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
+	err = k.Settle(s.Ctx, rollappId, rollappDenom)
+	s.Require().NoError(err)
+
+	// settle again should fail as already settled
+	err = k.Settle(s.Ctx, rollappId, rollappDenom)
+	s.Require().Error(err)
+
+	// assert no FUT balance in the account
+	balance = s.App.BankKeeper.GetBalance(s.Ctx, k.AK.GetModuleAddress(types.ModuleName), planDenom)
+	s.Require().True(balance.IsZero())
+
+	// assert sold amount is kept in the account and not used for liquidity pool
+	balance = s.App.BankKeeper.GetBalance(s.Ctx, k.AK.GetModuleAddress(types.ModuleName), rollappDenom)
+	s.Require().Equal(soldAmt, balance.Amount)
+}
+
 func (s *KeeperTestSuite) TestSettle() {
 	rollappId := s.CreateDefaultRollapp()
 	k := s.App.IROKeeper

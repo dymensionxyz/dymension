@@ -10,7 +10,7 @@ import (
 func (k Keeper) NewDistrInfo(ctx sdk.Context, records []types.DistrRecord) (types.DistrInfo, error) {
 	err := k.validateGauges(ctx, records)
 	if err != nil {
-		return types.DistrInfo{}, err
+		return types.DistrInfo{}, errorsmod.Wrap(err, "validate gauges")
 	}
 
 	distrInfo, err := types.NewDistrInfo(records)
@@ -51,7 +51,7 @@ func (k Keeper) validateGauges(ctx sdk.Context, records []types.DistrRecord) err
 		// don't allow distribution records for gauges that don't exist
 		gauge, err := k.ik.GetGaugeByID(ctx, record.GaugeId)
 		if err != nil {
-			return err
+			return errorsmod.Wrap(err, "gauge by id")
 		}
 		if !gauge.IsPerpetual {
 			return errorsmod.Wrapf(types.ErrDistrRecordRegisteredGauge,

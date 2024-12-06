@@ -212,7 +212,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 
 	// Validate expected out amount
 	if costMinusTakerFeeAmt.LT(minIncomeAmt) {
-		return errorsmod.Wrapf(types.ErrInvalidMinCost, "minCost: %s, cost: %s, fee: %s", minIncomeAmt.String(), costAmt.String(), takerFeeAmt.String())
+		return errorsmod.Wrapf(types.ErrInvalidMinCost, "min income: %s, cost: %s, fee: %s", minIncomeAmt.String(), costAmt.String(), takerFeeAmt.String())
 	}
 
 	// Charge taker fee

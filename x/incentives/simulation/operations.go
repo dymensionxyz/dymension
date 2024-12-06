@@ -89,6 +89,7 @@ func genRewardCoins(r *rand.Rand, coins sdk.Coins, fee math.Int) (res sdk.Coins)
 		}
 		res = append(res, sdk.Coin{Denom: denom, Amount: amt})
 	}
+	// TODO: coins should be sorted
 	return
 }
 

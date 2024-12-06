@@ -47,7 +47,7 @@ func (p Plan) ValidateBasic() error {
 	// check that the allocation is greater than the minimal allowed token allocation
 	allocationDec := ScaleFromBase(p.TotalAllocation.Amount, p.BondingCurve.SupplyDecimals())
 	if !allocationDec.GT(MinTokenAllocation) {
-		return ErrInvalidAllocation
+		return ErrInvalidAllocation.Wrap("not greater than min")
 	}
 	if p.PreLaunchTime.Before(p.StartTime) {
 		return ErrInvalidEndTime

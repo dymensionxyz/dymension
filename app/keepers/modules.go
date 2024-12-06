@@ -77,14 +77,18 @@ import (
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
 	eibcmodule "github.com/dymensionxyz/dymension/v3/x/eibc"
 	"github.com/dymensionxyz/dymension/v3/x/incentives"
+	irosim "github.com/dymensionxyz/dymension/v3/x/iro/simulation"
 	"github.com/dymensionxyz/dymension/v3/x/lockup"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
+	rollappsim "github.com/dymensionxyz/dymension/v3/x/rollapp/simulation"
 	sequencermodule "github.com/dymensionxyz/dymension/v3/x/sequencer"
 	sequencermoduleclient "github.com/dymensionxyz/dymension/v3/x/sequencer/client"
+	seqsim "github.com/dymensionxyz/dymension/v3/x/sequencer/simulation"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	streamermodule "github.com/dymensionxyz/dymension/v3/x/streamer"
+	streamersim "github.com/dymensionxyz/dymension/v3/x/streamer/simulation"
 
 	"github.com/dymensionxyz/dymension/v3/x/delayedack"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -203,12 +207,16 @@ func (a *AppKeepers) SetupModules(
 		params.NewAppModule(a.ParamsKeeper),
 		packetforwardmiddleware.NewAppModule(a.PacketForwardMiddlewareKeeper, a.GetSubspace(packetforwardtypes.ModuleName)),
 		ibctransfer.NewAppModule(a.TransferKeeper),
-		rollappmodule.NewAppModule(appCodec, a.RollappKeeper),
-		iro.NewAppModule(appCodec, *a.IROKeeper),
+		rollappmodule.NewAppModule(appCodec, a.RollappKeeper, rollappsim.Keepers{
+			Bank: a.BankKeeper, Acc: a.AccountKeeper, Chan: a.IBCKeeper.ChannelKeeper, Seq: a.SequencerKeeper, Light: a.LightClientKeeper, Transfer: a.TransferKeeper,
+		}),
+		iro.NewAppModule(appCodec, *a.IROKeeper, irosim.Keepers{Bank: a.BankKeeper, Acc: a.AccountKeeper, Rollapp: a.RollappKeeper}),
 
-		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper),
+		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper, seqsim.Keepers{
+			Bank: a.BankKeeper, Acc: a.AccountKeeper, Roll: a.RollappKeeper,
+		}),
 		sponsorship.NewAppModule(a.SponsorshipKeeper, a.AccountKeeper, a.BankKeeper, a.IncentivesKeeper, a.StakingKeeper),
-		streamermodule.NewAppModule(a.StreamerKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
+		streamermodule.NewAppModule(a.StreamerKeeper, streamersim.Keepers{Bank: a.BankKeeper, Epoch: a.EpochsKeeper, Acc: a.AccountKeeper, Incentives: a.IncentivesKeeper, Endorse: a.SponsorshipKeeper}),
 		delayedackmodule.NewAppModule(appCodec, a.DelayedAckKeeper, a.delayedAckMiddleware),
 		denommetadatamodule.NewAppModule(a.DenomMetadataKeeper, *a.EvmKeeper, a.BankKeeper),
 		eibcmodule.NewAppModule(appCodec, a.EIBCKeeper, a.AccountKeeper, a.BankKeeper),
@@ -237,6 +245,7 @@ func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
+	// These falsey modules are not blocked from send/receive
 	// exclude the streamer as we want him to be able to get external incentives
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false

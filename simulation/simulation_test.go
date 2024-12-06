@@ -17,14 +17,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	simcli "github.com/cosmos/cosmos-sdk/x/simulation/client/cli"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/app"
 	appParams "github.com/dymensionxyz/dymension/v3/app/params"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
 func init() {
 	simcli.GetSimulatorFlags()
+	rollapptypes.DefaultMinSequencerBondGlobalCoin = commontypes.ADym(math.NewIntFromUint64(100))
 }
 
 const SimulationAppChainID = "dymension_100-1"
@@ -39,6 +42,7 @@ To execute a completely pseudo-random simulation (from the root of the repositor
 		-BlockSize=200 \
 		-Commit=true \
 		-Seed=99 \
+		-Params=
 		-Period=1 \
 		-PrintAllInvariants=true \
 		-v -timeout 24h
@@ -72,6 +76,7 @@ To export the simulation app state (i.e genesis) to a file:
 		-ExportStatePath=/path/to/genesis.json \
 		-v -timeout 24h
 */
+
 func TestFullAppSimulation(t *testing.T) {
 	config := simcli.NewConfigFromFlags()
 	config.ChainID = SimulationAppChainID
@@ -87,12 +92,12 @@ func TestFullAppSimulation(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	appOptions := make(simtestutil.AppOptionsMap, 0)
-	appOptions[flags.FlagHome] = app.DefaultNodeHome
-	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue // period at which invariants are checked
-	appOptions[cli.FlagDefaultBondDenom] = "adym"
+	appOptions := make(simtestutil.AppOptionsMap)
 	types.DefaultBondDenom = "adym"
 	types.DefaultPowerReduction = math.NewIntFromUint64(1000000) // overwrite evm module's default power reduction
+	appOptions[flags.FlagHome] = app.DefaultNodeHome
+	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue // period at which invariants are checked
+	appOptions[cli.FlagDefaultBondDenom] = types.DefaultBondDenom
 
 	encoding := app.MakeEncodingConfig()
 
@@ -105,7 +110,7 @@ func TestFullAppSimulation(t *testing.T) {
 		true,
 		map[int64]bool{},
 		app.DefaultNodeHome,
-		0,
+		simcli.FlagPeriodValue,
 		encoding,
 		appOptions,
 		baseapp.SetChainID(SimulationAppChainID),
@@ -171,7 +176,7 @@ func TestAppStateDeterminism(t *testing.T) {
 	numSeeds := 1
 	numTimesToRunPerSeed := 5
 
-	appOptions := make(simtestutil.AppOptionsMap, 0)
+	appOptions := make(simtestutil.AppOptionsMap)
 	appOptions[flags.FlagHome] = app.DefaultNodeHome
 	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue // period at which invariants are checked
 	appOptions[cli.FlagDefaultBondDenom] = "adym"

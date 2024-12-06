@@ -48,7 +48,7 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 
 	allocationDec := ScaleFromBase(m.AllocatedAmount, m.BondingCurve.SupplyDecimals())
 	if !allocationDec.GT(MinTokenAllocation) {
-		return ErrInvalidAllocation
+		return ErrInvalidAllocation.Wrap("not greater than min")
 	}
 
 	if m.IroPlanDuration < 0 {

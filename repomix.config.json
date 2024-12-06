@@ -1,0 +1,20 @@
+{
+  "output": {
+    "filePath": ".ai/repo.txt",
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "showLineNumbers": false,
+    "includeEmptyDirectories": false,
+    "instructionFilePath": ".ai/prompt.md",
+    "style": "plain"
+  },
+  "include": ["x/streamer/"],
+  "ignore": {
+    "useGitignore": false,
+    "useDefaultPatterns": true,
+    "customPatterns": ["**/*.pb.go",  "**/*.pb.gw.go",  ".ai/prompt.md", "**/cli/**"]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  }
+}

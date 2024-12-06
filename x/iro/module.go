@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/dymensionxyz/dymension/v3/x/iro/simulation"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
@@ -94,15 +95,18 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper keeper.Keeper
+	sk     simulation.Keepers
 }
 
 func NewAppModule(
 	cdc codec.Codec,
 	keeper keeper.Keeper,
+	sk simulation.Keepers,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),
 		keeper:         keeper,
+		sk:             sk,
 	}
 }
 
