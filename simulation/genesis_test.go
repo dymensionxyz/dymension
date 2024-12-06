@@ -121,7 +121,10 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 
 	// Modify dymns params
 	dymnsGenesis := dymnstypes.DefaultGenesis()
+	dymnstypes.MinPriceValue = math.NewInt(1)
 	dymnsGenesis.Params.Misc.SellOrderDuration = 2 * time.Minute
+	dymnsGenesis.Params.Price.AliasPriceSteps = []math.Int{math.NewInt(4), math.NewInt(3), math.NewInt(2), math.NewInt(1)}
+
 	dymnsRawGenesis, err := cdc.MarshalJSON(dymnsGenesis)
 	if err != nil {
 		return app.GenesisState{}, fmt.Errorf("marshal dymns genesis state: %w", err)

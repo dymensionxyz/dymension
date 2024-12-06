@@ -7,7 +7,6 @@ import (
 
 // RandomizedGenState generates a random GenesisState
 func RandomizedGenState(simState *module.SimulationState) {
-
 	g := types.GenesisState{
 		Params: types.DefaultParams(),
 	}

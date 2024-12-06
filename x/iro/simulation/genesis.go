@@ -7,7 +7,6 @@ import (
 
 // RandomizedGenState generates a random GenesisState for iro module
 func RandomizedGenState(simState *module.SimulationState) {
-
 	iroGenesis := types.GenesisState{
 		Params: types.DefaultParams(),
 		Plans:  nil,

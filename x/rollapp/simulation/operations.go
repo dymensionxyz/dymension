@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -115,7 +116,8 @@ func (f OpFactory) simulateMsgCreateRollapp(cdc *codec.ProtoCodec) simtypes.Oper
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, _ string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		creator, _ := simtypes.RandomAcc(r, accs)
 		rollappId := urand.RollappID()
-		msg := types.NewMsgCreateRollapp(creator.Address.String(), rollappId, creator.Address.String(), types.DefaultMinSequencerBondGlobalCoin, "alias", types.Rollapp_VMType(1), nil, nil)
+		msg := types.NewMsgCreateRollapp(creator.Address.String(), rollappId, creator.Address.String(), types.DefaultMinSequencerBondGlobalCoin, "akdjflakjdf", types.Rollapp_VMType(1), nil,
+			&types.GenesisInfo{InitialSupply: math.NewInt(1000)})
 
 		return f.deliverTx(r, app, ctx, accs, cdc, msg, creator)
 	}

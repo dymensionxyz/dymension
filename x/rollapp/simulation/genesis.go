@@ -9,7 +9,6 @@ import (
 
 // RandomizedGenState generates a random GenesisState
 func RandomizedGenState(simState *module.SimulationState) {
-
 	p := types.DefaultParams()
 	p.MinSequencerBondGlobal = commontypes.ADym(sdk.NewInt(100))
 	g := types.GenesisState{
