@@ -214,11 +214,12 @@ func (f OpFactory) simulateMsgSell(cdc *codec.ProtoCodec) simtypes.Operation {
 		seller, _ := simtypes.RandomAcc(r, accs)
 		amount, _ := dymsimtypes.RandIntBetween(r, sdk.NewInt(1), sdk.NewInt(1000))
 
+		// Set MinIncomeAmount to zero to avoid invalid minimum cost errors
 		msg := &types.MsgSell{
 			Seller:          seller.Address.String(),
 			PlanId:          fmt.Sprintf("%d", plan.Id),
 			Amount:          amount,
-			MinIncomeAmount: amount.QuoRaw(2),
+			MinIncomeAmount: sdk.OneInt(),
 		}
 
 		txCtx := simulation.OperationInput{

@@ -249,5 +249,5 @@ replace (
 	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.29
 	golang.org/x/exp => golang.org/x/exp v0.0.0-20230711153332-06a737ee72cb
 
-	github.com/cosmos/cosmos-sdk => /Users/danwt/Documents/dym/cosmos-cosmos-sdk
+	//github.com/cosmos/cosmos-sdk => /Users/danwt/Documents/dym/cosmos-cosmos-sdk
 )
