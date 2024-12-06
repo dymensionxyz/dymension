@@ -8,7 +8,7 @@
     "instructionFilePath": ".ai/prompt.md",
     "style": "plain"
   },
-  "include": ["**/x/rollapp/**/*.go"],
+  "include": ["**/x/rollapp/**/*.go","**/rollapp/*.proto", ".ai/docs/dym_notion_20241206/*fork.md"],
   "ignore": {
     "useGitignore": false,
     "useDefaultPatterns": true,
