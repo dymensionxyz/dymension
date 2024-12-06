@@ -1,11 +1,13 @@
 package v5
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -16,7 +18,9 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -47,6 +51,11 @@ func CreateUpgradeHandler(
 		keepers.RollappKeeper.Prune(ctx)
 
 		keepers.SequencerKeeper.Prune(ctx)
+
+		const fee = 50
+		if err := keepers.CrisisKeeper.SetConstantFee(ctx, sdk.NewCoin(params.BaseDenom, commontypes.DYM.MulRaw(fee))); err != nil {
+			return fromVM, errorsmod.Wrap(err, "set crisis fee")
+		}
 
 		return fromVM, nil
 	}
