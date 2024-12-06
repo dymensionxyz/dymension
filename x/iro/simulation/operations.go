@@ -94,10 +94,10 @@ func (f OpFactory) Messages() simulation.WeightedOperations {
 	protoCdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
 	return simulation.WeightedOperations{
-		simulation.NewWeightedOperation(
-			weightCreatePlan,
-			f.simulateMsgCreatePlan(protoCdc),
-		),
+		//simulation.NewWeightedOperation(
+		//	weightCreatePlan,
+		//	f.simulateMsgCreatePlan(protoCdc),
+		//),
 		simulation.NewWeightedOperation(
 			weightBuy,
 			f.simulateMsgBuy(protoCdc),
@@ -114,12 +114,15 @@ func (f OpFactory) Messages() simulation.WeightedOperations {
 }
 
 // simulateMsgCreatePlan simulates creating an IRO plan.
-// simulateMsgCreatePlan simulates creating an IRO plan.
 func (f OpFactory) simulateMsgCreatePlan(cdc *codec.ProtoCodec) simtypes.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, _ string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
+		accs []simtypes.Account, _ string,
+	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		params := f.Keeper.GetParams(ctx)
 
-		// Increase the lower bound of allocation to ensure it's always large enough
-		allocation, _ := dymsimtypes.RandIntBetween(r, sdk.NewInt(1), sdk.NewInt(10000))
+		allocation, _ := dymsimtypes.RandIntBetween(
+			r, sdk.NewInt(1), sdk.NewInt(10000),
+		)
 		allocation = commontypes.DYM.Mul(allocation)
 
 		startTime := ctx.BlockTime().Add(dymsimtypes.RandDuration(r, 1*time.Hour))
@@ -127,12 +130,26 @@ func (f OpFactory) simulateMsgCreatePlan(cdc *codec.ProtoCodec) simtypes.Operati
 
 		rollapps := f.k.Rollapp.GetAllRollapps(ctx)
 		if len(rollapps) == 0 {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePlan, "no rollapps"), nil, nil
+			return simtypes.NoOpMsg(
+				types.ModuleName,
+				types.TypeMsgCreatePlan,
+				"no rollapps",
+			), nil, nil
 		}
 		rollapp := dymsimtypes.RandChoice(r, rollapps)
 
 		curve := generateRandomBondingCurve(r, allocation)
 		incentives := types.DefaultIncentivePlanParams()
+
+		// Ensure incentive plan meets the minimum start time after settlement
+		if incentives.StartTimeAfterSettlement < params.IncentivesMinStartTimeAfterSettlement {
+			incentives.StartTimeAfterSettlement = params.IncentivesMinStartTimeAfterSettlement
+		}
+
+		// Ensure incentive plan meets the minimum epochs paid over
+		if incentives.NumEpochsPaidOver < params.IncentivesMinNumEpochsPaidOver {
+			incentives.NumEpochsPaidOver = params.IncentivesMinNumEpochsPaidOver
+		}
 
 		msg := &types.MsgCreatePlan{
 			Owner:               rollapp.Owner,

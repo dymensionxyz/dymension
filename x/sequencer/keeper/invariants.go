@@ -113,6 +113,7 @@ func checkRollappStatus(ctx sdk.Context, k Keeper, ra string) error {
 	if !successor.Sentinel() && proposer.Sentinel() {
 		return errors.New("proposer is sentinel but successor is not")
 	}
+
 	all := k.RollappSequencers(ctx, ra)
 	bonded := k.RollappSequencersByStatus(ctx, ra, types.Bonded)
 	unbonded := k.RollappSequencersByStatus(ctx, ra, types.Unbonded)

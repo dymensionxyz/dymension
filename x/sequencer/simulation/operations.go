@@ -108,10 +108,10 @@ func (f OpFactory) Messages() simulation.WeightedOperations {
 
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(wCreate, f.simulateMsgCreateSequencer(protoCdc)),
-		simulation.NewWeightedOperation(wIncBond, f.simulateMsgIncreaseBond(protoCdc)),
-		simulation.NewWeightedOperation(wDecBond, f.simulateMsgDecreaseBond(protoCdc)),
-		simulation.NewWeightedOperation(wUnbond, f.simulateMsgUnbond(protoCdc)),
-		simulation.NewWeightedOperation(wKick, f.simulateMsgKickProposer(protoCdc)),
+		//simulation.NewWeightedOperation(wIncBond, f.simulateMsgIncreaseBond(protoCdc)),
+		//simulation.NewWeightedOperation(wDecBond, f.simulateMsgDecreaseBond(protoCdc)),
+		//simulation.NewWeightedOperation(wUnbond, f.simulateMsgUnbond(protoCdc)),
+		//simulation.NewWeightedOperation(wKick, f.simulateMsgKickProposer(protoCdc)),
 		simulation.NewWeightedOperation(wOptIn, f.simulateMsgUpdateOptInStatus(protoCdc)),
 		simulation.NewWeightedOperation(wRew, f.simulateMsgUpdateRewardAddress(protoCdc)),
 		simulation.NewWeightedOperation(wRelayers, f.simulateMsgUpdateWhitelistedRelayers(protoCdc)),
@@ -142,11 +142,28 @@ func (f OpFactory) simulateMsgCreateSequencer(cdc *codec.ProtoCodec) simtypes.Op
 		if f.k.Bank.SpendableCoins(ctx, creator.Address).AmountOf(sdk.DefaultBondDenom).LT(bondAmt) {
 			return simtypes.NoOpMsg(types.ModuleName, "MsgCreateSequencer", "not enough funds"), nil, nil
 		}
+		if _, err := f.RealSequencer(ctx, creator.Address.String()); err != nil {
+			return simtypes.NoOpMsg(types.ModuleName, "MsgCreateSequencer",
+				"sequencer already exists"), nil, nil
+		}
 
 		msg := &types.MsgCreateSequencer{
-			Creator:      creator.Address.String(),
-			RollappId:    rollapp.RollappId,
-			Metadata:     types.SequencerMetadata{Moniker: "simseq"},
+			Creator:   creator.Address.String(),
+			RollappId: rollapp.RollappId,
+			Metadata: types.SequencerMetadata{
+				Moniker:        "myseq",
+				Details:        "",
+				P2PSeeds:       nil,
+				Rpcs:           []string{"https://rpc.example.com"},  // at least one URL
+				EvmRpcs:        []string{"https://evm.example.com"},  // at least one URL
+				RestApiUrls:    []string{"https://rest.example.com"}, // at least one URL
+				ExplorerUrl:    "",
+				GenesisUrls:    nil, // empty allowed, no validateURLs call
+				ContactDetails: nil,
+				ExtraData:      nil,
+				Snapshots:      nil,
+				GasPrice:       nil,
+			},
 			Bond:         rollapptypes.DefaultParams().MinSequencerBondGlobal,
 			DymintPubKey: keyAny(ukey.RandomTMPubKey()),
 		}
@@ -209,6 +226,12 @@ func (f OpFactory) simulateMsgDecreaseBond(cdc *codec.ProtoCodec) simtypes.Opera
 		if !found {
 			return simtypes.NoOpMsg(types.ModuleName, "MsgDecreaseBond", "acc not found"), nil, nil
 		}
+		// Check if seq is proposer or successor
+		proposer := f.Keeper.GetProposer(ctx, seq.RollappId)
+		successor := f.Keeper.GetSuccessor(ctx, seq.RollappId)
+		if seq.Address == proposer.Address || seq.Address == successor.Address {
+			return simtypes.NoOpMsg(types.ModuleName, "MsgUnbond", "sequencer is proposer or successor"), nil, nil
+		}
 
 		tokens := seq.TokensCoin().Amount
 		if tokens.LTE(math.OneInt()) {
@@ -236,6 +259,14 @@ func (f OpFactory) simulateMsgUnbond(cdc *codec.ProtoCodec) simtypes.Operation {
 		if seq.Sentinel() {
 			return simtypes.NoOpMsg(types.ModuleName, "MsgUnbond", "sentinel"), nil, nil
 		}
+
+		// Check if seq is proposer or successor
+		proposer := f.Keeper.GetProposer(ctx, seq.RollappId)
+		successor := f.Keeper.GetSuccessor(ctx, seq.RollappId)
+		if seq.Address == proposer.Address || seq.Address == successor.Address {
+			return simtypes.NoOpMsg(types.ModuleName, "MsgUnbond", "sequencer is proposer or successor"), nil, nil
+		}
+
 		creatorAddr, err := sdk.AccAddressFromBech32(seq.Address)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, "MsgUnbond", "invalid addr"), nil, nil

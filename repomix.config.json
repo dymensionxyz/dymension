@@ -8,11 +8,11 @@
     "instructionFilePath": ".ai/prompt.md",
     "style": "plain"
   },
-  "include": ["**/*tx*.proto", "x/**/*msg*.go", "x/**/*tx*.go"],
+  "include": ["x/streamer/"],
   "ignore": {
     "useGitignore": false,
     "useDefaultPatterns": true,
-    "customPatterns": ["**/*.pb.go", "**/*_test.go", "**/*.pb.gw.go", "testutil/", ".ai/prompt.md", "**/cli/**"]
+    "customPatterns": ["**/*.pb.go",  "**/*.pb.gw.go",  ".ai/prompt.md", "**/cli/**"]
   },
   "security": {
     "enableSecurityCheck": true

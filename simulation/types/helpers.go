@@ -49,10 +49,15 @@ func AccByBech32(accs []simtypes.Account, address string) simtypes.Account {
 }
 
 func AccByAddr(accs []simtypes.Account, address sdk.AccAddress) simtypes.Account {
-	for _, acc := range accs {
-		if acc.Address.Equals(address) {
-			return acc
-		}
+	ret, ok := simtypes.FindAccount(accs, address)
+	if !ok {
+		panic("acc by addr")
 	}
-	panic("acc by addr")
+	return ret
+	//for _, acc := range accs {
+	//	if acc.Address.Equals(address) {
+	//		return acc
+	//	}
+	//}
+	//panic("acc by addr")
 }

@@ -17,14 +17,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	simcli "github.com/cosmos/cosmos-sdk/x/simulation/client/cli"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/app"
 	appParams "github.com/dymensionxyz/dymension/v3/app/params"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
 func init() {
 	simcli.GetSimulatorFlags()
+	rollapptypes.DefaultMinSequencerBondGlobalCoin = commontypes.ADym(math.NewIntFromUint64(100))
 }
 
 const SimulationAppChainID = "dymension_100-1"

@@ -112,12 +112,56 @@ func (f OpFactory) Messages() simulation.WeightedOperations {
 	}
 }
 
+const letterBytes = "abcdefghijklmnopqrstuvwxyz"
+
+// RandString generates a random string of the specified length.
+func RandString(r *rand.Rand, n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[r.Intn(len(letterBytes))]
+	}
+	return string(b)
+}
+
 func (f OpFactory) simulateMsgCreateRollapp(cdc *codec.ProtoCodec) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, _ string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		creator, _ := simtypes.RandomAcc(r, accs)
 		rollappId := urand.RollappID()
-		msg := types.NewMsgCreateRollapp(creator.Address.String(), rollappId, creator.Address.String(), types.DefaultMinSequencerBondGlobalCoin, "akdjflakjdf", types.Rollapp_VMType(1), nil,
-			&types.GenesisInfo{InitialSupply: math.NewInt(1000)})
+		msg := types.NewMsgCreateRollapp(
+			creator.Address.String(),
+			rollappId,
+			"*",
+			types.DefaultMinSequencerBondGlobalCoin,
+			RandString(r, 8),
+			types.Rollapp_VMType(1),
+			&types.RollappMetadata{
+				Website:     "https://example.com",
+				Description: "This is a sample rollapp for testing purposes.",
+				LogoUrl:     "https://example.com/logo.png",
+				Telegram:    "https://t.me/example",
+				X:           "Extra information",
+				GenesisUrl:  "https://example.com/genesis",
+				DisplayName: "Example Rollapp",
+				Tagline:     "The best rollapp in the world",
+				ExplorerUrl: "https://explorer.example.com",
+				FeeDenom: &types.DenomMetadata{
+					Display:  "foo",
+					Base:     "afoo",
+					Exponent: 18, // Fix here
+				},
+				Tags: []string{"Meme"},
+			},
+			&types.GenesisInfo{
+				GenesisChecksum: "abc123", // any non-empty string
+				Bech32Prefix:    "dym",
+				NativeDenom: types.DenomMetadata{
+					Display:  "dym",
+					Base:     "udym",
+					Exponent: 18,
+				},
+				InitialSupply: math.NewInt(1000),
+			},
+		)
 
 		return f.deliverTx(r, app, ctx, accs, cdc, msg, creator)
 	}

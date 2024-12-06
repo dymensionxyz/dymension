@@ -142,6 +142,10 @@ func (f *OpFactory) CreateStreamProposal(r *rand.Rand, ctx sdk.Context, accs []s
 
 	records := f.GetDistr(r, ctx)
 
+	if records == nil {
+		return nil
+	}
+
 	return &types.CreateStreamProposal{
 		Title:                simtypes.RandStringOfLength(r, 10),
 		Description:          simtypes.RandStringOfLength(r, 100),
@@ -172,12 +176,16 @@ func (f *OpFactory) ReplaceStreamDistributionProposal(r *rand.Rand, ctx sdk.Cont
 	if s == nil {
 		return nil
 	}
-	distr := f.GetDistr(r, ctx)
+	records := f.GetDistr(r, ctx)
+
+	if records == nil {
+		return nil
+	}
 	return &types.ReplaceStreamDistributionProposal{
 		Title:       simtypes.RandStringOfLength(r, 10),
 		Description: simtypes.RandStringOfLength(r, 100),
 		StreamId:    *s,
-		Records:     distr,
+		Records:     records,
 	}
 }
 
@@ -186,13 +194,17 @@ func (f *OpFactory) UpdateStreamDistributionProposal(r *rand.Rand, ctx sdk.Conte
 	if s == nil {
 		return nil
 	}
-	distr := f.GetDistr(r, ctx)
+	records := f.GetDistr(r, ctx)
+
+	if records == nil {
+		return nil
+	}
 
 	return &types.UpdateStreamDistributionProposal{
 		Title:       simtypes.RandStringOfLength(r, 10),
 		Description: simtypes.RandStringOfLength(r, 100),
 		StreamId:    *s,
-		Records:     distr,
+		Records:     records,
 	}
 }
 
@@ -208,12 +220,20 @@ func (f *OpFactory) GetStream(r *rand.Rand, ctx sdk.Context) *uint64 {
 func (f *OpFactory) GetDistr(r *rand.Rand, ctx sdk.Context) []types.DistrRecord {
 	gauges := dymsimtypes.RandomGaugeSubset(ctx, r, f.k.Incentives)
 	records := make([]types.DistrRecord, 0, len(gauges))
+
+	totalWeight := sdk.ZeroInt()
 	for _, gauge := range gauges {
+		weight := sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 100)))
+		totalWeight = totalWeight.Add(weight)
 		records = append(records, types.DistrRecord{
 			GaugeId: gauge.Id,
-			Weight:  sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, 100))),
+			Weight:  weight,
 		})
 	}
+	if !totalWeight.IsPositive() {
+		return nil // no valid distribution
+	}
+
 	slices.SortFunc(records, func(a, b types.DistrRecord) int {
 		return int(a.GaugeId - b.GaugeId)
 	})
