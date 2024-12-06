@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"time"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
@@ -20,19 +22,29 @@ func NextSlashHeight(
 	blocksSlashNoUpdate uint64, // time until first slash if not updating
 	blocksSlashInterval uint64, // gap between slash if still not updating
 	heightHub int64, // current height on the hub
-	heightLastRollappUpdate int64, // when was the rollapp last updated
+	startTime time.Time, // when the countdown started
+	currentTime time.Time, // current block time
+	blockTime time.Duration, // average block time
 ) (
 	heightEvent int64, // hub height to schedule event
 ) {
-	// how long has the rollapp been down ?
-	down := uint64(heightHub - heightLastRollappUpdate)
-	// when should we schedule the next slash, in terms of downtime duration?
+	// Calculate blocks since start using time difference
+	timeSinceStart := currentTime.Sub(startTime)
+	blocksSinceStart := uint64(timeSinceStart.Seconds() / blockTime.Seconds())
+
+	// Calculate next slash interval
 	interval := blocksSlashNoUpdate
-	if blocksSlashNoUpdate <= down {
+	if blocksSlashNoUpdate <= blocksSinceStart {
 		// round up to next slash interval
-		interval += ((down-blocksSlashNoUpdate)/blocksSlashInterval + 1) * blocksSlashInterval
+		interval += ((blocksSinceStart-blocksSlashNoUpdate)/blocksSlashInterval + 1) * blocksSlashInterval
 	}
-	heightEvent = heightLastRollappUpdate + int64(interval)
+
+	// Convert back to height
+	heightEvent = heightHub + int64(interval)
+	// Ensure event is always scheduled for future height
+	if heightEvent <= heightHub {
+		heightEvent = heightHub + 1
+	}
 	return
 }
 
@@ -58,15 +70,27 @@ func (k Keeper) CheckLiveness(ctx sdk.Context) {
 
 // HandleLivenessEvent will slash or jail and then schedule a new event in the future.
 func (k Keeper) HandleLivenessEvent(ctx sdk.Context, e types.LivenessEvent) error {
+	// First handle the slashing
 	err := k.SequencerK.SlashLiveness(ctx, e.RollappId)
 	if err != nil {
 		return errorsmod.Wrap(err, "slash liveness")
 	}
 
+	// Get rollapp and clean up current event
 	ra := k.MustGetRollapp(ctx, e.RollappId)
 	k.DelLivenessEvents(ctx, e.HubHeight, e.RollappId)
+
+	// Schedule next slash event in the future
+	// Note: We don't reset the countdown clock here since the rollapp is still down
 	k.ScheduleLivenessEvent(ctx, &ra)
 	k.SetRollapp(ctx, ra)
+
+	k.Logger(ctx).Info(
+		"Handled liveness event and rescheduled",
+		"rollapp_id", e.RollappId,
+		"current_height", ctx.BlockHeight(),
+		"next_height", ra.LivenessEventHeight,
+	)
 	return nil
 }
 
@@ -80,7 +104,7 @@ func (k Keeper) IndicateLiveness(ctx sdk.Context, ra *types.Rollapp) {
 func (k Keeper) ResetLivenessClock(ctx sdk.Context, ra *types.Rollapp) {
 	k.DelLivenessEvents(ctx, ra.LivenessEventHeight, ra.RollappId)
 	ra.LivenessEventHeight = 0
-	ra.LivenessCountdownStartHeight = ctx.BlockHeight()
+	ra.LivenessCountdownStartTime = ctx.BlockTime()
 }
 
 // ScheduleLivenessEvent schedules a new liveness event. Assumes an event does not
@@ -91,7 +115,9 @@ func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
 		params.LivenessSlashBlocks,
 		params.LivenessSlashInterval,
 		ctx.BlockHeight(),
-		ra.LivenessCountdownStartHeight,
+		ra.LivenessCountdownStartTime,
+		ctx.BlockTime(),
+		params.BlockTime,
 	)
 	ra.LivenessEventHeight = nextH
 	k.PutLivenessEvent(ctx, types.LivenessEvent{
@@ -100,24 +126,22 @@ func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
 	})
 }
 
-// GetLivenessEvents returns events. If a height is specified, only for that height.
+// GetLivenessEvents returns events scheduled for the specified height.
+// If height is nil, returns all events.
 func (k Keeper) GetLivenessEvents(ctx sdk.Context, height *int64) []types.LivenessEvent {
 	store := ctx.KVStore(k.storeKey)
 	key := types.LivenessEventQueueKeyPrefix
-	if height != nil {
-		key = types.LivenessEventQueueIterHeightKey(*height)
-	}
 	iterator := sdk.KVStorePrefixIterator(store, key)
 	defer iterator.Close() // nolint: errcheck
 
 	ret := []types.LivenessEvent{}
 	for ; iterator.Valid(); iterator.Next() {
-		// events are stored in height non-decreasing order
 		e := types.LivenessEventQueueKeyToEvent(iterator.Key())
-		if height != nil && *height < e.HubHeight {
-			break
+		if height == nil {
+			ret = append(ret, e)
+		} else if *height == e.HubHeight {
+			ret = append(ret, e)
 		}
-		ret = append(ret, e)
 	}
 	return ret
 }
@@ -129,12 +153,18 @@ func (k Keeper) PutLivenessEvent(ctx sdk.Context, e types.LivenessEvent) {
 	store.Set(key, []byte{})
 }
 
-// DelLivenessEvents deletes all liveness events for the rollapp from the queue
+// DelLivenessEvents deletes a specific liveness event for the rollapp from the queue
 func (k Keeper) DelLivenessEvents(ctx sdk.Context, height int64, rollappID string) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.LivenessEventQueueKey(types.LivenessEvent{
+	event := types.LivenessEvent{
 		RollappId: rollappID,
 		HubHeight: height,
-	})
+	}
+	key := types.LivenessEventQueueKey(event)
 	store.Delete(key)
+	k.Logger(ctx).Debug(
+		"Deleted liveness event",
+		"rollapp_id", rollappID,
+		"height", height,
+	)
 }
