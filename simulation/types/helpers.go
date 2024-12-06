@@ -43,3 +43,16 @@ func RandFutureTime(r *rand.Rand, ctx sdk.Context, maxDuration time.Duration) ti
 func RandDuration(r *rand.Rand, maxDuration time.Duration) time.Duration {
 	return time.Duration(r.Int63n(int64(maxDuration)))
 }
+
+func AccByBech32(accs []simtypes.Account, address string) simtypes.Account {
+	return AccByAddr(accs, sdk.MustAccAddressFromBech32(address))
+}
+
+func AccByAddr(accs []simtypes.Account, address sdk.AccAddress) simtypes.Account {
+	for _, acc := range accs {
+		if acc.Address.Equals(address) {
+			return acc
+		}
+	}
+	panic("acc by addr")
+}

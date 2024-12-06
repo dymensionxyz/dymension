@@ -37,7 +37,7 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 	}
 
 	if rollapp.Owner != req.Owner {
-		return nil, sdkerrors.ErrUnauthorized
+		return nil, sdkerrors.ErrUnauthorized.Wrap("not rollapp owner")
 	}
 
 	startTime := req.StartTime

@@ -8,7 +8,7 @@
     "instructionFilePath": ".ai/prompt.md",
     "style": "plain"
   },
-  "include": ["**/x/sequencer/**/*.go","**/sequencer/*.proto", ".ai/docs/dym_notion_20241206/*sequencer.md"],
+  "include": ["**/x/iro/**/*.go","**/iro/*.proto", ".ai/docs/dym_notion_20241206/*iro.md"],
   "ignore": {
     "useGitignore": false,
     "useDefaultPatterns": true,

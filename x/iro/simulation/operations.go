@@ -15,6 +15,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	dymsimtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -113,11 +114,14 @@ func (f OpFactory) Messages() simulation.WeightedOperations {
 }
 
 // simulateMsgCreatePlan simulates creating an IRO plan.
+// simulateMsgCreatePlan simulates creating an IRO plan.
 func (f OpFactory) simulateMsgCreatePlan(cdc *codec.ProtoCodec) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, _ string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		owner, _ := simtypes.RandomAcc(r, accs)
 
-		allocation, _ := dymsimtypes.RandIntBetween(r, sdk.NewInt(1_000_000), sdk.NewInt(10_000_000))
+		// Increase the lower bound of allocation to ensure it's always large enough
+		allocation, _ := dymsimtypes.RandIntBetween(r, sdk.NewInt(1), sdk.NewInt(10000))
+		allocation = commontypes.DYM.Mul(allocation)
+
 		startTime := ctx.BlockTime().Add(dymsimtypes.RandDuration(r, 1*time.Hour))
 		duration := dymsimtypes.RandDuration(r, 2*time.Hour)
 
@@ -131,7 +135,7 @@ func (f OpFactory) simulateMsgCreatePlan(cdc *codec.ProtoCodec) simtypes.Operati
 		incentives := types.DefaultIncentivePlanParams()
 
 		msg := &types.MsgCreatePlan{
-			Owner:               owner.Address.String(),
+			Owner:               rollapp.Owner,
 			AllocatedAmount:     allocation,
 			StartTime:           startTime,
 			IroPlanDuration:     duration,
@@ -140,6 +144,8 @@ func (f OpFactory) simulateMsgCreatePlan(cdc *codec.ProtoCodec) simtypes.Operati
 			IncentivePlanParams: incentives,
 		}
 
+		simAcc := dymsimtypes.AccByBech32(accs, rollapp.Owner)
+
 		txCtx := simulation.OperationInput{
 			R:             r,
 			App:           app,
@@ -147,7 +153,7 @@ func (f OpFactory) simulateMsgCreatePlan(cdc *codec.ProtoCodec) simtypes.Operati
 			Cdc:           cdc,
 			Msg:           msg,
 			MsgType:       msg.Type(),
-			SimAccount:    owner,
+			SimAccount:    simAcc,
 			Context:       ctx,
 			AccountKeeper: f.k.Acc,
 			Bankkeeper:    f.k.Bank,
