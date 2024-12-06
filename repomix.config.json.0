@@ -5,14 +5,13 @@
     "removeEmptyLines": false,
     "showLineNumbers": false,
     "includeEmptyDirectories": false,
-    "instructionFilePath": ".ai/prompt.md",
-    "style": "plain"
+    "instructionFilePath": ".ai/prompt.md"
   },
-  "include": ["**/x/iro/**/*.go", ".ai/docs/dym_notion_20241206/iro.md"],
+  "include": ["**/*.go", "**/*.proto", ".ai/**/*.md"],
   "ignore": {
-    "useGitignore": false,
+    "useGitignore": true,
     "useDefaultPatterns": true,
-    "customPatterns": ["**/*.pb.go", "**/*_test.go", "**/*.pb.gw.go", "testutil/", ".ai/prompt.md", "**/cli/**"]
+    "customPatterns": ["**/*.pb.go", "**/*_test.go", "**/*.pb.gw.go", "testutil/", ".ai/prompt.md"]
   },
   "security": {
     "enableSecurityCheck": true
