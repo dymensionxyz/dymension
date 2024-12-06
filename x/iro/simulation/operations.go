@@ -5,14 +5,14 @@ import (
 	"math/rand"
 	"time"
 
-	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	dymsimtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
 	"github.com/dymensionxyz/dymension/v3/x/iro/keeper"
@@ -21,7 +21,6 @@ import (
 )
 
 const (
-	WeightFundModule = 100
 	WeightCreatePlan = 100
 	WeightBuy        = 100
 	WeightSell       = 100
@@ -29,11 +28,12 @@ const (
 )
 
 type BankKeeper interface {
-	MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
+	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 	types.BankKeeper
 }
 
 type AccountKeeper interface {
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 	types.AccountKeeper
 }
 
@@ -62,50 +62,66 @@ func NewOpFactory(k *keeper.Keeper, ks Keepers, simState module.SimulationState)
 	}
 }
 
-// Messages returns all the simulation operations for the IRO module
-func (f OpFactory) Messages() []simtypes.WeightedOperation {
-	return []simtypes.WeightedOperation{
-		//simulation.NewWeightedOperation(
-
-		simulation.NewWeightedOperation(
-			WeightCreatePlan,
-			f.CreatePlanOp,
-		),
-		simulation.NewWeightedOperation(
-			WeightBuy,
-			f.BuyOp,
-		),
-		simulation.NewWeightedOperation(
-			WeightSell,
-			f.SellOp,
-		),
-		simulation.NewWeightedOperation(
-			WeightClaim,
-			f.ClaimOp,
-		),
-	}
-}
-
 func (f OpFactory) Proposals() []simtypes.WeightedProposalContent {
 	return []simtypes.WeightedProposalContent{}
 }
 
-// SimulateMsgCreatePlan simulates creating an IRO plan.
-func SimulateMsgCreatePlan(
-	cdc *codec.ProtoCodec,
-	ak dymsimtypes.AccountKeeper,
-	bk dymsimtypes.BankKeeper,
-	rk types.RollappKeeper,
-	k keeper.Keeper,
-) simtypes.Operation {
+// WeightedOperations returns all the operations from the IRO module with their respective weights.
+func (f OpFactory) Messages() simulation.WeightedOperations {
+	var weightCreatePlan, weightBuy, weightSell, weightClaim int
+
+	f.AppParams.GetOrGenerate(
+		f.Cdc, "create_plan", &weightCreatePlan, nil,
+		func(_ *rand.Rand) { weightCreatePlan = WeightCreatePlan },
+	)
+
+	f.AppParams.GetOrGenerate(
+		f.Cdc, "buy", &weightBuy, nil,
+		func(_ *rand.Rand) { weightBuy = WeightBuy },
+	)
+
+	f.AppParams.GetOrGenerate(
+		f.Cdc, "sell", &weightSell, nil,
+		func(_ *rand.Rand) { weightSell = WeightSell },
+	)
+
+	f.AppParams.GetOrGenerate(
+		f.Cdc, "claim", &weightClaim, nil,
+		func(_ *rand.Rand) { weightClaim = WeightClaim },
+	)
+
+	protoCdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+
+	return simulation.WeightedOperations{
+		simulation.NewWeightedOperation(
+			weightCreatePlan,
+			f.simulateMsgCreatePlan(protoCdc),
+		),
+		simulation.NewWeightedOperation(
+			weightBuy,
+			f.simulateMsgBuy(protoCdc),
+		),
+		simulation.NewWeightedOperation(
+			weightSell,
+			f.simulateMsgSell(protoCdc),
+		),
+		simulation.NewWeightedOperation(
+			weightClaim,
+			f.simulateMsgClaim(protoCdc),
+		),
+	}
+}
+
+// simulateMsgCreatePlan simulates creating an IRO plan.
+func (f OpFactory) simulateMsgCreatePlan(cdc *codec.ProtoCodec) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, _ string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		owner, _ := simtypes.RandomAcc(r, accs)
 
 		allocation, _ := dymsimtypes.RandIntBetween(r, sdk.NewInt(1_000_000), sdk.NewInt(10_000_000))
-		startTime := ctx.BlockTime().Add(simtypes.RandDuration(r, 1*time.Hour))
-		duration := simtypes.RandDuration(r, 2*time.Hour)
+		startTime := ctx.BlockTime().Add(dymsimtypes.RandDuration(r, 1*time.Hour))
+		duration := dymsimtypes.RandDuration(r, 2*time.Hour)
 
-		rollapps := rk.GetAllRollaps(ctx)
+		rollapps := f.k.Rollapp.GetAllRollapps(ctx)
 		if len(rollapps) == 0 {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePlan, "no rollapps"), nil, nil
 		}
@@ -113,8 +129,8 @@ func SimulateMsgCreatePlan(
 
 		curve := types.NewBondingCurve(
 			sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 1, 10)), 3), // small M
-			sdk.NewDec(1),                                                   // N = 1
-			sdk.ZeroDec(),                                                   // C = 0 for simplicity
+			sdk.NewDec(1),
+			sdk.ZeroDec(),
 		)
 		incentives := types.DefaultIncentivePlanParams()
 
@@ -137,8 +153,8 @@ func SimulateMsgCreatePlan(
 			MsgType:       msg.Type(),
 			SimAccount:    owner,
 			Context:       ctx,
-			AccountKeeper: ak,
-			Bankkeeper:    bk,
+			AccountKeeper: f.k.Acc,
+			Bankkeeper:    f.k.Bank,
 			ModuleName:    types.ModuleName,
 		}
 
@@ -146,16 +162,10 @@ func SimulateMsgCreatePlan(
 	}
 }
 
-// SimulateMsgBuy simulates buying tokens from an IRO plan.
-func SimulateMsgBuy(
-	cdc *codec.ProtoCodec,
-	ak dymsimtypes.AccountKeeper,
-	bk dymsimtypes.BankKeeper,
-	rk types.RollappKeeper,
-	k keeper.Keeper,
-) simtypes.Operation {
+// simulateMsgBuy simulates buying tokens from an IRO plan.
+func (f OpFactory) simulateMsgBuy(cdc *codec.ProtoCodec) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, _ string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		plans := k.GetAllPlans(ctx, false)
+		plans := f.GetAllPlans(ctx, false)
 		if len(plans) == 0 {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgBuy, "no plans"), nil, nil
 		}
@@ -183,8 +193,8 @@ func SimulateMsgBuy(
 			MsgType:       msg.Type(),
 			SimAccount:    buyer,
 			Context:       ctx,
-			AccountKeeper: ak,
-			Bankkeeper:    bk,
+			AccountKeeper: f.k.Acc,
+			Bankkeeper:    f.k.Bank,
 			ModuleName:    types.ModuleName,
 		}
 
@@ -192,16 +202,10 @@ func SimulateMsgBuy(
 	}
 }
 
-// SimulateMsgSell simulates selling tokens back to the IRO plan.
-func SimulateMsgSell(
-	cdc *codec.ProtoCodec,
-	ak dymsimtypes.AccountKeeper,
-	bk dymsimtypes.BankKeeper,
-	rk types.RollappKeeper,
-	k keeper.Keeper,
-) simtypes.Operation {
+// simulateMsgSell simulates selling tokens back to the IRO plan.
+func (f OpFactory) simulateMsgSell(cdc *codec.ProtoCodec) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, _ string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		plans := k.GetAllPlans(ctx, false)
+		plans := f.GetAllPlans(ctx, false)
 		if len(plans) == 0 {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgSell, "no plans"), nil, nil
 		}
@@ -230,8 +234,8 @@ func SimulateMsgSell(
 			MsgType:       msg.Type(),
 			SimAccount:    seller,
 			Context:       ctx,
-			AccountKeeper: ak,
-			Bankkeeper:    bk,
+			AccountKeeper: f.k.Acc,
+			Bankkeeper:    f.k.Bank,
 			ModuleName:    types.ModuleName,
 		}
 
@@ -239,16 +243,10 @@ func SimulateMsgSell(
 	}
 }
 
-// SimulateMsgClaim simulates claiming tokens after the plan is settled.
-func SimulateMsgClaim(
-	cdc *codec.ProtoCodec,
-	ak dymsimtypes.AccountKeeper,
-	bk dymsimtypes.BankKeeper,
-	rk types.RollappKeeper,
-	k keeper.Keeper,
-) simtypes.Operation {
+// simulateMsgClaim simulates claiming tokens after the plan is settled.
+func (f OpFactory) simulateMsgClaim(cdc *codec.ProtoCodec) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, _ string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		plans := k.GetAllPlans(ctx, false)
+		plans := f.GetAllPlans(ctx, false)
 		if len(plans) == 0 {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgClaim, "no plans"), nil, nil
 		}
@@ -273,8 +271,8 @@ func SimulateMsgClaim(
 			MsgType:       msg.Type(),
 			SimAccount:    claimer,
 			Context:       ctx,
-			AccountKeeper: ak,
-			Bankkeeper:    bk,
+			AccountKeeper: f.k.Acc,
+			Bankkeeper:    f.k.Bank,
 			ModuleName:    types.ModuleName,
 		}
 

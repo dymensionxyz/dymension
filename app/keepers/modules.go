@@ -77,6 +77,7 @@ import (
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
 	eibcmodule "github.com/dymensionxyz/dymension/v3/x/eibc"
 	"github.com/dymensionxyz/dymension/v3/x/incentives"
+	irosim "github.com/dymensionxyz/dymension/v3/x/iro/simulation"
 	"github.com/dymensionxyz/dymension/v3/x/lockup"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
@@ -205,7 +206,7 @@ func (a *AppKeepers) SetupModules(
 		packetforwardmiddleware.NewAppModule(a.PacketForwardMiddlewareKeeper, a.GetSubspace(packetforwardtypes.ModuleName)),
 		ibctransfer.NewAppModule(a.TransferKeeper),
 		rollappmodule.NewAppModule(appCodec, a.RollappKeeper),
-		iro.NewAppModule(appCodec, *a.IROKeeper),
+		iro.NewAppModule(appCodec, *a.IROKeeper, irosim.Keepers{Bank: a.BankKeeper, Acc: a.AccountKeeper, Rollapp: a.RollappKeeper}),
 
 		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper),
 		sponsorship.NewAppModule(a.SponsorshipKeeper, a.AccountKeeper, a.BankKeeper, a.IncentivesKeeper, a.StakingKeeper),
