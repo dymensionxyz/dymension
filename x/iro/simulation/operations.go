@@ -127,11 +127,7 @@ func (f OpFactory) simulateMsgCreatePlan(cdc *codec.ProtoCodec) simtypes.Operati
 		}
 		rollapp := dymsimtypes.RandChoice(r, rollapps)
 
-		curve := types.NewBondingCurve(
-			sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 1, 10)), 3), // small M
-			sdk.NewDec(1),
-			sdk.ZeroDec(),
-		)
+		curve := generateRandomBondingCurve(r, allocation)
 		incentives := types.DefaultIncentivePlanParams()
 
 		msg := &types.MsgCreatePlan{

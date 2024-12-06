@@ -73,6 +73,7 @@ To export the simulation app state (i.e genesis) to a file:
 		-ExportStatePath=/path/to/genesis.json \
 		-v -timeout 24h
 */
+
 func TestFullAppSimulation(t *testing.T) {
 	config := simcli.NewConfigFromFlags()
 	config.ChainID = SimulationAppChainID
