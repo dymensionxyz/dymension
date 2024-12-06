@@ -16,6 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	dymsimtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
 	"github.com/dymensionxyz/dymension/v3/utils/ukey"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -146,7 +147,7 @@ func (f OpFactory) simulateMsgCreateSequencer(cdc *codec.ProtoCodec) simtypes.Op
 			Creator:      creator.Address.String(),
 			RollappId:    rollapp.RollappId,
 			Metadata:     types.SequencerMetadata{Moniker: "simseq"},
-			Bond:         sdk.NewCoin(sdk.DefaultBondDenom, bondAmt),
+			Bond:         rollapptypes.DefaultParams().MinSequencerBondGlobal,
 			DymintPubKey: keyAny(ukey.RandomTMPubKey()),
 		}
 

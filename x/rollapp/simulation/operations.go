@@ -16,6 +16,7 @@ import (
 	dymsimtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/sdk-utils/utils/urand"
 )
 
 const (
@@ -113,9 +114,8 @@ func (f OpFactory) Messages() simulation.WeightedOperations {
 func (f OpFactory) simulateMsgCreateRollapp(cdc *codec.ProtoCodec) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, _ string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		creator, _ := simtypes.RandomAcc(r, accs)
-		rollappId := fmt.Sprintf("rollapp_%s_1-1", simtypes.RandStringOfLength(r, 5)) // chain-id like pattern name_epoc-rev
-		minBond := sdk.NewInt64Coin(sdk.DefaultBondDenom, 1e6)
-		msg := types.NewMsgCreateRollapp(creator.Address.String(), rollappId, creator.Address.String(), minBond, "alias", types.Rollapp_VMType(1), nil, nil)
+		rollappId := urand.RollappID()
+		msg := types.NewMsgCreateRollapp(creator.Address.String(), rollappId, creator.Address.String(), types.DefaultMinSequencerBondGlobalCoin, "alias", types.Rollapp_VMType(1), nil, nil)
 
 		return f.deliverTx(r, app, ctx, accs, cdc, msg, creator)
 	}
