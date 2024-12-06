@@ -244,7 +244,7 @@ var mockRollappMetadata = types.RollappMetadata{
 	LogoUrl:     "https://dymension.xyz/logo.png",
 	Telegram:    "https://t.me/rolly",
 	X:           "https://x.dymension.xyz",
-	Tags:        []string{"AI", "DeFI", "NFT"},
+	Tags:        []string{"AI", "DeFi", "NFT"},
 }
 
 var mockGenesisInfo = &types.GenesisInfo{
