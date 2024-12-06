@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -66,34 +67,32 @@ type Keepers struct {
 
 type OpFactory struct {
 	keeper.Keeper
-	k        Keepers
-	simState simtypes.AppParams
-	cdc      codec.JSONCodec
+	k Keepers
+	module.SimulationState
 }
 
-func NewOpFactory(k keeper.Keeper, helper Keepers, simState simtypes.AppParams, cdc codec.JSONCodec) OpFactory {
+func NewOpFactory(k keeper.Keeper, ks Keepers, simState module.SimulationState) OpFactory {
 	return OpFactory{
-		Keeper:   k,
-		k:        helper,
-		simState: simState,
-		cdc:      cdc,
+		Keeper:          k,
+		k:               ks,
+		SimulationState: simState,
 	}
 }
 
 // WeightedOperations returns the simulation operations (messages) with weights.
-func (f OpFactory) WeightedOperations() simulation.WeightedOperations {
+func (f OpFactory) Messages() simulation.WeightedOperations {
 	var wCreateRollapp, wUpdateInfo, wTransferOwner, wUpdateState, wAddApp, wUpdateApp, wRemoveApp, wFraud, wMarkObs, wForceGen int
 
-	f.simState.GetOrGenerate(f.cdc, "rollapp_create", &wCreateRollapp, nil, func(r *rand.Rand) { wCreateRollapp = WeightCreateRollapp })
-	f.simState.GetOrGenerate(f.cdc, "rollapp_update_info", &wUpdateInfo, nil, func(r *rand.Rand) { wUpdateInfo = WeightUpdateRollappInformation })
-	f.simState.GetOrGenerate(f.cdc, "rollapp_transfer_owner", &wTransferOwner, nil, func(r *rand.Rand) { wTransferOwner = WeightTransferOwnership })
-	f.simState.GetOrGenerate(f.cdc, "rollapp_update_state", &wUpdateState, nil, func(r *rand.Rand) { wUpdateState = WeightUpdateState })
-	f.simState.GetOrGenerate(f.cdc, "rollapp_add_app", &wAddApp, nil, func(r *rand.Rand) { wAddApp = WeightAddApp })
-	f.simState.GetOrGenerate(f.cdc, "rollapp_update_app", &wUpdateApp, nil, func(r *rand.Rand) { wUpdateApp = WeightUpdateApp })
-	f.simState.GetOrGenerate(f.cdc, "rollapp_remove_app", &wRemoveApp, nil, func(r *rand.Rand) { wRemoveApp = WeightRemoveApp })
-	f.simState.GetOrGenerate(f.cdc, "rollapp_fraud_proposal", &wFraud, nil, func(r *rand.Rand) { wFraud = WeightFraudProposal })
-	f.simState.GetOrGenerate(f.cdc, "rollapp_mark_obsolete", &wMarkObs, nil, func(r *rand.Rand) { wMarkObs = WeightMarkObsoleteRollapps })
-	f.simState.GetOrGenerate(f.cdc, "rollapp_force_genesis_change", &wForceGen, nil, func(r *rand.Rand) { wForceGen = WeightForceGenesisInfoChange })
+	f.AppParams.GetOrGenerate(f.Cdc, "rollapp_create", &wCreateRollapp, nil, func(r *rand.Rand) { wCreateRollapp = WeightCreateRollapp })
+	f.AppParams.GetOrGenerate(f.Cdc, "rollapp_update_info", &wUpdateInfo, nil, func(r *rand.Rand) { wUpdateInfo = WeightUpdateRollappInformation })
+	f.AppParams.GetOrGenerate(f.Cdc, "rollapp_transfer_owner", &wTransferOwner, nil, func(r *rand.Rand) { wTransferOwner = WeightTransferOwnership })
+	f.AppParams.GetOrGenerate(f.Cdc, "rollapp_update_state", &wUpdateState, nil, func(r *rand.Rand) { wUpdateState = WeightUpdateState })
+	f.AppParams.GetOrGenerate(f.Cdc, "rollapp_add_app", &wAddApp, nil, func(r *rand.Rand) { wAddApp = WeightAddApp })
+	f.AppParams.GetOrGenerate(f.Cdc, "rollapp_update_app", &wUpdateApp, nil, func(r *rand.Rand) { wUpdateApp = WeightUpdateApp })
+	f.AppParams.GetOrGenerate(f.Cdc, "rollapp_remove_app", &wRemoveApp, nil, func(r *rand.Rand) { wRemoveApp = WeightRemoveApp })
+	f.AppParams.GetOrGenerate(f.Cdc, "rollapp_fraud_proposal", &wFraud, nil, func(r *rand.Rand) { wFraud = WeightFraudProposal })
+	f.AppParams.GetOrGenerate(f.Cdc, "rollapp_mark_obsolete", &wMarkObs, nil, func(r *rand.Rand) { wMarkObs = WeightMarkObsoleteRollapps })
+	f.AppParams.GetOrGenerate(f.Cdc, "rollapp_force_genesis_change", &wForceGen, nil, func(r *rand.Rand) { wForceGen = WeightForceGenesisInfoChange })
 
 	protoCdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 

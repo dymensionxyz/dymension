@@ -81,6 +81,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/lockup"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
+	rollappsim "github.com/dymensionxyz/dymension/v3/x/rollapp/simulation"
 	sequencermodule "github.com/dymensionxyz/dymension/v3/x/sequencer"
 	sequencermoduleclient "github.com/dymensionxyz/dymension/v3/x/sequencer/client"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship"
@@ -205,7 +206,9 @@ func (a *AppKeepers) SetupModules(
 		params.NewAppModule(a.ParamsKeeper),
 		packetforwardmiddleware.NewAppModule(a.PacketForwardMiddlewareKeeper, a.GetSubspace(packetforwardtypes.ModuleName)),
 		ibctransfer.NewAppModule(a.TransferKeeper),
-		rollappmodule.NewAppModule(appCodec, a.RollappKeeper),
+		rollappmodule.NewAppModule(appCodec, a.RollappKeeper, rollappsim.Keepers{
+			Bank: a.BankKeeper, Acc: a.AccountKeeper, Chan: a.IBCKeeper.ChannelKeeper, Seq: a.SequencerKeeper, Light: a.LightClientKeeper, Transfer: a.TransferKeeper,
+		}),
 		iro.NewAppModule(appCodec, *a.IROKeeper, irosim.Keepers{Bank: a.BankKeeper, Acc: a.AccountKeeper, Rollapp: a.RollappKeeper}),
 
 		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper),

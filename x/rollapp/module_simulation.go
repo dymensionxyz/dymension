@@ -19,12 +19,12 @@ func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 }
 
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.NewOpFactory(am.keeper, am.sk, simState).Messages()
+	return simulation.NewOpFactory(*am.keeper, am.sk, simState).Messages()
 }
 
 // Legacy proposals
 func (am AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent { //nolint:staticcheck
-	return simulation.NewOpFactory(am.keeper, am.sk, simState).Proposals()
+	return nil
 }
 
 // Modern proposals
