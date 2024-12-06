@@ -84,6 +84,7 @@ import (
 	rollappsim "github.com/dymensionxyz/dymension/v3/x/rollapp/simulation"
 	sequencermodule "github.com/dymensionxyz/dymension/v3/x/sequencer"
 	sequencermoduleclient "github.com/dymensionxyz/dymension/v3/x/sequencer/client"
+	seqsim "github.com/dymensionxyz/dymension/v3/x/sequencer/simulation"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	streamermodule "github.com/dymensionxyz/dymension/v3/x/streamer"
@@ -211,7 +212,9 @@ func (a *AppKeepers) SetupModules(
 		}),
 		iro.NewAppModule(appCodec, *a.IROKeeper, irosim.Keepers{Bank: a.BankKeeper, Acc: a.AccountKeeper, Rollapp: a.RollappKeeper}),
 
-		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper),
+		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper, seqsim.Keepers{
+			Bank: a.BankKeeper, Acc: a.AccountKeeper, Roll: a.RollappKeeper,
+		}),
 		sponsorship.NewAppModule(a.SponsorshipKeeper, a.AccountKeeper, a.BankKeeper, a.IncentivesKeeper, a.StakingKeeper),
 		streamermodule.NewAppModule(a.StreamerKeeper, streamersim.Keepers{Bank: a.BankKeeper, Epoch: a.EpochsKeeper, Acc: a.AccountKeeper, Incentives: a.IncentivesKeeper, Endorse: a.SponsorshipKeeper}),
 		delayedackmodule.NewAppModule(appCodec, a.DelayedAckKeeper, a.delayedAckMiddleware),

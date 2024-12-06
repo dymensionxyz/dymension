@@ -1,14 +1,13 @@
 package simulation
 
 import (
-	"fmt"
-
 	"math/rand"
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -16,6 +15,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	dymsimtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
+	"github.com/dymensionxyz/dymension/v3/utils/ukey"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -117,6 +117,14 @@ func (f OpFactory) Messages() simulation.WeightedOperations {
 	}
 }
 
+func keyAny(pk cryptotypes.PubKey) *codectypes.Any {
+	pkAny, err := codectypes.NewAnyWithValue(pk)
+	if err != nil {
+		panic(err)
+	}
+	return pkAny
+}
+
 func (f OpFactory) simulateMsgCreateSequencer(cdc *codec.ProtoCodec) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp,
 		ctx sdk.Context, accs []simtypes.Account, _ string,
@@ -139,7 +147,7 @@ func (f OpFactory) simulateMsgCreateSequencer(cdc *codec.ProtoCodec) simtypes.Op
 			RollappId:    rollapp.RollappId,
 			Metadata:     types.SequencerMetadata{Moniker: "simseq"},
 			Bond:         sdk.NewCoin(sdk.DefaultBondDenom, bondAmt),
-			DymintPubKey: dymsimtypes.RandomEd25519PubKeyAny(r),
+			DymintPubKey: keyAny(ukey.RandomTMPubKey()),
 		}
 
 		return f.deliverTx(r, app, ctx, cdc, msg, creator, accs)
