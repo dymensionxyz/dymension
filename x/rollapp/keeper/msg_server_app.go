@@ -23,11 +23,11 @@ func (k msgServer) AddApp(goCtx context.Context, msg *types.MsgAddApp) (*types.M
 	appFee := sdk.NewCoins(k.AppRegistrationFee(ctx))
 
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, appFee); err != nil {
-		return nil, types.ErrAppRegistrationFeePayment
+		return nil, errorsmod.Wrap(types.ErrAppRegistrationFeePayment, "send coins")
 	}
 
 	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, appFee); err != nil {
-		return nil, types.ErrAppRegistrationFeePayment
+		return nil, errorsmod.Wrap(types.ErrAppRegistrationFeePayment, "burn coins")
 	}
 
 	app := msg.GetApp()

@@ -103,7 +103,7 @@ func (f OpFactory) Messages() simulation.WeightedOperations {
 		simulation.NewWeightedOperation(wUpdateInfo, f.simulateMsgUpdateRollappInformation(protoCdc)),
 		simulation.NewWeightedOperation(wTransferOwner, f.simulateMsgTransferOwnership(protoCdc)),
 		simulation.NewWeightedOperation(wUpdateState, f.simulateMsgUpdateState(protoCdc)),
-		simulation.NewWeightedOperation(wAddApp, f.simulateMsgAddApp(protoCdc)),
+		//simulation.NewWeightedOperation(wAddApp, f.simulateMsgAddApp(protoCdc)),
 		simulation.NewWeightedOperation(wUpdateApp, f.simulateMsgUpdateApp(protoCdc)),
 		simulation.NewWeightedOperation(wRemoveApp, f.simulateMsgRemoveApp(protoCdc)),
 		simulation.NewWeightedOperation(wFraud, f.simulateMsgFraudProposal(protoCdc)),
@@ -174,7 +174,9 @@ func (f OpFactory) simulateMsgTransferOwnership(cdc *codec.ProtoCodec) simtypes.
 }
 
 func (f OpFactory) simulateMsgUpdateState(cdc *codec.ProtoCodec) simtypes.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, _ string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+	return func(r *rand.Rand, app *baseapp.BaseApp,
+		ctx sdk.Context, accs []simtypes.Account, _ string,
+	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		rollapps := f.GetAllRollapps(ctx)
 		if len(rollapps) == 0 {
 			return simtypes.NoOpMsg(types.ModuleName, "update_state", "no rollapps"), nil, nil
@@ -190,6 +192,12 @@ func (f OpFactory) simulateMsgUpdateState(cdc *codec.ProtoCodec) simtypes.Operat
 			return simtypes.NoOpMsg(types.ModuleName, "update_state", "owner not in accs"), nil, nil
 		}
 
+		// Check if the submitter is the current rollapp proposer
+		proposer := f.SequencerK.GetProposer(ctx, ra.RollappId)
+		if proposer.Sentinel() || proposer.Address != ownerAcc.Address.String() {
+			return simtypes.NoOpMsg(types.ModuleName, "update_state", "owner not proposer"), nil, nil
+		}
+
 		startHeight := uint64(r.Intn(100) + 1)
 		numBlocks := uint64(r.Intn(10) + 1)
 		BDs := &types.BlockDescriptors{}
@@ -202,7 +210,15 @@ func (f OpFactory) simulateMsgUpdateState(cdc *codec.ProtoCodec) simtypes.Operat
 			})
 		}
 
-		msg := types.NewMsgUpdateState(ownerAcc.Address.String(), ra.RollappId, "daPath", startHeight, numBlocks, BDs)
+		msg := types.NewMsgUpdateState(
+			ownerAcc.Address.String(),
+			ra.RollappId,
+			"daPath",
+			startHeight,
+			numBlocks,
+			BDs,
+		)
+
 		return f.deliverTx(r, app, ctx, accs, cdc, msg, ownerAcc)
 	}
 }

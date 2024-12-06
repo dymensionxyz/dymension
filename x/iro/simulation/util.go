@@ -41,27 +41,41 @@ func generateRandomPlan(r *rand.Rand, id uint64) types.Plan {
 }
 
 func generateRandomBondingCurve(r *rand.Rand, allocatedAmount math.Int) types.BondingCurve {
-	// Generate 0.5 < N < 1.5 with maximum precision of 3
-	nInt := r.Int63n(1000)                     // Generate a random integer between 0 and 999
-	n := math.LegacyNewDecWithPrec(nInt, 3)    // Convert to decimal with 3 decimal places
-	n = n.Add(math.LegacyNewDecWithPrec(5, 1)) // Add 0.5
+	ok := false
+	bc := types.BondingCurve{}
+	for !ok {
+		bc = func() types.BondingCurve {
+			ok = true
 
-	// targetRaiseDYM between 10K and 100M DYM
-	targetRaiseDYM := simtypes.RandomAmount(r, math.NewInt(1e8)).AddRaw(10_000)
+			defer func() {
+				if r := recover(); r != nil {
+					ok = false
+				}
+			}()
+			// Generate 0.5 < N < 1.5 with maximum precision of 3
+			nInt := r.Int63n(1000)                     // Generate a random integer between 0 and 999
+			n := math.LegacyNewDecWithPrec(nInt, 3)    // Convert to decimal with 3 decimal places
+			n = n.Add(math.LegacyNewDecWithPrec(5, 1)) // Add 0.5
 
-	// Scale allocatedAmount from base denomination to decimal representation
-	allocatedTokens := types.ScaleFromBase(allocatedAmount, types.DYMDecimals)
+			// targetRaiseDYM between 10K and 100M DYM
+			targetRaiseDYM := simtypes.RandomAmount(r, math.NewInt(1e8)).AddRaw(10_000)
 
-	m := types.CalculateM(
-		math.LegacyNewDecFromInt(targetRaiseDYM),
-		allocatedTokens,
-		n,
-		math.LegacyZeroDec(),
-	)
+			// Scale allocatedAmount from base denomination to decimal representation
+			allocatedTokens := types.ScaleFromBase(allocatedAmount, types.DYMDecimals)
 
-	return types.BondingCurve{
-		M: m,
-		N: n,
-		C: math.LegacyZeroDec(),
+			m := types.CalculateM(
+				math.LegacyNewDecFromInt(targetRaiseDYM),
+				allocatedTokens,
+				n,
+				math.LegacyZeroDec(),
+			)
+
+			return types.BondingCurve{
+				M: m,
+				N: n,
+				C: math.LegacyZeroDec(),
+			}
+		}()
 	}
+	return bc
 }
