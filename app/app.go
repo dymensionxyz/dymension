@@ -23,6 +23,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	v4 "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
 	v5 "github.com/dymensionxyz/dymension/v3/app/upgrades/v5"
+	v6 "github.com/dymensionxyz/dymension/v3/app/upgrades/v6"
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -87,7 +88,7 @@ var (
 	DefaultNodeHome string
 
 	// Upgrades contains the upgrade handlers for the application
-	Upgrades = []upgrades.Upgrade{v4.Upgrade, v5.Upgrade}
+	Upgrades = []upgrades.Upgrade{v4.Upgrade, v5.Upgrade, v6.Upgrade}
 )
 
 func init() {
