@@ -8,7 +8,7 @@
     "instructionFilePath": ".ai/prompt.md",
     "style": "plain"
   },
-  "include": ["**/x/iro/**/*.go", ".ai/docs/dym_notion_20241206/iro.md"],
+  "include": ["**/x/rollapp/**/*.go"],
   "ignore": {
     "useGitignore": false,
     "useDefaultPatterns": true,

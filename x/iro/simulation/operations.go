@@ -7,8 +7,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
@@ -88,156 +90,194 @@ func (f OpFactory) Proposals() []simtypes.WeightedProposalContent {
 	return []simtypes.WeightedProposalContent{}
 }
 
-// CreatePlanOp tries to create a new IRO plan with random parameters.
-func (f OpFactory) CreatePlanOp(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, id string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-	// Choose a random account as owner
-	owner, _ := simtypes.RandomAcc(r, accs)
+// SimulateMsgCreatePlan simulates creating an IRO plan.
+func SimulateMsgCreatePlan(
+	cdc *codec.ProtoCodec,
+	ak dymsimtypes.AccountKeeper,
+	bk dymsimtypes.BankKeeper,
+	rk types.RollappKeeper,
+	k keeper.Keeper,
+) simtypes.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, _ string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		owner, _ := simtypes.RandomAcc(r, accs)
 
-	// Random allocation and times
-	allocation, _ := dymsimtypes.RandIntBetween(r, sdk.NewInt(1_000_000), sdk.NewInt(10_000_000))
-	startTime := ctx.BlockTime().Add(simtypes.RandDuration(r, 1*time.Hour))
-	duration := simtypes.RandDuration(r, 2*time.Hour)
+		allocation, _ := dymsimtypes.RandIntBetween(r, sdk.NewInt(1_000_000), sdk.NewInt(10_000_000))
+		startTime := ctx.BlockTime().Add(simtypes.RandDuration(r, 1*time.Hour))
+		duration := simtypes.RandDuration(r, 2*time.Hour)
 
-	rollappList := f.k.Rollapp.GetAllRollapp(ctx)
-	if len(rollappList) == 0 {
-		return simtypes.NoOpMsg(types.ModuleName, "create_plan", "no rollapps"), nil, nil
+		rollapps := rk.GetAllRollaps(ctx)
+		if len(rollapps) == 0 {
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreatePlan, "no rollapps"), nil, nil
+		}
+		rollapp := dymsimtypes.RandChoice(r, rollapps)
+
+		curve := types.NewBondingCurve(
+			sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 1, 10)), 3), // small M
+			sdk.NewDec(1),                                                   // N = 1
+			sdk.ZeroDec(),                                                   // C = 0 for simplicity
+		)
+		incentives := types.DefaultIncentivePlanParams()
+
+		msg := &types.MsgCreatePlan{
+			Owner:               owner.Address.String(),
+			AllocatedAmount:     allocation,
+			StartTime:           startTime,
+			IroPlanDuration:     duration,
+			RollappId:           rollapp.RollappId,
+			BondingCurve:        curve,
+			IncentivePlanParams: incentives,
+		}
+
+		txCtx := simulation.OperationInput{
+			R:             r,
+			App:           app,
+			TxGen:         moduletestutil.MakeTestEncodingConfig().TxConfig,
+			Cdc:           cdc,
+			Msg:           msg,
+			MsgType:       msg.Type(),
+			SimAccount:    owner,
+			Context:       ctx,
+			AccountKeeper: ak,
+			Bankkeeper:    bk,
+			ModuleName:    types.ModuleName,
+		}
+
+		return simulation.GenAndDeliverTxWithRandFees(txCtx)
 	}
-	rollapp := dymsimtypes.RandChoice(r, rollappList)
-
-	curve := types.NewBondingCurve(
-		sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 1, 10)), 3), // small M
-		sdk.NewDec(1),                                                   // N = 1
-		sdk.ZeroDec(),                                                   // C = 0 for simplicity
-	)
-
-	// Default incentives
-	incentives := types.DefaultIncentivePlanParams()
-
-	msg := &types.MsgCreatePlan{
-		Owner:               owner.Address.String(),
-		AllocatedAmount:     allocation,
-		StartTime:           startTime,
-		IroPlanDuration:     duration,
-		RollappId:           rollapp.RollappId,
-		BondingCurve:        curve,
-		IncentivePlanParams: incentives,
-	}
-
-	txCtx := simulation.OperationInput{
-		R:               r,
-		App:             app,
-		TxGen:           f.SimulationState.TxConfig,
-		Ctx:             ctx,
-		Msg:             msg,
-		Accounts:        accs,
-		ModuleName:      types.ModuleName,
-		CoinsSpentInMsg: sdk.Coins{},
-	}
-
-	return simulation.GenAndDeliverTxWithRandFees(txCtx)
 }
 
-// BuyOp attempts to buy some tokens from an existing IRO plan.
-func (f OpFactory) BuyOp(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, id string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-	plans := f.Keeper.GetAllPlans(ctx, false)
-	if len(plans) == 0 {
-		return simtypes.NoOpMsg(types.ModuleName, "buy", "no plans"), nil, nil
+// SimulateMsgBuy simulates buying tokens from an IRO plan.
+func SimulateMsgBuy(
+	cdc *codec.ProtoCodec,
+	ak dymsimtypes.AccountKeeper,
+	bk dymsimtypes.BankKeeper,
+	rk types.RollappKeeper,
+	k keeper.Keeper,
+) simtypes.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, _ string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		plans := k.GetAllPlans(ctx, false)
+		if len(plans) == 0 {
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgBuy, "no plans"), nil, nil
+		}
+		plan := dymsimtypes.RandChoice(r, plans)
+		if plan.IsSettled() || ctx.BlockTime().Before(plan.StartTime) {
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgBuy, "plan not tradable"), nil, nil
+		}
+
+		buyer, _ := simtypes.RandomAcc(r, accs)
+		amount, _ := dymsimtypes.RandIntBetween(r, sdk.NewInt(1), sdk.NewInt(1000))
+
+		msg := &types.MsgBuy{
+			Buyer:         buyer.Address.String(),
+			PlanId:        fmt.Sprintf("%d", plan.Id),
+			Amount:        amount,
+			MaxCostAmount: amount.MulRaw(2),
+		}
+
+		txCtx := simulation.OperationInput{
+			R:             r,
+			App:           app,
+			TxGen:         moduletestutil.MakeTestEncodingConfig().TxConfig,
+			Cdc:           cdc,
+			Msg:           msg,
+			MsgType:       msg.Type(),
+			SimAccount:    buyer,
+			Context:       ctx,
+			AccountKeeper: ak,
+			Bankkeeper:    bk,
+			ModuleName:    types.ModuleName,
+		}
+
+		return simulation.GenAndDeliverTxWithRandFees(txCtx)
 	}
-
-	plan := dymsimtypes.RandChoice(r, plans)
-	if plan.IsSettled() || ctx.BlockTime().Before(plan.StartTime) {
-		return simtypes.NoOpMsg(types.ModuleName, "buy", "plan not tradable"), nil, nil
-	}
-
-	// Choose random buyer
-	buyer, _ := simtypes.RandomAcc(r, accs)
-	amount, _ := dymsimtypes.RandIntBetween(r, sdk.NewInt(1), sdk.NewInt(1000))
-
-	msg := &types.MsgBuy{
-		Buyer:         buyer.Address.String(),
-		PlanId:        fmt.Sprintf("%d", plan.Id),
-		Amount:        amount,
-		MaxCostAmount: amount.MulRaw(2), // arbitrary margin
-	}
-
-	txCtx := simulation.OperationInput{
-		R:               r,
-		App:             app,
-		TxGen:           f.SimulationState.TxConfig,
-		Ctx:             ctx,
-		Msg:             msg,
-		Accounts:        accs,
-		ModuleName:      types.ModuleName,
-		CoinsSpentInMsg: sdk.Coins{}, // buyer pays for tokens
-	}
-
-	return simulation.GenAndDeliverTxWithRandFees(txCtx)
 }
 
-// SellOp attempts to sell some tokens from the buyer back to the plan.
-func (f OpFactory) SellOp(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, id string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-	plans := f.Keeper.GetAllPlans(ctx, false)
-	if len(plans) == 0 {
-		return simtypes.NoOpMsg(types.ModuleName, "sell", "no plans"), nil, nil
+// SimulateMsgSell simulates selling tokens back to the IRO plan.
+func SimulateMsgSell(
+	cdc *codec.ProtoCodec,
+	ak dymsimtypes.AccountKeeper,
+	bk dymsimtypes.BankKeeper,
+	rk types.RollappKeeper,
+	k keeper.Keeper,
+) simtypes.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, _ string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		plans := k.GetAllPlans(ctx, false)
+		if len(plans) == 0 {
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgSell, "no plans"), nil, nil
+		}
+
+		plan := dymsimtypes.RandChoice(r, plans)
+		if plan.IsSettled() || ctx.BlockTime().Before(plan.StartTime) {
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgSell, "plan not tradable"), nil, nil
+		}
+
+		seller, _ := simtypes.RandomAcc(r, accs)
+		amount, _ := dymsimtypes.RandIntBetween(r, sdk.NewInt(1), sdk.NewInt(1000))
+
+		msg := &types.MsgSell{
+			Seller:          seller.Address.String(),
+			PlanId:          fmt.Sprintf("%d", plan.Id),
+			Amount:          amount,
+			MinIncomeAmount: amount.QuoRaw(2),
+		}
+
+		txCtx := simulation.OperationInput{
+			R:             r,
+			App:           app,
+			TxGen:         moduletestutil.MakeTestEncodingConfig().TxConfig,
+			Cdc:           cdc,
+			Msg:           msg,
+			MsgType:       msg.Type(),
+			SimAccount:    seller,
+			Context:       ctx,
+			AccountKeeper: ak,
+			Bankkeeper:    bk,
+			ModuleName:    types.ModuleName,
+		}
+
+		return simulation.GenAndDeliverTxWithRandFees(txCtx)
 	}
-
-	plan := dymsimtypes.RandChoice(r, plans)
-	if plan.IsSettled() || ctx.BlockTime().Before(plan.StartTime) {
-		return simtypes.NoOpMsg(types.ModuleName, "sell", "plan not tradable"), nil, nil
-	}
-
-	seller, _ := simtypes.RandomAcc(r, accs)
-	amount, _ := dymsimtypes.RandIntBetween(r, sdk.NewInt(1), sdk.NewInt(1000))
-
-	msg := &types.MsgSell{
-		Seller:          seller.Address.String(),
-		PlanId:          fmt.Sprintf("%d", plan.Id),
-		Amount:          amount,
-		MinIncomeAmount: amount.QuoRaw(2), // arbitrary expectation
-	}
-
-	txCtx := simulation.OperationInput{
-		R:               r,
-		App:             app,
-		TxGen:           f.SimulationState.TxConfig,
-		Ctx:             ctx,
-		Msg:             msg,
-		Accounts:        accs,
-		ModuleName:      types.ModuleName,
-		CoinsSpentInMsg: sdk.Coins{}, // seller must have FUT tokens
-	}
-
-	return simulation.GenAndDeliverTxWithRandFees(txCtx)
 }
 
-// ClaimOp attempts to claim tokens after the plan is settled.
-func (f OpFactory) ClaimOp(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, id string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-	plans := f.Keeper.GetAllPlans(ctx, false)
-	if len(plans) == 0 {
-		return simtypes.NoOpMsg(types.ModuleName, "claim", "no plans"), nil, nil
-	}
+// SimulateMsgClaim simulates claiming tokens after the plan is settled.
+func SimulateMsgClaim(
+	cdc *codec.ProtoCodec,
+	ak dymsimtypes.AccountKeeper,
+	bk dymsimtypes.BankKeeper,
+	rk types.RollappKeeper,
+	k keeper.Keeper,
+) simtypes.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, _ string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		plans := k.GetAllPlans(ctx, false)
+		if len(plans) == 0 {
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgClaim, "no plans"), nil, nil
+		}
 
-	plan := dymsimtypes.RandChoice(r, plans)
-	if !plan.IsSettled() {
-		return simtypes.NoOpMsg(types.ModuleName, "claim", "plan not settled"), nil, nil
-	}
+		plan := dymsimtypes.RandChoice(r, plans)
+		if !plan.IsSettled() {
+			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgClaim, "plan not settled"), nil, nil
+		}
 
-	claimer, _ := simtypes.RandomAcc(r, accs)
-	msg := &types.MsgClaim{
-		Claimer: claimer.Address.String(),
-		PlanId:  fmt.Sprintf("%d", plan.Id),
-	}
+		claimer, _ := simtypes.RandomAcc(r, accs)
+		msg := &types.MsgClaim{
+			Claimer: claimer.Address.String(),
+			PlanId:  fmt.Sprintf("%d", plan.Id),
+		}
 
-	txCtx := simulation.OperationInput{
-		R:               r,
-		App:             app,
-		TxGen:           f.SimulationState.TxConfig,
-		Ctx:             ctx,
-		Msg:             msg,
-		Accounts:        accs,
-		ModuleName:      types.ModuleName,
-		CoinsSpentInMsg: nil,
-	}
+		txCtx := simulation.OperationInput{
+			R:             r,
+			App:           app,
+			TxGen:         moduletestutil.MakeTestEncodingConfig().TxConfig,
+			Cdc:           cdc,
+			Msg:           msg,
+			MsgType:       msg.Type(),
+			SimAccount:    claimer,
+			Context:       ctx,
+			AccountKeeper: ak,
+			Bankkeeper:    bk,
+			ModuleName:    types.ModuleName,
+		}
 
-	return simulation.GenAndDeliverTxWithRandFees(txCtx)
+		return simulation.GenAndDeliverTxWithRandFees(txCtx)
+	}
 }
