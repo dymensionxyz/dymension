@@ -100,7 +100,11 @@ func (s *SequencerTestSuite) SetupTest() {
 
 	// Overwrite to exclude any unblockers set by default in apptesting, to ensure
 	// we are only testing our logic.
-	s.k().SetUnbondBlockers()
+	s.k().SetUnbondBlockers(
+		s.App.LightClientKeeper,
+		s.App.RollappKeeper,
+	)
+	s.App.RollappKeeper.SetHooks(rollapptypes.NewMultiRollappHooks(s.k().RollappHooks()))
 }
 
 func (s *SequencerTestSuite) seq(pk cryptotypes.PubKey) types.Sequencer {
