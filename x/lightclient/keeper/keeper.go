@@ -89,7 +89,11 @@ func NewKeeper(
 func (k Keeper) CanUnbond(ctx sdk.Context, seq sequencertypes.Sequencer) error {
 	client, ok := k.GetCanonicalClient(ctx, seq.RollappId)
 	if !ok {
-		return errorsmod.Wrap(sequencertypes.ErrUnbondNotAllowed, "no canonical client")
+		// It doesn't make sense to prevent unbonding here. If there is no canonical client, then
+		// there can have been no fraud that needs to be checked.
+		// Moreover, if we did prevent unbonding, it would lead to awkward situations where non proposer
+		// sequencers of early stage rollapps can't unbond, when the proposer is not doing his job.
+		return nil
 	}
 	rng := collections.NewSuperPrefixedTripleRange[string, string, uint64](seq.Address, client)
 	return k.headerSigners.Walk(ctx, rng, func(key collections.Triple[string, string, uint64]) (stop bool, err error) {
