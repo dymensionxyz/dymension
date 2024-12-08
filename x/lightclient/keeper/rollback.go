@@ -45,8 +45,7 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, lastV
 		return errorsmod.Wrap(err, "prune signers above")
 	}
 
-	// freeze the client
-	// it will be released after the hardfork is resolved (on the next state update)
+	// will be unfrozen on next state update
 	k.freezeClient(cs, lastValidHeight)
 
 	return nil
@@ -97,9 +96,13 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
 func (k Keeper) freezeClient(clientStore sdk.KVStore, height uint64) {
 	tmClientState := getClientStateTM(clientStore, k.cdc)
 
-	// freeze the client
+	// Note: we don't bother changing client latest height here, because
+	// 1. It's not necessary. IBC will work as expected with a frozen client status and a missing consensus state for the latest height.
+	//    (Because the same situation can also arise from regular IBC pruning during normal IBC operation)
+	// 2. We don't know the last consensus state without iterating over consensus states
+	// We will set it when we unfreeze.
+
 	tmClientState.FrozenHeight = ibctm.FrozenHeight
-	tmClientState.LatestHeight = clienttypes.NewHeight(1, height)
 
 	setClientState(clientStore, k.cdc, tmClientState)
 }
