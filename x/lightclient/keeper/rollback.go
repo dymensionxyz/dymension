@@ -23,10 +23,12 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, lastV
 	}
 	cs := k.ibcClientKeeper.ClientStore(ctx, client)
 
+	var lastConsStateHeight exported.Height
 	// iterate over all consensus states and metadata in the client store
 	IterateConsensusStateDescending(cs, func(h exported.Height) bool {
 		// iterate until we pass the new revision height
 		if h.GetRevisionHeight() <= lastValidHeight {
+			lastConsStateHeight = h
 			return true
 		}
 
@@ -46,7 +48,9 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, lastV
 	}
 
 	// will be unfrozen on next state update
-	k.freezeClient(cs, lastValidHeight)
+	if err := k.freezeClient(cs, lastConsStateHeight); err != nil {
+		return errorsmod.Wrap(err, "freeze client")
+	}
 
 	return nil
 }
@@ -93,18 +97,23 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
 }
 
 // freezeClient freezes the client by setting the frozen height to the current height
-func (k Keeper) freezeClient(clientStore sdk.KVStore, height uint64) {
+func (k Keeper) freezeClient(clientStore sdk.KVStore, heightI exported.Height) error {
 	tmClientState := getClientStateTM(clientStore, k.cdc)
 
-	// Note: we don't bother changing client latest height here, because
-	// 1. It's not necessary. IBC will work as expected with a frozen client status and a missing consensus state for the latest height.
-	//    (Because the same situation can also arise from regular IBC pruning during normal IBC operation)
-	// 2. We don't know the last consensus state without iterating over consensus states
-	// We will set it when we unfreeze.
+	// It's not fundamentally important to have a consensus state for the latest height (since
+	// it can happen in normal operation due to IBC pruning) but we do best effort, because
+	// ibctesting doesn't like not having it.
+	height, ok := heightI.(clienttypes.Height)
+	if !ok {
+		return gerrc.ErrInvalidArgument.Wrap("height nil or not tm client height")
+	}
+	tmClientState.LatestHeight = height
 
 	tmClientState.FrozenHeight = ibctm.FrozenHeight
 
 	setClientState(clientStore, k.cdc, tmClientState)
+
+	return nil
 }
 
 // freezeClient freezes the client by setting the frozen height to the current height
