@@ -47,17 +47,12 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 		return errorsmod.Wrapf(gerrc.ErrInternal, "required: %s, available: %s", plan.TotalAllocation.String(), balance.String())
 	}
 
-	// burn all the unsold IRO token.
+	// burn all the remaining IRO token.
 	iroTokenBalance := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.TotalAllocation.Denom)
 	err := k.BK.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(iroTokenBalance))
 	if err != nil {
 		return err
 	}
-
-	// claim the fee token
-	// we put it aside on plan creation and claims it now
-	tokenFee := math.NewIntWithDecimal(types.TokenCreationFee, int(plan.BondingCurve.SupplyDecimals()))
-	plan.ClaimedAmt = plan.ClaimedAmt.Add(tokenFee)
 
 	// mark the plan as `settled`, allowing users to claim tokens
 	plan.SettledDenom = rollappIBCDenom
