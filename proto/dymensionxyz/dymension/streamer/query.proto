@@ -7,6 +7,7 @@ import "google/protobuf/duration.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymensionxyz/dymension/streamer/stream.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
 
@@ -18,25 +19,40 @@ service Query {
       returns (ModuleToDistributeCoinsResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/streamer/module_to_distribute_coins";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["streamer"]
+    };
   }
 
   // StreamByID returns streams by their respective ID
   rpc StreamByID(StreamByIDRequest) returns (StreamByIDResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/streamer/stream_by_id/{id}";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["streamer"]
+    };
   }
   // Streams returns both upcoming and active streams
   rpc Streams(StreamsRequest) returns (StreamsResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/streamer/streams";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["streamer"]
+    };
   }
   // ActiveStreams returns active streams
   rpc ActiveStreams(ActiveStreamsRequest) returns (ActiveStreamsResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/streamer/active_streams";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["streamer"]
+    };
   }
   // Returns scheduled streams that have not yet occurred
   rpc UpcomingStreams(UpcomingStreamsRequest) returns (UpcomingStreamsResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/streamer/upcoming_streams";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["streamer"]
+    };
   }
 }
 

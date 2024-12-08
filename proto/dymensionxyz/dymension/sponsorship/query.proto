@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "google/api/annotations.proto";
 import "dymensionxyz/dymension/sponsorship/sponsorship.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/sponsorship/types";
 
@@ -13,12 +14,18 @@ service Query {
   // Param queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/sponsorship/params";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["sponsorship"]
+    };
   }
 
   // Vote returns the vote for the specified address.
   rpc Vote(QueryVoteRequest) returns (QueryVoteResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/sponsorship/vote/{voter}";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["sponsorship"]
+    };
   }
 
   // Distribution returns the current distribution plan.
@@ -26,6 +33,9 @@ service Query {
       returns (QueryDistributionResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/streamer/distribution";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["sponsorship"]
+    };
   }
 }
 

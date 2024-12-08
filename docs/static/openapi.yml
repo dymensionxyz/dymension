@@ -423,7 +423,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - delayedack
   /dymensionxyz/dymension/delayedack/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -662,7 +662,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - delayedack
   /dymensionxyz/dymension/delayedack/pending-receiver-packets/{address}:
     get:
       summary: Queries a list of pending RollappPacket items by rollappID and receiver.
@@ -1065,7 +1065,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - delayedack
   /dymensionxyz/dymension/eibc/demand_order/{id}:
     get:
       summary: Queries a Demand Order by id.
@@ -1374,7 +1374,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - eibc
   /dymensionxyz/dymension/eibc/demand_orders/{status}:
     get:
       summary: Queries a list of demand orders by status.
@@ -1821,7 +1821,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - eibc
   /dymensionxyz/dymension/eibc/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -2040,7 +2040,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - eibc
   /dymensionxyz/dymension/dymns/alias/{alias}:
     get:
       summary: >-
@@ -2103,7 +2103,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/aliases:
     get:
       summary: Aliases queries all the aliases for a chain id or all chains.
@@ -2155,7 +2155,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/buy_order/{id}:
     get:
       summary: BuyOrderById queries a Buy-Order by its id.
@@ -2266,7 +2266,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/buy_orders_by_alias/{alias}:
     get:
       summary: BuyOrdersByAlias queries all the buy orders of an Alias.
@@ -2393,7 +2393,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/buy_orders_by_dym_name/{name}:
     get:
       summary: BuyOrdersByDymName queries all the buy orders of a Dym-Name.
@@ -2520,7 +2520,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/buy_orders_of_aliases_linked_to_rollapp/{rollapp_id}:
     get:
       summary: >-
@@ -2653,7 +2653,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/buy_orders_of_dym_names_owned_by_account/{account}:
     get:
       summary: >-
@@ -2784,7 +2784,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/buy_orders_placed_by_account/{account}:
     get:
       summary: >-
@@ -2913,7 +2913,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/dym_name/{dym_name}:
     get:
       summary: DymName queries a Dym-Name by its name.
@@ -3041,7 +3041,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/estimate_register_alias/{alias}:
     get:
       summary: EstimateRegisterAlias estimates the cost to register an Alias.
@@ -3104,7 +3104,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/estimate_register_name/{name}/{duration}:
     get:
       summary: EstimateRegisterName estimates the cost to register a Dym-Name.
@@ -3190,7 +3190,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/owned_by/{owner}:
     get:
       summary: DymNamesOwnedByAccount queries the Dym-Names owned by an account.
@@ -3335,7 +3335,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/params:
     get:
       summary: Params queries the parameters of the module.
@@ -3515,7 +3515,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/resolve:
     get:
       summary: >-
@@ -3590,7 +3590,7 @@ paths:
             type: string
           collectionFormat: multi
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/reverse_resolve:
     get:
       summary: >-
@@ -3678,7 +3678,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/sell_order/{asset_id}:
     get:
       summary: SellOrder queries the active SO of a Dym-Name/Alias.
@@ -3803,7 +3803,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/translate_alias/{alias_or_chain_id}:
     get:
       summary: >-
@@ -3856,7 +3856,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/rollapp/eip155/{eip155}:
     get:
       summary: Queries a Rollapp by index.
@@ -4280,7 +4280,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/rollapp/latest_height/{rollappId}:
     get:
       summary: Queries a LatestHeight by rollapp-id.
@@ -4326,7 +4326,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/rollapp/latest_state_index/{rollappId}:
     get:
       summary: Queries a LatestStateIndex by rollapp-id.
@@ -4403,7 +4403,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/rollapp/obsolete_drs_versions:
     get:
       summary: Queries a list of obsolete DRS versions.
@@ -4442,7 +4442,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/rollapp/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -4534,7 +4534,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/rollapp/registered_denoms:
     get:
       summary: Queries a list of registered denoms for the rollapp.
@@ -4661,7 +4661,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/rollapp/rollapp:
     get:
       summary: Queries a list of Rollapp items.
@@ -5185,7 +5185,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/rollapp/rollapp/{rollappId}:
     get:
       summary: Queries a Rollapp by index.
@@ -5608,7 +5608,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/rollapp/state_info/{rollappId}/{index}:
     get:
       summary: Queries a StateInfo by index.
@@ -5784,7 +5784,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/sequencer/next_proposer/{rollappId}:
     get:
       summary: Queries the next proposer by rollappId.
@@ -6008,7 +6008,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - sequencer
   /dymensionxyz/dymension/sequencer/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -6272,7 +6272,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - sequencer
   /dymensionxyz/dymension/sequencer/proposers:
     get:
       summary: Queries a list of proposers.
@@ -6905,7 +6905,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - sequencer
   /dymensionxyz/dymension/sequencer/proposers/{rollappId}:
     get:
       summary: Queries the current proposer by rollappId.
@@ -7119,7 +7119,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - sequencer
   /dymensionxyz/dymension/sequencer/sequencer/{sequencerAddress}:
     get:
       summary: Queries a Sequencer by address.
@@ -7664,7 +7664,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - sequencer
   /dymensionxyz/dymension/sequencer/sequencers:
     get:
       summary: Queries a list of Sequencer items.
@@ -8296,7 +8296,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - sequencer
   /dymensionxyz/dymension/sequencer/sequencers_by_rollapp/{rollappId}:
     get:
       summary: Queries a SequencersByRollapp by rollappId.
@@ -8932,7 +8932,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - sequencer
   /dymensionxyz/dymension/sequencer/sequencers_by_rollapp/{rollappId}/{status}:
     get:
       summary: Queries a SequencersByRollappByStatus
@@ -9575,7 +9575,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - sequencer
   /dymensionxyz/dymension/streamer/active_streams:
     get:
       summary: ActiveStreams returns active streams
@@ -9826,7 +9826,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - streamer
   /dymensionxyz/dymension/streamer/module_to_distribute_coins:
     get:
       summary: ModuleToDistributeCoins returns coins that are going to be distributed
@@ -9878,7 +9878,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - streamer
   /dymensionxyz/dymension/streamer/stream_by_id/{id}:
     get:
       summary: StreamByID returns streams by their respective ID
@@ -10045,7 +10045,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - streamer
   /dymensionxyz/dymension/streamer/streams:
     get:
       summary: Streams returns both upcoming and active streams
@@ -10296,7 +10296,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - streamer
   /dymensionxyz/dymension/streamer/upcoming_streams:
     get:
       summary: Returns scheduled streams that have not yet occurred
@@ -10547,7 +10547,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - streamer
   /ethermint/evm/v1/account/{address}:
     get:
       summary: Account queries an Ethereum account.
@@ -19842,7 +19842,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/active_gauges_per_denom:
     get:
       summary: ActiveGaugesPerDenom returns active gauges by denom
@@ -20123,7 +20123,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/gauge_by_id/{id}:
     get:
       summary: GaugeByID returns gauges by their respective ID
@@ -20316,7 +20316,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/gauges:
     get:
       summary: Gauges returns both upcoming and active gauges
@@ -20592,7 +20592,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/lockable_durations:
     get:
       summary: >-
@@ -20637,7 +20637,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/module_to_distribute_coins:
     get:
       summary: ModuleToDistributeCoins returns coins that are going to be distributed
@@ -20689,7 +20689,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/params:
     get:
       operationId: IncentivesParams
@@ -20757,7 +20757,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/rollapp_gauges:
     get:
       summary: RollappGauges returns both upcoming and active rollapp gauges
@@ -21033,7 +21033,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/upcoming_gauges:
     get:
       summary: Returns scheduled gauges that have not yet occured
@@ -21309,7 +21309,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/upcoming_gauges_per_denom:
     get:
       summary: >-
@@ -21594,7 +21594,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/lockup/v1beta1/account_locked_coins/{owner}:
     get:
       summary: Return a locked coins that can't be withdrawn
@@ -21650,7 +21650,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_locked_duration/{owner}:
     get:
       summary: Returns account locked records with a specific duration
@@ -21766,7 +21766,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_locked_longer_duration/{owner}:
     get:
       summary: Returns account locked records with longer duration
@@ -21882,7 +21882,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_locked_longer_duration_denom/{owner}:
     get:
       summary: Returns account's locked records for a denom with longer duration
@@ -22002,7 +22002,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_locked_longer_duration_not_unlocking_only/{owner}:
     get:
       summary: |-
@@ -22120,7 +22120,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_locked_pasttime/{owner}:
     get:
       summary: Returns locked records of an account with unlock time beyond timestamp
@@ -22237,7 +22237,7 @@ paths:
           type: string
           format: date-time
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_locked_pasttime_denom/{owner}:
     get:
       summary: Returns lock records by address, timestamp, denom
@@ -22358,7 +22358,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_locked_pasttime_not_unlocking_only/{owner}:
     get:
       summary: |-
@@ -22477,7 +22477,7 @@ paths:
           type: string
           format: date-time
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_unlockable_coins/{owner}:
     get:
       summary: Returns unlockable coins which are not withdrawn yet
@@ -22533,7 +22533,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_unlocked_before_time/{owner}:
     get:
       summary: Returns unlocked records with unlock time before timestamp
@@ -22650,7 +22650,7 @@ paths:
           type: string
           format: date-time
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_unlocking_coins/{owner}:
     get:
       summary: Returns unlocking coins
@@ -22706,7 +22706,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/locked_by_id/{lock_id}:
     get:
       summary: Returns lock record by id
@@ -22816,7 +22816,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/locked_denom:
     get:
       summary: Returns total locked per denom with longer past given time
@@ -22861,7 +22861,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/module_balance:
     get:
       summary: Return full balance of the module
@@ -22912,7 +22912,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/module_locked_amount:
     get:
       summary: Return locked balance of the module
@@ -22963,7 +22963,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/next_lock_id:
     get:
       summary: Returns next lock ID
@@ -23000,7 +23000,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/params:
     get:
       summary: Params returns lockup params.
@@ -23041,7 +23041,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/txfees/v1beta1/base_denom:
     get:
       summary: Returns a list of all base denom tokens and their corresponding pools.

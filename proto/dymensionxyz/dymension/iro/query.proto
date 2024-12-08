@@ -7,6 +7,7 @@ import "google/api/annotations.proto";
 import "dymensionxyz/dymension/iro/iro.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/iro/types";
 
@@ -15,17 +16,26 @@ service Query {
   // Params queries the parameters of the IRO module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/iro/params";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["iro"]
+    };
   }
 
   // QueryPlans retrieves all available plans.
   rpc QueryPlans(QueryPlansRequest) returns (QueryPlansResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/iro/plans";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["iro"]
+    };
   }
 
   // QueryPlan retrieves the plan for the specified plan ID.
   rpc QueryPlan(QueryPlanRequest) returns (QueryPlanResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/iro/plans/{plan_id}";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["iro"]
+    };
   }
 
   // QueryPlanByRollapp retrieves the plans for the specified rollapp ID.
@@ -33,6 +43,9 @@ service Query {
       returns (QueryPlanByRollappResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/iro/plans_by_rollapp/{rollapp_id}";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["iro"]
+    };
   }
 
   // QuerySpotPrice retrieves the current spot price for the specified plan ID.
@@ -40,21 +53,33 @@ service Query {
   rpc QuerySpotPrice(QuerySpotPriceRequest) returns (QuerySpotPriceResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/iro/price/{plan_id}";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["iro"]
+    };
   }
 
   // QueryCost retrieves the expected cost for buying or selling the specified amount of shares.
   rpc QueryCost(QueryCostRequest) returns (QueryCostResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/iro/cost/{plan_id}";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["iro"]
+    };
   }
 
   rpc QueryTokensForDYM(QueryTokensForDYMRequest) returns (QueryTokensForDYMResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/iro/tokens_for_dym/{plan_id}";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["iro"]
+    };
   }
 
   // QueryClaimed retrieves the claimed amount thus far for the specified plan ID.
   rpc QueryClaimed(QueryClaimedRequest) returns (QueryClaimedResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/iro/claimed/{plan_id}";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["iro"]
+    };
   }
 }
 

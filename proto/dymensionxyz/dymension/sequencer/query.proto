@@ -7,6 +7,7 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymensionxyz/dymension/sequencer/params.proto";
 import "dymensionxyz/dymension/sequencer/sequencer.proto";
 import "dymensionxyz/dymension/sequencer/operating_status.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
 
@@ -15,18 +16,27 @@ service Query {
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/sequencer/params";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["sequencer"]
+    };
   }
 
   // Queries a Sequencer by address.
   rpc Sequencer(QueryGetSequencerRequest) returns (QueryGetSequencerResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/sequencer/sequencer/{sequencerAddress}";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["sequencer"]
+    };
   }
 
   // Queries a list of Sequencer items.
   rpc Sequencers(QuerySequencersRequest) returns (QuerySequencersResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/sequencer/sequencers";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["sequencer"]
+    };
   }
 
   // Queries a SequencersByRollapp by rollappId.
@@ -34,6 +44,9 @@ service Query {
       returns (QueryGetSequencersByRollappResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/sequencer/sequencers_by_rollapp/{rollappId}";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["sequencer"]
+    };
   }
 
   // Queries a SequencersByRollappByStatus
@@ -41,6 +54,9 @@ service Query {
       returns (QueryGetSequencersByRollappByStatusResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/sequencer/sequencers_by_rollapp/{rollappId}/{status}";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["sequencer"]
+    };
   }
 
   // Queries the current proposer by rollappId.
@@ -48,6 +64,9 @@ service Query {
       returns (QueryGetProposerByRollappResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/sequencer/proposers/{rollappId}";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["sequencer"]
+    };
   }
 
   // Queries the next proposer by rollappId.
@@ -55,12 +74,18 @@ service Query {
       returns (QueryGetNextProposerByRollappResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/sequencer/next_proposer/{rollappId}";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["sequencer"]
+    };
   }
 
   // Queries a list of proposers.
   rpc Proposers(QueryProposersRequest) returns (QueryProposersResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/sequencer/proposers";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["sequencer"]
+    };
   }
 }
 

@@ -8,6 +8,7 @@ import "dymensionxyz/dymension/eibc/params.proto";
 import "dymensionxyz/dymension/eibc/demand_order.proto";
 import "dymensionxyz/dymension/common/status.proto";
 import "dymensionxyz/dymension/common/rollapp_packet.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
@@ -16,14 +17,23 @@ service Query {
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/eibc/params";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["eibc"]
+    };
   }
   // Queries a Demand Order by id.
 	rpc DemandOrderById(QueryGetDemandOrderRequest) returns (QueryGetDemandOrderResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/eibc/demand_order/{id}";
-	}
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["eibc"]
+    };
+  }
   // Queries a list of demand orders by status.
   rpc DemandOrdersByStatus(QueryDemandOrdersByStatusRequest) returns (QueryDemandOrdersByStatusResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/eibc/demand_orders/{status}";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["eibc"]
+    };
   }
 }
 

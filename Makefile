@@ -271,4 +271,16 @@ proto-download-deps:
 	mkdir -p "$(THIRD_PARTY_DIR)/cosmos/ics23/v1" && \
 	curl -sSL "https://raw.githubusercontent.com/cosmos/ics23/$(DEPS_COSMOS_ICS23)/proto/cosmos/ics23/v1/proofs.proto" > "$(THIRD_PARTY_DIR)/cosmos/ics23/v1/proofs.proto"
 
+	mkdir -p "$(THIRD_PARTY_DIR)/grpc_gw_tmp" && \
+	cd "$(THIRD_PARTY_DIR)/grpc_gw_tmp" && \
+	git init && \
+	git remote add origin "https://github.com/grpc-ecosystem/grpc-gateway.git" && \
+	git config core.sparseCheckout true && \
+	printf "protoc-gen-openapiv2/options\n" > .git/info/sparse-checkout && \
+	git fetch --depth=1 origin main && \
+	git checkout FETCH_HEAD && \
+	mkdir -p "$(THIRD_PARTY_DIR)/protoc-gen-openapiv2/options" && \
+	mv ./* .. && \
+	rm -rf "$(THIRD_PARTY_DIR)/grpc_gw_tmp"
+
 .PHONY: proto-gen proto-swagger-gen proto-format proto-lint proto-download-deps

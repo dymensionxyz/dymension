@@ -7,6 +7,7 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymensionxyz/dymension/delayedack/params.proto";
 import "dymensionxyz/dymension/common/status.proto";
 import "dymensionxyz/dymension/common/rollapp_packet.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
 
@@ -15,16 +16,25 @@ service Query {
 	// Parameters queries the parameters of the module.
 	rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/delayedack/params";
+		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["delayedack"]
+    };
 	}
 
 	// Queries a list of RollappPacket items by rollappID.
 	rpc GetPackets(QueryRollappPacketsRequest) returns (QueryRollappPacketListResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/delayedack/packets/{rollappId}/{status}";
+		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["delayedack"]
+    };
 	}
 
 	// Queries a list of pending RollappPacket items by rollappID and receiver.
 	rpc GetPendingPacketsByAddress(QueryPendingPacketsByAddressRequest) returns (QueryPendingPacketByAddressListResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/delayedack/pending-receiver-packets/{address}";
+		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["delayedack"]
+    };
 	}
 }
 
