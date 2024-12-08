@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
@@ -96,7 +97,7 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	s.Require().True(ok)
 
 	// test module account has the expected creation fee
-	expectedCreationFee := s.App.IROKeeper.GetParams(s.Ctx).CreationFee
+	expectedCreationFee := plan.BondingCurve.Cost(math.ZeroInt(), s.App.IROKeeper.GetParams(s.Ctx).CreationFee)
 	balances := s.App.BankKeeper.GetAllBalances(s.Ctx, plan.GetAddress())
 	s.Require().Len(balances, 1)
 	s.Require().Equal(expectedCreationFee, balances[0].Amount)
