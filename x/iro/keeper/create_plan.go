@@ -121,7 +121,7 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 
 	// charge creation fee
 	feeAmt := k.GetParams(ctx).CreationFee
-	cost := plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(feeAmt))
+	cost := plan.BondingCurve.Cost(math.ZeroInt(), feeAmt)
 	if !cost.IsPositive() {
 		return "", errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid cost for fee charge")
 	}
@@ -133,7 +133,7 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 	}
 
 	plan.SoldAmt = feeAmt
-	plan.ClaimedAmt = feeAmt // set claimed amount to fee
+	plan.ClaimedAmt = feeAmt // set fee as claimed, as it's not claimable
 
 	// Set the plan in the store
 	k.SetPlan(ctx, plan)
