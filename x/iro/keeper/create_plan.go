@@ -120,15 +120,20 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 	}
 
 	// charge creation fee
-	fee := sdk.NewCoin(appparams.BaseDenom, k.GetParams(ctx).CreationFee)
+	feeAmt := k.GetParams(ctx).CreationFee
+	cost := plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(feeAmt))
+	if !cost.IsPositive() {
+		return "", errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid cost for fee charge")
+	}
+
+	fee := sdk.NewCoin(appparams.BaseDenom, cost)
 	err = k.BK.SendCoins(ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), plan.GetAddress(), sdk.NewCoins(fee))
 	if err != nil {
 		return "", err
 	}
 
-	// charge rollapp token creation fee. Same as DYM creation fee, will be used to open the pool.
-	tokenFee := math.NewIntWithDecimal(types.TokenCreationFee, int(rollapp.GenesisInfo.NativeDenom.Exponent))
-	plan.SoldAmt = tokenFee
+	plan.SoldAmt = feeAmt
+	plan.ClaimedAmt = feeAmt // set claimed amount to fee
 
 	// Set the plan in the store
 	k.SetPlan(ctx, plan)
