@@ -126,8 +126,8 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 		return "", errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid cost for fee charge")
 	}
 
-	fee := sdk.NewCoin(appparams.BaseDenom, cost)
-	err = k.BK.SendCoins(ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), plan.GetAddress(), sdk.NewCoins(fee))
+	feeCostInDym := sdk.NewCoin(appparams.BaseDenom, cost)
+	err = k.BK.SendCoins(ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), plan.GetAddress(), sdk.NewCoins(feeCostInDym))
 	if err != nil {
 		return "", err
 	}
