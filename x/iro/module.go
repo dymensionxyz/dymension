@@ -16,6 +16,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
+	dymsimtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
 	"github.com/dymensionxyz/dymension/v3/x/iro/cli"
 	"github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
@@ -94,15 +95,23 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper keeper.Keeper
+
+	// simulation keepers
+	accountKeeper dymsimtypes.AccountKeeper
+	bankKeeper    dymsimtypes.BankKeeper
 }
 
 func NewAppModule(
 	cdc codec.Codec,
 	keeper keeper.Keeper,
+	ak dymsimtypes.AccountKeeper,
+	bk dymsimtypes.BankKeeper,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),
 		keeper:         keeper,
+		accountKeeper:  ak,
+		bankKeeper:     bk,
 	}
 }
 
