@@ -61,7 +61,7 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 
 	err := h.Keeper.registerAliasForRollApp(ctx, rollappID, creatorAddr, alias, aliasCost)
 	if err != nil {
-		return errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "register alias for RollApp")
+		return errorsmod.Wrap(errors.Join(gerrc.ErrUnknown, err), "register alias for RollApp")
 	}
 
 	return nil
@@ -130,7 +130,7 @@ func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, new
 
 		for _, alias := range aliasesLinkedToPreviousRollApp {
 			if err := h.MoveAliasToRollAppId(ctx, previousRollAppId, alias, newRollAppId); err != nil {
-				return errorsmod.Wrapf(errors.Join(gerrc.ErrInternal, err), "failed to migrate alias: %s", alias)
+				return errorsmod.Wrapf(errors.Join(gerrc.ErrUnknown, err), "failed to migrate alias: %s", alias)
 			}
 		}
 
@@ -147,7 +147,7 @@ func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, new
 		}
 
 		if err := h.migrateChainIdsInDymNames(ctx, previousChainIdsToNewChainId); err != nil {
-			return errorsmod.Wrapf(errors.Join(gerrc.ErrInternal, err), "failed to migrate chain-ids in Dym-Names")
+			return errorsmod.Wrapf(errors.Join(gerrc.ErrUnknown, err), "failed to migrate chain-ids in Dym-Names")
 		}
 
 		return nil

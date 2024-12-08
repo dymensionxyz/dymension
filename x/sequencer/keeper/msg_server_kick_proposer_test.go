@@ -1,14 +1,12 @@
 package keeper_test
 
 import (
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/utest"
 )
 
 func (s *SequencerTestSuite) TestKickProposerBasicFlow() {
-	s.App.RollappKeeper.SetHooks(rollapptypes.NewMultiRollappHooks(s.k().RollappHooks()))
 	ra := s.createRollapp()
 	seqAlice := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
 	s.Require().True(s.k().IsProposer(s.Ctx, seqAlice))
