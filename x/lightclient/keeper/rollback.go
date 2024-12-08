@@ -23,10 +23,12 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, lastV
 	}
 	cs := k.ibcClientKeeper.ClientStore(ctx, client)
 
+	var lastConsStateHeight exported.Height
 	// iterate over all consensus states and metadata in the client store
 	IterateConsensusStateDescending(cs, func(h exported.Height) bool {
 		// iterate until we pass the new revision height
 		if h.GetRevisionHeight() <= lastValidHeight {
+			lastConsStateHeight = h
 			return true
 		}
 
@@ -45,9 +47,10 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, lastV
 		return errorsmod.Wrap(err, "prune signers above")
 	}
 
-	// freeze the client
-	// it will be released after the hardfork is resolved (on the next state update)
-	k.freezeClient(cs, lastValidHeight)
+	// will be unfrozen on next state update
+	if err := k.freezeClient(cs, lastConsStateHeight); err != nil {
+		return errorsmod.Wrap(err, "freeze client")
+	}
 
 	return nil
 }
@@ -94,14 +97,23 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
 }
 
 // freezeClient freezes the client by setting the frozen height to the current height
-func (k Keeper) freezeClient(clientStore sdk.KVStore, height uint64) {
+func (k Keeper) freezeClient(clientStore sdk.KVStore, heightI exported.Height) error {
 	tmClientState := getClientStateTM(clientStore, k.cdc)
 
-	// freeze the client
+	// It's not fundamentally important to have a consensus state for the latest height (since
+	// it can happen in normal operation due to IBC pruning) but we do best effort, because
+	// ibctesting doesn't like not having it.
+	height, ok := heightI.(clienttypes.Height)
+	if !ok {
+		return gerrc.ErrInternal.Wrap("height nil or not tm client height")
+	}
+	tmClientState.LatestHeight = height
+
 	tmClientState.FrozenHeight = ibctm.FrozenHeight
-	tmClientState.LatestHeight = clienttypes.NewHeight(1, height)
 
 	setClientState(clientStore, k.cdc, tmClientState)
+
+	return nil
 }
 
 // freezeClient freezes the client by setting the frozen height to the current height

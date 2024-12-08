@@ -56,10 +56,8 @@ func checkClient(ctx sdk.Context, k Keeper, client types.CanonicalClient) error 
 	if !ok {
 		return gerrc.ErrNotFound.Wrapf("rollapp for rollapp ID: %s", client.RollappId)
 	}
-	_, ok = k.ibcClientKeeper.GetClientConsensusState(ctx, client.IbcClientId, cs.GetLatestHeight())
-	if !ok {
-		return gerrc.ErrNotFound.Wrapf("latest consensus state for client ID: %s", client.IbcClientId)
-	}
+	// NOTE: it is not actually an invariant that the consensus state needs to exist for the latest height
+	// Because they can be pruned
 	return nil
 }
 
