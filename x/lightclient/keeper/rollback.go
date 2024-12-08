@@ -105,7 +105,7 @@ func (k Keeper) freezeClient(clientStore sdk.KVStore, heightI exported.Height) e
 	// ibctesting doesn't like not having it.
 	height, ok := heightI.(clienttypes.Height)
 	if !ok {
-		return gerrc.ErrInvalidArgument.Wrap("height nil or not tm client height")
+		return gerrc.ErrInternal.Wrap("height nil or not tm client height")
 	}
 	tmClientState.LatestHeight = height
 
