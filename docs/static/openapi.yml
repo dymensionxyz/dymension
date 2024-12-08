@@ -99,7 +99,6 @@ paths:
                       enum:
                         - PENDING
                         - FINALIZED
-                        - REVERTED
                       default: PENDING
                     ProofHeight:
                       type: string
@@ -357,7 +356,6 @@ paths:
           enum:
             - PENDING
             - FINALIZED
-            - REVERTED
         - name: type
           in: query
           required: false
@@ -665,6 +663,409 @@ paths:
                         }
       tags:
         - Query
+  /dymensionxyz/dymension/delayedack/pending-receiver-packets/{address}:
+    get:
+      summary: Queries a list of pending RollappPacket items by rollappID and receiver.
+      operationId: GetPendingPacketsByAddress
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              rollappPackets:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    rollapp_id:
+                      type: string
+                    packet:
+                      type: object
+                      properties:
+                        sequence:
+                          type: string
+                          format: uint64
+                          description: >-
+                            number corresponds to the order of sends and
+                            receives, where a Packet
+
+                            with an earlier sequence number must be sent and
+                            received before a Packet
+
+                            with a later sequence number.
+                        source_port:
+                          type: string
+                          description: identifies the port on the sending chain.
+                        source_channel:
+                          type: string
+                          description: identifies the channel end on the sending chain.
+                        destination_port:
+                          type: string
+                          description: identifies the port on the receiving chain.
+                        destination_channel:
+                          type: string
+                          description: identifies the channel end on the receiving chain.
+                        data:
+                          type: string
+                          format: byte
+                          title: >-
+                            actual opaque bytes transferred directly to the
+                            application module
+                        timeout_height:
+                          title: block height after which the packet times out
+                          type: object
+                          properties:
+                            revision_number:
+                              type: string
+                              format: uint64
+                              title: the revision that the client is currently on
+                            revision_height:
+                              type: string
+                              format: uint64
+                              title: the height within the given revision
+                          description: >-
+                            Normally the RevisionHeight is incremented at each
+                            height while keeping
+
+                            RevisionNumber the same. However some consensus
+                            algorithms may choose to
+
+                            reset the height in certain conditions e.g. hard
+                            forks, state-machine
+
+                            breaking changes In these cases, the RevisionNumber
+                            is incremented so that
+
+                            height continues to be monitonically increasing even
+                            as the RevisionHeight
+
+                            gets reset
+                        timeout_timestamp:
+                          type: string
+                          format: uint64
+                          title: >-
+                            block timestamp (in nanoseconds) after which the
+                            packet times out
+                      title: >-
+                        Packet defines a type that carries data across different
+                        chains through IBC
+                    acknowledgement:
+                      type: string
+                      format: byte
+                    status:
+                      type: string
+                      enum:
+                        - PENDING
+                        - FINALIZED
+                      default: PENDING
+                    ProofHeight:
+                      type: string
+                      format: uint64
+                    relayer:
+                      type: string
+                      format: byte
+                    type:
+                      type: string
+                      enum:
+                        - ON_RECV
+                        - ON_ACK
+                        - ON_TIMEOUT
+                        - UNDEFINED
+                      default: ON_RECV
+                    error:
+                      type: string
+                      title: stores the result of onAck, onTimeout or onRecv/writeAck
+                    original_transfer_target:
+                      type: string
+                      title: >-
+                        who was the original person who gets the money
+                        (recipient of ics20 transfer) of the packet?
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                      description: >-
+                        A URL/resource name that uniquely identifies the type of
+                        the serialized
+
+                        protocol buffer message. This string must contain at
+                        least
+
+                        one "/" character. The last segment of the URL's path
+                        must represent
+
+                        the fully qualified name of the type (as in
+
+                        `path/google.protobuf.Duration`). The name should be in
+                        a canonical form
+
+                        (e.g., leading "." is not accepted).
+
+
+                        In practice, teams usually precompile into the binary
+                        all types that they
+
+                        expect it to use in the context of Any. However, for
+                        URLs which use the
+
+                        scheme `http`, `https`, or no scheme, one can optionally
+                        set up a type
+
+                        server that maps type URLs to message definitions as
+                        follows:
+
+
+                        * If no scheme is provided, `https` is assumed.
+
+                        * An HTTP GET on the URL must yield a
+                        [google.protobuf.Type][]
+                          value in binary format, or produce an error.
+                        * Applications are allowed to cache lookup results based
+                        on the
+                          URL, or have them precompiled into a binary to avoid any
+                          lookup. Therefore, binary compatibility needs to be preserved
+                          on changes to types. (Use versioned type names to manage
+                          breaking changes.)
+
+                        Note: this functionality is not currently available in
+                        the official
+
+                        protobuf release, and it is not used for type URLs
+                        beginning with
+
+                        type.googleapis.com.
+
+
+                        Schemes other than `http`, `https` (or the empty scheme)
+                        might be
+
+                        used with implementation specific semantics.
+                    value:
+                      type: string
+                      format: byte
+                      description: >-
+                        Must be a valid serialized protocol buffer of the above
+                        specified type.
+                  description: >-
+                    `Any` contains an arbitrary serialized protocol buffer
+                    message along with a
+
+                    URL that describes the type of the serialized message.
+
+
+                    Protobuf library provides support to pack/unpack Any values
+                    in the form
+
+                    of utility functions or additional generated methods of the
+                    Any type.
+
+
+                    Example 1: Pack and unpack a message in C++.
+
+                        Foo foo = ...;
+                        Any any;
+                        any.PackFrom(foo);
+                        ...
+                        if (any.UnpackTo(&foo)) {
+                          ...
+                        }
+
+                    Example 2: Pack and unpack a message in Java.
+
+                        Foo foo = ...;
+                        Any any = Any.pack(foo);
+                        ...
+                        if (any.is(Foo.class)) {
+                          foo = any.unpack(Foo.class);
+                        }
+                        // or ...
+                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+                          foo = any.unpack(Foo.getDefaultInstance());
+                        }
+
+                    Example 3: Pack and unpack a message in Python.
+
+                        foo = Foo(...)
+                        any = Any()
+                        any.Pack(foo)
+                        ...
+                        if any.Is(Foo.DESCRIPTOR):
+                          any.Unpack(foo)
+                          ...
+
+                    Example 4: Pack and unpack a message in Go
+
+                         foo := &pb.Foo{...}
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
+                         ...
+                         foo := &pb.Foo{}
+                         if err := any.UnmarshalTo(foo); err != nil {
+                           ...
+                         }
+
+                    The pack methods provided by protobuf library will by
+                    default use
+
+                    'type.googleapis.com/full.type.name' as the type URL and the
+                    unpack
+
+                    methods only use the fully qualified type name after the
+                    last '/'
+
+                    in the type URL, for example "foo.bar.com/x/y.z" will yield
+                    type
+
+                    name "y.z".
+
+
+                    JSON
+
+
+                    The JSON representation of an `Any` value uses the regular
+
+                    representation of the deserialized, embedded message, with
+                    an
+
+                    additional field `@type` which contains the type URL.
+                    Example:
+
+                        package google.profile;
+                        message Person {
+                          string first_name = 1;
+                          string last_name = 2;
+                        }
+
+                        {
+                          "@type": "type.googleapis.com/google.profile.Person",
+                          "firstName": <string>,
+                          "lastName": <string>
+                        }
+
+                    If the embedded message type is well-known and has a custom
+                    JSON
+
+                    representation, that representation will be embedded adding
+                    a field
+
+                    `value` which holds the custom JSON in addition to the
+                    `@type`
+
+                    field. Example (for message [google.protobuf.Duration][]):
+
+                        {
+                          "@type": "type.googleapis.com/google.protobuf.Duration",
+                          "value": "1.212s"
+                        }
+      parameters:
+        - name: address
+          in: path
+          required: true
+          type: string
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
   /dymensionxyz/dymension/eibc/demand_order/{id}:
     get:
       summary: Queries a Demand Order by id.
@@ -737,12 +1138,16 @@ paths:
                       they pay price and receive fee + price
                   recipient:
                     type: string
+                  deprecated_is_fulfilled:
+                    type: boolean
+                    description: |-
+                      Deprecated: use DemandOrder.IsFulfilled method instead.
+                      Only used for backwards compatibility.
                   tracking_packet_status:
                     type: string
                     enum:
                       - PENDING
                       - FINALIZED
-                      - REVERTED
                     default: PENDING
                   rollapp_id:
                     type: string
@@ -759,6 +1164,12 @@ paths:
                     description: >-
                       fulfiller_address is the bech32-encoded address of the
                       account which fulfilled the order.
+                  creation_height:
+                    type: string
+                    format: uint64
+                    description: >-
+                      creation_height is the height of the block when order was
+                      created.
             description: >-
               QueryGetDemandOrderResponse is the response type for the
               Query/GetDemandOrder RPC method.
@@ -1039,12 +1450,16 @@ paths:
                         because they pay price and receive fee + price
                     recipient:
                       type: string
+                    deprecated_is_fulfilled:
+                      type: boolean
+                      description: |-
+                        Deprecated: use DemandOrder.IsFulfilled method instead.
+                        Only used for backwards compatibility.
                     tracking_packet_status:
                       type: string
                       enum:
                         - PENDING
                         - FINALIZED
-                        - REVERTED
                       default: PENDING
                     rollapp_id:
                       type: string
@@ -1061,7 +1476,41 @@ paths:
                       description: >-
                         fulfiller_address is the bech32-encoded address of the
                         account which fulfilled the order.
+                    creation_height:
+                      type: string
+                      format: uint64
+                      description: >-
+                        creation_height is the height of the block when order
+                        was created.
                 title: A list of demand orders with the given status
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
             description: >-
               QueryDemandOrdersByStatusResponse is the response type for the
               Query/GetDemandOrdersByStatus RPC method.
@@ -1268,7 +1717,6 @@ paths:
           enum:
             - PENDING
             - FINALIZED
-            - REVERTED
         - name: type
           description: optional type.
           in: query
@@ -1316,6 +1764,62 @@ paths:
           in: query
           required: false
           type: string
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   /dymensionxyz/dymension/eibc/params:
@@ -2904,6 +3408,14 @@ paths:
                           low price offers,
 
                           so the value should not be so low.
+                      min_bid_increment_percent:
+                        type: integer
+                        format: int64
+                        description: >-
+                          min_bid_increment_percent is the minimum percent
+                          raised compare to previous bid of a Sell-Order.
+
+                          The valid range from 0% to 100%, but capped at 10%.
                   chains:
                     description: chains defines setting for prioritized aliases mapping.
                     type: object
@@ -2976,10 +3488,7 @@ paths:
                           enable_trading_alias is the flag to enable trading of
                           Alias.
 
-                          To be used in the future when Alias trading
-                          implementation is ready
-
-                          or disable trading of Alias when needed.
+                          To be used to stop trading of Alias when needed.
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -3374,43 +3883,29 @@ paths:
                   genesis_state:
                     title: >-
                       genesis_state is a partial repr of the state the hub can
-                      expect the rollapp to be in upon genesis
+                      expect the rollapp
+
+                      to be in upon genesis
                     type: object
                     properties:
-                      transfers_enabled:
-                        type: boolean
+                      transfer_proof_height:
+                        type: string
+                        format: uint64
                         description: >-
-                          If true, then full usage of the canonical ibc transfer
-                          channel is enabled.
+                          0 means unpopulated
 
-                          Note: in v3.1.0 and prior this field marked the
-                          completion of the 'genesis event'
+                          If populated, it's the proof height that the hub
+                          received the genesis transfer
 
-                          Keeping and renaming the field enables a seamless
-                          upgrade
-                          https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
+                          packet from the rollapp. If populated, the bridge is
+                          considered open. It's not allowed
 
-                          to the new genesis transfer protocol
-
-                          Note: if this field is false, ibc transfers may still
-                          be allowed in one or either direction.
+                          to fork to a height prior to this height.
                   channel_id:
                     type: string
                     description: >-
                       channel_id will be set to the canonical IBC channel of the
                       rollapp.
-                  frozen:
-                    type: boolean
-                    description: >-
-                      frozen is a boolean that indicates if the rollapp is
-                      frozen.
-                  registeredDenoms:
-                    type: array
-                    items:
-                      type: string
-                    title: >-
-                      registeredDenoms is a list of registered denom bases on
-                      this rollapp
                   metadata:
                     title: metadata is the rollapp metadata
                     type: object
@@ -3459,6 +3954,13 @@ paths:
                           exponent:
                             type: integer
                             format: int64
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                        description: >-
+                          Tags is a list of tags that can be used to filter
+                          rollapps.
                   genesis_info:
                     title: genesis_info keeps immutable rollapp fields
                     type: object
@@ -3490,18 +3992,65 @@ paths:
                         title: >-
                           sealed indicates if the fields in this object are no
                           longer updatable
+                      genesis_accounts:
+                        type: object
+                        properties:
+                          accounts:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                amount:
+                                  type: string
+                                  title: >-
+                                    amount of coins to be sent to the genesis
+                                    address
+                                address:
+                                  type: string
+                                  title: >-
+                                    address is a bech-32 address of the genesis
+                                    account
+                              title: >-
+                                GenesisAccount is a struct for the genesis
+                                account for the rollapp
                   initial_sequencer:
                     type: string
                     description: >-
                       initial_sequencer is an option to preset one or more
-                      coma-separated bech32-encoded addresses of the
+                      coma-separated
 
-                      sequencer(s) that are allowed to initially register and
-                      serve for this rollapp.
+                      bech32-encoded addresses of the sequencer(s) that are
+                      allowed to initially
 
-                      if left empty, no sequencer is allowed to register.
+                      register and serve for this rollapp. if left empty, no
+                      sequencer is allowed
 
-                      if set to "*" any sequencer can register.
+                      to register. if set to "*" any sequencer can register.
+                  min_sequencer_bond:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                        amount:
+                          type: string
+                      description: >-
+                        Coin defines a token with a denomination and an amount.
+
+
+                        NOTE: The amount field is an Int which implements the
+                        custom method
+
+                        signatures required by gogoproto.
+                    description: >-
+                      How much a sequencer needs to have at stake to be proposer
+                      be proposer.
+
+                      Denom is dym. It is empty or ONE coin only. Coins is just
+                      a convenience to avoid
+
+                      marshalling issues.
                   vm_type:
                     title: 'vm_type is the type of rollapp machine: EVM or WASM'
                     type: string
@@ -3514,28 +4063,63 @@ paths:
                     type: boolean
                     description: >-
                       launched is a boolean that indicates that the Rollapp has
-                      been launched and the immutable fields are no longer
-                      updatable.
+                      been launched and
+
+                      the immutable fields are no longer updatable.
+                  pre_launch_time:
+                    type: string
+                    format: date-time
+                    title: >-
+                      pre_launch_time is the timestamp indicating the time
+                      before which the
+
+                      rollapp cannot be started.
+
+                      Set when creating IRO plan for the rollapp
                   liveness_event_height:
                     type: string
                     format: int64
                     title: >-
-                      LivenessEventHeight is the height of an upcoming liveness
-                      event (slash or jail)
+                      LivenessEventHeight is the height on the HUB of an
+                      upcoming liveness event (slash or
 
-                      0 means not set
-                  last_state_update_height:
+                      jail against the rollapp). 0 means not set
+                  liveness_countdown_start_height:
                     type: string
                     format: int64
-                    title: >-
-                      The LastStateUpdateHeight HUB height when the last state
-                      update was received
+                    description: >-
+                      The height on the HUB that we start counting liveness
+                      from. If the rollapp is not active
+
+                      for a long time after this height, a liveness event will
+                      happen.
+                  revisions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        number:
+                          type: string
+                          format: uint64
+                          description: >-
+                            Number is the revision number of the rollapp. Always
+                            start with 0 revision.
+                        start_height:
+                          type: string
+                          format: uint64
+                          description: >-
+                            StartHeight is the first height of the rollapp when
+                            the revision started.
+                      description: Revision is a representation of the rollapp revision.
+                    description: Revisions is a list of all the rollapp revisions.
                 title: >-
                   Rollapp defines a rollapp object. First, the RollApp is
                   created and then
 
                   sequencers can be created and attached. The RollApp is
-                  identified by rollappId
+                  identified by
+
+                  rollappId
               summary:
                 type: object
                 properties:
@@ -3636,6 +4220,10 @@ paths:
                 items:
                   type: object
                   properties:
+                    id:
+                      type: string
+                      format: uint64
+                      title: id is the unique App's id in the Rollapp
                     name:
                       type: string
                       title: name is the unique App's name
@@ -3816,6 +4404,45 @@ paths:
           type: boolean
       tags:
         - Query
+  /dymensionxyz/dymension/rollapp/obsolete_drs_versions:
+    get:
+      summary: Queries a list of obsolete DRS versions.
+      operationId: ObsoleteDRSVersions
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              drs_versions:
+                type: array
+                items:
+                  type: integer
+                  format: int64
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Query
   /dymensionxyz/dymension/rollapp/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -3849,14 +4476,7 @@ paths:
                     title: >-
                       The min gap (num hub blocks) between a sequence of slashes
                       if the sequencer continues to be down
-                  liveness_jail_blocks:
-                    type: string
-                    format: uint64
-                    title: >-
-                      The time (num hub blocks) a sequencer can be down after
-                      which he will be jailed rather than slashed
                   app_registration_fee:
-                    title: app_registration_fee is the fee for registering an App
                     type: object
                     properties:
                       denom:
@@ -3871,6 +4491,23 @@ paths:
                       custom method
 
                       signatures required by gogoproto.
+                    title: app_registration_fee is the fee for registering an App
+                  min_sequencer_bond_global:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+                    title: no rollapp can have a minimum less than this (in dym)
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -3896,6 +4533,133 @@ paths:
                     value:
                       type: string
                       format: byte
+      tags:
+        - Query
+  /dymensionxyz/dymension/rollapp/registered_denoms:
+    get:
+      summary: Queries a list of registered denoms for the rollapp.
+      operationId: RegisteredDenoms
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              denoms:
+                type: array
+                items:
+                  type: string
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: rollappId
+          in: query
+          required: false
+          type: string
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   /dymensionxyz/dymension/rollapp/rollapp:
@@ -3931,43 +4695,29 @@ paths:
                         genesis_state:
                           title: >-
                             genesis_state is a partial repr of the state the hub
-                            can expect the rollapp to be in upon genesis
+                            can expect the rollapp
+
+                            to be in upon genesis
                           type: object
                           properties:
-                            transfers_enabled:
-                              type: boolean
+                            transfer_proof_height:
+                              type: string
+                              format: uint64
                               description: >-
-                                If true, then full usage of the canonical ibc
-                                transfer channel is enabled.
+                                0 means unpopulated
 
-                                Note: in v3.1.0 and prior this field marked the
-                                completion of the 'genesis event'
+                                If populated, it's the proof height that the hub
+                                received the genesis transfer
 
-                                Keeping and renaming the field enables a
-                                seamless upgrade
-                                https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
+                                packet from the rollapp. If populated, the
+                                bridge is considered open. It's not allowed
 
-                                to the new genesis transfer protocol
-
-                                Note: if this field is false, ibc transfers may
-                                still be allowed in one or either direction.
+                                to fork to a height prior to this height.
                         channel_id:
                           type: string
                           description: >-
                             channel_id will be set to the canonical IBC channel
                             of the rollapp.
-                        frozen:
-                          type: boolean
-                          description: >-
-                            frozen is a boolean that indicates if the rollapp is
-                            frozen.
-                        registeredDenoms:
-                          type: array
-                          items:
-                            type: string
-                          title: >-
-                            registeredDenoms is a list of registered denom bases
-                            on this rollapp
                         metadata:
                           title: metadata is the rollapp metadata
                           type: object
@@ -4018,6 +4768,13 @@ paths:
                                 exponent:
                                   type: integer
                                   format: int64
+                            tags:
+                              type: array
+                              items:
+                                type: string
+                              description: >-
+                                Tags is a list of tags that can be used to
+                                filter rollapps.
                         genesis_info:
                           title: genesis_info keeps immutable rollapp fields
                           type: object
@@ -4053,18 +4810,67 @@ paths:
                               title: >-
                                 sealed indicates if the fields in this object
                                 are no longer updatable
+                            genesis_accounts:
+                              type: object
+                              properties:
+                                accounts:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      amount:
+                                        type: string
+                                        title: >-
+                                          amount of coins to be sent to the
+                                          genesis address
+                                      address:
+                                        type: string
+                                        title: >-
+                                          address is a bech-32 address of the
+                                          genesis account
+                                    title: >-
+                                      GenesisAccount is a struct for the genesis
+                                      account for the rollapp
                         initial_sequencer:
                           type: string
                           description: >-
                             initial_sequencer is an option to preset one or more
-                            coma-separated bech32-encoded addresses of the
+                            coma-separated
 
-                            sequencer(s) that are allowed to initially register
-                            and serve for this rollapp.
+                            bech32-encoded addresses of the sequencer(s) that
+                            are allowed to initially
 
-                            if left empty, no sequencer is allowed to register.
+                            register and serve for this rollapp. if left empty,
+                            no sequencer is allowed
 
-                            if set to "*" any sequencer can register.
+                            to register. if set to "*" any sequencer can
+                            register.
+                        min_sequencer_bond:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              denom:
+                                type: string
+                              amount:
+                                type: string
+                            description: >-
+                              Coin defines a token with a denomination and an
+                              amount.
+
+
+                              NOTE: The amount field is an Int which implements
+                              the custom method
+
+                              signatures required by gogoproto.
+                          description: >-
+                            How much a sequencer needs to have at stake to be
+                            proposer be proposer.
+
+                            Denom is dym. It is empty or ONE coin only. Coins is
+                            just a convenience to avoid
+
+                            marshalling issues.
                         vm_type:
                           title: 'vm_type is the type of rollapp machine: EVM or WASM'
                           type: string
@@ -4077,28 +4883,65 @@ paths:
                           type: boolean
                           description: >-
                             launched is a boolean that indicates that the
-                            Rollapp has been launched and the immutable fields
-                            are no longer updatable.
+                            Rollapp has been launched and
+
+                            the immutable fields are no longer updatable.
+                        pre_launch_time:
+                          type: string
+                          format: date-time
+                          title: >-
+                            pre_launch_time is the timestamp indicating the time
+                            before which the
+
+                            rollapp cannot be started.
+
+                            Set when creating IRO plan for the rollapp
                         liveness_event_height:
                           type: string
                           format: int64
                           title: >-
-                            LivenessEventHeight is the height of an upcoming
-                            liveness event (slash or jail)
+                            LivenessEventHeight is the height on the HUB of an
+                            upcoming liveness event (slash or
 
-                            0 means not set
-                        last_state_update_height:
+                            jail against the rollapp). 0 means not set
+                        liveness_countdown_start_height:
                           type: string
                           format: int64
-                          title: >-
-                            The LastStateUpdateHeight HUB height when the last
-                            state update was received
+                          description: >-
+                            The height on the HUB that we start counting
+                            liveness from. If the rollapp is not active
+
+                            for a long time after this height, a liveness event
+                            will happen.
+                        revisions:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              number:
+                                type: string
+                                format: uint64
+                                description: >-
+                                  Number is the revision number of the rollapp.
+                                  Always start with 0 revision.
+                              start_height:
+                                type: string
+                                format: uint64
+                                description: >-
+                                  StartHeight is the first height of the rollapp
+                                  when the revision started.
+                            description: >-
+                              Revision is a representation of the rollapp
+                              revision.
+                          description: Revisions is a list of all the rollapp revisions.
                       title: >-
                         Rollapp defines a rollapp object. First, the RollApp is
                         created and then
 
                         sequencers can be created and attached. The RollApp is
-                        identified by rollappId
+                        identified by
+
+                        rollappId
                     summary:
                       type: object
                       properties:
@@ -4201,6 +5044,10 @@ paths:
                       items:
                         type: object
                         properties:
+                          id:
+                            type: string
+                            format: uint64
+                            title: id is the unique App's id in the Rollapp
                           name:
                             type: string
                             title: name is the unique App's name
@@ -4365,43 +5212,29 @@ paths:
                   genesis_state:
                     title: >-
                       genesis_state is a partial repr of the state the hub can
-                      expect the rollapp to be in upon genesis
+                      expect the rollapp
+
+                      to be in upon genesis
                     type: object
                     properties:
-                      transfers_enabled:
-                        type: boolean
+                      transfer_proof_height:
+                        type: string
+                        format: uint64
                         description: >-
-                          If true, then full usage of the canonical ibc transfer
-                          channel is enabled.
+                          0 means unpopulated
 
-                          Note: in v3.1.0 and prior this field marked the
-                          completion of the 'genesis event'
+                          If populated, it's the proof height that the hub
+                          received the genesis transfer
 
-                          Keeping and renaming the field enables a seamless
-                          upgrade
-                          https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
+                          packet from the rollapp. If populated, the bridge is
+                          considered open. It's not allowed
 
-                          to the new genesis transfer protocol
-
-                          Note: if this field is false, ibc transfers may still
-                          be allowed in one or either direction.
+                          to fork to a height prior to this height.
                   channel_id:
                     type: string
                     description: >-
                       channel_id will be set to the canonical IBC channel of the
                       rollapp.
-                  frozen:
-                    type: boolean
-                    description: >-
-                      frozen is a boolean that indicates if the rollapp is
-                      frozen.
-                  registeredDenoms:
-                    type: array
-                    items:
-                      type: string
-                    title: >-
-                      registeredDenoms is a list of registered denom bases on
-                      this rollapp
                   metadata:
                     title: metadata is the rollapp metadata
                     type: object
@@ -4450,6 +5283,13 @@ paths:
                           exponent:
                             type: integer
                             format: int64
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                        description: >-
+                          Tags is a list of tags that can be used to filter
+                          rollapps.
                   genesis_info:
                     title: genesis_info keeps immutable rollapp fields
                     type: object
@@ -4481,18 +5321,65 @@ paths:
                         title: >-
                           sealed indicates if the fields in this object are no
                           longer updatable
+                      genesis_accounts:
+                        type: object
+                        properties:
+                          accounts:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                amount:
+                                  type: string
+                                  title: >-
+                                    amount of coins to be sent to the genesis
+                                    address
+                                address:
+                                  type: string
+                                  title: >-
+                                    address is a bech-32 address of the genesis
+                                    account
+                              title: >-
+                                GenesisAccount is a struct for the genesis
+                                account for the rollapp
                   initial_sequencer:
                     type: string
                     description: >-
                       initial_sequencer is an option to preset one or more
-                      coma-separated bech32-encoded addresses of the
+                      coma-separated
 
-                      sequencer(s) that are allowed to initially register and
-                      serve for this rollapp.
+                      bech32-encoded addresses of the sequencer(s) that are
+                      allowed to initially
 
-                      if left empty, no sequencer is allowed to register.
+                      register and serve for this rollapp. if left empty, no
+                      sequencer is allowed
 
-                      if set to "*" any sequencer can register.
+                      to register. if set to "*" any sequencer can register.
+                  min_sequencer_bond:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                        amount:
+                          type: string
+                      description: >-
+                        Coin defines a token with a denomination and an amount.
+
+
+                        NOTE: The amount field is an Int which implements the
+                        custom method
+
+                        signatures required by gogoproto.
+                    description: >-
+                      How much a sequencer needs to have at stake to be proposer
+                      be proposer.
+
+                      Denom is dym. It is empty or ONE coin only. Coins is just
+                      a convenience to avoid
+
+                      marshalling issues.
                   vm_type:
                     title: 'vm_type is the type of rollapp machine: EVM or WASM'
                     type: string
@@ -4505,28 +5392,63 @@ paths:
                     type: boolean
                     description: >-
                       launched is a boolean that indicates that the Rollapp has
-                      been launched and the immutable fields are no longer
-                      updatable.
+                      been launched and
+
+                      the immutable fields are no longer updatable.
+                  pre_launch_time:
+                    type: string
+                    format: date-time
+                    title: >-
+                      pre_launch_time is the timestamp indicating the time
+                      before which the
+
+                      rollapp cannot be started.
+
+                      Set when creating IRO plan for the rollapp
                   liveness_event_height:
                     type: string
                     format: int64
                     title: >-
-                      LivenessEventHeight is the height of an upcoming liveness
-                      event (slash or jail)
+                      LivenessEventHeight is the height on the HUB of an
+                      upcoming liveness event (slash or
 
-                      0 means not set
-                  last_state_update_height:
+                      jail against the rollapp). 0 means not set
+                  liveness_countdown_start_height:
                     type: string
                     format: int64
-                    title: >-
-                      The LastStateUpdateHeight HUB height when the last state
-                      update was received
+                    description: >-
+                      The height on the HUB that we start counting liveness
+                      from. If the rollapp is not active
+
+                      for a long time after this height, a liveness event will
+                      happen.
+                  revisions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        number:
+                          type: string
+                          format: uint64
+                          description: >-
+                            Number is the revision number of the rollapp. Always
+                            start with 0 revision.
+                        start_height:
+                          type: string
+                          format: uint64
+                          description: >-
+                            StartHeight is the first height of the rollapp when
+                            the revision started.
+                      description: Revision is a representation of the rollapp revision.
+                    description: Revisions is a list of all the rollapp revisions.
                 title: >-
                   Rollapp defines a rollapp object. First, the RollApp is
                   created and then
 
                   sequencers can be created and attached. The RollApp is
-                  identified by rollappId
+                  identified by
+
+                  rollappId
               summary:
                 type: object
                 properties:
@@ -4627,6 +5549,10 @@ paths:
                 items:
                   type: object
                   properties:
+                    id:
+                      type: string
+                      format: uint64
+                      title: id is the unique App's id in the Rollapp
                     name:
                       type: string
                       title: name is the unique App's name
@@ -4765,7 +5691,6 @@ paths:
                     enum:
                       - PENDING
                       - FINALIZED
-                      - REVERTED
                     default: PENDING
                   BDs:
                     title: >-
@@ -4794,10 +5719,28 @@ paths:
                               type: string
                               format: date-time
                               title: timestamp is the time from the block header
+                            drs_version:
+                              type: integer
+                              format: int64
+                              description: DrsVersion is a DRS version used by the rollapp.
                           description: >-
                             BlockDescriptor defines a single rollapp chain block
                             description.
                     description: BlockDescriptors defines list of BlockDescriptor.
+                  created_at:
+                    type: string
+                    format: date-time
+                    title: >-
+                      created_at is the timestamp at which the StateInfo was
+                      created
+                  nextProposer:
+                    type: string
+                    description: >-
+                      NextProposer is the bech32-encoded address of the proposer
+                      that we expect to see in the next state info.
+
+                      Most of the time NextProposer is the current proposer. In
+                      case of rotation it is changed to the successor.
                 description: StateInfo defines a rollapps' state.
         default:
           description: An unexpected error response.
@@ -5080,7 +6023,10 @@ paths:
                 description: params holds all the parameters of this module.
                 type: object
                 properties:
-                  min_bond:
+                  kick_threshold:
+                    title: >-
+                      amt where the active sequencer can be kicked if he has
+                      less or equal bond
                     type: object
                     properties:
                       denom:
@@ -5095,9 +6041,6 @@ paths:
                       custom method
 
                       signatures required by gogoproto.
-                  unbonding_time:
-                    type: string
-                    description: unbonding_time is the time duration of unbonding.
                   notice_period:
                     type: string
                     description: >-
@@ -5108,11 +6051,29 @@ paths:
 
                       unbonding starting. the proposer is still bonded during
                       this period.
-                  liveness_slash_multiplier:
+                  liveness_slash_min_multiplier:
                     type: string
                     description: >-
-                      LivenessSlashMultiplier multiplies with the tokens of the
-                      slashed sequencer to compute the burn amount.
+                      liveness_slash_min_multiplier multiplies with the tokens
+                      of the slashed sequencer to compute the burn amount.
+                  liveness_slash_min_absolute:
+                    title: >-
+                      liveness_slash_min_absolute is the absolute minimum to
+                      slash for liveness
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -5330,7 +6291,7 @@ paths:
                     address:
                       type: string
                       description: >-
-                        address is the bech32-encoded address of the sequencer
+                        Address is the bech32-encoded address of the sequencer
                         account which is the account that the message was sent
                         from.
                     dymintPubKey:
@@ -5518,11 +6479,11 @@ paths:
                     rollappId:
                       type: string
                       description: >-
-                        rollappId defines the rollapp to which the sequencer
+                        RollappId defines the rollapp to which the sequencer
                         belongs.
                     metadata:
                       description: >-
-                        metadata defines the extra information for the
+                        SequencerMetadata defines the extra information for the
                         sequencer.
                       type: object
                       properties:
@@ -5598,26 +6559,27 @@ paths:
                         gas_price:
                           type: string
                           title: gas_price defines the value for each gas unit
-                    jailed:
-                      type: boolean
-                      description: >-
-                        jailed defined whether the sequencer has been jailed
-                        from bonded status or not.
                     proposer:
                       type: boolean
                     status:
                       description: >-
-                        status is the sequencer status
-                        (bonded/unbonding/unbonded).
+                        OperatingStatus is the sequencer status
+                        (bonded/unbonded).
                       type: string
                       enum:
                         - OPERATING_STATUS_UNBONDED
-                        - OPERATING_STATUS_UNBONDING
                         - OPERATING_STATUS_BONDED
                       default: OPERATING_STATUS_UNBONDED
                       title: >-
                         OperatingStatus defines the operating status of a
                         sequencer
+                    opted_in:
+                      type: boolean
+                      title: >-
+                        OptedIn : when true and bonded, the sequencer can be
+                        chosen as proposer or successor
+
+                        has no effect if already proposer or successor
                     tokens:
                       type: array
                       items:
@@ -5637,28 +6599,25 @@ paths:
 
                           signatures required by gogoproto.
                       description: >-
-                        tokens define the delegated tokens (incl.
-                        self-delegation).
-                    unbond_request_height:
-                      type: string
-                      format: int64
-                      description: >-
-                        unbond_request_height stores the height at which this
-                        sequencer has
-
-                        requested to unbond.
-                    unbond_time:
-                      type: string
-                      format: date-time
-                      description: >-
-                        unbond_time defines the time when the sequencer will
-                        complete unbonding.
+                        Tokens: A coins which should always be one dym coin.
+                        It's the amount of tokens the sequencer has given to the
+                        module.
                     notice_period_time:
                       type: string
                       format: date-time
-                      title: >-
-                        notice_period_time defines the time when the sequencer
-                        will finish it's notice period if started
+                      description: >-
+                        NoticePeriodTime defines the time when the sequencer
+                        will finish it's notice period. Zero means not started.
+                    reward_addr:
+                      type: string
+                      title: RewardAddr is a bech32 encoded sdk acc address
+                    whitelisted_relayers:
+                      type: array
+                      items:
+                        type: string
+                      description: >-
+                        WhitelistedRelayers is an array of the whitelisted
+                        relayer addresses. Addresses are bech32-encoded strings.
                   description: >-
                     Sequencer defines a sequencer identified by its' address
                     (sequencerAddress).
@@ -6177,7 +7136,7 @@ paths:
                   address:
                     type: string
                     description: >-
-                      address is the bech32-encoded address of the sequencer
+                      Address is the bech32-encoded address of the sequencer
                       account which is the account that the message was sent
                       from.
                   dymintPubKey:
@@ -6363,10 +7322,12 @@ paths:
                   rollappId:
                     type: string
                     description: >-
-                      rollappId defines the rollapp to which the sequencer
+                      RollappId defines the rollapp to which the sequencer
                       belongs.
                   metadata:
-                    description: metadata defines the extra information for the sequencer.
+                    description: >-
+                      SequencerMetadata defines the extra information for the
+                      sequencer.
                     type: object
                     properties:
                       moniker:
@@ -6441,26 +7402,25 @@ paths:
                       gas_price:
                         type: string
                         title: gas_price defines the value for each gas unit
-                  jailed:
-                    type: boolean
-                    description: >-
-                      jailed defined whether the sequencer has been jailed from
-                      bonded status or not.
                   proposer:
                     type: boolean
                   status:
-                    description: >-
-                      status is the sequencer status
-                      (bonded/unbonding/unbonded).
+                    description: OperatingStatus is the sequencer status (bonded/unbonded).
                     type: string
                     enum:
                       - OPERATING_STATUS_UNBONDED
-                      - OPERATING_STATUS_UNBONDING
                       - OPERATING_STATUS_BONDED
                     default: OPERATING_STATUS_UNBONDED
                     title: >-
                       OperatingStatus defines the operating status of a
                       sequencer
+                  opted_in:
+                    type: boolean
+                    title: >-
+                      OptedIn : when true and bonded, the sequencer can be
+                      chosen as proposer or successor
+
+                      has no effect if already proposer or successor
                   tokens:
                     type: array
                     items:
@@ -6479,28 +7439,25 @@ paths:
 
                         signatures required by gogoproto.
                     description: >-
-                      tokens define the delegated tokens (incl.
-                      self-delegation).
-                  unbond_request_height:
-                    type: string
-                    format: int64
-                    description: >-
-                      unbond_request_height stores the height at which this
-                      sequencer has
-
-                      requested to unbond.
-                  unbond_time:
-                    type: string
-                    format: date-time
-                    description: >-
-                      unbond_time defines the time when the sequencer will
-                      complete unbonding.
+                      Tokens: A coins which should always be one dym coin. It's
+                      the amount of tokens the sequencer has given to the
+                      module.
                   notice_period_time:
                     type: string
                     format: date-time
-                    title: >-
-                      notice_period_time defines the time when the sequencer
-                      will finish it's notice period if started
+                    description: >-
+                      NoticePeriodTime defines the time when the sequencer will
+                      finish it's notice period. Zero means not started.
+                  reward_addr:
+                    type: string
+                    title: RewardAddr is a bech32 encoded sdk acc address
+                  whitelisted_relayers:
+                    type: array
+                    items:
+                      type: string
+                    description: >-
+                      WhitelistedRelayers is an array of the whitelisted relayer
+                      addresses. Addresses are bech32-encoded strings.
                 description: >-
                   Sequencer defines a sequencer identified by its' address
                   (sequencerAddress).
@@ -6726,7 +7683,7 @@ paths:
                     address:
                       type: string
                       description: >-
-                        address is the bech32-encoded address of the sequencer
+                        Address is the bech32-encoded address of the sequencer
                         account which is the account that the message was sent
                         from.
                     dymintPubKey:
@@ -6914,11 +7871,11 @@ paths:
                     rollappId:
                       type: string
                       description: >-
-                        rollappId defines the rollapp to which the sequencer
+                        RollappId defines the rollapp to which the sequencer
                         belongs.
                     metadata:
                       description: >-
-                        metadata defines the extra information for the
+                        SequencerMetadata defines the extra information for the
                         sequencer.
                       type: object
                       properties:
@@ -6994,26 +7951,27 @@ paths:
                         gas_price:
                           type: string
                           title: gas_price defines the value for each gas unit
-                    jailed:
-                      type: boolean
-                      description: >-
-                        jailed defined whether the sequencer has been jailed
-                        from bonded status or not.
                     proposer:
                       type: boolean
                     status:
                       description: >-
-                        status is the sequencer status
-                        (bonded/unbonding/unbonded).
+                        OperatingStatus is the sequencer status
+                        (bonded/unbonded).
                       type: string
                       enum:
                         - OPERATING_STATUS_UNBONDED
-                        - OPERATING_STATUS_UNBONDING
                         - OPERATING_STATUS_BONDED
                       default: OPERATING_STATUS_UNBONDED
                       title: >-
                         OperatingStatus defines the operating status of a
                         sequencer
+                    opted_in:
+                      type: boolean
+                      title: >-
+                        OptedIn : when true and bonded, the sequencer can be
+                        chosen as proposer or successor
+
+                        has no effect if already proposer or successor
                     tokens:
                       type: array
                       items:
@@ -7033,28 +7991,25 @@ paths:
 
                           signatures required by gogoproto.
                       description: >-
-                        tokens define the delegated tokens (incl.
-                        self-delegation).
-                    unbond_request_height:
-                      type: string
-                      format: int64
-                      description: >-
-                        unbond_request_height stores the height at which this
-                        sequencer has
-
-                        requested to unbond.
-                    unbond_time:
-                      type: string
-                      format: date-time
-                      description: >-
-                        unbond_time defines the time when the sequencer will
-                        complete unbonding.
+                        Tokens: A coins which should always be one dym coin.
+                        It's the amount of tokens the sequencer has given to the
+                        module.
                     notice_period_time:
                       type: string
                       format: date-time
-                      title: >-
-                        notice_period_time defines the time when the sequencer
-                        will finish it's notice period if started
+                      description: >-
+                        NoticePeriodTime defines the time when the sequencer
+                        will finish it's notice period. Zero means not started.
+                    reward_addr:
+                      type: string
+                      title: RewardAddr is a bech32 encoded sdk acc address
+                    whitelisted_relayers:
+                      type: array
+                      items:
+                        type: string
+                      description: >-
+                        WhitelistedRelayers is an array of the whitelisted
+                        relayer addresses. Addresses are bech32-encoded strings.
                   description: >-
                     Sequencer defines a sequencer identified by its' address
                     (sequencerAddress).
@@ -7360,7 +8315,7 @@ paths:
                     address:
                       type: string
                       description: >-
-                        address is the bech32-encoded address of the sequencer
+                        Address is the bech32-encoded address of the sequencer
                         account which is the account that the message was sent
                         from.
                     dymintPubKey:
@@ -7548,11 +8503,11 @@ paths:
                     rollappId:
                       type: string
                       description: >-
-                        rollappId defines the rollapp to which the sequencer
+                        RollappId defines the rollapp to which the sequencer
                         belongs.
                     metadata:
                       description: >-
-                        metadata defines the extra information for the
+                        SequencerMetadata defines the extra information for the
                         sequencer.
                       type: object
                       properties:
@@ -7628,26 +8583,27 @@ paths:
                         gas_price:
                           type: string
                           title: gas_price defines the value for each gas unit
-                    jailed:
-                      type: boolean
-                      description: >-
-                        jailed defined whether the sequencer has been jailed
-                        from bonded status or not.
                     proposer:
                       type: boolean
                     status:
                       description: >-
-                        status is the sequencer status
-                        (bonded/unbonding/unbonded).
+                        OperatingStatus is the sequencer status
+                        (bonded/unbonded).
                       type: string
                       enum:
                         - OPERATING_STATUS_UNBONDED
-                        - OPERATING_STATUS_UNBONDING
                         - OPERATING_STATUS_BONDED
                       default: OPERATING_STATUS_UNBONDED
                       title: >-
                         OperatingStatus defines the operating status of a
                         sequencer
+                    opted_in:
+                      type: boolean
+                      title: >-
+                        OptedIn : when true and bonded, the sequencer can be
+                        chosen as proposer or successor
+
+                        has no effect if already proposer or successor
                     tokens:
                       type: array
                       items:
@@ -7667,34 +8623,59 @@ paths:
 
                           signatures required by gogoproto.
                       description: >-
-                        tokens define the delegated tokens (incl.
-                        self-delegation).
-                    unbond_request_height:
-                      type: string
-                      format: int64
-                      description: >-
-                        unbond_request_height stores the height at which this
-                        sequencer has
-
-                        requested to unbond.
-                    unbond_time:
-                      type: string
-                      format: date-time
-                      description: >-
-                        unbond_time defines the time when the sequencer will
-                        complete unbonding.
+                        Tokens: A coins which should always be one dym coin.
+                        It's the amount of tokens the sequencer has given to the
+                        module.
                     notice_period_time:
                       type: string
                       format: date-time
-                      title: >-
-                        notice_period_time defines the time when the sequencer
-                        will finish it's notice period if started
+                      description: >-
+                        NoticePeriodTime defines the time when the sequencer
+                        will finish it's notice period. Zero means not started.
+                    reward_addr:
+                      type: string
+                      title: RewardAddr is a bech32 encoded sdk acc address
+                    whitelisted_relayers:
+                      type: array
+                      items:
+                        type: string
+                      description: >-
+                        WhitelistedRelayers is an array of the whitelisted
+                        relayer addresses. Addresses are bech32-encoded strings.
                   description: >-
                     Sequencer defines a sequencer identified by its' address
                     (sequencerAddress).
 
                     The sequencer could be attached to only one rollapp
                     (rollappId).
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
         default:
           description: An unexpected error response.
           schema:
@@ -7894,6 +8875,62 @@ paths:
           in: path
           required: true
           type: string
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   /dymensionxyz/dymension/sequencer/sequencers_by_rollapp/{rollappId}/{status}:
@@ -7914,7 +8951,7 @@ paths:
                     address:
                       type: string
                       description: >-
-                        address is the bech32-encoded address of the sequencer
+                        Address is the bech32-encoded address of the sequencer
                         account which is the account that the message was sent
                         from.
                     dymintPubKey:
@@ -8102,11 +9139,11 @@ paths:
                     rollappId:
                       type: string
                       description: >-
-                        rollappId defines the rollapp to which the sequencer
+                        RollappId defines the rollapp to which the sequencer
                         belongs.
                     metadata:
                       description: >-
-                        metadata defines the extra information for the
+                        SequencerMetadata defines the extra information for the
                         sequencer.
                       type: object
                       properties:
@@ -8182,26 +9219,27 @@ paths:
                         gas_price:
                           type: string
                           title: gas_price defines the value for each gas unit
-                    jailed:
-                      type: boolean
-                      description: >-
-                        jailed defined whether the sequencer has been jailed
-                        from bonded status or not.
                     proposer:
                       type: boolean
                     status:
                       description: >-
-                        status is the sequencer status
-                        (bonded/unbonding/unbonded).
+                        OperatingStatus is the sequencer status
+                        (bonded/unbonded).
                       type: string
                       enum:
                         - OPERATING_STATUS_UNBONDED
-                        - OPERATING_STATUS_UNBONDING
                         - OPERATING_STATUS_BONDED
                       default: OPERATING_STATUS_UNBONDED
                       title: >-
                         OperatingStatus defines the operating status of a
                         sequencer
+                    opted_in:
+                      type: boolean
+                      title: >-
+                        OptedIn : when true and bonded, the sequencer can be
+                        chosen as proposer or successor
+
+                        has no effect if already proposer or successor
                     tokens:
                       type: array
                       items:
@@ -8221,34 +9259,59 @@ paths:
 
                           signatures required by gogoproto.
                       description: >-
-                        tokens define the delegated tokens (incl.
-                        self-delegation).
-                    unbond_request_height:
-                      type: string
-                      format: int64
-                      description: >-
-                        unbond_request_height stores the height at which this
-                        sequencer has
-
-                        requested to unbond.
-                    unbond_time:
-                      type: string
-                      format: date-time
-                      description: >-
-                        unbond_time defines the time when the sequencer will
-                        complete unbonding.
+                        Tokens: A coins which should always be one dym coin.
+                        It's the amount of tokens the sequencer has given to the
+                        module.
                     notice_period_time:
                       type: string
                       format: date-time
-                      title: >-
-                        notice_period_time defines the time when the sequencer
-                        will finish it's notice period if started
+                      description: >-
+                        NoticePeriodTime defines the time when the sequencer
+                        will finish it's notice period. Zero means not started.
+                    reward_addr:
+                      type: string
+                      title: RewardAddr is a bech32 encoded sdk acc address
+                    whitelisted_relayers:
+                      type: array
+                      items:
+                        type: string
+                      description: >-
+                        WhitelistedRelayers is an array of the whitelisted
+                        relayer addresses. Addresses are bech32-encoded strings.
                   description: >-
                     Sequencer defines a sequencer identified by its' address
                     (sequencerAddress).
 
                     The sequencer could be attached to only one rollapp
                     (rollappId).
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
         default:
           description: An unexpected error response.
           schema:
@@ -8454,8 +9517,63 @@ paths:
           type: string
           enum:
             - OPERATING_STATUS_UNBONDED
-            - OPERATING_STATUS_UNBONDING
             - OPERATING_STATUS_BONDED
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   /dymensionxyz/dymension/streamer/active_streams:
@@ -19592,6 +20710,30 @@ paths:
                       will be triggered by
 
                       (day, week, etc.)
+                  create_gauge_base_fee:
+                    type: string
+                    description: >-
+                      CreateGaugeBaseFee is a base fee required to create a new
+                      gauge. The final
+
+                      fee is calculated as
+
+                      Fee = CreateGaugeBaseFee + AddDenomFee * (len(Denoms) +
+                      len(GaugeDenoms)).
+                  add_to_gauge_base_fee:
+                    type: string
+                    description: >-
+                      AddToGaugeBaseFee is a base fee required to add to gauge.
+                      The final
+
+                      fee is calculated as
+
+                      Fee = AddToGaugeBaseFee + AddDenomFee * len(Denoms).
+                  add_denom_fee:
+                    type: string
+                    description: >-
+                      AddDenomFee is a fee charged for adding every new denom to
+                      the gauge.
         default:
           description: An unexpected error response.
           schema:
@@ -59601,7 +60743,6 @@ definitions:
         enum:
           - PENDING
           - FINALIZED
-          - REVERTED
         default: PENDING
       ProofHeight:
         type: string
@@ -59638,7 +60779,6 @@ definitions:
     enum:
       - PENDING
       - FINALIZED
-      - REVERTED
     default: PENDING
   dymensionxyz.dymension.delayedack.Params:
     type: object
@@ -59700,6 +60840,143 @@ definitions:
 
               that weren't deleted but rather "postponed", to subsequent epochs.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+  dymensionxyz.dymension.delayedack.QueryPendingPacketByAddressListResponse:
+    type: object
+    properties:
+      rollappPackets:
+        type: array
+        items:
+          type: object
+          properties:
+            rollapp_id:
+              type: string
+            packet:
+              type: object
+              properties:
+                sequence:
+                  type: string
+                  format: uint64
+                  description: >-
+                    number corresponds to the order of sends and receives, where
+                    a Packet
+
+                    with an earlier sequence number must be sent and received
+                    before a Packet
+
+                    with a later sequence number.
+                source_port:
+                  type: string
+                  description: identifies the port on the sending chain.
+                source_channel:
+                  type: string
+                  description: identifies the channel end on the sending chain.
+                destination_port:
+                  type: string
+                  description: identifies the port on the receiving chain.
+                destination_channel:
+                  type: string
+                  description: identifies the channel end on the receiving chain.
+                data:
+                  type: string
+                  format: byte
+                  title: >-
+                    actual opaque bytes transferred directly to the application
+                    module
+                timeout_height:
+                  title: block height after which the packet times out
+                  type: object
+                  properties:
+                    revision_number:
+                      type: string
+                      format: uint64
+                      title: the revision that the client is currently on
+                    revision_height:
+                      type: string
+                      format: uint64
+                      title: the height within the given revision
+                  description: >-
+                    Normally the RevisionHeight is incremented at each height
+                    while keeping
+
+                    RevisionNumber the same. However some consensus algorithms
+                    may choose to
+
+                    reset the height in certain conditions e.g. hard forks,
+                    state-machine
+
+                    breaking changes In these cases, the RevisionNumber is
+                    incremented so that
+
+                    height continues to be monitonically increasing even as the
+                    RevisionHeight
+
+                    gets reset
+                timeout_timestamp:
+                  type: string
+                  format: uint64
+                  title: >-
+                    block timestamp (in nanoseconds) after which the packet
+                    times out
+              title: >-
+                Packet defines a type that carries data across different chains
+                through IBC
+            acknowledgement:
+              type: string
+              format: byte
+            status:
+              type: string
+              enum:
+                - PENDING
+                - FINALIZED
+              default: PENDING
+            ProofHeight:
+              type: string
+              format: uint64
+            relayer:
+              type: string
+              format: byte
+            type:
+              type: string
+              enum:
+                - ON_RECV
+                - ON_ACK
+                - ON_TIMEOUT
+                - UNDEFINED
+              default: ON_RECV
+            error:
+              type: string
+              title: stores the result of onAck, onTimeout or onRecv/writeAck
+            original_transfer_target:
+              type: string
+              title: >-
+                who was the original person who gets the money (recipient of
+                ics20 transfer) of the packet?
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
   dymensionxyz.dymension.delayedack.QueryRollappPacketListResponse:
     type: object
     properties:
@@ -59788,7 +61065,6 @@ definitions:
               enum:
                 - PENDING
                 - FINALIZED
-                - REVERTED
               default: PENDING
             ProofHeight:
               type: string
@@ -60330,12 +61606,16 @@ definitions:
           price and receive fee + price
       recipient:
         type: string
+      deprecated_is_fulfilled:
+        type: boolean
+        description: |-
+          Deprecated: use DemandOrder.IsFulfilled method instead.
+          Only used for backwards compatibility.
       tracking_packet_status:
         type: string
         enum:
           - PENDING
           - FINALIZED
-          - REVERTED
         default: PENDING
       rollapp_id:
         type: string
@@ -60352,6 +61632,10 @@ definitions:
         description: >-
           fulfiller_address is the bech32-encoded address of the account which
           fulfilled the order.
+      creation_height:
+        type: string
+        format: uint64
+        description: creation_height is the height of the block when order was created.
   dymensionxyz.dymension.eibc.FulfillmentState:
     type: string
     enum:
@@ -60434,12 +61718,16 @@ definitions:
                 pay price and receive fee + price
             recipient:
               type: string
+            deprecated_is_fulfilled:
+              type: boolean
+              description: |-
+                Deprecated: use DemandOrder.IsFulfilled method instead.
+                Only used for backwards compatibility.
             tracking_packet_status:
               type: string
               enum:
                 - PENDING
                 - FINALIZED
-                - REVERTED
               default: PENDING
             rollapp_id:
               type: string
@@ -60456,7 +61744,39 @@ definitions:
               description: >-
                 fulfiller_address is the bech32-encoded address of the account
                 which fulfilled the order.
+            creation_height:
+              type: string
+              format: uint64
+              description: >-
+                creation_height is the height of the block when order was
+                created.
         title: A list of demand orders with the given status
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
     description: >-
       QueryDemandOrdersByStatusResponse is the response type for the
       Query/GetDemandOrdersByStatus RPC method.
@@ -60524,12 +61844,16 @@ definitions:
               price and receive fee + price
           recipient:
             type: string
+          deprecated_is_fulfilled:
+            type: boolean
+            description: |-
+              Deprecated: use DemandOrder.IsFulfilled method instead.
+              Only used for backwards compatibility.
           tracking_packet_status:
             type: string
             enum:
               - PENDING
               - FINALIZED
-              - REVERTED
             default: PENDING
           rollapp_id:
             type: string
@@ -60546,6 +61870,10 @@ definitions:
             description: >-
               fulfiller_address is the bech32-encoded address of the account
               which fulfilled the order.
+          creation_height:
+            type: string
+            format: uint64
+            description: creation_height is the height of the block when order was created.
     description: >-
       QueryGetDemandOrderResponse is the response type for the
       Query/GetDemandOrder RPC method.
@@ -60904,8 +62232,7 @@ definitions:
         type: boolean
         description: |-
           enable_trading_alias is the flag to enable trading of Alias.
-          To be used in the future when Alias trading implementation is ready
-          or disable trading of Alias when needed.
+          To be used to stop trading of Alias when needed.
     description: MiscParams defines group of miscellaneous parameters.
   dymensionxyz.dymension.dymns.MultipleAliases:
     type: object
@@ -60973,6 +62300,14 @@ definitions:
               offers,
 
               so the value should not be so low.
+          min_bid_increment_percent:
+            type: integer
+            format: int64
+            description: >-
+              min_bid_increment_percent is the minimum percent raised compare to
+              previous bid of a Sell-Order.
+
+              The valid range from 0% to 100%, but capped at 10%.
       chains:
         description: chains defines setting for prioritized aliases mapping.
         type: object
@@ -61033,13 +62368,9 @@ definitions:
               To be used to stop trading of Dym-Name when needed.
           enable_trading_alias:
             type: boolean
-            description: >-
+            description: |-
               enable_trading_alias is the flag to enable trading of Alias.
-
-              To be used in the future when Alias trading implementation is
-              ready
-
-              or disable trading of Alias when needed.
+              To be used to stop trading of Alias when needed.
     description: Params defines the parameters for the module.
   dymensionxyz.dymension.dymns.PriceParams:
     type: object
@@ -61091,6 +62422,14 @@ definitions:
           offers,
 
           so the value should not be so low.
+      min_bid_increment_percent:
+        type: integer
+        format: int64
+        description: >-
+          min_bid_increment_percent is the minimum percent raised compare to
+          previous bid of a Sell-Order.
+
+          The valid range from 0% to 100%, but capped at 10%.
     description: PriceParams defines the pricing of Dym-Name and price-related parameters.
   dymensionxyz.dymension.dymns.QueryAliasResponse:
     type: object
@@ -61867,6 +63206,14 @@ definitions:
                   price offers,
 
                   so the value should not be so low.
+              min_bid_increment_percent:
+                type: integer
+                format: int64
+                description: >-
+                  min_bid_increment_percent is the minimum percent raised
+                  compare to previous bid of a Sell-Order.
+
+                  The valid range from 0% to 100%, but capped at 10%.
           chains:
             description: chains defines setting for prioritized aliases mapping.
             type: object
@@ -61930,13 +63277,9 @@ definitions:
                   To be used to stop trading of Dym-Name when needed.
               enable_trading_alias:
                 type: boolean
-                description: >-
+                description: |-
                   enable_trading_alias is the flag to enable trading of Alias.
-
-                  To be used in the future when Alias trading implementation is
-                  ready
-
-                  or disable trading of Alias when needed.
+                  To be used to stop trading of Alias when needed.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   dymensionxyz.dymension.dymns.QuerySellOrderResponse:
     type: object
@@ -62187,12 +63530,8 @@ definitions:
 
       After expiry date, if no one has placed a bid, this Sell-Order will be
       closed, no change.
-
-      If there is a bid, the highest bid will win, and the Dym-Name/Alias
-      ownership will be transferred to the winner.
-
-      If the bid matches the sell price, the Dym-Name/Alias ownership will be
-      transferred to the bidder immediately.
+       - If there is a bid, the highest bid will win, and the Dym-Name/Alias ownership will be transferred to the winner.
+       - If the bid matches the sell price, the Dym-Name/Alias ownership will be transferred to the bidder immediately.
   dymensionxyz.dymension.dymns.SellOrderBid:
     type: object
     properties:
@@ -62219,9 +63558,125 @@ definitions:
           It has one element for asset type Alias, which is the rollapp_id to
           assigned for.
     description: SellOrderBid defines a bid placed by an account on a Sell-Order.
+  cosmos.bank.v1beta1.DenomUnit:
+    type: object
+    properties:
+      denom:
+        type: string
+        description: denom represents the string name of the given denom unit (e.g uatom).
+      exponent:
+        type: integer
+        format: int64
+        description: >-
+          exponent represents power of 10 exponent that one must
+
+          raise the base_denom to in order to equal the given DenomUnit's denom
+
+          1 denom = 10^exponent base_denom
+
+          (e.g. with a base_denom of uatom, one can create a DenomUnit of 'atom'
+          with
+
+          exponent = 6, thus: 1 atom = 10^6 uatom).
+      aliases:
+        type: array
+        items:
+          type: string
+        title: aliases is a list of string aliases for the given denom
+    description: |-
+      DenomUnit represents a struct that describes a given
+      denomination unit of the basic token.
+  cosmos.bank.v1beta1.Metadata:
+    type: object
+    properties:
+      description:
+        type: string
+      denom_units:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+              description: >-
+                denom represents the string name of the given denom unit (e.g
+                uatom).
+            exponent:
+              type: integer
+              format: int64
+              description: >-
+                exponent represents power of 10 exponent that one must
+
+                raise the base_denom to in order to equal the given DenomUnit's
+                denom
+
+                1 denom = 10^exponent base_denom
+
+                (e.g. with a base_denom of uatom, one can create a DenomUnit of
+                'atom' with
+
+                exponent = 6, thus: 1 atom = 10^6 uatom).
+            aliases:
+              type: array
+              items:
+                type: string
+              title: aliases is a list of string aliases for the given denom
+          description: |-
+            DenomUnit represents a struct that describes a given
+            denomination unit of the basic token.
+        title: denom_units represents the list of DenomUnit's for a given coin
+      base:
+        type: string
+        description: >-
+          base represents the base denom (should be the DenomUnit with exponent
+          = 0).
+      display:
+        type: string
+        description: |-
+          display indicates the suggested denom that should be
+          displayed in clients.
+      name:
+        type: string
+        description: 'Since: cosmos-sdk 0.43'
+        title: 'name defines the name of the token (eg: Cosmos Atom)'
+      symbol:
+        type: string
+        description: >-
+          symbol is the token symbol usually shown on exchanges (eg: ATOM). This
+          can
+
+          be the same as the display.
+
+
+          Since: cosmos-sdk 0.43
+      uri:
+        type: string
+        description: >-
+          URI to a document (on or off-chain) that contains additional
+          information. Optional.
+
+
+          Since: cosmos-sdk 0.46
+      uri_hash:
+        type: string
+        description: >-
+          URIHash is a sha256 hash of a document pointed by URI. It's used to
+          verify that
+
+          the document didn't change. Optional.
+
+
+          Since: cosmos-sdk 0.46
+    description: |-
+      Metadata represents a struct that describes
+      a basic token.
   dymensionxyz.dymension.rollapp.App:
     type: object
     properties:
+      id:
+        type: string
+        format: uint64
+        title: id is the unique App's id in the Rollapp
       name:
         type: string
         title: name is the unique App's name
@@ -62258,6 +63713,10 @@ definitions:
         type: string
         format: date-time
         title: timestamp is the time from the block header
+      drs_version:
+        type: integer
+        format: int64
+        description: DrsVersion is a DRS version used by the rollapp.
     description: BlockDescriptor defines a single rollapp chain block description.
   dymensionxyz.dymension.rollapp.BlockDescriptors:
     type: object
@@ -62281,6 +63740,10 @@ definitions:
               type: string
               format: date-time
               title: timestamp is the time from the block header
+            drs_version:
+              type: integer
+              format: int64
+              description: DrsVersion is a DRS version used by the rollapp.
           description: BlockDescriptor defines a single rollapp chain block description.
     description: BlockDescriptors defines list of BlockDescriptor.
   dymensionxyz.dymension.rollapp.DenomMetadata:
@@ -62293,6 +63756,225 @@ definitions:
       exponent:
         type: integer
         format: int64
+  dymensionxyz.dymension.rollapp.GenesisAccount:
+    type: object
+    properties:
+      amount:
+        type: string
+        title: amount of coins to be sent to the genesis address
+      address:
+        type: string
+        title: address is a bech-32 address of the genesis account
+    title: GenesisAccount is a struct for the genesis account for the rollapp
+  dymensionxyz.dymension.rollapp.GenesisAccounts:
+    type: object
+    properties:
+      accounts:
+        type: array
+        items:
+          type: object
+          properties:
+            amount:
+              type: string
+              title: amount of coins to be sent to the genesis address
+            address:
+              type: string
+              title: address is a bech-32 address of the genesis account
+          title: GenesisAccount is a struct for the genesis account for the rollapp
+  dymensionxyz.dymension.rollapp.GenesisBridgeData:
+    type: object
+    properties:
+      genesis_info:
+        title: >-
+          genesis_info is the genesis info of the rollapp. used for hub
+          validation
+        type: object
+        properties:
+          genesis_checksum:
+            type: string
+            title: >-
+              checksum used to verify integrity of the genesis file. currently
+              unused
+          bech32_prefix:
+            type: string
+            title: unique bech32 prefix
+          native_denom:
+            title: native_denom is the base denom for the native token
+            type: object
+            properties:
+              display:
+                type: string
+              base:
+                type: string
+              exponent:
+                type: integer
+                format: int64
+          initial_supply:
+            type: string
+            title: initial_supply is the initial supply of the native token
+          genesis_accounts:
+            type: array
+            items:
+              type: object
+              properties:
+                amount:
+                  type: string
+                  title: amount of coins to be sent to the genesis address
+                address:
+                  type: string
+                  title: address is a bech-32 address of the genesis account
+              title: >-
+                GenesisAccount is a struct for the genesis account for the
+                rollapp
+            title: accounts on the Hub to fund with some bootstrapping transfers
+      native_denom:
+        title: native_denom is the native denom of the rollapp. registered on the hub
+        type: object
+        properties:
+          description:
+            type: string
+          denom_units:
+            type: array
+            items:
+              type: object
+              properties:
+                denom:
+                  type: string
+                  description: >-
+                    denom represents the string name of the given denom unit
+                    (e.g uatom).
+                exponent:
+                  type: integer
+                  format: int64
+                  description: >-
+                    exponent represents power of 10 exponent that one must
+
+                    raise the base_denom to in order to equal the given
+                    DenomUnit's denom
+
+                    1 denom = 10^exponent base_denom
+
+                    (e.g. with a base_denom of uatom, one can create a DenomUnit
+                    of 'atom' with
+
+                    exponent = 6, thus: 1 atom = 10^6 uatom).
+                aliases:
+                  type: array
+                  items:
+                    type: string
+                  title: aliases is a list of string aliases for the given denom
+              description: |-
+                DenomUnit represents a struct that describes a given
+                denomination unit of the basic token.
+            title: denom_units represents the list of DenomUnit's for a given coin
+          base:
+            type: string
+            description: >-
+              base represents the base denom (should be the DenomUnit with
+              exponent = 0).
+          display:
+            type: string
+            description: |-
+              display indicates the suggested denom that should be
+              displayed in clients.
+          name:
+            type: string
+            description: 'Since: cosmos-sdk 0.43'
+            title: 'name defines the name of the token (eg: Cosmos Atom)'
+          symbol:
+            type: string
+            description: >-
+              symbol is the token symbol usually shown on exchanges (eg: ATOM).
+              This can
+
+              be the same as the display.
+
+
+              Since: cosmos-sdk 0.43
+          uri:
+            type: string
+            description: >-
+              URI to a document (on or off-chain) that contains additional
+              information. Optional.
+
+
+              Since: cosmos-sdk 0.46
+          uri_hash:
+            type: string
+            description: >-
+              URIHash is a sha256 hash of a document pointed by URI. It's used
+              to verify that
+
+              the document didn't change. Optional.
+
+
+              Since: cosmos-sdk 0.46
+        description: |-
+          Metadata represents a struct that describes
+          a basic token.
+      genesis_transfer:
+        title: optional genesis transfer packet data
+        type: object
+        properties:
+          denom:
+            type: string
+            title: the token denomination to be transferred
+          amount:
+            type: string
+            title: the token amount to be transferred
+          sender:
+            type: string
+            title: the sender address
+          receiver:
+            type: string
+            title: the recipient address on the destination chain
+          memo:
+            type: string
+            title: optional memo
+    title: |-
+      GenesisBridgeData is the data struct that is passed to the hub for the
+      genesis bridge flow
+  dymensionxyz.dymension.rollapp.GenesisBridgeInfo:
+    type: object
+    properties:
+      genesis_checksum:
+        type: string
+        title: >-
+          checksum used to verify integrity of the genesis file. currently
+          unused
+      bech32_prefix:
+        type: string
+        title: unique bech32 prefix
+      native_denom:
+        title: native_denom is the base denom for the native token
+        type: object
+        properties:
+          display:
+            type: string
+          base:
+            type: string
+          exponent:
+            type: integer
+            format: int64
+      initial_supply:
+        type: string
+        title: initial_supply is the initial supply of the native token
+      genesis_accounts:
+        type: array
+        items:
+          type: object
+          properties:
+            amount:
+              type: string
+              title: amount of coins to be sent to the genesis address
+            address:
+              type: string
+              title: address is a bech-32 address of the genesis account
+          title: GenesisAccount is a struct for the genesis account for the rollapp
+        title: accounts on the Hub to fund with some bootstrapping transfers
+    title: |-
+      The genesis info of the rollapp, that is passed to the hub for validation.
+      it's populated on the InitGenesis of the rollapp
   dymensionxyz.dymension.rollapp.GenesisInfo:
     type: object
     properties:
@@ -62319,6 +64001,23 @@ definitions:
       sealed:
         type: boolean
         title: sealed indicates if the fields in this object are no longer updatable
+      genesis_accounts:
+        type: object
+        properties:
+          accounts:
+            type: array
+            items:
+              type: object
+              properties:
+                amount:
+                  type: string
+                  title: amount of coins to be sent to the genesis address
+                address:
+                  type: string
+                  title: address is a bech-32 address of the genesis account
+              title: >-
+                GenesisAccount is a struct for the genesis account for the
+                rollapp
   dymensionxyz.dymension.rollapp.Params:
     type: object
     properties:
@@ -62341,14 +64040,7 @@ definitions:
         title: >-
           The min gap (num hub blocks) between a sequence of slashes if the
           sequencer continues to be down
-      liveness_jail_blocks:
-        type: string
-        format: uint64
-        title: >-
-          The time (num hub blocks) a sequencer can be down after which he will
-          be jailed rather than slashed
       app_registration_fee:
-        title: app_registration_fee is the fee for registering an App
         type: object
         properties:
           denom:
@@ -62360,6 +64052,20 @@ definitions:
 
           NOTE: The amount field is an Int which implements the custom method
           signatures required by gogoproto.
+        title: app_registration_fee is the fee for registering an App
+      min_sequencer_bond_global:
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+        title: no rollapp can have a minimum less than this (in dym)
     description: Params defines the parameters for the module.
   dymensionxyz.dymension.rollapp.QueryAllRollappResponse:
     type: object
@@ -62383,41 +64089,29 @@ definitions:
                 genesis_state:
                   title: >-
                     genesis_state is a partial repr of the state the hub can
-                    expect the rollapp to be in upon genesis
+                    expect the rollapp
+
+                    to be in upon genesis
                   type: object
                   properties:
-                    transfers_enabled:
-                      type: boolean
+                    transfer_proof_height:
+                      type: string
+                      format: uint64
                       description: >-
-                        If true, then full usage of the canonical ibc transfer
-                        channel is enabled.
+                        0 means unpopulated
 
-                        Note: in v3.1.0 and prior this field marked the
-                        completion of the 'genesis event'
+                        If populated, it's the proof height that the hub
+                        received the genesis transfer
 
-                        Keeping and renaming the field enables a seamless
-                        upgrade
-                        https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
+                        packet from the rollapp. If populated, the bridge is
+                        considered open. It's not allowed
 
-                        to the new genesis transfer protocol
-
-                        Note: if this field is false, ibc transfers may still be
-                        allowed in one or either direction.
+                        to fork to a height prior to this height.
                 channel_id:
                   type: string
                   description: >-
                     channel_id will be set to the canonical IBC channel of the
                     rollapp.
-                frozen:
-                  type: boolean
-                  description: frozen is a boolean that indicates if the rollapp is frozen.
-                registeredDenoms:
-                  type: array
-                  items:
-                    type: string
-                  title: >-
-                    registeredDenoms is a list of registered denom bases on this
-                    rollapp
                 metadata:
                   title: metadata is the rollapp metadata
                   type: object
@@ -62466,6 +64160,13 @@ definitions:
                         exponent:
                           type: integer
                           format: int64
+                    tags:
+                      type: array
+                      items:
+                        type: string
+                      description: >-
+                        Tags is a list of tags that can be used to filter
+                        rollapps.
                 genesis_info:
                   title: genesis_info keeps immutable rollapp fields
                   type: object
@@ -62495,18 +64196,65 @@ definitions:
                       title: >-
                         sealed indicates if the fields in this object are no
                         longer updatable
+                    genesis_accounts:
+                      type: object
+                      properties:
+                        accounts:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              amount:
+                                type: string
+                                title: >-
+                                  amount of coins to be sent to the genesis
+                                  address
+                              address:
+                                type: string
+                                title: >-
+                                  address is a bech-32 address of the genesis
+                                  account
+                            title: >-
+                              GenesisAccount is a struct for the genesis account
+                              for the rollapp
                 initial_sequencer:
                   type: string
                   description: >-
                     initial_sequencer is an option to preset one or more
-                    coma-separated bech32-encoded addresses of the
+                    coma-separated
 
-                    sequencer(s) that are allowed to initially register and
-                    serve for this rollapp.
+                    bech32-encoded addresses of the sequencer(s) that are
+                    allowed to initially
 
-                    if left empty, no sequencer is allowed to register.
+                    register and serve for this rollapp. if left empty, no
+                    sequencer is allowed
 
-                    if set to "*" any sequencer can register.
+                    to register. if set to "*" any sequencer can register.
+                min_sequencer_bond:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+                  description: >-
+                    How much a sequencer needs to have at stake to be proposer
+                    be proposer.
+
+                    Denom is dym. It is empty or ONE coin only. Coins is just a
+                    convenience to avoid
+
+                    marshalling issues.
                 vm_type:
                   title: 'vm_type is the type of rollapp machine: EVM or WASM'
                   type: string
@@ -62519,28 +64267,63 @@ definitions:
                   type: boolean
                   description: >-
                     launched is a boolean that indicates that the Rollapp has
-                    been launched and the immutable fields are no longer
-                    updatable.
+                    been launched and
+
+                    the immutable fields are no longer updatable.
+                pre_launch_time:
+                  type: string
+                  format: date-time
+                  title: >-
+                    pre_launch_time is the timestamp indicating the time before
+                    which the
+
+                    rollapp cannot be started.
+
+                    Set when creating IRO plan for the rollapp
                 liveness_event_height:
                   type: string
                   format: int64
                   title: >-
-                    LivenessEventHeight is the height of an upcoming liveness
-                    event (slash or jail)
+                    LivenessEventHeight is the height on the HUB of an upcoming
+                    liveness event (slash or
 
-                    0 means not set
-                last_state_update_height:
+                    jail against the rollapp). 0 means not set
+                liveness_countdown_start_height:
                   type: string
                   format: int64
-                  title: >-
-                    The LastStateUpdateHeight HUB height when the last state
-                    update was received
+                  description: >-
+                    The height on the HUB that we start counting liveness from.
+                    If the rollapp is not active
+
+                    for a long time after this height, a liveness event will
+                    happen.
+                revisions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      number:
+                        type: string
+                        format: uint64
+                        description: >-
+                          Number is the revision number of the rollapp. Always
+                          start with 0 revision.
+                      start_height:
+                        type: string
+                        format: uint64
+                        description: >-
+                          StartHeight is the first height of the rollapp when
+                          the revision started.
+                    description: Revision is a representation of the rollapp revision.
+                  description: Revisions is a list of all the rollapp revisions.
               title: >-
                 Rollapp defines a rollapp object. First, the RollApp is created
                 and then
 
                 sequencers can be created and attached. The RollApp is
-                identified by rollappId
+                identified by
+
+                rollappId
             summary:
               type: object
               properties:
@@ -62637,6 +64420,10 @@ definitions:
               items:
                 type: object
                 properties:
+                  id:
+                    type: string
+                    format: uint64
+                    title: id is the unique App's id in the Rollapp
                   name:
                     type: string
                     title: name is the unique App's name
@@ -62742,40 +64529,29 @@ definitions:
           genesis_state:
             title: >-
               genesis_state is a partial repr of the state the hub can expect
-              the rollapp to be in upon genesis
+              the rollapp
+
+              to be in upon genesis
             type: object
             properties:
-              transfers_enabled:
-                type: boolean
+              transfer_proof_height:
+                type: string
+                format: uint64
                 description: >-
-                  If true, then full usage of the canonical ibc transfer channel
-                  is enabled.
+                  0 means unpopulated
 
-                  Note: in v3.1.0 and prior this field marked the completion of
-                  the 'genesis event'
+                  If populated, it's the proof height that the hub received the
+                  genesis transfer
 
-                  Keeping and renaming the field enables a seamless upgrade
-                  https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
+                  packet from the rollapp. If populated, the bridge is
+                  considered open. It's not allowed
 
-                  to the new genesis transfer protocol
-
-                  Note: if this field is false, ibc transfers may still be
-                  allowed in one or either direction.
+                  to fork to a height prior to this height.
           channel_id:
             type: string
             description: >-
               channel_id will be set to the canonical IBC channel of the
               rollapp.
-          frozen:
-            type: boolean
-            description: frozen is a boolean that indicates if the rollapp is frozen.
-          registeredDenoms:
-            type: array
-            items:
-              type: string
-            title: >-
-              registeredDenoms is a list of registered denom bases on this
-              rollapp
           metadata:
             title: metadata is the rollapp metadata
             type: object
@@ -62822,6 +64598,11 @@ definitions:
                   exponent:
                     type: integer
                     format: int64
+              tags:
+                type: array
+                items:
+                  type: string
+                description: Tags is a list of tags that can be used to filter rollapps.
           genesis_info:
             title: genesis_info keeps immutable rollapp fields
             type: object
@@ -62851,18 +64632,61 @@ definitions:
                 title: >-
                   sealed indicates if the fields in this object are no longer
                   updatable
+              genesis_accounts:
+                type: object
+                properties:
+                  accounts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        amount:
+                          type: string
+                          title: amount of coins to be sent to the genesis address
+                        address:
+                          type: string
+                          title: address is a bech-32 address of the genesis account
+                      title: >-
+                        GenesisAccount is a struct for the genesis account for
+                        the rollapp
           initial_sequencer:
             type: string
             description: >-
               initial_sequencer is an option to preset one or more
-              coma-separated bech32-encoded addresses of the
+              coma-separated
 
-              sequencer(s) that are allowed to initially register and serve for
-              this rollapp.
+              bech32-encoded addresses of the sequencer(s) that are allowed to
+              initially
 
-              if left empty, no sequencer is allowed to register.
+              register and serve for this rollapp. if left empty, no sequencer
+              is allowed
 
-              if set to "*" any sequencer can register.
+              to register. if set to "*" any sequencer can register.
+          min_sequencer_bond:
+            type: array
+            items:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+            description: >-
+              How much a sequencer needs to have at stake to be proposer be
+              proposer.
+
+              Denom is dym. It is empty or ONE coin only. Coins is just a
+              convenience to avoid
+
+              marshalling issues.
           vm_type:
             title: 'vm_type is the type of rollapp machine: EVM or WASM'
             type: string
@@ -62875,26 +64699,60 @@ definitions:
             type: boolean
             description: >-
               launched is a boolean that indicates that the Rollapp has been
-              launched and the immutable fields are no longer updatable.
+              launched and
+
+              the immutable fields are no longer updatable.
+          pre_launch_time:
+            type: string
+            format: date-time
+            title: >-
+              pre_launch_time is the timestamp indicating the time before which
+              the
+
+              rollapp cannot be started.
+
+              Set when creating IRO plan for the rollapp
           liveness_event_height:
             type: string
             format: int64
             title: >-
-              LivenessEventHeight is the height of an upcoming liveness event
-              (slash or jail)
+              LivenessEventHeight is the height on the HUB of an upcoming
+              liveness event (slash or
 
-              0 means not set
-          last_state_update_height:
+              jail against the rollapp). 0 means not set
+          liveness_countdown_start_height:
             type: string
             format: int64
-            title: >-
-              The LastStateUpdateHeight HUB height when the last state update
-              was received
+            description: >-
+              The height on the HUB that we start counting liveness from. If the
+              rollapp is not active
+
+              for a long time after this height, a liveness event will happen.
+          revisions:
+            type: array
+            items:
+              type: object
+              properties:
+                number:
+                  type: string
+                  format: uint64
+                  description: >-
+                    Number is the revision number of the rollapp. Always start
+                    with 0 revision.
+                start_height:
+                  type: string
+                  format: uint64
+                  description: >-
+                    StartHeight is the first height of the rollapp when the
+                    revision started.
+              description: Revision is a representation of the rollapp revision.
+            description: Revisions is a list of all the rollapp revisions.
         title: >-
           Rollapp defines a rollapp object. First, the RollApp is created and
           then
 
           sequencers can be created and attached. The RollApp is identified by
+
           rollappId
       summary:
         type: object
@@ -62986,6 +64844,10 @@ definitions:
         items:
           type: object
           properties:
+            id:
+              type: string
+              format: uint64
+              title: id is the unique App's id in the Rollapp
             name:
               type: string
               title: name is the unique App's name
@@ -63071,7 +64933,6 @@ definitions:
             enum:
               - PENDING
               - FINALIZED
-              - REVERTED
             default: PENDING
           BDs:
             title: >-
@@ -63100,11 +64961,35 @@ definitions:
                       type: string
                       format: date-time
                       title: timestamp is the time from the block header
+                    drs_version:
+                      type: integer
+                      format: int64
+                      description: DrsVersion is a DRS version used by the rollapp.
                   description: >-
                     BlockDescriptor defines a single rollapp chain block
                     description.
             description: BlockDescriptors defines list of BlockDescriptor.
+          created_at:
+            type: string
+            format: date-time
+            title: created_at is the timestamp at which the StateInfo was created
+          nextProposer:
+            type: string
+            description: >-
+              NextProposer is the bech32-encoded address of the proposer that we
+              expect to see in the next state info.
+
+              Most of the time NextProposer is the current proposer. In case of
+              rotation it is changed to the successor.
         description: StateInfo defines a rollapps' state.
+  dymensionxyz.dymension.rollapp.QueryObsoleteDRSVersionsResponse:
+    type: object
+    properties:
+      drs_versions:
+        type: array
+        items:
+          type: integer
+          format: int64
   dymensionxyz.dymension.rollapp.QueryParamsResponse:
     type: object
     properties:
@@ -63131,14 +65016,7 @@ definitions:
             title: >-
               The min gap (num hub blocks) between a sequence of slashes if the
               sequencer continues to be down
-          liveness_jail_blocks:
-            type: string
-            format: uint64
-            title: >-
-              The time (num hub blocks) a sequencer can be down after which he
-              will be jailed rather than slashed
           app_registration_fee:
-            title: app_registration_fee is the fee for registering an App
             type: object
             properties:
               denom:
@@ -63153,7 +65031,80 @@ definitions:
               method
 
               signatures required by gogoproto.
+            title: app_registration_fee is the fee for registering an App
+          min_sequencer_bond_global:
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+            title: no rollapp can have a minimum less than this (in dym)
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+  dymensionxyz.dymension.rollapp.QueryRegisteredDenomsResponse:
+    type: object
+    properties:
+      denoms:
+        type: array
+        items:
+          type: string
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+  dymensionxyz.dymension.rollapp.QueryValidateGenesisBridgeResponse:
+    type: object
+    properties:
+      valid:
+        type: boolean
+      err:
+        type: string
+  dymensionxyz.dymension.rollapp.Revision:
+    type: object
+    properties:
+      number:
+        type: string
+        format: uint64
+        description: >-
+          Number is the revision number of the rollapp. Always start with 0
+          revision.
+      start_height:
+        type: string
+        format: uint64
+        description: >-
+          StartHeight is the first height of the rollapp when the revision
+          started.
+    description: Revision is a representation of the rollapp revision.
   dymensionxyz.dymension.rollapp.Rollapp:
     type: object
     properties:
@@ -63168,36 +65119,27 @@ definitions:
       genesis_state:
         title: >-
           genesis_state is a partial repr of the state the hub can expect the
-          rollapp to be in upon genesis
+          rollapp
+
+          to be in upon genesis
         type: object
         properties:
-          transfers_enabled:
-            type: boolean
+          transfer_proof_height:
+            type: string
+            format: uint64
             description: >-
-              If true, then full usage of the canonical ibc transfer channel is
-              enabled.
+              0 means unpopulated
 
-              Note: in v3.1.0 and prior this field marked the completion of the
-              'genesis event'
+              If populated, it's the proof height that the hub received the
+              genesis transfer
 
-              Keeping and renaming the field enables a seamless upgrade
-              https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
+              packet from the rollapp. If populated, the bridge is considered
+              open. It's not allowed
 
-              to the new genesis transfer protocol
-
-              Note: if this field is false, ibc transfers may still be allowed
-              in one or either direction.
+              to fork to a height prior to this height.
       channel_id:
         type: string
         description: channel_id will be set to the canonical IBC channel of the rollapp.
-      frozen:
-        type: boolean
-        description: frozen is a boolean that indicates if the rollapp is frozen.
-      registeredDenoms:
-        type: array
-        items:
-          type: string
-        title: registeredDenoms is a list of registered denom bases on this rollapp
       metadata:
         title: metadata is the rollapp metadata
         type: object
@@ -63244,6 +65186,11 @@ definitions:
               exponent:
                 type: integer
                 format: int64
+          tags:
+            type: array
+            items:
+              type: string
+            description: Tags is a list of tags that can be used to filter rollapps.
       genesis_info:
         title: genesis_info keeps immutable rollapp fields
         type: object
@@ -63273,18 +65220,57 @@ definitions:
             title: >-
               sealed indicates if the fields in this object are no longer
               updatable
+          genesis_accounts:
+            type: object
+            properties:
+              accounts:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    amount:
+                      type: string
+                      title: amount of coins to be sent to the genesis address
+                    address:
+                      type: string
+                      title: address is a bech-32 address of the genesis account
+                  title: >-
+                    GenesisAccount is a struct for the genesis account for the
+                    rollapp
       initial_sequencer:
         type: string
         description: >-
           initial_sequencer is an option to preset one or more coma-separated
-          bech32-encoded addresses of the
 
-          sequencer(s) that are allowed to initially register and serve for this
-          rollapp.
+          bech32-encoded addresses of the sequencer(s) that are allowed to
+          initially
 
-          if left empty, no sequencer is allowed to register.
+          register and serve for this rollapp. if left empty, no sequencer is
+          allowed
 
-          if set to "*" any sequencer can register.
+          to register. if set to "*" any sequencer can register.
+      min_sequencer_bond:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+        description: >-
+          How much a sequencer needs to have at stake to be proposer be
+          proposer.
+
+          Denom is dym. It is empty or ONE coin only. Coins is just a
+          convenience to avoid
+
+          marshalling issues.
       vm_type:
         title: 'vm_type is the type of rollapp machine: EVM or WASM'
         type: string
@@ -63297,24 +65283,53 @@ definitions:
         type: boolean
         description: >-
           launched is a boolean that indicates that the Rollapp has been
-          launched and the immutable fields are no longer updatable.
+          launched and
+
+          the immutable fields are no longer updatable.
+      pre_launch_time:
+        type: string
+        format: date-time
+        title: |-
+          pre_launch_time is the timestamp indicating the time before which the
+          rollapp cannot be started.
+          Set when creating IRO plan for the rollapp
       liveness_event_height:
         type: string
         format: int64
         title: >-
-          LivenessEventHeight is the height of an upcoming liveness event (slash
-          or jail)
+          LivenessEventHeight is the height on the HUB of an upcoming liveness
+          event (slash or
 
-          0 means not set
-      last_state_update_height:
+          jail against the rollapp). 0 means not set
+      liveness_countdown_start_height:
         type: string
         format: int64
-        title: >-
-          The LastStateUpdateHeight HUB height when the last state update was
-          received
-    title: >-
-      Rollapp defines a rollapp object. First, the RollApp is created and then
+        description: >-
+          The height on the HUB that we start counting liveness from. If the
+          rollapp is not active
 
+          for a long time after this height, a liveness event will happen.
+      revisions:
+        type: array
+        items:
+          type: object
+          properties:
+            number:
+              type: string
+              format: uint64
+              description: >-
+                Number is the revision number of the rollapp. Always start with
+                0 revision.
+            start_height:
+              type: string
+              format: uint64
+              description: >-
+                StartHeight is the first height of the rollapp when the revision
+                started.
+          description: Revision is a representation of the rollapp revision.
+        description: Revisions is a list of all the rollapp revisions.
+    title: |-
+      Rollapp defines a rollapp object. First, the RollApp is created and then
       sequencers can be created and attached. The RollApp is identified by
       rollappId
   dymensionxyz.dymension.rollapp.Rollapp.VMType:
@@ -63327,23 +65342,20 @@ definitions:
   dymensionxyz.dymension.rollapp.RollappGenesisState:
     type: object
     properties:
-      transfers_enabled:
-        type: boolean
+      transfer_proof_height:
+        type: string
+        format: uint64
         description: >-
-          If true, then full usage of the canonical ibc transfer channel is
-          enabled.
+          0 means unpopulated
 
-          Note: in v3.1.0 and prior this field marked the completion of the
-          'genesis event'
+          If populated, it's the proof height that the hub received the genesis
+          transfer
 
-          Keeping and renaming the field enables a seamless upgrade
-          https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
+          packet from the rollapp. If populated, the bridge is considered open.
+          It's not allowed
 
-          to the new genesis transfer protocol
-
-          Note: if this field is false, ibc transfers may still be allowed in
-          one or either direction.
-    title: >-
+          to fork to a height prior to this height.
+    title: |-
       RollappGenesisState is a partial repr of the state the hub can expect the
       rollapp to be in upon genesis
   dymensionxyz.dymension.rollapp.RollappMetadata:
@@ -63389,6 +65401,11 @@ definitions:
           exponent:
             type: integer
             format: int64
+      tags:
+        type: array
+        items:
+          type: string
+        description: Tags is a list of tags that can be used to filter rollapps.
   dymensionxyz.dymension.rollapp.RollappSummary:
     type: object
     properties:
@@ -63534,7 +65551,6 @@ definitions:
         enum:
           - PENDING
           - FINALIZED
-          - REVERTED
         default: PENDING
       BDs:
         title: >-
@@ -63563,10 +65579,26 @@ definitions:
                   type: string
                   format: date-time
                   title: timestamp is the time from the block header
+                drs_version:
+                  type: integer
+                  format: int64
+                  description: DrsVersion is a DRS version used by the rollapp.
               description: >-
                 BlockDescriptor defines a single rollapp chain block
                 description.
         description: BlockDescriptors defines list of BlockDescriptor.
+      created_at:
+        type: string
+        format: date-time
+        title: created_at is the timestamp at which the StateInfo was created
+      nextProposer:
+        type: string
+        description: >-
+          NextProposer is the bech32-encoded address of the proposer that we
+          expect to see in the next state info.
+
+          Most of the time NextProposer is the current proposer. In case of
+          rotation it is changed to the successor.
     description: StateInfo defines a rollapps' state.
   dymensionxyz.dymension.rollapp.StateInfoIndex:
     type: object
@@ -63600,6 +65632,30 @@ definitions:
 
       2. LatestFinalizedStateIndex which defines the rollapps' current (latest)
       index of the latest StateInfo that was finalized
+  ibc.applications.transfer.v2.FungibleTokenPacketData:
+    type: object
+    properties:
+      denom:
+        type: string
+        title: the token denomination to be transferred
+      amount:
+        type: string
+        title: the token amount to be transferred
+      sender:
+        type: string
+        title: the sender address
+      receiver:
+        type: string
+        title: the recipient address on the destination chain
+      memo:
+        type: string
+        title: optional memo
+    title: >-
+      FungibleTokenPacketData defines a struct for the packet payload
+
+      See FungibleTokenPacketData spec:
+
+      https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures
   dymensionxyz.dymension.sequencer.ContactDetails:
     type: object
     properties:
@@ -63616,7 +65672,6 @@ definitions:
     type: string
     enum:
       - OPERATING_STATUS_UNBONDED
-      - OPERATING_STATUS_UNBONDING
       - OPERATING_STATUS_BONDED
     default: OPERATING_STATUS_UNBONDED
     description: >-
@@ -63624,14 +65679,16 @@ definitions:
       that is not active and won't
 
       be scheduled
-       - OPERATING_STATUS_UNBONDING: UNBONDING defines a sequencer that is currently unbonding.
        - OPERATING_STATUS_BONDED: OPERATING_STATUS_BONDED defines a sequencer that is bonded and can be
       scheduled
     title: OperatingStatus defines the operating status of a sequencer
   dymensionxyz.dymension.sequencer.Params:
     type: object
     properties:
-      min_bond:
+      kick_threshold:
+        title: >-
+          amt where the active sequencer can be kicked if he has less or equal
+          bond
         type: object
         properties:
           denom:
@@ -63643,9 +65700,6 @@ definitions:
 
           NOTE: The amount field is an Int which implements the custom method
           signatures required by gogoproto.
-      unbonding_time:
-        type: string
-        description: unbonding_time is the time duration of unbonding.
       notice_period:
         type: string
         description: >-
@@ -63655,11 +65709,26 @@ definitions:
           actual
 
           unbonding starting. the proposer is still bonded during this period.
-      liveness_slash_multiplier:
+      liveness_slash_min_multiplier:
         type: string
         description: >-
-          LivenessSlashMultiplier multiplies with the tokens of the slashed
-          sequencer to compute the burn amount.
+          liveness_slash_min_multiplier multiplies with the tokens of the
+          slashed sequencer to compute the burn amount.
+      liveness_slash_min_absolute:
+        title: >-
+          liveness_slash_min_absolute is the absolute minimum to slash for
+          liveness
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
     description: Params defines the parameters for the module.
   dymensionxyz.dymension.sequencer.QueryGetNextProposerByRollappResponse:
     type: object
@@ -63688,7 +65757,7 @@ definitions:
           address:
             type: string
             description: >-
-              address is the bech32-encoded address of the sequencer account
+              Address is the bech32-encoded address of the sequencer account
               which is the account that the message was sent from.
           dymintPubKey:
             type: object
@@ -63862,9 +65931,9 @@ definitions:
                   }
           rollappId:
             type: string
-            description: rollappId defines the rollapp to which the sequencer belongs.
+            description: RollappId defines the rollapp to which the sequencer belongs.
           metadata:
-            description: metadata defines the extra information for the sequencer.
+            description: SequencerMetadata defines the extra information for the sequencer.
             type: object
             properties:
               moniker:
@@ -63937,22 +66006,23 @@ definitions:
               gas_price:
                 type: string
                 title: gas_price defines the value for each gas unit
-          jailed:
-            type: boolean
-            description: >-
-              jailed defined whether the sequencer has been jailed from bonded
-              status or not.
           proposer:
             type: boolean
           status:
-            description: status is the sequencer status (bonded/unbonding/unbonded).
+            description: OperatingStatus is the sequencer status (bonded/unbonded).
             type: string
             enum:
               - OPERATING_STATUS_UNBONDED
-              - OPERATING_STATUS_UNBONDING
               - OPERATING_STATUS_BONDED
             default: OPERATING_STATUS_UNBONDED
             title: OperatingStatus defines the operating status of a sequencer
+          opted_in:
+            type: boolean
+            title: >-
+              OptedIn : when true and bonded, the sequencer can be chosen as
+              proposer or successor
+
+              has no effect if already proposer or successor
           tokens:
             type: array
             items:
@@ -63970,27 +66040,25 @@ definitions:
                 method
 
                 signatures required by gogoproto.
-            description: tokens define the delegated tokens (incl. self-delegation).
-          unbond_request_height:
-            type: string
-            format: int64
             description: >-
-              unbond_request_height stores the height at which this sequencer
-              has
-
-              requested to unbond.
-          unbond_time:
-            type: string
-            format: date-time
-            description: >-
-              unbond_time defines the time when the sequencer will complete
-              unbonding.
+              Tokens: A coins which should always be one dym coin. It's the
+              amount of tokens the sequencer has given to the module.
           notice_period_time:
             type: string
             format: date-time
-            title: >-
-              notice_period_time defines the time when the sequencer will finish
-              it's notice period if started
+            description: >-
+              NoticePeriodTime defines the time when the sequencer will finish
+              it's notice period. Zero means not started.
+          reward_addr:
+            type: string
+            title: RewardAddr is a bech32 encoded sdk acc address
+          whitelisted_relayers:
+            type: array
+            items:
+              type: string
+            description: >-
+              WhitelistedRelayers is an array of the whitelisted relayer
+              addresses. Addresses are bech32-encoded strings.
         description: >-
           Sequencer defines a sequencer identified by its' address
           (sequencerAddress).
@@ -64007,7 +66075,7 @@ definitions:
             address:
               type: string
               description: >-
-                address is the bech32-encoded address of the sequencer account
+                Address is the bech32-encoded address of the sequencer account
                 which is the account that the message was sent from.
             dymintPubKey:
               type: object
@@ -64185,9 +66253,11 @@ definitions:
                     }
             rollappId:
               type: string
-              description: rollappId defines the rollapp to which the sequencer belongs.
+              description: RollappId defines the rollapp to which the sequencer belongs.
             metadata:
-              description: metadata defines the extra information for the sequencer.
+              description: >-
+                SequencerMetadata defines the extra information for the
+                sequencer.
               type: object
               properties:
                 moniker:
@@ -64260,22 +66330,23 @@ definitions:
                 gas_price:
                   type: string
                   title: gas_price defines the value for each gas unit
-            jailed:
-              type: boolean
-              description: >-
-                jailed defined whether the sequencer has been jailed from bonded
-                status or not.
             proposer:
               type: boolean
             status:
-              description: status is the sequencer status (bonded/unbonding/unbonded).
+              description: OperatingStatus is the sequencer status (bonded/unbonded).
               type: string
               enum:
                 - OPERATING_STATUS_UNBONDED
-                - OPERATING_STATUS_UNBONDING
                 - OPERATING_STATUS_BONDED
               default: OPERATING_STATUS_UNBONDED
               title: OperatingStatus defines the operating status of a sequencer
+            opted_in:
+              type: boolean
+              title: >-
+                OptedIn : when true and bonded, the sequencer can be chosen as
+                proposer or successor
+
+                has no effect if already proposer or successor
             tokens:
               type: array
               items:
@@ -64293,32 +66364,56 @@ definitions:
                   method
 
                   signatures required by gogoproto.
-              description: tokens define the delegated tokens (incl. self-delegation).
-            unbond_request_height:
-              type: string
-              format: int64
               description: >-
-                unbond_request_height stores the height at which this sequencer
-                has
-
-                requested to unbond.
-            unbond_time:
-              type: string
-              format: date-time
-              description: >-
-                unbond_time defines the time when the sequencer will complete
-                unbonding.
+                Tokens: A coins which should always be one dym coin. It's the
+                amount of tokens the sequencer has given to the module.
             notice_period_time:
               type: string
               format: date-time
-              title: >-
-                notice_period_time defines the time when the sequencer will
-                finish it's notice period if started
+              description: >-
+                NoticePeriodTime defines the time when the sequencer will finish
+                it's notice period. Zero means not started.
+            reward_addr:
+              type: string
+              title: RewardAddr is a bech32 encoded sdk acc address
+            whitelisted_relayers:
+              type: array
+              items:
+                type: string
+              description: >-
+                WhitelistedRelayers is an array of the whitelisted relayer
+                addresses. Addresses are bech32-encoded strings.
           description: >-
             Sequencer defines a sequencer identified by its' address
             (sequencerAddress).
 
             The sequencer could be attached to only one rollapp (rollappId).
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
   dymensionxyz.dymension.sequencer.QueryGetSequencersByRollappResponse:
     type: object
     properties:
@@ -64330,7 +66425,7 @@ definitions:
             address:
               type: string
               description: >-
-                address is the bech32-encoded address of the sequencer account
+                Address is the bech32-encoded address of the sequencer account
                 which is the account that the message was sent from.
             dymintPubKey:
               type: object
@@ -64508,9 +66603,11 @@ definitions:
                     }
             rollappId:
               type: string
-              description: rollappId defines the rollapp to which the sequencer belongs.
+              description: RollappId defines the rollapp to which the sequencer belongs.
             metadata:
-              description: metadata defines the extra information for the sequencer.
+              description: >-
+                SequencerMetadata defines the extra information for the
+                sequencer.
               type: object
               properties:
                 moniker:
@@ -64583,22 +66680,23 @@ definitions:
                 gas_price:
                   type: string
                   title: gas_price defines the value for each gas unit
-            jailed:
-              type: boolean
-              description: >-
-                jailed defined whether the sequencer has been jailed from bonded
-                status or not.
             proposer:
               type: boolean
             status:
-              description: status is the sequencer status (bonded/unbonding/unbonded).
+              description: OperatingStatus is the sequencer status (bonded/unbonded).
               type: string
               enum:
                 - OPERATING_STATUS_UNBONDED
-                - OPERATING_STATUS_UNBONDING
                 - OPERATING_STATUS_BONDED
               default: OPERATING_STATUS_UNBONDED
               title: OperatingStatus defines the operating status of a sequencer
+            opted_in:
+              type: boolean
+              title: >-
+                OptedIn : when true and bonded, the sequencer can be chosen as
+                proposer or successor
+
+                has no effect if already proposer or successor
             tokens:
               type: array
               items:
@@ -64616,32 +66714,56 @@ definitions:
                   method
 
                   signatures required by gogoproto.
-              description: tokens define the delegated tokens (incl. self-delegation).
-            unbond_request_height:
-              type: string
-              format: int64
               description: >-
-                unbond_request_height stores the height at which this sequencer
-                has
-
-                requested to unbond.
-            unbond_time:
-              type: string
-              format: date-time
-              description: >-
-                unbond_time defines the time when the sequencer will complete
-                unbonding.
+                Tokens: A coins which should always be one dym coin. It's the
+                amount of tokens the sequencer has given to the module.
             notice_period_time:
               type: string
               format: date-time
-              title: >-
-                notice_period_time defines the time when the sequencer will
-                finish it's notice period if started
+              description: >-
+                NoticePeriodTime defines the time when the sequencer will finish
+                it's notice period. Zero means not started.
+            reward_addr:
+              type: string
+              title: RewardAddr is a bech32 encoded sdk acc address
+            whitelisted_relayers:
+              type: array
+              items:
+                type: string
+              description: >-
+                WhitelistedRelayers is an array of the whitelisted relayer
+                addresses. Addresses are bech32-encoded strings.
           description: >-
             Sequencer defines a sequencer identified by its' address
             (sequencerAddress).
 
             The sequencer could be attached to only one rollapp (rollappId).
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
   dymensionxyz.dymension.sequencer.QueryParamsResponse:
     type: object
     properties:
@@ -64649,7 +66771,10 @@ definitions:
         description: params holds all the parameters of this module.
         type: object
         properties:
-          min_bond:
+          kick_threshold:
+            title: >-
+              amt where the active sequencer can be kicked if he has less or
+              equal bond
             type: object
             properties:
               denom:
@@ -64664,9 +66789,6 @@ definitions:
               method
 
               signatures required by gogoproto.
-          unbonding_time:
-            type: string
-            description: unbonding_time is the time duration of unbonding.
           notice_period:
             type: string
             description: >-
@@ -64677,11 +66799,29 @@ definitions:
 
               unbonding starting. the proposer is still bonded during this
               period.
-          liveness_slash_multiplier:
+          liveness_slash_min_multiplier:
             type: string
             description: >-
-              LivenessSlashMultiplier multiplies with the tokens of the slashed
-              sequencer to compute the burn amount.
+              liveness_slash_min_multiplier multiplies with the tokens of the
+              slashed sequencer to compute the burn amount.
+          liveness_slash_min_absolute:
+            title: >-
+              liveness_slash_min_absolute is the absolute minimum to slash for
+              liveness
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   dymensionxyz.dymension.sequencer.QueryProposersResponse:
     type: object
@@ -64694,7 +66834,7 @@ definitions:
             address:
               type: string
               description: >-
-                address is the bech32-encoded address of the sequencer account
+                Address is the bech32-encoded address of the sequencer account
                 which is the account that the message was sent from.
             dymintPubKey:
               type: object
@@ -64872,9 +67012,11 @@ definitions:
                     }
             rollappId:
               type: string
-              description: rollappId defines the rollapp to which the sequencer belongs.
+              description: RollappId defines the rollapp to which the sequencer belongs.
             metadata:
-              description: metadata defines the extra information for the sequencer.
+              description: >-
+                SequencerMetadata defines the extra information for the
+                sequencer.
               type: object
               properties:
                 moniker:
@@ -64947,22 +67089,23 @@ definitions:
                 gas_price:
                   type: string
                   title: gas_price defines the value for each gas unit
-            jailed:
-              type: boolean
-              description: >-
-                jailed defined whether the sequencer has been jailed from bonded
-                status or not.
             proposer:
               type: boolean
             status:
-              description: status is the sequencer status (bonded/unbonding/unbonded).
+              description: OperatingStatus is the sequencer status (bonded/unbonded).
               type: string
               enum:
                 - OPERATING_STATUS_UNBONDED
-                - OPERATING_STATUS_UNBONDING
                 - OPERATING_STATUS_BONDED
               default: OPERATING_STATUS_UNBONDED
               title: OperatingStatus defines the operating status of a sequencer
+            opted_in:
+              type: boolean
+              title: >-
+                OptedIn : when true and bonded, the sequencer can be chosen as
+                proposer or successor
+
+                has no effect if already proposer or successor
             tokens:
               type: array
               items:
@@ -64980,27 +67123,25 @@ definitions:
                   method
 
                   signatures required by gogoproto.
-              description: tokens define the delegated tokens (incl. self-delegation).
-            unbond_request_height:
-              type: string
-              format: int64
               description: >-
-                unbond_request_height stores the height at which this sequencer
-                has
-
-                requested to unbond.
-            unbond_time:
-              type: string
-              format: date-time
-              description: >-
-                unbond_time defines the time when the sequencer will complete
-                unbonding.
+                Tokens: A coins which should always be one dym coin. It's the
+                amount of tokens the sequencer has given to the module.
             notice_period_time:
               type: string
               format: date-time
-              title: >-
-                notice_period_time defines the time when the sequencer will
-                finish it's notice period if started
+              description: >-
+                NoticePeriodTime defines the time when the sequencer will finish
+                it's notice period. Zero means not started.
+            reward_addr:
+              type: string
+              title: RewardAddr is a bech32 encoded sdk acc address
+            whitelisted_relayers:
+              type: array
+              items:
+                type: string
+              description: >-
+                WhitelistedRelayers is an array of the whitelisted relayer
+                addresses. Addresses are bech32-encoded strings.
           description: >-
             Sequencer defines a sequencer identified by its' address
             (sequencerAddress).
@@ -65044,7 +67185,7 @@ definitions:
             address:
               type: string
               description: >-
-                address is the bech32-encoded address of the sequencer account
+                Address is the bech32-encoded address of the sequencer account
                 which is the account that the message was sent from.
             dymintPubKey:
               type: object
@@ -65222,9 +67363,11 @@ definitions:
                     }
             rollappId:
               type: string
-              description: rollappId defines the rollapp to which the sequencer belongs.
+              description: RollappId defines the rollapp to which the sequencer belongs.
             metadata:
-              description: metadata defines the extra information for the sequencer.
+              description: >-
+                SequencerMetadata defines the extra information for the
+                sequencer.
               type: object
               properties:
                 moniker:
@@ -65297,22 +67440,23 @@ definitions:
                 gas_price:
                   type: string
                   title: gas_price defines the value for each gas unit
-            jailed:
-              type: boolean
-              description: >-
-                jailed defined whether the sequencer has been jailed from bonded
-                status or not.
             proposer:
               type: boolean
             status:
-              description: status is the sequencer status (bonded/unbonding/unbonded).
+              description: OperatingStatus is the sequencer status (bonded/unbonded).
               type: string
               enum:
                 - OPERATING_STATUS_UNBONDED
-                - OPERATING_STATUS_UNBONDING
                 - OPERATING_STATUS_BONDED
               default: OPERATING_STATUS_UNBONDED
               title: OperatingStatus defines the operating status of a sequencer
+            opted_in:
+              type: boolean
+              title: >-
+                OptedIn : when true and bonded, the sequencer can be chosen as
+                proposer or successor
+
+                has no effect if already proposer or successor
             tokens:
               type: array
               items:
@@ -65330,27 +67474,25 @@ definitions:
                   method
 
                   signatures required by gogoproto.
-              description: tokens define the delegated tokens (incl. self-delegation).
-            unbond_request_height:
-              type: string
-              format: int64
               description: >-
-                unbond_request_height stores the height at which this sequencer
-                has
-
-                requested to unbond.
-            unbond_time:
-              type: string
-              format: date-time
-              description: >-
-                unbond_time defines the time when the sequencer will complete
-                unbonding.
+                Tokens: A coins which should always be one dym coin. It's the
+                amount of tokens the sequencer has given to the module.
             notice_period_time:
               type: string
               format: date-time
-              title: >-
-                notice_period_time defines the time when the sequencer will
-                finish it's notice period if started
+              description: >-
+                NoticePeriodTime defines the time when the sequencer will finish
+                it's notice period. Zero means not started.
+            reward_addr:
+              type: string
+              title: RewardAddr is a bech32 encoded sdk acc address
+            whitelisted_relayers:
+              type: array
+              items:
+                type: string
+              description: >-
+                WhitelistedRelayers is an array of the whitelisted relayer
+                addresses. Addresses are bech32-encoded strings.
           description: >-
             Sequencer defines a sequencer identified by its' address
             (sequencerAddress).
@@ -65388,7 +67530,7 @@ definitions:
       address:
         type: string
         description: >-
-          address is the bech32-encoded address of the sequencer account which
+          Address is the bech32-encoded address of the sequencer account which
           is the account that the message was sent from.
       dymintPubKey:
         type: object
@@ -65556,9 +67698,9 @@ definitions:
               }
       rollappId:
         type: string
-        description: rollappId defines the rollapp to which the sequencer belongs.
+        description: RollappId defines the rollapp to which the sequencer belongs.
       metadata:
-        description: metadata defines the extra information for the sequencer.
+        description: SequencerMetadata defines the extra information for the sequencer.
         type: object
         properties:
           moniker:
@@ -65631,22 +67773,23 @@ definitions:
           gas_price:
             type: string
             title: gas_price defines the value for each gas unit
-      jailed:
-        type: boolean
-        description: >-
-          jailed defined whether the sequencer has been jailed from bonded
-          status or not.
       proposer:
         type: boolean
       status:
-        description: status is the sequencer status (bonded/unbonding/unbonded).
+        description: OperatingStatus is the sequencer status (bonded/unbonded).
         type: string
         enum:
           - OPERATING_STATUS_UNBONDED
-          - OPERATING_STATUS_UNBONDING
           - OPERATING_STATUS_BONDED
         default: OPERATING_STATUS_UNBONDED
         title: OperatingStatus defines the operating status of a sequencer
+      opted_in:
+        type: boolean
+        title: >-
+          OptedIn : when true and bonded, the sequencer can be chosen as
+          proposer or successor
+
+          has no effect if already proposer or successor
       tokens:
         type: array
         items:
@@ -65661,25 +67804,25 @@ definitions:
 
             NOTE: The amount field is an Int which implements the custom method
             signatures required by gogoproto.
-        description: tokens define the delegated tokens (incl. self-delegation).
-      unbond_request_height:
-        type: string
-        format: int64
-        description: |-
-          unbond_request_height stores the height at which this sequencer has
-          requested to unbond.
-      unbond_time:
-        type: string
-        format: date-time
         description: >-
-          unbond_time defines the time when the sequencer will complete
-          unbonding.
+          Tokens: A coins which should always be one dym coin. It's the amount
+          of tokens the sequencer has given to the module.
       notice_period_time:
         type: string
         format: date-time
-        title: >-
-          notice_period_time defines the time when the sequencer will finish
-          it's notice period if started
+        description: >-
+          NoticePeriodTime defines the time when the sequencer will finish it's
+          notice period. Zero means not started.
+      reward_addr:
+        type: string
+        title: RewardAddr is a bech32 encoded sdk acc address
+      whitelisted_relayers:
+        type: array
+        items:
+          type: string
+        description: >-
+          WhitelistedRelayers is an array of the whitelisted relayer addresses.
+          Addresses are bech32-encoded strings.
     description: >-
       Sequencer defines a sequencer identified by its' address
       (sequencerAddress).
@@ -69636,6 +71779,25 @@ definitions:
           triggered by
 
           (day, week, etc.)
+      create_gauge_base_fee:
+        type: string
+        description: >-
+          CreateGaugeBaseFee is a base fee required to create a new gauge. The
+          final
+
+          fee is calculated as
+
+          Fee = CreateGaugeBaseFee + AddDenomFee * (len(Denoms) +
+          len(GaugeDenoms)).
+      add_to_gauge_base_fee:
+        type: string
+        description: |-
+          AddToGaugeBaseFee is a base fee required to add to gauge. The final
+          fee is calculated as
+          Fee = AddToGaugeBaseFee + AddDenomFee * len(Denoms).
+      add_denom_fee:
+        type: string
+        description: AddDenomFee is a fee charged for adding every new denom to the gauge.
     title: Params holds parameters for the incentives module
   dymensionxyz.dymension.incentives.ParamsResponse:
     type: object
@@ -69651,6 +71813,30 @@ definitions:
               triggered by
 
               (day, week, etc.)
+          create_gauge_base_fee:
+            type: string
+            description: >-
+              CreateGaugeBaseFee is a base fee required to create a new gauge.
+              The final
+
+              fee is calculated as
+
+              Fee = CreateGaugeBaseFee + AddDenomFee * (len(Denoms) +
+              len(GaugeDenoms)).
+          add_to_gauge_base_fee:
+            type: string
+            description: >-
+              AddToGaugeBaseFee is a base fee required to add to gauge. The
+              final
+
+              fee is calculated as
+
+              Fee = AddToGaugeBaseFee + AddDenomFee * len(Denoms).
+          add_denom_fee:
+            type: string
+            description: >-
+              AddDenomFee is a fee charged for adding every new denom to the
+              gauge.
   dymensionxyz.dymension.incentives.QueryLockableDurationsResponse:
     type: object
     properties:
@@ -77578,118 +79764,6 @@ definitions:
       balance of the denominated token.
 
       Since: cosmos-sdk 0.46
-  cosmos.bank.v1beta1.DenomUnit:
-    type: object
-    properties:
-      denom:
-        type: string
-        description: denom represents the string name of the given denom unit (e.g uatom).
-      exponent:
-        type: integer
-        format: int64
-        description: >-
-          exponent represents power of 10 exponent that one must
-
-          raise the base_denom to in order to equal the given DenomUnit's denom
-
-          1 denom = 10^exponent base_denom
-
-          (e.g. with a base_denom of uatom, one can create a DenomUnit of 'atom'
-          with
-
-          exponent = 6, thus: 1 atom = 10^6 uatom).
-      aliases:
-        type: array
-        items:
-          type: string
-        title: aliases is a list of string aliases for the given denom
-    description: |-
-      DenomUnit represents a struct that describes a given
-      denomination unit of the basic token.
-  cosmos.bank.v1beta1.Metadata:
-    type: object
-    properties:
-      description:
-        type: string
-      denom_units:
-        type: array
-        items:
-          type: object
-          properties:
-            denom:
-              type: string
-              description: >-
-                denom represents the string name of the given denom unit (e.g
-                uatom).
-            exponent:
-              type: integer
-              format: int64
-              description: >-
-                exponent represents power of 10 exponent that one must
-
-                raise the base_denom to in order to equal the given DenomUnit's
-                denom
-
-                1 denom = 10^exponent base_denom
-
-                (e.g. with a base_denom of uatom, one can create a DenomUnit of
-                'atom' with
-
-                exponent = 6, thus: 1 atom = 10^6 uatom).
-            aliases:
-              type: array
-              items:
-                type: string
-              title: aliases is a list of string aliases for the given denom
-          description: |-
-            DenomUnit represents a struct that describes a given
-            denomination unit of the basic token.
-        title: denom_units represents the list of DenomUnit's for a given coin
-      base:
-        type: string
-        description: >-
-          base represents the base denom (should be the DenomUnit with exponent
-          = 0).
-      display:
-        type: string
-        description: |-
-          display indicates the suggested denom that should be
-          displayed in clients.
-      name:
-        type: string
-        description: 'Since: cosmos-sdk 0.43'
-        title: 'name defines the name of the token (eg: Cosmos Atom)'
-      symbol:
-        type: string
-        description: >-
-          symbol is the token symbol usually shown on exchanges (eg: ATOM). This
-          can
-
-          be the same as the display.
-
-
-          Since: cosmos-sdk 0.43
-      uri:
-        type: string
-        description: >-
-          URI to a document (on or off-chain) that contains additional
-          information. Optional.
-
-
-          Since: cosmos-sdk 0.46
-      uri_hash:
-        type: string
-        description: >-
-          URIHash is a sha256 hash of a document pointed by URI. It's used to
-          verify that
-
-          the document didn't change. Optional.
-
-
-          Since: cosmos-sdk 0.46
-    description: |-
-      Metadata represents a struct that describes
-      a basic token.
   cosmos.bank.v1beta1.Params:
     type: object
     properties:

@@ -13,17 +13,22 @@ import (
 )
 
 // HardFork handles the fraud evidence submitted by the user.
-func (k Keeper) HardFork(ctx sdk.Context, rollappID string, newRevisionHeight uint64) error {
+func (k Keeper) HardFork(ctx sdk.Context, rollappID string, lastValidHeight uint64) error {
 	rollapp, found := k.GetRollapp(ctx, rollappID)
 	if !found {
 		return gerrc.ErrNotFound
 	}
 
-	lastValidHeight, err := k.RevertPendingStates(ctx, rollappID, newRevisionHeight)
+	if !k.ForkAllowed(ctx, rollappID, lastValidHeight) {
+		return gerrc.ErrFailedPrecondition.Wrap("fork not allowed")
+	}
+
+	lastValidHeight, err := k.RevertPendingStates(ctx, rollappID, lastValidHeight+1)
 	if err != nil {
 		return errorsmod.Wrap(err, "revert pending states")
 	}
-	newRevisionHeight = lastValidHeight + 1
+
+	newRevisionHeight := lastValidHeight + 1
 
 	// update revision number
 	rollapp.BumpRevision(newRevisionHeight)
@@ -34,7 +39,7 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, newRevisionHeight ui
 	k.SetRollapp(ctx, rollapp)
 
 	// handle the sequencers, clean delayed packets, handle light client
-	err = k.hooks.OnHardFork(ctx, rollappID, newRevisionHeight)
+	err = k.hooks.OnHardFork(ctx, rollappID, lastValidHeight)
 	if err != nil {
 		return errorsmod.Wrap(err, "hard fork callback")
 	}
@@ -149,10 +154,10 @@ func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo,
 func (k Keeper) HardForkToLatest(ctx sdk.Context, rollappID string) error {
 	lastBatch, ok := k.GetLatestStateInfo(ctx, rollappID)
 	if !ok {
-		return errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "can't hard fork, no state info found")
+		return errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "no last batch")
 	}
 	// we invoke a hard fork on the last posted batch without reverting any states
-	return k.HardFork(ctx, rollappID, lastBatch.GetLatestHeight()+1)
+	return k.HardFork(ctx, rollappID, lastBatch.GetLatestHeight())
 }
 
 func mapKeysToSlice(m map[string]struct{}) []string {
@@ -194,4 +199,26 @@ func (k Keeper) pruneFinalizationsAbove(ctx sdk.Context, rollappID string, lastS
 		}
 	}
 	return nil
+}
+
+// is <height,revision> the first of the latest fork?
+func (k Keeper) IsFirstHeightOfLatestFork(ctx sdk.Context, rollappId string, revision, height uint64) bool {
+	rollapp := k.MustGetRollapp(ctx, rollappId)
+	latest := rollapp.LatestRevision().Number
+	return rollapp.DidFork() && rollapp.IsRevisionStartHeight(revision, height) && revision == latest
+}
+
+// is forking to the latest height going to violate assumptions?
+func (k Keeper) ForkLatestAllowed(ctx sdk.Context, rollapp string) bool {
+	lastHeight, ok := k.GetLatestHeight(ctx, rollapp)
+	if !ok {
+		return false
+	}
+	return k.ForkAllowed(ctx, rollapp, lastHeight)
+}
+
+// is the rollback fork going to violate assumptions?
+func (k Keeper) ForkAllowed(ctx sdk.Context, rollapp string, lastValidHeight uint64) bool {
+	ra := k.MustGetRollapp(ctx, rollapp)
+	return 0 < ra.GenesisState.TransferProofHeight && ra.GenesisState.TransferProofHeight <= lastValidHeight
 }

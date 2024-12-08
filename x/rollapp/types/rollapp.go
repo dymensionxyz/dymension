@@ -9,7 +9,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
 
@@ -27,7 +26,7 @@ const (
 var RollappTags = []string{
 	"Meme",
 	"AI",
-	"DeFI",
+	"DeFi",
 	"NFT",
 	"Gaming",
 	"Betting",
@@ -43,25 +42,16 @@ const (
 	Decimals18 AllowedDecimals = 18
 )
 
-func NewRollapp(
-	creator,
-	rollappId,
-	initialSequencer string,
-	vmType Rollapp_VMType,
-	metadata *RollappMetadata,
-	genInfo GenesisInfo,
-	transfersEnabled bool,
-) Rollapp {
+func NewRollapp(creator, rollappId, initialSequencer string, minSequencerBond sdk.Coin, vmType Rollapp_VMType, metadata *RollappMetadata, genInfo GenesisInfo) Rollapp {
 	return Rollapp{
 		RollappId:        rollappId,
 		Owner:            creator,
 		InitialSequencer: initialSequencer,
+		MinSequencerBond: sdk.Coins{minSequencerBond},
 		VmType:           vmType,
 		Metadata:         metadata,
 		GenesisInfo:      genInfo,
-		GenesisState: RollappGenesisState{
-			TransfersEnabled: transfersEnabled,
-		},
+		GenesisState:     RollappGenesisState{},
 		Revisions: []Revision{{
 			Number:      0,
 			StartHeight: 0,
@@ -79,6 +69,10 @@ func (r Rollapp) ValidateBasic() error {
 	_, err = NewChainID(r.RollappId)
 	if err != nil {
 		return err
+	}
+
+	if err = ValidateBasicMinSeqBondCoins(r.MinSequencerBond); err != nil {
+		return errorsmod.Wrap(err, "min sequencer bond")
 	}
 
 	if err = validateInitialSequencer(r.InitialSequencer); err != nil {
@@ -108,11 +102,15 @@ func (r Rollapp) ValidateBasic() error {
 }
 
 func (r Rollapp) IsTransferEnabled() bool {
-	return r.GenesisState.TransfersEnabled
+	return r.GenesisState.IsTransferEnabled()
+}
+
+func (s RollappGenesisState) IsTransferEnabled() bool {
+	return s.TransferProofHeight != 0
 }
 
 func (r Rollapp) AllImmutableFieldsAreSet() bool {
-	return r.InitialSequencer != "" && r.GenesisInfoFieldsAreSet()
+	return r.InitialSequencer != "" && r.GenesisInfoFieldsAreSet() && ValidateBasicMinSeqBondCoins(r.MinSequencerBond) == nil
 }
 
 func (r Rollapp) GenesisInfoFieldsAreSet() bool {
@@ -128,6 +126,7 @@ func (r Rollapp) LatestRevision() Revision {
 	return r.Revisions[len(r.Revisions)-1]
 }
 
+// TODO: rollapp type method should be more robust https://github.com/dymensionxyz/dymension/issues/1596
 func (r Rollapp) GetRevisionForHeight(h uint64) Revision {
 	for i := len(r.Revisions) - 1; i >= 0; i-- {
 		if r.Revisions[i].StartHeight <= h {
@@ -135,6 +134,15 @@ func (r Rollapp) GetRevisionForHeight(h uint64) Revision {
 		}
 	}
 	return Revision{}
+}
+
+func (r Rollapp) IsRevisionStartHeight(revision, height uint64) bool {
+	rev := r.GetRevisionForHeight(height)
+	return rev.Number == revision && rev.StartHeight == height
+}
+
+func (r Rollapp) DidFork() bool {
+	return 1 < len(r.Revisions)
 }
 
 func (r *Rollapp) BumpRevision(nextRevisionStartHeight uint64) {

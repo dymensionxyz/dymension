@@ -29,7 +29,7 @@ var (
 
 	// TODO: use separate cosmos/dymint pubkeys in tests https://github.com/dymensionxyz/dymension/issues/1360
 
-	bond = types.DefaultParams().MinBond
+	bond = rollapptypes.DefaultMinSequencerBondGlobalCoin
 	kick = types.DefaultParams().KickThreshold
 	pks  = []cryptotypes.PubKey{
 		randomTMPubKey(),
@@ -100,7 +100,11 @@ func (s *SequencerTestSuite) SetupTest() {
 
 	// Overwrite to exclude any unblockers set by default in apptesting, to ensure
 	// we are only testing our logic.
-	s.k().SetUnbondBlockers()
+	s.k().SetUnbondBlockers(
+		s.App.LightClientKeeper,
+		s.App.RollappKeeper,
+	)
+	s.App.RollappKeeper.SetHooks(rollapptypes.NewMultiRollappHooks(s.k().RollappHooks()))
 }
 
 func (s *SequencerTestSuite) seq(pk cryptotypes.PubKey) types.Sequencer {
@@ -135,9 +139,18 @@ func (s *SequencerTestSuite) createRollappWithInitialSeqConstraint(initSeq strin
 			InitialSupply:   sdk.NewInt(1000),
 		},
 		InitialSequencer: initSeq,
+		GenesisState:     rollapptypes.RollappGenesisState{TransferProofHeight: 1},
+		MinSequencerBond: sdk.NewCoins(rollapptypes.DefaultMinSequencerBondGlobalCoin),
 	}
 	s.raK().SetRollapp(s.Ctx, rollapp)
-	return rollapp
+	return s.raK().MustGetRollapp(s.Ctx, rollapp.RollappId)
+}
+
+func (s *SequencerTestSuite) submitAFewRollappStates(rollapp string) {
+	p := s.k().GetProposer(s.Ctx, rollapp)
+	h, _ := s.App.RollappKeeper.GetLatestHeight(s.Ctx, rollapp)
+	_, err := s.KeeperTestHelper.PostStateUpdate(s.Ctx, rollapp, p.Address, h, 10)
+	s.Require().NoError(err)
 }
 
 // Note: this method doesn't really mimic real usage

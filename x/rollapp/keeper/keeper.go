@@ -41,7 +41,7 @@ type Keeper struct {
 	transferKeeper        TransferKeeper
 
 	obsoleteDRSVersions     collections.KeySet[uint32]
-	registeredRollappDenoms collections.KeySet[collections.Pair[string, string]]
+	registeredRollappDenoms collections.KeySet[collections.Pair[string, string]] // [ rollappID, denom ]
 	// finalizationQueue is a map from creation height and rollapp to the finalization queue.
 	// Key: (creation height, rollappID), Value: state indexes to finalize.
 	// Contains a special index that helps reverse lookup: finalization queue (all available heights) by rollapp.

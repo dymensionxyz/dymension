@@ -96,6 +96,7 @@ func (s *SequencerTestSuite) TestFraudFullFlowDuringRotation() {
 	s.createSequencerWithBond(s.Ctx, ra.RollappId, charlie, ucoin.SimpleMul(bond, 1))
 	s.Require().True(s.k().IsProposer(s.Ctx, s.seq(alice)))
 	s.Require().False(s.k().IsSuccessor(s.Ctx, s.seq(bob)))
+	s.submitAFewRollappStates(ra.RollappId)
 
 	// proposer tries to unbond
 	mUnbond := &types.MsgUnbond{Creator: pkAddr(alice)}

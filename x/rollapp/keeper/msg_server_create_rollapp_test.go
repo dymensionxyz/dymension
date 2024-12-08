@@ -31,9 +31,11 @@ func (s *RollappTestSuite) TestCreateRollappWithBechGenesisSum() {
 		Creator:          alice,
 		RollappId:        "rollapp_1234-1",
 		InitialSequencer: sample.AccAddress(),
-		Alias:            "rollapp",
-		VmType:           types.Rollapp_EVM,
-		GenesisInfo:      mockGenesisInfo,
+		MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin,
+
+		Alias:       "rollapp",
+		VmType:      types.Rollapp_EVM,
+		GenesisInfo: mockGenesisInfo,
 	}
 	_, err := s.msgServer.CreateRollapp(goCtx, &rollapp)
 	s.Require().NoError(err)
@@ -47,8 +49,10 @@ func (s *RollappTestSuite) TestCreateRollappAlreadyExists() {
 		Creator:          alice,
 		RollappId:        "rollapp_1234-1",
 		InitialSequencer: sample.AccAddress(),
-		Alias:            "rollapp",
-		VmType:           types.Rollapp_EVM,
+		MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin,
+
+		Alias:  "rollapp",
+		VmType: types.Rollapp_EVM,
 	}
 
 	_, err := s.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -116,9 +120,11 @@ func (s *RollappTestSuite) TestOverwriteEIP155Key() {
 				Creator:          alice,
 				RollappId:        test.rollappId,
 				InitialSequencer: sample.AccAddress(),
-				Alias:            "alias",
-				VmType:           types.Rollapp_EVM,
-				GenesisInfo:      mockGenesisInfo,
+				MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin,
+
+				Alias:       "alias",
+				VmType:      types.Rollapp_EVM,
+				GenesisInfo: mockGenesisInfo,
 			}
 			s.FundForAliasRegistration(rollapp)
 			_, err := s.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -186,6 +192,7 @@ func (s *RollappTestSuite) createRollappWithCreatorAndVerify(
 		Creator:          creator,
 		RollappId:        urand.RollappID(),
 		InitialSequencer: address,
+		MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin,
 		Alias:            strings.ToLower(rand.Str(7)),
 		VmType:           types.Rollapp_EVM,
 		Metadata:         &mockRollappMetadata,
@@ -199,6 +206,7 @@ func (s *RollappTestSuite) createRollappWithCreatorAndVerify(
 		RollappId:        rollapp.GetRollappId(),
 		Owner:            rollapp.GetCreator(),
 		InitialSequencer: rollapp.GetInitialSequencer(),
+		MinSequencerBond: sdk.NewCoins(types.DefaultMinSequencerBondGlobalCoin),
 		VmType:           types.Rollapp_EVM,
 		Metadata:         rollapp.GetMetadata(),
 		GenesisInfo:      *rollapp.GetGenesisInfo(),
@@ -236,7 +244,7 @@ var mockRollappMetadata = types.RollappMetadata{
 	LogoUrl:     "https://dymension.xyz/logo.png",
 	Telegram:    "https://t.me/rolly",
 	X:           "https://x.dymension.xyz",
-	Tags:        []string{"AI", "DeFI", "NFT"},
+	Tags:        []string{"AI", "DeFi", "NFT"},
 }
 
 var mockGenesisInfo = &types.GenesisInfo{

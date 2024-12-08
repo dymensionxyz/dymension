@@ -97,6 +97,7 @@ func (s *SequencerTestSuite) TestDecreaseBondRestrictions() {
 		currBond := ucoin.SimpleMul(bond, 3)
 		seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, bob, currBond)
 		s.k().SetProposer(s.Ctx, ra.RollappId, seq.Address)
+		s.submitAFewRollappStates(ra.RollappId)
 		m := &types.MsgDecreaseBond{
 			Creator:        seq.Address,
 			DecreaseAmount: bond,
@@ -157,6 +158,7 @@ func (s *SequencerTestSuite) TestUnbondRestrictions() {
 	s.Run("proposer - start notice", func() {
 		seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, bob, bond)
 		s.k().SetProposer(s.Ctx, ra.RollappId, seq.Address)
+		s.submitAFewRollappStates(ra.RollappId)
 		m := &types.MsgUnbond{
 			Creator: seq.Address,
 		}

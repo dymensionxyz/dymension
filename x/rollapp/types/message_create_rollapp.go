@@ -15,7 +15,8 @@ var (
 func NewMsgCreateRollapp(
 	creator,
 	rollappId,
-	initSequencer,
+	initSequencer string,
+	minSequencerBond sdk.Coin,
 	alias string,
 	vmType Rollapp_VMType,
 	metadata *RollappMetadata,
@@ -25,6 +26,7 @@ func NewMsgCreateRollapp(
 		Creator:          creator,
 		RollappId:        rollappId,
 		InitialSequencer: initSequencer,
+		MinSequencerBond: minSequencerBond,
 		Alias:            alias,
 		VmType:           vmType,
 		Metadata:         metadata,
@@ -62,10 +64,10 @@ func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
 		msg.Creator,
 		msg.RollappId,
 		msg.InitialSequencer,
+		msg.MinSequencerBond,
 		msg.VmType,
 		msg.Metadata,
 		genInfo,
-		false,
 	)
 }
 

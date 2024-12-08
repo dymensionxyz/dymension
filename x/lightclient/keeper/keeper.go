@@ -9,7 +9,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -90,7 +89,11 @@ func NewKeeper(
 func (k Keeper) CanUnbond(ctx sdk.Context, seq sequencertypes.Sequencer) error {
 	client, ok := k.GetCanonicalClient(ctx, seq.RollappId)
 	if !ok {
-		return errorsmod.Wrap(sequencertypes.ErrUnbondNotAllowed, "no canonical client")
+		// It doesn't make sense to prevent unbonding here. If there is no canonical client, then
+		// there can have been no fraud that needs to be checked.
+		// Moreover, if we did prevent unbonding, it would lead to awkward situations where non proposer
+		// sequencers of early stage rollapps can't unbond, when the proposer is not doing his job.
+		return nil
 	}
 	rng := collections.NewSuperPrefixedTripleRange[string, string, uint64](seq.Address, client)
 	return k.headerSigners.Walk(ctx, rng, func(key collections.Triple[string, string, uint64]) (stop bool, err error) {
@@ -151,31 +154,6 @@ func (k Keeper) ExpectedClientState(context.Context, *types.QueryExpectedClientS
 		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "pack client state")
 	}
 	return &types.QueryExpectedClientStateResponse{ClientState: anyClient}, nil
-}
-
-func (k Keeper) SetHardForkInProgress(ctx sdk.Context, rollappID string) {
-	ctx.KVStore(k.storeKey).Set(types.HardForkKey(rollappID), []byte{0x01})
-}
-
-// remove the hardfork key from the store
-func (k Keeper) setHardForkResolved(ctx sdk.Context, rollappID string) {
-	ctx.KVStore(k.storeKey).Delete(types.HardForkKey(rollappID))
-}
-
-// checks if rollapp is hard forking
-func (k Keeper) IsHardForkingInProgress(ctx sdk.Context, rollappID string) bool {
-	return ctx.KVStore(k.storeKey).Has(types.HardForkKey(rollappID))
-}
-
-func (k Keeper) ListHardForkKeys(ctx sdk.Context) []string {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.HardForkPrefix)
-	iter := prefixStore.Iterator(nil, nil)
-	defer iter.Close() // nolint: errcheck
-	var ret []string
-	for ; iter.Valid(); iter.Next() {
-		ret = append(ret, string(iter.Key()))
-	}
-	return ret
 }
 
 func (k Keeper) pruneSigners(ctx sdk.Context, client string, h uint64, isAbove bool) error {

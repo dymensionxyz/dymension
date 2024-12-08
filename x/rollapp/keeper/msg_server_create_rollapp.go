@@ -27,6 +27,9 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	if err := k.CheckIfRollappExists(ctx, rollappId); err != nil {
 		return nil, err
 	}
+	if err := k.validMinBond(ctx, msg.MinSequencerBond); err != nil {
+		return nil, err
+	}
 
 	k.SetRollapp(ctx, msg.GetRollapp())
 

@@ -6,6 +6,7 @@ import "cosmos_proto/cosmos.proto";
 import "google/api/annotations.proto";
 import "dymensionxyz/dymension/iro/iro.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/iro/types";
 
@@ -70,11 +71,13 @@ message QueryParamsResponse {
 message QueryPlansRequest {
   // tradable_only is an optional flag to filter out plans that have not started yet, and that are not settled.
   bool tradable_only = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 // QueryPlanResponse is the response type for the Query/QueryPlan RPC method.
 message QueryPlansResponse {
   repeated Plan plans = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryPlanRequest is the request type for the Query/QueryPlan RPC method.

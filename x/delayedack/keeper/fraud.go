@@ -13,11 +13,11 @@ import (
 
 var _ rollapptypes.RollappHooks = &Keeper{}
 
-func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, newRevisionHeight uint64) error {
+func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, lastValidHeight uint64) error {
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
 	// Get all the pending packets from fork height inclusive
-	rollappPendingPackets := k.ListRollappPackets(ctx, types.PendingByRollappIDFromHeight(rollappID, newRevisionHeight))
+	rollappPendingPackets := k.ListRollappPackets(ctx, types.PendingByRollappIDFromHeight(rollappID, lastValidHeight+1))
 
 	// Iterate over all the pending packets and revert them
 	for _, rollappPacket := range rollappPendingPackets {

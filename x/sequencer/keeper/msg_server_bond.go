@@ -18,7 +18,7 @@ func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBon
 		return nil, err
 	}
 
-	if err := k.validBondDenom(ctx, msg.AddAmount); err != nil {
+	if err := validBondDenom(msg.AddAmount); err != nil {
 		return nil, err
 	}
 
@@ -76,6 +76,9 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 	// now we know they are proposer
 	// avoid starting another notice unnecessarily
 	if k.IsProposer(ctx, seq) {
+		if !k.rollappKeeper.ForkLatestAllowed(ctx, seq.RollappId) {
+			return nil, gerrc.ErrFailedPrecondition.Wrap("rotation could cause fork before genesis transfer")
+		}
 		if seq.NoticeInProgress(ctx.BlockTime()) {
 			return nil, gerrc.ErrFailedPrecondition.Wrap("notice period in progress")
 		}

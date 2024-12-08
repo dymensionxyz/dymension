@@ -291,17 +291,28 @@ func LivenessEventInvariant(k Keeper) sdk.Invariant {
 				msg += fmt.Sprintf("| rollapp stored event but wrong number found in queue: rollapp: %s: event height: %d: found: %d", ra.RollappId, ra.LivenessEventHeight, cnt)
 			}
 		}
-		for _, e := range k.GetLivenessEvents(ctx, nil) {
+		evts := k.GetLivenessEvents(ctx, nil)
+		seen := make(map[string]struct{})
+		for i, e := range evts {
+			if 0 < i && e.HubHeight < evts[i-1].HubHeight {
+				broken = true
+				msg += fmt.Sprintf("| events not sorted by height: event: %v\n", e)
+			}
+			if _, ok := seen[e.RollappId]; ok {
+				broken = true
+				msg += fmt.Sprintf("| more than one rollapp event: %v\n", e)
+			}
+			seen[e.RollappId] = struct{}{}
 			ra, ok := k.GetRollapp(ctx, e.RollappId)
 			if !ok {
 				broken = true
-				msg += fmt.Sprintf("| event stored but rollapp not found: rollapp id: %s", e.RollappId)
+				msg += fmt.Sprintf("| event stored but rollapp not found: rollapp id: %s\n", e.RollappId)
 				continue
 			}
 			if ra.LivenessEventHeight != e.HubHeight {
 				broken = true
 				msg += fmt.Sprintf("| event stored but rollapp has a different liveness event height: rollapp: %s"+
-					", height stored on rollapp: %d: height on event: %d", e.RollappId, ra.LivenessEventHeight, e.HubHeight,
+					", height stored on rollapp: %d: height on event: %d\n", e.RollappId, ra.LivenessEventHeight, e.HubHeight,
 				)
 			}
 

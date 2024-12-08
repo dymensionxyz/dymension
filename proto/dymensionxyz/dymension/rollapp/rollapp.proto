@@ -9,20 +9,20 @@ import "cosmos/msg/v1/msg.proto";
 
 import "dymensionxyz/dymension/rollapp/state_info.proto";
 import "dymensionxyz/dymension/rollapp/metadata.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "dymensionxyz/dymension/rollapp/genesis_info.proto";
 
 // RollappGenesisState is a partial repr of the state the hub can expect the
 // rollapp to be in upon genesis
 message RollappGenesisState {
-  reserved 1;
-  // If true, then full usage of the canonical ibc transfer channel is enabled.
-  // Note: in v3.1.0 and prior this field marked the completion of the 'genesis
-  // event' Keeping and renaming the field enables a seamless upgrade
-  // https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
-  // to the new genesis transfer protocol
-  // Note: if this field is false, ibc transfers may still be allowed in one or
-  // either direction.
-  bool transfers_enabled = 2;
+  reserved 1,2;
+
+
+  // 0 means unpopulated
+  // If populated, it's the proof height that the hub received the genesis transfer
+  // packet from the rollapp. If populated, the bridge is considered open. It's not allowed
+  // to fork to a height prior to this height.
+  uint64 transfer_proof_height = 3;
 }
 
 // Rollapp defines a rollapp object. First, the RollApp is created and then
@@ -38,21 +38,30 @@ message Rollapp {
   reserved 3 to 6;
   // genesis_state is a partial repr of the state the hub can expect the rollapp
   // to be in upon genesis
-  RollappGenesisState genesis_state = 7 [ (gogoproto.nullable) = false ];
+  RollappGenesisState genesis_state = 7 [(gogoproto.nullable) = false];
   // channel_id will be set to the canonical IBC channel of the rollapp.
   string channel_id = 8;
 
-  reserved 9,10;
-  
+  reserved 9, 10;
+
   // metadata is the rollapp metadata
   RollappMetadata metadata = 11;
   // genesis_info keeps immutable rollapp fields
-  GenesisInfo genesis_info = 12 [ (gogoproto.nullable) = false ];
+  GenesisInfo genesis_info = 12 [(gogoproto.nullable) = false];
   // initial_sequencer is an option to preset one or more coma-separated
   // bech32-encoded addresses of the sequencer(s) that are allowed to initially
   // register and serve for this rollapp. if left empty, no sequencer is allowed
   // to register. if set to "*" any sequencer can register.
   string initial_sequencer = 13;
+
+  // How much a sequencer needs to have at stake to be proposer be proposer.
+  // Denom is dym. It is empty or ONE coin only. Coins is just a convenience to avoid
+  // marshalling issues.
+  repeated cosmos.base.v1beta1.Coin min_sequencer_bond = 20 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"min_sequencer_bond\"",
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 
   enum VMType {
     Unspecified = 0;
@@ -67,7 +76,7 @@ message Rollapp {
   // pre_launch_time is the timestamp indicating the time before which the
   // rollapp cannot be started.
   // Set when creating IRO plan for the rollapp
-  google.protobuf.Timestamp pre_launch_time = 16 [ (gogoproto.stdtime) = true];
+  google.protobuf.Timestamp pre_launch_time = 16 [(gogoproto.stdtime) = true];
   // LivenessEventHeight is the height on the HUB of an upcoming liveness event (slash or
   // jail against the rollapp). 0 means not set
   int64 liveness_event_height = 17;
@@ -76,7 +85,7 @@ message Rollapp {
   int64 liveness_countdown_start_height = 18;
 
   // Revisions is a list of all the rollapp revisions.
-  repeated Revision revisions = 19 [ (gogoproto.nullable) = false ];
+  repeated Revision revisions = 19 [(gogoproto.nullable) = false];
 }
 
 // Revision is a representation of the rollapp revision.

@@ -72,7 +72,7 @@ func (w *ICS4Wrapper) transferAllowed(ctx sdk.Context, sourcePort string, source
 		}
 		return errorsmod.Wrap(err, "rollapp by port chan")
 	}
-	if !ra.GenesisState.TransfersEnabled {
+	if !ra.GenesisState.IsTransferEnabled() {
 		return gerrc.ErrFailedPrecondition.Wrap("transfers disabled for rollapp")
 	}
 	return nil

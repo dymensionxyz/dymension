@@ -53,7 +53,7 @@ func (s *RollappTestSuite) TestSubmitRollappFraud() {
 
 			// set transferEnabled to true
 			rollapp := s.k().MustGetRollapp(s.Ctx, rollappId)
-			rollapp.GenesisState.TransfersEnabled = true
+			rollapp.GenesisState.TransferProofHeight = 1
 			s.k().SetRollapp(s.Ctx, rollapp)
 
 			var (
@@ -69,7 +69,7 @@ func (s *RollappTestSuite) TestSubmitRollappFraud() {
 			}
 
 			// Force a fork at height 50
-			err = s.k().HardFork(s.Ctx, rollappId, 50)
+			err = s.k().HardFork(s.Ctx, rollappId, 49)
 			s.Require().NoError(err)
 			lastHeight = 50
 
@@ -81,7 +81,7 @@ func (s *RollappTestSuite) TestSubmitRollappFraud() {
 			}
 
 			// Force another fork at height 120
-			err = s.k().HardFork(s.Ctx, rollappId, 120)
+			err = s.k().HardFork(s.Ctx, rollappId, 119)
 			s.Require().NoError(err)
 
 			// assert revision correctness
