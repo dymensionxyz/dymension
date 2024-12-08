@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -28,6 +29,7 @@ type Keeper struct {
 	ik         types.IncentivesKeeper
 	sk         types.SponsorshipKeeper
 
+	schema collections.Schema // set later
 	// epochPointers holds a mapping from the epoch identifier to EpochPointer.
 	epochPointers collections.Map[string, types.EpochPointer]
 }
@@ -49,7 +51,7 @@ func NewKeeper(
 
 	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
 
-	return &Keeper{
+	k := &Keeper{
 		storeKey:   storeKey,
 		paramSpace: paramSpace,
 		bk:         bk,
@@ -57,6 +59,7 @@ func NewKeeper(
 		ak:         ak,
 		ik:         ik,
 		sk:         sk,
+		schema:     collections.Schema{}, // set later
 		epochPointers: collections.NewMap(
 			sb,
 			types.KeyPrefixEpochPointers,
@@ -65,6 +68,20 @@ func NewKeeper(
 			collcompat.ProtoValue[types.EpochPointer](cdc),
 		),
 	}
+
+	// SchemaBuilder CANNOT be used after Build is called,
+	// so we build it after all collections are initialized
+	schema, err := sb.Build()
+	if err != nil {
+		panic(err)
+	}
+	k.schema = schema
+
+	return k
+}
+
+func (k Keeper) Schema() collections.Schema {
+	return k.schema
 }
 
 // Logger returns a logger instance for the streamer module.
@@ -88,7 +105,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.D
 	} else {
 		distr, err := k.NewDistrInfo(ctx, records)
 		if err != nil {
-			return 0, err
+			return 0, errorsmod.Wrap(err, "new distribution info")
 		}
 		distrInfo = distr
 	}
@@ -150,6 +167,9 @@ func (k Keeper) TerminateStream(ctx sdk.Context, streamID uint64) error {
 	stream, err := k.GetStreamByID(ctx, streamID)
 	if err != nil {
 		return err
+	}
+	if stream.IsFinishedStream(ctx.BlockTime()) {
+		return errorsmod.Wrapf(types.ErrInvalidStreamStatus, "stream %d is already finished", streamID)
 	}
 
 	if stream.IsActiveStream(ctx.BlockTime()) {

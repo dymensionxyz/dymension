@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -172,8 +173,8 @@ func (k Keeper) CalculateRewards(
 			if err != nil {
 				// we don't want to fail in this case, ignore this gauge
 				k.Logger(ctx).
-					With("gaugeID", v.Gauge.GaugeId, "error", err.Error()).
-					Error("Can't distribute to gauge: failed to get active gauge")
+					With("gaugeID", v.Gauge.GaugeId, "error", err).
+					Error("Can't distribute to gauge: failed to get active gauge.")
 				return false, 0 // continue, weight = 0, consider this operation as it is free
 			}
 			// add a new gauge to the cache
@@ -218,7 +219,7 @@ func (k Keeper) getActiveGaugeByID(ctx sdk.Context, gaugeID uint64) (incentivest
 	// validate the gauge exists
 	gauge, err := k.ik.GetGaugeByID(ctx, gaugeID)
 	if err != nil {
-		return incentivestypes.Gauge{}, fmt.Errorf("get gauge: id %d: %w", gaugeID, err)
+		return incentivestypes.Gauge{}, errorsmod.Wrap(err, "gauge by id")
 	}
 	// validate the gauge is not finished
 	finished := gauge.IsFinishedGauge(ctx.BlockTime())
