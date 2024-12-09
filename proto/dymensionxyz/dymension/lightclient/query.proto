@@ -24,6 +24,9 @@ service Query {
   rpc ExpectedClientState(QueryExpectedClientStateRequest) returns (QueryExpectedClientStateResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/lightclient/expectedclientstate";
   }
+  rpc RollappCanonChannel(QueryRollappCanonChannelRequest) returns (QueryRollappCanonChannelResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/lightclient/canon_channel/{rollappId}";
+  }
 }
 
 message QueryExpectedClientStateRequest {}
@@ -31,4 +34,15 @@ message QueryExpectedClientStateRequest {}
 message QueryExpectedClientStateResponse {
   // client state
   google.protobuf.Any client_state = 2 [(gogoproto.moretags) = "yaml:\"client_state\""];
+}
+
+message QueryRollappCanonChannelRequest {
+  string rollappId = 1;
+}
+
+message QueryRollappCanonChannelResponse {
+  // hub side
+  string hub_channel_id = 1;
+  // rollapp side ('counterparty')
+  string rollapp_channel_id = 2;
 }

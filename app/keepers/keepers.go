@@ -376,6 +376,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[lightclientmoduletypes.StoreKey],
 		a.IBCKeeper.ClientKeeper,
+		a.IBCKeeper.ChannelKeeper,
 		a.SequencerKeeper,
 		a.RollappKeeper,
 	)

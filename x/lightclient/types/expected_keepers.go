@@ -6,6 +6,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -34,5 +35,6 @@ type IBCClientKeeperExpected interface {
 }
 
 type IBCChannelKeeperExpected interface {
+	GetChannel(ctx sdk.Context, portID, channelID string) (types.Channel, bool)
 	GetChannelConnection(ctx sdk.Context, portID, channelID string) (string, exported.ConnectionI, error)
 }
