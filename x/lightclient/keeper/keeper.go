@@ -160,6 +160,7 @@ func (k Keeper) ExpectedClientState(context.Context, *types.QueryExpectedClientS
 	return &types.QueryExpectedClientStateResponse{ClientState: anyClient}, nil
 }
 
+// a convenience function to get both hub and rollapp channel ids from just the rollapp id
 func (k Keeper) RollappCanonChannel(goCtx context.Context, req *types.QueryRollappCanonChannelRequest) (*types.QueryRollappCanonChannelResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	ra, ok := k.rollappKeeper.GetRollapp(ctx, req.GetRollappId())
@@ -167,11 +168,11 @@ func (k Keeper) RollappCanonChannel(goCtx context.Context, req *types.QueryRolla
 		return nil, rollapptypes.ErrRollappNotFound
 	}
 	if ra.ChannelId == "" {
-		return nil, gerrc.ErrNotFound.Wrap("canonical channel not set on rollapp")
+		return nil, gerrc.ErrFailedPrecondition.Wrap("canonical channel not set on rollapp")
 	}
 	cha, ok := k.ibcChannelK.GetChannel(ctx, "transfer", ra.ChannelId)
 	if !ok {
-		return nil, gerrc.ErrNotFound.Wrapf("channel: %s", ra.ChannelId)
+		return nil, gerrc.ErrInternal.Wrapf("channel: %s", ra.ChannelId)
 	}
 	return &types.QueryRollappCanonChannelResponse{
 		HubChannelId:     ra.ChannelId,
