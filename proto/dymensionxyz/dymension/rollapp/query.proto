@@ -68,6 +68,10 @@ service Query {
 
   // Validates provided genesis bridge data against the hub.
   rpc ValidateGenesisBridge(QueryValidateGenesisBridgeRequest) returns (QueryValidateGenesisBridgeResponse);
+
+  rpc RollappCanonChannel(QueryRollappCanonChannelRequest) returns (QueryRollappCanonChannelResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/rollapp/canon_channel/{rollappId}";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -162,4 +166,15 @@ message QueryValidateGenesisBridgeRequest {
 message QueryValidateGenesisBridgeResponse {
   bool valid = 1;
   string err = 2;
+}
+
+message QueryRollappCanonChannelRequest {
+  string rollappId = 1;
+}
+
+message QueryRollappCanonChannelResponse {
+  // hub side
+  string hub_channel_id = 1;
+  // rollapp side ('counterparty')
+  string rollapp_channel_id = 2;
 }
