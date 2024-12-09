@@ -85,6 +85,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	streamermodule "github.com/dymensionxyz/dymension/v3/x/streamer"
+	streamersim "github.com/dymensionxyz/dymension/v3/x/streamer/simulation"
 
 	"github.com/dymensionxyz/dymension/v3/x/delayedack"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -208,7 +209,7 @@ func (a *AppKeepers) SetupModules(
 
 		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper),
 		sponsorship.NewAppModule(a.SponsorshipKeeper, a.AccountKeeper, a.BankKeeper, a.IncentivesKeeper, a.StakingKeeper),
-		streamermodule.NewAppModule(a.StreamerKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
+		streamermodule.NewAppModule(a.StreamerKeeper, streamersim.Keepers{Bank: a.BankKeeper, Epoch: a.EpochsKeeper, Acc: a.AccountKeeper, Incentives: a.IncentivesKeeper, Endorse: a.SponsorshipKeeper}),
 		delayedackmodule.NewAppModule(appCodec, a.DelayedAckKeeper, a.delayedAckMiddleware),
 		denommetadatamodule.NewAppModule(a.DenomMetadataKeeper, *a.EvmKeeper, a.BankKeeper),
 		eibcmodule.NewAppModule(appCodec, a.EIBCKeeper, a.AccountKeeper, a.BankKeeper),
@@ -237,6 +238,7 @@ func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
+	// These falsey modules are not blocked from send/receive
 	// exclude the streamer as we want him to be able to get external incentives
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
