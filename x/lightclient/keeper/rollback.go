@@ -126,18 +126,3 @@ func (k Keeper) unfreezeClient(clientStore sdk.KVStore, height uint64) {
 
 	setClientState(clientStore, k.cdc, tmClientState)
 }
-
-// IterateConsensusStateDescending iterates through all consensus states in descending order
-// until cb returns true.
-func IterateConsensusStateDescending(clientStore sdk.KVStore, cb func(height exported.Height) (stop bool)) {
-	iterator := sdk.KVStoreReversePrefixIterator(clientStore, []byte(ibctm.KeyIterateConsensusStatePrefix))
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		iterKey := iterator.Key()
-		height := ibctm.GetHeightFromIterationKey(iterKey)
-		if cb(height) {
-			break
-		}
-	}
-}
