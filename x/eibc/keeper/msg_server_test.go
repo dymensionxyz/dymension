@@ -272,7 +272,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			orderFee:       sdk.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
-				RollappId:           "rollapp2", // Mismatched Rollapp ID
+				RollappId:           "rollapp_2345-1", // Mismatched Rollapp ID
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
 				Amount:              sdk.IntProto{Int: sdk.NewInt(110)},
 				ExpectedFee:         "10",
