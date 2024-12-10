@@ -49,9 +49,9 @@ func (k Keeper) GetProposerByRollapp(c context.Context, req *types.QueryGetPropo
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	proposer, err := k.RealSequencer(ctx, k.GetProposer(ctx, req.RollappId).Address)
-	if err != nil {
-		return nil, err
+	proposer := k.GetProposer(ctx, req.RollappId)
+	if proposer.Sentinel() {
+		return nil, gerrc.ErrNotFound
 	}
 
 	return &types.QueryGetProposerByRollappResponse{
