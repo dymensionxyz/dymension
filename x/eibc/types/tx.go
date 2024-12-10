@@ -9,6 +9,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 var (
@@ -107,12 +109,11 @@ func (msg *MsgFulfillOrderAuthorized) GetSignBytes() []byte {
 }
 
 func (msg *MsgFulfillOrderAuthorized) ValidateBasic() error {
-	if msg.RollappId == "" {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "rollapp id cannot be empty")
+	if err := validateRollappID(msg.RollappId); err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "invalid rollapp id")
 	}
 
-	err := validateCommon(msg.OrderId, msg.ExpectedFee, msg.OperatorFeeAddress, msg.LpAddress)
-	if err != nil {
+	if err := validateCommon(msg.OrderId, msg.ExpectedFee, msg.OperatorFeeAddress, msg.LpAddress); err != nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 
@@ -217,4 +218,12 @@ func validateCommon(orderId, fee string, address ...string) error {
 	}
 
 	return nil
+}
+
+func validateRollappID(rollappID string) error {
+	if rollappID == "" {
+		return rollapptypes.ErrInvalidRollappID
+	}
+	_, err := rollapptypes.NewChainID(rollappID)
+	return err
 }
