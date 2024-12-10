@@ -11,3 +11,4 @@ proposal.json
 **/testdata/rapid/
 **/__debug_bin*
 .aider*
+repomix.config.json

@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -104,6 +105,11 @@ func (m *MockIBCClientKeeper) ConsensusStateHeights(c context.Context, req *ibcc
 
 type MockIBCChannelKeeper struct {
 	channelConnections map[string]ibcconnectiontypes.ConnectionEnd
+}
+
+func (m *MockIBCChannelKeeper) GetChannel(ctx sdk.Context, portID, channelID string) (channeltypes.Channel, bool) {
+	// TODO implement me
+	panic("implement me")
 }
 
 func NewMockIBCChannelKeeper(connections map[string]ibcconnectiontypes.ConnectionEnd) *MockIBCChannelKeeper {
