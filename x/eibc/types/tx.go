@@ -120,8 +120,8 @@ func (msg *MsgFulfillOrderAuthorized) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "price is invalid")
 	}
 
-	if msg.Amount.Int.IsNil() || msg.Amount.Int.IsNegative() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "amount cannot be empty or negative")
+	if msg.Amount.Int.IsNil() || !msg.Amount.Int.IsPositive() {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "amount is invalid")
 	}
 
 	if msg.OperatorFeeShare.Dec.IsNil() || msg.OperatorFeeShare.Dec.IsNegative() {

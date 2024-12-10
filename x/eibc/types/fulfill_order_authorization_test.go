@@ -87,6 +87,32 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 			expectedAccept: false,
 			expectedError:  "settlement validation flag mismatch",
 		},
+		{
+			name: "Expected fee lower than minimum fee",
+			authorization: FulfillOrderAuthorization{
+				Rollapps: []*RollappCriteria{
+					{
+						RollappId:           "rollapp1",
+						Denoms:              []string{"atom"},
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 9986)),
+						MinFeePercentage:    sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.0015")},
+						OperatorFeeShare:    sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.02")},
+						SettlementValidated: true,
+					},
+				},
+			},
+			msg: &MsgFulfillOrderAuthorized{
+				RollappId:           "rollapp1",
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
+				Amount:              sdk.IntProto{Int: sdk.NewInt(10000)},
+				ExpectedFee:         sdk.MustNewDecFromStr("0.0014").Mul(sdk.NewDec(10000)).String(),
+				OperatorFeeShare:    sdk.DecProto{Dec: sdk.MustNewDecFromStr("0.02")},
+				SettlementValidated: true,
+			},
+			expectedAccept: false,
+			expectedError:  "is less than minimum fee",
+		},
 	}
 
 	for _, tc := range testCases {
