@@ -49,8 +49,13 @@ func (k Keeper) GetProposerByRollapp(c context.Context, req *types.QueryGetPropo
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
+	proposer, err := k.RealSequencer(ctx, k.GetProposer(ctx, req.RollappId).Address)
+	if err != nil {
+		return nil, err
+	}
+
 	return &types.QueryGetProposerByRollappResponse{
-		ProposerAddr: k.GetProposer(ctx, req.RollappId).Address,
+		ProposerAddr: proposer.Address,
 	}, nil
 }
 
@@ -60,11 +65,16 @@ func (k Keeper) GetNextProposerByRollapp(c context.Context, req *types.QueryGetN
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	successor := k.GetSuccessor(ctx, req.RollappId)
 	inProgress := k.AwaitingLastProposerBlock(ctx, req.RollappId)
 
+	addr := ""
+	successor := k.GetSuccessor(ctx, req.RollappId)
+	if !successor.Sentinel() {
+		addr = successor.Address
+	}
+
 	return &types.QueryGetNextProposerByRollappResponse{
-		NextProposerAddr:   successor.Address,
+		NextProposerAddr:   addr,
 		RotationInProgress: inProgress,
 	}, nil
 }
@@ -83,7 +93,8 @@ func (k Keeper) Proposers(c context.Context, req *types.QueryProposersRequest) (
 	pageRes, err := query.Paginate(sequencerStore, req.Pagination, func(key []byte, value []byte) error {
 		proposer, err := k.RealSequencer(ctx, string(value))
 		if err != nil {
-			return err
+			// skip sentinel proposers
+			return nil
 		}
 		proposers = append(proposers, proposer)
 		return nil
