@@ -286,7 +286,7 @@ func ReformatFinalizationQueue(queue rollapptypes.BlockHeightToFinalizationQueue
 
 func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {
 	params := incentivestypes.DefaultParams()
-	params.DistrEpochIdentifier = ik.DistrEpochIdentifier(ctx)
+	params.DistrEpochIdentifier = "day"
 	ik.SetParams(ctx, params)
 }
 
