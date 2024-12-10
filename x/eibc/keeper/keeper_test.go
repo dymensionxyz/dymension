@@ -42,7 +42,7 @@ var (
 	)
 	packet        = channeltypes.NewPacket(transferPacketData.GetBytes(), 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
 	rollappPacket = &commontypes.RollappPacket{
-		RollappId: "testRollappId",
+		RollappId: "rollapp_1234-1",
 		Status:    commontypes.Status_PENDING,
 		Type:      commontypes.RollappPacket_ON_RECV,
 		Packet:    &packet,

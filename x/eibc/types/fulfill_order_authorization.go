@@ -173,8 +173,8 @@ func (a FulfillOrderAuthorization) ValidateBasic() error {
 
 	for _, criteria := range a.Rollapps {
 		// Validate that rollapp_id is not empty
-		if len(criteria.RollappId) == 0 {
-			return errorsmod.Wrapf(errors.ErrInvalidRequest, "rollapp_id cannot be empty")
+		if err := validateRollappID(criteria.RollappId); err != nil {
+			return errorsmod.Wrapf(errors.ErrInvalidRequest, err.Error())
 		}
 
 		// Check for duplicate rollapp_ids
