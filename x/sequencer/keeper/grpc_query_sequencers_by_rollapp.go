@@ -49,8 +49,13 @@ func (k Keeper) GetProposerByRollapp(c context.Context, req *types.QueryGetPropo
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
+	proposer := k.GetProposer(ctx, req.RollappId)
+	if proposer.Sentinel() {
+		return nil, gerrc.ErrNotFound
+	}
+
 	return &types.QueryGetProposerByRollappResponse{
-		ProposerAddr: k.GetProposer(ctx, req.RollappId).Address,
+		ProposerAddr: proposer.Address,
 	}, nil
 }
 
@@ -83,7 +88,8 @@ func (k Keeper) Proposers(c context.Context, req *types.QueryProposersRequest) (
 	pageRes, err := query.Paginate(sequencerStore, req.Pagination, func(key []byte, value []byte) error {
 		proposer, err := k.RealSequencer(ctx, string(value))
 		if err != nil {
-			return err
+			// skip sentinel proposers
+			return nil
 		}
 		proposers = append(proposers, proposer)
 		return nil
