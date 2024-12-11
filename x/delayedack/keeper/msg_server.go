@@ -36,6 +36,7 @@ func (m MsgServer) FinalizePacket(goCtx context.Context, msg *types.MsgFinalizeP
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	// next middleware is denommetadata, see transfer stack setup
 	_, err = m.k.FinalizeRollappPacket(ctx, m.ibc.NextIBCMiddleware(), string(msg.PendingPacketKey()))
 	if err != nil {
 		return nil, err
