@@ -94,14 +94,13 @@ func (w IBCModule) OnRecvPacket(
 
 	l := w.logger(ctx, packet).With("rollapp_id", ra.RollappId)
 
-	// parse the genesis bridge data
 	var genesisBridgeData types.GenesisBridgeData
 	if err := json.Unmarshal(packet.GetData(), &genesisBridgeData); err != nil {
 		l.Error("Unmarshal genesis bridge data.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "unmarshal genesis bridge data"))
 	}
 
-	// validate the genesis bridge data against the hub's genesis info
+	// Make sure what the rollapp has is what the hub thinks it should have.
 	err = types.NewGenesisBridgeValidator(genesisBridgeData, ra.GenesisInfo).Validate()
 	if err != nil {
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "validate and get actionable data"))

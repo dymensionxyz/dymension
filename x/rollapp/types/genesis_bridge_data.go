@@ -15,18 +15,15 @@ import (
 
 // ValidateBasic performs basic validation checks on the GenesisBridgeData.
 func (d GenesisBridgeData) ValidateBasic() error {
-	// Validate genesis info
 	if err := d.GenesisInfo.ValidateBasic(); err != nil {
 		return errors.Wrap(err, "invalid genesis info")
 	}
 
-	// Validate metadata
+	// metadata
 	if err := d.NativeDenom.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
 	}
 
-	// validate metadata corresponding to the genesis info denom
-	// check the base denom, display unit and decimals
 	if d.NativeDenom.Base != d.GenesisInfo.NativeDenom.Base {
 		return fmt.Errorf("metadata denom does not match genesis info denom")
 	}
@@ -45,13 +42,11 @@ func (d GenesisBridgeData) ValidateBasic() error {
 		return fmt.Errorf("denom metadata does not contain display unit with the correct exponent")
 	}
 
-	// Validate genesis transfers
 	if d.GenesisTransfer != nil {
 		if err := d.GenesisTransfer.ValidateBasic(); err != nil {
 			return errors.Wrap(err, "invalid genesis transfer")
 		}
 
-		// validate the genesis transfer denom
 		if d.GenesisInfo.NativeDenom.Base != d.GenesisTransfer.Denom {
 			return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "denom mismatch")
 		}
