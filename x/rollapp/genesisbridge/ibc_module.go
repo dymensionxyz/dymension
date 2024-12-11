@@ -106,7 +106,7 @@ func (w IBCModule) OnRecvPacket(
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "validate and get actionable data"))
 	}
 
-	trace, denom, err := genesisBridgeData.IBCDenom(ra.RollappId, ra.ChannelId)
+	trace, meta, err := genesisBridgeData.IBCDenom(ra.RollappId, ra.ChannelId)
 	if err != nil {
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "genesis bridge data: to IBC denom"))
 	}
@@ -114,7 +114,7 @@ func (w IBCModule) OnRecvPacket(
 	genesisPackets := genesisBridgeData.GenesisAccPackets()
 
 	w.transferKeeper.SetDenomTrace(ctx, trace)
-	if err := w.denomKeeper.CreateDenomMetadata(ctx, denom); err != nil {
+	if err := w.denomKeeper.CreateDenomMetadata(ctx, meta); err != nil {
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "create denom metadata"))
 	}
 
@@ -124,7 +124,7 @@ func (w IBCModule) OnRecvPacket(
 		}
 	}
 
-	err = w.EnableTransfers(ctx, packet, ra, denom.Base)
+	err = w.EnableTransfers(ctx, packet, ra, meta.Base)
 	if err != nil {
 		l.Error("Enable transfers.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: enable transfers"))
@@ -132,7 +132,7 @@ func (w IBCModule) OnRecvPacket(
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeTransfersEnabled,
 		sdk.NewAttribute(types.AttributeKeyRollappId, ra.RollappId),
-		sdk.NewAttribute(types.AttributeRollappIBCdenom, denom.Base),
+		sdk.NewAttribute(types.AttributeRollappIBCdenom, meta.Base),
 	))
 
 	// return success ack
