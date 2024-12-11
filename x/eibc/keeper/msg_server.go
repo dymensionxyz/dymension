@@ -30,7 +30,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	logger := ctx.Logger()
 
-	err := msg.ValidateBasic()
+	err := msg.ValidateBasic() // TODO: remove, sdk does this
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,6 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, types.ErrExpectedFeeNotMet
 	}
 
-	// Check that the fulfiller has enough balance to fulfill the order
 	fulfillerAccount := m.ak.GetAccount(ctx, msg.GetFulfillerBech32Address())
 	if fulfillerAccount == nil {
 		return nil, types.ErrFulfillerAddressDoesNotExist
@@ -76,7 +75,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	logger := ctx.Logger()
 
-	err := msg.ValidateBasic()
+	err := msg.ValidateBasic() // TODO: remove, sdk does this
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +189,7 @@ func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *type
 func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdateDemandOrder) (*types.MsgUpdateDemandOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	err := msg.ValidateBasic()
+	err := msg.ValidateBasic() // TODO: remove, sdk does this
 	if err != nil {
 		return nil, err
 	}
@@ -210,6 +209,7 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 
 	raPacket, err := m.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
 	if err != nil {
+		// TODO: isn't this internal error?
 		return nil, err
 	}
 

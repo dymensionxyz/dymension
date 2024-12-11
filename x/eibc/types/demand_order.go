@@ -164,7 +164,7 @@ func (m *DemandOrder) ValidateOrderIsOutstanding() error {
 		return ErrDemandAlreadyFulfilled
 	}
 	// Check the underlying packet is still relevant (i.e not expired, rejected, reverted)
-	if m.TrackingPacketStatus != commontypes.Status_PENDING {
+	if m.TrackingPacketStatus != commontypes.Status_PENDING { // TODO:remove, there is only one callsite and it already knows it's pending
 		return ErrDemandOrderInactive
 	}
 	return nil

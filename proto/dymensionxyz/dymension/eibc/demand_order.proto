@@ -36,6 +36,6 @@ message DemandOrder {
     common.RollappPacket.Type type = 10;
     // fulfiller_address is the bech32-encoded address of the account which fulfilled the order.
     string fulfiller_address = 11;
-    // creation_height is the height of the block when order was created.
+    // creation_height is the height of the block on the hub when order was created.
     uint64 creation_height = 12;
 }
