@@ -125,6 +125,7 @@ func (w IBCModule) OnRecvPacket(
 		}
 	}
 
+	// open the bridge!
 	err = w.EnableTransfers(ctx, packet, ra, meta.Base)
 	if err != nil {
 		l.Error("Enable transfers.", "err", err)
@@ -136,9 +137,7 @@ func (w IBCModule) OnRecvPacket(
 		sdk.NewAttribute(types.AttributeRollappIBCdenom, meta.Base),
 	))
 
-	// return success ack
-	// acknowledgement will be written synchronously during IBC handler execution.
-	successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+	successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)}) // core ibc writes it
 	return successAck
 }
 
