@@ -68,7 +68,7 @@ func (k Keeper) finalizeRollappPacket(
 						non-eibc: sender will get the funds back
 			            eibc:     effective transfer from fulfiller to original target
 		*/
-		if ack != nil {
+		if ack != nil { // NOTE: in practice ack should not be nil, since ibc transfer core module always returns something
 			packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
 		}
 	case commontypes.RollappPacket_ON_ACK:
@@ -78,8 +78,10 @@ func (k Keeper) finalizeRollappPacket(
 	default:
 		logger.Error("Unknown rollapp packet type")
 	}
-	// Update the packet with the error
 	if packetErr != nil {
+		// NOTE (timeout,ack): in regular (non dymension) IBC, timeout and ack errors are actually supposed
+		//  to cause the delivery transaction to be rejected.
+		//  Here, we already accepted the original msg delivery transaction, we can't retroactively reject it.
 		rollappPacket.Error = packetErr.Error()
 	}
 

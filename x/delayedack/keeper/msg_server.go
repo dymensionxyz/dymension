@@ -29,7 +29,7 @@ func NewMsgServer(k Keeper, ibc DelayedAckIBCModule) MsgServer {
 }
 
 func (m MsgServer) FinalizePacket(goCtx context.Context, msg *types.MsgFinalizePacket) (*types.MsgFinalizePacketResponse, error) {
-	err := msg.ValidateBasic()
+	err := msg.ValidateBasic() // TODO: remove, called by sdk
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (m MsgServer) FinalizePacket(goCtx context.Context, msg *types.MsgFinalizeP
 }
 
 func (m MsgServer) FinalizePacketByPacketKey(goCtx context.Context, msg *types.MsgFinalizePacketByPacketKey) (*types.MsgFinalizePacketByPacketKeyResponse, error) {
-	err := msg.ValidateBasic()
+	err := msg.ValidateBasic() // TODO: remove, called by sdk
 	if err != nil {
 		return nil, err
 	}
