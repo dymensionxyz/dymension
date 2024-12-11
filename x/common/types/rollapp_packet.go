@@ -110,6 +110,8 @@ func (r RollappPacket) GetAck() (channeltypes.Acknowledgement, error) {
 	return ack, nil
 }
 
+// restores the packet back to how it looked when hub first received it, to make sure the right ack
+// is written back
 func (r RollappPacket) RestoreOriginalTransferTarget() RollappPacket {
 	transferPacketData := r.MustGetTransferPacketData()
 	if r.OriginalTransferTarget != "" { // It can be empty if the eibc order was never fulfilled
