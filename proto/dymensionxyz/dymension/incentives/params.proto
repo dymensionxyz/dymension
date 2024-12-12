@@ -29,4 +29,7 @@ message Params {
     (gogoproto.nullable) = false,
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
+  // FeatureFlagEpochEndDistribution enables distribution of gauge rewards
+  // at the end of each epoch. If disabled, rewards are not distributed.
+  bool feature_flag_epoch_end_distribution = 5;
 }
