@@ -305,7 +305,9 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 		s.Require().False(p.Sentinel())
 	}
 	s.Require().Equal(sequencertypes.DefaultNoticePeriod, s.App.SequencerKeeper.GetParams(s.Ctx).NoticePeriod)
-	s.Require().Equal(sequencertypes.DefaultKickThreshold, s.App.SequencerKeeper.GetParams(s.Ctx).KickThreshold)
+	s.Require().Equal(sequencertypes.DefaultDishonorKickThreshold, s.App.SequencerKeeper.GetParams(s.Ctx).DishonorKickThreshold)
+	s.Require().Equal(sequencertypes.DefaultDishonorLiveness, s.App.SequencerKeeper.GetParams(s.Ctx).DishonorLiveness)
+	s.Require().Equal(sequencertypes.DefaultDishonorStateUpdate, s.App.SequencerKeeper.GetParams(s.Ctx).DishonorStateUpdate)
 	s.Require().Equal(sequencertypes.DefaultLivenessSlashMultiplier, s.App.SequencerKeeper.GetParams(s.Ctx).LivenessSlashMinMultiplier)
 	s.Require().Equal(sequencertypes.DefaultLivenessSlashMinAbsolute, s.App.SequencerKeeper.GetParams(s.Ctx).LivenessSlashMinAbsolute)
 

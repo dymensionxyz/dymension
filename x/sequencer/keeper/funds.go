@@ -26,8 +26,8 @@ func (k Keeper) sufficientBond(ctx sdk.Context, rollapp string, c sdk.Coin) erro
 }
 
 func (k Keeper) Kickable(ctx sdk.Context, proposer types.Sequencer) bool {
-	kickThreshold := k.GetParams(ctx).KickThreshold
-	return !proposer.Sentinel() && proposer.TokensCoin().IsLTE(kickThreshold)
+	kickThreshold := k.GetParams(ctx).DishonorKickThreshold
+	return !proposer.Sentinel() && kickThreshold <= proposer.Dishonor
 }
 
 func (k Keeper) burn(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin) error {
