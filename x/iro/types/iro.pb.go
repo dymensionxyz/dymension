@@ -33,7 +33,10 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params is a module parameters.
 type Params struct {
-	TakerFee    github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,1,opt,name=taker_fee,json=takerFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"taker_fee"`
+	TakerFee github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,1,opt,name=taker_fee,json=takerFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"taker_fee"`
+	// The fee for creating a plan in rollapp tokens (e.g 1000000000000000000 for 1Token fee)
+	// must be > 1
+	// The cost in dym is charged from the creator
 	CreationFee github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=creation_fee,json=creationFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"creation_fee"`
 	// Minimum plan duration
 	// when creating a plan, the plan duration should be greater than or equal to
