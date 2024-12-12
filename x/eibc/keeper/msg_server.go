@@ -85,6 +85,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		return nil, err
 	}
 
+	// check compat between the fulfillment and current order and packet status
 	if err := m.validateOrder(demandOrder, msg, ctx); err != nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, err.Error())
 	}
@@ -134,6 +135,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 	return &types.MsgFulfillOrderAuthorizedResponse{}, nil
 }
 
+// TODO: rename and fix signature (ctx first)
 func (m msgServer) validateOrder(demandOrder *types.DemandOrder, msg *types.MsgFulfillOrderAuthorized, ctx sdk.Context) error {
 	if demandOrder.RollappId != msg.RollappId {
 		return types.ErrRollappIdMismatch
@@ -169,6 +171,8 @@ func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *type
 		return false, fmt.Errorf("get rollapp packet: %w", err)
 	}
 
+	// TODO: extract to rollapp keeper func HaveHeight(..)
+
 	// as it is not currently possible to make IBC transfers without a canonical client,
 	// we can assume that there has to exist at least one state info record for the rollapp
 	stateInfo, ok := m.rk.GetLatestStateInfo(ctx, demandOrder.RollappId)
@@ -178,10 +182,10 @@ func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *type
 
 	lastHeight := stateInfo.GetLatestHeight()
 
+	// TODO: write oneliner
 	if lastHeight < raPacket.ProofHeight {
 		return false, nil
 	}
-
 	return true, nil
 }
 

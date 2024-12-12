@@ -34,19 +34,16 @@ func (k Keeper) GetDelayedAckHooks() delayeacktypes.DelayedAckHooks {
 func (d delayedAckHooks) AfterPacketStatusUpdated(ctx sdk.Context, packet *commontypes.RollappPacket,
 	oldPacketKey string, newPacketKey string,
 ) error {
-	// Get the demand order from the old packet key
 	demandOrderID := types.BuildDemandIDFromPacketKey(oldPacketKey)
 	demandOrder, err := d.GetDemandOrder(ctx, commontypes.Status_PENDING, demandOrderID)
 	if err != nil {
-		// If demand order does not exist, then we don't need to do anything
+		// If demand order does not exist, then we don't need to do anything // TODO: why
 		if errors.Is(err, types.ErrDemandOrderDoesNotExist) {
 			return nil
 		}
 		return err
 	}
-	// Update the demand order tracking packet key
 	demandOrder.TrackingPacketKey = newPacketKey
-	// Update the demand order status according to the underlying packet status
 	_, err = d.UpdateDemandOrderWithStatus(ctx, demandOrder, packet.Status)
 	if err != nil {
 		return err
