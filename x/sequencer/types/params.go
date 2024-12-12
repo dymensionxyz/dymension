@@ -20,7 +20,7 @@ var (
 
 	DefaultDishonorStateUpdate   = uint64(1)
 	DefaultDishonorLiveness      = uint64(300)
-	DefaultDishonorKickThreshold = uint64(600)
+	DefaultDishonorKickThreshold = uint64(900)
 )
 
 // NewParams creates a new Params instance
