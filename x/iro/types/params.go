@@ -13,7 +13,7 @@ var (
 	DefaultTakerFee                                     = "0.02"                      // 2%
 	DefaultCreationFee                                  = math.NewInt(1).MulRaw(1e18) /* 1 Rollapp token */
 	DefaultMinPlanDuration                              = 0 * time.Hour               // no enforced minimum by default
-	DefaultIncentivePlanMinimumNumEpochsPaidOver        = uint64(10_080)              // default: min 7 days (based on 1 minute distribution epoch)
+	DefaultIncentivePlanMinimumNumEpochsPaidOver        = uint64(364)                 // default: min 364 days (based on 1 day distribution epoch)
 	DefaultIncentivePlanMinimumStartTimeAfterSettlement = 60 * time.Minute            // default: min 1 hour after settlement
 )
 
