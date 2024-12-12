@@ -11,14 +11,15 @@ import (
 )
 
 var (
-	// DefaultKickThreshold is the minimum bond required to be a validator
-	DefaultKickThreshold = commontypes.DYMCoin
 	// DefaultNoticePeriod is the time duration for notice period
 	DefaultNoticePeriod = time.Hour * 24 * 7 // 1 week
 	// DefaultLivenessSlashMultiplier gives the amount of tokens to slash if the sequencer is liable for a liveness failure
 	DefaultLivenessSlashMultiplier = sdk.MustNewDecFromStr("0.01")
 	// DefaultLivenessSlashMinAbsolute will be slashed if the multiplier amount is too small
 	DefaultLivenessSlashMinAbsolute = commontypes.DYMCoin
+
+	DefaultDishonorStateUpdate=uint64(1)
+	DefaultDishonorLiveness=uint64(300)
 )
 
 // NewParams creates a new Params instance
@@ -27,7 +28,8 @@ func NewParams(noticePeriod time.Duration, livenessSlashMul sdk.Dec, livenessSla
 		NoticePeriod:               noticePeriod,
 		LivenessSlashMinMultiplier: livenessSlashMul,
 		LivenessSlashMinAbsolute:   livenessSlashAbs,
-		KickThreshold:              kickThreshold,
+		DishonorStateUpdate:
+
 	}
 }
 
