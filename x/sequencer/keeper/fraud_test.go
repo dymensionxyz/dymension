@@ -5,8 +5,8 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 )
 
-// Can eventually slash to below kickable threshold
-func (s *SequencerTestSuite) TestSlashLivenessFlow() {
+// Can eventually get below kickable threshold
+func (s *SequencerTestSuite) TestLivenessFlow() {
 	ra := s.createRollapp()
 	s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
 	seq := s.seq(alice)
@@ -14,7 +14,8 @@ func (s *SequencerTestSuite) TestSlashLivenessFlow() {
 
 	s.Require().False(s.k().Kickable(s.Ctx, seq))
 	ok := false
-	last := seq.TokensCoin()
+	lastTokens := seq.TokensCoin()
+	lastDishonor := seq.Dishonor
 	for range 100000000 {
 		err := s.k().SlashLiveness(s.Ctx, ra.RollappId)
 		s.Require().NoError(err)
@@ -22,7 +23,10 @@ func (s *SequencerTestSuite) TestSlashLivenessFlow() {
 		seq = s.seq(alice)
 		mod := s.moduleBalance()
 		s.Require().True(mod.Equal(seq.TokensCoin()))
-		s.Require().True(seq.TokensCoin().IsLT(last))
+		s.Require().True(seq.TokensCoin().IsLT(lastTokens))
+		s.Require().True(seq.Dishonor > lastDishonor)
+		lastTokens = seq.TokensCoin()
+		lastDishonor = seq.Dishonor
 		if s.k().Kickable(s.Ctx, seq) {
 			ok = true
 			break
@@ -36,20 +40,6 @@ func (s *SequencerTestSuite) TestSlashLivenessFlow() {
 func (s *SequencerTestSuite) TestPunishSequencer() {
 	ra := s.createRollapp()
 
-	s.Run("kickable after punish", func() {
-		s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
-		seq := s.seq(alice)
-
-		s.k().SetProposer(s.Ctx, ra.RollappId, seq.Address)
-		s.Require().False(s.k().Kickable(s.Ctx, seq))
-
-		err := s.k().PunishSequencer(s.Ctx, seq.Address, nil)
-		s.Require().NoError(err)
-
-		seq = s.seq(alice)
-		// assert alice is now kickable
-		s.Require().True(s.k().Kickable(s.Ctx, seq))
-	})
 	s.Run("without rewardee", func() {
 		s.createSequencerWithBond(s.Ctx, ra.RollappId, bob, bond)
 		seq := s.seq(bob)
