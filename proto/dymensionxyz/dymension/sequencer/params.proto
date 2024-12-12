@@ -14,11 +14,10 @@ message Params {
 
   reserved 1;
 
-  // amt where the active sequencer can be kicked if he has less or equal bond
-  cosmos.base.v1beta1.Coin kick_threshold = 5 [
-    (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "kick_threshold,omitempty"
-  ];
+
+
+
+  reserved 5;
   reserved 2;
 
   // notice_period is the time duration of notice period.
@@ -38,4 +37,11 @@ message Params {
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "liveness_slash_min_absolute,omitempty"
   ];
+
+  // how much dishonor a sequencer gains on liveness events (+dishonor)
+  uint64 dishonor_liveness = 7;
+  // how much honor a sequencer gains on state updates (-dishonor)
+  uint64 dishonor_state_update = 8;
+  // the minimum dishonor at which a sequencer can be kicked (<=)
+  uint64 dishonor_kick_threshold = 9;
 }

@@ -20,7 +20,6 @@ func NewSequencerProposalHandler(k keeper.Keeper) govtypes.Handler {
 	}
 }
 
-// HandlePunishSequencerProposal is a handler for executing a passed community spend proposal
 func HandlePunishSequencerProposal(ctx sdk.Context, k keeper.Keeper, p *types.PunishSequencerProposal) error {
 	err := k.PunishSequencer(ctx, p.PunishSequencerAddress, p.MustRewardee())
 	if err != nil {

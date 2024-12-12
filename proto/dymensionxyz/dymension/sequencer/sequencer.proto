@@ -52,5 +52,10 @@ message Sequencer {
   string reward_addr = 12;
   // WhitelistedRelayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
   repeated string whitelisted_relayers = 13;
+
+
+  // how badly behaved sequencer is, can incur penalties (kicking) when high
+  // 0 is good/default, more is worse
+  uint64 dishonor = 15;
 }
 
