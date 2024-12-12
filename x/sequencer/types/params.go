@@ -28,7 +28,6 @@ func NewParams(noticePeriod time.Duration, livenessSlashMul sdk.Dec, livenessSla
 	dishonorStateUpdate uint64,
 	dishonorLiveness uint64,
 	dishonorKickThreshold uint64,
-
 ) Params {
 	return Params{
 		NoticePeriod:               noticePeriod,
