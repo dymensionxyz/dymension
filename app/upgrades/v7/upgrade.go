@@ -21,6 +21,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -59,7 +60,7 @@ func CreateUpgradeHandler(
 }
 
 func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {
-	params := ik.GetParams(ctx)
+	params := incentivestypes.DefaultParams()
 
 	// ENABLED ONLY FOR PLAYGROUND
 	params.FeatureFlagEpochEndDistribution = true
