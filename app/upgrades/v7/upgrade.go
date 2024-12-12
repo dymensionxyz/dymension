@@ -15,12 +15,14 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/dymensionxyz/dymension/v3/app/keepers"
-	"github.com/dymensionxyz/dymension/v3/app/upgrades"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+
+	"github.com/dymensionxyz/dymension/v3/app/keepers"
+	"github.com/dymensionxyz/dymension/v3/app/upgrades"
+	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // playground only
@@ -49,8 +51,20 @@ func CreateUpgradeHandler(
 		seqParams.DishonorLiveness = sequencertypes.DefaultDishonorLiveness
 		seqParams.DishonorStateUpdate = sequencertypes.DefaultDishonorStateUpdate
 		keepers.SequencerKeeper.SetParams(ctx, seqParams)
+
+		migrateIncentivesParams(ctx, keepers.IncentivesKeeper)
+
 		return fromVM, nil
 	}
+}
+
+func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {
+	params := ik.GetParams(ctx)
+
+	// ENABLED ONLY FOR PLAYGROUND
+	params.FeatureFlagEpochEndDistribution = true
+
+	ik.SetParams(ctx, params)
 }
 
 func setKeyTables(keepers *keepers.AppKeepers) {
