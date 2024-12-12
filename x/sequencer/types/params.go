@@ -18,24 +18,31 @@ var (
 	// DefaultLivenessSlashMinAbsolute will be slashed if the multiplier amount is too small
 	DefaultLivenessSlashMinAbsolute = commontypes.DYMCoin
 
-	DefaultDishonorStateUpdate=uint64(1)
-	DefaultDishonorLiveness=uint64(300)
+	DefaultDishonorStateUpdate   = uint64(1)
+	DefaultDishonorLiveness      = uint64(300)
+	DefaultDishonorKickThreshold = uint64(600)
 )
 
 // NewParams creates a new Params instance
-func NewParams(noticePeriod time.Duration, livenessSlashMul sdk.Dec, livenessSlashAbs sdk.Coin, kickThreshold sdk.Coin) Params {
+func NewParams(noticePeriod time.Duration, livenessSlashMul sdk.Dec, livenessSlashAbs sdk.Coin,
+	dishonorStateUpdate uint64,
+	dishonorLiveness uint64,
+	dishonorKickThreshold uint64,
+
+) Params {
 	return Params{
 		NoticePeriod:               noticePeriod,
 		LivenessSlashMinMultiplier: livenessSlashMul,
 		LivenessSlashMinAbsolute:   livenessSlashAbs,
-		DishonorStateUpdate:
-
+		DishonorStateUpdate:        dishonorStateUpdate,
+		DishonorLiveness:           dishonorLiveness,
+		DishonorKickThreshold:      dishonorKickThreshold,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(DefaultNoticePeriod, DefaultLivenessSlashMultiplier, DefaultLivenessSlashMinAbsolute, DefaultKickThreshold)
+	return NewParams(DefaultNoticePeriod, DefaultLivenessSlashMultiplier, DefaultLivenessSlashMinAbsolute, DefaultDishonorStateUpdate, DefaultDishonorLiveness, DefaultDishonorKickThreshold)
 }
 
 func validateTime(i interface{}) error {
@@ -69,7 +76,13 @@ func (p Params) ValidateBasic() error {
 		return err
 	}
 
-	if err := uparam.ValidateCoin(p.KickThreshold); err != nil {
+	if err := uparam.ValidateUint64(p.DishonorKickThreshold); err != nil {
+		return err
+	}
+	if err := uparam.ValidateUint64(p.DishonorLiveness); err != nil {
+		return err
+	}
+	if err := uparam.ValidateUint64(p.DishonorKickThreshold); err != nil {
 		return err
 	}
 
