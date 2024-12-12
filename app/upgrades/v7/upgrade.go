@@ -62,9 +62,6 @@ func CreateUpgradeHandler(
 func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {
 	params := incentivestypes.DefaultParams()
 
-	// ENABLED ONLY FOR PLAYGROUND
-	params.FeatureFlagEpochEndDistribution = true
-
 	ik.SetParams(ctx, params)
 }
 
