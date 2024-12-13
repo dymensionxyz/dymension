@@ -79,7 +79,7 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
 	}
 
-	if err = r.GenesisInfo.Validate(); err != nil {
+	if err = r.GenesisInfo.ValidateBasic(); err != nil {
 		return err
 	}
 

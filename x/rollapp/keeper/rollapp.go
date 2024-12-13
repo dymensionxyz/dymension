@@ -63,7 +63,7 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 			current.GenesisInfo.InitialSupply = update.GenesisInfo.InitialSupply
 		}
 
-		// Frontend always passes new value
+		// caller should always pass new value
 		current.GenesisInfo.GenesisAccounts = update.GenesisInfo.GenesisAccounts
 	}
 
@@ -143,7 +143,7 @@ func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, iro
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info already sealed")
 	}
 
-	if !rollapp.GenesisInfoFieldsAreSet() {
+	if !rollapp.GenesisInfo.IROReady() {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info not set")
 	}
 

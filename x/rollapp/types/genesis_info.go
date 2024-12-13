@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -33,14 +32,18 @@ func (gi GenesisInfo) GenesisTransferAmount() math.Int {
 	return total
 }
 
+// native denom is optional
 func (gi GenesisInfo) AllSet() bool {
 	return gi.GenesisChecksum != "" &&
-		gi.NativeDenom.IsSet() &&
 		gi.Bech32Prefix != "" &&
-		!gi.InitialSupply.IsNil()
+		!gi.InitialSupply.IsNil() // can be 0, but needs to be set
 }
 
-func (gi GenesisInfo) Validate() error {
+func (gi GenesisInfo) IROReady() bool {
+	return gi.AllSet() && gi.NativeDenom.IsSet()
+}
+
+func (gi GenesisInfo) ValidateBasic() error {
 	if gi.Bech32Prefix != "" {
 		if err := validateBech32Prefix(gi.Bech32Prefix); err != nil {
 			return errors.Join(ErrInvalidBech32Prefix, err)
@@ -53,20 +56,28 @@ func (gi GenesisInfo) Validate() error {
 
 	if gi.NativeDenom.IsSet() {
 		if err := gi.NativeDenom.Validate(); err != nil {
-			return errorsmod.Wrap(ErrInvalidNativeDenom, err.Error())
+			return errors.Join(ErrInvalidMetadata, err)
+		}
+	} else {
+		// if native denom is not set, initial supply must be 0 and no accounts
+		if !gi.InitialSupply.IsNil() && !gi.InitialSupply.IsZero() {
+			return ErrNoNativeTokenRollapp
+		}
+
+		if l := len(gi.Accounts()); l > 0 {
+			return ErrNoNativeTokenRollapp
 		}
 	}
 
-	if !gi.InitialSupply.IsNil() {
-		if !gi.InitialSupply.IsPositive() {
-			return ErrInvalidInitialSupply
-		}
+	if !gi.InitialSupply.IsNil() && gi.InitialSupply.IsNegative() {
+		return ErrInvalidInitialSupply
 	}
 
 	if l := len(gi.Accounts()); l > maxAllowedGenesisAccounts {
 		return fmt.Errorf("too many genesis accounts: %d", l)
 	}
 
+	total := math.ZeroInt()
 	accountSet := make(map[string]struct{})
 	for _, a := range gi.Accounts() {
 		if err := a.ValidateBasic(); err != nil {
@@ -76,12 +87,23 @@ func (gi GenesisInfo) Validate() error {
 			return fmt.Errorf("duplicate genesis account: %s", a.Address)
 		}
 		accountSet[a.Address] = struct{}{}
+
+		total = total.Add(a.Amount)
 	}
+
+	if !total.LT(gi.InitialSupply) {
+		return ErrInvalidInitialSupply
+	}
+
 	return nil
 }
 
 func (a GenesisAccount) ValidateBasic() error {
-	if !a.Amount.IsNil() && !a.Amount.IsPositive() {
+	if a.Amount.IsNil() {
+		return fmt.Errorf("invalid amount: %s", a.Address)
+	}
+
+	if !a.Amount.IsPositive() {
 		return fmt.Errorf("invalid amount: %s %s", a.Address, a.Amount)
 	}
 

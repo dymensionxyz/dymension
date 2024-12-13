@@ -107,25 +107,28 @@ func (w IBCModule) OnRecvPacket(
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "validate and get actionable data"))
 	}
 
-	trace, denom, err := genesisBridgeData.IBCDenom(ra.RollappId, ra.ChannelId)
-	if err != nil {
-		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "genesis bridge data: to IBC denom"))
+	// handle rollapp's denom metadata
+	var raDenomOnHUb string
+	if genesisBridgeData.GenesisInfo.NativeDenom.IsSet() {
+		trace, denom, err := genesisBridgeData.IBCDenom(ra.RollappId, ra.ChannelId)
+		if err != nil {
+			return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "genesis bridge data: to IBC denom"))
+		}
+		w.transferKeeper.SetDenomTrace(ctx, trace)
+		if err := w.denomKeeper.CreateDenomMetadata(ctx, denom); err != nil {
+			return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "create denom metadata"))
+		}
+		raDenomOnHUb = denom.Base
 	}
 
 	genesisPackets := genesisBridgeData.GenesisAccPackets()
-
-	w.transferKeeper.SetDenomTrace(ctx, trace)
-	if err := w.denomKeeper.CreateDenomMetadata(ctx, denom); err != nil {
-		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "create denom metadata"))
-	}
-
 	for _, data := range genesisPackets {
 		if err := w.transferKeeper.OnRecvPacket(ctx, packet, data); err != nil {
 			return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "handle genesis transfer"))
 		}
 	}
 
-	err = w.EnableTransfers(ctx, packet, ra, denom.Base)
+	err = w.EnableTransfers(ctx, packet, ra, raDenomOnHUb)
 	if err != nil {
 		l.Error("Enable transfers.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: enable transfers"))
@@ -133,7 +136,7 @@ func (w IBCModule) OnRecvPacket(
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeTransfersEnabled,
 		sdk.NewAttribute(types.AttributeKeyRollappId, ra.RollappId),
-		sdk.NewAttribute(types.AttributeRollappIBCdenom, denom.Base),
+		sdk.NewAttribute(types.AttributeRollappIBCdenom, raDenomOnHUb),
 	))
 
 	// return success ack

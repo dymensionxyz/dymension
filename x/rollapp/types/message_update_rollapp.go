@@ -71,17 +71,14 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 		}
 	}
 
-	if msg.GenesisInfo != nil {
-		if err := msg.GenesisInfo.Validate(); err != nil {
-			return err
-		}
-	}
-
 	if msg.Metadata != nil {
 		if err := msg.Metadata.Validate(); err != nil {
 			return errors.Join(ErrInvalidMetadata, err)
 		}
 	}
+
+	// genesis info is not validated here, as we allow to update partial fields
+	// it will be validated when trying to apply the update
 
 	return nil
 }
@@ -112,12 +109,14 @@ func (m *MsgForceGenesisInfoChange) ValidateBasic() error {
 	}
 
 	// Validate new genesis info
-	if err := m.NewGenesisInfo.Validate(); err != nil {
+	if err := m.NewGenesisInfo.ValidateBasic(); err != nil {
 		return errorsmod.Wrapf(
 			errors.Join(gerrc.ErrInvalidArgument, err),
 			"invalid genesis info",
 		)
 	}
+
+	// FIXME: check if IRO exists
 
 	if !m.NewGenesisInfo.AllSet() {
 		return errorsmod.Wrapf(

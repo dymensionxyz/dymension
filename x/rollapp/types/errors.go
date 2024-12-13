@@ -50,6 +50,7 @@ var (
 	ErrTooManyTags                       = errorsmod.Wrap(gerrc.ErrInvalidArgument, "too many tags")
 	ErrDuplicateTag                      = errorsmod.Wrap(gerrc.ErrInvalidArgument, "duplicate tag")
 	ErrInvalidInitialSupply              = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid initial supply")
+	ErrNoNativeTokenRollapp              = errorsmod.Wrap(gerrc.ErrInvalidArgument, "no native token rollapp")
 	ErrInvalidBech32Prefix               = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid bech32 prefix")
 	ErrRollappNotFound                   = errorsmod.Wrap(gerrc.ErrNotFound, "rollapp")
 
