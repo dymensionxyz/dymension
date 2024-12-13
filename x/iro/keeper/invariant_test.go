@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	keeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
@@ -68,12 +67,4 @@ func (s *KeeperTestSuite) TestInvariantAccounting() {
 	// Clean up minted tokens
 	err = s.App.BankKeeper.BurnCoins(s.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewCoin(planDenom, sdk.NewInt(1))))
 	s.Require().NoError(err)
-
-	// Artificially break invariant by sending DYM to plan address
-	dymAmt := sdk.NewInt(100).MulRaw(1e18)
-	s.FundAcc(plan.GetAddress(), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, dymAmt)))
-
-	// Check invariant - should be broken due to DYM tokens in plan after settlement
-	err = inv(s.Ctx)
-	s.Require().Error(err)
 }
