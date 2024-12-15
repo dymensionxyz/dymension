@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -152,21 +150,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 			},
 			err: ErrDuplicateTag,
 		},
-		{
-			name: "invalid genesis checksum: too long",
-			msg: MsgUpdateRollappInformation{
-				Owner:            sample.AccAddress(),
-				InitialSequencer: sample.AccAddress(),
-				RollappId:        "dym_100-1",
-				GenesisInfo: &GenesisInfo{
-					Bech32Prefix:    bech32Prefix,
-					GenesisChecksum: strings.Repeat("a", maxGenesisChecksumLength+1),
-					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
-				},
-			},
-			err: ErrInvalidGenesisChecksum,
-		},
+
 		{
 			name: "valid: updating without genesis info",
 			msg: MsgUpdateRollappInformation{
@@ -177,9 +161,9 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 			},
 			err: nil,
 		},
-		// valid - updating genesis accounts
+		// genesis info is not validated here
 		{
-			name: "valid: updating genesis accounts",
+			name: "valid: updating genesis info",
 			msg: MsgUpdateRollappInformation{
 				Owner:            sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
@@ -189,39 +173,6 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				},
 			},
 			err: nil,
-		},
-		// invalid - updating genesis accounts: invalid address
-		{
-			name: "invalid: updating genesis accounts: invalid address",
-			msg: MsgUpdateRollappInformation{
-				Owner:            sample.AccAddress(),
-				InitialSequencer: sample.AccAddress(),
-				RollappId:        "dym_100-1",
-				GenesisInfo: &GenesisInfo{
-					GenesisAccounts: &GenesisAccounts{
-						Accounts: []GenesisAccount{
-							{
-								Address: "invalid_address",
-								Amount:  sdk.NewInt(100),
-							},
-						},
-					},
-				},
-			},
-			err: fmt.Errorf("invalid"),
-		},
-		// invalid - too many genesis accounts
-		{
-			name: "invalid: too many genesis accounts",
-			msg: MsgUpdateRollappInformation{
-				Owner:            sample.AccAddress(),
-				InitialSequencer: sample.AccAddress(),
-				RollappId:        "dym_100-1",
-				GenesisInfo: &GenesisInfo{
-					GenesisAccounts: createManyGenesisAccounts(101),
-				},
-			},
-			err: fmt.Errorf("too many genesis accounts"),
 		},
 	}
 	for _, tt := range tests {
@@ -234,15 +185,4 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
-}
-
-func createManyGenesisAccounts(n int) *GenesisAccounts {
-	accounts := make([]GenesisAccount, n)
-	for i := 0; i < n; i++ {
-		accounts[i] = GenesisAccount{
-			Address: sample.AccAddress(),
-			Amount:  sdk.NewInt(100),
-		}
-	}
-	return &GenesisAccounts{Accounts: accounts}
 }

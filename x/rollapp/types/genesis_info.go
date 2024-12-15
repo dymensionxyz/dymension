@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -104,7 +105,7 @@ func (gi GenesisInfo) ValidateBasic() error {
 				return errors.Join(gerrc.ErrInvalidArgument, err)
 			}
 			if _, exists := accountSet[a.Address]; exists {
-				return fmt.Errorf("duplicate genesis account: %s", a.Address)
+				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "duplicate genesis account: %s", a.Address)
 			}
 			accountSet[a.Address] = struct{}{}
 
