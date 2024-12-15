@@ -680,7 +680,6 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 }
 
 func (s *RollappTestSuite) TestUpdateRollappRegression() {
-
 	goCtx := sdk.WrapSDKContext(s.Ctx)
 	rollapp := types.Rollapp{
 		RollappId:        rollappId,
