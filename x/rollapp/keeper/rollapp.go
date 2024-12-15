@@ -47,24 +47,7 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 	}
 
 	if update.GenesisInfo != nil {
-		if update.GenesisInfo.GenesisChecksum != "" {
-			current.GenesisInfo.GenesisChecksum = update.GenesisInfo.GenesisChecksum
-		}
-
-		if update.GenesisInfo.Bech32Prefix != "" {
-			current.GenesisInfo.Bech32Prefix = update.GenesisInfo.Bech32Prefix
-		}
-
-		if update.GenesisInfo.NativeDenom.Base != "" {
-			current.GenesisInfo.NativeDenom = update.GenesisInfo.NativeDenom
-		}
-
-		if !update.GenesisInfo.InitialSupply.IsNil() {
-			current.GenesisInfo.InitialSupply = update.GenesisInfo.InitialSupply
-		}
-
-		// caller should always pass new value
-		current.GenesisInfo.GenesisAccounts = update.GenesisInfo.GenesisAccounts
+		current.GenesisInfo = *update.GenesisInfo
 	}
 
 	if update.Metadata != nil && !update.Metadata.IsEmpty() {

@@ -140,16 +140,14 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			},
 		},
 		{
-			name: "Update rollapp: success - clear genesis accounts",
+			name: "Update rollapp: success - clear genesis info",
 			update: &types.MsgUpdateRollappInformation{
-				Owner:     alice,
-				RollappId: rollappId,
-				GenesisInfo: &types.GenesisInfo{
-					GenesisAccounts: &types.GenesisAccounts{},
-				},
+				Owner:       alice,
+				RollappId:   rollappId,
+				GenesisInfo: &types.GenesisInfo{},
 			},
 			mallete: func(expected *types.Rollapp) {
-				expected.GenesisInfo.GenesisAccounts = &types.GenesisAccounts{}
+				expected.GenesisInfo = types.GenesisInfo{InitialSupply: sdk.NewInt(0)}
 			},
 		},
 		{
@@ -739,6 +737,17 @@ func (s *RollappTestSuite) TestUpdateRollappRegression() {
 func (s *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	const rollappId = "rollapp_1234-1"
 
+	gInfo := types.GenesisInfo{
+		GenesisChecksum: "checksum",
+		Bech32Prefix:    "rol",
+		NativeDenom: types.DenomMetadata{
+			Display:  "DEN",
+			Base:     "aden",
+			Exponent: 18,
+		},
+		InitialSupply: sdk.NewInt(1000),
+	}
+
 	// 1. register rollapp
 	msg := types.MsgCreateRollapp{
 		RollappId:        rollappId,
@@ -747,16 +756,7 @@ func (s *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin,
 		Alias:            "default",
 		VmType:           types.Rollapp_EVM,
-		GenesisInfo: &types.GenesisInfo{
-			Bech32Prefix:    "rol",
-			GenesisChecksum: "checksum",
-			InitialSupply:   sdk.NewInt(1000),
-			NativeDenom: types.DenomMetadata{
-				Display:  "DEN",
-				Base:     "aden",
-				Exponent: 18,
-			},
-		},
+		GenesisInfo:      &gInfo,
 	}
 	s.FundForAliasRegistration(msg)
 	_, err := s.msgServer.CreateRollapp(s.Ctx, &msg)
@@ -770,11 +770,13 @@ func (s *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	initSeqPubKey := ed25519.GenPrivKey().PubKey()
 	addrInit := sdk.AccAddress(initSeqPubKey.Address()).String()
 
+	updatedgInfo := gInfo
+	updatedgInfo.GenesisChecksum = "checksum1"
 	_, err = s.msgServer.UpdateRollappInformation(s.Ctx, &types.MsgUpdateRollappInformation{
 		Owner:            alice,
 		RollappId:        rollappId,
 		InitialSequencer: addrInit,
-		GenesisInfo:      &types.GenesisInfo{GenesisChecksum: "checksum1"},
+		GenesisInfo:      &updatedgInfo,
 	})
 	s.Require().NoError(err)
 
