@@ -116,8 +116,6 @@ func (m *MsgForceGenesisInfoChange) ValidateBasic() error {
 		)
 	}
 
-	// FIXME: check if IRO exists
-
 	if !m.NewGenesisInfo.AllSet() {
 		return errorsmod.Wrapf(
 			errors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("missing fields in genesis info")),

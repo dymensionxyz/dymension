@@ -43,6 +43,20 @@ func (gi GenesisInfo) IROReady() bool {
 	return gi.AllSet() && gi.NativeDenom.IsSet()
 }
 
+// ValidateBasic performs basic validation checks on the GenesisInfo.
+// - bech32 prefix
+// - genesis checksum
+// - native denom, if set
+// - initial supply >= 0, if set
+//
+// - valid genesis accounts
+//   - no duplicates
+//   - no more than 100 genesis accounts
+//   - initial supply >= sum of genesis accounts
+//
+// - if no native denom,
+//   - initial supply must be 0
+//   - no genesis accounts
 func (gi GenesisInfo) ValidateBasic() error {
 	if gi.Bech32Prefix != "" {
 		if err := validateBech32Prefix(gi.Bech32Prefix); err != nil {
@@ -73,26 +87,33 @@ func (gi GenesisInfo) ValidateBasic() error {
 		return ErrInvalidInitialSupply
 	}
 
-	if l := len(gi.Accounts()); l > maxAllowedGenesisAccounts {
-		return fmt.Errorf("too many genesis accounts: %d", l)
-	}
-
-	total := math.ZeroInt()
-	accountSet := make(map[string]struct{})
-	for _, a := range gi.Accounts() {
-		if err := a.ValidateBasic(); err != nil {
-			return errors.Join(gerrc.ErrInvalidArgument, err)
+	numGenesisAccounts := len(gi.Accounts())
+	if numGenesisAccounts > 0 {
+		if numGenesisAccounts > maxAllowedGenesisAccounts {
+			return ErrTooManyGenesisAccounts
 		}
-		if _, exists := accountSet[a.Address]; exists {
-			return fmt.Errorf("duplicate genesis account: %s", a.Address)
+
+		if gi.InitialSupply.IsNil() {
+			return ErrInvalidInitialSupply
 		}
-		accountSet[a.Address] = struct{}{}
 
-		total = total.Add(a.Amount)
-	}
+		total := math.ZeroInt()
+		accountSet := make(map[string]struct{})
+		for _, a := range gi.Accounts() {
+			if err := a.ValidateBasic(); err != nil {
+				return errors.Join(gerrc.ErrInvalidArgument, err)
+			}
+			if _, exists := accountSet[a.Address]; exists {
+				return fmt.Errorf("duplicate genesis account: %s", a.Address)
+			}
+			accountSet[a.Address] = struct{}{}
 
-	if !total.LT(gi.InitialSupply) {
-		return ErrInvalidInitialSupply
+			total = total.Add(a.Amount)
+		}
+
+		if total.GT(gi.InitialSupply) {
+			return ErrInvalidInitialSupply
+		}
 	}
 
 	return nil

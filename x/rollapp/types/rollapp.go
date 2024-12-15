@@ -59,6 +59,23 @@ func NewRollapp(creator, rollappId, initialSequencer string, minSequencerBond sd
 	}
 }
 
+// ValidateBasic performs basic validation of the rollapp fields.
+// It returns an error if any of the following conditions are not met:
+// - Owner must be a valid bech32 address
+// - RollappId must be a valid chain ID
+// - MinSequencerBond must be valid and non-zero
+// - InitialSequencer must be a valid bech32 address
+// - GenesisInfo must pass basic validation
+// - VmType must be non-zero
+// - Metadata (if present) must be valid
+// - If rollapp is launched, GenesisInfo must be sealed
+//
+// Returns:
+//   - ErrInvalidCreatorAddress: if owner address is invalid
+//   - ErrInvalidInitialSequencer: if initial sequencer address is invalid
+//   - ErrInvalidVMType: if VM type is not set
+//   - ErrInvalidMetadata: if metadata validation fails
+//   - Other errors from GenesisInfo.ValidateBasic() or MinSeqBondCoins validation
 func (r Rollapp) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(r.Owner)
 	if err != nil {
