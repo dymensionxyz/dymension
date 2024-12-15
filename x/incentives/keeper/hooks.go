@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,7 +16,7 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochN
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	params := k.GetParams(ctx)
 	if epochIdentifier == params.DistrEpochIdentifier {
-		// begin distribution if it's start time
+		// activate gauges that have started
 		gauges := k.GetUpcomingGauges(ctx)
 		for _, gauge := range gauges {
 			if !ctx.BlockTime().Before(gauge.StartTime) {
@@ -25,12 +26,17 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 			}
 		}
 
-		// if len(gauges) > 10 {
-		// 	ctx.EventManager().IncreaseCapacity(2e6)
-		// }
+		// get active, non-perpetual gauges
+		// perpetual gauges are paid directly by the protocol (i.e streamer)
+		newGauges := make([]types.Gauge, 0, len(gauges))
+		for _, gauge := range k.GetActiveGauges(ctx) {
+			if !gauge.IsPerpetual {
+				newGauges = append(newGauges, gauge)
+			}
+		}
+		gauges = newGauges
 
 		// distribute due to epoch event
-		gauges = k.GetActiveGauges(ctx)
 		_, err := k.DistributeOnEpochEnd(ctx, gauges)
 		if err != nil {
 			return err
