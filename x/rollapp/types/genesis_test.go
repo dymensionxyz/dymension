@@ -154,6 +154,112 @@ func TestGenesisState_Validate(t *testing.T) {
 			},
 			valid: false,
 		},
+		{
+			desc: "duplicated livenessEvents",
+			genState: &types.GenesisState{
+				Params:                             types.DefaultParams(),
+				RollappList:                        []types.Rollapp{},
+				StateInfoList:                      []types.StateInfo{},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+				ObsoleteDrsVersions:                []uint32{},
+				LivenessEvents: []types.LivenessEvent{
+					{RollappId: "rollapp1"},
+					{RollappId: "rollapp1"},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "empty RollappId in RegisteredDenoms",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				RegisteredDenoms: []types.RollappRegisteredDenoms{
+					{RollappId: "", Denoms: []string{"denom1"}},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicate RollappId in RegisteredDenoms",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				RegisteredDenoms: []types.RollappRegisteredDenoms{
+					{RollappId: "rollapp1", Denoms: []string{"denom1"}},
+					{RollappId: "rollapp1", Denoms: []string{"denom2"}},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "empty Denoms list in RegisteredDenoms",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				RegisteredDenoms: []types.RollappRegisteredDenoms{
+					{RollappId: "rollapp1", Denoms: []string{}},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "empty Denom value in RegisteredDenoms",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				RegisteredDenoms: []types.RollappRegisteredDenoms{
+					{RollappId: "rollapp1", Denoms: []string{"", "denom2"}},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicate Denoms in RegisteredDenoms for the same RollappId",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				RegisteredDenoms: []types.RollappRegisteredDenoms{
+					{RollappId: "rollapp1", Denoms: []string{"denom1", "denom1"}},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "valid RegisteredDenoms entry",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				RegisteredDenoms: []types.RollappRegisteredDenoms{
+					{RollappId: "rollapp1", Denoms: []string{"denom1", "denom2"}},
+					{RollappId: "rollapp2", Denoms: []string{"denom3"}},
+				},
+			},
+			valid: true,
+		},
+		{
+			desc: "empty Sequencer field",
+			genState: &types.GenesisState{
+				SequencerHeightPairs: []types.SequencerHeightPair{
+					{Sequencer: "", Height: 10},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "zero Height field",
+			genState: &types.GenesisState{
+				SequencerHeightPairs: []types.SequencerHeightPair{
+					{Sequencer: "sequencer1", Height: 0},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicate Sequencer-Height pair",
+			genState: &types.GenesisState{
+				SequencerHeightPairs: []types.SequencerHeightPair{
+					{Sequencer: "sequencer1", Height: 10},
+					{Sequencer: "sequencer1", Height: 10},
+				},
+			},
+			valid: false,
+		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			err := tc.genState.Validate()
