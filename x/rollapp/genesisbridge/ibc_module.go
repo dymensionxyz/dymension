@@ -110,6 +110,7 @@ func (w IBCModule) OnRecvPacket(
 	// handle rollapp's denom metadata
 	var raDenomOnHUb string
 	if genesisBridgeData.GenesisInfo.NativeDenom.IsSet() {
+		// if the rollapp has a native denom, we register the denom's metadata with the IBC denom
 		trace, denom, err := genesisBridgeData.IBCDenom(ra.RollappId, ra.ChannelId)
 		if err != nil {
 			return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "genesis bridge data: to IBC denom"))
@@ -147,7 +148,7 @@ func (w IBCModule) OnRecvPacket(
 
 // EnableTransfers marks the end of the genesis bridge phase.
 // It sets the transfers enabled flag on the rollapp.
-// It also calls the after transfers enabled hook.
+// It also calls the after transfers enabled hook (used to settle IRO plans)
 func (w IBCModule) EnableTransfers(ctx sdk.Context, packet channeltypes.Packet, ra *types.Rollapp, rollappIBCtrace string) error {
 	height, err := commontypes.UnpackPacketProofHeight(ctx, packet, commontypes.RollappPacket_ON_RECV)
 	if err != nil {

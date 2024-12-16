@@ -116,7 +116,7 @@ func (m *MsgForceGenesisInfoChange) ValidateBasic() error {
 		)
 	}
 
-	if !m.NewGenesisInfo.AllSet() {
+	if !m.NewGenesisInfo.Launchable() {
 		return errorsmod.Wrapf(
 			errors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("missing fields in genesis info")),
 			"invalid genesis info",

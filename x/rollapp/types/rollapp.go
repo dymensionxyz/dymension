@@ -127,11 +127,7 @@ func (s RollappGenesisState) IsTransferEnabled() bool {
 }
 
 func (r Rollapp) AllImmutableFieldsAreSet() bool {
-	return r.InitialSequencer != "" && r.GenesisInfoFieldsAreSet() && ValidateBasicMinSeqBondCoins(r.MinSequencerBond) == nil
-}
-
-func (r Rollapp) GenesisInfoFieldsAreSet() bool {
-	return r.GenesisInfo.AllSet()
+	return r.InitialSequencer != "" && r.GenesisInfo.Launchable() && ValidateBasicMinSeqBondCoins(r.MinSequencerBond) == nil
 }
 
 func (r Rollapp) LatestRevision() Revision {

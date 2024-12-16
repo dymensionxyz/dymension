@@ -20,7 +20,7 @@ func (d GenesisBridgeData) ValidateBasic() error {
 		return errors.Wrap(err, "invalid genesis info")
 	}
 
-	// Validate metadata
+	// validate the native denom if set
 	if d.GenesisInfo.NativeDenom.IsSet() {
 		if err := d.NativeDenom.Validate(); err != nil {
 			return errors.Wrap(err, "invalid metadata")
@@ -47,7 +47,7 @@ func (d GenesisBridgeData) ValidateBasic() error {
 		}
 	}
 
-	// Validate genesis transfers
+	// Validate genesis transfers if set
 	if d.GenesisTransfer != nil {
 		if err := d.GenesisTransfer.ValidateBasic(); err != nil {
 			return errors.Wrap(err, "invalid genesis transfer")
@@ -127,7 +127,7 @@ func (i GenesisBridgeInfo) ValidateBasic() error {
 		GenesisAccounts: &GenesisAccounts{Accounts: i.GenesisAccounts},
 	}
 
-	if !raGenesisInfo.AllSet() {
+	if !raGenesisInfo.Launchable() {
 		return fmt.Errorf("missing fields in genesis bridge info")
 	}
 

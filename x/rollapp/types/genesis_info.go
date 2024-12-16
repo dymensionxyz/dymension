@@ -34,14 +34,14 @@ func (gi GenesisInfo) GenesisTransferAmount() math.Int {
 }
 
 // native denom is optional
-func (gi GenesisInfo) AllSet() bool {
+func (gi GenesisInfo) Launchable() bool {
 	return gi.GenesisChecksum != "" &&
 		gi.Bech32Prefix != "" &&
 		!gi.InitialSupply.IsNil() // can be 0, but needs to be set
 }
 
 func (gi GenesisInfo) IROReady() bool {
-	return gi.AllSet() && gi.NativeDenom.IsSet()
+	return gi.Launchable() && gi.NativeDenom.IsSet()
 }
 
 // ValidateBasic performs basic validation checks on the GenesisInfo.
@@ -69,19 +69,21 @@ func (gi GenesisInfo) ValidateBasic() error {
 		return ErrInvalidGenesisChecksum
 	}
 
-	if gi.NativeDenom.IsSet() {
-		if err := gi.NativeDenom.Validate(); err != nil {
-			return errors.Join(ErrInvalidMetadata, err)
-		}
-	} else {
-		// if native denom is not set, initial supply must be 0 and no accounts
+	// if native denom is not set, initial supply must be 0 and no accounts
+	if !gi.NativeDenom.IsSet() {
 		if !gi.InitialSupply.IsNil() && !gi.InitialSupply.IsZero() {
-			return ErrNoNativeTokenRollapp
+			return errorsmod.Wrap(ErrNoNativeTokenRollapp, "non zero initial supply")
 		}
 
 		if l := len(gi.Accounts()); l > 0 {
-			return ErrNoNativeTokenRollapp
+			return errorsmod.Wrap(ErrNoNativeTokenRollapp, "non empty genesis accounts")
 		}
+
+		return nil
+	}
+
+	if err := gi.NativeDenom.Validate(); err != nil {
+		return errors.Join(ErrInvalidMetadata, err)
 	}
 
 	if !gi.InitialSupply.IsNil() && gi.InitialSupply.IsNegative() {
@@ -121,12 +123,8 @@ func (gi GenesisInfo) ValidateBasic() error {
 }
 
 func (a GenesisAccount) ValidateBasic() error {
-	if a.Amount.IsNil() {
+	if a.Amount.IsNil() || !a.Amount.IsPositive() {
 		return fmt.Errorf("invalid amount: %s", a.Address)
-	}
-
-	if !a.Amount.IsPositive() {
-		return fmt.Errorf("invalid amount: %s %s", a.Address, a.Amount)
 	}
 
 	if _, err := sdk.AccAddressFromBech32(a.Address); err != nil {
