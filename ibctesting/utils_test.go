@@ -154,7 +154,7 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 				Base:     "aden",
 				Exponent: 18,
 			},
-			InitialSupply: sdk.NewInt(1000),
+			InitialSupply: sdk.NewInt(1_000_000_000).MulRaw(1e18),
 		},
 	)
 

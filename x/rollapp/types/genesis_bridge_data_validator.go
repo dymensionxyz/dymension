@@ -1,7 +1,6 @@
 package types
 
 import (
-	"errors"
 	"fmt"
 	"slices"
 
@@ -36,12 +35,7 @@ func (v *GenesisBridgeValidator) Validate() error {
 		return errorsmod.Wrap(err, "validate against rollapp")
 	}
 
-	err := v.rollapp.NativeDenom.Validate()
-	if err != nil {
-		return errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "metadata validate")
-	}
-
-	err = v.validateGenesisTransfer()
+	err := v.validateGenesisTransfer()
 	if err != nil {
 		return errorsmod.Wrap(err, "validate genesis transfer")
 	}
