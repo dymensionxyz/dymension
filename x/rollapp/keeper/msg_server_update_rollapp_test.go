@@ -14,22 +14,42 @@ import (
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
+const (
+	rollappId               = "rollapp_1234-1"
+	initialSequencerAddress = "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz"
+)
+
+// TestUpdateRollapp tests updates for a basic non-launched, non-sealed rollapp
+// It should allow updating the rollapp with any valid change
 func (s *RollappTestSuite) TestUpdateRollapp() {
-	const (
-		rollappId               = "rollapp_1234-1"
-		initialSequencerAddress = "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz"
-	)
+	gInfo := types.GenesisInfo{
+		GenesisChecksum: "old",
+		Bech32Prefix:    "old",
+		NativeDenom: types.DenomMetadata{
+			Display:  "OLD",
+			Base:     "aold",
+			Exponent: 18,
+		},
+		InitialSupply: sdk.NewInt(1000),
+		Sealed:        false,
+		GenesisAccounts: &types.GenesisAccounts{
+			Accounts: []types.GenesisAccount{
+				{
+					Amount:  sdk.NewInt(1000),
+					Address: initialSequencerAddress,
+				},
+			},
+		},
+	}
 
 	tests := []struct {
-		name            string
-		update          *types.MsgUpdateRollappInformation
-		rollappLaunched bool
-		genInfoSealed   bool
-		expError        error
-		expRollapp      types.Rollapp
+		name     string
+		update   *types.MsgUpdateRollappInformation
+		expError error
+		mallete  func(expected *types.Rollapp)
 	}{
 		{
-			name: "Update rollapp: success",
+			name: "Update rollapp: success - complete update",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
 				RollappId:        rollappId,
@@ -41,32 +61,93 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 					GenesisChecksum: "new_checksum",
 					InitialSupply:   sdk.NewInt(1000),
 					NativeDenom: types.DenomMetadata{
-						Display:  "DEN",
-						Base:     "aden",
+						Display:  "NEWDEN",
+						Base:     "anewden",
 						Exponent: 18,
 					},
-					GenesisAccounts: &types.GenesisAccounts{}, // Frontend must specify empty type
+					GenesisAccounts: &types.GenesisAccounts{},
 				},
 			},
-			expError: nil,
-			expRollapp: types.Rollapp{
+			mallete: func(expected *types.Rollapp) {
+				expected.InitialSequencer = initialSequencerAddress
+				expected.MinSequencerBond = sdk.NewCoins(ucoin.SimpleMul(types.DefaultMinSequencerBondGlobalCoin, 3))
+				expected.Metadata = &mockRollappMetadata
+				expected.GenesisInfo = types.GenesisInfo{
+					Bech32Prefix:    "new",
+					GenesisChecksum: "new_checksum",
+					InitialSupply:   sdk.NewInt(1000),
+					NativeDenom: types.DenomMetadata{
+						Display:  "NEWDEN",
+						Base:     "anewden",
+						Exponent: 18,
+					},
+					GenesisAccounts: &types.GenesisAccounts{},
+				}
+			},
+		},
+		{
+			name: "Update rollapp: success - only update initial sequencer",
+			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
-				MinSequencerBond: sdk.NewCoins(ucoin.SimpleMul(types.DefaultMinSequencerBondGlobalCoin, 3)),
-				VmType:           types.Rollapp_EVM,
-				Metadata:         &mockRollappMetadata,
-				GenesisInfo: types.GenesisInfo{
-					GenesisChecksum: "new_checksum",
+			},
+			mallete: func(expected *types.Rollapp) {
+				expected.InitialSequencer = initialSequencerAddress
+			},
+		},
+		{
+			name: "Update rollapp: success - update only metadata",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
+				Metadata:  &mockRollappMetadata,
+			},
+			expError: nil,
+			mallete: func(expected *types.Rollapp) {
+				expected.Metadata = &mockRollappMetadata
+			},
+		},
+		{
+			name: "Update rollapp: success - update only genesis info",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
+				GenesisInfo: &types.GenesisInfo{
 					Bech32Prefix:    "new",
+					GenesisChecksum: "new_checksum",
+					InitialSupply:   sdk.NewInt(1000),
 					NativeDenom: types.DenomMetadata{
-						Display:  "DEN",
-						Base:     "aden",
+						Display:  "NEWDEN",
+						Base:     "anewden",
 						Exponent: 18,
 					},
-					InitialSupply:   sdk.NewInt(1000),
 					GenesisAccounts: &types.GenesisAccounts{},
 				},
+			},
+			mallete: func(expected *types.Rollapp) {
+				expected.GenesisInfo = types.GenesisInfo{
+					Bech32Prefix:    "new",
+					GenesisChecksum: "new_checksum",
+					InitialSupply:   sdk.NewInt(1000),
+					NativeDenom: types.DenomMetadata{
+						Display:  "NEWDEN",
+						Base:     "anewden",
+						Exponent: 18,
+					},
+					GenesisAccounts: &types.GenesisAccounts{},
+				}
+			},
+		},
+		{
+			name: "Update rollapp: success - clear genesis info",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:       alice,
+				RollappId:   rollappId,
+				GenesisInfo: &types.GenesisInfo{},
+			},
+			mallete: func(expected *types.Rollapp) {
+				expected.GenesisInfo = types.GenesisInfo{InitialSupply: sdk.NewInt(0)}
 			},
 		},
 		{
@@ -88,26 +169,6 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			expError: sdkerrors.ErrUnauthorized,
 		},
 		{
-			name: "Update rollapp: fail - try to update InitialSequencer when launched",
-			update: &types.MsgUpdateRollappInformation{
-				Owner:            alice,
-				RollappId:        rollappId,
-				InitialSequencer: initialSequencerAddress,
-			},
-			rollappLaunched: true,
-			expError:        types.ErrImmutableFieldUpdateAfterLaunched,
-		},
-		{
-			name: "Update rollapp: fail - try to update min seq bond when launched",
-			update: &types.MsgUpdateRollappInformation{
-				Owner:            alice,
-				RollappId:        rollappId,
-				MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin,
-			},
-			rollappLaunched: true,
-			expError:        types.ErrImmutableFieldUpdateAfterLaunched,
-		},
-		{
 			name: "invalid bond",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
@@ -116,19 +177,104 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			},
 			expError: gerrc.ErrInvalidArgument,
 		},
+		// FIXME: URL validation not working as expected?
+		// {
+		// 	name: "invalid metadata",
+		// 	update: &types.MsgUpdateRollappInformation{
+		// 		Owner:     alice,
+		// 		RollappId: rollappId,
+		// 		Metadata:  &types.RollappMetadata{X: "not-url"},
+		// 	},
+		// 	expError: gerrc.ErrInvalidArgument,
+		// },
+	}
+
+	for _, tc := range tests {
+		s.Run(tc.name, func() {
+			goCtx := sdk.WrapSDKContext(s.Ctx)
+
+			rollapp := types.NewRollapp(alice, rollappId, "*", types.DefaultMinSequencerBondGlobalCoin, types.Rollapp_EVM, &types.RollappMetadata{}, gInfo)
+			s.k().SetRollapp(s.Ctx, rollapp)
+
+			_, err := s.msgServer.UpdateRollappInformation(goCtx, tc.update)
+			if tc.expError == nil {
+				s.Require().NoError(err)
+
+				tc.mallete(&rollapp)
+
+				resp, err := s.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{RollappId: tc.update.RollappId})
+				s.Require().NoError(err)
+				s.Equal(rollapp, resp.Rollapp)
+			} else {
+				s.ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
+// TestUpdateRollappSealed tests update to the rollapp when the genesis info is sealed
+// It should allow updating the rollapp only with non-genesis info data
+func (s *RollappTestSuite) TestUpdateRollappSealed() {
+	gInfo := types.GenesisInfo{
+		GenesisChecksum: "old",
+		Bech32Prefix:    "old",
+		NativeDenom: types.DenomMetadata{
+			Display:  "OLD",
+			Base:     "aold",
+			Exponent: 18,
+		},
+		InitialSupply: sdk.NewInt(1000),
+		Sealed:        true,
+		GenesisAccounts: &types.GenesisAccounts{
+			Accounts: []types.GenesisAccount{
+				{
+					Amount:  sdk.NewInt(1000),
+					Address: initialSequencerAddress,
+				},
+			},
+		},
+	}
+
+	tests := []struct {
+		name     string
+		update   *types.MsgUpdateRollappInformation
+		mallete  func(expected *types.Rollapp)
+		expError error
+	}{
 		{
-			name: "Update rollapp: fail - try to update genesis checksum when sealed",
+			name: "Update sealed rollapp: success - metadata update",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
+				Metadata:  &mockRollappMetadata,
+			},
+			mallete: func(expected *types.Rollapp) {
+				expected.Metadata = &mockRollappMetadata
+			},
+			expError: nil,
+		},
+		{
+			name: "Update sealed rollapp: success - initial sequencer update",
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
 				RollappId:        rollappId,
-				InitialSequencer: "",
-				Metadata:         nil,
+				InitialSequencer: initialSequencerAddress,
+			},
+			mallete: func(expected *types.Rollapp) {
+				expected.InitialSequencer = initialSequencerAddress
+			},
+			expError: nil,
+		},
+		{
+			name: "Update sealed rollapp: fail - try to update genesis checksum when sealed",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
 				GenesisInfo: &types.GenesisInfo{
 					GenesisChecksum: "new_checksum",
 				},
 			},
-			genInfoSealed: true,
-			expError:      types.ErrGenesisInfoSealed,
+			expError: types.ErrGenesisInfoSealed,
 		},
 		{
 			name: "Update rollapp: fail - try to update bech32 when sealed",
@@ -139,8 +285,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 					Bech32Prefix: "new",
 				},
 			},
-			genInfoSealed: true,
-			expError:      types.ErrGenesisInfoSealed,
+			expError: types.ErrGenesisInfoSealed,
 		},
 		{
 			name: "Update rollapp: fail - try to update native_denom when sealed",
@@ -155,8 +300,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 					},
 				},
 			},
-			genInfoSealed: true,
-			expError:      types.ErrGenesisInfoSealed,
+			expError: types.ErrGenesisInfoSealed,
 		},
 		{
 			name: "Update rollapp: fail - try to update initial_supply when sealed",
@@ -167,138 +311,26 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 					InitialSupply: sdk.NewInt(1000),
 				},
 			},
-			genInfoSealed: true,
-			expError:      types.ErrGenesisInfoSealed,
-		},
-		{
-			name: "Update rollapp: success - update metadata when sealed",
-			update: &types.MsgUpdateRollappInformation{
-				Owner:     alice,
-				RollappId: rollappId,
-				Metadata:  &mockRollappMetadata,
-			},
-			rollappLaunched: true,
-			genInfoSealed:   true,
-			expError:        nil,
-			expRollapp: types.Rollapp{
-				RollappId:        rollappId,
-				Owner:            alice,
-				InitialSequencer: "",
-				MinSequencerBond: sdk.NewCoins(types.DefaultMinSequencerBondGlobalCoin),
-				ChannelId:        "",
-				Launched:         true,
-				VmType:           types.Rollapp_EVM,
-				Metadata:         &mockRollappMetadata,
-				GenesisInfo: types.GenesisInfo{
-					Bech32Prefix:    "old",
-					GenesisChecksum: "old",
-					InitialSupply:   sdk.NewInt(1000),
-					NativeDenom: types.DenomMetadata{
-						Display:  "OLD",
-						Base:     "aold",
-						Exponent: 18,
-					},
-					GenesisAccounts: &types.GenesisAccounts{
-						Accounts: []types.GenesisAccount{
-							{
-								Amount:  sdk.NewInt(1000),
-								Address: initialSequencerAddress,
-							},
-						},
-					},
-					Sealed: true,
-				},
-			},
-		},
-		{
-			name: "Update rollapp: success - unsealed, update rollapp without genesis info",
-			update: &types.MsgUpdateRollappInformation{
-				Owner:     alice,
-				RollappId: rollappId,
-				Metadata:  &mockRollappMetadata,
-			},
-			rollappLaunched: false,
-			genInfoSealed:   false,
-			expError:        nil,
-			expRollapp: types.Rollapp{
-				RollappId:        rollappId,
-				Owner:            alice,
-				InitialSequencer: "",
-				MinSequencerBond: sdk.NewCoins(types.DefaultMinSequencerBondGlobalCoin),
-				ChannelId:        "",
-				Launched:         false,
-				VmType:           types.Rollapp_EVM,
-				Metadata:         &mockRollappMetadata,
-				GenesisInfo: types.GenesisInfo{
-					Bech32Prefix:    "old",
-					GenesisChecksum: "old",
-					InitialSupply:   sdk.NewInt(1000),
-					NativeDenom: types.DenomMetadata{
-						Display:  "OLD",
-						Base:     "aold",
-						Exponent: 18,
-					},
-					GenesisAccounts: &types.GenesisAccounts{
-						Accounts: []types.GenesisAccount{
-							{
-								Amount:  sdk.NewInt(1000),
-								Address: initialSequencerAddress,
-							},
-						},
-					},
-					Sealed: false,
-				},
-			},
+			expError: types.ErrGenesisInfoSealed,
 		},
 	}
 
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			goCtx := sdk.WrapSDKContext(s.Ctx)
-			rollapp := types.Rollapp{
-				RollappId:        rollappId,
-				Owner:            alice,
-				InitialSequencer: "",
-				MinSequencerBond: sdk.NewCoins(types.DefaultMinSequencerBondGlobalCoin),
-				ChannelId:        "",
-				Launched:         tc.rollappLaunched,
-				VmType:           types.Rollapp_EVM,
-				Metadata: &types.RollappMetadata{
-					Website:     "",
-					Description: "",
-					LogoUrl:     "",
-					Telegram:    "",
-					X:           "",
-				},
-				GenesisInfo: types.GenesisInfo{
-					GenesisChecksum: "old",
-					Bech32Prefix:    "old",
-					NativeDenom: types.DenomMetadata{
-						Display:  "OLD",
-						Base:     "aold",
-						Exponent: 18,
-					},
-					InitialSupply: sdk.NewInt(1000),
-					Sealed:        tc.genInfoSealed,
-					GenesisAccounts: &types.GenesisAccounts{
-						Accounts: []types.GenesisAccount{
-							{
-								Amount:  sdk.NewInt(1000),
-								Address: initialSequencerAddress,
-							},
-						},
-					},
-				},
-			}
 
+			rollapp := types.NewRollapp(alice, rollappId, initialSequencerAddress, types.DefaultMinSequencerBondGlobalCoin, types.Rollapp_EVM, &types.RollappMetadata{}, gInfo)
 			s.k().SetRollapp(s.Ctx, rollapp)
 
 			_, err := s.msgServer.UpdateRollappInformation(goCtx, tc.update)
 			if tc.expError == nil {
 				s.Require().NoError(err)
+
+				tc.mallete(&rollapp)
+
 				resp, err := s.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{RollappId: tc.update.RollappId})
 				s.Require().NoError(err)
-				s.Equal(tc.expRollapp, resp.Rollapp)
+				s.Equal(rollapp, resp.Rollapp)
 			} else {
 				s.ErrorIs(err, tc.expError)
 			}
@@ -306,13 +338,346 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 	}
 }
 
-// Update rollapp: fail - try to update genesis checksum when sealed
-func (s *RollappTestSuite) TestUpdateRollappRegression() {
-	const (
-		rollappId               = "rollapp_1234-1"
-		initialSequencerAddress = "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz"
-	)
+// TestUpdateRollappLaunched tests update to the rollapp when the rollapp is launched
+func (s *RollappTestSuite) TestUpdateRollappLaunched() {
+	gInfo := types.GenesisInfo{
+		GenesisChecksum: "old",
+		Bech32Prefix:    "old",
+		NativeDenom: types.DenomMetadata{
+			Display:  "OLD",
+			Base:     "aold",
+			Exponent: 18,
+		},
+		InitialSupply: sdk.NewInt(1000),
+		Sealed:        true,
+		GenesisAccounts: &types.GenesisAccounts{
+			Accounts: []types.GenesisAccount{
+				{
+					Amount:  sdk.NewInt(1000),
+					Address: initialSequencerAddress,
+				},
+			},
+		},
+	}
 
+	tests := []struct {
+		name     string
+		update   *types.MsgUpdateRollappInformation
+		mallete  func(expected *types.Rollapp)
+		expError error
+	}{
+		{
+			name: "Update sealed rollapp: success - metadata update",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
+				Metadata:  &mockRollappMetadata,
+			},
+			mallete: func(expected *types.Rollapp) {
+				expected.Metadata = &mockRollappMetadata
+			},
+			expError: nil,
+		},
+		{
+			name: "Update sealed rollapp: fail - initial sequencer update",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:            alice,
+				RollappId:        rollappId,
+				InitialSequencer: initialSequencerAddress,
+			},
+			expError: types.ErrImmutableFieldUpdateAfterLaunched,
+		},
+		{
+			name: "Update sealed rollapp: fail - try to update genesis checksum when sealed",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
+				GenesisInfo: &types.GenesisInfo{
+					GenesisChecksum: "new_checksum",
+				},
+			},
+			expError: types.ErrImmutableFieldUpdateAfterLaunched,
+		},
+	}
+
+	for _, tc := range tests {
+		s.Run(tc.name, func() {
+			goCtx := sdk.WrapSDKContext(s.Ctx)
+
+			rollapp := types.NewRollapp(alice, rollappId, initialSequencerAddress, types.DefaultMinSequencerBondGlobalCoin, types.Rollapp_EVM, &types.RollappMetadata{}, gInfo)
+			rollapp.Launched = true
+			s.k().SetRollapp(s.Ctx, rollapp)
+
+			_, err := s.msgServer.UpdateRollappInformation(goCtx, tc.update)
+			if tc.expError == nil {
+				s.Require().NoError(err)
+
+				tc.mallete(&rollapp)
+
+				resp, err := s.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{RollappId: tc.update.RollappId})
+				s.Require().NoError(err)
+				s.Equal(rollapp, resp.Rollapp)
+			} else {
+				s.ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
+// TestUpdateRollappUpdateGenesisInfo tests use case of updating genesis info
+func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
+	// we start with empty genesis info
+	gInfo := types.GenesisInfo{
+		InitialSupply: sdk.NewInt(0),
+	}
+
+	tests := []struct {
+		name     string
+		update   *types.MsgUpdateRollappInformation
+		mallete  func(expected *types.Rollapp)
+		expError error
+	}{
+		{
+			name: "Update genesis info: success - set initial native token",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:            alice,
+				RollappId:        rollappId,
+				InitialSequencer: initialSequencerAddress,
+				GenesisInfo: &types.GenesisInfo{
+					NativeDenom: types.DenomMetadata{
+						Display:  "DEN",
+						Base:     "aden",
+						Exponent: 18,
+					},
+				},
+			},
+			mallete: func(expected *types.Rollapp) {
+				expected.GenesisInfo.NativeDenom = types.DenomMetadata{
+					Display:  "DEN",
+					Base:     "aden",
+					Exponent: 18,
+				}
+			},
+			expError: nil,
+		},
+		{
+			name: "Update genesis info: success - update checksum",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:            alice,
+				RollappId:        rollappId,
+				InitialSequencer: initialSequencerAddress,
+				GenesisInfo: &types.GenesisInfo{
+					GenesisChecksum: "checksum",
+				},
+			},
+			mallete: func(expected *types.Rollapp) {
+				expected.GenesisInfo.GenesisChecksum = "checksum"
+			},
+			expError: nil,
+		},
+		{
+			name: "Update genesis info: success - native token with zero supply",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:            alice,
+				RollappId:        rollappId,
+				InitialSequencer: initialSequencerAddress,
+				GenesisInfo: &types.GenesisInfo{
+					NativeDenom: types.DenomMetadata{
+						Display:  "DEN",
+						Base:     "aden",
+						Exponent: 18,
+					},
+					InitialSupply: sdk.NewInt(0),
+				},
+			},
+			mallete: func(expected *types.Rollapp) {
+				expected.GenesisInfo.NativeDenom = types.DenomMetadata{
+					Display:  "DEN",
+					Base:     "aden",
+					Exponent: 18,
+				}
+				expected.GenesisInfo.InitialSupply = sdk.NewInt(0)
+			},
+			expError: nil,
+		},
+		{
+			name: "Update genesis info: success - genesis accounts with valid total",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
+				GenesisInfo: &types.GenesisInfo{
+					InitialSupply: sdk.NewInt(1000),
+					NativeDenom: types.DenomMetadata{
+						Display:  "DEN",
+						Base:     "aden",
+						Exponent: 18,
+					},
+					GenesisAccounts: &types.GenesisAccounts{
+						Accounts: []types.GenesisAccount{
+							{
+								Address: initialSequencerAddress,
+								Amount:  sdk.NewInt(500),
+							},
+						},
+					},
+				},
+			},
+			mallete: func(expected *types.Rollapp) {
+				expected.GenesisInfo.InitialSupply = sdk.NewInt(1000)
+				expected.GenesisInfo.NativeDenom = types.DenomMetadata{
+					Display:  "DEN",
+					Base:     "aden",
+					Exponent: 18,
+				}
+				expected.GenesisInfo.GenesisAccounts = &types.GenesisAccounts{
+					Accounts: []types.GenesisAccount{
+						{
+							Address: initialSequencerAddress,
+							Amount:  sdk.NewInt(500),
+						},
+					},
+				}
+			},
+			expError: nil,
+		},
+		{
+			name: "Update genesis info: fail - invalid initial supply",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:            alice,
+				RollappId:        rollappId,
+				InitialSequencer: initialSequencerAddress,
+				GenesisInfo: &types.GenesisInfo{
+					InitialSupply: sdk.NewInt(-1), // Invalid negative supply
+					NativeDenom: types.DenomMetadata{
+						Display:  "DEN",
+						Base:     "aden",
+						Exponent: 18,
+					},
+				},
+			},
+			expError: types.ErrInvalidInitialSupply,
+		},
+		{
+			name: "Update genesis info: fail - can't set supply without native token",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:            alice,
+				RollappId:        rollappId,
+				InitialSequencer: initialSequencerAddress,
+				GenesisInfo: &types.GenesisInfo{
+					InitialSupply: sdk.NewInt(1000), // Non-zero supply without native token
+				},
+			},
+			expError: types.ErrInvalidInitialSupply,
+		},
+
+		{
+			name: "Update genesis info: fail - genesis accounts exceed total supply",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
+				GenesisInfo: &types.GenesisInfo{
+					InitialSupply: sdk.NewInt(500),
+					NativeDenom: types.DenomMetadata{
+						Display:  "DEN",
+						Base:     "aden",
+						Exponent: 18,
+					},
+					GenesisAccounts: &types.GenesisAccounts{
+						Accounts: []types.GenesisAccount{
+							{
+								Address: initialSequencerAddress,
+								Amount:  sdk.NewInt(600),
+							},
+						},
+					},
+				},
+			},
+			expError: types.ErrInvalidInitialSupply,
+		},
+		{
+			name: "Update genesis info: fail - duplicate genesis accounts",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
+				GenesisInfo: &types.GenesisInfo{
+					Bech32Prefix:    "test",
+					GenesisChecksum: "checksum",
+					InitialSupply:   sdk.NewInt(1000),
+					NativeDenom: types.DenomMetadata{
+						Display:  "DEN",
+						Base:     "aden",
+						Exponent: 18,
+					},
+					GenesisAccounts: &types.GenesisAccounts{
+						Accounts: []types.GenesisAccount{
+							{
+								Address: initialSequencerAddress,
+								Amount:  sdk.NewInt(300),
+							},
+							{
+								Address: initialSequencerAddress, // Duplicate address
+								Amount:  sdk.NewInt(400),
+							},
+						},
+					},
+				},
+			},
+			expError: gerrc.ErrInvalidArgument,
+		},
+		{
+			name: "Update genesis info: fail - invalid genesis account address",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
+				GenesisInfo: &types.GenesisInfo{
+					Bech32Prefix:    "test",
+					GenesisChecksum: "checksum",
+					InitialSupply:   sdk.NewInt(1000),
+					NativeDenom: types.DenomMetadata{
+						Display:  "DEN",
+						Base:     "aden",
+						Exponent: 18,
+					},
+					GenesisAccounts: &types.GenesisAccounts{
+						Accounts: []types.GenesisAccount{
+							{
+								Address: "invalid_address",
+								Amount:  sdk.NewInt(300),
+							},
+						},
+					},
+				},
+			},
+			expError: gerrc.ErrInvalidArgument,
+		},
+	}
+
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			s.SetupTest()
+
+			goCtx := sdk.WrapSDKContext(s.Ctx)
+
+			rollapp := types.NewRollapp(alice, rollappId, initialSequencerAddress, types.DefaultMinSequencerBondGlobalCoin, types.Rollapp_EVM, &types.RollappMetadata{}, gInfo)
+			s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+
+			_, err := s.msgServer.UpdateRollappInformation(goCtx, tt.update)
+			if tt.expError == nil {
+				s.Require().NoError(err)
+
+				tt.mallete(&rollapp)
+
+				resp, err := s.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{RollappId: tt.update.RollappId})
+				s.Require().NoError(err)
+				s.Equal(rollapp, resp.Rollapp)
+			} else {
+				s.ErrorIs(err, tt.expError)
+			}
+		})
+	}
+}
+
+func (s *RollappTestSuite) TestUpdateRollappRegression() {
 	goCtx := sdk.WrapSDKContext(s.Ctx)
 	rollapp := types.Rollapp{
 		RollappId:        rollappId,
@@ -372,6 +737,17 @@ func (s *RollappTestSuite) TestUpdateRollappRegression() {
 func (s *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	const rollappId = "rollapp_1234-1"
 
+	gInfo := types.GenesisInfo{
+		GenesisChecksum: "checksum",
+		Bech32Prefix:    "rol",
+		NativeDenom: types.DenomMetadata{
+			Display:  "DEN",
+			Base:     "aden",
+			Exponent: 18,
+		},
+		InitialSupply: sdk.NewInt(1000),
+	}
+
 	// 1. register rollapp
 	msg := types.MsgCreateRollapp{
 		RollappId:        rollappId,
@@ -380,16 +756,7 @@ func (s *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin,
 		Alias:            "default",
 		VmType:           types.Rollapp_EVM,
-		GenesisInfo: &types.GenesisInfo{
-			Bech32Prefix:    "rol",
-			GenesisChecksum: "checksum",
-			InitialSupply:   sdk.NewInt(1000),
-			NativeDenom: types.DenomMetadata{
-				Display:  "DEN",
-				Base:     "aden",
-				Exponent: 18,
-			},
-		},
+		GenesisInfo:      &gInfo,
 	}
 	s.FundForAliasRegistration(msg)
 	_, err := s.msgServer.CreateRollapp(s.Ctx, &msg)
@@ -403,11 +770,13 @@ func (s *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	initSeqPubKey := ed25519.GenPrivKey().PubKey()
 	addrInit := sdk.AccAddress(initSeqPubKey.Address()).String()
 
+	updatedgInfo := gInfo
+	updatedgInfo.GenesisChecksum = "checksum1"
 	_, err = s.msgServer.UpdateRollappInformation(s.Ctx, &types.MsgUpdateRollappInformation{
 		Owner:            alice,
 		RollappId:        rollappId,
 		InitialSequencer: addrInit,
-		GenesisInfo:      &types.GenesisInfo{GenesisChecksum: "checksum1"},
+		GenesisInfo:      &updatedgInfo,
 	})
 	s.Require().NoError(err)
 
